@@ -90,6 +90,10 @@ $ npm run lint
 extension and also supports WebGL 2.0 devices. For platforms without WebGL,
 we provide CPU fallbacks.
 
+However, currently our demos do not support Mobile, Firefox, and Safari. Please
+view them on desktop Chrome for now. We are working to support more devices.
+Check back soon!
+
 ## Resources
 
 * [Tutorials](docs/tutorials/index.md)
