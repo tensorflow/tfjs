@@ -16,11 +16,15 @@ limitations under the License.
 import {NDArrayMathGPU} from '../deeplearnjs';
 import {ActivationFunction, ColorMode, CPPN} from '../nn-art/cppn';
 
+const inferenceCanvas =
+    document.querySelector('#inference') as HTMLCanvasElement;
+
 try {
   const math = new NDArrayMathGPU();
   startCPPN();
 } catch (e) {
   document.getElementById('disabled-demo-overlay').style.display = '';
+  inferenceCanvas.style.display = 'none';
 }
 
 function startCPPN() {
@@ -30,8 +34,7 @@ function startCPPN() {
   const DEFAULT_NUM_LAYERS = 2;
   const WEIGHTS_STDEV = 0.6;
 
-  const inferenceCanvas =
-      document.querySelector('#inference') as HTMLCanvasElement;
+
   const cppn = new CPPN(inferenceCanvas);
 
   cppn.setActivationFunction('tanh');
