@@ -48,10 +48,9 @@ p {
 }
 .banner-cover {
   position: relative;
-  background: #466368;
-  background: -webkit-linear-gradient(#c4c4c4, #293f50);
-  background: -moz-linear-gradient(#c4c4c4, #293f50);
-  background: linear-gradient(#c4c4c4, #293f50);
+  background: -webkit-linear-gradient(#eeede2, #a3d5bc, #6ab8b5, #42737f);
+  background: -moz-linear-gradient(#eeede2, #a3d5bc, #6ab8b5, #42737f);
+  background:  linear-gradient(#eeede2, #a3d5bc, #6ab8b5, #42737f);
 }
 .banner-text {
   color:#fff;
