@@ -228,19 +228,19 @@ ul.index {
 }
 
 #model-builder {
-  background: url('/demos/images/model-builder.png') center / cover;
+  background: url('../demos/images/model-builder.png') center / cover;
 }
 
 #webcam {
-  background: url('/demos/images/imagenet.png') center / cover;
+  background: url('../demos/images/imagenet.png') center / cover;
 }
 
 #nnart {
-  background: url('/demos/images/nn-art.png') center / cover;
+  background: url('../demos/images/nn-art.png') center / cover;
 }
 
 #benchmarks {
-  background: url('/demos/images/benchmark.png') center / cover;
+  background: url('../demos/images/benchmark.png') center / cover;
 }
 
 .demo-card .mdl-card__title-text {
