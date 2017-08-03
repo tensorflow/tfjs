@@ -3,3 +3,4 @@ demos/**/*.js
 demos/**/*.js.map
 coverage/
 bower_components/
+index.ts
