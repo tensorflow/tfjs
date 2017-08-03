@@ -11,5 +11,6 @@
   "tslint.run": "onType",
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
-  "files.insertFinalNewline": true
+  "files.insertFinalNewline": true,
+  "editor.detectIndentation": false
 }

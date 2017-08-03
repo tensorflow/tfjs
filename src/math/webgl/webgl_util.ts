@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-let USE_WEBGL2_WHEN_AVAILABLE = false;
+let USE_WEBGL2_WHEN_AVAILABLE = true;
 let WEBGL2_ENABLED: boolean|undefined = null!;
 let MAX_TEXTURE_SIZE: number = null!;
 
@@ -52,7 +52,7 @@ export function createWebGLRenderingContext(attributes: WebGLContextAttributes):
  */
 export function preferWebGL1() {
   USE_WEBGL2_WHEN_AVAILABLE = false;
-  WEBGL2_ENABLED = undefined;
+  WEBGL2_ENABLED = null;
 }
 
 /**
@@ -60,7 +60,7 @@ export function preferWebGL1() {
  */
 export function preferWebGL2() {
   USE_WEBGL2_WHEN_AVAILABLE = true;
-  WEBGL2_ENABLED = undefined;
+  WEBGL2_ENABLED = null;
 }
 
 export function isWebGL2Enabled() {
@@ -68,7 +68,7 @@ export function isWebGL2Enabled() {
     return false;
   }
 
-  if (WEBGL2_ENABLED === undefined) {
+  if (WEBGL2_ENABLED == null) {
     const tempCanvas = document.createElement('canvas');
     const gl = tempCanvas.getContext('webgl2');
     if (gl != null) {

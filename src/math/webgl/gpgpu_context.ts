@@ -162,10 +162,7 @@ export class GPGPUContext {
     if (this.autoDebugValidate) {
       webgl_util.validateProgram(gl, program);
     }
-    webgl_util.callAndCheck(gl, () => gl.detachShader(program, vertexShader));
-    webgl_util.callAndCheck(gl, () => gl.deleteShader(vertexShader));
-    webgl_util.callAndCheck(gl, () => gl.detachShader(program, fragmentShader));
-    webgl_util.callAndCheck(gl, () => gl.deleteShader(fragmentShader));
+
     return program;
   }
 

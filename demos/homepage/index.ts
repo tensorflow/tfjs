@@ -75,7 +75,7 @@ function startCPPN() {
       document.querySelector('#layers-count') as HTMLDivElement;
   layersSlider!.addEventListener('input', (event) => {
     // tslint:disable-next-line:no-any
-    const numLayers = (event as any).target.value;
+    const numLayers = parseInt((event as any).target.value, 10);
     layersCountElement.innerText = '' + numLayers;
     cppn.setNumLayers(numLayers);
   });
@@ -84,14 +84,14 @@ function startCPPN() {
   const z1Slider = document.querySelector('#z1-slider') as HTMLInputElement;
   z1Slider.addEventListener('input', (event) => {
     // tslint:disable-next-line:no-any
-    const z1Scale = (event as any).target.value;
+    const z1Scale = parseInt((event as any).target.value, 10);
     cppn.setZ1Scale(convertZScale(z1Scale));
   });
 
   const z2Slider = document.querySelector('#z2-slider') as HTMLInputElement;
   z2Slider.addEventListener('input', (event) => {
     // tslint:disable-next-line:no-any
-    const z2Scale = (event as any).target.value;
+    const z2Scale = parseInt((event as any).target.value, 10);
     cppn.setZ2Scale(convertZScale(z2Scale));
   });
 

@@ -27,15 +27,15 @@ const CANVAS_UPSCALE_FACTOR = 3;
 const NUM_IMAGE_SPACE_VARIABLES = 3;  // x, y, r
 const NUM_LATENT_VARIABLES = 2;
 
-const MAX_NUM_LAYERS = 15;
+const MAX_NUM_LAYERS = 7;
 const MAT_WIDTH = 30;
 // Standard deviations for gaussian weight initialization.
 const WEIGHTS_STDEV = .6;
 
 // tslint:disable-next-line:variable-name
-export const NNArtPolymer = PolymerElement({is: 'nn-art', properties: {}});
+const NNArtPolymer = PolymerElement({is: 'nn-art', properties: {}});
 
-export class NNArt extends NNArtPolymer {
+class NNArt extends NNArtPolymer {
   private cppn: CPPN;
 
   private inferenceCanvas: HTMLCanvasElement;
@@ -47,7 +47,6 @@ export class NNArt extends NNArtPolymer {
   ready() {
     this.inferenceCanvas =
         this.querySelector('#inference') as HTMLCanvasElement;
-
     this.cppn = new CPPN(this.inferenceCanvas);
 
     this.inferenceCanvas.style.width =
@@ -87,30 +86,30 @@ export class NNArt extends NNArtPolymer {
         this.querySelector('#layers-count') as HTMLDivElement;
     layersSlider!.addEventListener('input', (event) => {
       // tslint:disable-next-line:no-any
-      this.numLayers = (event as any).target.value;
+      this.numLayers = parseInt((event as any).target.value, 10);
       layersCountElement.innerText = '' + this.numLayers;
       this.cppn.setNumLayers(this.numLayers);
     });
-    this.numLayers = +layersSlider.value;
+    this.numLayers = parseInt(layersSlider.value, 10);
     layersCountElement.innerText = '' + this.numLayers;
     this.cppn.setNumLayers(this.numLayers);
 
     const z1Slider = this.querySelector('#z1-slider') as HTMLInputElement;
     z1Slider.addEventListener('input', (event) => {
       // tslint:disable-next-line:no-any
-      this.z1Scale = (event as any).target.value;
+      this.z1Scale = parseInt((event as any).target.value, 10);
       this.cppn.setZ1Scale(this.z1Scale);
     });
-    this.z1Scale = +z1Slider.value;
+    this.z1Scale = parseInt(z1Slider.value, 10);
     this.cppn.setZ1Scale(this.z1Scale);
 
     const z2Slider = this.querySelector('#z2-slider') as HTMLInputElement;
     z2Slider.addEventListener('input', (event) => {
       // tslint:disable-next-line:no-any
-      this.z2Scale = (event as any).target.value;
+      this.z2Scale = parseInt((event as any).target.value, 10);
       this.cppn.setZ2Scale(this.z1Scale);
     });
-    this.z2Scale = +z2Slider.value;
+    this.z2Scale = parseInt(z2Slider.value, 10);
     this.cppn.setZ2Scale(this.z2Scale);
 
     const randomizeButton = this.querySelector('#random') as HTMLButtonElement;
