@@ -1,0 +1,135 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<style>
+#model-layer-container {
+  display: flex;
+}
+#layer-container {
+  border: 1px solid #ccc;
+  border-radius: 7px;
+  display: table-cell;
+  padding: 10px;
+  text-align: center;
+  width: 337px;
+}
+#layer-container > div {
+  padding: 0 12px;
+}
+#error-container {
+  background-color: #fbb;
+  text-align: left;
+  padding: 5px;
+}
+.param-container {
+  margin: 0 auto;
+}
+.param-input {
+  display: inline-block;
+  margin-left: 10px;
+}
+.error-message {
+  padding: 12px;
+}
+#input-shape, #output-shape {
+  text-align: left;
+  font-size: 12px;
+}
+#layer-top-bar, #layer-bottom-bar {
+  position: relative;
+}
+
+#layer-top-bar {
+  margin-bottom: 24px;
+}
+
+#layer-bottom-bar {
+  margin-top: 24px;
+}
+
+#remove-layer, #input-shape {
+  position: absolute;
+}
+#remove-layer {
+  font-size: 12px;
+  right: -6px;
+  top: -6px;
+}
+#input-shape {
+  top: 4px;
+  left: 4px;
+}
+#output-shape {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+}
+paper-icon-button {
+  border-radius: 50%;
+}
+
+paper-icon-button[active] {
+  color: white;
+  background-color: #880E4F;
+}
+</style>
+<dom-module id="model-layer">
+<template>
+<div id="model-layer-container">
+  <div id="layer-container">
+
+    <div id="layer-top-bar">
+      <div id="input-shape">[[inputShapeDisplay]]</div>
+      <div id="remove-layer" hidden$="[[isStatic]]">
+        <paper-icon-button icon="clear"></paper-icon-button>
+      </div>
+    </div>
+
+    <div hidden$="[[!isStatic]]">
+      <div id="layer-name">[[layerName]]</div>
+    </div>
+
+    <div hidden$="[[isStatic]]">
+      <paper-dropdown-menu no-animations label="Op type">
+        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedLayerName}}" slot="dropdown-content">
+          <template is="dom-repeat" items="[[layerNames]]">
+            <paper-item value="[[item]]" label="[[item]]">
+              [[item]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <div class="param-container"></div>
+    </div>
+
+    <div id="error-container" hidden$="[[!hasError]]">
+      <ul>
+      <template is="dom-repeat" items="[[errorMessages]]">
+          <li class="error-message">[[item]]</li>
+      </template>
+      </ul>
+    </div>
+    <div id="layer-bottom-bar">
+      <div id="output-shape">[[outputShapeDisplay]]</div>
+    </div>
+  </div>
+</div>
+</template>
+</dom-module>

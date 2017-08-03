@@ -1,0 +1,114 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+
+<dom-module id="imagenet-demo">
+<style>
+  #inputContainer {
+    margin: 0 auto;
+    width: 800px;
+  }
+  #activationsContainer, #webcam-message, #ssl-message {
+    text-align: center;
+  }
+  #webcam-message, #ssl-message {
+    background-color: #fbb;
+    outline: 1px solid rgb(100, 0, 0);
+    width: 904px;
+    padding: 5px 0;
+    margin: 10px auto;
+  }
+  #imgContainer, #className {
+    display: table-cell;
+    vertical-align: top;
+  }
+  #className {
+    padding-top: 40px;
+  }
+  #inference-canvas {
+    width: 800px;
+  }
+</style>
+<template>
+  <div id="container"></div>
+
+  <div id="inputContainer">
+    <paper-dropdown-menu no-animations label="Input">
+      <paper-listbox attr-for-selected="value" id="input-dropdown" class="dropdown-content" selected="{{selectedInputName}}" slot="dropdown-content">
+        <template is="dom-repeat" items="[[inputNames]]">
+          <paper-item value="[[item]]" label="[[item]]">
+            [[item]]
+          </paper-item>
+        </template>
+      </paper-listbox>
+    </paper-dropdown-menu>
+    <div id="imgContainer">
+      <video autoplay="true" id="webcamVideo" width="227" height="227"></video>
+      <img id="staticImg" style="display: none"/>
+    </div>
+
+    <div id="className" style="font-size: 20px">
+      <table>
+        <tr>
+          <td id="class0" style="width: 400px"></td>
+          <td id="prob0"></td>
+        </tr>
+        <tr>
+          <td id="class1"></td>
+          <td id="prob1"></td>
+        </tr>
+        <tr>
+          <td id="class2"></td>
+          <td id="prob2"></td>
+        </tr>
+        <tr>
+          <td id="class3"></td>
+          <td id="prob3"></td>
+        </tr>
+        <tr>
+          <td id="class4"></td>
+          <td id="prob4"></td>
+        </tr>
+      </table>
+      <div id="totalTime" style="font-size: 10px"></div>
+
+    </div>
+  </div>
+  <div id="ssl-message" style="display: none">
+    You must be visting this page via SSL to see the webcam demo.<br>
+    To get around this temporarily, start chrome with <pre>--unsafely-treat-insecure-origin-as-secure=http://your.domain:5432/</pre>
+  </div>
+  <div id="webcam-message" style="display: none">
+    We could not find a webcam, attach one to view the full demo!
+  </div>
+  <div id="activationsContainer">
+    <div class="activations-text">
+      <paper-dropdown-menu no-animations label="Layer">
+        <paper-listbox attr-for-selected="value" id="layer-dropdown" class="dropdown-content" selected="{{selectedLayerName}}" slot="dropdown-content">
+          <template is="dom-repeat" items="[[layerNames]]">
+            <paper-item value="[[item]]" label="[[item]]">
+              [[item]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+    </div>
+    <canvas id="inference-canvas"></canvas>
+  </div>
+</template>
+</dom-module>

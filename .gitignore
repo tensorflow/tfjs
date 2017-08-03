@@ -1,0 +1,5 @@
+node_modules/
+demos/**/*.js
+demos/**/*.js.map
+coverage/
+bower_components/

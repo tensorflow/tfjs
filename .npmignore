@@ -1,0 +1,9 @@
+demos/
+dist/demos/
+dist/**/*.js.map
+docs/
+scripts/
+src/
+coverage/
+bower_components/
+node_modules/

@@ -1,0 +1,345 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
+<link rel="import" href="model-layer.html">
+<link rel="import" href="../ndarray-image-visualizer.html">
+<link rel="import" href="../ndarray-logits-visualizer.html">
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="../../bower_components/paper-dialog-scrollable/paper-dialog-scrollable.html">
+<link rel="import" href="../../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-tooltip/paper-tooltip.html">
+
+<style>
+#button-container {
+  width: 400px;
+  margin-top: 15px;
+}
+#dataset {
+  background: #fafafa;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  min-width: 230px;
+  width: 230px;
+  position: relative;
+}
+.dataset-dropdown-container {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+.dataset-stats {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+.data-stats-label {
+  font-size: 15px;
+  font-weight: bold;
+}
+.data-stats {
+  margin-top: 10px;
+}
+#inference {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  flex-grow: 2;
+  position: relative;
+}
+#inference-container {
+  margin-top: 15px;
+}
+#inference > div {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.inference-example {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 30px;
+}
+
+.inference-example > * {
+  display: table-cell;
+  vertical-align: middle;
+}
+ndarray-image-visualizer {
+ flex-basis: 100px;
+}
+ndarray-logits-visualizer {
+ flex-grow: 1;
+}
+.ink-panel {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+.layer {
+  display: inline-block;
+  margin-top: 10px;
+}
+#layers {
+  width: 400px;
+}
+#model-builder-container {
+  display: flex;
+  width: 100%;
+}
+#model {
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  width: 400px;
+  position: relative;
+}
+#model  > div {
+  padding-left: 15px;
+}
+.panel-content {
+  padding-top: 15px;
+}
+paper-progress {
+  --paper-progress-indeterminate-cycle-duration: 20s;
+}
+.scrollable-container {
+  margin-top: 0;
+  min-width: 400px;
+}
+.stat {
+  display: table-row;
+}
+
+.stat-label, .stat-value {
+  display: table-cell;
+  padding: 5px 15px 5px 0;
+}
+.subtitle {
+  font-size: 15px;
+  font-weight: bold;
+}
+.title {
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  color: black;
+  display: flex;
+  font-weight: 500;
+  height: 59px;
+  min-height: 65px;
+  padding-top: 5px;
+  padding-left: 20px;
+  text-transform: uppercase;
+}
+#train-stats {
+  width: 350px;
+}
+#train-stats > div {
+  padding-left: 15px;
+}
+.two-way-toggle {
+  display: flex;
+  flex-direction: row;
+}
+.two-way-toggle span {
+  padding-top: 3px;
+  padding-right: 7px;
+}
+#upload-download-container {
+  padding-top: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+.examples-sec {
+  font-size: 22px;
+}
+
+.header {
+  border-bottom: solid .5px #666666;
+  height: 56px;
+  background: slategray;
+  color: #eaeaea;
+  z-index: 999;
+  font-weight: 500;
+  font-size: 22px;
+  padding-left: 12px;
+  line-height: 56px;
+}
+
+.train-button-container {
+  margin: 12px 0;
+}
+
+.model-error {
+  padding: 12px 0;
+  color: #b80000;
+  font-style: italic;
+}
+
+.model-error-info {
+  margin-left: -8px;
+}
+
+#dataset > div {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+.progress-container {
+  padding: 0 !important;
+}
+.progress-container paper-progress {
+  width: auto;
+}
+.invalid-model {
+  display: inline-block;
+}
+.inference-stats-message, .train-stats-message  {
+  line-height: 1.67em;
+}
+
+.button {
+  background-color: #a5d6a7;
+}
+
+</style>
+<dom-module id="model-builder">
+<template>
+<div id="model-builder-container">
+  <div id="dataset" class="ink-panel">
+    <div class="title">DATA</div>
+    <div class="dataset-dropdown-container">
+      <paper-dropdown-menu no-animations label="Dataset" id="dataset-dropdown" disabled="[[!datasetDownloaded]]">
+        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedDatasetName}}" slot="dropdown-content">
+          <template is="dom-repeat" items="[[datasetNames]]">
+            <paper-item value="[[item]]" label="[[item]]">
+              [[item]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+
+      <paper-dropdown-menu no-animations label="Model" id="model-dropdown" disabled="[[!datasetDownloaded]]">
+        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedModelName}}" slot="dropdown-content">
+          <template is="dom-repeat" items="[[modelNames]]">
+            <paper-item value="[[item]]" label="[[item]]">
+              [[item]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <div hidden$="[[isValid]]" class="model-error">
+        <div hidden$="[[!datasetDownloaded]]"">
+          <paper-tooltip animation-delay="0" fit-to-visible-bounds>
+            Make sure your shapes flow!"
+          </paper-tooltip>
+          <paper-icon-button icon="info-outline" class="model-error-info"></paper-icon-button>
+          <div class="invalid-model">Invalid model</div>
+        </div>
+      </div>
+      <div class="train-button-container" hidden$="[[!isValid]]">
+        <paper-button class="button" hidden$="[[!datasetDownloaded]]" raised id="train">Train</paper-button>
+        <paper-button class="button" hidden$="[[!isTraining(applicationState)]]" raised id="stop">Stop</paper-button>
+      </div>
+    </div>
+    <div class="progress-container" hidden$="[[datasetDownloaded]]">
+      <paper-progress indeterminate disabled="[[datasetDownloaded]]"></paper-progress>
+    </div>
+    <div class="dataset-stats" hidden$="[[!showDatasetStats]]">
+      <paper-dropdown-menu no-animations label="Normalization" id="normalization-dropdown" hidden$="[[!datasetDownloaded]]">
+        <paper-listbox class="dropdown-content" selected="[[selectedNormalizationOption]]" slot="dropdown-content">
+          <paper-item>[-1, 1]</paper-item>
+          <paper-item>[0, 1]</paper-item>
+          <paper-item>None</paper-item>
+      </paper-dropdown-menu>
+      <div class="train-stats data-stats">
+        <div class="data-stats-label">Statistics</div>
+        <div class="stat">
+          <div class="stat-label">Examples</div>
+          <div class="stat-value">[[statsExampleCount]]</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Input shape</div>
+          <div class="stat-value">[[statsInputShapeDisplay]]</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Label shape</div>
+          <div class="stat-value">[[statsLabelShapeDisplay]]</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Pixel range</div>
+          <div class="stat-value">[[statsInputRange]]</div>
+        </div>
+      </div>
+    </div>
+    <div class="title">SAVE</div>
+    <div id="upload-download-container">
+      <paper-icon-button icon="file-download" id="download-model" title="Download model"></paper-icon-button>
+      Download model
+      <br>
+      <paper-icon-button icon="file-upload" id="upload-model" title="Upload model"></paper-icon-button>
+      Upload model
+
+      <paper-button raised id="upload-weights" hidden$="[[!isValid]]" style="display: none">Upload weights</paper-button>
+
+      <input type="file" id="model-file" name="model-file" style="display:none"/>
+      <input type="file" id="weights-file" name="weights-file" style="display:none"/>
+    </div>
+  </div>
+  <div id="model" class="ink-panel">
+    <div class="title">MODEL</div>
+    <div class="panel-content">
+      <div class="two-way-toggle">
+        <span>Environment: CPU</span>
+        <paper-toggle-button id="environment-toggle" checked>GPU</paper-toggle-button>
+      </div>
+      <div id="layers">
+        <model-layer class="layer" id="input-layer" layer-name="Input Image" is-static></model-layer>
+        <div id="hidden-layers"></div>
+        <model-layer class="layer" id="cost-layer" layer-name="Softmax Cross-Entropy" is-static></model-layer>
+        <model-layer class="layer" id="output-layer" layer-name="Label" is-static></model-layer>
+      </div>
+      <div id="button-container">
+        <paper-button class="button" raised id="add-layer">Add a layer</paper-button><br>
+      </div>
+    </div>
+  </div>
+  <div id="inference" class="ink-panel">
+    <div class="title">INFERENCE</div>
+    <div class="panel-content" hidden$="[[!isValid]]">
+      <div class="examples-sec inference-stats-message">Inferences/sec: [[inferencesPerSec]]</div>
+      <div class="inference-stats-message">Inference duration: [[inferenceDuration]]ms</div>
+      <div id="inference-container"></div>
+    </div>
+  </div>
+  <div id="train-stats" class="ink-panel">
+    <div class="title">TRAIN STATS</div>
+    <div class="panel-content">
+      <div hidden$="[[!showTrainStats]]">
+        <div class="examples-sec train-stats-message">Examples/sec: [[examplesPerSec]]</div>
+        <div class="train-stats-message">Examples trained: [[examplesTrained]]</div>
+        <div class="train-stats-message">Total time: [[totalTimeSec]] sec.</div>
+        <div class="chart-container">
+          <canvas id="cost-chart" width="300" height="225"></canvas>
+          <br>
+          <canvas id="accuracy-chart" width="300" height="225"></canvas>
+          <br>
+          <canvas id="examplespersec-chart" width="300" height="225"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+</dom-module>

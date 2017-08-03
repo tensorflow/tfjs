@@ -1,0 +1,43 @@
+{
+  "MNIST": {
+    "data": [{
+      "name": "images",
+      "path": "https://storage.googleapis.com/learnjs-data/model-builder/mnist_images.png",
+      "dataType": "png",
+      "shape": [28, 28, 1]
+    }, {
+      "name": "labels",
+      "path": "https://storage.googleapis.com/learnjs-data/model-builder/mnist_labels_uint8",
+      "dataType": "uint8",
+      "shape": [10]
+    }],
+    "modelConfigs": {
+      "Fully connected": {
+        "name": "Fully connected",
+        "path": "mnist-fully-connected.json"
+      },
+      "Convolutional": {
+        "path": "mnist-conv.json"
+      }
+    }
+  },
+  "CIFAR 10": {
+    "data": [{
+      "name": "images",
+      "path": "https://storage.googleapis.com/learnjs-data/model-builder/cifar10_images.png",
+      "dataType": "png",
+      "shape": [32, 32, 3]
+    }, {
+      "name": "labels",
+      "path": "https://storage.googleapis.com/learnjs-data/model-builder/cifar10_labels_uint8",
+      "dataType": "uint8",
+      "shape": [10]
+    }],
+    "labelClassNames": ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"],
+    "modelConfigs": {
+      "Convolutional": {
+        "path": "cifar10-conv.json"
+      }
+    }
+  }
+}

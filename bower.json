@@ -1,0 +1,38 @@
+{
+  "name": "deeplearn",
+  "description": "WebGL-accelerated JavaScript library for machine intelligence",
+  "main": "",
+  "authors": [
+    "Nikhil Thorat",
+    "Charles Nicholson",
+    "Daniel Smilkov"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "paper-dialog-scrollable": "1.*.*",
+    "paper-icon-button": "1.*.*",
+    "paper-tooltip": "1.*.*",
+    "paper-toggle-button": "1.*.*",
+    "paper-radio-group": "1.*.*",
+    "paper-radio-button": "1.*.*",
+    "paper-dialog": "1.*.*",
+    "paper-button": "1.*.*",
+    "paper-item": "1.*.*",
+    "paper-dropdown-menu": "1.*.*",
+    "paper-listbox": "1.*.*",
+    "iron-icons": "1.*.*",
+    "paper-slider": "1.*.*",
+    "polymer": "1.*.*",
+    "paper-spinner": "1.*.*",
+    "paper-progress": "1.*.*"
+  }
+}

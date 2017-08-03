@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "noImplicitAny": true,
+        "preserveConstEnums": true,
+        "sourceMap": true,
+        "target": "es5",
+        "lib": ["es2015", "dom"]
+    },
+    "include": [
+      "src/dataset.ts",
+      "src/math/conv_util.ts",
+      "src/math/webgl/gpgpu_util.ts",
+      "src/math/webgl/render_ndarray_gpu_util.ts",
+      "src/math/webgl/webgl_util.ts",
+      "src/util.ts",
+      "src/checkpoint_loader.ts",
+      "src/graph.ts",
+      "src/graph_runner.ts",
+      "src/initializers.ts",
+      "src/input_provider.ts",
+      "src/math/math.ts",
+      "src/math/math_cpu.ts",
+      "src/math/math_gpu.ts",
+      "src/math/ndarray.ts",
+      "src/math/webgl/gpgpu_context.ts",
+      "src/optimizer.ts",
+      "src/session.ts",
+      "src/sgd_optimizer.ts"
+    ]
+}

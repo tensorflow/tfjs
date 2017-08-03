@@ -1,0 +1,95 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="math-benchmark">
+<style>
+  .run-header {
+    margin: 12px 0;
+  }
+  .run-test .run-stop, .run-group-name {
+    display: table-cell;
+    margin-right: 10px;
+  }
+  .run-plot {
+    display: none;
+  }
+  .run-numbers-table, .run-plot-container {
+    display: table-cell;
+    vertical-align: middle;
+  }
+  .run-numbers-row {
+    display: table-row;
+  }
+  .run-numbers-cell {
+    display: table-cell;
+    font-size: 12px;
+    padding: 0 5px;
+  }
+  .container {
+    margin-top: 20px;
+    margin-left: 20px;
+  }
+  .header {
+    font-size: 24px;
+  }
+  .subheader {
+    margin: 12px 0;
+    font-size: 15px;
+  }
+  .run-test, .run-stop {
+    margin-right: 12px;
+  }
+  .math-test {
+    margin: 12px 0;
+    border-bottom: 1px solid rgba(0, 0, 0, .2);
+  }
+  .math-tests {
+    margin-top: 28px;
+  }
+  .run-group-name {
+    font-size: 17px;
+  }
+  .run-message {
+    font-style: italic;
+  }
+</style>
+<template>
+<div class="container">
+  <div class="header">Benchmarks</div>
+  <div class="subheader">Values are averaged over many examples. See JavaScript console for streamed results.</div>
+  <div class="math-tests">
+    <template is="dom-repeat" items="[[benchmarkRunGroupNames]]">
+      <div class="math-test">
+        <div class="run-group-name">[[item]]</div>
+        <div class="run-header">
+          <button class="run-test">Run</button>
+          <button class="run-stop">Stop</button>
+        </div>
+        <div class="run-body">
+          <div class="run-message" style="display: none">Running, be patient...</div>
+          <div class="run-numbers-table"></div>
+          <div class="run-plot-container">
+            <canvas class="run-plot" width="400" height="300"></canvas>
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+</template>
+</dom-module>
+
