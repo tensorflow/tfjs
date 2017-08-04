@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+npm run prep
+rm -rf dist/
 node_modules/.bin/tsc
 cd dist/
 npm pack ../
