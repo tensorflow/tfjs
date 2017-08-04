@@ -40,6 +40,7 @@ cp -r "demos" "$TMP_DIR/"
 # Build the homepage (no deploy since homepage is not polymer).
 ./scripts/build-demo demos/homepage/index.ts
 cp -r demos/homepage/* "$TMP_DIR"
+rm "$TMP_DIR"/index.ts
 
 git stash
 git checkout gh-pages
@@ -50,4 +51,5 @@ git add .
 git commit -m "github pages"
 
 git checkout master
+rm -f -r "_site/"
 git stash pop
