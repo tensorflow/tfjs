@@ -1,40 +1,40 @@
 {
   "hidden1/biases": {
-    "filename": "hidden1_biases",
+    "filename": "hidden1_biases", 
     "shape": [
       128
     ]
-  },
+  }, 
   "hidden1/weights": {
-    "filename": "hidden1_weights",
+    "filename": "hidden1_weights", 
     "shape": [
-      784,
+      784, 
       128
     ]
-  },
+  }, 
   "hidden2/biases": {
-    "filename": "hidden2_biases",
+    "filename": "hidden2_biases", 
     "shape": [
       32
     ]
-  },
+  }, 
   "hidden2/weights": {
-    "filename": "hidden2_weights",
+    "filename": "hidden2_weights", 
     "shape": [
-      128,
+      128, 
       32
     ]
-  },
+  }, 
   "softmax_linear/biases": {
-    "filename": "softmax_linear_biases",
+    "filename": "softmax_linear_biases", 
     "shape": [
       10
     ]
-  },
+  }, 
   "softmax_linear/weights": {
-    "filename": "softmax_linear_weights",
+    "filename": "softmax_linear_weights", 
     "shape": [
-      32,
+      32, 
       10
     ]
   }

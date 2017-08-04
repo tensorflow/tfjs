@@ -47,9 +47,10 @@ dictionary that maps variable names to files and their shapes:
 ```
 
 One last thing before we start coding - we need to run a static HTTP server from
-the `$BASE` directory.
+the `$BASE` directory:
 
 ```bash
+npm run prep
 ./node_modules/.bin/http-server
 >> Starting up http-server, serving ./
 >> Available on:
@@ -86,6 +87,12 @@ reader.getAllVariables().then(vars => {
   const hidden1 = g.relu(g.add(g.matmul(input, hidden1W), hidden1B));
   ...
   ...
+  const math = new NDArrayMathGPU();
+  const sess = new Session(input.node.graph, math);
+  math.scope(() => {
+    const result = sess.eval(...);
+    console.log(result.getValues());
+  });
 });
 ```
 
@@ -110,7 +117,7 @@ tutorial in order to free up the 8080 port. Then run `watch-demo` from `$BASE`
 pointed to the entry-point of the web app demo, `demos/mnist/mnist.ts`:
 
 ```bash
-/scripts/watch-demo demos/mnist/mnist.ts
+./scripts/watch-demo demos/mnist/mnist.ts
 >> Starting up http-server, serving ./
 >> Available on:
 >>   http://127.0.0.1:8080
@@ -122,4 +129,4 @@ pointed to the entry-point of the web app demo, `demos/mnist/mnist.ts`:
 Visit `http://localhost:8080/demos/mnist/` and you should see a simple page
 showing test accuracy of ~90% measured using a test set of 50 mnist images
 stored in `demos/mnist/sample_data.json`. Feel free to play with the demo
-(e.g. make it more interactive) and send us a pull request!
+(e.g. make it interactive) and send us a pull request!
