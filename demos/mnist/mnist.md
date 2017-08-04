@@ -88,7 +88,7 @@ reader.getAllVariables().then(vars => {
   ...
   ...
   const math = new NDArrayMathGPU();
-  const sess = new Session(input.node.graph, math);
+  const sess = new Session(g, math);
   math.scope(() => {
     const result = sess.eval(...);
     console.log(result.getValues());
