@@ -64,7 +64,7 @@ def main():
 
     print('Writing variable ' + name + '...')
     tensor = reader.get_tensor(name)
-    with open(os.path.join(output_dir, var_filename), 'w') as f:
+    with open(os.path.join(output_dir, var_filename), 'wb') as f:
       f.write(tensor.tobytes())
 
     var_filenames_strs.append("\"" + var_filename + "\"")
