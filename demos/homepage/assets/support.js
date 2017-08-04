@@ -32,13 +32,13 @@ function isWebGLEnabled() {
   return null != (canvas.getContext('webgl', attributes) || canvas.getContext('experimental-webgl', attributes));
 }
 
-function isSupported() {
+function isNotSupported() {
   return isMobile() || isSafari() || isFirefox() || !isWebGLEnabled();
 }
 
 function inializePolymerPage() {
   document.addEventListener("DOMContentLoaded", function(event) {
-    if (isSupported()) {
+    if (isNotSupported()) {
       var dialogContainer = document.createElement('div');
       dialogContainer.innerHTML = `
         <dialog id="dialog" class="mdl-dialog">
@@ -53,10 +53,11 @@ function inializePolymerPage() {
       dialog.style.width = '400px';
       dialogPolyfill.registerDialog(dialog);
       dialog.showModal();
+    } else {
+      var bundleScript = document.createElement('script');
+      bundleScript.src = 'bundle.js';
+      document.head.appendChild(bundleScript);
     }
-    var bundleScript = document.createElement('script');
-    bundleScript.src = 'bundle.js';
-    document.head.appendChild(bundleScript);
   });
 }
 inializePolymerPage();
