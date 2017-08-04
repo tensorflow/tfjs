@@ -8,16 +8,18 @@ This page outlines some of the projects we wish to happen in the near future.
 These are projects that we would love to see the open source community
 contribute to.
 
+# More devices
+
+**deeplearn.js** targets WebGL 1.0 devices with the `OES_texture_float`
+extension and targets WebGL 2.0 devices. However, we have turned off mobile,
+Safari, and Firefox for demos - they should work with some minor changes
+to the WebGL API.
+
 ## Optimizers
 
 Currently, **deeplearn.js** only has an SGD optimizer, however the optimizer
-interface is generic enough to support new optimizers. We would love to see:
-
- * RMSProp
- * Adagrad
- * Adadelta
- * Adam
- * Adamax
+interface is generic enough to support new optimizers. We would love to see RMSProp,
+Adagrad, Adadelta, Adam, and Adamax.
 
 ## Logical sampling
 
@@ -46,13 +48,13 @@ restrictive when models are ported.
 As part of the new shader compiler and helper functions to do logical sampling,
 we now can introduce batching as an outer dimension of operations.
 
-## Automatic TensorFlow <=> deeplearn.js
+## Automatic TensorFlow to deeplearn.js
 
 Currently we support dumping weights from a TensorFlow checkpoint into a format
 that can be imported into **deeplearn.js**, however the developer must then
 recreate the model in **deeplearn.js** and use the weights from that checkpoint.
 
-We plan on building a way to port models directly from TensorFlow =>
+We plan on building a way to port models directly from TensorFlow to
 **deeplearn.js** automatically from a `GraphDef`.
 
 ## Dynamic batching

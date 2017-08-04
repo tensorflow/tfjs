@@ -87,7 +87,7 @@ $ npm run lint
 ## Supported environments
 
 **deeplearn.js** targets WebGL 1.0 devices with the `OES_texture_float`
-extension and also supports WebGL 2.0 devices. For platforms without WebGL,
+extension and also targets WebGL 2.0 devices. For platforms without WebGL,
 we provide CPU fallbacks.
 
 However, currently our demos do not support Mobile, Firefox, and Safari. Please
