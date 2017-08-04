@@ -13,6 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-mkdir -p dist/
+npm run prep
 node_modules/.bin/browserify --standalone deeplearn src/index.ts -p [tsify] > dist/deeplearn.js
 echo 'Stored standalone library at dist/deeplearn.js'

@@ -24,11 +24,15 @@ everything from education, to model understanding, to art projects.
 Typescript is the preferred language of choice for **deeplearn.js**, however
 you can use it with plain JavaScript.
 
-For this use case, you can load the library directly from Google CDN:
+For this use case, you can load the latest version of the library directly from
+Google CDN:
 
 ```html
 <script src="https://storage.googleapis.com/learnjs-data/deeplearn.js"></script>
 ```
+
+To use a different version, see the
+[release](https://github.com/PAIR-code/deeplearnjs/releases) page on GitHub.
 
 #### From TypeScript
 
