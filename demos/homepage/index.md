@@ -247,7 +247,8 @@ limitations under the License.
   <div class= "ack mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell-4-col-phone">
     <p class='intro-body mdl-typography--body-1'>
       We would like to acknowledge Chi Zeng, David Farhi, Mahima Pushkarna,
-      Minsuk (Brian) Kahng, James Wexler, the entire Big Picture group and
+      Lauren Hannah-Murphy, Minsuk (Brian) Kahng, James Wexler, Martin Wattenberg,
+      Fernanda Viégas, Greg Corrado, Jeff Dean for their tremendous help, and
       Google Brain PAIR for providing support for the project.
     </p>
   </div>
