@@ -242,7 +242,10 @@ limitations under the License.
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
   <div class= "mdl-cell mdl-cell--5-col mdl-cell--8-col-tablet mdl-cell-4-col-phone">
     <p class="intro-body mdl-typography--body-1">
-      <span class="deeplearn-shine">deeplearn.js</span> was originally developed by Nikhil Thorat, Daniel Smilkov and Charles Nicholson.
+      <span class="deeplearn-shine">deeplearn.js</span> was originally developed by
+      <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>,
+      <a href="https://twitter.com/dsmilkov">Daniel Smilkov</a> and
+      <a href="https://twitter.com/c_nich">Charles Nicholson</a>.
     </p>
   </div>
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
