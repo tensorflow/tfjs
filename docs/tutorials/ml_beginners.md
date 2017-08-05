@@ -124,7 +124,7 @@ When you execute a `Graph`, there are two modes: training, and inference.
 
 Inference is the act of providing a `Graph` an input to produce an output.
 
-Training a graph involves providing the `Graph` many examples of labeled
+Training a graph involves providing the `Graph` many examples of labelled
 input / output pairs, and automatically updating parameters of the `Graph`
 so that the output of the `Graph` when evaluating (inferring) an input is
 closer to the labelled output. The function that gives a `Scalar` representing
@@ -187,7 +187,7 @@ part of your code will set up the graph, describing:
  * Inputs, in our case "x". Inputs are represented as placeholders
    (e.g. `graph.placeholder()`).
  * Outputs, in our case "order1", "order2", and the final output "y".
- * Operations to produce outputs, in our case the decomponsed functions of the
+ * Operations to produce outputs, in our case the decomposed functions of the
    quadratic (x^2, multiplication, addition).
  * Updatable parameters, in our case "a", "b", "c". Updatable parameters are
    represented as variables (e.g. `graph.variable()`)
@@ -240,7 +240,7 @@ math.scope((keep, track) => {
    */
   // Now we ask the graph to evaluate (infer) and give us the result when
   // providing a value 4 for "x".
-  // NOTE: "a", "b", and "c" are randomly intialized, so this will give us
+  // NOTE: "a", "b", and "c" are randomly initialized, so this will give us
   // something random.
   const result: NDArray =
       session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
@@ -248,7 +248,7 @@ math.scope((keep, track) => {
   /**
    * Training
    */
-  // Now let's learn the coeffiecients of this quadratic given some data.
+  // Now let's learn the coefficients of this quadratic given some data.
   // To do this, we need to provide examples of x and y.
   // The values given here are for values a = 3, b = 2, c = 1, with random
   // noise added to the output so it's not a perfect fit.
