@@ -40,8 +40,8 @@ To build **deeplearn.js** from source, we need to clone the project and prepare
 the dev environment:
 
 ```bash
-$ git clone https://pair-code.github.com/learnjs
-$ cd learnjs
+$ git clone https://github.com/PAIR-code/deeplearnjs.git
+$ cd deeplearnjs
 $ npm run prep # Installs node modules and bower components.
 ```
 
