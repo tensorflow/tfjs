@@ -60,16 +60,18 @@ export function getFragmentShaderDerWeightsSource(
       // Convolve x(?, ?, d1) with dy(:, :, d2) to get dw(wR, wC, d1, d2).
       // ? = to be determined. : = across all values in that axis.
       float dotProd = 0.0;
-      for (float yR = 0.0; yR < ${yNumRows}.0; yR += 1.0) {
-        float xR = wR + yR * ${stride}.0 - ${zeroPad}.0;
+      for (int yR = 0; yR < ${yNumRows}; yR++) {
+        float yTexR = float(yR);
+        float xR = wR + yTexR * ${stride}.0 - ${zeroPad}.0;
         float xTexR = xR;
-        float yTexR = yR;
-        for (float yC = 0.0; yC < ${yNumCols}.0; yC += 1.0) {
-          float xC = wC + yC * ${stride}.0 - ${zeroPad}.0;
+
+        for (int yC = 0; yC < ${yNumCols}; yC++) {
+          float yC_float = float(yC);
+          float xC = wC + yC_float * ${stride}.0 - ${zeroPad}.0;
 
           // Map from 3D (xR, xC, d1) to 2D (xTexR, xTexC).
           // Map from 3D (yR, yC, d2) to 2D (yTexR, yTexC).
-          vec2 xyTexC = vec2(xC, yC) * vec2(${inputDepth}.0, ${outputDepth}.0) +
+          vec2 xyTexC = vec2(xC, yC_float) * vec2(${inputDepth}.0, ${outputDepth}.0) +
                         vec2(d1, d2);
           float xTexC = xyTexC.x;
           float yTexC = xyTexC.y;
@@ -133,32 +135,33 @@ export function getFragmentShaderConvTransposeSource(
       // Convolve x(?, ?, d1) with w(:, :, d2, d1) to get y(yR, yC, d2).
       // ? = to be determined. : = across all values in that axis.
       float dotProd = 0.0;
-      for (float wR = 0.0; wR < ${fSize}.0; wR += 1.0) {
-
-        float xR = (xRCorner + wR) / ${origStride}.0;
+      for (int wR = 0; wR < ${fSize}; wR++) {
+        float wR_float = float(wR);
+        float xR = (xRCorner + wR_float) / ${origStride}.0;
         // TODO(smilkov): Splice this with another version where you call
         // getMatrixValueOrZeroPad(). Here and below.
         if (xR < 0.0 || xR >= ${xRows}.0 || fract(xR) > 0.0) {
           continue;
         }
 
-        float wRPerm = ${fSize}.0 - 1.0 - wR;
+        float wRPerm = ${fSize}.0 - 1.0 - wR_float;
         float xTexR = xR;
 
-        for (float wC = 0.0; wC < ${fSize}.0; wC += 1.0) {
-
-          float xC = (xCCorner + wC) / ${origStride}.0;
+        for (int wC = 0; wC < ${fSize}; wC++) {
+          float wC_float = float(wC);
+          float xC = (xCCorner + wC_float) / ${origStride}.0;
           if (xC < 0.0 || xC >= ${xCols}.0 || fract(xC) > 0.0) {
             continue;
           }
 
-          float wCPerm = ${fSize}.0 - 1.0 - wC;
+          float wCPerm = ${fSize}.0 - 1.0 - wC_float;
           float wTexR = wRPerm * ${fSize}.0 * ${origInputDepth}.0 +
                         wCPerm * ${origInputDepth}.0 + d2;
 
-          for (float d1 = 0.0; d1 < ${origOutputDepth}.0; d1 += 1.0) {
-            float xTexC = xC * ${origOutputDepth}.0 + d1;
-            float wTexC = d1;
+          for (int d1 = 0; d1 < ${origOutputDepth}; d1++) {
+            float d1_float = float(d1);
+            float xTexC = xC * ${origOutputDepth}.0 + d1_float;
+            float wTexC = d1_float;
 
             // Read x(xR, xC, d1).
             vec2 xUV = (vec2(xTexC, xTexR) + halfCR) / xShapeCR;
@@ -196,12 +199,13 @@ export function getFragmentShaderDerBiasSource(
       float d2 = biasTexCR.x;
 
       float derBias = 0.0;
-      for (float yR = 0.0; yR < ${yNumRows}.0; yR += 1.0) {
-        float yTexR = yR;
+      for (int yR = 0; yR < ${yNumRows}; yR++) {
+        float yTexR = float(yR);
 
-        for (float yC = 0.0; yC < ${yNumCols}.0; yC += 1.0) {
+        for (int yC = 0; yC < ${yNumCols}; yC++) {
+          float yC_float = float(yC);
           // Map from 3D (yR, yC, d2) to 2D (yTexR, yTexC).
-          float yTexC = yC * ${outputDepth}.0 + d2;
+          float yTexC = yC_float * ${outputDepth}.0 + d2;
 
           // Read dy(yR, yC, d2).
           vec2 dyUV = (vec2(yTexC, yTexR) + halfCR) / dyShapeCR;

@@ -24,18 +24,19 @@ export function getFragmentShader(
     bOrientation: MatrixOrientation): string {
   const sharedDim =
       (aOrientation === MatrixOrientation.REGULAR ? a.shape[1] : a.shape[0]);
-  const aSnippet =
-      (aOrientation === MatrixOrientation.REGULAR) ? 'aRow, i' : 'i, aRow';
-  const bSnippet =
-      (bOrientation === MatrixOrientation.REGULAR) ? 'i, bCol' : 'bCol, i';
+  const aSnippet = (aOrientation === MatrixOrientation.REGULAR) ?
+      'aRow, i_float' : 'i_float, aRow';
+  const bSnippet = (bOrientation === MatrixOrientation.REGULAR) ?
+      'i_float, bCol' : 'bCol, i_float';
 
   const inputs = [{name: 'matrixA', array: a}, {name: 'matrixB', array: b}];
   const userCode = `
-    const float sharedDim = ${sharedDim}.0;
+    const int sharedDim = ${sharedDim};
 
     float dotARowBCol(float aRow, float bCol) {
       float result = 0.0;
-      for (float i = 0.0; i < sharedDim; i += 1.0) {
+      for (int i = 0; i < sharedDim; i++) {
+        float i_float = float(i);
         float a = getMatrixA(${aSnippet});
         float b = getMatrixB(${bSnippet});
         result += (a * b);
