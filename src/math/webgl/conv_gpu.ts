@@ -69,17 +69,20 @@ export function getFragmentShaderConvolveSource(
       // Convolve x(?, ?, d1) with w(:, :, d1, d2) to get y(yR, yC, d2).
       // ? = to be determined. : = across all values in that axis.
       float dotProd = 0.0;
-      for (float wR = 0.0; wR < ${fSize}.0; wR += 1.0) {
-        float xR = xRCorner + wR;
+      for (int wR = 0; wR < ${fSize}; wR++) {
+        float wR_float = float(wR);
+        float xR = xRCorner + wR_float;
         float xTexR = xR;
 
-        for (float wC = 0.0; wC < ${fSize}.0; wC += 1.0) {
-          float xC = xCCorner + wC;
+        for (int wC = 0; wC < ${fSize}; wC++) {
+          float wC_float = float(wC);
+          float xC = xCCorner + wC_float;
 
-          for (float d1 = 0.0; d1 < ${inputDepth}.0; d1 += 1.0) {
-            float xTexC = xC * ${inputDepth}.0 + d1;
-            float wTexR = wR * ${fSize * inputDepth}.0 +
-                wC * ${inputDepth}.0 + d1;
+          for (int d1 = 0; d1 < ${inputDepth}; d1++) {
+            float d1_float = float(d1);
+            float xTexC = xC * ${inputDepth}.0 + d1_float;
+            float wTexR = wR_float * ${fSize * inputDepth}.0 +
+                wC_float * ${inputDepth}.0 + d1_float;
 
             float xValue =
                 getMatrixValueOrZeroPad(x, xShapeCR, vec2(xTexC, xTexR));

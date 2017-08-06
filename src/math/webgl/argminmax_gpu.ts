@@ -61,8 +61,8 @@ export function getFragmentShaderGetArgMinMaxSource(
       vec2 bestCR = vec2(0, 0);
       float bestValue = texture2D(matrix, bestCR).r;
 
-      for (float c = 0.0; c < dimCR.x; c += 1.0) {
-        for (float r = 0.0; r < dimCR.y; r += 1.0) {
+      for (int c = 0; c < ${columns}; c++) {
+        for (int r = 0; r < ${rows}; r++) {
           vec2 cr = vec2(c, r);
           vec2 uv = (cr + halfCR) / dimCR;
           float value = texture2D(matrix, uv).r;

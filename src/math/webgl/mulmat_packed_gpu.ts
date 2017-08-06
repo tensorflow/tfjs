@@ -56,8 +56,9 @@ export function getFragmentShaderSource(
 
     vec4 dot2x2ARowBCol() {
       vec4 result = vec4(0, 0, 0, 0);
-      for (float i = 0.0; i < sharedDimension; i += 1.0) {
-        float center = (i + 0.5) / sharedDimension;
+      for (int i = 0; i < ${sharedDimensionPacked}; i++) {
+        float i_float = float(i);
+        float center = (i_float + 0.5) / sharedDimension;
         vec4 a = texture2D(matrixA, vec2(${aSample}));
         vec4 b = texture2D(matrixB, vec2(${bSample}));
         result +=

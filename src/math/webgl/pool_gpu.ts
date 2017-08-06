@@ -65,12 +65,14 @@ export function getFragmentShaderPoolCommonSource(
       float minMaxPosition = 0.0;
       float avgValue = 0.0;
 
-      for (float wR = 0.0; wR < ${fSize}.0; wR += 1.0) {
-        float xR = xRCorner + wR;
+      for (int wR = 0; wR < ${fSize}; wR++) {
+        float wR_float = float(wR);
+        float xR = xRCorner + wR_float;
         float xTexR = xR;
 
-        for (float wC = 0.0; wC < ${fSize}.0; wC += 1.0) {
-          float xC = xCCorner + wC;
+        for (int wC = 0; wC < ${fSize}; wC++) {
+          float wC_float = float(wC);
+          float xC = xCCorner + wC_float;
           float xTexC = xC * ${depth}.0 + d;
 
           vec2 texCR = vec2(xTexC, xTexR);
@@ -100,7 +102,7 @@ export function getFragmentShaderPoolCommonSource(
               minMaxValue = value;
               minMaxValueFound = 1.0;
               if (${computePositions}) {
-                minMaxPosition = wR * ${fSize}.0 + wC;
+                minMaxPosition = wR_float * ${fSize}.0 + wC_float;
               }
             }
           }

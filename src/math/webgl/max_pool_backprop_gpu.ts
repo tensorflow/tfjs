@@ -48,9 +48,9 @@ export function getFragmentShaderMaxPoolBackprop(
       // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(yR, dxC, d).
       // ? = to be determined. : = across all values in that axis.
       float dotProd = 0.0;
-      for (float wR = 0.0; wR < ${fSize}.0; wR += 1.0) {
-
-        float dyR = (dyRCorner + wR) / ${origStride}.0;
+      for (int wR = 0; wR < ${fSize}; wR++) {
+        float wR_float = float(wR);
+        float dyR = (dyRCorner + wR_float) / ${origStride}.0;
         // TODO(nsthorat): Splice this with another version where you call
         // getMatrixValueOrZeroPad(). Here and below.
         if (dyR < 0.0 || dyR >= ${dyRows}.0 || fract(dyR) > 0.0) {
@@ -59,9 +59,9 @@ export function getFragmentShaderMaxPoolBackprop(
 
         float dyTexR = dyR;
 
-        for (float wC = 0.0; wC < ${fSize}.0; wC += 1.0) {
-
-          float dyC = (dyCCorner + wC) / ${origStride}.0;
+        for (int wC = 0; wC < ${fSize}; wC++) {
+          float wC_float = float(wC);
+          float dyC = (dyCCorner + wC_float) / ${origStride}.0;
           if (dyC < 0.0 || dyC >= ${dyCols}.0 || fract(dyC) > 0.0) {
             continue;
           }
@@ -78,7 +78,7 @@ export function getFragmentShaderMaxPoolBackprop(
 
           // Get the current value, check it against the value from the
           // position matrix.
-          float curPosValue = wR * ${fSize}.0 + wC;
+          float curPosValue = wR_float * ${fSize}.0 + wC_float;
           float mask = float(maxPosValue == curPosValue ? 1.0 : 0.0);
 
           dotProd += dyValue * mask;

@@ -26,8 +26,8 @@ export function getFragmentShaderSource(rows: number, columns: number): string {
 
     void main() {
       float aMax = texture2D(matrixA, halfCR / aDimCR).r;
-      for (float r = 0.0; r < aDimCR.y; r += 1.0) {
-        for (float c = 0.0; c < aDimCR.x; c += 1.0) {
+      for (int r = 0; r < ${rows}; r++) {
+        for (int c = 0; c < ${columns}; c++) {
           vec2 uv = (vec2(c, r) + halfCR) / aDimCR;
           float aCur = texture2D(matrixA, uv).r;
           aMax = max(aMax, aCur);
@@ -35,8 +35,8 @@ export function getFragmentShaderSource(rows: number, columns: number): string {
       }
 
       float expSum = 0.0;
-      for (float r = 0.0; r < aDimCR.y; r += 1.0) {
-        for (float c = 0.0; c < aDimCR.x; c += 1.0) {
+      for (int r = 0; r < ${rows}; r++) {
+        for (int c = 0; c < ${columns}; c++) {
           vec2 uv = (vec2(c, r) + halfCR) / aDimCR;
           float aCur = texture2D(matrixA, uv).r;
           expSum += exp(aCur - aMax);
