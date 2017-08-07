@@ -253,8 +253,8 @@ limitations under the License.
     <p class='intro-body mdl-typography--body-1'>
       We would like to acknowledge Chi Zeng, David Farhi, Mahima Pushkarna,
       Lauren Hannah-Murphy, Minsuk (Brian) Kahng, James Wexler, Martin Wattenberg,
-      Fernanda Viégas, Greg Corrado, Jeff Dean for their tremendous help, and
-      Google Brain PAIR for providing support for the project.
+      Fernanda Viégas, Greg Corrado, Jeff Dean for their tremendous help, and the
+      Google Brain team for providing support for the project.
     </p>
   </div>
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
