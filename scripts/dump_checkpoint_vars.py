@@ -48,8 +48,7 @@ def main():
   reader = tf.train.NewCheckpointReader(chk_fpath)
   var_to_shape_map = reader.get_variable_to_shape_map()
   output_dir = os.path.expanduser(FLAGS.output_dir)
-  if not os.path.exists(output_dir):
-    os.mkdirs(output_dir)
+  tf.gfile.MakeDirs(output_dir)
   manifest = {}
   remove_vars_compiled_re = re.compile(FLAGS.remove_variables_regex)
 
