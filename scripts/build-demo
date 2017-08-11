@@ -20,7 +20,7 @@ const spawn = require('child_process').spawn;
 const startTsFilePath = process.argv[2];
 const outputPath = path.join(path.dirname(startTsFilePath), 'bundle.js')
 
-const cmd = `node_modules/.bin/browserify`;
+const cmd = path.join('node_modules', '.bin', 'browserify');
 const child = spawn(cmd, [startTsFilePath, '-p', '[tsify]', '-o' , outputPath],
     {detached: false});
 child.stdout.pipe(process.stdout);

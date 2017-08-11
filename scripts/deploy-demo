@@ -21,13 +21,13 @@ const startTsFilePath = process.argv[2];
 const startHTMLFilePath = process.argv[3];
 const outDir = process.argv[4];
 
-const cmd = `scripts/build-demo`;
+const cmd = path.join('scripts', 'build-demo');
 const child = spawn(cmd, [startTsFilePath], {detached: false});
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);
 child.on('close', () => {
   const bundlePath = path.join(outDir, path.basename(startHTMLFilePath));
-  const cmd = `node_modules/.bin/polymer-bundler`;
+  const cmd = path.join('node_modules', '.bin', 'polymer-bundler');
   const child = spawn(cmd, ['--inline-scripts', '--inline-css',
     '--out-html', bundlePath, startHTMLFilePath], {detached: false});
   child.stdout.pipe(process.stdout);

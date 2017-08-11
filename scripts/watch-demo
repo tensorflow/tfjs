@@ -20,14 +20,13 @@ const spawn = require('child_process').spawn;
 const startTsFilePath = process.argv[2];
 const outputPath = path.join(path.dirname(startTsFilePath), 'bundle.js')
 
-const cmd = `node_modules/.bin/watchify`;
+const cmd = path.join('node_modules', '.bin', 'watchify');
 const watchify = spawn(cmd, [startTsFilePath, '-p', '[tsify]', '-v', '--debug',
     '-o' , outputPath], {detached: false});
 watchify.stdout.pipe(process.stdout);
 watchify.stderr.pipe(process.stderr);
 
-const httpServer = spawn('node_modules/.bin/http-server', ['-c-1'], {
-  detached: false
-});
+const httpCmd = path.join('node_modules', '.bin', 'http-server');
+const httpServer = spawn(httpCmd, ['-c-1'], { detached: false});
 httpServer.stdout.pipe(process.stdout);
 httpServer.stderr.pipe(process.stderr);
