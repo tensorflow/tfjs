@@ -210,7 +210,7 @@ const inputShape = [3];
 const inputTensor = g.placeholder('input', inputShape);
 
 const labelShape = [1];
-const inputTensor = g.placeholder('label', labelShape);
+const labelTensor = g.placeholder('label', labelShape);
 
 // Variables are containers that hold a value that can be updated from training.
 // Here we initialize the multiplier variable randomly.
