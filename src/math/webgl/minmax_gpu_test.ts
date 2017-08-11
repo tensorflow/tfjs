@@ -14,38 +14,37 @@ limitations under the License.
 ==============================================================================*/
 
 import {GPGPUContext} from './gpgpu_context';
-import * as minmax_gpu from './minmax_gpu';
+import {MinMaxProgram} from './minmax_gpu';
+import {Array2D, Scalar, initializeGPU} from '../ndarray';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
-function uploadMinMaxDownloadDriver(
-    a: Float32Array, rows: number, columns: number,
-    fragmentShaderSource: string): Float32Array {
+function uploadMinMaxDownload(a: Float32Array, rows: number,
+    columns: number, op: 'min'|'max'): number {
+  const arr = Array2D.new([rows, columns], a);
   const gpgpu = new GPGPUContext();
-  const program: WebGLProgram = gpgpu.createProgram(fragmentShaderSource);
-  const aTexture: WebGLTexture = gpgpu.createMatrixTexture(rows, columns);
-  const resultTexture: WebGLTexture = gpgpu.createMatrixTexture(1, 1);
-  gpgpu.uploadMatrixToTexture(aTexture, rows, columns, a);
-  minmax_gpu.minMax(gpgpu, program, aTexture, rows, columns, resultTexture);
-  const result = new Float32Array(4);
-  gpgpu.gl.readPixels(0, 0, 1, 1, gpgpu.gl.RGBA, gpgpu.gl.FLOAT, result);
-  gpgpu.deleteMatrixTexture(resultTexture);
-  gpgpu.deleteMatrixTexture(aTexture);
-  gpgpu.deleteProgram(program);
+  const textureManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, textureManager);
+  const out = Scalar.new(0);
+  const program = new MinMaxProgram(arr.size, op);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [arr], out);
+  gpgpu_math.runProgram(binary);
+  const result = out.get();
+  arr.dispose();
+  textureManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
   return result;
 }
 
 function uploadMinDownload(
     a: Float32Array, rows: number, columns: number): number {
-  const src = minmax_gpu.getMinFragmentShaderSource(rows, columns);
-  const result = uploadMinMaxDownloadDriver(a, rows, columns, src);
-  return result[0];
+  return uploadMinMaxDownload(a, rows, columns, 'min');
 }
 
 function uploadMaxDownload(
     a: Float32Array, rows: number, columns: number): number {
-  const src = minmax_gpu.getMaxFragmentShaderSource(rows, columns);
-  const result = uploadMinMaxDownloadDriver(a, rows, columns, src);
-  return result[0];
+  return uploadMinMaxDownload(a, rows, columns, 'max');
 }
 
 describe('minmax_gpu min', () => {

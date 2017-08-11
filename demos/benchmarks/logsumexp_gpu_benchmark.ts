@@ -14,37 +14,34 @@ limitations under the License.
 ==============================================================================*/
 
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
-import * as logsumexp_gpu from '../../src/math/webgl/logsumexp_gpu';
+import {LogSumExpProgram} from '../../src/math/webgl/logsumexp_gpu';
 import * as test_util from '../../src/test_util';
-
+import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
+import {Scalar, Array2D, initializeGPU} from '../../src/math/ndarray';
+import {TextureManager} from '../../src/math/webgl/texture_manager';
 import {BenchmarkTest} from './benchmark';
 
 const OP_RUNS = 100;
 
 export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
   const gpgpu = new GPGPUContext();
-
-  const program =
-      gpgpu.createProgram(logsumexp_gpu.getFragmentShaderSource(size, size));
-
-  const aTexture = gpgpu.createMatrixTexture(size, size);
-  const resultTexture = gpgpu.createMatrixTexture(size, size);
-
-  const a = test_util.randomArrayInRange(size * size, -1, 1);
-  gpgpu.uploadMatrixToTexture(aTexture, size, size, a);
+  const texManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, texManager);
+  const out = new Scalar({texture: texManager.acquireTexture([1, 1])});
+  const a = Array2D.randUniform([size, size], -1, 1);
+  const program = new LogSumExpProgram(a.size);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [a], out);
 
   const start = performance.now();
   for (let i = 0; i < OP_RUNS; i++) {
-    logsumexp_gpu.logSumExp(
-        gpgpu, program, aTexture, size, size, resultTexture);
+    gpgpu_math.runProgram(binary);
   }
 
-  gpgpu.downloadMatrixFromTexture(resultTexture, size, size);
   const avgTime = (performance.now() - start) / OP_RUNS;
-
-  gpgpu.deleteMatrixTexture(aTexture);
-  gpgpu.deleteMatrixTexture(resultTexture);
-  gpgpu.deleteProgram(program);
+  a.dispose();
+  out.dispose();
+  texManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 
   return avgTime;

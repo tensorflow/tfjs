@@ -16,7 +16,8 @@ limitations under the License.
 import {MatrixOrientation} from '../../src/math/math';
 import {Array2D} from '../../src/math/ndarray';
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
-import * as mulmat_gpu from '../../src/math/webgl/mulmat_gpu';
+import {MatMulProgram} from '../../src/math/webgl/mulmat_gpu';
+import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import * as mulmat_packed_gpu from '../../src/math/webgl/mulmat_packed_gpu';
 import * as test_util from '../../src/test_util';
 
@@ -36,10 +37,9 @@ export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
       [size, size], {texture: bTexture, textureShapeRC: [size, size]});
   const resArr = new Array2D(
       [size, size], {texture: resultTexture, textureShapeRC: [size, size]});
-  const program = gpgpu.createProgram(mulmat_gpu.getFragmentShader(
-      aArr, bArr, resArr, MatrixOrientation.REGULAR,
-      MatrixOrientation.REGULAR));
-
+  const program = new MatMulProgram(aArr.shape, bArr.shape);
+  const binary =
+      gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], resArr);
   const a = test_util.randomArrayInRange(size * size, -1, 1);
   const b = test_util.randomArrayInRange(size * size, -1, 1);
   gpgpu.uploadMatrixToTexture(aTexture, size, size, a);
@@ -47,8 +47,7 @@ export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
 
   const start = performance.now();
   for (let i = 0; i < OP_RUNS; i++) {
-    mulmat_gpu.multiplyMatrix(
-        gpgpu, program, aTexture, bTexture, resultTexture, [size, size]);
+    gpgpu_math.runProgram(binary);
   }
 
   const actual = gpgpu.downloadMatrixFromTexture(resultTexture, size, size);
@@ -57,7 +56,7 @@ export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
   gpgpu.deleteMatrixTexture(aTexture);
   gpgpu.deleteMatrixTexture(bTexture);
   gpgpu.deleteMatrixTexture(resultTexture);
-  gpgpu.deleteProgram(program);
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 
   return avgTime;

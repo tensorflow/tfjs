@@ -18,7 +18,8 @@ import {MatrixOrientation} from '../math';
 import {Array2D} from '../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
-import * as mulmat_gpu from './mulmat_gpu';
+import * as gpgpu_math from './gpgpu_math';
+import {MatMulProgram} from './mulmat_gpu';
 
 describe('mulmat_gpu (1x1 * 1x1)', () => {
   it('returns a 1x1 matrix', () => {
@@ -267,23 +268,19 @@ describe('mulmat_gpu (multiple matrices)', () => {
     const abArr = new Array2D(abShape, {texture: ab, textureShapeRC: abShape});
     const cArr = new Array2D(cShape, {texture: c, textureShapeRC: cShape});
     const rArr = new Array2D(rShape, {texture: r, textureShapeRC: rShape});
-
-    const axbProgram = gpgpu.createProgram(mulmat_gpu.getFragmentShader(
-        aArr, bArr, cArr, MatrixOrientation.REGULAR,
-        MatrixOrientation.REGULAR));
-    const abxcProgram = gpgpu.createProgram(mulmat_gpu.getFragmentShader(
-        abArr, cArr, rArr, MatrixOrientation.REGULAR,
-        MatrixOrientation.REGULAR));
+    const matMulProgram = new MatMulProgram(aArr.shape, bArr.shape);
+    const axbProgram = gpgpu_math.compileProgram(gpgpu, matMulProgram,
+        [aArr, bArr], abArr);
+    const matMulProgram2 = new MatMulProgram(abArr.shape, cArr.shape);
+    const abxcProgram = gpgpu_math.compileProgram(gpgpu, matMulProgram2,
+        [abArr, cArr], rArr);
 
     gpgpu.uploadMatrixToTexture(a, aShape[0], aShape[1], aData);
     gpgpu.uploadMatrixToTexture(b, bShape[0], bShape[1], bData);
     gpgpu.uploadMatrixToTexture(c, cShape[0], cShape[1], cData);
 
-    mulmat_gpu.multiplyMatrix(
-        gpgpu, axbProgram, a, b, ab, [abShape[0], abShape[1]]);
-    mulmat_gpu.multiplyMatrix(
-        gpgpu, abxcProgram, ab, c, r, [rShape[0], rShape[1]]);
-
+    gpgpu_math.runProgram(axbProgram);
+    gpgpu_math.runProgram(abxcProgram);
     const result = gpgpu.downloadMatrixFromTexture(r, rShape[0], rShape[1]);
     const expected = test_util.cpuMultiplyMatrix(
         test_util.cpuMultiplyMatrix(aData, 4, 2, bData, 2, 12), 4, 12, cData,
@@ -295,8 +292,8 @@ describe('mulmat_gpu (multiple matrices)', () => {
     gpgpu.deleteMatrixTexture(ab);
     gpgpu.deleteMatrixTexture(c);
     gpgpu.deleteMatrixTexture(r);
-    gpgpu.deleteProgram(axbProgram);
-    gpgpu.deleteProgram(abxcProgram);
+    gpgpu.deleteProgram(axbProgram.webGLProgram);
+    gpgpu.deleteProgram(abxcProgram.webGLProgram);
     gpgpu.dispose();
   });
 });
@@ -357,17 +354,15 @@ export function uploadMultiplyMatrixDownload(
       gpgpu.createMatrixTexture(outNumRows, outNumCols);
   const resArr =
       new Array2D(outShape, {texture: resultTexture, textureShapeRC: outShape});
-  const shader = mulmat_gpu.getFragmentShader(
-      aArr, bArr, resArr, aOrientation, bOrientation);
-  const program: WebGLProgram = gpgpu.createProgram(shader);
 
-
+  const program =
+      new MatMulProgram(aArr.shape, bArr.shape, aOrientation, bOrientation);
+  const binary =
+      gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], resArr);
   gpgpu.uploadMatrixToTexture(aTexture, aNumRows, aNumCols, a);
   gpgpu.uploadMatrixToTexture(bTexture, bNumRows, bNumCols, b);
 
-  mulmat_gpu.multiplyMatrix(
-      gpgpu, program, aTexture, bTexture, resultTexture,
-      resArr.getTextureShapeRC());
+  gpgpu_math.runProgram(binary);
 
   const result =
       gpgpu.downloadMatrixFromTexture(resultTexture, outNumRows, outNumCols);
@@ -375,7 +370,7 @@ export function uploadMultiplyMatrixDownload(
   gpgpu.deleteMatrixTexture(aTexture);
   gpgpu.deleteMatrixTexture(bTexture);
   gpgpu.deleteMatrixTexture(resultTexture);
-  gpgpu.deleteProgram(program);
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 
   return result;

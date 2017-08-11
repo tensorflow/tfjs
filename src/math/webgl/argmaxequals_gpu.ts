@@ -15,48 +15,38 @@ limitations under the License.
 
 import * as argminmax_gpu from './argminmax_gpu';
 import {GPGPUContext} from './gpgpu_context';
-import {IS_NAN_SHADER_FUNC} from './webgl_util';
+import {GPGPUProgram} from './gpgpu_math';
+import {NDArray, Scalar} from '../ndarray';
+import * as util from '../../util';
 
-function getFragmentShaderPrologueSource(): string {
-  return `
-    precision highp float;
-    uniform sampler2D matrixA;
-    uniform sampler2D matrixB;
-    varying vec2 resultUV;`;
-}
+export class ArgMaxEqualsProgram implements GPGPUProgram {
+  variableNames = ['A', 'B'];
+  outputShape: number[] = [];
+  params: Array<{}> = [];
+  userCode: string;
 
-function getFragmentShaderMainSource(): string {
-  return `
-    void main() {
-      float argMaxA = getArgMinMax(matrixA);
-      float argMaxB = getArgMinMax(matrixB);
-      float value;
-      if (isNaN(argMaxA)) {
-        value = argMaxA;
-      } else if (isNaN(argMaxB)) {
-        value = argMaxB;
-      } else {
-        value = float(argMaxA == argMaxB);
+  constructor(aSize: number, bSize: number) {
+    const aSnippet = argminmax_gpu.getArgMinMaxSnippet('max', 'A', aSize);
+    const bSnippet = argminmax_gpu.getArgMinMaxSnippet('max', 'B', bSize);
+    this.userCode = `
+      ${aSnippet}
+      ${bSnippet}
+
+      void main() {
+        float argMaxA = getArgMinMaxA();
+        float argMaxB = getArgMinMaxB();
+
+        float value;
+        if (isNaN(argMaxA)) {
+          value = argMaxA;
+        } else if (isNaN(argMaxB)) {
+          value = argMaxB;
+        } else {
+          value = float(argMaxA == argMaxB);
+        }
+
+        setOutput(value);
       }
-      gl_FragColor = vec4(value, 0, 0, 0);
-    }`;
-}
-
-export function getArgMaxEqualsFragmentShaderSource(
-    rows: number, columns: number): string {
-  return [
-    getFragmentShaderPrologueSource(),
-    argminmax_gpu.getFragmentShaderGetArgMinMaxSource('>', rows, columns),
-    getFragmentShaderMainSource()
-  ].join('\n');
-}
-
-export function argMaxEquals(
-    gpgpu: GPGPUContext, maxEqualsProgram: WebGLProgram, a: WebGLTexture,
-    b: WebGLTexture, numRows: number, numCols: number, result: WebGLTexture) {
-  gpgpu.setOutputMatrixTexture(result, 1, 1);
-  gpgpu.setProgram(maxEqualsProgram);
-  gpgpu.setInputMatrixTexture(a, 'matrixA', 0);
-  gpgpu.setInputMatrixTexture(b, 'matrixB', 1);
-  gpgpu.executeProgram();
+    `;
+  }
 }

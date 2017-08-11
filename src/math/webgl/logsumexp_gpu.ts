@@ -14,60 +14,30 @@ limitations under the License.
 ==============================================================================*/
 
 import {GPGPUContext} from './gpgpu_context';
+import {GPGPUProgram} from './gpgpu_math';
+import {NDArray, Scalar} from '../ndarray';
 
-export function getFragmentShaderSource(rows: number, columns: number): string {
-  return `
-    precision highp float;
-    uniform sampler2D matrixA;
-    varying vec2 resultUV;
+export class LogSumExpProgram implements GPGPUProgram {
+  variableNames = ['A'];
+  params: Array<{}> = [];
+  outputShape: number[] = [];
+  userCode: string;
 
-    const vec2 aDimCR = vec2(${columns}.0, ${rows}.0);
-    const vec2 halfCR = vec2(0.5, 0.5);
-
-    void main() {
-      float aMax = texture2D(matrixA, halfCR / aDimCR).r;
-      for (int r = 0; r < ${rows}; r++) {
-        for (int c = 0; c < ${columns}; c++) {
-          vec2 uv = (vec2(c, r) + halfCR) / aDimCR;
-          float aCur = texture2D(matrixA, uv).r;
-          aMax = max(aMax, aCur);
+  constructor(aSize: number) {
+    this.userCode = `
+      void main() {
+        float aMax = getAFlat(0.0);
+        for (int i = 0; i < ${aSize}; i++) {
+          aMax = max(aMax, getAFlat(float(i)));
         }
-      }
 
-      float expSum = 0.0;
-      for (int r = 0; r < ${rows}; r++) {
-        for (int c = 0; c < ${columns}; c++) {
-          vec2 uv = (vec2(c, r) + halfCR) / aDimCR;
-          float aCur = texture2D(matrixA, uv).r;
-          expSum += exp(aCur - aMax);
+        float expSum = 0.0;
+        for (int i = 0; i < ${aSize}; i++) {
+          expSum += exp(getAFlat(float(i)) - aMax);
         }
+
+        setOutput(aMax + log(expSum));
       }
-
-      gl_FragColor = vec4(aMax + log(expSum), 0, 0, 0);
-    }`;
-}
-
-export function logSumExp(
-    gpgpu: GPGPUContext, logSumExpProgram: WebGLProgram, a: WebGLTexture,
-    rows: number, columns: number, result: WebGLTexture) {
-  gpgpu.setOutputMatrixTexture(result, 1, 1);
-  gpgpu.setProgram(logSumExpProgram);
-  gpgpu.setInputMatrixTexture(a, 'matrixA', 0);
-  gpgpu.executeProgram();
-}
-
-export function uploadLogSumExpDownload(
-    a: Float32Array, rows: number, columns: number): number {
-  const gpgpu = new GPGPUContext();
-  const program = gpgpu.createProgram(getFragmentShaderSource(rows, columns));
-  const aTexture = gpgpu.createMatrixTexture(rows, columns);
-  const resultTexture = gpgpu.createMatrixTexture(1, 1);
-  gpgpu.uploadMatrixToTexture(aTexture, rows, columns, a);
-  logSumExp(gpgpu, program, aTexture, rows, columns, resultTexture);
-  const result = gpgpu.downloadMatrixFromTexture(resultTexture, 1, 1);
-  gpgpu.deleteMatrixTexture(aTexture);
-  gpgpu.deleteMatrixTexture(resultTexture);
-  gpgpu.deleteProgram(program);
-  gpgpu.dispose();
-  return result[0];
+    `;
+  }
 }

@@ -15,7 +15,6 @@ limitations under the License.
 
 import * as conv_util from '../conv_util';
 import {GPGPUContext} from './gpgpu_context';
-import {IS_NAN_SHADER_FUNC} from './webgl_util';
 
 export function getFragmentShaderPoolCommonSource(
     xShapeRCD: [number, number, number], fSize: number, stride: number,
@@ -43,7 +42,9 @@ export function getFragmentShaderPoolCommonSource(
     const vec2 halfCR = vec2(0.5, 0.5);
     const vec2 xShapeCR = vec2(${xTexShapeRC[1]}, ${xTexShapeRC[0]});
 
-    ${IS_NAN_SHADER_FUNC}
+    bool isNaN(float val) {
+      return val == val ? false : true;
+    }
 
     void main() {
       vec2 yTexCR = floor(gl_FragCoord.xy);

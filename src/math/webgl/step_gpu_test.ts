@@ -14,52 +14,59 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as step_gpu from './step_gpu';
+import {UnaryOpProgram, UnaryOp} from './unaryop_gpu';
+import * as unaryop_gpu_test from './unaryop_gpu_test';
+import {NDArray, Array2D, Array1D, Array3D, Scalar} from '../ndarray';
 
 describe('step_gpu', () => {
   it('returns a matrix with the shape of the input matrix', () => {
-    const a = new Float32Array(67 * 901);
-    const result = step_gpu.uploadStepDownload(a, 67, 901);
-    expect(result.length).toEqual(a.length);
+    const a = Array2D.zeros([67, 10]);
+    const result = uploadStepDownload(a);
+    expect(result.length).toEqual(a.size);
   });
 
   it('preserves zeroes from the input matrix', () => {
-    const a = new Float32Array(1);
-    const result = step_gpu.uploadStepDownload(a, 1, 1);
+    const a = Scalar.new(0);
+    const result = uploadStepDownload(a);
     expect(result[0]).toEqual(0);
   });
 
   it('preserves ones from the input matrix', () => {
-    const a = new Float32Array([1]);
-    const result = step_gpu.uploadStepDownload(a, 1, 1);
-    expect(result[0]).toEqual(a[0]);
+    const a = Scalar.new(1);
+    const result = uploadStepDownload(a);
+    expect(result[0]).toEqual(1);
   });
 
   it('transforms negative values to zeroes', () => {
-    const a = new Float32Array([-123.45]);
-    const result = step_gpu.uploadStepDownload(a, 1, 1);
+    const a = Scalar.new(-123.45);
+    const result = uploadStepDownload(a);
     expect(result[0]).toEqual(0);
   });
 
   it('transforms positive values to ones', () => {
-    const a = new Float32Array([0.1]);
-    const result = step_gpu.uploadStepDownload(a, 1, 1);
+    const a = Scalar.new(0.1);
+    const result = uploadStepDownload(a);
     expect(result[0]).toEqual(1);
   });
 
   it('operates on every element of a matrix', () => {
     const a = new Float32Array(24);
     a.fill(0.1);
-    const result = step_gpu.uploadStepDownload(a, 4, 6);
+    const aArr = Array1D.new(a);
+    const result = uploadStepDownload(aArr);
     const expected = new Float32Array(a.length);
     expected.fill(1);
     test_util.expectArraysClose(result, expected, 0);
   });
 
   it('operates on a heterogeneous matrix', () => {
-    const a = new Float32Array([-1, 0, 100, -0.001]);
-    const result = step_gpu.uploadStepDownload(a, 4, 1);
+    const aArr = Array3D.new([1, 2, 2], [-1, 0, 100, -0.001]);
+    const result = uploadStepDownload(aArr);
     const expected = new Float32Array([0, 0, 1, 0]);
     test_util.expectArraysClose(result, expected, 0);
   });
 });
+
+function uploadStepDownload(a: NDArray): Float32Array {
+  return unaryop_gpu_test.uploadUnaryDownload(a, UnaryOp.STEP);
+}

@@ -14,37 +14,45 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as neg_gpu from './neg_gpu';
+import {UnaryOpProgram, UnaryOp} from './unaryop_gpu';
+import * as unaryop_gpu_test from './unaryop_gpu_test';
+import {Array2D} from '../ndarray';
 
 describe('neg_gpu', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
     const a = new Float32Array(28 * 32);
-    const result = neg_gpu.uploadNegDownload(a, 28, 32);
+    const result = uploadNegDownload(a, 28, 32);
     expect(result.length).toEqual(a.length);
   });
 
   it('preserves zero values', () => {
     const a = new Float32Array([0]);
-    const result = neg_gpu.uploadNegDownload(a, 1, 1);
+    const result = uploadNegDownload(a, 1, 1);
     expect(result[0]).toBeCloseTo(0);
   });
 
   it('negates positive values into negative values', () => {
     const a = new Float32Array([1]);
-    const result = neg_gpu.uploadNegDownload(a, 1, 1);
+    const result = uploadNegDownload(a, 1, 1);
     expect(result[0]).toEqual(-1);
   });
 
   it('negates negative values into positive values', () => {
     const a = new Float32Array([-1]);
-    const result = neg_gpu.uploadNegDownload(a, 1, 1);
+    const result = uploadNegDownload(a, 1, 1);
     expect(result[0]).toEqual(1);
   });
 
   it('operates on every value in a matrix', () => {
     const a = new Float32Array([0.5, 0, -2.3, 4, -12, -Math.E]);
-    const result = neg_gpu.uploadNegDownload(a, 2, 3);
+    const result = uploadNegDownload(a, 2, 3);
     const expected = new Float32Array([-0.5, 0, 2.3, -4, 12, Math.E]);
     test_util.expectArraysClose(result, expected, 0.0001);
   });
 });
+
+function uploadNegDownload(
+    a: Float32Array, rows: number, cols: number): Float32Array {
+  const arr = Array2D.new([rows, cols], a);
+  return unaryop_gpu_test.uploadUnaryDownload(arr, UnaryOp.NEG);
+}

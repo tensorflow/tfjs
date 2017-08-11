@@ -14,29 +14,30 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as argmaxequals_gpu from './argmaxequals_gpu';
+import {ArgMaxEqualsProgram} from './argmaxequals_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
+import {Array2D, Scalar, initializeGPU} from '../ndarray';
 
 function uploadArgMaxEqualsDownload(
     a: Float32Array, b: Float32Array, rows: number, columns: number): number {
-  const src =
-      argmaxequals_gpu.getArgMaxEqualsFragmentShaderSource(rows, columns);
+  const aArr = Array2D.new([rows, columns], a);
+  const bArr = Array2D.new([rows, columns], b);
   const gpgpu = new GPGPUContext();
-  const program = gpgpu.createProgram(src);
-  const aTexture = gpgpu.createMatrixTexture(rows, columns);
-  const bTexture = gpgpu.createMatrixTexture(rows, columns);
-  const resultTexture = gpgpu.createMatrixTexture(1, 1);
-  gpgpu.uploadMatrixToTexture(aTexture, rows, columns, a);
-  gpgpu.uploadMatrixToTexture(bTexture, rows, columns, b);
-  argmaxequals_gpu.argMaxEquals(
-      gpgpu, program, aTexture, bTexture, rows, columns, resultTexture);
-  const result = new Float32Array(4);
-  gpgpu.gl.readPixels(0, 0, 1, 1, gpgpu.gl.RGBA, gpgpu.gl.FLOAT, result);
-  gpgpu.deleteMatrixTexture(aTexture);
-  gpgpu.deleteMatrixTexture(resultTexture);
-  gpgpu.deleteProgram(program);
+  const textureManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, textureManager);
+  const out = Scalar.new(0);
+  const program = new ArgMaxEqualsProgram(aArr.size, bArr.size);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], out);
+  gpgpu_math.runProgram(binary);
+  const result = out.get();
+  aArr.dispose();
+  bArr.dispose();
+  textureManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
-  return result[0];
+  return result;
 }
 
 describe('argmaxequals_gpu ArgMin', () => {

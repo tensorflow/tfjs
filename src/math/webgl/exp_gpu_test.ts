@@ -14,24 +14,26 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as exp_gpu from './exp_gpu';
+import {UnaryOpProgram, UnaryOp} from './unaryop_gpu';
+import * as unaryop_gpu_test from './unaryop_gpu_test';
+import {Array2D} from '../ndarray';
 
 describe('exp_gpu', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
     const a = new Float32Array(23 * 32);
-    const result = exp_gpu.uploadExpDownload(a, 23, 32);
+    const result = uploadExpDownload(a, 23, 32);
     expect(result.length).toEqual(a.length);
   });
 
   it('returns e when the only value in a 1x1 matrix is 1.0', () => {
     const a = new Float32Array([1]);
-    const result = exp_gpu.uploadExpDownload(a, 1, 1);
+    const result = uploadExpDownload(a, 1, 1);
     expect(result[0]).toBeCloseTo(Math.E);
   });
 
   it('operates on every value in a matrix', () => {
     const a = new Float32Array([1, 1, 1, 1, 1, 1]);
-    const result = exp_gpu.uploadExpDownload(a, 1, a.length);
+    const result = uploadExpDownload(a, 1, a.length);
     const expected = new Float32Array(a.length);
     expected.fill(Math.E);
     test_util.expectArraysClose(result, expected, 0.0001);
@@ -39,7 +41,7 @@ describe('exp_gpu', () => {
 
   it('calculates f(x)=e^x for every value in the matrix', () => {
     const a = new Float32Array([0.5, 1, 2, -1]);
-    const result = exp_gpu.uploadExpDownload(a, 1, a.length);
+    const result = uploadExpDownload(a, 1, a.length);
     const expected = new Float32Array(a.length);
     for (let i = 0; i < a.length; ++i) {
       expected[i] = Math.exp(a[i]);
@@ -47,3 +49,9 @@ describe('exp_gpu', () => {
     test_util.expectArraysClose(result, expected, 0.0001);
   });
 });
+
+function uploadExpDownload(
+    a: Float32Array, rows: number, cols: number): Float32Array {
+  const arr = Array2D.new([rows, cols], a);
+  return unaryop_gpu_test.uploadUnaryDownload(arr, UnaryOp.EXP);
+}

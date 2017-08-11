@@ -4,7 +4,8 @@
     "**/node_modules": true,
     "**/bower_components": true,
     "coverage/": true,
-    "dist/": true
+    "dist/": true,
+    "**/bundle.js": true
   },
   "tslint.configFile": "tslint.json",
   "tslint.enable": true,

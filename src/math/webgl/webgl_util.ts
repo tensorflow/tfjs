@@ -29,13 +29,6 @@ export interface WebGLContextAttributes {
   failIfMajorPerformanceCaveat?: boolean;
 }
 
-/** @hidden */
-export const IS_NAN_SHADER_FUNC = `
-bool isNaN(float val) {
-  return val == val ? false : true;
-}
-`;
-
 export interface WebGLLoseContextExtension { loseContext(): void; }
 
 export function createWebGLRenderingContext(attributes: WebGLContextAttributes):

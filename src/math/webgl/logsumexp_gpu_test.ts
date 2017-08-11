@@ -14,7 +14,11 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as logsumexp_gpu from './logsumexp_gpu';
+import {LogSumExpProgram} from './logsumexp_gpu';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
+import {GPGPUContext} from './gpgpu_context';
+import {initializeGPU, Array2D, Scalar} from '../ndarray';
 
 function cpuLogSumExp(m: Float32Array): number {
   if (m.length === 0) {
@@ -35,20 +39,37 @@ function cpuLogSumExp(m: Float32Array): number {
 describe('logsumexp_gpu', () => {
   it('returns 0 (ln(1) = 0) when the 1x1 input matrix is [0]', () => {
     const a = new Float32Array([0]);
-    const result = logsumexp_gpu.uploadLogSumExpDownload(a, 1, 1);
+    const result = uploadLogSumExpDownload(a, 1, 1);
     expect(result).toEqual(0);
   });
 
   it('returns ln(length) when the input matrix is [0]', () => {
     const a = new Float32Array(512 * 512);
-    const result = logsumexp_gpu.uploadLogSumExpDownload(a, 512, 512);
+    const result = uploadLogSumExpDownload(a, 512, 512);
     expect(result).toBeCloseTo(Math.log(a.length));
   });
 
   it('computes the same result as cpuLogSumExp', () => {
     const a = test_util.randomArrayInRange(12 * 29, -2, 2);
-    const result = logsumexp_gpu.uploadLogSumExpDownload(a, 12, 29);
+    const result = uploadLogSumExpDownload(a, 12, 29);
     const expected = cpuLogSumExp(a);
     expect(result).toBeCloseTo(expected);
   });
 });
+
+export function uploadLogSumExpDownload(a: Float32Array, rows: number,
+    columns: number): number {
+  const gpgpu = new GPGPUContext();
+  const textureManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, textureManager);
+  const aArr = Array2D.new([rows, columns], a);
+  const rScalar = Scalar.new(0);
+  const program = new LogSumExpProgram(aArr.size);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [aArr], rScalar);
+  gpgpu_math.runProgram(binary);
+  const result = rScalar.get();
+  textureManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
+  gpgpu.dispose();
+  return result;
+}

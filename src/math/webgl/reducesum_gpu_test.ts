@@ -14,25 +14,29 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as reducesum_gpu from './reducesum_gpu';
+import {ReduceSumProgram} from './reducesum_gpu';
+import {GPGPUContext} from './gpgpu_context';
+import {NDArray, Array2D, initializeGPU, Scalar} from '../ndarray';
+import {TextureManager} from './texture_manager';
+import * as gpgpu_math from './gpgpu_math';
 
 describe('reducesum_gpu', () => {
   it('returns 0 when A is [0]', () => {
     const a = new Float32Array(129 * 257);
-    const result = reducesum_gpu.uploadReduceSumDownload(a, 129, 257);
+    const result = uploadReduceSumDownload(a, 129, 257);
     expect(result).toEqual(0);
   });
 
   it('returns 1 when A is [1]', () => {
     const a = new Float32Array([1]);
-    const result = reducesum_gpu.uploadReduceSumDownload(a, 1, 1);
+    const result = uploadReduceSumDownload(a, 1, 1);
     expect(result).toEqual(1);
   });
 
   it('returns 1 when A has one 1', () => {
     const a = new Float32Array(100 * 100);
     a[49] = 1;
-    const result = reducesum_gpu.uploadReduceSumDownload(a, 100, 100);
+    const result = uploadReduceSumDownload(a, 100, 100);
     expect(result).toEqual(1);
   });
 
@@ -40,13 +44,13 @@ describe('reducesum_gpu', () => {
     const a = new Float32Array(513 * 257);
     a[23] = 1;
     a[1000] = 1;
-    const result = reducesum_gpu.uploadReduceSumDownload(a, 513, 257);
+    const result = uploadReduceSumDownload(a, 513, 257);
     expect(result).toEqual(2);
   });
 
   it('accumulates values from matrix', () => {
     const a = test_util.randomArrayInRange(100, -1, 1);
-    const result = reducesum_gpu.uploadReduceSumDownload(a, 10, 10);
+    const result = uploadReduceSumDownload(a, 10, 10);
     const expected = (() => {
       let accum = 0;
       for (let i = 0; i < a.length; ++i) {
@@ -59,7 +63,29 @@ describe('reducesum_gpu', () => {
 
   it('computes 7 from 3x2 [1,2,3,0,0,1]', () => {
     const a = new Float32Array([1, 2, 3, 0, 0, 1]);
-    const result = reducesum_gpu.uploadReduceSumDownload(a, 3, 2);
+    const result = uploadReduceSumDownload(a, 3, 2);
     expect(result).toEqual(7);
   });
 });
+
+export function uploadReduceSumDownload(a: Float32Array, rows: number,
+    cols: number): number {
+  const arr = Array2D.new([rows, cols], a);
+  const out = Scalar.new(0);
+
+  const gpgpu = new GPGPUContext();
+  const textureManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, textureManager);
+
+  const program = new ReduceSumProgram(arr.size);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [arr], out);
+  gpgpu_math.runProgram(binary);
+
+  const result = out.get();
+  arr.dispose();
+  out.dispose();
+  textureManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
+  gpgpu.dispose();
+  return result;
+}
