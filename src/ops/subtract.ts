@@ -60,8 +60,6 @@ export class Subtract extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: TensorArrayMap) {
-    const t1 = inferenceArrays.get(this.t1);
-    const t2 = inferenceArrays.get(this.t2);
     const dy = gradientArrays.get(this.outTensor);
 
     math.scope((keep) => {

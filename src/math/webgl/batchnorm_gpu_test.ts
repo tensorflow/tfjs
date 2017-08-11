@@ -14,9 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
-import {NDArrayMathCPU} from '../math_cpu';
-import {Array3D, NDArray} from '../ndarray';
 
 import * as batchnorm_gpu from './batchnorm_gpu';
 import {GPGPUContext} from './gpgpu_context';

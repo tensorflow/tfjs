@@ -13,13 +13,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-// tslint:disable-next-line:no-unused-variable
 import {Array3D} from '../src/math/ndarray';
-
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
 // tslint:disable-next-line
-export let NDArrayImageVisualizerPolymer =
+export let NDArrayImageVisualizerPolymer: new () => PolymerHTMLElement =
     PolymerElement({is: 'ndarray-image-visualizer', properties: {}});
 
 export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {

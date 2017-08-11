@@ -235,8 +235,6 @@ export function downloadMatrixFromOutputTexture(
   const unpackedArray =
       new Float32Array(tex_util.getUnpackedArraySizeFromMatrixSize(
           rows * columns, channelsPerTexture));
-  const textureFormat = getTextureFormat(gl, channelsPerTexture);
-
   webgl_util.callAndCheck(
       gl, () => gl.readPixels(0, 0, w, h, gl.RGBA, gl.FLOAT, unpackedArray));
 

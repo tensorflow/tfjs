@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 import {Graph, Tensor} from '../deeplearnjs';
-// tslint:disable-next-line:no-unused-variable
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 import * as layer_builder from './layer_builder';
@@ -23,7 +22,7 @@ import {ModelBuilder} from './model-builder';
 import * as model_builder_util from './model_builder_util';
 
 // tslint:disable-next-line:variable-name
-export let ModelLayerPolymer = PolymerElement({
+export let ModelLayerPolymer: new () => PolymerHTMLElement = PolymerElement({
   is: 'model-layer',
   properties: {
     layerName: String,

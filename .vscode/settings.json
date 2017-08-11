@@ -7,7 +7,6 @@
     "dist/": true,
     "**/bundle.js": true
   },
-  "tslint.configFile": "tslint.json",
   "tslint.enable": true,
   "tslint.run": "onType",
   "editor.tabSize": 2,

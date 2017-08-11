@@ -23,7 +23,6 @@ import * as imagenet_classes from './imagenet_classes';
 import * as imagenet_util from './imagenet_util';
 
 const IMAGE_SIZE = 227;
-const NUM_CLASSES = 1000;
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/';
 

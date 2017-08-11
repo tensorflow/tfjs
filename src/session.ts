@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 import {Graph, Node, Tensor} from './graph';
-import * as graph_util from './graph_util';
 import {InputProvider} from './input_provider';
 import {NDArrayMath} from './math/math';
 import {NDArray, Scalar} from './math/ndarray';
@@ -74,7 +73,7 @@ export class Session {
    * @param graph The graph to associate with this Session.
    * @param math The NDArrayMath interface that this Session should use.
    */
-  constructor(private graph: Graph, private math: NDArrayMath) {}
+  constructor(graph: Graph, private math: NDArrayMath) {}
 
   /**
    * Release all system resources associated with this Session.

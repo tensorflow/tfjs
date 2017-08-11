@@ -41,8 +41,7 @@ export function getFragmentShaderGetMatrixValueOrZeroPadSource(): string {
 export function getFragmentShaderConvolveSource(
     xShapeRCD: [number, number, number], fSize: number, outputDepth: number,
     stride: number, pad: number, hasBias: boolean) {
-  const [xRows, xCols, inputDepth] = xShapeRCD;
-
+  const inputDepth = xShapeRCD[2];
   const xTexShapeRC = conv_util.computeTexShapeFrom3D(xShapeRCD);
   const wTexShapeRC =
       conv_util.computeWeightsTexShape(inputDepth, outputDepth, fSize);
@@ -117,12 +116,6 @@ export function getFragmentShaderSource(
     aShapeRowColDepth: [number, number, number], resultDepth: number,
     fieldSize: number, stride: number, zeroPad: number,
     hasBias: boolean): string {
-  const aShapeRC: [number, number] =
-      conv_util.computeTexShapeFrom3D(aShapeRowColDepth);
-
-  const weightShapeRC: [number, number] = conv_util.computeWeightsTexShape(
-      aShapeRowColDepth[2], resultDepth, fieldSize);
-
   const prologue = getFragmentShaderPrologueSource();
   const getMatrixValueOrZeroPad =
       getFragmentShaderGetMatrixValueOrZeroPadSource();

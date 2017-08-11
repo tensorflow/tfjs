@@ -18,7 +18,6 @@ import {InputProvider} from './input_provider';
 import {NDArrayMathCPU} from './math/math_cpu';
 import {NDArrayMathGPU} from './math/math_gpu';
 import {Array1D, NDArray, Scalar} from './math/ndarray';
-import {MeanSquaredCost} from './ops/element_wise_cost';
 import {FeedDictionary, FeedEntry, Session} from './session';
 import {SGDOptimizer} from './sgd_optimizer';
 import * as test_util from './test_util';

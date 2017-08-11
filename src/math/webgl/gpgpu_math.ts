@@ -18,8 +18,6 @@ import {NDArray} from '../ndarray';
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import * as util from '../../util';
-import {TextureManager} from './texture_manager';
-import * as webgl_util from './webgl_util';
 
 export interface GPGPUProgram {
   variableNames: string[];

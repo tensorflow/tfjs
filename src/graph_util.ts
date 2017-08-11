@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {ConstantNode, Graph, Node, PlaceholderNode, Tensor, VariableNode} from './graph';
+import {ConstantNode, Node, Tensor} from './graph';
 import * as priority_queue from './priority_queue';
 import {PriorityQueue} from './priority_queue';
 import {TensorArrayMap} from './tensor_array_map';

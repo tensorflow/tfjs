@@ -13,10 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
-import {NDArray, Scalar} from '../ndarray';
-import * as util from '../../util';
 
 export class MinMaxProgram implements GPGPUProgram {
   variableNames = ['A'];

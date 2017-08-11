@@ -61,8 +61,6 @@ export class Add extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: TensorArrayMap) {
-    const x1 = inferenceArrays.get(this.x1Tensor);
-    const x2 = inferenceArrays.get(this.x2Tensor);
     const dy = gradientArrays.get(this.yTensor);
 
     math.scope((keep) => {

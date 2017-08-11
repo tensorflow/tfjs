@@ -43,8 +43,6 @@ describe('MeanSquaredCost', () => {
   });
 
   it('mean squared cost, forward & backward', () => {
-    const axis = 0;
-
     const x1 = Array1D.new([1, 2, 3, 4]);
     const x2 = Array1D.new([2, 4, 6, 8]);
 

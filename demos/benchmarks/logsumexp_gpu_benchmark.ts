@@ -15,7 +15,6 @@ limitations under the License.
 
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
 import {LogSumExpProgram} from '../../src/math/webgl/logsumexp_gpu';
-import * as test_util from '../../src/test_util';
 import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import {Scalar, Array2D, initializeGPU} from '../../src/math/ndarray';
 import {TextureManager} from '../../src/math/webgl/texture_manager';

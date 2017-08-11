@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import * as ndarray from './ndarray';
-import {Array1D, Array2D, Array3D, Array4D, GPGPU, NDArray, Scalar, TEXTURE_MANAGER} from './ndarray';
+import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_util from './webgl/gpgpu_util';
 import {TextureManager} from './webgl/texture_manager';

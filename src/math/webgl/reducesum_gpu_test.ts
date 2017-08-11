@@ -16,7 +16,7 @@ limitations under the License.
 import * as test_util from '../../test_util';
 import {ReduceSumProgram} from './reducesum_gpu';
 import {GPGPUContext} from './gpgpu_context';
-import {NDArray, Array2D, initializeGPU, Scalar} from '../ndarray';
+import {Array2D, initializeGPU, Scalar} from '../ndarray';
 import {TextureManager} from './texture_manager';
 import * as gpgpu_math from './gpgpu_math';
 

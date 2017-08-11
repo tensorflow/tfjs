@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 import {MatrixOrientation} from '../math';
-import {Array2D} from '../ndarray';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class MatMulProgram implements GPGPUProgram {

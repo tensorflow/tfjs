@@ -16,14 +16,13 @@ limitations under the License.
 import '../demo-header';
 import '../demo-footer';
 
-// tslint:disable-next-line:no-unused-variable
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 import {BenchmarkRunGroup} from './benchmark';
 
 import {BENCHMARK_RUN_GROUPS} from './math-benchmark-run-groups';
 
 // tslint:disable-next-line:variable-name
-export let MathBenchmarkPolymer = PolymerElement(
+export let MathBenchmarkPolymer: new () => PolymerHTMLElement = PolymerElement(
     {is: 'math-benchmark', properties: {benchmarkRunGroupNames: Array}});
 
 export class MathBenchmark extends MathBenchmarkPolymer {

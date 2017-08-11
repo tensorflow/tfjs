@@ -15,7 +15,6 @@ limitations under the License.
 
 import {Graph, Tensor} from './graph';
 import {Initializer, VarianceScalingInitializer, ZerosInitializer} from './initializers';
-import {NDArray} from './math/ndarray';
 
 /**
  * A layers sugar class around the graph that initializes variables

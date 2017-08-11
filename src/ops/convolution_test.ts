@@ -18,7 +18,6 @@ import * as conv_util from '../math/conv_util';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from '../math/ndarray';
 import {TensorArrayMap} from '../tensor_array_map';
-import * as test_util from '../test_util';
 
 import {Convolution2D} from './convolution';
 

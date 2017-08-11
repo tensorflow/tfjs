@@ -16,7 +16,6 @@ limitations under the License.
 import * as conv_util from '../conv_util';
 
 import {GPGPUContext} from './gpgpu_context';
-import * as webgl_util from './webgl_util';
 
 export function getFragmentShaderSource(
     inputShapeRCD: [number, number, number],

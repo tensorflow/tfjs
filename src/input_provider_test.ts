@@ -16,7 +16,6 @@ limitations under the License.
 import {InCPUMemoryShuffledInputProviderBuilder} from './input_provider';
 import {NDArrayMathCPU} from './math/math_cpu';
 import {NDArrayMathGPU} from './math/math_gpu';
-import * as ndarray from './math/ndarray';
 import {Array1D, Scalar} from './math/ndarray';
 
 

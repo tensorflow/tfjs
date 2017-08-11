@@ -24,9 +24,7 @@ reader.getAllVariables().then(vars => {
   xhr.onload = () => {
     const data = JSON.parse(xhr.responseText) as SampleData;
     const math = new NDArrayMathGPU();
-    const evalMethod = buildModelMathAPI(math, data, vars);
     const [input, probs] = buildModelLayersAPI(data, vars);
-    const [input2, probs2] = buildModelGraphAPI(data, vars);
     const sess = new Session(input.node.graph, math);
 
     math.scope(() => {
@@ -34,9 +32,6 @@ reader.getAllVariables().then(vars => {
       for (let i = 0; i < data.images.length; i++) {
         const inputData = Array1D.new(data.images[i]);
         const probsVal = sess.eval(probs, [{tensor: input, data: inputData}]);
-        const probsVal2 =
-            sess.eval(probs2, [{tensor: input2, data: inputData}]);
-        const probsVal3 = evalMethod(inputData);
         if (data.labels[i] === probsVal.get()) {
           numCorrect++;
         }
@@ -49,7 +44,7 @@ reader.getAllVariables().then(vars => {
   xhr.send();
 });
 
-interface SampleData {
+export interface SampleData {
   images: number[][];
   labels: number[];
 }
@@ -61,7 +56,7 @@ interface SampleData {
  * math.scope() so that NDArrays created by intermediate math commands are
  * automatically cleaned up.
  */
-function buildModelMathAPI(
+export function buildModelMathAPI(
     math: NDArrayMath, data: SampleData,
     vars: {[varName: string]: NDArray}): (x: Array1D) => Scalar {
   const hidden1W = vars['hidden1/weights'] as Array2D;
@@ -90,7 +85,7 @@ function buildModelMathAPI(
  * Users do not need to worry about GPU-related memory leaks, other than their
  * input data.
  */
-function buildModelGraphAPI(
+export function buildModelGraphAPI(
     data: SampleData, vars: {[varName: string]: NDArray}): Tensor[] {
   const g = new Graph();
   // TODO: Support batching.

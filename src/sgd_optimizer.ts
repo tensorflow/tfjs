@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {Node, Tensor, VariableNode} from './graph';
+import {Node} from './graph';
 import {NDArrayMath} from './math/math';
 import {NDArray, Scalar} from './math/ndarray';
 import {Optimizer} from './optimizer';

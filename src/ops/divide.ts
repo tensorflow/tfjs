@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {NDArrayMath} from '../math/math';
-import {NDArray, Scalar} from '../math/ndarray';
+import {NDArray} from '../math/ndarray';
 import {TensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
@@ -26,7 +26,6 @@ import {Operation} from './op';
  * @hidden
  */
 export class Divide extends Operation {
-  private ones: NDArray;
 
   /**
    * Element-wise divide operation. Broadcasts if one of the tensors is

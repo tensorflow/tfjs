@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as test_util from '../test_util';
 import * as concat3d_util from './concat3d_util';
 
 describe('concat3d_util.assertConcat3DShapesMatch', () => {

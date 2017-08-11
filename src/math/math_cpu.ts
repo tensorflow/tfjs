@@ -497,7 +497,8 @@ export class NDArrayMathCPU extends NDArrayMath {
     const pad = fSize - 1 - origPad;
     const origInputDepth = weights.shape[2];
     const origOutputDepth = weights.shape[3];
-    const [xRows, xCols, xDepth] = x.shape;
+    const xRows = x.shape[0];
+    const xCols = x.shape[1];
 
     // Dilate the input.
     const xRowsDilated = (xRows - 1) * origStride + 1;
@@ -552,7 +553,8 @@ export class NDArrayMathCPU extends NDArrayMath {
     const pad = fSize - 1 - origPad;
     const origInputDepth = origWeights.shape[2];
     const origOutputDepth = origWeights.shape[3];
-    const [xRows, xCols, xDepth] = x.shape;
+    const xRows = x.shape[0];
+    const xCols = x.shape[1];
 
     // Dilate the input.
     const xRowsDilated = (xRows - 1) * origStride + 1;
@@ -700,9 +702,7 @@ export class NDArrayMathCPU extends NDArrayMath {
           let avgValue = 0;
 
           for (let xR = xRMin; xR < xRMax; ++xR) {
-            const wR = xR - xRCorner;
             for (let xC = xCMin; xC < xCMax; ++xC) {
-              const wC = xC - xCCorner;
               const pixel = x.get(xR, xC, d);
               if (isNaN(pixel)) {
                 minMaxValue = NaN;

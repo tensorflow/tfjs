@@ -226,7 +226,6 @@ export class Convolution2DLayerBuilder implements LayerBuilder {
   addLayer(
       g: Graph, network: Tensor, inputShape: number[], index: number,
       weights: LayerWeightsDict|null): Tensor {
-    const inputShape3d = inputShape as [number, number, number];
     const wShape: [number, number, number, number] =
         [this.fieldSize, this.fieldSize, inputShape[2], this.outputDepth];
     let w: Array4D;

@@ -13,11 +13,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as dataset from './dataset';
-import {Graph, Tensor} from './graph';
+import {Tensor} from './graph';
 import {InputProvider} from './input_provider';
 import {NDArrayMath} from './math/math';
-import {NDArrayMathCPU} from './math/math_cpu';
 import {NDArray, Scalar} from './math/ndarray';
 import {Optimizer} from './optimizer';
 import {CostReduction, FeedEntry, Session} from './session';

@@ -45,7 +45,6 @@ import * as pool_gpu from './webgl/pool_gpu';
 import {ReduceSumProgram} from './webgl/reducesum_gpu';
 import * as reshape_gpu from './webgl/reshape_gpu';
 import * as resize_bilinear_gpu from './webgl/resize_bilinear_gpu';
-import * as shader_compiler from './webgl/shader_compiler';
 import {TextureManager} from './webgl/texture_manager';
 import * as webgl_util from './webgl/webgl_util';
 import {UnaryOpProgram, UnaryOp} from './webgl/unaryop_gpu';

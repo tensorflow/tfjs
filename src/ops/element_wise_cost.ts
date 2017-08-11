@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {ElementWiseCostFunction, SquareCostFunc} from '../math/cost_functions';
 import {NDArrayMath} from '../math/math';
-import {Array1D, NDArray, Scalar} from '../math/ndarray';
+import {Scalar} from '../math/ndarray';
 import {TensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
@@ -26,7 +26,7 @@ import {Operation} from './op';
 /**
  * @hidden
  */
-export class ElementWiseCost<T extends NDArray> extends Operation {
+export class ElementWiseCost extends Operation {
   private oneOverNScalar: Scalar;
 
   constructor(
@@ -73,7 +73,7 @@ export class ElementWiseCost<T extends NDArray> extends Operation {
 /**
  * @hidden
  */
-export class MeanSquaredCost extends ElementWiseCost<Array1D> {
+export class MeanSquaredCost extends ElementWiseCost {
   constructor(x1Tensor: Tensor, x2Tensor: Tensor, yTensor: Tensor) {
     super(x1Tensor, x2Tensor, yTensor, new SquareCostFunc());
   }

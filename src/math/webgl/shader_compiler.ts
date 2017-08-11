@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 import * as util from '../../util';
-import {NDArray} from '../ndarray';
 
 export type NDArrayShape = {
   shape: number[],

@@ -1497,7 +1497,6 @@ describe('NDArrayMathGPU conv2d', () => {
 
   it('throws when x is not rank 3', () => {
     const inputDepth = 1;
-    const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
     const fSize = 2;
     const pad = 0;
@@ -1519,8 +1518,6 @@ describe('NDArrayMathGPU conv2d', () => {
   it('throws when weights is not rank 4', () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
-    const outputDepth = 1;
-    const fSize = 2;
     const pad = 0;
     const stride = 1;
 
@@ -1619,7 +1616,6 @@ describe('NDArrayMathGPU conv2dTranspose', () => {
   it('throws when x is not rank 3', () => {
     const origInputDepth = 1;
     const origOutputDepth = 1;
-    const inputShape: [number, number, number] = [1, 1, origOutputDepth];
     const fSize = 2;
     const origPad = 0;
     const origStride = 1;

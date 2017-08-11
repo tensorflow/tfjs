@@ -16,9 +16,8 @@ limitations under the License.
 import {Tensor} from '../graph';
 import * as concat3d_util from '../math/concat3d_util';
 import {NDArrayMath} from '../math/math';
-import {Array3D, NDArray} from '../math/ndarray';
+import {Array3D} from '../math/ndarray';
 import {TensorArrayMap} from '../tensor_array_map';
-import * as util from '../util';
 
 import {Operation} from './op';
 

@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {NDArrayMath} from './math/math';
 import {NDArray} from './math/ndarray';
 import * as util from './util';
 

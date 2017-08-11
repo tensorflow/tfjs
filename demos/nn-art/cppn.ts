@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {Array1D, Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, Scalar, webgl_util} from '../deeplearnjs';
+import {Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, webgl_util} from '../deeplearnjs';
 
 import * as nn_art_util from './nn_art_util';
 
@@ -62,8 +62,6 @@ export class CPPN {
 
   private colorModeNames: ColorMode[] =
       ['rgb', 'rgba', 'hsv', 'hsva', 'yuv', 'yuva', 'bw'];
-  private activationFunctionNames: ActivationFunction[] =
-      ['tanh', 'sin', 'relu', 'step'];
 
   private selectedColorModeName: ColorMode;
   private selectedActivationFunctionName: ActivationFunction;

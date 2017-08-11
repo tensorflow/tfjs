@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import {InMemoryDataset} from '../src/dataset';
-import {Array1D, NDArray} from '../src/math/ndarray';
+import {NDArray} from '../src/math/ndarray';
 import * as util from '../src/util';
 
 const PARSING_IMAGE_CANVAS_HEIGHT_PX = 1000;

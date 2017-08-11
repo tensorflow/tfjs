@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import * as conv_util from '../math/conv_util';
 import {NDArrayMath} from '../math/math';
-import {Array2D, Array3D, NDArray} from '../math/ndarray';
+import {Array3D} from '../math/ndarray';
 import {TensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 

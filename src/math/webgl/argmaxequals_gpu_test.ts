@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as test_util from '../../test_util';
 import {ArgMaxEqualsProgram} from './argmaxequals_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';

@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import {UnaryOpProgram, UnaryOp} from './unaryop_gpu';
+import {UnaryOp} from './unaryop_gpu';
 import * as unaryop_gpu_test from './unaryop_gpu_test';
 import {NDArray, Array2D, Array1D, Array3D, Scalar} from '../ndarray';
 

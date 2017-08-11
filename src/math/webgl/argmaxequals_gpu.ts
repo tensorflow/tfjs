@@ -14,10 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import * as argminmax_gpu from './argminmax_gpu';
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
-import {NDArray, Scalar} from '../ndarray';
-import * as util from '../../util';
 
 export class ArgMaxEqualsProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];

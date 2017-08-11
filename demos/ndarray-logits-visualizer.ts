@@ -13,16 +13,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-// tslint:disable-next-line:no-unused-variable
 import {NDArrayMathCPU} from '../src/math/math_cpu';
 import {Array1D} from '../src/math/ndarray';
-
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
 const TOP_K = 3;
 
 // tslint:disable-next-line
-export let NDArrayLogitsVisualizerPolymer =
+export let NDArrayLogitsVisualizerPolymer: new () => PolymerHTMLElement =
     PolymerElement({is: 'ndarray-logits-visualizer', properties: {}});
 
 export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {

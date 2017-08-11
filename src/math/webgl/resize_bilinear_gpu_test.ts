@@ -15,8 +15,6 @@ limitations under the License.
 
 import * as test_util from '../../test_util';
 import * as conv_util from '../conv_util';
-import {NDArrayMathCPU} from '../math_cpu';
-import {Array3D, NDArray} from '../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as resize_bilinear_gpu from './resize_bilinear_gpu';

@@ -61,7 +61,6 @@ describe('graph_util.getUnorderedEvaluationSet', () => {
 
   it('does not process inputs from nodes in the termination set', () => {
     const t0 = new Tensor([]);
-    const n0 = new TestNode(g, '', {}, t0);
     const t1 = new Tensor([]);
     const n1 = new TestNode(g, '', {'t0': t0}, t1);
     const n2 = new TestNode(g, '', {'t1': t1}, new Tensor([]));
@@ -149,7 +148,6 @@ describe('graph_util.getOrderedEvaluationSet', () => {
     const n2 = new TestNode(g, '', {'t0': t0}, t2);
     const t3 = new Tensor([]);
     const n3 = new TestNode(g, '', {'t1': t1, 't2': t2}, t3);
-    const t4 = new Tensor([]);
     const n4 = new TestNode(g, '', {'t0': t0, 't3': t3}, new Tensor([]));
     const path = graph_util.getOrderedEvaluationSet([n4, n3, n2, n1, n0]);
     expect(path[0]).toBe(n0);

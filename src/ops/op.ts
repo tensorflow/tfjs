@@ -14,7 +14,6 @@ limitations under the License.
 ==============================================================================*/
 
 import {NDArrayMath} from '../math/math';
-import {NDArray, Scalar} from '../math/ndarray';
 import {TensorArrayMap} from '../tensor_array_map';
 
 /**

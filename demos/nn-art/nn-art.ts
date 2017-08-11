@@ -14,26 +14,18 @@ limitations under the License.
 ==============================================================================*/
 import '../demo-header';
 import '../demo-footer';
-
-import {Array1D, Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, Scalar, webgl_util} from '../deeplearnjs';
-// tslint:disable-next-line:no-unused-variable
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
-
 import {ActivationFunction, ColorMode, CPPN} from './cppn';
-import * as nn_art_util from './nn_art_util';
 
 const CANVAS_UPSCALE_FACTOR = 3;
-
-const NUM_IMAGE_SPACE_VARIABLES = 3;  // x, y, r
-const NUM_LATENT_VARIABLES = 2;
-
-const MAX_NUM_LAYERS = 7;
 const MAT_WIDTH = 30;
 // Standard deviations for gaussian weight initialization.
 const WEIGHTS_STDEV = .6;
 
 // tslint:disable-next-line:variable-name
-const NNArtPolymer = PolymerElement({is: 'nn-art', properties: {}});
+const NNArtPolymer: new () => PolymerHTMLElement = PolymerElement({
+  is: 'nn-art', properties: {}
+});
 
 class NNArt extends NNArtPolymer {
   private cppn: CPPN;

@@ -18,11 +18,9 @@ import * as conv_gpu_benchmark from './conv_gpu_benchmark';
 import * as conv_transpose_gpu_benchmark from './conv_transpose_gpu_benchmark';
 import * as logsumexp_cpu_benchmark from './logsumexp_cpu_benchmark';
 import * as logsumexp_gpu_benchmark from './logsumexp_gpu_benchmark';
-import * as max_pool_backprop_gpu_benchmark from './max_pool_backprop_gpu_benchmark';
 import * as max_pool_gpu_benchmark from './max_pool_gpu_benchmark';
 import * as mulmat_cpu_benchmark from './mulmat_cpu_benchmark';
 import * as mulmat_gpu_benchmark from './mulmat_gpu_benchmark';
-import * as tex_util_benchmark from './tex_util_benchmark';
 
 export const BENCHMARK_RUN_GROUPS: BenchmarkRunGroup[] = [
   {

@@ -111,7 +111,6 @@ describe('Max pool', () => {
     const fSize = 2;
     const stride = 2;
     const pad = 0;
-    const depth = 2;
 
     const x = Array3D.new([4, 4, 2], [
       -1, 11, 2,  22,  3,   33,  4,  44,  5,  55,  6,  -66, 7,  -77, 8,  88,

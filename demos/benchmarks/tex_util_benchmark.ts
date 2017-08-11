@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as gpgpu_util from '../../src/math/webgl/gpgpu_util';
 import * as tex_util from '../../src/math/webgl/tex_util';
 import * as webgl_util from '../../src/math/webgl/webgl_util';
 import * as test_util from '../../src/test_util';

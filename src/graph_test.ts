@@ -16,7 +16,7 @@ limitations under the License.
 import {ConstantNode, Graph, Node, Tensor, VariableNode} from './graph';
 import * as conv_util from './math/conv_util';
 import {NDArray} from './math/ndarray';
-import {FeedDictionary, Session} from './session';
+import {FeedDictionary} from './session';
 import * as session_util from './session_util';
 
 class TestNode extends Node {
@@ -72,6 +72,7 @@ describe('Graph', () => {
     const fd = new FeedDictionary([{tensor: input, data: NDArray.zeros([1])}]);
     const orderedEvaluationSet =
         session_util.getOrderedEvaluationSetFromEvalTensor([fc3], fd);
+    expect(orderedEvaluationSet.length).toBeGreaterThan(1);
   });
 });
 

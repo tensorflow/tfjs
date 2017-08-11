@@ -108,11 +108,8 @@ describe('Model runner', () => {
           costTensor, trainFeedEntries, FAKE_BATCH_SIZE, optimizer,
           CostReduction.MEAN
         ]);
-
-        const avgCost =
-            (fakeUserEvents.avgCostCallback as jasmine.Spy).calls.argsFor(i)[0];
-        const accuracy =
-            (fakeUserEvents.metricCallback as jasmine.Spy).calls.argsFor(i)[0];
+        (fakeUserEvents.avgCostCallback as jasmine.Spy).calls.argsFor(i);
+        (fakeUserEvents.metricCallback as jasmine.Spy).calls.argsFor(i);
       }
       expect((fakeUserEvents.avgCostCallback as jasmine.Spy).calls.count())
           .toEqual(numBatches);

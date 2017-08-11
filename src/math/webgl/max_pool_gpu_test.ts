@@ -13,7 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {MaxPool} from '../../ops/max_pool';
 import * as test_util from '../../test_util';
 import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
