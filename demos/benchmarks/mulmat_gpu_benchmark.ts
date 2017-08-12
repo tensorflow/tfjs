@@ -47,7 +47,7 @@ export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
 
   const start = performance.now();
   for (let i = 0; i < OP_RUNS; i++) {
-    gpgpu_math.runProgram(binary);
+    gpgpu_math.runProgram(binary, [aArr, bArr], resArr);
   }
   gpgpu.downloadMatrixFromTexture(resultTexture, size, size);
   const avgTime = (performance.now() - start) / OP_RUNS;

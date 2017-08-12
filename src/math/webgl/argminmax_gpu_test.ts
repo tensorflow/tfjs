@@ -29,7 +29,7 @@ function uploadArgMinMaxDownload(
   const out = Scalar.new(0);
   const program = new ArgMinMaxProgram(arr.size, op);
   const binary = gpgpu_math.compileProgram(gpgpu, program, [arr], out);
-  gpgpu_math.runProgram(binary);
+  gpgpu_math.runProgram(binary, [arr], out);
 
   const result = out.get();
   arr.dispose();

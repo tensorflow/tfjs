@@ -15,25 +15,26 @@ limitations under the License.
 
 import * as util from '../../util';
 
-export type NDArrayShape = {
-  shape: number[],
+export type ShapeInfo = {
+  logicalShape: number[],
   texShape: [number, number];
 };
 
-export type Input = {
+export type InputInfo = {
   name: string,
-  fullShape: NDArrayShape
+  shapeInfo: ShapeInfo
 };
 
 export function makeShader(
-    inputs: Input[], output: NDArrayShape, userCode: string): string {
+    inputsInfo: InputInfo[], outputShape: ShapeInfo,
+    userCode: string): string {
   const inputPrefixSnippet =
-      inputs.map(x => `uniform sampler2D ${x.name};`).join('\n');
+      inputsInfo.map(x => `uniform sampler2D ${x.name};`).join('\n');
   const inputSamplingSnippet =
-      inputs.map(x => getInputSamplingSnippet(x, output)).join('\n');
-  const outTexShape = output.texShape;
+      inputsInfo.map(x => getInputSamplingSnippet(x, outputShape)).join('\n');
+  const outTexShape = outputShape.texShape;
   const outputSamplingSnippet =
-      getOutputSamplingSnippet(output.shape, outTexShape);
+      getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
   const source = [
     SHADER_PREFIX, inputPrefixSnippet, SAMPLE_1D_SNIPPET, SAMPLE_2D_SNIPPET,
     SAMPLE_3D_SNIPPET, inputSamplingSnippet, outputSamplingSnippet, userCode
@@ -41,38 +42,39 @@ export function makeShader(
   return source;
 }
 
-function getInputSamplingSnippet(input: Input, output: NDArrayShape) {
-  const fullShape = input.fullShape;
-  const shape = fullShape.shape;
-  const texShape = fullShape.texShape;
-  const outTexShape = output.texShape;
+function getInputSamplingSnippet(inInfo: InputInfo, outShapeInfo: ShapeInfo) {
+  const shape = inInfo.shapeInfo.logicalShape;
+  const texShape = inInfo.shapeInfo.texShape;
+  const outTexShape = outShapeInfo.texShape;
 
   let res = '';
   switch (shape.length) {
     case 0:
-      res += getSamplerScalar(input.name);
+      res += getSamplerScalar(inInfo.name);
       break;
     case 1:
-      res += getSampler1D(input.name, texShape);
+      res += getSampler1D(inInfo.name, texShape);
       break;
     case 2:
-      res += getSampler2D(input.name, shape as [number, number], texShape);
+      res += getSampler2D(inInfo.name, shape as [number, number], texShape);
       break;
     case 3:
-      res += getSampler3D(input.name, shape as [number, number, number],
-          texShape);
+      res += getSampler3D(
+          inInfo.name, shape as [number, number, number], texShape);
       break;
     default:
-      throw new Error(`${fullShape.shape.length}-D input sampling is not yet ` +
-                      `supported`);
+      throw new Error(
+          `${shape.length}-D input sampling` +
+          ` is not yet supported`);
   }
   // If input and output have matching logical shapes, add
   // getTexNameAtOutCoord() method that samples the input texture using the
   // output coordinates.
-  if (util.arraysEqual(input.fullShape.shape, output.shape)) {
-    res += getSamplerAtOutputCoords(input.name, texShape, outTexShape);
+  if (util.arraysEqual(
+          inInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape)) {
+    res += getSamplerAtOutputCoords(inInfo.name, texShape, outTexShape);
   }
-  res += getSamplerFlat(input.name, texShape);
+  res += getSamplerFlat(inInfo.name, texShape);
   return res;
 }
 

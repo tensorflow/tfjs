@@ -279,8 +279,8 @@ describe('mulmat_gpu (multiple matrices)', () => {
     gpgpu.uploadMatrixToTexture(b, bShape[0], bShape[1], bData);
     gpgpu.uploadMatrixToTexture(c, cShape[0], cShape[1], cData);
 
-    gpgpu_math.runProgram(axbProgram);
-    gpgpu_math.runProgram(abxcProgram);
+    gpgpu_math.runProgram(axbProgram, [aArr, bArr], abArr);
+    gpgpu_math.runProgram(abxcProgram, [abArr, cArr], rArr);
     const result = gpgpu.downloadMatrixFromTexture(r, rShape[0], rShape[1]);
     const expected = test_util.cpuMultiplyMatrix(
         test_util.cpuMultiplyMatrix(aData, 4, 2, bData, 2, 12), 4, 12, cData,
@@ -362,7 +362,7 @@ export function uploadMultiplyMatrixDownload(
   gpgpu.uploadMatrixToTexture(aTexture, aNumRows, aNumCols, a);
   gpgpu.uploadMatrixToTexture(bTexture, bNumRows, bNumCols, b);
 
-  gpgpu_math.runProgram(binary);
+  gpgpu_math.runProgram(binary, [aArr, bArr], resArr);
 
   const result =
       gpgpu.downloadMatrixFromTexture(resultTexture, outNumRows, outNumCols);

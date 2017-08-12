@@ -87,7 +87,7 @@ export class NDArrayMathGPU extends NDArrayMath {
   private gpgpu: GPGPUContext;
   private textureManager: TextureManager;
   private programCache: {[key: string]: WebGLProgram} = {};
-  private binaryCache: {[key: string]: GPGPUBinary<NDArray, NDArray>} = {};
+  private binaryCache: {[key: string]: GPGPUBinary} = {};
   private gpgpuCreatedLocally: boolean;
 
   constructor(gpgpu?: GPGPUContext, safeMode = true) {
@@ -984,14 +984,12 @@ export class NDArrayMathGPU extends NDArrayMath {
         newShapeRCD, {texture: resultTexture, textureShapeRC: resultTexShape});
   }
 
-  private getAndSaveBinary<K extends NDArray, T extends NDArray>(
-      key: string,
-      getBinary: () => GPGPUBinary<K,T>):
-      GPGPUBinary<K,T> {
+  private getAndSaveBinary(key: string, getBinary: () => GPGPUBinary):
+      GPGPUBinary {
     if (!(key in this.binaryCache)) {
       this.binaryCache[key] = getBinary();
     }
-    return this.binaryCache[key] as GPGPUBinary<K, T>;
+    return this.binaryCache[key];
   }
 
   private getAndSaveProgram(programKey: string, getShaderSource: () => string):

@@ -66,7 +66,7 @@ export function uploadLogSumExpDownload(a: Float32Array, rows: number,
   const rScalar = Scalar.new(0);
   const program = new LogSumExpProgram(aArr.size);
   const binary = gpgpu_math.compileProgram(gpgpu, program, [aArr], rScalar);
-  gpgpu_math.runProgram(binary);
+  gpgpu_math.runProgram(binary, [aArr], rScalar);
   const result = rScalar.get();
   textureManager.dispose();
   gpgpu.deleteProgram(binary.webGLProgram);

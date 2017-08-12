@@ -17,6 +17,7 @@ import {NDArray} from '../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
+import {ShapeInfo} from './shader_compiler';
 import * as util from '../../util';
 
 export interface GPGPUProgram {
@@ -26,47 +27,47 @@ export interface GPGPUProgram {
   userCode: string;
 }
 
-export interface GPGPUBinary<T extends NDArray, K extends NDArray> {
+export interface GPGPUBinary {
   webGLProgram: WebGLProgram;
   program: GPGPUProgram;
   gpgpu: GPGPUContext;
   source: string;
-  inputs: T[];
-  output: K;
+  inShapeInfos: ShapeInfo[];
+  outShapeInfo: ShapeInfo;
 }
 
 export function compileProgram<T extends NDArray, K extends NDArray>(
     gpgpu: GPGPUContext, program: GPGPUProgram, inputs: T[],
-    output: K): GPGPUBinary<T,K> {
+    output: K): GPGPUBinary {
   const userCode = program.userCode;
-  const programInputs = program.variableNames.map((x, i) => {
-    const fullShape = {
-      shape: inputs[i].shape,
+  const inputInfos = program.variableNames.map((x, i) => {
+    const shapeInfo = {
+      logicalShape: inputs[i].shape,
       texShape: inputs[i].getTextureShapeRC()
     };
-    return {name: x, fullShape};
+    return {name: x, shapeInfo};
   });
-
-  const outFullShape = {
-    shape: output.shape,
+  const inShapeInfos = inputInfos.map(x => x.shapeInfo);
+  const outShapeInfo = {
+    logicalShape: output.shape,
     texShape: output.getTextureShapeRC()
   };
-  const source = shader_compiler.makeShader(programInputs, outFullShape,
+  const source = shader_compiler.makeShader(inputInfos, outShapeInfo,
       userCode);
   return {
     program,
     source,
     webGLProgram: gpgpu.createProgram(source),
     gpgpu,
-    inputs,
-    output
+    inShapeInfos,
+    outShapeInfo
   };
 }
 
-function validateBinaryAndProgram(aArrays: NDArray[], bArrays: NDArray[]) {
-  aArrays.forEach((a, i) => {
-    const shapeA = a.shape;
-    const texShapeA = a.getTextureShapeRC();
+function validateBinaryAndProgram(shapeInfos: ShapeInfo[], bArrays: NDArray[]) {
+  shapeInfos.forEach((s, i) => {
+    const shapeA = s.logicalShape;
+    const texShapeA = s.texShape;
     const shapeB = bArrays[i].shape;
     const texShapeB = bArrays[i].getTextureShapeRC();
 
@@ -82,17 +83,10 @@ function validateBinaryAndProgram(aArrays: NDArray[], bArrays: NDArray[]) {
 }
 
 export function runProgram<T extends NDArray, K extends NDArray>(
-    binary: GPGPUBinary<T,K>, inputs?: T[], output?: K): void {
-  if (inputs == null) {
-    inputs = binary.inputs;
-  } else {
-    validateBinaryAndProgram(binary.inputs, inputs);
-  }
-  if (output == null) {
-    output = binary.output;
-  } else {
-    validateBinaryAndProgram([binary.output], [output]);
-  }
+    binary: GPGPUBinary, inputs: T[], output: K): void {
+  validateBinaryAndProgram(binary.inShapeInfos, inputs);
+  validateBinaryAndProgram([binary.outShapeInfo], [output]);
+
   const outTex = output.getTexture();
   const outTexShape = output.getTextureShapeRC();
   const gpgpu = binary.gpgpu;

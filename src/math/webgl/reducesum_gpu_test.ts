@@ -79,7 +79,7 @@ export function uploadReduceSumDownload(a: Float32Array, rows: number,
 
   const program = new ReduceSumProgram(arr.size);
   const binary = gpgpu_math.compileProgram(gpgpu, program, [arr], out);
-  gpgpu_math.runProgram(binary);
+  gpgpu_math.runProgram(binary, [arr], out);
 
   const result = out.get();
   arr.dispose();
