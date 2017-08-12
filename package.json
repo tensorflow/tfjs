@@ -30,6 +30,7 @@
   },
   "scripts": {
     "prep": "npm install && bower install && mkdirp dist",
+    "build": "tsc",
     "test": "karma start",
     "lint": "tslint -p . --type-check -t verbose"
   }
