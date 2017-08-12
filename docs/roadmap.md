@@ -8,7 +8,7 @@ This page outlines some of the projects we wish to happen in the near future.
 These are projects that we would love to see the open source community
 contribute to.
 
-# More devices
+## More devices
 
 **deeplearn.js** targets WebGL 1.0 devices with the `OES_texture_float`
 extension and targets WebGL 2.0 devices. However, we have turned off mobile,
