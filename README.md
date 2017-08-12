@@ -3,6 +3,8 @@ layout: page
 order: 1
 ---
 
+[![Build Status](https://travis-ci.org/PAIR-code/deeplearnjs.svg?branch=master)](https://travis-ci.org/PAIR-code/deeplearnjs)
+
 # Getting started
 
 **deeplearn.js** is an open source hardware-accelerated JavaScript library for
