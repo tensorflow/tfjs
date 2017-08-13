@@ -4,3 +4,6 @@ demos/**/*.js.map
 coverage/
 bower_components/
 index.ts
+
+npm-debug.log
+.DS_Store
