@@ -55,8 +55,8 @@ function getOpSnippet(op: UnaryOp) {
     case UnaryOp.SIN:
       return 'float r = sin(v);';
     case UnaryOp.TANH:
-      return `float e2x = exp(-2.0 * v);
-              float r = (1.0 - e2x) / (1.0 + e2x);`;
+      return `float e2x = exp(-2.0 * abs(v));
+              float r = sign(v) * (1.0 - e2x) / (1.0 + e2x);`;
     default:
       throw Error('Unrecognized unary op type ' + op);
   }

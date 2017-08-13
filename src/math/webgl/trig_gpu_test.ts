@@ -17,7 +17,7 @@ import * as test_util from '../../test_util';
 import * as util from '../../util';
 import {UnaryOp} from './unaryop_gpu';
 import * as unaryop_gpu_test from './unaryop_gpu_test';
-import {Array1D, Array2D, Array3D} from '../ndarray';
+import {Scalar, Array1D, Array2D, Array3D} from '../ndarray';
 
 describe('sin_gpu', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
@@ -57,5 +57,29 @@ describe('tanh_gpu', () => {
     const aArr = Array2D.new([2, 5], a);
     const result = unaryop_gpu_test.uploadUnaryDownload(aArr, UnaryOp.TANH);
     test_util.expectArraysClose(result, expectedResult, 1e-6);
+  });
+
+  it('overflow', () => {
+    const a = Scalar.new(100);
+    const r = unaryop_gpu_test.uploadUnaryDownload(a, UnaryOp.TANH);
+    expect(r).toBeCloseTo(1);
+  });
+
+  it('tanh(0) = 0', () => {
+    const a = Scalar.new(0);
+    const r = unaryop_gpu_test.uploadUnaryDownload(a, UnaryOp.TANH);
+    expect(r).toBeCloseTo(0);
+  });
+
+  it('tanh(0.01) is close to 0.01', () => {
+    const a = Scalar.new(0.01);
+    const r = unaryop_gpu_test.uploadUnaryDownload(a, UnaryOp.TANH);
+    expect(r).toBeCloseTo(0.01);
+  });
+
+  it('underflow', () => {
+    const a = Scalar.new(-100);
+    const r = unaryop_gpu_test.uploadUnaryDownload(a, UnaryOp.TANH);
+    expect(r).toBeCloseTo(-1);
   });
 });

@@ -27,7 +27,7 @@ describe('NDArrayMathGPU scope', () => {
     math = new NDArrayMathGPU();
   });
 
-  it('basic scope usage with a return', () => {
+  it('scope returns NDArray', () => {
     const a = Array1D.new([1, 2, 3]);
     let b = Array1D.new([0, 0, 0]);
 
@@ -46,6 +46,33 @@ describe('NDArrayMathGPU scope', () => {
       expect(math.getTextureManager().getNumUsedTextures())
           .toEqual(numUsedTexturesBefore + 3);
       expect(result.getValues()).toEqual(new Float32Array([4, 8, 12]));
+    });
+
+    // a, b are new textures, result should be disposed.
+    expect(math.getTextureManager().getNumUsedTextures())
+        .toEqual(numUsedTexturesBefore + 2);
+    a.dispose();
+    b.dispose();
+  });
+
+  it('scope returns NDArray[]', () => {
+    const a = Array1D.new([1, 2, 3]);
+    const b = Array1D.new([0, -1, 1]);
+
+    const numUsedTexturesBefore = math.getTextureManager().getNumUsedTextures();
+
+    math.scope(() => {
+      const result = math.scope(() => {
+        math.add(a, b);
+        return [math.add(a, b), math.sub(a, b)];
+      });
+
+      // a, b, and 2 results are new textures. All intermediates should be
+      // disposed.
+      expect(math.getTextureManager().getNumUsedTextures())
+          .toEqual(numUsedTexturesBefore + 4);
+      expect(result[0].getValues()).toEqual(new Float32Array([1, 1, 4]));
+      expect(result[1].getValues()).toEqual(new Float32Array([1, 3, 2]));
     });
 
     // a, b are new textures, result should be disposed.
@@ -2126,5 +2153,38 @@ describe('NDArrayMathGPU batchNorm', () => {
     variance.dispose();
     scale.dispose();
     offset.dispose();
+  });
+});
+
+describe('NDArrayMathGPU debug mode', () => {
+  let math: NDArrayMathGPU;
+
+  beforeEach(() => {
+    math = new NDArrayMathGPU();
+    math.startScope();
+  });
+
+  afterEach(() => {
+    math.endScope(null!);
+  });
+
+  it('debug mode does not error when no nans', () => {
+    math.enableDebugMode();
+    const a = Array1D.new([2, -1, 0, 3]);
+    const res = math.relu(a);
+    expect(res.getValues()).toEqual(new Float32Array([2, 0, 0, 3]));
+  });
+
+  it('debug mode errors when there are nans', () => {
+    math.enableDebugMode();
+    const a = Array1D.new([2, NaN]);
+    const f = () => math.relu(a);
+    expect(f).toThrowError();
+  });
+
+  it('no errors where there are nans, and debug mode is disabled', () => {
+    const a = Array1D.new([2, NaN]);
+    const res = math.relu(a);
+    expect(res.getValues()).toEqual(new Float32Array([2, NaN]));
   });
 });
