@@ -23,13 +23,13 @@ export interface ActivationFunction {
 }
 
 export class TanHFunc implements ActivationFunction {
-  output(math: NDArrayMath, x: NDArray) {
+  output<T extends NDArray>(math: NDArrayMath, x: T) {
     return math.scope(() => {
       return math.tanh(x);
     });
   }
 
-  der(math: NDArrayMath, x: NDArray, y: NDArray) {
+  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
     return math.scope(() => {
       const ySquared = math.elementWiseMul(y, y);
       // 1 - y^2.
@@ -39,13 +39,13 @@ export class TanHFunc implements ActivationFunction {
 }
 
 export class ReLUFunc implements ActivationFunction {
-  output(math: NDArrayMath, x: NDArray) {
+  output<T extends NDArray>(math: NDArrayMath, x: T) {
     return math.scope(() => {
       return math.relu(x);
     });
   }
 
-  der(math: NDArrayMath, x: NDArray, y: NDArray) {
+  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
     return math.scope(() => {
       return math.step(x);
     });
@@ -53,13 +53,13 @@ export class ReLUFunc implements ActivationFunction {
 }
 
 export class SigmoidFunc implements ActivationFunction {
-  output(math: NDArrayMath, x: NDArray) {
+  output<T extends NDArray>(math: NDArrayMath, x: T) {
     return math.scope(() => {
       return math.sigmoid(x);
     });
   }
 
-  der(math: NDArrayMath, x: NDArray, y: NDArray) {
+  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
     return math.scope(() => {
       // y * (1 - y) = y - y^2
       const ySquared = math.elementWiseMul(y, y);
@@ -69,13 +69,13 @@ export class SigmoidFunc implements ActivationFunction {
 }
 
 export class SquareFunc implements ActivationFunction {
-  output(math: NDArrayMath, x: NDArray) {
+  output<T extends NDArray>(math: NDArrayMath, x: T) {
     return math.scope(() => {
       return math.elementWiseMul(x, x);
     });
   }
 
-  der(math: NDArrayMath, x: NDArray, y: NDArray) {
+  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
     return math.scope(() => {
       // dy/dx = 2*x.
       return math.scalarTimesArray(Scalar.TWO, x);

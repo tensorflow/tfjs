@@ -69,7 +69,7 @@ export class NDArrayMathCPU extends NDArrayMath {
     const outputShape =
         concat3d_util.computeConcat3DOutputShape(x1.shape, x2.shape, axis);
 
-    const values = NDArray.zeros<Array3D>(outputShape);
+    const values = Array3D.zeros(outputShape);
 
     for (let i = 0; i < outputShape[0]; i++) {
       for (let j = 0; j < outputShape[1]; j++) {

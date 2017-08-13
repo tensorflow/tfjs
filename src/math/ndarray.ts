@@ -99,9 +99,9 @@ export class NDArray {
   }
 
   /** Creates a ndarray of zeros with the specified shape. */
-  static zeros<T extends NDArray>(shape: number[]): T {
+  static zeros(shape: number[]): NDArray {
     const values = new Float32Array(util.sizeFromShape(shape));
-    return NDArray.make<T>(shape, {values});
+    return NDArray.make(shape, {values});
   }
 
   /** Creates a ndarray of zeros with the same shape as the specified ndarray.
@@ -390,7 +390,7 @@ export class Array1D extends NDArray {
   }
 
   static zeros(shape: [number]): Array1D {
-    return NDArray.zeros<Array1D>(shape);
+    return NDArray.zeros(shape) as Array1D;
   }
 }
 
@@ -441,7 +441,7 @@ export class Array2D extends NDArray {
   }
 
   static zeros(shape: [number, number]): Array2D {
-    return NDArray.zeros<Array2D>(shape);
+    return NDArray.zeros(shape) as Array2D;
   }
 }
 
@@ -496,7 +496,7 @@ export class Array3D extends NDArray {
   }
 
   static zeros(shape: [number, number, number]): Array3D {
-    return NDArray.zeros<Array3D>(shape);
+    return NDArray.zeros(shape) as Array3D;
   }
 }
 
@@ -559,7 +559,7 @@ export class Array4D extends NDArray {
   }
 
   static zeros(shape: [number, number, number, number]): Array4D {
-    return NDArray.zeros<Array4D>(shape);
+    return NDArray.zeros(shape) as Array4D;
   }
 }
 

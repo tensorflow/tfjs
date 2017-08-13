@@ -245,8 +245,8 @@ describe('NDArrayMathCPU matMul', () => {
   });
 
   it('A x B^t shapes do not match', () => {
-    const a = NDArray.zeros<Array2D>([2, 3]);
-    const b = NDArray.zeros<Array2D>([3, 2]);
+    const a = Array2D.zeros([2, 3]);
+    const b = Array2D.zeros([3, 2]);
     const f = () => {
       math.matMul(
           a, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED);
@@ -255,8 +255,8 @@ describe('NDArrayMathCPU matMul', () => {
   });
 
   it('A^t x B shapes do not match', () => {
-    const a = NDArray.zeros<Array2D>([2, 3]);
-    const b = NDArray.zeros<Array2D>([3, 2]);
+    const a = Array2D.zeros([2, 3]);
+    const b = Array2D.zeros([3, 2]);
     const f = () => {
       math.matMul(
           a, b, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR);
@@ -265,8 +265,8 @@ describe('NDArrayMathCPU matMul', () => {
   });
 
   it('A^t x B^t shapes do not match', () => {
-    const a = NDArray.zeros<Array2D>([3, 2]);
-    const b = NDArray.zeros<Array2D>([3, 2]);
+    const a = Array2D.zeros([3, 2]);
+    const b = Array2D.zeros([3, 2]);
     const f = () => {
       math.matMul(
           a, b, MatrixOrientation.TRANSPOSED, MatrixOrientation.TRANSPOSED);
