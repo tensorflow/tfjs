@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import {Graph, Tensor} from './graph';
+// tslint:disable-next-line:max-line-length
 import {Initializer, VarianceScalingInitializer, ZerosInitializer} from './initializers';
 
 /**

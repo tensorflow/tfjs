@@ -15,6 +15,7 @@ limitations under the License.
 
 import * as conv_util from '../../src/math/conv_util';
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
+// tslint:disable-next-line:max-line-length
 import * as max_pool_backprop_gpu from '../../src/math/webgl/max_pool_backprop_gpu';
 import * as test_util from '../../src/test_util';
 import * as util from '../../src/util';

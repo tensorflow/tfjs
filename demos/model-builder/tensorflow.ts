@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+// tslint:disable-next-line:max-line-length
 import {Convolution2DLayerBuilder, LayerBuilder, MaxPoolLayerBuilder} from './layer_builder';
 
 export enum Normalization {

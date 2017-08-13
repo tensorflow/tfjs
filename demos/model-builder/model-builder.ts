@@ -20,7 +20,7 @@ import '../demo-header';
 import '../demo-footer';
 
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
-
+// tslint:disable-next-line:max-line-length
 import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, SGDOptimizer, Tensor, util} from '../deeplearnjs';
 import {NDArrayImageVisualizer} from '../ndarray-image-visualizer';
 import {NDArrayLogitsVisualizer} from '../ndarray-logits-visualizer';

@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import {Graph, Tensor} from './graph';
+// tslint:disable-next-line:max-line-length
 import {GraphRunner, GraphRunnerEventObserver, MetricReduction} from './graph_runner';
 import {NDArrayMath} from './math/math';
 import {NDArrayMathCPU} from './math/math_cpu';

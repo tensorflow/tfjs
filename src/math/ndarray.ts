@@ -55,7 +55,8 @@ export class NDArray {
 
   /**
    * Number of elements to skip in each dimension when indexing. See
-   * https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.strides.html
+   * https://docs.scipy.org/doc/numpy/reference/generated
+   *     /numpy.ndarray.strides.html
    */
   protected strides: number[];
 

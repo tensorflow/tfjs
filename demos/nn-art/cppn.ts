@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+// tslint:disable-next-line:max-line-length
 import {Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, webgl_util} from '../deeplearnjs';
 
 import * as nn_art_util from './nn_art_util';

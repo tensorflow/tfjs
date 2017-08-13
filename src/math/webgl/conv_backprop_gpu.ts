@@ -71,8 +71,9 @@ export function getFragmentShaderDerWeightsSource(
 
           // Map from 3D (xR, xC, d1) to 2D (xTexR, xTexC).
           // Map from 3D (yR, yC, d2) to 2D (yTexR, yTexC).
-          vec2 xyTexC = vec2(xC, yC_float) * vec2(${inputDepth}.0, ${outputDepth}.0) +
-                        vec2(d1, d2);
+          vec2 xyTexC =
+              vec2(xC, yC_float) * vec2(${inputDepth}.0, ${outputDepth}.0) +
+              vec2(d1, d2);
           float xTexC = xyTexC.x;
           float yTexC = xyTexC.y;
 

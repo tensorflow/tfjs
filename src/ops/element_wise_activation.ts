@@ -14,6 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import {Tensor} from '../graph';
+// tslint:disable-next-line:max-line-length
 import {ActivationFunction, ReLUFunc, SigmoidFunc, SquareFunc, TanHFunc} from '../math/activation_functions';
 import {NDArrayMath} from '../math/math';
 import {TensorArrayMap} from '../tensor_array_map';

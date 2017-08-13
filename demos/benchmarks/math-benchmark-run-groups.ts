@@ -25,7 +25,8 @@ import * as mulmat_gpu_benchmark from './mulmat_gpu_benchmark';
 export const BENCHMARK_RUN_GROUPS: BenchmarkRunGroup[] = [
   {
     name:
-        'Matrix Multiplication (CPU vs GPU): matmul([size, size], [size, size])',
+        'Matrix Multiplication (CPU vs GPU): ' +
+            'matmul([size, size], [size, size])',
     min: 0,
     max: 1024,
     stepSize: 64,
@@ -70,7 +71,8 @@ export const BENCHMARK_RUN_GROUPS: BenchmarkRunGroup[] = [
     stepSize: 64,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
     benchmarkRuns: [
-      new BenchmarkRun('logsumexp_gpu', logsumexp_gpu_benchmark.BENCHMARK_TEST),
+      new BenchmarkRun(
+          'logsumexp_gpu', logsumexp_gpu_benchmark.BENCHMARK_TEST),
       new BenchmarkRun('logsumexp_cpu', logsumexp_cpu_benchmark.BENCHMARK_TEST)
     ],
   }

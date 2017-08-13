@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+// tslint:disable-next-line:max-line-length
 import {ConstantNode, Node, PlaceholderNode, SplitNode, Tensor, VariableNode} from './graph';
 import * as graph_util from './graph_util';
 import {InputProvider} from './input_provider';

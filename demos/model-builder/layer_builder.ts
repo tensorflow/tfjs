@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
+// tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArray, NDArrayInitializer, Tensor, util, VarianceScalingInitializer, ZerosInitializer} from '../deeplearnjs';
 
 /**

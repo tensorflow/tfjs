@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
+// tslint:disable-next-line:max-line-length
 import {ConstantNode, Graph, Node, PlaceholderNode, SplitNode, Tensor, VariableNode} from './graph';
 import {InputProvider} from './input_provider';
 import {NDArrayMathCPU} from './math/math_cpu';

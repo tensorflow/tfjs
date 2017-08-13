@@ -22,6 +22,7 @@
     "interface-name": [true, "never-prefix"],
     "jsdoc-format": true,
     "label-position": true,
+    "max-line-length": [true, 80],
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,
     "no-any": true,
