@@ -35,9 +35,9 @@ describe('NDArrayMathGPU scope', () => {
 
     math.scope(() => {
       const result = math.scope(() => {
-        b = math.add(a, b);
-        b = math.add(a, b);
-        b = math.add(a, b);
+        b = math.add(a, b) as Array1D;
+        b = math.add(a, b) as Array1D;
+        b = math.add(a, b) as Array1D;
         return math.add(a, b);
       });
 
@@ -89,9 +89,9 @@ describe('NDArrayMathGPU scope', () => {
     const numUsedTexturesBefore = math.getTextureManager().getNumUsedTextures();
 
     math.scope(() => {
-      b = math.add(a, b);
-      b = math.add(a, b);
-      b = math.add(a, b);
+      b = math.add(a, b) as Array1D;
+      b = math.add(a, b) as Array1D;
+      b = math.add(a, b) as Array1D;
       math.add(a, b);
     });
 
@@ -109,10 +109,10 @@ describe('NDArrayMathGPU scope', () => {
 
     math.scope(() => {
       const result = math.scope(() => {
-        b = math.add(a, b);
+        b = math.add(a, b) as Array1D;
         b = math.scope(() => {
           b = math.scope(() => {
-            return math.add(a, b);
+            return math.add(a, b) as Array1D;
           });
           // a, original b, and two intermediate textures should be the only
           // textures.
@@ -126,12 +126,12 @@ describe('NDArrayMathGPU scope', () => {
           expect(math.getTextureManager().getNumUsedTextures())
               .toEqual(numUsedTexturesBefore + 4);
 
-          return math.add(a, b);
+          return math.add(a, b) as Array1D;
         });
         expect(math.getTextureManager().getNumUsedTextures())
             .toEqual(numUsedTexturesBefore + 4);
 
-        return math.add(a, b);
+        return math.add(a, b) as Array1D;
       });
 
       // a, b, and result are new textures. All intermediates should be

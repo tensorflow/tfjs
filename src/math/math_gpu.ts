@@ -21,8 +21,6 @@ import {MatrixOrientation, NDArrayMath} from './math';
 import * as ndarray from './ndarray';
 import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 import * as addscaledmat_gpu from './webgl/addscaledmat_gpu';
-import * as addsubmuldiv_gpu from './webgl/addsubmuldiv_gpu';
-import {OperandType} from './webgl/addsubmuldiv_gpu';
 import {ArgMaxEqualsProgram} from './webgl/argmaxequals_gpu';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import * as avg_pool_gpu from './webgl/avg_pool_gpu';
@@ -32,6 +30,7 @@ import * as conv_backprop_gpu from './webgl/conv_backprop_gpu';
 import * as conv_gpu from './webgl/conv_gpu';
 import * as copy_gpu from './webgl/copy_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
+import {BinaryOpProgram} from './webgl/binaryop_gpu';
 import {GPGPUProgram, GPGPUBinary} from './webgl/gpgpu_math';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import * as gpgpu_util from './webgl/gpgpu_util';
@@ -59,7 +58,6 @@ const ADD_SCALED_MAT_PROG = 'addscaledmat';
 
 // Element-wise ops.
 const RESHAPE_PROG = 'reshape';
-const ADD_SUM_MUL_DIV_PROG = 'addsummuldiv';
 
 // Convolution.
 const CONV2D_PROG = 'conv';
@@ -238,21 +236,6 @@ export class NDArrayMathGPU extends NDArrayMath {
         resultShapeRCD, {texture: resultTex, textureShapeRC: resultTexShape});
   }
 
-  protected scalarPlusArrayInternal<T extends NDArray>(c: Scalar, a: T): T {
-    return this.addSubMulDiv(
-        c, a, a.shape, OperandType.SCALAR, '+', OperandType.MATRIX) as T;
-  }
-
-  protected arrayMinusScalarInternal<T extends NDArray>(a: T, c: Scalar): T {
-    return this.addSubMulDiv(
-        a, c, a.shape, OperandType.MATRIX, '-', OperandType.SCALAR) as T;
-  }
-
-  protected scalarMinusArrayInternal<T extends NDArray>(c: Scalar, a: T): T {
-    return this.addSubMulDiv(
-        c, a, a.shape, OperandType.SCALAR, '-', OperandType.MATRIX) as T;
-  }
-
   protected scaledArrayAddInternal<T extends NDArray>(
       c1: Scalar, a: T, c2: Scalar, b: T) {
     let cleanupB = false;
@@ -276,11 +259,6 @@ export class NDArrayMathGPU extends NDArrayMath {
     }
     // Bring the result back to the original shape.
     return NDArray.make<T>(a.shape, {texture: resultTexture, textureShapeRC});
-  }
-
-  protected scalarTimesArrayInternal<T extends NDArray>(c: Scalar, a: T): T {
-    return this.addSubMulDiv(
-        c, a, a.shape, OperandType.SCALAR, '*', OperandType.MATRIX) as T;
   }
 
   protected negInternal<T extends NDArray>(a: T): T {
@@ -331,13 +309,9 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun<Array2D, Array2D>(program, [a, b]);
   }
 
-  protected elementWiseMulInternal<T extends NDArray>(a: T, b: T): T {
-    return this.addSubMulDiv(
-        a, b, a.shape, OperandType.MATRIX, '*', OperandType.MATRIX) as T;
-  }
-
-  protected elementWiseMulBroadcastInternal(a: Array2D, b: Array2D): Array2D {
-    throw new Error('Not yet implemented!');
+  protected multiplyInternal<T extends NDArray>(a: T, b: T): T {
+    const program = new BinaryOpProgram('*', a.shape, b.shape);
+    return this.compileAndRun<T, T>(program, [a, b]);
   }
 
   protected batchNormalization3DInternal(
@@ -470,30 +444,18 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected divideInternal<T extends NDArray>(a: T, b: T): T {
-    return this.addSubMulDiv(
-        a, b, a.shape, OperandType.MATRIX, '/', OperandType.MATRIX) as T;
-  }
-
-  protected scalarDividedByArrayInternal<T extends NDArray>(c: Scalar, a: T):
-      T {
-    return this.addSubMulDiv(
-               c, a, a.shape, OperandType.SCALAR, '/', OperandType.MATRIX) as T;
-  }
-
-  protected arrayDividedByScalarInternal<T extends NDArray>(a: T, c: Scalar):
-      T {
-    return this.addSubMulDiv(
-               a, c, a.shape, OperandType.MATRIX, '/', OperandType.SCALAR) as T;
+    const program = new BinaryOpProgram('/', a.shape, b.shape);
+    return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
   protected addInternal<T extends NDArray>(a: T, b: T): T {
-    return this.addSubMulDiv(
-        a, b, a.shape, OperandType.MATRIX, '+', OperandType.MATRIX) as T;
+    const program = new BinaryOpProgram('+', a.shape, b.shape);
+    return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
   protected subInternal<T extends NDArray>(a: T, b: T): T {
-    return this.addSubMulDiv(
-        a, b, a.shape, OperandType.MATRIX, '-', OperandType.MATRIX) as T;
+    const program = new BinaryOpProgram('-', a.shape, b.shape);
+    return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
   protected logSumExpInternal(a: NDArray): Scalar {
@@ -999,85 +961,6 @@ export class NDArrayMathGPU extends NDArrayMath {
           this.gpgpu.createProgram(getShaderSource());
     }
     return this.programCache[programKey];
-  }
-
-  private addSubMulDiv(
-      a: NDArray, b: NDArray, resultShape: number[],
-      operandA: addsubmuldiv_gpu.OperandType,
-      opType: addsubmuldiv_gpu.Operation,
-      operandB: addsubmuldiv_gpu.OperandType): NDArray {
-    let cleanupB = false;
-
-    const aOrientation = MatrixOrientation.REGULAR;
-    let bOrientation = MatrixOrientation.REGULAR;
-
-    let logicalBTexShape: [number, number];
-
-    if (operandA === OperandType.MATRIX && operandB === OperandType.MATRIX) {
-      util.assertShapesMatch(a.shape, b.shape);
-
-      if (a.inGPU()) {
-        // Prefer B to have the shape of A.
-        b.getTextureShapeRC(a.getTextureShapeRC());
-      } else if (b.inGPU()) {
-        // Prefer A to have the shape of B.
-        a.getTextureShapeRC(b.getTextureShapeRC());
-      }
-
-      const aTexShape = a.getTextureShapeRC();
-      const bTexShape = b.getTextureShapeRC();
-      logicalBTexShape = bTexShape;
-
-      if (a.rank === 1) {
-        // When dealing with vectors, we can sample in transposed way without
-        // the need to do physical reshape.
-        if (!util.arraysEqual(bTexShape, aTexShape)) {
-          bOrientation = MatrixOrientation.TRANSPOSED;
-          logicalBTexShape = [bTexShape[1], bTexShape[0]];
-        }
-      }
-
-      if (!util.arraysEqual(aTexShape, logicalBTexShape)) {
-        b = this.reshapeTexture(b, aTexShape);
-        bOrientation = MatrixOrientation.REGULAR;
-        logicalBTexShape = b.getTextureShapeRC();
-        cleanupB = true;
-      }
-    } else {
-      logicalBTexShape = b.getTextureShapeRC();
-    }
-
-    const aTexShape = a.getTextureShapeRC();
-    const bTexShape = b.getTextureShapeRC();
-
-    const programKey = [
-      ADD_SUM_MUL_DIV_PROG, operandA, aOrientation, opType, operandB,
-      bOrientation
-    ].join('_');
-    const program = this.getAndSaveProgram(
-        programKey,
-        () => addsubmuldiv_gpu.getFragmentShaderSource(
-            operandA, aOrientation, opType, operandB, bOrientation));
-
-    const resultTextureShape: [number, number] = [
-      Math.max(aTexShape[0], logicalBTexShape[0]),
-      Math.max(aTexShape[1], logicalBTexShape[1])
-    ];
-
-    const resultTexture =
-        this.textureManager.acquireTexture(resultTextureShape);
-
-    addsubmuldiv_gpu.addSubMulDiv(
-        this.gpgpu, program, a.getTexture(), aTexShape, b.getTexture(),
-        bTexShape, resultTexture, resultTextureShape);
-
-    if (cleanupB) {
-      b.dispose();
-    }
-
-    return NDArray.make(
-        resultShape,
-        {texture: resultTexture, textureShapeRC: resultTextureShape});
   }
 
   private doGPUShapesMatch(a: NDArray, b: NDArray): boolean {

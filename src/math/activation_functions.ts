@@ -59,11 +59,11 @@ export class SigmoidFunc implements ActivationFunction {
     });
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
+  der<T extends NDArray>(math: NDArrayMath, x: T, y: T): T {
     return math.scope(() => {
       // y * (1 - y) = y - y^2
       const ySquared = math.elementWiseMul(y, y);
-      return math.sub(y, ySquared);
+      return math.subStrict(y, ySquared);
     });
   }
 }

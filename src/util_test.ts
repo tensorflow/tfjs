@@ -87,3 +87,60 @@ describe('Util', () => {
     expect(util.inferShape(a)).toEqual([2, 3, 2, 1]);
   });
 });
+
+describe('util.getBroadcastedShape', () => {
+  it('two scalars', () => {
+    const res = util.assertAndGetBroadcastedShape([], []);
+    expect(res).toEqual([]);
+  });
+
+  it('scalar and 1d', () => {
+    const res = util.assertAndGetBroadcastedShape([6], []);
+    expect(res).toEqual([6]);
+  });
+
+  it('scalar and 2d', () => {
+    const res = util.assertAndGetBroadcastedShape([2, 6], []);
+    expect(res).toEqual([2, 6]);
+  });
+
+  it('1d and 2d', () => {
+    const res = util.assertAndGetBroadcastedShape([6], [2, 6]);
+    expect(res).toEqual([2, 6]);
+  });
+
+  it('2d and 3d', () => {
+    const res = util.assertAndGetBroadcastedShape([2, 6], [7, 2, 6]);
+    expect(res).toEqual([7, 2, 6]);
+  });
+
+  it('3d and 3d', () => {
+    const res = util.assertAndGetBroadcastedShape([1, 1, 6], [7, 2, 6]);
+    expect(res).toEqual([7, 2, 6]);
+  });
+
+  it('incompatible inner shape', () => {
+    const f = () => util.assertAndGetBroadcastedShape([7, 2, 5], [7, 2, 6]);
+    expect(f).toThrowError();
+  });
+
+  it('incompatible middle shape', () => {
+    const f = () => util.assertAndGetBroadcastedShape([7, 3, 6], [7, 2, 6]);
+    expect(f).toThrowError();
+  });
+
+  it('incompatible due to stricter broadcasting support', () => {
+    const f = () => util.assertAndGetBroadcastedShape([7, 3, 6], [7, 1, 6]);
+    expect(f).toThrowError();
+  });
+
+  it('incompatible due to stricter broadcasting support', () => {
+    const f = () => util.assertAndGetBroadcastedShape([7, 1, 1], [7, 1]);
+    expect(f).toThrowError();
+  });
+
+  it('compatible with stricter broadcasting support', () => {
+    const res = util.assertAndGetBroadcastedShape([7, 1, 1], [7, 1, 1]);
+    expect(res).toEqual([7, 1, 1]);
+  });
+});

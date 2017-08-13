@@ -396,14 +396,13 @@ describe('NDArrayMathCPU element-wise mul/div', () => {
     let a = Array2D.new([2, 2], [1, 2, 3, 4]);
     let b = Array2D.new([2, 2], [5, 4, 3, 2]);
     let expected = Array2D.new([2, 2], [5, 8, 9, 8]);
-    expect(expected.equals(math.elementWiseMulBroadcast(a, b))).toBe(true);
+    expect(expected.equals(math.multiply(a, b))).toBe(true);
 
     // Broadcast a over b.
-    a = Array2D.new([2, 2], [1, 2, 3, 4]);
-    b = Array2D.new([4, 4], [2, 3, 4, 5, 3, 4, 5, 6, 4, 5, 6, 7, 5, 6, 7, 8]);
-    expected = Array2D.new(
-        [4, 4], [2, 6, 4, 10, 9, 16, 15, 24, 4, 10, 6, 14, 15, 24, 21, 32]);
-    expect(expected.equals(math.elementWiseMulBroadcast(a, b))).toBe(true);
+    a = Array2D.new([1, 2], [1, 2]);
+    b = Array2D.new([4, 2], [2, 3, 4, 5, 6, 7, 8, 9]);
+    expected = Array2D.new([4, 2], [2, 6, 4, 10, 6, 14, 8, 18]);
+    expect(expected.equals(math.multiply(a, b))).toBe(true);
   });
 
   it('multiplication, no broadcasting', () => {

@@ -25,6 +25,7 @@ export interface GPGPUProgram {
   outputShape: number[];
   params: Array<{}>;
   userCode: string;
+  supportsBroadcasting?: boolean;
 }
 
 export interface GPGPUBinary {
@@ -52,8 +53,9 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
     logicalShape: output.shape,
     texShape: output.getTextureShapeRC()
   };
-  const source = shader_compiler.makeShader(inputInfos, outShapeInfo,
-      userCode);
+  const source = shader_compiler.makeShader(
+      inputInfos, outShapeInfo, userCode,
+      program.supportsBroadcasting === true);
   return {
     program,
     source,

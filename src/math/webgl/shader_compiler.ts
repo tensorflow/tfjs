@@ -25,13 +25,13 @@ export type InputInfo = {
   shapeInfo: ShapeInfo
 };
 
-export function makeShader(
-    inputsInfo: InputInfo[], outputShape: ShapeInfo,
-    userCode: string): string {
+export function makeShader(inputsInfo: InputInfo[], outputShape: ShapeInfo,
+    userCode: string, broadcast: boolean): string {
   const inputPrefixSnippet =
       inputsInfo.map(x => `uniform sampler2D ${x.name};`).join('\n');
   const inputSamplingSnippet =
-      inputsInfo.map(x => getInputSamplingSnippet(x, outputShape)).join('\n');
+      inputsInfo.map(x => getInputSamplingSnippet(x, outputShape, broadcast))
+          .join('\n');
   const outTexShape = outputShape.texShape;
   const outputSamplingSnippet =
       getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
@@ -42,7 +42,8 @@ export function makeShader(
   return source;
 }
 
-function getInputSamplingSnippet(inInfo: InputInfo, outShapeInfo: ShapeInfo) {
+function getInputSamplingSnippet(
+    inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean) {
   const shape = inInfo.shapeInfo.logicalShape;
   const texShape = inInfo.shapeInfo.texShape;
   const outTexShape = outShapeInfo.texShape;
@@ -70,9 +71,10 @@ function getInputSamplingSnippet(inInfo: InputInfo, outShapeInfo: ShapeInfo) {
   // If input and output have matching logical shapes, add
   // getTexNameAtOutCoord() method that samples the input texture using the
   // output coordinates.
-  if (util.arraysEqual(
+  if (broadcast || util.arraysEqual(
           inInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape)) {
-    res += getSamplerAtOutputCoords(inInfo.name, texShape, outTexShape);
+    res +=
+        getSamplerAtOutputCoords(inInfo.name, texShape, outTexShape, broadcast);
   }
   res += getSamplerFlat(inInfo.name, texShape);
   return res;
@@ -217,6 +219,13 @@ function getSampler1D(
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const tR = texShape[0];
   const tC = texShape[1];
+  if (texShape[0] === 1 && texShape[1] === 1) {
+    return `
+      float ${funcName}(float index) {
+        return texture2D(${texName}, halfCR).r;
+      }
+    `;
+  }
   if (texShape[1] === 1) {
     return `
       float ${funcName}(float index) {
@@ -282,6 +291,29 @@ function getSamplerFlat(texName: string, texShape: [number, number]): string {
       'Flat';
   const tNumR = texShape[0];
   const tNumC = texShape[1];
+  if (tNumC === 1 && tNumR === 1) {
+    return `
+      float ${funcName}(float index) {
+        return texture2D(${texName}, halfCR).r;
+      }
+    `;
+  }
+  if (tNumC === 1) {
+    return `
+      float ${funcName}(float index) {
+        vec2 uv = vec2(0.5, (index + 0.5) / ${tNumR}.0);
+        return texture2D(${texName}, uv).r;
+      }
+    `;
+  }
+  if (tNumR === 1) {
+    return `
+      float ${funcName}(float index) {
+        vec2 uv = vec2((index + 0.5) / ${tNumC}.0, 0.5);
+        return texture2D(${texName}, uv).r;
+      }
+    `;
+  }
   return `
     float ${funcName}(float index) {
       float texR = floor(index / ${tNumC}.0);
@@ -293,7 +325,7 @@ function getSamplerFlat(texName: string, texShape: [number, number]): string {
 }
 
 function getSamplerAtOutputCoords(texName: string, inTexShape: [number, number],
-    outTexShape: [number, number]) {
+    outTexShape: [number, number], broadcast: boolean) {
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1) +
     'AtOutCoords';
   if (util.arraysEqual(inTexShape, outTexShape)) {
@@ -303,10 +335,14 @@ function getSamplerAtOutputCoords(texName: string, inTexShape: [number, number],
       }
     `;
   }
+  const inSize = util.sizeFromShape(inTexShape);
+  const broadcastSnippet = broadcast ? `index = mod(index, ${inSize}.0);` : '';
+
   return `
     float ${funcName}() {
       vec2 resTexRC = floor(gl_FragCoord.yx);
       float index = dot(resTexRC, vec2(${outTexShape[1]}.0, 1.0));
+      ${broadcastSnippet}
       float texR = floor(index / ${inTexShape[1]}.0);
       float texC = mod(index, ${inTexShape[1]}.0);
       vec2 uv = (vec2(texC, texR) + halfCR) /

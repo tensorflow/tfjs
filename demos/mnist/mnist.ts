@@ -68,10 +68,10 @@ export function buildModelMathAPI(
 
   return (x: Array1D): Scalar => {
     return math.scope(() => {
-      const hidden1 =
-          math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B));
-      const hidden2 = math.relu(
-          math.add(math.vectorTimesMatrix(hidden1, hidden2W), hidden2B));
+      const hidden1 = math.relu(
+          math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B)) as Array1D;
+      const hidden2 = math.relu(math.add(
+          math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Array1D;
       const logits =
           math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
       return math.argMax(logits);
