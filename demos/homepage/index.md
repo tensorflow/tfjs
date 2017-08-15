@@ -206,29 +206,14 @@ limitations under the License.
 </div>
 
 
-<div class='mdl-grid'>
+<div class="mdl-grid">
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
   <div class="mdl-cell mdl-cell--10-col">
-    <h2>Ready to Get Started?</h2>
-    {% assign default_paths = site.pages | map: "path" %}
-    {% assign page_paths = site.header_pages | default: default_paths %}
-    <ul class="index">
-      {% for path in default_paths %}
-        {% assign my_page = site.pages | where: "path", path | first %}
-        {% assign title = my_page.title | trim %}
-        {% if title %}
-        <li>
-          <a href="{{ my_page.url | relative_url }}">
-            {{my_page.title | escape }}
-          </a>
-        </li>
-        {% endif %}
-      {% endfor %}
-    </ul>
+    {% capture my_include %}{% include README.md %}{% endcapture %}
+    {{ my_include | markdownify }}
   </div>
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
 </div>
-
 
 <div class='mdl-grid'>
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>

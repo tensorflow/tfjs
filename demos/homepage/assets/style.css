@@ -192,8 +192,11 @@ table {
   padding-left: 20px;
   line-height: 28px;
   list-style-type: none;
-  line-height: 2.7em;
+  line-height: 1.3em;
   font-weight: normal;
+}
+.site-nav ul li {
+  padding-bottom: 20px;
 }
 .site-nav ul a {
   color: #50797f;
@@ -276,4 +279,8 @@ p.intro-body {
 }
 .mdl-mini-footer__link-list a:visited {
   color: rgb(158, 158, 158);
+}
+
+#travis-badge {
+  display: none;
 }
