@@ -21,6 +21,11 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 
 export type ScopeResult = NDArray[]|NDArray|void;
 
+export interface LSTMCell {
+  (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
+}
+
+
 export abstract class NDArrayMath {
   private ndarrayScopes: NDArray[][] = [];
   private activeScope: NDArray[];
@@ -1127,6 +1132,100 @@ export abstract class NDArrayMath {
       x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
       varianceEpsilon: number, scale?: Array3D|Array1D,
       offset?: Array3D|Array1D): Array3D;
+
+  //////////////
+  // LSTM ops //
+  //////////////
+
+  /**
+   * Computes the next states and outputs of a stack of LSTMCells.
+   * Each cell output is used as input to the next cell.
+   * This is only the forward mode.
+   * Derived from tf.contrib.rn.MultiRNNCell.
+   * @param lstmCells Array of LSTMCell functions.
+   * @param data The input to the cell.
+   * @param c Array of previous cell states.
+   * @param h Array of previous cell outputs.
+   * @return Tuple [nextCellStates, cellOutputs]
+   */
+  multiRNNCell(lstmCells: LSTMCell[], data: Array2D, c: Array2D[],
+      h: Array2D[]): [Array2D[], Array2D[]] {
+    util.assert(
+        data.shape[0] === 1,
+        `Error in multiRNNCell: first dimension of data is ${data.shape[0]}, ` +
+            `but batch sizes > 1 are not yet supported.`);
+    const res = this.scope(() => {
+      let input = data;
+      const newStates = [];
+      for (let i = 0; i < lstmCells.length; i++) {
+        const output = lstmCells[i](input, c[i], h[i]);
+        newStates.push(output[0]);
+        newStates.push(output[1]);
+        input = output[1];
+      }
+
+      return newStates;
+    });
+    const newC: Array2D[] = [];
+    const newH: Array2D[] = [];
+    for (let i = 0; i < res.length; i += 2) {
+      newC.push(res[i] as Array2D);
+      newH.push(res[i + 1] as Array2D);
+    }
+    return [newC, newH];
+  }
+
+  /**
+   * Computes the next state and output of a BasicLSTMCell.
+   * This is only the forward mode.
+   * Derived from tf.contrib.rnn.BasicLSTMCell.
+   * @param forgetBias Forget bias for the cell.
+   * @param lstmKernel The weights for the cell.
+   * @param lstmBias The biases for the cell.
+   * @param data The input to the cell.
+   * @param c Previous cell state.
+   * @param h Previous cell output.
+   * @return Tuple [nextCellState, cellOutput]
+   */
+  basicLSTMCell(forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D,
+      data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D] {
+    const res = this.scope(() => {
+      util.assert(
+          data.shape[0] === 1,
+          `Error in multiRNNCell: first dimension of data is ` +
+              `${data.shape[0]}, but batch sizes > 1 are not yet supported.`);
+      // concat(inputs, h, 1)
+      // There is no concat1d, so reshape inputs and h to 3d, concat, then
+      // reshape back to 2d.
+      const data3D = data.as3D(1, 1, data.shape[1]);
+      const h3D = h.as3D(1, 1, h.shape[1]);
+      const combined3D = this.concat3D(data3D, h3D, 2);
+      const combined2D = combined3D.as2D(1, data.shape[1] + h.shape[1]);
+
+      const weighted = this.matMul(combined2D, lstmKernel);
+      const res = this.add(weighted, lstmBias) as Array2D;
+
+      // i = input_gate, j = new_input, f = forget_gate, o = output_gate
+      const i = this.slice2D(res, [0, 0], [res.shape[0], res.shape[1] / 4]);
+      const j = this.slice2D(res, [0, res.shape[1] / 4 * 1],
+          [res.shape[0], res.shape[1] / 4]);
+      const f = this.slice2D(res, [0, res.shape[1] / 4 * 2],
+          [res.shape[0], res.shape[1] / 4]);
+      const o = this.slice2D(res, [0, res.shape[1] / 4 * 3],
+          [res.shape[0], res.shape[1] / 4]);
+
+      const newC = this.add(
+          this.multiplyStrict(c,
+              this.sigmoid(this.scalarPlusArray(forgetBias, f))),
+          this.multiplyStrict(this.sigmoid(i), this.tanh(j))) as Array2D;
+      const newH = this.multiplyStrict(
+          this.tanh(newC), this.sigmoid(o)) as Array2D;
+
+      return [newC, newH];
+    });
+    return [res[0], res[1]];
+  }
+
 }
 
 export enum MatrixOrientation {

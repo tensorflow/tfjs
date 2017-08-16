@@ -1,0 +1,41 @@
+{
+  "fully_connected/biases": {
+    "filename": "fully_connected_biases", 
+    "shape": [
+      10
+    ]
+  }, 
+  "fully_connected/weights": {
+    "filename": "fully_connected_weights", 
+    "shape": [
+      20, 
+      10
+    ]
+  }, 
+  "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias": {
+    "filename": "rnn_multi_rnn_cell_cell_0_basic_lstm_cell_bias", 
+    "shape": [
+      80
+    ]
+  }, 
+  "rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel": {
+    "filename": "rnn_multi_rnn_cell_cell_0_basic_lstm_cell_kernel", 
+    "shape": [
+      30, 
+      80
+    ]
+  }, 
+  "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias": {
+    "filename": "rnn_multi_rnn_cell_cell_1_basic_lstm_cell_bias", 
+    "shape": [
+      80
+    ]
+  }, 
+  "rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel": {
+    "filename": "rnn_multi_rnn_cell_cell_1_basic_lstm_cell_kernel", 
+    "shape": [
+      40, 
+      80
+    ]
+  }
+}
