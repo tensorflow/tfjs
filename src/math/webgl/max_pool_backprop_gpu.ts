@@ -14,88 +14,73 @@ limitations under the License.
 ==============================================================================*/
 
 import * as conv_util from '../conv_util';
-import {GPGPUContext} from './gpgpu_context';
 
-export function getFragmentShaderMaxPoolBackprop(
-    dyShapeRCD: [number, number, number], fSize: number, origStride: number,
-    origPad: number) {
-  const origInputDepth = dyShapeRCD[2];
-  const pad = fSize - 1 - origPad;
-  const [dyRows, dyCols, depth] = dyShapeRCD;
+import {GPGPUProgram} from './gpgpu_math';
 
-  const dyTexShapeRC = conv_util.computeTexShapeFrom3D(dyShapeRCD);
+export class MaxPool2DBackpropProgram implements GPGPUProgram {
+  variableNames = ['dy', 'maxPos'];
+  params: Array<{}>;
+  outputShape: number[];
+  userCode: string;
 
-  return `
-    precision highp float;
-    uniform sampler2D dy;
-    uniform sampler2D maxPos;
+  constructor(
+      dyShape: [number, number, number], fSize: number, origStride: number,
+      origPad: number) {
+    const pad = fSize - 1 - origPad;
+    const dyRows = dyShape[0];
+    const dyCols = dyShape[1];
+    this.params = [fSize, origStride, origPad];
 
-    const vec2 halfCR = vec2(0.5, 0.5);
-    const vec2 dyShapeCR = vec2(${dyTexShapeRC[1]}, ${dyTexShapeRC[0]});
+    const dilatedDyRC =
+        conv_util.computeDilatedRC([dyShape[0], dyShape[1]], origStride);
+    this.outputShape = conv_util.computeOutputShape3D(
+        [dilatedDyRC[0], dilatedDyRC[1], dyShape[2]], fSize, dyShape[2], 1,
+        pad);
 
-    void main() {
-      vec2 dxTexCR = floor(gl_FragCoord.xy);
+    this.userCode = `
+      void main() {
+        vec3 coords = getOutputCoords();
+        float dxR = coords.x;
+        float dxC = coords.y;
+        float d = coords.z;
 
-      // Map from 2D (dxTexR, dxTexC) to 3D (dxR, dxC, d).
-      float dxR = dxTexCR.y;
-      float dxC = floor(dxTexCR.x / ${origInputDepth}.0);
-      float d = mod(dxTexCR.x, ${origInputDepth}.0);
+        vec2 dyRCCorner = vec2(dxR, dxC) - vec2(${pad}.0, ${pad}.0);
+        float dyRCorner = dyRCCorner.x;
+        float dyCCorner = dyRCCorner.y;
 
-      vec2 dyRCCorner = vec2(dxR, dxC) - vec2(${pad}.0, ${pad}.0);
-      float dyRCorner = dyRCCorner.x;
-      float dyCCorner = dyRCCorner.y;
+        // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(yR, dxC, d).
+        // ? = to be determined. : = across all values in that axis.
+        float dotProd = 0.0;
+        for (int iwR = 0; iwR < ${fSize}; iwR++) {
+          float wR = float(iwR);
+          float dyR = (dyRCorner + wR) / ${origStride}.0;
 
-      // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(yR, dxC, d).
-      // ? = to be determined. : = across all values in that axis.
-      float dotProd = 0.0;
-      for (int wR = 0; wR < ${fSize}; wR++) {
-        float wR_float = float(wR);
-        float dyR = (dyRCorner + wR_float) / ${origStride}.0;
-        // TODO(nsthorat): Splice this with another version where you call
-        // getMatrixValueOrZeroPad(). Here and below.
-        if (dyR < 0.0 || dyR >= ${dyRows}.0 || fract(dyR) > 0.0) {
-          continue;
-        }
-
-        float dyTexR = dyR;
-
-        for (int wC = 0; wC < ${fSize}; wC++) {
-          float wC_float = float(wC);
-          float dyC = (dyCCorner + wC_float) / ${origStride}.0;
-          if (dyC < 0.0 || dyC >= ${dyCols}.0 || fract(dyC) > 0.0) {
+          if (dyR < 0.0 || dyR >= ${dyRows}.0 || fract(dyR) > 0.0) {
             continue;
           }
 
-          float dyTexC = dyC * ${depth}.0 + d;
+          for (int iwC = 0; iwC < ${fSize}; iwC++) {
+            float wC = float(iwC);
+            float dyC = (dyCCorner + wC) / ${origStride}.0;
 
-          // Read dy(dyR, dyC, d).
-          vec2 dyUV = (vec2(dyTexC, dyTexR) + halfCR) / dyShapeCR;
-          float dyValue = texture2D(dy, dyUV).r;
+            if (dyC < 0.0 || dyC >= ${dyCols}.0 || fract(dyC) > 0.0) {
+              continue;
+            }
 
-          // Read maxPos(dyR, dyC, d).
-          float maxPosValue =
-              ${fSize * fSize - 1}.0 - texture2D(maxPos, dyUV).r;
+            float dyValue = getDy(dyR, dyC, d);
+            float maxPosValue =
+                ${fSize * fSize - 1}.0 - getMaxPos(dyR, dyC, d);
 
-          // Get the current value, check it against the value from the
-          // position matrix.
-          float curPosValue = wR_float * ${fSize}.0 + wC_float;
-          float mask = float(maxPosValue == curPosValue ? 1.0 : 0.0);
+            // Get the current value, check it against the value from the
+            // position matrix.
+            float curPosValue = wR * ${fSize}.0 + wC;
+            float mask = float(maxPosValue == curPosValue ? 1.0 : 0.0);
 
-          dotProd += dyValue * mask;
+            dotProd += dyValue * mask;
+          }
         }
+        setOutput(dotProd);
       }
-      gl_FragColor = vec4(dotProd, 0, 0, 0);
-    }`;
-}
-
-export function maxPoolBackprop(
-    gpgpu: GPGPUContext, program: WebGLProgram, dyTex: WebGLTexture,
-    maxPositionsTex: WebGLTexture, resultTex: WebGLTexture,
-    resultTexShapeRC: [number, number]) {
-  gpgpu.setOutputMatrixTexture(
-      resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-  gpgpu.setProgram(program);
-  gpgpu.setInputMatrixTexture(dyTex, 'dy', 0);
-  gpgpu.setInputMatrixTexture(maxPositionsTex, 'maxPos', 1);
-  gpgpu.executeProgram();
+    `;
+  }
 }

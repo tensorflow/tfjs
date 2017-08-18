@@ -22,7 +22,8 @@ export class MatMulProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(aShape: [number, number], bShape: [number, number],
+  constructor(
+      aShape: [number, number], bShape: [number, number],
       aOrient = MatrixOrientation.REGULAR,
       bOrient = MatrixOrientation.REGULAR) {
     this.params = [aOrient, bOrient];
@@ -34,19 +35,19 @@ export class MatMulProgram implements GPGPUProgram {
     this.outputShape = [outerShapeA, outerShapeB];
 
     const sharedDim =
-      (aOrient === MatrixOrientation.REGULAR ? aShape[1] : aShape[0]);
-    const aSnippet = (aOrient === MatrixOrientation.REGULAR) ?
-        'aRow, i_float' : 'i_float, aRow';
-    const bSnippet = (bOrient === MatrixOrientation.REGULAR) ?
-        'i_float, bCol' : 'bCol, i_float';
+        (aOrient === MatrixOrientation.REGULAR ? aShape[1] : aShape[0]);
+    const aSnippet =
+        (aOrient === MatrixOrientation.REGULAR) ? 'aRow, i' : 'i, aRow';
+    const bSnippet =
+        (bOrient === MatrixOrientation.REGULAR) ? 'i, bCol' : 'bCol, i';
 
     this.userCode = `
       const int sharedDim = ${sharedDim};
 
       float dotARowBCol(float aRow, float bCol) {
         float result = 0.0;
-        for (int i = 0; i < sharedDim; i++) {
-          float i_float = float(i);
+        for (int ii = 0; ii < sharedDim; ii++) {
+          float i = float(ii);
           float a = getMatrixA(${aSnippet});
           float b = getMatrixB(${bSnippet});
           result += (a * b);
@@ -61,4 +62,3 @@ export class MatMulProgram implements GPGPUProgram {
     `;
   }
 }
-

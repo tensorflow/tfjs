@@ -14,71 +14,48 @@ limitations under the License.
 ==============================================================================*/
 
 import * as conv_util from '../../src/math/conv_util';
-import * as conv_backprop_gpu from '../../src/math/webgl/conv_backprop_gpu';
+import {Array3D, Array4D, initializeGPU} from '../../src/math/ndarray';
+import {Conv2DTransposeProgram} from '../../src/math/webgl/conv_backprop_gpu';
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
-import * as test_util from '../../src/test_util';
-
+import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
+import {TextureManager} from '../../src/math/webgl/texture_manager';
 import {BenchmarkTest} from './benchmark';
 
-const OP_RUNS = 100;
+const OP_RUNS = 40;
 
 export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
-  const xShapeRCD: [number, number, number] = [size, size, 1];
+  const origInputDepth = 1;
   const origOutputDepth = 2;
+  const xShape: [number, number, number] = [size, size, 1];
   const fieldSize = 11;
   const origStride = 1;
   const origPad = 1;
 
   const gpgpu = new GPGPUContext();
+  const texManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, texManager);
   gpgpu.enableAutomaticDebugValidation(true);
-  const origInputDepth = xShapeRCD[2];
-  const src = conv_backprop_gpu.getFragmentShaderConvTransposeSource(
-      xShapeRCD, fieldSize, origInputDepth, origStride, origPad, false);
-  const program = gpgpu.createProgram(src);
 
-  // Upload x.
-  const xTexShapeRC = conv_util.computeTexShapeFrom3D(xShapeRCD);
-  const xTex = gpgpu.createMatrixTexture(xTexShapeRC[0], xTexShapeRC[1]);
-  const xData =
-      test_util.randomArrayInRange(xTexShapeRC[0] * xTexShapeRC[1], -1, 1);
-  gpgpu.uploadMatrixToTexture(xTex, xTexShapeRC[0], xTexShapeRC[1], xData);
-
-  // Upload weights.
-  const wTexShapeRC = conv_util.computeWeightsTexShape(
+  const hasBias = false;
+  const program = new Conv2DTransposeProgram(
+      xShape, fieldSize, origInputDepth, origStride, origPad, hasBias);
+  const outputShape = program.outputShape as [number, number, number];
+  const out = Array3D.zeros(outputShape);
+  const x = Array3D.randUniform(xShape, -1, 1);
+  const wShape = conv_util.computeWeightsShape4D(
       origInputDepth, origOutputDepth, fieldSize);
-  const wData =
-      test_util.randomArrayInRange(wTexShapeRC[0] * wTexShapeRC[1], -1, 1);
-  const wTex = gpgpu.createMatrixTexture(wTexShapeRC[0], wTexShapeRC[1]);
-  gpgpu.uploadMatrixToTexture(wTex, wTexShapeRC[0], wTexShapeRC[1], wData);
-
-  // Figure out the output shape by dilating the input.
-  const dilatedRC =
-      conv_util.computeDilatedRC([xShapeRCD[0], xShapeRCD[1]], origStride);
-  const pad = fieldSize - 1 - origPad;
-  const resultShapeRCD = conv_util.computeOutputShape3D(
-      [dilatedRC[0], dilatedRC[1], origOutputDepth], fieldSize, origInputDepth,
-      1, pad);
-
-  const resultTexRC = conv_util.computeTexShapeFrom3D(resultShapeRCD);
-  const resultTex = gpgpu.createMatrixTexture(resultTexRC[0], resultTexRC[1]);
-
+  const W = Array4D.randUniform(wShape, -1, 1);
+  const inputs = [x, W];
+  const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, out);
   const start = performance.now();
   for (let i = 0; i < OP_RUNS; i++) {
-    conv_backprop_gpu.convTranspose(
-        gpgpu, program, xTex, wTex, null, resultTex, resultTexRC);
+    gpgpu_math.runProgram(binary, inputs, out);
   }
+  out.getValues();
+  const avgTime = (performance.now() - start) / OP_RUNS;
 
-  gpgpu.downloadMatrixFromTexture(resultTex, resultTexRC[0], resultTexRC[1]);
-
-  const end = performance.now();
-
-  const avgTime = (end - start) / OP_RUNS;
-
-  gpgpu.deleteMatrixTexture(resultTex);
-  gpgpu.deleteMatrixTexture(xTex);
-  gpgpu.deleteMatrixTexture(wTex);
-  gpgpu.deleteProgram(program);
+  texManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
-
   return avgTime;
 };

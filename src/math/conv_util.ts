@@ -55,16 +55,6 @@ export function computeWeightsShape4D(
   return [fSize, fSize, inputDepth, outputDepth];
 }
 
-export function computeWeightsTexShape(
-    inputDepth: number, outputDepth: number,
-    fieldSize: number): [number, number] {
-  return [fieldSize * fieldSize * inputDepth, outputDepth];
-}
-
-export function computeBiasesTexShape(outputDepth: number): [number, number] {
-  return [1, outputDepth];
-}
-
 export function computeDilatedRC(
     rc: [number, number], origStride: number): [number, number] {
   const rowsDilated = (rc[0] - 1) * origStride + 1;

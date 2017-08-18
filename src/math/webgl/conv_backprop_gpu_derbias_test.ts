@@ -14,40 +14,32 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array3D, NDArray} from '../ndarray';
+import {Array1D, Array3D, initializeGPU, NDArray} from '../ndarray';
 
-import * as conv_backprop_gpu from './conv_backprop_gpu';
+import {Conv2DDerBiasProgram} from './conv_backprop_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
 describe('conv_gpu derBias', () => {
 
   function uploadDerBiasDownload(dy: Array3D): Float32Array {
     const gpgpu = new GPGPUContext();
+    const texManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, texManager);
     gpgpu.enableAutomaticDebugValidation(true);
-    const src = conv_backprop_gpu.getFragmentShaderDerBiasSource(dy.shape);
-    const program = gpgpu.createProgram(src);
+    const program = new Conv2DDerBiasProgram(dy.shape);
+    const out = Array1D.zeros([dy.shape[2]]);
+    const binary = gpgpu_math.compileProgram(gpgpu, program, [dy], out);
+    gpgpu_math.runProgram(binary, [dy], out);
+    const result = out.getValues();
 
-    // Upload dy.
-    const dyTexShapeRC = conv_util.computeTexShapeFrom3D(dy.shape);
-    const dyTex = gpgpu.createMatrixTexture(dyTexShapeRC[0], dyTexShapeRC[1]);
-    gpgpu.uploadMatrixToTexture(
-        dyTex, dyTexShapeRC[0], dyTexShapeRC[1], dy.getValues());
-
-    const outputDepth = dy.shape[2];
-    const resultTexRC = conv_util.computeBiasesTexShape(outputDepth);
-    const resultTex = gpgpu.createMatrixTexture(resultTexRC[0], resultTexRC[1]);
-    conv_backprop_gpu.derBias(gpgpu, program, dyTex, resultTex, resultTexRC);
-    const db = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexRC[0], resultTexRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(dyTex);
-    gpgpu.deleteProgram(program);
+    texManager.dispose();
+    gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
 
-    return db;
+    return result;
   }
 
   function compareToCPU(dyShapeRCD: [number, number, number]) {

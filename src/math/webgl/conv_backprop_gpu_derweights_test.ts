@@ -16,10 +16,12 @@ limitations under the License.
 import * as test_util from '../../test_util';
 import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array3D, NDArray} from '../ndarray';
+import {Array3D, Array4D, initializeGPU, NDArray} from '../ndarray';
 
-import * as conv_backprop_gpu from './conv_backprop_gpu';
+import {Conv2DDerWeightsProgram} from './conv_backprop_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
 describe('conv_gpu derWeights', () => {
 
@@ -27,40 +29,24 @@ describe('conv_gpu derWeights', () => {
       x: Array3D, dy: Array3D, fSize: number, stride: number,
       zeroPad: number): Float32Array {
     const gpgpu = new GPGPUContext();
+    const texManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, texManager);
     gpgpu.enableAutomaticDebugValidation(true);
     const outputDepth = dy.shape[2];
-    const src = conv_backprop_gpu.getFragmentShaderDerWeightsSource(
+    const inDepth = x.shape[2];
+    const program = new Conv2DDerWeightsProgram(
         x.shape, fSize, outputDepth, stride, zeroPad);
-    const program = gpgpu.createProgram(src);
-    const inputDepth = x.shape[2];
+    const out = Array4D.zeros(
+        conv_util.computeWeightsShape4D(inDepth, outputDepth, fSize));
+    const binary = gpgpu_math.compileProgram(gpgpu, program, [x, dy], out);
+    gpgpu_math.runProgram(binary, [x, dy], out);
+    const result = out.getValues();
 
-    // Upload x.
-    const xTexShapeRC = conv_util.computeTexShapeFrom3D(x.shape);
-    const xTex = gpgpu.createMatrixTexture(xTexShapeRC[0], xTexShapeRC[1]);
-    gpgpu.uploadMatrixToTexture(
-        xTex, xTexShapeRC[0], xTexShapeRC[1], x.getValues());
-
-    // Upload dy.
-    const dyTexShapeRC = conv_util.computeTexShapeFrom3D(dy.shape);
-    const dyTex = gpgpu.createMatrixTexture(dyTexShapeRC[0], dyTexShapeRC[1]);
-    gpgpu.uploadMatrixToTexture(
-        dyTex, dyTexShapeRC[0], dyTexShapeRC[1], dy.getValues());
-
-    const resultTexRC =
-        conv_util.computeWeightsTexShape(inputDepth, outputDepth, fSize);
-    const resultTex = gpgpu.createMatrixTexture(resultTexRC[0], resultTexRC[1]);
-    conv_backprop_gpu.derWeights(
-        gpgpu, program, xTex, dyTex, resultTex, resultTexRC);
-    const dw = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexRC[0], resultTexRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(xTex);
-    gpgpu.deleteMatrixTexture(dyTex);
-    gpgpu.deleteProgram(program);
+    texManager.dispose();
+    gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
 
-    return dw;
+    return result;
   }
 
   function compareToCPU(

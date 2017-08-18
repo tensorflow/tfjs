@@ -14,72 +14,36 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array1D, Array3D, Array4D, NDArray} from '../ndarray';
+import {Array1D, Array3D, Array4D, initializeGPU, NDArray} from '../ndarray';
 
-import * as conv_backprop_gpu from './conv_backprop_gpu';
+import {Conv2DTransposeProgram} from './conv_backprop_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
 describe('conv_gpu transpose', () => {
 
   function uploadConvTransposeDownload(
-      x: Array3D, weights: Array4D, biases: Array1D|null, fSize: number,
+      x: Array3D, W: Array4D, bias: Array1D|null, fSize: number,
       origStride: number, origPad: number): Float32Array {
     const gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
-    const origInputDepth = weights.shape[2];
-    const origOutputDepth = weights.shape[3];
-    const src = conv_backprop_gpu.getFragmentShaderConvTransposeSource(
-        x.shape, fSize, origInputDepth, origStride, origPad, biases != null);
-    const program = gpgpu.createProgram(src);
+    const textureManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, textureManager);
+    const origInputDepth = W.shape[2];
+    const program = new Conv2DTransposeProgram(
+        x.shape, fSize, origInputDepth, origStride, origPad, bias != null);
+    const res = NDArray.zeros(program.outputShape);
+    const inputs = bias != null ? [x, W, bias] : [x, W];
+    const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, res);
+    gpgpu_math.runProgram(binary, inputs, res);
+    const resValues = res.getValues();
 
-    // Upload x.
-    const xTexShapeRC = conv_util.computeTexShapeFrom3D(x.shape);
-    const xTex = gpgpu.createMatrixTexture(xTexShapeRC[0], xTexShapeRC[1]);
-    gpgpu.uploadMatrixToTexture(
-        xTex, xTexShapeRC[0], xTexShapeRC[1], x.getValues());
-
-    // Upload weights.
-    const wTexShapeRC = conv_util.computeWeightsTexShape(
-        origInputDepth, origOutputDepth, fSize);
-    const wTex = gpgpu.createMatrixTexture(wTexShapeRC[0], wTexShapeRC[1]);
-    gpgpu.uploadMatrixToTexture(
-        wTex, wTexShapeRC[0], wTexShapeRC[1], weights.getValues());
-
-    const biasTexShapeRC = conv_util.computeBiasesTexShape(origInputDepth);
-    const biasTex = biases != null ?
-        gpgpu.createMatrixTexture(biasTexShapeRC[0], biasTexShapeRC[1]) :
-        null;
-    if (biasTex != null) {
-      gpgpu.uploadMatrixToTexture(
-          biasTex, biasTexShapeRC[0], biasTexShapeRC[1], biases!.getValues());
-    }
-
-    // Figure out the output shape by dilating the input.
-    const xRowsDilated = (x.shape[0] - 1) * origStride + 1;
-    const xColsDilated = (x.shape[1] - 1) * origStride + 1;
-    const pad = fSize - 1 - origPad;
-    const resultShapeRCD = conv_util.computeOutputShape3D(
-        [xRowsDilated, xColsDilated, origOutputDepth], fSize, origInputDepth, 1,
-        pad);
-    const resultTexRC = conv_util.computeTexShapeFrom3D(resultShapeRCD);
-    const resultTex = gpgpu.createMatrixTexture(resultTexRC[0], resultTexRC[1]);
-    conv_backprop_gpu.convTranspose(
-        gpgpu, program, xTex, wTex, biasTex, resultTex, resultTexRC);
-    const y = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexRC[0], resultTexRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(xTex);
-    gpgpu.deleteMatrixTexture(wTex);
-    if (biasTex != null) {
-      gpgpu.deleteMatrixTexture(biasTex);
-    }
-    gpgpu.deleteProgram(program);
+    textureManager.dispose();
+    gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
-
-    return y;
+    return resValues;
   }
 
   function compareToCPU(

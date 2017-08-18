@@ -14,50 +14,35 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array3D, NDArray} from '../ndarray';
+import {Array3D, initializeGPU, NDArray} from '../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
-import * as max_pool_gpu from './max_pool_gpu';
+import * as gpgpu_math from './gpgpu_math';
+import {Pool2DProgram} from './pool_gpu';
+import {TextureManager} from './texture_manager';
 
 describe('max_pool_position', () => {
   function uploadMaxPoolPositionDownload(
-      x: Float32Array, xShapeRowColDepth: [number, number, number],
-      fieldSize: number, stride: number, pad: number): Float32Array {
-    const xTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(xShapeRowColDepth);
-
-    const resultShapeRCD: [number, number, number] =
-        conv_util.computeOutputShape3D(
-            xShapeRowColDepth, fieldSize, xShapeRowColDepth[2], stride, pad);
-    const resultTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(resultShapeRCD);
-
+      xVals: Float32Array, xShape: [number, number, number], fieldSize: number,
+      stride: number, pad: number): Float32Array {
     const gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
+    const textureManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, textureManager);
+    const getPositions = true;
+    const program =
+        new Pool2DProgram(xShape, fieldSize, stride, pad, 'max', getPositions);
+    const res = NDArray.zeros(program.outputShape);
+    const x = Array3D.new(xShape, xVals);
+    const binary = gpgpu_math.compileProgram(gpgpu, program, [x], res);
+    gpgpu_math.runProgram(binary, [x], res);
+    const resValues = res.getValues();
 
-    const shaderSource = max_pool_gpu.getFragmentShaderMaxPoolPositionsSource(
-        xShapeRowColDepth, fieldSize, stride, pad);
-    const program = gpgpu.createProgram(shaderSource);
-
-    const xTex = gpgpu.createMatrixTexture(xTexShapeRC[0], xTexShapeRC[1]);
-    const resultTex =
-        gpgpu.createMatrixTexture(resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.uploadMatrixToTexture(xTex, xTexShapeRC[0], xTexShapeRC[1], x);
-
-    max_pool_gpu.maxPoolCommon(
-        gpgpu, program, xTex, resultTex, resultTexShapeRC);
-
-    const result = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(xTex);
-    gpgpu.deleteProgram(program);
+    textureManager.dispose();
+    gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
-    return result;
+    return resValues;
   }
 
   function compareToCPU(

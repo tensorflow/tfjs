@@ -14,76 +14,53 @@ limitations under the License.
 ==============================================================================*/
 
 import * as conv_util from '../../src/math/conv_util';
-import * as conv_gpu from '../../src/math/webgl/conv_gpu';
+import {Array1D, Array3D, Array4D, initializeGPU} from '../../src/math/ndarray';
+import {Conv2DProgram} from '../../src/math/webgl/conv_gpu';
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
-import * as test_util from '../../src/test_util';
+import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
+import {TextureManager} from '../../src/math/webgl/texture_manager';
 
 import {BenchmarkTest} from './benchmark';
 
 const OP_RUNS = 40;
 
 export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
-  const inputShapeRCD: [number, number, number] = [size, size, 1];
+  const gpgpu = new GPGPUContext();
+  const texManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, texManager);
+
+  const inputDepth = 1;
+  const inputShape: [number, number, number] = [size, size, inputDepth];
   const outputDepth = 1;
   const fieldSize = 11;
   const stride = 1;
-  const zeroPad = conv_util.computeDefaultPad(inputShapeRCD, fieldSize, stride);
-  const outputShapeRCD: [number, number, number] =
-      conv_util.computeOutputShape3D(
-          inputShapeRCD, fieldSize, outputDepth, stride, zeroPad);
-
-  const inputTexShapeRC = conv_util.computeTexShapeFrom3D(inputShapeRCD);
-  const outputTexShapeRC = conv_util.computeTexShapeFrom3D(outputShapeRCD);
-  const weightsTexShapeRC = conv_util.computeWeightsTexShape(
-      inputShapeRCD[2], outputDepth, fieldSize);
-  const biasesTexShapeRC = conv_util.computeBiasesTexShape(outputDepth);
+  const zeroPad = conv_util.computeDefaultPad(inputShape, fieldSize, stride);
 
   const hasBias = true;
-  const gpgpu = new GPGPUContext();
-  const program = gpgpu.createProgram(conv_gpu.getFragmentShaderSource(
-      inputShapeRCD, outputDepth, fieldSize, stride, zeroPad, hasBias));
-
-  const inputTexture =
-      gpgpu.createMatrixTexture(inputTexShapeRC[0], inputTexShapeRC[1]);
-  const weightsTexture =
-      gpgpu.createMatrixTexture(weightsTexShapeRC[0], weightsTexShapeRC[1]);
-  const biasesTexture =
-      gpgpu.createMatrixTexture(biasesTexShapeRC[0], biasesTexShapeRC[1]);
-  const outputTexture =
-      gpgpu.createMatrixTexture(outputTexShapeRC[0], outputTexShapeRC[1]);
-
-  const inputData = test_util.randomArrayInRange(
-      inputTexShapeRC[0] * inputTexShapeRC[1], -1, 1);
-  const weightsData = test_util.randomArrayInRange(
-      weightsTexShapeRC[0] * weightsTexShapeRC[1], -1, 1);
-  const biasesData = test_util.randomArrayInRange(
-      biasesTexShapeRC[0] * biasesTexShapeRC[1], -1, 1);
-
-  gpgpu.uploadMatrixToTexture(
-      inputTexture, inputTexShapeRC[0], inputTexShapeRC[1], inputData);
-  gpgpu.uploadMatrixToTexture(
-      weightsTexture, weightsTexShapeRC[0], weightsTexShapeRC[1], weightsData);
-  gpgpu.uploadMatrixToTexture(
-      biasesTexture, biasesTexShapeRC[0], biasesTexShapeRC[1], biasesData);
+  const program = new Conv2DProgram(
+      inputShape, fieldSize, outputDepth, stride, zeroPad, hasBias);
+  const outputShape = program.outputShape as [number, number, number];
+  const out = Array3D.zeros(outputShape);
+  const x = Array3D.randUniform(inputShape, -1, 1);
+  const wShape = conv_util.computeWeightsShape4D(1, outputDepth, fieldSize);
+  const W = Array4D.randUniform(wShape, -1, 1);
+  const b = Array1D.randUniform([outputDepth], -1, 1);
+  const inputs = [x, W, b];
+  const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, out);
 
   const start = performance.now();
   for (let i = 0; i < OP_RUNS; i++) {
-    conv_gpu.convolve(
-        gpgpu, program, inputTexture, weightsTexture, biasesTexture,
-        outputTexture, outputTexShapeRC);
+    gpgpu_math.runProgram(binary, inputs, out);
   }
+  out.getValues();
+  const avgTime = (performance.now() - start) / OP_RUNS;
 
-  gpgpu.downloadMatrixFromTexture(
-      outputTexture, outputTexShapeRC[0], outputTexShapeRC[1]);
-  const end = performance.now();
-
-  const avgTime = (end - start) / OP_RUNS;
-
-  gpgpu.deleteMatrixTexture(inputTexture);
-  gpgpu.deleteMatrixTexture(weightsTexture);
-  gpgpu.deleteMatrixTexture(biasesTexture);
-  gpgpu.deleteMatrixTexture(outputTexture);
-  gpgpu.deleteProgram(program);
+  x.dispose();
+  W.dispose();
+  b.dispose();
+  out.dispose();
+  texManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 
   return avgTime;

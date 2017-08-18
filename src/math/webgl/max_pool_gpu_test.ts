@@ -14,52 +14,16 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
 import {Array3D, NDArray} from '../ndarray';
-
-import {GPGPUContext} from './gpgpu_context';
-import * as max_pool_gpu from './max_pool_gpu';
+import * as pool_gpu_test_util from './pool_gpu_test_util';
 
 describe('max_pool_gpu', () => {
   function uploadMaxPoolDownload(
-      a: Float32Array, aShapeRowColDepth: [number, number, number],
-      fieldSize: number, stride: number, zeroPad: number): Float32Array {
-    const aTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(aShapeRowColDepth);
-
-    const resultShapeRCD: [number, number, number] =
-        conv_util.computeOutputShape3D(
-            aShapeRowColDepth, fieldSize, aShapeRowColDepth[2], stride,
-            zeroPad);
-
-    const resultTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(resultShapeRCD);
-
-    const gpgpu = new GPGPUContext();
-    gpgpu.enableAutomaticDebugValidation(true);
-
-    const shaderSource = max_pool_gpu.getFragmentShaderMaxPoolSource(
-        aShapeRowColDepth, fieldSize, stride, zeroPad);
-    const program = gpgpu.createProgram(shaderSource);
-
-    const aTex = gpgpu.createMatrixTexture(aTexShapeRC[0], aTexShapeRC[1]);
-    const resultTex =
-        gpgpu.createMatrixTexture(resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.uploadMatrixToTexture(aTex, aTexShapeRC[0], aTexShapeRC[1], a);
-
-    max_pool_gpu.maxPoolCommon(
-        gpgpu, program, aTex, resultTex, resultTexShapeRC);
-
-    const result = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(aTex);
-    gpgpu.deleteProgram(program);
-    gpgpu.dispose();
-    return result;
+      a: Float32Array, xShape: [number, number, number], fieldSize: number,
+      stride: number, zeroPad: number): Float32Array {
+    return pool_gpu_test_util.uploadPoolDownload(
+        a, xShape, fieldSize, stride, zeroPad, 'max');
   }
 
   function compareToCPU(

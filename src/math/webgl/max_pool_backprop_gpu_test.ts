@@ -14,13 +14,14 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array3D, NDArray} from '../ndarray';
+import {Array3D, initializeGPU, NDArray} from '../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
-import * as max_pool_backprop_gpu from './max_pool_backprop_gpu';
-import * as max_pool_gpu from './max_pool_gpu';
+import * as gpgpu_math from './gpgpu_math';
+import {MaxPool2DBackpropProgram} from './max_pool_backprop_gpu';
+import {Pool2DProgram} from './pool_gpu';
+import {TextureManager} from './texture_manager';
 
 describe('max_pool_backprop_gpu', () => {
 
@@ -29,60 +30,30 @@ describe('max_pool_backprop_gpu', () => {
       origPad: number): Float32Array {
     const gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
+    const textureManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, textureManager);
 
-    const depth = dy.shape[2];
-    const src = max_pool_backprop_gpu.getFragmentShaderMaxPoolBackprop(
-        dy.shape, fSize, origStride, origPad);
-    const program = gpgpu.createProgram(src);
+    const getPositions = true;
+    const positionsProgram = new Pool2DProgram(
+        x.shape, fSize, origStride, origPad, 'max', getPositions);
+    const positionsRes = NDArray.zeros(positionsProgram.outputShape);
+    const positionsBinary =
+        gpgpu_math.compileProgram(gpgpu, positionsProgram, [x], positionsRes);
+    gpgpu_math.runProgram(positionsBinary, [x], positionsRes);
 
-    // Upload dy.
-    const dyTexShapeRC = conv_util.computeTexShapeFrom3D(dy.shape);
-    const dyTex = gpgpu.createMatrixTexture(dyTexShapeRC[0], dyTexShapeRC[1]);
-    gpgpu.uploadMatrixToTexture(
-        dyTex, dyTexShapeRC[0], dyTexShapeRC[1], dy.getValues());
+    const program =
+        new MaxPool2DBackpropProgram(dy.shape, fSize, origStride, origPad);
+    const res = NDArray.zeros(program.outputShape);
+    const binary =
+        gpgpu_math.compileProgram(gpgpu, program, [dy, positionsRes], res);
+    gpgpu_math.runProgram(binary, [dy, positionsRes], res);
 
-    // Upload x.
-    const xTexShapeRC = conv_util.computeTexShapeFrom3D(x.shape);
-    const xTex = gpgpu.createMatrixTexture(xTexShapeRC[0], xTexShapeRC[1]);
-    gpgpu.uploadMatrixToTexture(
-        xTex, xTexShapeRC[0], xTexShapeRC[1], x.getValues());
+    const resValues = res.getValues();
 
-    // Compute max positions.
-    const maxPoolResultShape = conv_util.computeOutputShape3D(
-        x.shape, fSize, x.shape[2], origStride, origPad);
-    const maxPoolResultTexShape =
-        conv_util.computeTexShapeFrom3D(maxPoolResultShape);
-    const maxPoolPositionsResultTex = gpgpu.createMatrixTexture(
-        maxPoolResultTexShape[0], maxPoolResultTexShape[1]);
-    const maxPoolPositionsSrc =
-        max_pool_gpu.getFragmentShaderMaxPoolPositionsSource(
-            x.shape, fSize, origStride, origPad);
-    const maxPoolPositionsProgram = gpgpu.createProgram(maxPoolPositionsSrc);
-    max_pool_gpu.maxPoolCommon(
-        gpgpu, maxPoolPositionsProgram, xTex, maxPoolPositionsResultTex,
-        maxPoolResultTexShape);
-
-    // Figure out the output shape by dilating the input.
-    const dyRowsDilated = (dy.shape[0] - 1) * origStride + 1;
-    const dyColsDilated = (dy.shape[1] - 1) * origStride + 1;
-    const pad = fSize - 1 - origPad;
-    const resultShapeRCD = conv_util.computeOutputShape3D(
-        [dyRowsDilated, dyColsDilated, depth], fSize, depth, 1, pad);
-    const resultTexRC = conv_util.computeTexShapeFrom3D(resultShapeRCD);
-    const resultTex = gpgpu.createMatrixTexture(resultTexRC[0], resultTexRC[1]);
-    max_pool_backprop_gpu.maxPoolBackprop(
-        gpgpu, program, dyTex, maxPoolPositionsResultTex, resultTex,
-        resultTexRC);
-    const y = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexRC[0], resultTexRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(dyTex);
-    gpgpu.deleteMatrixTexture(xTex);
-    gpgpu.deleteProgram(program);
+    textureManager.dispose();
+    gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
-
-    return y;
+    return resValues;
   }
 
   function compareToCPU(

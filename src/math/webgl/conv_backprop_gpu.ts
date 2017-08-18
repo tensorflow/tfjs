@@ -14,244 +14,157 @@ limitations under the License.
 ==============================================================================*/
 
 import * as conv_util from '../conv_util';
+import {GPGPUProgram} from './gpgpu_math';
 
-import * as conv_gpu from './conv_gpu';
-import {GPGPUContext} from './gpgpu_context';
+export class Conv2DDerWeightsProgram implements GPGPUProgram {
+  variableNames = ['x', 'dy'];
+  params: Array<{}>;
+  outputShape: number[];
+  userCode: string;
 
-export function getFragmentShaderDerWeightsSource(
-    xShapeRowColDepth: [number, number, number], fSize: number,
-    outputDepth: number, stride: number, zeroPad: number) {
-  const getMatrixValueOrZeroPad =
-      conv_gpu.getFragmentShaderGetMatrixValueOrZeroPadSource();
-  const inputDepth = xShapeRowColDepth[2];
+  constructor(
+      xShape: [number, number, number], fSize: number, outputDepth: number,
+      stride: number, zeroPad: number) {
+    const yShape = conv_util.computeOutputShape3D(
+        xShape, fSize, outputDepth, stride, zeroPad);
+    const yNumRows = yShape[0];
+    const yNumCols = yShape[1];
+    const xNumRows = xShape[0];
+    const xNumCols = xShape[1];
+    this.outputShape =
+        conv_util.computeWeightsShape4D(xShape[2], outputDepth, fSize);
+    this.params = [stride, zeroPad];
+    this.userCode = `
+      void main() {
+        vec4 coords = getOutputCoords();
+        float wR = coords.x;
+        float wC = coords.y;
+        float d1 = coords.z;
+        float d2 = coords.w;
 
-  const xTexShapeRC = conv_util.computeTexShapeFrom3D(xShapeRowColDepth);
+        // Convolve x(?, ?, d1) with dy(:, :, d2) to get dw(wR, wC, d1, d2).
+        // ? = to be determined. : = across all values in that axis.
+        float dotProd = 0.0;
+        for (int iyR = 0; iyR < ${yNumRows}; iyR++) {
+          float yR = float(iyR);
+          float xR = wR + yR * ${stride}.0 - ${zeroPad}.0;
 
-  const yShape = conv_util.computeOutputShape3D(
-      xShapeRowColDepth, fSize, outputDepth, stride, zeroPad);
-  const yNumRows = yShape[0];
-  const yNumCols = yShape[1];
-  const yTexShapeRC = conv_util.computeTexShapeFrom3D(yShape);
-
-  const fSizeTimesInputDepth = fSize * inputDepth;
-
-  const prologue = `
-    precision highp float;
-    uniform sampler2D x;
-    uniform sampler2D dy;
-  `;
-
-  return prologue + '\n' + getMatrixValueOrZeroPad + '\n' +
-      `
-    const vec2 halfCR = vec2(0.5, 0.5);
-    const vec2 xShapeCR = vec2(${xTexShapeRC[1]}, ${xTexShapeRC[0]});
-    const vec2 dyShapeCR = vec2(${yTexShapeRC[1]}, ${yTexShapeRC[0]});
-
-    void main() {
-      vec2 wTexCR = floor(gl_FragCoord.xy);
-
-      // Map from 2D (wTexR, wTexC) to 4D (wR, wC, d1, d2).
-      float wR = floor(wTexCR.y / ${fSizeTimesInputDepth}.0);
-      float wTexRLeftover = wTexCR.y - wR * ${fSizeTimesInputDepth}.0;
-      float wC = floor(wTexRLeftover / ${inputDepth}.0);
-      float d1 = mod(wTexRLeftover, ${inputDepth}.0);
-      float d2 = wTexCR.x;
-
-      // Convolve x(?, ?, d1) with dy(:, :, d2) to get dw(wR, wC, d1, d2).
-      // ? = to be determined. : = across all values in that axis.
-      float dotProd = 0.0;
-      for (int yR = 0; yR < ${yNumRows}; yR++) {
-        float yTexR = float(yR);
-        float xR = wR + yTexR * ${stride}.0 - ${zeroPad}.0;
-        float xTexR = xR;
-
-        for (int yC = 0; yC < ${yNumCols}; yC++) {
-          float yC_float = float(yC);
-          float xC = wC + yC_float * ${stride}.0 - ${zeroPad}.0;
-
-          // Map from 3D (xR, xC, d1) to 2D (xTexR, xTexC).
-          // Map from 3D (yR, yC, d2) to 2D (yTexR, yTexC).
-          vec2 xyTexC =
-              vec2(xC, yC_float) * vec2(${inputDepth}.0, ${outputDepth}.0) +
-              vec2(d1, d2);
-          float xTexC = xyTexC.x;
-          float yTexC = xyTexC.y;
-
-          // Read dy(yR, yC, d2).
-          vec2 dyUV = (vec2(yTexC, yTexR) + halfCR) / dyShapeCR;
-          float dyValue = texture2D(dy, dyUV).r;
-
-          // Read x(xR, xC, d1) (potentially zero-padded).
-          float xValue =
-            getMatrixValueOrZeroPad(x, xShapeCR, vec2(xTexC, xTexR));
-
-          dotProd += (xValue * dyValue);
-        }
-      }
-      gl_FragColor = vec4(dotProd, 0, 0, 0);
-    }`;
-}
-
-export function getFragmentShaderConvTransposeSource(
-    xShapeRCD: [number, number, number], fSize: number, origInputDepth: number,
-    origStride: number, origPad: number, hasBias: boolean) {
-  const pad = fSize - 1 - origPad;
-  const [xRows, xCols, origOutputDepth] = xShapeRCD;
-
-  const xTexShapeRC = conv_util.computeTexShapeFrom3D(xShapeRCD);
-  const wTexShapeRC =
-      conv_util.computeWeightsTexShape(origInputDepth, origOutputDepth, fSize);
-
-  const getBiasValue = hasBias ?
-      conv_gpu.getFragmentShaderGetBiasValueSource(origInputDepth) :
-      '';
-  const biasPrologue = hasBias ? 'uniform sampler2D biases;' : '';
-  const biasOperation = hasBias ? 'dotProd += getBiasValue(biases, d2);' : '';
-
-  const prologue = `
-    precision highp float;
-    uniform sampler2D x;
-    uniform sampler2D weights;
-    ${biasPrologue}
-    `;
-
-  return prologue + '\n' + getBiasValue + '\n' +
-      `
-    const vec2 halfCR = vec2(0.5, 0.5);
-    const vec2 xShapeCR = vec2(${xTexShapeRC[1]}, ${xTexShapeRC[0]});
-    const vec2 wShapeCR = vec2(${wTexShapeRC[1]}, ${wTexShapeRC[0]});
-
-    void main() {
-      vec2 yTexCR = floor(gl_FragCoord.xy);
-
-      // Map from 2D (yTexR, yTexC) to 3D (yR, yC, d2).
-      float yR = yTexCR.y;
-      float yC = floor(yTexCR.x / ${origInputDepth}.0);
-      float d2 = mod(yTexCR.x, ${origInputDepth}.0);
-
-      vec2 xRCCorner = vec2(yR, yC) - vec2(${pad}.0, ${pad}.0);
-      float xRCorner = xRCCorner.x;
-      float xCCorner = xRCCorner.y;
-
-      // Convolve x(?, ?, d1) with w(:, :, d2, d1) to get y(yR, yC, d2).
-      // ? = to be determined. : = across all values in that axis.
-      float dotProd = 0.0;
-      for (int wR = 0; wR < ${fSize}; wR++) {
-        float wR_float = float(wR);
-        float xR = (xRCorner + wR_float) / ${origStride}.0;
-        // TODO(smilkov): Splice this with another version where you call
-        // getMatrixValueOrZeroPad(). Here and below.
-        if (xR < 0.0 || xR >= ${xRows}.0 || fract(xR) > 0.0) {
-          continue;
-        }
-
-        float wRPerm = ${fSize}.0 - 1.0 - wR_float;
-        float xTexR = xR;
-
-        for (int wC = 0; wC < ${fSize}; wC++) {
-          float wC_float = float(wC);
-          float xC = (xCCorner + wC_float) / ${origStride}.0;
-          if (xC < 0.0 || xC >= ${xCols}.0 || fract(xC) > 0.0) {
+          if (xR < 0.0 || xR >= ${xNumRows}.0) {
             continue;
           }
 
-          float wCPerm = ${fSize}.0 - 1.0 - wC_float;
-          float wTexR = wRPerm * ${fSize}.0 * ${origInputDepth}.0 +
-                        wCPerm * ${origInputDepth}.0 + d2;
+          for (int iyC = 0; iyC < ${yNumCols}; iyC++) {
+            float yC = float(iyC);
+            float xC = wC + yC * ${stride}.0 - ${zeroPad}.0;
 
-          for (int d1 = 0; d1 < ${origOutputDepth}; d1++) {
-            float d1_float = float(d1);
-            float xTexC = xC * ${origOutputDepth}.0 + d1_float;
-            float wTexC = d1_float;
+            if (xC < 0.0 || xC >= ${xNumCols}.0) {
+              continue;
+            }
 
-            // Read x(xR, xC, d1).
-            vec2 xUV = (vec2(xTexC, xTexR) + halfCR) / xShapeCR;
-            float xValue = texture2D(x, xUV).r;
-
-            // Read w(wRPerm, wCPerm, d2, d1).
-            vec2 wUV = (vec2(wTexC, wTexR) + halfCR) / wShapeCR;
-            float wValue = texture2D(weights, wUV).r;
-
-            dotProd += xValue * wValue;
+            float dyValue = getDy(yR, yC, d2);
+            float xValue = getX(xR, xC, d1);
+            dotProd += (xValue * dyValue);
           }
         }
+        setOutput(dotProd);
       }
-      ${biasOperation}
-      gl_FragColor = vec4(dotProd, 0, 0, 0);
-    }`;
-}
-
-export function getFragmentShaderDerBiasSource(
-    dyShapeRCD: [number, number, number]) {
-  const dyTexShapeRC = conv_util.computeTexShapeFrom3D(dyShapeRCD);
-  const [yNumRows, yNumCols, outputDepth] = dyShapeRCD;
-
-  return `
-    precision highp float;
-    uniform sampler2D dy;
-
-    const vec2 halfCR = vec2(0.5, 0.5);
-    const vec2 dyShapeCR = vec2(${dyTexShapeRC[1]}, ${dyTexShapeRC[0]});
-
-    void main() {
-      vec2 biasTexCR = floor(gl_FragCoord.xy);
-
-      // The bias texture RC shape is [1, d2].
-      float d2 = biasTexCR.x;
-
-      float derBias = 0.0;
-      for (int yR = 0; yR < ${yNumRows}; yR++) {
-        float yTexR = float(yR);
-
-        for (int yC = 0; yC < ${yNumCols}; yC++) {
-          float yC_float = float(yC);
-          // Map from 3D (yR, yC, d2) to 2D (yTexR, yTexC).
-          float yTexC = yC_float * ${outputDepth}.0 + d2;
-
-          // Read dy(yR, yC, d2).
-          vec2 dyUV = (vec2(yTexC, yTexR) + halfCR) / dyShapeCR;
-          float dyValue = texture2D(dy, dyUV).r;
-
-          derBias += dyValue;
-        }
-      }
-      gl_FragColor = vec4(derBias, 0, 0, 0);
-    }`;
-}
-
-export function derBias(
-    gpgpu: GPGPUContext, program: WebGLProgram, dyTex: WebGLTexture,
-    result: WebGLTexture, resultTexShapeRC: [number, number]) {
-  gpgpu.setOutputMatrixTexture(
-      result, resultTexShapeRC[0], resultTexShapeRC[1]);
-  gpgpu.setProgram(program);
-  gpgpu.setInputMatrixTexture(dyTex, 'dy', 0);
-  gpgpu.executeProgram();
-}
-
-export function derWeights(
-    gpgpu: GPGPUContext, program: WebGLProgram, xTex: WebGLTexture,
-    dyTex: WebGLTexture, result: WebGLTexture,
-    resultTexShapeRC: [number, number]) {
-  gpgpu.setOutputMatrixTexture(
-      result, resultTexShapeRC[0], resultTexShapeRC[1]);
-  gpgpu.setProgram(program);
-  gpgpu.setInputMatrixTexture(xTex, 'x', 0);
-  gpgpu.setInputMatrixTexture(dyTex, 'dy', 1);
-  gpgpu.executeProgram();
-}
-
-export function convTranspose(
-    gpgpu: GPGPUContext, program: WebGLProgram, xTex: WebGLTexture,
-    weightsTex: WebGLTexture, biasesTex: WebGLTexture|null,
-    resultTex: WebGLTexture, resultTexShapeRC: [number, number]) {
-  gpgpu.setOutputMatrixTexture(
-      resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-  gpgpu.setProgram(program);
-  gpgpu.setInputMatrixTexture(xTex, 'x', 0);
-  gpgpu.setInputMatrixTexture(weightsTex, 'weights', 1);
-  if (biasesTex != null) {
-    gpgpu.setInputMatrixTexture(biasesTex, 'biases', 2);
+    `;
   }
-  gpgpu.executeProgram();
+}
+
+export class Conv2DTransposeProgram implements GPGPUProgram {
+  variableNames = ['x', 'W', 'bias'];
+  params: Array<{}>;
+  outputShape: number[];
+  userCode: string;
+
+  constructor(
+      xShape: [number, number, number], fSize: number, origInputDepth: number,
+      origStride: number, origPad: number, hasBias: boolean) {
+    const [xRows, xCols, origOutputDepth] = xShape;
+    const biasSnippet = hasBias ? 'dotProd += getBias(d2);' : '';
+
+    // Figure out the output shape by dilating the input.
+    const xRowsDilated = (xRows - 1) * origStride + 1;
+    const xColsDilated = (xCols - 1) * origStride + 1;
+    const pad = fSize - 1 - origPad;
+    this.outputShape = conv_util.computeOutputShape3D(
+        [xRowsDilated, xColsDilated, origOutputDepth], fSize, origInputDepth, 1,
+        pad);
+    this.params = [pad, fSize, origStride, hasBias];
+
+    this.userCode = `
+      void main() {
+        vec3 coords = getOutputCoords();
+        float yR = coords.x;
+        float yC = coords.y;
+        float d2 = coords.z;
+
+        vec2 xRCCorner = vec2(yR, yC) - vec2(${pad}.0, ${pad}.0);
+        float xRCorner = xRCCorner.x;
+        float xCCorner = xRCCorner.y;
+
+        // Convolve x(?, ?, d1) with w(:, :, d2, d1) to get y(yR, yC, d2).
+        // ? = to be determined. : = across all values in that axis.
+        float dotProd = 0.0;
+        for (int iwR = 0; iwR < ${fSize}; iwR++) {
+          float wR = float(iwR);
+          float xR = (xRCorner + wR) / ${origStride}.0;
+
+          if (xR < 0.0 || xR >= ${xRows}.0 || fract(xR) > 0.0) {
+            continue;
+          }
+
+          float wRPerm = ${fSize}.0 - 1.0 - wR;
+
+          for (int iwC = 0; iwC < ${fSize}; iwC++) {
+            float wC = float(iwC);
+            float xC = (xCCorner + wC) / ${origStride}.0;
+
+            if (xC < 0.0 || xC >= ${xCols}.0 || fract(xC) > 0.0) {
+              continue;
+            }
+
+            float wCPerm = ${fSize}.0 - 1.0 - wC;
+
+            for (int id1 = 0; id1 < ${origOutputDepth}; id1++) {
+              float d1 = float(id1);
+              float xValue = getX(xR, xC, d1);
+              float wValue = getW(wRPerm, wCPerm, d2, d1);
+              dotProd += xValue * wValue;
+            }
+          }
+        }
+        ${biasSnippet}
+        setOutput(dotProd);
+      }
+    `;
+  }
+}
+
+export class Conv2DDerBiasProgram implements GPGPUProgram {
+  variableNames = ['dy'];
+  params: Array<{}> = [];
+  outputShape: number[];
+  userCode: string;
+
+  constructor(yShape: [number, number, number]) {
+    const [yNumRows, yNumCols, outputDepth] = yShape;
+    this.outputShape = [outputDepth];
+    this.userCode = `
+      void main() {
+        float d2 = getOutputCoords();
+
+        float derBias = 0.0;
+        for (int iyR = 0; iyR < ${yNumRows}; iyR++) {
+          float yR = float(iyR);
+          for (int iyC = 0; iyC < ${yNumCols}; iyC++) {
+            float yC = float(iyC);
+            derBias += getDy(yR, yC, d2);
+          }
+        }
+        setOutput(derBias);
+      }
+    `;
+  }
 }

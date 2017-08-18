@@ -285,9 +285,9 @@ describe('NDArray', () => {
     expect(t.getTextureShapeRC()).toEqual([2, 4]);
   });
 
-  it('preferred texture shape, Array4D is squareish', () => {
+  it('preferred texture shape, Array4D d1 and d2 strided along columns', () => {
     const t = Array4D.zeros([8, 2, 4, 4]);
-    expect(t.getTextureShapeRC()).toEqual([16, 16]);
+    expect(t.getTextureShapeRC()).toEqual([8, 2 * 4 * 4]);
   });
 });  // Close describe.
 

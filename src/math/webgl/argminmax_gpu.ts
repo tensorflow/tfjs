@@ -15,23 +15,23 @@ limitations under the License.
 
 import {GPGPUProgram} from './gpgpu_math';
 
-export function getArgMinMaxSnippet(op: 'min'|'max', texName: string,
-    size: number): string {
+export function getArgMinMaxSnippet(
+    op: 'min'|'max', texName: string, size: number): string {
   const compOp = (op === 'min') ? '<' : '>';
   return `
     float getArgMinMax${texName}() {
       float bestIndex = 0.0;
       float bestValue = get${texName}Flat(0.0);
 
-      for (int i = 0; i < ${size}; i++) {
-        float i_float = float(i);
-        float candidate = get${texName}Flat(i_float);
+      for (int ii = 0; ii < ${size}; ii++) {
+        float i = float(ii);
+        float candidate = get${texName}Flat(i);
         if (isNaN(candidate)) {
           return candidate;
         }
         if (candidate ${compOp} bestValue) {
           bestValue = candidate;
-          bestIndex = i_float;
+          bestIndex = i;
         }
       }
       return bestIndex;

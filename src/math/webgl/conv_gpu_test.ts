@@ -16,78 +16,46 @@ limitations under the License.
 import * as test_util from '../../test_util';
 import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array1D, Array3D, Array4D, NDArray} from '../ndarray';
+import {Array1D, Array3D, Array4D, initializeGPU, NDArray} from '../ndarray';
 
-import * as conv_gpu from './conv_gpu';
+import {Conv2DProgram} from './conv_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
 describe('conv_gpu', () => {
 
   function uploadConvolveDownload(
-      x: Float32Array, aShapeRowColDepth: [number, number, number],
-      weights: Float32Array, biases: Float32Array|null, resultDepth: number,
+      xVals: Float32Array, xShapeRCD: [number, number, number],
+      weights: Float32Array, biasVals: Float32Array|null, resultDepth: number,
       fieldSize: number, stride: number, zeroPad?: number): Float32Array {
     zeroPad = zeroPad != null ?
         zeroPad :
-        conv_util.computeDefaultPad(aShapeRowColDepth, fieldSize, stride);
+        conv_util.computeDefaultPad(xShapeRCD, fieldSize, stride);
 
-    const xTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(aShapeRowColDepth);
-
-    const resultShapeRCD: [number, number, number] =
-        conv_util.computeOutputShape3D(
-            aShapeRowColDepth, fieldSize, resultDepth, stride, zeroPad);
-
-    const weightsTexShapeRC: [number, number] =
-        conv_util.computeWeightsTexShape(
-            aShapeRowColDepth[2], resultDepth, fieldSize);
-
-    const biasesTexShapeRC: [number, number] = [1, resultDepth];
-    const resultTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(resultShapeRCD);
+    const x = Array3D.new(xShapeRCD, xVals);
+    const wShape =
+        conv_util.computeWeightsShape4D(xShapeRCD[2], resultDepth, fieldSize);
+    const W = Array4D.new(wShape, weights);
+    const b = biasVals != null ? Array1D.new(biasVals) : null;
 
     const gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
+    const textureManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, textureManager);
 
-    const shaderSource = conv_gpu.getFragmentShaderSource(
-        aShapeRowColDepth, resultDepth, fieldSize, stride, zeroPad,
-        biases != null);
-    const program = gpgpu.createProgram(shaderSource);
+    const program = new Conv2DProgram(
+        xShapeRCD, fieldSize, resultDepth, stride, zeroPad, biasVals != null);
+    const res = NDArray.zeros(program.outputShape);
+    const inputs = biasVals != null ? [x, W, b] : [x, W];
+    const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, res);
+    gpgpu_math.runProgram(binary, inputs, res);
+    const resValues = res.getValues();
 
-    const xTex = gpgpu.createMatrixTexture(xTexShapeRC[0], xTexShapeRC[1]);
-    const weightsTex =
-        gpgpu.createMatrixTexture(weightsTexShapeRC[0], weightsTexShapeRC[1]);
-    const biasesTex = biases != null ?
-        gpgpu.createMatrixTexture(biasesTexShapeRC[0], biasesTexShapeRC[1]) :
-        null;
-    const resultTex =
-        gpgpu.createMatrixTexture(resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.uploadMatrixToTexture(xTex, xTexShapeRC[0], xTexShapeRC[1], x);
-    gpgpu.uploadMatrixToTexture(
-        weightsTex, weightsTexShapeRC[0], weightsTexShapeRC[1], weights);
-
-    if (biases != null) {
-      gpgpu.uploadMatrixToTexture(
-          biasesTex!, biasesTexShapeRC[0], biasesTexShapeRC[1], biases);
-    }
-
-    conv_gpu.convolve(
-        gpgpu, program, xTex, weightsTex, biasesTex, resultTex,
-        resultTexShapeRC);
-
-    const result = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    if (biasesTex != null) {
-      gpgpu.deleteMatrixTexture(biasesTex);
-    }
-    gpgpu.deleteMatrixTexture(weightsTex);
-    gpgpu.deleteMatrixTexture(xTex);
-    gpgpu.deleteProgram(program);
+    textureManager.dispose();
+    gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
-    return result;
+    return resValues;
   }
 
   function compareToCPU(
@@ -251,7 +219,7 @@ describe('conv_gpu', () => {
     expect(result[5]).toBeCloseTo(a[2] * weights[2] + a[3] * weights[5]);
   });
 
-  it('2x2x1 in, 1d out, 2x2 filter, 1 stride', () => {
+  it('2x2x1 in, 1d out, 2x2 filter, s=2, bias=0, p=1', () => {
     const x = new Float32Array([1, 2, 3, 4]);
     const w = new Float32Array([3, 1, 5, 0]);
     const bias = new Float32Array([0]);
@@ -263,7 +231,7 @@ describe('conv_gpu', () => {
     expect(result[3]).toBe(12);
   });
 
-  it('2x2x1 in, 1d out, 2x2 filter, 1 stride', () => {
+  it('2x2x1 in, 1d out, 2x2 filter, 1 stride, bias=-1', () => {
     const x = new Float32Array([1, 2, 3, 4]);
     const w = new Float32Array([3, 1, 5, 0]);
     const bias = new Float32Array([-1]);
@@ -272,7 +240,7 @@ describe('conv_gpu', () => {
     expect(result[0]).toBe(19);
   });
 
-  it('2x2x1 in, 1d out, 2x2 filter, 1 stride, null bias', () => {
+  it('2x2x1 in, 1d out, 2x2 filter, 1 stride, no bias', () => {
     const x = new Float32Array([1, 2, 3, 4]);
     const w = new Float32Array([3, 1, 5, 0]);
     const bias: Float32Array|null = null;
@@ -281,19 +249,7 @@ describe('conv_gpu', () => {
     expect(result[0]).toBe(20);
   });
 
-  it('2x2x1 in, 1d out, 2x2 filter, 1 stride, zeropad = 1', () => {
-    const x = new Float32Array([1, 2, 3, 4]);
-    const w = new Float32Array([3, 1, 5, 0]);
-    const bias = new Float32Array([0]);
-    const result = uploadConvolveDownload(x, [2, 2, 1], w, bias, 1, 2, 2, 1);
-    expect(result.length).toEqual(4);
-    expect(result[0]).toBe(0);
-    expect(result[1]).toBe(10);
-    expect(result[2]).toBe(3);
-    expect(result[3]).toBe(12);
-  });
-
-  it('5x5x3 in, 2d out, 3x3 filter, 2 stride', () => {
+  it('5x5x3 in, 2d out, 3x3 filter, s=2, p=1', () => {
     /*
       weights:       input:
         [ 1, -1,       [1, 2, 2, 0, 0, 2, 2, 2, 1, 1, 2, 1, 1, 1, 2,

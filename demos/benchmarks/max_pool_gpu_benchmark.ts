@@ -14,108 +14,55 @@ limitations under the License.
 ==============================================================================*/
 
 import * as conv_util from '../../src/math/conv_util';
+import {Array3D, initializeGPU, NDArray} from '../../src/math/ndarray';
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
-import * as max_pool_gpu from '../../src/math/webgl/max_pool_gpu';
-import * as test_util from '../../src/test_util';
+import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
+import {Pool2DProgram} from '../../src/math/webgl/pool_gpu';
+import {TextureManager} from '../../src/math/webgl/texture_manager';
 
 import {BenchmarkTest} from './benchmark';
 
 const OP_RUNS = 40;
 
 export const MAX_POOL_BENCHMARK_TEST: BenchmarkTest = (size: number) => {
-  const inputShapeRCD: [number, number, number] = [size, size, 1];
-  const outputDepth = 1;
-  const fieldSize = 11;
-  const stride = 1;
-  const zeroPad = conv_util.computeDefaultPad(inputShapeRCD, fieldSize, stride);
-  const outputShapeRCD: [number, number, number] =
-      conv_util.computeOutputShape3D(
-          inputShapeRCD, fieldSize, outputDepth, stride, zeroPad);
-
-  const inputTexShapeRC = conv_util.computeTexShapeFrom3D(inputShapeRCD);
-  const outputTexShapeRC = conv_util.computeTexShapeFrom3D(outputShapeRCD);
-
-  const gpgpu = new GPGPUContext();
-  const program =
-      gpgpu.createProgram(max_pool_gpu.getFragmentShaderMaxPoolSource(
-          inputShapeRCD, fieldSize, stride, zeroPad));
-
-  const inputTexture =
-      gpgpu.createMatrixTexture(inputTexShapeRC[0], inputTexShapeRC[1]);
-  const outputTexture =
-      gpgpu.createMatrixTexture(outputTexShapeRC[0], outputTexShapeRC[1]);
-
-  const inputData = test_util.randomArrayInRange(
-      inputTexShapeRC[0] * inputTexShapeRC[1], -1, 1);
-
-  gpgpu.uploadMatrixToTexture(
-      inputTexture, inputTexShapeRC[0], inputTexShapeRC[1], inputData);
-
-  const start = performance.now();
-  for (let i = 0; i < OP_RUNS; i++) {
-    max_pool_gpu.maxPoolCommon(
-        gpgpu, program, inputTexture, outputTexture, outputTexShapeRC);
-  }
-
-  gpgpu.downloadMatrixFromTexture(
-      outputTexture, outputTexShapeRC[0], outputTexShapeRC[1]);
-  const end = performance.now();
-
-  const avgTime = (end - start) / OP_RUNS;
-
-  gpgpu.deleteMatrixTexture(inputTexture);
-  gpgpu.deleteMatrixTexture(outputTexture);
-  gpgpu.deleteProgram(program);
-  gpgpu.dispose();
-
-  return avgTime;
+  const positions = false;
+  return testMaxPool(size, positions);
 };
 
 export const MAX_POOL_POSNS_BENCHMARK_TEST: BenchmarkTest = (size: number) => {
-  const inputShapeRCD: [number, number, number] = [size, size, 1];
+  const positions = true;
+  return testMaxPool(size, positions);
+};
+
+function testMaxPool(size: number, positions: boolean): number {
+  const gpgpu = new GPGPUContext();
+  const texManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, texManager);
+
   const outputDepth = 1;
+  const xShape: [number, number, number] = [size, size, outputDepth];
   const fieldSize = 11;
   const stride = 1;
-  const zeroPad = conv_util.computeDefaultPad(inputShapeRCD, fieldSize, stride);
-  const outputShapeRCD: [number, number, number] =
-      conv_util.computeOutputShape3D(
-          inputShapeRCD, fieldSize, outputDepth, stride, zeroPad);
+  const zeroPad = conv_util.computeDefaultPad(xShape, fieldSize, stride);
 
-  const inputTexShapeRC = conv_util.computeTexShapeFrom3D(inputShapeRCD);
-  const outputTexShapeRC = conv_util.computeTexShapeFrom3D(outputShapeRCD);
-
-  const gpgpu = new GPGPUContext();
-  const program: WebGLProgram =
-      gpgpu.createProgram(max_pool_gpu.getFragmentShaderMaxPoolPositionsSource(
-          inputShapeRCD, fieldSize, stride, zeroPad));
-
-  const inputTexture =
-      gpgpu.createMatrixTexture(inputTexShapeRC[0], inputTexShapeRC[1]);
-  const outputTexture =
-      gpgpu.createMatrixTexture(outputTexShapeRC[0], outputTexShapeRC[1]);
-
-  const inputData = test_util.randomArrayInRange(
-      inputTexShapeRC[0] * inputTexShapeRC[1], -1, 1);
-
-  gpgpu.uploadMatrixToTexture(
-      inputTexture, inputTexShapeRC[0], inputTexShapeRC[1], inputData);
+  const program =
+      new Pool2DProgram(xShape, fieldSize, stride, zeroPad, 'max', positions);
+  const res = NDArray.zeros(program.outputShape);
+  const x = Array3D.randUniform(xShape, -1, 1);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [x], res);
 
   const start = performance.now();
   for (let i = 0; i < OP_RUNS; i++) {
-    max_pool_gpu.maxPoolCommon(
-        gpgpu, program, inputTexture, outputTexture, outputTexShapeRC);
+    gpgpu_math.runProgram(binary, [x], res);
   }
+  res.getValues();
+  const avgTime = (performance.now() - start) / OP_RUNS;
 
-  gpgpu.downloadMatrixFromTexture(
-      outputTexture, outputTexShapeRC[0], outputTexShapeRC[1]);
-  const end = performance.now();
-
-  const avgTime = (end - start) / OP_RUNS;
-
-  gpgpu.deleteMatrixTexture(inputTexture);
-  gpgpu.deleteMatrixTexture(outputTexture);
-  gpgpu.deleteProgram(program);
+  x.dispose();
+  res.dispose();
+  texManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 
   return avgTime;
-};
+}

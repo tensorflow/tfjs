@@ -14,69 +14,49 @@ limitations under the License.
 ==============================================================================*/
 
 import * as conv_util from '../../src/math/conv_util';
+import {Array3D, initializeGPU, NDArray} from '../../src/math/ndarray';
 import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
+import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 // tslint:disable-next-line:max-line-length
-import * as max_pool_backprop_gpu from '../../src/math/webgl/max_pool_backprop_gpu';
-import * as test_util from '../../src/test_util';
-import * as util from '../../src/util';
-
+import {MaxPool2DBackpropProgram} from '../../src/math/webgl/max_pool_backprop_gpu';
+import {TextureManager} from '../../src/math/webgl/texture_manager';
 import {BenchmarkTest} from './benchmark';
 
-const OP_RUNS = 100;
+const OP_RUNS = 40;
 
 export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
-  const dyShapeRCD: [number, number, number] = [size, size, 1];
-  const outputDepth = 1;
-  const fieldSize = 11;
-  const stride = 1;
-  const zeroPad = conv_util.computeDefaultPad(dyShapeRCD, fieldSize, stride);
-  const outputShapeRCD: [number, number, number] =
-      conv_util.computeOutputShape3D(
-          dyShapeRCD, fieldSize, outputDepth, stride, zeroPad);
-
-  const dyTexShapeRC = conv_util.computeTexShapeFrom3D(dyShapeRCD);
-  const outputTexShapeRC = conv_util.computeTexShapeFrom3D(outputShapeRCD);
-
   const gpgpu = new GPGPUContext();
-  const program = gpgpu.createProgram(
-      max_pool_backprop_gpu.getFragmentShaderMaxPoolBackprop(
-          dyShapeRCD, fieldSize, stride, zeroPad));
+  const texManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, texManager);
 
-  const dyTexture = gpgpu.createMatrixTexture(dyTexShapeRC[0], dyTexShapeRC[1]);
-  const maxPositionsTexture =
-      gpgpu.createMatrixTexture(dyTexShapeRC[0], dyTexShapeRC[1]);
-  const outputTexture =
-      gpgpu.createMatrixTexture(outputTexShapeRC[0], outputTexShapeRC[1]);
-
-  const dyData =
-      test_util.randomArrayInRange(dyTexShapeRC[0] * dyTexShapeRC[1], -1, 1);
-  const maxPositionsData = new Float32Array(util.sizeFromShape(dyShapeRCD));
-  for (let i = 0; i < maxPositionsData.length; i++) {
-    maxPositionsData[i] = Math.floor(Math.random() * fieldSize * fieldSize);
+  const outputDepth = 1;
+  const dyShape: [number, number, number] = [size, size, outputDepth];
+  const fSize = 11;
+  const stride = 1;
+  const zeroPad = conv_util.computeDefaultPad(dyShape, fSize, stride);
+  const program = new MaxPool2DBackpropProgram(dyShape, fSize, stride, zeroPad);
+  const res = NDArray.zeros(program.outputShape);
+  const dy = Array3D.randUniform(dyShape, -1, 1);
+  const positionsData = new Float32Array(dy.size);
+  for (let i = 0; i < positionsData.length; i++) {
+    positionsData[i] = Math.floor(Math.random() * fSize * fSize);
   }
-
-  gpgpu.uploadMatrixToTexture(
-      dyTexture, dyTexShapeRC[0], dyTexShapeRC[1], dyData);
-  gpgpu.uploadMatrixToTexture(
-      maxPositionsTexture, dyTexShapeRC[0], dyTexShapeRC[1], maxPositionsData);
+  const positions = Array3D.new(dyShape, positionsData);
+  const binary =
+      gpgpu_math.compileProgram(gpgpu, program, [dy, positions], res);
 
   const start = performance.now();
   for (let i = 0; i < OP_RUNS; i++) {
-    max_pool_backprop_gpu.maxPoolBackprop(
-        gpgpu, program, dyTexture, maxPositionsTexture, outputTexture,
-        outputTexShapeRC);
+    gpgpu_math.runProgram(binary, [dy, positions], res);
   }
+  res.getValues();
+  const avgTime = (performance.now() - start) / OP_RUNS;
 
-  gpgpu.downloadMatrixFromTexture(
-      outputTexture, outputTexShapeRC[0], outputTexShapeRC[1]);
-  const end = performance.now();
-
-  const avgTime = (end - start) / OP_RUNS;
-
-  gpgpu.deleteMatrixTexture(dyTexture);
-  gpgpu.deleteMatrixTexture(maxPositionsTexture);
-  gpgpu.deleteMatrixTexture(outputTexture);
-  gpgpu.deleteProgram(program);
+  dy.dispose();
+  positions.dispose();
+  res.dispose();
+  texManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 
   return avgTime;

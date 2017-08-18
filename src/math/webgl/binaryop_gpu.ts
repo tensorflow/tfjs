@@ -21,10 +21,9 @@ export class BinaryOpProgram implements GPGPUProgram {
   params: Array<{}>;
   outputShape: number[];
   userCode: string;
-  supportsBroadcasting: boolean;
+  supportsBroadcasting = true;
 
   constructor(op: '+' | '-' | '*' | '/', aShape: number[], bShape: number[]) {
-    this.supportsBroadcasting = true;
     this.params = [op];
     this.outputShape = util.assertAndGetBroadcastedShape(aShape, bShape);
     this.userCode = `
