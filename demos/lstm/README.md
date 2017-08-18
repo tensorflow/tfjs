@@ -21,5 +21,5 @@ python scripts/dump_checkpoint_vars.py --output_dir=demos/lstm/ --checkpoint_fil
 Finally, start the demo:
 
 ```
-scripts/watch-demo demos/lstm/lstm.ts
+./scripts/watch-demo demos/lstm/lstm_inference.ts
 ```
