@@ -13,79 +13,60 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as conv_util from '../conv_util';
+import {GPGPUProgram} from './gpgpu_math';
 
-import {GPGPUContext} from './gpgpu_context';
+export class ResizeBilinear3DProgram implements GPGPUProgram {
+  variableNames = ['A'];
+  params: Array<{}> = [];
+  outputShape: number[] = [];
+  userCode: string;
 
-export function getFragmentShaderSource(
-    inputShapeRCD: [number, number, number],
-    outputDimensionsRowCol: [number, number], alignCorners: boolean): string {
-  const depth = inputShapeRCD[2];
+  constructor(
+      inputShape: [number, number, number],
+      outputDimensionsRowCol: [number, number], alignCorners: boolean) {
+    const depth = inputShape[2];
+    this.outputShape =
+        [outputDimensionsRowCol[0], outputDimensionsRowCol[1], depth];
+    this.params = [alignCorners];
 
-  const inputTexShapeRC = conv_util.computeTexShapeFrom3D(inputShapeRCD);
+    const effectiveInputShape = alignCorners ?
+        [inputShape[0] - 1, inputShape[1] - 1, depth] :
+        inputShape;
 
-  const effectiveInputShapeRCD = alignCorners ?
-      [inputShapeRCD[0] - 1, inputShapeRCD[1] - 1, depth] :
-      inputShapeRCD;
+    const effectiveOutputShape = alignCorners ?
+        [this.outputShape[0] - 1, this.outputShape[1] - 1, depth] :
+        this.outputShape;
+    this.userCode = `
+      const vec2 effectiveInputOverOutputRatioRC = vec2(
+          ${effectiveInputShape[0] / effectiveOutputShape[0]},
+          ${effectiveInputShape[1] / effectiveOutputShape[1]});
+      const vec2 inputShapeRC = vec2(${inputShape[0]}.0, ${inputShape[1]}.0);
 
-  const effectiveOutputShapeRCD = alignCorners ?
-      [outputDimensionsRowCol[0] - 1, outputDimensionsRowCol[1] - 1, depth] :
-      [outputDimensionsRowCol[0], outputDimensionsRowCol[1], depth];
+      void main() {
+        vec3 coords = getOutputCoords();
+        vec2 yRC = coords.xy;
+        float d = coords.z;
 
-  return `
-    precision highp float;
-    uniform sampler2D matrixA;
-    varying vec2 resultUV;
-    const vec2 halfCR = vec2(0.5, 0.5);
+        // Fractional source index.
+        vec2 sourceFracIndexRC = yRC * effectiveInputOverOutputRatioRC;
 
-    const vec2 inputShapeCR = vec2(${inputShapeRCD[1]}, ${inputShapeRCD[0]});
-    const vec2 inputShapeTexCR = vec2(
-        ${inputTexShapeRC[1]}, ${inputTexShapeRC[0]});
+        // Compute the four integer indices.
+        vec2 sourceFloorRC = floor(sourceFracIndexRC);
+        vec2 sourceCeilRC = min(inputShapeRC - 1.0, ceil(sourceFracIndexRC));
 
-    const vec2 effectiveInputOverOutputRatioCR = vec2(
-        ${effectiveInputShapeRCD[1] / effectiveOutputShapeRCD[1]},
-        ${effectiveInputShapeRCD[0] / effectiveOutputShapeRCD[0]});
+        float topLeft = getA(sourceFloorRC[0], sourceFloorRC[1], d);
+        float bottomLeft = getA(sourceCeilRC[0], sourceFloorRC[1], d);
+        float topRight = getA(sourceFloorRC[0], sourceCeilRC[1], d);
+        float bottomRight = getA(sourceCeilRC[0], sourceCeilRC[1], d);
 
-    float sampleInput(float col, float row, float d) {
-      vec2 uv = (vec2(col * ${depth}.0 + d, row) + halfCR) / inputShapeTexCR;
-      return texture2D(matrixA, uv).r;
-    }
+        vec2 fracRC = sourceFracIndexRC - sourceFloorRC;
 
-    void main() {
-      vec2 yTexCR = floor(gl_FragCoord.xy);
+        float top = topLeft + (topRight - topLeft) * fracRC[1];
+        float bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC[1];
+        float newValue = top + (bottom - top) * fracRC[0];
 
-      // Map from 2D (yTexR, yTexC) to 3D (yR, yC, d).
-      vec2 yCR = vec2(floor(yTexCR.x / ${depth}.0), yTexCR.y);
-      float d = mod(yTexCR.x, ${depth}.0);
-
-      // Fractional source index.
-      vec2 sourceFracIndexCR = yCR * effectiveInputOverOutputRatioCR;
-
-      // Compute the four integer indices.
-      vec2 sourceFloorCR = floor(sourceFracIndexCR);
-      vec2 sourceCeilCR = min(inputShapeCR - 1.0, ceil(sourceFracIndexCR));
-
-      float topLeft = sampleInput(sourceFloorCR[0], sourceFloorCR[1], d);
-      float bottomLeft = sampleInput(sourceFloorCR[0], sourceCeilCR[1], d);
-      float topRight = sampleInput(sourceCeilCR[0], sourceFloorCR[1], d);
-      float bottomRight = sampleInput(sourceCeilCR[0], sourceCeilCR[1], d);
-
-      vec2 fracCR = sourceFracIndexCR - sourceFloorCR;
-
-      float top = topLeft + (topRight - topLeft) * fracCR[0];
-      float bottom = bottomLeft + (bottomRight - bottomLeft) * fracCR[0];
-      float newValue = top + (bottom - top) * fracCR[1];
-
-      gl_FragColor = vec4(newValue, 0.0, 0.0, 0.0);
-    }`;
-}
-
-export function resizeBilinear(
-    gpgpu: GPGPUContext, resizeBilinearProgram: WebGLProgram, a: WebGLTexture,
-    result: WebGLTexture, resultShapeRowCol: [number, number]) {
-  gpgpu.setOutputMatrixTexture(
-      result, resultShapeRowCol[0], resultShapeRowCol[1]);
-  gpgpu.setProgram(resizeBilinearProgram);
-  gpgpu.setInputMatrixTexture(a, 'matrixA', 0);
-  gpgpu.executeProgram();
+        setOutput(newValue);
+      }
+    `;
+  }
 }

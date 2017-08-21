@@ -90,7 +90,8 @@ function validateBinaryAndProgram(shapeInfos: ShapeInfo[], inputs: NDArray[]) {
 }
 
 export function runProgram<T extends NDArray, K extends NDArray>(
-    binary: GPGPUBinary, inputs: T[], output: K): void {
+    binary: GPGPUBinary, inputs: T[], output: K,
+    customSetup?: (gpgpu: GPGPUContext) => void): void {
   validateBinaryAndProgram(binary.inShapeInfos, inputs);
   validateBinaryAndProgram([binary.outShapeInfo], [output]);
 
@@ -103,6 +104,9 @@ export function runProgram<T extends NDArray, K extends NDArray>(
     const tex = input.getTexture();
     gpgpu.setInputMatrixTexture(tex, binary.program.variableNames[i], i);
   });
+  if (customSetup != null) {
+    customSetup(gpgpu);
+  }
   gpgpu.executeProgram();
 }
 

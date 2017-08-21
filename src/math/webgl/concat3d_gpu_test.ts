@@ -14,54 +14,13 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
-
-import * as concat3d_gpu from './concat3d_gpu';
+import {Array3D, initializeGPU, NDArray} from '../ndarray';
+import {Concat3DProgram} from './concat3d_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
 describe('concat3d_gpu', () => {
-
-  function uploadConcat3dDownload(
-      x1: Float32Array, x2: Float32Array, x1ShapeRCD: [number, number, number],
-      x2ShapeRCD: [number, number, number], axis: number): Float32Array {
-    const x1TexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(x1ShapeRCD);
-    const x2TexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(x2ShapeRCD);
-
-    const resultShapeRCD = x1ShapeRCD.slice() as [number, number, number];
-    resultShapeRCD[axis] += x2ShapeRCD[axis];
-    const resultTexShapeRC = conv_util.computeTexShapeFrom3D(resultShapeRCD);
-
-    const gpgpu = new GPGPUContext();
-    gpgpu.enableAutomaticDebugValidation(true);
-
-    const shaderSource = concat3d_gpu.getFragmentShaderSource(
-        x1ShapeRCD, x2ShapeRCD, resultShapeRCD, axis);
-    const program = gpgpu.createProgram(shaderSource);
-
-    const x1Tex = gpgpu.createMatrixTexture(x1TexShapeRC[0], x1TexShapeRC[1]);
-    const x2Tex = gpgpu.createMatrixTexture(x2TexShapeRC[0], x2TexShapeRC[1]);
-    const resultTex =
-        gpgpu.createMatrixTexture(resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.uploadMatrixToTexture(x1Tex, x1TexShapeRC[0], x1TexShapeRC[1], x1);
-    gpgpu.uploadMatrixToTexture(x2Tex, x2TexShapeRC[0], x2TexShapeRC[1], x2);
-
-    concat3d_gpu.concat3D(
-        gpgpu, program, x1Tex, x2Tex, resultTex, resultTexShapeRC);
-
-    const result = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(x1Tex);
-    gpgpu.deleteMatrixTexture(x2Tex);
-    gpgpu.deleteProgram(program);
-    gpgpu.dispose();
-    return result;
-  }
-
   it('concat axis=0', () => {
     const x1 = new Float32Array([1, 11, 111, 2, 22, 222]);
     const x2 =
@@ -103,3 +62,29 @@ describe('concat3d_gpu', () => {
         1e-6);
   });
 });
+
+function uploadConcat3dDownload(
+    a: Float32Array, b: Float32Array, aShape: [number, number, number],
+    bShape: [number, number, number], axis: number): Float32Array {
+  const gpgpu = new GPGPUContext();
+  gpgpu.enableAutomaticDebugValidation(true);
+  const textureManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, textureManager);
+
+  const program = new Concat3DProgram(aShape, bShape, axis);
+  const aArr = Array3D.new(aShape, a);
+  const bArr = Array3D.new(bShape, b);
+  const rArr = NDArray.zeros(program.outputShape);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], rArr);
+  gpgpu_math.runProgram(binary, [aArr, bArr], rArr);
+  const result = rArr.getValues();
+
+  aArr.dispose();
+  bArr.dispose();
+  rArr.dispose();
+  textureManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
+  gpgpu.dispose();
+
+  return result;
+}

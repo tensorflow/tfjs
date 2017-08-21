@@ -15,11 +15,12 @@ limitations under the License.
 
 import * as test_util from '../../test_util';
 import {MatrixOrientation} from '../math';
-import {Array2D} from '../ndarray';
+import {Array2D, initializeGPU} from '../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {MatMulProgram} from './mulmat_gpu';
+import {TextureManager} from './texture_manager';
 
 describe('mulmat_gpu (1x1 * 1x1)', () => {
   it('returns a 1x1 matrix', () => {
@@ -269,11 +270,11 @@ describe('mulmat_gpu (multiple matrices)', () => {
     const cArr = new Array2D(cShape, {texture: c, textureShapeRC: cShape});
     const rArr = new Array2D(rShape, {texture: r, textureShapeRC: rShape});
     const matMulProgram = new MatMulProgram(aArr.shape, bArr.shape);
-    const axbProgram = gpgpu_math.compileProgram(gpgpu, matMulProgram,
-        [aArr, bArr], abArr);
+    const axbProgram =
+        gpgpu_math.compileProgram(gpgpu, matMulProgram, [aArr, bArr], abArr);
     const matMulProgram2 = new MatMulProgram(abArr.shape, cArr.shape);
-    const abxcProgram = gpgpu_math.compileProgram(gpgpu, matMulProgram2,
-        [abArr, cArr], rArr);
+    const abxcProgram =
+        gpgpu_math.compileProgram(gpgpu, matMulProgram2, [abArr, cArr], rArr);
 
     gpgpu.uploadMatrixToTexture(a, aShape[0], aShape[1], aData);
     gpgpu.uploadMatrixToTexture(b, bShape[0], bShape[1], bData);
@@ -335,41 +336,26 @@ export function uploadMultiplyMatrixDownload(
     bNumRows: number, bNumCols: number,
     aOrientation = MatrixOrientation.REGULAR,
     bOrientation = MatrixOrientation.REGULAR): Float32Array {
-  const outNumRows =
-      (aOrientation === MatrixOrientation.REGULAR) ? aNumRows : aNumCols;
-  const outNumCols =
-      (bOrientation === MatrixOrientation.REGULAR) ? bNumCols : bNumRows;
   const gpgpu = new GPGPUContext();
+  const texManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, texManager);
+
   const aShape: [number, number] = [aNumRows, aNumCols];
   const bShape: [number, number] = [bNumRows, bNumCols];
-  const outShape: [number, number] = [outNumRows, outNumCols];
 
-  const aTexture = gpgpu.createMatrixTexture(aNumRows, aNumCols);
-  const aArr = new Array2D(
-      aShape, {texture: aTexture, textureShapeRC: [aNumRows, aNumCols]});
-  const bTexture = gpgpu.createMatrixTexture(bNumRows, bNumCols);
-  const bArr = new Array2D(
-      bShape, {texture: bTexture, textureShapeRC: [bNumRows, bNumCols]});
-  const resultTexture: WebGLTexture =
-      gpgpu.createMatrixTexture(outNumRows, outNumCols);
-  const resArr =
-      new Array2D(outShape, {texture: resultTexture, textureShapeRC: outShape});
+  const program = new MatMulProgram(aShape, bShape, aOrientation, bOrientation);
+  const resArr = Array2D.zeros(program.outputShape as [number, number]);
+  const aArr = Array2D.new(aShape, a);
+  const bArr = Array2D.new(bShape, b);
 
-  const program =
-      new MatMulProgram(aArr.shape, bArr.shape, aOrientation, bOrientation);
   const binary =
       gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], resArr);
-  gpgpu.uploadMatrixToTexture(aTexture, aNumRows, aNumCols, a);
-  gpgpu.uploadMatrixToTexture(bTexture, bNumRows, bNumCols, b);
-
   gpgpu_math.runProgram(binary, [aArr, bArr], resArr);
+  const result = resArr.getValues();
 
-  const result =
-      gpgpu.downloadMatrixFromTexture(resultTexture, outNumRows, outNumCols);
-
-  gpgpu.deleteMatrixTexture(aTexture);
-  gpgpu.deleteMatrixTexture(bTexture);
-  gpgpu.deleteMatrixTexture(resultTexture);
+  aArr.dispose();
+  bArr.dispose();
+  texManager.dispose();
   gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 

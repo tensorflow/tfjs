@@ -14,88 +14,14 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
+import {initializeGPU, NDArray} from '../ndarray';
 
-import * as batchnorm_gpu from './batchnorm_gpu';
+import {BatchNormProgram} from './batchnorm_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
 describe('batchnorm gpu test', () => {
-  function uploadBatchNormDownload(
-      x: Float32Array, xTexShapeRowCol: [number, number], mean: Float32Array,
-      meanTexShapeRowCol: [number, number], variance: Float32Array,
-      varianceTexShapeRowCol: [number, number], offset: Float32Array|null,
-      offsetTexShapeRowCol: [number, number]|null, scale: Float32Array|null,
-      scaleTexShapeRowCol: [number, number]|null,
-      varianceEpsilon: number): Float32Array {
-    const resultTexShapeRC: [number, number] = xTexShapeRowCol;
-    const gpgpu = new GPGPUContext();
-    gpgpu.enableAutomaticDebugValidation(true);
-
-    const shaderSource = batchnorm_gpu.getFragmentShaderSource(
-        xTexShapeRowCol, meanTexShapeRowCol, varianceTexShapeRowCol,
-        offsetTexShapeRowCol, scaleTexShapeRowCol, varianceEpsilon);
-
-    const program = gpgpu.createProgram(shaderSource);
-
-    const xTex =
-        gpgpu.createMatrixTexture(xTexShapeRowCol[0], xTexShapeRowCol[1]);
-    const meanTex =
-        gpgpu.createMatrixTexture(meanTexShapeRowCol[0], meanTexShapeRowCol[1]);
-    const varianceTex = gpgpu.createMatrixTexture(
-        varianceTexShapeRowCol[0], varianceTexShapeRowCol[1]);
-
-    let offsetTex = null;
-    if (offset != null) {
-      offsetTex = gpgpu.createMatrixTexture(
-          offsetTexShapeRowCol![0], offsetTexShapeRowCol![1]);
-    }
-    let scaleTex = null;
-    if (scale != null) {
-      scaleTex = gpgpu.createMatrixTexture(
-          scaleTexShapeRowCol![0], scaleTexShapeRowCol![1]);
-    }
-
-    const resultTex =
-        gpgpu.createMatrixTexture(resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.uploadMatrixToTexture(
-        xTex, xTexShapeRowCol[0], xTexShapeRowCol[1], x);
-    gpgpu.uploadMatrixToTexture(
-        meanTex, meanTexShapeRowCol[0], meanTexShapeRowCol[1], mean);
-    gpgpu.uploadMatrixToTexture(
-        varianceTex, varianceTexShapeRowCol[0], varianceTexShapeRowCol[1],
-        variance);
-    if (offset != null) {
-      gpgpu.uploadMatrixToTexture(
-          offsetTex!, offsetTexShapeRowCol![0], offsetTexShapeRowCol![1],
-          offset);
-    }
-    if (scale != null) {
-      gpgpu.uploadMatrixToTexture(
-          scaleTex!, scaleTexShapeRowCol![0], scaleTexShapeRowCol![1], scale);
-    }
-
-    batchnorm_gpu.batchNormalization(
-        gpgpu, program, xTex, xTexShapeRowCol, meanTex, meanTexShapeRowCol,
-        varianceTex, varianceTexShapeRowCol, offsetTex, offsetTexShapeRowCol,
-        scaleTex, scaleTexShapeRowCol, resultTex, resultTexShapeRC);
-
-    const result = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(xTex);
-    gpgpu.deleteMatrixTexture(meanTex);
-    gpgpu.deleteMatrixTexture(varianceTex);
-    if (offsetTex != null) {
-      gpgpu.deleteMatrixTexture(offsetTex);
-    }
-    if (scaleTex != null) {
-      gpgpu.deleteMatrixTexture(scaleTex);
-    }
-    gpgpu.deleteProgram(program);
-    gpgpu.dispose();
-    return result;
-  }
 
   it('simple batchnorm, no offset or scale, 2x1x2', () => {
     const x = new Float32Array([2, 100, 4, 400]);
@@ -201,7 +127,7 @@ describe('batchnorm gpu test', () => {
     const varianceEpsilon = .001;
 
     const result = uploadBatchNormDownload(
-        x, [2, 9], mean, [1, 3], variance, [1, 3], offset, [1, 3], scale,
+        x, [2, 3, 3], mean, [1, 3], variance, [1, 3], offset, [1, 3], scale,
         [1, 3], varianceEpsilon);
 
     const expectedResult = new Float32Array([
@@ -212,3 +138,41 @@ describe('batchnorm gpu test', () => {
     test_util.expectArraysClose(result, expectedResult, 1e-5);
   });
 });
+
+function uploadBatchNormDownload(
+    x: Float32Array, xShape: number[], mean: Float32Array, meanShape: number[],
+    variance: Float32Array, varianceShape: number[], offset: Float32Array|null,
+    offsetShape: number[]|null, scale: Float32Array|null,
+    scaleShape: number[]|null, varianceEpsilon: number): Float32Array {
+  const gpgpu = new GPGPUContext();
+  const textureManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, textureManager);
+
+  const program = new BatchNormProgram(
+      xShape, meanShape, varianceShape, offsetShape, scaleShape,
+      varianceEpsilon);
+  const xArr = NDArray.make(xShape, {values: x});
+  const meanArr = NDArray.make(meanShape, {values: mean});
+  const varianceArr = NDArray.make(varianceShape, {values: variance});
+  const inputs = [xArr, meanArr, varianceArr];
+
+  if (offset != null) {
+    const offsetArr = NDArray.make(offsetShape, {values: offset});
+    inputs.push(offsetArr);
+  }
+  if (scale != null) {
+    const scaleArr = NDArray.make(scaleShape, {values: scale});
+    inputs.push(scaleArr);
+  }
+
+  const res = NDArray.zeros(program.outputShape);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, res);
+  gpgpu_math.runProgram(binary, inputs, res);
+  const resValues = res.getValues();
+
+  textureManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
+  gpgpu.dispose();
+
+  return resValues;
+}

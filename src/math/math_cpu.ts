@@ -31,11 +31,6 @@ export class NDArrayMathCPU extends NDArrayMath {
         ndarray.shape, {values: new Float32Array(ndarray.getValues())});
   }
 
-  protected reshapeInternal<T1 extends NDArray, T2 extends NDArray>(
-      ndarray: T1, newShape: number[]): T2 {
-    return this.cloneInternal(ndarray).reshape<T2>(newShape);
-  }
-
   protected slice2DInternal(
       input: Array2D, beginRowCol: [number, number],
       sizeRowCol: [number, number]): Array2D {

@@ -14,40 +14,34 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as copy_gpu from './copy_gpu';
+import {Array2D, initializeGPU} from '../ndarray';
+import {Copy2DProgram} from './copy_gpu';
 import {GPGPUContext} from './gpgpu_context';
+import * as gpgpu_math from './gpgpu_math';
+import {TextureManager} from './texture_manager';
 
 function uploadCopyDownload(
-    source: Float32Array, sourceShapeRowCol: [number, number],
-    sourceStartRowCol: [number, number], sourceSizeRowCol: [number, number],
-    destStartRowCol: [number, number], destSizeRowCol: [number, number],
-    dest: Float32Array, destShapeRowCol: [number, number]): Float32Array {
+    srcVals: Float32Array, srcShape: [number, number],
+    srcStart: [number, number], srcSize: [number, number],
+    destStart: [number, number], destSize: [number, number],
+    destVals: Float32Array, destShape: [number, number]): Float32Array {
   const gpgpu = new GPGPUContext();
-  const fragmentShaderSource = copy_gpu.getFragmentShaderSource(
-      sourceShapeRowCol, sourceSizeRowCol, destSizeRowCol);
-  const program = gpgpu.createProgram(fragmentShaderSource);
+  const texManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, texManager);
 
-  const sourceTex =
-      gpgpu.createMatrixTexture(sourceShapeRowCol[0], sourceShapeRowCol[1]);
-  const destTex =
-      gpgpu.createMatrixTexture(destShapeRowCol[0], destShapeRowCol[1]);
+  const program = new Copy2DProgram(srcSize[1], destSize[1]);
+  const source = Array2D.new(srcShape, srcVals);
+  const dest = Array2D.new(destShape, destVals);
 
-  gpgpu.uploadMatrixToTexture(
-      sourceTex, sourceShapeRowCol[0], sourceShapeRowCol[1], source);
-  gpgpu.uploadMatrixToTexture(
-      destTex, destShapeRowCol[0], destShapeRowCol[1], dest);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [source], dest);
+  const customSetup = program.getCustomSetupFunc(srcStart, destStart, destSize);
+  gpgpu_math.runProgram(binary, [source], dest, customSetup);
+  const result = dest.getValues();
 
-  copy_gpu.copy(
-      gpgpu, program, sourceTex, sourceShapeRowCol, sourceStartRowCol,
-      sourceSizeRowCol, destTex, destShapeRowCol, destStartRowCol,
-      destSizeRowCol);
-
-  const result = gpgpu.downloadMatrixFromTexture(
-      destTex, destShapeRowCol[0], destShapeRowCol[1]);
-
-  gpgpu.deleteMatrixTexture(sourceTex);
-  gpgpu.deleteMatrixTexture(destTex);
-  gpgpu.deleteProgram(program);
+  source.dispose();
+  dest.dispose();
+  texManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
   gpgpu.dispose();
 
   return result;
@@ -157,33 +151,37 @@ describe('copy_gpu', () => {
   });
 
   it('accumulates results from previous copies into dest texture', () => {
-    const shapeRC: [number, number] = [10, 10];
-    const sizeRC: [number, number] = [10, 1];
-    const source = new Float32Array(100);
+    const shape: [number, number] = [10, 10];
+    const size: [number, number] = [10, 1];
+    const sourceVals = new Float32Array(100);
     for (let i = 0; i < 100; ++i) {
-      source[i] = i;
+      sourceVals[i] = i;
     }
+
+
     const gpgpu = new GPGPUContext();
-    const program = gpgpu.createProgram(
-        copy_gpu.getFragmentShaderSource(shapeRC, sizeRC, sizeRC));
-    const sourceTex = gpgpu.createMatrixTexture(shapeRC[0], shapeRC[1]);
-    const destTex = gpgpu.createMatrixTexture(shapeRC[0], shapeRC[1]);
-    gpgpu.uploadMatrixToTexture(sourceTex, shapeRC[0], shapeRC[1], source);
+    const texManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, texManager);
+
+    const program = new Copy2DProgram(size[1], size[1]);
+    const source = Array2D.new(shape, sourceVals);
+    const dest = Array2D.zeros(shape);
+
+    const binary = gpgpu_math.compileProgram(gpgpu, program, [source], dest);
 
     for (let i = 0; i < 10; ++i) {
-      copy_gpu.copy(
-          gpgpu, program, sourceTex, shapeRC, [0, i], sizeRC, destTex, shapeRC,
-          [0, i], sizeRC);
+      const offset: [number, number] = [0, i];
+      const customSetup = program.getCustomSetupFunc(offset, offset, size);
+      gpgpu_math.runProgram(binary, [source], dest, customSetup);
     }
+    const res = dest.getValues();
 
-    const dest =
-        gpgpu.downloadMatrixFromTexture(destTex, shapeRC[0], shapeRC[1]);
-
-    gpgpu.deleteMatrixTexture(sourceTex);
-    gpgpu.deleteMatrixTexture(destTex);
-    gpgpu.deleteProgram(program);
+    source.dispose();
+    dest.dispose();
+    texManager.dispose();
+    gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
 
-    test_util.expectArraysClose(dest, source, 0);
+    test_util.expectArraysClose(res, sourceVals, 0);
   });
 });

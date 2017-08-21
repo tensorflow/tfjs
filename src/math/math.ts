@@ -71,9 +71,10 @@ export abstract class NDArrayMath {
    */
   enableDebugMode() {
     this.debugMode = true;
-    console.warn('Debugging mode is ON. The output of every math call will ' +
-                  'be downloaded to CPU and checked for NaNs. ' +
-                  'This significantly impacts performance.');
+    console.warn(
+        'Debugging mode is ON. The output of every math call will ' +
+        'be downloaded to CPU and checked for NaNs. ' +
+        'This significantly impacts performance.');
   }
 
   /**
@@ -97,7 +98,7 @@ export abstract class NDArrayMath {
   endScope(result: ScopeResult) {
     let arraysToKeep = this.activeScopeNDArraysToKeep;
     if (result != null) {
-      arraysToKeep = arraysToKeep.concat(result as NDArray|NDArray[]);
+      arraysToKeep = arraysToKeep.concat(result as NDArray | NDArray[]);
     }
     // Dispose the current scope.
     for (let i = 0; i < this.activeScope.length; i++) {
@@ -321,22 +322,15 @@ export abstract class NDArrayMath {
   protected abstract cloneInternal<T extends NDArray>(ndarray: T): T;
 
   /**
-   * Reshapes an NDArray to a new shape. The size of the input NDArray must
-   * match the size of the requested shape.
-   * @param ndarray The input NDArray.
-   * @param newShape The new shape to reshape the NDArray to. Must be the same
-   * size as the NDArray.
+   * @deprecated Please call reshape() directly on the ndarray object.
    */
   reshape<T1 extends NDArray, T2 extends NDArray>(
       ndarray: T1, newShape: number[]): T2 {
-    util.assert(
-        ndarray.size === util.sizeFromShape(newShape),
-        `Error in reshape: old size ${ndarray.size} must match new size ` +
-            `${util.sizeFromShape(newShape)}.`);
-    return this.track(this.reshapeInternal<T1, T2>(ndarray, newShape));
+    console.warn(
+        'math.reshape() is deprecated. Please call reshape() ' +
+        'directly on the ndarray object');
+    return ndarray.reshape(newShape);
   }
-  protected abstract reshapeInternal<T1 extends NDArray, T2 extends NDArray>(
-      ndarray: T1, newShape: number[]): T2;
 
   /**
    * Extracts a slice from a matrix. The operation extraces a slice from input
@@ -1148,7 +1142,8 @@ export abstract class NDArrayMath {
    * @param h Array of previous cell outputs.
    * @return Tuple [nextCellStates, cellOutputs]
    */
-  multiRNNCell(lstmCells: LSTMCell[], data: Array2D, c: Array2D[],
+  multiRNNCell(
+      lstmCells: LSTMCell[], data: Array2D, c: Array2D[],
       h: Array2D[]): [Array2D[], Array2D[]] {
     util.assert(
         data.shape[0] === 1,
@@ -1187,8 +1182,9 @@ export abstract class NDArrayMath {
    * @param h Previous cell output.
    * @return Tuple [nextCellState, cellOutput]
    */
-  basicLSTMCell(forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D,
-      data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D] {
+  basicLSTMCell(
+      forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D, data: Array2D,
+      c: Array2D, h: Array2D): [Array2D, Array2D] {
     const res = this.scope(() => {
       util.assert(
           data.shape[0] === 1,
@@ -1207,25 +1203,25 @@ export abstract class NDArrayMath {
 
       // i = input_gate, j = new_input, f = forget_gate, o = output_gate
       const i = this.slice2D(res, [0, 0], [res.shape[0], res.shape[1] / 4]);
-      const j = this.slice2D(res, [0, res.shape[1] / 4 * 1],
-          [res.shape[0], res.shape[1] / 4]);
-      const f = this.slice2D(res, [0, res.shape[1] / 4 * 2],
-          [res.shape[0], res.shape[1] / 4]);
-      const o = this.slice2D(res, [0, res.shape[1] / 4 * 3],
-          [res.shape[0], res.shape[1] / 4]);
+      const j = this.slice2D(
+          res, [0, res.shape[1] / 4 * 1], [res.shape[0], res.shape[1] / 4]);
+      const f = this.slice2D(
+          res, [0, res.shape[1] / 4 * 2], [res.shape[0], res.shape[1] / 4]);
+      const o = this.slice2D(
+          res, [0, res.shape[1] / 4 * 3], [res.shape[0], res.shape[1] / 4]);
 
-      const newC = this.add(
-          this.multiplyStrict(c,
-              this.sigmoid(this.scalarPlusArray(forgetBias, f))),
-          this.multiplyStrict(this.sigmoid(i), this.tanh(j))) as Array2D;
-      const newH = this.multiplyStrict(
-          this.tanh(newC), this.sigmoid(o)) as Array2D;
+      const newC =
+          this.add(
+              this.multiplyStrict(
+                  c, this.sigmoid(this.scalarPlusArray(forgetBias, f))),
+              this.multiplyStrict(this.sigmoid(i), this.tanh(j))) as Array2D;
+      const newH =
+          this.multiplyStrict(this.tanh(newC), this.sigmoid(o)) as Array2D;
 
       return [newC, newH];
     });
     return [res[0], res[1]];
   }
-
 }
 
 export enum MatrixOrientation {

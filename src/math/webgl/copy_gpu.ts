@@ -14,50 +14,43 @@ limitations under the License.
 ==============================================================================*/
 
 import {GPGPUContext} from './gpgpu_context';
+import {GPGPUProgram} from './gpgpu_math';
 
-export function getFragmentShaderSource(
-    sourceShapeRowCol: [number, number], sourceSizeRowCol: [number, number],
-    destSizeRowCol: [number, number]): string {
-  return `
-    precision highp float;
-    uniform sampler2D source;
-    uniform vec2 sourceStartCR;
-    uniform vec2 destStartCR;
+export class Copy2DProgram implements GPGPUProgram {
+  variableNames = ['source'];
+  params: Array<{}>;
+  outputShape: number[];
+  userCode: string;
 
-    const vec2 sourceShapeCR =
-      vec2(${sourceShapeRowCol[1]}, ${sourceShapeRowCol[0]});
-    const vec2 sourceSizeCR =
-      vec2(${sourceSizeRowCol[1]}, ${sourceSizeRowCol[0]});
-    const vec2 destSizeCR =
-      vec2(${destSizeRowCol[1]}, ${destSizeRowCol[0]});
+  constructor(srcNumCols: number, destNumCols: number) {
+    this.outputShape = null;
+    this.params = [srcNumCols, destNumCols];
+    this.userCode = `
+      uniform vec2 sourceStart;
+      uniform vec2 destStart;
 
-    void main() {
-      vec2 destOffsetCR = floor(gl_FragCoord.xy) - destStartCR;
-      float destOffsetFlat = (destOffsetCR.y * destSizeCR.x) + destOffsetCR.x;
-      vec2 sourceOffsetCR = vec2(mod(destOffsetFlat, sourceSizeCR.x),
-        floor(destOffsetFlat / sourceSizeCR.x));
-      vec2 sourceCR = sourceStartCR + sourceOffsetCR;
-      vec2 sourceUV = (sourceCR + vec2(0.5, 0.5)) / sourceShapeCR;
-      gl_FragColor = texture2D(source, sourceUV);
-    }`;
-}
+      void main() {
+        vec2 destCoords = getOutputCoords() - destStart;
+        float index = dot(destCoords, vec2(${destNumCols}.0, 1.0));
+        vec2 sourceCoords = sourceStart + vec2(
+          floor(index / ${srcNumCols}.0),
+          mod(index, ${srcNumCols}.0)
+        );
+        setOutput(getSource(sourceCoords.x, sourceCoords.y));
+      }
+    `;
+  }
 
-export function copy(
-    gpgpu: GPGPUContext, program: WebGLProgram, source: WebGLTexture,
-    sourceShapeRowCol: [number, number], sourceStartRowCol: [number, number],
-    sourceSizeRowCol: [number, number], dest: WebGLTexture,
-    destShapeRowCol: [number, number], destStartRowCol: [number, number],
-    destSizeRowCol: [number, number]) {
-  gpgpu.setOutputMatrixTexture(dest, destShapeRowCol[0], destShapeRowCol[1]);
-  gpgpu.setOutputMatrixWriteRegion(
-      destStartRowCol[0], destSizeRowCol[0], destStartRowCol[1],
-      destSizeRowCol[1]);
-  gpgpu.setProgram(program);
-  gpgpu.setInputMatrixTexture(source, 'source', 0);
-  const sourceStartCRLoc = gpgpu.getUniformLocation('sourceStartCR');
-  gpgpu.gl.uniform2f(
-      sourceStartCRLoc, sourceStartRowCol[1], sourceStartRowCol[0]);
-  const destStartCRLoc = gpgpu.getUniformLocation('destStartCR');
-  gpgpu.gl.uniform2f(destStartCRLoc, destStartRowCol[1], destStartRowCol[0]);
-  gpgpu.executeProgram();
+  getCustomSetupFunc(
+      sourceStart: [number, number], destStart: [number, number],
+      destSize: [number, number]) {
+    return (gpgpu: GPGPUContext) => {
+      gpgpu.setOutputMatrixWriteRegion(
+          destStart[0], destSize[0], destStart[1], destSize[1]);
+      const sourceStartCRLoc = gpgpu.getUniformLocation('sourceStart');
+      gpgpu.gl.uniform2f(sourceStartCRLoc, sourceStart[0], sourceStart[1]);
+      const destStartCRLoc = gpgpu.getUniformLocation('destStart');
+      gpgpu.gl.uniform2f(destStartCRLoc, destStart[0], destStart[1]);
+    };
+  }
 }

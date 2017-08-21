@@ -211,7 +211,7 @@ export class GraphRunner {
       }
 
     });
-    setTimeout(() => this.trainNetwork());
+    requestAnimationFrame(() => this.trainNetwork());
   }
 
   infer(
@@ -243,7 +243,7 @@ export class GraphRunner {
     this.currentInferenceLoopNumPasses = numPasses;
     if (!this.isInferring) {
       this.inferencePassesThisRun = 0;
-      setTimeout(() => this.inferNetwork());
+      requestAnimationFrame(() => this.inferNetwork());
     }
     this.isInferring = true;
   }

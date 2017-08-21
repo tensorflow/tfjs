@@ -14,5 +14,6 @@
   "editor.insertSpaces": true,
   "files.insertFinalNewline": true,
   "editor.detectIndentation": false,
+  "editor.wrappingIndent": "none",
   "typescript.tsdk": "node_modules/typescript/lib"
 }

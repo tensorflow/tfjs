@@ -14,52 +14,14 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
-import * as conv_util from '../conv_util';
+import {Array3D, initializeGPU, NDArray} from '../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
-import * as resize_bilinear_gpu from './resize_bilinear_gpu';
+import * as gpgpu_math from './gpgpu_math';
+import {ResizeBilinear3DProgram} from './resize_bilinear_gpu';
+import {TextureManager} from './texture_manager';
 
 describe('resize bilinear', () => {
-  function uploadResizeBilinearDownload(
-      a: Float32Array, aShapeRowColDepth: [number, number, number],
-      outputDimensionsRowCol: [number, number],
-      alignCorners: boolean): Float32Array {
-    const aTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(aShapeRowColDepth);
-
-    const resultShapeRCD: [number, number, number] = [
-      outputDimensionsRowCol[0], outputDimensionsRowCol[1], aShapeRowColDepth[2]
-    ];
-
-    const resultTexShapeRC: [number, number] =
-        conv_util.computeTexShapeFrom3D(resultShapeRCD);
-
-    const gpgpu = new GPGPUContext();
-    gpgpu.enableAutomaticDebugValidation(true);
-
-    const shaderSource = resize_bilinear_gpu.getFragmentShaderSource(
-        aShapeRowColDepth, outputDimensionsRowCol, alignCorners);
-    const program = gpgpu.createProgram(shaderSource);
-
-    const aTex = gpgpu.createMatrixTexture(aTexShapeRC[0], aTexShapeRC[1]);
-    const resultTex =
-        gpgpu.createMatrixTexture(resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.uploadMatrixToTexture(aTex, aTexShapeRC[0], aTexShapeRC[1], a);
-
-    resize_bilinear_gpu.resizeBilinear(
-        gpgpu, program, aTex, resultTex, resultTexShapeRC);
-
-    const result = gpgpu.downloadMatrixFromTexture(
-        resultTex, resultTexShapeRC[0], resultTexShapeRC[1]);
-
-    gpgpu.deleteMatrixTexture(resultTex);
-    gpgpu.deleteMatrixTexture(aTex);
-    gpgpu.deleteProgram(program);
-    gpgpu.dispose();
-    return result;
-  }
-
   it('simple bilinear', () => {
     const a = new Float32Array([2, 2, 4, 4]);
 
@@ -123,3 +85,29 @@ describe('resize bilinear', () => {
         1e-4);
   });
 });
+
+function uploadResizeBilinearDownload(
+    a: Float32Array, aShape: [number, number, number],
+    outputDimensionsRowCol: [number, number],
+    alignCorners: boolean): Float32Array {
+  const gpgpu = new GPGPUContext();
+  gpgpu.enableAutomaticDebugValidation(true);
+  const textureManager = new TextureManager(gpgpu);
+  initializeGPU(gpgpu, textureManager);
+
+  const program =
+      new ResizeBilinear3DProgram(aShape, outputDimensionsRowCol, alignCorners);
+  const aArr = Array3D.new(aShape, a);
+  const rArr = NDArray.zeros(program.outputShape);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [aArr], rArr);
+  gpgpu_math.runProgram(binary, [aArr], rArr);
+  const result = rArr.getValues();
+
+  aArr.dispose();
+  rArr.dispose();
+  textureManager.dispose();
+  gpgpu.deleteProgram(binary.webGLProgram);
+  gpgpu.dispose();
+
+  return result;
+}

@@ -14,13 +14,12 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
+// tslint:disable-next-line:max-line-length
+import {Array1D, Array2D, Array3D, initializeGPU, NDArray, Scalar} from '../ndarray';
 
 import {BinaryOpProgram} from './binaryop_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
-import {NDArray, Array1D, Array2D, Array3D, Scalar,
-  initializeGPU} from '../ndarray';
-import * as util from '../../util';
 import {TextureManager} from './texture_manager';
 
 describe('binaryop_gpu Add', () => {
@@ -92,7 +91,7 @@ describe('binaryop_gpu Sub', () => {
     // shape [3, 2] is not compatible with shape [3].
     const res = uploadBinaryOpDownload(a, b, '-');
     test_util.expectArraysClose(
-      res, new Float32Array([0, 0, 0, -1, 4, 4, 4, 3]), 1e-4);
+        res, new Float32Array([0, 0, 0, -1, 4, 4, 4, 3]), 1e-4);
   });
 });
 
@@ -177,17 +176,15 @@ describe('binaryop_gpu Divide', () => {
   });
 });
 
-export function uploadBinaryOpDownload(
+function uploadBinaryOpDownload(
     a: NDArray, b: NDArray, op: '+'|'-'|'*'|'/'): Float32Array {
   const gpgpu = new GPGPUContext();
   const textureManager = new TextureManager(gpgpu);
   initializeGPU(gpgpu, textureManager);
 
-  const outShape = util.assertAndGetBroadcastedShape(a.shape, b.shape);
-  const res = NDArray.zeros(outShape);
   const program = new BinaryOpProgram(op, a.shape, b.shape);
-  const binary =
-      gpgpu_math.compileProgram(gpgpu, program, [a, b], res);
+  const res = NDArray.zeros(program.outputShape);
+  const binary = gpgpu_math.compileProgram(gpgpu, program, [a, b], res);
   gpgpu_math.runProgram(binary, [a, b], res);
 
   const resValues = res.getValues();

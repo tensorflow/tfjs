@@ -135,8 +135,8 @@ export class NDArray {
         return new Array3D(shape as [number, number, number], data) as any;
       case 4:
         return new Array4D(
-                   // tslint:disable-next-line:no-any
-                   shape as [number, number, number, number], data) as any;
+            // tslint:disable-next-line:no-any
+            shape as [number, number, number, number], data) as any;
       default:
         // tslint:disable-next-line:no-any
         return new NDArray(shape, data) as any;
