@@ -37,7 +37,7 @@ export function getUnorderedEvaluationSet(
    * If the node has not yet been visited, add it to the set, mark it as seen,
    * and enqueue all of its ancestor (input) nodes. */
   while (visit.length !== 0) {
-    const cur = visit.pop()!;
+    const cur = visit.pop();
     if (seen[cur.id] == null) {
       if (terminatingNodeMap[cur.id] == null) {
         Object.keys(cur.inputs)

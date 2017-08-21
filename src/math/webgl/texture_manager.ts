@@ -38,7 +38,7 @@ export class TextureManager {
       this.numFreeTextures--;
       this.numUsedTextures++;
       this.log();
-      return this.freeTextures[shapeKey].shift()!;
+      return this.freeTextures[shapeKey].shift();
     }
     this.numUsedTextures++;
     this.log();

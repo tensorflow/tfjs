@@ -34,9 +34,7 @@ export interface XhrDatasetConfig {
   modelConfigs: {[modelName: string]: XhrModelConfig};
 }
 
-export interface XhrModelConfig {
-  path: string;
-}
+export interface XhrModelConfig { path: string; }
 
 export function getXhrDatasetConfig(jsonConfigPath: string):
     Promise<{[datasetName: string]: XhrDatasetConfig}> {
@@ -46,8 +44,9 @@ export function getXhrDatasetConfig(jsonConfigPath: string):
         xhr.open('GET', jsonConfigPath);
 
         xhr.onload = () => {
-          resolve(JSON.parse(
-              xhr.responseText) as {[datasetName: string]: XhrDatasetConfig});
+          resolve(
+              JSON.parse(xhr.responseText) as
+              {[datasetName: string]: XhrDatasetConfig});
         };
         xhr.onerror = (error) => {
           reject(error);
@@ -134,7 +133,7 @@ function parseRGBImageData(
 function parseImage(
     img: HTMLImageElement, shape: [number, number, number]): Uint8Array {
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
   const N = img.height;
   const inputSize = util.sizeFromShape(shape);
   const result = new Uint8Array(N * inputSize);
@@ -187,7 +186,7 @@ function parseTypedArrayFromPng(
     img.onload = () => {
       const result = parseImage(img, shape);
       img.src = '';
-      img = null!;
+      img = null;
       resolve(result);
     };
     img.src = info.path;

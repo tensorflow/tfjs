@@ -22,9 +22,9 @@ import * as webgl_util from './webgl/webgl_util';
 // These global variables need to be initialized to null so that closure knows
 // not to seal them.
 /** @hidden */
-export let GPGPU: GPGPUContext = null!;
+export let GPGPU: GPGPUContext = null;
 /** @hidden */
-export let TEXTURE_MANAGER: TextureManager = null!;
+export let TEXTURE_MANAGER: TextureManager = null;
 
 /** @hidden */
 export interface NDArrayData {
@@ -104,7 +104,8 @@ export class NDArray {
     return NDArray.make(shape, {values});
   }
 
-  /** Creates a ndarray of zeros with the same shape as the specified ndarray.
+  /**
+   * Creates a ndarray of zeros with the same shape as the specified ndarray.
    */
   static zerosLike<T extends NDArray>(another: T): T {
     return NDArray.zeros(another.shape) as T;
@@ -135,8 +136,8 @@ export class NDArray {
         return new Array3D(shape as [number, number, number], data) as any;
       case 4:
         return new Array4D(
-            // tslint:disable-next-line:no-any
-            shape as [number, number, number, number], data) as any;
+                   // tslint:disable-next-line:no-any
+                   shape as [number, number, number, number], data) as any;
       default:
         // tslint:disable-next-line:no-any
         return new NDArray(shape, data) as any;
@@ -233,8 +234,8 @@ export class NDArray {
     if (this.data.values == null) {
       throwIfGPUNotInitialized();
       this.data.values = GPGPU.downloadMatrixFromTexture(
-          this.data.texture!, this.data.textureShapeRC![0],
-          this.data.textureShapeRC![1]);
+          this.data.texture, this.data.textureShapeRC[0],
+          this.data.textureShapeRC[1]);
       this.disposeTexture();
     }
     return this.data.values;
@@ -249,28 +250,28 @@ export class NDArray {
 
     GPGPU.uploadMatrixToTexture(
         this.data.texture, this.data.textureShapeRC[0],
-        this.data.textureShapeRC[1], this.data.values!);
+        this.data.textureShapeRC[1], this.data.values);
 
-    this.data.values = null!;
+    this.data.values = null;
   }
 
   getTexture(preferredShapeRC?: [number, number]): WebGLTexture {
     if (this.data.texture == null) {
       this.uploadToGPU(preferredShapeRC);
     }
-    return this.data.texture!;
+    return this.data.texture;
   }
 
   getTextureShapeRC(preferredShapeRC?: [number, number]): [number, number] {
     if (this.data.textureShapeRC == null) {
       this.uploadToGPU(preferredShapeRC);
     }
-    return this.data.textureShapeRC!;
+    return this.data.textureShapeRC;
   }
 
   dispose(): void {
-    this.data.values = null!;
-    this.shape = null!;
+    this.data.values = null;
+    this.shape = null;
     if (this.data.texture != null) {
       this.disposeTexture();
     }
@@ -278,10 +279,9 @@ export class NDArray {
 
   private disposeTexture() {
     throwIfGPUNotInitialized();
-    TEXTURE_MANAGER.releaseTexture(
-        this.data.texture!, this.data.textureShapeRC!);
-    this.data.texture = null!;
-    this.data.textureShapeRC = null!;
+    TEXTURE_MANAGER.releaseTexture(this.data.texture, this.data.textureShapeRC);
+    this.data.texture = null;
+    this.data.textureShapeRC = null;
   }
 
   inGPU(): boolean {
@@ -354,7 +354,7 @@ export class Array1D extends NDArray {
   constructor(data: NDArrayData) {
     const shape = (data.values != null) ?
         [data.values.length] :
-        [util.sizeFromShape(data.textureShapeRC!)];
+        [util.sizeFromShape(data.textureShapeRC)];
     super(shape, data);
   }
 

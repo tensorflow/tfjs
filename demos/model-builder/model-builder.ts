@@ -19,11 +19,11 @@ import './model-layer';
 import '../demo-header';
 import '../demo-footer';
 
-import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, SGDOptimizer, Tensor, util} from '../deeplearnjs';
 import {NDArrayImageVisualizer} from '../ndarray-image-visualizer';
 import {NDArrayLogitsVisualizer} from '../ndarray-logits-visualizer';
+import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 import * as xhr_dataset from '../xhr-dataset';
 import {XhrDataset, XhrDatasetConfig} from '../xhr-dataset';
 
@@ -190,27 +190,29 @@ export class ModelBuilder extends ModelBuilderPolymer {
     // Set up datasets.
     this.populateDatasets();
 
-    this.querySelector('#dataset-dropdown .dropdown-content')!.addEventListener(
-        // tslint:disable-next-line:no-any
-        'iron-activate', (event: any) => {
-          // Update the dataset.
-          const datasetName = event.detail.selected;
-          this.updateSelectedDataset(datasetName);
+    this.querySelector('#dataset-dropdown .dropdown-content')
+        .addEventListener(
+            // tslint:disable-next-line:no-any
+            'iron-activate', (event: any) => {
+              // Update the dataset.
+              const datasetName = event.detail.selected;
+              this.updateSelectedDataset(datasetName);
 
-          // TODO(nsthorat): Remember the last model used for each dataset.
-          this.removeAllLayers();
-        });
-    this.querySelector('#model-dropdown .dropdown-content')!.addEventListener(
-        // tslint:disable-next-line:no-any
-        'iron-activate', (event: any) => {
-          // Update the model.
-          const modelName = event.detail.selected;
-          this.updateSelectedModel(modelName);
-        });
+              // TODO(nsthorat): Remember the last model used for each dataset.
+              this.removeAllLayers();
+            });
+    this.querySelector('#model-dropdown .dropdown-content')
+        .addEventListener(
+            // tslint:disable-next-line:no-any
+            'iron-activate', (event: any) => {
+              // Update the model.
+              const modelName = event.detail.selected;
+              this.updateSelectedModel(modelName);
+            });
 
     {
       const normalizationDropdown =
-          this.querySelector('#normalization-dropdown .dropdown-content')!;
+          this.querySelector('#normalization-dropdown .dropdown-content');
       // tslint:disable-next-line:no-any
       normalizationDropdown.addEventListener('iron-activate', (event: any) => {
         const selectedNormalizationOption = event.detail.selected;
@@ -225,20 +227,20 @@ export class ModelBuilder extends ModelBuilderPolymer {
     this.showTrainStats = false;
     this.showDatasetStats = false;
 
-    const addButton = this.querySelector('#add-layer')!;
+    const addButton = this.querySelector('#add-layer');
     addButton.addEventListener('click', () => this.addLayer());
 
-    const downloadModelButton = this.querySelector('#download-model')!;
+    const downloadModelButton = this.querySelector('#download-model');
     downloadModelButton.addEventListener('click', () => this.downloadModel());
-    const uploadModelButton = this.querySelector('#upload-model')!;
+    const uploadModelButton = this.querySelector('#upload-model');
     uploadModelButton.addEventListener('click', () => this.uploadModel());
     this.setupUploadModelButton();
 
-    const uploadWeightsButton = this.querySelector('#upload-weights')!;
+    const uploadWeightsButton = this.querySelector('#upload-weights');
     uploadWeightsButton.addEventListener('click', () => this.uploadWeights());
     this.setupUploadWeightsButton();
 
-    const stopButton = this.querySelector('#stop')!;
+    const stopButton = this.querySelector('#stop');
     stopButton.addEventListener('click', () => {
       this.applicationState = ApplicationState.IDLE;
       this.graphRunner.stopTraining();
@@ -250,12 +252,13 @@ export class ModelBuilder extends ModelBuilderPolymer {
       this.startTraining();
     });
 
-    this.querySelector(
-            '#environment-toggle')!.addEventListener('change', (event) => {
-      // tslint:disable-next-line:no-any
-      this.math = (event.target as any).active ? this.mathGPU : this.mathCPU;
-      this.graphRunner.setMath(this.math);
-    });
+    this.querySelector('#environment-toggle')
+        .addEventListener('change', (event) => {
+          this.math =
+              // tslint:disable-next-line:no-any
+              (event.target as any).active ? this.mathGPU : this.mathCPU;
+          this.graphRunner.setMath(this.math);
+        });
 
     this.hiddenLayers = [];
     this.examplesPerSec = 0;
@@ -774,7 +777,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
     // Show and setup the load view button.
     const fileInput = this.querySelector('#model-file') as HTMLInputElement;
     fileInput.addEventListener('change', event => {
-      const file = fileInput.files![0];
+      const file = fileInput.files[0];
       // Clear out the value of the file chooser. This ensures that if the user
       // selects the same file, we'll re-read it.
       fileInput.value = '';
@@ -816,7 +819,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
     // Show and setup the load view button.
     const fileInput = this.querySelector('#weights-file') as HTMLInputElement;
     fileInput.addEventListener('change', event => {
-      const file = fileInput.files![0];
+      const file = fileInput.files[0];
       // Clear out the value of the file chooser. This ensures that if the user
       // selects the same file, we'll re-read it.
       fileInput.value = '';

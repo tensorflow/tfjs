@@ -23,9 +23,8 @@ const MAT_WIDTH = 30;
 const WEIGHTS_STDEV = .6;
 
 // tslint:disable-next-line:variable-name
-const NNArtPolymer: new () => PolymerHTMLElement = PolymerElement({
-  is: 'nn-art', properties: {}
-});
+const NNArtPolymer: new () => PolymerHTMLElement =
+    PolymerElement({is: 'nn-art', properties: {}});
 
 class NNArt extends NNArtPolymer {
   private cppn: CPPN;
@@ -48,35 +47,37 @@ class NNArt extends NNArtPolymer {
 
     const currentColorElement =
         this.querySelector('#colormode') as HTMLInputElement;
-    this.querySelector('#color-selector')!.addEventListener(
-        // tslint:disable-next-line:no-any
-        'click', (event: any) => {
-          const colorMode =
-              (event.target as HTMLElement).getAttribute('data-val') as
-              ColorMode;
-          currentColorElement.value = colorMode;
-          this.cppn.setColorMode(colorMode);
-        });
+    this.querySelector('#color-selector')
+        .addEventListener(
+            // tslint:disable-next-line:no-any
+            'click', (event: any) => {
+              const colorMode =
+                  (event.target as HTMLElement).getAttribute('data-val') as
+                  ColorMode;
+              currentColorElement.value = colorMode;
+              this.cppn.setColorMode(colorMode);
+            });
     this.cppn.setColorMode('rgb');
 
     const currentActivationFnElement =
         this.querySelector('#activation-fn') as HTMLInputElement;
-    this.querySelector('#activation-selector')!.addEventListener(
-        // tslint:disable-next-line:no-any
-        'click', (event: any) => {
-          const activationFn =
-              (event.target as HTMLElement).getAttribute('data-val') as
-              ActivationFunction;
-          currentActivationFnElement.value = activationFn;
-          this.cppn.setActivationFunction(activationFn);
-        });
+    this.querySelector('#activation-selector')
+        .addEventListener(
+            // tslint:disable-next-line:no-any
+            'click', (event: any) => {
+              const activationFn =
+                  (event.target as HTMLElement).getAttribute('data-val') as
+                  ActivationFunction;
+              currentActivationFnElement.value = activationFn;
+              this.cppn.setActivationFunction(activationFn);
+            });
     this.cppn.setActivationFunction('tanh');
 
     const layersSlider =
         this.querySelector('#layers-slider') as HTMLInputElement;
     const layersCountElement =
         this.querySelector('#layers-count') as HTMLDivElement;
-    layersSlider!.addEventListener('input', (event) => {
+    layersSlider.addEventListener('input', (event) => {
       // tslint:disable-next-line:no-any
       this.numLayers = parseInt((event as any).target.value, 10);
       layersCountElement.innerText = '' + this.numLayers;

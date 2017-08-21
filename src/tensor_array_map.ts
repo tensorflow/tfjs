@@ -47,7 +47,7 @@ export class TensorArrayMap {
     if (!skipChecks && nda === null) {
       throw new Error('tensor ' + tensor.id + ' has null array.');
     }
-    return nda!;
+    return nda;
   }
 
   /**
@@ -103,5 +103,5 @@ export class TensorArrayMap {
     return this.dict[tensor.id] === null;
   }
 
-  private dict: {[tensorID: number]: NDArray | null} = {};
+  private dict: {[tensorID: number]: NDArray|null} = {};
 }

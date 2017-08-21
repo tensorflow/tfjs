@@ -14,8 +14,8 @@ limitations under the License.
 ==============================================================================*/
 
 let USE_WEBGL2_WHEN_AVAILABLE = true;
-let WEBGL2_ENABLED: boolean|undefined = null!;
-let MAX_TEXTURE_SIZE: number = null!;
+let WEBGL2_ENABLED: boolean|undefined = null;
+let MAX_TEXTURE_SIZE: number = null;
 
 import * as util from '../../util';
 
@@ -67,9 +67,10 @@ export function isWebGL2Enabled() {
     if (gl != null) {
       WEBGL2_ENABLED = true;
 
-      const loseContextExtension = getExtensionOrThrow(
-          gl as WebGLRenderingContext,
-          'WEBGL_lose_context') as WebGLLoseContextExtension;
+      const loseContextExtension =
+          getExtensionOrThrow(
+              gl as WebGLRenderingContext, 'WEBGL_lose_context') as
+          WebGLLoseContextExtension;
       loseContextExtension.loseContext();
     } else {
       WEBGL2_ENABLED = false;
@@ -85,10 +86,9 @@ export function createWebGLRenderingContextFromCanvas(
   if (isWebGL2Enabled()) {
     gl = canvas.getContext('webgl2', attributes) as WebGLRenderingContext;
   } else {
-    gl =
-        (canvas.getContext('webgl', attributes) ||
-         canvas.getContext(
-             'experimental-webgl', attributes)) as WebGLRenderingContext;
+    gl = (canvas.getContext('webgl', attributes) ||
+          canvas.getContext('experimental-webgl', attributes)) as
+        WebGLRenderingContext;
   }
 
   if (gl == null) {
@@ -221,7 +221,7 @@ export function queryMaxTextureSize(gl: WebGLRenderingContext): number {
     return MAX_TEXTURE_SIZE;
   }
   MAX_TEXTURE_SIZE =
-      callAndCheck(gl, () => gl!.getParameter(gl!.MAX_TEXTURE_SIZE));
+      callAndCheck(gl, () => gl.getParameter(gl.MAX_TEXTURE_SIZE));
   return MAX_TEXTURE_SIZE;
 }
 

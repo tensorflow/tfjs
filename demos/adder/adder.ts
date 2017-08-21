@@ -50,7 +50,7 @@ adder.setupSession();
 const outputEl = document.getElementById('output');
 if (!outputEl) throw new Error('output element not found');
 function printOutput(out: number) {
-  outputEl!.innerText = String(out);
+  outputEl.innerText = String(out);
 }
 
 const inA: HTMLInputElement = document.getElementById('A') as HTMLInputElement;
@@ -59,8 +59,8 @@ const inB: HTMLInputElement = document.getElementById('B') as HTMLInputElement;
 if (!inB) throw new Error('output B not found');
 
 export function execute(event?: Event) {
-  const a = +inA!.value;
-  const b = +inB!.value;
+  const a = +inA.value;
+  const b = +inB.value;
 
   printOutput(adder.computeSum(a, b));
 }

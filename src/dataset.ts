@@ -200,8 +200,8 @@ export abstract class InMemoryDataset {
     let curUpperBounds: Float32Array|number;
 
     if (this.normalizationInfo[dataIndex].isNormalized) {
-      curLowerBounds = this.normalizationInfo[dataIndex].lowerBound!;
-      curUpperBounds = this.normalizationInfo[dataIndex].upperBound!;
+      curLowerBounds = this.normalizationInfo[dataIndex].lowerBound;
+      curUpperBounds = this.normalizationInfo[dataIndex].upperBound;
     } else {
       curLowerBounds = this.normalizationInfo[dataIndex].minValues;
       curUpperBounds = this.normalizationInfo[dataIndex].maxValues;
@@ -230,8 +230,8 @@ export abstract class InMemoryDataset {
     }
 
     this.dataset[dataIndex] = this.normalizeExamplesToRange(
-        this.dataset[dataIndex], this.normalizationInfo[dataIndex].lowerBound!,
-        this.normalizationInfo[dataIndex].upperBound!,
+        this.dataset[dataIndex], this.normalizationInfo[dataIndex].lowerBound,
+        this.normalizationInfo[dataIndex].upperBound,
         this.normalizationInfo[dataIndex].minValues,
         this.normalizationInfo[dataIndex].maxValues);
     this.normalizationInfo[dataIndex].isNormalized = false;
@@ -243,8 +243,8 @@ export abstract class InMemoryDataset {
     }
 
     return this.normalizeExamplesToRange(
-        examples, this.normalizationInfo[dataIndex].lowerBound!,
-        this.normalizationInfo[dataIndex].upperBound!,
+        examples, this.normalizationInfo[dataIndex].lowerBound,
+        this.normalizationInfo[dataIndex].upperBound,
         this.normalizationInfo[dataIndex].minValues,
         this.normalizationInfo[dataIndex].maxValues);
   }
@@ -262,4 +262,3 @@ export abstract class InMemoryDataset {
     this.dataset = [];
   }
 }
-

@@ -62,14 +62,15 @@ export class ModelLayer extends ModelLayerPolymer {
     this.inputShape = inputShape;
     this.buildParamsUI('Fully connected', this.inputShape);
 
-    this.querySelector('.dropdown-content')!.addEventListener(
-        // tslint:disable-next-line:no-any
-        'iron-activate', (event: any) => {
-          this.buildParamsUI(
-              event.detail.selected as LayerName, this.inputShape);
-        });
+    this.querySelector('.dropdown-content')
+        .addEventListener(
+            // tslint:disable-next-line:no-any
+            'iron-activate', (event: any) => {
+              this.buildParamsUI(
+                  event.detail.selected as LayerName, this.inputShape);
+            });
 
-    this.querySelector('#remove-layer')!.addEventListener('click', (event) => {
+    this.querySelector('#remove-layer').addEventListener('click', (event) => {
       modelBuilder.removeLayer(this);
     });
   }

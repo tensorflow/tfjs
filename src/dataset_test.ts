@@ -48,7 +48,7 @@ describe('Dataset', () => {
     const dataIndex = 0;
     dataset.normalizeWithinBounds(dataIndex, 0, 1);
 
-    let normalizedInputs = dataset.getData()![0];
+    let normalizedInputs = dataset.getData()[0];
 
     test_util.expectArraysClose(
         new Float32Array([0, 0, 0, 1, .25, .75]),
@@ -65,7 +65,7 @@ describe('Dataset', () => {
 
     dataset.normalizeWithinBounds(dataIndex, -1, 1);
 
-    normalizedInputs = dataset.getData()![0];
+    normalizedInputs = dataset.getData()[0];
 
     test_util.expectArraysClose(
         new Float32Array([-1, -1, -1, 1, -.5, .5]),
@@ -82,7 +82,7 @@ describe('Dataset', () => {
 
     dataset.removeNormalization(dataIndex);
 
-    normalizedInputs = dataset.getData()![0];
+    normalizedInputs = dataset.getData()[0];
 
     test_util.expectArraysClose(
         new Float32Array([1, 2, 10, -1, -2, .75]),

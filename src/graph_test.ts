@@ -84,7 +84,7 @@ describe('Variable validation', () => {
   });
 
   it('null data throws', () => {
-    expect(() => g.variable('test', null!)).toThrowError();
+    expect(() => g.variable('test', null)).toThrowError();
   });
 
   it('non null data does not throw', () => {
@@ -112,7 +112,7 @@ describe('Constant', () => {
   });
 
   it('null data throws', () => {
-    expect(() => g.constant(null!)).toThrowError();
+    expect(() => g.constant(null)).toThrowError();
   });
 
   it('non null data does not throw', () => {

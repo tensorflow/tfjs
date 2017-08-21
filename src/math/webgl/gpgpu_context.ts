@@ -189,7 +189,7 @@ export class GPGPUContext {
     this.throwIfDisposed();
     this.throwIfNoProgram();
     return webgl_util.getProgramUniformLocationOrThrow(
-        this.gl, this.program!, uniformName);
+        this.gl, this.program, uniformName);
   }
 
   public setInputMatrixTexture(
@@ -198,7 +198,7 @@ export class GPGPUContext {
     this.throwIfDisposed();
     this.throwIfNoProgram();
     webgl_util.bindTextureToProgramUniformSampler(
-        this.gl, this.program!, inputMatrixTexture, uniformName, textureUnit);
+        this.gl, this.program, inputMatrixTexture, uniformName, textureUnit);
   }
 
   public setOutputMatrixTexture(
@@ -239,7 +239,7 @@ export class GPGPUContext {
     this.throwIfNoProgram();
     const gl = this.gl;
     gpgpu_util.bindVertexProgramAttributeStreams(
-        gl, this.program!, this.vertexBuffer);
+        gl, this.program, this.vertexBuffer);
     if (this.autoDebugValidate) {
       this.debugValidate();
     }

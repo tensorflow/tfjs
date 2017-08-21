@@ -112,7 +112,7 @@ export abstract class NDArrayMath {
     // Pop the current scope.
     this.ndarrayScopes.pop();
     this.activeScope = this.ndarrayScopes.length === 0 ?
-        null! :
+        null :
         this.ndarrayScopes[this.ndarrayScopes.length - 1];
 
     // Track the current result in the parent scope.
@@ -130,7 +130,7 @@ export abstract class NDArrayMath {
 
     this.ndarraysToKeep.pop();
     this.activeScopeNDArraysToKeep = this.ndarraysToKeep.length === 0 ?
-        null! :
+        null :
         this.ndarraysToKeep[this.ndarraysToKeep.length - 1];
   }
 
@@ -1110,13 +1110,13 @@ export abstract class NDArrayMath {
       util.assert(
           scale.rank === 3 || scale.rank === 1,
           `Error in batchNormalization3D: scale must be rank 3 or rank 1 ` +
-              `but got rank ${scale!.rank}.`);
+              `but got rank ${scale.rank}.`);
     }
     if (offset != null) {
       util.assert(
           offset.rank === 3 || offset.rank === 1,
           `Error in batchNormalization3D: offset must be rank 3 or rank 1 ` +
-              `but got rank ${offset!.rank}.`);
+              `but got rank ${offset.rank}.`);
     }
 
     return this.track(this.batchNormalization3DInternal(

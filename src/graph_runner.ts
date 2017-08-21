@@ -178,7 +178,7 @@ export class GraphRunner {
       if (shouldComputeCost) {
         const trainTime = performance.now() - start;
 
-        this.eventObserver.avgCostCallback!(avgCost);
+        this.eventObserver.avgCostCallback(avgCost);
 
         if (this.eventObserver.trainExamplesPerSecCallback != null) {
           const examplesPerSec = (this.batchSize * 1000 / trainTime);
@@ -262,8 +262,8 @@ export class GraphRunner {
       for (let i = 0; i < this.inferenceExampleCount; i++) {
         // Populate a new FeedEntry[] populated with NDArrays.
         const ndarrayFeedEntries: FeedEntry[] = [];
-        for (let j = 0; j < this.inferenceFeedEntries!.length; j++) {
-          const feedEntry = this.inferenceFeedEntries![j];
+        for (let j = 0; j < this.inferenceFeedEntries.length; j++) {
+          const feedEntry = this.inferenceFeedEntries[j];
           ndarrayFeedEntries.push({
             tensor: feedEntry.tensor,
             data:
@@ -286,7 +286,7 @@ export class GraphRunner {
 
         const examplesPerSec =
             (this.inferenceExampleCount * 1000 / inferenceExamplesPerSecTime);
-        this.eventObserver.inferenceExamplesPerSecCallback!(examplesPerSec);
+        this.eventObserver.inferenceExamplesPerSecCallback(examplesPerSec);
       }
 
       if (this.eventObserver.inferenceExamplesCallback != null) {
@@ -314,9 +314,9 @@ export class GraphRunner {
     let metric = this.zeroScalar;
 
     return this.math.scope((keep) => {
-      for (let i = 0; i < this.metricBatchSize!; i++) {
+      for (let i = 0; i < this.metricBatchSize; i++) {
         const metricValue =
-            this.session.eval(this.metricTensor!, this.metricFeedEntries!);
+            this.session.eval(this.metricTensor, this.metricFeedEntries);
 
         metric = this.math.add(metric, metricValue);
       }
