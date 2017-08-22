@@ -1,6 +1,6 @@
 {
   "name": "deeplearn",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/src/index.js",
@@ -9,6 +9,7 @@
     "type": "git",
     "url": "https://github.com/PAIR-code/deeplearnjs.git"
   },
+  "license": "Apache-2.0",
   "devDependencies": {
     "@types/jasmine": "~2.5.53",
     "@types/polymer": "~1.1.31",
@@ -24,8 +25,9 @@
     "polymer-bundler": "~3.0.1",
     "tsify": "~3.0.1",
     "tslint": "~5.6.0",
-    "typedoc": "~0.7.2",
+    "typedoc": "~0.8.0",
     "typescript": "2.4.2",
+    "uglify-js": "~3.0.28",
     "watchify": "~3.9.0"
   },
   "scripts": {

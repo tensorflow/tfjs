@@ -9,31 +9,61 @@ machine intelligence. **deeplearn.js** brings performant machine learning
 building blocks to the web, allowing you to train neural networks in a browser
 or run pre-trained models in inference mode.
 
-**deeplearn.js** has two APIs, an immediate execution model (think NumPy) and a
-deferred execution model mirroring the TensorFlow API.
-**deeplearn.js**
-was originally developed by the Google Brain PAIR team to build powerful
-interactive machine learning tools for the browser, but it can be used for
-everything from education, to model understanding, to art projects.
+We provide two APIs, an immediate execution model (think NumPy) and a deferred
+execution model mirroring the TensorFlow API.
+**deeplearn.js** was originally developed by the Google Brain PAIR team to build
+powerful interactive machine learning tools for the browser, but it can be used
+for everything from education, to model understanding, to art projects.
 
 ## Usage
 
-#### From JavaScript
+#### Typescript / ES6 JavaScript
 
-Typescript is the preferred language of choice for **deeplearn.js**, however
-you can use it with plain JavaScript.
-
-For this use case, you can load the latest version of the library directly from
-Google CDN:
-
-```html
-<script src="https://storage.googleapis.com/learnjs-data/deeplearn.js"></script>
+```
+npm install deeplearn
 ```
 
-To use a different version, see the
-[release](https://github.com/PAIR-code/deeplearnjs/releases) page on GitHub.
+A simple example that sums an array with a scalar (broadcasted):
 
-#### From TypeScript
+```ts
+import {Array1D, NDArrayMathGPU, Scalar} from 'deeplearn';
+
+const math = new NDArrayMathGPU();
+const a = Array1D.new([1, 2, 3]);
+const b = Scalar.new(2);
+math.scope(() => {
+  const result = math.add(a, b);
+  console.log(result.getValues());  // Float32Array([3, 4, 5])
+});
+```
+
+#### ES3/ES5 JavaScript
+
+You can also use **deeplearn.js** with plain JavaScript. Load the latest version
+of the library directly from the Google CDN:
+
+```html
+<script src="https://storage.googleapis.com/learnjs-data/deeplearn-latest.js"></script>
+```
+
+To use a specific version, replace `latest` with a version number
+(e.g. `deeplearn-0.1.0.js`), which you can find in the
+[releases](https://github.com/PAIR-code/deeplearnjs/releases) page on GitHub.
+After importing the library, the API will be available as `deeplearn` in the
+global namespace:
+
+```js
+var math = new deeplearn.NDArrayMathGPU();
+var a = deeplearn.Array1D.new([1, 2, 3]);
+var b = deeplearn.Scalar.new(2);
+math.scope(function() {
+  var result = math.add(a, b);
+  console.log(result.getValues());  // Float32Array([3, 4, 5])
+});
+```
+
+
+## Development
 
 To build **deeplearn.js** from source, we need to clone the project and prepare
 the dev environment:
@@ -42,21 +72,6 @@ the dev environment:
 $ git clone https://github.com/PAIR-code/deeplearnjs.git
 $ cd deeplearnjs
 $ npm run prep # Installs node modules and bower components.
-```
-
-To build a standalone library that can be used directly in the browser using a
-`<script>` tag:
-
-```bash
-$ ./scripts/build-standalone.sh # Builds standalone library.
->> Stored standalone library at dist/deeplearn.js
-```
-
-To build a node package/es6 module:
-
-```bash
-$ ./scripts/build-npm.sh # Builds npm package.
->> Stored npm package at dist/deeplearn-VERSION.tgz
 ```
 
 To interactively develop any of the demos (e.g. `demos/nn-art/`):
@@ -73,18 +88,28 @@ $ ./scripts/watch-demo demos/nn-art/nn-art.ts
 Then visit `http://localhost:8080/demos/nn-art/nn-art-demo.html`. The
 `watch-demo` script monitors for changes of typescript code and does
 incremental compilation (~200-400ms), so users can have a fast edit-refresh
-cycle when developing apps using **deeplearn.js**.
+cycle when developing apps.
 
-To run all the tests:
+Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
 
 ```bash
 $ npm run test
+$ npm run lint
 ```
 
-Before you submit a pull request, make sure the code is clean of lint errors:
+To build a standalone ES5 library that can be imported in the browser with a
+`<script>` tag:
 
 ```bash
-$ npm run lint
+$ ./scripts/build-standalone.sh VERSION # Builds standalone library.
+>> Stored standalone library at dist/deeplearn-VERSION(.min).js
+```
+
+To build an npm package/es6 module:
+
+```bash
+$ ./scripts/build-npm.sh # Builds npm package.
+>> Stored npm package at dist/deeplearn-VERSION.tgz
 ```
 
 ## Supported environments
