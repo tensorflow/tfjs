@@ -131,4 +131,13 @@ Check back soon!
 * [Demos](http://pair-code.github.io/deeplearnjs/index.html#demos)
 * [Roadmap](http://pair-code.github.io/deeplearnjs/docs/roadmap.html)
 
+## Thanks
+
+<p style="display:flex; align-items:center;">
+  <a href="https://www.browserstack.com/">
+    <img src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png" height="70" style="height:70px;">
+  </a>
+  <span>&nbsp; for providing testing support.</span>
+</p>
+
 This is not an official Google product.
