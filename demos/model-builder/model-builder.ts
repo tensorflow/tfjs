@@ -1,11 +1,8 @@
 /* Copyright 2017 Google Inc. All Rights Reserved.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,7 +17,7 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, SGDOptimizer, Tensor, util} from '../deeplearnjs';
+import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, MomentumOptimizer, Tensor, util} from '../deeplearnjs';
 import {NDArrayImageVisualizer} from '../ndarray-image-visualizer';
 import {NDArrayLogitsVisualizer} from '../ndarray-logits-visualizer';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
@@ -37,6 +34,7 @@ const DATASETS_CONFIG_JSON = 'model-builder-datasets-config.json';
 // TODO(nsthorat): Make these parameters in the UI.
 const BATCH_SIZE = 64;
 const LEARNING_RATE = 0.1;
+const MOMENTUM = 0.1;
 /** How often to evaluate the model against test data. */
 const EVAL_INTERVAL_MS = 1500;
 /** How often to compute the cost. Downloading the cost stalls the GPU. */
@@ -185,7 +183,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
           totalTimeSec.toFixed(1),
     };
     this.graphRunner = new GraphRunner(this.math, this.session, eventObserver);
-    this.optimizer = new SGDOptimizer(LEARNING_RATE);
+    this.optimizer = new MomentumOptimizer(LEARNING_RATE, MOMENTUM);
 
     // Set up datasets.
     this.populateDatasets();

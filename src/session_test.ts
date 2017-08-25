@@ -20,6 +20,8 @@ import {NDArrayMathGPU} from './math/math_gpu';
 import {Array1D, NDArray, Scalar} from './math/ndarray';
 import {FeedDictionary, FeedEntry, Session} from './session';
 import {SGDOptimizer} from './sgd_optimizer';
+import {MomentumOptimizer} from './momentumOptimizer';
+
 import * as test_util from './test_util';
 
 
@@ -285,6 +287,40 @@ describe('Session', () => {
       session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dwdx = session.gradientArrayMap.get(x).getValues();
       test_util.expectArraysClose(dwdx, new Float32Array([5, 9]), 1e-5);
+    });
+  });
+
+  it('Safe mode math, math scope train does not throw', () => {
+    const x = g.placeholder('x', [2]);
+    const w = g.variable('w', NDArray.zeros([1,2]));
+    const b = g.variable('b', NDArray.zeros([1]));
+    const y = g.reduceSum(g.add(g.matmul(w, x), b));
+
+    const safeMode = true;
+    const optimizer = new MomentumOptimizer(0.1, 0.5);
+    const math = new NDArrayMathCPU(safeMode);
+    const session = new Session(g, math);
+    const inputProvider: InputProvider = {
+      getNextCopy() {
+        return Array1D.new([2, 4]);
+      },
+      disposeCopy(math, example) {}
+    };
+
+    math.scope(() => {
+      // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
+      // velocity_w = [momentum* old_vel_w1 + x_1, 
+      //                momentum* old_vel_w2 + x_2] = [2,4]
+      // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.2, -0.4]
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(dydw, new Float32Array([-.2, -0.4]), 1e-5);
+      // velocity_w = [momentum* old_vel_w1 + x_1,
+      //                momentum* old_vel_w2 + x_2] = [3,6]
+      // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.5, -1.0]
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw2 = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(dydw2, new Float32Array([-.5, -1.0]), 2e-5);
     });
   });
 

@@ -1,11 +1,8 @@
 /* Copyright 2017 Google Inc. All Rights Reserved.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,43 +13,29 @@ limitations under the License.
 import {Node} from './graph';
 import {NDArrayMath} from './math/math';
 import {NDArray, Scalar} from './math/ndarray';
-import {Optimizer} from './optimizer';
+import {SGDOptimizer} from './sgd_optimizer';
 import {SessionRuntime} from './session';
-import * as session_util from './session_util';
 import {TensorArrayMap} from './tensor_array_map';
 
-export class SGDOptimizer extends Optimizer {
-  constructor(protected learningRate: number, specifiedVariableList?: Node[]) {
-    super(specifiedVariableList);
+export class MomentumOptimizer extends SGDOptimizer {
+  constructor(protected learningRate: number, 
+    private momentum: number, specifiedVariableList?: Node[]) {
+    super(learningRate, specifiedVariableList);
   }
 
   beforeBatch(
-      math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
-      activationArrayMap: TensorArrayMap, gradientArrayMap: TensorArrayMap) {
-    this.variableNodes = this.specifiedVariableNodes == null ?
-        session_util.getVariableNodesFromEvaluationSet(runtime.nodes) :
-        this.specifiedVariableNodes;
-    if (batchSize !== this.prevBatchSize) {
-      this.prevBatchSize = batchSize;
-      this.c = Scalar.new(-this.learningRate / batchSize);
-    }
-    this.variableNodes.forEach(
-        node => this.variableGradients.set(
-            node.output, NDArray.zeros(node.output.shape)));
-  }
+    math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
+    activationArrayMap: TensorArrayMap, gradientArrayMap: TensorArrayMap) {
+    super.beforeBatch(math, batchSize, runtime,
+      activationArrayMap, gradientArrayMap);
 
-  afterExample(
-      math: NDArrayMath, runtime: SessionRuntime,
-      activationArrayMap: TensorArrayMap, gradientArrayMap: TensorArrayMap) {
-    math.scope((keep) => {
+    this.m = Scalar.new(this.momentum);
+    if (this.variableVelocities.size() === 0) {
       this.variableNodes.forEach(node => {
-        const gradient = gradientArrayMap.get(node.output);
-        const accumulatedGradient = this.variableGradients.get(node.output);
-        this.variableGradients.set(
-            node.output, keep(math.add(gradient, accumulatedGradient)));
-        accumulatedGradient.dispose();
+        this.variableVelocities.set(node.output,
+          NDArray.zeros(node.output.shape));
       });
-    });
+    }
   }
 
   afterBatch(
@@ -62,12 +45,17 @@ export class SGDOptimizer extends Optimizer {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);
+        const oldVelocity = this.variableVelocities.get(node.output);
+        const velocity = math.scaledArrayAdd(this.m,
+            oldVelocity, this.one, gradient);
         const variable =
-            math.scaledArrayAdd(this.c, gradient, this.one, oldVariable);
+            math.scaledArrayAdd(this.c!, velocity, this.one!, oldVariable);
+        this.variableVelocities.set(node.output, keep(velocity));
         activationArrayMap.set(node.output, keep(variable));
         node.data = variable;
 
         oldVariable.dispose();
+        oldVelocity.dispose();
       });
     });
 
@@ -79,15 +67,17 @@ export class SGDOptimizer extends Optimizer {
     if (this.c != null) {
       this.c.dispose();
     }
+    if (this.m != null) {
+      this.m.dispose();
+    }
     this.one.dispose();
+    this.variableVelocities.dispose();
   }
 
-  setLearningRate(learningRate: number) {
-    this.learningRate = learningRate;
+  setMomentum(momentum: number) {
+    this.momentum = momentum;
   }
 
-  protected variableGradients = new TensorArrayMap();
-  protected prevBatchSize: number;
-  protected one = Scalar.new(1);
-  protected c: Scalar;
+  private variableVelocities = new TensorArrayMap();
+  private m: Scalar;
 }
