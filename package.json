@@ -15,6 +15,7 @@
     "@types/polymer": "~1.1.31",
     "bower": "~1.8.0",
     "browserify": "~14.4.0",
+    "cross-spawn": "~5.1.0",
     "http-server": "~0.10.0",
     "jasmine-core": "~2.6.4",
     "karma": "~1.7.0",

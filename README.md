@@ -112,6 +112,8 @@ $ ./scripts/build-npm.sh # Builds npm package.
 >> Stored npm package at dist/deeplearn-VERSION.tgz
 ```
 
+> On Windows, use bash (available through git) to use the scripts above.
+
 ## Supported environments
 
 **deeplearn.js** targets WebGL 1.0 devices with the `OES_texture_float`
