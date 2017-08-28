@@ -63,7 +63,7 @@ import {NDArrayMathGPU, Scalar, Array1D, Array2D, Graph, Session, SGDOptimizer, 
 
   // Top level graph methods take Tensors and return Tensors.
   const outputTensor = g.matmul(multiplier, inputTensor);
-  const costTensor = g.meanSquaredCost(outputTensor, labelTensor);
+  const costTensor = g.meanSquaredCost(labelTensor, outputTensor);
 
   // Tensors, like NDArrays, have a shape attribute.
   console.log(outputTensor.shape);

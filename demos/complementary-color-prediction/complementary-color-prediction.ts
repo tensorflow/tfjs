@@ -79,7 +79,7 @@ class ComplementaryColorModel {
 
     // We will optimize using mean squared loss.
     this.costTensor =
-        graph.meanSquaredCost(this.predictionTensor, this.targetTensor);
+        graph.meanSquaredCost(this.targetTensor, this.predictionTensor);
 
     // Create the session only after constructing the graph.
     this.session = new Session(graph, this.math);

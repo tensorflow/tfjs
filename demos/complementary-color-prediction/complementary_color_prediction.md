@@ -197,7 +197,7 @@ We also add a cost tensor that specifies the loss function (mean squared).
 
 ```ts
 this.costTensor =
-    graph.meanSquaredCost(this.predictionTensor, this.targetTensor);
+    graph.meanSquaredCost(this.targetTensor, this.predictionTensor);
 ```
 
 Finally, we create a session for running training and inference.
