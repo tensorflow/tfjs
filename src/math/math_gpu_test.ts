@@ -1294,6 +1294,36 @@ describe('NDArrayMathGPU log/exp', () => {
   });
 });
 
+describe('NDArrayMathGPU sqrt', () => {
+  let math: NDArrayMathGPU;
+  beforeEach(() => {
+    math = new NDArrayMathGPU();
+    math.startScope();
+  });
+
+  afterEach(() => {
+    math.endScope(null);
+    math.dispose();
+  });
+
+  it('sqrt', () => {
+    const a = Array1D.new([2, 4]);
+    const r = math.sqrt(a);
+
+    expect(r.get(0)).toBeCloseTo(Math.sqrt(2));
+    expect(r.get(1)).toBeCloseTo(Math.sqrt(4));
+
+    a.dispose();
+  });
+
+  it('sqrt propagates NaNs', () => {
+    const a = Array1D.new([1, NaN]);
+    const r = math.sqrt(a).getValues();
+    expect(r).toEqual(new Float32Array([Math.sqrt(1), NaN]));
+    a.dispose();
+  });
+});
+
 
 describe('softmax', () => {
   let math: NDArrayMathGPU;

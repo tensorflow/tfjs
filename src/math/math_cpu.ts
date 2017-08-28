@@ -298,6 +298,16 @@ export class NDArrayMathCPU extends NDArrayMath {
     return NDArray.make<T>(ndarray.shape, {values: newValues});
   }
 
+  protected sqrtInternal<T extends NDArray>(ndarray: T): T {
+    const values = ndarray.getValues();
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i];
+      newValues[i] = Math.sqrt(value);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: newValues});
+  }
+
   protected logSumExpInternal(ndarray: NDArray): Scalar {
     const xMax = this.max(ndarray);
     const a = this.arrayMinusScalar(ndarray, xMax);

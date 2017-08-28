@@ -753,6 +753,25 @@ describe('NDArrayMathCPU log/exp', () => {
   });
 });
 
+describe('NDArrayMathCPU sqrt', () => {
+  let math: NDArrayMathCPU;
+  beforeEach(() => {
+    math = new NDArrayMathCPU();
+  });
+
+  it('sqrt', () => {
+    const r = math.sqrt(Array1D.new([2, 4]));
+
+    expect(r.get(0)).toBeCloseTo(Math.sqrt(2));
+    expect(r.get(1)).toBeCloseTo(Math.sqrt(4));
+  });
+
+  it('sqrt propagates NaNs', () => {
+    const r = math.sqrt(Array1D.new([1, NaN])).getValues();
+    expect(r).toEqual(new Float32Array([Math.sqrt(1), NaN]));
+  });
+});
+
 describe('softmax', () => {
   let math: NDArrayMathCPU;
 

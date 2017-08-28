@@ -236,17 +236,22 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   protected expInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, UnaryOp.EXP);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]);
   }
 
   protected logInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, UnaryOp.LOG);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected sqrtInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, UnaryOp.SQRT);
+    return this.compileAndRun(program, [a]);
   }
 
   protected reluInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, UnaryOp.RELU);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]);
   }
 
   protected sigmoidInternal<T extends NDArray>(a: T): T {
@@ -256,17 +261,17 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   protected tanhInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, UnaryOp.TANH);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]);
   }
 
   protected sinInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, UnaryOp.SIN);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]);
   }
 
   protected stepInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, UnaryOp.STEP);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]);
   }
 
   protected conv2dInternal(

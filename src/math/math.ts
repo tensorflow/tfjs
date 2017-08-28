@@ -749,6 +749,15 @@ export abstract class NDArrayMath {
   protected abstract logInternal<T extends NDArray>(ndarray: T): T;
 
   /**
+   * Computes square root of the input NDArray element-wise. y = sqrt(x)
+   * @param ndarray The input NDArray.
+   */
+  sqrt<T extends NDArray>(ndarray: T): T {
+    return this.track(this.sqrtInternal(ndarray));
+  }
+  protected abstract sqrtInternal<T extends NDArray>(ndarray: T): T;
+
+  /**
    * Computes rectified linear element-wise, max(x, 0).
    * @param ndarray The input NDArray.
    */
