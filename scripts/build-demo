@@ -18,7 +18,15 @@ const path = require('path');
 const spawn = require('cross-spawn');
 
 const startTsFilePath = process.argv[2];
-const outputPath = path.join(path.dirname(startTsFilePath), 'bundle.js')
+const outDir = process.argv[3];
+
+let outputPath;
+if (outDir != null) {
+  outputPath = path.join(outDir, 'bundle.js');
+} else {
+  outputPath = path.join(path.dirname(startTsFilePath), 'bundle.js')
+}
+
 
 const cmd = path.join('node_modules', '.bin', 'browserify');
 const child = spawn(cmd, [startTsFilePath, '-p', '[tsify]', '-o' , outputPath],

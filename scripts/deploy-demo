@@ -22,7 +22,7 @@ const startHTMLFilePath = process.argv[3];
 const outDir = process.argv[4];
 
 const cmd = path.join('scripts', 'build-demo');
-const child = spawn(cmd, [startTsFilePath], {detached: false});
+const child = spawn(cmd, [startTsFilePath, outDir], {detached: false});
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);
 child.on('close', () => {
