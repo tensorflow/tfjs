@@ -37,7 +37,7 @@ export class Pool2DProgram implements GPGPUProgram {
     }
     const xRowsLimit = xShape[0] - 0.5;
     const xColsLimit = xShape[1] - 0.5;
-    this.params = [stride, pad, fSize, computePositions];
+    this.params = [stride, pad, fSize, poolType, computePositions];
     this.outputShape =
         conv_util.computeOutputShape3D(xShape, fSize, xShape[2], stride, pad);
 
