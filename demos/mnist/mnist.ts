@@ -28,13 +28,21 @@ reader.getAllVariables().then(vars => {
     const sess = new Session(input.node.graph, math);
 
     math.scope(() => {
+      console.log(`Evaluation set: n=${data.images.length}.`);
+
       let numCorrect = 0;
       for (let i = 0; i < data.images.length; i++) {
         const inputData = Array1D.new(data.images[i]);
         const probsVal = sess.eval(probs, [{tensor: input, data: inputData}]);
-        if (data.labels[i] === probsVal.get()) {
+        console.log(`Item ${i}, probsVal ${probsVal.get()}.`);
+        const label = data.labels[i];
+        const predictedLabel = probsVal.get();
+        if (label === predictedLabel) {
           numCorrect++;
         }
+        const result = renderResults(Array1D.new(data.images[i]),
+          label, predictedLabel);
+        document.body.appendChild(result);
       }
       const accuracy = numCorrect * 100 / data.images.length;
       document.getElementById('accuracy').innerHTML = accuracy + '%';
@@ -133,4 +141,45 @@ function buildModelLayersAPI(
       'softmax', hidden2, softmaxW.shape[1], null, true,
       new NDArrayInitializer(softmaxW), new NDArrayInitializer(softmaxB));
   return [input, g.argmax(logits)];
+}
+
+function renderMnistImage(array: Array1D) {
+  console.log('renderMnistImage', array);
+  const width = 28;
+  const height = 28;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  const float32Array = array.getData().values;
+  const imageData = ctx.createImageData(width, height);
+  for (let i = 0; i < float32Array.length; i++) {
+    const j = i * 4;
+    const value = Math.round(float32Array[i] * 255);
+    imageData.data[j+0] = value;
+    imageData.data[j+1] = value;
+    imageData.data[j+2] = value;
+    imageData.data[j+3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+function renderResults(array: Array1D,
+    label: number, predictedLabel: number) {
+  const root = document.createElement('div');
+  root.appendChild(renderMnistImage(array));
+  const actual = document.createElement('div');
+  actual.innerHTML = `Actual: ${label}`;
+  root.appendChild(actual);
+  const predicted = document.createElement('div');
+  predicted.innerHTML = `Predicted: ${predictedLabel}`;
+  root.appendChild(predicted);
+
+  if (label !== predictedLabel) {
+    root.classList.add('error');
+  }
+
+  root.classList.add('result');
+  return root;
 }
