@@ -13,6 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================-->
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-slider/paper-slider.html">
 <link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../../bower_components/paper-item/paper-item.html">
@@ -27,68 +29,48 @@ limitations under the License.
       margin-left: 20px;
       margin-top: 20px;
     }
-
-    li.mdl-menu__item {
-      height: 40px;
-      line-height: 40px;
-    }
-    .getmdl-select .mdl-icon-toggle__label {
-        float: right;
-        margin-top: -30px;
-        color: rgba(0,0,0,0.4);
+    #random {
+      color: rgb(66,66,66);
+      background-color: rgb(255,171,64);
     }
   </style>
 <template>
   <div class="container">
     <canvas id="inference"></canvas>
     <br>
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
-      <input class="mdl-textfield__input" type="text" id="colormode" value="rgb" readonly tabIndex="-1">
-      <label for="colormode">
-        <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
-      </label>
-      <label for="colormode" class="mdl-textfield__label">Color mode</label>
-      <ul for="colormode" class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="color-selector">
-        <li class="mdl-menu__item" data-val="rgb">rgb</li>
-        <li class="mdl-menu__item" data-val="rgba">rgba</li>
-        <li class="mdl-menu__item" data-val="hsv">hsv</li>
-        <li class="mdl-menu__item" data-val="hsva">hsva</li>
-        <li class="mdl-menu__item" data-val="yuv">yuv</li>
-        <li class="mdl-menu__item" data-val="yuva">yuva</li>
-        <li class="mdl-menu__item" data-val="bw">bw</li>
-      </ul>
+    <div>
+      <paper-dropdown-menu no-animations label="Color mode">
+        <paper-listbox attr-for-selected="value" id="color-mode-dropdown" class="dropdown-content" selected="{{selectedColorModeName}}" slot="dropdown-content">
+          <template is="dom-repeat" items="[[colorModeNames]]">
+            <paper-item value="[[item]]" label="[[item]]">
+              [[item]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
     </div>
-    <br>
-    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label getmdl-select getmdl-select__fix-height">
-      <input class="mdl-textfield__input" type="text" id="activation-fn" value="tanh" readonly tabIndex="-1">
-      <label for="activation-fn">
-        <i class="mdl-icon-toggle__label material-icons">keyboard_arrow_down</i>
-      </label>
-      <label for="activation-fn" class="mdl-textfield__label">Activation function</label>
-      <ul for="activation-fn" class="mdl-menu mdl-menu--bottom-left mdl-js-menu" id="activation-selector">
-        <li class="mdl-menu__item" data-val="tanh">tanh</li>
-        <li class="mdl-menu__item" data-val="sin">sin</li>
-        <li class="mdl-menu__item" data-val="relu">relu</li>
-        <li class="mdl-menu__item" data-val="step">step</li>
-      </ul>
+    <div>
+      <paper-dropdown-menu no-animations label="Activation function">
+        <paper-listbox attr-for-selected="value" id="activation-function-dropdown" class="dropdown-content" selected="{{selectedActivationFunctionName}}" slot="dropdown-content">
+          <template is="dom-repeat" items="[[activationFunctionNames]]">
+            <paper-item value="[[item]]" label="[[item]]">
+              [[item]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
     </div>
     <br>
     <div>Number of layers: <div id="layers-count" style="display: inline-block"></div></div>
-
-    <p style="width:200px">
-      <input class="mdl-slider mdl-js-slider" type="range" min="0" max="7" value="3" tabindex="1" id="layers-slider">
-    </p>
+    <paper-slider pin min="0" max="10" value="3" id="layers-slider"></paper-slider>
 
     <div>z1 time coefficient</div>
-    <p style="width:200px">
-      <input class="mdl-slider mdl-js-slider" type="range" min="1" max="1000" value="100" tabindex="2" id="z1-slider">
-    </p>
-    <div>z2 time coefficient</div>
-    <p style="width:200px">
-      <input class="mdl-slider mdl-js-slider" type="range" min="1" max="1000" value="100" tabindex="3" id="z2-slider">
-    </p>
+    <paper-slider min="1" max="100" value="1" id="z1-slider"></paper-slider>
 
-    <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="button" id="random">randomize</button>
+    <div>z2 time coefficient</div>
+    <paper-slider min="1" max="100" value="1" id="z2-slider"></paper-slider>
+
+    <paper-button type="button" id="random">randomize</paper-button>
     <br><br>
     <a href="http://blog.otoro.net/2016/03/25/generating-abstract-patterns-with-tensorflow/" target="_blank">What is a CPPN?</a>
   </div>

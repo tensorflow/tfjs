@@ -24,9 +24,19 @@ const WEIGHTS_STDEV = .6;
 
 // tslint:disable-next-line:variable-name
 const NNArtPolymer: new () => PolymerHTMLElement =
-    PolymerElement({is: 'nn-art', properties: {}});
+    PolymerElement({is: 'nn-art', properties: {
+      colorModeNames: Array,
+      selectedColorModeName: String,
+      activationFunctionNames: Array,
+      selectedActivationFunctionName: String
+    }});
 
 class NNArt extends NNArtPolymer {
+  private colorModeNames: ColorMode[];
+  private selectedColorModeName: ColorMode;
+  private activationFunctionNames: ActivationFunction[];
+  private selectedActivationFunctionName: ActivationFunction;
+
   private cppn: CPPN;
 
   private inferenceCanvas: HTMLCanvasElement;
@@ -45,41 +55,33 @@ class NNArt extends NNArtPolymer {
     this.inferenceCanvas.style.height =
         this.inferenceCanvas.height * CANVAS_UPSCALE_FACTOR + 'px';
 
-    const currentColorElement =
-        this.querySelector('#colormode') as HTMLInputElement;
-    this.querySelector('#color-selector')
-        .addEventListener(
-            // tslint:disable-next-line:no-any
-            'click', (event: any) => {
-              const colorMode =
-                  (event.target as HTMLElement).getAttribute('data-val') as
-                  ColorMode;
-              currentColorElement.value = colorMode;
-              this.cppn.setColorMode(colorMode);
-            });
-    this.cppn.setColorMode('rgb');
-
-    const currentActivationFnElement =
-        this.querySelector('#activation-fn') as HTMLInputElement;
-    this.querySelector('#activation-selector')
-        .addEventListener(
-            // tslint:disable-next-line:no-any
-            'click', (event: any) => {
-              const activationFn =
-                  (event.target as HTMLElement).getAttribute('data-val') as
-                  ActivationFunction;
-              currentActivationFnElement.value = activationFn;
-              this.cppn.setActivationFunction(activationFn);
-            });
-    this.cppn.setActivationFunction('tanh');
+    this.colorModeNames = ['rgb', 'rgba', 'hsv', 'hsva', 'yuv', 'yuva', 'bw'];
+    this.selectedColorModeName = 'rgb';
+    this.cppn.setColorMode(this.selectedColorModeName);    
+    this.querySelector('#color-mode-dropdown')!.addEventListener(
+        // tslint:disable-next-line:no-any
+        'iron-activate', (event: any) => {
+          this.selectedColorModeName = event.detail.selected;
+          this.cppn.setColorMode(this.selectedColorModeName);
+        });
+  
+    this.activationFunctionNames = ['tanh', 'sin', 'relu', 'step'];
+    this.selectedActivationFunctionName = 'tanh';
+    this.cppn.setActivationFunction(this.selectedActivationFunctionName);
+    this.querySelector('#activation-function-dropdown')!.addEventListener(
+        // tslint:disable-next-line:no-any
+        'iron-activate', (event: any) => {
+          this.selectedActivationFunctionName = event.detail.selected;
+          this.cppn.setActivationFunction(this.selectedActivationFunctionName);
+        });
 
     const layersSlider =
         this.querySelector('#layers-slider') as HTMLInputElement;
     const layersCountElement =
         this.querySelector('#layers-count') as HTMLDivElement;
-    layersSlider.addEventListener('input', (event) => {
+    layersSlider.addEventListener('immediate-value-changed', (event) => {
       // tslint:disable-next-line:no-any
-      this.numLayers = parseInt((event as any).target.value, 10);
+      this.numLayers = parseInt((event as any).target.immediateValue, 10);
       layersCountElement.innerText = '' + this.numLayers;
       this.cppn.setNumLayers(this.numLayers);
     });
@@ -88,22 +90,22 @@ class NNArt extends NNArtPolymer {
     this.cppn.setNumLayers(this.numLayers);
 
     const z1Slider = this.querySelector('#z1-slider') as HTMLInputElement;
-    z1Slider.addEventListener('input', (event) => {
+    z1Slider.addEventListener('immediate-value-changed', (event) => {
       // tslint:disable-next-line:no-any
-      this.z1Scale = parseInt((event as any).target.value, 10);
-      this.cppn.setZ1Scale(this.z1Scale);
+      this.z1Scale = parseInt((event as any).target.immediateValue, 10);
+      this.cppn.setZ1Scale(convertZScale(this.z1Scale));
     });
     this.z1Scale = parseInt(z1Slider.value, 10);
-    this.cppn.setZ1Scale(this.z1Scale);
+    this.cppn.setZ1Scale(convertZScale(this.z1Scale));
 
     const z2Slider = this.querySelector('#z2-slider') as HTMLInputElement;
-    z2Slider.addEventListener('input', (event) => {
+    z2Slider.addEventListener('immediate-value-changed', (event) => {
       // tslint:disable-next-line:no-any
-      this.z2Scale = parseInt((event as any).target.value, 10);
-      this.cppn.setZ2Scale(this.z1Scale);
+      this.z2Scale = parseInt((event as any).target.immediateValue, 10);
+      this.cppn.setZ2Scale(convertZScale(this.z2Scale));
     });
     this.z2Scale = parseInt(z2Slider.value, 10);
-    this.cppn.setZ2Scale(this.z2Scale);
+    this.cppn.setZ2Scale(convertZScale(this.z2Scale));
 
     const randomizeButton = this.querySelector('#random') as HTMLButtonElement;
     randomizeButton.addEventListener('click', () => {
@@ -113,6 +115,10 @@ class NNArt extends NNArtPolymer {
     this.cppn.generateWeights(MAT_WIDTH, WEIGHTS_STDEV);
     this.cppn.start();
   }
+}
+
+function convertZScale(z: number): number {
+  return (103 - z);
 }
 
 document.registerElement(NNArt.prototype.is, NNArt);
