@@ -414,6 +414,10 @@ export class ModelBuilder extends ModelBuilderPolymer {
   }
 
   private updateSelectedDataset(datasetName: string) {
+    if (this.dataSet != null) {
+      this.dataSet.removeNormalization(IMAGE_DATA_INDEX);
+    }
+
     this.graphRunner.stopTraining();
     this.graphRunner.stopInferring();
 
@@ -422,6 +426,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
     }
 
     this.selectedDatasetName = datasetName;
+    this.selectedModelName = '';
     this.dataSet = this.dataSets[datasetName];
     this.datasetDownloaded = false;
     this.showDatasetStats = false;
@@ -434,9 +439,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
         this.createModel();
         this.startInference();
       }
+      // Get prebuilt models.
+      this.populateModelDropdown();
     });
-    // Get prebuilt models.
-    this.populateModelDropdown();
 
     this.inputShape = this.dataSet.getDataShape(IMAGE_DATA_INDEX);
     this.labelShape = this.dataSet.getDataShape(LABEL_DATA_INDEX);
@@ -501,7 +506,6 @@ export class ModelBuilder extends ModelBuilderPolymer {
         modelNames.push(modelName);
       }
     }
-
     this.modelNames = modelNames;
     this.selectedModelName = modelNames[modelNames.length - 1];
     this.updateSelectedModel(this.selectedModelName);
@@ -515,8 +519,8 @@ export class ModelBuilder extends ModelBuilderPolymer {
     }
 
     this.loadModelFromPath(this.xhrDatasetConfigs[this.selectedDatasetName]
-                               .modelConfigs[modelName]
-                               .path);
+      .modelConfigs[modelName]
+      .path);
   }
 
   private loadModelFromPath(modelPath: string) {

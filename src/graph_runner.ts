@@ -72,6 +72,7 @@ export class GraphRunner {
   private lastComputedMetric: NDArray;
 
   private isInferring: boolean;
+  private lastInferTimeoutID: number;
   private currentInferenceLoopNumPasses: number|undefined;
   private inferencePassesThisRun: number;
 
@@ -295,11 +296,13 @@ export class GraphRunner {
       this.inferencePassesThisRun++;
 
     });
-    setTimeout(() => this.inferNetwork(), this.inferenceExampleIntervalMs);
+    this.lastInferTimeoutID = window.setTimeout(
+        () => this.inferNetwork(), this.inferenceExampleIntervalMs);
   }
 
   stopInferring() {
     this.isInferring = false;
+    window.clearTimeout(this.lastInferTimeoutID);
   }
 
   isInferenceRunning(): boolean {

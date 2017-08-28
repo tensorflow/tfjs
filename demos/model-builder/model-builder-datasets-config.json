@@ -13,7 +13,28 @@
     }],
     "modelConfigs": {
       "Fully connected": {
-        "name": "Fully connected",
+        "path": "mnist-fully-connected.json"
+      },
+      "Convolutional": {
+        "path": "mnist-conv.json"
+      }
+    }
+  },
+  "Fashion MNIST": {
+    "data": [{
+      "name": "images",
+      "path": "https://storage.googleapis.com/learnjs-data/model-builder/fashion_mnist_images.png",
+      "dataType": "png",
+      "shape": [28, 28, 1]
+    }, {
+      "name": "labels",
+      "path": "https://storage.googleapis.com/learnjs-data/model-builder/fashion_mnist_labels_uint8",
+      "dataType": "uint8",
+      "shape": [10]
+    }],
+    "labelClassNames": ["T-shirt/top", "Trouser", "Pullover", "Dress", "Coat", "Sandal", "Shirt", "Sneaker", "Bag", "Ankle boot"],
+    "modelConfigs": {
+      "Fully connected": {
         "path": "mnist-fully-connected.json"
       },
       "Convolutional": {
