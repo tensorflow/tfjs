@@ -294,10 +294,10 @@ math.scope((keep, track) => {
 });
 ```
 
-After the training the model, you can infer through the graph again to get a
+After training the model, you can infer through the graph again to get a
 value for "y" given an "x".
 
 Of course, in practice, you will not want to just use `Scalar` values.
 **deeplearn.js** provides powerful hardware-accelerated linear algebra which
-you can use for everything for image recognition, to text generation. See other
+you can use for everything from image recognition to text generation. See other
 [tutorials](index.md) for more!
