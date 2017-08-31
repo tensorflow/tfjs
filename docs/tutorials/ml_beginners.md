@@ -7,6 +7,18 @@ order: 3
 * TOC
 {:toc}
 
+You can find the code that supplements this tutorial
+[here](https://github.com/PAIR-code/deeplearnjs/tree/master/demos/ml_beginners).
+
+Run it yourself with:
+```ts
+./scripts/watch-demo demos/ml_beginners/ml_beginners.ts
+```
+
+And visit `http://localhost:8080/demos/ml_beginners/`.
+
+Or just view the demo we have hosted [here](https://pair-code.github.io/deeplearnjs/demos/ml_beginners/).
+
 ### NDArrays, Tensors, and numbers
 
 #### Mathematical tensors
