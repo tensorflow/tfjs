@@ -21,7 +21,7 @@ import * as operation_emitter from './operation_emitter';
 import {Operation} from './ops/op';
 import {Optimizer} from './optimizer';
 import * as session_util from './session_util';
-import {TensorArrayMap} from './tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from './tensor_array_map';
 import * as util from './util';
 
 /**
@@ -73,7 +73,9 @@ export class Session {
    * @param graph The graph to associate with this Session.
    * @param math The NDArrayMath interface that this Session should use.
    */
-  constructor(graph: Graph, private math: NDArrayMath) {}
+  constructor(graph: Graph, private math: NDArrayMath) {
+    this.gradientArrayMap = new SummedTensorArrayMap(this.math);
+  }
 
   /**
    * Release all system resources associated with this Session.
@@ -180,7 +182,8 @@ export class Session {
     const backPropOperations = runtime.operations.slice().reverse();
     const activations = this.activationArrayMap;
     const gradients = this.gradientArrayMap;
-    gradients.set(costTensor, this.oneScalar);
+    gradients.nullify(costTensor);
+    gradients.add(costTensor, this.oneScalar);
 
     session_util.addPersistentArraysToTensorArrayMap(
         runtime.nodes, activations);
@@ -246,12 +249,8 @@ export class Session {
     const key = this.makeRuntimeCacheKey(tensors, feed);
     let runtime = this.runtimeCache[key];
     if (runtime === undefined) {
-      let nodes =
+      const nodes =
           session_util.getOrderedEvaluationSetFromEvalTensor(tensors, feed);
-      // In inference mode split nodes are not needed, but their cost is
-      // negligible, and always adding them in allows for caching of 1 runtime
-      // for both train/eval.
-      nodes = session_util.addSplitNodes(nodes);
       session_util.removeFeedDictionaryNodesFromEvaluationSet(feed, nodes);
       session_util.throwErrorIfEvaluationSetContainsPlaceholderNodes(nodes);
       const operations = operation_emitter.emitFromGraphNodes(nodes);
@@ -269,8 +268,9 @@ export class Session {
 
   /** Maps each output tensor of the graph to its activation value. */
   activationArrayMap = new TensorArrayMap();
+
   /** Maps each tensor of the graph to its derivative wrt the cost function. */
-  gradientArrayMap = new TensorArrayMap();
+  gradientArrayMap: SummedTensorArrayMap;
   private runtimeCache: {[key: string]: SessionRuntime} = {};
   /** Batch size of the previous train() call. */
   private prevBatchSize: number;

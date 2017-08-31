@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Scalar} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import {LinearCombination} from './linear_combination';
 
 describe('Linear combination', () => {
@@ -27,12 +27,12 @@ describe('Linear combination', () => {
   let c2Tensor: Tensor;
   let yTensor: Tensor;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -75,7 +75,7 @@ describe('Linear combination', () => {
     expect(y.get(2)).toBe(x1.get(2) * c1.get() + x2.get(2) * c2.get());
 
     const dy = Array1D.new([2, 4, 6]);
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
     op.backProp(math, activations, gradients);
 
     const dx1 = gradients.get(x1Tensor);

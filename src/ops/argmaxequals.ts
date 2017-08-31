@@ -15,7 +15,7 @@ limitations under the License.
 
 import {Tensor} from '../graph';
 import {NDArrayMath} from '../math/math';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {Operation} from './op';
 
@@ -42,7 +42,7 @@ export class ArgMaxEquals extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     throw new Error('ArgMaxEquals backprop unimplemented');
   }
 }

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 // tslint:disable-next-line:max-line-length
-import {ConstantNode, Graph, Node, PlaceholderNode, SplitNode, Tensor, VariableNode} from './graph';
+import {ConstantNode, Graph, Node, PlaceholderNode, Tensor, VariableNode} from './graph';
 import {InputProvider} from './input_provider';
 import {NDArrayMathCPU} from './math/math_cpu';
 import {NDArray} from './math/ndarray';
@@ -413,52 +413,4 @@ describe('throwErrorIfEvaluationSetContainsPlaceholderNodes', () => {
         ]))
         .toThrowError(/Placeholder node/);
   });
-});
-
-describe('Add split nodes', () => {
-  let g: Graph;
-  let nodes: Node[];
-
-  beforeEach(() => {
-    g = new Graph();
-    nodes = [];
-  });
-
-  it('does not add split nodes', () => {
-    const a = new TestNode(g, 'A', {}, new Tensor([]));
-    const b = new TestNode(g, 'B', {'a': a.output}, new Tensor([]));
-    nodes.push(a);
-    nodes.push(b);
-    const newNodes = session_util.addSplitNodes(nodes);
-    expect(newNodes.length).toBe(2);
-  });
-
-  it('does add split a node before A', () => {
-    const a = new TestNode(g, 'A', {}, new Tensor([]));
-    const b = new TestNode(g, 'B', {'a': a.output}, new Tensor([]));
-    const c = new TestNode(g, 'C', {'a': a.output}, new Tensor([]));
-    nodes.push(a);
-    nodes.push(b);
-    nodes.push(c);
-    const newNodes = session_util.addSplitNodes(nodes);
-    expect(newNodes.length).toBe(4);
-  });
-
-  it('adds a split node in the right location with correct input/output',
-     () => {
-       const a = new TestNode(g, 'A', {}, new Tensor([]));
-       const b = new TestNode(g, 'B', {'a': a.output}, new Tensor([]));
-       const c = new TestNode(g, 'C', {'a': a.output}, new Tensor([]));
-       nodes.push(a);
-       nodes.push(b);
-       nodes.push(c);
-       const newNodes = session_util.addSplitNodes(nodes);
-       expect(newNodes.length).toBe(4);
-       const splitNode = newNodes[1] as SplitNode;
-       expect(splitNode instanceof SplitNode);
-       expect(splitNode.inputs[SplitNode.X] === a.output);
-       expect(splitNode.outputs.length).toBe(2);
-       expect(b.inputs['a'].id in splitNode.outputs.map(o => o.id));
-       expect(c.inputs['a'].id in splitNode.outputs.map(o => o.id));
-     });
 });

@@ -15,22 +15,14 @@ limitations under the License.
 
 import {Tensor} from './graph';
 import {NDArray} from './math/ndarray';
+import {NDArrayMath} from './math/math';
 
 /**
  * TensorArrayMap is an internal map from Tensor IDs to NDArrays. Since NDArrays
  * can be backed by WebGL textures, the TensorArrayMap is only used inside of a
  * Session.
  */
-export class TensorArrayMap {
-  /**
-   * Add or replace an entry in the map.
-   * @param tensor The tensor key.
-   * @param array The NDArray value, can be null.
-   */
-  set(tensor: Tensor, array: NDArray|null) {
-    this.dict[tensor.id] = array;
-  }
-
+export abstract class TensorArrayMapBase {
   /**
    * Returns the NDArray associated with the provided tensor. Will throw an
    * exception if the tensor is not a key in the map, or if the associated
@@ -56,6 +48,14 @@ export class TensorArrayMap {
    */
   delete(tensor: Tensor) {
     delete this.dict[tensor.id];
+  }
+
+  /**
+   * Nullifies a tensor pair from the map.
+   * @param tensor The tensor key.
+   */
+  nullify(tensor: Tensor) {
+    this.dict[tensor.id] = null;
   }
 
   disposeArray(tensor: Tensor) {
@@ -103,5 +103,38 @@ export class TensorArrayMap {
     return this.dict[tensor.id] === null;
   }
 
-  private dict: {[tensorID: number]: NDArray|null} = {};
+  protected dict: {[tensorID: number]: NDArray|null} = {};
+}
+
+export class TensorArrayMap extends TensorArrayMapBase {
+  /**
+   * Add or replace an entry in the map.
+   * @param tensor The tensor key.
+   * @param array The NDArray value, can be null.
+   */
+  set(tensor: Tensor, array: NDArray|null) {
+    this.dict[tensor.id] = array;
+  }
+}
+
+export class SummedTensorArrayMap extends TensorArrayMapBase {
+  constructor(private math: NDArrayMath) {
+    super();
+  }
+
+  /**
+   * Aggregate by summing to an entry in the map.
+   * @param tensor The tensor key.
+   * @param array The NDArray value.
+   */
+  add(tensor: Tensor, array: NDArray) {
+    if (this.dict[tensor.id] == null) {
+      this.dict[tensor.id] = this.math.keep(array);
+    } else {
+      const oldValue = this.get(tensor);
+      const newValue = this.math.keep(this.math.addStrict(oldValue, array));
+      this.dict[tensor.id] = newValue;
+      oldValue.dispose();
+    }
+  }
 }

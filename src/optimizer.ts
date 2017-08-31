@@ -16,7 +16,7 @@ limitations under the License.
 import {Node, VariableNode} from './graph';
 import {NDArrayMath} from './math/math';
 import {SessionRuntime} from './session';
-import {TensorArrayMap} from './tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from './tensor_array_map';
 
 export abstract class Optimizer {
   protected variableNodes: VariableNode[];
@@ -31,17 +31,17 @@ export abstract class Optimizer {
   abstract beforeBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
-      gradientArrayMap: TensorArrayMap): void;
+      gradientArrayMap: SummedTensorArrayMap): void;
 
   abstract afterExample(
       math: NDArrayMath, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
-      gradientArrayMap: TensorArrayMap): void;
+      gradientArrayMap: SummedTensorArrayMap): void;
 
   abstract afterBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
-      gradientArrayMap: TensorArrayMap): void;
+      gradientArrayMap: SummedTensorArrayMap): void;
 
   abstract dispose(): void;
 }

@@ -242,8 +242,10 @@ math.scope((keep, track) => {
   // providing a value 4 for "x".
   // NOTE: "a", "b", and "c" are randomly initialized, so this will give us
   // something random.
-  const result: NDArray =
+  let result: NDArray =
       session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
+  console.log(result.shape);
+  console.log(result.getValues());
 
   /**
    * Training
@@ -271,14 +273,14 @@ math.scope((keep, track) => {
       shuffledInputProviderBuilder.getInputProviders();
 
   // Training is broken up into batches.
-  const NUM_BATCHES = 5;
+  const NUM_BATCHES = 20;
   const BATCH_SIZE = xs.length;
   // Before we start training, we need to provide an optimizer. This is the
   // object that is responsible for updating weights. The learning rate param
   // is a value that represents how large of a step to make when updating
   // weights. If this is too big, you may overstep and oscillate. If it is too
   // small, the model may take a long time to train.
-  const LEARNING_RATE = .001;
+  const LEARNING_RATE = .01;
   const optimizer = new SGDOptimizer(LEARNING_RATE);
   for (let i = 0; i < NUM_BATCHES; i++) {
     // Train takes a cost tensor to minimize; this call trains one batch and
@@ -286,11 +288,17 @@ math.scope((keep, track) => {
     const costValue = session.train(
         cost,
         // Map input providers to Tensors on the graph.
-        [{tensor: x, data: xProvider}, {tensor: y, data: yProvider}],
+        [{tensor: x, data: xProvider}, {tensor: yLabel, data: yProvider}],
         BATCH_SIZE, optimizer, CostReduction.MEAN);
 
     console.log('average cost: ' + costValue.get());
   }
+
+  // Now print the value from the trained model for x = 4, should be ~57.0.
+  result = session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
+  console.log('result should be ~57.0:');
+  console.log(result.shape);
+  console.log(result.getValues());
 });
 ```
 

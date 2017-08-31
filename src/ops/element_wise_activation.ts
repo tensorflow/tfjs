@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 // tslint:disable-next-line:max-line-length
 import {ActivationFunction, ReLUFunc, SigmoidFunc, SquareFunc, TanHFunc} from '../math/activation_functions';
 import {NDArrayMath} from '../math/math';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {Operation} from './op';
 
@@ -41,16 +41,17 @@ export class ElementWiseActivation extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     // dE/dx_i = sum_j dE/dy_j * dy_j/dx_i
     //         = dE/dy_i * dy_i/dx_i
     const x = inferenceArrays.get(this.xTensor);
     const y = inferenceArrays.get(this.yTensor);
     const dy = gradientArrays.get(this.yTensor);
 
-    math.scope((keep) => {
+    math.scope(() => {
       const dydx = this.func.der(math, x, y);
-      gradientArrays.set(this.xTensor, keep(math.elementWiseMul(dy, dydx)));
+      gradientArrays.add(
+          this.xTensor, math.elementWiseMul(dy, dydx));
       dydx.dispose();
     });
   }

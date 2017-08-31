@@ -872,33 +872,6 @@ export class ArgMaxEqualsNode extends Node {
 }
 
 /**
- * Split nodes are used to accumulate backprop derivatives when a node's output
- * tensor is consumed by multiple nodes.
- * @hidden
- */
-export class SplitNode extends Node {
-  static readonly X = 'x';
-
-  outputs: Tensor[] = [];
-
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'SplitNode', {x}, new Tensor(x.shape));
-  }
-
-  /**
-   * Registers a new consumer of this split node, i.e. a new node that uses the
-   * node's output tensor.
-   */
-  getNewOutputTensor(): Tensor {
-    const output = new Tensor(this.inputs[SplitNode.X].shape);
-    output.node = this;
-    this.outputs.push(output);
-    return output;
-  }
-  validate() {}
-}
-
-/**
  * @hidden
  */
 export type ArrayData =

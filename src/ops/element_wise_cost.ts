@@ -18,7 +18,7 @@ import * as graph_util from '../graph_util';
 import {ElementWiseCostFunction, SquareCostFunc} from '../math/cost_functions';
 import {NDArrayMath} from '../math/math';
 import {Scalar} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -50,16 +50,18 @@ export class ElementWiseCost extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const x1 = inferenceArrays.get(this.x1Tensor);
     const x2 = inferenceArrays.get(this.x2Tensor);
 
-    math.scope((keep) => {
+    math.scope(() => {
       if (graph_util.shouldBackProp(this.x1Tensor)) {
-        gradientArrays.set(this.x1Tensor, keep(this.func.der(math, x1, x2)));
+        gradientArrays.add(
+            this.x1Tensor, this.func.der(math, x1, x2));
       }
       if (graph_util.shouldBackProp(this.x2Tensor)) {
-        gradientArrays.set(this.x2Tensor, keep(this.func.der(math, x2, x1)));
+        gradientArrays.add(
+            this.x2Tensor, this.func.der(math, x2, x1));
       }
     });
   }

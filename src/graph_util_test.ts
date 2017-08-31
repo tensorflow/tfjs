@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 // tslint:disable-next-line:max-line-length
-import {ConstantNode, Graph, Node, PlaceholderNode, ReLUNode, SplitNode, SquareNode, Tensor, VariableNode} from './graph';
+import {ConstantNode, Graph, Node, PlaceholderNode, ReLUNode, SquareNode, Tensor, VariableNode} from './graph';
 import * as graph_util from './graph_util';
 import {NDArray, Scalar} from './math/ndarray';
 import {TensorArrayMap} from './tensor_array_map';
@@ -207,17 +207,5 @@ describe('graph_util.isPassthroughNode', () => {
     expect(graph_util.isPassthroughNode(node, map)).toBe(false);
     xVal.dispose();
     yVal.dispose();
-  });
-
-  it('returns true for a node that passes through the input', () => {
-    const x = g.placeholder('x', []);
-    const node = new SplitNode(g, x);
-    const map = new TensorArrayMap();
-    const xVal = Scalar.new(3);
-    map.set(x, xVal);
-    map.set(node.output, xVal);
-
-    expect(graph_util.isPassthroughNode(node, map)).toBe(true);
-    xVal.dispose();
   });
 });

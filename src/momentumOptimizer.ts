@@ -15,7 +15,7 @@ import {NDArrayMath} from './math/math';
 import {NDArray, Scalar} from './math/ndarray';
 import {SGDOptimizer} from './sgd_optimizer';
 import {SessionRuntime} from './session';
-import {TensorArrayMap} from './tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from './tensor_array_map';
 
 export class MomentumOptimizer extends SGDOptimizer {
   constructor(protected learningRate: number, 
@@ -25,7 +25,8 @@ export class MomentumOptimizer extends SGDOptimizer {
 
   beforeBatch(
     math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
-    activationArrayMap: TensorArrayMap, gradientArrayMap: TensorArrayMap) {
+    activationArrayMap: TensorArrayMap,
+    gradientArrayMap: SummedTensorArrayMap) {
     super.beforeBatch(math, batchSize, runtime,
       activationArrayMap, gradientArrayMap);
 
@@ -40,7 +41,8 @@ export class MomentumOptimizer extends SGDOptimizer {
 
   afterBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
-      activationArrayMap: TensorArrayMap, gradientArrayMap: TensorArrayMap) {
+      activationArrayMap: TensorArrayMap,
+      gradientArrayMap: SummedTensorArrayMap) {
     math.scope((keep) => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);

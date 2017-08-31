@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as conv_util from '../math/conv_util';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array3D, NDArray} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as test_util from '../test_util';
 
 import {MaxPool} from './max_pool';
@@ -28,12 +28,12 @@ describe('Max pool', () => {
   let xTensor: Tensor;
   let yTensor: Tensor;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -68,7 +68,7 @@ describe('Max pool', () => {
 
     // Backprop.
     const dy = Array3D.new([2, 2, depth], [50, 60, 90, 80]);
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
 
     op.backProp(math, activations, gradients);
 

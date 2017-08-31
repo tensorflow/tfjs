@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Array2D} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {MatMul} from './matmul';
 
@@ -28,12 +28,12 @@ describe('add operation', () => {
   let y: Tensor;
   let matmulOp: MatMul;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -79,7 +79,7 @@ describe('add operation', () => {
             x1.get(1, 2) * x2.get(2, 1));
 
     const dy = Array2D.new([2, 2], [1, 2, 3, 4]);
-    gradients.set(y, dy);
+    gradients.add(y, dy);
 
     matmulOp.backProp(math, activations, gradients);
 
@@ -140,7 +140,7 @@ describe('add operation', () => {
 
     // Back prop.
     const dy = Array1D.new([2, 3]);
-    gradients.set(y, dy);
+    gradients.add(y, dy);
 
     op.backProp(math, activations, gradients);
 
@@ -181,7 +181,7 @@ describe('add operation', () => {
 
     // Back prop.
     const dy = Array1D.new([2, 3]);
-    gradients.set(y, dy);
+    gradients.add(y, dy);
 
     op.backProp(math, activations, gradients);
 

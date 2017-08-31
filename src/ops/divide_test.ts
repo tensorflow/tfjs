@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Scalar} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {Divide} from './divide';
 
@@ -28,12 +28,12 @@ describe('divide operation', () => {
   let yTensor: Tensor;
   let divideOp: Divide;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -65,7 +65,7 @@ describe('divide operation', () => {
     expect(y.get(2)).toBeCloseTo(3 / 6);
 
     const dy = Array1D.new([3, 4, 5]);
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
 
     divideOp.backProp(math, activations, gradients);
 
@@ -103,7 +103,7 @@ describe('divide operation', () => {
     expect(y.get(2)).toBeCloseTo(2 / 6);
 
     const dy = Array1D.new([3, 4, 5]);
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
 
     divideOp.backProp(math, activations, gradients);
 
@@ -140,7 +140,7 @@ describe('divide operation', () => {
     expect(y.get(2)).toBeCloseTo(6 / 2);
 
     const dy = Array1D.new([3, 4, 5]);
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
 
     divideOp.backProp(math, activations, gradients);
 

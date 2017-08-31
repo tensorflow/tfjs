@@ -140,7 +140,28 @@ describe('Session', () => {
     });
   });
 
-  it('Backprop through a split node, input is scalar', () => {
+  it('Eval 2 tensors that share a split graph: y=x^2 + x, z=y + 1', () => {
+    const x = g.placeholder('x', [2]);
+    const xSquared = g.square(x);
+    const y = g.add(xSquared, x);
+    const z = g.add(y, g.constant(1));
+    const math = new NDArrayMathGPU();
+    const session = new Session(g, math);
+
+    math.scope(() => {
+      const result1 =
+          session.eval(y, [{tensor: x, data: Array1D.new([5, 4])}]);
+      const expectedY = new Float32Array([30, 20]);
+      test_util.expectArraysClose(result1.getValues(), expectedY, 1e-5);
+
+      const result2 =
+          session.eval(z, [{tensor: x, data: Array1D.new([5, 4])}]);
+      const expectedZ = new Float32Array([31, 21]);
+      test_util.expectArraysClose(result2.getValues(), expectedZ, 1e-5);
+    });
+  });
+
+  it('Backprop through a  with 2 outputs, input is scalar', () => {
     const x = g.placeholder('x', []);
     const y = g.square(x);
     const z = g.add(x, g.constant(3));
@@ -172,7 +193,7 @@ describe('Session', () => {
     expect(dwdx).toBe(-1);
   });
 
-  it('Backprop through a split node, input is Array1D', () => {
+  it('Backprop through a node with 2 outputs, input is Array1D', () => {
     const x = g.placeholder('x', [2]);
     const y = g.square(x);
     const z = g.add(x, g.constant(3));

@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 import {NDArrayMath} from '../math/math';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 /**
  * @hidden
@@ -25,10 +25,10 @@ export abstract class Operation {
 
   abstract backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap): void;
+      gradientArrays: SummedTensorArrayMap): void;
 
   disposeTransientArrays(
-      inferenceArrays: TensorArrayMap, gradientArrays: TensorArrayMap) {}
+      inferenceArrays: TensorArrayMap, gradientArrays: SummedTensorArrayMap) {}
 
   dispose() {}
 }

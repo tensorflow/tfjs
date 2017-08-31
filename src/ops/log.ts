@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {NDArrayMath} from '../math/math';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {Operation} from './op';
 
@@ -41,13 +41,13 @@ export class Log extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const x = inferenceArrays.get(this.xTensor);
     const dy = gradientArrays.get(this.yTensor);
 
-    math.scope((keep) => {
+    math.scope(() => {
       if (graph_util.shouldBackProp(this.xTensor)) {
-        gradientArrays.set(this.xTensor, keep(math.divide(dy, x)));
+        gradientArrays.add(this.xTensor, math.divide(dy, x));
       }
     });
   }

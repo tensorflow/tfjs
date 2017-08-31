@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {MeanSquaredCost} from './element_wise_cost';
 
@@ -28,12 +28,12 @@ describe('MeanSquaredCost', () => {
   let yTensor: Tensor;
   let meanSquaredCostOperation: MeanSquaredCost;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {

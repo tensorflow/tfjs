@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Scalar} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {SoftmaxCrossEntropyCost} from './softmax';
 
@@ -26,12 +26,12 @@ describe('softmax cross entropy cost', () => {
   let labelTensor: Tensor;
   let yTensor: Tensor;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -67,7 +67,7 @@ describe('softmax cross entropy cost', () => {
         3);
 
     const dy = Scalar.new(1);
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
 
     op.backProp(math, activations, gradients);
 

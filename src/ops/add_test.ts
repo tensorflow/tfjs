@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Array2D, Scalar} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {Add} from './add';
 
@@ -28,12 +28,12 @@ describe('add operation', () => {
   let y: Tensor;
   let addOp: Add;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -64,7 +64,7 @@ describe('add operation', () => {
     expect(yVal.getValues()).toEqual(new Float32Array([4, 6, 8]));
 
     const dy = Array1D.new([6, 7, 8]);
-    gradients.set(y, dy);
+    gradients.add(y, dy);
 
     addOp.backProp(math, activations, gradients);
 
@@ -97,7 +97,7 @@ describe('add operation', () => {
     expect(yVal.getValues()).toEqual(new Float32Array([4, 6, 8, 11, 13, 15]));
 
     const dy = Array2D.new([2, 3], [10, 11, 12, 13, 14, 15]);
-    gradients.set(y, dy);
+    gradients.add(y, dy);
 
     addOp.backProp(math, activations, gradients);
 
@@ -130,7 +130,7 @@ describe('add operation', () => {
     expect(yVal.getValues()).toEqual(new Float32Array([3, 4, 5, 6, 7, 8]));
 
     const dy = Array2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
-    gradients.set(y, dy);
+    gradients.add(y, dy);
 
     addOp.backProp(math, activations, gradients);
 
@@ -163,7 +163,7 @@ describe('add operation', () => {
     expect(yVal.getValues()).toEqual(new Float32Array([3, 4, 5, 6, 7, 8]));
 
     const dy = Array2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
-    gradients.set(y, dy);
+    gradients.add(y, dy);
 
     addOp.backProp(math, activations, gradients);
 

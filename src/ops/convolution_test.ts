@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as conv_util from '../math/conv_util';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {Convolution2D} from './convolution';
 
@@ -35,12 +35,12 @@ describe('Convolution', () => {
   let bTensor: Tensor;
   let yTensor: Tensor;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -259,7 +259,7 @@ describe('Convolution', () => {
 
     const dy3d = NDArray.randNormal<Array3D>([2, 2, 1]);
 
-    gradients.set(yTensor, dy3d);
+    gradients.add(yTensor, dy3d);
 
     conv.backProp(math, activations, gradients);
 
@@ -341,7 +341,7 @@ describe('Convolution', () => {
 
     const dy = NDArray.randNormal<Array3D>(result.shape);
 
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
 
     conv.backProp(math, activations, gradients);
 

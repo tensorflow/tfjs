@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as conv_util from '../math/conv_util';
 import {NDArrayMath} from '../math/math';
 import {Array1D, Array3D, Array4D} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -73,17 +73,17 @@ export class Convolution2D extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const weights = inferenceArrays.get(this.wTensor) as Array4D;
     const x = inferenceArrays.get(this.xTensor) as Array3D;
     const dy = gradientArrays.get(this.yTensor) as Array3D;
 
-    math.scope((keep) => {
+    math.scope(() => {
       const {dw, db, dx} =
           math.conv2dBackProp(x, dy, weights, this.stride, this.zeroPad);
-      gradientArrays.set(this.wTensor, keep(dw));
-      gradientArrays.set(this.bTensor, keep(db));
-      gradientArrays.set(this.xTensor, keep(dx));
+      gradientArrays.add(this.wTensor, dw);
+      gradientArrays.add(this.bTensor, db);
+      gradientArrays.add(this.xTensor, dx);
     });
   }
 

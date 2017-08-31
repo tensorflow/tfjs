@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {NDArrayMath} from '../math/math';
 import {NDArray} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -44,19 +44,20 @@ export class ReduceSum extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     if (!graph_util.shouldBackProp(this.x)) {
       return;
     }
 
-    math.scope((keep) => {
+    math.scope(() => {
       const dy = gradientArrays.get(this.outTensor);
       if (this.ones == null) {
         const xArray = inferenceArrays.get(this.x);
         this.ones = NDArray.zerosLike(xArray);
         this.ones.fill(1);
       }
-      gradientArrays.set(this.x, keep(math.scalarTimesArray(dy, this.ones)));
+      gradientArrays.add(
+          this.x, math.scalarTimesArray(dy, this.ones));
     });
   }
 }

@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as conv_util from '../math/conv_util';
 import {NDArrayMath} from '../math/math';
 import {Array3D} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -58,15 +58,15 @@ export class MaxPool extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const x = inferenceArrays.get(this.xTensor) as Array3D;
     const dy = gradientArrays.get(this.yTensor) as Array3D;
 
-    math.scope((keep) => {
-      gradientArrays.set(
+    math.scope(() => {
+      gradientArrays.add(
           this.xTensor,
-          keep(math.maxPoolBackprop(
-              dy, x, this.fieldSize, this.stride, this.pad)));
+          math.maxPoolBackprop(
+              dy, x, this.fieldSize, this.stride, this.pad));
     });
   }
 }

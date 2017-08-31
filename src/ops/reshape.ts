@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMath} from '../math/math';
 import {NDArray} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -41,11 +41,12 @@ export class Reshape<T1 extends NDArray, T2 extends NDArray> extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const dy = gradientArrays.get(this.yTensor) as T2;
 
-    math.scope(keep => {
-      gradientArrays.set(this.xTensor, keep(dy.reshape(this.xTensor.shape)));
+    math.scope(() => {
+      gradientArrays.add(
+          this.xTensor, dy.reshape(this.xTensor.shape));
     });
   }
 }

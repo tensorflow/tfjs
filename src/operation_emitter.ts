@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 // tslint:disable-next-line:max-line-length
-import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat3DNode, Convolution2DNode, DivideNode, ExpNode, FusedLinearCombinationNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, ReduceSumNode, ReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SplitNode, SquareNode, SubtractNode, TanHNode} from './graph';
+import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat3DNode, Convolution2DNode, DivideNode, ExpNode, FusedLinearCombinationNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, ReduceSumNode, ReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SquareNode, SubtractNode, TanHNode} from './graph';
 import * as graph_util from './graph_util';
 import {Add} from './ops/add';
 import {ArgMax} from './ops/argmax';
@@ -34,7 +34,6 @@ import {Operation} from './ops/op';
 import {ReduceSum} from './ops/reduce_sum';
 import {Reshape} from './ops/reshape';
 import {Softmax, SoftmaxCrossEntropyCost} from './ops/softmax';
-import {Split} from './ops/split';
 import {Subtract} from './ops/subtract';
 
 export function emitFromGraphNodes(nodes: Node[]): Operation[] {
@@ -113,8 +112,6 @@ function emitOpFromNode(node: Node): Operation[] {
   } else if (node instanceof DivideNode) {
     return [new Divide(
         node.inputs[DivideNode.T1], node.inputs[DivideNode.T2], node.output)];
-  } else if (node instanceof SplitNode) {
-    return [new Split(node.inputs[SplitNode.X], node.outputs)];
   } else if (node instanceof ReduceSumNode) {
     return [new ReduceSum(node.inputs[ReduceSumNode.X], node.output)];
   } else if (graph_util.isInputNode(node)) {

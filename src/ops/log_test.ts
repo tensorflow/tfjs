@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 
 import {Log} from './log';
 
@@ -27,12 +27,12 @@ describe('log operation', () => {
   let yTensor: Tensor;
   let logOp: Log;
   let activations: TensorArrayMap;
-  let gradients: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
     math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
-    gradients = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
   });
 
   afterEach(() => {
@@ -60,7 +60,7 @@ describe('log operation', () => {
     expect(y.get(2)).toBeCloseTo(Math.log(x.get(2)));
 
     const dy = Array1D.new([1, 2, 3]);
-    gradients.set(yTensor, dy);
+    gradients.add(yTensor, dy);
 
     logOp.backProp(math, activations, gradients);
 

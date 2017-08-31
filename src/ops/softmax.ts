@@ -16,7 +16,7 @@ limitations under the License.
 import {Tensor} from '../graph';
 import {NDArrayMath} from '../math/math';
 import {Array1D, Scalar} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -62,17 +62,18 @@ export class SoftmaxCrossEntropyCost extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const softmax = inferenceArrays.get(this.softmaxTensor);
     const label = inferenceArrays.get(this.labelTensor);
 
-    math.scope((keep) => {
-      gradientArrays.set(this.logitsTensor, keep(math.sub(softmax, label)));
+    math.scope(() => {
+      gradientArrays.add(
+          this.logitsTensor, math.sub(softmax, label));
     });
   }
 
   disposeTransientArrays(
-      inferenceArrays: TensorArrayMap, gradientArrays: TensorArrayMap) {
+      inferenceArrays: TensorArrayMap, gradientArrays: SummedTensorArrayMap) {
     inferenceArrays.disposeArray(this.softmaxTensor);
   }
 

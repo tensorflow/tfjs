@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {NDArrayMath} from '../math/math';
 import {NDArray} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -62,7 +62,7 @@ export class Divide extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const x1 = inferenceArrays.get(this.x1Tensor);
     const x2 = inferenceArrays.get(this.x2Tensor);
     const dy = gradientArrays.get(this.yTensor);
@@ -70,19 +70,19 @@ export class Divide extends Operation {
     const x1IsScalar = util.isScalarShape(x1.shape);
     const x2IsScalar = util.isScalarShape(x2.shape);
 
-    math.scope((keep) => {
+    math.scope(() => {
       if (graph_util.shouldBackProp(this.x1Tensor)) {
         if (x1IsScalar) {
           const div = math.divide(dy, x2);
 
-          gradientArrays.set(this.x1Tensor, keep(math.sum(div)));
+          gradientArrays.add(this.x1Tensor, math.sum(div));
 
           div.dispose();
         } else if (x2IsScalar) {
-          gradientArrays.set(
-              this.x1Tensor, keep(math.arrayDividedByScalar(dy, x2)));
+          gradientArrays.add(
+              this.x1Tensor, math.arrayDividedByScalar(dy, x2));
         } else {
-          gradientArrays.set(this.x1Tensor, keep(math.divide(dy, x2)));
+          gradientArrays.add(this.x1Tensor, math.divide(dy, x2));
         }
       }
 
@@ -103,9 +103,10 @@ export class Divide extends Operation {
         const dyTimesDerivative = math.elementWiseMul(dy, dx2);
 
         if (x2IsScalar) {
-          gradientArrays.set(this.x2Tensor, keep(math.sum(dyTimesDerivative)));
+          gradientArrays.add(
+              this.x2Tensor, math.sum(dyTimesDerivative));
         } else {
-          gradientArrays.set(this.x2Tensor, keep(dyTimesDerivative));
+          gradientArrays.add(this.x2Tensor, dyTimesDerivative);
         }
       }
     });

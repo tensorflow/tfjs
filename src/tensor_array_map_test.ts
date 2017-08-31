@@ -14,8 +14,9 @@ limitations under the License.
 ==============================================================================*/
 
 import {Tensor} from './graph';
-import {NDArray} from './math/ndarray';
-import {TensorArrayMap} from './tensor_array_map';
+import {NDArray, Array1D} from './math/ndarray';
+import {NDArrayMathCPU} from './math/math_cpu';
+import {TensorArrayMap, SummedTensorArrayMap} from './tensor_array_map';
 
 describe('TensorArrayMap.size', () => {
   it('is 0 at construction', () => {
@@ -104,5 +105,24 @@ describe('TensorArrayMap.delete', () => {
     map.delete(t);
     map.delete(t);
     map.delete(t);
+  });
+});
+
+describe('SummedTensorArrayMap.add', () => {
+  let map: SummedTensorArrayMap;
+  let t: Tensor;
+  let math: NDArrayMathCPU;
+  beforeEach(() => {
+    math = new NDArrayMathCPU();
+    map = new SummedTensorArrayMap(math);
+    t = new Tensor([]);
+  });
+
+  it('add sums gradients', () => {
+    map.add(t, Array1D.new([1, 2, 3]));
+    expect(map.get(t).getValues()).toEqual(new Float32Array([1, 2, 3]));
+
+    map.add(t, Array1D.new([30, 20, 10]));
+    expect(map.get(t).getValues()).toEqual(new Float32Array([31, 22, 13]));
   });
 });

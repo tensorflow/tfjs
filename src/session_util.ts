@@ -14,14 +14,14 @@ limitations under the License.
 ==============================================================================*/
 
 // tslint:disable-next-line:max-line-length
-import {ConstantNode, Node, PlaceholderNode, SplitNode, Tensor, VariableNode} from './graph';
+import {ConstantNode, Node, PlaceholderNode, Tensor, VariableNode} from './graph';
 import * as graph_util from './graph_util';
 import {InputProvider} from './input_provider';
 import {NDArrayMath} from './math/math';
 import {NDArray} from './math/ndarray';
 import {Operation} from './ops/op';
 import {FeedDictionary} from './session';
-import {TensorArrayMap} from './tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from './tensor_array_map';
 import * as util from './util';
 
 /**
@@ -203,14 +203,14 @@ export function disposeAndInitializeOperationOutputs(
  * @param gradients The gradient map to dispose and initialize.
  */
 export function disposeAndInitializeOperationInputGradients(
-    evaluationSet: Node[], gradients: TensorArrayMap) {
+    evaluationSet: Node[], gradients: SummedTensorArrayMap) {
   evaluationSet.forEach(node => {
     Object.keys(node.inputs).forEach(inputName => {
       const input = node.inputs[inputName];
       if (gradients.get(input, true) !== gradients.get(node.output, true)) {
         gradients.disposeArray(input);
       }
-      gradients.set(input, null);
+      gradients.nullify(input);
     });
   });
 }
@@ -227,7 +227,7 @@ export function disposeAndInitializeOperationInputGradients(
  */
 export function disposeTransientOperationArrays(
     operations: Operation[], activations: TensorArrayMap,
-    gradients: TensorArrayMap) {
+    gradients: SummedTensorArrayMap) {
   operations.forEach(op => op.disposeTransientArrays(activations, gradients));
 }
 
@@ -249,57 +249,4 @@ export function throwErrorIfEvaluationSetContainsPlaceholderNodes(
           ' not present in feed dictionary.');
     }
   });
-}
-
-/**
- * Injects splits nodes after every node that has multiple consumers.
- *
- * @hidden
- * @param nodes The node list in evaluation order.
- * @return The node list with split nodes injected.
- */
-export function addSplitNodes(nodes: Node[]): Node[] {
-  const nodeIdToNumConsumers: number[] = [];
-  const nodeIdToSplitNode: {[nodeId: number]: SplitNode} = {};
-
-  // Find nodes that have multiple consumers.
-  nodes.forEach(node => {
-    const keys = Object.keys(node.inputs);
-    keys.forEach(key => {
-      const inputTensor = node.inputs[key];
-      const input = inputTensor.node;
-      if (nodeIdToNumConsumers[input.id] == null) {
-        nodeIdToNumConsumers[input.id] = 0;
-      }
-      nodeIdToNumConsumers[input.id]++;
-      if (nodeIdToNumConsumers[input.id] > 1 &&
-          nodeIdToSplitNode[input.id] == null) {
-        nodeIdToSplitNode[input.id] = new SplitNode(input.graph, inputTensor);
-      }
-    });
-  });
-
-  // Inject a split node after each node that has multiple consumers and
-  // rewire the inputs of the consumers to consume the output tensors of the
-  // split node instead of the original node. Each consumer consumes a
-  // different output tensor so that derivatives are not overwritten.
-  // x-->y  becomes x-->s-->y   where y consumes the 1st output tensor of s
-  // |-->z              |-->z     and z consumes the 2nd output tensor of s
-  const newNodes: Node[] = [];
-  nodes.forEach(node => {
-    newNodes.push(node);
-    if (node.id in nodeIdToSplitNode) {
-      const splitNode = nodeIdToSplitNode[node.id];
-      newNodes.push(splitNode);
-    }
-    const keys = Object.keys(node.inputs);
-    keys.forEach(key => {
-      const inputTensor = node.inputs[key];
-      const inputId = inputTensor.node.id;
-      if (inputId in nodeIdToSplitNode) {
-        node.inputs[key] = nodeIdToSplitNode[inputId].getNewOutputTensor();
-      }
-    });
-  });
-  return newNodes;
 }

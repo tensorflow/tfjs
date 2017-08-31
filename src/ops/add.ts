@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {NDArrayMath} from '../math/math';
 import {NDArray, Scalar} from '../math/ndarray';
-import {TensorArrayMap} from '../tensor_array_map';
+import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -60,20 +60,20 @@ export class Add extends Operation {
 
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
-      gradientArrays: TensorArrayMap) {
+      gradientArrays: SummedTensorArrayMap) {
     const dy = gradientArrays.get(this.yTensor);
 
-    math.scope((keep) => {
+    math.scope(() => {
       if (graph_util.shouldBackProp(this.x1Tensor)) {
         if (util.isScalarShape(this.x1Tensor.shape)) {
           const sum = math.sum(dy);
           if (this.dySizeScalar == null) {
             this.dySizeScalar = Scalar.new(dy.size);
           }
-          gradientArrays.set(
-              this.x1Tensor, keep(math.divide(sum, this.dySizeScalar)));
+          gradientArrays.add(
+              this.x1Tensor, math.divide(sum, this.dySizeScalar));
         } else {
-          gradientArrays.set(this.x1Tensor, dy);
+          gradientArrays.add(this.x1Tensor, dy);
         }
       }
 
@@ -83,10 +83,10 @@ export class Add extends Operation {
           if (this.dySizeScalar == null) {
             this.dySizeScalar = Scalar.new(dy.size);
           }
-          gradientArrays.set(
-              this.x2Tensor, keep(math.divide(sum, this.dySizeScalar)));
+          gradientArrays.add(
+              this.x2Tensor, math.divide(sum, this.dySizeScalar));
         } else {
-          gradientArrays.set(this.x2Tensor, dy);
+          gradientArrays.add(this.x2Tensor, dy);
         }
       }
     });
