@@ -26,7 +26,12 @@ const watchify = spawn(cmd, [startTsFilePath, '-p', '[tsify]', '-v', '--debug',
 watchify.stdout.pipe(process.stdout);
 watchify.stderr.pipe(process.stderr);
 
-const httpCmd = path.join('node_modules', '.bin', 'http-server');
-const httpServer = spawn(httpCmd, ['-c-1'], { detached: false});
-httpServer.stdout.pipe(process.stdout);
-httpServer.stderr.pipe(process.stderr);
+console.log('Waiting for initial compile...');
+watchify.stderr.on('data', (data) => {
+  if (data.toString().includes(`written to ${path.dirname(startTsFilePath)}`)) {
+    const httpCmd = path.join('node_modules', '.bin', 'http-server');
+    const httpServer = spawn(httpCmd, ['-c-1'], { detached: false});
+    httpServer.stdout.pipe(process.stdout);
+    httpServer.stderr.pipe(process.stderr);
+  }
+});
