@@ -47,6 +47,7 @@ describe('Model runner', () => {
 
   let avgCostCallback: (avgCost: Scalar) => void;
   let metricCallback: (metric: Scalar) => void;
+  let originalTimeout: number;
 
   const fakeUserEvents: GraphRunnerEventObserver = {
     batchesTrainedCallback: (totalBatchesTrained: number) => null,
@@ -59,6 +60,9 @@ describe('Model runner', () => {
   };
 
   beforeEach(() => {
+    // Workaround to avoid jasmine callback timeout.
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
     math = new NDArrayMathCPU();
     g = new Graph();
     optimizer = new SGDOptimizer(FAKE_LEARNING_RATE);
@@ -92,6 +96,10 @@ describe('Model runner', () => {
     spyOn(fakeUserEvents, 'inferenceExamplesCallback').and.callThrough();
     spyOn(fakeUserEvents, 'trainExamplesPerSecCallback').and.callThrough();
     spyOn(fakeUserEvents, 'totalTimeCallback').and.callThrough();
+  });
+
+  afterEach(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
   it('basic train usage, train 3 batches', (doneFn) => {
