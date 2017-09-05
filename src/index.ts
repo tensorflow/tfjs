@@ -37,6 +37,6 @@ export {GPGPUContext} from './math/webgl/gpgpu_context';
 export {Optimizer} from './optimizer';
 export {CostReduction, FeedEntry, Session} from './session';
 export {SGDOptimizer} from './sgd_optimizer';
-export {MomentumOptimizer} from './momentumOptimizer';
+export {MomentumOptimizer} from './momentum_optimizer';
 // Second level exports.
 export {conv_util, gpgpu_util, render_ndarray_gpu_util, util, webgl_util};
