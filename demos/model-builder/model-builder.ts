@@ -31,10 +31,6 @@ import {Normalization} from './tensorflow';
 
 const DATASETS_CONFIG_JSON = 'model-builder-datasets-config.json';
 
-// TODO(nsthorat): Make these parameters in the UI.
-const BATCH_SIZE = 64;
-const LEARNING_RATE = 0.1;
-const MOMENTUM = 0.1;
 /** How often to evaluate the model against test data. */
 const EVAL_INTERVAL_MS = 1500;
 /** How often to compute the cost. Downloading the cost stalls the GPU. */
@@ -74,6 +70,9 @@ export let ModelBuilderPolymer: new () => PolymerHTMLElement = PolymerElement({
     datasetNames: Array,
     selectedDatasetName: String,
     modelNames: Array,
+    learningRate: Number,
+    momentum: Number,
+    batchSize: Number,
     selectedModelName: String,
     selectedNormalizationOption:
         {type: Number, value: Normalization.NORMALIZATION_NEGATIVE_ONE_TO_ONE},
@@ -122,6 +121,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private dataSet: InMemoryDataset;
   private xhrDatasetConfigs: {[datasetName: string]: XhrDatasetConfig};
   private datasetStats: DataStats[];
+  private learingRate: number;
+  private momentum: number;
+  private batchSize: number;
 
   // Stats.
   private showDatasetStats: boolean;
@@ -183,7 +185,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
           totalTimeSec.toFixed(1),
     };
     this.graphRunner = new GraphRunner(this.math, this.session, eventObserver);
-    this.optimizer = new MomentumOptimizer(LEARNING_RATE, MOMENTUM);
+    this.optimizer = new MomentumOptimizer(this.learingRate, this.momentum);
 
     // Set up datasets.
     this.populateDatasets();
@@ -218,6 +220,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
         this.setupDatasetStats();
       });
     }
+    this.learningRate = 0.1;
+    this.momentum = 0.1;
+    this.batchSize = 64;
 
     this.applicationState = ApplicationState.IDLE;
     this.loadedWeights = null;
@@ -318,6 +323,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
     const trainingData = this.getTrainingData();
     const testData = this.getTestData();
 
+    // Recreate optimizer with the latest learning rate.
+    this.optimizer = new MomentumOptimizer(+this.learningRate, +this.momentum);
+
     if (this.isValid && (trainingData != null) && (testData != null)) {
       this.recreateCharts();
       this.graphRunner.resetStatistics();
@@ -343,9 +351,10 @@ export class ModelBuilder extends ModelBuilderPolymer {
       ];
 
       this.graphRunner.train(
-          this.costTensor, trainFeeds, BATCH_SIZE, this.optimizer,
+          this.costTensor, trainFeeds, this.batchSize, this.optimizer,
           undefined /** numBatches */, this.accuracyTensor, accuracyFeeds,
-          BATCH_SIZE, MetricReduction.MEAN, EVAL_INTERVAL_MS, COST_INTERVAL_MS);
+          this.batchSize, MetricReduction.MEAN, EVAL_INTERVAL_MS,
+          COST_INTERVAL_MS);
 
       this.showTrainStats = true;
       this.applicationState = ApplicationState.TRAINING;
@@ -628,7 +637,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
   }
 
   displayBatchesTrained(totalBatchesTrained: number) {
-    this.examplesTrained = BATCH_SIZE * totalBatchesTrained;
+    this.examplesTrained = this.batchSize * totalBatchesTrained;
   }
 
   displayCost(avgCost: Scalar) {

@@ -239,6 +239,17 @@ paper-progress {
           </template>
         </paper-listbox>
       </paper-dropdown-menu>
+
+      <div class="subtitle">Hyperparameters</div>
+      <paper-input no-animations label="Learning Rate" id="learning-rate-input" disabled="[[!datasetDownloaded]]" value={{learningRate}}>
+      </paper-input>
+
+      <paper-input no-animations label="Momentum" id="momentum" disabled="[[!datasetDownloaded]]" value={{momentum}}>
+      </paper-input>
+
+      <paper-input no-animations label="Batch Size" id="batch-size" disabled="[[!datasetDownloaded]]" value={{batchSize}}>
+      </paper-input>
+
       <div hidden$="[[isValid]]" class="model-error">
         <div hidden$="[[!datasetDownloaded]]"">
           <paper-tooltip animation-delay="0" fit-to-visible-bounds>
