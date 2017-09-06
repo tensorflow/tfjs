@@ -67,10 +67,9 @@ export function isWebGL2Enabled() {
     if (gl != null) {
       WEBGL2_ENABLED = true;
 
-      const loseContextExtension =
-          getExtensionOrThrow(
-              gl as WebGLRenderingContext, 'WEBGL_lose_context') as
-          WebGLLoseContextExtension;
+      const loseContextExtension = getExtensionOrThrow(
+          gl as WebGLRenderingContext,
+          'WEBGL_lose_context') as WebGLLoseContextExtension;
       loseContextExtension.loseContext();
     } else {
       WEBGL2_ENABLED = false;
@@ -86,9 +85,10 @@ export function createWebGLRenderingContextFromCanvas(
   if (isWebGL2Enabled()) {
     gl = canvas.getContext('webgl2', attributes) as WebGLRenderingContext;
   } else {
-    gl = (canvas.getContext('webgl', attributes) ||
-          canvas.getContext('experimental-webgl', attributes)) as
-        WebGLRenderingContext;
+    gl =
+        (canvas.getContext('webgl', attributes) ||
+         canvas.getContext(
+             'experimental-webgl', attributes)) as WebGLRenderingContext;
   }
 
   if (gl == null) {
@@ -169,6 +169,7 @@ export function createFragmentShader(
   callAndCheck(gl, () => gl.shaderSource(fragmentShader, fragmentShaderSource));
   callAndCheck(gl, () => gl.compileShader(fragmentShader));
   if (gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS) === false) {
+    console.log(fragmentShaderSource);
     console.log(gl.getShaderInfoLog(fragmentShader));
     throw new Error('Failed to compile fragment shader.');
   }

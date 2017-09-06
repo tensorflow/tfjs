@@ -38,32 +38,35 @@ export class ResizeBilinear3DProgram implements GPGPUProgram {
         this.outputShape;
     this.userCode = `
       const vec2 effectiveInputOverOutputRatioRC = vec2(
-          ${effectiveInputShape[0] / effectiveOutputShape[0]},
-          ${effectiveInputShape[1] / effectiveOutputShape[1]});
+          ${effectiveInputShape[0] /
+        effectiveOutputShape[0]},
+          ${effectiveInputShape[1] /
+        effectiveOutputShape[1]});
       const vec2 inputShapeRC = vec2(${inputShape[0]}.0, ${inputShape[1]}.0);
 
       void main() {
-        vec3 coords = getOutputCoords();
-        vec2 yRC = coords.xy;
-        float d = coords.z;
+        ivec3 coords = getOutputCoords();
+        ivec2 yRC = coords.xy;
+        int d = coords.z;
 
         // Fractional source index.
-        vec2 sourceFracIndexRC = yRC * effectiveInputOverOutputRatioRC;
+        vec2 sourceFracIndexRC = vec2(yRC) * effectiveInputOverOutputRatioRC;
 
         // Compute the four integer indices.
-        vec2 sourceFloorRC = floor(sourceFracIndexRC);
-        vec2 sourceCeilRC = min(inputShapeRC - 1.0, ceil(sourceFracIndexRC));
+        ivec2 sourceFloorRC = ivec2(sourceFracIndexRC);
+        ivec2 sourceCeilRC = ivec2(
+          min(inputShapeRC - 1.0, ceil(sourceFracIndexRC)));
 
-        float topLeft = getA(sourceFloorRC[0], sourceFloorRC[1], d);
-        float bottomLeft = getA(sourceCeilRC[0], sourceFloorRC[1], d);
-        float topRight = getA(sourceFloorRC[0], sourceCeilRC[1], d);
-        float bottomRight = getA(sourceCeilRC[0], sourceCeilRC[1], d);
+        float topLeft = getA(sourceFloorRC.x, sourceFloorRC.y, d);
+        float bottomLeft = getA(sourceCeilRC.x, sourceFloorRC.y, d);
+        float topRight = getA(sourceFloorRC.x, sourceCeilRC.y, d);
+        float bottomRight = getA(sourceCeilRC.x, sourceCeilRC.y, d);
 
-        vec2 fracRC = sourceFracIndexRC - sourceFloorRC;
+        vec2 fracRC = sourceFracIndexRC - vec2(sourceFloorRC);
 
-        float top = topLeft + (topRight - topLeft) * fracRC[1];
-        float bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC[1];
-        float newValue = top + (bottom - top) * fracRC[0];
+        float top = topLeft + (topRight - topLeft) * fracRC.y;
+        float bottom = bottomLeft + (bottomRight - bottomLeft) * fracRC.y;
+        float newValue = top + (bottom - top) * fracRC.x;
 
         setOutput(newValue);
       }

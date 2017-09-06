@@ -25,9 +25,9 @@ export class MinMaxProgram implements GPGPUProgram {
     this.params = [opType];
     this.userCode = `
       void main() {
-        float value = getAFlat(0.0);
+        float value = getAFlat(0);
         for (int i = 0; i < ${aSize}; i++) {
-          float candidate = getAFlat(float(i));
+          float candidate = getAFlat(i);
           if (isNaN(candidate)) {
             setOutput(candidate);
             return;

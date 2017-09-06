@@ -90,7 +90,11 @@ function getTextureInternalFormat(
 
 function getTextureFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-  if (webgl_util.isWebGL2Enabled() && numChannels === 1) {
+  if (webgl_util.isWebGL2Enabled()) {
+    if (numChannels === 4) {
+      // tslint:disable-next-line:no-any
+      return (gl as any).RGBA;
+    }
     // tslint:disable-next-line:no-any
     return (gl as any).RED;
   }
@@ -206,12 +210,17 @@ export function uploadMatrixToTexture(
 
   const channelsPerTexture =
       numChannels === 1 ? webgl_util.getChannelsPerTexture() : numChannels;
-  const unpackedArray =
-      new Float32Array(tex_util.getUnpackedArraySizeFromMatrixSize(
-          matrix.length, channelsPerTexture));
-  tex_util.encodeMatrixToUnpackedArray(
-      matrix, unpackedArray, channelsPerTexture);
-
+  let unpackedArray: Float32Array;
+  if (channelsPerTexture === 1) {
+    // No need to allocate a temporary array.
+    unpackedArray = matrix;
+  } else {
+    unpackedArray =
+        new Float32Array(tex_util.getUnpackedArraySizeFromMatrixSize(
+            matrix.length, channelsPerTexture));
+    tex_util.encodeMatrixToUnpackedArray(
+        matrix, unpackedArray, channelsPerTexture);
+  }
   uploadDataToTexture(gl, texture, w, h, unpackedArray, numChannels);
 }
 

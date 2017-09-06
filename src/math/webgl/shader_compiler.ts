@@ -109,41 +109,39 @@ function getOutputSamplingSnippet(
 }
 
 const SAMPLE_1D_SNIPPET = `
-vec2 UVfrom1D(float texNumR, float texNumC, float index) {
-  float texR = floor(index / texNumC);
-  float texC = mod(index, texNumC);
+vec2 UVfrom1D(int texNumR, int texNumC, int index) {
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
 `;
 
 const SAMPLE_2D_SNIPPET = `
-vec2 UVfrom2D(float texNumR, float texNumC, float numC, float row,
-    float col) {
-  float index = dot(vec2(row, col), vec2(numC, 1.0));
-  float texR = floor(index / texNumC);
-  float texC = mod(index, texNumC);
+vec2 UVfrom2D(int texNumR, int texNumC, int numC, int row, int col) {
+  int index = row * numC + col;
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
 `;
 
 const SAMPLE_3D_SNIPPET = `
-vec2 UVfrom3D(float texNumR, float texNumC, float stride0,
-    float stride1, float row, float col, float depth) {
-  float index = dot(vec3(row, col, depth), vec3(stride0, stride1, 1.0));
-  float texR = floor(index / texNumC);
-  float texC = mod(index, texNumC);
+vec2 UVfrom3D(int texNumR, int texNumC, int stride0,
+    int stride1, int row, int col, int depth) {
+  int index = row * stride0 + col * stride1 + depth;
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
 `;
 
 const SAMPLE_4D_SNIPPET = `
-vec2 UVfrom4D(float texNumR, float texNumC, float stride0,
-    float stride1, float stride2, float row, float col, float depth,
-    float depth2) {
-  float index = dot(vec4(row, col, depth, depth2),
-                    vec4(stride0, stride1, stride2, 1.0));
-  float texR = floor(index / texNumC);
-  float texC = mod(index, texNumC);
+vec2 UVfrom4D(int texNumR, int texNumC, int stride0,
+    int stride1, int stride2, int row, int col, int depth,
+    int depth2) {
+  int index = row * stride0 + col * stride1 + depth * stride2 + depth2;
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
   return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
 }
 `;
@@ -174,22 +172,22 @@ function getOutput1DCoords(
     shape: [number], texShape: [number, number]): string {
   if (texShape[0] === 1) {
     return `
-      float getOutputCoords() {
-        return floor(gl_FragCoord.x);
+      int getOutputCoords() {
+        return int(gl_FragCoord.x);
       }
     `;
   }
   if (texShape[1] === 1) {
     return `
-      float getOutputCoords() {
-        return floor(gl_FragCoord.y);
+      int getOutputCoords() {
+        return int(gl_FragCoord.y);
       }
     `;
   }
   return `
-    float getOutputCoords() {
-      vec2 resTexRC = floor(gl_FragCoord.yx);
-      return dot(resTexRC, vec2(${texShape[1]}.0, 1.0));
+    int getOutputCoords() {
+      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      return resTexRC.x * ${texShape[1]} + resTexRC.y;
     }
   `;
 }
@@ -199,14 +197,14 @@ function getOutput3DCoords(
   const stride0 = shape[1] * shape[2];
   const stride1 = shape[2];
   return `
-    vec3 getOutputCoords() {
-      vec2 resTexRC = floor(gl_FragCoord.yx);
-      float index = dot(resTexRC, vec2(${texShape[1]}.0, 1.0));
-      float r = floor(index / ${stride0}.0);
-      index -= r * ${stride0}.0;
-      float c = floor(index / ${stride1}.0);
-      float d = mod(index, ${stride1}.0);
-      return vec3(r, c, d);
+    ivec3 getOutputCoords() {
+      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
+      int r = index / ${stride0};
+      index -= r * ${stride0};
+      int c = index / ${stride1};
+      int d = index - c * ${stride1};
+      return ivec3(r, c, d);
     }
   `;
 }
@@ -218,20 +216,20 @@ function getOutput4DCoords(
   const stride1 = shape[2] * stride2;
   const stride0 = shape[1] * stride1;
   return `
-    vec4 getOutputCoords() {
-      vec2 resTexRC = floor(gl_FragCoord.yx);
-      float index = dot(resTexRC, vec2(${texShape[1]}.0, 1.0));
+    ivec4 getOutputCoords() {
+      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
 
-      float r = floor(index / ${stride0}.0);
-      index -= r * ${stride0}.0;
+      int r = index / ${stride0};
+      index -= r * ${stride0};
 
-      float c = floor(index / ${stride1}.0);
-      index -= c * ${stride1}.0;
+      int c = index / ${stride1};
+      index -= c * ${stride1};
 
-      float d = floor(index / ${stride2}.0);
-      float d2 = mod(index, ${stride2}.0);
+      int d = index / ${stride2};
+      int d2 = index - d * ${stride2};
 
-      return vec4(r, c, d, d2);
+      return ivec4(r, c, d, d2);
     }
   `;
 }
@@ -240,18 +238,36 @@ function getOutput2DCoords(
     shape: [number, number], texShape: [number, number]): string {
   if (util.arraysEqual(shape, texShape)) {
     return `
-      vec2 getOutputCoords() {
-        return floor(gl_FragCoord.yx);
+      ivec2 getOutputCoords() {
+        return ivec2(gl_FragCoord.yx);
+      }
+    `;
+  }
+  if (shape[1] === 1) {
+    return `
+      ivec2 getOutputCoords() {
+        ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+        int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
+        return ivec2(index, 0);
+      }
+    `;
+  }
+  if (shape[0] === 1) {
+    return `
+      ivec2 getOutputCoords() {
+        ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+        int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
+        return ivec2(0, index);
       }
     `;
   }
   return `
-    vec2 getOutputCoords() {
-      vec2 resTexRC = floor(gl_FragCoord.yx);
-      float index = dot(resTexRC, vec2(${texShape[1]}.0, 1.0));
-      float r = floor(index / ${shape[1]}.0);
-      float c = mod(index, ${shape[1]}.0);
-      return vec2(r, c);
+    ivec2 getOutputCoords() {
+      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
+      int r = index / ${shape[1]};
+      int c = index - r * ${shape[1]};
+      return ivec2(r, c);
     }
   `;
 }
@@ -271,30 +287,30 @@ function getSampler1D(texName: string, texShape: [number, number]): string {
   const tC = texShape[1];
   if (texShape[0] === 1 && texShape[1] === 1) {
     return `
-      float ${funcName}(float index) {
+      float ${funcName}(int index) {
         return sample(${texName}, halfCR);
       }
     `;
   }
   if (texShape[1] === 1) {
     return `
-      float ${funcName}(float index) {
-        vec2 uv = vec2(0.5, (index + 0.5) / ${tR}.0);
+      float ${funcName}(int index) {
+        vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tR}.0);
         return sample(${texName}, uv);
       }
     `;
   }
   if (texShape[0] === 1) {
     return `
-      float ${funcName}(float index) {
-        vec2 uv = vec2((index + 0.5) / ${tC}.0, 0.5);
+      float ${funcName}(int index) {
+        vec2 uv = vec2((float(index) + 0.5) / ${tC}.0, 0.5);
         return sample(${texName}, uv);
       }
     `;
   }
   return `
-    float ${funcName}(float index) {
-      vec2 uv = UVfrom1D(${tR}.0, ${tC}.0, index);
+    float ${funcName}(int index) {
+      vec2 uv = UVfrom1D(${tR}, ${tC}, index);
       return sample(${texName}, uv);
     }
   `;
@@ -310,18 +326,17 @@ function getSampler3D(
   const stride1 = shape[2];
   if (tC === stride0) {
     return `
-      float ${funcName}(float row, float col, float depth) {
-        float texR = row;
-        float texC = dot(vec2(col, depth), vec2(${stride1}, 1.0));
+      float ${funcName}(int row, int col, int depth) {
+        int texR = row;
+        int texC = col * ${stride1} + depth;
         vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${tC}.0, ${tR}.0);
         return sample(${texName}, uv);
       }
     `;
   }
   return `
-    float ${funcName}(float row, float col, float depth) {
-      vec2 uv = UVfrom3D(${tR}.0, ${tC}.0, ${stride0}.0, ${stride1}.0, row,
-        col, depth);
+    float ${funcName}(int row, int col, int depth) {
+      vec2 uv = UVfrom3D(${tR}, ${tC}, ${stride0}, ${stride1}, row, col, depth);
       return sample(${texName}, uv);
     }
   `;
@@ -339,19 +354,18 @@ function getSampler4D(
 
   if (tC === stride0) {
     return `
-      float ${funcName}(float row, float col, float depth, float depth2) {
-        float texR = row;
-        float texC = dot(vec3(col, depth, depth2),
-                         vec3(${stride1}.0, ${stride2}.0, 1.0));
+      float ${funcName}(int row, int col, int depth, int depth2) {
+        int texR = row;
+        int texC = col * ${stride1} + depth * ${stride2} + depth2;
         vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${tC}.0, ${tR}.0);
         return sample(${texName}, uv);
       }
     `;
   }
   return `
-    float ${funcName}(float row, float col, float depth, float depth2) {
-      vec2 uv = UVfrom4D(${tR}.0, ${tC}.0, ${stride0}.0, ${stride1}.0,
-          ${stride2}.0, row, col, depth, depth2);
+    float ${funcName}(int row, int col, int depth, int depth2) {
+      vec2 uv = UVfrom4D(${tR}, ${tC}, ${stride0}, ${stride1}, ${stride2},
+          row, col, depth, depth2);
       return sample(${texName}, uv);
     }
   `;
@@ -365,33 +379,49 @@ function getSampler2D(
   const tC = texShape[1];
   if (util.arraysEqual(shape, texShape)) {
     return `
-      float ${funcName}(float row, float col) {
+      float ${funcName}(int row, int col) {
         vec2 uv = (vec2(col, row) + halfCR) / vec2(${tC}.0, ${tR}.0);
         return sample(${texName}, uv);
       }
     `;
   }
   if (tC === 1) {
+    if (shape[0] === 1) {
+      return `
+        float ${funcName}(int row, int col) {
+          vec2 uv = vec2(0.5, (float(col) + 0.5) / ${tR}.0);
+          return sample(${texName}, uv);
+        }
+      `;
+    }
+    if (shape[1] === 1) {
+      return `
+        float ${funcName}(int row, int col) {
+          vec2 uv = vec2(0.5, (float(row) + 0.5) / ${tR}.0);
+          return sample(${texName}, uv);
+        }
+      `;
+    }
     return `
-      float ${funcName}(float row, float col) {
-        float index = dot(vec2(row, col), vec2(${shape[1]}.0, 1.0));
-        vec2 uv = vec2(0.5, (index + 0.5) / ${tR}.0);
+      float ${funcName}(int row, int col) {
+        int index = row * ${shape[1]} + col;
+        vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tR}.0);
         return sample(${texName}, uv);
       }
     `;
   }
   if (tR === 1) {
     return `
-      float ${funcName}(float row, float col) {
-        float index = dot(vec2(row, col), vec2(${shape[1]}.0, 1.0));
-        vec2 uv = vec2((index + 0.5) / ${tC}.0, 0.5);
+      float ${funcName}(int row, int col) {
+        int index = row * ${shape[1]} + col;
+        vec2 uv = vec2((float(index) + 0.5) / ${tC}.0, 0.5);
         return sample(${texName}, uv);
       }
     `;
   }
   return `
-    float ${funcName}(float row, float col) {
-      vec2 uv = UVfrom2D(${tR}.0, ${tC}.0, ${shape[1]}.0, row, col);
+    float ${funcName}(int row, int col) {
+      vec2 uv = UVfrom2D(${tR}, ${tC}, ${shape[1]}, row, col);
       return sample(${texName}, uv);
     }
   `;
@@ -404,31 +434,31 @@ function getSamplerFlat(texName: string, texShape: [number, number]): string {
   const tNumC = texShape[1];
   if (tNumC === 1 && tNumR === 1) {
     return `
-      float ${funcName}(float index) {
+      float ${funcName}(int index) {
         return sample(${texName}, halfCR);
       }
     `;
   }
   if (tNumC === 1) {
     return `
-      float ${funcName}(float index) {
-        vec2 uv = vec2(0.5, (index + 0.5) / ${tNumR}.0);
+      float ${funcName}(int index) {
+        vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tNumR}.0);
         return sample(${texName}, uv);
       }
     `;
   }
   if (tNumR === 1) {
     return `
-      float ${funcName}(float index) {
-        vec2 uv = vec2((index + 0.5) / ${tNumC}.0, 0.5);
+      float ${funcName}(int index) {
+        vec2 uv = vec2((float(index) + 0.5) / ${tNumC}.0, 0.5);
         return sample(${texName}, uv);
       }
     `;
   }
   return `
-    float ${funcName}(float index) {
-      float texR = floor(index / ${tNumC}.0);
-      float texC = mod(index, ${tNumC}.0);
+    float ${funcName}(int index) {
+      int texR = index / ${tNumC};
+      int texC = index - texR * ${tNumC};
       vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${tNumC}.0, ${tNumR}.0);
       return sample(${texName}, uv);
     }
@@ -448,15 +478,20 @@ function getSamplerAtOutputCoords(
     `;
   }
   const inSize = util.sizeFromShape(inTexShape);
-  const broadcastSnippet = broadcast ? `index = mod(index, ${inSize}.0);` : '';
-
+  let broadcastSnippet = '';
+  if (broadcast) {
+    broadcastSnippet = `
+      int mainPart = index / ${inSize};
+      index -= mainPart * ${inSize};
+    `;
+  }
   return `
     float ${funcName}() {
-      vec2 resTexRC = floor(gl_FragCoord.yx);
-      float index = dot(resTexRC, vec2(${outTexShape[1]}.0, 1.0));
+      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      int index = resTexRC.x * ${outTexShape[1]} + resTexRC.y;
       ${broadcastSnippet}
-      float texR = floor(index / ${inTexShape[1]}.0);
-      float texC = mod(index, ${inTexShape[1]}.0);
+      int texR = index / ${inTexShape[1]};
+      int texC = index - texR * ${inTexShape[1]};
       vec2 uv = (vec2(texC, texR) + halfCR) /
                  vec2(${inTexShape[1]}.0, ${inTexShape[0]}.0);
       return sample(${texName}, uv);

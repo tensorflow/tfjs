@@ -44,10 +44,9 @@ export class MatMulProgram implements GPGPUProgram {
     this.userCode = `
       const int sharedDim = ${sharedDim};
 
-      float dotARowBCol(float aRow, float bCol) {
+      float dotARowBCol(int aRow, int bCol) {
         float result = 0.0;
-        for (int ii = 0; ii < sharedDim; ii++) {
-          float i = float(ii);
+        for (int i = 0; i < sharedDim; i++) {
           float a = getMatrixA(${aSnippet});
           float b = getMatrixB(${bSnippet});
           result += (a * b);
@@ -56,7 +55,7 @@ export class MatMulProgram implements GPGPUProgram {
       }
 
       void main() {
-        vec2 resRC = getOutputCoords();
+        ivec2 resRC = getOutputCoords();
         setOutput(dotARowBCol(resRC.x, resRC.y));
       }
     `;

@@ -24,14 +24,14 @@ export class LogSumExpProgram implements GPGPUProgram {
   constructor(aSize: number) {
     this.userCode = `
       void main() {
-        float aMax = getAFlat(0.0);
+        float aMax = getAFlat(0);
         for (int i = 0; i < ${aSize}; i++) {
-          aMax = max(aMax, getAFlat(float(i)));
+          aMax = max(aMax, getAFlat(i));
         }
 
         float expSum = 0.0;
         for (int i = 0; i < ${aSize}; i++) {
-          expSum += exp(getAFlat(float(i)) - aMax);
+          expSum += exp(getAFlat(i) - aMax);
         }
 
         setOutput(aMax + log(expSum));

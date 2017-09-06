@@ -26,7 +26,7 @@ export class ReduceSumProgram implements GPGPUProgram {
       void main() {
         float sum = 0.0;
         for (int i = 0; i < ${aSize}; i++) {
-          sum += getAFlat(float(i));
+          sum += getAFlat(i);
         }
         setOutput(sum);
       }

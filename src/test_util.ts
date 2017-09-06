@@ -69,12 +69,14 @@ export function cpuMultiplyMatrix(
     bCol: number) {
   const result = new Float32Array(aRow * bCol);
   for (let r = 0; r < aRow; ++r) {
+    const aOffset = (r * aCol);
+    const cOffset = (r * bCol);
     for (let c = 0; c < bCol; ++c) {
       let d = 0;
       for (let k = 0; k < aCol; ++k) {
-        d += a[(r * aCol) + k] * b[(k * bCol) + c];
+        d += a[aOffset + k] * b[(k * bCol) + c];
       }
-      result[(r * bCol) + c] = d;
+      result[cOffset + c] = d;
     }
   }
   return result;

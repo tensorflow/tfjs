@@ -37,43 +37,43 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
         [dilatedDyRC[0], dilatedDyRC[1], dyShape[2]], fSize, dyShape[2], 1,
         pad);
 
+    const lastIndex = fSize * fSize - 1;
     this.userCode = `
+      const ivec2 pads = ivec2(${pad}, ${pad});
+
       void main() {
-        vec3 coords = getOutputCoords();
-        float dxR = coords.x;
-        float dxC = coords.y;
-        float d = coords.z;
+        ivec3 coords = getOutputCoords();
+        int d = coords.z;
 
-        vec2 dyRCCorner = vec2(dxR, dxC) - vec2(${pad}.0, ${pad}.0);
-        float dyRCorner = dyRCCorner.x;
-        float dyCCorner = dyRCCorner.y;
+        ivec2 dyRCCorner = coords.xy - pads;
+        int dyRCorner = dyRCCorner.x;
+        int dyCCorner = dyRCCorner.y;
 
-        // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(yR, dxC, d).
+        // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(xR, xC, d).
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
-        for (int iwR = 0; iwR < ${fSize}; iwR++) {
-          float wR = float(iwR);
-          float dyR = (dyRCorner + wR) / ${origStride}.0;
+        for (int wR = 0; wR < ${fSize}; wR++) {
+          float dyR = float(dyRCorner + wR) / ${origStride}.0;
 
           if (dyR < 0.0 || dyR >= ${dyRows}.0 || fract(dyR) > 0.0) {
             continue;
           }
+          int idyR = int(dyR);
 
-          for (int iwC = 0; iwC < ${fSize}; iwC++) {
-            float wC = float(iwC);
-            float dyC = (dyCCorner + wC) / ${origStride}.0;
+          for (int wC = 0; wC < ${fSize}; wC++) {
+            float dyC = float(dyCCorner + wC) / ${origStride}.0;
 
             if (dyC < 0.0 || dyC >= ${dyCols}.0 || fract(dyC) > 0.0) {
               continue;
             }
+            int idyC = int(dyC);
 
-            float dyValue = getDy(dyR, dyC, d);
-            float maxPosValue =
-                ${fSize * fSize - 1}.0 - getMaxPos(dyR, dyC, d);
+            float dyValue = getDy(idyR, idyC, d);
+            int maxPosValue = ${lastIndex} - int(getMaxPos(idyR, idyC, d));
 
             // Get the current value, check it against the value from the
             // position matrix.
-            float curPosValue = wR * ${fSize}.0 + wC;
+            int curPosValue = wR * ${fSize} + wC;
             float mask = float(maxPosValue == curPosValue ? 1.0 : 0.0);
 
             dotProd += dyValue * mask;

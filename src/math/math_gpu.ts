@@ -153,9 +153,13 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   protected batchNormalization3DInternal(
       x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-      varianceEpsilon = 0.000001, scale?: Array3D|Array1D,
+      varianceEpsilon: number|null, scale?: Array3D|Array1D,
       offset?: Array3D|Array1D): Array3D {
     const inputs = [x, mean, variance];
+
+    if (varianceEpsilon == null) {
+      varianceEpsilon = 0.000001;
+    }
 
     let offsetShape = null;
     if (offset != null) {

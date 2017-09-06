@@ -43,14 +43,15 @@ export class GPGPUContext {
     if (!webgl_util.isWebGL2Enabled()) {
       this.textureFloatExtension =
           webgl_util.getExtensionOrThrow(this.gl, 'OES_texture_float');
+      this.colorBufferFloatExtension =
+          this.gl.getExtension('WEBGL_color_buffer_float');
     } else {
       this.colorBufferFloatExtension =
           webgl_util.getExtensionOrThrow(this.gl, 'EXT_color_buffer_float');
     }
 
-    this.loseContextExtension =
-        webgl_util.getExtensionOrThrow(this.gl, 'WEBGL_lose_context') as
-        WebGLLoseContextExtension;
+    this.loseContextExtension = webgl_util.getExtensionOrThrow(
+        this.gl, 'WEBGL_lose_context') as WebGLLoseContextExtension;
     this.vertexBuffer = gpgpu_util.createVertexBuffer(this.gl);
     this.indexBuffer = gpgpu_util.createIndexBuffer(this.gl);
     this.framebuffer = webgl_util.createFramebuffer(this.gl);
@@ -258,6 +259,9 @@ export class GPGPUContext {
     this.throwIfDisposed();
     webgl_util.bindColorTextureToFramebuffer(
         this.gl, texture, this.framebuffer);
+    if (this.autoDebugValidate) {
+      webgl_util.validateFramebuffer(this.gl);
+    }
     const result = downloadAndDecode();
     if (this.outputTexture != null) {
       webgl_util.bindColorTextureToFramebuffer(

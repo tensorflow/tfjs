@@ -26,16 +26,14 @@ export class Copy2DProgram implements GPGPUProgram {
     this.outputShape = null;
     this.params = [srcNumCols, destNumCols];
     this.userCode = `
-      uniform vec2 sourceStart;
-      uniform vec2 destStart;
+      uniform ivec2 sourceStart;
+      uniform ivec2 destStart;
 
       void main() {
-        vec2 destCoords = getOutputCoords() - destStart;
-        float index = dot(destCoords, vec2(${destNumCols}.0, 1.0));
-        vec2 sourceCoords = sourceStart + vec2(
-          floor(index / ${srcNumCols}.0),
-          mod(index, ${srcNumCols}.0)
-        );
+        ivec2 destCoords = getOutputCoords() - destStart;
+        int index = destCoords.x * ${destNumCols} + destCoords.y;
+        int r = index / ${srcNumCols};
+        ivec2 sourceCoords = sourceStart + ivec2(r, index - r * ${srcNumCols});
         setOutput(getSource(sourceCoords.x, sourceCoords.y));
       }
     `;
@@ -48,9 +46,9 @@ export class Copy2DProgram implements GPGPUProgram {
       gpgpu.setOutputMatrixWriteRegion(
           destStart[0], destSize[0], destStart[1], destSize[1]);
       const sourceStartCRLoc = gpgpu.getUniformLocation('sourceStart');
-      gpgpu.gl.uniform2f(sourceStartCRLoc, sourceStart[0], sourceStart[1]);
+      gpgpu.gl.uniform2i(sourceStartCRLoc, sourceStart[0], sourceStart[1]);
       const destStartCRLoc = gpgpu.getUniformLocation('destStart');
-      gpgpu.gl.uniform2f(destStartCRLoc, destStart[0], destStart[1]);
+      gpgpu.gl.uniform2i(destStartCRLoc, destStart[0], destStart[1]);
     };
   }
 }

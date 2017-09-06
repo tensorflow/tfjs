@@ -20,11 +20,10 @@ export function getArgMinMaxSnippet(
   const compOp = (op === 'min') ? '<' : '>';
   return `
     float getArgMinMax${texName}() {
-      float bestIndex = 0.0;
-      float bestValue = get${texName}Flat(0.0);
+      int bestIndex = 0;
+      float bestValue = get${texName}Flat(0);
 
-      for (int ii = 0; ii < ${size}; ii++) {
-        float i = float(ii);
+      for (int i = 0; i < ${size}; i++) {
         float candidate = get${texName}Flat(i);
         if (isNaN(candidate)) {
           return candidate;
@@ -34,7 +33,7 @@ export function getArgMinMaxSnippet(
           bestIndex = i;
         }
       }
-      return bestIndex;
+      return float(bestIndex);
     }
   `;
 }

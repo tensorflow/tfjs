@@ -19,7 +19,7 @@ import * as copy2d_util from './copy2d_util';
 
 import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 
-export type ScopeResult = NDArray[]|NDArray|void;
+export type ScopeResult = NDArray[] | NDArray | void;
 
 export interface LSTMCell {
   (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
@@ -162,11 +162,10 @@ export abstract class NDArrayMath {
     return result;
   }
 
-  private checkForNaN(arr: NDArray): void {
-    const vals = arr.getValues();
+  private checkForNaN(vals: Float32Array, name: string): void {
     for (let i = 0; i < vals.length; i++) {
       if (isNaN(vals[i])) {
-        throw Error('The result NDArray of the last math call has NaNs.');
+        throw Error(`The result of the last math.${name} has NaNs.`);
       }
     }
   }
@@ -177,9 +176,6 @@ export abstract class NDArrayMath {
    * @param result The NDArray to track in the current scope.
    */
   track<T extends NDArray>(result: T): T {
-    if (this.debugMode) {
-      this.checkForNaN(result);
-    }
     if (this.activeScope == null) {
       if (this.safeMode) {
         throw new Error(
@@ -225,8 +221,31 @@ export abstract class NDArrayMath {
             `${b.shape} and orientations ${MatrixOrientation[aOrientation]}` +
             ` and ${MatrixOrientation[bOrientation]} must match.`);
 
-    return this.track(this.matMulInternal(a, b, aOrientation, bOrientation));
+    return this.executeOp(
+        'matMul', () => this.matMulInternal(a, b, aOrientation, bOrientation));
   }
+
+  private executeOp<T extends NDArray>(name: string, f: () => T): T {
+    let start: number;
+    if (this.debugMode) {
+      start = performance.now();
+    }
+    const result = f();
+    if (this.debugMode) {
+      const vals = result.getValues();
+      const time = util.rightPad((performance.now() - start) + 'ms', 9);
+      const paddedName = util.rightPad(name, 25);
+      const rank = result.rank;
+      const size = result.size;
+      const shape = util.rightPad(result.shape + '', 14);
+      console.log(
+          `%c${paddedName}\t%c${time}\t%c${rank}D ${shape}\t%c${size}`,
+          'font-weight:bold', 'color:red', 'color:blue', 'color: orange');
+      this.checkForNaN(vals, name);
+    }
+    return this.track(result);
+  }
+
   protected abstract matMulInternal(
       a: Array2D, b: Array2D, aOrientation: MatrixOrientation,
       bOrientation: MatrixOrientation): Array2D;
@@ -317,7 +336,7 @@ export abstract class NDArrayMath {
    * @param ndarray The NDArray to clone.
    */
   clone<T extends NDArray>(ndarray: T): T {
-    return this.track(this.cloneInternal(ndarray));
+    return this.executeOp('clone', () => this.cloneInternal(ndarray));
   }
   protected abstract cloneInternal<T extends NDArray>(ndarray: T): T;
 
@@ -347,7 +366,8 @@ export abstract class NDArrayMath {
             begin[1] + size[1] <= input.shape[1],
         `Error in slice2D: requested start position ${begin} and size ` +
             `${size} would overflow input of shape ${input.shape}.`);
-    return this.track(this.slice2DInternal(input, begin, size));
+    return this.executeOp(
+        'slice2D', () => this.slice2DInternal(input, begin, size));
   }
   protected abstract slice2DInternal(
       input: Array2D, begin: [number, number], size: [number, number]): Array2D;
@@ -366,7 +386,7 @@ export abstract class NDArrayMath {
   copy2D(
       source: Array2D, sourceBegin: [number, number],
       sourceSize: [number, number], dest: Array2D, destBegin: [number, number],
-      destSize: [number, number]) {
+      destSize: [number, number]): void {
     util.assert(
         sourceBegin[0] + sourceSize[0] <= source.shape[0] &&
             sourceBegin[1] + sourceSize[1] <= source.shape[1],
@@ -381,8 +401,11 @@ export abstract class NDArrayMath {
             `shape ${dest.shape}.`);
     copy2d_util.validateShapes(sourceSize, destSize);
 
-    return this.copy2DInternal(
-        source, sourceBegin, sourceSize, dest, destBegin, destSize);
+    this.executeOp('copy2D', () => {
+      this.copy2DInternal(
+          source, sourceBegin, sourceSize, dest, destBegin, destSize);
+      return dest;
+    });
   }
   protected abstract copy2DInternal(
       source: Array2D, sourceBegin: [number, number],
@@ -422,7 +445,8 @@ export abstract class NDArrayMath {
   concat3D(ndarray1: Array3D, ndarray2: Array3D, axis: number): Array3D {
     concat3d_util.assertConcat3DShapesMatch(
         ndarray1.shape, ndarray2.shape, axis, 'Error in concat3d: ');
-    return this.track(this.concat3DInternal(ndarray1, ndarray2, axis));
+    return this.executeOp(
+        'concat3D', () => this.concat3DInternal(ndarray1, ndarray2, axis));
   }
   protected abstract concat3DInternal(
       ndarray1: Array3D, ndarray2: Array3D, axis: number): Array3D;
@@ -436,7 +460,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray to compute the logSumExp over.
    */
   logSumExp(ndarray: NDArray): Scalar {
-    return this.track(this.logSumExpInternal(ndarray));
+    return this.executeOp('logSumExp', () => this.logSumExpInternal(ndarray));
   }
   protected abstract logSumExpInternal(ndarray: NDArray): Scalar;
 
@@ -445,7 +469,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray to compute the sum over.
    */
   sum(ndarray: NDArray): Scalar {
-    return this.track(this.sumInternal(ndarray));
+    return this.executeOp('sum', () => this.sumInternal(ndarray));
   }
   protected abstract sumInternal(ndarray: NDArray): Scalar;
 
@@ -454,7 +478,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   argMin(ndarray: NDArray): Scalar {
-    return this.track(this.argMinInternal(ndarray));
+    return this.executeOp('argMin', () => this.argMinInternal(ndarray));
   }
   protected abstract argMinInternal(ndarray: NDArray): Scalar;
 
@@ -463,7 +487,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   argMax(ndarray: NDArray): Scalar {
-    return this.track(this.argMaxInternal(ndarray));
+    return this.executeOp('argMax', () => this.argMaxInternal(ndarray));
   }
   protected abstract argMaxInternal(ndarray: NDArray): Scalar;
 
@@ -474,7 +498,8 @@ export abstract class NDArrayMath {
    */
   argMaxEquals(x1: NDArray, x2: NDArray): Scalar {
     util.assertShapesMatch(x1.shape, x2.shape, 'Error in argMaxEquals: ');
-    return this.track(this.argMaxEqualsInternal(x1, x2));
+    return this.executeOp(
+        'argMaxEquals', () => this.argMaxEqualsInternal(x1, x2));
   }
   protected abstract argMaxEqualsInternal(x1: NDArray, x2: NDArray): Scalar;
 
@@ -488,8 +513,11 @@ export abstract class NDArrayMath {
         k <= ndarray.size,
         `Error in topK: k value (${k}) must be less than size of input ` +
             `ndarray, got shape ${ndarray.shape}.`);
-    const result = this.topKInternal(ndarray, k);
-    this.track(result.values);
+    let result: {values: Array1D, indices: Array1D};
+    this.executeOp('topK', () => {
+      result = this.topKInternal(ndarray, k);
+      return result.values;
+    });
     this.track(result.indices);
     return result;
   }
@@ -501,7 +529,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   min(ndarray: NDArray): Scalar {
-    return this.track(this.minInternal(ndarray));
+    return this.executeOp('min', () => this.minInternal(ndarray));
   }
   protected abstract minInternal(ndarray: NDArray): Scalar;
 
@@ -510,7 +538,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   max(ndarray: NDArray): Scalar {
-    return this.track(this.maxInternal(ndarray));
+    return this.executeOp('max', () => this.maxInternal(ndarray));
   }
   protected abstract maxInternal(ndarray: NDArray): Scalar;
 
@@ -519,12 +547,14 @@ export abstract class NDArrayMath {
    * @param x The input vector.
    */
   softmax(x: Array1D): Array1D {
-    return this.scope(() => {
-      // Do it in log space for numerical stability.
-      // exp(X - logSumExp(X))
-      const lse = this.logSumExp(x);
-      const logResult = this.arrayMinusScalar(x, lse);
-      return this.exp(logResult);
+    return this.executeOp('softmax', () => {
+      return this.scope(() => {
+        // Do it in log space for numerical stability.
+        // exp(X - logSumExp(X))
+        const lse = this.logSumExp(x);
+        const logResult = this.arrayMinusScalar(x, lse);
+        return this.exp(logResult);
+      });
     });
   }
 
@@ -542,7 +572,7 @@ export abstract class NDArrayMath {
         a.rank === newDim.length,
         `Error in switchDim: length of input shape ${a.shape} ` +
             `must match size of newDim array ${newDim}.`);
-    return this.track(this.switchDimInternal(a, newDim));
+    return this.executeOp('switchDim', () => this.switchDimInternal(a, newDim));
   }
   protected abstract switchDimInternal<T extends NDArray>(
       a: T, newDim: number[]): T;
@@ -591,7 +621,7 @@ export abstract class NDArrayMath {
    * @param a The input array.
    */
   neg<T extends NDArray>(a: T): T {
-    return this.track(this.negInternal(a));
+    return this.executeOp('neg', () => this.negInternal(a));
   }
   protected abstract negInternal<T extends NDArray>(a: T): T;
 
@@ -604,7 +634,7 @@ export abstract class NDArrayMath {
    */
   add(a: NDArray, b: NDArray): NDArray {
     util.assertAndGetBroadcastedShape(a.shape, b.shape);
-    return this.track(this.addInternal(a, b));
+    return this.executeOp('add', () => this.addInternal(a, b));
   }
   protected abstract addInternal(a: NDArray, b: NDArray): NDArray;
 
@@ -629,7 +659,7 @@ export abstract class NDArrayMath {
    */
   sub(a: NDArray, b: NDArray): NDArray {
     util.assertAndGetBroadcastedShape(a.shape, b.shape);
-    return this.track(this.subInternal(a, b));
+    return this.executeOp('sub', () => this.subInternal(a, b));
   }
   protected abstract subInternal(a: NDArray, b: NDArray): NDArray;
 
@@ -654,7 +684,7 @@ export abstract class NDArrayMath {
    */
   multiply(a: NDArray, b: NDArray): NDArray {
     util.assertAndGetBroadcastedShape(a.shape, b.shape);
-    return this.track(this.multiplyInternal(a, b));
+    return this.executeOp('multiply', () => this.multiplyInternal(a, b));
   }
   protected abstract multiplyInternal<T extends NDArray>(a: T, b: T): T;
 
@@ -686,7 +716,7 @@ export abstract class NDArrayMath {
    */
   divide(a: NDArray, b: NDArray): NDArray {
     util.assertAndGetBroadcastedShape(a.shape, b.shape);
-    return this.track(this.divideInternal(a, b));
+    return this.executeOp('divide', () => this.divideInternal(a, b));
   }
   protected abstract divideInternal(a: NDArray, b: NDArray): NDArray;
 
@@ -735,7 +765,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   exp<T extends NDArray>(ndarray: T): T {
-    return this.track(this.expInternal(ndarray));
+    return this.executeOp('exp', () => this.expInternal(ndarray));
   }
   protected abstract expInternal<T extends NDArray>(ndarray: T): T;
 
@@ -744,7 +774,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   log<T extends NDArray>(ndarray: T): T {
-    return this.track(this.logInternal(ndarray));
+    return this.executeOp('log', () => this.logInternal(ndarray));
   }
   protected abstract logInternal<T extends NDArray>(ndarray: T): T;
 
@@ -753,7 +783,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   sqrt<T extends NDArray>(ndarray: T): T {
-    return this.track(this.sqrtInternal(ndarray));
+    return this.executeOp('sqrt', () => this.sqrtInternal(ndarray));
   }
   protected abstract sqrtInternal<T extends NDArray>(ndarray: T): T;
 
@@ -762,7 +792,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   relu<T extends NDArray>(ndarray: T): T {
-    return this.track(this.reluInternal(ndarray));
+    return this.executeOp('relu', () => this.reluInternal(ndarray));
   }
   protected abstract reluInternal<T extends NDArray>(ndarray: T): T;
 
@@ -771,7 +801,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   sigmoid<T extends NDArray>(ndarray: T): T {
-    return this.track(this.sigmoidInternal(ndarray));
+    return this.executeOp('sigmoid', () => this.sigmoidInternal(ndarray));
   }
   protected abstract sigmoidInternal<T extends NDArray>(ndarray: T): T;
 
@@ -780,7 +810,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   tanh<T extends NDArray>(ndarray: T): T {
-    return this.track(this.tanhInternal(ndarray));
+    return this.executeOp('tanh', () => this.tanhInternal(ndarray));
   }
   protected abstract tanhInternal<T extends NDArray>(ndarray: T): T;
 
@@ -789,7 +819,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   sin<T extends NDArray>(ndarray: T): T {
-    return this.track(this.sinInternal(ndarray));
+    return this.executeOp('sin', () => this.sinInternal(ndarray));
   }
   protected abstract sinInternal<T extends NDArray>(ndarray: T): T;
 
@@ -799,7 +829,7 @@ export abstract class NDArrayMath {
    * @param ndarray The input NDArray.
    */
   step<T extends NDArray>(ndarray: T): T {
-    return this.track(this.stepInternal(ndarray));
+    return this.executeOp('step', () => this.stepInternal(ndarray));
   }
   protected abstract stepInternal<T extends NDArray>(ndarray: T): T;
 
@@ -821,7 +851,8 @@ export abstract class NDArrayMath {
             `NDArray of rank ${c2.rank}.`);
     util.assertShapesMatch(a.shape, b.shape, 'Error in scaledArrayAdd: ');
 
-    return this.track(this.scaledArrayAddInternal(c1, a, c2, b));
+    return this.executeOp(
+        'scaledArrayAdd', () => this.scaledArrayAddInternal(c1, a, c2, b));
   }
   protected abstract scaledArrayAddInternal<T extends NDArray>(
       c1: Scalar, a: T, c2: Scalar, b: T): T;
@@ -892,7 +923,9 @@ export abstract class NDArrayMath {
             `input depth for weights ${weights.shape[2]}.`);
 
 
-    return this.track(this.conv2dInternal(x, weights, biases, stride, zeroPad));
+    return this.executeOp(
+        'conv2d',
+        () => this.conv2dInternal(x, weights, biases, stride, zeroPad));
   }
   protected abstract conv2dInternal(
       x: Array3D, weights: Array4D, biases: Array1D|null, stride: number,
@@ -931,14 +964,15 @@ export abstract class NDArrayMath {
         `Error in conv2dBackProp: depth of dy (${dy.shape[2]}) must ` +
             `match output depth for weights (${weights.shape[3]}).`);
 
-    const backpropResult =
-        this.conv2dBackPropInternal(x, dy, weights, stride, pad);
 
-    this.track(backpropResult.db);
-    this.track(backpropResult.dw);
-    this.track(backpropResult.dx);
-
-    return backpropResult;
+    let result: {dx: Array3D, dw: Array4D, db: Array1D};
+    this.executeOp('conv2dBackProp', () => {
+      result = this.conv2dBackPropInternal(x, dy, weights, stride, pad);
+      return result.dx;
+    });
+    this.track(result.db);
+    this.track(result.dw);
+    return result;
   }
   protected abstract conv2dBackPropInternal(
       x: Array3D, dy: Array3D, weights: Array4D, stride: number,
@@ -977,8 +1011,9 @@ export abstract class NDArrayMath {
         `Error in conv2dTranspose: depth of input (${x.shape[2]}) must ` +
             `match input depth for weights ${weights.shape[3]}.`);
 
-    return this.track(
-        this.conv2dTransposeInternal(x, weights, biases, stride, pad));
+    return this.executeOp(
+        'conv2dTranspose',
+        () => this.conv2dTransposeInternal(x, weights, biases, stride, pad));
   }
   protected abstract conv2dTransposeInternal(
       x: Array3D, weights: Array4D, biases: Array1D|null, stride: number,
@@ -996,7 +1031,8 @@ export abstract class NDArrayMath {
     util.assert(
         x.rank === 3,
         'Error in maxPool: x must be rank 3 but got rank ' + x.rank + '.');
-    return this.track(this.maxPoolInternal(x, fSize, stride, pad));
+    return this.executeOp(
+        'maxPool', () => this.maxPoolInternal(x, fSize, stride, pad));
   }
   protected abstract maxPoolInternal(
       x: Array3D, fSize: number, stride: number, pad: number): Array3D;
@@ -1022,7 +1058,9 @@ export abstract class NDArrayMath {
         `Error in maxPoolBackprop: x must be rank 3 but got rank ` +
             `${x.rank}.`);
 
-    return this.track(this.maxPoolBackpropInternal(dy, x, fSize, stride, pad));
+    return this.executeOp(
+        'maxPoolBackprop',
+        () => this.maxPoolBackpropInternal(dy, x, fSize, stride, pad));
   }
   protected abstract maxPoolBackpropInternal(
       dy: Array3D, x: Array3D, fSize: number, stride: number,
@@ -1040,7 +1078,8 @@ export abstract class NDArrayMath {
     util.assert(
         x.rank === 3,
         `Error in minPool: x must be rank 3 but got rank ${x.rank}.`);
-    return this.track(this.minPoolInternal(x, fSize, stride, pad));
+    return this.executeOp(
+        'minPool', () => this.minPoolInternal(x, fSize, stride, pad));
   }
   protected abstract minPoolInternal(
       x: Array3D, fSize: number, stride: number, pad: number): Array3D;
@@ -1057,7 +1096,8 @@ export abstract class NDArrayMath {
     util.assert(
         x.rank === 3,
         `Error in avgPool: x must be rank 3 but got rank ${x.rank}.`);
-    return this.track(this.avgPoolInternal(x, fSize, stride, pad));
+    return this.executeOp(
+        'avgPool', () => this.avgPoolInternal(x, fSize, stride, pad));
   }
   protected abstract avgPoolInternal(
       x: Array3D, fSize: number, stride: number, pad: number): Array3D;
@@ -1081,8 +1121,9 @@ export abstract class NDArrayMath {
         newShape2D.length === 2,
         `Error in resizeBilinear3D: new shape must 2D, but got shape ` +
             `${newShape2D}.`);
-    return this.track(
-        this.resizeBilinear3DInternal(x, newShape2D, alignCorners));
+    return this.executeOp(
+        'resizeBilinear3D',
+        () => this.resizeBilinear3DInternal(x, newShape2D, alignCorners));
   }
   protected abstract resizeBilinear3DInternal(
       x: Array3D, newShape2D: [number, number], alignCorners: boolean): Array3D;
@@ -1128,8 +1169,10 @@ export abstract class NDArrayMath {
               `but got rank ${offset.rank}.`);
     }
 
-    return this.track(this.batchNormalization3DInternal(
-        x, mean, variance, varianceEpsilon, scale, offset));
+    return this.executeOp(
+        'batchNorm3D',
+        () => this.batchNormalization3DInternal(
+            x, mean, variance, varianceEpsilon, scale, offset));
   }
   protected abstract batchNormalization3DInternal(
       x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
@@ -1219,11 +1262,10 @@ export abstract class NDArrayMath {
       const o = this.slice2D(
           res, [0, res.shape[1] / 4 * 3], [res.shape[0], res.shape[1] / 4]);
 
-      const newC =
-          this.add(
-              this.multiplyStrict(
-                  c, this.sigmoid(this.scalarPlusArray(forgetBias, f))),
-              this.multiplyStrict(this.sigmoid(i), this.tanh(j))) as Array2D;
+      const newC = this.add(
+          this.multiplyStrict(
+              c, this.sigmoid(this.scalarPlusArray(forgetBias, f))),
+          this.multiplyStrict(this.sigmoid(i), this.tanh(j))) as Array2D;
       const newH =
           this.multiplyStrict(this.tanh(newC), this.sigmoid(o)) as Array2D;
 

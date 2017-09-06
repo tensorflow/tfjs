@@ -32,16 +32,16 @@ export class Concat3DProgram implements GPGPUProgram {
         concat3d_util.computeConcat3DOutputShape(x1Shape, x2Shape, axis);
     this.userCode = `
       void main() {
-        vec3 coords = getOutputCoords();
-        float yR = coords.x;
-        float yC = coords.y;
-        float yD = coords.z;
+        ivec3 coords = getOutputCoords();
+        int yR = coords.x;
+        int yC = coords.y;
+        int yD = coords.z;
 
         float value = 0.0;
-        if (${concatAxis} < ${x1Shape[axis]}.0) {
+        if (${concatAxis} < ${x1Shape[axis]}) {
           value = getA(yR, yC, yD);
         } else {
-          ${concatAxis} -= ${x1Shape[axis]}.0;
+          ${concatAxis} -= ${x1Shape[axis]};
           value = getB(yR, yC, yD);
         }
 

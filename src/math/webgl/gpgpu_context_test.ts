@@ -41,10 +41,19 @@ describe('GPGPUContext downloadMatrixFromTexture WebGL 2.0', () => {
     expect(result[0]).toBeCloseTo(0.123);
   });
 
-  it('returns matrix that was uploaded', () => {
+  it('returns 1x1 matrix that was uploaded', () => {
     gpgpu.uploadMatrixToTexture(texture, 1, 1, new Float32Array([1.234]));
     const result = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
     expect(result[0]).toBeCloseTo(1.234);
+  });
+
+  it('returns 2x2 matrix that was uploaded', () => {
+    const texture2 = gpgpu.createMatrixTexture(2, 2);
+    gpgpu.uploadMatrixToTexture(
+        texture2, 2, 2, new Float32Array([1.234, 2, 3, 4]));
+    const result = gpgpu.downloadMatrixFromTexture(texture2, 2, 2);
+    expect(result).toEqual(new Float32Array([1.234, 2, 3, 4]));
+    gpgpu.deleteMatrixTexture(texture2);
   });
 
   it('uses texture parameter', () => {
@@ -84,10 +93,19 @@ describe('GPGPUContext downloadMatrixFromTexture WebGL 1.0', () => {
     expect(result[0]).toBeCloseTo(0.123);
   });
 
-  it('returns matrix that was uploaded', () => {
+  it('returns 1x1 matrix that was uploaded', () => {
     gpgpu.uploadMatrixToTexture(texture, 1, 1, new Float32Array([1.234]));
     const result = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
     expect(result[0]).toBeCloseTo(1.234);
+  });
+
+  it('returns 2x2 matrix that was uploaded', () => {
+    const texture2 = gpgpu.createMatrixTexture(2, 2);
+    gpgpu.uploadMatrixToTexture(
+        texture2, 2, 2, new Float32Array([1.234, 2, 3, 4]));
+    const result = gpgpu.downloadMatrixFromTexture(texture2, 2, 2);
+    expect(result).toEqual(new Float32Array([1.234, 2, 3, 4]));
+    gpgpu.deleteMatrixTexture(texture2);
   });
 
   it('uses texture parameter', () => {

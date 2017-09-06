@@ -31,48 +31,49 @@ export class Pool2DProgram implements GPGPUProgram {
 
     let returnValue = 'minMaxValue';
     if (computePositions) {
-      returnValue = 'minMaxPosition';
+      returnValue = 'float(minMaxPosition)';
     } else if (poolType === 'avg') {
       returnValue = `avgValue / ${fSize * fSize}.0`;
     }
-    const xRowsLimit = xShape[0] - 0.5;
-    const xColsLimit = xShape[1] - 0.5;
+    const xRowsLimit = xShape[0];
+    const xColsLimit = xShape[1];
     this.params = [stride, pad, fSize, poolType, computePositions];
     this.outputShape =
         conv_util.computeOutputShape3D(xShape, fSize, xShape[2], stride, pad);
 
-    this.userCode = `
-      void main() {
-        vec3 coords = getOutputCoords();
-        float yR = coords.x;
-        float yC = coords.y;
-        float d = coords.z;
+    const isAvgPool = poolType === 'avg';
+    const compareOp = poolType === 'min' ? '<=' : '>=';
 
-        vec2 xRCCorner = vec2(yR, yC) * vec2(${stride}.0, ${stride}.0) -
-            vec2(${pad}.0, ${pad}.0);
-        float xRCorner = xRCCorner.x;
-        float xCCorner = xRCCorner.y;
+    this.userCode = `
+      const ivec2 strides = ivec2(${stride}, ${stride});
+      const ivec2 pads = ivec2(${pad}, ${pad});
+
+      void main() {
+        ivec3 coords = getOutputCoords();
+        int d = coords.z;
+
+        ivec2 xRCCorner = coords.xy * strides - pads;
+        int xRCorner = xRCCorner.x;
+        int xCCorner = xRCCorner.y;
 
         // max/min x(?, ?, d) to get y(yR, yC, d).
         // ? = to be determined
         float minMaxValue = 0.0;
         float minMaxValueFound = 0.0;
-        float minMaxPosition = 0.0;
+        int minMaxPosition = 0;
         float avgValue = 0.0;
 
-        for (int iwR = 0; iwR < ${fSize}; iwR++) {
-          float wR = float(iwR);
-          float xR = xRCorner + wR;
+        for (int wR = 0; wR < ${fSize}; wR++) {
+          int xR = xRCorner + wR;
 
-          if (xR < 0.0 || xR > ${xRowsLimit}) {
+          if (xR < 0 || xR >= ${xRowsLimit}) {
             continue;
           }
 
-          for (int iwC = 0; iwC < ${fSize}; iwC++) {
-            float wC = float(iwC);
-            float xC = xCCorner + wC;
+          for (int wC = 0; wC < ${fSize}; wC++) {
+            int xC = xCCorner + wC;
 
-            if (xC < 0.0 || xC > ${xColsLimit}) {
+            if (xC < 0 || xC >= ${xColsLimit}) {
               continue;
             }
 
@@ -83,18 +84,18 @@ export class Pool2DProgram implements GPGPUProgram {
               return;
             }
 
-            if (${poolType === 'avg'}) {
+            if (${isAvgPool}) {
               avgValue += value;
             } else {
               // If a min / max value has already been found, use it. If not,
               // use the current value.
               float currMinMaxValue = mix(
                   value, minMaxValue, minMaxValueFound);
-              if (value ${poolType === 'min' ? '<=' : '>='} currMinMaxValue) {
+              if (value ${compareOp} currMinMaxValue) {
                 minMaxValue = value;
                 minMaxValueFound = 1.0;
                 if (${computePositions}) {
-                  minMaxPosition = wR * ${fSize}.0 + wC;
+                  minMaxPosition = wR * ${fSize} + wC;
                 }
               }
             }

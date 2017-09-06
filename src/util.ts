@@ -103,7 +103,8 @@ export function flatten(arr: any[], ret?: number[]): number[] {
   return ret;
 }
 
-export type ArrayData = number|number[]|number[][]|number[][][]|number[][][][];
+export type ArrayData =
+    number | number[] | number[][] | number[][][] | number[][][][];
 
 export function inferShape(arr: ArrayData): number[] {
   const shape: number[] = [];
@@ -211,4 +212,11 @@ export function assertAndGetBroadcastedShape(
     result.push(Math.max(a, b));
   }
   return result.reverse();
+}
+
+export function rightPad(a: string, size: number): string {
+  if (size <= a.length) {
+    return a;
+  }
+  return a + ' '.repeat(size - a.length);
 }

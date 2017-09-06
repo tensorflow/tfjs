@@ -115,7 +115,7 @@ export function makeShaderKey(
   const params = program.params;
   const keyStart =
       inputs.concat(output).map(x => x.shape + '_' + x.getTextureShapeRC());
-  const keyEnd = params.map(p => p.toString());
+  const keyEnd = params.map(String);
   let key = [program.constructor.name];
   key.push((program.supportsBroadcasting === true).toString());
   key = key.concat(keyStart, keyEnd);
