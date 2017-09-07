@@ -19,6 +19,7 @@ import * as conv_transpose_gpu_benchmark from './conv_transpose_gpu_benchmark';
 import * as logsumexp_cpu_benchmark from './logsumexp_cpu_benchmark';
 import * as logsumexp_gpu_benchmark from './logsumexp_gpu_benchmark';
 import * as max_pool_gpu_benchmark from './max_pool_gpu_benchmark';
+import * as max_pool_cpu_benchmark from './max_pool_cpu_benchmark';
 import * as mulmat_cpu_benchmark from './mulmat_cpu_benchmark';
 import * as mulmat_gpu_benchmark from './mulmat_gpu_benchmark';
 
@@ -55,14 +56,17 @@ export const BENCHMARK_RUN_GROUPS: BenchmarkRunGroup[] = [
         'd1=1, d2=1, f=11, s=1', conv_transpose_gpu_benchmark.BENCHMARK_TEST)],
   },
   {
-    name: 'Max pool (GPU)',
+    name: 'Max pool (CPU vs GPU): d1=1, d2=1, f=11, s=1',
     min: 0,
     max: 1024,
     stepSize: 64,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
-    benchmarkRuns: [new BenchmarkRun(
-        'd1=1, d2=1, f=11, s=1',
-        max_pool_gpu_benchmark.MAX_POOL_BENCHMARK_TEST)],
+    benchmarkRuns: [
+      new BenchmarkRun('max_pool_gpu',
+        max_pool_gpu_benchmark.MAX_POOL_BENCHMARK_TEST),
+      new BenchmarkRun('max_pool_cpu',
+        max_pool_cpu_benchmark.MAX_POOL_BENCHMARK_TEST)
+    ],
   },
   {
     name: 'LogSumExp (CPU vs GPU): input [size, size]',
