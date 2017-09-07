@@ -1656,10 +1656,9 @@ describe('NDArrayMathGPU conv2dTranspose', () => {
     const x = Array3D.new(inputShape, [2]);
     const w = Array4D.new(
         [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
-    const b = Array1D.new([1]);
 
-    const result = math.conv2dTranspose(x, w, b, origStride, origPad);
-    const expected = new Float32Array([7, 3, 11, 1]);
+    const result = math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad);
+    const expected = new Float32Array([6, 2, 10, 0]);
 
     expect(result.inGPU()).toBe(true);
     expect(result.shape).toEqual([2, 2, 1]);
@@ -1667,7 +1666,6 @@ describe('NDArrayMathGPU conv2dTranspose', () => {
 
     x.dispose();
     w.dispose();
-    b.dispose();
   });
 
   it('throws when x is not rank 3', () => {
@@ -1681,14 +1679,12 @@ describe('NDArrayMathGPU conv2dTranspose', () => {
     const x: any = Array2D.new([2, 1], [2, 2]);
     const w = Array4D.new(
         [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
-    const b = Array1D.new([1]);
 
-    expect(() => math.conv2dTranspose(x, w, b, origStride, origPad))
+    expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
         .toThrowError();
 
     x.dispose();
     w.dispose();
-    b.dispose();
   });
 
   it('throws when weights is not rank 4', () => {
@@ -1702,36 +1698,12 @@ describe('NDArrayMathGPU conv2dTranspose', () => {
     const x = Array3D.new(inputShape, [2]);
     // tslint:disable-next-line:no-any
     const w: any = Array3D.new([fSize, fSize, origInputDepth], [3, 1, 5, 0]);
-    const b = Array1D.new([1]);
 
-    expect(() => math.conv2dTranspose(x, w, b, origStride, origPad))
+    expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
         .toThrowError();
 
     x.dispose();
     w.dispose();
-    b.dispose();
-  });
-
-  it('throws when biases is not rank 1', () => {
-    const origInputDepth = 1;
-    const origOutputDepth = 1;
-    const inputShape: [number, number, number] = [1, 1, origOutputDepth];
-    const fSize = 2;
-    const origPad = 0;
-    const origStride = 1;
-
-    const x = Array3D.new(inputShape, [2]);
-    const w = Array4D.new(
-        [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
-    // tslint:disable-next-line:no-any
-    const b: any = Array2D.new([2, 1], [1, 2]);
-
-    expect(() => math.conv2dTranspose(x, w, b, origStride, origPad))
-        .toThrowError();
-
-    x.dispose();
-    w.dispose();
-    b.dispose();
   });
 
   it('throws when x depth does not match weights original output depth', () => {
@@ -1746,14 +1718,12 @@ describe('NDArrayMathGPU conv2dTranspose', () => {
     const x = Array3D.new(inputShape, [2, 2]);
     const w = NDArray.randNormal<Array4D>(
         [fSize, fSize, origInputDepth, wrongOrigOutputDepth]);
-    const b = Array1D.new([1]);
 
-    expect(() => math.conv2dTranspose(x, w, b, origStride, origPad))
+    expect(() => math.conv2dTranspose(x, w, [2, 2, 2], origStride, origPad))
         .toThrowError();
 
     x.dispose();
     w.dispose();
-    b.dispose();
   });
 });
 
@@ -1777,12 +1747,13 @@ describe('NDArrayMathGPU conv2dDerWeights', () => {
     const stride = 1;
     const pad = 0;
 
-    const weightsShape = [fSize, fSize, inputDepth, outputDepth];
+    const weightsShape: [number, number, number, number] =
+        [fSize, fSize, inputDepth, outputDepth];
 
     const x = Array3D.new(inputShape, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
     const dy = Array3D.new([2, 2, 1], [3, 1, 2, 0]);
 
-    const result = math.conv2dDerWeights(x, dy, fSize, stride, pad);
+    const result = math.conv2dDerFilter(x, dy, weightsShape, stride, pad);
     const expected = new Float32Array([13, 19, 31, 37]);
 
     expect(result.inGPU()).toBe(true);

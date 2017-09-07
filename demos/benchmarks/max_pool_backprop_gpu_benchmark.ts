@@ -29,12 +29,14 @@ export const BENCHMARK_TEST: BenchmarkTest = (size: number) => {
   const texManager = new TextureManager(gpgpu);
   initializeGPU(gpgpu, texManager);
 
-  const outputDepth = 1;
-  const dyShape: [number, number, number] = [size, size, outputDepth];
+  const depth = 1;
+  const dyShape: [number, number, number] = [size, size, depth];
+  const xShape: [number, number, number] = [size, size, depth];
   const fSize = 11;
   const stride = 1;
-  const zeroPad = conv_util.computeDefaultPad(dyShape, fSize, stride);
-  const program = new MaxPool2DBackpropProgram(dyShape, fSize, stride, zeroPad);
+  const convInfo = conv_util.computeConvInfo(
+      xShape, fSize, fSize, depth, stride, stride, 'same');
+  const program = new MaxPool2DBackpropProgram(convInfo);
   const res = NDArray.zeros(program.outputShape);
   const dy = Array3D.randUniform(dyShape, -1, 1);
   const positionsData = new Float32Array(dy.size);

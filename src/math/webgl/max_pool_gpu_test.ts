@@ -20,10 +20,11 @@ import * as pool_gpu_test_util from './pool_gpu_test_util';
 
 describe('max_pool_gpu', () => {
   function uploadMaxPoolDownload(
-      a: Float32Array, xShape: [number, number, number], fieldSize: number,
-      stride: number, zeroPad: number): Float32Array {
+      a: Float32Array, xShape: [number, number, number],
+      filterSizes: [number, number]|number, strides: [number, number]|number,
+      zeroPad: number|'valid'|'same'): Float32Array {
     return pool_gpu_test_util.uploadPoolDownload(
-        a, xShape, fieldSize, stride, zeroPad, 'max');
+        a, xShape, filterSizes, strides, zeroPad, 'max');
   }
 
   function compareToCPU(
@@ -73,5 +74,19 @@ describe('max_pool_gpu', () => {
     const stride = 3;
     const zeroPad = 1;
     compareToCPU(inputShape, fSize, stride, zeroPad);
+  });
+
+  it('non even filter 1x2 on 3x3 input', () => {
+    const x = Array3D.new([3, 3, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    const res =
+        uploadMaxPoolDownload(x.getValues(), x.shape, [1, 2], [1, 1], 'valid');
+    expect(res).toEqual(new Float32Array([2, 3, 5, 6, 8, 9]));
+  });
+
+  it('non even filter 2x1 on 3x3 input', () => {
+    const x = Array3D.new([3, 3, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+    const res =
+        uploadMaxPoolDownload(x.getValues(), x.shape, [2, 1], [1, 1], 'valid');
+    expect(res).toEqual(new Float32Array([4, 5, 6, 7, 8, 9]));
   });
 });

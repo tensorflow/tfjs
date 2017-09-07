@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as conv_util from '../conv_util';
+import {ConvInfo} from '../conv_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Pool2DProgram implements GPGPUProgram {
@@ -23,30 +23,38 @@ export class Pool2DProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      xShape: [number, number, number], fSize: number, stride: number,
-      pad: number, poolType: 'max'|'min'|'avg', computePositions: boolean) {
+      convInfo: ConvInfo, poolType: 'max'|'min'|'avg',
+      computePositions: boolean) {
     if (poolType === 'avg' && computePositions) {
       throw new Error('Cannot compute positions for average pool.');
     }
+
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
 
     let returnValue = 'minMaxValue';
     if (computePositions) {
       returnValue = 'float(minMaxPosition)';
     } else if (poolType === 'avg') {
-      returnValue = `avgValue / ${fSize * fSize}.0`;
+      returnValue = `avgValue / ${filterHeight * filterWidth}.0`;
     }
-    const xRowsLimit = xShape[0];
-    const xColsLimit = xShape[1];
-    this.params = [stride, pad, fSize, poolType, computePositions];
-    this.outputShape =
-        conv_util.computeOutputShape3D(xShape, fSize, xShape[2], stride, pad);
+    const xNumRows = convInfo.inShape[0];
+    const xNumCols = convInfo.inShape[1];
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+    this.params = [
+      strideHeight, strideWidth, padLeft, padTop, poolType, computePositions
+    ];
+    this.outputShape = convInfo.outShape;
 
     const isAvgPool = poolType === 'avg';
     const compareOp = poolType === 'min' ? '<=' : '>=';
 
     this.userCode = `
-      const ivec2 strides = ivec2(${stride}, ${stride});
-      const ivec2 pads = ivec2(${pad}, ${pad});
+      const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
+      const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
       void main() {
         ivec3 coords = getOutputCoords();
@@ -63,17 +71,17 @@ export class Pool2DProgram implements GPGPUProgram {
         int minMaxPosition = 0;
         float avgValue = 0.0;
 
-        for (int wR = 0; wR < ${fSize}; wR++) {
+        for (int wR = 0; wR < ${filterHeight}; wR++) {
           int xR = xRCorner + wR;
 
-          if (xR < 0 || xR >= ${xRowsLimit}) {
+          if (xR < 0 || xR >= ${xNumRows}) {
             continue;
           }
 
-          for (int wC = 0; wC < ${fSize}; wC++) {
+          for (int wC = 0; wC < ${filterWidth}; wC++) {
             int xC = xCCorner + wC;
 
-            if (xC < 0 || xC >= ${xColsLimit}) {
+            if (xC < 0 || xC >= ${xNumCols}) {
               continue;
             }
 
@@ -95,7 +103,7 @@ export class Pool2DProgram implements GPGPUProgram {
                 minMaxValue = value;
                 minMaxValueFound = 1.0;
                 if (${computePositions}) {
-                  minMaxPosition = wR * ${fSize} + wC;
+                  minMaxPosition = wR * ${filterWidth} + wC;
                 }
               }
             }

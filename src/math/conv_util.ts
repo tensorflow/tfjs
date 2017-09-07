@@ -15,14 +15,88 @@ limitations under the License.
 
 import * as util from '../util';
 
-export function computeOutputShape3D(
-    inputShapeRowColDepth: [number, number, number], fieldSize: number,
-    depth: number, stride: number, zeroPad?: number): [number, number, number] {
-  if (zeroPad == null) {
-    zeroPad = computeDefaultPad(inputShapeRowColDepth, fieldSize, stride);
+/**
+ * Information about the forward pass of a convolution/pooling operation.
+ * It includes input and output shape, strides, filter size and padding
+ * information.
+ */
+export type ConvInfo = {
+  inShape: [number, number, number],
+  outShape: [number, number, number],
+  strideHeight: number,
+  strideWidth: number,
+  filterHeight: number,
+  filterWidth: number,
+  padInfo: {top: number, left: number, right: number, bottom: number}
+};
+
+/**
+ * Computes the information about a forward pass of a convolution/pooling
+ * operation.
+ */
+export function computeConvInfo(
+    inShape: [number, number, number], filterHeight: number,
+    filterWidth: number, outDepth: number, strideHeight: number,
+    strideWidth: number, pad: 'same'|'valid'|number): ConvInfo {
+  if (typeof pad === 'number') {
+    const outShape = computeOutputShape3D(
+        inShape, filterHeight, outDepth, strideHeight, pad);
+    return {
+      inShape,
+      outShape,
+      padInfo: {top: pad, bottom: pad, left: pad, right: pad},
+      strideHeight,
+      strideWidth,
+      filterHeight,
+      filterWidth
+    };
   }
-  const inputRows = inputShapeRowColDepth[0];
-  const inputCols = inputShapeRowColDepth[1];
+  const inHeight = inShape[0];
+  const inWidth = inShape[1];
+  let outShape: [number, number, number];
+  let padInfo: {left: number, top: number, bottom: number, right: number};
+  if (pad === 'same') {
+    const outHeight = Math.ceil(inHeight / strideHeight);
+    const outWidth = Math.ceil(inWidth / strideWidth);
+    outShape = [outHeight, outWidth, outDepth];
+    const padAlongHeight =
+        (outHeight - 1) * strideHeight + filterHeight - inHeight;
+    const padAlongWidth = (outWidth - 1) * strideWidth + filterWidth - inWidth;
+    const top = Math.floor(padAlongHeight / 2);
+    const bottom = padAlongHeight - top;
+    const left = Math.floor(padAlongWidth / 2);
+    const right = padAlongWidth - left;
+    padInfo = {top, bottom, left, right};
+  } else if (pad === 'valid') {
+    const outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
+    const outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
+    outShape = [outHeight, outWidth, outDepth];
+    padInfo = {top: 0, bottom: 0, left: 0, right: 0};
+  } else {
+    throw Error(`Unknown padding parameter: ${pad}`);
+  }
+  return {
+    inShape,
+    outShape,
+    padInfo,
+    strideHeight,
+    strideWidth,
+    filterHeight,
+    filterWidth
+  };
+}
+
+/**
+ * @deprecated Use `conv_util.computeConvInfo` instead.
+ */
+export function computeOutputShape3D(
+    inShape: [number, number, number], fieldSize: number, outDepth: number,
+    stride: number, zeroPad?: number): [number, number, number] {
+  if (zeroPad == null) {
+    zeroPad = computeDefaultPad(inShape, fieldSize, stride);
+  }
+  const inputRows = inShape[0];
+  const inputCols = inShape[1];
   const outputRows = (inputRows - fieldSize + 2 * zeroPad) / stride + 1;
   util.assert(
       util.isInt(outputRows),
@@ -35,7 +109,7 @@ export function computeOutputShape3D(
       `The output # of columns (${outputCols}) must be an integer. Change ` +
           `the stride and/or zero pad parameters`);
 
-  return [outputRows, outputCols, depth];
+  return [outputRows, outputCols, outDepth];
 }
 
 export function computeDefaultPad(
@@ -50,9 +124,9 @@ export function computeTexShapeFrom3D(
 }
 
 export function computeWeightsShape4D(
-    inputDepth: number, outputDepth: number,
-    fSize: number): [number, number, number, number] {
-  return [fSize, fSize, inputDepth, outputDepth];
+    inputDepth: number, outputDepth: number, filterHeight: number,
+    filterWidth: number): [number, number, number, number] {
+  return [filterHeight, filterWidth, inputDepth, outputDepth];
 }
 
 export function computeDilatedRC(

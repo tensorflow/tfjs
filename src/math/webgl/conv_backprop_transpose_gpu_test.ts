@@ -14,10 +14,11 @@ limitations under the License.
 ==============================================================================*/
 
 import * as test_util from '../../test_util';
+import * as conv_util from '../conv_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array1D, Array3D, Array4D, initializeGPU, NDArray} from '../ndarray';
+import {Array3D, Array4D, initializeGPU, NDArray} from '../ndarray';
 
-import {Conv2DTransposeProgram} from './conv_backprop_gpu';
+import {Conv2DDerInputProgram} from './conv_backprop_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
 import {TextureManager} from './texture_manager';
@@ -25,17 +26,22 @@ import {TextureManager} from './texture_manager';
 describe('conv_gpu transpose', () => {
 
   function uploadConvTransposeDownload(
-      x: Array3D, W: Array4D, bias: Array1D|null, fSize: number,
-      origStride: number, origPad: number): Float32Array {
+      x: Array3D, W: Array4D, origInputShape: [number, number, number],
+      fSize: number, origStride: number, origPad: number): Float32Array {
     const gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
     const textureManager = new TextureManager(gpgpu);
     initializeGPU(gpgpu, textureManager);
-    const origInputDepth = W.shape[2];
-    const program = new Conv2DTransposeProgram(
-        x.shape, fSize, origInputDepth, origStride, origPad, bias != null);
+
+    const filterHeight = W.shape[0];
+    const filterWidth = W.shape[1];
+    const origOutDepth = W.shape[3];
+    const convInfo = conv_util.computeConvInfo(
+        origInputShape, filterHeight, filterWidth, origOutDepth, origStride,
+        origStride, origPad);
+    const program = new Conv2DDerInputProgram(convInfo);
     const res = NDArray.zeros(program.outputShape);
-    const inputs = bias != null ? [x, W, bias] : [x, W];
+    const inputs = [x, W];
     const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, res);
     gpgpu_math.runProgram(binary, inputs, res);
     const resValues = res.getValues();
@@ -49,31 +55,32 @@ describe('conv_gpu transpose', () => {
   function compareToCPU(
       origInputShape: [number, number, number], fSize: number,
       origOutputDepth: number, origStride: number, origPad: number) {
-    const [xNumRows, xNumCols, origInputDepth] = origInputShape;
+    const origInputDepth = origInputShape[2];
 
-    const x =
-        NDArray.randNormal<Array3D>([xNumRows, xNumCols, origOutputDepth]);
+    const convInfo = conv_util.computeConvInfo(
+        origInputShape, fSize, fSize, origOutputDepth, origStride, origStride,
+        origPad);
+    const x = NDArray.randNormal<Array3D>(convInfo.outShape);
 
     const weights = NDArray.randNormal<Array4D>(
         [fSize, fSize, origInputDepth, origOutputDepth]);
-    const biases = NDArray.randNormal<Array1D>([origInputDepth]);
 
     const mathCPU = new NDArrayMathCPU();
-    const yCPU =
-        mathCPU.conv2dTranspose(x, weights, biases, origStride, origPad);
+    const yCPU = mathCPU.conv2dTranspose(
+        x, weights, origInputShape, origStride, origPad);
     const yGPU = uploadConvTransposeDownload(
-        x, weights, biases, fSize, origStride, origPad);
+        x, weights, origInputShape, fSize, origStride, origPad);
     test_util.expectArraysClose(yGPU, yCPU.getValues(), 1e-5);
   }
 
   it('matches CPU on random input, d1=1,d2=1,f=2,s=1,p=0', () => {
     const inputDepth = 1;
-    const inputShape: [number, number, number] = [8, 8, inputDepth];
+    const origInputShape: [number, number, number] = [8, 8, inputDepth];
     const fSize = 2;
     const outputDepth = 1;
     const stride = 1;
     const zeroPad = 0;
-    compareToCPU(inputShape, fSize, outputDepth, stride, zeroPad);
+    compareToCPU(origInputShape, fSize, outputDepth, stride, zeroPad);
   });
 
   it('matches CPU on random input, d1=1,d2=1,f=3,s=2,p=1', () => {

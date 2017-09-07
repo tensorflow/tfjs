@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as conv_util from '../conv_util';
+import {ConvInfo} from '../conv_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Conv2DProgram implements GPGPUProgram {
@@ -22,19 +22,22 @@ export class Conv2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(
-      xShape: [number, number, number], fieldSize: number, outputDepth: number,
-      stride: number, pad: number, hasBias: boolean) {
-    this.outputShape = conv_util.computeOutputShape3D(
-        xShape, fieldSize, outputDepth, stride, pad);
-    const inputDepth = xShape[2];
-    this.params = [fieldSize, stride, pad, hasBias];
+  constructor(convInfo: ConvInfo, hasBias: boolean) {
+    this.outputShape = convInfo.outShape;
     const biasSnippet = hasBias ? 'dotProd += getBias(d2);' : '';
-    const xNumRows = xShape[0];
-    const xNumCols = xShape[1];
+    const [xNumRows, xNumCols, inputDepth] = convInfo.inShape;
+    const padTop = convInfo.padInfo.top;
+    const padLeft = convInfo.padInfo.left;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+
+    this.params = [strideHeight, strideWidth, hasBias, padLeft, padTop];
+
     this.userCode = `
-      const ivec2 strides = ivec2(${stride}, ${stride});
-      const ivec2 pads = ivec2(${pad}, ${pad});
+      const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
+      const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
       void main() {
         ivec3 coords = getOutputCoords();
@@ -47,14 +50,14 @@ export class Conv2DProgram implements GPGPUProgram {
         // Convolve x(?, ?, d1) with w(:, :, d1, d2) to get y(yR, yC, d2).
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
-        for (int wR = 0; wR < ${fieldSize}; wR++) {
+        for (int wR = 0; wR < ${filterHeight}; wR++) {
           int xR = xRCorner + wR;
 
           if (xR < 0 || xR >= ${xNumRows}) {
             continue;
           }
 
-          for (int wC = 0; wC < ${fieldSize}; wC++) {
+          for (int wC = 0; wC < ${filterWidth}; wC++) {
             int xC = xCCorner + wC;
 
             if (xC < 0 || xC >= ${xNumCols}) {

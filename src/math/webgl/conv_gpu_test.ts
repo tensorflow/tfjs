@@ -26,16 +26,18 @@ import {TextureManager} from './texture_manager';
 describe('conv_gpu', () => {
 
   function uploadConvolveDownload(
-      xVals: Float32Array, xShapeRCD: [number, number, number],
-      weights: Float32Array, biasVals: Float32Array|null, resultDepth: number,
-      fieldSize: number, stride: number, zeroPad?: number): Float32Array {
-    zeroPad = zeroPad != null ?
-        zeroPad :
-        conv_util.computeDefaultPad(xShapeRCD, fieldSize, stride);
+      xVals: Float32Array, xShape: [number, number, number],
+      weights: Float32Array, biasVals: Float32Array|null, outDepth: number,
+      filterSizes: [number, number]|number, strides: [number, number]|number,
+      zeroPad?: number|'valid'|'same'): Float32Array {
+    zeroPad = zeroPad != null ? zeroPad : 'same';
 
-    const x = Array3D.new(xShapeRCD, xVals);
-    const wShape =
-        conv_util.computeWeightsShape4D(xShapeRCD[2], resultDepth, fieldSize);
+    const [filterHeight, filterWidth] = parseTuple(filterSizes);
+    const [strideHeight, strideWidth] = parseTuple(strides);
+
+    const x = Array3D.new(xShape, xVals);
+    const wShape = conv_util.computeWeightsShape4D(
+        xShape[2], outDepth, filterHeight, filterWidth);
     const W = Array4D.new(wShape, weights);
     const b = biasVals != null ? Array1D.new(biasVals) : null;
 
@@ -44,8 +46,10 @@ describe('conv_gpu', () => {
     const textureManager = new TextureManager(gpgpu);
     initializeGPU(gpgpu, textureManager);
 
-    const program = new Conv2DProgram(
-        xShapeRCD, fieldSize, resultDepth, stride, zeroPad, biasVals != null);
+    const convInfo = conv_util.computeConvInfo(
+        xShape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
+        zeroPad);
+    const program = new Conv2DProgram(convInfo, biasVals != null);
     const res = NDArray.zeros(program.outputShape);
     const inputs = biasVals != null ? [x, W, b] : [x, W];
     const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, res);
@@ -231,6 +235,24 @@ describe('conv_gpu', () => {
     expect(result[3]).toBe(12);
   });
 
+  it('2x2x1 in, 1d out, 2x1 filter, s=1, p=valid', () => {
+    const x = new Float32Array([1, 2, 3, 4]);
+    const w = new Float32Array([3, 5]);
+    const bias: Float32Array = null;
+    const result =
+        uploadConvolveDownload(x, [2, 2, 1], w, bias, 1, [2, 1], 1, 'valid');
+    expect(result).toEqual(new Float32Array([18, 26]));
+  });
+
+  it('2x2x1 in, 1d out, 1x2 filter, s=1, p=valid', () => {
+    const x = new Float32Array([1, 2, 3, 4]);
+    const w = new Float32Array([3, 5]);
+    const bias: Float32Array = null;
+    const result =
+        uploadConvolveDownload(x, [2, 2, 1], w, bias, 1, [1, 2], 1, 'valid');
+    expect(result).toEqual(new Float32Array([13, 29]));
+  });
+
   it('2x2x1 in, 1d out, 2x2 filter, 1 stride, bias=-1', () => {
     const x = new Float32Array([1, 2, 3, 4]);
     const w = new Float32Array([3, 1, 5, 0]);
@@ -367,3 +389,7 @@ describe('conv_gpu', () => {
     compareToCPU(inputShape, fSize, outputDepth, stride, zeroPad);
   });
 });
+
+function parseTuple(a: number|[number, number]): [number, number] {
+  return typeof a === 'number' ? [a, a] : a;
+}

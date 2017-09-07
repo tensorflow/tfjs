@@ -34,10 +34,11 @@ describe('conv_gpu derWeights', () => {
     gpgpu.enableAutomaticDebugValidation(true);
     const outputDepth = dy.shape[2];
     const inDepth = x.shape[2];
-    const program = new Conv2DDerWeightsProgram(
-        x.shape, fSize, outputDepth, stride, zeroPad);
+    const convInfo = conv_util.computeConvInfo(
+        x.shape, fSize, fSize, outputDepth, stride, stride, zeroPad);
+    const program = new Conv2DDerWeightsProgram(convInfo);
     const out = Array4D.zeros(
-        conv_util.computeWeightsShape4D(inDepth, outputDepth, fSize));
+        conv_util.computeWeightsShape4D(inDepth, outputDepth, fSize, fSize));
     const binary = gpgpu_math.compileProgram(gpgpu, program, [x, dy], out);
     gpgpu_math.runProgram(binary, [x, dy], out);
     const result = out.getValues();
@@ -50,15 +51,17 @@ describe('conv_gpu derWeights', () => {
   }
 
   function compareToCPU(
-      inputShape: [number, number, number], fSize: number, outputDepth: number,
+      inputShape: [number, number, number], fSize: number, outDepth: number,
       stride: number, zeroPad: number) {
     const x = NDArray.randNormal<Array3D>(inputShape);
     const outputShape = conv_util.computeOutputShape3D(
-        x.shape, fSize, outputDepth, stride, zeroPad);
+        x.shape, fSize, outDepth, stride, zeroPad);
     const dy = NDArray.randNormal<Array3D>(outputShape);
 
     const mathCPU = new NDArrayMathCPU();
-    const dwCPU = mathCPU.conv2dDerWeights(x, dy, fSize, stride, zeroPad);
+    const inDepth = x.shape[2];
+    const dwCPU = mathCPU.conv2dDerFilter(
+        x, dy, [fSize, fSize, inDepth, outDepth], stride, zeroPad);
 
     const dwGPU = uploadDerWeightsDownload(x, dy, fSize, stride, zeroPad);
     test_util.expectArraysClose(dwGPU, dwCPU.getValues(), 1e-5);

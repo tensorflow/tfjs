@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as conv_util from '../math/conv_util';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array3D, NDArray} from '../math/ndarray';
-import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
+import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import * as test_util from '../test_util';
 
 import {MaxPool} from './max_pool';

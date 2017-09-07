@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
+import {ConvInfo} from './conv_util';
 import {MatrixOrientation, NDArrayMath} from './math';
 import * as ndarray from './ndarray';
 import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
@@ -23,7 +24,7 @@ import {BatchNormProgram} from './webgl/batchnorm_gpu';
 import {BinaryOpProgram} from './webgl/binaryop_gpu';
 import {Concat3DProgram} from './webgl/concat3d_gpu';
 // tslint:disable-next-line:max-line-length
-import {Conv2DDerBiasProgram, Conv2DDerWeightsProgram, Conv2DTransposeProgram} from './webgl/conv_backprop_gpu';
+import {Conv2DDerBiasProgram, Conv2DDerInputProgram, Conv2DDerWeightsProgram} from './webgl/conv_backprop_gpu';
 import {Conv2DProgram} from './webgl/conv_gpu';
 import {Copy2DProgram} from './webgl/copy_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
@@ -279,84 +280,54 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected conv2dInternal(
-      x: Array3D, weights: Array4D, bias: Array1D|null, stride: number,
-      zeroPad: number): Array3D {
-    const fieldSize = weights.shape[0];
-    const outputDepth = weights.shape[3];
-    const program = new Conv2DProgram(
-        x.shape, fieldSize, outputDepth, stride, zeroPad, bias != null);
-    const inputs = bias != null ? [x, weights, bias] : [x, weights];
+      x: Array3D, filter: Array4D, bias: Array1D|null,
+      convInfo: ConvInfo): Array3D {
+    const program = new Conv2DProgram(convInfo, bias != null);
+    const inputs = bias != null ? [x, filter, bias] : [x, filter];
     return this.compileAndRun(program, inputs);
   }
 
-  protected conv2dBackPropInternal(
-      x: Array3D, dy: Array3D, weights: Array4D, stride: number,
-      pad: number): {dx: Array3D, dw: Array4D, db: Array1D} {
-    const fSize = weights.shape[0];
-    const dw = this.conv2dDerWeights(x, dy, fSize, stride, pad);
-    const db = this.conv2dDerBias(dy);
-    const dx = this.conv2dTransposeInternal(
-        dy, weights, null /** biases */, stride, pad);
-    return {dx, db, dw};
+  protected conv2dDerInputInternal(
+      dy: Array3D, filter: Array4D, convInfo: ConvInfo): Array3D {
+    const program = new Conv2DDerInputProgram(convInfo);
+    return this.compileAndRun(program, [dy, filter]);
   }
 
-  protected conv2dTransposeInternal(
-      x: Array3D, weights: Array4D, bias: Array1D|null, origStride: number,
-      origPad: number): Array3D {
-    const origInputDepth = weights.shape[2];
-    const fieldSize = weights.shape[0];
-    const program = new Conv2DTransposeProgram(
-        x.shape, fieldSize, origInputDepth, origStride, origPad, bias != null);
-    const inputs = bias != null ? [x, weights, bias] : [x, weights];
-    return this.compileAndRun(program, inputs);
-  }
-
-  conv2dDerWeights(
-      x: Array3D, dY: Array3D, fSize: number, stride: number,
-      zeroPad: number): Array4D {
-    const outputDepth = dY.shape[2];
-    const program = new Conv2DDerWeightsProgram(
-        x.shape, fSize, outputDepth, stride, zeroPad);
+  protected conv2dDerFilterInternal(
+      x: Array3D, dY: Array3D, convInfo: ConvInfo): Array4D {
+    const program = new Conv2DDerWeightsProgram(convInfo);
     return this.compileAndRun(program, [x, dY]);
   }
 
-  conv2dDerBias(dY: Array3D): Array1D {
+  protected conv2dDerBiasInternal(dY: Array3D): Array1D {
     const program = new Conv2DDerBiasProgram(dY.shape);
     return this.compileAndRun(program, [dY]);
   }
 
-  protected maxPoolInternal(
-      x: Array3D, fSize: number, stride: number, pad: number): Array3D {
-    const program =
-        new Pool2DProgram(x.shape, fSize, stride, pad, 'max', false);
+  protected maxPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D {
+    const program = new Pool2DProgram(convInfo, 'max', false);
     return this.compileAndRun(program, [x]);
   }
 
-  protected minPoolInternal(
-      x: Array3D, fSize: number, stride: number, pad: number): Array3D {
-    const program =
-        new Pool2DProgram(x.shape, fSize, stride, pad, 'min', false);
+  protected minPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D {
+    const program = new Pool2DProgram(convInfo, 'min', false);
     return this.compileAndRun(program, [x]);
   }
 
-  protected avgPoolInternal(
-      x: Array3D, fSize: number, stride: number, pad: number): Array3D {
-    const program =
-        new Pool2DProgram(x.shape, fSize, stride, pad, 'avg', false);
+  protected avgPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D {
+    const program = new Pool2DProgram(convInfo, 'avg', false);
     return this.compileAndRun(program, [x]);
   }
 
   protected maxPoolBackpropInternal(
-      dy: Array3D, x: Array3D, fSize: number, origStride: number,
-      origPad: number): Array3D {
+      dy: Array3D, x: Array3D, convInfo: ConvInfo): Array3D {
     const getPositions = true;
-    const maxPoolPositionsProgram = new Pool2DProgram(
-        x.shape, fSize, origStride, origPad, 'max', getPositions);
+    const maxPoolPositionsProgram =
+        new Pool2DProgram(convInfo, 'max', getPositions);
     const maxPoolPositions: Array3D =
         this.compileAndRun(maxPoolPositionsProgram, [x]);
 
-    const maxPoolBackPropProgram =
-        new MaxPool2DBackpropProgram(dy.shape, fSize, origStride, origPad);
+    const maxPoolBackPropProgram = new MaxPool2DBackpropProgram(convInfo);
 
     const result =
         this.compileAndRun(maxPoolBackPropProgram, [dy, maxPoolPositions]);

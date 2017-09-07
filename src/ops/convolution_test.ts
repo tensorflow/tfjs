@@ -17,7 +17,7 @@ import {Tensor} from '../graph';
 import * as conv_util from '../math/conv_util';
 import {NDArrayMathCPU} from '../math/math_cpu';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from '../math/ndarray';
-import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
+import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
 import {Convolution2D} from './convolution';
 

@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import * as conv_util from '../conv_util';
+import {ConvInfo} from '../conv_util';
 
 import {GPGPUProgram} from './gpgpu_math';
 
@@ -23,23 +23,23 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(
-      dyShape: [number, number, number], fSize: number, origStride: number,
-      origPad: number) {
-    const pad = fSize - 1 - origPad;
-    const dyRows = dyShape[0];
-    const dyCols = dyShape[1];
-    this.params = [fSize, origStride, origPad];
+  constructor(convInfo: ConvInfo) {
+    this.outputShape = convInfo.inShape;
+    const dyRows = convInfo.outShape[0];
+    const dyCols = convInfo.outShape[1];
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
 
-    const dilatedDyRC =
-        conv_util.computeDilatedRC([dyShape[0], dyShape[1]], origStride);
-    this.outputShape = conv_util.computeOutputShape3D(
-        [dilatedDyRC[0], dilatedDyRC[1], dyShape[2]], fSize, dyShape[2], 1,
-        pad);
+    const padTop = filterHeight - 1 - convInfo.padInfo.top;
+    const padLeft = filterWidth - 1 - convInfo.padInfo.left;
+    this.params =
+        [filterHeight, filterWidth, strideHeight, strideWidth, padTop, padLeft];
 
-    const lastIndex = fSize * fSize - 1;
+    const lastIndex = filterHeight * filterWidth - 1;
     this.userCode = `
-      const ivec2 pads = ivec2(${pad}, ${pad});
+      const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
       void main() {
         ivec3 coords = getOutputCoords();
@@ -52,16 +52,16 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
         // Convolve dy(?, ?, d) with pos mask(:, :, d) to get dx(xR, xC, d).
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
-        for (int wR = 0; wR < ${fSize}; wR++) {
-          float dyR = float(dyRCorner + wR) / ${origStride}.0;
+        for (int wR = 0; wR < ${filterHeight}; wR++) {
+          float dyR = float(dyRCorner + wR) / ${strideHeight}.0;
 
           if (dyR < 0.0 || dyR >= ${dyRows}.0 || fract(dyR) > 0.0) {
             continue;
           }
           int idyR = int(dyR);
 
-          for (int wC = 0; wC < ${fSize}; wC++) {
-            float dyC = float(dyCCorner + wC) / ${origStride}.0;
+          for (int wC = 0; wC < ${filterWidth}; wC++) {
+            float dyC = float(dyCCorner + wC) / ${strideWidth}.0;
 
             if (dyC < 0.0 || dyC >= ${dyCols}.0 || fract(dyC) > 0.0) {
               continue;
@@ -73,7 +73,7 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
 
             // Get the current value, check it against the value from the
             // position matrix.
-            int curPosValue = wR * ${fSize} + wC;
+            int curPosValue = wR * ${filterWidth} + wC;
             float mask = float(maxPosValue == curPosValue ? 1.0 : 0.0);
 
             dotProd += dyValue * mask;
