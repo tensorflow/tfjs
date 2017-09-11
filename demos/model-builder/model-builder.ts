@@ -1,14 +1,19 @@
-/* Copyright 2017 Google Inc. All Rights Reserved.
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-    http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
+/**
+ * @license
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 
 import '../ndarray-image-visualizer';
 import '../ndarray-logits-visualizer';
@@ -17,7 +22,7 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, MomentumOptimizer, Tensor, util} from '../deeplearnjs';
+import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, MomentumOptimizer, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, Tensor, util} from '../deeplearnjs';
 import {NDArrayImageVisualizer} from '../ndarray-image-visualizer';
 import {NDArrayLogitsVisualizer} from '../ndarray-logits-visualizer';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
@@ -171,18 +176,20 @@ export class ModelBuilder extends ModelBuilderPolymer {
 
     const eventObserver: GraphRunnerEventObserver = {
       batchesTrainedCallback: (batchesTrained: number) =>
-          this.displayBatchesTrained(batchesTrained),
+                                  this.displayBatchesTrained(batchesTrained),
       avgCostCallback: (avgCost: Scalar) => this.displayCost(avgCost),
       metricCallback: (metric: Scalar) => this.displayAccuracy(metric),
       inferenceExamplesCallback:
           (inputFeeds: FeedEntry[][], inferenceOutputs: NDArray[]) =>
               this.displayInferenceExamplesOutput(inputFeeds, inferenceOutputs),
-      inferenceExamplesPerSecCallback: (examplesPerSec: number) =>
-          this.displayInferenceExamplesPerSec(examplesPerSec),
-      trainExamplesPerSecCallback: (examplesPerSec: number) =>
-          this.displayExamplesPerSec(examplesPerSec),
+      inferenceExamplesPerSecCallback:
+          (examplesPerSec: number) =>
+              this.displayInferenceExamplesPerSec(examplesPerSec),
+      trainExamplesPerSecCallback:
+          (examplesPerSec: number) =>
+              this.displayExamplesPerSec(examplesPerSec),
       totalTimeCallback: (totalTimeSec: number) => this.totalTimeSec =
-          totalTimeSec.toFixed(1),
+                             totalTimeSec.toFixed(1),
     };
     this.graphRunner = new GraphRunner(this.math, this.session, eventObserver);
     this.optimizer = new MomentumOptimizer(this.learingRate, this.momentum);
@@ -483,9 +490,8 @@ export class ModelBuilder extends ModelBuilderPolymer {
       inferenceExampleElement.className = 'inference-example';
 
       // Set up the input visualizer.
-      const ndarrayImageVisualizer =
-          document.createElement('ndarray-image-visualizer') as
-          NDArrayImageVisualizer;
+      const ndarrayImageVisualizer = document.createElement(
+          'ndarray-image-visualizer') as NDArrayImageVisualizer;
       ndarrayImageVisualizer.setShape(this.inputShape);
       ndarrayImageVisualizer.setSize(
           INFERENCE_IMAGE_SIZE_PX, INFERENCE_IMAGE_SIZE_PX);
@@ -493,9 +499,8 @@ export class ModelBuilder extends ModelBuilderPolymer {
       inferenceExampleElement.appendChild(ndarrayImageVisualizer);
 
       // Set up the output ndarray visualizer.
-      const ndarrayLogitsVisualizer =
-          document.createElement('ndarray-logits-visualizer') as
-          NDArrayLogitsVisualizer;
+      const ndarrayLogitsVisualizer = document.createElement(
+          'ndarray-logits-visualizer') as NDArrayLogitsVisualizer;
       ndarrayLogitsVisualizer.initialize(
           INFERENCE_IMAGE_SIZE_PX, INFERENCE_IMAGE_SIZE_PX);
       this.outputNDArrayVisualizers.push(ndarrayLogitsVisualizer);
@@ -528,8 +533,8 @@ export class ModelBuilder extends ModelBuilderPolymer {
     }
 
     this.loadModelFromPath(this.xhrDatasetConfigs[this.selectedDatasetName]
-      .modelConfigs[modelName]
-      .path);
+                               .modelConfigs[modelName]
+                               .path);
   }
 
   private loadModelFromPath(modelPath: string) {
@@ -611,8 +616,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
       data: {
         datasets: [{
           data,
-          fill: false,
-          label,
+          fill: false, label,
           pointRadius: 0,
           borderColor: 'rgba(75,192,192,1)',
           borderWidth: 1,
