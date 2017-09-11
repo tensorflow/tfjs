@@ -1,19 +1,22 @@
-/* Copyright 2017 Google Inc. All Rights Reserved.
+/**
+ * @license
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
 // tslint:disable-next-line:max-line-length
-import {NDArrayMathGPU, Scalar, Array1D, Array2D, Graph, Session, SGDOptimizer, InCPUMemoryShuffledInputProviderBuilder, FeedEntry, CostReduction} from '../deeplearnjs';
+import {Array1D, Array2D, CostReduction, FeedEntry, Graph, InCPUMemoryShuffledInputProviderBuilder, NDArrayMathGPU, Scalar, Session, SGDOptimizer} from '../deeplearnjs';
 
 // This file parallels (some of) the code in the introduction tutorial.
 
@@ -80,22 +83,18 @@ import {NDArrayMathGPU, Scalar, Array1D, Array2D, Graph, Session, SGDOptimizer, 
   const optimizer = new SGDOptimizer(learningRate);
 
   const inputs: Array1D[] = [
-    Array1D.new([1.0, 2.0, 3.0]),
-    Array1D.new([10.0, 20.0, 30.0]),
+    Array1D.new([1.0, 2.0, 3.0]), Array1D.new([10.0, 20.0, 30.0]),
     Array1D.new([100.0, 200.0, 300.0])
   ];
 
-  const labels: Array1D[] = [
-    Array1D.new([4.0]),
-    Array1D.new([40.0]),
-    Array1D.new([400.0])
-  ];
+  const labels: Array1D[] =
+      [Array1D.new([4.0]), Array1D.new([40.0]), Array1D.new([400.0])];
 
   // Shuffles inputs and labels and keeps them mutually in sync.
   const shuffledInputProviderBuilder =
-    new InCPUMemoryShuffledInputProviderBuilder([inputs, labels]);
+      new InCPUMemoryShuffledInputProviderBuilder([inputs, labels]);
   const [inputProvider, labelProvider] =
-    shuffledInputProviderBuilder.getInputProviders();
+      shuffledInputProviderBuilder.getInputProviders();
 
   // Maps tensors to InputProviders.
   const feedEntries: FeedEntry[] = [
@@ -122,9 +121,8 @@ import {NDArrayMathGPU, Scalar, Array1D, Array2D, Graph, Session, SGDOptimizer, 
     const testInput = track(Array1D.new([0.1, 0.2, 0.3]));
 
     // session.eval can take NDArrays as input data.
-    const testFeedEntries: FeedEntry[] = [
-      {tensor: inputTensor, data: testInput}
-    ];
+    const testFeedEntries: FeedEntry[] =
+        [{tensor: inputTensor, data: testInput}];
 
     const testOutput = session.eval(outputTensor, testFeedEntries);
 

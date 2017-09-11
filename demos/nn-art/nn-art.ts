@@ -1,17 +1,20 @@
-/* Copyright 2017 Google Inc. All Rights Reserved.
+/**
+ * @license
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-==============================================================================*/
 import '../demo-header';
 import '../demo-footer';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
@@ -23,13 +26,15 @@ const MAT_WIDTH = 30;
 const WEIGHTS_STDEV = .6;
 
 // tslint:disable-next-line:variable-name
-const NNArtPolymer: new () => PolymerHTMLElement =
-    PolymerElement({is: 'nn-art', properties: {
-      colorModeNames: Array,
-      selectedColorModeName: String,
-      activationFunctionNames: Array,
-      selectedActivationFunctionName: String
-    }});
+const NNArtPolymer: new () => PolymerHTMLElement = PolymerElement({
+  is: 'nn-art',
+  properties: {
+    colorModeNames: Array,
+    selectedColorModeName: String,
+    activationFunctionNames: Array,
+    selectedActivationFunctionName: String
+  }
+});
 
 class NNArt extends NNArtPolymer {
   private colorModeNames: ColorMode[];
@@ -57,14 +62,14 @@ class NNArt extends NNArtPolymer {
 
     this.colorModeNames = ['rgb', 'rgba', 'hsv', 'hsva', 'yuv', 'yuva', 'bw'];
     this.selectedColorModeName = 'rgb';
-    this.cppn.setColorMode(this.selectedColorModeName);    
+    this.cppn.setColorMode(this.selectedColorModeName);
     this.querySelector('#color-mode-dropdown')!.addEventListener(
         // tslint:disable-next-line:no-any
         'iron-activate', (event: any) => {
           this.selectedColorModeName = event.detail.selected;
           this.cppn.setColorMode(this.selectedColorModeName);
         });
-  
+
     this.activationFunctionNames = ['tanh', 'sin', 'relu', 'step'];
     this.selectedActivationFunctionName = 'tanh';
     this.cppn.setActivationFunction(this.selectedActivationFunctionName);
