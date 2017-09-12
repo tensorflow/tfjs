@@ -30,7 +30,7 @@ let httpServerStarted = false;
 
 console.log('Waiting for initial compile...');
 watchify.stderr.on('data', (data) => {
-  if (data.toString().includes(`written to ${path.dirname(startTsFilePath)}`)) {
+  if (data.toString().includes(`bytes written to`)) {
     if (!httpServerStarted) {
       const httpCmd = path.join('node_modules', '.bin', 'http-server');
       const httpServer = spawn(httpCmd, ['-c-1'], { detached: false});

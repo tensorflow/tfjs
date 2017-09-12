@@ -75,7 +75,7 @@ export class NDArrayMathGPU extends NDArrayMath {
     // Pretend the source was in logical shape that matches the texture shape.
     const source = ndarray.as2D(texShape[0], texShape[1]);
     // Do the same for output.
-    const output = this.makeOutputArray(texShape) as Array2D;
+    const output = this.makeOutputArray<Array2D>(texShape);
     this.copy2D(source, [0, 0], texShape, output, [0, 0], texShape);
     // Get back to the original logical shape.
     return output.reshape(ndarray.shape);
@@ -84,10 +84,7 @@ export class NDArrayMathGPU extends NDArrayMath {
   protected slice2DInternal(
       input: Array2D, beginRowCol: [number, number],
       sizeRowCol: [number, number]): Array2D {
-    const result = NDArray.make<Array2D>(sizeRowCol, {
-      texture: this.textureManager.acquireTexture(sizeRowCol),
-      textureShapeRC: sizeRowCol
-    });
+    const result = this.makeOutputArray<Array2D>(sizeRowCol);
     this.copy2DInternal(
         input, beginRowCol, sizeRowCol, result, [0, 0], sizeRowCol);
     return result;
