@@ -26,6 +26,7 @@
       "src/math/webgl/gpgpu_context.ts",
       "src/optimizer.ts",
       "src/session.ts",
-      "src/sgd_optimizer.ts"
+      "src/sgd_optimizer.ts",
+      "src/momentum_optimizer.ts"
     ]
 }
