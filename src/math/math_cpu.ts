@@ -337,6 +337,15 @@ export class NDArrayMathCPU extends NDArrayMath {
     return NDArray.make<T>(ndarray.shape, {values: resultValues});
   }
 
+  protected absInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.abs(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
   protected sigmoidInternal<T extends NDArray>(ndarray: T): T {
     const resultValues = new Float32Array(ndarray.size);
     const values = ndarray.getValues();
@@ -346,20 +355,83 @@ export class NDArrayMathCPU extends NDArrayMath {
     return NDArray.make<T>(ndarray.shape, {values: resultValues});
   }
 
-  protected tanhInternal<T extends NDArray>(ndarray: T): T {
-    const resultValues = new Float32Array(ndarray.size);
-    const values = ndarray.getValues();
-    for (let i = 0; i < values.length; ++i) {
-      resultValues[i] = util.tanh(values[i]);
-    }
-    return NDArray.make<T>(ndarray.shape, {values: resultValues});
-  }
-
   protected sinInternal<T extends NDArray>(ndarray: T): T {
     const resultValues = new Float32Array(ndarray.size);
     const values = ndarray.getValues();
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.sin(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected cosInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.cos(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected tanInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.tan(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected asinInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.asin(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected acosInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.acos(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected atanInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.atan(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected sinhInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.sinh(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected coshInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.cosh(values[i]);
+    }
+    return NDArray.make<T>(ndarray.shape, {values: resultValues});
+  }
+
+  protected tanhInternal<T extends NDArray>(ndarray: T): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = util.tanh(values[i]);
     }
     return NDArray.make<T>(ndarray.shape, {values: resultValues});
   }

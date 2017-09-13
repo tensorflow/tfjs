@@ -16,9 +16,10 @@
  */
 
 import * as test_util from '../../test_util';
-import {UnaryOp} from './unaryop_gpu';
+import {Array1D, Array2D, Array3D, NDArray, Scalar} from '../ndarray';
+
+import * as unary_op from './unaryop_gpu';
 import * as unaryop_gpu_test from './unaryop_gpu_test';
-import {NDArray, Array2D, Array1D, Array3D, Scalar} from '../ndarray';
 
 describe('step_gpu', () => {
   it('returns a matrix with the shape of the input matrix', () => {
@@ -70,5 +71,5 @@ describe('step_gpu', () => {
 });
 
 function uploadStepDownload(a: NDArray): Float32Array {
-  return unaryop_gpu_test.uploadUnaryDownload(a, UnaryOp.STEP);
+  return unaryop_gpu_test.uploadUnaryDownload(a, unary_op.STEP);
 }

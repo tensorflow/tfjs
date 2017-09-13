@@ -16,9 +16,10 @@
  */
 
 import * as test_util from '../../test_util';
-import {UnaryOp} from './unaryop_gpu';
+import {Array1D, Array2D, Array3D, NDArray, Scalar} from '../ndarray';
+
+import * as unaryop_gpu from './unaryop_gpu';
 import * as unaryop_gpu_test from './unaryop_gpu_test';
-import {Array2D, Array1D, NDArray, Scalar, Array3D} from '../ndarray';
 
 describe('relu_gpu', () => {
   it('returns a matrix with the shape of the input matrix', () => {
@@ -46,7 +47,7 @@ describe('relu_gpu', () => {
   });
 
   it('operates on multiple values', () => {
-    const a = Array2D.new([3, 3],  [[-1, 2, -3], [4, -5, 6], [-7, 8, -9]]);
+    const a = Array2D.new([3, 3], [[-1, 2, -3], [4, -5, 6], [-7, 8, -9]]);
     const result = uploadReluDownload(a);
     test_util.expectArraysClose(
         result, new Float32Array([0, 2, 0, 4, 0, 6, 0, 8, 0]), 0.0001);
@@ -61,5 +62,5 @@ describe('relu_gpu', () => {
 });
 
 function uploadReluDownload(a: NDArray): Float32Array {
-  return unaryop_gpu_test.uploadUnaryDownload(a, UnaryOp.RELU);
+  return unaryop_gpu_test.uploadUnaryDownload(a, unaryop_gpu.RELU);
 }

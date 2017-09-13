@@ -21,41 +21,26 @@ import {Array2D} from '../ndarray';
 import * as unaryop_gpu from './unaryop_gpu';
 import * as unaryop_gpu_test from './unaryop_gpu_test';
 
-describe('neg_gpu', () => {
+describe('abs_gpu', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
-    const a = new Float32Array(28 * 32);
-    const result = uploadNegDownload(a, 28, 32);
+    const a = new Float32Array(23 * 32);
+    const result = uploadAbsDownload(a, 23, 32);
     expect(result.length).toEqual(a.length);
   });
 
-  it('preserves zero values', () => {
-    const a = new Float32Array([0]);
-    const result = uploadNegDownload(a, 1, 1);
-    expect(result[0]).toBeCloseTo(0);
-  });
-
-  it('negates positive values into negative values', () => {
-    const a = new Float32Array([1]);
-    const result = uploadNegDownload(a, 1, 1);
-    expect(result[0]).toEqual(-1);
-  });
-
-  it('negates negative values into positive values', () => {
-    const a = new Float32Array([-1]);
-    const result = uploadNegDownload(a, 1, 1);
-    expect(result[0]).toEqual(1);
-  });
-
-  it('operates on every value in a matrix', () => {
-    const a = new Float32Array([0.5, 0, -2.3, 4, -12, -Math.E]);
-    const result = uploadNegDownload(a, 2, 3);
-    const expected = new Float32Array([-0.5, 0, 2.3, -4, 12, Math.E]);
+  it('calculates f(x)=abs x for every value in the matrix', () => {
+    const a = new Float32Array([-2, 1, 0, -3]);
+    const result = uploadAbsDownload(a, 1, a.length);
+    const expected = new Float32Array(a.length);
+    for (let i = 0; i < a.length; ++i) {
+      expected[i] = Math.abs(a[i]);
+    }
     test_util.expectArraysClose(result, expected, 0.0001);
   });
 });
 
-function uploadNegDownload(
+function uploadAbsDownload(
     a: Float32Array, rows: number, cols: number): Float32Array {
   const arr = Array2D.new([rows, cols], a);
-  return unaryop_gpu_test.uploadUnaryDownload(arr, unaryop_gpu.NEG);
+  return unaryop_gpu_test.uploadUnaryDownload(arr, unaryop_gpu.ABS);
 }

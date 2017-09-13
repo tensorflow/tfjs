@@ -15,8 +15,14 @@
  * =============================================================================
  */
 
-import {GPGPUProgram} from './gpgpu_math';
 import * as util from '../../util';
+
+import {GPGPUProgram} from './gpgpu_math';
+
+export const ADD = 'return a + b;';
+export const SUB = 'return a - b;';
+export const MUL = 'return a * b;';
+export const DIV = 'return a / b;';
 
 export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
@@ -25,14 +31,18 @@ export class BinaryOpProgram implements GPGPUProgram {
   userCode: string;
   supportsBroadcasting = true;
 
-  constructor(op: '+' | '-' | '*' | '/', aShape: number[], bShape: number[]) {
+  constructor(op: string, aShape: number[], bShape: number[]) {
     this.params = [op];
     this.outputShape = util.assertAndGetBroadcastedShape(aShape, bShape);
     this.userCode = `
+      float binaryOperation(float a, float b) {
+        ${op}
+      }
+
       void main() {
         float a = getAAtOutCoords();
         float b = getBAtOutCoords();
-        setOutput(a ${op} b);
+        setOutput(binaryOperation(a, b));
       }
     `;
   }

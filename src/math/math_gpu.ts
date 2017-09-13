@@ -23,6 +23,7 @@ import {AddScaledMatProgram} from './webgl/addscaledmat_gpu';
 import {ArgMaxEqualsProgram} from './webgl/argmaxequals_gpu';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
+import * as binaryop_gpu from './webgl/binaryop_gpu';
 import {BinaryOpProgram} from './webgl/binaryop_gpu';
 import {Concat3DProgram} from './webgl/concat3d_gpu';
 // tslint:disable-next-line:max-line-length
@@ -41,7 +42,8 @@ import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceSumProgram} from './webgl/reducesum_gpu';
 import {ResizeBilinear3DProgram} from './webgl/resize_bilinear_gpu';
 import {TextureManager} from './webgl/texture_manager';
-import {UnaryOp, UnaryOpProgram} from './webgl/unaryop_gpu';
+import * as unary_op from './webgl/unaryop_gpu';
+import {UnaryOpProgram} from './webgl/unaryop_gpu';
 import * as webgl_util from './webgl/webgl_util';
 
 export class NDArrayMathGPU extends NDArrayMath {
@@ -113,7 +115,7 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected negInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.NEG);
+    const program = new UnaryOpProgram(a.shape, unary_op.NEG);
     return this.compileAndRun<T, T>(program, [a]);
   }
 
@@ -147,7 +149,7 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected multiplyInternal<T extends NDArray>(a: T, b: T): T {
-    const program = new BinaryOpProgram('*', a.shape, b.shape);
+    const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
     return this.compileAndRun<T, T>(program, [a, b]);
   }
 
@@ -219,17 +221,17 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected divideInternal<T extends NDArray>(a: T, b: T): T {
-    const program = new BinaryOpProgram('/', a.shape, b.shape);
+    const program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
     return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
   protected addInternal<T extends NDArray>(a: T, b: T): T {
-    const program = new BinaryOpProgram('+', a.shape, b.shape);
+    const program = new BinaryOpProgram(binaryop_gpu.ADD, a.shape, b.shape);
     return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
   protected subInternal<T extends NDArray>(a: T, b: T): T {
-    const program = new BinaryOpProgram('-', a.shape, b.shape);
+    const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
     return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
@@ -239,42 +241,83 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected expInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.EXP);
+    const program = new UnaryOpProgram(a.shape, unary_op.EXP);
     return this.compileAndRun(program, [a]);
   }
 
   protected logInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.LOG);
+    const program = new UnaryOpProgram(a.shape, unary_op.LOG);
     return this.compileAndRun(program, [a]);
   }
 
   protected sqrtInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.SQRT);
+    const program = new UnaryOpProgram(a.shape, unary_op.SQRT);
     return this.compileAndRun(program, [a]);
   }
 
   protected reluInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.RELU);
+    const program = new UnaryOpProgram(a.shape, unary_op.RELU);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected absInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.ABS);
     return this.compileAndRun(program, [a]);
   }
 
   protected sigmoidInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.SIGMOID);
+    const program = new UnaryOpProgram(a.shape, unary_op.SIGMOID);
     return this.compileAndRun<T, T>(program, [a]);
   }
 
-  protected tanhInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.TANH);
+  protected sinInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.SIN);
     return this.compileAndRun(program, [a]);
   }
 
-  protected sinInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.SIN);
+  protected cosInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.COS);
     return this.compileAndRun(program, [a]);
   }
+
+  protected tanInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.TAN);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected asinInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.ASIN);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected acosInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.ACOS);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected atanInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.ATAN);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected sinhInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.SINH);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected coshInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.COSH);
+    return this.compileAndRun(program, [a]);
+  }
+
+  protected tanhInternal<T extends NDArray>(a: T): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.TANH);
+    return this.compileAndRun(program, [a]);
+  }
+
 
   protected stepInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, UnaryOp.STEP);
+    const program = new UnaryOpProgram(a.shape, unary_op.STEP);
     return this.compileAndRun(program, [a]);
   }
 

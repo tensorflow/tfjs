@@ -16,9 +16,10 @@
  */
 
 import * as test_util from '../../test_util';
-import {UnaryOp} from './unaryop_gpu';
-import * as unaryop_gpu_test from './unaryop_gpu_test';
 import {Array2D} from '../ndarray';
+
+import * as unaryop_gpu from './unaryop_gpu';
+import * as unaryop_gpu_test from './unaryop_gpu_test';
 
 describe('log_gpu', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
@@ -56,5 +57,5 @@ describe('log_gpu', () => {
 function uploadLogDownload(
     a: Float32Array, rows: number, cols: number): Float32Array {
   const arr = Array2D.new([rows, cols], a);
-  return unaryop_gpu_test.uploadUnaryDownload(arr, UnaryOp.LOG);
+  return unaryop_gpu_test.uploadUnaryDownload(arr, unaryop_gpu.LOG);
 }

@@ -19,6 +19,7 @@ import * as test_util from '../../test_util';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, initializeGPU, NDArray, Scalar} from '../ndarray';
 
+import * as binaryop_gpu from './binaryop_gpu';
 import {BinaryOpProgram} from './binaryop_gpu';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
@@ -28,21 +29,21 @@ describe('binaryop_gpu Add', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
     const a = Scalar.new(0);
     const b = Array2D.zeros([12, 513]);
-    const result = uploadBinaryOpDownload(a, b, '+');
+    const result = uploadBinaryOpDownload(a, b, binaryop_gpu.ADD);
     expect(result.length).toEqual(b.size);
   });
 
   it('preserves the matrix when the scalar is 0', () => {
     const c = Scalar.new(0);
     const a = Array1D.new([1, 2, 3]);
-    const result = uploadBinaryOpDownload(c, a, '+');
+    const result = uploadBinaryOpDownload(c, a, binaryop_gpu.ADD);
     test_util.expectArraysClose(result, new Float32Array([1, 2, 3]), 0);
   });
 
   it('adds the scalar to every element in the matrix', () => {
     const a = Array1D.new([1, 2, 3, 4]);
     const c = Scalar.new(0.5);
-    const result = uploadBinaryOpDownload(c, a, '+');
+    const result = uploadBinaryOpDownload(c, a, binaryop_gpu.ADD);
     test_util.expectArraysClose(
         result, new Float32Array([1.5, 2.5, 3.5, 4.5]), 0.0001);
   });
@@ -52,21 +53,21 @@ describe('binaryop_gpu Sub', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
     const a = Array2D.zeros([12, 513]);
     const c = Scalar.new(0);
-    const result = uploadBinaryOpDownload(a, c, '-');
+    const result = uploadBinaryOpDownload(a, c, binaryop_gpu.SUB);
     expect(result.length).toEqual(a.size);
   });
 
   it('preserves the matrix when the scalar is 0', () => {
     const a = Array1D.new([1, 2, 3]);
     const c = Scalar.new(0);
-    const result = uploadBinaryOpDownload(a, c, '-');
+    const result = uploadBinaryOpDownload(a, c, binaryop_gpu.SUB);
     test_util.expectArraysClose(result, new Float32Array([1, 2, 3]), 0);
   });
 
   it('subtracts the scalar from every element in the matrix', () => {
     const a = Array1D.new([1, 2, 3, 4]);
     const c = Scalar.new(0.5);
-    const result = uploadBinaryOpDownload(a, c, '-');
+    const result = uploadBinaryOpDownload(a, c, binaryop_gpu.SUB);
     test_util.expectArraysClose(
         result, new Float32Array([0.5, 1.5, 2.5, 3.5]), 0.0001);
   });
@@ -74,7 +75,7 @@ describe('binaryop_gpu Sub', () => {
   it('2D - 1D broadcasting', () => {
     const a = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
     const b = Array1D.new([1, 3]);
-    const result = uploadBinaryOpDownload(a, b, '-');
+    const result = uploadBinaryOpDownload(a, b, binaryop_gpu.SUB);
     test_util.expectArraysClose(
         result, new Float32Array([0, -1, 2, 1, 4, 3]), 1e-4);
   });
@@ -83,7 +84,7 @@ describe('binaryop_gpu Sub', () => {
     const a = Array2D.new([3, 2], [[1, 2], [3, 4], [5, 6]]);
     const b = Array1D.new([1, 2, 3]);
     // shape [3, 2] is not compatible with shape [3].
-    const f = () => uploadBinaryOpDownload(a, b, '-');
+    const f = () => uploadBinaryOpDownload(a, b, binaryop_gpu.SUB);
     expect(f).toThrowError();
   });
 
@@ -91,7 +92,7 @@ describe('binaryop_gpu Sub', () => {
     const a = Array3D.new([2, 2, 2], [[[1, 2], [3, 4]], [[5, 6], [7, 8]]]);
     const b = Array2D.new([2, 2], [[1, 2], [3, 5]]);
     // shape [3, 2] is not compatible with shape [3].
-    const res = uploadBinaryOpDownload(a, b, '-');
+    const res = uploadBinaryOpDownload(a, b, binaryop_gpu.SUB);
     test_util.expectArraysClose(
         res, new Float32Array([0, 0, 0, -1, 4, 4, 4, 3]), 1e-4);
   });
@@ -110,21 +111,21 @@ describe('binaryop_gpu Mul', () => {
   it('returns a matrix with the same shape as the input matrix', () => {
     const a = Array2D.zeros([12, 513]);
     const c = Scalar.new(0);
-    const result = uploadBinaryOpDownload(c, a, '*');
+    const result = uploadBinaryOpDownload(c, a, binaryop_gpu.MUL);
     expect(result.length).toEqual(a.size);
   });
 
   it('zeros out the matrix when the scalar is 0', () => {
     const a = Array1D.new([1, 2, 3]);
     const c = Scalar.new(0);
-    const result = uploadBinaryOpDownload(c, a, '*');
+    const result = uploadBinaryOpDownload(c, a, binaryop_gpu.MUL);
     test_util.expectArraysClose(result, new Float32Array([0, 0, 0]), 0);
   });
 
   it('triples the matrix when the scalar is 3', () => {
     const a = Array1D.new([1, 2, 3]);
     const c = Scalar.new(3);
-    const result = uploadBinaryOpDownload(c, a, '*');
+    const result = uploadBinaryOpDownload(c, a, binaryop_gpu.MUL);
     test_util.expectArraysClose(result, new Float32Array([3, 6, 9]), 0);
   });
 
@@ -133,7 +134,7 @@ describe('binaryop_gpu Mul', () => {
     const expected = a.getValues();
     const b = Array2D.zerosLike(a);
     b.fill(1.0);
-    const result = uploadBinaryOpDownload(a, b, '*');
+    const result = uploadBinaryOpDownload(a, b, binaryop_gpu.MUL);
     expect(result).toEqual(expected);
   });
 
@@ -142,7 +143,7 @@ describe('binaryop_gpu Mul', () => {
     a.fill(1.0);
     const b = Array2D.zerosLike(a);
     const expected = b.getValues();
-    const result = uploadBinaryOpDownload(a, b, '*');
+    const result = uploadBinaryOpDownload(a, b, binaryop_gpu.MUL);
     expect(result).toEqual(expected);
   });
 
@@ -151,7 +152,7 @@ describe('binaryop_gpu Mul', () => {
     const expected = a.getValues();
     const b = Array1D.zeros([16]);
     b.fill(1.0);
-    const result = uploadBinaryOpDownload(a, b, '*');
+    const result = uploadBinaryOpDownload(a, b, binaryop_gpu.MUL);
     test_util.expectArraysClose(result, expected, 0.0001);
   });
 
@@ -159,7 +160,7 @@ describe('binaryop_gpu Mul', () => {
     const a = Array1D.new(test_util.randomArrayInRange(64, -10, 10));
     const b = Array1D.new(test_util.randomArrayInRange(64, -10, 10));
     const expected = cpuMultiply(a.getValues(), b.getValues());
-    const result = uploadBinaryOpDownload(a, b, '*');
+    const result = uploadBinaryOpDownload(a, b, binaryop_gpu.MUL);
     test_util.expectArraysClose(result, expected, 0.0001);
   });
 });
@@ -168,7 +169,7 @@ describe('binaryop_gpu Divide', () => {
   it('Scalar / Matrix', () => {
     const c = Scalar.new(2);
     const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const r = uploadBinaryOpDownload(c, a, '/');
+    const r = uploadBinaryOpDownload(c, a, binaryop_gpu.DIV);
     expect(r[0]).toBeCloseTo(2 / 1);
     expect(r[1]).toBeCloseTo(2 / 2);
     expect(r[2]).toBeCloseTo(2 / 3);
@@ -178,8 +179,22 @@ describe('binaryop_gpu Divide', () => {
   });
 });
 
+describe('binaryop_gpu custom', () => {
+  it('a ^ 2 + b', () => {
+    const c = Scalar.new(2);
+    const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const r = uploadBinaryOpDownload(c, a, 'return a * a + b;');
+    expect(r[0]).toBeCloseTo(2 * 2 + 1);
+    expect(r[1]).toBeCloseTo(2 * 2 + 2);
+    expect(r[2]).toBeCloseTo(2 * 2 + 3);
+    expect(r[3]).toBeCloseTo(2 * 2 + 4);
+    expect(r[4]).toBeCloseTo(2 * 2 + 5);
+    expect(r[5]).toBeCloseTo(2 * 2 + 6);
+  });
+});
+
 function uploadBinaryOpDownload(
-    a: NDArray, b: NDArray, op: '+'|'-'|'*'|'/'): Float32Array {
+    a: NDArray, b: NDArray, op: string): Float32Array {
   const gpgpu = new GPGPUContext();
   const textureManager = new TextureManager(gpgpu);
   initializeGPU(gpgpu, textureManager);
