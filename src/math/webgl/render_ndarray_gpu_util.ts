@@ -56,6 +56,9 @@ export function renderToCanvas(
 export function renderToFramebuffer(
     gpgpu: GPGPUContext, renderShader: WebGLProgram, sourceTex: WebGLTexture) {
   gpgpu.setProgram(renderShader);
-  gpgpu.setInputMatrixTexture(sourceTex, 'source', 0);
+
+  const sourceSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+      gpgpu.gl, renderShader, 'source');
+  gpgpu.setInputMatrixTexture(sourceTex, sourceSamplerLocation, 0);
   gpgpu.executeProgram();
 }

@@ -44,12 +44,14 @@ export class Copy2DProgram implements GPGPUProgram {
   getCustomSetupFunc(
       sourceStart: [number, number], destStart: [number, number],
       destSize: [number, number]) {
-    return (gpgpu: GPGPUContext) => {
+    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
       gpgpu.setOutputMatrixWriteRegion(
           destStart[0], destSize[0], destStart[1], destSize[1]);
-      const sourceStartCRLoc = gpgpu.getUniformLocation('sourceStart');
+      const sourceStartCRLoc =
+          gpgpu.getUniformLocation(webGLProgram, 'sourceStart');
       gpgpu.gl.uniform2i(sourceStartCRLoc, sourceStart[0], sourceStart[1]);
-      const destStartCRLoc = gpgpu.getUniformLocation('destStart');
+      const destStartCRLoc =
+          gpgpu.getUniformLocation(webGLProgram, 'destStart');
       gpgpu.gl.uniform2i(destStartCRLoc, destStart[0], destStart[1]);
     };
   }

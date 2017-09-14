@@ -64,7 +64,9 @@ export function preprocessInput(
     shapeRowCol: [number, number]) {
   gpgpu.setOutputMatrixTexture(resultTex, shapeRowCol[0], shapeRowCol[1]);
   gpgpu.setProgram(preprocessInputShader);
-  gpgpu.setInputMatrixTexture(sourceTex, 'source', 0);
+  const samplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+      gpgpu.gl, preprocessInputShader, 'source');
+  gpgpu.setInputMatrixTexture(sourceTex, samplerLocation, 0);
   gpgpu.executeProgram();
 }
 
@@ -142,20 +144,32 @@ export function renderGrayscaleChannelsCollage(
     imageSize: number, channels: number, textureSize: number, numRows: number) {
   webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   gpgpu.setProgram(unpackChannelsShader);
-  gpgpu.setInputMatrixTexture(sourceTex, 'source', 0);
-  gpgpu.setInputMatrixTexture(minValuesTex, 'minValues', 1);
-  gpgpu.setInputMatrixTexture(maxValuesTex, 'maxValues', 2);
 
-  const imageSizeLoc = gpgpu.getUniformLocation('imageSize');
+  const sourceSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+      gpgpu.gl, unpackChannelsShader, 'source');
+  const minValuesSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+      gpgpu.gl, unpackChannelsShader, 'minValues');
+  const maxValuesSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+      gpgpu.gl, unpackChannelsShader, 'maxValues');
+
+  gpgpu.setInputMatrixTexture(sourceTex, sourceSamplerLocation, 0);
+  gpgpu.setInputMatrixTexture(minValuesTex, minValuesSamplerLocation, 1);
+  gpgpu.setInputMatrixTexture(maxValuesTex, maxValuesSamplerLocation, 2);
+
+  const imageSizeLoc =
+      gpgpu.getUniformLocation(unpackChannelsShader, 'imageSize');
   gpgpu.gl.uniform1f(imageSizeLoc, imageSize);
 
-  const channelsLoc = gpgpu.getUniformLocation('channels');
+  const channelsLoc =
+      gpgpu.getUniformLocation(unpackChannelsShader, 'channels');
   gpgpu.gl.uniform1f(channelsLoc, channels);
 
-  const imagesPerRowLoc = gpgpu.getUniformLocation('imagesPerRow');
+  const imagesPerRowLoc =
+      gpgpu.getUniformLocation(unpackChannelsShader, 'imagesPerRow');
   gpgpu.gl.uniform1f(imagesPerRowLoc, Math.floor(textureSize / imageSize));
 
-  const inputShapeCRLoc = gpgpu.getUniformLocation('inputShapeCR');
+  const inputShapeCRLoc =
+      gpgpu.getUniformLocation(unpackChannelsShader, 'inputShapeCR');
   gpgpu.gl.uniform2f(inputShapeCRLoc, inputShapeRC[1], inputShapeRC[0]);
 
   gpgpu.executeProgram();

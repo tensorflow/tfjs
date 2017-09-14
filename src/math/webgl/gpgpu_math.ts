@@ -33,6 +33,7 @@ export interface GPGPUProgram {
 export interface GPGPUBinary {
   webGLProgram: WebGLProgram;
   program: GPGPUProgram;
+  uniformLocations: {[name: string]: WebGLUniformLocation};
   gpgpu: GPGPUContext;
   source: string;
   inShapeInfos: ShapeInfo[];
@@ -58,10 +59,24 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
   const source = shader_compiler.makeShader(
       inputInfos, outShapeInfo, userCode,
       program.supportsBroadcasting === true);
+
+  const webGLProgram = gpgpu.createProgram(source);
+
+  const uniformLocations: {[name: string]: WebGLUniformLocation} = {};
+  for (let i = 0; i < program.variableNames.length; i++) {
+    const uniformName = program.variableNames[i];
+    uniformLocations[uniformName] =
+        gpgpu.getUniformLocation(webGLProgram, uniformName);
+  }
+
   return {
     program,
     source,
-    webGLProgram: gpgpu.createProgram(source), gpgpu, inShapeInfos, outShapeInfo
+    webGLProgram,
+    uniformLocations,
+    gpgpu,
+    inShapeInfos,
+    outShapeInfo
   };
 }
 
@@ -93,7 +108,8 @@ function validateBinaryAndProgram(shapeInfos: ShapeInfo[], inputs: NDArray[]) {
 
 export function runProgram<T extends NDArray, K extends NDArray>(
     binary: GPGPUBinary, inputs: T[], output: K,
-    customSetup?: (gpgpu: GPGPUContext) => void): void {
+    customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
+        void): void {
   validateBinaryAndProgram(binary.inShapeInfos, inputs);
   validateBinaryAndProgram([binary.outShapeInfo], [output]);
 
@@ -104,10 +120,12 @@ export function runProgram<T extends NDArray, K extends NDArray>(
   gpgpu.setProgram(binary.webGLProgram);
   inputs.forEach((input, i) => {
     const tex = input.getTexture();
-    gpgpu.setInputMatrixTexture(tex, binary.program.variableNames[i], i);
+    const variableName = binary.program.variableNames[i];
+    const variableUniformLocation = binary.uniformLocations[variableName];
+    gpgpu.setInputMatrixTexture(tex, variableUniformLocation, i);
   });
   if (customSetup != null) {
-    customSetup(gpgpu);
+    customSetup(gpgpu, binary.webGLProgram);
   }
   gpgpu.executeProgram();
 }

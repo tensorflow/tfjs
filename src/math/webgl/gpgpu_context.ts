@@ -52,8 +52,9 @@ export class GPGPUContext {
           webgl_util.getExtensionOrThrow(this.gl, 'EXT_color_buffer_float');
     }
 
-    this.loseContextExtension = webgl_util.getExtensionOrThrow(
-        this.gl, 'WEBGL_lose_context') as WebGLLoseContextExtension;
+    this.loseContextExtension =
+        webgl_util.getExtensionOrThrow(this.gl, 'WEBGL_lose_context') as
+        WebGLLoseContextExtension;
     this.vertexBuffer = gpgpu_util.createVertexBuffer(this.gl);
     this.indexBuffer = gpgpu_util.createIndexBuffer(this.gl);
     this.framebuffer = webgl_util.createFramebuffer(this.gl);
@@ -188,20 +189,21 @@ export class GPGPUContext {
     webgl_util.callAndCheck(this.gl, () => this.gl.useProgram(program));
   }
 
-  public getUniformLocation(uniformName: string): WebGLUniformLocation {
+  public getUniformLocation(program: WebGLProgram, uniformName: string):
+      WebGLUniformLocation {
     this.throwIfDisposed();
-    this.throwIfNoProgram();
     return webgl_util.getProgramUniformLocationOrThrow(
-        this.gl, this.program, uniformName);
+        this.gl, program, uniformName);
   }
 
   public setInputMatrixTexture(
-      inputMatrixTexture: WebGLTexture, uniformName: string,
+      inputMatrixTexture: WebGLTexture, uniformLocation: WebGLUniformLocation,
       textureUnit: number) {
     this.throwIfDisposed();
     this.throwIfNoProgram();
     webgl_util.bindTextureToProgramUniformSampler(
-        this.gl, this.program, inputMatrixTexture, uniformName, textureUnit);
+        this.gl, this.program, inputMatrixTexture, uniformLocation,
+        textureUnit);
   }
 
   public setOutputMatrixTexture(

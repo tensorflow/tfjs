@@ -19,12 +19,16 @@ import {ConvInfo} from '../conv_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Conv2DProgram implements GPGPUProgram {
-  variableNames = ['x', 'W', 'bias'];
+  variableNames = ['x', 'W'];
   params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
   constructor(convInfo: ConvInfo, hasBias: boolean) {
+    if (hasBias) {
+      this.variableNames.push('bias');
+    }
+
     this.outputShape = convInfo.outShape;
     const biasSnippet = hasBias ? 'dotProd += getBias(d2);' : '';
     const [xNumRows, xNumCols, inputDepth] = convInfo.inShape;

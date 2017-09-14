@@ -18,6 +18,7 @@
 import {MatrixOrientation} from '../math';
 
 import {GPGPUContext} from './gpgpu_context';
+import * as webgl_util from './webgl_util';
 
 export function getFragmentShaderSource(
     sharedDimension: number, aOrientation: MatrixOrientation,
@@ -81,8 +82,12 @@ export function multiplyMatrixPacked(
   gpgpu.setOutputPackedMatrixTexture(
       result, resultShapeRowCol[0], resultShapeRowCol[1]);
   gpgpu.setProgram(multiplyProgram);
-  gpgpu.setInputMatrixTexture(a, 'matrixA', 0);
-  gpgpu.setInputMatrixTexture(b, 'matrixB', 1);
+  const matrixASamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+      gpgpu.gl, multiplyProgram, 'matrixA');
+  const matrixBSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+      gpgpu.gl, multiplyProgram, 'matrixB');
+  gpgpu.setInputMatrixTexture(a, matrixASamplerLocation, 0);
+  gpgpu.setInputMatrixTexture(b, matrixBSamplerLocation, 1);
   gpgpu.executeProgram();
 }
 

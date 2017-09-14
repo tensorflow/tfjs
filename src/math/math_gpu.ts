@@ -128,7 +128,8 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   private compileAndRun<T extends NDArray, K extends NDArray>(
       program: GPGPUProgram, inputs: T[], output?: K,
-      customSetup?: (gpgpu: GPGPUContext) => void): K {
+      customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void):
+      K {
     if (output == null) {
       output = this.makeOutputArray<K>(program.outputShape);
     }
