@@ -17,33 +17,69 @@
 
 import {Node, VariableNode} from './graph';
 import {NDArrayMath} from './math/math';
+import {NDArray, Scalar} from './math/ndarray';
 import {SessionRuntime} from './session';
-import {TensorArrayMap, SummedTensorArrayMap} from './tensor_array_map';
+import * as session_util from './session_util';
+import {SummedTensorArrayMap, TensorArrayMap} from './tensor_array_map';
 
 export abstract class Optimizer {
   protected variableNodes: VariableNode[];
   protected specifiedVariableNodes: VariableNode[]|null;
 
-  constructor(specifiedVariableList?: Node[]) {
+  constructor(protected learningRate: number, specifiedVariableList?: Node[]) {
     if (specifiedVariableList != null) {
       this.specifiedVariableNodes = specifiedVariableList as VariableNode[];
     }
   }
 
-  abstract beforeBatch(
+  beforeBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
-      gradientArrayMap: SummedTensorArrayMap): void;
+      gradientArrayMap: SummedTensorArrayMap) {
+    this.variableNodes = this.specifiedVariableNodes == null ?
+        session_util.getVariableNodesFromEvaluationSet(runtime.nodes) :
+        this.specifiedVariableNodes;
+    if (batchSize !== this.prevBatchSize) {
+      if (this.c != null) {
+        this.c.dispose();
+      }
+      this.prevBatchSize = batchSize;
+      this.c = Scalar.new(-this.learningRate / batchSize);
+    }
+    this.variableNodes.forEach(
+        node => this.variableGradients.set(
+            node.output, NDArray.zeros(node.output.shape)));
+  }
 
-  abstract afterExample(
+  afterExample(
       math: NDArrayMath, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
-      gradientArrayMap: SummedTensorArrayMap): void;
+      gradientArrayMap: SummedTensorArrayMap) {
+    math.scope((keep) => {
+      this.variableNodes.forEach(node => {
+        const gradient = gradientArrayMap.get(node.output);
+        const accumulatedGradient = this.variableGradients.get(node.output);
+        this.variableGradients.set(
+            node.output, keep(math.add(gradient, accumulatedGradient)));
+        accumulatedGradient.dispose();
+      });
+    });
+  }
 
   abstract afterBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap): void;
 
-  abstract dispose(): void;
+  dispose() {
+    if (this.c != null) {
+      this.c.dispose();
+    }
+    this.one.dispose();
+  }
+
+  protected variableGradients = new TensorArrayMap();
+  protected prevBatchSize: number;
+  protected one = Scalar.new(1);
+  protected c: Scalar;
 }

@@ -36,9 +36,9 @@ export {NDArrayMathGPU} from './math/math_gpu';
 // tslint:disable-next-line:max-line-length
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './math/ndarray';
 export {GPGPUContext} from './math/webgl/gpgpu_context';
+export {MomentumOptimizer} from './momentum_optimizer';
 export {Optimizer} from './optimizer';
 export {CostReduction, FeedEntry, Session} from './session';
 export {SGDOptimizer} from './sgd_optimizer';
-export {MomentumOptimizer} from './momentum_optimizer';
 // Second level exports.
 export {conv_util, gpgpu_util, render_ndarray_gpu_util, util, webgl_util};

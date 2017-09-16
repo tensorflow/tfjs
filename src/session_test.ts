@@ -15,15 +15,16 @@
  * =============================================================================
  */
 
+import {AdagradOptimizer} from './adagrad_optimizer';
 import {Graph, Tensor} from './graph';
 import {InputProvider} from './input_provider';
 import {NDArrayMathCPU} from './math/math_cpu';
 import {NDArrayMathGPU} from './math/math_gpu';
 import {Array1D, NDArray, Scalar} from './math/ndarray';
+import {MomentumOptimizer} from './momentum_optimizer';
+import {RMSPropOptimizer} from './rmsprop_optimizer';
 import {FeedDictionary, FeedEntry, Session} from './session';
 import {SGDOptimizer} from './sgd_optimizer';
-import {MomentumOptimizer} from './momentum_optimizer';
-
 import * as test_util from './test_util';
 
 
@@ -151,13 +152,11 @@ describe('Session', () => {
     const session = new Session(g, math);
 
     math.scope(() => {
-      const result1 =
-          session.eval(y, [{tensor: x, data: Array1D.new([5, 4])}]);
+      const result1 = session.eval(y, [{tensor: x, data: Array1D.new([5, 4])}]);
       const expectedY = new Float32Array([30, 20]);
       test_util.expectArraysClose(result1.getValues(), expectedY, 1e-5);
 
-      const result2 =
-          session.eval(z, [{tensor: x, data: Array1D.new([5, 4])}]);
+      const result2 = session.eval(z, [{tensor: x, data: Array1D.new([5, 4])}]);
       const expectedZ = new Float32Array([31, 21]);
       test_util.expectArraysClose(result2.getValues(), expectedZ, 1e-5);
     });
@@ -315,7 +314,7 @@ describe('Session', () => {
 
   it('Safe mode math, math scope train does not throw', () => {
     const x = g.placeholder('x', [2]);
-    const w = g.variable('w', NDArray.zeros([1,2]));
+    const w = g.variable('w', NDArray.zeros([1, 2]));
     const b = g.variable('b', NDArray.zeros([1]));
     const y = g.reduceSum(g.add(g.matmul(w, x), b));
 
@@ -344,6 +343,87 @@ describe('Session', () => {
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw2 = session.activationArrayMap.get(w).getValues();
       test_util.expectArraysClose(dydw2, new Float32Array([-.5, -1.0]), 2e-5);
+    });
+  });
+
+
+  it('Safe mode math, math scope train does not throw', () => {
+    const x = g.placeholder('x', [2]);
+    const w = g.variable('w', NDArray.zeros([1, 2]));
+    const b = g.variable('b', NDArray.zeros([1]));
+    const y = g.reduceSum(g.add(g.matmul(w, x), b));
+
+    const safeMode = true;
+    const optimizer = new AdagradOptimizer(0.1, 0.5);
+    const math = new NDArrayMathCPU(safeMode);
+    const session = new Session(g, math);
+    const inputProvider: InputProvider = {
+      getNextCopy() {
+        return Array1D.new([2, 4]);
+      },
+      disposeCopy(math, example) {}
+    };
+
+    math.scope(() => {
+      // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
+      // cache = [old_cache_w1 + grad_w1**2,
+      //                old_cache_w2 + grad_w2**2] = [4,16]
+      // w = [ w1_old - lr*grad_w1/sqrt(cahce_w2 + eps),
+      //                w2_old - lr*grad_w1/sqrt(cahce_w2 + eps)]
+      //                = [-0.1, -0.1]
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(dydw, new Float32Array([-.1, -0.1]), 1e-5);
+      // cache = [old_cache_w1 + grad_w1**2,
+      //                old_cache_w2 + grad_w2**2] = [4,16]
+      // w = [ w1_old - lr*grad_w1/sqrt(cahce_w2 + eps),
+      //                w2_old - lr*grad_w1/sqrt(cahce_w2 + eps)]
+      //                = [-0.1707, -0.1707]
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw2 = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(
+          dydw2, new Float32Array([-.1707, -.1707]), 2e-5);
+    });
+  });
+
+  it('Safe mode math, math scope train does not throw', () => {
+    const x = g.placeholder('x', [2]);
+    const w = g.variable('w', NDArray.zeros([1, 2]));
+    const b = g.variable('b', NDArray.zeros([1]));
+    const y = g.reduceSum(g.add(g.matmul(w, x), b));
+    const safeMode = true;
+    const optimizer = new RMSPropOptimizer(0.1, 0.5, 0.8);
+    const math = new NDArrayMathCPU(safeMode);
+    const session = new Session(g, math);
+    const inputProvider: InputProvider = {
+      getNextCopy() {
+        return Array1D.new([2, 4]);
+      },
+      disposeCopy(math, example) {}
+    };
+
+    math.scope(() => {
+      // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
+      // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
+      //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]
+      //            = [.8, .3.2]
+      // w = [ w1_old - lr*grad_w1/sqrt(cahce_w1 + eps),
+      //            w2_old - lr*grad_w1/sqrt(cahce_w2 + eps)]
+      //            = [-0.2236, -0.2236]
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(
+          dydw, new Float32Array([-.2236, -0.2236]), 1e-5);
+      // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
+      //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]
+      //            = [1.44, 5.76]
+      // w = [ w1_old - lr*grad_w1/sqrt(cahce_w1 + eps),
+      //            w2_old - lr*grad_w1/sqrt(cahce_w2 + eps)]
+      //            = [-.39027, -.39027]
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw2 = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(
+          dydw2, new Float32Array([-.39027, -.39027]), 2e-5);
     });
   });
 

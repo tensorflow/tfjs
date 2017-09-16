@@ -14,20 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import {Node} from './graph';
 import {NDArrayMath} from './math/math';
 import {NDArray, Scalar} from './math/ndarray';
+import {Optimizer} from './optimizer';
 import {SessionRuntime} from './session';
-import {SGDOptimizer} from './sgd_optimizer';
 import {SummedTensorArrayMap, TensorArrayMap} from './tensor_array_map';
 
-export class MomentumOptimizer extends SGDOptimizer {
+export class AdagradOptimizer extends Optimizer {
   constructor(
-      protected learningRate: number, private momentum: number,
+      protected learningRate: number, protected momentum: number,
       specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
-    this.m = Scalar.new(this.momentum);
+    this.m = Scalar.new(momentum);
+    this.eps = Scalar.new(1e-6);
   }
 
   beforeBatch(
@@ -37,9 +37,9 @@ export class MomentumOptimizer extends SGDOptimizer {
     super.beforeBatch(
         math, batchSize, runtime, activationArrayMap, gradientArrayMap);
 
-    if (this.variableVelocities.size() === 0) {
+    if (this.accumulatedSquaredGradients.size() === 0) {
       this.variableNodes.forEach(node => {
-        this.variableVelocities.set(
+        this.accumulatedSquaredGradients.set(
             node.output, NDArray.zeros(node.output.shape));
       });
     }
@@ -53,17 +53,17 @@ export class MomentumOptimizer extends SGDOptimizer {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);
-        const oldVelocity = this.variableVelocities.get(node.output);
-        const velocity =
-            math.scaledArrayAdd(this.m, oldVelocity, this.one, gradient);
-        const variable =
-            math.scaledArrayAdd(this.c, velocity, this.one, oldVariable);
-        this.variableVelocities.set(node.output, keep(velocity));
+        const oldCache = this.accumulatedSquaredGradients.get(node.output);
+        const gradientSquare = math.multiply(gradient, gradient);
+        const cache = math.add(oldCache, gradientSquare);
+        const variable = math.scaledArrayAdd(
+            this.c, math.divide(gradient, math.add(math.sqrt(cache), this.eps)),
+            this.one, oldVariable);
+        this.accumulatedSquaredGradients.set(node.output, keep(cache));
         activationArrayMap.set(node.output, keep(variable));
         node.data = variable;
-
         oldVariable.dispose();
-        oldVelocity.dispose();
+        oldCache.dispose();
       });
     });
 
@@ -74,13 +74,11 @@ export class MomentumOptimizer extends SGDOptimizer {
   dispose() {
     super.dispose();
     this.m.dispose();
-    this.variableVelocities.dispose();
+    this.eps.dispose();
+    this.accumulatedSquaredGradients.dispose();
   }
 
-  setMomentum(momentum: number) {
-    this.momentum = momentum;
-  }
-
-  private variableVelocities = new TensorArrayMap();
+  private accumulatedSquaredGradients = new TensorArrayMap();
   private m: Scalar;
+  private eps: Scalar;
 }
