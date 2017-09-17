@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Graph, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearnjs';
+import {Graph, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearn';
 
 class Adder {
   inputTensorA: Tensor;

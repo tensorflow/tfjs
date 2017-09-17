@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../src/math/math_cpu';
-import {Array2D, NDArray} from '../../src/math/ndarray';
+import {Array2D, NDArray, NDArrayMathCPU} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 

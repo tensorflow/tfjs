@@ -16,8 +16,9 @@
  */
 
 import * as tex_util from '../../src/math/webgl/tex_util';
-import * as webgl_util from '../../src/math/webgl/webgl_util';
 import * as test_util from '../../src/test_util';
+
+import {webgl_util} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 

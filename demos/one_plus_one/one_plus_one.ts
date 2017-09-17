@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Graph, NDArrayMath, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearnjs';
+import {Graph, NDArrayMath, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearn';
 
 class Adder {
   inputTensorA: Tensor;

@@ -22,12 +22,10 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, MomentumOptimizer, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, Tensor, util} from '../deeplearnjs';
+import {Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, MomentumOptimizer, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, Scalar, Session, Tensor, util, xhr_dataset, XhrDataset, XhrDatasetConfig} from '../deeplearn';
 import {NDArrayImageVisualizer} from '../ndarray-image-visualizer';
 import {NDArrayLogitsVisualizer} from '../ndarray-logits-visualizer';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
-import * as xhr_dataset from '../xhr-dataset';
-import {XhrDataset, XhrDatasetConfig} from '../xhr-dataset';
 
 import {LayerBuilder, LayerWeightsDict} from './layer_builder';
 import {ModelLayer} from './model-layer';
@@ -176,20 +174,18 @@ export class ModelBuilder extends ModelBuilderPolymer {
 
     const eventObserver: GraphRunnerEventObserver = {
       batchesTrainedCallback: (batchesTrained: number) =>
-                                  this.displayBatchesTrained(batchesTrained),
+          this.displayBatchesTrained(batchesTrained),
       avgCostCallback: (avgCost: Scalar) => this.displayCost(avgCost),
       metricCallback: (metric: Scalar) => this.displayAccuracy(metric),
       inferenceExamplesCallback:
           (inputFeeds: FeedEntry[][], inferenceOutputs: NDArray[]) =>
               this.displayInferenceExamplesOutput(inputFeeds, inferenceOutputs),
-      inferenceExamplesPerSecCallback:
-          (examplesPerSec: number) =>
-              this.displayInferenceExamplesPerSec(examplesPerSec),
-      trainExamplesPerSecCallback:
-          (examplesPerSec: number) =>
-              this.displayExamplesPerSec(examplesPerSec),
+      inferenceExamplesPerSecCallback: (examplesPerSec: number) =>
+          this.displayInferenceExamplesPerSec(examplesPerSec),
+      trainExamplesPerSecCallback: (examplesPerSec: number) =>
+          this.displayExamplesPerSec(examplesPerSec),
       totalTimeCallback: (totalTimeSec: number) => this.totalTimeSec =
-                             totalTimeSec.toFixed(1),
+          totalTimeSec.toFixed(1),
     };
     this.graphRunner = new GraphRunner(this.math, this.session, eventObserver);
     this.optimizer = new MomentumOptimizer(this.learingRate, this.momentum);
@@ -490,8 +486,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
       inferenceExampleElement.className = 'inference-example';
 
       // Set up the input visualizer.
-      const ndarrayImageVisualizer = document.createElement(
-          'ndarray-image-visualizer') as NDArrayImageVisualizer;
+      const ndarrayImageVisualizer =
+          document.createElement('ndarray-image-visualizer') as
+          NDArrayImageVisualizer;
       ndarrayImageVisualizer.setShape(this.inputShape);
       ndarrayImageVisualizer.setSize(
           INFERENCE_IMAGE_SIZE_PX, INFERENCE_IMAGE_SIZE_PX);
@@ -499,8 +496,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
       inferenceExampleElement.appendChild(ndarrayImageVisualizer);
 
       // Set up the output ndarray visualizer.
-      const ndarrayLogitsVisualizer = document.createElement(
-          'ndarray-logits-visualizer') as NDArrayLogitsVisualizer;
+      const ndarrayLogitsVisualizer =
+          document.createElement('ndarray-logits-visualizer') as
+          NDArrayLogitsVisualizer;
       ndarrayLogitsVisualizer.initialize(
           INFERENCE_IMAGE_SIZE_PX, INFERENCE_IMAGE_SIZE_PX);
       this.outputNDArrayVisualizers.push(ndarrayLogitsVisualizer);
@@ -616,7 +614,8 @@ export class ModelBuilder extends ModelBuilderPolymer {
       data: {
         datasets: [{
           data,
-          fill: false, label,
+          fill: false,
+          label,
           pointRadius: 0,
           borderColor: 'rgba(75,192,192,1)',
           borderWidth: 1,

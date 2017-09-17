@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-import * as conv_util from '../../src/math/conv_util';
-import {Array3D, initializeGPU, NDArray} from '../../src/math/ndarray';
-import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
+import {initializeGPU} from '../../src/math/ndarray';
 import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import {Pool2DProgram} from '../../src/math/webgl/pool_gpu';
 import {TextureManager} from '../../src/math/webgl/texture_manager';
+import {Array3D, conv_util, GPGPUContext, NDArray} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 

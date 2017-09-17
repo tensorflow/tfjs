@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, webgl_util} from '../deeplearnjs';
+import {Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, webgl_util} from '../deeplearn';
 
 import * as nn_art_util from './nn_art_util';
 

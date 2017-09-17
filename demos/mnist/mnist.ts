@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, Graph, NDArray, NDArrayInitializer, NDArrayMath, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearnjs';
+import {Array1D, Array2D, CheckpointLoader, Graph, NDArray, NDArrayInitializer, NDArrayMath, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearn';
 
 // manifest.json lives in the same directory as the mnist demo.
 const reader = new CheckpointLoader('.');
@@ -79,10 +79,12 @@ export function buildModelMathAPI(
 
   return (x: Array1D): Scalar => {
     return math.scope(() => {
-      const hidden1 = math.relu(
-          math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B)) as Array1D;
-      const hidden2 = math.relu(math.add(
-          math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Array1D;
+      const hidden1 =
+          math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B)) as
+          Array1D;
+      const hidden2 =
+          math.relu(math.add(
+              math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Array1D;
       const logits =
           math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
       return math.argMax(logits);

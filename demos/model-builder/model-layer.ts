@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Graph, Tensor} from '../deeplearnjs';
+import {Graph, Tensor} from '../deeplearn';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 import * as layer_builder from './layer_builder';

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Array2D, GPGPUContext, webgl_util} from '../deeplearnjs';
+import {Array2D, GPGPUContext, webgl_util} from '../deeplearn';
 
 export function createInputAtlas(
     imageSize: number, inputNumDimensions: number, numLatentVariables: number) {

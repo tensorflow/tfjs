@@ -14,9 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {Array1D, Array2D, CheckpointLoader, NDArrayMathGPU, Scalar,
-    util} from '../deeplearnjs';
+// tslint:disable-next-line:max-line-length
+import {Array1D, Array2D, CheckpointLoader, NDArrayMathGPU, Scalar, util} from '../deeplearn';
 
 // manifest.json lives in the same directory.
 const reader = new CheckpointLoader('.');
@@ -25,15 +24,15 @@ reader.getAllVariables().then(vars => {
   const expected = [1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4];
   const math = new NDArrayMathGPU();
 
-  const lstmKernel1 = vars[
-      'rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as Array2D;
-  const lstmBias1 = vars[
-      'rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as Array1D;
+  const lstmKernel1 =
+      vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as Array2D;
+  const lstmBias1 =
+      vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as Array1D;
 
-  const lstmKernel2 = vars[
-      'rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as Array2D;
-  const lstmBias2 = vars[
-      'rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as Array1D;
+  const lstmKernel2 =
+      vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as Array2D;
+  const lstmBias2 =
+      vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as Array1D;
 
   const fullyConnectedBiases = vars['fully_connected/biases'] as Array1D;
   const fullyConnectedWeights = vars['fully_connected/weights'] as Array2D;
@@ -42,15 +41,19 @@ reader.getAllVariables().then(vars => {
 
   math.scope((keep, track) => {
     const forgetBias = track(Scalar.new(1.0));
-    const lstm1 = math.basicLSTMCell.bind(math, forgetBias, lstmKernel1,
-        lstmBias1);
-    const lstm2 = math.basicLSTMCell.bind(math, forgetBias, lstmKernel2,
-        lstmBias2);
+    const lstm1 =
+        math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
+    const lstm2 =
+        math.basicLSTMCell.bind(math, forgetBias, lstmKernel2, lstmBias2);
 
-    let c = [track(Array2D.zeros([1, lstmBias1.shape[0] / 4])),
-        track(Array2D.zeros([1, lstmBias2.shape[0] / 4]))];
-    let h = [track(Array2D.zeros([1, lstmBias1.shape[0] / 4])),
-        track(Array2D.zeros([1, lstmBias2.shape[0] / 4]))];
+    let c = [
+      track(Array2D.zeros([1, lstmBias1.shape[0] / 4])),
+      track(Array2D.zeros([1, lstmBias2.shape[0] / 4]))
+    ];
+    let h = [
+      track(Array2D.zeros([1, lstmBias1.shape[0] / 4])),
+      track(Array2D.zeros([1, lstmBias2.shape[0] / 4]))
+    ];
 
     let input = primerData;
     for (let i = 0; i < expected.length; i++) {
@@ -64,7 +67,7 @@ reader.getAllVariables().then(vars => {
 
       const outputH = h[1];
       const weightedResult = math.matMul(outputH, fullyConnectedWeights);
-      const logits = math.add( weightedResult, fullyConnectedBiases);
+      const logits = math.add(weightedResult, fullyConnectedBiases);
 
       const result = math.argMax(logits).get();
       results.push(result);
@@ -73,7 +76,7 @@ reader.getAllVariables().then(vars => {
   });
   document.getElementById('expected').innerHTML = '' + expected;
   document.getElementById('results').innerHTML = '' + results;
-  if(util.arraysEqual(expected, results)) {
+  if (util.arraysEqual(expected, results)) {
     document.getElementById('success').innerHTML = 'Success!';
   } else {
     document.getElementById('success').innerHTML = 'Failure.';

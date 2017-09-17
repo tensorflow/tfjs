@@ -18,7 +18,7 @@
 import '../demo-header';
 import '../demo-footer';
 // tslint:disable-next-line:max-line-length
-import {gpgpu_util, GPGPUContext, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearnjs';
+import {gpgpu_util, GPGPUContext, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
 import * as imagenet_util from '../models/imagenet_util';
 import {SqueezeNet} from '../models/squeezenet';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';

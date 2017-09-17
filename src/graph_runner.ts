@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {Tensor} from './graph';
-import {InputProvider} from './input_provider';
+import {InputProvider} from './data/input_provider';
+import {Tensor} from './graph/graph';
+import {Optimizer} from './graph/optimizers/optimizer';
+import {CostReduction, FeedEntry, Session} from './graph/session';
 import {NDArrayMath} from './math/math';
 import {NDArray, Scalar} from './math/ndarray';
-import {Optimizer} from './optimizer';
-import {CostReduction, FeedEntry, Session} from './session';
 
 const DEFAULT_EVAL_INTERVAL_MS = 1500;
 const DEFAULT_COST_INTERVAL_MS = 500;

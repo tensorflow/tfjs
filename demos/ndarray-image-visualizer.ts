@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Array3D} from '../src/math/ndarray';
+import {Array3D} from './deeplearn';
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
 // tslint:disable-next-line

@@ -14,12 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {CheckpointLoader} from '../../src/checkpoint_loader';
-import {NDArrayMathCPU} from '../../src/math/math_cpu';
-import {NDArrayMathGPU} from '../../src/math/math_gpu';
-import {Array1D, Array3D, Array4D, NDArray} from '../../src/math/ndarray';
-import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
+// tslint:disable-next-line:max-line-length
+import {Array1D, Array3D, Array4D, CheckpointLoader, GPGPUContext, NDArray, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
 
 import * as imagenet_classes from './imagenet_classes';
 import * as imagenet_util from './imagenet_util';

@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CostReduction, FeedEntry, Graph, InCPUMemoryShuffledInputProviderBuilder, NDArrayMathGPU, Scalar, Session, SGDOptimizer} from '../deeplearnjs';
+import {Array1D, Array2D, CostReduction, FeedEntry, Graph, InCPUMemoryShuffledInputProviderBuilder, NDArrayMathGPU, Scalar, Session, SGDOptimizer} from '../deeplearn';
 
 // This file parallels (some of) the code in the introduction tutorial.
 

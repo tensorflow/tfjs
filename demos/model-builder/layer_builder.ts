@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArray, NDArrayInitializer, Tensor, util, VarianceScalingInitializer, ZerosInitializer} from '../deeplearnjs';
+import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArray, NDArrayInitializer, Tensor, util, VarianceScalingInitializer, ZerosInitializer} from '../deeplearn';
 
 /**
  * Classes that specify operation parameters, how they affect output shape,
@@ -24,8 +24,8 @@ import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArray, NDArr
  * to the model builder UI should be added here.
  */
 
-export type LayerName = 'Fully connected' | 'ReLU' | 'Convolution' |
-    'Max pool' | 'Reshape' | 'Flatten';
+export type LayerName =
+    'Fully connected'|'ReLU'|'Convolution'|'Max pool'|'Reshape'|'Flatten';
 
 /**
  * Creates a layer builder object.
@@ -210,7 +210,7 @@ export class Convolution2DLayerBuilder implements LayerBuilder {
       {
         label: 'Output depth',
         initialValue: (inputShape: number[]) =>
-                          this.outputDepth != null ? this.outputDepth : 1,
+            this.outputDepth != null ? this.outputDepth : 1,
         type: 'number',
         min: 1,
         max: 1000,
@@ -322,7 +322,7 @@ export class ReshapeLayerBuilder implements LayerBuilder {
       initialValue: (inputShape: number[]) => inputShape.join(', '),
       type: 'text' as 'text',
       setValue: (value: string) => this.outputShape =
-                    value.split(',').map((value) => +value),
+          value.split(',').map((value) => +value),
       getValue: () => this.outputShape.join(', ')
     }];
   }

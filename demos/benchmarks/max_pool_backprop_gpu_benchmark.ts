@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import * as conv_util from '../../src/math/conv_util';
-import {Array3D, initializeGPU, NDArray} from '../../src/math/ndarray';
-import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
+import {initializeGPU} from '../../src/math/ndarray';
 import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 // tslint:disable-next-line:max-line-length
 import {MaxPool2DBackpropProgram} from '../../src/math/webgl/max_pool_backprop_gpu';
 import {TextureManager} from '../../src/math/webgl/texture_manager';
+import {Array3D, conv_util, GPGPUContext, NDArray} from '../deeplearn';
+
 import {BenchmarkTest} from './benchmark';
 
 const OP_RUNS = 40;

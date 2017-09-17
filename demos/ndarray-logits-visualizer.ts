@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../src/math/math_cpu';
-import {Array1D} from '../src/math/ndarray';
+import {Array1D, NDArrayMathCPU} from './deeplearn';
+
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
 const TOP_K = 3;

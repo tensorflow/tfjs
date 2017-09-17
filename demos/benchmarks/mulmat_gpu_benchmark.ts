@@ -15,13 +15,11 @@
  * =============================================================================
  */
 
-import {MatrixOrientation} from '../../src/math/math';
-import {Array2D} from '../../src/math/ndarray';
-import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
-import {MatMulProgram} from '../../src/math/webgl/mulmat_gpu';
 import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
+import {MatMulProgram} from '../../src/math/webgl/mulmat_gpu';
 import * as mulmat_packed_gpu from '../../src/math/webgl/mulmat_packed_gpu';
 import * as test_util from '../../src/test_util';
+import {Array2D, GPGPUContext, MatrixOrientation} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 

@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import * as conv_util from '../../src/math/conv_util';
-import {NDArrayMathCPU} from '../../src/math/math_cpu';
-import {Array3D} from '../../src/math/ndarray';
+import {Array3D, conv_util, NDArrayMathCPU} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 

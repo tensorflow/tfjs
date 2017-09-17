@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathGPU} from '../deeplearnjs';
+import {NDArrayMathGPU} from '../deeplearn';
 import {ActivationFunction, ColorMode, CPPN} from '../nn-art/cppn';
 
 function isSafari() {

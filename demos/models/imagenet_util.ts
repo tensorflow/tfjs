@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from '../../src/math/webgl/gpgpu_context';
-import * as webgl_util from '../../src/math/webgl/webgl_util';
+import {GPGPUContext, webgl_util} from '../deeplearn';
 
 /**
  * Unpacks an RGB packed image texture into a 2D physical, 3D logical texture
