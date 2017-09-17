@@ -164,6 +164,25 @@ const SHADER_PREFIX = `
   bool isNaN(float val) {
     return val == val ? false : true;
   }
+
+  bool hasNaN(vec4 values) {
+    return any(notEqual(values, values));
+  }
+
+  float getNaN(vec4 values) {
+    bvec4 equals = equal(values, values);
+    if (!equals.w) {
+      return values.w;
+    } else if (!equals.x) {
+      return values.x;
+    } else if (!equals.y) {
+      return values.y;
+    } else if (!equals.z) {
+      return values.z;
+    }
+    return 0.0;
+  }
+
   ${SAMPLE_1D_SNIPPET}
   ${SAMPLE_2D_SNIPPET}
   ${SAMPLE_3D_SNIPPET}

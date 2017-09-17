@@ -41,6 +41,9 @@ export class Conv2DProgram implements GPGPUProgram {
 
     this.params = [strideHeight, strideWidth, hasBias, padLeft, padTop];
 
+    const inputDepthNearestVec4 = Math.floor(inputDepth / 4) * 4;
+    const inputDepthVec4Remainder = inputDepth % 4;
+
     this.userCode = `
       const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
@@ -70,10 +73,49 @@ export class Conv2DProgram implements GPGPUProgram {
               continue;
             }
 
-            for (int d1 = 0; d1 < ${inputDepth}; d1++) {
-              float xValue = getX(xR, xC, d1);
-              float wValue = getW(wR, wC, d1, d2);
-              dotProd += xValue * wValue;
+            for (int d1 = 0; d1 < ${inputDepthNearestVec4}; d1 += 4) {
+              vec4 xValues = vec4(
+                getX(xR, xC, d1),
+                getX(xR, xC, d1 + 1),
+                getX(xR, xC, d1 + 2),
+                getX(xR, xC, d1 + 3)
+              );
+              vec4 wValues = vec4(
+                getW(wR, wC, d1, d2),
+                getW(wR, wC, d1 + 1, d2),
+                getW(wR, wC, d1 + 2, d2),
+                getW(wR, wC, d1 + 3, d2)
+              );
+
+              dotProd += dot(xValues, wValues);
+            }
+
+            if (${inputDepthVec4Remainder === 1}) {
+              dotProd +=
+                getX(xR, xC, ${inputDepthNearestVec4}) *
+                getW(wR, wC, ${inputDepthNearestVec4}, d2);
+            } else if (${inputDepthVec4Remainder === 2}) {
+              vec2 xValues = vec2(
+                getX(xR, xC, ${inputDepthNearestVec4}),
+                getX(xR, xC, ${inputDepthNearestVec4} + 1)
+              );
+              vec2 wValues = vec2(
+                getW(wR, wC, ${inputDepthNearestVec4}, d2),
+                getW(wR, wC, ${inputDepthNearestVec4} + 1, d2)
+              );
+              dotProd += dot(xValues, wValues);
+            } else if (${inputDepthVec4Remainder === 3}) {
+              vec3 xValues = vec3(
+                getX(xR, xC, ${inputDepthNearestVec4}),
+                getX(xR, xC, ${inputDepthNearestVec4} + 1),
+                getX(xR, xC, ${inputDepthNearestVec4} + 2)
+              );
+              vec3 wValues = vec3(
+                getW(wR, wC, ${inputDepthNearestVec4}, d2),
+                getW(wR, wC, ${inputDepthNearestVec4} + 1, d2),
+                getW(wR, wC, ${inputDepthNearestVec4} + 2, d2)
+              );
+              dotProd += dot(xValues, wValues);
             }
           }
         }

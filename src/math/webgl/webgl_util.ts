@@ -178,10 +178,18 @@ export function createFragmentShader(
   return fragmentShader;
 }
 
-const lineNumberRegex = /^ERROR: [0-9]+:([0-9]+):/g;
+const lineNumberRegex = /ERROR: [0-9]+:([0-9]+):/g;
 function logShaderSourceAndInfoLog(
     shaderSource: string, shaderInfoLog: string) {
-  const lineNumber = +lineNumberRegex.exec(shaderInfoLog)[1];
+  const lineNumberRegexResult = lineNumberRegex.exec(shaderInfoLog);
+  if (lineNumberRegexResult == null) {
+    console.log(`Couldn't parse line number in error: ${shaderInfoLog}`);
+    console.log(shaderSource);
+    return;
+  }
+
+  const lineNumber = +lineNumberRegexResult[1];
+
 
   const shaderLines = shaderSource.split('\n');
   const pad = ('' + shaderLines.length).length + 2;

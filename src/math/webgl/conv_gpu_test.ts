@@ -382,6 +382,16 @@ describe('conv_gpu', () => {
   });
 
   it('matches CPU on random input, d1=3,d2=4,f=3,s=3,p=1', () => {
+    const inputDepth = 2;
+    const inputShape: [number, number, number] = [7, 7, inputDepth];
+    const fSize = 3;
+    const outputDepth = 4;
+    const stride = 3;
+    const zeroPad = 1;
+    compareToCPU(inputShape, fSize, outputDepth, stride, zeroPad);
+  });
+
+  it('matches CPU on random input, d1=3,d2=4,f=3,s=3,p=1', () => {
     const inputDepth = 3;
     const inputShape: [number, number, number] = [7, 7, inputDepth];
     const fSize = 3;
