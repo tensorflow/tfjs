@@ -19,7 +19,7 @@ import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {NDArrayMath} from '../math/math';
 import {NDArray, Scalar} from '../math/ndarray';
-import {TensorArrayMap, SummedTensorArrayMap} from '../tensor_array_map';
+import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import * as util from '../util';
 
 import {Operation} from './op';
@@ -75,7 +75,7 @@ export class Add extends Operation {
           gradientArrays.add(
               this.x1Tensor, math.divide(sum, this.dySizeScalar));
         } else {
-          gradientArrays.add(this.x1Tensor, dy);
+          gradientArrays.add(this.x1Tensor, math.clone(dy));
         }
       }
 
@@ -88,7 +88,7 @@ export class Add extends Operation {
           gradientArrays.add(
               this.x2Tensor, math.divide(sum, this.dySizeScalar));
         } else {
-          gradientArrays.add(this.x2Tensor, dy);
+          gradientArrays.add(this.x2Tensor, math.clone(dy));
         }
       }
     });
