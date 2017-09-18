@@ -11,7 +11,7 @@ The reader should already have read the [Introduction](../../docs/tutorials/intr
 
 All of the code for this tutorial resides within the `demos/complementary-color-predictions` directory.
 
-As [Edd's answer on Stack Overflow](https://stackoverflow.com/a/37657940) shows, computing the complement of a color takes quite a bit of logic. Lets see how well a small [feed-forward neural network](https://en.wikipedia.org/wiki/Feedforward_neural_network) can learn that logic.
+As [Edd's answer on Stack Overflow](https://stackoverflow.com/a/37657940) shows, computing the complement of a color takes quite a bit of logic. Let's see how well a small [feed-forward neural network](https://en.wikipedia.org/wiki/Feedforward_neural_network) can learn that logic.
 
 ## Creating Input Examples
 
@@ -285,4 +285,4 @@ This behavior unfortunately stems from how weight initialization matters toward 
 
 ### End
 
-Hopefully, perusing the code (within this same directory) and the comments within it offers a simple example of how learnjs works. Keep us posted on interesting projects you pursue.
+Hopefully, perusing the code (within this same directory) and the comments within it offers a simple example of how deeplearn.js works. Keep us posted on interesting projects you pursue.
