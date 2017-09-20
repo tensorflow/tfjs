@@ -25,10 +25,9 @@ import {Optimizer} from './optimizer';
 
 export class RMSPropOptimizer extends Optimizer {
   constructor(
-      protected learningRate: number, protected momentum: number,
+      protected learningRate: number,
       private gamma: number, specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
-    this.m = Scalar.new(momentum);
     this.eps = Scalar.new(1e-6);
     this.g = Scalar.new(this.gamma);
   }
@@ -78,14 +77,12 @@ export class RMSPropOptimizer extends Optimizer {
 
   dispose() {
     super.dispose();
-    this.m.dispose();
     this.eps.dispose();
     this.g.dispose();
     this.accumulatedSquaredGradients.dispose();
   }
 
   private accumulatedSquaredGradients = new TensorArrayMap();
-  private m: Scalar;
   private eps: Scalar;
   private g: Scalar;
 }
