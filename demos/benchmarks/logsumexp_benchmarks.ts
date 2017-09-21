@@ -20,48 +20,71 @@ import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import {LogSumExpProgram} from '../../src/math/webgl/logsumexp_gpu';
 import {TextureManager} from '../../src/math/webgl/texture_manager';
 // tslint:disable-next-line:max-line-length
-import {Array2D, GPGPUContext, NDArray, NDArrayMathCPU, Scalar} from '../deeplearn';
+import {Array2D, ENV, GPGPUContext, NDArray, NDArrayMathCPU, Scalar} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
-const CPU_OPS_PER_RUN = 10;
-const GPU_OPS_PER_RUN = 10;
-
 export class LogSumExpCPUBenchmark extends BenchmarkTest {
-  run(size: number): number {
+  run(size: number): Promise<number> {
     const math = new NDArrayMathCPU();
     const a = NDArray.randUniform<Array2D>([size, size], -1, 1);
     const start = performance.now();
-    for (let i = 0; i < CPU_OPS_PER_RUN; i++) {
-      math.logSumExp(a);
-    }
+    math.logSumExp(a);
+
     const end = performance.now();
-    return (end - start) / CPU_OPS_PER_RUN;
+
+    return new Promise<number>((resolve, reject) => {
+      resolve(end - start);
+    });
   }
 }
 
 export class LogSumExpGPUBenchmark extends BenchmarkTest {
-  run(size: number): number {
-    const gpgpu = new GPGPUContext();
-    const texManager = new TextureManager(gpgpu);
-    initializeGPU(gpgpu, texManager);
-    const out = new Scalar({texture: texManager.acquireTexture([1, 1])});
-    const a = Array2D.randUniform([size, size], -1, 1);
-    const program = new LogSumExpProgram(a.size);
-    const binary = gpgpu_math.compileProgram(gpgpu, program, [a], out);
+  run(size: number): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      const gpgpu = new GPGPUContext();
+      const texManager = new TextureManager(gpgpu);
+      initializeGPU(gpgpu, texManager);
+      const out = new Scalar({texture: texManager.acquireTexture([1, 1])});
+      const a = Array2D.randUniform([size, size], -1, 1);
+      const program = new LogSumExpProgram(a.size);
+      const binary = gpgpu_math.compileProgram(gpgpu, program, [a], out);
 
-    const start = performance.now();
-    for (let i = 0; i < GPU_OPS_PER_RUN; i++) {
-      gpgpu_math.runProgram(binary, [a], out);
-    }
-    out.getValues();
-    const avgTime = (performance.now() - start) / GPU_OPS_PER_RUN;
-    a.dispose();
-    out.dispose();
-    texManager.dispose();
-    gpgpu.deleteProgram(binary.webGLProgram);
-    gpgpu.dispose();
+      const benchmark = () => {
+        gpgpu_math.runProgram(binary, [a], out);
+      };
 
-    return avgTime;
+      const immediateCleanup = () => {
+        a.dispose();
+        out.dispose();
+        texManager.dispose();
+        gpgpu.deleteProgram(binary.webGLProgram);
+        gpgpu.deleteProgram(binary.webGLProgram);
+      };
+
+      const delayedCleanup = () => {
+        gpgpu.dispose();
+      };
+
+      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER')) {
+        gpgpu.runBenchmark(benchmark).then((timeElapsed: number) => {
+          delayedCleanup();
+          resolve(timeElapsed);
+        });
+        immediateCleanup();
+      } else {
+        const start = performance.now();
+
+        benchmark();
+        out.getValues();
+
+        const totalTime = performance.now() - start;
+
+        immediateCleanup();
+        delayedCleanup();
+
+        resolve(totalTime);
+      }
+    });
   }
 }

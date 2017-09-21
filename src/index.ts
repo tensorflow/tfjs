@@ -27,6 +27,7 @@ export {DataStats, InMemoryDataset} from './data/dataset';
 // tslint:disable-next-line:max-line-length
 export {InCPUMemoryShuffledInputProviderBuilder, InGPUMemoryShuffledInputProviderBuilder, InputProvider} from './data/input_provider';
 export {XhrDataset, XhrDatasetConfig, XhrModelConfig} from './data/xhr-dataset';
+export {ENV, Features} from './environment';
 export {Graph, Tensor} from './graph/graph';
 export {AdagradOptimizer} from './graph/optimizers/adagrad_optimizer';
 export {MomentumOptimizer} from './graph/optimizers/momentum_optimizer';

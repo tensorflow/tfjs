@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
+import * as environment from '../../environment';
+import {Environment, Features} from '../../environment';
 import * as test_util from '../../test_util';
+
 import {GPGPUContext} from './gpgpu_context';
 import * as tex_util from './tex_util';
-import * as webgl_util from './webgl_util';
 
 describe('GPGPUContext downloadMatrixFromTexture WebGL 2.0', () => {
   let gpgpu: GPGPUContext;
@@ -75,7 +77,10 @@ describe('GPGPUContext downloadMatrixFromTexture WebGL 1.0', () => {
   let texture: WebGLTexture;
 
   beforeEach(() => {
-    webgl_util.preferWebGL1();
+    const featureValues: Features = {};
+    featureValues['WEBGL_VERSION'] = 1;
+    environment.setEnvironment(new Environment(featureValues));
+
     gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
     texture = gpgpu.createMatrixTexture(1, 1);
@@ -84,7 +89,7 @@ describe('GPGPUContext downloadMatrixFromTexture WebGL 1.0', () => {
   afterEach(() => {
     gpgpu.deleteMatrixTexture(texture);
     gpgpu.dispose();
-    webgl_util.preferWebGL2();
+    environment.setEnvironment(new Environment());
   });
 
   it('returns clear color from the output texture', () => {
@@ -186,14 +191,18 @@ describe('GPGPUContext setOutputMatrixTexture WebGL 1.0', () => {
   let texture: WebGLTexture;
 
   beforeEach(() => {
-    webgl_util.preferWebGL1();
+    const featureValues: Features = {};
+    featureValues['WEBGL_VERSION'] = 1;
+    environment.setEnvironment(new Environment(featureValues));
+
     gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
     texture = gpgpu.createMatrixTexture(1, 1);
   });
 
   afterEach(() => {
-    webgl_util.preferWebGL2();
+    environment.setEnvironment(new Environment());
+
     gpgpu.deleteMatrixTexture(texture);
     gpgpu.dispose();
   });
@@ -247,13 +256,17 @@ describe('GPGPUContext setOutputMatrixTexture WebGL 2.0', () => {
   let texture: WebGLTexture;
 
   beforeEach(() => {
-    webgl_util.preferWebGL2();
+    const featureValues: Features = {};
+    featureValues['WEBGL_VERSION'] = 2;
+    environment.setEnvironment(new Environment(featureValues));
+
     gpgpu = new GPGPUContext();
     gpgpu.enableAutomaticDebugValidation(true);
     texture = gpgpu.createMatrixTexture(1, 1);
   });
 
   afterEach(() => {
+    environment.setEnvironment(new Environment());
     gpgpu.deleteMatrixTexture(texture);
     gpgpu.dispose();
   });

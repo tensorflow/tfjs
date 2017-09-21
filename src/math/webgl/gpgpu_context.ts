@@ -15,10 +15,12 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
+import * as util from '../../util';
+
 import * as gpgpu_util from './gpgpu_util';
 import * as tex_util from './tex_util';
 import * as webgl_util from './webgl_util';
-
 import {WebGLLoseContextExtension} from './webgl_util';
 
 export class GPGPUContext {
@@ -42,7 +44,7 @@ export class GPGPUContext {
     }
 
     // WebGL 2.0 enables texture floats without an extension.
-    if (!webgl_util.isWebGL2Enabled()) {
+    if (ENV.get('WEBGL_VERSION') === 1) {
       this.textureFloatExtension =
           webgl_util.getExtensionOrThrow(this.gl, 'OES_texture_float');
       this.colorBufferFloatExtension =
@@ -256,6 +258,105 @@ export class GPGPUContext {
     this.throwIfDisposed();
     webgl_util.callAndCheck(this.gl, () => this.gl.finish());
   }
+
+  public runBenchmark(benchmark: () => void): Promise<number> {
+    if (ENV.get('WEBGL_VERSION') === 2) {
+      return this.runBenchmarkWebGL2(benchmark);
+    }
+    return this.runBenchmarkWebGL1(benchmark);
+  }
+
+  private runBenchmarkWebGL2(benchmark: () => void): Promise<number> {
+    const ext = webgl_util.getExtensionOrThrow(
+        this.gl, 'EXT_disjoint_timer_query_webgl2');
+    // tslint:disable-next-line:no-any
+    const query = (this.gl as any).createQuery();
+
+    // tslint:disable-next-line:no-any
+    (this.gl as any).beginQuery((ext as any).TIME_ELAPSED_EXT, query);
+
+    benchmark();
+
+    // tslint:disable-next-line:no-any
+    (this.gl as any).endQuery((ext as any).TIME_ELAPSED_EXT);
+
+    return new Promise<number>((resolve, reject) => {
+      const queryGPU = () => {
+        const available =
+            // tslint:disable-next-line:no-any
+            (this.gl as any)
+                .getQueryParameter(
+                    // tslint:disable-next-line:no-any
+                    query, (this.gl as any).QUERY_RESULT_AVAILABLE);
+
+        const disjoint =
+            // tslint:disable-next-line:no-any
+            this.gl.getParameter((ext as any).GPU_DISJOINT_EXT);
+        return available && !disjoint;
+      };
+
+      const getTimeElapsed = () => {
+        const timeElapsed =
+            // tslint:disable-next-line:no-any
+            (this.gl as any)
+                // tslint:disable-next-line:no-any
+                .getQueryParameter(query, (this.gl as any).QUERY_RESULT);
+        // Return milliseconds.
+        resolve(timeElapsed / 1000000);
+      };
+
+      const resolveWithWarning = () => {
+        console.warn('Disjoint query timer never available.');
+        resolve(-1);
+      };
+
+      const maxBackoffMs = 2048;
+      util.tryWithBackoff(queryGPU, maxBackoffMs)
+          .then(getTimeElapsed)
+          .catch(resolveWithWarning);
+    });
+  }
+
+  private runBenchmarkWebGL1(benchmark: () => void): Promise<number> {
+    const ext = webgl_util.getExtensionOrThrow(
+                    // tslint:disable-next-line:no-any
+                    this.gl, 'EXT_disjoint_timer_query') as any;
+    const query = ext.createQueryEXT();
+
+    ext.beginQueryEXT(ext.TIME_ELAPSED_EXT, query);
+
+    benchmark();
+
+    ext.endQueryEXT(ext.TIME_ELAPSED_EXT);
+
+    return new Promise<number>((resolve, reject) => {
+      const queryGPU = () => {
+        const available =
+            ext.getQueryObjectEXT(query, ext.QUERY_RESULT_AVAILABLE_EXT);
+
+        const disjoint = this.gl.getParameter(ext.GPU_DISJOINT_EXT);
+
+        return available && !disjoint;
+      };
+
+      const getTimeElapsed = () => {
+        const timeElapsed = ext.getQueryObjectEXT(query, ext.QUERY_RESULT_EXT);
+        // Return milliseconds.
+        resolve(timeElapsed / 1000000);
+      };
+
+      const resolveWithWarning = () => {
+        console.warn('Disjoint query timer never available.');
+        resolve(-1);
+      };
+
+      const maxBackoffMs = 2048;
+      util.tryWithBackoff(queryGPU, maxBackoffMs)
+          .then(getTimeElapsed)
+          .catch(resolveWithWarning);
+    });
+  }
+
 
   private downloadMatrixDriver(
       texture: WebGLTexture,

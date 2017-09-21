@@ -14,60 +14,87 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {NDArrayMath} from '../../src/math/math';
-import {NDArrayMathCPU} from '../../src/math/math_cpu';
-import {NDArrayMathGPU} from '../../src/math/math_gpu';
-import {Array2D, NDArray} from '../../src/math/ndarray';
-import {Scalar} from '../../src/math/ndarray';
+// tslint:disable-next-line:max-line-length
+import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Scalar} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
-const OPS_PER_RUN = 10;
-
 export abstract class ReductionOpsBenchmark extends BenchmarkTest {
-
-  protected getReductionOp(option: string,
-                           math: NDArrayMath): (input: NDArray) => Scalar {
+  protected getReductionOp(option: string, math: NDArrayMath):
+      (input: NDArray) => Scalar {
     switch (option) {
-    case "max":
-      return (input: NDArray) => math.max(input);
-    case "min":
-      return (input: NDArray) => math.min(input);
-    case "sum":
-      return (input: NDArray) => math.sum(input);
-    default:
-      throw new Error(`Not found such ops: ${option}`);
+      case 'max':
+        return (input: NDArray) => math.max(input);
+      case 'min':
+        return (input: NDArray) => math.min(input);
+      case 'sum':
+        return (input: NDArray) => math.sum(input);
+      default:
+        throw new Error(`Not found such ops: ${option}`);
     }
   }
 }
 
 export class ReductionOpsCPUBenchmark extends ReductionOpsBenchmark {
-  run(size: number, option: string) {
-    const math = new NDArrayMathCPU();
-    const input = NDArray.randUniform<Array2D>([ size, size ], -1, 1);
-    const op = this.getReductionOp(option, math);
-    const start = performance.now();
+  run(size: number, option: string): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      const math = new NDArrayMathCPU();
+      const input = NDArray.randUniform<Array2D>([size, size], -1, 1);
+      const op = this.getReductionOp(option, math);
+      const start = performance.now();
 
-    for (let i = 0; i < OPS_PER_RUN; i++) {
-      math.scope(() => { op(input).get(); });
-    }
-    const end = performance.now();
-    return (end - start) / OPS_PER_RUN;
+      math.scope(() => {
+        op(input).get();
+      });
+
+      const end = performance.now();
+      resolve(end - start);
+    });
   }
 }
 
 export class ReductionOpsGPUBenchmark extends ReductionOpsBenchmark {
   run(size: number, option: string) {
-    const math = new NDArrayMathGPU();
-    const input = NDArray.randUniform<Array2D>([ size, size ], -1, 1);
-    const op = this.getReductionOp(option, math);
-    const start = performance.now();
+    return new Promise<number>((resolve, reject) => {
+      const math = new NDArrayMathGPU();
+      const input = NDArray.randUniform<Array2D>([size, size], -1, 1);
+      const op = this.getReductionOp(option, math);
 
-    for (let i = 0; i < OPS_PER_RUN; i++) {
-      math.scope(() => { op(input).get(); });
-    }
-    const end = performance.now();
-    return (end - start) / OPS_PER_RUN;
+      let output: NDArray;
+      const benchmark = () => {
+        math.scope(() => {
+          output = op(input);
+        });
+      };
+
+      const immediateCleanup = () => {
+        input.dispose();
+      };
+
+      const delayedCleanup = () => {
+        math.dispose();
+      };
+
+      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER')) {
+        math.getGPGPUContext().runBenchmark(benchmark).then(
+            (timeElapsed: number) => {
+              delayedCleanup();
+              resolve(timeElapsed);
+            });
+        immediateCleanup();
+      } else {
+        const start = performance.now();
+
+        benchmark();
+        output.get();
+
+        const totalTime = performance.now() - start;
+
+        immediateCleanup();
+        delayedCleanup();
+
+        resolve(totalTime);
+      }
+    });
   }
 }

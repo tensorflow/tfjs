@@ -14,20 +14,20 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import {MatMulProgram} from '../../src/math/webgl/mulmat_gpu';
 import * as test_util from '../../src/test_util';
-import {Array2D, GPGPUContext, NDArray, NDArrayMathCPU} from '../deeplearn';
+// tslint:disable-next-line:max-line-length
+import {Array2D, ENV, GPGPUContext, NDArray, NDArrayMathCPU} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
-const GPU_OPS_PER_RUN = 40;
-
 export class MatmulCPUBenchmark extends BenchmarkTest {
-  run(size: number): number {
+  run(size: number): Promise<number> {
     if (size > 512) {
-      return -1;
+      return new Promise<number>((resolve, reject) => {
+        resolve(-1);
+      });
     }
     const math = new NDArrayMathCPU();
     const a = NDArray.randUniform<Array2D>([size, size], -1, 1);
@@ -35,44 +35,70 @@ export class MatmulCPUBenchmark extends BenchmarkTest {
     const start = performance.now();
     math.matMul(a, b);
     const end = performance.now();
-    return end - start;
+
+    return new Promise<number>((resolve, reject) => {
+      resolve(end - start);
+    });
   }
 }
 
 export class MatmulGPUBenchmark extends BenchmarkTest {
-  run(size: number): number {
-    const gpgpu = new GPGPUContext();
-    const aTexture = gpgpu.createMatrixTexture(size, size);
-    const bTexture = gpgpu.createMatrixTexture(size, size);
-    const resultTexture = gpgpu.createMatrixTexture(size, size);
+  run(size: number): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
+      const gpgpu = new GPGPUContext();
 
-    const aArr = new Array2D(
-        [size, size], {texture: aTexture, textureShapeRC: [size, size]});
-    const bArr = new Array2D(
-        [size, size], {texture: bTexture, textureShapeRC: [size, size]});
-    const resArr = new Array2D(
-        [size, size], {texture: resultTexture, textureShapeRC: [size, size]});
-    const program = new MatMulProgram(aArr.shape, bArr.shape);
-    const binary =
-        gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], resArr);
-    const a = test_util.randomArrayInRange(size * size, -1, 1);
-    const b = test_util.randomArrayInRange(size * size, -1, 1);
-    gpgpu.uploadMatrixToTexture(aTexture, size, size, a);
-    gpgpu.uploadMatrixToTexture(bTexture, size, size, b);
+      const aTexture = gpgpu.createMatrixTexture(size, size);
+      const bTexture = gpgpu.createMatrixTexture(size, size);
+      const resultTexture = gpgpu.createMatrixTexture(size, size);
 
-    const start = performance.now();
-    for (let i = 0; i < GPU_OPS_PER_RUN; i++) {
-      gpgpu_math.runProgram(binary, [aArr, bArr], resArr);
-    }
-    gpgpu.downloadMatrixFromTexture(resultTexture, size, size);
-    const avgTime = (performance.now() - start) / GPU_OPS_PER_RUN;
+      const aArr = new Array2D(
+          [size, size], {texture: aTexture, textureShapeRC: [size, size]});
+      const bArr = new Array2D(
+          [size, size], {texture: bTexture, textureShapeRC: [size, size]});
+      const resArr = new Array2D(
+          [size, size], {texture: resultTexture, textureShapeRC: [size, size]});
+      const program = new MatMulProgram(aArr.shape, bArr.shape);
+      const binary =
+          gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], resArr);
+      const a = test_util.randomArrayInRange(size * size, -1, 1);
+      const b = test_util.randomArrayInRange(size * size, -1, 1);
 
-    gpgpu.deleteMatrixTexture(aTexture);
-    gpgpu.deleteMatrixTexture(bTexture);
-    gpgpu.deleteMatrixTexture(resultTexture);
-    gpgpu.deleteProgram(binary.webGLProgram);
-    gpgpu.dispose();
+      gpgpu.uploadMatrixToTexture(aTexture, size, size, a);
+      gpgpu.uploadMatrixToTexture(bTexture, size, size, b);
 
-    return avgTime;
+      const benchmark = () => {
+        gpgpu_math.runProgram(binary, [aArr, bArr], resArr);
+      };
+
+      const immediateCleanup = () => {
+        gpgpu.deleteMatrixTexture(aTexture);
+        gpgpu.deleteMatrixTexture(bTexture);
+        gpgpu.deleteMatrixTexture(resultTexture);
+        gpgpu.deleteProgram(binary.webGLProgram);
+      };
+      const delayedCleanup = () => {
+        gpgpu.dispose();
+      };
+
+      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER')) {
+        gpgpu.runBenchmark(benchmark).then((timeElapsed: number) => {
+          delayedCleanup();
+          resolve(timeElapsed);
+        });
+        immediateCleanup();
+      } else {
+        const start = performance.now();
+
+        benchmark();
+        gpgpu.downloadMatrixFromTexture(resultTexture, size, size);
+
+        const totalTime = performance.now() - start;
+
+        immediateCleanup();
+        delayedCleanup();
+
+        resolve(totalTime);
+      }
+    });
   }
 }

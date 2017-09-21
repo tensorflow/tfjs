@@ -20,12 +20,11 @@ import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import {Pool2DProgram} from '../../src/math/webgl/pool_gpu';
 import {TextureManager} from '../../src/math/webgl/texture_manager';
 // tslint:disable-next-line:max-line-length
-import {Array3D, conv_util, GPGPUContext, NDArray, NDArrayMathCPU} from '../deeplearn';
+import {Array3D, conv_util, ENV, GPGPUContext, NDArray, NDArrayMathCPU} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
 const CPU_OP_RUNS = 1;
-const GPU_OP_RUNS = 40;
 
 export interface PoolBenchmarkParams {
   depth: number;
@@ -41,7 +40,7 @@ export abstract class PoolBenchmark extends BenchmarkTest {
 }
 
 export class PoolCPUBenchmark extends PoolBenchmark {
-  run(size: number): number {
+  run(size: number): Promise<number> {
     const math = new NDArrayMathCPU();
     const outputDepth = this.params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
@@ -57,40 +56,65 @@ export class PoolCPUBenchmark extends PoolBenchmark {
     }
     const avgTime = (performance.now() - start) / CPU_OP_RUNS;
 
-    return avgTime;
+    return new Promise<number>((resolve, reject) => {
+      resolve(avgTime);
+    });
   }
 }
 
 export class PoolGPUBenchmark extends PoolBenchmark {
-  run(size: number): number {
-    const gpgpu = new GPGPUContext();
-    const texManager = new TextureManager(gpgpu);
-    initializeGPU(gpgpu, texManager);
+  run(size: number): Promise<number> {
+    return new Promise<number>((resolve, reject) => {
 
-    const outputDepth = this.params.depth;
-    const xShape: [number, number, number] = [size, size, outputDepth];
-    const fieldSize = this.params.fieldSize;
-    const stride = this.params.stride;
-    const convInfo = conv_util.computeConvInfo(
-        xShape, fieldSize, fieldSize, outputDepth, stride, stride, 'same');
-    const program = new Pool2DProgram(convInfo, this.params.type, false);
-    const res = NDArray.zeros(program.outputShape);
-    const x = Array3D.randUniform(xShape, -1, 1);
-    const binary = gpgpu_math.compileProgram(gpgpu, program, [x], res);
+      const gpgpu = new GPGPUContext();
+      const texManager = new TextureManager(gpgpu);
+      initializeGPU(gpgpu, texManager);
 
-    const start = performance.now();
-    for (let i = 0; i < GPU_OP_RUNS; i++) {
-      gpgpu_math.runProgram(binary, [x], res);
-    }
-    res.getValues();
-    const avgTime = (performance.now() - start) / GPU_OP_RUNS;
+      const outputDepth = this.params.depth;
+      const xShape: [number, number, number] = [size, size, outputDepth];
+      const fieldSize = this.params.fieldSize;
+      const stride = this.params.stride;
+      const convInfo = conv_util.computeConvInfo(
+          xShape, fieldSize, fieldSize, outputDepth, stride, stride, 'same');
+      const program = new Pool2DProgram(convInfo, this.params.type, false);
+      const res = NDArray.zeros(program.outputShape);
+      const x = Array3D.randUniform(xShape, -1, 1);
+      const binary = gpgpu_math.compileProgram(gpgpu, program, [x], res);
 
-    x.dispose();
-    res.dispose();
-    texManager.dispose();
-    gpgpu.deleteProgram(binary.webGLProgram);
-    gpgpu.dispose();
+      const benchmark = () => {
+        gpgpu_math.runProgram(binary, [x], res);
+      };
 
-    return avgTime;
+      const immediateCleanup = () => {
+        x.dispose();
+        res.dispose();
+        texManager.dispose();
+        gpgpu.deleteProgram(binary.webGLProgram);
+      };
+
+      const delayedCleanup = () => {
+        gpgpu.dispose();
+      };
+
+      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER')) {
+        gpgpu.runBenchmark(benchmark).then((timeElapsed: number) => {
+          delayedCleanup();
+          resolve(timeElapsed);
+        });
+        immediateCleanup();
+      } else {
+        const start = performance.now();
+
+        benchmark();
+        res.getValues();
+
+        const totalTime = performance.now() - start;
+
+        immediateCleanup();
+        delayedCleanup();
+
+        resolve(totalTime);
+      }
+    });
   }
 }

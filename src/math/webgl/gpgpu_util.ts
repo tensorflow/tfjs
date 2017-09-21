@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
+
 import * as tex_util from './tex_util';
 import * as webgl_util from './webgl_util';
 
@@ -79,7 +81,7 @@ export function createIndexBuffer(gl: WebGLRenderingContext): WebGLBuffer {
 
 function getTextureInternalFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-  if (webgl_util.isWebGL2Enabled()) {
+  if (ENV.get('WEBGL_VERSION') === 2) {
     if (numChannels === 4) {
       // tslint:disable-next-line:no-any
       return (gl as any).RGBA32F;
@@ -92,7 +94,7 @@ function getTextureInternalFormat(
 
 function getTextureFormat(
     gl: WebGLRenderingContext, numChannels: number): number {
-  if (webgl_util.isWebGL2Enabled()) {
+  if (ENV.get('WEBGL_VERSION') === 2) {
     if (numChannels === 4) {
       // tslint:disable-next-line:no-any
       return (gl as any).RGBA;

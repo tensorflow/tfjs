@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-let USE_WEBGL2_WHEN_AVAILABLE = true;
-let WEBGL2_ENABLED: boolean|undefined = null;
 let MAX_TEXTURE_SIZE: number = null;
 
 import * as util from '../../util';
+import {ENV} from '../../environment';
 
 export interface WebGLContextAttributes {
   alpha?: boolean;
@@ -41,59 +40,50 @@ export function createWebGLRenderingContext(attributes: WebGLContextAttributes):
   return createWebGLRenderingContextFromCanvas(canvas, attributes);
 }
 
-/**
- * Force the library to prefer WebGL 1.0 instead of WebGL 2.0 even when WebGL
- * 2.0 is available.
- */
-export function preferWebGL1() {
-  USE_WEBGL2_WHEN_AVAILABLE = false;
-  WEBGL2_ENABLED = null;
-}
-
-/**
- * Prefer WebGL 2.0 to WebGL 1.0. This is the default configuration.
- */
-export function preferWebGL2() {
-  USE_WEBGL2_WHEN_AVAILABLE = true;
-  WEBGL2_ENABLED = null;
-}
-
 export function isWebGL2Enabled() {
-  if (!USE_WEBGL2_WHEN_AVAILABLE) {
-    return false;
+  const tempCanvas = document.createElement('canvas');
+  const gl = tempCanvas.getContext('webgl2');
+  if (gl != null) {
+    const loseContextExtension =
+        getExtensionOrThrow(
+            gl as WebGLRenderingContext, 'WEBGL_lose_context') as
+        WebGLLoseContextExtension;
+    loseContextExtension.loseContext();
+    return true;
   }
+  return false;
+}
 
-  if (WEBGL2_ENABLED == null) {
-    const tempCanvas = document.createElement('canvas');
-    const gl = tempCanvas.getContext('webgl2');
-    if (gl != null) {
-      WEBGL2_ENABLED = true;
-
-      const loseContextExtension =
-          getExtensionOrThrow(
-              gl as WebGLRenderingContext, 'WEBGL_lose_context') as
-          WebGLLoseContextExtension;
-      loseContextExtension.loseContext();
-    } else {
-      WEBGL2_ENABLED = false;
-    }
+export function isWebGL1Enabled() {
+  const tempCanvas = document.createElement('canvas');
+  const gl =
+      (tempCanvas.getContext('webgl') ||
+       tempCanvas.getContext('experimental-webgl')) as WebGLRenderingContext;
+  if (gl != null) {
+    const loseContextExtension =
+        getExtensionOrThrow(
+            gl as WebGLRenderingContext, 'WEBGL_lose_context') as
+        WebGLLoseContextExtension;
+    loseContextExtension.loseContext();
+    return true;
   }
-  return WEBGL2_ENABLED;
+  return false;
 }
 
 export function createWebGLRenderingContextFromCanvas(
     canvas: HTMLCanvasElement,
     attributes: WebGLContextAttributes): WebGLRenderingContext {
   let gl: WebGLRenderingContext;
-  if (isWebGL2Enabled()) {
+  const webglVersion = ENV.get('WEBGL_VERSION');
+  if (webglVersion === 2) {
     gl = canvas.getContext('webgl2', attributes) as WebGLRenderingContext;
-  } else {
+  } else if (webglVersion === 1) {
     gl = (canvas.getContext('webgl', attributes) ||
           canvas.getContext('experimental-webgl', attributes)) as
         WebGLRenderingContext;
   }
 
-  if (gl == null) {
+  if (webglVersion === 0 || gl == null) {
     throw new Error('This browser does not support WebGL.');
   }
   return gl;
@@ -263,7 +253,7 @@ export function queryMaxTextureSize(gl: WebGLRenderingContext): number {
 }
 
 export function getChannelsPerTexture(): number {
-  if (isWebGL2Enabled()) {
+  if (ENV.get('WEBGL_VERSION') === 2) {
     return 1;
   }
   return 4;

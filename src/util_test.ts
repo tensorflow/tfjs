@@ -146,3 +146,36 @@ describe('util.getBroadcastedShape', () => {
     expect(res).toEqual([7, 1, 1]);
   });
 });
+
+describe('util.tryWithBackoff', () => {
+  it('resolves', (doneFn) => {
+    let counter = 0;
+    const checkFn = () => {
+      counter++;
+      if (counter === 2) {
+        return true;
+      }
+      return false;
+    };
+
+    util.tryWithBackoff(checkFn, 128).then(doneFn).catch(() => {
+      throw new Error('Rejected backoff.');
+    });
+  });
+  it('rejects', (doneFn) => {
+    const checkFn = () => false;
+
+    util.tryWithBackoff(checkFn, 32)
+        .then(() => {
+          throw new Error('Backoff resolved');
+        })
+        .catch(doneFn);
+  });
+});
+
+describe('util.getQueryParams', () => {
+  it('basic', () => {
+    expect(util.getQueryParams('?a=1&b=hi&f=animal'))
+        .toEqual({'a': '1', 'b': 'hi', 'f': 'animal'});
+  });
+});
