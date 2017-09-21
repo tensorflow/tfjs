@@ -25,6 +25,9 @@ import {LogSumExpCPUBenchmark, LogSumExpGPUBenchmark} from './logsumexp_benchmar
 import {MatmulCPUBenchmark, MatmulGPUBenchmark} from './matmul_benchmarks';
 // tslint:disable-next-line:max-line-length
 import {PoolBenchmarkParams, PoolCPUBenchmark, PoolGPUBenchmark} from './pool_benchmarks';
+import {UnaryOpsCPUBenchmark, UnaryOpsGPUBenchmark} from './unary_ops_benchmark';
+// tslint:disable-next-line:max-line-length
+import {ReductionOpsCPUBenchmark, ReductionOpsGPUBenchmark} from './reduction_ops_benchmark';
 
 export function getRunGroups(): BenchmarkRunGroup[] {
   const groups: BenchmarkRunGroup[] = [];
@@ -111,6 +114,37 @@ export function getRunGroups(): BenchmarkRunGroup[] {
       new BenchmarkRun('logsumexp_cpu', new LogSumExpCPUBenchmark())
     ],
     params: {}
+  });
+
+  groups.push({
+    name : 'Unary Op Benchmark (CPU vs GPU): input [size, size]',
+    min : 0,
+    max : 1024,
+    options : [
+      "log", "exp", "neg", "sqrt", "abs", "relu", "sigmoid", "sin", "cos",
+      "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "logSumExp"
+    ],
+    selectedOption : "log",
+    stepSize : 64,
+    benchmarkRuns : [
+      new BenchmarkRun('unary ops CPU', new UnaryOpsCPUBenchmark()),
+      new BenchmarkRun('unary ops GPU', new UnaryOpsGPUBenchmark())
+    ],
+    params : {}
+  });
+
+  groups.push({
+    name : 'Reduction Op Benchmark (CPU vs GPU): input [size, size]',
+    min : 0,
+    max : 1024,
+    options : [ "max", "min", "sum" ],
+    selectedOption : "max",
+    stepSize : 64,
+    benchmarkRuns : [
+      new BenchmarkRun('reduction ops CPU', new ReductionOpsCPUBenchmark()),
+      new BenchmarkRun('reduction ops GPU', new ReductionOpsGPUBenchmark())
+    ],
+    params : {}
   });
 
   return groups;

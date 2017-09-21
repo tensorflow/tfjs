@@ -14,6 +14,9 @@ limitations under the License.
 ==============================================================================-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
 
 <dom-module id="math-benchmark">
 <style>
@@ -72,9 +75,20 @@ limitations under the License.
   <div class="header">Benchmarks</div>
   <div class="subheader">Values are averaged over many examples. See JavaScript console for streamed results.</div>
   <div class="math-tests">
-    <template is="dom-repeat" items="[[benchmarkRunGroupNames]]">
+    <template is="dom-repeat" items="[[benchmarks]]" as="benchmark">
       <div class="math-test">
-        <div class="run-group-name">[[item]]</div>
+        <div class="run-group-name">[[benchmark.name]]</div>
+
+        <paper-dropdown-menu no-animations label="Options" id="options" hidden="[[!benchmark.options]]">  
+          <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{benchmark.selectedOption}}" slot="dropdown-content">  
+            <template is="dom-repeat" items="[[benchmark.options]]">
+              <paper-item  value="[[item]]" label="[[item]]">
+                [[item]]  
+              </paper-item>  
+            </template>  
+          </paper-listbox>
+        </paper-dropdown-menu>
+
         <div class="run-header">
           <button class="run-test">Run</button>
           <button class="run-stop">Stop</button>
