@@ -52,7 +52,7 @@ export class NDArrayMathGPU extends NDArrayMath {
   private binaryCache: {[key: string]: GPGPUBinary} = {};
   private gpgpuCreatedLocally: boolean;
 
-  constructor(gpgpu?: GPGPUContext, safeMode = true) {
+  constructor(gpgpu?: GPGPUContext, safeMode = false) {
     super(safeMode);
     if (gpgpu == null) {
       const gl = gpgpu_util.createWebGLContext();
