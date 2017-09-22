@@ -84,7 +84,7 @@ function getFeaturesFromURL(): Features {
 
     const keyValues = urlParams[DEEPLEARNJS_FLAGS_PREFIX].split(',');
     keyValues.forEach(keyValue => {
-      const [key, value] = keyValue.split(':') as [string, string]
+      const [key, value] = keyValue.split(':') as [string, string];
       urlFlags[key] = value;
     });
 
