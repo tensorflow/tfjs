@@ -16,7 +16,6 @@
  */
 
 import * as device_util from './device_util';
-import * as webgl_util from './math/webgl/webgl_util';
 import * as util from './util';
 
 export enum Type {
@@ -39,13 +38,45 @@ export interface URLProperty {
   type: Type;
 }
 
+function isWebGL2Enabled() {
+  const tempCanvas = document.createElement('canvas');
+  const gl = tempCanvas.getContext('webgl2') as WebGLRenderingContext;
+  if (gl != null) {
+    const loseContextExtension = gl.getExtension('WEBGL_lose_context');
+    if (loseContextExtension == null) {
+      throw new Error(
+          'Extension WEBGL_lose_context not supported on this browser.');
+    }
+    loseContextExtension.loseContext();
+    return true;
+  }
+  return false;
+}
+
+function isWebGL1Enabled() {
+  const tempCanvas = document.createElement('canvas');
+  const gl =
+      (tempCanvas.getContext('webgl') ||
+       tempCanvas.getContext('experimental-webgl')) as WebGLRenderingContext;
+  if (gl != null) {
+    const loseContextExtension = gl.getExtension('WEBGL_lose_context');
+    if (loseContextExtension == null) {
+      throw new Error(
+          'Extension WEBGL_lose_context not supported on this browser.');
+    }
+    loseContextExtension.loseContext();
+    return true;
+  }
+  return false;
+}
+
 function evaluateFeature<K extends keyof Features>(feature: K): Features[K] {
   if (feature === 'WEBGL_DISJOINT_QUERY_TIMER') {
     return !device_util.isMobile();
   } else if (feature === 'WEBGL_VERSION') {
-    if (webgl_util.isWebGL2Enabled()) {
+    if (isWebGL2Enabled()) {
       return 2;
-    } else if (webgl_util.isWebGL1Enabled()) {
+    } else if (isWebGL1Enabled()) {
       return 1;
     }
     return 0;

@@ -40,36 +40,6 @@ export function createWebGLRenderingContext(attributes: WebGLContextAttributes):
   return createWebGLRenderingContextFromCanvas(canvas, attributes);
 }
 
-export function isWebGL2Enabled() {
-  const tempCanvas = document.createElement('canvas');
-  const gl = tempCanvas.getContext('webgl2');
-  if (gl != null) {
-    const loseContextExtension =
-        getExtensionOrThrow(
-            gl as WebGLRenderingContext, 'WEBGL_lose_context') as
-        WebGLLoseContextExtension;
-    loseContextExtension.loseContext();
-    return true;
-  }
-  return false;
-}
-
-export function isWebGL1Enabled() {
-  const tempCanvas = document.createElement('canvas');
-  const gl =
-      (tempCanvas.getContext('webgl') ||
-       tempCanvas.getContext('experimental-webgl')) as WebGLRenderingContext;
-  if (gl != null) {
-    const loseContextExtension =
-        getExtensionOrThrow(
-            gl as WebGLRenderingContext, 'WEBGL_lose_context') as
-        WebGLLoseContextExtension;
-    loseContextExtension.loseContext();
-    return true;
-  }
-  return false;
-}
-
 export function createWebGLRenderingContextFromCanvas(
     canvas: HTMLCanvasElement,
     attributes: WebGLContextAttributes): WebGLRenderingContext {

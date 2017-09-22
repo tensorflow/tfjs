@@ -15,12 +15,45 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:max-line-length
+import {Initializer, VarianceScalingInitializer, ZerosInitializer} from '../initializers';
 import * as concat3d_util from '../math/concat3d_util';
 import * as conv_util from '../math/conv_util';
 import {NDArray, Scalar} from '../math/ndarray';
 import * as util from '../util';
 
-import {GraphLayers} from './graph_layers';
+/**
+ * A layers sugar class around the graph that initializes variables
+ * automatically for layers.
+ */
+export class GraphLayers {
+  constructor(private g: Graph) {}
+
+  dense(
+      name: string, x: Tensor, units: number,
+      activation: ((x: Tensor) => Tensor)|null = null, useBias = true,
+      kernelInitializer: Initializer = new VarianceScalingInitializer(),
+      biasInitializer: Initializer = new ZerosInitializer()) {
+    const weights = this.g.variable(
+        name + '-weights',
+        kernelInitializer.initialize([x.shape[0], units], x.shape[0], units));
+
+    let out = this.g.matmul(x, weights);
+
+    if (useBias) {
+      const bias = this.g.variable(
+          name + '-bias',
+          biasInitializer.initialize([units], x.shape[0], units));
+      out = this.g.add(out, bias);
+    }
+
+    if (activation != null) {
+      out = activation(out);
+    }
+
+    return out;
+  }
+}
 
 /**
  * Graph is the primary container structure for deeplearn.js operations. Graph

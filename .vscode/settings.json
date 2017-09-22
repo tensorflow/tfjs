@@ -13,6 +13,9 @@
   "files.trimTrailingWhitespace": true,
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
+  "[json]": {
+    "editor.formatOnSave": false
+  },
   "editor.formatOnSave": true,
   "clang-format.style": "Google",
   "files.insertFinalNewline": true,

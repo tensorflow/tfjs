@@ -16,7 +16,6 @@
  */
 import * as device_util from './device_util';
 import {Environment} from './environment';
-import * as webgl_util from './math/webgl/webgl_util';
 
 describe('disjoint query timer', () => {
   it('mobile', () => {
@@ -38,29 +37,47 @@ describe('disjoint query timer', () => {
 
 describe('WebGL version', () => {
   it('webgl 1', () => {
-    spyOn(webgl_util, 'isWebGL1Enabled').and.returnValue(true);
-    spyOn(webgl_util, 'isWebGL2Enabled').and.returnValue(false);
+    spyOn(document, 'createElement').and.returnValue({
+      getContext: (context: string) => {
+        if (context === 'webgl') {
+          return {
+            getExtension: (a: string) => {
+              return {loseContext: () => {}};
+            }
+          };
+        }
+        return null;
+      }
+    });
 
     const env = new Environment();
-
     expect(env.get('WEBGL_VERSION')).toBe(1);
   });
 
   it('webgl 2', () => {
-    spyOn(webgl_util, 'isWebGL1Enabled').and.returnValue(true);
-    spyOn(webgl_util, 'isWebGL2Enabled').and.returnValue(true);
+    spyOn(document, 'createElement').and.returnValue({
+      getContext: (context: string) => {
+        if (context === 'webgl2') {
+          return {
+            getExtension: (a: string) => {
+              return {loseContext: () => {}};
+            }
+          };
+        }
+        return null;
+      }
+    });
 
     const env = new Environment();
-
     expect(env.get('WEBGL_VERSION')).toBe(2);
   });
 
   it('no webgl', () => {
-    spyOn(webgl_util, 'isWebGL1Enabled').and.returnValue(false);
-    spyOn(webgl_util, 'isWebGL2Enabled').and.returnValue(false);
+    spyOn(document, 'createElement').and.returnValue({
+      getContext: (context: string): WebGLRenderingContext => null
+    });
 
     const env = new Environment();
-
     expect(env.get('WEBGL_VERSION')).toBe(0);
   });
 });

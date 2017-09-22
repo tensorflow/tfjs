@@ -1,4 +1,5 @@
 {
+  "extends": ["tslint-no-circular-imports"],
   "rules": {
     "array-type": [true, "array-simple"],
     "arrow-return-shorthand": true,
