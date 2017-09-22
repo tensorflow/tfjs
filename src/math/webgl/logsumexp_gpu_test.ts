@@ -16,11 +16,12 @@
  */
 
 import * as test_util from '../../test_util';
-import {LogSumExpProgram} from './logsumexp_gpu';
-import * as gpgpu_math from './gpgpu_math';
-import {TextureManager} from './texture_manager';
+import {Array2D, initializeGPU, Scalar} from '../ndarray';
+
 import {GPGPUContext} from './gpgpu_context';
-import {initializeGPU, Array2D, Scalar} from '../ndarray';
+import * as gpgpu_math from './gpgpu_math';
+import {LogSumExpProgram} from './logsumexp_gpu';
+import {TextureManager} from './texture_manager';
 
 function cpuLogSumExp(m: Float32Array): number {
   if (m.length === 0) {
@@ -39,7 +40,7 @@ function cpuLogSumExp(m: Float32Array): number {
 }
 
 describe('logsumexp_gpu', () => {
-  it('returns 0 (ln(1) = 0) when the 1x1 input matrix is [0]', () => {
+  it('logsumexp(1) = 0', () => {
     const a = new Float32Array([0]);
     const result = uploadLogSumExpDownload(a, 1, 1);
     expect(result).toEqual(0);
@@ -51,7 +52,59 @@ describe('logsumexp_gpu', () => {
     expect(result).toBeCloseTo(Math.log(a.length));
   });
 
-  it('computes the same result as cpuLogSumExp', () => {
+  it('same as cpuLogSumExp, 1 element', () => {
+    const a = test_util.randomArrayInRange(1, -2, 2);
+    const result = uploadLogSumExpDownload(a, 1, 1);
+    const expected = cpuLogSumExp(a);
+    expect(result).toBeCloseTo(expected);
+  });
+
+  it('same as cpuLogSumExp, 2 elements', () => {
+    const a = test_util.randomArrayInRange(2, -2, 2);
+    const result = uploadLogSumExpDownload(a, 2, 1);
+    const expected = cpuLogSumExp(a);
+    expect(result).toBeCloseTo(expected);
+  });
+
+  it('same as cpuLogSumExp, 3 elements', () => {
+    const a = test_util.randomArrayInRange(3, -2, 2);
+    const result = uploadLogSumExpDownload(a, 3, 1);
+    const expected = cpuLogSumExp(a);
+    expect(result).toBeCloseTo(expected);
+  });
+
+  it('same as cpuLogSumExp, 4 elements', () => {
+    const a = test_util.randomArrayInRange(4, -2, 2);
+    const result = uploadLogSumExpDownload(a, 4, 1);
+    const expected = cpuLogSumExp(a);
+    expect(result).toBeCloseTo(expected);
+  });
+
+  it('same as cpuLogSumExp, 9 elements, last is max', () => {
+    const a = test_util.randomArrayInRange(9, -2, 2);
+    a[a.length - 1] = 3;
+    const result = uploadLogSumExpDownload(a, 9, 1);
+    const expected = cpuLogSumExp(a);
+    expect(result).toBeCloseTo(expected);
+  });
+
+  it('same as cpuLogSumExp, 10 elements, last is max', () => {
+    const a = test_util.randomArrayInRange(10, -2, 2);
+    a[a.length - 1] = 3;
+    const result = uploadLogSumExpDownload(a, 10, 1);
+    const expected = cpuLogSumExp(a);
+    expect(result).toBeCloseTo(expected);
+  });
+
+  it('same as cpuLogSumExp, 11 elements, last is max', () => {
+    const a = test_util.randomArrayInRange(11, -2, 2);
+    a[a.length - 1] = 3;
+    const result = uploadLogSumExpDownload(a, 11, 1);
+    const expected = cpuLogSumExp(a);
+    expect(result).toBeCloseTo(expected);
+  });
+
+  it('same as cpuLogSumExp many elements', () => {
     const a = test_util.randomArrayInRange(12 * 29, -2, 2);
     const result = uploadLogSumExpDownload(a, 12, 29);
     const expected = cpuLogSumExp(a);
@@ -59,8 +112,8 @@ describe('logsumexp_gpu', () => {
   });
 });
 
-export function uploadLogSumExpDownload(a: Float32Array, rows: number,
-    columns: number): number {
+export function uploadLogSumExpDownload(
+    a: Float32Array, rows: number, columns: number): number {
   const gpgpu = new GPGPUContext();
   const textureManager = new TextureManager(gpgpu);
   initializeGPU(gpgpu, textureManager);

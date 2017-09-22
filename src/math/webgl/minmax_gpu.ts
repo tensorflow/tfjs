@@ -23,20 +23,47 @@ export class MinMaxProgram implements GPGPUProgram {
   outputShape: number[] = [];
   userCode: string;
 
-  constructor(aSize: number, opType: 'min'|'max') {
-    this.params = [opType];
+  constructor(size: number, op: 'min'|'max') {
+    this.params = [op];
+    const sizeNearestVec4 = Math.floor(size / 4) * 4;
+    const sizeVec4Remainder = size % 4;
+
+    const r1 = sizeNearestVec4;
+    const r2 = sizeNearestVec4 + 1;
+    const r3 = sizeNearestVec4 + 2;
+
     this.userCode = `
       void main() {
-        float value = getAFlat(0);
-        for (int i = 0; i < ${aSize}; i++) {
-          float candidate = getAFlat(i);
-          if (isNaN(candidate)) {
-            setOutput(candidate);
+        vec4 bestVec = vec4(getAFlat(0));
+        for (int i = 0; i < ${sizeNearestVec4}; i += 4) {
+          vec4 aVec = vec4(getAFlat(i), getAFlat(i+1),
+                           getAFlat(i+2), getAFlat(i+3));
+          if (hasNaN(aVec)) {
+            setOutput(getNaN(aVec));
             return;
           }
-          value = ${opType}(value, candidate);
+          bestVec = ${op}(bestVec, aVec);
         }
-        setOutput(value);
+        vec4 aVec;
+        if (${sizeVec4Remainder === 1}) {
+          aVec = vec4(bestVec.xyz, getAFlat(${r1}));
+        } else if (${sizeVec4Remainder === 2}) {
+          aVec = vec4(bestVec.xy, vec2(getAFlat(${r1}), getAFlat(${r2})));
+        } else if (${sizeVec4Remainder === 3}) {
+          aVec = vec4(bestVec.x,
+                      vec3(getAFlat(${r1}), getAFlat(${r2}), getAFlat(${r3})));
+        }
+        if (${sizeVec4Remainder > 0}) {
+          if (hasNaN(aVec)) {
+            setOutput(getNaN(aVec));
+            return;
+          }
+          bestVec = ${op}(bestVec, aVec);
+        }
+
+        float final = ${op}(bestVec.x, ${op}(bestVec.y,
+                      ${op}(bestVec.z, bestVec.w)));
+        setOutput(final);
       }
     `;
   }

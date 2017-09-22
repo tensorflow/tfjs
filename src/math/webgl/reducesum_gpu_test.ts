@@ -16,11 +16,12 @@
  */
 
 import * as test_util from '../../test_util';
-import {ReduceSumProgram} from './reducesum_gpu';
-import {GPGPUContext} from './gpgpu_context';
 import {Array2D, initializeGPU, Scalar} from '../ndarray';
-import {TextureManager} from './texture_manager';
+
+import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_math from './gpgpu_math';
+import {ReduceSumProgram} from './reducesum_gpu';
+import {TextureManager} from './texture_manager';
 
 describe('reducesum_gpu', () => {
   it('returns 0 when A is [0]', () => {
@@ -68,10 +69,46 @@ describe('reducesum_gpu', () => {
     const result = uploadReduceSumDownload(a, 3, 2);
     expect(result).toEqual(7);
   });
+
+  it('sum across 2 elements', () => {
+    const a = new Float32Array([3, 5]);
+    const result = uploadReduceSumDownload(a, 2, 1);
+    expect(result).toEqual(8);
+  });
+
+  it('sum across 3 elements', () => {
+    const a = new Float32Array([3, 5, 1]);
+    const result = uploadReduceSumDownload(a, 3, 1);
+    expect(result).toEqual(9);
+  });
+
+  it('sum across 4 elements', () => {
+    const a = new Float32Array([3, 5, 1, 2]);
+    const result = uploadReduceSumDownload(a, 4, 1);
+    expect(result).toEqual(11);
+  });
+
+  it('sum across 5 elements', () => {
+    const a = new Float32Array([3, 5, 1, 2, 1]);
+    const result = uploadReduceSumDownload(a, 5, 1);
+    expect(result).toEqual(12);
+  });
+
+  it('sum across 6 elements', () => {
+    const a = new Float32Array([3, 5, 1, 2, 1, -3]);
+    const result = uploadReduceSumDownload(a, 6, 1);
+    expect(result).toEqual(9);
+  });
+
+  it('sum across 7 elements', () => {
+    const a = new Float32Array([3, 5, 1, 2, 1, -3, 5]);
+    const result = uploadReduceSumDownload(a, 7, 1);
+    expect(result).toEqual(14);
+  });
 });
 
-export function uploadReduceSumDownload(a: Float32Array, rows: number,
-    cols: number): number {
+export function uploadReduceSumDownload(
+    a: Float32Array, rows: number, cols: number): number {
   const arr = Array2D.new([rows, cols], a);
   const out = Scalar.new(0);
 

@@ -170,17 +170,7 @@ const SHADER_PREFIX = `
   }
 
   float getNaN(vec4 values) {
-    bvec4 equals = equal(values, values);
-    if (!equals.w) {
-      return values.w;
-    } else if (!equals.x) {
-      return values.x;
-    } else if (!equals.y) {
-      return values.y;
-    } else if (!equals.z) {
-      return values.z;
-    }
-    return 0.0;
+    return dot(vec4(1), values);
   }
 
   ${SAMPLE_1D_SNIPPET}

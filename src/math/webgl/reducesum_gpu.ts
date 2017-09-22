@@ -23,13 +23,37 @@ export class ReduceSumProgram implements GPGPUProgram {
   outputShape: number[] = [];
   userCode: string;
 
-  constructor(public aSize: number) {
+  constructor(public size: number) {
+    const sizeNearestVec4 = Math.floor(size / 4) * 4;
+    const sizeVec4Remainder = size % 4;
+
+    const r1 = sizeNearestVec4;
+    const r2 = sizeNearestVec4 + 1;
+    const r3 = sizeNearestVec4 + 2;
+
     this.userCode = `
       void main() {
+        const vec2 ones2 = vec2(1);
+        const vec3 ones3 = vec3(1);
+        const vec4 ones4 = vec4(1);
+
         float sum = 0.0;
-        for (int i = 0; i < ${aSize}; i++) {
-          sum += getAFlat(i);
+        for (int i = 0; i < ${sizeNearestVec4}; i += 4) {
+          vec4 aVec = vec4(getAFlat(i), getAFlat(i+1),
+                           getAFlat(i+2), getAFlat(i+3));
+          sum += dot(ones4, aVec);
         }
+
+        if (${sizeVec4Remainder === 1}) {
+          sum += getAFlat(${r1});
+        } else if (${sizeVec4Remainder === 2}) {
+          vec2 aVec = vec2(getAFlat(${r1}), getAFlat(${r2}));
+          sum += dot(ones2, aVec);
+        } else if (${sizeVec4Remainder === 3}) {
+          vec3 aVec = vec3(getAFlat(${r1}), getAFlat(${r2}), getAFlat(${r3}));
+          sum += dot(ones3, aVec);
+        }
+
         setOutput(sum);
       }
     `;
