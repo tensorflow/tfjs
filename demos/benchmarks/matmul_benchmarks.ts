@@ -80,8 +80,8 @@ export class MatmulGPUBenchmark extends BenchmarkTest {
         gpgpu.dispose();
       };
 
-      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER')) {
-        gpgpu.runBenchmark(benchmark).then((timeElapsed: number) => {
+      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
+        gpgpu.runQuery(benchmark).then((timeElapsed: number) => {
           delayedCleanup();
           resolve(timeElapsed);
         });

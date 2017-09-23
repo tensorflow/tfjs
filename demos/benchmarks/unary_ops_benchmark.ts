@@ -103,8 +103,8 @@ export class UnaryOpsGPUBenchmark extends UnaryOpsBenchmark {
         math.dispose();
       };
 
-      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER')) {
-        math.getGPGPUContext().runBenchmark(benchmark).then(
+      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
+        math.getGPGPUContext().runQuery(benchmark).then(
             (timeElapsed: number) => {
               delayedCleanup();
               resolve(timeElapsed);

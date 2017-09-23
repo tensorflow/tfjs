@@ -24,12 +24,18 @@ export enum Type {
 }
 
 export interface Features {
-  'WEBGL_DISJOINT_QUERY_TIMER'?: boolean;
+  // Whether the disjoint_query_timer extension is an available extension.
+  'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED'?: boolean;
+  // Whether the timer object from the disjoint_query_timer extension gives
+  // timing information that is reliable.
+  'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'?: boolean;
+  // 0: No WebGL, 1: WebGL 1.0, 2: WebGL 2.0.
   'WEBGL_VERSION'?: number;
 }
 
 export const URL_PROPERTIES: URLProperty[] = [
-  {name: 'WEBGL_DISJOINT_QUERY_TIMER', type: Type.BOOLEAN},
+  {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED', type: Type.BOOLEAN},
+  {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
   {name: 'WEBGL_VERSION', type: Type.NUMBER}
 ];
 
@@ -38,9 +44,21 @@ export interface URLProperty {
   type: Type;
 }
 
-function isWebGL2Enabled() {
+function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
+  if (webGLVersion === 0) {
+    throw new Error('Cannot get WebGL rendering context, WebGL is disabled.');
+  }
+
   const tempCanvas = document.createElement('canvas');
-  const gl = tempCanvas.getContext('webgl2') as WebGLRenderingContext;
+  if (webGLVersion === 1) {
+    return (tempCanvas.getContext('webgl') ||
+            tempCanvas.getContext('experimental-webgl')) as
+        WebGLRenderingContext;
+  }
+  return tempCanvas.getContext('webgl2') as WebGLRenderingContext;
+}
+
+function loseContext(gl: WebGLRenderingContext) {
   if (gl != null) {
     const loseContextExtension = gl.getExtension('WEBGL_lose_context');
     if (loseContextExtension == null) {
@@ -48,40 +66,29 @@ function isWebGL2Enabled() {
           'Extension WEBGL_lose_context not supported on this browser.');
     }
     loseContextExtension.loseContext();
-    return true;
   }
-  return false;
 }
 
-function isWebGL1Enabled() {
-  const tempCanvas = document.createElement('canvas');
-  const gl =
-      (tempCanvas.getContext('webgl') ||
-       tempCanvas.getContext('experimental-webgl')) as WebGLRenderingContext;
+function isWebGLVersionEnabled(webGLVersion: 1|2) {
+  const gl = getWebGLRenderingContext(webGLVersion);
   if (gl != null) {
-    const loseContextExtension = gl.getExtension('WEBGL_lose_context');
-    if (loseContextExtension == null) {
-      throw new Error(
-          'Extension WEBGL_lose_context not supported on this browser.');
-    }
-    loseContextExtension.loseContext();
+    loseContext(gl);
     return true;
   }
   return false;
 }
 
-function evaluateFeature<K extends keyof Features>(feature: K): Features[K] {
-  if (feature === 'WEBGL_DISJOINT_QUERY_TIMER') {
-    return !device_util.isMobile();
-  } else if (feature === 'WEBGL_VERSION') {
-    if (isWebGL2Enabled()) {
-      return 2;
-    } else if (isWebGL1Enabled()) {
-      return 1;
-    }
-    return 0;
+function isWebGLDisjointQueryTimerEnabled(webGLVersion: number) {
+  const gl = getWebGLRenderingContext(webGLVersion);
+
+  const extensionName = webGLVersion === 1 ? 'EXT_disjoint_timer_query' :
+                                             'EXT_disjoint_timer_query_webgl2';
+  const ext = gl.getExtension(extensionName);
+  const isExtEnabled = ext != null;
+  if (gl != null) {
+    loseContext(gl);
   }
-  throw new Error(`Unknown feature ${feature}.`);
+  return isExtEnabled;
 }
 
 export class Environment {
@@ -98,9 +105,32 @@ export class Environment {
       return this.features[feature];
     }
 
-    this.features[feature] = evaluateFeature(feature);
+    this.features[feature] = this.evaluateFeature(feature);
 
     return this.features[feature];
+  }
+
+  private evaluateFeature<K extends keyof Features>(feature: K): Features[K] {
+    if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED') {
+      const webGLVersion = this.get('WEBGL_VERSION');
+
+      if (webGLVersion === 0) {
+        return false;
+      }
+
+      return isWebGLDisjointQueryTimerEnabled(webGLVersion);
+    } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') {
+      return this.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED') &&
+          !device_util.isMobile();
+    } else if (feature === 'WEBGL_VERSION') {
+      if (isWebGLVersionEnabled(2)) {
+        return 2;
+      } else if (isWebGLVersionEnabled(1)) {
+        return 1;
+      }
+      return 0;
+    }
+    throw new Error(`Unknown feature ${feature}.`);
   }
 }
 

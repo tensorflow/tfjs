@@ -15,23 +15,101 @@
  * =============================================================================
  */
 import * as device_util from './device_util';
-import {Environment} from './environment';
+import {Environment, Features} from './environment';
 
-describe('disjoint query timer', () => {
-  it('mobile', () => {
-    spyOn(device_util, 'isMobile').and.returnValue(true);
+describe('disjoint query timer enabled', () => {
+  it('no webgl', () => {
+    const features: Features = {'WEBGL_VERSION': 0};
 
-    const env = new Environment();
+    const env = new Environment(features);
 
-    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER')).toBe(false);
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')).toBe(false);
   });
 
-  it('not mobile', () => {
+  it('webgl 1', () => {
+    const features: Features = {'WEBGL_VERSION': 1};
+
+    spyOn(document, 'createElement').and.returnValue({
+      getContext: (context: string) => {
+        if (context === 'webgl' || context === 'experimental-webgl') {
+          return {
+            getExtension: (extensionName: string) => {
+              if (extensionName === 'EXT_disjoint_timer_query') {
+                return {};
+              } else if (extensionName === 'WEBGL_lose_context') {
+                return {loseContext: () => {}};
+              }
+              return null;
+            }
+          };
+        }
+        return null;
+      }
+    });
+
+    const env = new Environment(features);
+
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')).toBe(true);
+  });
+
+  it('webgl 2', () => {
+    const features: Features = {'WEBGL_VERSION': 2};
+
+    spyOn(document, 'createElement').and.returnValue({
+      getContext: (context: string) => {
+        if (context === 'webgl2') {
+          return {
+            getExtension: (extensionName: string) => {
+              if (extensionName === 'EXT_disjoint_timer_query_webgl2') {
+                return {};
+              } else if (extensionName === 'WEBGL_lose_context') {
+                return {loseContext: () => {}};
+              }
+              return null;
+            }
+          };
+        }
+        return null;
+      }
+    });
+
+    const env = new Environment(features);
+
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')).toBe(true);
+  });
+
+
+});
+describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
+  it('disjoint query timer disabled', () => {
+    const features:
+        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED': false};
+
+    const env = new Environment(features);
+
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+        .toBe(false);
+  });
+
+  it('disjoint query timer enabled, mobile', () => {
+    const features:
+        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED': true};
+    spyOn(device_util, 'isMobile').and.returnValue(true);
+
+    const env = new Environment(features);
+
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+        .toBe(false);
+  });
+
+  it('disjoint query timer enabled, not mobile', () => {
+    const features:
+        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED': true};
     spyOn(device_util, 'isMobile').and.returnValue(false);
 
-    const env = new Environment();
+    const env = new Environment(features);
 
-    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER')).toBe(true);
+    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')).toBe(true);
   });
 });
 

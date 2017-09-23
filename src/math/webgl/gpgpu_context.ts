@@ -259,14 +259,20 @@ export class GPGPUContext {
     webgl_util.callAndCheck(this.gl, () => this.gl.finish());
   }
 
-  public runBenchmark(benchmark: () => void): Promise<number> {
+  /**
+   * Executes a query function which contains GL commands and resolves when
+   * the command buffer has finished executing the query.
+   * @param queryFn The query function containing GL commands to execute.
+   * @return a promise that resolves with the ellapsed time in milliseconds.
+   */
+  public runQuery(queryFn: () => void): Promise<number> {
     if (ENV.get('WEBGL_VERSION') === 2) {
-      return this.runBenchmarkWebGL2(benchmark);
+      return this.runQueryWebGL2(queryFn);
     }
-    return this.runBenchmarkWebGL1(benchmark);
+    return this.runQueryWebGL1(queryFn);
   }
 
-  private runBenchmarkWebGL2(benchmark: () => void): Promise<number> {
+  private runQueryWebGL2(benchmark: () => void): Promise<number> {
     const ext = webgl_util.getExtensionOrThrow(
         this.gl, 'EXT_disjoint_timer_query_webgl2');
     // tslint:disable-next-line:no-any
@@ -296,13 +302,13 @@ export class GPGPUContext {
       };
 
       const getTimeElapsed = () => {
-        const timeElapsed =
+        const timeElapsedNanos =
             // tslint:disable-next-line:no-any
             (this.gl as any)
                 // tslint:disable-next-line:no-any
                 .getQueryParameter(query, (this.gl as any).QUERY_RESULT);
         // Return milliseconds.
-        resolve(timeElapsed / 1000000);
+        resolve(timeElapsedNanos / 1000000);
       };
 
       const resolveWithWarning = () => {
@@ -310,14 +316,11 @@ export class GPGPUContext {
         resolve(-1);
       };
 
-      const maxBackoffMs = 2048;
-      util.tryWithBackoff(queryGPU, maxBackoffMs)
-          .then(getTimeElapsed)
-          .catch(resolveWithWarning);
+      util.repeatedTry(queryGPU).then(getTimeElapsed).catch(resolveWithWarning);
     });
   }
 
-  private runBenchmarkWebGL1(benchmark: () => void): Promise<number> {
+  private runQueryWebGL1(benchmark: () => void): Promise<number> {
     const ext = webgl_util.getExtensionOrThrow(
                     // tslint:disable-next-line:no-any
                     this.gl, 'EXT_disjoint_timer_query') as any;
@@ -340,9 +343,10 @@ export class GPGPUContext {
       };
 
       const getTimeElapsed = () => {
-        const timeElapsed = ext.getQueryObjectEXT(query, ext.QUERY_RESULT_EXT);
+        const timeElapsedNanos =
+            ext.getQueryObjectEXT(query, ext.QUERY_RESULT_EXT);
         // Return milliseconds.
-        resolve(timeElapsed / 1000000);
+        resolve(timeElapsedNanos / 1000000);
       };
 
       const resolveWithWarning = () => {
@@ -350,10 +354,7 @@ export class GPGPUContext {
         resolve(-1);
       };
 
-      const maxBackoffMs = 2048;
-      util.tryWithBackoff(queryGPU, maxBackoffMs)
-          .then(getTimeElapsed)
-          .catch(resolveWithWarning);
+      util.repeatedTry(queryGPU).then(getTimeElapsed).catch(resolveWithWarning);
     });
   }
 

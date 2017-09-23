@@ -222,8 +222,9 @@ export function rightPad(a: string, size: number): string {
   return a + ' '.repeat(size - a.length);
 }
 
-export function tryWithBackoff(
-    checkFn: () => boolean, maxBackoffMs: number): Promise<void> {
+export function repeatedTry(
+    checkFn: () => boolean, delayFn = (counter: number) => 0,
+    maxCounter?: number): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     let tryCount = 0;
 
@@ -235,9 +236,9 @@ export function tryWithBackoff(
 
       tryCount++;
 
-      const nextBackoff = Math.pow(2, tryCount);
+      const nextBackoff = delayFn(tryCount);
 
-      if (nextBackoff >= maxBackoffMs) {
+      if (maxCounter != null && tryCount >= maxCounter) {
         reject();
         return;
       }
