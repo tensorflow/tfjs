@@ -19,17 +19,18 @@ if [ -z "$1" ]
     exit
 fi
 
-echo "Building version $1"
+./scripts/build-standalone.sh $1 || exit 1
 
-npm run prep
+# Push to GCP.
+echo "Pushing library to GCP..."
 
-node_modules/.bin/browserify --standalone deeplearn src/index.ts -p [tsify] > dist/deeplearn-$1.js
-node_modules/.bin/uglifyjs dist/deeplearn-$1.js > dist/deeplearn-$1.min.js
+gsutil cp dist/deeplearn-$1.js gs://learnjs-data/
+gsutil cp dist/deeplearn-$1.min.js gs://learnjs-data/
+gsutil cp dist/deeplearn.js gs://learnjs-data/
+gsutil cp dist/deeplearn.min.js gs://learnjs-data/
+gsutil cp dist/deeplearn-latest.js gs://learnjs-data/
+gsutil cp dist/deeplearn-latest.min.js gs://learnjs-data/
 
-cp dist/deeplearn-$1.js dist/deeplearn.js
-cp dist/deeplearn-$1.min.js dist/deeplearn.min.js
+gsutil -m acl ch -u AllUsers:R -r gs://learnjs-data/*
 
-cp dist/deeplearn-$1.js dist/deeplearn-latest.js
-cp dist/deeplearn-$1.min.js dist/deeplearn-latest.min.js
-
-echo "Stored standalone library at dist/deeplearn-$1(.min).js"
+echo "Stored standalone binaries in https://storage.googleapis.com/learnjs-data/."
