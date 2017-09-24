@@ -17,7 +17,7 @@
 
 import * as test_util from '../../test_util';
 import {NDArrayMathCPU} from '../math_cpu';
-import {Array3D, NDArray} from '../ndarray';
+import {Array3D} from '../ndarray';
 import * as pool_gpu_test_util from './pool_gpu_test_util';
 
 
@@ -32,7 +32,7 @@ describe('avg_pool_gpu', () => {
   function compareToCPU(
       xShape: [number, number, number], fSize: number, stride: number,
       pad: number) {
-    const x = NDArray.randNormal<Array3D>(xShape);
+    const x = Array3D.randNormal(xShape);
 
     const mathCPU = new NDArrayMathCPU();
     const yCPU = mathCPU.avgPool(x, fSize, stride, pad);

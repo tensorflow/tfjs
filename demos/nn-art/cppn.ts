@@ -22,7 +22,7 @@ import * as nn_art_util from './nn_art_util';
 
 const MAX_LAYERS = 10;
 
-export type ColorMode = 'rgb'|'rgba'|'hsv'|'hsva'|'yuv'|'yuva'|'bw';
+export type ColorMode = 'rgb' | 'rgba' | 'hsv' | 'hsva' | 'yuv' | 'yuva' | 'bw';
 const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
   'rgb': 3,
   'rgba': 4,
@@ -33,7 +33,7 @@ const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
   'bw': 1
 };
 
-export type ActivationFunction = 'tanh'|'sin'|'relu'|'step';
+export type ActivationFunction = 'tanh' | 'sin' | 'relu' | 'step';
 const activationFunctionMap: {
   [activationFunction in ActivationFunction]:
       (math: NDArrayMathGPU, ndarray: Array2D) => Array2D
@@ -94,14 +94,14 @@ export class CPPN {
     }
     this.weights = [];
 
-    this.weights.push(Array2D.randTruncatedNormal<Array2D>(
+    this.weights.push(Array2D.randTruncatedNormal(
         [neuronsPerLayer, NUM_IMAGE_SPACE_VARIABLES + NUM_LATENT_VARIABLES], 0,
         weightsStdev));
     for (let i = 0; i < MAX_LAYERS; i++) {
-      this.weights.push(Array2D.randTruncatedNormal<Array2D>(
+      this.weights.push(Array2D.randTruncatedNormal(
           [neuronsPerLayer, neuronsPerLayer], 0, weightsStdev));
     }
-    this.weights.push(Array2D.randTruncatedNormal<Array2D>(
+    this.weights.push(Array2D.randTruncatedNormal(
         [4 /** max output channels */, neuronsPerLayer], 0, weightsStdev));
   }
 
@@ -153,11 +153,10 @@ export class CPPN {
     nn_art_util.addLatentVariables(
         this.gpgpu, this.addLatentVariablesShader, this.inputAtlas.getTexture(),
         addLatentVariablesResultTex, this.inputAtlas.shape, z1, z2);
-    const inputAtlasWithLatentVariables =
-        Array2D.make<Array2D>(this.inputAtlas.shape, {
-          texture: addLatentVariablesResultTex,
-          textureShapeRC: this.inputAtlas.shape
-        });
+    const inputAtlasWithLatentVariables = Array2D.make(this.inputAtlas.shape, {
+      texture: addLatentVariablesResultTex,
+      textureShapeRC: this.inputAtlas.shape
+    });
     intermediateResults.push(inputAtlasWithLatentVariables);
 
     let lastOutput = inputAtlasWithLatentVariables;

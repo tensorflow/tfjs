@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as concat3d_util from '../../math/concat3d_util';
+import * as concat_util from '../../math/concat_util';
 import {NDArrayMath} from '../../math/math';
 import {Array3D} from '../../math/ndarray';
 import {Tensor} from '../graph';
@@ -36,8 +36,8 @@ export class Concat3D extends Operation {
       private x1Tensor: Tensor, private x2Tensor: Tensor, private axis: number,
       private yTensor: Tensor) {
     super();
-    concat3d_util.assertConcat3DShapesMatch(
-        x1Tensor.shape, x2Tensor.shape, axis);
+    concat_util.assertConcatShapesMatch(
+        x1Tensor.shape, x2Tensor.shape, 3, axis);
   }
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {

@@ -117,38 +117,32 @@ export class NDArray {
   /** Creates a ndarray with the same values/shape as the specified ndarray. */
   static like<T extends NDArray>(another: T): T {
     const values = another.getValues();
-    return NDArray.make<T>(another.shape, {values: new Float32Array(values)});
+    return NDArray.make(another.shape, {values: new Float32Array(values)}) as T;
   }
 
   /**
    * Makes a new ndarray with the provided shape and values. Values should be in
    * a flat array.
    */
-  static make<T extends NDArray>(shape: number[], data: NDArrayData): T {
+  static make(shape: number[], data: NDArrayData): NDArray {
     switch (shape.length) {
       case 0:
-        return new Scalar(data) as T;
+        return new Scalar(data);
       case 1:
-        // tslint:disable-next-line:no-any
-        return new Array1D(data) as any;
+        return new Array1D(data);
       case 2:
-        // tslint:disable-next-line:no-any
-        return new Array2D(shape as [number, number], data) as any;
+        return new Array2D(shape as [number, number], data);
       case 3:
-        // tslint:disable-next-line:no-any
-        return new Array3D(shape as [number, number, number], data) as any;
+        return new Array3D(shape as [number, number, number], data);
       case 4:
-        return new Array4D(
-                   // tslint:disable-next-line:no-any
-                   shape as [number, number, number, number], data) as any;
+        return new Array4D(shape as [number, number, number, number], data);
       default:
-        // tslint:disable-next-line:no-any
-        return new NDArray(shape, data) as any;
+        return new NDArray(shape, data);
     }
   }
 
   /** Reshapes the current ndarray into the provided shape. */
-  reshape<T extends NDArray>(newShape: number[]): T {
+  reshape(newShape: number[]): NDArray {
     if (util.arraysEqual(this.shape, newShape)) {
       // No-op.
       // tslint:disable-next-line:no-any
@@ -159,28 +153,28 @@ export class NDArray {
         this.size === util.sizeFromShape(newShape),
         'new shape and old shape must have the same number of elements.');
 
-    return NDArray.make<T>(newShape, this.data);
+    return NDArray.make(newShape, this.data);
   }
 
   asScalar(): Scalar {
     util.assert(this.size === 1, 'The array must have only 1 element.');
-    return this.reshape<Scalar>([]);
+    return this.reshape([]);
   }
 
   as1D(): Array1D {
-    return this.reshape<Array1D>([this.size]);
+    return this.reshape([this.size]) as Array1D;
   }
 
   as2D(rows: number, columns: number): Array2D {
-    return this.reshape<Array2D>([rows, columns]);
+    return this.reshape([rows, columns]) as Array2D;
   }
 
   as3D(rows: number, columns: number, depth: number): Array3D {
-    return this.reshape<Array3D>([rows, columns, depth]);
+    return this.reshape([rows, columns, depth]) as Array3D;
   }
 
   as4D(rows: number, columns: number, depth: number, depth2: number): Array4D {
-    return this.reshape<Array4D>([rows, columns, depth, depth2]);
+    return this.reshape([rows, columns, depth, depth2]) as Array4D;
   }
 
   get rank(): number {
@@ -317,28 +311,26 @@ export class NDArray {
         util.arraysEqual(this.getValues(), t.getValues());
   }
 
-  static rand<T extends NDArray>(shape: number[], randFunction: () => number):
-      T {
+  static rand(shape: number[], randFunction: () => number): NDArray {
     const size = util.sizeFromShape(shape);
     const values = new Float32Array(size);
     for (let i = 0; i < size; i++) {
       values[i] = randFunction();
     }
 
-    return NDArray.make<T>(shape, {values});
+    return NDArray.make(shape, {values});
   }
 
-  static randNormal<T extends NDArray>(shape: number[], mean = 0, stdDev = 1) {
-    return NDArray.rand<T>(shape, () => util.randGauss(mean, stdDev));
+  static randNormal(shape: number[], mean = 0, stdDev = 1): NDArray {
+    return NDArray.rand(shape, () => util.randGauss(mean, stdDev));
   }
 
-  static randTruncatedNormal<T extends NDArray>(
-      shape: number[], mean = 0, stdDev = 1) {
-    return NDArray.rand<T>(shape, () => util.randGauss(mean, stdDev, true));
+  static randTruncatedNormal(shape: number[], mean = 0, stdDev = 1): NDArray {
+    return NDArray.rand(shape, () => util.randGauss(mean, stdDev, true));
   }
 
-  static randUniform<T extends NDArray>(shape: number[], a: number, b: number) {
-    return NDArray.rand<T>(shape, () => util.randUniform(a, b));
+  static randUniform(shape: number[], a: number, b: number): NDArray {
+    return NDArray.rand(shape, () => util.randUniform(a, b));
   }
 }
 
@@ -416,6 +408,23 @@ export class Array1D extends NDArray {
   static zeros(shape: [number]): Array1D {
     return NDArray.zeros(shape) as Array1D;
   }
+
+  static randNormal(shape: [number], mean = 0, stdDev = 1): Array1D {
+    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as Array1D;
+  }
+
+  static randTruncatedNormal(shape: [number], mean = 0, stdDev = 1): Array1D {
+    return NDArray.rand(
+        shape, () => util.randGauss(mean, stdDev, true)) as Array1D;
+  }
+
+  static randUniform(shape: [number], a: number, b: number): Array1D {
+    return NDArray.rand(shape, () => util.randUniform(a, b)) as Array1D;
+  }
+
+  static make(shape: [number], data: NDArrayData): Array1D {
+    return new Array1D(data);
+  }
 }
 
 export class Array2D extends NDArray {
@@ -466,6 +475,24 @@ export class Array2D extends NDArray {
 
   static zeros(shape: [number, number]): Array2D {
     return NDArray.zeros(shape) as Array2D;
+  }
+
+  static randNormal(shape: [number, number], mean = 0, stdDev = 1): Array2D {
+    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as Array2D;
+  }
+
+  static randTruncatedNormal(shape: [number, number], mean = 0, stdDev = 1):
+      Array2D {
+    return NDArray.rand(
+        shape, () => util.randGauss(mean, stdDev, true)) as Array2D;
+  }
+
+  static randUniform(shape: [number, number], a: number, b: number): Array2D {
+    return NDArray.rand(shape, () => util.randUniform(a, b)) as Array2D;
+  }
+
+  static make(shape: [number, number], data: NDArrayData): Array2D {
+    return new Array2D(shape, data);
   }
 }
 
@@ -521,6 +548,26 @@ export class Array3D extends NDArray {
 
   static zeros(shape: [number, number, number]): Array3D {
     return NDArray.zeros(shape) as Array3D;
+  }
+
+  static randNormal(shape: [number, number, number], mean = 0, stdDev = 1):
+      Array3D {
+    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as Array3D;
+  }
+
+  static randTruncatedNormal(
+      shape: [number, number, number], mean = 0, stdDev = 1): Array3D {
+    return NDArray.rand(
+        shape, () => util.randGauss(mean, stdDev, true)) as Array3D;
+  }
+
+  static randUniform(shape: [number, number, number], a: number, b: number):
+      Array3D {
+    return NDArray.rand(shape, () => util.randUniform(a, b)) as Array3D;
+  }
+
+  static make(shape: [number, number, number], data: NDArrayData): Array3D {
+    return new Array3D(shape, data);
   }
 }
 
@@ -584,6 +631,27 @@ export class Array4D extends NDArray {
 
   static zeros(shape: [number, number, number, number]): Array4D {
     return NDArray.zeros(shape) as Array4D;
+  }
+
+  static randNormal(
+      shape: [number, number, number, number], mean = 0, stdDev = 1): Array4D {
+    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as Array4D;
+  }
+
+  static randTruncatedNormal(
+      shape: [number, number, number, number], mean = 0, stdDev = 1): Array4D {
+    return NDArray.rand(
+        shape, () => util.randGauss(mean, stdDev, true)) as Array4D;
+  }
+
+  static randUniform(
+      shape: [number, number, number, number], a: number, b: number): Array4D {
+    return NDArray.rand(shape, () => util.randUniform(a, b)) as Array4D;
+  }
+
+  static make(shape: [number, number, number, number], data: NDArrayData):
+      Array4D {
+    return new Array4D(shape, data);
   }
 }
 

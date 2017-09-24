@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {Initializer, VarianceScalingInitializer, ZerosInitializer} from '../initializers';
-import * as concat3d_util from '../math/concat3d_util';
+import * as concat_util from '../math/concat_util';
 import * as conv_util from '../math/conv_util';
 import {NDArray, Scalar} from '../math/ndarray';
 import * as util from '../util';
@@ -623,12 +623,12 @@ export class Concat3DNode extends Node {
       public axis: number) {
     super(
         graph, 'Concat3D', {x1, x2},
-        new Tensor(concat3d_util.computeConcat3DOutputShape(
-            x1.shape, x2.shape, axis)));
+        new Tensor(
+            concat_util.computeConcatOutputShape(x1.shape, x2.shape, axis)));
   }
   validate() {
-    concat3d_util.assertConcat3DShapesMatch(
-        this.x1.shape, this.x2.shape, this.axis);
+    concat_util.assertConcatShapesMatch(
+        this.x1.shape, this.x2.shape, 3, this.axis);
   }
 }
 
@@ -730,10 +730,9 @@ export class MaxPoolNode extends Node {
       graph: Graph, private x: Tensor, public fieldSize: number,
       public stride = 1, public zeroPad?: number) {
     super(
-        graph, 'Max pool', {x},
-        new Tensor(conv_util.computeOutputShape3D(
-            x.shape as [number, number, number], fieldSize, x.shape[2], stride,
-            zeroPad)));
+        graph, 'Max pool', {x}, new Tensor(conv_util.computeOutputShape3D(
+                                    x.shape as [number, number, number],
+                                    fieldSize, x.shape[2], stride, zeroPad)));
   }
   validate() {
     util.assert(
@@ -911,4 +910,4 @@ export class ArgMaxEqualsNode extends Node {
  * @hidden
  */
 export type ArrayData =
-    NDArray|number|number[]|number[][]|number[][][]|number[][][][];
+    NDArray | number | number[] | number[][] | number[][][] | number[][][][];

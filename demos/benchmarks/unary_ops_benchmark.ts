@@ -67,7 +67,7 @@ export class UnaryOpsCPUBenchmark extends UnaryOpsBenchmark {
   run(size: number, option: string): Promise<number> {
     return new Promise<number>((resolve, reject) => {
       const math = new NDArrayMathCPU();
-      const input = NDArray.randUniform<Array2D>([size, size], -1, 1);
+      const input = Array2D.randUniform([size, size], -1, 1);
       const op = this.getUnaryOp(option, math);
       const start = performance.now();
 
@@ -85,7 +85,7 @@ export class UnaryOpsGPUBenchmark extends UnaryOpsBenchmark {
   run(size: number, option: string) {
     return new Promise<number>((resolve, reject) => {
       const math = new NDArrayMathGPU();
-      const input = NDArray.randUniform<Array2D>([size, size], -1, 1);
+      const input = Array2D.randUniform([size, size], -1, 1);
       const op = this.getUnaryOp(option, math);
 
       let output: NDArray;

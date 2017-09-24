@@ -62,10 +62,10 @@ describe('conv_gpu transpose', () => {
     const convInfo = conv_util.computeConvInfo(
         origInputShape, fSize, fSize, origOutputDepth, origStride, origStride,
         origPad);
-    const x = NDArray.randNormal<Array3D>(convInfo.outShape);
+    const x = Array3D.randNormal(convInfo.outShape);
 
-    const weights = NDArray.randNormal<Array4D>(
-        [fSize, fSize, origInputDepth, origOutputDepth]);
+    const weights =
+        Array4D.randNormal([fSize, fSize, origInputDepth, origOutputDepth]);
 
     const mathCPU = new NDArrayMathCPU();
     const yCPU = mathCPU.conv2dTranspose(

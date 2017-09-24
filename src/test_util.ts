@@ -16,7 +16,7 @@
  */
 
 export function expectArraysClose(
-    actual: Float32Array, expected: Float32Array, epsilon: number) {
+    actual: Float32Array, expected: Float32Array, epsilon = 1e-4) {
   if (actual.length !== expected.length) {
     throw new Error(
         'Matrices have different lengths (' + actual.length + ' vs ' +

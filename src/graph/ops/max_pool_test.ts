@@ -17,7 +17,7 @@
 
 import * as conv_util from '../../math/conv_util';
 import {NDArrayMathCPU} from '../../math/math_cpu';
-import {Array3D, NDArray} from '../../math/ndarray';
+import {Array3D} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
@@ -142,7 +142,7 @@ describe('Max pool', () => {
     const stride = 2;
     const pad = 0;
 
-    const x = NDArray.randNormal<Array3D>([6, 6, 5]);
+    const x = Array3D.randNormal([6, 6, 5]);
 
     xTensor = new Tensor(x.shape);
     yTensor = new Tensor(conv_util.computeOutputShape3D(

@@ -25,6 +25,8 @@ import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
 import * as binaryop_gpu from './webgl/binaryop_gpu';
 import {BinaryOpProgram} from './webgl/binaryop_gpu';
+import {Concat1DProgram} from './webgl/concat1d_gpu';
+import {Concat2DProgram} from './webgl/concat2d_gpu';
 import {Concat3DProgram} from './webgl/concat3d_gpu';
 // tslint:disable-next-line:max-line-length
 import {Conv2DDerBiasProgram, Conv2DDerInputProgram, Conv2DDerWeightsProgram} from './webgl/conv_backprop_gpu';
@@ -72,15 +74,15 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.gpgpu;
   }
 
-  protected cloneInternal<T extends NDArray>(ndarray: T): T {
-    const texShape = ndarray.getTextureShapeRC();
+  protected cloneInternal<T extends NDArray>(a: T): T {
+    const texShape = a.getTextureShapeRC();
     // Pretend the source was in logical shape that matches the texture shape.
-    const source = ndarray.as2D(texShape[0], texShape[1]);
+    const source = a.as2D(texShape[0], texShape[1]);
     // Do the same for output.
     const output = this.makeOutputArray<Array2D>(texShape);
     this.copy2D(source, [0, 0], texShape, output, [0, 0], texShape);
     // Get back to the original logical shape.
-    return output.reshape(ndarray.shape);
+    return output.reshape(a.shape) as T;
   }
 
   protected slice2DInternal(
@@ -103,6 +105,16 @@ export class NDArrayMathGPU extends NDArrayMath {
     this.compileAndRun(program, [source], dest, customSetup);
   }
 
+  protected concat1DInternal(a: Array1D, b: Array1D): Array1D {
+    const program = new Concat1DProgram(a.size, b.size);
+    return this.compileAndRun(program, [a, b]);
+  }
+
+  protected concat2DInternal(a: Array2D, b: Array2D, axis: number): Array2D {
+    const program = new Concat2DProgram(a.shape, b.shape, axis);
+    return this.compileAndRun(program, [a, b]);
+  }
+
   protected concat3DInternal(x1: Array3D, x2: Array3D, axis: number): Array3D {
     const program = new Concat3DProgram(x1.shape, x2.shape, axis);
     return this.compileAndRun(program, [x1, x2]);
@@ -123,7 +135,7 @@ export class NDArrayMathGPU extends NDArrayMath {
     const textureShapeRC =
         webgl_util.getTextureShapeFromLogicalShape(this.gpgpu.gl, shape);
     const texture = this.textureManager.acquireTexture(textureShapeRC);
-    return NDArray.make<T>(shape, {texture, textureShapeRC});
+    return NDArray.make(shape, {texture, textureShapeRC}) as T;
   }
 
   private compileAndRun<T extends NDArray, K extends NDArray>(

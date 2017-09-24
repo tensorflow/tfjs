@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import * as concat3d_util from './concat3d_util';
+import * as concat_util from './concat_util';
 
-describe('concat3d_util.assertConcat3DShapesMatch', () => {
+describe('concat_util.assertConcatShapesMatch rank=3D', () => {
   it('Non-3D tensor x1', () => {
     const assertFn = () => {
-      concat3d_util.assertConcat3DShapesMatch([1], [1, 2, 3], 1);
+      concat_util.assertConcatShapesMatch([1], [1, 2, 3], 3, 1);
     };
 
     expect(assertFn).toThrow();
@@ -28,7 +28,7 @@ describe('concat3d_util.assertConcat3DShapesMatch', () => {
 
   it('Non-3D tensor x2', () => {
     const assertFn = () => {
-      concat3d_util.assertConcat3DShapesMatch([1, 2, 3], [2, 3], 1);
+      concat_util.assertConcatShapesMatch([1, 2, 3], [2, 3], 3, 1);
     };
 
     expect(assertFn).toThrow();
@@ -36,7 +36,7 @@ describe('concat3d_util.assertConcat3DShapesMatch', () => {
 
   it('axis out of bound', () => {
     const assertFn = () => {
-      concat3d_util.assertConcat3DShapesMatch([1, 2, 3], [1, 2, 3], 4);
+      concat_util.assertConcatShapesMatch([1, 2, 3], [1, 2, 3], 3, 4);
     };
 
     expect(assertFn).toThrow();
@@ -44,7 +44,7 @@ describe('concat3d_util.assertConcat3DShapesMatch', () => {
 
   it('non-axis shape mismatch', () => {
     const assertFn = () => {
-      concat3d_util.assertConcat3DShapesMatch([2, 3, 3], [2, 2, 4], 2);
+      concat_util.assertConcatShapesMatch([2, 3, 3], [2, 2, 4], 3, 2);
     };
 
     expect(assertFn).toThrow();
@@ -52,16 +52,16 @@ describe('concat3d_util.assertConcat3DShapesMatch', () => {
 
   it('shapes line up', () => {
     const assertFn = () => {
-      concat3d_util.assertConcat3DShapesMatch([2, 3, 3], [2, 3, 4], 2);
+      concat_util.assertConcatShapesMatch([2, 3, 3], [2, 3, 4], 3, 2);
     };
 
     expect(assertFn).not.toThrow();
   });
 });
 
-describe('concat3d_util.computeConcat3DOutputShape', () => {
+describe('concat_util.computeConcatOutputShape', () => {
   it('compute output shape, axis=0', () => {
-    expect(concat3d_util.computeConcat3DOutputShape([2, 2, 3], [1, 2, 3], 0))
+    expect(concat_util.computeConcatOutputShape([2, 2, 3], [1, 2, 3], 0))
         .toEqual([3, 2, 3]);
   });
 });

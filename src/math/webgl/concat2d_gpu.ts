@@ -18,33 +18,31 @@
 import * as concat_util from '../concat_util';
 import {GPGPUProgram} from './gpgpu_math';
 
-export class Concat3DProgram implements GPGPUProgram {
+export class Concat2DProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   params: Array<{}> = [];
   outputShape: number[] = [];
   userCode: string;
 
   constructor(
-      x1Shape: [number, number, number], x2Shape: [number, number, number],
-      axis: number) {
-    const yAxes = ['yR', 'yC', 'yD'];
+      x1Shape: [number, number], x2Shape: [number, number], axis: number) {
+    const yAxes = ['yR', 'yC'];
     const concatAxis = yAxes[axis];
     this.params = [axis];
     this.outputShape =
         concat_util.computeConcatOutputShape(x1Shape, x2Shape, axis);
     this.userCode = `
       void main() {
-        ivec3 coords = getOutputCoords();
+        ivec2 coords = getOutputCoords();
         int yR = coords.x;
         int yC = coords.y;
-        int yD = coords.z;
 
         float value = 0.0;
         if (${concatAxis} < ${x1Shape[axis]}) {
-          value = getA(yR, yC, yD);
+          value = getA(yR, yC);
         } else {
           ${concatAxis} -= ${x1Shape[axis]};
-          value = getB(yR, yC, yD);
+          value = getB(yR, yC);
         }
 
         setOutput(value);

@@ -67,11 +67,11 @@ describe('conv_gpu', () => {
   function compareToCPU(
       xShape: [number, number, number], fSize: number, resultDepth: number,
       stride: number, pad: number) {
-    const x = NDArray.randNormal<Array3D>(xShape);
+    const x = Array3D.randNormal(xShape);
     const weightsShape: [number, number, number, number] =
         [fSize, fSize, xShape[2], resultDepth];
-    const weights = NDArray.randNormal<Array4D>(weightsShape);
-    const biases = NDArray.randNormal<Array1D>([weightsShape[3]]);
+    const weights = Array4D.randNormal(weightsShape);
+    const biases = Array1D.randNormal([weightsShape[3]]);
 
     const mathCPU = new NDArrayMathCPU();
     const yCPU = mathCPU.conv2d(x, weights, biases, stride, pad);

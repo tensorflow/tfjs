@@ -16,13 +16,13 @@
  */
 
 import * as util from '../util';
-import * as concat3d_util from './concat3d_util';
+import * as concat_util from './concat_util';
 import * as conv_util from './conv_util';
 import {ConvInfo} from './conv_util';
 import * as copy2d_util from './copy2d_util';
 import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 
-export type ScopeResult = NDArray[]|NDArray|void;
+export type ScopeResult = NDArray[] | NDArray | void;
 
 export interface LSTMCell {
   (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
@@ -351,7 +351,7 @@ export abstract class NDArrayMath {
     console.warn(
         'math.reshape() is deprecated. Please call reshape() ' +
         'directly on the ndarray object');
-    return ndarray.reshape(newShape);
+    return ndarray.reshape(newShape) as T2;
   }
 
   /**
@@ -416,6 +416,61 @@ export abstract class NDArrayMath {
       destSize: [number, number]): void;
 
   /**
+   * Concatenates two 1D arrays.
+   *
+   * For example, if:
+   * A: shape(3) = |r1, g1, b1|
+   * B: shape(2) = |r2, g2|
+   * C = concat1D(A, B) == |r1, g1, b1, r2, g2|
+   *
+   * @param a The first array.
+   * @param b The second array.
+   * @return The concatenated array.
+   */
+  concat1D(a: Array1D, b: Array1D): Array1D {
+    concat_util.assertConcatShapesMatch(
+        a.shape, b.shape, 1, 0, 'Error in concat1D: ');
+    return this.executeOp('concat1D', () => this.concat1DInternal(a, b));
+  }
+  protected abstract concat1DInternal(a: Array1D, b: Array1D): Array1D;
+
+  /**
+   * Concatenates two 2D arrays along a given axis.
+   *
+   * For example, if:
+   * A: shape(2, 3) = | r1, g1, b1 |
+   *                  | r2, g2, b2 |
+   *
+   * B: shape(2, 3) = | r3, g3, b3 |
+   *                  | r4, g4, b4 |
+   *
+   * C = concat2D(A, B, axis)
+   *
+   * if axis = 0:
+   * C: shape(4, 3) = | r1, g1, b1 |
+   *                  | r2, g2, b2 |
+   *                  | r3, g3, b3 |
+   *                  | r4, g4, b4 |
+   *
+   * if axis = 1:
+   * C = shape(2, 6) = | r1, g1, b1, r3, g3, b3 |
+   *                   | r2, g2, b2, r4, g4, b4 |
+   *
+   *
+   * @param a The first array.
+   * @param b The second array.
+   * @param axis The axis to concatenate along.
+   * @return The concatenated array.
+   */
+  concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
+    concat_util.assertConcatShapesMatch(
+        a.shape, b.shape, 2, axis, 'Error in concat2D: ');
+    return this.executeOp('concat2D', () => this.concat2DInternal(a, b, axis));
+  }
+  protected abstract concat2DInternal(a: Array2D, b: Array2D, axis: number):
+      Array2D;
+
+  /**
    * Concatenates two 3D ndarrays along a given axis.
    *
    * For example, if:
@@ -444,10 +499,11 @@ export abstract class NDArrayMath {
    * @param ndarray1 The first array to concat.
    * @param ndarray2 The second array to conat.
    * @param axis The axis to concate along.
+   * @return The concatenated array.
    */
   concat3D(ndarray1: Array3D, ndarray2: Array3D, axis: number): Array3D {
-    concat3d_util.assertConcat3DShapesMatch(
-        ndarray1.shape, ndarray2.shape, axis, 'Error in concat3d: ');
+    concat_util.assertConcatShapesMatch(
+        ndarray1.shape, ndarray2.shape, 3, axis, 'Error in concat3D: ');
     return this.executeOp(
         'concat3D', () => this.concat3DInternal(ndarray1, ndarray2, axis));
   }
@@ -1451,11 +1507,10 @@ export abstract class NDArrayMath {
       const o = this.slice2D(
           res, [0, res.shape[1] / 4 * 3], [res.shape[0], res.shape[1] / 4]);
 
-      const newC =
-          this.add(
-              this.multiplyStrict(
-                  c, this.sigmoid(this.scalarPlusArray(forgetBias, f))),
-              this.multiplyStrict(this.sigmoid(i), this.tanh(j))) as Array2D;
+      const newC = this.add(
+          this.multiplyStrict(
+              c, this.sigmoid(this.scalarPlusArray(forgetBias, f))),
+          this.multiplyStrict(this.sigmoid(i), this.tanh(j))) as Array2D;
       const newH =
           this.multiplyStrict(this.tanh(newC), this.sigmoid(o)) as Array2D;
 

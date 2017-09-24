@@ -107,10 +107,9 @@ describe('Convolution', () => {
     const fSize = 3;
     const stride = 1;
 
-    const weights =
-        NDArray.randNormal<Array4D>([fSize, fSize, inputDepth, outputDepth]);
-    const biases = NDArray.randNormal<Array1D>([outputDepth]);
-    const x = NDArray.randNormal<Array3D>([5, 5, inputDepth]);
+    const weights = Array4D.randNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = Array1D.randNormal([outputDepth]);
+    const x = Array3D.randNormal([5, 5, inputDepth]);
 
     wTensor = new Tensor(weights.shape);
     xTensor = new Tensor(x.shape);
@@ -138,10 +137,9 @@ describe('Convolution', () => {
     const fSize = 2;
     const stride = 1;
 
-    const weights =
-        NDArray.randNormal<Array4D>([fSize, fSize, inputDepth, outputDepth]);
-    const biases = NDArray.randNormal<Array1D>([outputDepth]);
-    const x = NDArray.randNormal<Array3D>([5, 5, inputDepth]);
+    const weights = Array4D.randNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = Array1D.randNormal([outputDepth]);
+    const x = Array3D.randNormal([5, 5, inputDepth]);
 
     wTensor = new Tensor(weights.shape);
     xTensor = new Tensor(x.shape);
@@ -170,10 +168,9 @@ describe('Convolution', () => {
     const stride = 1;
     const zeroPad = 1;
 
-    const weights =
-        NDArray.randNormal<Array4D>([fSize, fSize, inputDepth, outputDepth]);
-    const biases = NDArray.randNormal<Array1D>([outputDepth]);
-    const x = NDArray.randNormal<Array3D>([30, 30, inputDepth]);
+    const weights = Array4D.randNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = Array1D.randNormal([outputDepth]);
+    const x = Array3D.randNormal([30, 30, inputDepth]);
 
     wTensor = new Tensor(weights.shape);
     xTensor = new Tensor(x.shape);
@@ -206,11 +203,10 @@ describe('Convolution', () => {
     const stride = 1;
     const zeroPad = 0;
 
-    const x3d = NDArray.randNormal<Array3D>([3, 3, inputDepth]);
+    const x3d = Array3D.randNormal([3, 3, inputDepth]);
     const x = x3d.as2D(3, 3);
-    const weights =
-        NDArray.randNormal<Array4D>([fSize, fSize, inputDepth, outputDepth]);
-    const biases = NDArray.randNormal<Array1D>([outputDepth]);
+    const weights = Array4D.randNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = Array1D.randNormal([outputDepth]);
 
     wTensor = new Tensor(weights.shape);
     xTensor = new Tensor(x3d.shape);
@@ -259,7 +255,7 @@ describe('Convolution', () => {
             x.get(2, 1) * weights.get(1, 0, 0, 0) +
             x.get(2, 2) * weights.get(1, 1, 0, 0) + biases.get(0));
 
-    const dy3d = NDArray.randNormal<Array3D>([2, 2, 1]);
+    const dy3d = Array3D.randNormal([2, 2, 1]);
 
     gradients.add(yTensor, dy3d);
 
@@ -316,10 +312,9 @@ describe('Convolution', () => {
     const stride = 1;
     const zeroPad = 1;
 
-    const weights =
-        NDArray.randNormal<Array4D>([fSize, fSize, inputDepth, outputDepth]);
-    const biases = NDArray.randNormal<Array1D>([outputDepth]);
-    const x = NDArray.randNormal<Array3D>([10, 10, inputDepth]);
+    const weights = Array4D.randNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = Array1D.randNormal([outputDepth]);
+    const x = Array3D.randNormal([10, 10, inputDepth]);
 
     wTensor = new Tensor(weights.shape);
     xTensor = new Tensor(x.shape);
@@ -341,7 +336,7 @@ describe('Convolution', () => {
 
     assertNoNaNs(result);
 
-    const dy = NDArray.randNormal<Array3D>(result.shape);
+    const dy = Array3D.randNormal(result.shape as [number, number, number]);
 
     gradients.add(yTensor, dy);
 

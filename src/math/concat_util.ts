@@ -17,34 +17,34 @@
 
 import * as util from '../util';
 
-export function assertConcat3DShapesMatch(
-    x1Shape: number[], x2Shape: number[], axis: number,
+export function assertConcatShapesMatch(
+    x1Shape: number[], x2Shape: number[], rank: number, axis: number,
     errorMessagePrefix = '') {
   util.assert(
-      x1Shape.length === 3,
-      errorMessagePrefix + 'Concat3D x1 shape should be of rank 3.');
+      x1Shape.length === rank,
+      errorMessagePrefix + `x1 shape should be of rank ${rank}.`);
   util.assert(
-      x2Shape.length === 3,
-      errorMessagePrefix + 'Concat3D x2 shape should be of rank 3.');
+      x2Shape.length === rank,
+      errorMessagePrefix + `x2 shape should be of rank ${rank}.`);
 
   util.assert(
-      axis >= 0 && axis < 3, 'Axis for concat3D must be between 0 and 2.');
+      axis >= 0 && axis < rank, `axis must be between 0 and ${rank - 1}.`);
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < rank; i++) {
     util.assert(
         (i === axis) || (x1Shape[i] === x2Shape[i]),
         errorMessagePrefix +
             `Shape (${x1Shape}) does not match (${x2Shape}) along ` +
-            `non-concatenated axis.`);
+            `the non-concatenated axis ${i}.`);
   }
 }
 
-export function computeConcat3DOutputShape(
+export function computeConcatOutputShape(
     x1Shape: number[], x2Shape: number[],
     axis: number): [number, number, number] {
-  util.assert(x1Shape.length === 3, 'Concat3D x1 shape should be of rank 3.');
-  util.assert(x2Shape.length === 3, 'Concat3D x2shape should be of rank 3.');
-
+  util.assert(
+      x1Shape.length === x2Shape.length,
+      'x1 and x2 should have the same rank.');
   const outputShape = x1Shape.slice();
   outputShape[axis] += x2Shape[axis];
   return outputShape as [number, number, number];

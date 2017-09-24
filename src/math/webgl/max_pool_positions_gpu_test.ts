@@ -53,7 +53,7 @@ describe('max_pool_position', () => {
   function compareToCPU(
       xShape: [number, number, number], fSize: number, stride: number,
       pad: number) {
-    const x = NDArray.randNormal<Array3D>(xShape);
+    const x = Array3D.randNormal(xShape);
 
     const mathCPU = new NDArrayMathCPU();
     const outDepth = x.shape[2];

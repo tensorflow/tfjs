@@ -20,7 +20,7 @@ import * as util from '../util';
 
 import {MatrixOrientation} from './math';
 import {NDArrayMathCPU} from './math_cpu';
-import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
+import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
 describe('NDArrayMathCPU clone', () => {
   it('returns a ndarray with the same shape and data', () => {
@@ -51,7 +51,7 @@ describe('NDArrayMathCPU slice2D', () => {
   });
 
   it('returns the upper-left submatrix when begin is [0, 0]', () => {
-    const a = NDArray.randUniform<Array2D>([10, 10], -1, 1);
+    const a = Array2D.randUniform([10, 10], -1, 1);
     const b = math.slice2D(a, [0, 0], [2, 2]);
     const aValues = a.getValues();
     const expected =
@@ -202,6 +202,105 @@ describe('NDArrayMathCPU concat3D', () => {
     const x2 = Array3D.new(
         [2, 2, 3], [5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888]);
     expect(() => math.concat3D(x1, x2, axis)).toThrowError();
+  });
+});
+
+describe('NDArrayMathCPU concat1D', () => {
+  let math: NDArrayMathCPU;
+
+  beforeEach(() => {
+    math = new NDArrayMathCPU();
+  });
+
+  it('3 + 5', () => {
+    const a = Array1D.new([3]);
+    const b = Array1D.new([5]);
+
+    const result = math.concat1D(a, b);
+    const expected = new Float32Array([3, 5]);
+    test_util.expectArraysClose(result.getValues(), expected);
+  });
+
+  it('3 + [5,7]', () => {
+    const a = Array1D.new([3]);
+    const b = Array1D.new([5, 7]);
+
+    const result = math.concat1D(a, b);
+    const expected = new Float32Array([3, 5, 7]);
+    test_util.expectArraysClose(result.getValues(), expected);
+  });
+
+  it('[3,5] + 7', () => {
+    const a = Array1D.new([3, 5]);
+    const b = Array1D.new([7]);
+
+    const result = math.concat1D(a, b);
+    const expected = new Float32Array([3, 5, 7]);
+    test_util.expectArraysClose(result.getValues(), expected);
+  });
+});
+
+describe('NDArrayMathCPU concat2D', () => {
+  let math: NDArrayMathCPU;
+
+  beforeEach(() => {
+    math = new NDArrayMathCPU();
+  });
+
+  it('[[3]] + [[5]], axis=0', () => {
+    const axis = 0;
+    const a = Array2D.new([1, 1], [3]);
+    const b = Array2D.new([1, 1], [5]);
+
+    const result = math.concat2D(a, b, axis);
+    const expected = new Float32Array([3, 5]);
+
+    expect(result.shape).toEqual([2, 1]);
+    test_util.expectArraysClose(result.getValues(), expected);
+  });
+
+  it('[[3]] + [[5]], axis=1', () => {
+    const axis = 1;
+    const a = Array2D.new([1, 1], [3]);
+    const b = Array2D.new([1, 1], [5]);
+
+    const result = math.concat2D(a, b, axis);
+    const expected = new Float32Array([3, 5]);
+
+    expect(result.shape).toEqual([1, 2]);
+    test_util.expectArraysClose(result.getValues(), expected);
+  });
+
+  it('[[1, 2], [3, 4]] + [[5, 6]], axis=0', () => {
+    const axis = 0;
+    const a = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    const b = Array2D.new([1, 2], [[5, 6]]);
+
+    const result = math.concat2D(a, b, axis);
+    const expected = new Float32Array([1, 2, 3, 4, 5, 6]);
+
+    expect(result.shape).toEqual([3, 2]);
+    test_util.expectArraysClose(result.getValues(), expected);
+  });
+
+  it('[[1, 2], [3, 4]] + [[5, 6]], axis=1 throws error', () => {
+    const axis = 1;
+    const a = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    const b = Array2D.new([1, 2], [[5, 6]]);
+
+    expect(() => math.concat2D(a, b, axis)).toThrowError();
+  });
+
+  it('[[1, 2], [3, 4]] + [[5, 6], [7, 8]], axis=1', () => {
+    const axis = 1;
+    const a = Array2D.new([2, 2], [[1, 2], [3, 4]]);
+    const b = Array2D.new([2, 2], [[5, 6], [7, 8]]);
+
+    const result = math.concat2D(a, b, axis);
+    const expected = new Float32Array([1, 2, 5, 6, 3, 4, 7, 8]);
+
+    expect(result.shape).toEqual([2, 4]);
+    test_util.expectArraysClose(result.getValues(), expected);
   });
 });
 
@@ -611,12 +710,13 @@ describe('NDArrayMathCPU scaledNDArrayAdd', () => {
   it('throws when passed non-scalars', () => {
     const a = Array2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
     const b = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const c1 = Array1D.randNormal([10]);
+    // tslint:disable-next-line:no-any
+    const c1: any = Array1D.randNormal([10]);
     const c2 = Scalar.new(2);
 
-    expect(() => math.scaledArrayAdd<Array2D>(c1 as Scalar, a, c2, b))
+    expect(() => math.scaledArrayAdd(c1 as Scalar, a, c2, b))
         .toThrowError();
-    expect(() => math.scaledArrayAdd<Array2D>(c2, a, c1 as Scalar, b))
+    expect(() => math.scaledArrayAdd(c2, a, c1 as Scalar, b))
         .toThrowError();
   });
 

@@ -67,7 +67,7 @@ export class SqueezeNet {
     imagenet_util.preprocessInput(
         this.gpgpu, this.preprocessInputShader, rgbTexture,
         preprocessResultTexture, preprocessResultShapeRC);
-    return NDArray.make<Array3D>([imageDimensions[0], imageDimensions[0], 3], {
+    return Array3D.make([imageDimensions[0], imageDimensions[0], 3], {
       texture: preprocessResultTexture,
       textureShapeRC: preprocessResultShapeRC
     });

@@ -20,14 +20,14 @@ import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import {LogSumExpProgram} from '../../src/math/webgl/logsumexp_gpu';
 import {TextureManager} from '../../src/math/webgl/texture_manager';
 // tslint:disable-next-line:max-line-length
-import {Array2D, ENV, GPGPUContext, NDArray, NDArrayMathCPU, Scalar} from '../deeplearn';
+import {Array2D, ENV, GPGPUContext, NDArrayMathCPU, Scalar} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
 export class LogSumExpCPUBenchmark extends BenchmarkTest {
   run(size: number): Promise<number> {
     const math = new NDArrayMathCPU();
-    const a = NDArray.randUniform<Array2D>([size, size], -1, 1);
+    const a = Array2D.randUniform([size, size], -1, 1);
     const start = performance.now();
     math.logSumExp(a);
 

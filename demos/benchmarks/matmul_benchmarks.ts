@@ -18,7 +18,7 @@ import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
 import {MatMulProgram} from '../../src/math/webgl/mulmat_gpu';
 import * as test_util from '../../src/test_util';
 // tslint:disable-next-line:max-line-length
-import {Array2D, ENV, GPGPUContext, NDArray, NDArrayMathCPU} from '../deeplearn';
+import {Array2D, ENV, GPGPUContext, NDArrayMathCPU} from '../deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
@@ -30,8 +30,8 @@ export class MatmulCPUBenchmark extends BenchmarkTest {
       });
     }
     const math = new NDArrayMathCPU();
-    const a = NDArray.randUniform<Array2D>([size, size], -1, 1);
-    const b = NDArray.randUniform<Array2D>([size, size], -1, 1);
+    const a = Array2D.randUniform([size, size], -1, 1);
+    const b = Array2D.randUniform([size, size], -1, 1);
     const start = performance.now();
     math.matMul(a, b);
     const end = performance.now();

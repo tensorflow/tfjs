@@ -61,8 +61,8 @@ describe('max_pool_backprop_gpu', () => {
   function compareToCPU(
       dyShape: [number, number, number], xShape: [number, number, number],
       fSize: number, origStride: number, origPad: number) {
-    const dy = NDArray.randNormal<Array3D>(dyShape);
-    const x = NDArray.randNormal<Array3D>(xShape);
+    const dy = Array3D.randNormal(dyShape);
+    const x = Array3D.randNormal(xShape);
 
     const mathCPU = new NDArrayMathCPU();
     const dxCPU = mathCPU.maxPoolBackprop(dy, x, fSize, origStride, origPad);

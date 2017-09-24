@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as concat3d_util from '../../math/concat3d_util';
+import * as concat_util from '../../math/concat_util';
 import {NDArrayMathCPU} from '../../math/math_cpu';
 import {Array3D} from '../../math/ndarray';
 import {Tensor} from '../graph';
@@ -52,7 +52,7 @@ describe('concat3d operation', () => {
     x1Tensor = new Tensor(x1.shape);
     x2Tensor = new Tensor(x2.shape);
     yTensor = new Tensor(
-        concat3d_util.computeConcat3DOutputShape(x1.shape, x2.shape, axis));
+        concat_util.computeConcatOutputShape(x1.shape, x2.shape, axis));
 
     tensorArrayMap.set(x1Tensor, x1);
     tensorArrayMap.set(x2Tensor, x2);
@@ -76,7 +76,7 @@ describe('concat3d operation', () => {
     x1Tensor = new Tensor(x1.shape);
     x2Tensor = new Tensor(x2.shape);
     yTensor = new Tensor(
-        concat3d_util.computeConcat3DOutputShape(x1.shape, x2.shape, axis));
+        concat_util.computeConcatOutputShape(x1.shape, x2.shape, axis));
 
     tensorArrayMap.set(x1Tensor, x1);
     tensorArrayMap.set(x2Tensor, x2);
@@ -100,7 +100,7 @@ describe('concat3d operation', () => {
     x1Tensor = new Tensor(x1.shape);
     x2Tensor = new Tensor(x2.shape);
     yTensor = new Tensor(
-        concat3d_util.computeConcat3DOutputShape(x1.shape, x2.shape, axis));
+        concat_util.computeConcatOutputShape(x1.shape, x2.shape, axis));
 
     tensorArrayMap.set(x1Tensor, x1);
     tensorArrayMap.set(x2Tensor, x2);
