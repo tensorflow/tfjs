@@ -75,7 +75,7 @@ to write our model. Here is a snippet demonstrating the use of
 `CheckpointLoader`:
 
 ```ts
-import {CheckpointLoader, Graph} from 'deeplearnjs';
+import {CheckpointLoader, Graph} from 'deeplearn';
 // manifest.json is in the same dir as index.html.
 const varLoader = new CheckpointLoader('.');
 varLoader.getAllVariables().then(vars => {
