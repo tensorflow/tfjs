@@ -244,11 +244,24 @@ paper-progress {
       <paper-input no-animations label="Learning Rate" id="learning-rate-input" disabled="[[!datasetDownloaded]]" value={{learningRate}}>
       </paper-input>
 
-      <paper-input no-animations label="Momentum" id="momentum" disabled="[[!datasetDownloaded]]" value={{momentum}}>
+      <paper-input no-animations label="Momentum" id="momentum" disabled="[[!needMomentum]]" value={{momentum}}>
+      </paper-input>
+
+      <paper-input no-animations label="Gamma" id="gamma" disabled="[[!needGamma]]" value={{gamma}}>
       </paper-input>
 
       <paper-input no-animations label="Batch Size" id="batch-size" disabled="[[!datasetDownloaded]]" value={{batchSize}}>
       </paper-input>
+
+      <paper-dropdown-menu no-animations label="Optimizer" id="optimizer-dropdown" disabled="[[!datasetDownloaded]]">
+        <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{selectedOptimizerName}}" slot="dropdown-content">
+          <template is="dom-repeat" items="[[optimizerNames]]">
+            <paper-item value="[[item]]" label="[[item]]">
+              [[item]]
+            </paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
 
       <div hidden$="[[isValid]]" class="model-error">
         <div hidden$="[[!datasetDownloaded]]"">
