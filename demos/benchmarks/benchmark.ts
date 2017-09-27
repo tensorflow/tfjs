@@ -41,6 +41,10 @@ export class BenchmarkRun {
     this.benchmarkTest = benchmarkTest;
     this.chartData = [];
   }
+
+  clearChartData() {
+    this.chartData = [];
+  }
 }
 
 export abstract class BenchmarkTest {

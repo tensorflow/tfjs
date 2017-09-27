@@ -87,10 +87,14 @@ export class MathBenchmark extends MathBenchmarkPolymer {
 
     const canvas = this.querySelectorAll('.run-plot')[benchmarkRunGroupIndex] as
         HTMLCanvasElement;
+    // Avoid to growing size of rendered chart.
+    canvas.width = 400;
+    canvas.height = 300;
     const context = canvas.getContext('2d') as CanvasRenderingContext2D;
 
     const datasets: ChartDataSets[] = [];
     for (let i = 0; i < benchmarkRunGroup.benchmarkRuns.length; i++) {
+      benchmarkRunGroup.benchmarkRuns[i].clearChartData();
       const hue = Math.floor(360 * i / benchmarkRunGroup.benchmarkRuns.length);
       datasets.push({
         data: benchmarkRunGroup.benchmarkRuns[i].chartData,
