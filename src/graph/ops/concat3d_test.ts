@@ -51,8 +51,7 @@ describe('concat3d operation', () => {
 
     x1Tensor = new Tensor(x1.shape);
     x2Tensor = new Tensor(x2.shape);
-    yTensor = new Tensor(
-        concat_util.computeConcatOutputShape(x1.shape, x2.shape, axis));
+    yTensor = new Tensor(concat_util.computeOutShape(x1.shape, x2.shape, axis));
 
     tensorArrayMap.set(x1Tensor, x1);
     tensorArrayMap.set(x2Tensor, x2);
@@ -75,8 +74,7 @@ describe('concat3d operation', () => {
 
     x1Tensor = new Tensor(x1.shape);
     x2Tensor = new Tensor(x2.shape);
-    yTensor = new Tensor(
-        concat_util.computeConcatOutputShape(x1.shape, x2.shape, axis));
+    yTensor = new Tensor(concat_util.computeOutShape(x1.shape, x2.shape, axis));
 
     tensorArrayMap.set(x1Tensor, x1);
     tensorArrayMap.set(x2Tensor, x2);
@@ -99,8 +97,7 @@ describe('concat3d operation', () => {
 
     x1Tensor = new Tensor(x1.shape);
     x2Tensor = new Tensor(x2.shape);
-    yTensor = new Tensor(
-        concat_util.computeConcatOutputShape(x1.shape, x2.shape, axis));
+    yTensor = new Tensor(concat_util.computeOutShape(x1.shape, x2.shape, axis));
 
     tensorArrayMap.set(x1Tensor, x1);
     tensorArrayMap.set(x2Tensor, x2);

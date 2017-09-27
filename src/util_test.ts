@@ -179,3 +179,42 @@ describe('util.getQueryParams', () => {
         .toEqual({'a': '1', 'b': 'hi', 'f': 'animal'});
   });
 });
+
+describe('util.inferFromImplicitShape', () => {
+  it('empty shape', () => {
+    const result = util.inferFromImplicitShape([], 0);
+    expect(result).toEqual([]);
+  });
+
+  it('[2, 3, 4] -> [2, 3, 4]', () => {
+    const result = util.inferFromImplicitShape([2, 3, 4], 24);
+    expect(result).toEqual([2, 3, 4]);
+  });
+
+  it('[2, -1, 4] -> [2, 3, 4], size=24', () => {
+    const result = util.inferFromImplicitShape([2, -1, 4], 24);
+    expect(result).toEqual([2, 3, 4]);
+  });
+
+  it('[-1, 3, 4] -> [2, 3, 4], size=24', () => {
+    const result = util.inferFromImplicitShape([-1, 3, 4], 24);
+    expect(result).toEqual([2, 3, 4]);
+  });
+
+  it('[2, 3, -1] -> [2, 3, 4], size=24', () => {
+    const result = util.inferFromImplicitShape([2, 3, -1], 24);
+    expect(result).toEqual([2, 3, 4]);
+  });
+
+  it('[2, -1, -1] throws error', () => {
+    expect(() => util.inferFromImplicitShape([2, -1, -1], 24)).toThrowError();
+  });
+
+  it('[2, 3, -1] size=13 throws error', () => {
+    expect(() => util.inferFromImplicitShape([2, 3, -1], 13)).toThrowError();
+  });
+
+  it('[2, 3, 4] size=25 (should be 24) throws error', () => {
+    expect(() => util.inferFromImplicitShape([2, 3, 4], 25)).toThrowError();
+  });
+});

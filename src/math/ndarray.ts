@@ -143,10 +143,10 @@ export class NDArray {
 
   /** Reshapes the current ndarray into the provided shape. */
   reshape(newShape: number[]): NDArray {
+    newShape = util.inferFromImplicitShape(newShape, this.size);
     if (util.arraysEqual(this.shape, newShape)) {
       // No-op.
-      // tslint:disable-next-line:no-any
-      return this as any;
+      return this;
     }
 
     util.assert(

@@ -17,35 +17,33 @@
 
 import * as util from '../util';
 
-export function assertConcatShapesMatch(
-    x1Shape: number[], x2Shape: number[], rank: number, axis: number,
-    errorMessagePrefix = '') {
+export function assertParams(aShape: number[], bShape: number[], axis: number) {
+  const aRank = aShape.length;
+  const bRank = bShape.length;
   util.assert(
-      x1Shape.length === rank,
-      errorMessagePrefix + `x1 shape should be of rank ${rank}.`);
-  util.assert(
-      x2Shape.length === rank,
-      errorMessagePrefix + `x2 shape should be of rank ${rank}.`);
+      aShape.length === bShape.length,
+      `Error in concat${aRank}D: rank of x1 (${aRank}) and x2 (${bRank}) ` +
+          `must be the same.`);
 
   util.assert(
-      axis >= 0 && axis < rank, `axis must be between 0 and ${rank - 1}.`);
+      axis >= 0 && axis < aRank,
+      `Error in concat${aRank}D: axis must be ` +
+          `between 0 and ${aRank - 1}.`);
 
-  for (let i = 0; i < rank; i++) {
+  for (let i = 0; i < aRank; i++) {
     util.assert(
-        (i === axis) || (x1Shape[i] === x2Shape[i]),
-        errorMessagePrefix +
-            `Shape (${x1Shape}) does not match (${x2Shape}) along ` +
-            `the non-concatenated axis ${i}.`);
+        (i === axis) || (aShape[i] === bShape[i]),
+        `Error in concat${aRank}D: Shape (${aShape}) does not match ` +
+            `(${bShape}) along the non-concatenated axis ${i}.`);
   }
 }
 
-export function computeConcatOutputShape(
-    x1Shape: number[], x2Shape: number[],
-    axis: number): [number, number, number] {
+export function computeOutShape(
+    x1Shape: number[], x2Shape: number[], axis: number): number[] {
   util.assert(
       x1Shape.length === x2Shape.length,
       'x1 and x2 should have the same rank.');
   const outputShape = x1Shape.slice();
   outputShape[axis] += x2Shape[axis];
-  return outputShape as [number, number, number];
+  return outputShape;
 }

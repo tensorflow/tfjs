@@ -20,7 +20,7 @@ import * as util from '../util';
 
 import {MatrixOrientation} from './math';
 import {NDArrayMathCPU} from './math_cpu';
-import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
+import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
 
 describe('NDArrayMathCPU clone', () => {
   it('returns a ndarray with the same shape and data', () => {
@@ -29,6 +29,34 @@ describe('NDArrayMathCPU clone', () => {
     const aPrime = math.clone(a);
     expect(aPrime.shape).toEqual(a.shape);
     expect(aPrime.getValues()).toEqual(a.getValues());
+  });
+});
+
+describe('NDArrayMathCPU slice1D', () => {
+  let math: NDArrayMathCPU;
+  beforeEach(() => {
+    math = new NDArrayMathCPU();
+  });
+
+  it('slices 1x1 into 1x1 (effectively a copy)', () => {
+    const a = Array1D.new([5]);
+    const result = math.slice1D(a, 0, 1);
+    expect(result.shape).toEqual([1]);
+    expect(result.get(0)).toBe(5);
+  });
+
+  it('slices 5x1 into shape 2x1 starting at 3', () => {
+    const a = Array1D.new([1, 2, 3, 4, 5]);
+    const result = math.slice1D(a, 3, 2);
+    expect(result.shape).toEqual([2]);
+    expect(result.getValues()).toEqual(new Float32Array([4, 5]));
+  });
+
+  it('slices 5x1 into shape 3x1 starting at 1', () => {
+    const a = Array1D.new([1, 2, 3, 4, 5]);
+    const result = math.slice1D(a, 1, 3);
+    expect(result.shape).toEqual([3]);
+    expect(result.getValues()).toEqual(new Float32Array([2, 3, 4]));
   });
 });
 
@@ -69,6 +97,66 @@ describe('NDArrayMathCPU slice2D', () => {
   it('throws when requesting out of bounds slice', () => {
     const a = Array2D.new([4, 3], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     expect(() => math.slice2D(a, [1, 1], [10, 10])).toThrowError();
+  });
+});
+
+describe('NDArrayMathCPU slice3D', () => {
+  let math: NDArrayMathCPU;
+  beforeEach(() => {
+    math = new NDArrayMathCPU();
+  });
+
+  it('slices 1x1x1 into shape 1x1x1 (effectively a copy)', () => {
+    const a = Array3D.new([1, 1, 1], [[[5]]]);
+    const result = math.slice3D(a, [0, 0, 0], [1, 1, 1]);
+    expect(result.shape).toEqual([1, 1, 1]);
+    expect(result.get(0, 0, 0)).toBe(5);
+  });
+
+  it('slices 2x2x2 array into 1x2x2 starting at [1, 0, 0]', () => {
+    const a = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+    const result = math.slice3D(a, [1, 0, 0], [1, 2, 2]);
+    expect(result.shape).toEqual([1, 2, 2]);
+    expect(result.getValues()).toEqual(new Float32Array([5, 6, 7, 8]));
+  });
+
+  it('slices 2x2x2 array into 2x1x1 starting at [0, 1, 1]', () => {
+    const a = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+    const result = math.slice3D(a, [0, 1, 1], [2, 1, 1]);
+    expect(result.shape).toEqual([2, 1, 1]);
+    expect(result.getValues()).toEqual(new Float32Array([4, 8]));
+  });
+});
+
+describe('NDArrayMathCPU slice4D', () => {
+  let math: NDArrayMathCPU;
+  beforeEach(() => {
+    math = new NDArrayMathCPU();
+  });
+
+  it('slices 1x1x1x1 into shape 1x1x1x1 (effectively a copy)', () => {
+    const a = Array4D.new([1, 1, 1, 1], [[[[5]]]]);
+    const result = math.slice4D(a, [0, 0, 0, 0], [1, 1, 1, 1]);
+    expect(result.shape).toEqual([1, 1, 1, 1]);
+    expect(result.get(0, 0, 0, 0)).toBe(5);
+  });
+
+  it('slices 2x2x2x2 array into 1x2x2x2 starting at [1, 0, 0, 0]', () => {
+    const a = Array4D.new(
+        [2, 2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8, 11, 22, 33, 44, 55, 66, 77, 88]);
+    const result = math.slice4D(a, [1, 0, 0, 0], [1, 2, 2, 2]);
+    expect(result.shape).toEqual([1, 2, 2, 2]);
+    expect(result.getValues()).toEqual(new Float32Array([
+      11, 22, 33, 44, 55, 66, 77, 88
+    ]));
+  });
+
+  it('slices 2x2x2x2 array into 2x1x1x1 starting at [0, 1, 1, 1]', () => {
+    const a = Array4D.new(
+        [2, 2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8, 11, 22, 33, 44, 55, 66, 77, 88]);
+    const result = math.slice4D(a, [0, 1, 1, 1], [2, 1, 1, 1]);
+    expect(result.shape).toEqual([2, 1, 1, 1]);
+    expect(result.getValues()).toEqual(new Float32Array([8, 88]));
   });
 });
 
@@ -714,10 +802,8 @@ describe('NDArrayMathCPU scaledNDArrayAdd', () => {
     const c1: any = Array1D.randNormal([10]);
     const c2 = Scalar.new(2);
 
-    expect(() => math.scaledArrayAdd(c1 as Scalar, a, c2, b))
-        .toThrowError();
-    expect(() => math.scaledArrayAdd(c2, a, c1 as Scalar, b))
-        .toThrowError();
+    expect(() => math.scaledArrayAdd(c1 as Scalar, a, c2, b)).toThrowError();
+    expect(() => math.scaledArrayAdd(c2, a, c1 as Scalar, b)).toThrowError();
   });
 
   it('throws when NDArrays are different shape', () => {

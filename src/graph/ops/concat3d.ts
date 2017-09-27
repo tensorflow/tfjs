@@ -36,8 +36,7 @@ export class Concat3D extends Operation {
       private x1Tensor: Tensor, private x2Tensor: Tensor, private axis: number,
       private yTensor: Tensor) {
     super();
-    concat_util.assertConcatShapesMatch(
-        x1Tensor.shape, x2Tensor.shape, 3, axis);
+    concat_util.assertParams(x1Tensor.shape, x2Tensor.shape, axis);
   }
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
