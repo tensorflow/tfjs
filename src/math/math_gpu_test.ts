@@ -244,7 +244,7 @@ describe('NDArrayMathGPU slice2D', () => {
     const aValues = a.getValues();
     const expected =
         new Float32Array([aValues[0], aValues[1], aValues[10], aValues[11]]);
-    test_util.expectArraysClose(b.getValues(), expected, 0);
+    test_util.expectArraysClose(b.getValues(), expected);
     a.dispose();
   });
 
@@ -1172,7 +1172,7 @@ describe('NDArrayMathGPU unary ops', () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = 1 / (1 + Math.exp(-values[i]));
     }
-    test_util.expectArraysClose(result.getValues(), expected, 1e-6);
+    test_util.expectArraysClose(result.getValues(), expected);
 
     a.dispose();
   });
@@ -1181,7 +1181,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([3, NaN]);
     const res = math.sigmoid(a).getValues();
     test_util.expectArraysClose(
-        res, new Float32Array([1 / (1 + Math.exp(-3)), NaN]), 1e-5);
+        res, new Float32Array([1 / (1 + Math.exp(-3)), NaN]));
     a.dispose();
   });
 
@@ -1193,7 +1193,7 @@ describe('NDArrayMathGPU unary ops', () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = Math.sin(values[i]);
     }
-    test_util.expectArraysClose(result.getValues(), expected, 1e-3);
+    test_util.expectArraysClose(result.getValues(), expected);
 
     a.dispose();
   });
@@ -1202,7 +1202,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.sin(a).getValues();
     const expected = [Math.sin(4), NaN, Math.sin(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-4);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1214,7 +1214,7 @@ describe('NDArrayMathGPU unary ops', () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = Math.cos(values[i]);
     }
-    test_util.expectArraysClose(result.getValues(), expected, 1e-3);
+    test_util.expectArraysClose(result.getValues(), expected);
 
     a.dispose();
   });
@@ -1223,7 +1223,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.cos(a).getValues();
     const expected = [Math.cos(4), NaN, Math.cos(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-4);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1244,7 +1244,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.tan(a).getValues();
     const expected = [Math.tan(4), NaN, Math.tan(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-4);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1265,7 +1265,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.asin(a).getValues();
     const expected = [Math.asin(4), NaN, Math.asin(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-4);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1286,7 +1286,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.acos(a).getValues();
     const expected = [Math.acos(4), NaN, Math.acos(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-4);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1307,7 +1307,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.atan(a).getValues();
     const expected = [Math.atan(4), NaN, Math.atan(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-4);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1328,7 +1328,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.sinh(a).getValues();
     const expected = [Math.sinh(4), NaN, Math.sinh(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-5);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1349,7 +1349,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.cosh(a).getValues();
     const expected = [Math.cosh(4), NaN, Math.cosh(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-5);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 
@@ -1361,7 +1361,7 @@ describe('NDArrayMathGPU unary ops', () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = util.tanh(values[i]);
     }
-    test_util.expectArraysClose(result.getValues(), expected, 1e-6);
+    test_util.expectArraysClose(result.getValues(), expected);
 
     a.dispose();
   });
@@ -1370,7 +1370,7 @@ describe('NDArrayMathGPU unary ops', () => {
     const a = Array1D.new([4, NaN, 0]);
     const res = math.tanh(a).getValues();
     const expected = [util.tanh(4), NaN, util.tanh(0)];
-    test_util.expectArraysClose(res, new Float32Array(expected), 1e-5);
+    test_util.expectArraysClose(res, new Float32Array(expected));
     a.dispose();
   });
 });
@@ -2313,7 +2313,7 @@ describe('NDArrayMathGPU resizeBilinear', () => {
 
     test_util.expectArraysClose(
         output.getValues(),
-        new Float32Array([2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]), 1e-4);
+        new Float32Array([2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]));
     input.dispose();
   });
 
@@ -2322,8 +2322,7 @@ describe('NDArrayMathGPU resizeBilinear', () => {
     const output = math.resizeBilinear3D(input, [3, 3], true);
 
     test_util.expectArraysClose(
-        output.getValues(), new Float32Array([2, 2, 2, 3, 3, 3, 4, 4, 4]),
-        1e-4);
+        output.getValues(), new Float32Array([2, 2, 2, 3, 3, 3, 4, 4, 4]));
     input.dispose();
   });
 
@@ -2344,8 +2343,7 @@ describe('NDArrayMathGPU resizeBilinear', () => {
           0.69152176,  0.44905344, 1.07186723, 0.03823943, 1.19864893,
           0.6183514,   3.49600649, 1.50272655, 1.73724651, 1.68149579,
           0.69152176,  0.44905344, 1.07186723, 0.03823943, 1.19864893
-        ]),
-        1e-4);
+        ]));
     input.dispose();
   });
 
@@ -2366,8 +2364,7 @@ describe('NDArrayMathGPU resizeBilinear', () => {
           1.70539713, 1.3923912,  1.68282723, 1.54382229, 1.66025746,
           1.62451875, 1.83673346, 1.38198328, 1.92833281, 1.13944793,
           2.01993227, 1.57932377, 2.34758639, 2.01919961, 2.67524052
-        ]),
-        1e-4);
+        ]));
 
     input.dispose();
   });
@@ -2404,8 +2401,7 @@ describe('NDArrayMathGPU batchNorm', () => {
               Math.sqrt(variance.get(0) + varianceEpsilon),
           (x.get(1, 0, 1) - mean.get(1)) * 1 /
               Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-4);
+        ]));
     x.dispose();
     mean.dispose();
     variance.dispose();
@@ -2431,8 +2427,7 @@ describe('NDArrayMathGPU batchNorm', () => {
               Math.sqrt(variance.get(0) + varianceEpsilon),
           (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
               Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-4);
+        ]));
     x.dispose();
     mean.dispose();
     variance.dispose();
@@ -2464,8 +2459,7 @@ describe('NDArrayMathGPU batchNorm', () => {
           offset.get(1) +
               (x.get(1, 0, 1) - mean.get(1)) * 1 /
                   Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-4);
+        ]));
     x.dispose();
     mean.dispose();
     variance.dispose();
@@ -2498,8 +2492,7 @@ describe('NDArrayMathGPU batchNorm', () => {
           offset.get(1) +
               (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
                   Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-4);
+        ]));
     x.dispose();
     mean.dispose();
     variance.dispose();
@@ -2530,8 +2523,7 @@ describe('NDArrayMathGPU batchNorm', () => {
           1.52106473, -0.07704776, 0.26144429, 1.28010017, -1.14422404,
           -1.15776136, 1.15425493, 1.82644104, -0.52249442, 1.04803919,
           0.74932291, 0.40568101, 1.2844412
-        ]),
-        1e-4);
+        ]));
     x.dispose();
     mean.dispose();
     variance.dispose();
@@ -2668,14 +2660,12 @@ describe('LSTMCell', () => {
     const output = math.multiRNNCell([lstm1, lstm2], onehot, c, h);
 
     test_util.expectArraysClose(
-        output[0][0].getValues(), new Float32Array([-0.7440074682235718]),
-        1e-4);
+        output[0][0].getValues(), new Float32Array([-0.7440074682235718]));
     test_util.expectArraysClose(
-        output[0][1].getValues(), new Float32Array([0.7460772395133972]), 1e-4);
+        output[0][1].getValues(), new Float32Array([0.7460772395133972]));
     test_util.expectArraysClose(
-        output[1][0].getValues(), new Float32Array([-0.5802832245826721]),
-        1e-4);
+        output[1][0].getValues(), new Float32Array([-0.5802832245826721]));
     test_util.expectArraysClose(
-        output[1][1].getValues(), new Float32Array([0.5745711922645569]), 1e-4);
+        output[1][1].getValues(), new Float32Array([0.5745711922645569]));
   });
 });

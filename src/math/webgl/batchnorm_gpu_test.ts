@@ -41,7 +41,7 @@ describe('batchnorm gpu test', () => {
       (x[2] - mean[0]) * 1 / Math.sqrt(variance[0] + varianceEpsilon),
       (x[3] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon)
     ]);
-    test_util.expectArraysClose(result, expectedResult, 1e-5);
+    test_util.expectArraysClose(result, expectedResult);
   });
 
   it('simple batchnorm, no offset, 2x1x2', () => {
@@ -61,7 +61,7 @@ describe('batchnorm gpu test', () => {
       (x[2] - mean[0]) * scale[0] / Math.sqrt(variance[0] + varianceEpsilon),
       (x[3] - mean[1]) * scale[1] / Math.sqrt(variance[1] + varianceEpsilon)
     ]);
-    test_util.expectArraysClose(result, expectedResult, 1e-5);
+    test_util.expectArraysClose(result, expectedResult);
   });
 
   it('simple batchnorm, no scale, 2x1x2', () => {
@@ -85,7 +85,7 @@ describe('batchnorm gpu test', () => {
       offset[1] +
           (x[3] - mean[1]) * 1 / Math.sqrt(variance[1] + varianceEpsilon)
     ]);
-    test_util.expectArraysClose(result, expectedResult, 1e-5);
+    test_util.expectArraysClose(result, expectedResult);
   });
 
   it('simple batchnorm, 2x1x2', () => {
@@ -113,7 +113,7 @@ describe('batchnorm gpu test', () => {
       offset[1] +
           (x[3] - mean[1]) * scale[1] / Math.sqrt(variance[1] + varianceEpsilon)
     ]);
-    test_util.expectArraysClose(result, expectedResult, 1e-5);
+    test_util.expectArraysClose(result, expectedResult);
   });
 
   it('batchnorm matches tensorflow, 2x3x3', () => {
@@ -137,7 +137,7 @@ describe('batchnorm gpu test', () => {
       -0.07704776, 0.26144429, 1.28010017, -1.14422404, -1.15776136, 1.15425493,
       1.82644104, -0.52249442, 1.04803919, 0.74932291, 0.40568101, 1.2844412
     ]);
-    test_util.expectArraysClose(result, expectedResult, 1e-5);
+    test_util.expectArraysClose(result, expectedResult);
   });
 });
 

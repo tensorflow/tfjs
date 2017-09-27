@@ -35,7 +35,7 @@ describe('abs_gpu', () => {
     for (let i = 0; i < a.length; ++i) {
       expected[i] = Math.abs(a[i]);
     }
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 

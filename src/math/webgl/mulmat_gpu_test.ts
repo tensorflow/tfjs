@@ -220,7 +220,7 @@ describe('mulmat_gpu (different shapes)', () => {
     const b = new Float32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     const result = uploadMultiplyMatrixDownload(a, 2, 4, b, 4, 3);
     const expected = test_util.cpuMultiplyMatrix(a, 2, 4, b, 4, 3);
-    test_util.expectArraysClose(result, expected, 0.00001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 
@@ -237,7 +237,7 @@ describe('mulmat_gpu (large matrices)', () => {
     const b = test_util.randomArrayInRange(128 * 128, -1, 1);
     const result = uploadMultiplyMatrixDownload(a, 128, 128, b, 128, 128);
     const expected = test_util.cpuMultiplyMatrix(a, 128, 128, b, 128, 128);
-    test_util.expectArraysClose(result, expected, 0.001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 
@@ -288,7 +288,7 @@ describe('mulmat_gpu (multiple matrices)', () => {
     const expected = test_util.cpuMultiplyMatrix(
         test_util.cpuMultiplyMatrix(aData, 4, 2, bData, 2, 12), 4, 12, cData,
         12, 1);
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
 
     gpgpu.deleteMatrixTexture(a);
     gpgpu.deleteMatrixTexture(b);
@@ -343,7 +343,7 @@ describe('mulmat_gpu huge matrix', () => {
         a, 1, sharedDim, matrix, sharedDim, outDim);
     const cpuResult =
         test_util.cpuMultiplyMatrix(a, 1, sharedDim, matrix, sharedDim, outDim);
-    test_util.expectArraysClose(result, cpuResult, 1e-4);
+    test_util.expectArraysClose(result, cpuResult);
   });
 });
 

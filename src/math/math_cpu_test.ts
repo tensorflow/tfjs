@@ -84,7 +84,7 @@ describe('NDArrayMathCPU slice2D', () => {
     const aValues = a.getValues();
     const expected =
         new Float32Array([aValues[0], aValues[1], aValues[10], aValues[11]]);
-    test_util.expectArraysClose(b.getValues(), expected, 0);
+    test_util.expectArraysClose(b.getValues(), expected);
   });
 
   it('returns the rectangle specified', () => {
@@ -863,9 +863,9 @@ describe('NDArrayMathCPU argmin/max, argmaxequals, min/max', () => {
   it('topk', () => {
     const topk = math.topK(Array1D.new([1, -1, 100, -5, -10.6, 3.3, 5]), 3);
     test_util.expectArraysClose(
-        topk.values.getValues(), new Float32Array([100, 5, 3.3]), 1e-6);
+        topk.values.getValues(), new Float32Array([100, 5, 3.3]));
     test_util.expectArraysClose(
-        topk.indices.getValues(), new Float32Array([2, 6, 5]), 1e-6);
+        topk.indices.getValues(), new Float32Array([2, 6, 5]));
   });
 
   it('Arg min', () => {
@@ -1560,7 +1560,7 @@ describe('NDArrayMathCPU resizeBilinear', () => {
 
     test_util.expectArraysClose(
         output.getValues(),
-        new Float32Array([2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]), 1e-4);
+        new Float32Array([2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]));
   });
 
   it('simple alignCorners=true', () => {
@@ -1568,8 +1568,7 @@ describe('NDArrayMathCPU resizeBilinear', () => {
     const output = math.resizeBilinear3D(input, [3, 3], true);
 
     test_util.expectArraysClose(
-        output.getValues(), new Float32Array([2, 2, 2, 3, 3, 3, 4, 4, 4]),
-        1e-4);
+        output.getValues(), new Float32Array([2, 2, 2, 3, 3, 3, 4, 4, 4]));
   });
 
   it('matches tensorflow w/ random numbers alignCorners=false', () => {
@@ -1589,8 +1588,7 @@ describe('NDArrayMathCPU resizeBilinear', () => {
           0.69152176,  0.44905344, 1.07186723, 0.03823943, 1.19864893,
           0.6183514,   3.49600649, 1.50272655, 1.73724651, 1.68149579,
           0.69152176,  0.44905344, 1.07186723, 0.03823943, 1.19864893
-        ]),
-        1e-4);
+        ]));
   });
 
   it('matches tensorflow w/ random numbers alignCorners=true', () => {
@@ -1610,8 +1608,7 @@ describe('NDArrayMathCPU resizeBilinear', () => {
           1.70539713, 1.3923912,  1.68282723, 1.54382229, 1.66025746,
           1.62451875, 1.83673346, 1.38198328, 1.92833281, 1.13944793,
           2.01993227, 1.57932377, 2.34758639, 2.01919961, 2.67524052
-        ]),
-        1e-4);
+        ]));
   });
 });
 
@@ -1640,8 +1637,7 @@ describe('NDArrayMathCPU batchNorm', () => {
               Math.sqrt(variance.get(0) + varianceEpsilon),
           (x.get(1, 0, 1) - mean.get(1)) * 1 /
               Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-6);
+        ]));
   });
 
   it('simple batchnorm, no offset, 2x1x2', () => {
@@ -1664,8 +1660,7 @@ describe('NDArrayMathCPU batchNorm', () => {
               Math.sqrt(variance.get(0) + varianceEpsilon),
           (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
               Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-6);
+        ]));
   });
 
   it('simple batchnorm, no scale, 2x1x2', () => {
@@ -1693,8 +1688,7 @@ describe('NDArrayMathCPU batchNorm', () => {
           offset.get(1) +
               (x.get(1, 0, 1) - mean.get(1)) * 1 /
                   Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-6);
+        ]));
   });
 
   it('simple batchnorm, 2x1x2', () => {
@@ -1723,8 +1717,7 @@ describe('NDArrayMathCPU batchNorm', () => {
           offset.get(1) +
               (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
                   Math.sqrt(variance.get(1) + varianceEpsilon)
-        ]),
-        1e-6);
+        ]));
   });
 
   it('batchnorm matches tensorflow, 2x3x3', () => {
@@ -1750,7 +1743,6 @@ describe('NDArrayMathCPU batchNorm', () => {
           1.52106473, -0.07704776, 0.26144429, 1.28010017, -1.14422404,
           -1.15776136, 1.15425493, 1.82644104, -0.52249442, 1.04803919,
           0.74932291, 0.40568101, 1.2844412
-        ]),
-        1e-5);
+        ]));
   });
 });

@@ -66,7 +66,7 @@ describe('conv_gpu derWeights', () => {
         x, dy, [fSize, fSize, inDepth, outDepth], stride, zeroPad);
 
     const dwGPU = uploadDerWeightsDownload(x, dy, fSize, stride, zeroPad);
-    test_util.expectArraysClose(dwGPU, dwCPU.getValues(), 1e-5);
+    test_util.expectArraysClose(dwGPU, dwCPU.getValues());
   }
 
   it('matches CPU on random input, d1=3,d2=4,f=2,s=1,p=0', () => {

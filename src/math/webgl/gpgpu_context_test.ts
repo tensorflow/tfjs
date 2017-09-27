@@ -377,7 +377,7 @@ describe('GPGPUContext setOutputMatrixWriteRegion', () => {
     const result = gpgpu.downloadMatrixFromTexture(output, 4, 4);
     const expected = new Float32Array(4 * 4);
     expected.fill(2);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('sets the scissor box to the requested parameters', () => {
@@ -395,7 +395,7 @@ describe('GPGPUContext setOutputMatrixWriteRegion', () => {
     const result = gpgpu.downloadMatrixFromTexture(output, 4, 4);
     const expected =
         new Float32Array([0, 0, 0, 0, 0, 2, 2, 0, 0, 2, 2, 0, 0, 0, 0, 0]);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('preserves data from previous writes outside of write region', () => {
@@ -406,7 +406,7 @@ describe('GPGPUContext setOutputMatrixWriteRegion', () => {
     const result = gpgpu.downloadMatrixFromTexture(output, 4, 4);
     const expected =
         new Float32Array([2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2]);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('writes adjacent cells across multiple calls', () => {
@@ -419,7 +419,7 @@ describe('GPGPUContext setOutputMatrixWriteRegion', () => {
     const result = gpgpu.downloadMatrixFromTexture(output, 4, 4);
     const expected = new Float32Array(4 * 4);
     expected.fill(2);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 });
 

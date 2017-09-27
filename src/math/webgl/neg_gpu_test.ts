@@ -50,7 +50,7 @@ describe('neg_gpu', () => {
     const a = new Float32Array([0.5, 0, -2.3, 4, -12, -Math.E]);
     const result = uploadNegDownload(a, 2, 3);
     const expected = new Float32Array([-0.5, 0, 2.3, -4, 12, Math.E]);
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 

@@ -140,7 +140,7 @@ describe('copy_gpu', () => {
     const result = uploadCopyDownload(
         source, [10, 10], [0, 3], [10, 1], [0, 0], [1, 10], dest, [1, 10]);
     test_util.expectArraysClose(
-        result, new Float32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), 0);
+        result, new Float32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]));
   });
 
   it('doesn\'t touch destination pixels outside of the source box', () => {
@@ -184,6 +184,6 @@ describe('copy_gpu', () => {
     gpgpu.deleteProgram(binary.webGLProgram);
     gpgpu.dispose();
 
-    test_util.expectArraysClose(res, sourceVals, 0);
+    test_util.expectArraysClose(res, sourceVals);
   });
 });

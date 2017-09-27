@@ -46,7 +46,7 @@ describe('addscaledmat_gpu', () => {
     const b = Array1D.new([0.1, 0.2, 0.3, 0.4, 0.5, 0.6]);
     const result = uploadAddScaledMatDownload(a, b, 1, 1);
     test_util.expectArraysClose(
-        result, new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]), 0.0001);
+        result, new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]));
   });
 
   it('returns A * aScalar when B and bScalar are 0', () => {
@@ -54,7 +54,7 @@ describe('addscaledmat_gpu', () => {
     const b = Array1D.zerosLike(a);
     const result = uploadAddScaledMatDownload(a, b, 1.1, 0);
     test_util.expectArraysClose(
-        result, new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]), 0.0001);
+        result, new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]));
   });
 
   it('returns B * bScalar when A and aScalar are 0', () => {
@@ -62,7 +62,7 @@ describe('addscaledmat_gpu', () => {
     const a = Array1D.zerosLike(b);
     const result = uploadAddScaledMatDownload(a, b, 0, 1.1);
     test_util.expectArraysClose(
-        result, new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]), 0.0001);
+        result, new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5, 6.6]));
   });
 
   it('returns (A * aScalar) + (B * bScalar)', () => {
@@ -75,7 +75,7 @@ describe('addscaledmat_gpu', () => {
     const c2 = 0.25;
     const result = uploadAddScaledMatDownload(a, b, c1, c2);
     test_util.expectArraysClose(
-        result, cpuAddScaledMatrices(aVals, c1, bVals, c2), 0.001);
+        result, cpuAddScaledMatrices(aVals, c1, bVals, c2));
   });
 });
 

@@ -37,7 +37,7 @@ describe('sigmoid_gpu', () => {
     }
 
     const result = uploadSigmoidDownload(a, 1, size);
-    test_util.expectArraysClose(result, expectedResult, 1e-6);
+    test_util.expectArraysClose(result, expectedResult);
   });
 });
 

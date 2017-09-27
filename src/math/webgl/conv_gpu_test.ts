@@ -79,7 +79,7 @@ describe('conv_gpu', () => {
         x.getValues(), xShape, weights.getValues(), biases.getValues(),
         resultDepth, fSize, stride, pad);
 
-    test_util.expectArraysClose(yGPU, yCPU.getValues(), 1e-5);
+    test_util.expectArraysClose(yGPU, yCPU.getValues());
   }
 
   it('1x1x1 in, 1d out, 1x1 filter, 1 stride: [0] => [0]', () => {
@@ -347,8 +347,7 @@ describe('conv_gpu', () => {
     test_util.expectArraysClose(
         result,
         new Float32Array(
-            [7, -8, 8, -2, 7, -2, 5, 5, 4, 6, 1, 2, -1, 3, 7, -2, 1, 4]),
-        0.00001);
+            [7, -8, 8, -2, 7, -2, 5, 5, 4, 6, 1, 2, -1, 3, 7, -2, 1, 4]));
   });
 
   it('matches CPU on random input, d1=1,d2=1,f=2,s=1,p=0', () => {

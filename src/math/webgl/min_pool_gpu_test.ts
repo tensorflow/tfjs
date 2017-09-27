@@ -38,7 +38,7 @@ describe('min_pool_gpu', () => {
     const yGPU =
         uploadMinPoolDownload(x.getValues(), x.shape, fSize, stride, pad);
 
-    test_util.expectArraysClose(yGPU, yCPU.getValues(), 1e-5);
+    test_util.expectArraysClose(yGPU, yCPU.getValues());
   }
 
   it('matches CPU on random input, d1=1,d2=1,f=2,s=1,p=0', () => {

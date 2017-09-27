@@ -39,7 +39,7 @@ describe('exp_gpu', () => {
     const result = uploadExpDownload(a, 1, a.length);
     const expected = new Float32Array(a.length);
     expected.fill(Math.E);
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('calculates f(x)=e^x for every value in the matrix', () => {
@@ -49,7 +49,7 @@ describe('exp_gpu', () => {
     for (let i = 0; i < a.length; ++i) {
       expected[i] = Math.exp(a[i]);
     }
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 

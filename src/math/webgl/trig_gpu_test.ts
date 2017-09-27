@@ -210,7 +210,7 @@ describe('tanh_gpu', () => {
     }
     const aArr = Array2D.new([2, 5], a);
     const result = unaryop_gpu_test.uploadUnaryDownload(aArr, unaryop_gpu.TANH);
-    test_util.expectArraysClose(result, expectedResult, 1e-6);
+    test_util.expectArraysClose(result, expectedResult);
   });
 
   it('overflow', () => {

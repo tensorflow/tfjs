@@ -59,14 +59,14 @@ describe('step_gpu', () => {
     const result = uploadStepDownload(aArr);
     const expected = new Float32Array(a.length);
     expected.fill(1);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('operates on a heterogeneous matrix', () => {
     const aArr = Array3D.new([1, 2, 2], [-1, 0, 100, -0.001]);
     const result = uploadStepDownload(aArr);
     const expected = new Float32Array([0, 0, 1, 0]);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 });
 

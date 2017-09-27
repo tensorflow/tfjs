@@ -30,8 +30,7 @@ describe('resize bilinear', () => {
     const result = uploadResizeBilinearDownload(a, [2, 2, 1], [3, 3], false);
 
     test_util.expectArraysClose(
-        result, new Float32Array([2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]),
-        1e-4);
+        result, new Float32Array([2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]));
   });
 
   it('simple alignCorners=true', () => {
@@ -40,7 +39,7 @@ describe('resize bilinear', () => {
     const result = uploadResizeBilinearDownload(a, [2, 2, 1], [3, 3], true);
 
     test_util.expectArraysClose(
-        result, new Float32Array([2, 2, 2, 3, 3, 3, 4, 4, 4]), 1e-4);
+        result, new Float32Array([2, 2, 2, 3, 3, 3, 4, 4, 4]));
   });
 
   it('matches tensorflow w/ random numbers alignCorners=false', () => {
@@ -61,8 +60,7 @@ describe('resize bilinear', () => {
           0.69152176,  0.44905344, 1.07186723, 0.03823943, 1.19864893,
           0.6183514,   3.49600649, 1.50272655, 1.73724651, 1.68149579,
           0.69152176,  0.44905344, 1.07186723, 0.03823943, 1.19864893
-        ]),
-        1e-4);
+        ]));
   });
 
   it('matches tensorflow w/ random numbers alignCorners=true', () => {
@@ -83,8 +81,7 @@ describe('resize bilinear', () => {
           1.70539713, 1.3923912,  1.68282723, 1.54382229, 1.66025746,
           1.62451875, 1.83673346, 1.38198328, 1.92833281, 1.13944793,
           2.01993227, 1.57932377, 2.34758639, 2.01919961, 2.67524052
-        ]),
-        1e-4);
+        ]));
   });
 });
 

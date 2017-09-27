@@ -50,14 +50,14 @@ describe('relu_gpu', () => {
     const a = Array2D.new([3, 3], [[-1, 2, -3], [4, -5, 6], [-7, 8, -9]]);
     const result = uploadReluDownload(a);
     test_util.expectArraysClose(
-        result, new Float32Array([0, 2, 0, 4, 0, 6, 0, 8, 0]), 0.0001);
+        result, new Float32Array([0, 2, 0, 4, 0, 6, 0, 8, 0]));
   });
 
   it('propagates NaNs', () => {
     const a = Array3D.new([2, 2, 2], [-1, NaN, -3, 4, 6, 0, -3, 1]);
     const result = uploadReluDownload(a);
     test_util.expectArraysClose(
-        result, new Float32Array([0, NaN, 0, 4, 6, 0, 0, 1]), 0.0001);
+        result, new Float32Array([0, NaN, 0, 4, 6, 0, 0, 1]));
   });
 });
 

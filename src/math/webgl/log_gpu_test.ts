@@ -40,7 +40,7 @@ describe('log_gpu', () => {
     const result = uploadLogDownload(a, 1, a.length);
     const expected = new Float32Array(a.length);
     expected.fill(1.0);
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('calculates f(x)=ln x for every value in the matrix', () => {
@@ -50,7 +50,7 @@ describe('log_gpu', () => {
     for (let i = 0; i < a.length; ++i) {
       expected[i] = Math.log(a[i]);
     }
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 

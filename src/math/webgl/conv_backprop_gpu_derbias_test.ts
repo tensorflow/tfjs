@@ -51,7 +51,7 @@ describe('conv_gpu derBias', () => {
     const dBiasCPU = mathCPU.conv2dDerBias(dy);
 
     const dBiasGPU = uploadDerBiasDownload(dy);
-    test_util.expectArraysClose(dBiasGPU, dBiasCPU.getValues(), 1e-5);
+    test_util.expectArraysClose(dBiasGPU, dBiasCPU.getValues());
   }
 
   it('matches CPU on random input. dy shape [3, 3, 2]', () => {

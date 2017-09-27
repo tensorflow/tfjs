@@ -234,8 +234,7 @@ describe('concat3d_gpu', () => {
     test_util.expectArraysClose(
         result, new Float32Array([
           1, 11, 111, 2, 22, 222, 5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888
-        ]),
-        1e-6);
+        ]));
 
   });
 
@@ -248,8 +247,7 @@ describe('concat3d_gpu', () => {
     test_util.expectArraysClose(
         result, new Float32Array([
           1, 11, 111, 5, 55, 555, 6, 66, 666, 3, 33, 333, 7, 77, 777, 8, 88, 888
-        ]),
-        1e-6);
+        ]));
   });
 
   it('concat axis=2', () => {
@@ -258,12 +256,10 @@ describe('concat3d_gpu', () => {
         new Float32Array([5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888]);
 
     const result = uploadConcat3dDownload(x1, x2, [2, 2, 2], [2, 2, 3], 2);
-    test_util.expectArraysClose(
-        result, new Float32Array([
-          1, 11, 5, 55, 555, 2, 22, 6, 66, 666,
-          3, 33, 7, 77, 777, 4, 44, 8, 88, 888
-        ]),
-        1e-6);
+    test_util.expectArraysClose(result, new Float32Array([
+                                  1, 11, 5, 55, 555, 2, 22, 6, 66, 666,
+                                  3, 33, 7, 77, 777, 4, 44, 8, 88, 888
+                                ]));
   });
 });
 
@@ -303,8 +299,7 @@ describe('concat4d_gpu', () => {
     test_util.expectArraysClose(
         result, new Float32Array([
           1, 11, 111, 2, 22, 222, 5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888
-        ]),
-        1e-6);
+        ]));
 
   });
 
@@ -317,8 +312,7 @@ describe('concat4d_gpu', () => {
     test_util.expectArraysClose(
         result, new Float32Array([
           1, 11, 111, 5, 55, 555, 6, 66, 666, 3, 33, 333, 7, 77, 777, 8, 88, 888
-        ]),
-        1e-6);
+        ]));
   });
 
   it('concat axis=2', () => {
@@ -327,12 +321,10 @@ describe('concat4d_gpu', () => {
         [2, 2, 3, 1], [5, 55, 555, 6, 66, 666, 7, 77, 777, 8, 88, 888]);
 
     const result = doConcat4D(x1, x2, 2);
-    test_util.expectArraysClose(
-        result, new Float32Array([
-          1, 11, 5, 55, 555, 2, 22, 6, 66, 666,
-          3, 33, 7, 77, 777, 4, 44, 8, 88, 888
-        ]),
-        1e-6);
+    test_util.expectArraysClose(result, new Float32Array([
+                                  1, 11, 5, 55, 555, 2, 22, 6, 66, 666,
+                                  3, 33, 7, 77, 777, 4, 44, 8, 88, 888
+                                ]));
   });
 
   function doConcat4D(a: Array4D, b: Array4D, axis: number): Float32Array {

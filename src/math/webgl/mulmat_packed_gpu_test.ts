@@ -224,7 +224,7 @@ describe('mulmat_packed_gpu (different shapes)', () => {
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [4, 2], b, [2, 2]);
     const expected = test_util.cpuMultiplyMatrix(a, 4, 2, b, 2, 2);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('multiplies a 4x1 by a non-identity 4x4', () => {
@@ -250,7 +250,7 @@ describe('mulmat_packed_gpu (different shapes)', () => {
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [2, 4], b, [4, 3]);
     const expected = test_util.cpuMultiplyMatrix(a, 2, 4, b, 4, 3);
-    test_util.expectArraysClose(result, expected, 0.00001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 
@@ -269,7 +269,7 @@ describe('mulmat_packed_gpu (large matrices)', () => {
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [128, 128], b, [128, 128]);
     const expected = test_util.cpuMultiplyMatrix(a, 128, 128, b, 128, 128);
-    test_util.expectArraysClose(result, expected, 0.001);
+    test_util.expectArraysClose(result, expected);
   });
 });
 
@@ -312,7 +312,7 @@ describe('mulmat_packed_gpu (multiple matrices)', () => {
     const expected = test_util.cpuMultiplyMatrix(
         test_util.cpuMultiplyMatrix(aData, 4, 2, bData, 2, 12), 4, 12, cData,
         12, 1);
-    test_util.expectArraysClose(result, expected, 0.0001);
+    test_util.expectArraysClose(result, expected);
 
     gpgpu.deleteMatrixTexture(a);
     gpgpu.deleteMatrixTexture(b);
@@ -344,7 +344,7 @@ describe('mulmat_packed_gpu A * B^t', () => {
 
     const bt = new Float32Array([b[0], b[2], b[1], b[3]]);
     const expected = test_util.cpuMultiplyMatrix(a, 2, 2, bt, 2, 2);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 
   it('2x4 * 4x2', () => {
@@ -369,7 +369,7 @@ describe('mulmat_packed_gpu A * B^t', () => {
     const bt =
         new Float32Array([b[0], b[4], b[1], b[5], b[2], b[6], b[3], b[7]]);
     const expected = test_util.cpuMultiplyMatrix(a, 2, 4, bt, 4, 2);
-    test_util.expectArraysClose(result, expected, 0);
+    test_util.expectArraysClose(result, expected);
   });
 });
 
