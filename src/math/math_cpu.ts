@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
+import * as seedrandom from 'seedrandom';
 import * as util from '../util';
-
 import * as concat_util from './concat_util';
 import * as conv_util from './conv_util';
 import {ConvInfo} from './conv_util';
@@ -31,7 +31,8 @@ export class NDArrayMathCPU extends NDArrayMath {
 
   protected cloneInternal<T extends NDArray>(ndarray: T): T {
     return NDArray.make(
-        ndarray.shape, {values: new Float32Array(ndarray.getValues())}) as T;
+               ndarray.shape,
+               {values: new Float32Array(ndarray.getValues())}) as T;
   }
 
   protected slice1DInternal(input: Array1D, begin: number, size: number):
@@ -981,5 +982,49 @@ export class NDArrayMathCPU extends NDArrayMath {
                   varianceValues[i % varianceValues.length] + varianceEpsilon);
     }
     return Array3D.make(x.shape, {values: outValues});
+  }
+
+  protected multinomialInternal(
+      probabilities: Array1D, numSamples: number, seed: number): Array1D {
+    const probVals = probabilities.getValues();
+
+    // The cdf won't include the last event. It will be implicit if not other
+    // event happened.
+    const cdf = new Float32Array(probabilities.size - 1);
+    cdf[0] = probVals[0];
+    for (let event = 1; event < cdf.length; ++event) {
+      cdf[event] = cdf[event - 1] + probVals[event];
+    }
+
+    const random = seedrandom(seed.toString());
+    const res = new Float32Array(numSamples);
+
+    for (let i = 0; i < numSamples; ++i) {
+      const r = random();
+
+      // Assume last event happened by default.
+      res[i] = cdf.length;
+
+      for (let event = 0; event < cdf.length; event++) {
+        if (r < cdf[event]) {
+          res[i] = event;
+          break;
+        }
+      }
+    }
+
+    return Array1D.new(res);
+  }
+
+  protected oneHotInternal(
+      indices: Array1D, depth: number, onValue: number,
+      offValue: number): Array2D {
+    const res = new Float32Array(indices.size * depth);
+    res.fill(offValue);
+
+    for (let event = 0; event < indices.size; ++event) {
+      res[event * depth + indices.get(event)] = onValue;
+    }
+    return Array2D.new([indices.size, depth], res);
   }
 }

@@ -194,6 +194,9 @@ export abstract class NDArrayMath {
     return result;
   }
 
+  /** Disposes the math object and any resources used by it. */
+  dispose() {}
+
   /**
    * Computes the dot product of two matrices, A * B. These must be matrices,
    * use matrixTimesVector and vectorTimesMatrix, dotProduct, and outerProduct
@@ -270,9 +273,8 @@ export abstract class NDArrayMath {
             `rank ${matrix.rank}.`);
     util.assert(
         v.size === matrix.shape[0],
-        `Error in vectorTimesMatrix: size of first rank 1 input (${v.size}) ` +
-            `must match inner dimension of second rank 2 input, but got ` +
-            `rank ${matrix.rank}.`);
+        `Error in vectorTimesMatrix: size of vector (${v.size}) ` +
+            `must match first dimension of matrix (${matrix.shape[0]})`);
 
     return this.matMul(v.as2D(1, -1), matrix).as1D();
   }
@@ -1574,6 +1576,52 @@ export abstract class NDArrayMath {
     });
     return [res[0].as2D(1, -1), res[1].as2D(1, -1)];
   }
+
+  /**
+   * Draws samples from a multinomial distribution.
+   *
+   * @param probabilities 1D array with normalized outcome probabilities.
+   * @param numSamples Number of samples to draw.
+   * @param seed Optional. The seed number.
+   */
+  multinomial(probabilities: Array1D, numSamples: number, seed?: number):
+      Array1D {
+    const numOutcomes = probabilities.size;
+    if (numOutcomes < 2) {
+      throw new Error(
+          `Error in multinomial: you need at least 2 outcomes, but got ` +
+          `${numOutcomes}.`);
+    }
+    seed = seed || Math.random();
+    return this.executeOp(
+        'multinomial',
+        () => this.multinomialInternal(probabilities, numSamples, seed));
+  }
+  protected abstract multinomialInternal(
+      probabilities: Array1D, numSamples: number, seed: number): Array1D;
+
+  /**
+   * Returns a one-hot tensor. The locations represented by `indices` take
+   * value `onValue` (defaults to 1), while all other locations take value
+   * `offValue` (defaults to 0).
+   *
+   * @param indices 1D Array of indices.
+   * @param depth The depth of the one hot dimension.
+   * @param onValue A number used to fill in output when the index matches the
+   *     location.
+   * @param offValue A number used to fill in the output when the index does not
+   *     match the location.
+   */
+  oneHot(indices: Array1D, depth: number, onValue = 1, offValue = 0): Array2D {
+    if (depth < 2) {
+      throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
+    }
+    return this.executeOp(
+        'oneHot', () => this.oneHotInternal(indices, depth, onValue, offValue));
+  }
+  protected abstract oneHotInternal(
+      indices: Array1D, depth: number, onValue: number,
+      offValue: number): Array2D;
 }
 
 export enum MatrixOrientation {

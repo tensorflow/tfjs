@@ -13,6 +13,7 @@
   "devDependencies": {
     "@types/jasmine": "~2.5.53",
     "@types/polymer": "~1.1.31",
+    "@types/seedrandom": "~2.4.27",
     "bower": "~1.8.0",
     "browserify": "~14.4.0",
     "cross-spawn": "~5.1.0",
@@ -37,5 +38,8 @@
     "build": "tsc",
     "test": "karma start",
     "lint": "tslint -p . --type-check -t verbose"
+  },
+  "dependencies": {
+    "seedrandom": "~2.4.3"
   }
 }
