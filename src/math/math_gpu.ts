@@ -98,7 +98,7 @@ export class NDArrayMathGPU extends NDArrayMath {
   ]): Array2D {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
-    return this.compileAndRun(program, [input], null, customSetup);
+    return this.compileAndRun(program, [input], null, customSetup) as Array2D;
   }
 
   protected slice3DInternal(
@@ -106,7 +106,7 @@ export class NDArrayMathGPU extends NDArrayMath {
       size: [number, number, number]): Array3D {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
-    return this.compileAndRun(program, [input], null, customSetup);
+    return this.compileAndRun(program, [input], null, customSetup) as Array3D;
   }
 
   protected slice4DInternal(
@@ -114,7 +114,7 @@ export class NDArrayMathGPU extends NDArrayMath {
       size: [number, number, number, number]): Array4D {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
-    return this.compileAndRun(program, [input], null, customSetup);
+    return this.compileAndRun(program, [input], null, customSetup) as Array4D;
   }
 
   protected copy2DInternal(
@@ -130,33 +130,33 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   protected concat1DInternal(a: Array1D, b: Array1D): Array1D {
     const program = new ConcatProgram(a.shape, b.shape, 0);
-    return this.compileAndRun(program, [a, b]);
+    return this.compileAndRun(program, [a, b]) as Array1D;
   }
 
   protected concat2DInternal(a: Array2D, b: Array2D, axis: number): Array2D {
     const program = new ConcatProgram(a.shape, b.shape, axis);
-    return this.compileAndRun(program, [a, b]);
+    return this.compileAndRun(program, [a, b]) as Array2D;
   }
 
   protected concat3DInternal(x1: Array3D, x2: Array3D, axis: number): Array3D {
     const program = new ConcatProgram(x1.shape, x2.shape, axis);
-    return this.compileAndRun(program, [x1, x2]);
+    return this.compileAndRun(program, [x1, x2]) as Array3D;
   }
 
   protected concat4DInternal(x1: Array4D, x2: Array4D, axis: number): Array4D {
     const program = new ConcatProgram(x1.shape, x2.shape, axis);
-    return this.compileAndRun(program, [x1, x2]);
+    return this.compileAndRun(program, [x1, x2]) as Array4D;
   }
 
   protected scaledArrayAddInternal<T extends NDArray>(
-      c1: Scalar, a: T, c2: Scalar, b: T) {
+      c1: Scalar, a: T, c2: Scalar, b: T): T {
     const program = new AddScaledMatProgram(a.shape, b.shape);
-    return this.compileAndRun<NDArray, T>(program, [a, b, c1, c2]);
+    return this.compileAndRun<NDArray, T>(program, [a, b, c1, c2]) as T;
   }
 
   protected negInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.NEG);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   private makeOutputArray<T extends NDArray>(shape: number[]): T {
@@ -186,12 +186,12 @@ export class NDArrayMathGPU extends NDArrayMath {
       bOrientation: MatrixOrientation): Array2D {
     const program =
         new MatMulProgram(a.shape, b.shape, aOrientation, bOrientation);
-    return this.compileAndRun<Array2D, Array2D>(program, [a, b]);
+    return this.compileAndRun<Array2D, Array2D>(program, [a, b]) as Array2D;
   }
 
   protected multiplyInternal<T extends NDArray>(a: T, b: T): T {
     const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
-    return this.compileAndRun<T, T>(program, [a, b]);
+    return this.compileAndRun(program, [a, b]) as T;
   }
 
   protected batchNormalization3DInternal(
@@ -219,7 +219,7 @@ export class NDArrayMathGPU extends NDArrayMath {
     const program = new BatchNormProgram(
         x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
         varianceEpsilon);
-    return this.compileAndRun(program, inputs);
+    return this.compileAndRun(program, inputs) as Array3D;
   }
 
   protected switchDimInternal<T extends NDArray>(a: T, newDim: number[]): T {
@@ -283,83 +283,83 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   protected expInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.EXP);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected logInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.LOG);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected sqrtInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.SQRT);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected reluInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.RELU);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected absInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.ABS);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected sigmoidInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.SIGMOID);
-    return this.compileAndRun<T, T>(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected sinInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.SIN);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected cosInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.COS);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected tanInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.TAN);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected asinInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.ASIN);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected acosInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.ACOS);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected atanInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.ATAN);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected sinhInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.SINH);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected coshInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.COSH);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected tanhInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.TANH);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
 
   protected stepInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.STEP);
-    return this.compileAndRun(program, [a]);
+    return this.compileAndRun(program, [a]) as T;
   }
 
   protected conv2dInternal(
@@ -367,19 +367,19 @@ export class NDArrayMathGPU extends NDArrayMath {
       convInfo: ConvInfo): Array3D {
     const program = new Conv2DProgram(convInfo, bias != null);
     const inputs = bias != null ? [x, filter, bias] : [x, filter];
-    return this.compileAndRun(program, inputs);
+    return this.compileAndRun(program, inputs) as Array3D;
   }
 
   protected conv2dDerInputInternal(
       dy: Array3D, filter: Array4D, convInfo: ConvInfo): Array3D {
     const program = new Conv2DDerInputProgram(convInfo);
-    return this.compileAndRun(program, [dy, filter]);
+    return this.compileAndRun(program, [dy, filter]) as Array3D;
   }
 
   protected conv2dDerFilterInternal(
       x: Array3D, dY: Array3D, convInfo: ConvInfo): Array4D {
     const program = new Conv2DDerWeightsProgram(convInfo);
-    return this.compileAndRun(program, [x, dY]);
+    return this.compileAndRun(program, [x, dY]) as Array4D;
   }
 
   protected conv2dDerBiasInternal(dY: Array3D): Array1D {
@@ -389,17 +389,17 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   protected maxPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D {
     const program = new Pool2DProgram(convInfo, 'max', false);
-    return this.compileAndRun(program, [x]);
+    return this.compileAndRun(program, [x]) as Array3D;
   }
 
   protected minPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D {
     const program = new Pool2DProgram(convInfo, 'min', false);
-    return this.compileAndRun(program, [x]);
+    return this.compileAndRun(program, [x]) as Array3D;
   }
 
   protected avgPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D {
     const program = new Pool2DProgram(convInfo, 'avg', false);
-    return this.compileAndRun(program, [x]);
+    return this.compileAndRun(program, [x]) as Array3D;
   }
 
   protected maxPoolBackpropInternal(
@@ -408,7 +408,7 @@ export class NDArrayMathGPU extends NDArrayMath {
     const maxPoolPositionsProgram =
         new Pool2DProgram(convInfo, 'max', getPositions);
     const maxPoolPositions: Array3D =
-        this.compileAndRun(maxPoolPositionsProgram, [x]);
+        this.compileAndRun(maxPoolPositionsProgram, [x]) as Array3D;
 
     const maxPoolBackPropProgram = new MaxPool2DBackpropProgram(convInfo);
 
@@ -423,7 +423,7 @@ export class NDArrayMathGPU extends NDArrayMath {
       alignCorners: boolean): Array3D {
     const program =
         new ResizeBilinear3DProgram(x.shape, newShape2D, alignCorners);
-    return this.compileAndRun(program, [x]);
+    return this.compileAndRun(program, [x]) as Array3D;
   }
 
   protected multinomialInternal(

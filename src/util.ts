@@ -106,7 +106,12 @@ export function flatten(arr: any[], ret?: number[]): number[] {
 }
 
 export type ArrayData =
-    number | number[] | number[][] | number[][][] | number[][][][];
+    Float32Array |
+        number |
+        number[] |
+        number[][] |
+        number[][][] |
+        number[][][][];
 
 export function inferShape(arr: ArrayData): number[] {
   const shape: number[] = [];

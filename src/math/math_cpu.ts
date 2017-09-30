@@ -234,7 +234,7 @@ export class NDArrayMathCPU extends NDArrayMath {
   }
 
   protected scaledArrayAddInternal<T extends NDArray>(
-      c1: Scalar, a: T, c2: Scalar, b: T) {
+      c1: Scalar, a: T, c2: Scalar, b: T): T {
     const newShape = util.assertAndGetBroadcastedShape(a.shape, b.shape);
     const newValues = new Float32Array(util.sizeFromShape(newShape));
 

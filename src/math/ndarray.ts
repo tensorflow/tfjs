@@ -658,5 +658,7 @@ export class Array4D extends NDArray {
 type ArrayData = Float32Array|number[]|number[][]|number[][][]|number[][][][];
 
 function toTypedArray(a: ArrayData): Float32Array {
-  return (a instanceof Float32Array) ? a : new Float32Array(util.flatten(a));
+  return (a instanceof Float32Array) ?
+    // tslint:disable-next-line:no-any
+    a : new Float32Array(util.flatten(a as any[]));
 }
