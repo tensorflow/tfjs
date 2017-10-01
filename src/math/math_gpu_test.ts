@@ -178,7 +178,7 @@ describe('NDArrayMathGPU clone', () => {
   });
 });
 
-describe('NDArrayMathCPU slice1D', () => {
+describe('NDArrayMathGPU slice1D', () => {
   let math: NDArrayMathGPU;
   beforeEach(() => {
     math = new NDArrayMathGPU();
@@ -263,7 +263,7 @@ describe('NDArrayMathGPU slice2D', () => {
   });
 });
 
-describe('NDArrayMathCPU slice3D', () => {
+describe('NDArrayMathGPU slice3D', () => {
   let math: NDArrayMathGPU;
   beforeEach(() => {
     math = new NDArrayMathGPU();
@@ -297,7 +297,7 @@ describe('NDArrayMathCPU slice3D', () => {
   });
 });
 
-describe('NDArrayMathCPU slice4D', () => {
+describe('NDArrayMathGPU slice4D', () => {
   let math: NDArrayMathGPU;
   beforeEach(() => {
     math = new NDArrayMathGPU();
