@@ -228,10 +228,29 @@ limitations under the License.
   <div class= "mdl-cell mdl-cell--5-col mdl-cell--8-col-tablet mdl-cell-4-col-phone">
     <p class="intro-body mdl-typography--body-1">
       <span class="deeplearn-shine">deeplearn.js</span> was originally developed by
-      <a href="https://twitter.com/nsthorat">Nikhil Thorat</a>,
-      <a href="https://twitter.com/dsmilkov">Daniel Smilkov</a> and
+      <a id="author1"></a>, <a id="author2"></a>, and
       <a href="https://twitter.com/c_nich">Charles Nicholson</a>.
     </p>
+    <script>
+      function daniel(elem) {
+        elem.href = 'https://twitter.com/dsmilkov';
+        elem.innerText = 'Daniel Smilkov';
+      }
+      function nikhil(elem) {
+        elem.href = 'https://twitter.com/nsthorat';
+        elem.innerText = 'Nikhil Thorat';
+      }
+
+      var author1 = document.getElementById('author1');
+      var author2 = document.getElementById('author2');
+      if (Math.random() > .5) {
+        daniel(author1);
+        nikhil(author2);
+      } else {
+        nikhil(author1);
+        daniel(author2);
+      }
+    </script>
   </div>
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
   <div class= "ack mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell-4-col-phone">

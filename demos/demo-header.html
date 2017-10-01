@@ -29,18 +29,23 @@ a.main-title {
 <dom-module id="demo-header">
 <template>
 <header class="mdl-layout__header mdl-layout--fixed-header is-casting-shadow">
+  <script>
+    if (location.protocol !== "https:") {
+      location.protocol = "https:";
+    }
+  </script>
   <div class="mdl-layout__header-row">
     <!-- Title -->
-    <a class="main-title" href="/deeplearnjs/index.html"><span class="mdl-layout-title">deeplearn.js</span></a>&nbsp;&nbsp;<span>[[name]]</span>
+    <a class="main-title" href="/"><span class="mdl-layout-title">deeplearn.js</span></a>&nbsp;&nbsp;<span>[[name]]</span>
     <!-- Add spacer, to align navigation to the right -->
     <div class="mdl-layout-spacer"></div>
     <!-- Navigation. We hide it in small screens. -->
     <nav class="mdl-navigation mdl-layout--large-screen-only">
       <a class="mdl-navigation__link" target='_blank' href="https://github.com/PAIR-code/deeplearnjs">Code</a>
-      <a class="mdl-navigation__link" href="/deeplearnjs/#getting-started">Getting Started</a>
-      <a class="mdl-navigation__link" href="/deeplearnjs/index.html#demos">Examples</a>
-      <a class="mdl-navigation__link" href="/deeplearnjs/docs/tutorials/index.html">Tutorials</a>
-      <a class="mdl-navigation__link" href="/deeplearnjs/docs/api/globals.html">API Reference</a>
+      <a class="mdl-navigation__link" href="/#getting-started">Getting Started</a>
+      <a class="mdl-navigation__link" href="/#demos">Examples</a>
+      <a class="mdl-navigation__link" href="/docs/tutorials/index.html">Tutorials</a>
+      <a class="mdl-navigation__link" href="/docs/api/globals.html">API Reference</a>
     </nav>
   </div>
 </header>

@@ -1,5 +1,10 @@
 <!-- Header -->
 <header class="mdl-layout__header mdl-layout--fixed-header">
+  <script>
+    if (location.protocol !== "https:") {
+      location.protocol = "https:";
+    }
+  </script>
   <div class="mdl-layout__header-row">
     <!-- Title -->
     <a class="main-title" href="{{ "/index.html" | relative_url }}"><span class="mdl-layout-title">deeplearn.js</span></a>
