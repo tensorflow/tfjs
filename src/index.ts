@@ -31,6 +31,7 @@ export {ENV, Features} from './environment';
 export {Graph, Tensor} from './graph/graph';
 export {AdagradOptimizer} from './graph/optimizers/adagrad_optimizer';
 export {MomentumOptimizer} from './graph/optimizers/momentum_optimizer';
+export {AdadeltaOptimizer} from './graph/optimizers/adadelta_optimizer';
 export {Optimizer} from './graph/optimizers/optimizer';
 export {RMSPropOptimizer} from './graph/optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './graph/optimizers/sgd_optimizer';

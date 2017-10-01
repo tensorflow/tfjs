@@ -26,6 +26,7 @@ import {AdagradOptimizer} from './optimizers/adagrad_optimizer';
 import {MomentumOptimizer} from './optimizers/momentum_optimizer';
 import {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 import {SGDOptimizer} from './optimizers/sgd_optimizer';
+import {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 import {FeedDictionary, FeedEntry, Session} from './session';
 
 
@@ -446,5 +447,57 @@ describe('Session', () => {
         () =>
             session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer))
         .toThrowError();
+  });
+
+  it('adadelta', () => {
+    const x = g.placeholder('x', [2]);
+    const w = g.variable('w', NDArray.zeros([1, 2]));
+    const b = g.variable('b', NDArray.zeros([1]));
+    const y = g.reduceSum(g.add(g.matmul(w, x), b));
+
+    const safeMode = true;
+    const optimizer = new AdadeltaOptimizer(0.1, 0.8);
+    const math = new NDArrayMathCPU(safeMode);
+    const session = new Session(g, math);
+    const inputProvider: InputProvider = {
+      getNextCopy() {
+        return Array1D.new([2, 4]);
+      },
+      disposeCopy(math, example) {}
+    };
+
+    math.scope(() => {
+      // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
+      // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
+      //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]
+      //            = [.8, 3.2]
+      // updates = [sqrt(old_updates_w1 + eps)/sqrt(old_cache_w1 + eps)*grad_w1,
+      //            sqrt(old_updates_w2 + eps)/sqrT(old_cache_w2 + eps)*grad_w2]
+      //            = [2, 4]
+      // w = [ w1_old - lr*updates_w1,
+      //            w2_old - lr*updates_w2]
+      //            = [-0.2, -0.4]
+      // new_updates = [gamma * old_updates_w1 + (1 - gamma) * 2**2,
+      //                gamma * old_updates_w2 + (1 - gamma) * 4**2]
+      //             = [0.8, 3.2]
+      // 
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(
+          dydw, new Float32Array([-0.2, -0.4]), 1e-5);
+      // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
+      //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]
+      //            = [1.44, 5.76]
+      // updates = [sqrt(old_updates_w1 + eps)/sqrt(old_cache_w1 + eps)*grad_w1,
+      //            sqrt(old_updates_w2 + eps)/sqrT(old_cache_w2 + eps)*grad_w2]
+      //            = [2, 4]
+      // w = [ w1_old - lr*updates_w1,
+      //            w2_old - lr*updates_w2]
+      //            = [-0.4, -0.8]
+      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
+      const dydw2 = session.activationArrayMap.get(w).getValues();
+      test_util.expectArraysClose(
+          dydw2, new Float32Array([-.4, -.8]), 2e-5);
+    });
   });
 });
