@@ -1,9 +1,10 @@
 {
   "name": "deeplearn",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/src/index.js",
+  "browser": "dist/deeplearn.js",
   "types": "dist/src/index.d.ts",
   "repository": {
     "type": "git",

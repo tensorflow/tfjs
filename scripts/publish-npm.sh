@@ -15,6 +15,7 @@
 # =============================================================================
 npm run prep && \
 rm -rf dist/ && \
+./scripts/build-standalone.sh $1 && \
 node_modules/.bin/tsc && \
 npm publish
 echo 'Yay! Published a new package to npm.'
