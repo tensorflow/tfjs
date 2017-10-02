@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generate training examples for Runic character</title>
+  <link rel="stylesheet" media="screen" href="https://fontlibrary.org/face/runasans" type="text/css"/>
+  <style>
+    canvas {
+      -moz-user-select: -moz-none;
+      -khtml-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }  </style>
+</head>
+<body>
+<p>Draw the following rune</p>
+<div>
+
+<span id="showchar" style="border: 1px solid black;font-size: 124px; font-family: RunaSans">
+
+</span>
+</div>
+<p>In this canvas</p>
+<div>
+  <input type="button" value="Clear canvas" id="clr" size="23" onclick="clearCanvas()">
+</div>
+
+<div>
+  <canvas id="can" width="32" height="32"
+          style="width:320px;height:320px;border:2px solid;"></canvas>
+  <div>
+    <input type="button" value="Save rune (or press spacebar)" id="btn" size="30" onclick="saveAndSetNewRune()"/>
+  </div>
+</div>
+
+<script type="text/javascript">
+  var name = prompt("What's your name?") || new Date().toISOString();
+
+  var canvas, ctx, flag = false,
+      prevX = 0,
+      currX = 0,
+      prevY = 0,
+      currY = 0,
+      dot_flag = false;
+
+  var x = "black",
+      y = 2;
+
+  var char = "_";
+
+  var allChars = [
+    "ᚠ", "ᚡ", "ᚢ", "ᚣ", "ᚤ", "ᚥ", "ᚦ", "ᚧ", "ᚨ", "ᚩ", "ᚪ", "ᚫ", "ᚬ", "ᚭ", "ᚮ", "ᚯ",
+    "ᚰ", "ᚱ", "ᚲ", "ᚳ", "ᚴ", "ᚵ", "ᚶ", "ᚷ", "ᚸ", "ᚹ", "ᚺ", "ᚻ", "ᚼ", "ᚽ", "ᚾ", "ᚿ",
+    "ᛀ", "ᛁ", "ᛂ", "ᛃ", "ᛄ", "ᛅ", "ᛆ", "ᛇ", "ᛈ", "ᛉ", "ᛊ", "ᛋ", "ᛌ", "ᛍ", "ᛎ", "ᛏ",
+    "ᛐ", "ᛑ", "ᛒ", "ᛓ", "ᛔ", "ᛕ", "ᛖ", "ᛗ", "ᛘ", "ᛙ", "ᛚ", "ᛛ", "ᛜ", "ᛝ", "ᛞ", "ᛟ",
+    "ᛠ", "ᛡ", "ᛢ", "ᛣ", "ᛤ", "ᛥ", "ᛦ", "ᛧ", "ᛨ", "ᛩ", "ᛪ", "᛫", "᛬", "᛭", "ᛮ", "ᛯ",
+    "ᛰ", "ᛱ", "ᛲ", "ᛳ", "ᛴ", "ᛵ", "ᛶ", "ᛷ", "ᛸ"
+  ];
+
+  var charIndex = 0;
+
+  function init() {
+    canvas = document.getElementById('can');
+    ctx = canvas.getContext("2d");
+
+    canvas.addEventListener("mousemove", function (e) {
+      findxy('move', e)
+    }, false);
+    canvas.addEventListener("mousedown", function (e) {
+      findxy('down', e)
+    }, false);
+    canvas.addEventListener("mouseup", function (e) {
+      findxy('up', e)
+    }, false);
+    canvas.addEventListener("mouseout", function (e) {
+      findxy('out', e)
+    }, false);
+  }
+
+  function draw() {
+    ctx.beginPath();
+    ctx.moveTo(prevX, prevY);
+    ctx.lineTo(currX, currY);
+    ctx.strokeStyle = x;
+    ctx.lineWidth = y;
+    ctx.stroke();
+    ctx.closePath();
+  }
+
+  function clearCanvas() {
+    ctx.clearRect(0, 0, 320, 320);
+  }
+
+  function save() {
+    var a = document.createElement('a');
+    a.href = canvas.toDataURL();
+    a.download = "drawn_by_" + name + "_" + char + ".png";
+    a.click();
+  }
+
+  function findxy(res, e) {
+    if (res === 'down') {
+      prevX = currX;
+      prevY = currY;
+      currX = (e.clientX - canvas.offsetLeft) / 10;
+      currY = (e.clientY - canvas.offsetTop) / 10;
+
+      flag = true;
+      dot_flag = true;
+      if (dot_flag) {
+        ctx.beginPath();
+        ctx.fillStyle = x;
+        ctx.fillRect(currX, currY, 1, 1);
+        ctx.closePath();
+        dot_flag = false;
+      }
+    }
+    if (res === 'up' || res === "out") {
+      flag = false;
+    }
+    if (res === 'move') {
+      if (flag) {
+        prevX = currX;
+        prevY = currY;
+        currX = (e.clientX - canvas.offsetLeft) / 10;
+        currY = (e.clientY - canvas.offsetTop) / 10;
+
+        ctx.beginPath();
+        ctx.moveTo(prevX, prevY);
+        ctx.lineTo(currX, currY);
+        ctx.strokeStyle = x;
+        ctx.lineWidth = y;
+        ctx.stroke();
+        ctx.closePath();
+      }
+    }
+  }
+
+
+  function setNewRune(setValue) {
+    clearCanvas();
+
+    if (typeof setValue === "number") {
+      charIndex = setValue;
+    } else {
+      charIndex = (charIndex + 1) % allChars.length;
+    }
+    char = allChars[charIndex];
+    document.getElementById("showchar").innerHTML = char;
+  }
+
+  function saveAndSetNewRune() {
+    save();
+    setNewRune();
+  }
+
+  window.onkeyup = function (e) {
+    var key = e.keyCode ? e.keyCode : e.which;
+
+    if (key === 32) {
+      saveAndSetNewRune();
+    }
+  };
+
+  init();
+  setNewRune(0);
+</script>
+</body>
+</html>
