@@ -216,10 +216,24 @@ ul.index {
 
 .featured-demo div.mdl-card__title {
   height: 352px;
+  color: white;
+  z-index: 1;
+  background-color: rgba(0, 0, 0, 0.54);
+  padding: 5px 12px;
+  font-weight: 400;
+  font-size: 48px;
+  margin: 0 0px 2px 2px;
+}
+
+.featured-demo h1.mdl-card__title-text {
+  background-color: rgba(0, 0, 0, .54);
+  font-size: 48px;
+  margin: 0 0 2px 2px;
+  padding: 5px 12px;
 }
 
 .featured-demo div.mdl-card__title:before {
-  height: 352px;
+  display: none;
 }
 
 .demo-card .mdl-card__title {
