@@ -135,7 +135,6 @@ export function loadInputsFromFeedDictionaryToTensorArrayMap(
   });
 }
 
-
 /**
  * @hidden
  */
@@ -218,7 +217,6 @@ export function disposeAndInitializeOperationInputGradients(
     });
   });
 }
-
 
 /**
  * Calls underlying operation disposeTransientArrays methods which clean up any

@@ -36,7 +36,6 @@ export class Pool2DProgram implements GPGPUProgram {
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
 
-
     const xNumRows = convInfo.inShape[0];
     const xNumCols = convInfo.inShape[1];
     const padTop = convInfo.padInfo.top;

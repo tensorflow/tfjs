@@ -285,7 +285,6 @@ describe('Convolution', () => {
             dy.get(1, 0) * weights.get(1, 1, 0, 0) +
             dy.get(1, 1) * weights.get(1, 0, 0, 0));
 
-
     // Test dW.
     const dw = gradients.get(wTensor);
 

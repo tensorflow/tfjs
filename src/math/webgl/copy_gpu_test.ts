@@ -160,7 +160,6 @@ describe('copy_gpu', () => {
       sourceVals[i] = i;
     }
 
-
     const gpgpu = new GPGPUContext();
     const texManager = new TextureManager(gpgpu);
     initializeGPU(gpgpu, texManager);

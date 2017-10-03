@@ -150,7 +150,6 @@ function logShaderSourceAndInfoLog(
 
   const lineNumber = +lineNumberRegexResult[1];
 
-
   const shaderLines = shaderSource.split('\n');
   const pad = ('' + shaderLines.length).length + 2;
   const linesWithLineNumbers = shaderLines.map(

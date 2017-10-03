@@ -29,7 +29,6 @@ import {SGDOptimizer} from './optimizers/sgd_optimizer';
 import {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 import {FeedDictionary, FeedEntry, Session} from './session';
 
-
 describe('FeedDictionary', () => {
   it('ctor leaves dict empty if no args are passed', () => {
     expect(Object.keys(new FeedDictionary().dict).length).toEqual(0);
@@ -347,7 +346,6 @@ describe('Session', () => {
       test_util.expectArraysClose(dydw2, new Float32Array([-.5, -1.0]));
     });
   });
-
 
   it('Safe mode math, math scope train does not throw', () => {
     const x = g.placeholder('x', [2]);

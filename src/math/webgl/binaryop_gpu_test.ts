@@ -95,7 +95,6 @@ describe('binaryop_gpu Sub', () => {
   });
 });
 
-
 describe('binaryop_gpu Mul', () => {
   function cpuMultiply(a: Float32Array, b: Float32Array): Float32Array {
     const result = new Float32Array(a.length);

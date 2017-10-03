@@ -29,7 +29,6 @@ export interface LSTMCell {
   (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
 }
 
-
 export abstract class NDArrayMath {
   private ndarrayScopes: NDArray[][] = [];
   private activeScope: NDArray[];
@@ -67,7 +66,6 @@ export abstract class NDArrayMath {
 
     return result;
   }
-
 
   /**
    * In debug mode, the output of every math call will be downloaded to the CPU
@@ -1021,7 +1019,6 @@ export abstract class NDArrayMath {
     return this.executeOp('tanh', () => this.tanhInternal(ndarray));
   }
   protected abstract tanhInternal<T extends NDArray>(ndarray: T): T;
-
 
   /**
    * Computes step of the input NDArray element-wise, y = 1 if x > 0 | 0 if x <=

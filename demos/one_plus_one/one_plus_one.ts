@@ -46,7 +46,6 @@ class Adder {
   }
 }
 
-
 const adder = new Adder();
 adder.setupSession();
 const result = adder.computeSum(1, 1);

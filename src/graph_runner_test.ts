@@ -160,7 +160,6 @@ describe('Model runner', () => {
       expect(metric.get()).toEqual(.5);
     };
 
-
     graphRunner = new GraphRunner(math, session, fakeUserEvents);
 
     expect(graphRunner.getTotalBatchesTrained()).toEqual(0);

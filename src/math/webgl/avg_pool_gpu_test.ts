@@ -20,7 +20,6 @@ import {NDArrayMathCPU} from '../math_cpu';
 import {Array3D} from '../ndarray';
 import * as pool_gpu_test_util from './pool_gpu_test_util';
 
-
 describe('avg_pool_gpu', () => {
   function uploadAvgPoolDownload(
       a: Float32Array, xShape: [number, number, number], fieldSize: number,

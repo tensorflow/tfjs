@@ -46,7 +46,6 @@ export class RMSPropOptimizer extends Optimizer {
     }
   }
 
-
   afterBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,

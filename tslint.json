@@ -29,6 +29,7 @@
     "no-angle-bracket-type-assertion": true,
     "no-any": true,
     "no-construct": true,
+    "no-consecutive-blank-lines": true,
     "no-debugger": true,
     "no-default-export": true,
     "no-inferrable-types": true,

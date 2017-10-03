@@ -136,7 +136,6 @@ export class Graph {
         new FusedLinearCombinationNode(this, x1, x2, c1, c2));
   }
 
-
   /**
    * Adds two tensors (elementwise). Broadcasts if one of the tensors is scalar.
    * @param x1 The first input tensor.

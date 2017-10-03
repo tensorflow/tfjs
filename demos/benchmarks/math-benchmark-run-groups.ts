@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-
 import {BenchmarkRun, BenchmarkRunGroup} from './benchmark';
 import {ConvBenchmarkParams, ConvGPUBenchmark} from './conv_benchmarks';
 // tslint:disable-next-line:max-line-length

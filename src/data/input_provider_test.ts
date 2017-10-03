@@ -21,7 +21,6 @@ import {Array1D, Scalar} from '../math/ndarray';
 
 import {InCPUMemoryShuffledInputProviderBuilder} from './input_provider';
 
-
 describe('InCPUMemoryShuffledInputProviderBuilder', () => {
   let math: NDArrayMathCPU;
 

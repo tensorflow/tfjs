@@ -78,7 +78,6 @@ describe('disjoint query timer enabled', () => {
     expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')).toBe(true);
   });
 
-
 });
 describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
   it('disjoint query timer disabled', () => {

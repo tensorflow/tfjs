@@ -301,8 +301,6 @@ export class ModelBuilder extends ModelBuilderPolymer {
     return applicationState === ApplicationState.IDLE;
   }
 
-
-
   private getTestData(): NDArray[][] {
     const data = this.dataSet.getData();
     if (data == null) {

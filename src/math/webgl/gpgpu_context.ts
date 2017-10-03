@@ -364,7 +364,6 @@ export class GPGPUContext {
     });
   }
 
-
   private downloadMatrixDriver(
       texture: WebGLTexture,
       downloadAndDecode: () => Float32Array): Float32Array {

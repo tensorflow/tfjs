@@ -782,7 +782,6 @@ export class NDArrayMathCPU extends NDArrayMath {
           const xCMin = Math.max(0, xCCorner);
           const xCMax = Math.min(xCols, filterWidth + xCCorner);
 
-
           let minMaxValue =
               (poolType === 'max' ? Number.NEGATIVE_INFINITY :
                                     Number.POSITIVE_INFINITY);

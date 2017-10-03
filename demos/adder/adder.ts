@@ -45,7 +45,6 @@ class Adder {
   }
 }
 
-
 const adder = new Adder();
 adder.setupSession();
 

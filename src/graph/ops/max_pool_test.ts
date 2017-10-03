@@ -24,7 +24,6 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
 import {MaxPool} from './max_pool';
 
-
 describe('Max pool', () => {
   let math: NDArrayMathCPU;
   let xTensor: Tensor;

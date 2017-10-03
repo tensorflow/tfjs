@@ -67,7 +67,6 @@ describe('slice1d_gpu', () => {
     expect(result.get(0)).toEqual(expected);
   });
 
-
   function doSlice1D(a: Array1D, start: number, size: number): Array1D {
     const program = new SliceProgram([size]);
     const result = Array1D.zeros([size]);
@@ -127,7 +126,6 @@ describe('slice2d_gpu', () => {
     expect(result.shape).toEqual([1, 1]);
     expect(result.get(0, 0)).toEqual(expected);
   });
-
 
   function doSlice2D(
       a: Array2D, start: [number, number], size: [number, number]): Array2D {
@@ -189,7 +187,6 @@ describe('slice3d_gpu', () => {
     expect(result.shape).toEqual([1, 1, 1]);
     expect(result.get(0, 0, 0)).toEqual(expected);
   });
-
 
   function doSlice3D(
       a: Array3D, start: [number, number, number],
@@ -256,7 +253,6 @@ describe('slice4d_gpu', () => {
     expect(result.shape).toEqual([1, 1, 1, 1]);
     expect(result.get(0, 0, 0, 0)).toEqual(expected);
   });
-
 
   function doSlice4D(
       a: Array4D, start: [number, number, number, number],

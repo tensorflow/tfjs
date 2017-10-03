@@ -70,7 +70,6 @@ function startCPPN() {
   const DEFAULT_NUM_LAYERS = 2;
   const WEIGHTS_STDEV = 0.6;
 
-
   const cppn = new CPPN(inferenceCanvas);
 
   cppn.setActivationFunction('tanh');
