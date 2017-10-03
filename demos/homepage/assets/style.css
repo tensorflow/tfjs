@@ -213,6 +213,15 @@ ul.index {
   color: #777;
   font-weight: 500;
 }
+
+.featured-demo div.mdl-card__title {
+  height: 352px;
+}
+
+.featured-demo div.mdl-card__title:before {
+  height: 352px;
+}
+
 .demo-card .mdl-card__title {
   color: #fff;
   height: 176px;
@@ -229,6 +238,9 @@ ul.index {
   background: rgba(78, 135, 143, 0.73);
 }
 
+#teachable-machine {
+  background: url('../demos/images/teachablemachine_preview.jpg') center / cover;
+}
 #model-builder {
   background: url('../demos/images/model-builder.png') center / cover;
 }
