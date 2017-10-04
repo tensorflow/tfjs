@@ -16,6 +16,9 @@
   "[json]": {
     "editor.formatOnSave": false
   },
+  "[html]": {
+    "editor.formatOnSave": false
+  },
   "editor.formatOnSave": true,
   "clang-format.style": "Google",
   "files.insertFinalNewline": true,
