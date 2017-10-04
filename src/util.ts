@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-export type Vector = number[] | Float64Array | Float32Array | Int32Array |
-    Int8Array | Int16Array;
+export type Vector =
+    number[]|Float64Array|Float32Array|Int32Array|Int8Array|Int16Array;
 
 /** Shuffles the array using Fisher-Yates algorithm. */
 // tslint:disable-next-line:no-any
@@ -63,7 +63,7 @@ export function randGauss(mean = 0, stdDev = 1, truncated = false): number {
   } while (s > 1);
 
   const result = Math.sqrt(-2 * Math.log(s) / s) * v1;
-  if (truncated && result > 2) {
+  if (truncated && Math.abs(result) > 2) {
     return randGauss(mean, stdDev, true);
   }
   return mean + stdDev * result;
@@ -106,12 +106,7 @@ export function flatten(arr: any[], ret?: number[]): number[] {
 }
 
 export type ArrayData =
-    Float32Array |
-        number |
-        number[] |
-        number[][] |
-        number[][][] |
-        number[][][][];
+    Float32Array|number|number[]|number[][]|number[][][]|number[][][][];
 
 export function inferShape(arr: ArrayData): number[] {
   const shape: number[] = [];
