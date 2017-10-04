@@ -30,7 +30,8 @@ a.main-title {
 <template>
 <header class="mdl-layout__header mdl-layout--fixed-header is-casting-shadow">
   <script>
-    if (location.protocol !== "https:") {
+    if (location.protocol !== "https:" &&
+        location.hostname === 'deeplearnjs.org') {
       location.protocol = "https:";
     }
   </script>

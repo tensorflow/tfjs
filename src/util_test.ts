@@ -218,3 +218,29 @@ describe('util.inferFromImplicitShape', () => {
     expect(() => util.inferFromImplicitShape([2, 3, 4], 25)).toThrowError();
   });
 });
+
+describe('util.randGauss', () => {
+  it('standard normal', () => {
+    const a = util.randGauss();
+    expect(a != null);
+  });
+
+  it('truncated standard normal', () => {
+    const numSamples = 1000;
+    for (let i = 0; i < numSamples; ++i) {
+      const sample = util.randGauss(0, 1, true);
+      expect(Math.abs(sample) <= 2);
+    }
+  });
+
+  it('truncated normal, mu = 3, std=4', () => {
+    const numSamples = 1000;
+    const mean = 3;
+    const stdDev = 4;
+    for (let i = 0; i < numSamples; ++i) {
+      const sample = util.randGauss(mean, stdDev, true);
+      const normalizedSample = (sample - mean) / stdDev;
+      expect(Math.abs(normalizedSample) <= 2);
+    }
+  });
+});

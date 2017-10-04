@@ -156,26 +156,18 @@ export function createPackedMatrixTexture(
 }
 
 export function bindVertexProgramAttributeStreams(
-    gl: WebGLRenderingContext, program: WebGLProgram,
-    vertexBuffer: WebGLBuffer) {
+    gl: WebGLRenderingContext, program: WebGLProgram, vertexBuffer: WebGLBuffer,
+    attribLocations?: {[name: string]: number}) {
   const posOffset = 0;               // x is the first buffer element
   const uvOffset = 3 * 4;            // uv comes after [x y z]
   const stride = (3 * 4) + (2 * 4);  // xyz + uv, each entry is 4-byte float.
   webgl_util.callAndCheck(
       gl, () => gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer));
   webgl_util.bindVertexBufferToProgramAttribute(
-      gl, program, 'clipSpacePos', vertexBuffer, 3, stride, posOffset);
-  try {
-    webgl_util.bindVertexBufferToProgramAttribute(
-        gl, program, 'uv', vertexBuffer, 2, stride, uvOffset);
-  } catch (e) {
-    // Programs with 1x1 output textures don't use the uv attribute.
-    // This can cause the shader linker to dead-strip it, so we shouldn't
-    // complain or fail if it's not present.
-    if (!e.hasOwnProperty('namedVertexAttributeNotFound')) {
-      throw e;
-    }
-  }
+      gl, program, 'clipSpacePos', vertexBuffer, 3, stride, posOffset,
+      attribLocations);
+  webgl_util.bindVertexBufferToProgramAttribute(
+      gl, program, 'uv', vertexBuffer, 2, stride, uvOffset, attribLocations);
 }
 
 export function uploadPixelDataToTexture(

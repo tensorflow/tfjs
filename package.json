@@ -1,10 +1,10 @@
 {
   "name": "deeplearn",
-  "version": "0.2.6",
+  "version": "0.2.8",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/src/index.js",
-  "browser": "dist/deeplearn.js",
+  "unpkg": "dist/deeplearn.js",
   "types": "dist/src/index.d.ts",
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~3.0.4",
     "polymer-bundler": "~3.0.1",
+    "tone-piano": "0.0.5",
     "tsify": "~3.0.1",
     "tslint": "~5.6.0",
     "tslint-no-circular-imports": "~0.2.0",

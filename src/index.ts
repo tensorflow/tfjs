@@ -20,6 +20,7 @@ import * as conv_util from './math/conv_util';
 import * as gpgpu_util from './math/webgl/gpgpu_util';
 import * as render_ndarray_gpu_util from './math/webgl/render_ndarray_gpu_util';
 import * as webgl_util from './math/webgl/webgl_util';
+import * as test_util from './test_util';
 import * as util from './util';
 
 export {CheckpointLoader} from './data/checkpoint_loader';
@@ -29,9 +30,9 @@ export {InCPUMemoryShuffledInputProviderBuilder, InGPUMemoryShuffledInputProvide
 export {XhrDataset, XhrDatasetConfig, XhrModelConfig} from './data/xhr-dataset';
 export {ENV, Features} from './environment';
 export {Graph, Tensor} from './graph/graph';
+export {AdadeltaOptimizer} from './graph/optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './graph/optimizers/adagrad_optimizer';
 export {MomentumOptimizer} from './graph/optimizers/momentum_optimizer';
-export {AdadeltaOptimizer} from './graph/optimizers/adadelta_optimizer';
 export {Optimizer} from './graph/optimizers/optimizer';
 export {RMSPropOptimizer} from './graph/optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './graph/optimizers/sgd_optimizer';
@@ -51,6 +52,7 @@ export {
   conv_util,
   gpgpu_util,
   render_ndarray_gpu_util,
+  test_util,
   util,
   webgl_util,
   xhr_dataset
