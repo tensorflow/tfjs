@@ -117,7 +117,7 @@ limitations under the License.
   <div class="featured-demo mdl-grid">
     <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
     <div class="demo-card featured-demo mdl-card mdl-shadow--4dp feature-card mdl-cell mdl-cell--12-col">
-      <a href="demos/model-builder/model-builder-demo.html">
+      <a href="https://teachablemachine.withgoogle.com/">
         <div class="mdl-card__title" id="teachable-machine">
           <h1 class="mdl-card__title-text">Teachable Machine</h1>
         </div>
