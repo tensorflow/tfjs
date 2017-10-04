@@ -15,6 +15,7 @@ limitations under the License.
 
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
+import * as demo_util from '../util';
 
 import {KeyboardElement} from './keyboard_element';
 
@@ -57,7 +58,6 @@ let conditioningOff = true;
 
 let currentTime = 0;
 let currentVelocity = 100;
-const math = new NDArrayMathGPU();
 
 const MIN_MIDI_PITCH = 0;
 const MAX_MIDI_PITCH = 127;
@@ -89,7 +89,7 @@ const EVENT_SIZE = calculateEventSize();
 const PRIMER_IDX = 355;  // shift 1s.
 let lastSample = Scalar.new(PRIMER_IDX);
 
-const container = document.querySelector('#container');
+const container = document.querySelector('#keyboard');
 const keyboardInterface = new KeyboardElement(container);
 
 const piano = new Piano({velocities: 4}).toMaster();
@@ -99,34 +99,49 @@ const SALAMANDER_URL = 'http://storage.googleapis.com/learnjs-data/' +
 const CHECKPOINT_URL = 'http://storage.googleapis.com/learnjs-data/' +
     'checkpoint_zoo/performance_rnn';
 
-piano.load(SALAMANDER_URL)
-    .then(() => {
-      const reader = new CheckpointLoader(CHECKPOINT_URL);
-      return reader.getAllVariables();
-    })
-    .then((vars: {[varName: string]: NDArray}) => {
-      document.querySelector('#status').classList.add('hidden');
-      document.querySelector('#controls').classList.remove('hidden');
+const isDeviceSupported = demo_util.isWebGLSupported() && !demo_util.isSafari();
 
-      lstmKernel1 =
-          vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as Array2D;
-      lstmBias1 =
-          vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as Array1D;
+if (!isDeviceSupported) {
+  document.querySelector('#status').innerHTML =
+      'We do not yet support your device. Please try on a desktop ' +
+      'computer with Chrome/Firefox, or an Android phone with WebGL support.';
+} else {
+  start();
+}
 
-      lstmKernel2 =
-          vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as Array2D;
-      lstmBias2 =
-          vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as Array1D;
+const math = new NDArrayMathGPU();
 
-      lstmKernel3 =
-          vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/kernel'] as Array2D;
-      lstmBias3 =
-          vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/bias'] as Array1D;
+function start() {
+  piano.load(SALAMANDER_URL)
+      .then(() => {
+        const reader = new CheckpointLoader(CHECKPOINT_URL);
+        return reader.getAllVariables();
+      })
+      .then((vars: {[varName: string]: NDArray}) => {
+        document.querySelector('#status').classList.add('hidden');
+        document.querySelector('#controls').classList.remove('hidden');
+        document.querySelector('#keyboard').classList.remove('hidden');
 
-      fullyConnectedBiases = vars['fully_connected/biases'] as Array1D;
-      fullyConnectedWeights = vars['fully_connected/weights'] as Array2D;
-      resetRnn();
-    });
+        lstmKernel1 =
+            vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as Array2D;
+        lstmBias1 =
+            vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as Array1D;
+
+        lstmKernel2 =
+            vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as Array2D;
+        lstmBias2 =
+            vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as Array1D;
+
+        lstmKernel3 =
+            vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/kernel'] as Array2D;
+        lstmBias3 =
+            vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/bias'] as Array1D;
+
+        fullyConnectedBiases = vars['fully_connected/biases'] as Array1D;
+        fullyConnectedWeights = vars['fully_connected/weights'] as Array2D;
+        resetRnn();
+      });
+}
 
 function resetRnn() {
   c = [
@@ -356,7 +371,6 @@ function generateStep(loopId: number) {
     h.map(val => {
       track(val);
     });
-    const start = performance.now();
     const outputs: Scalar[] = [];
     // Generate some notes.
     for (let i = 0; i < STEPS_PER_GENERATE_CALL; i++) {
@@ -397,8 +411,6 @@ function generateStep(loopId: number) {
         const vals = output.getValues();
         playOutput(vals[0]);
       });
-      const elapsed = (performance.now() - start) / STEPS_PER_GENERATE_CALL;
-      console.log('Took', elapsed.toFixed(2), 'ms/step');
       // Pro-actively upload the last sample to the gpu again and keep it
       // for next time.
       lastSample.getTexture();
@@ -468,19 +480,3 @@ function playOutput(index: number) {
   }
   throw new Error('Could not decode index: ' + index);
 }
-
-// /**
-//  * Sample from a softmax.
-//  */
-// function sampleFromSoftmax(math: NDArrayMath, softmax: Array1D): number {
-//   const softmaxValues = softmax.getValues();
-//   const rand = Scalar.randUniform([], 0, 1).get();
-//   let cdf = 0;
-//   for(let i = 0; i < softmaxValues.length; i++) {
-//     cdf += softmaxValues[i];
-//     if (cdf > rand) {
-//       return i;
-//     }
-//   }
-//   throw new Error('Could not sample from softmax.');
-// }

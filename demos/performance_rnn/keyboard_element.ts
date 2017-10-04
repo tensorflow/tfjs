@@ -24,10 +24,7 @@ export class KeyboardElement {
   private notes: {[key: number]: Note[]};
 
   constructor(container: Element) {
-    this.container = document.createElement('div');
-    this.container.id = 'keyboard';
-    container.appendChild(this.container);
-
+    this.container = container;
     this.keys = {};
 
     this.resize();
