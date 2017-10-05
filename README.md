@@ -40,10 +40,10 @@ math.scope(() => {
 #### ES3/ES5 JavaScript
 
 You can also use **deeplearn.js** with plain JavaScript. Load the latest version
-of the library directly from the Google CDN:
+of the library from [unpkg](https://unpkg.com):
 
 ```html
-<script src="https://storage.googleapis.com/learnjs-data/deeplearn-latest.js"></script>
+<script src="https://unpkg.com/deeplearn"></script>
 ```
 
 To use a specific version, replace `latest` with a version number
@@ -105,8 +105,8 @@ To build a standalone ES5 library that can be imported in the browser with a
 `<script>` tag:
 
 ```bash
-$ ./scripts/build-standalone.sh VERSION # Builds standalone library.
->> Stored standalone library at dist/deeplearn-VERSION(.min).js
+$ ./scripts/build-standalone.sh # Builds standalone library.
+>> Stored standalone library at dist/deeplearn(.min).js
 ```
 
 To do a dry run and test building an npm package:

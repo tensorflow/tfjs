@@ -222,12 +222,11 @@ ul.index {
   padding: 5px 12px;
   font-weight: 400;
   font-size: 48px;
-  margin: 0 0px 2px 2px;
 }
 
 .featured-demo h1.mdl-card__title-text {
   background-color: rgba(0, 0, 0, .54);
-  font-size: 48px;
+  font-size: 36px;
   margin: 0 0 2px 2px;
   padding: 5px 12px;
 }

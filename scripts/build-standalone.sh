@@ -13,23 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-if [ -z "$1" ]
-  then
-    echo "No version number found."
-    exit
-fi
-
-echo "Building version $1"
-
-npm run prep
-
-node_modules/.bin/browserify --standalone deeplearn src/index.ts -p [tsify] > dist/deeplearn-$1.js
-node_modules/.bin/uglifyjs dist/deeplearn-$1.js > dist/deeplearn-$1.min.js
-
-cp dist/deeplearn-$1.js dist/deeplearn.js
-cp dist/deeplearn-$1.min.js dist/deeplearn.min.js
-
-cp dist/deeplearn-$1.js dist/deeplearn-latest.js
-cp dist/deeplearn-$1.min.js dist/deeplearn-latest.min.js
-
-echo "Stored standalone library at dist/deeplearn-$1(.min).js"
+rm -rf dist/ && \
+npm run prep && \
+node_modules/.bin/browserify --standalone deeplearn src/index.ts -p [tsify] > dist/deeplearn.js && \
+node_modules/.bin/uglifyjs dist/deeplearn.js > dist/deeplearn.min.js && \
+echo "Stored standalone library at dist/deeplearn(.min).js"

@@ -13,9 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-npm run prep && \
 rm -rf dist/ && \
-./scripts/build-standalone.sh $1 && \
+npm run prep && \
+./scripts/build-standalone.sh && \
 node_modules/.bin/tsc && \
 npm publish
 echo 'Yay! Published a new package to npm.'
