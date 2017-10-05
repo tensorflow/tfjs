@@ -116,7 +116,27 @@ limitations under the License.
   <!-- Featured Card -->
   <div class="featured-demo mdl-grid">
     <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
-    <div class="demo-card featured-demo mdl-card mdl-shadow--4dp feature-card mdl-cell mdl-cell--12-col">
+    <div class="demo-card featured-demo mdl-card mdl-shadow--4dp feature-card mdl-cell mdl-cell--6-col">
+      <a href="demos/performance_rnn">
+        <div class="mdl-card__title" id="perf-rnn">
+          <h1 class="mdl-card__title-text">Performance RNN</h1>
+        </div>
+      </a>
+      <div class="mdl-card__supporting-text">Enjoy a real-time piano performance by a neural network</div>
+      <div class="mdl-card__actions mdl-card--border">
+        <a href="demos/performance_rnn">
+          <button class="mdl-button mdl-button--raised mdl-button--colored mdl-js-button mdl-button--primary mdl-js-ripple-effect">
+            Demo
+          </button>
+        </a>
+        <a href="https://github.com/pair-code/deeplearnjs/tree/master/demos/performance_rnn">
+          <button class="mdl-button mdl-button--raised mdl-button--colored mdl-js-button mdl-button--primary mdl-js-ripple-effect">
+            Code
+          </button>
+        </a>
+      </div>
+    </div>
+    <div class="demo-card featured-demo mdl-card mdl-shadow--4dp feature-card mdl-cell mdl-cell--6-col">
       <a href="https://teachablemachine.withgoogle.com/">
         <div class="mdl-card__title" id="teachable-machine">
           <h1 class="mdl-card__title-text">Teachable Machine</h1>

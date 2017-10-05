@@ -255,6 +255,11 @@ ul.index {
 #teachable-machine {
   background: url('../demos/images/teachablemachine_preview.jpg') center / cover;
 }
+
+#perf-rnn {
+  background: url('https://storage.googleapis.com/learnjs-data/images/performance_rnn.gif') center / cover;
+}
+
 #model-builder {
   background: url('../demos/images/model-builder.png') center / cover;
 }
