@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
+
+# Builds the website and stages it for preview on localhost:4000. If all is good
+# run ./script/publish-website.sh to deploy it to https://deeplearnjs.org.
+
 TMP_DIR="/tmp/deeplearn-website"
 
 npm run prep
@@ -49,14 +53,6 @@ cp -r demos/homepage/* "$TMP_DIR"
 cp "README.md" "$TMP_DIR/_includes/"
 rm "$TMP_DIR"/index.ts
 
-git stash
-git checkout gh-pages
-
-cp -rf "$TMP_DIR"/* .
-
-git add .
-git commit -m "github pages"
-
-git checkout master
-rm -f -r "_site/"
-git stash pop
+echo "Website staged at $TMP_DIR"
+pushd $TMP_DIR > /dev/null
+bundle exec jekyll serve
