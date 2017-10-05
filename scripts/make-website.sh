@@ -31,27 +31,20 @@ cp -r "docs" "$TMP_DIR/"
 
 # Build the demos (deploy-demo vulcanizes polymer apps).
 cp -r "demos" "$TMP_DIR/"
-./scripts/deploy-demo demos/model-builder/model-builder.ts \
-    demos/model-builder/model-builder-demo.html $TMP_DIR/demos/model-builder/
-./scripts/deploy-demo demos/imagenet/imagenet-demo.ts \
-    demos/imagenet/imagenet-demo.html $TMP_DIR/demos/imagenet
-./scripts/deploy-demo demos/nn-art/nn-art.ts \
-    demos/nn-art/nn-art-demo.html $TMP_DIR/demos/nn-art
-./scripts/deploy-demo demos/benchmarks/math-benchmark.ts \
-    demos/benchmarks/benchmark-demo.html $TMP_DIR/demos/benchmarks
-./scripts/deploy-demo demos/performance_rnn/performance_rnn.ts \
-    demos/performance_rnn/index.html $TMP_DIR/demos/performance_rnn
+./scripts/deploy-demo demos/model-builder $TMP_DIR
+./scripts/deploy-demo demos/imagenet $TMP_DIR
+./scripts/deploy-demo demos/nn-art $TMP_DIR
+./scripts/deploy-demo demos/benchmarks $TMP_DIR
+./scripts/deploy-demo demos/performance_rnn $TMP_DIR
 
-./scripts/deploy-demo demos/intro/intro.ts \
-    demos/intro/index.html $TMP_DIR/demos/intro
-./scripts/deploy-demo demos/ml_beginners/ml_beginners.ts \
-    demos/ml_beginners/index.html $TMP_DIR/demos/ml_beginners
+./scripts/deploy-demo demos/intro $TMP_DIR
+./scripts/deploy-demo demos/ml_beginners $TMP_DIR
 
 # Build the homepage (no deploy since homepage is not polymer).
-./scripts/build-demo demos/homepage/index.ts
+./scripts/build-demo demos/homepage
 cp -r demos/homepage/* "$TMP_DIR"
 cp "README.md" "$TMP_DIR/_includes/"
-rm "$TMP_DIR"/index.ts
+rm "$TMP_DIR"/homepage.ts
 
 echo "Website staged at $TMP_DIR"
 pushd $TMP_DIR > /dev/null

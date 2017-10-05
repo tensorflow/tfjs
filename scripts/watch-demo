@@ -16,12 +16,14 @@
 
 const path = require('path');
 const spawn = require('cross-spawn');
+const opn = require('opn');
 
-const startTsFilePath = process.argv[2];
-const outputPath = path.join(path.dirname(startTsFilePath), 'bundle.js')
+const demoPath = process.argv[2];
+const outputPath = path.join(demoPath, 'bundle.js')
+const tsPath = path.join(demoPath, path.basename(demoPath) + '.ts');
 
 const cmd = path.join('node_modules', '.bin', 'watchify');
-const watchify = spawn(cmd, [startTsFilePath, '-p', '[tsify]', '-v', '--debug',
+const watchify = spawn(cmd, [tsPath, '-p', '[tsify]', '-v', '--debug',
     '-o' , outputPath], {detached: false});
 watchify.stdout.pipe(process.stdout);
 watchify.stderr.pipe(process.stderr);
@@ -34,6 +36,15 @@ watchify.stderr.on('data', (data) => {
     if (!httpServerStarted) {
       const httpCmd = path.join('node_modules', '.bin', 'http-server');
       const httpServer = spawn(httpCmd, ['-c-1'], { detached: false});
+
+      httpServer.stdout.on('data', data => {
+        data = data.toString().trim();
+        if (data.startsWith('http://127.0.0.1:')) {
+          // Open a browser pointing to the demo.
+          opn(path.join(data, demoPath));
+        }
+      });
+
       httpServer.stdout.pipe(process.stdout);
       httpServer.stderr.pipe(process.stderr);
       httpServerStarted = true;

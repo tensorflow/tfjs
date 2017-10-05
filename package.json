@@ -25,6 +25,7 @@
     "karma-firefox-launcher": "~1.0.1",
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~3.0.4",
+    "opn": "~5.1.0",
     "polymer-bundler": "~3.0.1",
     "tone-piano": "0.0.5",
     "tsify": "~3.0.1",

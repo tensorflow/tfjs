@@ -114,10 +114,10 @@ recompiles the typescript code when it changes. In addition, the script runs a
 simple HTTP server on 8080 that serves the static html/js files. Before you run
 `watch-demo`, make sure you kill the HTTP server we started earlier in the
 tutorial in order to free up the 8080 port. Then run `watch-demo` from `$BASE`
-pointed to the entry-point of the web app demo, `demos/mnist/mnist.ts`:
+pointed to the demo dir, `demos/mnist`:
 
 ```bash
-./scripts/watch-demo demos/mnist/mnist.ts
+./scripts/watch-demo demos/mnist
 >> Starting up http-server, serving ./
 >> Available on:
 >>   http://127.0.0.1:8080

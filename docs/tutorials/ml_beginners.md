@@ -12,7 +12,7 @@ You can find the code that supplements this tutorial
 
 Run it yourself with:
 ```ts
-./scripts/watch-demo demos/ml_beginners/ml_beginners.ts
+./scripts/watch-demo demos/ml_beginners
 ```
 
 And visit `http://localhost:8080/demos/ml_beginners/`.

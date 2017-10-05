@@ -17,19 +17,20 @@
 const path = require('path');
 const spawn = require('cross-spawn');
 
-const startTsFilePath = process.argv[2];
+const demoPath = process.argv[2];
+const tsPath = path.join(demoPath, path.basename(demoPath) + '.ts');
 const outDir = process.argv[3];
 
 let outputPath;
 if (outDir != null) {
-  outputPath = path.join(outDir, 'bundle.js');
+  outputPath = path.join(outDir, demoPath, 'bundle.js');
 } else {
-  outputPath = path.join(path.dirname(startTsFilePath), 'bundle.js')
+  outputPath = path.join(demoPath, 'bundle.js')
 }
 
 
 const cmd = path.join('node_modules', '.bin', 'browserify');
-const child = spawn(cmd, [startTsFilePath, '-p', '[tsify]', '-o' , outputPath],
+const child = spawn(cmd, [tsPath, '-p', '[tsify]', '-o' , outputPath],
     {detached: false});
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);

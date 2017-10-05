@@ -19,7 +19,7 @@ You can find the code that supplements this tutorial
 
 Run it yourself with:
 ```ts
-./scripts/watch-demo demos/intro/intro.ts
+./scripts/watch-demo demos/intro
 ```
 
 And visit `http://localhost:8080/demos/intro/`.

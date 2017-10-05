@@ -417,9 +417,8 @@ function generateStep(loopId: number) {
 
       if (piano.now() - currentTime > MAX_GENERATION_LAG_SECONDS) {
         console.warn(
-            `Generation is ${
-                piano.now() - currentTime} seconds behind, which ` +
-            `is over ${MAX_NOTE_DURATION_SECONDS}. Resetting time!`);
+            `Generation is ${piano.now() - currentTime} seconds behind, ` +
+            `which is over ${MAX_NOTE_DURATION_SECONDS}. Resetting time!`);
         currentTime = piano.now();
       }
       const delta =
