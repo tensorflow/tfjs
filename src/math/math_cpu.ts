@@ -994,8 +994,7 @@ export class NDArrayMathCPU extends NDArrayMath {
     for (let event = 1; event < cdf.length; ++event) {
       cdf[event] = cdf[event - 1] + probVals[event];
     }
-
-    const random = seedrandom(seed.toString());
+    const random = seedrandom.alea(seed.toString());
     const res = new Float32Array(numSamples);
 
     for (let i = 0; i < numSamples; ++i) {

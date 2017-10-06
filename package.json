@@ -32,7 +32,7 @@
     "tslint": "~5.6.0",
     "tslint-no-circular-imports": "~0.2.0",
     "typedoc": "~0.8.0",
-    "typescript": "2.4.2",
+    "typescript": "2.5.3",
     "uglify-js": "~3.0.28",
     "watchify": "~3.9.0"
   },
