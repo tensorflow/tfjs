@@ -354,7 +354,7 @@ describe('Session', () => {
     const y = g.reduceSum(g.add(g.matmul(w, x), b));
 
     const safeMode = true;
-    const optimizer = new AdagradOptimizer(0.1, 0.5);
+    const optimizer = new AdagradOptimizer(0.1);
     const math = new NDArrayMathCPU(safeMode);
     const session = new Session(g, math);
     const inputProvider: InputProvider = {

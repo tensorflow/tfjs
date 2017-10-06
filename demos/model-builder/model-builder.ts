@@ -369,7 +369,6 @@ export class ModelBuilder extends ModelBuilderPolymer {
         break;
       }
       case "adagrad": {
-        this.needMomentum = true;
         break;
       }
       default: {
@@ -390,7 +389,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
         return new RMSPropOptimizer(+this.learningRate, +this.gamma);
       }
       case 'adagrad': {
-        return new AdagradOptimizer(+this.learningRate, +this.momentum);
+        return new AdagradOptimizer(+this.learningRate);
       }
       default: {
         throw new Error(`Unknown optimizer "${this.selectedOptimizerName}"`);
