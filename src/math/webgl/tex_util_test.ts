@@ -296,3 +296,15 @@ describe('tex_util decodeMatrixFromPackedRGBA', () => {
         matrix, new Float32Array([1, 2, 3, 4, 5, 6, 7, 8, 9]));
   });
 });
+
+describe('tex_util_float_packing', () => {
+  it('packs a float32array as a uint8 array', () => {
+    const elements = test_util.randomArrayInRange(
+        1000, tex_util.FLOAT_MIN, tex_util.FLOAT_MAX);
+
+    const matrix = new Float32Array(elements);
+    const uintArray = tex_util.encodeFloatArray(matrix);
+    const floatArray = tex_util.decodeToFloatArray(uintArray);
+    test_util.expectArraysClose(matrix, floatArray);
+  });
+});

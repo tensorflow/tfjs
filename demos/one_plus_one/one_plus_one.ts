@@ -16,40 +16,12 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Graph, NDArrayMath, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearn';
+import {NDArrayMathGPU, Scalar} from '../deeplearn';
 
-class Adder {
-  inputTensorA: Tensor;
-  inputTensorB: Tensor;
-  sum: Tensor;
-  session: Session;
-  math: NDArrayMath = new NDArrayMathGPU();
-  setupSession(): void {
-    const graph = new Graph();
+const math = new NDArrayMathGPU();
+const a = Scalar.new(1);
+const b = Scalar.new(1);
 
-    this.inputTensorA = graph.placeholder('A', []);
-    this.inputTensorB = graph.placeholder('B', []);
-    this.sum = graph.add(this.inputTensorA, this.inputTensorB);
-    this.session = new Session(graph, this.math);
-  }
+const result = math.add(a, b).get();
 
-  computeSum(a: number, b: number): number {
-    const feeds = [
-      {tensor: this.inputTensorA, data: Scalar.new(a)},
-      {tensor: this.inputTensorB, data: Scalar.new(b)}
-    ];
-    let result;
-    this.math.scope(() => {
-      result = this.session.eval(this.sum, feeds).get();
-    });
-    return result;
-  }
-}
-
-const adder = new Adder();
-adder.setupSession();
-const result = adder.computeSum(1, 1);
-
-const outputEl = document.getElementById('output');
-if (!outputEl) throw new Error('output element not found');
-outputEl.innerText = String(result);
+document.getElementById('output').innerText = '' + result;

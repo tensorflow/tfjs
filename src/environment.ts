@@ -31,12 +31,16 @@ export interface Features {
   'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'?: boolean;
   // 0: No WebGL, 1: WebGL 1.0, 2: WebGL 2.0.
   'WEBGL_VERSION'?: number;
+  // Whether writing & reading floating point textures is enabled. When
+  // false, fall back to using unsigned byte textures.
+  'WEBGL_FLOAT_TEXTURE_ENABLED'?: boolean;
 }
 
 export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED', type: Type.BOOLEAN},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
-  {name: 'WEBGL_VERSION', type: Type.NUMBER}
+  {name: 'WEBGL_VERSION', type: Type.NUMBER},
+  {name: 'WEBGL_FLOAT_TEXTURE_ENABLED', type: Type.BOOLEAN}
 ];
 
 export interface URLProperty {
@@ -91,6 +95,37 @@ function isWebGLDisjointQueryTimerEnabled(webGLVersion: number) {
   return isExtEnabled;
 }
 
+function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
+  if (webGLVersion === 0) {
+    return false;
+  }
+
+  if (webGLVersion === 2) {
+    // WebGL 2 has floating point textures enabled by default.
+    return true;
+  }
+
+  const gl = getWebGLRenderingContext(webGLVersion);
+  gl.getExtension('OES_texture_float');
+  gl.getExtension('WEBGL_color_buffer_float');
+
+  const frameBuffer = gl.createFramebuffer();
+  const texture = gl.createTexture();
+
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.FLOAT, null);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+  gl.framebufferTexture2D(
+      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+  const frameBufferComplete =
+      (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
+
+  loseContext(gl);
+
+  return frameBufferComplete;
+}
+
 export class Environment {
   private features: Features = {};
 
@@ -129,6 +164,8 @@ export class Environment {
         return 1;
       }
       return 0;
+    } else if (feature === 'WEBGL_FLOAT_TEXTURE_ENABLED') {
+      return isFloatTextureReadPixelsEnabled(this.get('WEBGL_VERSION'));
     }
     throw new Error(`Unknown feature ${feature}.`);
   }
@@ -139,7 +176,7 @@ const DEEPLEARNJS_FLAGS_PREFIX = 'dljsflags';
 function getFeaturesFromURL(): Features {
   const features: Features = {};
 
-  if(typeof window === 'undefined') {
+  if (typeof window === 'undefined') {
     return features;
   }
 

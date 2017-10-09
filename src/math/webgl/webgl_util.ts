@@ -44,6 +44,7 @@ export function createWebGLRenderingContextFromCanvas(
     canvas: HTMLCanvasElement,
     attributes: WebGLContextAttributes): WebGLRenderingContext {
   let gl: WebGLRenderingContext;
+
   const webglVersion = ENV.get('WEBGL_VERSION');
   if (webglVersion === 2) {
     gl = canvas.getContext('webgl2', attributes) as WebGLRenderingContext;
@@ -222,6 +223,10 @@ export function queryMaxTextureSize(gl: WebGLRenderingContext): number {
 }
 
 export function getChannelsPerTexture(): number {
+  if (!ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED')) {
+    return 4;
+  }
+
   if (ENV.get('WEBGL_VERSION') === 2) {
     return 1;
   }

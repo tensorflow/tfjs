@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import * as util from '../../util';
+
+import * as tex_util from './tex_util';
 
 export type ShapeInfo = {
   logicalShape: number[],
@@ -30,6 +33,8 @@ export type InputInfo = {
 export function makeShader(
     inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
     broadcast: boolean): string {
+  const sampleSnippet = getSampleSnippet();
+  const setOutputSnippet = getSetOutputSnippet();
   const inputPrefixSnippet =
       inputsInfo.map(x => `uniform sampler2D ${x.name};`).join('\n');
   const inputSamplingSnippet =
@@ -39,10 +44,22 @@ export function makeShader(
   const outputSamplingSnippet =
       getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
   const source = [
-    SHADER_PREFIX, inputPrefixSnippet, inputSamplingSnippet,
-    outputSamplingSnippet, userCode
+    SHADER_PREFIX, sampleSnippet, setOutputSnippet, inputPrefixSnippet,
+    inputSamplingSnippet, outputSamplingSnippet, userCode
   ].join('\n');
   return source;
+}
+
+function getSampleSnippet() {
+  return ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED') ?
+      FLOAT_TEXTURE_SAMPLE_SNIPPET :
+      UNSIGNED_BYTE_TEXTURE_SAMPLE_SNIPPET;
+}
+
+function getSetOutputSnippet() {
+  return ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED') ?
+      FLOAT_TEXTURE_SETOUTPUT_SNIPPET :
+      UNSIGNED_BYTE_TEXTURE_SETOUTPUT_SNIPPET;
 }
 
 function getInputSamplingSnippet(
@@ -148,18 +165,81 @@ vec2 UVfrom4D(int texNumR, int texNumC, int stride0,
 }
 `;
 
-const SHADER_PREFIX = `
-  precision highp float;
-  varying vec2 resultUV;
-  const vec2 halfCR = vec2(0.5, 0.5);
+const UNSIGNED_BYTE_TEXTURE_SAMPLE_SNIPPET = `
+  uniform float NaN;
 
+  const vec4 floatDeltas = vec4(
+      1.0,
+      1.0 / 255.0,
+      1.0 / (255.0 * 255.0),
+      1.0 / (255.0 * 255.0 * 255.0)
+  );
+  const float minValue = ${tex_util.FLOAT_MIN}.0;
+  const float maxValue = ${tex_util.FLOAT_MAX}.0;
+  const float range = (maxValue - minValue) / 255.0;
+  const vec2 dotRange = vec2(1.0, range);
+
+  float sample(sampler2D texture, vec2 uv) {
+    vec4 sampleValue = texture2D(texture, uv);
+    if (all(equal(sampleValue, vec4(${tex_util.BYTE_NAN_VALUE})))) {
+      return NaN;
+    }
+
+    vec4 encValue = floor(sampleValue * 255.0 + 0.5);
+    float decodedValue = dot(encValue, floatDeltas);
+    return dot(vec2(minValue, decodedValue), dotRange);
+  }
+`;
+
+const UNSIGNED_BYTE_TEXTURE_SETOUTPUT_SNIPPET = `
+  const vec4 floatPowers = vec4(
+    1.0,
+    255.0,
+    255.0 * 255.0,
+    255.0 * 255.0 * 255.0
+  );
+  const vec2 recipRange = vec2(1.0/range);
+  const vec2 recipRange255 = vec2(1.0/(maxValue - minValue));
+
+  void setOutput(float decodedValue) {
+    if (isNaN(decodedValue)) {
+      gl_FragColor = vec4(${tex_util.BYTE_NAN_VALUE});
+      return;
+    }
+
+    float a = dot(vec2(decodedValue, -minValue), recipRange);
+    float b = fract(a) * 255.0;
+    float c = fract(b) * 255.0;
+    float d = fract(c) * 255.0;
+    gl_FragColor = floor(vec4(a, b, c, d)) / 255.0;
+
+    // TODO(dsmilkov): Version above gets better accuracy but probably slower
+    // than the version below. Benchmark to determine if the accuracy is worth
+    // the cost.
+
+    // float normValue = dot(vec2(decodedValue, -minValue), recipRange255);
+    // vec4 f = normValue * floatPowers;
+    // gl_FragColor = floor(fract(f) * 255.0) / 255.0;
+  }
+`;
+
+const FLOAT_TEXTURE_SAMPLE_SNIPPET = `
   float sample(sampler2D texture, vec2 uv) {
     return texture2D(texture, uv).r;
   }
+`;
 
+const FLOAT_TEXTURE_SETOUTPUT_SNIPPET = `
   void setOutput(float val) {
     gl_FragColor = vec4(val, 0, 0, 0);
   }
+`;
+
+const SHADER_PREFIX = `
+  precision highp float;
+  precision highp int;
+  varying vec2 resultUV;
+  const vec2 halfCR = vec2(0.5, 0.5);
 
   bool isNaN(float val) {
     return val == val ? false : true;
@@ -197,20 +277,21 @@ function getOutput1DCoords(
   if (texShape[0] === 1) {
     return `
       int getOutputCoords() {
-        return int(gl_FragCoord.x);
+        return int(resultUV.x * ${texShape[1]}.0);
       }
     `;
   }
   if (texShape[1] === 1) {
     return `
       int getOutputCoords() {
-        return int(gl_FragCoord.y);
+        return int(resultUV.y * ${texShape[0]}.0);
       }
     `;
   }
   return `
     int getOutputCoords() {
-      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${texShape[0]}, ${texShape[1]}));
       return resTexRC.x * ${texShape[1]} + resTexRC.y;
     }
   `;
@@ -222,7 +303,8 @@ function getOutput3DCoords(
   const stride1 = shape[2];
   return `
     ivec3 getOutputCoords() {
-      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${texShape[0]}, ${texShape[1]}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
       int r = index / ${stride0};
       index -= r * ${stride0};
@@ -241,7 +323,8 @@ function getOutput4DCoords(
   const stride0 = shape[1] * stride1;
   return `
     ivec4 getOutputCoords() {
-      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      ivec2 resTexRC = ivec2(resultUV.yx *
+        vec2(${texShape[0]}, ${texShape[1]}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
 
       int r = index / ${stride0};
@@ -263,14 +346,15 @@ function getOutput2DCoords(
   if (util.arraysEqual(shape, texShape)) {
     return `
       ivec2 getOutputCoords() {
-        return ivec2(gl_FragCoord.yx);
+        return ivec2(resultUV.yx * vec2(${texShape[0]}, ${texShape[1]}));
       }
     `;
   }
   if (shape[1] === 1) {
     return `
       ivec2 getOutputCoords() {
-        ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+        ivec2 resTexRC = ivec2(resultUV.yx *
+                               vec2(${texShape[0]}, ${texShape[1]}));
         int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
         return ivec2(index, 0);
       }
@@ -279,7 +363,8 @@ function getOutput2DCoords(
   if (shape[0] === 1) {
     return `
       ivec2 getOutputCoords() {
-        ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+        ivec2 resTexRC = ivec2(resultUV.yx *
+                               vec2(${texShape[0]}, ${texShape[1]}));
         int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
         return ivec2(0, index);
       }
@@ -287,7 +372,8 @@ function getOutput2DCoords(
   }
   return `
     ivec2 getOutputCoords() {
-      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${texShape[0]}, ${texShape[1]}));
       int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
       int r = index / ${shape[1]};
       int c = index - r * ${shape[1]};
@@ -511,7 +597,8 @@ function getSamplerAtOutputCoords(
   }
   return `
     float ${funcName}() {
-      ivec2 resTexRC = ivec2(gl_FragCoord.yx);
+      ivec2 resTexRC = ivec2(resultUV.yx *
+                             vec2(${outTexShape[0]}, ${outTexShape[1]}));
       int index = resTexRC.x * ${outTexShape[1]} + resTexRC.y;
       ${broadcastSnippet}
       int texR = index / ${inTexShape[1]};

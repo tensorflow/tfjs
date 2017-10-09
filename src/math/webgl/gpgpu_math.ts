@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import * as util from '../../util';
 import {NDArray} from '../ndarray';
 
@@ -41,6 +42,12 @@ export interface GPGPUBinary {
   source: string;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
+}
+
+const NAN_UNIFORM_NAME = 'NaN';
+
+function shouldUploadNaNUniform(): boolean {
+  return !ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED');
 }
 
 export function compileProgram<T extends NDArray, K extends NDArray>(
@@ -76,6 +83,11 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
     attributeLocations[attribute] =
         gpgpu.getAttributeLocation(webGLProgram, attribute);
   });
+
+  if (shouldUploadNaNUniform()) {
+    uniformLocations[NAN_UNIFORM_NAME] =
+        gpgpu.getUniformLocation(webGLProgram, NAN_UNIFORM_NAME);
+  }
 
   return {
     program,
@@ -133,6 +145,11 @@ export function runProgram<T extends NDArray, K extends NDArray>(
     const variableUniformLocation = binary.uniformLocations[variableName];
     gpgpu.setInputMatrixTexture(tex, variableUniformLocation, i);
   });
+
+  if (shouldUploadNaNUniform()) {
+    gpgpu.gl.uniform1f(binary.uniformLocations[NAN_UNIFORM_NAME], NaN);
+  }
+
   if (customSetup != null) {
     customSetup(gpgpu, binary.webGLProgram);
   }

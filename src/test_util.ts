@@ -15,11 +15,18 @@
  * =============================================================================
  */
 
+import * as environment from './environment';
+import {Environment, Features} from './environment';
+import {NDArrayMath} from './math/math';
+import {NDArrayMathCPU} from './math/math_cpu';
+import {NDArrayMathGPU} from './math/math_gpu';
+
 /** Accuracy for tests. */
-const EPSILON = 1e-4;
+// TODO(nsthorat || smilkov): Fix this low precision for byte-backed textures.
+export const TEST_EPSILON = 1e-2;
 
 export function expectArraysClose(
-    actual: Float32Array, expected: Float32Array, epsilon = EPSILON) {
+    actual: Float32Array, expected: Float32Array, epsilon = TEST_EPSILON) {
   if (actual.length !== expected.length) {
     throw new Error(
         'Matrices have different lengths (' + actual.length + ' vs ' +
@@ -28,15 +35,30 @@ export function expectArraysClose(
   for (let i = 0; i < expected.length; ++i) {
     const a = actual[i];
     const e = expected[i];
-    if (isNaN(a) && isNaN(e)) {
-      continue;
-    }
-    if (isNaN(a) || isNaN(e) || Math.abs(a - e) > epsilon) {
+
+    if (!areClose(a, e, epsilon)) {
       const actualStr = 'actual[' + i + '] === ' + a;
       const expectedStr = 'expected[' + i + '] === ' + e;
       throw new Error('Arrays differ: ' + actualStr + ', ' + expectedStr);
     }
   }
+}
+
+export function expectNumbersClose(
+    a: number, e: number, epsilon = TEST_EPSILON) {
+  if (!areClose(a, e, epsilon)) {
+    throw new Error('Numbers differ: actual === ' + a + ', expected === ' + e);
+  }
+}
+
+function areClose(a: number, e: number, epsilon: number): boolean {
+  if (isNaN(a) && isNaN(e)) {
+    return true;
+  }
+  if (isNaN(a) || isNaN(e) || Math.abs(a - e) > epsilon) {
+    return false;
+  }
+  return true;
 }
 
 export function randomArrayInRange(
@@ -96,4 +118,103 @@ export function cpuDotProduct(a: Float32Array, b: Float32Array): number {
     d += a[i] * b[i];
   }
   return d;
+}
+
+export type MathTests =
+    (it: (name: string, testFn: (math: NDArrayMath) => void) => void) => void;
+export type Tests = (it: (name: string, testFn: () => void) => void) => void;
+
+export function describeMathCPU(
+    name: string, tests: MathTests[], featuresList?: Features[]) {
+  const testNameBase = 'math_cpu.' + name;
+  describeWithFeaturesAndExecutor(
+      testNameBase, tests as Tests[],
+      (testName, tests, features) => executeMathTests(
+          testName, tests, () => new NDArrayMathCPU(), features),
+      featuresList);
+}
+
+export function describeMathGPU(
+    name: string, tests: MathTests[], featuresList?: Features[]) {
+  const testNameBase = 'math_gpu.' + name;
+  describeWithFeaturesAndExecutor(
+      testNameBase, tests as Tests[],
+      (testName, tests, features) => executeMathTests(
+          testName, tests, () => new NDArrayMathGPU(), features),
+      featuresList);
+}
+
+export function describeCustom(
+    name: string, tests: Tests[], featuresList?: Features[],
+    customBeforeEach?: () => void, customAfterEach?: () => void) {
+  describeWithFeaturesAndExecutor(
+      name, tests as Tests[],
+      (testName, tests, features) => executeTests(
+          testName, tests, features, customBeforeEach, customAfterEach),
+      featuresList);
+}
+
+type TestExecutor = (testName: string, tests: Tests[], features?: Features) =>
+    void;
+function describeWithFeaturesAndExecutor(
+    testNameBase: string, tests: Tests[], executor: TestExecutor,
+    featuresList?: Features[]) {
+  if (featuresList != null) {
+    featuresList.forEach(features => {
+      const testName = testNameBase + ' ' + JSON.stringify(features);
+      executor(testName, tests, features);
+    });
+  } else {
+    executor(testNameBase, tests);
+  }
+}
+
+export function executeMathTests(
+    testName: string, tests: MathTests[], mathFactory: () => NDArrayMath,
+    features?: Features) {
+  let math: NDArrayMath;
+  const customBeforeEach = () => {
+    math = mathFactory();
+    math.startScope();
+  };
+  const customAfterEach = () => {
+    math.endScope(null);
+    math.dispose();
+  };
+  const customIt = (name: string, testFunc: (math: NDArrayMath) => void) => {
+    it(name, () => testFunc(math));
+  };
+
+  executeTests(
+      testName, tests as Tests[], features, customBeforeEach, customAfterEach,
+      customIt);
+}
+
+export function executeTests(
+    testName: string, tests: Tests[], features?: Features,
+    customBeforeEach?: () => void, customAfterEach?: () => void,
+    customIt: (expectation: string, testFunc: () => void) => void = it) {
+  describe(testName, () => {
+    beforeEach(() => {
+      if (features != null) {
+        environment.setEnvironment(new Environment(features));
+      }
+
+      if (customBeforeEach != null) {
+        customBeforeEach();
+      }
+    });
+
+    afterEach(() => {
+      if (customAfterEach != null) {
+        customAfterEach();
+      }
+
+      if (features != null) {
+        environment.setEnvironment(new Environment());
+      }
+    });
+
+    tests.forEach(test => test(customIt));
+  });
 }
