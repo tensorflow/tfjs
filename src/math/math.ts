@@ -922,6 +922,21 @@ export abstract class NDArrayMath {
   protected abstract absInternal<T extends NDArray>(ndarray: T): T;
 
   /**
+   * Clips values element-wise.
+   * @param ndarray The input NDArray.
+   * @param min Lower-bound of range to be clipped to.
+   * @param max Upper-bound of range to be clipped to.
+   */
+  clip<T extends NDArray>(ndarray: T, min: number, max: number): T {
+    util.assert((min <= max), `Error in clip: min (${min}) must be` + 
+      `less than or equal to max (${max}).`);
+    return this.executeOp('clip',
+      () => this.clipInternal(ndarray, min, max));
+  }
+  protected abstract clipInternal<T extends NDArray>(
+    ndarray: T, min: number, max: number): T;
+
+  /**
    * Computes rectified linear element-wise, max(x, 0).
    * @param ndarray The input NDArray.
    */

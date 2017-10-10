@@ -479,6 +479,16 @@ export class NDArrayMathCPU extends NDArrayMath {
     return NDArray.make(ndarray.shape, {values: resultValues}) as T;
   }
 
+  protected clipInternal<T extends NDArray>(
+    ndarray: T, min: number, max: number): T {
+    const resultValues = new Float32Array(ndarray.size);
+    const values = ndarray.getValues();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.min(max, Math.max(min, values[i]));
+    }
+    return NDArray.make(ndarray.shape, {values: resultValues}) as T;
+  }
+
   protected absInternal<T extends NDArray>(ndarray: T): T {
     const resultValues = new Float32Array(ndarray.size);
     const values = ndarray.getValues();
