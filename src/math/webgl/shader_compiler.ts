@@ -147,6 +147,7 @@ vec2 UVfrom2D(int texNumR, int texNumC, int numC, int row, int col) {
 const SAMPLE_3D_SNIPPET = `
 vec2 UVfrom3D(int texNumR, int texNumC, int stride0,
     int stride1, int row, int col, int depth) {
+  // Explicitly use integer operations as dot() only works on floats.
   int index = row * stride0 + col * stride1 + depth;
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
@@ -158,6 +159,7 @@ const SAMPLE_4D_SNIPPET = `
 vec2 UVfrom4D(int texNumR, int texNumC, int stride0,
     int stride1, int stride2, int row, int col, int depth,
     int depth2) {
+  // Explicitly use integer operations as dot() only works on floats.
   int index = row * stride0 + col * stride1 + depth * stride2 + depth2;
   int texR = index / texNumC;
   int texC = index - texR * texNumC;
