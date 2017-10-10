@@ -131,7 +131,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private dataSet: InMemoryDataset;
   private xhrDatasetConfigs: {[datasetName: string]: XhrDatasetConfig};
   private datasetStats: DataStats[];
-  private learingRate: number;
+  private learningRate: number;
   private momentum: number;
   private needMomentum: boolean;
   private gamma: number;
@@ -198,7 +198,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
           totalTimeSec.toFixed(1),
     };
     this.graphRunner = new GraphRunner(this.math, this.session, eventObserver);
-    this.optimizer = new MomentumOptimizer(this.learingRate, this.momentum);
+    this.optimizer = new MomentumOptimizer(this.learningRate, this.momentum);
 
     // Set up datasets.
     this.populateDatasets();
