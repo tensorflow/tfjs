@@ -103,7 +103,8 @@ export class Graph {
     } else if (value instanceof NDArray) {
       finalValue = value;
     } else if (value instanceof Array) {
-      const vals = new Float32Array(util.flatten(value));
+      const flatValues = util.flatten(value as number[]);
+      const vals = new Float32Array(flatValues as number[]);
       finalValue = NDArray.make(util.inferShape(value), {values: vals});
     } else {
       throw new Error('unimplemented constant type.');
@@ -727,9 +728,10 @@ export class MaxPoolNode extends Node {
       graph: Graph, private x: Tensor, public fieldSize: number,
       public stride = 1, public zeroPad?: number) {
     super(
-        graph, 'Max pool', {x}, new Tensor(conv_util.computeOutputShape3D(
-                                    x.shape as [number, number, number],
-                                    fieldSize, x.shape[2], stride, zeroPad)));
+        graph, 'Max pool', {x},
+        new Tensor(conv_util.computeOutputShape3D(
+            x.shape as [number, number, number], fieldSize, x.shape[2], stride,
+            zeroPad)));
   }
   validate() {
     util.assert(
@@ -907,4 +909,4 @@ export class ArgMaxEqualsNode extends Node {
  * @hidden
  */
 export type ArrayData =
-    NDArray | number | number[] | number[][] | number[][][] | number[][][][];
+    NDArray|number|number[]|number[][]|number[][][]|number[][][][];

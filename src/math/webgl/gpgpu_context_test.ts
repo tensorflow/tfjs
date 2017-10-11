@@ -23,7 +23,8 @@ import {GPGPUContext} from './gpgpu_context';
 import * as tex_util from './tex_util';
 
 test_util.describeCustom(
-    'GPGPUContext .downloadMatrixFromTexture', [() => {
+    'GPGPUContext .downloadMatrixFromTexture',
+    () => {
       let gpgpu: GPGPUContext;
       let texture: WebGLTexture;
 
@@ -65,7 +66,7 @@ test_util.describeCustom(
 
         gpgpu.deleteMatrixTexture(texture2);
       });
-    }],
+    },
     [
       {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
       {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
@@ -73,7 +74,8 @@ test_util.describeCustom(
     ]);
 
 test_util.describeCustom(
-    'GPGPUContext color texture', [() => {
+    'GPGPUContext color texture',
+    () => {
       let gpgpu: GPGPUContext;
       let texture: WebGLTexture;
 
@@ -105,7 +107,7 @@ test_util.describeCustom(
         expect(result[0]).toBeCloseTo(0.123);
         test_util.expectNumbersClose(result[0], 0.123);
       });
-    }],
+    },
     [
       {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
       {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
@@ -113,7 +115,8 @@ test_util.describeCustom(
     ]);
 
 test_util.describeCustom(
-    'GPGPUContext setOutputMatrixTexture', [() => {
+    'GPGPUContext setOutputMatrixTexture',
+    () => {
       let gpgpu: GPGPUContext;
       let texture: WebGLTexture;
 
@@ -172,7 +175,7 @@ test_util.describeCustom(
            expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
            gpgpu.deleteMatrixTexture(output);
          });
-    }],
+    },
     [
       {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
       {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},

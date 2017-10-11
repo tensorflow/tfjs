@@ -255,6 +255,18 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       expect(math.sum(a).get()).toEqual(NaN);
       a.dispose();
     });
+
+    it('sum over dtype int32', math => {
+      const a = Array1D.new([1, 5, 7, 3], 'int32');
+      const sum = math.sum(a);
+      expect(sum.get()).toBe(16);
+    });
+
+    it('sum over dtype bool', math => {
+      const a = Array1D.new([true, false, false, true, true], 'bool');
+      const sum = math.sum(a);
+      expect(sum.get()).toBe(3);
+    });
   };
 
   test_util.describeMathCPU('sum', [tests]);

@@ -70,7 +70,7 @@ export class SqueezeNet {
     return Array3D.make([imageDimensions[0], imageDimensions[0], 3], {
       texture: preprocessResultTexture,
       textureShapeRC: preprocessResultShapeRC
-    });
+    }) as Array3D;
   }
 
   /**

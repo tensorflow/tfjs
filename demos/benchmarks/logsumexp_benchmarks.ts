@@ -45,7 +45,7 @@ export class LogSumExpGPUBenchmark extends BenchmarkTest {
       const gpgpu = new GPGPUContext();
       const texManager = new TextureManager(gpgpu);
       initializeGPU(gpgpu, texManager);
-      const out = new Scalar({texture: texManager.acquireTexture([1, 1])});
+      const out = Scalar.make([], {texture: texManager.acquireTexture([1, 1])});
       const a = Array2D.randUniform([size, size], -1, 1);
       const program = new LogSumExpProgram(a.size);
       const binary = gpgpu_math.compileProgram(gpgpu, program, [a], out);

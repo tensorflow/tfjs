@@ -16,17 +16,31 @@
  */
 
 import * as util from '../util';
+import {TypedArray} from '../util';
 import * as concat_util from './concat_util';
 import * as conv_util from './conv_util';
 import {ConvInfo} from './conv_util';
 import * as copy2d_util from './copy2d_util';
-import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
+// tslint:disable-next-line:max-line-length
+import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from './ndarray';
 import * as slice_util from './slice_util';
 
 export type ScopeResult = NDArray[]|NDArray|void;
 
 export interface LSTMCell {
   (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
+}
+
+export interface SumTypes {
+  float32: 'float32';
+  int32: 'int32';
+  bool: 'int32';
+}
+
+export enum SumTypesMap {
+  float32 = 'float32',
+  int32 = 'int32',
+  bool = 'int32'
 }
 
 export abstract class NDArrayMath {
@@ -164,7 +178,7 @@ export abstract class NDArrayMath {
     return result;
   }
 
-  private checkForNaN(vals: Float32Array, name: string): void {
+  private checkForNaN(vals: TypedArray, name: string): void {
     for (let i = 0; i < vals.length; i++) {
       if (isNaN(vals[i])) {
         throw Error(`The result of the last math.${name} has NaNs.`);
@@ -177,7 +191,7 @@ export abstract class NDArrayMath {
    * the current scope ends, and returns the value.
    * @param result The NDArray to track in the current scope.
    */
-  track<T extends NDArray>(result: T): T {
+  track<G extends keyof DataTypes, T extends NDArray<G>>(result: T): T {
     if (this.activeScope == null) {
       if (this.safeMode) {
         throw new Error(
@@ -230,7 +244,8 @@ export abstract class NDArrayMath {
         'matMul', () => this.matMulInternal(a, b, aOrientation, bOrientation));
   }
 
-  private executeOp<T extends NDArray>(name: string, f: () => T): T {
+  private executeOp<G extends keyof DataTypes, T extends NDArray<G>>(
+      name: string, f: () => T): T {
     let start: number;
     if (this.debugMode) {
       start = performance.now();
@@ -593,10 +608,12 @@ export abstract class NDArrayMath {
    * Computes the sum of all the entries in the input NDArray.
    * @param ndarray The input NDArray to compute the sum over.
    */
-  sum(ndarray: NDArray): Scalar {
-    return this.executeOp('sum', () => this.sumInternal(ndarray));
+  sum<T extends keyof DataTypes>(ndarray: NDArray<T>): Scalar<SumTypes[T]> {
+    return this.executeOp('sum', () => this.sumInternal(ndarray)) as
+        Scalar<SumTypes[T]>;
   }
-  protected abstract sumInternal(ndarray: NDArray): Scalar;
+  protected abstract sumInternal<T extends keyof DataTypes>(
+      ndarray: NDArray<T>): Scalar<SumTypes[T]>;
 
   /**
    * Computes the flattened index of the minimum element in the ndarray.
@@ -928,13 +945,14 @@ export abstract class NDArrayMath {
    * @param max Upper-bound of range to be clipped to.
    */
   clip<T extends NDArray>(ndarray: T, min: number, max: number): T {
-    util.assert((min <= max), `Error in clip: min (${min}) must be` + 
-      `less than or equal to max (${max}).`);
-    return this.executeOp('clip',
-      () => this.clipInternal(ndarray, min, max));
+    util.assert(
+        (min <= max),
+        `Error in clip: min (${min}) must be` +
+            `less than or equal to max (${max}).`);
+    return this.executeOp('clip', () => this.clipInternal(ndarray, min, max));
   }
   protected abstract clipInternal<T extends NDArray>(
-    ndarray: T, min: number, max: number): T;
+      ndarray: T, min: number, max: number): T;
 
   /**
    * Computes rectified linear element-wise, max(x, 0).

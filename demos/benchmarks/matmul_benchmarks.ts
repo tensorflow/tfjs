@@ -51,12 +51,19 @@ export class MatmulGPUBenchmark extends BenchmarkTest {
       const bTexture = gpgpu.createMatrixTexture(size, size);
       const resultTexture = gpgpu.createMatrixTexture(size, size);
 
-      const aArr = new Array2D(
-          [size, size], {texture: aTexture, textureShapeRC: [size, size]});
-      const bArr = new Array2D(
-          [size, size], {texture: bTexture, textureShapeRC: [size, size]});
-      const resArr = new Array2D(
-          [size, size], {texture: resultTexture, textureShapeRC: [size, size]});
+      const aArr =
+          Array2D.make(
+              [size, size],
+              {texture: aTexture, textureShapeRC: [size, size]}) as Array2D;
+      const bArr =
+          Array2D.make(
+              [size, size],
+              {texture: bTexture, textureShapeRC: [size, size]}) as Array2D;
+      const resArr =
+          Array2D.make(
+              [size, size],
+              {texture: resultTexture, textureShapeRC: [size, size]}) as
+          Array2D;
       const program = new MatMulProgram(aArr.shape, bArr.shape);
       const binary =
           gpgpu_math.compileProgram(gpgpu, program, [aArr, bArr], resArr);

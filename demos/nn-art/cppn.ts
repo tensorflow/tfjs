@@ -22,7 +22,7 @@ import * as nn_art_util from './nn_art_util';
 
 const MAX_LAYERS = 10;
 
-export type ColorMode = 'rgb' | 'rgba' | 'hsv' | 'hsva' | 'yuv' | 'yuva' | 'bw';
+export type ColorMode = 'rgb'|'rgba'|'hsv'|'hsva'|'yuv'|'yuva'|'bw';
 const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
   'rgb': 3,
   'rgba': 4,
@@ -33,7 +33,7 @@ const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
   'bw': 1
 };
 
-export type ActivationFunction = 'tanh' | 'sin' | 'relu' | 'step';
+export type ActivationFunction = 'tanh'|'sin'|'relu'|'step';
 const activationFunctionMap: {
   [activationFunction in ActivationFunction]:
       (math: NDArrayMathGPU, ndarray: Array2D) => Array2D
@@ -156,7 +156,7 @@ export class CPPN {
     const inputAtlasWithLatentVariables = Array2D.make(this.inputAtlas.shape, {
       texture: addLatentVariablesResultTex,
       textureShapeRC: this.inputAtlas.shape
-    });
+    }) as Array2D;
     intermediateResults.push(inputAtlasWithLatentVariables);
 
     let lastOutput = inputAtlasWithLatentVariables;

@@ -78,7 +78,7 @@ function executeTests(mathFactory: () => NDArrayMath) {
     expect(max <= 9 + 1e-4);
   });
 
-  function getBounds(a: Float32Array) {
+  function getBounds(a: Float32Array|Uint8Array|Int32Array) {
     let min = Number.MAX_VALUE;
     let max = Number.MIN_VALUE;
 
