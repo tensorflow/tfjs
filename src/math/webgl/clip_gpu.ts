@@ -30,7 +30,13 @@ export class ClipProgram implements GPGPUProgram {
     this.params = [minFixed, maxFixed];
     this.userCode = `
       void main() {
-        setOutput(clamp(getAAtOutCoords(), ${minFixed}, ${maxFixed}));
+        float value = getAAtOutCoords();
+        if (isNaN(value)) {
+          setOutput(value);
+          return;
+        }
+
+        setOutput(clamp(value, ${minFixed}, ${maxFixed}));
       }
     `;
   }
