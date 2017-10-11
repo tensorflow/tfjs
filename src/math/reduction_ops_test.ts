@@ -18,7 +18,7 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array1D, Array2D} from './ndarray';
+import {Array1D, Array2D, Scalar} from './ndarray';
 
 // math.min
 {
@@ -95,6 +95,16 @@ import {Array1D, Array2D} from './ndarray';
       a.dispose();
     });
 
+    it('one value', math => {
+      const a = Array1D.new([10]);
+
+      const result = math.argMax(a);
+
+      expect(result.get()).toBeCloseTo(0);
+
+      a.dispose();
+    });
+
     it('propagates NaNs', math => {
       const a = Array1D.new([5, 0, 3, NaN, 3]);
       expect(math.argMax(a).get()).toEqual(NaN);
@@ -113,12 +123,22 @@ import {Array1D, Array2D} from './ndarray';
 // math.argmin
 {
   const tests: MathTests = it => {
-    it('argmin', math => {
+    it('Array1D', math => {
       const a = Array1D.new([1, 0, 3, 2]);
 
       const result = math.argMin(a);
 
       expect(result.get()).toBeCloseTo(1);
+
+      a.dispose();
+    });
+
+    it('one value', math => {
+      const a = Array1D.new([10]);
+
+      const result = math.argMin(a);
+
+      expect(result.get()).toBeCloseTo(0);
 
       a.dispose();
     });
@@ -182,11 +202,22 @@ import {Array1D, Array2D} from './ndarray';
 // math.logSumExp
 {
   const tests: MathTests = it => {
+    it('0', math => {
+      const a = Scalar.new(0);
+      const result = math.logSumExp(a);
+
+      test_util.expectNumbersClose(result.get(), 0);
+
+      a.dispose();
+      result.dispose();
+    });
+
     it('basic', math => {
       const a = Array1D.new([1, 2, -3]);
       const result = math.logSumExp(a);
-      expect(result.get())
-          .toBeCloseTo(Math.log(Math.exp(1) + Math.exp(2) + Math.exp(-3)));
+
+      test_util.expectNumbersClose(
+          result.get(), Math.log(Math.exp(1) + Math.exp(2) + Math.exp(-3)));
 
       a.dispose();
       result.dispose();

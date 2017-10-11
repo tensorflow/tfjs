@@ -23,7 +23,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 // element-wise mul / div
 {
   const tests: MathTests = it => {
-    it('multiplies same-shaped ndarrays', math => {
+    it('elementWiseMul same-shaped ndarrays', math => {
       const a = Array2D.new([2, 2], [1, 2, -3, -4]);
       const b = Array2D.new([2, 2], [5, 3, 4, -7]);
       const expected = new Float32Array([5, 6, -12, 28]);
@@ -36,7 +36,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       b.dispose();
     });
 
-    it('propagates NaNs', math => {
+    it('elementWiseMul propagates NaNs', math => {
       const a = Array2D.new([2, 2], [1, 3, 4, 0]);
       const b = Array2D.new([2, 2], [NaN, 3, NaN, 3]);
 
@@ -47,12 +47,39 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       b.dispose();
     });
 
-    it('mul throws when passed ndarrays of different shapes', math => {
-      const a = Array2D.new([2, 3], [1, 2, -3, -4, 5, 6]);
-      const b = Array2D.new([2, 2], [5, 3, 4, -7]);
+    it('elementWiseMul throws when passed ndarrays of different shapes',
+       math => {
+         const a = Array2D.new([2, 3], [1, 2, -3, -4, 5, 6]);
+         const b = Array2D.new([2, 2], [5, 3, 4, -7]);
 
-      expect(() => math.elementWiseMul(a, b)).toThrowError();
-      expect(() => math.elementWiseMul(b, a)).toThrowError();
+         expect(() => math.elementWiseMul(a, b)).toThrowError();
+         expect(() => math.elementWiseMul(b, a)).toThrowError();
+
+         a.dispose();
+         b.dispose();
+       });
+
+    it('multiply same-shaped ndarrays', math => {
+      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
+      const b = Array2D.new([2, 2], [5, 3, 4, -7]);
+      const expected = new Float32Array([5, 6, -12, 28]);
+      const result = math.multiply(a, b);
+
+      expect(result.shape).toEqual([2, 2]);
+      test_util.expectArraysClose(result.getValues(), expected);
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('multiply broadcasting ndarrays', math => {
+      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
+      const b = Scalar.new(2);
+      const expected = new Float32Array([2, 4, -6, -8]);
+      const result = math.multiply(a, b);
+
+      expect(result.shape).toEqual([2, 2]);
+      test_util.expectArraysClose(result.getValues(), expected);
 
       a.dispose();
       b.dispose();

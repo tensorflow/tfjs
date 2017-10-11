@@ -19,7 +19,7 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
 
-import {Array1D, Array2D} from './ndarray';
+import {Array1D, Array2D, Scalar} from './ndarray';
 
 // math.relu
 {
@@ -31,6 +31,36 @@ import {Array1D, Array2D} from './ndarray';
 
       test_util.expectArraysClose(
           result.getValues(), new Float32Array([1, 0, 0, 3, 0]));
+
+      a.dispose();
+    });
+
+    it('does nothing to positive values', math => {
+      const a = Scalar.new(1);
+
+      const result = math.relu(a);
+
+      test_util.expectNumbersClose(result.get(), 1);
+
+      a.dispose();
+    });
+
+    it('sets negative values to 0', math => {
+      const a = Scalar.new(-1);
+
+      const result = math.relu(a);
+
+      test_util.expectNumbersClose(result.get(), 0);
+
+      a.dispose();
+    });
+
+    it('preserves zero values', math => {
+      const a = Scalar.new(0);
+
+      const result = math.relu(a);
+
+      test_util.expectNumbersClose(result.get(), 0);
 
       a.dispose();
     });
