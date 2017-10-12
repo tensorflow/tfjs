@@ -299,6 +299,74 @@ import {Array1D, Array2D, Scalar} from './ndarray';
   ]);
 }
 
+// math.ceil
+{
+  const tests: MathTests = it => {
+    it('basic', math => {
+      const a = Array1D.new([1.5, 2.1, -1.4]);
+
+      const r = math.ceil(a);
+
+      expect(r.get(0)).toBeCloseTo(2);
+      expect(r.get(1)).toBeCloseTo(3);
+      expect(r.get(2)).toBeCloseTo(-1);
+
+      a.dispose();
+    });
+
+    it('propagates NaNs', math => {
+      const a = Array1D.new([1.5, NaN, -1.4]);
+
+      const r = math.ceil(a).getValues();
+
+      test_util.expectArraysClose(r, new Float32Array([2, NaN, -1]));
+
+      a.dispose();
+    });
+  };
+
+  test_util.describeMathCPU('ceil', [tests]);
+  test_util.describeMathGPU('ceil', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// math.floor
+{
+  const tests: MathTests = it => {
+    it('basic', math => {
+      const a = Array1D.new([1.5, 2.1, -1.4]);
+
+      const r = math.floor(a);
+
+      expect(r.get(0)).toBeCloseTo(1);
+      expect(r.get(1)).toBeCloseTo(2);
+      expect(r.get(2)).toBeCloseTo(-2);
+
+      a.dispose();
+    });
+
+    it('propagates NaNs', math => {
+      const a = Array1D.new([1.5, NaN, -1.4]);
+
+      const r = math.floor(a).getValues();
+
+      test_util.expectArraysClose(r, new Float32Array([1, NaN, -2]));
+
+      a.dispose();
+    });
+  };
+
+  test_util.describeMathCPU('floor', [tests]);
+  test_util.describeMathGPU('floor', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
 // math.exp
 {
   const tests: MathTests = it => {

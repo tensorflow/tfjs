@@ -903,6 +903,24 @@ export abstract class NDArrayMath {
   }
 
   /**
+   * Computes ceiling of input NDArray element-wise. y = ceil(x)
+   * @param ndarray The input NDArray.
+   */
+  ceil<T extends NDArray>(ndarray: T): T {
+    return this.executeOp('ceil', () => this.ceilInternal(ndarray));
+  }
+  protected abstract ceilInternal<T extends NDArray>(ndarray: T): T;
+
+  /**
+   * Computes floor of input NDArray element-wise. y = floor(x)
+   * @param ndarray The input NDArray.
+   */
+  floor<T extends NDArray>(ndarray: T): T {
+    return this.executeOp('floor', () => this.floorInternal(ndarray));
+  }
+  protected abstract floorInternal<T extends NDArray>(ndarray: T): T;
+
+  /**
    * Computes exponential of the input NDArray element-wise. y = e ^ x
    * @param ndarray The input NDArray.
    */

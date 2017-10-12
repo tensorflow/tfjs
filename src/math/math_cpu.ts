@@ -426,6 +426,24 @@ export class NDArrayMathCPU extends NDArrayMath {
     return Scalar.new(max);
   }
 
+  protected ceilInternal<T extends NDArray>(ndarray: T): T {
+    const values = ndarray.getValues();
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      newValues[i] = Math.ceil(values[i]);
+    }
+    return NDArray.make(ndarray.shape, {values: newValues}) as T;
+  }
+
+  protected floorInternal<T extends NDArray>(ndarray: T): T {
+    const values = ndarray.getValues();
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      newValues[i] = Math.floor(values[i]);
+    }
+    return NDArray.make(ndarray.shape, {values: newValues}) as T;
+  }
+
   protected expInternal<T extends NDArray>(ndarray: T): T {
     const values = ndarray.getValues();
     const newValues = new Float32Array(values.length);
