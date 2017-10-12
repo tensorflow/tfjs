@@ -23,49 +23,6 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 // math.basicLSTMCell
 {
   const tests: MathTests = it => {
-    it('Batch size must be 1 for MultiRNNCell', math => {
-      const lstmKernel1 = Array2D.zeros([3, 4]);
-      const lstmBias1 = Array1D.zeros([4]);
-      const lstmKernel2 = Array2D.zeros([2, 4]);
-      const lstmBias2 = Array1D.zeros([4]);
-
-      const forgetBias = Scalar.new(1.0);
-      const lstm1 =
-          math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
-      const lstm2 =
-          math.basicLSTMCell.bind(math, forgetBias, lstmKernel2, lstmBias2);
-
-      const c = [
-        Array2D.zeros([1, lstmBias1.shape[0] / 4]),
-        Array2D.zeros([1, lstmBias2.shape[0] / 4])
-      ];
-      const h = [
-        Array2D.zeros([1, lstmBias1.shape[0] / 4]),
-        Array2D.zeros([1, lstmBias2.shape[0] / 4])
-      ];
-
-      const onehot = Array2D.zeros([2, 2]);
-      onehot.set(1.0, 1, 0);
-      const output = () => math.multiRNNCell([lstm1, lstm2], onehot, c, h);
-      expect(output).toThrowError();
-    });
-
-    it('Batch size must be 1 for basicLSTMCell', math => {
-      const lstmKernel = Array2D.zeros([3, 4]);
-      const lstmBias = Array1D.zeros([4]);
-
-      const forgetBias = Scalar.new(1.0);
-
-      const c = Array2D.zeros([1, lstmBias.shape[0] / 4]);
-      const h = Array2D.zeros([1, lstmBias.shape[0] / 4]);
-
-      const onehot = Array2D.zeros([2, 2]);
-      onehot.set(1.0, 1, 0);
-      const output = () =>
-          math.basicLSTMCell(forgetBias, lstmKernel, lstmBias, onehot, c, h);
-      expect(output).toThrowError();
-    });
-
     it('MultiRNNCell with 2 BasicLSTMCells', math => {
       const lstmKernel1 = Array2D.new(
           [3, 4], new Float32Array([
@@ -113,6 +70,23 @@ import {Array1D, Array2D, Scalar} from './ndarray';
           output[1][0].getValues(), new Float32Array([-0.5802832245826721]));
       test_util.expectArraysClose(
           output[1][1].getValues(), new Float32Array([0.5745711922645569]));
+    });
+
+    it('basicLSTMCell with batch=2', math => {
+      const lstmKernel = Array2D.randNormal([3, 4]);
+      const lstmBias = Array1D.randNormal([4]);
+      const forgetBias = Scalar.new(1.0);
+
+      const data = Array2D.randNormal([1, 2]);
+      const batchedData = math.concat2D(data, data, 0);  // 2x2
+      const c = Array2D.randNormal([1, 1]);
+      const batchedC = math.concat2D(c, c, 0);  // 2x1
+      const h = Array2D.randNormal([1, 1]);
+      const batchedH = math.concat2D(h, h, 0);  // 2x1
+      const [newC, newH] = math.basicLSTMCell(
+          forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);
+      expect(newC.get(0, 0)).toEqual(newC.get(1, 0));
+      expect(newH.get(0, 0)).toEqual(newH.get(1, 0));
     });
   };
 

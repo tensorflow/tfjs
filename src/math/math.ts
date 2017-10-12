@@ -1540,10 +1540,6 @@ export abstract class NDArrayMath {
   multiRNNCell(
       lstmCells: LSTMCell[], data: Array2D, c: Array2D[],
       h: Array2D[]): [Array2D[], Array2D[]] {
-    util.assert(
-        data.shape[0] === 1,
-        `Error in multiRNNCell: first dimension of data is ${data.shape[0]}, ` +
-            `but batch sizes > 1 are not yet supported.`);
     const res = this.scope(() => {
       let input = data;
       const newStates = [];
@@ -1581,30 +1577,28 @@ export abstract class NDArrayMath {
       forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D, data: Array2D,
       c: Array2D, h: Array2D): [Array2D, Array2D] {
     const res = this.scope(() => {
-      util.assert(
-          data.shape[0] === 1,
-          `Error in multiRNNCell: first dimension of data is ` +
-              `${data.shape[0]}, but batch sizes > 1 are not yet supported.`);
-      const combined = this.concat1D(data.as1D(), h.as1D());
-      const weighted = this.vectorTimesMatrix(combined, lstmKernel);
-      const res = this.addStrict(weighted, lstmBias);
+      const combined = this.concat2D(data, h, 1);
+      const weighted = this.matMul(combined, lstmKernel);
+      const res = this.add(weighted, lstmBias) as Array2D;
 
       // i = input_gate, j = new_input, f = forget_gate, o = output_gate
-      const sliceSize = res.size / 4;
-      const i = this.slice1D(res, 0, sliceSize);
-      const j = this.slice1D(res, sliceSize, sliceSize);
-      const f = this.slice1D(res, sliceSize * 2, sliceSize);
-      const o = this.slice1D(res, sliceSize * 3, sliceSize);
+      const batchSize = res.shape[0];
+      const sliceCols = res.shape[1] / 4;
+      const sliceSize: [number, number] = [batchSize, sliceCols];
+      const i = this.slice2D(res, [0, 0], sliceSize);
+      const j = this.slice2D(res, [0, sliceCols], sliceSize);
+      const f = this.slice2D(res, [0, sliceCols * 2], sliceSize);
+      const o = this.slice2D(res, [0, sliceCols * 3], sliceSize);
 
       const newC = this.addStrict(
           this.multiplyStrict(
-              c.as1D(), this.sigmoid(this.scalarPlusArray(forgetBias, f))),
+              c, this.sigmoid(this.scalarPlusArray(forgetBias, f))),
           this.multiplyStrict(this.sigmoid(i), this.tanh(j)));
       const newH = this.multiplyStrict(this.tanh(newC), this.sigmoid(o));
 
       return [newC, newH];
     });
-    return [res[0].as2D(1, -1), res[1].as2D(1, -1)];
+    return [res[0], res[1]];
   }
 
   /**
