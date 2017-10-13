@@ -147,6 +147,15 @@ export class GPGPUContext {
             gpgpu_util.downloadMatrixFromOutputTexture(this.gl, rows, columns));
   }
 
+  public downloadMatrixFromRGBAColorTexture(
+      texture: WebGLTexture, rows: number, columns: number,
+      channels: number): Float32Array {
+    return this.downloadMatrixDriver(
+        texture,
+        () => gpgpu_util.downloadMatrixFromRGBAColorTexture(
+            this.gl, rows, columns, channels));
+  }
+
   public downloadMatrixFromPackedTexture(
       texture: WebGLTexture, rows: number, columns: number): Float32Array {
     return this.downloadMatrixDriver(

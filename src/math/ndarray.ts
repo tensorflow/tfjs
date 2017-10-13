@@ -19,6 +19,7 @@ import {ENV} from '../environment';
 import * as util from '../util';
 import {ArrayData} from '../util';
 import {GPGPUContext} from './webgl/gpgpu_context';
+import {TextureType} from './webgl/tex_util';
 import {TextureManager} from './webgl/texture_manager';
 import * as webgl_util from './webgl/webgl_util';
 
@@ -48,6 +49,7 @@ export interface NDArrayData<T extends keyof DataTypes> {
   texture?: WebGLTexture;
   /** [rows, columns] shape of the texture. */
   textureShapeRC?: [number, number];
+  textureType?: TextureType;
 }
 
 /** @hidden */
@@ -99,6 +101,10 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     }
 
     this.shape = shape;
+
+    if (data.textureType == null) {
+      data.textureType = TextureType.DEFAULT;
+    }
     this.data = data;
     this.dtype = dtype || ('float32' as T);
     const dim = this.shape.length;
@@ -158,6 +164,26 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
       default:
         return new NDArray(shape, data, dtype);
     }
+  }
+
+  static fromPixels(
+      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
+      numChannels = 3): Array3D<'int32'> {
+    if (numChannels > 4) {
+      throw new Error(
+          'Cannot construct NDArray with more than 4 channels from pixels.');
+    }
+    const shape: [number, number, number] =
+        [pixels.height, pixels.width, numChannels];
+    const textureShapeRC: [number, number] = [shape[0], shape[1]];
+    const texture = TEXTURE_MANAGER.acquireTexture(textureShapeRC);
+    const textureType = TextureType.RGBA_COLOR;
+
+    GPGPU.uploadPixelDataToTexture(texture, pixels);
+
+    return Array3D.make<'int32'>(
+               shape, {texture, textureShapeRC, textureType}) as
+        Array3D<'int32'>;
   }
 
   /** Reshapes the current ndarray into the provided shape. */
@@ -258,9 +284,17 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
   getValues(): DataTypes[T] {
     if (this.data.values == null) {
       throwIfGPUNotInitialized();
-      const values = GPGPU.downloadMatrixFromTexture(
-          this.data.texture, this.data.textureShapeRC[0],
-          this.data.textureShapeRC[1]);
+
+      let values: Float32Array;
+      if (this.data.textureType === TextureType.DEFAULT) {
+        values = GPGPU.downloadMatrixFromTexture(
+            this.data.texture, this.data.textureShapeRC[0],
+            this.data.textureShapeRC[1]);
+      } else {
+        values = GPGPU.downloadMatrixFromRGBAColorTexture(
+            this.data.texture, this.data.textureShapeRC[0],
+            this.data.textureShapeRC[1], this.shape[2]);
+      }
       this.data.values = convertFloat32ToDtype(values, this.dtype);
       this.disposeTexture();
     }
@@ -294,6 +328,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
         GPGPU.gl, this.shape, preferredTexShape);
     this.data.texture =
         TEXTURE_MANAGER.acquireTexture(this.data.textureShapeRC);
+    this.data.textureType = TextureType.DEFAULT;
 
     GPGPU.uploadMatrixToTexture(
         this.data.texture, this.data.textureShapeRC[0],
@@ -330,6 +365,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     TEXTURE_MANAGER.releaseTexture(this.data.texture, this.data.textureShapeRC);
     this.data.texture = null;
     this.data.textureShapeRC = null;
+    this.data.textureType = null;
   }
 
   inGPU(): boolean {
@@ -724,7 +760,7 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
 }
 
 function copyTypedArray<T extends keyof DataTypes>(
-    array: DataTypes[T] | number[] | boolean[], dtype: T): DataTypes[T] {
+    array: DataTypes[T]|number[]|boolean[], dtype: T): DataTypes[T] {
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {

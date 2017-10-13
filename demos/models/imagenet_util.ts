@@ -18,58 +18,6 @@
 import {GPGPUContext, webgl_util} from '../deeplearn';
 
 /**
- * Unpacks an RGB packed image texture into a 2D physical, 3D logical texture
- * with the conventional ndarray format and performs the standard imagenet image
- * preprocessing.
- */
-export function getUnpackAndPreprocessInputShader(
-    gpgpu: GPGPUContext, inputShapeRC: [number, number]): WebGLProgram {
-  const fragmentShaderSource = `
-    precision highp float;
-    uniform sampler2D source;
-    varying vec2 resultUV;
-
-    const vec2 inputShapeCR = vec2(${inputShapeRC[1]}.0, ${inputShapeRC[0]}.0);
-
-    const vec2 halfCR = vec2(0.5, 0.5);
-
-    void main() {
-      vec2 outputCR = floor(gl_FragCoord.xy);
-
-      vec2 sourceCR = vec2(floor(outputCR[0] / 3.0), outputCR[1]);
-      vec2 sourceUV = (sourceCR + halfCR) / inputShapeCR;
-
-      vec4 sourceValue = texture2D(source, sourceUV) * 255.0;
-
-      float channelValue = 0.0;
-      int channel = int(mod(outputCR[0], 3.0));
-
-      if (channel == 0) {
-        channelValue = sourceValue.r - 103.939;
-      } else if (channel == 1) {
-        channelValue = sourceValue.g - 116.779;
-      } else if (channel == 2) {
-        channelValue = sourceValue.b - 123.68;
-      }
-
-      gl_FragColor = vec4(channelValue, 0, 0, 0);
-    }`;
-  return gpgpu.createProgram(fragmentShaderSource);
-}
-
-export function preprocessInput(
-    gpgpu: GPGPUContext, preprocessInputShader: WebGLProgram,
-    sourceTex: WebGLTexture, resultTex: WebGLTexture,
-    shapeRowCol: [number, number]) {
-  gpgpu.setOutputMatrixTexture(resultTex, shapeRowCol[0], shapeRowCol[1]);
-  gpgpu.setProgram(preprocessInputShader);
-  const samplerLocation = webgl_util.getProgramUniformLocationOrThrow(
-      gpgpu.gl, preprocessInputShader, 'source');
-  gpgpu.setInputMatrixTexture(sourceTex, samplerLocation, 0);
-  gpgpu.executeProgram();
-}
-
-/**
  * Transposes the depth and the column dimensions of a 3D ndarray represented as
  * a 2D texture into a square collage with each channel rendered as a normalized
  * grayscale image. The normalization bounds are given as two sample2Ds,

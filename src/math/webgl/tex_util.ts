@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
+export enum TextureType {
+  DEFAULT,
+  // When using a standard RGBA-packed color image.
+  RGBA_COLOR
+}
+
 export function getUnpackedMatrixTextureShapeWidthHeight(
     rows: number, columns: number): [number, number] {
   return [columns, rows];
@@ -123,6 +129,21 @@ export function decodeMatrixFromUnpackedArray(
   let dst = 0;
   for (let src = 0; src < unpackedArray.length; src += channelsPerTexture) {
     matrix[dst++] = unpackedArray[src];
+  }
+}
+
+export function decodeMatrixFromUnpackedColorRGBAArray(
+    unpackedArray: Float32Array, matrix: Float32Array, channels: number) {
+  const requiredSize = unpackedArray.length * channels / 4;
+  if (matrix.length < requiredSize) {
+    throw new Error(
+        'matrix length (' + matrix.length + ') must be >= ' + requiredSize);
+  }
+  let dst = 0;
+  for (let src = 0; src < unpackedArray.length; src += 4) {
+    for (let c = 0; c < channels; c++) {
+      matrix[dst++] = unpackedArray[src + c];
+    }
   }
 }
 

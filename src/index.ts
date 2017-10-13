@@ -33,12 +33,12 @@ export {ENV, Environment, Features} from './environment';
 export {Graph, Tensor} from './graph/graph';
 export {AdadeltaOptimizer} from './graph/optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './graph/optimizers/adagrad_optimizer';
+export {AdamOptimizer} from './graph/optimizers/adam_optimizer';
+export {AdamMaxOptimizer} from './graph/optimizers/adamax_optimizer';
 export {MomentumOptimizer} from './graph/optimizers/momentum_optimizer';
 export {Optimizer} from './graph/optimizers/optimizer';
 export {RMSPropOptimizer} from './graph/optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './graph/optimizers/sgd_optimizer';
-export {AdamOptimizer} from './graph/optimizers/adam_optimizer';
-export {AdamMaxOptimizer} from './graph/optimizers/adamax_optimizer';
 export {CostReduction, FeedEntry, Session} from './graph/session';
 // tslint:disable-next-line:max-line-length
 export {GraphRunner, GraphRunnerEventObserver, MetricReduction} from './graph_runner';

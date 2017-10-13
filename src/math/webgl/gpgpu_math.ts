@@ -57,14 +57,16 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
   const inputInfos = inputs.map((input, i) => {
     const shapeInfo = {
       logicalShape: input.shape,
-      texShape: input.getTextureShapeRC()
+      texShape: input.getTextureShapeRC(),
+      textureType: input.getData().textureType
     };
     return {name: program.variableNames[i], shapeInfo};
   });
   const inShapeInfos = inputInfos.map(x => x.shapeInfo);
   const outShapeInfo = {
     logicalShape: output.shape,
-    texShape: output.getTextureShapeRC()
+    texShape: output.getTextureShapeRC(),
+    textureType: output.getData().textureType
   };
   const source = shader_compiler.makeShader(
       inputInfos, outShapeInfo, userCode,

@@ -190,14 +190,11 @@ export function bindVertexProgramAttributeStreams(
 export function uploadPixelDataToTexture(
     gl: WebGLRenderingContext, texture: WebGLTexture,
     pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement) {
-  const numChannels = 4;
-  const internalFormat = getTextureInternalFormat(gl, numChannels);
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, texture));
   webgl_util.callAndCheck(
       gl,
       () => gl.texImage2D(
-          gl.TEXTURE_2D, 0, internalFormat, gl.RGBA, getTextureType(gl),
-          pixels));
+          gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, pixels));
   webgl_util.callAndCheck(gl, () => gl.bindTexture(gl.TEXTURE_2D, null));
 }
 
@@ -285,6 +282,30 @@ export function downloadMatrixFromOutputTexture(
   } else {
     return tex_util.decodeToFloatArray(downloadTarget as Uint8Array);
   }
+}
+
+export function downloadMatrixFromRGBAColorTexture(
+    gl: WebGLRenderingContext, rows: number, columns: number,
+    channels: number): Float32Array {
+  const size = rows * columns * 4;
+
+  const downloadTarget = new Uint8Array(size);
+
+  webgl_util.callAndCheck(
+      gl,
+      () => gl.readPixels(
+          0, 0, columns, rows, gl.RGBA, gl.UNSIGNED_BYTE, downloadTarget));
+
+  const packedRGBA = new Float32Array(size);
+  for (let i = 0; i < downloadTarget.length; i++) {
+    packedRGBA[i] = downloadTarget[i];
+  }
+
+  const matrix = new Float32Array(rows * columns * channels);
+
+  tex_util.decodeMatrixFromUnpackedColorRGBAArray(packedRGBA, matrix, channels);
+
+  return matrix;
 }
 
 export function downloadMatrixFromPackedOutputTexture(

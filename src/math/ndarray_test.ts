@@ -1288,3 +1288,91 @@ test_util.describeCustom('NDArray CPU <--> GPU with dtype', () => {
     expect(a.inGPU()).toBe(false);
   });
 }, FEATURES, customBeforeEach, customAfterEach);
+
+// NDArray.fromPixels
+{
+  test_util.describeCustom(
+      'NDArray.fromPixels',
+      () => {
+        let gl: WebGLRenderingContext;
+        let gpgpu: GPGPUContext;
+        let textureManager: TextureManager;
+
+        beforeEach(() => {
+          gl = gpgpu_util.createWebGLContext();
+          gpgpu = new GPGPUContext(gl);
+          textureManager = new TextureManager(gpgpu);
+          ndarray.initializeGPU(gpgpu, textureManager);
+        });
+
+        afterEach(() => {
+          textureManager.dispose();
+          gpgpu.dispose();
+        });
+
+        it('ImageData 1x1x3', () => {
+          const pixels = new ImageData(1, 1);
+          pixels.data[0] = 0;
+          pixels.data[1] = 80;
+          pixels.data[2] = 160;
+          pixels.data[3] = 240;
+
+          const array = Array3D.fromPixels(pixels, 3);
+
+          test_util.expectArraysClose(
+              array.getValues(), new Float32Array([0, 80, 160]));
+        });
+
+        it('ImageData 1x1x4', () => {
+          const pixels = new ImageData(1, 1);
+          pixels.data[0] = 0;
+          pixels.data[1] = 80;
+          pixels.data[2] = 160;
+          pixels.data[3] = 240;
+
+          const array = Array3D.fromPixels(pixels, 4);
+
+          test_util.expectArraysClose(
+              array.getValues(), new Float32Array([0, 80, 160, 240]));
+        });
+
+        it('ImageData 2x2x3', () => {
+          const pixels = new ImageData(2, 2);
+
+          for (let i = 0; i < 8; i++) {
+            pixels.data[i] = i * 2;
+          }
+          for (let i = 8; i < 16; i++) {
+            pixels.data[i] = i * 2;
+          }
+
+          const array = Array3D.fromPixels(pixels, 3);
+
+          test_util.expectArraysClose(
+              array.getValues(),
+              new Float32Array([0, 2, 4, 8, 10, 12, 16, 18, 20, 24, 26, 28]));
+        });
+
+        it('ImageData 2x2x4', () => {
+          const pixels = new ImageData(2, 2);
+          for (let i = 0; i < 8; i++) {
+            pixels.data[i] = i * 2;
+          }
+          for (let i = 8; i < 16; i++) {
+            pixels.data[i] = i * 2;
+          }
+
+          const array = Array3D.fromPixels(pixels, 4);
+
+          test_util.expectArraysClose(
+              array.getValues(),
+              new Float32Array(
+                  [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]));
+        });
+      },
+      [
+        {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+        {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+        {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+      ]);
+}

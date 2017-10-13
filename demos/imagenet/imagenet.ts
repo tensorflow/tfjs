@@ -18,7 +18,7 @@
 import '../demo-header';
 import '../demo-footer';
 // tslint:disable-next-line:max-line-length
-import {gpgpu_util, GPGPUContext, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
+import {Array3D, gpgpu_util, GPGPUContext, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
 import * as imagenet_util from '../models/imagenet_util';
 import {SqueezeNet} from '../models/squeezenet';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
@@ -41,7 +41,6 @@ export const ImagenetDemoPolymer: new () => PolymerHTMLElement =
  *     http://localhost:5432
  */
 
-const IMAGE_SIZE = 227;
 const TOP_K_CLASSES = 5;
 
 const INPUT_NAMES = ['cat', 'dog1', 'dog2', 'beerbottle', 'piano', 'saxophone'];
@@ -114,7 +113,7 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
     this.math = new NDArrayMathGPU(this.gpgpu);
     this.mathCPU = new NDArrayMathCPU();
 
-    this.squeezeNet = new SqueezeNet(this.gpgpu, this.math);
+    this.squeezeNet = new SqueezeNet(this.math);
     this.squeezeNet.loadVariables().then(() => {
       requestAnimationFrame(() => this.animate());
     });
@@ -151,23 +150,14 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
     const isWebcam = this.selectedInputName === 'webcam';
 
-    const canvasTextureShape: [number, number] = [IMAGE_SIZE, IMAGE_SIZE];
-    const canvasTexture =
-        this.math.getTextureManager().acquireTexture(canvasTextureShape);
-
-    const element = isWebcam ? this.webcamVideoElement : this.staticImgElement;
-    this.gpgpu.uploadPixelDataToTexture(canvasTexture, element);
+    const image = Array3D.fromPixels(
+        isWebcam ? this.webcamVideoElement : this.staticImgElement);
 
     this.math.scope((keep, track) => {
-      const preprocessedInput =
-          track(this.squeezeNet.preprocessColorTextureToArray3D(
-              canvasTexture, canvasTextureShape));
-
-      const inferenceResult = this.squeezeNet.infer(preprocessedInput);
+      const inferenceResult = this.squeezeNet.infer(image);
       const namedActivations = inferenceResult.namedActivations;
 
       this.layerNames = Object.keys(namedActivations);
-      this.layerNames.forEach(layerName => track(namedActivations[layerName]));
 
       const topClassesToProbability =
           this.squeezeNet.getTopKClasses(inferenceResult.logits, TOP_K_CLASSES);
@@ -214,8 +204,7 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
           this.inferenceCanvas.width, numRows);
     });
 
-    this.math.getTextureManager().releaseTexture(
-        canvasTexture, canvasTextureShape);
+    image.dispose();
 
     requestAnimationFrame(() => this.animate());
   }

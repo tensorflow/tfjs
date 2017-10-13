@@ -15,55 +15,19 @@
  * =============================================================================
  */
 
-import {Graph, NDArrayMathGPU, Scalar, Session, Tensor} from '../deeplearn';
+import {NDArrayMathGPU, Scalar} from '../deeplearn';
 
-class Adder {
-  inputTensorA: Tensor;
-  inputTensorB: Tensor;
-  sum: Tensor;
-  session: Session;
-  math = new NDArrayMathGPU();
-  setupSession(): void {
-    const graph = new Graph();
-
-    this.inputTensorA = graph.placeholder('A', []);
-    this.inputTensorB = graph.placeholder('B', []);
-    this.sum = graph.add(this.inputTensorA, this.inputTensorB);
-    this.session = new Session(graph, this.math);
-  }
-
-  computeSum(a: number, b: number): number {
-    const feeds = [
-      {tensor: this.inputTensorA, data: Scalar.new(a)},
-      {tensor: this.inputTensorB, data: Scalar.new(b)}
-    ];
-    let result;
-    this.math.scope(() => {
-      result = this.session.eval(this.sum, feeds).get();
-    });
-    return result;
-  }
-}
-
-const adder = new Adder();
-adder.setupSession();
-
-const outputEl = document.getElementById('output');
-if (!outputEl) throw new Error('output element not found');
-function printOutput(out: number) {
-  outputEl.innerText = String(out);
-}
-
+const outputElement = document.getElementById('output');
 const inA: HTMLInputElement = document.getElementById('A') as HTMLInputElement;
-if (!inA) throw new Error('input A not found');
 const inB: HTMLInputElement = document.getElementById('B') as HTMLInputElement;
-if (!inB) throw new Error('output B not found');
+
+const math = new NDArrayMathGPU();
 
 export function execute(event?: Event) {
-  const a = +inA.value;
-  const b = +inB.value;
+  const a = Scalar.new(+inA.value);
+  const b = Scalar.new(+inB.value);
 
-  printOutput(adder.computeSum(a, b));
+  outputElement.innerText = '' + math.add(a, b).get();
 }
 
 inA.addEventListener('keyup', execute);

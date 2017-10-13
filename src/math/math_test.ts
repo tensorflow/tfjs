@@ -19,7 +19,7 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {NDArrayMathGPU} from './math_gpu';
 
-import {Array1D} from './ndarray';
+import {Array1D, Array3D, Scalar} from './ndarray';
 
 // math.scope
 {
@@ -198,6 +198,40 @@ import {Array1D} from './ndarray';
 
   test_util.describeMathCPU('debug mode', [gpuTests]);
   test_util.describeMathGPU('debug mode', [gpuTests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// fromPixels & math
+{
+  const tests: MathTests = it => {
+    it('debug mode does not error when no nans', math => {
+      const pixels = new ImageData(2, 2);
+      for (let i = 0; i < 8; i++) {
+        pixels.data[i] = 100;
+      }
+      for (let i = 8; i < 16; i++) {
+        pixels.data[i] = 250;
+      }
+
+      const a = Array3D.fromPixels(pixels, 4);
+      const b = Scalar.new(20.5);
+
+      const res = math.add(a, b);
+
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([
+            120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 120.5, 270.5,
+            270.5, 270.5, 270.5, 270.5, 270.5, 270.5, 270.5
+          ]));
+
+      a.dispose();
+    });
+  };
+
+  test_util.describeMathGPU('fromPixels + math', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

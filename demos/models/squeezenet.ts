@@ -15,25 +15,19 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, CheckpointLoader, GPGPUContext, NDArray, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
+import {Array1D, Array3D, Array4D, CheckpointLoader, NDArray, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
 
 import * as imagenet_classes from './imagenet_classes';
-import * as imagenet_util from './imagenet_util';
 
-const IMAGE_SIZE = 227;
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/';
 
 export class SqueezeNet {
   private variables: {[varName: string]: NDArray};
 
-  private preprocessInputShader: WebGLShader;
+  private preprocessOffset = Array1D.new([103.939, 116.779, 123.68]);
 
-  constructor(private gpgpu: GPGPUContext, private math: NDArrayMathGPU) {
-    this.preprocessInputShader =
-        imagenet_util.getUnpackAndPreprocessInputShader(
-            gpgpu, [IMAGE_SIZE, IMAGE_SIZE]);
-  }
+  constructor(private math: NDArrayMathGPU) {}
 
   /**
    * Loads necessary variables for SqueezeNet. Resolves the promise when the
@@ -51,42 +45,23 @@ export class SqueezeNet {
   }
 
   /**
-   * Preprocess an RGB color texture before inferring through squeezenet.
-   * @param rgbTexture The RGB color texture to process into an Array3D.
-   * @param imageDimensions The 2D dimensions of the image.
-   */
-  preprocessColorTextureToArray3D(rgbTexture: WebGLTexture, imageDimensions: [
-    number, number
-  ]): Array3D {
-    const preprocessResultShapeRC: [number, number] =
-        [imageDimensions[0], imageDimensions[0] * 3];
-
-    const preprocessResultTexture =
-        this.math.getTextureManager().acquireTexture(preprocessResultShapeRC);
-
-    imagenet_util.preprocessInput(
-        this.gpgpu, this.preprocessInputShader, rgbTexture,
-        preprocessResultTexture, preprocessResultShapeRC);
-    return Array3D.make([imageDimensions[0], imageDimensions[0], 3], {
-      texture: preprocessResultTexture,
-      textureShapeRC: preprocessResultShapeRC
-    }) as Array3D;
-  }
-
-  /**
    * Infer through SqueezeNet, assumes variables have been loaded. This does
    * standard ImageNet pre-processing before inferring through the model. This
-   * method returns named activations as well as pre-softmax logits. The user
-   * needs to clean up namedActivations after inferring.
+   * method returns named activations as well as pre-softmax logits.
    *
-   * @param preprocessedInput preprocessed input Array.
+   * @param input un-preprocessed input Array.
    * @return Named activations and the pre-softmax logits.
    */
-  infer(preprocessedInput: Array3D):
+  infer(input: Array3D):
       {namedActivations: {[activationName: string]: Array3D}, logits: Array1D} {
+    // Keep a map of named activations for rendering purposes.
     const namedActivations: {[key: string]: Array3D} = {};
 
     const avgpool10 = this.math.scope((keep) => {
+      // Preprocess the input.
+      const preprocessedInput =
+          this.math.sub(input, this.preprocessOffset) as Array3D;
+
       const conv1 = this.math.conv2d(
           preprocessedInput, this.variables['conv1_W:0'] as Array4D,
           this.variables['conv1_b:0'] as Array1D, 2, 0);
@@ -102,16 +77,7 @@ export class SqueezeNet {
       const fire3 = keep(this.fireModule(fire2, 3));
       namedActivations['fire3'] = fire3;
 
-      // Because we don't have uneven padding yet, manually pad the ndarray on
-      // the right.
-      const fire3Reshape2d =
-          fire3.as2D(fire3.shape[0], fire3.shape[1] * fire3.shape[2]);
-      const fire3Sliced2d = this.math.slice2D(
-          fire3Reshape2d, [0, 0],
-          [fire3.shape[0] - 1, (fire3.shape[1] - 1) * fire3.shape[2]]);
-      const fire3Sliced = fire3Sliced2d.as3D(
-          fire3.shape[0] - 1, fire3.shape[1] - 1, fire3.shape[2]);
-      const pool2 = keep(this.math.maxPool(fire3Sliced, 3, 2, 0));
+      const pool2 = keep(this.math.maxPool(fire3, 3, 2, 'valid'));
       namedActivations['maxpool_2'] = pool2;
 
       const fire4 = keep(this.fireModule(pool2, 4));
@@ -142,6 +108,12 @@ export class SqueezeNet {
 
       return this.math.avgPool(conv10, conv10.shape[0], 1, 0).as1D();
     });
+
+    // Track these activations automatically so they get cleaned up in a parent
+    // scope.
+    const layerNames = Object.keys(namedActivations);
+    layerNames.forEach(
+        layerName => this.math.track(namedActivations[layerName]));
 
     return {namedActivations, logits: avgpool10};
   }
