@@ -22,14 +22,14 @@ import {Array2D, Array3D} from './ndarray';
 
 // math.switchDim
 {
-  const cpuTests: MathTests = it => {
+  const tests: MathTests = it => {
     it('Switch dim 2D (no change)', math => {
       const t = Array2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
 
       const t2 = math.switchDim(t, [0, 1]);
 
       expect(t2.shape).toEqual(t.shape);
-      expect(t2.getValues()).toEqual(t.getValues());
+      test_util.expectArraysClose(t2.getValues(), t.getValues());
 
       t.dispose();
     });
@@ -41,7 +41,7 @@ import {Array2D, Array3D} from './ndarray';
 
       expect(t2.shape).toEqual([4, 2]);
       const expected = new Float32Array([1, 3, 11, 33, 2, 4, 22, 44]);
-      expect(t2.getValues()).toEqual(expected);
+      test_util.expectArraysClose(t2.getValues(), expected);
 
       t.dispose();
     });
@@ -53,7 +53,7 @@ import {Array2D, Array3D} from './ndarray';
 
       expect(t2.shape).toEqual([2, 2, 2]);
       const expected = new Float32Array([1, 2, 3, 4, 11, 22, 33, 44]);
-      expect(t2.getValues()).toEqual(expected);
+      test_util.expectArraysClose(t2.getValues(), expected);
 
       t.dispose();
     });
@@ -65,11 +65,16 @@ import {Array2D, Array3D} from './ndarray';
 
       expect(t2.shape).toEqual([2, 2, 2]);
       const expected = new Float32Array([1, 3, 2, 4, 11, 33, 22, 44]);
-      expect(t2.getValues()).toEqual(expected);
+      test_util.expectArraysClose(t2.getValues(), expected);
 
       t.dispose();
     });
   };
 
-  test_util.describeMathCPU('switchDim', [cpuTests]);
+  test_util.describeMathCPU('switchDim', [tests]);
+  test_util.describeMathGPU('switchDim', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
 }
