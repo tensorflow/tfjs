@@ -50,26 +50,44 @@ function isWebGLEnabled() {
 }
 
 function isNotSupported() {
-  return isMobile() || isSafari() || !isWebGLEnabled();
+  return isMobile() || isSafari();
+}
+
+function buildAndShowDialog(title, content) {
+  var dialogContainer = document.createElement('div');
+  dialogContainer.innerHTML = `
+    <dialog id="dialog" class="mdl-dialog">
+      <h4 class="mdl-dialog__title">${title}</h4>
+      <div class="mdl-dialog__content">
+        <p>${content}</p>
+      </div>
+    </dialog>
+  `;
+  document.body.appendChild(dialogContainer);
+  var dialog = document.getElementById('dialog');
+  dialog.style.width = '430px';
+  dialogPolyfill.registerDialog(dialog);
+  dialog.showModal();
 }
 
 function inializePolymerPage() {
   document.addEventListener('WebComponentsReady', function(event) {
     if (isNotSupported()) {
-      var dialogContainer = document.createElement('div');
-      dialogContainer.innerHTML = `
-        <dialog id="dialog" class="mdl-dialog">
-          <h3 class="mdl-dialog__title">This device is not yet supported</h3>
-          <div class="mdl-dialog__content">
-            <p>We do not yet support your device, please try to load this demo on a desktop computer with Chrome. We are working hard to add support for other devices. Check back soon!</p>
-          </div>
-        </dialog>
+      const title = `This device is not yet supported`;
+      const content = `
+        We do not yet support your device, please try to load this demo on a desktop computer with Chrome.
+        We are working hard to add support for other devices. Check back soon!
       `;
-      document.body.appendChild(dialogContainer);
-      var dialog = document.getElementById('dialog');
-      dialog.style.width = '400px';
-      dialogPolyfill.registerDialog(dialog);
-      dialog.showModal();
+      buildAndShowDialog(title, content);
+    } else if (!isWebGLEnabled()) {
+      const title = `Check if hardware acceleration is enabled`;
+      const content = `
+        Looks like your device is supported but settings aren't in place.
+        Please check if <b>WebGL</b> is enabled for your browser.
+
+        See: <a href='https://superuser.com/a/836833' target='_blank'>How can I enable WebGL in my browser?</a>
+      `;
+      buildAndShowDialog(title, content);
     } else {
       var bundleScript = document.createElement('script');
       bundleScript.src = 'bundle.js';
