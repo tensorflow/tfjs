@@ -22,15 +22,13 @@ import {Array1D, Array2D, CostReduction, Graph, InCPUMemoryShuffledInputProvider
 {
   const math = new NDArrayMathGPU();
 
-  math.scope((keep, track) => {
-    const matrixShape: [number, number] = [2, 3];  // 2 rows, 3 columns.
-    const matrix = track(Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]));
-    const vector = track(Array1D.new([0, 1, 2]));
-    const result = math.matrixTimesVector(matrix, vector);
+  const matrixShape: [number, number] = [2, 3];  // 2 rows, 3 columns.
+  const matrix = Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]);
+  const vector = Array1D.new([0, 1, 2]);
+  const result = math.matrixTimesVector(matrix, vector);
 
-    console.log('result shape:', result.shape);
-    console.log('result', result.getValues());
-  });
+  console.log('result shape:', result.shape);
+  console.log('result', result.getValues());
 }
 
 {

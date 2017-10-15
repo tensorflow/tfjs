@@ -103,19 +103,18 @@ For example, if you want to compute a matrix times a vector on the GPU:
 ```ts
 const math = new NDArrayMathGPU();
 
-math.scope((keep, track) => {
-  const matrixShape = [2, 3];  // 2 rows, 3 columns.
-  const matrix = track(Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]));
-  const vector = track(Array1D.new([0, 1, 2]));
-  const result = math.matrixTimesVector(matrix, vector);
+const matrixShape = [2, 3];  // 2 rows, 3 columns.
+const matrix = Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]);
+const vector = Array1D.new([0, 1, 2]);
+const result = math.matrixTimesVector(matrix, vector);
 
-  console.log("result shape:", result.shape);
-  console.log("result", result.getValues());
-});
+console.log("result shape:", result.shape);
+console.log("result", result.getValues());
+
+
 ```
 
-For more information on `NDArrayMath`, `keep`, and `track`, see
-[Introduction and core concepts](intro.md).
+For more information on `NDArrayMath`, see [Introduction and core concepts](intro.md).
 
 The `NDArray`/`NDArrayMath` layer can be thought of as analogous to
 [NumPy](http://www.numpy.org/).
@@ -246,6 +245,7 @@ const cost: Tensor = graph.meanSquaredCost(y, yLabel);
 const math = new NDArrayMathGPU();
 const session = new Session(graph, math);
 
+// For more information on scope / track, check out the [tutorial on performance](performance.md).
 math.scope((keep, track) => {
   /**
    * Inference
@@ -257,7 +257,7 @@ math.scope((keep, track) => {
   let result: NDArray =
       session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
   console.log(result.shape);
-  console.log(result.getValues());
+  console.log('result', result.getValues());
 
   /**
    * Training

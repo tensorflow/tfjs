@@ -31,10 +31,10 @@ import {Array1D, NDArrayMathGPU, Scalar} from 'deeplearn';
 const math = new NDArrayMathGPU();
 const a = Array1D.new([1, 2, 3]);
 const b = Scalar.new(2);
-math.scope(() => {
-  const result = math.add(a, b);
-  console.log(result.getValues());  // Float32Array([3, 4, 5])
-});
+
+const result = math.add(a, b);
+// Float32Array([3, 4, 5])
+result.getValuesAsync().then(values => console.log(values));
 ```
 
 #### ES3/ES5 JavaScript
@@ -53,13 +53,15 @@ After importing the library, the API will be available as `deeplearn` in the
 global namespace:
 
 ```js
-var math = new deeplearn.NDArrayMathGPU();
-var a = deeplearn.Array1D.new([1, 2, 3]);
-var b = deeplearn.Scalar.new(2);
-math.scope(function() {
-  var result = math.add(a, b);
-  console.log(result.getValues());  // Float32Array([3, 4, 5])
-});
+var dl = deeplearn;
+
+var math = new dl.NDArrayMathGPU();
+var a = dl.Array1D.new([1, 2, 3]);
+var b = dl.Scalar.new(2);
+
+var result = math.add(a, b);
+// Float32Array([3, 4, 5])
+result.getValuesAsync().then(values => console.log(values));
 ```
 
 
