@@ -24,6 +24,10 @@ import * as webgl_util from './math/webgl/webgl_util';
 import * as test_util from './test_util';
 import * as util from './util';
 
+// tslint:disable-next-line:no-require-imports
+const version = require('../package.json').version;
+export {version};
+
 export {CheckpointLoader} from './data/checkpoint_loader';
 export {DataStats, InMemoryDataset} from './data/dataset';
 // tslint:disable-next-line:max-line-length
