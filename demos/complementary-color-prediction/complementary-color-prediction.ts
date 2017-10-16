@@ -57,15 +57,15 @@ class ComplementaryColorModel {
     this.targetTensor = graph.placeholder('output RGB value', [3]);
 
     // Create 3 fully connected layers, each with half the number of nodes of
-    // the previous layer. The first one has 16 nodes.
+    // the previous layer. The first one has 64 nodes.
     let fullyConnectedLayer =
         this.createFullyConnectedLayer(graph, this.inputTensor, 0, 64);
 
-    // Create fully connected layer 1, which has 8 nodes.
+    // Create fully connected layer 1, which has 32 nodes.
     fullyConnectedLayer =
         this.createFullyConnectedLayer(graph, fullyConnectedLayer, 1, 32);
 
-    // Create fully connected layer 2, which has 4 nodes.
+    // Create fully connected layer 2, which has 16 nodes.
     fullyConnectedLayer =
         this.createFullyConnectedLayer(graph, fullyConnectedLayer, 2, 16);
     this.predictionTensor =
