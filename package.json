@@ -40,7 +40,8 @@
     "prep": "npm install && bower install && mkdirp dist",
     "build": "tsc",
     "test": "karma start",
-    "lint": "tslint -p . --type-check -t verbose"
+    "lint": "tslint -p . --type-check -t verbose",
+    "make-version": "./scripts/make-version"
   },
   "dependencies": {
     "seedrandom": "~2.4.3"

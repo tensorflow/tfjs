@@ -15,6 +15,7 @@
 # =============================================================================
 rm -rf dist/ && \
 npm run prep && \
+npm run make-version && \
 node_modules/.bin/browserify --standalone deeplearn src/index.ts -p [tsify] > dist/deeplearn.js && \
 node_modules/.bin/uglifyjs dist/deeplearn.js -c -m -o dist/deeplearn.min.js && \
 echo "Stored standalone library at dist/deeplearn(.min).js"

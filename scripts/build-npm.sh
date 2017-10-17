@@ -15,8 +15,9 @@
 # =============================================================================
 npm run prep
 rm -rf dist/
+scripts/build-standalone.sh
 node_modules/.bin/tsc
 cd dist/
 npm pack ../
 cd ..
-echo 'Stored npm package at dist/deeplearn-version.tgz'
+echo 'Stored npm package at dist/deeplearn-{version}.tgz'

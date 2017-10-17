@@ -23,10 +23,7 @@ import * as render_ndarray_gpu_util from './math/webgl/render_ndarray_gpu_util';
 import * as webgl_util from './math/webgl/webgl_util';
 import * as test_util from './test_util';
 import * as util from './util';
-
-// tslint:disable-next-line:no-require-imports
-const version = require('../package.json').version;
-export {version};
+import {version} from './version';
 
 export {CheckpointLoader} from './data/checkpoint_loader';
 export {DataStats, InMemoryDataset} from './data/dataset';
@@ -54,6 +51,7 @@ export {NDArrayMathGPU} from './math/math_gpu';
 // tslint:disable-next-line:max-line-length
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './math/ndarray';
 export {GPGPUContext} from './math/webgl/gpgpu_context';
+export {version};
 // Second level exports.
 export {
   conv_util,
