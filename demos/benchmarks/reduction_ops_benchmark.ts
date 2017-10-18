@@ -29,6 +29,8 @@ export abstract class ReductionOpsBenchmark extends BenchmarkTest {
         return (input: NDArray) => math.min(input);
       case 'sum':
         return (input: NDArray) => math.sum(input);
+      case 'logsumexp':
+        return (input: NDArray) => math.logSumExp(input);
       default:
         throw new Error(`Not found such ops: ${option}`);
     }
@@ -36,65 +38,58 @@ export abstract class ReductionOpsBenchmark extends BenchmarkTest {
 }
 
 export class ReductionOpsCPUBenchmark extends ReductionOpsBenchmark {
-  run(size: number, option: string): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      const math = new NDArrayMathCPU();
-      const input = Array2D.randUniform([size, size], -1, 1);
-      const op = this.getReductionOp(option, math);
-      const start = performance.now();
+  async run(size: number, option: string): Promise<number> {
+    const math = new NDArrayMathCPU();
+    const input = Array2D.randUniform([size, size], -1, 1);
+    const op = this.getReductionOp(option, math);
+    const start = performance.now();
 
-      math.scope(() => {
-        op(input).get();
-      });
-
-      const end = performance.now();
-      resolve(end - start);
+    math.scope(() => {
+      op(input).get();
     });
+
+    const end = performance.now();
+    return end - start;
   }
 }
 
 export class ReductionOpsGPUBenchmark extends ReductionOpsBenchmark {
-  run(size: number, option: string) {
-    return new Promise<number>((resolve, reject) => {
-      const math = new NDArrayMathGPU();
-      const input = Array2D.randUniform([size, size], -1, 1);
-      const op = this.getReductionOp(option, math);
+  async run(size: number, option: string) {
+    const math = new NDArrayMathGPU();
+    const input = Array2D.randUniform([size, size], -1, 1);
+    const op = this.getReductionOp(option, math);
 
-      let output: NDArray;
-      const benchmark = () => {
-        math.scope(() => {
-          output = op(input);
-        });
-      };
+    let output: NDArray;
+    const benchmark = () => {
+      math.scope(() => {
+        output = op(input);
+      });
+    };
 
-      const immediateCleanup = () => {
-        input.dispose();
-      };
+    const cleanup = () => {
+      input.dispose();
+      math.dispose();
+    };
 
-      const delayedCleanup = () => {
-        math.dispose();
-      };
+    // Warmup.
+    await math.getGPGPUContext().runQuery(benchmark);
 
-      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-        math.getGPGPUContext().runQuery(benchmark).then(
-            (timeElapsed: number) => {
-              delayedCleanup();
-              resolve(timeElapsed);
-            });
-        immediateCleanup();
-      } else {
-        const start = performance.now();
+    let totalTime: number;
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
+      totalTime = await math.getGPGPUContext().runQuery(benchmark);
+    } else {
+      const start = performance.now();
 
-        benchmark();
-        output.get();
+      benchmark();
+      output.dataSync();
 
-        const totalTime = performance.now() - start;
+      totalTime = performance.now() - start;
 
-        immediateCleanup();
-        delayedCleanup();
+      cleanup();
+    }
 
-        resolve(totalTime);
-      }
-    });
+    cleanup();
+
+    return totalTime;
   }
 }

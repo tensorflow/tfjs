@@ -49,5 +49,5 @@ export class BenchmarkRun {
 
 export abstract class BenchmarkTest {
   constructor(protected params?: {}) {}
-  abstract run(size: number, option?: string): Promise<number>;
+  abstract async run(size: number, option?: string): Promise<number>;
 }

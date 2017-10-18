@@ -38,67 +38,60 @@ export abstract class ConvBenchmark extends BenchmarkTest {
 }
 
 export class ConvGPUBenchmark extends ConvBenchmark {
-  run(size: number): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      const gpgpu = new GPGPUContext();
-      const texManager = new TextureManager(gpgpu);
-      initializeGPU(gpgpu, texManager);
+  async run(size: number): Promise<number> {
+    const gpgpu = new GPGPUContext();
+    const texManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, texManager);
 
-      const inDepth = this.params.inDepth;
-      const inShape: [number, number, number] = [size, size, inDepth];
-      const outDepth = this.params.outDepth;
-      const filterSize = this.params.filterSize;
-      const stride = this.params.stride;
-      const hasBias = true;
-      const convInfo = conv_util.computeConvInfo(
-          inShape, filterSize, filterSize, outDepth, stride, stride, 'same');
-      const program = new Conv2DProgram(convInfo, hasBias);
-      const outputShape = program.outputShape as [number, number, number];
-      const out = Array3D.zeros(outputShape);
-      const x = Array3D.randUniform(inShape, -1, 1);
-      const wShape =
-          conv_util.computeWeightsShape4D(1, outDepth, filterSize, filterSize);
-      const W = Array4D.randUniform(wShape, -1, 1);
-      const b = Array1D.randUniform([outDepth], -1, 1);
-      const inputs = [x, W, b];
-      const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, out);
+    const inDepth = this.params.inDepth;
+    const inShape: [number, number, number] = [size, size, inDepth];
+    const outDepth = this.params.outDepth;
+    const filterSize = this.params.filterSize;
+    const stride = this.params.stride;
+    const hasBias = true;
+    const convInfo = conv_util.computeConvInfo(
+        inShape, filterSize, filterSize, outDepth, stride, stride, 'same');
+    const program = new Conv2DProgram(convInfo, hasBias);
+    const outputShape = program.outputShape as [number, number, number];
+    const out = Array3D.zeros(outputShape);
+    const x = Array3D.randUniform(inShape, -1, 1);
+    const wShape =
+        conv_util.computeWeightsShape4D(1, outDepth, filterSize, filterSize);
+    const W = Array4D.randUniform(wShape, -1, 1);
+    const b = Array1D.randUniform([outDepth], -1, 1);
+    const inputs = [x, W, b];
+    const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, out);
 
-      const benchmark = () => {
-        gpgpu_math.runProgram(binary, inputs, out);
-      };
+    const benchmark = () => {
+      gpgpu_math.runProgram(binary, inputs, out);
+    };
 
-      const immediateCleanup = () => {
-        x.dispose();
-        W.dispose();
-        b.dispose();
-        out.dispose();
-        texManager.dispose();
-        gpgpu.deleteProgram(binary.webGLProgram);
-      };
+    const cleanup = () => {
+      x.dispose();
+      W.dispose();
+      b.dispose();
+      out.dispose();
+      texManager.dispose();
+      gpgpu.deleteProgram(binary.webGLProgram);
+      gpgpu.dispose();
+    };
 
-      const delayedCleanup = () => {
-        gpgpu.dispose();
-      };
+    // Warmup.
+    await gpgpu.runQuery(benchmark);
 
-      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-        gpgpu.runQuery(benchmark).then((timeElapsed: number) => {
-          delayedCleanup();
-          resolve(timeElapsed);
-        });
-        immediateCleanup();
-      } else {
-        const start = performance.now();
+    let totalTime: number;
 
-        benchmark();
-        out.getValues();
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
+      totalTime = await gpgpu.runQuery(benchmark);
+    } else {
+      const start = performance.now();
 
-        const totalTime = performance.now() - start;
+      benchmark();
+      out.dataSync();
 
-        immediateCleanup();
-        delayedCleanup();
-
-        resolve(totalTime);
-      }
-    });
+      totalTime = performance.now() - start;
+    }
+    cleanup();
+    return totalTime;
   }
 }

@@ -29,6 +29,9 @@ Or just view the demo we have hosted [here](https://pair-code.github.io/deeplear
 For the purposes of the documentation, we will use TypeScript code examples.
 For vanilla JavaScript, you may need to remove the occasional TypeScript type annotation or definition.
 
+This includes `console.log(await ndarray.data())`, which in ES5 would be written as:
+`ndarray.data().then(data => console.log(data));`.
+
 ## Core concepts
 
 ### NDArrays
@@ -90,7 +93,7 @@ const sum = math.sum(squaredDiff);
 const size = Scalar.new(a.size);
 const average = math.divide(sum, size);
 
-console.log('mean squared difference: ' + average.get());
+console.log('mean squared difference: ' + await average.val());
 ```
 
 > TIP: Avoid calling `get()` or `getValuesAsync()` between mathematical GPU
@@ -200,41 +203,30 @@ const feedEntries: FeedEntry[] = [
 
 const NUM_BATCHES = 10;
 for (let i = 0; i < NUM_BATCHES; i++) {
-  // Wrap session.train in a scope so the cost gets cleaned up automatically.
-  math.scope(() => {
-    // Train takes a cost tensor to minimize. Trains one batch. Returns the
-    // average cost as a Scalar.
-    const cost = session.train(
-        costTensor, feedEntries, batchSize, optimizer, CostReduction.MEAN);
+  // Train takes a cost tensor to minimize. Trains one batch. Returns the
+  // average cost as a Scalar.
+  const cost = session.train(
+      costTensor, feedEntries, batchSize, optimizer, CostReduction.MEAN);
 
-    console.log('last average cost (' + i + '): ' + cost.get());
-  });
+  console.log('last average cost (' + i + '): ' + await cost.val());
 }
 ```
 
 After training, we can infer through the graph:
 
 ```js
-// Wrap session.eval in a scope so the intermediate values get cleaned up
-// automatically.
-math.scope((keep, track) => {
-  const testInput = track(Array1D.new([0.1, 0.2, 0.3]));
+const testInput = track(Array1D.new([0.1, 0.2, 0.3]));
 
-  // session.eval can take NDArrays as input data.
-  const testFeedEntries: FeedEntry[] = [
-    {tensor: inputTensor, data: testInput}
-  ];
+// session.eval can take NDArrays as input data.
+const testFeedEntries: FeedEntry[] = [
+  {tensor: inputTensor, data: testInput}
+];
 
-  const testOutput = session.eval(outputTensor, testFeedEntries);
+const testOutput = session.eval(outputTensor, testFeedEntries);
 
-  console.log('---inference output---');
-  console.log('shape: ' + testOutput.shape);
-  console.log('value: ' + testOutput.get(0));
-});
-
-// Cleanup training data.
-inputs.forEach(input => input.dispose());
-labels.forEach(label => label.dispose());
+console.log('---inference output---');
+console.log('shape: ' + testOutput.shape);
+console.log('value: ' + await testOutput.val());
 ```
 
 Want to learn more? Read [these tutorials](index.md).

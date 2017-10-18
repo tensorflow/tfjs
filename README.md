@@ -33,8 +33,17 @@ const a = Array1D.new([1, 2, 3]);
 const b = Scalar.new(2);
 
 const result = math.add(a, b);
-// Float32Array([3, 4, 5])
-result.getValuesAsync().then(values => console.log(values));
+
+// Option 1: With async/await.
+// Caveat: in non-Chrome browsers you need to put this in an async function.
+console.log(await result.data());  // Float32Array([3, 4, 5])
+
+// Option 2: With a Promise.
+result.data().then(data => console.log(data));
+
+// Option 3: Synchronous download of data.
+// This is simpler, but blocks the UI until the GPU is done.
+console.log(result.dataSync());
 ```
 
 #### ES3/ES5 JavaScript
@@ -46,8 +55,8 @@ of the library from [unpkg](https://unpkg.com):
 <script src="https://unpkg.com/deeplearn"></script>
 ```
 
-To use a specific version, replace `latest` with a version number
-(e.g. `deeplearn-0.1.0.js`), which you can find in the
+To use a specific version, add `@version` to the unpkg URL above
+(e.g. `https://unpkg.com/deeplearn@0.2.0`), which you can find in the
 [releases](https://github.com/PAIR-code/deeplearnjs/releases) page on GitHub.
 After importing the library, the API will be available as `deeplearn` in the
 global namespace:
@@ -60,8 +69,12 @@ var a = dl.Array1D.new([1, 2, 3]);
 var b = dl.Scalar.new(2);
 
 var result = math.add(a, b);
-// Float32Array([3, 4, 5])
-result.getValuesAsync().then(values => console.log(values));
+
+// Option 1: With a Promise.
+result.data().then(data => console.log(data)); // Float32Array([3, 4, 5])
+
+// Option 2: Synchronous download of data. This is simpler, but blocks the UI.
+console.log(result.dataSync());
 ```
 
 

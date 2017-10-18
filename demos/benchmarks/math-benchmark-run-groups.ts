@@ -20,7 +20,6 @@ import {ConvBenchmarkParams, ConvGPUBenchmark} from './conv_benchmarks';
 // tslint:disable-next-line:max-line-length
 import {ConvTransposedBenchmarkParams, ConvTransposedGPUBenchmark} from './conv_transposed_benchmarks';
 // tslint:disable-next-line:max-line-length
-import {LogSumExpCPUBenchmark, LogSumExpGPUBenchmark} from './logsumexp_benchmarks';
 import {MatmulCPUBenchmark, MatmulGPUBenchmark} from './matmul_benchmarks';
 // tslint:disable-next-line:max-line-length
 import {PoolBenchmarkParams, PoolCPUBenchmark, PoolGPUBenchmark} from './pool_benchmarks';
@@ -103,26 +102,13 @@ export function getRunGroups(): BenchmarkRunGroup[] {
   });
 
   groups.push({
-    name: 'LogSumExp: input [size, size]',
-    min: 0,
-    max: 1024,
-    stepSize: 64,
-    stepToSizeTransformation: (step: number) => Math.max(1, step),
-    benchmarkRuns: [
-      new BenchmarkRun('logsumexp_gpu', new LogSumExpGPUBenchmark()),
-      new BenchmarkRun('logsumexp_cpu', new LogSumExpCPUBenchmark())
-    ],
-    params: {}
-  });
-
-  groups.push({
     name: 'Unary Op Benchmark (CPU vs GPU): input [size, size]',
     min: 0,
     max: 1024,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
     options: [
       'log', 'exp', 'neg', 'sqrt', 'abs', 'relu', 'sigmoid', 'sin', 'cos',
-      'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh', 'logSumExp'
+      'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh'
     ],
     selectedOption: 'log',
     stepSize: 64,
@@ -138,7 +124,7 @@ export function getRunGroups(): BenchmarkRunGroup[] {
     min: 0,
     max: 1024,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
-    options: ['max', 'min', 'sum'],
+    options: ['max', 'min', 'sum', 'logSumExp'],
     selectedOption: 'max',
     stepSize: 64,
     benchmarkRuns: [

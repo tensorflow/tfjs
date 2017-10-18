@@ -38,68 +38,60 @@ export abstract class ConvTransposedBenchmark extends BenchmarkTest {
 }
 
 export class ConvTransposedGPUBenchmark extends ConvTransposedBenchmark {
-  run(size: number): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      const origInputDepth = 1;
-      const origOutputDepth = 1;
-      const xShape: [number, number, number] = [size, size, origOutputDepth];
-      const fieldSize = 11;
-      const origStride = 1;
-      const origPad = 1;
+  async run(size: number): Promise<number> {
+    const origInputDepth = 1;
+    const origOutputDepth = 1;
+    const xShape: [number, number, number] = [size, size, origOutputDepth];
+    const fieldSize = 11;
+    const origStride = 1;
+    const origPad = 1;
 
-      const gpgpu = new GPGPUContext();
-      const texManager = new TextureManager(gpgpu);
-      initializeGPU(gpgpu, texManager);
-      gpgpu.enableAutomaticDebugValidation(true);
+    const gpgpu = new GPGPUContext();
+    const texManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, texManager);
+    gpgpu.enableAutomaticDebugValidation(true);
 
-      const convInfo = conv_util.computeConvInfo(
-          xShape, fieldSize, fieldSize, origOutputDepth, origStride, origStride,
-          origPad);
-      const program = new Conv2DDerInputProgram(convInfo);
-      const outputShape = program.outputShape as [number, number, number];
-      const out = Array3D.zeros(outputShape);
-      const x = Array3D.randUniform(xShape, -1, 1);
-      const wShape = conv_util.computeWeightsShape4D(
-          origInputDepth, origOutputDepth, fieldSize, fieldSize);
-      const W = Array4D.randUniform(wShape, -1, 1);
-      const inputs = [x, W];
-      const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, out);
+    const convInfo = conv_util.computeConvInfo(
+        xShape, fieldSize, fieldSize, origOutputDepth, origStride, origStride,
+        origPad);
+    const program = new Conv2DDerInputProgram(convInfo);
+    const outputShape = program.outputShape as [number, number, number];
+    const out = Array3D.zeros(outputShape);
+    const x = Array3D.randUniform(xShape, -1, 1);
+    const wShape = conv_util.computeWeightsShape4D(
+        origInputDepth, origOutputDepth, fieldSize, fieldSize);
+    const W = Array4D.randUniform(wShape, -1, 1);
+    const inputs = [x, W];
+    const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, out);
 
-      const benchmark = () => {
-        gpgpu_math.runProgram(binary, inputs, out);
-      };
+    const benchmark = () => {
+      gpgpu_math.runProgram(binary, inputs, out);
+    };
 
-      const immediateCleanup = () => {
-        out.dispose();
-        x.dispose();
-        W.dispose();
-        texManager.dispose();
-        gpgpu.deleteProgram(binary.webGLProgram);
-      };
+    const cleanup = () => {
+      out.dispose();
+      x.dispose();
+      W.dispose();
+      texManager.dispose();
+      gpgpu.deleteProgram(binary.webGLProgram);
+      gpgpu.dispose();
+    };
 
-      const delayedCleanup = () => {
-        gpgpu.dispose();
-      };
+    // Warmup.
+    await gpgpu.runQuery(benchmark);
 
-      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-        gpgpu.runQuery(benchmark).then((timeElapsed: number) => {
-          delayedCleanup();
-          resolve(timeElapsed);
-        });
-        immediateCleanup();
-      } else {
-        const start = performance.now();
+    let totalTime: number;
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
+      totalTime = await gpgpu.runQuery(benchmark);
+    } else {
+      const start = performance.now();
 
-        benchmark();
-        out.getValues();
+      benchmark();
+      out.dataSync();
 
-        const totalTime = performance.now() - start;
-
-        immediateCleanup();
-        delayedCleanup();
-
-        resolve(totalTime);
-      }
-    });
+      totalTime = performance.now() - start;
+    }
+    cleanup();
+    return totalTime;
   }
 }

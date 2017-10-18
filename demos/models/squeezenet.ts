@@ -143,11 +143,12 @@ export class SqueezeNet {
    * @param logits Pre-softmax logits array.
    * @param topK How many top classes to return.
    */
-  getTopKClasses(logits: Array1D, topK: number): {[className: string]: number} {
+  async getTopKClasses(logits: Array1D, topK: number):
+      Promise<{[className: string]: number}> {
     const predictions = this.math.softmax(logits);
     const topk = new NDArrayMathCPU().topK(predictions, topK);
-    const topkIndices = topk.indices.getValues();
-    const topkValues = topk.values.getValues();
+    const topkIndices = await topk.indices.data();
+    const topkValues = await topk.values.data();
 
     const topClassesToProbability: {[className: string]: number} = {};
     for (let i = 0; i < topkIndices.length; i++) {

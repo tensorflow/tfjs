@@ -105,6 +105,37 @@ import {Array1D, Array3D, Scalar} from './ndarray';
       expect(numUsedTexturesAfter).toEqual(numUsedTexturesBefore + 2);
     });
 
+    it('scope returns Promise<NDArray>', async (math: NDArrayMathGPU) => {
+      const a = Array1D.new([1, 2, 3]);
+      let b = Array1D.new([0, 0, 0]);
+
+      const numUsedTexturesBefore =
+          math.getTextureManager().getNumUsedTextures();
+
+      await math.scope(async () => {
+        const result = math.scope(() => {
+          b = math.add(a, b) as Array1D;
+          b = math.add(a, b) as Array1D;
+          b = math.add(a, b) as Array1D;
+          return math.add(a, b);
+        });
+
+        const data = await result.data();
+
+        // a, b, and result are new textures. All intermediates should be
+        // disposed.
+        expect(math.getTextureManager().getNumUsedTextures())
+            .toEqual(numUsedTexturesBefore + 2);
+        test_util.expectArraysClose(data, new Float32Array([4, 8, 12]));
+      });
+
+      // a, b are new textures, result should be disposed.
+      expect(math.getTextureManager().getNumUsedTextures())
+          .toEqual(numUsedTexturesBefore + 2);
+      a.dispose();
+      b.dispose();
+    });
+
     it('nested scope usage', (math: NDArrayMathGPU) => {
       const a = Array1D.new([1, 2, 3]);
       let b = Array1D.new([0, 0, 0]);

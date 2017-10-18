@@ -34,7 +34,7 @@ lot of work to be done.
 ### Understanding CPU / GPU interlocks and `NDArray.getValuesAsync()`
 
 The most common thing that will cause a performance issue is a blocking
-`gl.readPixels` calls on the main thread. This is the underlying WebGL call
+`gl.readPixels` call on the main thread. This is the underlying WebGL call
 that downloads NDArrays from a WebGL texture to the CPU. This function returns
 a `Float32Array` with the underlying values from the `WebGLTexture`-backed
 `NDArray`.
@@ -51,19 +51,21 @@ browser's UI thread to do anything else during that time. This includes layout,
 painting, responding to user events, and practically all interactivity. This
 will cause serious jank issues that make the webpage unusable.
 
-To mitigate this, you should always use `NDArray.getValuesAsync()` to resolve
+To mitigate this, you should always use `NDArray.data()` to resolve
 values to the CPU. This function returns a `Promise<Float32Array>` that
 only calls `gl.readPixels` when the GPU process has completed all the work
 necessary to resolve the values of the given `NDArray`. This means that the UI
 thread can do other things while it is waiting for the GPU work to be done,
-mitigating jank issues. This is why, in general, you should avoid
-`NDArray.getValues()`, which simply calls `gl.readPixels` directly.
+mitigating jank issues. This is why, in general, you should *avoid*
+`NDArray.dataSync()`, which simply calls `gl.readPixels` directly.
 
-> You should *not* call other `NDArrayMath` functions while waiting for the `getValuesAsync`
-`Promise` to resolve as this may introduce a stall when we call the underlying
-`gl.readPixels` command. A common pattern is to only call `NDArray.getValuesAsync()`
-at the end of your main application loop, and only call the loop function again inside the resolved
-`Promise`.
+> You should *not* call other `NDArrayMath` functions while waiting for the
+`NDArray.data()`s `Promise` to resolve as this may introduce a stall when we call
+the underlying `gl.readPixels` command. A common pattern is to only call
+`NDArray.data()` at the end of your main application loop, and only call the loop
+function again inside the resolved `Promise`. Alternatively, you can use
+`await NDArray.data()` to ensure the next lines that enqueue GPU programs wait
+for data to be ready.
 
 
 ## Memory leaks & math.scope

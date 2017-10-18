@@ -19,6 +19,12 @@ And visit `http://localhost:8080/demos/ml_beginners/`.
 
 Or just view the demo we have hosted [here](https://pair-code.github.io/deeplearnjs/demos/ml_beginners/).
 
+For the purposes of the documentation, we will use TypeScript code examples.
+For vanilla JavaScript, you may need to remove the occasional TypeScript type annotation or definition.
+
+This includes `console.log(await ndarray.data())`, which in ES5 would be written as:
+`ndarray.data().then(data => console.log(data));`.
+
 ### NDArrays, Tensors, and numbers
 
 #### Mathematical tensors
@@ -109,9 +115,7 @@ const vector = Array1D.new([0, 1, 2]);
 const result = math.matrixTimesVector(matrix, vector);
 
 console.log("result shape:", result.shape);
-console.log("result", result.getValues());
-
-
+console.log("result", await result.data());
 ```
 
 For more information on `NDArrayMath`, see [Introduction and core concepts](intro.md).
@@ -246,7 +250,7 @@ const math = new NDArrayMathGPU();
 const session = new Session(graph, math);
 
 // For more information on scope / track, check out the [tutorial on performance](performance.md).
-math.scope((keep, track) => {
+await math.scope(async (keep, track) => {
   /**
    * Inference
    */
@@ -257,7 +261,7 @@ math.scope((keep, track) => {
   let result: NDArray =
       session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
   console.log(result.shape);
-  console.log('result', result.getValues());
+  console.log('result', await result.data());
 
   /**
    * Training
@@ -303,14 +307,14 @@ math.scope((keep, track) => {
         [{tensor: x, data: xProvider}, {tensor: yLabel, data: yProvider}],
         BATCH_SIZE, optimizer, CostReduction.MEAN);
 
-    console.log('average cost: ' + costValue.get());
+    console.log('average cost: ' + await costValue.data());
   }
 
   // Now print the value from the trained model for x = 4, should be ~57.0.
   result = session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
   console.log('result should be ~57.0:');
   console.log(result.shape);
-  console.log(result.getValues());
+  console.log(await result.data());
 });
 ```
 

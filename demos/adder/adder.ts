@@ -23,11 +23,11 @@ const inB: HTMLInputElement = document.getElementById('B') as HTMLInputElement;
 
 const math = new NDArrayMathGPU();
 
-export function execute(event?: Event) {
+export async function execute(event?: Event) {
   const a = Scalar.new(+inA.value);
   const b = Scalar.new(+inB.value);
 
-  outputElement.innerText = '' + math.add(a, b).get();
+  outputElement.innerText = '' + await math.add(a, b).data();
 }
 
 inA.addEventListener('keyup', execute);

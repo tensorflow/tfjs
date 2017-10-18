@@ -63,58 +63,51 @@ export class PoolCPUBenchmark extends PoolBenchmark {
 }
 
 export class PoolGPUBenchmark extends PoolBenchmark {
-  run(size: number): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
+  async run(size: number): Promise<number> {
+    const gpgpu = new GPGPUContext();
+    const texManager = new TextureManager(gpgpu);
+    initializeGPU(gpgpu, texManager);
 
-      const gpgpu = new GPGPUContext();
-      const texManager = new TextureManager(gpgpu);
-      initializeGPU(gpgpu, texManager);
+    const outputDepth = this.params.depth;
+    const xShape: [number, number, number] = [size, size, outputDepth];
+    const fieldSize = this.params.fieldSize;
+    const stride = this.params.stride;
+    const convInfo = conv_util.computeConvInfo(
+        xShape, fieldSize, fieldSize, outputDepth, stride, stride, 'same');
+    const program = new Pool2DProgram(convInfo, this.params.type, false);
+    const res = NDArray.zeros(program.outputShape);
+    const x = Array3D.randUniform(xShape, -1, 1);
+    const binary = gpgpu_math.compileProgram(gpgpu, program, [x], res);
 
-      const outputDepth = this.params.depth;
-      const xShape: [number, number, number] = [size, size, outputDepth];
-      const fieldSize = this.params.fieldSize;
-      const stride = this.params.stride;
-      const convInfo = conv_util.computeConvInfo(
-          xShape, fieldSize, fieldSize, outputDepth, stride, stride, 'same');
-      const program = new Pool2DProgram(convInfo, this.params.type, false);
-      const res = NDArray.zeros(program.outputShape);
-      const x = Array3D.randUniform(xShape, -1, 1);
-      const binary = gpgpu_math.compileProgram(gpgpu, program, [x], res);
+    const benchmark = () => {
+      gpgpu_math.runProgram(binary, [x], res);
+    };
 
-      const benchmark = () => {
-        gpgpu_math.runProgram(binary, [x], res);
-      };
+    const cleanup = () => {
+      x.dispose();
+      res.dispose();
+      texManager.dispose();
+      gpgpu.deleteProgram(binary.webGLProgram);
+      gpgpu.dispose();
+    };
 
-      const immediateCleanup = () => {
-        x.dispose();
-        res.dispose();
-        texManager.dispose();
-        gpgpu.deleteProgram(binary.webGLProgram);
-      };
+    // Warmup.
+    await gpgpu.runQuery(benchmark);
 
-      const delayedCleanup = () => {
-        gpgpu.dispose();
-      };
+    let totalTime: number;
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
+      totalTime = await gpgpu.runQuery(benchmark);
+    } else {
+      const start = performance.now();
 
-      if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-        gpgpu.runQuery(benchmark).then((timeElapsed: number) => {
-          delayedCleanup();
-          resolve(timeElapsed);
-        });
-        immediateCleanup();
-      } else {
-        const start = performance.now();
+      benchmark();
+      res.dataSync();
 
-        benchmark();
-        res.getValues();
+      totalTime = performance.now() - start;
+    }
 
-        const totalTime = performance.now() - start;
+    cleanup();
 
-        immediateCleanup();
-        delayedCleanup();
-
-        resolve(totalTime);
-      }
-    });
+    return totalTime;
   }
 }

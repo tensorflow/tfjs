@@ -27,7 +27,8 @@ import * as copy2d_util from './copy2d_util';
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from './ndarray';
 import * as slice_util from './slice_util';
 
-export type ScopeResult = NDArray[]|NDArray|void;
+export type ScopeResultImmediate = NDArray[]|NDArray|void;
+export type ScopeResult = ScopeResultImmediate|Promise<ScopeResultImmediate>;
 
 export interface LSTMCell {
   (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
@@ -71,16 +72,20 @@ export abstract class NDArrayMath {
   scope<T extends ScopeResult>(
       scopeFn:
           (keep: <T1 extends NDArray>(ndarray: T1) => T1,
-           track: <T2 extends NDArray>(ndarray: T2) => T2) => T) {
+           track: <T2 extends NDArray>(ndarray: T2) => T2) => T): T {
     this.startScope();
 
     const keepFn = <T extends NDArray>(ndarray: T): T => this.keep(ndarray);
     const trackFn = <T extends NDArray>(ndarray: T): T => this.track(ndarray);
     const result = scopeFn(keepFn, trackFn);
 
-    this.endScope(result);
-
-    return result;
+    if (result instanceof Promise) {
+      result.then(r => this.endScope(r));
+      return result;
+    } else {
+      this.endScope(result as ScopeResultImmediate);
+      return result;
+    }
   }
 
   /**
@@ -113,7 +118,7 @@ export abstract class NDArrayMath {
    * End a scope. Use this with startScope() to achieve the same functionality
    * as scope() without the need for a function closure.
    */
-  endScope(result: ScopeResult) {
+  endScope(result: ScopeResultImmediate) {
     let arraysToKeep = this.activeScopeNDArraysToKeep;
     if (result != null) {
       arraysToKeep = arraysToKeep.concat(result as NDArray | NDArray[]);

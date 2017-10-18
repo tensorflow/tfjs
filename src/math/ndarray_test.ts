@@ -178,7 +178,7 @@ test_util.describeCustom('NDArray', () => {
     });
   });
 
-  it('NDArray getValuesAsync GPU --> CPU', (doneFn) => {
+  it('NDArray getValuesAsync GPU --> CPU', () => {
     const texture = textureManager.acquireTexture([3, 2]);
     gpgpu.uploadMatrixToTexture(
         texture, 3, 2, new Float32Array([1, 2, 3, 4, 5, 6]));
@@ -189,8 +189,38 @@ test_util.describeCustom('NDArray', () => {
     a.getValuesAsync().then(values => {
       test_util.expectArraysClose(values, new Float32Array([1, 2, 3, 4, 5, 6]));
       expect(a.inGPU()).toBe(false);
-      doneFn();
     });
+  });
+
+  it('NDArray.data GPU --> CPU', async () => {
+    const texture = textureManager.acquireTexture([3, 2]);
+    gpgpu.uploadMatrixToTexture(
+        texture, 3, 2, new Float32Array([1, 2, 3, 4, 5, 6]));
+
+    const a = Array2D.make([3, 2], {texture, textureShapeRC: [3, 2]});
+    expect(a.inGPU()).toBe(true);
+
+    const values = await a.data();
+    test_util.expectArraysClose(values, new Float32Array([1, 2, 3, 4, 5, 6]));
+    expect(a.inGPU()).toBe(false);
+  });
+
+  it('NDArray.val() GPU --> CPU', async () => {
+    const texture = textureManager.acquireTexture([3, 2]);
+    gpgpu.uploadMatrixToTexture(
+        texture, 3, 2, new Float32Array([1, 2, 3, 4, 5, 6]));
+
+    const a = Array2D.make([3, 2], {texture, textureShapeRC: [3, 2]});
+    expect(a.inGPU()).toBe(true);
+
+    test_util.expectNumbersClose(1, await a.val(0));
+    test_util.expectNumbersClose(2, await a.val(1));
+    test_util.expectNumbersClose(3, await a.val(2));
+    test_util.expectNumbersClose(4, await a.val(3));
+    test_util.expectNumbersClose(5, await a.val(4));
+    test_util.expectNumbersClose(6, await a.val(5));
+
+    expect(a.inGPU()).toBe(false);
   });
 
   it('Scalar basic methods', () => {

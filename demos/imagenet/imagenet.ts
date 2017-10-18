@@ -145,22 +145,22 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
     this.selectedInputName = 'webcam';
   }
 
-  private animate() {
+  private async animate() {
     const startTime = performance.now();
 
     const isWebcam = this.selectedInputName === 'webcam';
 
-    const image = Array3D.fromPixels(
-        isWebcam ? this.webcamVideoElement : this.staticImgElement);
+    await this.math.scope(async (keep, track) => {
+      const image = track(Array3D.fromPixels(
+          isWebcam ? this.webcamVideoElement : this.staticImgElement));
 
-    this.math.scope((keep, track) => {
       const inferenceResult = this.squeezeNet.infer(image);
       const namedActivations = inferenceResult.namedActivations;
 
       this.layerNames = Object.keys(namedActivations);
 
-      const topClassesToProbability =
-          this.squeezeNet.getTopKClasses(inferenceResult.logits, TOP_K_CLASSES);
+      const topClassesToProbability = await this.squeezeNet.getTopKClasses(
+          inferenceResult.logits, TOP_K_CLASSES);
 
       let count = 0;
       for (const className in topClassesToProbability) {
@@ -203,8 +203,6 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
           activationNDArray.shape[0], activationNDArray.shape[2],
           this.inferenceCanvas.width, numRows);
     });
-
-    image.dispose();
 
     requestAnimationFrame(() => this.animate());
   }

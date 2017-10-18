@@ -19,7 +19,7 @@ import {Array1D, Array2D, CheckpointLoader, NDArrayMathGPU, Scalar, util} from '
 
 // manifest.json lives in the same directory.
 const reader = new CheckpointLoader('.');
-reader.getAllVariables().then(vars => {
+reader.getAllVariables().then(async vars => {
   const primerData = 3;
   const expected = [1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4];
   const math = new NDArrayMathGPU();
@@ -39,7 +39,7 @@ reader.getAllVariables().then(vars => {
 
   const results: number[] = [];
 
-  math.scope((keep, track) => {
+  await math.scope(async (keep, track) => {
     const forgetBias = track(Scalar.new(1.0));
     const lstm1 =
         math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
@@ -69,7 +69,7 @@ reader.getAllVariables().then(vars => {
       const weightedResult = math.matMul(outputH, fullyConnectedWeights);
       const logits = math.add(weightedResult, fullyConnectedBiases);
 
-      const result = math.argMax(logits).get();
+      const result = await math.argMax(logits).val();
       results.push(result);
       input = result;
     }

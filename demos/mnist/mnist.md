@@ -75,39 +75,34 @@ to write our model. Here is a snippet demonstrating the use of
 `CheckpointLoader`:
 
 ```ts
-import {CheckpointLoader, Graph} from 'deeplearn';
+import {CheckpointLoader} from 'deeplearn';
 // manifest.json is in the same dir as index.html.
 const varLoader = new CheckpointLoader('.');
-varLoader.getAllVariables().then(vars => {
-  // Write your model here.
-  const g = new Graph();
-  const input = g.placeholder('input', [784]);
-  const hidden1W = g.constant(vars['hidden1/weights']);
-  const hidden1B = g.constant(vars['hidden1/biases']);
-  const hidden1 = g.relu(g.add(g.matmul(input, hidden1W), hidden1B));
-  ...
-  ...
+varLoader.getAllVariables().then(async vars => {
   const math = new NDArrayMathGPU();
-  const sess = new Session(g, math);
-  math.scope(() => {
-    const result = sess.eval(...);
-    console.log(result.getValues());
-  });
+
+  // Write your model here.
+  const hidden1 =
+      math.relu(math.add(math.vectorTimesMatrix(..., hidden1W), hidden1B)) as
+      Array1D;
+  const hidden2 =
+      math.relu(math.add(
+          math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Array1D;
+
+  const logits = math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
+
+  const label = math.argMax(logits);
+
+  console.log('Predicted label: ', await label.data());
 });
 ```
 
 For details regarding the full model code see `demos/mnist/mnist.ts`. The demo
 provides the exact implementation of the MNIST model using 3 different API:
 
-- `buildModelGraphAPI()` uses the Graph API which mimics the TensorFlow API,
-providing a lazy execution with feeds and fetches. Users do not need to worry
-about GPU-related memory leaks, other than their input data.
-- `buildModelLayerAPI()` uses the Graph API in conjuction with `Graph.layers`,
-which mimics the Keras layers API.
-- `buildModelMathAPI()` uses the Math API. This is the lowest level API in
+- `buildModelMathAPI()` uses the Math API. This is the API in
 **deeplearn.js** giving the most control to the user. Math commands execute immediately,
-like numpy. Math commands are wrapped in math.scope() so that NDArrays created
-by intermediate math commands are automatically cleaned up.
+like numpy.
 
 To run the mnist demo, we provide a `watch-demo` script that watches and
 recompiles the typescript code when it changes. In addition, the script runs a
