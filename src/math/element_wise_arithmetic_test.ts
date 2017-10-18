@@ -18,7 +18,7 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array1D, Array2D, Scalar} from './ndarray';
+import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
 // element-wise mul / div
 {
@@ -332,7 +332,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const a = Array1D.new([2, 5, 1]);
       const b = Array1D.new([4, 2, -1]);
 
-      const result = math.sub(a, b);
+      const result = math.subtract(a, b);
 
       const expected = new Float32Array([-2, 3, 2]);
       test_util.expectArraysClose(result.getValues(), expected);
@@ -345,7 +345,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const a = Array1D.new([2, 5, 1]);
       const b = Array1D.new([4, NaN, -1]);
 
-      const res = math.sub(a, b).getValues();
+      const res = math.subtract(a, b).getValues();
 
       test_util.expectArraysClose(res, new Float32Array([-2, NaN, 2]));
 
@@ -357,11 +357,56 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const a = Array1D.new([2, 5, 1, 5]);
       const b = Array1D.new([4, 2, -1]);
 
-      expect(() => math.sub(a, b)).toThrowError();
-      expect(() => math.sub(b, a)).toThrowError();
+      expect(() => math.subtract(a, b)).toThrowError();
+      expect(() => math.subtract(b, a)).toThrowError();
 
       a.dispose();
       b.dispose();
+    });
+
+    it('2D-scalar broadcast', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const b = Scalar.new(2);
+      const res = math.subtract(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([-1, 0, 1, 2, 3, 4]));
+    });
+
+    it('scalar-1D broadcast', math => {
+      const a = Scalar.new(2);
+      const b = Array1D.new([1, 2, 3, 4, 5, 6]);
+      const res = math.subtract(a, b);
+      expect(res.shape).toEqual([6]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([1, 0, -1, -2, -3, -4]));
+    });
+
+    it('2D-2D broadcast each with 1 dim', math => {
+      const a = Array2D.new([1, 3], [1, 2, 5]);
+      const b = Array2D.new([2, 1], [7, 3]);
+      const res = math.subtract(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([-6, -5, -2, -2, -1, 2]));
+    });
+
+    it('2D-2D broadcast inner dim of b', math => {
+      const a = Array2D.new([2, 3], [1, 2, 5, 4, 5, 6]);
+      const b = Array2D.new([2, 1], [7, 3]);
+      const res = math.subtract(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([-6, -5, -2, 1, 2, 3]));
+    });
+
+    it('3D-scalar', math => {
+      const a = Array3D.new([2, 3, 1], [1, 2, 3, 4, 5, 6]);
+      const b = Scalar.new(-1);
+      const res = math.subtract(a, b);
+      expect(res.shape).toEqual([2, 3, 1]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([2, 3, 4, 5, 6, 7]));
     });
 
     it('A + B', math => {
@@ -397,6 +442,51 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
       a.dispose();
       b.dispose();
+    });
+
+    it('2D+scalar broadcast', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const b = Scalar.new(2);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([3, 4, 5, 6, 7, 8]));
+    });
+
+    it('scalar+1D broadcast', math => {
+      const a = Scalar.new(2);
+      const b = Array1D.new([1, 2, 3, 4, 5, 6]);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([6]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([3, 4, 5, 6, 7, 8]));
+    });
+
+    it('2D+2D broadcast each with 1 dim', math => {
+      const a = Array2D.new([1, 3], [1, 2, 5]);
+      const b = Array2D.new([2, 1], [7, 3]);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([8, 9, 12, 4, 5, 8]));
+    });
+
+    it('2D+2D broadcast inner dim of b', math => {
+      const a = Array2D.new([2, 3], [1, 2, 5, 4, 5, 6]);
+      const b = Array2D.new([2, 1], [7, 3]);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([8, 9, 12, 7, 8, 9]));
+    });
+
+    it('3D+scalar', math => {
+      const a = Array3D.new([2, 3, 1], [1, 2, 3, 4, 5, 6]);
+      const b = Scalar.new(-1);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3, 1]);
+      test_util.expectArraysClose(
+          res.getValues(), new Float32Array([0, 1, 2, 3, 4, 5]));
     });
   };
 

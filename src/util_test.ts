@@ -131,19 +131,14 @@ describe('util.getBroadcastedShape', () => {
     expect(f).toThrowError();
   });
 
-  it('incompatible due to stricter broadcasting support', () => {
-    const f = () => util.assertAndGetBroadcastedShape([7, 3, 6], [7, 1, 6]);
-    expect(f).toThrowError();
-  });
-
-  it('incompatible due to stricter broadcasting support', () => {
-    const f = () => util.assertAndGetBroadcastedShape([7, 1, 1], [7, 1]);
-    expect(f).toThrowError();
-  });
-
-  it('compatible with stricter broadcasting support', () => {
+  it('compatible with broadcasting support', () => {
     const res = util.assertAndGetBroadcastedShape([7, 1, 1], [7, 1, 1]);
     expect(res).toEqual([7, 1, 1]);
+  });
+
+  it('3d and 3d, each gets broadcasted', () => {
+    const res = util.assertAndGetBroadcastedShape([4, 1, 7], [1, 3, 1]);
+    expect(res).toEqual([4, 3, 7]);
   });
 });
 

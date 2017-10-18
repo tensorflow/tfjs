@@ -25,9 +25,8 @@ import {Optimizer} from './optimizer';
 
 export class AdamMaxOptimizer extends Optimizer {
   constructor(
-      protected learningRate: number,
-      private beta1: number, private beta2: number,
-      specifiedVariableList?: Node[]) {
+      protected learningRate: number, private beta1: number,
+      private beta2: number, specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
     // b1, b2 keep initial value of beta* hyperparameters.
     this.b1 = Scalar.new(this.beta1);
@@ -59,7 +58,7 @@ export class AdamMaxOptimizer extends Optimizer {
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
     math.scope((keep) => {
-        this.variableNodes.forEach(node => {
+      this.variableNodes.forEach(node => {
 
         const oldVariable = activationArrayMap.get(node.output);
 
@@ -68,16 +67,19 @@ export class AdamMaxOptimizer extends Optimizer {
         const oldWeightedInfNorm = this.weightedInfNorm.get(node.output);
 
         const newFirstMoment = math.scaledArrayAdd(
-          this.b1, oldFirstMoment, math.sub(this.one, this.b1), gradient);
+            this.b1, oldFirstMoment, math.subtract(this.one, this.b1),
+            gradient);
 
         const ut0 = math.multiply(this.b2, oldWeightedInfNorm);
         const ut1 = math.abs(gradient);
 
         const newWeightedInfNorm = math.add(
-            math.relu(math.sub(ut0, ut1)), ut1); // update with element-wise max
+            math.relu(math.subtract(ut0, ut1)),
+            ut1);  // update with element-wise max
 
-        const variable = math.scaledArrayAdd(this.one, oldVariable,
-            math.divide(this.c, math.sub(this.one, this.b1)),
+        const variable = math.scaledArrayAdd(
+            this.one, oldVariable,
+            math.divide(this.c, math.subtract(this.one, this.b1)),
             math.divide(newFirstMoment, newWeightedInfNorm));
 
         activationArrayMap.set(node.output, keep(variable));
@@ -85,7 +87,7 @@ export class AdamMaxOptimizer extends Optimizer {
 
         this.firstMoment.set(node.output, keep(newFirstMoment));
         this.weightedInfNorm.set(node.output, keep(newWeightedInfNorm));
-        
+
         oldVariable.dispose();
         gradient.dispose();
         oldFirstMoment.dispose();
@@ -108,7 +110,7 @@ export class AdamMaxOptimizer extends Optimizer {
 
   // Average of 1st gradient
   private firstMoment = new TensorArrayMap();
-  // Average of exponentially weighed infinity norm 
+  // Average of exponentially weighed infinity norm
   private weightedInfNorm = new TensorArrayMap();
   private eps: Scalar;
   private b1: Scalar;

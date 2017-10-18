@@ -20,13 +20,13 @@ import {MathTests} from '../test_util';
 
 import {Array2D, Array3D} from './ndarray';
 
-// math.switchDim
+// math.transpose
 {
   const tests: MathTests = it => {
-    it('Switch dim 2D (no change)', math => {
+    it('2D (no change)', math => {
       const t = Array2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
 
-      const t2 = math.switchDim(t, [0, 1]);
+      const t2 = math.transpose(t, [0, 1]);
 
       expect(t2.shape).toEqual(t.shape);
       test_util.expectArraysClose(t2.getValues(), t.getValues());
@@ -34,10 +34,10 @@ import {Array2D, Array3D} from './ndarray';
       t.dispose();
     });
 
-    it('Switch dim 2D (transpose)', math => {
+    it('2D (transpose)', math => {
       const t = Array2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
 
-      const t2 = math.switchDim(t, [1, 0]);
+      const t2 = math.transpose(t, [1, 0]);
 
       expect(t2.shape).toEqual([4, 2]);
       const expected = new Float32Array([1, 3, 11, 33, 2, 4, 22, 44]);
@@ -46,10 +46,10 @@ import {Array2D, Array3D} from './ndarray';
       t.dispose();
     });
 
-    it('Switch dim 3D [r, c, d] => [d, r, c]', math => {
+    it('3D [r, c, d] => [d, r, c]', math => {
       const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
 
-      const t2 = math.switchDim(t, [2, 0, 1]);
+      const t2 = math.transpose(t, [2, 0, 1]);
 
       expect(t2.shape).toEqual([2, 2, 2]);
       const expected = new Float32Array([1, 2, 3, 4, 11, 22, 33, 44]);
@@ -58,10 +58,10 @@ import {Array2D, Array3D} from './ndarray';
       t.dispose();
     });
 
-    it('Switch dim 3D [r, c, d] => [d, c, r]', math => {
+    it('3D [r, c, d] => [d, c, r]', math => {
       const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
 
-      const t2 = math.switchDim(t, [2, 1, 0]);
+      const t2 = math.transpose(t, [2, 1, 0]);
 
       expect(t2.shape).toEqual([2, 2, 2]);
       const expected = new Float32Array([1, 3, 2, 4, 11, 33, 22, 44]);
@@ -71,8 +71,8 @@ import {Array2D, Array3D} from './ndarray';
     });
   };
 
-  test_util.describeMathCPU('switchDim', [tests]);
-  test_util.describeMathGPU('switchDim', [tests], [
+  test_util.describeMathCPU('transpose', [tests]);
+  test_util.describeMathGPU('transpose', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

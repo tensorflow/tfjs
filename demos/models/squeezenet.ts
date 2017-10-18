@@ -60,7 +60,7 @@ export class SqueezeNet {
     const avgpool10 = this.math.scope((keep) => {
       // Preprocess the input.
       const preprocessedInput =
-          this.math.sub(input, this.preprocessOffset) as Array3D;
+          this.math.subtract(input, this.preprocessOffset) as Array3D;
 
       const conv1 = this.math.conv2d(
           preprocessedInput, this.variables['conv1_W:0'] as Array4D,

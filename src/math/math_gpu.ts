@@ -46,8 +46,8 @@ import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceSumProgram} from './webgl/reducesum_gpu';
 import {ResizeBilinear3DProgram} from './webgl/resize_bilinear_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
-import {SwitchDimProgram} from './webgl/switch_dim_gpu';
 import {TextureManager} from './webgl/texture_manager';
+import {TransposeProgram} from './webgl/transpose_gpu';
 import * as unary_op from './webgl/unaryop_gpu';
 import {UnaryOpProgram} from './webgl/unaryop_gpu';
 import * as webgl_util from './webgl/webgl_util';
@@ -227,14 +227,15 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, inputs) as Array3D;
   }
 
-  protected switchDimInternal<T extends NDArray>(a: T, newDim: number[]): T {
-    const program = new SwitchDimProgram(a.shape, newDim);
+  protected transposeInternal<D extends keyof DataTypes, T extends NDArray<D>>(
+      a: T, perm: number[]): T {
+    const program = new TransposeProgram(a.shape, perm);
     return this.compileAndRun(program, [a]);
   }
 
-  protected sumInternal<T extends keyof DataTypes>(a: NDArray<T>):
-      Scalar<SumTypes[T]> {
-    const program = new ReduceSumProgram(a.size);
+  protected sumInternal<T extends keyof DataTypes>(
+      a: NDArray<T>, axes: number[]): NDArray<SumTypes[T]> {
+    const program = new ReduceSumProgram(a.shape, axes);
     const output =
         this.makeOutputArray(program.outputShape, SumTypesMap[a.dtype]);
     return this.compileAndRun(program, [a], output);
@@ -260,13 +261,15 @@ export class NDArrayMathGPU extends NDArrayMath {
     throw new Error('topK GPU not yet implemented!');
   }
 
-  protected minInternal(a: NDArray): Scalar {
-    const program = new MinMaxProgram(a.size, 'min');
+  protected minInternal<G extends keyof DataTypes>(
+      a: NDArray<G>, axes: number[]): NDArray<G> {
+    const program = new MinMaxProgram(a.shape, axes, 'min');
     return this.compileAndRun(program, [a]);
   }
 
-  protected maxInternal(a: NDArray): Scalar {
-    const program = new MinMaxProgram(a.size, 'max');
+  protected maxInternal<G extends keyof DataTypes>(
+      a: NDArray<G>, axes: number[]): NDArray<G> {
+    const program = new MinMaxProgram(a.shape, axes, 'max');
     return this.compileAndRun(program, [a]);
   }
 
@@ -280,13 +283,13 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
-  protected subInternal<T extends NDArray>(a: T, b: T): T {
+  protected subtractInternal<T extends NDArray>(a: T, b: T): T {
     const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
     return this.compileAndRun<NDArray, T>(program, [a, b]);
   }
 
-  protected logSumExpInternal(a: NDArray): Scalar {
-    const program = new LogSumExpProgram(a.size);
+  protected logSumExpInternal(a: NDArray, axes: number[]): NDArray {
+    const program = new LogSumExpProgram(a.shape, axes);
     return this.compileAndRun(program, [a]);
   }
 
@@ -320,8 +323,7 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, [a]) as T;
   }
 
-  protected clipInternal<T extends NDArray>(
-    a: T, min: number, max: number): T {
+  protected clipInternal<T extends NDArray>(a: T, min: number, max: number): T {
     const program = new ClipProgram(a.shape, min, max);
     return this.compileAndRun(program, [a]) as T;
   }

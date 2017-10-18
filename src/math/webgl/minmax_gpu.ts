@@ -15,15 +15,24 @@
  * =============================================================================
  */
 
+import * as util from '../../util';
+import * as axis_util from '../axis_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class MinMaxProgram implements GPGPUProgram {
   variableNames = ['A'];
   params: Array<{}>;
-  outputShape: number[] = [];
+  outputShape: number[];
   userCode: string;
+  numBatchDims: number;
 
-  constructor(size: number, op: 'min'|'max') {
+  constructor(shape: number[], axes: number[], op: 'min'|'max') {
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(shape, axes);
+    this.outputShape = outShape;
+    this.numBatchDims = outShape.length;
+
+    const size = util.sizeFromShape(reduceShape);
     this.params = [op];
     const sizeNearestVec4 = Math.floor(size / 4) * 4;
     const sizeVec4Remainder = size % 4;

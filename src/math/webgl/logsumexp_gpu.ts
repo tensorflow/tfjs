@@ -15,15 +15,23 @@
  * =============================================================================
  */
 
+import * as util from '../../util';
+import * as axis_util from '../axis_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class LogSumExpProgram implements GPGPUProgram {
   variableNames = ['A'];
   params: Array<{}> = [];
-  outputShape: number[] = [];
+  outputShape: number[];
   userCode: string;
+  numBatchDims: number;
 
-  constructor(size: number) {
+  constructor(shape: number[], axes: number[]) {
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(shape, axes);
+    this.outputShape = outShape;
+    this.numBatchDims = outShape.length;
+    const size = util.sizeFromShape(reduceShape);
     const sizeNearestVec4 = Math.floor(size / 4) * 4;
     const sizeVec4Remainder = size % 4;
 

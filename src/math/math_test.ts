@@ -64,7 +64,7 @@ import {Array1D, Array3D, Scalar} from './ndarray';
       math.scope(() => {
         const result = math.scope(() => {
           math.add(a, b);
-          return [math.add(a, b), math.sub(a, b)];
+          return [math.add(a, b), math.subtract(a, b)];
         });
 
         // a, b, and 2 results are new textures. All intermediates should be

@@ -32,22 +32,43 @@ export type InputInfo = {
   shapeInfo: ShapeInfo
 };
 
+function updateBatchedShapeInfo(info: ShapeInfo, numBatchDims: number) {
+  info.logicalShape = info.logicalShape.slice(numBatchDims);
+}
+
 export function makeShader(
     inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
-    broadcast: boolean): string {
+    broadcast: boolean, numBatchDims: number): string {
+  let batchSnippet = '';
+  if (numBatchDims) {
+    if (inputsInfo.length !== 1) {
+      throw new Error(
+          `Batching for 2 or more inputs is not yet supported. ` +
+          `Got ${inputsInfo.length} inputs.`);
+    }
+    updateBatchedShapeInfo(inputsInfo[0].shapeInfo, numBatchDims);
+    updateBatchedShapeInfo(outputShape, numBatchDims);
+    const inputSize = util.sizeFromShape(inputsInfo[0].shapeInfo.logicalShape);
+    const outputSize = util.sizeFromShape(outputShape.logicalShape);
+    batchSnippet = getBatchSnippet(inputSize, outputSize, outputShape.texShape);
+  }
+
   const sampleSnippet = getSampleSnippet();
   const setOutputSnippet = getSetOutputSnippet();
   const inputPrefixSnippet =
       inputsInfo.map(x => `uniform sampler2D ${x.name};`).join('\n');
   const inputSamplingSnippet =
-      inputsInfo.map(x => getInputSamplingSnippet(x, outputShape, broadcast))
+      inputsInfo
+          .map(
+              x => getInputSamplingSnippet(
+                  x, outputShape, broadcast, numBatchDims))
           .join('\n');
   const outTexShape = outputShape.texShape;
   const outputSamplingSnippet =
       getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
   const source = [
-    SHADER_PREFIX, sampleSnippet, setOutputSnippet, inputPrefixSnippet,
-    inputSamplingSnippet, outputSamplingSnippet, userCode
+    SHADER_PREFIX, batchSnippet, sampleSnippet, setOutputSnippet,
+    inputPrefixSnippet, outputSamplingSnippet, inputSamplingSnippet, userCode
   ].join('\n');
   return source;
 }
@@ -65,12 +86,9 @@ function getSetOutputSnippet() {
 }
 
 function getInputSamplingSnippet(
-    inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean) {
+    inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean,
+    numBatchDims: number) {
   const shape = inInfo.shapeInfo.logicalShape;
-  const texShape = inInfo.shapeInfo.texShape;
-
-  const outTexShape = outShapeInfo.texShape;
-
   let res = '';
 
   switch (shape.length) {
@@ -78,17 +96,16 @@ function getInputSamplingSnippet(
       res += getSamplerScalar(inInfo);
       break;
     case 1:
-      res += getSampler1D(inInfo, texShape);
+      res += getSampler1D(inInfo);
       break;
     case 2:
-      res += getSampler2D(inInfo, shape as [number, number], texShape);
+      res += getSampler2D(inInfo);
       break;
     case 3:
-      res += getSampler3D(inInfo, shape as [number, number, number], texShape);
+      res += getSampler3D(inInfo);
       break;
     case 4:
-      res += getSampler4D(
-          inInfo, shape as [number, number, number, number], texShape);
+      res += getSampler4D(inInfo);
       break;
     default:
       throw new Error(
@@ -101,11 +118,23 @@ function getInputSamplingSnippet(
   if (broadcast ||
       util.arraysEqual(
           inInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape)) {
-    res += getSamplerAtOutputCoords(inInfo, texShape, outTexShape, broadcast);
+    res += getSamplerAtOutputCoords(inInfo, outShapeInfo, broadcast);
   }
-
-  res += getSamplerFlat(inInfo.name, texShape);
+  res += getSamplerFlat(inInfo, numBatchDims);
   return res;
+}
+
+function getBatchSnippet(
+    inputSize: number, outputSize: number, texShape: [number, number]) {
+  return `
+    int getBatchOffset() {
+      ivec2 resTexRC = ivec2(resultUV.yx *
+          vec2(${texShape[0]}, ${texShape[1]}));
+      int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
+      int b = index / ${outputSize};
+      return b * ${inputSize};
+    }
+  `;
 }
 
 function getOutputSamplingSnippet(
@@ -415,9 +444,9 @@ function getSamplerScalar(inputInfo: InputInfo): string {
   `;
 }
 
-function getSampler1D(
-    inputInfo: InputInfo, texShape: [number, number]): string {
+function getSampler1D(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
+  const texShape = inputInfo.shapeInfo.texShape;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const tR = texShape[0];
   const tC = texShape[1];
@@ -452,9 +481,9 @@ function getSampler1D(
   `;
 }
 
-function getSampler2D(
-    inputInfo: InputInfo, shape: [number, number],
-    texShape: [number, number]): string {
+function getSampler2D(inputInfo: InputInfo): string {
+  const shape = inputInfo.shapeInfo.logicalShape;
+  const texShape = inputInfo.shapeInfo.texShape;
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const tR = texShape[0];
@@ -509,9 +538,9 @@ function getSampler2D(
 `;
 }
 
-function getSampler3D(
-    inputInfo: InputInfo, shape: [number, number, number],
-    texShape: [number, number]): string {
+function getSampler3D(inputInfo: InputInfo): string {
+  const texShape = inputInfo.shapeInfo.texShape;
+  const shape = inputInfo.shapeInfo.logicalShape;
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const tR = texShape[0];
@@ -562,9 +591,9 @@ function getSampler3D(
   }
 }
 
-function getSampler4D(
-    inputInfo: InputInfo, shape: [number, number, number, number],
-    texShape: [number, number]): string {
+function getSampler4D(inputInfo: InputInfo): string {
+  const shape = inputInfo.shapeInfo.logicalShape;
+  const texShape = inputInfo.shapeInfo.texShape;
   const texName = inputInfo.name;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
   const tR = texShape[0];
@@ -592,11 +621,24 @@ function getSampler4D(
   `;
 }
 
-function getSamplerFlat(texName: string, texShape: [number, number]): string {
+function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
+  const texName = inputInfo.name;
+  const texShape = inputInfo.shapeInfo.texShape;
   const funcName =
       'get' + texName.charAt(0).toUpperCase() + texName.slice(1) + 'Flat';
   const tNumR = texShape[0];
   const tNumC = texShape[1];
+  if (numBatchDims) {
+    return `
+      float ${funcName}(int index) {
+        index += getBatchOffset();
+        int texR = index / ${tNumC};
+        int texC = index - texR * ${tNumC};
+        vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${tNumC}.0, ${tNumR}.0);
+        return sample(${texName}, uv);
+      }
+    `;
+  }
   if (tNumC === 1 && tNumR === 1) {
     return `
       float ${funcName}(int index) {
@@ -630,15 +672,68 @@ function getSamplerFlat(texName: string, texShape: [number, number]): string {
   `;
 }
 
+function getBroadcastedOutputCoordsSampler(
+    inputInfo: InputInfo, outShapeInfo: ShapeInfo, texFuncSnippet: string,
+    funcName: string): string {
+  const inRank = inputInfo.shapeInfo.logicalShape.length;
+  const outRank = outShapeInfo.logicalShape.length;
+
+  let type = 'int';
+  if (outRank === 2) {
+    type = 'ivec2';
+  } else if (outRank === 3) {
+    type = 'ivec3';
+  } else if (outRank === 4) {
+    type = 'ivec4';
+  }
+  const broadcastedDims = util.getBroadcastedDims(
+      inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
+  let coordsSnippet = '';
+  if (outRank < 2 && broadcastedDims.length >= 1) {
+    coordsSnippet = 'coords = 0;';
+  } else {
+    coordsSnippet = broadcastedDims
+                        .map(d => {
+                          return `coords[${outRank - d - 1}] = 0;`;
+                        })
+                        .join('\n');
+  }
+  let unpackedCoordsSnippet = '';
+  if (outRank < 2 && inRank > 0) {
+    unpackedCoordsSnippet = 'coords';
+  } else {
+    unpackedCoordsSnippet = inputInfo.shapeInfo.logicalShape
+                                .map((s, i) => {
+                                  return `coords[${outRank - i - 1}]`;
+                                })
+                                .reverse()
+                                .join(', ');
+  }
+  return `
+    float ${funcName}() {
+      ${type} coords = getOutputCoords();
+      ${coordsSnippet}
+      return get${texFuncSnippet}(${unpackedCoordsSnippet});
+    }
+  `;
+}
+
 function getSamplerAtOutputCoords(
-    inputInfo: InputInfo, inTexShape: [number, number],
-    outTexShape: [number, number], broadcast: boolean) {
+    inputInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean) {
+  const inTexShape = inputInfo.shapeInfo.texShape;
   const texName = inputInfo.name;
   const isRGBAColorTexture =
       inputInfo.shapeInfo.textureType === TextureType.RGBA_COLOR;
 
-  const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1) +
-      'AtOutCoords';
+  const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
+  const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
+
+  if (broadcast) {
+    return getBroadcastedOutputCoordsSampler(
+        inputInfo, outShapeInfo, texFuncSnippet, funcName);
+  }
+
+  const outTexShape = outShapeInfo.texShape;
   if (util.arraysEqual(inTexShape, outTexShape) && !isRGBAColorTexture) {
     return `
       float ${funcName}() {
@@ -652,16 +747,6 @@ function getSamplerAtOutputCoords(
   const inTexExpandedShape = isRGBAColorTexture ?
       [inTexShape[0], inTexShape[1] * inputInfo.shapeInfo.logicalShape[2]] :
       inTexShape;
-
-  const inSize = util.sizeFromShape(inTexExpandedShape);
-
-  let broadcastSnippet = '';
-  if (broadcast) {
-    broadcastSnippet = `
-      int mainPart = index / ${inSize};
-      index -= mainPart * ${inSize};
-    `;
-  }
 
   let sampleSnippet = `return sample(${texName}, uv);`;
 
@@ -681,7 +766,6 @@ function getSamplerAtOutputCoords(
       ivec2 resTexRC = ivec2(resultUV.yx *
                              vec2(${outTexShape[0]}, ${outTexShape[1]}));
       int index = resTexRC.x * ${outTexShape[1]} + resTexRC.y;
-      ${broadcastSnippet}
       int texR = index / ${inTexExpandedShape[1]};
       int texC = index - texR * ${inTexExpandedShape[1]};
 

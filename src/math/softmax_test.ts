@@ -18,7 +18,7 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array1D} from './ndarray';
+import {Array1D, Array2D} from './ndarray';
 
 const tests: MathTests = it => {
   it('regular test', math => {
@@ -56,6 +56,31 @@ const tests: MathTests = it => {
         y.getValues(), new Float32Array([NaN, NaN, NaN]));
 
     a.dispose();
+  });
+
+  it('2D, dim=1', math => {
+    const y = math.softmax(Array2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]), 1);
+    const expected = [
+      0.24472847, 0.09003057, 0.66524095, 0.09003057, 0.66524095, 0.24472847
+    ];
+    expect(y.rank).toBe(2);
+    test_util.expectArraysClose(y.getValues(), new Float32Array(expected));
+  });
+
+  it('2D, implicit dim=1', math => {
+    const y = math.softmax(Array2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]));
+    const expected = [
+      0.24472847, 0.09003057, 0.66524095, 0.09003057, 0.66524095, 0.24472847
+    ];
+    expect(y.rank).toBe(2);
+    test_util.expectArraysClose(y.getValues(), new Float32Array(expected));
+  });
+
+  it('2D, dim=0 throws error', math => {
+    const f = () => {
+      math.softmax(Array2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]), 0);
+    };
+    expect(f).toThrowError();
   });
 };
 

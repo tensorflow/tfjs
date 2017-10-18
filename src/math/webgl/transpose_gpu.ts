@@ -17,7 +17,7 @@
 
 import {GPGPUProgram} from './gpgpu_math';
 
-export class SwitchDimProgram implements GPGPUProgram {
+export class TransposeProgram implements GPGPUProgram {
   variableNames = ['A'];
   params: Array<{}>;
   outputShape: number[];
@@ -25,7 +25,6 @@ export class SwitchDimProgram implements GPGPUProgram {
   rank: number;
 
   constructor(aShape: number[], newDim: number[]) {
-
     const outputShape: number[] = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
       outputShape[i] = aShape[newDim[i]];

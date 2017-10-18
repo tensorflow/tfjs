@@ -17,6 +17,8 @@
 
 import * as util from '../util';
 import {TypedArray} from '../util';
+
+import * as axis_util from './axis_util';
 import * as concat_util from './concat_util';
 import * as conv_util from './conv_util';
 import {ConvInfo} from './conv_util';
@@ -300,15 +302,15 @@ export abstract class NDArrayMath {
   matrixTimesVector(matrix: Array2D, v: Array1D): Array1D {
     util.assert(
         v.rank === 1,
-        `Error in vectorTimesMatrix: second input must rank 1, but got ` +
+        `Error in matrixTimesVector: second input must rank 1, but got ` +
             `rank ${v.rank}.`);
     util.assert(
         matrix.rank === 2,
-        `Error in vectorTimesMatrix: first input must be a rank 2, but got ` +
+        `Error in matrixTimesVector: first input must be a rank 2, but got ` +
             `rank ${matrix.rank}.`);
     util.assert(
         v.size === matrix.shape[1],
-        `Error in vectorTimesMatrix: size of first rank 1 input ${v.size} ` +
+        `Error in matrixTimesVector: size of first rank 1 input ${v.size} ` +
             `must match inner dimension of second rank 2 input, but got ` +
             `shape ${matrix.shape}.`);
 
@@ -596,24 +598,67 @@ export abstract class NDArrayMath {
   ///////////////////
 
   /**
-   * Computes the the log(sum(e ^ x)) for each x in the input ndarray.
-   * @param ndarray The input NDArray to compute the logSumExp over.
+   * Computes the log(sum(exp(elements across the reduction dimensions)).
+   *
+   * Reduces the input along the dimensions given in `axis`. Unless `keepDims`
+   * is true, the rank of the array is reduced by 1 for each entry in `axis`. If
+   * `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If `axis` has no entries, all dimensions are reduced, and an array with a
+   * single element is returned.
+   *
+   * @param input The input NDArray.
+   * @param axis Optional. The dimension(s) to reduce. If null (the default),
+   *     reduces all dimensions.
+   * @param keepDims Optional. If true, retains reduced dimensions with length
+   *     of 1. Defaults to false.
    */
-  logSumExp(ndarray: NDArray): Scalar {
-    return this.executeOp('logSumExp', () => this.logSumExpInternal(ndarray));
+  logSumExp(input: NDArray, axis: number|number[] = null, keepDims = false):
+      NDArray {
+    const axes = axis_util.parseAxisParam(axis, input.shape);
+    axis_util.assertAxesAreInnerMostDims('logSumExp', axes, input.rank);
+    return this.executeOp('logSumExp', () => {
+      const res = this.logSumExpInternal(input, axes);
+      if (keepDims) {
+        const newShape = axis_util.expandShapeToKeepDim(res.shape, axes);
+        return res.reshape(newShape);
+      }
+      return res;
+    });
   }
-  protected abstract logSumExpInternal(ndarray: NDArray): Scalar;
+  protected abstract logSumExpInternal(ndarray: NDArray, axes: number[]):
+      NDArray;
 
   /**
-   * Computes the sum of all the entries in the input NDArray.
-   * @param ndarray The input NDArray to compute the sum over.
+   * Computes the sum of elements across dimensions of an array.
+   *
+   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
+   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
+   * If `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If axes has no entries, all dimensions are reduced, and an array with a
+   * single element is returned.
+   *
+   * @param input The input array to compute the sum over.
+   * @param axis Optional. The dimension(s) to reduce. By default it reduces all
+   *     dimensions.
+   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
    */
-  sum<T extends keyof DataTypes>(ndarray: NDArray<T>): Scalar<SumTypes[T]> {
-    return this.executeOp('sum', () => this.sumInternal(ndarray)) as
-        Scalar<SumTypes[T]>;
+  sum<T extends keyof DataTypes>(
+      input: NDArray<T>, axis: number|number[] = null,
+      keepDims = false): NDArray<SumTypes[T]> {
+    const axes = axis_util.parseAxisParam(axis, input.shape);
+    axis_util.assertAxesAreInnerMostDims('sum', axes, input.rank);
+
+    return this.executeOp('sum', () => {
+      const res = this.sumInternal(input, axes);
+      if (keepDims) {
+        const newShape = axis_util.expandShapeToKeepDim(res.shape, axes);
+        return res.reshape(newShape);
+      }
+      return res;
+    });
   }
   protected abstract sumInternal<T extends keyof DataTypes>(
-      ndarray: NDArray<T>): Scalar<SumTypes[T]>;
+      ndarray: NDArray<T>, axes: number[]): NDArray<SumTypes[T]>;
 
   /**
    * Computes the flattened index of the minimum element in the ndarray.
@@ -668,34 +713,88 @@ export abstract class NDArrayMath {
 
   /**
    * Computes the minimum value from the input.
-   * @param ndarray The input NDArray.
+   *
+   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
+   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
+   * If `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If `axes` has no entries, all dimensions are reduced, and an array with a
+   * single element is returned.
+   *
+   * @param input The input NDArray.
+   * @param axis Optional. The dimension(s) to reduce. By default it reduces all
+   *     dimensions.
+   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
    */
-  min(ndarray: NDArray): Scalar {
-    return this.executeOp('min', () => this.minInternal(ndarray));
+  min<G extends keyof DataTypes>(
+      input: NDArray<G>, axis: number|number[] = null,
+      keepDims = false): NDArray<G> {
+    const axes = axis_util.parseAxisParam(axis, input.shape);
+    axis_util.assertAxesAreInnerMostDims('min', axes, input.rank);
+    return this.executeOp('min', () => {
+      const res = this.minInternal(input, axes);
+      if (keepDims) {
+        const newShape = axis_util.expandShapeToKeepDim(res.shape, axes);
+        return res.reshape(newShape);
+      }
+      return res;
+    });
   }
-  protected abstract minInternal(ndarray: NDArray): Scalar;
+  protected abstract minInternal<G extends keyof DataTypes>(
+      input: NDArray<G>, axes: number[]): NDArray<G>;
 
   /**
-   * Computes the maximum value from the input.
-   * @param ndarray The input NDArray.
+   * Computes the maximum of elements across dimensions of an array.
+   *
+   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
+   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
+   * If `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If `axes` has no entries, all dimensions are reduced, and an array with a
+   * single element is returned.
+   *
+   * @param input The input array.
+   * @param axis Optional. The dimension(s) to reduce. By default it reduces all
+   *     dimensions.
+   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
    */
-  max(ndarray: NDArray): Scalar {
-    return this.executeOp('max', () => this.maxInternal(ndarray));
+  max<G extends keyof DataTypes>(
+      input: NDArray<G>, axis: number|number[] = null,
+      keepDims = false): NDArray<G> {
+    const axes = axis_util.parseAxisParam(axis, input.shape);
+    axis_util.assertAxesAreInnerMostDims('max', axes, input.rank);
+    return this.executeOp('max', () => {
+      const res = this.maxInternal(input, axes);
+      if (keepDims) {
+        const newShape = axis_util.expandShapeToKeepDim(res.shape, axes);
+        return res.reshape(newShape);
+      }
+      return res;
+    });
   }
-  protected abstract maxInternal(ndarray: NDArray): Scalar;
+  protected abstract maxInternal<G extends keyof DataTypes>(
+      input: NDArray<G>, axes: number[]): NDArray<G>;
 
   /**
-   * Computes the softmax normalized vector from the input vector.
-   * @param x The input vector.
+   * Computes the softmax normalized vector given the logits.
+   * @param logits The logits array.
+   * @param dim The dimension softmax would be performed on. Defaults to -1
+   *     which indicates the last dimension.
    */
-  softmax(x: Array1D): Array1D {
+  softmax<T extends NDArray>(logits: T, dim = -1): T {
+    if (dim === -1) {
+      dim = logits.rank - 1;
+    }
+    if (dim !== logits.rank - 1) {
+      throw Error(
+          'Softmax along a non-last dimension is not yet supported. ' +
+          `Logits was rank ${logits.rank} and dim was ${dim}`);
+    }
     return this.executeOp('softmax', () => {
       return this.scope(() => {
         // Do it in log space for numerical stability.
         // exp(X - logSumExp(X))
-        const lse = this.logSumExp(x);
-        const logResult = this.arrayMinusScalar(x, lse);
-        return this.exp(logResult);
+        const lse = this.logSumExp(logits, [dim], true /* keepDims */);
+        const logResult = this.subtract(logits, lse);
+        return this.exp(logResult) as T;
       });
     });
   }
@@ -704,26 +803,37 @@ export abstract class NDArrayMath {
   // Element-wise ops //
   //////////////////////
 
-  /**
-   * Switches dimensions of the input NDArray.
-   * @param a The input NDArray.
-   * @param newDim The new indices that define which shapes values to switch.
-   */
+  /** @deprecated Use math.transpose() instead. */
   switchDim<T extends NDArray>(a: T, newDim: number[]): T {
-    util.assert(
-        a.rank === newDim.length,
-        `Error in switchDim: length of input shape ${a.shape} ` +
-            `must match size of newDim array ${newDim}.`);
-    return this.executeOp('switchDim', () => this.switchDimInternal(a, newDim));
+    return this.transpose(a, newDim);
   }
-  protected abstract switchDimInternal<T extends NDArray>(
-      a: T, newDim: number[]): T;
 
   /**
-   * Computes a scalar plus NDArray, c + A.
-   * @param c The scalar c in c + A.
-   * @param a The NDArray A in c + A.
+   * Transposes the array. Permutes the dimensions according to `perm`.
+   *
+   * The returned array's dimension `i` will correspond to the input dimension
+   * `perm[i]`. If `perm` is not given, it is set to `[n-1...0]`, where `n` is
+   * the rank of the input array. Hence by default, this operation performs a
+   * regular matrix transpose on 2-D input arrays.
+   *
+   * @param a The array to transpose.
+   * @param perm Optional. The permutation of the dimensions of a.
    */
+  transpose<D extends keyof DataTypes, T extends NDArray<D>>(
+      a: T, perm?: number[]): T {
+    if (perm == null) {
+      perm = a.shape.map((s, i) => i).reverse();
+    }
+    util.assert(
+        a.rank === perm.length,
+        `Error in switchDim: length of input shape ${a.shape} ` +
+            `must match size of newDim array ${perm}.`);
+    return this.executeOp('transpose', () => this.transposeInternal(a, perm));
+  }
+  protected abstract transposeInternal<
+      D extends keyof DataTypes, T extends NDArray<D>>(a: T, perm: number[]): T;
+
+  /** @deprecated Use math.add(c, A) instead. */
   scalarPlusArray<T extends NDArray>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
@@ -732,30 +842,22 @@ export abstract class NDArrayMath {
     return this.add(c, a) as T;
   }
 
-  /**
-   * Computes a scalar minus NDArray, c - A.
-   * @param c The scalar c in c - A.
-   * @param a The NDArray A in c - A.
-   */
+  /** @deprecated Use math.sub(c, A) instead. */
   scalarMinusArray<T extends NDArray>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
         `Error in scalarMinusArray: first argument must be rank 0, but got ` +
             `rank ${c.rank}.`);
-    return this.sub(c, a) as T;
+    return this.subtract(c, a) as T;
   }
 
-  /**
-   * Computes A - c. A is NDArray, c is Scalar.
-   * @param a The NDArray A in A - c.
-   * @param c The Scalar c in A - c.
-   */
+  /** @deprecated Use math.sub(A, c) instead. */
   arrayMinusScalar<T extends NDArray>(a: T, c: Scalar): T {
     util.assert(
         c.size === 1,
         `Error in arrayMinusScalar: second argument must be rank 0, but ` +
             `got rank ${c.rank}.`);
-    return this.sub(a, c) as T;
+    return this.subtract(a, c) as T;
   }
 
   /**
@@ -774,11 +876,12 @@ export abstract class NDArrayMath {
    * @param a The first NDArray to add element-wise.
    * @param b The second NDArray to add element-wise.
    */
-  add(a: NDArray, b: NDArray): NDArray {
+  add<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
     util.assertAndGetBroadcastedShape(a.shape, b.shape);
     return this.executeOp('add', () => this.addInternal(a, b));
   }
-  protected abstract addInternal(a: NDArray, b: NDArray): NDArray;
+  protected abstract addInternal<G extends keyof DataTypes>(
+      a: NDArray<G>, b: NDArray<G>): NDArray<G>;
 
   /**
    * Adds two NDArrays element-wise, A + B. Inputs must
@@ -787,7 +890,7 @@ export abstract class NDArrayMath {
    * @param a The first NDArray to multiply element-wise.
    * @param b The second NDArray to multiply element-wise.
    */
-  addStrict<T extends NDArray>(a: T, b: T): T {
+  addStrict<D extends keyof DataTypes, T extends NDArray<D>>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
     return this.add(a, b) as T;
   }
@@ -799,11 +902,18 @@ export abstract class NDArrayMath {
    * @param a The first NDArray to subtract element-wise.
    * @param b The second NDArray to subtract element-wise.
    */
-  sub(a: NDArray, b: NDArray): NDArray {
+  subtract<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
+      NDArray<G> {
     util.assertAndGetBroadcastedShape(a.shape, b.shape);
-    return this.executeOp('sub', () => this.subInternal(a, b));
+    return this.executeOp('subtract', () => this.subtractInternal(a, b));
   }
-  protected abstract subInternal(a: NDArray, b: NDArray): NDArray;
+
+  /** @deprecated Use math.subtract instead. */
+  sub<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
+    return this.subtract(a, b);
+  }
+  protected abstract subtractInternal<G extends keyof DataTypes>(
+      a: NDArray<G>, b: NDArray<G>): NDArray<G>;
 
   /**
    * Subtracts two NDArrays element-wise, A - B. Inputs must
@@ -812,9 +922,9 @@ export abstract class NDArrayMath {
    * @param a The first NDArray to multiply element-wise.
    * @param b The second NDArray to multiply element-wise.
    */
-  subStrict<T extends NDArray>(a: T, b: T): T {
+  subStrict<D extends keyof DataTypes, T extends NDArray<D>>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
-    return this.sub(a, b) as T;
+    return this.subtract(a, b) as T;
   }
 
   /**
@@ -874,12 +984,7 @@ export abstract class NDArrayMath {
     return this.divide(a, b) as T;
   }
 
-  /**
-   * Computes a scalar divided by an NDArray, broadcasted over the NDArray, c /
-   * A.
-   * @param c The scalar value in c / A.
-   * @param a The NDArray value in c / A.
-   */
+  /** @deprecated Use math.divide(c, A) instead. */
   scalarDividedByArray<T extends NDArray>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
@@ -888,12 +993,7 @@ export abstract class NDArrayMath {
     return this.divide(c, a) as T;
   }
 
-  /**
-   * Computes an NDArray divided by a scalar, broadcasted over the NDArray, A /
-   * c.
-   * @param a The NDArray value in A / c.
-   * @param c The scalar value in A / c.
-   */
+  /** @deprecated Use math.divide(A, c) instead. */
   arrayDividedByScalar<T extends NDArray>(a: T, c: Scalar): T {
     util.assert(
         c.size === 1,
@@ -1105,12 +1205,7 @@ export abstract class NDArrayMath {
   protected abstract scaledArrayAddInternal<T extends NDArray>(
       c1: Scalar, a: T, c2: Scalar, b: T): T;
 
-  /**
-   * Computes a scalar times array operation broadcasted over the NDArray, c *
-   * A.
-   * @param c The scalar in the operation.
-   * @param A the NDArray in the operation that will be broadcasted over.
-   */
+  /** @deprecated Use math.multiply(c, A) instead. */
   scalarTimesArray<T extends NDArray>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
@@ -1643,7 +1738,7 @@ export abstract class NDArrayMath {
       probabilities: Array1D, numSamples: number, seed: number): Array1D;
 
   /**
-   * Returns a one-hot tensor. The locations represented by `indices` take
+   * Returns a one-hot array. The locations represented by `indices` take
    * value `onValue` (defaults to 1), while all other locations take value
    * `offValue` (defaults to 0).
    *

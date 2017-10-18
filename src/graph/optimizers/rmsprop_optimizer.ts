@@ -25,8 +25,8 @@ import {Optimizer} from './optimizer';
 
 export class RMSPropOptimizer extends Optimizer {
   constructor(
-      protected learningRate: number,
-      private gamma: number, specifiedVariableList?: Node[]) {
+      protected learningRate: number, private gamma: number,
+      specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
     this.eps = Scalar.new(1e-6);
     this.g = Scalar.new(this.gamma);
@@ -57,7 +57,7 @@ export class RMSPropOptimizer extends Optimizer {
         const oldCache = this.accumulatedSquaredGradients.get(node.output);
         const gradientSquare = math.multiply(gradient, gradient);
         const cache = math.scaledArrayAdd(
-            this.g, oldCache, math.sub(this.one, this.g), gradientSquare);
+            this.g, oldCache, math.subtract(this.one, this.g), gradientSquare);
         const variable = math.scaledArrayAdd(
             this.c, math.divide(gradient, math.add(math.sqrt(cache), this.eps)),
             this.one, oldVariable);

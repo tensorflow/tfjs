@@ -53,7 +53,7 @@ export class Subtract extends Operation {
       } else if (util.isScalarShape(t2.shape)) {
         result = math.arrayMinusScalar(t1, t2);
       } else {
-        result = math.sub(t1, t2);
+        result = math.subtract(t1, t2);
       }
       inferenceArrays.set(this.outTensor, keep(result));
     });

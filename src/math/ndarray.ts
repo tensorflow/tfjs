@@ -437,6 +437,14 @@ export class Scalar<T extends keyof DataTypes = keyof DataTypes> extends
   asType<G extends keyof DataTypes>(dtype: G): Scalar<G> {
     return super.asType(dtype);
   }
+
+  locToIndex(loc: number[]): number {
+    return 0;
+  }
+
+  indexToLoc(index: number): number[] {
+    return [];
+  }
 }
 
 export class Array1D<T extends keyof DataTypes = keyof DataTypes> extends

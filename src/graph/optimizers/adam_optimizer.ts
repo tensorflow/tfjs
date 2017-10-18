@@ -25,9 +25,8 @@ import {Optimizer} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
   constructor(
-      protected learningRate: number,
-      private beta1: number, private beta2: number,
-      specifiedVariableList?: Node[]) {
+      protected learningRate: number, private beta1: number,
+      private beta2: number, specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
     this.eps = Scalar.new(1e-8);
     // b1, b2 keep initial value of beta* hyperparameters.
@@ -71,20 +70,23 @@ export class AdamOptimizer extends Optimizer {
         const oldSecondMoment = this.secondMoment.get(node.output);
 
         const newFirstMoment = math.scaledArrayAdd(
-          this.b1, oldFirstMoment, math.sub(this.one, this.b1), gradient);
+            this.b1, oldFirstMoment, math.subtract(this.one, this.b1),
+            gradient);
         const gradientSquare = math.multiply(gradient, gradient);
         const newSecondMoment = math.scaledArrayAdd(
-            this.b2, oldSecondMoment, math.sub(this.one, this.b2),
+            this.b2, oldSecondMoment, math.subtract(this.one, this.b2),
             gradientSquare);
 
-        const biasCorrectedFirstMoment = math.divide(
-          newFirstMoment, math.sub(this.one, this.accB1));
-        const biasCorrectedSecondMoment = math.divide(
-          newSecondMoment, math.sub(this.one, this.accB2));
+        const biasCorrectedFirstMoment =
+            math.divide(newFirstMoment, math.subtract(this.one, this.accB1));
+        const biasCorrectedSecondMoment =
+            math.divide(newSecondMoment, math.subtract(this.one, this.accB2));
 
         const variable = math.scaledArrayAdd(
-            this.c, math.divide(biasCorrectedFirstMoment,
-              math.add(math.sqrt(biasCorrectedSecondMoment), this.eps)),
+            this.c,
+            math.divide(
+                biasCorrectedFirstMoment,
+                math.add(math.sqrt(biasCorrectedSecondMoment), this.eps)),
             this.one, oldVariable);
         activationArrayMap.set(node.output, keep(variable));
         node.data = variable;

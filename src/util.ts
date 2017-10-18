@@ -187,33 +187,34 @@ export function createShuffledIndices(n: number): Uint32Array {
 export function assertAndGetBroadcastedShape(
     shapeA: number[], shapeB: number[]): number[] {
   const result: number[] = [];
-  let nextADimMustBeOne = false;
-  let nextBDimMustBeOne = false;
   const errMsg = `Operands could not be broadcast together with shapes ` +
-      `${shapeA} and ${shapeB}. Currently, we only support a ` +
-      `stricter version of broadcasting than numpy.`;
+      `${shapeA} and ${shapeB}.`;
   const l = Math.max(shapeA.length, shapeB.length);
 
-  shapeA = shapeA.slice().reverse();
-  shapeB = shapeB.slice().reverse();
   for (let i = 0; i < l; i++) {
-    const a = shapeA[i] || 1;
-    const b = shapeB[i] || 1;
-    if ((b > 1 && nextBDimMustBeOne) || (a > 1 && nextADimMustBeOne)) {
-      throw Error(errMsg);
-    }
-    if (a > 1 && b === 1) {
-      nextBDimMustBeOne = true;
-    }
-    if (b > 1 && a === 1) {
-      nextADimMustBeOne = true;
-    }
+    const a = shapeA[shapeA.length - i - 1] || 1;
+    const b = shapeB[shapeB.length - i - 1] || 1;
     if (a > 1 && b > 1 && a !== b) {
       throw Error(errMsg);
     }
-    result.push(Math.max(a, b));
+    result.unshift(Math.max(a, b));
   }
-  return result.reverse();
+  return result;
+}
+
+export function getBroadcastedDims(
+    inShape: number[], outShape: number[]): number[] {
+  const inRank = inShape.length;
+  const dims: number[] = [];
+  for (let i = 0; i < inRank; i++) {
+    const a = inShape[inRank - 1 - i] || 1;
+    const b = outShape[outShape.length - 1 - i] || 1;
+
+    if (b > 1 && a === 1) {
+      dims.push(i);
+    }
+  }
+  return dims;
 }
 
 export function rightPad(a: string, size: number): string {

@@ -62,7 +62,7 @@ export class AdadeltaOptimizer extends Optimizer {
         const gradientSquare = math.multiply(gradient, gradient);
         // Exponential decay of average squared gradients.
         const cache = math.scaledArrayAdd(
-            this.g, oldCache, math.sub(this.one, this.g), gradientSquare);
+            this.g, oldCache, math.subtract(this.one, this.g), gradientSquare);
 
         const updates = math.multiply(
             math.divide(
@@ -76,7 +76,7 @@ export class AdadeltaOptimizer extends Optimizer {
         const updateSquare = math.multiply(updates, updates);
         // Exponential decay of average updated values.
         const newUpdates = math.scaledArrayAdd(
-            this.g, oldUpdates, math.sub(this.one, this.g), updateSquare);
+            this.g, oldUpdates, math.subtract(this.one, this.g), updateSquare);
 
         this.accumulatedSquaredGradients.set(node.output, keep(cache));
         this.accumulatedUpdates.set(node.output, keep(newUpdates));
