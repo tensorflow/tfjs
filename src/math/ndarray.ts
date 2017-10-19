@@ -201,6 +201,18 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     return NDArray.make(newShape, this.ndarrayData, this.dtype);
   }
 
+  /**
+   * Flatten a NDArray to a 1D array
+   * @param {T1} ndarray
+   * @returns {Array1D}
+   */
+  flatten(): Array1D<T> {
+    if(this instanceof Array1D){
+      return this;
+    }
+    return this.as1D();
+  }
+
   asScalar(): Scalar<T> {
     util.assert(this.size === 1, 'The array must have only 1 element.');
     return this.reshape([]);
