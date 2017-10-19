@@ -21,7 +21,7 @@
       "src/graph/optimizers/rmsptop_optimizer.ts",
       "src/graph/optimizers/optimizer.ts",
       "src/graph/optimizers/sgd_optimizer.ts",
-      "src/graph/session.ts"
+      "src/graph/session.ts",
       "src/initializers.ts",
       "src/math/conv_util.ts",
       "src/math/math.ts",
@@ -32,6 +32,6 @@
       "src/math/webgl/gpgpu_context.ts",
       "src/math/webgl/render_ndarray_gpu_util.ts",
       "src/math/webgl/webgl_util.ts",
-      "src/util.ts",
+      "src/util.ts"
     ]
 }
