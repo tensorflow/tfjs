@@ -29,7 +29,7 @@ export abstract class ReductionOpsBenchmark extends BenchmarkTest {
         return (input: NDArray) => math.min(input);
       case 'sum':
         return (input: NDArray) => math.sum(input);
-      case 'logsumexp':
+      case 'logSumExp':
         return (input: NDArray) => math.logSumExp(input);
       default:
         throw new Error(`Not found such ops: ${option}`);
