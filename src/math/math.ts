@@ -1087,6 +1087,28 @@ export abstract class NDArrayMath {
   protected abstract reluInternal<T extends NDArray>(ndarray: T): T;
 
   /**
+   * Computes exponential linear element-wise
+   * @param {T} ndarray the input NDArray
+   */
+  elu<T extends NDArray>(ndarray: T): T {
+    return this.executeOp('elu', () => this.eluInternal(ndarray));
+  }
+  protected abstract eluInternal<T extends NDArray>(ndarray: T): T;
+
+  /**
+   * Computes leaky rectified linear element-wise
+   * @param {T} ndarray the input NDArray
+   * @param alpha scaleing factor for negative values, defaults to 0.2
+   * @return {NDArray}
+   */
+  leakyRelu<T extends NDArray>(ndarray: T, alpha = 0.2): T {
+    return this.executeOp('leakyRelu', () =>
+        this.leakyReluInternal(ndarray, alpha));
+  }
+  protected abstract leakyReluInternal<T extends NDArray>(
+      ndarray: T, alpha: number): T;
+
+  /**
    * Computes sigmoid element-wise, y = 1 / (1 + exp(-x)).
    * @param ndarray The input NDArray.
    */
