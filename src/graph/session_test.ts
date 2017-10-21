@@ -28,7 +28,7 @@ import {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 import {SGDOptimizer} from './optimizers/sgd_optimizer';
 import {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 import {AdamOptimizer} from './optimizers/adam_optimizer';
-import {AdamMaxOptimizer} from './optimizers/adamax_optimizer';
+import {AdamaxOptimizer} from './optimizers/adamax_optimizer';
 import {FeedDictionary, FeedEntry, Session} from './session';
 
 describe('FeedDictionary', () => {
@@ -567,7 +567,7 @@ describe('Session', () => {
       const y = g.reduceSum(g.add(g.matmul(w, x), b));
 
       const safeMode = true;
-      const optimizer = new AdamMaxOptimizer(0.1, 0.8, 0.9);
+      const optimizer = new AdamaxOptimizer(0.1, 0.8, 0.9);
       const math = new NDArrayMathCPU(safeMode);
       const session = new Session(g, math);
       const inputProvider: InputProvider = {

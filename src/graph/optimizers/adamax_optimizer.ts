@@ -23,7 +23,7 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
 import {Optimizer} from './optimizer';
 
-export class AdamMaxOptimizer extends Optimizer {
+export class AdamaxOptimizer extends Optimizer {
   constructor(
       protected learningRate: number, private beta1: number,
       private beta2: number, specifiedVariableList?: Node[]) {

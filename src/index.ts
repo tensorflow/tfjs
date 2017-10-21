@@ -35,7 +35,7 @@ export {Graph, Tensor} from './graph/graph';
 export {AdadeltaOptimizer} from './graph/optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './graph/optimizers/adagrad_optimizer';
 export {AdamOptimizer} from './graph/optimizers/adam_optimizer';
-export {AdamMaxOptimizer} from './graph/optimizers/adamax_optimizer';
+export {AdamaxOptimizer} from './graph/optimizers/adamax_optimizer';
 export {MomentumOptimizer} from './graph/optimizers/momentum_optimizer';
 export {Optimizer} from './graph/optimizers/optimizer';
 export {RMSPropOptimizer} from './graph/optimizers/rmsprop_optimizer';
