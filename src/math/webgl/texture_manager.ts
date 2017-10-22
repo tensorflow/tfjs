@@ -66,7 +66,7 @@ export class TextureManager {
     }
     const total = this.numFreeTextures + this.numUsedTextures;
     console.log(
-        'Free/Used', this.numFreeTextures + ' / ' + this.numUsedTextures,
+        'Free/Used', `${this.numFreeTextures} / ${this.numUsedTextures}`,
         `(${total})`);
   }
 
@@ -90,5 +90,5 @@ export class TextureManager {
 }
 
 function getKeyFromTextureShape(shapeRowsCol: [number, number]): string {
-  return shapeRowsCol[0] + '_' + shapeRowsCol[1];
+  return `${shapeRowsCol[0]}_${shapeRowsCol[1]}`;
 }

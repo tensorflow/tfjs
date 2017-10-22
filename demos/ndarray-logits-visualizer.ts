@@ -35,13 +35,13 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
     this.logitLabelElements = [];
     this.logitVizElements = [];
     const container = this.querySelector('.logits-container') as HTMLElement;
-    container.style.height = height + 'px';
+    container.style.height = `${height}px`;
 
     for (let i = 0; i < TOP_K; i++) {
       const logitContainer = document.createElement('div');
-      logitContainer.style.height = height / (TOP_K + 1) + 'px';
+      logitContainer.style.height = `${height / (TOP_K + 1)}px`;
       logitContainer.style.margin =
-          height / ((2 * TOP_K) * (TOP_K + 1)) + 'px 0';
+          `${height / ((2 * TOP_K) * (TOP_K + 1))}px 0`;
       logitContainer.className =
           'single-logit-container ndarray-logits-visualizer';
 
@@ -80,14 +80,14 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
     for (let i = 0; i < topkIndices.length; i++) {
       const index = topkIndices[i];
       this.logitLabelElements[i].innerText =
-          labelClassNames ? labelClassNames[index] : index + '';
+          labelClassNames ? labelClassNames[index] : index.toString();
       this.logitLabelElements[i].style.width =
           labelClassNames != null ? '100px' : '20px';
       this.logitVizElements[i].style.backgroundColor = index === labelClass ?
           'rgba(120, 185, 50, .84)' :
           'rgba(220, 10, 10, 0.84)';
       this.logitVizElements[i].style.width =
-          Math.floor(100 * topkValues[i]) + '%';
+          `${Math.floor(100 * topkValues[i])}%`;
       this.logitVizElements[i].innerText =
           `${(100 * topkValues[i]).toFixed(1)}%`;
     }

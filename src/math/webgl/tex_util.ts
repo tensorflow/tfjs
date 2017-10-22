@@ -40,8 +40,8 @@ export function getMatrixSizeFromUnpackedArraySize(
     unpackedSize: number, channelsPerTexture: number): number {
   if (unpackedSize % channelsPerTexture !== 0) {
     throw new Error(
-        'unpackedSize (' + unpackedSize + ') must be a multiple of ' +
-        channelsPerTexture);
+        `unpackedSize (${unpackedSize}) must be a multiple of ` +
+        `${channelsPerTexture}`);
   }
   return unpackedSize / channelsPerTexture;
 }
@@ -54,8 +54,8 @@ export function encodeMatrixToUnpackedArray(
       getUnpackedArraySizeFromMatrixSize(matrix.length, channelsPerTexture);
   if (unpackedArray.length < requiredSize) {
     throw new Error(
-        'unpackedArray length (' + unpackedArray.length +
-        ') must be >= ' + requiredSize);
+        `unpackedArray length (${unpackedArray.length}) must be >= ` +
+        `${requiredSize}`);
   }
   let dst = 0;
   for (let src = 0; src < matrix.length; ++src) {
@@ -124,7 +124,7 @@ export function decodeMatrixFromUnpackedArray(
       unpackedArray.length, channelsPerTexture);
   if (matrix.length < requiredSize) {
     throw new Error(
-        'matrix length (' + matrix.length + ') must be >= ' + requiredSize);
+        `matrix length (${matrix.length}) must be >= ${requiredSize}`);
   }
   let dst = 0;
   for (let src = 0; src < unpackedArray.length; src += channelsPerTexture) {
@@ -137,7 +137,7 @@ export function decodeMatrixFromUnpackedColorRGBAArray(
   const requiredSize = unpackedArray.length * channels / 4;
   if (matrix.length < requiredSize) {
     throw new Error(
-        'matrix length (' + matrix.length + ') must be >= ' + requiredSize);
+        `matrix length (${matrix.length}) must be >= ${requiredSize}`);
   }
   let dst = 0;
   for (let src = 0; src < unpackedArray.length; src += 4) {
@@ -164,8 +164,7 @@ export function encodeMatrixToPackedRGBA(
   const requiredSize = getPackedRGBAArraySizeFromMatrixShape(rows, columns);
   if (packedRGBA.length < requiredSize) {
     throw new Error(
-        'packedRGBA length (' + packedRGBA.length +
-        ') must be >= ' + requiredSize);
+        `packedRGBA length (${packedRGBA.length}) must be >= ${requiredSize}`);
   }
   /*
     Unpacked matrix, row-major order in Float32Array[16]:  A B C D
@@ -247,7 +246,7 @@ export function decodeMatrixFromPackedRGBA(
   const requiredSize = rows * columns;
   if (requiredSize < matrix.length) {
     throw new Error(
-        'matrix length (' + matrix.length + ') must be >= ' + requiredSize);
+        `matrix length (${matrix.length}) must be >= ${requiredSize}`);
   }
   const oddWidth = (columns % 2) === 1;
   const oddHeight = (rows % 2) === 1;

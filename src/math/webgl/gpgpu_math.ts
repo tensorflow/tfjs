@@ -166,7 +166,7 @@ export function makeShaderKey(
     program: GPGPUProgram, inputs: NDArray[], output: NDArray): string {
   const params = program.params;
   const keyStart =
-      inputs.concat(output).map(x => x.shape + '_' + x.getTextureShapeRC());
+      inputs.concat(output).map(x => `${x.shape}_${x.getTextureShapeRC()}`);
   const keyEnd = params.map(String);
   let key = [program.constructor.name];
   key.push((program.supportsBroadcasting === true).toString());

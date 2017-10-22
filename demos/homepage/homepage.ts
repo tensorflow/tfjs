@@ -81,10 +81,10 @@ function startCPPN() {
   layersSlider.addEventListener('input', (event) => {
     // tslint:disable-next-line:no-any
     const numLayers = parseInt((event as any).target.value, 10);
-    layersCountElement.innerText = '' + numLayers;
+    layersCountElement.innerText = numLayers.toString();
     cppn.setNumLayers(numLayers);
   });
-  layersCountElement.innerText = '' + DEFAULT_NUM_LAYERS;
+  layersCountElement.innerText = DEFAULT_NUM_LAYERS.toString();
 
   const z1Slider = document.querySelector('#z1-slider') as HTMLInputElement;
   z1Slider.addEventListener('input', (event) => {

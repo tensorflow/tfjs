@@ -20,10 +20,10 @@ export function validateShapes(
   const srcArea = sourceSize[0] * sourceSize[1];
   const dstArea = destSize[0] * destSize[1];
   if (srcArea !== dstArea) {
-    const srcStr = '[' + sourceSize[0] + ', ' + sourceSize[1] + ']';
-    const dstStr = '[' + destSize[0] + ', ' + destSize[1] + ']';
+    const srcStr = `[${sourceSize[0]}, ${sourceSize[1]}]`;
+    const dstStr = `[${destSize[0]}, ${destSize[1]}]`;
     throw new Error(
-        'copy2D shapes have different areas:\n  sourceSize ' + srcStr +
-        ', area ' + srcArea + '\n  destSize ' + dstStr + ', area ' + dstArea);
+        `copy2D shapes have different areas:\n  sourceSize ${srcStr}` +
+        `, area ${srcArea}\n  destSize ${dstStr}, area ${dstArea}`);
   }
 }

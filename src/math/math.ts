@@ -261,11 +261,11 @@ export abstract class NDArrayMath {
     const result = f();
     if (this.debugMode) {
       const vals = result.getValues();
-      const time = util.rightPad((performance.now() - start) + 'ms', 9);
+      const time = util.rightPad(`${performance.now() - start}ms`, 9);
       const paddedName = util.rightPad(name, 25);
       const rank = result.rank;
       const size = result.size;
-      const shape = util.rightPad(result.shape + '', 14);
+      const shape = util.rightPad(result.shape.toString(), 14);
       console.log(
           `%c${paddedName}\t%c${time}\t%c${rank}D ${shape}\t%c${size}`,
           'font-weight:bold', 'color:red', 'color:blue', 'color: orange');
@@ -1512,7 +1512,7 @@ export abstract class NDArrayMath {
       strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
     util.assert(
         x.rank === 3,
-        'Error in maxPool: x must be rank 3 but got rank ' + x.rank + '.');
+        `Error in maxPool: x must be rank 3 but got rank ${x.rank}.`);
 
     const [filterHeight, filterWidth] = parseTupleParam(filterSize);
     const outDepth = x.shape[2];

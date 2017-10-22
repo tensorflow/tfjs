@@ -100,8 +100,8 @@ export class MathBenchmark extends MathBenchmarkPolymer {
         data: benchmarkRunGroup.benchmarkRuns[i].chartData,
         fill: false,
         label: benchmarkRunGroup.benchmarkRuns[i].name,
-        borderColor: 'hsl(' + hue + ', 100%, 40%)',
-        backgroundColor: 'hsl(' + hue + ', 100%, 70%)',
+        borderColor: `hsl(${hue}, 100%, 40%)`,
+        backgroundColor: `hsl(${hue}, 100%, 70%)`,
         pointRadius: 0,
         pointHitRadius: 5,
         borderWidth: 1,
@@ -134,7 +134,7 @@ export class MathBenchmark extends MathBenchmarkPolymer {
           yAxes: [{
             ticks: {
               callback: (label, index, labels) => {
-                return label + 'ms';
+                return `${label}ms`;
               }
             },
           }]
@@ -211,7 +211,7 @@ export class MathBenchmark extends MathBenchmarkPolymer {
     runNumberRowElement.className = 'run-numbers-row math-benchmark';
 
     const runPromises: Array<Promise<number>> = [];
-    const rowValues: string[] = ['' + step];
+    const rowValues: string[] = [step.toString()];
     for (let i = 0; i < benchmarkRunGroup.benchmarkRuns.length; i++) {
       const benchmarkRun = benchmarkRunGroup.benchmarkRuns[i];
       const benchmarkTest = benchmarkRun.benchmarkTest;
@@ -252,7 +252,7 @@ export class MathBenchmark extends MathBenchmarkPolymer {
           }
           rowValues.push(resultString);
         }
-        console.log(benchmarkRun.name + '[' + size + ']: ' + logString);
+        console.log(`${benchmarkRun.name}[${size}]: ${logString}`);
       }
       runNumbersTable.appendChild(this.buildRunNumbersRow(rowValues));
 

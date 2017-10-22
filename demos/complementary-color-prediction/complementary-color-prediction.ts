@@ -146,7 +146,7 @@ class ComplementaryColorModel {
       graph: Graph, inputLayer: Tensor, layerIndex: number,
       sizeOfThisLayer: number) {
     return graph.layers.dense(
-        'fully_connected_' + layerIndex, inputLayer, sizeOfThisLayer,
+        `fully_connected_${layerIndex}`, inputLayer, sizeOfThisLayer,
         (x) => graph.relu(x));
   }
 

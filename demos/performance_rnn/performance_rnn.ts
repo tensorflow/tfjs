@@ -477,5 +477,5 @@ function playOutput(index: number) {
     }
     offset += maxValue - minValue + 1;
   }
-  throw new Error('Could not decode index: ' + index);
+  throw new Error(`Could not decode index: ${index}`);
 }

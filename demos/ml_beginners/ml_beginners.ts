@@ -110,7 +110,7 @@ async function mlBeginners() {
             [{tensor: x, data: xProvider}, {tensor: yLabel, data: yProvider}],
             BATCH_SIZE, optimizer, CostReduction.MEAN);
 
-        console.log('average cost: ' + costValue.get());
+        console.log(`average cost: ${costValue.get()}`);
       }
 
       // Now print the value from the trained model for x = 4, should be ~57.0.

@@ -85,7 +85,7 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
         this.webcamVideoElement.style.display = 'none';
         this.staticImgElement.style.display = '';
       }
-      this.staticImgElement.src = 'images/' + event.detail.selected + '.jpg';
+      this.staticImgElement.src = `images/${event.detail.selected}.jpg`;
     });
 
     // tslint:disable-next-line:no-any
@@ -167,17 +167,18 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
         if (!(className in topClassesToProbability)) {
           continue;
         }
-        document.getElementById('class' + count).innerHTML = className;
-        document.getElementById('prob' + count).innerHTML =
-            '' + Math.floor(1000 * topClassesToProbability[className]) / 1000;
+        document.getElementById(`class${count}`).innerHTML = className;
+        document.getElementById(`prob${count}`).innerHTML =
+            (Math.floor(1000 * topClassesToProbability[className]) / 1000)
+                .toString();
         count++;
       }
 
       const endTime = performance.now();
 
+      const elapsed = Math.floor(1000 * (endTime - startTime)) / 1000;
       (this.querySelector('#totalTime') as HTMLDivElement).innerHTML =
-          'last inference time: ' +
-          Math.floor(1000 * (endTime - startTime)) / 1000 + 'ms';
+          `last inference time: ${elapsed} ms`;
 
       // Render activations.
       const activationNDArray = namedActivations[this.selectedLayerName];

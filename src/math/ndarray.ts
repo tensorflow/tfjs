@@ -96,8 +96,8 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     if (data.values != null) {
       util.assert(
           this.size === data.values.length,
-          'Constructing ndarray of shape (' + this.size + ') should match the' +
-              ' length of values (' + data.values.length + ')');
+          `Constructing ndarray of shape (${this.size}) should match the ` +
+              `length of values (${data.values.length})`);
     }
 
     this.shape = shape;

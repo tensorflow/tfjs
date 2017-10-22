@@ -74,8 +74,8 @@ reader.getAllVariables().then(async vars => {
       input = result;
     }
   });
-  document.getElementById('expected').innerHTML = '' + expected;
-  document.getElementById('results').innerHTML = '' + results;
+  document.getElementById('expected').innerHTML = expected.toString();
+  document.getElementById('results').innerHTML = results.toString();
   if (util.arraysEqual(expected, results)) {
     document.getElementById('success').innerHTML = 'Success!';
   } else {

@@ -38,16 +38,16 @@ export function expectArraysClose(
   }
   if (actual.length !== expected.length) {
     throw new Error(
-        'Matrices have different lengths (' + actual.length + ' vs ' +
-        expected.length + ').');
+        `Matrices have different lengths (${actual.length} vs ` +
+        `${expected.length}).`);
   }
   for (let i = 0; i < expected.length; ++i) {
     const a = actual[i];
     const e = expected[i];
 
     if (!areClose(a, e, epsilon)) {
-      const actualStr = 'actual[' + i + '] === ' + a;
-      const expectedStr = 'expected[' + i + '] === ' + e;
+      const actualStr = `actual[${i}] === ${a}`;
+      const expectedStr = `expected[${i}] === ${e}`;
       throw new Error('Arrays differ: ' + actualStr + ', ' + expectedStr);
     }
   }
@@ -56,7 +56,7 @@ export function expectArraysClose(
 export function expectNumbersClose(
     a: number, e: number, epsilon = TEST_EPSILON) {
   if (!areClose(a, e, epsilon)) {
-    throw new Error('Numbers differ: actual === ' + a + ', expected === ' + e);
+    throw new Error(`Numbers differ: actual === ${a}, expected === ${e}`);
   }
 }
 

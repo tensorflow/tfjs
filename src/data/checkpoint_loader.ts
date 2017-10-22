@@ -55,7 +55,7 @@ export class CheckpointLoader {
       };
       xhr.onerror = (error) => {
         throw new Error(
-            `${MANIFEST_FILE} not found at ${this.urlPath}. ` + error);
+            `${MANIFEST_FILE} not found at ${this.urlPath}. ${error}`);
       };
       xhr.send();
     });
@@ -121,8 +121,7 @@ export class CheckpointLoader {
             resolve(ndarray);
           };
           xhr.onerror = (error) => {
-            throw new Error(
-                'Could not fetch variable ' + varName + ': ' + error);
+            throw new Error(`Could not fetch variable ${varName}: ${error}`);
           };
           xhr.send();
         };

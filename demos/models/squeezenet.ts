@@ -120,17 +120,17 @@ export class SqueezeNet {
 
   private fireModule(input: Array3D, fireId: number) {
     const y1 = this.math.conv2d(
-        input, this.variables['fire' + fireId + '/squeeze1x1_W:0'] as Array4D,
-        this.variables['fire' + fireId + '/squeeze1x1_b:0'] as Array1D, 1, 0);
+        input, this.variables[`fire${fireId}/squeeze1x1_W:0`] as Array4D,
+        this.variables[`fire${fireId}/squeeze1x1_b:0`] as Array1D, 1, 0);
     const y2 = this.math.relu(y1);
     const left1 = this.math.conv2d(
-        y2, this.variables['fire' + fireId + '/expand1x1_W:0'] as Array4D,
-        this.variables['fire' + fireId + '/expand1x1_b:0'] as Array1D, 1, 0);
+        y2, this.variables[`fire${fireId}/expand1x1_W:0`] as Array4D,
+        this.variables[`fire${fireId}/expand1x1_b:0`] as Array1D, 1, 0);
     const left2 = this.math.relu(left1);
 
     const right1 = this.math.conv2d(
-        y2, this.variables['fire' + fireId + '/expand3x3_W:0'] as Array4D,
-        this.variables['fire' + fireId + '/expand3x3_b:0'] as Array1D, 1, 1);
+        y2, this.variables[`fire${fireId}/expand3x3_W:0`] as Array4D,
+        this.variables[`fire${fireId}/expand3x3_b:0`] as Array1D, 1, 1);
     const right2 = this.math.relu(right1);
 
     return this.math.concat3D(left2, right2, 2);

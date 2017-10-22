@@ -26,8 +26,8 @@ const math = new NDArrayMathGPU();
 export async function execute(event?: Event) {
   const a = Scalar.new(+inA.value);
   const b = Scalar.new(+inB.value);
-
-  outputElement.innerText = '' + await math.add(a, b).data();
+  const result = await math.add(a, b).data();
+  outputElement.innerText = result.toString();
 }
 
 inA.addEventListener('keyup', execute);

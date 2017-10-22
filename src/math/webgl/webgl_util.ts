@@ -99,7 +99,7 @@ export function getWebGLErrorMessage(
     case gl.CONTEXT_LOST_WEBGL:
       return 'CONTEXT_LOST_WEBGL';
     default:
-      return 'Unknown error code ' + status;
+      return `Unknown error code ${status}`;
   }
 }
 
@@ -152,9 +152,10 @@ function logShaderSourceAndInfoLog(
   const lineNumber = +lineNumberRegexResult[1];
 
   const shaderLines = shaderSource.split('\n');
-  const pad = ('' + shaderLines.length).length + 2;
+  const pad = shaderLines.length.toString().length + 2;
   const linesWithLineNumbers = shaderLines.map(
-      (line, lineNumber) => util.rightPad('' + (lineNumber + 1), pad) + line);
+      (line, lineNumber) =>
+          util.rightPad((lineNumber + 1).toString(), pad) + line);
   let maxLineLength = 0;
   for (let i = 0; i < linesWithLineNumbers.length; i++) {
     maxLineLength = Math.max(linesWithLineNumbers[i].length, maxLineLength);
@@ -242,12 +243,12 @@ export function validateTextureSize(
     gl: WebGLRenderingContext, width: number, height: number) {
   const maxTextureSize: number = queryMaxTextureSize(gl);
   if ((width <= 0) || (height <= 0)) {
-    const requested = '[' + width + 'x' + height + ']';
+    const requested = `[${width}x${height}]`;
     throw new Error('Requested texture size ' + requested + ' is invalid.');
   }
   if ((width > maxTextureSize) || (height > maxTextureSize)) {
-    const requested = '[' + width + 'x' + height + ']';
-    const max = '[' + maxTextureSize + 'x' + maxTextureSize + ']';
+    const requested = `[${width}x${height}]`;
+    const max = `[${maxTextureSize}x${maxTextureSize}]`;
     throw new Error(
         'Requested texture size ' + requested +
         ' greater than WebGL maximum on this browser / GPU ' + max + '.');
@@ -357,7 +358,7 @@ export function getFramebufferErrorMessage(
     case gl.FRAMEBUFFER_UNSUPPORTED:
       return 'FRAMEBUFFER_UNSUPPORTED';
     default:
-      return 'unknown error ' + status;
+      return `unknown error ${status}`;
   }
 }
 
@@ -375,8 +376,8 @@ function validateTextureUnit(gl: WebGLRenderingContext, textureUnit: number) {
   const maxTextureUnit = gl.MAX_COMBINED_TEXTURE_IMAGE_UNITS - 1;
   const glTextureUnit = textureUnit + gl.TEXTURE0;
   if (glTextureUnit < gl.TEXTURE0 || glTextureUnit > maxTextureUnit) {
-    const textureUnitRange = '[gl.TEXTURE0, gl.TEXTURE' + maxTextureUnit + ']';
-    throw new Error('textureUnit must be in ' + textureUnitRange + '.');
+    const textureUnitRange = `[gl.TEXTURE0, gl.TEXTURE${maxTextureUnit}]`;
+    throw new Error(`textureUnit must be in ${textureUnitRange}.`);
   }
 }
 

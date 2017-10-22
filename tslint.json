@@ -44,6 +44,7 @@
     "only-arrow-functions": [true, "allow-declarations", "allow-named-functions"],
     "prefer-const": true,
     "radix": true,
+    "restrict-plus-operands": true,
     "semicolon": [true, "always", "ignore-bound-class-methods"],
     "switch-default": true,
     "triple-equals": [true, "allow-null-check"],

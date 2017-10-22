@@ -42,7 +42,7 @@ export class VarianceScalingInitializer implements Initializer {
       n = (inputUnits + outputUnits) / 2;
     } else {
       throw new Error(
-          'Unexpected mode for variance scaling initializer: ' + this.mode);
+          `Unexpected mode for variance scaling initializer: ${this.mode}`);
     }
 
     if (this.distribution === 'normal') {
@@ -53,8 +53,8 @@ export class VarianceScalingInitializer implements Initializer {
           weightsShape, 0.0, Math.sqrt(3 * this.scale / n));
     } else {
       throw new Error(
-          'Unexpected distribution for variance scaling initializer: ' +
-          this.distribution);
+          `Unexpected distribution for variance scaling initializer: ` +
+          `${this.distribution}`);
     }
   }
 }

@@ -36,11 +36,11 @@ export abstract class TensorArrayMapBase {
    */
   get(tensor: Tensor, skipChecks = false): NDArray {
     if (!skipChecks && this.dict[tensor.id] === undefined) {
-      throw new Error('tensor ' + tensor.id + ' not in array map.');
+      throw new Error(`tensor ${tensor.id} not in array map.`);
     }
     const nda = this.dict[tensor.id];
     if (!skipChecks && nda === null) {
-      throw new Error('tensor ' + tensor.id + ' has null array.');
+      throw new Error(`tensor ${tensor.id} has null array.`);
     }
     return nda;
   }
@@ -101,7 +101,7 @@ export abstract class TensorArrayMapBase {
    */
   hasNullArray(tensor: Tensor): boolean {
     if (this.dict[tensor.id] === undefined) {
-      throw new Error('tensor ' + tensor.id + ' not in array map.');
+      throw new Error(`tensor ${tensor.id} not in array map.`);
     }
     return this.dict[tensor.id] === null;
   }

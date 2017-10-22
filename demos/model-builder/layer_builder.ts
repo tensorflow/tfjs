@@ -24,8 +24,8 @@ import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArrayInitial
  * to the model builder UI should be added here.
  */
 
-export type LayerName = 'Fully connected' | 'ReLU' | 'Convolution' |
-    'Max pool' | 'Reshape' | 'Flatten';
+export type LayerName =
+    'Fully connected'|'ReLU'|'Convolution'|'Max pool'|'Reshape'|'Flatten';
 
 /**
  * Creates a layer builder object.
@@ -58,7 +58,7 @@ export function getLayerBuilder(
       layerBuilder = new FlattenLayerBuilder();
       break;
     default:
-      throw new Error('Layer builder for ' + layerName + ' not found.');
+      throw new Error(`Layer builder for ${layerName} not found.`);
   }
 
   // For layer builders passed as serialized objects, we create the objects and
@@ -210,7 +210,7 @@ export class Convolution2DLayerBuilder implements LayerBuilder {
       {
         label: 'Output depth',
         initialValue: (inputShape: number[]) =>
-                          this.outputDepth != null ? this.outputDepth : 1,
+            this.outputDepth != null ? this.outputDepth : 1,
         type: 'number',
         min: 1,
         max: 1000,
@@ -240,8 +240,8 @@ export class Convolution2DLayerBuilder implements LayerBuilder {
       w = Array4D.randTruncatedNormal(wShape, 0, 0.1);
       b = Array1D.zeros([this.outputDepth]);
     }
-    const wTensor = g.variable('conv2d-' + index + '-w', w);
-    const bTensor = g.variable('conv2d-' + index + '-b', b);
+    const wTensor = g.variable(`conv2d-${index}-w`, w);
+    const bTensor = g.variable(`conv2d-${index}-b`, b);
     return g.conv2d(
         network, wTensor, bTensor, this.fieldSize, this.outputDepth,
         this.stride, this.zeroPad);
@@ -322,7 +322,7 @@ export class ReshapeLayerBuilder implements LayerBuilder {
       initialValue: (inputShape: number[]) => inputShape.join(', '),
       type: 'text' as 'text',
       setValue: (value: string) => this.outputShape =
-                    value.split(',').map((value) => +value),
+          value.split(',').map((value) => +value),
       getValue: () => this.outputShape.join(', ')
     }];
   }

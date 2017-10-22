@@ -25,7 +25,7 @@ async function onePlusOne() {
 
   const result = await math.add(a, b).data();
 
-  document.getElementById('output').innerText = '' + result;
+  document.getElementById('output').innerText = result.toString();
 }
 
 onePlusOne();

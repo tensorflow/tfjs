@@ -16,5 +16,5 @@
  */
 
 export function getDisplayShape(shape: number[]) {
-  return '[' + shape + ']';
+  return `[${shape}]`;
 }

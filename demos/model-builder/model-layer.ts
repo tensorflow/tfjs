@@ -165,11 +165,11 @@ export class ModelLayer extends ModelLayerPolymer {
     const input = document.createElement('paper-input');
     input.setAttribute('always-float-label', 'true');
     input.setAttribute('label', label);
-    input.setAttribute('value', '' + initialValue);
+    input.setAttribute('value', initialValue.toString());
     input.setAttribute('type', type);
     if (type === 'number') {
-      input.setAttribute('min', '' + min);
-      input.setAttribute('max', '' + max);
+      input.setAttribute('min', min.toString());
+      input.setAttribute('max', max.toString());
     }
     input.className = 'param-input';
     this.paramContainer.appendChild(input);

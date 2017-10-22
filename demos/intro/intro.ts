@@ -37,7 +37,7 @@ async function intro() {
     const size = Scalar.new(a.size);
     const average = math.divide(sum, size);
 
-    console.log('mean squared difference: ' + await average.val());
+    console.log(`mean squared difference: ${await average.val()}`);
   }
 
   {
@@ -108,7 +108,7 @@ async function intro() {
         const cost = session.train(
             costTensor, feedEntries, batchSize, optimizer, CostReduction.MEAN);
 
-        console.log('last average cost (' + i + '): ' + await cost.val());
+        console.log(`last average cost (${i}): ${await cost.val()}`);
       });
     }
 
@@ -121,8 +121,8 @@ async function intro() {
     const testOutput = session.eval(outputTensor, testFeedEntries);
 
     console.log('---inference output---');
-    console.log('shape: ' + testOutput.shape);
-    console.log('value: ' + await testOutput.val(0));
+    console.log(`shape: ${testOutput.shape}`);
+    console.log(`value: ${await testOutput.val(0)}`);
   }
 }
 

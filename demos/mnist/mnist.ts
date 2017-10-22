@@ -54,7 +54,7 @@ reader.getAllVariables().then(vars => {
 
       // Compute final accuracy.
       const accuracy = numCorrect * 100 / data.images.length;
-      document.getElementById('accuracy').innerHTML = accuracy + '%';
+      document.getElementById('accuracy').innerHTML = `${accuracy}%`;
     });
   };
   xhr.onerror = (err) => console.error(err);

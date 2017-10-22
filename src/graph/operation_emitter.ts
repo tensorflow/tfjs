@@ -120,6 +120,6 @@ function emitOpFromNode(node: Node): Operation[] {
     return [];
   } else {
     // tslint:disable-next-line:no-any
-    throw Error('Unsupported node type: ' + (node.constructor as any).name);
+    throw Error(`Unsupported node type: ${node.constructor.name}`);
   }
 }

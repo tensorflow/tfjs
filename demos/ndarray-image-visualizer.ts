@@ -42,8 +42,8 @@ export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {
   }
 
   setSize(width: number, height: number) {
-    this.canvas.style.width = width + 'px';
-    this.canvas.style.height = height + 'px';
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
   }
 
   saveImageDataFromNDArray(ndarray: Array3D) {

@@ -465,9 +465,9 @@ export class ReshapeNode extends Node {
     const shapeSize = util.sizeFromShape(this.shape);
     util.assert(
         xSize === shapeSize,
-        'Error making reshape operation: input Tensor to reshape \'' +
-            this.name + '\' of shape (' + this.x.shape +
-            ') does not match size of requested shape ' + this.shape + '.');
+        `Error making reshape operation: input to reshape '${this.name}'` +
+            ` of shape (${this.x.shape}) does not match size of ` +
+            `requested shape ${this.shape}.`);
   }
 }
 
@@ -491,12 +491,12 @@ export class FusedLinearCombinationNode extends Node {
     if (!util.isScalarShape(this.c1.shape)) {
       throw new Error(
           'Error adding fusedLinearCombination: c1 is not a scalar, got ' +
-          'shape: ' + this.c1.shape);
+          `shape: ${this.c1.shape}`);
     }
     if (!util.isScalarShape(this.c2.shape)) {
       throw new Error(
           'Error adding fusedLinearCombination: c2 is not a scalar, got ' +
-          'shape: ' + this.c2.shape);
+          `shape: ${this.c2.shape}`);
     }
   }
 }
@@ -520,8 +520,7 @@ export class AddNode extends Node {
             util.sizeFromShape(this.t2.shape) === 1 ||
             util.arraysEqual(this.t1.shape, this.t2.shape),
         'Error adding add operation op: one of inputs must be scalar or the ' +
-            'shapes ' + this.t1.shape + ' and ' + this.t2.shape +
-            ' must match.');
+            `shapes ${this.t1.shape} and ${this.t2.shape} must match.`);
   }
 }
 
@@ -544,8 +543,7 @@ export class SubtractNode extends Node {
             util.sizeFromShape(this.t2.shape) === 1 ||
             util.arraysEqual(this.t1.shape, this.t2.shape),
         'Error adding subtract op: one of inputs must be scalar or the ' +
-            'shapes ' + this.t1.shape + ' and ' + this.t2.shape +
-            ' must match.');
+            `shapes ${this.t1.shape} and ${this.t2.shape} must match.`);
   }
 }
 
@@ -568,8 +566,7 @@ export class MultiplyNode extends Node {
             util.sizeFromShape(this.t2.shape) === 1 ||
             util.arraysEqual(this.t1.shape, this.t2.shape),
         'Error adding multiply op: one of inputs must be scalar or the ' +
-            'shapes ' + this.t1.shape + ' and ' + this.t2.shape +
-            ' must match.');
+            `shapes ${this.t1.shape} and ${this.t2.shape} must match.`);
   }
 }
 
@@ -592,8 +589,7 @@ export class DivideNode extends Node {
             util.sizeFromShape(this.t2.shape) === 1 ||
             util.arraysEqual(this.t1.shape, this.t2.shape),
         'Error adding divide op: one of inputs must be scalar or the ' +
-            'shapes ' + this.t1.shape + ' and ' + this.t2.shape +
-            ' must match.');
+            `shapes ${this.t1.shape} and ${this.t2.shape} must match.`);
   }
 }
 
@@ -659,19 +655,19 @@ export class MatMulNode extends Node {
       util.assert(
           this.x1.shape[1] === this.x2.shape[0],
           'Error adding matmul op: inner shapes of matrices with shapes ' +
-              this.x1.shape + ' and ' + this.x2.shape + ' must match.');
+              `${this.x1.shape} and ${this.x2.shape} must match.`);
     } else if (this.x1.shape.length === 2 && this.x2.shape.length === 1) {
       util.assert(
           this.x1.shape[1] === this.x2.shape[0],
           'Error adding matmul op: second dimension of matrix with shape ' +
-              this.x1.shape + ' must match size of vector with shape ' +
-              this.x2.shape + '.');
+              this.x1.shape.toString() +
+              ` must match size of vector with shape ${this.x2.shape}.`);
     } else if (this.x1.shape.length === 1 && this.x2.shape.length === 2) {
       util.assert(
           this.x1.shape[0] === this.x2.shape[0],
-          'Error adding matmul op: size of vector with shape ' + this.x1.shape +
-              ' must match first dimension of matrix with ' +
-              'shape ' + this.x2.shape + '.');
+          `Error adding matmul op: size of vector with shape ${this.x1.shape}` +
+              ` must match first dimension of matrix with ` +
+              `shape ${this.x2.shape}.`);
     } else {
       throw new Error(
           'Error adding matmul op: inputs must be vectors or matrices.');
@@ -701,20 +697,20 @@ export class Convolution2DNode extends Node {
     util.assert(
         this.x.shape.length === 3,
         'Error adding conv2d op: input must be of rank 3, but got shape: ' +
-            this.x.shape + '.');
+            `${this.x.shape}.`);
     util.assert(
         this.w.shape.length === 4,
         'Error adding conv2d op: weights must be of rank 4, but got shape: ' +
-            this.w.shape + '.');
+            `${this.w.shape}.`);
     util.assert(
         this.b.shape.length === 1,
         'Error adding conv2d op: biases must be of rank 1, but got shape: ' +
-            this.b.shape + '.');
+            `${this.b.shape}.`);
 
     util.assert(
         this.x.shape[2] === this.w.shape[2],
-        'Error adding conv2d op: depth of input (' + this.x.shape[2] +
-            ') must match input depth for weights (' + this.w.shape[2] + ').');
+        `Error adding conv2d op: depth of input (${this.x.shape[2]}) ` +
+            `must match input depth for weights (${this.w.shape[2]}).`);
   }
 }
 
@@ -737,7 +733,7 @@ export class MaxPoolNode extends Node {
     util.assert(
         this.x.shape.length === 3,
         'Error adding maxPool op: input must be of rank 3, but got shape: ' +
-            this.x.shape + '.');
+            `${this.x.shape}.`);
   }
 }
 
@@ -827,8 +823,8 @@ export class SoftmaxCrossEntropyCostNode extends Node {
   validate() {
     util.assert(
         util.arraysEqual(this.x.shape, this.target.shape),
-        'Error adding softmaxCrossEntropyCost op: x shape (' + this.x.shape +
-            ') must match target shape (' + this.target.shape + ').');
+        `Error adding softmaxCrossEntropyCost op: x shape (${this.x.shape}) ` +
+            `must match target shape (${this.target.shape}).`);
   }
 }
 
@@ -866,8 +862,8 @@ export class MeanSquaredCostNode extends Node {
   validate() {
     util.assert(
         util.arraysEqual(this.label.shape, this.prediction.shape),
-        'Error adding meanSquaredCost op: label shape (' + this.label.shape +
-            ') must match prediction shape (' + this.prediction.shape + ').');
+        `Error adding meanSquaredCost op: label shape (${this.label.shape}) ` +
+            `must match prediction shape (${this.prediction.shape}).`);
   }
 }
 
@@ -900,8 +896,8 @@ export class ArgMaxEqualsNode extends Node {
   validate() {
     util.assert(
         util.arraysEqual(this.x1.shape, this.x2.shape),
-        'Error adding ArgMaxEquals op: x1 shape (' + this.x1.shape +
-            ') must match x2 shape (' + this.x2.shape + ').');
+        `Error adding ArgMaxEquals op: x1 shape (${this.x1.shape}) ` +
+            `must match x2 shape (${this.x2.shape}).`);
   }
 }
 

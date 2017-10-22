@@ -56,9 +56,9 @@ class NNArt extends NNArtPolymer {
     this.cppn = new CPPN(this.inferenceCanvas);
 
     this.inferenceCanvas.style.width =
-        this.inferenceCanvas.width * CANVAS_UPSCALE_FACTOR + 'px';
+        `${this.inferenceCanvas.width * CANVAS_UPSCALE_FACTOR}px`;
     this.inferenceCanvas.style.height =
-        this.inferenceCanvas.height * CANVAS_UPSCALE_FACTOR + 'px';
+        `${this.inferenceCanvas.height * CANVAS_UPSCALE_FACTOR}px`;
 
     this.colorModeNames = ['rgb', 'rgba', 'hsv', 'hsva', 'yuv', 'yuva', 'bw'];
     this.selectedColorModeName = 'rgb';
@@ -87,11 +87,11 @@ class NNArt extends NNArtPolymer {
     layersSlider.addEventListener('immediate-value-changed', (event) => {
       // tslint:disable-next-line:no-any
       this.numLayers = parseInt((event as any).target.immediateValue, 10);
-      layersCountElement.innerText = '' + this.numLayers;
+      layersCountElement.innerText = this.numLayers.toString();
       this.cppn.setNumLayers(this.numLayers);
     });
     this.numLayers = parseInt(layersSlider.value, 10);
-    layersCountElement.innerText = '' + this.numLayers;
+    layersCountElement.innerText = this.numLayers.toString();
     this.cppn.setNumLayers(this.numLayers);
 
     const z1Slider = this.querySelector('#z1-slider') as HTMLInputElement;
