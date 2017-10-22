@@ -21,7 +21,6 @@ import * as ndarray from './ndarray';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from './ndarray';
 import {AddScaledMatProgram} from './webgl/addscaledmat_gpu';
-import {ArgMaxEqualsProgram} from './webgl/argmaxequals_gpu';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
 import * as binaryop_gpu from './webgl/binaryop_gpu';
@@ -241,19 +240,22 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, [a], output);
   }
 
-  protected argMinInternal(a: NDArray): Scalar {
-    const program = new ArgMinMaxProgram(a.size, 'min');
-    return this.compileAndRun(program, [a]);
+  protected argMinInternal(a: NDArray, axes: number[]): NDArray<'int32'> {
+    const program = new ArgMinMaxProgram(a.shape, axes, 'min');
+    const output = this.makeOutputArray(program.outputShape, 'int32');
+    return this.compileAndRun(program, [a], output);
   }
 
-  protected argMaxInternal(a: NDArray): Scalar {
-    const program = new ArgMinMaxProgram(a.size, 'max');
-    return this.compileAndRun(program, [a]);
+  protected argMaxInternal(a: NDArray, axes: number[]): NDArray<'int32'> {
+    const program = new ArgMinMaxProgram(a.shape, axes, 'max');
+    const output = this.makeOutputArray(program.outputShape, 'int32');
+    return this.compileAndRun(program, [a], output);
   }
 
-  protected argMaxEqualsInternal(x1: NDArray, x2: NDArray): Scalar {
-    const program = new ArgMaxEqualsProgram(x1.size, x2.size);
-    return this.compileAndRun(program, [x1, x2]);
+  protected equalInternal(x: NDArray, y: NDArray): NDArray<'bool'> {
+    const program = new BinaryOpProgram(binaryop_gpu.EQUAL, x.shape, y.shape);
+    const output = this.makeOutputArray(program.outputShape, 'bool');
+    return this.compileAndRun(program, [x, y], output);
   }
 
   protected topKInternal(ndarray: NDArray, k: number):
@@ -464,10 +466,14 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected multinomialInternal(
-      probs: Array1D, numSamples: number, seed: number): Array1D {
-    const program = new MultinomialProgram(probs.size, numSamples);
+      probs: Array2D, numSamples: number, seed: number): Array2D<'int32'> {
+    const batchSize = probs.shape[0];
+    const numOutcomes = probs.shape[1];
+    const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);
+    const output =
+        this.makeOutputArray(program.outputShape, 'int32') as Array2D<'int32'>;
     const customSetup = program.getCustomSetupFunc(seed);
-    return this.compileAndRun(program, [probs], null, customSetup);
+    return this.compileAndRun(program, [probs], output, customSetup);
   }
 
   protected oneHotInternal(

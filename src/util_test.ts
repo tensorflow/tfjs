@@ -90,58 +90,6 @@ describe('Util', () => {
   });
 });
 
-describe('util.getBroadcastedShape', () => {
-  it('two scalars', () => {
-    const res = util.assertAndGetBroadcastedShape([], []);
-    expect(res).toEqual([]);
-  });
-
-  it('scalar and 1d', () => {
-    const res = util.assertAndGetBroadcastedShape([6], []);
-    expect(res).toEqual([6]);
-  });
-
-  it('scalar and 2d', () => {
-    const res = util.assertAndGetBroadcastedShape([2, 6], []);
-    expect(res).toEqual([2, 6]);
-  });
-
-  it('1d and 2d', () => {
-    const res = util.assertAndGetBroadcastedShape([6], [2, 6]);
-    expect(res).toEqual([2, 6]);
-  });
-
-  it('2d and 3d', () => {
-    const res = util.assertAndGetBroadcastedShape([2, 6], [7, 2, 6]);
-    expect(res).toEqual([7, 2, 6]);
-  });
-
-  it('3d and 3d', () => {
-    const res = util.assertAndGetBroadcastedShape([1, 1, 6], [7, 2, 6]);
-    expect(res).toEqual([7, 2, 6]);
-  });
-
-  it('incompatible inner shape', () => {
-    const f = () => util.assertAndGetBroadcastedShape([7, 2, 5], [7, 2, 6]);
-    expect(f).toThrowError();
-  });
-
-  it('incompatible middle shape', () => {
-    const f = () => util.assertAndGetBroadcastedShape([7, 3, 6], [7, 2, 6]);
-    expect(f).toThrowError();
-  });
-
-  it('compatible with broadcasting support', () => {
-    const res = util.assertAndGetBroadcastedShape([7, 1, 1], [7, 1, 1]);
-    expect(res).toEqual([7, 1, 1]);
-  });
-
-  it('3d and 3d, each gets broadcasted', () => {
-    const res = util.assertAndGetBroadcastedShape([4, 1, 7], [1, 3, 1]);
-    expect(res).toEqual([4, 3, 7]);
-  });
-});
-
 describe('util.repeatedTry', () => {
   it('resolves', (doneFn) => {
     let counter = 0;
@@ -237,5 +185,63 @@ describe('util.randGauss', () => {
       const normalizedSample = (sample - mean) / stdDev;
       expect(Math.abs(normalizedSample) <= 2);
     }
+  });
+});
+
+describe('util.getNaN', () => {
+  it('float32', () => {
+    expect(isNaN(util.getNaN('float32'))).toBe(true);
+  });
+
+  it('int32', () => {
+    expect(util.getNaN('int32')).toBe(util.NAN_INT32);
+  });
+
+  it('bool', () => {
+    expect(util.getNaN('bool')).toBe(util.NAN_BOOL);
+  });
+
+  it('unknown type throws error', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => util.getNaN('hello' as any)).toThrowError();
+  });
+});
+
+describe('util.isValNaN', () => {
+  it('NaN for float32', () => {
+    expect(util.isValNaN(NaN, 'float32')).toBe(true);
+  });
+
+  it('2 for float32', () => {
+    expect(util.isValNaN(3, 'float32')).toBe(false);
+  });
+
+  it('255 for float32', () => {
+    expect(util.isValNaN(255, 'float32')).toBe(false);
+  });
+
+  it('255 for int32', () => {
+    expect(util.isValNaN(255, 'int32')).toBe(false);
+  });
+
+  it('NAN_INT32 for int32', () => {
+    expect(util.isValNaN(util.NAN_INT32, 'int32')).toBe(true);
+  });
+
+  it('NAN_INT32 for bool', () => {
+    expect(util.isValNaN(util.NAN_INT32, 'bool')).toBe(false);
+  });
+
+  it('NAN_BOOL for bool', () => {
+    expect(util.isValNaN(util.NAN_BOOL, 'bool')).toBe(true);
+  });
+
+  it('2 for bool', () => {
+    expect(util.isValNaN(2, 'bool')).toBe(false);
+  });
+
+  it('throws error for unknown dtype', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => util.isValNaN(0, 'hello' as any)).toThrowError();
   });
 });

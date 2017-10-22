@@ -17,7 +17,7 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-import {ArrayData} from '../util';
+import {ArrayData, TypedArray} from '../util';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import {TextureType} from './webgl/tex_util';
 import {TextureManager} from './webgl/texture_manager';
@@ -207,7 +207,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
    * @returns {Array1D}
    */
   flatten(): Array1D<T> {
-    if(this instanceof Array1D){
+    if (this instanceof Array1D) {
       return this;
     }
     return this.as1D();
@@ -351,7 +351,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
             this.ndarrayData.texture, this.ndarrayData.textureShapeRC[0],
             this.ndarrayData.textureShapeRC[1], this.shape[2]);
       }
-      this.ndarrayData.values = convertFloat32ToDtype(values, this.dtype);
+      this.ndarrayData.values = float32ToTypedArray(values, this.dtype);
       this.disposeTexture();
     }
     return this.ndarrayData.values;
@@ -370,7 +370,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
         this.ndarrayData.texture, this.ndarrayData.textureShapeRC[0],
         // TODO(smilkov): Propagate the original typed array to gpgpu.
         this.ndarrayData.textureShapeRC[1],
-        new Float32Array(this.ndarrayData.values));
+        typedArrayToFloat32(this.ndarrayData.values, this.dtype));
 
     this.ndarrayData.values = null;
   }
@@ -831,7 +831,7 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
 }
 
 function copyTypedArray<T extends keyof DataTypes>(
-    array: DataTypes[T]|number[]|boolean[], dtype: T): DataTypes[T] {
+    array: DataTypes[T] | number[] | boolean[], dtype: T): DataTypes[T] {
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {
@@ -839,7 +839,10 @@ function copyTypedArray<T extends keyof DataTypes>(
   } else if (dtype === 'bool') {
     const bool = new Uint8Array(array.length);
     for (let i = 0; i < bool.length; ++i) {
-      if (array[i]) {
+      const val = array[i];
+      if (util.isValNaN(val as number, 'bool')) {
+        bool[i] = util.getNaN('bool');
+      } else if (val) {
         bool[i] = 1;
       }
     }
@@ -884,15 +887,31 @@ function makeZerosTypedArray<T extends keyof DataTypes>(
   }
 }
 
-function convertFloat32ToDtype<T extends keyof DataTypes>(
-    values: Float32Array, dtype: T): DataTypes[T] {
+function typedArrayToFloat32(
+    a: TypedArray, dtype: keyof DataTypes): Float32Array {
+  if (a instanceof Float32Array) {
+    return a;
+  } else {
+    const res = new Float32Array(a.length);
+    for (let i = 0; i < res.length; i++) {
+      const val = a[i];
+      res[i] = util.isValNaN(val, dtype) ? NaN : val;
+    }
+    return res;
+  }
+}
+
+function float32ToTypedArray<T extends keyof DataTypes>(
+    a: Float32Array, dtype: T): DataTypes[T] {
   if (dtype === 'float32') {
-    return values;
+    return a;
   } else if (dtype === 'int32' || dtype === 'bool') {
-    const result = (dtype === 'int32') ? new Int32Array(values.length) :
-                                         new Uint8Array(values.length);
+    const result = (dtype === 'int32') ? new Int32Array(a.length) :
+                                         new Uint8Array(a.length);
     for (let i = 0; i < result.length; ++i) {
-      result[i] = Math.round(values[i]);
+      let val = a[i];
+      val = isNaN(val) ? util.getNaN(dtype) : Math.round(val);
+      result[i] = val;
     }
     return result;
   } else {

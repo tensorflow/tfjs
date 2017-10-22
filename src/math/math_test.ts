@@ -17,8 +17,8 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
+import * as util from '../util';
 import {NDArrayMathGPU} from './math_gpu';
-
 import {Array1D, Array3D, Scalar} from './ndarray';
 
 // math.scope
@@ -205,9 +205,31 @@ import {Array1D, Array3D, Scalar} from './ndarray';
       a.dispose();
     });
 
-    it('debug mode errors when there are nans', math => {
+    it('debug mode errors when there are nans, float32', math => {
       math.enableDebugMode();
       const a = Array1D.new([2, NaN]);
+
+      const f = () => math.relu(a);
+
+      expect(f).toThrowError();
+
+      a.dispose();
+    });
+
+    it('debug mode errors when there are nans, int32', math => {
+      math.enableDebugMode();
+      const a = Array1D.new([2, util.NAN_INT32], 'int32');
+
+      const f = () => math.relu(a);
+
+      expect(f).toThrowError();
+
+      a.dispose();
+    });
+
+    it('debug mode errors when there are nans, bool', math => {
+      math.enableDebugMode();
+      const a = Array1D.new([1, util.NAN_BOOL], 'bool');
 
       const f = () => math.relu(a);
 

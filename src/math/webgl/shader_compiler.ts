@@ -17,7 +17,7 @@
 
 import {ENV} from '../../environment';
 import * as util from '../../util';
-
+import * as broadcast_util from '../broadcast_util';
 import * as tex_util from './tex_util';
 import {TextureType} from './tex_util';
 
@@ -89,7 +89,7 @@ function getInputSamplingSnippet(
     inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean,
     numBatchDims: number) {
   const shape = inInfo.shapeInfo.logicalShape;
-  let res = '';
+  let res = getSamplerFlat(inInfo, numBatchDims);
 
   switch (shape.length) {
     case 0:
@@ -120,7 +120,6 @@ function getInputSamplingSnippet(
           inInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape)) {
     res += getSamplerAtOutputCoords(inInfo, outShapeInfo, broadcast);
   }
-  res += getSamplerFlat(inInfo, numBatchDims);
   return res;
 }
 
@@ -141,8 +140,7 @@ function getOutputSamplingSnippet(
     outShape: number[], outTexShape: [number, number]): string {
   switch (outShape.length) {
     case 0:
-      // Doesn't make sense to call getOutputCoords() when output is scalar.
-      return '';
+      return getOutputScalarCoords();
     case 1:
       return getOutput1DCoords(outShape as [number], outTexShape);
     case 2:
@@ -324,6 +322,14 @@ const SHADER_PREFIX = `
   ${SAMPLE_4D_SNIPPET}
 `;
 
+function getOutputScalarCoords() {
+  return `
+    int getOutputCoords() {
+      return 0;
+    }
+  `;
+}
+
 function getOutput1DCoords(
     shape: [number], texShape: [number, number]): string {
   if (texShape[0] === 1) {
@@ -446,37 +452,10 @@ function getSamplerScalar(inputInfo: InputInfo): string {
 
 function getSampler1D(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
-  const texShape = inputInfo.shapeInfo.texShape;
   const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
-  const tR = texShape[0];
-  const tC = texShape[1];
-  if (texShape[0] === 1 && texShape[1] === 1) {
-    return `
-      float ${funcName}(int index) {
-        return sample(${texName}, halfCR);
-      }
-    `;
-  }
-  if (texShape[1] === 1) {
-    return `
-      float ${funcName}(int index) {
-        vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tR}.0);
-        return sample(${texName}, uv);
-      }
-    `;
-  }
-  if (texShape[0] === 1) {
-    return `
-      float ${funcName}(int index) {
-        vec2 uv = vec2((float(index) + 0.5) / ${tC}.0, 0.5);
-        return sample(${texName}, uv);
-      }
-    `;
-  }
   return `
     float ${funcName}(int index) {
-      vec2 uv = UVfrom1D(${tR}, ${tC}, index);
-      return sample(${texName}, uv);
+      return ${funcName}Flat(index);
     }
   `;
 }
@@ -628,20 +607,14 @@ function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
       'get' + texName.charAt(0).toUpperCase() + texName.slice(1) + 'Flat';
   const tNumR = texShape[0];
   const tNumC = texShape[1];
+  let batchSnippet = '';
   if (numBatchDims) {
-    return `
-      float ${funcName}(int index) {
-        index += getBatchOffset();
-        int texR = index / ${tNumC};
-        int texC = index - texR * ${tNumC};
-        vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${tNumC}.0, ${tNumR}.0);
-        return sample(${texName}, uv);
-      }
-    `;
+    batchSnippet = 'index += getBatchOffset();';
   }
   if (tNumC === 1 && tNumR === 1) {
     return `
       float ${funcName}(int index) {
+        ${batchSnippet}
         return sample(${texName}, halfCR);
       }
     `;
@@ -649,6 +622,7 @@ function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
   if (tNumC === 1) {
     return `
       float ${funcName}(int index) {
+        ${batchSnippet}
         vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tNumR}.0);
         return sample(${texName}, uv);
       }
@@ -657,6 +631,7 @@ function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
   if (tNumR === 1) {
     return `
       float ${funcName}(int index) {
+        ${batchSnippet}
         vec2 uv = vec2((float(index) + 0.5) / ${tNumC}.0, 0.5);
         return sample(${texName}, uv);
       }
@@ -664,15 +639,14 @@ function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
   }
   return `
     float ${funcName}(int index) {
-      int texR = index / ${tNumC};
-      int texC = index - texR * ${tNumC};
-      vec2 uv = (vec2(texC, texR) + halfCR) / vec2(${tNumC}.0, ${tNumR}.0);
+      ${batchSnippet}
+      vec2 uv = UVfrom1D(${tNumR}, ${tNumC}, index);
       return sample(${texName}, uv);
     }
   `;
 }
 
-function getBroadcastedOutputCoordsSampler(
+function getBroadcastOutputCoordsSampler(
     inputInfo: InputInfo, outShapeInfo: ShapeInfo, texFuncSnippet: string,
     funcName: string): string {
   const inRank = inputInfo.shapeInfo.logicalShape.length;
@@ -686,27 +660,24 @@ function getBroadcastedOutputCoordsSampler(
   } else if (outRank === 4) {
     type = 'ivec4';
   }
-  const broadcastedDims = util.getBroadcastedDims(
+  const broadcastDims = broadcast_util.getBroadcastDims(
       inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
-  let coordsSnippet = '';
-  if (outRank < 2 && broadcastedDims.length >= 1) {
+  const rankDiff = outRank - inRank;
+  let coordsSnippet: string;
+  if (inRank === 0) {
+    coordsSnippet = '';
+  } else if (outRank < 2 && broadcastDims.length >= 1) {
     coordsSnippet = 'coords = 0;';
   } else {
-    coordsSnippet = broadcastedDims
-                        .map(d => {
-                          return `coords[${outRank - d - 1}] = 0;`;
-                        })
-                        .join('\n');
+    coordsSnippet =
+        broadcastDims.map(d => `coords[${d + rankDiff}] = 0;`).join('\n');
   }
   let unpackedCoordsSnippet = '';
   if (outRank < 2 && inRank > 0) {
     unpackedCoordsSnippet = 'coords';
   } else {
     unpackedCoordsSnippet = inputInfo.shapeInfo.logicalShape
-                                .map((s, i) => {
-                                  return `coords[${outRank - i - 1}]`;
-                                })
-                                .reverse()
+                                .map((s, i) => `coords[${i + rankDiff}]`)
                                 .join(', ');
   }
   return `
@@ -719,7 +690,8 @@ function getBroadcastedOutputCoordsSampler(
 }
 
 function getSamplerAtOutputCoords(
-    inputInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean) {
+    inputInfo: InputInfo, outShapeInfo: ShapeInfo,
+    supportsBroadcasting: boolean) {
   const inTexShape = inputInfo.shapeInfo.texShape;
   const texName = inputInfo.name;
   const isRGBAColorTexture =
@@ -728,8 +700,16 @@ function getSamplerAtOutputCoords(
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
 
-  if (broadcast) {
-    return getBroadcastedOutputCoordsSampler(
+  const broadcastDims = broadcast_util.getBroadcastDims(
+      inputInfo.shapeInfo.logicalShape, outShapeInfo.logicalShape);
+  const inRank = inputInfo.shapeInfo.logicalShape.length;
+  const outRank = outShapeInfo.logicalShape.length;
+  const doBroadcast =
+      supportsBroadcasting && ((outRank > inRank) || broadcastDims.length > 0);
+  const broadcastOverOuter =
+      broadcast_util.broadcastDimsAreOuter(broadcastDims);
+  if (doBroadcast && !broadcastOverOuter) {
+    return getBroadcastOutputCoordsSampler(
         inputInfo, outShapeInfo, texFuncSnippet, funcName);
   }
 
@@ -761,11 +741,20 @@ function getSamplerAtOutputCoords(
     sampleSnippet = `return sampleUVAndDepth(${texName}, uv, texD);`;
   }
 
+  const inSize = util.sizeFromShape(inTexExpandedShape);
+  let broadcastSnippet = '';
+  if (doBroadcast && broadcastOverOuter) {
+    broadcastSnippet = `
+        int mainPart = index / ${inSize};
+        index -= mainPart * ${inSize};
+      `;
+  }
   return `
     float ${funcName}() {
       ivec2 resTexRC = ivec2(resultUV.yx *
                              vec2(${outTexShape[0]}, ${outTexShape[1]}));
       int index = resTexRC.x * ${outTexShape[1]} + resTexRC.y;
+      ${broadcastSnippet}
       int texR = index / ${inTexExpandedShape[1]};
       int texC = index - texR * ${inTexExpandedShape[1]};
 

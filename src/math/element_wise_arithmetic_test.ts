@@ -17,7 +17,7 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-
+import * as util from '../util';
 import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
 // element-wise mul / div
@@ -557,6 +557,77 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
   test_util.describeMathCPU('scaledArrayAdd', [tests]);
   test_util.describeMathGPU('scaledArrayAdd', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// element-wise equal
+{
+  const tests: MathTests = it => {
+    it('propagates NaNs', math => {
+      const a = Array1D.new([2, 5, NaN]);
+      const b = Array1D.new([4, 5, -1]);
+
+      const res = math.equal(a, b);
+      expect(res.dtype).toBe('bool');
+      expect(res.getValues()).toEqual(new Uint8Array([0, 1, util.NAN_BOOL]));
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('strict version throws when x and y are different shape', math => {
+      const a = Array1D.new([2]);
+      const b = Array1D.new([4, 2, -1]);
+
+      expect(() => math.equalStrict(a, b)).toThrowError();
+      expect(() => math.equalStrict(b, a)).toThrowError();
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('2D and scalar broadcast', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 2, 5, 6]);
+      const b = Scalar.new(2);
+      const res = math.equal(a, b);
+      expect(res.dtype).toBe('bool');
+      expect(res.shape).toEqual([2, 3]);
+      expect(res.getValues()).toEqual(new Uint8Array([0, 1, 0, 1, 0, 0]));
+    });
+
+    it('scalar and 1D broadcast', math => {
+      const a = Scalar.new(2);
+      const b = Array1D.new([1, 2, 3, 4, 5, 2]);
+      const res = math.equal(a, b);
+      expect(res.dtype).toBe('bool');
+      expect(res.shape).toEqual([6]);
+      expect(res.getValues()).toEqual(new Uint8Array([0, 1, 0, 0, 0, 1]));
+    });
+
+    it('2D and 2D broadcast each with 1 dim', math => {
+      const a = Array2D.new([1, 3], [1, 2, 5]);
+      const b = Array2D.new([2, 1], [5, 1]);
+      const res = math.equal(a, b);
+      expect(res.dtype).toBe('bool');
+      expect(res.shape).toEqual([2, 3]);
+      expect(res.getValues()).toEqual(new Uint8Array([0, 0, 1, 1, 0, 0]));
+    });
+
+    it('3D and scalar', math => {
+      const a = Array3D.new([2, 3, 1], [1, 2, 3, 4, 5, -1]);
+      const b = Scalar.new(-1);
+      const res = math.equal(a, b);
+      expect(res.dtype).toBe('bool');
+      expect(res.shape).toEqual([2, 3, 1]);
+      expect(res.getValues()).toEqual(new Uint8Array([0, 0, 0, 0, 0, 1]));
+    });
+  };
+
+  test_util.describeMathCPU('equal', [tests]);
+  test_util.describeMathGPU('equal', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

@@ -184,39 +184,6 @@ export function createShuffledIndices(n: number): Uint32Array {
   return shuffledIndices;
 }
 
-export function assertAndGetBroadcastedShape(
-    shapeA: number[], shapeB: number[]): number[] {
-  const result: number[] = [];
-  const errMsg = `Operands could not be broadcast together with shapes ` +
-      `${shapeA} and ${shapeB}.`;
-  const l = Math.max(shapeA.length, shapeB.length);
-
-  for (let i = 0; i < l; i++) {
-    const a = shapeA[shapeA.length - i - 1] || 1;
-    const b = shapeB[shapeB.length - i - 1] || 1;
-    if (a > 1 && b > 1 && a !== b) {
-      throw Error(errMsg);
-    }
-    result.unshift(Math.max(a, b));
-  }
-  return result;
-}
-
-export function getBroadcastedDims(
-    inShape: number[], outShape: number[]): number[] {
-  const inRank = inShape.length;
-  const dims: number[] = [];
-  for (let i = 0; i < inRank; i++) {
-    const a = inShape[inRank - 1 - i] || 1;
-    const b = outShape[outShape.length - 1 - i] || 1;
-
-    if (b > 1 && a === 1) {
-      dims.push(i);
-    }
-  }
-  return dims;
-}
-
 export function rightPad(a: string, size: number): string {
   if (size <= a.length) {
     return a;
@@ -310,4 +277,34 @@ export function inferFromImplicitShape(
   const newShape = shape.slice();
   newShape[implicitIdx] = size / shapeProd;
   return newShape;
+}
+
+export type DType = 'float32'|'int32'|'bool';
+
+export const NAN_INT32 = 1 << 31;
+export const NAN_BOOL = 255;
+export const NAN_FLOAT32 = NaN;
+
+export function getNaN(dtype: DType): number {
+  if (dtype === 'float32') {
+    return NAN_FLOAT32;
+  } else if (dtype === 'int32') {
+    return NAN_INT32;
+  } else if (dtype === 'bool') {
+    return NAN_BOOL;
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}
+
+export function isValNaN(val: number, dtype: DType): boolean {
+  if (dtype === 'float32') {
+    return isNaN(val);
+  } else if (dtype === 'int32') {
+    return val === NAN_INT32;
+  } else if (dtype === 'bool') {
+    return val === NAN_BOOL;
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
 }

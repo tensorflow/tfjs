@@ -65,13 +65,38 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       a.dispose();
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs, float32', math => {
       const a = Array1D.new([1, -2, 0, 3, -0.1, NaN]);
 
       const result = math.relu(a);
 
+      expect(result.dtype).toBe('float32');
       test_util.expectArraysClose(
           result.getValues(), new Float32Array([1, 0, 0, 3, 0, NaN]));
+
+      a.dispose();
+    });
+
+    it('propagates NaNs, int32', math => {
+      const a = Array1D.new([1, -2, 0, 3, -1, util.NAN_INT32], 'int32');
+
+      const result = math.relu(a);
+
+      expect(result.dtype).toBe('int32');
+      test_util.expectArraysClose(
+          result.getValues(), new Int32Array([1, 0, 0, 3, 0, util.NAN_INT32]));
+
+      a.dispose();
+    });
+
+    it('propagates NaNs, bool', math => {
+      const a = Array1D.new([1, 0, 0, 1, 0, util.NAN_BOOL], 'bool');
+
+      const result = math.relu(a);
+
+      expect(result.dtype).toBe('bool');
+      test_util.expectArraysClose(
+          result.getValues(), new Uint8Array([1, 0, 0, 1, 0, util.NAN_BOOL]));
 
       a.dispose();
     });

@@ -23,12 +23,14 @@ export class MultinomialProgram implements GPGPUProgram {
   params: Array<{}>;
   outputShape: number[];
   userCode: string;
+  numBatchDims: number;
 
   // Caching uniform location for speed.
   seedLoc: WebGLUniformLocation;
 
-  constructor(numOutcomes: number, numSamples: number) {
-    this.outputShape = [numSamples];
+  constructor(batchSize: number, numOutcomes: number, numSamples: number) {
+    this.outputShape = [batchSize, numSamples];
+    this.numBatchDims = 1;
     this.params = [];
 
     this.userCode = `

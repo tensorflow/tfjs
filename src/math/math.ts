@@ -17,8 +17,8 @@
 
 import * as util from '../util';
 import {TypedArray} from '../util';
-
 import * as axis_util from './axis_util';
+import * as broadcast_util from './broadcast_util';
 import * as concat_util from './concat_util';
 import * as conv_util from './conv_util';
 import {ConvInfo} from './conv_util';
@@ -185,9 +185,10 @@ export abstract class NDArrayMath {
     return result;
   }
 
-  private checkForNaN(vals: TypedArray, name: string): void {
+  private checkForNaN(vals: TypedArray, dtype: keyof DataTypes, name: string):
+      void {
     for (let i = 0; i < vals.length; i++) {
-      if (isNaN(vals[i])) {
+      if (util.isValNaN(vals[i], dtype)) {
         throw Error(`The result of the last math.${name} has NaNs.`);
       }
     }
@@ -268,7 +269,7 @@ export abstract class NDArrayMath {
       console.log(
           `%c${paddedName}\t%c${time}\t%c${rank}D ${shape}\t%c${size}`,
           'font-weight:bold', 'color:red', 'color:blue', 'color: orange');
-      this.checkForNaN(vals, name);
+      this.checkForNaN(vals, result.dtype, name);
     }
     return this.track(result);
   }
@@ -666,34 +667,65 @@ export abstract class NDArrayMath {
       ndarray: NDArray<T>, axes: number[]): NDArray<SumTypes[T]>;
 
   /**
-   * Computes the flattened index of the minimum element in the ndarray.
-   * @param ndarray The input NDArray.
+   * Returns the indices of the minimum values along an `axis`. The result has
+   * the same shape as `input` with the dimension along `axis` removed.
+   *
+   * @param input The input array.
+   * @param axis Optional. The dimension to reduce. By default it reduces across
+   * all axes and returns the flat index.
+   *
    */
-  argMin(ndarray: NDArray): Scalar {
-    return this.executeOp('argMin', () => this.argMinInternal(ndarray));
+  argMin(input: NDArray, axis: number = null): NDArray<'int32'> {
+    const axes = axis_util.parseAxisParam(axis, input.shape);
+    axis_util.assertAxesAreInnerMostDims('argMin', axes, input.rank);
+    return this.executeOp('argMin', () => this.argMinInternal(input, axes));
   }
-  protected abstract argMinInternal(ndarray: NDArray): Scalar;
+  protected abstract argMinInternal(ndarray: NDArray, axes: number[]):
+      NDArray<'int32'>;
 
   /**
-   * Computes the flattened index of the maximum element in the ndarray.
-   * @param ndarray The input NDArray.
+   * Returns the indices of the maximum values along an `axis`. The result has
+   * the same shape as `input` with the dimension along `axis` removed.
+   *
+   * @param input The input array.
+   * @param axis Optional. The dimension to reduce. By default it reduces across
+   * all axes and returns the flat index.
+   *
    */
-  argMax(ndarray: NDArray): Scalar {
-    return this.executeOp('argMax', () => this.argMaxInternal(ndarray));
+  argMax(input: NDArray, axis: number = null): NDArray<'int32'> {
+    const axes = axis_util.parseAxisParam(axis, input.shape);
+    axis_util.assertAxesAreInnerMostDims('argMax', axes, input.rank);
+    return this.executeOp('argMax', () => this.argMaxInternal(input, axes));
   }
-  protected abstract argMaxInternal(ndarray: NDArray): Scalar;
+  protected abstract argMaxInternal(ndarray: NDArray, axes: number[]):
+      NDArray<'int32'>;
 
   /**
    * Returns a 1 if the argMax of x1 and x2 are the same, otherwise 0.
    * @param x1 The first input NDArray.
    * @param x2 The second input NDArray.
    */
-  argMaxEquals(x1: NDArray, x2: NDArray): Scalar {
+  argMaxEquals(x1: NDArray, x2: NDArray): Scalar<'bool'> {
     util.assertShapesMatch(x1.shape, x2.shape, 'Error in argMaxEquals: ');
-    return this.executeOp(
-        'argMaxEquals', () => this.argMaxEqualsInternal(x1, x2));
+    return this.executeOp('argMaxEquals', () => this.scope(() => {
+      return this.equal(this.argMax(x1), this.argMax(x2));
+    }));
   }
-  protected abstract argMaxEqualsInternal(x1: NDArray, x2: NDArray): Scalar;
+
+  /**
+   * Returns the truth value of (x == y) element-wise. Supports broadcasting.
+   * For a stricter version without broadcasting use math.equalStrict().
+   */
+  equal(x: NDArray, y: NDArray): NDArray<'bool'> {
+    return this.executeOp('equal', () => this.equalInternal(x, y));
+  }
+  protected abstract equalInternal(x: NDArray, y: NDArray): NDArray<'bool'>;
+
+  equalStrict<D extends keyof DataTypes, T extends NDArray<D>>(x: T, y: T):
+      NDArray<'bool'> {
+    util.assertShapesMatch(x.shape, y.shape, 'Error in equalStrict: ');
+    return this.equal(x, y);
+  }
 
   /**
    * Computes the top K values and flattened indices.
@@ -882,7 +914,7 @@ export abstract class NDArrayMath {
    * @param b The second NDArray to add element-wise.
    */
   add<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
-    util.assertAndGetBroadcastedShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return this.executeOp('add', () => this.addInternal(a, b));
   }
   protected abstract addInternal<G extends keyof DataTypes>(
@@ -909,7 +941,7 @@ export abstract class NDArrayMath {
    */
   subtract<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
       NDArray<G> {
-    util.assertAndGetBroadcastedShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return this.executeOp('subtract', () => this.subtractInternal(a, b));
   }
 
@@ -940,7 +972,7 @@ export abstract class NDArrayMath {
    * @param b The second NDArray to multiply element-wise.
    */
   multiply(a: NDArray, b: NDArray): NDArray {
-    util.assertAndGetBroadcastedShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return this.executeOp('multiply', () => this.multiplyInternal(a, b));
   }
   protected abstract multiplyInternal<T extends NDArray>(a: T, b: T): T;
@@ -972,7 +1004,7 @@ export abstract class NDArrayMath {
    * @param b The second NDArray to divide element-wise.
    */
   divide(a: NDArray, b: NDArray): NDArray {
-    util.assertAndGetBroadcastedShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return this.executeOp('divide', () => this.divideInternal(a, b));
   }
   protected abstract divideInternal(a: NDArray, b: NDArray): NDArray;
@@ -1744,25 +1776,44 @@ export abstract class NDArrayMath {
   /**
    * Draws samples from a multinomial distribution.
    *
-   * @param probabilities 1D array with normalized outcome probabilities.
-   * @param numSamples Number of samples to draw.
+   * @param probabilities 1D array with normalized outcome probabilities, or
+   *     2D array of shape `[batchSize, numOutcomes]`.
+   * @param numSamples Number of samples to draw for each row slice.
    * @param seed Optional. The seed number.
+   * @return 1D array of shape `[numSamples]`, or 2D array of shape
+   *     `[batchSize, numSamples]`, depending on the rank of the input.
    */
-  multinomial(probabilities: Array1D, numSamples: number, seed?: number):
-      Array1D {
+  multinomial(
+      probabilities: Array1D|Array2D, numSamples: number,
+      seed?: number): Array1D<'int32'>|Array2D<'int32'> {
     const numOutcomes = probabilities.size;
     if (numOutcomes < 2) {
       throw new Error(
           `Error in multinomial: you need at least 2 outcomes, but got ` +
           `${numOutcomes}.`);
     }
+    if (probabilities.rank > 2) {
+      throw new Error(
+          `Rank of probabilities must be 1 or 2, but is ${probabilities.rank}`);
+    }
     seed = seed || Math.random();
-    return this.executeOp(
-        'multinomial',
-        () => this.multinomialInternal(probabilities, numSamples, seed));
+    const origRank = probabilities.rank;
+
+    if (probabilities.rank === 1) {
+      probabilities = probabilities.as2D(1, -1);
+    }
+    return this.executeOp('multinomial', () => {
+      const res =
+          this.multinomialInternal(probabilities as Array2D, numSamples, seed);
+      if (origRank === 1) {
+        return res.as1D();
+      }
+      return res;
+    });
   }
   protected abstract multinomialInternal(
-      probabilities: Array1D, numSamples: number, seed: number): Array1D;
+      probabilities: Array2D, numSamples: number,
+      seed: number): Array2D<'int32'>;
 
   /**
    * Returns a one-hot array. The locations represented by `indices` take

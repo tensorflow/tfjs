@@ -58,7 +58,7 @@ describe('Argmax equals oper', () => {
     const yVal = tensorArrayMap.get(y);
 
     expect(yVal.shape).toEqual([]);
-    expect(yVal.getValues()).toEqual(new Float32Array([1]));
+    expect(yVal.getValues()).toEqual(new Uint8Array([1]));
   });
 
   it('argmax not equals', () => {
@@ -77,6 +77,6 @@ describe('Argmax equals oper', () => {
     const yVal = tensorArrayMap.get(y);
 
     expect(yVal.shape).toEqual([]);
-    expect(yVal.getValues()).toEqual(new Float32Array([0]));
+    expect(yVal.getValues()).toEqual(new Uint8Array([0]));
   });
 });

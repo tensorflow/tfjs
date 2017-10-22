@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as util from '../../util';
+import * as axis_util from '../axis_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export function getArgMinMaxSnippet(
@@ -42,13 +44,20 @@ export function getArgMinMaxSnippet(
 
 export class ArgMinMaxProgram implements GPGPUProgram {
   variableNames = ['A'];
-  outputShape: number[] = [];
+  outputShape: number[];
   params: Array<{}>;
   userCode: string;
+  numBatchDims: number;
 
-  constructor(aSize: number, opType: 'min'|'max') {
+  constructor(shape: number[], axes: number[], opType: 'min'|'max') {
     this.params = [opType];
-    const aSnippet = getArgMinMaxSnippet(opType, 'A', aSize);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(shape, axes);
+    this.outputShape = outShape;
+    this.numBatchDims = outShape.length;
+
+    const size = util.sizeFromShape(reduceShape);
+    const aSnippet = getArgMinMaxSnippet(opType, 'A', size);
     this.userCode = `
       ${aSnippet}
 
