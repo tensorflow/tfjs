@@ -5,3 +5,4 @@ install:
 script:
   - npm run build --silent
   - npm run lint --silent
+  - npm run test-travis --silent
