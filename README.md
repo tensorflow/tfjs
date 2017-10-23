@@ -17,13 +17,14 @@ for everything from education, to model understanding, to art projects.
 
 ## Usage
 
-#### Typescript / ES6 JavaScript
-
 ```
 npm install deeplearn
 ```
 
-A simple example that sums an array with a scalar (broadcasted):
+#### TypeScript / ES6 JavaScript
+See the [TypeScript starter project](./starter/typescript/) and the
+[ES6 starter project](./starter/es6/) to get you quickly started. They contain a
+short example that sums an array with a scalar (broadcasted):
 
 ```ts
 import {Array1D, NDArrayMathGPU, Scalar} from 'deeplearn';
@@ -59,7 +60,7 @@ To use a specific version, add `@version` to the unpkg URL above
 (e.g. `https://unpkg.com/deeplearn@0.2.0`), which you can find in the
 [releases](https://github.com/PAIR-code/deeplearnjs/releases) page on GitHub.
 After importing the library, the API will be available as `deeplearn` in the
-global namespace:
+global namespace. We recommend declaring the `dl` alias at the top of the file:
 
 ```js
 var dl = deeplearn;

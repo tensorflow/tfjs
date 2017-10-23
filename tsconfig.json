@@ -16,5 +16,10 @@
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
         "allowUnreachableCode": false
-    }
+    },
+    "exclude": [
+      "starter/",
+      "node_modules/",
+      "dist/"
+    ]
 }

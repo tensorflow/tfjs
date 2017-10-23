@@ -1,0 +1,41 @@
+{
+  "name": "deeplearnjs-starter-es6",
+  "version": "0.0.1",
+  "description": "Starter project for using deeplearn.js with es6",
+  "dependencies": {
+    "babel-polyfill": "~6.26.0",
+    "deeplearn": "~0.3.3"
+  },
+  "devDependencies": {
+    "babel-plugin-syntax-async-functions": "~6.13.0",
+    "babel-plugin-transform-regenerator": "~6.26.0",
+    "babel-preset-es2015": "~6.24.1",
+    "babelify": "~7.3.0",
+    "mkdirp": "~0.5.1",
+    "uglifyjs": "~2.4.11",
+    "watchify": "~3.9.0"
+  },
+  "browserify": {
+    "transform": [
+      [
+        "babelify",
+        {
+          "presets": [
+            "es2015"
+          ],
+          "plugins": [
+            "syntax-async-functions",
+            "transform-regenerator"
+          ]
+        }
+      ]
+    ]
+  },
+  "scripts": {
+    "prep": "npm install && mkdirp dist",
+    "watch": "watchify main.js -v --debug -o dist/bundle.js",
+    "build": "browserify main.js -o dist/bundle.js",
+    "deploy": "npm run build && uglifyjs dist/bundle.js -c -m -o dist/bundle.min.js"
+  },
+  "license": "Apache-2.0"
+}
