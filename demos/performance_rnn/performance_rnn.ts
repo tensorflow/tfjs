@@ -448,11 +448,13 @@ async function generateStep(loopId: number) {
 }
 
 let midi;
+// tslint:disable-next-line:no-any
 let outputDevice: any = null;
 (async () => {
   const midiOutDropdownContainer =
       document.getElementById('midi-out-container');
   try {
+    // tslint:disable-next-line:no-any
     const navigator: any = window.navigator;
     midi = await navigator.requestMIDIAccess();
 
@@ -460,7 +462,9 @@ let outputDevice: any = null;
         document.getElementById('midi-out') as HTMLSelectElement;
 
     let count = 0;
+    // tslint:disable-next-line:no-any
     const midiDevices: any[] = [];
+    // tslint:disable-next-line:no-any
     midi.outputs.forEach((output: any) => {
       console.log(`
           Output midi device [type: '${output.type}']

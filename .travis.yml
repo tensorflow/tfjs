@@ -5,4 +5,4 @@ install:
 script:
   - npm run build --silent
   - npm run lint --silent
-  - npm run test-travis --silent
+  - if [ "$BROWSERSTACK_KEY" != "false" ]; then npm run test-travis --silent; fi
