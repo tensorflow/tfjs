@@ -56,7 +56,10 @@ let pitchHistogramEncoding: Array1D;
 let noteDensityEncoding: Array1D;
 let conditioningOff = true;
 
-let currentTime = 0;
+let currentPianoTimeSec = 0;
+// When the piano roll starts in browser-time via performance.now().
+let pianoStartTimestampMs = 0;
+
 let currentVelocity = 100;
 
 const MIN_MIDI_PITCH = 0;
@@ -64,6 +67,10 @@ const MAX_MIDI_PITCH = 127;
 const VELOCITY_BINS = 32;
 const MAX_SHIFT_STEPS = 100;
 const STEPS_PER_SECOND = 100;
+
+const MIDI_EVENT_ON = 0x90;
+const MIDI_EVENT_OFF = 0x80;
+const MIDI_NO_OUTPUT_DEVICES_FOUND_MESSAGE = 'No midi output devices found.';
 
 // The unique id of the currently scheduled setTimeout loop.
 let currentLoopId = 0;
@@ -158,7 +165,8 @@ function resetRnn() {
     lastSample.dispose();
   }
   lastSample = Scalar.new(PRIMER_IDX);
-  currentTime = piano.now();
+  currentPianoTimeSec = piano.now();
+  pianoStartTimestampMs = performance.now() - currentPianoTimeSec * 1000;
   currentLoopId++;
   generateStep(currentLoopId);
 }
@@ -182,6 +190,16 @@ const conditioningOnElem =
 conditioningOnElem.onchange = updateConditioningParams;
 const conditioningControlsElem =
     document.getElementById('conditioning-controls') as HTMLDivElement;
+
+const gainSliderElement = document.getElementById('gain') as HTMLInputElement;
+const gainDisplayElement =
+    document.getElementById('gain-display') as HTMLSpanElement;
+let globalGain = +gainSliderElement.value;
+gainDisplayElement.innerText = globalGain.toString();
+gainSliderElement.addEventListener('input', () => {
+  globalGain = +gainSliderElement.value;
+  gainDisplayElement.innerText = globalGain.toString();
+});
 
 const pitchHistogramElements = [
   document.getElementById('pitch-c'),
@@ -416,17 +434,63 @@ async function generateStep(loopId: number) {
     // for next time.
     lastSample.getTexture();
 
-    if (piano.now() - currentTime > MAX_GENERATION_LAG_SECONDS) {
+    if (piano.now() - currentPianoTimeSec > MAX_GENERATION_LAG_SECONDS) {
       console.warn(
-          `Generation is ${piano.now() - currentTime} seconds behind, ` +
+          `Generation is ${
+              piano.now() - currentPianoTimeSec} seconds behind, ` +
           `which is over ${MAX_NOTE_DURATION_SECONDS}. Resetting time!`);
-      currentTime = piano.now();
+      currentPianoTimeSec = piano.now();
     }
-    const delta =
-        Math.max(0, currentTime - piano.now() - GENERATION_BUFFER_SECONDS);
+    const delta = Math.max(
+        0, currentPianoTimeSec - piano.now() - GENERATION_BUFFER_SECONDS);
     setTimeout(() => generateStep(loopId), delta * 1000);
   });
 }
+
+let midi;
+let outputDevice: any = null;
+(async () => {
+  const midiOutDropdownContainer =
+      document.getElementById('midi-out-container');
+  try {
+    const navigator: any = window.navigator;
+    midi = await navigator.requestMIDIAccess();
+
+    const midiOutDropdown =
+        document.getElementById('midi-out') as HTMLSelectElement;
+
+    let count = 0;
+    const midiDevices: any[] = [];
+    midi.outputs.forEach((output: any) => {
+      console.log(`
+          Output midi device [type: '${output.type}']
+          id: ${output.id}
+          manufacturer: ${output.manufacturer}
+          name:${output.name}
+          version: ${output.version}`);
+      midiDevices.push(output);
+
+      const option = document.createElement('option');
+      option.innerText = output.name;
+      midiOutDropdown.appendChild(option);
+      count++;
+    });
+
+    midiOutDropdown.addEventListener('change', () => {
+      outputDevice = midiDevices[midiOutDropdown.selectedIndex];
+    });
+
+    if (count > 0) {
+      outputDevice = midiDevices[0];
+    } else {
+      midiOutDropdownContainer.innerText = MIDI_NO_OUTPUT_DEVICES_FOUND_MESSAGE;
+    }
+  } catch (e) {
+    midiOutDropdownContainer.innerText = MIDI_NO_OUTPUT_DEVICES_FOUND_MESSAGE;
+
+    midi = null;
+  }
+})();
 
 /**
  * Decode the output index and play it on the piano and keyboardInterface.
@@ -445,28 +509,55 @@ function playOutput(index: number) {
           setTimeout(() => {
             keyboardInterface.keyUp(noteNum);
           }, 100);
-        }, (currentTime - piano.now()) * 1000);
-        activeNotes.set(noteNum, currentTime);
-        return piano.keyDown(noteNum, currentTime, currentVelocity);
+        }, (currentPianoTimeSec - piano.now()) * 1000);
+        activeNotes.set(noteNum, currentPianoTimeSec);
+
+        if (outputDevice != null) {
+          outputDevice.send(
+              [MIDI_EVENT_ON, noteNum, currentVelocity * globalGain],
+              Math.floor(1000 * currentPianoTimeSec) - pianoStartTimestampMs);
+        }
+
+        return piano.keyDown(
+            noteNum, currentPianoTimeSec, currentVelocity * globalGain / 100);
       } else if (eventType === 'note_off') {
         const noteNum = index - offset;
-        piano.keyUp(
-            noteNum, Math.max(currentTime, activeNotes.get(noteNum) + .5));
+
+        const activeNoteEndTimeSec = activeNotes.get(noteNum);
+        // If the note off event is generated for a note that hasn't been
+        // pressed, just ignore it.
+        if (activeNoteEndTimeSec == null) {
+          return;
+        }
+        const timeSec =
+            Math.max(currentPianoTimeSec, activeNoteEndTimeSec + .5);
+
+        if (outputDevice != null) {
+          outputDevice.send(
+              [MIDI_EVENT_OFF, noteNum, currentVelocity * globalGain],
+              Math.floor(timeSec * 1000) - pianoStartTimestampMs);
+        }
+        piano.keyUp(noteNum, timeSec);
         activeNotes.delete(noteNum);
         return;
       } else if (eventType === 'time_shift') {
-        currentTime += (index - offset + 1) / STEPS_PER_SECOND;
-        activeNotes.forEach((time, noteNum) => {
-          if (currentTime - time > MAX_NOTE_DURATION_SECONDS) {
+        currentPianoTimeSec += (index - offset + 1) / STEPS_PER_SECOND;
+        activeNotes.forEach((timeSec, noteNum) => {
+          if (currentPianoTimeSec - timeSec > MAX_NOTE_DURATION_SECONDS) {
             console.info(
-                `Note ${noteNum} has been active for ${currentTime - time}, ` +
+                `Note ${noteNum} has been active for ${
+                    currentPianoTimeSec - timeSec}, ` +
                 `seconds which is over ${MAX_NOTE_DURATION_SECONDS}, will ` +
                 `release.`);
-            piano.keyUp(noteNum, currentTime);
+            if (outputDevice != null) {
+              outputDevice.send(
+                  [MIDI_EVENT_OFF, noteNum, currentVelocity * globalGain]);
+            }
+            piano.keyUp(noteNum, currentPianoTimeSec);
             activeNotes.delete(noteNum);
           }
         });
-        return currentTime;
+        return currentPianoTimeSec;
       } else if (eventType === 'velocity_change') {
         currentVelocity = (index - offset + 1) * Math.ceil(127 / VELOCITY_BINS);
         currentVelocity = currentVelocity / 127;

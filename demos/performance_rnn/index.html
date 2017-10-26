@@ -109,7 +109,6 @@ limitations under the License.
         background-color: #fff
     }
 
-
     #status {
       position: absolute;
       left: 0px;
@@ -155,7 +154,7 @@ limitations under the License.
       font-size: 50px;
       width: 100%;
       text-align: center;
-      margin-top: 60px;
+      margin-top: 30px;
       font-weight: bold;
     }
 
@@ -190,6 +189,16 @@ limitations under the License.
       color: white;
       text-decoration: none;
     }
+    #midi-out-container {
+      margin: 10px auto;
+    }
+    #gain-container {
+      margin-top: 5px;
+      text-align: center;
+    }
+    #gain, #note-density {
+      width: 150px;
+    }
   </style>
 </head>
 <body>
@@ -222,9 +231,11 @@ limitations under the License.
       </div>
       <div id="conditioning-controls">
         <div class="control" style="margin-right: 20px;">
-          Note Density<br/>
+          Note Density (<span id="note-density-display"></span>)<br/>
           <input type="range" min="0" max="6" value="2" id="note-density"><br />
-          <span id="note-density-display"></span>
+
+          Gain (<span id="gain-display"></span>%)<br>
+          <input type="range" id="gain" min=0 max=100 value=25></input>
         </div>
         <div class="control">
           Pitch Histogram<br/>
@@ -297,9 +308,12 @@ limitations under the License.
           <input type="button" value="Preset 1" id="preset-1">
           <input type="button" value="Preset 2" id="preset-2">
           <br />
-          <br />
           <input type="button" value="Save Preset 1" id="save-1">
           <input type="button" value="Save Preset 2" id="save-2">
+          <br>
+          <div id="midi-out-container">
+            midi out <select id="midi-out"></select>
+          </div>
         </div>
       </div>
       <div class="control" style="margin-right: 20px;">
