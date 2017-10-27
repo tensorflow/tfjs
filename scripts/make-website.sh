@@ -48,4 +48,11 @@ rm "$TMP_DIR"/homepage.ts
 
 echo "Website staged at $TMP_DIR"
 pushd $TMP_DIR > /dev/null
+
+if ! [ -x "$(command -v bundle)" ]; then
+  echo 'Installing Bundler'
+  gem install bundler
+fi
+
+bundle install --clean
 bundle exec jekyll serve
