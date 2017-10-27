@@ -71,34 +71,21 @@ export function getRunGroups(): BenchmarkRunGroup[] {
     params: convTransposedParams
   });
 
-  const maxPoolParams:
+  const poolParams:
       PoolBenchmarkParams = {depth: 8, fieldSize: 4, stride: 4, type: 'max'};
   groups.push({
-    name: 'Max pool',
+    name: 'Pool Op Benchmark: input [size, size]',
     min: 0,
     max: 1024,
     stepSize: 64,
     stepToSizeTransformation: (step: number) => Math.max(4, step),
+    options: ['max', 'min', 'avg'],
+    selectedOption: 'max',
     benchmarkRuns: [
-      new BenchmarkRun('max_pool_gpu', new PoolGPUBenchmark(maxPoolParams)),
-      new BenchmarkRun('max_pool_cpu', new PoolCPUBenchmark(maxPoolParams))
+      new BenchmarkRun('pool_gpu', new PoolGPUBenchmark(poolParams)),
+      new BenchmarkRun('pool_cpu', new PoolCPUBenchmark(poolParams))
     ],
-    params: maxPoolParams
-  });
-
-  const avgPoolParams:
-      PoolBenchmarkParams = {depth: 8, fieldSize: 4, stride: 4, type: 'avg'};
-  groups.push({
-    name: 'Avg pool',
-    min: 0,
-    max: 1024,
-    stepSize: 64,
-    stepToSizeTransformation: (step: number) => Math.max(4, step),
-    benchmarkRuns: [
-      new BenchmarkRun('avg_pool_gpu', new PoolGPUBenchmark(avgPoolParams)),
-      new BenchmarkRun('avg_pool_cpu', new PoolCPUBenchmark(avgPoolParams))
-    ],
-    params: avgPoolParams
+    params: poolParams
   });
 
   groups.push({
