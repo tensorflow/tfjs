@@ -144,15 +144,18 @@ To install it locally, run `npm install ./dist/deeplearn-VERSION.tgz`.
 
 > On Windows, use bash (available through git) to use the scripts above.
 
+Looking to contribute, and don't know where to start? Check out our "help wanted"
+[issues](https://github.com/PAIR-code/deeplearnjs/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
+
 ## Supported environments
 
-**deeplearn.js** targets WebGL 1.0 devices with the `OES_texture_float`
-extension and also targets WebGL 2.0 devices. For platforms without WebGL,
+**deeplearn.js** targets environments with WebGL 1.0 or WebGL 2.0. For devices
+without the `OES_texture_float` extension, we fall back to fixed precision
+floats backed by a `gl.UNSIGNED_BYTE` texture. For platforms without WebGL,
 we provide CPU fallbacks.
 
-However, currently our demos do not support Mobile, Firefox, and Safari. Please
-view them on desktop Chrome for now. We are working to support more devices.
-Check back soon!
+While the library supports most devices, our demos don't currently work on
+iOS Mobile or Desktop Safari. We are working on updating them, check back soon.
 
 ## Resources
 
