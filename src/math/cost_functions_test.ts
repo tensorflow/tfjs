@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as test_util from '../test_util';
 import {SquareCostFunc} from './cost_functions';
 import {NDArrayMathCPU} from './math_cpu';
 import {Array1D} from './ndarray';
@@ -33,9 +34,9 @@ describe('Cost functions', () => {
     const cost = square.cost(math, y, target);
 
     // The cost function is 1/2 * (y - target)^2
-    expect(cost.get(0)).toBeCloseTo(1 / 2);
-    expect(cost.get(1)).toBeCloseTo(0 / 2);
-    expect(cost.get(2)).toBeCloseTo(0.25 / 2);
+    test_util.expectNumbersClose(cost.get(0), 1 / 2);
+    test_util.expectNumbersClose(cost.get(1), 0 / 2);
+    test_util.expectNumbersClose(cost.get(2), 0.25 / 2);
   });
 
   it('Square derivative', () => {
@@ -44,8 +45,8 @@ describe('Cost functions', () => {
     const square = new SquareCostFunc();
     const dy = square.der(math, y, target);
 
-    expect(dy.get(0)).toBeCloseTo(1);
-    expect(dy.get(1)).toBeCloseTo(0);
-    expect(dy.get(2)).toBeCloseTo(-0.5);
+    test_util.expectNumbersClose(dy.get(0), 1);
+    test_util.expectNumbersClose(dy.get(1), 0);
+    test_util.expectNumbersClose(dy.get(2), -0.5);
   });
 });  // Close describe.

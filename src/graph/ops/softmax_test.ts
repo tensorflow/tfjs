@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as test_util from '../../test_util';
 import {NDArrayMathCPU} from '../../math/math_cpu';
 import {Array1D, Scalar} from '../../math/ndarray';
 import {Tensor} from '../graph';
@@ -62,11 +63,12 @@ describe('softmax cross entropy cost', () => {
     op.feedForward(math, activations);
     const y = activations.get(yTensor);
 
-    expect(y.get(0)).toBeCloseTo(
-        -Math.log(softmaxLogits.get(0)) * label.get(0) +
-            -Math.log(softmaxLogits.get(1)) * label.get(1) +
-            -Math.log(softmaxLogits.get(2)) * label.get(2),
-        3);
+    test_util.expectNumbersClose(
+      y.get(0),
+      -Math.log(softmaxLogits.get(0)) * label.get(0) +
+      -Math.log(softmaxLogits.get(1)) * label.get(1) +
+      -Math.log(softmaxLogits.get(2)) * label.get(2)
+    );
 
     const dy = Scalar.new(1);
     gradients.add(yTensor, dy);
@@ -74,8 +76,17 @@ describe('softmax cross entropy cost', () => {
     op.backProp(math, activations, gradients);
 
     const dLogits = gradients.get(logitsTensor);
-    expect(dLogits.get(0)).toBeCloseTo(softmaxLogits.get(0) - label.get(0), 6);
-    expect(dLogits.get(1)).toBeCloseTo(softmaxLogits.get(1) - label.get(1), 6);
-    expect(dLogits.get(2)).toBeCloseTo(softmaxLogits.get(2) - label.get(2), 6);
+    test_util.expectNumbersClose(
+      dLogits.get(0),
+      softmaxLogits.get(0) - label.get(0)
+    );
+    test_util.expectNumbersClose(
+      dLogits.get(1),
+      softmaxLogits.get(1) - label.get(1)
+    );
+    test_util.expectNumbersClose(
+      dLogits.get(2),
+      softmaxLogits.get(2) - label.get(2)
+    );
   });
 });

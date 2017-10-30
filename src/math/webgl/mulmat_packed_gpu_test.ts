@@ -59,7 +59,7 @@ describe('mulmat_packed_gpu (1x1 * 1x1)', () => {
     const b = new Float32Array([3.4]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [1, 1], b, [1, 1]);
-    expect(result[0]).toBeCloseTo(4.08);
+    test_util.expectNumbersClose(result[0], 4.08);
   });
 
   it('returns [356000] when multiplying [356] by [1000]', () => {
@@ -110,7 +110,7 @@ describe('mulmat_packed_gpu (dot product)', () => {
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [1, a.length], b, [b.length, 1]);
     const expected = test_util.cpuDotProduct(a, b);
-    expect(result[0]).toBeCloseTo(expected);
+    test_util.expectNumbersClose(result[0], expected);
   });
 
   it('computes a dot product on very large vectors', () => {
@@ -119,7 +119,7 @@ describe('mulmat_packed_gpu (dot product)', () => {
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [1, a.length], b, [b.length, 1]);
     const expected = test_util.cpuDotProduct(a, b);
-    expect(result[0]).toBeCloseTo(expected);
+    test_util.expectNumbersClose(result[0], expected);
   });
 });
 
