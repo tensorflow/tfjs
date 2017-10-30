@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import * as test_util from '../test_util';
 import * as util from '../util';
 
 import {ReLUFunc, SigmoidFunc, TanHFunc} from './activation_functions';
@@ -33,12 +33,12 @@ describe('Activation functions', () => {
     const tanH = new TanHFunc();
     const y = tanH.output(math, x);
 
-    expect(y.get(0)).toBeCloseTo(util.tanh(x.get(0)));
-    expect(y.get(1)).toBeCloseTo(util.tanh(x.get(1)));
-    expect(y.get(2)).toBeCloseTo(util.tanh(x.get(2)));
-    expect(y.get(3)).toBeCloseTo(1);
-    expect(y.get(4)).toBeCloseTo(-1);
-    expect(y.get(5)).toBeCloseTo(0);
+    test_util.expectNumbersClose(y.get(0), util.tanh(x.get(0)));
+    test_util.expectNumbersClose(y.get(1), util.tanh(x.get(1)));
+    test_util.expectNumbersClose(y.get(2), util.tanh(x.get(2)));
+    test_util.expectNumbersClose(y.get(3), 1);
+    test_util.expectNumbersClose(y.get(4), -1);
+    test_util.expectNumbersClose(y.get(5), 0);
   });
 
   it('Tanh derivative', () => {
@@ -47,9 +47,9 @@ describe('Activation functions', () => {
     const y = tanH.output(math, x);
     const dx = tanH.der(math, x, y);
 
-    expect(dx.get(0)).toBeCloseTo(1 - Math.pow(y.get(0), 2));
-    expect(dx.get(1)).toBeCloseTo(1 - Math.pow(y.get(1), 2));
-    expect(dx.get(2)).toBeCloseTo(1 - Math.pow(y.get(2), 2));
+    test_util.expectNumbersClose(dx.get(0), 1 - Math.pow(y.get(0), 2));
+    test_util.expectNumbersClose(dx.get(1), 1 - Math.pow(y.get(1), 2));
+    test_util.expectNumbersClose(dx.get(2), 1 - Math.pow(y.get(2), 2));
   });
 
   it('ReLU output', () => {
@@ -57,9 +57,9 @@ describe('Activation functions', () => {
     const relu = new ReLUFunc();
     const y = relu.output(math, x);
 
-    expect(y.get(0)).toBeCloseTo(1);
-    expect(y.get(1)).toBeCloseTo(3);
-    expect(y.get(2)).toBeCloseTo(0);
+    test_util.expectNumbersClose(y.get(0), 1);
+    test_util.expectNumbersClose(y.get(1), 3);
+    test_util.expectNumbersClose(y.get(2), 0);
   });
 
   it('ReLU derivative', () => {
@@ -68,9 +68,9 @@ describe('Activation functions', () => {
     const y = relu.output(math, x);
     const dx = relu.der(math, x, y);
 
-    expect(dx.get(0)).toBeCloseTo(1);
-    expect(dx.get(1)).toBeCloseTo(1);
-    expect(dx.get(2)).toBeCloseTo(0);
+    test_util.expectNumbersClose(dx.get(0), 1);
+    test_util.expectNumbersClose(dx.get(1), 1);
+    test_util.expectNumbersClose(dx.get(2), 0);
   });
 
   it('Sigmoid output', () => {
@@ -78,12 +78,12 @@ describe('Activation functions', () => {
     const sigmoid = new SigmoidFunc();
     const y = sigmoid.output(math, x);
 
-    expect(y.get(0)).toBeCloseTo(1 / (1 + Math.exp(-1)));
-    expect(y.get(1)).toBeCloseTo(1 / (1 + Math.exp(-3)));
-    expect(y.get(2)).toBeCloseTo(1 / (1 + Math.exp(2)));
-    expect(y.get(3)).toBeCloseTo(1);
-    expect(y.get(4)).toBeCloseTo(0);
-    expect(y.get(5)).toBeCloseTo(0.5);
+    test_util.expectNumbersClose(y.get(0), 1 / (1 + Math.exp(-1)));
+    test_util.expectNumbersClose(y.get(1), 1 / (1 + Math.exp(-3)));
+    test_util.expectNumbersClose(y.get(2), 1 / (1 + Math.exp(2)));
+    test_util.expectNumbersClose(y.get(3), 1);
+    test_util.expectNumbersClose(y.get(4), 0);
+    test_util.expectNumbersClose(y.get(5), 0.5);
   });
 
   it('Sigmoid derivative', () => {
@@ -92,8 +92,8 @@ describe('Activation functions', () => {
     const y = sigmoid.output(math, x);
     const dx = sigmoid.der(math, x, y);
 
-    expect(dx.get(0)).toBeCloseTo(y.get(0) * (1 - y.get(0)));
-    expect(dx.get(1)).toBeCloseTo(y.get(1) * (1 - y.get(1)));
-    expect(dx.get(2)).toBeCloseTo(y.get(2) * (1 - y.get(2)));
+    test_util.expectNumbersClose(dx.get(0), y.get(0) * (1 - y.get(0)));
+    test_util.expectNumbersClose(dx.get(1), y.get(1) * (1 - y.get(1)));
+    test_util.expectNumbersClose(dx.get(2), y.get(2) * (1 - y.get(2)));
   });
 });

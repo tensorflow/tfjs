@@ -14,10 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
+import * as test_util from '../../test_util';
 
 import * as environment from '../../environment';
 import {Environment, Features} from '../../environment';
-import * as test_util from '../../test_util';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as tex_util from './tex_util';
@@ -104,7 +104,6 @@ test_util.describeCustom(
         gpgpu.gl.clearColor(0.123, 0, 0, 0);
         gpgpu.gl.clear(gpgpu.gl.COLOR_BUFFER_BIT);
         const result = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
-        expect(result[0]).toBeCloseTo(0.123);
         test_util.expectNumbersClose(result[0], 0.123);
       });
     },
@@ -141,11 +140,11 @@ test_util.describeCustom(
         gpgpu.uploadMatrixToTexture(texture, 1, 1, new Float32Array([10]));
         gpgpu.setOutputMatrixTexture(output, 1, 1);
         const tBeforeClear = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
-        expect(tBeforeClear[0]).toBeCloseTo(10);
+        test_util.expectNumbersClose(tBeforeClear[0], 10);
         gpgpu.gl.clearColor(1, 0, 0, 0);
         gpgpu.gl.clear(gpgpu.gl.COLOR_BUFFER_BIT);
         const tAfterClear = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
-        expect(tAfterClear[0]).toBeCloseTo(10);
+        test_util.expectNumbersClose(tAfterClear[0], 10);
         gpgpu.deleteMatrixTexture(output);
       });
 

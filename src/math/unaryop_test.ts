@@ -266,8 +266,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
       const r = math.sqrt(a);
 
-      expect(r.get(0)).toBeCloseTo(Math.sqrt(2));
-      expect(r.get(1)).toBeCloseTo(Math.sqrt(4));
+      test_util.expectNumbersClose(r.get(0), Math.sqrt(2));
+      test_util.expectNumbersClose(r.get(1), Math.sqrt(4));
 
       a.dispose();
     });
@@ -299,8 +299,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
       const r = math.log(a);
 
-      expect(r.get(0)).toBeCloseTo(Math.log(1));
-      expect(r.get(1)).toBeCloseTo(Math.log(2));
+      test_util.expectNumbersClose(r.get(0), Math.log(1));
+      test_util.expectNumbersClose(r.get(1), Math.log(2));
 
       a.dispose();
     });
@@ -332,9 +332,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
       const r = math.ceil(a);
 
-      expect(r.get(0)).toBeCloseTo(2);
-      expect(r.get(1)).toBeCloseTo(3);
-      expect(r.get(2)).toBeCloseTo(-1);
+      test_util.expectNumbersClose(r.get(0), 2);
+      test_util.expectNumbersClose(r.get(1), 3);
+      test_util.expectNumbersClose(r.get(2), -1);
 
       a.dispose();
     });
@@ -366,9 +366,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
       const r = math.floor(a);
 
-      expect(r.get(0)).toBeCloseTo(1);
-      expect(r.get(1)).toBeCloseTo(2);
-      expect(r.get(2)).toBeCloseTo(-2);
+      test_util.expectNumbersClose(r.get(0), 1);
+      test_util.expectNumbersClose(r.get(1), 2);
+      test_util.expectNumbersClose(r.get(2), -2);
 
       a.dispose();
     });
@@ -400,9 +400,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
       const r = math.exp(a);
 
-      expect(r.get(0)).toBeCloseTo(Math.exp(1));
-      expect(r.get(1)).toBeCloseTo(Math.exp(2));
-      expect(r.get(2)).toBeCloseTo(1);
+      test_util.expectNumbersClose(r.get(0), Math.exp(1));
+      test_util.expectNumbersClose(r.get(1), Math.exp(2));
+      test_util.expectNumbersClose(r.get(2), 1);
 
       a.dispose();
     });

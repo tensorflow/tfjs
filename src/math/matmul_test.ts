@@ -362,7 +362,7 @@ const gpuTests: MathTests = it => {
     expect(v2.getTextureShapeRC([1, 2])).toEqual([1, 2]);
 
     const result = math.dotProduct(v1, v2);
-    expect(result.get()).toBeCloseTo(7);
+    test_util.expectNumbersClose(result.get(), 7);
     v1.dispose();
     v2.dispose();
   });

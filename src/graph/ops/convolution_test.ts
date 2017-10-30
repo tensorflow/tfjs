@@ -23,6 +23,8 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
 import {Convolution2D} from './convolution';
 
+import * as test_util from '../../test_util';
+
 function assertNoNaNs(t: NDArray) {
   const values = t.getValues();
   for (let i = 0; i < values.length; ++i) {
@@ -227,33 +229,37 @@ describe('Convolution', () => {
 
     assertNoNaNs(y);
 
-    expect(y.get(0, 0, 0))
-        .toBeCloseTo(
-            x.get(0, 0) * weights.get(0, 0, 0, 0) +
-            x.get(0, 1) * weights.get(0, 1, 0, 0) +
-            x.get(1, 0) * weights.get(1, 0, 0, 0) +
-            x.get(1, 1) * weights.get(1, 1, 0, 0) + biases.get(0));
+    test_util.expectNumbersClose(
+      y.get(0, 0, 0),
+      x.get(0, 0) * weights.get(0, 0, 0, 0) +
+      x.get(0, 1) * weights.get(0, 1, 0, 0) +
+      x.get(1, 0) * weights.get(1, 0, 0, 0) +
+      x.get(1, 1) * weights.get(1, 1, 0, 0) + biases.get(0)
+    );
 
-    expect(y.get(0, 1, 0))
-        .toBeCloseTo(
-            x.get(0, 1) * weights.get(0, 0, 0, 0) +
-            x.get(0, 2) * weights.get(0, 1, 0, 0) +
-            x.get(1, 1) * weights.get(1, 0, 0, 0) +
-            x.get(1, 2) * weights.get(1, 1, 0, 0) + biases.get(0));
+    test_util.expectNumbersClose(
+      y.get(0, 1, 0),
+      x.get(0, 1) * weights.get(0, 0, 0, 0) +
+      x.get(0, 2) * weights.get(0, 1, 0, 0) +
+      x.get(1, 1) * weights.get(1, 0, 0, 0) +
+      x.get(1, 2) * weights.get(1, 1, 0, 0) + biases.get(0)
+    );
 
-    expect(y.get(1, 0, 0))
-        .toBeCloseTo(
-            x.get(1, 0) * weights.get(0, 0, 0, 0) +
-            x.get(1, 1) * weights.get(0, 1, 0, 0) +
-            x.get(2, 0) * weights.get(1, 0, 0, 0) +
-            x.get(2, 1) * weights.get(1, 1, 0, 0) + biases.get(0));
+    test_util.expectNumbersClose(
+      y.get(1, 0, 0),
+      x.get(1, 0) * weights.get(0, 0, 0, 0) +
+      x.get(1, 1) * weights.get(0, 1, 0, 0) +
+      x.get(2, 0) * weights.get(1, 0, 0, 0) +
+      x.get(2, 1) * weights.get(1, 1, 0, 0) + biases.get(0)
+    );
 
-    expect(y.get(1, 1, 0))
-        .toBeCloseTo(
-            x.get(1, 1) * weights.get(0, 0, 0, 0) +
-            x.get(1, 2) * weights.get(0, 1, 0, 0) +
-            x.get(2, 1) * weights.get(1, 0, 0, 0) +
-            x.get(2, 2) * weights.get(1, 1, 0, 0) + biases.get(0));
+    test_util.expectNumbersClose(
+      y.get(1, 1, 0),
+      x.get(1, 1) * weights.get(0, 0, 0, 0) +
+      x.get(1, 2) * weights.get(0, 1, 0, 0) +
+      x.get(2, 1) * weights.get(1, 0, 0, 0) +
+      x.get(2, 2) * weights.get(1, 1, 0, 0) + biases.get(0)
+    );
 
     const dy3d = Array3D.randNormal([2, 2, 1]);
 
@@ -268,40 +274,53 @@ describe('Convolution', () => {
     const dy = dy3d.as2D(2, 2);
 
     // Test dX.
-    expect(dx.get(0, 0)).toBeCloseTo(dy.get(0, 0) * weights.get(0, 0, 0, 0));
-    expect(dx.get(0, 1))
-        .toBeCloseTo(
-            dy.get(0, 0) * weights.get(0, 1, 0, 0) +
-            dy.get(0, 1) * weights.get(0, 0, 0, 0));
-    expect(dx.get(0, 2)).toBeCloseTo(dy.get(0, 1) * weights.get(0, 1, 0, 0));
-    expect(dx.get(1, 1))
-        .toBeCloseTo(
-            dy.get(0, 0) * weights.get(1, 1, 0, 0) +
-            dy.get(0, 1) * weights.get(1, 0, 0, 0) +
-            dy.get(1, 0) * weights.get(0, 1, 0, 0) +
-            dy.get(1, 1) * weights.get(0, 0, 0, 0));
-    expect(dx.get(2, 1))
-        .toBeCloseTo(
-            dy.get(1, 0) * weights.get(1, 1, 0, 0) +
-            dy.get(1, 1) * weights.get(1, 0, 0, 0));
+    test_util.expectNumbersClose(
+      dx.get(0, 0),
+      dy.get(0, 0) * weights.get(0, 0, 0, 0)
+    );
+    test_util.expectNumbersClose(
+      dx.get(0, 1),
+      dy.get(0, 0) * weights.get(0, 1, 0, 0) +
+      dy.get(0, 1) * weights.get(0, 0, 0, 0)
+    );
+    test_util.expectNumbersClose(
+      dx.get(0, 2),
+      dy.get(0, 1) * weights.get(0, 1, 0, 0)
+    );
+    test_util.expectNumbersClose(
+      dx.get(1, 1),
+      dy.get(0, 0) * weights.get(1, 1, 0, 0) +
+      dy.get(0, 1) * weights.get(1, 0, 0, 0) +
+      dy.get(1, 0) * weights.get(0, 1, 0, 0) +
+      dy.get(1, 1) * weights.get(0, 0, 0, 0)
+    );
+    test_util.expectNumbersClose(
+      dx.get(2, 1),
+      dy.get(1, 0) * weights.get(1, 1, 0, 0) +
+      dy.get(1, 1) * weights.get(1, 0, 0, 0)
+    );
 
     // Test dW.
     const dw = gradients.get(wTensor);
 
-    expect(dw.get(0, 0, 0, 0))
-        .toBeCloseTo(
-            dy.get(0, 0) * x.get(0, 0) + dy.get(0, 1) * x.get(0, 1) +
-            dy.get(1, 0) * x.get(1, 0) + dy.get(1, 1) * x.get(1, 1));
-    expect(dw.get(1, 1, 0, 0))
-        .toBeCloseTo(
-            dy.get(0, 0) * x.get(1, 1) + dy.get(0, 1) * x.get(1, 2) +
-            dy.get(1, 0) * x.get(2, 1) + dy.get(1, 1) * x.get(2, 2));
+    test_util.expectNumbersClose(
+      dw.get(0, 0, 0, 0),
+      dy.get(0, 0) * x.get(0, 0) + dy.get(0, 1) * x.get(0, 1) +
+      dy.get(1, 0) * x.get(1, 0) + dy.get(1, 1) * x.get(1, 1)
+    );
+    test_util.expectNumbersClose(
+      dw.get(1, 1, 0, 0),
+      dy.get(0, 0) * x.get(1, 1) + dy.get(0, 1) * x.get(1, 2) +
+      dy.get(1, 0) * x.get(2, 1) + dy.get(1, 1) * x.get(2, 2)
+    );
 
     // Test db (bias).
     const db = gradients.get(bTensor).get(0);
 
-    expect(db).toBeCloseTo(
-        dy.get(0, 0) + dy.get(0, 1) + dy.get(1, 0) + dy.get(1, 1));
+    test_util.expectNumbersClose(
+      db,
+      dy.get(0, 0) + dy.get(0, 1) + dy.get(1, 0) + dy.get(1, 1)
+    );
   });
 
   it('conv backprop with d1=3 d2=7', () => {

@@ -29,7 +29,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const result = math.slice1D(a, 0, 1);
 
       expect(result.shape).toEqual([1]);
-      expect(result.get(0)).toBeCloseTo(5);
+      test_util.expectNumbersClose(result.get(0), 5);
 
       a.dispose();
     });
@@ -140,7 +140,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const result = math.slice3D(a, [0, 0, 0], [1, 1, 1]);
 
       expect(result.shape).toEqual([1, 1, 1]);
-      expect(result.get(0, 0, 0)).toBeCloseTo(5);
+      test_util.expectNumbersClose(result.get(0, 0, 0), 5);
 
       a.dispose();
     });
@@ -186,7 +186,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const result = math.slice4D(a, [0, 0, 0, 0], [1, 1, 1, 1]);
 
       expect(result.shape).toEqual([1, 1, 1, 1]);
-      expect(result.get(0, 0, 0, 0)).toBeCloseTo(5);
+      test_util.expectNumbersClose(result.get(0, 0, 0, 0), 5);
 
       a.dispose();
     });

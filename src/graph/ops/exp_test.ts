@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as test_util from '../../test_util';
 import {NDArrayMathCPU} from '../../math/math_cpu';
 import {Array1D} from '../../math/ndarray';
 import {Tensor} from '../graph';
@@ -57,9 +58,9 @@ describe('exp operation', () => {
     const y = activations.get(yTensor);
 
     expect(y.shape).toEqual([3]);
-    expect(y.get(0)).toBeCloseTo(Math.exp(x.get(0)));
-    expect(y.get(1)).toBeCloseTo(Math.exp(x.get(1)));
-    expect(y.get(2)).toBeCloseTo(Math.exp(x.get(2)));
+    test_util.expectNumbersClose(y.get(0), Math.exp(x.get(0)));
+    test_util.expectNumbersClose(y.get(1), Math.exp(x.get(1)));
+    test_util.expectNumbersClose(y.get(2), Math.exp(x.get(2)));
 
     const dy = Array1D.new([1, 2, 3]);
     gradients.add(yTensor, dy);
@@ -69,8 +70,8 @@ describe('exp operation', () => {
     const dx = gradients.get(xTensor);
 
     expect(dx.shape).toEqual(dx.shape);
-    expect(dx.get(0)).toBeCloseTo(y.get(0) * dy.get(0));
-    expect(dx.get(1)).toBeCloseTo(y.get(1) * dy.get(1));
-    expect(dx.get(2)).toBeCloseTo(y.get(2) * dy.get(2));
+    test_util.expectNumbersClose(dx.get(0), y.get(0) * dy.get(0));
+    test_util.expectNumbersClose(dx.get(1), y.get(1) * dy.get(1));
+    test_util.expectNumbersClose(dx.get(2), y.get(2) * dy.get(2));
   });
 });
