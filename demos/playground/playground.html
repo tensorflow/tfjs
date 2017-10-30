@@ -1,0 +1,69 @@
+<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-orange.min.css" />
+<style>
+  .gist {
+    margin: 40px auto 0 auto;
+    width: 400px;
+    font-size: 14px;
+  }
+
+  .gist-container {
+    margin: auto;
+    text-align: center;
+  }
+
+  .textarea {
+    display: block;
+    padding: 10px;
+    font-size:16px;
+    margin:0 auto;
+    width: 690px;
+    font-family: "Courier New", monospace;
+    white-space: pre;
+    border-left: solid 2px #ccc;
+  }
+
+  pre {
+    margin: 0;
+  }
+
+  #save {
+    margin: auto;
+  }
+
+  #container, #highlight {
+    width: 690px;
+    margin: auto;
+    text-align: left;
+  }
+
+  #console {
+    font-family: "Courier New", monospace;
+    white-space: pre;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+</style>
+
+<div class="gist-container">
+  <input type="text" id="gist-url" class="gist" onClick="this.select();" readonly></input><br>
+</div>
+
+<div id="highlight">
+  js
+  <pre class="code-container">
+    <code id="jscontent" contenteditable class="javascript textarea"></code>
+  </pre>
+
+  html
+  <pre class="code-container">
+    <code id="htmlcontent" contenteditable class="html textarea"></code>
+  </pre>
+</code>
+<div id="container">
+  <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="button" id="run">run</button>
+  <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="button" id="save">save</button>
+
+  <div id="html"></div>
+  <div id="console"></div>
+</div>
+<script src="bundle.js"></script>
