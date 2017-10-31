@@ -308,7 +308,7 @@ export class NDArrayMathCPU extends NDArrayMath {
     return NDArray.make(newShape, {values: newValues}) as T;
   }
 
-  protected divideInternal<T extends NDArray>(a: T, b: T): T {
+  protected divideInternal(a: NDArray, b: NDArray): NDArray<'float32'> {
     const newShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const newValues = new Float32Array(util.sizeFromShape(newShape));
@@ -319,7 +319,7 @@ export class NDArrayMathCPU extends NDArrayMath {
     for (let i = 0; i < newValues.length; ++i) {
       newValues[i] = aValues[i % a.size] / bValues[i % b.size];
     }
-    return NDArray.make(newShape, {values: newValues}) as T;
+    return NDArray.make(newShape, {values: newValues}, 'float32');
   }
 
   protected sumInternal<T extends keyof DataTypes>(
@@ -471,7 +471,7 @@ export class NDArrayMathCPU extends NDArrayMath {
     const aVals = input.getValues();
     for (let i = 0; i < vals.length; ++i) {
       const offset = i * reduceSize;
-      let max = aVals[0];
+      let max = aVals[offset];
       for (let j = 0; j < reduceSize; ++j) {
         const value = aVals[offset + j];
         if (isNaN(value)) {
@@ -534,6 +534,16 @@ export class NDArrayMathCPU extends NDArrayMath {
     return NDArray.make(ndarray.shape, {values: newValues}) as T;
   }
 
+  protected squareInternal<T extends NDArray>(x: T): T {
+    const values = x.getValues();
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i];
+      newValues[i] = value * value;
+    }
+    return NDArray.make(x.shape, {values: newValues}) as T;
+  }
+
   protected logSumExpInternal(input: NDArray, axes: number[]): NDArray {
     axis_util.assertAxesAreInnerMostDims('logSumExp', axes, input.rank);
     const xMax = this.max(input, axes, true /* keepDims */);
@@ -577,7 +587,7 @@ export class NDArrayMathCPU extends NDArrayMath {
   protected leakyReluInternal<T extends NDArray>(ndarray: T, alpha: number) {
     const resultValues = new Float32Array(ndarray.size);
     const values = ndarray.dataSync();
-    for (let i = 0; i < values.length; i++){
+    for (let i = 0; i < values.length; i++) {
       const v = values[i];
       if (v >= 0) {
         resultValues[i] = v;

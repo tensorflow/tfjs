@@ -275,9 +275,11 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, [a]);
   }
 
-  protected divideInternal<T extends NDArray>(a: T, b: T): T {
+  protected divideInternal(a: NDArray, b: NDArray): NDArray<'float32'> {
     const program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
-    return this.compileAndRun<NDArray, T>(program, [a, b]);
+    const output = this.makeOutputArray(program.outputShape, 'float32');
+    return this.compileAndRun<NDArray, NDArray<'float32'>>(
+        program, [a, b], output);
   }
 
   protected addInternal<T extends NDArray>(a: T, b: T): T {
@@ -320,19 +322,23 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, [a]) as T;
   }
 
+  protected squareInternal<T extends NDArray>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.SQUARE);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
   protected reluInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.RELU);
     return this.compileAndRun(program, [a]) as T;
   }
 
-  protected eluInternal<T extends NDArray>(a: T): T{
+  protected eluInternal<T extends NDArray>(a: T): T {
     const program = new UnaryOpProgram(a.shape, unary_op.ELU);
     return this.compileAndRun(program, [a]) as T;
   }
 
   protected leakyReluInternal<T extends NDArray>(a: T, alpha: number): T {
-    const program = new UnaryOpProgram(a.shape,
-        unary_op.LEAKY_RELU(alpha));
+    const program = new UnaryOpProgram(a.shape, unary_op.LEAKY_RELU(alpha));
     return this.compileAndRun(program, [a]) as T;
   }
 
@@ -477,8 +483,8 @@ export class NDArrayMathGPU extends NDArrayMath {
   }
 
   protected oneHotInternal(
-      indices: ndarray.Array1D, depth: number, onValue: number,
-      offValue: number): ndarray.Array2D {
+      indices: Array1D, depth: number, onValue: number,
+      offValue: number): Array2D {
     const program = new OneHotProgram(indices.size, depth, onValue, offValue);
     return this.compileAndRun(program, [indices]);
   }
