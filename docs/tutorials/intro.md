@@ -24,7 +24,7 @@ Run it yourself with:
 
 And visit `http://localhost:8080/demos/intro/`.
 
-Or just view the demo we have hosted [here](https://pair-code.github.io/deeplearnjs/demos/intro/).
+Or just view the demo we have hosted [here](https://deeplearnjs.org/demos/intro/).
 
 For the purposes of the documentation, we will use TypeScript code examples.
 For vanilla JavaScript, you may need to remove the occasional TypeScript type annotation or definition.
