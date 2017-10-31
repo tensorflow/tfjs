@@ -156,3 +156,30 @@ describe('axis_util expandShapeToKeepDim', () => {
     expect(shape).toEqual([7, 1, 3]);
   });
 });
+
+describe('axis_util getPermAxes', () => {
+  it('all axes, no perm is needed', () => {
+    const perm = axis_util.getPermutedAxes([0, 1, 2], 3);
+    expect(perm).toBeNull();
+  });
+
+  it('no axes, no perm is needed', () => {
+    const perm = axis_util.getPermutedAxes([], 3);
+    expect(perm).toBeNull();
+  });
+
+  it('inner most 2 axes, no perm is needed', () => {
+    const perm = axis_util.getPermutedAxes([2, 3], 4);
+    expect(perm).toBeNull();
+  });
+
+  it('outer most axis, perm is needed', () => {
+    const perm = axis_util.getPermutedAxes([0], 4);
+    expect(perm).toEqual([1, 2, 3, 0]);
+  });
+
+  it('2 outer most axes, perm is needed', () => {
+    const perm = axis_util.getPermutedAxes([0, 1], 4);
+    expect(perm).toEqual([2, 3, 0, 1]);
+  });
+});
