@@ -159,10 +159,10 @@ iOS Mobile or Desktop Safari. We are working on updating them, check back soon.
 
 ## Resources
 
-* [Tutorials](http://pair-code.github.io/deeplearnjs/docs/tutorials/index.html)
-* [API Reference](http://pair-code.github.io/deeplearnjs/docs/api/globals.html)
-* [Demos](http://pair-code.github.io/deeplearnjs/index.html#demos)
-* [Roadmap](http://pair-code.github.io/deeplearnjs/docs/roadmap.html)
+* [Tutorials](https://deeplearnjs.org/docs/tutorials/index.html)
+* [API Reference](https://deeplearnjs.org/docs/api/globals.html)
+* [Demos](https://deeplearnjs.org/index.html#demos)
+* [Roadmap](https://deeplearnjs.org/docs/roadmap.html)
 
 ## Thanks
 
