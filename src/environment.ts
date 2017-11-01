@@ -34,13 +34,18 @@ export interface Features {
   // Whether writing & reading floating point textures is enabled. When
   // false, fall back to using unsigned byte textures.
   'WEBGL_FLOAT_TEXTURE_ENABLED'?: boolean;
+  // Whether WEBGL_get_buffer_sub_data_async is enabled.
+  'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'?: boolean;
 }
 
 export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED', type: Type.BOOLEAN},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
   {name: 'WEBGL_VERSION', type: Type.NUMBER},
-  {name: 'WEBGL_FLOAT_TEXTURE_ENABLED', type: Type.BOOLEAN}
+  {name: 'WEBGL_FLOAT_TEXTURE_ENABLED', type: Type.BOOLEAN}, {
+    name: 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED',
+    type: Type.BOOLEAN
+  }
 ];
 
 export interface URLProperty {
@@ -140,6 +145,17 @@ function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
   return frameBufferComplete;
 }
 
+function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
+  if (webGLVersion !== 2) {
+    return false;
+  }
+  const gl = getWebGLRenderingContext(webGLVersion);
+  const ext = gl.getExtension('WEBGL_get_buffer_sub_data_async');
+  const isEnabled = ext != null;
+  loseContext(gl);
+  return isEnabled;
+}
+
 export class Environment {
   private features: Features = {};
 
@@ -180,6 +196,10 @@ export class Environment {
       return 0;
     } else if (feature === 'WEBGL_FLOAT_TEXTURE_ENABLED') {
       return isFloatTextureReadPixelsEnabled(this.get('WEBGL_VERSION'));
+    } else if (
+        feature === 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED') {
+      return isWebGLGetBufferSubDataAsyncExtensionEnabled(
+          this.get('WEBGL_VERSION'));
     }
     throw new Error(`Unknown feature ${feature}.`);
   }

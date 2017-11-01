@@ -312,25 +312,28 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
    * Asynchronously downloads the values from the NDArray. Returns a promise
    * that resolves when the data is ready.
    */
-  data(): Promise<DataTypes[T]> {
-    return new Promise<DataTypes[T]>((resolve, reject) => {
-      if (this.ndarrayData.values != null) {
-        resolve(this.ndarrayData.values);
-        return;
-      }
+  async data(): Promise<DataTypes[T]> {
+    if (this.ndarrayData.values != null) {
+      return this.ndarrayData.values;
+    }
 
-      if (!ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')) {
-        resolve(this.getValues());
-        return;
-      }
+    if (ENV.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED') &&
+        this.ndarrayData.textureType === TextureType.DEFAULT) {
+      this.ndarrayData.values = await GPGPU.downloadMatrixFromTextureAsync(
+          this.ndarrayData.texture, this.ndarrayData.textureShapeRC[0],
+          this.ndarrayData.textureShapeRC[1]);
+      return this.ndarrayData.values;
+    }
 
-      // Construct an empty query. We're just interested in getting a callback
-      // when the GPU command queue has executed until this point in time.
-      const queryFn = () => {};
-      GPGPU.runQuery(queryFn).then(() => {
-        resolve(this.getValues());
-      });
-    });
+    if (!ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')) {
+      return await this.dataSync();
+    }
+
+    // Construct an empty query. We're just interested in getting a callback
+    // when the GPU command queue has executed until this point in time.
+    const queryFn = () => {};
+    await GPGPU.runQuery(queryFn);
+    return this.dataSync();
   }
 
   /**
@@ -831,7 +834,7 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
 }
 
 function copyTypedArray<T extends keyof DataTypes>(
-    array: DataTypes[T] | number[] | boolean[], dtype: T): DataTypes[T] {
+    array: DataTypes[T]|number[]|boolean[], dtype: T): DataTypes[T] {
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {
