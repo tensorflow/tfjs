@@ -63,3 +63,14 @@ export {
   webgl_util,
   xhr_dataset
 };
+
+function exportToTopLevel(alias: string): void {
+  setTimeout(() => {
+    // tslint:disable-next-line:no-any
+    const w: any = window;
+    if (w != null && w.deeplearn != null && w[alias] == null) {
+      w[alias] = w.deeplearn;
+    }
+  });
+}
+exportToTopLevel('dl');

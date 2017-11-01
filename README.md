@@ -59,12 +59,10 @@ of the library from [unpkg](https://unpkg.com):
 To use a specific version, add `@version` to the unpkg URL above
 (e.g. `https://unpkg.com/deeplearn@0.2.0`), which you can find in the
 [releases](https://github.com/PAIR-code/deeplearnjs/releases) page on GitHub.
-After importing the library, the API will be available as `deeplearn` in the
-global namespace. We recommend declaring the `dl` alias at the top of the file:
+After importing the library, the API will be available as `dl` in the global
+namespace.
 
 ```js
-var dl = deeplearn;
-
 var math = new dl.NDArrayMathGPU();
 var a = dl.Array1D.new([1, 2, 3]);
 var b = dl.Scalar.new(2);
