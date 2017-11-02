@@ -1,10 +1,16 @@
 import * as dl from '../deeplearn';
+import {SqueezeNet} from '../models/squeezenet';
 
-// Add all the dl exports to the top level window.
+// tslint:disable-next-line:no-any
+const w: any = window;
+
+// Add all the dl exports and models to the top level window.
 for (const prop in dl) {
   // tslint:disable-next-line:no-any
-  (window as any)[prop] = (dl as any)[prop];
+  w[prop] = (dl as any)[prop];
 }
+w['models'] = {};
+w['models']['SqueezeNet'] = SqueezeNet;
 
 const GITHUB_JS_FILENAME = 'js';
 const GITHUB_HTML_FILENAME = 'html';
@@ -74,6 +80,7 @@ async function loadGistFromURL() {
       const htmlCode = await htmlResult.text();
 
       htmlcontentElement.innerText = htmlCode;
+      runHTML();
     }
   } else {
     gistUrlElement.value = 'Unsaved';
@@ -85,8 +92,12 @@ window.console.log = (str: string) => {
   consoleElement.innerText += str + '\n';
 };
 
-async function runCode() {
+function runHTML() {
   htmlconsoleElement.innerHTML = htmlcontentElement.innerText;
+}
+
+async function runCode() {
+  runHTML();
   consoleElement.innerText = '';
 
   try {
