@@ -18,9 +18,10 @@
 import '../demo-header';
 import '../demo-footer';
 // tslint:disable-next-line:max-line-length
-import {Array3D, gpgpu_util, GPGPUContext, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
+import {Array1D, Array3D, gpgpu_util, GPGPUContext, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
 import * as imagenet_util from '../models/imagenet_util';
-import {SqueezeNet} from '../models/squeezenet';
+import {IMAGENET_CLASSES} from '../models/imagenet_classes';
+import {SqueezeNet} from '../../models/squeezenet/squeezenet';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 // tslint:disable-next-line:variable-name
@@ -114,7 +115,7 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
     this.mathCPU = new NDArrayMathCPU();
 
     this.squeezeNet = new SqueezeNet(this.math);
-    this.squeezeNet.loadVariables().then(() => {
+    this.squeezeNet.load().then(() => {
       requestAnimationFrame(() => this.animate());
     });
 
@@ -154,12 +155,12 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
       const image = track(Array3D.fromPixels(
           isWebcam ? this.webcamVideoElement : this.staticImgElement));
 
-      const inferenceResult = this.squeezeNet.infer(image);
+      const inferenceResult = await this.squeezeNet.predict(image);
       const namedActivations = inferenceResult.namedActivations;
 
       this.layerNames = Object.keys(namedActivations);
 
-      const topClassesToProbability = await this.squeezeNet.getTopKClasses(
+      const topClassesToProbability = await this.getTopKClasses(
           inferenceResult.logits, TOP_K_CLASSES);
 
       let count = 0;
@@ -206,6 +207,28 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
     });
 
     requestAnimationFrame(() => this.animate());
+  }
+
+  /**
+   * Get the topK classes for pre-softmax logits. Returns a map of className
+   * to softmax normalized probability.
+   *
+   * @param logits Pre-softmax logits array.
+   * @param topK How many top classes to return.
+   */
+  async getTopKClasses(logits: Array1D, topK: number):
+      Promise<{[className: string]: number}> {
+    const predictions = this.math.softmax(logits);
+    const topk = new NDArrayMathCPU().topK(predictions, topK);
+    const topkIndices = await topk.indices.data();
+    const topkValues = await topk.values.data();
+
+    const topClassesToProbability: {[className: string]: number} = {};
+    for (let i = 0; i < topkIndices.length; i++) {
+      topClassesToProbability[IMAGENET_CLASSES[topkIndices[i]]] =
+          topkValues[i];
+    }
+    return topClassesToProbability;
   }
 }
 
