@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class SliceProgram implements GPGPUProgram {
   variableNames = ['source'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
   rank: number;
@@ -31,7 +30,6 @@ export class SliceProgram implements GPGPUProgram {
   constructor(destSize: number[]) {
     this.outputShape = destSize;
     this.rank = destSize.length;
-    this.params = [];
 
     const dtype = getDataType(this.rank);
     const sourceCoords = getCoords(this.rank);

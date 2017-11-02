@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class Pool2DProgram implements GPGPUProgram {
   variableNames = ['x'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
@@ -40,9 +39,6 @@ export class Pool2DProgram implements GPGPUProgram {
     const xNumCols = convInfo.inShape[1];
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
-    this.params = [
-      strideHeight, strideWidth, padLeft, padTop, poolType, computePositions
-    ];
     this.outputShape = convInfo.outShape;
 
     const isAvgPool = poolType === 'avg';

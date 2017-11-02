@@ -19,7 +19,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class ClipProgram implements GPGPUProgram {
   variableNames = ['A'];
-  params: Array<{}>;
   userCode: string;
   outputShape: number[];
 
@@ -27,7 +26,6 @@ export class ClipProgram implements GPGPUProgram {
     this.outputShape = aShape;
     const minFixed = min.toFixed(20);
     const maxFixed = max.toFixed(20);
-    this.params = [minFixed, maxFixed];
     this.userCode = `
       void main() {
         float value = getAAtOutCoords();

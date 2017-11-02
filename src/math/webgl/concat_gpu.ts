@@ -20,14 +20,12 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class ConcatProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
-  params: Array<{}> = [];
   outputShape: number[] = [];
   userCode: string;
 
   constructor(aShape: number[], bShape: number[], axis: number) {
     const yAxes = ['yR', 'yC', 'yD', 'yW'];
     const concatAxis = yAxes[axis];
-    this.params = [axis];
     this.outputShape = concat_util.computeOutShape(aShape, bShape, axis);
 
     const dType = getDataType(aShape.length);

@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class MatMulProgram implements GPGPUProgram {
   variableNames = ['matrixA', 'matrixB'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
@@ -28,8 +27,6 @@ export class MatMulProgram implements GPGPUProgram {
       aShape: [number, number], bShape: [number, number],
       aOrient = MatrixOrientation.REGULAR,
       bOrient = MatrixOrientation.REGULAR) {
-    this.params = [aOrient, bOrient];
-
     const outerShapeA =
         (aOrient === MatrixOrientation.REGULAR) ? aShape[0] : aShape[1];
     const outerShapeB =

@@ -30,13 +30,11 @@ export const EQUAL = `
 
 export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
   supportsBroadcasting = true;
 
   constructor(op: string, aShape: number[], bShape: number[]) {
-    this.params = [op];
     this.outputShape =
         broadcast_util.assertAndGetBroadcastShape(aShape, bShape);
     this.userCode = `

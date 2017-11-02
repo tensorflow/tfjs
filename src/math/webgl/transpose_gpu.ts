@@ -19,7 +19,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class TransposeProgram implements GPGPUProgram {
   variableNames = ['A'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
   rank: number;
@@ -31,7 +30,6 @@ export class TransposeProgram implements GPGPUProgram {
     }
     this.outputShape = outputShape;
     this.rank = outputShape.length;
-    this.params = [newDim.toString()];
     const dtype = getDataType(this.rank);
     const switched = getSwitchedCoords(newDim);
 

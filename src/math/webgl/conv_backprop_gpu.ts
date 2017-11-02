@@ -21,7 +21,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class Conv2DDerWeightsProgram implements GPGPUProgram {
   variableNames = ['x', 'dy'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
@@ -34,8 +33,6 @@ export class Conv2DDerWeightsProgram implements GPGPUProgram {
         inDepth, outDepth, convInfo.filterHeight, convInfo.filterWidth);
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
-
-    this.params = [strideHeight, strideWidth, padLeft, padTop];
 
     this.userCode = `
       void main() {
@@ -75,7 +72,6 @@ export class Conv2DDerWeightsProgram implements GPGPUProgram {
 
 export class Conv2DDerInputProgram implements GPGPUProgram {
   variableNames = ['dy', 'W'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
@@ -90,7 +86,6 @@ export class Conv2DDerInputProgram implements GPGPUProgram {
 
     const padTop = filterHeight - 1 - convInfo.padInfo.top;
     const padLeft = filterWidth - 1 - convInfo.padInfo.left;
-    this.params = [strideHeight, strideWidth, padLeft, padTop];
 
     this.userCode = `
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
@@ -141,7 +136,6 @@ export class Conv2DDerInputProgram implements GPGPUProgram {
 
 export class Conv2DDerBiasProgram implements GPGPUProgram {
   variableNames = ['dy'];
-  params: Array<{}> = [];
   outputShape: number[];
   userCode: string;
 

@@ -21,7 +21,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class MinMaxProgram implements GPGPUProgram {
   variableNames = ['A'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
   numBatchDims: number;
@@ -33,7 +32,6 @@ export class MinMaxProgram implements GPGPUProgram {
     this.numBatchDims = outShape.length;
 
     const size = util.sizeFromShape(reduceShape);
-    this.params = [op];
     const sizeNearestVec4 = Math.floor(size / 4) * 4;
     const sizeVec4Remainder = size % 4;
 
