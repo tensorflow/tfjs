@@ -1,0 +1,108 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<dom-module id="teachablegaming-demo">
+<style>
+  #inputContainer {
+    margin: 10px;
+    width: 800px;
+  }
+  #activationsContainer, #webcam-message, #ssl-message {
+    text-align: center;
+  }
+  #webcam-message, #ssl-message {
+    background-color: #fbb;
+    outline: 1px solid rgb(100, 0, 0);
+    width: 904px;
+    padding: 5px 0;
+    margin: 10px auto;
+  }
+  .controls {
+    display: flex;
+  }
+  .control {
+    padding: 0 10px 0;
+  }
+  .indicator {
+    height: 10px;
+    width: 100%;
+    background-color: lightgray;
+  }
+  ::content .dosbox-container { width: 640px; height: 400px; }
+  ::content .dosbox-container > .dosbox-overlay { background: url(https://js-dos.com/cdn/DOOM.png); }
+  .dosbox-start { font-size: 35px !important; }
+</style>
+<template>
+  <div id="container"></div>
+
+  <div id="inputContainer">
+    <div id="imgContainer">
+      <video autoplay="true" id="webcamVideo" width="227" height="227"></video>
+    </div>
+  </div>
+  <div id="ssl-message" style="display: none">
+    You must be visting this page via SSL to see the webcam demo.<br>
+    To get around this temporarily, start chrome with <pre>--unsafely-treat-insecure-origin-as-secure=http://your.domain:5432/</pre>
+  </div>
+  <div id="webcam-message" style="display: none">
+    We could not find a webcam, attach one to view the full demo!
+  </div>
+  <div class="controls">
+    <div class="control">
+      <div class="indicator" id="upindicator"></div>
+      <paper-toggle-button id="upswitch" on-change="toggle">Up</paper-toggle-button>
+      <paper-button id="upclear" on-click="clear">Clear</paper-button>
+      <div id="upcount">0</div>
+    </div>
+    <div class="control">
+        <div class="indicator" id="downindicator"></div>
+      <paper-toggle-button id="downswitch" on-change="toggle">Down</paper-toggle-button>
+      <paper-button id="downclear" on-click="clear">Clear</paper-button>
+      <div id="downcount">0</div>
+    </div>
+    <div class="control">
+        <div class="indicator" id="leftindicator"></div>
+      <paper-toggle-button id="leftswitch" on-change="toggle">Left</paper-toggle-button>
+      <paper-button id="leftclear" on-click="clear">Clear</paper-button>
+      <div id="leftcount">0</div>
+    </div>
+    <div class="control">
+        <div class="indicator" id="rightindicator"></div>
+      <paper-toggle-button id="rightswitch" on-change="toggle">Right</paper-toggle-button>
+      <paper-button id="rightclear" on-click="clear">Clear</paper-button>
+      <div id="rightcount">0</div>
+    </div>
+    <div class="control">
+        <div class="indicator" id="spaceindicator"></div>
+      <paper-toggle-button id="spaceswitch" on-change="toggle">Space</paper-toggle-button>
+      <paper-button id="spaceclear" on-click="clear">Clear</paper-button>
+      <div id="spacecount">0</div>
+    </div>
+    <div class="control">
+        <div class="indicator" id="sindicator"></div>
+      <paper-toggle-button id="sswitch" on-change="toggle">S</paper-toggle-button>
+      <paper-button id="sclear" on-click="clear">Clear</paper-button>
+      <div id="scount">0</div>
+    </div>
+  </div>
+  <paper-toggle-button id="predictswitch">Control game through cam</paper-toggle-button>
+  <div id="dosbox"></div>
+  <script src="https://cdn.jsdelivr.net/npm/jqlite@0.2.42/jqlite.js"></script>
+  <script type="text/javascript" src="https://js-dos.com/cdn/js-dos-api.js"></script>
+</template>
+</dom-module>
