@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class AddScaledMatProgram implements GPGPUProgram {
   variableNames = ['A', 'B', 'c1', 'c2'];
-  params: Array<{}> = [];
   outputShape: number[];
   userCode: string;
   supportsBroadcasting = true;

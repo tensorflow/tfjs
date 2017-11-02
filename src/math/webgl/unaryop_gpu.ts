@@ -19,13 +19,11 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class UnaryOpProgram implements GPGPUProgram {
   variableNames = ['A'];
-  params: Array<{}>;
   userCode: string;
   outputShape: number[];
 
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
-    this.params = [opSnippet];
     this.userCode = `
       float unaryOperation(float x) {
         ${opSnippet}

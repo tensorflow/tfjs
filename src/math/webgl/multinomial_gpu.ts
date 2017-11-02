@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class MultinomialProgram implements GPGPUProgram {
   variableNames = ['probs'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
   numBatchDims: number;
@@ -31,7 +30,6 @@ export class MultinomialProgram implements GPGPUProgram {
   constructor(batchSize: number, numOutcomes: number, numSamples: number) {
     this.outputShape = [batchSize, numSamples];
     this.numBatchDims = 1;
-    this.params = [];
 
     this.userCode = `
       uniform float seed;

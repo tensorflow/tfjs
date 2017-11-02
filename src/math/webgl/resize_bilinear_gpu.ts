@@ -19,7 +19,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class ResizeBilinear3DProgram implements GPGPUProgram {
   variableNames = ['A'];
-  params: Array<{}> = [];
   outputShape: number[] = [];
   userCode: string;
 
@@ -29,7 +28,6 @@ export class ResizeBilinear3DProgram implements GPGPUProgram {
     const depth = inputShape[2];
     this.outputShape =
         [outputDimensionsRowCol[0], outputDimensionsRowCol[1], depth];
-    this.params = [alignCorners];
 
     const effectiveInputShape = alignCorners ?
         [inputShape[0] - 1, inputShape[1] - 1, depth] :
@@ -40,10 +38,8 @@ export class ResizeBilinear3DProgram implements GPGPUProgram {
         this.outputShape;
     this.userCode = `
       const vec2 effectiveInputOverOutputRatioRC = vec2(
-          ${effectiveInputShape[0] /
-        effectiveOutputShape[0]},
-          ${effectiveInputShape[1] /
-        effectiveOutputShape[1]});
+          ${effectiveInputShape[0] / effectiveOutputShape[0]},
+          ${effectiveInputShape[1] / effectiveOutputShape[1]});
       const vec2 inputShapeRC = vec2(${inputShape[0]}.0, ${inputShape[1]}.0);
 
       void main() {

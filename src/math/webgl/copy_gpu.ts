@@ -20,13 +20,11 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class Copy2DProgram implements GPGPUProgram {
   variableNames = ['source'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
   constructor(srcNumCols: number, destNumCols: number) {
     this.outputShape = null;
-    this.params = [srcNumCols, destNumCols];
     this.userCode = `
       uniform ivec2 sourceStart;
       uniform ivec2 destStart;

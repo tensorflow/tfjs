@@ -21,7 +21,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class MaxPool2DBackpropProgram implements GPGPUProgram {
   variableNames = ['dy', 'maxPos'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
@@ -36,8 +35,6 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
 
     const padTop = filterHeight - 1 - convInfo.padInfo.top;
     const padLeft = filterWidth - 1 - convInfo.padInfo.left;
-    this.params =
-        [filterHeight, filterWidth, strideHeight, strideWidth, padTop, padLeft];
 
     const lastIndex = filterHeight * filterWidth - 1;
     this.userCode = `

@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class OneHotProgram implements GPGPUProgram {
   variableNames = ['indices'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
@@ -30,7 +29,6 @@ export class OneHotProgram implements GPGPUProgram {
   constructor(
       numIndices: number, depth: number, onValue: number, offValue: number) {
     this.outputShape = [numIndices, depth];
-    this.params = [onValue, offValue];
 
     this.userCode = `
       void main() {

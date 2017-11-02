@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class BatchNormProgram implements GPGPUProgram {
   variableNames: string[];
-  params: Array<{}> = [];
   outputShape: number[] = [];
   userCode: string;
   supportsBroadcasting = true;
@@ -47,7 +46,6 @@ export class BatchNormProgram implements GPGPUProgram {
       scaleSnippet = 'getScaleAtOutCoords()';
     }
 
-    this.params = [varianceEpsilon];
     this.outputShape = xShape;
     this.userCode = `
       void main() {

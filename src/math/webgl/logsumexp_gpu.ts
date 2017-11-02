@@ -21,7 +21,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class LogSumExpProgram implements GPGPUProgram {
   variableNames = ['A'];
-  params: Array<{}> = [];
   outputShape: number[];
   userCode: string;
   numBatchDims: number;

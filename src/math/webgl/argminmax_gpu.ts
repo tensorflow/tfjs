@@ -45,12 +45,10 @@ export function getArgMinMaxSnippet(
 export class ArgMinMaxProgram implements GPGPUProgram {
   variableNames = ['A'];
   outputShape: number[];
-  params: Array<{}>;
   userCode: string;
   numBatchDims: number;
 
   constructor(shape: number[], axes: number[], opType: 'min'|'max') {
-    this.params = [opType];
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(shape, axes);
     this.outputShape = outShape;

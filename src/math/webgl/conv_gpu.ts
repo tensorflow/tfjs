@@ -20,7 +20,6 @@ import {GPGPUProgram} from './gpgpu_math';
 
 export class Conv2DProgram implements GPGPUProgram {
   variableNames = ['x', 'W'];
-  params: Array<{}>;
   outputShape: number[];
   userCode: string;
 
@@ -38,8 +37,6 @@ export class Conv2DProgram implements GPGPUProgram {
     const strideWidth = convInfo.strideWidth;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
-
-    this.params = [strideHeight, strideWidth, hasBias, padLeft, padTop];
 
     const inputDepthNearestVec4 = Math.floor(inputDepth / 4) * 4;
     const inputDepthVec4Remainder = inputDepth % 4;
