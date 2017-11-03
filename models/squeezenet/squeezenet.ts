@@ -15,20 +15,17 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, CheckpointLoader, NDArray, NDArrayMath} from '../../src';
-import {Model} from '../model';
+import {Array1D, Array3D, Array4D, CheckpointLoader, Model, NDArray, NDArrayMath} from '../../src';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/';
 
-export class SqueezeNet extends Model {
+export class SqueezeNet implements Model {
   private variables: {[varName: string]: NDArray};
 
   private preprocessOffset = Array1D.new([103.939, 116.779, 123.68]);
 
-  constructor(private math: NDArrayMath) {
-    super();
-  }
+  constructor(private math: NDArrayMath) {}
 
   /**
    * Loads necessary variables for SqueezeNet.
@@ -115,13 +112,6 @@ export class SqueezeNet extends Model {
     return {namedActivations, logits: avgpool10};
   }
 
-  dispose() {
-    this.preprocessOffset.dispose();
-    for (const varName in this.variables) {
-      this.variables[varName].dispose();
-    }
-  }
-
   private fireModule(input: Array3D, fireId: number) {
     const y1 = this.math.conv2d(
         input, this.variables[`fire${fireId}/squeeze1x1_W:0`] as Array4D,
@@ -138,5 +128,12 @@ export class SqueezeNet extends Model {
     const right2 = this.math.relu(right1);
 
     return this.math.concat3D(left2, right2, 2);
+  }
+
+  dispose() {
+    this.preprocessOffset.dispose();
+    for (const varName in this.variables) {
+      this.variables[varName].dispose();
+    }
   }
 }

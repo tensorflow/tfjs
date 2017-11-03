@@ -14,12 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-import {NDArray} from '../src';
+import {NDArray} from './math/ndarray';
 
-export abstract class Model {
-  abstract async load(): Promise<void>;
-
-  abstract async predict(input: NDArray): Promise<{}>;
-
-  abstract dispose(): void;
+export interface Model {
+  load(): Promise<void>;
+  predict(input: NDArray): Promise<{}>;
+  dispose(): void;
 }
