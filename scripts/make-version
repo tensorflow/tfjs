@@ -15,8 +15,10 @@
 // =============================================================================
 
 var fs = require('fs');
+var exec = require( 'child_process' ).exec;
 
 var version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+var tag = `v${version}`;
 
 const versionCode =
 `/** @license See the LICENSE file. */
@@ -25,6 +27,12 @@ const versionCode =
 const version = '${version}';
 export {version};
 `
+
+exec( `git tag ${tag}`, err =>
+  err
+    ? console.log(`WARNING: Could not git tag with ${tag}: ${err.message}`)
+    : console.log(`Tagged with ${tag}`)
+);
 
 fs.writeFile('src/version.ts', versionCode, err => {
   if (err != null) {
