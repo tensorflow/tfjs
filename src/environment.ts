@@ -108,17 +108,12 @@ function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
 
   const gl = getWebGLRenderingContext(webGLVersion);
 
-  let floatExtension;
-  let colorBufferFloatExtension;
   if (webGLVersion === 1) {
-    floatExtension = gl.getExtension('OES_texture_float');
-    colorBufferFloatExtension = gl.getExtension('WEBGL_color_buffer_float');
-    if (floatExtension == null || colorBufferFloatExtension == null) {
+    if (gl.getExtension('OES_texture_float') == null) {
       return false;
     }
   } else {
-    colorBufferFloatExtension = gl.getExtension('EXT_color_buffer_float');
-    if (colorBufferFloatExtension == null) {
+    if (gl.getExtension('EXT_color_buffer_float') == null) {
       return false;
     }
   }
