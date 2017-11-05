@@ -15,12 +15,6 @@ extension and targets WebGL 2.0 devices. However, we have turned off mobile,
 Safari, and Firefox for demos - they should work with some minor changes
 to the WebGL API.
 
-## Optimizers
-
-Currently, **deeplearn.js** only has an SGD optimizer, however the optimizer
-interface is generic enough to support new optimizers. We would love to see RMSProp,
-Adagrad, Adadelta, Adam, and Adamax.
-
 ## Logical sampling
 
 When writing custom shader programs in **deeplearn.js**, the author must sample
