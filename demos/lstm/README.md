@@ -15,7 +15,7 @@ python demos/lstm/train.py
 Next, export the weights to be used by deeplearn.js:
 
 ```
-python scripts/dump_checkpoint_vars.py --output_dir=demos/lstm/ --checkpoint_file=/tmp/simple_lstm-1000 --remove_variables_regex=".*Adam.*|.*beta.*"
+python scripts/dump_checkpoints/dump_checkpoint_vars.py --model_type=tensorflow --output_dir=demos/lstm/ --checkpoint_file=/tmp/simple_lstm-1000 --remove_variables_regex=".*Adam.*|.*beta.*"
 ```
 
 Finally, start the demo:

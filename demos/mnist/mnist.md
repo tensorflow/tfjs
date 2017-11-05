@@ -28,7 +28,7 @@ Next, we need to port the weights from the TensorFlow checkpoint to **deeplearn.
 We provide a script that does this. We run it from the `$BASE` directory:
 
 ```bash
-python scripts/dump_checkpoint_vars.py --output_dir=demos/mnist/ --checkpoint_file=/tmp/tensorflow/mnist/logs/fully_connected_feed/model.ckpt-1999
+python scripts/dump_checkpoints/dump_checkpoint_vars.py --model_type=tensorflow --output_dir=demos/mnist/ --checkpoint_file=/tmp/tensorflow/mnist/logs/fully_connected_feed/model.ckpt-1999
 ```
 
 The script will save a set of files (one file per variable, and a
