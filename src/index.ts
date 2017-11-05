@@ -48,6 +48,8 @@ export {ConstantInitializer, Initializer, NDArrayInitializer, OnesInitializer, R
 export {MatrixOrientation, NDArrayMath} from './math/math';
 export {NDArrayMathCPU} from './math/math_cpu';
 export {NDArrayMathGPU} from './math/math_gpu';
+// TODO(nsthorat): Remove this once we decouple NDArray from storage mechanism.
+export {initializeGPU} from './math/ndarray';
 // tslint:disable-next-line:max-line-length
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './math/ndarray';
 export {GPGPUContext} from './math/webgl/gpgpu_context';
