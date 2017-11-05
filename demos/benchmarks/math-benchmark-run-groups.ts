@@ -16,6 +16,8 @@
  */
 
 import {BenchmarkRun, BenchmarkRunGroup} from './benchmark';
+// tslint:disable-next-line:max-line-length
+import {BatchNormalization3DCPUBenchmark, BatchNormalization3DGPUBenchmark} from './batchnormalization3d_benchmark';
 import {ConvBenchmarkParams, ConvGPUBenchmark} from './conv_benchmarks';
 // tslint:disable-next-line:max-line-length
 import {ConvTransposedBenchmarkParams, ConvTransposedGPUBenchmark} from './conv_transposed_benchmarks';
@@ -29,6 +31,21 @@ import {UnaryOpsCPUBenchmark, UnaryOpsGPUBenchmark} from './unary_ops_benchmark'
 
 export function getRunGroups(): BenchmarkRunGroup[] {
   const groups: BenchmarkRunGroup[] = [];
+
+  groups.push({
+    name: 'Batch Normalization 3D: input [size, size, size]',
+    min: 0,
+    max: 512,
+    stepSize: 64,
+    stepToSizeTransformation: (step: number) => Math.max(1, step),
+    benchmarkRuns: [
+      new BenchmarkRun('batchnorm3d_gpu',
+                       new BatchNormalization3DGPUBenchmark()),
+      new BenchmarkRun('batchnorm3d_cpu', 
+                       new BatchNormalization3DCPUBenchmark())
+    ],
+    params: {}
+  });
 
   groups.push({
     name: 'Matrix Multiplication: ' +
