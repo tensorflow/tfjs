@@ -69,6 +69,17 @@ limitations under the License.
   }
 </style>
 <template>
+  <div class="intro">
+    <h4>
+      Train the browser to invoke any keyboard key press based on webcam images.
+      Control games through webcam gestures instead of, or in conjunction with,
+      keyboard usage.
+    </h4>
+    <p>
+    Inspired by <a href="https://teachablemachine.withgoogle.com/"</a>Teachable Machine</a>.
+    Games provided by <a href="https://js-dos.com/"</a>js-dos</a>.
+    Check out <a href="https://github.com/PAIR-code/deeplearnjs/tree/master/demos/teachable_gaming">the code behind this demo</a>.
+  </div>
   <div class="holder">
     <div class="gameholder">
         <paper-dropdown-menu no-animations label="Game">
@@ -80,7 +91,7 @@ limitations under the License.
             </template>
           </paper-listbox>
         </paper-dropdown-menu>
-        <paper-toggle-button id="predictswitch">Control game through cam</paper-toggle-button>
+        <paper-toggle-button id="predictswitch">Enable webcam-based keyboard events</paper-toggle-button>
         <div id="dosbox"></div>
       </div>
     <div class="controller">
