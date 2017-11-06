@@ -20,11 +20,41 @@ import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
 import {TopKImageClassifier} from '../../models/topk_image_classifier/topk_image_classifier';
-import {Array3D, gpgpu_util, GPGPUContext, NDArrayMathGPU} from '../deeplearn';
+import {Array3D, ENV, gpgpu_util, GPGPUContext, NDArrayMathGPU} from '../deeplearn';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 // tslint:disable-next-line:no-any
 declare const Dosbox: any;
+
+/**
+ * Circular buffer to track a set of numbers and return the average over
+ * the last n of those numbers. Used for performance calculations.
+ */
+class CircularBuffer {
+  private arr: number[];
+  private currentIndex = 0;
+  private numEntries = 0;
+
+  constructor(private n: number) {
+    this.arr = new Array(this.n);
+  }
+
+  add(num: number) {
+    this.arr[this.currentIndex] = num;
+    this.currentIndex = (this.currentIndex + 1) % this.n;
+    this.numEntries = Math.max(this.numEntries, this.currentIndex + 1);
+  }
+
+  getAverage(): number {
+    const total = this.arr.reduce((sum: number, val: number) => {
+      if (val == null) {
+        return sum;
+      }
+      return sum + val;
+    }, 0);
+    return total / this.numEntries;
+  }
+}
 
 // tslint:disable-next-line:variable-name
 export const TeachableGamingDemoPolymer: new () => PolymerHTMLElement =
@@ -58,6 +88,16 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
       Array<{name: string, path: string, command: string, img: string}>;
   private static readonly knnKValue = 5;
   private static readonly maxControls = 15;
+
+  // Data members for tracking and displaying performance stats.
+  private static readonly circularBufferSize = 20;
+  private predictTimes: CircularBuffer;
+  private animateLoopIndex: number;
+  private static readonly animateLoopStatsFreq = 20;
+  private predicting: boolean;
+  private previousFrameTime: number;
+  private predictFps: CircularBuffer;
+  private loggedEnv: boolean;
 
   ready() {
     this.webcamVideoElement =
@@ -134,6 +174,15 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
     this.predictedIndex = -1;
     this.selectedIndex = -1;
 
+    // Setup performance tracking vars.
+    this.animateLoopIndex = 0;
+    this.predictTimes =
+        new CircularBuffer(TeachableGamingDemo.circularBufferSize);
+    this.predictFps =
+        new CircularBuffer(TeachableGamingDemo.circularBufferSize);
+    this.predicting = false;
+    this.loggedEnv = false;
+
     this.when(() => this.isDosboxReady(), () => this.loadDosbox());
     setTimeout(() => this.animate(), 1000);
   }
@@ -206,7 +255,18 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
   }
 
   private async animate() {
+    const frameTimeStart = performance.now();
+    if (this.previousFrameTime != null) {
+      this.predictFps.add(frameTimeStart - this.previousFrameTime);
+      if (this.animateLoopIndex % TeachableGamingDemo.animateLoopStatsFreq ===
+          0) {
+        const fps = 1000 / this.predictFps.getAverage();
+        this.$$('#predfps').innerHTML = String(fps.toFixed(3));
+      }
+    }
+    this.previousFrameTime = frameTimeStart;
     if (this.selectedIndex >= 0) {
+      this.predicting = false;
       await this.math.scope(async (keep, track) => {
         const image = track(Array3D.fromPixels(this.webcamVideoElement));
         const indicators = document.querySelectorAll('.indicators');
@@ -219,9 +279,17 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
         countBox.innerHTML = String(+countBox.innerHTML + 1);
       });
     } else if (this.$.predictswitch.checked) {
+      this.predicting = true;
       await this.math.scope(async (keep, track) => {
         const image = track(Array3D.fromPixels(this.webcamVideoElement));
+        const timeStart = performance.now();
         const results = await this.classifier.predict(image);
+        this.predictTimes.add(performance.now() - timeStart);
+        if (this.animateLoopIndex % TeachableGamingDemo.animateLoopStatsFreq ===
+            0) {
+          this.$$('#predperf').innerHTML =
+              String(this.predictTimes.getAverage().toFixed(3));
+        }
         const indicators = document.querySelectorAll('.indicator');
         if (results.classIndex >= 0) {
           for (let i = 0; i < indicators.length; i++) {
@@ -258,9 +326,15 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
           }
         }
       });
+      // Log the environment first time through prediction.
+      if (!this.loggedEnv) {
+        console.log('Evaulated environment flags:');
+        console.log(ENV);
+        this.loggedEnv = true;
+      }
     }
-
-    setTimeout(() => this.animate(), 100);
+    this.animateLoopIndex++;
+    requestAnimationFrame(() => this.animate());
   }
 
   getKeyIndicatorId(index: number) {

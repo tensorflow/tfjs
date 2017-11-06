@@ -27,7 +27,6 @@ limitations under the License.
   }
   #inputContainer {
     margin: 10px;
-    width: 800px;
   }
   #activationsContainer, #webcam-message, #ssl-message {
     text-align: center;
@@ -35,7 +34,6 @@ limitations under the License.
   #webcam-message, #ssl-message {
     background-color: #fbb;
     outline: 1px solid rgb(100, 0, 0);
-    width: 904px;
     padding: 5px 0;
     margin: 10px auto;
   }
@@ -43,7 +41,8 @@ limitations under the License.
     margin-top: 56px;
   }
   .controls {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
   }
   .control {
     padding: 0 10px 0;
@@ -66,6 +65,9 @@ limitations under the License.
   }
   .dosbox-start {
     font-size: 35px;
+  }
+  .statsholder {
+    display: flex;
   }
 </style>
 <template>
@@ -93,6 +95,17 @@ limitations under the License.
         </paper-dropdown-menu>
         <paper-toggle-button id="predictswitch">Enable webcam-based keyboard events</paper-toggle-button>
         <div id="dosbox"></div>
+        <div class="statsholder">
+          <div>Rolling average of fps during gameplay:</div>
+          <div id="predfps"></div>
+        </div>
+        <template is="dom-if" if="[[predicting]]">
+          <div class="statsholder">
+            <div>Rolling average of keystroke prediction performance:</div>
+            <div id="predperf"></div>
+            <div>ms</div>
+          </div>
+        </template>
       </div>
     <div class="controller">
       <div id="inputContainer">
