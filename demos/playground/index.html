@@ -12,48 +12,134 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================-->
-<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-orange.min.css" />
 
-<style>
-  #container {
-    margin-left: 20px;
-  }
-   a {
-    color: blue;
-  }
-  .playground-item a {
-    font-size: 16px;
-    margin-left: 8px;
-  }
-  .playground-item::before {
-    content: ">>";
-  }
-  #list {
-    margin: 32px 8px;
-  }
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- This script is stripped during vulcanization, available only during development. It provides
+        polyfill for debugging/testing in non-Chrome browsers.
+    -->
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+    <link rel="import" href="../demo-header.html">
+    <link rel="import" href="../demo-footer.html">
 
-</style>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-orange.min.css" />
 
-<div id="container">
-  <h3>deeplearn.js playground examples</h3>
-  <span>
-    Add examples to this page by sending us a pull request with edits to the
-    <a href="https://github.com/PAIR-code/deeplearnjs/blob/master/demos/playground/index.html">playground listing</a>.
-  </span>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
 
-  <div id="list">
-    <div class="playground-item">
-      <a href="playground.html#2e04d6ee52426e790f318b38eb043ae9">README code</a>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.9/ace.js"></script>
+
+    <title>deeplearn.js playground</title>
+    <style>
+      html {
+        width: 100%;
+        height: 100%;
+      }
+
+      body {
+        font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+      }
+
+      head {
+        height: 0;
+        width: 0;
+      }
+
+      #container {
+      margin-left: 20px;
+    }
+    a {
+      color: blue;
+    }
+    .playground-item a {
+      font-size: 16px;
+      margin-left: 8px;
+    }
+    .playground-item::before {
+      content: ">>";
+    }
+    #list {
+      margin: 32px 8px;
+    }
+    .gist {
+      width: 100%;
+      font-size: 14px;
+    }
+
+    .gist-container {
+      margin-bottom: 12px;
+      text-align: left;
+      /* TODO(nsthorat): Remove this once we add github login. */
+      display: none;
+    }
+
+    #save {
+      margin: auto;
+      /* TODO(nsthorat): Remove this once we add github login. */
+      display: none;
+    }
+
+    #highlight {
+      margin-top: 20px;
+    }
+
+    #container, #highlight {
+      width: 960px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: left;
+    }
+
+    .text {
+      font-family: 'Menlo', monospace;
+      font-size: 12px;
+    }
+
+    #sandboxed {
+      height: 860px;
+    }
+
+    .editor {
+      font-family: 'Menlo', monospace;
+      font-size: 12px;
+      margin-bottom: 12px;
+      margin-top: 4px;
+    }
+
+    .language-header {
+      font-size: 14px;
+      font-weight: bold;
+    }
+    </style>
+  </head>
+
+  <body>
+    <demo-header name="playground"></demo-header>
+
+    <div id="highlight">
+      <div class="gist-container">
+        <input type="text" id="gist-url" class="gist" onClick="this.select();" readonly></input><br>
+      </div>
+
+      <span class="language-header">javascript</span>
+      <div id="jscontent" class="editor"></div>
+
+      <span class="language-header">html</span>
+      <div id="htmlcontent" class="editor"></div>
+
+      <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="button" id="run">run</button>
+      <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="button" id="save">save</button>
+
+      <iframe sandbox="allow-scripts" id="sandboxed" src="frame.html" onload="window.iframeLoaded = true"></iframe>
     </div>
-    <div class="playground-item">
-      <a href="playground.html#400c3fc52db01860c1ddb8040bfcc4c9">SqueezeNet - basic usage</a>
-    </div>
-    <div class="playground-item">
-      <a href="playground.html#943c625b0630c1618c29bfdea528d7a3">SqueezeNet - predict from drag and drop image</a>
-    </div>
+    <demo-footer></demo-footer>
 
-  </div>
-  <button onclick="location.href='playground.html'" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="button">New example</button>
-  <br>
-</div>
-
+    <script src="bundle.js"></script>
+  </body>
+</html>

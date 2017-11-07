@@ -11,22 +11,49 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+import '../demo-header';
+import '../demo-footer';
+
 const GITHUB_JS_FILENAME = 'js';
 const GITHUB_HTML_FILENAME = 'html';
 
 const saveButtonElement = document.getElementById('save');
 const runButtonElement = document.getElementById('run');
-const jscontentElement = document.getElementById('jscontent');
-const htmlcontentElement = document.getElementById('htmlcontent');
 const gistUrlElement = document.getElementById('gist-url') as HTMLInputElement;
 const iframeElement = document.getElementById('sandboxed') as HTMLIFrameElement;
+
+// tslint:disable-next-line:no-any
+const w = window as any;
+// tslint:disable-next-line:no-any
+let jsEditor: any;
+// tslint:disable-next-line:no-any
+let htmlEditor: any;
+
+// tslint:disable-next-line:no-any
+const setupCommonEditorSettings = (editor: any) => {
+  editor.setTheme('ace/theme/tomorrow');
+  editor.setOptions({maxLines: Infinity});
+  editor.getSession().setTabSize(2);
+  editor.getSession().setUseWorker(false);
+};
+
+const loadPage = () => {
+  jsEditor = w.ace.edit('jscontent');
+  jsEditor.getSession().setMode('ace/mode/javascript');
+
+  htmlEditor = w.ace.edit('htmlcontent');
+  htmlEditor.getSession().setMode('ace/mode/html');
+
+  setupCommonEditorSettings(jsEditor);
+  setupCommonEditorSettings(htmlEditor);
+};
 
 const saveButtonHandler = async () => {
   runCode();
 
   gistUrlElement.value = '...saving...';
-  const jsCodeStr = jscontentElement.innerText.trim();
-  const htmlCodeStr = htmlcontentElement.innerText.trim();
+  const jsCodeStr = jsEditor.getValue();
+  const htmlCodeStr = htmlEditor.getValue();
 
   // tslint:disable-next-line:no-any
   const content: any = {
@@ -53,7 +80,10 @@ const saveButtonHandler = async () => {
 };
 
 // TODO(nsthorat): bring this back once we use github logins.
-// saveButtonElement.addEventListener('click', saveButtonHandler);
+if (saveButtonElement != null) {
+  saveButtonElement.addEventListener(
+      'click', saveButtonHandler == null ? saveButtonHandler : () => {});
+}
 
 async function loadGistFromURL() {
   if (window.location.hash && window.location.hash !== '#') {
@@ -71,7 +101,7 @@ async function loadGistFromURL() {
       const jsResult = await fetch(jsFile);
       const jsCode = await jsResult.text();
 
-      jscontentElement.innerText = jsCode;
+      jsEditor.setValue(jsCode, -1);
     }
 
     if (json['files'][GITHUB_HTML_FILENAME] != null) {
@@ -80,10 +110,16 @@ async function loadGistFromURL() {
       const htmlResult = await fetch(htmlFile);
       const htmlCode = await htmlResult.text();
 
-      htmlcontentElement.innerText = htmlCode;
-      runHTML();
+      htmlEditor.setValue(htmlCode, -1);
     }
 
+    if (w.iframeLoaded === true) {
+      runCode();
+    } else {
+      iframeElement.addEventListener('load', () => {
+        runCode();
+      });
+    }
   } else {
     gistUrlElement.value = 'Unsaved';
   }
@@ -91,7 +127,7 @@ async function loadGistFromURL() {
 
 function runHTML() {
   iframeElement.contentWindow.postMessage(
-      JSON.stringify({'html': htmlcontentElement.innerText}), '*');
+      JSON.stringify({'html': htmlEditor.getValue()}), '*');
 }
 
 async function runCode() {
@@ -100,7 +136,7 @@ async function runCode() {
   try {
     // In an async so we can use top level await.
     const js = `(async () => {
-      ${jscontentElement.innerText}
+      ${jsEditor.getValue()}
      })();`;
     iframeElement.contentWindow.postMessage(JSON.stringify({'js': js}), '*');
   } catch (e) {
@@ -110,6 +146,7 @@ async function runCode() {
   }
 }
 
-runButtonElement.addEventListener('click', runCode);
-
+loadPage();
 loadGistFromURL();
+
+runButtonElement.addEventListener('click', runCode);

@@ -218,21 +218,20 @@ ul.index {
   height: 352px;
   color: white;
   z-index: 1;
-  background-color: rgba(0, 0, 0, 0.54);
   padding: 5px 12px;
   font-weight: 400;
   font-size: 48px;
 }
 
 .featured-demo h1.mdl-card__title-text {
-  background-color: rgba(0, 0, 0, .54);
   font-size: 36px;
   margin: 0 0 2px 2px;
   padding: 5px 12px;
 }
 
 .featured-demo div.mdl-card__title:before {
-  display: none;
+  height: 352px;
+  background: none;
 }
 
 .demo-card .mdl-card__title {
@@ -248,7 +247,14 @@ ul.index {
   right: 0;
   bottom: 0;
   left: 0;
-  background: rgba(78, 135, 143, 0.73);
+  background: rgba(41, 73, 77, 0.73);
+}
+
+div.mdl-card__title h1.mdl-card__title-text {
+  font-weight: 200;
+  font-size: 0.6em;
+  letter-spacing: 0.5px;
+  background-color: rgba(0, 0, 0, .54);
 }
 
 #teachable-machine {
@@ -256,7 +262,7 @@ ul.index {
 }
 
 #perf-rnn {
-  background: url('https://storage.googleapis.com/learnjs-data/images/performance_rnn.gif') center / cover;
+  background: url('../demos/images/performance_rnn_preview.jpg') center / cover;
 }
 
 #model-builder {
@@ -273,6 +279,10 @@ ul.index {
 
 #benchmarks {
   background: url('../demos/images/benchmark.png') center / cover;
+}
+
+#playground {
+  background: url('../demos/images/playground_preview.png') center / cover;
 }
 
 .demo-card .mdl-card__title-text {
