@@ -20,15 +20,30 @@ const htmlconsoleElement = document.getElementById('html');
 const consoleElement = document.getElementById('console');
 const errorConsoleElement = document.getElementById('error');
 
-let scriptsPendingLoadCount = 0;
+// Wait for deeplearn script to load before executing JS.
+let scriptsPendingLoadCount = 1;
 // JavaScript eval function if scripts are pending.
-let jsEvalAwaitingScripts;
+let jsEvalAwaitingScriptsFn;
+
+const scriptLoaded = () => {
+  scriptsPendingLoadCount--;
+  if (scriptsPendingLoadCount === 0) {
+    allScriptsLoaded();
+  }
+};
+
+const deeplearnScriptElement = document.getElementById('deeplearn-script');
+deeplearnScriptElement.onload = () => {
+  setTimeout(scriptLoaded);
+};
+
+deeplearnScriptElement.src = 'https://unpkg.com/deeplearn';
 
 function allScriptsLoaded() {
-  if (jsEvalAwaitingScripts != null) {
-    jsEvalAwaitingScripts();
+  if (jsEvalAwaitingScriptsFn != null) {
+    jsEvalAwaitingScriptsFn();
   }
-  jsEvalAwaitingScripts = null;
+  jsEvalAwaitingScriptsFn = null;
 }
 
 window.addEventListener('message', async function (e) {
@@ -55,24 +70,19 @@ window.addEventListener('message', async function (e) {
     if (scriptsPendingLoadCount === 0) {
       executeJs();
     } else {
-      jsEvalAwaitingScripts = executeJs;
+      jsEvalAwaitingScriptsFn = executeJs;
     }
-
   } else if (data['html'] != null && data['html'] != '') {
     htmlconsoleElement.innerHTML = data['html'];
 
     // Find script tags, put them in the head.
     const scripts = htmlconsoleElement.getElementsByTagName('script');
-    scriptsPendingLoadCount = scripts.length;
+    scriptsPendingLoadCount += scripts.length;
 
     for (let i = 0; i < scripts.length; i++) {
       const newScript = document.createElement('script');
-      newScript.onload = () => {
-        scriptsPendingLoadCount--;
-        if (scriptsPendingLoadCount === 0) {
-          allScriptsLoaded();
-        }
-      };
+      newScript.onload = scriptLoaded;
+
       newScript.src = scripts[i].src;
       document.head.appendChild(newScript);
     };
