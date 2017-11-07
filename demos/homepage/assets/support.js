@@ -50,6 +50,9 @@ function isWebGLEnabled() {
 }
 
 function isNotSupported() {
+  if (location.pathname.startsWith('/demos/playground/')) {
+    return false;
+  }
   return isMobile() || isSafari();
 }
 
