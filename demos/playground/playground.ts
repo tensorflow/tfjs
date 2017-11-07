@@ -1,17 +1,17 @@
-import * as dl from '../deeplearn';
-import {SqueezeNet} from '../../models/squeezenet/squeezenet';
+/* Copyright 2017 Google Inc. All Rights Reserved.
 
-// tslint:disable-next-line:no-any
-const w: any = window;
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
-// Add all the dl exports and models to the top level window.
-for (const prop in dl) {
-  // tslint:disable-next-line:no-any
-  w[prop] = (dl as any)[prop];
-}
-w['models'] = {};
-w['models']['SqueezeNet'] = SqueezeNet;
+    http://www.apache.org/licenses/LICENSE-2.0
 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================*/
 const GITHUB_JS_FILENAME = 'js';
 const GITHUB_HTML_FILENAME = 'html';
 
@@ -20,10 +20,9 @@ const runButtonElement = document.getElementById('run');
 const jscontentElement = document.getElementById('jscontent');
 const htmlcontentElement = document.getElementById('htmlcontent');
 const gistUrlElement = document.getElementById('gist-url') as HTMLInputElement;
-const consoleElement = document.getElementById('console');
-const htmlconsoleElement = document.getElementById('html');
+const iframeElement = document.getElementById('sandboxed') as HTMLIFrameElement;
 
-saveButtonElement.addEventListener('click', async () => {
+const saveButtonHandler = async () => {
   runCode();
 
   gistUrlElement.value = '...saving...';
@@ -52,7 +51,10 @@ saveButtonElement.addEventListener('click', async () => {
   gistUrlElement.value = json['html_url'];
 
   window.location.hash = `#${json['id']}`;
-});
+};
+
+// TODO(nsthorat): bring this back once we use github logins.
+// saveButtonElement.addEventListener('click', saveButtonHandler);
 
 async function loadGistFromURL() {
   if (window.location.hash && window.location.hash !== '#') {
@@ -82,29 +84,26 @@ async function loadGistFromURL() {
       htmlcontentElement.innerText = htmlCode;
       runHTML();
     }
+
   } else {
     gistUrlElement.value = 'Unsaved';
   }
 }
 
-// Override console.log to write to our console HTML element.
-window.console.log = (str: string) => {
-  consoleElement.innerText += str + '\n';
-};
-
 function runHTML() {
-  htmlconsoleElement.innerHTML = htmlcontentElement.innerText;
+  iframeElement.contentWindow.postMessage(
+      JSON.stringify({'html': htmlcontentElement.innerText}), '*');
 }
 
 async function runCode() {
   runHTML();
-  consoleElement.innerText = '';
 
   try {
-    // Eval in an async() so we can directly use await.
-    eval(`(async () => {
+    // In an async so we can use top level await.
+    const js = `(async () => {
       ${jscontentElement.innerText}
-    })();`);
+     })();`;
+    iframeElement.contentWindow.postMessage(JSON.stringify({'js': js}), '*');
   } catch (e) {
     const error = new Error();
     window.console.log(e.toString());
