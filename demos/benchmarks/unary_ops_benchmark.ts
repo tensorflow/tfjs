@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from '../deeplearn';
+import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
@@ -85,14 +85,15 @@ export class UnaryOpsGPUBenchmark extends UnaryOpsBenchmark {
 
     let output: NDArray;
     const benchmark = () => {
-      math.scope(() => {
-        output = op(input);
+      output = math.scope(() => {
+        return op(input);
       });
     };
 
     const cleanup = () => {
       input.dispose();
       math.dispose();
+      output.dispose();
     };
 
     // Warmup.

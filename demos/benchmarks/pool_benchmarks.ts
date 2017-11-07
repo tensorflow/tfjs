@@ -15,13 +15,8 @@
  * =============================================================================
  */
 
-import {initializeGPU} from '../../src/math/ndarray';
-import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
-import {Pool2DProgram} from '../../src/math/webgl/pool_gpu';
-import {TextureManager} from '../../src/math/webgl/texture_manager';
 // tslint:disable-next-line:max-line-length
-import {Array3D, conv_util, ENV, GPGPUContext, NDArray, NDArrayMathCPU} from '../deeplearn';
-
+import {Array3D, conv_util, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
 import {BenchmarkTest} from './benchmark';
 
 const CPU_OP_RUNS = 1;
@@ -38,27 +33,27 @@ export abstract class PoolBenchmark extends BenchmarkTest {
     super(params);
   }
 
-  protected getPoolingOp(option: string, math: NDArrayMathCPU):
+  protected getPoolingOp(option: string, math: NDArrayMath):
       (x: Array3D, filterSize: [number, number]|number,
        strides: [number, number]|number,
        pad: 'valid'|'same'|number) => Array3D {
     switch (option) {
       case 'max':
-        return (x: Array3D, filterSize: [number, number] | number,
-                strides: [number, number] | number,
-                pad: 'valid' | 'same' | number) => {
+        return (x: Array3D, filterSize: [number, number]|number,
+                strides: [number, number]|number,
+                pad: 'valid'|'same'|number) => {
           return math.maxPool(x, filterSize, strides, pad);
         };
       case 'min':
-        return (x: Array3D, filterSize: [number, number] | number,
-                strides: [number, number] | number,
-                pad: 'valid' | 'same' | number) => {
+        return (x: Array3D, filterSize: [number, number]|number,
+                strides: [number, number]|number,
+                pad: 'valid'|'same'|number) => {
           return math.minPool(x, filterSize, strides, pad);
         };
       case 'avg':
-        return (x: Array3D, filterSize: [number, number] | number,
-                strides: [number, number] | number,
-                pad: 'valid' | 'same' | number) => {
+        return (x: Array3D, filterSize: [number, number]|number,
+                strides: [number, number]|number,
+                pad: 'valid'|'same'|number) => {
           return math.avgPool(x, filterSize, strides, pad);
         };
       default:
@@ -92,36 +87,31 @@ export class PoolCPUBenchmark extends PoolBenchmark {
 }
 
 export class PoolGPUBenchmark extends PoolBenchmark {
-  async run(size: number): Promise<number> {
-    const gpgpu = new GPGPUContext();
-    const texManager = new TextureManager(gpgpu);
-    initializeGPU(gpgpu, texManager);
+  async run(size: number, option: string): Promise<number> {
+    const math = new NDArrayMathGPU();
+    const gpgpu = math.getGPGPUContext();
 
     const outputDepth = this.params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = this.params.fieldSize;
     const stride = this.params.stride;
-    const convInfo = conv_util.computeConvInfo(
-        xShape, fieldSize, fieldSize, outputDepth, stride, stride, 'same');
-    const program = new Pool2DProgram(convInfo, this.params.type, false);
-    const res = NDArray.zeros(program.outputShape);
     const x = Array3D.randUniform(xShape, -1, 1);
-    const binary = gpgpu_math.compileProgram(gpgpu, program, [x], res);
+    const op = this.getPoolingOp(option, math);
 
+    let out: NDArray;
     const benchmark = () => {
-      gpgpu_math.runProgram(binary, [x], res);
+      out = op(x, fieldSize, stride, 'same');
     };
 
     const cleanup = () => {
       x.dispose();
-      res.dispose();
-      texManager.dispose();
-      gpgpu.deleteProgram(binary.webGLProgram);
+      out.dispose();
       gpgpu.dispose();
     };
 
     // Warmup.
     await gpgpu.runQuery(benchmark);
+    out.dispose();
 
     let totalTime: number;
     if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
@@ -130,7 +120,7 @@ export class PoolGPUBenchmark extends PoolBenchmark {
       const start = performance.now();
 
       benchmark();
-      res.dataSync();
+      out.dataSync();
 
       totalTime = performance.now() - start;
     }

@@ -15,10 +15,10 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Model, NDArrayMath, NDArrayMathCPU} from '../../src';
-import {SqueezeNet} from '../squeezenet/squeezenet';
+import {Array1D, Array2D, Array3D, Model, NDArrayMath, NDArrayMathCPU} from 'deeplearn';
+import {SqueezeNet} from 'deeplearn-squeezenet';
 
-export class TopKImageClassifier implements Model {
+export class KNNImageClassifier implements Model {
   private squeezeNet: SqueezeNet;
 
   // A concatenated matrix of all class logits matrices, lazily created and
@@ -155,7 +155,7 @@ export class TopKImageClassifier implements Model {
                           this.trainLogitsMatrix.as2D(numExamples, logitsSize),
                           imageLogits.as2D(logitsSize, 1))
                       .as1D();
-      // mathCPU downloads the values, so we should wait until the GPU is done
+      // mathCPU downloads the values, so we should wait until the GPU isdone
       // so we don't block the UI thread.
       await knn.data();
 

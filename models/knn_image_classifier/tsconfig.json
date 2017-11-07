@@ -17,9 +17,10 @@
         "noFallthroughCasesInSwitch": true,
         "allowUnreachableCode": false
     },
+    "include": [
+      "index.ts", "knn_image_classifier.ts"
+    ],
     "exclude": [
-      "starter/",
-      "models/",
       "node_modules/",
       "dist/"
     ]

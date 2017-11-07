@@ -15,7 +15,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Scalar} from '../deeplearn';
+import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Scalar} from 'deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 

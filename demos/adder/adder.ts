@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathGPU, Scalar} from '../deeplearn';
+import {NDArrayMathGPU, Scalar} from 'deeplearn';
 
 const outputElement = document.getElementById('output');
 const inA: HTMLInputElement = document.getElementById('A') as HTMLInputElement;

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathGPU} from './deeplearn';
+import {NDArrayMathGPU} from 'deeplearn';
 
 export function isWebGLSupported(): boolean {
   try {

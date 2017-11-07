@@ -15,7 +15,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, NDArrayMathGPU, Scalar, util} from '../deeplearn';
+import {Array1D, Array2D, CheckpointLoader, NDArrayMathGPU, Scalar, util} from 'deeplearn';
 
 // manifest.json lives in the same directory.
 const reader = new CheckpointLoader('.');

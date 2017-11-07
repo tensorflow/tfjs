@@ -12,10 +12,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/jasmine": "~2.5.53",
     "@types/polymer": "~1.1.31",
+    "@types/jasmine": "~2.5.53",
     "@types/seedrandom": "~2.4.27",
-    "bower": "~1.8.0",
     "browserify": "~14.4.0",
     "cross-spawn": "~5.1.0",
     "http-server": "~0.10.0",
@@ -27,7 +26,6 @@
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~3.0.8",
     "opn": "~5.1.0",
-    "polymer-bundler": "~3.0.1",
     "tone-piano": "0.0.5",
     "tsify": "~3.0.1",
     "tslint": "~5.6.0",
@@ -38,7 +36,7 @@
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "prep": "npm install && bower install && mkdirp dist",
+    "prep": "npm install && mkdirp dist && cd demos/ && npm run prep && cd ..",
     "build": "tsc",
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",

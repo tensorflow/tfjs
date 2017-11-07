@@ -15,12 +15,8 @@
  * =============================================================================
  */
 
-import {initializeGPU} from '../../src/math/ndarray';
-import {Conv2DDerInputProgram} from '../../src/math/webgl/conv_backprop_gpu';
-import * as gpgpu_math from '../../src/math/webgl/gpgpu_math';
-import {TextureManager} from '../../src/math/webgl/texture_manager';
 // tslint:disable-next-line:max-line-length
-import {Array3D, Array4D, conv_util, ENV, GPGPUContext} from '../deeplearn';
+import {Array3D, Array4D, conv_util, ENV, NDArray, NDArrayMathGPU} from 'deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 
@@ -39,6 +35,9 @@ export abstract class ConvTransposedBenchmark extends BenchmarkTest {
 
 export class ConvTransposedGPUBenchmark extends ConvTransposedBenchmark {
   async run(size: number): Promise<number> {
+    const math = new NDArrayMathGPU();
+    const gpgpu = math.getGPGPUContext();
+
     const origInputDepth = 1;
     const origOutputDepth = 1;
     const xShape: [number, number, number] = [size, size, origOutputDepth];
@@ -46,39 +45,27 @@ export class ConvTransposedGPUBenchmark extends ConvTransposedBenchmark {
     const origStride = 1;
     const origPad = 1;
 
-    const gpgpu = new GPGPUContext();
-    const texManager = new TextureManager(gpgpu);
-    initializeGPU(gpgpu, texManager);
-    gpgpu.enableAutomaticDebugValidation(true);
-
-    const convInfo = conv_util.computeConvInfo(
-        xShape, fieldSize, fieldSize, origOutputDepth, origStride, origStride,
-        origPad);
-    const program = new Conv2DDerInputProgram(convInfo);
-    const outputShape = program.outputShape as [number, number, number];
-    const out = Array3D.zeros(outputShape);
     const x = Array3D.randUniform(xShape, -1, 1);
     const wShape = conv_util.computeWeightsShape4D(
         origInputDepth, origOutputDepth, fieldSize, fieldSize);
     const W = Array4D.randUniform(wShape, -1, 1);
-    const inputs = [x, W];
-    const binary = gpgpu_math.compileProgram(gpgpu, program, inputs, out);
 
+    let out: NDArray;
     const benchmark = () => {
-      gpgpu_math.runProgram(binary, inputs, out);
+      out = math.conv2dTranspose(
+          x, W, [size, size, origInputDepth], origStride, origPad);
     };
 
     const cleanup = () => {
       out.dispose();
       x.dispose();
       W.dispose();
-      texManager.dispose();
-      gpgpu.deleteProgram(binary.webGLProgram);
       gpgpu.dispose();
     };
 
     // Warmup.
     await gpgpu.runQuery(benchmark);
+    out.dispose();
 
     let totalTime: number;
     if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {

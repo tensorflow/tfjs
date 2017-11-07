@@ -22,7 +22,7 @@ const demoPath = process.argv[2];
 const outputPath = path.join(demoPath, 'bundle.js')
 const tsPath = path.join(demoPath, path.basename(demoPath) + '.ts');
 
-const cmd = path.join('node_modules', '.bin', 'watchify');
+const cmd = path.join('demos', 'node_modules', '.bin', 'watchify');
 const watchify = spawn(cmd, [tsPath, '-p', '[tsify]', '-v', '--debug',
     '-o' , outputPath], {detached: false});
 watchify.stdout.pipe(process.stdout);

@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArrayInitializer, Tensor, util, VarianceScalingInitializer, ZerosInitializer} from '../deeplearn';
+import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArrayInitializer, Tensor, util, VarianceScalingInitializer, ZerosInitializer} from 'deeplearn';
 
 /**
  * Classes that specify operation parameters, how they affect output shape,

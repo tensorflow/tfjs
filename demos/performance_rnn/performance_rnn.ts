@@ -14,7 +14,7 @@ limitations under the License.
 ==============================================================================*/
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from '../deeplearn';
+import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from 'deeplearn';
 import * as demo_util from '../util';
 
 import {KeyboardElement} from './keyboard_element';
@@ -355,8 +355,10 @@ document.getElementById('save-2').onclick = () => {
 function getConditioning(math: NDArrayMath): Array1D {
   return math.scope((keep, track) => {
     if (conditioningOff) {
-      const size =
-          1 + noteDensityEncoding.shape[0] + pitchHistogramEncoding.shape[0];
+      // TODO(nsthorat): figure out why we have to cast these shapes to numbers.
+      // The linter is complaining, though VSCode can infer the types.
+      const size = 1 + (noteDensityEncoding.shape[0] as number) +
+          (pitchHistogramEncoding.shape[0] as number);
       const conditioning = track(Array1D.zeros([size]));
       conditioning.set(1.0, 0);
       return conditioning;
