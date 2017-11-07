@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, webgl_util} from '../deeplearn';
+import {Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, webgl_util} from 'deeplearn';
 
 import * as nn_art_util from './nn_art_util';
 
@@ -35,8 +35,8 @@ const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
 
 export type ActivationFunction = 'tanh'|'sin'|'relu'|'step';
 const activationFunctionMap: {
-  [activationFunction in ActivationFunction]:
-      (math: NDArrayMathGPU, ndarray: Array2D) => Array2D
+  [activationFunction in ActivationFunction]: (
+      math: NDArrayMathGPU, ndarray: Array2D) => Array2D
 } = {
   'tanh': (math: NDArrayMathGPU, ndarray: Array2D) => math.tanh(ndarray),
   'sin': (math: NDArrayMathGPU, ndarray: Array2D) => math.sin(ndarray),

@@ -26,7 +26,8 @@ exclude:
   - Gemfile
   - Gemfile.lock
   - node_modules/
-  - bower_components/
+  - demos/node_modules/
+  - demos/bower_components/
 
 # deployment
 host: 0.0.0.0

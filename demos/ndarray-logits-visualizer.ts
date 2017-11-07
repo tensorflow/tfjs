@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Array1D, NDArrayMathCPU} from './deeplearn';
+import {Array1D, NDArrayMathCPU} from 'deeplearn';
 
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 

@@ -19,8 +19,9 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {TopKImageClassifier} from '../../models/topk_image_classifier/topk_image_classifier';
-import {Array3D, ENV, gpgpu_util, GPGPUContext, NDArrayMathGPU} from '../deeplearn';
+import {Array3D, ENV, gpgpu_util, GPGPUContext, NDArrayMathGPU} from 'deeplearn';
+import {KNNImageClassifier} from 'deeplearn-knn-image-classifier';
+
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 // tslint:disable-next-line:no-any
@@ -81,7 +82,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
 
   private webcamVideoElement: HTMLVideoElement;
   private addNewKeyDialog: HTMLElement;
-  private classifier: TopKImageClassifier;
+  private classifier: KNNImageClassifier;
   private keyEventData: Array<{code: number, key: string}>;
   private dosbox: {onload: (path: string, command: string) => void};
   private games:
@@ -167,7 +168,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
     this.gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
     this.gpgpu = new GPGPUContext(this.gl);
     this.math = new NDArrayMathGPU(this.gpgpu);
-    this.classifier = new TopKImageClassifier(
+    this.classifier = new KNNImageClassifier(
         TeachableGamingDemo.maxControls, TeachableGamingDemo.knnKValue,
         this.math);
     this.classifier.load();

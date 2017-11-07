@@ -27,7 +27,7 @@ child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);
 child.on('close', () => {
   const bundlePath = path.join(outDir, htmlFilePath);
-  const cmd = path.join('node_modules', '.bin', 'polymer-bundler');
+  const cmd = path.join('demos', 'node_modules', '.bin', 'polymer-bundler');
   const child = spawn(cmd, ['--inline-scripts', '--inline-css',
     '--out-html', bundlePath, htmlFilePath], {detached: false});
   child.stdout.pipe(process.stdout);

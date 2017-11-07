@@ -1,0 +1,28 @@
+{
+  "name": "deeplearn-demos",
+  "version": "0.1.0",
+  "description": "deeplearn.js demos - not actually published",
+  "private": true,
+  "dependencies": {
+    "deeplearn": "~0.3.7",
+    "deeplearn-squeezenet": "~0.1.2",
+    "deeplearn-knn-image-classifier": "~0.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PAIR-code/deeplearnjs.git"
+  },
+  "devDependencies": {
+    "bower": "~1.8.0",
+    "mkdirp": "~0.5.1",
+    "polymer-bundler": "~3.0.1",
+    "tsify": "~3.0.3",
+    "typescript": "~2.5.3",
+    "uglifyjs": "~2.4.11",
+    "watchify": "~3.9.0"
+  },
+  "scripts": {
+    "prep": "npm install && bower install"
+  },
+  "license": "Apache-2.0"
+}

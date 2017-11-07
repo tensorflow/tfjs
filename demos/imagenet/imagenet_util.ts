@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {GPGPUContext, webgl_util} from '../deeplearn';
+import {GPGPUContext, webgl_util} from 'deeplearn';
 
 /**
  * Transposes the depth and the column dimensions of a 3D ndarray represented as

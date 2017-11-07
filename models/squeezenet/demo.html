@@ -1,0 +1,37 @@
+<script src="dist/bundle.js"></script>
+
+<script src="https://unpkg.com/deeplearn"></script>
+
+<img id="cat"></img>
+<div id="result"></div>
+
+<script>
+  const cat = document.getElementById('cat');
+  cat.onload = async () => {
+    const resultElement = document.getElementById('result');
+
+    resultElement.innerText = 'Loading squeezenet...';
+
+    // If dl isn't loaded, wait 1 second.
+    if (dl == null) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    const math = new dl.NDArrayMathGPU();
+    const squeezeNet = new squeezenet.SqueezeNet(math);
+    await squeezeNet.load();
+
+    resultElement.innerText = 'Predicting...';
+
+    const pixels = dl.Array3D.fromPixels(cat);
+
+    const result = await squeezeNet.predict(pixels);
+
+    resultElement.innerText = '';
+
+    const topK = await squeezeNet.getTopKClasses(result.logits, 5);
+    for (const key in topK) {
+      resultElement.innerText += `${topK[key].toFixed(5)}: ${key}\n`;
+    };
+  };
+  cat.src = 'cat.jpg';
+</script>

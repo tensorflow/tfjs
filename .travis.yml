@@ -1,7 +1,7 @@
 language: node_js
 node_js: "8"
 install:
-  - npm install
+  - npm run prep
 script:
   - npm run build --silent
   - npm run lint --silent
