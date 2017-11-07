@@ -93,8 +93,8 @@ limitations under the License.
             </template>
           </paper-listbox>
         </paper-dropdown-menu>
-        <paper-toggle-button id="predictswitch">Enable webcam-based keyboard events</paper-toggle-button>
-        <div id="dosbox"></div>
+        <paper-toggle-button id="predictswitch" on-click="removeFocusFromButtons">Enable webcam-based keyboard events</paper-toggle-button>
+        <div id="dosbox" tabindex="0"></div>
         <div class="statsholder">
           <div>Rolling average of fps during gameplay:</div>
           <div id="predfps"></div>
@@ -123,7 +123,8 @@ limitations under the License.
       <div class="controls">
         <template is="dom-repeat" items="[[keyEventData]]">
           <div class="control">
-            [[item.key]]
+            <div>[[item.key]]</div>
+            <div>[[getKeyText(item.text)]]</div>
             <div class="indicator" id="[[getKeyIndicatorId(index)]]"></div>
             <paper-toggle-button id="[[getKeyToggleId(index)]]" on-change="toggle">Train(
                 <span id="[[getKeyCountId(index)]]">0</span>
