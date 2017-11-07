@@ -17,15 +17,16 @@ limitations under the License.
 <html>
   <head>
     <meta charset="UTF-8">
-    <!-- This script is stripped during vulcanization, available only during development. It provides
-        polyfill for debugging/testing in non-Chrome browsers.
+    <!-- This script is stripped during vulcanization, available only during
+        development. It provides polyfill for debugging/testing in non-Chrome
+        browsers.
     -->
     <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
     <link rel="import" href="../bower_components/polymer/polymer.html">
     <link rel="import" href="../demo-header.html">
     <link rel="import" href="../demo-footer.html">
 
-    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue_grey-orange.min.css" />
+    <script src="../homepage/assets/support.js"></script>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.css" />
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
@@ -139,7 +140,5 @@ limitations under the License.
       <iframe sandbox="allow-scripts" id="sandboxed" src="frame.html" onload="window.iframeLoaded = true"></iframe>
     </div>
     <demo-footer></demo-footer>
-
-    <script src="bundle.js"></script>
   </body>
 </html>
