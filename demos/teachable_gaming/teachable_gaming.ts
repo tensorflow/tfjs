@@ -79,6 +79,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
   private selectedIndex: number;
   private predictedIndex: number;
   private selectedGameIndex = 0;
+  private hasAnyTrainedClass: boolean;
 
   private webcamVideoElement: HTMLVideoElement;
   private addNewKeyDialog: HTMLElement;
@@ -206,6 +207,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
     this.classifier.load();
     this.predictedIndex = -1;
     this.selectedIndex = -1;
+    this.hasAnyTrainedClass = false;
 
     // Setup performance tracking vars.
     this.animateLoopIndex = 0;
@@ -241,8 +243,9 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
     const target = event.target as HTMLInputElement;
     const index = this.getKeyIndexFromId(target.id);
 
-    const toggles = document.querySelectorAll('paper-toggle-button');
+    const toggles = document.querySelectorAll('.keytoggle');
     if (target.checked) {
+      this.hasAnyTrainedClass = true;
       this.selectedIndex = index;
       for (let i = 0; i < toggles.length; i++) {
         if (event.target !== toggles[i]) {
@@ -263,6 +266,8 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
     const countBox = this.$$('#count_' + String(index));
     countBox.innerHTML = '0';
     this.removeFocusFromButtons();
+    this.hasAnyTrainedClass =
+        this.classifier.getClassExampleCount().some(count => count !== 0);
   }
 
   private isDosboxReady() {
@@ -318,7 +323,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
         const countBox = this.$$('#' + countBoxId) as HTMLElement;
         countBox.innerHTML = String(+countBox.innerHTML + 1);
       });
-    } else if (this.$.predictswitch.checked) {
+    } else if (this.hasAnyTrainedClass) {
       this.predicting = true;
       await this.math.scope(async (keep, track) => {
         const image = track(Array3D.fromPixels(this.webcamVideoElement));
@@ -343,26 +348,28 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
           }
           const elem = this.$.dosbox;
 
-          if (results.classIndex !== this.predictedIndex) {
-            if (this.keyEventData[results.classIndex].code >= 0) {
-              // tslint:disable-next-line:no-any
-              const down = document.createEvent('Event') as any;
-              down.initEvent('keydown', true, true);
-              down.key = this.keyEventData[results.classIndex].key;
-              down.keyCode = this.keyEventData[results.classIndex].code;
-              elem.dispatchEvent(down);
-            }
+          if (this.$.predictswitch.checked) {
+            if (results.classIndex !== this.predictedIndex) {
+              if (this.keyEventData[results.classIndex].code >= 0) {
+                // tslint:disable-next-line:no-any
+                const down = document.createEvent('Event') as any;
+                down.initEvent('keydown', true, true);
+                down.key = this.keyEventData[results.classIndex].key;
+                down.keyCode = this.keyEventData[results.classIndex].code;
+                elem.dispatchEvent(down);
+              }
 
-            if (this.predictedIndex !== -1 &&
-                this.keyEventData[this.predictedIndex].code >= 0) {
-              // tslint:disable-next-line: no-any
-              const up = document.createEvent('Event') as any;
-              up.initEvent('keyup', true, true);
-              up.key = this.keyEventData[this.predictedIndex].key;
-              up.keyCode = this.keyEventData[this.predictedIndex].code;
-              elem.dispatchEvent(up);
+              if (this.predictedIndex !== -1 &&
+                  this.keyEventData[this.predictedIndex].code >= 0) {
+                // tslint:disable-next-line: no-any
+                const up = document.createEvent('Event') as any;
+                up.initEvent('keyup', true, true);
+                up.key = this.keyEventData[this.predictedIndex].key;
+                up.keyCode = this.keyEventData[this.predictedIndex].code;
+                elem.dispatchEvent(up);
+              }
+              this.predictedIndex = results.classIndex;
             }
-            this.predictedIndex = results.classIndex;
           }
         }
       });
