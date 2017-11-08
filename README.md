@@ -22,8 +22,8 @@ npm install deeplearn
 ```
 
 #### TypeScript / ES6 JavaScript
-See the [TypeScript starter project](./starter/typescript/) and the
-[ES6 starter project](./starter/es6/) to get you quickly started. They contain a
+See the [TypeScript starter project](https://github.com/PAIR-code/deeplearnjs/tree/master/starter/typescript/) and the
+[ES6 starter project](https://github.com/PAIR-code/deeplearnjs/tree/master/starter/es6/) to get you quickly started. They contain a
 short example that sums an array with a scalar (broadcasted):
 
 ```ts
@@ -170,5 +170,3 @@ iOS Mobile or Desktop Safari. We are working on updating them, check back soon.
   </a>
   <span>&nbsp; for providing testing support.</span>
 </p>
-
-This is not an official Google product.
