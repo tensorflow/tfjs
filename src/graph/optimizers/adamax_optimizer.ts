@@ -28,9 +28,12 @@ export class AdamaxOptimizer extends Optimizer {
       protected learningRate: number, private beta1: number,
       private beta2: number, specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
+    this.eps = Scalar.new(1e-8);
     // b1, b2 keep initial value of beta* hyperparameters.
     this.b1 = Scalar.new(this.beta1);
     this.b2 = Scalar.new(this.beta2);
+
+    this.accB1 = Scalar.new(this.beta1);
   }
 
   beforeBatch(
@@ -79,8 +82,9 @@ export class AdamaxOptimizer extends Optimizer {
 
         const variable = math.scaledArrayAdd(
             this.one, oldVariable,
-            math.divide(this.c, math.subtract(this.one, this.b1)),
-            math.divide(newFirstMoment, newWeightedInfNorm));
+            math.divide(this.c, math.subtract(this.one, this.accB1)),
+            math.divide(newFirstMoment, 
+              math.add(this.eps, newWeightedInfNorm)));
 
         activationArrayMap.set(node.output, keep(variable));
         node.data = variable;
@@ -93,6 +97,10 @@ export class AdamaxOptimizer extends Optimizer {
         oldFirstMoment.dispose();
         oldWeightedInfNorm.dispose();
       });
+      // Make sure to dispose old values.
+      const oldAccB1 = this.accB1;
+      this.accB1 = keep(math.multiply(this.accB1, this.b1));
+      oldAccB1.dispose();
     });
 
     this.variableGradients.dispose();
@@ -104,6 +112,7 @@ export class AdamaxOptimizer extends Optimizer {
     this.firstMoment.dispose();
     this.weightedInfNorm.dispose();
     this.eps.dispose();
+    this.accB1.dispose();
     this.b1.dispose();
     this.b2.dispose();
   }
@@ -113,6 +122,7 @@ export class AdamaxOptimizer extends Optimizer {
   // Average of exponentially weighed infinity norm
   private weightedInfNorm = new TensorArrayMap();
   private eps: Scalar;
+  private accB1: Scalar;
   private b1: Scalar;
   private b2: Scalar;
 }

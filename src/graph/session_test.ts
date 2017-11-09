@@ -609,17 +609,17 @@ describe('Session', () => {
           // u1_1 = [(1-beta2)*grad_w1, (1-beta2)*grad_w2] = [.2 .4]
           // new_weighted_inf_norm = max(ut_0, ut_1 ) = [.2 .4]
           // 
-          // coefficient = alpha/(1-beta1) = 0.5
+          // coefficient = alpha/(1-(beta1*beta1) = 0.278
           // updates = coefficient*[new_first_m1/new_weighted_inf_norm1, 
           //                        new_first_m2/new_weighted_inf_norm2]
-          //         = [1.8, 1.8]
+          //         = [1.0, 1.0]
           // w = [ w1_old - lr*updates_1, w2_old - lr*updates_2]
-          //            = [-0.28, -0.28]
+          //            = [-0.2, -0.2]
 
           session.train(y, [{ tensor: x, data: inputProvider }], 1, optimizer);
           const dydw2 = session.activationArrayMap.get(w).getValues();
           test_util.expectArraysClose(
-              dydw2, new Float32Array([-.28, -.28]), 2e-5);
+              dydw2, new Float32Array([-.2, -.2]), 2e-5);
       });
   });
 
