@@ -137,6 +137,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
           {code: 83, key: 'KeyS', text: 'Fire'},
           {code: 65, key: 'KeyA', text: 'Strafe left'},
           {code: 68, key: 'KeyD', text: 'Strafe right'},
+          {code: 13, key: 'Enter'},
         ],
       },
       {
@@ -162,6 +163,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
           {code: 56, key: 'Digit8', text: 'Right'},
           {code: 57, key: 'Digit9', text: 'Rotate'},
           {code: 32, key: 'Space', text: 'Drop'},
+          {code: 13, key: 'Enter'},
         ],
       },
       {
@@ -177,6 +179,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
           {code: 39, key: 'ArrowRight', text: 'Right'},
           {code: 17, key: 'ControlRight', text: 'Fire'},
           {code: 65, key: 'KeyA', text: 'Jump'},
+          {code: 13, key: 'Enter'},
         ],
       },
     ];
