@@ -38,6 +38,10 @@ limitations under the License.
 .controller {
   padding:12px;
 }
+.game-picker {
+  padding: 22px;
+  display: flex;
+}
 .controls {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -98,6 +102,39 @@ paper-button.reset-button {
   margin-top: 24px;
   font-weight: 400;
 }
+label > input{
+  visibility: hidden;
+  position: absolute;
+}
+label > input + div > img{
+  cursor:pointer;
+  border:2px solid transparent;
+}
+label > input:checked + div > img{
+  border:2px solid #f00;
+}
+.thumbail {
+  width: 225px;
+  height: 200px;
+}
+.image_and_label {
+  position: relative;
+}
+.image_label {
+  cursor: pointer;
+  position: absolute;
+  top: 37%;
+  padding: 12px;
+  width: 100px;
+  background: rgba(255,255,255,0.9);
+  margin: auto 50px;
+  border-radius: 5px;
+  color: #777777;
+  border: 1px solid #cccccc;
+  font-weight: 300;
+  text-decoration: none;
+  text-align: center;
+}
 </style>
     <!--Outer container-->
   <div class="mdl-layout mdl-js-layout">
@@ -132,17 +169,17 @@ paper-button.reset-button {
             <div class="mld-cell mdl-cell--8-col mdl-cell--1-offset-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-typography--headline tutorial">
               1. Pick a game to play
             </div>
-            <!-- Select Game from Dropdown -->
-            <div class="game-picker mld-cell mdl-cell--10-col mdl-cell--2-offset-desktop mdl-cell--10-col-tablet mdl-cell--4-col-phone">
-              <paper-dropdown-menu no-animations label="Game">
-                <paper-listbox attr-for-selected="value" id="game-dropdown" class="dropdown-content" selected="{{selectedGameIndex}}" slot="dropdown-content">
-                  <template is="dom-repeat" items="[[games]]">
-                    <paper-item value="[[index]]" label="[[item.name]]">
-                    [[item.name]]
-                    </paper-item>
-                  </template>
-                </paper-listbox>
-              </paper-dropdown-menu>
+            <!-- Select game from image buttons -->
+            <div class="game-picker mdl-cell--1-offset-desktop">
+              <template is="dom-repeat" items="[[games]]">
+                <label>
+                  <input type="radio" name="game" value="[[item.name]]" id="[[getGameRadioId(index)]]" on-click="onGameRadioClick" checked="[[shouldRadioInitToChecked(index)]]"/>
+                  <div class="image_and_label">
+                    <img class="thumbail" src="[[item.img]]">
+                    <div class="image_label">[[item.name]]</div>
+                  </div>
+                </label>
+              </template>
             </div>
             <!-- Step 2 -->
             <div class="mld-cell mdl-cell--8-col mdl-cell--1-offset-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-typography--headline tutorial">
