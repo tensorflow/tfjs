@@ -12,37 +12,33 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================-->
+
 <!DOCTYPE html>
 <html>
 
 <head>
+  <!--metadata-->
   <meta charset="UTF-8">
-  <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <meta name="description" content="Teachable Gaming with Deeplearn.js - train a local neural network in your browser to create custom controllers and play classic DOS games">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <!--links-->
   <link rel="import" href="teachable_gaming.html">
   <link rel="import" href="../demo-header.html">
   <link rel="import" href="../demo-footer.html">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.css" />
+  <link rel="stylesheet" href="style.css">
+
+
+  <!--scripts-->
+  <script src="../bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
   <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
   <script src="../homepage/assets/support.js"></script>
-  <title>deeplearn.js teachable gaming demo</title>
-  <style>
-    html {
-      width: 100%;
-      height: 100%;
-    }
+  <script type="text/javascript" src="https://js-dos.com/cdn/js-dos-api.js"></script>
 
-    body {
-      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
-      margin: 0;
-      width: 100%;
-      height: 100%;
-    }
 
-    head {
-      height: 0;
-      width: 0;
-    }
-  </style>
+  <title>Teachable Gaming - deeplearn.js</title>
+  
 </head>
 
 <body>
