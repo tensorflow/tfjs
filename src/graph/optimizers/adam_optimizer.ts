@@ -99,10 +99,16 @@ export class AdamOptimizer extends Optimizer {
         oldFirstMoment.dispose();
         oldSecondMoment.dispose();
       });
+
+      // Make sure to dispose old value objects.
+      const oldAccB1 = this.accB1;
+      const oldAccB2 = this.accB2;
       // accB* represents beta1 and beta2 to
       // the power t (the number of iteration).
       this.accB1 = keep(math.multiply(this.accB1, this.b1));
       this.accB2 = keep(math.multiply(this.accB2, this.b2));
+      oldAccB1.dispose();
+      oldAccB2.dispose();
     });
 
     this.variableGradients.dispose();
