@@ -21,9 +21,6 @@ from __future__ import print_function
 
 import argparse
 
-from pytorch_checkpoint_dumper import PytorchCheckpointDumper
-from tensorflow_checkpoint_dumper import TensorflowCheckpointDumper
-
 
 def get_checkpoint_dumper(model_type, checkpoint_file, output_dir, remove_variables_regex):
   """Returns Checkpoint dumper instance for a given model type.
@@ -50,9 +47,13 @@ def get_checkpoint_dumper(model_type, checkpoint_file, output_dir, remove_variab
       If particular model type is not supported
   """
   if model_type == 'tensorflow':
+    from tensorflow_checkpoint_dumper import TensorflowCheckpointDumper
+
     return TensorflowCheckpointDumper(
       checkpoint_file, output_dir, remove_variables_regex)
   elif model_type == 'pytorch':
+    from pytorch_checkpoint_dumper import PytorchCheckpointDumper
+
     return PytorchCheckpointDumper(
       checkpoint_file, output_dir, remove_variables_regex)
   else:
