@@ -1,3 +1,4 @@
+/*body*/
 html {
   width: 100%;
   height: 100%;
@@ -15,6 +16,18 @@ head {
   width: 0;
 }
 
+/*typography*/
+a {
+  color: #38006b;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #9c4dcc;
+  text-decoration: underline;
+}
+
+/*banner area*/
 .banner {
   background: linear-gradient(30deg, #6a1b9a, #38006b 30%, #38006b);
   padding: 48px;
@@ -32,6 +45,7 @@ head {
   font-weight: 300;
 }
 
+/*introduction text*/
 .description-text {
   line-height: 1.7em;
   padding: 48px;
@@ -44,39 +58,114 @@ head {
   color: #777777;
 }
 
-#imgContainer {
-  background: #fafafa;
-  border: 1px solid #cccccc;
-  margin-bottom: 32px;
+.performance-note {
+  padding: 0px 0px 48px 48px;
+  color: #444444;
+  font-weight: 300;
 }
 
-a {
-  color: #38006b;
-  text-decoration: none;
-}
-a:hover {
-  color: #9c4dcc;
-  text-decoration: underline;
-}
-
+/*tutorial headers*/
 .tutorial {
   padding: 12px;
-  margin-top: 24px;
+  margin-top: 12px;
+  color: #250d60;
+  text-transform: capitalize;
+}
+/*game picker*/
+.mdl-card {
+  margin: 12px;
+  width: 225px;
+  height: 200px;
+}
+.mdl-card:hover {
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12), 0 5px 5px -3px rgba(0, 0, 0, .2);
+}
+.thumbail {
+  width: 225px;
+  height: 200px;
+}
+.image_label {
+  cursor: pointer;
+  position: absolute;
+  top: 37%;
+  padding: 12px;
+  width: 120px;
+  background: rgba(255,255,255,0.9);
+  margin: auto 50px;
+  color: #444444;
+  font-weight: 300;
+  text-decoration: none;
+  text-align: center;
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12);
+}
+/*input controller*/
+/*webcam video playback*/
+#inputContainer {
+  margin: 10px;
+  width: 100%;
+}
+#imgContainer {
+  background-color: #fafafa;
+  margin: auto;
+  background: url("Webcam_Error.svg") center/cover no-repeat;
+}
+
+#webcamVideo {
+  max-height: 400px;
+  width: 100%;
+  height: auto; 
+}
+/*training keyboard cards*/
+.indicator {
+  height: 10px;
+  width: 100%;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  background-color: lightgray;
 }
 .reset-button {
   margin-top: 24px;
   font-weight: 400;
 }
-
-.game-picker {
-  margin: 24px;
+/*step 3*/
+#predictswitch {
+  padding: 12px;
 }
 
+.statsholder {
+  padding-left: 12px;
+  color: #777777;
+  display: flex; /* ensures that the key values appear inline*/
+}
 .statsholder-val {
   font-weight: 500;
   padding-left: 0.3em;
+  color: #444444;
+}
+.control {
+  padding: 24px;
+  background: rgba(235, 232, 239,0.5);
+  float: left;
+  margin: 4px;
+}
+.mdl-card.control:hover{
+  box-shadow: none;
+}
+.mdl-card.button-card {
+  background: none;
+}
+.control > button {
+  margin-top:12px;
+}
+.mdl-card.button-card:hover {
+  box-shadow:none;
+}
+.visual-clear {
+  clear: both;
+  height: 0;
 }
 
-#predictswitch {
-  padding-left: 12px;
-}
+
+
+
+

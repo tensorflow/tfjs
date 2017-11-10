@@ -23,59 +23,18 @@ limitations under the License.
 
 <dom-module id="teachablegaming-demo">
 <style>
-#inputContainer {
-  margin: 10px;
-}
-#activationsContainer, #webcam-message, #ssl-message {
+
+#activationsContainer{
   text-align: center;
 }
-#webcam-message, #ssl-message {
-  background-color: #fbb;
-  outline: 1px solid rgb(100, 0, 0);
-  padding: 5px 0;
-  margin: 10px auto;
-}
-.controller {
-  padding:12px;
-}
-.game-picker {
-  padding: 22px;
-  display: flex;
-}
-.controls {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-}
-.control {
-  padding: 32px;
-  border: 1px solid #fafafa;
-  margin: 4px;
-  border-radius: 2px;
-  background: rgba(235, 232, 239,0.5);
-}
 
-.control > button {
-  margin-top:12px;
-}
-.indicator {
-  height: 10px;
-  width: 100%;
-  margin-bottom: 8px;
-  margin-top: 4px;
-  background-color: lightgray;
-}
-.holder {
-  display: flex;
-}
-#predictswitch {
-  margin-bottom: 10px;
-}
 ::content .dosbox-container {
   width: 640px;
   height: 400px;
   margin: 12px;
 }
 ::content .dosbox-start {
+  /*controls label appearance*/
   padding: 12px;
   background: rgba(255,255,255,0.9);
   margin: auto 50px;
@@ -85,157 +44,141 @@ limitations under the License.
   font-weight: 300;
   text-decoration: none;
 }
-.statsholder {
-  display: flex;
-  padding: 14px;
-  background: #fafafa;
-  border: 1px solid #cccccc;
-  border-radius: 2px;
-  color: #777777;
-}
-
 paper-button.reset-button {
   background-color: var(--paper-grey-300);
+}
 
-}
-.reset-button {
-  margin-top: 24px;
-  font-weight: 400;
-}
 label > input{
   visibility: hidden;
   position: absolute;
 }
-label > input + div > img{
+label > input + div > img {
   cursor:pointer;
-  border:2px solid transparent;
 }
-label > input:checked + div > img{
-  border:2px solid #f00;
-}
-.thumbail {
-  width: 225px;
-  height: 200px;
-}
-.image_and_label {
-  position: relative;
-}
-.image_label {
-  cursor: pointer;
-  position: absolute;
-  top: 37%;
-  padding: 12px;
-  width: 100px;
-  background: rgba(255,255,255,0.9);
-  margin: auto 50px;
-  border-radius: 5px;
-  color: #777777;
-  border: 1px solid #cccccc;
-  font-weight: 300;
-  text-decoration: none;
-  text-align: center;
+label > input:checked + div > img {
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12), 0 5px 5px -3px rgba(0, 0, 0, .2);
 }
 </style>
-    <!--Outer container-->
-  <div class="mdl-layout mdl-js-layout">
-    <!-- main content-->
-    <main class="mdl-layout__content">
-      <template>
-        <!-- Banner -->
-        <div class="mdl-grid banner">
-          <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
-          <div class="mdl-cell mdl-cell--10-col mdl-cell--8-col-tablet mdl-cell--4-col-phone banner-text">
-            <div class="mdl-typography--display-4">Teachable Gaming</div>
-            <div class="mdl-typography--display-1 banner-subtitle">Train a neural network to play classic DOS games using your webcam!</div>
-          </div>
-          <div class="mdl-layout-spacer  mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
+<!--Outer container-->
+<div class="mdl-layout mdl-js-layout">
+  <!-- main content-->
+  <main class="mdl-layout__content">
+    <template>
+      <!-- Banner -->
+      <div class="mdl-grid banner">
+        <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
+        <div class="mdl-cell mdl-cell--10-col mdl-cell--8-col-tablet mdl-cell--4-col-phone banner-text">
+          <div class="mdl-typography--display-4">Cam Arcade</div>
+          <div class="mdl-typography--display-1 banner-subtitle">Play classic DOS games with your webcam and a neural network!</div>
         </div>
-        <!--Body-->
-        <div class="mdl-grid mdl-grid--no-spacing description">
-          <div class="mld-cell mdl-cell--1-offset-desktop mdl-cell--4-col mdl-cell--6-col-tablet mdl-cell--4-col-phone mdl-typography--subhead description-text">
-            Teachable gaming lets you control classic DOS games through webcam gestures instead of (or in conjunction with)
-            keyboard strokes. Train a local neural network in your browser to invoke any keystroke by wiggling your fingers, pointing in different directions, or using hand gestures. <br> <br> For even more fun, get your friends together and choreograph an ensemble to invoke different keystrokes!
-          </div>
-          <div class="mld-cell mdl-cell--2-col mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-typography--body-1 credits">
-            Inspired by <a href="https://teachablemachine.withgoogle.com/"</a>Teachable Machine</a>.<br>
-            Games provided by <a href="https://js-dos.com/"</a>js-dos</a>.<br>
-            Check out <a href="https://github.com/PAIR-code/deeplearnjs/tree/master/demos/teachable_gaming">the code behind this demo</a>.
+        <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
+      </div>
+      <!--Body-->
+      <div class="mdl-grid mdl-grid--no-spacing description">
+        <div class="mld-cell mdl-cell--1-offset-desktop mdl-cell--4-col mdl-cell--6-col-tablet mdl-cell--4-col-phone mdl-typography--body-1 description-text">
+         Cam Arcade lets you control classic DOS games through webcam gestures instead of (or in conjunction with)
+          keyboard strokes. Train a local neural network in your browser to invoke any keystroke by wiggling your fingers, pointing in different directions, or using hand gestures. <br> <br> For even more fun, get your friends together and choreograph an ensemble to invoke different keystrokes!
+        </div>
+        <div class="mld-cell mdl-cell--2-col mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-typography--body-1 credits">
+          Inspired by <a href="https://teachablemachine.withgoogle.com/"</a>Teachable Machine</a>.<br>
+          Games provided by <a href="https://js-dos.com/"</a>js-dos</a>.<br>
+          Check out <a href="https://github.com/PAIR-code/deeplearnjs/tree/master/demos/teachable_gaming">the code behind this demo</a>.
+          <br><br>
+          For more information on how to train your network, visit the <a href="https://teachablemachine.withgoogle.com/"</a>Teachable Machine</a> site.<br>
+        </div>
+      </div>
+      <div class="mdl-grid mdl-grid--no-spacing">
+        <div class="mld-cell mdl-cell--1-offset-desktop mdl-cell--3-col mdl-cell--6-col-tablet mdl-cell--4-col-phone mdl-typography--body-1 performance-note">
+          All training occurs locally on your device and in your browser. That means, your images don't get sent anywhere. JS-dos is resource heavy - for a seamless experience, use a web browser on your desktop/laptop. 
+        </div>
+      </div>
+      <!-Cam Arcade Demo-->
+      <div class="holder mdl-grid mdl-grid--no-spacing">
+        <!--Step 1-->
+        <div class="mdl-cell mdl-cell--7-col mdl-cell--1-offset tutorial mdl-typography--headline mdl-cell--8-col-tablet mdl-cell--4-col-phone">
+          1. Pick a game to play
+        </div>
+        <!-- Select game from image buttons -->
+        <div class="mdl-cell mdl-cell--7-col mdl-cell--1-offset game-picker mdl-cell--8-col-tablet mdl-cell--4-col-phone">
+          <div class="mdl-grid game-card-grid">
+            <template is="dom-repeat" items="[[games]]">
+              <label class="mdl-card mdl-shadow--2dp mdl-js-ripple-effect">
+                <input type="radio" name="game" value="[[item.name]]" id="[[getGameRadioId(index)]]" on-click="onGameRadioClick" checked="[[shouldRadioInitToChecked(index)]]"/>
+                <div class="image_and_label">
+                  <img class="thumbail" src="[[item.img]]">
+                  <div class="image_label">[[item.name]]</div>
+                </div>
+              </label>
+            </template>
           </div>
         </div>
-        <!--Teachable Gaming Demo-->
-        <!--TG step 1-->
-        <div class="holder mdl-grid">
-            <!--Step 1-->
-            <div class="mld-cell mdl-cell--8-col mdl-cell--1-offset-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-typography--headline tutorial">
-              1. Pick a game to play
-            </div>
-            <!-- Select game from image buttons -->
-            <div class="game-picker mdl-cell--1-offset-desktop">
-              <template is="dom-repeat" items="[[games]]">
-                <label>
-                  <input type="radio" name="game" value="[[item.name]]" id="[[getGameRadioId(index)]]" on-click="onGameRadioClick" checked="[[shouldRadioInitToChecked(index)]]"/>
-                  <div class="image_and_label">
-                    <img class="thumbail" src="[[item.img]]">
-                    <div class="image_label">[[item.name]]</div>
-                  </div>
-                </label>
-              </template>
-            </div>
+        <div class="mdl-cell mdl-cell--1-offset-desktop mdl-cell--5-col-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone">
+          <div class="step-2 mdl-grid">
             <!-- Step 2 -->
-            <div class="mld-cell mdl-cell--8-col mdl-cell--1-offset-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone mdl-typography--headline tutorial">
+            <div class="tutorial mdl-typography--headline mdl-cell mdl-cell--12-col">
               2. Train with your webcam
             </div>
             <!-- training controls -->
-              <div class="controller mdl-cell--1-offset-desktop">
-                <!-- webcam box -->
-                <div id="inputContainer">
-                  <div id="imgContainer">
-                    <video autoplay="true" id="webcamVideo" width="227" height="227"></video>
+            <div class="controller mdl-cell mdl-cell--12-col">
+              <!-- webcam box -->
+              <div id="inputContainer">
+                <div id="imgContainer">
+                  <video autoplay="true" id="webcamVideo" width="227" height ="227" ></video>
+                </div>
+              </div>
+              <div class="controls">
+                <template is="dom-repeat" items="[[keyEventData]]">
+                  <div class="control mdl-card">
+                    <div class="mdl-typography--body-1">[[item.key]]</div>
+                    <div class="mdl-typography--caption">[[getKeyText(item.text)]]</div>
+                    <div class="indicator" id="[[getKeyIndicatorId(index)]]"></div>
+                    <paper-toggle-button class="mdl-typography--caption" id="[[getKeyToggleId(index)]]" on-change="toggle">Train (<span id="[[getKeyCountId(index)]]">0</span>)</paper-toggle-button>
+                    <paper-button class="reset-button" id="[[getKeyClearId(index)]]" on-click="clear">Reset</paper-button>
                   </div>
+                </template>
+                <div class="mdl-card button-card">
+                <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" on-click="addNewKey" disabled="[[shouldDisableAddNewKey(keyEventData)]]"><i class="material-icons">add</i></button>
                 </div>
-                <div class="controls">
-                  <template is="dom-repeat" items="[[keyEventData]]">
-                    <div class="control mdl-typography--body-1">
-                      <div>[[item.key]]</div>
-                      <div>[[getKeyText(item.text)]]</div>
-                      <div class="indicator" id="[[getKeyIndicatorId(index)]]"></div>
-                      <paper-toggle-button class="mdl-typography--caption" id="[[getKeyToggleId(index)]]" on-change="toggle">Train (<span id="[[getKeyCountId(index)]]">0</span>)</paper-toggle-button>
-                      <paper-button class="reset-button" id="[[getKeyClearId(index)]]" on-click="clear">Reset</paper-button>
-                    </div>
-                  </template>
-                  <button class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored" on-click="addNewKey" disabled="[[shouldDisableAddNewKey(keyEventData)]]"><i class="material-icons">add</i></button>
-                </div>
+                <br class="visual-clear"/>
               </div>
-              <!-- Step 3 -->
-              <div class="mld-cell mdl-cell--8-col mdl-cell--1-offset-desktop mdl-cell--10-col-tablet mdl-cell--4-col-phone mdl-typography--headline tutorial">
-                3. Start Playing!
-              </div>
-              <!-- Enable Webcam control -->
-              <paper-toggle-button id="predictswitch" class="mdl-typography--body-2 mld-cell mdl-cell--10-col mdl-cell--1-offset-desktop mdl-cell--10-col-tablet mdl-cell--4-col-phone mdl-typography--body-1">
-              Start using the webcam to control the game!
-              </paper-toggle-button>
-              <!-- js-dos screen -->
-              <div id="dosbox" class="mld-cell mdl-cell--10-col mdl-cell--1-offset-desktop mdl-cell--10-col-tablet mdl-cell--4-col-phone mdl-typography--body-1"></div>
-              <!-- fps info -->
-              <div class="statsholder statsholder-key mdl-typography--caption mld-cell mdl-cell--6-col mdl-cell--1-offset-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
-                <div>Rolling Average of FPS during Gameplay:</div>
-                <div id="predfps" class="statsholder-val"></div>
-              </div>
-              <!-- fps info -->
-              <template is="dom-if" if="[[predicting]]">
-                <div class="statsholder mdl-typography--caption mld-cell mdl-cell--6-col mdl-cell--1-offset-desktop mdl-cell--4-col-tablet mdl-cell--4-col-phone">
-                  <div>Rolling average of keystroke prediction performance: </div>
-                  <div id="predperf" class="statsholder-val"></div>
-                  <div>ms</div>
-                </div>
-              </template>
+            </div>
           </div>
-          <!--mdl grid ends here-->
-          <paper-dialog id="addkeydialog">
-            <h2>Select a key on your keyboard to train.</h2>
-          </paper-dialog>
-          <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-        </template>
-      </main>
+        </div>
+        <!-- Step 3 -->
+        <div class="mdl-cell mdl-cell--4-col-desktop mdl-cell--8-col-tablet mdl-cell--4-col-phone">
+          <div class="step-3 mdl-grid">
+            <div class="tutorial mdl-typography--headline mdl-cell mdl-cell--12-col">
+              3. Start Playing!
+            </div>
+            <!-- js-dos screen -->
+            <div id="dosbox" class="mdl-typography--body-1 mdl-cell mdl-cell--12-col"></div>
+            <!-- Enable Webcam control -->
+            <paper-toggle-button id="predictswitch" class="mdl-typography--body-1 mdl-cell mdl-cell--12-col">
+            Start using the webcam to control the game!
+            </paper-toggle-button>
+            <!-- fps info -->
+            <div class="statsholder statsholder-key mdl-typography--caption mdl-cell mdl-cell--12-col">
+              <div>FPS:</div>
+              <div id="predfps" class="statsholder-val"></div>
+            </div>
+            <!-- fps info -->
+            <template is="dom-if" if="[[predicting]]">
+              <div class="statsholder mdl-typography--caption mdl-cell mdl-cell--12-col">
+                <div>Time for Prediction: </div>
+                <div id="predperf" class="statsholder-val"></div>
+                <div style="padding-left: 4px;">ms</div>
+              </div>
+            </template>
+          </div>
+        </div>
+      <!--end of holder class-->
     </div>
+    <paper-dialog id="addkeydialog">
+    <h2>Select a key on your keyboard to train.</h2>
+  </paper-dialog>
+
+</template>
+</main>
+
+</div>
 </dom-module>
