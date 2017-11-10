@@ -18,7 +18,8 @@
         "allowUnreachableCode": false
     },
     "include": [
-      "index.ts", "knn_image_classifier.ts"
+      "index.ts",
+      "knn_image_classifier.ts"
     ],
     "exclude": [
       "node_modules/",

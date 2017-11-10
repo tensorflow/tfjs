@@ -15,7 +15,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Model, NDArrayMath, NDArrayMathCPU} from 'deeplearn';
+import {Array1D, Array2D, Array3D, Model, NDArrayMath, NDArrayMathCPU, Scalar} from 'deeplearn';
 import {SqueezeNet} from 'deeplearn-squeezenet';
 
 export class KNNImageClassifier implements Model {
@@ -30,6 +30,8 @@ export class KNNImageClassifier implements Model {
 
   private varsLoaded = false;
   private mathCPU: NDArrayMathCPU;
+
+  private squashLogitsDenominator = Scalar.new(300);
 
   /**
    * Contructor for the class.
@@ -235,10 +237,16 @@ export class KNNImageClassifier implements Model {
    * Normalize the provided vector to unit length.
    */
   private normalizeVector(vec: Array1D) {
-    const squared = this.math.multiplyStrict(vec, vec);
+    // This hack is here for numerical stability on devices without floating
+    // point textures. We divide by a constant so that the sum doesn't overflow
+    // our fixed point precision. Remove this once we use floating point
+    // intermediates with proper dynamic range quantization.
+    const squashedVec = this.math.divide(vec, this.squashLogitsDenominator);
+
+    const squared = this.math.multiplyStrict(squashedVec, squashedVec);
     const sum = this.math.sum(squared);
     const sqrtSum = this.math.sqrt(sum);
-    return this.math.divide(vec, sqrtSum);
+    return this.math.divide(squashedVec, sqrtSum);
   }
 
   private getNumExamples() {
@@ -255,5 +263,6 @@ export class KNNImageClassifier implements Model {
     this.clearTrainLogitsMatrix();
     this.classLogitsMatrices.forEach(
         classLogitsMatrix => classLogitsMatrix.dispose());
+    this.squashLogitsDenominator.dispose();
   }
 }
