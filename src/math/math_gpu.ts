@@ -15,11 +15,14 @@
  * =============================================================================
  */
 
+import * as util from '../util';
+import * as axis_util from './axis_util';
 import {ConvInfo} from './conv_util';
 import {MatrixOrientation, NDArrayMath, SumTypes, SumTypesMap} from './math';
 import * as ndarray from './ndarray';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from './ndarray';
+import * as reduce_util from './reduce_util';
 import {AddScaledMatProgram} from './webgl/addscaledmat_gpu';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
@@ -35,14 +38,12 @@ import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import {GPGPUBinary, GPGPUProgram} from './webgl/gpgpu_math';
 import * as gpgpu_util from './webgl/gpgpu_util';
-import {LogSumExpProgram} from './webgl/logsumexp_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
-import {MinMaxProgram} from './webgl/minmax_gpu';
 import {MatMulProgram} from './webgl/mulmat_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
 import {OneHotProgram} from './webgl/onehot_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
-import {ReduceSumProgram} from './webgl/reducesum_gpu';
+import {ReduceProgram} from './webgl/reduce_gpu';
 import {ResizeBilinear3DProgram} from './webgl/resize_bilinear_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
 import {TextureManager} from './webgl/texture_manager';
@@ -239,24 +240,79 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, [a]);
   }
 
+  private reduce<D extends keyof DataTypes>(
+      a: Array2D, reduceType: 'max'|'min'|'sum', dtype: D): Array2D<D> {
+    const batchSize = a.shape[0];
+    const inSize = a.shape[1];
+    const windowSize = reduce_util.computeOptimalWindowSize(inSize);
+    const reduceInfo = {windowSize, inSize, batchSize};
+    const program = new ReduceProgram(reduceInfo, reduceType);
+    const [rows, cols] = program.outputShape;
+    const output =
+        this.makeOutputArray(program.outputShape, dtype).as2D(rows, cols);
+    this.compileAndRun(program, [a], output);
+    // No need to run another GPGPU program.
+    if (output.shape[1] === 1) {
+      return output;
+    }
+    return this.reduce(output, reduceType, dtype);
+  }
+
+  private argReduce(
+      a: Array2D, reduceType: 'max'|'min',
+      bestIndicesA: Array2D = null): Array2D<'int32'> {
+    let batchSize = a.shape[0];
+    let inSize = a.shape[1];
+    if (bestIndicesA != null) {
+      batchSize = bestIndicesA.shape[0];
+      inSize = bestIndicesA.shape[1];
+    }
+    const windowSize = reduce_util.computeOptimalWindowSize(inSize);
+    const reduceInfo = {windowSize, inSize, batchSize};
+    const program =
+        new ArgMinMaxProgram(reduceInfo, reduceType, bestIndicesA == null);
+    const [rows, cols] = program.outputShape;
+    const output =
+        this.makeOutputArray(program.outputShape, 'int32').as2D(rows, cols);
+    const inputs = [a];
+    if (bestIndicesA != null) {
+      inputs.push(bestIndicesA);
+    }
+    this.compileAndRun(program, inputs, output);
+    // No need to run another GPGPU program.
+    if (output.shape[1] === 1) {
+      return output;
+    }
+    return this.argReduce(a, reduceType, output);
+  }
+
   protected sumInternal<T extends keyof DataTypes>(
       a: NDArray<T>, axes: number[]): NDArray<SumTypes[T]> {
-    const program = new ReduceSumProgram(a.shape, axes);
-    const output =
-        this.makeOutputArray(program.outputShape, SumTypesMap[a.dtype]);
-    return this.compileAndRun(program, [a], output);
+    axis_util.assertAxesAreInnerMostDims('sum', axes, a.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(a.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = a.as2D(-1, inSize);
+    const outputDType = SumTypesMap[a.dtype];
+    return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
   }
 
   protected argMinInternal(a: NDArray, axes: number[]): NDArray<'int32'> {
-    const program = new ArgMinMaxProgram(a.shape, axes, 'min');
-    const output = this.makeOutputArray(program.outputShape, 'int32');
-    return this.compileAndRun(program, [a], output);
+    axis_util.assertAxesAreInnerMostDims('argMin', axes, a.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(a.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = a.as2D(-1, inSize);
+    return this.argReduce(a2D, 'min').reshape(outShape);
   }
 
   protected argMaxInternal(a: NDArray, axes: number[]): NDArray<'int32'> {
-    const program = new ArgMinMaxProgram(a.shape, axes, 'max');
-    const output = this.makeOutputArray(program.outputShape, 'int32');
-    return this.compileAndRun(program, [a], output);
+    axis_util.assertAxesAreInnerMostDims('argMax', axes, a.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(a.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = a.as2D(-1, inSize);
+    return this.argReduce(a2D, 'max').reshape(outShape);
   }
 
   protected equalInternal(x: NDArray, y: NDArray): NDArray<'bool'> {
@@ -272,14 +328,22 @@ export class NDArrayMathGPU extends NDArrayMath {
 
   protected minInternal<G extends keyof DataTypes>(
       a: NDArray<G>, axes: number[]): NDArray<G> {
-    const program = new MinMaxProgram(a.shape, axes, 'min');
-    return this.compileAndRun(program, [a]);
+    axis_util.assertAxesAreInnerMostDims('min', axes, a.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(a.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = a.as2D(-1, inSize);
+    return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
   }
 
   protected maxInternal<G extends keyof DataTypes>(
       a: NDArray<G>, axes: number[]): NDArray<G> {
-    const program = new MinMaxProgram(a.shape, axes, 'max');
-    return this.compileAndRun(program, [a]);
+    axis_util.assertAxesAreInnerMostDims('max', axes, a.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(a.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = a.as2D(-1, inSize);
+    return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
   }
 
   protected divideInternal(a: NDArray, b: NDArray): NDArray<'float32'> {
@@ -297,11 +361,6 @@ export class NDArrayMathGPU extends NDArrayMath {
   protected subtractInternal<T extends NDArray>(a: T, b: T): T {
     const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
     return this.compileAndRun<NDArray, T>(program, [a, b]);
-  }
-
-  protected logSumExpInternal(a: NDArray, axes: number[]): NDArray {
-    const program = new LogSumExpProgram(a.shape, axes);
-    return this.compileAndRun(program, [a]);
   }
 
   protected ceilInternal<T extends NDArray>(a: T): T {

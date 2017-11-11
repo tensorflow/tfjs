@@ -30,7 +30,6 @@ export interface GPGPUProgram {
   outputShape: number[];
   userCode: string;
   supportsBroadcasting?: boolean;
-  numBatchDims?: number;
 }
 
 export interface GPGPUBinary {
@@ -69,8 +68,8 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
     textureType: output.getData().textureType
   };
   const source = shader_compiler.makeShader(
-      inputInfos, outShapeInfo, userCode, program.supportsBroadcasting === true,
-      program.numBatchDims);
+      inputInfos, outShapeInfo, userCode,
+      program.supportsBroadcasting === true);
 
   const webGLProgram = gpgpu.createProgram(source);
 
@@ -103,8 +102,7 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
   };
 }
 
-function validateBinaryAndProgram(
-    shapeInfos: ShapeInfo[], inputs: NDArray[], numBatchDims: number) {
+function validateBinaryAndProgram(shapeInfos: ShapeInfo[], inputs: NDArray[]) {
   if (shapeInfos.length !== inputs.length) {
     throw Error(
         `Binary was compiled with ${shapeInfos.length} inputs, but ` +
@@ -117,12 +115,12 @@ function validateBinaryAndProgram(
     const shapeB = inputs[i].shape;
     const texShapeB = inputs[i].getTextureShapeRC();
 
-    if (!numBatchDims && !util.arraysEqual(shapeA, shapeB)) {
+    if (!util.arraysEqual(shapeA, shapeB)) {
       throw Error(
           `Binary was compiled with different shapes than ` +
           `the current args. Shapes ${shapeA} and ${shapeB} must match`);
     }
-    if (!numBatchDims && !util.arraysEqual(texShapeA, texShapeB)) {
+    if (!util.arraysEqual(texShapeA, texShapeB)) {
       throw Error(
           `Binary was compiled with different texture shapes than the` +
           ` current args. Shape ${texShapeA} and ${texShapeB} must match`);
@@ -134,10 +132,8 @@ export function runProgram<T extends NDArray, K extends NDArray>(
     binary: GPGPUBinary, inputs: T[], output: K,
     customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
         void): void {
-  validateBinaryAndProgram(
-      binary.inShapeInfos, inputs, binary.program.numBatchDims);
-  validateBinaryAndProgram(
-      [binary.outShapeInfo], [output], binary.program.numBatchDims);
+  validateBinaryAndProgram(binary.inShapeInfos, inputs);
+  validateBinaryAndProgram([binary.outShapeInfo], [output]);
 
   const outTex = output.getTexture();
   const outTexShape = output.getTextureShapeRC();

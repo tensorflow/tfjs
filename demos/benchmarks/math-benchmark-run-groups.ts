@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {BenchmarkRun, BenchmarkRunGroup} from './benchmark';
 // tslint:disable-next-line:max-line-length
 import {BatchNormalization3DCPUBenchmark, BatchNormalization3DGPUBenchmark} from './batchnormalization3d_benchmark';
+import {BenchmarkRun, BenchmarkRunGroup} from './benchmark';
 import {ConvBenchmarkParams, ConvGPUBenchmark} from './conv_benchmarks';
 // tslint:disable-next-line:max-line-length
 import {ConvTransposedBenchmarkParams, ConvTransposedGPUBenchmark} from './conv_transposed_benchmarks';
@@ -39,10 +39,10 @@ export function getRunGroups(): BenchmarkRunGroup[] {
     stepSize: 64,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
     benchmarkRuns: [
-      new BenchmarkRun('batchnorm3d_gpu',
-                       new BatchNormalization3DGPUBenchmark()),
-      new BenchmarkRun('batchnorm3d_cpu', 
-                       new BatchNormalization3DCPUBenchmark())
+      new BenchmarkRun(
+          'batchnorm3d_gpu', new BatchNormalization3DGPUBenchmark()),
+      new BenchmarkRun(
+          'batchnorm3d_cpu', new BatchNormalization3DCPUBenchmark())
     ],
     params: {}
   });
@@ -128,7 +128,7 @@ export function getRunGroups(): BenchmarkRunGroup[] {
     min: 0,
     max: 1024,
     stepToSizeTransformation: (step: number) => Math.max(1, step),
-    options: ['max', 'min', 'sum', 'logSumExp'],
+    options: ['max', 'min', 'argMax', 'argMin', 'sum', 'logSumExp'],
     selectedOption: 'max',
     stepSize: 64,
     benchmarkRuns: [

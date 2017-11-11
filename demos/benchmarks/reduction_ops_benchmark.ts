@@ -24,13 +24,17 @@ export abstract class ReductionOpsBenchmark extends BenchmarkTest {
       (input: NDArray) => Scalar {
     switch (option) {
       case 'max':
-        return (input: NDArray) => math.max(input);
+        return input => math.max(input);
       case 'min':
-        return (input: NDArray) => math.min(input);
+        return input => math.min(input);
+      case 'argMax':
+        return input => math.argMax(input);
+      case 'argMin':
+        return input => math.argMin(input);
       case 'sum':
-        return (input: NDArray) => math.sum(input);
+        return input => math.sum(input);
       case 'logSumExp':
-        return (input: NDArray) => math.logSumExp(input);
+        return input => math.logSumExp(input);
       default:
         throw new Error(`Not found such ops: ${option}`);
     }
