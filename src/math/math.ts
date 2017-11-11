@@ -919,6 +919,30 @@ export abstract class NDArrayMath {
   }
 
   /**
+   * Construct an array by repeating it the number of times given by reps.
+   *
+   * This operation creates a new array by replicating `input` `reps`
+   * times. The output tensor's i'th dimension has `input.shape[i] * 
+   * reps[i]` elements, and the values of `input` are replicated
+   * `reps[i]` times along the i'th dimension. For example, tiling
+   * `[a, b, c, d]` by `[2]` produces `[a, b, c, d, a, b, c, d]`.
+   *
+   * @param a The array to transpose.
+   * @param reps Determines the number of replications per dimension.
+   */
+  tile<D extends keyof DataTypes, T extends NDArray<D>>(
+      a: T, reps: number[]): T {
+    util.assert(
+        a.rank === reps.length,
+        `Error in transpose: rank of input ${a.rank} ` +
+            `must match length of reps ${reps}.`);
+    return this.executeOp('tile', () => this.tileInternal(a, reps));
+  }
+  protected abstract tileInternal<
+      D extends keyof DataTypes, T extends NDArray<D>>(a: T, 
+        reps: number[]): T;
+
+  /**
    * Transposes the array. Permutes the dimensions according to `perm`.
    *
    * The returned array's dimension `i` will correspond to the input dimension

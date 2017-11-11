@@ -18,40 +18,45 @@
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
-export class TransposeProgram implements GPGPUProgram {
+export class TileProgram implements GPGPUProgram {
   variableNames = ['A'];
   outputShape: number[];
   userCode: string;
   rank: number;
 
-  constructor(aShape: number[], newDim: number[]) {
+  constructor(aShape: number[], reps: number[]) {
     const outputShape: number[] = new Array(aShape.length);
     for (let i = 0; i < outputShape.length; i++) {
-      outputShape[i] = aShape[newDim[i]];
+      outputShape[i] = aShape[i] * reps[i];
     }
     this.outputShape = outputShape;
     this.rank = outputShape.length;
     const dtype = getCoordsDataType(this.rank);
-    const switched = getSwitchedCoords(newDim);
+    const sourceCoords = getSourceCoords(aShape);
 
     this.userCode = `
-    void main() {
-      ${dtype} resRC = getOutputCoords();
-      setOutput(getA(${switched}));
-    }
+      void main() {
+        ${dtype} resRC = getOutputCoords();
+        setOutput(getA(${sourceCoords}));
+      }
     `;
   }
 }
 
-function getSwitchedCoords(newDim: number[]): string {
-  const rank = newDim.length;
+function getSourceCoords(aShape: number[]): string {
+  const rank = aShape.length;
   if (rank > 4) {
-    throw Error(`Transpose for rank ${rank} is not yet supported`);
+    throw Error(`Tile for rank ${rank} is not yet supported`);
   }
-  const originalOrder = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
-  const switchedCoords = new Array(rank);
-  for (let i = 0; i < newDim.length; i++) {
-    switchedCoords[newDim[i]] = originalOrder[i];
+  if (rank === 1) {
+    return `imod(resRC, ${aShape[0]})`;
   }
-  return switchedCoords.join();
+
+  const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
+
+  const sourceCoords = [];
+  for (let i = 0; i < aShape.length; i++) {
+    sourceCoords.push(`imod(${currentCoords[i]}, ${aShape[i]})`);
+  }
+  return sourceCoords.join();
 }
