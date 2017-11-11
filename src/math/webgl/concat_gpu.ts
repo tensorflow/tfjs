@@ -17,6 +17,7 @@
 
 import * as concat_util from '../concat_util';
 import {GPGPUProgram} from './gpgpu_math';
+import {getCoordsDataType} from './shader_compiler';
 
 export class ConcatProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
@@ -28,7 +29,7 @@ export class ConcatProgram implements GPGPUProgram {
     const concatAxis = yAxes[axis];
     this.outputShape = concat_util.computeOutShape(aShape, bShape, axis);
 
-    const dType = getDataType(aShape.length);
+    const dType = getCoordsDataType(aShape.length);
     const unpackSnippet = getUnpack(aShape.length);
     const sampleCoords = getSampleCoords(aShape.length);
 
@@ -80,18 +81,4 @@ function getUnpack(rank: number): string {
     throw Error(`Concat for rank ${rank} is not yet supported`);
   }
   return res;
-}
-
-function getDataType(rank: number): string {
-  if (rank === 1) {
-    return 'int';
-  } else if (rank === 2) {
-    return 'ivec2';
-  } else if (rank === 3) {
-    return 'ivec3';
-  } else if (rank === 4) {
-    return 'ivec4';
-  } else {
-    throw Error(`Concat for rank ${rank} is not yet supported`);
-  }
 }

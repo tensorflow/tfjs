@@ -17,6 +17,7 @@
 
 import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
+import {getCoordsDataType} from './shader_compiler';
 
 export class SliceProgram implements GPGPUProgram {
   variableNames = ['source'];
@@ -31,7 +32,7 @@ export class SliceProgram implements GPGPUProgram {
     this.outputShape = destSize;
     this.rank = destSize.length;
 
-    const dtype = getDataType(this.rank);
+    const dtype = getCoordsDataType(this.rank);
     const sourceCoords = getCoords(this.rank);
 
     this.userCode = `
@@ -84,20 +85,6 @@ function getCoords(rank: number): string {
     return 'sourceLoc.x, sourceLoc.y, sourceLoc.z';
   } else if (rank === 4) {
     return 'sourceLoc.x, sourceLoc.y, sourceLoc.z, sourceLoc.w';
-  } else {
-    throw Error(`Slicing for rank ${rank} is not yet supported`);
-  }
-}
-
-function getDataType(rank: number): string {
-  if (rank === 1) {
-    return 'int';
-  } else if (rank === 2) {
-    return 'ivec2';
-  } else if (rank === 3) {
-    return 'ivec3';
-  } else if (rank === 4) {
-    return 'ivec4';
   } else {
     throw Error(`Slicing for rank ${rank} is not yet supported`);
   }

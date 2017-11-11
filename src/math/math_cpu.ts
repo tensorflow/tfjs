@@ -869,6 +869,40 @@ export class NDArrayMathCPU extends NDArrayMath {
     return Array1D.new(values);
   }
 
+  protected tileInternal<D extends keyof DataTypes, T extends NDArray<D>>(
+      a: T, reps: number[]): T {
+    const newShape: number[] = new Array(a.rank);
+    for (let i = 0; i < newShape.length; i++) {
+      newShape[i] = a.shape[i] * reps[i];
+    }
+    let dtype;
+    if (a.dtype === 'float32') {
+      dtype = Float32Array;
+    } else if (a.dtype === 'int32') {
+      dtype = Int32Array;
+    } else if (a.dtype === 'bool') {
+      dtype = Uint8Array;
+    } else {
+      throw new Error(`Dtype ${a.dtype} not supported for tile`);
+    }
+    const resultValues = new dtype(util.sizeFromShape(newShape));
+    const result = NDArray.make(newShape, {values: resultValues}, a.dtype) as T;
+    const values = a.getValues();
+    for (let i = 0; i < result.size; ++i) {
+      const newLoc = result.indexToLoc(i);
+
+      const originalLoc: number[] = new Array(a.rank);
+      for (let i = 0; i < originalLoc.length; i++) {
+        originalLoc[i] = newLoc[i] % a.shape[i];
+      }
+
+      const originalIndex = a.locToIndex(originalLoc);
+
+      resultValues[i] = values[originalIndex];
+    }
+    return result;
+  }
+
   protected transposeInternal<D extends keyof DataTypes, T extends NDArray<D>>(
       a: T, perm: number[]): T {
     const newShape: number[] = new Array(a.rank);

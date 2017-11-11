@@ -46,6 +46,7 @@ import {ReduceSumProgram} from './webgl/reducesum_gpu';
 import {ResizeBilinear3DProgram} from './webgl/resize_bilinear_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
 import {TextureManager} from './webgl/texture_manager';
+import {TileProgram} from './webgl/tile_gpu';
 import {TransposeProgram} from './webgl/transpose_gpu';
 import * as unary_op from './webgl/unaryop_gpu';
 import {UnaryOpProgram} from './webgl/unaryop_gpu';
@@ -224,6 +225,12 @@ export class NDArrayMathGPU extends NDArrayMath {
         x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
         varianceEpsilon);
     return this.compileAndRun(program, inputs) as Array3D;
+  }
+
+  protected tileInternal<D extends keyof DataTypes, T extends NDArray<D>>(
+      a: T, reps: number[]): T {
+    const program = new TileProgram(a.shape, reps);
+    return this.compileAndRun(program, [a]);
   }
 
   protected transposeInternal<D extends keyof DataTypes, T extends NDArray<D>>(
