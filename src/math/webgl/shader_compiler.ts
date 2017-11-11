@@ -32,43 +32,22 @@ export type InputInfo = {
   shapeInfo: ShapeInfo
 };
 
-function updateBatchedShapeInfo(info: ShapeInfo, numBatchDims: number) {
-  info.logicalShape = info.logicalShape.slice(numBatchDims);
-}
-
 export function makeShader(
     inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
-    broadcast: boolean, numBatchDims: number): string {
-  let batchSnippet = '';
-  if (numBatchDims) {
-    if (inputsInfo.length !== 1) {
-      throw new Error(
-          `Batching for 2 or more inputs is not yet supported. ` +
-          `Got ${inputsInfo.length} inputs.`);
-    }
-    updateBatchedShapeInfo(inputsInfo[0].shapeInfo, numBatchDims);
-    updateBatchedShapeInfo(outputShape, numBatchDims);
-    const inputSize = util.sizeFromShape(inputsInfo[0].shapeInfo.logicalShape);
-    const outputSize = util.sizeFromShape(outputShape.logicalShape);
-    batchSnippet = getBatchSnippet(inputSize, outputSize, outputShape.texShape);
-  }
-
+    broadcast: boolean): string {
   const sampleSnippet = getSampleSnippet();
   const setOutputSnippet = getSetOutputSnippet();
   const inputPrefixSnippet =
       inputsInfo.map(x => `uniform sampler2D ${x.name};`).join('\n');
   const inputSamplingSnippet =
-      inputsInfo
-          .map(
-              x => getInputSamplingSnippet(
-                  x, outputShape, broadcast, numBatchDims))
+      inputsInfo.map(x => getInputSamplingSnippet(x, outputShape, broadcast))
           .join('\n');
   const outTexShape = outputShape.texShape;
   const outputSamplingSnippet =
       getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
   const source = [
-    SHADER_PREFIX, batchSnippet, sampleSnippet, setOutputSnippet,
-    inputPrefixSnippet, outputSamplingSnippet, inputSamplingSnippet, userCode
+    SHADER_PREFIX, sampleSnippet, setOutputSnippet, inputPrefixSnippet,
+    outputSamplingSnippet, inputSamplingSnippet, userCode
   ].join('\n');
   return source;
 }
@@ -86,10 +65,9 @@ function getSetOutputSnippet() {
 }
 
 function getInputSamplingSnippet(
-    inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean,
-    numBatchDims: number) {
+    inInfo: InputInfo, outShapeInfo: ShapeInfo, broadcast: boolean) {
   const shape = inInfo.shapeInfo.logicalShape;
-  let res = getSamplerFlat(inInfo, numBatchDims);
+  let res = getSamplerFlat(inInfo);
 
   switch (shape.length) {
     case 0:
@@ -121,19 +99,6 @@ function getInputSamplingSnippet(
     res += getSamplerAtOutputCoords(inInfo, outShapeInfo, broadcast);
   }
   return res;
-}
-
-function getBatchSnippet(
-    inputSize: number, outputSize: number, texShape: [number, number]) {
-  return `
-    int getBatchOffset() {
-      ivec2 resTexRC = ivec2(resultUV.yx *
-          vec2(${texShape[0]}, ${texShape[1]}));
-      int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
-      int b = index / ${outputSize};
-      return b * ${inputSize};
-    }
-  `;
 }
 
 function getOutputSamplingSnippet(
@@ -600,21 +565,16 @@ function getSampler4D(inputInfo: InputInfo): string {
   `;
 }
 
-function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
+function getSamplerFlat(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const texShape = inputInfo.shapeInfo.texShape;
   const funcName =
       'get' + texName.charAt(0).toUpperCase() + texName.slice(1) + 'Flat';
   const tNumR = texShape[0];
   const tNumC = texShape[1];
-  let batchSnippet = '';
-  if (numBatchDims) {
-    batchSnippet = 'index += getBatchOffset();';
-  }
   if (tNumC === 1 && tNumR === 1) {
     return `
       float ${funcName}(int index) {
-        ${batchSnippet}
         return sample(${texName}, halfCR);
       }
     `;
@@ -622,7 +582,6 @@ function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
   if (tNumC === 1) {
     return `
       float ${funcName}(int index) {
-        ${batchSnippet}
         vec2 uv = vec2(0.5, (float(index) + 0.5) / ${tNumR}.0);
         return sample(${texName}, uv);
       }
@@ -631,7 +590,6 @@ function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
   if (tNumR === 1) {
     return `
       float ${funcName}(int index) {
-        ${batchSnippet}
         vec2 uv = vec2((float(index) + 0.5) / ${tNumC}.0, 0.5);
         return sample(${texName}, uv);
       }
@@ -639,7 +597,6 @@ function getSamplerFlat(inputInfo: InputInfo, numBatchDims: number): string {
   }
   return `
     float ${funcName}(int index) {
-      ${batchSnippet}
       vec2 uv = UVfrom1D(${tNumR}, ${tNumC}, index);
       return sample(${texName}, uv);
     }

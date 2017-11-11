@@ -15,52 +15,51 @@
  * =============================================================================
  */
 
-import * as util from '../../util';
-import * as axis_util from '../axis_util';
+import {ReduceInfo} from '../reduce_util';
 import {GPGPUProgram} from './gpgpu_math';
-
-export function getArgMinMaxSnippet(
-    op: 'min'|'max', texName: string, size: number): string {
-  const compOp = (op === 'min') ? '<' : '>';
-  return `
-    float getArgMinMax${texName}() {
-      int bestIndex = 0;
-      float bestValue = get${texName}Flat(0);
-
-      for (int i = 0; i < ${size}; i++) {
-        float candidate = get${texName}Flat(i);
-        if (isNaN(candidate)) {
-          return candidate;
-        }
-        if (candidate ${compOp} bestValue) {
-          bestValue = candidate;
-          bestIndex = i;
-        }
-      }
-      return float(bestIndex);
-    }
-  `;
-}
 
 export class ArgMinMaxProgram implements GPGPUProgram {
   variableNames = ['A'];
   outputShape: number[];
   userCode: string;
-  numBatchDims: number;
 
-  constructor(shape: number[], axes: number[], opType: 'min'|'max') {
-    const [outShape, reduceShape] =
-        axis_util.computeOutAndReduceShapes(shape, axes);
-    this.outputShape = outShape;
-    this.numBatchDims = outShape.length;
+  constructor(reduceInfo: ReduceInfo, op: 'max'|'min', firstPass: boolean) {
+    const windowSize = reduceInfo.windowSize;
+    const batchSize = reduceInfo.batchSize;
+    const inSize = reduceInfo.inSize;
+    const outSize = Math.ceil(inSize / windowSize);
+    if (!firstPass) {
+      this.variableNames.push('bestIndicesA');
+    }
+    this.outputShape = [batchSize, outSize];
+    const compOp = (op === 'max') ? '>' : '<';
+    const indexSnippet = firstPass ?
+        'inOffset + i;' :
+        'round(getBestIndicesA(batch, inOffset + i));';
 
-    const size = util.sizeFromShape(reduceShape);
-    const aSnippet = getArgMinMaxSnippet(opType, 'A', size);
     this.userCode = `
-      ${aSnippet}
-
       void main() {
-        setOutput(getArgMinMaxA());
+        ivec2 coords = getOutputCoords();
+        int batch = coords[0];
+        int outIdx = coords[1];
+        int inOffset = outIdx * ${windowSize};
+
+        int bestIndex = 0;
+        float bestValue = getA(batch, inOffset);
+
+        for (int i = 0; i < ${windowSize}; i++) {
+          int inIdx = ${indexSnippet};
+          float candidate = getA(batch, inIdx);
+          if (isNaN(candidate)) {
+            setOutput(candidate);
+            return;
+          }
+          if (candidate ${compOp} bestValue) {
+            bestValue = candidate;
+            bestIndex = inIdx;
+          }
+        }
+        setOutput(float(bestIndex));
       }
     `;
   }

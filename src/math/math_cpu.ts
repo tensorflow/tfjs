@@ -345,7 +345,7 @@ export class NDArrayMathCPU extends NDArrayMath {
   }
 
   protected argMinInternal(input: NDArray, axes: number[]): NDArray<'int32'> {
-    axis_util.assertAxesAreInnerMostDims('argMax', axes, input.rank);
+    axis_util.assertAxesAreInnerMostDims('argMin', axes, input.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(input.shape, axes);
     const result = NDArray.zeros(outShape, 'int32');
@@ -542,17 +542,6 @@ export class NDArrayMathCPU extends NDArrayMath {
       newValues[i] = value * value;
     }
     return NDArray.make(x.shape, {values: newValues}) as T;
-  }
-
-  protected logSumExpInternal(input: NDArray, axes: number[]): NDArray {
-    axis_util.assertAxesAreInnerMostDims('logSumExp', axes, input.rank);
-    const xMax = this.max(input, axes, true /* keepDims */);
-    const a = this.subtract(input, xMax);
-    const b = this.exp(a);
-    const c = this.sum(b, axes);
-    const d = this.log(c);
-    const result = this.add(xMax.reshape(d.shape), d);
-    return result;
   }
 
   protected reluInternal<T extends NDArray>(input: T): T {
