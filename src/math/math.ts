@@ -258,7 +258,7 @@ export abstract class NDArrayMath {
     util.assert(
         a.rank === 2 && b.rank === 2,
         `Error in matMul: inputs must be rank 2, got ranks ${a.rank}` +
-            `and ${b.rank}.`);
+            ` and ${b.rank}.`);
 
     util.assert(
         innerShapeA === innerShapeB,
