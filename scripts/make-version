@@ -30,8 +30,14 @@ export {version};
 
 exec( `git tag ${tag}`, err =>
   err
-    ? console.log(`WARNING: Could not git tag with ${tag}: ${err.message}`)
-    : console.log(`Tagged with ${tag}`)
+    ? console.log(`WARNING: Could not git tag with ${tag}: ${err.message}.`)
+    : console.log(`Successfully tagged with ${tag}.`)
+);
+
+exec( `git push --tags`, err =>
+  err
+    ? console.log(`WARNING: Could not push git tags: ${err.message}.`)
+    : console.log(`Successfully pushed tags.`)
 );
 
 fs.writeFile('src/version.ts', versionCode, err => {
