@@ -4,7 +4,7 @@
   "description": "deeplearn.js demos - not actually published",
   "private": true,
   "dependencies": {
-    "deeplearn": "~0.3.7",
+    "deeplearn": "~0.3.8",
     "deeplearn-squeezenet": "~0.1.2",
     "deeplearn-knn-image-classifier": "~0.1.2"
   },
