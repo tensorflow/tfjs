@@ -8,40 +8,6 @@ This page outlines some of the projects we wish to happen in the near future.
 These are projects that we would love to see the open source community
 contribute to.
 
-## More devices
-
-**deeplearn.js** targets WebGL 1.0 devices with the `OES_texture_float`
-extension and targets WebGL 2.0 devices. However, we have turned off mobile,
-Safari, and Firefox for demos - they should work with some minor changes
-to the WebGL API.
-
-## Logical sampling
-
-When writing custom shader programs in **deeplearn.js**, the author must sample
-textures in 2D physical texture space. This means that if an shader program
-operates on an `Array3D`, it must manually convert between logical 3D space and
-physical 2D texture space. Since shader programs are a little tricky to debug,
-this makes shader programs error-prone.
-
-We have started on "logical sampling", that is, introducing functions and a
-shader compiler that allows shaders to sample in logical space through a utility
-function. This means we can store higher dimensional NDArrays in 2D textures in
-whatever shape we want to ensure minimal reshapes when chaining operations.
-
-Currently, matmul is the only GPU shader program that uses the new shader compiler
-and logical sampling, but it should serve as a guide for the way shader programs
-should be migrated, and how new shader programs should be written.
-
-## Batch as the outer dimension
-
-**deeplearn.js** at the shader level only supports operations with a batch size
-of 1, whereas most other machine learning libraries use the batch size as an
-outer dimension. This is usually okay for many applications, though it can be
-restrictive when models are ported.
-
-As part of the new shader compiler and helper functions to do logical sampling,
-we now can introduce batching as an outer dimension of operations.
-
 ## Automatic TensorFlow to deeplearn.js
 
 Currently we support dumping weights from a TensorFlow checkpoint into a format
@@ -51,18 +17,43 @@ recreate the model in **deeplearn.js** and use the weights from that checkpoint.
 We plan on building a way to port models directly from TensorFlow to
 **deeplearn.js** automatically from a `GraphDef`.
 
-## Dynamic batching
+## Decoupling NDArray from storage mechanism
 
-Dynamic batching, which allows training with explicitly defining a graph, but
-instead simply analyzing the forward mathematical operations and differentiating
-that dynamic computation graph, is a popular method for training models.
+Currently, `NDArray`s are tightly coupled to their underlying storage. We will
+be decoupling the `NDArray` object from where it is actually stored, and add
+global tracking to all `NDArray`s so that we don't need to explicitly `track` them
+inside of a `math.scope()`.
 
-We can implement dynamic batching by doing it at the NDArrayMath layer. When
-mathematical methods are called, we can record operations that were called and
-automatically differentiate when requested.
+This also means `scope` will become a top level method.
 
-## Recurrence in training
+## Eager mode
 
-**deeplearn.js** doesn't currently support recurrence as top level
-functionality during training, however we do support arbitrary data flow graphs,
-so recurrence should be straight forward to implement.
+To train or get gradients, you must use our `Graph` layer. We will be
+adding an Eager execution mode in the near term future, similar to
+[TensorFlow Eager](https://research.googleblog.com/2017/10/eager-execution-imperative-define-by.html).
+
+This will vastly simplify debugging as training will just be a call to
+`NDArrayMath.backward()`.
+
+## Model zoo
+
+We started working on a model zoo, which can be found
+[here](https://github.com/PAIR-code/deeplearnjs/tree/master/models). They can
+be used independently through npm.
+
+We want to see this built out.
+
+## Top level math functions
+
+We will be adding math operations at the top level, like this: `dl.matMul`
+instead of having to construct `NDArrayMath` objects directly. This will make
+code look much cleaner and similar to well-known libraries like TensorFlow and NumPy.
+
+## deeplearn.js Canvas (aka Playground)
+
+We recently launched [deeplearn.js canvas](https://deeplearnjs.org/demos/playground/index.html),
+which allows you to play with deeplearn.js without having to clone our
+repository or compile TypeScript.
+
+We will add a button for "saving" soon, so these can be shared. We will also
+move tutorials over.
