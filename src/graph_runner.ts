@@ -267,14 +267,13 @@ export class GraphRunner {
         const ndarrayFeedEntries: FeedEntry[] = [];
         for (let j = 0; j < this.inferenceFeedEntries.length; j++) {
           const feedEntry = this.inferenceFeedEntries[j];
-          ndarrayFeedEntries.push({
-            tensor: feedEntry.tensor,
-            data:
-                track((feedEntry.data as InputProvider).getNextCopy(this.math))
-          });
+          const nextCopy =
+              (feedEntry.data as InputProvider).getNextCopy(this.math);
+
+          ndarrayFeedEntries.push(
+              {tensor: feedEntry.tensor, data: track(nextCopy)});
         }
         feeds.push(ndarrayFeedEntries);
-
         inferenceValues.push(
             this.session.eval(this.inferenceTensor, ndarrayFeedEntries));
       }

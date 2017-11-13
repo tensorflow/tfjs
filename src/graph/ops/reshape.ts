@@ -36,8 +36,11 @@ export class Reshape<T1 extends NDArray, T2 extends NDArray> extends Operation {
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
     const x = inferenceArrays.get(this.xTensor) as T1;
 
+    const clone = math.clone(x);
+
     math.scope(keep => {
-      inferenceArrays.set(this.yTensor, keep(x.reshape(this.yTensor.shape)));
+      inferenceArrays.set(
+          this.yTensor, keep(clone.reshape(this.yTensor.shape)));
     });
   }
 
@@ -46,8 +49,10 @@ export class Reshape<T1 extends NDArray, T2 extends NDArray> extends Operation {
       gradientArrays: SummedTensorArrayMap) {
     const dy = gradientArrays.get(this.yTensor) as T2;
 
+    const clone = math.clone(dy);
+
     math.scope(() => {
-      gradientArrays.add(this.xTensor, dy.reshape(this.xTensor.shape));
+      gradientArrays.add(this.xTensor, clone.reshape(this.xTensor.shape));
     });
   }
 }
