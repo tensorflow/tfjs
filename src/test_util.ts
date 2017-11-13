@@ -70,6 +70,18 @@ function areClose(a: number, e: number, epsilon: number): boolean {
   return true;
 }
 
+export function expectValuesInRange(
+    actual: TypedArray|number[],
+    low: number,
+    high: number) {
+  for (let i = 0; i < actual.length; i++) {
+    if (actual[i] < low || actual[i] > high) {
+      throw new Error(
+        `Value out of range:${actual[i]} low: ${low}, high: ${high}`);
+    }
+  }
+}
+
 export function randomArrayInRange(
     n: number, minValue: number, maxValue: number): Float32Array {
   const v = new Float32Array(n);
