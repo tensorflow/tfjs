@@ -135,9 +135,13 @@ function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
   const frameBufferComplete =
       (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
 
+  gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, new Float32Array(4));
+
+  const readPixelsNoError = gl.getError() === gl.NO_ERROR;
+
   loseContext(gl);
 
-  return frameBufferComplete;
+  return frameBufferComplete && readPixelsNoError;
 }
 
 function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
