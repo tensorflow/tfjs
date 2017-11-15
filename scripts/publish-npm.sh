@@ -17,5 +17,6 @@ rm -rf dist/ && \
 npm run prep && \
 ./scripts/build-standalone.sh && \
 node_modules/.bin/tsc && \
-npm publish
+npm publish && \
+./scripts/tag-version
 echo 'Yay! Published a new package to npm.'
