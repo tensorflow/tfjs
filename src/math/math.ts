@@ -1757,6 +1757,57 @@ export abstract class NDArrayMath {
       x: Array3D, newShape2D: [number, number], alignCorners: boolean): Array3D;
 
   /**
+   * Batch normalization 2D. Mean, variance, scale, and offset can be of two
+   * shapes: 1) The same shape as the input: an Array2D. 2) In the common
+   * case, the depth dimension is the last dimension of x, so the values would
+   * be an Array1D of shape [depth].
+   * @param x The input NDArray.
+   * @param mean A mean NDArray.
+   * @param variance A variance NDArray.
+   * @param varianceEpsilon A small float number to avoid dividing by 0.
+   * @param scale A scale NDArray.
+   * @param offset An offset NDArray.
+   */
+  batchNormalization2D(
+      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
+      varianceEpsilon = .001, scale?: Array2D|Array1D,
+      offset?: Array2D|Array1D): Array2D {
+    util.assert(
+        x.rank === 2,
+        `Error in batchNormalization3D: x must be rank 3 but got rank ` +
+            `${x.rank}.`);
+    util.assert(
+        mean.rank === 2 || mean.rank === 1,
+        `Error in batchNormalization2D: mean must be rank 2 or rank 1 but ` +
+            `got rank ${mean.rank}.`);
+    util.assert(
+        variance.rank === 2 || variance.rank === 1,
+        `Error in batchNormalization2D: variance must be rank 2 or rank 1 ` +
+            `but got rank ${variance.rank}.`);
+    if (scale != null) {
+      util.assert(
+          scale.rank === 2 || scale.rank === 1,
+          `Error in batchNormalization2D: scale must be rank 2 or rank 1 ` +
+              `but got rank ${scale.rank}.`);
+    }
+    if (offset != null) {
+      util.assert(
+          offset.rank === 2 || offset.rank === 1,
+          `Error in batchNormalization2D: offset must be rank 2 or rank 1 ` +
+              `but got rank ${offset.rank}.`);
+    }
+
+    return this.executeOp(
+        'batchNorm2D',
+        () => this.batchNormalization2DInternal(
+            x, mean, variance, varianceEpsilon, scale, offset));
+  }
+  protected abstract batchNormalization2DInternal(
+      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
+      varianceEpsilon: number, scale?: Array2D|Array1D,
+      offset?: Array2D|Array1D): Array2D;
+
+  /**
    * Batch normalization 3D. Mean, variance, scale, and offset can be of two
    * shapes: 1) The same shape as the input: an Array3D. 2) In the common
    * case, the depth dimension is the last dimension of x, so the values would
