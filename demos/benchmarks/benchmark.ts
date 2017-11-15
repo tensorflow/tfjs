@@ -28,7 +28,7 @@ export interface BenchmarkRunGroup {
   options?: string[];
   selectedOption?: string;
   benchmarkRuns: BenchmarkRun[];
-  params: {};
+  params: {[option: string]: {}};
 }
 
 export class BenchmarkRun {
@@ -47,7 +47,6 @@ export class BenchmarkRun {
   }
 }
 
-export abstract class BenchmarkTest {
-  constructor(protected params?: {}) {}
-  abstract async run(size: number, option?: string): Promise<number>;
+export interface BenchmarkTest {
+  run(size: number, opType?: string, params?: {}): Promise<number>;
 }

@@ -69,6 +69,10 @@ limitations under the License.
   .run-message {
     font-style: italic;
   }
+  .params {
+    font-family: monospace;
+    font-size: 10px;
+  }
 </style>
 <template>
 <div class="container">
@@ -78,8 +82,8 @@ limitations under the License.
     <template is="dom-repeat" items="[[benchmarks]]" as="benchmark">
       <div class="math-test">
         <div class="run-group-name">[[benchmark.name]]</div>
-
-        <paper-dropdown-menu no-animations label="Options" id="options" hidden="[[!benchmark.options]]">
+        <div class="params">[[getDisplayParams(benchmark.params, benchmark.selectedOption)]]</div>
+        <paper-dropdown-menu no-animations label="Op type" id="options" hidden="[[!benchmark.options]]">
           <paper-listbox attr-for-selected="value" class="dropdown-content" selected="{{benchmark.selectedOption}}" slot="dropdown-content">
             <template is="dom-repeat" items="[[benchmark.options]]">
               <paper-item  value="[[item]]" label="[[item]]">
