@@ -16,9 +16,9 @@
  */
 
 import * as test_util from '../test_util';
+import * as util from '../util';
 
 import * as ndarray from './ndarray';
-import * as util from '../util';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DType, NDArray, Scalar} from './ndarray';
 import {GPGPUContext} from './webgl/gpgpu_context';
@@ -1348,6 +1348,48 @@ test_util.describeCustom('NDArray.rand', () => {
     const result = NDArray.rand(shape, () => util.randUniform(0, 2.5));
     expect(result.dtype).toBe('float32');
     test_util.expectValuesInRange(result.getValues(), 0, 2.5);
+  });
+});
+
+// NDArray.randNormal
+test_util.describeCustom('NDArray.randNormal', () => {
+  const EPSILON = 0.05;
+
+  it('should return a float32 1D of random normal values', () => {
+    const SAMPLES = 1000;
+    const result = NDArray.randNormal([SAMPLES], 0, 0.5);
+    expect(result.dtype).toBe('float32');
+    expect(result.shape).toEqual([SAMPLES]);
+    test_util.jarqueBeraNormalityTest(result.getValues());
+    test_util.expectArrayInMeanStdRange(result.getValues(), 0, 0.5, EPSILON);
+  });
+
+  it('should return a float32 2D of random normal values', () => {
+    const SAMPLES = 100;
+    const result = Array2D.randNormal([SAMPLES, SAMPLES], 0, 0.5);
+    expect(result.dtype).toBe('float32');
+    expect(result.shape).toEqual([SAMPLES, SAMPLES]);
+    test_util.jarqueBeraNormalityTest(result.getValues());
+    test_util.expectArrayInMeanStdRange(result.getValues(), 0, 0.5, EPSILON);
+  });
+
+  it('should return a float32 3D of random normal values', () => {
+    const SAMPLES = 50;
+    const result = Array3D.randNormal([SAMPLES, SAMPLES, SAMPLES], 0, 0.5);
+    expect(result.dtype).toBe('float32');
+    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES]);
+    test_util.jarqueBeraNormalityTest(result.getValues());
+    test_util.expectArrayInMeanStdRange(result.getValues(), 0, 0.5, EPSILON);
+  });
+
+  it('should return a float32 4D of random normal values', () => {
+    const SAMPLES = 25;
+    const result =
+        Array4D.randNormal([SAMPLES, SAMPLES, SAMPLES, SAMPLES], 0, 0.5);
+    expect(result.dtype).toBe('float32');
+    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES, SAMPLES]);
+    test_util.jarqueBeraNormalityTest(result.getValues());
+    test_util.expectArrayInMeanStdRange(result.getValues(), 0, 0.5, EPSILON);
   });
 });
 
