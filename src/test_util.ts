@@ -78,8 +78,9 @@ export function jarqueBeraNormalityTest(values: TypedArray|number[]) {
   const s = skewness(values);
   const k = kurtosis(values);
   const jb = values.length * ((Math.pow(s, 2) / 6) + (Math.pow(k, 2) / 24));
-  // JB test requires 2-degress of freedom from Chi-Square @ 0.95:
-  const CHI_SQUARE_2DEG = 5.991;
+  // JB test requires 2-degress of freedom from Chi-Square @ 0.999:
+  // http://www.itl.nist.gov/div898/handbook/eda/section3/eda3674.htm
+  const CHI_SQUARE_2DEG = 13.816;
   if (jb > CHI_SQUARE_2DEG) {
     throw new Error(`Invalid p-value for JB: ${jb}`);
   }
