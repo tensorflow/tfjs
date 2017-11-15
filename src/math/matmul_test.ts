@@ -298,32 +298,13 @@ const commonTests: MathTests = it => {
 };
 
 const gpuTests: MathTests = it => {
-  it('with implicit texture reshaping on GPU', math => {
-    const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    // Make the texture shape different than the logical shape on purpose.
-    expect(a.getTextureShapeRC([6, 1])).toEqual([6, 1]);
-
-    const b = Array2D.new([3, 2], [1, 3, 0, 1, 2, 0]);
-    expect(b.getTextureShapeRC()).toEqual([3, 2]);
-
-    // Matmul should do implicit texture reshape on ndarray A in order to
-    // do the right logical multiplication.
-    const result = math.matMul(a, b);
-    expect(result.shape).toEqual([2, 2]);
-    expect(result.getTextureShapeRC()).toEqual([2, 2]);
-    test_util.expectArraysClose(
-        result.getValues(), new Float32Array([7, 5, 16, 17]));
-    a.dispose();
-    b.dispose();
-  });
-
   it('Matrix times vector, larger than max texture size', math => {
     const maxTexSize = webgl_util.queryMaxTextureSize(
         (math as NDArrayMathGPU).getGPGPUContext().gl);
 
     const sharedDim = maxTexSize + 4;
 
-    const matrix = Array2D.zeros([1, sharedDim]);
+    const matrix = Array2D.zeros([2, sharedDim]);
     matrix.set(1, 0, sharedDim - 3);
     matrix.set(1, 0, sharedDim - 2);
 
@@ -332,56 +313,11 @@ const gpuTests: MathTests = it => {
     v.set(1, sharedDim - 2);
 
     const result = math.matrixTimesVector(matrix, v);
-    const expected = new Float32Array([2]);
+    const expected = new Float32Array([2, 0]);
     test_util.expectArraysClose(result.getValues(), expected);
 
     matrix.dispose();
     v.dispose();
-  });
-
-  it('Matrix times vector with implicit reshape', math => {
-    const matrix = Array2D.new([2, 2], [1, 2, 3, 4]);
-    const v = Array1D.new([2, 3]);
-    // Make the texture shape be row on purpose.
-    expect(v.getTextureShapeRC([1, 2])).toEqual([1, 2]);
-    const result = math.matrixTimesVector(matrix, v);
-
-    const expected = new Float32Array([8, 18]);
-    test_util.expectArraysClose(result.getValues(), expected);
-    matrix.dispose();
-    v.dispose();
-  });
-
-  it('Dot product with implicit reshaping', math => {
-    const v1 = Array1D.new([2, 3]);
-    // Make the texture shape be column on purpose.
-    expect(v1.getTextureShapeRC([2, 1])).toEqual([2, 1]);
-
-    const v2 = Array1D.new([2, 1]);
-    // Make the texture shape be row on purpose.
-    expect(v2.getTextureShapeRC([1, 2])).toEqual([1, 2]);
-
-    const result = math.dotProduct(v1, v2);
-    test_util.expectNumbersClose(result.get(), 7);
-    v1.dispose();
-    v2.dispose();
-  });
-
-  it('Outer product with implicit reshape', math => {
-    const v1 = Array1D.new([2, 3]);
-    // Make the texture shape be row on purpose.
-    expect(v1.getTextureShapeRC([1, 2])).toEqual([1, 2]);
-
-    const v2 = Array1D.new([2, 1]);
-    // Make the texture shape be column on purpose.
-    expect(v2.getTextureShapeRC([2, 1])).toEqual([2, 1]);
-
-    const result = math.outerProduct(v1, v2);
-    const expected = new Float32Array([4, 2, 6, 3]);
-    expect(result.shape).toEqual([2, 2]);
-    test_util.expectArraysClose(result.getValues(), expected);
-    v1.dispose();
-    v2.dispose();
   });
 };
 

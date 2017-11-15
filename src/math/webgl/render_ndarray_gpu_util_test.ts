@@ -15,26 +15,24 @@
  * =============================================================================
  */
 
-import * as conv_util from '../conv_util';
-
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_util from './gpgpu_util';
 import * as render_ndarray_gpu_util from './render_ndarray_gpu_util';
 
 function uploadRenderRGBDownload(
-    source: Float32Array, sourceShapeRowColDepth: [number, number, number]) {
+    source: Float32Array, sourceShape: [number, number, number]) {
   const canvas = document.createElement('canvas');
-  canvas.width = sourceShapeRowColDepth[0];
-  canvas.height = sourceShapeRowColDepth[1];
+  canvas.width = sourceShape[0];
+  canvas.height = sourceShape[1];
 
   const gpgpu = new GPGPUContext();
   gpgpu.enableAutomaticDebugValidation(true);
 
-  const program = render_ndarray_gpu_util.getRenderRGBShader(
-      gpgpu, sourceShapeRowColDepth[1]);
+  const program =
+      render_ndarray_gpu_util.getRenderRGBShader(gpgpu, sourceShape[1]);
 
   const sourceTexShapeRC: [number, number] =
-      conv_util.computeTexShapeFrom3D(sourceShapeRowColDepth);
+      [sourceShape[0], sourceShape[1] * sourceShape[2]];
 
   const sourceTex =
       gpgpu.createMatrixTexture(sourceTexShapeRC[0], sourceTexShapeRC[1]);
@@ -42,16 +40,14 @@ function uploadRenderRGBDownload(
       sourceTex, sourceTexShapeRC[0], sourceTexShapeRC[1], source);
 
   const resultTex = gpgpu_util.createColorMatrixTexture(
-      gpgpu.gl, sourceShapeRowColDepth[0], sourceShapeRowColDepth[1]);
-  gpgpu.setOutputMatrixTexture(
-      resultTex, sourceShapeRowColDepth[0], sourceShapeRowColDepth[1]);
+      gpgpu.gl, sourceShape[0], sourceShape[1]);
+  gpgpu.setOutputMatrixTexture(resultTex, sourceShape[0], sourceShape[1]);
   render_ndarray_gpu_util.renderToFramebuffer(gpgpu, program, sourceTex);
 
-  const result = new Float32Array(
-      sourceShapeRowColDepth[0] * sourceShapeRowColDepth[1] * 4);
+  const result = new Float32Array(sourceShape[0] * sourceShape[1] * 4);
   gpgpu.gl.readPixels(
-      0, 0, sourceShapeRowColDepth[1], sourceShapeRowColDepth[0], gpgpu.gl.RGBA,
-      gpgpu.gl.FLOAT, result);
+      0, 0, sourceShape[1], sourceShape[0], gpgpu.gl.RGBA, gpgpu.gl.FLOAT,
+      result);
   return result;
 }
 

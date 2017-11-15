@@ -308,3 +308,17 @@ export function isValNaN(val: number, dtype: DType): boolean {
     throw new Error(`Unknown dtype ${dtype}`);
   }
 }
+
+/** Reduces the shape by removing all dimensions of shape 1. */
+export function squeezeShape(shape: number[]):
+    {newShape: number[], keptDims: number[]} {
+  const newShape: number[] = [];
+  const keptDims: number[] = [];
+  for (let i = 0; i < shape.length; ++i) {
+    if (shape[i] > 1) {
+      newShape.push(shape[i]);
+      keptDims.push(i);
+    }
+  }
+  return {newShape, keptDims};
+}
