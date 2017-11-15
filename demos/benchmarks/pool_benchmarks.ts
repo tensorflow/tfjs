@@ -25,52 +25,45 @@ export interface PoolBenchmarkParams {
   depth: number;
   fieldSize: number;
   stride: number;
-  type: 'max'|'min'|'avg';
 }
 
-export abstract class PoolBenchmark extends BenchmarkTest {
-  constructor(protected params: PoolBenchmarkParams) {
-    super(params);
-  }
-
-  protected getPoolingOp(option: string, math: NDArrayMath):
-      (x: Array3D, filterSize: [number, number]|number,
-       strides: [number, number]|number,
-       pad: 'valid'|'same'|number) => Array3D {
-    switch (option) {
-      case 'max':
-        return (x: Array3D, filterSize: [number, number]|number,
-                strides: [number, number]|number,
-                pad: 'valid'|'same'|number) => {
-          return math.maxPool(x, filterSize, strides, pad);
-        };
-      case 'min':
-        return (x: Array3D, filterSize: [number, number]|number,
-                strides: [number, number]|number,
-                pad: 'valid'|'same'|number) => {
-          return math.minPool(x, filterSize, strides, pad);
-        };
-      case 'avg':
-        return (x: Array3D, filterSize: [number, number]|number,
-                strides: [number, number]|number,
-                pad: 'valid'|'same'|number) => {
-          return math.avgPool(x, filterSize, strides, pad);
-        };
-      default:
-        throw new Error(`Not found such ops: ${option}`);
-    }
+function getPoolingOp(option: string, math: NDArrayMath): (
+    x: Array3D, filterSize: [number, number]|number,
+    strides: [number, number]|number, pad: 'valid'|'same'|number) => Array3D {
+  switch (option) {
+    case 'max':
+      return (x: Array3D, filterSize: [number, number] | number,
+              strides: [number, number] | number,
+              pad: 'valid' | 'same' | number) => {
+        return math.maxPool(x, filterSize, strides, pad);
+      };
+    case 'min':
+      return (x: Array3D, filterSize: [number, number] | number,
+              strides: [number, number] | number,
+              pad: 'valid' | 'same' | number) => {
+        return math.minPool(x, filterSize, strides, pad);
+      };
+    case 'avg':
+      return (x: Array3D, filterSize: [number, number] | number,
+              strides: [number, number] | number,
+              pad: 'valid' | 'same' | number) => {
+        return math.avgPool(x, filterSize, strides, pad);
+      };
+    default:
+      throw new Error(`Not found such ops: ${option}`);
   }
 }
 
-export class PoolCPUBenchmark extends PoolBenchmark {
-  run(size: number, option: string): Promise<number> {
+export class PoolCPUBenchmark implements BenchmarkTest {
+  run(size: number, option: string,
+      params: PoolBenchmarkParams): Promise<number> {
     const math = new NDArrayMathCPU();
-    const outputDepth = this.params.depth;
+    const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
-    const fieldSize = this.params.fieldSize;
-    const stride = this.params.stride;
+    const fieldSize = params.fieldSize;
+    const stride = params.stride;
     const zeroPad = conv_util.computeDefaultPad(xShape, fieldSize, stride);
-    const op = this.getPoolingOp(option, math);
+    const op = getPoolingOp(option, math);
 
     const x = Array3D.randUniform(xShape, -1, 1);
 
@@ -86,17 +79,18 @@ export class PoolCPUBenchmark extends PoolBenchmark {
   }
 }
 
-export class PoolGPUBenchmark extends PoolBenchmark {
-  async run(size: number, option: string): Promise<number> {
+export class PoolGPUBenchmark implements BenchmarkTest {
+  async run(size: number, option: string, params: PoolBenchmarkParams):
+      Promise<number> {
     const math = new NDArrayMathGPU();
     const gpgpu = math.getGPGPUContext();
 
-    const outputDepth = this.params.depth;
+    const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
-    const fieldSize = this.params.fieldSize;
-    const stride = this.params.stride;
+    const fieldSize = params.fieldSize;
+    const stride = params.stride;
     const x = Array3D.randUniform(xShape, -1, 1);
-    const op = this.getPoolingOp(option, math);
+    const op = getPoolingOp(option, math);
 
     let out: NDArray;
     const benchmark = () => {

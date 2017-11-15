@@ -19,7 +19,7 @@ import {Array1D, Array3D, ENV, NDArray, NDArrayMathCPU, NDArrayMathGPU} from 'de
 
 import {BenchmarkTest} from './benchmark';
 
-export class BatchNormalization3DCPUBenchmark extends BenchmarkTest {
+export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
     if (size > 256) {
       return new Promise<number>((resolve, reject) => {
@@ -44,7 +44,7 @@ export class BatchNormalization3DCPUBenchmark extends BenchmarkTest {
   }
 }
 
-export class BatchNormalization3DGPUBenchmark extends BenchmarkTest {
+export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
   async run(size: number) {
     const math = new NDArrayMathGPU();
     const x = Array3D.randUniform([size, size, size], -1, 1);

@@ -20,45 +20,73 @@ import {Array1D, Array3D, Array4D, conv_util, ENV, NDArray, NDArrayMathGPU} from
 
 import {BenchmarkTest} from './benchmark';
 
-export interface ConvBenchmarkParams {
+export interface ConvParams {
   inDepth: number;
-  outDepth: number;
   filterSize: number;
   stride: number;
+  pad: 'valid'|'same'|number;
 }
 
-export abstract class ConvBenchmark extends BenchmarkTest {
-  constructor(protected params: ConvBenchmarkParams) {
-    super(params);
-  }
-}
+export interface RegularConvParams extends ConvParams { outDepth: number; }
 
-export class ConvGPUBenchmark extends ConvBenchmark {
-  async run(size: number): Promise<number> {
+export interface DepthwiseConvParams extends ConvParams { channelMul: number; }
+
+export class ConvGPUBenchmark implements BenchmarkTest {
+  async run(size: number, opType: string, params: ConvParams): Promise<number> {
     const math = new NDArrayMathGPU();
     const gpgpu = math.getGPGPUContext();
 
-    const inDepth = this.params.inDepth;
+    const inDepth = params.inDepth;
     const inShape: [number, number, number] = [size, size, inDepth];
-    const outDepth = this.params.outDepth;
-    const filterSize = this.params.filterSize;
-    const stride = this.params.stride;
+    const filterSize = params.filterSize;
+    const stride = params.stride;
+    const pad = params.pad;
 
-    const x = Array3D.randUniform(inShape, -1, 1);
-    const wShape = conv_util.computeWeightsShape4D(
-        inDepth, outDepth, filterSize, filterSize);
-    const W = Array4D.randUniform(wShape, -1, 1);
-    const b = Array1D.randUniform([outDepth], -1, 1);
-
+    let x = Array3D.randUniform(inShape, -1, 1);
+    let W: Array4D;
     let out: NDArray;
-    const benchmark = () => {
-      out = math.conv2d(x, W, b, stride, 'same');
-    };
+    let b: Array1D;
+
+    let benchmark: () => void;
+    if (opType === 'regular') {
+      const regParams = params as RegularConvParams;
+      const wShape = conv_util.computeWeightsShape4D(
+          inDepth, regParams.outDepth, filterSize, filterSize);
+      W = Array4D.randUniform(wShape, -1, 1);
+      b = Array1D.randUniform([regParams.outDepth], -1, 1);
+
+      benchmark = () => {
+        out = math.conv2d(x, W, b, stride, pad);
+      };
+    } else if (opType === 'transposed') {
+      const regParams = params as RegularConvParams;
+      const wShape = conv_util.computeWeightsShape4D(
+          inDepth, regParams.outDepth, filterSize, filterSize);
+      W = Array4D.randUniform(wShape, -1, 1);
+      x = Array3D.randUniform([size, size, regParams.outDepth], -1, 1);
+
+      benchmark = () => {
+        out = math.conv2dTranspose(x, W, [size, size, inDepth], stride, pad);
+      };
+    } else if (opType === 'depthwise') {
+      const depthwiseParams = params as DepthwiseConvParams;
+      const wShape = conv_util.computeWeightsShape4D(
+          inDepth, depthwiseParams.channelMul, filterSize, filterSize);
+      W = Array4D.randUniform(wShape, -1, 1);
+
+      benchmark = () => {
+        out = math.depthwiseConv2D(x, W, stride, pad);
+      };
+    } else {
+      throw new Error(`Unknown option ${opType}`);
+    }
 
     const cleanup = () => {
       x.dispose();
       W.dispose();
-      b.dispose();
+      if (b != null) {
+        b.dispose();
+      }
       out.dispose();
     };
 

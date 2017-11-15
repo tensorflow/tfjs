@@ -19,33 +19,31 @@ import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Scal
 
 import {BenchmarkTest} from './benchmark';
 
-export abstract class ReductionOpsBenchmark extends BenchmarkTest {
-  protected getReductionOp(option: string, math: NDArrayMath):
-      (input: NDArray) => Scalar {
-    switch (option) {
-      case 'max':
-        return input => math.max(input);
-      case 'min':
-        return input => math.min(input);
-      case 'argMax':
-        return input => math.argMax(input);
-      case 'argMin':
-        return input => math.argMin(input);
-      case 'sum':
-        return input => math.sum(input);
-      case 'logSumExp':
-        return input => math.logSumExp(input);
-      default:
-        throw new Error(`Not found such ops: ${option}`);
-    }
+function getReductionOp(option: string, math: NDArrayMath): (input: NDArray) =>
+    Scalar {
+  switch (option) {
+    case 'max':
+      return input => math.max(input);
+    case 'min':
+      return input => math.min(input);
+    case 'argMax':
+      return input => math.argMax(input);
+    case 'argMin':
+      return input => math.argMin(input);
+    case 'sum':
+      return input => math.sum(input);
+    case 'logSumExp':
+      return input => math.logSumExp(input);
+    default:
+      throw new Error(`Not found such ops: ${option}`);
   }
 }
 
-export class ReductionOpsCPUBenchmark extends ReductionOpsBenchmark {
+export class ReductionOpsCPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string): Promise<number> {
     const math = new NDArrayMathCPU();
     const input = Array2D.randUniform([size, size], -1, 1);
-    const op = this.getReductionOp(option, math);
+    const op = getReductionOp(option, math);
     const start = performance.now();
 
     math.scope(() => {
@@ -57,11 +55,11 @@ export class ReductionOpsCPUBenchmark extends ReductionOpsBenchmark {
   }
 }
 
-export class ReductionOpsGPUBenchmark extends ReductionOpsBenchmark {
+export class ReductionOpsGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string) {
     const math = new NDArrayMathGPU();
     const input = Array2D.randUniform([size, size], -1, 1);
-    const op = this.getReductionOp(option, math);
+    const op = getReductionOp(option, math);
 
     let output: NDArray;
     const benchmark = () => {

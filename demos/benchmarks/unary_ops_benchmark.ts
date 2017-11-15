@@ -17,55 +17,52 @@
 
 // tslint:disable-next-line:max-line-length
 import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
-
 import {BenchmarkTest} from './benchmark';
 
-export abstract class UnaryOpsBenchmark extends BenchmarkTest {
-  protected getUnaryOp(option: string, math: NDArrayMath) {
-    switch (option) {
-      case 'log':
-        return (input: NDArray) => math.log(input);
-      case 'exp':
-        return (input: NDArray) => math.exp(input);
-      case 'neg':
-        return (input: NDArray) => math.neg(input);
-      case 'sqrt':
-        return (input: NDArray) => math.sqrt(input);
-      case 'abs':
-        return (input: NDArray) => math.abs(input);
-      case 'relu':
-        return (input: NDArray) => math.relu(input);
-      case 'sigmoid':
-        return (input: NDArray) => math.sigmoid(input);
-      case 'sin':
-        return (input: NDArray) => math.sin(input);
-      case 'cos':
-        return (input: NDArray) => math.cos(input);
-      case 'tan':
-        return (input: NDArray) => math.tan(input);
-      case 'asin':
-        return (input: NDArray) => math.asin(input);
-      case 'acos':
-        return (input: NDArray) => math.acos(input);
-      case 'atan':
-        return (input: NDArray) => math.atan(input);
-      case 'sinh':
-        return (input: NDArray) => math.sinh(input);
-      case 'cosh':
-        return (input: NDArray) => math.cosh(input);
-      case 'tanh':
-        return (input: NDArray) => math.tanh(input);
-      default:
-        throw new Error(`Not found such ops: ${option}`);
-    }
+function getUnaryOp(option: string, math: NDArrayMath) {
+  switch (option) {
+    case 'log':
+      return (input: NDArray) => math.log(input);
+    case 'exp':
+      return (input: NDArray) => math.exp(input);
+    case 'neg':
+      return (input: NDArray) => math.neg(input);
+    case 'sqrt':
+      return (input: NDArray) => math.sqrt(input);
+    case 'abs':
+      return (input: NDArray) => math.abs(input);
+    case 'relu':
+      return (input: NDArray) => math.relu(input);
+    case 'sigmoid':
+      return (input: NDArray) => math.sigmoid(input);
+    case 'sin':
+      return (input: NDArray) => math.sin(input);
+    case 'cos':
+      return (input: NDArray) => math.cos(input);
+    case 'tan':
+      return (input: NDArray) => math.tan(input);
+    case 'asin':
+      return (input: NDArray) => math.asin(input);
+    case 'acos':
+      return (input: NDArray) => math.acos(input);
+    case 'atan':
+      return (input: NDArray) => math.atan(input);
+    case 'sinh':
+      return (input: NDArray) => math.sinh(input);
+    case 'cosh':
+      return (input: NDArray) => math.cosh(input);
+    case 'tanh':
+      return (input: NDArray) => math.tanh(input);
+    default:
+      throw new Error(`Not found such ops: ${option}`);
   }
 }
 
-export class UnaryOpsCPUBenchmark extends UnaryOpsBenchmark {
+export class UnaryOpsCPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string): Promise<number> {
     const math = new NDArrayMathCPU();
     const input = Array2D.randUniform([size, size], -1, 1);
-    const op = this.getUnaryOp(option, math);
+    const op = getUnaryOp(option, math);
     const start = performance.now();
 
     math.scope(() => {
@@ -77,11 +74,11 @@ export class UnaryOpsCPUBenchmark extends UnaryOpsBenchmark {
   }
 }
 
-export class UnaryOpsGPUBenchmark extends UnaryOpsBenchmark {
+export class UnaryOpsGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string) {
     const math = new NDArrayMathGPU();
     const input = Array2D.randUniform([size, size], -1, 1);
-    const op = this.getUnaryOp(option, math);
+    const op = getUnaryOp(option, math);
 
     let output: NDArray;
     const benchmark = () => {

@@ -16,10 +16,9 @@
  */
 // tslint:disable-next-line:max-line-length
 import {Array2D, ENV, NDArray, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
-
 import {BenchmarkTest} from './benchmark';
 
-export class MatmulCPUBenchmark extends BenchmarkTest {
+export class MatmulCPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
     if (size > 512) {
       return new Promise<number>((resolve, reject) => {
@@ -37,7 +36,7 @@ export class MatmulCPUBenchmark extends BenchmarkTest {
   }
 }
 
-export class MatmulGPUBenchmark extends BenchmarkTest {
+export class MatmulGPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
     const math = new NDArrayMathGPU();
     const gpgpu = math.getGPGPUContext();
