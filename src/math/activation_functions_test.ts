@@ -17,7 +17,8 @@
 import * as test_util from '../test_util';
 import * as util from '../util';
 
-import {ReLUFunc, SigmoidFunc, TanHFunc} from './activation_functions';
+// tslint:disable-next-line:max-line-length
+import {ReLUFunc, SigmoidFunc, TanHFunc, LeakyReluFunc} from './activation_functions';
 import {NDArrayMathCPU} from './math_cpu';
 import {Array1D} from './ndarray';
 
@@ -71,6 +72,27 @@ describe('Activation functions', () => {
     test_util.expectNumbersClose(dx.get(0), 1);
     test_util.expectNumbersClose(dx.get(1), 1);
     test_util.expectNumbersClose(dx.get(2), 0);
+  });
+
+  it('LeakyRelu output', () => {
+    const x = Array1D.new([1, 3, -2]);
+    const relu = new LeakyReluFunc(0.2);
+    const y = relu.output(math, x);
+
+    test_util.expectNumbersClose(y.get(0), 1);
+    test_util.expectNumbersClose(y.get(1), 3);
+    test_util.expectNumbersClose(y.get(2), -0.4);
+  });
+
+  it('LeakyRelu derivative', () => {
+    const x = Array1D.new([1, 3, -2]);
+    const relu = new LeakyReluFunc(0.2);
+    const y = relu.output(math, x);
+    const dx = relu.der(math, x, y);
+
+    test_util.expectNumbersClose(dx.get(0), 1);
+    test_util.expectNumbersClose(dx.get(1), 1);
+    test_util.expectNumbersClose(dx.get(2), 0.2);
   });
 
   it('Sigmoid output', () => {
