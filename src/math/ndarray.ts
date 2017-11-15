@@ -380,12 +380,11 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     return this.ndarrayData.values;
   }
 
-  private uploadToGPU(preferredTexShape?: [number, number]) {
+  private uploadToGPU() {
     throwIfGPUNotInitialized();
     this.throwIfDisposed();
     this.ndarrayData.textureShapeRC =
-        webgl_util.getTextureShapeFromLogicalShape(
-            GPGPU.gl, this.shape, preferredTexShape);
+        webgl_util.getTextureShapeFromLogicalShape(GPGPU.gl, this.shape);
     this.ndarrayData.texture =
         TEXTURE_MANAGER.acquireTexture(this.ndarrayData.textureShapeRC);
     this.ndarrayData.textureType = TextureType.DEFAULT;
@@ -399,18 +398,18 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     this.ndarrayData.values = null;
   }
 
-  getTexture(preferredShapeRC?: [number, number]): WebGLTexture {
+  getTexture(): WebGLTexture {
     this.throwIfDisposed();
     if (this.ndarrayData.texture == null) {
-      this.uploadToGPU(preferredShapeRC);
+      this.uploadToGPU();
     }
     return this.ndarrayData.texture;
   }
 
-  getTextureShapeRC(preferredShapeRC?: [number, number]): [number, number] {
+  getTextureShapeRC(): [number, number] {
     this.throwIfDisposed();
     if (this.ndarrayData.textureShapeRC == null) {
-      this.uploadToGPU(preferredShapeRC);
+      this.uploadToGPU();
     }
     return this.ndarrayData.textureShapeRC;
   }

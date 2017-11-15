@@ -382,22 +382,15 @@ function validateTextureUnit(gl: WebGLRenderingContext, textureUnit: number) {
 }
 
 export function getTextureShapeFromLogicalShape(
-    gl: WebGLRenderingContext, logShape: number[],
-    preferredTexShape?: [number, number]): [number, number] {
-  const maxTexSize = queryMaxTextureSize(gl);
-  const size = util.sizeFromShape(logShape);
-  if (preferredTexShape != null) {
-    const sizePreferred = util.sizeFromShape(preferredTexShape);
-    util.assert(
-        size === sizePreferred,
-        `Size of shape (${size}) must match size of ` +
-            `preferredShape (${sizePreferred})`);
-    if (preferredTexShape[0] <= maxTexSize &&
-        preferredTexShape[1] <= maxTexSize) {
-      return preferredTexShape;
-    }
+    gl: WebGLRenderingContext, logShape: number[]): [number, number] {
+  // If logical shape is 2, we don't squeeze, since we want to match physical.
+  if (logShape.length !== 2) {
+    const squeezeResult = util.squeezeShape(logShape);
+    logShape = squeezeResult.newShape;
   }
 
+  const maxTexSize = queryMaxTextureSize(gl);
+  const size = util.sizeFromShape(logShape);
   if (logShape.length <= 1 && size <= maxTexSize) {
     return [size, 1];
   } else if (

@@ -245,3 +245,35 @@ describe('util.isValNaN', () => {
     expect(() => util.isValNaN(0, 'hello' as any)).toThrowError();
   });
 });
+
+describe('util.squeezeShape', () => {
+  it('scalar', () => {
+    const {newShape, keptDims} = util.squeezeShape([]);
+    expect(newShape).toEqual([]);
+    expect(keptDims).toEqual([]);
+  });
+
+  it('1x1 reduced to scalar', () => {
+    const {newShape, keptDims} = util.squeezeShape([1, 1]);
+    expect(newShape).toEqual([]);
+    expect(keptDims).toEqual([]);
+  });
+
+  it('1x3x1 reduced to [3]', () => {
+    const {newShape, keptDims} = util.squeezeShape([1, 3, 1]);
+    expect(newShape).toEqual([3]);
+    expect(keptDims).toEqual([1]);
+  });
+
+  it('1x1x4 reduced to [4]', () => {
+    const {newShape, keptDims} = util.squeezeShape([1, 1, 4]);
+    expect(newShape).toEqual([4]);
+    expect(keptDims).toEqual([2]);
+  });
+
+  it('2x3x4 not reduction', () => {
+    const {newShape, keptDims} = util.squeezeShape([2, 3, 4]);
+    expect(newShape).toEqual([2, 3, 4]);
+    expect(keptDims).toEqual([0, 1, 2]);
+  });
+});
