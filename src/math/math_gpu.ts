@@ -468,8 +468,8 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, [a]) as T;
   }
 
-  protected stepInternal<T extends NDArray>(a: T): T {
-    const program = new UnaryOpProgram(a.shape, unary_op.STEP);
+  protected stepInternal<T extends NDArray>(a: T, alpha: number): T {
+    const program = new UnaryOpProgram(a.shape, unary_op.STEP(alpha));
     return this.compileAndRun(program, [a]) as T;
   }
 

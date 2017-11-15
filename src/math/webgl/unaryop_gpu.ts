@@ -59,13 +59,15 @@ export const ELU = `
 
 export function LEAKY_RELU(alpha: number) {
   return `
-  return (x >= 0.0) ? x : ${alpha} * x;
+    return (x >= 0.0) ? x : ${alpha} * x;
   `;
 }
 
-export const STEP = `
-  return (x == x) ? (x > 0.0 ? 1.0 : 0.0) : x;
-`;
+export function STEP(alpha = 0.0) {
+  return `
+    return (x == x) ? (x > 0.0 ? 1.0 : float(${alpha})) : x;
+  `;
+}
 
 export const NEG = `
   return -x;

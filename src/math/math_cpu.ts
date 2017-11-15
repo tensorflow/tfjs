@@ -696,12 +696,12 @@ export class NDArrayMathCPU extends NDArrayMath {
     return NDArray.make(ndarray.shape, {values: resultValues}) as T;
   }
 
-  protected stepInternal<T extends NDArray>(ndarray: T): T {
+  protected stepInternal<T extends NDArray>(ndarray: T, alpha = 0): T {
     const resultValues = new Float32Array(ndarray.size);
     const values = ndarray.getValues();
     for (let i = 0; i < values.length; ++i) {
       const value = values[i];
-      resultValues[i] = value > 0 ? 1 : (value < 0 ? 0 : value);
+      resultValues[i] = value > 0 ? 1 : (value < 0 ? alpha : value);
     }
     return NDArray.make(ndarray.shape, {values: resultValues}) as T;
   }
