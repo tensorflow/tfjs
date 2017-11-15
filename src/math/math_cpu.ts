@@ -1115,9 +1115,30 @@ export class NDArrayMathCPU extends NDArrayMath {
     return output;
   }
 
+  protected batchNormalization2DInternal(
+      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
+      varianceEpsilon: number, scale?: Array2D|Array1D,
+      offset?: Array2D|Array1D): Array2D {
+    const xValues = x.getValues();
+    const meanValues = mean.getValues();
+    const varianceValues = variance.getValues();
+    const scaleValues = scale ? scale.getValues() : new Float32Array([1]);
+    const offsetValues = offset ? offset.getValues() : new Float32Array([0]);
+    const outValues = new Float32Array(xValues.length);
+
+    for (let i = 0; i < xValues.length; i++) {
+      outValues[i] = offsetValues[i % offsetValues.length] +
+          (xValues[i] - meanValues[i % meanValues.length]) *
+              scaleValues[i % scaleValues.length] /
+              Math.sqrt(
+                  varianceValues[i % varianceValues.length] + varianceEpsilon);
+    }
+    return Array2D.new(x.shape, outValues);
+  }
+
   protected batchNormalization3DInternal(
       x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-      varianceEpsilon = .001, scale?: Array3D|Array1D,
+      varianceEpsilon: number, scale?: Array3D|Array1D,
       offset?: Array3D|Array1D): Array3D {
     const xValues = x.getValues();
     const meanValues = mean.getValues();

@@ -200,15 +200,35 @@ export class NDArrayMathGPU extends NDArrayMath {
     return this.compileAndRun(program, [a, b]) as T;
   }
 
-  protected batchNormalization3DInternal(
-      x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-      varianceEpsilon: number|null, scale?: Array3D|Array1D,
-      offset?: Array3D|Array1D): Array3D {
+  protected batchNormalization2DInternal(
+      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
+      varianceEpsilon: number, scale?: Array2D|Array1D,
+      offset?: Array2D|Array1D): Array2D {
     const inputs = [x, mean, variance];
 
-    if (varianceEpsilon == null) {
-      varianceEpsilon = 0.000001;
+    let offsetShape = null;
+    if (offset != null) {
+      offsetShape = offset.shape;
+      inputs.push(offset);
     }
+
+    let scaleShape = null;
+    if (scale != null) {
+      scaleShape = scale.shape;
+      inputs.push(scale);
+    }
+
+    const program = new BatchNormProgram(
+        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
+        varianceEpsilon);
+    return this.compileAndRun(program, inputs) as Array2D;
+  }
+
+  protected batchNormalization3DInternal(
+      x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
+      varianceEpsilon: number, scale?: Array3D|Array1D,
+      offset?: Array3D|Array1D): Array3D {
+    const inputs = [x, mean, variance];
 
     let offsetShape = null;
     if (offset != null) {
