@@ -13,5 +13,5 @@ You can use this as standalone es5 bundle like this:
 Or you can install it via npm for use in a TypeScript / ES6 project.
 
 ```sh
-npm install deeplearn-knn-image-classifier --save-dev
+npm install deeplearn-knn-image-classifier --save
 ```
