@@ -49,7 +49,7 @@ export const ABS = `
   return abs(x);
 `;
 
-export const RELU = `
+export const RELU = CHECK_NAN_SNIPPET + `
   return (x < 0.0) ? 0.0 : x;
 `;
 

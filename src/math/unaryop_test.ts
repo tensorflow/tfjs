@@ -591,7 +591,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       for (let i = 0; i < a.size; i++) {
         expected[i] = Math.asin(values[i]);
       }
-      test_util.expectArraysClose(result.getValues(), expected, 1e-3);
+      test_util.expectArraysClose(result.getValues(), expected);
 
       a.dispose();
     });
