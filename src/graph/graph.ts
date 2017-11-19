@@ -269,6 +269,7 @@ export class Graph {
   /**
    * Computes LeakyReLU of x element-wise.
    * @param x The input tensor to the LeakyReLU.
+   * @param alpha Negative slope coefficient.
    * @return The tensor representing the LeakyReLU operation.
    */
   leakyRelu(x: Tensor, alpha: number): Tensor {
@@ -314,6 +315,7 @@ export class Graph {
   /**
    * Creates a softmax cross-entropy cost operation in the graph.
    * @param x The input tensor to classify.
+   * @param target The label tensor.
    * @return The tensor representing the softmax cross-entropy cost operation.
    */
   softmaxCrossEntropyCost(x: Tensor, target: Tensor): Tensor {
