@@ -2,10 +2,10 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "command": "npm",
+            "command": "yarn",
             "taskName": "lint",
             "type": "shell",
-            "args": [ "run", "lint"],
+            "args": ["lint"],
             "problemMatcher": {
                 "base": "$tslint5",
                 "owner": "tslint-type-checked",

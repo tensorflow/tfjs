@@ -30,7 +30,8 @@ if (outDir != null) {
 
 
 const cmd = path.join('node_modules', '.bin', 'browserify');
-const child = spawn(cmd, [tsPath, '-p', '[tsify]', '-o' , outputPath],
+const child = spawn(cmd,
+    [tsPath, '-p', '[tsify', '-p', 'demos/]', '-o' , outputPath],
     {detached: false});
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);

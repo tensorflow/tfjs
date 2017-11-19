@@ -29,8 +29,8 @@ export let MathBenchmarkPolymer: new () => PolymerHTMLElement =
 
 export class MathBenchmark extends MathBenchmarkPolymer {
   // Polymer properties.
-  private benchmarks: BenchmarkRunGroup[];
-  private stopMessages: boolean[];
+  benchmarks: BenchmarkRunGroup[];
+  stopMessages: boolean[];
 
   ready() {
     const groups = getRunGroups();

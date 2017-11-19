@@ -37,10 +37,11 @@ const NNArtPolymer: new () => PolymerHTMLElement = PolymerElement({
 });
 
 class NNArt extends NNArtPolymer {
-  private colorModeNames: ColorMode[];
-  private selectedColorModeName: ColorMode;
-  private activationFunctionNames: ActivationFunction[];
-  private selectedActivationFunctionName: ActivationFunction;
+  // Polymer properties.
+  colorModeNames: ColorMode[];
+  selectedColorModeName: ColorMode;
+  activationFunctionNames: ActivationFunction[];
+  selectedActivationFunctionName: ActivationFunction;
 
   private cppn: CPPN;
 

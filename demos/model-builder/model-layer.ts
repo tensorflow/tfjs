@@ -42,10 +42,10 @@ export class ModelLayer extends ModelLayerPolymer {
   // Polymer properties.
   inputShapeDisplay: string;
   outputShapeDisplay: string;
-  private layerNames: LayerName[];
-  private selectedLayerName: LayerName;
-  private hasError: boolean;
-  private errorMessages: string[];
+  layerNames: LayerName[];
+  selectedLayerName: LayerName;
+  hasError: boolean;
+  errorMessages: string[];
 
   private modelBuilder: ModelBuilder;
   layerBuilder: LayerBuilder;

@@ -17,9 +17,7 @@ for everything from education, to model understanding, to art projects.
 
 ## Usage
 
-```
-npm install deeplearn
-```
+`yarn add deeplearn` or `npm install deeplearn`
 
 #### TypeScript / ES6 JavaScript
 See the [TypeScript starter project](https://github.com/PAIR-code/deeplearnjs/tree/master/starter/typescript/) and the
@@ -85,7 +83,7 @@ the dev environment:
 ```bash
 $ git clone https://github.com/PAIR-code/deeplearnjs.git
 $ cd deeplearnjs
-$ npm run prep # Installs node modules and bower components.
+$ yarn prep # Installs dependencies.
 ```
 
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) for
@@ -110,14 +108,14 @@ cycle when developing apps.
 Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
 
 ```bash
-$ npm run test
-$ npm run lint
+$ yarn test
+$ yarn lint
 ```
 
 To run a subset of tests and/or on a specific browser (note the extra `--`):
 
 ```bash
-$ npm run test -- --browsers=Chrome --grep='multinomial'
+$ yarn test --browsers=Chrome --grep='multinomial'
  
 > ...
 > Chrome 62.0.3202 (Mac OS X 10.12.6): Executed 28 of 1891 (skipped 1863) SUCCESS (6.914 secs / 0.634 secs)

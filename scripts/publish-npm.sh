@@ -14,9 +14,9 @@
 # limitations under the License.
 # =============================================================================
 rm -rf dist/ && \
-npm run prep && \
+yarn prep && \
 ./scripts/build-standalone.sh && \
-node_modules/.bin/tsc && \
+node_modules/.bin/tsc --sourceMap false && \
 npm publish && \
 ./scripts/tag-version
 echo 'Yay! Published a new package to npm.'

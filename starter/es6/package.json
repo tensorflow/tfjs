@@ -32,10 +32,10 @@
     ]
   },
   "scripts": {
-    "prep": "npm install && mkdirp dist",
+    "prep": "yarn && mkdirp dist",
     "watch": "watchify main.js -v --debug -o dist/bundle.js",
     "build": "browserify main.js -o dist/bundle.js",
-    "deploy": "npm run build && uglifyjs dist/bundle.js -c -m -o dist/bundle.min.js"
+    "deploy": "yarn build && uglifyjs dist/bundle.js -c -m -o dist/bundle.min.js"
   },
   "license": "Apache-2.0"
 }
