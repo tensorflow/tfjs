@@ -151,7 +151,7 @@ Open the output png file. You should see a large black image strewn with white d
 
 First we verify that we can run the model builder. From the project root, run:
 
-* `npm run prep`
+* `yarn prep`
 * `./scripts/watch-demo demos/model-builder`
 * Will open a browser at http://127.0.0.1:8080/demos/model-builder/
 

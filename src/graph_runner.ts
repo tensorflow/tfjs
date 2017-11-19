@@ -82,9 +82,6 @@ export class GraphRunner {
   private lastCostTimestamp = 0;
   private lastEvalTimestamp = 0;
 
-  private lastStopTimestamp: number|null;
-  private totalIdleTimeMs = 0;
-
   private zeroScalar: Scalar;
   private metricBatchSizeScalar: Scalar;
 
@@ -97,8 +94,6 @@ export class GraphRunner {
 
   resetStatistics() {
     this.totalBatchesTrained = 0;
-    this.totalIdleTimeMs = 0;
-    this.lastStopTimestamp = null;
   }
 
   /**
@@ -140,14 +135,10 @@ export class GraphRunner {
 
   stopTraining() {
     this.isTraining = false;
-    this.lastStopTimestamp = performance.now();
   }
 
   resumeTraining() {
     this.isTraining = true;
-    if (this.lastStopTimestamp != null) {
-      this.totalIdleTimeMs += performance.now() - this.lastStopTimestamp;
-    }
     this.trainNetwork();
   }
 

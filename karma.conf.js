@@ -22,7 +22,12 @@ module.exports = function(config) {
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },
-    karmaTypescriptConfig: {tsconfig: 'tsconfig.json'},
+    karmaTypescriptConfig: {
+      tsconfig: 'tsconfig.json',
+      compilerOptions: {
+        module: 'commonjs'
+      }
+    },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome', 'Firefox'],
     browserStack: {

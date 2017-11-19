@@ -5,24 +5,75 @@
   "private": true,
   "dependencies": {
     "deeplearn": "~0.3.11",
+    "deeplearn-knn-image-classifier": "~0.1.2",
     "deeplearn-squeezenet": "~0.1.2",
-    "deeplearn-knn-image-classifier": "~0.1.2"
+    "@bower_components/font-roboto": "PolymerElements/font-roboto#^1.0.1",
+    "@bower_components/iron-a11y-announcer": "PolymerElements/iron-a11y-announcer#^1.0.0",
+    "@bower_components/iron-a11y-keys-behavior": "PolymerElements/iron-a11y-keys-behavior#^1.0.0",
+    "@bower_components/iron-autogrow-textarea": "PolymerElements/iron-autogrow-textarea#^1.0.0",
+    "@bower_components/iron-behaviors": "polymerelements/iron-behaviors#^1.0.0",
+    "@bower_components/iron-checked-element-behavior": "PolymerElements/iron-checked-element-behavior#^1.0.0",
+    "@bower_components/iron-collapse": "PolymerElements/iron-collapse#^1.0.0",
+    "@bower_components/iron-dropdown": "PolymerElements/iron-dropdown#^1.0.0",
+    "@bower_components/iron-fit-behavior": "PolymerElements/iron-fit-behavior#^1.0.0",
+    "@bower_components/iron-flex-layout": "PolymerElements/iron-flex-layout#~1.3.0",
+    "@bower_components/iron-form-element-behavior": "PolymerElements/iron-form-element-behavior#^1.0.0",
+    "@bower_components/iron-icon": "PolymerElements/iron-icon#^1.0.0",
+    "@bower_components/iron-icons": "PolymerElements/iron-icons#1.*.*",
+    "@bower_components/iron-iconset-svg": "PolymerElements/iron-iconset-svg#^1.0.0",
+    "@bower_components/iron-input": "PolymerElements/iron-input#^1.0.0",
+    "@bower_components/iron-menu-behavior": "PolymerElements/iron-menu-behavior#^1.1.7",
+    "@bower_components/iron-meta": "PolymerElements/iron-meta#^1.0.0",
+    "@bower_components/iron-overlay-behavior": "PolymerElements/iron-overlay-behavior#^1.7.0",
+    "@bower_components/iron-range-behavior": "PolymerElements/iron-range-behavior#^1.0.0",
+    "@bower_components/iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#^1.0.0",
+    "@bower_components/iron-selector": "PolymerElements/iron-selector#^1.0.0",
+    "@bower_components/iron-validatable-behavior": "PolymerElements/iron-validatable-behavior#^1.0.0",
+    "@bower_components/neon-animation": "PolymerElements/neon-animation#^1.0.0",
+    "@bower_components/paper-behaviors": "PolymerElements/paper-behaviors#^1.0.0",
+    "@bower_components/paper-button": "PolymerElements/paper-button#1.*.*",
+    "@bower_components/paper-dialog": "PolymerElements/paper-dialog#1.*.*",
+    "@bower_components/paper-dialog-behavior": "PolymerElements/paper-dialog-behavior#^1.0.0",
+    "@bower_components/paper-dialog-scrollable": "PolymerElements/paper-dialog-scrollable#1.*.*",
+    "@bower_components/paper-dropdown-menu": "PolymerElements/paper-dropdown-menu#1.*.*",
+    "@bower_components/paper-icon-button": "PolymerElements/paper-icon-button#1.*.*",
+    "@bower_components/paper-input": "PolymerElements/paper-input#^1.0.9",
+    "@bower_components/paper-item": "PolymerElements/paper-item#1.*.*",
+    "@bower_components/paper-listbox": "PolymerElements/paper-listbox#1.*.*",
+    "@bower_components/paper-material": "PolymerElements/paper-material#^1.0.0",
+    "@bower_components/paper-menu-button": "PolymerElements/paper-menu-button#^1.3.0",
+    "@bower_components/paper-progress": "PolymerElements/paper-progress#1.*.*",
+    "@bower_components/paper-radio-button": "PolymerElements/paper-radio-button#1.*.*",
+    "@bower_components/paper-radio-group": "PolymerElements/paper-radio-group#1.*.*",
+    "@bower_components/paper-ripple": "PolymerElements/paper-ripple#^1.0.0",
+    "@bower_components/paper-slider": "PolymerElements/paper-slider#1.*.*",
+    "@bower_components/paper-spinner": "PolymerElements/paper-spinner#1.*.*",
+    "@bower_components/paper-styles": "PolymerElements/paper-styles#^1.0.0",
+    "@bower_components/paper-toggle-button": "PolymerElements/paper-toggle-button#1.*.*",
+    "@bower_components/paper-tooltip": "PolymerElements/paper-tooltip#1.*.*",
+    "@bower_components/polymer": "Polymer/polymer#1.*.*",
+    "@bower_components/web-animations-js": "web-animations/web-animations-js#^2.2.0",
+    "@bower_components/webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.24"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/PAIR-code/deeplearnjs.git"
   },
   "devDependencies": {
-    "bower": "~1.8.0",
+    "@types/polymer": "~1.1.31",
     "mkdirp": "~0.5.1",
     "polymer-bundler": "~3.0.1",
+    "tone-piano": "0.0.5",
     "tsify": "~3.0.3",
-    "typescript": "~2.5.3",
+    "typescript": "2.6.1",
     "uglifyjs": "~2.4.11",
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "prep": "npm install && bower install"
+    "prep": "yarn"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "engines": {
+    "yarn": ">= 1.0.0"
+  }
 }

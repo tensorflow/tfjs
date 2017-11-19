@@ -10,8 +10,8 @@ You can use this as standalone es5 bundle like this:
 <script src="https://unpkg.com/deeplearn-knn-image-classifier"></script>
 ```
 
-Or you can install it via npm for use in a TypeScript / ES6 project.
+Or you can install it via npm/yarn for use in a TypeScript / ES6 project.
 
 ```sh
-npm install deeplearn-knn-image-classifier --save
+yarn add deeplearn-knn-image-classifier
 ```

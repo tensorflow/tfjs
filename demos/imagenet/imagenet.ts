@@ -19,7 +19,7 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {Array3D, gpgpu_util, GPGPUContext, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array3D, gpgpu_util, GPGPUContext, NDArrayMathGPU} from 'deeplearn';
 import {SqueezeNet} from 'deeplearn-squeezenet';
 
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
@@ -48,8 +48,13 @@ const TOP_K_CLASSES = 5;
 
 const INPUT_NAMES = ['cat', 'dog1', 'dog2', 'beerbottle', 'piano', 'saxophone'];
 export class ImagenetDemo extends ImagenetDemoPolymer {
+  // Polymer properties.
+  layerNames: string[];
+  selectedLayerName: string;
+  inputNames: string[];
+  selectedInputName: string;
+
   private math: NDArrayMathGPU;
-  private mathCPU: NDArrayMathCPU;
   private gl: WebGLRenderingContext;
   private gpgpu: GPGPUContext;
   private renderGrayscaleChannelsCollageShader: WebGLShader;
@@ -58,12 +63,6 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
   private webcamVideoElement: HTMLVideoElement;
   private staticImgElement: HTMLImageElement;
-
-  private layerNames: string[];
-  private selectedLayerName: string;
-  private inputNames: string[];
-  private selectedInputName: string;
-
   private inferenceCanvas: HTMLCanvasElement;
 
   ready() {
@@ -114,7 +113,6 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
     this.gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
     this.gpgpu = new GPGPUContext(this.gl);
     this.math = new NDArrayMathGPU(this.gpgpu);
-    this.mathCPU = new NDArrayMathCPU();
 
     this.squeezeNet = new SqueezeNet(this.math);
     this.squeezeNet.load().then(() => {

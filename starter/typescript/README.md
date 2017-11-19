@@ -15,13 +15,13 @@ Feel free to change the setup to use your preferred bundler
 We start with preparing the dev environment:
 
 ```bash
-$ npm run prep # Installs node modules.
+$ yarn prep # Installs node modules and prepares the dev environment.
 ```
 
 To interactively develop with fast edit-refresh cycle (~200-400ms):
 
 ```bash
-$ npm run watch
+$ yarn watch
 >> 1275567 bytes written to dist/bundle.js (0.58 seconds) at 10:18:10 AM
 ```
 
@@ -36,7 +36,7 @@ Float32Array(3) [3, 4, 5]
 To produce a non-minified bundle for production:
 
 ```
-$ npm run build
+$ yarn build
 ```
 
 Stores the output in `dist/bundle.js`.
@@ -44,7 +44,7 @@ Stores the output in `dist/bundle.js`.
 To produce a minified bundle for production:
 
 ```
-$ npm run deploy
+$ yarn deploy
 ```
 
 Stores the output in `dist/bundle.min.js`.

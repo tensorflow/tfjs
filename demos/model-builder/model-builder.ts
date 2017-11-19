@@ -109,12 +109,30 @@ export enum ApplicationState {
 }
 
 export class ModelBuilder extends ModelBuilderPolymer {
+  // Used in the html template.
+  applicationState: ApplicationState;
+  modelInitialized: boolean;
+  showTrainStats: boolean;
+  datasetDownloaded: boolean;
+  modelNames: string[];
+  optimizerNames: string[];
+  needMomentum: boolean;
+  needGamma: boolean;
+  needBeta1: boolean;
+  needBeta2: boolean;
+
+  // Stats.
+  showDatasetStats: boolean;
+  statsInputRange: string;
+  statsInputShapeDisplay: string;
+  statsLabelShapeDisplay: string;
+  statsExampleCount: number;
+  examplesTrained: number;
+  inferenceDuration: number;
+
   // Polymer properties.
   private isValid: boolean;
   private totalTimeSec: string;
-  private applicationState: ApplicationState;
-  private modelInitialized: boolean;
-  private showTrainStats: boolean;
   private selectedNormalizationOption: number;
 
   // Datasets and models.
@@ -128,12 +146,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private accuracyTensor: Tensor;
   private predictionTensor: Tensor;
 
-  private datasetDownloaded: boolean;
   private datasetNames: string[];
   private selectedDatasetName: string;
-  private modelNames: string[];
   private selectedModelName: string;
-  private optimizerNames: string[];
   private selectedOptimizerName: string;
   private loadedWeights: LayerWeightsDict[]|null;
   private dataSets: {[datasetName: string]: InMemoryDataset};
@@ -142,21 +157,10 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private datasetStats: DataStats[];
   private learningRate: number;
   private momentum: number;
-  private needMomentum: boolean;
   private gamma: number;
-  private needGamma: boolean;
   private beta1: number;
-  private needBeta1: boolean;
   private beta2: number;
-  private needBeta2: boolean;
   private batchSize: number;
-
-  // Stats.
-  private showDatasetStats: boolean;
-  private statsInputRange: string;
-  private statsInputShapeDisplay: string;
-  private statsLabelShapeDisplay: string;
-  private statsExampleCount: number;
 
   // Charts.
   private costChart: Chart;
@@ -175,9 +179,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private inputShape: number[];
   private labelShape: number[];
   private examplesPerSec: number;
-  private examplesTrained: number;
   private inferencesPerSec: number;
-  private inferenceDuration: number;
 
   private inputLayer: ModelLayer;
   private hiddenLayers: ModelLayer[];

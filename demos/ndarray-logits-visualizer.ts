@@ -26,9 +26,10 @@ export let NDArrayLogitsVisualizerPolymer: new () => PolymerHTMLElement =
     PolymerElement({is: 'ndarray-logits-visualizer', properties: {}});
 
 export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
-  private logitLabelElements: HTMLElement[];
-  private logitVizElements: HTMLElement[];
-  private width: number;
+  // Polymer properties.
+  logitLabelElements: HTMLElement[];
+  logitVizElements: HTMLElement[];
+  width: number;
 
   initialize(width: number, height: number) {
     this.width = width;

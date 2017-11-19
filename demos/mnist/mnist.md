@@ -50,7 +50,7 @@ One last thing before we start coding - we need to run a static HTTP server from
 the `$BASE` directory:
 
 ```bash
-npm run prep
+yarn prep
 ./node_modules/.bin/http-server
 >> Starting up http-server, serving ./
 >> Available on:
