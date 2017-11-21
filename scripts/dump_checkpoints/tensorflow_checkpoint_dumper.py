@@ -23,6 +23,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from six import iteritems
+
 import argparse
 import json
 import os
@@ -87,7 +89,7 @@ class TensorflowCheckpointDumper(CheckpointDumper):
     """
     var_to_shape_map = self.reader.get_variable_to_shape_map()
 
-    for var_name, var_shape in var_to_shape_map.iteritems():
+    for (var_name, var_shape) in iteritems(var_to_shape_map):
       if self.should_ignore(var_name) or var_name == 'global_step':
         print('Ignoring ' + var_name)
         continue

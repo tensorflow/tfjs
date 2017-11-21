@@ -23,6 +23,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from six import iteritems
+
 import argparse
 import os
 import re
@@ -88,14 +90,14 @@ class PytorchCheckpointDumper(CheckpointDumper):
   def build_and_dump_vars(self):
     """Builds and dumps variables and a manifest file.
     """
-    for var_name, var_weights in self.state_dictionary.iteritems():
+    for (var_name, var_weights) in iteritems(self.state_dictionary):
       if (self.should_ignore(var_name)):
         print('Ignoring ' + var_name)
         continue
 
       var_filename = self.var_name_to_filename(var_name)
-      var_shape = map(int, list(var_weights.size()))
-      tensor = var_weights.numpy()
+      var_shape = list(map(int, list(var_weights.size())))
+      tensor = var_weights.cpu().numpy()
 
       self.dump_weights(var_name, var_filename, var_shape, tensor)
 
