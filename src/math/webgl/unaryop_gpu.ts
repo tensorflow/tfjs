@@ -57,6 +57,10 @@ export const ELU = `
   return (x >= 0.0) ? x : (exp(x) - 1.0);
 `;
 
+export const ELU_DER = `
+  return (x >= 0.0) ? 1.0 : exp(x);
+`;
+
 export function LEAKY_RELU(alpha: number) {
   return `
     return (x >= 0.0) ? x : ${alpha} * x;

@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat3DNode, Convolution2DNode, DivideNode, ExpNode, FusedLinearCombinationNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, ReduceSumNode, ReLUNode, LeakyReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SquareNode, SubtractNode, TanHNode} from './graph';
+import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat3DNode, Convolution2DNode, DivideNode, ExpNode, EluNode, FusedLinearCombinationNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, ReduceSumNode, ReLUNode, LeakyReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SquareNode, SubtractNode, TanHNode} from './graph';
 import * as graph_util from './graph_util';
 import {Add} from './ops/add';
 import {ArgMax} from './ops/argmax';
@@ -25,7 +25,7 @@ import {Concat3D} from './ops/concat3d';
 import {Convolution2D} from './ops/convolution';
 import {Divide} from './ops/divide';
 // tslint:disable-next-line:max-line-length
-import {ReLU, Sigmoid, Square, TanH, LeakyReLU} from './ops/element_wise_activation';
+import {ReLU, Sigmoid, Square, TanH, LeakyReLU, Elu} from './ops/element_wise_activation';
 import {MeanSquaredCost} from './ops/element_wise_cost';
 import {Exp} from './ops/exp';
 import {LinearCombination} from './ops/linear_combination';
@@ -72,6 +72,8 @@ function emitOpFromNode(node: Node): Operation[] {
   } else if (node instanceof LeakyReLUNode) {
     return [new LeakyReLU(node.inputs[LeakyReLUNode.X], 
       node.output, node.alpha)];
+  } else if (node instanceof EluNode) {
+    return [new Elu(node.inputs[EluNode.X], node.output)];
   } else if (node instanceof TanHNode) {
     return [new TanH(node.inputs[TanHNode.X], node.output)];
   } else if (node instanceof SigmoidNode) {
