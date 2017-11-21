@@ -4,9 +4,6 @@
   "description": "deeplearn.js demos - not actually published",
   "private": true,
   "dependencies": {
-    "deeplearn": "~0.3.11",
-    "deeplearn-knn-image-classifier": "~0.1.2",
-    "deeplearn-squeezenet": "~0.1.2",
     "@bower_components/font-roboto": "PolymerElements/font-roboto#^1.0.1",
     "@bower_components/iron-a11y-announcer": "PolymerElements/iron-a11y-announcer#^1.0.0",
     "@bower_components/iron-a11y-keys-behavior": "PolymerElements/iron-a11y-keys-behavior#^1.0.0",
@@ -53,7 +50,11 @@
     "@bower_components/paper-tooltip": "PolymerElements/paper-tooltip#1.*.*",
     "@bower_components/polymer": "Polymer/polymer#1.*.*",
     "@bower_components/web-animations-js": "web-animations/web-animations-js#^2.2.0",
-    "@bower_components/webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.24"
+    "@bower_components/webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.24",
+    "deeplearn": "~0.3.11",
+    "deeplearn-knn-image-classifier": "~0.1.2",
+    "deeplearn-squeezenet": "~0.1.2",
+    "tslint": "~5.8.0"
   },
   "repository": {
     "type": "git",
@@ -70,7 +71,9 @@
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "prep": "yarn"
+    "prep": "yarn",
+    "build": "tsc",
+    "lint": "tslint -p . -t verbose"
   },
   "license": "Apache-2.0",
   "engines": {

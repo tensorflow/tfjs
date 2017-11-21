@@ -1,6 +1,7 @@
 import 'babel-polyfill';
 import {Array1D, NDArrayMathGPU, Scalar} from 'deeplearn';
 
+/** Runs the example. */
 async function runExample() {
   const math = new NDArrayMathGPU();
   const a = Array1D.new([1, 2, 3]);
@@ -11,10 +12,10 @@ async function runExample() {
 
   // Option 1: With async/await.
   // Caveat: in non-Chrome browsers you need to put this in an async function.
-  console.log(await result.data());  // Float32Array([3, 4, 5])
+  console.log(await result.data()); // Float32Array([3, 4, 5])
 
   // Option 2: With a Promise.
-  result.data().then(data => console.log(data));
+  result.data().then((data) => console.log(data));
 
   // Option 3: Synchronous download of data.
   // This is simpler, but blocks the UI until the GPU is done.

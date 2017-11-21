@@ -11,6 +11,8 @@
     "babel-plugin-transform-regenerator": "~6.26.0",
     "babel-preset-es2015": "~6.24.1",
     "babelify": "~7.3.0",
+    "eslint": "~4.11.0",
+    "eslint-config-google": "~0.9.1",
     "mkdirp": "~0.5.1",
     "uglifyjs": "~2.4.11",
     "watchify": "~3.9.0"
@@ -35,6 +37,7 @@
     "prep": "yarn && mkdirp dist",
     "watch": "watchify main.js -v --debug -o dist/bundle.js",
     "build": "browserify main.js -o dist/bundle.js",
+    "lint": "eslint main.js",
     "deploy": "yarn build && uglifyjs dist/bundle.js -c -m -o dist/bundle.min.js"
   },
   "license": "Apache-2.0"

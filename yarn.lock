@@ -723,7 +723,7 @@ colors@1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/colors/-/colors-1.0.3.tgz#0433f44d809680fdeb60ed260f1b0c262e82a40b"
 
-colors@^1.1.0, colors@^1.1.2:
+colors@^1.1.0:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/colors/-/colors-1.1.2.tgz#168a4701756b6a7f51a12ce0c97bfa28c084ed63"
 
@@ -3023,7 +3023,7 @@ shell-quote@^1.4.2, shell-quote@^1.6.1:
     array-reduce "~0.0.0"
     jsonify "~0.0.0"
 
-shelljs@^0.7.0:
+shelljs@^0.7.0, shelljs@~0.7.8:
   version "0.7.8"
   resolved "https://registry.yarnpkg.com/shelljs/-/shelljs-0.7.8.tgz#decbcf874b0d1e5fb72e14b164a9683048e9acb3"
   dependencies:
@@ -3394,7 +3394,7 @@ tslint-no-circular-imports@~0.2.0:
     tslint "^5.7.0"
     typescript "^2.5.2"
 
-tslint@^5.7.0:
+tslint@^5.7.0, tslint@~5.8.0:
   version "5.8.0"
   resolved "https://registry.yarnpkg.com/tslint/-/tslint-5.8.0.tgz#1f49ad5b2e77c76c3af4ddcae552ae4e3612eb13"
   dependencies:
@@ -3410,22 +3410,7 @@ tslint@^5.7.0:
     tslib "^1.7.1"
     tsutils "^2.12.1"
 
-tslint@~5.6.0:
-  version "5.6.0"
-  resolved "https://registry.yarnpkg.com/tslint/-/tslint-5.6.0.tgz#088aa6c6026623338650b2900828ab3edf59f6cf"
-  dependencies:
-    babel-code-frame "^6.22.0"
-    colors "^1.1.2"
-    commander "^2.9.0"
-    diff "^3.2.0"
-    glob "^7.1.1"
-    minimatch "^3.0.4"
-    resolve "^1.3.2"
-    semver "^5.3.0"
-    tslib "^1.7.1"
-    tsutils "^2.7.1"
-
-tsutils@^2.12.1, tsutils@^2.7.1:
+tsutils@^2.12.1:
   version "2.12.2"
   resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.12.2.tgz#ad58a4865d17ec3ddb6631b6ca53be14a5656ff3"
   dependencies:

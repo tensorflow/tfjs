@@ -16,6 +16,7 @@
     "deeplearn": "~0.3.11",
     "mkdirp": "~0.5.1",
     "tsify": "~3.0.3",
+    "tslint": "~5.8.0",
     "typescript": "~2.6.1",
     "uglifyjs": "~2.4.11",
     "watchify": "~3.9.0"
@@ -23,6 +24,7 @@
   "scripts": {
     "prep": "yarn && mkdirp dist",
     "build": "browserify --standalone squeezenet squeezenet.ts -p [tsify] -o dist/bundle.js",
+    "lint": "tslint -p . -t verbose",
     "publish-npm": "tsc --sourceMap false && yarn build && npm publish"
   },
   "license": "Apache-2.0"

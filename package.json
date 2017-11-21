@@ -25,8 +25,9 @@
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~3.0.8",
     "opn": "~5.1.0",
+    "shelljs": "~0.7.8",
     "tsify": "~3.0.1",
-    "tslint": "~5.6.0",
+    "tslint": "~5.8.0",
     "tslint-no-circular-imports": "~0.2.0",
     "typedoc": "~0.8.0",
     "typescript": "2.6.1",
@@ -38,7 +39,7 @@
     "build": "tsc",
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
-    "lint": "tslint -p . --type-check -t verbose",
+    "lint": "tslint -p . -t verbose",
     "make-version": "./scripts/make-version"
   },
   "dependencies": {

@@ -1,0 +1,7 @@
+{
+    "extends": "google",
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaVersion": 8
+    }
+}
