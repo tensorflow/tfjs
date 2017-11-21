@@ -1236,6 +1236,15 @@ export abstract class NDArrayMath {
   protected abstract eluInternal<T extends NDArray>(ndarray: T): T;
 
   /**
+   * Computes the derivatice of elu which is used internally
+   * @hidden
+   */
+  eluDer<T extends NDArray>(ndarray: T): T {
+    return this.executeOp('eluDer', () => this.eluDerInternal(ndarray));
+  }
+  protected abstract eluDerInternal<T extends NDArray>(ndarray: T): T;
+
+  /**
    * Computes leaky rectified linear element-wise
    * @param {T} ndarray the input NDArray
    * @param alpha scaleing factor for negative values, defaults to 0.2

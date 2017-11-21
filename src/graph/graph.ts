@@ -277,6 +277,15 @@ export class Graph {
   }
 
   /**
+   * Computes Elu of x element-wise.
+   * @param x the input tensor to the Elu.
+   * @return The tensor representing the Elu operation.
+   */
+  elu(x: Tensor): Tensor {
+    return this.addNodeAndReturnOutput(new EluNode(this, x));
+  }
+
+  /**
    * Computes TanH of x element-wise.
    * @param x The input tensor to the TanH.
    * @return The tensor representing the TanH operation.
@@ -770,6 +779,14 @@ export class LeakyReLUNode extends Node {
   constructor(graph: Graph, x: Tensor, alpha: number) {
     super(graph, 'LeakyReLU', {x}, new Tensor(x.shape));
     this.alpha = alpha;
+  }
+  validate() {}
+}
+
+export class EluNode extends Node {
+  static readonly X = 'x';
+  constructor(graph: Graph, x: Tensor) {
+    super(graph, 'Elu', {x}, new Tensor(x.shape));
   }
   validate() {}
 }

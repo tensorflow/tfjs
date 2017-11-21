@@ -505,6 +505,18 @@ describe('leakyRelu validation', () => {
   });
 });
 
+describe('elu validation', () => {
+  let g: Graph;
+
+  beforeEach(() => {
+    g = new Graph();
+  });
+
+  it('Does not throw', () => {
+    expect(g.elu(new Tensor([5, 4])).shape).toEqual([5, 4]);
+  });
+});
+
 describe('exp validation', () => {
   let g: Graph;
 

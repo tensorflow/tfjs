@@ -111,3 +111,15 @@ export class SquareFunc implements ActivationFunction {
 
   dispose() {}
 }
+
+export class EluFunc implements ActivationFunction {
+  output<T extends NDArray>(math: NDArrayMath, x: T) {
+    return math.elu(x);
+  }
+
+  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
+    return math.eluDer(x);
+  }
+
+  dispose() {}
+}
