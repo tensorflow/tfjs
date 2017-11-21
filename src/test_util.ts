@@ -55,7 +55,7 @@ export function kurtosis(values: TypedArray|number[]) {
     sum2 += Math.pow(v, 2);
     sum4 += Math.pow(v, 4);
   }
-  return (1 / n) * sum4 / Math.pow((1 / n) * sum2, 2) - 3;
+  return (1 / n) * sum4 / Math.pow((1 / n) * sum2, 2);
 }
 
 export function skewness(values: TypedArray|number[]) {
@@ -64,8 +64,7 @@ export function skewness(values: TypedArray|number[]) {
   const n = values.length;
   let sum2 = 0;
   let sum3 = 0;
-  let i = -1;
-  while (++i < n) {
+  for (let i = 0; i < n; i++) {
     const v = values[i] - valuesMean;
     sum2 += Math.pow(v, 2);
     sum3 += Math.pow(v, 3);
@@ -75,9 +74,10 @@ export function skewness(values: TypedArray|number[]) {
 
 export function jarqueBeraNormalityTest(values: TypedArray|number[]) {
   // https://en.wikipedia.org/wiki/Jarque%E2%80%93Bera_test
+  const n = values.length;
   const s = skewness(values);
   const k = kurtosis(values);
-  const jb = values.length * ((Math.pow(s, 2) / 6) + (Math.pow(k, 2) / 24));
+  const jb = n / 6 * (Math.pow(s, 2) + 0.25 * Math.pow(k - 3, 2));
   // JB test requires 2-degress of freedom from Chi-Square @ 0.999:
   // http://www.itl.nist.gov/div898/handbook/eda/section3/eda3674.htm
   const CHI_SQUARE_2DEG = 13.816;
