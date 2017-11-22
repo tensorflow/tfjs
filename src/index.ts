@@ -45,7 +45,7 @@ export {CostReduction, FeedEntry, Session} from './graph/session';
 export {GraphRunner, GraphRunnerEventObserver, MetricReduction} from './graph_runner';
 // tslint:disable-next-line:max-line-length
 export {ConstantInitializer, Initializer, NDArrayInitializer, OnesInitializer, RandomNormalInitializer, RandomTruncatedNormalInitializer, RandomUniformInitializer, VarianceScalingInitializer, ZerosInitializer} from './initializers';
-export {MatrixOrientation, NDArrayMath} from './math/math';
+export {LSTMCell, MatrixOrientation, NDArrayMath} from './math/math';
 export {NDArrayMathCPU} from './math/math_cpu';
 export {NDArrayMathGPU} from './math/math_gpu';
 // TODO(nsthorat): Remove this once we decouple NDArray from storage mechanism.
