@@ -18,6 +18,9 @@
 import {ENV} from '../environment';
 import * as util from '../util';
 import {ArrayData, TypedArray} from '../util';
+
+import {RandNormalDataTypes} from './rand';
+import {MPRandGauss} from './rand';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import {TextureType} from './webgl/tex_util';
 import {TextureManager} from './webgl/texture_manager';
@@ -454,28 +457,45 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
         util.arraysEqual(this.getValues(), t.getValues());
   }
 
-  static rand(shape: number[], randFunction: () => number): NDArray<'float32'> {
+  static rand<T extends keyof DataTypes>(
+      shape: number[], randFunction: () => number, dtype?: T): NDArray<T> {
     const size = util.sizeFromShape(shape);
-    const values = new Float32Array(size);
+
+    let values = null;
+    if (dtype == null || dtype === 'float32') {
+      values = new Float32Array(size);
+    } else if (dtype === 'int32') {
+      values = new Int32Array(size);
+    } else if (dtype === 'bool') {
+      values = new Uint8Array(size);
+    } else {
+      throw new Error(`Unknown data type ${dtype}`);
+    }
+
     for (let i = 0; i < size; i++) {
       values[i] = randFunction();
     }
-
-    return NDArray.make(shape, {values});
+    return NDArray.make(shape, {values}, dtype);
   }
 
-  static randNormal(shape: number[], mean = 0, stdDev = 1): NDArray<'float32'> {
-    return NDArray.rand(shape, () => util.randGauss(mean, stdDev));
+  static randNormal<T extends keyof RandNormalDataTypes>(
+      shape: number[], mean = 0, stdDev = 1, dtype?: T): NDArray<T> {
+    if (dtype != null && dtype === 'bool') {
+      throw new Error(`Unsupported data type ${dtype}`);
+    }
+    const randGauss = new MPRandGauss(mean, stdDev, dtype);
+    return NDArray.rand(shape, () => randGauss.nextValue(), dtype);
   }
 
+  // TODO(kreeger): Write tests and convert type here.
   static randTruncatedNormal(shape: number[], mean = 0, stdDev = 1):
       NDArray<'float32'> {
     return NDArray.rand(shape, () => util.randGauss(mean, stdDev, true));
   }
 
-  static randUniform(shape: number[], a: number, b: number):
-      NDArray<'float32'> {
-    return NDArray.rand(shape, () => util.randUniform(a, b));
+  static randUniform<T extends keyof DataTypes>(
+      shape: number[], a: number, b: number, dtype?: T): NDArray<T> {
+    return NDArray.rand(shape, () => util.randUniform(a, b), dtype);
   }
 }
 
@@ -586,21 +606,27 @@ export class Array1D<T extends keyof DataTypes = keyof DataTypes> extends
     return NDArray.zeros(shape, dtype) as Array1D<T>;
   }
 
-  static randNormal(shape: [number], mean = 0, stdDev = 1): Array1D<'float32'> {
-    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as
-        Array1D<'float32'>;
+  static randNormal<T extends keyof RandNormalDataTypes>(
+      shape: [number], mean = 0, stdDev = 1, dtype?: T): Array1D<T> {
+    if (dtype != null && dtype === 'bool') {
+      throw new Error(`Unsupported data type ${dtype}`);
+    }
+    const randGauss = new MPRandGauss(mean, stdDev, dtype);
+    return NDArray.rand(shape, () => randGauss.nextValue(), dtype) as
+        Array1D<T>;
   }
 
+  // TODO(kreeger): Convert to type and write unit tests.
   static randTruncatedNormal(shape: [number], mean = 0, stdDev = 1):
       Array1D<'float32'> {
     return NDArray.rand(shape, () => util.randGauss(mean, stdDev, true)) as
         Array1D<'float32'>;
   }
 
-  static randUniform(shape: [number], a: number, b: number):
-      Array1D<'float32'> {
-    return NDArray.rand(shape, () => util.randUniform(a, b)) as
-        Array1D<'float32'>;
+  static randUniform<T extends keyof DataTypes>(
+      shape: [number], a: number, b: number, dtype?: T): Array1D<T> {
+    return NDArray.rand(shape, () => util.randUniform(a, b), dtype) as
+        Array1D<T>;
   }
 }
 
@@ -667,22 +693,27 @@ export class Array2D<T extends keyof DataTypes = keyof DataTypes> extends
     return NDArray.zeros(shape, dtype) as Array2D<T>;
   }
 
-  static randNormal(shape: [number, number], mean = 0, stdDev = 1):
-      Array2D<'float32'> {
-    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as
-        Array2D<'float32'>;
+  static randNormal<T extends keyof RandNormalDataTypes>(
+      shape: [number, number], mean = 0, stdDev = 1, dtype?: T): Array2D<T> {
+    if (dtype != null && dtype === 'bool') {
+      throw new Error(`Unsupported data type ${dtype}`);
+    }
+    const randGauss = new MPRandGauss(mean, stdDev, dtype);
+    return NDArray.rand(shape, () => randGauss.nextValue(), dtype) as
+        Array2D<T>;
   }
 
+  // TODO(kreeger): Convert to type and write unit tests.
   static randTruncatedNormal(shape: [number, number], mean = 0, stdDev = 1):
       Array2D<'float32'> {
     return NDArray.rand(shape, () => util.randGauss(mean, stdDev, true)) as
         Array2D<'float32'>;
   }
 
-  static randUniform(shape: [number, number], a: number, b: number):
-      Array2D<'float32'> {
-    return NDArray.rand(shape, () => util.randUniform(a, b)) as
-        Array2D<'float32'>;
+  static randUniform<T extends keyof DataTypes>(
+      shape: [number, number], a: number, b: number, dtype?: T): Array2D<T> {
+    return NDArray.rand(shape, () => util.randUniform(a, b), dtype) as
+        Array2D<T>;
   }
 }
 
@@ -752,12 +783,18 @@ export class Array3D<T extends keyof DataTypes = keyof DataTypes> extends
     return NDArray.zeros(shape, dtype) as Array3D<T>;
   }
 
-  static randNormal(shape: [number, number, number], mean = 0, stdDev = 1):
-      Array3D<'float32'> {
-    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as
-        Array3D<'float32'>;
+  static randNormal<T extends keyof RandNormalDataTypes>(
+      shape: [number, number, number], mean = 0, stdDev = 1,
+      dtype?: T): Array3D<T> {
+    if (dtype != null && dtype === 'bool') {
+      throw new Error(`Unsupported data type ${dtype}`);
+    }
+    const randGauss = new MPRandGauss(mean, stdDev, dtype);
+    return NDArray.rand(shape, () => randGauss.nextValue(), dtype) as
+        Array3D<T>;
   }
 
+  // TODO(kreeger): Convert to type and write unit tests.
   static randTruncatedNormal(
       shape: [number, number, number], mean = 0,
       stdDev = 1): Array3D<'float32'> {
@@ -765,10 +802,11 @@ export class Array3D<T extends keyof DataTypes = keyof DataTypes> extends
         Array3D<'float32'>;
   }
 
-  static randUniform(shape: [number, number, number], a: number, b: number):
-      Array3D<'float32'> {
-    return NDArray.rand(shape, () => util.randUniform(a, b)) as
-        Array3D<'float32'>;
+  static randUniform<T extends keyof DataTypes>(
+      shape: [number, number, number], a: number, b: number,
+      dtype?: T): Array3D<T> {
+    return NDArray.rand(shape, () => util.randUniform(a, b), dtype) as
+        Array3D<T>;
   }
 }
 
@@ -847,13 +885,18 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
     return NDArray.zeros(shape, dtype) as Array4D<T>;
   }
 
-  static randNormal(
-      shape: [number, number, number, number], mean = 0,
-      stdDev = 1): Array4D<'float32'> {
-    return NDArray.rand(shape, () => util.randGauss(mean, stdDev)) as
-        Array4D<'float32'>;
+  static randNormal<T extends keyof RandNormalDataTypes>(
+      shape: [number, number, number, number], mean = 0, stdDev = 1,
+      dtype?: T): Array4D<T> {
+    if (dtype != null && dtype === 'bool') {
+      throw new Error(`Unsupported data type ${dtype}`);
+    }
+    const randGauss = new MPRandGauss(mean, stdDev, dtype);
+    return NDArray.rand(shape, () => randGauss.nextValue(), dtype) as
+        Array4D<T>;
   }
 
+  // TODO(kreeger): Convert to type and write unit tests.
   static randTruncatedNormal(
       shape: [number, number, number, number], mean = 0,
       stdDev = 1): Array4D<'float32'> {
@@ -861,16 +904,16 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
         Array4D<'float32'>;
   }
 
-  static randUniform(
-      shape: [number, number, number, number], a: number,
-      b: number): Array4D<'float32'> {
-    return NDArray.rand(shape, () => util.randUniform(a, b)) as
-        Array4D<'float32'>;
+  static randUniform<T extends keyof DataTypes>(
+      shape: [number, number, number, number], a: number, b: number,
+      dtype?: T): Array4D<T> {
+    return NDArray.rand(shape, () => util.randUniform(a, b), dtype) as
+        Array4D<T>;
   }
 }
 
 function copyTypedArray<T extends keyof DataTypes>(
-    array: DataTypes[T] | number[] | boolean[], dtype: T): DataTypes[T] {
+    array: DataTypes[T]|number[]|boolean[], dtype: T): DataTypes[T] {
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {
