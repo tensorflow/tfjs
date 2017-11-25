@@ -868,3 +868,32 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
   ]);
 }
+
+// math.selu
+{
+  const tests: MathTests = it => {
+    it('calculate selu', math => {
+      const a = Array1D.new([1, -1, 0]);
+      const result = math.selu(a);
+
+      expect(result.shape).toEqual(a.shape);
+      test_util.expectArraysClose(
+          result.dataSync(), new Float32Array([1.0507, -1.1113, 0]));
+    });
+
+    it('selu propagates NaN', math => {
+      const a = Array1D.new([1, NaN]);
+      const result = math.selu(a);
+      expect(result.shape).toEqual(a.shape);
+      test_util.expectArraysClose(
+          result.dataSync(), new Float32Array([1.0507, NaN]));
+    });
+
+  };
+  test_util.describeMathCPU('selu', [tests]);
+  test_util.describeMathGPU('selu', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
