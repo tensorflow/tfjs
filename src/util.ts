@@ -1,3 +1,5 @@
+import {DataTypes} from './math/ndarray';
+
 /**
  * @license
  * Copyright 2017 Google Inc. All Rights Reserved.
@@ -324,4 +326,19 @@ export function squeezeShape(shape: number[]):
     }
   }
   return {newShape, keptDims};
+}
+
+export function getTypedArrayFromDType<D extends keyof DataTypes>(
+    dtype: D, size: number): DataTypes[D] {
+  let values = null;
+  if (dtype == null || dtype === 'float32') {
+    values = new Float32Array(size);
+  } else if (dtype === 'int32') {
+    values = new Int32Array(size);
+  } else if (dtype === 'bool') {
+    values = new Uint8Array(size);
+  } else {
+    throw new Error(`Unknown data type ${dtype}`);
+  }
+  return values;
 }

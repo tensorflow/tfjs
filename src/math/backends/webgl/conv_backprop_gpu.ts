@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Conv2DInfo} from '../conv_util';
+import {Conv2DInfo} from '../../conv_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Conv2DDerFilterProgram implements GPGPUProgram {

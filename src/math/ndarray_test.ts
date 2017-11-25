@@ -21,9 +21,9 @@ import * as util from '../util';
 import * as ndarray from './ndarray';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DType, NDArray, Scalar} from './ndarray';
-import {GPGPUContext} from './webgl/gpgpu_context';
-import * as gpgpu_util from './webgl/gpgpu_util';
-import {TextureManager} from './webgl/texture_manager';
+import {GPGPUContext} from './backends/webgl/gpgpu_context';
+import * as gpgpu_util from './backends/webgl/gpgpu_util';
+import {TextureManager} from './backends/webgl/texture_manager';
 
 const FEATURES = [
   {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},

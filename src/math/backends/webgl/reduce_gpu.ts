@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ReduceInfo} from '../reduce_util';
+import {ReduceInfo} from '../../reduce_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class ReduceProgram implements GPGPUProgram {

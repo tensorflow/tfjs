@@ -19,12 +19,12 @@ import {ENV} from '../environment';
 import * as util from '../util';
 import {ArrayData, TypedArray} from '../util';
 
+import {GPGPUContext} from './backends/webgl/gpgpu_context';
+import {TextureType} from './backends/webgl/tex_util';
+import {TextureManager} from './backends/webgl/texture_manager';
+import * as webgl_util from './backends/webgl/webgl_util';
 import {RandNormalDataTypes} from './rand';
 import {MPRandGauss} from './rand';
-import {GPGPUContext} from './webgl/gpgpu_context';
-import {TextureType} from './webgl/tex_util';
-import {TextureManager} from './webgl/texture_manager';
-import * as webgl_util from './webgl/webgl_util';
 
 // These global variables need to be initialized to null so that closure knows
 // not to seal them.
@@ -913,7 +913,7 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
 }
 
 function copyTypedArray<T extends keyof DataTypes>(
-    array: DataTypes[T]|number[]|boolean[], dtype: T): DataTypes[T] {
+    array: DataTypes[T] | number[] | boolean[], dtype: T): DataTypes[T] {
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {

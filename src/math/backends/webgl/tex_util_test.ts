@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as test_util from '../../test_util';
+import * as test_util from '../../../test_util';
 import * as tex_util from './tex_util';
 
 describe('tex_util getUnpackedMatrixTextureShapeWidthHeight', () => {

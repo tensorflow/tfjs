@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import {NDArrayMathCPU} from '../math/backends/backend_cpu';
+import {NDArrayMathGPU} from '../math/backends/backend_webgl';
 import * as test_util from '../test_util';
+
 import {NDArrayMath} from './math';
-import {NDArrayMathCPU} from './math_cpu';
-import {NDArrayMathGPU} from './math_gpu';
 import {Array1D} from './ndarray';
 
 function executeTests(mathFactory: () => NDArrayMath) {

@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../math/math_cpu';
-import {NDArrayMathGPU} from '../math/math_gpu';
+import {NDArrayMathCPU} from '../math/backends/backend_cpu';
+import {NDArrayMathGPU} from '../math/backends/backend_webgl';
 import {Array1D, Scalar} from '../math/ndarray';
 
 import {InCPUMemoryShuffledInputProviderBuilder} from './input_provider';

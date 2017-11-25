@@ -14,10 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as test_util from '../../test_util';
-
-import {NDArrayMathCPU} from '../../math/math_cpu';
+import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
 import {Array1D, Scalar} from '../../math/ndarray';
+import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
@@ -80,17 +79,11 @@ describe('divide operation', () => {
 
     const dx2 = gradients.get(x2Tensor);
     test_util.expectNumbersClose(
-      dx2.get(0),
-      -1 * x1.get(0) * dy.get(0) * Math.pow(x2.get(0), -2)
-    );
+        dx2.get(0), -1 * x1.get(0) * dy.get(0) * Math.pow(x2.get(0), -2));
     test_util.expectNumbersClose(
-      dx2.get(1),
-      -1 * x1.get(1) * dy.get(1) * Math.pow(x2.get(1), -2)
-    );
+        dx2.get(1), -1 * x1.get(1) * dy.get(1) * Math.pow(x2.get(1), -2));
     test_util.expectNumbersClose(
-      dx2.get(2),
-      -1 * x1.get(2) * dy.get(2) * Math.pow(x2.get(2), -2)
-    );
+        dx2.get(2), -1 * x1.get(2) * dy.get(2) * Math.pow(x2.get(2), -2));
   });
 
   it('scalar divided by ndarray', () => {
@@ -119,23 +112,16 @@ describe('divide operation', () => {
 
     const dx1 = gradients.get(x1Tensor).asScalar();
     test_util.expectNumbersClose(
-      dx1.get(),
-      dy.get(0) / x2.get(0) + dy.get(1) / x2.get(1) + dy.get(2) / x2.get(2)
-    );
+        dx1.get(),
+        dy.get(0) / x2.get(0) + dy.get(1) / x2.get(1) + dy.get(2) / x2.get(2));
 
     const dx2 = gradients.get(x2Tensor);
     test_util.expectNumbersClose(
-      dx2.get(0),
-      -1 * x1.get() * dy.get(0) * Math.pow(x2.get(0), -2)
-    );
+        dx2.get(0), -1 * x1.get() * dy.get(0) * Math.pow(x2.get(0), -2));
     test_util.expectNumbersClose(
-      dx2.get(1),
-      -1 * x1.get() * dy.get(1) * Math.pow(x2.get(1), -2)
-    );
+        dx2.get(1), -1 * x1.get() * dy.get(1) * Math.pow(x2.get(1), -2));
     test_util.expectNumbersClose(
-      dx2.get(2),
-      -1 * x1.get() * dy.get(2) * Math.pow(x2.get(2), -2)
-    );
+        dx2.get(2), -1 * x1.get() * dy.get(2) * Math.pow(x2.get(2), -2));
   });
 
   it('ndarray divided by scalar', () => {
@@ -169,10 +155,9 @@ describe('divide operation', () => {
 
     const dx2 = gradients.get(x2Tensor).asScalar();
     test_util.expectNumbersClose(
-      dx2.get(),
-      -1 * x1.get(0) * dy.get(0) * Math.pow(x2.get(), -2) +
-      -1 * x1.get(1) * dy.get(1) * Math.pow(x2.get(), -2) +
-      -1 * x1.get(2) * dy.get(2) * Math.pow(x2.get(), -2)
-    );
+        dx2.get(),
+        -1 * x1.get(0) * dy.get(0) * Math.pow(x2.get(), -2) +
+            -1 * x1.get(1) * dy.get(1) * Math.pow(x2.get(), -2) +
+            -1 * x1.get(2) * dy.get(2) * Math.pow(x2.get(), -2));
   });
 });

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as broadcast_util from '../broadcast_util';
+import * as broadcast_util from '../../broadcast_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class BatchNormProgram implements GPGPUProgram {

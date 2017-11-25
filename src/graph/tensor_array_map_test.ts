@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../math/math_cpu';
+import {NDArrayMathCPU} from '../math/backends/backend_cpu';
 import {Array1D, NDArray} from '../math/ndarray';
 
 import {Tensor} from './graph';
