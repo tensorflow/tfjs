@@ -17,9 +17,9 @@
 
 import * as environment from './environment';
 import {Environment, Features} from './environment';
+import {NDArrayMathCPU} from './math/backends/backend_cpu';
+import {NDArrayMathGPU} from './math/backends/backend_webgl';
 import {NDArrayMath} from './math/math';
-import {NDArrayMathCPU} from './math/math_cpu';
-import {NDArrayMathGPU} from './math/math_gpu';
 import * as util from './util';
 import {DType, TypedArray} from './util';
 
@@ -201,7 +201,7 @@ export type Tests = (it: (name: string, testFn: () => void) => void) => void;
 
 export function describeMathCPU(
     name: string, tests: MathTests[], featuresList?: Features[]) {
-  const testNameBase = 'math_cpu.' + name;
+  const testNameBase = 'CPU: math.' + name;
   describeWithFeaturesAndExecutor(
       testNameBase, tests as Tests[],
       (testName, tests, features) => executeMathTests(
@@ -211,7 +211,7 @@ export function describeMathCPU(
 
 export function describeMathGPU(
     name: string, tests: MathTests[], featuresList?: Features[]) {
-  const testNameBase = 'math_gpu.' + name;
+  const testNameBase = 'WebGL: math.' + name;
   describeWithFeaturesAndExecutor(
       testNameBase, tests as Tests[],
       (testName, tests, features) => executeMathTests(

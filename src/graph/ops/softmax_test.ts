@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import * as test_util from '../../test_util';
-import {NDArrayMathCPU} from '../../math/math_cpu';
+import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
 import {Array1D, Scalar} from '../../math/ndarray';
+import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
@@ -64,11 +64,10 @@ describe('softmax cross entropy cost', () => {
     const y = activations.get(yTensor);
 
     test_util.expectNumbersClose(
-      y.get(0),
-      -Math.log(softmaxLogits.get(0)) * label.get(0) +
-      -Math.log(softmaxLogits.get(1)) * label.get(1) +
-      -Math.log(softmaxLogits.get(2)) * label.get(2)
-    );
+        y.get(0),
+        -Math.log(softmaxLogits.get(0)) * label.get(0) +
+            -Math.log(softmaxLogits.get(1)) * label.get(1) +
+            -Math.log(softmaxLogits.get(2)) * label.get(2));
 
     const dy = Scalar.new(1);
     gradients.add(yTensor, dy);
@@ -77,16 +76,10 @@ describe('softmax cross entropy cost', () => {
 
     const dLogits = gradients.get(logitsTensor);
     test_util.expectNumbersClose(
-      dLogits.get(0),
-      softmaxLogits.get(0) - label.get(0)
-    );
+        dLogits.get(0), softmaxLogits.get(0) - label.get(0));
     test_util.expectNumbersClose(
-      dLogits.get(1),
-      softmaxLogits.get(1) - label.get(1)
-    );
+        dLogits.get(1), softmaxLogits.get(1) - label.get(1));
     test_util.expectNumbersClose(
-      dLogits.get(2),
-      softmaxLogits.get(2) - label.get(2)
-    );
+        dLogits.get(2), softmaxLogits.get(2) - label.get(2));
   });
 });

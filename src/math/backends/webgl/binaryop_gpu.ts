@@ -15,25 +15,37 @@
  * =============================================================================
  */
 
-import * as broadcast_util from '../broadcast_util';
+import * as broadcast_util from '../../broadcast_util';
 import {GPGPUProgram} from './gpgpu_math';
 
-export class AddScaledMatProgram implements GPGPUProgram {
-  variableNames = ['A', 'B', 'c1', 'c2'];
+export const ADD = 'return a + b;';
+export const SUB = 'return a - b;';
+export const MUL = 'return a * b;';
+export const DIV = 'return a / b;';
+export const EQUAL = `
+  if (isNaN(a)) return a;
+  if (isNaN(b)) return b;
+  return float(a == b);
+`;
+
+export class BinaryOpProgram implements GPGPUProgram {
+  variableNames = ['A', 'B'];
   outputShape: number[];
   userCode: string;
   supportsBroadcasting = true;
 
-  constructor(aShape: number[], bShape: number[]) {
+  constructor(op: string, aShape: number[], bShape: number[]) {
     this.outputShape =
         broadcast_util.assertAndGetBroadcastShape(aShape, bShape);
     this.userCode = `
+      float binaryOperation(float a, float b) {
+        ${op}
+      }
+
       void main() {
         float a = getAAtOutCoords();
         float b = getBAtOutCoords();
-        float c1 = getC1();
-        float c2 = getC2();
-        setOutput(dot(vec2(c1, c2), vec2(a, b)));
+        setOutput(binaryOperation(a, b));
       }
     `;
   }

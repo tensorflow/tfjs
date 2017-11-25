@@ -14,14 +14,14 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as test_util from '../../test_util';
-import {NDArrayMathCPU} from '../../math/math_cpu';
+import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
 import {Array1D, Array2D} from '../../math/ndarray';
+import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
 // tslint:disable-next-line:max-line-length
-import {ReLU, Sigmoid, Square, TanH, LeakyReLU, Elu} from './element_wise_activation';
+import {Elu, LeakyReLU, ReLU, Sigmoid, Square, TanH} from './element_wise_activation';
 
 describe('Element wise activation', () => {
   let math: NDArrayMathCPU;
@@ -142,14 +142,10 @@ describe('Element wise activation', () => {
 
     const dx = gradients.get(xTensor);
     test_util.expectNumbersClose(
-      dx.get(0),
-      2 * 0.9525741268 * (1 - 0.9525741268)
-    );
+        dx.get(0), 2 * 0.9525741268 * (1 - 0.9525741268));
     test_util.expectNumbersClose(dx.get(1), 4 * 0.5 * 0.5);
     test_util.expectNumbersClose(
-      dx.get(2),
-      3 * 0.0474258731 * (1 - 0.0474258731)
-    );
+        dx.get(2), 3 * 0.0474258731 * (1 - 0.0474258731));
   });
 
   it('Square', () => {

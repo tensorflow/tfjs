@@ -17,8 +17,8 @@
 
 let MAX_TEXTURE_SIZE: number = null;
 
-import * as util from '../../util';
-import {ENV} from '../../environment';
+import * as util from '../../../util';
+import {ENV} from '../../../environment';
 
 export interface WebGLContextAttributes {
   alpha?: boolean;

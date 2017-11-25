@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {InputProvider} from '../data/input_provider';
-import {NDArrayMathCPU} from '../math/math_cpu';
+import {NDArrayMathCPU} from '../math/backends/backend_cpu';
 import {NDArray} from '../math/ndarray';
 // tslint:disable-next-line:max-line-length
 import {ConstantNode, Graph, Node, PlaceholderNode, Tensor, VariableNode} from './graph';

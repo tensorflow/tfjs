@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
-import * as util from '../../util';
+import {ENV} from '../../../environment';
+import * as util from '../../../util';
 
 import * as gpgpu_util from './gpgpu_util';
 import * as tex_util from './tex_util';

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as concat_util from '../concat_util';
+import * as concat_util from '../../concat_util';
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 

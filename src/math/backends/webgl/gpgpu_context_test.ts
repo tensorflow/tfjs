@@ -14,10 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as test_util from '../../test_util';
-
-import * as environment from '../../environment';
-import {Environment, Features} from '../../environment';
+import * as environment from '../../../environment';
+import {Environment, Features} from '../../../environment';
+import * as test_util from '../../../test_util';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as tex_util from './tex_util';

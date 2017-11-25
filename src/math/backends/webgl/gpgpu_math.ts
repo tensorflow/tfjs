@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
-import * as util from '../../util';
-import {NDArray} from '../ndarray';
+import {ENV} from '../../../environment';
+import * as util from '../../../util';
+import {NDArray} from '../../ndarray';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';

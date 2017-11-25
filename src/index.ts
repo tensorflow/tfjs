@@ -17,10 +17,11 @@
 
 import * as xhr_dataset from './data/xhr-dataset';
 import * as environment from './environment';
+import * as gpgpu_util from './math/backends/webgl/gpgpu_util';
+// tslint:disable-next-line:max-line-length
+import * as render_ndarray_gpu_util from './math/backends/webgl/render_ndarray_gpu_util';
+import * as webgl_util from './math/backends/webgl/webgl_util';
 import * as conv_util from './math/conv_util';
-import * as gpgpu_util from './math/webgl/gpgpu_util';
-import * as render_ndarray_gpu_util from './math/webgl/render_ndarray_gpu_util';
-import * as webgl_util from './math/webgl/webgl_util';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
@@ -45,14 +46,16 @@ export {CostReduction, FeedEntry, Session} from './graph/session';
 export {GraphRunner, GraphRunnerEventObserver, MetricReduction} from './graph_runner';
 // tslint:disable-next-line:max-line-length
 export {ConstantInitializer, Initializer, NDArrayInitializer, OnesInitializer, RandomNormalInitializer, RandomTruncatedNormalInitializer, RandomUniformInitializer, VarianceScalingInitializer, ZerosInitializer} from './initializers';
-export {LSTMCell, MatrixOrientation, NDArrayMath} from './math/math';
-export {NDArrayMathCPU} from './math/math_cpu';
-export {NDArrayMathGPU} from './math/math_gpu';
+export {MatrixOrientation} from './math/backends/backend';
+export {NDArrayMathCPU} from './math/backends/backend_cpu';
+export {NDArrayMathGPU} from './math/backends/backend_webgl';
+export {GPGPUContext} from './math/backends/webgl/gpgpu_context';
+// tslint:disable-next-line:max-line-length
+export {LSTMCell, NDArrayMath} from './math/math';
 // TODO(nsthorat): Remove this once we decouple NDArray from storage mechanism.
 export {initializeGPU} from './math/ndarray';
 // tslint:disable-next-line:max-line-length
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './math/ndarray';
-export {GPGPUContext} from './math/webgl/gpgpu_context';
 export {Model} from './model';
 export {version};
 // Second level exports.

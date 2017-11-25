@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
+import {ENV} from '../../../environment';
 
 import * as tex_util from './tex_util';
 import * as webgl_util from './webgl_util';

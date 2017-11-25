@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import * as test_util from '../../test_util';
-import {NDArrayMathCPU} from '../../math/math_cpu';
+import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
 import {Array1D} from '../../math/ndarray';
+import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 

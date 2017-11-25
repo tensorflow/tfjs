@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {MatrixOrientation} from '../math';
+import {MatrixOrientation} from '../backend';
 
 import {GPGPUContext} from './gpgpu_context';
 import * as webgl_util from './webgl_util';
