@@ -1245,6 +1245,15 @@ export abstract class NDArrayMath {
   protected abstract eluDerInternal<T extends NDArray>(ndarray: T): T;
 
   /**
+   * Computes scaled exponential linear element-wise.
+   * @hidden
+   */
+  selu<T extends NDArray>(ndarray: T): T {
+    return this.executeOp('selu', () => this.seluInternal(ndarray));
+  }
+  protected abstract seluInternal<T extends NDArray>(ndarray: T): T;
+
+  /**
    * Computes leaky rectified linear element-wise
    * @param {T} ndarray the input NDArray
    * @param alpha scaleing factor for negative values, defaults to 0.2

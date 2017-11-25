@@ -61,6 +61,14 @@ export const ELU_DER = `
   return (x >= 0.0) ? 1.0 : exp(x);
 `;
 
+export const SELU = `
+  // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
+  // see: https://arxiv.org/abs/1706.02515
+  float scaleAlpha = 1.7580993408473768599402175208123;
+  float scale = 1.0507009873554804934193349852946;
+  return (x >= 0.0) ? scale * x : scaleAlpha * (exp(x) - 1.0);
+`;
+
 export function LEAKY_RELU(alpha: number) {
   return `
     return (x >= 0.0) ? x : ${alpha} * x;
