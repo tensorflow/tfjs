@@ -33,7 +33,7 @@ export function getRunGroups(): BenchmarkRunGroup[] {
   const groups: BenchmarkRunGroup[] = [];
 
   groups.push({
-    name: 'Batch Normalization 3D: input [size, size, size]',
+    name: 'Batch Normalization 3D: input [size, size, 8]',
     min: 0,
     max: 512,
     stepSize: 64,

@@ -16,9 +16,10 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, conv_util, ENV, NDArray, NDArrayMathGPU} from 'deeplearn';
+import {Array1D, Array3D, Array4D, conv_util, NDArray, NDArrayMathGPU} from 'deeplearn';
 
 import {BenchmarkTest} from './benchmark';
+import * as benchmark_util from './benchmark_util';
 
 export interface ConvParams {
   inDepth: number;
@@ -34,7 +35,6 @@ export interface DepthwiseConvParams extends ConvParams { channelMul: number; }
 export class ConvGPUBenchmark implements BenchmarkTest {
   async run(size: number, opType: string, params: ConvParams): Promise<number> {
     const math = new NDArrayMathGPU();
-    const gpgpu = math.getGPGPUContext();
 
     const inDepth = params.inDepth;
     const inShape: [number, number, number] = [size, size, inDepth];
@@ -44,10 +44,9 @@ export class ConvGPUBenchmark implements BenchmarkTest {
 
     let x = Array3D.randUniform(inShape, -1, 1);
     let W: Array4D;
-    let out: NDArray;
     let b: Array1D;
 
-    let benchmark: () => void;
+    let benchmark: () => NDArray;
     if (opType === 'regular') {
       const regParams = params as RegularConvParams;
       const wShape = conv_util.computeWeightsShape4D(
@@ -55,9 +54,7 @@ export class ConvGPUBenchmark implements BenchmarkTest {
       W = Array4D.randUniform(wShape, -1, 1);
       b = Array1D.randUniform([regParams.outDepth], -1, 1);
 
-      benchmark = () => {
-        out = math.conv2d(x, W, b, stride, pad);
-      };
+      benchmark = () => math.conv2d(x, W, b, stride, pad);
     } else if (opType === 'transposed') {
       const regParams = params as RegularConvParams;
       const wShape = conv_util.computeWeightsShape4D(
@@ -65,48 +62,27 @@ export class ConvGPUBenchmark implements BenchmarkTest {
       W = Array4D.randUniform(wShape, -1, 1);
       x = Array3D.randUniform([size, size, regParams.outDepth], -1, 1);
 
-      benchmark = () => {
-        out = math.conv2dTranspose(x, W, [size, size, inDepth], stride, pad);
-      };
+      benchmark = () =>
+          math.conv2dTranspose(x, W, [size, size, inDepth], stride, pad);
     } else if (opType === 'depthwise') {
       const depthwiseParams = params as DepthwiseConvParams;
       const wShape = conv_util.computeWeightsShape4D(
           inDepth, depthwiseParams.channelMul, filterSize, filterSize);
       W = Array4D.randUniform(wShape, -1, 1);
 
-      benchmark = () => {
-        out = math.depthwiseConv2D(x, W, stride, pad);
-      };
+      benchmark = () => math.depthwiseConv2D(x, W, stride, pad);
     } else {
       throw new Error(`Unknown option ${opType}`);
     }
 
-    const cleanup = () => {
-      x.dispose();
-      W.dispose();
-      if (b != null) {
-        b.dispose();
-      }
-      out.dispose();
-    };
+    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
 
-    // Warmup.
-    await gpgpu.runQuery(benchmark);
-    out.dispose();
-
-    let totalTime: number;
-
-    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-      totalTime = await gpgpu.runQuery(benchmark);
-    } else {
-      const start = performance.now();
-
-      benchmark();
-      out.dataSync();
-
-      totalTime = performance.now() - start;
+    x.dispose();
+    W.dispose();
+    if (b != null) {
+      b.dispose();
     }
-    cleanup();
-    return totalTime;
+
+    return time;
   }
 }

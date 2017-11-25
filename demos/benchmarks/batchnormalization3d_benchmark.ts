@@ -15,19 +15,22 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, ENV, NDArray, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array1D, Array3D, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
 
-import {BenchmarkTest} from './benchmark';
+import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
+import * as benchmark_util from './benchmark_util';
 
 export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
+  lastRunTimeMs: number;
+
   async run(size: number): Promise<number> {
-    if (size > 256) {
+    if (this.lastRunTimeMs > LAST_RUN_CPU_CUTOFF_MS) {
       return new Promise<number>((resolve, reject) => {
         resolve(-1);
       });
     }
     const math = new NDArrayMathCPU();
-    const x = Array3D.randUniform([size, size, size], -1, 1);
+    const x = Array3D.randUniform([size, size, 8], -1, 1);
     const mean = Array1D.new([0]);
     const variance = Array1D.new([1]);
     const varianceEpsilon = .001;
@@ -38,54 +41,29 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
 
     const end = performance.now();
 
-    return new Promise<number>((resolve, reject) => {
-      resolve(end - start);
-    });
+    this.lastRunTimeMs = end - start;
+    return this.lastRunTimeMs;
   }
 }
 
 export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
   async run(size: number) {
     const math = new NDArrayMathGPU();
-    const x = Array3D.randUniform([size, size, size], -1, 1);
+    const x = Array3D.randUniform([size, size, 8], -1, 1);
     const mean = Array1D.new([0]);
     const variance = Array1D.new([1]);
     const varianceEpsilon = .001;
 
-    let output: NDArray;
-    const benchmark = () => {
-      math.scope(() => {
-        output = math.batchNormalization3D(
-            x, mean, variance, varianceEpsilon, undefined, undefined);
-      });
-    };
+    const benchmark = () => math.batchNormalization3D(
+        x, mean, variance, varianceEpsilon, undefined, undefined);
 
-    const cleanup = () => {
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      math.dispose();
-    };
+    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
 
-    // Warmup.
-    await math.getGPGPUContext().runQuery(benchmark);
+    x.dispose();
+    mean.dispose();
+    variance.dispose();
+    math.dispose();
 
-    let totalTime: number;
-    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-      totalTime = await math.getGPGPUContext().runQuery(benchmark);
-    } else {
-      const start = performance.now();
-
-      benchmark();
-      output.dataSync();
-
-      totalTime = performance.now() - start;
-
-      cleanup();
-    }
-
-    cleanup();
-
-    return totalTime;
+    return time;
   }
 }

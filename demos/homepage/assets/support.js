@@ -52,6 +52,7 @@ function isWebGLEnabled() {
 
 function isNotSupported() {
   if (location.pathname.startsWith('/demos/playground/') ||
+      location.pathname.startsWith('/demos/benchmarks/') ||
       location.pathname.startsWith('/demos/teachable_gaming/')) {
     return false;
   }

@@ -24,14 +24,14 @@ limitations under the License.
     margin: 12px 0;
   }
   .run-test .run-stop, .run-group-name {
-    display: table-cell;
+    display: inline-block;
     margin-right: 10px;
   }
   .run-plot {
     display: none;
   }
   .run-numbers-table, .run-plot-container {
-    display: table-cell;
+    display: inline-block;
     vertical-align: middle;
   }
   .run-numbers-row {
@@ -74,6 +74,7 @@ limitations under the License.
     font-size: 10px;
   }
 </style>
+
 <template>
 <div class="container">
   <div class="header">Benchmarks</div>
@@ -94,14 +95,14 @@ limitations under the License.
         </paper-dropdown-menu>
 
         <div class="run-header">
-          <button class="run-test">Run</button>
-          <button class="run-stop">Stop</button>
+          <button class="run-test mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Run</button>
+          <button class="run-stop mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">Stop</button>
         </div>
         <div class="run-body">
           <div class="run-message" style="display: none">Running, be patient...</div>
           <div class="run-numbers-table"></div>
           <div class="run-plot-container">
-            <canvas class="run-plot" width="400" height="300"></canvas>
+            <canvas class="run-plot" width="360" height="270"></canvas>
           </div>
         </div>
       </div>

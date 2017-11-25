@@ -16,8 +16,9 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array3D, conv_util, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array3D, conv_util, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
 import {BenchmarkTest} from './benchmark';
+import * as benchmark_util from './benchmark_util';
 
 const CPU_OP_RUNS = 1;
 
@@ -83,7 +84,6 @@ export class PoolGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string, params: PoolBenchmarkParams):
       Promise<number> {
     const math = new NDArrayMathGPU();
-    const gpgpu = math.getGPGPUContext();
 
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
@@ -92,35 +92,13 @@ export class PoolGPUBenchmark implements BenchmarkTest {
     const x = Array3D.randUniform(xShape, -1, 1);
     const op = getPoolingOp(option, math);
 
-    let out: NDArray;
-    const benchmark = () => {
-      out = op(x, fieldSize, stride, 'same');
-    };
+    const benchmark = () => op(x, fieldSize, stride, 'same');
 
-    const cleanup = () => {
-      x.dispose();
-      out.dispose();
-      gpgpu.dispose();
-    };
+    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
 
-    // Warmup.
-    await gpgpu.runQuery(benchmark);
-    out.dispose();
+    x.dispose();
+    math.dispose();
 
-    let totalTime: number;
-    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-      totalTime = await gpgpu.runQuery(benchmark);
-    } else {
-      const start = performance.now();
-
-      benchmark();
-      out.dataSync();
-
-      totalTime = performance.now() - start;
-    }
-
-    cleanup();
-
-    return totalTime;
+    return time;
   }
 }

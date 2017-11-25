@@ -15,6 +15,9 @@
  * =============================================================================
  */
 
+// Maximum number of time before CPU tests don't execute during the next round.
+export const LAST_RUN_CPU_CUTOFF_MS = 5000;
+
 export interface BenchmarkRunGroup {
   name: string;
   // Min and max steps to run the benchmark test over.
