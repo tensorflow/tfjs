@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {DepthwiseConvInfo} from '../conv_util';
+import {Conv2DInfo} from '../conv_util';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class DepthwiseConv2DProgram implements GPGPUProgram {
@@ -23,17 +23,18 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(convInfo: DepthwiseConvInfo) {
+  constructor(convInfo: Conv2DInfo) {
     this.outputShape = convInfo.outShape;
-    const xNumRows = convInfo.inShape[1];
-    const xNumCols = convInfo.inShape[2];
+
+    const xNumRows = convInfo.inHeight;
+    const xNumCols = convInfo.inWidth;
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
-    const channelMul = convInfo.channelMul;
+    const channelMul = convInfo.outChannels / convInfo.inChannels;
 
     this.userCode = `
       const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});

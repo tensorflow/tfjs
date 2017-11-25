@@ -21,7 +21,7 @@ import * as axis_util from './axis_util';
 import * as broadcast_util from './broadcast_util';
 import * as concat_util from './concat_util';
 import * as conv_util from './conv_util';
-import {ConvInfo, DepthwiseConvInfo} from './conv_util';
+import {Conv2DInfo} from './conv_util';
 import * as copy2d_util from './copy2d_util';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from './ndarray';
@@ -1348,18 +1348,17 @@ export abstract class NDArrayMath {
   protected abstract tanhInternal<T extends NDArray>(ndarray: T): T;
 
   /**
-   * Computes step of the input NDArray element-wise, 
+   * Computes step of the input NDArray element-wise,
    * y=1 if x>0|alpha*x if x<=0.
    *
    * @param ndarray The input NDArray.
    * @param alpha The gradient when input is negative.
    */
   step<T extends NDArray>(ndarray: T, alpha = 0.0): T {
-    return this.executeOp('step', 
-      () => this.stepInternal(ndarray, alpha));
+    return this.executeOp('step', () => this.stepInternal(ndarray, alpha));
   }
-  protected abstract stepInternal<T extends NDArray>(ndarray: T, 
-    alpha: number): T;
+  protected abstract stepInternal<T extends NDArray>(ndarray: T, alpha: number):
+      T;
 
   /**
    * Computes a scaled array add operation, c1 * A + c2 * B.
@@ -1415,7 +1414,9 @@ export abstract class NDArrayMath {
 
   /**
    * Computes a 2D convolution over the input x.
-   * @param x The input image, rank 3, of shape [height, width, inDepth].
+   *
+   * @param input The input ndarray, of rank 4 or rank 3, of shape
+   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
    * @param filter The filter, rank 4, of shape
    *     [filterHeight, filterWidth, inDepth, outDepth].
    * @param bias Optional bias, rank 1 of shape [outDepth].
@@ -1428,12 +1429,18 @@ export abstract class NDArrayMath {
    *   - For more info, see this guide:
    *     https://www.tensorflow.org/api_guides/python/nn#Convolution
    */
-  conv2d(
-      x: Array3D, filter: Array4D, bias: Array1D|null,
-      strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
+  conv2d<T extends NDArray>(
+      input: T, filter: Array4D, bias: Array1D|null,
+      strides: [number, number]|number, pad: 'valid'|'same'|number): T {
+    let input4D = input as NDArray as Array4D;
+    let reshapedTo4D = false;
+    if (input.rank === 3) {
+      reshapedTo4D = true;
+      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+    }
     util.assert(
-        x.rank === 3,
-        `Error in conv2d: x must be rank 3, but got rank ${x.rank}.`);
+        input4D.rank === 4,
+        `Error in conv2d: input must be rank 4, but got rank ${input4D.rank}.`);
     util.assert(
         filter.rank === 4,
         `Error in conv2d: filter must be rank 4, but got rank ` +
@@ -1446,69 +1453,66 @@ export abstract class NDArrayMath {
     }
 
     util.assert(
-        x.shape[2] === filter.shape[2],
-        `Error in conv2d: depth of input (${x.shape[2]}) must match  ` +
+        input4D.shape[3] === filter.shape[2],
+        `Error in conv2d: depth of input (${input4D.shape[3]}) must match  ` +
             `input depth for filter ${filter.shape[2]}.`);
 
-    const filterHeight = filter.shape[0];
-    const filterWidth = filter.shape[1];
-    const outDepth = filter.shape[3];
-    const [strideHeight, strideWidth] = parseTupleParam(strides);
-    const convInfo = conv_util.computeConv2DInfo(
-        x.shape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
-        pad);
-    return this.executeOp(
-        'conv2d', () => this.conv2dInternal(x, filter, bias, convInfo));
+    const convInfo =
+        conv_util.computeConv2DInfo(input4D.shape, filter.shape, strides, pad);
+    return this.executeOp('conv2d', () => {
+      const res = this.conv2dInternal(input4D, filter, bias, convInfo);
+      if (reshapedTo4D) {
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
+            T;
+      }
+      return res as NDArray as T;
+    });
   }
   protected abstract conv2dInternal(
-      x: Array3D, filter: Array4D, bias: Array1D|null,
-      convInfo: ConvInfo): Array3D;
-
-  /**
-   * Computes the backprop of a 2D convolution.
-   * @param x The input image, rank 3, of shape [height, width, inDepth].
-   * @param dy The dy image, rank 3, of shape [height, width, outDepth].
-   * @param filter The filter, rank 4, of shape
-   *     [filterHeight, filterWidth, inDepth, outDepth].
-   * @param strides The strides of the convolution: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the forward prop of the op.
-   */
-  conv2dBackProp(
-      x: Array3D, dy: Array3D, filter: Array4D,
-      strides: [number, number]|number,
-      pad: 'valid'|'same'|number): {dx: Array3D, dw: Array4D, db: Array1D} {
-    const dw = this.conv2dDerFilter(x, dy, filter.shape, strides, pad);
-    const db = this.conv2dDerBias(dy);
-    const dx = this.conv2dDerInput(x.shape, dy, filter, strides, pad);
-    return {db, dw, dx};
-  }
+      x: Array4D, filter: Array4D, bias: Array1D|null,
+      convInfo: Conv2DInfo): Array4D;
 
   /**
    * Computes the derivative of the input of a 2D convolution.
    *
-   * @param inShape The shape of the input. Length 3 [height, width, inDepth].
-   * @param dy The derivative of the output. Rank 3
-   *     [outHeight, outWidth, outDepth].
+   * @param inShape The shape of the input: [batch, height, width, inDepth]. If
+   *     length of 3, batch of 1 is assumed.
+   * @param dy The derivative of the output, of rank 4 or rank 3 of shape
+   *   [batch, outHeight, outWidth, outDepth]. If rank 3, batch of 1 is assumed.
    * @param filter The filter, rank 4, of shape
    *     [filterHeight, filterWidth, inDepth, outDepth].
    * @param strides The strides of the convolution: [strideHeight, strideWidth].
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm
    *     used in the forward prop of the op.
    */
-  conv2dDerInput(
-      inShape: [number, number, number], dy: Array3D, filter: Array4D,
-      strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
-    const inDepth = inShape[2];
-    const outDepth = dy.shape[2];
+  conv2dDerInput<T extends NDArray>(
+      inShape: [number, number, number, number]|[number, number, number], dy: T,
+      filter: Array4D, strides: [number, number]|number,
+      pad: 'valid'|'same'|number): T {
     util.assert(
-        inShape.length === 3,
-        `Error in conv2dDerInput: x must be rank 3, but got rank ` +
-            `${inShape.length}.`);
+        inShape.length === dy.rank,
+        `Length of inShape ` +
+            `(${inShape.length}) and rank of dy (${dy.rank}) must match`);
+
+    let inShape4D = inShape as [number, number, number, number];
+    let dy4D = dy as NDArray as Array4D;
+    let reshapedTo4D = false;
+    if (dy.rank === 3) {
+      reshapedTo4D = true;
+      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+      inShape4D = [1, inShape[0], inShape[1], inShape[2]];
+    }
+
+    const inDepth = inShape4D[3];
+    const outDepth = dy4D.shape[3];
     util.assert(
-        dy.rank === 3,
-        `Error in conv2dDerInput: dy must be rank 3, but got ` +
-            `rank ${dy.rank}`);
+        inShape4D.length === 4,
+        `Error in conv2dDerInput: inShape must be length 4, but got length ` +
+            `${inShape4D.length}.`);
+    util.assert(
+        dy4D.rank === 4,
+        `Error in conv2dDerInput: dy must be rank 4, but got ` +
+            `rank ${dy4D.rank}`);
     util.assert(
         filter.rank === 4,
         `Error in conv2dDerInput: filter must be rank 4, but got ` +
@@ -1522,96 +1526,107 @@ export abstract class NDArrayMath {
         `Error in conv2dDerInput: depth of output (${outDepth}) must` +
             `match output depth for filter ${filter.shape[3]}.`);
 
-    const filterHeight = filter.shape[0];
-    const filterWidth = filter.shape[1];
-
-    const [strideHeight, strideWidth] = parseTupleParam(strides);
-
-    const convInfo = conv_util.computeConv2DInfo(
-        inShape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
-        pad);
-    return this.executeOp(
-        'conv2dDerInput',
-        () => this.conv2dDerInputInternal(dy, filter, convInfo));
+    const convInfo =
+        conv_util.computeConv2DInfo(inShape4D, filter.shape, strides, pad);
+    return this.executeOp('conv2dDerInput', () => {
+      const res = this.conv2dDerInputInternal(dy4D, filter, convInfo);
+      if (reshapedTo4D) {
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
+            T;
+      }
+      return res as NDArray as T;
+    });
   }
   protected abstract conv2dDerInputInternal(
-      dy: Array3D, filter: Array4D, convInfo: ConvInfo): Array3D;
+      dy: Array4D, filter: Array4D, convInfo: Conv2DInfo): Array4D;
 
   /**
    * Computes the derivative of the bias of a 2D convolution.
    *
-   * @param dy The gradient for the output of this op. Rank 3 of shape
-   *     [height, width, outDepth].
+   * @param dy The gradient for the output of this op, of rank 4 or rank 3 of
+   *   shape [batch, height, width, outDepth]. If rank 3, batch of 1 is assumed.
    */
-  conv2dDerBias(dy: Array3D): Array1D {
-    return this.track(this.conv2dDerBiasInternal(dy));
+  conv2dDerBias(dy: Array3D|Array4D): Array1D {
+    let dy4D = dy as Array4D;
+    if (dy.rank === 3) {
+      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+    }
+    return this.track(this.conv2dDerBiasInternal(dy4D));
   }
-  protected abstract conv2dDerBiasInternal(dY: Array3D): Array1D;
+  protected abstract conv2dDerBiasInternal(dY: Array4D): Array1D;
 
   /**
    * Computes the derivative of the filter of a 2D convolution.
    *
-   * @param x The input image, rank 3, of shape [height, width, inDepth].
-   * @param dy The dy image, rank 3, of shape [height, width, outDepth].
-   * @param filterSize The size of the filter, length 4,
+   * @param input The input ndarray, of rank 4 or rank 3 of shape
+   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
+   * @param dy The dy image, of rank 4 or rank 3, of shape
+   *     [batch, height, width, outDepth]. If rank 3, batch of 1 is assumed.
+   * @param filterShape The shape of the filter, length 4,
    *     [filterHeight, filterWidth, inDepth, outDepth].
    * @param strides The strides of the convolution: [strideHeight, strideWidth].
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm
    *     used in the forward prop of the op.
    */
-  conv2dDerFilter(
-      x: Array3D, dy: Array3D, filterSize: [number, number, number, number],
+  conv2dDerFilter<T extends NDArray>(
+      input: T, dy: T, filterShape: [number, number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number): Array4D {
+    let input4D = input as NDArray as Array4D;
+    if (input.rank === 3) {
+      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+    }
+    let dy4D = dy as NDArray as Array4D;
+    if (dy4D.rank === 3) {
+      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+    }
     util.assert(
-        x.rank === 3,
-        `Error in conv2dDerFilter: x must be rank 3, but got shape ` +
-            `${x.shape}.`);
+        input4D.rank === 4,
+        `Error in conv2dDerFilter: input must be rank 4, but got shape ` +
+            `${input4D.shape}.`);
     util.assert(
-        dy.rank === 3,
-        `Error in conv2dDerFilter: dy must be rank 3, but got shape ` +
-            `${dy.shape}.`);
+        dy4D.rank === 4,
+        `Error in conv2dDerFilter: dy must be rank 4, but got shape ` +
+            `${dy4D.shape}.`);
     util.assert(
-        filterSize.length === 4,
-        `Error in conv2dDerFilter: filterSize must be length 4, but got ` +
-            `${filterSize}.`);
+        filterShape.length === 4,
+        `Error in conv2dDerFilter: filterShape must be length 4, but got ` +
+            `${filterShape}.`);
     util.assert(
-        x.shape[2] === filterSize[2],
-        `Error in conv2dDerFilter: depth of x ${x.shape[2]}) must ` +
-            `match input depth in filter (${filterSize[2]}.`);
+        input4D.shape[3] === filterShape[2],
+        `Error in conv2dDerFilter: depth of input ${input4D.shape[3]}) must ` +
+            `match input depth in filter (${filterShape[2]}.`);
     util.assert(
-        dy.shape[2] === filterSize[3],
-        `Error in conv2dDerFilter: depth of dy (${dy.shape[2]}) must ` +
-            `match output depth for filter (${filterSize[3]}).`);
+        dy4D.shape[3] === filterShape[3],
+        `Error in conv2dDerFilter: depth of dy (${dy4D.shape[3]}) must ` +
+            `match output depth for filter (${filterShape[3]}).`);
 
-    const filterHeight = filterSize[0];
-    const filterWidth = filterSize[1];
-    const outDepth = filterSize[3];
-    const [strideHeight, strideWidth] = parseTupleParam(strides);
-    const convInfo = conv_util.computeConv2DInfo(
-        x.shape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
-        pad);
-    return this.track(this.conv2dDerFilterInternal(x, dy, convInfo));
+    const convInfo =
+        conv_util.computeConv2DInfo(input4D.shape, filterShape, strides, pad);
+    return this.track(this.conv2dDerFilterInternal(input4D, dy4D, convInfo));
   }
   protected abstract conv2dDerFilterInternal(
-      x: Array3D, dy: Array3D, convInfo: ConvInfo): Array4D;
+      x: Array4D, dy: Array4D, convInfo: Conv2DInfo): Array4D;
 
   /**
    * Computes the transposed 2D convolution of an image, also known as a
    * deconvolution.
    *
-   * @param x The input image, rank 3, of shape [height, width, inDepth].
+   * @param x The input image, of rank 4 or rank 3, of shape
+   *   [batch, height, width, inDepth]. If rank 3, batch of 1 is assumed.
    * @param filter The filter, rank 4, of shape
    *     `[filterHeight, filterWidth, outDepth, inDepth]`.
    *     `inDepth` must match `inDepth` in `x`.
-   * @param outputShape Output shape, rank 3 [height, width, outDepth].
+   * @param outputShape Output shape, of rank 4 or rank 3:
+   *     [batch, height, width, outDepth]. If rank 3, batch of 1 is assumed.
    * @param strides The strides of the original convolution:
    *     `[strideHeight, strideWidth]`.
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm
    *     used in the non-transpose version of the op.
    */
-  conv2dTranspose(
-      x: Array3D, filter: Array4D, outputShape: [number, number, number],
-      strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
+  conv2dTranspose<T extends NDArray>(
+      x: T, filter: Array4D,
+      outputShape: [number, number, number, number]|[number, number, number],
+      strides: [number, number]|number, pad: 'valid'|'same'|number): T {
     return this.conv2dDerInput(outputShape, x, filter, strides, pad);
   }
 
@@ -1628,7 +1643,7 @@ export abstract class NDArrayMath {
    * See https://www.tensorflow.org/api_docs/python/tf/nn/depthwise_conv2d for
    * more details.
    *
-   * @param input4D The input ndarray, of rank 4 or rank 3, of shape
+   * @param input The input ndarray, of rank 4 or rank 3, of shape
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
    * @param filter The filter ndarray, rank 4, of shape
    *     `[filterHeight, filterWidth, inChannels, channelMultiplier]`.
@@ -1647,11 +1662,10 @@ export abstract class NDArrayMath {
    *     `rateHeight == rateWidth`. If it is greater than 1, then all values of
    *     `strides` must be 1.
    */
-  depthwiseConv2D(
-      input: Array3D|Array4D, filter: Array4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number,
-      rates: [number, number]|number = [1, 1]): Array3D|Array4D {
-    let input4D = input as Array4D;
+  depthwiseConv2D<T extends NDArray>(
+      input: T, filter: Array4D, strides: [number, number]|number,
+      pad: 'valid'|'same'|number, rates: [number, number]|number = [1, 1]): T {
+    let input4D = input as NDArray as Array4D;
     let reshapedTo4D = false;
     if (input.rank === 3) {
       reshapedTo4D = true;
@@ -1677,22 +1691,25 @@ export abstract class NDArrayMath {
         'Error in depthwiseConv2D: rates greater than 1 are not yet ' +
             `supported. Got rates '${rates}'`);
 
-    const convInfo = conv_util.computeDepthwiseConv2DInfo(
-        input4D.shape, filter.shape, strides, pad);
+    const convInfo = conv_util.computeConv2DInfo(
+        input4D.shape, filter.shape, strides, pad, true /* depthwise */);
     return this.executeOp('depthwiseConv2D', () => {
       const res = this.depthwiseConv2DInternal(input4D, filter, convInfo);
       if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
+            T;
       }
-      return res;
+      return res as NDArray as T;
     });
   }
   protected abstract depthwiseConv2DInternal(
-      input: Array4D, filter: Array4D, convInfo: DepthwiseConvInfo): Array4D;
+      input: Array4D, filter: Array4D, convInfo: Conv2DInfo): Array4D;
 
   /**
    * Computes the 2D max pooling of an image.
-   * @param x The input image, rank 3 of shape [height, width, inDepth].
+   *
+   * @param input The input ndarray, of rank 4 or rank 3 of shape
+   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
    * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
    * @param strides The strides of the pooling: [strideHeight, strideWidth].
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
@@ -1703,59 +1720,88 @@ export abstract class NDArrayMath {
    *   - For more info, see this guide:
    *     https://www.tensorflow.org/api_guides/python/nn#Convolution
    */
-  maxPool(
-      x: Array3D, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
+  maxPool<T extends NDArray>(
+      input: T, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number): T {
+    let input4D = input as NDArray as Array4D;
+    let reshapedTo4D = false;
+    if (input.rank === 3) {
+      reshapedTo4D = true;
+      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+    }
     util.assert(
-        x.rank === 3,
-        `Error in maxPool: x must be rank 3 but got rank ${x.rank}.`);
+        input4D.rank === 4,
+        `Error in maxPool: input must be rank 4 but got rank ${input4D.rank}.`);
 
-    const [filterHeight, filterWidth] = parseTupleParam(filterSize);
-    const outDepth = x.shape[2];
-    const [strideHeight, strideWidth] = parseTupleParam(strides);
-    const convInfo = conv_util.computeConv2DInfo(
-        x.shape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
-        pad);
-    return this.executeOp('maxPool', () => this.maxPoolInternal(x, convInfo));
+    const convInfo =
+        conv_util.computePool2DInfo(input4D.shape, filterSize, strides, pad);
+    return this.executeOp('maxPool', () => {
+      const res = this.maxPoolInternal(input4D, convInfo);
+      if (reshapedTo4D) {
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
+            T;
+      }
+      return res as NDArray as T;
+    });
   }
-  protected abstract maxPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D;
+  protected abstract maxPoolInternal(x: Array4D, convInfo: Conv2DInfo): Array4D;
 
   /**
    * Computes the backprop of a max pool.
-   * @param dy The dy error.
-   * @param x The input image, rank 3 of shape [height, width, inDepth].
+   *
+   * @param dy The dy error, of rank 4 or rank 3 of shape
+   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is assumed.
+   * @param input The input image, of rank 4 or rank 3 of shape
+   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is assumed.
    * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
    * @param strides The strides of the pooling: [strideHeight, strideWidth].
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm
    *     used in the forward prop of the op.
    */
-  maxPoolBackprop(
-      dy: Array3D, x: Array3D, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
+  maxPoolBackprop<T extends NDArray>(
+      dy: T, input: T, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number): T {
     util.assert(
-        dy.rank === 3,
-        `Error in maxPoolBackprop: dy must be rank 3 but got rank ` +
-            `${dy.rank}.`);
-    util.assert(
-        x.rank === 3,
-        `Error in maxPoolBackprop: x must be rank 3 but got rank ` +
-            `${x.rank}.`);
+        input.rank === dy.rank,
+        `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
 
-    const [filterHeight, filterWidth] = parseTupleParam(filterSize);
-    const outDepth = x.shape[2];
-    const [strideHeight, strideWidth] = parseTupleParam(strides);
-    const convInfo = conv_util.computeConv2DInfo(
-        x.shape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
-        pad);
-    return this.executeOp(
-        'maxPoolBackprop', () => this.maxPoolBackpropInternal(dy, x, convInfo));
+    let input4D = input as NDArray as Array4D;
+    let dy4D = dy as NDArray as Array4D;
+    let reshapedTo4D = false;
+    if (input.rank === 3) {
+      reshapedTo4D = true;
+      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+    }
+
+    util.assert(
+        dy4D.rank === 4,
+        `Error in maxPoolBackprop: dy must be rank 4 but got rank ` +
+            `${dy4D.rank}.`);
+    util.assert(
+        input4D.rank === 4,
+        `Error in maxPoolBackprop: input must be rank 4 but got rank ` +
+            `${input4D.rank}.`);
+
+    const convInfo =
+        conv_util.computePool2DInfo(input4D.shape, filterSize, strides, pad);
+    return this.executeOp('maxPoolBackprop', () => {
+      const res = this.maxPoolBackpropInternal(dy4D, input4D, convInfo);
+      if (reshapedTo4D) {
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
+            T;
+      }
+      return res as NDArray as T;
+    });
   }
   protected abstract maxPoolBackpropInternal(
-      dy: Array3D, x: Array3D, convInfo: ConvInfo): Array3D;
+      dy: Array4D, x: Array4D, convInfo: Conv2DInfo): Array4D;
 
   /**
    * Computes the 2D min pooling of an image.
-   * @param x The input image, rank 3 of shape [height, width, inDepth].
+   *
+   * @param input The input ndarray, of rank 4 or rank 3 of shape
+   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
    * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
    * @param strides The strides of the pooling: [strideHeight, strideWidth].
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
@@ -1766,26 +1812,37 @@ export abstract class NDArrayMath {
    *   - For more info, see this guide:
    *     https://www.tensorflow.org/api_guides/python/nn#Convolution
    */
-  minPool(
-      x: Array3D, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
+  minPool<T extends NDArray>(
+      input: T, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number): T {
+    let input4D = input as NDArray as Array4D;
+    let reshapedTo4D = false;
+    if (input.rank === 3) {
+      reshapedTo4D = true;
+      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+    }
     util.assert(
-        x.rank === 3,
-        `Error in minPool: x must be rank 3 but got rank ${x.rank}.`);
+        input4D.rank === 4,
+        `Error in minPool: x must be rank 4 but got rank ${input4D.rank}.`);
 
-    const [filterHeight, filterWidth] = parseTupleParam(filterSize);
-    const outDepth = x.shape[2];
-    const [strideHeight, strideWidth] = parseTupleParam(strides);
-    const convInfo = conv_util.computeConv2DInfo(
-        x.shape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
-        pad);
-    return this.executeOp('minPool', () => this.minPoolInternal(x, convInfo));
+    const convInfo =
+        conv_util.computePool2DInfo(input4D.shape, filterSize, strides, pad);
+    return this.executeOp('minPool', () => {
+      const res = this.minPoolInternal(input4D, convInfo);
+      if (reshapedTo4D) {
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
+            T;
+      }
+      return res as NDArray as T;
+    });
   }
-  protected abstract minPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D;
+  protected abstract minPoolInternal(x: Array4D, convInfo: Conv2DInfo): Array4D;
 
   /**
    * Computes the 2D average pooling of an image.
-   * @param x The input image, rank 3 of shape [height, width, inDepth].
+   *
+   * @param input The input ndarray, of rank 4 or rank 3 of shape
+   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
    * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
    * @param strides The strides of the pooling: [strideHeight, strideWidth].
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
@@ -1796,22 +1853,31 @@ export abstract class NDArrayMath {
    *   - For more info, see this guide:
    *     https://www.tensorflow.org/api_guides/python/nn#Convolution
    */
-  avgPool(
-      x: Array3D, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number): Array3D {
+  avgPool<T extends NDArray>(
+      input: T, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number): T {
+    let input4D = input as NDArray as Array4D;
+    let reshapedTo4D = false;
+    if (input.rank === 3) {
+      reshapedTo4D = true;
+      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+    }
     util.assert(
-        x.rank === 3,
-        `Error in avgPool: x must be rank 3 but got rank ${x.rank}.`);
+        input4D.rank === 4,
+        `Error in avgPool: x must be rank 4 but got rank ${input4D.rank}.`);
 
-    const [filterHeight, filterWidth] = parseTupleParam(filterSize);
-    const outDepth = x.shape[2];
-    const [strideHeight, strideWidth] = parseTupleParam(strides);
-    const convInfo = conv_util.computeConv2DInfo(
-        x.shape, filterHeight, filterWidth, outDepth, strideHeight, strideWidth,
-        pad);
-    return this.executeOp('avgPool', () => this.avgPoolInternal(x, convInfo));
+    const convInfo =
+        conv_util.computePool2DInfo(input4D.shape, filterSize, strides, pad);
+    return this.executeOp('avgPool', () => {
+      const res = this.avgPoolInternal(input4D, convInfo);
+      if (reshapedTo4D) {
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
+            T;
+      }
+      return res as NDArray as T;
+    });
   }
-  protected abstract avgPoolInternal(x: Array3D, convInfo: ConvInfo): Array3D;
+  protected abstract avgPoolInternal(x: Array4D, convInfo: Conv2DInfo): Array4D;
 
   /*
    * Bilinear resize a 3D array per each channel to a new 2D shape.

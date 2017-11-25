@@ -29,57 +29,42 @@ export type PadInfo = {
  * It includes input and output shape, strides, filter size and padding
  * information.
  */
-export type ConvInfo = {
-  inShape: [number, number, number],
-  outShape: [number, number, number],
+export type Conv2DInfo = {
+  batchSize: number,
+  inHeight: number,
+  inWidth: number,
+  inChannels: number,
+  outHeight: number,
+  outWidth: number,
+  outChannels: number,
+  dataFormat: 'channelsFirst'|'channelsLast',
   strideHeight: number,
   strideWidth: number,
   filterHeight: number,
   filterWidth: number,
-  padInfo: PadInfo
-};
-
-export type DepthwiseConvInfo = {
+  padInfo: PadInfo,
   inShape: [number, number, number, number],
   outShape: [number, number, number, number],
-  channelMul: number,
-  strideHeight: number,
-  strideWidth: number,
-  filterHeight: number,
-  filterWidth: number,
-  padInfo: PadInfo
+  filterShape: [number, number, number, number]
 };
 
-/**
- * Computes the information for a forward pass of a depthwise convolution.
- */
-export function computeDepthwiseConv2DInfo(
+export function computePool2DInfo(
     inShape: [number, number, number, number],
-    filterShape: [number, number, number, number],
-    strides: number|[number, number],
-    pad: 'same'|'valid'|number): DepthwiseConvInfo {
-  const [filterHeight, filterWidth, inChannels, channelMul] = filterShape;
-  const [strideHeight, strideWidth] = parseTupleParam(strides);
-  const inHeight = inShape[1];
-  const inWidth = inShape[2];
-  const batchSize = inShape[0];
-  const {padInfo, outHeight, outWidth} = getPadAndOutInfo(
-      pad, inHeight, inWidth, strideHeight, strideWidth, filterHeight,
-      filterWidth);
-  const outChannels = inChannels * channelMul;
-  const outShape: [number, number, number, number] =
-      [batchSize, outHeight, outWidth, outChannels];
+    filterSize: [number, number]|number, strides: number|[number, number],
+    pad: 'same'|'valid'|number,
+    dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
+  const [filterHeight, filterWidth] = parseTupleParam(filterSize);
 
-  return {
-    inShape,
-    outShape,
-    channelMul,
-    strideHeight,
-    strideWidth,
-    filterHeight,
-    filterWidth,
-    padInfo
-  };
+  let filterShape: [number, number, number, number];
+  if (dataFormat === 'channelsLast') {
+    filterShape = [filterHeight, filterWidth, inShape[3], inShape[3]];
+  } else if (dataFormat === 'channelsFirst') {
+    filterShape = [filterHeight, filterWidth, inShape[1], inShape[1]];
+  } else {
+    throw new Error(`Unknown dataFormat ${dataFormat}`);
+  }
+  return computeConv2DInfo(
+      inShape, filterShape, strides, pad, false, dataFormat);
 }
 
 /**
@@ -87,23 +72,51 @@ export function computeDepthwiseConv2DInfo(
  * operation.
  */
 export function computeConv2DInfo(
-    inShape: [number, number, number], filterHeight: number,
-    filterWidth: number, outDepth: number, strideHeight: number,
-    strideWidth: number, pad: 'same'|'valid'|number): ConvInfo {
-  const inHeight = inShape[0];
-  const inWidth = inShape[1];
+    inShape: [number, number, number, number],
+    filterShape: [number, number, number, number],
+    strides: number|[number, number], pad: 'same'|'valid'|number,
+    depthwise = false,
+    dataFormat: 'channelsFirst' | 'channelsLast' = 'channelsLast'): Conv2DInfo {
+  let [batchSize, inHeight, inWidth, inChannels] = [-1, -1, -1, -1];
+  if (dataFormat === 'channelsLast') {
+    [batchSize, inHeight, inWidth, inChannels] = inShape;
+  } else if (dataFormat === 'channelsFirst') {
+    [batchSize, inChannels, inHeight, inWidth] = inShape;
+  } else {
+    throw new Error(`Unknown dataFormat ${dataFormat}`);
+  }
+
+  const [filterHeight, filterWidth, , filterChannels] = filterShape;
+  const [strideHeight, strideWidth] = parseTupleParam(strides);
   const {padInfo, outHeight, outWidth} = getPadAndOutInfo(
       pad, inHeight, inWidth, strideHeight, strideWidth, filterHeight,
       filterWidth);
-  const outShape: [number, number, number] = [outHeight, outWidth, outDepth];
+  const outChannels = depthwise ? filterChannels * inChannels : filterChannels;
+
+  let outShape: [number, number, number, number];
+  if (dataFormat === 'channelsFirst') {
+    outShape = [batchSize, outChannels, outHeight, outWidth];
+  } else if (dataFormat === 'channelsLast') {
+    outShape = [batchSize, outHeight, outWidth, outChannels];
+  }
+
   return {
-    inShape,
-    outShape,
+    batchSize,
+    dataFormat,
+    inHeight,
+    inWidth,
+    inChannels,
+    outHeight,
+    outWidth,
+    outChannels,
     padInfo,
     strideHeight,
     strideWidth,
     filterHeight,
-    filterWidth
+    filterWidth,
+    inShape,
+    outShape,
+    filterShape
   };
 }
 
@@ -139,12 +152,14 @@ export function computeDefaultPad(
   return Math.floor((inputShape[0] * (stride - 1) - stride + fieldSize) / 2);
 }
 
+/** @deprecated Use conv_util.getShapes(convInfo) instead. */
 export function computeWeightsShape4D(
     inputDepth: number, outputDepth: number, filterHeight: number,
     filterWidth: number): [number, number, number, number] {
   return [filterHeight, filterWidth, inputDepth, outputDepth];
 }
 
+/** @deprecated Use conv_util.computeConv2DInfo() instead. */
 export function computeDilatedRC(
     rc: [number, number], origStride: number): [number, number] {
   const rowsDilated = (rc[0] - 1) * origStride + 1;

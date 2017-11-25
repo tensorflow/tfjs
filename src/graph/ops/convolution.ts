@@ -76,13 +76,16 @@ export class Convolution2D extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: SummedTensorArrayMap) {
-    const weights = inferenceArrays.get(this.wTensor) as Array4D;
+    const filter = inferenceArrays.get(this.wTensor) as Array4D;
     const x = inferenceArrays.get(this.xTensor) as Array3D;
     const dy = gradientArrays.get(this.yTensor) as Array3D;
 
     math.scope(() => {
-      const {dw, db, dx} =
-          math.conv2dBackProp(x, dy, weights, this.stride, this.zeroPad);
+      const dw =
+          math.conv2dDerFilter(x, dy, filter.shape, this.stride, this.zeroPad);
+      const db = math.conv2dDerBias(dy);
+      const dx =
+          math.conv2dDerInput(x.shape, dy, filter, this.stride, this.zeroPad);
       gradientArrays.add(this.wTensor, dw);
       gradientArrays.add(this.bTensor, db);
       gradientArrays.add(this.xTensor, dx);
