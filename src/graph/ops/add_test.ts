@@ -192,4 +192,85 @@ describe('add operation', () => {
 
     expect(() => new Add(t1, t2, y)).toThrowError();
   });
+
+  it('2D array + 1D array broadcast', () => {
+    const x1 = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const x2 = Array1D.new([0, 1, 0]);
+
+    t1 = new Tensor(x1.shape);
+    t2 = new Tensor(x2.shape);
+    y = new Tensor(x1.shape);
+
+    activations.set(t1, x1);
+    activations.set(t2, x2);
+
+    addOp = new Add(t1, t2, y);
+    addOp.feedForward(math, activations);
+    const yVal = activations.get(y);
+
+    expect(yVal.shape).toEqual([2, 3]);
+    expect(yVal.getValues()).toEqual(new Float32Array([1, 3, 3, 4, 6, 6]));
+
+    const dy = Array2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
+    gradients.add(y, dy);
+
+    addOp.backProp(math, activations, gradients);
+
+    const dx1 = gradients.get(t1);
+    const dx2 = gradients.get(t2);
+
+    expect(dx1.shape).toEqual(x1.shape);
+    expect(dx1.getValues()).toEqual(dy.getValues());
+
+    expect(dx2.shape).toEqual(x2.shape);
+    expect(dx2.getValues()).toEqual(new Float32Array([5, 7, 9]));
+  });
+
+  it('1D array + 2D array broadcast', () => {
+    const x1 = Array1D.new([0, 1, 0]);
+    const x2 = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+
+    t1 = new Tensor(x1.shape);
+    t2 = new Tensor(x2.shape);
+    y = new Tensor(x1.shape);
+
+    activations.set(t1, x1);
+    activations.set(t2, x2);
+
+    addOp = new Add(t1, t2, y);
+    addOp.feedForward(math, activations);
+    const yVal = activations.get(y);
+
+    expect(yVal.shape).toEqual([2, 3]);
+    expect(yVal.getValues()).toEqual(new Float32Array([1, 3, 3, 4, 6, 6]));
+
+    const dy = Array2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
+    gradients.add(y, dy);
+
+    addOp.backProp(math, activations, gradients);
+
+    const dx1 = gradients.get(t1);
+    const dx2 = gradients.get(t2);
+
+    expect(dx1.shape).toEqual(x1.shape);
+    expect(dx1.getValues()).toEqual(new Float32Array([5, 7, 9]));
+
+    expect(dx2.shape).toEqual(x2.shape);
+    expect(dx2.getValues()).toEqual(dy.getValues());
+  });
+
+  it('throws when shapes do not match for broadcasting', () => {
+    const x1 = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const x2 = Array1D.new([1, 2]);
+
+    t1 = new Tensor(x1.shape);
+    t2 = new Tensor(x2.shape);
+    y = new Tensor(x1.shape);
+
+    activations.set(t1, x1);
+    activations.set(t2, x2);
+
+    expect(() => new Add(t1, t2, y)).toThrowError();
+  });
+
 });
