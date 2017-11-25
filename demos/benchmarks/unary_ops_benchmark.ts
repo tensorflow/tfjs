@@ -16,8 +16,9 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array2D, ENV, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array2D, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
 import {BenchmarkTest} from './benchmark';
+import * as benchmark_util from './benchmark_util';
 
 function getUnaryOp(option: string, math: NDArrayMath) {
   switch (option) {
@@ -80,36 +81,13 @@ export class UnaryOpsGPUBenchmark implements BenchmarkTest {
     const input = Array2D.randUniform([size, size], -1, 1);
     const op = getUnaryOp(option, math);
 
-    let output: NDArray;
-    const benchmark = () => {
-      output = math.scope(() => {
-        return op(input);
-      });
-    };
+    const benchmark = () => op(input);
 
-    const cleanup = () => {
-      input.dispose();
-      math.dispose();
-      output.dispose();
-    };
+    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
 
-    // Warmup.
-    await math.getGPGPUContext().runQuery(benchmark);
+    input.dispose();
+    math.dispose();
 
-    let totalTime: number;
-    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-      totalTime = await math.getGPGPUContext().runQuery(benchmark);
-    } else {
-      const start = performance.now();
-
-      benchmark();
-      output.dataSync();
-
-      totalTime = performance.now() - start;
-    }
-
-    cleanup();
-
-    return totalTime;
+    return time;
   }
 }

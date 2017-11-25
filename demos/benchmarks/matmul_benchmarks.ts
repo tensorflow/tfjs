@@ -15,12 +15,14 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array2D, ENV, NDArray, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
-import {BenchmarkTest} from './benchmark';
+import {Array2D, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
+import * as benchmark_util from './benchmark_util';
 
 export class MatmulCPUBenchmark implements BenchmarkTest {
+  lastRunTimeMs: number;
   async run(size: number): Promise<number> {
-    if (size > 512) {
+    if (this.lastRunTimeMs > LAST_RUN_CPU_CUTOFF_MS) {
       return new Promise<number>((resolve, reject) => {
         resolve(-1);
       });
@@ -32,47 +34,26 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
     math.matMul(a, b);
     const end = performance.now();
 
-    return end - start;
+    this.lastRunTimeMs = end - start;
+    return this.lastRunTimeMs;
   }
 }
 
 export class MatmulGPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
     const math = new NDArrayMathGPU();
-    const gpgpu = math.getGPGPUContext();
 
     const a = Array2D.randNormal([size, size]);
     const b = Array2D.randNormal([size, size]);
 
-    let out: NDArray;
-    const benchmark = () => {
-      out = math.matMul(a, b);
-    };
+    const benchmark = () => math.matMul(a, b);
 
-    const cleanup = () => {
-      a.dispose();
-      b.dispose();
-      out.dispose();
-      math.dispose();
-    };
+    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
 
-    // Warmup.
-    await gpgpu.runQuery(benchmark);
-    out.dispose();
+    a.dispose();
+    b.dispose();
+    math.dispose();
 
-    let totalTime: number;
-    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-      totalTime = await gpgpu.runQuery(benchmark);
-    } else {
-      const start = performance.now();
-
-      benchmark();
-      out.dataSync();
-
-      totalTime = performance.now() - start;
-    }
-
-    cleanup();
-    return totalTime;
+    return time;
   }
 }
