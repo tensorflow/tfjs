@@ -18,7 +18,7 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array3D} from './ndarray';
+import {Array3D, Array4D} from './ndarray';
 
 // math.maxPoolBackprop
 {
@@ -69,6 +69,21 @@ import {Array3D} from './ndarray';
       const dx = math.maxPoolBackprop(dy, x, 2, 1, 0);
 
       const expected = new Float32Array([0, 3, 0, 0, 3, 0, 0, 0, 4]);
+      test_util.expectArraysClose(dx.getValues(), expected);
+
+      dy.dispose();
+      x.dispose();
+    });
+
+    it('x=3x3x1, f=2, s=1, batch=2, duplicate max value in 2nd input', math => {
+      const dy = Array4D.new([2, 2, 2, 1], [1, 2, 3, 4, 5, 6, 7, 8]);
+      const x = Array4D.new(
+          [2, 3, 3, 1], [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 9, 8]);
+
+      const dx = math.maxPoolBackprop(dy, x, 2, 1, 0);
+
+      const expected = new Float32Array(
+          [0, 0, 0, 0, 1, 2, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 15, 0]);
       test_util.expectArraysClose(dx.getValues(), expected);
 
       dy.dispose();

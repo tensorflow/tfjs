@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ConvInfo} from '../conv_util';
+import {Conv2DInfo} from '../conv_util';
 
 import {GPGPUProgram} from './gpgpu_math';
 
@@ -24,10 +24,8 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(convInfo: ConvInfo) {
+  constructor(convInfo: Conv2DInfo) {
     this.outputShape = convInfo.inShape;
-    const dyRows = convInfo.outShape[0];
-    const dyCols = convInfo.outShape[1];
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
     const strideHeight = convInfo.strideHeight;
@@ -41,10 +39,11 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
       void main() {
-        ivec3 coords = getOutputCoords();
-        int d = coords.z;
+        ivec4 coords = getOutputCoords();
+        int b = coords[0];
+        int d = coords[3];
 
-        ivec2 dyRCCorner = coords.xy - pads;
+        ivec2 dyRCCorner = coords.yz - pads;
         int dyRCorner = dyRCCorner.x;
         int dyCCorner = dyRCCorner.y;
 
@@ -54,7 +53,7 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
         for (int wR = 0; wR < ${filterHeight}; wR++) {
           float dyR = float(dyRCorner + wR) / ${strideHeight}.0;
 
-          if (dyR < 0.0 || dyR >= ${dyRows}.0 || fract(dyR) > 0.0) {
+          if (dyR < 0.0 || dyR >= ${convInfo.outHeight}.0 || fract(dyR) > 0.0) {
             continue;
           }
           int idyR = int(dyR);
@@ -62,13 +61,14 @@ export class MaxPool2DBackpropProgram implements GPGPUProgram {
           for (int wC = 0; wC < ${filterWidth}; wC++) {
             float dyC = float(dyCCorner + wC) / ${strideWidth}.0;
 
-            if (dyC < 0.0 || dyC >= ${dyCols}.0 || fract(dyC) > 0.0) {
+            if (dyC < 0.0 || dyC >= ${convInfo.outWidth}.0 ||
+                fract(dyC) > 0.0) {
               continue;
             }
             int idyC = int(dyC);
 
-            float dyValue = getDy(idyR, idyC, d);
-            int maxPosValue = ${lastIndex} - int(getMaxPos(idyR, idyC, d));
+            float dyValue = getDy(b, idyR, idyC, d);
+            int maxPosValue = ${lastIndex} - int(getMaxPos(b, idyR, idyC, d));
 
             // Get the current value, check it against the value from the
             // position matrix.

@@ -45,6 +45,30 @@ import {Array2D, Array3D, Array4D} from './ndarray';
       w.dispose();
     });
 
+    it('input=2x2x1,d2=1,f=2,s=1,p=0, batch=2', math => {
+      const origInputDepth = 1;
+      const origOutputDepth = 1;
+      const inputShape: [number, number, number, number] =
+          [2, 1, 1, origOutputDepth];
+      const fSize = 2;
+      const origPad = 0;
+      const origStride = 1;
+
+      const x = Array4D.new(inputShape, [2, 3]);
+      const w = Array4D.new(
+          [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
+
+      const result =
+          math.conv2dTranspose(x, w, [2, 2, 2, 1], origStride, origPad);
+      const expected = new Float32Array([6, 2, 10, 0, 9, 3, 15, 0]);
+
+      expect(result.shape).toEqual([2, 2, 2, 1]);
+      test_util.expectArraysClose(result.getValues(), expected);
+
+      x.dispose();
+      w.dispose();
+    });
+
     it('throws when x is not rank 3', math => {
       const origInputDepth = 1;
       const origOutputDepth = 1;

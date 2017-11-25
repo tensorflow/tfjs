@@ -44,6 +44,28 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       bias.dispose();
     });
 
+    it('input=2x2x1,d2=1,f=1,s=1,p=0,batch=2', math => {
+      const inputDepth = 1;
+      const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+      const outputDepth = 1;
+      const fSize = 1;
+      const pad = 0;
+      const stride = 1;
+
+      const x = Array4D.new(inShape, [1, 2, 3, 4, 5, 6, 7, 8]);
+      const w = Array4D.new([fSize, fSize, inputDepth, outputDepth], [2]);
+      const bias = Array1D.new([-1]);
+
+      const result = math.conv2d(x, w, bias, stride, pad);
+      expect(result.shape).toEqual([2, 2, 2, 1]);
+      const expected = new Float32Array([1, 3, 5, 7, 9, 11, 13, 15]);
+
+      test_util.expectArraysClose(result.getValues(), expected);
+      x.dispose();
+      w.dispose();
+      bias.dispose();
+    });
+
     it('input=2x2x1,d2=1,f=2,s=1,p=0', math => {
       const inputDepth = 1;
       const inputShape: [number, number, number] = [2, 2, inputDepth];

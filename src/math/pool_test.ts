@@ -17,8 +17,7 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-
-import {Array2D, Array3D} from './ndarray';
+import {Array2D, Array3D, Array4D} from './ndarray';
 
 // math.maxPool
 {
@@ -40,6 +39,18 @@ import {Array2D, Array3D} from './ndarray';
       expect(result.shape).toEqual([2, 2, 1]);
       test_util.expectArraysClose(
           result.getValues(), new Float32Array([5, 6, 9, 9]));
+    });
+
+    it('3x3x1 in, 2x2 filter, 1 stride, batch=2', math => {
+      // Feed forward.
+      const a = Array4D.new(
+          [2, 3, 3, 1], [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      const result = math.maxPool(a, 2, 1, 0);
+
+      expect(result.shape).toEqual([2, 2, 2, 1]);
+      test_util.expectArraysClose(
+          result.getValues(), new Float32Array([5, 6, 9, 9, 5, 6, 8, 9]));
     });
 
     it('3x3x1 in, 2x2 filter, 1 stride, propagates NaNs', math => {
@@ -125,6 +136,17 @@ import {Array2D, Array3D} from './ndarray';
           result.getValues(), new Float32Array([1, 2, 4, 5]));
     });
 
+    it('3x3x1 in, 2x2 filter, 1 stride, batch=2', math => {
+      // Feed forward.
+      const a = Array4D.new(
+          [2, 3, 3, 1], [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 5, 4, 6, 7, 9, 8]);
+      const result = math.minPool(a, 2, 1, 0);
+
+      expect(result.shape).toEqual([2, 2, 2, 1]);
+      test_util.expectArraysClose(
+          result.getValues(), new Float32Array([1, 2, 4, 5, 1, 2, 4, 4]));
+    });
+
     it('3x3x1 in, 2x2 filter, 1 stride, propagates NaNs', math => {
       const a = Array3D.new([3, 3, 1], [1, 2, 3, 4, 5, 6, 7, NaN, 8]);
       const result = math.minPool(a, 2, 1, 0);
@@ -193,6 +215,17 @@ import {Array2D, Array3D} from './ndarray';
       expect(result.shape).toEqual([2, 2, 1]);
       test_util.expectArraysClose(
           result.getValues(), new Float32Array([3, 4, 6.25, 7]));
+    });
+
+    it('3x3x1 in, 2x2 filter, 1 stride', math => {
+      // Feed forward.
+      const a = Array4D.new(
+          [2, 3, 3, 1], [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      const result = math.avgPool(a, 2, 1, 0);
+
+      expect(result.shape).toEqual([2, 2, 2, 1]);
+      test_util.expectArraysClose(
+          result.getValues(), new Float32Array([3, 4, 6.25, 7, 3, 4, 6, 7]));
     });
 
     it('3x3x1 in, 2x2 filter, 1 stride, propagates NaNs', math => {

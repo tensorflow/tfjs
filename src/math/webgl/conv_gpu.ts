@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ConvInfo} from '../conv_util';
+import {Conv2DInfo} from '../conv_util';
+
 import {GPGPUProgram} from './gpgpu_math';
 
 export class Conv2DProgram implements GPGPUProgram {
@@ -23,14 +24,14 @@ export class Conv2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(convInfo: ConvInfo, hasBias: boolean) {
+  constructor(convInfo: Conv2DInfo, hasBias: boolean) {
     if (hasBias) {
       this.variableNames.push('bias');
     }
 
     this.outputShape = convInfo.outShape;
+
     const biasSnippet = hasBias ? 'dotProd += getBias(d2);' : '';
-    const [xNumRows, xNumCols, inputDepth] = convInfo.inShape;
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
     const strideHeight = convInfo.strideHeight;
@@ -38,18 +39,19 @@ export class Conv2DProgram implements GPGPUProgram {
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
 
-    const inputDepthNearestVec4 = Math.floor(inputDepth / 4) * 4;
-    const inputDepthVec4Remainder = inputDepth % 4;
+    const inputDepthNearestVec4 = Math.floor(convInfo.inChannels / 4) * 4;
+    const inputDepthVec4Remainder = convInfo.inChannels % 4;
 
     this.userCode = `
       const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
       const ivec2 pads = ivec2(${padTop}, ${padLeft});
 
       void main() {
-        ivec3 coords = getOutputCoords();
-        int d2 = coords.z;
+        ivec4 coords = getOutputCoords();
+        int batch = coords[0];
+        int d2 = coords[3];
 
-        ivec2 xRCCorner = coords.xy * strides - pads;
+        ivec2 xRCCorner = coords.yz * strides - pads;
         int xRCorner = xRCCorner.x;
         int xCCorner = xRCCorner.y;
 
@@ -59,23 +61,23 @@ export class Conv2DProgram implements GPGPUProgram {
         for (int wR = 0; wR < ${filterHeight}; wR++) {
           int xR = xRCorner + wR;
 
-          if (xR < 0 || xR >= ${xNumRows}) {
+          if (xR < 0 || xR >= ${convInfo.inHeight}) {
             continue;
           }
 
           for (int wC = 0; wC < ${filterWidth}; wC++) {
             int xC = xCCorner + wC;
 
-            if (xC < 0 || xC >= ${xNumCols}) {
+            if (xC < 0 || xC >= ${convInfo.inWidth}) {
               continue;
             }
 
             for (int d1 = 0; d1 < ${inputDepthNearestVec4}; d1 += 4) {
               vec4 xValues = vec4(
-                getX(xR, xC, d1),
-                getX(xR, xC, d1 + 1),
-                getX(xR, xC, d1 + 2),
-                getX(xR, xC, d1 + 3)
+                getX(batch, xR, xC, d1),
+                getX(batch, xR, xC, d1 + 1),
+                getX(batch, xR, xC, d1 + 2),
+                getX(batch, xR, xC, d1 + 3)
               );
               vec4 wValues = vec4(
                 getW(wR, wC, d1, d2),
@@ -89,12 +91,12 @@ export class Conv2DProgram implements GPGPUProgram {
 
             if (${inputDepthVec4Remainder === 1}) {
               dotProd +=
-                getX(xR, xC, ${inputDepthNearestVec4}) *
+                getX(batch, xR, xC, ${inputDepthNearestVec4}) *
                 getW(wR, wC, ${inputDepthNearestVec4}, d2);
             } else if (${inputDepthVec4Remainder === 2}) {
               vec2 xValues = vec2(
-                getX(xR, xC, ${inputDepthNearestVec4}),
-                getX(xR, xC, ${inputDepthNearestVec4} + 1)
+                getX(batch, xR, xC, ${inputDepthNearestVec4}),
+                getX(batch, xR, xC, ${inputDepthNearestVec4} + 1)
               );
               vec2 wValues = vec2(
                 getW(wR, wC, ${inputDepthNearestVec4}, d2),
@@ -103,9 +105,9 @@ export class Conv2DProgram implements GPGPUProgram {
               dotProd += dot(xValues, wValues);
             } else if (${inputDepthVec4Remainder === 3}) {
               vec3 xValues = vec3(
-                getX(xR, xC, ${inputDepthNearestVec4}),
-                getX(xR, xC, ${inputDepthNearestVec4} + 1),
-                getX(xR, xC, ${inputDepthNearestVec4} + 2)
+                getX(batch, xR, xC, ${inputDepthNearestVec4}),
+                getX(batch, xR, xC, ${inputDepthNearestVec4} + 1),
+                getX(batch, xR, xC, ${inputDepthNearestVec4} + 2)
               );
               vec3 wValues = vec3(
                 getW(wR, wC, ${inputDepthNearestVec4}, d2),
