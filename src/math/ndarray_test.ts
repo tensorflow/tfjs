@@ -20,7 +20,15 @@ import * as util from '../util';
 
 import * as ndarray from './ndarray';
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, DType, NDArray, Scalar} from './ndarray';
+import {
+  Array1D,
+  Array2D,
+  Array3D,
+  Array4D,
+  DType,
+  NDArray,
+  Scalar
+} from './ndarray';
 import {GPGPUContext} from './backends/webgl/gpgpu_context';
 import * as gpgpu_util from './backends/webgl/gpgpu_util';
 import {TextureManager} from './backends/webgl/texture_manager';
@@ -193,7 +201,7 @@ test_util.describeCustom('NDArray', () => {
     });
   });
 
-  it('NDArray.data GPU --> CPU', async () => {
+  it('NDArray.data GPU --> CPU', async() => {
     const texture = textureManager.acquireTexture([3, 2]);
     gpgpu.uploadMatrixToTexture(
         texture, 3, 2, new Float32Array([1, 2, 3, 4, 5, 6]));
@@ -206,7 +214,7 @@ test_util.describeCustom('NDArray', () => {
     expect(a.inGPU()).toBe(false);
   });
 
-  it('NDArray.val() GPU --> CPU', async () => {
+  it('NDArray.val() GPU --> CPU', async() => {
     const texture = textureManager.acquireTexture([3, 2]);
     gpgpu.uploadMatrixToTexture(
         texture, 3, 2, new Float32Array([1, 2, 3, 4, 5, 6]));
@@ -257,9 +265,7 @@ test_util.describeCustom('NDArray', () => {
     const texture = textureManager.acquireTexture([1, 3]);
     gpgpu.uploadMatrixToTexture(texture, 1, 3, new Float32Array([10, 7, 3]));
 
-    const f = () => {
-      return Array1D.make([3], {texture});
-    };
+    const f = () => Array1D.make([3], {texture});
 
     expect(f).toThrowError();
     textureManager.releaseTexture(texture, [1, 3]);
@@ -1436,7 +1442,7 @@ test_util.describeCustom('NDArray.randNormal', () => {
   const EPSILON_FLOAT32 = 0.05;
   const EPSILON_NONFLOAT = 0.10;
 
-  it('should return a float32 1D of random normal values KREEGER', () => {
+  it('should return a float32 1D of random normal values', () => {
     const SAMPLES = 10000;
 
     // Ensure defaults to float32.
@@ -1466,7 +1472,7 @@ test_util.describeCustom('NDArray.randNormal', () => {
   });
 
   it('should return a float32 2D of random normal values', () => {
-    const SAMPLES = 100;
+    const SAMPLES = 1000;
 
     // Ensure defaults to float32.
     let result = Array2D.randNormal([SAMPLES, SAMPLES], 0, 0.5);
@@ -1484,7 +1490,7 @@ test_util.describeCustom('NDArray.randNormal', () => {
         result.getValues(), 0, 1.5, EPSILON_FLOAT32);
   });
 
-  it('should return a int32 2D of random normal values KREEGER', () => {
+  it('should return a int32 2D of random normal values', () => {
     const SAMPLES = 100;
     const result = Array2D.randNormal([SAMPLES, SAMPLES], 0, 2, 'int32');
     expect(result.dtype).toBe('int32');
@@ -1513,7 +1519,7 @@ test_util.describeCustom('NDArray.randNormal', () => {
         result.getValues(), 0, 1.5, EPSILON_FLOAT32);
   });
 
-  it('should return a int32 3D of random normal values KREEGER', () => {
+  it('should return a int32 3D of random normal values', () => {
     const SAMPLES = 50;
     const result =
         Array3D.randNormal([SAMPLES, SAMPLES, SAMPLES], 0, 2, 'int32');
