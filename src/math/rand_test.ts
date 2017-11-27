@@ -23,8 +23,8 @@ function isFloat(n: number): boolean {
 }
 
 test_util.describeCustom('MPRandGauss', () => {
-  const EPSILON_FLOAT32 = 0.05;
-  const EPSILON_NONFLOAT = 0.10;
+  const EPSILON = 0.05;
+  const SEED = 2002;
 
   it('should default to float32 numbers', () => {
     const rand = new MPRandGauss(0, 1.5);
@@ -32,13 +32,14 @@ test_util.describeCustom('MPRandGauss', () => {
   });
 
   it('should handle create a mean/stdv of float32 numbers', () => {
-    const rand = new MPRandGauss(0, 1.5, 'float32');
+    const rand =
+        new MPRandGauss(0, 1.5, 'float32', false /* truncated */, SEED);
     const values = [];
     const size = 10000;
     for (let i = 0; i < size; i++) {
       values.push(rand.nextValue());
     }
-    test_util.expectArrayInMeanStdRange(values, 0, 1.5, EPSILON_FLOAT32);
+    test_util.expectArrayInMeanStdRange(values, 0, 1.5, EPSILON);
     test_util.jarqueBeraNormalityTest(values);
   });
 
@@ -47,14 +48,14 @@ test_util.describeCustom('MPRandGauss', () => {
     expect(isFloat(rand.nextValue())).toBe(false);
   });
 
-  it('should handle create a mean/stdv of float32 numbers', () => {
-    const rand = new MPRandGauss(0, 1, 'int32');
+  it('should handle create a mean/stdv of int32 numbers', () => {
+    const rand = new MPRandGauss(0, 2, 'int32', false /* truncated */, SEED);
     const values = [];
-    const size = 1000;
+    const size = 10000;
     for (let i = 0; i < size; i++) {
       values.push(rand.nextValue());
     }
-    test_util.expectArrayInMeanStdRange(values, 0, 1, EPSILON_NONFLOAT);
+    test_util.expectArrayInMeanStdRange(values, 0, 2, EPSILON);
     test_util.jarqueBeraNormalityTest(values);
   });
 
