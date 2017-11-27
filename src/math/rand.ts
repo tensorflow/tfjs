@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as seedrandom from 'seedrandom';
+
 export interface RandGauss { nextValue(): number; }
 
 export interface RandNormalDataTypes {
@@ -31,10 +33,11 @@ export class MPRandGauss implements RandGauss {
   private truncated?: boolean;
   private upper?: number;
   private lower?: number;
+  private random: seedrandom.prng;
 
   constructor(
       mean: number, stdDeviation: number, dtype?: keyof RandNormalDataTypes,
-      truncated?: boolean) {
+      truncated?: boolean, seed?: number) {
     this.mean = mean;
     this.stdDev = stdDeviation;
     this.dtype = dtype;
@@ -44,6 +47,8 @@ export class MPRandGauss implements RandGauss {
       this.upper = this.mean + Math.pow(this.stdDev, 2);
       this.lower = this.mean - Math.pow(this.stdDev, 2);
     }
+    const seedValue = seed ? seed : Math.random();
+    this.random = seedrandom.alea(seedValue.toString());
   }
 
   /** Returns next sample from a gaussian distribution. */
@@ -59,8 +64,8 @@ export class MPRandGauss implements RandGauss {
     while (!isValid) {
       let v1: number, v2: number, s: number;
       do {
-        v1 = 2 * Math.random() - 1;
-        v2 = 2 * Math.random() - 1;
+        v1 = 2 * this.random() - 1;
+        v2 = 2 * this.random() - 1;
         s = v1 * v1 + v2 * v2;
       } while (s >= 1 || s === 0);
 
