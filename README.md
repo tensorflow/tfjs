@@ -112,13 +112,19 @@ $ yarn test
 $ yarn lint
 ```
 
-To run a subset of tests and/or on a specific browser (note the extra `--`):
+To run a subset of tests and/or on a specific browser:
 
 ```bash
 $ yarn test --browsers=Chrome --grep='multinomial'
  
 > ...
 > Chrome 62.0.3202 (Mac OS X 10.12.6): Executed 28 of 1891 (skipped 1863) SUCCESS (6.914 secs / 0.634 secs)
+```
+
+To run the tests once and exit the karma process (helpful on Windows):
+
+```bash
+$ yarn test --single-run'
 ```
 
 To build a standalone ES5 library that can be imported in the browser with a
