@@ -335,12 +335,12 @@ describe('Concat3d validation', () => {
   });
 
   it('Axis=1 different shapes throws', () => {
-    expect(() => g.concat3d(new Tensor([5, 4, 1]), new Tensor([1, 2, 1]), 0))
+    expect(() => g.concat3d(new Tensor([5, 4, 1]), new Tensor([1, 2, 1]), 1))
         .toThrowError();
   });
 
   it('Axis=2 different shapes throws', () => {
-    expect(() => g.concat3d(new Tensor([5, 4, 1]), new Tensor([1, 2, 1]), 0))
+    expect(() => g.concat3d(new Tensor([5, 4, 1]), new Tensor([1, 2, 1]), 2))
         .toThrowError();
   });
 
