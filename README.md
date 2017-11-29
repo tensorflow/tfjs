@@ -124,7 +124,7 @@ $ yarn test --browsers=Chrome --grep='multinomial'
 To run the tests once and exit the karma process (helpful on Windows):
 
 ```bash
-$ yarn test --single-run'
+$ yarn test --single-run
 ```
 
 To build a standalone ES5 library that can be imported in the browser with a
