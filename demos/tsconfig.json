@@ -1,4 +1,7 @@
 {
   "extends": "../tsconfig.json",
-  "include": ["**/*"]
+  "include": ["**/*"],
+  "compilerOptions": {
+    "declaration": false
+  }
 }

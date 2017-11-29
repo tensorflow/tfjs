@@ -29,7 +29,7 @@ cp -r "docs" "$TMP_DIR/"
 ./node_modules/.bin/typedoc --out "$TMP_DIR/docs/api/" --excludeExternals \
   --excludeNotExported --excludePrivate --mode file --tsconfig tsconfig-doc.json
 
-# Build the demos (deploy-demo vulcanizes polymer apps).
+# Build polymer demos (deploy-demo vulcanizes polymer apps).
 cp -r "demos" "$TMP_DIR/"
 ./scripts/deploy-demo demos/model-builder $TMP_DIR
 ./scripts/deploy-demo demos/imagenet $TMP_DIR
@@ -41,6 +41,11 @@ cp -r "demos" "$TMP_DIR/"
 
 ./scripts/deploy-demo demos/intro $TMP_DIR
 ./scripts/deploy-demo demos/ml_beginners $TMP_DIR
+
+# Build vuejs demos.
+cd demos/
+./node_modules/.bin/poi build vue-demo/ -d "$TMP_DIR/demos/vue-demo/"
+cd ..
 
 # Build the homepage (no deploy since homepage is not polymer).
 ./scripts/build-demo demos/homepage
