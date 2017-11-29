@@ -76,7 +76,7 @@ export function LEAKY_RELU(alpha: number) {
 }
 
 export function STEP(alpha = 0.0) {
-  return `
+  return CHECK_NAN_SNIPPET + `
     return (x == x) ? (x > 0.0 ? 1.0 : float(${alpha})) : x;
   `;
 }
