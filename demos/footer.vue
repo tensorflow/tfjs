@@ -1,0 +1,55 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<style>
+footer {
+  margin-top: 20px;
+}
+</style>
+
+<template>
+<!-- Footer -->
+<footer class="mdl-mini-footer">
+  <div class="mdl-mini-footer__left-section">
+    <div class="mdl-logo">
+      <a href="https://www.google.com" target="_blank">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 68 28" width="68" height="28">
+          <path fill="none" d="M0 0h68v28H0z"/>
+          <path fill="#9E9E9E" d="M8.34 18.32c-4.52 0-8.32-3.68-8.32-8.2s3.8-8.2 8.32-8.2c2.5 0 4.28.98 5.62 2.26l-1.58 1.58c-.96-.9-2.26-1.6-4.04-1.6-3.3 0-5.88 2.66-5.88 5.96s2.58 5.96 5.88 5.96c2.14 0 3.36-.86 4.14-1.64.64-.64 1.06-1.56 1.22-2.82H8.34V9.38h7.54c.08.4.12.88.12 1.4 0 1.68-.46 3.76-1.94 5.24-1.44 1.5-3.28 2.3-5.72 2.3zm19.46-5.28c0 3.04-2.38 5.28-5.3 5.28s-5.3-2.24-5.3-5.28c0-3.06 2.38-5.28 5.3-5.28s5.3 2.22 5.3 5.28zm-2.32 0c0-1.9-1.38-3.2-2.98-3.2s-2.98 1.3-2.98 3.2c0 1.88 1.38 3.2 2.98 3.2s2.98-1.32 2.98-3.2zm14.32 0c0 3.04-2.38 5.28-5.3 5.28s-5.3-2.24-5.3-5.28c0-3.06 2.38-5.28 5.3-5.28s5.3 2.22 5.3 5.28zm-2.32 0c0-1.9-1.38-3.2-2.98-3.2s-2.98 1.3-2.98 3.2c0 1.88 1.38 3.2 2.98 3.2s2.98-1.32 2.98-3.2zm13.84-4.96v9.48c0 3.9-2.3 5.5-5.02 5.5-2.56 0-4.1-1.72-4.68-3.12l2.02-.84c.36.86 1.24 1.88 2.66 1.88 1.74 0 2.82-1.08 2.82-3.1v-.76h-.08c-.52.64-1.52 1.2-2.78 1.2-2.64 0-5.06-2.3-5.06-5.26 0-2.98 2.42-5.3 5.06-5.3 1.26 0 2.26.56 2.78 1.18h.08v-.86h2.2zm-2.04 4.98c0-1.86-1.24-3.22-2.82-3.22-1.6 0-2.94 1.36-2.94 3.22 0 1.84 1.34 3.18 2.94 3.18 1.58 0 2.82-1.34 2.82-3.18zm6.41-10.58V18h-2.32V2.48h2.32zm9.41 12.3l1.8 1.2c-.58.86-1.98 2.34-4.4 2.34-3 0-5.24-2.32-5.24-5.28 0-3.14 2.26-5.28 4.98-5.28 2.74 0 4.08 2.18 4.52 3.36l.24.6-7.06 2.92c.54 1.06 1.38 1.6 2.56 1.6 1.18 0 2-.58 2.6-1.46zm-5.54-1.9l4.72-1.96c-.26-.66-1.04-1.12-1.96-1.12-1.18 0-2.82 1.04-2.76 3.08z"/>
+        </svg>
+      </a>
+    </div>
+    <ul class="mdl-mini-footer__link-list">
+      <li> <a href="https://www.google.ai/pair" target="_blank">People + AI Research Initiative</a> </li>
+    </ul>
+  </div>
+  <div class="mdl-mini-footer__right-section">
+    <ul class="mdl-mini-footer__link-list">
+      <li> <a href="https://pair-code.github.io" target="_blank">PAIR Open Source</a> </li>
+      <li> <a href="https://github.com/PAIR-code" target="_blank">Source on Github</a> </li>
+    </ul>
+  </div>
+</footer>
+</template>
+
+<script defer="" src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-46457317-8', 'auto');
+  ga('send', 'pageview');
+</script>

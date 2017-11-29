@@ -17,10 +17,25 @@
 const path = require('path');
 const spawn = require('cross-spawn');
 const opn = require('opn');
+const shell = require('shelljs');
+
+/** List of vue demos. */
+const VUE_DEMOS = new Set(['vue-demo']);
 
 const demoPath = process.argv[2];
+const demoFolder = path.basename(demoPath);
 const outputPath = path.join(demoPath, 'bundle.js')
-const tsPath = path.join(demoPath, path.basename(demoPath) + '.ts');
+const tsPath = path.join(demoPath, demoFolder + '.ts');
+
+if (VUE_DEMOS.has(demoFolder)) {
+  shell.cd('demos');
+  const cmd = `./node_modules/.bin/poi ${demoFolder} -o`;
+  if (shell.exec(cmd).code !== 0) {
+    shell.echo(`Failed building ${demoFolder}`);
+    shell.exit(1);
+  }
+  return;
+}
 
 const cmd = path.join('demos', 'node_modules', '.bin', 'watchify');
 const watchify = spawn(cmd, [tsPath, '-p', '[tsify', '-p', 'demos/]', '-v',
