@@ -1,0 +1,62 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <!-- This script is stripped during vulcanization, available only during development. It provides
+       polyfill for debugging/testing in non-Chrome browsers.
+  -->
+  <script src="../node_modules/@bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+  <link rel="import" href="xor.html">
+  <link rel="import" href="../demo-header.html">
+  <link rel="import" href="../demo-footer.html">
+  <link rel="import" href="../node_modules/@bower_components/iron-icons/image-icons.html">
+  <link rel="import" href="../node_modules/@bower_components/iron-icons/iron-icons.html">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dialog-polyfill/0.4.9/dialog-polyfill.min.js"></script>
+  <script src="../homepage/assets/support.js"></script>
+
+  <title>deeplearn.js Learning XOR demo</title>
+  <style>
+    html {
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    head {
+      height: 0;
+      width: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <demo-header name="xor"></demo-header>
+  <xor-demo></xor-demo>
+  <demo-footer></demo-footer>
+</body>
+
+</html>
