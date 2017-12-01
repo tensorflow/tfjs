@@ -68,10 +68,7 @@ export class Subtract extends Operation {
       if (graph_util.shouldBackProp(this.t1)) {
         if (util.isScalarShape(this.t1.shape)) {
           const sum = math.sum(dy);
-          if (this.dySizeScalar == null) {
-            this.dySizeScalar = Scalar.new(dy.size);
-          }
-          gradientArrays.add(this.t1, math.divide(sum, this.dySizeScalar));
+          gradientArrays.add(this.t1, sum);
         } else {
           gradientArrays.add(this.t1, math.clone(dy));
         }
@@ -81,10 +78,7 @@ export class Subtract extends Operation {
         if (util.isScalarShape(this.t2.shape)) {
           const sum = math.sum(dy);
           const negSum = math.neg(sum);
-          if (this.dySizeScalar == null) {
-            this.dySizeScalar = Scalar.new(dy.size);
-          }
-          gradientArrays.add(this.t2, math.divide(negSum, this.dySizeScalar));
+          gradientArrays.add(this.t2, negSum);
         } else {
           gradientArrays.add(this.t2, math.neg(dy));
         }

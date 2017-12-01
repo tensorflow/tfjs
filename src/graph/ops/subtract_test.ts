@@ -145,7 +145,7 @@ describe('add operation', () => {
     expect(dx1.getValues()).toEqual(dy.getValues());
 
     expect(dx2.shape).toEqual(x2.shape);
-    expect(dx2.get()).toEqual(-7);
+    expect(dx2.get()).toEqual(-42);
   });
 
   it('scalar - ndarray', () => {
@@ -175,7 +175,7 @@ describe('add operation', () => {
     const dx2 = gradients.get(t2);
 
     expect(dx1.shape).toEqual(x1.shape);
-    expect(dx1.get()).toEqual(7);
+    expect(dx1.get()).toEqual(42);
 
     expect(dx2.shape).toEqual(x2.shape);
     expect(dx2.getValues()).toEqual(new Float32Array([
