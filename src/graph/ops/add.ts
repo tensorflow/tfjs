@@ -76,18 +76,10 @@ export class Add extends Operation {
             this.x2Tensor.shape.length === 2 &&
             this.x1Tensor.shape[0] === this.x2Tensor.shape[1]) {
           const sum = math.sum(dy as Array2D, 0);
-          if (this.dySizeScalar == null) {
-            this.dySizeScalar = Scalar.new(this.x2Tensor.shape[0]);
-          }
-          gradientArrays.add(
-              this.x1Tensor, math.divide(sum, this.dySizeScalar));
+          gradientArrays.add(this.x1Tensor, sum);
         } else if (util.isScalarShape(this.x1Tensor.shape)) {
           const sum = math.sum(dy);
-          if (this.dySizeScalar == null) {
-            this.dySizeScalar = Scalar.new(dy.size);
-          }
-          gradientArrays.add(
-              this.x1Tensor, math.divide(sum, this.dySizeScalar));
+          gradientArrays.add(this.x1Tensor, sum);
         } else {
           gradientArrays.add(this.x1Tensor, math.clone(dy));
         }
@@ -98,18 +90,10 @@ export class Add extends Operation {
             this.x2Tensor.shape.length === 1 &&
             this.x1Tensor.shape[1] === this.x2Tensor.shape[0]) {
           const sum = math.sum(dy as Array2D, 0);
-          if (this.dySizeScalar == null) {
-            this.dySizeScalar = Scalar.new(this.x1Tensor.shape[0]);
-          }
-          gradientArrays.add(
-              this.x2Tensor, math.divide(sum, this.dySizeScalar));
+          gradientArrays.add(this.x2Tensor, sum);
         } else if (util.isScalarShape(this.x2Tensor.shape)) {
           const sum = math.sum(dy);
-          if (this.dySizeScalar == null) {
-            this.dySizeScalar = Scalar.new(dy.size);
-          }
-          gradientArrays.add(
-              this.x2Tensor, math.divide(sum, this.dySizeScalar));
+          gradientArrays.add(this.x2Tensor, sum);
         } else {
           gradientArrays.add(this.x2Tensor, math.clone(dy));
         }

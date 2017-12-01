@@ -143,7 +143,7 @@ describe('add operation', () => {
     expect(dx1.getValues()).toEqual(dy.getValues());
 
     expect(dx2.shape).toEqual(x2.shape);
-    expect(dx2.get()).toEqual(7);
+    expect(dx2.get()).toEqual(42);
   });
 
   it('scalar + array', () => {
@@ -173,7 +173,7 @@ describe('add operation', () => {
     const dx2 = gradients.get(t2);
 
     expect(dx1.shape).toEqual(x1.shape);
-    expect(dx1.get()).toEqual(7);
+    expect(dx1.get()).toEqual(42);
 
     expect(dx2.shape).toEqual(x2.shape);
     expect(dx2.getValues()).toEqual(dy.getValues());
@@ -223,7 +223,7 @@ describe('add operation', () => {
     expect(dx1.getValues()).toEqual(dy.getValues());
 
     expect(dx2.shape).toEqual(x2.shape);
-    expect(dx2.getValues()).toEqual(new Float32Array([5, 7, 9]));
+    expect(dx2.getValues()).toEqual(new Float32Array([10, 14, 18]));
   });
 
   it('1D array + 2D array broadcast', () => {
@@ -253,7 +253,7 @@ describe('add operation', () => {
     const dx2 = gradients.get(t2);
 
     expect(dx1.shape).toEqual(x1.shape);
-    expect(dx1.getValues()).toEqual(new Float32Array([5, 7, 9]));
+    expect(dx1.getValues()).toEqual(new Float32Array([10, 14, 18]));
 
     expect(dx2.shape).toEqual(x2.shape);
     expect(dx2.getValues()).toEqual(dy.getValues());
