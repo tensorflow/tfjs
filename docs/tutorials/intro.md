@@ -215,7 +215,7 @@ for (let i = 0; i < NUM_BATCHES; i++) {
 After training, we can infer through the graph:
 
 ```js
-const testInput = track(Array1D.new([0.1, 0.2, 0.3]));
+const testInput = Array1D.new([0.1, 0.2, 0.3]);
 
 // session.eval can take NDArrays as input data.
 const testFeedEntries: FeedEntry[] = [
