@@ -15,7 +15,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Model, NDArrayMath, NDArrayMathCPU, Scalar} from 'deeplearn';
+import {Array1D, Array2D, Array3D, initializeGPU, Model, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Scalar} from 'deeplearn';
 import {SqueezeNet} from 'deeplearn-squeezenet';
 
 export class KNNImageClassifier implements Model {
@@ -43,6 +43,14 @@ export class KNNImageClassifier implements Model {
   constructor(
       private numClasses: number, private k: number,
       private math: NDArrayMath) {
+    // TODO(nsthorat): This awful hack is because we need to share the global
+    // GPGPU between deeplearn loaded from standalone as well as the internal
+    // deeplearn that gets compiled as part of this model. Remove this once we
+    // decouple NDArray from storage mechanism.
+    initializeGPU(
+        (this.math as NDArrayMathGPU).getGPGPUContext(),
+        (this.math as NDArrayMathGPU).getTextureManager());
+
     this.mathCPU = new NDArrayMathCPU();
 
     for (let i = 0; i < this.numClasses; i++) {
@@ -78,7 +86,7 @@ export class KNNImageClassifier implements Model {
   /**
    * Adds the provided image to the specified class.
    */
-  async addImage(image: Array3D, classIndex: number): Promise<void> {
+  addImage(image: Array3D, classIndex: number): void {
     if (!this.varsLoaded) {
       console.warn('Cannot add images until vars have been loaded.');
       return;
@@ -88,11 +96,11 @@ export class KNNImageClassifier implements Model {
     }
     this.clearTrainLogitsMatrix();
 
-    await this.math.scope(async (keep, track) => {
+    this.math.scope((keep, track) => {
       // Add the squeezenet logits for the image to the appropriate class
       // logits matrix.
-      const predResults = await this.squeezeNet.predict(image);
-      const imageLogits = this.normalizeVector(predResults.logits);
+      const logits = this.squeezeNet.predict(image);
+      const imageLogits = this.normalizeVector(logits);
 
       const logitsSize = imageLogits.shape[0];
       if (this.classLogitsMatrices[classIndex] == null) {
@@ -112,25 +120,28 @@ export class KNNImageClassifier implements Model {
   }
 
   /**
-   * Predicts the class of the provided image using KNN from the previously-
-   * added images and their classes.
+   * You are probably are looking for "predictClass".
    *
-   * @param image The image to predict the class for.
-   * @returns A dict of the top class for the image and an array of confidence
-   * values for all possible classes.
+   * This method returns the K-nearest neighbors as distances in the database.
+   *
+   * This unfortunately deviates from standard behavior for nearest neighbors
+   * classifiers, making this method relatively useless:
+   * http://scikit-learn.org/stable/modules/neighbors.html
+   *
+   * TODO(nsthorat): Return the class indices once we have GPU kernels for topK
+   * and take. This method is useless on its own, but matches our Model API.
+   *
+   * @param image The input image.
+   * @returns cosine distances for each entry in the database.
    */
-  async predict(image: Array3D):
-      Promise<{classIndex: number, confidences: number[]}> {
-    let imageClass = -1;
-    const confidences = new Array<number>(this.numClasses);
+  predict(image: Array3D): Array1D {
     if (!this.varsLoaded) {
-      console.warn('Cannot predict until vars have been loaded.');
-      return {classIndex: imageClass, confidences};
+      throw new Error('Cannot predict until vars have been loaded.');
     }
 
-    const topKIndices = await this.math.scope(async (keep) => {
-      const predResults = await this.squeezeNet.predict(image);
-      const imageLogits = this.normalizeVector(predResults.logits);
+    return this.math.scope((keep) => {
+      const logits = this.squeezeNet.predict(image);
+      const imageLogits = this.normalizeVector(logits);
       const logitsSize = imageLogits.shape[0];
 
       // Lazily create the logits matrix for all training images if necessary.
@@ -152,14 +163,37 @@ export class KNNImageClassifier implements Model {
       keep(this.trainLogitsMatrix);
 
       const numExamples = this.getNumExamples();
-      const knn = this.math
-                      .matMul(
-                          this.trainLogitsMatrix.as2D(numExamples, logitsSize),
-                          imageLogits.as2D(logitsSize, 1))
-                      .as1D();
+      return this.math
+          .matMul(
+              this.trainLogitsMatrix.as2D(numExamples, logitsSize),
+              imageLogits.as2D(logitsSize, 1))
+          .as1D();
+    });
+  }
+
+  /**
+   * Predicts the class of the provided image using KNN from the previously-
+   * added images and their classes.
+   *
+   * @param image The image to predict the class for.
+   * @returns A dict of the top class for the image and an array of confidence
+   * values for all possible classes.
+   */
+  async predictClass(image: Array3D):
+      Promise<{classIndex: number, confidences: number[]}> {
+    let imageClass = -1;
+    const confidences = new Array<number>(this.numClasses);
+    if (!this.varsLoaded) {
+      throw new Error('Cannot predict until vars have been loaded.');
+    }
+
+    const topKIndices = await this.math.scope(async (keep) => {
+      const knn = this.predict(image);
       // mathCPU downloads the values, so we should wait until the GPU isdone
       // so we don't block the UI thread.
       await knn.data();
+
+      const numExamples = this.getNumExamples();
 
       const kVal = Math.min(this.k, numExamples);
       const topK = this.mathCPU.topK(knn, kVal);

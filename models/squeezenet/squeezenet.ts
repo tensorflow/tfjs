@@ -22,6 +22,9 @@ import {IMAGENET_CLASSES} from './imagenet_classes';
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/';
 
+export type ActivationName = 'conv_1'|'maxpool_1'|'fire2'|'fire3'|'maxpool_2'|
+    'fire4'|'fire5'|'maxpool_3'|'fire6'|'fire7'|'fire8'|'fire9'|'conv10';
+
 export class SqueezeNet implements Model {
   private variables: {[varName: string]: NDArray};
 
@@ -52,16 +55,25 @@ export class SqueezeNet implements Model {
    * method returns named activations as well as pre-softmax logits.
    *
    * @param input un-preprocessed input Array.
-   * @return Named activations and the pre-softmax logits.
+   * @return The pre-softmax logits.
    */
-  async predict(input: Array3D): Promise<{
-    namedActivations: {[activationName: string]: Array3D},
-    logits: Array1D
-  }> {
-    // Keep a map of named activations for rendering purposes.
-    const namedActivations: {[key: string]: Array3D} = {};
+  predict(input: Array3D): Array1D {
+    return this.predictWithActivation(input).logits;
+  }
 
-    const avgpool10 = this.math.scope((keep) => {
+  /**
+   * Infer through SqueezeNet, assumes variables have been loaded. This does
+   * standard ImageNet pre-processing before inferring through the model. This
+   * method returns named activations as well as pre-softmax logits.
+   *
+   * @param input un-preprocessed input Array.
+   * @return A requested activation and the pre-softmax logits.
+   */
+  predictWithActivation(input: Array3D, activationName?: ActivationName):
+      {logits: Array1D, activation: Array3D} {
+    let activation: Array3D;
+
+    const logits = this.math.scope((keep) => {
       // Preprocess the input.
       const preprocessedInput =
           this.math.subtract(input, this.preprocessOffset) as Array3D;
@@ -69,57 +81,80 @@ export class SqueezeNet implements Model {
       const conv1 = this.math.conv2d(
           preprocessedInput, this.variables['conv1_W:0'] as Array4D,
           this.variables['conv1_b:0'] as Array1D, 2, 0);
-      const conv1relu = keep(this.math.relu(conv1));
-      namedActivations['conv_1'] = conv1relu;
+      const conv1relu = this.math.relu(conv1);
+      if (activationName === 'conv_1') {
+        activation = conv1relu;
+      }
 
-      const pool1 = keep(this.math.maxPool(conv1relu, 3, 2, 0));
-      namedActivations['maxpool_1'] = pool1;
+      const pool1 = this.math.maxPool(conv1relu, 3, 2, 0);
+      if (activationName === 'maxpool_1') {
+        activation = pool1;
+      }
 
-      const fire2 = keep(this.fireModule(pool1, 2));
-      namedActivations['fire2'] = fire2;
+      const fire2 = this.fireModule(pool1, 2);
+      if (activationName === 'fire2') {
+        activation = fire2;
+      }
 
-      const fire3 = keep(this.fireModule(fire2, 3));
-      namedActivations['fire3'] = fire3;
+      const fire3 = this.fireModule(fire2, 3);
+      if (activationName === 'fire3') {
+        activation = fire3;
+      }
 
-      const pool2 = keep(this.math.maxPool(fire3, 3, 2, 'valid'));
-      namedActivations['maxpool_2'] = pool2;
+      const pool2 = this.math.maxPool(fire3, 3, 2, 'valid');
+      if (activationName === 'maxpool_2') {
+        activation = pool2;
+      }
 
-      const fire4 = keep(this.fireModule(pool2, 4));
-      namedActivations['fire4'] = fire4;
+      const fire4 = this.fireModule(pool2, 4);
+      if (activationName === 'fire4') {
+        activation = fire4;
+      }
 
       const fire5 = keep(this.fireModule(fire4, 5));
-      namedActivations['fire5'] = fire5;
+      if (activationName === 'fire5') {
+        activation = fire5;
+      }
 
-      const pool3 = keep(this.math.maxPool(fire5, 3, 2, 0));
-      namedActivations['maxpool_3'] = pool3;
+      const pool3 = this.math.maxPool(fire5, 3, 2, 0);
+      if (activationName === 'maxpool_3') {
+        activation = pool3;
+      }
 
-      const fire6 = keep(this.fireModule(pool3, 6));
-      namedActivations['fire6'] = fire6;
+      const fire6 = this.fireModule(pool3, 6);
+      if (activationName === 'fire6') {
+        activation = fire6;
+      }
 
-      const fire7 = keep(this.fireModule(fire6, 7));
-      namedActivations['fire7'] = fire7;
+      const fire7 = this.fireModule(fire6, 7);
+      if (activationName === 'fire7') {
+        activation = fire7;
+      }
 
-      const fire8 = keep(this.fireModule(fire7, 8));
-      namedActivations['fire8'] = fire8;
+      const fire8 = this.fireModule(fire7, 8);
+      if (activationName === 'fire8') {
+        activation = fire8;
+      }
 
-      const fire9 = keep(this.fireModule(fire8, 9));
-      namedActivations['fire9'] = fire9;
+      const fire9 = this.fireModule(fire8, 9);
+      if (activationName === 'fire9') {
+        activation = fire9;
+      }
 
       const conv10 = keep(this.math.conv2d(
           fire9, this.variables['conv10_W:0'] as Array4D,
           this.variables['conv10_b:0'] as Array1D, 1, 0));
-      namedActivations['conv10'] = conv10;
+      if (activationName === 'conv10') {
+        activation = conv10;
+      }
 
+      if (activation != null) {
+        keep(activation);
+      }
       return this.math.avgPool(conv10, conv10.shape[0], 1, 0).as1D();
     });
 
-    // Track these activations automatically so they get cleaned up in a parent
-    // scope.
-    const layerNames = Object.keys(namedActivations);
-    layerNames.forEach(
-        layerName => this.math.track(namedActivations[layerName]));
-
-    return {namedActivations, logits: avgpool10};
+    return {activation, logits};
   }
 
   private fireModule(input: Array3D, fireId: number) {
