@@ -340,7 +340,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
         for (let i = 0; i < indicators.length; i++) {
           (indicators[i] as HTMLElement).style.backgroundColor = 'lightgray';
         }
-        await this.classifier.addImage(image, this.selectedIndex);
+        this.classifier.addImage(image, this.selectedIndex);
         const countBoxId = 'count_' + String(this.selectedIndex);
         const countBox = this.$$('#' + countBoxId) as HTMLElement;
         countBox.innerHTML = String(+countBox.innerHTML + 1);
@@ -350,7 +350,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
       await this.math.scope(async (keep, track) => {
         const image = track(Array3D.fromPixels(this.webcamVideoElement));
         const timeStart = performance.now();
-        const results = await this.classifier.predict(image);
+        const results = await this.classifier.predictClass(image);
         this.predictTimes.add(performance.now() - timeStart);
         if (this.animateLoopIndex % TeachableGamingDemo.animateLoopStatsFreq ===
             0) {

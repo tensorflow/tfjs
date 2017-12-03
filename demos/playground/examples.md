@@ -20,8 +20,8 @@ Add examples to this page by sending us a pull request with edits to the
 
 
 * [README code](index.html#2e04d6ee52426e790f318b38eb043ae9)
-* [SqueezeNet - basic usage](index.html#400c3fc52db01860c1ddb8040bfcc4c9)
-* [SqueezeNet - predict from drag and drop image](index.html#943c625b0630c1618c29bfdea528d7a3)
+* [SqueezeNet - basic usage](index.html#3429649a8ea4e1437a30a0a256c40708)
+* [SqueezeNet - predict from drag and drop image](index.html#84ac565ef06606045942ec8e0e4284d7)
 
 <button onclick="location.href='index.html#ccb7ffd95d631f0874befbb552ba34ed'" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent" type="button">New example</button>
 

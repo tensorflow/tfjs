@@ -1,18 +1,19 @@
 {
   "name": "deeplearn-squeezenet",
-  "version": "0.1.2",
+  "version": "0.1.6",
   "description": "Pretrained SqueezeNet model in deeplearn.js",
   "main": "dist/index.js",
   "unpkg": "dist/bundle.js",
   "types": "dist/index.d.ts",
   "peerDependencies": {
-    "deeplearn": "~0.3.11"
+    "deeplearn": "~0.3.13"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/PAIR-code/deeplearnjs.git"
   },
   "devDependencies": {
+    "browserify": "~14.4.0",
     "deeplearn": "~0.3.11",
     "mkdirp": "~0.5.1",
     "tsify": "~3.0.3",
@@ -23,9 +24,9 @@
   },
   "scripts": {
     "prep": "yarn && mkdirp dist",
-    "build": "browserify --standalone squeezenet squeezenet.ts -p [tsify] -o dist/bundle.js",
+    "build": "tsc --sourceMap false && browserify --standalone squeezenet squeezenet.ts -p [tsify] -o dist/bundle.js",
     "lint": "tslint -p . -t verbose",
-    "publish-npm": "tsc --sourceMap false && yarn build && npm publish"
+    "publish-npm": "yarn build && yarn publish"
   },
   "license": "Apache-2.0"
 }

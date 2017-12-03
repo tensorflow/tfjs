@@ -2087,22 +2087,23 @@ deep-is@~0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
 
-deeplearn-knn-image-classifier@~0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/deeplearn-knn-image-classifier/-/deeplearn-knn-image-classifier-0.1.2.tgz#88ea7d137ded7bdf530b593051baee1774b41d3c"
+deeplearn-knn-image-classifier@~0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/deeplearn-knn-image-classifier/-/deeplearn-knn-image-classifier-0.2.0.tgz#e45dbe01bcd157c2608cad781d06c5590847782e"
   dependencies:
-    deeplearn "~0.3.7"
-    deeplearn-squeezenet "~0.1.2"
+    deeplearn-squeezenet "~0.1.5"
 
-deeplearn-squeezenet@~0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/deeplearn-squeezenet/-/deeplearn-squeezenet-0.1.2.tgz#d6cfe673eb1ee736d31e6493a1fa51447fd2862b"
-  dependencies:
-    deeplearn "~0.3.7"
+deeplearn-squeezenet@~0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/deeplearn-squeezenet/-/deeplearn-squeezenet-0.1.5.tgz#db2e6ac320555a178278b238442000e3beea4683"
 
-deeplearn@~0.3.11, deeplearn@~0.3.7:
-  version "0.3.11"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.3.11.tgz#b851281158da16d6745f490dc6ae8c9db851bc03"
+deeplearn-squeezenet@~0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/deeplearn-squeezenet/-/deeplearn-squeezenet-0.1.6.tgz#f73c25d8627de514d72425471a3d69436c754ecf"
+
+deeplearn@~0.3.13:
+  version "0.3.13"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.3.13.tgz#12033ab21581fb277dede662250bd58d86457d44"
   dependencies:
     seedrandom "~2.4.3"
 
