@@ -1995,6 +1995,50 @@ currently-unhandled@^0.4.1:
   dependencies:
     array-find-index "^1.0.1"
 
+d3-array@^1.2.0, d3-array@~1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/d3-array/-/d3-array-1.2.1.tgz#d1ca33de2f6ac31efadb8e050a021d7e2396d5dc"
+
+d3-collection@1:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/d3-collection/-/d3-collection-1.0.4.tgz#342dfd12837c90974f33f1cc0a785aea570dcdc2"
+
+d3-color@1:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/d3-color/-/d3-color-1.0.3.tgz#bc7643fca8e53a8347e2fbdaffa236796b58509b"
+
+d3-format@1, d3-format@~1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/d3-format/-/d3-format-1.2.1.tgz#4e19ecdb081a341dafaf5f555ee956bcfdbf167f"
+
+d3-interpolate@1:
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/d3-interpolate/-/d3-interpolate-1.1.6.tgz#2cf395ae2381804df08aa1bf766b7f97b5f68fb6"
+  dependencies:
+    d3-color "1"
+
+d3-scale@~1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/d3-scale/-/d3-scale-1.0.7.tgz#fa90324b3ea8a776422bd0472afab0b252a0945d"
+  dependencies:
+    d3-array "^1.2.0"
+    d3-collection "1"
+    d3-color "1"
+    d3-format "1"
+    d3-interpolate "1"
+    d3-time "1"
+    d3-time-format "2"
+
+d3-time-format@2:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/d3-time-format/-/d3-time-format-2.1.1.tgz#85b7cdfbc9ffca187f14d3c456ffda268081bb31"
+  dependencies:
+    d3-time "1"
+
+d3-time@1:
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/d3-time/-/d3-time-1.0.8.tgz#dbd2d6007bf416fe67a76d17947b784bffea1e84"
+
 d@1:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/d/-/d-1.0.0.tgz#754bb5bfe55451da69a58b94d45f4c5b0462d58f"

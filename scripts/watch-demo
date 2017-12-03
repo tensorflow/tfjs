@@ -20,7 +20,7 @@ const opn = require('opn');
 const shell = require('shelljs');
 
 /** List of vue demos. */
-const VUE_DEMOS = new Set(['vue-demo']);
+const VUE_DEMOS = new Set(['vue-demo', 'latent-space-explorer']);
 
 const demoPath = process.argv[2];
 const demoFolder = path.basename(demoPath);
