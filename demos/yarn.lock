@@ -4255,7 +4255,7 @@ poi-load-config@^1.1.2:
     postcss-load-config "^1.2.0"
     use-config "^1.1.0"
 
-poi-preset-typescript@^9.0.2:
+poi-preset-typescript@~9.0.2:
   version "9.0.2"
   resolved "https://registry.yarnpkg.com/poi-preset-typescript/-/poi-preset-typescript-9.0.2.tgz#8d9704bb5ecc824a0274f5758d21f6b78448d57f"
   dependencies:
@@ -4265,9 +4265,9 @@ poi-webpack-node-externals@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/poi-webpack-node-externals/-/poi-webpack-node-externals-2.0.0.tgz#3e23ae0673705f5f44b23ecd194b85c724de91fa"
 
-poi@^9.5.4:
-  version "9.5.4"
-  resolved "https://registry.yarnpkg.com/poi/-/poi-9.5.4.tgz#4d6e09da4fe5db40f2adedad37d61a41c366d911"
+poi@~9.5.4:
+  version "9.5.5"
+  resolved "https://registry.yarnpkg.com/poi/-/poi-9.5.5.tgz#a34ccc0710312beb0441d54d4435bb692b3c4023"
   dependencies:
     address "^1.0.1"
     autoprefixer "^7.1.2"
@@ -5973,7 +5973,7 @@ vue-template-es2015-compiler@^1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/vue-template-es2015-compiler/-/vue-template-es2015-compiler-1.6.0.tgz#dc42697133302ce3017524356a6c61b7b69b4a18"
 
-vue@^2.3.3, vue@^2.5.9:
+vue@^2.3.3, vue@~2.5.9:
   version "2.5.9"
   resolved "https://registry.yarnpkg.com/vue/-/vue-2.5.9.tgz#b2380cd040915dca69881dafd121d760952e65f7"
 
