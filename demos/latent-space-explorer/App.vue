@@ -28,7 +28,13 @@ limitations under the License.
         />
         <div class="description">This demo allows you to interactively explore
            a 40-dimensional latent space of typefaces. The model used here
-           was created by James Wexler, based on work by <a href="https://erikbern.com/2016/01/21/analyzing-50k-fonts-using-deep-neural-networks.html">Erik Bernhardsson</a>.</div>
+           was created by <a href="https://twitter.com/bengiswex">James Wexler</a>,
+           based on work by
+           <a href="https://erikbern.com/2016/01/21/analyzing-50k-fonts-using-deep-neural-networks.html">Erik Bernhardsson</a>,
+           and is used in the distill.pub article
+           <a href="https://distill.pub/2017/aia/">Using Artificial Intelligence to Augment Human Intelligence"</a>,
+           which describes the model in greater detail.
+        </div>
       </div>
     </div>
     <!-- Dimensions -->
