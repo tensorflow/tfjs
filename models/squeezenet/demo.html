@@ -24,11 +24,11 @@
 
     const pixels = dl.Array3D.fromPixels(cat);
 
-    const result = await squeezeNet.predict(pixels);
+    const result = squeezeNet.predict(pixels);
 
     resultElement.innerText = '';
 
-    const topK = await squeezeNet.getTopKClasses(result.logits, 5);
+    const topK = await squeezeNet.getTopKClasses(result, 5);
     for (const key in topK) {
       resultElement.innerText += `${topK[key].toFixed(5)}: ${key}\n`;
     };
