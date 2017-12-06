@@ -128,11 +128,26 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     }
   }
 
+  /** Creates a ndarray of ones with the specified shape. */
+  static ones<T extends keyof DataTypes = keyof DataTypes>(
+      shape: number[], dtype?: T): NDArray<T> {
+    const values = makeOnesTypedArray(util.sizeFromShape(shape), dtype);
+    return NDArray.make(shape, {values}, dtype);
+  }
+
   /** Creates a ndarray of zeros with the specified shape. */
   static zeros<T extends keyof DataTypes = keyof DataTypes>(
       shape: number[], dtype?: T): NDArray<T> {
     const values = makeZerosTypedArray(util.sizeFromShape(shape), dtype);
     return NDArray.make(shape, {values}, dtype);
+  }
+
+  /**
+   * Creates a ndarray of ones with the same shape as the specified ndarray.
+   */
+  static onesLike<G extends keyof DataTypes, T extends NDArray<G>>(another: T):
+      T {
+    return NDArray.ones(another.shape, another.dtype) as T;
   }
 
   /**
@@ -608,6 +623,11 @@ export class Array1D<T extends keyof DataTypes = keyof DataTypes> extends
     return super.asType(dtype) as Array1D<G>;
   }
 
+  static ones<T extends keyof DataTypes = keyof DataTypes>(
+      shape: [number], dtype?: T): Array1D<T> {
+    return NDArray.ones(shape, dtype) as Array1D<T>;
+  }
+
   static zeros<T extends keyof DataTypes = keyof DataTypes>(
       shape: [number], dtype?: T): Array1D<T> {
     return NDArray.zeros(shape, dtype) as Array1D<T>;
@@ -700,6 +720,11 @@ export class Array2D<T extends keyof DataTypes = keyof DataTypes> extends
 
   asType<G extends keyof DataTypes>(dtype: G): Array2D<G> {
     return super.asType(dtype) as Array2D<G>;
+  }
+
+  static ones<T extends keyof DataTypes = keyof DataTypes>(
+      shape: [number, number], dtype?: T): Array2D<T> {
+    return NDArray.ones(shape, dtype) as Array2D<T>;
   }
 
   static zeros<T extends keyof DataTypes = keyof DataTypes>(
@@ -797,6 +822,11 @@ export class Array3D<T extends keyof DataTypes = keyof DataTypes> extends
 
   asType<G extends keyof DataTypes>(dtype: G): Array3D<G> {
     return super.asType(dtype) as Array3D<G>;
+  }
+
+  static ones<T extends keyof DataTypes = keyof DataTypes>(
+      shape: [number, number, number], dtype?: T): Array3D<T> {
+    return NDArray.ones(shape, dtype) as Array3D<T>;
   }
 
   static zeros<T extends keyof DataTypes = keyof DataTypes>(
@@ -906,6 +936,11 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
     return super.asType(dtype) as Array4D<G>;
   }
 
+  static ones<T extends keyof DataTypes = keyof DataTypes>(
+      shape: [number, number, number, number], dtype?: T): Array4D<T> {
+    return NDArray.ones(shape, dtype) as Array4D<T>;
+  }
+
   static zeros<T extends keyof DataTypes = keyof DataTypes>(
       shape: [number, number, number, number], dtype?: T): Array4D<T> {
     return NDArray.zeros(shape, dtype) as Array4D<T>;
@@ -998,6 +1033,15 @@ function makeZerosTypedArray<T extends keyof DataTypes>(
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
+}
+
+function makeOnesTypedArray<T extends keyof DataTypes>(
+    size: number, dtype: T): DataTypes[T] {
+  const array = makeZerosTypedArray(size, dtype);
+  for (let i = 0; i < array.length; i++) {
+    array[i] = 1;
+  }
+  return array;
 }
 
 function typedArrayToFloat32(
