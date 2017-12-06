@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": [
+    "index.ts", "mobiletnet.ts"
+  ],
+  "exclude": [
+    "node_modules/",
+    "dist/"
+  ]
+}
+
