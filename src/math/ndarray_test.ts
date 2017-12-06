@@ -205,7 +205,7 @@ test_util.describeCustom('NDArray', () => {
     });
   });
 
-  it('NDArray.data GPU --> CPU', async() => {
+  it('NDArray.data GPU --> CPU', async () => {
     const texture = textureManager.acquireTexture([3, 2]);
     gpgpu.uploadMatrixToTexture(
         texture, 3, 2, new Float32Array([1, 2, 3, 4, 5, 6]));
@@ -218,7 +218,7 @@ test_util.describeCustom('NDArray', () => {
     expect(a.inGPU()).toBe(false);
   });
 
-  it('NDArray.val() GPU --> CPU', async() => {
+  it('NDArray.val() GPU --> CPU', async () => {
     const texture = textureManager.acquireTexture([3, 2]);
     gpgpu.uploadMatrixToTexture(
         texture, 3, 2, new Float32Array([1, 2, 3, 4, 5, 6]));
@@ -1038,7 +1038,6 @@ test_util.describeCustom('NDArray.like', () => {
     expect(b.shape).toEqual([2, 2, 1, 1]);
     expect(b.getValues()).toEqual(new Uint8Array([1, 1, 1, 1]));
   });
-
 });
 
 test_util.describeCustom('Scalar.new', () => {
@@ -1892,7 +1891,6 @@ test_util.describeCustom('NDArray.randTruncatedNormal', () => {
   });
 
   it('should return a 4D int32 array', () => {
-
     const shape: [number, number, number, number] = [5, 5, 5, 5];
     const result = Array4D.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
