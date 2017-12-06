@@ -32,8 +32,7 @@ limitations under the License.
       display: block;
       margin-right: auto;
       margin-left: auto;
-      -webkit-transform: translate(0px, -50%);
-      transform: translate(0px, -50%);
+      transform: translate(0, 0);
       width: calc(100% - 20px);
       height: 100px
     }
@@ -110,23 +109,15 @@ limitations under the License.
     }
 
     #status {
-      position: absolute;
-      left: 0px;
-      height: 20px;
-      top: 50%;
-      right: 0px;
-      bottom: 0px;
       z-index: 10;
       display: block;
       height: auto;
       margin-right: auto;
       margin-left: auto;
-      -webkit-transform: translate(0px, -50%);
-      /*-ms-transform: translate(0px, -50%);*/
-      transform: translate(0px, -50%);
       font-size: 26px;
       text-align: center;
-      line-height: normal;
+      line-height: 200px;
+      height: 200px;
     }
 
     .hidden {
@@ -135,26 +126,24 @@ limitations under the License.
     .image {
       position: absolute;
       left: 0px;
-      bottom: 0px;
-      margin-top: 40px;
-      margin-bottom: 40px;
       margin-left: 40px;
     }
 
     .text-block {
       position: absolute;
       right: 40px;
-      bottom: 40px;
       width: 450px;
+      padding: 20px 0;
       font-size: 15px;
       line-height: 25px;
     }
 
     .header {
       font-size: 50px;
+      line-height: 50px;
+      margin-top: 10px;
       width: 100%;
       text-align: center;
-      margin-top: 30px;
       font-weight: bold;
     }
 
@@ -164,9 +153,7 @@ limitations under the License.
 
     #controls {
       width: 100%;
-      height: 220px;
       text-align: center;
-      margin-top: 100px;
     }
 
     .control {
@@ -182,14 +169,19 @@ limitations under the License.
       display: inline-block;
     }
 
-    #conditioning-controls.inactive{
+    #conditioning-controls.inactive .conditional {
       opacity: .2;
     }
+
+    #conditioning-controls.midicondition .ui-condition {
+      opacity: .2;
+    }
+
     a.main-title {
       color: rgb(66,66,66);
       text-decoration: none;
     }
-    #midi-out-container {
+    #midi-out-container, #midi-in-container {
       margin: 10px auto;
     }
     #gain-container {
@@ -198,6 +190,17 @@ limitations under the License.
     }
     #gain, #note-density {
       width: 150px;
+    }
+    .histogram-bucket {
+      height: 100px;
+      position: relative;
+    }
+    .histogram-value {
+      width: 39px;
+      height: 70px;
+      position: absolute;
+      bottom: 0;
+      background-color: green;
     }
   </style>
 </head>
@@ -218,104 +221,122 @@ limitations under the License.
       </div>
   </header>
 
-  <div id="status">Loading...</div>
   <div id="container">
     <div class="header">Performance RNN</div>
+    <div id="status">Loading...</div>
     <div id="controls" class="hidden">
       <div class="control" style="margin-right: 20px;">
         Conditioning<br />
-        <input type="radio" name="conditioning" id="conditioning-on" checked>
+        <input type="radio" name="conditioning" id="conditioning-on">
         On<br />
-        <input type="radio" name="conditioning" id="conditioning-off">
+        <input type="radio" name="conditioning" id="conditioning-off" checked>
         Off
       </div>
       <div id="conditioning-controls">
         <div class="control" style="margin-right: 20px;">
-          Note Density (<span id="note-density-display"></span>)<br/>
-          <input type="range" min="0" max="6" value="2" id="note-density"><br />
+          <div class="conditional">
+              Note Density (<span id="note-density-display"></span>)<br/>
+              <input type="range" min="0" max="6" value="2" id="note-density"><br />
+          </div>
 
           Gain (<span id="gain-display"></span>%)<br>
-          <input type="range" id="gain" min=0 max=100 value=25></input>
+          <input type="range" id="gain" min=0 max=200 value=25></input>
         </div>
         <div class="control">
-          Pitch Histogram<br/>
-          <div class="control">
-            <input class="pitch" id="pitch-c" type="number" min="0" value="2">
-            <br/>
-            C
+          <div class="conditional">
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-c" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-c" type="number" min="0" value="2">
+              <br/>
+              C
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-cs" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-cs" type="number" min="0" value="0">
+              <br/>
+              C#
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-d" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-d" type="number" min="0" value="1">
+              <br/>
+              D
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-ds" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-ds" type="number" min="0" value="0">
+              <br/>
+              D#
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-e" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-e" type="number" min="0" value="1">
+              <br/>
+              E
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-f" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-f" type="number" min="0" value="1">
+              <br/>
+              F
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-fs" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-fs" type="number" min="0" value="0">
+              <br/>
+              F#
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-g" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-g" type="number" min="0" value="1">
+              <br/>
+              G
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-gs" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-gs" type="number" min="0" value="0">
+              <br/>
+              G#
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-a" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-a" type="number" min="0" value="1">
+              <br/>
+              A
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-as" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-as" type="number" min="0" value="0">
+              <br/>
+              A#
+            </div>
+            <div class="control">
+              <div class="histogram-bucket"><div id="hist-b" class="histogram-value"></div></div>
+              <input class="pitch ui-condition" id="pitch-b" type="number" min="0" value="1">
+              <br/>
+              B
+            </div>
+            <br />
+            <input type="button" value="C Major" id="c-major" class="ui-condition">
+            <input type="button" value="F Major" id="f-major" class="ui-condition">
+            <input type="button" value="D Minor" id="d-minor" class="ui-condition">
+            <input type="button" value="Whole Tone" id="whole-tone" class="ui-condition">
+            <input type="button" value="Pentatonic" id="pentatonic" class="ui-condition">
+            <input type="button" value="Preset 1" id="preset-1" class="ui-condition">
+            <input type="button" value="Preset 2" id="preset-2" class="ui-condition">
+            <br />
+            <input type="button" value="Save Preset 1" id="save-1" class="ui-condition">
+            <input type="button" value="Save Preset 2" id="save-2" class="ui-condition">
           </div>
-          <div class="control">
-            <input class="pitch" id="pitch-cs" type="number" min="0" value="0">
-            <br/>
-            C#
+          <div id="midi-in-container">
+            midi in <select id="midi-in"><option value="none">none</option></select>
           </div>
-          <div class="control">
-            <input class="pitch" id="pitch-d" type="number" min="0" value="1">
-            <br/>
-            D
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-ds" type="number" min="0" value="0">
-            <br/>
-            D#
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-e" type="number" min="0" value="1">
-            <br/>
-            E
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-f" type="number" min="0" value="1">
-            <br/>
-            F
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-fs" type="number" min="0" value="0">
-            <br/>
-            F#
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-g" type="number" min="0" value="1">
-            <br/>
-            G
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-gs" type="number" min="0" value="0">
-            <br/>
-            G#
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-a" type="number" min="0" value="1">
-            <br/>
-            A
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-as" type="number" min="0" value="0">
-            <br/>
-            A#
-          </div>
-          <div class="control">
-            <input class="pitch" id="pitch-b" type="number" min="0" value="1">
-            <br/>
-            B
-          </div>
-          <br />
-          <input type="button" value="C Major" id="c-major">
-          <input type="button" value="F Major" id="f-major">
-          <input type="button" value="D Minor" id="d-minor">
-          <input type="button" value="Whole Tone" id="whole-tone">
-          <input type="button" value="Pentatonic" id="pentatonic">
-          <input type="button" value="Preset 1" id="preset-1">
-          <input type="button" value="Preset 2" id="preset-2">
-          <br />
-          <input type="button" value="Save Preset 1" id="save-1">
-          <input type="button" value="Save Preset 2" id="save-2">
-          <br>
           <div id="midi-out-container">
-            midi out <select id="midi-out"></select>
-          </div>
+              midi out <select id="midi-out"><option value="none">none</option></select>
+            </div>
         </div>
       </div>
+
       <div class="control" style="margin-right: 20px;">
         <input type="button" value="Reset RNN" id="reset-rnn">
       </div>
