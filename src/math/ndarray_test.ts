@@ -108,7 +108,7 @@ test_util.describeCustom('NDArray', () => {
     expect(t4Like.get(0, 0, 0, 1)).toBe(2);
 
     // NDArray of ones.
-    const x = NDArray.ones([3, 4, 2]) as Array3D;
+    const x = Array3D.ones([3, 4, 2]);
     expect(x.rank).toBe(3);
     expect(x.size).toBe(24);
     for (let i = 0; i < 3; i++) {
@@ -120,7 +120,7 @@ test_util.describeCustom('NDArray', () => {
     }
 
     // NDArray of zeros.
-    const z = NDArray.zeros([3, 4, 2]) as Array3D;
+    const z = Array3D.zeros([3, 4, 2]);
     expect(z.rank).toBe(3);
     expect(z.size).toBe(24);
     for (let i = 0; i < 3; i++) {
