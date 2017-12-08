@@ -2,6 +2,7 @@
   "extends": "../tsconfig.json",
   "include": ["**/*"],
   "compilerOptions": {
-    "declaration": false
+    "declaration": false,
+    "target": "es2017"
   }
 }
