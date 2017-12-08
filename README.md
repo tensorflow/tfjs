@@ -48,9 +48,11 @@ console.log(result.dataSync());
 #### ES3/ES5 JavaScript
 
 You can also use **deeplearn.js** with plain JavaScript. Load the latest version
-of the library from [unpkg](https://unpkg.com):
+of the library from [jsDelivr](https://www.jsdelivr.com/) or [unpkg](https://unpkg.com):
 
 ```html
+<script src="https://cdn.jsdelivr.net/npm/deeplearn"></script>
+<!-- or -->
 <script src="https://unpkg.com/deeplearn"></script>
 ```
 
