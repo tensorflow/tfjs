@@ -15,15 +15,12 @@
  * limitations under the License.
  * =============================================================================
  */
+// tslint:disable-next-line:max-line-length
 import {Conv2DInfo} from '../conv_util';
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from '../ndarray';
+import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray} from '../ndarray';
 import {SumTypes} from '../types';
-
-export enum MatrixOrientation {
-  REGULAR,
-  TRANSPOSED
-}
+import {MatrixOrientation} from './types/matmul';
 
 /**
  * The interface that defines the kernels that should be implemented when adding
@@ -37,137 +34,100 @@ export interface MathBackend {
 
   clone<T extends NDArray>(ndarray: T): T;
 
-  slice1D(input: Array1D, begin: number, size: number): Array1D;
-
-  slice2D(input: Array2D, begin: [number, number], size: [number, number]):
-      Array2D;
-
-  slice3D(input: Array3D, begin: [number, number, number], size: [
+  slice1D(x: Array1D, begin: number, size: number): Array1D;
+  slice2D(x: Array2D, begin: [number, number], size: [number, number]): Array2D;
+  slice3D(x: Array3D, begin: [number, number, number], size: [
     number, number, number
   ]): Array3D;
-
-  slice4D(input: Array4D, begin: [number, number, number, number], size: [
+  slice4D(x: Array4D, begin: [number, number, number, number], size: [
     number, number, number, number
   ]): Array4D;
 
-  copy2D(
-      source: Array2D, sourceBeginRowCol: [number, number],
-      sourceSizeRowCol: [number, number], dest: Array2D,
-      destBeginRowCol: [number, number],
-      destSizeRowCol: [number, number]): void;
-
   concat1D(a: Array1D, b: Array1D): Array1D;
-
   concat2D(a: Array2D, b: Array2D, axis: number): Array2D;
-
   concat3D(a: Array3D, b: Array3D, axis: number): Array3D;
-
   concat4D(a: Array4D, b: Array4D, axis: number): Array4D;
-
-  scaledArrayAdd<T extends NDArray>(c1: Scalar, a: T, c2: Scalar, b: T): T;
 
   neg<T extends NDArray>(a: T): T;
 
-  add<T extends NDArray>(a: T, b: T): T;
+  add<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G>;
+  subtract<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G>;
+  multiply<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G>;
+  divide<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
+      NDArray<'float32'>;
 
-  subtract<T extends NDArray>(a: T, b: T): T;
-
-  multiply<T extends NDArray>(a: T, b: T): T;
-
-  divide(a: NDArray, b: NDArray): NDArray<'float32'>;
-
-  pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T;
-
-  sum<T extends keyof DataTypes>(input: NDArray<T>, axes: number[]):
+  sum<T extends keyof DataTypes>(x: NDArray<T>, axes: number[]):
       NDArray<SumTypes[T]>;
 
-  argMin(input: NDArray, axes: number[]): NDArray<'int32'>;
-
-  argMax(input: NDArray, axes: number[]): NDArray<'int32'>;
+  argMin(x: NDArray, axes: number[]): NDArray<'int32'>;
+  argMax(x: NDArray, axes: number[]): NDArray<'int32'>;
 
   equal(a: NDArray, b: NDArray): NDArray<'bool'>;
 
-  topKValues<D extends keyof DataTypes, T extends NDArray<D>>(
-      ndarray: T, k: number): Array1D<D>;
-  topKIndices(ndarray: NDArray, k: number): Array1D<'int32'>;
+  topKValues<D extends keyof DataTypes, T extends NDArray<D>>(x: T, k: number):
+      Array1D<D>;
+  topKIndices(x: NDArray, k: number): Array1D<'int32'>;
 
-  min<G extends keyof DataTypes>(input: NDArray<G>, axes: number[]): NDArray<G>;
+  min<G extends keyof DataTypes>(x: NDArray<G>, axes: number[]): NDArray<G>;
+  max<G extends keyof DataTypes>(x: NDArray<G>, axes: number[]): NDArray<G>;
 
-  max<G extends keyof DataTypes>(input: NDArray<G>, axes: number[]): NDArray<G>;
+  ceil<T extends NDArray>(x: T): T;
 
-  ceil<T extends NDArray>(ndarray: T): T;
+  floor<T extends NDArray>(x: T): T;
 
-  floor<T extends NDArray>(ndarray: T): T;
-
-  exp<T extends NDArray>(ndarray: T): T;
-
-  log<T extends NDArray>(ndarray: T): T;
-
-  sqrt<T extends NDArray>(ndarray: T): T;
+  pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T;
+  exp<T extends NDArray>(x: T): T;
+  log<T extends NDArray>(x: T): T;
+  sqrt<T extends NDArray>(x: T): T;
 
   square<T extends NDArray>(x: T): T;
 
-  relu<T extends NDArray>(input: T): T;
+  relu<T extends NDArray>(x: T): T;
+  elu<T extends NDArray>(x: T): T;
+  eluDer<T extends NDArray>(x: T): T;
+  selu<T extends NDArray>(x: T): T;
+  leakyRelu<T extends NDArray>(x: T, alpha: number): T;
 
-  elu<T extends NDArray>(ndarray: T): T;
+  clip<T extends NDArray>(x: T, min: number, max: number): T;
 
-  eluDer<T extends NDArray>(ndarray: T): T;
+  abs<T extends NDArray>(x: T): T;
 
-  selu<T extends NDArray>(a: T): T;
+  sigmoid<T extends NDArray>(x: T): T;
 
-  leakyRelu<T extends NDArray>(ndarray: T, alpha: number): T;
+  sin<T extends NDArray>(x: T): T;
+  cos<T extends NDArray>(x: T): T;
+  tan<T extends NDArray>(x: T): T;
 
-  clip<T extends NDArray>(ndarray: T, min: number, max: number): T;
+  asin<T extends NDArray>(x: T): T;
+  acos<T extends NDArray>(x: T): T;
+  atan<T extends NDArray>(x: T): T;
 
-  abs<T extends NDArray>(ndarray: T): T;
+  sinh<T extends NDArray>(x: T): T;
+  cosh<T extends NDArray>(x: T): T;
+  tanh<T extends NDArray>(x: T): T;
 
-  sigmoid<T extends NDArray>(ndarray: T): T;
-
-  sin<T extends NDArray>(ndarray: T): T;
-
-  cos<T extends NDArray>(ndarray: T): T;
-
-  tan<T extends NDArray>(ndarray: T): T;
-
-  asin<T extends NDArray>(ndarray: T): T;
-
-  acos<T extends NDArray>(ndarray: T): T;
-
-  atan<T extends NDArray>(ndarray: T): T;
-
-  sinh<T extends NDArray>(ndarray: T): T;
-
-  cosh<T extends NDArray>(ndarray: T): T;
-
-  tanh<T extends NDArray>(ndarray: T): T;
-
-  step<T extends NDArray>(ndarray: T, alpha: number): T;
+  step<T extends NDArray>(x: T, alpha: number): T;
 
   conv2d(x: Array4D, filter: Array4D, bias: Array1D|null, convInfo: Conv2DInfo):
       Array4D;
-
   conv2dDerInput(dy: Array4D, filter: Array4D, convInfo: Conv2DInfo): Array4D;
-
   conv2dDerFilter(x: Array4D, dY: Array4D, convInfo: Conv2DInfo): Array4D;
-
   conv2dDerBias(dY: Array4D): Array1D;
 
   depthwiseConv2D(input: Array4D, filter: Array4D, convInfo: Conv2DInfo):
       Array4D;
 
   maxPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
-
   maxPoolBackprop(dy: Array4D, x: Array4D, convInfo: Conv2DInfo): Array4D;
 
   minPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
-
   avgPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
 
-  tile<D extends keyof DataTypes, T extends NDArray<D>>(a: T, reps: number[]):
+  tile<D extends keyof DataTypes, T extends NDArray<D>>(x: T, reps: number[]):
       T;
 
   transpose<D extends keyof DataTypes, T extends NDArray<D>>(
-      a: T, perm: number[]): T;
+      x: T, perm: number[]): T;
 
   resizeBilinear3D(
       x: Array3D, newShape2D: [number, number], alignCorners: boolean): Array3D;
@@ -176,7 +136,6 @@ export interface MathBackend {
       x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
       varianceEpsilon: number, scale?: Array2D|Array1D,
       offset?: Array2D|Array1D): Array2D;
-
   batchNormalization3D(
       x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
       varianceEpsilon: number, scale?: Array3D|Array1D,

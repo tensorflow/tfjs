@@ -380,9 +380,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     it('propagates NaNs', math => {
       const a = Array1D.new([1.5, NaN, -1.4]);
 
-      const r = math.ceil(a).getValues();
+      const r = math.ceil(a);
 
-      test_util.expectArraysClose(r, new Float32Array([2, NaN, -1]));
+      test_util.expectArraysClose(r.dataSync(), new Float32Array([2, NaN, -1]));
 
       a.dispose();
     });
@@ -414,9 +414,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     it('propagates NaNs', math => {
       const a = Array1D.new([1.5, NaN, -1.4]);
 
-      const r = math.floor(a).getValues();
+      const r = math.floor(a);
 
-      test_util.expectArraysClose(r, new Float32Array([1, NaN, -2]));
+      test_util.expectArraysClose(r.dataSync(), new Float32Array([1, NaN, -2]));
 
       a.dispose();
     });

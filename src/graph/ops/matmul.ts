@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {MatrixOrientation} from '../../math/backends/backend';
+import {MatrixOrientation} from '../../math/backends/types/matmul';
 import {NDArrayMath} from '../../math/math';
 import {Array1D, Array2D} from '../../math/ndarray';
 import {Tensor} from '../graph';

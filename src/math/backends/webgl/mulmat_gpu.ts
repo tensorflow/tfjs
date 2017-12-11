@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {MatrixOrientation} from '../backend';
+import {MatrixOrientation} from '../types/matmul';
+
 import {GPGPUProgram} from './gpgpu_math';
 
 export class MatMulProgram implements GPGPUProgram {
@@ -35,14 +36,12 @@ export class MatMulProgram implements GPGPUProgram {
 
     const sharedDim =
         (aOrient === MatrixOrientation.REGULAR ? aShape[1] : aShape[0]);
-    const aSnippetFromOffset =
-        (vec4Offset: number, indexVar: string | number) =>
-            (aOrient === MatrixOrientation.REGULAR) ?
+    const aSnippetFromOffset = (vec4Offset: number, indexVar: string|number) =>
+        (aOrient === MatrixOrientation.REGULAR) ?
         `aRow, ${indexVar} + ${vec4Offset}` :
         `${indexVar} + ${vec4Offset}, aRow`;
-    const bSnippetFromOffset =
-        (vec4Offset: number, indexVar: string | number) =>
-            (bOrient === MatrixOrientation.REGULAR) ?
+    const bSnippetFromOffset = (vec4Offset: number, indexVar: string|number) =>
+        (bOrient === MatrixOrientation.REGULAR) ?
         `${indexVar} + ${vec4Offset}, bCol` :
         `bCol, ${indexVar} + ${vec4Offset}`;
 
