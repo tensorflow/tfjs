@@ -76,6 +76,8 @@ export interface MathBackend {
 
   divide(a: NDArray, b: NDArray): NDArray<'float32'>;
 
+  pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T;
+
   sum<T extends keyof DataTypes>(input: NDArray<T>, axes: number[]):
       NDArray<SumTypes[T]>;
 
