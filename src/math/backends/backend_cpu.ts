@@ -72,6 +72,7 @@ export class MathBackendCPU implements MathBackend {
     }
     return result;
   }
+
   slice4D(input: Array4D, begin: [number, number, number, number], size: [
     number, number, number, number
   ]): Array4D {
@@ -251,6 +252,19 @@ export class MathBackendCPU implements MathBackend {
 
   subtract<T extends NDArray>(a: T, b: T): T {
     return this.scaledArrayAdd<T>(Scalar.ONE, a, Scalar.NEG_ONE, b);
+  }
+
+  pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T {
+    const newShape =
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const newValues = new Float32Array(util.sizeFromShape(newShape));
+
+    const aValues = a.getValues();
+    const bValues = b.getValues();
+    for (let i = 0; i < newValues.length; ++i) {
+      newValues[i] = Math.pow(aValues[i % a.size], bValues[i % b.size]);
+    }
+    return NDArray.make(newShape, {values: newValues}) as T;
   }
 
   matMul(

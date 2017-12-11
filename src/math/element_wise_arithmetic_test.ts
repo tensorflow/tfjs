@@ -228,6 +228,101 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
   ]);
 }
 
+// element-wise pow
+{
+  const tests: MathTests = it => {
+    it('pow same-shaped ndarrays', math => {
+      const a = Array2D.new([2, 3], [1, -2, -3, 0, 7, 1]);
+      const b = Array2D.new([2, 3], [5, 3, 4, 5, 2, -3], 'int32');
+      const expected = new Float32Array([1, -8, 81, 0, 49, 1]);
+      const result = math.pow(a, b);
+
+      expect(result.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(result.getValues(), expected, 0.01);
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('pow different-shaped ndarrays', math => {
+      const a = Array2D.new([2, 3], [1, -2, -3, 0, 7, 1]);
+      const b = Scalar.new(2, 'int32');
+      const expected = new Float32Array([1, 4, 9, 0, 49, 1]);
+      const result = math.pow(a, b);
+
+      expect(result.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(result.getValues(), expected, 0.05);
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('pow propagates NaNs', math => {
+      const a = Array2D.new([2, 2], [NaN, 3, NaN, 0]);
+      const b = Array2D.new([2, 2], [1, 3, 2, 3], 'int32');
+
+      const result = math.pow(a, b).getValues();
+      test_util.expectArraysClose(
+          result, new Float32Array([NaN, 27, NaN, 0]), 0.05);
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('pow throws when passed non int32 exponent param', math => {
+      const a = Array2D.new([2, 3], [1, 2, -3, -4, 5, 6]);
+      const b = Array2D.new([2, 2], [5, 3, 4, -7], 'float32');
+
+      // tslint:disable-next-line
+      expect(() => math.pow(a, b as any)).toThrowError();
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('powStrict same-shaped ndarrays', math => {
+      const a = Array2D.new([2, 3], [1, -2, -3, 0, 7, 1]);
+      const b = Array2D.new([2, 3], [5, 3, 4, 5, 2, -3], 'int32');
+      const expected = new Float32Array([1, -8, 81, 0, 49, 1]);
+      const result = math.powStrict(a, b);
+
+      expect(result.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(result.getValues(), expected, 0.01);
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('powStrict throws when passed ndarrays of different shapes', math => {
+      const a = Array2D.new([2, 3], [1, 2, -3, -4, 5, 6]);
+      const b = Array2D.new([2, 2], [5, 3, 4, -7], 'int32');
+
+      expect(() => math.powStrict(a, b)).toThrowError();
+
+      a.dispose();
+      b.dispose();
+    });
+
+    it('powStrict throws when passed non int32 exponent param', math => {
+      const a = Array2D.new([2, 3], [1, 2, -3, -4, 5, 6]);
+      const b = Array2D.new([2, 2], [5, 3, 4, -7], 'float32');
+
+      // tslint:disable-next-line
+      expect(() => math.powStrict(a, b as any)).toThrowError();
+
+      a.dispose();
+      b.dispose();
+    });
+  };
+
+  test_util.describeMathCPU('element-wise pow', [tests]);
+  test_util.describeMathGPU('element-wise pow', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
 // element-wise add / sub
 {
   const tests: MathTests = it => {
