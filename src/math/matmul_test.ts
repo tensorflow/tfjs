@@ -19,7 +19,7 @@ import {NDArrayMathGPU} from '../math/backends/backend_webgl';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {MatrixOrientation} from './backends/backend';
+import {MatrixOrientation} from './backends/types/matmul';
 import * as webgl_util from './backends/webgl/webgl_util';
 import {Array1D, Array2D, Array3D} from './ndarray';
 
