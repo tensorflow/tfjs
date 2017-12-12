@@ -15,9 +15,12 @@
  * =============================================================================
  */
 
+import {Backends, ENV} from '../environment';
 import * as util from '../util';
 
 import * as axis_util from './axis_util';
+// tslint:disable-next-line:max-line-length
+import {BACKEND_REGISTRY, NDArrayStorage} from './backends/backend';
 import {MathBackend} from './backends/backend';
 import {BackendEngine} from './backends/backend_engine';
 import {MatrixOrientation} from './backends/types/matmul';
@@ -37,8 +40,42 @@ export interface LSTMCell {
   (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
 }
 
-export abstract class NDArrayMath {
+export interface NDArrayManager {
+  getNumArrays(): number;
+  register<T extends keyof DataTypes>(a: NDArray<T>): void;
+}
+
+export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   protected backendEngine: BackendEngine;
+  private numArrays = 0;
+  private backend: MathBackend;
+  private customBackend = false;
+
+  getNumArrays() {
+    return this.numArrays;
+  }
+
+  register<T extends keyof DataTypes>(a: NDArray<T>): void {
+    this.track(a);
+    this.numArrays++;
+  }
+
+  writePixels(
+      id: number,
+      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
+      numChannels: number): void {
+    this.backend.writePixels(id, pixels, numChannels);
+  }
+  write<T extends keyof DataTypes>(
+      id: number, values: DataTypes[T], dtype: T, shape: number[]): void {
+    this.backend.write(id, values, dtype, shape);
+  }
+  readSync<T extends keyof DataTypes>(id: number): DataTypes[T] {
+    return this.backend.readSync(id);
+  }
+  read<T extends keyof DataTypes>(id: number): Promise<DataTypes[T]> {
+    return this.backend.read(id);
+  }
 
   private ndarrayScopes: NDArray[][] = [];
   private activeScope: NDArray[];
@@ -50,8 +87,15 @@ export abstract class NDArrayMath {
    * @param safeMode In safe mode, you must use math operations inside
    *     a math.scope() which will automatically clean up intermediate NDArrays.
    */
-  constructor(backend: MathBackend, private safeMode: boolean) {
-    this.backendEngine = new BackendEngine(backend);
+  constructor(backend: Backends|MathBackend, private safeMode: boolean) {
+    if (typeof backend === 'string') {
+      this.backend = BACKEND_REGISTRY[backend];
+    } else {
+      this.customBackend = true;
+      this.backend = backend;
+    }
+    this.backendEngine = new BackendEngine(this.backend);
+    ENV.setGlobalMath(this);
   }
 
   /**
@@ -169,7 +213,7 @@ export abstract class NDArrayMath {
 
   private isNDArrayDataInList(ndarray: NDArray, ndarrayList: NDArray[]) {
     for (let i = 0; i < ndarrayList.length; i++) {
-      if (ndarrayList[i].getData() === ndarray.getData()) {
+      if (ndarrayList[i].id === ndarray.id) {
         return true;
       }
     }
@@ -216,8 +260,11 @@ export abstract class NDArrayMath {
     return result;
   }
 
-  /** Disposes the math object and any resources used by it. */
-  dispose() {}
+  dispose() {
+    if (this.customBackend) {
+      this.backend.dispose();
+    }
+  }
 
   /**
    * Computes the dot product of two matrices, A * B. These must be matrices,
@@ -250,14 +297,14 @@ export abstract class NDArrayMath {
             `${b.shape} and orientations ${MatrixOrientation[aOrientation]}` +
             ` and ${MatrixOrientation[bOrientation]} must match.`);
 
-    return this.track(this.backendEngine.executeKernel(
-        'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}}));
+    return this.backendEngine.executeKernel(
+        'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}});
   }
 
   private executeOp<G extends keyof DataTypes, T extends NDArray<G>>(
       name: string, f: () => T): T {
     // TODO(nsthorat): Do operation logging and performance profiling.
-    return this.track(f());
+    return f();
   }
 
   /**
@@ -345,8 +392,7 @@ export abstract class NDArrayMath {
    * @param x The NDArray to clone.
    */
   clone<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Clone', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Clone', {inputs: {x}}) as T;
   }
 
   /**
@@ -370,8 +416,8 @@ export abstract class NDArrayMath {
    */
   slice1D(x: Array1D, begin: number, size: number): Array1D {
     slice_util.assertParamsValid(x, [begin], [size]);
-    return this.track(this.backendEngine.executeKernel(
-        'Slice1D', {inputs: {x}, args: {begin, size}}));
+    return this.backendEngine.executeKernel(
+        'Slice1D', {inputs: {x}, args: {begin, size}});
   }
 
   /**
@@ -385,8 +431,8 @@ export abstract class NDArrayMath {
   slice2D(x: Array2D, begin: [number, number], size: [number, number]):
       Array2D {
     slice_util.assertParamsValid(x, begin, size);
-    return this.track(this.backendEngine.executeKernel(
-        'Slice2D', {inputs: {x}, args: {begin, size}}));
+    return this.backendEngine.executeKernel(
+        'Slice2D', {inputs: {x}, args: {begin, size}});
   }
 
   /**
@@ -401,8 +447,8 @@ export abstract class NDArrayMath {
     number, number, number
   ]): Array3D {
     slice_util.assertParamsValid(x, begin, size);
-    return this.track(this.backendEngine.executeKernel(
-        'Slice3D', {inputs: {x}, args: {begin, size}}));
+    return this.backendEngine.executeKernel(
+        'Slice3D', {inputs: {x}, args: {begin, size}});
   }
 
   /**
@@ -418,8 +464,8 @@ export abstract class NDArrayMath {
     number, number, number, number
   ]): Array4D {
     slice_util.assertParamsValid(x, begin, size);
-    return this.track(this.backendEngine.executeKernel(
-        'Slice4D', {inputs: {x}, args: {begin, size}}));
+    return this.backendEngine.executeKernel(
+        'Slice4D', {inputs: {x}, args: {begin, size}});
   }
 
   /**
@@ -436,8 +482,7 @@ export abstract class NDArrayMath {
    */
   concat1D(a: Array1D, b: Array1D): Array1D {
     concat_util.assertParams(a.shape, b.shape, 0);
-    return this.track(
-        this.backendEngine.executeKernel('Concat1D', {inputs: {a, b}}));
+    return this.backendEngine.executeKernel('Concat1D', {inputs: {a, b}});
   }
 
   /**
@@ -470,8 +515,8 @@ export abstract class NDArrayMath {
    */
   concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
     concat_util.assertParams(a.shape, b.shape, axis);
-    return this.track(this.backendEngine.executeKernel(
-        'Concat2D', {inputs: {a, b}, args: {axis}}));
+    return this.backendEngine.executeKernel(
+        'Concat2D', {inputs: {a, b}, args: {axis}});
   }
 
   /**
@@ -507,8 +552,8 @@ export abstract class NDArrayMath {
    */
   concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
     concat_util.assertParams(a.shape, b.shape, axis);
-    return this.track(this.backendEngine.executeKernel(
-        'Concat3D', {inputs: {a, b}, args: {axis}}));
+    return this.backendEngine.executeKernel(
+        'Concat3D', {inputs: {a, b}, args: {axis}});
   }
 
   /**
@@ -522,8 +567,8 @@ export abstract class NDArrayMath {
    */
   concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
     concat_util.assertParams(a.shape, b.shape, axis);
-    return this.track(this.backendEngine.executeKernel(
-        'Concat4D', {inputs: {a, b}, args: {axis}}));
+    return this.backendEngine.executeKernel(
+        'Concat4D', {inputs: {a, b}, args: {axis}});
   }
 
   ///////////////////
@@ -687,8 +732,7 @@ export abstract class NDArrayMath {
    * For a stricter version without broadcasting use math.equalStrict().
    */
   equal(a: NDArray, b: NDArray): NDArray<'bool'> {
-    return this.track(
-        this.backendEngine.executeKernel('Equal', {inputs: {a, b}}));
+    return this.backendEngine.executeKernel('Equal', {inputs: {a, b}});
   }
 
   equalStrict<D extends keyof DataTypes, T extends NDArray<D>>(a: T, b: T):
@@ -717,8 +761,6 @@ export abstract class NDArrayMath {
       return values;
     });
     const result = {values, indices};
-
-    this.track(result.indices);
     return result;
   }
 
@@ -845,9 +887,8 @@ export abstract class NDArrayMath {
         x.rank === reps.length,
         `Error in transpose: rank of input ${x.rank} ` +
             `must match length of reps ${reps}.`);
-    return this.track(
-        this.backendEngine.executeKernel('Tile', {inputs: {x}, args: {reps}}) as
-        T);
+    return this.backendEngine.executeKernel(
+               'Tile', {inputs: {x}, args: {reps}}) as T;
   }
 
   /**
@@ -870,9 +911,8 @@ export abstract class NDArrayMath {
         x.rank === perm.length,
         `Error in transpose: rank of input ${x.rank} ` +
             `must match length of perm ${perm}.`);
-    return this.track(
-        this.backendEngine.executeKernel(
-            'Transpose', {inputs: {x}, args: {perm}}) as T);
+    return this.backendEngine.executeKernel(
+               'Transpose', {inputs: {x}, args: {perm}}) as T;
   }
 
   /** @deprecated Use math.add(c, A) instead. */
@@ -907,8 +947,7 @@ export abstract class NDArrayMath {
    * @param x The input array.
    */
   neg<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Neg', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Neg', {inputs: {x}}) as T;
   }
 
   /**
@@ -920,9 +959,8 @@ export abstract class NDArrayMath {
    */
   add<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.track(
-        this.backendEngine.executeKernel('Add', {inputs: {a, b}}) as
-        NDArray<G>);
+    return this.backendEngine.executeKernel('Add', {inputs: {a, b}}) as
+        NDArray<G>;
   }
 
   /**
@@ -947,9 +985,8 @@ export abstract class NDArrayMath {
   subtract<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
       NDArray<G> {
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.track(
-        this.backendEngine.executeKernel('Sub', {inputs: {a, b}}) as
-        NDArray<G>);
+    return this.backendEngine.executeKernel('Sub', {inputs: {a, b}}) as
+        NDArray<G>;
   }
 
   /**
@@ -969,9 +1006,8 @@ export abstract class NDArrayMath {
         b.dtype === 'int32',
         'only supports int32 data type for the exponent parameter.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.track(
-        this.backendEngine.executeKernel('Pow', {inputs: {a, b}}) as
-        NDArray<G>);
+    return this.backendEngine.executeKernel('Pow', {inputs: {a, b}}) as
+        NDArray<G>;
   }
 
   /**
@@ -1013,8 +1049,7 @@ export abstract class NDArrayMath {
    */
   multiply(a: NDArray, b: NDArray): NDArray {
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.track(
-        this.backendEngine.executeKernel('Mul', {inputs: {a, b}}));
+    return this.backendEngine.executeKernel('Mul', {inputs: {a, b}});
   }
 
   /**
@@ -1045,9 +1080,8 @@ export abstract class NDArrayMath {
    */
   divide(a: NDArray, b: NDArray): NDArray<'float32'> {
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.track(
-        this.backendEngine.executeKernel('Div', {inputs: {a, b}}) as
-        NDArray<'float32'>);
+    return this.backendEngine.executeKernel('Div', {inputs: {a, b}}) as
+        NDArray<'float32'>;
   }
 
   /**
@@ -1087,8 +1121,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   ceil<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Ceil', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Ceil', {inputs: {x}}) as T;
   }
 
   /**
@@ -1097,8 +1130,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   floor<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Floor', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Floor', {inputs: {x}}) as T;
   }
 
   /**
@@ -1106,8 +1138,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   exp<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Exp', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Exp', {inputs: {x}}) as T;
   }
 
   /**
@@ -1115,8 +1146,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   log<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Log', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Log', {inputs: {x}}) as T;
   }
 
   /**
@@ -1124,8 +1154,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   sqrt<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Sqrt', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Sqrt', {inputs: {x}}) as T;
   }
 
   /**
@@ -1134,8 +1163,7 @@ export abstract class NDArrayMath {
    * @param x The input array.
    */
   square<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Square', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Square', {inputs: {x}}) as T;
   }
 
   /**
@@ -1143,8 +1171,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   abs<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Abs', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Abs', {inputs: {x}}) as T;
   }
 
   /**
@@ -1158,9 +1185,8 @@ export abstract class NDArrayMath {
         (min <= max),
         `Error in clip: min (${min}) must be` +
             `less than or equal to max (${max}).`);
-    return this.track(
-        this.backendEngine.executeKernel(
-            'Clip', {inputs: {x}, args: {min, max}}) as T);
+    return this.backendEngine.executeKernel(
+               'Clip', {inputs: {x}, args: {min, max}}) as T;
   }
 
   /**
@@ -1168,8 +1194,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   relu<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Relu', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Relu', {inputs: {x}}) as T;
   }
 
   /**
@@ -1177,8 +1202,7 @@ export abstract class NDArrayMath {
    * @param {T} x the input NDArray
    */
   elu<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Elu', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Elu', {inputs: {x}}) as T;
   }
 
   /**
@@ -1186,8 +1210,7 @@ export abstract class NDArrayMath {
    * @hidden
    */
   eluDer<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('EluDer', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('EluDer', {inputs: {x}}) as T;
   }
 
   /**
@@ -1195,8 +1218,7 @@ export abstract class NDArrayMath {
    * @hidden
    */
   selu<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Selu', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Selu', {inputs: {x}}) as T;
   }
 
   /**
@@ -1206,9 +1228,8 @@ export abstract class NDArrayMath {
    * @return {NDArray}
    */
   leakyRelu<T extends NDArray>(x: T, alpha = 0.2): T {
-    return this.track(
-        this.backendEngine.executeKernel(
-            'LeakyRelu', {inputs: {x}, args: {alpha}}) as T);
+    return this.backendEngine.executeKernel(
+               'LeakyRelu', {inputs: {x}, args: {alpha}}) as T;
   }
 
   /**
@@ -1216,8 +1237,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   sigmoid<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Sigmoid', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Sigmoid', {inputs: {x}}) as T;
   }
 
   /**
@@ -1225,8 +1245,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   sin<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Sin', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Sin', {inputs: {x}}) as T;
   }
 
   /**
@@ -1234,8 +1253,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   cos<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Cos', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Cos', {inputs: {x}}) as T;
   }
 
   /**
@@ -1243,8 +1261,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   tan<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Tan', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Tan', {inputs: {x}}) as T;
   }
 
   /**
@@ -1252,8 +1269,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   asin<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Asin', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Asin', {inputs: {x}}) as T;
   }
 
   /**
@@ -1261,8 +1277,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   acos<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Acos', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Acos', {inputs: {x}}) as T;
   }
 
   /**
@@ -1270,8 +1285,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   atan<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Atan', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Atan', {inputs: {x}}) as T;
   }
 
   /**
@@ -1279,8 +1293,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   sinh<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Sinh', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Sinh', {inputs: {x}}) as T;
   }
 
   /**
@@ -1288,8 +1301,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   cosh<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Cosh', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Cosh', {inputs: {x}}) as T;
   }
 
   /**
@@ -1297,8 +1309,7 @@ export abstract class NDArrayMath {
    * @param x The input NDArray.
    */
   tanh<T extends NDArray>(x: T): T {
-    return this.track(
-        this.backendEngine.executeKernel('Tanh', {inputs: {x}}) as T);
+    return this.backendEngine.executeKernel('Tanh', {inputs: {x}}) as T;
   }
 
   /**
@@ -1309,9 +1320,8 @@ export abstract class NDArrayMath {
    * @param alpha The gradient when input is negative.
    */
   step<T extends NDArray>(x: T, alpha = 0.0): T {
-    return this.track(
-        this.backendEngine.executeKernel(
-            'Step', {inputs: {x}, args: {alpha}}) as T);
+    return this.backendEngine.executeKernel(
+               'Step', {inputs: {x}, args: {alpha}}) as T;
   }
 
   /**
@@ -1565,8 +1575,8 @@ export abstract class NDArrayMath {
     if (dy.rank === 3) {
       dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
     }
-    return this.track(this.backendEngine.executeKernel(
-        'Conv2DDerBias', {inputs: {dy: dy4D}}));
+    return this.backendEngine.executeKernel(
+        'Conv2DDerBias', {inputs: {dy: dy4D}});
   }
 
   /**
@@ -1616,8 +1626,8 @@ export abstract class NDArrayMath {
 
     const convInfo =
         conv_util.computeConv2DInfo(input4D.shape, filterShape, strides, pad);
-    return this.track(this.backendEngine.executeKernel(
-        'Conv2DDerFilter', {inputs: {x: input4D, dy: dy4D}, args: {convInfo}}));
+    return this.backendEngine.executeKernel(
+        'Conv2DDerFilter', {inputs: {x: input4D, dy: dy4D}, args: {convInfo}});
   }
 
   /**
@@ -1910,8 +1920,8 @@ export abstract class NDArrayMath {
         newShape2D.length === 2,
         `Error in resizeBilinear3D: new shape must 2D, but got shape ` +
             `${newShape2D}.`);
-    return this.track(this.backendEngine.executeKernel(
-        'ResizeBilinear3D', {inputs: {x}, args: {newShape2D, alignCorners}}));
+    return this.backendEngine.executeKernel(
+        'ResizeBilinear3D', {inputs: {x}, args: {newShape2D, alignCorners}});
   }
 
   /**
@@ -1955,9 +1965,9 @@ export abstract class NDArrayMath {
               `but got rank ${offset.rank}.`);
     }
 
-    return this.track(this.backendEngine.executeKernel(
+    return this.backendEngine.executeKernel(
         'BatchNorm2D',
-        {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}}));
+        {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
   }
 
   /**
@@ -2001,9 +2011,9 @@ export abstract class NDArrayMath {
               `but got rank ${offset.rank}.`);
     }
 
-    return this.track(this.backendEngine.executeKernel(
+    return this.backendEngine.executeKernel(
         'BatchNorm3D',
-        {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}}));
+        {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
   }
 
   //////////////
@@ -2173,6 +2183,14 @@ export abstract class NDArrayMath {
       return {mean, variance};
     });
     return result;
+  }
+
+  disposeData(id: number): void {
+    this.backend.disposeData(id);
+    // TODO(nsthorat): Construct an error and save the stack trace for debugging
+    // when in debug mode. Creating a stack trace is too expensive to do
+    // unconditionally.
+    this.numArrays--;
   }
 }
 

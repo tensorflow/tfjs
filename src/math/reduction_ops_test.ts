@@ -438,8 +438,6 @@ import * as reduce_util from './reduce_util';
       const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
       const result = math.sum(a);
       test_util.expectNumbersClose(result.get(), 7);
-
-      a.dispose();
     });
 
     it('propagates NaNs', math => {

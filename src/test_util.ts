@@ -16,9 +16,9 @@
  */
 
 import * as environment from './environment';
-import {Environment, Features} from './environment';
-import {NDArrayMathCPU} from './math/backends/backend_cpu';
-import {NDArrayMathGPU} from './math/backends/backend_webgl';
+import {ENV, Environment, Features} from './environment';
+import {MathBackendCPU} from './math/backends/backend_cpu';
+import {MathBackendWebGL} from './math/backends/backend_webgl';
 import {NDArrayMath} from './math/math';
 import * as util from './util';
 import {DType, TypedArray} from './util';
@@ -204,9 +204,10 @@ export function describeMathCPU(
   const testNameBase = 'CPU: math.' + name;
   describeWithFeaturesAndExecutor(
       testNameBase, tests as Tests[],
-      (testName, tests, features) => executeMathTests(
-          testName, tests, () => new NDArrayMathCPU(), features),
-      featuresList);
+      (testName, tests, features) => executeMathTests(testName, tests, () => {
+        const safeMode = true;
+        return new NDArrayMath(new MathBackendCPU(), safeMode);
+      }, features), featuresList);
 }
 
 export function describeMathGPU(
@@ -214,9 +215,10 @@ export function describeMathGPU(
   const testNameBase = 'WebGL: math.' + name;
   describeWithFeaturesAndExecutor(
       testNameBase, tests as Tests[],
-      (testName, tests, features) => executeMathTests(
-          testName, tests, () => new NDArrayMathGPU(), features),
-      featuresList);
+      (testName, tests, features) => executeMathTests(testName, tests, () => {
+        const safeMode = true;
+        return new NDArrayMath(new MathBackendWebGL(), safeMode);
+      }, features), featuresList);
 }
 
 export function describeCustom(
@@ -264,13 +266,17 @@ export function executeMathTests(
     testName: string, tests: MathTests[], mathFactory: () => NDArrayMath,
     features?: Features) {
   let math: NDArrayMath;
+  let oldMath: NDArrayMath;
+
   const customBeforeEach = () => {
+    oldMath = ENV.math;
     math = mathFactory();
     math.startScope();
   };
   const customAfterEach = () => {
     math.endScope(null);
     math.dispose();
+    ENV.setGlobalMath(oldMath);
   };
   const customIt =
       (name: string, testFunc: (math: NDArrayMath) => void|Promise<void>) => {

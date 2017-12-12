@@ -38,43 +38,52 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
   });
 
   it('returns the only node in the feed dictionary', () => {
-    const node = new TestNode(new Graph(), '', {}, new Tensor([]));
-    const fd =
-        new FeedDictionary([{tensor: node.output, data: NDArray.zeros([1])}]);
-    expect(session_util.getTerminatingNodesFromFeedDictionary(fd)).toEqual([
-      node
-    ]);
+    const math = new NDArrayMathCPU();
+    math.scope(() => {
+      const node = new TestNode(new Graph(), '', {}, new Tensor([]));
+      const fd =
+          new FeedDictionary([{tensor: node.output, data: NDArray.zeros([1])}]);
+      expect(session_util.getTerminatingNodesFromFeedDictionary(fd)).toEqual([
+        node
+      ]);
+    });
   });
 
   it('returns every node from the feed dictionary', () => {
-    const n0 = new TestNode(new Graph(), '', {}, new Tensor([]));
-    const n1 = new TestNode(new Graph(), '', {}, new Tensor([]));
-    const n2 = new TestNode(new Graph(), '', {}, new Tensor([]));
-    const n3 = new TestNode(new Graph(), '', {}, new Tensor([]));
-    const n4 = new TestNode(new Graph(), '', {}, new Tensor([]));
-    const feeds: FeedEntry[] = [
-      {tensor: n0.output, data: NDArray.zeros([1])},
-      {tensor: n1.output, data: NDArray.zeros([1])},
-      {tensor: n2.output, data: NDArray.zeros([1])},
-      {tensor: n3.output, data: NDArray.zeros([1])},
-      {tensor: n4.output, data: NDArray.zeros([1])}
-    ];
-    const fd = new FeedDictionary(feeds);
-    const nodes = session_util.getTerminatingNodesFromFeedDictionary(fd);
-    expect(nodes).toContain(n0);
-    expect(nodes).toContain(n1);
-    expect(nodes).toContain(n2);
-    expect(nodes).toContain(n3);
-    expect(nodes).toContain(n4);
+    const math = new NDArrayMathCPU();
+    math.scope(() => {
+      const n0 = new TestNode(new Graph(), '', {}, new Tensor([]));
+      const n1 = new TestNode(new Graph(), '', {}, new Tensor([]));
+      const n2 = new TestNode(new Graph(), '', {}, new Tensor([]));
+      const n3 = new TestNode(new Graph(), '', {}, new Tensor([]));
+      const n4 = new TestNode(new Graph(), '', {}, new Tensor([]));
+      const feeds: FeedEntry[] = [
+        {tensor: n0.output, data: NDArray.zeros([1])},
+        {tensor: n1.output, data: NDArray.zeros([1])},
+        {tensor: n2.output, data: NDArray.zeros([1])},
+        {tensor: n3.output, data: NDArray.zeros([1])},
+        {tensor: n4.output, data: NDArray.zeros([1])}
+      ];
+      const fd = new FeedDictionary(feeds);
+      const nodes = session_util.getTerminatingNodesFromFeedDictionary(fd);
+      expect(nodes).toContain(n0);
+      expect(nodes).toContain(n1);
+      expect(nodes).toContain(n2);
+      expect(nodes).toContain(n3);
+      expect(nodes).toContain(n4);
+    });
   });
 });
 
 describe('addPersistentArraysToTensorArrayMap', () => {
   let map: TensorArrayMap;
   let g: Graph;
+  let math: NDArrayMathCPU;
+
   beforeEach(() => {
     map = new TensorArrayMap();
     g = new Graph();
+    math = new NDArrayMathCPU();
   });
 
   it('does nothing with empty evaluationSet', () => {
@@ -114,15 +123,17 @@ describe('addPersistentArraysToTensorArrayMap', () => {
   });
 
   it('adds multiple ConstantNodes to the map', () => {
-    const nodes = [
-      new ConstantNode(g, NDArray.zeros([1])),
-      new ConstantNode(g, NDArray.zeros([1])),
-      new ConstantNode(g, NDArray.zeros([1]))
-    ];
-    session_util.addPersistentArraysToTensorArrayMap(nodes, map);
-    expect(map.get(nodes[0].output)).toBe(nodes[0].data);
-    expect(map.get(nodes[1].output)).toBe(nodes[1].data);
-    expect(map.get(nodes[2].output)).toBe(nodes[2].data);
+    math.scope(() => {
+      const nodes = [
+        new ConstantNode(g, NDArray.zeros([1])),
+        new ConstantNode(g, NDArray.zeros([1])),
+        new ConstantNode(g, NDArray.zeros([1]))
+      ];
+      session_util.addPersistentArraysToTensorArrayMap(nodes, map);
+      expect(map.get(nodes[0].output)).toBe(nodes[0].data);
+      expect(map.get(nodes[1].output)).toBe(nodes[1].data);
+      expect(map.get(nodes[2].output)).toBe(nodes[2].data);
+    });
   });
 
   it('skips non-VariableNode or ConstantNode entries in the set', () => {

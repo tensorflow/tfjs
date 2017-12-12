@@ -117,7 +117,6 @@ function getTextureType(gl: WebGLRenderingContext) {
   if (!ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED')) {
     return gl.UNSIGNED_BYTE;
   }
-
   return gl.FLOAT;
 }
 
@@ -237,7 +236,6 @@ export function uploadMatrixToTexture(
   } else {
     unpackedArray = tex_util.encodeFloatArray(matrix);
   }
-
   uploadDataToTexture(gl, texture, w, h, unpackedArray, numChannels);
 }
 

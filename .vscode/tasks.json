@@ -3,7 +3,7 @@
     "tasks": [
         {
             "command": "yarn",
-            "taskName": "lint",
+            "label": "lint",
             "type": "shell",
             "args": ["lint"],
             "problemMatcher": {

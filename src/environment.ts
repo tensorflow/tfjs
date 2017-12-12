@@ -16,6 +16,8 @@
  */
 
 import * as device_util from './device_util';
+import {BACKEND_REGISTRY} from './math/backends/backend';
+import {NDArrayMath} from './math/math';
 import * as util from './util';
 
 export enum Type {
@@ -155,8 +157,22 @@ function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
   return isEnabled;
 }
 
+export type Backends = 'webgl'|'cpu';
+
+function getBestBackend(): Backends {
+  const orderedBackends: Backends[] = ['webgl', 'cpu'];
+  for (let i = 0; i < orderedBackends.length; ++i) {
+    const backendId = orderedBackends[i];
+    if (backendId in BACKEND_REGISTRY) {
+      return backendId;
+    }
+  }
+  throw new Error('No backend found in registry.');
+}
+
 export class Environment {
   private features: Features = {};
+  private globalMath: NDArrayMath = null;
 
   constructor(features?: Features) {
     if (features != null) {
@@ -201,6 +217,19 @@ export class Environment {
           this.get('WEBGL_VERSION'));
     }
     throw new Error(`Unknown feature ${feature}.`);
+  }
+
+  setGlobalMath(math: NDArrayMath) {
+    this.globalMath = math;
+  }
+
+  get math(): NDArrayMath {
+    if (this.globalMath == null) {
+      const bestBackend = getBestBackend();
+      const safeMode = false;
+      this.globalMath = new NDArrayMath(bestBackend, safeMode);
+    }
+    return this.globalMath;
   }
 }
 
