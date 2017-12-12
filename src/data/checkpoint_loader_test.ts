@@ -99,4 +99,23 @@ describe('Checkpoint var loader', () => {
     // tslint:disable-next-line:no-any
     (xhrObj as any).onload();
   });
+
+  it('Load variable but 404 not found', (doneFn) => {
+    const fakeCheckpointManifest:
+        CheckpointManifest = {'fakeVar1': {filename: 'fakeFile1', shape: [10]}};
+
+    const varLoader = new CheckpointLoader('fakeModel');
+    varLoader.getCheckpointManifest().then(checkpoint => {
+      varLoader.getVariable('fakeVar1');
+      // tslint:disable-next-line:no-any
+      expect(() => (xhrObj as any).onload()).toThrowError();
+      doneFn();
+    });
+    // tslint:disable-next-line:no-any
+    (xhrObj as any).responseText = JSON.stringify(fakeCheckpointManifest);
+    // tslint:disable-next-line:no-any
+    (xhrObj as any).status = 404;
+    // tslint:disable-next-line:no-any
+    (xhrObj as any).onload();
+  });
 });

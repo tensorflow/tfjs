@@ -115,6 +115,9 @@ export class CheckpointLoader {
           xhr.open('GET', this.urlPath + fname);
 
           xhr.onload = () => {
+            if (xhr.status === 404) {
+              throw new Error(`Not found variable ${varName}`);
+            }
             const values = new Float32Array(xhr.response);
             const ndarray =
                 NDArray.make(this.checkpointManifest[varName].shape, {values});
