@@ -81,6 +81,11 @@ const varLoader = new CheckpointLoader('.');
 varLoader.getAllVariables().then(async vars => {
   const math = new NDArrayMathGPU();
 
+  // Get NDArray of variables casted with expected dimension.
+  const hidden1W = vars['hidden1/weights'] as Array2D;
+  const hidden1B = vars['hidden1/biases'] as Array1D;
+  // ...
+
   // Write your model here.
   const hidden1 =
       math.relu(math.add(math.vectorTimesMatrix(..., hidden1W), hidden1B)) as
