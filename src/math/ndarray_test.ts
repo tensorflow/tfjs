@@ -719,6 +719,48 @@ const testsOnesLike: MathTests = it => {
     expect(b.getValues()).toEqual(new Uint8Array([1, 1, 1, 1]));
   });
 };
+
+const testsFill: MathTests = it => {
+  it('1D fill', () => {
+    const a = Array1D.zeros([3]);
+    a.fill(2);
+
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([3]);
+    test_util.expectArraysClose(a.dataSync(), new Float32Array([2, 2, 2]));
+  });
+
+  it('2D fill', () => {
+    const a = Array2D.zeros([3, 2]);
+    a.fill(2);
+
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([3, 2]);
+    test_util.expectArraysClose(
+        a.dataSync(), new Float32Array([2, 2, 2, 2, 2, 2]));
+  });
+
+  it('3D fill', () => {
+    const a = Array2D.zeros([3, 2, 1]);
+    a.fill(2);
+
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([3, 2, 1]);
+    test_util.expectArraysClose(
+        a.dataSync(), new Float32Array([2, 2, 2, 2, 2, 2]));
+  });
+
+  it('4D fill', () => {
+    const a = Array2D.zeros([3, 2, 1, 2]);
+    a.fill(2);
+
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([3, 2, 1, 2]);
+    test_util.expectArraysClose(
+        a.dataSync(), new Float32Array([2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]));
+  });
+};
+
 const testsLike: MathTests = it => {
   it('1D default dtype', () => {
     const a = Array1D.new([1, 2, 3]);
@@ -847,7 +889,6 @@ const testsLike: MathTests = it => {
     expect(b.shape).toEqual([2, 2, 1, 1]);
     expect(b.getValues()).toEqual(new Uint8Array([1, 1, 1, 1]));
   });
-
 };
 const testsScalarNew: MathTests = it => {
   it('default dtype', () => {
@@ -1761,7 +1802,6 @@ const testsRandUniform: MathTests = it => {
   });
 };
 const testsFromPixels: MathTests = it => {
-
   beforeEach(() => {});
 
   afterEach(() => {});
@@ -1834,6 +1874,7 @@ const allTests = [
   testsOnes,
   testsZerosLike,
   testsOnesLike,
+  testsFill,
   testsLike,
   testsScalarNew,
   testsArray1DNew,
