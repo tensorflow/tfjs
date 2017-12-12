@@ -1597,21 +1597,29 @@ const testsRandNormal: MathTests = it => {
 };
 const testsRandTruncNormal: MathTests = it => {
   // Expect slightly higher variances for truncated values.
-  const EPSILON = 0.10;
+  const EPSILON = 0.60;
   const SEED = 2002;
 
+  function assertTruncatedValues(array: NDArray, mean: number, stdv: number) {
+    const bounds = mean + stdv * 2;
+    const values = array.dataSync();
+    for (let i = 0; i < values.length; i++) {
+      expect(Math.abs(values[i])).toBeLessThanOrEqual(bounds);
+    }
+  }
+
   it('should return a random 1D float32 array', () => {
-    const shape: [number] = [2000];
+    const shape: [number] = [1000];
 
     // Ensure defaults to float32 w/o type:
     let result = NDArray.randTruncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 3.5, EPSILON);
 
     result = NDArray.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 4.5, EPSILON);
   });
 
@@ -1619,7 +1627,7 @@ const testsRandTruncNormal: MathTests = it => {
     const shape: [number] = [1000];
     const result = NDArray.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 5, EPSILON);
   });
 
@@ -1629,21 +1637,21 @@ const testsRandTruncNormal: MathTests = it => {
     // Ensure defaults to float32 w/o type:
     let result = Array2D.randTruncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 3.5, EPSILON);
 
     result = Array2D.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 4.5, EPSILON);
   });
 
-  it('should return a 2D int32 array', () => {
-    const shape: [number, number] = [100, 100];
-    const result = Array2D.randTruncatedNormal(shape, 0, 6, 'int32', SEED);
+  it('should return a 2D int32 array KREEGER', () => {
+    const shape: [number, number] = [50, 50];
+    const result = Array2D.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
-    test_util.expectArrayInMeanStdRange(result.getValues(), 0, 6, EPSILON);
+    assertTruncatedValues(result, 0, 5);
+    test_util.expectArrayInMeanStdRange(result.getValues(), 0, 5, EPSILON);
   });
 
   it('should return a 3D float32 array', () => {
@@ -1652,12 +1660,12 @@ const testsRandTruncNormal: MathTests = it => {
     // Ensure defaults to float32 w/o type:
     let result = Array3D.randTruncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 3.5, EPSILON);
 
     result = Array3D.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 4.5, EPSILON);
   });
 
@@ -1665,7 +1673,7 @@ const testsRandTruncNormal: MathTests = it => {
     const shape: [number, number, number] = [10, 10, 10];
     const result = Array3D.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 5, EPSILON);
   });
 
@@ -1675,12 +1683,12 @@ const testsRandTruncNormal: MathTests = it => {
     // Ensure defaults to float32 w/o type:
     let result = Array4D.randTruncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 3.5, EPSILON);
 
     result = Array4D.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 4.5, EPSILON);
   });
 
@@ -1688,7 +1696,7 @@ const testsRandTruncNormal: MathTests = it => {
     const shape: [number, number, number, number] = [5, 5, 5, 5];
     const result = Array4D.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
-    test_util.jarqueBeraNormalityTest(result.getValues());
+    assertTruncatedValues(result, 0, 5);
     test_util.expectArrayInMeanStdRange(result.getValues(), 0, 5, EPSILON);
   });
 };

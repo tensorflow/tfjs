@@ -296,7 +296,7 @@ const commonTests: MathTests = it => {
 
 const gpuTests: MathTests = it => {
   it('Matrix times vector, large matrix', math => {
-    const maxTexSize = 64000;
+    const maxTexSize = 16000;
     const sharedDim = maxTexSize + 4;
     const matrix = Array2D.zeros([2, sharedDim]);
     matrix.set(1, 0, sharedDim - 3);

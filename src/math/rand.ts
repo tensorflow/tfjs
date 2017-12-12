@@ -17,7 +17,9 @@
 
 import * as seedrandom from 'seedrandom';
 
-export interface RandGauss { nextValue(): number; }
+export interface RandGauss {
+  nextValue(): number;
+}
 
 export interface RandNormalDataTypes {
   float32: Float32Array;
@@ -44,8 +46,8 @@ export class MPRandGauss implements RandGauss {
     this.nextVal = NaN;
     this.truncated = truncated;
     if (this.truncated) {
-      this.upper = this.mean + Math.pow(this.stdDev, 2);
-      this.lower = this.mean - Math.pow(this.stdDev, 2);
+      this.upper = this.mean + this.stdDev * 2;
+      this.lower = this.mean - this.stdDev * 2;
     }
     const seedValue = seed ? seed : Math.random();
     this.random = seedrandom.alea(seedValue.toString());
