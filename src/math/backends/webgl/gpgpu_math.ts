@@ -18,10 +18,10 @@
 import {ENV} from '../../../environment';
 import * as util from '../../../util';
 import {NDArray} from '../../ndarray';
-
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {ShapeInfo} from './shader_compiler';
+import {TextureData} from './tex_util';
 
 const ATTRIBUTE_NAMES = ['uv', 'clipSpacePos'];
 
@@ -49,23 +49,28 @@ function shouldUploadNaNUniform(): boolean {
   return !ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED');
 }
 
+export interface ArrayData<T extends NDArray> {
+  array: T;
+  texData: TextureData;
+}
+
 export function compileProgram<T extends NDArray, K extends NDArray>(
-    gpgpu: GPGPUContext, program: GPGPUProgram, inputs: T[],
-    output: K): GPGPUBinary {
+    gpgpu: GPGPUContext, program: GPGPUProgram, inputs: Array<ArrayData<T>>,
+    output: ArrayData<K>): GPGPUBinary {
   const userCode = program.userCode;
   const inputInfos = inputs.map((input, i) => {
     const shapeInfo = {
-      logicalShape: input.shape,
-      texShape: input.getTextureShapeRC(),
-      textureType: input.getData().textureType
+      logicalShape: input.array.shape,
+      texShape: input.texData.texShape,
+      textureType: input.texData.textureType
     };
     return {name: program.variableNames[i], shapeInfo};
   });
   const inShapeInfos = inputInfos.map(x => x.shapeInfo);
   const outShapeInfo = {
-    logicalShape: output.shape,
-    texShape: output.getTextureShapeRC(),
-    textureType: output.getData().textureType
+    logicalShape: output.array.shape,
+    texShape: output.texData.texShape,
+    textureType: output.texData.textureType
   };
   const source = shader_compiler.makeShader(
       inputInfos, outShapeInfo, userCode,
@@ -102,7 +107,8 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
   };
 }
 
-function validateBinaryAndProgram(shapeInfos: ShapeInfo[], inputs: NDArray[]) {
+function validateBinaryAndProgram(
+    shapeInfos: ShapeInfo[], inputs: Array<ArrayData<NDArray>>) {
   if (shapeInfos.length !== inputs.length) {
     throw Error(
         `Binary was compiled with ${shapeInfos.length} inputs, but ` +
@@ -112,8 +118,8 @@ function validateBinaryAndProgram(shapeInfos: ShapeInfo[], inputs: NDArray[]) {
   shapeInfos.forEach((s, i) => {
     const shapeA = s.logicalShape;
     const texShapeA = s.texShape;
-    const shapeB = inputs[i].shape;
-    const texShapeB = inputs[i].getTextureShapeRC();
+    const shapeB = inputs[i].array.shape;
+    const texShapeB = inputs[i].texData.texShape;
 
     if (!util.arraysEqual(shapeA, shapeB)) {
       throw Error(
@@ -129,19 +135,19 @@ function validateBinaryAndProgram(shapeInfos: ShapeInfo[], inputs: NDArray[]) {
 }
 
 export function runProgram<T extends NDArray, K extends NDArray>(
-    binary: GPGPUBinary, inputs: T[], output: K,
+    binary: GPGPUBinary, inputs: Array<ArrayData<T>>, output: ArrayData<K>,
     customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
         void): void {
   validateBinaryAndProgram(binary.inShapeInfos, inputs);
   validateBinaryAndProgram([binary.outShapeInfo], [output]);
 
-  const outTex = output.getTexture();
-  const outTexShape = output.getTextureShapeRC();
+  const outTex = output.texData.texture;
+  const outTexShape = output.texData.texShape;
   const gpgpu = binary.gpgpu;
   gpgpu.setOutputMatrixTexture(outTex, outTexShape[0], outTexShape[1]);
   gpgpu.setProgram(binary.webGLProgram);
   inputs.forEach((input, i) => {
-    const tex = input.getTexture();
+    const tex = input.texData.texture;
     const variableName = binary.program.variableNames[i];
     const variableUniformLocation = binary.uniformLocations[variableName];
     gpgpu.setInputMatrixTexture(tex, variableUniformLocation, i);
@@ -158,10 +164,11 @@ export function runProgram<T extends NDArray, K extends NDArray>(
 }
 
 export function makeShaderKey(
-    program: GPGPUProgram, inputs: NDArray[], output: NDArray): string {
+    program: GPGPUProgram, inputs: Array<ArrayData<NDArray>>,
+    output: ArrayData<NDArray>): string {
   let keyInputs = '';
   inputs.concat(output).forEach(x => {
-    keyInputs += `${x.shape}_${x.getTextureShapeRC()}`;
+    keyInputs += `${x.array.shape}_${x.texData.texShape}`;
   });
   const keyUserCode = program.userCode;
   const keyBroadcast = (program.supportsBroadcasting === true).toString();

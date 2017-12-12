@@ -16,7 +16,6 @@
  */
 
 import * as seedrandom from 'seedrandom';
-
 import * as util from '../../util';
 import * as broadcast_util from '../broadcast_util';
 import * as concat_util from '../concat_util';
@@ -25,12 +24,68 @@ import {NDArrayMath} from '../math';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from '../ndarray';
 import {SumTypes, SumTypesMap} from '../types';
-
 import * as axis_util from './../axis_util';
-import {MathBackend} from './backend';
+import {BACKEND_REGISTRY, MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
 
 export class MathBackendCPU implements MathBackend {
+  private data: {[id: number]: DataTypes[keyof DataTypes]} = {};
+
+  dispose() {}
+  write<T extends keyof DataTypes>(
+      id: number, values: DataTypes[T], dtype: T, shape: number[]): void {
+    this.data[id] = values;
+  }
+  writePixels(
+      id: number,
+      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
+      numChannels: number): void {
+    let vals: Uint8ClampedArray;
+    if (pixels instanceof ImageData) {
+      vals = pixels.data;
+    } else if (pixels instanceof HTMLCanvasElement) {
+      vals = pixels.getContext('2d')
+                 .getImageData(0, 0, pixels.width, pixels.height)
+                 .data;
+    } else if (
+        pixels instanceof HTMLImageElement ||
+        pixels instanceof HTMLVideoElement) {
+      const canvas = document.createElement('canvas');
+      canvas.width = pixels.width;
+      canvas.height = pixels.height;
+      canvas.getContext('2d').drawImage(
+          pixels, 0, 0, canvas.width, canvas.height);
+      vals = canvas.getContext('2d')
+                 .getImageData(0, 0, canvas.width, canvas.height)
+                 .data;
+    } else {
+      throw new Error(
+          `pixels is of unknown type: ${(pixels as {}).constructor.name}`);
+    }
+    let values: Int32Array;
+    if (numChannels === 4) {
+      values = new Int32Array(vals);
+    } else {
+      const numPixels = pixels.width * pixels.height;
+      values = new Int32Array(numPixels * numChannels);
+      for (let i = 0; i < numPixels; i++) {
+        for (let channel = 0; channel < numChannels; ++channel) {
+          values[i * numChannels + channel] = vals[i * 4 + channel];
+        }
+      }
+    }
+    this.data[id] = values;
+  }
+  readSync<T extends keyof DataTypes>(id: number): DataTypes[T] {
+    return this.data[id];
+  }
+  disposeData(id: number): void {
+    delete this.data[id];
+  }
+  async read<T extends keyof DataTypes>(id: number): Promise<DataTypes[T]> {
+    return this.data[id];
+  }
+
   clone<T extends NDArray>(x: T): T {
     return NDArray.make(x.shape, {values: new Float32Array(x.getValues())}) as
         T;
@@ -221,15 +276,16 @@ export class MathBackendCPU implements MathBackend {
   }
 
   neg<T extends NDArray>(x: T): T {
-    return this.multiply(Scalar.NEG_ONE, x) as T;
+    return this.multiply(Scalar.new(-1), x) as T;
   }
 
   add<T extends NDArray>(a: T, b: T): T {
-    return this.scaledArrayAdd<T>(Scalar.ONE, a, Scalar.ONE, b);
+    const one = Scalar.new(1);
+    return this.scaledArrayAdd<T>(one, a, one, b);
   }
 
   subtract<T extends NDArray>(a: T, b: T): T {
-    return this.scaledArrayAdd<T>(Scalar.ONE, a, Scalar.NEG_ONE, b);
+    return this.scaledArrayAdd<T>(Scalar.new(1), a, Scalar.new(-1), b);
   }
 
   pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T {
@@ -269,7 +325,6 @@ export class MathBackendCPU implements MathBackend {
         transposedGetter;
     const values = new Float32Array(leftDim * rightDim);
     let index = 0;
-
     for (let i = 0; i < leftDim; ++i) {
       for (let j = 0; j < rightDim; ++j) {
         let sum = 0;
@@ -1296,9 +1351,11 @@ export class MathBackendCPU implements MathBackend {
   }
 }
 
+BACKEND_REGISTRY['cpu'] = new MathBackendCPU();
+
 // TODO(nsthorat): Deprecate this once we export non-abstract NDArrayMath.
 export class NDArrayMathCPU extends NDArrayMath {
   constructor(safeMode = false) {
-    super(new MathBackendCPU(), safeMode);
+    super('cpu', safeMode);
   }
 }

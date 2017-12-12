@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import '../test_env';
 import {CheckpointLoader, CheckpointManifest} from './checkpoint_loader';
 
 describe('Checkpoint var loader', () => {

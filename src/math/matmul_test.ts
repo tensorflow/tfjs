@@ -15,12 +15,9 @@
  * =============================================================================
  */
 
-import {NDArrayMathGPU} from '../math/backends/backend_webgl';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-
 import {MatrixOrientation} from './backends/types/matmul';
-import * as webgl_util from './backends/webgl/webgl_util';
 import {Array1D, Array2D, Array3D} from './ndarray';
 
 const commonTests: MathTests = it => {
@@ -298,12 +295,9 @@ const commonTests: MathTests = it => {
 };
 
 const gpuTests: MathTests = it => {
-  it('Matrix times vector, larger than max texture size', math => {
-    const maxTexSize = webgl_util.queryMaxTextureSize(
-        (math as NDArrayMathGPU).getGPGPUContext().gl);
-
+  it('Matrix times vector, large matrix', math => {
+    const maxTexSize = 64000;
     const sharedDim = maxTexSize + 4;
-
     const matrix = Array2D.zeros([2, sharedDim]);
     matrix.set(1, 0, sharedDim - 3);
     matrix.set(1, 0, sharedDim - 2);

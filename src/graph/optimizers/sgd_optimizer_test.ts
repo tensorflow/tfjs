@@ -22,19 +22,11 @@ import {Graph} from '../graph';
 import {Session} from '../session';
 import {SGDOptimizer} from './sgd_optimizer';
 
-describe('rmsprop optimizer', () => {
+describe('sgd optimizer', () => {
   it('basic', () => {
-    const g = new Graph();
-
-    const x = g.placeholder('x', [2]);
-    const y = g.square(x);
-    const z = g.add(x, g.constant(3));
-    const w = g.reduceSum(g.add(y, z));
-
     const safeMode = true;
-    const optimizer = new SGDOptimizer(0.1);
     const math = new NDArrayMathCPU(safeMode);
-    const session = new Session(g, math);
+
     const inputProvider: InputProvider = {
       getNextCopy() {
         return Array1D.new([2, 4]);
@@ -43,6 +35,13 @@ describe('rmsprop optimizer', () => {
     };
 
     math.scope(() => {
+      const g = new Graph();
+      const x = g.placeholder('x', [2]);
+      const y = g.square(x);
+      const z = g.add(x, g.constant(3));
+      const w = g.reduceSum(g.add(y, z));
+      const optimizer = new SGDOptimizer(0.1);
+      const session = new Session(g, math);
       // w = reduce_sum(x^2 + x + 3)
       // dw/dx = [2*x_1 + 1, 2*x_2 + 1]
       session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer);

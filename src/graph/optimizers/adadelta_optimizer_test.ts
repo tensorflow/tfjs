@@ -25,17 +25,9 @@ import {AdadeltaOptimizer} from './adadelta_optimizer';
 
 describe('adadelta optimizer', () => {
   it('basic', () => {
-    const g = new Graph();
-
-    const x = g.placeholder('x', [2]);
-    const w = g.variable('w', NDArray.zeros([1, 2]));
-    const b = g.variable('b', NDArray.zeros([1]));
-    const y = g.reduceSum(g.add(g.matmul(w, x), b));
-
     const safeMode = true;
-    const optimizer = new AdadeltaOptimizer(0.1, 0.8);
     const math = new NDArrayMathCPU(safeMode);
-    const session = new Session(g, math);
+
     const inputProvider: InputProvider = {
       getNextCopy() {
         return Array1D.new([2, 4]);
@@ -44,6 +36,13 @@ describe('adadelta optimizer', () => {
     };
 
     math.scope(() => {
+      const g = new Graph();
+      const x = g.placeholder('x', [2]);
+      const w = g.variable('w', NDArray.zeros([1, 2]));
+      const b = g.variable('b', NDArray.zeros([1]));
+      const y = g.reduceSum(g.add(g.matmul(w, x), b));
+      const session = new Session(g, math);
+      const optimizer = new AdadeltaOptimizer(0.1, 0.8);
       // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
       // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
       //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]

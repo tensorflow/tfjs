@@ -279,8 +279,11 @@ export function getNaN(dtype: DType): number {
 }
 
 export function isValNaN(val: number, dtype: DType): boolean {
+  if (isNaN(val)) {
+    return true;
+  }
   if (dtype === 'float32') {
-    return isNaN(val);
+    return false;
   } else if (dtype === 'int32') {
     return val === NAN_INT32;
   } else if (dtype === 'bool') {

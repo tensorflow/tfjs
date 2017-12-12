@@ -15,19 +15,36 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:max-line-length
+
+import {Backends} from '../../environment';
 import {Conv2DInfo} from '../conv_util';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray} from '../ndarray';
 import {SumTypes} from '../types';
 import {MatrixOrientation} from './types/matmul';
 
+// tslint:disable-next-line:no-any
+export const BACKEND_REGISTRY: {[id in Backends]: MathBackend} = {} as any;
+
+export interface NDArrayStorage {
+  read<T extends keyof DataTypes>(id: number): Promise<DataTypes[T]>;
+  readSync<T extends keyof DataTypes>(id: number): DataTypes[T];
+  disposeData(id: number): void;
+  write<T extends keyof DataTypes>(
+      id: number, values: DataTypes[T], dtype: T, shape: number[]): void;
+  writePixels(
+      id: number,
+      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
+      numChannels: number): void;
+}
+
 /**
- * The interface that defines the kernels that should be implemented when adding
- * a new backend. New backends don't need to implement every one of the methods,
- * this can be done gradually (throw an error for unimplemented methods).
+ * The interface that defines the kernels that should be implemented when
+ * adding a new backend. New backends don't need to implement every one of the
+ * methods, this can be done gradually (throw an error for unimplemented
+ * methods).
  */
-export interface MathBackend {
+export interface MathBackend extends NDArrayStorage {
   matMul(
       a: Array2D, b: Array2D, aOrientation: MatrixOrientation,
       bOrientation: MatrixOrientation): Array2D;
@@ -146,4 +163,6 @@ export interface MathBackend {
 
   oneHot(indices: Array1D, depth: number, onValue: number, offValue: number):
       Array2D;
+
+  dispose(): void;
 }
