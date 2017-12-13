@@ -142,10 +142,12 @@ To do a dry run and test building an npm package:
 
 ```bash
 $ ./scripts/build-npm.sh
->> Stored npm package at dist/deeplearn-VERSION.tgz
+...
+Stored standalone library at dist/deeplearn(.min).js
+deeplearn-VERSION.tgz
 ```
 
-To install it locally, run `npm install ./dist/deeplearn-VERSION.tgz`.
+To install it locally, run `npm install ./deeplearn-VERSION.tgz`.
 
 > On Windows, use bash (available through git) to use the scripts above.
 
