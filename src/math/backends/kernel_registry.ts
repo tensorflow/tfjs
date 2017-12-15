@@ -1,7 +1,7 @@
 import {NDArray} from '../ndarray';
 
 import {MathBackend} from './backend';
-import {KernelInputConfig} from './kernel_config';
+import {KernelInputConfig} from './tape_types';
 // tslint:disable-next-line:max-line-length
 import {ArgMaxInputConfig, ArgMaxNode, ArgMinInputConfig, ArgMinNode} from './types/argminmax';
 // tslint:disable-next-line:max-line-length
@@ -258,7 +258,7 @@ const KERNEL_METHODS: {
 };
 export function executeKernel<K extends keyof KernelConfigRegistry, R extends
                                   KernelConfigRegistry[K]['output']>(
-    kernelName: K, backend: MathBackend,
+    backend: MathBackend, kernelName: K,
     config: KernelConfigRegistry[K]['inputAndArgs']): R {
   return KERNEL_METHODS[kernelName](backend, config) as R;
 }

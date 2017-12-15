@@ -110,6 +110,49 @@ import {Array1D, Array2D, Scalar} from './ndarray';
   ]);
 }
 
+// Relu gradient
+{
+  const tests: MathTests = it => {
+    it('Relu gradient positive scalar', math => {
+      const a = Scalar.new(3);
+
+      const result = math.relu(a);
+      const grad = math.gradientWrt(result, a);
+
+      test_util.expectArraysClose(grad.dataSync(), new Float32Array([1]));
+    });
+
+    it('Relu gradient negative scalar', math => {
+      const a = Scalar.new(-3);
+
+      const result = math.relu(a);
+      const grad = math.gradientWrt(result, a);
+
+      test_util.expectArraysClose(grad.dataSync(), new Float32Array([0]));
+    });
+
+    it('Relu gradient array', math => {
+      // TODO(nsthorat): Use 0 instead of -.001 when we fix the precision issue.
+      const a = Array2D.new([2, 2], [1, -1, -.001, .1]);
+
+      // gradientWrt only takes a scalar, so we manually sum here.
+      const result = math.sum(math.relu(a));
+      const grad = math.gradientWrt(result, a);
+
+      expect(grad.shape).toEqual(a.shape);
+      test_util.expectArraysClose(
+          grad.dataSync(), new Float32Array([1, 0, 0, 1]));
+    });
+  };
+
+  test_util.describeMathCPU('gradientWrt relu', [tests]);
+  test_util.describeMathGPU('gradientWrt relu', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
 // math.abs
 {
   const tests: MathTests = it => {
@@ -829,7 +872,6 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       test_util.expectArraysClose(
           result.dataSync(), new Float32Array([0, 1, NaN]));
     });
-
   };
 
   test_util.describeMathCPU('leakyRelu', [tests]);
@@ -859,7 +901,6 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       test_util.expectArraysClose(
           result.dataSync(), new Float32Array([1, NaN]));
     });
-
   };
   test_util.describeMathCPU('elu', [tests]);
   test_util.describeMathGPU('elu', [tests], [
@@ -888,7 +929,6 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       test_util.expectArraysClose(
           result.dataSync(), new Float32Array([1.0507, NaN]));
     });
-
   };
   test_util.describeMathCPU('selu', [tests]);
   test_util.describeMathGPU('selu', [tests], [
