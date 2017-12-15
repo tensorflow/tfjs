@@ -18,7 +18,9 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
-import {Array1D, Array3D, Scalar} from './ndarray';
+
+import {MatrixOrientation} from './backends/types/matmul';
+import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
 // math.scope
 {
@@ -259,6 +261,54 @@ import {Array1D, Array3D, Scalar} from './ndarray';
   };
 
   test_util.describeMathGPU('fromPixels + math', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// gradientWrt integration tests
+{
+  const tests: MathTests = it => {
+    it('matmul + relu', math => {
+      const a = Array2D.new([2, 3], [-1, 2, -3, 10, -20, 30]);
+      const b = Array2D.new([3, 2], [2, -3, 4, -1, 2, -3]);
+
+      // m = dot(a, b)
+      // y = relu(m)
+      // e = sum(y)
+      const m = math.matMul(a, b);
+      const y = math.relu(m);
+      const e = math.sum(y);
+
+      const grads = math.gradientWrt(e, {a, b});
+
+      // de/dy = 1
+      // dy/dm = step(m)
+      // de/dm = de/dy * dy/dm = step(m)
+      const dedm = math.step(m);
+
+      // de/da = dot(de/dy, bT)
+      expect(grads.a.shape).toEqual(a.shape);
+      test_util.expectArraysClose(
+          grads.a.dataSync(),
+          math.matMul(
+                  dedm, b, MatrixOrientation.REGULAR,
+                  MatrixOrientation.TRANSPOSED)
+              .dataSync());
+
+      // de/db = dot(aT, de/dy)
+      expect(grads.b.shape).toEqual(b.shape);
+      test_util.expectArraysClose(
+          grads.b.dataSync(),
+          math.matMul(
+                  a, dedm, MatrixOrientation.TRANSPOSED,
+                  MatrixOrientation.REGULAR)
+              .dataSync());
+    });
+  };
+  test_util.describeMathCPU('gradientWrt', [tests]);
+  test_util.describeMathGPU('gradientWrt', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

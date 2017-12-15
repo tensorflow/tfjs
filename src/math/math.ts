@@ -298,7 +298,15 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
             ` and ${MatrixOrientation[bOrientation]} must match.`);
 
     return this.backendEngine.executeKernel(
-        'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}});
+        'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}},
+        (dy: Array2D, y: Array2D) => {
+          return {
+            a: () => this.matMul(
+                dy, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
+            b: () => this.matMul(
+                a, dy, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR)
+          };
+        });
   }
 
   private executeOp<G extends keyof DataTypes, T extends NDArray<G>>(
@@ -634,8 +642,22 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
         x = this.transpose(x, permutedAxes);
         axes = axis_util.getInnerMostAxes(axes.length, x.rank);
       }
-      const res =
-          this.backendEngine.executeKernel('Sum', {inputs: {x}, args: {axes}});
+      const res = this.backendEngine.executeKernel(
+          'Sum', {inputs: {x}, args: {axes}},
+          (dy: NDArray<SumTypes[T]>, y: NDArray<SumTypes[T]>) => {
+            return {
+              x: () => {
+                // TODO(nsthorat): Fix gradients for sum when using axis
+                // reduction.
+                if (axis != null) {
+                  throw new Error(
+                      `Gradients for sum with axis reduction not yet ` +
+                      `supported.`);
+                }
+                return this.multiply(dy, NDArray.onesLike(x));
+              }
+            };
+          });
       if (keepDims) {
         const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
         return res.reshape(newShape);
@@ -1194,7 +1216,10 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
    * @param x The input NDArray.
    */
   relu<T extends NDArray>(x: T): T {
-    return this.backendEngine.executeKernel('Relu', {inputs: {x}}) as T;
+    return this.backendEngine.executeKernel(
+               'Relu', {inputs: {x}}, (dy: T, y: T) => {
+                 return {x: () => this.step(x)};
+               }) as T;
   }
 
   /**
@@ -2183,6 +2208,48 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
       return {mean, variance};
     });
     return result;
+  }
+
+  /**
+   * Warning: this is not fully implemented yet. Use with caution.
+   *
+   * Computes a gradient of y with respect to x.
+   *
+   * @param y The output Scalar. Assumes de/dy = 1.
+   *          TODO(nsthorat): Accept non-scalars.
+   * @param x The input to compute de/dx over. This can be a single value or an
+   * object mapping a string to an NDArray. If using the object mode, this
+   * method will return an object of the same shape.
+   */
+  gradientWrt<T extends NDArray|{[xName: string]: NDArray}>(y: Scalar, x: T):
+      T {
+    const xIsArray = x instanceof NDArray;
+
+    const xs: NDArray[] = [];
+    let xKeys: string[];
+    if (xIsArray) {
+      xs.push(x as NDArray);
+    } else {
+      const xMap = x as {[xName: string]: NDArray};
+      xKeys = Object.keys(xMap);
+      // Flatten the inputs.
+      for (let i = 0; i < xKeys.length; i++) {
+        xs.push(xMap[xKeys[i]]);
+      }
+    }
+
+    const gradients = this.backendEngine.gradientWrt(y, xs);
+
+    if (xIsArray) {
+      return gradients[0] as T;
+    } else {
+      // Convert the flat list of gradients back to the object.
+      const result: {[xName: string]: NDArray} = {};
+      for (let i = 0; i < xKeys.length; i++) {
+        result[xKeys[i]] = gradients[i];
+      }
+      return result as T;
+    }
   }
 
   disposeData(id: number): void {

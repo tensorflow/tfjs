@@ -40,7 +40,6 @@ import * as reduce_util from './reduce_util';
     it('2D', math => {
       const a = Array2D.new([2, 3], [3, -1, 0, 100, -7, 2]);
       test_util.expectNumbersClose(math.min(a).get(), -7);
-
     });
 
     it('2D axis=[0,1]', math => {
@@ -503,6 +502,38 @@ import * as reduce_util from './reduce_util';
 
   test_util.describeMathCPU('sum', [tests]);
   test_util.describeMathGPU('sum', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// math.sum gradient
+{
+  const tests: MathTests = it => {
+    it('basic', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const y = math.sum(a);
+      const grad = math.gradientWrt(y, a);
+
+      test_util.expectArraysClose(
+          grad.dataSync(), new Float32Array([1, 1, 1, 1, 1, 1]));
+    });
+
+    it('sums all values in 2D array with keep dim', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const res = math.sum(a, null, true /* keepDims */);
+      const grad = math.gradientWrt(res, a);
+
+      expect(res.shape).toEqual([1, 1]);
+      test_util.expectArraysClose(res.dataSync(), new Float32Array([7]));
+      test_util.expectArraysClose(
+          grad.getValues(), new Float32Array([1, 1, 1, 1, 1, 1]));
+    });
+  };
+
+  test_util.describeMathCPU('gradientWrt sum', [tests]);
+  test_util.describeMathGPU('gradientWrt sum', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
