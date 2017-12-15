@@ -17,7 +17,6 @@
 import * as environment from '../../../environment';
 import {Environment, Features} from '../../../environment';
 import * as test_util from '../../../test_util';
-
 import {GPGPUContext} from './gpgpu_context';
 import * as tex_util from './tex_util';
 
@@ -87,14 +86,12 @@ test_util.describeCustom(
       afterEach(() => {
         gpgpu.deleteMatrixTexture(texture);
         gpgpu.dispose();
-        environment.setEnvironment(new Environment());
       });
 
       it('basic', () => {
         const featureValues: Features = {};
-
-        environment.setEnvironment(new Environment(featureValues));
-
+        const prevEnv = environment.ENV;
+        environment.setGlobal(new Environment(featureValues));
         gpgpu = new GPGPUContext();
         gpgpu.enableAutomaticDebugValidation(true);
         texture = gpgpu.createMatrixTexture(1, 1);
@@ -104,6 +101,7 @@ test_util.describeCustom(
         gpgpu.gl.clear(gpgpu.gl.COLOR_BUFFER_BIT);
         const result = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
         test_util.expectNumbersClose(result[0], 0.123);
+        environment.setGlobal(prevEnv);
       });
     },
     [

@@ -15,7 +15,11 @@
  * =============================================================================
  */
 import * as device_util from './device_util';
-import {Environment, Features} from './environment';
+import * as environment from './environment';
+import {ENV, Environment, Features} from './environment';
+import {MathBackend} from './math/backends/backend';
+import {MathBackendCPU} from './math/backends/backend_cpu';
+import {MathBackendWebGL} from './math/backends/backend_webgl';
 
 describe('disjoint query timer enabled', () => {
   it('no webgl', () => {
@@ -196,5 +200,58 @@ describe('WebGL version', () => {
 
     const env = new Environment();
     expect(env.get('WEBGL_VERSION')).toBe(0);
+  });
+});
+
+describe('Backend', () => {
+  it('default ENV has cpu and webgl, and webgl is the best available', () => {
+    expect(ENV.getBackend('webgl') != null).toBe(true);
+    expect(ENV.getBackend('cpu') != null).toBe(true);
+    expect(ENV.getBestBackend()).toBe(ENV.getBackend('webgl'));
+  });
+
+  it('custom webgl registration', () => {
+    const features:
+        Features = {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2};
+    const prevEnv = environment.ENV;
+    const env = new Environment(features);
+    environment.setGlobal(env);
+
+    let backend: MathBackend;
+    env.registerBackend('webgl', () => {
+      backend = new MathBackendWebGL();
+      return backend;
+    });
+
+    expect(env.getBackend('webgl')).toBe(backend);
+    expect(env.math).not.toBeNull();
+    environment.setGlobal(prevEnv);
+  });
+
+  it('double registration fails', () => {
+    const features:
+        Features = {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2};
+    const prevEnv = environment.ENV;
+    const env = new Environment(features);
+    environment.setGlobal(env);
+
+    env.registerBackend('webgl', () => new MathBackendWebGL());
+    expect(() => env.registerBackend('webgl', () => new MathBackendWebGL()))
+        .toThrowError();
+    environment.setGlobal(prevEnv);
+  });
+
+  it('webgl not supported, falls back to cpu', () => {
+    const prevEnv = environment.ENV;
+    const features: Features = {'WEBGL_VERSION': 0};
+    const env = new Environment(features);
+    environment.setGlobal(env);
+
+    env.registerBackend('cpu', () => new MathBackendCPU());
+    const success = env.registerBackend('webgl', () => new MathBackendWebGL());
+    expect(success).toBe(false);
+    expect(env.getBackend('webgl') == null).toBe(true);
+    expect(env.getBestBackend()).toBe(env.getBackend('cpu'));
+    environment.setGlobal(prevEnv);
   });
 });
