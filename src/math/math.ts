@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {Backends, ENV} from '../environment';
+import {BackendType, ENV} from '../environment';
 import * as util from '../util';
 
 import * as axis_util from './axis_util';
 // tslint:disable-next-line:max-line-length
-import {BACKEND_REGISTRY, NDArrayStorage} from './backends/backend';
+import {NDArrayStorage} from './backends/backend';
 import {MathBackend} from './backends/backend';
 import {BackendEngine} from './backends/backend_engine';
 import {MatrixOrientation} from './backends/types/matmul';
@@ -87,15 +87,14 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
    * @param safeMode In safe mode, you must use math operations inside
    *     a math.scope() which will automatically clean up intermediate NDArrays.
    */
-  constructor(backend: Backends|MathBackend, private safeMode: boolean) {
+  constructor(backend: BackendType|MathBackend, private safeMode: boolean) {
     if (typeof backend === 'string') {
-      this.backend = BACKEND_REGISTRY[backend];
+      this.backend = ENV.getBackend(backend);
     } else {
       this.customBackend = true;
       this.backend = backend;
     }
     this.backendEngine = new BackendEngine(this.backend);
-    ENV.setGlobalMath(this);
   }
 
   /**
