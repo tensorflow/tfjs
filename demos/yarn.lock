@@ -2101,7 +2101,7 @@ deeplearn-squeezenet@~0.1.6:
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/deeplearn-squeezenet/-/deeplearn-squeezenet-0.1.6.tgz#f73c25d8627de514d72425471a3d69436c754ecf"
 
-deeplearn@~0.3.13:
+deeplearn@0.3.13:
   version "0.3.13"
   resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.3.13.tgz#12033ab21581fb277dede662250bd58d86457d44"
   dependencies:
