@@ -16,6 +16,7 @@
  */
 
 import * as seedrandom from 'seedrandom';
+
 import {ENV} from '../../environment';
 import * as util from '../../util';
 import * as broadcast_util from '../broadcast_util';
@@ -24,7 +25,9 @@ import {Conv2DInfo} from '../conv_util';
 import {NDArrayMath} from '../math';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from '../ndarray';
+import * as types from '../types';
 import {SumTypes, SumTypesMap} from '../types';
+
 import * as axis_util from './../axis_util';
 import {MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
@@ -267,39 +270,27 @@ export class MathBackendCPU implements MathBackend {
     return result;
   }
 
-  private scaledArrayAdd<T extends NDArray>(c1: Scalar, a: T, c2: Scalar, b: T):
-      T {
-    const c1Val = c1.get();
-    const c2Val = c2.get();
-    return this.broadcastedBinaryOp(a, b, 'float32', (aVal, bVal) => {
-      return c1Val * aVal + c2Val * bVal;
-    }) as T;
-  }
-
   neg<T extends NDArray>(x: T): T {
     return this.multiply(Scalar.new(-1), x) as T;
   }
 
-  add<T extends NDArray>(a: T, b: T): T {
-    const one = Scalar.new(1);
-    return this.scaledArrayAdd<T>(one, a, one, b);
+  add<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
+    return this.broadcastedBinaryOp(
+               a, b, types.upcastType(a.dtype, b.dtype),
+               (aValue, bValue) => aValue + bValue) as NDArray<G>;
   }
 
-  subtract<T extends NDArray>(a: T, b: T): T {
-    return this.scaledArrayAdd<T>(Scalar.new(1), a, Scalar.new(-1), b);
+  subtract<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
+      NDArray<G> {
+    return this.broadcastedBinaryOp(
+               a, b, types.upcastType(a.dtype, b.dtype),
+               (aValue, bValue) => aValue - bValue) as NDArray<G>;
   }
 
   pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T {
-    const newShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const newValues = new Float32Array(util.sizeFromShape(newShape));
-
-    const aValues = a.getValues();
-    const bValues = b.getValues();
-    for (let i = 0; i < newValues.length; ++i) {
-      newValues[i] = Math.pow(aValues[i % a.size], bValues[i % b.size]);
-    }
-    return NDArray.make(newShape, {values: newValues}) as T;
+    return this.broadcastedBinaryOp(
+               a, b, a.dtype, (aValue, bValue) => Math.pow(aValue, bValue)) as
+        T;
   }
 
   matMul(
@@ -339,31 +330,17 @@ export class MathBackendCPU implements MathBackend {
     return Array2D.new([leftDim, rightDim], values);
   }
 
-  multiply<T extends NDArray>(a: T, b: T): T {
-    const newShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const newValues = new Float32Array(util.sizeFromShape(newShape));
-
-    const aValues = a.getValues();
-    const bValues = b.getValues();
-    for (let i = 0; i < newValues.length; ++i) {
-      newValues[i] = aValues[i % a.size] * bValues[i % b.size];
-    }
-    return NDArray.make(newShape, {values: newValues}) as T;
+  multiply<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
+      NDArray<G> {
+    return this.broadcastedBinaryOp(
+               a, b, a.dtype, (aValue, bValue) => aValue * bValue) as
+        NDArray<G>;
   }
 
   divide(a: NDArray, b: NDArray): NDArray<'float32'> {
-    const newShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const newValues = new Float32Array(util.sizeFromShape(newShape));
-
-    const aValues = a.getValues();
-    const bValues = b.getValues();
-
-    for (let i = 0; i < newValues.length; ++i) {
-      newValues[i] = aValues[i % a.size] / bValues[i % b.size];
-    }
-    return NDArray.make(newShape, {values: newValues}, 'float32');
+    return this.broadcastedBinaryOp(
+               a, b, 'float32', (aValue, bValue) => aValue / bValue) as
+        NDArray<'float32'>;
   }
 
   sum<T extends keyof DataTypes>(x: NDArray<T>, axes: number[]):

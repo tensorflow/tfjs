@@ -272,5 +272,4 @@ describe('add operation', () => {
 
     expect(() => new Add(t1, t2, y)).toThrowError();
   });
-
 });
