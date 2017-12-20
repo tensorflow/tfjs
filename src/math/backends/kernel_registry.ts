@@ -29,6 +29,7 @@ import {SumInputConfig, SumNode} from './types/sum';
 import {TopKIndicesInputConfig, TopKIndicesNode, TopKValuesInputConfig, TopKValuesNode} from './types/topk';
 // tslint:disable-next-line:max-line-length
 import {ClipInputConfig, ClipNode, LeakyReluInputConfig, LeakyReluNode, StepInputConfig, StepNode, TileInputConfig, TileNode, TransposeInputConfig, TransposeNode, UnaryInputConfig, UnaryNode} from './types/unary';
+import {PReLUNode, PReLUInputConfig} from './types/prelu';
 
 const KERNEL_METHODS: {
   [kernel in keyof KernelConfigRegistry]: (
@@ -141,6 +142,12 @@ const KERNEL_METHODS: {
   },
   LeakyRelu: (backend: MathBackend, config: LeakyReluInputConfig<NDArray>) => {
     return backend.leakyRelu(config.inputs.x, config.args.alpha);
+  },
+  PReLU: (backend: MathBackend, config: PReLUInputConfig<NDArray>) => {
+    return backend.prelu(config.inputs.x, config.inputs.alpha);
+  },
+  PReLUDer: (backend: MathBackend, config: PReLUInputConfig<NDArray>) => {
+    return backend.preluDer(config.inputs.x, config.inputs.alpha);
   },
   Elu: (backend: MathBackend, config: UnaryInputConfig<NDArray>) => {
     return backend.elu(config.inputs.x);
@@ -296,6 +303,8 @@ export interface KernelConfigRegistry {
   Square: UnaryNode<NDArray>;
   Relu: UnaryNode<NDArray>;
   LeakyRelu: LeakyReluNode<NDArray>;
+  PReLU: PReLUNode<NDArray>;
+  PReLUDer: PReLUNode<NDArray>;
   Elu: UnaryNode<NDArray>;
   EluDer: UnaryNode<NDArray>;
   Selu: UnaryNode<NDArray>;

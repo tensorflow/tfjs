@@ -31,6 +31,12 @@ export const EQUAL = `
   if (isNaN(b)) return b;
   return float(a == b);
 `;
+export const PRELU = `
+  return (a >= 0.0) ? a : b * a;
+`;
+export const PRELU_DER = `
+  return (a > 0.0) ? 1.0 : ((a < 0.0) ? b : a);
+`;
 
 export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
