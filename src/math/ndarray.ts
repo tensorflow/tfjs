@@ -56,7 +56,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
    * https://docs.scipy.org/doc/numpy/reference/generated
    *     /numpy.ndarray.strides.html
    */
-  protected strides: number[];
+  strides: number[];
 
   protected constructor(
       shape: number[], dtype: T, values?: DataTypes[T], id?: number) {
