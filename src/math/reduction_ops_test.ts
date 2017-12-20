@@ -17,7 +17,8 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Array1D, Array2D, Scalar} from './ndarray';
+
+import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
 import * as reduce_util from './reduce_util';
 
 // math.min
@@ -754,6 +755,328 @@ import * as reduce_util from './reduce_util';
 
   test_util.describeMathCPU('moments', [tests]);
   test_util.describeMathGPU('moments', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// math.norm
+{
+  const tests: MathTests = it => {
+    it('scalar norm', math => {
+      const a = Scalar.new(-22.0);
+      const norm = math.norm(a);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 22);
+
+      a.dispose();
+    });
+
+    it('vector inf norm', math => {
+      const a = Array1D.new([1, -2, 3, -4]);
+      const norm = math.norm(a, Infinity);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 4);
+
+      a.dispose();
+    });
+
+    it('vector -inf norm', math => {
+      const a = Array1D.new([1, -2, 3, -4]);
+      const norm = math.norm(a, -Infinity);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 1);
+
+      a.dispose();
+    });
+
+    it('vector 1 norm', math => {
+      const a = Array1D.new([1, -2, 3, -4]);
+      const norm = math.norm(a, 1);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 10);
+
+      a.dispose();
+    });
+
+    it('vector euclidean norm', math => {
+      const a = Array1D.new([1, -2, 3, -4]);
+      const norm = math.norm(a, 'euclidean');
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 5.4772);
+
+      a.dispose();
+    });
+
+    it('vector 2-norm', math => {
+      const a = Array1D.new([1, -2, 3, -4]);
+      const norm = math.norm(a, 2);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 5.4772);
+
+      a.dispose();
+    });
+
+    it('vector >2-norm to throw error', math => {
+      const a = Array1D.new([1, -2, 3, -4]);
+
+      expect(() => math.norm(a, 3)).toThrowError();
+
+      a.dispose();
+    });
+
+    it('matrix inf norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, -3, 1, 0, 1]);
+      const norm = math.norm(a, Infinity, [0, 1]);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 4);
+
+      a.dispose();
+    });
+
+    it('matrix -inf norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, -3, 1, 0, 1]);
+      const norm = math.norm(a, -Infinity, [0, 1]);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 1);
+
+      a.dispose();
+    });
+
+    it('matrix 1 norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, -3, 1, 1, 1]);
+      const norm = math.norm(a, 1, [0, 1]);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 5);
+
+      a.dispose();
+    });
+
+    it('matrix euclidean norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, -3, 1, 1, 1]);
+      const norm = math.norm(a, 'euclidean', [0, 1]);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 4.123);
+
+      a.dispose();
+    });
+
+    it('matrix fro norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, -3, 1, 1, 1]);
+      const norm = math.norm(a, 'fro', [0, 1]);
+
+      expect(norm.dtype).toBe('float32');
+      test_util.expectNumbersClose(norm.get(), 4.123);
+
+      a.dispose();
+    });
+
+    it('matrix other norm to throw error', math => {
+      const a = Array2D.new([3, 2], [1, 2, -3, 1, 1, 1]);
+
+      expect(() => math.norm(a, 2, [0, 1])).toThrowError();
+
+      a.dispose();
+    });
+
+    it('propagates NaNs for norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, NaN, 0, 1]);
+      const norm = math.norm(a, Infinity, [0, 1]);
+
+      expect(norm.dtype).toBe('float32');
+      expect(norm.get()).toEqual(NaN);
+      a.dispose();
+    });
+
+    it('axis=null in 2D array norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity);
+
+      expect(norm.shape).toEqual([]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3]));
+
+      a.dispose();
+    });
+
+    it('2D array norm with keep dim', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, null, true /* keepDims */);
+
+      expect(norm.shape).toEqual([1, 1]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3]));
+
+      a.dispose();
+    });
+
+    it('axis=0 in 2D array norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, [0]);
+
+      expect(norm.shape).toEqual([2]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3, 2]));
+
+      a.dispose();
+    });
+
+    it('axis=1 in 2D array norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, [1]);
+
+      expect(norm.dtype).toBe('float32');
+      expect(norm.shape).toEqual([3]);
+      test_util.expectArraysClose(
+          norm.getValues(), new Float32Array([2, 3, 1]));
+
+      a.dispose();
+    });
+
+    it('axis=1 keepDims in 2D array norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, [1], true);
+
+      expect(norm.dtype).toBe('float32');
+      expect(norm.shape).toEqual([3, 1]);
+      test_util.expectArraysClose(
+          norm.getValues(), new Float32Array([2, 3, 1]));
+
+      a.dispose();
+    });
+
+    it('2D norm with axis=1 provided as number', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, 1);
+
+      expect(norm.shape).toEqual([2]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3, 1]));
+
+      a.dispose();
+    });
+
+    it('axis=0,1 in 2D array norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, [0, 1]);
+
+      expect(norm.shape).toEqual([]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3]));
+
+      a.dispose();
+    });
+
+    it('axis=0,1 keepDims in 2D array norm', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, [0, 1], true);
+
+      expect(norm.shape).toEqual([1, 1]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3]));
+
+      a.dispose();
+    });
+
+    it('3D norm axis=0,1, matrix inf norm', math => {
+      const a = Array3D.new([3, 2, 1], [1, 2, -3, 1, 0, 1]);
+      const norm = math.norm(a, Infinity, [0, 1]);
+
+      expect(norm.shape).toEqual([1]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([4]));
+
+      a.dispose();
+    });
+
+    it('axis=0,1 keepDims in 3D array norm', math => {
+      const a = Array3D.new([3, 2, 1], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, [0, 1], true);
+
+      expect(norm.shape).toEqual([1, 1, 1]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3]));
+
+      a.dispose();
+    });
+
+    it('axis=0,1 keepDims in 3D array norm', math => {
+      const a = Array3D.new([3, 2, 2], [1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity, [0, 1], true);
+
+      expect(norm.shape).toEqual([1, 1, 2]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([4, 3]));
+
+      a.dispose();
+    });
+
+    it('axis=null in 3D array norm', math => {
+      const a = Array3D.new([3, 2, 1], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity);
+
+      expect(norm.shape).toEqual([]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3]));
+
+      a.dispose();
+    });
+
+    it('axis=null in 4D array norm', math => {
+      const a = Array4D.new([3, 2, 1, 1], [1, 2, 3, 0, 0, 1]);
+      const norm = math.norm(a, Infinity);
+
+      expect(norm.shape).toEqual([]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(norm.getValues(), new Float32Array([3]));
+
+      a.dispose();
+    });
+
+    it('axis=0,1 in 4D array norm', math => {
+      const a = Array4D.new([3, 2, 2, 2], [
+        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
+        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
+      ]);
+      const norm = math.norm(a, Infinity, [0, 1]);
+
+      expect(norm.shape).toEqual([2, 2]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(
+          norm.getValues(), new Float32Array([4, 3, 4, 3]));
+
+      a.dispose();
+    });
+
+    it('axis=0,1 in 4D array norm', math => {
+      const a = Array4D.new([3, 2, 2, 2], [
+        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
+        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
+      ]);
+      const norm = math.norm(a, Infinity, [0, 1], true);
+
+      expect(norm.shape).toEqual([1, 1, 2, 2]);
+      expect(norm.dtype).toBe('float32');
+      test_util.expectArraysClose(
+          norm.getValues(), new Float32Array([4, 3, 4, 3]));
+
+      a.dispose();
+    });
+  };
+
+  test_util.describeMathCPU('norm', [tests]);
+  test_util.describeMathGPU('norm', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
