@@ -1230,7 +1230,7 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   }
 
   /**
-   * Computes the derivatice of elu which is used ly
+   * Computes the derivative of elu which is used ly
    * @hidden
    */
   eluDer<T extends NDArray>(x: T): T {
@@ -1248,12 +1248,34 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   /**
    * Computes leaky rectified linear element-wise
    * @param {T} x the input NDArray
-   * @param alpha scaleing factor for negative values, defaults to 0.2
+   * @param alpha scaling factor for negative values, defaults to 0.2
    * @return {NDArray}
    */
   leakyRelu<T extends NDArray>(x: T, alpha = 0.2): T {
     return this.backendEngine.executeKernel(
                'LeakyRelu', {inputs: {x}, args: {alpha}}) as T;
+  }
+
+  /**
+   * Computes leaky rectified linear element-wise with parametric alphas
+   * @param {T} x the input NDArray
+   * @param {T} alpha scaling factor NDArray for negative values
+   * @return {NDArray}
+   */
+  prelu<T extends NDArray>(x: T, alpha: T): T {
+    return this.backendEngine.executeKernel(
+               'PReLU', {inputs: {x, alpha}}) as T;
+  }
+
+  /**
+   * Computes the derivative of PReLU
+   * @param {T} x the input NDArray
+   * @param {T} alpha scaling factor NDArray for negative values
+   * @return {NDArray}
+   */
+  preluDer<T extends NDArray>(x: T, alpha: T): T {
+    return this.backendEngine.executeKernel(
+               'PReLUDer', {inputs: {x, alpha}}) as T;
   }
 
   /**

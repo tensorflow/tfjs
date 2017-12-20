@@ -518,6 +518,25 @@ describe('leakyRelu validation', () => {
   });
 });
 
+describe('pRelu validation', () => {
+  let g: Graph;
+
+  beforeEach(() => {
+    g = new Graph();
+  });
+
+  it('Different shapes throws', () => {
+    expect(() => g.prelu(new Tensor([5, 4]), new Tensor([1, 2, 3])))
+        .toThrowError();
+  });
+
+  it('Same size does not throw', () => {
+    expect(g.prelu(new Tensor([5, 4]), new Tensor([5, 4])).shape).toEqual([
+      5, 4
+    ]);
+  });
+});
+
 describe('elu validation', () => {
   let g: Graph;
 
