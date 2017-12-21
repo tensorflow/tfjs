@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Exp} from './exp';
 
 describe('exp operation', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   let xTensor: Tensor;
   let yTensor: Tensor;
@@ -33,7 +32,6 @@ describe('exp operation', () => {
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });

@@ -186,12 +186,12 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('with 1d ndarray', math => {
-      const a = Array1D.new([1, -2, -.01, 3, -0.1]);
+      const a = Array1D.new([1, -2, -.01, 3, -0.1, 0.1]);
 
       const result = math.step(a);
 
       test_util.expectArraysClose(
-          result.getValues(), new Float32Array([1, 0, 0, 1, 0]));
+          result.getValues(), new Float32Array([1, 0, 0, 1, 0, 1]));
 
       a.dispose();
     });
@@ -217,6 +217,14 @@ import {Array1D, Array2D, Scalar} from './ndarray';
           result.getValues(), new Float32Array([1, 0, 0, 1, NaN]));
 
       a.dispose();
+    });
+
+    it('step with alpha 0.2', math => {
+      const a = Array1D.new([1, -2, 0.1]);
+      const alpha = 0.2;
+      const result = math.step(a, alpha);
+      test_util.expectArraysClose(
+          result.getValues(), new Float32Array([1, alpha, 1]));
     });
   };
 

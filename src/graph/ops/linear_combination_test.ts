@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D, Scalar} from '../../math/ndarray';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
@@ -23,7 +23,7 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {LinearCombination} from './linear_combination';
 
 describe('Linear combination', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
   let x1Tensor: Tensor;
   let x2Tensor: Tensor;
   let c1Tensor: Tensor;
@@ -33,7 +33,6 @@ describe('Linear combination', () => {
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });

@@ -15,16 +15,15 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D, Scalar} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {SoftmaxCrossEntropyCost} from './softmax';
 
 describe('softmax cross entropy cost', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
   let logitsTensor: Tensor;
   let labelTensor: Tensor;
   let yTensor: Tensor;
@@ -32,7 +31,6 @@ describe('softmax cross entropy cost', () => {
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });

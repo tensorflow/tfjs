@@ -248,7 +248,7 @@ export class GraphRunner {
       return;
     }
 
-    this.math.scope((keep, track) => {
+    this.math.scope(keep => {
       const feeds: FeedEntry[][] = [];
       const inferenceValues: NDArray[] = [];
 
@@ -261,8 +261,7 @@ export class GraphRunner {
           const nextCopy =
               (feedEntry.data as InputProvider).getNextCopy(this.math);
 
-          ndarrayFeedEntries.push(
-              {tensor: feedEntry.tensor, data: track(nextCopy)});
+          ndarrayFeedEntries.push({tensor: feedEntry.tensor, data: nextCopy});
         }
         feeds.push(ndarrayFeedEntries);
         inferenceValues.push(

@@ -15,17 +15,22 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../math/backends/backend_cpu';
-import {NDArrayMathGPU} from '../math/backends/backend_webgl';
+import {ENV} from '../environment';
+import {NDArrayMath} from '../math/math';
 import {Array1D, Scalar} from '../math/ndarray';
-
 import {InCPUMemoryShuffledInputProviderBuilder} from './input_provider';
 
 describe('InCPUMemoryShuffledInputProviderBuilder', () => {
-  let math: NDArrayMathCPU;
+  let math: NDArrayMath;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
+    const safeMode = false;
+    math = new NDArrayMath('cpu', safeMode);
+    ENV.setMath(math);
+  });
+
+  afterEach(() => {
+    ENV.reset();
   });
 
   it('ensure inputs stay in sync', () => {
@@ -73,10 +78,16 @@ describe('InCPUMemoryShuffledInputProviderBuilder', () => {
 });
 
 describe('InGPUMemoryShuffledInputProviderBuilder', () => {
-  let math: NDArrayMathGPU;
+  let math: NDArrayMath;
 
   beforeEach(() => {
-    math = new NDArrayMathGPU();
+    const safeMode = false;
+    math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
+  });
+
+  afterEach(() => {
+    ENV.reset();
   });
 
   it('ensure inputs stay in sync', () => {

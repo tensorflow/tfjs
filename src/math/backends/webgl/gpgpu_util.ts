@@ -270,7 +270,6 @@ function decodeDownloadTargetArrayBuffer(
     downloadTarget: Float32Array|Uint8Array, rows: number, columns: number,
     channelsPerPixel: number): Float32Array {
   const isFloatTexture = ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED');
-
   if (isFloatTexture) {
     const matrix = new Float32Array(rows * columns);
     tex_util.decodeMatrixFromUnpackedArray(

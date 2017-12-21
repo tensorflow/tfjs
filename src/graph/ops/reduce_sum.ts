@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import {NDArrayMath} from '../../math/math';
 import {NDArray} from '../../math/ndarray';
 import * as util from '../../util';
@@ -32,7 +33,7 @@ export class ReduceSum extends Operation {
   constructor(private x: Tensor, private outTensor: Tensor) {
     super();
     util.assertShapesMatch(outTensor.shape, []);
-    this.ones = NDArray.ones(x.shape);
+    this.ones = ENV.math.keep(NDArray.ones(x.shape));
   }
 
   private ones: NDArray;
@@ -56,5 +57,9 @@ export class ReduceSum extends Operation {
       const dy = gradientArrays.get(this.outTensor);
       gradientArrays.add(this.x, math.scalarTimesArray(dy, this.ones));
     });
+  }
+
+  dispose() {
+    this.ones.dispose();
   }
 }

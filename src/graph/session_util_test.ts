@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {InputProvider} from '../data/input_provider';
-import {NDArrayMathCPU} from '../math/backends/backend_cpu';
+import {ENV} from '../environment';
 import {NDArray} from '../math/ndarray';
 // tslint:disable-next-line:max-line-length
 import {ConstantNode, Graph, Node, PlaceholderNode, Tensor, VariableNode} from './graph';
@@ -30,7 +30,6 @@ class TestNode extends Node {
 }
 
 describe('getTerminatingNodesFromFeedDictionary', () => {
-
   it('returns an empty node array from an empty FeedDictionary', () => {
     expect(session_util.getTerminatingNodesFromFeedDictionary(
                new FeedDictionary()))
@@ -38,7 +37,7 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
   });
 
   it('returns the only node in the feed dictionary', () => {
-    const math = new NDArrayMathCPU();
+    const math = ENV.math;
     math.scope(() => {
       const node = new TestNode(new Graph(), '', {}, new Tensor([]));
       const fd =
@@ -50,7 +49,7 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
   });
 
   it('returns every node from the feed dictionary', () => {
-    const math = new NDArrayMathCPU();
+    const math = ENV.math;
     math.scope(() => {
       const n0 = new TestNode(new Graph(), '', {}, new Tensor([]));
       const n1 = new TestNode(new Graph(), '', {}, new Tensor([]));
@@ -78,12 +77,11 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
 describe('addPersistentArraysToTensorArrayMap', () => {
   let map: TensorArrayMap;
   let g: Graph;
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   beforeEach(() => {
     map = new TensorArrayMap();
     g = new Graph();
-    math = new NDArrayMathCPU();
   });
 
   it('does nothing with empty evaluationSet', () => {
@@ -155,10 +153,9 @@ describe('addPersistentArraysToTensorArrayMap', () => {
 
 describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
   let map: TensorArrayMap;
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     map = new TensorArrayMap();
   });
 
@@ -255,11 +252,10 @@ describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
 
 describe('releaseFeedDictionaryInputsFromTensorArrayMap', () => {
   let map: TensorArrayMap;
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   beforeEach(() => {
     map = new TensorArrayMap();
-    math = new NDArrayMathCPU();
   });
 
   it('doesn\'t remove anything when feed dictionary is empty', () => {

@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import {NDArrayMath} from '../../math/math';
 import {Array1D, Scalar} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 export class Softmax extends Operation {
@@ -46,6 +46,7 @@ export class SoftmaxCrossEntropyCost extends Operation {
       private yTensor: Tensor) {
     super();
     this.softmaxTensor = new Tensor(logitsTensor.shape);
+    this.epsilon = ENV.math.keep(Scalar.new(1e-5));
   }
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
@@ -83,7 +84,7 @@ export class SoftmaxCrossEntropyCost extends Operation {
   }
 
   private softmaxTensor: Tensor;
-  private epsilon = Scalar.new(1e-5);
+  private epsilon: Scalar;
 }
 
 export function crossEntropyCost(

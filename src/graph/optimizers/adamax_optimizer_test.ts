@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {InputProvider} from '../../data/input_provider';
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D, NDArray} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Graph} from '../graph';
@@ -25,8 +25,7 @@ import {AdamaxOptimizer} from './adamax_optimizer';
 
 describe('adamax optimizer', () => {
   it('adamax', () => {
-    const safeMode = true;
-    const math = new NDArrayMathCPU(safeMode);
+    const math = ENV.math;
 
     const inputProvider: InputProvider = {
       getNextCopy() {

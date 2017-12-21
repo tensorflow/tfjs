@@ -14,16 +14,16 @@
  * limitations under the License.
  * =============================================================================
  */
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+
+import {ENV} from '../../environment';
 import {Array1D, Scalar} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Divide} from './divide';
 
 describe('divide operation', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   let x1Tensor: Tensor;
   let x2Tensor: Tensor;
@@ -33,7 +33,6 @@ describe('divide operation', () => {
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });

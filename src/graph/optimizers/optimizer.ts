@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
 import {Node, VariableNode} from '../graph';
 import {SessionRuntime} from '../session';
-
 import * as session_util from '../session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
@@ -31,6 +31,7 @@ export abstract class Optimizer {
     if (specifiedVariableList != null) {
       this.specifiedVariableNodes = specifiedVariableList as VariableNode[];
     }
+    this.one = ENV.math.keep(Scalar.new(1));
   }
 
   beforeBatch(
@@ -45,11 +46,11 @@ export abstract class Optimizer {
         this.c.dispose();
       }
       this.prevBatchSize = batchSize;
-      this.c = Scalar.new(-this.learningRate / batchSize);
+      this.c = math.keep(Scalar.new(-this.learningRate / batchSize));
     }
     this.variableNodes.forEach(
         node => this.variableGradients.set(
-            node.output, NDArray.zeros(node.output.shape)));
+            node.output, math.keep(NDArray.zeros(node.output.shape))));
   }
 
   afterExample(
@@ -77,10 +78,16 @@ export abstract class Optimizer {
       this.c.dispose();
     }
     this.one.dispose();
+    this.variableNodes.forEach(node => {
+      node.data.dispose();
+    });
+    this.specifiedVariableNodes.forEach(node => {
+      node.data.dispose();
+    });
   }
 
   protected variableGradients = new TensorArrayMap();
   protected prevBatchSize: number;
-  protected one = Scalar.new(1);
+  protected one: Scalar;
   protected c: Scalar;
 }

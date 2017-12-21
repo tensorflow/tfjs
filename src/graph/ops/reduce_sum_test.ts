@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D, Array2D, Scalar} from '../../math/ndarray';
 import {Tensor} from '../graph';
 import {TensorArrayMap} from '../tensor_array_map';
@@ -23,12 +23,11 @@ import {TensorArrayMap} from '../tensor_array_map';
 import {ReduceSum} from './reduce_sum';
 
 describe('Reduce sum operation', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
   let reduceSumOp: ReduceSum;
   let activations: TensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
   });
 

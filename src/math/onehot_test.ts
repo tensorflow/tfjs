@@ -15,32 +15,17 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../math/backends/backend_cpu';
-import {NDArrayMathGPU} from '../math/backends/backend_webgl';
 import * as test_util from '../test_util';
-
-import {NDArrayMath} from './math';
+import {MathTests} from '../test_util';
 import {Array1D} from './ndarray';
 
-function executeTests(mathFactory: () => NDArrayMath) {
-  let math: NDArrayMath;
-
-  beforeEach(() => {
-    math = mathFactory();
-    math.startScope();
-  });
-
-  afterEach(() => {
-    math.endScope(null);
-    math.dispose();
-  });
-
-  it('Depth 1 throws error', () => {
+const tests: MathTests = it => {
+  it('Depth 1 throws error', math => {
     const indices = Array1D.new([0, 0, 0]);
     expect(() => math.oneHot(indices, 1)).toThrowError();
   });
 
-  it('Depth 2, diagonal', () => {
+  it('Depth 2, diagonal', math => {
     const indices = Array1D.new([0, 1]);
     const res = math.oneHot(indices, 2);
     const expected = new Float32Array([1, 0, 0, 1]);
@@ -48,7 +33,7 @@ function executeTests(mathFactory: () => NDArrayMath) {
     test_util.expectArraysClose(res.getValues(), expected);
   });
 
-  it('Depth 2, transposed diagonal', () => {
+  it('Depth 2, transposed diagonal', math => {
     const indices = Array1D.new([1, 0]);
     const res = math.oneHot(indices, 2);
     const expected = new Float32Array([0, 1, 1, 0]);
@@ -56,7 +41,7 @@ function executeTests(mathFactory: () => NDArrayMath) {
     test_util.expectArraysClose(res.getValues(), expected);
   });
 
-  it('Depth 3, 4 events', () => {
+  it('Depth 3, 4 events', math => {
     const indices = Array1D.new([2, 1, 2, 0]);
     const res = math.oneHot(indices, 3);
     const expected = new Float32Array([0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0]);
@@ -64,19 +49,18 @@ function executeTests(mathFactory: () => NDArrayMath) {
     test_util.expectArraysClose(res.getValues(), expected);
   });
 
-  it('Depth 2 onValue=3, offValue=-2', () => {
+  it('Depth 2 onValue=3, offValue=-2', math => {
     const indices = Array1D.new([0, 1]);
     const res = math.oneHot(indices, 2, 3, -2);
     const expected = new Float32Array([3, -2, -2, 3]);
     expect(res.shape).toEqual([2, 2]);
     test_util.expectArraysClose(res.getValues(), expected);
   });
-}
+};
 
-describe('mathCPU oneHot', () => {
-  executeTests(() => new NDArrayMathCPU());
-});
-
-describe('mathGPU oneHot', () => {
-  executeTests(() => new NDArrayMathGPU());
-});
+test_util.describeMathCPU('oneHot', [tests]);
+test_util.describeMathGPU('oneHot', [tests], [
+  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+]);

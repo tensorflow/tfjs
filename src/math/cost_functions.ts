@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ENV} from '../environment';
 import {NDArrayMath} from './math';
 import {NDArray, Scalar} from './ndarray';
 
@@ -28,7 +29,11 @@ export interface ElementWiseCostFunction {
 }
 
 export class SquareCostFunc implements ElementWiseCostFunction {
-  private halfOne = Scalar.new(0.5);
+  constructor() {
+    this.halfOne = ENV.math.keep(Scalar.new(0.5));
+  }
+
+  private halfOne: Scalar;
 
   cost<T extends NDArray>(math: NDArrayMath, x1: T, x2: T): T {
     const diff = math.subStrict(x1, x2);
