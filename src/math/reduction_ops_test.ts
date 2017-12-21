@@ -524,7 +524,8 @@ import * as reduce_util from './reduce_util';
     it('sums all values in 2D array with keep dim', math => {
       const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
       const res = math.sum(a, null, true /* keepDims */);
-      const grad = math.gradientWrt(res, a);
+      const sum = math.sum(res);
+      const grad = math.gradientWrt(sum, a);
 
       expect(res.shape).toEqual([1, 1]);
       test_util.expectArraysClose(res.dataSync(), new Float32Array([7]));

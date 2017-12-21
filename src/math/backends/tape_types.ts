@@ -15,36 +15,45 @@
  * =============================================================================
  */
 
+import {NamedArrayMap} from '../../util';
 import {NDArray} from '../ndarray';
+
 import {KernelConfigRegistry} from './kernel_registry';
 
-export interface TapeNode {
+export type Tape = Array<TapeNode<TapeNodeOutput>>;
+
+export type TapeNodeOutput = NDArray|NamedArrayMap;
+
+export type TapeNodeType = 'kernel'|'subtape';
+
+export interface TapeNode<T extends TapeNodeOutput> {
+  id: number;
+  type: TapeNodeType;
   name: string;
   inputAndArgs: TapeNodeInputConfig;
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => TapeNodeInputGradientArrays;
+
+  output: T;
+  gradient: (dy: T, y: T) => TapeNodeInputGradientArrays;
+  subtape?: Tape;
 }
 
 export interface TapeNodeInputConfig {
-  inputs: TapeNodeInputArrays;
+  inputs: NamedArrayMap;
 }
-
-export type TapeNodeInputArrays = {
-  [inputName: string]: NDArray;
-};
 
 export type TapeNodeInputGradientArrays = {
   [inputName: string]: () => NDArray;
 };
 
 // Kernel nodes
-export interface KernelNode extends TapeNode {
+export interface KernelNode extends TapeNode<NDArray> {
   kernel: keyof KernelConfigRegistry;
   inputAndArgs: KernelInputConfig;
+  output: NDArray;
 }
 
 export interface KernelInputConfig extends TapeNodeInputConfig {
-  inputs: TapeNodeInputArrays;
+  inputs: NamedArrayMap;
   // tslint:disable-next-line:no-any
   args?: {[argName: string]: any};
 }
