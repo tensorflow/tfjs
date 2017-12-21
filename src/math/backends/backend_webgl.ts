@@ -24,7 +24,9 @@ import {NDArrayMath} from '../math';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray} from '../ndarray';
 import * as reduce_util from '../reduce_util';
+import * as types from '../types';
 import {SumTypes, SumTypesMap} from '../types';
+
 import {MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
@@ -261,9 +263,13 @@ export class MathBackendWebGL implements MathBackend {
     return this.compileAndRun<Array2D, Array2D>(program, [a, b]);
   }
 
-  multiply<T extends NDArray>(a: T, b: T): T {
+  multiply<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
+      NDArray<G> {
     const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]) as T;
+    const output = this.makeOutputArray(
+                       program.outputShape,
+                       types.upcastType(a.dtype, b.dtype)) as NDArray<G>;
+    return this.compileAndRun(program, [a, b], output) as NDArray<G>;
   }
 
   batchNormalization2D(
@@ -441,14 +447,21 @@ export class MathBackendWebGL implements MathBackend {
         program, [a, b], output);
   }
 
-  add<T extends NDArray>(a: T, b: T): T {
+  add<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
     const program = new BinaryOpProgram(binaryop_gpu.ADD, a.shape, b.shape);
-    return this.compileAndRun<NDArray, T>(program, [a, b]);
+    const output = this.makeOutputArray(
+                       program.outputShape,
+                       types.upcastType(a.dtype, b.dtype)) as NDArray<G>;
+    return this.compileAndRun<NDArray, NDArray<G>>(program, [a, b], output);
   }
 
-  subtract<T extends NDArray>(a: T, b: T): T {
+  subtract<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
+      NDArray<G> {
     const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
-    return this.compileAndRun<NDArray, T>(program, [a, b]);
+    const output = this.makeOutputArray(
+                       program.outputShape,
+                       types.upcastType(a.dtype, b.dtype)) as NDArray<G>;
+    return this.compileAndRun<NDArray, NDArray<G>>(program, [a, b], output);
   }
 
   pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T {

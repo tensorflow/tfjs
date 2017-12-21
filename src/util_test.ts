@@ -15,10 +15,13 @@
  * =============================================================================
  */
 
+import {Array1D, NDArray, Scalar} from './math/ndarray';
+import * as test_util from './test_util';
+import {MathTests} from './test_util';
 import * as util from './util';
+import {NamedArrayMap} from './util';
 
 describe('Util', () => {
-
   it('Flatten arrays', () => {
     expect(util.flatten([[1, 2, 3], [4, 5, 6]])).toEqual([1, 2, 3, 4, 5, 6]);
     expect(util.flatten([[[1, 2], [3, 4], [5, 6], [7, 8]]])).toEqual([
@@ -251,3 +254,101 @@ describe('util.squeezeShape', () => {
     expect(keptDims).toEqual([0, 1, 2]);
   });
 });
+
+{
+  const tests: MathTests = it => {
+    it('not in list', math => {
+      const a = Scalar.new(1);
+      const list: NDArray[] = [Scalar.new(1), Array1D.new([1, 2, 3])];
+
+      expect(util.isNDArrayInList(a, list)).toBe(false);
+    });
+
+    it('in list', math => {
+      const a = Scalar.new(1);
+      const list: NDArray[] = [Scalar.new(2), Array1D.new([1, 2, 3]), a];
+
+      expect(util.isNDArrayInList(a, list)).toBe(true);
+    });
+  };
+
+  test_util.describeMathCPU('util.isNDArrayInList', [tests]);
+}
+
+describe('util.checkForNaN', () => {
+  it('Float32Array has NaN', () => {
+    expect(
+        () => util.checkForNaN(
+            new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', ''))
+        .toThrowError();
+  });
+
+  it('Float32Array no NaN', () => {
+    // Int32 and Bool NaNs should not trigger an error.
+    expect(
+        () => util.checkForNaN(
+            new Float32Array(
+                [1, 2, 3, 4, -1, 255, util.NAN_INT32, util.NAN_BOOL]),
+            'float32', ''))
+        .not.toThrowError();
+  });
+
+  it('Int32Array has NaN', () => {
+    expect(
+        () => util.checkForNaN(
+            new Int32Array([1, 2, 3, util.NAN_INT32, 4, 255]), 'int32', ''))
+        .toThrowError();
+  });
+
+  it('Int32Array no NaN', () => {
+    expect(
+        () => util.checkForNaN(
+            new Int32Array([1, 2, 3, 4, -1, 255, util.NAN_BOOL]), 'int32', ''))
+        .not.toThrowError();
+  });
+
+  it('Bool has NaN', () => {
+    expect(
+        () => util.checkForNaN(
+            new Uint8Array([1, 2, 3, util.NAN_BOOL, 4, 10]), 'bool', ''))
+        .toThrowError();
+  });
+
+  it('Bool no NaN', () => {
+    expect(
+        () => util.checkForNaN(
+            new Uint8Array([1, 2, 3, 4, 1, util.NAN_INT32]), 'bool', ''))
+        .not.toThrowError();
+  });
+});
+
+{
+  const tests: MathTests = it => {
+    it('basic', math => {
+      const a = Scalar.new(1);
+      const b = Scalar.new(3);
+      const c = Array1D.new([1, 2, 3]);
+
+      const map: NamedArrayMap = {a, b, c};
+      expect(util.flattenNameArrayMap(map)).toEqual([a, b, c]);
+    });
+  };
+
+  test_util.describeMathCPU('util.flattenNameArrayMap', [tests]);
+}
+
+{
+  const tests: MathTests = it => {
+    it('basic', math => {
+      const a = Scalar.new(1);
+      const b = Scalar.new(3);
+      const c = Array1D.new([1, 2, 3]);
+
+      expect(util.unflattenToNameArrayMap(['a', 'b', 'c'], [
+        a, b, c
+      ])).toEqual({a, b, c});
+    });
+  };
+
+  test_util.describeMathCPU('util.unflattenToNameArrayMap', [tests]);
+}

@@ -349,8 +349,8 @@ export class MathBackendCPU implements MathBackend {
   multiply<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
       NDArray<G> {
     return this.broadcastedBinaryOp(
-               a, b, a.dtype, (aValue, bValue) => aValue * bValue) as
-        NDArray<G>;
+               a, b, types.upcastType(a.dtype, b.dtype),
+               (aValue, bValue) => aValue * bValue) as NDArray<G>;
   }
 
   divide(a: NDArray, b: NDArray): NDArray<'float32'> {

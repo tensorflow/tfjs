@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {NamedArrayMap} from '../../../util';
 import {Array2D} from '../../ndarray';
 // tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputArrays, TapeNodeInputGradientArrays} from '../tape_types';
+import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
 
 export interface MatMulNode extends KernelNode {
   inputAndArgs: MatMulInputConfig;
@@ -30,7 +31,7 @@ export interface MatMulInputConfig extends KernelInputConfig {
   args: {aOrientation: MatrixOrientation; bOrientation: MatrixOrientation};
 }
 
-export interface MatMulInputArrays extends TapeNodeInputArrays {
+export interface MatMulInputArrays extends NamedArrayMap {
   a: Array2D;
   b: Array2D;
 }

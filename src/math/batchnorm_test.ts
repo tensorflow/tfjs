@@ -46,10 +46,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                 Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
     });
 
     it('simple batchnorm3D, no offset, 2x1x2', math => {
@@ -74,11 +70,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                 Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      scale.dispose();
     });
 
     it('simple batchnorm3D, no scale, 2x1x2', math => {
@@ -108,10 +99,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                     Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      offset.dispose();
     });
 
     it('simple batchnorm3D, 2x1x2', math => {
@@ -142,11 +129,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                     Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      scale.dispose();
-      offset.dispose();
     });
 
     it('batchnorm matches tensorflow, 2x3x3', math => {
@@ -173,12 +155,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
             -1.15776136, 1.15425493, 1.82644104, -0.52249442, 1.04803919,
             0.74932291, 0.40568101, 1.2844412
           ]));
-
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      scale.dispose();
-      offset.dispose();
     });
   };
 
@@ -216,10 +192,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                 Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
     });
     it('simple batchnorm2D, no offset, 2x2', math => {
       const x = Array2D.new([2, 2], new Float32Array([2, 100, 4, 400]));
@@ -243,11 +215,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                 Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      scale.dispose();
     });
 
     it('simple batchnorm2D, no scale, 2x2', math => {
@@ -277,10 +244,6 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                     Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      offset.dispose();
     });
 
     it('simple batchnorm2D, 2x2', math => {
@@ -311,18 +274,14 @@ import {Array1D, Array2D, Array3D} from './ndarray';
                     Math.sqrt(variance.get(1) + varianceEpsilon)
           ]),
           epsilon);
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      scale.dispose();
-      offset.dispose();
     });
 
     it('batchnorm2D matches tensorflow, 3x3', math => {
-      const x = Array2D.new(
-          [3, 3], new Float32Array([0.3136892 , 0.92389025, 0.594782,
-                                    0.05021042, 0.67545404, 0.93910035,
-                                    0.13277993, 0.96474269, 0.88608916]));
+      const x =
+          Array2D.new([3, 3], new Float32Array([
+                        0.3136892, 0.92389025, 0.594782, 0.05021042, 0.67545404,
+                        0.93910035, 0.13277993, 0.96474269, 0.88608916
+                      ]));
       const mean = Array1D.new([0.19526312, 0.74857256, 0.45166398]);
       const variance = Array1D.new([0.22963001, 0.61521992, 0.46623685]);
       const offset = Array1D.new([0.43098484, 0.77712237, 0.47916298]);
@@ -334,16 +293,9 @@ import {Array1D, Array2D, Array3D} from './ndarray';
 
       test_util.expectArraysClose(
           result.getValues(), new Float32Array([
-            0.58433646, 0.96846228, 0.51936529,
-            0.24315402, 0.69732157, 0.61608542,
-            0.35007446, 1.01304821, 0.60119441
+            0.58433646, 0.96846228, 0.51936529, 0.24315402, 0.69732157,
+            0.61608542, 0.35007446, 1.01304821, 0.60119441
           ]));
-
-      x.dispose();
-      mean.dispose();
-      variance.dispose();
-      scale.dispose();
-      offset.dispose();
     });
   };
   test_util.describeMathCPU('batchNormalization2D', [tests]);

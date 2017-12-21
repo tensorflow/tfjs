@@ -16,9 +16,10 @@
  * =============================================================================
  */
 
+import {NamedArrayMap} from '../../../util';
 import {Array1D, Array2D, Array3D} from '../../ndarray';
 // tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputArrays, TapeNodeInputGradientArrays} from '../tape_types';
+import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
 
 // 3D
 export interface BatchNorm3DNode extends KernelNode {
@@ -32,7 +33,7 @@ export interface BatchNorm3DInputConfig extends KernelInputConfig {
   args: {varianceEpsilon: number};
 }
 
-export interface BatchNorm3DInputArrays extends TapeNodeInputArrays {
+export interface BatchNorm3DInputArrays extends NamedArrayMap {
   x: Array3D;
   mean: Array3D|Array1D;
   variance: Array3D|Array1D;
@@ -61,7 +62,7 @@ export interface BatchNorm2DInputConfig extends KernelInputConfig {
   args: {varianceEpsilon: number};
 }
 
-export interface BatchNorm2DInputArrays extends TapeNodeInputArrays {
+export interface BatchNorm2DInputArrays extends NamedArrayMap {
   x: Array2D;
   mean: Array2D|Array1D;
   variance: Array2D|Array1D;

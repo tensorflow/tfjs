@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {NamedArrayMap} from '../../../util';
 import {NDArray} from '../../ndarray';
 // tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputArrays, TapeNodeInputGradientArrays} from '../tape_types';
+import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
 
 export interface BinaryNode extends KernelNode {
   inputAndArgs: BinaryInputConfig;
@@ -29,7 +30,7 @@ export interface BinaryInputConfig extends KernelInputConfig {
   inputs: BinaryInputArrays;
 }
 
-export interface BinaryInputArrays extends TapeNodeInputArrays {
+export interface BinaryInputArrays extends NamedArrayMap {
   a: NDArray;
   b: NDArray;
 }

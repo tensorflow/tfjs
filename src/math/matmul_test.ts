@@ -317,17 +317,16 @@ const gpuTests: MathTests = it => {
 
 // TODO(nsthorat): fix the precision for backprop.
 const gradientTests: MathTests = it => {
-  it('MatMul gradient', math => {
+  it('MatMul gradient A * B', math => {
     const a = Array2D.new([2, 3], [1, 2, 3, 10, 20, 30]);
     const b = Array2D.new([3, 2], [2, 3, 4, 1, 2, 3]);
     const dy = 1;
 
-    const cost = math.sum(math.matMul(a, b));
+    const cost = math.sum(math.matMul(
+        a, b, MatrixOrientation.REGULAR, MatrixOrientation.REGULAR));
 
     const grads = math.gradientWrt(cost, {a, b});
 
-    // da = dy * bT
-    expect(grads.a.shape).toEqual(a.shape);
     test_util.expectNumbersClose(
         grads.a.get(0, 0), dy * b.get(0, 0) + dy * b.get(0, 1), 1e-1);
     test_util.expectNumbersClose(
