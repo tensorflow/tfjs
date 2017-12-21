@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D} from '../../math/ndarray';
 import {Tensor} from '../graph';
 import {TensorArrayMap} from '../tensor_array_map';
-
 import {ArgMaxEquals} from './argmaxequals';
 
 describe('Argmax equals oper', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   let t1: Tensor;
   let t2: Tensor;
@@ -32,7 +31,6 @@ describe('Argmax equals oper', () => {
   let tensorArrayMap: TensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     tensorArrayMap = new TensorArrayMap();
   });
 

@@ -15,9 +15,8 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../math/backends/backend_cpu';
+import {ENV} from '../environment';
 import {Array1D, NDArray} from '../math/ndarray';
-
 import {Tensor} from './graph';
 import {SummedTensorArrayMap, TensorArrayMap} from './tensor_array_map';
 
@@ -114,9 +113,8 @@ describe('TensorArrayMap.delete', () => {
 describe('SummedTensorArrayMap.add', () => {
   let map: SummedTensorArrayMap;
   let t: Tensor;
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     map = new SummedTensorArrayMap(math);
     t = new Tensor([]);
   });

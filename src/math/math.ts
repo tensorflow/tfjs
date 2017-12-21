@@ -51,6 +51,10 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   private backend: MathBackend;
   private customBackend = false;
 
+  time(query: () => NDArray): Promise<number> {
+    return this.backend.time(query);
+  }
+
   getNumArrays() {
     return this.numArrays;
   }
@@ -114,7 +118,9 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
     this.startScope();
 
     const keepFn = <T extends NDArray>(ndarray: T): T => this.keep(ndarray);
-    const trackFn = <T extends NDArray>(ndarray: T): T => this.track(ndarray);
+    // TODO(smilkov): trackFn is a no-op since we have global tracking.
+    // Remove when we break backward compatibility.
+    const trackFn = <T extends NDArray>(ndarray: T): T => ndarray;
     const result = scopeFn(keepFn, trackFn);
 
     if (result instanceof Promise) {
@@ -238,12 +244,7 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
     return result;
   }
 
-  /**
-   * Tracks an NDArray in the current scope to be automatically cleaned up
-   * when the current scope ends, and returns the value.
-   *
-   * @param result The NDArray to track in the current scope.
-   */
+  /** @deprecated This is a no-op. */
   track<G extends keyof DataTypes, T extends NDArray<G>>(result: T): T {
     if (this.activeScope == null) {
       if (this.safeMode) {
@@ -686,8 +687,8 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
     const reduceShape = shapes[1];
     const reduceSize = util.sizeFromShape(reduceShape);
     return this.executeOp('mean', () => {
-      return this.scope((keep, track) => {
-        const res = this.divide(x, track(Scalar.new(reduceSize)));
+      return this.scope(keep => {
+        const res = this.divide(x, Scalar.new(reduceSize));
         return this.sum(res, axis, keepDims);
       });
     });
@@ -1263,8 +1264,7 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
    * @return {NDArray}
    */
   prelu<T extends NDArray>(x: T, alpha: T): T {
-    return this.backendEngine.executeKernel(
-               'PReLU', {inputs: {x, alpha}}) as T;
+    return this.backendEngine.executeKernel('PReLU', {inputs: {x, alpha}}) as T;
   }
 
   /**
@@ -1274,8 +1274,8 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
    * @return {NDArray}
    */
   preluDer<T extends NDArray>(x: T, alpha: T): T {
-    return this.backendEngine.executeKernel(
-               'PReLUDer', {inputs: {x, alpha}}) as T;
+    return this.backendEngine.executeKernel('PReLUDer', {inputs: {x, alpha}}) as
+        T;
   }
 
   /**

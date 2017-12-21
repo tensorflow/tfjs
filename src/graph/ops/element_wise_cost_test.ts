@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D} from '../../math/ndarray';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {MeanSquaredCost} from './element_wise_cost';
 
 describe('MeanSquaredCost', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   let x1Tensor: Tensor;
   let x2Tensor: Tensor;
@@ -33,7 +32,6 @@ describe('MeanSquaredCost', () => {
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });

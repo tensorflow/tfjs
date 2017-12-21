@@ -14,20 +14,15 @@
  * limitations under the License.
  * =============================================================================
  */
-import {NDArrayMathCPU} from '../math/backends/backend_cpu';
+import {ENV} from '../environment';
 import * as test_util from '../test_util';
 import * as util from '../util';
-
 // tslint:disable-next-line:max-line-length
 import {EluFunc, LeakyReluFunc, ReLUFunc, SigmoidFunc, TanHFunc} from './activation_functions';
 import {Array1D} from './ndarray';
 
 describe('Activation functions', () => {
-  let math: NDArrayMathCPU;
-
-  beforeEach(() => {
-    math = new NDArrayMathCPU();
-  });
+  const math = ENV.math;
 
   it('Tanh output', () => {
     const x = Array1D.new([1, 3, -2, 100, -100, 0]);

@@ -15,15 +15,14 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D, Array2D, Scalar} from '../../math/ndarray';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Subtract} from './subtract';
 
 describe('add operation', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
 
   let t1: Tensor;
   let t2: Tensor;
@@ -33,7 +32,6 @@ describe('add operation', () => {
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });

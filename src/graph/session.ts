@@ -174,7 +174,10 @@ export class Session {
 
     if (this.prevBatchSize !== batchSize) {
       this.prevBatchSize = batchSize;
-      this.batchSizeScalar = Scalar.new(batchSize);
+      if (this.batchSizeScalar != null) {
+        this.batchSizeScalar.dispose();
+      }
+      this.batchSizeScalar = this.math.keep(Scalar.new(batchSize));
     }
 
     const feed = new FeedDictionary(feedEntries);
@@ -194,8 +197,8 @@ export class Session {
     optimizer.beforeBatch(
         this.math, batchSize, runtime, activations, gradients);
 
-    return this.math.scope((keep, track) => {
-      let cost = track(Scalar.new(0));
+    return this.math.scope(() => {
+      let cost = Scalar.new(0);
 
       for (let i = 0; i < batchSize; ++i) {
         session_util.disposeAndInitializeOperationOutputs(

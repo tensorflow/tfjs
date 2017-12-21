@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {ENV} from './environment';
 import {Graph, Tensor} from './graph/graph';
 import {Optimizer} from './graph/optimizers/optimizer';
 import {SGDOptimizer} from './graph/optimizers/sgd_optimizer';
 import {CostReduction, FeedEntry, Session} from './graph/session';
 // tslint:disable-next-line:max-line-length
 import {GraphRunner, GraphRunnerEventObserver, MetricReduction} from './graph_runner';
-import {NDArrayMathCPU} from './math/backends/backend_cpu';
 import {NDArrayMath} from './math/math';
 import {Array1D, NDArray, Scalar} from './math/ndarray';
 
@@ -35,7 +35,7 @@ function fakeTrainBatch(
 }
 
 describe('Model runner', () => {
-  let math: NDArrayMath;
+  const math = ENV.math;
   let g: Graph;
   let session: Session;
   let optimizer: SGDOptimizer;
@@ -65,7 +65,6 @@ describe('Model runner', () => {
     // Workaround to avoid jasmine callback timeout.
     originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
     jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-    math = new NDArrayMathCPU();
     g = new Graph();
     optimizer = new SGDOptimizer(FAKE_LEARNING_RATE);
 

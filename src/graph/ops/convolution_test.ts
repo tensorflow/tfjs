@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import * as conv_util from '../../math/conv_util';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from '../../math/ndarray';
 import * as test_util from '../../test_util';
@@ -32,7 +32,7 @@ function assertNoNaNs(t: NDArray) {
 }
 
 describe('Convolution', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
   let wTensor: Tensor;
   let xTensor: Tensor;
   let bTensor: Tensor;
@@ -41,7 +41,6 @@ describe('Convolution', () => {
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });

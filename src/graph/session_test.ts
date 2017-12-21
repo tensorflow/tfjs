@@ -16,11 +16,10 @@
  */
 
 import {InputProvider} from '../data/input_provider';
-import {NDArrayMathCPU} from '../math/backends/backend_cpu';
-import {NDArrayMathGPU} from '../math/backends/backend_webgl';
+import {ENV} from '../environment';
+import {NDArrayMath} from '../math/math';
 import {Array1D, NDArray, Scalar} from '../math/ndarray';
 import * as test_util from '../test_util';
-
 import {Graph, Tensor} from './graph';
 import {SGDOptimizer} from './optimizers/sgd_optimizer';
 import {FeedDictionary, FeedEntry, Session} from './session';
@@ -31,7 +30,7 @@ describe('FeedDictionary', () => {
   });
 
   it('ctor populates dict from only feed entry', () => {
-    const math = new NDArrayMathCPU();
+    const math = ENV.math;
     math.scope(() => {
       const e: FeedEntry = {tensor: new Tensor([]), data: NDArray.zeros([1])};
       const d = new FeedDictionary([e]);
@@ -67,7 +66,7 @@ describe('Session', () => {
   beforeEach(() => g = new Graph());
 
   it('mnist fc', () => {
-    const math = new NDArrayMathCPU();
+    const math = ENV.math;
     const input = g.placeholder('input', [28 * 28]);
     const fc0W = g.variable('fc0W', NDArray.zeros([32, 28 * 28]));
     const fc0B = g.variable('fc0B', NDArray.zeros([32]));
@@ -90,17 +89,16 @@ describe('Session', () => {
   });
 
   it('y=x^2 + 3: CPU', () => {
-    const math = new NDArrayMathCPU();
     const x = g.placeholder('x', [2]);
     const y = g.add(g.square(x), g.constant(3));
-    const session = new Session(g, math);
+    const session = new Session(g, ENV.math);
     const yVal = session.eval(y, [{tensor: x, data: Array1D.new([5, 4])}]);
     const expected = new Float32Array([28, 19]);
     test_util.expectArraysClose(yVal.getValues(), expected);
   });
 
   it('y=x^2 + 3: GPU', () => {
-    const math = new NDArrayMathGPU();
+    const math = ENV.math;
     const x = g.placeholder('x', [2]);
     const y = g.add(g.square(x), g.constant(3));
     const session = new Session(g, math);
@@ -113,7 +111,7 @@ describe('Session', () => {
   });
 
   it('Non-placeholder feed: y=x^2 + 3 (feed x^2)', () => {
-    const math = new NDArrayMathGPU();
+    const math = ENV.math;
     const x = g.placeholder('x', [2]);
     const xSquared = g.square(x);
     const y = g.add(xSquared, g.constant(3));
@@ -128,7 +126,7 @@ describe('Session', () => {
   });
 
   it('Eval multiple tensors that share graph: y=x^2 + 3, z=x^2 + 2', () => {
-    const math = new NDArrayMathGPU();
+    const math = ENV.math;
     const x = g.placeholder('x', [2]);
     const xSquared = g.square(x);
     const y = g.add(xSquared, g.constant(3));
@@ -146,7 +144,7 @@ describe('Session', () => {
   });
 
   it('Eval 2 tensors that share a split graph: y=x^2 + x, z=y + 1', () => {
-    const math = new NDArrayMathGPU();
+    const math = ENV.math;
     const x = g.placeholder('x', [2]);
     const xSquared = g.square(x);
     const y = g.add(xSquared, x);
@@ -165,7 +163,7 @@ describe('Session', () => {
   });
 
   it('Backprop through a  with 2 outputs, input is scalar', () => {
-    const math = new NDArrayMathCPU();
+    const math = ENV.math;
     const two = Scalar.new(2);
     const one = Scalar.new(1);
     const negOne = Scalar.new(-1);
@@ -202,7 +200,7 @@ describe('Session', () => {
   });
 
   it('Backprop through a node with 2 outputs, input is Array1D', () => {
-    const math = new NDArrayMathCPU();
+    const math = ENV.math;
     const x = g.placeholder('x', [2]);
     const y = g.square(x);
     const z = g.add(x, g.constant(3));
@@ -225,7 +223,7 @@ describe('Session', () => {
   });
 
   it('Specify which variables to update (var_list)', () => {
-    const math = new NDArrayMathCPU();
+    const math = ENV.math;
     const x = g.placeholder('x', [2]);
     const b0 = g.variable('b0', NDArray.zeros([2]));
     const p = g.add(x, b0);
@@ -272,7 +270,8 @@ describe('Session', () => {
 
   it('Safe mode math, no math scope eval throws', () => {
     const safeMode = true;
-    const math = new NDArrayMathCPU(safeMode);
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
 
     expect(() => {
       const x = g.placeholder('x', [2]);
@@ -280,11 +279,14 @@ describe('Session', () => {
       const session = new Session(g, math);
       session.eval(y, [{tensor: x, data: Array1D.new([5, 4])}]);
     }).toThrowError();
+    ENV.reset();
   });
 
   it('Safe mode math, math scope eval does not throw', () => {
     const safeMode = true;
-    const math = new NDArrayMathCPU(safeMode);
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
+
     math.scope(() => {
       const x = g.placeholder('x', [2]);
       const y = g.square(x);
@@ -293,11 +295,13 @@ describe('Session', () => {
       const expected = new Float32Array([25, 16]);
       test_util.expectArraysClose(yVal.getValues(), expected);
     });
+    ENV.reset();
   });
 
   it('Safe mode math, math scope train does not throw', () => {
     const safeMode = true;
-    const math = new NDArrayMathCPU(safeMode);
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
 
     const inputProvider: InputProvider = {
       getNextCopy() {
@@ -319,11 +323,13 @@ describe('Session', () => {
       const dwdx = session.gradientArrayMap.get(x).getValues();
       test_util.expectArraysClose(dwdx, new Float32Array([5, 9]));
     });
+    ENV.reset();
   });
 
   it('Safe mode math, no math scope train throws', () => {
     const safeMode = true;
-    const math = new NDArrayMathCPU(safeMode);
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
 
     const inputProvider: InputProvider = {
       getNextCopy() {
@@ -341,5 +347,7 @@ describe('Session', () => {
       const w = g.reduceSum(g.add(y, z));
       session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer);
     }).toThrowError();
+
+    ENV.reset();
   });
 });

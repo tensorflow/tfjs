@@ -14,25 +14,23 @@
  * limitations under the License.
  * =============================================================================
  */
-import {NDArrayMathCPU} from '../../math/backends/backend_cpu';
+import {ENV} from '../../environment';
 import {Array1D, Array2D} from '../../math/ndarray';
 import * as test_util from '../../test_util';
+import {expectArraysClose} from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 // tslint:disable-next-line:max-line-length
 import {Elu, LeakyReLU, PReLU, ReLU, Sigmoid, Square, TanH} from './element_wise_activation';
-import {expectArraysClose} from "../../test_util";
 
 describe('Element wise activation', () => {
-  let math: NDArrayMathCPU;
+  const math = ENV.math;
   let xTensor: Tensor;
   let yTensor: Tensor;
   let activations: TensorArrayMap;
   let gradients: SummedTensorArrayMap;
 
   beforeEach(() => {
-    math = new NDArrayMathCPU();
     activations = new TensorArrayMap();
     gradients = new SummedTensorArrayMap(math);
   });
@@ -69,7 +67,7 @@ describe('Element wise activation', () => {
   });
 
   it('LeakyReLU', () => {
-    const x = Array2D.new([2, 3], [3, 0, -1, 2, 9, -5]);
+    const x = Array2D.new([2, 3], [3, 0.1, -1, 2, 9, -5]);
 
     xTensor = new Tensor(x.shape);
     yTensor = new Tensor(x.shape);
@@ -79,8 +77,8 @@ describe('Element wise activation', () => {
     op.feedForward(math, activations);
 
     const y = activations.get(yTensor);
-    expectArraysClose(y.dataSync(),
-      new Float32Array([3, 0, -0.2, 2, 9, -1.0]));
+    expectArraysClose(
+        y.dataSync(), new Float32Array([3, 0.1, -0.2, 2, 9, -1.0]));
 
     // Backprop.
     const dy = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
@@ -90,8 +88,7 @@ describe('Element wise activation', () => {
 
     const dx = gradients.get(xTensor);
 
-    expectArraysClose(dx.dataSync(),
-      new Float32Array([1, 0, 0.6, 4, 5, 1.2]));
+    expectArraysClose(dx.dataSync(), new Float32Array([1, 2, 0.6, 4, 5, 1.2]));
   });
 
   it('PReLU', () => {
@@ -108,8 +105,8 @@ describe('Element wise activation', () => {
     op.feedForward(math, activations);
 
     const y = activations.get(yTensor);
-    expectArraysClose(y.dataSync(),
-      new Float32Array([3, 0, -0.12, 2, -0.45, -0.05]));
+    expectArraysClose(
+        y.dataSync(), new Float32Array([3, 0, -0.12, 2, -0.45, -0.05]));
 
     // Backprop.
     const dy = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
@@ -119,8 +116,8 @@ describe('Element wise activation', () => {
 
     const dx = gradients.get(xTensor);
 
-    expectArraysClose(dx.dataSync(),
-      new Float32Array([1, 0, 0.36, 4, 0.25, 0.06]));
+    expectArraysClose(
+        dx.dataSync(), new Float32Array([1, 0, 0.36, 4, 0.25, 0.06]));
   });
 
   it('TanH', () => {
