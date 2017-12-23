@@ -14,10 +14,8 @@ limitations under the License.
 ==============================================================================*/
 'use strict';
 
-import {Array1D, CostReduction, Graph, NDArrayMathGPU} from 'deeplearn';
-import {InCPUMemoryShuffledInputProviderBuilder} from 'deeplearn';
-import {Session, SGDOptimizer, Tensor} from 'deeplearn';
-import {Scalar} from 'deeplearn';
+// tslint:disable-next-line:max-line-length
+import {Scalar, Session, SGDOptimizer, Tensor, Array1D, CostReduction, Graph, ENV, InCPUMemoryShuffledInputProviderBuilder} from 'deeplearn';
 
 const EPSILON = 1e-7;
 
@@ -32,7 +30,7 @@ export const learnXOR = async () => {
   let cost: Scalar;
 
   const graph = new Graph();
-  const math = new NDArrayMathGPU();
+  const math = ENV.math;
 
   const input = graph.placeholder('input', [2]);
   const y = graph.placeholder('y', [1]);

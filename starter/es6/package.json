@@ -4,7 +4,7 @@
   "description": "Starter project for using deeplearn.js with es6",
   "dependencies": {
     "babel-polyfill": "~6.26.0",
-    "deeplearn": "~0.3.3"
+    "deeplearn": "0.3.15"
   },
   "devDependencies": {
     "babel-plugin-syntax-async-functions": "~6.13.0",

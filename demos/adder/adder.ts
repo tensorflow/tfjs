@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {NDArrayMathGPU, Scalar} from 'deeplearn';
+import {ENV, Scalar} from 'deeplearn';
 
 const outputElement = document.getElementById('output');
 const inA: HTMLInputElement = document.getElementById('A') as HTMLInputElement;
 const inB: HTMLInputElement = document.getElementById('B') as HTMLInputElement;
 
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 
 export async function execute(event?: Event) {
   const a = Scalar.new(+inA.value);

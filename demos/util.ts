@@ -15,16 +15,10 @@
  * =============================================================================
  */
 
-import {NDArrayMathGPU} from 'deeplearn';
+import {ENV} from 'deeplearn';
 
 export function isWebGLSupported(): boolean {
-  try {
-    const math = new NDArrayMathGPU();
-    math.dispose();
-    return true;
-  } catch (e) {
-    return false;
-  }
+  return ENV.get('WEBGL_VERSION') >= 1;
 }
 
 export function isSafari(): boolean {

@@ -15,7 +15,8 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array2D, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array2D, ENV, NDArrayMath} from 'deeplearn';
+
 import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
 import * as benchmark_util from './benchmark_util';
 
@@ -27,7 +28,9 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
         resolve(-1);
       });
     }
-    const math = new NDArrayMathCPU();
+    const safeMode = false;
+    const math = new NDArrayMath('cpu', safeMode);
+    ENV.setMath(math);
     const a = Array2D.randUniform([size, size], -1, 1);
     const b = Array2D.randUniform([size, size], -1, 1);
     const start = performance.now();
@@ -41,8 +44,9 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
 
 export class MatmulGPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
-    const math = new NDArrayMathGPU();
-
+    const safeMode = false;
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
     const a = Array2D.randNormal([size, size]);
     const b = Array2D.randNormal([size, size]);
 

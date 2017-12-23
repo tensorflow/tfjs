@@ -16,13 +16,13 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CostReduction, Graph, InCPUMemoryShuffledInputProviderBuilder, NDArray, NDArrayMathGPU, Scalar, Session, SGDOptimizer, Tensor} from 'deeplearn';
+import {Array1D, Array2D, CostReduction, ENV, Graph, InCPUMemoryShuffledInputProviderBuilder, NDArray, Scalar, Session, SGDOptimizer, Tensor} from 'deeplearn';
 
 async function mlBeginners() {
+  const math = ENV.math;
+
   // This file parallels (some of) the code in the ML Beginners tutorial.
   {
-    const math = new NDArrayMathGPU();
-
     const matrixShape: [number, number] = [2, 3];  // 2 rows, 3 columns.
     const matrix = Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]);
     const vector = Array1D.new([0, 1, 2]);
@@ -54,10 +54,9 @@ async function mlBeginners() {
 
     // At this point the graph is set up, but has not yet been evaluated.
     // **deeplearn.js** needs a Session object to evaluate a graph.
-    const math = new NDArrayMathGPU();
     const session = new Session(graph, math);
 
-    await math.scope(async (keep, track) => {
+    await math.scope(async () => {
       /**
        * Inference
        */
@@ -65,10 +64,8 @@ async function mlBeginners() {
       // providing a value 4 for "x".
       // NOTE: "a", "b", and "c" are randomly initialized, so this will give us
       // something random.
-      let result: NDArray =
-          session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
-      console.log(result.shape);
-      console.log(result.getValues());
+      let result: NDArray = session.eval(y, [{tensor: x, data: Scalar.new(4)}]);
+      console.log(result.dataSync());
 
       /**
        * Training
@@ -77,13 +74,10 @@ async function mlBeginners() {
       // To do this, we need to provide examples of x and y.
       // The values given here are for values a = 3, b = 2, c = 1, with random
       // noise added to the output so it's not a perfect fit.
-      const xs: Scalar[] = [
-        track(Scalar.new(0)), track(Scalar.new(1)), track(Scalar.new(2)),
-        track(Scalar.new(3))
-      ];
+      const xs: Scalar[] =
+          [Scalar.new(0), Scalar.new(1), Scalar.new(2), Scalar.new(3)];
       const ys: Scalar[] = [
-        track(Scalar.new(1.1)), track(Scalar.new(5.9)), track(Scalar.new(16.8)),
-        track(Scalar.new(33.9))
+        Scalar.new(1.1), Scalar.new(5.9), Scalar.new(16.8), Scalar.new(33.9)
       ];
       // When training, it's important to shuffle your data!
       const shuffledInputProviderBuilder =
@@ -114,9 +108,8 @@ async function mlBeginners() {
       }
 
       // Now print the value from the trained model for x = 4, should be ~57.0.
-      result = session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
+      result = session.eval(y, [{tensor: x, data: Scalar.new(4)}]);
       console.log('result should be ~57.0:');
-      console.log(result.shape);
       console.log(await result.data());
     });
   }

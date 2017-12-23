@@ -107,7 +107,7 @@ a `NDArrayMath` object.
 
 For example, if you want to compute a matrix times a vector on the GPU:
 ```ts
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 
 const matrixShape = [2, 3];  // 2 rows, 3 columns.
 const matrix = Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]);
@@ -246,11 +246,11 @@ const cost: Tensor = graph.meanSquaredCost(y, yLabel);
 
 // At this point the graph is set up, but has not yet been evaluated.
 // **deeplearn.js** needs a Session object to evaluate a graph.
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 const session = new Session(graph, math);
 
-// For more information on scope / track, check out the [tutorial on performance](performance.md).
-await math.scope(async (keep, track) => {
+// For more information on scope, check out the [tutorial on performance](performance.md).
+await math.scope(async () => {
   /**
    * Inference
    */
@@ -259,7 +259,7 @@ await math.scope(async (keep, track) => {
   // NOTE: "a", "b", and "c" are randomly initialized, so this will give us
   // something random.
   let result: NDArray =
-      session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
+      session.eval(y, [{tensor: x, data: Scalar.new(4)}]);
   console.log(result.shape);
   console.log('result', await result.data());
 
@@ -271,16 +271,16 @@ await math.scope(async (keep, track) => {
   // The values given here are for values a = 3, b = 2, c = 1, with random
   // noise added to the output so it's not a perfect fit.
   const xs: Scalar[] = [
-    track(Scalar.new(0)),
-    track(Scalar.new(1)),
-    track(Scalar.new(2)),
-    track(Scalar.new(3))
+    Scalar.new(0),
+    Scalar.new(1),
+    Scalar.new(2),
+    Scalar.new(3)
   ];
   const ys: Scalar[] = [
-    track(Scalar.new(1.1)),
-    track(Scalar.new(5.9)),
-    track(Scalar.new(16.8)),
-    track(Scalar.new(33.9))
+    Scalar.new(1.1),
+    Scalar.new(5.9),
+    Scalar.new(16.8),
+    Scalar.new(33.9)
   ];
   // When training, it's important to shuffle your data!
   const shuffledInputProviderBuilder =
@@ -311,7 +311,7 @@ await math.scope(async (keep, track) => {
   }
 
   // Now print the value from the trained model for x = 4, should be ~57.0.
-  result = session.eval(y, [{tensor: x, data: track(Scalar.new(4))}]);
+  result = session.eval(y, [{tensor: x, data: Scalar.new(4)}]);
   console.log('result should be ~57.0:');
   console.log(result.shape);
   console.log(await result.data());

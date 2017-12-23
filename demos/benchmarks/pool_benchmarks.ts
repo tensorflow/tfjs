@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array3D, conv_util, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array3D, conv_util, ENV, NDArrayMath} from 'deeplearn';
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
 
@@ -58,7 +58,9 @@ function getPoolingOp(option: string, math: NDArrayMath): (
 export class PoolCPUBenchmark implements BenchmarkTest {
   run(size: number, option: string,
       params: PoolBenchmarkParams): Promise<number> {
-    const math = new NDArrayMathCPU();
+    const safeMode = false;
+    const math = new NDArrayMath('cpu', safeMode);
+    ENV.setMath(math);
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
@@ -83,8 +85,9 @@ export class PoolCPUBenchmark implements BenchmarkTest {
 export class PoolGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string, params: PoolBenchmarkParams):
       Promise<number> {
-    const math = new NDArrayMathGPU();
-
+    const safeMode = false;
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
@@ -93,11 +96,8 @@ export class PoolGPUBenchmark implements BenchmarkTest {
     const op = getPoolingOp(option, math);
 
     const benchmark = () => op(x, fieldSize, stride, 'same');
-
     const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
-
     x.dispose();
-    math.dispose();
 
     return time;
   }

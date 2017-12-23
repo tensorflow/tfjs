@@ -6,14 +6,16 @@
   "unpkg": "dist/bundle.js",
   "types": "dist/index.d.ts",
   "peerDependencies": {
-    "deeplearn": "~0.3.11"
+    "deeplearn": "0.3.15"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/PAIR-code/deeplearnjs.git"
   },
   "devDependencies": {
-    "deeplearn": "0.3.13",
+    "browserify": "~14.5.0",
+    "browserify-shim": "~3.8.14",
+    "deeplearn": "0.3.15",
     "mkdirp": "~0.5.1",
     "tsify": "~3.0.3",
     "tslint": "~5.8.0",
@@ -23,9 +25,17 @@
   },
   "scripts": {
     "prep": "yarn && mkdirp dist",
-    "build": "browserify --standalone yolo_mobilenet yolo_mobilenet.ts -p [tsify] -o dist/bundle.js",
+    "build": "browserify -g browserify-shim --standalone yolo_mobilenet index.ts -p [tsify] -o dist/bundle.js",
     "lint": "tslint -p . -t verbose",
     "publish-npm": "tsc --sourceMap false && yarn build && npm publish"
+  },
+  "browserify-shim": {
+    "deeplearn": "global:dl"
+  },
+  "browserify": {
+    "global-transform": [
+      "browserify-shim"
+    ]
   },
   "license": "Apache-2.0"
 }

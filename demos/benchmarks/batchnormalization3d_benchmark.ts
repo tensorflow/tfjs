@@ -15,7 +15,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array1D, Array3D, ENV, NDArrayMath} from 'deeplearn';
 
 import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -29,7 +29,9 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
         resolve(-1);
       });
     }
-    const math = new NDArrayMathCPU();
+    const safeMode = false;
+    const math = new NDArrayMath('cpu', safeMode);
+    ENV.setMath(math);
     const x = Array3D.randUniform([size, size, 8], -1, 1);
     const mean = Array1D.new([0]);
     const variance = Array1D.new([1]);
@@ -48,7 +50,9 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
 
 export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
   async run(size: number) {
-    const math = new NDArrayMathGPU();
+    const safeMode = false;
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
     const x = Array3D.randUniform([size, size, 8], -1, 1);
     const mean = Array1D.new([0]);
     const variance = Array1D.new([1]);

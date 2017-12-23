@@ -14,9 +14,8 @@ limitations under the License.
 ==============================================================================*/
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from 'deeplearn';
+import {Array1D, Array2D, CheckpointLoader, ENV, NDArray, NDArrayMath, Scalar} from 'deeplearn';
 import * as demo_util from '../util';
-
 import {KeyboardElement} from './keyboard_element';
 
 // tslint:disable-next-line:no-require-imports
@@ -121,7 +120,7 @@ if (!isDeviceSupported) {
   start();
 }
 
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 
 let modelReady = false;
 
@@ -276,14 +275,14 @@ function disableConditioning() {
 }
 
 function updateConditioningParams() {
-  const pitchHistogram = pitchHistogramElements.map((e) => {
+  const pitchHistogram = pitchHistogramElements.map(e => {
     return parseInt(e.value, 10) || 0;
   });
   updateDisplayHistogram(pitchHistogram);
 
-  if (noteDensityEncoding !== undefined) {
+  if (noteDensityEncoding != null) {
     noteDensityEncoding.dispose();
-    noteDensityEncoding = undefined;
+    noteDensityEncoding = null;
   }
 
   window.location.assign(
@@ -297,9 +296,9 @@ function updateConditioningParams() {
   noteDensityEncoding = Array1D.zeros([DENSITY_BIN_RANGES.length + 1]);
   noteDensityEncoding.set(1.0, noteDensityIdx + 1);
 
-  if (pitchHistogramEncoding !== undefined) {
+  if (pitchHistogramEncoding != null) {
     pitchHistogramEncoding.dispose();
-    pitchHistogramEncoding = undefined;
+    pitchHistogramEncoding = null;
   }
   pitchHistogramEncoding = Array1D.zeros([PITCH_HISTOGRAM_SIZE]);
   const pitchHistogramTotal = pitchHistogram.reduce((prev, val) => {
@@ -311,7 +310,7 @@ function updateConditioningParams() {
 }
 
 document.getElementById('note-density').oninput = updateConditioningParams;
-pitchHistogramElements.map((e) => {
+pitchHistogramElements.forEach(e => {
   e.oninput = updateConditioningParams;
 });
 updateConditioningParams();
@@ -389,20 +388,20 @@ document.getElementById('save-2').onclick = () => {
 };
 
 function getConditioning(math: NDArrayMath): Array1D {
-  return math.scope((keep, track) => {
+  return math.scope(keep => {
     if (!conditioned) {
       // TODO(nsthorat): figure out why we have to cast these shapes to numbers.
       // The linter is complaining, though VSCode can infer the types.
       const size = 1 + (noteDensityEncoding.shape[0] as number) +
           (pitchHistogramEncoding.shape[0] as number);
-      const conditioning = track(Array1D.zeros([size]));
+      const conditioning = Array1D.zeros([size]);
       conditioning.set(1.0, 0);
       return conditioning;
     } else {
       const conditioningValues =
           math.concat1D(noteDensityEncoding, pitchHistogramEncoding);
       return math.concat1D(
-          track(Scalar.new(0.0).as1D()),  // conditioning on.
+          Scalar.new(0.0).as1D(),  // conditioning on.
           conditioningValues);
     }
   });
@@ -413,7 +412,7 @@ async function generateStep(loopId: number) {
     // Was part of an outdated generateStep() scheduled via setTimeout.
     return;
   }
-  await math.scope(async (keep, track) => {
+  await math.scope(async keep => {
     const lstm1 =
         math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
     const lstm2 =
@@ -421,12 +420,6 @@ async function generateStep(loopId: number) {
     const lstm3 =
         math.basicLSTMCell.bind(math, forgetBias, lstmKernel3, lstmBias3);
 
-    c.map(val => {
-      track(val);
-    });
-    h.map(val => {
-      track(val);
-    });
     const outputs: Scalar[] = [];
     // Generate some notes.
     for (let i = 0; i < STEPS_PER_GENERATE_CALL; i++) {
@@ -455,22 +448,14 @@ async function generateStep(loopId: number) {
       lastSample = sampledOutput;
     }
 
-    c.map(val => {
-      keep(val);
-    });
-    h.map(val => {
-      keep(val);
-    });
+    c.forEach(val => keep(val));
+    h.forEach(val => keep(val));
 
     await outputs[outputs.length - 1].data();
 
     for (let i = 0; i < outputs.length; i++) {
       playOutput(await outputs[i].val());
     }
-
-    // Pro-actively upload the last sample to the gpu again and keep it
-    // for next time.
-    lastSample.getTexture();
 
     if (piano.now() - currentPianoTimeSec > MAX_GENERATION_LAG_SECONDS) {
       console.warn(

@@ -75,11 +75,11 @@ to write our model. Here is a snippet demonstrating the use of
 `CheckpointLoader`:
 
 ```ts
-import {CheckpointLoader} from 'deeplearn';
+import {CheckpointLoader, ENV} from 'deeplearn';
 // manifest.json is in the same dir as index.html.
 const varLoader = new CheckpointLoader('.');
 varLoader.getAllVariables().then(async vars => {
-  const math = new NDArrayMathGPU();
+  const math = ENV.math;
 
   // Get NDArray of variables casted with expected dimension.
   const hidden1W = vars['hidden1/weights'] as Array2D;

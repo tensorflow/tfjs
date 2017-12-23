@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Array1D, NDArrayMathCPU} from 'deeplearn';
+import {Array1D, ENV} from 'deeplearn';
 
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
@@ -69,14 +69,13 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
   }
 
   drawLogits(
-      predictedLogits: Array1D, labelLogits: Array1D,
+      predictedLogits: Array1D<'float32'>, labelLogits: Array1D,
       labelClassNames?: string[]) {
-    const mathCpu = new NDArrayMathCPU();
-    const labelClass = mathCpu.argMax(labelLogits).get();
+    const labelClass = ENV.math.argMax(labelLogits).get();
 
-    const topk = mathCpu.topK(predictedLogits, TOP_K);
-    const topkIndices = topk.indices.getValues();
-    const topkValues = topk.values.getValues();
+    const topk = this.topK(predictedLogits.dataSync(), TOP_K);
+    const topkIndices = topk.indices;
+    const topkValues = topk.values;
 
     for (let i = 0; i < topkIndices.length; i++) {
       const index = topkIndices[i];
@@ -92,6 +91,25 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
       this.logitVizElements[i].innerText =
           `${(100 * topkValues[i]).toFixed(1)}%`;
     }
+  }
+
+  private topK(values: Float32Array, k: number):
+      {values: Float32Array, indices: Int32Array} {
+    const valuesAndIndices: Array<{value: number, index: number}> = [];
+    for (let i = 0; i < values.length; i++) {
+      valuesAndIndices.push({value: values[i], index: i});
+    }
+    valuesAndIndices.sort((a, b) => {
+      return b.value - a.value;
+    });
+
+    const topkValues = new Float32Array(k);
+    const topkIndices = new Int32Array(k);
+    for (let i = 0; i < k; i++) {
+      topkValues[i] = valuesAndIndices[i].value;
+      topkIndices[i] = valuesAndIndices[i].index;
+    }
+    return {values: topkValues, indices: topkIndices};
   }
 }
 

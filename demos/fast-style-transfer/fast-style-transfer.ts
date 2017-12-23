@@ -14,12 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:max-line-length
-import {Array3D, gpgpu_util, GPGPUContext, NDArrayMathGPU, render_ndarray_gpu_util} from 'deeplearn';
 
+import {Array3D, ENV} from 'deeplearn';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
-
-// import * as imagenet_util from '../models/imagenet_util';
 import {TransformNet} from './net';
 
 // tslint:disable-next-line:variable-name
@@ -59,11 +56,6 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
   status: string;
   applicationState: ApplicationState;
 
-  // DeeplearnJS stuff
-  private math: NDArrayMathGPU;
-  private gpgpu: GPGPUContext;
-  private gl: WebGLRenderingContext;
-
   private transformNet: TransformNet;
 
   // DOM Elements
@@ -88,9 +80,6 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
   ready() {
     // Initialize deeplearn.js stuff
     this.canvas = this.querySelector('#imageCanvas') as HTMLCanvasElement;
-    this.gl = gpgpu_util.createWebGLContext(this.canvas);
-    this.gpgpu = new GPGPUContext(this.gl);
-    this.math = new NDArrayMathGPU(this.gpgpu);
 
     // Initialize polymer properties
     this.applicationState = ApplicationState.IDLE;
@@ -113,7 +102,7 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
     this.styleImgElement.height = 250;
 
     this.transformNet =
-        new TransformNet(this.math, STYLE_MAPPINGS[this.selectedStyleName]);
+        new TransformNet(STYLE_MAPPINGS[this.selectedStyleName]);
 
     this.initWebcamVariables();
 
@@ -250,17 +239,11 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
   }
 
   async runInference() {
-    await this.math.scope(async (keep, track) => {
-
-      const preprocessed = track(Array3D.fromPixels(this.contentImgElement));
-
+    await ENV.math.scope(async () => {
+      const preprocessed = Array3D.fromPixels(this.contentImgElement);
       const inferenceResult = await this.transformNet.predict(preprocessed);
-
       this.setCanvasShape(inferenceResult.shape);
-      this.renderShader = render_ndarray_gpu_util.getRenderRGBShader(
-          this.gpgpu, inferenceResult.shape[1]);
-      render_ndarray_gpu_util.renderToCanvas(
-          this.gpgpu, this.renderShader, inferenceResult.getTexture());
+      renderToCanvas(inferenceResult, this.canvas);
     });
   }
 
@@ -275,6 +258,22 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
       this.canvas.style.width = (shape[1] / shape[0] * 500).toString() + 'px';
     }
   }
+}
+
+function renderToCanvas(a: Array3D, canvas: HTMLCanvasElement) {
+  const [height, width, ] = a.shape;
+  const ctx = canvas.getContext('2d');
+  const imageData = new ImageData(width, height);
+  const data = a.dataSync();
+  for (let i = 0; i < height * width; ++i) {
+    const j = i * 4;
+    const k = i * 3;
+    imageData.data[j + 0] = Math.round(255 * data[k + 0]);
+    imageData.data[j + 1] = Math.round(255 * data[k + 1]);
+    imageData.data[j + 2] = Math.round(255 * data[k + 2]);
+    imageData.data[j + 3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
 }
 
 document.registerElement(StyleTransferDemo.prototype.is, StyleTransferDemo);

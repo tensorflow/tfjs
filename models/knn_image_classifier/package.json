@@ -6,7 +6,7 @@
   "unpkg": "dist/bundle.js",
   "types": "dist/index.d.ts",
   "peerDependencies": {
-    "deeplearn": "~0.3.13"
+    "deeplearn": "0.3.15"
   },
   "dependencies": {
     "deeplearn-squeezenet": "~0.1.6"
@@ -16,8 +16,9 @@
     "url": "https://github.com/PAIR-code/deeplearnjs.git"
   },
   "devDependencies": {
-    "browserify": "~14.4.0",
-    "deeplearn": "0.3.13",
+    "browserify": "~14.5.0",
+    "browserify-shim": "~3.8.14",
+    "deeplearn": "0.3.15",
     "mkdirp": "~0.5.1",
     "tsify": "~3.0.3",
     "tslint": "~5.8.0",
@@ -27,9 +28,17 @@
   },
   "scripts": {
     "prep": "yarn && mkdirp dist",
-    "build": "tsc --sourceMap false && browserify --standalone knn_image_classifier knn_image_classifier.ts -p [tsify] -o dist/bundle.js",
+    "build": "tsc --sourceMap false && browserify -g browserify-shim --standalone knn_image_classifier index.ts -p [tsify] -o dist/bundle.js",
     "lint": "tslint -p . -t verbose",
     "publish-npm": "yarn build && yarn publish"
+  },
+  "browserify-shim": {
+    "deeplearn": "global:dl"
+  },
+  "browserify": {
+    "global-transform": [
+      "browserify-shim"
+    ]
   },
   "license": "Apache-2.0"
 }

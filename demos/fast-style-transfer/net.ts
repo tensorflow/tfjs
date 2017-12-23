@@ -15,7 +15,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, CheckpointLoader, Model, NDArray, NDArrayMathGPU, Scalar} from 'deeplearn';
+import {Array1D, Array3D, Array4D, CheckpointLoader, ENV, Model, NDArray, NDArrayMath, Scalar} from 'deeplearn';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/transformnet/';
@@ -27,8 +27,10 @@ export class TransformNet implements Model {
   private timesScalar: NDArray;
   private plusScalar: NDArray;
   private epsilonScalar: NDArray;
+  private math: NDArrayMath;
 
-  constructor(private math: NDArrayMathGPU, private style: string) {
+  constructor(private style: string) {
+    this.math = ENV.math;
     this.variableDictionary = {};
     this.timesScalar = Scalar.new(150);
     this.plusScalar = Scalar.new(255. / 2);

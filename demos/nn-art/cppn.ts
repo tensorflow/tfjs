@@ -16,8 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array2D, gpgpu_util, GPGPUContext, NDArrayMathGPU, webgl_util} from 'deeplearn';
-
+import {Array2D, ENV, gpgpu_util, GPGPUContext, MathBackendWebGL, NDArray, NDArrayMath, webgl_util} from 'deeplearn';
 import * as nn_art_util from './nn_art_util';
 
 const MAX_LAYERS = 10;
@@ -35,21 +34,21 @@ const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
 
 export type ActivationFunction = 'tanh'|'sin'|'relu'|'step';
 const activationFunctionMap: {
-  [activationFunction in ActivationFunction]: (
-      math: NDArrayMathGPU, ndarray: Array2D) => Array2D
+  [activationFunction in ActivationFunction]:
+      (math: NDArrayMath, ndarray: Array2D) => Array2D
 } = {
-  'tanh': (math: NDArrayMathGPU, ndarray: Array2D) => math.tanh(ndarray),
-  'sin': (math: NDArrayMathGPU, ndarray: Array2D) => math.sin(ndarray),
-  'relu': (math: NDArrayMathGPU, ndarray: Array2D) => math.relu(ndarray),
-  'step': (math: NDArrayMathGPU, ndarray: Array2D) => math.step(ndarray)
+  'tanh': (math: NDArrayMath, ndarray: Array2D) => math.tanh(ndarray),
+  'sin': (math: NDArrayMath, ndarray: Array2D) => math.sin(ndarray),
+  'relu': (math: NDArrayMath, ndarray: Array2D) => math.relu(ndarray),
+  'step': (math: NDArrayMath, ndarray: Array2D) => math.step(ndarray)
 };
 
 const NUM_IMAGE_SPACE_VARIABLES = 3;  // x, y, r
 const NUM_LATENT_VARIABLES = 2;
 
 export class CPPN {
-  private math: NDArrayMathGPU;
-  private gl: WebGLRenderingContext;
+  private math: NDArrayMath;
+  private backend: MathBackendWebGL;
   private gpgpu: GPGPUContext;
   private renderShader: WebGLProgram;
   private addLatentVariablesShader: WebGLProgram;
@@ -72,11 +71,14 @@ export class CPPN {
   private isInferring = false;
 
   constructor(private inferenceCanvas: HTMLCanvasElement) {
-    this.gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
-    this.gpgpu = new GPGPUContext(this.gl);
-    this.math = new NDArrayMathGPU(this.gpgpu);
+    const gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
+    this.gpgpu = new GPGPUContext(gl);
+    this.backend = new MathBackendWebGL(this.gpgpu);
+    const safeMode = false;
+    this.math = new NDArrayMath(this.backend, safeMode);
+    ENV.setMath(this.math);
 
-    const maxTextureSize = webgl_util.queryMaxTextureSize(this.gl);
+    const maxTextureSize = webgl_util.queryMaxTextureSize(gl);
     const canvasSize = Math.floor(Math.sqrt(maxTextureSize));
     this.inferenceCanvas.width = canvasSize;
     this.inferenceCanvas.height = canvasSize;
@@ -145,19 +147,14 @@ export class CPPN {
     const z1 = Math.sin(this.z1Counter);
     const z2 = Math.cos(this.z2Counter);
 
-    const intermediateResults = [];
-
     // Add the latent variables.
-    const addLatentVariablesResultTex =
-        this.math.getTextureManager().acquireTexture(this.inputAtlas.shape);
+    const inputAtlasWithLatentVariables =
+        NDArray.make(this.inputAtlas.shape, {}) as Array2D;
     nn_art_util.addLatentVariables(
-        this.gpgpu, this.addLatentVariablesShader, this.inputAtlas.getTexture(),
-        addLatentVariablesResultTex, this.inputAtlas.shape, z1, z2);
-    const inputAtlasWithLatentVariables = Array2D.make(this.inputAtlas.shape, {
-      texture: addLatentVariablesResultTex,
-      textureShapeRC: this.inputAtlas.shape
-    }) as Array2D;
-    intermediateResults.push(inputAtlasWithLatentVariables);
+        this.gpgpu, this.addLatentVariablesShader,
+        this.backend.getTexture(this.inputAtlas.id),
+        this.backend.getTexture(inputAtlasWithLatentVariables.id),
+        this.inputAtlas.shape, z1, z2);
 
     let lastOutput = inputAtlasWithLatentVariables;
 
@@ -171,7 +168,7 @@ export class CPPN {
                 this.math, matmulResult);
       }
       nn_art_util.render(
-          this.gpgpu, this.renderShader, lastOutput.getTexture(),
+          this.gpgpu, this.renderShader, this.backend.getTexture(lastOutput.id),
           outputDimensions, colorModeIndex);
     });
 

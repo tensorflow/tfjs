@@ -1,6 +1,5 @@
-<script src="dist/bundle.js"></script>
-
 <script src="https://unpkg.com/deeplearn"></script>
+<script src="dist/bundle.js"></script>
 
 <img id="cat"></img>
 <div id="result"></div>
@@ -12,7 +11,7 @@
 
     resultElement.innerText = 'Loading mobilenet...';
 
-    const math = new dl.NDArrayMathGPU();
+    const math = dl.ENV.math;
     const mobileNet = new mobilenet.MobileNet(math);
     await mobileNet.load();
 

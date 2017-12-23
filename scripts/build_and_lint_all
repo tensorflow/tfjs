@@ -56,5 +56,7 @@ function runYarn(filePath) {
   shell.cd(cwd);
 }
 
-const dirs = getPackageDirs(process.cwd());
+let dirs = getPackageDirs(process.cwd());
+// Keep only packages that have the 'name' property.
+dirs = dirs.filter(dir => require(path.join(dir, 'package.json')).name);
 dirs.forEach(dir => runYarn(dir));
