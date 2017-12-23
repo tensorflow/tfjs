@@ -19,7 +19,7 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {Array3D, ENV, gpgpu_util, GPGPUContext, MathBackendWebGL, NDArrayMath} from 'deeplearn';
+import {Array3D, ENV, NDArrayMath} from 'deeplearn';
 import {KNNImageClassifier} from 'deeplearn-knn-image-classifier';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
@@ -106,6 +106,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
   private loggedEnv: boolean;
 
   ready() {
+    this.math = ENV.math;
     this.webcamVideoElement =
         this.querySelector('#webcamVideo') as HTMLVideoElement;
     this.addNewKeyDialog = this.$.addkeydialog;
@@ -203,12 +204,6 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
             console.warn(error);
           });
     }
-
-    const gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
-    const gpgpu = new GPGPUContext(gl);
-    const backend = new MathBackendWebGL(gpgpu);
-    const safeMode = false;
-    this.math = new NDArrayMath(backend, safeMode);
     this.classifier = new KNNImageClassifier(
         TeachableGamingDemo.maxControls, TeachableGamingDemo.knnKValue,
         this.math);
