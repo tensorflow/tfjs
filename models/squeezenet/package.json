@@ -1,6 +1,6 @@
 {
   "name": "deeplearn-squeezenet",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Pretrained SqueezeNet model in deeplearn.js",
   "main": "dist/index.js",
   "unpkg": "dist/bundle.js",
