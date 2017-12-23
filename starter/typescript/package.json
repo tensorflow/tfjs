@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "Starter project for using deeplearn.js with TypeScript",
   "dependencies": {
-    "deeplearn": "~0.3.3"
+    "deeplearn": "0.3.15"
   },
   "devDependencies": {
     "mkdirp": "~0.5.1",

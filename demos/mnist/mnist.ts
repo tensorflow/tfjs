@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMath, NDArrayMathGPU, Scalar} from 'deeplearn';
+import {Array1D, Array2D, CheckpointLoader, ENV, NDArray, Scalar} from 'deeplearn';
 
 // manifest.json lives in the same directory as the mnist demo.
 const reader = new CheckpointLoader('.');
@@ -26,7 +26,7 @@ reader.getAllVariables().then(vars => {
   xhr.open('GET', 'sample_data.json');
   xhr.onload = async () => {
     const data = JSON.parse(xhr.responseText) as SampleData;
-    const math = new NDArrayMathGPU();
+    const math = ENV.math;
 
     // Wrap everything in a math.scope so we clean up intermediate NDArrays.
     math.scope(async () => {
@@ -37,7 +37,7 @@ reader.getAllVariables().then(vars => {
         const x = Array1D.new(data.images[i]);
 
         // Infer through the model to get a prediction.
-        const predictedLabel = Math.round(await infer(math, x, vars).val());
+        const predictedLabel = Math.round(await infer(x, vars).val());
         console.log(`Item ${i}, predicted label ${predictedLabel}.`);
 
         // Aggregate correctness to show accuracy.
@@ -71,15 +71,14 @@ export interface SampleData {
  * is the lowest level user-facing API in deeplearn.js giving the most control
  * to the user. Math commands execute immediately, like numpy.
  */
-export function infer(
-    math: NDArrayMath, x: Array1D, vars: {[varName: string]: NDArray}): Scalar {
+export function infer(x: Array1D, vars: {[varName: string]: NDArray}): Scalar {
   const hidden1W = vars['hidden1/weights'] as Array2D;
   const hidden1B = vars['hidden1/biases'] as Array1D;
   const hidden2W = vars['hidden2/weights'] as Array2D;
   const hidden2B = vars['hidden2/biases'] as Array1D;
   const softmaxW = vars['softmax_linear/weights'] as Array2D;
   const softmaxB = vars['softmax_linear/biases'] as Array1D;
-
+  const math = ENV.math;
   const hidden1 =
       math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B)) as
       Array1D;
@@ -99,9 +98,9 @@ function renderMnistImage(array: Array1D) {
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext('2d');
-  const float32Array = array.getData().values;
+  const float32Array = array.dataSync();
   const imageData = ctx.createImageData(width, height);
-  for (let i = 0; i < float32Array.length; i++) {
+  for (let i = 0; i < float32Array.length; ++i) {
     const j = i * 4;
     const value = Math.round(float32Array[i] * 255);
     imageData.data[j + 0] = value;

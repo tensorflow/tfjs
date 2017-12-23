@@ -13,7 +13,7 @@ limitations under the License.
 ==============================================================================*/
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, NDArray, NDArrayMathGPU, Scalar} from 'deeplearn';
+import {Array1D, Array2D, CheckpointLoader, ENV, NDArray, NDArrayMath, Scalar} from 'deeplearn';
 
 import {Cache} from './ModelCache';
 
@@ -26,7 +26,7 @@ export class FontModel {
   range = 0.4;
   charIdMap: {[id: string]: number};
   private variables: {[varName: string]: NDArray};
-  private math: NDArrayMathGPU;
+  private math: NDArrayMath;
   private inferCache = new Cache(this, this.infer);
   private numberOfValidChars = 62;
   private multiplierScalar = Scalar.new(255);
@@ -56,7 +56,6 @@ export class FontModel {
 
   get(id: number, args: Array<{}>, priority: number) {
     args.push(this.metaData);
-
     return new Promise((resolve, reject) => {
       args.push(() => resolve());
       this.inferCache.get(id, args);
@@ -64,7 +63,7 @@ export class FontModel {
   }
 
   init() {
-    this.math = new NDArrayMathGPU();
+    this.math = ENV.math;
   }
 
   infer(args: Array<{}>) {
@@ -75,11 +74,11 @@ export class FontModel {
 
     const charId = this.charIdMap[char.charAt(0)];
     if (charId == null) {
-      throw(new Error('Invalid character id'));
+      throw (new Error('Invalid character id'));
     }
 
-    const adjusted = this.math.scope((keep, track) => {
-      const idx = track(Array1D.new([charId]));
+    const adjusted = this.math.scope(keep => {
+      const idx = Array1D.new([charId]);
       const onehotVector =
           this.math.oneHot(idx, this.numberOfValidChars).as1D();
 
@@ -110,24 +109,20 @@ export class FontModel {
 
     const d = adjusted.as3D(IMAGE_SIZE, IMAGE_SIZE, 1);
 
-    d.data().then(() => {
+    d.data().then(values => {
       const imageData = ctx.createImageData(IMAGE_SIZE, IMAGE_SIZE);
 
       let pixelOffset = 0;
-      for (let i = 0; i < d.shape[0]; i++) {
-        for (let j = 0; j < d.shape[1]; j++) {
-          const value = d.get(i, j, 0);
-          imageData.data[pixelOffset++] = value;
-          imageData.data[pixelOffset++] = value;
-          imageData.data[pixelOffset++] = value;
-          imageData.data[pixelOffset++] = 255;
-        }
+      for (let i = 0; i < values.length; i++) {
+        const value = values[i];
+        imageData.data[pixelOffset++] = value;
+        imageData.data[pixelOffset++] = value;
+        imageData.data[pixelOffset++] = value;
+        imageData.data[pixelOffset++] = 255;
       }
 
       ctx.putImageData(imageData, 0, 0);
-
       d.dispose();
-
       cb();
     });
   }

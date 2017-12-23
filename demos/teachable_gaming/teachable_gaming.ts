@@ -19,9 +19,8 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {Array3D, ENV, gpgpu_util, GPGPUContext, NDArrayMathGPU} from 'deeplearn';
+import {Array3D, ENV, gpgpu_util, GPGPUContext, MathBackendWebGL, NDArrayMath} from 'deeplearn';
 import {KNNImageClassifier} from 'deeplearn-knn-image-classifier';
-
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 // tslint:disable-next-line:no-any
@@ -79,9 +78,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
   predicting: boolean;
   selectedGameIndex = 0;
 
-  private math: NDArrayMathGPU;
-  private gl: WebGLRenderingContext;
-  private gpgpu: GPGPUContext;
+  private math: NDArrayMath;
   private selectedIndex: number;
   private predictedIndex: number;
   private hasAnyTrainedClass: boolean;
@@ -207,9 +204,11 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
           });
     }
 
-    this.gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
-    this.gpgpu = new GPGPUContext(this.gl);
-    this.math = new NDArrayMathGPU(this.gpgpu);
+    const gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
+    const gpgpu = new GPGPUContext(gl);
+    const backend = new MathBackendWebGL(gpgpu);
+    const safeMode = false;
+    this.math = new NDArrayMath(backend, safeMode);
     this.classifier = new KNNImageClassifier(
         TeachableGamingDemo.maxControls, TeachableGamingDemo.knnKValue,
         this.math);
@@ -334,8 +333,8 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
     this.previousFrameTime = frameTimeStart;
     if (this.selectedIndex >= 0) {
       this.predicting = false;
-      await this.math.scope(async (keep, track) => {
-        const image = track(Array3D.fromPixels(this.webcamVideoElement));
+      await this.math.scope(async () => {
+        const image = Array3D.fromPixels(this.webcamVideoElement);
         const indicators = document.querySelectorAll('.indicators');
         for (let i = 0; i < indicators.length; i++) {
           (indicators[i] as HTMLElement).style.backgroundColor = 'lightgray';
@@ -347,8 +346,8 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
       });
     } else if (this.hasAnyTrainedClass) {
       this.predicting = true;
-      await this.math.scope(async (keep, track) => {
-        const image = track(Array3D.fromPixels(this.webcamVideoElement));
+      await this.math.scope(async () => {
+        const image = Array3D.fromPixels(this.webcamVideoElement);
         const timeStart = performance.now();
         const results = await this.classifier.predictClass(image);
         this.predictTimes.add(performance.now() - timeStart);

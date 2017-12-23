@@ -79,33 +79,19 @@ closure as shown in the example below. The results of math operations in this
 scope will get disposed at the end of the scope, unless they are the value
 returned in the scope.
 
-Two functions are passed to the function closure, `keep()` and `track()`.
+A function is passed to the function closure, `keep()`.
 
 `keep()` ensures that the NDArray passed to keep will not be cleaned up
 automatically when the scope ends.
 
-`track()` tracks any NDArrays that you may construct directly inside of a
-scope. When the scope ends, any manually tracked `NDArray`s will get
-cleaned up. Results of all `math.method()` functions, as well as results of
-many other core library functions are automatically cleaned up, so you don't
-have to manually track them.
-
 ```ts
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 
 let output;
 
-math.scope((keep, track) => {
-  // CORRECT: By default, math wont track NDArrays that are constructed
-  // directly. You can call track() on the NDArray for it to get tracked and
-  // cleaned up at the end of the scope.
-  const a = track(Scalar.new(2));
-
-  // INCORRECT: This is a texture leak!!
-  // math doesn't know about b, so it can't track it. When the scope ends, the
-  // GPU-resident NDArray will not get cleaned up, even though b goes out of
-  // scope. Make sure you call track() on NDArrays you create.
-  const b = Scalar.new(2);
+math.scope(keep => {
+  // CORRECT: By default, math tracks all NDArrays that are constructed.
+  const a = Scalar.new(2);
 
   // CORRECT: By default, math tracks all outputs of math functions.
   const c = math.neg(math.exp(a));
@@ -113,7 +99,7 @@ math.scope((keep, track) => {
   // CORRECT: d is tracked by the parent scope.
   const d = math.scope(() => {
     // CORRECT: e will get cleaned up when this inner scope ends.
-    const e = track(Scalar.new(3));
+    const e = Scalar.new(3);
 
     // CORRECT: The result of this math function is tracked. Since it is the
     // return value of this scope, it will not get cleaned up with this inner

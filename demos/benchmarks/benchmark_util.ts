@@ -1,35 +1,12 @@
 
-import {ENV, NDArray, NDArrayMathGPU} from 'deeplearn';
+import {NDArray, NDArrayMath} from 'deeplearn';
 
 export async function warmupAndBenchmarkGPU(
-    math: NDArrayMathGPU, benchmark: () => NDArray): Promise<number> {
-  const gpgpu = math.getGPGPUContext();
-
-  let out: NDArray;
-  const saveOutputBenchmark = () => {
-    out = benchmark();
-  };
-
+    math: NDArrayMath, benchmark: () => NDArray): Promise<number> {
   // Warmup.
-  if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')) {
-    await gpgpu.runQuery(saveOutputBenchmark);
-  } else {
-    saveOutputBenchmark();
-    out.dataSync();
-  }
+  const out = benchmark();
+  await out.data();
   out.dispose();
-
-  let totalTime: number;
-  if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')) {
-    totalTime = await gpgpu.runQuery(saveOutputBenchmark);
-  } else {
-    const start = performance.now();
-
-    saveOutputBenchmark();
-    out.dataSync();
-
-    totalTime = performance.now() - start;
-  }
-  out.dispose();
-  return totalTime;
+  // Real timing.
+  return math.time(benchmark);
 }

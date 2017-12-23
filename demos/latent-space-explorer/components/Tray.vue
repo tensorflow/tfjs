@@ -30,7 +30,6 @@ limitations under the License.
         :sample="sample.sample"
       />
     <div
-      ref="selectedReticle"
       class="reticle selected"
       :style="{left: selectedX + 'px', height: height + 6 + 'px'}">
       <div class="label">{{format(selectedValue)}}</div>
@@ -43,14 +42,12 @@ limitations under the License.
 <script>
 import Sample from './Sample.vue';
 import Axis from './XAxis.vue';
-
-import utils from '../utils/Utils';
 import {range} from 'd3-array';
 import {format} from 'd3-format';
 import {scaleLinear, scaleBand} from 'd3-scale';
-import {Scalar, Array1D, NDArrayMathCPU} from 'deeplearn';
+import {Scalar, ENV} from 'deeplearn';
 
-const math = new NDArrayMathCPU(false);
+const math = ENV.math;
 
 export default {
   components: {Sample, Axis},
@@ -62,7 +59,9 @@ export default {
       formatter: format(",.3f"),
       visible: false,
       samples: [],
-      offset: 0
+      offset: 0,
+      selectedX: 0,
+      selectedValue: 0
     }
   },
   props: {
@@ -71,15 +70,13 @@ export default {
     numSamples: { type: Number, default: 9 },
     width: { type: Number, default: 200 },
     initialValue: { type: Number, default: 1},
-    selectedSample: { default: () => {[]}},
-    direction: { default: () => {[]}},
+    selectedSample: null,
+    direction: null,
     range: { type: Number, default: 1 },
     scrollY: {default: 0}
   },
   computed: {
     extent: function() { return [-this.range, this.range]; },
-    dimensions: function() { return this.model ? this.model.dimensions : 0; },
-    zero: function() { return Array1D.zeros([this.dimensions]); },
     hoverScale: function() {
       return this.interpolate.domain([0, this.width]).range(
         this.extent).clamp(true);
@@ -92,34 +89,34 @@ export default {
       return this.position.domain([0, this.numSamples - 1]).range(this.extent);
     },
     sampleWidth: function() { return this.bands.bandwidth(); },
-    height: function() { return this.sampleWidth; },
-    unitDirection: function() {
-      let length = math.sum(math.multiply(this.direction, this.direction));
-      return math.divide(this.direction, length);
-    },
-    selectedValue: function() {
-      const scalar = math.dotProduct(this.unitDirection, this.selectedSample)
-      return scalar.getValues()[0]
-    },
-    selectedX: function() {
-      return this.hoverScale.invert(this.selectedValue);
-    },
+    height: function() { return this.sampleWidth; }
 
   },
   mounted() {
+    this.computeDirection();
     this.recomputeSamples();
     this.checkVisibility();
   },
   watch: {
-    selectedSample: function(value) { this.recomputeSamples(); },
+    selectedSample: function() {
+      this.computeDirection();
+    },
     model: function() { this.recomputeSamples(); },
-    selectedValue: function() { this.recomputeSamples(); },
     width: function() { this.recomputeSamples(); },
-    pos: function() { this.recomputeSamples(); },
-    bands: function() { this.recomputeSamples(); },
-    scrollY: function(val) { this.checkVisibility(); }
+    scrollY: function(val) { this.checkVisibility(); },
+    direction: function() { this.computeDirection(); },
   },
   methods: {
+    computeDirection() {
+      let length = math.sum(math.multiply(this.direction, this.direction));
+      this.unitDirection = math.divide(this.direction, length);
+      const scalar = math.dotProduct(this.unitDirection, this.selectedSample);
+      scalar.data().then(values => {
+        this.selectedValue = values[0];
+        this.selectedX = this.hoverScale.invert(this.selectedValue);
+        this.recomputeSamples();
+      });
+    },
     dragStart: function(event) {
       document.addEventListener("mousemove", this.dragUpdate);
       document.addEventListener("mouseup", this.dragEnd);

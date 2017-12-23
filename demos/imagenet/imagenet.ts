@@ -19,7 +19,7 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {Array3D, gpgpu_util, GPGPUContext, NDArrayMathGPU} from 'deeplearn';
+import {Array3D, ENV, gpgpu_util, GPGPUContext, MathBackendWebGL, NDArrayMath} from 'deeplearn';
 import {ActivationName, SqueezeNet} from 'deeplearn-squeezenet';
 
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
@@ -54,8 +54,8 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
   inputNames: string[];
   selectedInputName: string;
 
-  private math: NDArrayMathGPU;
-  private gl: WebGLRenderingContext;
+  private math: NDArrayMath;
+  private backend: MathBackendWebGL;
   private gpgpu: GPGPUContext;
   private renderGrayscaleChannelsCollageShader: WebGLShader;
 
@@ -101,9 +101,12 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
       }
     });
 
-    this.gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
-    this.gpgpu = new GPGPUContext(this.gl);
-    this.math = new NDArrayMathGPU(this.gpgpu);
+    const gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
+    this.gpgpu = new GPGPUContext(gl);
+    this.backend = new MathBackendWebGL(this.gpgpu);
+    const safeMode = false;
+    this.math = new NDArrayMath(this.backend, safeMode);
+    ENV.setMath(this.math);
 
     this.renderGrayscaleChannelsCollageShader =
         imagenet_util.getRenderGrayscaleChannelsCollageShader(this.gpgpu);
@@ -174,14 +177,14 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
     const isWebcam = this.selectedInputName === 'webcam';
 
-    await this.math.scope(async (keep, track) => {
+    await this.math.scope(async keep => {
       if (!this.isMediaLoaded) {
         return;
       }
 
       const element =
           isWebcam ? this.webcamVideoElement : this.staticImgElement;
-      const image = track(Array3D.fromPixels(element));
+      const image = Array3D.fromPixels(element);
 
       const inferenceResult = await this.squeezeNet.predictWithActivation(
           image, this.selectedLayerName);
@@ -226,8 +229,10 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
       imagenet_util.renderGrayscaleChannelsCollage(
           this.gpgpu, this.renderGrayscaleChannelsCollageShader,
-          activationNDArray.getTexture(), minValues.getTexture(),
-          maxValues.getTexture(), activationNDArray.getTextureShapeRC(),
+          this.backend.getTexture(activationNDArray.id),
+          this.backend.getTexture(minValues.id),
+          this.backend.getTexture(maxValues.id),
+          this.backend.getTextureData(activationNDArray.id).texShape,
           activationNDArray.shape[0], activationNDArray.shape[2],
           this.inferenceCanvas.width, numRows);
     });

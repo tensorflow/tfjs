@@ -82,8 +82,7 @@ import BasisDimensions from './components/BasisDimensions.vue';
 import FontChooser from './components/FontChooser.vue';
 import Alphabet from './components/Alphabet.vue';
 import {FontModel} from './utils/FontModel';
-
-import {Array1D, NDArray, NDArrayMathCPU} from 'deeplearn';
+import {Array1D} from 'deeplearn';
 
 export default {
   components: {
@@ -139,17 +138,18 @@ export default {
       if (event.isInitialSelection && window.location.hash) {
         this.parseUrlHash();
       } else {
-        this.selectedSample = event.selectedSample
+        this.selectedSample = event.selectedSample;
         this.updateHash();
       }
     },
     updateHash: function() {
       if (this.selectedSample) {
-        const vals = this.selectedSample.getValues();
-        const hashStr = '#' + Array.from(vals).map(
-          val => parseFloat(val).toFixed(3))
-          .join(',');
+        this.selectedSample.data().then(vals => {
+          const hashStr = '#' + Array.from(vals)
+            .map(val => parseFloat(val).toFixed(3))
+            .join(',');
         history.replaceState(undefined, undefined, hashStr);
+        });
       }
     },
     parseUrlHash: function() {

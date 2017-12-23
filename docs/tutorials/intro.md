@@ -57,7 +57,7 @@ as it is an implementation detail.
 If `NDArray` data is
 stored on the CPU, the first time a GPU mathematical operation is called the
 data will be uploaded to a texture automatically. If you call
-`NDArray.getValuesAsync()` on a GPU-resident `NDArray`, the
+`NDArray.data()` on a GPU-resident `NDArray`, the
 library will download the texture to the CPU and delete the texture.
 
 ### NDArrayMath
@@ -65,12 +65,12 @@ library will download the texture to the CPU and delete the texture.
 The library provides a `NDArrayMath` base class which defines a set of
 mathematical functions that operate on `NDArray`s.
 
-#### NDArrayMathGPU
+#### NDArrayMath with WebGL backend
 
-When using the `NDArrayMathGPU` implementation, these mathematical
+When using the `NDArrayMath` with the WebGL backend, these mathematical
 operations enqueue shader programs to be executed on the GPU. Unlike in
-`NDArrayMathCPU`, **these operations are not blocking**, but the user can
-synchronize the cpu with the gpu by calling `getValuesAsync()` on
+CPU backend, **these operations are not blocking**, but the user can
+synchronize the cpu with the gpu by calling `data()` on
 the `NDArray`, as we describe in detail below.
 
 These shaders read and write from `WebGLTexture`s which are owned by
@@ -81,7 +81,7 @@ performance.
 Example of taking the mean squared difference between two matrices:
 
 ```js
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 
 const a = Array2D.new([2, 2], [1.0, 2.0, 3.0, 4.0]);
 const b = Array2D.new([2, 2], [0.0, 2.0, 4.0, 6.0]);
@@ -96,9 +96,9 @@ const average = math.divide(sum, size);
 console.log('mean squared difference: ' + await average.val());
 ```
 
-> TIP: Avoid calling `get()` or `getValuesAsync()` between mathematical GPU
+> TIP: Avoid calling `data()/dataSync()` between mathematical GPU
 operations unless you are debugging. This forces a texture download, and
-subsequent `NDArrayMathGPU` calls will have to re-upload the data to a new
+subsequent operation calls will have to re-upload the data to a new
 texture.
 
 #### NDArrayMathCPU
@@ -172,7 +172,7 @@ Training with the `Graph` object from above:
 ```js
 const learningRate = .00001;
 const batchSize = 3;
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 
 const session = new Session(g, math);
 const optimizer = new SGDOptimizer(learningRate);

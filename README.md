@@ -25,9 +25,9 @@ See the [TypeScript starter project](https://github.com/PAIR-code/deeplearnjs/tr
 short example that sums an array with a scalar (broadcasted):
 
 ```ts
-import {Array1D, NDArrayMathGPU, Scalar} from 'deeplearn';
+import {Array1D, ENV, Scalar} from 'deeplearn';
 
-const math = new NDArrayMathGPU();
+const math = ENV.math;
 const a = Array1D.new([1, 2, 3]);
 const b = Scalar.new(2);
 
@@ -63,7 +63,7 @@ After importing the library, the API will be available as `dl` in the global
 namespace.
 
 ```js
-var math = new dl.NDArrayMathGPU();
+var math = dl.ENV.math;
 var a = dl.Array1D.new([1, 2, 3]);
 var b = dl.Scalar.new(2);
 

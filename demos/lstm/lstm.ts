@@ -15,14 +15,14 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, NDArrayMathGPU, Scalar, util} from 'deeplearn';
+import {Array1D, Array2D, CheckpointLoader, ENV, Scalar, util} from 'deeplearn';
 
 // manifest.json lives in the same directory.
 const reader = new CheckpointLoader('.');
 reader.getAllVariables().then(async vars => {
   const primerData = 3;
   const expected = [1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4];
-  const math = new NDArrayMathGPU();
+  const math = ENV.math;
 
   const lstmKernel1 =
       vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as Array2D;
@@ -39,25 +39,25 @@ reader.getAllVariables().then(async vars => {
 
   const results: number[] = [];
 
-  await math.scope(async (keep, track) => {
-    const forgetBias = track(Scalar.new(1.0));
+  await math.scope(async () => {
+    const forgetBias = Scalar.new(1.0);
     const lstm1 =
         math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
     const lstm2 =
         math.basicLSTMCell.bind(math, forgetBias, lstmKernel2, lstmBias2);
 
     let c = [
-      track(Array2D.zeros([1, lstmBias1.shape[0] / 4])),
-      track(Array2D.zeros([1, lstmBias2.shape[0] / 4]))
+      Array2D.zeros([1, lstmBias1.shape[0] / 4]),
+      Array2D.zeros([1, lstmBias2.shape[0] / 4])
     ];
     let h = [
-      track(Array2D.zeros([1, lstmBias1.shape[0] / 4])),
-      track(Array2D.zeros([1, lstmBias2.shape[0] / 4]))
+      Array2D.zeros([1, lstmBias1.shape[0] / 4]),
+      Array2D.zeros([1, lstmBias2.shape[0] / 4])
     ];
 
     let input = primerData;
     for (let i = 0; i < expected.length; i++) {
-      const onehot = track(Array2D.zeros([1, 10]));
+      const onehot = Array2D.zeros([1, 10]);
       onehot.set(1.0, 0, input);
 
       const output = math.multiRNNCell([lstm1, lstm2], onehot, c, h);

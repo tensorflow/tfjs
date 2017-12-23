@@ -22,7 +22,8 @@ import '../demo-header';
 import '../demo-footer';
 
 // tslint:disable-next-line:max-line-length
-import {AdadeltaOptimizer, AdagradOptimizer, AdamaxOptimizer, AdamOptimizer, Array1D, Array3D, DataStats, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, MomentumOptimizer, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Optimizer, RMSPropOptimizer, Scalar, Session, SGDOptimizer, Tensor, util, xhr_dataset, XhrDataset, XhrDatasetConfig} from 'deeplearn';
+import {AdadeltaOptimizer, AdagradOptimizer, AdamaxOptimizer, AdamOptimizer, Array1D, Array3D, DataStats, ENV, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, MomentumOptimizer, NDArray, NDArrayMath, Optimizer, RMSPropOptimizer, Scalar, Session, SGDOptimizer, Tensor, util, xhr_dataset, XhrDataset, XhrDatasetConfig} from 'deeplearn';
+
 import {NDArrayImageVisualizer} from '../ndarray-image-visualizer';
 import {NDArrayLogitsVisualizer} from '../ndarray-logits-visualizer';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
@@ -187,15 +188,9 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private layersContainer: HTMLDivElement;
 
   private math: NDArrayMath;
-  // Keep one instance of each NDArrayMath so we don't create a user-initiated
-  // number of NDArrayMathGPU's.
-  private mathGPU: NDArrayMathGPU;
-  private mathCPU: NDArrayMathCPU;
 
   ready() {
-    this.mathGPU = new NDArrayMathGPU();
-    this.mathCPU = new NDArrayMathCPU();
-    this.math = this.mathGPU;
+    this.math = ENV.math;
 
     this.createGraphRunner();
     this.optimizer = new MomentumOptimizer(this.learningRate, this.momentum);
@@ -823,7 +818,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
 
     // Draw the logits.
     for (let i = 0; i < inputFeeds.length; i++) {
-      const softmaxLogits = this.math.softmax(logits[i]);
+      const softmaxLogits = this.math.softmax(logits[i]).asType('float32');
 
       this.outputNDArrayVisualizers[i].drawLogits(
           softmaxLogits, labels[i],

@@ -183,7 +183,7 @@ describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
             // right value.
             return ndarray;
           },
-      // No need to dispose when not using NDArrayMathGPU.
+      // No need to dispose when not using the webgl backend.
       disposeCopy() {}
     };
     const fd = new FeedDictionary([{tensor, data: provider}]);

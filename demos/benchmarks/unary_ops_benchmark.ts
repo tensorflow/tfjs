@@ -16,7 +16,8 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array2D, NDArray, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU} from 'deeplearn';
+import {Array2D, ENV, NDArray, NDArrayMath} from 'deeplearn';
+
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
 
@@ -61,7 +62,9 @@ function getUnaryOp(option: string, math: NDArrayMath) {
 
 export class UnaryOpsCPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string): Promise<number> {
-    const math = new NDArrayMathCPU();
+    const safeMode = false;
+    const math = new NDArrayMath('cpu', safeMode);
+    ENV.setMath(math);
     const input = Array2D.randUniform([size, size], -1, 1);
     const op = getUnaryOp(option, math);
     const start = performance.now();
@@ -77,7 +80,9 @@ export class UnaryOpsCPUBenchmark implements BenchmarkTest {
 
 export class UnaryOpsGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string) {
-    const math = new NDArrayMathGPU();
+    const safeMode = false;
+    const math = new NDArrayMath('webgl', safeMode);
+    ENV.setMath(math);
     const input = Array2D.randUniform([size, size], -1, 1);
     const op = getUnaryOp(option, math);
 

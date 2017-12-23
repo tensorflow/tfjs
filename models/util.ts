@@ -15,16 +15,20 @@
  * =============================================================================
  */
 
-import {ENV, Scalar} from 'deeplearn';
-
-async function onePlusOne() {
-  const math = ENV.math;
-  const a = Scalar.new(1);
-  const b = Scalar.new(1);
-
-  const result = await math.add(a, b).data();
-
-  document.getElementById('output').innerText = result.toString();
+export function topK(values: Float32Array, k: number):
+    {values: Float32Array, indices: Int32Array} {
+  const valuesAndIndices: Array<{value: number, index: number}> = [];
+  for (let i = 0; i < values.length; i++) {
+    valuesAndIndices.push({value: values[i], index: i});
+  }
+  valuesAndIndices.sort((a, b) => {
+    return b.value - a.value;
+  });
+  const topkValues = new Float32Array(k);
+  const topkIndices = new Int32Array(k);
+  for (let i = 0; i < k; i++) {
+    topkValues[i] = valuesAndIndices[i].value;
+    topkIndices[i] = valuesAndIndices[i].index;
+  }
+  return {values: topkValues, indices: topkIndices};
 }
-
-onePlusOne();

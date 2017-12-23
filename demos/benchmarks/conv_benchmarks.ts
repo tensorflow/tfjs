@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, conv_util, NDArray, NDArrayMathGPU} from 'deeplearn';
+import {Array1D, Array3D, Array4D, conv_util, ENV, NDArray} from 'deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -34,7 +34,7 @@ export interface DepthwiseConvParams extends ConvParams { channelMul: number; }
 
 export class ConvGPUBenchmark implements BenchmarkTest {
   async run(size: number, opType: string, params: ConvParams): Promise<number> {
-    const math = new NDArrayMathGPU();
+    const math = ENV.math;
 
     const inDepth = params.inDepth;
     const inShape: [number, number, number] = [size, size, inDepth];

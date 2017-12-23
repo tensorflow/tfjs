@@ -1,7 +1,7 @@
-import {Array1D, NDArrayMathGPU, Scalar} from 'deeplearn';
+import {Array1D, ENV, Scalar} from 'deeplearn';
 
 async function runExample() {
-  const math = new NDArrayMathGPU();
+  const math = ENV.math;
   const a = Array1D.new([1, 2, 3]);
   const b = Scalar.new(2);
 

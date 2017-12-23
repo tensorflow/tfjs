@@ -1,6 +1,5 @@
-<script src="dist/bundle.js"></script>
-
 <script src="https://unpkg.com/deeplearn"></script>
+<script src="dist/bundle.js"></script>
 
 <img id="cat"></img>
 <div id="result"></div>
@@ -16,7 +15,7 @@
     if (dl == null) {
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
-    const math = new dl.NDArrayMathGPU();
+    const math = dl.ENV.math;
     const squeezeNet = new squeezenet.SqueezeNet(math);
     await squeezeNet.load();
 

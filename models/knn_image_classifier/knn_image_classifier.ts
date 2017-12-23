@@ -15,8 +15,9 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, initializeGPU, Model, NDArrayMath, NDArrayMathCPU, NDArrayMathGPU, Scalar} from 'deeplearn';
+import {Array1D, Array2D, Array3D, Model, NDArrayMath, Scalar} from 'deeplearn';
 import {SqueezeNet} from 'deeplearn-squeezenet';
+import * as model_util from '../util';
 
 export class KNNImageClassifier implements Model {
   private squeezeNet: SqueezeNet;
@@ -29,8 +30,6 @@ export class KNNImageClassifier implements Model {
   private classExampleCount: number[] = [];
 
   private varsLoaded = false;
-  private mathCPU: NDArrayMathCPU;
-
   private squashLogitsDenominator = Scalar.new(300);
 
   /**
@@ -43,16 +42,6 @@ export class KNNImageClassifier implements Model {
   constructor(
       private numClasses: number, private k: number,
       private math: NDArrayMath) {
-    // TODO(nsthorat): This awful hack is because we need to share the global
-    // GPGPU between deeplearn loaded from standalone as well as the internal
-    // deeplearn that gets compiled as part of this model. Remove this once we
-    // decouple NDArray from storage mechanism.
-    initializeGPU(
-        (this.math as NDArrayMathGPU).getGPGPUContext(),
-        (this.math as NDArrayMathGPU).getTextureManager());
-
-    this.mathCPU = new NDArrayMathCPU();
-
     for (let i = 0; i < this.numClasses; i++) {
       this.classLogitsMatrices.push(null);
       this.classExampleCount.push(0);
@@ -187,24 +176,17 @@ export class KNNImageClassifier implements Model {
       throw new Error('Cannot predict until vars have been loaded.');
     }
 
-    const topKIndices = await this.math.scope(async (keep) => {
-      const knn = this.predict(image);
-      // mathCPU downloads the values, so we should wait until the GPU isdone
-      // so we don't block the UI thread.
-      await knn.data();
-
-      const numExamples = this.getNumExamples();
-
-      const kVal = Math.min(this.k, numExamples);
-      const topK = this.mathCPU.topK(knn, kVal);
-      return topK.indices;
-    });
+    const knn = this.predict(image).asType('float32');
+    const numExamples = this.getNumExamples();
+    const kVal = Math.min(this.k, numExamples);
+    const topK = model_util.topK(await knn.data(), kVal);
+    knn.dispose();
+    const topKIndices = topK.indices;
 
     if (topKIndices == null) {
       return {classIndex: imageClass, confidences};
     }
 
-    const indices = topKIndices.dataSync();
     const indicesForClasses = [];
     const topKCountsForClasses = [];
     for (let i = 0; i < this.numClasses; i++) {
@@ -216,10 +198,10 @@ export class KNNImageClassifier implements Model {
       indicesForClasses.push(num);
     }
 
-    for (let i = 0; i < indices.length; i++) {
+    for (let i = 0; i < topKIndices.length; i++) {
       for (let classForEntry = 0; classForEntry < indicesForClasses.length;
            classForEntry++) {
-        if (indices[i] < indicesForClasses[classForEntry]) {
+        if (topKIndices[i] < indicesForClasses[classForEntry]) {
           topKCountsForClasses[classForEntry]++;
           break;
         }
@@ -227,7 +209,6 @@ export class KNNImageClassifier implements Model {
     }
 
     let topConfidence = 0;
-    const kVal = Math.min(this.k, this.getNumExamples());
     for (let i = 0; i < this.numClasses; i++) {
       const probability = topKCountsForClasses[i] / kVal;
       if (probability > topConfidence) {
