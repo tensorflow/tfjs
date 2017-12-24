@@ -28,4 +28,4 @@ limitations under the License.
 }
 </style>
 
-<script src="./app.ts"></script>
+<script lang="ts" src="./app.ts"></script>
