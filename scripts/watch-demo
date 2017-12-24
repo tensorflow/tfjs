@@ -21,7 +21,7 @@ const shell = require('shelljs');
 var argv = require('minimist')(process.argv.slice(2));
 
 /** List of vue demos. */
-const VUE_DEMOS = new Set(['vue-demo', 'latent-space-explorer']);
+const VUE_DEMOS = new Set(['game_of_life', 'vue-demo', 'latent-space-explorer']);
 
 const demoPath = argv._[0];
 
