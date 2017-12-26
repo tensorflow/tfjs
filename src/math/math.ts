@@ -120,7 +120,24 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
                ndarray: T1) => T1,
            track: <D2 extends keyof DataTypes, T2 extends NDArray<D2>>(
                ndarray: T2) => T2) => T): T {
-    return this.backendEngine.scope('scope', scopeFn);
+    const gradientsMode = false;
+    return this.backendEngine.scope('scope', scopeFn, gradientsMode);
+  }
+
+  /**
+   * Create a new gradients scope. Similar to scope, but forces all inner scopes
+   * to not clean up so that gradient operations can be used inside of this
+   * scope.
+   * @param scopeFn The function to execute with chained math operations.
+   */
+  gradientsScope<T extends ScopeResult>(
+      scopeFn:
+          (keep: <D1 extends keyof DataTypes, T1 extends NDArray<D1>>(
+               ndarray: T1) => T1,
+           track: <D2 extends keyof DataTypes, T2 extends NDArray<D2>>(
+               ndarray: T2) => T2) => T): T {
+    const gradientsMode = true;
+    return this.backendEngine.scope('gradientsScope', scopeFn, gradientsMode);
   }
 
   /**
@@ -128,7 +145,8 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
    * as scope() without the need for a function closure.
    */
   startScope() {
-    this.backendEngine.startScope();
+    const gradientsMode = false;
+    this.backendEngine.startScope(gradientsMode);
   }
 
   /**
@@ -136,7 +154,8 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
    * as scope() without the need for a function closure.
    */
   endScope(result: ScopeResultImmediate) {
-    this.backendEngine.endScope(result);
+    const gradientsMode = false;
+    this.backendEngine.endScope(result, gradientsMode);
   }
 
   /**
@@ -937,6 +956,10 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     const gradient = (dy: NDArray<G>, y: NDArray<G>) => {
+      if (!util.arraysEqual(a.shape, b.shape)) {
+        throw new Error(
+            `Gradient of pow not yet supported for broadcasted shapes.`);
+      }
       const derA = () => {
         return this.scope(() => {
           return this.multiply(
@@ -2282,30 +2305,59 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   /**
    * Warning: this is not fully implemented yet. Use with caution.
    *
-   * Computes a gradient of y with respect to x.
+   * Computes and returns the gradient of f(x) with respect to x.
    *
-   * @param y The output Scalar. Assumes de/dy = 1.
+   * @param f The function to execute. f() should return a scalar.
    *          TODO(nsthorat): Accept non-scalars.
    * @param x The input to compute de/dx over. This can be a single value or
    * an object mapping a string to an NDArray. If using the object mode, this
    * method will return an object of the same shape.
    */
-  gradientWrt<T extends NDArray|NamedArrayMap>(y: Scalar, x: T): T {
-    if (y.rank !== 0) {
-      throw new Error(
-          `Cannot compute gradient: y must be a Scalar, ` +
-          `got rank ${y.rank}.`);
-    }
+  gradients<T extends NDArray|NamedArrayMap>(f: () => Scalar, x: T): T {
+    const keys = x instanceof NDArray ? null : Object.keys(x);
+    const xs = util.flattenNameArrayMap(x, keys);
 
-    const xs = util.flattenNameArrayMap(x);
-
-    const gradients = this.backendEngine.gradientWrt(y, xs);
+    const returnValue = false;
+    const gradients =
+        this.backendEngine.gradients(f, xs, returnValue) as NDArray[];
 
     if (x instanceof NDArray) {
       return gradients[0] as T;
     } else {
-      return util.unflattenToNameArrayMap(Object.keys(x), gradients) as T;
+      return util.unflattenToNameArrayMap(keys, gradients) as T;
     }
+  }
+
+  /**
+   * Warning: this is not fully implemented yet. Use with caution.
+   *
+   * Computes and returns the gradient of f(x) with respect to x. Returns both
+   * f(x) and f'(x).
+   *
+   * @param f The function to execute. f() should return a scalar.
+   *          TODO(nsthorat): Accept non-scalars.
+   * @param x The input to compute de/dx over. This can be a single value or
+   * an object mapping a string to an NDArray. If using the object mode, this
+   * method will return an object of the same shape.
+   */
+  valueAndGradients<T extends NDArray|NamedArrayMap>(f: () => Scalar, x: T):
+      {value: Scalar, gradients: T} {
+    const keys = x instanceof NDArray ? null : Object.keys(x);
+    const xs = util.flattenNameArrayMap(x, keys);
+
+    const returnValue = true;
+    const valueAndGradients =
+        this.backendEngine.gradients(f, xs, returnValue) as
+        {value: Scalar, gradients: NDArray[]};
+
+    let gradients: T;
+    if (x instanceof NDArray) {
+      gradients = valueAndGradients.gradients[0] as T;
+    } else {
+      gradients =
+          util.unflattenToNameArrayMap(keys, valueAndGradients.gradients) as T;
+    }
+    return {value: valueAndGradients.value, gradients};
   }
 
   disposeData(id: number): void {
