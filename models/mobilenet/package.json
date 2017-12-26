@@ -2,9 +2,9 @@
   "name": "deeplearn-mobilenet",
   "version": "0.1.3",
   "description": "Pretrained MobileNet model in deeplearn.js",
-  "main": "dist/index.js",
+  "main": "dist/mobilenet/index.js",
   "unpkg": "dist/bundle.js",
-  "types": "dist/index.d.ts",
+  "types": "dist/mobilenet/index.d.ts",
   "peerDependencies": {
     "deeplearn": "0.3.15"
   },

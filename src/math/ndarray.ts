@@ -91,6 +91,8 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     if (this.id == null) {
       this.id = NDArray.nextId++;
       this.math.register(this);
+    }
+    if (values != null) {
       this.math.write(this.id, values, this.dtype, this.shape);
     }
   }
@@ -128,7 +130,9 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
   /** Creates a ndarray with the same values/shape as the specified ndarray. */
   static like<G extends keyof DataTypes, T extends NDArray<G>>(another: T): T {
     const newValues = copyTypedArray(another.getValues(), another.dtype);
-    return NDArray.make(another.shape, {values: newValues}, another.dtype) as T;
+    return NDArray.make(
+               another.shape, {values: newValues}, another.dtype,
+               another.math) as T;
   }
 
   /**
@@ -169,8 +173,9 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     const ndarrayData: NDArrayData<'int32'> = {};
     const shape: [number, number, number] =
         [pixels.height, pixels.width, numChannels];
-    const res = NDArray.make(shape, ndarrayData, 'int32') as Array3D<'int32'>;
     math = math || ENV.math;
+    const res =
+        NDArray.make(shape, ndarrayData, 'int32', math) as Array3D<'int32'>;
     math.writePixels(res.id, pixels, numChannels);
     return res;
   }
@@ -190,7 +195,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
         this.size === util.sizeFromShape(newShape),
         'new shape and old shape must have the same number of elements.');
 
-    return NDArray.make(newShape, data, this.dtype);
+    return NDArray.make(newShape, data, this.dtype, this.math);
   }
 
   /**
@@ -242,7 +247,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     // TODO(dsmilkov): Migrate casting to the backend.
     const vals = this.dataSync();
     const newVals = toTypedArray(vals, dtype);
-    return NDArray.make<G>(this.shape, {values: newVals}, dtype);
+    return NDArray.make<G>(this.shape, {values: newVals}, dtype, this.math);
   }
 
   get rank(): number {
@@ -273,7 +278,6 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     }
     const vals = this.getValues();
     vals[index] = value;
-    this.math.disposeData(this.id);
     this.math.write(this.id, vals, this.dtype, this.shape);
   }
 
@@ -307,7 +311,6 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     this.throwIfDisposed();
     const vals = this.getValues();
     vals.fill(value);
-    this.math.disposeData(this.id);
     this.math.write(this.id, vals, this.dtype, this.shape);
   }
 

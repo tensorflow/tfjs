@@ -75,6 +75,13 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
     this.webcamVideoElement =
         this.querySelector('#webcamVideo') as HTMLVideoElement;
 
+    const gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
+    this.gpgpu = new GPGPUContext(gl);
+    this.backend = new MathBackendWebGL(this.gpgpu);
+    const safeMode = false;
+    this.math = new NDArrayMath(this.backend, safeMode);
+    ENV.setMath(this.math);
+
     this.layerNames = [
       'conv_1', 'maxpool_1', 'fire2', 'fire3', 'maxpool_2', 'fire4', 'fire5',
       'maxpool_3', 'fire6', 'fire7', 'fire8', 'fire9', 'conv10'
@@ -100,13 +107,6 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
         });
       }
     });
-
-    const gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
-    this.gpgpu = new GPGPUContext(gl);
-    this.backend = new MathBackendWebGL(this.gpgpu);
-    const safeMode = false;
-    this.math = new NDArrayMath(this.backend, safeMode);
-    ENV.setMath(this.math);
 
     this.renderGrayscaleChannelsCollageShader =
         imagenet_util.getRenderGrayscaleChannelsCollageShader(this.gpgpu);
@@ -177,20 +177,26 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
     const isWebcam = this.selectedInputName === 'webcam';
 
-    await this.math.scope(async keep => {
+    await this.math.scope(async () => {
       if (!this.isMediaLoaded) {
         return;
       }
 
       const element =
           isWebcam ? this.webcamVideoElement : this.staticImgElement;
-      const image = Array3D.fromPixels(element);
+      const image = Array3D.fromPixels(element, 3, this.math);
 
-      const inferenceResult = await this.squeezeNet.predictWithActivation(
-          image, this.selectedLayerName);
+      const inferenceResult =
+          this.squeezeNet.predictWithActivation(image, this.selectedLayerName);
 
       const topClassesToProbability = await this.squeezeNet.getTopKClasses(
           inferenceResult.logits, TOP_K_CLASSES);
+
+      const endTime = performance.now();
+
+      const elapsed = Math.floor(1000 * (endTime - startTime)) / 1000;
+      (this.querySelector('#totalTime') as HTMLDivElement).innerHTML =
+          `last inference time: ${elapsed} ms`;
 
       let count = 0;
       for (const className in topClassesToProbability) {
@@ -203,12 +209,6 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
                 .toString();
         count++;
       }
-
-      const endTime = performance.now();
-
-      const elapsed = Math.floor(1000 * (endTime - startTime)) / 1000;
-      (this.querySelector('#totalTime') as HTMLDivElement).innerHTML =
-          `last inference time: ${elapsed} ms`;
 
       // Render activations.
       const activationNDArray = inferenceResult.activation;
@@ -235,8 +235,11 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
           this.backend.getTextureData(activationNDArray.id).texShape,
           activationNDArray.shape[0], activationNDArray.shape[2],
           this.inferenceCanvas.width, numRows);
+      // Unclear why, but unless we wait for the gpu to fully end, we get a
+      // flicker effect.
+      await maxValues.data();
+      await minValues.data();
     });
-
     requestAnimationFrame(() => this.animate());
   }
 }

@@ -46,7 +46,7 @@ export interface NDArrayManager {
 
 export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   protected backendEngine: BackendEngine;
-  private numArrays = 0;
+  private registeredArrays = new Set();
   private backend: MathBackend;
   private customBackend = false;
 
@@ -55,12 +55,15 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   }
 
   getNumArrays() {
-    return this.numArrays;
+    return this.registeredArrays.size;
   }
 
   register<T extends keyof DataTypes>(a: NDArray<T>): void {
+    if (this.registeredArrays.has(a.id)) {
+      throw new Error(`NDArray with id ${a.id} was already registered`);
+    }
+    this.registeredArrays.add(a.id);
     this.backendEngine.track(a);
-    this.numArrays++;
   }
 
   writePixels(
@@ -2361,11 +2364,13 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   }
 
   disposeData(id: number): void {
-    this.backend.disposeData(id);
-    // TODO(nsthorat): Construct an error and save the stack trace for
-    // debugging when in debug mode. Creating a stack trace is too expensive
-    // to do unconditionally.
-    this.numArrays--;
+    if (this.registeredArrays.has(id)) {
+      this.registeredArrays.delete(id);
+      this.backend.disposeData(id);
+      // TODO(nsthorat): Construct an error and save the stack trace for
+      // debugging when in debug mode. Creating a stack trace is too expensive
+      // to do unconditionally.
+    }
   }
 }
 

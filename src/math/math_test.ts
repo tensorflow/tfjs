@@ -52,6 +52,18 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       expect(math.getNumArrays()).toBe(0);
     });
 
+    it('multiple disposes does not affect num arrays', math => {
+      expect(math.getNumArrays()).toBe(0);
+      const a = Array1D.new([1, 2, 3]);
+      const b = Array1D.new([1, 2, 3]);
+      expect(math.getNumArrays()).toBe(2);
+      a.dispose();
+      a.dispose();
+      expect(math.getNumArrays()).toBe(1);
+      b.dispose();
+      expect(math.getNumArrays()).toBe(0);
+    });
+
     it('scope returns NDArray[]', async math => {
       const a = Array1D.new([1, 2, 3]);
       const b = Array1D.new([0, -1, 1]);
@@ -98,16 +110,16 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
     it('scope returns Promise<NDArray>', async math => {
       const a = Array1D.new([1, 2, 3]);
-      let b = Array1D.new([0, 0, 0]);
+      const b = Array1D.new([0, 0, 0]);
 
       expect(math.getNumArrays()).toBe(2);
 
       await math.scope(async () => {
         const result = math.scope(() => {
-          b = math.add(a, b) as Array1D;
-          b = math.add(a, b) as Array1D;
-          b = math.add(a, b) as Array1D;
-          return math.add(a, b);
+          let c = math.add(a, b) as Array1D;
+          c = math.add(a, c) as Array1D;
+          c = math.add(a, c) as Array1D;
+          return math.add(a, c);
         });
 
         const data = await result.data();

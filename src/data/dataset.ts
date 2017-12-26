@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {NDArrayMath} from '../math/math';
 import {NDArray} from '../math/ndarray';
 import * as util from '../util';
 
@@ -48,7 +47,7 @@ export abstract class InMemoryDataset {
   // after normalization.
   private normalizationInfo: {[dataIndex: number]: NormalizationInfo};
 
-  constructor(protected dataShapes: number[][], protected math: NDArrayMath) {
+  constructor(protected dataShapes: number[][]) {
     this.normalizationInfo = {};
   }
 
@@ -148,8 +147,8 @@ export abstract class InMemoryDataset {
               newRange * (inputValues[j] - curLowerBound) / curRange;
         }
       }
-      newExamples.push(NDArray.make(
-          example.shape, {values: normalizedValues}, 'float32', this.math));
+      newExamples.push(
+          NDArray.make(example.shape, {values: normalizedValues}, 'float32'));
     });
     return newExamples;
   }
