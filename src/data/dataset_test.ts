@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {NDArrayMath} from '../math/math';
 import {Array1D, Array2D, NDArray} from '../math/ndarray';
 import * as test_util from '../test_util';
 
@@ -23,8 +22,7 @@ import {InMemoryDataset} from './dataset';
 
 class StubDataset extends InMemoryDataset {
   constructor(data: NDArray[][]) {
-    const safeMode = false;
-    super(data.map(value => value[0].shape), new NDArrayMath('cpu', safeMode));
+    super(data.map(value => value[0].shape));
     this.dataset = data;
   }
 

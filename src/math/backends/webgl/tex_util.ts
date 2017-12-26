@@ -30,6 +30,7 @@ export interface TextureData {
   textureType: TextureType;
   dtype: keyof DataTypes;
   numChannels?: number;
+  values: DataTypes[keyof DataTypes];
 }
 
 export function getUnpackedMatrixTextureShapeWidthHeight(

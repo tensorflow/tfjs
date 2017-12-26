@@ -1,8 +1,11 @@
 {
   "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist"
+  },
   "include": [
     "index.ts",
-    "mobiletnet.ts",
+    "mobilenet.ts",
     "../util.ts"
   ],
   "exclude": [
