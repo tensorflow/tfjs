@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import {NDArray} from '../ndarray';
 
-import {MathBackend} from './backend';
 // tslint:disable-next-line:max-line-length
 import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types';
 
@@ -144,13 +144,11 @@ export function getFilteredNodesXToY(
 
 /**
  * Backpropagate gradients through the filtered TapeNodes.
- * @param backend The math backend, used for accumulation.
  * @param arrayAccumulatedGradientMap A map of NDArray to its gradient. This map
  * is mutated by this method.
  * @param filteredTape The filtered TapeNodes to backprop through.
  */
 export function backpropagateGradients(
-    backend: MathBackend,
     arrayAccumulatedGradientMap: {[ndarrayId: number]: NDArray},
     filteredTape: Tape) {
   // Walk the tape backwards and keep a map of NDArray to its gradient.
@@ -193,10 +191,8 @@ export function backpropagateGradients(
         arrayAccumulatedGradientMap[activation.id] = grad;
       } else {
         const curGradient = arrayAccumulatedGradientMap[activation.id];
-        // Call the backend directly so we don't add the "add" node to our
-        // tape.
         arrayAccumulatedGradientMap[activation.id] =
-            backend.add(curGradient, grad);
+            ENV.math.add(curGradient, grad);
         curGradient.dispose();
       }
     }

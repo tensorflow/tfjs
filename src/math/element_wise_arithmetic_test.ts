@@ -231,65 +231,66 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 // Multiply gradients
 {
   const tests: MathTests = it => {
-    it('Broadcast throws', math => {
-      const a = Array1D.new([5, 2]);
-      const b = Scalar.new(2);
-
-      const result = math.multiply(a, b);
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([10, 4]));
-
-      const sum = math.sum(result);
-      expect(() => math.gradientWrt(sum, a)).toThrowError();
-      expect(() => math.gradientWrt(sum, b)).toThrowError();
-    });
-
     it('Scalar', math => {
       const a = Scalar.new(5);
       const b = Scalar.new(2);
 
-      const result = math.multiply(a, b);
-      test_util.expectArraysClose(result.getValues(), new Float32Array([10]));
+      const {value, gradients} =
+          math.valueAndGradients(() => math.multiply(a, b), {a, b});
 
-      test_util.expectArraysClose(
-          math.gradientWrt(result, a).dataSync(), new Float32Array([2]));
-      test_util.expectArraysClose(
-          math.gradientWrt(result, b).dataSync(), new Float32Array([5]));
+      expect(value.dtype).toEqual('float32');
+      test_util.expectArraysClose(value, [10]);
+
+      expect(gradients.a.shape).toEqual(a.shape);
+      expect(gradients.a.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.a, [2]);
+
+      expect(gradients.b.shape).toEqual(b.shape);
+      expect(gradients.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.b, [5]);
     });
 
     it('Array1D', math => {
       const a = Array1D.new([1, 2, 3]);
       const b = Array1D.new([3, 4, 5]);
 
-      const result = math.multiply(a, b);
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([3, 8, 15]));
+      const {value, gradients} =
+          math.valueAndGradients(() => math.sum(math.multiply(a, b)), {a, b});
 
-      const sum = math.sum(result);
-      test_util.expectArraysClose(
-          math.gradientWrt(sum, a).dataSync(), new Float32Array([3, 4, 5]));
-      test_util.expectArraysClose(
-          math.gradientWrt(sum, b).dataSync(), new Float32Array([1, 2, 3]));
+      expect(value.dtype).toEqual('float32');
+      test_util.expectArraysClose(value.getValues(), new Float32Array([26]));
+
+      expect(gradients.a.shape).toEqual(a.shape);
+      expect(gradients.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.a, [3, 4, 5]);
+
+      expect(gradients.b.shape).toEqual(b.shape);
+      expect(gradients.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.b, [1, 2, 3]);
     });
 
     it('Array2D', math => {
       const a = Array2D.new([2, 2], [3, 1, 2, 3]);
       const b = Array2D.new([2, 2], [1, 3, 4, 5]);
 
-      const result = math.multiply(a, b);
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([3, 3, 8, 15]));
+      const {value, gradients} =
+          math.valueAndGradients(() => math.sum(math.multiply(a, b)), {a, b});
 
-      const sum = math.sum(result);
-      test_util.expectArraysClose(
-          math.gradientWrt(sum, a).dataSync(), new Float32Array([1, 3, 4, 5]));
-      test_util.expectArraysClose(
-          math.gradientWrt(sum, b).dataSync(), new Float32Array([3, 1, 2, 3]));
+      expect(value.dtype).toEqual('float32');
+      test_util.expectArraysClose(value, [29], 1e-1);
+
+      expect(gradients.a.shape).toEqual(a.shape);
+      expect(gradients.a.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.a, [1, 3, 4, 5]);
+
+      expect(gradients.b.shape).toEqual(b.shape);
+      expect(gradients.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.b, [3, 1, 2, 3]);
     });
   };
 
-  test_util.describeMathCPU('gradientWrt multiply', [tests]);
-  test_util.describeMathGPU('gradientWrt multiply', [tests], [
+  test_util.describeMathCPU('valueAndGradients multiply', [tests]);
+  test_util.describeMathGPU('valueAndGradients multiply', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
@@ -401,65 +402,40 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       const a = Scalar.new(5);
       const b = Scalar.new(2, 'int32');
 
-      const result = math.pow(a, b);
-      test_util.expectArraysClose(result.getValues(), new Float32Array([25]));
+      const {value, gradients} =
+          math.valueAndGradients(() => math.pow(a, b), a);
 
-      const grad = math.gradientWrt(result, a);
-      test_util.expectArraysClose(
-          grad.dataSync(), new Float32Array([10]), 1e-1);
-    });
+      expect(value.shape).toEqual([]);
+      expect(value.dtype).toEqual('float32');
+      test_util.expectArraysClose(value, [25]);
 
-    it('NDArray ^ Scalar', math => {
-      const a = Array1D.new([-2, .5, 1]);
-      const b = Scalar.new(2, 'int32');
-
-      const result = math.pow(a, b);
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([4, .25, 1]));
-
-      const sum = math.sum(result);
-      const grad = math.gradientWrt(sum, a);
-      test_util.expectArraysClose(
-          grad.dataSync(), new Float32Array([-4, 1, 2]), 1e-1);
-    });
-
-    it('Scalar ^ NDArray', math => {
-      const a = Scalar.new(2);
-      const b = Array1D.new([3, 2, -1], 'int32');
-
-      const result = math.pow(a, b);
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([8, 4, .5]));
-
-      const sum = math.sum(result);
-      const grad = math.gradientWrt(sum, a);
-      test_util.expectArraysClose(
-          grad.dataSync(),
-          new Float32Array(
-              [3 * Math.pow(2, 2), 2 * Math.pow(2, 1), -1 * Math.pow(2, -2)]),
-          1e-1);
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [10], 1e-1);
     });
 
     it('NDArray ^ NDArray', math => {
       const a = Array1D.new([-1, .5, 2]);
       const b = Array1D.new([3, 2, -1], 'int32');
 
-      const result = math.pow(a, b);
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([-1, .25, .5]));
+      const {value, gradients} =
+          math.valueAndGradients(() => math.sum(math.pow(a, b)), a);
 
-      const sum = math.sum(result);
-      const grad = math.gradientWrt(sum, a);
+      expect(value.shape).toEqual([]);
+      expect(value.dtype).toEqual('float32');
+      test_util.expectArraysClose(value, [-1 + .25 + .5]);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
       test_util.expectArraysClose(
-          grad.dataSync(),
-          new Float32Array(
-              [3 * Math.pow(-1, 2), 2 * Math.pow(.5, 1), -1 * Math.pow(2, -2)]),
+          gradients,
+          [3 * Math.pow(-1, 2), 2 * Math.pow(.5, 1), -1 * Math.pow(2, -2)],
           1e-1);
     });
   };
 
-  test_util.describeMathCPU('pow gradients', [tests]);
-  test_util.describeMathGPU('pow gradients', [tests], [
+  test_util.describeMathCPU('pow valueAndGradients', [tests]);
+  test_util.describeMathGPU('pow valueAndGradients', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
@@ -748,54 +724,44 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       const a = Array1D.new([1, 2, 3]);
       const b = Array1D.new([3, 2, 1]);
 
-      const result = math.subtract(a, b);
+      const {value, gradients} =
+          math.valueAndGradients(() => math.sum(math.subtract(a, b)), {a, b});
 
+      expect(value.shape).toEqual([]);
       test_util.expectArraysClose(
-          result.getValues(), new Float32Array([-2, 0, 2]));
+          value.getValues(), new Float32Array([-2 + 0 + 2]));
 
-      const resultSum = math.sum(result);
-      const da = math.gradientWrt(resultSum, a);
-      const db = math.gradientWrt(resultSum, b);
-      test_util.expectArraysClose(da.dataSync(), new Float32Array([1, 1, 1]));
-      test_util.expectArraysClose(
-          db.dataSync(), new Float32Array([-1, -1, -1]));
+      expect(gradients.a.shape).toEqual(a.shape);
+      expect(gradients.a.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.a, [1, 1, 1]);
+
+      expect(gradients.b.shape).toEqual(b.shape);
+      expect(gradients.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.b, [-1, -1, -1]);
     });
 
     it('basic 2D arrays', math => {
       const a = Array2D.new([2, 2], [0, 1, 2, 3]);
       const b = Array2D.new([2, 2], [3, 2, 1, 0]);
 
-      const result = math.subtract(a, b);
+      const {value, gradients} =
+          math.valueAndGradients(() => math.sum(math.subtract(a, b)), {a, b});
 
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([-3, -1, 1, 3]));
+      expect(value.shape).toEqual([]);
+      test_util.expectArraysClose(value, [-3 + -1 + 1 + 3]);
 
-      const resultSum = math.sum(result);
-      const da = math.gradientWrt(resultSum, a);
-      const db = math.gradientWrt(resultSum, b);
-      test_util.expectArraysClose(
-          da.dataSync(), new Float32Array([1, 1, 1, 1]));
-      test_util.expectArraysClose(
-          db.dataSync(), new Float32Array([-1, -1, -1, -1]));
-    });
+      expect(gradients.a.shape).toEqual(a.shape);
+      expect(gradients.a.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.a, [1, 1, 1, 1]);
 
-    it('throws for broadcasted subtract', math => {
-      const a = Array2D.new([2, 2], [0, 1, 2, 3]);
-      const b = Scalar.new(1);
-
-      const result = math.subtract(a, b);
-
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([-1, 0, 1, 2]));
-
-      const resultSum = math.sum(result);
-      expect(() => math.gradientWrt(resultSum, a)).toThrowError();
-      expect(() => math.gradientWrt(resultSum, b)).toThrowError();
+      expect(gradients.b.shape).toEqual(b.shape);
+      expect(gradients.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.b, [-1, -1, -1, -1]);
     });
   };
 
-  test_util.describeMathCPU('subtract gradient', [tests]);
-  test_util.describeMathGPU('subtract gradient', [tests], [
+  test_util.describeMathCPU('subtract valueAndGradients', [tests]);
+  test_util.describeMathGPU('subtract valueAndGradients', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

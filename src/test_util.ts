@@ -19,6 +19,7 @@ import {ENV, Features} from './environment';
 import {MathBackendCPU} from './math/backends/backend_cpu';
 import {MathBackendWebGL} from './math/backends/backend_webgl';
 import {NDArrayMath} from './math/math';
+import {NDArray} from './math/ndarray';
 import * as util from './util';
 import {DType, TypedArray} from './util';
 
@@ -95,22 +96,51 @@ export function expectArrayInMeanStdRange(
 }
 
 export function expectArraysClose(
-    actual: TypedArray|number[], expected: TypedArray|number[],
+    actual: NDArray|TypedArray|number[], expected: NDArray|TypedArray|number[],
     epsilon = TEST_EPSILON) {
-  const aType = actual.constructor.name;
-  const bType = expected.constructor.name;
+  if (!(actual instanceof NDArray) && !(expected instanceof NDArray)) {
+    const aType = actual.constructor.name;
+    const bType = expected.constructor.name;
 
-  if (aType !== bType) {
-    throw new Error(`Arrays are of different type ${aType} vs ${bType}`);
+    if (aType !== bType) {
+      throw new Error(
+          `Arrays are of different type actual: ${aType} ` +
+          `vs expected: ${bType}`);
+    }
+  } else if (actual instanceof NDArray && expected instanceof NDArray) {
+    if (actual.dtype !== expected.dtype) {
+      throw new Error(
+          `Arrays are of different type actual: ${actual.dtype} ` +
+          `vs expected: ${expected.dtype}.`);
+    }
+    if (!util.arraysEqual(actual.shape, expected.shape)) {
+      throw new Error(
+          `Arrays are of different shape actual: ${actual.shape} ` +
+          `vs expected: ${expected.shape}.`);
+    }
   }
-  if (actual.length !== expected.length) {
+
+  let actualValues: TypedArray|number[];
+  let expectedValues: TypedArray|number[];
+  if (actual instanceof NDArray) {
+    actualValues = actual.dataSync();
+  } else {
+    actualValues = actual;
+  }
+  if (expected instanceof NDArray) {
+    expectedValues = expected.dataSync();
+  } else {
+    expectedValues = expected;
+  }
+
+  if (actualValues.length !== expectedValues.length) {
     throw new Error(
-        `Matrices have different lengths (${actual.length} vs ` +
-        `${expected.length}).`);
+        `Arrays have different lengths actual: ${actualValues.length} vs ` +
+        `expected: ${expectedValues.length}.`);
   }
-  for (let i = 0; i < expected.length; ++i) {
-    const a = actual[i];
-    const e = expected[i];
+  for (let i = 0; i < expectedValues.length; ++i) {
+    const a = actualValues[i];
+    const e = expectedValues[i];
 
     if (!areClose(a, e, epsilon)) {
       const actualStr = `actual[${i}] === ${a}`;

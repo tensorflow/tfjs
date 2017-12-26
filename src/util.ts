@@ -345,17 +345,15 @@ export function checkForNaN(
   }
 }
 
-export function flattenNameArrayMap(nameArrayMap: NDArray|
-                                    NamedArrayMap): NDArray[] {
+export function flattenNameArrayMap(
+    nameArrayMap: NDArray|NamedArrayMap, keys?: string[]): NDArray[] {
   const xs: NDArray[] = [];
-  let xKeys: string[];
   if (nameArrayMap instanceof NDArray) {
     xs.push(nameArrayMap);
   } else {
     const xMap = nameArrayMap as {[xName: string]: NDArray};
-    xKeys = Object.keys(xMap);
-    for (let i = 0; i < xKeys.length; i++) {
-      xs.push(xMap[xKeys[i]]);
+    for (let i = 0; i < keys.length; i++) {
+      xs.push(xMap[keys[i]]);
     }
   }
   return xs;

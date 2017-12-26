@@ -330,7 +330,9 @@ describe('util.checkForNaN', () => {
       const c = Array1D.new([1, 2, 3]);
 
       const map: NamedArrayMap = {a, b, c};
-      expect(util.flattenNameArrayMap(map)).toEqual([a, b, c]);
+      expect(util.flattenNameArrayMap(map, Object.keys(map))).toEqual([
+        a, b, c
+      ]);
     });
   };
 

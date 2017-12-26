@@ -21,7 +21,6 @@ import {MathTests} from '../../test_util';
 import {NamedArrayMap} from '../../util';
 import {NDArray, Scalar} from '../ndarray';
 
-import {MathBackendCPU} from './backend_cpu';
 // tslint:disable-next-line:max-line-length
 import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types';
 import * as tape_util from './tape_util';
@@ -429,8 +428,6 @@ import * as tape_util from './tape_util';
 {
   const tests: MathTests = it => {
     it('Throws if gradient is not defined', math => {
-      const backend = new MathBackendCPU();
-
       const x = Scalar.new(0);
       const y = Scalar.new(1);
 
@@ -451,14 +448,11 @@ import * as tape_util from './tape_util';
       }];
 
       expect(
-          () => tape_util.backpropagateGradients(
-              backend, accumulatedGradientsMap, tape))
+          () => tape_util.backpropagateGradients(accumulatedGradientsMap, tape))
           .toThrowError();
     });
 
     it('basic backprop with 1 node', math => {
-      const backend = new MathBackendCPU();
-
       const x = Scalar.new(0);
       const y = Scalar.new(1);
 
@@ -476,19 +470,17 @@ import * as tape_util from './tape_util';
         },
         output: y,
         gradient: (dy: Scalar, y: Scalar) => {
-          return {x: () => backend.add(dy, Scalar.new(1))};
+          return {x: () => math.add(dy, Scalar.new(1))};
         }
       }];
 
-      tape_util.backpropagateGradients(backend, accumulatedGradientsMap, tape);
+      tape_util.backpropagateGradients(accumulatedGradientsMap, tape);
 
       test_util.expectArraysClose(
           accumulatedGradientsMap[x.id].dataSync(), new Float32Array([2]));
     });
 
     it('basic backprop with 2 nodes', math => {
-      const backend = new MathBackendCPU();
-
       const x = Scalar.new(0);
       const intermediate = Scalar.new(1);
       const y = Scalar.new(2);
@@ -508,7 +500,7 @@ import * as tape_util from './tape_util';
           },
           output: intermediate,
           gradient: (dy: Scalar, y: Scalar) => {
-            return {x: () => backend.add(dy, Scalar.new(1))};
+            return {x: () => math.add(dy, Scalar.new(1))};
           }
         },
         {
@@ -520,12 +512,12 @@ import * as tape_util from './tape_util';
           },
           output: y,
           gradient: (dy: Scalar, y: Scalar) => {
-            return {intermediate: () => backend.add(dy, Scalar.new(1))};
+            return {intermediate: () => math.add(dy, Scalar.new(1))};
           }
         }
       ];
 
-      tape_util.backpropagateGradients(backend, accumulatedGradientsMap, tape);
+      tape_util.backpropagateGradients(accumulatedGradientsMap, tape);
 
       // dx = dy + 1 + 1
       test_util.expectArraysClose(
@@ -533,8 +525,6 @@ import * as tape_util from './tape_util';
     });
 
     it('basic backprop with a split node accumulates gradients', math => {
-      const backend = new MathBackendCPU();
-
       const x = Scalar.new(0);
       const intermediate1 = Scalar.new(1);
       const intermediate2 = Scalar.new(2);
@@ -555,7 +545,7 @@ import * as tape_util from './tape_util';
           },
           output: intermediate1,
           gradient: (dy: Scalar, y: Scalar) => {
-            return {x: () => backend.add(dy, Scalar.new(1))};
+            return {x: () => math.add(dy, Scalar.new(1))};
           }
         },
         {
@@ -567,7 +557,7 @@ import * as tape_util from './tape_util';
           },
           output: intermediate2,
           gradient: (dy: Scalar, y: Scalar) => {
-            return {x: () => backend.add(dy, Scalar.new(1))};
+            return {x: () => math.add(dy, Scalar.new(1))};
           }
         },
         {
@@ -580,14 +570,14 @@ import * as tape_util from './tape_util';
           output: y,
           gradient: (dy: Scalar, y: Scalar) => {
             return {
-              intermediate1: () => backend.add(dy, Scalar.new(1)),
-              intermediate2: () => backend.add(dy, Scalar.new(1))
+              intermediate1: () => math.add(dy, Scalar.new(1)),
+              intermediate2: () => math.add(dy, Scalar.new(1))
             };
           }
         }
       ];
 
-      tape_util.backpropagateGradients(backend, accumulatedGradientsMap, tape);
+      tape_util.backpropagateGradients(accumulatedGradientsMap, tape);
 
       // dx = dy + 1 + 1 + 1 + 1 + 1
       test_util.expectArraysClose(
@@ -597,8 +587,6 @@ import * as tape_util from './tape_util';
 
     it('basic backprop with a multi-output split node accumulates gradients',
        math => {
-         const backend = new MathBackendCPU();
-
          const x = Scalar.new(0);
          const intermediate1 = Scalar.new(1);
          const intermediate2 = Scalar.new(2);
@@ -621,7 +609,7 @@ import * as tape_util from './tape_util';
              gradient: (dy: NamedArrayMap, y: NamedArrayMap) => {
                return {
                  x: () =>
-                     backend.multiply(dy['intermediate1'], dy['intermediate2'])
+                     math.multiply(dy['intermediate1'], dy['intermediate2'])
                };
              }
            },
@@ -635,15 +623,14 @@ import * as tape_util from './tape_util';
              output: y,
              gradient: (dy: Scalar, y: Scalar) => {
                return {
-                 intermediate1: () => backend.add(dy, Scalar.new(2)),
-                 intermediate2: () => backend.add(dy, Scalar.new(3))
+                 intermediate1: () => math.add(dy, Scalar.new(2)),
+                 intermediate2: () => math.add(dy, Scalar.new(3))
                };
              }
            }
          ];
 
-         tape_util.backpropagateGradients(
-             backend, accumulatedGradientsMap, tape);
+         tape_util.backpropagateGradients(accumulatedGradientsMap, tape);
 
          test_util.expectArraysClose(
              accumulatedGradientsMap[x.id].dataSync(),
