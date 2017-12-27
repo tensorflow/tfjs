@@ -1,6 +1,6 @@
 {
   "name": "deeplearn",
-  "version": "0.3.15",
+  "version": "0.3.16",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/index.js",

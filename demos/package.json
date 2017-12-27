@@ -52,9 +52,9 @@
     "@bower_components/web-animations-js": "web-animations/web-animations-js#^2.2.0",
     "@bower_components/webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.24",
     "chart.js": "~2.7.1",
-    "deeplearn": "0.3.15",
-    "deeplearn-knn-image-classifier": "~0.2.1",
-    "deeplearn-squeezenet": "~0.1.7",
+    "deeplearn": "0.3.16",
+    "deeplearn-knn-image-classifier": "~0.2.2",
+    "deeplearn-squeezenet": "~0.1.8",
     "tslint": "~5.8.0",
     "vue": "~2.5.9"
   },
