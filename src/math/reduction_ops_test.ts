@@ -66,6 +66,12 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(r, [2, -7]);
     });
 
+    it('2D, axis = -1 provided as a number', math => {
+      const a = Array2D.new([2, 3], [3, 2, 5, 100, -7, 2]);
+      const r = math.min(a, -1);
+      test_util.expectArraysClose(r, [2, -7]);
+    });
+
     it('2D, axis=[1]', math => {
       const a = Array2D.new([2, 3], [3, 2, 5, 100, -7, 2]);
       const r = math.min(a, [1]);
@@ -129,6 +135,12 @@ import * as reduce_util from './reduce_util';
     it('2D, axis=1 provided as a number', math => {
       const a = Array2D.new([2, 3], [3, 2, 5, 100, -7, 2]);
       const r = math.max(a, 1);
+      test_util.expectArraysClose(r, [5, 100]);
+    });
+
+    it('2D, axis = -1 provided as a number', math => {
+      const a = Array2D.new([2, 3], [3, 2, 5, 100, -7, 2]);
+      const r = math.max(a, -1);
       test_util.expectArraysClose(r, [5, 100]);
     });
 
@@ -203,6 +215,13 @@ import * as reduce_util from './reduce_util';
       expect(r.dtype).toBe('int32');
       test_util.expectArraysEqual(r, [2, 0]);
     });
+
+    it('2D, axis = -1', math => {
+      const a = Array2D.new([2, 3], [3, 2, 5, 100, -7, 2]);
+      const r = math.argMax(a, -1);
+      expect(r.dtype).toBe('int32');
+      test_util.expectArraysEqual(r, [2, 0]);
+    });
   };
 
   test_util.describeMathCPU('argmax', [tests]);
@@ -263,6 +282,12 @@ import * as reduce_util from './reduce_util';
     it('2D, axis=1', math => {
       const a = Array2D.new([2, 3], [3, 2, 5, 100, -7, -8]);
       const r = math.argMin(a, 1);
+      test_util.expectArraysEqual(r, [1, 2]);
+    });
+
+    it('2D, axis = -1', math => {
+      const a = Array2D.new([2, 3], [3, 2, 5, 100, -7, -8]);
+      const r = math.argMin(a, -1);
       test_util.expectArraysEqual(r, [1, 2]);
     });
   };
@@ -374,6 +399,19 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(res, expected);
     });
 
+    it('axes = -1 in 2D array', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const res = math.logSumExp(a, -1);
+
+      expect(res.shape).toEqual([3]);
+      const expected = [
+        Math.log(Math.exp(1) + Math.exp(2)),
+        Math.log(Math.exp(3) + Math.exp(0)),
+        Math.log(Math.exp(0) + Math.exp(1)),
+      ];
+      test_util.expectArraysClose(res, expected);
+    });
+
     it('2D, axes=1 provided as a single digit', math => {
       const a = Array2D.new([2, 3], [1, 2, 3, 0, 0, 1]);
       const res = math.logSumExp(a, 1);
@@ -472,9 +510,25 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(res, [6, 1]);
     });
 
+    it('2D, axis = -1 provided as number', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 0, 0, 1]);
+      const res = math.sum(a, -1);
+
+      expect(res.shape).toEqual([2]);
+      test_util.expectArraysClose(res, [6, 1]);
+    });
+
     it('sums across axis=0,1 in 2D array', math => {
       const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
       const res = math.sum(a, [0, 1]);
+
+      expect(res.shape).toEqual([]);
+      test_util.expectArraysClose(res, [7]);
+    });
+
+    it('2D, axis=[-1,-2] in 2D array', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const res = math.sum(a, [-1, -2]);
 
       expect(res.shape).toEqual([]);
       test_util.expectArraysClose(res, [7]);
@@ -611,6 +665,15 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(res, [1.5, 1.5, 0.5]);
     });
 
+    it('axis = -1 in 2D array', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const res = math.mean(a, [-1]);
+
+      expect(res.dtype).toBe('float32');
+      expect(res.shape).toEqual([3]);
+      test_util.expectArraysClose(res, [1.5, 1.5, 0.5]);
+    });
+
     it('2D, axis=1 provided as number', math => {
       const a = Array2D.new([2, 3], [1, 2, 3, 0, 0, 1]);
       const res = math.mean(a, 1);
@@ -720,6 +783,18 @@ import * as reduce_util from './reduce_util';
     it('2D, axis=1 provided as number', math => {
       const a = Array2D.new([2, 3], [1, 2, 3, 0, 0, 1]);
       const {mean, variance} = math.moments(a, 1);
+
+      expect(mean.shape).toEqual([2]);
+      expect(mean.dtype).toBe('float32');
+      expect(variance.shape).toEqual([2]);
+      expect(variance.dtype).toBe('float32');
+      test_util.expectArraysClose(mean, [2, 1 / 3]);
+      test_util.expectArraysClose(variance, [2 / 3, 0.222]);
+    });
+
+    it('2D, axis=-1 provided as number', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 0, 0, 1]);
+      const {mean, variance} = math.moments(a, -1);
 
       expect(mean.shape).toEqual([2]);
       expect(mean.dtype).toBe('float32');

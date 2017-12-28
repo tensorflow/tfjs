@@ -183,3 +183,74 @@ describe('axis_util getPermAxes', () => {
     expect(perm).toEqual([2, 3, 0, 1]);
   });
 });
+
+describe('axis_util parseAxisParam', () => {
+  it('axis=null returns no axes for scalar', () => {
+    const axis: number = null;
+    const shape: number[] = [];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([]);
+  });
+
+  it('axis=null returns 0 axis for array1d', () => {
+    const axis: number = null;
+    const shape = [4];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([0]);
+  });
+
+  it('axis=null returns all axes for array3d', () => {
+    const axis: number[] = null;
+    const shape = [3, 1, 2];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([0, 1, 2]);
+  });
+
+  it('axis as a single number', () => {
+    const axis = 1;
+    const shape = [3, 1, 2];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([1]);
+  });
+
+  it('axis as single negative number', () => {
+    const axis = -1;
+    const shape = [3, 1, 2];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([2]);
+
+    const axis2 = -2;
+    expect(axis_util.parseAxisParam(axis2, shape)).toEqual([1]);
+
+    const axis3 = -3;
+    expect(axis_util.parseAxisParam(axis3, shape)).toEqual([0]);
+  });
+
+  it('axis as list of negative numbers', () => {
+    const axis = [-1, -3];
+    const shape = [3, 1, 2];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([2, 0]);
+  });
+
+  it('axis as list of positive numbers', () => {
+    const axis = [0, 2];
+    const shape = [3, 1, 2];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([0, 2]);
+  });
+
+  it('axis as combo of positive and negative numbers', () => {
+    const axis = [0, -1];
+    const shape = [3, 1, 2];
+    expect(axis_util.parseAxisParam(axis, shape)).toEqual([0, 2]);
+  });
+
+  it('axis out of range throws error', () => {
+    const axis = -4;
+    const shape = [3, 1, 2];
+    expect(() => axis_util.parseAxisParam(axis, shape)).toThrowError();
+
+    const axis2 = 4;
+    expect(() => axis_util.parseAxisParam(axis2, shape)).toThrowError();
+  });
+
+  it('axis a list with one number out of range throws error', () => {
+    const axis = [0, 4];
+    const shape = [3, 1, 2];
+    expect(() => axis_util.parseAxisParam(axis, shape)).toThrowError();
+  });
+});
