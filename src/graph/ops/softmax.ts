@@ -20,6 +20,7 @@ import {NDArrayMath} from '../../math/math';
 import {Array1D, Scalar} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
+import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Operation} from './op';
 
@@ -35,8 +36,19 @@ export class Softmax extends Operation {
     });
   }
 
-  backProp() {
-    throw Error('Softmax backprop is not yet implemented');
+  backProp(
+      math: NDArrayMath, inferenceArrays: TensorArrayMap,
+      gradientArrays: SummedTensorArrayMap) {
+    // grad_x = grad_softmax * softmax - sum(grad_softmax * softmax) * softmax
+    const y = inferenceArrays.get(this.output);
+    const dy = gradientArrays.get(this.output);
+    math.scope(() => {
+      if (graph_util.shouldBackProp(this.logitsTensor)) {
+        const dlogits = math.elementWiseMul(
+            math.subtract(dy, math.sum(math.elementWiseMul(dy, y))), y);
+        gradientArrays.add(this.logitsTensor, dlogits);
+      }
+    });
   }
 }
 
