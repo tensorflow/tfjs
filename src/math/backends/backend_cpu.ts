@@ -1303,6 +1303,27 @@ export class MathBackendCPU implements MathBackend {
     return Array3D.new(x.shape, outValues);
   }
 
+  batchNormalization4D(
+      x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
+      varianceEpsilon: number, scale?: Array4D|Array1D,
+      offset?: Array4D|Array1D): Array4D {
+    const xValues = x.getValues();
+    const meanValues = mean.getValues();
+    const varianceValues = variance.getValues();
+    const scaleValues = scale ? scale.getValues() : new Float32Array([1]);
+    const offsetValues = offset ? offset.getValues() : new Float32Array([0]);
+    const outValues = new Float32Array(xValues.length);
+
+    for (let i = 0; i < xValues.length; i++) {
+      outValues[i] = offsetValues[i % offsetValues.length] +
+          (xValues[i] - meanValues[i % meanValues.length]) *
+              scaleValues[i % scaleValues.length] /
+              Math.sqrt(
+                  varianceValues[i % varianceValues.length] + varianceEpsilon);
+    }
+    return Array4D.new(x.shape, outValues);
+  }
+
   multinomial(probabilities: Array2D, numSamples: number, seed: number):
       Array2D<'int32'> {
     const batchSize = probabilities.shape[0];

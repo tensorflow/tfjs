@@ -348,6 +348,30 @@ export class MathBackendWebGL implements MathBackend {
     return this.compileAndRun(program, inputs);
   }
 
+  batchNormalization4D(
+      x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
+      varianceEpsilon: number, scale?: Array4D|Array1D,
+      offset?: Array4D|Array1D): Array4D {
+    const inputs = [x, mean, variance];
+
+    let offsetShape = null;
+    if (offset != null) {
+      offsetShape = offset.shape;
+      inputs.push(offset);
+    }
+
+    let scaleShape = null;
+    if (scale != null) {
+      scaleShape = scale.shape;
+      inputs.push(scale);
+    }
+
+    const program = new BatchNormProgram(
+        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
+        varianceEpsilon);
+    return this.compileAndRun(program, inputs);
+  }
+
   tile<D extends keyof DataTypes, T extends NDArray<D>>(x: T, reps: number[]):
       T {
     const program = new TileProgram(x.shape, reps);

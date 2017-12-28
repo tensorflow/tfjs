@@ -18,7 +18,131 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array1D, Array2D, Array3D} from './ndarray';
+import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
+
+// math.batchNormalization4D
+{
+  // TODO(nsthorat): Fix the precision for byte-packed batchnorm.
+  const epsilon = 1e-1;
+  const tests: MathTests = it => {
+    it('simple batchnorm4D, no offset or scale, 2x1x1x2', math => {
+      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Array1D.new([1, 2]);
+      const variance = Array1D.new([2, 3]);
+      const varianceEpsilon = .001;
+
+      const result = math.batchNormalization4D(
+          x, mean, variance, varianceEpsilon, undefined, undefined);
+
+      test_util.expectArraysClose(
+          result,
+          [
+            (x.get(0, 0, 0, 0) - mean.get(0)) * 1 /
+                Math.sqrt(variance.get(0) + varianceEpsilon),
+            (x.get(0, 0, 0, 1) - mean.get(1)) * 1 /
+                Math.sqrt(variance.get(1) + varianceEpsilon),
+            (x.get(1, 0, 0, 0) - mean.get(0)) * 1 /
+                Math.sqrt(variance.get(0) + varianceEpsilon),
+            (x.get(1, 0, 0, 1) - mean.get(1)) * 1 /
+                Math.sqrt(variance.get(1) + varianceEpsilon)
+          ],
+          epsilon);
+    });
+
+    it('simple batchnorm4D, no offset, 2x1x1x2', math => {
+      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Array1D.new([1, 2]);
+      const variance = Array1D.new([2, 3]);
+      const scale = Array1D.new([4, 5]);
+      const varianceEpsilon = .001;
+
+      const result = math.batchNormalization4D(
+          x, mean, variance, varianceEpsilon, scale, undefined);
+
+      test_util.expectArraysClose(
+          result,
+          [
+            (x.get(0, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+                Math.sqrt(variance.get(0) + varianceEpsilon),
+            (x.get(0, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+                Math.sqrt(variance.get(1) + varianceEpsilon),
+            (x.get(1, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+                Math.sqrt(variance.get(0) + varianceEpsilon),
+            (x.get(1, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+                Math.sqrt(variance.get(1) + varianceEpsilon)
+          ],
+          epsilon);
+    });
+
+    it('simple batchnorm4D, no scale, 2x1x1x2', math => {
+      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Array1D.new([1, 2]);
+      const variance = Array1D.new([2, 3]);
+      const offset = Array1D.new([4, 5]);
+
+      const varianceEpsilon = .001;
+
+      const result = math.batchNormalization4D(
+          x, mean, variance, varianceEpsilon, undefined, offset);
+
+      test_util.expectArraysClose(
+          result,
+          [
+            offset.get(0) +
+                (x.get(0, 0, 0, 0) - mean.get(0)) * 1 /
+                    Math.sqrt(variance.get(0) + varianceEpsilon),
+            offset.get(1) +
+                (x.get(0, 0, 0, 1) - mean.get(1)) * 1 /
+                    Math.sqrt(variance.get(1) + varianceEpsilon),
+            offset.get(0) +
+                (x.get(1, 0, 0, 0) - mean.get(0)) * 1 /
+                    Math.sqrt(variance.get(0) + varianceEpsilon),
+            offset.get(1) +
+                (x.get(1, 0, 0, 1) - mean.get(1)) * 1 /
+                    Math.sqrt(variance.get(1) + varianceEpsilon)
+          ],
+          epsilon);
+    });
+
+    it('simple batchnorm4D, 2x1x1x2', math => {
+      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Array1D.new([1, 2]);
+      const variance = Array1D.new([2, 3]);
+      const offset = Array1D.new([3, 4]);
+      const scale = Array1D.new([4, 5]);
+
+      const varianceEpsilon = .001;
+
+      const result = math.batchNormalization4D(
+          x, mean, variance, varianceEpsilon, scale, offset);
+
+      test_util.expectArraysClose(
+          result,
+          [
+            offset.get(0) +
+                (x.get(0, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+                    Math.sqrt(variance.get(0) + varianceEpsilon),
+            offset.get(1) +
+                (x.get(0, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+                    Math.sqrt(variance.get(1) + varianceEpsilon),
+            offset.get(0) +
+                (x.get(1, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+                    Math.sqrt(variance.get(0) + varianceEpsilon),
+            offset.get(1) +
+                (x.get(1, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+                    Math.sqrt(variance.get(1) + varianceEpsilon)
+          ],
+          epsilon);
+    });
+  };
+
+  test_util.describeMathCPU('batchNormalization4D', [tests]);
+  test_util.describeMathGPU('batchNormalization4D', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
 
 // math.batchNormalization3D
 {

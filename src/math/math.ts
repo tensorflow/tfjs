@@ -2035,6 +2035,52 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
         {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
   }
 
+  /**
+   * Batch normalization 4D. Mean, variance, scale, and offset can be of two
+   * shapes: 1) The same shape as the input: an Array4D. 2) In the common
+   * case, the depth dimension is the last dimension of x, so the values would
+   * be an Array1D of shape [depth].
+   * @param x The input NDArray.
+   * @param mean A mean NDArray.
+   * @param variance A variance NDArray.
+   * @param varianceEpsilon A small float number to avoid dividing by 0.
+   * @param scale A scale NDArray.
+   * @param offset An offset NDArray.
+   */
+  batchNormalization4D(
+    x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
+    varianceEpsilon = .001, scale?: Array4D|Array1D,
+    offset?: Array4D|Array1D): Array4D {
+  util.assert(
+      x.rank === 4,
+      `Error in batchNormalization4D: x must be rank 4 but got rank ` +
+          `${x.rank}.`);
+  util.assert(
+      mean.rank === 4 || mean.rank === 1,
+      `Error in batchNormalization4D: mean must be rank 4 or rank 1 but ` +
+          `got rank ${mean.rank}.`);
+  util.assert(
+      variance.rank === 4 || variance.rank === 1,
+      `Error in batchNormalization4D: variance must be rank 4 or rank 1 ` +
+          `but got rank ${variance.rank}.`);
+  if (scale != null) {
+    util.assert(
+        scale.rank === 4 || scale.rank === 1,
+        `Error in batchNormalization4D: scale must be rank 4 or rank 1 ` +
+            `but got rank ${scale.rank}.`);
+  }
+  if (offset != null) {
+    util.assert(
+        offset.rank === 4 || offset.rank === 1,
+        `Error in batchNormalization4D: offset must be rank 4 or rank 1 ` +
+            `but got rank ${offset.rank}.`);
+  }
+
+  return this.backendEngine.executeKernel(
+      'BatchNorm4D',
+      {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
+}
+
   //////////////
   // LSTM ops //
   //////////////
