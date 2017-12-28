@@ -5,7 +5,7 @@ import {KernelInputConfig} from './tape_types';
 // tslint:disable-next-line:max-line-length
 import {ArgMaxInputConfig, ArgMaxNode, ArgMinInputConfig, ArgMinNode} from './types/argminmax';
 // tslint:disable-next-line:max-line-length
-import {BatchNorm2DInputConfig, BatchNorm2DNode, BatchNorm3DInputConfig, BatchNorm3DNode} from './types/batchnorm';
+import {BatchNorm2DInputConfig, BatchNorm2DNode, BatchNorm3DInputConfig, BatchNorm3DNode, BatchNorm4DInputConfig, BatchNorm4DNode} from './types/batchnorm';
 import {BinaryInputConfig, BinaryNode} from './types/binary';
 // tslint:disable-next-line:max-line-length
 import {Concat1DInputConfig, Concat1DNode, Concat2DInputConfig, Concat2DNode, Concat3DInputConfig, Concat3DNode, Concat4DInputConfig, Concat4DNode} from './types/concat';
@@ -243,6 +243,11 @@ const KERNEL_METHODS: {
         return backend.resizeBilinear3D(
             config.inputs.x, config.args.newShape2D, config.args.alignCorners);
       },
+  BatchNorm4D: (backend: MathBackend, config: BatchNorm4DInputConfig) => {
+    return backend.batchNormalization4D(
+        config.inputs.x, config.inputs.mean, config.inputs.variance,
+        config.args.varianceEpsilon, config.inputs.scale, config.inputs.offset);
+  },
   BatchNorm3D: (backend: MathBackend, config: BatchNorm3DInputConfig) => {
     return backend.batchNormalization3D(
         config.inputs.x, config.inputs.mean, config.inputs.variance,
@@ -333,6 +338,7 @@ export interface KernelConfigRegistry {
   AvgPool: PoolNode;
   MinPool: PoolNode;
   ResizeBilinear3D: ResizeBilinear3DNode;
+  BatchNorm4D: BatchNorm4DNode;
   BatchNorm3D: BatchNorm3DNode;
   BatchNorm2D: BatchNorm2DNode;
   Multinomial: MultinomialNode;
