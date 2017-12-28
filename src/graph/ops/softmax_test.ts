@@ -20,7 +20,8 @@ import {Array1D, Scalar} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-import {SoftmaxCrossEntropyCost} from './softmax';
+
+import {Softmax, SoftmaxCrossEntropyCost} from './softmax';
 
 describe('softmax cross entropy cost', () => {
   const math = ENV.math;
@@ -79,5 +80,61 @@ describe('softmax cross entropy cost', () => {
         dLogits.get(1), softmaxLogits.get(1) - label.get(1));
     test_util.expectNumbersClose(
         dLogits.get(2), softmaxLogits.get(2) - label.get(2));
+  });
+});
+
+describe('softmax operation', () => {
+  const math = ENV.math;
+  let logitsTensor: Tensor;
+  let yTensor: Tensor;
+  let activations: TensorArrayMap;
+  let gradients: SummedTensorArrayMap;
+
+  beforeEach(() => {
+    const math = ENV.math;
+    activations = new TensorArrayMap();
+    gradients = new SummedTensorArrayMap(math);
+  });
+
+  afterEach(() => {
+    activations.disposeArray(logitsTensor);
+    activations.disposeArray(yTensor);
+    gradients.disposeArray(logitsTensor);
+    gradients.disposeArray(yTensor);
+  });
+
+  it('matches theory', () => {
+    const logits = Array1D.new([10, 0, -1]);
+    const softmaxLogits = math.softmax(logits);
+
+    logitsTensor = new Tensor(logits.shape);
+    yTensor = new Tensor([]);
+
+    activations.set(logitsTensor, logits);
+
+    const op = new Softmax(logitsTensor, yTensor);
+
+    op.feedForward(math, activations);
+    const y = activations.get(yTensor);
+
+    test_util.expectArraysClose(y.dataSync(), softmaxLogits.dataSync());
+
+    const dy = Array1D.new([1, 10, 100]);
+    gradients.add(yTensor, dy);
+
+    op.backProp(math, activations, gradients);
+
+    const dLogits = gradients.get(logitsTensor);
+    const sumLogitsdLogits = math.sum(math.elementWiseMul(dy, softmaxLogits));
+
+    test_util.expectNumbersClose(
+        dLogits.get(0),
+        (dy.get(0) - sumLogitsdLogits.get(0)) * softmaxLogits.get(0));
+    test_util.expectNumbersClose(
+        dLogits.get(1),
+        (dy.get(1) - sumLogitsdLogits.get(0)) * softmaxLogits.get(1));
+    test_util.expectNumbersClose(
+        dLogits.get(2),
+        (dy.get(2) - sumLogitsdLogits.get(0)) * softmaxLogits.get(2));
   });
 });
