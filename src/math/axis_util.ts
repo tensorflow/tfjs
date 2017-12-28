@@ -65,12 +65,25 @@ export function expandShapeToKeepDim(
 
 export function parseAxisParam(
     axis: number|number[], shape: number[]): number[] {
+  // Normalize input.
   if (axis == null) {
     axis = shape.map((s, i) => i);
   } else if (typeof (axis) === 'number') {
     axis = [axis];
   }
-  return axis;
+
+  const rank = shape.length;
+  // Validate input.
+  axis.forEach((a, i) => {
+    if (a < -rank || a >= rank) {
+      throw new Error(
+          `Axis must be between -rank and rank-1. ` +
+          `Got axis[${i}]=${a} where rank is ${rank}`);
+    }
+  });
+
+  // Handle negative axis.
+  return axis.map(a => a < 0 ? rank + a : a);
 }
 
 export function assertAxesAreInnerMostDims(
