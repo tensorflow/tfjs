@@ -159,7 +159,7 @@ export class YoloMobileNetDetection implements Model {
     classes = this.math.multiply(classes, mask) as Array4D;
 
     const objectLikelihood = this.math.sum(classes, 3);
-    const objectLikelihoodValues = objectLikelihood.getValues();
+    const objectLikelihoodValues = await objectLikelihood.data();
 
     for (let i = 0; i < objectLikelihoodValues.length; i++) {
       if (objectLikelihoodValues[i] > 0) {
@@ -167,10 +167,12 @@ export class YoloMobileNetDetection implements Model {
 
         const conf = confidence.get(row, col, box, 0);
         const probs =
-            this.math.slice4D(classes, [row, col, box, 0], [1, 1, 1, CLASS])
-                .getValues() as Float32Array;
-        const xywh = this.math.slice4D(netout, [row, col, box, 0], [1, 1, 1, 4])
-                         .getValues();
+            await this.math
+                .slice4D(classes, [row, col, box, 0], [1, 1, 1, CLASS])
+                .data();
+        const xywh =
+            await this.math.slice4D(netout, [row, col, box, 0], [1, 1, 1, 4])
+                .data();
 
         let x = xywh[0];
         let y = xywh[1];
@@ -181,7 +183,7 @@ export class YoloMobileNetDetection implements Model {
         w = this.ANCHORS[2 * box + 0] * Math.exp(w) / GRID_W;
         h = this.ANCHORS[2 * box + 1] * Math.exp(h) / GRID_H;
 
-        boxes.push(new BoundingBox(x, y, w, h, conf, probs));
+        boxes.push(new BoundingBox(x, y, w, h, conf, probs as Float32Array));
       }
     }
 

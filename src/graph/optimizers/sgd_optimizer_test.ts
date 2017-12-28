@@ -44,7 +44,7 @@ describe('sgd optimizer', () => {
       // w = reduce_sum(x^2 + x + 3)
       // dw/dx = [2*x_1 + 1, 2*x_2 + 1]
       session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dwdx = session.gradientArrayMap.get(x).getValues();
+      const dwdx = session.gradientArrayMap.get(x).dataSync();
       test_util.expectArraysClose(dwdx, new Float32Array([5, 9]));
     });
   });

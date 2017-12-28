@@ -272,7 +272,7 @@ export class GraphRunner {
         // Force a GPU download, since inference results are generally needed on
         // the CPU and it's more fair to include blocking on the GPU to complete
         // its work for the inference measurement.
-        inferenceValues[inferenceValues.length - 1].getValues();
+        inferenceValues[inferenceValues.length - 1].dataSync();
 
         const inferenceExamplesPerSecTime = performance.now() - start;
 

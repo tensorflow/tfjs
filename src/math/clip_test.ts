@@ -29,10 +29,7 @@ import {Array1D} from './ndarray';
 
       const result = math.clip(a, min, max);
 
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([3, -1, 0, 50, -1, 2]));
-
-      a.dispose();
+      test_util.expectArraysClose(result, [3, -1, 0, 50, -1, 2]);
     });
 
     it('propagates NaNs', math => {
@@ -42,10 +39,7 @@ import {Array1D} from './ndarray';
 
       const result = math.clip(a, min, max);
 
-      test_util.expectArraysClose(
-          result.getValues(), new Float32Array([3, -1, 0, 50, -1, 2, NaN]));
-
-      a.dispose();
+      test_util.expectArraysClose(result, [3, -1, 0, 50, -1, 2, NaN]);
     });
 
     it('min greater than max', math => {
@@ -57,8 +51,6 @@ import {Array1D} from './ndarray';
         math.clip(a, min, max);
       };
       expect(f).toThrowError();
-
-      a.dispose();
     });
   };
 

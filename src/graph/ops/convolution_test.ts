@@ -25,7 +25,7 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Convolution2D} from './convolution';
 
 function assertNoNaNs(t: NDArray) {
-  const values = t.getValues();
+  const values = t.dataSync();
   for (let i = 0; i < values.length; ++i) {
     expect(isNaN(values[i])).toBe(false);
   }
@@ -96,7 +96,7 @@ describe('Convolution', () => {
 
     const result = activations.get(yTensor);
 
-    expect(result.getValues()).toEqual(new Float32Array([
+    expect(result.dataSync()).toEqual(new Float32Array([
       7, -8, 8, -2, 7, -2, 5, 5, 4, 6, 1, 2, -1, 3, 7, -2, 1, 4
     ]));
   });

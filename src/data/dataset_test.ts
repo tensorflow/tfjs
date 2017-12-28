@@ -35,10 +35,10 @@ describe('Dataset', () => {
   it('normalize', () => {
     const data = [
       [
-        Array2D.new([2, 3], new Float32Array([1, 2, 10, -1, -2, .75])),
-        Array2D.new([2, 3], new Float32Array([2, 3, 20, -2, 2, .5])),
-        Array2D.new([2, 3], new Float32Array([3, 4, 30, -3, -4, 0])),
-        Array2D.new([2, 3], new Float32Array([4, 5, 40, -4, 4, 1]))
+        Array2D.new([2, 3], [1, 2, 10, -1, -2, .75]),
+        Array2D.new([2, 3], [2, 3, 20, -2, 2, .5]),
+        Array2D.new([2, 3], [3, 4, 30, -3, -4, 0]),
+        Array2D.new([2, 3], [4, 5, 40, -4, 4, 1])
       ],
       [
         Array1D.randNormal([1]), Array1D.randNormal([1]),
@@ -53,49 +53,31 @@ describe('Dataset', () => {
 
     let normalizedInputs = dataset.getData()[0];
 
+    test_util.expectArraysClose(normalizedInputs[0], [0, 0, 0, 1, .25, .75]);
     test_util.expectArraysClose(
-        new Float32Array([0, 0, 0, 1, .25, .75]),
-        normalizedInputs[0].getValues());
+        normalizedInputs[1], [1 / 3, 1 / 3, 1 / 3, 2 / 3, .75, .5]);
     test_util.expectArraysClose(
-        new Float32Array([1 / 3, 1 / 3, 1 / 3, 2 / 3, .75, .5]),
-        normalizedInputs[1].getValues());
-    test_util.expectArraysClose(
-        new Float32Array([2 / 3, 2 / 3, 2 / 3, 1 / 3, 0, 0]),
-        normalizedInputs[2].getValues());
-    test_util.expectArraysClose(
-        new Float32Array([1, 1, 1, 0, 1, 1]), normalizedInputs[3].getValues());
+        normalizedInputs[2], [2 / 3, 2 / 3, 2 / 3, 1 / 3, 0, 0]);
+    test_util.expectArraysClose(normalizedInputs[3], [1, 1, 1, 0, 1, 1]);
 
     dataset.normalizeWithinBounds(dataIndex, -1, 1);
 
     normalizedInputs = dataset.getData()[0];
 
+    test_util.expectArraysClose(normalizedInputs[0], [-1, -1, -1, 1, -.5, .5]);
     test_util.expectArraysClose(
-        new Float32Array([-1, -1, -1, 1, -.5, .5]),
-        normalizedInputs[0].getValues());
+        normalizedInputs[1], [-1 / 3, -1 / 3, -1 / 3, 1 / 3, .5, .0]);
     test_util.expectArraysClose(
-        new Float32Array([-1 / 3, -1 / 3, -1 / 3, 1 / 3, .5, .0]),
-        normalizedInputs[1].getValues());
-    test_util.expectArraysClose(
-        new Float32Array([1 / 3, 1 / 3, 1 / 3, -1 / 3, -1, -1]),
-        normalizedInputs[2].getValues());
-    test_util.expectArraysClose(
-        new Float32Array([1, 1, 1, -1, 1, 1]), normalizedInputs[3].getValues());
+        normalizedInputs[2], [1 / 3, 1 / 3, 1 / 3, -1 / 3, -1, -1]);
+    test_util.expectArraysClose(normalizedInputs[3], [1, 1, 1, -1, 1, 1]);
 
     dataset.removeNormalization(dataIndex);
 
     normalizedInputs = dataset.getData()[0];
 
-    test_util.expectArraysClose(
-        new Float32Array([1, 2, 10, -1, -2, .75]),
-        normalizedInputs[0].getValues());
-    test_util.expectArraysClose(
-        new Float32Array([2, 3, 20, -2, 2, .5]),
-        normalizedInputs[1].getValues());
-    test_util.expectArraysClose(
-        new Float32Array([3, 4, 30, -3, -4, 0]),
-        normalizedInputs[2].getValues());
-    test_util.expectArraysClose(
-        new Float32Array([4, 5, 40, -4, 4, 1]),
-        normalizedInputs[3].getValues());
+    test_util.expectArraysClose(normalizedInputs[0], [1, 2, 10, -1, -2, .75]);
+    test_util.expectArraysClose(normalizedInputs[1], [2, 3, 20, -2, 2, .5]);
+    test_util.expectArraysClose(normalizedInputs[2], [3, 4, 30, -3, -4, 0]);
+    test_util.expectArraysClose(normalizedInputs[3], [4, 5, 40, -4, 4, 1]);
   });
 });

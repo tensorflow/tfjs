@@ -102,7 +102,7 @@ describe('Max pool', () => {
     const y = activations.get(yTensor);
     const expectedResult =
         Array3D.new([2, 2, 2], [6, 66, 8, 88, 14, 140, 16, 160]);
-    test_util.expectArraysClose(y.getValues(), expectedResult.getValues());
+    test_util.expectArraysClose(y.dataSync(), expectedResult.dataSync());
   });
 
   it('MaxPool depth = 2, with some negative numbers', () => {
@@ -129,7 +129,7 @@ describe('Max pool', () => {
     const expectedResult =
         Array3D.new([2, 2, 2], [6, 55, 8, 88, 14, 140, 16, 150]);
 
-    test_util.expectArraysClose(y.getValues(), expectedResult.getValues());
+    test_util.expectArraysClose(y.dataSync(), expectedResult.dataSync());
   });
 
   it('MaxPool downsampling depth is preserved', () => {

@@ -53,7 +53,7 @@ describe('Element wise activation', () => {
     op.feedForward(math, activations);
 
     const y = activations.get(yTensor);
-    expect(y.getValues()).toEqual(new Float32Array([3, 0, 0, 2, 9, 0]));
+    expect(y.dataSync()).toEqual(new Float32Array([3, 0, 0, 2, 9, 0]));
 
     // Backprop.
     const dy = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
@@ -63,7 +63,7 @@ describe('Element wise activation', () => {
 
     const dx = gradients.get(xTensor);
 
-    expect(dx.getValues()).toEqual(new Float32Array([1, 0, 0, 4, 5, 0]));
+    expect(dx.dataSync()).toEqual(new Float32Array([1, 0, 0, 4, 5, 0]));
   });
 
   it('LeakyReLU', () => {
@@ -188,7 +188,7 @@ describe('Element wise activation', () => {
     op.feedForward(math, activations);
 
     const y = activations.get(yTensor);
-    expect(y.getValues()).toEqual(new Float32Array([4, 0, 9]));
+    expect(y.dataSync()).toEqual(new Float32Array([4, 0, 9]));
 
     // Backprop.
     const dy = Array1D.new([1, 2, 3]);

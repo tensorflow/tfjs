@@ -72,7 +72,13 @@ export function skewness(values: TypedArray|number[]) {
   return (1 / n) * sum3 / Math.pow((1 / (n - 1)) * sum2, 3 / 2);
 }
 
-export function jarqueBeraNormalityTest(values: TypedArray|number[]) {
+export function jarqueBeraNormalityTest(a: NDArray|TypedArray|number[]) {
+  let values: TypedArray|number[];
+  if (a instanceof NDArray) {
+    values = a.dataSync();
+  } else {
+    values = a;
+  }
   // https://en.wikipedia.org/wiki/Jarque%E2%80%93Bera_test
   const n = values.length;
   const s = skewness(values);
@@ -87,12 +93,18 @@ export function jarqueBeraNormalityTest(values: TypedArray|number[]) {
 }
 
 export function expectArrayInMeanStdRange(
-    actual: TypedArray|number[], expectedMean: number, expectedStdDev: number,
-    epsilon = TEST_EPSILON) {
-  const actualMean = mean(actual);
+    actual: NDArray|TypedArray|number[], expectedMean: number,
+    expectedStdDev: number, epsilon = TEST_EPSILON) {
+  let actualValues: TypedArray|number[];
+  if (actual instanceof NDArray) {
+    actualValues = actual.dataSync();
+  } else {
+    actualValues = actual;
+  }
+  const actualMean = mean(actualValues);
   expectNumbersClose(actualMean, expectedMean, epsilon);
   expectNumbersClose(
-      standardDeviation(actual, actualMean), expectedStdDev, epsilon);
+      standardDeviation(actualValues, actualMean), expectedStdDev, epsilon);
 }
 
 export function expectArraysClose(
@@ -150,6 +162,12 @@ export function expectArraysClose(
   }
 }
 
+export function expectArraysEqual(
+    actual: NDArray|TypedArray|number[],
+    expected: NDArray|TypedArray|number[]) {
+  return expectArraysClose(actual, expected, 0);
+}
+
 export function expectNumbersClose(
     a: number, e: number, epsilon = TEST_EPSILON) {
   if (!areClose(a, e, epsilon)) {
@@ -168,11 +186,17 @@ function areClose(a: number, e: number, epsilon: number): boolean {
 }
 
 export function expectValuesInRange(
-    actual: TypedArray|number[], low: number, high: number) {
-  for (let i = 0; i < actual.length; i++) {
-    if (actual[i] < low || actual[i] > high) {
+    actual: NDArray|TypedArray|number[], low: number, high: number) {
+  let actualVals: TypedArray|number[];
+  if (actual instanceof NDArray) {
+    actualVals = actual.dataSync();
+  } else {
+    actualVals = actual;
+  }
+  for (let i = 0; i < actualVals.length; i++) {
+    if (actualVals[i] < low || actualVals[i] > high) {
       throw new Error(
-          `Value out of range:${actual[i]} low: ${low}, high: ${high}`);
+          `Value out of range:${actualVals[i]} low: ${low}, high: ${high}`);
     }
   }
 }

@@ -59,7 +59,7 @@ describe('adamax optimizer', () => {
       //            = [-0.1, -0.1]
       //
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw = session.activationArrayMap.get(w).getValues();
+      const dydw = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw, new Float32Array([-0.1, -0.1]), 1e-5);
 
       // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
@@ -80,7 +80,7 @@ describe('adamax optimizer', () => {
       //            = [-0.2, -0.2]
 
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw2 = session.activationArrayMap.get(w).getValues();
+      const dydw2 = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw2, new Float32Array([-.2, -.2]), 2e-5);
     });
   });

@@ -121,9 +121,9 @@ describe('SummedTensorArrayMap.add', () => {
 
   it('add sums gradients', () => {
     map.add(t, Array1D.new([1, 2, 3]));
-    expect(map.get(t).getValues()).toEqual(new Float32Array([1, 2, 3]));
+    expect(map.get(t).dataSync()).toEqual(new Float32Array([1, 2, 3]));
 
     map.add(t, Array1D.new([30, 20, 10]));
-    expect(map.get(t).getValues()).toEqual(new Float32Array([31, 22, 13]));
+    expect(map.get(t).dataSync()).toEqual(new Float32Array([31, 22, 13]));
   });
 });

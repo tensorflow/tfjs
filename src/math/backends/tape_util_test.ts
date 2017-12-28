@@ -476,8 +476,7 @@ import * as tape_util from './tape_util';
 
       tape_util.backpropagateGradients(accumulatedGradientsMap, tape);
 
-      test_util.expectArraysClose(
-          accumulatedGradientsMap[x.id].dataSync(), new Float32Array([2]));
+      test_util.expectArraysClose(accumulatedGradientsMap[x.id], [2]);
     });
 
     it('basic backprop with 2 nodes', math => {
@@ -520,8 +519,7 @@ import * as tape_util from './tape_util';
       tape_util.backpropagateGradients(accumulatedGradientsMap, tape);
 
       // dx = dy + 1 + 1
-      test_util.expectArraysClose(
-          accumulatedGradientsMap[x.id].dataSync(), new Float32Array([3]));
+      test_util.expectArraysClose(accumulatedGradientsMap[x.id], [3]);
     });
 
     it('basic backprop with a split node accumulates gradients', math => {
@@ -581,8 +579,7 @@ import * as tape_util from './tape_util';
 
       // dx = dy + 1 + 1 + 1 + 1 + 1
       test_util.expectArraysClose(
-          accumulatedGradientsMap[x.id].dataSync(),
-          new Float32Array([dy.dataSync()[0] + 5]));
+          accumulatedGradientsMap[x.id], [dy.dataSync()[0] + 5]);
     });
 
     it('basic backprop with a multi-output split node accumulates gradients',
@@ -633,8 +630,7 @@ import * as tape_util from './tape_util';
          tape_util.backpropagateGradients(accumulatedGradientsMap, tape);
 
          test_util.expectArraysClose(
-             accumulatedGradientsMap[x.id].dataSync(),
-             new Float32Array([(dy.get() + 2) * (dy.get() + 3)]));
+             accumulatedGradientsMap[x.id], [(dy.get() + 2) * (dy.get() + 3)]);
        });
   };
 

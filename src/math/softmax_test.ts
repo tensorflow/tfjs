@@ -24,38 +24,32 @@ const tests: MathTests = it => {
   it('regular test', math => {
     const y = math.softmax(Array1D.new([2, 1, 3]));
 
-    test_util.expectArraysClose(
-        y.getValues(), new Float32Array([0.24472847, 0.09003057, 0.66524095]));
+    test_util.expectArraysClose(y, [0.24472847, 0.09003057, 0.66524095]);
     test_util.expectNumbersClose(y.get(0) + y.get(1) + y.get(2), 1);
   });
 
   it('overflow', math => {
     const y = math.softmax(Array1D.new([1000, 1000]));
 
-    test_util.expectArraysClose(y.getValues(), new Float32Array([0.5, 0.5]));
+    test_util.expectArraysClose(y, [0.5, 0.5]);
   });
 
   it('underflow', math => {
     const y = math.softmax(Array1D.new([-1000, -1000]));
 
-    test_util.expectArraysClose(y.getValues(), new Float32Array([0.5, 0.5]));
+    test_util.expectArraysClose(y, [0.5, 0.5]);
   });
 
   it('Huge difference between probabilities', math => {
     const y = math.softmax(Array1D.new([-1000, +1000]));
 
-    test_util.expectArraysClose(y.getValues(), new Float32Array([0.0, 1]));
+    test_util.expectArraysClose(y, [0, 1]);
   });
 
   it('Propagates NaNs', math => {
     const a = Array1D.new([2, 1, NaN]);
-
     const y = math.softmax(a);
-
-    test_util.expectArraysClose(
-        y.getValues(), new Float32Array([NaN, NaN, NaN]));
-
-    a.dispose();
+    test_util.expectArraysClose(y, [NaN, NaN, NaN]);
   });
 
   it('2D, dim=1', math => {
@@ -64,7 +58,7 @@ const tests: MathTests = it => {
       0.24472847, 0.09003057, 0.66524095, 0.09003057, 0.66524095, 0.24472847
     ];
     expect(y.rank).toBe(2);
-    test_util.expectArraysClose(y.getValues(), new Float32Array(expected));
+    test_util.expectArraysClose(y, expected);
   });
 
   it('2D, implicit dim=1', math => {
@@ -73,7 +67,7 @@ const tests: MathTests = it => {
       0.24472847, 0.09003057, 0.66524095, 0.09003057, 0.66524095, 0.24472847
     ];
     expect(y.rank).toBe(2);
-    test_util.expectArraysClose(y.getValues(), new Float32Array(expected));
+    test_util.expectArraysClose(y, expected);
   });
 
   it('2D, dim=0 throws error', math => {

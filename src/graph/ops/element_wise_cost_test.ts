@@ -59,13 +59,13 @@ describe('MeanSquaredCost', () => {
 
     const y = activations.get(yTensor);
     expect(y.shape).toEqual([]);
-    expect(y.getValues()).toEqual(new Float32Array([30 / 8]));
+    expect(y.dataSync()).toEqual(new Float32Array([30 / 8]));
 
     const dx1 = gradients.get(x1Tensor);
     const dx2 = gradients.get(x2Tensor);
     expect(dx1.shape).toEqual(x1.shape);
     expect(dx2.shape).toEqual(x2.shape);
-    expect(dx1.getValues()).toEqual(new Float32Array([-1, -2, -3, -4]));
-    expect(dx2.getValues()).toEqual(new Float32Array([1, 2, 3, 4]));
+    expect(dx1.dataSync()).toEqual(new Float32Array([-1, -2, -3, -4]));
+    expect(dx2.dataSync()).toEqual(new Float32Array([1, 2, 3, 4]));
   });
 });

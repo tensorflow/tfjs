@@ -56,7 +56,7 @@ describe('adadelta optimizer', () => {
       //             = [0.8, 3.2]
       //
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw = session.activationArrayMap.get(w).getValues();
+      const dydw = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw, new Float32Array([-0.2, -0.4]), 1e-5);
       // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
       //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]
@@ -68,7 +68,7 @@ describe('adadelta optimizer', () => {
       //            w2_old - lr*updates_w2]
       //            = [-0.4, -0.8]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw2 = session.activationArrayMap.get(w).getValues();
+      const dydw2 = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw2, new Float32Array([-.4, -.8]), 2e-5);
     });
   });

@@ -25,49 +25,34 @@ import {Array2D, Array3D} from './ndarray';
   const tests: MathTests = it => {
     it('2D (no change)', math => {
       const t = Array2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
-
       const t2 = math.transpose(t, [0, 1]);
 
       expect(t2.shape).toEqual(t.shape);
-      test_util.expectArraysClose(t2.getValues(), t.getValues());
-
-      t.dispose();
+      test_util.expectArraysClose(t2, t);
     });
 
     it('2D (transpose)', math => {
       const t = Array2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
-
       const t2 = math.transpose(t, [1, 0]);
 
       expect(t2.shape).toEqual([4, 2]);
-      const expected = new Float32Array([1, 3, 11, 33, 2, 4, 22, 44]);
-      test_util.expectArraysClose(t2.getValues(), expected);
-
-      t.dispose();
+      test_util.expectArraysClose(t2, [1, 3, 11, 33, 2, 4, 22, 44]);
     });
 
     it('3D [r, c, d] => [d, r, c]', math => {
       const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
-
       const t2 = math.transpose(t, [2, 0, 1]);
 
       expect(t2.shape).toEqual([2, 2, 2]);
-      const expected = new Float32Array([1, 2, 3, 4, 11, 22, 33, 44]);
-      test_util.expectArraysClose(t2.getValues(), expected);
-
-      t.dispose();
+      test_util.expectArraysClose(t2, [1, 2, 3, 4, 11, 22, 33, 44]);
     });
 
     it('3D [r, c, d] => [d, c, r]', math => {
       const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
-
       const t2 = math.transpose(t, [2, 1, 0]);
 
       expect(t2.shape).toEqual([2, 2, 2]);
-      const expected = new Float32Array([1, 3, 2, 4, 11, 33, 22, 44]);
-      test_util.expectArraysClose(t2.getValues(), expected);
-
-      t.dispose();
+      test_util.expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
     });
   };
 

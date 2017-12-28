@@ -29,7 +29,7 @@ const tests: MathTests = it => {
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
-    const outcomeProbs = computeProbs(result.getValues(), 2);
+    const outcomeProbs = computeProbs(result.dataSync(), 2);
     test_util.expectArraysClose(outcomeProbs, [0.5, 0.5], EPSILON);
   });
 
@@ -38,7 +38,7 @@ const tests: MathTests = it => {
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
-    const outcomeProbs = computeProbs(result.getValues(), 2);
+    const outcomeProbs = computeProbs(result.dataSync(), 2);
     test_util.expectArraysClose(outcomeProbs, [1, 0], EPSILON);
   });
 
@@ -47,7 +47,7 @@ const tests: MathTests = it => {
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
-    const outcomeProbs = computeProbs(result.getValues(), 2);
+    const outcomeProbs = computeProbs(result.dataSync(), 2);
     test_util.expectArraysClose(outcomeProbs, [0, 1], EPSILON);
   });
 
@@ -65,7 +65,7 @@ const tests: MathTests = it => {
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
-    const outcomeProbs = computeProbs(result.getValues(), numOutcomes);
+    const outcomeProbs = computeProbs(result.dataSync(), numOutcomes);
     expect(outcomeProbs.length).toBeLessThanOrEqual(numOutcomes);
   });
 
@@ -79,17 +79,17 @@ const tests: MathTests = it => {
 
     // First coin always gets last event.
     let outcomeProbs =
-        computeProbs(result.getValues().slice(0, NUM_SAMPLES), numOutcomes);
+        computeProbs(result.dataSync().slice(0, NUM_SAMPLES), numOutcomes);
     test_util.expectArraysClose(outcomeProbs, [0, 0, 1], EPSILON);
 
     // Second coin always gets middle event.
     outcomeProbs = computeProbs(
-        result.getValues().slice(NUM_SAMPLES, 2 * NUM_SAMPLES), numOutcomes);
+        result.dataSync().slice(NUM_SAMPLES, 2 * NUM_SAMPLES), numOutcomes);
     test_util.expectArraysClose(outcomeProbs, [0, 1, 0], EPSILON);
 
     // Third coin always gets first event
     outcomeProbs =
-        computeProbs(result.getValues().slice(2 * NUM_SAMPLES), numOutcomes);
+        computeProbs(result.dataSync().slice(2 * NUM_SAMPLES), numOutcomes);
     test_util.expectArraysClose(outcomeProbs, [1, 0, 0], EPSILON);
 
   });

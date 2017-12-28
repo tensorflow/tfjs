@@ -39,10 +39,8 @@ import {Array3D, Array4D} from './ndarray';
       const result = math.depthwiseConv2D(x, w, stride, pad);
       expect(result.shape).toEqual([1, 2, 2, 1]);
 
-      const expected = new Float32Array([1.07022, 1.03167, 0.67041, 0.778863]);
-      test_util.expectArraysClose(result.getValues(), expected);
-      x.dispose();
-      w.dispose();
+      const expected = [1.07022, 1.03167, 0.67041, 0.778863];
+      test_util.expectArraysClose(result, expected);
     });
 
     it('input=1x3x3x2,f=2,s=1,p=same,chMul=1', math => {
@@ -64,14 +62,12 @@ import {Array3D, Array4D} from './ndarray';
       const result = math.depthwiseConv2D(x, w, stride, pad);
       expect(result.shape).toEqual([1, 3, 3, 2]);
 
-      const expected = new Float32Array([
+      const expected = [
         0.485445, 0.995389, 0.95166, 0.927856, 0.636516, 0.253547, 0.378414,
         1.10771, 0.430373, 1.23126, 0.290885, 0.372855, 0.3962, 0.379995,
         0.0490466, 0.410569, 0.10902, 0.0514242
-      ]);
-      test_util.expectArraysClose(result.getValues(), expected);
-      x.dispose();
-      w.dispose();
+      ];
+      test_util.expectArraysClose(result, expected);
     });
 
     it('input=1x3x3x2,f=2,s=1,p=same,chMul=2', math => {
@@ -94,17 +90,15 @@ import {Array3D, Array4D} from './ndarray';
       const result = math.depthwiseConv2D(x, w, stride, pad);
       expect(result.shape).toEqual([1, 3, 3, 4]);
 
-      const expected = new Float32Array([
+      const expected = [
         1.83059,   0.937125,  2.1218,   1.39024,  0.990167, 0.803472,
         1.31405,   1.14959,   0.182147, 0.196385, 0.241141, 0.188081,
         0.950656,  0.622581,  1.92451,  1.20179,  1.07422,  0.483268,
         1.36948,   1.14256,   0.449444, 0.477042, 0.505857, 0.393989,
         0.0746509, 0.0633184, 0.74101,  0.41159,  0.403195, 0.176938,
         0.602415,  0.345499,  0.226819, 0.252651, 0.144682, 0.213927
-      ]);
-      test_util.expectArraysClose(result.getValues(), expected);
-      x.dispose();
-      w.dispose();
+      ];
+      test_util.expectArraysClose(result, expected);
     });
 
     it('input=2x3x3x2,f=2,s=1,p=same,chMul=2', math => {
@@ -130,7 +124,7 @@ import {Array3D, Array4D} from './ndarray';
       const result = math.depthwiseConv2D(x, w, stride, pad);
       expect(result.shape).toEqual([2, 3, 3, 4]);
 
-      const expected = new Float32Array([
+      const expected = [
         0.863379, 1.3119,   0.102795, 0.154853, 1.02704,   1.62173,  0.293466,
         0.261764, 0.387876, 0.701529, 0.133508, 0.338167,  0.880395, 1.28039,
         0.786492, 0.775361, 0.884845, 1.43995,  0.764374,  1.0196,   0.291162,
@@ -142,10 +136,8 @@ import {Array3D, Array4D} from './ndarray';
         0.344208, 0.561029, 0.363292, 0.911203, 0.272541,  0.419513, 0.342154,
         0.403335, 0.419286, 0.587321, 0.600655, 0.884853,  0.190907, 0.719914,
         0.346842, 0.598472
-      ]);
-      test_util.expectArraysClose(result.getValues(), expected);
-      x.dispose();
-      w.dispose();
+      ];
+      test_util.expectArraysClose(result, expected);
     });
 
     it('Array3D is allowed', math => {

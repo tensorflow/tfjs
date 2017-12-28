@@ -47,7 +47,7 @@ describe('Checkpoint var loader', () => {
 
       varLoader.getVariable('fakeVar1').then(ndarray => {
         expect(ndarray.shape).toEqual(fakeCheckpointManifest['fakeVar1'].shape);
-        expect(ndarray.getValues()).toEqual(view);
+        expect(ndarray.dataSync()).toEqual(view);
         doneFn();
       });
       // tslint:disable-next-line:no-any
