@@ -26,48 +26,36 @@ import {Array1D, Array2D, Array3D} from './ndarray';
   const tests: MathTests = it => {
     it('1D (tile)', math => {
       const t = Array1D.new([1, 2, 3]);
-
       const t2 = math.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
-      test_util.expectArraysClose(
-          t2.getValues(), new Float32Array([1, 2, 3, 1, 2, 3]));
-
-      t.dispose();
+      test_util.expectArraysClose(t2, [1, 2, 3, 1, 2, 3]);
     });
 
     it('2D (tile)', math => {
       const t = Array2D.new([2, 2], [1, 11, 2, 22]);
       let t2 = math.tile(t, [1, 2]);
+
       expect(t2.shape).toEqual([2, 4]);
-      let expected = new Float32Array([1, 11, 1, 11, 2, 22, 2, 22]);
-      test_util.expectArraysClose(t2.getValues(), expected);
+      test_util.expectArraysClose(t2, [1, 11, 1, 11, 2, 22, 2, 22]);
 
       t2 = math.tile(t, [2, 1]);
       expect(t2.shape).toEqual([4, 2]);
-      expected = new Float32Array([1, 11, 2, 22, 1, 11, 2, 22]);
-      test_util.expectArraysClose(t2.getValues(), expected);
+      test_util.expectArraysClose(t2, [1, 11, 2, 22, 1, 11, 2, 22]);
 
       t2 = math.tile(t, [2, 2]);
       expect(t2.shape).toEqual([4, 4]);
-      expected = new Float32Array(
-          [1, 11, 1, 11, 2, 22, 2, 22, 1, 11, 1, 11, 2, 22, 2, 22]);
-      test_util.expectArraysClose(t2.getValues(), expected);
-
-      t.dispose();
+      test_util.expectArraysClose(
+          t2, [1, 11, 1, 11, 2, 22, 2, 22, 1, 11, 1, 11, 2, 22, 2, 22]);
     });
 
     it('3D (tile)', math => {
       const t = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
-
       const t2 = math.tile(t, [1, 2, 1]);
 
       expect(t2.shape).toEqual([2, 4, 2]);
       test_util.expectArraysClose(
-          t2.getValues(),
-          new Float32Array([1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8]));
-
-      t.dispose();
+          t2, [1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8]);
     });
 
     it('propagates NaNs', math => {
@@ -76,119 +64,97 @@ import {Array1D, Array2D, Array3D} from './ndarray';
       const t2 = math.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
-      test_util.expectArraysClose(
-          t2.getValues(), new Float32Array([1, 2, NaN, 1, 2, NaN]));
-
-      t.dispose();
+      test_util.expectArraysClose(t2, [1, 2, NaN, 1, 2, NaN]);
     });
 
     it('1D bool (tile)', math => {
       const t = Array1D.new([true, false, true], 'bool');
-
       const t2 = math.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
       expect(t2.dtype).toBe('bool');
-      expect(t2.getValues()).toEqual(new Uint8Array([1, 0, 1, 1, 0, 1]));
-
-      t.dispose();
+      test_util.expectArraysEqual(t2, [1, 0, 1, 1, 0, 1]);
     });
 
     it('2D bool (tile)', math => {
       const t = Array2D.new([2, 2], [true, false, true, true], 'bool');
       let t2 = math.tile(t, [1, 2]);
+
       expect(t2.shape).toEqual([2, 4]);
       expect(t2.dtype).toBe('bool');
-      expect(t2.getValues()).toEqual(new Uint8Array([1, 0, 1, 0, 1, 1, 1, 1]));
+      test_util.expectArraysEqual(t2, [1, 0, 1, 0, 1, 1, 1, 1]);
 
       t2 = math.tile(t, [2, 1]);
       expect(t2.shape).toEqual([4, 2]);
       expect(t2.dtype).toBe('bool');
-      expect(t2.getValues()).toEqual(new Uint8Array([1, 0, 1, 1, 1, 0, 1, 1]));
+      test_util.expectArraysEqual(t2, [1, 0, 1, 1, 1, 0, 1, 1]);
 
       t2 = math.tile(t, [2, 2]);
       expect(t2.shape).toEqual([4, 4]);
       expect(t2.dtype).toBe('bool');
-      expect(t2.getValues()).toEqual(new Uint8Array([
-        1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1
-      ]));
-
-      t.dispose();
+      test_util.expectArraysEqual(
+          t2, [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1]);
     });
 
     it('3D bool (tile)', math => {
       const t = Array3D.new(
           [2, 2, 2], [true, false, true, false, true, false, true, false],
           'bool');
-
       const t2 = math.tile(t, [1, 2, 1]);
 
       expect(t2.shape).toEqual([2, 4, 2]);
       expect(t2.dtype).toBe('bool');
-      expect(t2.getValues()).toEqual(new Uint8Array([
-        1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0
-      ]));
-
-      t.dispose();
+      test_util.expectArraysEqual(
+          t2, [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]);
     });
 
     it('bool propagates NaNs', math => {
       const t = Array1D.new([true, false, NaN] as boolean[], 'bool');
       const t2 = math.tile(t, [2]);
+
       expect(t2.shape).toEqual([6]);
       expect(t2.dtype).toBe('bool');
-      expect(t2.getValues()).toEqual(new Uint8Array([
-        1, 0, util.getNaN('bool'), 1, 0, util.getNaN('bool')
-      ]));
-      t.dispose();
+      test_util.expectArraysEqual(
+          t2, [1, 0, util.getNaN('bool'), 1, 0, util.getNaN('bool')]);
     });
 
     it('1D int32 (tile)', math => {
       const t = Array1D.new([1, 2, 5], 'int32');
-
       const t2 = math.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
       expect(t2.dtype).toBe('int32');
-      expect(t2.getValues()).toEqual(new Int32Array([1, 2, 5, 1, 2, 5]));
-
-      t.dispose();
+      test_util.expectArraysEqual(t2, [1, 2, 5, 1, 2, 5]);
     });
 
     it('2D int32 (tile)', math => {
       const t = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
       let t2 = math.tile(t, [1, 2]);
+
       expect(t2.shape).toEqual([2, 4]);
       expect(t2.dtype).toBe('int32');
-      expect(t2.getValues()).toEqual(new Int32Array([1, 2, 1, 2, 3, 4, 3, 4]));
+      test_util.expectArraysEqual(t2, [1, 2, 1, 2, 3, 4, 3, 4]);
 
       t2 = math.tile(t, [2, 1]);
       expect(t2.shape).toEqual([4, 2]);
       expect(t2.dtype).toBe('int32');
-      expect(t2.getValues()).toEqual(new Int32Array([1, 2, 3, 4, 1, 2, 3, 4]));
+      test_util.expectArraysEqual(t2, [1, 2, 3, 4, 1, 2, 3, 4]);
 
       t2 = math.tile(t, [2, 2]);
       expect(t2.shape).toEqual([4, 4]);
       expect(t2.dtype).toBe('int32');
-      expect(t2.getValues()).toEqual(new Int32Array([
-        1, 2, 1, 2, 3, 4, 3, 4, 1, 2, 1, 2, 3, 4, 3, 4
-      ]));
-
-      t.dispose();
+      test_util.expectArraysEqual(
+          t2, [1, 2, 1, 2, 3, 4, 3, 4, 1, 2, 1, 2, 3, 4, 3, 4]);
     });
 
     it('3D int32 (tile)', math => {
       const t = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8], 'int32');
-
       const t2 = math.tile(t, [1, 2, 1]);
 
       expect(t2.shape).toEqual([2, 4, 2]);
       expect(t2.dtype).toBe('int32');
-      expect(t2.getValues()).toEqual(new Int32Array([
-        1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8
-      ]));
-
-      t.dispose();
+      test_util.expectArraysEqual(
+          t2, [1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8]);
     });
 
     it('int32 propagates NaNs', math => {
@@ -197,11 +163,8 @@ import {Array1D, Array2D, Array3D} from './ndarray';
 
       expect(t2.shape).toEqual([6]);
       expect(t2.dtype).toBe('int32');
-      expect(t2.getValues()).toEqual(new Int32Array([
-        1, 3, util.getNaN('int32'), 1, 3, util.getNaN('int32')
-      ]));
-
-      t.dispose();
+      test_util.expectArraysEqual(
+          t2, [1, 3, util.getNaN('int32'), 1, 3, util.getNaN('int32')]);
     });
   };
 

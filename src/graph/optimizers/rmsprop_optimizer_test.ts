@@ -49,7 +49,7 @@ describe('rmsprop optimizer', () => {
       //            w2_old - lr*grad_w1/sqrt(cahce_w2 + eps)]
       //            = [-0.2236, -0.2236]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw = session.activationArrayMap.get(w).getValues();
+      const dydw = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw, new Float32Array([-.2236, -0.2236]));
       // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
       //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]
@@ -58,7 +58,7 @@ describe('rmsprop optimizer', () => {
       //            w2_old - lr*grad_w1/sqrt(cahce_w2 + eps)]
       //            = [-.39027, -.39027]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw2 = session.activationArrayMap.get(w).getValues();
+      const dydw2 = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw2, new Float32Array([-.39027, -.39027]));
     });
   });

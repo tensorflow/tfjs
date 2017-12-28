@@ -36,13 +36,10 @@ import {Array2D, Array3D, Array4D} from './ndarray';
           [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
 
       const result = math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad);
-      const expected = new Float32Array([6, 2, 10, 0]);
+      const expected = [6, 2, 10, 0];
 
       expect(result.shape).toEqual([2, 2, 1]);
-      test_util.expectArraysClose(result.getValues(), expected);
-
-      x.dispose();
-      w.dispose();
+      test_util.expectArraysClose(result, expected);
     });
 
     it('input=2x2x1,d2=1,f=2,s=1,p=0, batch=2', math => {
@@ -60,13 +57,10 @@ import {Array2D, Array3D, Array4D} from './ndarray';
 
       const result =
           math.conv2dTranspose(x, w, [2, 2, 2, 1], origStride, origPad);
-      const expected = new Float32Array([6, 2, 10, 0, 9, 3, 15, 0]);
+      const expected = [6, 2, 10, 0, 9, 3, 15, 0];
 
       expect(result.shape).toEqual([2, 2, 2, 1]);
-      test_util.expectArraysClose(result.getValues(), expected);
-
-      x.dispose();
-      w.dispose();
+      test_util.expectArraysClose(result, expected);
     });
 
     it('throws when x is not rank 3', math => {
@@ -83,9 +77,6 @@ import {Array2D, Array3D, Array4D} from './ndarray';
 
       expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
           .toThrowError();
-
-      x.dispose();
-      w.dispose();
     });
 
     it('throws when weights is not rank 4', math => {
@@ -102,9 +93,6 @@ import {Array2D, Array3D, Array4D} from './ndarray';
 
       expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
           .toThrowError();
-
-      x.dispose();
-      w.dispose();
     });
 
     it('throws when x depth does not match weights original output depth',
@@ -124,9 +112,6 @@ import {Array2D, Array3D, Array4D} from './ndarray';
          expect(
              () => math.conv2dTranspose(x, w, [2, 2, 2], origStride, origPad))
              .toThrowError();
-
-         x.dispose();
-         w.dispose();
        });
   };
 

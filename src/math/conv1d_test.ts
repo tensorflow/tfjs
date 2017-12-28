@@ -37,14 +37,9 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([0]);
 
       const result = math.conv1d(x, w, bias, stride, pad);
-      const expected = new Float32Array([3, 6, 9, 12]);
 
       expect(result.shape).toEqual([2, 2, 1]);
-      test_util.expectArraysClose(result.getValues(), expected);
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
+      test_util.expectArraysClose(result, [3, 6, 9, 12]);
     });
 
     it('conv1d input=4x1,d2=1,f=2x1x1,s=1,p=valid', math => {
@@ -61,14 +56,9 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([0]);
 
       const result = math.conv1d(x, w, bias, stride, pad);
-      const expected = new Float32Array([4, 7, 10]);
 
       expect(result.shape).toEqual([3, 1]);
-      test_util.expectArraysClose(result.getValues(), expected);
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
+      test_util.expectArraysClose(result, [4, 7, 10]);
     });
 
     it('throws when x is not rank 3', math => {
@@ -80,15 +70,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       // tslint:disable-next-line:no-any
       const x: any = Array2D.new([2, 2], [1, 2, 3, 4]);
-      const w =
-          Array3D.new([fSize, inputDepth, outputDepth], [3, 1]);
+      const w = Array3D.new([fSize, inputDepth, outputDepth], [3, 1]);
       const bias = Array1D.new([-1]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
 
     it('throws when weights is not rank 3', math => {
@@ -103,10 +88,6 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([-1]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
 
     it('throws when biases is not rank 1', math => {
@@ -118,16 +99,11 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const stride = 1;
 
       const x = Array3D.new(inputShape, [1, 2, 3, 4]);
-      const w =
-          Array3D.new([fSize, inputDepth, outputDepth], [3, 1]);
+      const w = Array3D.new([fSize, inputDepth, outputDepth], [3, 1]);
       // tslint:disable-next-line:no-any
       const bias: any = Array2D.new([2, 2], [2, 2, 2, 2]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
 
     it('throws when x depth does not match weight depth', math => {
@@ -140,15 +116,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const stride = 1;
 
       const x = Array3D.new(inputShape, [1, 2, 3, 4]);
-      const w =
-          Array3D.randNormal([fSize, wrongInputDepth, outputDepth]);
+      const w = Array3D.randNormal([fSize, wrongInputDepth, outputDepth]);
       const bias = Array1D.new([-1]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
   };
 

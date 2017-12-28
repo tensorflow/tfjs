@@ -29,8 +29,7 @@ import {Array1D} from './ndarray';
       const result = math.prelu(x, a);
 
       expect(result.shape).toEqual(x.shape);
-      test_util.expectArraysClose(
-          result.dataSync(), new Float32Array([0, 1, -0.5, -0.6]));
+      test_util.expectArraysClose(result, [0, 1, -0.5, -0.6]);
     });
 
     it('propagates NaN', math => {
@@ -39,8 +38,7 @@ import {Array1D} from './ndarray';
       const result = math.prelu(x, a);
 
       expect(result.shape).toEqual(x.shape);
-      test_util.expectArraysClose(
-          result.dataSync(), new Float32Array([0, 1, NaN]));
+      test_util.expectArraysClose(result, [0, 1, NaN]);
     });
   };
 
@@ -61,8 +59,7 @@ import {Array1D} from './ndarray';
       const result = math.preluDer(x, a);
 
       expect(result.shape).toEqual(x.shape);
-      test_util.expectArraysClose(
-          result.dataSync(), new Float32Array([1, 1, 0.25, 0.15]));
+      test_util.expectArraysClose(result, [1, 1, 0.25, 0.15]);
     });
 
     it('propagates NaN', math => {
@@ -71,8 +68,7 @@ import {Array1D} from './ndarray';
       const result = math.preluDer(x, a);
 
       expect(result.shape).toEqual(x.shape);
-      test_util.expectArraysClose(
-          result.dataSync(), new Float32Array([1, 0.3, NaN]));
+      test_util.expectArraysClose(result, [1, 0.3, NaN]);
     });
   };
 

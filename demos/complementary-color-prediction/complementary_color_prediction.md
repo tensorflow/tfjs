@@ -256,7 +256,7 @@ predict(rgbColor: number[]): number[] {
       data: Array1D.new(this.normalizeColor(rgbColor)),
     }];
     const evalOutput = this.session.eval(this.predictionTensor, mapping);
-    const values = evalOutput.getValues();
+    const values = evalOutput.dataSync();
     const colors = this.denormalizeColor(Array.prototype.slice.call(values));
 
     // Make sure the values are within range.

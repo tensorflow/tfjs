@@ -25,8 +25,7 @@ const commonTests: MathTests = it => {
     const a = Array2D.new([3, 3], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
     const aPrime = math.clone(a);
     expect(aPrime.shape).toEqual(a.shape);
-    test_util.expectArraysClose(aPrime.getValues(), a.getValues());
-    a.dispose();
+    test_util.expectArraysClose(aPrime, a);
   });
 };
 

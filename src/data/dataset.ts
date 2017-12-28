@@ -80,7 +80,7 @@ export abstract class InMemoryDataset {
         exampleIndices.slice(exampleIndices.length * STATS_SAMPLE_PERCENTAGE);
 
     for (let i = 0; i < exampleIndices.length; i++) {
-      const inputValues = data[exampleIndices[i]].getValues();
+      const inputValues = data[exampleIndices[i]].dataSync();
       for (let j = 0; j < inputValues.length; j++) {
         inputMin = Math.min(inputMin, inputValues[j]);
         inputMax = Math.max(inputMax, inputValues[j]);
@@ -121,7 +121,7 @@ export abstract class InMemoryDataset {
     const newExamples: NDArray[] = [];
 
     examples.forEach(example => {
-      const inputValues = example.getValues();
+      const inputValues = example.dataSync();
       const normalizedValues = new Float32Array(inputSize);
       for (let j = 0; j < inputSize; j++) {
         const curLowerBound = curBoundsIsPerDimension ?
@@ -173,7 +173,7 @@ export abstract class InMemoryDataset {
     }
 
     this.dataset[dataIndex].forEach(example => {
-      const inputValues = example.getValues();
+      const inputValues = example.dataSync();
       for (let k = 0; k < size; k++) {
         this.normalizationInfo[dataIndex].minValues[k] = Math.min(
             this.normalizationInfo[dataIndex].minValues[k], inputValues[k]);

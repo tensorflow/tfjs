@@ -36,12 +36,8 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([-1]);
 
       const result = math.conv2d(x, w, bias, stride, pad);
-      const expected = new Float32Array([1, 3, 5, 7]);
 
-      test_util.expectArraysClose(result.getValues(), expected);
-      x.dispose();
-      w.dispose();
-      bias.dispose();
+      test_util.expectArraysClose(result, [1, 3, 5, 7]);
     });
 
     it('input=2x2x1,d2=1,f=1,s=1,p=0,batch=2', math => {
@@ -58,12 +54,9 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       const result = math.conv2d(x, w, bias, stride, pad);
       expect(result.shape).toEqual([2, 2, 2, 1]);
-      const expected = new Float32Array([1, 3, 5, 7, 9, 11, 13, 15]);
+      const expected = [1, 3, 5, 7, 9, 11, 13, 15];
 
-      test_util.expectArraysClose(result.getValues(), expected);
-      x.dispose();
-      w.dispose();
-      bias.dispose();
+      test_util.expectArraysClose(result, expected);
     });
 
     it('input=2x2x1,d2=1,f=2,s=1,p=0', math => {
@@ -80,13 +73,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([-1]);
 
       const result = math.conv2d(x, w, bias, stride, pad);
-      const expected = new Float32Array([19]);
-
-      test_util.expectArraysClose(result.getValues(), expected);
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
+      test_util.expectArraysClose(result, [19]);
     });
 
     it('throws when x is not rank 3', math => {
@@ -103,10 +90,6 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
 
     it('throws when weights is not rank 4', math => {
@@ -121,10 +104,6 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
 
     it('throws when biases is not rank 1', math => {
@@ -142,10 +121,6 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias: any = Array2D.new([2, 2], [2, 2, 2, 2]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
 
     it('throws when x depth does not match weight depth', math => {
@@ -163,10 +138,6 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const bias = Array1D.new([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
-
-      x.dispose();
-      w.dispose();
-      bias.dispose();
     });
   };
 

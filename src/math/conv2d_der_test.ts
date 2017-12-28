@@ -38,14 +38,11 @@ import {Array3D, Array4D} from './ndarray';
       const dy = Array3D.new([2, 2, 1], [3, 1, 2, 0]);
 
       const result = math.conv2dDerFilter(x, dy, weightsShape, stride, pad);
-      const expected = new Float32Array([13, 19, 31, 37]);
+      const expected = [13, 19, 31, 37];
 
       expect(result.shape).toEqual(weightsShape);
       // TODO(nsthorat): Fix the precision for byte textures.
-      test_util.expectArraysClose(result.getValues(), expected, 1e-1);
-
-      x.dispose();
-      dy.dispose();
+      test_util.expectArraysClose(result, expected, 1e-1);
     });
 
     it('input=3x3x1,d2=1,f=2,s=1,p=0, batch=2', math => {
@@ -65,14 +62,11 @@ import {Array3D, Array4D} from './ndarray';
       const dy = Array4D.new([2, 2, 2, 1], [3, 1, 2, 0, 3, 1, 2, 0]);
 
       const result = math.conv2dDerFilter(x, dy, weightsShape, stride, pad);
-      const expected = new Float32Array([13 * 2, 19 * 2, 31 * 2, 37 * 2]);
+      const expected = [13 * 2, 19 * 2, 31 * 2, 37 * 2];
 
       expect(result.shape).toEqual(weightsShape);
       // TODO(nsthorat): Fix the precision for byte textures.
-      test_util.expectArraysClose(result.getValues(), expected, 1e-1);
-
-      x.dispose();
-      dy.dispose();
+      test_util.expectArraysClose(result, expected, 1e-1);
     });
   };
 
@@ -93,11 +87,10 @@ import {Array3D, Array4D} from './ndarray';
       const dy = Array3D.new(dyShape, [1, 2, 3, 4, 5, 6, 7, 8]);
 
       const result = math.conv2dDerBias(dy);
-      const expected = new Float32Array([16, 20]);
+      const expected = [16, 20];
 
       expect(result.shape).toEqual([outputDepth]);
-      test_util.expectArraysClose(result.getValues(), expected);
-      dy.dispose();
+      test_util.expectArraysClose(result, expected);
     });
 
     it('dy=2x2x2, batch=2', math => {
@@ -107,11 +100,10 @@ import {Array3D, Array4D} from './ndarray';
           dyShape, [1, 2, 3, 4, 5, 6, 7, 8, 9, 5, 4, 3, 2, 1, 0, 3]);
 
       const result = math.conv2dDerBias(dy);
-      const expected = new Float32Array([31, 32]);
+      const expected = [31, 32];
 
       expect(result.shape).toEqual([outputDepth]);
-      test_util.expectArraysClose(result.getValues(), expected);
-      dy.dispose();
+      test_util.expectArraysClose(result, expected);
     });
   };
 

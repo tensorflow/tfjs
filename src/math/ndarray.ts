@@ -129,7 +129,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
 
   /** Creates a ndarray with the same values/shape as the specified ndarray. */
   static like<G extends keyof DataTypes, T extends NDArray<G>>(another: T): T {
-    const newValues = copyTypedArray(another.getValues(), another.dtype);
+    const newValues = copyTypedArray(another.dataSync(), another.dtype);
     return NDArray.make(
                another.shape, {values: newValues}, another.dtype,
                another.math) as T;
@@ -259,7 +259,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     for (let i = 0; i < locs.length - 1; ++i) {
       index += this.strides[i] * locs[i];
     }
-    return this.getValues()[index];
+    return this.dataSync()[index];
   }
 
   add(value: number, ...locs: number[]) {
@@ -276,7 +276,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
     for (let i = 0; i < locs.length - 1; ++i) {
       index += this.strides[i] * locs[i];
     }
-    const vals = this.getValues();
+    const vals = this.dataSync();
     vals[index] = value;
     this.math.write(this.id, vals, this.dtype, this.shape);
   }
@@ -309,7 +309,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
 
   fill(value: number) {
     this.throwIfDisposed();
-    const vals = this.getValues();
+    const vals = this.dataSync();
     vals.fill(value);
     this.math.write(this.id, vals, this.dtype, this.shape);
   }
@@ -350,7 +350,7 @@ export class NDArray<T extends keyof DataTypes = keyof DataTypes> {
   equals(t: NDArray<T>): boolean {
     this.throwIfDisposed();
     return this.dtype === t.dtype && util.arraysEqual(this.shape, t.shape) &&
-        util.arraysEqual(this.getValues(), t.getValues());
+        util.arraysEqual(this.dataSync(), t.dataSync());
   }
 
   static rand<T extends keyof DataTypes>(
@@ -418,7 +418,7 @@ export class Scalar<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   get(): number {
-    return this.getValues()[0];
+    return this.dataSync()[0];
   }
 
   async val(): Promise<number> {
@@ -427,7 +427,7 @@ export class Scalar<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   add(value: number) {
-    this.getValues()[0] += value;
+    this.dataSync()[0] += value;
   }
 
   asType<G extends keyof DataTypes>(dtype: G): Scalar<G> {
@@ -460,7 +460,7 @@ export class Array1D<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   get(i: number): number {
-    return this.getValues()[i];
+    return this.dataSync()[i];
   }
 
   async val(i: number): Promise<number> {
@@ -469,7 +469,7 @@ export class Array1D<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   add(value: number, i: number) {
-    this.getValues()[i] += value;
+    this.dataSync()[i] += value;
   }
 
   locToIndex(loc: [number]): number {
@@ -557,11 +557,11 @@ export class Array2D<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   get(i: number, j: number) {
-    return this.getValues()[this.stride0 * i + j];
+    return this.dataSync()[this.stride0 * i + j];
   }
 
   add(value: number, i: number, j: number) {
-    this.getValues()[this.stride0 * i + j] += value;
+    this.dataSync()[this.stride0 * i + j] += value;
   }
 
   async val(i: number, j: number): Promise<number> {
@@ -655,7 +655,7 @@ export class Array3D<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   get(i: number, j: number, k: number) {
-    return this.getValues()[this.stride0 * i + this.stride1 * j + k];
+    return this.dataSync()[this.stride0 * i + this.stride1 * j + k];
   }
 
   async val(i: number, j: number, k: number): Promise<number> {
@@ -664,7 +664,7 @@ export class Array3D<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   add(value: number, i: number, j: number, k: number) {
-    this.getValues()[this.stride0 * i + this.stride1 * j + k] += value;
+    this.dataSync()[this.stride0 * i + this.stride1 * j + k] += value;
   }
 
   locToIndex(locs: [number, number, number]): number {
@@ -758,8 +758,8 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   get(i: number, j: number, k: number, l: number) {
-    return this.getValues()
-        [this.stride0 * i + this.stride1 * j + this.stride2 * k + l];
+    return this
+        .dataSync()[this.stride0 * i + this.stride1 * j + this.stride2 * k + l];
   }
 
   async val(i: number, j: number, k: number, l: number): Promise<number> {
@@ -768,7 +768,7 @@ export class Array4D<T extends keyof DataTypes = keyof DataTypes> extends
   }
 
   add(value: number, i: number, j: number, k: number, l: number) {
-    this.getValues()
+    this.dataSync()
         [this.stride0 * i + this.stride1 * j + this.stride2 * k + l] += value;
   }
 

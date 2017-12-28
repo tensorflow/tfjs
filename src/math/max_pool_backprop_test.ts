@@ -29,11 +29,8 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 2, 1, 0);
 
-      const expected = new Float32Array([0, 0, 0, 0, 1, 2, 0, 3, 4]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      const expected = [0, 0, 0, 0, 1, 2, 0, 3, 4];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=3x3x1, f=2, s=1, no duplicate max value, test #2', math => {
@@ -42,11 +39,8 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 2, 1, 0);
 
-      const expected = new Float32Array([1, 0, 0, 0, 2, 0, 3, 0, 4]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      const expected = [1, 0, 0, 0, 2, 0, 3, 0, 4];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=3x3x1, f=2, s=1 duplicate max value, test 1', math => {
@@ -55,11 +49,8 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 2, 1, 0);
 
-      const expected = new Float32Array([0, 0, 0, 0, 10, 0, 0, 0, 0]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      const expected = [0, 0, 0, 0, 10, 0, 0, 0, 0];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=3x3x1, f=2, s=1 duplicate max value, test 2', math => {
@@ -68,11 +59,8 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 2, 1, 0);
 
-      const expected = new Float32Array([0, 3, 0, 0, 3, 0, 0, 0, 4]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      const expected = [0, 3, 0, 0, 3, 0, 0, 0, 4];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=3x3x1, f=2, s=1, batch=2, duplicate max value in 2nd input', math => {
@@ -84,10 +72,7 @@ import {Array3D, Array4D} from './ndarray';
 
       const expected = new Float32Array(
           [0, 0, 0, 0, 1, 2, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 15, 0]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=4x4x1, f=2, s=2, test #1', math => {
@@ -97,25 +82,17 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 2, 2, 0);
 
-      const expected =
-          new Float32Array([0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 3, 0, 4]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      const expected = [0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 3, 0, 4];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=4x4x1, f=2, s=2, test #2', math => {
       const dy = Array3D.new([2, 2, 1], [1, 2, 3, 4]);
       const x = Array3D.new(
           [4, 4, 1], [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1]);
-      const expected =
-          new Float32Array([0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 0]);
+      const expected = [0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 0];
       const dx = math.maxPoolBackprop(dy, x, 2, 2, 0);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=5x5x1, f=3, s=2 no duplicate max value', math => {
@@ -127,14 +104,11 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 3, 2, 0);
 
-      const expected = new Float32Array([
+      const expected = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
         0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 4
-      ]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      ];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=5x5x1, f=3, s=2 duplicate max value', math => {
@@ -146,14 +120,11 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 3, 2, 0);
 
-      const expected = new Float32Array([
+      const expected = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-      ]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      ];
+      test_util.expectArraysClose(dx, expected);
     });
 
     // Max pool backprop depth > 1.
@@ -168,12 +139,9 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 2, 1, 0);
 
-      const expected = new Float32Array(
-          [0, 44, 0, 0, 0, 0, 0, 0, 1, 33, 2, 0, 0, 22, 3, 0, 4, 11]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      const expected =
+          [0, 44, 0, 0, 0, 0, 0, 0, 1, 33, 2, 0, 0, 22, 3, 0, 4, 11];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=3x3x2, f=2, s=1, duplicate max value', math => {
@@ -188,10 +156,7 @@ import {Array3D, Array4D} from './ndarray';
 
       const expected = new Float32Array(
           [0, 0, 0, 77, 0, 0, 0, 0, 10, 22, 0, 0, 0, 0, 0, 0, 0, 11]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=4x4x2, f=2, s=1', math => {
@@ -206,14 +171,11 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 2, 2, 0);
 
-      const expected = new Float32Array([
+      const expected = [
         0, 0, 0, 11, 0, 22, 0, 0, 0, 0, 1, 0,  0, 0,  2, 0,
         0, 0, 0, 0,  0, 0,  0, 0, 0, 0, 3, 33, 0, 44, 4, 0
-      ]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      ];
+      test_util.expectArraysClose(dx, expected);
     });
 
     it('x=5x5x2, f=3, s=2 no duplicate max value', math => {
@@ -229,15 +191,12 @@ import {Array3D, Array4D} from './ndarray';
 
       const dx = math.maxPoolBackprop(dy, x, 3, 2, 0);
 
-      const expected = new Float32Array([
+      const expected = [
         0, 0, 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 1, 110, 0, 0, 2, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0,   0, 3, 0, 0, 0, 4, 0
-      ]);
-      test_util.expectArraysClose(dx.getValues(), expected);
-
-      dy.dispose();
-      x.dispose();
+      ];
+      test_util.expectArraysClose(dx, expected);
     });
   };
 

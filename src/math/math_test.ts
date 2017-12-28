@@ -41,8 +41,7 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
           // result is new. All intermediates should be disposed.
           expect(math.getNumArrays()).toBe(2 + 1);
-          test_util.expectArraysClose(
-              await result.data(), new Float32Array([4, 8, 12]));
+          test_util.expectArraysClose(result, [4, 8, 12]);
         });
 
         // a, b are still here, result should be disposed.
@@ -77,10 +76,8 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
         // the 2 results are new. All intermediates should be disposed.
         expect(math.getNumArrays()).toBe(4);
-        test_util.expectArraysClose(
-            await result[0].data(), new Float32Array([1, 1, 4]));
-        test_util.expectArraysClose(
-            await result[1].data(), new Float32Array([1, 3, 2]));
+        test_util.expectArraysClose(result[0], [1, 1, 4]);
+        test_util.expectArraysClose(result[1], [1, 3, 2]);
         expect(math.getNumArrays()).toBe(4);
       });
 
@@ -122,11 +119,9 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
           return math.add(a, c);
         });
 
-        const data = await result.data();
-
         // result is new. All intermediates should be disposed.
         expect(math.getNumArrays()).toBe(3);
-        test_util.expectArraysClose(data, new Float32Array([4, 8, 12]));
+        test_util.expectArraysClose(result, [4, 8, 12]);
       });
 
       // result should be disposed. a and b are still allocated.
@@ -166,8 +161,7 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
         });
 
         expect(math.getNumArrays()).toBe(3);
-        test_util.expectArraysClose(
-            await result.data(), new Float32Array([4, 8, 12]));
+        test_util.expectArraysClose(result, [4, 8, 12]);
       });
       expect(math.getNumArrays()).toBe(2);
     });
@@ -186,56 +180,35 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
     it('debug mode does not error when no nans', math => {
       math.enableDebugMode();
       const a = Array1D.new([2, -1, 0, 3]);
-
       const res = math.relu(a);
-
-      test_util.expectArraysClose(
-          res.getValues(), new Float32Array([2, 0, 0, 3]));
-
-      a.dispose();
+      test_util.expectArraysClose(res, [2, 0, 0, 3]);
     });
 
     it('debug mode errors when there are nans, float32', math => {
       math.enableDebugMode();
       const a = Array1D.new([2, NaN]);
-
       const f = () => math.relu(a);
-
       expect(f).toThrowError();
-
-      a.dispose();
     });
 
     it('debug mode errors when there are nans, int32', math => {
       math.enableDebugMode();
       const a = Array1D.new([2, util.NAN_INT32], 'int32');
-
       const f = () => math.relu(a);
-
       expect(f).toThrowError();
-
-      a.dispose();
     });
 
     it('debug mode errors when there are nans, bool', math => {
       math.enableDebugMode();
       const a = Array1D.new([1, util.NAN_BOOL], 'bool');
-
       const f = () => math.relu(a);
-
       expect(f).toThrowError();
-
-      a.dispose();
     });
 
     it('no errors where there are nans, and debug mode is disabled', math => {
       const a = Array1D.new([2, NaN]);
-
       const res = math.relu(a);
-
-      test_util.expectArraysClose(res.getValues(), new Float32Array([2, NaN]));
-
-      a.dispose();
+      test_util.expectArraysClose(res, [2, NaN]);
     });
   };
 
@@ -264,12 +237,10 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
       const res = math.add(a, b);
 
-      expect(res.getValues()).toEqual(new Int32Array([
+      test_util.expectArraysEqual(res, [
         120, 120, 120, 120, 120, 120, 120, 120, 270, 270, 270, 270, 270, 270,
         270, 270
-      ]));
-
-      a.dispose();
+      ]);
     });
   };
 
@@ -411,9 +382,8 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       test_util.expectArraysClose(
           gradients.a,
           math.matMul(
-                  dedm, b, MatrixOrientation.REGULAR,
-                  MatrixOrientation.TRANSPOSED)
-              .dataSync());
+              dedm, b, MatrixOrientation.REGULAR,
+              MatrixOrientation.TRANSPOSED));
 
       // de/db = dot(aT, de/dy)
       test_util.expectArraysClose(

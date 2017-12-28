@@ -65,7 +65,7 @@ export class BackendEngine {
     }
     const result = kernelFn();
     if (this.debugMode) {
-      const vals = result.getValues();
+      const vals = result.dataSync();
       const time = util.rightPad(`${performance.now() - start}ms`, 9);
       const paddedName = util.rightPad(kernelName, 25);
       const rank = result.rank;

@@ -46,13 +46,13 @@ describe('momentum optimizer', () => {
       //                momentum* old_vel_w2 + x_2] = [2,4]
       // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.2, -0.4]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw = session.activationArrayMap.get(w).getValues();
+      const dydw = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw, new Float32Array([-.2, -0.4]));
       // velocity_w = [momentum* old_vel_w1 + x_1,
       //                momentum* old_vel_w2 + x_2] = [3,6]
       // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.5, -1.0]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw2 = session.activationArrayMap.get(w).getValues();
+      const dydw2 = session.activationArrayMap.get(w).dataSync();
       test_util.expectArraysClose(dydw2, new Float32Array([-.5, -1.0]));
     });
   });

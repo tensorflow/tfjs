@@ -61,7 +61,7 @@ describe('add operation', () => {
     const yVal = activations.get(y);
 
     expect(yVal.shape).toEqual([3]);
-    expect(yVal.getValues()).toEqual(new Float32Array([-2, 2, 0]));
+    expect(yVal.dataSync()).toEqual(new Float32Array([-2, 2, 0]));
 
     const dy = Array1D.new([6, 7, 8]);
     gradients.add(y, dy);
@@ -72,10 +72,10 @@ describe('add operation', () => {
     const dx2 = gradients.get(t2);
 
     expect(dx1.shape).toEqual(x1.shape);
-    expect(dx1.getValues()).toEqual(dy.getValues());
+    expect(dx1.dataSync()).toEqual(dy.dataSync());
 
     expect(dx2.shape).toEqual(x2.shape);
-    expect(dx2.getValues()).toEqual(new Float32Array([-6, -7, -8]));
+    expect(dx2.dataSync()).toEqual(new Float32Array([-6, -7, -8]));
   });
 
   it('subtracts two 2-D tensors', () => {
@@ -94,7 +94,7 @@ describe('add operation', () => {
     const yVal = activations.get(y);
 
     expect(yVal.shape).toEqual([2, 3]);
-    expect(yVal.getValues()).toEqual(new Float32Array([-8, -6, -4, -2, 0, 2]));
+    expect(yVal.dataSync()).toEqual(new Float32Array([-8, -6, -4, -2, 0, 2]));
 
     const dy = Array2D.new([2, 3], [10, 11, 12, 13, 14, 15]);
     gradients.add(y, dy);
@@ -105,10 +105,10 @@ describe('add operation', () => {
     const dx2 = gradients.get(t2);
 
     expect(dx1.shape).toEqual(x1.shape);
-    expect(dx1.getValues()).toEqual(dy.getValues());
+    expect(dx1.dataSync()).toEqual(dy.dataSync());
 
     expect(dx2.shape).toEqual(x2.shape);
-    expect(dx2.getValues()).toEqual(new Float32Array([
+    expect(dx2.dataSync()).toEqual(new Float32Array([
       -10, -11, -12, -13, -14, -15
     ]));
   });
@@ -129,7 +129,7 @@ describe('add operation', () => {
     const yVal = activations.get(y);
 
     expect(yVal.shape).toEqual([2, 3]);
-    expect(yVal.getValues()).toEqual(new Float32Array([-1, 0, 1, 2, 3, 4]));
+    expect(yVal.dataSync()).toEqual(new Float32Array([-1, 0, 1, 2, 3, 4]));
 
     const dy = Array2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
     gradients.add(y, dy);
@@ -140,7 +140,7 @@ describe('add operation', () => {
     const dx2 = gradients.get(t2);
 
     expect(dx1.shape).toEqual(x1.shape);
-    expect(dx1.getValues()).toEqual(dy.getValues());
+    expect(dx1.dataSync()).toEqual(dy.dataSync());
 
     expect(dx2.shape).toEqual(x2.shape);
     expect(dx2.get()).toEqual(-42);
@@ -162,7 +162,7 @@ describe('add operation', () => {
     const yVal = activations.get(y);
 
     expect(yVal.shape).toEqual([2, 3]);
-    expect(yVal.getValues()).toEqual(new Float32Array([1, 0, -1, -2, -3, -4]));
+    expect(yVal.dataSync()).toEqual(new Float32Array([1, 0, -1, -2, -3, -4]));
 
     const dy = Array2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
     gradients.add(y, dy);
@@ -176,7 +176,7 @@ describe('add operation', () => {
     expect(dx1.get()).toEqual(42);
 
     expect(dx2.shape).toEqual(x2.shape);
-    expect(dx2.getValues()).toEqual(new Float32Array([
+    expect(dx2.dataSync()).toEqual(new Float32Array([
       -2, -4, -6, -8, -10, -12
     ]));
   });

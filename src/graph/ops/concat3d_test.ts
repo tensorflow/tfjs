@@ -62,7 +62,7 @@ describe('concat3d operation', () => {
     const y = tensorArrayMap.get(yTensor);
 
     expect(y.shape).toEqual([2, 1, 3]);
-    expect(y.getValues()).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
+    expect(y.dataSync()).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
   });
 
   it('concats tensors, axis=1', () => {
@@ -85,7 +85,7 @@ describe('concat3d operation', () => {
     const y = tensorArrayMap.get(yTensor);
 
     expect(y.shape).toEqual([1, 2, 3]);
-    expect(y.getValues()).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
+    expect(y.dataSync()).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
   });
 
   it('concats tensors, axis=2', () => {
@@ -108,6 +108,6 @@ describe('concat3d operation', () => {
     const y = tensorArrayMap.get(yTensor);
 
     expect(y.shape).toEqual([1, 1, 6]);
-    expect(y.getValues()).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
+    expect(y.dataSync()).toEqual(new Float32Array([1, 2, 3, 4, 5, 6]));
   });
 });

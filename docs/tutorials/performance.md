@@ -31,7 +31,7 @@ to be scheduled. There are exceptions to this rule, for example if there isn't a
 lot of work to be done.
 
 
-### Understanding CPU / GPU interlocks and `NDArray.getValuesAsync()`
+### Understanding CPU / GPU interlocks and `NDArray.data()`
 
 The most common thing that will cause a performance issue is a blocking
 `gl.readPixels` call on the main thread. This is the underlying WebGL call
