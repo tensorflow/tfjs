@@ -88,7 +88,8 @@ export class SoftmaxCrossEntropyCost extends Operation {
 }
 
 export function crossEntropyCost(
-    math: NDArrayMath, y: Array1D, target: Array1D, epsilon: Scalar): Scalar {
+    math: NDArrayMath, y: Array1D, target: Array1D,
+    epsilon: Scalar): Scalar<'float32'> {
   util.assert(
       y.size === target.size, 'The output and target must be the same size');
 

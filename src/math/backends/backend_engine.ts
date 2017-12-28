@@ -16,8 +16,7 @@
  */
 
 import * as util from '../../util';
-import {DataTypes, NDArray, Scalar} from '../ndarray';
-
+import {DataType, NDArray, Scalar} from '../ndarray';
 import {MathBackend} from './backend';
 import * as kernel_registry from './kernel_registry';
 import {KernelConfigRegistry} from './kernel_registry';
@@ -114,7 +113,7 @@ export class BackendEngine {
     }, gradientsMode);
 
     if (returnValue) {
-      return {value: result[0], gradients: result.slice(1)};
+      return {value: result[0] as Scalar, gradients: result.slice(1)};
     } else {
       return result;
     }
@@ -153,10 +152,10 @@ export class BackendEngine {
   scope<T extends ScopeResult>(
       name: string,
       scopeFn:
-          (keep: <D1 extends keyof DataTypes, T1 extends NDArray<D1>>(
-               ndarray: T1) => T1,
-           track: <D2 extends keyof DataTypes, T2 extends NDArray<D2>>(
-               ndarray: T2) => T2) => T,
+          (keep:
+               <D1 extends DataType, T1 extends NDArray<D1>>(ndarray: T1) => T1,
+           track: <D2 extends DataType, T2 extends NDArray<D2>>(ndarray: T2) =>
+               T2) => T,
       gradientsMode: boolean): T {
     this.startScope(gradientsMode);
 
@@ -260,7 +259,7 @@ export class BackendEngine {
    *
    * @param result The NDArray to track in the current scope.
    */
-  track<G extends keyof DataTypes, T extends NDArray<G>>(result: T): T {
+  track<G extends DataType, T extends NDArray<G>>(result: T): T {
     if (this.scopeStack.length === 1) {
       if (this.safeMode) {
         throw new Error(

@@ -71,7 +71,7 @@ export class GraphRunner {
   private isTraining: boolean;
   private totalBatchesTrained: number;
   private batchesTrainedThisRun: number;
-  private lastComputedMetric: NDArray;
+  private lastComputedMetric: Scalar;
 
   private isInferring: boolean;
   private lastInferTimeoutID: number;
@@ -82,7 +82,7 @@ export class GraphRunner {
   private lastCostTimestamp = 0;
   private lastEvalTimestamp = 0;
 
-  private zeroScalar: Scalar;
+  private zeroScalar: Scalar<'float32'>;
   private metricBatchSizeScalar: Scalar;
 
   constructor(
@@ -203,7 +203,6 @@ export class GraphRunner {
       if (this.eventObserver.batchesTrainedCallback != null) {
         this.eventObserver.batchesTrainedCallback(this.totalBatchesTrained);
       }
-
     });
     requestAnimationFrame(() => this.trainNetwork());
   }
@@ -285,7 +284,6 @@ export class GraphRunner {
         this.eventObserver.inferenceExamplesCallback(feeds, inferenceValues);
       }
       this.inferencePassesThisRun++;
-
     });
     this.lastInferTimeoutID = window.setTimeout(
         () => this.inferNetwork(), this.inferenceExampleIntervalMs);
@@ -300,7 +298,7 @@ export class GraphRunner {
     return this.isInferring;
   }
 
-  computeMetric(): Scalar {
+  computeMetric(): Scalar<'float32'> {
     if (this.metricFeedEntries == null) {
       throw new Error('Cannot compute metric, no metric FeedEntries provided.');
     }

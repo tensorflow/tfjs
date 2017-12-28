@@ -62,7 +62,6 @@ export class AdamaxOptimizer extends Optimizer {
       gradientArrayMap: SummedTensorArrayMap) {
     math.scope((keep) => {
       this.variableNodes.forEach(node => {
-
         const oldVariable = activationArrayMap.get(node.output);
 
         const gradient = this.variableGradients.get(node.output);
@@ -82,9 +81,9 @@ export class AdamaxOptimizer extends Optimizer {
 
         const variable = math.scaledArrayAdd(
             this.one, oldVariable,
-            math.divide(this.c, math.subtract(this.one, this.accB1)),
-            math.divide(newFirstMoment, 
-              math.add(this.eps, newWeightedInfNorm)));
+            math.divideStrict(this.c, math.subtract(this.one, this.accB1)),
+            math.divide(
+                newFirstMoment, math.add(this.eps, newWeightedInfNorm)));
 
         activationArrayMap.set(node.output, keep(variable));
         node.data = variable;

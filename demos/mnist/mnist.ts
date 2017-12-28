@@ -71,7 +71,8 @@ export interface SampleData {
  * is the lowest level user-facing API in deeplearn.js giving the most control
  * to the user. Math commands execute immediately, like numpy.
  */
-export function infer(x: Array1D, vars: {[varName: string]: NDArray}): Scalar {
+export function infer(
+    x: Array1D, vars: {[varName: string]: NDArray}): Scalar<'int32'> {
   const hidden1W = vars['hidden1/weights'] as Array2D;
   const hidden1B = vars['hidden1/biases'] as Array1D;
   const hidden2W = vars['hidden2/weights'] as Array2D;

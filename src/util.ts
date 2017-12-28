@@ -1,4 +1,4 @@
-import {DataTypes, NDArray} from './math/ndarray';
+import {DataType, DataTypeMap, NDArray} from './math/ndarray';
 
 /**
  * @license
@@ -311,8 +311,8 @@ export function squeezeShape(shape: number[]):
   return {newShape, keptDims};
 }
 
-export function getTypedArrayFromDType<D extends keyof DataTypes>(
-    dtype: D, size: number): DataTypes[D] {
+export function getTypedArrayFromDType<D extends DataType>(
+    dtype: D, size: number): DataTypeMap[D] {
   let values = null;
   if (dtype == null || dtype === 'float32') {
     values = new Float32Array(size);
@@ -337,7 +337,7 @@ export function isNDArrayInList(
 }
 
 export function checkForNaN(
-    vals: TypedArray, dtype: keyof DataTypes, name: string): void {
+    vals: TypedArray, dtype: DataType, name: string): void {
   for (let i = 0; i < vals.length; i++) {
     if (isValNaN(vals[i], dtype)) {
       throw Error(`The result of the last math.${name} has NaNs.`);
