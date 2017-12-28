@@ -28,11 +28,11 @@ function getReductionOp(option: string, math: NDArrayMath): (input: NDArray) =>
     case 'min':
       return input => math.min(input);
     case 'argMax':
-      return input => math.argMax(input);
+      return input => math.argMax(input) as Scalar;
     case 'argMin':
-      return input => math.argMin(input);
+      return input => math.argMin(input) as Scalar;
     case 'sum':
-      return input => math.sum(input);
+      return input => math.sum(input) as Scalar;
     case 'logSumExp':
       return input => math.logSumExp(input);
     default:

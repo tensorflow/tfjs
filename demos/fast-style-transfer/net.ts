@@ -24,8 +24,8 @@ export class TransformNet implements Model {
   private variables: {[varName: string]: NDArray};
   private variableDictionary:
       {[styleName: string]: {[varName: string]: NDArray}};
-  private timesScalar: NDArray;
-  private plusScalar: NDArray;
+  private timesScalar: Scalar;
+  private plusScalar: Scalar;
   private epsilonScalar: NDArray;
   private math: NDArrayMath;
 

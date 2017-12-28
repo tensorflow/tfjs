@@ -40,17 +40,17 @@ export class Add extends Operation {
             util.sizeFromShape(x2Tensor.shape) === 1 ||
             util.arraysEqual(x1Tensor.shape, x2Tensor.shape) ||
             (x1Tensor.shape.length === 2 && x2Tensor.shape.length === 1 &&
-                x1Tensor.shape[1] === x2Tensor.shape[0]) ||
+             x1Tensor.shape[1] === x2Tensor.shape[0]) ||
             (x1Tensor.shape.length === 1 && x2Tensor.shape.length === 2 &&
-                x1Tensor.shape[0] === x2Tensor.shape[1]),
+             x1Tensor.shape[0] === x2Tensor.shape[1]),
         'One of t1 or t2 must be a scalar, or t1 and t2 must have ' +
             'the same shape, ' +
             'or one of them can be broadcasted (2D and 1D).');
   }
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
-    const x1 = inferenceArrays.get(this.x1Tensor);
-    const x2 = inferenceArrays.get(this.x2Tensor);
+    const x1 = inferenceArrays.get(this.x1Tensor) as Scalar;
+    const x2 = inferenceArrays.get(this.x2Tensor) as Scalar;
 
     math.scope((keep) => {
       let result: NDArray;

@@ -16,10 +16,10 @@
  */
 
 import {NDArrayMath} from '../../math/math';
+import {Scalar} from '../../math/ndarray';
 import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 /**
@@ -56,8 +56,8 @@ export class LinearCombination extends Operation {
       gradientArrays: SummedTensorArrayMap) {
     const x1 = inferenceArrays.get(this.x1Tensor);
     const x2 = inferenceArrays.get(this.x2Tensor);
-    const c1 = inferenceArrays.get(this.c1Tensor);
-    const c2 = inferenceArrays.get(this.c2Tensor);
+    const c1 = inferenceArrays.get(this.c1Tensor) as Scalar;
+    const c2 = inferenceArrays.get(this.c2Tensor) as Scalar;
     const dy = gradientArrays.get(this.outTensor);
 
     math.scope(() => {

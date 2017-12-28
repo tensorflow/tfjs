@@ -33,9 +33,9 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
         expect(math.getNumArrays()).toBe(2);
         await math.scope(async () => {
           const result = math.scope(() => {
-            b = math.add(a, b) as Array1D;
-            b = math.add(a, b) as Array1D;
-            b = math.add(a, b) as Array1D;
+            b = math.addStrict(a, b);
+            b = math.addStrict(a, b);
+            b = math.addStrict(a, b);
             return math.add(a, b);
           });
 
@@ -95,9 +95,9 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       expect(math.getNumArrays()).toBe(2);
 
       math.scope(() => {
-        b = math.add(a, b) as Array1D;
-        b = math.add(a, b) as Array1D;
-        b = math.add(a, b) as Array1D;
+        b = math.addStrict(a, b);
+        b = math.addStrict(a, b);
+        b = math.addStrict(a, b);
         math.add(a, b);
       });
 
@@ -139,25 +139,25 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
       await math.scope(async () => {
         const result = math.scope(() => {
-          b = math.add(a, b) as Array1D;
+          b = math.addStrict(a, b);
           b = math.scope(() => {
             b = math.scope(() => {
-              return math.add(a, b) as Array1D;
+              return math.addStrict(a, b);
             });
             // original a, b, and two intermediates.
             expect(math.getNumArrays()).toBe(4);
 
             math.scope(() => {
-              math.add(a, b);
+              math.addStrict(a, b);
             });
             // All the intermediates should be cleaned up.
             expect(math.getNumArrays()).toBe(4);
 
-            return math.add(a, b) as Array1D;
+            return math.addStrict(a, b);
           });
           expect(math.getNumArrays()).toBe(4);
 
-          return math.add(a, b) as Array1D;
+          return math.addStrict(a, b);
         });
 
         expect(math.getNumArrays()).toBe(3);

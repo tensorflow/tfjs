@@ -24,7 +24,7 @@ import * as concat_util from '../concat_util';
 import {Conv2DInfo} from '../conv_util';
 import {NDArrayMath} from '../math';
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, DataTypes, NDArray, Scalar} from '../ndarray';
+import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Scalar} from '../ndarray';
 import * as types from '../types';
 import {SumTypes, SumTypesMap} from '../types';
 
@@ -33,11 +33,11 @@ import {MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
 
 export class MathBackendCPU implements MathBackend {
-  private data: {[id: number]: DataTypes[keyof DataTypes]} = {};
+  private data: {[id: number]: DataTypeMap[DataType]} = {};
 
   dispose() {}
-  write<T extends keyof DataTypes>(
-      id: number, values: DataTypes[T], dtype: T, shape: number[]): void {
+  write<T extends DataType>(
+      id: number, values: DataTypeMap[T], dtype: T, shape: number[]): void {
     this.data[id] = values;
   }
   writePixels(
@@ -80,11 +80,11 @@ export class MathBackendCPU implements MathBackend {
     }
     this.data[id] = values;
   }
-  async read<T extends keyof DataTypes>(id: number): Promise<DataTypes[T]> {
+  async read<T extends DataType>(id: number): Promise<DataTypeMap[T]> {
     this.throwIfNoData(id);
     return this.data[id];
   }
-  readSync<T extends keyof DataTypes>(id: number): DataTypes[T] {
+  readSync<T extends DataType>(id: number): DataTypeMap[T] {
     this.throwIfNoData(id);
     return this.data[id];
   }
@@ -289,14 +289,13 @@ export class MathBackendCPU implements MathBackend {
     return this.multiply(Scalar.new(-1), x) as T;
   }
 
-  add<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
+  add<G extends DataType>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
     return this.broadcastedBinaryOp(
                a, b, types.upcastType(a.dtype, b.dtype),
                (aValue, bValue) => aValue + bValue) as NDArray<G>;
   }
 
-  subtract<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
-      NDArray<G> {
+  subtract<G extends DataType>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
     return this.broadcastedBinaryOp(
                a, b, types.upcastType(a.dtype, b.dtype),
                (aValue, bValue) => aValue - bValue) as NDArray<G>;
@@ -345,8 +344,7 @@ export class MathBackendCPU implements MathBackend {
     return Array2D.new([leftDim, rightDim], values);
   }
 
-  multiply<G extends keyof DataTypes>(a: NDArray<G>, b: NDArray<G>):
-      NDArray<G> {
+  multiply<G extends DataType>(a: NDArray<G>, b: NDArray<G>): NDArray<G> {
     return this.broadcastedBinaryOp(
                a, b, types.upcastType(a.dtype, b.dtype),
                (aValue, bValue) => aValue * bValue) as NDArray<G>;
@@ -358,8 +356,7 @@ export class MathBackendCPU implements MathBackend {
         NDArray<'float32'>;
   }
 
-  sum<T extends keyof DataTypes>(x: NDArray<T>, axes: number[]):
-      NDArray<SumTypes[T]> {
+  sum<T extends DataType>(x: NDArray<T>, axes: number[]): NDArray<SumTypes[T]> {
     axis_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -448,7 +445,7 @@ export class MathBackendCPU implements MathBackend {
     });
   }
 
-  topKValues<D extends keyof DataTypes, T extends NDArray<D>>(x: T, k: number):
+  topKValues<D extends DataType, T extends NDArray<D>>(x: T, k: number):
       Array1D<D> {
     return this.topK(x, k).values as Array1D<D>;
   }
@@ -457,8 +454,8 @@ export class MathBackendCPU implements MathBackend {
     return this.topK(x, k).indices;
   }
 
-  private topK<D extends keyof DataTypes, T extends NDArray<D>>(
-      x: T, k: number): {values: Array1D<D>, indices: Array1D<'int32'>} {
+  private topK<D extends DataType, T extends NDArray<D>>(x: T, k: number):
+      {values: Array1D<D>, indices: Array1D<'int32'>} {
     const values = x.dataSync();
     const valuesAndIndices: Array<{value: number, index: number}> = [];
     for (let i = 0; i < values.length; i++) {
@@ -480,7 +477,7 @@ export class MathBackendCPU implements MathBackend {
     };
   }
 
-  min<G extends keyof DataTypes>(x: NDArray<G>, axes: number[]): NDArray<G> {
+  min<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G> {
     axis_util.assertAxesAreInnerMostDims('min', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -507,7 +504,7 @@ export class MathBackendCPU implements MathBackend {
     return result;
   }
 
-  max<G extends keyof DataTypes>(x: NDArray<G>, axes: number[]): NDArray<G> {
+  max<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G> {
     axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -1001,8 +998,7 @@ export class MathBackendCPU implements MathBackend {
     return y;
   }
 
-  tile<D extends keyof DataTypes, T extends NDArray<D>>(x: T, reps: number[]):
-      T {
+  tile<D extends DataType, T extends NDArray<D>>(x: T, reps: number[]): T {
     const newShape: number[] = new Array(x.rank);
     for (let i = 0; i < newShape.length; i++) {
       newShape[i] = x.shape[i] * reps[i];
@@ -1035,8 +1031,7 @@ export class MathBackendCPU implements MathBackend {
     return result;
   }
 
-  transpose<D extends keyof DataTypes, T extends NDArray<D>>(
-      x: T, perm: number[]): T {
+  transpose<D extends DataType, T extends NDArray<D>>(x: T, perm: number[]): T {
     const newShape: number[] = new Array(x.rank);
     for (let i = 0; i < newShape.length; i++) {
       newShape[i] = x.shape[perm[i]];
@@ -1371,7 +1366,7 @@ export class MathBackendCPU implements MathBackend {
     return Array2D.new([indices.size, depth], res);
   }
 
-  private broadcastedBinaryOp<D extends keyof DataTypes>(
+  private broadcastedBinaryOp<D extends DataType>(
       a: NDArray, b: NDArray, dtype: D,
       op: (a: number, b: number) => number): NDArray<D> {
     const newShape =

@@ -16,7 +16,7 @@
  */
 
 import {NDArrayMath} from '../../math/math';
-import {NDArray} from '../../math/ndarray';
+import {NDArray, Scalar} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
@@ -45,8 +45,8 @@ export class Divide extends Operation {
   }
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
-    const t1 = inferenceArrays.get(this.x1Tensor);
-    const t2 = inferenceArrays.get(this.x2Tensor);
+    const t1 = inferenceArrays.get(this.x1Tensor) as Scalar;
+    const t2 = inferenceArrays.get(this.x2Tensor) as Scalar;
 
     math.scope((keep) => {
       let result: NDArray;
@@ -64,8 +64,8 @@ export class Divide extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: SummedTensorArrayMap) {
-    const x1 = inferenceArrays.get(this.x1Tensor);
-    const x2 = inferenceArrays.get(this.x2Tensor);
+    const x1 = inferenceArrays.get(this.x1Tensor) as Scalar;
+    const x2 = inferenceArrays.get(this.x2Tensor) as Scalar;
     const dy = gradientArrays.get(this.yTensor);
 
     const x1IsScalar = util.isScalarShape(x1.shape);

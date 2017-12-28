@@ -43,8 +43,8 @@ export class Subtract extends Operation {
   }
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
-    const t1 = inferenceArrays.get(this.t1);
-    const t2 = inferenceArrays.get(this.t2);
+    const t1 = inferenceArrays.get(this.t1) as Scalar;
+    const t2 = inferenceArrays.get(this.t2) as Scalar;
 
     math.scope((keep) => {
       let result: NDArray;
