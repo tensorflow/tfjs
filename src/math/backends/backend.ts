@@ -81,10 +81,12 @@ export interface MathBackend extends NDArrayStorage {
   topKIndices(x: NDArray, k: number): Array1D<'int32'>;
 
   min<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G>;
+  minimum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D>;
+
   max<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G>;
+  maximum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D>;
 
   ceil<T extends NDArray>(x: T): T;
-
   floor<T extends NDArray>(x: T): T;
 
   pow<T extends NDArray>(a: T, b: NDArray<'int32'>): T;

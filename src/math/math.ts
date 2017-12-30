@@ -679,6 +679,7 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
    * For a stricter version without broadcasting use math.equalStrict().
    */
   equal<T extends NDArray<'bool'>>(a: NDArray, b: NDArray): T {
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return this.backendEngine.executeKernel('Equal', {inputs: {a, b}}) as T;
   }
 
@@ -746,6 +747,23 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   }
 
   /**
+   * Returns the min of a and b (`a < b ? a : b`) element-wise.
+   * Supports broadcasting.
+   *
+   * @param a The first ndarray.
+   * @param b The second ndarray. Must have the same type as `a`.
+   */
+  minimum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D> {
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    util.assert(
+        a.dtype === b.dtype,
+        `The dtypes of the first (${a.dtype}) and ` +
+            `second (${b.dtype}) input must match`);
+    return this.backendEngine.executeKernel('Minimum', {inputs: {a, b}}) as
+        NDArray<D>;
+  }
+
+  /**
    * Computes the maximum of elements across dimensions of an array.
    *
    * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
@@ -777,6 +795,23 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
       }
       return res;
     }) as T;
+  }
+
+  /**
+   * Returns the max of a and b (`a > b ? a : b`) element-wise.
+   * Supports broadcasting.
+   *
+   * @param a The first ndarray.
+   * @param b The second ndarray. Must have the same type as `a`.
+   */
+  maximum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D> {
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    util.assert(
+        a.dtype === b.dtype,
+        `The dtypes of the first (${a.dtype}) and ` +
+            `second (${b.dtype}) input must match`);
+    return this.backendEngine.executeKernel('Maximum', {inputs: {a, b}}) as
+        NDArray<D>;
   }
 
   /**

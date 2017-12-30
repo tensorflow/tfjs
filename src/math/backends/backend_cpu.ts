@@ -504,6 +504,11 @@ export class MathBackendCPU implements MathBackend {
     return result;
   }
 
+  minimum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D> {
+    return this.broadcastedBinaryOp(
+        a, b, a.dtype, (aVal, bVal) => Math.min(aVal, bVal));
+  }
+
   max<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G> {
     axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
     const [outShape, reduceShape] =
@@ -529,6 +534,11 @@ export class MathBackendCPU implements MathBackend {
       vals[i] = max;
     }
     return result;
+  }
+
+  maximum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D> {
+    return this.broadcastedBinaryOp(
+        a, b, a.dtype, (aVal, bVal) => Math.max(aVal, bVal));
   }
 
   ceil<T extends NDArray>(x: T): T {

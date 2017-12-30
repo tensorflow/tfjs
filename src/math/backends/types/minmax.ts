@@ -20,11 +20,25 @@ import {DataType, NDArray} from '../../ndarray';
 // tslint:disable-next-line:max-line-length
 import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
 
-// Min
+// Reduction min.
 export interface MinNode<G extends DataType> extends KernelNode {
   inputAndArgs: MinInputConfig<G>;
   output: NDArray<G>;
   gradient: (dy: NDArray<G>, y: NDArray<G>) => MinGradientInputArrays<G>;
+}
+
+// Element-wise min.
+export interface MinimumNode<D extends DataType> extends KernelNode {
+  inputAndArgs: MinimumInputConfig<D>;
+  output: NDArray<D>;
+  gradient: (dy: NDArray<D>, y: NDArray<D>) => {
+    a: () => NDArray<D>, b: () => NDArray<D>
+  };
+}
+
+export interface MinimumInputConfig<D extends DataType> extends
+    KernelInputConfig {
+  inputs: {a: NDArray<D>, b: NDArray<D>};
 }
 
 export interface MinInputConfig<G extends DataType> extends KernelInputConfig {
@@ -40,11 +54,25 @@ export interface MinGradientInputArrays<G extends DataType> extends
   x: () => NDArray<G>;
 }
 
-// Max
+// Reduction Max
 export interface MaxNode<G extends DataType> extends KernelNode {
   inputAndArgs: MaxInputConfig<G>;
   output: NDArray<G>;
   gradient: (dy: NDArray<G>, y: NDArray<G>) => MaxGradientInputArrays<G>;
+}
+
+// Element-wise max.
+export interface MaximumNode<D extends DataType> extends KernelNode {
+  inputAndArgs: MaximumInputConfig<D>;
+  output: NDArray<D>;
+  gradient: (dy: NDArray<D>, y: NDArray<D>) => {
+    a: () => NDArray<D>, b: () => NDArray<D>
+  };
+}
+
+export interface MaximumInputConfig<D extends DataType> extends
+    KernelInputConfig {
+  inputs: {a: NDArray<D>, b: NDArray<D>};
 }
 
 export interface MaxInputConfig<G extends DataType> extends KernelInputConfig {
