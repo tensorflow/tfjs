@@ -5,7 +5,8 @@
     "**/bower_components": true,
     "coverage/": true,
     "dist/": true,
-    "**/bundle.js": true
+    "**/bundle.js": true,
+    "**/yarn.lock": true
   },
   "tslint.enable": true,
   "tslint.run": "onType",

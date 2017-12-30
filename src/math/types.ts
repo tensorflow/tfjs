@@ -1,4 +1,4 @@
-import {DType} from '../util';
+import {DataType} from './ndarray';
 
 /**
  * @license
@@ -77,6 +77,6 @@ const upcastTypeMap = {
   bool: UpcastBoolAndMap
 };
 
-export function upcastType(typeA: DType, typeB: DType): DType {
+export function upcastType(typeA: DataType, typeB: DataType): DataType {
   return upcastTypeMap[typeA][typeB];
 }

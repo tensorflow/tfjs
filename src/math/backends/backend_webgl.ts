@@ -479,6 +479,11 @@ export class MathBackendWebGL implements MathBackend {
     return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
   }
 
+  minimum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D> {
+    const program = new BinaryOpProgram(binaryop_gpu.MIN, a.shape, b.shape);
+    return this.compileAndRun(program, [a, b]);
+  }
+
   max<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G> {
     axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
     const [outShape, reduceShape] =
@@ -486,6 +491,11 @@ export class MathBackendWebGL implements MathBackend {
     const inSize = util.sizeFromShape(reduceShape);
     const a2D = x.as2D(-1, inSize);
     return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
+  }
+
+  maximum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D> {
+    const program = new BinaryOpProgram(binaryop_gpu.MAX, a.shape, b.shape);
+    return this.compileAndRun(program, [a, b]);
   }
 
   divide(a: NDArray, b: NDArray): NDArray<'float32'> {

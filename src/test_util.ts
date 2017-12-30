@@ -19,9 +19,9 @@ import {ENV, Features} from './environment';
 import {MathBackendCPU} from './math/backends/backend_cpu';
 import {MathBackendWebGL} from './math/backends/backend_webgl';
 import {NDArrayMath} from './math/math';
-import {NDArray} from './math/ndarray';
+import {DataType, NDArray} from './math/ndarray';
 import * as util from './util';
-import {DType, TypedArray} from './util';
+import {TypedArray} from './util';
 
 /** Accuracy for tests. */
 // TODO(nsthorat || smilkov): Fix this low precision for byte-backed textures.
@@ -108,8 +108,8 @@ export function expectArrayInMeanStdRange(
 }
 
 export function expectArraysClose(
-    actual: NDArray|TypedArray|number[], expected: NDArray|TypedArray|number[],
-    epsilon = TEST_EPSILON) {
+    actual: NDArray|TypedArray|number[],
+    expected: NDArray|TypedArray|number[]|boolean[], epsilon = TEST_EPSILON) {
   if (!(actual instanceof NDArray) && !(expected instanceof NDArray)) {
     const aType = actual.constructor.name;
     const bType = expected.constructor.name;
@@ -133,7 +133,7 @@ export function expectArraysClose(
   }
 
   let actualValues: TypedArray|number[];
-  let expectedValues: TypedArray|number[];
+  let expectedValues: TypedArray|number[]|boolean[];
   if (actual instanceof NDArray) {
     actualValues = actual.dataSync();
   } else {
@@ -154,7 +154,7 @@ export function expectArraysClose(
     const a = actualValues[i];
     const e = expectedValues[i];
 
-    if (!areClose(a, e, epsilon)) {
+    if (!areClose(a, Number(e), epsilon)) {
       const actualStr = `actual[${i}] === ${a}`;
       const expectedStr = `expected[${i}] === ${e}`;
       throw new Error('Arrays differ: ' + actualStr + ', ' + expectedStr);
@@ -164,7 +164,7 @@ export function expectArraysClose(
 
 export function expectArraysEqual(
     actual: NDArray|TypedArray|number[],
-    expected: NDArray|TypedArray|number[]) {
+    expected: NDArray|TypedArray|number[]|boolean[]) {
   return expectArraysClose(actual, expected, 0);
 }
 
@@ -370,7 +370,7 @@ export function executeTests(
   });
 }
 
-export function assertIsNan(val: number, dtype: DType) {
+export function assertIsNan(val: number, dtype: DataType) {
   if (!util.isValNaN(val, dtype)) {
     throw new Error(`Value ${val} does not represent NaN for dtype ${dtype}`);
   }

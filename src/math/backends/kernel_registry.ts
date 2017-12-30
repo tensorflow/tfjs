@@ -1,4 +1,4 @@
-import {NDArray} from '../ndarray';
+import {DataType, NDArray} from '../ndarray';
 
 import {MathBackend} from './backend';
 import {KernelInputConfig} from './tape_types';
@@ -14,12 +14,13 @@ import {Conv2DDerBiasInputConfig, Conv2DDerBiasNode, Conv2DDerFilterInputConfig,
 import {EqualInputConfig, EqualNode} from './types/logical';
 import {MatMulInputConfig, MatMulNode} from './types/matmul';
 // tslint:disable-next-line:max-line-length
-import {MaxInputConfig, MaxNode, MinInputConfig, MinNode} from './types/minmax';
+import {MaximumInputConfig, MaximumNode, MaxInputConfig, MaxNode, MinimumInputConfig, MinimumNode, MinInputConfig, MinNode} from './types/minmax';
 import {MultinomialInputConfig, MultinomialNode} from './types/multinomial';
 import {OneHotInputConfig, OneHotNode} from './types/onehot';
 // tslint:disable-next-line:max-line-length
 import {PoolBackpropInputConfig, PoolBackpropNode, PoolInputConfig, PoolNode} from './types/pool';
 import {PowInputConfig, PowNode} from './types/pow';
+import {PReLUInputConfig, PReLUNode} from './types/prelu';
 // tslint:disable-next-line:max-line-length
 import {ResizeBilinear3DInputConfig, ResizeBilinear3DNode} from './types/resize_bilinear';
 // tslint:disable-next-line:max-line-length
@@ -29,7 +30,6 @@ import {SumInputConfig, SumNode} from './types/sum';
 import {TopKIndicesInputConfig, TopKIndicesNode, TopKValuesInputConfig, TopKValuesNode} from './types/topk';
 // tslint:disable-next-line:max-line-length
 import {ClipInputConfig, ClipNode, LeakyReluInputConfig, LeakyReluNode, StepInputConfig, StepNode, TileInputConfig, TileNode, TransposeInputConfig, TransposeNode, UnaryInputConfig, UnaryNode} from './types/unary';
-import {PReLUNode, PReLUInputConfig} from './types/prelu';
 
 const KERNEL_METHODS: {
   [kernel in keyof KernelConfigRegistry]: (
@@ -106,16 +106,18 @@ const KERNEL_METHODS: {
   TopKIndices: (backend: MathBackend, config: TopKIndicesInputConfig) => {
     return backend.topKIndices(config.inputs.x, config.args.k);
   },
-  Min:
-      (backend: MathBackend,
-       config: MinInputConfig<'float32'|'int32'|'bool'>) => {
-        return backend.min(config.inputs.x, config.args.axes);
-      },
-  Max:
-      (backend: MathBackend,
-       config: MaxInputConfig<'float32'|'int32'|'bool'>) => {
-        return backend.max(config.inputs.x, config.args.axes);
-      },
+  Min: (backend: MathBackend, config: MinInputConfig<DataType>) => {
+    return backend.min(config.inputs.x, config.args.axes);
+  },
+  Minimum: (backend: MathBackend, config: MinimumInputConfig<DataType>) => {
+    return backend.minimum(config.inputs.a, config.inputs.b);
+  },
+  Max: (backend: MathBackend, config: MaxInputConfig<DataType>) => {
+    return backend.max(config.inputs.x, config.args.axes);
+  },
+  Maximum: (backend: MathBackend, config: MaximumInputConfig<DataType>) => {
+    return backend.maximum(config.inputs.a, config.inputs.b);
+  },
   Ceil: (backend: MathBackend, config: UnaryInputConfig<NDArray>) => {
     return backend.ceil(config.inputs.x);
   },
@@ -291,14 +293,16 @@ export interface KernelConfigRegistry {
   Sub: BinaryNode;
   Mul: BinaryNode;
   Div: BinaryNode;
-  Sum: SumNode<'float32'|'int32'|'bool'>;
+  Sum: SumNode<DataType>;
   ArgMax: ArgMaxNode;
   ArgMin: ArgMinNode;
   Equal: EqualNode;
-  TopKValues: TopKValuesNode<'float32'|'int32'|'bool', NDArray>;
+  TopKValues: TopKValuesNode<DataType, NDArray>;
   TopKIndices: TopKIndicesNode;
-  Min: MinNode<'float32'|'int32'|'bool'>;
-  Max: MaxNode<'float32'|'int32'|'bool'>;
+  Min: MinNode<DataType>;
+  Minimum: MinimumNode<DataType>;
+  Max: MaxNode<DataType>;
+  Maximum: MaximumNode<DataType>;
   Ceil: UnaryNode<NDArray>;
   Floor: UnaryNode<NDArray>;
   Pow: PowNode<NDArray>;
