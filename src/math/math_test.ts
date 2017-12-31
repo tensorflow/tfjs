@@ -113,9 +113,9 @@ import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
 
       await math.scope(async () => {
         const result = math.scope(() => {
-          let c = math.add(a, b) as Array1D;
-          c = math.add(a, c) as Array1D;
-          c = math.add(a, c) as Array1D;
+          let c = math.add(a, b);
+          c = math.add(a, c);
+          c = math.add(a, c);
           return math.add(a, c);
         });
 
