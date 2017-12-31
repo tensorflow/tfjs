@@ -308,7 +308,8 @@ export class GraphRunner {
     return this.math.scope((keep) => {
       for (let i = 0; i < this.metricBatchSize; i++) {
         const metricValue =
-            this.session.eval(this.metricTensor, this.metricFeedEntries);
+            this.session.eval(this.metricTensor, this.metricFeedEntries) as
+            NDArray<'float32'>;
 
         metric = this.math.add(metric, metricValue);
       }

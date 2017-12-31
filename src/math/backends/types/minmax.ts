@@ -21,10 +21,10 @@ import {DataType, NDArray} from '../../ndarray';
 import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
 
 // Reduction min.
-export interface MinNode<G extends DataType> extends KernelNode {
-  inputAndArgs: MinInputConfig<G>;
-  output: NDArray<G>;
-  gradient: (dy: NDArray<G>, y: NDArray<G>) => MinGradientInputArrays<G>;
+export interface MinNode<D extends DataType> extends KernelNode {
+  inputAndArgs: MinInputConfig<D>;
+  output: NDArray<D>;
+  gradient: (dy: NDArray<D>, y: NDArray<D>) => MinGradientInputArrays<D>;
 }
 
 // Element-wise min.
@@ -41,24 +41,24 @@ export interface MinimumInputConfig<D extends DataType> extends
   inputs: {a: NDArray<D>, b: NDArray<D>};
 }
 
-export interface MinInputConfig<G extends DataType> extends KernelInputConfig {
-  inputs: MinInputArrays<G>;
+export interface MinInputConfig<D extends DataType> extends KernelInputConfig {
+  inputs: MinInputArrays<D>;
 }
 
-export interface MinInputArrays<G extends DataType> extends NamedArrayMap {
-  x: NDArray<G>;
+export interface MinInputArrays<D extends DataType> extends NamedArrayMap {
+  x: NDArray<D>;
 }
 
-export interface MinGradientInputArrays<G extends DataType> extends
+export interface MinGradientInputArrays<D extends DataType> extends
     TapeNodeInputGradientArrays {
-  x: () => NDArray<G>;
+  x: () => NDArray<D>;
 }
 
 // Reduction Max
-export interface MaxNode<G extends DataType> extends KernelNode {
-  inputAndArgs: MaxInputConfig<G>;
-  output: NDArray<G>;
-  gradient: (dy: NDArray<G>, y: NDArray<G>) => MaxGradientInputArrays<G>;
+export interface MaxNode<D extends DataType> extends KernelNode {
+  inputAndArgs: MaxInputConfig<D>;
+  output: NDArray<D>;
+  gradient: (dy: NDArray<D>, y: NDArray<D>) => MaxGradientInputArrays<D>;
 }
 
 // Element-wise max.
@@ -75,15 +75,15 @@ export interface MaximumInputConfig<D extends DataType> extends
   inputs: {a: NDArray<D>, b: NDArray<D>};
 }
 
-export interface MaxInputConfig<G extends DataType> extends KernelInputConfig {
-  inputs: MaxInputArrays<G>;
+export interface MaxInputConfig<D extends DataType> extends KernelInputConfig {
+  inputs: MaxInputArrays<D>;
 }
 
-export interface MaxInputArrays<G extends DataType> extends NamedArrayMap {
-  x: NDArray<G>;
+export interface MaxInputArrays<D extends DataType> extends NamedArrayMap {
+  x: NDArray<D>;
 }
 
-export interface MaxGradientInputArrays<G extends DataType> extends
+export interface MaxGradientInputArrays<D extends DataType> extends
     TapeNodeInputGradientArrays {
-  x: () => NDArray<G>;
+  x: () => NDArray<D>;
 }

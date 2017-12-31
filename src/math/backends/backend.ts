@@ -23,11 +23,11 @@ import {SumTypes} from '../types';
 import {MatrixOrientation} from './types/matmul';
 
 export interface NDArrayStorage {
-  read<T extends DataType>(id: number): Promise<DataTypeMap[T]>;
-  readSync<T extends DataType>(id: number): DataTypeMap[T];
+  read<D extends DataType>(id: number): Promise<DataTypeMap[D]>;
+  readSync<D extends DataType>(id: number): DataTypeMap[D];
   disposeData(id: number): void;
-  write<T extends DataType>(
-      id: number, values: DataTypeMap[T], dtype: T, shape: number[]): void;
+  write<D extends DataType>(
+      id: number, values: DataTypeMap[D], dtype: D, shape: number[]): void;
   writePixels(
       id: number,
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
@@ -64,12 +64,12 @@ export interface MathBackend extends NDArrayStorage {
 
   neg<T extends NDArray>(a: T): T;
 
-  add<G extends DataType>(a: NDArray<G>, b: NDArray<G>): NDArray<G>;
-  subtract<G extends DataType>(a: NDArray<G>, b: NDArray<G>): NDArray<G>;
-  multiply<G extends DataType>(a: NDArray<G>, b: NDArray<G>): NDArray<G>;
-  divide<G extends DataType>(a: NDArray<G>, b: NDArray<G>): NDArray<'float32'>;
+  add<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D>;
+  subtract<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D>;
+  multiply<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D>;
+  divide<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<'float32'>;
 
-  sum<T extends DataType>(x: NDArray<T>, axes: number[]): NDArray<SumTypes[T]>;
+  sum<D extends DataType>(x: NDArray<D>, axes: number[]): NDArray<SumTypes[D]>;
 
   argMin(x: NDArray, axes: number[]): NDArray<'int32'>;
   argMax(x: NDArray, axes: number[]): NDArray<'int32'>;
@@ -80,10 +80,10 @@ export interface MathBackend extends NDArrayStorage {
       Array1D<D>;
   topKIndices(x: NDArray, k: number): Array1D<'int32'>;
 
-  min<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G>;
+  min<D extends DataType>(x: NDArray<D>, axes: number[]): NDArray<D>;
   minimum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D>;
 
-  max<G extends DataType>(x: NDArray<G>, axes: number[]): NDArray<G>;
+  max<D extends DataType>(x: NDArray<D>, axes: number[]): NDArray<D>;
   maximum<D extends DataType>(a: NDArray<D>, b: NDArray<D>): NDArray<D>;
 
   ceil<T extends NDArray>(x: T): T;

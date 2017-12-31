@@ -130,7 +130,7 @@ export class AdamOptimizer extends Optimizer {
   private firstMoment = new TensorArrayMap();
   // Average of squared gradient
   private secondMoment = new TensorArrayMap();
-  private eps: Scalar;
+  private eps: Scalar<'float32'>;
   private b1: Scalar;
   private b2: Scalar;
   private accB1: Scalar;
