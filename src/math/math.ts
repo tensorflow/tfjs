@@ -24,6 +24,7 @@ import {NDArrayStorage} from './backends/backend';
 import {MathBackend} from './backends/backend';
 // tslint:disable-next-line:max-line-length
 import {BackendEngine} from './backends/backend_engine';
+import {TapeNodeInputGradientArrays} from './backends/tape_types';
 import {ScopeResult, ScopeResultImmediate} from './backends/tape_util';
 import {MatrixOrientation} from './backends/types/matmul';
 import * as broadcast_util from './broadcast_util';
@@ -829,14 +830,92 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
           'Softmax along a non-last dimension is not yet supported. ' +
           `Logits was rank ${logits.rank} and dim was ${dim}`);
     }
+
+    const gradients = (dy: T, y: T) => {
+      return {
+        logits: () => {
+          const dyTimesY = this.multiply(dy, y);
+          const keepDims = true;
+          return this.subtract(
+              dyTimesY, this.multiply(this.sum(dyTimesY, [dim], keepDims), y));
+        }
+      };
+    };
+
     return this.executeOp('softmax', () => {
-      return this.scope(() => {
+      return this.customGradient(() => {
         // Do it in log space for numerical stability.
         // exp(X - logSumExp(X))
-        const lse = this.logSumExp(logits, [dim], true /* keepDims */);
+        const keepDims = true;
+        const lse = this.logSumExp(logits, [dim], keepDims);
         const logResult = this.subtract(logits, lse);
-        return this.exp(logResult) as T;
-      });
+        const value = this.exp(logResult) as T;
+        return {value, gradients};
+      }, {logits}, 'softmax');
+    });
+  }
+
+  /**
+   * Computes softmax cross entropy between logits and labels.
+   *
+   * Measures the probability error in discrete classification tasks in which
+   * the classes are mutually exclusive (each entry is in exactly one class).
+   * For example, each CIFAR-10 image is labeled with one and only one label: an
+   * image can be a dog or a truck, but not both.
+   *
+   * NOTE: While the classes are mutually exclusive, their probabilities need
+   * not be. All that is required is that each row of labels is a valid
+   * probability distribution. If they are not, the computation of the gradient
+   * will be incorrect.
+   *
+   * WARNING: This op expects unscaled logits, since it performs a softmax on
+   * logits internally for efficiency. Do not call this op with the output of
+   * softmax, as it will produce incorrect results.
+   *
+   * logits and labels must have the same shape, e.g. [batch_size, num_classes]
+   * and the same dtype.
+   * @param labels The labels array.
+   * @param logits The logits array.
+   * @param dim The dimension softmax would be performed on. Defaults to -1
+   *     which indicates the last dimension.
+   */
+  softmaxCrossEntropyWithLogits<I extends NDArray, O extends NDArray>(
+      labels: I, logits: I, dim = -1): O {
+    util.assertShapesMatch(
+        labels.shape, logits.shape, 'Error in softmaxCrossEntropyWithLogits: ');
+    if (dim === -1) {
+      dim = logits.rank - 1;
+    }
+    if (dim !== logits.rank - 1) {
+      throw Error(
+          `Softmax cross entropy along a non-last dimension is not yet ` +
+          `supported. Labels / logits was rank ${logits.rank} ` +
+          `and dim was ${dim}`);
+    }
+
+    return this.executeOp('softmaxCrossEntropyWithLogits', () => {
+      // Use a custom gradient for numerical stability.
+      return this.customGradient(() => {
+        const softmaxLogits = this.softmax(logits, dim);
+        const yPlusEps = this.add(Scalar.new(1e-5), softmaxLogits);
+        const logOutput = this.log(yPlusEps);
+        const tarLogOutput = this.multiply(labels, logOutput);
+        const costVector = this.neg(tarLogOutput);
+        const value = this.sum(costVector, [dim]) as O;
+
+        const gradients = (dy: O, y: O) => {
+          const dyShape = axis_util.expandShapeToKeepDim(dy.shape, [dim]);
+
+          return {
+            logits: () => this.multiply(
+                dy.reshape(dyShape), this.subtract(softmaxLogits, labels)),
+            labels: () => this.multiply(
+                dy.reshape(dyShape), this.subtract(labels, softmaxLogits))
+          };
+        };
+
+        return {value, gradients};
+      }, {labels, logits}, 'softmaxCrossEntropyWithLogits');
     });
   }
 
@@ -971,8 +1050,9 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
                        `yet supported.`);
                  }
                  return {
-                   a: () => NDArray.onesLike(a),
-                   b: () => this.scope(() => this.neg(NDArray.onesLike(b)))
+                   a: () => this.multiply(dy, NDArray.onesLike(a)),
+                   b: () => this.scope(
+                       () => this.multiply(dy, this.neg(NDArray.onesLike(b))))
                  };
                }) as T;
   }
@@ -1066,7 +1146,10 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
                        `Backprop through broadcasted multiply not ` +
                        `supported yet.`);
                  }
-                 return {a: () => this.clone(b), b: () => this.clone(a)};
+                 return {
+                   a: () => this.multiply(dy, b),
+                   b: () => this.multiply(dy, a)
+                 };
                }) as T;
   }
 
@@ -1218,7 +1301,7 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   relu<T extends NDArray>(x: T): T {
     return this.backendEngine.executeKernel(
                'Relu', {inputs: {x}}, (dy: T, y: T) => {
-                 return {x: () => this.step(x)};
+                 return {x: () => this.multiply(dy, this.step(x))};
                }) as T;
   }
 
@@ -2391,6 +2474,32 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
   /**
    * Warning: this is not fully implemented yet. Use with caution.
    *
+   * Computes and returns the vector jacobian product of f(x) with respect to x.
+   * This method allows you to provide a non-scalar dy to backprop from.
+   *
+   * @param f The function to execute. f() should return an NDArray of the same
+   * shape and dtype as dy.
+   * @param x The input to compute dy/dx over. This can be a single value or
+   * an object mapping a string to an NDArray. If using the object mode, this
+   * method will return an object of the same shape.
+   */
+  vjp<T extends NDArray|NamedArrayMap, R extends NDArray>(
+      f: () => R, x: T, dy: R): T {
+    const keys = x instanceof NDArray ? null : Object.keys(x);
+    const xs = util.flattenNameArrayMap(x, keys);
+
+    const vjp = this.backendEngine.vjp(f, xs, dy) as NDArray[];
+
+    if (x instanceof NDArray) {
+      return vjp[0] as T;
+    } else {
+      return util.unflattenToNameArrayMap(keys, vjp) as T;
+    }
+  }
+
+  /**
+   * Warning: this is not fully implemented yet. Use with caution.
+   *
    * Computes and returns the gradient of f(x) with respect to x.
    *
    * @param f The function to execute. f() should return a scalar.
@@ -2445,6 +2554,26 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
           util.unflattenToNameArrayMap(keys, valueAndGradients.gradients) as T;
     }
     return {value: valueAndGradients.value, gradients};
+  }
+
+  /**
+   * Evaluates a function f() with a custom gradient function f'() to use during
+   * backpropagation.
+   * @param f The function to evaluate in forward mode. Returns a value NDArray
+   * and a gradient function closure.
+   * @param inputs The inputs to compute the gradient with respect to. These
+   * NDArrays should be used in f().
+   * @param name An optional name for the customGradient method. Used for
+   * debugging.
+   */
+  customGradient<G extends DataType, T extends NDArray<G>>(
+      f: () => {
+        value: T,
+        gradients: (dy: T, y: T) => TapeNodeInputGradientArrays
+      },
+      inputs: NamedArrayMap, name?: string): T {
+    return this.backendEngine.customGradient(
+        f, inputs, name == null ? '' : name);
   }
 
   disposeData(id: number): void {
