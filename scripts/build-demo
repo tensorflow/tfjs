@@ -17,14 +17,15 @@
 const path = require('path');
 const spawn = require('cross-spawn');
 const shell = require('shelljs');
+const argv = require('minimist')(process.argv.slice(2));
 
 /** List of vue demos. */
 const VUE_DEMOS = new Set(['vue-demo', 'latent-space-explorer']);
 
-const demoPath = process.argv[2];
+const demoPath = argv._[0];
 const demoFolder = path.basename(demoPath);
 const tsPath = path.join(demoPath, demoFolder + '.ts');
-const outDir = process.argv[3];
+const outDir = argv._[1];
 
 if (VUE_DEMOS.has(demoFolder)) {
   shell.cd('demos');
@@ -43,10 +44,9 @@ if (outDir != null) {
   outputPath = path.join(demoPath, 'bundle.js')
 }
 
-
 const cmd = path.join('node_modules', '.bin', 'browserify');
 const child = spawn(cmd,
-    [tsPath, '-p', '[tsify', '-p', 'demos/]', '-o' , outputPath],
+    [tsPath, '-p', '[tsify', '-p', 'demos/tsconfig.json]', '-o' , outputPath],
     {detached: false});
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);

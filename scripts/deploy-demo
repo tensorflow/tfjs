@@ -16,15 +16,18 @@
 
 const path = require('path');
 const spawn = require('cross-spawn');
+const argv = require('minimist')(process.argv.slice(2));
 
-const demoPath = process.argv[2];
+const demoPath = argv._[0];
 const htmlFilePath = path.join(demoPath, 'index.html')
-const outDir = process.argv[3];
+const outDir = argv._[1];
 
 const cmd = path.join('scripts', 'build-demo');
 const child = spawn(cmd, [demoPath, outDir], {detached: false});
+
 child.stdout.pipe(process.stdout);
 child.stderr.pipe(process.stderr);
+
 child.on('close', () => {
   const bundlePath = path.join(outDir, htmlFilePath);
   const cmd = path.join('demos', 'node_modules', '.bin', 'polymer-bundler');

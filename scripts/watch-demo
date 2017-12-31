@@ -41,10 +41,8 @@ if (VUE_DEMOS.has(demoFolder)) {
 
 const cmd = path.join('demos', 'node_modules', '.bin', 'watchify');
 
-const tsifyCmd = ['tsify', '-p', 'demos/'];
-if (argv['target'] != null) {
-  tsifyCmd.push('--target', argv['target']);
-}
+const tsifyCmd = ['tsify', '-p', 'demos/tsconfig-dev.json'];
+
 // tsifyCmd is passed to the watchify command, so the arguments should be
 // wrapped in [].
 tsifyCmd[0] = '[' + tsifyCmd[0];
