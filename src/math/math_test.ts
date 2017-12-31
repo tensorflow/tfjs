@@ -20,7 +20,7 @@ import {MathTests} from '../test_util';
 import * as util from '../util';
 
 import {MatrixOrientation} from './backends/types/matmul';
-import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
+import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
 
 // math.scope
 {
@@ -251,6 +251,87 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
   ]);
 }
 
+// vjp integration tests
+{
+  const tests: MathTests = it => {
+    it('matmul + relu', math => {
+      const a = Array2D.new([2, 3], [-1, 2, -3, 10, -20, 30]);
+      const b = Array2D.new([3, 2], [2, -3, 4, -1, 2, -3]);
+      const dy = Array2D.new([2, 2], [1, 10, 20, 30]);
+
+      const gradients = math.vjp(() => {
+        // m = dot(a, b)
+        // y = relu(m)
+        const m = math.matMul(a, b);
+        return math.relu(m);
+      }, {a, b}, dy);
+
+      // dy/dm = step(m)
+      // de/dm = de/dy * dy/dm = de/dy * step(m)
+      const dedm = math.multiplyStrict(dy, math.step(math.matMul(a, b)));
+
+      // de/da = dot(de/dy, bT)
+      expect(gradients.a.shape).toEqual(a.shape);
+      test_util.expectArraysClose(
+          gradients.a,
+          math.matMul(
+              dedm, b, MatrixOrientation.REGULAR,
+              MatrixOrientation.TRANSPOSED));
+
+      // de/db = dot(aT, de/dy)
+      expect(gradients.b.shape).toEqual(b.shape);
+      test_util.expectArraysClose(
+          gradients.b,
+          math.matMul(
+              a, dedm, MatrixOrientation.TRANSPOSED,
+              MatrixOrientation.REGULAR));
+    });
+
+    it('second order nested gradient vjp & gradients', math => {
+      const a = Scalar.new(2);
+      const b = Scalar.new(3, 'int32');
+
+      const dy = Scalar.new(4);
+
+      const gradients = math.vjp(() => {
+        return math.gradients(() => math.pow(a, b), a);
+      }, a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      test_util.expectNumbersClose(
+          gradients.get(),
+          dy.get() * b.get() * (b.get() - 1) * Math.pow(a.get(), b.get() - 2),
+          1e-1);
+    });
+
+    it('second order nested gradient', math => {
+      const a = Scalar.new(2);
+      const b = Scalar.new(3, 'int32');
+
+      const dy1 = Scalar.new(3);
+      const dy2 = Scalar.new(4);
+
+      const gradients = math.vjp(() => {
+        return math.vjp(() => math.pow(a, b), a, dy1);
+      }, a, dy2);
+
+      expect(gradients.shape).toEqual(a.shape);
+      test_util.expectNumbersClose(
+          gradients.get(),
+          dy2.get() * dy1.get() * b.get() * (b.get() - 1) *
+              Math.pow(a.get(), b.get() - 2),
+          1e-1);
+    });
+  };
+
+  test_util.describeMathCPU('vjp', [tests]);
+  test_util.describeMathGPU('vjp', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
 // gradients integration tests
 {
   const tests: MathTests = it => {
@@ -277,16 +358,28 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       test_util.expectArraysClose(
           gradients.a,
           math.matMul(
-              dedm, b, MatrixOrientation.REGULAR,
-              MatrixOrientation.TRANSPOSED));
+              dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
+          1e-1);
 
       // de/db = dot(aT, de/dy)
       expect(gradients.b.shape).toEqual(b.shape);
       test_util.expectArraysClose(
           gradients.b,
           math.matMul(
-              a, dedm, MatrixOrientation.TRANSPOSED,
-              MatrixOrientation.REGULAR));
+              a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
+          1e-1);
+    });
+
+    it('second order nested gradient', math => {
+      const a = Scalar.new(2);
+      const gradients = math.gradients(() => {
+        return math.gradients(() => {
+          return math.pow(a, Scalar.new(3, 'int32'));
+        }, a);
+      }, a);
+
+      expect(gradients.shape).toEqual(a.shape);
+      test_util.expectNumbersClose(gradients.get(), 6 * a.get(), 1e-1);
     });
 
     it('Throws if y is not a scalar', math => {
@@ -295,17 +388,17 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
       expect(
           // tslint:disable-next-line:no-any
-          () => math.valueAndGradients(() => math.matMul(a, b) as any, {a, b}))
+          () => math.gradients(() => math.matMul(a, b) as any, {a, b}))
           .toThrowError();
     });
-
-    test_util.describeMathCPU('gradients', [tests]);
-    test_util.describeMathGPU('gradients', [tests], [
-      {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-      {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-      {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-    ]);
   };
+
+  test_util.describeMathCPU('gradients', [tests]);
+  test_util.describeMathGPU('gradients', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
 }
 
 // valueAndGradients integration tests
@@ -335,15 +428,15 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       test_util.expectArraysClose(
           gradients.a,
           math.matMul(
-              dedm, b, MatrixOrientation.REGULAR,
-              MatrixOrientation.TRANSPOSED));
+              dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
+          1e-1);
 
       // de/db = dot(aT, de/dy)
       test_util.expectArraysClose(
           gradients.b,
           math.matMul(
-              a, dedm, MatrixOrientation.TRANSPOSED,
-              MatrixOrientation.REGULAR));
+              a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
+          1e-1);
     });
 
     it('Throws is y is not a scalar', math => {
@@ -382,50 +475,121 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       test_util.expectArraysClose(
           gradients.a,
           math.matMul(
-              dedm, b, MatrixOrientation.REGULAR,
-              MatrixOrientation.TRANSPOSED));
+              dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
+          1e-1);
 
       // de/db = dot(aT, de/dy)
       test_util.expectArraysClose(
           gradients.b,
           math.matMul(
-              a, dedm, MatrixOrientation.TRANSPOSED,
-              MatrixOrientation.REGULAR));
-    });
-
-    it('second order nested gradient', math => {
-      const a = Scalar.new(2);
-      const gradients = math.gradients(() => {
-        return math.gradients(() => {
-          return math.pow(a, Scalar.new(3, 'int32'));
-        }, a);
-      }, a);
-
-      expect(gradients.shape).toEqual(a.shape);
-      test_util.expectNumbersClose(gradients.get(), 6 * a.get());
-    });
-
-    it('second order with gradientsScope', math => {
-      const a = Scalar.new(2);
-
-      const gradients = math.gradientsScope(() => {
-        const der = math.gradients(() => {
-          return math.pow(a, Scalar.new(3, 'int32'));
-        }, a);
-
-        // TODO(nsthorat|smilkov): Test that the intermittent gradient arrays
-        // have not been cleaned up.
-
-        return math.gradients(() => der, a);
-      });
-
-      expect(gradients.shape).toEqual(a.shape);
-      test_util.expectNumbersClose(gradients.get(), 6 * a.get());
+              a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
+          1e-1);
     });
   };
 
   test_util.describeMathCPU('valueAndGradients', [tests]);
   test_util.describeMathGPU('valueAndGradients', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+{
+  const tests: MathTests = it => {
+    it('second order gradients with gradientsScope', math => {
+      const a = Scalar.new(2);
+      expect(math.getNumArrays()).toBe(1);
+
+      const gradients = math.gradientsScope(() => {
+        const der = math.gradients(() => {
+          const result = math.pow(a, Scalar.new(3, 'int32'));
+          expect(math.getNumArrays()).toBe(3);
+
+          return result as Scalar;
+        }, a);
+
+        // Gradients shouldn't be disposed.
+        const numArrays = math.getNumArrays();
+        expect(numArrays).toBeGreaterThan(3);
+
+        const result = math.gradients(() => der, a);
+
+        // New gradients shouldn't be disposed.
+        expect(math.getNumArrays()).toBeGreaterThan(numArrays + 1);
+        return result;
+      });
+
+      // a and gradients are the only remaining arrays.
+      expect(math.getNumArrays()).toBe(2);
+
+      expect(gradients.shape).toEqual(a.shape);
+      test_util.expectArraysClose(gradients, [2 * 3 * a.get()], 1e-1);
+    });
+  };
+
+  test_util.describeMathCPU('gradientsScope', [tests]);
+  test_util.describeMathGPU('gradientsScope', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// customGradients
+{
+  const tests: MathTests = it => {
+    it('basic', math => {
+      const a = Scalar.new(3);
+      const b = Scalar.new(2, 'int32');
+      const dy = Scalar.new(4);
+
+      const vjp = math.vjp(() => {
+        return math.customGradient(() => {
+          const value = math.pow(a, b);
+
+          const gradients = (dy: NDArray, y: NDArray) => {
+            return {a: () => math.multiply(dy, Scalar.new(3))};
+          };
+
+          return {value, gradients};
+        }, {a});
+      }, a, dy);
+
+      expect(vjp.shape).toEqual(a.shape);
+      test_util.expectArraysClose(vjp, [dy.get() * 3]);
+    });
+
+    it('second order derivative through customGradient', math => {
+      const a = Scalar.new(3);
+      const b = Scalar.new(2, 'int32');
+
+      const dy1 = Scalar.new(5);
+      const dy2 = Scalar.new(4);
+
+      const vjp = math.vjp(() => {
+        return math.vjp(() => {
+          return math.customGradient(() => {
+            const value = math.pow(a, b);
+            const gradients = (dy: NDArray, y: NDArray) => {
+              return {a: () => math.multiply(dy, a)};
+            };
+
+            return {value, gradients};
+          }, {a});
+        }, a, dy1);
+      }, a, dy2);
+
+      expect(vjp.shape).toEqual(a.shape);
+
+      // First order: dy1 * a
+      // Second order: dy2 * dy1
+      test_util.expectArraysClose(vjp, [dy1.get() * dy2.get()]);
+    });
+  };
+
+  test_util.describeMathCPU('customGradient', [tests]);
+  test_util.describeMathGPU('customGradient', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

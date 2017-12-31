@@ -177,9 +177,8 @@ export function backpropagateGradients(
     for (const inputName in node.inputAndArgs.inputs) {
       if (!(inputName in inputGradients)) {
         throw new Error(
-            `Cannot backprop through input ` +
-            `${node.name}.${inputName}. Gradients found: ` +
-            `${Object.keys(inputGradients)}.`);
+            `Cannot backprop through input ${inputName}. ` +
+            `Available gradients found: ${Object.keys(inputGradients)}.`);
       }
 
       // Call the gradient function.

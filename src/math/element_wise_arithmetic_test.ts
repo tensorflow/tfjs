@@ -20,80 +20,9 @@ import {MathTests} from '../test_util';
 import * as util from '../util';
 import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
 
-// element-wise mul / div
+// divide
 {
   const tests: MathTests = it => {
-    it('elementWiseMul same-shaped ndarrays', math => {
-      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
-      const b = Array2D.new([2, 2], [5, 3, 4, -7]);
-      const expected = [5, 6, -12, 28];
-      const result = math.elementWiseMul(a, b);
-
-      expect(result.shape).toEqual([2, 2]);
-      test_util.expectArraysClose(result, expected);
-    });
-
-    it('elementWiseMul propagates NaNs', math => {
-      const a = Array2D.new([2, 2], [1, 3, 4, 0]);
-      const b = Array2D.new([2, 2], [NaN, 3, NaN, 3]);
-
-      const result = math.elementWiseMul(a, b);
-      test_util.expectArraysClose(result, [NaN, 9, NaN, 0]);
-    });
-
-    it('elementWiseMul throws when passed ndarrays of different shapes',
-       math => {
-         const a = Array2D.new([2, 3], [1, 2, -3, -4, 5, 6]);
-         const b = Array2D.new([2, 2], [5, 3, 4, -7]);
-
-         expect(() => math.elementWiseMul(a, b)).toThrowError();
-         expect(() => math.elementWiseMul(b, a)).toThrowError();
-       });
-
-    it('multiply same-shaped ndarrays', math => {
-      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
-      const b = Array2D.new([2, 2], [5, 3, 4, -7]);
-      const expected = [5, 6, -12, 28];
-      const result = math.multiply(a, b);
-
-      expect(result.shape).toEqual([2, 2]);
-      test_util.expectArraysClose(result, expected);
-    });
-
-    it('multiply broadcasting ndarrays', math => {
-      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
-      const b = Scalar.new(2);
-      const expected = [2, 4, -6, -8];
-      const result = math.multiply(a, b);
-
-      expect(result.shape).toEqual([2, 2]);
-      test_util.expectArraysClose(result, expected);
-    });
-
-    it('multiply broadcasting same rank NDArrays different shape', math => {
-      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
-      const b = Array2D.new([2, 1], [2, 3]);
-
-      const result = math.multiply(a, b);
-
-      expect(result.shape).toEqual([2, 2]);
-      const expected = [2, 4, -9, -12];
-
-      test_util.expectArraysClose(result, expected);
-    });
-
-    it('multiply broadcast 2D + 1D', math => {
-      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
-      const b = Array1D.new([1, 2]);
-
-      const result = math.multiply(a, b);
-
-      expect(result.shape).toEqual([2, 2]);
-      const expected = [1, 4, -3, -8];
-
-      test_util.expectArraysClose(result, expected);
-    });
-
     it('divide', math => {
       const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
       const c = Array2D.new([2, 3], [1, 2, 3, 4, 2, 5]);
@@ -217,84 +146,145 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
     });
   };
 
-  test_util.describeMathCPU('element-wise mul/div', [tests]);
-  test_util.describeMathGPU('element-wise mul/div', [tests], [
+  test_util.describeMathCPU('divide', [tests]);
+  test_util.describeMathGPU('divide', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
   ]);
 }
 
-// Multiply gradients
+// multiply
 {
   const tests: MathTests = it => {
-    it('Scalar', math => {
+    it('elementWiseMul same-shaped ndarrays', math => {
+      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
+      const b = Array2D.new([2, 2], [5, 3, 4, -7]);
+      const expected = [5, 6, -12, 28];
+      const result = math.elementWiseMul(a, b);
+
+      expect(result.shape).toEqual([2, 2]);
+      test_util.expectArraysClose(result, expected);
+    });
+
+    it('elementWiseMul propagates NaNs', math => {
+      const a = Array2D.new([2, 2], [1, 3, 4, 0]);
+      const b = Array2D.new([2, 2], [NaN, 3, NaN, 3]);
+
+      const result = math.elementWiseMul(a, b);
+      test_util.expectArraysClose(result, [NaN, 9, NaN, 0]);
+    });
+
+    it('elementWiseMul throws when passed ndarrays of different shapes',
+       math => {
+         const a = Array2D.new([2, 3], [1, 2, -3, -4, 5, 6]);
+         const b = Array2D.new([2, 2], [5, 3, 4, -7]);
+
+         expect(() => math.elementWiseMul(a, b)).toThrowError();
+         expect(() => math.elementWiseMul(b, a)).toThrowError();
+       });
+
+    it('same-shaped ndarrays', math => {
+      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
+      const b = Array2D.new([2, 2], [5, 3, 4, -7]);
+      const expected = [5, 6, -12, 28];
+      const result = math.multiply(a, b);
+
+      expect(result.shape).toEqual([2, 2]);
+      test_util.expectArraysClose(result, expected);
+    });
+
+    it('broadcasting ndarrays', math => {
+      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
+      const b = Scalar.new(2);
+      const expected = [2, 4, -6, -8];
+      const result = math.multiply(a, b);
+
+      expect(result.shape).toEqual([2, 2]);
+      test_util.expectArraysClose(result, expected);
+    });
+
+    it('broadcasting same rank NDArrays different shape', math => {
+      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
+      const b = Array2D.new([2, 1], [2, 3]);
+
+      const result = math.multiply(a, b);
+
+      expect(result.shape).toEqual([2, 2]);
+      const expected = [2, 4, -9, -12];
+
+      test_util.expectArraysClose(result, expected);
+    });
+
+    it('broadcast 2D + 1D', math => {
+      const a = Array2D.new([2, 2], [1, 2, -3, -4]);
+      const b = Array1D.new([1, 2]);
+
+      const result = math.multiply(a, b);
+
+      expect(result.shape).toEqual([2, 2]);
+      const expected = [1, 4, -3, -8];
+
+      test_util.expectArraysClose(result, expected);
+    });
+
+    it('gradient: Scalar', math => {
       const a = Scalar.new(5);
       const b = Scalar.new(2);
+      const dy = Scalar.new(4);
 
-      const {value, gradients} =
-          math.valueAndGradients(() => math.multiply(a, b), {a, b});
+      const vjp = math.vjp(() => math.multiply(a, b), {a, b}, dy);
 
-      expect(value.dtype).toEqual('float32');
-      test_util.expectArraysClose(value, [10]);
+      expect(vjp.a.shape).toEqual(a.shape);
+      expect(vjp.a.dtype).toEqual('float32');
+      test_util.expectArraysClose(vjp.a, [b.get() * dy.get()]);
 
-      expect(gradients.a.shape).toEqual(a.shape);
-      expect(gradients.a.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.a, [2]);
-
-      expect(gradients.b.shape).toEqual(b.shape);
-      expect(gradients.b.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.b, [5]);
+      expect(vjp.b.shape).toEqual(b.shape);
+      expect(vjp.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(vjp.b, [a.get() * dy.get()]);
     });
 
-    it('Array1D', math => {
+    it('gradient: Array1D', math => {
       const a = Array1D.new([1, 2, 3]);
       const b = Array1D.new([3, 4, 5]);
+      const dy = Array1D.new([1, 10, 20]);
+      const vjp = math.vjp(() => math.multiply(a, b), {a, b}, dy);
 
-      const {value, gradients} =
-          math.valueAndGradients(() => math.sum(math.multiply(a, b)), {a, b});
+      expect(vjp.a.shape).toEqual(a.shape);
+      expect(vjp.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(vjp.a, [3 * 1, 4 * 10, 5 * 20]);
 
-      expect(value.dtype).toEqual('float32');
-      test_util.expectArraysClose(value, [26]);
-
-      expect(gradients.a.shape).toEqual(a.shape);
-      expect(gradients.b.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.a, [3, 4, 5]);
-
-      expect(gradients.b.shape).toEqual(b.shape);
-      expect(gradients.b.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.b, [1, 2, 3]);
+      expect(vjp.b.shape).toEqual(b.shape);
+      expect(vjp.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(vjp.b, [1 * 1, 2 * 10, 3 * 20]);
     });
 
-    it('Array2D', math => {
+    it('gradient: Array2D', math => {
       const a = Array2D.new([2, 2], [3, 1, 2, 3]);
       const b = Array2D.new([2, 2], [1, 3, 4, 5]);
+      const dy = Array2D.new([2, 2], [1, 10, 15, 20]);
 
-      const {value, gradients} =
-          math.valueAndGradients(() => math.sum(math.multiply(a, b)), {a, b});
+      const vjp = math.vjp(() => math.multiply(a, b), {a, b}, dy);
 
-      expect(value.dtype).toEqual('float32');
-      test_util.expectArraysClose(value, [29], 1e-1);
+      expect(vjp.a.shape).toEqual(a.shape);
+      expect(vjp.a.dtype).toEqual('float32');
+      test_util.expectArraysClose(vjp.a, [1 * 1, 3 * 10, 4 * 15, 5 * 20], 1e-1);
 
-      expect(gradients.a.shape).toEqual(a.shape);
-      expect(gradients.a.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.a, [1, 3, 4, 5]);
-
-      expect(gradients.b.shape).toEqual(b.shape);
-      expect(gradients.b.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.b, [3, 1, 2, 3]);
+      expect(vjp.b.shape).toEqual(b.shape);
+      expect(vjp.b.dtype).toEqual('float32');
+      test_util.expectArraysClose(vjp.b, [3 * 1, 1 * 10, 2 * 15, 3 * 20], 1e-1);
     });
   };
 
-  test_util.describeMathCPU('valueAndGradients multiply', [tests]);
-  test_util.describeMathGPU('valueAndGradients multiply', [tests], [
+  test_util.describeMathCPU('multiply', [tests]);
+  test_util.describeMathGPU('multiply', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
   ]);
 }
 
-// element-wise pow
+// pow
 {
   const tests: MathTests = it => {
     it('same-shaped ndarrays', math => {
@@ -381,57 +371,40 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       // tslint:disable-next-line
       expect(() => math.powStrict(a, b as any)).toThrowError();
     });
-  };
 
-  test_util.describeMathCPU('element-wise pow', [tests]);
-  test_util.describeMathGPU('element-wise pow', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
-
-// Pow gradients
-{
-  const tests: MathTests = it => {
-    it('Scalar ^ Scalar', math => {
+    it('gradients: Scalar ^ Scalar', math => {
       const a = Scalar.new(5);
       const b = Scalar.new(2, 'int32');
+      const dy = Scalar.new(3);
 
-      const {value, gradients} =
-          math.valueAndGradients(() => math.pow(a, b), a);
-
-      expect(value.shape).toEqual([]);
-      expect(value.dtype).toEqual('float32');
-      test_util.expectArraysClose(value, [25]);
+      const gradients = math.vjp(() => math.pow(a, b), a, dy);
 
       expect(gradients.shape).toEqual(a.shape);
       expect(gradients.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients, [10], 1e-1);
+      test_util.expectArraysClose(gradients, [2 * 5 * 3], 1e-1);
     });
 
-    it('NDArray ^ NDArray', math => {
+    it('gradients: NDArray ^ NDArray', math => {
       const a = Array1D.new([-1, .5, 2]);
       const b = Array1D.new([3, 2, -1], 'int32');
+      const dy = Array1D.new([1, 5, 10]);
 
-      const {value, gradients} =
-          math.valueAndGradients(() => math.sum(math.pow(a, b)), a);
-
-      expect(value.shape).toEqual([]);
-      expect(value.dtype).toEqual('float32');
-      test_util.expectArraysClose(value, [-1 + .25 + .5]);
+      const gradients = math.vjp(() => math.pow(a, b), a, dy);
 
       expect(gradients.shape).toEqual(a.shape);
       expect(gradients.dtype).toEqual('float32');
       test_util.expectArraysClose(
           gradients,
-          [3 * Math.pow(-1, 2), 2 * Math.pow(.5, 1), -1 * Math.pow(2, -2)],
+          [
+            3 * Math.pow(-1, 2) * 1, 2 * Math.pow(.5, 1) * 5,
+            -1 * Math.pow(2, -2) * 10
+          ],
           1e-1);
     });
   };
 
-  test_util.describeMathCPU('pow valueAndGradients', [tests]);
-  test_util.describeMathGPU('pow valueAndGradients', [tests], [
+  test_util.describeMathCPU('pow', [tests]);
+  test_util.describeMathGPU('pow', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
@@ -491,6 +464,84 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       test_util.expectArraysClose(result, expected);
     });
 
+    it('A + B', math => {
+      const a = Array1D.new([2, 5, 1]);
+      const b = Array1D.new([4, 2, -1]);
+
+      const result = math.add(a, b);
+
+      const expected = [6, 7, 0];
+      test_util.expectArraysClose(result, expected);
+    });
+
+    it('A + B propagates NaNs', math => {
+      const a = Array1D.new([2, 5, NaN]);
+      const b = Array1D.new([4, 2, -1]);
+
+      const res = math.add(a, b);
+      test_util.expectArraysClose(res, [6, 7, NaN]);
+    });
+
+    it('A + B throws when passed ndarrays with different shape', math => {
+      const a = Array1D.new([2, 5, 1, 5]);
+      const b = Array1D.new([4, 2, -1]);
+
+      expect(() => math.add(a, b)).toThrowError();
+      expect(() => math.add(b, a)).toThrowError();
+    });
+
+    it('2D+scalar broadcast', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const b = Scalar.new(2);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(res, [3, 4, 5, 6, 7, 8]);
+    });
+
+    it('scalar+1D broadcast', math => {
+      const a = Scalar.new(2);
+      const b = Array1D.new([1, 2, 3, 4, 5, 6]);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([6]);
+      test_util.expectArraysClose(res, [3, 4, 5, 6, 7, 8]);
+    });
+
+    it('2D+2D broadcast each with 1 dim', math => {
+      const a = Array2D.new([1, 3], [1, 2, 5]);
+      const b = Array2D.new([2, 1], [7, 3]);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(res, [8, 9, 12, 4, 5, 8]);
+    });
+
+    it('2D+2D broadcast inner dim of b', math => {
+      const a = Array2D.new([2, 3], [1, 2, 5, 4, 5, 6]);
+      const b = Array2D.new([2, 1], [7, 3]);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysClose(res, [8, 9, 12, 7, 8, 9]);
+    });
+
+    it('3D+scalar', math => {
+      const a = Array3D.new([2, 3, 1], [1, 2, 3, 4, 5, 6]);
+      const b = Scalar.new(-1);
+      const res = math.add(a, b);
+      expect(res.shape).toEqual([2, 3, 1]);
+      test_util.expectArraysClose(res, [0, 1, 2, 3, 4, 5]);
+    });
+  };
+
+  test_util.describeMathCPU('add', [tests]);
+  test_util.describeMathGPU('add', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// subtract
+{
+  const tests: MathTests = it => {
     it('c - A', math => {
       const c = Scalar.new(5);
       const a = Array1D.new([7, 2, 3]);
@@ -625,125 +676,41 @@ import {Array1D, Array2D, Array3D, Scalar} from './ndarray';
       test_util.expectArraysClose(res, [2, 3, 4, 5, 6, 7]);
     });
 
-    it('A + B', math => {
-      const a = Array1D.new([2, 5, 1]);
-      const b = Array1D.new([4, 2, -1]);
-
-      const result = math.add(a, b);
-
-      const expected = [6, 7, 0];
-      test_util.expectArraysClose(result, expected);
-    });
-
-    it('A + B propagates NaNs', math => {
-      const a = Array1D.new([2, 5, NaN]);
-      const b = Array1D.new([4, 2, -1]);
-
-      const res = math.add(a, b);
-      test_util.expectArraysClose(res, [6, 7, NaN]);
-    });
-
-    it('A + B throws when passed ndarrays with different shape', math => {
-      const a = Array1D.new([2, 5, 1, 5]);
-      const b = Array1D.new([4, 2, -1]);
-
-      expect(() => math.add(a, b)).toThrowError();
-      expect(() => math.add(b, a)).toThrowError();
-    });
-
-    it('2D+scalar broadcast', math => {
-      const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-      const b = Scalar.new(2);
-      const res = math.add(a, b);
-      expect(res.shape).toEqual([2, 3]);
-      test_util.expectArraysClose(res, [3, 4, 5, 6, 7, 8]);
-    });
-
-    it('scalar+1D broadcast', math => {
-      const a = Scalar.new(2);
-      const b = Array1D.new([1, 2, 3, 4, 5, 6]);
-      const res = math.add(a, b);
-      expect(res.shape).toEqual([6]);
-      test_util.expectArraysClose(res, [3, 4, 5, 6, 7, 8]);
-    });
-
-    it('2D+2D broadcast each with 1 dim', math => {
-      const a = Array2D.new([1, 3], [1, 2, 5]);
-      const b = Array2D.new([2, 1], [7, 3]);
-      const res = math.add(a, b);
-      expect(res.shape).toEqual([2, 3]);
-      test_util.expectArraysClose(res, [8, 9, 12, 4, 5, 8]);
-    });
-
-    it('2D+2D broadcast inner dim of b', math => {
-      const a = Array2D.new([2, 3], [1, 2, 5, 4, 5, 6]);
-      const b = Array2D.new([2, 1], [7, 3]);
-      const res = math.add(a, b);
-      expect(res.shape).toEqual([2, 3]);
-      test_util.expectArraysClose(res, [8, 9, 12, 7, 8, 9]);
-    });
-
-    it('3D+scalar', math => {
-      const a = Array3D.new([2, 3, 1], [1, 2, 3, 4, 5, 6]);
-      const b = Scalar.new(-1);
-      const res = math.add(a, b);
-      expect(res.shape).toEqual([2, 3, 1]);
-      test_util.expectArraysClose(res, [0, 1, 2, 3, 4, 5]);
-    });
-  };
-
-  test_util.describeMathCPU('element-wise add/sub', [tests]);
-  test_util.describeMathGPU('element-wise add/sub', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
-
-// subtract gradient
-{
-  const tests: MathTests = it => {
-    it('basic 1D arrays', math => {
+    it('gradients: basic 1D arrays', math => {
       const a = Array1D.new([1, 2, 3]);
       const b = Array1D.new([3, 2, 1]);
+      const dy = Array1D.new([1, 10, 20]);
 
-      const {value, gradients} =
-          math.valueAndGradients(() => math.sum(math.subtract(a, b)), {a, b});
-
-      expect(value.shape).toEqual([]);
-      test_util.expectArraysClose(value, [-2 + 0 + 2]);
+      const gradients = math.vjp(() => math.subtract(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.a.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.a, [1, 1, 1]);
+      test_util.expectArraysClose(gradients.a, [1, 10, 20], 1e-1);
 
       expect(gradients.b.shape).toEqual(b.shape);
       expect(gradients.b.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.b, [-1, -1, -1]);
+      test_util.expectArraysClose(gradients.b, [-1, -10, -20], 1e-1);
     });
 
-    it('basic 2D arrays', math => {
+    it('gradients: basic 2D arrays', math => {
       const a = Array2D.new([2, 2], [0, 1, 2, 3]);
       const b = Array2D.new([2, 2], [3, 2, 1, 0]);
+      const dy = Array2D.new([2, 2], [1, 10, 15, 20]);
 
-      const {value, gradients} =
-          math.valueAndGradients(() => math.sum(math.subtract(a, b)), {a, b});
-
-      expect(value.shape).toEqual([]);
-      test_util.expectArraysClose(value, [-3 + -1 + 1 + 3]);
+      const gradients = math.vjp(() => math.subtract(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.a.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.a, [1, 1, 1, 1]);
+      test_util.expectArraysClose(gradients.a, [1, 10, 15, 20], 1e-1);
 
       expect(gradients.b.shape).toEqual(b.shape);
       expect(gradients.b.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients.b, [-1, -1, -1, -1]);
+      test_util.expectArraysClose(gradients.b, [-1, -10, -15, -20], 1e-1);
     });
   };
 
-  test_util.describeMathCPU('subtract valueAndGradients', [tests]);
-  test_util.describeMathGPU('subtract valueAndGradients', [tests], [
+  test_util.describeMathCPU('subtract', [tests]);
+  test_util.describeMathGPU('subtract', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

@@ -24,7 +24,7 @@ export type Tape = Array<TapeNode<TapeNodeOutput>>;
 
 export type TapeNodeOutput = NDArray|NamedArrayMap;
 
-export type TapeNodeType = 'kernel'|'subtape';
+export type TapeNodeType = 'kernel'|'customGradient';
 
 export interface TapeNode<T extends TapeNodeOutput> {
   id: number;
@@ -34,7 +34,6 @@ export interface TapeNode<T extends TapeNodeOutput> {
 
   output: T;
   gradient: (dy: T, y: T) => TapeNodeInputGradientArrays;
-  subtape?: Tape;
 }
 
 export interface TapeNodeInputConfig {
