@@ -18,13 +18,15 @@
     "src/initializers.ts",
     "src/math/conv_util.ts",
     "src/math/math.ts",
-    "src/math/math_cpu.ts",
-    "src/math/math_gpu.ts",
+    "src/math/backend.ts",
+    "src/math/backend_cpu.ts",
+    "src/math/backend_webgl.ts",
     "src/math/ndarray.ts",
-    "src/math/webgl/gpgpu_util.ts",
-    "src/math/webgl/gpgpu_context.ts",
-    "src/math/webgl/render_ndarray_gpu_util.ts",
-    "src/math/webgl/webgl_util.ts",
-    "src/util.ts"
+    "src/math/backends/webgl/gpgpu_util.ts",
+    "src/math/backends/webgl/gpgpu_context.ts",
+    "src/math/backends/webgl/render_ndarray_gpu_util.ts",
+    "src/math/backends/webgl/webgl_util.ts",
+    "src/util.ts",
+    "src/version.ts"
   ]
 }
