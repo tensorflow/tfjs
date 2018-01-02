@@ -69,7 +69,7 @@
     "d3-scale": "~1.0.7",
     "minimist": "~1.2.0",
     "mkdirp": "~0.5.1",
-    "poi": "~9.5.4",
+    "poi": "~9.6.8",
     "poi-preset-typescript": "~9.0.2",
     "polymer-bundler": "~3.0.1",
     "tone-piano": "0.0.5",
