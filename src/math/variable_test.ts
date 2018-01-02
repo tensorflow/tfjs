@@ -17,7 +17,7 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Array1D, Array2D} from './ndarray';
+import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 import {variable, Variable} from './variable';
 
 const tests: MathTests = it => {
@@ -73,6 +73,33 @@ const tests: MathTests = it => {
 
     v.dispose();
     expect(math.getNumArrays()).toBe(0);
+  });
+
+  it('variables are assignable to ndarrays', () => {
+    // This test asserts compilation, not doing any run-time assertion.
+    const x0: Variable<'float32', '0'> = null;
+    const y0: Scalar<'float32'> = x0;
+    expect(y0).toBeNull();
+
+    const x1: Variable<'float32', '1'> = null;
+    const y1: Array1D<'float32'> = x1;
+    expect(y1).toBeNull();
+
+    const x2: Variable<'float32', '2'> = null;
+    const y2: Array2D<'float32'> = x2;
+    expect(y2).toBeNull();
+
+    const x3: Variable<'float32', '3'> = null;
+    const y3: Array3D<'float32'> = x3;
+    expect(y3).toBeNull();
+
+    const x4: Variable<'float32', '4'> = null;
+    const y4: Array4D<'float32'> = x4;
+    expect(y4).toBeNull();
+
+    const xh: Variable<'float32', 'higher'> = null;
+    const yh: NDArray<'float32'> = xh;
+    expect(yh).toBeNull();
   });
 
   it('update will dispose old data', math => {

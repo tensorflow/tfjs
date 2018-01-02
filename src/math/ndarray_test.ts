@@ -173,6 +173,29 @@ const tests: MathTests = it => {
     expect(t.indexToLoc(2)).toEqual([1, 0, 0, 0, 0]);
     expect(t.indexToLoc(3)).toEqual([1, 0, 0, 0, 1]);
   });
+
+  it('NDArray<D, X> is assignable to Scalar/ArrayXD', math => {
+    // This test asserts compilation, not doing any run-time assertion.
+    const a: NDArray<'float32', '0'> = null;
+    const b: Scalar<'float32'> = a;
+    expect(b).toBeNull();
+
+    const a1: NDArray<'float32', '1'> = null;
+    const b1: Array1D<'float32'> = a1;
+    expect(b1).toBeNull();
+
+    const a2: NDArray<'float32', '2'> = null;
+    const b2: Array2D<'float32'> = a2;
+    expect(b2).toBeNull();
+
+    const a3: NDArray<'float32', '3'> = null;
+    const b3: Array3D<'float32'> = a3;
+    expect(b3).toBeNull();
+
+    const a4: NDArray<'float32', '4'> = null;
+    const b4: Array4D<'float32'> = a4;
+    expect(b4).toBeNull();
+  });
 };
 const testsNew: MathTests = it => {
   it('Array1D.new() from number[]', () => {
