@@ -63,5 +63,5 @@ if ! [ -x "$(command -v bundle)" ]; then
   gem install bundler
 fi
 
-bundle install --clean
+bundle install
 bundle exec jekyll serve
