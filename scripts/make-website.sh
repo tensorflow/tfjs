@@ -29,18 +29,33 @@ cp -r "docs" "$TMP_DIR/"
 ./node_modules/.bin/typedoc --out "$TMP_DIR/docs/api/" --excludeExternals \
   --excludeNotExported --excludePrivate --mode file --tsconfig tsconfig-doc.json
 
-# Build polymer demos (deploy-demo vulcanizes polymer apps).
-cp -r "demos" "$TMP_DIR/"
-./scripts/deploy-demo demos/model-builder $TMP_DIR
-./scripts/deploy-demo demos/imagenet $TMP_DIR
-./scripts/deploy-demo demos/nn-art $TMP_DIR
-./scripts/deploy-demo demos/benchmarks $TMP_DIR
-./scripts/deploy-demo demos/performance_rnn $TMP_DIR
-./scripts/deploy-demo demos/teachable_gaming $TMP_DIR
-./scripts/deploy-demo demos/playground $TMP_DIR
+# Make demo directory (if not existing)
+mkdir -p "$TMP_DIR/demos"
 
-./scripts/deploy-demo demos/intro $TMP_DIR
-./scripts/deploy-demo demos/ml_beginners $TMP_DIR
+# Copy only top-level files in demos/ to tmp directory (ignore folders)
+find demos -maxdepth 1 -type f | xargs -I {} cp {} "$TMP_DIR/demos"
+
+# Build polymer demos (deploy-demo vulcanizes polymer apps).
+
+# Only these demo folder get copied and are built
+polymerdemos=(
+  "model-builder"
+  "imagenet"
+  "nn-art"
+  "benchmarks"
+  "performance_rnn"
+  "teachable_gaming"
+  "playground"
+  "intro"
+  "ml_beginners"
+)
+
+# Loop over each demo, copy and build it
+for demo in ${polymerdemos[@]}
+do
+  cp -r "demos/$demo" "$TMP_DIR/demos"
+  ./scripts/deploy-demo "demos/$demo" $TMP_DIR
+done
 
 # Build vuejs demos.
 cd demos/
