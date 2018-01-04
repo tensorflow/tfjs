@@ -152,8 +152,8 @@ export class CPPN {
         NDArray.make(this.inputAtlas.shape, {}) as Array2D;
     nn_art_util.addLatentVariables(
         this.gpgpu, this.addLatentVariablesShader,
-        this.backend.getTexture(this.inputAtlas.id),
-        this.backend.getTexture(inputAtlasWithLatentVariables.id),
+        this.backend.getTexture(this.inputAtlas.dataId),
+        this.backend.getTexture(inputAtlasWithLatentVariables.dataId),
         this.inputAtlas.shape, z1, z2);
 
     let lastOutput = inputAtlasWithLatentVariables;
@@ -168,8 +168,9 @@ export class CPPN {
                 this.math, matmulResult);
       }
       nn_art_util.render(
-          this.gpgpu, this.renderShader, this.backend.getTexture(lastOutput.id),
-          outputDimensions, colorModeIndex);
+          this.gpgpu, this.renderShader,
+          this.backend.getTexture(lastOutput.dataId), outputDimensions,
+          colorModeIndex);
     });
 
     inputAtlasWithLatentVariables.dispose();

@@ -229,10 +229,10 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
       imagenet_util.renderGrayscaleChannelsCollage(
           this.gpgpu, this.renderGrayscaleChannelsCollageShader,
-          this.backend.getTexture(activationNDArray.id),
-          this.backend.getTexture(minValues.id),
-          this.backend.getTexture(maxValues.id),
-          this.backend.getTextureData(activationNDArray.id).texShape,
+          this.backend.getTexture(activationNDArray.dataId),
+          this.backend.getTexture(minValues.dataId),
+          this.backend.getTexture(maxValues.dataId),
+          this.backend.getTextureData(activationNDArray.dataId).texShape,
           activationNDArray.shape[0], activationNDArray.shape[2],
           this.inferenceCanvas.width, numRows);
       // Unclear why, but unless we wait for the gpu to fully end, we get a
