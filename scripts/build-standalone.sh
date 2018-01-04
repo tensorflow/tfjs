@@ -14,7 +14,8 @@
 # limitations under the License.
 # =============================================================================
 rm -rf dist/ && \
-yarn prep && \
+yarn && \
+node_modules/.bin/mkdirp dist && \
 yarn make-version && \
 node_modules/.bin/browserify --standalone deeplearn src/index.ts -p [tsify] > dist/deeplearn.js && \
 printf '\nthis.dl = this.deeplearn;\n' >> dist/deeplearn.js

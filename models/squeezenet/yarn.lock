@@ -560,9 +560,9 @@ deep-extend@~0.4.0:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/deep-extend/-/deep-extend-0.4.2.tgz#48b699c27e334bf89f10892be432f6e4c7d34a7f"
 
-deeplearn@0.3.16:
-  version "0.3.16"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.3.16.tgz#030328d30954b2f0d9413e163db8a1392336249f"
+deeplearn@0.4.0:
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.4.0.tgz#3181789795b28c1c8d0311fb2209cea8dfe5ad67"
   dependencies:
     seedrandom "~2.4.3"
 

@@ -1,12 +1,12 @@
 {
   "name": "deeplearn-squeezenet",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Pretrained SqueezeNet model in deeplearn.js",
   "main": "dist/squeezenet/index.js",
   "unpkg": "dist/bundle.js",
   "types": "dist/squeezenet/index.d.ts",
   "peerDependencies": {
-    "deeplearn": "0.3.16"
+    "deeplearn": "0.4.0"
   },
   "repository": {
     "type": "git",
@@ -15,7 +15,7 @@
   "devDependencies": {
     "browserify": "~14.5.0",
     "browserify-shim": "~3.8.14",
-    "deeplearn": "0.3.16",
+    "deeplearn": "0.4.0",
     "mkdirp": "~0.5.1",
     "tsify": "~3.0.3",
     "tslint": "~5.8.0",

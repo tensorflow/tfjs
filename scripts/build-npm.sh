@@ -13,8 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # =============================================================================
-yarn prep
-rm -rf dist/
+
 scripts/build-standalone.sh
 node_modules/.bin/tsc --sourceMap false
 npm pack
