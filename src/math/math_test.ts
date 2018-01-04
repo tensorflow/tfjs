@@ -391,6 +391,63 @@ import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
           () => math.gradients(() => math.matMul(a, b) as any, {a, b}))
           .toThrowError();
     });
+
+    it('works with reshape', math => {
+      const a = Array2D.new([2, 2], [1, 2, 3, 4]);
+      const exponent = Array1D.new([2, 2, 2, 2], 'int32');
+
+      const gradients = math.gradients(() => {
+        const b = a.flatten();
+        const m = math.pow(b, exponent);
+        return math.sum(m);
+      }, {a});
+
+      expect(gradients.a.shape).toEqual([2, 2]);
+      test_util.expectArraysClose(gradients.a, [2, 4, 6, 8]);
+    });
+
+    it('reshape outside math.gradients() throws error', math => {
+      const a = Array2D.new([2, 2], [1, 2, 3, 4]);
+      const b = a.flatten();
+      const exponent = Array1D.new([2, 2, 2, 2], 'int32');
+
+      const f = () => {
+        return math.gradients(() => {
+          const m = math.pow(b, exponent);
+          return math.sum(m);
+        }, {a, b});
+      };
+      expect(f).toThrowError();
+    });
+
+    it('works with asType', math => {
+      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
+      const exponent = Array2D.new([2, 2], [2, 2, 2, 2], 'int32');
+
+      const gradients = math.gradients(() => {
+        const b = a.asType('float32');
+        const m = math.pow(b, exponent);
+        return math.sum(m);
+      }, {a});
+
+      expect(gradients.a.shape).toEqual([2, 2]);
+      expect(gradients.a.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients.a, [2, 4, 6, 8]);
+    });
+
+    it('asType outside of math.gradients() throws error', math => {
+      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
+      const b = a.asType('float32');
+      const exponent = Array2D.new([2, 2], [2, 2, 2, 2], 'int32');
+
+      const f = () => {
+        return math.gradients(() => {
+          const m = math.pow(b, exponent);
+          return math.sum(m);
+        }, {a});
+      };
+      expect(f).toThrowError();
+    });
   };
 
   test_util.describeMathCPU('gradients', [tests]);

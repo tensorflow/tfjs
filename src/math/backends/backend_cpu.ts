@@ -24,7 +24,7 @@ import * as concat_util from '../concat_util';
 import {Conv2DInfo} from '../conv_util';
 import {NDArrayMath} from '../math';
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Scalar} from '../ndarray';
+import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Rank, Scalar} from '../ndarray';
 import * as types from '../types';
 import {SumTypes, SumTypesMap} from '../types';
 
@@ -33,7 +33,7 @@ import {MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
 
 export class MathBackendCPU implements MathBackend {
-  private data: {[id: number]: DataTypeMap[DataType]} = {};
+  private data: {[dataId: number]: DataTypeMap[DataType]} = {};
   private canvas: HTMLCanvasElement;
 
   constructor() {
@@ -42,24 +42,24 @@ export class MathBackendCPU implements MathBackend {
     }
   }
 
-  register(id: number, shape: number[], dtype: DataType): void {
-    this.data[id] = null;
+  register(dataId: number, shape: number[], dtype: DataType): void {
+    this.data[dataId] = null;
   }
-  write<D extends DataType>(id: number, values: DataTypeMap[D]): void {
+  write<D extends DataType>(dataId: number, values: DataTypeMap[D]): void {
     if (values == null) {
       throw new Error('MathBackendCPU.write(): values can not be null');
     }
-    this.throwIfNoData(id);
-    this.data[id] = values;
+    this.throwIfNoData(dataId);
+    this.data[dataId] = values;
   }
   writePixels(
-      id: number,
+      dataId: number,
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): void {
     if (pixels == null) {
       throw new Error('MathBackendCPU.writePixels(): pixels can not be null');
     }
-    this.throwIfNoData(id);
+    this.throwIfNoData(dataId);
     let vals: Uint8ClampedArray;
     if (pixels instanceof ImageData) {
       vals = pixels.data;
@@ -98,28 +98,28 @@ export class MathBackendCPU implements MathBackend {
         }
       }
     }
-    this.data[id] = values;
+    this.data[dataId] = values;
   }
-  async read<D extends DataType>(id: number): Promise<DataTypeMap[D]> {
-    this.throwIfNoData(id);
-    return this.data[id];
+  async read<D extends DataType>(dataId: number): Promise<DataTypeMap[D]> {
+    this.throwIfNoData(dataId);
+    return this.data[dataId];
   }
-  readSync<D extends DataType>(id: number): DataTypeMap[D] {
-    this.throwIfNoData(id);
-    return this.data[id];
+  readSync<D extends DataType>(dataId: number): DataTypeMap[D] {
+    this.throwIfNoData(dataId);
+    return this.data[dataId];
   }
-  disposeData(id: number): void {
-    delete this.data[id];
+  disposeData(dataId: number): void {
+    delete this.data[dataId];
   }
   async time(query: () => NDArray): Promise<number> {
     const start = performance.now();
     query();
     return performance.now() - start;
   }
-  private throwIfNoData(id: number) {
-    if (!(id in this.data)) {
+  private throwIfNoData(dataId: number) {
+    if (!(dataId in this.data)) {
       throw new Error(
-          `No data found for NDArray with id ${id}. ` +
+          `No data found for NDArray with data id ${dataId}. ` +
           `Use dl.ENV.math instead of constructing your own NDArrayMath. ` +
           `If you need to construct your own math, make sure this array is ` +
           `allocated after the math construction`);
@@ -465,6 +465,16 @@ export class MathBackendCPU implements MathBackend {
     });
   }
 
+  notEqual(a: NDArray, b: NDArray): NDArray<'bool'> {
+    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
+      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
+        return util.getNaN('bool');
+      } else {
+        return (aVal !== bVal) ? 1 : 0;
+      }
+    });
+  }
+
   topKValues<D extends DataType, T extends NDArray<D>>(x: T, k: number):
       Array1D<D> {
     return this.topK(x, k).values as Array1D<D>;
@@ -742,6 +752,16 @@ export class MathBackendCPU implements MathBackend {
       resultValues[i] = Math.abs(values[i]);
     }
     return NDArray.make(x.shape, {values: resultValues}) as T;
+  }
+
+  int<R extends Rank>(x: NDArray<DataType, R>): NDArray<'int32', R> {
+    const resultValues = new Int32Array(x.size);
+    const values = x.dataSync();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = values[i];
+    }
+    return NDArray.make(x.shape, {values: resultValues}, 'int32') as
+        NDArray<'int32', R>;
   }
 
   sigmoid<T extends NDArray>(x: T): T {

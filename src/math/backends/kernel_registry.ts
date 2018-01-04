@@ -1,5 +1,22 @@
-import {DataType, NDArray} from '../ndarray';
+/**
+ * @license
+ * Copyright 2018 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
 
+import * as util from '../../util';
+import {DataType, NDArray, Scalar} from '../ndarray';
 import {MathBackend} from './backend';
 import {KernelInputConfig} from './tape_types';
 // tslint:disable-next-line:max-line-length
@@ -7,6 +24,7 @@ import {ArgMaxInputConfig, ArgMaxNode, ArgMinInputConfig, ArgMinNode} from './ty
 // tslint:disable-next-line:max-line-length
 import {BatchNorm2DInputConfig, BatchNorm2DNode, BatchNorm3DInputConfig, BatchNorm3DNode, BatchNorm4DInputConfig, BatchNorm4DNode} from './types/batchnorm';
 import {BinaryInputConfig, BinaryNode} from './types/binary';
+import {CastInputConfig, CastNode} from './types/cast';
 // tslint:disable-next-line:max-line-length
 import {Concat1DInputConfig, Concat1DNode, Concat2DInputConfig, Concat2DNode, Concat3DInputConfig, Concat3DNode, Concat4DInputConfig, Concat4DNode} from './types/concat';
 // tslint:disable-next-line:max-line-length
@@ -21,6 +39,7 @@ import {OneHotInputConfig, OneHotNode} from './types/onehot';
 import {PoolBackpropInputConfig, PoolBackpropNode, PoolInputConfig, PoolNode} from './types/pool';
 import {PowInputConfig, PowNode} from './types/pow';
 import {PReLUInputConfig, PReLUNode} from './types/prelu';
+import {ReshapeNode} from './types/reshape';
 // tslint:disable-next-line:max-line-length
 import {ResizeBilinear3DInputConfig, ResizeBilinear3DNode} from './types/resize_bilinear';
 // tslint:disable-next-line:max-line-length
@@ -99,6 +118,9 @@ const KERNEL_METHODS: {
   Equal: (backend: MathBackend, config: EqualInputConfig) => {
     return backend.equal(config.inputs.a, config.inputs.b);
   },
+  NotEqual: (backend: MathBackend, config: EqualInputConfig) => {
+    return backend.notEqual(config.inputs.a, config.inputs.b);
+  },
   TopKValues:
       (backend: MathBackend, config: TopKValuesInputConfig<NDArray>) => {
         return backend.topKValues(config.inputs.x, config.args.k);
@@ -141,6 +163,27 @@ const KERNEL_METHODS: {
   },
   Relu: (backend: MathBackend, config: UnaryInputConfig<NDArray>) => {
     return backend.relu(config.inputs.x);
+  },
+  Reshape: (backend: MathBackend, config: UnaryInputConfig<NDArray>) => {
+    const x = config.inputs.x;
+    const newShape = config.args.newShape;
+    return NDArray.make(newShape, {dataId: x.dataId}, x.dtype);
+  },
+  Cast: (backend: MathBackend, config: CastInputConfig) => {
+    const x = config.inputs.x;
+    const newDType = config.args.newDType;
+
+    if (!util.hasEncodingLoss(x.dtype, newDType)) {
+      // We don't change the underlying data, since we cast to higher precision.
+      return NDArray.make(x.shape, {dataId: x.dataId}, newDType);
+    }
+    if (newDType === 'int32') {
+      return backend.int(x);
+    } else if (newDType === 'bool') {
+      return backend.notEqual(x, Scalar.new(0, x.dtype));
+    } else {
+      throw new Error(`Error in Cast: unknown dtype argument (${newDType})`);
+    }
   },
   LeakyRelu: (backend: MathBackend, config: LeakyReluInputConfig<NDArray>) => {
     return backend.leakyRelu(config.inputs.x, config.args.alpha);
@@ -297,6 +340,7 @@ export interface KernelConfigRegistry {
   ArgMax: ArgMaxNode;
   ArgMin: ArgMinNode;
   Equal: EqualNode;
+  NotEqual: EqualNode;
   TopKValues: TopKValuesNode<DataType, NDArray>;
   TopKIndices: TopKIndicesNode;
   Min: MinNode<DataType>;
@@ -314,6 +358,8 @@ export interface KernelConfigRegistry {
   LeakyRelu: LeakyReluNode<NDArray>;
   PReLU: PReLUNode<NDArray>;
   PReLUDer: PReLUNode<NDArray>;
+  Reshape: ReshapeNode;
+  Cast: CastNode;
   Elu: UnaryNode<NDArray>;
   EluDer: UnaryNode<NDArray>;
   Selu: UnaryNode<NDArray>;

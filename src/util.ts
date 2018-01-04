@@ -376,3 +376,20 @@ export function unflattenToNameArrayMap(
   }
   return result;
 }
+
+/**
+ * Returns true if the new type can't encode the old type without loss of
+ * precision.
+ */
+export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
+  if (newType === 'float32') {
+    return false;
+  }
+  if (newType === 'int32' && oldType !== 'float32') {
+    return false;
+  }
+  if (newType === 'bool' && oldType === 'bool') {
+    return false;
+  }
+  return true;
+}

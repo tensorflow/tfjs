@@ -149,3 +149,7 @@ export const TANH = `
 export const SQUARE = `
   return x * x;
 `;
+
+export const TO_INT = `
+  return float(int(x));
+`;

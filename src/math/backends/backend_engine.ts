@@ -190,10 +190,12 @@ export class BackendEngine {
     // Backprop gradients through the filtered nodes.
     tape_util.backpropagateGradients(arrayAccumulatedGradientMap, filteredTape);
 
-    const gradients: NDArray[] = [];
-    for (let i = 0; i < xs.length; i++) {
-      gradients.push(arrayAccumulatedGradientMap[xs[i].id]);
-    }
+    const gradients = xs.map(x => arrayAccumulatedGradientMap[x.id]);
+    gradients.forEach((grad, i) => {
+      if (grad == null) {
+        throw new Error(`Gradient error: y was not a function of xs[${i}]`);
+      }
+    });
     return gradients;
   }
 
