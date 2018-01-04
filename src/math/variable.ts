@@ -33,14 +33,13 @@ export class Variable<D extends DataType = DataType, R extends Rank = Rank>
       initialValue: NDArray<D, R>, public trainable = true, name?: string) {
     super(
         initialValue.shape, initialValue.dtype, null /* values */,
-        initialValue.id);
+        initialValue.dataId);
     this.name = name;
     if (this.name == null) {
       this.name = Variable.nextVarId.toString();
       Variable.nextVarId++;
     }
     ENV.math.registerVariable(this);
-    ENV.math.keep(this);
   }
 
   /**
@@ -72,9 +71,9 @@ export class Variable<D extends DataType = DataType, R extends Rank = Rank>
           `shape of the new value (${newValue.shape}) and ` +
           `previous value (${this.shape}) must match`);
     }
-    this.math.disposeData(this.id);
-    this.id = newValue.id;
-    ENV.math.keep(this);
+    this.math.disposeData(this.dataId);
+    this.dataId = newValue.dataId;
+    ENV.math.register(this);
   }
 }
 

@@ -34,6 +34,9 @@ export const POW = `
 export const EQUAL = CHECK_NAN_SNIPPET + `
   return float(a == b);
 `;
+export const NOT_EQUAL = CHECK_NAN_SNIPPET + `
+  return float(a != b);
+`;
 export const PRELU = `
   return (a >= 0.0) ? a : b * a;
 `;

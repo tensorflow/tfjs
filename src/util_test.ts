@@ -354,3 +354,30 @@ describe('util.checkForNaN', () => {
 
   test_util.describeMathCPU('util.unflattenToNameArrayMap', [tests]);
 }
+
+describe('util.hasEncodingLoss', () => {
+  it('any to float32', () => {
+    expect(util.hasEncodingLoss('bool', 'float32')).toBe(false);
+    expect(util.hasEncodingLoss('int32', 'float32')).toBe(false);
+    expect(util.hasEncodingLoss('float32', 'float32')).toBe(false);
+  });
+
+  it('float32 to any', () => {
+    expect(util.hasEncodingLoss('float32', 'float32')).toBe(false);
+    expect(util.hasEncodingLoss('float32', 'int32')).toBe(true);
+    expect(util.hasEncodingLoss('float32', 'bool')).toBe(true);
+  });
+
+  it('int32 to lower', () => {
+    expect(util.hasEncodingLoss('int32', 'int32')).toBe(false);
+    expect(util.hasEncodingLoss('int32', 'bool')).toBe(true);
+  });
+
+  it('lower to int32', () => {
+    expect(util.hasEncodingLoss('bool', 'int32')).toBe(false);
+  });
+
+  it('bool to bool', () => {
+    expect(util.hasEncodingLoss('bool', 'bool')).toBe(false);
+  });
+});

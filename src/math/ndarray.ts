@@ -49,7 +49,7 @@ export type Rank = keyof RankMap<DataType>;
 
 /** @hidden */
 export interface NDArrayData<D extends DataType> {
-  id?: number;
+  dataId?: number;
   values?: DataTypeMap[D];
 }
 
@@ -64,8 +64,15 @@ export interface ShapeMap {
 
 export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
   private static nextId = 0;
+  private static nextDataId = 0;
 
+  /** Unique id of this ndarray. */
   id: number;
+  /**
+   * Id of the bucket holding the data for this ndarray. Multiple arrays can
+   * point to the same bucket (e.g. when calling array.reshape()).
+   */
+  dataId: number;
   /** The shape of the ndarray. */
   shape: ShapeMap[R];
   /** Number of elements in the ndarray. */
@@ -85,7 +92,7 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
   protected math: NDArrayMath;
 
   protected constructor(
-      shape: number[], dtype: D, values?: DataTypeMap[D], id?: number,
+      shape: number[], dtype: D, values?: DataTypeMap[D], dataId?: number,
       math?: NDArrayMath) {
     this.math = math || ENV.math;
     this.size = util.sizeFromShape(shape);
@@ -110,14 +117,12 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
         this.strides[i] = this.strides[i + 1] * this.shape[i + 1];
       }
     }
-    this.id = id;
+    this.dataId = dataId != null ? dataId : NDArray.nextDataId++;
+    this.id = NDArray.nextId++;
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-    if (this.id == null) {
-      this.id = NDArray.nextId++;
-      this.math.register(this);
-    }
+    this.math.register(this);
     if (values != null) {
-      this.math.write(this.id, values);
+      this.math.write(this.dataId, values);
     }
   }
 
@@ -166,22 +171,22 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
       math?: NDArrayMath): RankMap<D>[R] {
     switch (shape.length) {
       case 0:
-        return new Scalar(shape, dtype, data.values, data.id, math);
+        return new Scalar(shape, dtype, data.values, data.dataId, math);
       case 1:
-        return new Array1D(shape, dtype, data.values, data.id, math);
+        return new Array1D(shape, dtype, data.values, data.dataId, math);
       case 2:
         return new Array2D(
-            shape as [number, number], dtype, data.values, data.id, math);
+            shape as [number, number], dtype, data.values, data.dataId, math);
       case 3:
         return new Array3D(
-            shape as [number, number, number], dtype, data.values, data.id,
+            shape as [number, number, number], dtype, data.values, data.dataId,
             math);
       case 4:
         return new Array4D(
             shape as [number, number, number, number], dtype, data.values,
-            data.id, math);
+            data.dataId, math);
       default:
-        return new NDArray(shape, dtype, data.values, data.id, math) as
+        return new NDArray(shape, dtype, data.values, data.dataId, math) as
             RankMap<D>[R];
     }
   }
@@ -199,26 +204,14 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
     math = math || ENV.math;
     const res =
         NDArray.make(shape, ndarrayData, 'int32', math) as Array3D<'int32'>;
-    math.writePixels(res.id, pixels, numChannels);
+    math.writePixels(res.dataId, pixels, numChannels);
     return res;
   }
 
   /** Reshapes the current ndarray into the provided shape. */
   reshape<R2 extends Rank>(newShape: number[]): RankMap<D>[R2] {
     this.throwIfDisposed();
-    newShape = util.inferFromImplicitShape(newShape, this.size);
-    if (util.arraysEqual(this.shape, newShape)) {
-      // No-op.
-      return this as RankMap<D>[R2];
-    }
-
-    const data: NDArrayData<D> = {id: this.id};
-
-    util.assert(
-        this.size === util.sizeFromShape(newShape),
-        'new shape and old shape must have the same number of elements.');
-
-    return NDArray.make<D, R2>(newShape, data, this.dtype, this.math);
+    return this.math.reshape(this, newShape);
   }
 
   /** Flatten a NDArray to a 1D array. */
@@ -259,16 +252,7 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
 
   asType<D2 extends DataType>(dtype: D2): NDArray<D2, R> {
     this.throwIfDisposed();
-    if (this.dtype === dtype as string) {
-      // No-op.
-      return this as NDArray as NDArray<D2, R>;
-    }
-    // TODO(dsmilkov): Migrate casting to the backend.
-    const vals = this.dataSync();
-    const newVals = toTypedArray(vals, dtype);
-    return NDArray.make<D2, R>(
-               this.shape, {values: newVals}, dtype, this.math) as
-        NDArray<D2, R>;
+    return this.math.cast(this, dtype) as NDArray<D2, R>;
   }
 
   get rank(): number {
@@ -299,7 +283,7 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
     }
     const vals = this.dataSync();
     vals[index] = value;
-    this.math.write(this.id, vals);
+    this.math.write(this.dataId, vals);
   }
 
   async val(...locs: number[]): Promise<number> {
@@ -332,7 +316,7 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
     this.throwIfDisposed();
     const vals = this.dataSync();
     vals.fill(value);
-    this.math.write(this.id, vals);
+    this.math.write(this.dataId, vals);
   }
 
   /** @deprecated Use dataSync() instead. */
@@ -351,7 +335,7 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
    */
   async data(): Promise<DataTypeMap[D]> {
     this.throwIfDisposed();
-    return this.math.read(this.id);
+    return this.math.read(this.dataId);
   }
 
   /**
@@ -360,12 +344,15 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
    */
   dataSync(): DataTypeMap[D] {
     this.throwIfDisposed();
-    return this.math.readSync(this.id);
+    return this.math.readSync(this.dataId);
   }
 
   dispose(): void {
+    if (this.isDisposed) {
+      return;
+    }
     this.isDisposed = true;
-    this.math.disposeData(this.id);
+    this.math.disposeData(this.dataId);
   }
 
   equals(t: NDArray<D, R>): boolean {
@@ -545,10 +532,10 @@ export class Array1D<D extends DataType = DataType> extends NDArray<D, '1'> {
 
 export class Array2D<D extends DataType = DataType> extends NDArray<D, '2'> {
   constructor(
-      shape: [number, number], dtype: D, values?: DataTypeMap[D], id?: number,
-      math?: NDArrayMath) {
+      shape: [number, number], dtype: D, values?: DataTypeMap[D],
+      dataId?: number, math?: NDArrayMath) {
     util.assert(shape.length === 2, 'Shape should be of length 2');
-    super(shape, dtype, values, id, math);
+    super(shape, dtype, values, dataId, math);
   }
 
   static new<D extends DataType = 'float32'>(
@@ -637,9 +624,9 @@ export class Array2D<D extends DataType = DataType> extends NDArray<D, '2'> {
 export class Array3D<D extends DataType = DataType> extends NDArray<D, '3'> {
   constructor(
       shape: [number, number, number], dtype: D, values?: DataTypeMap[D],
-      id?: number, math?: NDArrayMath) {
+      dataId?: number, math?: NDArrayMath) {
     util.assert(shape.length === 3, 'Shape should be of length 3');
-    super(shape, dtype, values, id, math);
+    super(shape, dtype, values, dataId, math);
   }
 
   static new<D extends DataType = 'float32'>(
@@ -730,9 +717,9 @@ export class Array3D<D extends DataType = DataType> extends NDArray<D, '3'> {
 export class Array4D<D extends DataType = DataType> extends NDArray<D, '4'> {
   constructor(
       shape: [number, number, number, number], dtype: D,
-      values?: DataTypeMap[D], id?: number, math?: NDArrayMath) {
+      values?: DataTypeMap[D], dataId?: number, math?: NDArrayMath) {
     util.assert(shape.length === 4, 'Shape should be of length 4');
-    super(shape, dtype, values, id, math);
+    super(shape, dtype, values, dataId, math);
   }
 
   static new<D extends DataType = 'float32'>(
