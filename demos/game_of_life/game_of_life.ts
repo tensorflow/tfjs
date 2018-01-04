@@ -29,7 +29,9 @@ export class GameOfLife {
     this.size = size;
   }
 
-  setSize(size: number) { this.size = size; }
+  setSize(size: number) {
+    this.size = size;
+  }
 
   generateGolExample(): [NDArray, NDArray] {
     let world: NDArray;
@@ -120,7 +122,7 @@ export class GameOfLife {
         }
       }
     }
-    return Array2D.new(shape as[number, number], values, 'int32');
+    return Array2D.new(shape as [number, number], values, 'int32');
   }
 }
 
@@ -148,7 +150,9 @@ export class GameOfLifeModel {
   // Maps tensors to InputProviders
   feedEntries: FeedEntry[];
 
-  constructor(math: NDArrayMath) { this.math = math; }
+  constructor(math: NDArrayMath) {
+    this.math = math;
+  }
 
   setupSession(
       boardSize: number, batchSize: number, initialLearningRate: number,
@@ -199,10 +203,8 @@ export class GameOfLifeModel {
   predict(world: NDArray): Array2D {
     let values = null;
     this.math.scope(() => {
-      const mapping = [{
-        tensor: this.inputTensor,
-        data: world.reshape([this.size * this.size])
-      }];
+      const mapping =
+          [{tensor: this.inputTensor, data: world.flatten().asType('float32')}];
 
       const evalOutput = this.session.eval(this.predictionTensor, mapping);
       values = evalOutput.dataSync();
@@ -215,8 +217,8 @@ export class GameOfLifeModel {
     const outputs = [];
     for (let i = 0; i < worlds.length; i++) {
       const example = worlds[i];
-      inputs.push(example[0].reshape([this.size * this.size]));
-      outputs.push(example[1].reshape([this.size * this.size]));
+      inputs.push(example[0].flatten().asType('float32'));
+      outputs.push(example[1].flatten().asType('float32'));
     }
 
     // TODO(kreeger): Don't really need to shuffle these.

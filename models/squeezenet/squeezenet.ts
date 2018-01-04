@@ -67,7 +67,8 @@ export class SqueezeNet implements Model {
       let activation: Array3D;
       // Preprocess the input.
       const preprocessedInput =
-          this.math.subtract(input, this.preprocessOffset) as Array3D;
+          this.math.subtract(input.asType('float32'), this.preprocessOffset) as
+          Array3D;
       const conv1 = this.math.conv2d(
           preprocessedInput, this.variables['conv1_W:0'] as Array4D,
           this.variables['conv1_b:0'] as Array1D, 2, 0);

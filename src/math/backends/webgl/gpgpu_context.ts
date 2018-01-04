@@ -107,7 +107,7 @@ export class GPGPUContext {
 
   public uploadPixelDataToTexture(
       texture: WebGLTexture,
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement) {
+      pixels: ImageData|HTMLImageElement|HTMLCanvasElement) {
     this.throwIfDisposed();
     gpgpu_util.uploadPixelDataToTexture(this.gl, texture, pixels);
   }

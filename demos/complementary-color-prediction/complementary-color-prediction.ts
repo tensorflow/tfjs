@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {Array1D, CostReduction, ENV, FeedEntry, Graph, InCPUMemoryShuffledInputProviderBuilder, NDArrayMath, Session, SGDOptimizer, Tensor} from 'deeplearn';
+import {Array1D, CostReduction, ENV, FeedEntry, Graph, InCPUMemoryShuffledInputProviderBuilder, Session, SGDOptimizer, Tensor} from 'deeplearn';
 
 class ComplementaryColorModel {
   // Runs training.
@@ -25,12 +25,12 @@ class ComplementaryColorModel {
   // Encapsulates math operations on the CPU and GPU.
   math = ENV.math;
 
-  // An optimizer with a certain initial learning rate. Used for training.
-  initialLearningRate = 0.042;
+  // An optimizer with a certain learning rate. Used for training.
+  learningRate = 0.1;
   optimizer: SGDOptimizer;
 
   // Each training batch will be on this many examples.
-  batchSize = 300;
+  batchSize = 50;
 
   inputTensor: Tensor;
   targetTensor: Tensor;
@@ -41,7 +41,7 @@ class ComplementaryColorModel {
   feedEntries: FeedEntry[];
 
   constructor() {
-    this.optimizer = new SGDOptimizer(this.initialLearningRate);
+    this.optimizer = new SGDOptimizer(this.learningRate);
   }
 
   /**
@@ -94,7 +94,7 @@ class ComplementaryColorModel {
   train1Batch(shouldFetchCost: boolean): number {
     // Every 42 steps, lower the learning rate by 15%.
     const learningRate =
-        this.initialLearningRate * Math.pow(0.85, Math.floor(step / 42));
+        this.learningRate * Math.pow(0.85, Math.floor(step / 42));
     this.optimizer.setLearningRate(learningRate);
 
     // Train 1 batch.
@@ -126,7 +126,7 @@ class ComplementaryColorModel {
 
   predict(rgbColor: number[]): number[] {
     let complementColor: number[] = [];
-    this.math.scope((keep, track) => {
+    this.math.scope(() => {
       const mapping = [{
         tensor: this.inputTensor,
         data: Array1D.new(this.normalizeColor(rgbColor)),
@@ -156,10 +156,6 @@ class ComplementaryColorModel {
    */
   private generateTrainingData(exampleCount: number) {
     const rawInputs = new Array(exampleCount);
-    const oldMath = ENV.math;
-    const safeMode = false;
-    const math = new NDArrayMath('cpu', safeMode);
-    ENV.setMath(math);
 
     for (let i = 0; i < exampleCount; i++) {
       rawInputs[i] = [
@@ -187,7 +183,6 @@ class ComplementaryColorModel {
       {tensor: this.inputTensor, data: inputProvider},
       {tensor: this.targetTensor, data: targetProvider}
     ];
-    ENV.setMath(oldMath);
   }
 
   private generateRandomChannelValue() {

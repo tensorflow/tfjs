@@ -25,6 +25,7 @@ export enum TextureType {
 
 export interface TextureData {
   texture: WebGLTexture;
+  shape: number[];
   /** [rows, columns] shape of the texture. */
   texShape: [number, number];
   textureType: TextureType;
