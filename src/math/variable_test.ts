@@ -17,8 +17,8 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
-import {variable, Variable} from './variable';
+// tslint:disable-next-line:max-line-length
+import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, variable, Variable} from './ndarray';
 
 const tests: MathTests = it => {
   it('simple assign', math => {
