@@ -131,13 +131,13 @@ export class TransformNet implements Model {
   private instanceNorm(input: Array3D, varId: number): Array3D {
     const [height, width, inDepth]: [number, number, number] = input.shape;
     const moments = this.math.moments(input, [0, 1]);
-    const mu = moments.mean as Array3D;
+    const mu = moments.mean;
     const sigmaSq = moments.variance as Array3D;
     const shift = this.variables[this.varName(varId)] as Array1D;
     const scale = this.variables[this.varName(varId + 1)] as Array1D;
     const epsilon = this.epsilonScalar;
     const normalized = this.math.divide(
-        this.math.sub(input, mu),
+        this.math.sub(input.asType('float32'), mu),
         this.math.sqrt(this.math.add(sigmaSq, epsilon)));
     const shifted = this.math.add(this.math.multiply(scale, normalized), shift);
     return shifted.as3D(height, width, inDepth);

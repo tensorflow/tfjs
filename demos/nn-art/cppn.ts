@@ -34,8 +34,8 @@ const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
 
 export type ActivationFunction = 'tanh'|'sin'|'relu'|'step';
 const activationFunctionMap: {
-  [activationFunction in ActivationFunction]:
-      (math: NDArrayMath, ndarray: Array2D) => Array2D
+  [activationFunction in ActivationFunction]: (
+      math: NDArrayMath, ndarray: Array2D) => Array2D
 } = {
   'tanh': (math: NDArrayMath, ndarray: Array2D) => math.tanh(ndarray),
   'sin': (math: NDArrayMath, ndarray: Array2D) => math.sin(ndarray),

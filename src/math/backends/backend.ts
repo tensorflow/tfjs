@@ -26,13 +26,13 @@ export interface NDArrayStorage {
   read<D extends DataType>(id: number): Promise<DataTypeMap[D]>;
   readSync<D extends DataType>(id: number): DataTypeMap[D];
   disposeData(id: number): void;
-  write<D extends DataType>(
-      id: number, values: DataTypeMap[D], dtype: D, shape: number[]): void;
+  write<D extends DataType>(id: number, values: DataTypeMap[D]): void;
   writePixels(
       id: number,
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): void;
   time(query: () => NDArray): Promise<number>;
+  register(id: number, shape: number[], dtype: DataType): void;
 }
 
 /**

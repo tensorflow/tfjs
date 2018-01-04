@@ -168,7 +168,8 @@ export function makeShaderKey(
     output: ArrayData<NDArray>): string {
   let keyInputs = '';
   inputs.concat(output).forEach(x => {
-    keyInputs += `${x.array.shape}_${x.texData.texShape}`;
+    keyInputs +=
+        `${x.array.shape}_${x.texData.texShape}_${x.texData.textureType}`;
   });
   const keyUserCode = program.userCode;
   const keyBroadcast = (program.supportsBroadcasting === true).toString();

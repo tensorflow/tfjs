@@ -19,10 +19,7 @@ import {BackendType, ENV} from '../environment';
 import * as util from '../util';
 import {NamedArrayMap} from '../util';
 import * as axis_util from './axis_util';
-// tslint:disable-next-line:max-line-length
-import {NDArrayStorage} from './backends/backend';
 import {MathBackend} from './backends/backend';
-// tslint:disable-next-line:max-line-length
 import {BackendEngine} from './backends/backend_engine';
 import {TapeNodeInputGradientArrays} from './backends/tape_types';
 import {ScopeResult, ScopeResultImmediate} from './backends/tape_util';
@@ -46,7 +43,7 @@ export interface NDArrayManager {
   registerVariable(v: Variable): void;
 }
 
-export class NDArrayMath implements NDArrayStorage, NDArrayManager {
+export class NDArrayMath implements NDArrayManager {
   protected backendEngine: BackendEngine;
   private registeredArrays = new Set();
   private backend: MathBackend;
@@ -68,6 +65,7 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
       throw new Error(`NDArray with id ${a.id} was already registered`);
     }
     this.registeredArrays.add(a.id);
+    this.backend.register(a.id, a.shape, a.dtype);
     this.backendEngine.track(a);
   }
 
@@ -84,9 +82,8 @@ export class NDArrayMath implements NDArrayStorage, NDArrayManager {
       numChannels: number): void {
     this.backend.writePixels(id, pixels, numChannels);
   }
-  write<D extends DataType>(
-      id: number, values: DataTypeMap[D], dtype: D, shape: number[]): void {
-    this.backend.write(id, values, dtype, shape);
+  write<D extends DataType>(id: number, values: DataTypeMap[D]): void {
+    this.backend.write(id, values);
   }
   readSync<D extends DataType>(id: number): DataTypeMap[D] {
     return this.backend.readSync(id);

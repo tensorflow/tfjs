@@ -24,7 +24,8 @@ const tests: Tests = () => {
     const delayedStorage = true;
     const backend = new MathBackendWebGL(null, delayedStorage);
     const texManager = backend.getTextureManager();
-    backend.write(0, new Float32Array([1, 2, 3]), 'float32', [3]);
+    backend.register(0, [3], 'float32');
+    backend.write(0, new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(0);
     backend.getTexture(0);
     expect(texManager.getNumUsedTextures()).toBe(1);
@@ -41,11 +42,12 @@ const tests: Tests = () => {
     const delayedStorage = true;
     const backend = new MathBackendWebGL(null, delayedStorage);
     const texManager = backend.getTextureManager();
-    backend.write(0, new Float32Array([1, 2, 3]), 'float32', [3]);
+    backend.register(0, [3], 'float32');
+    backend.write(0, new Float32Array([1, 2, 3]));
     backend.getTexture(0);
     expect(texManager.getNumUsedTextures()).toBe(1);
     // overwrite.
-    backend.write(0, new Float32Array([4, 5, 6]), 'float32', [3]);
+    backend.write(0, new Float32Array([4, 5, 6]));
     expect(texManager.getNumUsedTextures()).toBe(0);
     test_util.expectArraysClose(
         backend.readSync(0), new Float32Array([4, 5, 6]));
@@ -60,7 +62,8 @@ const tests: Tests = () => {
     const delayedStorage = false;
     const backend = new MathBackendWebGL(null, delayedStorage);
     const texManager = backend.getTextureManager();
-    backend.write(0, new Float32Array([1, 2, 3]), 'float32', [3]);
+    backend.register(0, [3], 'float32');
+    backend.write(0, new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(1);
     test_util.expectArraysClose(
         backend.readSync(0), new Float32Array([1, 2, 3]));
@@ -73,9 +76,10 @@ const tests: Tests = () => {
     const delayedStorage = false;
     const backend = new MathBackendWebGL(null, delayedStorage);
     const texManager = backend.getTextureManager();
-    backend.write(0, new Float32Array([1, 2, 3]), 'float32', [3]);
+    backend.register(0, [3], 'float32');
+    backend.write(0, new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(1);
-    backend.write(0, new Float32Array([4, 5, 6]), 'float32', [3]);
+    backend.write(0, new Float32Array([4, 5, 6]));
     expect(texManager.getNumUsedTextures()).toBe(1);
     test_util.expectArraysClose(
         backend.readSync(0), new Float32Array([4, 5, 6]));
@@ -88,8 +92,10 @@ const tests: Tests = () => {
     const delayedStorage = false;
     const backend = new MathBackendWebGL(null, delayedStorage);
     const texManager = backend.getTextureManager();
-    backend.write(0, new Float32Array([1, 2, 3]), 'float32', [3]);
-    backend.write(1, new Float32Array([4, 5, 6]), 'float32', [3]);
+    backend.register(0, [3], 'float32');
+    backend.write(0, new Float32Array([1, 2, 3]));
+    backend.register(1, [3], 'float32');
+    backend.write(1, new Float32Array([4, 5, 6]));
     expect(texManager.getNumUsedTextures()).toBe(2);
     backend.dispose();
     expect(texManager.getNumUsedTextures()).toBe(0);
