@@ -134,10 +134,7 @@ export class GameOfLifeModel {
   session: Session;
   math: NDArrayMath;
 
-  // An optimizer with a certain initial learning rate. Used for training.
-  initialLearningRate = 0.042;
   optimizer: AdagradOptimizer;
-
   inputTensor: Tensor;
   targetTensor: Tensor;
   costTensor: Tensor;
