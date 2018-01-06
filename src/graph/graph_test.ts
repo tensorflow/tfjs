@@ -312,6 +312,67 @@ describe('Reduce sum validation', () => {
   });
 });
 
+describe('Concat1d validation', () => {
+  let g: Graph;
+
+  beforeEach(() => {
+    g = new Graph();
+  });
+
+  it('Non 1-rank tensor x1 throws', () => {
+    expect(() => g.concat1d(new Tensor([5, 4]), new Tensor([1])))
+        .toThrowError();
+  });
+
+  it('Non 1-rank tensor x2 throws', () => {
+    expect(() => g.concat1d(new Tensor([5]), new Tensor([1, 2])).shape)
+        .toThrowError();
+  });
+
+  it('Axis=0 shapes the same does not throw', () => {
+    expect(g.concat1d(new Tensor([5]), new Tensor([1])).shape)
+        .toEqual([6]);
+  });
+});
+
+describe('Concat2d validation', () => {
+  let g: Graph;
+
+  beforeEach(() => {
+    g = new Graph();
+  });
+
+  it('Non 2-rank tensor x1 throws', () => {
+    expect(() => g.concat2d(new Tensor([5]), new Tensor([1, 2]), 0))
+        .toThrowError();
+  });
+
+  it('Non 2-rank tensor x2 throws', () => {
+    expect(() => g.concat2d(new Tensor([5, 4]), new Tensor([1]), 0))
+        .toThrowError();
+  });
+
+  it('Axis=0 different shapes throw', () => {
+    expect(() => g.concat2d(new Tensor([2, 3]), new Tensor([4, 4]), 0))
+        .toThrowError();
+  });
+
+  it('Axis=0 shapes the same doe not throw', () => {
+    expect(g.concat2d(new Tensor([2, 3]), new Tensor([4, 3]), 0).shape)
+        .toEqual([6, 3]);
+  });
+
+  it('Axis=1 different shapes throw', () => {
+    expect(() => g.concat2d(new Tensor([2, 3]), new Tensor([4, 4]), 1))
+        .toThrowError();
+  });
+
+  it('Axis=1 shapes the same doe not throw', () => {
+    expect(g.concat2d(new Tensor([2, 4]), new Tensor([2, 3]), 1).shape)
+        .toEqual([2, 7]);
+  });
+});
+
 describe('Concat3d validation', () => {
   let g: Graph;
 
@@ -357,6 +418,64 @@ describe('Concat3d validation', () => {
   it('Axis=2 shapes the same does not throw', () => {
     expect(g.concat3d(new Tensor([5, 4, 3]), new Tensor([5, 4, 1]), 2).shape)
         .toEqual([5, 4, 4]);
+  });
+});
+
+describe('Concat4d validation', () => {
+  let g: Graph;
+
+  beforeEach(() => {
+    g = new Graph();
+  });
+
+  it('Non 4-rank tensor x1 throws', () => {
+    expect(() => g.concat4d(new Tensor([5, 4]), new Tensor([1, 2, 3, 4]), 0))
+        .toThrowError();
+  });
+
+  it('Non 4-rank tensor x2 throws', () => {
+    expect(() => g.concat4d(new Tensor([5, 4, 1]), new Tensor([1, 2, 3, 4]), 0))
+        .toThrowError();
+  });
+
+  it('Axis=0 different shapes throws', () => {
+    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
+      new Tensor([1, 2, 1, 1]), 0)).toThrowError();
+  });
+
+  it('Axis=1 different shapes throws', () => {
+    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
+      new Tensor([1, 2, 1, 1]), 1)).toThrowError();
+  });
+
+  it('Axis=2 different shapes throws', () => {
+    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
+      new Tensor([1, 2, 1, 1]), 2)).toThrowError();
+  });
+
+  it('Axis=3 different shapes throws', () => {
+    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
+      new Tensor([1, 2, 1, 1]), 3)).toThrowError();
+  });
+
+  it('Axis=0 shapes the same does not throw', () => {
+    expect(g.concat4d(new Tensor([5, 4, 3, 1]),
+      new Tensor([1, 4, 3, 1]), 0).shape).toEqual([6, 4, 3, 1]);
+  });
+
+  it('Axis=1 shapes the same does not throw', () => {
+    expect(g.concat4d(new Tensor([5, 3, 3, 1]),
+      new Tensor([5, 4, 3, 1]), 1).shape).toEqual([5, 7, 3, 1]);
+  });
+
+  it('Axis=2 shapes the same does not throw', () => {
+    expect(g.concat4d(new Tensor([5, 4, 3, 1]),
+      new Tensor([5, 4, 1, 1]), 2).shape).toEqual([5, 4, 4, 1]);
+  });
+
+  it('Axis=3 shapes the same does not throw', () => {
+    expect(g.concat4d(new Tensor([5, 4, 3, 1]), 
+      new Tensor([5, 4, 3, 2]), 3).shape).toEqual([5, 4, 3, 3]);
   });
 });
 
