@@ -16,12 +16,12 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat3DNode, Convolution2DNode, DivideNode, ExpNode, EluNode, FusedLinearCombinationNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, ReduceSumNode, ReLUNode, PReLUNode, LeakyReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SquareNode, SubtractNode, TanHNode} from './graph';
+import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat1DNode, Concat2DNode, Concat3DNode, Concat4DNode, Convolution2DNode, DivideNode, ExpNode, EluNode, FusedLinearCombinationNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, ReduceSumNode, ReLUNode, PReLUNode, LeakyReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SquareNode, SubtractNode, TanHNode} from './graph';
 import * as graph_util from './graph_util';
 import {Add} from './ops/add';
 import {ArgMax} from './ops/argmax';
 import {ArgMaxEquals} from './ops/argmaxequals';
-import {Concat3D} from './ops/concat3d';
+import {Concat1D, Concat2D, Concat3D, Concat4D} from './ops/concat';
 import {Convolution2D} from './ops/convolution';
 import {Divide} from './ops/divide';
 // tslint:disable-next-line:max-line-length
@@ -103,9 +103,21 @@ function emitOpFromNode(node: Node): Operation[] {
         node.inputs[FusedLinearCombinationNode.T2],
         node.inputs[FusedLinearCombinationNode.C1],
         node.inputs[FusedLinearCombinationNode.C2], node.output)];
+  } else if (node instanceof Concat1DNode) {
+    return [new Concat1D(
+        node.inputs[Concat1DNode.X1], node.inputs[Concat1DNode.X2],
+        node.output)];
+  } else if (node instanceof Concat2DNode) {
+    return [new Concat2D(
+        node.inputs[Concat2DNode.X1], node.inputs[Concat2DNode.X2], node.axis,
+        node.output)];
   } else if (node instanceof Concat3DNode) {
     return [new Concat3D(
         node.inputs[Concat3DNode.X1], node.inputs[Concat3DNode.X2], node.axis,
+        node.output)];
+  } else if (node instanceof Concat4DNode) {
+    return [new Concat4D(
+        node.inputs[Concat4DNode.X1], node.inputs[Concat4DNode.X2], node.axis,
         node.output)];
   } else if (node instanceof SquareNode) {
     return [new Square(node.inputs[SquareNode.X], node.output)];
