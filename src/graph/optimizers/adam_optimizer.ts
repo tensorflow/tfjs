@@ -17,11 +17,11 @@
 
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
+import {Optimizer} from '../../math/optimizers/optimizer';
+import {NamedVariableMap} from '../../util';
 import {Node} from '../graph';
 import {SessionRuntime} from '../session';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
-import {Optimizer} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
   constructor(
@@ -35,6 +35,10 @@ export class AdamOptimizer extends Optimizer {
     // accB* will be updated by batch.
     this.accB1 = Scalar.new(this.beta1);
     this.accB2 = Scalar.new(this.beta2);
+  }
+
+  applyGradients(variableGradients: NamedVariableMap) {
+    throw new Error(`Adam optimizer not yet implemented for eager mode.`);
   }
 
   beforeBatch(
@@ -83,7 +87,7 @@ export class AdamOptimizer extends Optimizer {
             math.divide(newSecondMoment, math.subtract(this.one, this.accB2));
 
         const variable = math.scaledArrayAdd(
-            this.c,
+            this.cGraph,
             math.divide(
                 biasCorrectedFirstMoment,
                 math.add(math.sqrt(biasCorrectedSecondMoment), this.eps)),

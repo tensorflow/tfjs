@@ -15,18 +15,45 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
+import {Node} from '../../graph/graph';
+import {SessionRuntime} from '../../graph/session';
+// tslint:disable-next-line:max-line-length
+import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
-import {Node} from '../graph';
-import {SessionRuntime} from '../session';
-import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
+import {NamedVariableMap} from '../../util';
+import {Scalar} from '../ndarray';
 
 import {Optimizer} from './optimizer';
 
 export class SGDOptimizer extends Optimizer {
+  private c: Scalar;
+
   constructor(protected learningRate: number, specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
   }
 
+  // Eager mode
+  applyGradients(variableGradients: NamedVariableMap) {
+    const math = ENV.math;
+    if (this.c == null) {
+      this.c = math.keep(Scalar.new(-this.learningRate));
+    }
+
+    const varNames = Object.keys(variableGradients);
+    varNames.forEach(varName => {
+      const gradient = variableGradients[varName];
+      const value = math.registeredVariables[varName];
+
+      const newValue = math.scope(() => {
+        return math.add(math.multiply(this.c, gradient), value);
+      });
+
+      value.assign(newValue);
+    });
+  }
+
+  // Graph
   afterBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
@@ -36,7 +63,7 @@ export class SGDOptimizer extends Optimizer {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);
         const variable =
-            math.scaledArrayAdd(this.c, gradient, this.one, oldVariable);
+            math.scaledArrayAdd(this.cGraph, gradient, this.one, oldVariable);
         activationArrayMap.set(node.output, keep(variable));
         node.data = variable;
 
@@ -49,6 +76,9 @@ export class SGDOptimizer extends Optimizer {
   }
 
   dispose() {
+    if (this.c != null) {
+      this.c.dispose();
+    }
     super.dispose();
   }
 

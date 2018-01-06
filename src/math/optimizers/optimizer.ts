@@ -16,12 +16,14 @@
  */
 
 import {ENV} from '../../environment';
+import {Node, VariableNode} from '../../graph/graph';
+import {SessionRuntime} from '../../graph/session';
+import * as session_util from '../../graph/session_util';
+// tslint:disable-next-line:max-line-length
+import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
-import {NDArray, Scalar} from '../../math/ndarray';
-import {Node, VariableNode} from '../graph';
-import {SessionRuntime} from '../session';
-import * as session_util from '../session_util';
-import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
+import {DataType, NDArray, Scalar} from '../../math/ndarray';
+import {NamedVariableMap} from '../../util';
 
 export abstract class Optimizer {
   protected variableNodes: VariableNode[];
@@ -34,6 +36,37 @@ export abstract class Optimizer {
     this.one = ENV.math.keep(Scalar.new(1));
   }
 
+  /**
+   * Eager mode methods.
+   */
+  minimize<D extends DataType>(f: () => Scalar<D>, returnCost = false):
+      Scalar<D>|null {
+    const {value, gradients} = this.computeGradients(f);
+
+    this.applyGradients(gradients);
+
+    // Dispose gradients.
+    const varNames = Object.keys(gradients);
+    varNames.forEach(varName => gradients[varName].dispose());
+
+    if (returnCost) {
+      return value as Scalar<D>;
+    } else {
+      value.dispose();
+      return null;
+    }
+  }
+
+  computeGradients<D extends DataType>(f: () => Scalar<D>):
+      {value: Scalar<D>, gradients: NamedVariableMap} {
+    return ENV.math.variableGradients(f);
+  }
+
+  abstract applyGradients(variableGradients: NamedVariableMap): void;
+
+  /**
+   * Graph mode methods.
+   */
   beforeBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
@@ -42,11 +75,11 @@ export abstract class Optimizer {
         session_util.getVariableNodesFromEvaluationSet(runtime.nodes) :
         this.specifiedVariableNodes;
     if (batchSize !== this.prevBatchSize) {
-      if (this.c != null) {
-        this.c.dispose();
+      if (this.cGraph != null) {
+        this.cGraph.dispose();
       }
       this.prevBatchSize = batchSize;
-      this.c = math.keep(Scalar.new(-this.learningRate / batchSize));
+      this.cGraph = math.keep(Scalar.new(-this.learningRate / batchSize));
     }
     this.variableNodes.forEach(
         node => this.variableGradients.set(
@@ -74,20 +107,24 @@ export abstract class Optimizer {
       gradientArrayMap: SummedTensorArrayMap): void;
 
   dispose() {
-    if (this.c != null) {
-      this.c.dispose();
+    if (this.cGraph != null) {
+      this.cGraph.dispose();
     }
     this.one.dispose();
-    this.variableNodes.forEach(node => {
-      node.data.dispose();
-    });
-    this.specifiedVariableNodes.forEach(node => {
-      node.data.dispose();
-    });
+    if (this.variableNodes != null) {
+      this.variableNodes.forEach(node => {
+        node.data.dispose();
+      });
+    }
+    if (this.specifiedVariableNodes != null) {
+      this.specifiedVariableNodes.forEach(node => {
+        node.data.dispose();
+      });
+    }
   }
 
   protected variableGradients = new TensorArrayMap();
   protected prevBatchSize: number;
   protected one: Scalar;
-  protected c: Scalar;
+  protected cGraph: Scalar;
 }

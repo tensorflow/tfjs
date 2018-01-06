@@ -17,11 +17,11 @@
 
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
+import {Optimizer} from '../../math/optimizers/optimizer';
+import {NamedVariableMap} from '../../util';
 import {Node} from '../graph';
 import {SessionRuntime} from '../session';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
-import {Optimizer} from './optimizer';
 
 export class AdadeltaOptimizer extends Optimizer {
   constructor(
@@ -30,6 +30,10 @@ export class AdadeltaOptimizer extends Optimizer {
     super(learningRate, specifiedVariableList);
     this.eps = Scalar.new(1e-6);
     this.g = Scalar.new(this.gamma);
+  }
+
+  applyGradients(variableGradients: NamedVariableMap) {
+    throw new Error(`Adadelta optimizer not yet implemented for eager mode.`);
   }
 
   beforeBatch(
@@ -71,7 +75,7 @@ export class AdadeltaOptimizer extends Optimizer {
             gradient);
 
         const variable =
-            math.scaledArrayAdd(this.c, updates, this.one, oldVariable);
+            math.scaledArrayAdd(this.cGraph, updates, this.one, oldVariable);
 
         const updateSquare = math.multiply(updates, updates);
         // Exponential decay of average updated values.

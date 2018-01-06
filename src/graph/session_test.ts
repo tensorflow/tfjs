@@ -19,9 +19,10 @@ import {InputProvider} from '../data/input_provider';
 import {ENV} from '../environment';
 import {NDArrayMath} from '../math/math';
 import {Array1D, NDArray, Scalar} from '../math/ndarray';
+import {SGDOptimizer} from '../math/optimizers/sgd_optimizer';
 import * as test_util from '../test_util';
+
 import {Graph, Tensor} from './graph';
-import {SGDOptimizer} from './optimizers/sgd_optimizer';
 import {FeedDictionary, FeedEntry, Session} from './session';
 
 describe('FeedDictionary', () => {

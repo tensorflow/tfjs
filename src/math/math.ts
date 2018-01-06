@@ -17,7 +17,7 @@
 
 import {BackendType, ENV} from '../environment';
 import * as util from '../util';
-import {NamedArrayMap} from '../util';
+import {NamedArrayMap, NamedVariableMap} from '../util';
 import * as axis_util from './axis_util';
 import {MathBackend} from './backends/backend';
 import {BackendEngine} from './backends/backend_engine';
@@ -49,7 +49,7 @@ export class NDArrayMath implements NDArrayManager {
   private customBackend = false;
 
   // Public since optimizers will use it.
-  registeredVariables = new Map<string, Variable>();
+  registeredVariables: NamedVariableMap = {};
 
   time(query: () => NDArray): Promise<number> {
     return this.backend.time(query);
@@ -73,10 +73,10 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   registerVariable(v: Variable) {
-    if (this.registeredVariables.has(v.name)) {
+    if (this.registeredVariables[v.name] != null) {
       throw new Error(`Variable with name ${v.name} was already registered`);
     }
-    this.registeredVariables.set(v.name, v);
+    this.registeredVariables[v.name] = v;
   }
 
   writePixels(
@@ -630,10 +630,25 @@ export class NDArrayMath implements NDArrayManager {
     const reduceShape = shapes[1];
     const reduceSize = util.sizeFromShape(reduceShape);
     return this.executeOp('mean', () => {
-      return this.scope(keep => {
+      // Use a custom gradient to bypass 2 gradient backprops since mean is used
+      // extremely often.
+      // TODO(nsthorat): Maybe remove this custom gradient if backprop through
+      // divide / sum are fast enough and we have broadcasting support.
+      return this.customGradient(() => {
         const res = this.divide(x, Scalar.new(reduceSize));
-        return this.sum(res, axis, keepDims);
-      });
+        const value = this.sum(res, axis, keepDims);
+
+        const gradients = (dy: NDArray, y: NDArray) => {
+          if (axis != null) {
+            throw new Error(`Gradient for mean not yet implemented for axis.`);
+          }
+          return {
+            x: () => this.multiply(
+                NDArray.onesLike(x), this.divide(dy, Scalar.new(x.size)))
+          };
+        };
+        return {value, gradients};
+      }, {x}, 'mean') as NDArray<'float32'>;
     });
   }
 
@@ -2567,16 +2582,26 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
+   * Computes and returns the gradient of f(x) with respect to every variable.
+   * Computes and returns the gradient of f(x) with respect to every variable.
+   */
+  variableGradients<D extends DataType>(f: () => Scalar<D>):
+      {value: Scalar<D>, gradients: NamedVariableMap} {
+    return this.valueAndGradients(f, this.registeredVariables) as
+        {value: Scalar<D>, gradients: NamedVariableMap};
+  }
+
+  /**
    * Warning: this is not fully implemented yet. Use with caution.
    *
-   * Computes and returns the gradient of f(x) with respect to x. Returns both
-   * f(x) and f'(x).
+   * Computes and returns the gradient of f(x) with respect to x. Returns
+   * both f(x) and f'(x).
    *
    * @param f The function to execute. f() should return a scalar.
    *          TODO(nsthorat): Accept non-scalars.
    * @param x The input to compute de/dx over. This can be a single value or
-   * an object mapping a string to an NDArray. If using the object mode, this
-   * method will return an object of the same shape.
+   * an object mapping a string to an NDArray. If using the object mode,
+   * this method will return an object of the same shape.
    */
   valueAndGradients<T extends NDArray|NamedArrayMap, D extends DataType>(
       f: () => Scalar<D>, x: T): {value: Scalar, gradients: T} {
