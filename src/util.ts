@@ -1,4 +1,4 @@
-import {DataType, DataTypeMap, NDArray} from './math/ndarray';
+import {DataType, DataTypeMap, NDArray, Variable} from './math/ndarray';
 
 /**
  * @license
@@ -24,6 +24,10 @@ export type ArrayData = TypedArray|RegularArray<number>|RegularArray<boolean>;
 
 export type NamedArrayMap = {
   [name: string]: NDArray
+};
+
+export type NamedVariableMap = {
+  [name: string]: Variable;
 };
 
 /** Shuffles the array using Fisher-Yates algorithm. */
@@ -392,4 +396,13 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
     return false;
   }
   return true;
+}
+
+/**
+ * Returns a promise that resolve when a requestAnimationFrame has completed.
+ * This is simply a sugar method so that users can do the following:
+ * `await dl.nextFrame();`
+ */
+export function nextFrame(): Promise<void> {
+  return new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
 }

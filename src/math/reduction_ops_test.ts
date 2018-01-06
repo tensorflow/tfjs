@@ -651,6 +651,26 @@ import * as reduce_util from './reduce_util';
       expect(res.dtype).toBe('float32');
       test_util.expectArraysClose(res, [7 / 6]);
     });
+
+    it('gradients', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const dy = Scalar.new(1.5);
+
+      const vjp = math.vjp(() => math.mean(a), a, dy);
+
+      expect(vjp.shape).toEqual(a.shape);
+      test_util.expectArraysClose(vjp, [
+        dy.get() / a.size, dy.get() / a.size, dy.get() / a.size,
+        dy.get() / a.size, dy.get() / a.size, dy.get() / a.size
+      ]);
+    });
+
+    it('gradients throws for defined axis', math => {
+      const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
+      const dy = Scalar.new(1.5);
+
+      expect(() => math.vjp(() => math.mean(a, 1), a, dy)).toThrowError();
+    });
   };
 
   test_util.describeMathCPU('mean', [tests]);

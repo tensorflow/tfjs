@@ -294,6 +294,9 @@ export class NDArray<D extends DataType = DataType, R extends Rank = Rank> {
 
   locToIndex(locs: ShapeMap[R]): number {
     this.throwIfDisposed();
+    if (locs.length === 0) {
+      return 0;
+    }
     let index = locs[locs.length - 1];
     for (let i = 0; i < locs.length - 1; ++i) {
       index += this.strides[i] * locs[i];

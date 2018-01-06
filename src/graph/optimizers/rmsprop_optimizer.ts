@@ -17,11 +17,11 @@
 
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
+import {Optimizer} from '../../math/optimizers/optimizer';
+import {NamedVariableMap} from '../../util';
 import {Node} from '../graph';
 import {SessionRuntime} from '../session';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
-import {Optimizer} from './optimizer';
 
 export class RMSPropOptimizer extends Optimizer {
   constructor(
@@ -30,6 +30,10 @@ export class RMSPropOptimizer extends Optimizer {
     super(learningRate, specifiedVariableList);
     this.eps = Scalar.new(1e-6);
     this.g = Scalar.new(this.gamma);
+  }
+
+  applyGradients(variableGradients: NamedVariableMap) {
+    throw new Error(`RMSProp optimizer not yet implemented for eager mode.`);
   }
 
   beforeBatch(
@@ -59,7 +63,8 @@ export class RMSPropOptimizer extends Optimizer {
         const cache = math.scaledArrayAdd(
             this.g, oldCache, math.subtract(this.one, this.g), gradientSquare);
         const variable = math.scaledArrayAdd(
-            this.c, math.divide(gradient, math.add(math.sqrt(cache), this.eps)),
+            this.cGraph,
+            math.divide(gradient, math.add(math.sqrt(cache), this.eps)),
             this.one, oldVariable);
         this.accumulatedSquaredGradients.set(node.output, keep(cache));
         activationArrayMap.set(node.output, keep(variable));

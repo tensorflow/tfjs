@@ -18,12 +18,12 @@
 import {InputProvider} from '../data/input_provider';
 import {NDArrayMath} from '../math/math';
 import {NDArray, Scalar} from '../math/ndarray';
+import {Optimizer} from '../math/optimizers/optimizer';
 import * as util from '../util';
 
 import {Graph, Node, Tensor} from './graph';
 import * as operation_emitter from './operation_emitter';
 import {Operation} from './ops/op';
-import {Optimizer} from './optimizers/optimizer';
 import * as session_util from './session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from './tensor_array_map';
 
