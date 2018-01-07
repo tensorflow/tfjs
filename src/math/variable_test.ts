@@ -104,27 +104,20 @@ const tests: MathTests = it => {
 
   it('assign will dispose old data', math => {
     let v: Variable<'float32', '1'>;
-    math.scope(() => {
-      math.scope(() => {
-        const firstArray = Array1D.new([1, 2, 3]);
-        v = variable(firstArray);
-      });
-      expect(math.getNumArrays()).toBe(1);
-      test_util.expectArraysClose(v, [1, 2, 3]);
+    v = variable(Array1D.new([1, 2, 3]));
+    expect(math.getNumArrays()).toBe(1);
+    test_util.expectArraysClose(v, [1, 2, 3]);
 
-      const secondArray = Array1D.new([4, 5, 6]);
-      expect(math.getNumArrays()).toBe(2);
+    const secondArray = Array1D.new([4, 5, 6]);
+    expect(math.getNumArrays()).toBe(2);
 
-      v.assign(secondArray);
-      test_util.expectArraysClose(v, [4, 5, 6]);
-      // The first array was disposed since there is no reference to it.
-      expect(math.getNumArrays()).toBe(1);
+    v.assign(secondArray);
+    test_util.expectArraysClose(v, [4, 5, 6]);
+    // Assign disposes the 1st array.
+    expect(math.getNumArrays()).toBe(1);
 
-      v.dispose();
-      // The second array is not disposed since there is one reference to it.
-      expect(math.getNumArrays()).toBe(1);
-    });
-    // The outer scope ended, second array has 0 references and is disposed.
+    v.dispose();
+    // Disposing the variable disposes the 2nd array.
     expect(math.getNumArrays()).toBe(0);
   });
 

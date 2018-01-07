@@ -68,7 +68,9 @@ export class GPGPUContext {
   }
 
   public dispose() {
-    this.throwIfDisposed();
+    if (this.disposed) {
+      return;
+    }
     if (this.program != null) {
       console.warn(
           'Disposing a GPGPUContext that still has a bound WebGLProgram.' +

@@ -31,14 +31,12 @@ export class SGDOptimizer extends Optimizer {
 
   constructor(protected learningRate: number, specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
+    this.setLearningRate(learningRate);
   }
 
   // Eager mode
   applyGradients(variableGradients: NamedVariableMap) {
     const math = ENV.math;
-    if (this.c == null) {
-      this.c = math.keep(Scalar.new(-this.learningRate));
-    }
 
     const varNames = Object.keys(variableGradients);
     varNames.forEach(varName => {
@@ -58,7 +56,7 @@ export class SGDOptimizer extends Optimizer {
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
-    math.scope((keep) => {
+    math.scope(keep => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);
@@ -76,13 +74,15 @@ export class SGDOptimizer extends Optimizer {
   }
 
   dispose() {
-    if (this.c != null) {
-      this.c.dispose();
-    }
+    this.c.dispose();
     super.dispose();
   }
 
   setLearningRate(learningRate: number) {
     this.learningRate = learningRate;
+    if (this.c != null) {
+      this.c.dispose();
+    }
+    this.c = ENV.math.keep(Scalar.new(-learningRate));
   }
 }

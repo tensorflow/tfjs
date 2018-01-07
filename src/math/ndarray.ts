@@ -832,12 +832,13 @@ export class Variable<D extends DataType = DataType, R extends Rank = Rank>
     super(
         initialValue.shape, initialValue.dtype, null /* values */,
         initialValue.dataId);
+    initialValue.dispose();
     this.name = name;
     if (this.name == null) {
       this.name = Variable.nextVarId.toString();
       Variable.nextVarId++;
     }
-    ENV.math.registerVariable(this);
+    this.math.registerVariable(this);
   }
 
   /**
@@ -871,7 +872,8 @@ export class Variable<D extends DataType = DataType, R extends Rank = Rank>
     }
     this.math.disposeData(this.dataId);
     this.dataId = newValue.dataId;
-    ENV.math.register(this);
+    this.math.register(this);
+    newValue.dispose();
   }
 }
 

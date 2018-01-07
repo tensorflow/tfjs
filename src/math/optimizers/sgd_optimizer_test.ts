@@ -34,11 +34,8 @@ const tests: MathTests = it => {
 
     let cost = optimizer.minimize(() => math.square(x), /* returnCost */ true);
 
-    // TODO(smilkov): When the memory leak with variable assign is fixed,
-    // decrement these expected values.
-
-    // Cost and internal c should be the only additional arrays.
-    expect(math.getNumArrays()).toBe(numArrays + 3);
+    // Cost should be the only additional array.
+    expect(math.getNumArrays()).toBe(numArrays + 1);
 
     // de/dx = 2x
     const expectedValue1 = -2 * 4 * learningRate + 4;
@@ -50,7 +47,7 @@ const tests: MathTests = it => {
 
     cost = optimizer.minimize(() => math.square(x), /* returnCost */ false);
     // There should be no new additional NDArrays.
-    expect(math.getNumArrays()).toBe(numArrays + 1);
+    expect(math.getNumArrays()).toBe(numArrays);
 
     const expectedValue2 = -2 * expectedValue1 * learningRate + expectedValue1;
     test_util.expectArraysClose(x, [expectedValue2]);
@@ -59,7 +56,7 @@ const tests: MathTests = it => {
     optimizer.dispose();
     x.dispose();
     // There should be no more NDArrays.
-    expect(math.getNumArrays()).toBe(3);
+    expect(math.getNumArrays()).toBe(0);
   });
 
   it('graph', math => {

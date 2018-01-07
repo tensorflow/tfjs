@@ -339,7 +339,7 @@ export function executeMathTests(
       customIt);
 }
 
-export function executeTests(
+function executeTests(
     testName: string, tests: Tests[], features?: Features,
     customBeforeEach?: () => void, customAfterEach?: () => void,
     customIt: (expectation: string, testFunc: () => void|Promise<void>) =>
