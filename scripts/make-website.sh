@@ -37,9 +37,19 @@ find demos -maxdepth 1 -type f | xargs -I {} cp {} "$TMP_DIR/demos"
 # ... and the images folder.
 cp -r demos/images "$TMP_DIR/demos/"
 
-# Build polymer demos (deploy-demo vulcanizes polymer apps).
+# Copy demo-related tutorials.
+demo_tutorials=(
+  "mnist"
+  "complementary-color-prediction"
+  "lstm"
+  "rune_recognition"
+)
+for demo in ${demo_tutorials[@]}
+do
+  cp -r "demos/$demo" "$TMP_DIR/demos"
+done
 
-# Only these demo folder get copied and are built
+# Build and copy polymer demos (deploy-demo vulcanizes polymer apps).
 polymerdemos=(
   "model-builder"
   "imagenet"
