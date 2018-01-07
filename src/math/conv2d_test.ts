@@ -139,6 +139,23 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
     });
+
+    it('throws when dimRoundingMode is set and pad is not a number', math => {
+      const inputDepth = 1;
+      const inputShape: [number, number, number] = [2, 2, inputDepth];
+      const outputDepth = 1;
+      const fSize = 2;
+      const pad = 'valid';
+      const stride = 1;
+      const dimRoundingMode = 'round';
+
+      const x = Array3D.new(inputShape, [1, 2, 3, 4]);
+      const w = Array4D.randNormal([fSize, fSize, inputDepth, outputDepth]);
+      const bias = Array1D.new([-1]);
+
+      expect(() => math.conv2d(x, w, bias, stride, pad, dimRoundingMode))
+          .toThrowError();
+    });
   };
 
   test_util.describeMathCPU('conv2d', [tests]);

@@ -51,7 +51,7 @@ export type Conv2DInfo = {
 export function computePool2DInfo(
     inShape: [number, number, number, number],
     filterSize: [number, number]|number, strides: number|[number, number],
-    pad: 'same'|'valid'|number,
+    pad: 'same'|'valid'|number, roundingMode?: 'floor'|'round'|'ceil',
     dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
   const [filterHeight, filterWidth] = parseTupleParam(filterSize);
 
@@ -64,7 +64,7 @@ export function computePool2DInfo(
     throw new Error(`Unknown dataFormat ${dataFormat}`);
   }
   return computeConv2DInfo(
-      inShape, filterShape, strides, pad, false, dataFormat);
+      inShape, filterShape, strides, pad, roundingMode, false, dataFormat);
 }
 
 /**
@@ -75,8 +75,8 @@ export function computeConv2DInfo(
     inShape: [number, number, number, number],
     filterShape: [number, number, number, number],
     strides: number|[number, number], pad: 'same'|'valid'|number,
-    depthwise = false,
-    dataFormat: 'channelsFirst' | 'channelsLast' = 'channelsLast'): Conv2DInfo {
+    roundingMode?: 'floor'|'round'|'ceil', depthwise = false,
+    dataFormat: 'channelsFirst'|'channelsLast' = 'channelsLast'): Conv2DInfo {
   let [batchSize, inHeight, inWidth, inChannels] = [-1, -1, -1, -1];
   if (dataFormat === 'channelsLast') {
     [batchSize, inHeight, inWidth, inChannels] = inShape;
@@ -90,7 +90,7 @@ export function computeConv2DInfo(
   const [strideHeight, strideWidth] = parseTupleParam(strides);
   const {padInfo, outHeight, outWidth} = getPadAndOutInfo(
       pad, inHeight, inWidth, strideHeight, strideWidth, filterHeight,
-      filterWidth);
+      filterWidth, roundingMode);
   const outChannels = depthwise ? filterChannels * inChannels : filterChannels;
 
   let outShape: [number, number, number, number];
@@ -125,19 +125,23 @@ export function computeConv2DInfo(
  */
 export function computeOutputShape3D(
     inShape: [number, number, number], fieldSize: number, outDepth: number,
-    stride: number, zeroPad?: number): [number, number, number] {
+    stride: number, zeroPad?: number,
+    roundingMode?: 'floor'|'round'|'ceil'): [number, number, number] {
   if (zeroPad == null) {
     zeroPad = computeDefaultPad(inShape, fieldSize, stride);
   }
   const inputRows = inShape[0];
   const inputCols = inShape[1];
-  const outputRows = (inputRows - fieldSize + 2 * zeroPad) / stride + 1;
+
+  const outputRows = conditionalRound(
+      (inputRows - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
   util.assert(
       util.isInt(outputRows),
       `The output # of rows (${outputRows}) must be an integer. Change the ` +
           `stride and/or zero pad parameters`);
 
-  const outputCols = (inputCols - fieldSize + 2 * zeroPad) / stride + 1;
+  const outputCols = conditionalRound(
+      (inputCols - fieldSize + 2 * zeroPad) / stride + 1, roundingMode);
   util.assert(
       util.isInt(outputCols),
       `The output # of columns (${outputCols}) must be an integer. Change ` +
@@ -174,7 +178,7 @@ function parseTupleParam(param: number|[number, number]): [number, number] {
 function getPadAndOutInfo(
     pad: 'same'|'valid'|number, inHeight: number, inWidth: number,
     strideHeight: number, strideWidth: number, filterHeight: number,
-    filterWidth: number):
+    filterWidth: number, roundingMode?: 'floor'|'round'|'ceil'):
     {padInfo: PadInfo, outHeight: number, outWidth: number} {
   let padInfo: PadInfo;
   let outHeight: number;
@@ -183,7 +187,8 @@ function getPadAndOutInfo(
   if (typeof pad === 'number') {
     padInfo = {top: pad, bottom: pad, left: pad, right: pad};
     const outShape = computeOutputShape3D(
-        [inHeight, inWidth, 1], filterHeight, 1, strideHeight, pad);
+        [inHeight, inWidth, 1], filterHeight, 1, strideHeight, pad,
+        roundingMode);
     outHeight = outShape[0];
     outWidth = outShape[1];
   } else if (pad === 'same') {
@@ -205,4 +210,28 @@ function getPadAndOutInfo(
     throw Error(`Unknown padding parameter: ${pad}`);
   }
   return {padInfo, outHeight, outWidth};
+}
+
+/**
+ * Rounds a value depending on the rounding mode
+ * @param value
+ * @param roundingMode
+ */
+function conditionalRound(
+    value: number, roundingMode?: 'floor'|'round'|'ceil') {
+  if (!roundingMode) {
+    return value;
+  }
+  switch (roundingMode) {
+    case 'round':
+      // used for Caffe Conv
+      return Math.round(value);
+    case 'ceil':
+      // used for Caffe Pool
+      return Math.ceil(value);
+    case 'floor':
+      return Math.floor(value);
+    default:
+      throw new Error(`Unknown roundingMode ${roundingMode}`);
+  }
 }
