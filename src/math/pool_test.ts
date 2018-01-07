@@ -99,6 +99,15 @@ import {Array2D, Array3D, Array4D} from './ndarray';
 
       expect(() => math.maxPool(a, 2, 1, 0)).toThrowError();
     });
+
+    it('throws when dimRoundingMode is set and pad is not a number', math => {
+      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4]);
+
+      const pad = 'valid';
+      const dimRoundingMode = 'round';
+
+      expect(() => math.maxPool(a, 2, 1, pad, dimRoundingMode)).toThrowError();
+    });
   };
 
   test_util.describeMathCPU('maxPool', [tests]);
@@ -173,6 +182,15 @@ import {Array2D, Array3D, Array4D} from './ndarray';
 
       expect(result.shape).toEqual([2, 2, 1]);
       test_util.expectArraysClose(result, [1, 2, 3, 4]);
+    });
+
+    it('throws when dimRoundingMode is set and pad is not a number', math => {
+      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4]);
+
+      const pad = 'valid';
+      const dimRoundingMode = 'round';
+
+      expect(() => math.minPool(a, 2, 1, pad, dimRoundingMode)).toThrowError();
     });
   };
 
@@ -249,6 +267,15 @@ import {Array2D, Array3D, Array4D} from './ndarray';
 
       expect(result.shape).toEqual([2, 2, 1]);
       test_util.expectArraysClose(result, [0.25, 0.5, 0.75, 1]);
+    });
+
+    it('throws when dimRoundingMode is set and pad is not a number', math => {
+      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4]);
+
+      const pad = 'valid';
+      const dimRoundingMode = 'round';
+
+      expect(() => math.avgPool(a, 2, 1, pad, dimRoundingMode)).toThrowError();
     });
   };
 
