@@ -42,7 +42,6 @@ import {Copy2DProgram} from './webgl/copy_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import {ArrayData, GPGPUBinary, GPGPUProgram} from './webgl/gpgpu_math';
-import * as gpgpu_util from './webgl/gpgpu_util';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
 import {MatMulProgram} from './webgl/mulmat_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
@@ -215,8 +214,7 @@ export class MathBackendWebGL implements MathBackend {
       throw new Error('WebGL is not supported on this device');
     }
     if (gpgpu == null) {
-      const gl = gpgpu_util.createWebGLContext();
-      this.gpgpu = new GPGPUContext(gl);
+      this.gpgpu = new GPGPUContext();
       this.gpgpuCreatedLocally = true;
     } else {
       this.gpgpuCreatedLocally = false;
@@ -820,7 +818,12 @@ export class MathBackendWebGL implements MathBackend {
     return this.textureManager;
   }
 
+  private disposed = false;
+
   dispose() {
+    if (this.disposed) {
+      return;
+    }
     for (const key in this.binaryCache) {
       this.gpgpu.deleteProgram(this.binaryCache[key].webGLProgram);
     }
@@ -829,6 +832,7 @@ export class MathBackendWebGL implements MathBackend {
     if (this.gpgpuCreatedLocally) {
       this.gpgpu.dispose();
     }
+    this.disposed = true;
   }
 
   private throwIfNoData(dataId: number) {

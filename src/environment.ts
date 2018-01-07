@@ -164,8 +164,7 @@ export class Environment {
   private globalMath: NDArrayMath = null;
   // tslint:disable-next-line:no-any
   private backendRegistry: {[id in BackendType]: MathBackend} = {} as any;
-  private prevBackendRegistry: {[id in BackendType]: MathBackend} =
-      this.backendRegistry;
+  private prevBackendRegistry: {[id in BackendType]: MathBackend} = null;
 
   constructor(features?: Features) {
     if (features != null) {
@@ -229,9 +228,18 @@ export class Environment {
   }
 
   reset() {
-    this.globalMath = null;
-    this.backendRegistry = this.prevBackendRegistry;
     this.features = getFeaturesFromURL();
+    if (this.globalMath != null) {
+      this.globalMath.dispose();
+      this.globalMath = null;
+    }
+    if (this.prevBackendRegistry != null) {
+      for (const name in this.backendRegistry) {
+        this.backendRegistry[name as BackendType].dispose();
+      }
+      this.backendRegistry = this.prevBackendRegistry;
+      this.prevBackendRegistry = null;
+    }
   }
 
   setMath(math: NDArrayMath) {

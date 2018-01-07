@@ -82,6 +82,10 @@ export class TextureManager {
   }
 
   dispose() {
+    if (this.allocatedTextures == null) {
+      // Already disposed.
+      return;
+    }
     this.allocatedTextures.forEach(texture => {
       this.gpgpu.deleteMatrixTexture(texture);
     });
