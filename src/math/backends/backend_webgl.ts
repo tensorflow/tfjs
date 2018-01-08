@@ -26,6 +26,7 @@ import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Rank
 import * as reduce_util from '../reduce_util';
 import * as types from '../types';
 import {SumTypes, SumTypesMap} from '../types';
+
 import {MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
@@ -42,6 +43,7 @@ import {Copy2DProgram} from './webgl/copy_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import {ArrayData, GPGPUBinary, GPGPUProgram} from './webgl/gpgpu_math';
+import {LRNProgram} from './webgl/lrn_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
 import {MatMulProgram} from './webgl/mulmat_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
@@ -393,6 +395,14 @@ export class MathBackendWebGL implements MathBackend {
         x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
         varianceEpsilon);
     return this.compileAndRun(program, inputs);
+  }
+
+  localResponseNormalization4D(
+      x: Array4D, radius: number, bias: number, alpha: number, beta: number,
+      normRegion: 'acrossChannels'|'withinChannel'): Array4D {
+    const program =
+        new LRNProgram(x.shape, radius, bias, alpha, beta, normRegion);
+    return this.compileAndRun(program, [x]);
   }
 
   tile<D extends DataType, T extends NDArray<D>>(x: T, reps: number[]): T {

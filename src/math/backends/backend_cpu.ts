@@ -1368,6 +1368,56 @@ export class MathBackendCPU implements MathBackend {
     return Array4D.new(x.shape, outValues);
   }
 
+  localResponseNormalization4D(
+      x: Array4D, radius: number, bias: number, alpha: number, beta: number,
+      normRegion: 'acrossChannels'|'withinChannel'): Array4D {
+    const output = Array4D.zeros(x.shape);
+    const rad = radius;
+    const maxW = output.shape[1] - 1;
+    const maxH = output.shape[2] - 1;
+    const maxD = output.shape[3] - 1;
+
+    const sumAcrossChannels =
+        (b: number, r: number, c: number, d: number): number => {
+          let sum = 0.0;
+          for (let j = Math.max(0, d - rad); j <= Math.min(d + rad, maxD);
+               j++) {
+            const z = x.get(b, r, c, j);
+            sum += z * z;
+          }
+          return sum;
+        };
+
+    const sumWithinChannel =
+        (b: number, r: number, c: number, d: number): number => {
+          let sum = 0.0;
+          for (let u = Math.max(0, r - rad); u <= Math.min(r + rad, maxW);
+               u++) {
+            for (let v = Math.max(0, c - rad); v <= Math.min(c + rad, maxH);
+                 v++) {
+              sum += Math.pow(x.get(b, u, v, d), 2);
+            }
+          }
+          return sum;
+        };
+
+    for (let b = 0; b < output.shape[0]; b++) {
+      for (let r = 0; r <= output.shape[1]; r++) {
+        for (let c = 0; c < output.shape[2]; c++) {
+          for (let d = 0; d < output.shape[3]; d++) {
+            const sum = normRegion === 'withinChannel' ?
+                sumWithinChannel(b, r, c, d) :
+                sumAcrossChannels(b, r, c, d);
+            const val = x.get(b, r, c, d) * Math.pow(bias + alpha * sum, -beta);
+            output.set(val, b, r, c, d);
+          }
+        }
+      }
+    }
+
+    return output;
+  }
+
   multinomial(probabilities: Array2D, numSamples: number, seed: number):
       Array2D<'int32'> {
     const batchSize = probabilities.shape[0];
