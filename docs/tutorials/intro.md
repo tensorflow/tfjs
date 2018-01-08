@@ -226,7 +226,7 @@ const testOutput = session.eval(outputTensor, testFeedEntries);
 
 console.log('---inference output---');
 console.log('shape: ' + testOutput.shape);
-console.log('value: ' + await testOutput.val());
+console.log('value: ' + await testOutput.data());
 ```
 
 Want to learn more? Read [these tutorials](index.md).
