@@ -160,6 +160,10 @@ export interface MathBackend extends NDArrayStorage {
       varianceEpsilon: number, scale?: Array4D|Array1D,
       offset?: Array4D|Array1D): Array4D;
 
+  localResponseNormalization4D(
+      x: Array4D, radius: number, bias: number, alpha: number, beta: number,
+      normRegion: 'acrossChannels'|'withinChannel'): Array4D;
+
   multinomial(probabilities: Array2D, numSamples: number, seed: number):
       Array2D<'int32'>;
 

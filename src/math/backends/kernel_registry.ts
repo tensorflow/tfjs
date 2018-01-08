@@ -17,6 +17,7 @@
 
 import * as util from '../../util';
 import {DataType, NDArray, Scalar} from '../ndarray';
+
 import {MathBackend} from './backend';
 import {KernelInputConfig} from './tape_types';
 // tslint:disable-next-line:max-line-length
@@ -30,6 +31,7 @@ import {Concat1DInputConfig, Concat1DNode, Concat2DInputConfig, Concat2DNode, Co
 // tslint:disable-next-line:max-line-length
 import {Conv2DDerBiasInputConfig, Conv2DDerBiasNode, Conv2DDerFilterInputConfig, Conv2DDerFilterNode, Conv2DDerInputInputConfig, Conv2DDerInputNode, Conv2DInputConfig, Conv2DNode, DepthwiseConv2DInputConfig} from './types/conv';
 import {EqualInputConfig, EqualNode} from './types/logical';
+import {LRN4DInputConfig, LRN4DNode} from './types/lrn';
 import {MatMulInputConfig, MatMulNode} from './types/matmul';
 // tslint:disable-next-line:max-line-length
 import {MaximumInputConfig, MaximumNode, MaxInputConfig, MaxNode, MinimumInputConfig, MinimumNode, MinInputConfig, MinNode} from './types/minmax';
@@ -303,6 +305,11 @@ const KERNEL_METHODS: {
         config.inputs.x, config.inputs.mean, config.inputs.variance,
         config.args.varianceEpsilon, config.inputs.scale, config.inputs.offset);
   },
+  LRN4D: (backend: MathBackend, config: LRN4DInputConfig) => {
+    return backend.localResponseNormalization4D(
+        config.inputs.x, config.args.radius, config.args.bias,
+        config.args.alpha, config.args.beta, config.args.normRegion);
+  },
   Multinomial: (backend: MathBackend, config: MultinomialInputConfig) => {
     return backend.multinomial(
         config.inputs.probs, config.args.numSamples, config.args.seed);
@@ -391,6 +398,7 @@ export interface KernelConfigRegistry {
   BatchNorm4D: BatchNorm4DNode;
   BatchNorm3D: BatchNorm3DNode;
   BatchNorm2D: BatchNorm2DNode;
+  LRN4D: LRN4DNode;
   Multinomial: MultinomialNode;
   OneHot: OneHotNode;
 }
