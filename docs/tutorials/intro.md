@@ -30,7 +30,7 @@ For the purposes of the documentation, we will use TypeScript code examples.
 For vanilla JavaScript, you may need to remove the occasional TypeScript type annotation or definition.
 
 This includes `console.log(await ndarray.data())`, which in ES5 would be written as:
-`ndarray.data().then(data => console.log(data));`.
+`ndarray.data().then(function(data) { console.log(data); });`.
 
 ## Core concepts
 
