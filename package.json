@@ -16,6 +16,7 @@
     "@types/jasmine": "~2.5.53",
     "@types/seedrandom": "~2.4.27",
     "browserify": "~14.4.0",
+    "clang-format": "~1.2.2",
     "cross-spawn": "~5.1.0",
     "http-server": "~0.10.0",
     "jasmine-core": "~2.6.4",
