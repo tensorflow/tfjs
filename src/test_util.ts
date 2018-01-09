@@ -148,16 +148,19 @@ export function expectArraysClose(
   if (actualValues.length !== expectedValues.length) {
     throw new Error(
         `Arrays have different lengths actual: ${actualValues.length} vs ` +
-        `expected: ${expectedValues.length}.`);
+        `expected: ${expectedValues.length}.\n` +
+        `Actual:   ${actualValues}.\n` +
+        `Expected: ${expectedValues}.`);
   }
   for (let i = 0; i < expectedValues.length; ++i) {
     const a = actualValues[i];
     const e = expectedValues[i];
 
     if (!areClose(a, Number(e), epsilon)) {
-      const actualStr = `actual[${i}] === ${a}`;
-      const expectedStr = `expected[${i}] === ${e}`;
-      throw new Error('Arrays differ: ' + actualStr + ', ' + expectedStr);
+      throw new Error(
+          `Arrays differ: actual[${i}] = ${a}, expected[${i}] = ${e}.\n` +
+          `Actual:   ${actualValues}.\n` +
+          `Expected: ${expectedValues}.`);
     }
   }
 }

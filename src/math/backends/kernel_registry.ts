@@ -53,8 +53,8 @@ import {TopKIndicesInputConfig, TopKIndicesNode, TopKValuesInputConfig, TopKValu
 import {ClipInputConfig, ClipNode, LeakyReluInputConfig, LeakyReluNode, StepInputConfig, StepNode, TileInputConfig, TileNode, TransposeInputConfig, TransposeNode, UnaryInputConfig, UnaryNode} from './types/unary';
 
 const KERNEL_METHODS: {
-  [kernel in keyof KernelConfigRegistry]: (
-      backend: MathBackend, config: KernelInputConfig) => NDArray
+  [kernel in keyof KernelConfigRegistry]:
+      (backend: MathBackend, config: KernelInputConfig) => NDArray
 } = {
   // NOTE: Using {} and "return" makes VSCode run much faster.
   MatMul: (backend: MathBackend, config: MatMulInputConfig) => {
@@ -282,6 +282,10 @@ const KERNEL_METHODS: {
   AvgPool: (backend: MathBackend, config: PoolInputConfig) => {
     return backend.avgPool(config.inputs.x, config.args.convInfo);
   },
+  AvgPoolBackprop: (backend: MathBackend, config: PoolBackpropInputConfig) => {
+    return backend.avgPoolBackprop(
+        config.inputs.dy, config.inputs.x, config.args.convInfo);
+  },
   MinPool: (backend: MathBackend, config: PoolInputConfig) => {
     return backend.minPool(config.inputs.x, config.args.convInfo);
   },
@@ -393,6 +397,7 @@ export interface KernelConfigRegistry {
   MaxPool: PoolNode;
   MaxPoolBackprop: PoolBackpropNode;
   AvgPool: PoolNode;
+  AvgPoolBackprop: PoolBackpropNode;
   MinPool: PoolNode;
   ResizeBilinear3D: ResizeBilinear3DNode;
   BatchNorm4D: BatchNorm4DNode;

@@ -181,7 +181,10 @@ export class BackendEngine {
     // Filter out the nodes that don't connect x => y.
     const filteredTape = tape_util.getFilteredNodesXToY(this.activeTape, xs, y);
     if (filteredTape.length === 0) {
-      throw new Error(`Cannot compute gradient: y is not a function of xs.`);
+      throw new Error(
+          `Cannot compute gradient: y is not a function of xs.` +
+          `Make sure the xs you are computing gradients with respect ` +
+          `to are used inside the gradient function.`);
     }
 
     const arrayAccumulatedGradientMap: {[ndarrayId: number]: NDArray} = {};
