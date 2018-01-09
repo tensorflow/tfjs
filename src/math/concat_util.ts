@@ -40,8 +40,9 @@ export function assertParams(aShape: number[], bShape: number[], axis: number) {
 
 export function computeOutShape1D(
     x1Shape: number[], x2Shape: number[]): number[] {
-  util.assert(x1Shape.length === 1 && x2Shape.length === 1,
-    'x1 and x2 should be 1d array.');
+  util.assert(
+      x1Shape.length === 1 && x2Shape.length === 1,
+      'x1 and x2 should be 1d array.');
   const outputShape = x1Shape.slice();
   outputShape[0] += x2Shape[0];
   return outputShape;
@@ -57,91 +58,73 @@ export function computeOutShape(
   return outputShape;
 }
 
-function create2DTuple(v1: number, v2: number)
-    : [number, number] {
-  return [v1, v2];
+export function computeGradientSliceShapes2D(
+    x1TensorShape: number[], yTensorShape: number[], axis: number): {
+  x1Begin: [number, number],
+  x1Size: [number, number],
+  x2Begin: [number, number],
+  x2Size: [number, number]
+} {
+  const x1AxisSize = x1TensorShape[axis];
+
+  const x1Begin: [number, number] = [0, 0];
+
+  const x1Size: [number, number] = [yTensorShape[0], yTensorShape[1]];
+  x1Size[axis] = x1AxisSize;
+
+  const x2Begin: [number, number] = [0, 0];
+  x2Begin[axis] = x1AxisSize;
+
+  const x2Size: [number, number] = [yTensorShape[0], yTensorShape[1]];
+  x2Size[axis] = yTensorShape[axis] - x1AxisSize;
+
+  return {x1Begin, x1Size, x2Begin, x2Size};
 }
 
-function create3DTuple(v1: number, v2: number, v3: number)
-    : [number, number, number] {
-  return [v1, v2, v3];
+export function computeGradientSliceShapes3D(
+    x1Shape: number[], yShape: number[], axis: number): {
+  x1Begin: [number, number, number],
+  x1Size: [number, number, number],
+  x2Begin: [number, number, number],
+  x2Size: [number, number, number]
+} {
+  const x1AxisSize = x1Shape[axis];
+
+  const x1Begin: [number, number, number] = [0, 0, 0];
+
+  const x1Size: [number, number, number] = [yShape[0], yShape[1], yShape[2]];
+  x1Size[axis] = x1AxisSize;
+
+  const x2Begin: [number, number, number] = [0, 0, 0];
+  x2Begin[axis] = x1AxisSize;
+
+  const x2Size: [number, number, number] = [yShape[0], yShape[1], yShape[2]];
+  x2Size[axis] = yShape[axis] - x1AxisSize;
+
+  return {x1Begin, x1Size, x2Begin, x2Size};
 }
 
-function create4DTuple(v1: number, v2: number, v3: number, v4: number)
-    : [number, number, number, number] {
-  return [v1, v2, v3, v4];
-}
+export function computeGradientSliceShapes4D(
+    x1TensorShape: number[], yTensorShape: number[], axis: number): {
+  x1Begin: [number, number, number, number],
+  x1Size: [number, number, number, number],
+  x2Begin: [number, number, number, number],
+  x2Size: [number, number, number, number]
+} {
+  const x1AxisSize = x1TensorShape[axis];
 
-export function computeSliceSizes2D(x1TensorShape: number[], 
-    yTensorShape: number[], axis: number) {
- util.assert(
-    x1TensorShape.length === 2,
-    'Input should be 2D rank.');
- util.assert(
-    yTensorShape.length === 2,
-    'Output should be 2D rank.'); 
- const x1AxisSize = x1TensorShape[axis];
+  const x1Begin: [number, number, number, number] = [0, 0, 0, 0];
 
- const x1Begin: [number, number] = create2DTuple(0, 0);
- const x1Size : [number, number] 
-   = create2DTuple(yTensorShape[0], yTensorShape[1]);
- x1Size[axis] = x1AxisSize;
- const x2Begin: [number, number] = create2DTuple(0, 0);
- const x2Size : [number, number] 
-   = create2DTuple(yTensorShape[0], yTensorShape[1]);
- x2Begin[axis] = x1AxisSize;
- x2Size[axis] = yTensorShape[axis] - x1AxisSize;
+  const x1Size: [number, number, number, number] =
+      [yTensorShape[0], yTensorShape[1], yTensorShape[2], yTensorShape[3]];
+  x1Size[axis] = x1AxisSize;
 
- return {"x1Begin": x1Begin, "x1Size": x1Size, 
-   "x2Begin": x2Begin, "x2Size": x2Size};
-}
+  const x2Begin: [number, number, number, number] = [0, 0, 0, 0];
+  x2Begin[axis] = x1AxisSize;
 
-export function computeSliceSizes3D(x1TensorShape: number[], 
-    yTensorShape: number[], axis: number) {
- util.assert(
-    x1TensorShape.length === 3,
-    'Input should be 3D rank.');
- util.assert(
-    yTensorShape.length === 3,
-    'Output should be 3D rank.');
- const x1AxisSize = x1TensorShape[axis];
+  const x2Size: [number, number, number, number] =
+      [yTensorShape[0], yTensorShape[1], yTensorShape[2], yTensorShape[3]];
+  x2Size[axis] = yTensorShape[axis] - x1AxisSize;
 
- const x1Begin: [number, number, number] = create3DTuple(0, 0, 0);
- const x1Size : [number, number, number] 
-   = create3DTuple(yTensorShape[0], yTensorShape[1], yTensorShape[2]);
- x1Size[axis] = x1AxisSize;
- const x2Begin: [number, number, number] = create3DTuple(0, 0, 0);
- const x2Size : [number, number, number] 
-   = create3DTuple(yTensorShape[0], yTensorShape[1], yTensorShape[2]);
- x2Begin[axis] = x1AxisSize;
- x2Size[axis] = yTensorShape[axis] - x1AxisSize;
-
- return {"x1Begin": x1Begin, "x1Size": x1Size, 
-   "x2Begin": x2Begin, "x2Size": x2Size};
-}
-
-export function computeSliceSizes4D(x1TensorShape: number[], 
-    yTensorShape: number[], axis: number) {
- util.assert(
-    x1TensorShape.length === 4,
-    'Input should be 4D rank.');
- util.assert(
-    yTensorShape.length === 4,
-    'Output should be 4D rank.');
- const x1AxisSize = x1TensorShape[axis];
-
- const x1Begin: [number, number, number, number] = create4DTuple(0, 0, 0, 0);
- const x1Size : [number, number, number, number] 
-   = create4DTuple(yTensorShape[0], yTensorShape[1], 
-         yTensorShape[2], yTensorShape[3]);
- x1Size[axis] = x1AxisSize;
- const x2Begin: [number, number, number, number] = create4DTuple(0, 0, 0, 0);
- const x2Size : [number, number, number, number] 
-   = create4DTuple(yTensorShape[0], yTensorShape[1], 
-        yTensorShape[2], yTensorShape[3]);
- x2Begin[axis] = x1AxisSize;
- x2Size[axis] = yTensorShape[axis] - x1AxisSize;
-
- return {"x1Begin": x1Begin, "x1Size": x1Size, 
-   "x2Begin": x2Begin, "x2Size": x2Size};
+  return {x1Begin, x1Size, x2Begin, x2Size};
 }

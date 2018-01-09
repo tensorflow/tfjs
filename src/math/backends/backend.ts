@@ -139,6 +139,7 @@ export interface MathBackend extends NDArrayStorage {
 
   minPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
   avgPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
+  avgPoolBackprop(dy: Array4D, x: Array4D, convInfo: Conv2DInfo): Array4D;
 
   tile<D extends DataType, T extends NDArray<D>>(x: T, reps: number[]): T;
 

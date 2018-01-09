@@ -49,7 +49,7 @@ export interface Conv2DGradientInputArrays extends TapeNodeInputGradientArrays {
 export interface Conv2DDerInputNode extends KernelNode {
   inputAndArgs: Conv2DDerInputInputConfig;
   output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => Conv2DGradientInputArrays;
+  gradient: (dy: Array4D, y: Array4D) => Conv2DDerInputGradientInputArrays;
 }
 
 export interface Conv2DDerInputInputConfig extends KernelInputConfig {
@@ -62,7 +62,8 @@ export interface Conv2DDerInputInputArrays extends NamedArrayMap {
   filter: Array4D;
 }
 
-export interface Conv2DGradientInputArrays extends TapeNodeInputGradientArrays {
+export interface Conv2DDerInputGradientInputArrays extends
+    TapeNodeInputGradientArrays {
   dy: () => Array4D;
   filter: () => Array4D;
 }
@@ -101,9 +102,7 @@ export interface Conv2DDerBiasInputConfig extends KernelInputConfig {
   inputs: Conv2DDerBiasInputArrays;
 }
 
-export interface Conv2DDerBiasInputArrays extends NamedArrayMap {
-  dy: Array4D;
-}
+export interface Conv2DDerBiasInputArrays extends NamedArrayMap { dy: Array4D; }
 
 export interface Conv2DDerBiasGradientInputArrays extends
     TapeNodeInputGradientArrays {
