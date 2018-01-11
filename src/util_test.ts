@@ -253,6 +253,17 @@ describe('util.squeezeShape', () => {
     expect(newShape).toEqual([2, 3, 4]);
     expect(keptDims).toEqual([0, 1, 2]);
   });
+
+  describe('with axis', () => {
+    it('should only reduce dimensions specified by axis', () => {
+      const {newShape, keptDims} = util.squeezeShape([1, 1, 1, 1, 4], [1, 2]);
+      expect(newShape).toEqual([1, 1, 4]);
+      expect(keptDims).toEqual([0, 3, 4]);
+    });
+    it('throws error when specified axis is not squeezable', () => {
+      expect(() => util.squeezeShape([1, 1, 2, 1, 4], [1, 2])).toThrowError();
+    });
+  });
 });
 
 {

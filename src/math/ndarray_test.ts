@@ -1449,6 +1449,25 @@ const testsAsType: MathTests = it => {
     test_util.expectArraysClose(a, [2.4]);
   });
 };
+
+const testSqueeze: MathTests = it => {
+  it('squeeze no axis', () => {
+    const a = Array2D.new([3, 1], [4, 2, 1], 'bool');
+    const b = a.squeeze();
+    expect(b.shape).toEqual([3]);
+  });
+
+  it('squeeze with axis', () => {
+    const a = Array3D.new([3, 1, 1], [4, 2, 1], 'bool');
+    const b = a.squeeze([1]);
+    expect(b.shape).toEqual([3, 1]);
+  });
+
+  it('squeeze wrong axis', () => {
+    const a = Array3D.new([3, 1, 1], [4, 2, 1], 'bool');
+    expect(() => a.squeeze([0, 1])).toThrowError('axis 0 is not 1');
+  });
+};
 const testsAsXD: MathTests = it => {
   it('scalar -> 2d', () => {
     const a = Scalar.new(4, 'int32');
@@ -2007,7 +2026,8 @@ const allTests = [
   testsRandNormal,
   testsRandTruncNormal,
   testsRandUniform,
-  testsFromPixels
+  testsFromPixels,
+  testSqueeze
 ];
 
 test_util.describeMathCPU('NDArray', allTests);
