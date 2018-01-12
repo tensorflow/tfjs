@@ -20,23 +20,36 @@ import {NDArray} from '../../ndarray';
 // tslint:disable-next-line:max-line-length
 import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
 
-export interface EqualNode extends KernelNode {
-  inputAndArgs: EqualInputConfig;
-  output: NDArray<'bool'>;
-  gradient:
-      (dy: NDArray<'bool'>, y: NDArray<'bool'>) => EqualGradientInputArrays;
-}
-
-export interface EqualInputConfig extends KernelInputConfig {
-  inputs: EqualInputArrays;
-}
-
-export interface EqualInputArrays extends NamedArrayMap {
+export interface DualInputArrays extends NamedArrayMap {
   a: NDArray;
   b: NDArray;
 }
 
-export interface EqualGradientInputArrays extends TapeNodeInputGradientArrays {
+export interface DualGradientInputArrays extends TapeNodeInputGradientArrays {
   a: () => NDArray;
   b: () => NDArray;
+}
+
+// Equal/NotEqual
+export interface EqualNode extends KernelNode {
+  inputAndArgs: EqualInputConfig;
+  output: NDArray<'bool'>;
+  gradient:
+      (dy: NDArray<'bool'>, y: NDArray<'bool'>) => DualGradientInputArrays;
+}
+
+export interface EqualInputConfig extends KernelInputConfig {
+  inputs: DualInputArrays;
+}
+
+// LogicalOr
+export interface LogicalOrNode extends KernelNode {
+  inputAndArgs: LogicalOrInputConfig;
+  output: NDArray<'bool'>;
+  gradient:
+      (dy: NDArray<'bool'>, y: NDArray<'bool'>) => DualGradientInputArrays;
+}
+
+export interface LogicalOrInputConfig extends KernelInputConfig {
+  inputs: DualInputArrays;
 }
