@@ -1779,7 +1779,7 @@ const testsRandTruncNormal: MathTests = it => {
     test_util.expectArrayInMeanStdRange(result, 0, 4.5, EPSILON);
   });
 
-  it('should return a 2D int32 array KREEGER', () => {
+  it('should return a 2D int32 array', () => {
     const shape: [number, number] = [50, 50];
     const result = Array2D.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');

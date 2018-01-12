@@ -1081,6 +1081,85 @@ export class MathBackendCPU implements MathBackend {
     return result;
   }
 
+  pad1D(x: Array1D, paddings: [number, number], constantValue: number):
+      Array1D {
+    const leftPadding = paddings[0];
+    const rightPadding = paddings[1];
+
+    let dtype;
+    if (x.dtype === 'float32') {
+      dtype = Float32Array;
+    } else if (x.dtype === 'int32') {
+      dtype = Int32Array;
+    } else if (x.dtype === 'bool') {
+      dtype = Uint8Array;
+    } else {
+      throw new Error(`Dtype ${x.dtype} not supported for tile`);
+    }
+
+    const values = x.dataSync();
+    const newValues = new dtype(leftPadding + values.length + rightPadding);
+
+    let z = 0;
+    for (let i = 0; i < newValues.length; i++) {
+      if (i >= leftPadding && i < leftPadding + values.length) {
+        newValues[i] = values[z++];
+      } else {
+        newValues[i] = constantValue;
+      }
+    }
+    return Array1D.new(newValues);
+  }
+
+  pad2D(
+      x: Array2D, paddings: [[number, number], [number, number]],
+      constantValue: number): Array2D {
+    const topPadding = paddings[0][0];
+    const bottomPadding = paddings[0][1];
+    const leftPadding = paddings[1][0];
+    const rightPadding = paddings[1][1];
+
+    const newShape = [
+      topPadding + x.shape[0] + bottomPadding,
+      leftPadding + x.shape[1] + rightPadding
+    ];
+
+    let dtype;
+    if (x.dtype === 'float32') {
+      dtype = Float32Array;
+    } else if (x.dtype === 'int32') {
+      dtype = Int32Array;
+    } else if (x.dtype === 'bool') {
+      dtype = Uint8Array;
+    } else {
+      throw new Error(`Dtype ${x.dtype} not supported for tile`);
+    }
+
+    const values = x.dataSync();
+    const newValues = new dtype(util.sizeFromShape(newShape));
+
+    let z = 0;
+    for (let i = 0; i < newShape[0]; i++) {
+      let rangeStart = -1;
+      let rangeEnd = -1;
+
+      if (i >= topPadding && i < newShape[0] - bottomPadding) {
+        rangeStart = i * newShape[1] + leftPadding;
+        rangeEnd = rangeStart + x.shape[1] - 1;
+      }
+
+      for (let j = 0; j < newShape[1]; j++) {
+        const v = i * newShape[1] + j;
+        if (v >= rangeStart && v <= rangeEnd) {
+          newValues[v] = values[z++];
+        } else {
+          newValues[v] = constantValue;
+        }
+      }
+    }
+    return Array2D.new(newShape as [number, number], newValues);
+  }
+
   transpose<D extends DataType, T extends NDArray<D>>(x: T, perm: number[]): T {
     const newShape: number[] = new Array(x.rank);
     for (let i = 0; i < newShape.length; i++) {

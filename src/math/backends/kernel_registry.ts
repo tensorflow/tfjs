@@ -38,6 +38,8 @@ import {MaximumInputConfig, MaximumNode, MaxInputConfig, MaxNode, MinimumInputCo
 import {MultinomialInputConfig, MultinomialNode} from './types/multinomial';
 import {OneHotInputConfig, OneHotNode} from './types/onehot';
 // tslint:disable-next-line:max-line-length
+import {Pad1DInputConfig, Pad1DNode, Pad2DInputConfig, Pad2DNode} from './types/pad';
+// tslint:disable-next-line:max-line-length
 import {PoolBackpropInputConfig, PoolBackpropNode, PoolInputConfig, PoolNode} from './types/pool';
 import {PowInputConfig, PowNode} from './types/pow';
 import {PReLUInputConfig, PReLUNode} from './types/prelu';
@@ -53,8 +55,8 @@ import {TopKIndicesInputConfig, TopKIndicesNode, TopKValuesInputConfig, TopKValu
 import {ClipInputConfig, ClipNode, LeakyReluInputConfig, LeakyReluNode, StepInputConfig, StepNode, TileInputConfig, TileNode, TransposeInputConfig, TransposeNode, UnaryInputConfig, UnaryNode} from './types/unary';
 
 const KERNEL_METHODS: {
-  [kernel in keyof KernelConfigRegistry]:
-      (backend: MathBackend, config: KernelInputConfig) => NDArray
+  [kernel in keyof KernelConfigRegistry]: (
+      backend: MathBackend, config: KernelInputConfig) => NDArray
 } = {
   // NOTE: Using {} and "return" makes VSCode run much faster.
   MatMul: (backend: MathBackend, config: MatMulInputConfig) => {
@@ -244,11 +246,19 @@ const KERNEL_METHODS: {
   Clip: (backend: MathBackend, config: ClipInputConfig<NDArray>) => {
     return backend.clip(config.inputs.x, config.args.min, config.args.max);
   },
-  Transpose: (backend: MathBackend, config: TransposeInputConfig<NDArray>) => {
-    return backend.transpose(config.inputs.x, config.args.perm);
-  },
   Tile: (backend: MathBackend, config: TileInputConfig<NDArray>) => {
     return backend.tile(config.inputs.x, config.args.reps);
+  },
+  Pad1D: (backend: MathBackend, config: Pad1DInputConfig) => {
+    return backend.pad1D(
+        config.inputs.x, config.args.paddings, config.args.constantValue);
+  },
+  Pad2D: (backend: MathBackend, config: Pad2DInputConfig) => {
+    return backend.pad2D(
+        config.inputs.x, config.args.paddings, config.args.constantValue);
+  },
+  Transpose: (backend: MathBackend, config: TransposeInputConfig<NDArray>) => {
+    return backend.transpose(config.inputs.x, config.args.perm);
   },
   Conv2D: (backend: MathBackend, config: Conv2DInputConfig) => {
     return backend.conv2d(
@@ -388,6 +398,8 @@ export interface KernelConfigRegistry {
   Tanh: UnaryNode<NDArray>;
   Clip: ClipNode<NDArray>;
   Transpose: TransposeNode<NDArray>;
+  Pad1D: Pad1DNode;
+  Pad2D: Pad2DNode;
   Tile: TileNode<NDArray>;
   Conv2D: Conv2DNode;
   Conv2DDerInput: Conv2DDerInputNode;
