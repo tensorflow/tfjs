@@ -76,6 +76,9 @@ export interface MathBackend extends NDArrayStorage {
 
   equal(a: NDArray, b: NDArray): NDArray<'bool'>;
   notEqual(a: NDArray, b: NDArray): NDArray<'bool'>;
+
+  logicalOr(a: NDArray, b: NDArray): NDArray<'bool'>;
+
   topKValues<D extends DataType, T extends NDArray<D>>(x: T, k: number):
       Array1D<D>;
   topKIndices(x: NDArray, k: number): Array1D<'int32'>;

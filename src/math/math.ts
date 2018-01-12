@@ -758,6 +758,20 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
+   * Returns the truth value of a OR b element-wise. Supports broadcasting.
+   *
+   * @param a The first input `NDArray<'bool'>`.
+   * @param b The second input `NDArray<'bool'>`.
+   */
+  logicalOr(a: NDArray<'bool'>, b: NDArray<'bool'>): NDArray<'bool'> {
+    util.assert(
+        a.dtype === 'bool' || b.dtype === 'bool',
+        'Error Array must be of type bool.');
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    return this.backendEngine.executeKernel('LogicalOr', {inputs: {a, b}});
+  }
+
+  /**
    * Computes the top K values and flattened indices.
    * @param x The input NDArray.
    * @param k How many top values to compute.
