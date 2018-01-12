@@ -49,6 +49,7 @@ import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
 import {MatMulProgram} from './webgl/mulmat_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
 import {OneHotProgram} from './webgl/onehot_gpu';
+import {Pad1DProgram, Pad2DProgram} from './webgl/pad_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceProgram} from './webgl/reduce_gpu';
 import {ResizeBilinear3DProgram} from './webgl/resize_bilinear_gpu';
@@ -408,6 +409,19 @@ export class MathBackendWebGL implements MathBackend {
 
   tile<D extends DataType, T extends NDArray<D>>(x: T, reps: number[]): T {
     const program = new TileProgram(x.shape, reps);
+    return this.compileAndRun(program, [x]);
+  }
+
+  pad1D(x: Array1D, paddings: [number, number], constantValue: number):
+      Array1D {
+    const program = new Pad1DProgram(x.shape, paddings, constantValue);
+    return this.compileAndRun(program, [x]);
+  }
+
+  pad2D(
+      x: Array2D, paddings: [[number, number], [number, number]],
+      constantValue: number): Array2D {
+    const program = new Pad2DProgram(x.shape, paddings, constantValue);
     return this.compileAndRun(program, [x]);
   }
 
