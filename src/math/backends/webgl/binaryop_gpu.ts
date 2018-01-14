@@ -37,6 +37,9 @@ export const EQUAL = CHECK_NAN_SNIPPET + `
 export const NOT_EQUAL = CHECK_NAN_SNIPPET + `
   return float(a != b);
 `;
+export const GREATER_EQUAL = CHECK_NAN_SNIPPET + `
+  return float(a >= b);
+`;
 export const LOGICAL_OR = CHECK_NAN_SNIPPET + `
   return float(a >= 1.0 || b >= 1.0);
 `;
