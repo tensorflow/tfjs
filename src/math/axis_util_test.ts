@@ -253,4 +253,10 @@ describe('axis_util parseAxisParam', () => {
     const shape = [3, 1, 2];
     expect(() => axis_util.parseAxisParam(axis, shape)).toThrowError();
   });
+
+  it('axis with decimal value throws error', () => {
+    const axis = 0.5;
+    const shape = [3, 1, 2];
+    expect(() => axis_util.parseAxisParam(axis, shape)).toThrowError();
+  });
 });

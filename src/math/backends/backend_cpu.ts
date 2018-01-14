@@ -184,6 +184,31 @@ export class MathBackendCPU implements MathBackend {
     return result;
   }
 
+  reverse4D(x: Array4D, axis: number[]): Array4D {
+    const result = NDArray.like(x);
+
+    // Reverse axis only if the axis has dim != 1
+    const revAxis = (i: number) => axis.indexOf(i) !== -1 && x.shape[i] !== 1;
+
+    // naive O(n) reverse implementation
+    for (let b = 0; b < x.shape[0]; ++b) {
+      for (let r = 0; r < x.shape[1]; ++r) {
+        for (let c = 0; c < x.shape[2]; ++c) {
+          for (let d = 0; d < x.shape[3]; ++d) {
+            const b0 = revAxis(0) ? x.shape[0] - b - 1 : b;
+            const r0 = revAxis(1) ? x.shape[1] - r - 1 : r;
+            const c0 = revAxis(2) ? x.shape[2] - c - 1 : c;
+            const d0 = revAxis(3) ? x.shape[3] - d - 1 : d;
+            const val = x.get(b0, r0, c0, d0);
+            result.set(val, b, r, c, d);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
   concat1D(a: Array1D, b: Array1D): Array1D {
     const outShape = concat_util.computeOutShape(a.shape, b.shape, 0);
     const result = Array1D.zeros(outShape as [number]);

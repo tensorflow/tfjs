@@ -47,6 +47,7 @@ import {PReLUInputConfig, PReLUNode} from './types/prelu';
 import {ReshapeNode} from './types/reshape';
 // tslint:disable-next-line:max-line-length
 import {ResizeBilinear3DInputConfig, ResizeBilinear3DNode} from './types/resize_bilinear';
+import {Reverse4DInputConfig, Reverse4DNode} from './types/reverse';
 // tslint:disable-next-line:max-line-length
 import {Slice1DInputConfig, Slice1DNode, Slice2DInputConfig, Slice2DNode, Slice3DInputConfig, Slice3DNode, Slice4DInputConfig, Slice4DNode} from './types/slice';
 import {SumInputConfig, SumNode} from './types/sum';
@@ -83,6 +84,9 @@ const KERNEL_METHODS: {
   Slice4D: (backend: MathBackend, config: Slice4DInputConfig) => {
     return backend.slice4D(
         config.inputs.x, config.args.begin, config.args.size);
+  },
+  Reverse4D: (backend: MathBackend, config: Reverse4DInputConfig) => {
+    return backend.reverse4D(config.inputs.x, config.args.axis);
   },
   Concat1D: (backend: MathBackend, config: Concat1DInputConfig) => {
     return backend.concat1D(config.inputs.a, config.inputs.b);
@@ -352,6 +356,7 @@ export interface KernelConfigRegistry {
   Slice2D: Slice2DNode;
   Slice3D: Slice3DNode;
   Slice4D: Slice4DNode;
+  Reverse4D: Reverse4DNode;
   Concat1D: Concat1DNode;
   Concat2D: Concat2DNode;
   Concat3D: Concat3DNode;

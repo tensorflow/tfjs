@@ -422,6 +422,62 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
+   * Reverses a 1D array
+   * @param x The input array.
+   */
+  reverse1D(x: Array1D): Array1D {
+    util.assert(x.rank === 1, `Error in reverse1D: x must be rank 1 but got
+             rank ${x.rank}.`);
+    const input4D = x.as4D(1, 1, 1, x.shape[0]);
+    const res = this.reverse4D(input4D, [3]);
+    return res.as1D();
+  }
+
+  /**
+   * Reverses a 2D array along a specified axis
+   * @param x The input array.
+   * @param axis The set of dimensions to reverse. Must be in the
+   *     range [-rank(x), rank(x)).
+   */
+  reverse2D(x: Array2D, axis: number|number[]): Array2D {
+    util.assert(x.rank === 2, `Error in reverse2D: x must be rank 2 but got
+             rank ${x.rank}.`);
+    const axisCleaned = axis_util.parseAxisParam(axis, x.shape).map(a => a + 2);
+    const input4D = x.as4D(1, 1, x.shape[0], x.shape[1]);
+    const res = this.reverse4D(input4D, axisCleaned);
+    return res.as2D(res.shape[2], res.shape[3]);
+  }
+
+  /**
+   * Reverses a 3D array along a specified axis
+   * @param x The input array.
+   * @param axis The set of dimensions to reverse. Must be in the
+   *     range [-rank(x), rank(x)).
+   */
+  reverse3D(x: Array3D, axis: number|number[]): Array3D {
+    util.assert(x.rank === 3, `Error in reverse3D: x must be rank 3 but got
+             rank ${x.rank}.`);
+    const axisCleaned = axis_util.parseAxisParam(axis, x.shape).map(a => a + 1);
+    const input4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+    const res = this.reverse4D(input4D, axisCleaned);
+    return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+  }
+
+  /**
+   * Reverses a 4D array along a specified axis
+   * @param x The input array.
+   * @param axis The set of dimensions to reverse. Must be in the
+   *     range [-rank(x), rank(x)).
+   */
+  reverse4D(x: Array4D, axis: number|number[]): Array4D {
+    util.assert(x.rank === 4, `Error in reverse4D: x must be rank 4 but got
+             rank ${x.rank}.`);
+    const axisCleaned = axis_util.parseAxisParam(axis, x.shape);
+    return this.backendEngine.executeKernel(
+        'Reverse4D', {inputs: {x}, args: {axis: axisCleaned}});
+  }
+
+  /**
    * Concatenates two 1D arrays.
    *
    * For example, if:

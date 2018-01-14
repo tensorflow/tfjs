@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as util from '../util';
+
 /**
  * Returns true if the axis specifies the inner most dimensions of the
  * array.
@@ -65,22 +67,22 @@ export function expandShapeToKeepDim(
 
 export function parseAxisParam(
     axis: number|number[], shape: number[]): number[] {
-  // Normalize input.
-  if (axis == null) {
-    axis = shape.map((s, i) => i);
-  } else if (typeof (axis) === 'number') {
-    axis = [axis];
-  }
-
   const rank = shape.length;
-  // Validate input.
-  axis.forEach((a, i) => {
-    if (a < -rank || a >= rank) {
-      throw new Error(
-          `Axis must be between -rank and rank-1. ` +
-          `Got axis[${i}]=${a} where rank is ${rank}`);
-    }
-  });
+
+  // Normalize input
+  axis = axis == null ? shape.map((s, i) => i) : [].concat(axis);
+
+  // Check for valid range
+  util.assert(
+      axis.every(ax => ax >= -rank && ax < rank),
+      `All values in axis param must be in range [-${rank}, ${rank}) but ` +
+          `got axis ${axis}`);
+
+  // Check for only integers
+  util.assert(
+      axis.every(ax => util.isInt(ax)),
+      `All values in axis param must be integers but ` +
+          `got axis ${axis}`);
 
   // Handle negative axis.
   return axis.map(a => a < 0 ? rank + a : a);
@@ -88,11 +90,10 @@ export function parseAxisParam(
 
 export function assertAxesAreInnerMostDims(
     msg: string, axes: number[], rank: number): void {
-  if (!axesAreInnerMostDims(axes, rank)) {
-    throw new Error(
-        `${msg} supports only inner-most axes for now. ` +
-        `Got axes ${axes} and rank-${rank} input.`);
-  }
+  util.assert(
+      axesAreInnerMostDims(axes, rank),
+      `${msg} supports only inner-most axes for now. ` +
+          `Got axes ${axes} and rank-${rank} input.`);
 }
 
 /**
