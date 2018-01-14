@@ -30,7 +30,7 @@ export interface DualGradientInputArrays extends TapeNodeInputGradientArrays {
   b: () => NDArray;
 }
 
-// Equal/NotEqual/GreaterEqual
+// Equal/NotEqual/Greater/GreaterEqual
 export interface EqualNode extends KernelNode {
   inputAndArgs: EqualInputConfig;
   output: NDArray<'bool'>;
