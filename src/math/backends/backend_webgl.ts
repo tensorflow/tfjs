@@ -523,6 +523,13 @@ export class MathBackendWebGL implements MathBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
+  greaterEqual(a: NDArray, b: NDArray): NDArray<'bool'> {
+    const program =
+        new BinaryOpProgram(binaryop_gpu.GREATER_EQUAL, a.shape, b.shape);
+    const output = this.makeOutputArray(program.outputShape, 'bool');
+    return this.compileAndRun(program, [a, b], output);
+  }
+
   logicalOr(a: NDArray, b: NDArray): NDArray<'bool'> {
     const program =
         new BinaryOpProgram(binaryop_gpu.LOGICAL_OR, a.shape, b.shape);
