@@ -88,6 +88,10 @@ $ cd deeplearnjs
 $ yarn prep # Installs dependencies.
 ```
 
+#### Yarn vs NPM
+It's up to you. Yarn is fully interoperable with npm.  You can either do `yarn` or `npm install`. To add package, you can do `yarn add pgk-name` or `npm install pkg-name`. We use yarn since it is better at caching and resolving dependencies.
+
+#### Code editor
 We recommend using [Visual Studio Code](https://code.visualstudio.com/) for
 development. Make sure to install
 [TSLint VSCode extension](https://marketplace.visualstudio.com/items?itemName=eg2.tslint)
@@ -96,7 +100,7 @@ with the
 [Clang-Format VSCode extension](https://marketplace.visualstudio.com/items?itemName=xaver.clang-format)
 for auto-formatting.
 
-
+#### Interactive development
 To interactively develop any of the demos (e.g. `demos/nn-art/`):
 
 ```bash
@@ -113,6 +117,7 @@ Then visit `http://localhost:8080/demos/nn-art/`. The
 incremental compilation (~200-400ms), so users can have a fast edit-refresh
 cycle when developing apps.
 
+#### Testing
 Before submitting a pull request, make sure the code passes all the tests and is clean of lint errors:
 
 ```bash
@@ -135,6 +140,7 @@ To run the tests once and exit the karma process (helpful on Windows):
 $ yarn test --single-run
 ```
 
+#### Packaging (browser and npm)
 To build a standalone ES5 library that can be imported in the browser with a
 `<script>` tag:
 
@@ -143,7 +149,7 @@ $ ./scripts/build-standalone.sh # Builds standalone library.
 >> Stored standalone library at dist/deeplearn(.min).js
 ```
 
-To do a dry run and test building an npm package:
+To build an npm package:
 
 ```bash
 $ ./scripts/build-npm.sh
