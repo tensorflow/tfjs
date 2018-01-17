@@ -34,7 +34,7 @@ function getReductionOp(option: string, math: NDArrayMath): (input: NDArray) =>
     case 'sum':
       return input => math.sum(input) as Scalar;
     case 'logSumExp':
-      return input => math.logSumExp(input);
+      return input => math.logSumExp(input) as Scalar;
     default:
       throw new Error(`Not found such ops: ${option}`);
   }
