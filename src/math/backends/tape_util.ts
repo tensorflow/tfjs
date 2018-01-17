@@ -16,6 +16,7 @@
  */
 
 import {ENV} from '../../environment';
+import * as util from '../../util';
 import {NDArray} from '../ndarray';
 
 // tslint:disable-next-line:max-line-length
@@ -174,7 +175,6 @@ export function backpropagateGradients(
 
     // Backprop dy through this node and accumulate gradients over the inputs.
     const inputGradients = node.gradient(dy, node.output);
-
     for (const inputName in node.inputAndArgs.inputs) {
       if (!(inputName in inputGradients)) {
         throw new Error(
@@ -183,16 +183,20 @@ export function backpropagateGradients(
       }
 
       // Call the gradient function.
-      const grad = inputGradients[inputName]();
+      const dx = inputGradients[inputName]();
+      const x = node.inputAndArgs.inputs[inputName];
+      if (!util.arraysEqual(dx.shape, x.shape)) {
+        throw new Error(
+            `Error in gradient for op ${node.name}. The gradient of input ` +
+            `'${inputName}' has shape '${dx.shape}', which does not match ` +
+            `the shape of the input '${x.shape}'`);
+      }
 
-      const activation = node.inputAndArgs.inputs[inputName];
-
-      if (arrayAccumulatedGradientMap[activation.id] == null) {
-        arrayAccumulatedGradientMap[activation.id] = grad;
+      if (arrayAccumulatedGradientMap[x.id] == null) {
+        arrayAccumulatedGradientMap[x.id] = dx;
       } else {
-        const curGradient = arrayAccumulatedGradientMap[activation.id];
-        arrayAccumulatedGradientMap[activation.id] =
-            ENV.math.add(curGradient, grad);
+        const curGradient = arrayAccumulatedGradientMap[x.id];
+        arrayAccumulatedGradientMap[x.id] = ENV.math.add(curGradient, dx);
         curGradient.dispose();
       }
     }

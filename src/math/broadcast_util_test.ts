@@ -92,6 +92,11 @@ describe('broadcast_util.getBroadcastDims', () => {
     expect(dims).toEqual([1]);
   });
 
+  it('[1, 3] => [5, 3]', () => {
+    const dims = broadcast_util.getBroadcastDims([1, 3], [5, 3]);
+    expect(dims).toEqual([0]);
+  });
+
   it('[1, 1] => [5, 3]', () => {
     const dims = broadcast_util.getBroadcastDims([1, 1], [5, 3]);
     expect(dims).toEqual([0, 1]);
@@ -100,6 +105,43 @@ describe('broadcast_util.getBroadcastDims', () => {
   it('[4, 1, 3] => [4, 5, 3]', () => {
     const dims = broadcast_util.getBroadcastDims([4, 1, 3], [4, 5, 3]);
     expect(dims).toEqual([1]);
+  });
+});
+
+describe('broadcast_util.getReductionAxes', () => {
+  it('[] => []', () => {
+    const axes = broadcast_util.getReductionAxes([], []);
+    expect(axes).toEqual([]);
+  });
+
+  it('[] => [5, 4]', () => {
+    const axes = broadcast_util.getReductionAxes([], [5, 4]);
+    expect(axes).toEqual([0, 1]);
+  });
+
+  it('[1] => [5]', () => {
+    const axes = broadcast_util.getReductionAxes([1], [5]);
+    expect(axes).toEqual([0]);
+  });
+
+  it('[5, 1] => [5, 3]', () => {
+    const axes = broadcast_util.getReductionAxes([5, 1], [5, 3]);
+    expect(axes).toEqual([1]);
+  });
+
+  it('[1, 3] => [5, 3]', () => {
+    const axes = broadcast_util.getReductionAxes([1, 3], [5, 3]);
+    expect(axes).toEqual([0]);
+  });
+
+  it('[1, 1] => [5, 3]', () => {
+    const axes = broadcast_util.getReductionAxes([1, 1], [5, 3]);
+    expect(axes).toEqual([0, 1]);
+  });
+
+  it('[4, 1, 3] => [4, 5, 3]', () => {
+    const axes = broadcast_util.getReductionAxes([4, 1, 3], [4, 5, 3]);
+    expect(axes).toEqual([1]);
   });
 });
 

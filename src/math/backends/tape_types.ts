@@ -33,12 +33,10 @@ export interface TapeNode<T extends TapeNodeOutput> {
   inputAndArgs: TapeNodeInputConfig;
 
   output: T;
-  gradient: (dy: T, y: T) => TapeNodeInputGradientArrays;
+  gradient: (dy: NDArray|NamedArrayMap, y: T) => TapeNodeInputGradientArrays;
 }
 
-export interface TapeNodeInputConfig {
-  inputs: NamedArrayMap;
-}
+export interface TapeNodeInputConfig { inputs: NamedArrayMap; }
 
 export type TapeNodeInputGradientArrays = {
   [inputName: string]: () => NDArray;

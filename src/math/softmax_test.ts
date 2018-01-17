@@ -102,7 +102,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const vjp = math.vjp(() => math.softmax(x), {x}, dy);
 
       const axis = -1;
-      const totalSum = math.sum(math.elementWiseMul(dy, y), axis);
+      const totalSum = math.sum(math.multiplyStrict(dy, y), axis);
 
       expect(vjp.x.shape).toEqual(x.shape);
       test_util.expectArraysClose(vjp.x, [

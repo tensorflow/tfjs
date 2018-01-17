@@ -40,6 +40,24 @@ export function getBroadcastDims(
 }
 
 /**
+ * Returns the axes in the output space that should be reduced to produce
+ * the input space.
+ */
+export function getReductionAxes(
+    inShape: number[], outShape: number[]): number[] {
+  const result: number[] = [];
+  for (let i = 0; i < outShape.length; i++) {
+    const inDim = inShape[inShape.length - i - 1];
+    const outAxis = outShape.length - i - 1;
+    const outDim = outShape[outAxis];
+    if (inDim == null || (inDim === 1 && outDim > 1)) {
+      result.unshift(outAxis);
+    }
+  }
+  return result;
+}
+
+/**
  * Given the output of `getBroadcastDims()`, returns true if the broadcasting
  * is along the outer-most dimensions of the input.
  */

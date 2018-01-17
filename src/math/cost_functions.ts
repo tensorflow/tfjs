@@ -37,13 +37,13 @@ export class SquareCostFunc implements ElementWiseCostFunction {
 
   cost<T extends NDArray>(math: NDArrayMath, x1: T, x2: T): T {
     const diff = math.subStrict(x1, x2);
-    const diffSquared = math.elementWiseMul(diff, diff);
-    const result = math.scalarTimesArray(this.halfOne, diffSquared);
+    const diffSquared = math.multiplyStrict(diff, diff);
+    const result = math.multiply(this.halfOne, diffSquared);
 
     diff.dispose();
     diffSquared.dispose();
 
-    return result;
+    return result as T;
   }
 
   der<T extends NDArray>(math: NDArrayMath, x1: T, x2: T): T {
