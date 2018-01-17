@@ -2426,11 +2426,10 @@ export class NDArrayMath implements NDArrayManager {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
-  avgPool<R extends '3'|'4', T1 extends NDArray<'int32'|'float32', R>,
-                                        T2 extends NDArray<'float32', R>>(
-      x: T1, filterSize: [number, number]|number,
+  avgPool<R extends '3'|'4'>(
+      x: NDArray<'int32'|'float32', R>, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T2 {
+      dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<'float32'>[R] {
     let x4D = x as NDArray as Array4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
@@ -2458,10 +2457,10 @@ export class NDArrayMath implements NDArrayManager {
       const res = this.backendEngine.executeKernel(
           'AvgPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
       if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
-            T2;
+        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as
+            RankMap<'float32'>[R];
       }
-      return res as NDArray as T2;
+      return res as RankMap<'float32'>[R];
     });
   }
 
