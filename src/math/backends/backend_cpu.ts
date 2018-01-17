@@ -500,6 +500,16 @@ export class MathBackendCPU implements MathBackend {
     });
   }
 
+  lessEqual(a: NDArray, b: NDArray): NDArray<'bool'> {
+    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
+      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
+        return util.getNaN('bool');
+      } else {
+        return (aVal <= bVal) ? 1 : 0;
+      }
+    });
+  }
+
   greater(a: NDArray, b: NDArray): NDArray<'bool'> {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
