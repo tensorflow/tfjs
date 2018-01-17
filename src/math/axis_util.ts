@@ -101,7 +101,8 @@ export function assertAxesAreInnerMostDims(
  * permutation is neccesary. Otherwise it returns null. This method is used by
  * math operations that operate only on inner-most axes.
  */
-export function getPermutedAxes(axes: number[], rank: number): number[]|null {
+export function getAxesPermutation(axes: number[], rank: number): number[]|
+    null {
   if (axesAreInnerMostDims(axes, rank)) {
     return null;
   }
@@ -113,6 +114,13 @@ export function getPermutedAxes(axes: number[], rank: number): number[]|null {
   }
   axes.forEach(axis => result.push(axis));
   return result;
+}
+
+/** Returns the axes permutation that undoes the original permutation. */
+export function getUndoAxesPermutation(axes: number[]): number[] {
+  return axes.map((axis, i) => [i, axis])
+      .sort((a, b) => a[1] - b[1])
+      .map(x => x[0]);
 }
 
 export function getInnerMostAxes(numAxes: number, rank: number): number[] {

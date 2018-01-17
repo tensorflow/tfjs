@@ -15,7 +15,10 @@
  * =============================================================================
  */
 
+import {ENV} from '../environment';
+import * as test_util from '../test_util';
 import * as axis_util from './axis_util';
+import {Array4D} from './ndarray';
 
 describe('axis_util combineLocations', () => {
   it('rank 4, reduce last 2 dims', () => {
@@ -159,27 +162,27 @@ describe('axis_util expandShapeToKeepDim', () => {
 
 describe('axis_util getPermAxes', () => {
   it('all axes, no perm is needed', () => {
-    const perm = axis_util.getPermutedAxes([0, 1, 2], 3);
+    const perm = axis_util.getAxesPermutation([0, 1, 2], 3);
     expect(perm).toBeNull();
   });
 
   it('no axes, no perm is needed', () => {
-    const perm = axis_util.getPermutedAxes([], 3);
+    const perm = axis_util.getAxesPermutation([], 3);
     expect(perm).toBeNull();
   });
 
   it('inner most 2 axes, no perm is needed', () => {
-    const perm = axis_util.getPermutedAxes([2, 3], 4);
+    const perm = axis_util.getAxesPermutation([2, 3], 4);
     expect(perm).toBeNull();
   });
 
   it('outer most axis, perm is needed', () => {
-    const perm = axis_util.getPermutedAxes([0], 4);
+    const perm = axis_util.getAxesPermutation([0], 4);
     expect(perm).toEqual([1, 2, 3, 0]);
   });
 
   it('2 outer most axes, perm is needed', () => {
-    const perm = axis_util.getPermutedAxes([0, 1], 4);
+    const perm = axis_util.getAxesPermutation([0, 1], 4);
     expect(perm).toEqual([2, 3, 0, 1]);
   });
 });
@@ -258,5 +261,32 @@ describe('axis_util parseAxisParam', () => {
     const axis = 0.5;
     const shape = [3, 1, 2];
     expect(() => axis_util.parseAxisParam(axis, shape)).toThrowError();
+  });
+});
+
+describe('axis_util getUndoAxesPermutation', () => {
+  it('4d axes', () => {
+    const axes = [2, 0, 1, 3];
+    expect(axis_util.getUndoAxesPermutation(axes)).toEqual([1, 2, 0, 3]);
+  });
+
+  it('3d axes, no perm', () => {
+    const axes = [0, 1, 2];
+    expect(axis_util.getUndoAxesPermutation(axes)).toEqual([0, 1, 2]);
+  });
+
+  it('3d axes, complete flip', () => {
+    const axes = [2, 1, 0];
+    expect(axis_util.getUndoAxesPermutation(axes)).toEqual([2, 1, 0]);
+  });
+
+  it('4d array with values', () => {
+    const axes = [2, 0, 1, 3];
+    const undoPermutation = axis_util.getUndoAxesPermutation(axes);
+
+    const a = Array4D.randNormal([2, 3, 4, 5]);
+    const aT = ENV.math.transpose(a, axes);
+    const aTT = ENV.math.transpose(aT, undoPermutation);
+    test_util.expectArraysClose(a, aTT);
   });
 });

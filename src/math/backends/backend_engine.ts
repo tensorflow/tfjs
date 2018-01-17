@@ -17,8 +17,7 @@
 
 import * as util from '../../util';
 import {NamedArrayMap} from '../../util';
-import {DataType, NDArray, Scalar} from '../ndarray';
-
+import {DataType, NDArray, Rank, Scalar} from '../ndarray';
 import {MathBackend} from './backend';
 import * as kernel_registry from './kernel_registry';
 import {KernelConfigRegistry} from './kernel_registry';
@@ -99,15 +98,17 @@ export class BackendEngine {
     return result;
   }
 
-  customGradient<D extends DataType, T extends NDArray<D>>(
+  customGradient<D extends DataType, R extends Rank>(
       f: () => {
-        value: T,
-        gradients: (dy: T, y: T) => TapeNodeInputGradientArrays
+        value: NDArray<D, R>,
+        gradients: (dy: NDArray<'float32', R>, y: NDArray<D, R>) =>
+            TapeNodeInputGradientArrays
       },
-      inputs: NamedArrayMap, name: string): T {
+      inputs: NamedArrayMap, name: string): NDArray<D, R> {
     this.customGradientDepth++;
 
-    let gradientsFunc: (dy: T, y: T) => TapeNodeInputGradientArrays;
+    let gradientsFunc: (dy: NDArray<'float32', R>, y: NDArray<D, R>) =>
+        TapeNodeInputGradientArrays;
     const gradientsMode = true;
     const result = this.scope('customGradient', () => {
       const {value, gradients} = f();
@@ -118,7 +119,7 @@ export class BackendEngine {
     this.customGradientDepth--;
 
     if (this.activeTape != null && this.customGradientDepth === 0) {
-      const evaluatedNode: TapeNode<T> = {
+      const evaluatedNode: TapeNode<NDArray<D, R>> = {
         id: this.nextTapeNodeId++,
         type: 'customGradient',
         name,
@@ -166,11 +167,6 @@ export class BackendEngine {
         throw new Error(
             `Cannot compute vector jacobian product, ` +
             `y shape (${y.shape}) does not match dy shape (${dy.shape}).`);
-      }
-      if (y.dtype !== dy.dtype) {
-        throw new Error(
-            `Cannot compute vector jacobian product, ` +
-            `y dtype (${y.dtype}) does not match dy dtype (${dy.dtype}).`);
       }
       return this.gradientWrt(y, xs, dy);
     }, gradientsMode);

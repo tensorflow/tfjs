@@ -534,7 +534,7 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(res, [7]);
     });
 
-    it('gradients: basic', math => {
+    it('gradients: sum(2d)', math => {
       const a = Array2D.new([3, 2], [1, 2, 3, 0, 0, 1]);
       const dy = Scalar.new(10);
 
@@ -542,7 +542,31 @@ import * as reduce_util from './reduce_util';
 
       expect(gradients.shape).toEqual(a.shape);
       expect(gradients.dtype).toEqual('float32');
-      test_util.expectArraysClose(gradients, [10, 10, 10, 10, 10, 10]);
+      test_util.expectArraysClose(gradients, [10, 10, 10, 10, 10, 10], 1e-1);
+    });
+
+    it('gradients: sum(2d, axis=0)', math => {
+      const a = Array2D.new([3, 2], [[1, 2], [3, 0], [0, 1]]);
+      const dy = Array1D.new([10, 20]);
+      const axis = 0;
+
+      const gradients = math.vjp(() => math.sum(a, axis), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [10, 20, 10, 20, 10, 20], 1e-1);
+    });
+
+    it('gradients: sum(2d, axis=1)', math => {
+      const a = Array2D.new([3, 2], [[1, 2], [3, 0], [0, 1]]);
+      const dy = Array1D.new([10, 20, 30]);
+      const axis = 1;
+
+      const gradients = math.vjp(() => math.sum(a, axis), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [10, 10, 20, 20, 30, 30], 1e-1);
     });
   };
 

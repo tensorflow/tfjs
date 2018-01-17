@@ -54,6 +54,17 @@ import {Array2D, Array3D} from './ndarray';
       expect(t2.shape).toEqual([2, 2, 2]);
       test_util.expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
     });
+
+    it('gradient 3D [r, c, d] => [d, c, r]', math => {
+      const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
+      const perm = [2, 1, 0];
+      const dy =
+          Array3D.new([2, 2, 2], [111, 211, 121, 221, 112, 212, 122, 222]);
+      const dt = math.vjp(() => math.transpose(t, perm), t, dy);
+      expect(dt.shape).toEqual(t.shape);
+      expect(dt.dtype).toEqual('float32');
+      test_util.expectArraysClose(dt, [111, 112, 121, 122, 211, 212, 221, 222]);
+    });
   };
 
   test_util.describeMathCPU('transpose', [tests]);
