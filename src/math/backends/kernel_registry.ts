@@ -32,6 +32,7 @@ import {Concat1DInputConfig, Concat1DNode, Concat2DInputConfig, Concat2DNode, Co
 import {Conv2DDerBiasInputConfig, Conv2DDerBiasNode, Conv2DDerFilterInputConfig, Conv2DDerFilterNode, Conv2DDerInputInputConfig, Conv2DDerInputNode, Conv2DInputConfig, Conv2DNode, DepthwiseConv2DInputConfig} from './types/conv';
 // tslint:disable-next-line:max-line-length
 import {EqualInputConfig, EqualNode, LogicalOrInputConfig, LogicalOrNode} from './types/logical';
+import {GatherInputConfig, GatherNode} from './types/gather';
 import {LRN4DInputConfig, LRN4DNode} from './types/lrn';
 import {MatMulInputConfig, MatMulNode} from './types/matmul';
 // tslint:disable-next-line:max-line-length
@@ -266,6 +267,10 @@ const KERNEL_METHODS: {
   Tile: (backend: MathBackend, config: TileInputConfig<NDArray>) => {
     return backend.tile(config.inputs.x, config.args.reps);
   },
+  Gather: (backend: MathBackend, config: GatherInputConfig<NDArray>) => {
+    return backend.gather(
+        config.inputs.x, config.inputs.indices, config.args.axis);
+  },
   Pad1D: (backend: MathBackend, config: Pad1DInputConfig) => {
     return backend.pad1D(
         config.inputs.x, config.args.paddings, config.args.constantValue);
@@ -423,6 +428,7 @@ export interface KernelConfigRegistry {
   Pad1D: Pad1DNode;
   Pad2D: Pad2DNode;
   Tile: TileNode<NDArray>;
+  Gather: GatherNode<NDArray>;
   Conv2D: Conv2DNode;
   Conv2DDerInput: Conv2DDerInputNode;
   Conv2DDerFilter: Conv2DDerFilterNode;
