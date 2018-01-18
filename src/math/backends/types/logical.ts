@@ -42,14 +42,14 @@ export interface EqualInputConfig extends KernelInputConfig {
   inputs: DualInputArrays;
 }
 
-// LogicalOr
-export interface LogicalOrNode extends KernelNode {
-  inputAndArgs: LogicalOrInputConfig;
+// LogicalAnd/LogicalOr
+export interface LogicalNode extends KernelNode {
+  inputAndArgs: LogicalInputConfig;
   output: NDArray<'bool'>;
   gradient:
       (dy: NDArray<'bool'>, y: NDArray<'bool'>) => DualGradientInputArrays;
 }
 
-export interface LogicalOrInputConfig extends KernelInputConfig {
+export interface LogicalInputConfig extends KernelInputConfig {
   inputs: DualInputArrays;
 }
