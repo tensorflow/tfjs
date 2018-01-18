@@ -872,6 +872,20 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
+   * Returns the truth value of a AND b element-wise. Supports broadcasting.
+   *
+   * @param a The first input `NDArray<'bool'>`.
+   * @param b The second input `NDArray<'bool'>`.
+   */
+  logicalAnd(a: NDArray<'bool'>, b: NDArray<'bool'>): NDArray<'bool'> {
+    util.assert(
+        a.dtype === 'bool' && b.dtype === 'bool',
+        'Error Array must be of type bool.');
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    return this.backendEngine.executeKernel('LogicalAnd', {inputs: {a, b}});
+  }
+
+  /**
    * Returns the truth value of a OR b element-wise. Supports broadcasting.
    *
    * @param a The first input `NDArray<'bool'>`.
@@ -879,7 +893,7 @@ export class NDArrayMath implements NDArrayManager {
    */
   logicalOr(a: NDArray<'bool'>, b: NDArray<'bool'>): NDArray<'bool'> {
     util.assert(
-        a.dtype === 'bool' || b.dtype === 'bool',
+        a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return this.backendEngine.executeKernel('LogicalOr', {inputs: {a, b}});
@@ -1216,17 +1230,17 @@ export class NDArrayMath implements NDArrayManager {
                'Transpose', {inputs: {x}, args: {perm}}, der) as T;
   }
 
-/**
- * Gather slices from array `x`'s axis `axis` according to `indices`
- *
- * @param x The array to transpose.
- * @param indices The indices of the values to extract.
- * @param axis Optional. The axis over which to select values. Defaults to 0.
- */
+  /**
+   * Gather slices from array `x`'s axis `axis` according to `indices`
+   *
+   * @param x The array to transpose.
+   * @param indices The indices of the values to extract.
+   * @param axis Optional. The axis over which to select values. Defaults to 0.
+   */
   gather<D extends DataType, T extends NDArray<D>>(
       x: T, indices: Array1D<'int32'>, axis = 0): T {
     return this.backendEngine.executeKernel(
-               'Gather', {inputs:{x, indices}, args: {axis}}) as T;
+               'Gather', {inputs: {x, indices}, args: {axis}}) as T;
   }
 
   /** @deprecated Use math.add(c, A) instead. */
