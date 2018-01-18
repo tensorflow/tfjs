@@ -30,6 +30,7 @@ import * as conv_util from './conv_util';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Rank, RankMap, Scalar, Variable} from './ndarray';
 import * as slice_util from './slice_util';
+import * as types from './types';
 import {SumTypes} from './types';
 
 export interface LSTMCell {
@@ -897,6 +898,42 @@ export class NDArrayMath implements NDArrayManager {
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return this.backendEngine.executeKernel('LogicalOr', {inputs: {a, b}});
+  }
+
+  /**
+   * Returns the elements, either `a` or `b` depending on the `condition`.
+   *
+   * @param condition The input as `NDAray<'bool'>.
+   * @param a Input as `NDArray` which may have the same shape as
+   *     `condition`. If `condition` is rank 1, `a` may have a higher rank but
+   *     its first dimension must match the size of `condition`.
+   * @param b Input as `NDArray` with the same shape and type as `a`.
+   * @return An `NDArray` with the same type and shape as `a` and `b`.
+   */
+  where<T extends NDArray>(condition: NDArray<'bool'>, a: T, b: T): T {
+    util.assert(
+        condition.dtype === 'bool' || a.dtype === 'bool' || b.dtype === 'bool',
+        'Error Array must be of type bool.');
+
+    util.assertShapesMatch(a.shape, b.shape, 'Error in where: ');
+
+    if (condition.rank === 1) {
+      // If condition rank is 1, then the first dimension must match the size of
+      // condition.
+      util.assert(
+          condition.shape[0] === a.shape[0],
+          'The first dimension of `a` must match the size of `condition`.');
+    } else {
+      // A must have the same shape as condition.
+      util.assertShapesMatch(condition.shape, b.shape, 'Error in where: ');
+    }
+
+    // Default to highest percision of number:
+    const dtype = types.upcastType(a.dtype, b.dtype);
+    return this.backendEngine.executeKernel(
+               'Where',
+               {inputs: {condition, a, b}, args: {dtype: dtype as DataType}}) as
+        T;
   }
 
   /**
