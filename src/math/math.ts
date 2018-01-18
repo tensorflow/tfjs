@@ -819,6 +819,19 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
+   * Returns the truth value of (a < b) element-wise. Supports broadcasting.
+   *
+   * @param a The first input `NDArray`.
+   * @param b The second input `NDArray`. Must have the same dtype as `a`.
+   */
+  less<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
+      a: NDArray<D1>, b: NDArray<D2>): T {
+    util.assertTypesMatch(a, b);
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    return this.backendEngine.executeKernel('Less', {inputs: {a, b}}) as T;
+  }
+
+  /**
    * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
    *
    * @param a The first input `NDArray`.
