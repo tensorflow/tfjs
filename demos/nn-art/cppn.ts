@@ -15,46 +15,33 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Array2D, ENV, gpgpu_util, GPGPUContext, MathBackendWebGL, NDArray, NDArrayMath, webgl_util} from 'deeplearn';
+import * as dl from 'deeplearn';
 import * as nn_art_util from './nn_art_util';
 
 const MAX_LAYERS = 10;
-
-export type ColorMode = 'rgb'|'rgba'|'hsv'|'hsva'|'yuv'|'yuva'|'bw';
-const colorModeOutputDimensions: {[colorMode in ColorMode]: number} = {
-  'rgb': 3,
-  'rgba': 4,
-  'hsv': 3,
-  'hsva': 4,
-  'yuv': 3,
-  'yuva': 4,
-  'bw': 1
-};
+const math = dl.ENV.math;
 
 export type ActivationFunction = 'tanh'|'sin'|'relu'|'step';
 const activationFunctionMap: {
-  [activationFunction in ActivationFunction]: (
-      math: NDArrayMath, ndarray: Array2D) => Array2D
+  [activationFunction in ActivationFunction]: (ndarray: dl.Array2D) =>
+      dl.Array2D
 } = {
-  'tanh': (math: NDArrayMath, ndarray: Array2D) => math.tanh(ndarray),
-  'sin': (math: NDArrayMath, ndarray: Array2D) => math.sin(ndarray),
-  'relu': (math: NDArrayMath, ndarray: Array2D) => math.relu(ndarray),
-  'step': (math: NDArrayMath, ndarray: Array2D) => math.step(ndarray)
+  'tanh': (x: dl.Array2D) => math.tanh(x),
+  'sin': (x: dl.Array2D) => math.sin(x),
+  'relu': (x: dl.Array2D) => math.relu(x),
+  'step': (x: dl.Array2D) => math.step(x)
 };
 
 const NUM_IMAGE_SPACE_VARIABLES = 3;  // x, y, r
 const NUM_LATENT_VARIABLES = 2;
 
 export class CPPN {
-  private math: NDArrayMath;
-  private backend: MathBackendWebGL;
-  private gpgpu: GPGPUContext;
-  private renderShader: WebGLProgram;
-  private addLatentVariablesShader: WebGLProgram;
+  private inputAtlas: dl.Array2D;
+  private ones: dl.Array2D<'float32'>;
 
-  private inputAtlas: Array2D;
-  private weights: Array2D[] = [];
+  private firstLayerWeights: dl.Array2D;
+  private intermediateWeights: dl.Array2D[] = [];
+  private lastLayerWeights: dl.Array2D;
 
   private z1Counter = 0;
   private z2Counter = 0;
@@ -62,53 +49,41 @@ export class CPPN {
   private z2Scale: number;
   private numLayers: number;
 
-  private colorModeNames: ColorMode[] =
-      ['rgb', 'rgba', 'hsv', 'hsva', 'yuv', 'yuva', 'bw'];
-
-  private selectedColorModeName: ColorMode;
   private selectedActivationFunctionName: ActivationFunction;
 
   private isInferring = false;
 
   constructor(private inferenceCanvas: HTMLCanvasElement) {
-    const gl = gpgpu_util.createWebGLContext(this.inferenceCanvas);
-    this.gpgpu = new GPGPUContext(gl);
-    this.backend = new MathBackendWebGL(this.gpgpu);
-    const safeMode = false;
-    this.math = new NDArrayMath(this.backend, safeMode);
-    ENV.setMath(this.math);
-
-    const maxTextureSize = webgl_util.queryMaxTextureSize(gl);
-    const canvasSize = Math.floor(Math.sqrt(maxTextureSize));
+    const canvasSize = 128;
     this.inferenceCanvas.width = canvasSize;
     this.inferenceCanvas.height = canvasSize;
 
-    this.renderShader = nn_art_util.getRenderShader(this.gpgpu, canvasSize);
-    this.addLatentVariablesShader = nn_art_util.getAddLatentVariablesShader(
-        this.gpgpu, NUM_IMAGE_SPACE_VARIABLES);
     this.inputAtlas = nn_art_util.createInputAtlas(
         canvasSize, NUM_IMAGE_SPACE_VARIABLES, NUM_LATENT_VARIABLES);
+    this.ones = dl.Array2D.ones([this.inputAtlas.shape[0], 1]);
   }
 
   generateWeights(neuronsPerLayer: number, weightsStdev: number) {
-    for (let i = 0; i < this.weights.length; i++) {
-      this.weights[i].dispose();
+    for (let i = 0; i < this.intermediateWeights.length; i++) {
+      this.intermediateWeights[i].dispose();
     }
-    this.weights = [];
+    this.intermediateWeights = [];
+    if (this.firstLayerWeights != null) {
+      this.firstLayerWeights.dispose();
+    }
+    if (this.lastLayerWeights != null) {
+      this.lastLayerWeights.dispose();
+    }
 
-    this.weights.push(Array2D.randTruncatedNormal(
-        [neuronsPerLayer, NUM_IMAGE_SPACE_VARIABLES + NUM_LATENT_VARIABLES], 0,
-        weightsStdev));
+    this.firstLayerWeights = dl.Array2D.randTruncatedNormal(
+        [NUM_IMAGE_SPACE_VARIABLES + NUM_LATENT_VARIABLES, neuronsPerLayer], 0,
+        weightsStdev);
     for (let i = 0; i < MAX_LAYERS; i++) {
-      this.weights.push(Array2D.randTruncatedNormal(
+      this.intermediateWeights.push(dl.Array2D.randTruncatedNormal(
           [neuronsPerLayer, neuronsPerLayer], 0, weightsStdev));
     }
-    this.weights.push(Array2D.randTruncatedNormal(
-        [4 /** max output channels */, neuronsPerLayer], 0, weightsStdev));
-  }
-
-  setColorMode(colorMode: ColorMode) {
-    this.selectedColorModeName = colorMode;
+    this.lastLayerWeights = dl.Array2D.randTruncatedNormal(
+        [neuronsPerLayer, 3 /** max output channels */], 0, weightsStdev);
   }
 
   setActivationFunction(activationFunction: ActivationFunction) {
@@ -132,53 +107,67 @@ export class CPPN {
     this.runInferenceLoop();
   }
 
-  private runInferenceLoop() {
+  private async runInferenceLoop() {
     if (!this.isInferring) {
       return;
     }
 
-    const colorModeIndex =
-        this.colorModeNames.indexOf(this.selectedColorModeName);
-    const outputDimensions =
-        colorModeOutputDimensions[this.selectedColorModeName];
-
     this.z1Counter += 1 / this.z1Scale;
     this.z2Counter += 1 / this.z2Scale;
-    const z1 = Math.sin(this.z1Counter);
-    const z2 = Math.cos(this.z2Counter);
 
-    // Add the latent variables.
-    const inputAtlasWithLatentVariables =
-        NDArray.make(this.inputAtlas.shape, {}) as Array2D;
-    nn_art_util.addLatentVariables(
-        this.gpgpu, this.addLatentVariablesShader,
-        this.backend.getTexture(this.inputAtlas.dataId),
-        this.backend.getTexture(inputAtlasWithLatentVariables.dataId),
-        this.inputAtlas.shape, z1, z2);
+    const lastOutput = math.scope(() => {
+      const z1 = dl.Scalar.new(Math.sin(this.z1Counter));
+      const z2 = dl.Scalar.new(Math.cos(this.z2Counter));
 
-    let lastOutput = inputAtlasWithLatentVariables;
+      const concatAxis = 1;
+      const latentVars = math.concat2D(
+          math.multiply(z1, this.ones) as dl.Array2D,
+          math.multiply(z2, this.ones) as dl.Array2D, concatAxis);
 
-    this.math.scope(() => {
+      const activation = (x: dl.Array2D) =>
+          activationFunctionMap[this.selectedActivationFunctionName](x);
+
+      let lastOutput: dl.NDArray =
+          math.concat2D(this.inputAtlas, latentVars, concatAxis);
+      lastOutput = activation(
+          math.matMul(lastOutput as dl.Array2D, this.firstLayerWeights));
+
       for (let i = 0; i < this.numLayers; i++) {
-        const matmulResult = this.math.matMul(this.weights[i], lastOutput);
+        const matmulResult =
+            math.matMul(lastOutput as dl.Array2D, this.intermediateWeights[i]);
 
-        lastOutput = (i === this.numLayers - 1) ?
-            this.math.sigmoid(matmulResult) :
-            activationFunctionMap[this.selectedActivationFunctionName](
-                this.math, matmulResult);
+        lastOutput = activation(matmulResult);
       }
-      nn_art_util.render(
-          this.gpgpu, this.renderShader,
-          this.backend.getTexture(lastOutput.dataId), outputDimensions,
-          colorModeIndex);
+
+      return math
+          .sigmoid(math.matMul(lastOutput as dl.Array2D, this.lastLayerWeights))
+          .reshape(
+              [this.inferenceCanvas.height, this.inferenceCanvas.width, 3]);
     });
 
-    inputAtlasWithLatentVariables.dispose();
-
-    requestAnimationFrame(() => this.runInferenceLoop());
+    await renderToCanvas(lastOutput as dl.Array3D, this.inferenceCanvas);
+    await dl.util.nextFrame();
+    this.runInferenceLoop();
   }
 
   stopInferenceLoop() {
     this.isInferring = false;
   }
+}
+
+// TODO(nsthorat): Move this to a core library util.
+async function renderToCanvas(a: dl.Array3D, canvas: HTMLCanvasElement) {
+  const [height, width, ] = a.shape;
+  const ctx = canvas.getContext('2d');
+  const imageData = new ImageData(width, height);
+  const data = await a.data();
+  for (let i = 0; i < height * width; ++i) {
+    const j = i * 4;
+    const k = i * 3;
+    imageData.data[j + 0] = Math.round(255 * data[k + 0]);
+    imageData.data[j + 1] = Math.round(255 * data[k + 1]);
+    imageData.data[j + 2] = Math.round(255 * data[k + 2]);
+    imageData.data[j + 3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
 }

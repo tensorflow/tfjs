@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {GPGPUContext} from './gpgpu_context';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class OneHotProgram implements GPGPUProgram {
@@ -38,14 +37,5 @@ export class OneHotProgram implements GPGPUProgram {
                       float(index == coords.y)));
       }
     `;
-  }
-
-  getCustomSetupFunc(seed: number) {
-    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
-      if (this.seedLoc == null) {
-        this.seedLoc = gpgpu.getUniformLocation(webGLProgram, 'seed');
-      }
-      gpgpu.gl.uniform1f(this.seedLoc, seed);
-    };
   }
 }

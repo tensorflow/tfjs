@@ -39,17 +39,6 @@ limitations under the License.
     <canvas id="inference"></canvas>
     <br>
     <div>
-      <paper-dropdown-menu no-animations label="Color mode">
-        <paper-listbox attr-for-selected="value" id="color-mode-dropdown" class="dropdown-content" selected="{{selectedColorModeName}}" slot="dropdown-content">
-          <template is="dom-repeat" items="[[colorModeNames]]">
-            <paper-item value="[[item]]" label="[[item]]">
-              [[item]]
-            </paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
-    </div>
-    <div>
       <paper-dropdown-menu no-animations label="Activation function">
         <paper-listbox attr-for-selected="value" id="activation-function-dropdown" class="dropdown-content" selected="{{selectedActivationFunctionName}}" slot="dropdown-content">
           <template is="dom-repeat" items="[[activationFunctionNames]]">

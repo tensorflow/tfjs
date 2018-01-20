@@ -18,7 +18,7 @@
 import '../demo-header';
 import '../demo-footer';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
-import {ActivationFunction, ColorMode, CPPN} from './cppn';
+import {ActivationFunction, CPPN} from './cppn';
 
 const CANVAS_UPSCALE_FACTOR = 3;
 const MAT_WIDTH = 30;
@@ -29,8 +29,6 @@ const WEIGHTS_STDEV = .6;
 const NNArtPolymer: new () => PolymerHTMLElement = PolymerElement({
   is: 'nn-art',
   properties: {
-    colorModeNames: Array,
-    selectedColorModeName: String,
     activationFunctionNames: Array,
     selectedActivationFunctionName: String
   }
@@ -38,8 +36,6 @@ const NNArtPolymer: new () => PolymerHTMLElement = PolymerElement({
 
 class NNArt extends NNArtPolymer {
   // Polymer properties.
-  colorModeNames: ColorMode[];
-  selectedColorModeName: ColorMode;
   activationFunctionNames: ActivationFunction[];
   selectedActivationFunctionName: ActivationFunction;
 
@@ -60,16 +56,6 @@ class NNArt extends NNArtPolymer {
         `${this.inferenceCanvas.width * CANVAS_UPSCALE_FACTOR}px`;
     this.inferenceCanvas.style.height =
         `${this.inferenceCanvas.height * CANVAS_UPSCALE_FACTOR}px`;
-
-    this.colorModeNames = ['rgb', 'rgba', 'hsv', 'hsva', 'yuv', 'yuva', 'bw'];
-    this.selectedColorModeName = 'rgb';
-    this.cppn.setColorMode(this.selectedColorModeName);
-    this.querySelector('#color-mode-dropdown')!.addEventListener(
-        // tslint:disable-next-line:no-any
-        'iron-activate', (event: any) => {
-          this.selectedColorModeName = event.detail.selected;
-          this.cppn.setColorMode(this.selectedColorModeName);
-        });
 
     this.activationFunctionNames = ['tanh', 'sin', 'relu', 'step'];
     this.selectedActivationFunctionName = 'tanh';
