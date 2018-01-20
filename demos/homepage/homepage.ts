@@ -15,16 +15,13 @@
  * =============================================================================
  */
 
-import {ActivationFunction, ColorMode, CPPN} from '../nn-art/cppn';
+import {ActivationFunction, CPPN} from '../nn-art/cppn';
 import * as demo_util from '../util';
 
 const inferenceCanvas =
     document.querySelector('#inference') as HTMLCanvasElement;
 
-const isDeviceDisabled = demo_util.isSafari() && demo_util.isMobile();
-const enableCPPN = demo_util.isWebGLSupported() && !isDeviceDisabled;
-
-if (enableCPPN) {
+if (demo_util.isWebGLSupported()) {
   startCPPN();
 } else {
   document.getElementById('disabled-demo-overlay').style.display = '';
@@ -40,26 +37,11 @@ function startCPPN() {
   const cppn = new CPPN(inferenceCanvas);
 
   cppn.setActivationFunction('tanh');
-  cppn.setColorMode('rgb');
   cppn.setNumLayers(DEFAULT_NUM_LAYERS);
   cppn.setZ1Scale(convertZScale(DEFAULT_Z_SCALE));
   cppn.setZ2Scale(convertZScale(DEFAULT_Z_SCALE));
   cppn.generateWeights(NUM_NEURONS, WEIGHTS_STDEV);
   cppn.start();
-
-  const currentColorElement =
-      document.querySelector('#colormode') as HTMLInputElement;
-
-  document.querySelector('#color-selector')
-      .addEventListener(
-          // tslint:disable-next-line:no-any
-          'click', (event: any) => {
-            const colorMode =
-                (event.target as HTMLElement).getAttribute('data-val') as
-                ColorMode;
-            currentColorElement.value = colorMode;
-            cppn.setColorMode(colorMode);
-          });
 
   const currentActivationFnElement =
       document.querySelector('#activation-fn') as HTMLInputElement;

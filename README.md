@@ -172,9 +172,6 @@ without the `OES_texture_float` extension, we fall back to fixed precision
 floats backed by a `gl.UNSIGNED_BYTE` texture. For platforms without WebGL,
 we provide CPU fallbacks.
 
-While the library supports most devices, our demos don't currently work on
-iOS Mobile or Desktop Safari. We are working on updating them, check back soon.
-
 ## Resources
 
 * [Tutorials](https://deeplearnjs.org/docs/tutorials/index.html)
