@@ -151,7 +151,7 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
       test_util.expectArraysEqual(res, [0, 1, 0, 1, 0, 0]);
     });
 
-    // // Array3D:
+    // Array3D:
     it('Array3D - int32', math => {
       let a =
           Array3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
@@ -400,7 +400,7 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
           math.equalStrict(a, b), [0, boolNaN, 1, boolNaN]);
     });
 
-    // // Array3D:
+    // Array3D:
     it('Array3D - int32', math => {
       let a =
           Array3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
@@ -546,7 +546,65 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
 
 // NotEqual:
 {
+  const boolNaN = util.getNaN('bool');
+
   const tests: MathTests = it => {
+    // Array1D:
+    it('Array1D - int32', math => {
+      let a = Array1D.new([1, 4, 5], 'int32');
+      let b = Array1D.new([2, 3, 5], 'int32');
+
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 0]);
+
+      a = Array1D.new([2, 2, 2], 'int32');
+      b = Array1D.new([2, 2, 2], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0]);
+
+      a = Array1D.new([0, 0], 'int32');
+      b = Array1D.new([3, 3], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1]);
+    });
+    it('Array1D - float32', math => {
+      let a = Array1D.new([1.1, 4.1, 5.1], 'float32');
+      let b = Array1D.new([2.2, 3.2, 5.1], 'float32');
+
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 0]);
+
+      a = Array1D.new([2.31, 2.31, 2.31], 'float32');
+      b = Array1D.new([2.31, 2.31, 2.31], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0]);
+
+      a = Array1D.new([0.45, 0.123], 'float32');
+      b = Array1D.new([3.123, 3.321], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1]);
+    });
+    it('mismatched Array1D shapes - int32', math => {
+      const a = Array1D.new([1, 2], 'int32');
+      const b = Array1D.new([1, 2, 3], 'int32');
+      const f = () => {
+        math.notEqual(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('mismatched Array1D shapes - float32', math => {
+      const a = Array1D.new([1.1, 2.1], 'float32');
+      const b = Array1D.new([1.1, 2.1, 3.1], 'float32');
+      const f = () => {
+        math.notEqual(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('NaNs in Array1D - int32', math => {
+      const a = Array1D.new([1, NaN, 0], 'int32');
+      const b = Array1D.new([0, 0, NaN], 'int32');
+
+      test_util.expectArraysClose(math.notEqual(a, b), [1, boolNaN, boolNaN]);
+    });
+    it('NaNs in Array1D - float32', math => {
+      const a = Array1D.new([1.1, NaN, 2.1], 'float32');
+      const b = Array1D.new([2.1, 3.1, NaN], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, boolNaN, boolNaN]);
+    });
     it('propagates NaNs', math => {
       const a = Array1D.new([2, 5, NaN]);
       const b = Array1D.new([4, 5, -1]);
@@ -555,24 +613,6 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
       expect(res.dtype).toBe('bool');
       test_util.expectArraysEqual(res, [1, 0, util.NAN_BOOL]);
     });
-
-    it('strict version throws when x and y are different shape', math => {
-      const a = Array1D.new([2]);
-      const b = Array1D.new([4, 2, -1]);
-
-      expect(() => math.notEqualStrict(a, b)).toThrowError();
-      expect(() => math.notEqualStrict(b, a)).toThrowError();
-    });
-
-    it('2D and scalar broadcast', math => {
-      const a = Array2D.new([2, 3], [1, 2, 3, 2, 5, 6]);
-      const b = Scalar.new(2);
-      const res = math.notEqual(a, b);
-      expect(res.dtype).toBe('bool');
-      expect(res.shape).toEqual([2, 3]);
-      test_util.expectArraysEqual(res, [1, 0, 1, 0, 1, 1]);
-    });
-
     it('scalar and 1D broadcast', math => {
       const a = Scalar.new(2);
       const b = Array1D.new([1, 2, 3, 4, 5, 2]);
@@ -582,6 +622,58 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
       test_util.expectArraysEqual(res, [1, 0, 1, 1, 1, 0]);
     });
 
+    // Array2D:
+    it('Array2D - int32', math => {
+      let a = Array2D.new([2, 3], [[1, 4, 5], [8, 9, 12]], 'int32');
+      let b = Array2D.new([2, 3], [[2, 3, 6], [7, 10, 11]], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 1, 1, 1, 1]);
+
+      a = Array2D.new([2, 2], [[0, 0], [1, 1]], 'int32');
+      b = Array2D.new([2, 2], [[0, 0], [1, 1]], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0, 0]);
+    });
+    it('Array2D - float32', math => {
+      let a =
+          Array2D.new([2, 3], [[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], 'float32');
+      let b =
+          Array2D.new([2, 3], [[2.1, 4.1, 5.1], [7.1, 10.1, 11.1]], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 0, 0, 1, 1, 1]);
+
+      a = Array2D.new([2, 2], [[0.2, 0.2], [1.2, 1.2]], 'float32');
+      b = Array2D.new([2, 2], [[0.2, 0.2], [1.2, 1.2]], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0, 0]);
+    });
+    it('broadcasting Array2D shapes - int32', math => {
+      const a = Array2D.new([2, 1], [[3], [7]], 'int32');
+      const b = Array2D.new([2, 3], [[2, 3, 4], [7, 8, 9]], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 0, 1, 0, 1, 1]);
+    });
+    it('broadcasting Array2D shapes - float32', math => {
+      const a = Array2D.new([2, 1], [[1.1], [7.1]], 'float32');
+      const b =
+          Array2D.new([2, 3], [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 0, 1, 0, 1, 1]);
+    });
+    it('NaNs in Array2D - int32', math => {
+      const a = Array2D.new([2, 3], [[1, NaN, 2], [1, NaN, NaN]], 'int32');
+      const b = Array2D.new([2, 3], [[0, NaN, NaN], [1, NaN, 3]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [1, boolNaN, boolNaN, 0, boolNaN, boolNaN]);
+    });
+    it('NaNs in Array2D - float32', math => {
+      const a = Array2D.new([2, 2], [[1.1, NaN], [1.1, NaN]], 'float32');
+      const b = Array2D.new([2, 2], [[0.1, NaN], [1.1, NaN]], 'float32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
+    });
+    it('2D and scalar broadcast', math => {
+      const a = Array2D.new([2, 3], [1, 2, 3, 2, 5, 6]);
+      const b = Scalar.new(2);
+      const res = math.notEqual(a, b);
+      expect(res.dtype).toBe('bool');
+      expect(res.shape).toEqual([2, 3]);
+      test_util.expectArraysEqual(res, [1, 0, 1, 0, 1, 1]);
+    });
     it('2D and 2D broadcast each with 1 dim', math => {
       const a = Array2D.new([1, 3], [1, 2, 5]);
       const b = Array2D.new([2, 1], [5, 1]);
@@ -591,6 +683,72 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
       test_util.expectArraysEqual(res, [1, 1, 0, 0, 1, 1]);
     });
 
+    // Array3D:
+    it('Array3D - int32', math => {
+      let a =
+          Array3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+      let b =
+          Array3D.new([2, 3, 1], [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 1, 1, 1, 0]);
+
+      a = Array3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      b = Array3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0, 0, 0, 0]);
+    });
+    it('Array3D - float32', math => {
+      let a = Array3D.new(
+          [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+          'float32');
+      let b = Array3D.new(
+          [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+          'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 1, 1, 1, 0]);
+
+      a = Array3D.new(
+          [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+      b = Array3D.new(
+          [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0, 0, 0, 0]);
+    });
+    it('broadcasting Array3D shapes - int32', math => {
+      const a = Array3D.new(
+          [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+          'int32');
+      const b =
+          Array3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1]);
+    });
+    it('broadcasting Array3D shapes - float32', math => {
+      const a = Array3D.new(
+          [2, 3, 2],
+          [
+            [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+            [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+          ],
+          'float32');
+      const b = Array3D.new(
+          [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+          'float32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1]);
+    });
+    it('NaNs in Array3D - int32', math => {
+      const a =
+          Array3D.new([2, 3, 1], [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+      const b =
+          Array3D.new([2, 3, 1], [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
+    });
+    it('NaNs in Array3D - float32', math => {
+      const a = Array3D.new(
+          [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
+      const b = Array3D.new(
+          [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
+    });
     it('3D and scalar', math => {
       const a = Array3D.new([2, 3, 1], [1, 2, 3, 4, 5, -1]);
       const b = Scalar.new(-1);
@@ -599,10 +757,337 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
       expect(res.shape).toEqual([2, 3, 1]);
       test_util.expectArraysEqual(res, [1, 1, 1, 1, 1, 0]);
     });
+
+    // Array4D:
+    it('Array4D - int32', math => {
+      let a = Array4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
+      let b = Array4D.new([2, 2, 1, 1], [2, 3, 6, 8], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 1, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      b = Array4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
+      b = Array4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 1, 1]);
+    });
+    it('Array4D - float32', math => {
+      let a = Array4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
+      let b = Array4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 8.1], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 1, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      b = Array4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [0, 0, 0, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
+      b = Array4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      test_util.expectArraysClose(math.notEqual(a, b), [1, 1, 1, 1]);
+    });
+    it('broadcasting Array4D shapes - int32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
+      const b = Array4D.new(
+          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [0, 1, 1, 1, 0, 1, 1, 1]);
+    });
+    it('broadcasting Array4D shapes - float32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
+      const b = Array4D.new(
+          [2, 2, 1, 2],
+          [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          'float32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [0, 1, 1, 1, 0, 1, 1, 1]);
+    });
+    it('NaNs in Array4D - int32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1, NaN, 1, 0], 'int32');
+      const b = Array4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
+    });
+    it('NaNs in Array4D - float32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1.1, NaN, 1.1, 0.1], 'float32');
+      const b = Array4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      test_util.expectArraysClose(
+          math.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
+    });
   };
 
   test_util.describeMathCPU('notEqual', [tests]);
   test_util.describeMathGPU('notEqual', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// NotEqualStrict:
+{
+  const boolNaN = util.getNaN('bool');
+
+  const tests: MathTests = it => {
+    // Array1D:
+    it('Array1D - int32', math => {
+      let a = Array1D.new([1, 4, 5], 'int32');
+      let b = Array1D.new([2, 3, 5], 'int32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1, 0]);
+
+      a = Array1D.new([2, 2, 2], 'int32');
+      b = Array1D.new([2, 2, 2], 'int32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [0, 0, 0]);
+
+      a = Array1D.new([0, 0], 'int32');
+      b = Array1D.new([3, 3], 'int32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1]);
+    });
+    it('Array1D - float32', math => {
+      let a = Array1D.new([1.1, 4.1, 5.1], 'float32');
+      let b = Array1D.new([2.2, 3.2, 5.1], 'float32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1, 0]);
+
+      a = Array1D.new([2.31, 2.31, 2.31], 'float32');
+      b = Array1D.new([2.31, 2.31, 2.31], 'float32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [0, 0, 0]);
+
+      a = Array1D.new([0.45, 0.123], 'float32');
+      b = Array1D.new([3.123, 3.321], 'float32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1]);
+    });
+    it('mismatched Array1D shapes - int32', math => {
+      const a = Array1D.new([1, 2], 'int32');
+      const b = Array1D.new([1, 2, 3], 'int32');
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('mismatched Array1D shapes - float32', math => {
+      const a = Array1D.new([1.1, 2.1], 'float32');
+      const b = Array1D.new([1.1, 2.1, 3.1], 'float32');
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('NaNs in Array1D - int32', math => {
+      const a = Array1D.new([1, NaN, 0], 'int32');
+      const b = Array1D.new([0, 0, NaN], 'int32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, boolNaN, boolNaN]);
+    });
+    it('NaNs in Array1D - float32', math => {
+      const a = Array1D.new([1.1, NaN, 2.1], 'float32');
+      const b = Array1D.new([2.1, 3.1, NaN], 'float32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, boolNaN, boolNaN]);
+    });
+    it('strict version throws when x and y are different shape', math => {
+      const a = Array1D.new([2]);
+      const b = Array1D.new([4, 2, -1]);
+
+      expect(() => math.notEqualStrict(a, b)).toThrowError();
+      expect(() => math.notEqualStrict(b, a)).toThrowError();
+    });
+
+    // Array2D:
+    it('Array2D - int32', math => {
+      let a = Array2D.new([2, 3], [[1, 4, 5], [8, 9, 12]], 'int32');
+      let b = Array2D.new([2, 3], [[2, 3, 6], [7, 10, 11]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, 1, 1, 1, 1, 1]);
+
+      a = Array2D.new([2, 2], [[0, 0], [1, 1]], 'int32');
+      b = Array2D.new([2, 2], [[0, 0], [1, 1]], 'int32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [0, 0, 0, 0]);
+    });
+    it('Array2D - float32', math => {
+      let a =
+          Array2D.new([2, 3], [[1.1, 4.1, 5.1], [8.1, 9.1, 12.1]], 'float32');
+      let b =
+          Array2D.new([2, 3], [[2.1, 4.1, 5.1], [7.1, 10.1, 11.1]], 'float32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, 0, 0, 1, 1, 1]);
+
+      a = Array2D.new([2, 2], [[0.2, 0.2], [1.2, 1.2]], 'float32');
+      b = Array2D.new([2, 2], [[0.2, 0.2], [1.2, 1.2]], 'float32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [0, 0, 0, 0]);
+    });
+    it('mismatch Array2D shapes - int32', math => {
+      const a = Array2D.new([2, 1], [[3], [7]], 'int32');
+      const b = Array2D.new([2, 3], [[2, 3, 4], [7, 8, 9]], 'int32');
+
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('mismatch Array2D shapes - float32', math => {
+      const a = Array2D.new([2, 1], [[1.1], [7.1]], 'float32');
+      const b =
+          Array2D.new([2, 3], [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('NaNs in Array2D - int32', math => {
+      const a = Array2D.new([2, 3], [[1, NaN, 2], [1, NaN, NaN]], 'int32');
+      const b = Array2D.new([2, 3], [[0, NaN, NaN], [1, NaN, 3]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b),
+          [1, boolNaN, boolNaN, 0, boolNaN, boolNaN]);
+    });
+    it('NaNs in Array2D - float32', math => {
+      const a = Array2D.new([2, 2], [[1.1, NaN], [1.1, NaN]], 'float32');
+      const b = Array2D.new([2, 2], [[0.1, NaN], [1.1, NaN]], 'float32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
+    });
+
+    // Array3D:
+    it('Array3D - int32', math => {
+      let a =
+          Array3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+      let b =
+          Array3D.new([2, 3, 1], [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, 1, 1, 1, 1, 0]);
+
+      a = Array3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      b = Array3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [0, 0, 0, 0, 0, 0]);
+    });
+    it('Array3D - float32', math => {
+      let a = Array3D.new(
+          [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+          'float32');
+      let b = Array3D.new(
+          [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+          'float32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, 1, 1, 1, 1, 0]);
+
+      a = Array3D.new(
+          [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+      b = Array3D.new(
+          [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [0, 0, 0, 0, 0, 0]);
+    });
+    it('mismatch Array3D shapes - int32', math => {
+      const a = Array3D.new(
+          [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+          'int32');
+      const b =
+          Array3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('mismatch Array3D shapes - float32', math => {
+      const a = Array3D.new(
+          [2, 3, 2],
+          [
+            [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+            [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+          ],
+          'float32');
+      const b = Array3D.new(
+          [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+          'float32');
+
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('NaNs in Array3D - int32', math => {
+      const a =
+          Array3D.new([2, 3, 1], [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+      const b =
+          Array3D.new([2, 3, 1], [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
+    });
+    it('NaNs in Array3D - float32', math => {
+      const a = Array3D.new(
+          [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
+      const b = Array3D.new(
+          [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
+    });
+
+    // Array4D:
+    it('Array4D - int32', math => {
+      let a = Array4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
+      let b = Array4D.new([2, 2, 1, 1], [2, 3, 6, 8], 'int32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1, 1, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      b = Array4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [0, 0, 0, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
+      b = Array4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1, 1, 1]);
+    });
+    it('Array4D - float32', math => {
+      let a = Array4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
+      let b = Array4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 8.1], 'float32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1, 1, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      b = Array4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [0, 0, 0, 0]);
+
+      a = Array4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
+      b = Array4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      test_util.expectArraysClose(math.notEqualStrict(a, b), [1, 1, 1, 1]);
+    });
+    it('mismatch Array4D shapes - int32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
+      const b = Array4D.new(
+          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('mismatch Array4D shapes - float32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
+      const b = Array4D.new(
+          [2, 2, 1, 2],
+          [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          'float32');
+
+      const f = () => {
+        math.notEqualStrict(a, b);
+      };
+      expect(f).toThrowError();
+    });
+    it('NaNs in Array4D - int32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1, NaN, 1, 0], 'int32');
+      const b = Array4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
+    });
+    it('NaNs in Array4D - float32', math => {
+      const a = Array4D.new([2, 2, 1, 1], [1.1, NaN, 1.1, 0.1], 'float32');
+      const b = Array4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      test_util.expectArraysClose(
+          math.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
+    });
+  };
+
+  test_util.describeMathCPU('notEqualStrict', [tests]);
+  test_util.describeMathGPU('notEqualStrict', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
