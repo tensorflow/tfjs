@@ -15,43 +15,29 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
 import {Array1D, Array2D} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {KernelNode} from '../tape_types';
 
-// Pad1D
 export interface Pad1DNode extends KernelNode {
-  inputAndArgs: Pad1DInputConfig;
+  inputAndArgs: {
+    inputs: {x: Array1D;};
+    args: {paddings: [number, number], constantValue: number};
+  };
   output: Array1D;
-  gradient: (dy: Array1D, y: Array1D) => Pad1DGradientInputArrays;
+  gradient: (dy: Array1D<'float32'>, y: Array1D) => {
+    x: () => Array1D<'float32'>;
+  };
 }
 
-export interface Pad1DInputConfig extends KernelInputConfig {
-  inputs: Pad1DInputArrays;
-  args: {paddings: [number, number], constantValue: number};
-}
-
-export interface Pad1DInputArrays extends NamedArrayMap { x: Array1D; }
-
-export interface Pad1DGradientInputArrays extends TapeNodeInputGradientArrays {
-  x: () => Array1D;
-}
-
-// Pad2D
 export interface Pad2DNode extends KernelNode {
-  inputAndArgs: Pad2DInputConfig;
+  inputAndArgs: {
+    inputs: {x: Array2D;}; args: {
+      paddings: [[number, number], [number, number]],
+      constantValue: number
+    };
+  };
   output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => Pad2DGradientInputArrays;
-}
-
-export interface Pad2DInputConfig extends KernelInputConfig {
-  inputs: Pad2DInputArrays;
-  args: {paddings: [[number, number], [number, number]], constantValue: number};
-}
-
-export interface Pad2DInputArrays extends NamedArrayMap { x: Array2D; }
-
-export interface Pad2DGradientInputArrays extends TapeNodeInputGradientArrays {
-  x: () => Array2D;
+  gradient: (dy: Array2D<'float32'>, y: Array2D) => {
+    x: () => Array2D<'float32'>;
+  };
 }

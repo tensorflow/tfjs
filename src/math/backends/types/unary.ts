@@ -15,88 +15,64 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
-import {NDArray} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {DataType, NDArray, Rank} from '../../ndarray';
+import {KernelNode} from '../tape_types';
 
-export interface UnaryNode<T extends NDArray> extends KernelNode {
-  inputAndArgs: UnaryInputConfig<T>;
+export interface UnaryNode<D extends DataType, R extends Rank, T extends
+                               NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T;};};
   output: T;
-  gradient: (dy: T, y: T) => UnaryGradientInputArrays<T>;
+  gradient: (dy: NDArray<'float32', R>, y: T) => {
+    x: () => NDArray<'float32', R>;
+  };
 }
 
-export interface UnaryInputConfig<T extends NDArray> extends KernelInputConfig {
-  inputs: UnaryInputArrays<T>;
-}
-
-export interface UnaryInputArrays<T extends NDArray> extends NamedArrayMap {
-  x: T;
-}
-
-export interface UnaryGradientInputArrays<T extends NDArray> extends
-    TapeNodeInputGradientArrays {
-  x: () => T;
-}
-
-// Leaky RELU
-export interface LeakyReluNode<T extends NDArray> extends KernelNode {
-  inputAndArgs: LeakyReluInputConfig<T>;
+export interface LeakyReluNode<D extends DataType, R extends Rank, T extends
+                                   NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T;}; args: {alpha: number;};};
   output: T;
-  gradient: (dy: T, y: T) => UnaryGradientInputArrays<T>;
+  gradient: (dy: NDArray<'float32', R>, y: T) => {
+    x: () => NDArray<'float32', R>;
+  };
 }
-
-export interface LeakyReluInputConfig<T extends NDArray> extends
-    KernelInputConfig {
-  inputs: UnaryInputArrays<T>;
-  args: {alpha: number;};
-}
-
-// Step
-export interface StepNode<T extends NDArray> extends KernelNode {
-  inputAndArgs: StepInputConfig<T>;
+export interface StepNode<D extends DataType, R extends Rank, T extends
+                              NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T;}; args: {alpha: number;};};
   output: T;
-  gradient: (dy: T, y: T) => UnaryGradientInputArrays<T>;
+  gradient: (dy: NDArray<'float32', R>, y: T) => {
+    x: () => NDArray<'float32', R>;
+  };
 }
 
-export interface StepInputConfig<T extends NDArray> extends KernelInputConfig {
-  inputs: UnaryInputArrays<T>;
-  args: {alpha: number;};
-}
-
-// Clip
-export interface ClipNode<T extends NDArray> extends KernelNode {
-  inputAndArgs: ClipInputConfig<T>;
+export interface ClipNode<D extends DataType, R extends Rank, T extends
+                              NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T;}; args: {min: number; max: number;};};
   output: T;
-  gradient: (dy: T, y: T) => UnaryGradientInputArrays<T>;
+  gradient: (dy: NDArray<'float32', R>, y: T) => {
+    x: () => NDArray<'float32', R>;
+  };
 }
 
-export interface ClipInputConfig<T extends NDArray> extends KernelInputConfig {
-  inputs: UnaryInputArrays<T>;
-  args: {min: number; max: number;};
-}
-
-// Transpose
-export interface TransposeNode<T extends NDArray> extends KernelNode {
-  inputAndArgs: TransposeInputConfig<T>;
+export interface TransposeNode<D extends DataType, R extends Rank, T extends
+                                   NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T;}; args: {perm: number[];};};
   output: T;
-  gradient: (dy: T, y: T) => UnaryGradientInputArrays<T>;
+  gradient: (dy: NDArray<'float32', R>, y: T) => {
+    x: () => NDArray<'float32', R>;
+  };
 }
 
-export interface TransposeInputConfig<T extends NDArray> extends
-    KernelInputConfig {
-  inputs: UnaryInputArrays<T>;
-  args: {perm: number[];};
-}
-
-// Tile
-export interface TileNode<T extends NDArray> extends KernelNode {
-  inputAndArgs: TileInputConfig<T>;
+export interface TileNode<D extends DataType, R extends Rank, T extends
+                              NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T;}; args: {reps: number[];};};
   output: T;
-  gradient: (dy: T, y: T) => UnaryGradientInputArrays<T>;
-}
-
-export interface TileInputConfig<T extends NDArray> extends KernelInputConfig {
-  inputs: UnaryInputArrays<T>;
-  args: {reps: number[];};
+  gradient: (dy: NDArray<'float32', R>, y: T) => {
+    x: () => NDArray<'float32', R>;
+  };
 }

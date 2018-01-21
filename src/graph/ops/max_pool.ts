@@ -62,7 +62,7 @@ export class MaxPool extends Operation {
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: SummedTensorArrayMap) {
     const x = inferenceArrays.get(this.xTensor) as Array3D;
-    const dy = gradientArrays.get(this.yTensor) as Array3D;
+    const dy = gradientArrays.get(this.yTensor) as Array3D<'float32'>;
 
     math.scope(() => {
       gradientArrays.add(

@@ -15,28 +15,13 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
 import {Array4D} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {KernelNode} from '../tape_types';
 
-// 4D
 export interface Reverse4DNode extends KernelNode {
-  inputAndArgs: Reverse4DInputConfig;
+  inputAndArgs: {inputs: {x: Array4D;}; args: {axis: number[];};};
   output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => Reverse4DGradientInputArrays;
-}
-
-export interface Reverse4DInputConfig extends KernelInputConfig {
-  inputs: Reverse4DInputArrays;
-  args: {axis: number[];};
-}
-
-export interface Reverse4DInputArrays extends NamedArrayMap {
-  x: Array4D;
-}
-
-export interface Reverse4DGradientInputArrays extends
-    TapeNodeInputGradientArrays {
-  x: () => Array4D;
+  gradient: (dy: Array4D<'float32'>, y: Array4D) => {
+    x: () => Array4D<'float32'>;
+  };
 }

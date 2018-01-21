@@ -15,52 +15,25 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
-import {Array1D, DataType, NDArray} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {Array1D, DataType, NDArray, Rank} from '../../ndarray';
+import {KernelNode} from '../tape_types';
 
 // Values
-export interface TopKValuesNode<D extends DataType, T extends NDArray<D>>
-    extends KernelNode {
-  inputAndArgs: TopKValuesInputConfig<T>;
+export interface TopKValuesNode<D extends DataType, R extends Rank, T extends
+                                    NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T;}; args: {k: number};};
   output: Array1D<D>;
-  gradient: (dy: Array1D<D>, y: Array1D<D>) => TopKValuesGradientInputArrays<T>;
-}
-
-export interface TopKValuesInputConfig<T extends NDArray> extends
-    KernelInputConfig {
-  inputs: TopKValuesInputArrays<T>;
-  args: {k: number};
-}
-
-export interface TopKValuesInputArrays<T extends NDArray> extends
-    NamedArrayMap {
-  x: T;
-}
-
-export interface TopKValuesGradientInputArrays<T extends NDArray> extends
-    TapeNodeInputGradientArrays {
-  x: () => T;
+  gradient: (dy: Array1D<'float32'>, y: Array1D<D>) => {
+    x: () => NDArray<'float32', R>;
+  };
 }
 
 // Indices
 export interface TopKIndicesNode extends KernelNode {
-  inputAndArgs: TopKIndicesInputConfig;
+  inputAndArgs: {inputs: {x: NDArray;}; args: {k: number};};
   output: Array1D<'int32'>;
-  gradient:
-      (dy: Array1D<'int32'>,
-       y: Array1D<'int32'>) => TopKIndicesGradientInputArrays;
-}
-
-export interface TopKIndicesInputConfig extends KernelInputConfig {
-  inputs: TopKIndicesInputArrays;
-  args: {k: number};
-}
-
-export interface TopKIndicesInputArrays extends NamedArrayMap { x: NDArray; }
-
-export interface TopKIndicesGradientInputArrays extends
-    TapeNodeInputGradientArrays {
-  x: () => NDArray;
+  gradient: (dy: Array1D<'float32'>, y: Array1D<'int32'>) => {
+    x: () => NDArray<'float32'>;
+  };
 }

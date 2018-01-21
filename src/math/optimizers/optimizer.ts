@@ -22,8 +22,8 @@ import * as session_util from '../../graph/session_util';
 // tslint:disable-next-line:max-line-length
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
-import {DataType, NDArray, Scalar} from '../../math/ndarray';
-import {NamedVariableMap} from '../../util';
+import {DataType, NDArray, Scalar, Variable} from '../../math/ndarray';
+import {NamedArrayMap} from '../../util';
 
 export abstract class Optimizer {
   protected variableNodes: VariableNode[];
@@ -37,11 +37,20 @@ export abstract class Optimizer {
   }
 
   /**
-   * Eager mode methods.
+   * Executes `f()` and minimizes the scalar output of `f()` by computing
+   * gradients of y with respect to the list of trainable variables provided by
+   * `varList`. If no list is provided, it defaults to all trainable variables.
+   * @param f The function to execute and whose output to minimize.
+   * @param returnCost Whether to return the scalar cost value produced by
+   * executing `f()`.
+   * @param varList An optional list of variables to update. If specified, only
+   * the trainable variables in varList will be updated by minimize. Defaults to
+   * all trainable variables.
    */
-  minimize<D extends DataType>(f: () => Scalar<D>, returnCost = false):
-      Scalar<D>|null {
-    const {value, gradients} = this.computeGradients(f);
+  minimize<D extends DataType>(
+      f: () => Scalar<D>, returnCost = false,
+      varList?: Variable[]): Scalar<D>|null {
+    const {value, gradients} = this.computeGradients(f, varList);
 
     this.applyGradients(gradients);
 
@@ -57,12 +66,27 @@ export abstract class Optimizer {
     }
   }
 
-  computeGradients<D extends DataType>(f: () => Scalar<D>):
-      {value: Scalar<D>, gradients: NamedVariableMap} {
-    return ENV.math.variableGradients(f);
+  /**
+   * Executes f() and computes the gradient of the scalar output of f() with
+   * respect to the list of trainable variables provided by `varList`. If no
+   * list is provided, it defaults to all trainable variables.
+   * @param f The function to execute and whose output to use for computing
+   * gradients with respect to variables.
+   * @param varList An optional list of variables to compute gradients with
+   * respect to. If specified, only the trainable variables in varList will have
+   * gradients computed with respect to. Defaults to all trainable variables.
+   */
+  computeGradients<D extends DataType>(
+      f: () => Scalar<D>,
+      varList?: Variable[]): {value: Scalar<D>, gradients: NamedArrayMap} {
+    return ENV.math.variableGradients(f, varList);
   }
 
-  abstract applyGradients(variableGradients: NamedVariableMap): void;
+  /**
+   * Updates variables by using the computed gradients.
+   * @param variableGradients A mapping of variable name to its gradient value.
+   */
+  abstract applyGradients(variableGradients: NamedArrayMap): void;
 
   /**
    * Graph mode methods.

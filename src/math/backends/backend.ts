@@ -48,14 +48,17 @@ export interface MathBackend extends NDArrayStorage {
 
   clone<T extends NDArray>(ndarray: T): T;
 
-  slice1D(x: Array1D, begin: number, size: number): Array1D;
-  slice2D(x: Array2D, begin: [number, number], size: [number, number]): Array2D;
-  slice3D(x: Array3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Array3D;
-  slice4D(x: Array4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Array4D;
+  slice1D<D extends DataType>(x: Array1D<D>, begin: number, size: number):
+      Array1D<D>;
+  slice2D<D extends DataType>(x: Array2D<D>, begin: [number, number], size: [
+    number, number
+  ]): Array2D<D>;
+  slice3D<D extends DataType>(
+      x: Array3D<D>, begin: [number, number, number],
+      size: [number, number, number]): Array3D<D>;
+  slice4D<D extends DataType>(
+      x: Array4D<D>, begin: [number, number, number, number],
+      size: [number, number, number, number]): Array4D<D>;
 
   reverse4D(a: Array4D, axis: number[]): Array4D;
 
