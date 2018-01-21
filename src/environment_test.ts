@@ -14,6 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import * as device_util from './device_util';
 import {ENV, Environment, Features} from './environment';
 import {MathBackend} from './math/backends/backend';
@@ -231,7 +232,7 @@ describe('Backend', () => {
     ENV.setFeatures(features);
 
     let backend: MathBackend;
-    ENV.registerBackend('webgl', () => {
+    ENV.addCustomBackend('webgl', () => {
       backend = new MathBackendWebGL();
       return backend;
     });
@@ -242,19 +243,17 @@ describe('Backend', () => {
 
   it('double registration fails', () => {
     ENV.setFeatures({'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2});
-    ENV.registerBackend('webgl', () => new MathBackendWebGL());
-    expect(() => ENV.registerBackend('webgl', () => new MathBackendWebGL()))
+    ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
+    expect(() => ENV.addCustomBackend('webgl', () => new MathBackendWebGL()))
         .toThrowError();
-    ENV.reset();
   });
 
   it('webgl not supported, falls back to cpu', () => {
     ENV.setFeatures({'WEBGL_VERSION': 0});
-    ENV.registerBackend('cpu', () => new MathBackendCPU());
-    const success = ENV.registerBackend('webgl', () => new MathBackendWebGL());
+    ENV.addCustomBackend('cpu', () => new MathBackendCPU());
+    const success = ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
     expect(success).toBe(false);
     expect(ENV.getBackend('webgl') == null).toBe(true);
     expect(ENV.getBestBackend()).toBe(ENV.getBackend('cpu'));
-    ENV.reset();
   });
 });

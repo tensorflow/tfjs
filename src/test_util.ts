@@ -380,8 +380,8 @@ function executeTests(
     beforeEach(() => {
       if (features != null) {
         ENV.setFeatures(features);
-        ENV.registerBackend('webgl', () => new MathBackendWebGL());
-        ENV.registerBackend('cpu', () => new MathBackendCPU());
+        ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
+        ENV.addCustomBackend('cpu', () => new MathBackendCPU());
       }
 
       if (customBeforeEach != null) {
