@@ -165,6 +165,42 @@ import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
       });
       expect(math.getNumArrays()).toBe(2);
     });
+
+    it('single argument', math => {
+      let hasRan = false;
+      math.scope(() => {
+        hasRan = true;
+      });
+      expect(hasRan).toBe(true);
+    });
+
+    it('single argument, but not a function throws error', math => {
+      expect(() => {
+        math.scope('asdf');
+      }).toThrowError();
+    });
+
+    it('2 arguments, first is string', math => {
+      let hasRan = false;
+      math.scope('name', () => {
+        hasRan = true;
+      });
+      expect(hasRan).toBe(true);
+    });
+
+    it('2 arguments, but first is not string throws error', math => {
+      expect(() => {
+        // tslint:disable-next-line:no-any
+        math.scope(4 as any, () => {});
+      }).toThrowError();
+    });
+
+    it('2 arguments, but second is not a function throws error', math => {
+      expect(() => {
+        // tslint:disable-next-line:no-any
+        math.scope('name', 'another name' as any);
+      }).toThrowError();
+    });
   };
 
   test_util.describeMathGPU('scope', [gpuTests], [

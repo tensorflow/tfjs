@@ -182,12 +182,12 @@ export class Environment {
     return this.features[feature];
   }
 
-  getBestBackend(): MathBackend {
+  getBestBackendType(): BackendType {
     const orderedBackends: BackendType[] = ['webgl', 'cpu'];
     for (let i = 0; i < orderedBackends.length; ++i) {
       const backendId = orderedBackends[i];
       if (backendId in this.backends) {
-        return this.backends[backendId];
+        return backendId;
       }
     }
     throw new Error('No backend found in registry.');
@@ -295,7 +295,7 @@ export class Environment {
 
   get math(): NDArrayMath {
     if (this.globalMath == null) {
-      const bestBackend = this.getBestBackend();
+      const bestBackend = this.getBestBackendType();
       const safeMode = false;
       this.setMath(new NDArrayMath(bestBackend, safeMode));
     }

@@ -223,7 +223,7 @@ describe('Backend', () => {
   it('default ENV has cpu and webgl, and webgl is the best available', () => {
     expect(ENV.getBackend('webgl') != null).toBe(true);
     expect(ENV.getBackend('cpu') != null).toBe(true);
-    expect(ENV.getBestBackend()).toBe(ENV.getBackend('webgl'));
+    expect(ENV.getBestBackendType()).toBe('webgl');
   });
 
   it('custom webgl registration', () => {
@@ -254,6 +254,6 @@ describe('Backend', () => {
     const success = ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
     expect(success).toBe(false);
     expect(ENV.getBackend('webgl') == null).toBe(true);
-    expect(ENV.getBestBackend()).toBe(ENV.getBackend('cpu'));
+    expect(ENV.getBestBackendType()).toBe('cpu');
   });
 });
