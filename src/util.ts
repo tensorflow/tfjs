@@ -22,8 +22,8 @@ export type FlatVector = boolean[]|number[]|TypedArray;
 export type RegularArray<T> = T[]|T[][]|T[][][]|T[][][][];
 export type ArrayData = TypedArray|RegularArray<number>|RegularArray<boolean>;
 
-export type NamedArrayMap = {
-  [name: string]: NDArray
+export type NamedArrayMap<D extends DataType = DataType> = {
+  [name: string]: NDArray<D>
 };
 
 export type NamedVariableMap = {

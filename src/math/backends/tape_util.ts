@@ -17,7 +17,8 @@
 
 import {ENV} from '../../environment';
 import * as util from '../../util';
-import {NDArray} from '../ndarray';
+import {NamedArrayMap} from '../../util';
+import {NDArray, Variable} from '../ndarray';
 
 // tslint:disable-next-line:max-line-length
 import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types';
@@ -150,13 +151,13 @@ export function getFilteredNodesXToY(
  * @param filteredTape The filtered TapeNodes to backprop through.
  */
 export function backpropagateGradients(
-    arrayAccumulatedGradientMap: {[ndarrayId: number]: NDArray},
+    arrayAccumulatedGradientMap: {[ndarrayId: number]: NDArray<'float32'>},
     filteredTape: Tape) {
   // Walk the tape backwards and keep a map of NDArray to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
 
-    let dy: TapeNodeOutput;
+    let dy: NDArray<'float32'>|NamedArrayMap<'float32'>;
     if (node.output instanceof NDArray) {
       dy = arrayAccumulatedGradientMap[node.output.id];
     } else {
@@ -203,36 +204,37 @@ export function backpropagateGradients(
   }
 }
 
-export function computeInputs(tape: Tape): {[idx: string]: NDArray} {
-  const outputArrays: {[id: number]: boolean} = {};
-  for (let i = 0; i < tape.length; i++) {
-    const node = tape[i];
-    if (node.output instanceof NDArray) {
-      outputArrays[node.output.id] = true;
-    } else {
-      const keys = Object.keys(node.output);
-      for (const key of keys) {
-        outputArrays[node.output[key].id] = true;
-      }
-    }
-  }
+export function computeVariableInputs(
+    tape: Tape, varList: Variable[]): Variable[] {
+  const trainableVariables: Variable[] = [];
+  const trainableVariablesSeen: {[ndarrayId: number]: boolean} = {};
 
-  const inputArrays: {[idx: string]: NDArray} = {};
-  const inputArraysSeen: {[ndarrayId: number]: boolean} = {};
-  let idx = 0;
+  const variableIds: {[ndarrayId: number]: boolean} = {};
+  varList.forEach(variable => {
+    variableIds[variable.id] = true;
+  });
+
   for (let i = 0; i < tape.length; i++) {
     const node = tape[i];
     const inputs = node.inputAndArgs.inputs;
 
     const keys = Object.keys(inputs);
     for (const key of keys) {
-      if (!outputArrays[inputs[key].id] && !inputArraysSeen[inputs[key].id]) {
-        inputArrays[(idx++).toString()] = inputs[key];
-        inputArraysSeen[inputs[key].id] = true;
+      const input = inputs[key];
+      if (input instanceof Variable && !trainableVariablesSeen[input.id]) {
+        // When specifying a variable list, filter out variables that aren't
+        // specified explicitly.
+        if (varList != null) {
+          if (variableIds[input.id] == null) {
+            continue;
+          }
+        }
+        trainableVariables.push(input);
+        trainableVariablesSeen[inputs[key].id] = true;
       }
     }
   }
-  return inputArrays;
+  return trainableVariables;
 }
 
 export type ScopeResultImmediate =

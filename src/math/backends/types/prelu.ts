@@ -15,29 +15,17 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
-import {NDArray} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {DataType, NDArray, Rank} from '../../ndarray';
+import {KernelNode} from '../tape_types';
 
 // PReLU
-export interface PReLUNode<T extends NDArray> extends KernelNode {
-  inputAndArgs: PReLUInputConfig<T>;
+export interface PReLUNode<D extends DataType, R extends Rank, T extends
+                               NDArray<D, R> = NDArray<D, R>> extends
+    KernelNode {
+  inputAndArgs: {inputs: {x: T; alpha: T;};};
   output: T;
-  gradient: (dy: T, y: T) => PReLUGradientInputArrays<T>;
-}
-
-export interface PReLUInputConfig<T extends NDArray> extends KernelInputConfig {
-  inputs: PReLUInputArrays<T>;
-}
-
-export interface PReLUInputArrays<T extends NDArray> extends NamedArrayMap {
-  x: T;
-  alpha: T;
-}
-
-export interface PReLUGradientInputArrays<T extends NDArray> extends
-    TapeNodeInputGradientArrays {
-  x: () => T;
-  alpha: () => T;
+  gradient: (dy: NDArray<'float32', R>, y: T) => {
+    x: () => NDArray<'float32', R>;
+    alpha: () => NDArray<'float32', R>;
+  };
 }

@@ -15,26 +15,16 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
 import {Array1D, Array2D} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {KernelNode} from '../tape_types';
 
 export interface OneHotNode extends KernelNode {
-  inputAndArgs: OneHotInputConfig;
+  inputAndArgs: {
+    inputs: {indices: Array1D;};
+    args: {depth: number; onValue: number; offValue: number};
+  };
   output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => OneHotGradientInputArrays;
-}
-
-export interface OneHotInputConfig extends KernelInputConfig {
-  inputs: OneHotInputArrays;
-  args: {depth: number; onValue: number; offValue: number};
-}
-
-export interface OneHotInputArrays extends NamedArrayMap {
-  indices: Array1D;
-}
-
-export interface OneHotGradientInputArrays extends TapeNodeInputGradientArrays {
-  indices: () => Array1D;
+  gradient: (dy: Array2D<'float32'>, y: Array2D) => {
+    indices: () => Array1D<'float32'>;
+  };
 }

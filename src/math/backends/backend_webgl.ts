@@ -249,30 +249,32 @@ export class MathBackendWebGL implements MathBackend {
     return output.reshape(x.shape) as T;
   }
 
-  slice1D(x: Array1D, begin: number, size: number): Array1D {
+  slice1D<D extends DataType>(x: Array1D<D>, begin: number, size: number):
+      Array1D<D> {
     const program = new SliceProgram([size]);
     const customSetup = program.getCustomSetupFunc([begin]);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  slice2D(x: Array2D, begin: [number, number], size: [number, number]):
-      Array2D {
+  slice2D<D extends DataType>(x: Array2D<D>, begin: [number, number], size: [
+    number, number
+  ]): Array2D<D> {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  slice3D(x: Array3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Array3D {
+  slice3D<D extends DataType>(
+      x: Array3D<D>, begin: [number, number, number],
+      size: [number, number, number]): Array3D<D> {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  slice4D(x: Array4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Array4D {
+  slice4D<D extends DataType>(
+      x: Array4D<D>, begin: [number, number, number, number],
+      size: [number, number, number, number]): Array4D<D> {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);

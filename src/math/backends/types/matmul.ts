@@ -15,30 +15,19 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
 import {Array2D} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {KernelNode} from '../tape_types';
 
 export interface MatMulNode extends KernelNode {
-  inputAndArgs: MatMulInputConfig;
+  inputAndArgs: {
+    inputs: {a: Array2D; b: Array2D;};
+    args: {aOrientation: MatrixOrientation; bOrientation: MatrixOrientation};
+  };
   output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => MatMulGradientInputArrays;
-}
-
-export interface MatMulInputConfig extends KernelInputConfig {
-  inputs: MatMulInputArrays;
-  args: {aOrientation: MatrixOrientation; bOrientation: MatrixOrientation};
-}
-
-export interface MatMulInputArrays extends NamedArrayMap {
-  a: Array2D;
-  b: Array2D;
-}
-
-export interface MatMulGradientInputArrays extends TapeNodeInputGradientArrays {
-  a: () => Array2D;
-  b: () => Array2D;
+  gradient: (dy: Array2D<'float32'>, y: Array2D) => {
+    a: () => Array2D<'float32'>;
+    b: () => Array2D<'float32'>;
+  };
 }
 
 export enum MatrixOrientation {

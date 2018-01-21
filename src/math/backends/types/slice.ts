@@ -15,94 +15,49 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../../util';
-import {Array1D, Array2D, Array3D, Array4D} from '../../ndarray';
-// tslint:disable-next-line:max-line-length
-import {KernelInputConfig, KernelNode, TapeNodeInputGradientArrays} from '../tape_types';
+import {Array1D, Array2D, Array3D, Array4D, DataType} from '../../ndarray';
+import {KernelNode} from '../tape_types';
 
-// 1D
-export interface Slice1DNode extends KernelNode {
-  inputAndArgs: Slice1DInputConfig;
-  output: Array1D;
-  gradient: (dy: Array1D, y: Array1D) => Slice1DGradientInputArrays;
-}
-
-export interface Slice1DInputConfig extends KernelInputConfig {
-  inputs: Slice1DInputArrays;
-  args: {begin: number; size: number;};
-}
-
-export interface Slice1DInputArrays extends NamedArrayMap {
-  x: Array1D;
-}
-
-export interface Slice1DGradientInputArrays extends
-    TapeNodeInputGradientArrays {
-  x: () => Array1D;
-}
-
-// 2D
-export interface Slice2DNode extends KernelNode {
-  inputAndArgs: Slice2DInputConfig;
-  output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => Slice2DGradientInputArrays;
-}
-
-export interface Slice2DInputConfig extends KernelInputConfig {
-  inputs: Slice2DInputArrays;
-  args: {begin: [number, number]; size: [number, number];};
-}
-
-export interface Slice2DInputArrays extends NamedArrayMap {
-  x: Array2D;
-}
-
-export interface Slice2DGradientInputArrays extends
-    TapeNodeInputGradientArrays {
-  x: () => Array2D;
-}
-
-// 3D
-export interface Slice3DNode extends KernelNode {
-  inputAndArgs: Slice3DInputConfig;
-  output: Array3D;
-  gradient: (dy: Array3D, y: Array3D) => Slice3DGradientInputArrays;
-}
-
-export interface Slice3DInputConfig extends KernelInputConfig {
-  inputs: Slice3DInputArrays;
-  args: {begin: [number, number, number]; size: [number, number, number];};
-}
-
-export interface Slice3DInputArrays extends NamedArrayMap {
-  x: Array3D;
-}
-
-export interface Slice3DGradientInputArrays extends
-    TapeNodeInputGradientArrays {
-  x: () => Array3D;
-}
-
-// 4D
-export interface Slice4DNode extends KernelNode {
-  inputAndArgs: Slice4DInputConfig;
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => Slice4DGradientInputArrays;
-}
-
-export interface Slice4DInputConfig extends KernelInputConfig {
-  inputs: Slice4DInputArrays;
-  args: {
-    begin: [number, number, number, number];
-    size: [number, number, number, number];
+export interface Slice1DNode<D extends DataType> extends KernelNode {
+  inputAndArgs:
+      {inputs: {x: Array1D<D>;}; args: {begin: number; size: number;};};
+  output: Array1D<D>;
+  gradient: (dy: Array1D<'float32'>, y: Array1D<D>) => {
+    x: () => Array1D<'float32'>;
   };
 }
 
-export interface Slice4DInputArrays extends NamedArrayMap {
-  x: Array4D;
+export interface Slice2DNode<D extends DataType> extends KernelNode {
+  inputAndArgs: {
+    inputs: {x: Array2D<D>;};
+    args: {begin: [number, number]; size: [number, number];};
+  };
+  output: Array2D<D>;
+  gradient: (dy: Array2D<'float32'>, y: Array2D<D>) => {
+    x: () => Array2D<'float32'>;
+  };
 }
 
-export interface Slice4DGradientInputArrays extends
-    TapeNodeInputGradientArrays {
-  x: () => Array4D;
+export interface Slice3DNode<D extends DataType> extends KernelNode {
+  inputAndArgs: {
+    inputs: {x: Array3D<D>;};
+    args: {begin: [number, number, number]; size: [number, number, number];};
+  };
+  output: Array3D<D>;
+  gradient: (dy: Array3D<'float32'>, y: Array3D<D>) => {
+    x: () => Array3D<'float32'>;
+  };
+}
+
+export interface Slice4DNode<D extends DataType> extends KernelNode {
+  inputAndArgs: {
+    inputs: {x: Array4D<D>;}; args: {
+      begin: [number, number, number, number];
+      size: [number, number, number, number];
+    };
+  };
+  output: Array4D<D>;
+  gradient: (dy: Array4D<'float32'>, y: Array4D<D>) => {
+    x: () => Array4D<'float32'>;
+  };
 }
