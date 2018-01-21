@@ -17,7 +17,7 @@ npm install deeplearn-yolo_mobilenet --save-dev
 
 ## Usage
 
-Check out [demo.html](https://github.com/PAIR-code/deeplearnjs/blob/master/yolo_mobilenet/demo.html)
+Check out [demo.html](https://github.com/PAIR-code/deeplearnjs/blob/master/models/yolo_mobilenet/demo.html)
 for an example with ES5.
 
 To run the demo, use the following:
