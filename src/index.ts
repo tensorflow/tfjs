@@ -21,7 +21,16 @@ import * as gpgpu_util from './math/backends/webgl/gpgpu_util';
 // tslint:disable-next-line:max-line-length
 import * as render_ndarray_gpu_util from './math/backends/webgl/render_ndarray_gpu_util';
 import * as webgl_util from './math/backends/webgl/webgl_util';
+// tslint:disable-next-line:max-line-length
+import {batchNormalization2D, batchNormalization3D, batchNormalization4D} from './math/batchnorm';
+import {concat1D, concat2D, concat3D, concat4D} from './math/concat';
+import {conv1d, conv2d, conv2dTranspose, depthwiseConv2D} from './math/conv';
 import * as conv_util from './math/conv_util';
+// tslint:disable-next-line:max-line-length
+import {dotProduct, matMul, matrixTimesVector, outerProduct, vectorTimesMatrix} from './math/matmul';
+import {avgPool, maxPool, minPool} from './math/pool';
+import {reverse1D, reverse2D, reverse3D, reverse4D} from './math/reverse';
+import {slice1D, slice2D, slice3D, slice4D} from './math/slice';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
@@ -48,16 +57,14 @@ export {MathBackendCPU, NDArrayMathCPU} from './math/backends/backend_cpu';
 export {MathBackendWebGL, NDArrayMathGPU} from './math/backends/backend_webgl';
 export {MatrixOrientation} from './math/backends/types/matmul';
 export {GPGPUContext} from './math/backends/webgl/gpgpu_context';
-// tslint:disable-next-line:max-line-length
 export {LSTMCell, NDArrayMath} from './math/math';
-export {matMul} from './math/matmul';
 // tslint:disable-next-line:max-line-length
-export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './math/ndarray';
-export {variable, Variable} from './math/ndarray';
+export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, variable, Variable} from './math/ndarray';
 export {Optimizer} from './math/optimizers/optimizer';
 export {SGDOptimizer} from './math/optimizers/sgd_optimizer';
 export {Model} from './model';
 export {version};
+
 // Second level exports.
 export {
   conv_util,
@@ -68,4 +75,35 @@ export {
   util,
   webgl_util,
   xhr_dataset
+};
+
+// Math methods.
+export {
+  avgPool,
+  batchNormalization2D,
+  batchNormalization3D,
+  batchNormalization4D,
+  concat1D,
+  concat2D,
+  concat3D,
+  concat4D,
+  conv1d,
+  conv2d,
+  conv2dTranspose,
+  depthwiseConv2D,
+  dotProduct,
+  matMul,
+  matrixTimesVector,
+  maxPool,
+  minPool,
+  outerProduct,
+  reverse1D,
+  reverse2D,
+  reverse3D,
+  reverse4D,
+  slice1D,
+  slice2D,
+  slice3D,
+  slice4D,
+  vectorTimesMatrix
 };

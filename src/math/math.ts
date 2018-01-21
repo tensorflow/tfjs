@@ -18,18 +18,22 @@
 import {BackendType, ENV} from '../environment';
 import * as util from '../util';
 import {NamedArrayMap, NamedVariableMap} from '../util';
+
 import * as axis_util from './axis_util';
 import {MathBackend} from './backends/backend';
 import {BackendEngine} from './backends/backend_engine';
 import {TapeNodeInputGradientArrays} from './backends/tape_types';
-import {ScopeResult, ScopeResultImmediate} from './backends/tape_util';
+import {ScopeFn, ScopeResult, ScopeResultImmediate} from './backends/tape_util';
+import * as batchnorm from './batchnorm';
 import * as broadcast_util from './broadcast_util';
-import * as concat_util from './concat_util';
-import * as conv_util from './conv_util';
+import * as concat from './concat';
+import * as conv from './conv';
 import * as matmul from './matmul';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Rank, RankMap, Scalar, Variable} from './ndarray';
-import * as slice_util from './slice_util';
+import * as pool from './pool';
+import * as reverse from './reverse';
+import * as slice from './slice';
 import * as types from './types';
 import {SumTypes} from './types';
 
@@ -48,6 +52,49 @@ export class NDArrayMath implements NDArrayManager {
   private registeredArrays = new Map<number, number>();
   private backend: MathBackend;
   private customBackend = false;
+
+  // Ops.
+  matMul = matmul.matMul;
+  vectorTimesMatrix = matmul.vectorTimesMatrix;
+  outerProduct = matmul.outerProduct;
+  matrixTimesVector = matmul.matrixTimesVector;
+  dotProduct = matmul.dotProduct;
+
+  slice1D = slice.slice1D;
+  slice2D = slice.slice2D;
+  slice3D = slice.slice3D;
+  slice4D = slice.slice4D;
+
+  reverse1D = reverse.reverse1D;
+  reverse2D = reverse.reverse2D;
+  reverse3D = reverse.reverse3D;
+  reverse4D = reverse.reverse4D;
+
+  concat1D = concat.concat1D;
+  concat2D = concat.concat2D;
+  concat3D = concat.concat3D;
+  concat4D = concat.concat4D;
+
+  batchNormalization2D = batchnorm.batchNormalization2D;
+  batchNormalization3D = batchnorm.batchNormalization3D;
+  batchNormalization4D = batchnorm.batchNormalization4D;
+
+  avgPool = pool.avgPool;
+  maxPool = pool.maxPool;
+  minPool = pool.minPool;
+  /** @deprecated */
+  maxPoolBackprop = pool.maxPoolBackprop;
+
+  conv1d = conv.conv1d;
+  conv2d = conv.conv2d;
+  conv2dTranspose = conv.conv2dTranspose;
+  depthwiseConv2D = conv.depthwiseConv2D;
+  /** @deprecated */
+  conv2dDerBias = conv.conv2dDerBias;
+  /** @deprecated */
+  conv2dDerFilter = conv.conv2dDerFilter;
+  /** @deprecated */
+  conv2dDerInput = conv.conv2dDerInput;
 
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
@@ -96,8 +143,6 @@ export class NDArrayMath implements NDArrayManager {
     return this.backend.read(dataId);
   }
 
-  matMul = matmul.matMul;
-
   /**
    * @param safeMode In safe mode, you must use math operations inside
    *     a math.scope() which will automatically clean up intermediate NDArrays.
@@ -126,35 +171,65 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
-   * Create a new math scope. Put chained math operations inside a scope
-   * function closure so that the library automatically cleans up NDArrays
-   * from intermediate math operations. You must create a scope in safe mode
-   * to call math operations. If a result is returned from the scope, it will
-   * also be tracked, which means there must be yet another wrapping scope.
-   * @param scopeFn The function to execute with chained math operations.
+   * Executes the provided function and after it is executed, cleans up all
+   * intermediate NDArrays allocated by the function except those returned by
+   * the function.
+   *
+   * When in safe mode, you must enclose all `NDArray` creation and math ops
+   * inside a `math.scope()` to prevent memory leaks.
+   *
+   * @param nameOrScopeFn The name of the scope, or the function to execute.
+   *     If a name is provided, the 2nd argument should be the function.
+   *     If a name is provided, and debug mode is on, the timing and the memory
+   *     usage of the function will be tracked and displayed on the console
+   *     using the provided name.
+   * @param scopeFn The function to execute.
+   * @param gradientsMode If true, enables gradients mode.
+   *     See math.gradientsScope for details.
    */
   scope<T extends ScopeResult>(
-      scopeFn:
-          (keep: <T1 extends NDArray>(ndarray: T1) => T1,
-           track: <T2 extends NDArray>(ndarray: T2) => T2) => T): T {
-    const gradientsMode = false;
-    return this.engine.scope('scope', scopeFn, gradientsMode);
+      nameOrScopeFn: string|ScopeFn<T>, scopeFn?: ScopeFn<T>,
+      gradientsMode = false): T {
+    if (scopeFn == null) {
+      // Called with only 1 argument.
+      if (typeof nameOrScopeFn !== 'function') {
+        throw new Error('Please provide a function to math.scope()');
+      }
+      scopeFn = nameOrScopeFn;
+      nameOrScopeFn = 'scope';
+    } else {
+      // Called with 2 arguments.
+      if (typeof nameOrScopeFn !== 'string' &&
+          !(nameOrScopeFn instanceof String)) {
+        throw new Error(
+            'When calling with two arguments, the first argument ' +
+            'to math.scope() must be a string');
+      }
+      if (typeof scopeFn !== 'function') {
+        throw new Error(
+            'When calling with two arguments, the 2nd argument ' +
+            'to math.scope() must be a function');
+      }
+      // TODO(nsthorat,smilkov): Do operation logging and performance profiling.
+    }
+    return this.engine.scope(nameOrScopeFn as string, scopeFn, gradientsMode);
   }
 
   /**
    * Create a new gradients scope. Similar to scope, but forces all inner scopes
    * to not clean up so that gradient operations can be used inside of this
    * scope.
-   * @param scopeFn The function to execute with chained math operations.
+   * @param nameOrScopeFn The name of the scope, or the function to execute.
+   *     If a name is provided, the 2nd argument should be the function.
+   *     If a name is provided, and debug mode is on, the timing and the memory
+   *     usage of the function will be tracked and displayed on the console
+   *     using the provided name.
+   * @param scopeFn The function to execute.
    */
   gradientsScope<T extends ScopeResult>(
-      scopeFn:
-          (keep:
-               <D1 extends DataType, T1 extends NDArray<D1>>(ndarray: T1) => T1,
-           track: <D2 extends DataType, T2 extends NDArray<D2>>(ndarray: T2) =>
-               T2) => T): T {
+      nameOrScopeFn: string|ScopeFn<T>, scopeFn?: ScopeFn<T>): T {
     const gradientsMode = true;
-    return this.engine.scope('gradientsScope', scopeFn, gradientsMode);
+    return this.scope(nameOrScopeFn, scopeFn, gradientsMode);
   }
 
   /**
@@ -194,91 +269,6 @@ export class NDArrayMath implements NDArrayManager {
     }
   }
 
-  private executeOp<T extends NDArray>(name: string, f: () => T): T {
-    // TODO(nsthorat): Do operation logging and performance profiling.
-    return f();
-  }
-
-  /**
-   * Computes the dot product of a vector and a matrix, v * B.
-   * @param v The vector in dot product operation.
-   * @param matrix The matrix in dot product operation.
-   */
-  vectorTimesMatrix(v: Array1D, matrix: Array2D): Array1D {
-    util.assert(
-        v.rank === 1,
-        `Error in vectorTimesMatrix: first input must be rank 1, but got ` +
-            `rank ${v.rank}.`);
-    util.assert(
-        matrix.rank === 2,
-        `Error in vectorTimesMatrix: second input must be rank 2, but got ` +
-            `rank ${matrix.rank}.`);
-    util.assert(
-        v.size === matrix.shape[0],
-        `Error in vectorTimesMatrix: size of vector (${v.size}) ` +
-            `must match first dimension of matrix (${matrix.shape[0]})`);
-
-    return this.matMul(v.as2D(1, -1), matrix).as1D();
-  }
-
-  /**
-   * Computes the dot product of a matrix and vector, A * v.
-   * @param matrix The matrix in dot product operation.
-   * @param v The vector in dot product operation.
-   */
-  matrixTimesVector(matrix: Array2D, v: Array1D): Array1D {
-    util.assert(
-        v.rank === 1,
-        `Error in matrixTimesVector: second input must rank 1, but got ` +
-            `rank ${v.rank}.`);
-    util.assert(
-        matrix.rank === 2,
-        `Error in matrixTimesVector: first input must be a rank 2, but got ` +
-            `rank ${matrix.rank}.`);
-    util.assert(
-        v.size === matrix.shape[1],
-        `Error in matrixTimesVector: size of first rank 1 input ${v.size} ` +
-            `must match inner dimension of second rank 2 input, but got ` +
-            `shape ${matrix.shape}.`);
-
-    return this.matMul(matrix, v.as2D(-1, 1)).as1D();
-  }
-
-  /**
-   * Computes the dot product of two vectors, v1 * v2.
-   * @param v1 The first vector in the dot product operation.
-   * @param v2 The second vector in the dot product operation.
-   */
-  dotProduct(v1: Array1D, v2: Array1D): Scalar {
-    util.assert(
-        v1.rank === 1 && v2.rank === 1,
-        `Error in dotProduct: inputs must be rank 1, but got ranks ` +
-            `${v1.rank} and ${v2.rank}.`);
-    util.assert(
-        v1.size === v2.size,
-        `Error in dotProduct: size of inputs (${v1.size}) and (` +
-            `${v2.size}) must match.`);
-    return this.matMul(v1.as2D(1, -1), v2.as2D(-1, 1)).asScalar();
-  }
-
-  /**
-   * Computes the outer product of two vectors, v1 and v2.
-   * @param v1 The first vector in the outer product operation.
-   * @param v2 The second vector in the dot product operation.
-   */
-  outerProduct(v1: Array1D, v2: Array1D): Array2D {
-    util.assert(
-        v1.rank === 1 && v2.rank === 1,
-        `Error in outerProduct: inputs must be rank 1, but got ranks ` +
-            `${v1.rank} and ${v2.rank}.`);
-
-    return this.matMul(v1.as2D(-1, 1), v2.as2D(1, -1));
-  }
-
-  ///////////////
-  // Shape ops //
-  ///////////////
-
   /**
    * Clones an NDArray of any shape.
    * @param x The NDArray to clone.
@@ -316,243 +306,6 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
-   * Extracts a 1D slice from 1D array starting at coordinates `begin` and is
-   * of length `size`.
-   *
-   * @param x The input array to slice from.
-   * @param begin The offset to start the slice from.
-   * @param size The size of the slice.
-   */
-  slice1D<D extends DataType>(x: Array1D<D>, begin: number, size: number):
-      Array1D<D> {
-    slice_util.assertParamsValid(x, [begin], [size]);
-    return this.engine.executeKernel(
-               'Slice1D', {inputs: {x}, args: {begin, size}}) as Array1D<D>;
-  }
-
-  /**
-   * Extracts a 2D slice from a 2D array starting at coordinates `begin` and
-   * is of size `size`.
-   *
-   * @param x The input array to slice from.
-   * @param begin The [row, col] 2d coordinates to start the slice from.
-   * @param size The size of the slice.
-   */
-  slice2D<D extends DataType>(x: Array2D<D>, begin: [number, number], size: [
-    number, number
-  ]): Array2D<D> {
-    slice_util.assertParamsValid(x, begin, size);
-    return this.engine.executeKernel(
-               'Slice2D', {inputs: {x}, args: {begin, size}}) as Array2D<D>;
-  }
-
-  /**
-   * Extracts a 3D slice from a 3D array starting at coordinates `begin` and
-   * is of size `size`.
-   *
-   * @param x The input array to slice from.
-   * @param begin The [row, col, depth] 3d coordinates to start the slice from.
-   * @param size The size of the slice.
-   */
-  slice3D<D extends DataType>(
-      x: Array3D<D>, begin: [number, number, number],
-      size: [number, number, number]): Array3D<D> {
-    slice_util.assertParamsValid(x, begin, size);
-    return this.engine.executeKernel(
-               'Slice3D', {inputs: {x}, args: {begin, size}}) as Array3D<D>;
-  }
-
-  /**
-   * Extracts a 4D slice from a 4D array starting at coordinates `begin` and
-   * is of size `size`.
-   *
-   * @param x The input array to slice from.
-   * @param begin The [row, col, depth, depth2] 4d coordinates to start the
-   *              slice from.
-   * @param size The size of the slice.
-   */
-  slice4D<D extends DataType>(
-      x: Array4D<D>, begin: [number, number, number, number],
-      size: [number, number, number, number]): Array4D<D> {
-    slice_util.assertParamsValid(x, begin, size);
-    return this.engine.executeKernel(
-               'Slice4D', {inputs: {x}, args: {begin, size}}) as Array4D<D>;
-  }
-
-  /**
-   * Reverses a 1D array
-   * @param x The input array.
-   */
-  reverse1D(x: Array1D): Array1D {
-    util.assert(x.rank === 1, `Error in reverse1D: x must be rank 1 but got
-             rank ${x.rank}.`);
-    const input4D = x.as4D(1, 1, 1, x.shape[0]);
-    const res = this.reverse4D(input4D, [3]);
-    return res.as1D();
-  }
-
-  /**
-   * Reverses a 2D array along a specified axis
-   * @param x The input array.
-   * @param axis The set of dimensions to reverse. Must be in the
-   *     range [-rank(x), rank(x)).
-   */
-  reverse2D(x: Array2D, axis: number|number[]): Array2D {
-    util.assert(x.rank === 2, `Error in reverse2D: x must be rank 2 but got
-             rank ${x.rank}.`);
-    const axisCleaned = axis_util.parseAxisParam(axis, x.shape).map(a => a + 2);
-    const input4D = x.as4D(1, 1, x.shape[0], x.shape[1]);
-    const res = this.reverse4D(input4D, axisCleaned);
-    return res.as2D(res.shape[2], res.shape[3]);
-  }
-
-  /**
-   * Reverses a 3D array along a specified axis
-   * @param x The input array.
-   * @param axis The set of dimensions to reverse. Must be in the
-   *     range [-rank(x), rank(x)).
-   */
-  reverse3D(x: Array3D, axis: number|number[]): Array3D {
-    util.assert(x.rank === 3, `Error in reverse3D: x must be rank 3 but got
-             rank ${x.rank}.`);
-    const axisCleaned = axis_util.parseAxisParam(axis, x.shape).map(a => a + 1);
-    const input4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-    const res = this.reverse4D(input4D, axisCleaned);
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
-  }
-
-  /**
-   * Reverses a 4D array along a specified axis
-   * @param x The input array.
-   * @param axis The set of dimensions to reverse. Must be in the
-   *     range [-rank(x), rank(x)).
-   */
-  reverse4D(x: Array4D, axis: number|number[]): Array4D {
-    util.assert(x.rank === 4, `Error in reverse4D: x must be rank 4 but got
-             rank ${x.rank}.`);
-    const axisCleaned = axis_util.parseAxisParam(axis, x.shape);
-    return this.engine.executeKernel(
-        'Reverse4D', {inputs: {x}, args: {axis: axisCleaned}});
-  }
-
-  /**
-   * Concatenates two 1D arrays.
-   *
-   * For example, if:
-   * A: shape(3) = |r1, g1, b1|
-   * B: shape(2) = |r2, g2|
-   * C = concat1D(A, B) == |r1, g1, b1, r2, g2|
-   *
-   * @param a The first array.
-   * @param b The second array.
-   * @return The concatenated array.
-   */
-  concat1D(a: Array1D, b: Array1D): Array1D {
-    concat_util.assertParams(a.shape, b.shape, 0);
-    return this.engine.executeKernel('Concat1D', {inputs: {a, b}});
-  }
-
-  /**
-   * Concatenates two 2D arrays along a given axis.
-   *
-   * For example, if:
-   * A: shape(2, 3) = | r1, g1, b1 |
-   *                  | r2, g2, b2 |
-   *
-   * B: shape(2, 3) = | r3, g3, b3 |
-   *                  | r4, g4, b4 |
-   *
-   * C = concat2D(A, B, axis)
-   *
-   * if axis = 0:
-   * C: shape(4, 3) = | r1, g1, b1 |
-   *                  | r2, g2, b2 |
-   *                  | r3, g3, b3 |
-   *                  | r4, g4, b4 |
-   *
-   * if axis = 1:
-   * C = shape(2, 6) = | r1, g1, b1, r3, g3, b3 |
-   *                   | r2, g2, b2, r4, g4, b4 |
-   *
-   *
-   * @param a The first array.
-   * @param b The second array.
-   * @param axis The axis to concatenate along.
-   * @return The concatenated array.
-   */
-  concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
-    concat_util.assertParams(a.shape, b.shape, axis);
-    return this.engine.executeKernel(
-        'Concat2D', {inputs: {a, b}, args: {axis}});
-  }
-
-  /**
-   * Concatenates two 3D ndarrays along a given axis.
-   *
-   * For example, if:
-   * A: shape(2, 1, 3) = | r1, g1, b1 |
-   *                     | r2, g2, b2 |
-   *
-   * B: shape(2, 1, 3) = | r3, g3, b3 |
-   *                     | r4, g4, b4 |
-   *
-   * C = concat3D(A, B, axis)
-   *
-   * if axis = 0:
-   * C: shape(4, 1, 3) = | r1, g1, b1 |
-   *                     | r2, g2, b2 |
-   *                     | r3, g3, b3 |
-   *                     | r4, g4, b4 |
-   *
-   * if axis = 1:
-   * C: shape(2, 2, 3) = | r1, g1, b1, r3, g3, b3 |
-   *                     | r2, g2, b2, r4, g4, b4 |
-   *
-   * if axis = 2:
-   * C = shape(2, 1, 6) = | r1, g1, b1, r3, g3, b3 |
-   *                      | r2, g2, b2, r4, g4, b4 |
-   *
-   * @param a The first array to concat.
-   * @param b The second array to conat.
-   * @param axis The axis to concate along.
-   * @return The concatenated array.
-   */
-  concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
-    concat_util.assertParams(a.shape, b.shape, axis);
-
-    const gradients = (dy: Array3D<'float32'>, y: Array3D) => {
-      const {x1Begin, x1Size, x2Begin, x2Size} =
-          concat_util.computeGradientSliceShapes3D(a.shape, y.shape, axis);
-      return {
-        a: () => this.slice3D(dy, x1Begin, x1Size),
-        b: () => this.slice3D(dy, x2Begin, x2Size)
-      };
-    };
-
-    return this.engine.executeKernel(
-        'Concat3D', {inputs: {a, b}, args: {axis}}, gradients);
-  }
-
-  /**
-   * Concatenates two 4D ndarrays along a given axis. See math.concat2D() for
-   * documentation.
-   *
-   * @param a The first array to concat.
-   * @param b The second array to conat.
-   * @param axis The axis to concate along.
-   * @return The concatenated array.
-   */
-  concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
-    concat_util.assertParams(a.shape, b.shape, axis);
-    return this.engine.executeKernel(
-        'Concat4D', {inputs: {a, b}, args: {axis}});
-  }
-
-  ///////////////////
-  // Reduction ops //
-  ///////////////////
-
-  /**
    * Computes the log(sum(exp(elements across the reduction dimensions)).
    *
    * Reduces the input along the dimensions given in `axis`. Unless `keepDims`
@@ -570,7 +323,7 @@ export class NDArrayMath implements NDArrayManager {
   logSumExp<T extends NDArray<'float32'>>(
       input: NDArray, axis: number|number[] = null, keepDims = false): T {
     const axes = axis_util.parseAxisParam(axis, input.shape);
-    return this.executeOp('logSumExp', () => {
+    return this.scope('logSumExp', () => {
       const xMax = this.max(input, axes, true /* keepDims */);
       const a = this.subtract(input, xMax);
       const b = this.exp(a);
@@ -603,7 +356,7 @@ export class NDArrayMath implements NDArrayManager {
   sum<D extends DataType, T extends NDArray<SumTypes[D]>>(
       x: NDArray<D>, axis: number|number[] = null, keepDims = false): T {
     const axes = axis_util.parseAxisParam(axis, x.shape);
-    return this.executeOp('sum', () => {
+    return this.scope('sum', () => {
       // Use a custom gradient to bypass 2 gradient backprops since sum is used
       // extremely often.
       return this.customGradient(() => {
@@ -657,7 +410,7 @@ export class NDArrayMath implements NDArrayManager {
     const shapes = axis_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceShape = shapes[1];
     const reduceSize = util.sizeFromShape(reduceShape);
-    return this.executeOp('mean', () => {
+    return this.scope('mean', () => {
       // Use a custom gradient to bypass 2 gradient backprops since mean is used
       // extremely often.
       return this.customGradient(() => {
@@ -693,7 +446,7 @@ export class NDArrayMath implements NDArrayManager {
   argMin<T extends NDArray<'int32'>>(x: NDArray, axis: number = null): T {
     let axes = axis_util.parseAxisParam(axis, x.shape);
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.executeOp('argMin', () => {
+    return this.scope('argMin', () => {
       if (permutedAxes != null) {
         x = this.transpose(x, permutedAxes);
         axes = axis_util.getInnerMostAxes(axes.length, x.rank);
@@ -713,7 +466,7 @@ export class NDArrayMath implements NDArrayManager {
   argMax<T extends NDArray<'int32'>>(x: NDArray, axis: number = null): T {
     let axes = axis_util.parseAxisParam(axis, x.shape);
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.executeOp('argMax', () => {
+    return this.scope('argMax', () => {
       if (permutedAxes != null) {
         x = this.transpose(x, permutedAxes);
         axes = axis_util.getInnerMostAxes(axes.length, x.rank);
@@ -730,9 +483,9 @@ export class NDArrayMath implements NDArrayManager {
    */
   argMaxEquals(x1: NDArray, x2: NDArray): Scalar<'bool'> {
     util.assertShapesMatch(x1.shape, x2.shape, 'Error in argMaxEquals: ');
-    return this.executeOp('argMaxEquals', () => this.scope(() => {
+    return this.scope('argMaxEquals', () => {
       return this.equal(this.argMax(x1), this.argMax(x2));
-    }));
+    });
   }
 
   /**
@@ -902,7 +655,7 @@ export class NDArrayMath implements NDArrayManager {
             `ndarray, got shape ${x.shape}.`);
     let values: Array1D;
     let indices: Array1D<'int32'>;
-    this.executeOp('topK', () => {
+    this.scope('topK', () => {
       values =
           this.engine.executeKernel('TopKValues', {inputs: {x}, args: {k}});
       indices =
@@ -932,7 +685,7 @@ export class NDArrayMath implements NDArrayManager {
     const origAxes = axis_util.parseAxisParam(axis, x.shape);
     let axes = origAxes;
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.executeOp('min', () => {
+    return this.scope('min', () => {
       if (permutedAxes != null) {
         x = this.transpose(x, permutedAxes);
         axes = axis_util.getInnerMostAxes(axes.length, x.rank);
@@ -980,7 +733,7 @@ export class NDArrayMath implements NDArrayManager {
     const origAxes = axis_util.parseAxisParam(axis, x.shape);
     let axes = origAxes;
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.executeOp('max', () => {
+    return this.scope('max', () => {
       if (permutedAxes != null) {
         x = this.transpose(x, permutedAxes);
         axes = axis_util.getInnerMostAxes(axes.length, x.rank);
@@ -1039,7 +792,7 @@ export class NDArrayMath implements NDArrayManager {
       };
     };
 
-    return this.executeOp('softmax', () => {
+    return this.scope('softmax', () => {
       return this.customGradient(() => {
         // Do it in log space for numerical stability.
         // exp(X - logSumExp(X))
@@ -1092,7 +845,7 @@ export class NDArrayMath implements NDArrayManager {
           `and dim was ${dim}`);
     }
 
-    return this.executeOp('softmaxCrossEntropyWithLogits', () => {
+    return this.scope('softmaxCrossEntropyWithLogits', () => {
       // Use a custom gradient for numerical stability.
       return this.customGradient(() => {
         const softmaxLogits = this.softmax(logits, dim);
@@ -1376,13 +1129,11 @@ export class NDArrayMath implements NDArrayManager {
             `Gradient of pow not yet supported for broadcasted shapes.`);
       }
       const derA = () => {
-        return this.scope(() => {
-          return this.multiply(
-              dy,
-              this.multiply(
-                  b.asType(a.dtype),
-                  this.pow(a, this.subtract(b, Scalar.new(1, 'int32')))));
-        });
+        return this.multiply(
+            dy,
+            this.multiply(
+                b.asType(a.dtype),
+                this.pow(a, this.subtract(b, Scalar.new(1, 'int32')))));
       };
       const derB = () => {
         throw new Error(
@@ -1800,11 +1551,9 @@ export class NDArrayMath implements NDArrayManager {
             `NDArray of rank ${c2.rank}.`);
     util.assertShapesMatch(a.shape, b.shape, 'Error in scaledArrayAdd: ');
 
-    return this.executeOp('scaledArrayAdd', () => {
-      return this.scope(() => {
-        // TODO(nsthorat): Add an SGEMM kernel and then update this.
-        return this.add(this.multiply(c1, a), this.multiply(c2, b)) as T;
-      });
+    return this.scope('scaledArrayAdd', () => {
+      // TODO(nsthorat): Add an SGEMM kernel and then update this.
+      return this.add(this.multiply(c1, a), this.multiply(c2, b)) as T;
     });
   }
 
@@ -1832,721 +1581,6 @@ export class NDArrayMath implements NDArrayManager {
     return this.multiply(a, b) as Array2D;
   }
 
-  /////////////////////
-  // Convolution ops //
-  /////////////////////
-
-  /**
-   * Computes a 1D convolution over the input x.
-   * @param input The input ndarray, of rank 3 or rank 2, of shape
-   *     `[batch, width, inChannels]`. If rank 2, batch of 1 is assumed.
-   * @param filter The filter, rank 3, of shape
-   *     [filterWidth, inDepth, outDepth].
-   * @param bias Optional bias, rank 1 of shape [outDepth].
-   * @param stride The number of entries by which the filter is moved right at
-   *     each step.
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  conv1d<T extends NDArray>(
-      input: T, filter: Array3D, bias: Array1D|null, stride: number,
-      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input3D = input as NDArray as Array3D;
-    let reshapedTo3D = false;
-    if (input.rank === 2) {
-      reshapedTo3D = true;
-      input3D = input.as3D(1, input.shape[0], input.shape[1]);
-    }
-
-    util.assert(
-        input3D.rank === 3,
-        `Error in conv1d: input must be rank 3, but got rank ${input3D.rank}.`);
-    util.assert(
-        filter.rank === 3,
-        `Error in conv1d: filter must be rank 3, but got rank ` +
-            `${filter.rank}.`);
-    if (bias != null) {
-      util.assert(
-          bias.rank === 1,
-          `Error in conv1d: bias must be rank 1, but got rank ` +
-              `${bias.rank}.`);
-    }
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in conv1d: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-
-    util.assert(
-        input3D.shape[2] === filter.shape[1],
-        `Error in conv1d: depth of input (${input3D.shape[2]}) must match  ` +
-            `input depth for filter ${filter.shape[1]}.`);
-
-    const filter4D =
-        filter.as4D(1, filter.shape[0], filter.shape[1], filter.shape[2]);
-    const input4D =
-        input3D.as4D(input3D.shape[0], 1, input3D.shape[1], input3D.shape[2]);
-    const strides: [number, number] = [1, stride];
-
-    return this.executeOp('Conv1D', () => {
-      const res =
-          this.conv2d(input4D, filter4D, bias, strides, pad, dimRoundingMode);
-      if (reshapedTo3D) {
-        return res.as2D(res.shape[2], res.shape[3]) as NDArray as T;
-      }
-      return res.as3D(res.shape[0], res.shape[2], res.shape[3]) as NDArray as T;
-    });
-  }
-
-  /**
-   * Computes a 2D convolution over the input x.
-   *
-   * @param x The input ndarray, of rank 4 or rank 3, of shape
-   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
-   * assumed.
-   * @param filter The filter, rank 4, of shape
-   *     [filterHeight, filterWidth, inDepth, outDepth].
-   * @param bias Optional bias, rank 1 of shape [outDepth].
-   * @param strides The strides of the convolution: [strideHeight,
-   * strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  conv2d<T extends Array3D|Array4D>(
-      x: T, filter: Array4D, bias: Array1D|null,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let x4D = x as NDArray as Array4D;
-    let reshapedTo4D = false;
-    if (x.rank === 3) {
-      reshapedTo4D = true;
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-    }
-    util.assert(
-        x4D.rank === 4,
-        `Error in conv2d: input must be rank 4, but got rank ${x4D.rank}.`);
-    util.assert(
-        filter.rank === 4,
-        `Error in conv2d: filter must be rank 4, but got rank ` +
-            `${filter.rank}.`);
-    if (bias != null) {
-      util.assert(
-          bias.rank === 1,
-          `Error in conv2d: bias must be rank 1, but got rank ` +
-              `${bias.rank}.`);
-    }
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in conv2d: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-
-    util.assert(
-        x4D.shape[3] === filter.shape[2],
-        `Error in conv2d: depth of input (${x4D.shape[3]}) must match  ` +
-            `input depth for filter ${filter.shape[2]}.`);
-
-    const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, filter.shape, strides, pad, dimRoundingMode);
-
-    return this.executeOp('Conv2D', () => {
-      const gradients = (dy: Array4D<'float32'>, y: Array4D) => {
-        return {
-          x: () => this.conv2dDerInput(x4D.shape, dy, filter, strides, pad),
-          filter: () =>
-              this.conv2dDerFilter(x4D, dy, filter.shape, strides, pad),
-          bias: () => this.conv2dDerBias(dy)
-        };
-      };
-
-      const res = this.engine.executeKernel(
-          'Conv2D', {inputs: {x: x4D, filter, bias}, args: {convInfo}},
-          gradients);
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
-            T;
-      }
-      return res as NDArray as T;
-    });
-  }
-
-  /**
-   * Computes the derivative of the input of a 2D convolution.
-   *
-   * @param xShape The shape of the input: [batch, height, width, inDepth].
-   * If length of 3, batch of 1 is assumed.
-   * @param dy The derivative of the output, of rank 4 or rank 3 of shape
-   *   [batch, outHeight, outWidth, outDepth]. If rank 3, batch of 1 is
-   * assumed.
-   * @param filter The filter, rank 4, of shape
-   *     [filterHeight, filterWidth, inDepth, outDepth].
-   * @param strides The strides of the convolution: [strideHeight,
-   * strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the forward prop of the op.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  conv2dDerInput<R extends Rank, T extends RankMap<'float32'>[R]>(
-      xShape: [number, number, number, number]|[number, number, number],
-      dy: NDArray<'float32', R>, filter: Array4D,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    util.assert(
-        xShape.length === dy.rank,
-        `Length of inShape ` +
-            `(${xShape.length}) and rank of dy (${dy.rank}) must match`);
-
-    let xShape4D = xShape as [number, number, number, number];
-    let dy4D = dy as Array4D<'float32'>;
-    let reshapedTo4D = false;
-    if (dy.rank === 3) {
-      reshapedTo4D = true;
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
-      xShape4D = [1, xShape[0], xShape[1], xShape[2]];
-    }
-
-    const inDepth = xShape4D[3];
-    const outDepth = dy4D.shape[3];
-    util.assert(
-        xShape4D.length === 4,
-        `Error in conv2dDerInput: inShape must be length 4, but got length ` +
-            `${xShape4D.length}.`);
-    util.assert(
-        dy4D.rank === 4,
-        `Error in conv2dDerInput: dy must be rank 4, but got ` +
-            `rank ${dy4D.rank}`);
-    util.assert(
-        filter.rank === 4,
-        `Error in conv2dDerInput: filter must be rank 4, but got ` +
-            `rank ${filter.rank}`);
-    util.assert(
-        inDepth === filter.shape[2],
-        `Error in conv2dDerInput: depth of input (${inDepth}) must ` +
-            `match input depth for filter ${filter.shape[2]}.`);
-    util.assert(
-        outDepth === filter.shape[3],
-        `Error in conv2dDerInput: depth of output (${outDepth}) must` +
-            `match output depth for filter ${filter.shape[3]}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in conv2dDerInput: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-
-    const convInfo = conv_util.computeConv2DInfo(
-        xShape4D, filter.shape, strides, pad, dimRoundingMode);
-    return this.executeOp('conv2dDerInput', () => {
-      const res = this.engine.executeKernel(
-          'Conv2DDerInput', {inputs: {dy: dy4D, filter}, args: {convInfo}});
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-      }
-      return res as T;
-    });
-  }
-
-  /**
-   * Computes the derivative of the bias of a 2D convolution.
-   *
-   * @param dy The gradient for the output of this op, of rank 4 or rank 3 of
-   *   shape [batch, height, width, outDepth]. If rank 3, batch of 1 is
-   * assumed.
-   */
-  conv2dDerBias(dy: Array3D<'float32'>|Array4D<'float32'>): Array1D<'float32'> {
-    let dy4D = dy as Array4D;
-    if (dy.rank === 3) {
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
-    }
-    return this.engine.executeKernel('Conv2DDerBias', {inputs: {dy: dy4D}});
-  }
-
-  /**
-   * Computes the derivative of the filter of a 2D convolution.
-   *
-   * @param x The input ndarray, of rank 4 or rank 3 of shape
-   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
-   * @param dy The dy image, of rank 4 or rank 3, of shape
-   *     [batch, height, width, outDepth]. If rank 3, batch of 1 is assumed.
-   * @param filterShape The shape of the filter, length 4,
-   *     [filterHeight, filterWidth, inDepth, outDepth].
-   * @param strides The strides of the convolution: [strideHeight,
-   * strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the forward prop of the op.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  conv2dDerFilter<R extends '3'|'4'>(
-      x: NDArray<DataType, R>, dy: NDArray<'float32', R>,
-      filterShape: [number, number, number, number],
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): Array4D<'float32'> {
-    let x4D = x as Array4D;
-    if (x.rank === 3) {
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-    }
-    let dy4D = dy as Array4D<'float32'>;
-    if (dy4D.rank === 3) {
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
-    }
-    util.assert(
-        x4D.rank === 4,
-        `Error in conv2dDerFilter: input must be rank 4, but got shape ` +
-            `${x4D.shape}.`);
-    util.assert(
-        dy4D.rank === 4,
-        `Error in conv2dDerFilter: dy must be rank 4, but got shape ` +
-            `${dy4D.shape}.`);
-    util.assert(
-        filterShape.length === 4,
-        `Error in conv2dDerFilter: filterShape must be length 4, but got ` +
-            `${filterShape}.`);
-    util.assert(
-        x4D.shape[3] === filterShape[2],
-        `Error in conv2dDerFilter: depth of input ${x4D.shape[3]}) must ` +
-            `match input depth in filter (${filterShape[2]}.`);
-    util.assert(
-        dy4D.shape[3] === filterShape[3],
-        `Error in conv2dDerFilter: depth of dy (${dy4D.shape[3]}) must ` +
-            `match output depth for filter (${filterShape[3]}).`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in conv2dDerFilter: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-
-    const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, filterShape, strides, pad, dimRoundingMode);
-    return this.engine.executeKernel(
-        'Conv2DDerFilter', {inputs: {x: x4D, dy: dy4D}, args: {convInfo}});
-  }
-
-  /**
-   * Computes the transposed 2D convolution of an image, also known as a
-   * deconvolution.
-   *
-   * @param x The input image, of rank 4 or rank 3, of shape
-   *   [batch, height, width, inDepth]. If rank 3, batch of 1 is assumed.
-   * @param filter The filter, rank 4, of shape
-   *     `[filterHeight, filterWidth, outDepth, inDepth]`.
-   *     `inDepth` must match `inDepth` in `x`.
-   * @param outputShape Output shape, of rank 4 or rank 3:
-   *     [batch, height, width, outDepth]. If rank 3, batch of 1 is assumed.
-   * @param strides The strides of the original convolution:
-   *     `[strideHeight, strideWidth]`.
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the non-transpose version of the op.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  conv2dTranspose<R extends Rank>(
-      x: NDArray<'float32', R>, filter: Array4D,
-      outputShape: [number, number, number, number]|[number, number, number],
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<'float32'>[R] {
-    return this.conv2dDerInput(
-        outputShape, x, filter, strides, pad, dimRoundingMode);
-  }
-
-  /**
-   * Depthwise 2D convolution.
-   *
-   * Given a 4D `input` array and a `filter` array of shape
-   * `[filterHeight, filterWidth, inChannels, channelMultiplier]` containing
-   * `inChannels` convolutional filters of depth 1, this op applies a
-   * different filter to each input channel (expanding from 1 channel to
-   * `channelMultiplier` channels for each), then concatenates the results
-   * together. The output has `inChannels * channelMultiplier` channels.
-   *
-   * See https://www.tensorflow.org/api_docs/python/tf/nn/depthwise_conv2d for
-   * more details.
-   *
-   * @param input The input ndarray, of rank 4 or rank 3, of shape
-   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
-   * assumed.
-   * @param filter The filter ndarray, rank 4, of shape
-   *     `[filterHeight, filterWidth, inChannels, channelMultiplier]`.
-   * @param strides The strides of the convolution: [strideHeight,
-   * strideWidth]. If strides is a single number, then `strideHeight ==
-   * strideWidth`.
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *   - 'same' pad and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *   - 'valid' pad: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param rates The dilation rates: `[rateHeight, rateWidth]` in which we
-   *     sample input values across the height and width dimensions in atrous
-   *     convolution. Defaults to `[1, 1]`. If `rate` is a single number, then
-   *     `rateHeight == rateWidth`. If it is greater than 1, then all values
-   * of `strides` must be 1.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  depthwiseConv2D<T extends NDArray>(
-      input: T, filter: Array4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, rates: [number, number]|number = [1, 1],
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input4D = input as NDArray as Array4D;
-    let reshapedTo4D = false;
-    if (input.rank === 3) {
-      reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
-    }
-    util.assert(
-        input4D.rank === 4,
-        `Error in depthwiseConv2D: input must be rank 4, but got ` +
-            `rank ${input4D.rank}.`);
-    util.assert(
-        filter.rank === 4,
-        `Error in depthwiseConv2D: filter must be rank 4, but got rank ` +
-            `${filter.rank}.`);
-    util.assert(
-        input4D.shape[3] === filter.shape[2],
-        `Error in depthwiseConv2D: number of input channels ` +
-            `(${input4D.shape[3]}) must match the inChannels dimension in ` +
-            `filter ${filter.shape[2]}.`);
-    rates = rates || [1, 1];
-    const [rateHeight, rateWidth] = parseTupleParam(rates);
-    util.assert(
-        rateHeight === 1 && rateWidth === 1,
-        'Error in depthwiseConv2D: rates greater than 1 are not yet ' +
-            `supported. Got rates '${rates}'`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in depthwiseConv2D: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-
-    const convInfo = conv_util.computeConv2DInfo(
-        input4D.shape, filter.shape, strides, pad, dimRoundingMode,
-        true /* depthwise */);
-    return this.executeOp('depthwiseConv2D', () => {
-      const res = this.engine.executeKernel(
-          'DepthwiseConv2D', {inputs: {x: input4D, filter}, args: {convInfo}});
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
-            T;
-      }
-      return res as NDArray as T;
-    });
-  }
-
-  /**
-   * Computes the 2D max pooling of an image.
-   *
-   * @param x The input ndarray, of rank 4 or rank 3 of shape
-   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  maxPool<T extends NDArray>(
-      x: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let x4D = x as NDArray as Array4D;
-    let reshapedTo4D = false;
-    if (x.rank === 3) {
-      reshapedTo4D = true;
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-    }
-    util.assert(
-        x4D.rank === 4,
-        `Error in maxPool: input must be rank 4 but got rank ${x4D.rank}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in maxPool: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-    const convInfo = conv_util.computePool2DInfo(
-        x4D.shape, filterSize, strides, pad, dimRoundingMode);
-
-    const gradients = (dy: Array4D<'float32'>, y: Array4D) => {
-      return {x: () => this.maxPoolBackprop(dy, x4D, filterSize, strides, pad)};
-    };
-
-    return this.executeOp('maxPool', () => {
-      const res = this.engine.executeKernel(
-          'MaxPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
-            T;
-      }
-      return res as NDArray as T;
-    });
-  }
-
-  /**
-   * Computes the backprop of a max pool.
-   *
-   * @param dy The dy error, of rank 4 or rank 3 of shape
-   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
-   * assumed.
-   * @param input The input image, of rank 4 or rank 3 of shape
-   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
-   * assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the forward prop of the op.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  maxPoolBackprop<D extends DataType,
-                            R extends Rank, T extends RankMap<'float32'>[R]>(
-      dy: NDArray<'float32', R>, input: NDArray<D, R>,
-      filterSize: [number, number]|number, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    util.assert(
-        input.rank === dy.rank,
-        `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
-
-    let input4D = input as NDArray as Array4D;
-    let dy4D = dy as NDArray as Array4D;
-    let reshapedTo4D = false;
-    if (input.rank === 3) {
-      reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
-    }
-
-    util.assert(
-        dy4D.rank === 4,
-        `Error in maxPoolBackprop: dy must be rank 4 but got rank ` +
-            `${dy4D.rank}.`);
-    util.assert(
-        input4D.rank === 4,
-        `Error in maxPoolBackprop: input must be rank 4 but got rank ` +
-            `${input4D.rank}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in maxPoolBackprop: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-
-    const convInfo = conv_util.computePool2DInfo(
-        input4D.shape, filterSize, strides, pad, dimRoundingMode);
-    return this.executeOp('maxPoolBackprop', () => {
-      const res = this.engine.executeKernel(
-          'MaxPoolBackprop',
-          {inputs: {dy: dy4D, x: input4D}, args: {convInfo}});
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-      }
-      return res as T;
-    });
-  }
-
-  /**
-   * Computes the 2D min pooling of an image.
-   *
-   * @param input The input ndarray, of rank 4 or rank 3 of shape
-   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  minPool<T extends NDArray>(
-      input: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input4D = input as NDArray as Array4D;
-    let reshapedTo4D = false;
-    if (input.rank === 3) {
-      reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
-    }
-    util.assert(
-        input4D.rank === 4,
-        `Error in minPool: x must be rank 4 but got rank ${input4D.rank}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in minPool: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-    const convInfo = conv_util.computePool2DInfo(
-        input4D.shape, filterSize, strides, pad, dimRoundingMode);
-    return this.executeOp('minPool', () => {
-      const res = this.engine.executeKernel(
-          'MinPool', {inputs: {x: input4D}, args: {convInfo}});
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as NDArray as
-            T;
-      }
-      return res as NDArray as T;
-    });
-  }
-
-  /**
-   * Computes the 2D average pooling of an image.
-   *
-   * @param x The input ndarray, of rank 4 or rank 3 of shape
-   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
-   */
-  avgPool<R extends '3'|'4'>(
-      x: NDArray<'int32'|'float32', R>, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<'float32'>[R] {
-    let x4D = x as Array4D;
-    let reshapedTo4D = false;
-    if (x.rank === 3) {
-      reshapedTo4D = true;
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-    }
-    util.assert(
-        x4D.rank === 4,
-        `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in avgPool: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-
-    const convInfo =
-        conv_util.computePool2DInfo(x4D.shape, filterSize, strides, pad);
-
-    const gradients = (dy: Array4D<'float32'>, y: Array4D) => {
-      return {x: () => this.avgPoolBackprop(dy, x4D, filterSize, strides, pad)};
-    };
-
-    return this.executeOp('avgPool', () => {
-      const res = this.engine.executeKernel(
-          'AvgPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as
-            RankMap<'float32'>[R];
-      }
-      return res as RankMap<'float32'>[R];
-    });
-  }
-
-  /**
-   * Computes the backprop of an avg pool.
-   *
-   * @param dy The dy error, of rank 4 or rank 3 of shape
-   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
-   * assumed.
-   * @param input The input image, of rank 4 or rank 3 of shape
-   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
-   * assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the forward prop of the op.
-   */
-  private avgPoolBackprop<D extends DataType, R extends
-                          '3'|'4', T extends RankMap<'float32'>[R]>(
-      dy: NDArray<'float32', R>, input: NDArray<D, R>,
-      filterSize: [number, number]|number, strides: [number, number]|number,
-      pad: 'valid'|'same'|number): T {
-    util.assert(
-        input.rank === dy.rank,
-        `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
-
-    let input4D = input as NDArray as Array4D;
-    let dy4D = dy as NDArray as Array4D;
-    let reshapedTo4D = false;
-    if (input.rank === 3) {
-      reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
-    }
-
-    util.assert(
-        dy4D.rank === 4,
-        `Error in avgPoolBackprop: dy must be rank 4 but got rank ` +
-            `${dy4D.rank}.`);
-    util.assert(
-        input4D.rank === 4,
-        `Error in avgPoolBackprop: input must be rank 4 but got rank ` +
-            `${input4D.rank}.`);
-
-    const convInfo =
-        conv_util.computePool2DInfo(input4D.shape, filterSize, strides, pad);
-    return this.executeOp('avgPoolBackprop', () => {
-      const res = this.engine.executeKernel(
-          'AvgPoolBackprop',
-          {inputs: {dy: dy4D, x: input4D}, args: {convInfo}});
-      if (reshapedTo4D) {
-        return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-      }
-      return res as T;
-    });
-  }
-
   /*
    * Bilinear resize a 3D array per each channel to a new 2D shape.
    * @param x The input Array3D.
@@ -2568,144 +1602,6 @@ export class NDArrayMath implements NDArrayManager {
             `${newShape2D}.`);
     return this.engine.executeKernel(
         'ResizeBilinear3D', {inputs: {x}, args: {newShape2D, alignCorners}});
-  }
-
-  /**
-   * Batch normalization 2D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Array2D. 2) In the common
-   * case, the depth dimension is the last dimension of x, so the values would
-   * be an Array1D of shape [depth].
-   * @param x The input NDArray.
-   * @param mean A mean NDArray.
-   * @param variance A variance NDArray.
-   * @param varianceEpsilon A small float number to avoid dividing by 0.
-   * @param scale A scale NDArray.
-   * @param offset An offset NDArray.
-   */
-  batchNormalization2D(
-      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
-      varianceEpsilon = .001, scale?: Array2D|Array1D,
-      offset?: Array2D|Array1D): Array2D {
-    util.assert(
-        x.rank === 2,
-        `Error in batchNormalization3D: x must be rank 3 but got rank ` +
-            `${x.rank}.`);
-    util.assert(
-        mean.rank === 2 || mean.rank === 1,
-        `Error in batchNormalization2D: mean must be rank 2 or rank 1 but ` +
-            `got rank ${mean.rank}.`);
-    util.assert(
-        variance.rank === 2 || variance.rank === 1,
-        `Error in batchNormalization2D: variance must be rank 2 or rank 1 ` +
-            `but got rank ${variance.rank}.`);
-    if (scale != null) {
-      util.assert(
-          scale.rank === 2 || scale.rank === 1,
-          `Error in batchNormalization2D: scale must be rank 2 or rank 1 ` +
-              `but got rank ${scale.rank}.`);
-    }
-    if (offset != null) {
-      util.assert(
-          offset.rank === 2 || offset.rank === 1,
-          `Error in batchNormalization2D: offset must be rank 2 or rank 1 ` +
-              `but got rank ${offset.rank}.`);
-    }
-
-    return this.engine.executeKernel(
-        'BatchNorm2D',
-        {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
-  }
-
-  /**
-   * Batch normalization 3D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Array3D. 2) In the common
-   * case, the depth dimension is the last dimension of x, so the values would
-   * be an Array1D of shape [depth].
-   * @param x The input NDArray.
-   * @param mean A mean NDArray.
-   * @param variance A variance NDArray.
-   * @param varianceEpsilon A small float number to avoid dividing by 0.
-   * @param scale A scale NDArray.
-   * @param offset An offset NDArray.
-   */
-  batchNormalization3D(
-      x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-      varianceEpsilon = .001, scale?: Array3D|Array1D,
-      offset?: Array3D|Array1D): Array3D {
-    util.assert(
-        x.rank === 3,
-        `Error in batchNormalization3D: x must be rank 3 but got rank ` +
-            `${x.rank}.`);
-    util.assert(
-        mean.rank === 3 || mean.rank === 1,
-        `Error in batchNormalization3D: mean must be rank 3 or rank 1 but ` +
-            `got rank ${mean.rank}.`);
-    util.assert(
-        variance.rank === 3 || variance.rank === 1,
-        `Error in batchNormalization3D: variance must be rank 3 or rank 1 ` +
-            `but got rank ${variance.rank}.`);
-    if (scale != null) {
-      util.assert(
-          scale.rank === 3 || scale.rank === 1,
-          `Error in batchNormalization3D: scale must be rank 3 or rank 1 ` +
-              `but got rank ${scale.rank}.`);
-    }
-    if (offset != null) {
-      util.assert(
-          offset.rank === 3 || offset.rank === 1,
-          `Error in batchNormalization3D: offset must be rank 3 or rank 1 ` +
-              `but got rank ${offset.rank}.`);
-    }
-
-    return this.engine.executeKernel(
-        'BatchNorm3D',
-        {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
-  }
-
-  /**
-   * Batch normalization 4D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Array4D. 2) In the common
-   * case, the depth dimension is the last dimension of x, so the values would
-   * be an Array1D of shape [depth].
-   * @param x The input NDArray.
-   * @param mean A mean NDArray.
-   * @param variance A variance NDArray.
-   * @param varianceEpsilon A small float number to avoid dividing by 0.
-   * @param scale A scale NDArray.
-   * @param offset An offset NDArray.
-   */
-  batchNormalization4D(
-      x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
-      varianceEpsilon = .001, scale?: Array4D|Array1D,
-      offset?: Array4D|Array1D): Array4D {
-    util.assert(
-        x.rank === 4,
-        `Error in batchNormalization4D: x must be rank 4 but got rank ` +
-            `${x.rank}.`);
-    util.assert(
-        mean.rank === 4 || mean.rank === 1,
-        `Error in batchNormalization4D: mean must be rank 4 or rank 1 but ` +
-            `got rank ${mean.rank}.`);
-    util.assert(
-        variance.rank === 4 || variance.rank === 1,
-        `Error in batchNormalization4D: variance must be rank 4 or rank 1 ` +
-            `but got rank ${variance.rank}.`);
-    if (scale != null) {
-      util.assert(
-          scale.rank === 4 || scale.rank === 1,
-          `Error in batchNormalization4D: scale must be rank 4 or rank 1 ` +
-              `but got rank ${scale.rank}.`);
-    }
-    if (offset != null) {
-      util.assert(
-          offset.rank === 4 || offset.rank === 1,
-          `Error in batchNormalization4D: offset must be rank 4 or rank 1 ` +
-              `but got rank ${offset.rank}.`);
-    }
-
-    return this.engine.executeKernel(
-        'BatchNorm4D',
-        {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
   }
 
   /**
@@ -2790,7 +1686,7 @@ export class NDArrayMath implements NDArrayManager {
   multiRNNCell(
       lstmCells: LSTMCell[], data: Array2D, c: Array2D[],
       h: Array2D[]): [Array2D[], Array2D[]] {
-    const res = this.scope(() => {
+    const res = this.scope('multiRNNCell', () => {
       let input = data;
       const newStates = [];
       for (let i = 0; i < lstmCells.length; i++) {
@@ -2826,7 +1722,7 @@ export class NDArrayMath implements NDArrayManager {
   basicLSTMCell(
       forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D, data: Array2D,
       c: Array2D, h: Array2D): [Array2D, Array2D] {
-    const res = this.scope(() => {
+    const res = this.scope('basicLSTMCell', () => {
       const combined = this.concat2D(data, h, 1);
       const weighted = this.matMul(combined, lstmKernel);
       const res = this.add(weighted, lstmBias) as Array2D;
@@ -2879,7 +1775,7 @@ export class NDArrayMath implements NDArrayManager {
     if (probabilities.rank === 1) {
       probabilities = probabilities.as2D(1, -1);
     }
-    return this.executeOp('multinomial', () => {
+    return this.scope('multinomial', () => {
       const res = this.engine.executeKernel('Multinomial', {
         inputs: {probs: (probabilities as Array2D)},
         args: {numSamples, seed}
@@ -2926,7 +1822,7 @@ export class NDArrayMath implements NDArrayManager {
   moments(x: NDArray, axis: number|number[] = null, keepDims = false):
       {mean: NDArray<'float32'>, variance: NDArray<'float32'>} {
     const axes = axis_util.parseAxisParam(axis, x.shape);
-    const result = this.scope(() => {
+    const result = this.scope('moments', () => {
       const mean = this.mean(x, axes, keepDims);
       let keepDimsShape = mean.shape;
       if (!keepDims) {
@@ -2971,7 +1867,7 @@ export class NDArrayMath implements NDArrayManager {
   norm<D extends DataType>(
       x: NDArray<D>, ord: number|'euclidean'|'fro' = 'euclidean',
       axis: number|number[] = null, keepDims = false): NDArray<D|SumTypes[D]> {
-    return this.scope(() => {
+    return this.scope('norm', () => {
       const norm = this.normInternal(x, ord, axis);
       let keepDimsShape = norm.shape;
       if (keepDims) {
@@ -3188,8 +2084,4 @@ export class NDArrayMath implements NDArrayManager {
     // debugging when in debug mode. Creating a stack trace is too expensive
     // to do unconditionally.
   }
-}
-
-function parseTupleParam(param: number|[number, number]): [number, number] {
-  return typeof param === 'number' ? [param, param] : param;
 }

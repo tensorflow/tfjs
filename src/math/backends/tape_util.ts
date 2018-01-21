@@ -240,7 +240,9 @@ export function computeVariableInputs(
 export type ScopeResultImmediate =
     void|NDArray|NDArray[]|{[key: string]: NDArray};
 export type ScopeResult = ScopeResultImmediate|Promise<ScopeResultImmediate>;
-
+export type ScopeFn<T extends ScopeResult> =
+    (keep: <T1 extends NDArray>(ndarray: T1) => T1,
+     track: <T2 extends NDArray>(ndarray: T2) => T2) => T;
 export function extractNDArraysFromScopeResult(result: ScopeResultImmediate):
     NDArray[] {
   if (result == null) {
