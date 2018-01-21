@@ -50,6 +50,7 @@ export {MatrixOrientation} from './math/backends/types/matmul';
 export {GPGPUContext} from './math/backends/webgl/gpgpu_context';
 // tslint:disable-next-line:max-line-length
 export {LSTMCell, NDArrayMath} from './math/math';
+export {matMul} from './math/matmul';
 // tslint:disable-next-line:max-line-length
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './math/ndarray';
 export {variable, Variable} from './math/ndarray';

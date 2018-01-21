@@ -17,6 +17,7 @@
 
 import * as device_util from './device_util';
 import {MathBackend} from './math/backends/backend';
+import {BackendEngine} from './math/backends/backend_engine';
 import {NDArrayMath} from './math/math';
 import * as util from './util';
 
@@ -162,9 +163,8 @@ export type BackendType = 'webgl'|'cpu';
 export class Environment {
   private features: Features = {};
   private globalMath: NDArrayMath = null;
-  // tslint:disable-next-line:no-any
-  private backendRegistry: {[id in BackendType]: MathBackend} = {} as any;
-  private prevBackendRegistry: {[id in BackendType]: MathBackend} = null;
+  private BACKEND_REGISTRY: {[id: string]: MathBackend} = {};
+  private backends: {[id: string]: MathBackend} = this.BACKEND_REGISTRY;
 
   constructor(features?: Features) {
     if (features != null) {
@@ -186,8 +186,8 @@ export class Environment {
     const orderedBackends: BackendType[] = ['webgl', 'cpu'];
     for (let i = 0; i < orderedBackends.length; ++i) {
       const backendId = orderedBackends[i];
-      if (backendId in this.backendRegistry) {
-        return this.backendRegistry[backendId];
+      if (backendId in this.backends) {
+        return this.backends[backendId];
       }
     }
     throw new Error('No backend found in registry.');
@@ -223,8 +223,9 @@ export class Environment {
   }
 
   setFeatures(features: Features) {
-    this.empty();
+    this.reset();
     this.features = features;
+    this.backends = {};
   }
 
   reset() {
@@ -233,12 +234,11 @@ export class Environment {
       this.globalMath.dispose();
       this.globalMath = null;
     }
-    if (this.prevBackendRegistry != null) {
-      for (const name in this.backendRegistry) {
-        this.backendRegistry[name as BackendType].dispose();
+    if (this.backends !== this.BACKEND_REGISTRY) {
+      for (const name in this.backends) {
+        this.backends[name].dispose();
       }
-      this.backendRegistry = this.prevBackendRegistry;
-      this.prevBackendRegistry = null;
+      this.backends = this.BACKEND_REGISTRY;
     }
   }
 
@@ -247,23 +247,46 @@ export class Environment {
   }
 
   getBackend(name: BackendType): MathBackend {
-    return this.backendRegistry[name];
+    return this.backends[name];
   }
 
   /**
-   * Registers the backend to the global environment.
+   * Adds a custom backend. Usually used in tests to simulate different
+   * environments.
+   *
+   * @param factory: The backend factory function. When called, it should return
+   *     an instance of the backend.
+   * @return False if the creation/registration failed. True otherwise.
+   */
+  addCustomBackend(name: BackendType, factory: () => MathBackend): boolean {
+    if (name in this.backends) {
+      throw new Error(`${name} backend was already registered`);
+    }
+    try {
+      const backend = factory();
+      this.backends[name] = backend;
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  /**
+   * Registers a global backend. The registration should happen when importing
+   * a module file (e.g. when importing `backend_webgl.ts`), and is used for
+   * modular builds (e.g. custom deeplearn.js bundle with only webgl support).
    *
    * @param factory: The backend factory function. When called, it should return
    *     an instance of the backend.
    * @return False if the creation/registration failed. True otherwise.
    */
   registerBackend(name: BackendType, factory: () => MathBackend): boolean {
-    if (name in this.backendRegistry) {
-      throw new Error(`${name} backend was already registered`);
+    if (name in this.BACKEND_REGISTRY) {
+      throw new Error(`${name} backend was already registered as global`);
     }
     try {
       const backend = factory();
-      this.backendRegistry[name] = backend;
+      this.BACKEND_REGISTRY[name] = backend;
       return true;
     } catch (err) {
       return false;
@@ -274,17 +297,13 @@ export class Environment {
     if (this.globalMath == null) {
       const bestBackend = this.getBestBackend();
       const safeMode = false;
-      this.globalMath = new NDArrayMath(bestBackend, safeMode);
+      this.setMath(new NDArrayMath(bestBackend, safeMode));
     }
     return this.globalMath;
   }
 
-  private empty() {
-    this.globalMath = null;
-    this.prevBackendRegistry = this.backendRegistry;
-    // tslint:disable-next-line:no-any
-    this.backendRegistry = {} as any;
-    this.features = null;
+  get engine(): BackendEngine {
+    return this.globalMath.engine;
   }
 }
 
