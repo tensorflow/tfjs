@@ -21,16 +21,18 @@ import * as gpgpu_util from './math/backends/webgl/gpgpu_util';
 // tslint:disable-next-line:max-line-length
 import * as render_ndarray_gpu_util from './math/backends/webgl/render_ndarray_gpu_util';
 import * as webgl_util from './math/backends/webgl/webgl_util';
-// tslint:disable-next-line:max-line-length
-import {batchNormalization2D, batchNormalization3D, batchNormalization4D} from './math/batchnorm';
-import {concat1D, concat2D, concat3D, concat4D} from './math/concat';
-import {conv1d, conv2d, conv2dTranspose, depthwiseConv2D} from './math/conv';
+import * as batchnorm from './math/batchnorm';
+import * as compare from './math/compare';
+import * as concat from './math/concat';
+import * as conv from './math/conv';
 import * as conv_util from './math/conv_util';
 // tslint:disable-next-line:max-line-length
-import {dotProduct, matMul, matrixTimesVector, outerProduct, vectorTimesMatrix} from './math/matmul';
-import {avgPool, maxPool, minPool} from './math/pool';
-import {reverse1D, reverse2D, reverse3D, reverse4D} from './math/reverse';
-import {slice1D, slice2D, slice3D, slice4D} from './math/slice';
+import * as matmul from './math/matmul';
+import * as minmax from './math/minmax';
+import * as pool from './math/pool';
+import * as reverse from './math/reverse';
+import * as slice from './math/slice';
+import {Ops as TranposeOps} from './math/transpose';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
@@ -64,7 +66,6 @@ export {Optimizer} from './math/optimizers/optimizer';
 export {SGDOptimizer} from './math/optimizers/sgd_optimizer';
 export {Model} from './model';
 export {version};
-
 // Second level exports.
 export {
   conv_util,
@@ -78,32 +79,55 @@ export {
 };
 
 // Math methods.
-export {
-  avgPool,
-  batchNormalization2D,
-  batchNormalization3D,
-  batchNormalization4D,
-  concat1D,
-  concat2D,
-  concat3D,
-  concat4D,
-  conv1d,
-  conv2d,
-  conv2dTranspose,
-  depthwiseConv2D,
-  dotProduct,
-  matMul,
-  matrixTimesVector,
-  maxPool,
-  minPool,
-  outerProduct,
-  reverse1D,
-  reverse2D,
-  reverse3D,
-  reverse4D,
-  slice1D,
-  slice2D,
-  slice3D,
-  slice4D,
-  vectorTimesMatrix
-};
+export const batchNormalization2D = batchnorm.Ops.batchNormalization2D;
+export const batchNormalization3D = batchnorm.Ops.batchNormalization3D;
+export const batchNormalization4D = batchnorm.Ops.batchNormalization4D;
+
+export const concat1D = concat.Ops.concat1D;
+export const concat2D = concat.Ops.concat2D;
+export const concat3D = concat.Ops.concat3D;
+export const concat4D = concat.Ops.concat4D;
+
+export const conv1d = conv.Ops.conv1d;
+export const conv2d = conv.Ops.conv2d;
+export const conv2dTranspose = conv.Ops.conv2dTranspose;
+export const depthwiseConv2D = conv.Ops.depthwiseConv2D;
+
+export const dotProduct = matmul.Ops.dotProduct;
+export const matMul = matmul.Ops.matMul;
+export const matrixTimesVector = matmul.Ops.matrixTimesVector;
+export const outerProduct = matmul.Ops.outerProduct;
+export const vectorTimesMatrix = matmul.Ops.vectorTimesMatrix;
+
+export const avgPool = pool.Ops.avgPool;
+export const maxPool = pool.Ops.maxPool;
+export const minPool = pool.Ops.minPool;
+
+export const transpose = TranposeOps.transpose;
+
+export const reverse1D = reverse.Ops.reverse1D;
+export const reverse2D = reverse.Ops.reverse2D;
+export const reverse3D = reverse.Ops.reverse3D;
+export const reverse4D = reverse.Ops.reverse4D;
+
+export const slice1D = slice.Ops.slice1D;
+export const slice2D = slice.Ops.slice2D;
+export const slice3D = slice.Ops.slice3D;
+export const slice4D = slice.Ops.slice4D;
+
+export const min = minmax.Ops.min;
+export const max = minmax.Ops.max;
+export const minimum = minmax.Ops.minimum;
+export const maximum = minmax.Ops.maximum;
+export const argMax = minmax.Ops.argMax;
+export const argMin = minmax.Ops.argMin;
+export const argMaxEquals = minmax.Ops.argMaxEquals;
+
+export const equal = compare.Ops.equal;
+export const equalStrict = compare.Ops.equalStrict;
+export const greater = compare.Ops.greater;
+export const greaterEqual = compare.Ops.greaterEqual;
+export const less = compare.Ops.less;
+export const lessEqual = compare.Ops.lessEqual;
+export const notEqual = compare.Ops.notEqual;
+export const notEqualStrict = compare.Ops.notEqualStrict;

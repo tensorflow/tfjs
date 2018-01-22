@@ -18,32 +18,34 @@
 import {ENV} from '../environment';
 import * as util from '../util';
 import * as conv_util from './conv_util';
-// tslint:disable-next-line:max-line-length
+import {operation} from './decorators';
 import {Array4D, DataType, NDArray, Rank, RankMap} from './ndarray';
 
-/**
- * Computes the 2D max pooling of an image.
- *
- * @param x The input ndarray, of rank 4 or rank 3 of shape
- *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
- * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
- * @param strides The strides of the pooling: [strideHeight, strideWidth].
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
- *    - 'same' pad and stride 1: output will be of same size as input,
- *       regardless of filter size.
- *    - 'valid' pad: output will be smaller than input if filter is larger
- *       than 1x1.
- *   - For more info, see this guide:
- *     https://www.tensorflow.org/api_guides/python/nn#Convolution
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
- */
-export function maxPool<T extends NDArray>(
-    x: T, filterSize: [number, number]|number, strides: [number, number]|number,
-    pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  return ENV.math.scope('maxPool', () => {
+export class Ops {
+  /**
+   * Computes the 2D max pooling of an image.
+   *
+   * @param x The input ndarray, of rank 4 or rank 3 of shape
+   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
+   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
+   * @param strides The strides of the pooling: [strideHeight, strideWidth].
+   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
+   *    - 'same' pad and stride 1: output will be of same size as input,
+   *       regardless of filter size.
+   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *       than 1x1.
+   *   - For more info, see this guide:
+   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
+   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
+   *     rounding mode used when computing output dimensions if pad is a
+   *     number. If none is provided, it will not round and error if the output
+   *     is of fractional size.
+   */
+  @operation
+  static maxPool<T extends NDArray>(
+      x: T, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number,
+      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     let x4D = x as Array4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
@@ -63,7 +65,7 @@ export function maxPool<T extends NDArray>(
         x4D.shape, filterSize, strides, pad, dimRoundingMode);
 
     const gradients = (dy: Array4D<'float32'>, y: Array4D) => {
-      return {x: () => maxPoolBackprop(dy, x4D, filterSize, strides, pad)};
+      return {x: () => Ops.maxPoolBackprop(dy, x4D, filterSize, strides, pad)};
     };
     const res = ENV.engine.executeKernel(
         'MaxPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
@@ -71,33 +73,32 @@ export function maxPool<T extends NDArray>(
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
     return res as T;
-  });
-}
+  }
 
-/**
- * Computes the backprop of a max pool.
- *
- * @param dy The dy error, of rank 4 or rank 3 of shape
- *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
- * assumed.
- * @param input The input image, of rank 4 or rank 3 of shape
- *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
- * assumed.
- * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
- * @param strides The strides of the pooling: [strideHeight, strideWidth].
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm
- *     used in the forward prop of the op.
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
- */
-export function maxPoolBackprop<
-    D extends DataType, R extends Rank, T extends RankMap<'float32'>[R]>(
-    dy: NDArray<'float32', R>, input: NDArray<D, R>,
-    filterSize: [number, number]|number, strides: [number, number]|number,
-    pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  return ENV.math.scope('maxPoolBackprop', () => {
+  /**
+   * Computes the backprop of a max pool.
+   *
+   * @param dy The dy error, of rank 4 or rank 3 of shape
+   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
+   * assumed.
+   * @param input The input image, of rank 4 or rank 3 of shape
+   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
+   * assumed.
+   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
+   * @param strides The strides of the pooling: [strideHeight, strideWidth].
+   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
+   *     used in the forward prop of the op.
+   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
+   *     rounding mode used when computing output dimensions if pad is a
+   *     number. If none is provided, it will not round and error if the output
+   *     is of fractional size.
+   */
+  @operation
+  static maxPoolBackprop<
+      D extends DataType, R extends Rank, T extends RankMap<'float32'>[R]>(
+      dy: NDArray<'float32', R>, input: NDArray<D, R>,
+      filterSize: [number, number]|number, strides: [number, number]|number,
+      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     util.assert(
         input.rank === dy.rank,
         `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
@@ -134,33 +135,32 @@ export function maxPoolBackprop<
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
     return res as T;
-  });
-}
+  }
 
-/**
- * Computes the 2D min pooling of an image.
- *
- * @param input The input ndarray, of rank 4 or rank 3 of shape
- *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
- * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
- * @param strides The strides of the pooling: [strideHeight, strideWidth].
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
- *    - 'same' pad and stride 1: output will be of same size as input,
- *       regardless of filter size.
- *    - 'valid' pad: output will be smaller than input if filter is larger
- *       than 1x1.
- *   - For more info, see this guide:
- *     https://www.tensorflow.org/api_guides/python/nn#Convolution
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
- */
-export function minPool<T extends NDArray>(
-    input: T, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-  return ENV.math.scope('minPool', () => {
+  /**
+   * Computes the 2D min pooling of an image.
+   *
+   * @param input The input ndarray, of rank 4 or rank 3 of shape
+   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
+   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
+   * @param strides The strides of the pooling: [strideHeight, strideWidth].
+   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
+   *    - 'same' pad and stride 1: output will be of same size as input,
+   *       regardless of filter size.
+   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *       than 1x1.
+   *   - For more info, see this guide:
+   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
+   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
+   *     rounding mode used when computing output dimensions if pad is a
+   *     number. If none is provided, it will not round and error if the output
+   *     is of fractional size.
+   */
+  @operation
+  static minPool<T extends NDArray>(
+      input: T, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number,
+      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     let input4D = input as Array4D;
     let reshapedTo4D = false;
     if (input.rank === 3) {
@@ -184,33 +184,32 @@ export function minPool<T extends NDArray>(
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
     return res as T;
-  });
-}
+  }
 
-/**
- * Computes the 2D average pooling of an image.
- *
- * @param x The input ndarray, of rank 4 or rank 3 of shape
- *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
- * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
- * @param strides The strides of the pooling: [strideHeight, strideWidth].
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
- *    - 'same' pad and stride 1: output will be of same size as input,
- *       regardless of filter size.
- *    - 'valid' pad: output will be smaller than input if filter is larger
- *       than 1x1.
- *   - For more info, see this guide:
- *     https://www.tensorflow.org/api_guides/python/nn#Convolution
- * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
- *     rounding mode used when computing output dimensions if pad is a
- *     number. If none is provided, it will not round and error if the output
- *     is of fractional size.
- */
-export function avgPool<R extends '3'|'4'>(
-    x: NDArray<'int32'|'float32', R>, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number,
-    dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<'float32'>[R] {
-  return ENV.math.scope('avgPool', () => {
+  /**
+   * Computes the 2D average pooling of an image.
+   *
+   * @param x The input ndarray, of rank 4 or rank 3 of shape
+   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
+   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
+   * @param strides The strides of the pooling: [strideHeight, strideWidth].
+   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
+   *    - 'same' pad and stride 1: output will be of same size as input,
+   *       regardless of filter size.
+   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *       than 1x1.
+   *   - For more info, see this guide:
+   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
+   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
+   *     rounding mode used when computing output dimensions if pad is a
+   *     number. If none is provided, it will not round and error if the output
+   *     is of fractional size.
+   */
+  @operation
+  static avgPool<R extends '3'|'4'>(
+      x: NDArray<'int32'|'float32', R>, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number,
+      dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<'float32'>[R] {
     let x4D = x as Array4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
@@ -231,7 +230,7 @@ export function avgPool<R extends '3'|'4'>(
         conv_util.computePool2DInfo(x4D.shape, filterSize, strides, pad);
 
     const gradients = (dy: Array4D<'float32'>, y: Array4D) => {
-      return {x: () => avgPoolBackprop(dy, x4D, filterSize, strides, pad)};
+      return {x: () => Ops.avgPoolBackprop(dy, x4D, filterSize, strides, pad)};
     };
     const res = ENV.engine.executeKernel(
         'AvgPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
@@ -240,29 +239,28 @@ export function avgPool<R extends '3'|'4'>(
           RankMap<'float32'>[R];
     }
     return res as RankMap<'float32'>[R];
-  });
-}
+  }
 
-/**
- * Computes the backprop of an avg pool.
- *
- * @param dy The dy error, of rank 4 or rank 3 of shape
- *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
- * assumed.
- * @param input The input image, of rank 4 or rank 3 of shape
- *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
- * assumed.
- * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
- * @param strides The strides of the pooling: [strideHeight, strideWidth].
- * @param pad A string from: 'same', 'valid'. The type of padding algorithm
- *     used in the forward prop of the op.
- */
-function avgPoolBackprop<D extends DataType, R extends
+  /**
+   * Computes the backprop of an avg pool.
+   *
+   * @param dy The dy error, of rank 4 or rank 3 of shape
+   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
+   * assumed.
+   * @param input The input image, of rank 4 or rank 3 of shape
+   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
+   * assumed.
+   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
+   * @param strides The strides of the pooling: [strideHeight, strideWidth].
+   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
+   *     used in the forward prop of the op.
+   */
+  @operation
+  static avgPoolBackprop<D extends DataType, R extends
                          '3'|'4', T extends RankMap<'float32'>[R]>(
-    dy: NDArray<'float32', R>, input: NDArray<D, R>,
-    filterSize: [number, number]|number, strides: [number, number]|number,
-    pad: 'valid'|'same'|number): T {
-  return ENV.math.scope('avgPoolBackprop', () => {
+      dy: NDArray<'float32', R>, input: NDArray<D, R>,
+      filterSize: [number, number]|number, strides: [number, number]|number,
+      pad: 'valid'|'same'|number): T {
     util.assert(
         input.rank === dy.rank,
         `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
@@ -293,5 +291,5 @@ function avgPoolBackprop<D extends DataType, R extends
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
     return res as T;
-  });
+  }
 }

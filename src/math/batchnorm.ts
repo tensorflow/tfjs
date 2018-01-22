@@ -17,25 +17,27 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
+import {operation} from './decorators';
 import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
-/**
- * Batch normalization 2D. Mean, variance, scale, and offset can be of two
- * shapes: 1) The same shape as the input: an Array2D. 2) In the common
- * case, the depth dimension is the last dimension of x, so the values would
- * be an Array1D of shape [depth].
- * @param x The input NDArray.
- * @param mean A mean NDArray.
- * @param variance A variance NDArray.
- * @param varianceEpsilon A small float number to avoid dividing by 0.
- * @param scale A scale NDArray.
- * @param offset An offset NDArray.
- */
-export function batchNormalization2D(
-    x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
-    varianceEpsilon = .001, scale?: Array2D|Array1D,
-    offset?: Array2D|Array1D): Array2D {
-  return ENV.math.scope('batchNorm2D', () => {
+export class Ops {
+  /**
+   * Batch normalization 2D. Mean, variance, scale, and offset can be of two
+   * shapes: 1) The same shape as the input: an Array2D. 2) In the common
+   * case, the depth dimension is the last dimension of x, so the values would
+   * be an Array1D of shape [depth].
+   * @param x The input NDArray.
+   * @param mean A mean NDArray.
+   * @param variance A variance NDArray.
+   * @param varianceEpsilon A small float number to avoid dividing by 0.
+   * @param scale A scale NDArray.
+   * @param offset An offset NDArray.
+   */
+  @operation
+  static batchNormalization2D(
+      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
+      varianceEpsilon = .001, scale?: Array2D|Array1D,
+      offset?: Array2D|Array1D): Array2D {
     util.assert(
         x.rank === 2,
         `Error in batchNormalization3D: x must be rank 3 but got rank ` +
@@ -64,26 +66,25 @@ export function batchNormalization2D(
     return ENV.engine.executeKernel(
         'BatchNorm2D',
         {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
-  });
-}
+  }
 
-/**
- * Batch normalization 3D. Mean, variance, scale, and offset can be of two
- * shapes: 1) The same shape as the input: an Array3D. 2) In the common
- * case, the depth dimension is the last dimension of x, so the values would
- * be an Array1D of shape [depth].
- * @param x The input NDArray.
- * @param mean A mean NDArray.
- * @param variance A variance NDArray.
- * @param varianceEpsilon A small float number to avoid dividing by 0.
- * @param scale A scale NDArray.
- * @param offset An offset NDArray.
- */
-export function batchNormalization3D(
-    x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-    varianceEpsilon = .001, scale?: Array3D|Array1D,
-    offset?: Array3D|Array1D): Array3D {
-  return ENV.math.scope('batchNorm3D', () => {
+  /**
+   * Batch normalization 3D. Mean, variance, scale, and offset can be of two
+   * shapes: 1) The same shape as the input: an Array3D. 2) In the common
+   * case, the depth dimension is the last dimension of x, so the values would
+   * be an Array1D of shape [depth].
+   * @param x The input NDArray.
+   * @param mean A mean NDArray.
+   * @param variance A variance NDArray.
+   * @param varianceEpsilon A small float number to avoid dividing by 0.
+   * @param scale A scale NDArray.
+   * @param offset An offset NDArray.
+   */
+  @operation
+  static batchNormalization3D(
+      x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
+      varianceEpsilon = .001, scale?: Array3D|Array1D,
+      offset?: Array3D|Array1D): Array3D {
     util.assert(
         x.rank === 3,
         `Error in batchNormalization3D: x must be rank 3 but got rank ` +
@@ -112,26 +113,25 @@ export function batchNormalization3D(
     return ENV.engine.executeKernel(
         'BatchNorm3D',
         {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
-  });
-}
+  }
 
-/**
- * Batch normalization 4D. Mean, variance, scale, and offset can be of two
- * shapes: 1) The same shape as the input: an Array4D. 2) In the common
- * case, the depth dimension is the last dimension of x, so the values would
- * be an Array1D of shape [depth].
- * @param x The input NDArray.
- * @param mean A mean NDArray.
- * @param variance A variance NDArray.
- * @param varianceEpsilon A small float number to avoid dividing by 0.
- * @param scale A scale NDArray.
- * @param offset An offset NDArray.
- */
-export function batchNormalization4D(
-    x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
-    varianceEpsilon = .001, scale?: Array4D|Array1D,
-    offset?: Array4D|Array1D): Array4D {
-  return ENV.math.scope('batchNorm4D', () => {
+  /**
+   * Batch normalization 4D. Mean, variance, scale, and offset can be of two
+   * shapes: 1) The same shape as the input: an Array4D. 2) In the common
+   * case, the depth dimension is the last dimension of x, so the values would
+   * be an Array1D of shape [depth].
+   * @param x The input NDArray.
+   * @param mean A mean NDArray.
+   * @param variance A variance NDArray.
+   * @param varianceEpsilon A small float number to avoid dividing by 0.
+   * @param scale A scale NDArray.
+   * @param offset An offset NDArray.
+   */
+  @operation
+  static batchNormalization4D(
+      x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
+      varianceEpsilon = .001, scale?: Array4D|Array1D,
+      offset?: Array4D|Array1D): Array4D {
     util.assert(
         x.rank === 4,
         `Error in batchNormalization4D: x must be rank 4 but got rank ` +
@@ -160,5 +160,5 @@ export function batchNormalization4D(
     return ENV.engine.executeKernel(
         'BatchNorm4D',
         {inputs: {x, mean, variance, scale, offset}, args: {varianceEpsilon}});
-  });
+  }
 }

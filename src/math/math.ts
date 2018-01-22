@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,14 +26,17 @@ import {TapeNodeInputGradientArrays} from './backends/tape_types';
 import {ScopeFn, ScopeResult, ScopeResultImmediate} from './backends/tape_util';
 import * as batchnorm from './batchnorm';
 import * as broadcast_util from './broadcast_util';
+import * as compare from './compare';
 import * as concat from './concat';
 import * as conv from './conv';
 import * as matmul from './matmul';
+import * as minmax from './minmax';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Rank, RankMap, Scalar, Variable} from './ndarray';
 import * as pool from './pool';
 import * as reverse from './reverse';
 import * as slice from './slice';
+import * as transpose from './transpose';
 import * as types from './types';
 import {SumTypes} from './types';
 
@@ -54,47 +57,66 @@ export class NDArrayMath implements NDArrayManager {
   private customBackend = false;
 
   // Ops.
-  matMul = matmul.matMul;
-  vectorTimesMatrix = matmul.vectorTimesMatrix;
-  outerProduct = matmul.outerProduct;
-  matrixTimesVector = matmul.matrixTimesVector;
-  dotProduct = matmul.dotProduct;
+  matMul = matmul.Ops.matMul;
+  vectorTimesMatrix = matmul.Ops.vectorTimesMatrix;
+  outerProduct = matmul.Ops.outerProduct;
+  matrixTimesVector = matmul.Ops.matrixTimesVector;
+  dotProduct = matmul.Ops.dotProduct;
 
-  slice1D = slice.slice1D;
-  slice2D = slice.slice2D;
-  slice3D = slice.slice3D;
-  slice4D = slice.slice4D;
+  slice1D = slice.Ops.slice1D;
+  slice2D = slice.Ops.slice2D;
+  slice3D = slice.Ops.slice3D;
+  slice4D = slice.Ops.slice4D;
 
-  reverse1D = reverse.reverse1D;
-  reverse2D = reverse.reverse2D;
-  reverse3D = reverse.reverse3D;
-  reverse4D = reverse.reverse4D;
+  reverse1D = reverse.Ops.reverse1D;
+  reverse2D = reverse.Ops.reverse2D;
+  reverse3D = reverse.Ops.reverse3D;
+  reverse4D = reverse.Ops.reverse4D;
 
-  concat1D = concat.concat1D;
-  concat2D = concat.concat2D;
-  concat3D = concat.concat3D;
-  concat4D = concat.concat4D;
+  concat1D = concat.Ops.concat1D;
+  concat2D = concat.Ops.concat2D;
+  concat3D = concat.Ops.concat3D;
+  concat4D = concat.Ops.concat4D;
 
-  batchNormalization2D = batchnorm.batchNormalization2D;
-  batchNormalization3D = batchnorm.batchNormalization3D;
-  batchNormalization4D = batchnorm.batchNormalization4D;
+  batchNormalization2D = batchnorm.Ops.batchNormalization2D;
+  batchNormalization3D = batchnorm.Ops.batchNormalization3D;
+  batchNormalization4D = batchnorm.Ops.batchNormalization4D;
 
-  avgPool = pool.avgPool;
-  maxPool = pool.maxPool;
-  minPool = pool.minPool;
+  avgPool = pool.Ops.avgPool;
+  maxPool = pool.Ops.maxPool;
+  minPool = pool.Ops.minPool;
   /** @deprecated */
-  maxPoolBackprop = pool.maxPoolBackprop;
+  maxPoolBackprop = pool.Ops.maxPoolBackprop;
 
-  conv1d = conv.conv1d;
-  conv2d = conv.conv2d;
-  conv2dTranspose = conv.conv2dTranspose;
-  depthwiseConv2D = conv.depthwiseConv2D;
+  conv1d = conv.Ops.conv1d;
+  conv2d = conv.Ops.conv2d;
+  conv2dTranspose = conv.Ops.conv2dTranspose;
+  depthwiseConv2D = conv.Ops.depthwiseConv2D;
   /** @deprecated */
-  conv2dDerBias = conv.conv2dDerBias;
+  conv2dDerBias = conv.Ops.conv2dDerBias;
   /** @deprecated */
-  conv2dDerFilter = conv.conv2dDerFilter;
+  conv2dDerFilter = conv.Ops.conv2dDerFilter;
   /** @deprecated */
-  conv2dDerInput = conv.conv2dDerInput;
+  conv2dDerInput = conv.Ops.conv2dDerInput;
+
+  argMax = minmax.Ops.argMax;
+  argMaxEquals = minmax.Ops.argMaxEquals;
+  argMin = minmax.Ops.argMin;
+  max = minmax.Ops.max;
+  maximum = minmax.Ops.maximum;
+  min = minmax.Ops.min;
+  minimum = minmax.Ops.minimum;
+
+  transpose = transpose.Ops.transpose;
+
+  equal = compare.Ops.equal;
+  equalStrict = compare.Ops.equalStrict;
+  greater = compare.Ops.greater;
+  greaterEqual = compare.Ops.greaterEqual;
+  less = compare.Ops.less;
+  lessEqual = compare.Ops.lessEqual;
+  notEqual = compare.Ops.notEqual;
+  notEqualStrict = compare.Ops.notEqualStrict;
 
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
@@ -435,151 +457,6 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
-   * Returns the indices of the minimum values along an `axis`. The result has
-   * the same shape as `input` with the dimension along `axis` removed.
-   *
-   * @param x The input array.
-   * @param axis Optional. The dimension to reduce. By default it reduces
-   * across all axes and returns the flat index.
-   *
-   */
-  argMin<T extends NDArray<'int32'>>(x: NDArray, axis: number = null): T {
-    let axes = axis_util.parseAxisParam(axis, x.shape);
-    const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.scope('argMin', () => {
-      if (permutedAxes != null) {
-        x = this.transpose(x, permutedAxes);
-        axes = axis_util.getInnerMostAxes(axes.length, x.rank);
-      }
-      return this.engine.executeKernel('ArgMin', {inputs: {x}, args: {axes}});
-    }) as T;
-  }
-
-  /**
-   * Returns the indices of the maximum values along an `axis`. The result has
-   * the same shape as `input` with the dimension along `axis` removed.
-   *
-   * @param x The input array.
-   * @param axis Optional. The dimension to reduce. By default it reduces
-   *     across all axes and returns the flat index
-   */
-  argMax<T extends NDArray<'int32'>>(x: NDArray, axis: number = null): T {
-    let axes = axis_util.parseAxisParam(axis, x.shape);
-    const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.scope('argMax', () => {
-      if (permutedAxes != null) {
-        x = this.transpose(x, permutedAxes);
-        axes = axis_util.getInnerMostAxes(axes.length, x.rank);
-      }
-
-      return this.engine.executeKernel('ArgMax', {inputs: {x}, args: {axes}});
-    }) as T;
-  }
-
-  /**
-   * Returns a 1 if the argMax of x1 and x2 are the same, otherwise 0.
-   * @param x1 The first input NDArray.
-   * @param x2 The second input NDArray.
-   */
-  argMaxEquals(x1: NDArray, x2: NDArray): Scalar<'bool'> {
-    util.assertShapesMatch(x1.shape, x2.shape, 'Error in argMaxEquals: ');
-    return this.scope('argMaxEquals', () => {
-      return this.equal(this.argMax(x1), this.argMax(x2));
-    });
-  }
-
-  /**
-   * Returns the truth value of (a == b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.equalStrict().
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
-   */
-  equal<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('Equal', {inputs: {a, b}}) as T;
-  }
-
-  equalStrict<T extends NDArray>(a: T, b: T): NDArray<'bool'> {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
-    return this.equal(a, b);
-  }
-
-  /**
-   * Returns the truth value of (a != b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.notEqualStrict().
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
-   */
-  notEqual<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('NotEqual', {inputs: {a, b}}) as T;
-  }
-
-  notEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
-      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
-    return this.notEqual(a, b);
-  }
-
-  /**
-   * Returns the truth value of (a < b) element-wise. Supports broadcasting.
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
-   */
-  less<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('Less', {inputs: {a, b}}) as T;
-  }
-
-  /**
-   * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
-   */
-  lessEqual<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('LessEqual', {inputs: {a, b}}) as T;
-  }
-
-  /**
-   * Returns the truth value of (a > b) element-wise. Supports broadcasting.
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
-   */
-  greater<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('Greater', {inputs: {a, b}}) as T;
-  }
-
-  /**
-   * Returns the truth value of (a >= b) element-wise. Supports broadcasting.
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
-   */
-  greaterEqual<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('GreaterEqual', {inputs: {a, b}}) as T;
-  }
-
-  /**
    * Returns the truth value of a AND b element-wise. Supports broadcasting.
    *
    * @param a The first input `NDArray<'bool'>`.
@@ -664,102 +541,6 @@ export class NDArrayMath implements NDArrayManager {
     });
     const result = {values, indices};
     return result;
-  }
-
-  /**
-   * Computes the minimum value from the input.
-   *
-   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
-   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
-   * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If `axes` has no entries, all dimensions are reduced, and an array with a
-   * single element is returned.
-   *
-   * @param x The input NDArray.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
-   *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
-   */
-  min<D extends DataType, T extends NDArray<D>>(
-      x: NDArray<D>, axis: number|number[] = null, keepDims = false): T {
-    const origAxes = axis_util.parseAxisParam(axis, x.shape);
-    let axes = origAxes;
-    const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.scope('min', () => {
-      if (permutedAxes != null) {
-        x = this.transpose(x, permutedAxes);
-        axes = axis_util.getInnerMostAxes(axes.length, x.rank);
-      }
-      const res = this.engine.executeKernel(
-                      'Min', {inputs: {x}, args: {axes}}) as NDArray<D>;
-      if (keepDims) {
-        const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-        return res.reshape(newShape);
-      }
-      return res;
-    }) as T;
-  }
-
-  /**
-   * Returns the min of a and b (`a < b ? a : b`) element-wise.
-   * Supports broadcasting.
-   *
-   * @param a The first ndarray.
-   * @param b The second ndarray. Must have the same type as `a`.
-   */
-  minimum<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('Minimum', {inputs: {a, b}}) as T;
-  }
-
-  /**
-   * Computes the maximum of elements across dimensions of an array.
-   *
-   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
-   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
-   * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If `axes` has no entries, all dimensions are reduced, and an array with a
-   * single element is returned.
-   *
-   * @param x The input array.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
-   *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
-   */
-  max<D extends DataType, T extends NDArray<D>>(
-      x: NDArray<D>, axis: number|number[] = null, keepDims = false): T {
-    const origAxes = axis_util.parseAxisParam(axis, x.shape);
-    let axes = origAxes;
-    const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
-    return this.scope('max', () => {
-      if (permutedAxes != null) {
-        x = this.transpose(x, permutedAxes);
-        axes = axis_util.getInnerMostAxes(axes.length, x.rank);
-      }
-      const res = this.engine.executeKernel(
-                      'Max', {inputs: {x}, args: {axes}}) as NDArray<D>;
-      if (keepDims) {
-        const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
-        return res.reshape(newShape);
-      }
-      return res;
-    }) as T;
-  }
-
-  /**
-   * Returns the max of a and b (`a > b ? a : b`) element-wise.
-   * Supports broadcasting.
-   *
-   * @param a The first ndarray.
-   * @param b The second ndarray. Must have the same type as `a`.
-   */
-  maximum<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('Maximum', {inputs: {a, b}}) as T;
   }
 
   /**
@@ -945,34 +726,6 @@ export class NDArrayMath implements NDArrayManager {
         'Invalid number of paddings. Must be length of 2 each.');
     return this.engine.executeKernel(
         'Pad2D', {inputs: {x}, args: {paddings, constantValue}});
-  }
-
-  /**
-   * Transposes the array. Permutes the dimensions according to `perm`.
-   *
-   * The returned array's dimension `i` will correspond to the input dimension
-   * `perm[i]`. If `perm` is not given, it is set to `[n-1...0]`, where `n` is
-   * the rank of the input array. Hence by default, this operation performs a
-   * regular matrix transpose on 2-D input arrays.
-   *
-   * @param x The array to transpose.
-   * @param perm Optional. The permutation of the dimensions of a.
-   */
-  transpose<T extends NDArray>(x: T, perm?: number[]): T {
-    if (perm == null) {
-      perm = x.shape.map((s, i) => i).reverse();
-    }
-    const der = (dy: NDArray<'float32'>) => {
-      const undoPerm = axis_util.getUndoAxesPermutation(perm);
-      const derX = () => this.transpose(dy, undoPerm);
-      return {x: derX};
-    };
-    util.assert(
-        x.rank === perm.length,
-        `Error in transpose: rank of input ${x.rank} ` +
-            `must match length of perm ${perm}.`);
-    return this.engine.executeKernel(
-               'Transpose', {inputs: {x}, args: {perm}}, der) as T;
   }
 
   /**
