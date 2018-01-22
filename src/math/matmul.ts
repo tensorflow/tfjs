@@ -18,23 +18,25 @@
 import {ENV} from '../environment';
 import * as util from '../util';
 import {MatrixOrientation} from './backends/types/matmul';
+import {operation} from './decorators';
 import {Array1D, Array2D, Scalar} from './ndarray';
 
-/**
- * Computes the dot product of two matrices, A * B. These must be matrices,
- * use matrixTimesVector and vectorTimesMatrix, dotProduct, and outerProduct
- * in other cases.
- * @param a First matrix in dot product operation.
- * @param b Second matrix in dot product operation.
- * @param aOrientation The MatrixOrientation of A. If using TRANSPOSED, will
- * compute A^T * B.
- * @param bOrientation The MatrixOrientation of B. If using TRANSPOSED, will
- * compute A * B^T.
- */
-export function matMul(
-    a: Array2D, b: Array2D, aOrientation = MatrixOrientation.REGULAR,
-    bOrientation = MatrixOrientation.REGULAR): Array2D {
-  return ENV.math.scope('matMul', () => {
+export class Ops {
+  /**
+   * Computes the dot product of two matrices, A * B. These must be matrices,
+   * use matrixTimesVector and vectorTimesMatrix, dotProduct, and outerProduct
+   * in other cases.
+   * @param a First matrix in dot product operation.
+   * @param b Second matrix in dot product operation.
+   * @param aOrientation The MatrixOrientation of A. If using TRANSPOSED, will
+   * compute A^T * B.
+   * @param bOrientation The MatrixOrientation of B. If using TRANSPOSED, will
+   * compute A * B^T.
+   */
+  @operation
+  static matMul(
+      a: Array2D, b: Array2D, aOrientation = MatrixOrientation.REGULAR,
+      bOrientation = MatrixOrientation.REGULAR): Array2D {
     const innerShapeA =
         (aOrientation === MatrixOrientation.REGULAR) ? a.shape[1] : a.shape[0];
     const innerShapeB =
@@ -61,24 +63,23 @@ export function matMul(
                 `Backprop for transposed MatMul not yet implemented.`);
           }
           return {
-            a: () => matMul(
+            a: () => Ops.matMul(
                          dy, b, MatrixOrientation.REGULAR,
                          MatrixOrientation.TRANSPOSED) as Array2D<'float32'>,
-            b: () => matMul(
+            b: () => Ops.matMul(
                          a, dy, MatrixOrientation.TRANSPOSED,
                          MatrixOrientation.REGULAR) as Array2D<'float32'>
           };
         });
-  });
-}
+  }
 
-/**
- * Computes the dot product of a vector and a matrix, v * B.
- * @param v The vector in dot product operation.
- * @param matrix The matrix in dot product operation.
- */
-export function vectorTimesMatrix(v: Array1D, matrix: Array2D): Array1D {
-  return ENV.math.scope('vectorTimesMatrix', () => {
+  /**
+   * Computes the dot product of a vector and a matrix, v * B.
+   * @param v The vector in dot product operation.
+   * @param matrix The matrix in dot product operation.
+   */
+  @operation
+  static vectorTimesMatrix(v: Array1D, matrix: Array2D): Array1D {
     util.assert(
         v.rank === 1,
         `Error in vectorTimesMatrix: first input must be rank 1, but got ` +
@@ -91,17 +92,16 @@ export function vectorTimesMatrix(v: Array1D, matrix: Array2D): Array1D {
         v.size === matrix.shape[0],
         `Error in vectorTimesMatrix: size of vector (${v.size}) ` +
             `must match first dimension of matrix (${matrix.shape[0]})`);
-    return matMul(v.as2D(1, -1), matrix).as1D();
-  });
-}
+    return Ops.matMul(v.as2D(1, -1), matrix).as1D();
+  }
 
-/**
- * Computes the dot product of a matrix and vector, A * v.
- * @param matrix The matrix in dot product operation.
- * @param v The vector in dot product operation.
- */
-export function matrixTimesVector(matrix: Array2D, v: Array1D): Array1D {
-  return ENV.math.scope('matrixTimesVector', () => {
+  /**
+   * Computes the dot product of a matrix and vector, A * v.
+   * @param matrix The matrix in dot product operation.
+   * @param v The vector in dot product operation.
+   */
+  @operation
+  static matrixTimesVector(matrix: Array2D, v: Array1D): Array1D {
     util.assert(
         v.rank === 1,
         `Error in matrixTimesVector: second input must rank 1, but got ` +
@@ -116,17 +116,16 @@ export function matrixTimesVector(matrix: Array2D, v: Array1D): Array1D {
             `must match inner dimension of second rank 2 input, but got ` +
             `shape ${matrix.shape}.`);
 
-    return matMul(matrix, v.as2D(-1, 1)).as1D();
-  });
-}
+    return Ops.matMul(matrix, v.as2D(-1, 1)).as1D();
+  }
 
-/**
- * Computes the dot product of two vectors, v1 * v2.
- * @param v1 The first vector in the dot product operation.
- * @param v2 The second vector in the dot product operation.
- */
-export function dotProduct(v1: Array1D, v2: Array1D): Scalar {
-  return ENV.math.scope('dotProduct', () => {
+  /**
+   * Computes the dot product of two vectors, v1 * v2.
+   * @param v1 The first vector in the dot product operation.
+   * @param v2 The second vector in the dot product operation.
+   */
+  @operation
+  static dotProduct(v1: Array1D, v2: Array1D): Scalar {
     util.assert(
         v1.rank === 1 && v2.rank === 1,
         `Error in dotProduct: inputs must be rank 1, but got ranks ` +
@@ -135,22 +134,21 @@ export function dotProduct(v1: Array1D, v2: Array1D): Scalar {
         v1.size === v2.size,
         `Error in dotProduct: size of inputs (${v1.size}) and (` +
             `${v2.size}) must match.`);
-    return matMul(v1.as2D(1, -1), v2.as2D(-1, 1)).asScalar();
-  });
-}
+    return Ops.matMul(v1.as2D(1, -1), v2.as2D(-1, 1)).asScalar();
+  }
 
-/**
- * Computes the outer product of two vectors, v1 and v2.
- * @param v1 The first vector in the outer product operation.
- * @param v2 The second vector in the dot product operation.
- */
-export function outerProduct(v1: Array1D, v2: Array1D): Array2D {
-  return ENV.math.scope('outerProduct', () => {
+  /**
+   * Computes the outer product of two vectors, v1 and v2.
+   * @param v1 The first vector in the outer product operation.
+   * @param v2 The second vector in the dot product operation.
+   */
+  @operation
+  static outerProduct(v1: Array1D, v2: Array1D): Array2D {
     util.assert(
         v1.rank === 1 && v2.rank === 1,
         `Error in outerProduct: inputs must be rank 1, but got ranks ` +
             `${v1.rank} and ${v2.rank}.`);
 
-    return matMul(v1.as2D(-1, 1), v2.as2D(1, -1));
-  });
+    return Ops.matMul(v1.as2D(-1, 1), v2.as2D(1, -1));
+  }
 }
