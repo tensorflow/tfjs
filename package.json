@@ -42,7 +42,7 @@
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . -t verbose",
-    "make-version": "./scripts/make-version"
+    "make-version": "sh -c ./scripts/make-version"
   },
   "dependencies": {
     "seedrandom": "~2.4.3"
