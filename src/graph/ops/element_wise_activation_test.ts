@@ -21,7 +21,7 @@ import {expectArraysClose} from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 // tslint:disable-next-line:max-line-length
-import {Elu, LeakyReLU, PReLU, ReLU, Sigmoid, Square, TanH} from './element_wise_activation';
+import {LeakyReLU, ReLU, Sigmoid, Square, TanH} from './element_wise_activation';
 
 describe('Element wise activation', () => {
   const math = ENV.math;
@@ -89,35 +89,6 @@ describe('Element wise activation', () => {
     const dx = gradients.get(xTensor);
 
     expectArraysClose(dx.dataSync(), new Float32Array([1, 2, 0.6, 4, 5, 1.2]));
-  });
-
-  it('PReLU', () => {
-    const x = Array2D.new([2, 3], [3, 0, -1, 2, -9, -5]);
-    const alpha = Array2D.new([2, 3], [0.15, 0.15, 0.12, 0.3, 0.05, 0.01]);
-
-    const alphaTensor = new Tensor(x.shape);
-    xTensor = new Tensor(x.shape);
-    yTensor = new Tensor(x.shape);
-    activations.set(xTensor, x);
-    activations.set(alphaTensor, alpha);
-
-    const op = new PReLU(xTensor, alphaTensor, yTensor);
-    op.feedForward(math, activations);
-
-    const y = activations.get(yTensor);
-    expectArraysClose(
-        y.dataSync(), new Float32Array([3, 0, -0.12, 2, -0.45, -0.05]));
-
-    // Backprop.
-    const dy = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    gradients.add(yTensor, dy);
-
-    op.backProp(math, activations, gradients);
-
-    const dx = gradients.get(xTensor);
-
-    expectArraysClose(
-        dx.dataSync(), new Float32Array([1, 0, 0.36, 4, 0.25, 0.06]));
   });
 
   it('TanH', () => {
@@ -200,39 +171,5 @@ describe('Element wise activation', () => {
     expect(dx.get(0)).toBe(2 * x.get(0) * dy.get(0));
     expect(dx.get(1)).toBe(2 * x.get(1) * dy.get(1));
     expect(dx.get(2)).toBe(2 * x.get(2) * dy.get(2));
-  });
-
-  it('Elu', () => {
-    const x = Array2D.new([2, 3], [3, 0, -1, 2, 9, -5]);
-
-    xTensor = new Tensor(x.shape);
-    yTensor = new Tensor(x.shape);
-    activations.set(xTensor, x);
-
-    const op = new Elu(xTensor, yTensor);
-    op.feedForward(math, activations);
-
-    const y = activations.get(yTensor);
-    test_util.expectNumbersClose(y.get(0, 0), 3);
-    test_util.expectNumbersClose(y.get(0, 1), 0);
-    test_util.expectNumbersClose(y.get(0, 2), Math.exp(-1) - 1);
-    test_util.expectNumbersClose(y.get(1, 0), 2);
-    test_util.expectNumbersClose(y.get(1, 1), 9);
-    test_util.expectNumbersClose(y.get(1, 2), Math.exp(-5) - 1);
-
-    // Backprop.
-    const dy = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    gradients.add(yTensor, dy);
-
-    op.backProp(math, activations, gradients);
-
-    const dx = gradients.get(xTensor);
-
-    test_util.expectNumbersClose(dx.get(0, 0), 1);
-    test_util.expectNumbersClose(dx.get(0, 1), 2);
-    test_util.expectNumbersClose(dx.get(0, 2), Math.exp(-1) * 3);
-    test_util.expectNumbersClose(dx.get(1, 0), 4);
-    test_util.expectNumbersClose(dx.get(1, 1), 5);
-    test_util.expectNumbersClose(dx.get(1, 2), Math.exp(-5) * 6);
   });
 });

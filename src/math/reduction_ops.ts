@@ -18,13 +18,142 @@
 import {ENV} from '../environment';
 import * as util from '../util';
 import * as axis_util from './axis_util';
-import * as broadcast_util from './broadcast_util';
+import * as binary_ops from './binary_ops';
 import * as compare from './compare';
 import {operation} from './decorators';
-import {DataType, NDArray, Scalar} from './ndarray';
+import {NDArray, Scalar} from './ndarray';
 import * as transpose from './transpose';
+import {DataType, SumTypes} from './types';
+import * as unary_ops from './unary_ops';
 
 export class Ops {
+  /**
+   * Computes the log(sum(exp(elements across the reduction dimensions)).
+   *
+   * Reduces the input along the dimensions given in `axis`. Unless `keepDims`
+   * is true, the rank of the array is reduced by 1 for each entry in `axis`.
+   * If `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If `axis` has no entries, all dimensions are reduced, and an array with a
+   * single element is returned.
+   *
+   * @param input The input NDArray.
+   * @param axis Optional. The dimension(s) to reduce. If null (the default),
+   *     reduces all dimensions.
+   * @param keepDims Optional. If true, retains reduced dimensions with length
+   *     of 1. Defaults to false.
+   */
+  @operation
+  static logSumExp<T extends NDArray<'float32'>>(
+      input: NDArray, axis: number|number[] = null, keepDims = false): T {
+    const axes = axis_util.parseAxisParam(axis, input.shape);
+    const xMax = Ops.max(input, axes, true /* keepDims */);
+    const a = binary_ops.Ops.subtract(input, xMax);
+    const b = unary_ops.Ops.exp(a);
+    const c = Ops.sum(b, axes);
+    const d = unary_ops.Ops.log(c);
+    const res = binary_ops.Ops.add(xMax.reshape(d.shape), d);
+
+    if (keepDims) {
+      const newShape = axis_util.expandShapeToKeepDim(res.shape, axes);
+      return res.reshape(newShape) as T;
+    }
+    return res as T;
+  }
+
+  /**
+   * Computes the sum of elements across dimensions of an array.
+   *
+   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
+   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
+   * If `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If axes has no entries, all dimensions are reduced, and an array with a
+   * single element is returned.
+   *
+   * @param x The input array to compute the sum over.
+   * @param axis Optional. The dimension(s) to reduce. By default it reduces
+   *     all dimensions.
+   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
+   */
+  @operation
+  static sum<D extends DataType, T extends NDArray<SumTypes[D]>>(
+      x: NDArray<D>, axis: number|number[] = null, keepDims = false): T {
+    const axes = axis_util.parseAxisParam(axis, x.shape);
+    // Use a custom gradient to bypass 2 gradient backprops since sum is used
+    // extremely often.
+    return ENV.math.customGradient(() => {
+      const permutation = axis_util.getAxesPermutation(axes, x.rank);
+      let reductionAxes = axes;
+      let permutedX = x;
+      if (permutation != null) {
+        permutedX = transpose.Ops.transpose(x, permutation);
+        reductionAxes =
+            axis_util.getInnerMostAxes(reductionAxes.length, x.rank);
+      }
+      let value = ENV.engine.executeKernel(
+          'Sum', {inputs: {x: permutedX}, args: {axes: reductionAxes}});
+      if (keepDims) {
+        const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
+        value = value.reshape(newShape);
+      }
+
+      const gradients = (dy: NDArray<'float32'>) => {
+        const expandedDyShape = x.shape.slice();
+        axes.forEach(axis => {
+          expandedDyShape[axis] = 1;
+        });
+        const expandedDy = dy.reshape(expandedDyShape);
+        const derX = () => binary_ops.Ops.multiply(
+            expandedDy, NDArray.ones(x.shape, 'float32'));
+        return {x: derX};
+      };
+      return {value, gradients};
+    }, {x}, 'sum') as T;
+  }
+
+  /**
+   * Computes the mean of elements across dimensions of an array.
+   *
+   * Reduces `x` along the dimensions given in `axis`. Unless `keepDims` is
+   * true, the rank of the array is reduced by 1 for each entry in `axis`.
+   * If `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If `axis` has no entries, all dimensions are reduced, and an array with a
+   * single element is returned.
+   *
+   * @param x The input array.
+   * @param axis Optional. The dimension(s) to reduce. By default it reduces
+   *     all dimensions.
+   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
+   */
+  @operation
+  static mean(x: NDArray, axis: number|number[] = null, keepDims = false):
+      NDArray<'float32'> {
+    const axes = axis_util.parseAxisParam(axis, x.shape);
+    const shapes = axis_util.computeOutAndReduceShapes(x.shape, axes);
+    const reduceShape = shapes[1];
+    const reduceSize = util.sizeFromShape(reduceShape);
+    // Use a custom gradient to bypass 2 gradient backprops since mean is used
+    // extremely often.
+    return ENV.math.customGradient(() => {
+      const reduceSizeScalar = Scalar.new(reduceSize);
+      const res = binary_ops.Ops.divide(x, reduceSizeScalar);
+      const value = Ops.sum(res, axis, keepDims);
+
+      const gradients = (dy: NDArray<'float32'>) => {
+        const expandedDyShape = x.shape.slice();
+        axes.forEach(axis => {
+          expandedDyShape[axis] = 1;
+        });
+        const expandedDy = dy.reshape(expandedDyShape);
+        const derX = () => binary_ops.Ops.divide(
+            binary_ops.Ops.multiply(
+                expandedDy, NDArray.ones(x.shape, 'float32')),
+            reduceSizeScalar);
+        return {x: derX};
+      };
+      return {value, gradients};
+    }, {x}, 'mean') as NDArray<'float32'>;
+  }
+
   /**
    * Computes the minimum value from the input.
    *
@@ -59,21 +188,6 @@ export class Ops {
   }
 
   /**
-   * Returns the min of a and b (`a < b ? a : b`) element-wise.
-   * Supports broadcasting.
-   *
-   * @param a The first ndarray.
-   * @param b The second ndarray. Must have the same type as `a`.
-   */
-  @operation
-  static minimum<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.executeKernel('Minimum', {inputs: {a, b}}) as T;
-  }
-
-  /**
    * Computes the maximum of elements across dimensions of an array.
    *
    * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
@@ -104,21 +218,6 @@ export class Ops {
       return res.reshape(newShape) as T;
     }
     return res as T;
-  }
-
-  /**
-   * Returns the max of a and b (`a > b ? a : b`) element-wise.
-   * Supports broadcasting.
-   *
-   * @param a The first ndarray.
-   * @param b The second ndarray. Must have the same type as `a`.
-   */
-  @operation
-  static maximum<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.executeKernel('Maximum', {inputs: {a, b}}) as T;
   }
 
   /**

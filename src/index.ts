@@ -17,22 +17,26 @@
 
 import * as xhr_dataset from './data/xhr-dataset';
 import * as environment from './environment';
+import * as array_ops from './math/array_ops';
 import * as gpgpu_util from './math/backends/webgl/gpgpu_util';
 // tslint:disable-next-line:max-line-length
 import * as render_ndarray_gpu_util from './math/backends/webgl/render_ndarray_gpu_util';
 import * as webgl_util from './math/backends/webgl/webgl_util';
 import * as batchnorm from './math/batchnorm';
+import * as binary_ops from './math/binary_ops';
 import * as compare from './math/compare';
 import * as concat from './math/concat';
 import * as conv from './math/conv';
 import * as conv_util from './math/conv_util';
 // tslint:disable-next-line:max-line-length
 import * as matmul from './math/matmul';
-import * as minmax from './math/minmax';
+import {Ops as NormOps} from './math/norm';
 import * as pool from './math/pool';
+import * as reduction_ops from './math/reduction_ops';
 import * as reverse from './math/reverse';
 import * as slice from './math/slice';
 import {Ops as TranposeOps} from './math/transpose';
+import * as unary_ops from './math/unary_ops';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
@@ -115,13 +119,14 @@ export const slice2D = slice.Ops.slice2D;
 export const slice3D = slice.Ops.slice3D;
 export const slice4D = slice.Ops.slice4D;
 
-export const min = minmax.Ops.min;
-export const max = minmax.Ops.max;
-export const minimum = minmax.Ops.minimum;
-export const maximum = minmax.Ops.maximum;
-export const argMax = minmax.Ops.argMax;
-export const argMin = minmax.Ops.argMin;
-export const argMaxEquals = minmax.Ops.argMaxEquals;
+export const argMax = reduction_ops.Ops.argMax;
+export const argMaxEquals = reduction_ops.Ops.argMaxEquals;
+export const argMin = reduction_ops.Ops.argMin;
+export const logSumExp = reduction_ops.Ops.logSumExp;
+export const max = reduction_ops.Ops.max;
+export const mean = reduction_ops.Ops.mean;
+export const min = reduction_ops.Ops.min;
+export const sum = reduction_ops.Ops.sum;
 
 export const equal = compare.Ops.equal;
 export const equalStrict = compare.Ops.equalStrict;
@@ -131,3 +136,55 @@ export const less = compare.Ops.less;
 export const lessEqual = compare.Ops.lessEqual;
 export const notEqual = compare.Ops.notEqual;
 export const notEqualStrict = compare.Ops.notEqualStrict;
+
+export const abs = unary_ops.Ops.abs;
+export const acos = unary_ops.Ops.acos;
+export const asin = unary_ops.Ops.asin;
+export const atan = unary_ops.Ops.atan;
+export const ceil = unary_ops.Ops.ceil;
+export const clip = unary_ops.Ops.clip;
+export const cos = unary_ops.Ops.cos;
+export const cosh = unary_ops.Ops.cosh;
+export const elu = unary_ops.Ops.elu;
+export const exp = unary_ops.Ops.exp;
+export const floor = unary_ops.Ops.floor;
+export const leakyRelu = unary_ops.Ops.leakyRelu;
+export const log = unary_ops.Ops.log;
+export const neg = unary_ops.Ops.neg;
+export const prelu = unary_ops.Ops.prelu;
+export const relu = unary_ops.Ops.relu;
+export const selu = unary_ops.Ops.selu;
+export const sigmoid = unary_ops.Ops.sigmoid;
+export const sin = unary_ops.Ops.sin;
+export const sinh = unary_ops.Ops.sinh;
+export const sqrt = unary_ops.Ops.sqrt;
+export const square = unary_ops.Ops.square;
+export const step = unary_ops.Ops.step;
+export const tan = unary_ops.Ops.tan;
+export const tanh = unary_ops.Ops.tanh;
+
+export const add = binary_ops.Ops.add;
+export const addStrict = binary_ops.Ops.addStrict;
+export const divide = binary_ops.Ops.divide;
+export const divideStrict = binary_ops.Ops.divideStrict;
+export const maximum = binary_ops.Ops.maximum;
+export const minimum = binary_ops.Ops.minimum;
+export const multiply = binary_ops.Ops.multiply;
+export const multiplyStrict = binary_ops.Ops.multiplyStrict;
+export const pow = binary_ops.Ops.pow;
+export const powStrict = binary_ops.Ops.powStrict;
+export const subStrict = binary_ops.Ops.subStrict;
+export const subtract = binary_ops.Ops.subtract;
+
+export const norm = NormOps.norm;
+
+export const clone = array_ops.Ops.clone;
+export const fromPixels = array_ops.Ops.fromPixels;
+export const ones = array_ops.Ops.ones;
+export const onesLike = array_ops.Ops.onesLike;
+export const zeros = array_ops.Ops.zeros;
+export const zerosLike = array_ops.Ops.zerosLike;
+export const rand = array_ops.Ops.rand;
+export const randNormal = array_ops.Ops.randNormal;
+export const randTruncatedNormal = array_ops.Ops.randTruncatedNormal;
+export const randUniform = array_ops.Ops.randUniform;

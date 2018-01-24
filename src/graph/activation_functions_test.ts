@@ -15,11 +15,11 @@
  * =============================================================================
  */
 import {ENV} from '../environment';
+import {Array1D} from '../math/ndarray';
 import * as test_util from '../test_util';
 import * as util from '../util';
 // tslint:disable-next-line:max-line-length
-import {EluFunc, LeakyReluFunc, ReLUFunc, SigmoidFunc, TanHFunc} from './activation_functions';
-import {Array1D} from './ndarray';
+import {LeakyReluFunc, ReLUFunc, SigmoidFunc, TanHFunc} from './activation_functions';
 
 describe('Activation functions', () => {
   const math = ENV.math;
@@ -112,26 +112,5 @@ describe('Activation functions', () => {
     test_util.expectNumbersClose(dx.get(0), y.get(0) * (1 - y.get(0)));
     test_util.expectNumbersClose(dx.get(1), y.get(1) * (1 - y.get(1)));
     test_util.expectNumbersClose(dx.get(2), y.get(2) * (1 - y.get(2)));
-  });
-
-  it('ELU output', () => {
-    const x = Array1D.new([1, 3, -2]);
-    const elu = new EluFunc();
-    const y = elu.output(math, x);
-
-    test_util.expectNumbersClose(y.get(0), 1);
-    test_util.expectNumbersClose(y.get(1), 3);
-    test_util.expectNumbersClose(y.get(2), Math.exp(-2.0) - 1.0);
-  });
-
-  it('ELU derivative', () => {
-    const x = Array1D.new([1, 3, -2]);
-    const elu = new EluFunc();
-    const y = elu.output(math, x);
-    const dx = elu.der(math, x, y);
-
-    test_util.expectNumbersClose(dx.get(0), 1);
-    test_util.expectNumbersClose(dx.get(1), 1);
-    test_util.expectNumbersClose(dx.get(2), Math.exp(-2.0));
   });
 });

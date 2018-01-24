@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {DataType, NDArray} from '../../ndarray';
+import {NDArray} from '../../ndarray';
+import {DataType} from '../../types';
 import {KernelNode} from '../tape_types';
 
 // Equal/NotEqual/Less/LessEqual/Greater/GreaterEqual

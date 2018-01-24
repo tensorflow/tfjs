@@ -1,5 +1,3 @@
-import {DataType, DataTypeMap} from '../../ndarray';
-
 /**
  * @license
  * Copyright 2017 Google Inc. All Rights Reserved.
@@ -16,6 +14,8 @@ import {DataType, DataTypeMap} from '../../ndarray';
  * limitations under the License.
  * =============================================================================
  */
+
+import {DataType, DataTypeMap} from '../../types';
 
 export enum TextureType {
   DEFAULT,

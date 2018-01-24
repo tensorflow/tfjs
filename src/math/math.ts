@@ -25,20 +25,23 @@ import {BackendEngine} from './backends/backend_engine';
 import {TapeNodeInputGradientArrays} from './backends/tape_types';
 import {ScopeFn, ScopeResult, ScopeResultImmediate} from './backends/tape_util';
 import * as batchnorm from './batchnorm';
+import * as binary_ops from './binary_ops';
 import * as broadcast_util from './broadcast_util';
 import * as compare from './compare';
 import * as concat from './concat';
 import * as conv from './conv';
 import * as matmul from './matmul';
-import * as minmax from './minmax';
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, DataType, DataTypeMap, NDArray, Rank, RankMap, Scalar, Variable} from './ndarray';
+import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, Variable} from './ndarray';
+import * as norm from './norm';
 import * as pool from './pool';
+import * as reduction_ops from './reduction_ops';
 import * as reverse from './reverse';
 import * as slice from './slice';
 import * as transpose from './transpose';
 import * as types from './types';
-import {SumTypes} from './types';
+import {DataType, DataTypeMap, Rank, RankMap} from './types';
+import * as unary_ops from './unary_ops';
 
 export interface LSTMCell {
   (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
@@ -63,6 +66,7 @@ export class NDArrayMath implements NDArrayManager {
   matrixTimesVector = matmul.Ops.matrixTimesVector;
   dotProduct = matmul.Ops.dotProduct;
 
+  slice = slice.Ops.slice;
   slice1D = slice.Ops.slice1D;
   slice2D = slice.Ops.slice2D;
   slice3D = slice.Ops.slice3D;
@@ -99,13 +103,35 @@ export class NDArrayMath implements NDArrayManager {
   /** @deprecated */
   conv2dDerInput = conv.Ops.conv2dDerInput;
 
-  argMax = minmax.Ops.argMax;
-  argMaxEquals = minmax.Ops.argMaxEquals;
-  argMin = minmax.Ops.argMin;
-  max = minmax.Ops.max;
-  maximum = minmax.Ops.maximum;
-  min = minmax.Ops.min;
-  minimum = minmax.Ops.minimum;
+  argMax = reduction_ops.Ops.argMax;
+  argMaxEquals = reduction_ops.Ops.argMaxEquals;
+  argMin = reduction_ops.Ops.argMin;
+  logSumExp = reduction_ops.Ops.logSumExp;
+  max = reduction_ops.Ops.max;
+  mean = reduction_ops.Ops.mean;
+  min = reduction_ops.Ops.min;
+  sum = reduction_ops.Ops.sum;
+
+  add = binary_ops.Ops.add;
+  addStrict = binary_ops.Ops.addStrict;
+  /** @deprecated */
+  arrayDividedByScalar = binary_ops.Ops.arrayDividedByScalar;
+  divide = binary_ops.Ops.divide;
+  divideStrict = binary_ops.Ops.divideStrict;
+  /** @deprecated */
+  elementWiseMul = binary_ops.Ops.elementWiseMul;
+  maximum = binary_ops.Ops.maximum;
+  minimum = binary_ops.Ops.minimum;
+  multiply = binary_ops.Ops.multiply;
+  multiplyStrict = binary_ops.Ops.multiplyStrict;
+  pow = binary_ops.Ops.pow;
+  powStrict = binary_ops.Ops.powStrict;
+  /** @deprecated */
+  scalarDividedByArray = binary_ops.Ops.scalarDividedByArray;
+  /** @deprecated */
+  sub = binary_ops.Ops.sub;
+  subStrict = binary_ops.Ops.subStrict;
+  subtract = binary_ops.Ops.subtract;
 
   transpose = transpose.Ops.transpose;
 
@@ -117,6 +143,34 @@ export class NDArrayMath implements NDArrayManager {
   lessEqual = compare.Ops.lessEqual;
   notEqual = compare.Ops.notEqual;
   notEqualStrict = compare.Ops.notEqualStrict;
+
+  abs = unary_ops.Ops.abs;
+  acos = unary_ops.Ops.acos;
+  asin = unary_ops.Ops.asin;
+  atan = unary_ops.Ops.atan;
+  ceil = unary_ops.Ops.ceil;
+  clip = unary_ops.Ops.clip;
+  cos = unary_ops.Ops.cos;
+  cosh = unary_ops.Ops.cosh;
+  elu = unary_ops.Ops.elu;
+  exp = unary_ops.Ops.exp;
+  floor = unary_ops.Ops.floor;
+  leakyRelu = unary_ops.Ops.leakyRelu;
+  log = unary_ops.Ops.log;
+  neg = unary_ops.Ops.neg;
+  prelu = unary_ops.Ops.prelu;
+  relu = unary_ops.Ops.relu;
+  selu = unary_ops.Ops.selu;
+  sigmoid = unary_ops.Ops.sigmoid;
+  sin = unary_ops.Ops.sin;
+  sinh = unary_ops.Ops.sinh;
+  sqrt = unary_ops.Ops.sqrt;
+  square = unary_ops.Ops.square;
+  step = unary_ops.Ops.step;
+  tan = unary_ops.Ops.tan;
+  tanh = unary_ops.Ops.tanh;
+
+  norm = norm.Ops.norm;
 
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
@@ -325,135 +379,6 @@ export class NDArrayMath implements NDArrayManager {
     };
     return this.engine.executeKernel(
                'Cast', {inputs: {x}, args: {newDType}}, grad) as RankMap<D>[R];
-  }
-
-  /**
-   * Computes the log(sum(exp(elements across the reduction dimensions)).
-   *
-   * Reduces the input along the dimensions given in `axis`. Unless `keepDims`
-   * is true, the rank of the array is reduced by 1 for each entry in `axis`.
-   * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If `axis` has no entries, all dimensions are reduced, and an array with a
-   * single element is returned.
-   *
-   * @param input The input NDArray.
-   * @param axis Optional. The dimension(s) to reduce. If null (the default),
-   *     reduces all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with length
-   *     of 1. Defaults to false.
-   */
-  logSumExp<T extends NDArray<'float32'>>(
-      input: NDArray, axis: number|number[] = null, keepDims = false): T {
-    const axes = axis_util.parseAxisParam(axis, input.shape);
-    return this.scope('logSumExp', () => {
-      const xMax = this.max(input, axes, true /* keepDims */);
-      const a = this.subtract(input, xMax);
-      const b = this.exp(a);
-      const c = this.sum(b, axes);
-      const d = this.log(c);
-      const res = this.add(xMax.reshape(d.shape), d);
-
-      if (keepDims) {
-        const newShape = axis_util.expandShapeToKeepDim(res.shape, axes);
-        return res.reshape(newShape);
-      }
-      return res;
-    }) as T;
-  }
-
-  /**
-   * Computes the sum of elements across dimensions of an array.
-   *
-   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
-   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
-   * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If axes has no entries, all dimensions are reduced, and an array with a
-   * single element is returned.
-   *
-   * @param x The input array to compute the sum over.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
-   *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
-   */
-  sum<D extends DataType, T extends NDArray<SumTypes[D]>>(
-      x: NDArray<D>, axis: number|number[] = null, keepDims = false): T {
-    const axes = axis_util.parseAxisParam(axis, x.shape);
-    return this.scope('sum', () => {
-      // Use a custom gradient to bypass 2 gradient backprops since sum is used
-      // extremely often.
-      return this.customGradient(() => {
-        const permutation = axis_util.getAxesPermutation(axes, x.rank);
-        let reductionAxes = axes;
-        let permutedX = x;
-        if (permutation != null) {
-          permutedX = this.transpose(x, permutation);
-          reductionAxes =
-              axis_util.getInnerMostAxes(reductionAxes.length, x.rank);
-        }
-        let value = this.engine.executeKernel(
-            'Sum', {inputs: {x: permutedX}, args: {axes: reductionAxes}});
-        if (keepDims) {
-          const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
-          value = value.reshape(newShape);
-        }
-
-        const gradients = (dy: NDArray<'float32'>) => {
-          const expandedDyShape = x.shape.slice();
-          axes.forEach(axis => {
-            expandedDyShape[axis] = 1;
-          });
-          const expandedDy = dy.reshape(expandedDyShape);
-          const derX = () =>
-              this.multiply(expandedDy, NDArray.ones(x.shape, 'float32'));
-          return {x: derX};
-        };
-        return {value, gradients};
-      }, {x}, 'sum');
-    }) as T;
-  }
-
-  /**
-   * Computes the mean of elements across dimensions of an array.
-   *
-   * Reduces `x` along the dimensions given in `axis`. Unless `keepDims` is
-   * true, the rank of the array is reduced by 1 for each entry in `axis`.
-   * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If `axis` has no entries, all dimensions are reduced, and an array with a
-   * single element is returned.
-   *
-   * @param x The input array.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
-   *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
-   */
-  mean(x: NDArray, axis: number|number[] = null, keepDims = false):
-      NDArray<'float32'> {
-    const axes = axis_util.parseAxisParam(axis, x.shape);
-    const shapes = axis_util.computeOutAndReduceShapes(x.shape, axes);
-    const reduceShape = shapes[1];
-    const reduceSize = util.sizeFromShape(reduceShape);
-    return this.scope('mean', () => {
-      // Use a custom gradient to bypass 2 gradient backprops since mean is used
-      // extremely often.
-      return this.customGradient(() => {
-        const reduceSizeScalar = Scalar.new(reduceSize);
-        const res = this.divide(x, reduceSizeScalar);
-        const value = this.sum(res, axis, keepDims);
-
-        const gradients = (dy: NDArray<'float32'>) => {
-          const expandedDyShape = x.shape.slice();
-          axes.forEach(axis => {
-            expandedDyShape[axis] = 1;
-          });
-          const expandedDy = dy.reshape(expandedDyShape);
-          const derX = () => this.divide(
-              this.multiply(expandedDy, NDArray.ones(x.shape, 'float32')),
-              reduceSizeScalar);
-          return {x: derX};
-        };
-        return {value, gradients};
-      }, {x}, 'mean') as NDArray<'float32'>;
-    });
   }
 
   /**
@@ -769,524 +694,6 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
-   * Computes -1 * A element-wise.
-   * @param x The input array.
-   */
-  neg<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Neg', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Adds two NDArrays element-wise, A + B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.addStrict().
-   *
-   * @param a The first `NDArray` to add.
-   * @param b The second `NDArray` to add. Must have the same type as `a`.
-   */
-  add<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
-      const derA = () => {
-        let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
-        if (reduceAxes.length > 0) {
-          res = this.sum(res, reduceAxes);
-        }
-        return res.reshape(a.shape);
-      };
-      const derB = () => {
-        let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
-        if (reduceAxes.length > 0) {
-          res = this.sum(res, reduceAxes);
-        }
-        return res.reshape(b.shape);
-      };
-      return {a: derA, b: derB};
-    };
-    return this.engine.executeKernel('Add', {inputs: {a, b}}, der) as T;
-  }
-
-  /**
-   * Adds two NDArrays element-wise, A + B. Inputs must
-   * be the same shape. For broadcasting support, use math.add() instead.
-   *
-   * @param a The first NDArray to multiply element-wise.
-   * @param b The second NDArray to multiply element-wise.
-   */
-  addStrict<T extends NDArray>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
-    return this.add(a, b) as T;
-  }
-
-  /**
-   * Subtracts two NDArrays element-wise, A - B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.subStrict().
-   *
-   * @param a The first `NDArray`.
-   * @param b The second `NDArray`. Must have the same dtype as `a`.
-   */
-  subtract<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
-      const derA = () => {
-        let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
-        if (reduceAxes.length > 0) {
-          res = this.sum(res, reduceAxes);
-        }
-        return res.reshape(a.shape);
-      };
-      const derB = () => {
-        let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
-        if (reduceAxes.length > 0) {
-          res = this.sum(res, reduceAxes);
-        }
-        return this.neg(res).reshape(b.shape);
-      };
-      return {a: derA, b: derB};
-    };
-    return this.engine.executeKernel('Sub', {inputs: {a, b}}, der) as T;
-  }
-
-  /**
-   * Computes the power of one value to another.
-   * Given a tensor x and a tensor y, this operation computes x^y for
-   * corresponding elements in x and y. For example:
-   * x = tf.constant([[2, 2], [3, 3]])
-   * y = tf.constant([[8, 16], [2, 3]])
-   * pow(x, y)  # [[256, 65536], [9, 27]]
-   *
-   * @param a The base NDArray to pow element-wise.
-   * @param b The exponent NDArray to pow element-wise.
-   */
-  pow<D extends DataType, T extends NDArray<D>>(
-      a: NDArray<D>, b: NDArray<'int32'>): T {
-    util.assert(
-        b.dtype === 'int32',
-        'only supports int32 data type for the exponent parameter.');
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-
-    const gradient = (dy: NDArray<'float32'>, y: NDArray<D>) => {
-      if (!util.arraysEqual(a.shape, b.shape)) {
-        throw new Error(
-            `Gradient of pow not yet supported for broadcasted shapes.`);
-      }
-      const derA = () => {
-        return this.multiply(
-            dy,
-            this.multiply(
-                b.asType(a.dtype),
-                this.pow(a, this.subtract(b, Scalar.new(1, 'int32')))));
-      };
-      const derB = () => {
-        throw new Error(
-            `Backprop through exponent of math.pow not ` +
-            `implemented yet.`);
-      };
-      return {a: derA, b: derB};
-    };
-
-    return this.engine.executeKernel('Pow', {inputs: {a, b}}, gradient) as T;
-  }
-
-  /**
-   * Computes the power of one value to another. Inputs must
-   * be the same shape. For broadcasting support, use math.pow() instead.
-   *
-   * @param a The base NDArray to pow element-wise.
-   * @param b The exponent NDArray to pow element-wise.
-   */
-  powStrict<D extends DataType>(a: NDArray<D>, b: NDArray<'int32'>):
-      NDArray<D> {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in powStrict: ');
-    return this.pow(a, b);
-  }
-
-  /** @deprecated Use math.subtract instead. */
-  sub<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    return this.subtract(a, b);
-  }
-
-  /**
-   * Subtracts two NDArrays element-wise, A - B. Inputs must
-   * be the same shape. For broadcasting support, use math.sub() instead.
-   *
-   * @param a The first NDArray to multiply element-wise.
-   * @param b The second NDArray to multiply element-wise.
-   */
-  subStrict<T extends NDArray>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
-    return this.subtract(a, b);
-  }
-
-  /**
-   * Multiplies two NDArrays element-wise, A * B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.multiplyStrict().
-   *
-   * @param a The first `NDArray`.
-   * @param b The second `NDArray`. Must have the same dtype as `a`.
-   */
-  multiply<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    util.assertTypesMatch(a, b);
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
-      const derA = () => {
-        const res = this.multiply(dy, b.asType('float32'));
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
-        if (reduceAxes.length > 0) {
-          return this.sum(res, reduceAxes).reshape(a.shape);
-        }
-        return res;
-      };
-      const derB = () => {
-        const res = this.multiply(dy, a.asType('float32'));
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
-        if (reduceAxes.length > 0) {
-          return this.sum(res, reduceAxes).reshape(b.shape);
-        }
-        return res;
-      };
-      return {a: derA, b: derB};
-    };
-    return this.engine.executeKernel('Mul', {inputs: {a, b}}, der) as T;
-  }
-
-  /**
-   * @deprecated Use math.multiplyStrict() instead.
-   */
-  elementWiseMul<T extends NDArray>(a: T, b: T): T {
-    return this.multiplyStrict(a, b);
-  }
-
-  /**
-   * Multiplies two NDArrays element-wise, A * B. Inputs must
-   * be the same shape. For broadcasting support, use math.multiply() instead.
-   *
-   * @param a The first NDArray to multiply element-wise.
-   * @param b The second NDArray to multiply element-wise.
-   */
-  multiplyStrict<T extends NDArray>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in multiplyStrict: ');
-    return this.multiply(a, b) as T;
-  }
-
-  /**
-   * Divides two NDArrays element-wise, A / B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.divideStrict().
-   *
-   * @param a The first NDArray to divide element-wise.
-   * @param b The second NDArray to divide element-wise.
-   */
-  divide<T extends NDArray<'float32'>>(a: NDArray, b: NDArray): T {
-    const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
-      const derA = () => {
-        const res = this.divide(dy, b.asType('float32'));
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
-        if (reduceAxes.length > 0) {
-          return this.sum(res, reduceAxes).reshape(a.shape);
-        }
-        return res;
-      };
-      const derB = () => {
-        let res = this.multiply(dy, a.asType('float32'));
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
-        if (reduceAxes.length > 0) {
-          res = this.sum(res, reduceAxes).reshape(b.shape);
-        }
-        return this.neg(this.divide(res, this.square(b)));
-      };
-      return {a: derA, b: derB};
-    };
-    return this.engine.executeKernel('Div', {inputs: {a, b}}, der) as T;
-  }
-
-  /**
-   * Divides two NDArrays element-wise, A / B. Inputs must
-   * be the same shape. For broadcasting support, use math.divide() instead.
-   *
-   * @param a The first NDArray to multiply element-wise.
-   * @param b The second NDArray to multiply element-wise.
-   */
-  divideStrict<T extends NDArray>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
-    return this.divide(a, b) as T;
-  }
-
-  /** @deprecated Use math.divide(c, A) instead. */
-  scalarDividedByArray<T extends NDArray>(c: Scalar, a: T): T {
-    util.assert(
-        c.size === 1,
-        `Error in scalarDividedByArray: first argument must be rank 0, but ` +
-            `got NDArray of rank ${c.rank}.`);
-    return this.divide(c, a) as T;
-  }
-
-  /** @deprecated Use math.divide(A, c) instead. */
-  arrayDividedByScalar<T extends NDArray>(a: T, c: Scalar): T {
-    util.assert(
-        c.size === 1,
-        `Error in arrayDividedByScalar: second argument must be rank 0, ` +
-            `but got NDArray of rank ${c.rank}.`);
-    return this.divide(a, c) as T;
-  }
-
-  /**
-   * Computes ceiling of input NDArray element-wise. y = ceil(x)
-   * TODO(nsthorat): Make this return an int32 when we add rank as a
-   * generic.
-   * @param x The input NDArray.
-   */
-  ceil<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Ceil', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes floor of input NDArray element-wise. y = floor(x).
-   *
-   * @param x The input NDArray.
-   */
-  floor<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Floor', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes exponential of the input NDArray element-wise. y = e ^ x
-   * @param x The input NDArray.
-   */
-  exp<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Exp', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes natural logarithm of the input NDArray element-wise. y = ln(x)
-   * @param x The input NDArray.
-   */
-  log<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Log', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes square root of the input NDArray element-wise. y = sqrt(x)
-   * @param x The input NDArray.
-   */
-  sqrt<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Sqrt', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes square of `x` element-wise.
-   *
-   * @param x The input array.
-   */
-  square<D extends DataType, R extends Rank, T extends NDArray<D, R>>(x: T): T {
-    return this.engine.executeKernel(
-               'Square', {inputs: {x}}, (dy: NDArray<'float32', R>, y: T) => {
-                 return {
-                   x: () => this.multiply(
-                       dy, this.multiply(x.asType('float32'), Scalar.new(2)))
-                 };
-               }) as T;
-  }
-
-  /**
-   * Computes absolute value element-wise.
-   * @param x The input NDArray.
-   */
-  abs<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Abs', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Clips values element-wise.
-   * @param x The input NDArray.
-   * @param min Lower-bound of range to be clipped to.
-   * @param max Upper-bound of range to be clipped to.
-   */
-  clip<T extends NDArray>(x: T, min: number, max: number): T {
-    util.assert(
-        (min <= max),
-        `Error in clip: min (${min}) must be` +
-            `less than or equal to max (${max}).`);
-    return this.engine.executeKernel('Clip', {inputs: {x}, args: {min, max}}) as
-        T;
-  }
-
-  /**
-   * Computes rectified linear element-wise, max(x, 0).
-   * @param x The input NDArray.
-   */
-  relu<D extends DataType, R extends Rank, T extends NDArray<D, R>>(x: T): T {
-    return this.engine.executeKernel(
-               'Relu', {inputs: {x}}, (dy: NDArray<'float32', R>, y: T) => {
-                 return {
-                   x: () => this.multiply(dy, this.step(x).asType('float32'))
-                 };
-               }) as T;
-  }
-
-  /**
-   * Computes exponential linear element-wise
-   * @param {T} x the input NDArray
-   */
-  elu<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Elu', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes the derivative of elu which is used ly
-   * @hidden
-   */
-  eluDer<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('EluDer', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes scaled exponential linear element-wise.
-   * @hidden
-   */
-  selu<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Selu', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes leaky rectified linear element-wise
-   * @param {T} x the input NDArray
-   * @param alpha scaling factor for negative values, defaults to 0.2
-   * @return {NDArray}
-   */
-  leakyRelu<T extends NDArray>(x: T, alpha = 0.2): T {
-    return this.engine.executeKernel(
-               'LeakyRelu', {inputs: {x}, args: {alpha}}) as T;
-  }
-
-  /**
-   * Computes leaky rectified linear element-wise with parametric alphas
-   * @param {T} x the input NDArray
-   * @param {T} alpha scaling factor NDArray for negative values
-   * @return {NDArray}
-   */
-  prelu<T extends NDArray>(x: T, alpha: T): T {
-    return this.engine.executeKernel('PReLU', {inputs: {x, alpha}}) as T;
-  }
-
-  /**
-   * Computes the derivative of PReLU
-   * @param {T} x the input NDArray
-   * @param {T} alpha scaling factor NDArray for negative values
-   * @return {NDArray}
-   */
-  preluDer<T extends NDArray>(x: T, alpha: T): T {
-    return this.engine.executeKernel('PReLUDer', {inputs: {x, alpha}}) as T;
-  }
-
-  /**
-   * Computes sigmoid element-wise, y = 1 / (1 + exp(-x)).
-   * @param x The input NDArray.
-   */
-  sigmoid<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Sigmoid', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes sin of the input NDArray element-wise, y = sin(x).
-   * @param x The input NDArray.
-   */
-  sin<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Sin', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes cos of the input NDArray element-wise, y = cos(x).
-   * @param x The input NDArray.
-   */
-  cos<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Cos', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes tan of the input NDArray element-wise, y = tan(x).
-   * @param x The input NDArray.
-   */
-  tan<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Tan', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes asin of the input NDArray element-wise, y = asin(x).
-   * @param x The input NDArray.
-   */
-  asin<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Asin', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes acos of the input NDArray element-wise, y = acos(x).
-   * @param x The input NDArray.
-   */
-  acos<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Acos', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes atan of the input NDArray element-wise, y = atan(x).
-   * @param x The input NDArray.
-   */
-  atan<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Atan', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes hyperbolic sin of the input NDArray element-wise, y = sinh(x).
-   * @param x The input NDArray.
-   */
-  sinh<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Sinh', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes hyperbolic cos of the input NDArray element-wise, y = cosh(x).
-   * @param x The input NDArray.
-   */
-  cosh<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Cosh', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes hyperbolic tangent of the input NDArray element-wise.
-   * @param x The input NDArray.
-   */
-  tanh<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Tanh', {inputs: {x}}) as T;
-  }
-
-  /**
-   * Computes step of the input NDArray element-wise,
-   * y=1 if x>0|alpha*x if x<=0.
-   *
-   * @param x The input NDArray.
-   * @param alpha The gradient when input is negative.
-   */
-  step<T extends NDArray>(x: T, alpha = 0.0): T {
-    return this.engine.executeKernel('Step', {inputs: {x}, args: {alpha}}) as T;
-  }
-
-  /**
    * Computes a scaled array add operation, c1 * A + c2 * B.
    * @param c1 The first scalar in the scaled array add computation.
    * @param a The first NDArray in the scaled array add computation.
@@ -1587,107 +994,6 @@ export class NDArrayMath implements NDArrayManager {
       return {mean, variance};
     });
     return result;
-  }
-
-  /**
-   * Computes the norm of scalar, vectors, and matrices.
-   * This function can compute several different vector norms (the 1-norm, the
-   * Euclidean or 2-norm, the inf-norm, and in general the p-norm for p > 0)
-   * and matrix norms (Frobenius, 1-norm, and inf-norm).
-   *
-   * @param x The input array.
-   * @param ord Optional. Order of the norm. Supported norm types are
-   * following: ord         norm for matrices          norm for vectors
-   *     -------------------------------------------------------
-   *     'euclidean' Frobenius norm             2-norm
-   *     ‘fro’       Frobenius norm	            –
-   *     Infinity    max(sum(abs(x), axis=1))   max(abs(x))
-   *     -Infinity   min(sum(abs(x), axis=1))   min(abs(x))
-   *     1           max(sum(abs(x), axis=0))   sum(abs(x))
-   *     2           -                          sum(abs(x)^2)^1/2*
-   *
-   * @param axis Optional. If axis is null (the default), the input is
-   * considered a vector and a single vector norm is computed over the entire
-   * set of values in the NDArray, i.e. norm(x, ord) is equivalent
-   * to norm(x.reshape([-1]), ord). If axis is a integer, the input
-   * is considered a batch of vectors, and axis determines the axis in x
-   * over which to compute vector norms. If axis is a 2-tuple of integer it is
-   * considered a batch of matrices and axis determines the axes in NDArray
-   * over which to compute a matrix norm.
-   * @param keepDims Optional. If true, the norm have the same dimensionality
-   * as the input.
-   */
-  norm<D extends DataType>(
-      x: NDArray<D>, ord: number|'euclidean'|'fro' = 'euclidean',
-      axis: number|number[] = null, keepDims = false): NDArray<D|SumTypes[D]> {
-    return this.scope('norm', () => {
-      const norm = this.normInternal(x, ord, axis);
-      let keepDimsShape = norm.shape;
-      if (keepDims) {
-        const axes = axis_util.parseAxisParam(axis, x.shape);
-        keepDimsShape = axis_util.expandShapeToKeepDim(norm.shape, axes);
-      }
-      return norm.reshape(keepDimsShape);
-    });
-  }
-
-  /**
-   * Calculate the norm for different NDAarray.
-   */
-  private normInternal<D extends DataType>(
-      x: NDArray<D>, p: number|string,
-      axis: number|number[] = null): NDArray<D|SumTypes[D]> {
-    // scalar
-    if (x.rank === 0) {
-      return this.abs(x);
-    }
-
-    // consider vector when no axis is specified
-    if (x.rank !== 1 && axis === null) {
-      return this.normInternal(x.reshape([-1]), p, axis);
-    }
-
-    // vector
-    if (x.rank === 1 || typeof axis === 'number' ||
-        axis instanceof Array && axis.length === 1) {
-      if (p === 1) {
-        return this.sum(this.abs(x), axis);
-      }
-      if (p === Infinity) {
-        return this.max(this.abs(x), axis);
-      }
-      if (p === -Infinity) {
-        return this.min(this.abs(x), axis);
-      }
-      if (p === 'euclidean' || p === 2) {
-        // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-        return this.sqrt(
-            this.sum(this.pow(this.abs(x), Scalar.new(2, 'int32')), axis));
-      }
-
-      throw new Error(`Error in norm: invalid ord value: ${p}`);
-    }
-
-    // matrix (assumption axis[0] < axis[1])
-    if (axis instanceof Array && axis.length === 2) {
-      if (p === 1) {
-        return this.max(this.sum(this.abs(x), axis[0]), axis[1] - 1);
-      }
-      if (p === Infinity) {
-        return this.max(this.sum(this.abs(x), axis[1]), axis[0]);
-      }
-      if (p === -Infinity) {
-        return this.min(this.sum(this.abs(x), axis[1]), axis[0]);
-      }
-      if (p === 'fro' || p === 'euclidean') {
-        // norm(x) = sqrt(sum(pow(x, 2)))
-        return this.sqrt(this.sum(this.pow(x, Scalar.new(2, 'int32')), axis));
-      }
-
-      throw new Error(`Error in norm: invalid ord value: ${p}`);
-    }
-
-    throw new Error(`Error in norm: invalid axis: ${axis}`);
   }
 
   /**

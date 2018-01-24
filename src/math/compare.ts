@@ -19,7 +19,8 @@ import {ENV} from '../environment';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './decorators';
-import {DataType, NDArray, Rank, RankMap} from './ndarray';
+import {NDArray} from './ndarray';
+import {DataType, Rank, RankMap} from './types';
 
 export class Ops {
   /**

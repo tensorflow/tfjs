@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat1DNode, Concat2DNode, Concat3DNode, Concat4DNode, Convolution2DNode, DivideNode, ExpNode, EluNode, FusedLinearCombinationNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, ReduceSumNode, ReLUNode, PReLUNode, LeakyReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SquareNode, SubtractNode, TanHNode} from './graph';
+import {AddNode, ArgMaxEqualsNode, ArgMaxNode, Concat1DNode, Concat2DNode, Concat3DNode, Concat4DNode, Convolution2DNode, DivideNode, EluNode, ExpNode, FusedLinearCombinationNode, LeakyReLUNode, LogNode, MatMulNode, MaxPoolNode, MeanSquaredCostNode, MultiplyNode, Node, PReLUNode, ReduceSumNode, ReLUNode, ReshapeNode, SigmoidNode, SoftmaxCrossEntropyCostNode, SoftmaxNode, SquareNode, SubtractNode, TanHNode} from './graph';
 import * as graph_util from './graph_util';
 import {Add} from './ops/add';
 import {ArgMax} from './ops/argmax';
@@ -25,7 +25,7 @@ import {Concat1D, Concat2D, Concat3D, Concat4D} from './ops/concat';
 import {Convolution2D} from './ops/convolution';
 import {Divide} from './ops/divide';
 // tslint:disable-next-line:max-line-length
-import {ReLU, Sigmoid, Square, TanH, LeakyReLU, PReLU, Elu} from './ops/element_wise_activation';
+import {Elu, LeakyReLU, PReLU, ReLU, Sigmoid, Square, TanH} from './ops/element_wise_activation';
 import {MeanSquaredCost} from './ops/element_wise_cost';
 import {Exp} from './ops/exp';
 import {LinearCombination} from './ops/linear_combination';
@@ -70,11 +70,11 @@ function emitOpFromNode(node: Node): Operation[] {
   } else if (node instanceof ReLUNode) {
     return [new ReLU(node.inputs[ReLUNode.X], node.output)];
   } else if (node instanceof LeakyReLUNode) {
-    return [new LeakyReLU(node.inputs[LeakyReLUNode.X], 
-      node.output, node.alpha)];
+    return [new LeakyReLU(
+        node.inputs[LeakyReLUNode.X], node.output, node.alpha)];
   } else if (node instanceof PReLUNode) {
-    return [new PReLU(node.inputs[PReLUNode.X], node.inputs[PReLUNode.ALPHA],
-      node.output)];
+    return [new PReLU(
+        node.inputs[PReLUNode.X], node.inputs[PReLUNode.ALPHA], node.output)];
   } else if (node instanceof EluNode) {
     return [new Elu(node.inputs[EluNode.X], node.output)];
   } else if (node instanceof TanHNode) {

@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {DataType, NDArray, Rank} from '../../ndarray';
+import {NDArray} from '../../ndarray';
+import {DataType, Rank} from '../../types';
 import {KernelNode} from '../tape_types';
 
 // PReLU

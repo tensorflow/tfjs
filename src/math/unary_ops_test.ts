@@ -744,6 +744,16 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [1, NaN]);
     });
+
+    it('derivative', math => {
+      const x = Array1D.new([1, 3, -2]);
+      const dy = Array1D.new([5, 50, 500]);
+      const gradients = math.vjp(() => math.elu(x), x, dy);
+
+      expect(gradients.shape).toEqual(x.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [5, 50, 500 * Math.exp(-2)], 1e-1);
+    });
   };
   test_util.describeMathCPU('elu', [tests]);
   test_util.describeMathGPU('elu', [tests], [

@@ -39,40 +39,34 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       expect(result.shape).toEqual(x.shape);
       test_util.expectArraysClose(result, [0, 1, NaN]);
     });
+
+    it('derivative', math => {
+      const x = Array1D.new([0.5, 3, -0.1, -4]);
+      const a = Array1D.new([0.2, 0.4, 0.25, 0.15]);
+      const dy = Array1D.new([1, 1, 1, 1]);
+
+      const dx = math.vjp(() => math.prelu(x, a), x, dy);
+
+      expect(dx.shape).toEqual(x.shape);
+      expect(dx.dtype).toEqual('float32');
+      test_util.expectArraysClose(dx, [1, 1, 0.25, 0.15]);
+    });
+
+    it('derivative propagates NaN', math => {
+      const x = Array1D.new([0.5, -0.1, NaN]);
+      const a = Array1D.new([0.2, 0.3, 0.25]);
+      const dy = Array1D.new([5, 50, 500]);
+
+      const dx = math.vjp(() => math.prelu(x, a), x, dy);
+
+      expect(dx.shape).toEqual(x.shape);
+      expect(dx.dtype).toEqual('float32');
+      test_util.expectArraysClose(dx, [5, 50 * 0.3, NaN]);
+    });
   };
 
   test_util.describeMathCPU('prelu', [tests]);
   test_util.describeMathGPU('prelu', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
-
-// math.preluDer
-{
-  const tests: MathTests = it => {
-    it('basic', math => {
-      const x = Array1D.new([0.5, 3, -0.1, -4]);
-      const a = Array1D.new([0.2, 0.4, 0.25, 0.15]);
-      const result = math.preluDer(x, a);
-
-      expect(result.shape).toEqual(x.shape);
-      test_util.expectArraysClose(result, [1, 1, 0.25, 0.15]);
-    });
-
-    it('propagates NaN', math => {
-      const x = Array1D.new([0.5, -0.1, NaN]);
-      const a = Array1D.new([0.2, 0.3, 0.25]);
-      const result = math.preluDer(x, a);
-
-      expect(result.shape).toEqual(x.shape);
-      test_util.expectArraysClose(result, [1, 0.3, NaN]);
-    });
-  };
-
-  test_util.describeMathCPU('preluDer', [tests]);
-  test_util.describeMathGPU('preluDer', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

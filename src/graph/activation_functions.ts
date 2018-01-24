@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {NDArrayMath} from './math';
-import {NDArray, Scalar} from './ndarray';
+import {NDArrayMath} from '../math/math';
+import {NDArray, Scalar} from '../math/ndarray';
 
 /** A node's activation function and its derivative. */
 export interface ActivationFunction {
@@ -113,8 +113,8 @@ export class EluFunc implements ActivationFunction {
     return math.elu(x);
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
-    return math.eluDer(x);
+  der<T extends NDArray>(math: NDArrayMath, x: T, y: T): T {
+    throw new Error('Not implemented');
   }
 
   dispose() {}

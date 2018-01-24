@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {Array1D, Array2D, Array3D, Array4D, DataType} from '../../ndarray';
+import {Array1D, Array2D, Array3D, Array4D} from '../../ndarray';
+import {DataType} from '../../types';
 import {KernelNode} from '../tape_types';
 
 export interface Slice1DNode<D extends DataType> extends KernelNode {
