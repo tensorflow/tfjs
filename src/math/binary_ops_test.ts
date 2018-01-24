@@ -61,7 +61,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
       expect(dx.shape).toEqual(x.shape);
       expect(dx.dtype).toEqual('float32');
-      test_util.expectArraysClose(dx, [5, 50 * 0.3, NaN]);
+      test_util.expectArraysClose(dx, [5, 50 * 0.3, NaN], 1e-1);
     });
   };
 
