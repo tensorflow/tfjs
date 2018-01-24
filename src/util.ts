@@ -1,5 +1,3 @@
-import {DataType, DataTypeMap, NDArray, Variable} from './math/ndarray';
-
 /**
  * @license
  * Copyright 2017 Google Inc. All Rights Reserved.
@@ -16,6 +14,9 @@ import {DataType, DataTypeMap, NDArray, Variable} from './math/ndarray';
  * limitations under the License.
  * =============================================================================
  */
+
+import {NDArray, Variable} from './math/ndarray';
+import {DataType, DataTypeMap} from './math/types';
 
 export type TypedArray = Float32Array|Int32Array|Uint8Array;
 export type FlatVector = boolean[]|number[]|TypedArray;
@@ -416,4 +417,35 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
  */
 export function nextFrame(): Promise<void> {
   return new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+}
+
+export function copyTypedArray<D extends DataType>(
+    array: DataTypeMap[D]|number[]|boolean[], dtype: D): DataTypeMap[D] {
+  if (dtype == null || dtype === 'float32') {
+    return new Float32Array(array as number[]);
+  } else if (dtype === 'int32') {
+    const vals = new Int32Array(array.length);
+    for (let i = 0; i < vals.length; ++i) {
+      const val = array[i] as number;
+      if (isValNaN(val, 'int32')) {
+        vals[i] = getNaN('int32');
+      } else {
+        vals[i] = val;
+      }
+    }
+    return vals;
+  } else if (dtype === 'bool') {
+    const bool = new Uint8Array(array.length);
+    for (let i = 0; i < bool.length; ++i) {
+      const val = array[i] as number;
+      if (isValNaN(val as number, 'bool')) {
+        bool[i] = getNaN('bool');
+      } else if (Math.round(val) !== 0) {
+        bool[i] = 1;
+      }
+    }
+    return bool;
+  } else {
+    throw new Error(`Unknown data type ${dtype}`);
+  }
 }

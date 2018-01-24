@@ -20,6 +20,7 @@ import * as util from '../util';
 import {MatrixOrientation} from './backends/types/matmul';
 import {operation} from './decorators';
 import {Array1D, Array2D, Scalar} from './ndarray';
+import {DataType} from './types';
 
 export class Ops {
   /**
@@ -34,9 +35,9 @@ export class Ops {
    * compute A * B^T.
    */
   @operation
-  static matMul(
-      a: Array2D, b: Array2D, aOrientation = MatrixOrientation.REGULAR,
-      bOrientation = MatrixOrientation.REGULAR): Array2D {
+  static matMul<D extends DataType>(
+      a: Array2D<D>, b: Array2D<D>, aOrientation = MatrixOrientation.REGULAR,
+      bOrientation = MatrixOrientation.REGULAR): Array2D<D> {
     const innerShapeA =
         (aOrientation === MatrixOrientation.REGULAR) ? a.shape[1] : a.shape[0];
     const innerShapeB =
@@ -55,22 +56,24 @@ export class Ops {
             ` and ${MatrixOrientation[bOrientation]} must match.`);
 
     return ENV.engine.executeKernel(
-        'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}},
-        (dy: Array2D<'float32'>, y: Array2D) => {
-          if (aOrientation === MatrixOrientation.TRANSPOSED ||
-              bOrientation === MatrixOrientation.TRANSPOSED) {
-            throw new Error(
-                `Backprop for transposed MatMul not yet implemented.`);
-          }
-          return {
-            a: () => Ops.matMul(
-                         dy, b, MatrixOrientation.REGULAR,
-                         MatrixOrientation.TRANSPOSED) as Array2D<'float32'>,
-            b: () => Ops.matMul(
-                         a, dy, MatrixOrientation.TRANSPOSED,
-                         MatrixOrientation.REGULAR) as Array2D<'float32'>
-          };
-        });
+               'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}},
+               (dy: Array2D<'float32'>, y: Array2D) => {
+                 if (aOrientation === MatrixOrientation.TRANSPOSED ||
+                     bOrientation === MatrixOrientation.TRANSPOSED) {
+                   throw new Error(
+                       `Backprop for transposed MatMul not yet implemented.`);
+                 }
+                 return {
+                   a: () =>
+                       Ops.matMul(
+                           dy, b.asType('float32'), MatrixOrientation.REGULAR,
+                           MatrixOrientation.TRANSPOSED) as Array2D<'float32'>,
+                   b: () => Ops.matMul(
+                                a.asType('float32'), dy,
+                                MatrixOrientation.TRANSPOSED,
+                                MatrixOrientation.REGULAR) as Array2D<'float32'>
+                 };
+               }) as Array2D<D>;
   }
 
   /**

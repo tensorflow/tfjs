@@ -19,7 +19,8 @@ import {ENV} from '../environment';
 import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './decorators';
-import {Array4D, DataType, NDArray, Rank, RankMap} from './ndarray';
+import {Array4D, NDArray} from './ndarray';
+import {DataType, Rank, RankMap} from './types';
 
 export class Ops {
   /**

@@ -1,5 +1,3 @@
-import {DataType} from './ndarray';
-
 /**
  * @license
  * Copyright 2017 Google Inc. All Rights Reserved.
@@ -16,6 +14,42 @@ import {DataType} from './ndarray';
  * limitations under the License.
  * =============================================================================
  */
+
+import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
+
+export enum DType {
+  float32 = 'float32',
+  int32 = 'int32',
+  bool = 'bool'
+}
+
+export interface ShapeMap {
+  0: number[];
+  1: [number];
+  2: [number, number];
+  3: [number, number, number];
+  4: [number, number, number, number];
+  higher: number[];
+}
+
+/** @hidden */
+export interface DataTypeMap {
+  float32: Float32Array;
+  int32: Int32Array;
+  bool: Uint8Array;
+}
+export type DataType = keyof DataTypeMap;
+
+/** @hidden */
+export interface RankMap<D extends DataType> {
+  0: Scalar<D>;
+  1: Array1D<D>;
+  2: Array2D<D>;
+  3: Array3D<D>;
+  4: Array4D<D>;
+  higher: NDArray<D, 'higher'>;
+}
+export type Rank = keyof RankMap<DataType>;
 
 export interface SumTypes {
   float32: 'float32';

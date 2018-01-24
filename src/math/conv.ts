@@ -19,8 +19,8 @@ import {ENV} from '../environment';
 import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './decorators';
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, DataType, NDArray, Rank, RankMap} from './ndarray';
+import {Array1D, Array3D, Array4D, NDArray} from './ndarray';
+import {DataType, Rank, RankMap} from './types';
 
 export class Ops {
   /**

@@ -17,7 +17,8 @@
 
 import * as util from '../../util';
 import {NamedArrayMap} from '../../util';
-import {DataType, NDArray, Rank, Scalar, Variable} from '../ndarray';
+import {NDArray, Scalar, Variable} from '../ndarray';
+import {DataType, Rank} from '../types';
 import {MathBackend} from './backend';
 import * as kernel_registry from './kernel_registry';
 import {KernelConfigRegistry} from './kernel_registry';

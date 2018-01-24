@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {Array1D, DataType, NDArray, Rank} from '../../ndarray';
+import {Array1D, NDArray} from '../../ndarray';
+import {DataType, Rank} from '../../types';
 import {KernelNode} from '../tape_types';
 
 export interface GatherNode<D extends DataType, R extends Rank, T extends

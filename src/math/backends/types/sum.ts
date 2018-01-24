@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {DataType, NDArray} from '../../ndarray';
-import {SumTypes} from '../../types';
+import {NDArray} from '../../ndarray';
+import {DataType, SumTypes} from '../../types';
 import {KernelNode} from '../tape_types';
 
 export interface SumNode<D extends DataType> extends KernelNode {

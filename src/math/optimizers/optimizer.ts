@@ -22,7 +22,8 @@ import * as session_util from '../../graph/session_util';
 // tslint:disable-next-line:max-line-length
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
-import {DataType, NDArray, Scalar, Variable} from '../../math/ndarray';
+import {NDArray, Scalar, Variable} from '../../math/ndarray';
+import {DataType} from '../../math/types';
 import {NamedArrayMap} from '../../util';
 
 export abstract class Optimizer {

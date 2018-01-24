@@ -16,8 +16,8 @@
  */
 
 import * as util from '../../util';
-import {DataType, NDArray, Rank, Scalar} from '../ndarray';
-
+import {NDArray, Scalar} from '../ndarray';
+import {DataType, Rank} from '../types';
 import {MathBackend} from './backend';
 import {ArgMaxNode, ArgMinNode} from './types/argminmax';
 // tslint:disable-next-line:max-line-length

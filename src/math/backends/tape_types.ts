@@ -16,14 +16,12 @@
  */
 
 import {NamedArrayMap} from '../../util';
-import {DataType, NDArray, Rank} from '../ndarray';
-
+import {NDArray} from '../ndarray';
+import {DataType, Rank} from '../types';
 import {KernelConfigRegistry} from './kernel_registry';
 
 export type Tape = Array<TapeNode<TapeNodeOutput>>;
-
 export type TapeNodeOutput = NDArray|NamedArrayMap;
-
 export type TapeNodeType = 'kernel'|'customGradient';
 
 export interface TapeNode<T extends TapeNodeOutput> {
