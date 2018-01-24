@@ -138,9 +138,13 @@ export class NDArrayMath implements NDArrayManager {
   equal = compare.Ops.equal;
   equalStrict = compare.Ops.equalStrict;
   greater = compare.Ops.greater;
+  greaterStrict = compare.Ops.greaterStrict;
   greaterEqual = compare.Ops.greaterEqual;
+  greaterEqualStrict = compare.Ops.greaterEqualStrict;
   less = compare.Ops.less;
+  lessStrict = compare.Ops.lessStrict;
   lessEqual = compare.Ops.lessEqual;
+  lessEqualStrict = compare.Ops.lessEqualStrict;
   notEqual = compare.Ops.notEqual;
   notEqualStrict = compare.Ops.notEqualStrict;
 

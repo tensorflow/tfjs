@@ -47,6 +47,7 @@ export class Ops {
 
   /**
    * Returns the truth value of (a < b) element-wise. Supports broadcasting.
+   * For a stricter version without broadcasting use math.lessStrict().
    *
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
@@ -57,6 +58,13 @@ export class Ops {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Less', {inputs: {a, b}}) as T;
+  }
+
+  @operation
+  static lessStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
+      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
+    return Ops.less(a, b);
   }
 
   /**
@@ -82,6 +90,7 @@ export class Ops {
 
   /**
    * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
+   * For a stricter version without broadcasting use math.lessEqualStrict().
    *
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
@@ -94,8 +103,16 @@ export class Ops {
     return ENV.engine.executeKernel('LessEqual', {inputs: {a, b}}) as T;
   }
 
+  @operation
+  static lessEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
+      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
+    return Ops.lessEqual(a, b);
+  }
+
   /**
    * Returns the truth value of (a > b) element-wise. Supports broadcasting.
+   * For a stricter version without broadcasting use math.greaterStrict().
    *
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
@@ -108,8 +125,16 @@ export class Ops {
     return ENV.engine.executeKernel('Greater', {inputs: {a, b}}) as T;
   }
 
+  @operation
+  static greaterStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
+      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
+    return Ops.greater(a, b);
+  }
+
   /**
    * Returns the truth value of (a >= b) element-wise. Supports broadcasting.
+   * For a stricter version without broadcasting use math.greaterEqualStrict().
    *
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
@@ -120,5 +145,12 @@ export class Ops {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('GreaterEqual', {inputs: {a, b}}) as T;
+  }
+
+  @operation
+  static greaterEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
+      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');
+    return Ops.greaterEqual(a, b);
   }
 }

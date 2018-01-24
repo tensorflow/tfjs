@@ -1423,6 +1423,71 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
   ]);
 }
 
+// LessStrict:
+{
+
+  const tests: MathTests = it => {
+    // Array1D:
+    it('Array1D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array1D.new([2]);
+         const b = Array1D.new([4, 2, -1]);
+
+         expect(() => math.lessStrict(a, b)).toThrowError();
+         expect(() => math.lessStrict(b, a)).toThrowError();
+       });
+
+    // Array2D:
+    it('Array2D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array2D.new([2, 1], [[1.1], [7.1]], 'float32');
+         const b =
+             Array2D.new([2, 3], [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+
+         expect(() => math.lessStrict(a, b)).toThrowError();
+         expect(() => math.lessStrict(b, a)).toThrowError();
+       });
+
+    // Array3D:
+    it('Array3D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array3D.new(
+             [2, 3, 2],
+             [
+               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+             ],
+             'float32');
+         const b = Array3D.new(
+             [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+             'float32');
+
+         expect(() => math.lessStrict(a, b)).toThrowError();
+         expect(() => math.lessStrict(b, a)).toThrowError();
+       });
+
+    // Array4D:
+    it('Array4D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
+         const b = Array4D.new(
+             [2, 2, 1, 2],
+             [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             'float32');
+
+         expect(() => math.lessStrict(a, b)).toThrowError();
+         expect(() => math.lessStrict(b, a)).toThrowError();
+       });
+  };
+
+  test_util.describeMathCPU('lessStrict', [tests]);
+  test_util.describeMathGPU('lessStrict', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
 // LessEqual:
 {
   const boolNaN = util.getNaN('bool');
@@ -1746,6 +1811,70 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
 
   test_util.describeMathCPU('lessEqual', [tests]);
   test_util.describeMathGPU('lessEqual', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// LessEqualStrict:
+{
+  const tests: MathTests = it => {
+    // Array1D:
+    it('Array1D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array1D.new([2]);
+         const b = Array1D.new([4, 2, -1]);
+
+         expect(() => math.lessEqualStrict(a, b)).toThrowError();
+         expect(() => math.lessEqualStrict(b, a)).toThrowError();
+       });
+
+    // Array2D:
+    it('Array2D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array2D.new([2, 1], [[1.1], [7.1]], 'float32');
+         const b =
+             Array2D.new([2, 3], [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+
+         expect(() => math.lessEqualStrict(a, b)).toThrowError();
+         expect(() => math.lessEqualStrict(b, a)).toThrowError();
+       });
+
+    // Array3D:
+    it('Array3D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array3D.new(
+             [2, 3, 2],
+             [
+               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+             ],
+             'float32');
+         const b = Array3D.new(
+             [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+             'float32');
+
+         expect(() => math.lessEqualStrict(a, b)).toThrowError();
+         expect(() => math.lessEqualStrict(b, a)).toThrowError();
+       });
+
+    // Array4D:
+    it('Array4D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
+         const b = Array4D.new(
+             [2, 2, 1, 2],
+             [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             'float32');
+
+         expect(() => math.lessEqualStrict(a, b)).toThrowError();
+         expect(() => math.lessEqualStrict(b, a)).toThrowError();
+       });
+  };
+
+  test_util.describeMathCPU('lessEqualStrict', [tests]);
+  test_util.describeMathGPU('lessEqualStrict', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
@@ -2081,6 +2210,70 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
   ]);
 }
 
+// GreaterStrict:
+{
+  const tests: MathTests = it => {
+    // Array1D:
+    it('Array1D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array1D.new([2]);
+         const b = Array1D.new([4, 2, -1]);
+
+         expect(() => math.greaterStrict(a, b)).toThrowError();
+         expect(() => math.greaterStrict(b, a)).toThrowError();
+       });
+
+    // Array2D:
+    it('Array2D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array2D.new([2, 1], [[1.1], [7.1]], 'float32');
+         const b =
+             Array2D.new([2, 3], [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+
+         expect(() => math.greaterStrict(a, b)).toThrowError();
+         expect(() => math.greaterStrict(b, a)).toThrowError();
+       });
+
+    // Array3D:
+    it('Array3D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array3D.new(
+             [2, 3, 2],
+             [
+               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+             ],
+             'float32');
+         const b = Array3D.new(
+             [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+             'float32');
+
+         expect(() => math.greaterStrict(a, b)).toThrowError();
+         expect(() => math.greaterStrict(b, a)).toThrowError();
+       });
+
+    // Array4D:
+    it('Array4D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
+         const b = Array4D.new(
+             [2, 2, 1, 2],
+             [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             'float32');
+
+         expect(() => math.greaterStrict(a, b)).toThrowError();
+         expect(() => math.greaterStrict(b, a)).toThrowError();
+       });
+  };
+
+  test_util.describeMathCPU('greaterStrict', [tests]);
+  test_util.describeMathGPU('greaterStrict', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
 // GreaterEqual:
 {
   const boolNaN = util.getNaN('bool');
@@ -2404,6 +2597,70 @@ import {Array1D, Array2D, Array3D, Array4D, Scalar} from './ndarray';
 
   test_util.describeMathCPU('greaterEqual', [tests]);
   test_util.describeMathGPU('greaterEqual', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// GreaterEqualStrict:
+{
+  const tests: MathTests = it => {
+    // Array1D:
+    it('Array1D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array1D.new([2]);
+         const b = Array1D.new([4, 2, -1]);
+
+         expect(() => math.greaterEqualStrict(a, b)).toThrowError();
+         expect(() => math.greaterEqualStrict(b, a)).toThrowError();
+       });
+
+    // Array2D:
+    it('Array2D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array2D.new([2, 1], [[1.1], [7.1]], 'float32');
+         const b =
+             Array2D.new([2, 3], [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+
+         expect(() => math.greaterEqualStrict(a, b)).toThrowError();
+         expect(() => math.greaterEqualStrict(b, a)).toThrowError();
+       });
+
+    // Array3D:
+    it('Array3D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array3D.new(
+             [2, 3, 2],
+             [
+               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
+               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
+             ],
+             'float32');
+         const b = Array3D.new(
+             [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+             'float32');
+
+         expect(() => math.greaterEqualStrict(a, b)).toThrowError();
+         expect(() => math.greaterEqualStrict(b, a)).toThrowError();
+       });
+
+    // Array4D:
+    it('Array4D - strict version throws when a and b are different shape',
+       math => {
+         const a = Array4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
+         const b = Array4D.new(
+             [2, 2, 1, 2],
+             [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             'float32');
+
+         expect(() => math.greaterEqualStrict(a, b)).toThrowError();
+         expect(() => math.greaterEqualStrict(b, a)).toThrowError();
+       });
+  };
+
+  test_util.describeMathCPU('greaterEqualStrict', [tests]);
+  test_util.describeMathGPU('greaterEqualStrict', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
