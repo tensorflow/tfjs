@@ -57,7 +57,7 @@ def get_checkpoint_dumper(model_type, checkpoint_file, output_dir, remove_variab
     return PytorchCheckpointDumper(
       checkpoint_file, output_dir, remove_variables_regex)
   else:
-    raise Error('Currently, "%s" models are not supported'.format(model_type))
+    raise ValueError('Currently, "{}" models are not supported'.format(model_type))
 
 
 if __name__ == '__main__':
