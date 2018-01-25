@@ -43,10 +43,10 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static maxPool<T extends NDArray>(
-      x: T, filterSize: [number, number]|number,
+  static maxPool<D extends DataType, R extends '3'|'4'>(
+      x: NDArray<D, R>, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+      dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<D>[R] {
     let x4D = x as Array4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
@@ -71,9 +71,10 @@ export class Ops {
     const res = ENV.engine.executeKernel(
         'MaxPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
     if (reshapedTo4D) {
-      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as
+          RankMap<D>[R];
     }
-    return res as T;
+    return res as RankMap<D>[R];
   }
 
   /**
@@ -158,10 +159,10 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static minPool<T extends NDArray>(
-      input: T, filterSize: [number, number]|number,
+  static minPool<D extends DataType, R extends '3'|'4'>(
+      input: NDArray<D, R>, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+      dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<D>[R] {
     let input4D = input as Array4D;
     let reshapedTo4D = false;
     if (input.rank === 3) {
@@ -182,9 +183,10 @@ export class Ops {
     const res = ENV.engine.executeKernel(
         'MinPool', {inputs: {x: input4D}, args: {convInfo}});
     if (reshapedTo4D) {
-      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as
+          RankMap<D>[R];
     }
-    return res as T;
+    return res as RankMap<D>[R];
   }
 
   /**

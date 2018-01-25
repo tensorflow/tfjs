@@ -18,8 +18,8 @@
 import {ENV} from '../environment';
 import * as concat_util from './concat_util';
 import {operation} from './decorators';
-import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
-import * as slice from './slice';
+import {Array1D, Array2D, Array3D, Array4D, NDArray} from './ndarray';
+import {DataType, Rank, RankMap} from './types';
 
 export class Ops {
   /**
@@ -35,9 +35,10 @@ export class Ops {
    * @return The concatenated array.
    */
   @operation
-  static concat1D(a: Array1D, b: Array1D): Array1D {
+  static concat1D<D extends DataType>(a: Array1D<D>, b: Array1D<D>):
+      Array1D<D> {
     concat_util.assertParams(a.shape, b.shape, 0);
-    return ENV.engine.executeKernel('Concat1D', {inputs: {a, b}});
+    return ENV.engine.executeKernel('Concat1D', {inputs: {a, b}}) as Array1D<D>;
   }
 
   /**
@@ -69,9 +70,11 @@ export class Ops {
    * @return The concatenated array.
    */
   @operation
-  static concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
+  static concat2D<D extends DataType>(
+      a: Array2D<D>, b: Array2D<D>, axis: number): Array2D<D> {
     concat_util.assertParams(a.shape, b.shape, axis);
-    return ENV.engine.executeKernel('Concat2D', {inputs: {a, b}, args: {axis}});
+    return ENV.engine.executeKernel(
+               'Concat2D', {inputs: {a, b}, args: {axis}}) as Array2D<D>;
   }
 
   /**
@@ -106,20 +109,22 @@ export class Ops {
    * @return The concatenated array.
    */
   @operation
-  static concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
+  static concat3D<D extends DataType>(
+      a: Array3D<D>, b: Array3D<D>, axis: number): Array3D<D> {
     concat_util.assertParams(a.shape, b.shape, axis);
 
     const gradients = (dy: Array3D<'float32'>, y: Array3D) => {
       const {x1Begin, x1Size, x2Begin, x2Size} =
           concat_util.computeGradientSliceShapes3D(a.shape, y.shape, axis);
       return {
-        a: () => slice.Ops.slice3D(dy, x1Begin, x1Size),
-        b: () => slice.Ops.slice3D(dy, x2Begin, x2Size)
+        a: () => dy.slice(x1Begin, x1Size),
+        b: () => dy.slice(x2Begin, x2Size)
       };
     };
 
     return ENV.engine.executeKernel(
-        'Concat3D', {inputs: {a, b}, args: {axis}}, gradients);
+               'Concat3D', {inputs: {a, b}, args: {axis}}, gradients) as
+        Array3D<D>;
   }
 
   /**
@@ -132,8 +137,29 @@ export class Ops {
    * @return The concatenated array.
    */
   @operation
-  static concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
+  static concat4D<D extends DataType>(
+      a: Array4D<D>, b: Array4D<D>, axis: number): Array4D<D> {
     concat_util.assertParams(a.shape, b.shape, axis);
-    return ENV.engine.executeKernel('Concat4D', {inputs: {a, b}, args: {axis}});
+    return ENV.engine.executeKernel(
+               'Concat4D', {inputs: {a, b}, args: {axis}}) as Array4D<D>;
+  }
+
+  @operation
+  static concat<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>, axis: number): RankMap<D>[R] {
+    concat_util.assertParams(a.shape, b.shape, axis);
+    if (a.rank === 0) {
+      throw new Error('Cannot concatenate a scalar');
+    } else if (a.rank === 1) {
+      return a.concat(b, axis);
+    } else if (a.rank === 2) {
+      return a.concat(b, axis);
+    } else if (a.rank === 3) {
+      return a.concat(b, axis);
+    } else if (a.rank === 4) {
+      return a.concat(b, axis);
+    } else {
+      throw new Error(`Concat for rank ${a.rank} is not yet implemented`);
+    }
   }
 }

@@ -57,9 +57,10 @@ export class Ops {
 
   /** Creates a ndarray with the same values/shape as the specified ndarray. */
   @operation
-  static clone<T extends NDArray>(x: T): T {
+  static clone<D extends DataType, R extends Rank>(x: NDArray<D, R>):
+      RankMap<D>[R] {
     const newValues = util.copyTypedArray(x.dataSync(), x.dtype);
-    return NDArray.make(x.shape, {values: newValues}, x.dtype) as T;
+    return NDArray.make(x.shape, {values: newValues}, x.dtype) as RankMap<D>[R];
   }
 
   @operation

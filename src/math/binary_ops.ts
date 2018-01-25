@@ -20,14 +20,12 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './decorators';
 import {NDArray, Scalar} from './ndarray';
-import * as reduction_ops from './reduction_ops';
-import {DataType} from './types';
-import * as unary_ops from './unary_ops';
+import {DataType, Rank, RankMap} from './types';
 
 export class Ops {
   /**
    * Adds two NDArrays element-wise, A + B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.addStrict().
+   * For a stricter version without broadcasting use addStrict().
    *
    * @param a The first `NDArray` to add.
    * @param b The second `NDArray` to add. Must have the same type as `a`.
@@ -44,7 +42,7 @@ export class Ops {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
         if (reduceAxes.length > 0) {
-          res = reduction_ops.Ops.sum(res, reduceAxes);
+          res = res.sum(reduceAxes);
         }
         return res.reshape(a.shape);
       };
@@ -52,7 +50,7 @@ export class Ops {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
         if (reduceAxes.length > 0) {
-          res = reduction_ops.Ops.sum(res, reduceAxes);
+          res = res.sum(reduceAxes);
         }
         return res.reshape(b.shape);
       };
@@ -63,27 +61,28 @@ export class Ops {
 
   /**
    * Adds two NDArrays element-wise, A + B. Inputs must
-   * be the same shape. For broadcasting support, use math.add() instead.
+   * be the same shape. For broadcasting support, use add() instead.
    *
    * @param a The first NDArray to multiply element-wise.
    * @param b The second NDArray to multiply element-wise.
    */
 
   @operation
-  static addStrict<T extends NDArray>(a: T, b: T): T {
+  static addStrict<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
-    return Ops.add(a, b) as T;
+    return a.add(b);
   }
 
   /**
    * Subtracts two NDArrays element-wise, A - B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.subStrict().
+   * For a stricter version without broadcasting use subStrict().
    *
    * @param a The first `NDArray`.
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static subtract<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
+  static sub<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
       a: NDArray<D1>, b: NDArray<D2>): T {
     util.assertTypesMatch(a, b);
     const outShape =
@@ -94,7 +93,7 @@ export class Ops {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
         if (reduceAxes.length > 0) {
-          res = reduction_ops.Ops.sum(res, reduceAxes);
+          res = res.sum(reduceAxes);
         }
         return res.reshape(a.shape);
       };
@@ -102,9 +101,9 @@ export class Ops {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
         if (reduceAxes.length > 0) {
-          res = reduction_ops.Ops.sum(res, reduceAxes);
+          res = res.sum(reduceAxes);
         }
-        return unary_ops.Ops.neg(res).reshape(b.shape);
+        return res.neg().reshape(b.shape);
       };
       return {a: derA, b: derB};
     };
@@ -112,90 +111,83 @@ export class Ops {
   }
 
   /**
-   * Computes the power of one value to another.
+   * Subtracts two NDArrays element-wise, A - B. Inputs must
+   * be the same shape. For broadcasting support, use sub() instead.
+   *
+   * @param a The first NDArray to multiply element-wise.
+   * @param b The second NDArray to multiply element-wise.
+   */
+  @operation
+  static subStrict<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
+    return a.sub(b);
+  }
+
+  /**
+   * Computes the power of one value to another. Supports broadcasting.
    * Given a tensor x and a tensor y, this operation computes x^y for
    * corresponding elements in x and y. For example:
    * x = tf.constant([[2, 2], [3, 3]])
    * y = tf.constant([[8, 16], [2, 3]])
    * pow(x, y)  # [[256, 65536], [9, 27]]
    *
-   * @param a The base NDArray to pow element-wise.
-   * @param b The exponent NDArray to pow element-wise.
+   * @param base The base NDArray to pow element-wise.
+   * @param exp The exponent NDArray to pow element-wise.
    */
   @operation
   static pow<D extends DataType, T extends NDArray<D>>(
-      a: NDArray<D>, b: NDArray<'int32'>): T {
+      base: NDArray<D>, exp: NDArray<'int32'>): T {
     util.assert(
-        b.dtype === 'int32',
+        exp.dtype === 'int32',
         'only supports int32 data type for the exponent parameter.');
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
 
     const gradient = (dy: NDArray<'float32'>, y: NDArray<D>) => {
-      if (!util.arraysEqual(a.shape, b.shape)) {
+      if (!util.arraysEqual(base.shape, exp.shape)) {
         throw new Error(
             `Gradient of pow not yet supported for broadcasted shapes.`);
       }
-      const derA = () => {
-        return Ops.multiply(
-            dy,
-            Ops.multiply(
-                b.asType(a.dtype),
-                Ops.pow(a, Ops.subtract(b, Scalar.new(1, 'int32')))));
+      const derBase = () => {
+        const dx = exp.toFloat().mul(
+            base.pow(exp.sub(Scalar.new(1, 'int32'))).toFloat());
+        return dy.mul(dx);
       };
-      const derB = () => {
+      const derExp = () => {
         throw new Error(
             `Backprop through exponent of math.pow not ` +
             `implemented yet.`);
       };
-      return {a: derA, b: derB};
+      return {base: derBase, exp: derExp};
     };
 
-    return ENV.engine.executeKernel('Pow', {inputs: {a, b}}, gradient) as T;
+    return ENV.engine.executeKernel('Pow', {inputs: {base, exp}}, gradient) as
+        T;
   }
 
   /**
    * Computes the power of one value to another. Inputs must
-   * be the same shape. For broadcasting support, use math.pow() instead.
+   * be the same shape. For broadcasting support, use pow() instead.
    *
-   * @param a The base NDArray to pow element-wise.
-   * @param b The exponent NDArray to pow element-wise.
+   * @param base The base NDArray to pow element-wise.
+   * @param exp The exponent NDArray to pow element-wise.
    */
   @operation
-  static powStrict<D extends DataType>(a: NDArray<D>, b: NDArray<'int32'>):
-      NDArray<D> {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in powStrict: ');
-    return Ops.pow(a, b);
-  }
-
-  /** @deprecated Use math.subtract instead. */
-  @operation
-  static sub<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
-    return Ops.subtract(a, b);
-  }
-
-  /**
-   * Subtracts two NDArrays element-wise, A - B. Inputs must
-   * be the same shape. For broadcasting support, use math.sub() instead.
-   *
-   * @param a The first NDArray to multiply element-wise.
-   * @param b The second NDArray to multiply element-wise.
-   */
-  @operation
-  static subStrict<T extends NDArray>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
-    return Ops.subtract(a, b);
+  static powStrict<D extends DataType, R extends Rank>(
+      base: NDArray<D, R>, exp: NDArray<'int32'>): RankMap<D>[R] {
+    util.assertShapesMatch(base.shape, exp.shape, 'Error in powStrict: ');
+    return base.pow(exp);
   }
 
   /**
    * Multiplies two NDArrays element-wise, A * B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.multiplyStrict().
+   * For a stricter version without broadcasting use mulStrict().
    *
    * @param a The first `NDArray`.
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static multiply<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
+  static mul<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
       a: NDArray<D1>, b: NDArray<D2>): T {
     util.assertTypesMatch(a, b);
     const outShape =
@@ -203,18 +195,18 @@ export class Ops {
 
     const der = (dy: NDArray<'float32'>, y: NDArray) => {
       const derA = () => {
-        const res = Ops.multiply(dy, b.asType('float32'));
+        const res = dy.mul(b.asType('float32'));
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
         if (reduceAxes.length > 0) {
-          return reduction_ops.Ops.sum(res, reduceAxes).reshape(a.shape);
+          return res.sum(reduceAxes).reshape(a.shape);
         }
         return res;
       };
       const derB = () => {
-        const res = Ops.multiply(dy, a.asType('float32'));
+        const res = dy.mul(a.asType('float32'));
         const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
         if (reduceAxes.length > 0) {
-          return reduction_ops.Ops.sum(res, reduceAxes).reshape(b.shape);
+          return res.sum(reduceAxes).reshape(b.shape);
         }
         return res;
       };
@@ -224,53 +216,57 @@ export class Ops {
   }
 
   /**
-   * @deprecated Use math.multiplyStrict() instead.
+   * @deprecated Use mulStrict() instead.
    */
   @operation
-  static elementWiseMul<T extends NDArray>(a: T, b: T): T {
-    return Ops.multiplyStrict(a, b);
+  static elementWiseMul<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+    return a.mulStrict(b);
   }
 
   /**
    * Multiplies two NDArrays element-wise, A * B. Inputs must
-   * be the same shape. For broadcasting support, use math.multiply() instead.
+   * be the same shape. For broadcasting support, use mul().
    *
-   * @param a The first NDArray to multiply element-wise.
-   * @param b The second NDArray to multiply element-wise.
+   * @param a The first `NDArray`.
+   * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static multiplyStrict<T extends NDArray>(a: T, b: T): T {
+  static mulStrict<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in multiplyStrict: ');
-    return Ops.multiply(a, b) as T;
+    return a.mul(b) as RankMap<D>[R];
   }
 
   /**
    * Divides two NDArrays element-wise, A / B. Supports broadcasting.
-   * For a stricter version without broadcasting use math.divideStrict().
+   * For a stricter version without broadcasting use divStrict().
    *
-   * @param a The first NDArray to divide element-wise.
-   * @param b The second NDArray to divide element-wise.
+   * @param a The first `NDArray`.
+   * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static divide<T extends NDArray<'float32'>>(a: NDArray, b: NDArray): T {
+  static div<D extends DataType, T extends NDArray<'float32'>>(
+      a: NDArray<D>, b: NDArray<D>): T {
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const der = (dy: NDArray<'float32'>, y: NDArray) => {
       const derA = () => {
-        const res = Ops.divide(dy, b.asType('float32'));
+        const res = dy.div(b.asType('float32'));
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
         if (reduceAxes.length > 0) {
-          return reduction_ops.Ops.sum(res, reduceAxes).reshape(a.shape);
+          return res.sum(reduceAxes).reshape(a.shape);
         }
         return res;
       };
       const derB = () => {
-        let res = Ops.multiply(dy, a.asType('float32'));
+        let res = dy.mul(a.asType('float32'));
         const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
         if (reduceAxes.length > 0) {
-          res = reduction_ops.Ops.sum(res, reduceAxes).reshape(b.shape);
+          res = res.sum(reduceAxes).reshape(b.shape);
         }
-        return unary_ops.Ops.neg(Ops.divide(res, unary_ops.Ops.square(b)));
+        const tmp = b.square() as NDArray;
+        return res.div(tmp.asType('float32')).neg() as NDArray<'float32'>;
       };
       return {a: derA, b: derB};
     };
@@ -279,35 +275,36 @@ export class Ops {
 
   /**
    * Divides two NDArrays element-wise, A / B. Inputs must
-   * be the same shape. For broadcasting support, use math.divide() instead.
+   * be the same shape. For broadcasting support, use div() instead.
    *
    * @param a The first NDArray to multiply element-wise.
    * @param b The second NDArray to multiply element-wise.
    */
   @operation
-  static divideStrict<T extends NDArray>(a: T, b: T): T {
+  static divStrict<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
-    return Ops.divide(a, b) as T;
+    return a.div(b) as RankMap<D>[R];
   }
 
-  /** @deprecated Use math.divide(c, A) instead. */
+  /** @deprecated Use div() instead. */
   @operation
   static scalarDividedByArray<T extends NDArray>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
         `Error in scalarDividedByArray: first argument must be rank 0, but ` +
             `got NDArray of rank ${c.rank}.`);
-    return Ops.divide(c, a) as T;
+    return c.div(a) as T;
   }
 
-  /** @deprecated Use math.divide(A, c) instead. */
+  /** @deprecated Use div(A, c) instead. */
   @operation
   static arrayDividedByScalar<T extends NDArray>(a: T, c: Scalar): T {
     util.assert(
         c.size === 1,
         `Error in arrayDividedByScalar: second argument must be rank 0, ` +
             `but got NDArray of rank ${c.rank}.`);
-    return Ops.divide(a, c) as T;
+    return a.div(c) as T;
   }
 
   /**
@@ -326,6 +323,20 @@ export class Ops {
   }
 
   /**
+   * Returns the min of a and b (`a < b ? a : b`) element-wise. Inputs must
+   * be the same shape. For broadcasting support, use minimum().
+   *
+   * @param a The first `NDArray`.
+   * @param b The second `NDArray`. Must have the same dtype as `a`.
+   */
+  @operation
+  static minimumStrict<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
+    return a.minimum(b) as RankMap<D>[R];
+  }
+
+  /**
    * Returns the max of a and b (`a > b ? a : b`) element-wise.
    * Supports broadcasting.
    *
@@ -338,5 +349,19 @@ export class Ops {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Maximum', {inputs: {a, b}}) as T;
+  }
+
+  /**
+   * Returns the max of a and b (`a > b ? a : b`) element-wise. Inputs must
+   * be the same shape. For broadcasting support, use maximum().
+   *
+   * @param a The first `NDArray`.
+   * @param b The second `NDArray`. Must have the same dtype as `a`.
+   */
+  @operation
+  static maximumStrict<D extends DataType, R extends Rank>(
+      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
+    return a.maximum(b) as RankMap<D>[R];
   }
 }

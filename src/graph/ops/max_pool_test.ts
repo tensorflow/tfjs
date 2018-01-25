@@ -63,7 +63,7 @@ describe('Max pool', () => {
     // Feed forward.
     const y = activations.get(yTensor) as Array3D<'float32'>;
     const expectedResult = Array3D.new([2, 2, depth], [5, 6, 9, 9]);
-    expect(expectedResult.equals(y)).toBe(true);
+    test_util.expectArraysClose(y, expectedResult);
 
     // Backprop.
     const dy = Array3D.new([2, 2, depth], [50, 60, 90, 80]);
@@ -74,7 +74,7 @@ describe('Max pool', () => {
     const dx = gradients.get(xTensor) as Array3D<'float32'>;
     const expectedBackprop =
         Array3D.new([3, 3, depth], [0, 0, 0, 0, 50, 60, 0, 170, 0]);
-    expect(expectedBackprop.equals(dx)).toBe(true);
+    test_util.expectArraysClose(dx, expectedBackprop);
   });
 
   it('MaxPool depth = 2', () => {

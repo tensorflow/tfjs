@@ -65,12 +65,11 @@ export class Ops {
                  }
                  return {
                    a: () =>
-                       Ops.matMul(
-                           dy, b.asType('float32'), MatrixOrientation.REGULAR,
+                       dy.matMul(
+                           b.asType('float32'), MatrixOrientation.REGULAR,
                            MatrixOrientation.TRANSPOSED) as Array2D<'float32'>,
-                   b: () => Ops.matMul(
-                                a.asType('float32'), dy,
-                                MatrixOrientation.TRANSPOSED,
+                   b: () => a.asType('float32').matMul(
+                                dy, MatrixOrientation.TRANSPOSED,
                                 MatrixOrientation.REGULAR) as Array2D<'float32'>
                  };
                }) as Array2D<D>;
@@ -95,7 +94,7 @@ export class Ops {
         v.size === matrix.shape[0],
         `Error in vectorTimesMatrix: size of vector (${v.size}) ` +
             `must match first dimension of matrix (${matrix.shape[0]})`);
-    return Ops.matMul(v.as2D(1, -1), matrix).as1D();
+    return v.as2D(1, -1).matMul(matrix).as1D();
   }
 
   /**
@@ -119,7 +118,7 @@ export class Ops {
             `must match inner dimension of second rank 2 input, but got ` +
             `shape ${matrix.shape}.`);
 
-    return Ops.matMul(matrix, v.as2D(-1, 1)).as1D();
+    return matrix.matMul(v.as2D(-1, 1)).as1D();
   }
 
   /**
@@ -137,7 +136,7 @@ export class Ops {
         v1.size === v2.size,
         `Error in dotProduct: size of inputs (${v1.size}) and (` +
             `${v2.size}) must match.`);
-    return Ops.matMul(v1.as2D(1, -1), v2.as2D(-1, 1)).asScalar();
+    return v1.as2D(1, -1).matMul(v2.as2D(-1, 1)).asScalar();
   }
 
   /**
@@ -152,6 +151,6 @@ export class Ops {
         `Error in outerProduct: inputs must be rank 1, but got ranks ` +
             `${v1.rank} and ${v2.rank}.`);
 
-    return Ops.matMul(v1.as2D(-1, 1), v2.as2D(1, -1));
+    return v1.as2D(-1, 1).matMul(v2.as2D(1, -1));
   }
 }

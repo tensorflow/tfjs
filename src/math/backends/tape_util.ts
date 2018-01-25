@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
 import * as util from '../../util';
 import {NamedArrayMap} from '../../util';
 import {NDArray, Variable} from '../ndarray';
@@ -197,7 +196,7 @@ export function backpropagateGradients(
         arrayAccumulatedGradientMap[x.id] = dx;
       } else {
         const curGradient = arrayAccumulatedGradientMap[x.id];
-        arrayAccumulatedGradientMap[x.id] = ENV.math.add(curGradient, dx);
+        arrayAccumulatedGradientMap[x.id] = curGradient.add(dx);
         curGradient.dispose();
       }
     }
