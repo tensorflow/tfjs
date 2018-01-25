@@ -47,7 +47,7 @@ export class SquareCostFunc implements ElementWiseCostFunction {
   }
 
   der<T extends NDArray>(math: NDArrayMath, x1: T, x2: T): T {
-    return math.subStrict(x1, x2);
+    return math.subStrict(x1, x2) as T;
   }
 
   dispose() {

@@ -42,7 +42,7 @@ export class Ops {
   static notEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
       a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
-    return Ops.notEqual(a, b);
+    return a.notEqual(b);
   }
 
   /**
@@ -64,7 +64,7 @@ export class Ops {
   static lessStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
       a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
-    return Ops.less(a, b);
+    return a.less(b);
   }
 
   /**
@@ -83,9 +83,10 @@ export class Ops {
   }
 
   @operation
-  static equalStrict<T extends NDArray>(a: T, b: T): NDArray<'bool'> {
+  static equalStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
+      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
-    return Ops.equal(a, b);
+    return a.equal(b);
   }
 
   /**
@@ -107,7 +108,7 @@ export class Ops {
   static lessEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
       a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
-    return Ops.lessEqual(a, b);
+    return a.lessEqual(b);
   }
 
   /**
@@ -129,7 +130,7 @@ export class Ops {
   static greaterStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
       a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
-    return Ops.greater(a, b);
+    return a.greater(b);
   }
 
   /**
@@ -151,6 +152,6 @@ export class Ops {
   static greaterEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
       a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');
-    return Ops.greaterEqual(a, b);
+    return a.greaterEqual(b);
   }
 }

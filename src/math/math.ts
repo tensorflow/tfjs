@@ -72,16 +72,19 @@ export class NDArrayMath implements NDArrayManager {
   slice3D = slice.Ops.slice3D;
   slice4D = slice.Ops.slice4D;
 
+  reverse = reverse.Ops.reverse;
   reverse1D = reverse.Ops.reverse1D;
   reverse2D = reverse.Ops.reverse2D;
   reverse3D = reverse.Ops.reverse3D;
   reverse4D = reverse.Ops.reverse4D;
 
+  concat = concat.Ops.concat;
   concat1D = concat.Ops.concat1D;
   concat2D = concat.Ops.concat2D;
   concat3D = concat.Ops.concat3D;
   concat4D = concat.Ops.concat4D;
 
+  batchNormalization = batchnorm.Ops.batchNormalization;
   batchNormalization2D = batchnorm.Ops.batchNormalization2D;
   batchNormalization3D = batchnorm.Ops.batchNormalization3D;
   batchNormalization4D = batchnorm.Ops.batchNormalization4D;
@@ -116,22 +119,27 @@ export class NDArrayMath implements NDArrayManager {
   addStrict = binary_ops.Ops.addStrict;
   /** @deprecated */
   arrayDividedByScalar = binary_ops.Ops.arrayDividedByScalar;
-  divide = binary_ops.Ops.divide;
-  divideStrict = binary_ops.Ops.divideStrict;
+  div = binary_ops.Ops.div;
+  divide = this.div;  // Alias.
+  divStrict = binary_ops.Ops.divStrict;
+  divideStrict = this.divStrict;  // Alias.
   /** @deprecated */
   elementWiseMul = binary_ops.Ops.elementWiseMul;
   maximum = binary_ops.Ops.maximum;
+  maximumStrict = binary_ops.Ops.maximumStrict;
   minimum = binary_ops.Ops.minimum;
-  multiply = binary_ops.Ops.multiply;
-  multiplyStrict = binary_ops.Ops.multiplyStrict;
+  minimumStrict = binary_ops.Ops.minimumStrict;
+  mul = binary_ops.Ops.mul;
+  multiply = this.mul;  // Alias.
+  mulStrict = binary_ops.Ops.mulStrict;
+  multiplyStrict = this.mulStrict;  // Alias.
   pow = binary_ops.Ops.pow;
   powStrict = binary_ops.Ops.powStrict;
   /** @deprecated */
   scalarDividedByArray = binary_ops.Ops.scalarDividedByArray;
-  /** @deprecated */
   sub = binary_ops.Ops.sub;
+  subtract = this.sub;  // Alias.
   subStrict = binary_ops.Ops.subStrict;
-  subtract = binary_ops.Ops.subtract;
 
   transpose = transpose.Ops.transpose;
 
@@ -353,13 +361,13 @@ export class NDArrayMath implements NDArrayManager {
    * Clones an NDArray of any shape.
    * @param x The NDArray to clone.
    */
-  clone<T extends NDArray>(x: T): T {
-    return this.engine.executeKernel('Clone', {inputs: {x}}) as T;
+  clone<D extends DataType, R extends Rank>(x: NDArray<D, R>): RankMap<D>[R] {
+    return this.engine.executeKernel('Clone', {inputs: {x}}) as RankMap<D>[R];
   }
 
   /** Reshapes the array. */
-  reshape<D extends DataType, R extends Rank, T extends RankMap<D>[R]>(
-      x: NDArray<D>, newShape: number[]): T {
+  reshape<D extends DataType, R extends Rank>(
+      x: NDArray<D>, newShape: number[]): RankMap<D>[R] {
     newShape = util.inferFromImplicitShape(newShape, x.size);
     util.assert(
         x.size === util.sizeFromShape(newShape),
@@ -369,7 +377,8 @@ export class NDArrayMath implements NDArrayManager {
       return {x: () => dy.reshape(x.shape)};
     };
     return this.engine.executeKernel(
-               'Reshape', {inputs: {x}, args: {newShape}}, grad) as T;
+               'Reshape', {inputs: {x}, args: {newShape}}, grad) as
+        RankMap<D>[R];
   }
 
   /**
@@ -509,7 +518,7 @@ export class NDArrayMath implements NDArrayManager {
         const keepDims = true;
         const lse = this.logSumExp(logits, [dim], keepDims);
         const logResult = this.subtract(logits.asType('float32'), lse);
-        const value = this.exp(logResult);
+        const value = this.exp(logResult) as T;
         return {value, gradients};
       }, {logits}, 'softmax') as RankMap<'float32'>[R];
     });
@@ -587,8 +596,9 @@ export class NDArrayMath implements NDArrayManager {
   //////////////////////
 
   /** @deprecated Use math.transpose() instead. */
-  switchDim<T extends NDArray>(a: T, newDim: number[]): T {
-    return this.transpose(a, newDim);
+  switchDim<D extends DataType, R extends Rank>(
+      x: NDArray<D, R>, perm?: number[]): RankMap<D>[R] {
+    return this.transpose(x, perm);
   }
 
   /**
@@ -901,7 +911,8 @@ export class NDArrayMath implements NDArrayManager {
       const o = this.slice2D(res, [0, sliceCols * 3], sliceSize);
 
       const newC = this.addStrict(
-          this.multiplyStrict(c, this.sigmoid(this.add(forgetBias, f))),
+          this.multiplyStrict(
+              c, this.sigmoid(this.add(forgetBias, f) as Array2D)),
           this.multiplyStrict(this.sigmoid(i), this.tanh(j)));
       const newH = this.multiplyStrict(this.tanh(newC), this.sigmoid(o));
 
@@ -1128,7 +1139,7 @@ export class NDArrayMath implements NDArrayManager {
         gradients: (dy: NDArray<'float32', R>, y: NDArray<D, R>) =>
             TapeNodeInputGradientArrays
       },
-      inputs: NamedArrayMap, name?: string): NDArray<D, R> {
+      inputs: NamedArrayMap, name?: string): RankMap<D>[R] {
     return this.engine.customGradient(f, inputs, name == null ? '' : name);
   }
 

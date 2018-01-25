@@ -176,7 +176,7 @@ export function executeKernel<D extends DataType, R extends Rank, K extends
     return backend.floor(config.inputs.x) as O;
   } else if (kernelName === 'Pow') {
     const config = inputAndArgs as PowNode<D, R>['inputAndArgs'];
-    return backend.pow(config.inputs.a, config.inputs.b) as O;
+    return backend.pow(config.inputs.base, config.inputs.exp) as O;
   } else if (kernelName === 'Exp') {
     const config = inputAndArgs as UnaryNode<D, R>['inputAndArgs'];
     return backend.exp(config.inputs.x) as O;
