@@ -514,6 +514,17 @@ export class NDArray<R extends Rank = Rank> {
     return ops.greaterEqualStrict(this, x);
   }
 
+  // Compare ops.
+  logicalAnd(x: NDArray): NDArray {
+    return ops.logicalAnd(this, x);
+  }
+  logicalOr(x: NDArray): NDArray {
+    return ops.logicalOr(this, x);
+  }
+  where(condition: NDArray, x: NDArray): NDArray {
+    return ops.where(condition, this, x);
+  }
+
   // Unary ops.
   neg(): NDArray<R> {
     return ops.neg(this);
