@@ -17,11 +17,11 @@
 
 import {InputProvider} from '../data/input_provider';
 import {ENV} from '../environment';
+import * as dl from '../index';
 import {NDArrayMath} from '../math/math';
-import {Array1D, NDArray, Scalar} from '../math/ndarray';
+import {Array1D, Scalar} from '../math/ndarray';
 import {SGDOptimizer} from '../math/optimizers/sgd_optimizer';
 import * as test_util from '../test_util';
-
 import {Graph, Tensor} from './graph';
 import {FeedDictionary, FeedEntry, Session} from './session';
 
@@ -33,7 +33,7 @@ describe('FeedDictionary', () => {
   it('ctor populates dict from only feed entry', () => {
     const math = ENV.math;
     math.scope(() => {
-      const e: FeedEntry = {tensor: new Tensor([]), data: NDArray.zeros([1])};
+      const e: FeedEntry = {tensor: new Tensor([]), data: dl.zeros([1])};
       const d = new FeedDictionary([e]);
       expect(Object.keys(d.dict).length).toEqual(1);
       expect(d.dict[e.tensor.id]).toBe(e);
@@ -42,10 +42,10 @@ describe('FeedDictionary', () => {
 
   it('ctor populates dict from many entries', () => {
     const entries: FeedEntry[] = [
-      {tensor: new Tensor([]), data: NDArray.zeros([1])},
-      {tensor: new Tensor([]), data: NDArray.zeros([1])},
-      {tensor: new Tensor([]), data: NDArray.zeros([1])},
-      {tensor: new Tensor([]), data: NDArray.zeros([1])}
+      {tensor: new Tensor([]), data: dl.zeros([1])},
+      {tensor: new Tensor([]), data: dl.zeros([1])},
+      {tensor: new Tensor([]), data: dl.zeros([1])},
+      {tensor: new Tensor([]), data: dl.zeros([1])}
     ];
     const d = new FeedDictionary(entries);
     expect(Object.keys(d.dict).length).toEqual(entries.length);
@@ -54,7 +54,7 @@ describe('FeedDictionary', () => {
 
   it('add adds entry to map keyed on tensor id', () => {
     const t = new Tensor([]);
-    const nda = NDArray.zeros([1]);
+    const nda = dl.zeros([1]);
     const fd = new FeedDictionary([{tensor: t, data: nda}]);
     expect(fd.dict[t.id].tensor).toBe(t);
     expect(fd.dict[t.id].data).toBe(nda);
@@ -69,24 +69,24 @@ describe('Session', () => {
   it('mnist fc', () => {
     const math = ENV.math;
     const input = g.placeholder('input', [28 * 28]);
-    const fc0W = g.variable('fc0W', NDArray.zeros([32, 28 * 28]));
-    const fc0B = g.variable('fc0B', NDArray.zeros([32]));
+    const fc0W = g.variable('fc0W', dl.zeros([32, 28 * 28]));
+    const fc0B = g.variable('fc0B', dl.zeros([32]));
     const fc0 = g.add(g.matmul(fc0W, input), fc0B);
     const relu0 = g.relu(fc0);
-    const fc1W = g.variable('fc1W', NDArray.zeros([32, 32]));
-    const fc1B = g.variable('fc1B', NDArray.zeros([32]));
+    const fc1W = g.variable('fc1W', dl.zeros([32, 32]));
+    const fc1B = g.variable('fc1B', dl.zeros([32]));
     const fc1 = g.add(g.matmul(fc1W, relu0), fc1B);
     const relu1 = g.relu(fc1);
-    const fc2W = g.variable('fc2W', NDArray.zeros([32, 32]));
-    const fc2B = g.variable('fc2B', NDArray.zeros([32]));
+    const fc2W = g.variable('fc2W', dl.zeros([32, 32]));
+    const fc2B = g.variable('fc2B', dl.zeros([32]));
     const fc2 = g.add(g.matmul(fc2W, relu1), fc2B);
     const relu2 = g.relu(fc2);
-    const fc3W = g.variable('fc3W', NDArray.zeros([10, 32]));
-    const fc3B = g.variable('fc3B', NDArray.zeros([10]));
+    const fc3W = g.variable('fc3W', dl.zeros([10, 32]));
+    const fc3B = g.variable('fc3B', dl.zeros([10]));
     const fc3 = g.add(g.matmul(fc3W, relu2), fc3B);
 
     const session = new Session(g, math);
-    session.eval(fc3, [{tensor: input, data: NDArray.zeros([28 * 28])}]);
+    session.eval(fc3, [{tensor: input, data: dl.zeros([28 * 28])}]);
   });
 
   it('y=x^2 + 3: CPU', () => {
@@ -226,10 +226,10 @@ describe('Session', () => {
   it('Specify which variables to update (var_list)', () => {
     const math = ENV.math;
     const x = g.placeholder('x', [2]);
-    const b0 = g.variable('b0', NDArray.zeros([2]));
+    const b0 = g.variable('b0', dl.zeros([2]));
     const p = g.add(x, b0);
     const q = g.square(p);
-    const b1 = g.variable('b1', NDArray.zeros([2]));
+    const b1 = g.variable('b1', dl.zeros([2]));
     const r = g.add(q, b1);
     const yPrediction = g.reduceSum(r);
     const yTrue = g.constant(1);

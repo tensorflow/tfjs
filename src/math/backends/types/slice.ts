@@ -16,49 +16,47 @@
  */
 
 import {Array1D, Array2D, Array3D, Array4D} from '../../ndarray';
-import {DataType} from '../../types';
 import {KernelNode} from '../tape_types';
 
-export interface Slice1DNode<D extends DataType> extends KernelNode {
-  inputAndArgs:
-      {inputs: {x: Array1D<D>;}; args: {begin: number; size: number;};};
-  output: Array1D<D>;
-  gradient: (dy: Array1D<'float32'>, y: Array1D<D>) => {
-    x: () => Array1D<'float32'>;
+export interface Slice1DNode extends KernelNode {
+  inputAndArgs: {inputs: {x: Array1D;}; args: {begin: number; size: number;};};
+  output: Array1D;
+  gradient: (dy: Array1D, y: Array1D) => {
+    x: () => Array1D;
   };
 }
 
-export interface Slice2DNode<D extends DataType> extends KernelNode {
+export interface Slice2DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array2D<D>;};
+    inputs: {x: Array2D;};
     args: {begin: [number, number]; size: [number, number];};
   };
-  output: Array2D<D>;
-  gradient: (dy: Array2D<'float32'>, y: Array2D<D>) => {
-    x: () => Array2D<'float32'>;
+  output: Array2D;
+  gradient: (dy: Array2D, y: Array2D) => {
+    x: () => Array2D;
   };
 }
 
-export interface Slice3DNode<D extends DataType> extends KernelNode {
+export interface Slice3DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array3D<D>;};
+    inputs: {x: Array3D;};
     args: {begin: [number, number, number]; size: [number, number, number];};
   };
-  output: Array3D<D>;
-  gradient: (dy: Array3D<'float32'>, y: Array3D<D>) => {
-    x: () => Array3D<'float32'>;
+  output: Array3D;
+  gradient: (dy: Array3D, y: Array3D) => {
+    x: () => Array3D;
   };
 }
 
-export interface Slice4DNode<D extends DataType> extends KernelNode {
+export interface Slice4DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array4D<D>;}; args: {
+    inputs: {x: Array4D;}; args: {
       begin: [number, number, number, number];
       size: [number, number, number, number];
     };
   };
-  output: Array4D<D>;
-  gradient: (dy: Array4D<'float32'>, y: Array4D<D>) => {
-    x: () => Array4D<'float32'>;
+  output: Array4D;
+  gradient: (dy: Array4D, y: Array4D) => {
+    x: () => Array4D;
   };
 }

@@ -20,7 +20,7 @@ import * as util from '../util';
 import * as axis_util from './axis_util';
 import {operation} from './decorators';
 import {NDArray} from './ndarray';
-import {DataType, Rank, RankMap} from './types';
+import {Rank} from './types';
 
 export class Ops {
   /**
@@ -35,12 +35,11 @@ export class Ops {
    * @param perm Optional. The permutation of the dimensions of a.
    */
   @operation
-  static transpose<D extends DataType, R extends Rank>(
-      x: NDArray<D, R>, perm?: number[]): RankMap<D>[R] {
+  static transpose<R extends Rank>(x: NDArray<R>, perm?: number[]): NDArray<R> {
     if (perm == null) {
       perm = x.shape.map((s, i) => i).reverse();
     }
-    const der = (dy: NDArray<'float32'>) => {
+    const der = (dy: NDArray) => {
       const undoPerm = axis_util.getUndoAxesPermutation(perm);
       const derX = () => dy.transpose(undoPerm);
       return {x: derX};
@@ -50,6 +49,6 @@ export class Ops {
         `Error in transpose: rank of input ${x.rank} ` +
             `must match length of perm ${perm}.`);
     return ENV.engine.executeKernel(
-               'Transpose', {inputs: {x}, args: {perm}}, der) as RankMap<D>[R];
+               'Transpose', {inputs: {x}, args: {perm}}, der) as NDArray<R>;
   }
 }

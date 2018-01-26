@@ -222,7 +222,7 @@ export class Session {
             feed, activations, this.math);
 
         cost = this.updateCostForExample(
-            cost, activations.get(costTensor) as Scalar<'float32'>,
+            cost, activations.get(costTensor) as Scalar,
             costReduction);
       }
 
@@ -234,8 +234,8 @@ export class Session {
   }
 
   private updateCostForExample(
-      totalCost: Scalar<'float32'>, currCost: Scalar<'float32'>,
-      costReduction: CostReduction): Scalar<'float32'> {
+      totalCost: Scalar, currCost: Scalar,
+      costReduction: CostReduction): Scalar {
     if (costReduction === CostReduction.MEAN ||
         costReduction === CostReduction.SUM) {
       return this.math.add(totalCost, currCost);
@@ -244,8 +244,8 @@ export class Session {
   }
 
   private updateCostForBatch(
-      totalCost: Scalar<'float32'>,
-      costReduction: CostReduction): Scalar<'float32'> {
+      totalCost: Scalar,
+      costReduction: CostReduction): Scalar {
     if (costReduction === CostReduction.MEAN) {
       return this.math.divide(totalCost, this.batchSizeScalar);
     }

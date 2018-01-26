@@ -16,41 +16,40 @@
  */
 
 import {NDArray} from '../../ndarray';
-import {DataType} from '../../types';
 import {KernelNode} from '../tape_types';
 
 // Reduction min.
-export interface MinNode<D extends DataType> extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray<D>;}; args: {axes: number[]}};
-  output: NDArray<D>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<D>) => {
-    x: () => NDArray<'float32'>;
+export interface MinNode extends KernelNode {
+  inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[]}};
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    x: () => NDArray;
   };
 }
 
 // Element-wise min.
-export interface MinimumNode<D extends DataType> extends KernelNode {
-  inputAndArgs: {inputs: {a: NDArray<D>, b: NDArray<D>};};
-  output: NDArray<D>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<D>) => {
-    a: () => NDArray<'float32'>, b: () => NDArray<'float32'>
+export interface MinimumNode extends KernelNode {
+  inputAndArgs: {inputs: {a: NDArray, b: NDArray};};
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    a: () => NDArray, b: () => NDArray
   };
 }
 
 // Reduction Max
-export interface MaxNode<D extends DataType> extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray<D>;}; args: {axes: number[]}};
-  output: NDArray<D>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<D>) => {
-    x: () => NDArray<'float32'>;
+export interface MaxNode extends KernelNode {
+  inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[]}};
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    x: () => NDArray;
   };
 }
 
 // Element-wise max.
-export interface MaximumNode<D extends DataType> extends KernelNode {
-  inputAndArgs: {inputs: {a: NDArray<D>, b: NDArray<D>};};
-  output: NDArray<D>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<D>) => {
-    a: () => NDArray<'float32'>, b: () => NDArray<'float32'>
+export interface MaximumNode extends KernelNode {
+  inputAndArgs: {inputs: {a: NDArray, b: NDArray};};
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    a: () => NDArray, b: () => NDArray
   };
 }

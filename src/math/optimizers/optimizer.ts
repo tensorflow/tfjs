@@ -23,8 +23,7 @@ import * as session_util from '../../graph/session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar, Variable} from '../../math/ndarray';
-import {DataType} from '../../math/types';
-import {NamedArrayMap} from '../../util';
+import {NamedArrayMap} from '../types';
 
 export abstract class Optimizer {
   protected variableNodes: VariableNode[];
@@ -48,9 +47,8 @@ export abstract class Optimizer {
    * the trainable variables in varList will be updated by minimize. Defaults to
    * all trainable variables.
    */
-  minimize<D extends DataType>(
-      f: () => Scalar<D>, returnCost = false,
-      varList?: Variable[]): Scalar<D>|null {
+  minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
+      |null {
     const {value, gradients} = this.computeGradients(f, varList);
 
     this.applyGradients(gradients);
@@ -60,7 +58,7 @@ export abstract class Optimizer {
     varNames.forEach(varName => gradients[varName].dispose());
 
     if (returnCost) {
-      return value as Scalar<D>;
+      return value as Scalar;
     } else {
       value.dispose();
       return null;
@@ -77,9 +75,8 @@ export abstract class Optimizer {
    * respect to. If specified, only the trainable variables in varList will have
    * gradients computed with respect to. Defaults to all trainable variables.
    */
-  computeGradients<D extends DataType>(
-      f: () => Scalar<D>,
-      varList?: Variable[]): {value: Scalar<D>, gradients: NamedArrayMap} {
+  computeGradients(f: () => Scalar, varList?: Variable[]):
+      {value: Scalar, gradients: NamedArrayMap} {
     return ENV.math.variableGradients(f, varList);
   }
 

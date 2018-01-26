@@ -24,8 +24,8 @@ export interface Pad1DNode extends KernelNode {
     args: {paddings: [number, number], constantValue: number};
   };
   output: Array1D;
-  gradient: (dy: Array1D<'float32'>, y: Array1D) => {
-    x: () => Array1D<'float32'>;
+  gradient: (dy: Array1D, y: Array1D) => {
+    x: () => Array1D;
   };
 }
 
@@ -37,7 +37,7 @@ export interface Pad2DNode extends KernelNode {
     };
   };
   output: Array2D;
-  gradient: (dy: Array2D<'float32'>, y: Array2D) => {
-    x: () => Array2D<'float32'>;
+  gradient: (dy: Array2D, y: Array2D) => {
+    x: () => Array2D;
   };
 }

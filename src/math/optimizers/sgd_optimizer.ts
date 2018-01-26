@@ -21,9 +21,8 @@ import {SessionRuntime} from '../../graph/session';
 // tslint:disable-next-line:max-line-length
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
-import {NamedArrayMap} from '../../util';
 import {Scalar} from '../ndarray';
-
+import {NamedArrayMap} from '../types';
 import {Optimizer} from './optimizer';
 
 export class SGDOptimizer extends Optimizer {

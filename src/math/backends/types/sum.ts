@@ -16,13 +16,12 @@
  */
 
 import {NDArray} from '../../ndarray';
-import {DataType, SumTypes} from '../../types';
 import {KernelNode} from '../tape_types';
 
-export interface SumNode<D extends DataType> extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray<D>;}; args: {axes: number[];};};
-  output: NDArray<SumTypes[D]>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<SumTypes[D]>) => {
-    x: () => NDArray<'float32'>;
+export interface SumNode extends KernelNode {
+  inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[];};};
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    x: () => NDArray;
   };
 }

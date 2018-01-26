@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-
 import {Array2D, Array3D, Array4D} from './ndarray';
+import {Rank} from './types';
 
 // math.conv2dTranspose
 {
@@ -106,7 +107,7 @@ import {Array2D, Array3D, Array4D} from './ndarray';
          const origStride = 1;
 
          const x = Array3D.new(inputShape, [2, 2]);
-         const w = Array4D.randNormal(
+         const w = dl.randNormal<Rank.R4>(
              [fSize, fSize, origInputDepth, wrongOrigOutputDepth]);
 
          expect(

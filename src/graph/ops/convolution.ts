@@ -78,7 +78,7 @@ export class Convolution2D extends Operation {
       gradientArrays: SummedTensorArrayMap) {
     const filter = inferenceArrays.get(this.wTensor) as Array4D;
     const x = inferenceArrays.get(this.xTensor) as Array3D;
-    const dy = gradientArrays.get(this.yTensor) as Array3D<'float32'>;
+    const dy = gradientArrays.get(this.yTensor) as Array3D;
 
     math.scope(() => {
       const dw =

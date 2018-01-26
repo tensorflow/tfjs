@@ -18,7 +18,7 @@
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
 import {Optimizer} from '../../math/optimizers/optimizer';
-import {NamedVariableMap} from '../../util';
+import {NamedVariableMap} from '../../math/types';
 import {Node} from '../graph';
 import {SessionRuntime} from '../session';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
@@ -134,7 +134,7 @@ export class AdamOptimizer extends Optimizer {
   private firstMoment = new TensorArrayMap();
   // Average of squared gradient
   private secondMoment = new TensorArrayMap();
-  private eps: Scalar<'float32'>;
+  private eps: Scalar;
   private b1: Scalar;
   private b2: Scalar;
   private accB1: Scalar;

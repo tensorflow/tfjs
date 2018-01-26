@@ -24,9 +24,9 @@ export interface MatMulNode extends KernelNode {
     args: {aOrientation: MatrixOrientation; bOrientation: MatrixOrientation};
   };
   output: Array2D;
-  gradient: (dy: Array2D<'float32'>, y: Array2D) => {
-    a: () => Array2D<'float32'>;
-    b: () => Array2D<'float32'>;
+  gradient: (dy: Array2D, y: Array2D) => {
+    a: () => Array2D;
+    b: () => Array2D;
   };
 }
 

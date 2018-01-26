@@ -15,9 +15,8 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as conv_util from '../math/conv_util';
-import {NDArray} from '../math/ndarray';
-
 import {ConstantNode, Graph, Node, Tensor, VariableNode} from './graph';
 import {FeedDictionary} from './session';
 import * as session_util from './session_util';
@@ -40,39 +39,39 @@ describe('Graph', () => {
   });
 
   it('variable creates a node in the graph', () => {
-    const v = g.variable('', NDArray.zeros([1]));
+    const v = g.variable('', dl.zeros([1]));
     expect(v.node.graph).toEqual(g);
   });
 
   it('variable creates a VariableNode in the graph', () => {
-    const v = g.variable('', NDArray.zeros([1]));
+    const v = g.variable('', dl.zeros([1]));
     expect(v.node instanceof VariableNode).toEqual(true);
   });
 
   it('variable passes name to graph node', () => {
-    const v = g.variable('hello', NDArray.zeros([1]));
+    const v = g.variable('hello', dl.zeros([1]));
     expect(v.node.name).toEqual('hello');
   });
 
   it('mnist fully-connected', () => {
     const input = g.placeholder('input', [28 * 28]);
-    const fc0W = g.variable('fc0W', NDArray.zeros([32, 28 * 28]));
-    const fc0B = g.variable('fc0B', NDArray.zeros([32]));
+    const fc0W = g.variable('fc0W', dl.zeros([32, 28 * 28]));
+    const fc0B = g.variable('fc0B', dl.zeros([32]));
     const fc0 = g.add(g.matmul(fc0W, input), fc0B);
     const relu0 = g.relu(fc0);
-    const fc1W = g.variable('fc1W', NDArray.zeros([32, 32]));
-    const fc1B = g.variable('fc1B', NDArray.zeros([32]));
+    const fc1W = g.variable('fc1W', dl.zeros([32, 32]));
+    const fc1B = g.variable('fc1B', dl.zeros([32]));
     const fc1 = g.add(g.matmul(fc1W, relu0), fc1B);
     const relu1 = g.relu(fc1);
-    const fc2W = g.variable('fc2W', NDArray.zeros([32, 32]));
-    const fc2B = g.variable('fc2B', NDArray.zeros([32]));
+    const fc2W = g.variable('fc2W', dl.zeros([32, 32]));
+    const fc2B = g.variable('fc2B', dl.zeros([32]));
     const fc2 = g.add(g.matmul(fc2W, relu1), fc2B);
     const relu2 = g.relu(fc2);
-    const fc3W = g.variable('fc3W', NDArray.zeros([10, 32]));
-    const fc3B = g.variable('fc3B', NDArray.zeros([10]));
+    const fc3W = g.variable('fc3W', dl.zeros([10, 32]));
+    const fc3B = g.variable('fc3B', dl.zeros([10]));
     const fc3 = g.add(g.matmul(fc3W, relu2), fc3B);
 
-    const fd = new FeedDictionary([{tensor: input, data: NDArray.zeros([1])}]);
+    const fd = new FeedDictionary([{tensor: input, data: dl.zeros([1])}]);
     const orderedEvaluationSet =
         session_util.getOrderedEvaluationSetFromEvalTensor([fc3], fd);
     expect(orderedEvaluationSet.length).toBeGreaterThan(1);
@@ -91,7 +90,7 @@ describe('Variable validation', () => {
   });
 
   it('non null data does not throw', () => {
-    g.variable('test', NDArray.zeros([5]));
+    g.variable('test', dl.zeros([5]));
   });
 });
 
@@ -119,7 +118,7 @@ describe('Constant', () => {
   });
 
   it('non null data does not throw', () => {
-    expect(g.constant(NDArray.zeros([5])).shape).toEqual([5]);
+    expect(g.constant(dl.zeros([5])).shape).toEqual([5]);
   });
 
   it('from a single value', () => {
@@ -330,8 +329,7 @@ describe('Concat1d validation', () => {
   });
 
   it('Axis=0 shapes the same does not throw', () => {
-    expect(g.concat1d(new Tensor([5]), new Tensor([1])).shape)
-        .toEqual([6]);
+    expect(g.concat1d(new Tensor([5]), new Tensor([1])).shape).toEqual([6]);
   });
 });
 
@@ -439,43 +437,51 @@ describe('Concat4d validation', () => {
   });
 
   it('Axis=0 different shapes throws', () => {
-    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
-      new Tensor([1, 2, 1, 1]), 0)).toThrowError();
+    expect(
+        () => g.concat4d(new Tensor([5, 4, 1, 1]), new Tensor([1, 2, 1, 1]), 0))
+        .toThrowError();
   });
 
   it('Axis=1 different shapes throws', () => {
-    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
-      new Tensor([1, 2, 1, 1]), 1)).toThrowError();
+    expect(
+        () => g.concat4d(new Tensor([5, 4, 1, 1]), new Tensor([1, 2, 1, 1]), 1))
+        .toThrowError();
   });
 
   it('Axis=2 different shapes throws', () => {
-    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
-      new Tensor([1, 2, 1, 1]), 2)).toThrowError();
+    expect(
+        () => g.concat4d(new Tensor([5, 4, 1, 1]), new Tensor([1, 2, 1, 1]), 2))
+        .toThrowError();
   });
 
   it('Axis=3 different shapes throws', () => {
-    expect(() => g.concat4d(new Tensor([5, 4, 1, 1]),
-      new Tensor([1, 2, 1, 1]), 3)).toThrowError();
+    expect(
+        () => g.concat4d(new Tensor([5, 4, 1, 1]), new Tensor([1, 2, 1, 1]), 3))
+        .toThrowError();
   });
 
   it('Axis=0 shapes the same does not throw', () => {
-    expect(g.concat4d(new Tensor([5, 4, 3, 1]),
-      new Tensor([1, 4, 3, 1]), 0).shape).toEqual([6, 4, 3, 1]);
+    expect(
+        g.concat4d(new Tensor([5, 4, 3, 1]), new Tensor([1, 4, 3, 1]), 0).shape)
+        .toEqual([6, 4, 3, 1]);
   });
 
   it('Axis=1 shapes the same does not throw', () => {
-    expect(g.concat4d(new Tensor([5, 3, 3, 1]),
-      new Tensor([5, 4, 3, 1]), 1).shape).toEqual([5, 7, 3, 1]);
+    expect(
+        g.concat4d(new Tensor([5, 3, 3, 1]), new Tensor([5, 4, 3, 1]), 1).shape)
+        .toEqual([5, 7, 3, 1]);
   });
 
   it('Axis=2 shapes the same does not throw', () => {
-    expect(g.concat4d(new Tensor([5, 4, 3, 1]),
-      new Tensor([5, 4, 1, 1]), 2).shape).toEqual([5, 4, 4, 1]);
+    expect(
+        g.concat4d(new Tensor([5, 4, 3, 1]), new Tensor([5, 4, 1, 1]), 2).shape)
+        .toEqual([5, 4, 4, 1]);
   });
 
   it('Axis=3 shapes the same does not throw', () => {
-    expect(g.concat4d(new Tensor([5, 4, 3, 1]), 
-      new Tensor([5, 4, 3, 2]), 3).shape).toEqual([5, 4, 3, 3]);
+    expect(
+        g.concat4d(new Tensor([5, 4, 3, 1]), new Tensor([5, 4, 3, 2]), 3).shape)
+        .toEqual([5, 4, 3, 3]);
   });
 });
 

@@ -21,35 +21,35 @@ import {KernelNode} from '../tape_types';
 export interface Concat1DNode extends KernelNode {
   inputAndArgs: {inputs: {a: Array1D; b: Array1D;};};
   output: Array1D;
-  gradient: (dy: Array1D<'float32'>, y: Array1D) => {
-    a: () => Array1D<'float32'>;
-    b: () => Array1D<'float32'>;
+  gradient: (dy: Array1D, y: Array1D) => {
+    a: () => Array1D;
+    b: () => Array1D;
   };
 }
 
 export interface Concat2DNode extends KernelNode {
   inputAndArgs: {inputs: {a: Array2D; b: Array2D;}; args: {axis: number};};
   output: Array2D;
-  gradient: (dy: Array2D<'float32'>, y: Array2D) => {
-    a: () => Array2D<'float32'>;
-    b: () => Array2D<'float32'>;
+  gradient: (dy: Array2D, y: Array2D) => {
+    a: () => Array2D;
+    b: () => Array2D;
   };
 }
 
 export interface Concat3DNode extends KernelNode {
   inputAndArgs: {inputs: {a: Array3D; b: Array3D;}; args: {axis: number};};
   output: Array3D;
-  gradient: (dy: Array3D<'float32'>, y: Array3D) => {
-    a: () => Array3D<'float32'>;
-    b: () => Array3D<'float32'>;
+  gradient: (dy: Array3D, y: Array3D) => {
+    a: () => Array3D;
+    b: () => Array3D;
   };
 }
 
 export interface Concat4DNode extends KernelNode {
   inputAndArgs: {inputs: {a: Array4D; b: Array4D;}; args: {axis: number};};
   output: Array4D;
-  gradient: (dy: Array4D<'float32'>, y: Array4D) => {
-    a: () => Array4D<'float32'>;
-    b: () => Array4D<'float32'>;
+  gradient: (dy: Array4D, y: Array4D) => {
+    a: () => Array4D;
+    b: () => Array4D;
   };
 }

@@ -20,16 +20,16 @@ import {KernelNode} from '../tape_types';
 
 export interface ArgMaxNode extends KernelNode {
   inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[];};};
-  output: NDArray<'int32'>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<'int32'>) => {
-    x: () => NDArray<'float32'>;
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    x: () => NDArray;
   };
 }
 
 export interface ArgMinNode extends KernelNode {
   inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[];};};
-  output: NDArray<'int32'>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<'int32'>) => {
-    x: () => NDArray<'float32'>;
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    x: () => NDArray;
   };
 }

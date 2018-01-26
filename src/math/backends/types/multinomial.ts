@@ -22,8 +22,8 @@ import {KernelNode} from '../tape_types';
 export interface MultinomialNode extends KernelNode {
   inputAndArgs:
       {inputs: {probs: Array2D;}; args: {numSamples: number; seed: number};};
-  output: Array2D<'int32'>;
-  gradient: (dy: Array2D<'float32'>, y: Array2D<'int32'>) => {
-    probs: () => Array2D<'float32'>;
+  output: Array2D;
+  gradient: (dy: Array2D, y: Array2D) => {
+    probs: () => Array2D;
   };
 }
