@@ -24,10 +24,10 @@ import {TapeNodeInputGradientArrays} from './backends/tape_types';
 import {ScopeFn, ScopeResult, ScopeResultImmediate} from './backends/tape_util';
 import * as batchnorm from './batchnorm';
 import * as binary_ops from './binary_ops';
-import * as broadcast_util from './broadcast_util';
 import * as compare from './compare';
 import * as concat from './concat';
 import * as conv from './conv';
+import * as logical from './logical_ops';
 import * as matmul from './matmul';
 // tslint:disable-next-line:max-line-length
 import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, Variable} from './ndarray';
@@ -39,7 +39,6 @@ import * as reduction_ops from './reduction_ops';
 import * as reverse from './reverse';
 import * as slice from './slice';
 import * as transpose from './transpose';
-import * as types from './types';
 import {NamedArrayMap, NamedVariableMap} from './types';
 import {DataType, Rank, TypedArray} from './types';
 import * as unary_ops from './unary_ops';
@@ -141,6 +140,10 @@ export class NDArrayMath implements NDArrayManager {
   sub = binary_ops.Ops.sub;
   subtract = this.sub;  // Alias.
   subStrict = binary_ops.Ops.subStrict;
+
+  logicalAnd = logical.Ops.logicalAnd;
+  logicalOr = logical.Ops.logicalOr;
+  where = logical.Ops.where;
 
   transpose = transpose.Ops.transpose;
 
@@ -393,70 +396,6 @@ export class NDArrayMath implements NDArrayManager {
     };
     return this.engine.executeKernel(
                'Cast', {inputs: {x}, args: {newDType}}, grad) as NDArray<R>;
-  }
-
-  /**
-   * Returns the truth value of a AND b element-wise. Supports broadcasting.
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`.
-   */
-  logicalAnd(a: NDArray, b: NDArray): NDArray {
-    util.assert(
-        a.dtype === 'bool' && b.dtype === 'bool',
-        'Error Array must be of type bool.');
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('LogicalAnd', {inputs: {a, b}});
-  }
-
-  /**
-   * Returns the truth value of a OR b element-wise. Supports broadcasting.
-   *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`.
-   */
-  logicalOr(a: NDArray, b: NDArray): NDArray {
-    util.assert(
-        a.dtype === 'bool' && b.dtype === 'bool',
-        'Error Array must be of type bool.');
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return this.engine.executeKernel('LogicalOr', {inputs: {a, b}});
-  }
-
-  /**
-   * Returns the elements, either `a` or `b` depending on the `condition`.
-   *
-   * @param condition The input as `NDAray<'bool'>.
-   * @param a Input as `NDArray` which may have the same shape as
-   *     `condition`. If `condition` is rank 1, `a` may have a higher rank but
-   *     its first dimension must match the size of `condition`.
-   * @param b Input as `NDArray` with the same shape and type as `a`.
-   * @return An `NDArray` with the same type and shape as `a` and `b`.
-   */
-  where<T extends NDArray>(condition: NDArray, a: T, b: T): T {
-    util.assert(
-        condition.dtype === 'bool' || a.dtype === 'bool' || b.dtype === 'bool',
-        'Error Array must be of type bool.');
-
-    util.assertShapesMatch(a.shape, b.shape, 'Error in where: ');
-
-    if (condition.rank === 1) {
-      // If condition rank is 1, then the first dimension must match the size of
-      // condition.
-      util.assert(
-          condition.shape[0] === a.shape[0],
-          'The first dimension of `a` must match the size of `condition`.');
-    } else {
-      // A must have the same shape as condition.
-      util.assertShapesMatch(condition.shape, b.shape, 'Error in where: ');
-    }
-
-    // Default to highest percision of number:
-    const dtype = types.upcastType(a.dtype, b.dtype);
-    return this.engine.executeKernel(
-               'Where',
-               {inputs: {condition, a, b}, args: {dtype: dtype as DataType}}) as
-        T;
   }
 
   /**
