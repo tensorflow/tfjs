@@ -28,7 +28,10 @@ export class Ops {
    */
   @operation
   static neg<R extends Rank, T extends NDArray<R>>(x: T): T {
-    return ENV.engine.executeKernel('Neg', {inputs: {x}}) as T;
+    return ENV.engine.executeKernel(
+               'Neg', {inputs: {x}}, (dy: NDArray<R>, y: NDArray<R>) => {
+                 return {x: () => dy.neg()};
+               }) as T;
   }
 
   /**
@@ -58,7 +61,10 @@ export class Ops {
    */
   @operation
   static exp<R extends Rank, T extends NDArray<R>>(x: T): T {
-    return ENV.engine.executeKernel('Exp', {inputs: {x}}) as T;
+    return ENV.engine.executeKernel(
+               'Exp', {inputs: {x}}, (dy: NDArray<R>, y: NDArray<R>) => {
+                 return {x: () => dy.mul(y)};
+               }) as T;
   }
 
   /**
@@ -67,7 +73,10 @@ export class Ops {
    */
   @operation
   static log<R extends Rank, T extends NDArray<R>>(x: T): T {
-    return ENV.engine.executeKernel('Log', {inputs: {x}}) as T;
+    return ENV.engine.executeKernel(
+               'Log', {inputs: {x}}, (dy: NDArray<R>, y: NDArray<R>) => {
+                 return {x: () => dy.div(x.toFloat())};
+               }) as T;
   }
 
   /**
