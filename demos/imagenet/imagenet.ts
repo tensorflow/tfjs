@@ -126,6 +126,7 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
       navigator.getUserMedia = navigator.getUserMedia ||
           navigatorAny.webkitGetUserMedia || navigatorAny.mozGetUserMedia ||
           navigatorAny.msGetUserMedia;
+
       if (navigator.getUserMedia) {
         navigator.getUserMedia(
             {video: true},
@@ -153,6 +154,9 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
     this.inputNames = INPUT_NAMES;
     this.selectedInputName = 'cat';
     this.staticImgElement.src = 'images/cat.jpg';
+    this.staticImgElement.onload = () => {
+      this.isMediaLoaded = true;
+    };
     this.webcamVideoElement.style.display = 'none';
     this.staticImgElement.style.display = '';
 
@@ -184,7 +188,8 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
       const element =
           isWebcam ? this.webcamVideoElement : this.staticImgElement;
-      const image = Array3D.fromPixels(element, 3, this.math);
+
+      const image = Array3D.fromPixels(element, 3);
 
       const inferenceResult =
           this.squeezeNet.predictWithActivation(image, this.selectedLayerName);
