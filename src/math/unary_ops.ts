@@ -216,10 +216,15 @@ export class Ops {
   /**
    * Computes sin of the input NDArray element-wise, y = sin(x).
    * @param x The input NDArray.
+   *
+   * TODO(smilkov): Fix dl.cos() and other ops that should return a float.
    */
   @operation
   static sin<R extends Rank, T extends NDArray<R>>(x: T): T {
-    return ENV.engine.executeKernel('Sin', {inputs: {x}}) as T;
+    return ENV.engine.executeKernel(
+               'Sin', {inputs: {x}}, (dy: NDArray<R>, y: NDArray<R>) => {
+                 return {x: () => x.toFloat().cos().mul(dy)};
+               }) as T;
   }
 
   /**
@@ -228,7 +233,10 @@ export class Ops {
    */
   @operation
   static cos<R extends Rank, T extends NDArray<R>>(x: T): T {
-    return ENV.engine.executeKernel('Cos', {inputs: {x}}) as T;
+    return ENV.engine.executeKernel(
+               'Cos', {inputs: {x}}, (dy: NDArray<R>, y: NDArray<R>) => {
+                 return {x: () => x.toFloat().sin().neg().mul(dy)};
+               }) as T;
   }
 
   /**
@@ -237,7 +245,10 @@ export class Ops {
    */
   @operation
   static tan<R extends Rank, T extends NDArray<R>>(x: T): T {
-    return ENV.engine.executeKernel('Tan', {inputs: {x}}) as T;
+    return ENV.engine.executeKernel(
+               'Tan', {inputs: {x}}, (dy: NDArray<R>, y: NDArray<R>) => {
+                 return {x: () => dy.div(x.cos().square())};
+               }) as T;
   }
 
   /**
