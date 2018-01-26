@@ -31,7 +31,7 @@ export interface LRN4DNode extends KernelNode {
     };
   };
   output: Array4D;
-  gradient: (dy: Array4D<'float32'>, y: Array4D) => {
-    x: () => Array4D<'float32'>;
+  gradient: (dy: Array4D, y: Array4D) => {
+    x: () => Array4D;
   };
 }

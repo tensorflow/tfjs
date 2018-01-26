@@ -25,6 +25,7 @@ import * as conv_util from './math/conv_util';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
+
 export {CheckpointLoader} from './data/checkpoint_loader';
 export {DataStats, InMemoryDataset} from './data/dataset';
 // tslint:disable-next-line:max-line-length
@@ -52,6 +53,7 @@ export {LSTMCell, NDArrayMath} from './math/math';
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, variable, Variable} from './math/ndarray';
 export {Optimizer} from './math/optimizers/optimizer';
 export {SGDOptimizer} from './math/optimizers/sgd_optimizer';
+export {Rank} from './math/types';
 export {Model} from './model';
 export {version};
 // Second level exports.
@@ -65,4 +67,5 @@ export {
   webgl_util,
   xhr_dataset
 };
+
 export * from './math/ops';

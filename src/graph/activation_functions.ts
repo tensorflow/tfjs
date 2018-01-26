@@ -36,7 +36,7 @@ export class TanHFunc implements ActivationFunction {
     return math.scope(() => {
       const ySquared = math.multiplyStrict(y, y);
       // 1 - y^2.
-      return math.subtract(this.one, ySquared as NDArray<'float32'>) as T;
+      return math.subtract(this.one, ySquared as NDArray) as T;
     });
   }
 
@@ -100,7 +100,7 @@ export class SquareFunc implements ActivationFunction {
 
   der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
     // dy/dx = 2*x.
-    return math.multiply(this.two, x as NDArray<'float32'>) as T;
+    return math.multiply(this.two, x as NDArray) as T;
   }
 
   dispose() {

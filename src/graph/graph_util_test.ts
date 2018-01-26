@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
 import {NDArray, Scalar} from '../math/ndarray';
 // tslint:disable-next-line:max-line-length
@@ -169,7 +170,7 @@ describe('graph_util.isInputNode', () => {
 
   beforeEach(() => {
     g = new Graph();
-    nda = NDArray.zeros([1]);
+    nda = dl.zeros([1]);
   });
 
   it('returns true for VariableNode', () => {
@@ -182,7 +183,7 @@ describe('graph_util.isInputNode', () => {
   });
 
   it('returns true for ConstantNode', () => {
-    expect(graph_util.isInputNode(new ConstantNode(g, NDArray.zeros([1]))))
+    expect(graph_util.isInputNode(new ConstantNode(g, dl.zeros([1]))))
         .toEqual(true);
   });
 

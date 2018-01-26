@@ -22,20 +22,20 @@ import {KernelNode} from '../tape_types';
 // Equal/NotEqual/Less/LessEqual/Greater/GreaterEqual
 export interface EqualNode extends KernelNode {
   inputAndArgs: {inputs: {a: NDArray; b: NDArray;};};
-  output: NDArray<'bool'>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<'bool'>) => {
-    a: () => NDArray<'float32'>;
-    b: () => NDArray<'float32'>;
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    a: () => NDArray;
+    b: () => NDArray;
   };
 }
 
 // LogicalAnd/LogicalOr
 export interface LogicalNode extends KernelNode {
   inputAndArgs: {inputs: {a: NDArray; b: NDArray;};};
-  output: NDArray<'bool'>;
-  gradient: (dy: NDArray<'float32'>, y: NDArray<'bool'>) => {
-    a: () => NDArray<'float32'>;
-    b: () => NDArray<'float32'>;
+  output: NDArray;
+  gradient: (dy: NDArray, y: NDArray) => {
+    a: () => NDArray;
+    b: () => NDArray;
   };
 }
 
@@ -46,9 +46,9 @@ export interface WhereNode extends KernelNode {
     args: {dtype: DataType};
   };
   output: NDArray;
-  gradient: (dy: NDArray<'float32'>, y: NDArray) => {
-    condition: () => NDArray<'float32'>;
-    a: () => NDArray<'float32'>;
-    b: () => NDArray<'float32'>;
+  gradient: (dy: NDArray, y: NDArray) => {
+    condition: () => NDArray;
+    a: () => NDArray;
+    b: () => NDArray;
   };
 }

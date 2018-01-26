@@ -18,7 +18,6 @@
 import * as axis_util from './axis_util';
 import {operation} from './decorators';
 import {NDArray, Scalar} from './ndarray';
-import {DataType, SumTypes} from './types';
 
 export class Ops {
   /**
@@ -50,9 +49,9 @@ export class Ops {
    * as the input.
    */
   @operation
-  static norm<D extends DataType>(
-      x: NDArray<D>, ord: number|'euclidean'|'fro' = 'euclidean',
-      axis: number|number[] = null, keepDims = false): NDArray<D|SumTypes[D]> {
+  static norm(
+      x: NDArray, ord: number|'euclidean'|'fro' = 'euclidean',
+      axis: number|number[] = null, keepDims = false): NDArray {
     const norm = normInternal(x, ord, axis);
     let keepDimsShape = norm.shape;
     if (keepDims) {
@@ -63,9 +62,8 @@ export class Ops {
   }
 }
 
-function normInternal<D extends DataType>(
-    x: NDArray<D>, p: number|string,
-    axis: number|number[] = null): NDArray<D|SumTypes[D]> {
+function normInternal(
+    x: NDArray, p: number|string, axis: number|number[] = null): NDArray {
   // scalar
   if (x.rank === 0) {
     return x.abs();
@@ -90,8 +88,7 @@ function normInternal<D extends DataType>(
     }
     if (p === 'euclidean' || p === 2) {
       // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-      return x.abs().pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as
-          NDArray<D|SumTypes[D]>;
+      return x.abs().pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as NDArray;
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);
@@ -110,8 +107,7 @@ function normInternal<D extends DataType>(
     }
     if (p === 'fro' || p === 'euclidean') {
       // norm(x) = sqrt(sum(pow(x, 2)))
-      return x.pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as
-          NDArray<D|SumTypes[D]>;
+      return x.pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as NDArray;
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);

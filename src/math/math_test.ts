@@ -18,9 +18,8 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
-
 import {MatrixOrientation} from './backends/types/matmul';
-import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
+import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
 // math.scope
 {
@@ -268,7 +267,7 @@ import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
         pixels.data[i] = 250;
       }
 
-      const a = Array3D.fromPixels(pixels, 4);
+      const a = NDArray.fromPixels(pixels, 4);
       const b = Scalar.new(20, 'int32');
 
       const res = math.add(a, b);
@@ -641,7 +640,7 @@ import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
         return math.customGradient(() => {
           const value = math.pow(a, b);
 
-          const gradients = (dy: NDArray<'float32'>, y: NDArray) => {
+          const gradients = (dy: NDArray, y: NDArray) => {
             return {a: () => math.multiply(dy, Scalar.new(3))};
           };
 
@@ -664,7 +663,7 @@ import {Array1D, Array2D, Array3D, NDArray, Scalar} from './ndarray';
         return math.vjp(() => {
           return math.customGradient(() => {
             const value = math.pow(a, b);
-            const gradients = (dy: NDArray<'float32'>, y: NDArray) => {
+            const gradients = (dy: NDArray, y: NDArray) => {
               return {a: () => math.multiply(dy, a)};
             };
 

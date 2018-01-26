@@ -16,10 +16,12 @@
  */
 import {InputProvider} from '../../data/input_provider';
 import {ENV} from '../../environment';
-import {Array1D, NDArray} from '../../math/ndarray';
+import * as dl from '../../index';
+import {Array1D} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Graph} from '../graph';
 import {Session} from '../session';
+
 import {MomentumOptimizer} from './momentum_optimizer';
 
 describe('momentum optimizer', () => {
@@ -36,8 +38,8 @@ describe('momentum optimizer', () => {
     math.scope(() => {
       const g = new Graph();
       const x = g.placeholder('x', [2]);
-      const w = g.variable('w', NDArray.zeros([1, 2]));
-      const b = g.variable('b', NDArray.zeros([1]));
+      const w = g.variable('w', dl.zeros([1, 2]));
+      const b = g.variable('b', dl.zeros([1]));
       const y = g.reduceSum(g.add(g.matmul(w, x), b));
       const optimizer = new MomentumOptimizer(0.1, 0.5);
       const session = new Session(g, math);

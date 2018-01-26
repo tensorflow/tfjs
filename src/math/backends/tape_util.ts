@@ -16,8 +16,8 @@
  */
 
 import * as util from '../../util';
-import {NamedArrayMap} from '../../util';
 import {NDArray, Variable} from '../ndarray';
+import {NamedArrayMap} from '../types';
 
 // tslint:disable-next-line:max-line-length
 import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types';
@@ -150,13 +150,13 @@ export function getFilteredNodesXToY(
  * @param filteredTape The filtered TapeNodes to backprop through.
  */
 export function backpropagateGradients(
-    arrayAccumulatedGradientMap: {[ndarrayId: number]: NDArray<'float32'>},
+    arrayAccumulatedGradientMap: {[ndarrayId: number]: NDArray},
     filteredTape: Tape) {
   // Walk the tape backwards and keep a map of NDArray to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
 
-    let dy: NDArray<'float32'>|NamedArrayMap<'float32'>;
+    let dy: NDArray|NamedArrayMap;
     if (node.output instanceof NDArray) {
       dy = arrayAccumulatedGradientMap[node.output.id];
     } else {

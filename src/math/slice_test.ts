@@ -15,9 +15,11 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
+import {Rank} from './types';
 
 // math.slice1D
 {
@@ -65,13 +67,13 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('returns a ndarray of slice size', math => {
-      const a = Array2D.zeros([100, 100]);
+      const a = dl.zeros<Rank.R2>([100, 100]);
       const b = math.slice2D(a, [0, 0], [12, 34]);
       expect(b.shape).toEqual([12, 34]);
     });
 
     it('returns the upper-left submatrix when begin is [0, 0]', math => {
-      const a = Array2D.randUniform([10, 10], -1, 1);
+      const a = dl.randUniform<Rank.R2>([10, 10], -1, 1);
       const b = math.slice2D(a, [0, 0], [2, 2]);
       const aValues = a.dataSync();
 

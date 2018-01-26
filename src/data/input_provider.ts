@@ -134,7 +134,7 @@ export abstract class InMemoryShuffledInputProviderBuilder implements
  */
 export class InCPUMemoryShuffledInputProviderBuilder extends
     InMemoryShuffledInputProviderBuilder {
-  getInputProvider(inputId: number) {
+  getInputProvider(inputId: number): InputProvider {
     const shuffledInputProvider = this;
 
     return {
@@ -156,7 +156,7 @@ export class InCPUMemoryShuffledInputProviderBuilder extends
  */
 export class InGPUMemoryShuffledInputProviderBuilder extends
     InMemoryShuffledInputProviderBuilder {
-  getInputProvider(inputId: number) {
+  getInputProvider(inputId: number): InputProvider {
     const shuffledInputProvider = this;
 
     return {

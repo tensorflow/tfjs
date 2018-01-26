@@ -15,21 +15,9 @@
  * =============================================================================
  */
 
-import {NDArray, Variable} from './math/ndarray';
-import {DataType, DataTypeMap} from './math/types';
-
-export type TypedArray = Float32Array|Int32Array|Uint8Array;
-export type FlatVector = boolean[]|number[]|TypedArray;
-export type RegularArray<T> = T[]|T[][]|T[][][]|T[][][][];
-export type ArrayData = TypedArray|RegularArray<number>|RegularArray<boolean>;
-
-export type NamedArrayMap<D extends DataType = DataType> = {
-  [name: string]: NDArray<D>
-};
-
-export type NamedVariableMap = {
-  [name: string]: Variable;
-};
+import {NDArray} from './math/ndarray';
+// tslint:disable-next-line:max-line-length
+import {DataType, DataTypeMap, FlatVector, NamedArrayMap, RegularArray} from './math/types';
 
 /** Shuffles the array using Fisher-Yates algorithm. */
 // tslint:disable-next-line:no-any
@@ -357,8 +345,8 @@ export function isNDArrayInList(
   return false;
 }
 
-export function checkForNaN(
-    vals: TypedArray, dtype: DataType, name: string): void {
+export function checkForNaN<D extends DataType>(
+    vals: DataTypeMap[D], dtype: D, name: string): void {
   for (let i = 0; i < vals.length; i++) {
     if (isValNaN(vals[i], dtype)) {
       throw Error(`The result of the last math.${name} has NaNs.`);

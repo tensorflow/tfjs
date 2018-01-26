@@ -24,7 +24,7 @@ export interface OneHotNode extends KernelNode {
     args: {depth: number; onValue: number; offValue: number};
   };
   output: Array2D;
-  gradient: (dy: Array2D<'float32'>, y: Array2D) => {
-    indices: () => Array1D<'float32'>;
+  gradient: (dy: Array2D, y: Array2D) => {
+    indices: () => Array1D;
   };
 }

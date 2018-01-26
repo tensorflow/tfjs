@@ -23,8 +23,8 @@ import {KernelNode} from '../tape_types';
 export interface PoolNode extends KernelNode {
   inputAndArgs: {inputs: {x: Array4D;}; args: {convInfo: Conv2DInfo;};};
   output: Array4D;
-  gradient: (dy: Array4D<'float32'>, y: Array4D) => {
-    x: () => Array4D<'float32'>;
+  gradient: (dy: Array4D, y: Array4D) => {
+    x: () => Array4D;
   };
 }
 
@@ -33,8 +33,8 @@ export interface PoolBackpropNode extends KernelNode {
   inputAndArgs:
       {inputs: {dy: Array4D; x: Array4D;}; args: {convInfo: Conv2DInfo;};};
   output: Array4D;
-  gradient: (dy: Array4D<'float32'>, y: Array4D) => {
-    dy: () => Array4D<'float32'>;
-    x: () => Array4D<'float32'>;
+  gradient: (dy: Array4D, y: Array4D) => {
+    dy: () => Array4D;
+    x: () => Array4D;
   };
 }

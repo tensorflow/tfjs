@@ -20,21 +20,19 @@ import * as util from '../util';
 import {operation} from './decorators';
 import {Array3D, NDArray, NDArrayData} from './ndarray';
 import {MPRandGauss, RandNormalDataTypes} from './rand';
-import {DataType, DataTypeMap, Rank, RankMap} from './types';
+import {DataType, DataTypeMap, Rank} from './types';
 
 export class Ops {
   /** Creates a ndarray of ones with the specified shape. */
   @operation
-  static ones<D extends DataType = 'float32', R extends Rank = Rank>(
-      shape: number[], dtype?: D): RankMap<D>[R] {
+  static ones<R extends Rank>(shape: number[], dtype?: DataType): NDArray<R> {
     const values = makeOnesTypedArray(util.sizeFromShape(shape), dtype);
     return NDArray.make(shape, {values}, dtype);
   }
 
   /** Creates a ndarray of zeros with the specified shape. */
   @operation
-  static zeros<D extends DataType = 'float32', R extends Rank = Rank>(
-      shape: number[], dtype?: D): RankMap<D>[R] {
+  static zeros<R extends Rank>(shape: number[], dtype?: DataType): NDArray<R> {
     const values = makeZerosTypedArray(util.sizeFromShape(shape), dtype);
     return NDArray.make(shape, {values}, dtype);
   }
@@ -57,17 +55,16 @@ export class Ops {
 
   /** Creates a ndarray with the same values/shape as the specified ndarray. */
   @operation
-  static clone<D extends DataType, R extends Rank>(x: NDArray<D, R>):
-      RankMap<D>[R] {
+  static clone<R extends Rank>(x: NDArray<R>): NDArray<R> {
     const newValues = util.copyTypedArray(x.dataSync(), x.dtype);
-    return NDArray.make(x.shape, {values: newValues}, x.dtype) as RankMap<D>[R];
+    return NDArray.make(x.shape, {values: newValues}, x.dtype) as NDArray<R>;
   }
 
   @operation
-  static randNormal<D extends keyof RandNormalDataTypes, R extends Rank>(
-      shape: number[], mean = 0, stdDev = 1, dtype?: D, seed?: number):
-      RankMap<D>[R] {
-    if (dtype != null && dtype === 'bool') {
+  static randNormal<R extends Rank>(
+      shape: number[], mean = 0, stdDev = 1, dtype?: keyof RandNormalDataTypes,
+      seed?: number): NDArray<R> {
+    if (dtype != null && (dtype as DataType) === 'bool') {
       throw new Error(`Unsupported data type ${dtype}`);
     }
     const randGauss =
@@ -76,11 +73,10 @@ export class Ops {
   }
 
   @operation
-  static randTruncatedNormal<D extends keyof RandNormalDataTypes,
-                                       R extends Rank>(
-      shape: number[], mean = 0, stdDev = 1, dtype?: D, seed?: number):
-      RankMap<D>[R] {
-    if (dtype != null && dtype === 'bool') {
+  static randTruncatedNormal<R extends Rank>(
+      shape: number[], mean = 0, stdDev = 1, dtype?: keyof RandNormalDataTypes,
+      seed?: number): NDArray<R> {
+    if (dtype != null && (dtype as DataType) === 'bool') {
       throw new Error(`Unsupported data type ${dtype}`);
     }
     const randGauss =
@@ -89,14 +85,15 @@ export class Ops {
   }
 
   @operation
-  static randUniform<D extends DataType, R extends Rank>(
-      shape: number[], a: number, b: number, dtype?: D): RankMap<D>[R] {
+  static randUniform<R extends Rank>(
+      shape: number[], a: number, b: number, dtype?: DataType): NDArray<R> {
     return NDArray.rand(shape, () => util.randUniform(a, b), dtype);
   }
 
   @operation
-  static rand<D extends DataType, R extends Rank>(
-      shape: number[], randFunction: () => number, dtype?: D): RankMap<D>[R] {
+  static rand<R extends Rank>(
+      shape: number[], randFunction: () => number, dtype?: DataType):
+      NDArray<R> {
     const size = util.sizeFromShape(shape);
 
     let values = null;
@@ -119,15 +116,15 @@ export class Ops {
   @operation
   static fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels = 3): Array3D<'int32'> {
+      numChannels = 3): Array3D {
     if (numChannels > 4) {
       throw new Error(
           'Cannot construct NDArray with more than 4 channels from pixels.');
     }
-    const ndarrayData: NDArrayData<'int32'> = {};
+    const ndarrayData: NDArrayData = {};
     const shape: [number, number, number] =
         [pixels.height, pixels.width, numChannels];
-    const res = NDArray.make(shape, ndarrayData, 'int32') as Array3D<'int32'>;
+    const res = NDArray.make(shape, ndarrayData, 'int32') as Array3D;
     ENV.math.writePixels(res.dataId, pixels, numChannels);
     return res;
   }

@@ -20,7 +20,7 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './decorators';
 import {NDArray} from './ndarray';
-import {DataType, Rank, RankMap} from './types';
+import {Rank} from './types';
 
 export class Ops {
   /**
@@ -31,16 +31,15 @@ export class Ops {
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static notEqual<D1 extends DataType, D2 extends D1, T extends
-                      NDArray<'bool'>>(a: NDArray<D1>, b: NDArray<D2>): T {
+  static notEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('NotEqual', {inputs: {a, b}}) as T;
   }
 
   @operation
-  static notEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
-      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+  static notEqualStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
+      NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
     return a.notEqual(b);
   }
@@ -53,16 +52,14 @@ export class Ops {
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static less<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static less<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Less', {inputs: {a, b}}) as T;
   }
 
   @operation
-  static lessStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
-      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+  static lessStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
     return a.less(b);
   }
@@ -75,16 +72,14 @@ export class Ops {
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static equal<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static equal<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Equal', {inputs: {a, b}}) as T;
   }
 
   @operation
-  static equalStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
-      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+  static equalStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
     return a.equal(b);
   }
@@ -97,16 +92,15 @@ export class Ops {
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static lessEqual<D1 extends DataType, D2 extends D1, T extends
-                       NDArray<'bool'>>(a: NDArray<D1>, b: NDArray<D2>): T {
+  static lessEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('LessEqual', {inputs: {a, b}}) as T;
   }
 
   @operation
-  static lessEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
-      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+  static lessEqualStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
+      NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
     return a.lessEqual(b);
   }
@@ -119,16 +113,15 @@ export class Ops {
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static greater<D1 extends DataType, D2 extends D1, T extends NDArray<'bool'>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static greater<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Greater', {inputs: {a, b}}) as T;
   }
 
   @operation
-  static greaterStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
-      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+  static greaterStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
+      NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
     return a.greater(b);
   }
@@ -141,16 +134,15 @@ export class Ops {
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static greaterEqual<D1 extends DataType, D2 extends D1, T extends
-                          NDArray<'bool'>>(a: NDArray<D1>, b: NDArray<D2>): T {
+  static greaterEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('GreaterEqual', {inputs: {a, b}}) as T;
   }
 
   @operation
-  static greaterEqualStrict<R extends Rank, D1 extends DataType, D2 extends D1>(
-      a: NDArray<D1, R>, b: NDArray<D2, R>): RankMap<'bool'>[R] {
+  static greaterEqualStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
+      NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');
     return a.greaterEqual(b);
   }

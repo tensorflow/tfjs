@@ -20,7 +20,7 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './decorators';
 import {NDArray, Scalar} from './ndarray';
-import {DataType, Rank, RankMap} from './types';
+import {Rank} from './types';
 
 export class Ops {
   /**
@@ -31,13 +31,12 @@ export class Ops {
    * @param b The second `NDArray` to add. Must have the same type as `a`.
    */
   @operation
-  static add<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static add<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
+    const der = (dy: NDArray, y: NDArray) => {
       const derA = () => {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -68,8 +67,7 @@ export class Ops {
    */
 
   @operation
-  static addStrict<D extends DataType, R extends Rank>(
-      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+  static addStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
     return a.add(b);
   }
@@ -82,13 +80,12 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static sub<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static sub<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
+    const der = (dy: NDArray, y: NDArray) => {
       const derA = () => {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -118,8 +115,7 @@ export class Ops {
    * @param b The second NDArray to multiply element-wise.
    */
   @operation
-  static subStrict<D extends DataType, R extends Rank>(
-      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+  static subStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
     return a.sub(b);
   }
@@ -136,14 +132,13 @@ export class Ops {
    * @param exp The exponent NDArray to pow element-wise.
    */
   @operation
-  static pow<D extends DataType, T extends NDArray<D>>(
-      base: NDArray<D>, exp: NDArray<'int32'>): T {
+  static pow<T extends NDArray>(base: NDArray, exp: NDArray): T {
     util.assert(
         exp.dtype === 'int32',
         'only supports int32 data type for the exponent parameter.');
     broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
 
-    const gradient = (dy: NDArray<'float32'>, y: NDArray<D>) => {
+    const gradient = (dy: NDArray, y: NDArray) => {
       if (!util.arraysEqual(base.shape, exp.shape)) {
         throw new Error(
             `Gradient of pow not yet supported for broadcasted shapes.`);
@@ -173,8 +168,7 @@ export class Ops {
    * @param exp The exponent NDArray to pow element-wise.
    */
   @operation
-  static powStrict<D extends DataType, R extends Rank>(
-      base: NDArray<D, R>, exp: NDArray<'int32'>): RankMap<D>[R] {
+  static powStrict<R extends Rank>(base: NDArray<R>, exp: NDArray): NDArray<R> {
     util.assertShapesMatch(base.shape, exp.shape, 'Error in powStrict: ');
     return base.pow(exp);
   }
@@ -187,13 +181,12 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static mul<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static mul<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
+    const der = (dy: NDArray, y: NDArray) => {
       const derA = () => {
         const res = dy.mul(b.asType('float32'));
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -219,8 +212,8 @@ export class Ops {
    * @deprecated Use mulStrict() instead.
    */
   @operation
-  static elementWiseMul<D extends DataType, R extends Rank>(
-      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+  static elementWiseMul<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
+      NDArray<R> {
     return a.mulStrict(b);
   }
 
@@ -232,10 +225,9 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static mulStrict<D extends DataType, R extends Rank>(
-      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+  static mulStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in multiplyStrict: ');
-    return a.mul(b) as RankMap<D>[R];
+    return a.mul(b) as NDArray<R>;
   }
 
   /**
@@ -246,11 +238,10 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static div<D extends DataType, T extends NDArray<'float32'>>(
-      a: NDArray<D>, b: NDArray<D>): T {
+  static div<T extends NDArray>(a: NDArray, b: NDArray): T {
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const der = (dy: NDArray<'float32'>, y: NDArray) => {
+    const der = (dy: NDArray, y: NDArray) => {
       const derA = () => {
         const res = dy.div(b.asType('float32'));
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -266,7 +257,7 @@ export class Ops {
           res = res.sum(reduceAxes).reshape(b.shape);
         }
         const tmp = b.square() as NDArray;
-        return res.div(tmp.asType('float32')).neg() as NDArray<'float32'>;
+        return res.div(tmp.asType('float32')).neg() as NDArray;
       };
       return {a: derA, b: derB};
     };
@@ -281,10 +272,9 @@ export class Ops {
    * @param b The second NDArray to multiply element-wise.
    */
   @operation
-  static divStrict<D extends DataType, R extends Rank>(
-      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+  static divStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
-    return a.div(b) as RankMap<D>[R];
+    return a.div(b) as NDArray<R>;
   }
 
   /** @deprecated Use div() instead. */
@@ -315,8 +305,7 @@ export class Ops {
    * @param b The second ndarray. Must have the same type as `a`.
    */
   @operation
-  static minimum<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static minimum<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Minimum', {inputs: {a, b}}) as T;
@@ -330,10 +319,10 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static minimumStrict<D extends DataType, R extends Rank>(
-      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+  static minimumStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
+      NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
-    return a.minimum(b) as RankMap<D>[R];
+    return a.minimum(b) as NDArray<R>;
   }
 
   /**
@@ -344,8 +333,7 @@ export class Ops {
    * @param b The second ndarray. Must have the same type as `a`.
    */
   @operation
-  static maximum<D1 extends DataType, D2 extends D1, T extends NDArray<D1>>(
-      a: NDArray<D1>, b: NDArray<D2>): T {
+  static maximum<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Maximum', {inputs: {a, b}}) as T;
@@ -359,9 +347,9 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static maximumStrict<D extends DataType, R extends Rank>(
-      a: NDArray<D, R>, b: NDArray<D, R>): RankMap<D>[R] {
+  static maximumStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
+      NDArray<R> {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
-    return a.maximum(b) as RankMap<D>[R];
+    return a.maximum(b) as NDArray<R>;
   }
 }

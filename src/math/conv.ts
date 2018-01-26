@@ -20,7 +20,7 @@ import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './decorators';
 import {Array1D, Array3D, Array4D, NDArray} from './ndarray';
-import {DataType, Rank, RankMap} from './types';
+import {Rank} from './types';
 
 export class Ops {
   /**
@@ -156,7 +156,7 @@ export class Ops {
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, filter.shape, strides, pad, dimRoundingMode);
 
-    const gradients = (dy: Array4D<'float32'>, y: Array4D) => {
+    const gradients = (dy: Array4D, y: Array4D) => {
       return {
         x: () => Ops.conv2dDerInput(x4D.shape, dy, filter, strides, pad),
         filter: () => Ops.conv2dDerFilter(x4D, dy, filter.shape, strides, pad),
@@ -193,18 +193,17 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static conv2dDerInput<R extends Rank, T extends RankMap<'float32'>[R]>(
+  static conv2dDerInput<R extends Rank, T extends NDArray<R>>(
       xShape: [number, number, number, number]|[number, number, number],
-      dy: NDArray<'float32', R>, filter: Array4D,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+      dy: NDArray<R>, filter: Array4D, strides: [number, number]|number,
+      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     util.assert(
         xShape.length === dy.rank,
         `Length of inShape ` +
             `(${xShape.length}) and rank of dy (${dy.rank}) must match`);
 
     let xShape4D = xShape as [number, number, number, number];
-    let dy4D = dy as Array4D<'float32'>;
+    let dy4D = dy as Array4D;
     let reshapedTo4D = false;
     if (dy.rank === 3) {
       reshapedTo4D = true;
@@ -259,8 +258,7 @@ export class Ops {
    * assumed.
    */
   @operation
-  static conv2dDerBias(dy: Array3D<'float32'>|Array4D<'float32'>):
-      Array1D<'float32'> {
+  static conv2dDerBias(dy: Array3D|Array4D): Array1D {
     let dy4D = dy as Array4D;
     if (dy.rank === 3) {
       dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
@@ -287,16 +285,16 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static conv2dDerFilter<R extends '3'|'4'>(
-      x: NDArray<DataType, R>, dy: NDArray<'float32', R>,
+  static conv2dDerFilter<R extends Rank.R3|Rank.R4>(
+      x: NDArray<R>, dy: NDArray<R>,
       filterShape: [number, number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): Array4D<'float32'> {
+      dimRoundingMode?: 'floor'|'round'|'ceil'): Array4D {
     let x4D = x as Array4D;
     if (x.rank === 3) {
       x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
     }
-    let dy4D = dy as Array4D<'float32'>;
+    let dy4D = dy as Array4D;
     if (dy4D.rank === 3) {
       dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
     }
@@ -355,10 +353,10 @@ export class Ops {
    */
   @operation
   static conv2dTranspose<R extends Rank>(
-      x: NDArray<'float32', R>, filter: Array4D,
+      x: NDArray<R>, filter: Array4D,
       outputShape: [number, number, number, number]|[number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): RankMap<'float32'>[R] {
+      dimRoundingMode?: 'floor'|'round'|'ceil'): NDArray<R> {
     return Ops.conv2dDerInput(
         outputShape, x, filter, strides, pad, dimRoundingMode);
   }

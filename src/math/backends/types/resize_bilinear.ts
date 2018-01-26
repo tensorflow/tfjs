@@ -24,7 +24,7 @@ export interface ResizeBilinear3DNode extends KernelNode {
     args: {newShape2D: [number, number]; alignCorners: boolean};
   };
   output: Array3D;
-  gradient: (dy: Array3D<'float32'>, y: Array3D) => {
-    x: () => Array3D<'float32'>;
+  gradient: (dy: Array3D, y: Array3D) => {
+    x: () => Array3D;
   };
 }

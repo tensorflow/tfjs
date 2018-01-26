@@ -16,9 +16,9 @@
  */
 
 import {ENV} from '../environment';
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import * as axis_util from './axis_util';
-import {Array4D} from './ndarray';
 
 describe('axis_util combineLocations', () => {
   it('rank 4, reduce last 2 dims', () => {
@@ -284,7 +284,7 @@ describe('axis_util getUndoAxesPermutation', () => {
     const axes = [2, 0, 1, 3];
     const undoPermutation = axis_util.getUndoAxesPermutation(axes);
 
-    const a = Array4D.randNormal([2, 3, 4, 5]);
+    const a = dl.randNormal([2, 3, 4, 5]);
     const aT = ENV.math.transpose(a, axes);
     const aTT = ENV.math.transpose(aT, undoPermutation);
     test_util.expectArraysClose(a, aTT);

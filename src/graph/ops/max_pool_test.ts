@@ -16,11 +16,14 @@
  */
 
 import {ENV} from '../../environment';
+import * as dl from '../../index';
 import * as conv_util from '../../math/conv_util';
 import {Array3D} from '../../math/ndarray';
+import {Rank} from '../../math/types';
 import * as test_util from '../../test_util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
+
 import {MaxPool} from './max_pool';
 
 describe('Max pool', () => {
@@ -61,7 +64,7 @@ describe('Max pool', () => {
     op.feedForward(math, activations);
 
     // Feed forward.
-    const y = activations.get(yTensor) as Array3D<'float32'>;
+    const y = activations.get(yTensor) as Array3D;
     const expectedResult = Array3D.new([2, 2, depth], [5, 6, 9, 9]);
     test_util.expectArraysClose(y, expectedResult);
 
@@ -71,7 +74,7 @@ describe('Max pool', () => {
 
     op.backProp(math, activations, gradients);
 
-    const dx = gradients.get(xTensor) as Array3D<'float32'>;
+    const dx = gradients.get(xTensor) as Array3D;
     const expectedBackprop =
         Array3D.new([3, 3, depth], [0, 0, 0, 0, 50, 60, 0, 170, 0]);
     test_util.expectArraysClose(dx, expectedBackprop);
@@ -137,7 +140,7 @@ describe('Max pool', () => {
     const stride = 2;
     const pad = 0;
 
-    const x = Array3D.randNormal([6, 6, 5]);
+    const x = dl.randNormal<Rank.R3>([6, 6, 5]);
 
     xTensor = new Tensor(x.shape);
     yTensor = new Tensor(conv_util.computeOutputShape3D(

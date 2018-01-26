@@ -83,7 +83,7 @@ export class GraphRunner {
   private lastCostTimestamp = 0;
   private lastEvalTimestamp = 0;
 
-  private zeroScalar: Scalar<'float32'>;
+  private zeroScalar: Scalar;
   private metricBatchSizeScalar: Scalar;
 
   constructor(
@@ -299,7 +299,7 @@ export class GraphRunner {
     return this.isInferring;
   }
 
-  computeMetric(): Scalar<'float32'> {
+  computeMetric(): Scalar {
     if (this.metricFeedEntries == null) {
       throw new Error('Cannot compute metric, no metric FeedEntries provided.');
     }
@@ -310,7 +310,7 @@ export class GraphRunner {
       for (let i = 0; i < this.metricBatchSize; i++) {
         const metricValue =
             this.session.eval(this.metricTensor, this.metricFeedEntries) as
-            NDArray<'float32'>;
+            NDArray;
 
         metric = this.math.add(metric, metricValue.asType('float32'));
       }

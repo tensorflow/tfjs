@@ -16,7 +16,8 @@
  */
 
 import {ENV} from '../environment';
-import {Array1D, NDArray} from '../math/ndarray';
+import * as dl from '../index';
+import {Array1D} from '../math/ndarray';
 import {Tensor} from './graph';
 import {SummedTensorArrayMap, TensorArrayMap} from './tensor_array_map';
 
@@ -27,14 +28,14 @@ describe('TensorArrayMap.size', () => {
 
   it('is 1 after add', () => {
     const map = new TensorArrayMap();
-    map.set(new Tensor([]), NDArray.zeros([1]));
+    map.set(new Tensor([]), dl.zeros([1]));
     expect(map.size()).toEqual(1);
   });
 
   it('increments for every add', () => {
     const map = new TensorArrayMap();
     for (let i = 0; i < 9; ++i) {
-      map.set(new Tensor([]), NDArray.zeros([1]));
+      map.set(new Tensor([]), dl.zeros([1]));
     }
     expect(map.size()).toEqual(9);
   });
@@ -54,7 +55,7 @@ describe('TensorArrayMap.hasNullArray', () => {
   });
 
   it('returns false for non-null NDArray entries', () => {
-    map.set(t, NDArray.zeros([1]));
+    map.set(t, dl.zeros([1]));
     expect(map.hasNullArray(t)).toBe(false);
   });
 
@@ -72,7 +73,7 @@ describe('TensorArrayMap.get', () => {
   });
 
   it('returns the associated NDArray', () => {
-    const nda = NDArray.zeros([1]);
+    const nda = dl.zeros([1]);
     map.set(t, nda);
     expect(map.get(t)).toBe(nda);
   });

@@ -16,64 +16,58 @@
  */
 
 import {NDArray} from '../../ndarray';
-import {DataType, Rank} from '../../types';
+import {Rank} from '../../types';
 import {KernelNode} from '../tape_types';
 
-export interface UnaryNode<D extends DataType, R extends Rank, T extends
-                               NDArray<D, R> = NDArray<D, R>> extends
-    KernelNode {
+export interface UnaryNode<R extends Rank, T extends NDArray<R> = NDArray<R>>
+    extends KernelNode {
   inputAndArgs: {inputs: {x: T;};};
   output: T;
-  gradient: (dy: NDArray<'float32', R>, y: T) => {
-    x: () => NDArray<'float32', R>;
+  gradient: (dy: T, y: T) => {
+    x: () => T;
   };
 }
 
-export interface LeakyReluNode<D extends DataType, R extends Rank, T extends
-                                   NDArray<D, R> = NDArray<D, R>> extends
-    KernelNode {
+export interface LeakyReluNode<
+    R extends Rank, T extends NDArray<R> = NDArray<R>> extends KernelNode {
   inputAndArgs: {inputs: {x: T;}; args: {alpha: number;};};
   output: T;
-  gradient: (dy: NDArray<'float32', R>, y: T) => {
-    x: () => NDArray<'float32', R>;
+  gradient: (dy: T, y: T) => {
+    x: () => T;
   };
 }
-export interface StepNode<D extends DataType, R extends Rank, T extends
-                              NDArray<D, R> = NDArray<D, R>> extends
-    KernelNode {
+export interface StepNode<R extends Rank, T extends NDArray<R> = NDArray<R>>
+    extends KernelNode {
   inputAndArgs: {inputs: {x: T;}; args: {alpha: number;};};
   output: T;
-  gradient: (dy: NDArray<'float32', R>, y: T) => {
-    x: () => NDArray<'float32', R>;
+  gradient: (dy: T, y: T) => {
+    x: () => T;
   };
 }
 
-export interface ClipNode<D extends DataType, R extends Rank, T extends
-                              NDArray<D, R> = NDArray<D, R>> extends
-    KernelNode {
+export interface ClipNode<R extends Rank, T extends NDArray<R> = NDArray<R>>
+    extends KernelNode {
   inputAndArgs: {inputs: {x: T;}; args: {min: number; max: number;};};
   output: T;
-  gradient: (dy: NDArray<'float32', R>, y: T) => {
-    x: () => NDArray<'float32', R>;
+  gradient: (dy: T, y: T) => {
+    x: () => T;
   };
 }
 
-export interface TransposeNode<D extends DataType, R extends Rank, T extends
-                                   NDArray<D, R> = NDArray<D, R>> extends
-    KernelNode {
+export interface TransposeNode<
+    R extends Rank, T extends NDArray<R> = NDArray<R>> extends KernelNode {
   inputAndArgs: {inputs: {x: T;}; args: {perm: number[];};};
   output: T;
-  gradient: (dy: NDArray<'float32', R>, y: T) => {
-    x: () => NDArray<'float32', R>;
+  gradient: (dy: T, y: T) => {
+    x: () => T;
   };
 }
 
-export interface TileNode<D extends DataType, R extends Rank, T extends
-                              NDArray<D, R> = NDArray<D, R>> extends
-    KernelNode {
+export interface TileNode<R extends Rank, T extends NDArray<R> = NDArray<R>>
+    extends KernelNode {
   inputAndArgs: {inputs: {x: T;}; args: {reps: number[];};};
   output: T;
-  gradient: (dy: NDArray<'float32', R>, y: T) => {
-    x: () => NDArray<'float32', R>;
+  gradient: (dy: T, y: T) => {
+    x: () => T;
   };
 }

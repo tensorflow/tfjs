@@ -20,9 +20,8 @@ import {MathBackendCPU} from './math/backends/backend_cpu';
 import {MathBackendWebGL} from './math/backends/backend_webgl';
 import {NDArrayMath} from './math/math';
 import {NDArray} from './math/ndarray';
-import {DataType} from './math/types';
+import {DataType, TypedArray} from './math/types';
 import * as util from './util';
-import {TypedArray} from './util';
 
 // This is how the it(), fit() and xit() function look in your tests
 export type MathIt = (name: string, testFn: (math: NDArrayMath) => void) =>

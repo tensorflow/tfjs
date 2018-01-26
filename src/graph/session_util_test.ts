@@ -18,6 +18,7 @@
 // tslint:disable-next-line:max-line-length
 import {InputProvider} from '../data/input_provider';
 import {ENV} from '../environment';
+import * as dl from '../index';
 import {NDArray} from '../math/ndarray';
 // tslint:disable-next-line:max-line-length
 import {ConstantNode, Graph, Node, PlaceholderNode, Tensor, VariableNode} from './graph';
@@ -41,7 +42,7 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
     math.scope(() => {
       const node = new TestNode(new Graph(), '', {}, new Tensor([]));
       const fd =
-          new FeedDictionary([{tensor: node.output, data: NDArray.zeros([1])}]);
+          new FeedDictionary([{tensor: node.output, data: dl.zeros([1])}]);
       expect(session_util.getTerminatingNodesFromFeedDictionary(fd)).toEqual([
         node
       ]);
@@ -57,11 +58,11 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
       const n3 = new TestNode(new Graph(), '', {}, new Tensor([]));
       const n4 = new TestNode(new Graph(), '', {}, new Tensor([]));
       const feeds: FeedEntry[] = [
-        {tensor: n0.output, data: NDArray.zeros([1])},
-        {tensor: n1.output, data: NDArray.zeros([1])},
-        {tensor: n2.output, data: NDArray.zeros([1])},
-        {tensor: n3.output, data: NDArray.zeros([1])},
-        {tensor: n4.output, data: NDArray.zeros([1])}
+        {tensor: n0.output, data: dl.zeros([1])},
+        {tensor: n1.output, data: dl.zeros([1])},
+        {tensor: n2.output, data: dl.zeros([1])},
+        {tensor: n3.output, data: dl.zeros([1])},
+        {tensor: n4.output, data: dl.zeros([1])}
       ];
       const fd = new FeedDictionary(feeds);
       const nodes = session_util.getTerminatingNodesFromFeedDictionary(fd);
@@ -90,13 +91,13 @@ describe('addPersistentArraysToTensorArrayMap', () => {
   });
 
   it('adds the only VariableNode to the map', () => {
-    const v = new VariableNode(g, '', NDArray.zeros([1]));
+    const v = new VariableNode(g, '', dl.zeros([1]));
     session_util.addPersistentArraysToTensorArrayMap([v], map);
     expect(map.get(v.output)).toBe(v.data);
   });
 
   it('adds the only ConstantNode to the map', () => {
-    const c = new ConstantNode(g, NDArray.zeros([1]));
+    const c = new ConstantNode(g, dl.zeros([1]));
     session_util.addPersistentArraysToTensorArrayMap([c], map);
     expect(map.get(c.output)).toBe(c.data);
   });
@@ -110,9 +111,9 @@ describe('addPersistentArraysToTensorArrayMap', () => {
 
   it('adds multiple VariableNodes to the map', () => {
     const nodes = [
-      new VariableNode(g, '', NDArray.zeros([1])),
-      new VariableNode(g, '', NDArray.zeros([1])),
-      new VariableNode(g, '', NDArray.zeros([1]))
+      new VariableNode(g, '', dl.zeros([1])),
+      new VariableNode(g, '', dl.zeros([1])),
+      new VariableNode(g, '', dl.zeros([1]))
     ];
     session_util.addPersistentArraysToTensorArrayMap(nodes, map);
     expect(map.get(nodes[0].output)).toBe(nodes[0].data);
@@ -123,9 +124,8 @@ describe('addPersistentArraysToTensorArrayMap', () => {
   it('adds multiple ConstantNodes to the map', () => {
     math.scope(() => {
       const nodes = [
-        new ConstantNode(g, NDArray.zeros([1])),
-        new ConstantNode(g, NDArray.zeros([1])),
-        new ConstantNode(g, NDArray.zeros([1]))
+        new ConstantNode(g, dl.zeros([1])), new ConstantNode(g, dl.zeros([1])),
+        new ConstantNode(g, dl.zeros([1]))
       ];
       session_util.addPersistentArraysToTensorArrayMap(nodes, map);
       expect(map.get(nodes[0].output)).toBe(nodes[0].data);
@@ -137,11 +137,11 @@ describe('addPersistentArraysToTensorArrayMap', () => {
   it('skips non-VariableNode or ConstantNode entries in the set', () => {
     const nodes: Node[] = [
       new TestNode(g, '', {}, new Tensor([])),
-      new VariableNode(g, '', NDArray.zeros([1])),
+      new VariableNode(g, '', dl.zeros([1])),
       new TestNode(g, '', {}, new Tensor([])),
-      new ConstantNode(g, NDArray.zeros([1])),
+      new ConstantNode(g, dl.zeros([1])),
       new TestNode(g, '', {}, new Tensor([])),
-      new VariableNode(g, '', NDArray.zeros([1]))
+      new VariableNode(g, '', dl.zeros([1]))
     ];
     session_util.addPersistentArraysToTensorArrayMap(nodes, map);
     expect(map.size()).toEqual(3);
@@ -167,7 +167,7 @@ describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
 
   it('adds the only NDArray feed dict entry to the map', () => {
     const tensor = new Tensor([1]);
-    const fd = new FeedDictionary([{tensor, data: NDArray.zeros([1])}]);
+    const fd = new FeedDictionary([{tensor, data: dl.zeros([1])}]);
     session_util.loadInputsFromFeedDictionaryToTensorArrayMap(fd, map, math);
     expect(map.size()).toEqual(1);
     expect(map.get(tensor)).toBe(fd.dict[tensor.id].data as NDArray);
@@ -175,7 +175,7 @@ describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
 
   it('adds the only provider feed dict entry to the map', () => {
     const tensor = new Tensor([2]);
-    const ndarray = NDArray.zeros([2]);
+    const ndarray = dl.zeros([2]);
     const provider: InputProvider = {
       getNextCopy():
           NDArray {  // Don't return a copy in this case so we can test
@@ -198,7 +198,7 @@ describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
       new Tensor([1])
     ];
     const feeds = tensors.map(tensor => {
-      return {tensor, data: NDArray.zeros([1])};
+      return {tensor, data: dl.zeros([1])};
     });
     const fd = new FeedDictionary(feeds);
     session_util.loadInputsFromFeedDictionaryToTensorArrayMap(fd, map, math);
@@ -215,7 +215,7 @@ describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
     ];
     const ndarrays: NDArray[] = [];
     for (let i = 0; i < tensors.length; i++) {
-      ndarrays.push(NDArray.zeros([1]));
+      ndarrays.push(dl.zeros([1]));
     }
     let idx = 0;
     const provider: InputProvider = {
@@ -242,7 +242,7 @@ describe('loadInputsFromFeedDictionaryToTensorArrayMap', () => {
 
   it('throws when provides data that does not match tensor shape', () => {
     const tensor = new Tensor([4, 5]);
-    const fd = new FeedDictionary([{tensor, data: NDArray.zeros([2, 3])}]);
+    const fd = new FeedDictionary([{tensor, data: dl.zeros([2, 3])}]);
     expect(
         () => session_util.loadInputsFromFeedDictionaryToTensorArrayMap(
             fd, map, math))
@@ -267,9 +267,8 @@ describe('releaseFeedDictionaryInputsFromTensorArrayMap', () => {
 
   it('doesn\'t remove tensors from map that don\'t exist in feed', () => {
     const fdTensor = new Tensor([]);
-    const nda = NDArray.zeros([1]);
-    const fd =
-        new FeedDictionary([{tensor: fdTensor, data: NDArray.zeros([1])}]);
+    const nda = dl.zeros([1]);
+    const fd = new FeedDictionary([{tensor: fdTensor, data: dl.zeros([1])}]);
     const nonFDTensor = new Tensor([]);
     map.set(nonFDTensor, nda);
     session_util.releaseFeedDictionaryInputsFromTensorArrayMap(fd, map, math);
@@ -279,7 +278,7 @@ describe('releaseFeedDictionaryInputsFromTensorArrayMap', () => {
 
   it('removes only tensor in map and feed dict', () => {
     const tensor = new Tensor([]);
-    const ndarray = NDArray.zeros([1]);
+    const ndarray = dl.zeros([1]);
     const fd = new FeedDictionary([{tensor, data: ndarray}]);
     map.set(tensor, ndarray);
     session_util.releaseFeedDictionaryInputsFromTensorArrayMap(fd, map, math);
@@ -290,7 +289,7 @@ describe('releaseFeedDictionaryInputsFromTensorArrayMap', () => {
     const tensors = [new Tensor([]), new Tensor([]), new Tensor([])];
 
     const feeds = tensors.map(tensor => {
-      return {tensor, data: NDArray.zeros([1])};
+      return {tensor, data: dl.zeros([1])};
     });
     const fd = new FeedDictionary(feeds);
     tensors.forEach(
@@ -315,8 +314,7 @@ describe('disposeAndInitializeOperationOutputs', () => {
 
   it('does nothing to map if set has no input nodes', () => {
     const nodes = [
-      new VariableNode(g, '', NDArray.zeros([1])),
-      new PlaceholderNode(g, '', [1])
+      new VariableNode(g, '', dl.zeros([1])), new PlaceholderNode(g, '', [1])
     ];
     session_util.disposeAndInitializeOperationOutputs(nodes, map);
     expect(map.size()).toEqual(0);
@@ -362,7 +360,7 @@ describe('removeFeedDictionaryNodesFromEvaluationSet', () => {
   it('removes only feed dict node from set', () => {
     set.push(new TestNode(new Graph(), '', {}, new Tensor([])));
     const fd =
-        new FeedDictionary([{tensor: set[0].output, data: NDArray.zeros([1])}]);
+        new FeedDictionary([{tensor: set[0].output, data: dl.zeros([1])}]);
     session_util.removeFeedDictionaryNodesFromEvaluationSet(fd, set);
     expect(set.length).toEqual(0);
   });
@@ -378,10 +376,10 @@ describe('removeFeedDictionaryNodesFromEvaluationSet', () => {
     set.push(remainingNodes[0]);
     set.push(new TestNode(g, '', {}, new Tensor([])));
     const feeds: FeedEntry[] = [];
-    feeds.push({tensor: set[set.length - 1].output, data: NDArray.zeros([1])});
+    feeds.push({tensor: set[set.length - 1].output, data: dl.zeros([1])});
     set.push(remainingNodes[1]);
     set.push(new TestNode(g, '', {}, new Tensor([])));
-    feeds.push({tensor: set[set.length - 1].output, data: NDArray.zeros([1])});
+    feeds.push({tensor: set[set.length - 1].output, data: dl.zeros([1])});
     set.push(remainingNodes[2]);
 
     const fd = new FeedDictionary(feeds);

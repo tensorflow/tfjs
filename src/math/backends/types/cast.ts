@@ -22,7 +22,7 @@ import {KernelNode} from '../tape_types';
 export interface CastNode extends KernelNode {
   inputAndArgs: {inputs: {x: NDArray}; args: {newDType: DataType};};
   output: NDArray;
-  gradient: (dy: NDArray<'float32'>, y: NDArray) => {
-    x: () => NDArray<'float32'>
+  gradient: (dy: NDArray, y: NDArray) => {
+    x: () => NDArray
   };
 }
