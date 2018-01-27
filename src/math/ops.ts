@@ -21,14 +21,16 @@ import * as binary_ops from './binary_ops';
 import * as compare_ops from './compare';
 import * as concat_ops from './concat';
 import * as conv_ops from './conv';
+import * as image_ops from './image_ops';
 import * as logical_ops from './logical_ops';
+import * as lstm_ops from './lstm';
 import * as matmul_ops from './matmul';
 import * as norm_ops from './norm';
-import * as pad_ops from './pad';
 import * as pool_ops from './pool';
 import * as reduction_ops from './reduction_ops';
 import * as reverse_ops from './reverse';
 import * as slice_ops from './slice';
+import * as softmax_ops from './softmax';
 import * as transpose_ops from './transpose';
 import * as unary_ops from './unary_ops';
 
@@ -79,6 +81,7 @@ export const logSumExp = reduction_ops.Ops.logSumExp;
 export const max = reduction_ops.Ops.max;
 export const mean = reduction_ops.Ops.mean;
 export const min = reduction_ops.Ops.min;
+export const moments = reduction_ops.Ops.moments;
 export const sum = reduction_ops.Ops.sum;
 
 export const equal = compare_ops.Ops.equal;
@@ -141,6 +144,7 @@ export const subStrict = binary_ops.Ops.subStrict;
 
 export const norm = norm_ops.Ops.norm;
 
+export const cast = array_ops.Ops.cast;
 export const clone = array_ops.Ops.clone;
 export const fromPixels = array_ops.Ops.fromPixels;
 export const ones = array_ops.Ops.ones;
@@ -149,7 +153,31 @@ export const zeros = array_ops.Ops.zeros;
 export const zerosLike = array_ops.Ops.zerosLike;
 export const rand = array_ops.Ops.rand;
 export const randNormal = array_ops.Ops.randNormal;
-export const randTruncatedNormal = array_ops.Ops.randTruncatedNormal;
+export const truncatedNormal = array_ops.Ops.truncatedNormal;
 export const randUniform = array_ops.Ops.randUniform;
-export const pad1D = pad_ops.Ops.pad1D;
-export const pad2D = pad_ops.Ops.pad2D;
+export const reshape = array_ops.Ops.reshape;
+export const tile = array_ops.Ops.tile;
+export const gather = array_ops.Ops.gather;
+export const multinomial = array_ops.Ops.multinomial;
+export const oneHot = array_ops.Ops.oneHot;
+export const pad1D = array_ops.Ops.pad1D;
+export const pad2D = array_ops.Ops.pad2D;
+
+export const basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
+export const multiRNNCell = lstm_ops.Ops.multiRNNCell;
+
+export const softmax = softmax_ops.Ops.softmax;
+
+// So typings can propagate.
+import {NDArray, Array3D, Array4D} from './ndarray';
+import {Rank} from './types';
+// tslint:disable-next-line:no-unused-expression
+[NDArray, Rank, Array3D, Array4D];
+
+export const losses = {
+  softmaxCrossEntropy: softmax_ops.Ops.softmaxCrossEntropy
+};
+
+export const image = {
+  resizeBilinear: image_ops.Ops.resizeBilinear
+};

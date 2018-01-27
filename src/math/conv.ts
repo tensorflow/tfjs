@@ -19,8 +19,7 @@ import {ENV} from '../environment';
 import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './decorators';
-import {Array1D, Array3D, Array4D, NDArray} from './ndarray';
-import {Rank} from './types';
+import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
 export class Ops {
   /**
@@ -45,7 +44,7 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static conv1d<T extends NDArray>(
+  static conv1d<T extends Array2D|Array3D>(
       input: T, filter: Array3D, bias: Array1D|null, stride: number,
       pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     let input3D = input as Array3D;
@@ -193,9 +192,9 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static conv2dDerInput<R extends Rank, T extends NDArray<R>>(
-      xShape: [number, number, number, number]|[number, number, number],
-      dy: NDArray<R>, filter: Array4D, strides: [number, number]|number,
+  static conv2dDerInput<T extends Array3D|Array4D>(
+      xShape: [number, number, number, number]|[number, number, number], dy: T,
+      filter: Array4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     util.assert(
         xShape.length === dy.rank,
@@ -285,9 +284,8 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static conv2dDerFilter<R extends Rank.R3|Rank.R4>(
-      x: NDArray<R>, dy: NDArray<R>,
-      filterShape: [number, number, number, number],
+  static conv2dDerFilter<T extends Array3D|Array4D>(
+      x: T, dy: T, filterShape: [number, number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): Array4D {
     let x4D = x as Array4D;
@@ -352,11 +350,11 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static conv2dTranspose<R extends Rank>(
-      x: NDArray<R>, filter: Array4D,
+  static conv2dTranspose<T extends Array3D|Array4D>(
+      x: T, filter: Array4D,
       outputShape: [number, number, number, number]|[number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): NDArray<R> {
+      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     return Ops.conv2dDerInput(
         outputShape, x, filter, strides, pad, dimRoundingMode);
   }
@@ -400,7 +398,7 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static depthwiseConv2D<T extends NDArray>(
+  static depthwiseConv2D<T extends Array3D|Array4D>(
       input: T, filter: Array4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, rates: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {

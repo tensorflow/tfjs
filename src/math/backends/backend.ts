@@ -166,8 +166,9 @@ export interface MathBackend extends NDArrayStorage {
 
   gather<T extends NDArray>(x: T, indices: Array1D, axis: number): T;
 
-  resizeBilinear3D(
-      x: Array3D, newShape2D: [number, number], alignCorners: boolean): Array3D;
+  resizeBilinear(
+      x: Array4D, newHeight: number, newWidth: number,
+      alignCorners: boolean): Array4D;
 
   batchNormalization2D(
       x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,

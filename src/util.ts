@@ -80,9 +80,8 @@ export function assertTypesMatch(a: NDArray, b: NDArray): void {
 }
 
 // tslint:disable-next-line:no-any
-export function flatten(
-    arr: number|boolean|RegularArray<number>|RegularArray<boolean>,
-    ret: Array<number|boolean> = []): Array<number|boolean> {
+export function flatten<T extends number|boolean|NDArray>(
+    arr: T|RegularArray<T>, ret: T[] = []): T[] {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; ++i) {
       flatten(arr[i], ret);

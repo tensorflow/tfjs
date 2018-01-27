@@ -1471,51 +1471,53 @@ export class MathBackendCPU implements MathBackend {
   }
 
   avgPool(x: Array4D, convInfo: Conv2DInfo): Array4D {
-    return this.pool(x, convInfo, 'avg').asType('float32');
+    return this.pool(x, convInfo, 'avg').toFloat();
   }
 
-  resizeBilinear3D(
-      x: Array3D, newShape2D: [number, number],
-      alignCorners: boolean): Array3D {
+  resizeBilinear(
+      x: Array4D, newHeight: number, newWidth: number,
+      alignCorners: boolean): Array4D {
+    const [batch, oldHeight, oldWidth, numChannels] = x.shape;
     const output =
-        ops.zeros<Rank.R3>([newShape2D[0], newShape2D[1], x.shape[2]]);
+        ops.zeros<Rank.R4>([batch, newHeight, newWidth, numChannels]);
 
-    const effectiveInputSize =
-        alignCorners ? [x.shape[0] - 1, x.shape[1] - 1, x.shape[2]] : x.shape;
-    const effectiveOutputSize = alignCorners ?
-        [output.shape[0] - 1, output.shape[1] - 1, output.shape[2]] :
-        output.shape;
-    for (let r = 0; r < output.shape[0]; r++) {
-      for (let c = 0; c < output.shape[1]; c++) {
-        for (let d = 0; d < output.shape[2]; d++) {
-          // Begin shader.
+    const effectiveInputSize: [number, number] =
+        alignCorners ? [oldHeight - 1, oldWidth - 1] : [oldHeight, oldWidth];
+    const effectiveOutputSize: [number, number] =
+        alignCorners ? [newHeight - 1, newWidth - 1] : [newHeight, newWidth];
+    for (let b = 0; b < batch; b++) {
+      for (let r = 0; r < newHeight; r++) {
+        for (let c = 0; c < newWidth; c++) {
+          for (let d = 0; d < numChannels; d++) {
+            // Begin shader.
 
-          // Compute the fractional index of the source.
-          const sourceFracRow =
-              (effectiveInputSize[0]) * r / (effectiveOutputSize[0]);
-          const sourceFracCol =
-              (effectiveInputSize[1]) * c / (effectiveOutputSize[1]);
+            // Compute the fractional index of the source.
+            const sourceFracRow =
+                (effectiveInputSize[0]) * r / (effectiveOutputSize[0]);
+            const sourceFracCol =
+                (effectiveInputSize[1]) * c / (effectiveOutputSize[1]);
 
-          const sourceRowFloor = Math.floor(sourceFracRow);
-          const sourceRowCeil =
-              Math.min(x.shape[0] - 1, Math.ceil(sourceFracRow));
-          const sourceColFloor = Math.floor(sourceFracCol);
-          const sourceColCeil =
-              Math.min(x.shape[1] - 1, Math.ceil(sourceFracCol));
+            const sourceRowFloor = Math.floor(sourceFracRow);
+            const sourceRowCeil =
+                Math.min(oldHeight - 1, Math.ceil(sourceFracRow));
+            const sourceColFloor = Math.floor(sourceFracCol);
+            const sourceColCeil =
+                Math.min(oldWidth - 1, Math.ceil(sourceFracCol));
 
-          const topLeft = x.get(sourceRowFloor, sourceColFloor, d);
-          const bottomLeft = x.get(sourceRowCeil, sourceColFloor, d);
-          const topRight = x.get(sourceRowFloor, sourceColCeil, d);
-          const bottomRight = x.get(sourceRowCeil, sourceColCeil, d);
+            const topLeft = x.get(b, sourceRowFloor, sourceColFloor, d);
+            const bottomLeft = x.get(b, sourceRowCeil, sourceColFloor, d);
+            const topRight = x.get(b, sourceRowFloor, sourceColCeil, d);
+            const bottomRight = x.get(b, sourceRowCeil, sourceColCeil, d);
 
-          const rowFrac = sourceFracRow - sourceRowFloor;
-          const colFrac = sourceFracCol - sourceColFloor;
+            const rowFrac = sourceFracRow - sourceRowFloor;
+            const colFrac = sourceFracCol - sourceColFloor;
 
-          const top = topLeft + (topRight - topLeft) * colFrac;
-          const bottom = bottomLeft + (bottomRight - bottomLeft) * colFrac;
-          const newValue = top + (bottom - top) * rowFrac;
+            const top = topLeft + (topRight - topLeft) * colFrac;
+            const bottom = bottomLeft + (bottomRight - bottomLeft) * colFrac;
+            const newValue = top + (bottom - top) * rowFrac;
 
-          output.set(newValue, r, c, d);
+            output.set(newValue, b, r, c, d);
+          }
         }
       }
     }

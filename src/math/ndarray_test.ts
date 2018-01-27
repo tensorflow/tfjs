@@ -778,13 +778,13 @@ const testsReshape: MathTests = it => {
 };
 const testsAsType: MathTests = it => {
   it('scalar bool -> int32', () => {
-    const a = Scalar.new(true, 'bool').asType('int32');
+    const a = Scalar.new(true, 'bool').toInt();
     expect(a.dtype).toBe('int32');
     expect(a.get()).toBe(1);
   });
 
   it('array1d float32 -> int32', () => {
-    const a = Array1D.new([1.1, 3.9, -2.9, 0]).asType('int32');
+    const a = Array1D.new([1.1, 3.9, -2.9, 0]).toInt();
     expect(a.dtype).toBe('int32');
     test_util.expectArraysEqual(a, [1, 3, -2, 0]);
   });
@@ -799,7 +799,7 @@ const testsAsType: MathTests = it => {
   });
 
   it('array2d int32 -> bool', () => {
-    const a = Array2D.new([2, 2], [1, 3, 0, -1], 'int32').asType('bool');
+    const a = Array2D.new([2, 2], [1, 3, 0, -1], 'int32').toBool();
     expect(a.dtype).toBe('bool');
     expect(a.get(0, 0)).toBe(1);
     expect(a.get(0, 1)).toBe(1);
@@ -808,8 +808,8 @@ const testsAsType: MathTests = it => {
   });
 
   it('array3d bool -> float32', () => {
-    const a = Array3D.new([2, 2, 1], [true, false, false, true], 'bool')
-                  .asType('float32');
+    const a =
+        Array3D.new([2, 2, 1], [true, false, false, true], 'bool').toFloat();
     expect(a.dtype).toBe('float32');
     test_util.expectArraysClose(a, [1, 0, 0, 1]);
   });
@@ -826,7 +826,7 @@ const testsAsType: MathTests = it => {
 
   it('asType is functional', math => {
     const a = Scalar.new(2.4, 'float32');
-    const b = a.asType('float32');
+    const b = a.toFloat();
     expect(a.id).not.toBe(b.id);
     b.dispose();
     test_util.expectArraysClose(a, [2.4]);

@@ -17,35 +17,33 @@
 
 import {GPGPUProgram} from './gpgpu_math';
 
-export class ResizeBilinear3DProgram implements GPGPUProgram {
+export class ResizeBilinearProgram implements GPGPUProgram {
   variableNames = ['A'];
   outputShape: number[] = [];
   userCode: string;
 
   constructor(
-      inputShape: [number, number, number],
-      outputDimensionsRowCol: [number, number], alignCorners: boolean) {
-    const depth = inputShape[2];
-    this.outputShape =
-        [outputDimensionsRowCol[0], outputDimensionsRowCol[1], depth];
+      inputShape: [number, number, number, number], newHeight: number,
+      newWidth: number, alignCorners: boolean) {
+    const [batch, oldHeight, oldWidth, depth] = inputShape;
+    this.outputShape = [batch, newHeight, newWidth, depth];
 
-    const effectiveInputShape = alignCorners ?
-        [inputShape[0] - 1, inputShape[1] - 1, depth] :
-        inputShape;
+    const effectiveInSize: [number, number] =
+        alignCorners ? [oldHeight - 1, oldWidth - 1] : [oldHeight, oldWidth];
 
-    const effectiveOutputShape = alignCorners ?
-        [this.outputShape[0] - 1, this.outputShape[1] - 1, depth] :
-        this.outputShape;
+    const effectiveOutSize: [number, number] =
+        alignCorners ? [newHeight - 1, newWidth - 1] : [newHeight, newWidth];
     this.userCode = `
       const vec2 effectiveInputOverOutputRatioRC = vec2(
-          ${effectiveInputShape[0] / effectiveOutputShape[0]},
-          ${effectiveInputShape[1] / effectiveOutputShape[1]});
-      const vec2 inputShapeRC = vec2(${inputShape[0]}.0, ${inputShape[1]}.0);
+          ${effectiveInSize[0] / effectiveOutSize[0]},
+          ${effectiveInSize[1] / effectiveOutSize[1]});
+      const vec2 inputShapeRC = vec2(${oldHeight}.0, ${oldWidth}.0);
 
       void main() {
-        ivec3 coords = getOutputCoords();
-        ivec2 yRC = coords.xy;
-        int d = coords.z;
+        ivec4 coords = getOutputCoords();
+        int b = coords[0];
+        int d = coords[3];
+        ivec2 yRC = coords.yz;
 
         // Fractional source index.
         vec2 sourceFracIndexRC = vec2(yRC) * effectiveInputOverOutputRatioRC;
@@ -55,10 +53,10 @@ export class ResizeBilinear3DProgram implements GPGPUProgram {
         ivec2 sourceCeilRC = ivec2(
           min(inputShapeRC - 1.0, ceil(sourceFracIndexRC)));
 
-        float topLeft = getA(sourceFloorRC.x, sourceFloorRC.y, d);
-        float bottomLeft = getA(sourceCeilRC.x, sourceFloorRC.y, d);
-        float topRight = getA(sourceFloorRC.x, sourceCeilRC.y, d);
-        float bottomRight = getA(sourceCeilRC.x, sourceCeilRC.y, d);
+        float topLeft = getA(b, sourceFloorRC.x, sourceFloorRC.y, d);
+        float bottomLeft = getA(b, sourceCeilRC.x, sourceFloorRC.y, d);
+        float topRight = getA(b, sourceFloorRC.x, sourceCeilRC.y, d);
+        float bottomRight = getA(b, sourceCeilRC.x, sourceCeilRC.y, d);
 
         vec2 fracRC = sourceFracIndexRC - vec2(sourceFloorRC);
 

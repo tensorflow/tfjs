@@ -747,12 +747,12 @@ const testsRandTruncNormal: MathTests = it => {
     const shape: [number] = [1000];
 
     // Ensure defaults to float32 w/o type:
-    let result = dl.randTruncatedNormal(shape, 0, 3.5, null, SEED);
+    let result = dl.truncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result, 0, 3.5, EPSILON);
 
-    result = dl.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
+    result = dl.truncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result, 0, 4.5, EPSILON);
@@ -760,7 +760,7 @@ const testsRandTruncNormal: MathTests = it => {
 
   it('should return a randon 1D int32 array', () => {
     const shape: [number] = [1000];
-    const result = dl.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
+    const result = dl.truncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
     assertTruncatedValues(result, 0, 5);
     test_util.expectArrayInMeanStdRange(result, 0, 5, EPSILON);
@@ -770,12 +770,12 @@ const testsRandTruncNormal: MathTests = it => {
     const shape: [number, number] = [50, 50];
 
     // Ensure defaults to float32 w/o type:
-    let result = dl.randTruncatedNormal(shape, 0, 3.5, null, SEED);
+    let result = dl.truncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result, 0, 3.5, EPSILON);
 
-    result = dl.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
+    result = dl.truncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result, 0, 4.5, EPSILON);
@@ -783,7 +783,7 @@ const testsRandTruncNormal: MathTests = it => {
 
   it('should return a 2D int32 array', () => {
     const shape: [number, number] = [50, 50];
-    const result = dl.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
+    const result = dl.truncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
     assertTruncatedValues(result, 0, 5);
     test_util.expectArrayInMeanStdRange(result, 0, 5, EPSILON);
@@ -793,12 +793,12 @@ const testsRandTruncNormal: MathTests = it => {
     const shape: [number, number, number] = [10, 10, 10];
 
     // Ensure defaults to float32 w/o type:
-    let result = dl.randTruncatedNormal(shape, 0, 3.5, null, SEED);
+    let result = dl.truncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result, 0, 3.5, EPSILON);
 
-    result = dl.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
+    result = dl.truncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result, 0, 4.5, EPSILON);
@@ -806,7 +806,7 @@ const testsRandTruncNormal: MathTests = it => {
 
   it('should return a 3D int32 array', () => {
     const shape: [number, number, number] = [10, 10, 10];
-    const result = dl.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
+    const result = dl.truncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
     assertTruncatedValues(result, 0, 5);
     test_util.expectArrayInMeanStdRange(result, 0, 5, EPSILON);
@@ -816,12 +816,12 @@ const testsRandTruncNormal: MathTests = it => {
     const shape: [number, number, number, number] = [5, 5, 5, 5];
 
     // Ensure defaults to float32 w/o type:
-    let result = dl.randTruncatedNormal(shape, 0, 3.5, null, SEED);
+    let result = dl.truncatedNormal(shape, 0, 3.5, null, SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 3.5);
     test_util.expectArrayInMeanStdRange(result, 0, 3.5, EPSILON);
 
-    result = dl.randTruncatedNormal(shape, 0, 4.5, 'float32', SEED);
+    result = dl.truncatedNormal(shape, 0, 4.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
     assertTruncatedValues(result, 0, 4.5);
     test_util.expectArrayInMeanStdRange(result, 0, 4.5, EPSILON);
@@ -829,7 +829,7 @@ const testsRandTruncNormal: MathTests = it => {
 
   it('should return a 4D int32 array', () => {
     const shape: [number, number, number, number] = [5, 5, 5, 5];
-    const result = dl.randTruncatedNormal(shape, 0, 5, 'int32', SEED);
+    const result = dl.truncatedNormal(shape, 0, 5, 'int32', SEED);
     expect(result.dtype).toBe('int32');
     assertTruncatedValues(result, 0, 5);
     test_util.expectArrayInMeanStdRange(result, 0, 5, EPSILON);
