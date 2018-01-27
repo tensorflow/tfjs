@@ -312,7 +312,7 @@ export class GraphRunner {
             this.session.eval(this.metricTensor, this.metricFeedEntries) as
             NDArray;
 
-        metric = this.math.add(metric, metricValue.asType('float32'));
+        metric = this.math.add(metric, metricValue.toFloat());
       }
 
       if (this.metricReduction === MetricReduction.MEAN) {

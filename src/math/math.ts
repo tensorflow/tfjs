@@ -17,7 +17,8 @@
 
 import {BackendType, ENV} from '../environment';
 import * as util from '../util';
-import * as axis_util from './axis_util';
+
+import * as array_ops from './array_ops';
 import {MathBackend} from './backends/backend';
 import {BackendEngine} from './backends/backend_engine';
 import {TapeNodeInputGradientArrays} from './backends/tape_types';
@@ -27,25 +28,23 @@ import * as binary_ops from './binary_ops';
 import * as compare from './compare';
 import * as concat from './concat';
 import * as conv from './conv';
+import * as image_ops from './image_ops';
 import * as logical from './logical_ops';
+import * as lstm_ops from './lstm';
 import * as matmul from './matmul';
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, Variable} from './ndarray';
+import {Array1D, Array3D, Array4D, NDArray, Scalar, Variable} from './ndarray';
 import * as norm from './norm';
 import * as ops from './ops';
-import * as pad_ops from './pad';
 import * as pool from './pool';
 import * as reduction_ops from './reduction_ops';
 import * as reverse from './reverse';
 import * as slice from './slice';
+import * as softmax_ops from './softmax';
 import * as transpose from './transpose';
 import {NamedArrayMap, NamedVariableMap} from './types';
-import {DataType, Rank, TypedArray} from './types';
+import {Rank, TypedArray} from './types';
 import * as unary_ops from './unary_ops';
-
-export interface LSTMCell {
-  (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
-}
 
 export interface NDArrayManager {
   getNumArrays(): number;
@@ -113,6 +112,7 @@ export class NDArrayMath implements NDArrayManager {
   max = reduction_ops.Ops.max;
   mean = reduction_ops.Ops.mean;
   min = reduction_ops.Ops.min;
+  moments = reduction_ops.Ops.moments;
   sum = reduction_ops.Ops.sum;
 
   add = binary_ops.Ops.add;
@@ -188,8 +188,24 @@ export class NDArrayMath implements NDArrayManager {
 
   norm = norm.Ops.norm;
 
-  pad1D = pad_ops.Ops.pad1D;
-  pad2D = pad_ops.Ops.pad2D;
+  basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
+  multiRNNCell = lstm_ops.Ops.multiRNNCell;
+
+  softmax = softmax_ops.Ops.softmax;
+  softmaxCrossEntropy = softmax_ops.Ops.softmaxCrossEntropy;
+
+  cast = array_ops.Ops.cast;
+  clone = array_ops.Ops.clone;
+  gather = array_ops.Ops.gather;
+  reshape = array_ops.Ops.reshape;
+  tile = array_ops.Ops.tile;
+  oneHot = array_ops.Ops.oneHot;
+  multinomial = array_ops.Ops.multinomial;
+  pad1D = array_ops.Ops.pad1D;
+  pad2D = array_ops.Ops.pad2D;
+
+  /** @deprecated Use dl.image.resizeBilinear() */
+  resizeBilinear3D = image_ops.Ops.resizeBilinear;
 
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
@@ -365,40 +381,6 @@ export class NDArrayMath implements NDArrayManager {
   }
 
   /**
-   * Clones an NDArray of any shape.
-   * @param x The NDArray to clone.
-   */
-  clone<R extends Rank>(x: NDArray<R>): NDArray<R> {
-    return this.engine.executeKernel('Clone', {inputs: {x}}) as NDArray<R>;
-  }
-
-  /** Reshapes the array. */
-  reshape<R extends Rank>(x: NDArray, newShape: number[]): NDArray<R> {
-    newShape = util.inferFromImplicitShape(newShape, x.size);
-    util.assert(
-        x.size === util.sizeFromShape(newShape),
-        'new shape and old shape must have the same number of elements.');
-
-    const grad = (dy: NDArray, y: NDArray) => {
-      return {x: () => dy.reshape(x.shape)};
-    };
-    return this.engine.executeKernel(
-               'Reshape', {inputs: {x}, args: {newShape}}, grad) as NDArray<R>;
-  }
-
-  /**
-   * Casts a tensor to a new type. If the new type matches the old type,
-   * this is a no-op.
-   */
-  cast<R extends Rank>(x: NDArray<R>, newDType: DataType): NDArray<R> {
-    const grad = (dy: NDArray, y: NDArray) => {
-      return {x: () => dy.reshape(dy.shape)};
-    };
-    return this.engine.executeKernel(
-               'Cast', {inputs: {x}, args: {newDType}}, grad) as NDArray<R>;
-  }
-
-  /**
    * Computes the top K values and flattened indices.
    * @param x The input NDArray.
    * @param k How many top values to compute.
@@ -421,154 +403,9 @@ export class NDArrayMath implements NDArrayManager {
     return result;
   }
 
-  /**
-   * Computes the softmax normalized vector given the logits.
-   * @param logits The logits array.
-   * @param dim The dimension softmax would be performed on. Defaults to -1
-   *     which indicates the last dimension.
-   */
-  softmax<R extends Rank, T extends NDArray<R>>(logits: NDArray<R>, dim = -1):
-      NDArray<R> {
-    if (dim === -1) {
-      dim = logits.rank - 1;
-    }
-    if (dim !== logits.rank - 1) {
-      throw Error(
-          'Softmax along a non-last dimension is not yet supported. ' +
-          `Logits was rank ${logits.rank} and dim was ${dim}`);
-    }
-
-    const gradients = (dy: T, y: T) => {
-      return {
-        logits: () => {
-          const dyTimesY = this.multiply(dy, y);
-          const keepDims = true;
-          return this.subtract(
-                     dyTimesY,
-                     this.multiply(this.sum(dyTimesY, [dim], keepDims), y)) as
-              NDArray<R>;
-        }
-      };
-    };
-
-    return this.scope('softmax', () => {
-      return this.customGradient(() => {
-        // Do it in log space for numerical stability.
-        // exp(X - logSumExp(X))
-        const keepDims = true;
-        const lse = this.logSumExp(logits, [dim], keepDims);
-        const logResult = this.subtract(logits.asType('float32'), lse);
-        const value = this.exp(logResult) as T;
-        return {value, gradients};
-      }, {logits}, 'softmax') as NDArray<R>;
-    });
-  }
-
-  /**
-   * Computes softmax cross entropy between logits and labels.
-   *
-   * Measures the probability error in discrete classification tasks in which
-   * the classes are mutually exclusive (each entry is in exactly one class).
-   * For example, each CIFAR-10 image is labeled with one and only one label: an
-   * image can be a dog or a truck, but not both.
-   *
-   * NOTE: While the classes are mutually exclusive, their probabilities need
-   * not be. All that is required is that each row of labels is a valid
-   * probability distribution. If they are not, the computation of the gradient
-   * will be incorrect.
-   *
-   * WARNING: This op expects unscaled logits, since it performs a softmax on
-   * logits internally for efficiency. Do not call this op with the output of
-   * softmax, as it will produce incorrect results.
-   *
-   * logits and labels must have the same shape, e.g. [batch_size, num_classes]
-   * and the same dtype.
-   * @param labels The labels array.
-   * @param logits The logits array.
-   * @param dim The dimension softmax would be performed on. Defaults to -1
-   *     which indicates the last dimension.
-   */
-  softmaxCrossEntropyWithLogits<R extends Rank, A extends NDArray<R>, B extends
-                                    NDArray<R>, O extends NDArray>(
-      labels: A, logits: B, dim = -1): O {
-    util.assertShapesMatch(
-        labels.shape, logits.shape, 'Error in softmaxCrossEntropyWithLogits: ');
-    if (dim === -1) {
-      dim = logits.rank - 1;
-    }
-    if (dim !== logits.rank - 1) {
-      throw Error(
-          `Softmax cross entropy along a non-last dimension is not yet ` +
-          `supported. Labels / logits was rank ${logits.rank} ` +
-          `and dim was ${dim}`);
-    }
-
-    return this.scope('softmaxCrossEntropyWithLogits', () => {
-      // Use a custom gradient for numerical stability.
-      return this.customGradient(() => {
-        const softmaxLogits = this.softmax(logits, dim);
-        const yPlusEps = this.add(Scalar.new(1e-5), softmaxLogits);
-        const logOutput = this.log(yPlusEps);
-        const tarLogOutput = this.multiply(labels, logOutput);
-        const costVector = this.neg(tarLogOutput);
-        const value = this.sum(costVector, [dim]) as O;
-
-        const gradients = (dy: O, y: O) => {
-          const dyShape = axis_util.expandShapeToKeepDim(dy.shape, [dim]);
-
-          return {
-            logits: () => this.multiply(
-                dy.reshape(dyShape),
-                this.subtract(softmaxLogits, labels.asType('float32'))),
-            labels: () => this.multiply(
-                dy.reshape(dyShape), this.subtract(labels, softmaxLogits))
-          };
-        };
-
-        return {value, gradients};
-      }, {labels, logits}, 'softmaxCrossEntropyWithLogits') as O;
-    });
-  }
-
-  //////////////////////
-  // Element-wise ops //
-  //////////////////////
-
   /** @deprecated Use math.transpose() instead. */
   switchDim<R extends Rank>(x: NDArray<R>, perm?: number[]): NDArray<R> {
     return ops.transpose<R>(x, perm);
-  }
-
-  /**
-   * Construct an array by repeating it the number of times given by reps.
-   *
-   * This operation creates a new array by replicating `input` `reps`
-   * times. The output tensor's i'th dimension has `input.shape[i] *
-   * reps[i]` elements, and the values of `input` are replicated
-   * `reps[i]` times along the i'th dimension. For example, tiling
-   * `[a, b, c, d]` by `[2]` produces `[a, b, c, d, a, b, c, d]`.
-   *
-   * @param x The array to transpose.
-   * @param reps Determines the number of replications per dimension.
-   */
-  tile<T extends NDArray>(x: T, reps: number[]): T {
-    util.assert(
-        x.rank === reps.length,
-        `Error in transpose: rank of input ${x.rank} ` +
-            `must match length of reps ${reps}.`);
-    return this.engine.executeKernel('Tile', {inputs: {x}, args: {reps}}) as T;
-  }
-
-  /**
-   * Gather slices from array `x`'s axis `axis` according to `indices`
-   *
-   * @param x The array to transpose.
-   * @param indices The indices of the values to extract.
-   * @param axis Optional. The axis over which to select values. Defaults to 0.
-   */
-  gather<T extends NDArray>(x: T, indices: Array1D, axis = 0): T {
-    return this.engine.executeKernel(
-               'Gather', {inputs: {x, indices}, args: {axis}}) as T;
   }
 
   /** @deprecated Use math.add(c, A) instead. */
@@ -629,44 +466,6 @@ export class NDArrayMath implements NDArrayManager {
         `Error in arrayDividedByScalar: first argument must be rank 0, but ` +
             `got rank ${c.rank}.`);
     return this.multiply(c, a) as T;
-  }
-
-  /**
-   * @deprecated Use math.multiply() instead.
-   */
-  elementWiseMulBroadcast(a: Array2D, b: Array2D): Array2D {
-    util.assert(
-        a.rank === 2,
-        `Error in elementWiseMulBroadcast: first argument must be ` +
-            `rank 2, but got rank ${a.rank}.`);
-    util.assert(
-        b.rank === 2,
-        `Error in elementWiseMulBroadcast: second argument must be ` +
-            `rank 2, but got rank ${b.rank}.`);
-    return this.multiply(a, b) as Array2D;
-  }
-
-  /*
-   * Bilinear resize a 3D array per each channel to a new 2D shape.
-   * @param x The input Array3D.
-   * @param newShape2D The new shape to resize the Array3D to. Each channel is
-   * resized individually.
-   * @param alignCorners An optional bool. Defaults to False. If true, rescale
-   * input by (new_height - 1) / (height - 1), which exactly aligns the 4
-   * corners of images and resized images. If false, rescale by new_height /
-   * height. Treat similarly the width dimension.
-   */
-  resizeBilinear3D(
-      x: Array3D, newShape2D: [number, number], alignCorners = false): Array3D {
-    util.assert(
-        x.rank === 3,
-        `Error in resizeBilinear3D: x must be rank 3 but got rank ${x.rank}.`);
-    util.assert(
-        newShape2D.length === 2,
-        `Error in resizeBilinear3D: new shape must 2D, but got shape ` +
-            `${newShape2D}.`);
-    return this.engine.executeKernel(
-        'ResizeBilinear3D', {inputs: {x}, args: {newShape2D, alignCorners}});
   }
 
   /**
@@ -731,175 +530,6 @@ export class NDArrayMath implements NDArrayManager {
 
     return this.engine.executeKernel(
         'LRN4D', {inputs: {x}, args: {radius, bias, alpha, beta, normRegion}});
-  }
-
-  //////////////
-  // LSTM ops //
-  //////////////
-
-  /**
-   * Computes the next states and outputs of a stack of LSTMCells.
-   * Each cell output is used as input to the next cell.
-   * This is only the forward mode.
-   * Derived from tf.contrib.rn.MultiRNNCell.
-   * @param lstmCells Array of LSTMCell functions.
-   * @param data The input to the cell.
-   * @param c Array of previous cell states.
-   * @param h Array of previous cell outputs.
-   * @return Tuple [nextCellStates, cellOutputs]
-   */
-  multiRNNCell(
-      lstmCells: LSTMCell[], data: Array2D, c: Array2D[],
-      h: Array2D[]): [Array2D[], Array2D[]] {
-    const res = this.scope('multiRNNCell', () => {
-      let input = data;
-      const newStates = [];
-      for (let i = 0; i < lstmCells.length; i++) {
-        const output = lstmCells[i](input, c[i], h[i]);
-        newStates.push(output[0]);
-        newStates.push(output[1]);
-        input = output[1];
-      }
-
-      return newStates;
-    });
-    const newC: Array2D[] = [];
-    const newH: Array2D[] = [];
-    for (let i = 0; i < res.length; i += 2) {
-      newC.push(res[i]);
-      newH.push(res[i + 1]);
-    }
-    return [newC, newH];
-  }
-
-  /**
-   * Computes the next state and output of a BasicLSTMCell.
-   * This is only the forward mode.
-   * Derived from tf.contrib.rnn.BasicLSTMCell.
-   * @param forgetBias Forget bias for the cell.
-   * @param lstmKernel The weights for the cell.
-   * @param lstmBias The bias for the cell.
-   * @param data The input to the cell.
-   * @param c Previous cell state.
-   * @param h Previous cell output.
-   * @return Tuple [nextCellState, cellOutput]
-   */
-  basicLSTMCell(
-      forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D, data: Array2D,
-      c: Array2D, h: Array2D): [Array2D, Array2D] {
-    const res = this.scope('basicLSTMCell', () => {
-      const combined = this.concat2D(data, h, 1);
-      const weighted = this.matMul(combined, lstmKernel);
-      const res = this.add(weighted, lstmBias) as Array2D;
-
-      // i = input_gate, j = new_input, f = forget_gate, o = output_gate
-      const batchSize = res.shape[0];
-      const sliceCols = res.shape[1] / 4;
-      const sliceSize: [number, number] = [batchSize, sliceCols];
-      const i = this.slice2D(res, [0, 0], sliceSize);
-      const j = this.slice2D(res, [0, sliceCols], sliceSize);
-      const f = this.slice2D(res, [0, sliceCols * 2], sliceSize);
-      const o = this.slice2D(res, [0, sliceCols * 3], sliceSize);
-
-      const newC = this.addStrict(
-          this.multiplyStrict(
-              c, this.sigmoid(this.add(forgetBias, f) as Array2D)),
-          this.multiplyStrict(this.sigmoid(i), this.tanh(j)));
-      const newH = this.multiplyStrict(this.tanh(newC), this.sigmoid(o));
-
-      return [newC, newH];
-    });
-    return [res[0], res[1]];
-  }
-
-  /**
-   * Draws samples from a multinomial distribution.
-   *
-   * @param probabilities 1D array with normalized outcome probabilities, or
-   *     2D array of shape `[batchSize, numOutcomes]`.
-   * @param numSamples Number of samples to draw for each row slice.
-   * @param seed Optional. The seed number.
-   * @return 1D array of shape `[numSamples]`, or 2D array of shape
-   *     `[batchSize, numSamples]`, depending on the rank of the input.
-   */
-  multinomial(
-      probabilities: Array1D|Array2D, numSamples: number,
-      seed?: number): Array1D|Array2D {
-    const numOutcomes = probabilities.size;
-    if (numOutcomes < 2) {
-      throw new Error(
-          `Error in multinomial: you need at least 2 outcomes, but got ` +
-          `${numOutcomes}.`);
-    }
-    if (probabilities.rank > 2) {
-      throw new Error(
-          `Rank of probabilities must be 1 or 2, but is ${probabilities.rank}`);
-    }
-    seed = seed || Math.random();
-    const origRank = probabilities.rank;
-
-    if (probabilities.rank === 1) {
-      probabilities = probabilities.as2D(1, -1);
-    }
-    return this.scope('multinomial', () => {
-      const res = this.engine.executeKernel('Multinomial', {
-        inputs: {probs: (probabilities as Array2D)},
-        args: {numSamples, seed}
-      });
-      if (origRank === 1) {
-        return res.as1D();
-      }
-      return res;
-    });
-  }
-
-  /**
-   * Returns a one-hot array. The locations represented by `indices` take
-   * value `onValue` (defaults to 1), while all other locations take value
-   * `offValue` (defaults to 0).
-   *
-   * @param indices 1D Array of indices.
-   * @param depth The depth of the one hot dimension.
-   * @param onValue A number used to fill in output when the index matches the
-   *     location.
-   * @param offValue A number used to fill in the output when the index does
-   *     not match the location.
-   */
-  oneHot(indices: Array1D, depth: number, onValue = 1, offValue = 0): Array2D {
-    if (depth < 2) {
-      throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
-    }
-    return this.engine.executeKernel(
-        'OneHot', {inputs: {indices}, args: {depth, onValue, offValue}});
-  }
-
-  /**
-   * Calculates the mean and variance of `x`. The mean and variance are
-   * calculated by aggregating the contents of `x` across `axes`. If `x` is
-   * 1-D and `axes = [0]` this is just the mean and variance of a vector.
-   *
-   * @param x The input array.
-   * @param axis Optional. The dimension(s) along with to compute mean and
-   *     variance. By default it reduces all dimensions.
-   * @param keepDims If true, the moments have the same dimensionality as the
-   *     input.
-   * @return An object with two keys: `mean` and `variance`.
-   */
-  moments(x: NDArray, axis: number|number[] = null, keepDims = false):
-      {mean: NDArray, variance: NDArray} {
-    const axes = axis_util.parseAxisParam(axis, x.shape);
-    const result = this.scope('moments', () => {
-      const mean = this.mean(x, axes, keepDims);
-      let keepDimsShape = mean.shape;
-      if (!keepDims) {
-        keepDimsShape = axis_util.expandShapeToKeepDim(mean.shape, axes);
-      }
-      const devSquared = this.square(
-          this.subtract(x.asType('float32'), mean.reshape(keepDimsShape)));
-      const variance = this.mean(devSquared, axes, keepDims);
-      return {mean, variance};
-    });
-    return result;
   }
 
   /**
@@ -1023,11 +653,11 @@ export class NDArrayMath implements NDArrayManager {
    * debugging.
    */
   customGradient<R extends Rank, T extends NDArray<R>>(
-      f: () => {
+      name: string, f: () => {
         value: T,
         gradients: (dy: T, y: T) => TapeNodeInputGradientArrays
       },
-      inputs: NamedArrayMap, name?: string): T {
+      inputs: NamedArrayMap): T {
     return this.engine.customGradient(f, inputs, name == null ? '' : name);
   }
 

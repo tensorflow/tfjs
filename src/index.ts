@@ -48,7 +48,8 @@ export {MathBackendCPU, NDArrayMathCPU} from './math/backends/backend_cpu';
 export {MathBackendWebGL, NDArrayMathGPU} from './math/backends/backend_webgl';
 export {MatrixOrientation} from './math/backends/types/matmul';
 export {GPGPUContext} from './math/backends/webgl/gpgpu_context';
-export {LSTMCell, NDArrayMath} from './math/math';
+export {LSTMCell} from './math/lstm';
+export {NDArrayMath} from './math/math';
 // tslint:disable-next-line:max-line-length
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, variable, Variable} from './math/ndarray';
 export {Optimizer} from './math/optimizers/optimizer';

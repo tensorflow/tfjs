@@ -31,12 +31,12 @@ export class Ops {
    * @param b The second input `NDArray`.
    */
   @operation
-  static logicalAnd(a: NDArray, b: NDArray): NDArray {
+  static logicalAnd<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.executeKernel('LogicalAnd', {inputs: {a, b}});
+    return ENV.engine.executeKernel('LogicalAnd', {inputs: {a, b}}) as T;
   }
 
   /**
@@ -46,12 +46,12 @@ export class Ops {
    * @param b The second input `NDArray`.
    */
   @operation
-  static logicalOr(a: NDArray, b: NDArray): NDArray {
+  static logicalOr<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.executeKernel('LogicalOr', {inputs: {a, b}});
+    return ENV.engine.executeKernel('LogicalOr', {inputs: {a, b}}) as T;
   }
 
   /**

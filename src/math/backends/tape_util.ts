@@ -17,7 +17,7 @@
 
 import * as util from '../../util';
 import {NDArray, Variable} from '../ndarray';
-import {NamedArrayMap} from '../types';
+import {NamedArrayMap, RegularArray} from '../types';
 
 // tslint:disable-next-line:max-line-length
 import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types';
@@ -237,11 +237,12 @@ export function computeVariableInputs(
 }
 
 export type ScopeResultImmediate =
-    void|NDArray|NDArray[]|{[key: string]: NDArray};
+    void|NDArray|RegularArray<NDArray>|{[key: string]: NDArray};
 export type ScopeResult = ScopeResultImmediate|Promise<ScopeResultImmediate>;
 export type ScopeFn<T extends ScopeResult> =
     (keep: <T1 extends NDArray>(ndarray: T1) => T1,
      track: <T2 extends NDArray>(ndarray: T2) => T2) => T;
+
 export function extractNDArraysFromScopeResult(result: ScopeResultImmediate):
     NDArray[] {
   if (result == null) {
@@ -255,10 +256,7 @@ export function extractNDArraysFromScopeResult(result: ScopeResultImmediate):
   const resultObj = result as {[key: string]: NDArray};
   // Iteration over keys works also for arrays.
   for (const k in resultObj) {
-    const val = resultObj[k];
-    if (val instanceof NDArray) {
-      list.push(val);
-    }
+    list.push(...util.flatten(resultObj[k]));
   }
   return list;
 }

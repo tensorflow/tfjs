@@ -20,7 +20,6 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './decorators';
 import {NDArray, Scalar} from './ndarray';
-import {Rank} from './types';
 
 export class Ops {
   /**
@@ -67,7 +66,7 @@ export class Ops {
    */
 
   @operation
-  static addStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
+  static addStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
     return a.add(b);
   }
@@ -115,7 +114,7 @@ export class Ops {
    * @param b The second NDArray to multiply element-wise.
    */
   @operation
-  static subStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
+  static subStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
     return a.sub(b);
   }
@@ -168,7 +167,7 @@ export class Ops {
    * @param exp The exponent NDArray to pow element-wise.
    */
   @operation
-  static powStrict<R extends Rank>(base: NDArray<R>, exp: NDArray): NDArray<R> {
+  static powStrict<T extends NDArray>(base: T, exp: NDArray): T {
     util.assertShapesMatch(base.shape, exp.shape, 'Error in powStrict: ');
     return base.pow(exp);
   }
@@ -188,7 +187,7 @@ export class Ops {
 
     const der = (dy: NDArray, y: NDArray) => {
       const derA = () => {
-        const res = dy.mul(b.asType('float32'));
+        const res = dy.mul(b.toFloat());
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
         if (reduceAxes.length > 0) {
           return res.sum(reduceAxes).reshape(a.shape);
@@ -196,7 +195,7 @@ export class Ops {
         return res;
       };
       const derB = () => {
-        const res = dy.mul(a.asType('float32'));
+        const res = dy.mul(a.toFloat());
         const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
         if (reduceAxes.length > 0) {
           return res.sum(reduceAxes).reshape(b.shape);
@@ -212,8 +211,7 @@ export class Ops {
    * @deprecated Use mulStrict() instead.
    */
   @operation
-  static elementWiseMul<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
-      NDArray<R> {
+  static elementWiseMul<T extends NDArray>(a: T, b: T): T {
     return a.mulStrict(b);
   }
 
@@ -225,9 +223,9 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static mulStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
+  static mulStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in multiplyStrict: ');
-    return a.mul(b) as NDArray<R>;
+    return a.mul(b) as T;
   }
 
   /**
@@ -243,7 +241,7 @@ export class Ops {
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const der = (dy: NDArray, y: NDArray) => {
       const derA = () => {
-        const res = dy.div(b.asType('float32'));
+        const res = dy.div(b.toFloat());
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
         if (reduceAxes.length > 0) {
           return res.sum(reduceAxes).reshape(a.shape);
@@ -251,13 +249,13 @@ export class Ops {
         return res;
       };
       const derB = () => {
-        let res = dy.mul(a.asType('float32'));
+        let res = dy.mul(a.toFloat());
         const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes).reshape(b.shape);
         }
         const tmp = b.square() as NDArray;
-        return res.div(tmp.asType('float32')).neg() as NDArray;
+        return res.div(tmp.toFloat()).neg() as NDArray;
       };
       return {a: derA, b: derB};
     };
@@ -272,9 +270,9 @@ export class Ops {
    * @param b The second NDArray to multiply element-wise.
    */
   @operation
-  static divStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
+  static divStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
-    return a.div(b) as NDArray<R>;
+    return a.div(b) as T;
   }
 
   /** @deprecated Use div() instead. */
@@ -319,10 +317,9 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static minimumStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
-      NDArray<R> {
+  static minimumStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
-    return a.minimum(b) as NDArray<R>;
+    return a.minimum(b);
   }
 
   /**
@@ -347,9 +344,8 @@ export class Ops {
    * @param b The second `NDArray`. Must have the same dtype as `a`.
    */
   @operation
-  static maximumStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
-      NDArray<R> {
+  static maximumStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
-    return a.maximum(b) as NDArray<R>;
+    return a.maximum(b);
   }
 }

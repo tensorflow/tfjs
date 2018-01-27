@@ -17,10 +17,10 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
+
 import * as conv_util from './conv_util';
 import {operation} from './decorators';
-import {Array4D, NDArray} from './ndarray';
-import {Rank} from './types';
+import {Array3D, Array4D} from './ndarray';
 
 export class Ops {
   /**
@@ -43,7 +43,7 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static maxPool<R extends Rank.R3|Rank.R4, T extends NDArray<R>>(
+  static maxPool<T extends Array3D|Array4D>(
       x: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
@@ -95,7 +95,7 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static maxPoolBackprop<R extends Rank, T extends NDArray<R>>(
+  static maxPoolBackprop<T extends Array3D|Array4D>(
       dy: T, input: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
@@ -157,7 +157,7 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static minPool<R extends Rank.R3|Rank.R4, T extends NDArray<R>>(
+  static minPool<T extends Array3D|Array4D>(
       input: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
@@ -206,7 +206,7 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static avgPool<R extends Rank.R3|Rank.R4, T extends NDArray<R>>(
+  static avgPool<T extends Array3D|Array4D>(
       x: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
@@ -255,7 +255,7 @@ export class Ops {
    *     used in the forward prop of the op.
    */
   @operation
-  static avgPoolBackprop<R extends Rank.R3|Rank.R4, T extends NDArray<R>>(
+  static avgPoolBackprop<T extends Array3D|Array4D>(
       dy: T, input: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number): T {
     util.assert(

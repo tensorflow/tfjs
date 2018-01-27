@@ -17,15 +17,14 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
+import {Array3D, Array4D} from './ndarray';
 
-import {Array3D} from './ndarray';
-
-// math.resizeBilinear3D
+// math.resizeBilinear
 {
   const tests: MathTests = it => {
     it('simple alignCorners=false', math => {
       const input = Array3D.new([2, 2, 1], [2, 2, 4, 4]);
-      const output = math.resizeBilinear3D(input, [3, 3], false);
+      const output = input.resizeBilinear([3, 3], false);
 
       test_util.expectArraysClose(
           output, [2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]);
@@ -33,7 +32,7 @@ import {Array3D} from './ndarray';
 
     it('simple alignCorners=true', math => {
       const input = Array3D.new([2, 2, 1], [2, 2, 4, 4]);
-      const output = math.resizeBilinear3D(input, [3, 3], true);
+      const output = input.resizeBilinear([3, 3], true);
 
       test_util.expectArraysClose(output, [2, 2, 2, 3, 3, 3, 4, 4, 4]);
     });
@@ -43,7 +42,7 @@ import {Array3D} from './ndarray';
         1.19074044, 0.91373104, 2.01611669, -0.52270832, 0.38725395, 1.30809779,
         0.61835143, 3.49600659, 2.09230986, 0.56473997, 0.03823943, 1.19864896
       ]);
-      const output = math.resizeBilinear3D(input, [4, 5], false);
+      const output = input.resizeBilinear([4, 5], false);
 
       test_util.expectArraysClose(output, [
         1.19074047, 0.91373104, 1.68596613, 0.05186744, 1.69034398, -0.15654698,
@@ -61,7 +60,7 @@ import {Array3D} from './ndarray';
         1.56324531, 2.13817752, 1.44398421, 1.07632684, 0.59306785, -0.36970865,
         1.62451879, 1.8367334, 1.13944798, 2.01993218, 2.01919952, 2.67524054
       ]);
-      const output = math.resizeBilinear3D(input, [4, 5], true);
+      const output = input.resizeBilinear([4, 5], true);
 
       test_util.expectArraysClose(output, [
         1.5632453,  2.13817763, 1.50361478, 1.60725224,  1.44398427, 1.07632685,
@@ -73,10 +72,18 @@ import {Array3D} from './ndarray';
         1.57932377, 2.34758639, 2.01919961, 2.67524052
       ]);
     });
+
+    it('batch of 2, simple, alignCorners=true', math => {
+      const input = Array4D.new([2, 2, 2, 1], [2, 2, 4, 4, 3, 3, 5, 5]);
+      const output = input.resizeBilinear([3, 3], true /* alignCorners */);
+
+      test_util.expectArraysClose(
+          output, [2, 2, 2, 3, 3, 3, 4, 4, 4, 3, 3, 3, 4, 4, 4, 5, 5, 5]);
+    });
   };
 
-  test_util.describeMathCPU('resizeBilinear3D', [tests]);
-  test_util.describeMathGPU('resizeBilinear3D', [tests], [
+  test_util.describeMathCPU('resizeBilinear', [tests]);
+  test_util.describeMathGPU('resizeBilinear', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

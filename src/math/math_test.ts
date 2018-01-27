@@ -460,7 +460,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
       const exponent = Array2D.new([2, 2], [2, 2, 2, 2], 'int32');
 
       const gradients = math.gradients(() => {
-        const b = a.asType('float32');
+        const b = a.toFloat();
         const m = math.pow(b, exponent);
         return math.sum(m);
       }, {a});
@@ -472,7 +472,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
     it('asType outside of math.gradients() throws error', math => {
       const a = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
-      const b = a.asType('float32');
+      const b = a.toFloat();
       const exponent = Array2D.new([2, 2], [2, 2, 2, 2], 'int32');
 
       const f = () => {
@@ -637,7 +637,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
       const dy = Scalar.new(4);
 
       const vjp = math.vjp(() => {
-        return math.customGradient(() => {
+        return math.customGradient('test', () => {
           const value = math.pow(a, b);
 
           const gradients = (dy: NDArray, y: NDArray) => {
@@ -661,7 +661,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
       const vjp = math.vjp(() => {
         return math.vjp(() => {
-          return math.customGradient(() => {
+          return math.customGradient('test', () => {
             const value = math.pow(a, b);
             const gradients = (dy: NDArray, y: NDArray) => {
               return {a: () => math.multiply(dy, a)};

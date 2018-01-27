@@ -130,7 +130,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const label = Array1D.new([0.3, 0.6, 0.1]);
       const softmaxLogits = math.softmax(logits);
 
-      const y = math.softmaxCrossEntropyWithLogits(label, logits);
+      const y = math.softmaxCrossEntropy(label, logits);
 
       expect(y.shape).toEqual([]);
       test_util.expectNumbersClose(
@@ -145,7 +145,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const label = Array2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
       const softmaxLogits = math.softmax(logits);
 
-      const y = math.softmaxCrossEntropyWithLogits(label, logits);
+      const y = math.softmaxCrossEntropy(label, logits);
 
       expect(y.shape).toEqual([2]);
       test_util.expectArraysClose(y, [
@@ -164,7 +164,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const dim = 1;
       const softmaxLogits = math.softmax(logits, dim);
 
-      const y = math.softmaxCrossEntropyWithLogits(label, logits, dim);
+      const y = math.softmaxCrossEntropy(label, logits, dim);
 
       expect(y.shape).toEqual([2]);
       test_util.expectArraysClose(y, [
@@ -182,15 +182,14 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const label = Array2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
       const dim = 0;
 
-      expect(() => math.softmaxCrossEntropyWithLogits(label, logits, dim))
-          .toThrowError();
+      expect(() => math.softmaxCrossEntropy(label, logits, dim)).toThrowError();
     });
 
     it('Propagates NaNs', math => {
       const logits = Array1D.new([1, 2, NaN]);
       const label = Array1D.new([0.3, 0.6, 0.1]);
 
-      const y = math.softmaxCrossEntropyWithLogits(label, logits);
+      const y = math.softmaxCrossEntropy(label, logits);
 
       expect(y.shape).toEqual([]);
       test_util.expectArraysClose(y, [NaN]);
@@ -203,8 +202,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const dy = Scalar.new(2);
 
       const vjp = math.vjp(
-          () => math.softmaxCrossEntropyWithLogits(labels, logits),
-          {labels, logits}, dy);
+          () => math.softmaxCrossEntropy(labels, logits), {labels, logits}, dy);
 
       expect(vjp.logits.shape).toEqual(logits.shape);
       expect(vjp.labels.shape).toEqual(labels.shape);
@@ -229,8 +227,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const dy = Array1D.new([2, 4]);
 
       const vjp = math.vjp(
-          () => math.softmaxCrossEntropyWithLogits(labels, logits),
-          {labels, logits}, dy);
+          () => math.softmaxCrossEntropy(labels, logits), {labels, logits}, dy);
 
       expect(vjp.logits.shape).toEqual(logits.shape);
       expect(vjp.labels.shape).toEqual(labels.shape);
@@ -255,8 +252,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
   };
 
-  test_util.describeMathCPU('softmaxCrossEntropyWithLogits', [tests]);
-  test_util.describeMathGPU('softmaxCrossEntropyWithLogits', [tests], [
+  test_util.describeMathCPU('softmaxCrossEntropy', [tests]);
+  test_util.describeMathGPU('softmaxCrossEntropy', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

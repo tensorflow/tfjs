@@ -41,7 +41,7 @@ import {PoolBackpropNode, PoolNode} from './types/pool';
 import {PowNode} from './types/pow';
 import {PReLUNode} from './types/prelu';
 import {ReshapeNode} from './types/reshape';
-import {ResizeBilinear3DNode} from './types/resize_bilinear';
+import {ResizeBilinearNode} from './types/resize_bilinear';
 import {Reverse4DNode} from './types/reverse';
 // tslint:disable-next-line:max-line-length
 import {Slice1DNode, Slice2DNode, Slice3DNode, Slice4DNode} from './types/slice';
@@ -330,10 +330,10 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
   } else if (kernelName === 'MinPool') {
     const config = inputAndArgs as PoolNode['inputAndArgs'];
     return backend.minPool(config.inputs.x, config.args.convInfo) as O;
-  } else if (kernelName === 'ResizeBilinear3D') {
-    const config = inputAndArgs as ResizeBilinear3DNode['inputAndArgs'];
-    return backend.resizeBilinear3D(
-               config.inputs.x, config.args.newShape2D,
+  } else if (kernelName === 'ResizeBilinear') {
+    const config = inputAndArgs as ResizeBilinearNode['inputAndArgs'];
+    return backend.resizeBilinear(
+               config.inputs.x, config.args.newHeight, config.args.newWidth,
                config.args.alignCorners) as O;
   } else if (kernelName === 'BatchNorm4D') {
     const config = inputAndArgs as BatchNorm4DNode['inputAndArgs'];
@@ -452,7 +452,7 @@ export interface KernelConfigRegistry<R extends Rank> {
   AvgPool: PoolNode;
   AvgPoolBackprop: PoolBackpropNode;
   MinPool: PoolNode;
-  ResizeBilinear3D: ResizeBilinear3DNode;
+  ResizeBilinear: ResizeBilinearNode;
   BatchNorm4D: BatchNorm4DNode;
   BatchNorm3D: BatchNorm3DNode;
   BatchNorm2D: BatchNorm2DNode;

@@ -20,7 +20,6 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './decorators';
 import {NDArray} from './ndarray';
-import {Rank} from './types';
 
 export class Ops {
   /**
@@ -38,8 +37,7 @@ export class Ops {
   }
 
   @operation
-  static notEqualStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
-      NDArray<R> {
+  static notEqualStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
     return a.notEqual(b);
   }
@@ -59,7 +57,7 @@ export class Ops {
   }
 
   @operation
-  static lessStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
+  static lessStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
     return a.less(b);
   }
@@ -79,7 +77,7 @@ export class Ops {
   }
 
   @operation
-  static equalStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>): NDArray<R> {
+  static equalStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
     return a.equal(b);
   }
@@ -99,8 +97,7 @@ export class Ops {
   }
 
   @operation
-  static lessEqualStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
-      NDArray<R> {
+  static lessEqualStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
     return a.lessEqual(b);
   }
@@ -120,8 +117,7 @@ export class Ops {
   }
 
   @operation
-  static greaterStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
-      NDArray<R> {
+  static greaterStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
     return a.greater(b);
   }
@@ -141,8 +137,7 @@ export class Ops {
   }
 
   @operation
-  static greaterEqualStrict<R extends Rank>(a: NDArray<R>, b: NDArray<R>):
-      NDArray<R> {
+  static greaterEqualStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');
     return a.greaterEqual(b);
   }

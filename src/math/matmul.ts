@@ -64,9 +64,9 @@ export class Ops {
                  }
                  return {
                    a: () => dy.matMul(
-                                b.asType('float32'), MatrixOrientation.REGULAR,
+                                b.toFloat(), MatrixOrientation.REGULAR,
                                 MatrixOrientation.TRANSPOSED) as Array2D,
-                   b: () => a.asType('float32').matMul(
+                   b: () => a.toFloat().matMul(
                                 dy, MatrixOrientation.TRANSPOSED,
                                 MatrixOrientation.REGULAR) as Array2D
                  };
