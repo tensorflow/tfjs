@@ -283,6 +283,21 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const res = math.sigmoid(a);
       test_util.expectArraysClose(res, [1 / (1 + Math.exp(-3)), NaN]);
     });
+
+    it('gradients: Array1D', math => {
+      const a = Array1D.new([1, 2, -3, 5]);
+      const dy = Array1D.new([1, 2, 3, 4]);
+
+      const gradients = math.vjp(() => math.sigmoid(a), a, dy);
+
+      const expected = [];
+      for (let i = 0; i < a.size; i++) {
+        const y = 1 / (1 + Math.exp(-a.get(i)));
+        expected[i] = dy.get(i) * y * (1 - y);
+      }
+
+      test_util.expectArraysClose(gradients, expected, 1e-2);
+    });
   };
 
   test_util.describeMathCPU('sigmoid', [tests]);
