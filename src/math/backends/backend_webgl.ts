@@ -292,23 +292,9 @@ export class MathBackendWebGL implements MathBackend {
     this.compileAndRun(program, [source], dest, customSetup);
   }
 
-  concat1D(a: Array1D, b: Array1D): Array1D {
-    const program = new ConcatProgram(a.shape, b.shape, 0);
-    return this.compileAndRun(program, [a, b]);
-  }
-
-  concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
-    const program = new ConcatProgram(a.shape, b.shape, axis);
-    return this.compileAndRun(program, [a, b]);
-  }
-
-  concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
-    const program = new ConcatProgram(a.shape, b.shape, axis);
-    return this.compileAndRun(program, [a, b]);
-  }
-
-  concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
-    const program = new ConcatProgram(a.shape, b.shape, axis);
+  // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
+  concat(a: Array2D, b: Array2D): Array2D {
+    const program = new ConcatProgram(a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
   }
 

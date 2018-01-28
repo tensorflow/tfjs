@@ -354,6 +354,11 @@ export class NDArray<R extends Rank = Rank> {
     return ops.reshape(this, newShape);
   }
 
+  reshapeAs<T extends NDArray>(x: T): T {
+    this.throwIfDisposed();
+    return this.reshape(x.shape) as T;
+  }
+
   tile<T extends this>(this: T, reps: number[]): T {
     this.throwIfDisposed();
     return ops.tile(this, reps);
