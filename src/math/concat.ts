@@ -16,10 +16,10 @@
  */
 
 import {ENV} from '../environment';
+import * as util from '../util';
 import * as concat_util from './concat_util';
 import {operation} from './decorators';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from './ndarray';
-import {Rank} from './types';
 
 export class Ops {
   /**
@@ -36,8 +36,7 @@ export class Ops {
    */
   @operation
   static concat1D(a: Array1D, b: Array1D): Array1D {
-    concat_util.assertParams(a.shape, b.shape, 0);
-    return ENV.engine.executeKernel('Concat1D', {inputs: {a, b}}) as Array1D;
+    return Ops.concat(a, b, 0 /* axis */);
   }
 
   /**
@@ -70,9 +69,7 @@ export class Ops {
    */
   @operation
   static concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
-    concat_util.assertParams(a.shape, b.shape, axis);
-    return ENV.engine.executeKernel(
-               'Concat2D', {inputs: {a, b}, args: {axis}}) as Array2D;
+    return Ops.concat(a, b, axis);
   }
 
   /**
@@ -108,20 +105,7 @@ export class Ops {
    */
   @operation
   static concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
-    concat_util.assertParams(a.shape, b.shape, axis);
-
-    const gradients = (dy: Array3D, y: Array3D) => {
-      const {x1Begin, x1Size, x2Begin, x2Size} =
-          concat_util.computeGradientSliceShapes3D(a.shape, y.shape, axis);
-      return {
-        a: () => dy.slice(x1Begin, x1Size),
-        b: () => dy.slice(x2Begin, x2Size)
-      };
-    };
-
-    return ENV.engine.executeKernel(
-               'Concat3D', {inputs: {a, b}, args: {axis}}, gradients) as
-        Array3D;
+    return Ops.concat(a, b, axis);
   }
 
   /**
@@ -135,27 +119,28 @@ export class Ops {
    */
   @operation
   static concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
-    concat_util.assertParams(a.shape, b.shape, axis);
-    return ENV.engine.executeKernel(
-               'Concat4D', {inputs: {a, b}, args: {axis}}) as Array4D;
+    return Ops.concat(a, b, axis);
   }
 
   @operation
-  static concat<R extends Rank>(a: NDArray<R>, b: NDArray<R>, axis: number):
-      NDArray<R> {
+  static concat<T extends NDArray>(a: T, b: T, axis: number): T {
     concat_util.assertParams(a.shape, b.shape, axis);
-    if (a.rank === 0) {
-      throw new Error('Cannot concatenate a scalar');
-    } else if (a.rank === 1) {
-      return Ops.concat1D(a as Array1D, b as Array1D) as NDArray<R>;
-    } else if (a.rank === 2) {
-      return Ops.concat2D(a as Array2D, b as Array2D, axis) as NDArray<R>;
-    } else if (a.rank === 3) {
-      return Ops.concat3D(a as Array3D, b as Array3D, axis) as NDArray<R>;
-    } else if (a.rank === 4) {
-      return Ops.concat4D(a as Array4D, b as Array4D, axis) as NDArray<R>;
-    } else {
-      throw new Error(`Concat for rank ${a.rank} is not yet implemented`);
-    }
+    const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
+
+    // Do the reshape.
+    const a2D = a.as2D(-1, util.sizeFromShape(a.shape.slice(axis)));
+    const b2D = b.as2D(-1, util.sizeFromShape(b.shape.slice(axis)));
+    // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
+    const {aBegin, aSize, bBegin, bSize} =
+        concat_util.computeGradientSliceShapes(a2D.shape, b2D.shape);
+    const der = (dy: Array2D) => {
+      return {
+        a: () => dy.slice(aBegin, aSize),
+        b: () => dy.slice(bBegin, bSize)
+      };
+    };
+    const res =
+        ENV.engine.executeKernel('Concat', {inputs: {a: a2D, b: b2D}}, der);
+    return res.reshape(outShape) as T;
   }
 }

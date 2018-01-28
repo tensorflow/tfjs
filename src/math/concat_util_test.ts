@@ -68,102 +68,25 @@ describe('concat_util.computeConcatOutputShape', () => {
 });
 
 describe('concat_util.computeBackpropSizes', () => {
-  it('compute backprop sizes of 2D tensors, axis=0', () => {
-    const x1 = [2, 3];
-    const y = [5, 3];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes2D(x1, y, 0);
-    expect(x1Begin).toEqual([0, 0]);
-    expect(x1Size).toEqual([2, 3]);
-    expect(x2Begin).toEqual([2, 0]);
-    expect(x2Size).toEqual([3, 3]);
+  it('compute backprop sizes of 2D tensors, original axis=0', () => {
+    const a: [number, number] = [1, 6];
+    const b: [number, number] = [1, 8];
+    const {aBegin, aSize, bBegin, bSize} =
+        concat_util.computeGradientSliceShapes(a, b);
+    expect(aBegin).toEqual([0, 0]);
+    expect(aSize).toEqual([1, 6]);
+    expect(bBegin).toEqual([0, 6]);
+    expect(bSize).toEqual([1, 8]);
   });
 
-  it('compute backprop sizes of 2D tensors, axis=1', () => {
-    const x1 = [2, 3];
-    const y = [2, 7];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes2D(x1, y, 1);
-    expect(x1Begin).toEqual([0, 0]);
-    expect(x1Size).toEqual([2, 3]);
-    expect(x2Begin).toEqual([0, 3]);
-    expect(x2Size).toEqual([2, 4]);
-  });
-
-  it('compute backprop sizes of 3D tensors, axis=0', () => {
-    const x1 = [2, 3, 2];
-    const y = [5, 3, 2];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes3D(x1, y, 0);
-    expect(x1Begin).toEqual([0, 0, 0]);
-    expect(x1Size).toEqual([2, 3, 2]);
-    expect(x2Begin).toEqual([2, 0, 0]);
-    expect(x2Size).toEqual([3, 3, 2]);
-  });
-
-  it('compute backprop sizes of 3D tensors, axis=1', () => {
-    const x1 = [2, 3, 2];
-    const y = [2, 7, 2];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes3D(x1, y, 1);
-    expect(x1Begin).toEqual([0, 0, 0]);
-    expect(x1Size).toEqual([2, 3, 2]);
-    expect(x2Begin).toEqual([0, 3, 0]);
-    expect(x2Size).toEqual([2, 4, 2]);
-  });
-
-  it('compute backprop sizes of 3D tensors, axis=2', () => {
-    const x1 = [2, 3, 2];
-    const y = [2, 3, 3];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes3D(x1, y, 2);
-    expect(x1Begin).toEqual([0, 0, 0]);
-    expect(x1Size).toEqual([2, 3, 2]);
-    expect(x2Begin).toEqual([0, 0, 2]);
-    expect(x2Size).toEqual([2, 3, 1]);
-  });
-
-  it('compute backprop sizes of 4D tensors, axis=0', () => {
-    const x1 = [2, 3, 2, 4];
-    const y = [3, 3, 2, 4];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes4D(x1, y, 0);
-    expect(x1Begin).toEqual([0, 0, 0, 0]);
-    expect(x1Size).toEqual([2, 3, 2, 4]);
-    expect(x2Begin).toEqual([2, 0, 0, 0]);
-    expect(x2Size).toEqual([1, 3, 2, 4]);
-  });
-
-  it('compute backprop sizes of 4D tensors, axis=1', () => {
-    const x1 = [3, 3, 2, 4];
-    const y = [3, 4, 2, 4];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes4D(x1, y, 1);
-    expect(x1Begin).toEqual([0, 0, 0, 0]);
-    expect(x1Size).toEqual([3, 3, 2, 4]);
-    expect(x2Begin).toEqual([0, 3, 0, 0]);
-    expect(x2Size).toEqual([3, 1, 2, 4]);
-  });
-
-  it('compute backprop sizes of 4D tensors, axis=2', () => {
-    const x1 = [3, 3, 2, 4];
-    const y = [3, 3, 4, 4];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes4D(x1, y, 2);
-    expect(x1Begin).toEqual([0, 0, 0, 0]);
-    expect(x1Size).toEqual([3, 3, 2, 4]);
-    expect(x2Begin).toEqual([0, 0, 2, 0]);
-    expect(x2Size).toEqual([3, 3, 2, 4]);
-  });
-
-  it('compute backprop sizes of 4D tensors, axis=3', () => {
-    const x1 = [2, 3, 2, 4];
-    const y = [2, 3, 2, 8];
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes4D(x1, y, 3);
-    expect(x1Begin).toEqual([0, 0, 0, 0]);
-    expect(x1Size).toEqual([2, 3, 2, 4]);
-    expect(x2Begin).toEqual([0, 0, 0, 4]);
-    expect(x2Size).toEqual([2, 3, 2, 4]);
+  it('compute backprop sizes of 2D tensors, original axis=1', () => {
+    const a: [number, number] = [3, 2];
+    const b: [number, number] = [3, 7];
+    const {aBegin, aSize, bBegin, bSize} =
+        concat_util.computeGradientSliceShapes(a, b);
+    expect(aBegin).toEqual([0, 0]);
+    expect(aSize).toEqual([3, 2]);
+    expect(bBegin).toEqual([0, 2]);
+    expect(bSize).toEqual([3, 7]);
   });
 });

@@ -58,73 +58,12 @@ export function computeOutShape(
   return outputShape;
 }
 
-export function computeGradientSliceShapes2D(
-    x1TensorShape: number[], yTensorShape: number[], axis: number): {
-  x1Begin: [number, number],
-  x1Size: [number, number],
-  x2Begin: [number, number],
-  x2Size: [number, number]
-} {
-  const x1AxisSize = x1TensorShape[axis];
-
-  const x1Begin: [number, number] = [0, 0];
-
-  const x1Size: [number, number] = [yTensorShape[0], yTensorShape[1]];
-  x1Size[axis] = x1AxisSize;
-
-  const x2Begin: [number, number] = [0, 0];
-  x2Begin[axis] = x1AxisSize;
-
-  const x2Size: [number, number] = [yTensorShape[0], yTensorShape[1]];
-  x2Size[axis] = yTensorShape[axis] - x1AxisSize;
-
-  return {x1Begin, x1Size, x2Begin, x2Size};
-}
-
-export function computeGradientSliceShapes3D(
-    x1Shape: number[], yShape: number[], axis: number): {
-  x1Begin: [number, number, number],
-  x1Size: [number, number, number],
-  x2Begin: [number, number, number],
-  x2Size: [number, number, number]
-} {
-  const x1AxisSize = x1Shape[axis];
-
-  const x1Begin: [number, number, number] = [0, 0, 0];
-
-  const x1Size: [number, number, number] = [yShape[0], yShape[1], yShape[2]];
-  x1Size[axis] = x1AxisSize;
-
-  const x2Begin: [number, number, number] = [0, 0, 0];
-  x2Begin[axis] = x1AxisSize;
-
-  const x2Size: [number, number, number] = [yShape[0], yShape[1], yShape[2]];
-  x2Size[axis] = yShape[axis] - x1AxisSize;
-
-  return {x1Begin, x1Size, x2Begin, x2Size};
-}
-
-export function computeGradientSliceShapes4D(
-    x1TensorShape: number[], yTensorShape: number[], axis: number): {
-  x1Begin: [number, number, number, number],
-  x1Size: [number, number, number, number],
-  x2Begin: [number, number, number, number],
-  x2Size: [number, number, number, number]
-} {
-  const x1AxisSize = x1TensorShape[axis];
-
-  const x1Begin: [number, number, number, number] = [0, 0, 0, 0];
-
-  const x1Size: [number, number, number, number] =
-      [yTensorShape[0], yTensorShape[1], yTensorShape[2], yTensorShape[3]];
-  x1Size[axis] = x1AxisSize;
-
-  const x2Begin: [number, number, number, number] = [0, 0, 0, 0];
-  x2Begin[axis] = x1AxisSize;
-
-  const x2Size: [number, number, number, number] =
-      [yTensorShape[0], yTensorShape[1], yTensorShape[2], yTensorShape[3]];
-  x2Size[axis] = yTensorShape[axis] - x1AxisSize;
-
-  return {x1Begin, x1Size, x2Begin, x2Size};
+export function computeGradientSliceShapes(
+    aShape: [number, number], bShape: [number, number]) {
+  return {
+    aBegin: [0, 0] as [number, number],
+    aSize: aShape,
+    bBegin: [0, aShape[1]] as [number, number],
+    bSize: bShape
+  };
 }

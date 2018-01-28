@@ -209,25 +209,13 @@ export class MathBackendCPU implements MathBackend {
     return result;
   }
 
-  concat1D(a: Array1D, b: Array1D): Array1D {
-    const outShape = concat_util.computeOutShape(a.shape, b.shape, 0);
-    const result = ops.zeros<Rank.R1>(outShape as [number]);
-
-    // Use built-in TypedArray.set() method for speed.
-    const aVals = a.dataSync();
-    const bVals = b.dataSync();
-    const vals = result.dataSync();
-    vals.set(aVals, 0);
-    vals.set(bVals, a.size);
-
-    return result;
-  }
-
-  concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
-    const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
+  // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
+  concat(a: Array2D, b: Array2D): Array2D {
+    const outShape =
+        concat_util.computeOutShape(a.shape, b.shape, 1 /* axis */);
     const result = ops.zeros<Rank.R2>(outShape as [number, number]);
 
-    if (axis === 0) {
+    if (a.shape[0] === 1 && b.shape[0] === 1) {
       // Use built-in TypedArray.set() method for speed.
       const aVals = a.dataSync();
       const bVals = b.dataSync();
@@ -238,96 +226,13 @@ export class MathBackendCPU implements MathBackend {
     }
 
     for (let i = 0; i < outShape[0]; ++i) {
-      for (let j = 0; j < outShape[1]; ++j) {
-        const index: [number, number] = [i, j];
-        let value: number;
-        if (index[axis] < a.shape[axis]) {
-          value = a.get(i, j);
-        } else {
-          index[axis] -= a.shape[axis];
-          const [i2, j2] = index;
-          value = b.get(i2, j2);
-        }
-
-        result.set(value, i, j);
+      for (let j = 0; j < a.shape[1]; ++j) {
+        result.set(a.get(i, j), i, j);
+      }
+      for (let j = 0; j < b.shape[1]; ++j) {
+        result.set(b.get(i, j), i, j + a.shape[1]);
       }
     }
-    return result;
-  }
-
-  concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
-    const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
-
-    const result = ops.zeros<Rank.R3>(outShape as [number, number, number]);
-
-    if (axis === 0) {
-      // Use built-in TypedArray.set() method for speed.
-      const aVals = a.dataSync();
-      const bVals = b.dataSync();
-      const vals = result.dataSync();
-      vals.set(aVals, 0);
-      vals.set(bVals, a.size);
-      return result;
-    }
-
-    for (let i = 0; i < outShape[0]; ++i) {
-      for (let j = 0; j < outShape[1]; ++j) {
-        for (let k = 0; k < outShape[2]; ++k) {
-          // Shader begins.
-          const index: [number, number, number] = [i, j, k];
-          let value: number;
-          if (index[axis] < a.shape[axis]) {
-            value = a.get(i, j, k);
-          } else {
-            index[axis] -= a.shape[axis];
-            const [i2, j2, k2] = index;
-            value = b.get(i2, j2, k2);
-          }
-
-          result.set(value, i, j, k);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
-    const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
-    const result =
-        ops.zeros<Rank.R4>(outShape as [number, number, number, number]);
-
-    if (axis === 0) {
-      // Use built-in TypedArray.set() method for speed.
-      const aVals = a.dataSync();
-      const bVals = b.dataSync();
-      const vals = result.dataSync();
-      vals.set(aVals, 0);
-      vals.set(bVals, a.size);
-      return result;
-    }
-
-    for (let i = 0; i < outShape[0]; ++i) {
-      for (let j = 0; j < outShape[1]; ++j) {
-        for (let k = 0; k < outShape[2]; ++k) {
-          for (let l = 0; l < outShape[3]; ++l) {
-            // Shader begins.
-            const index: [number, number, number, number] = [i, j, k, l];
-            let value: number;
-            if (index[axis] < a.shape[axis]) {
-              value = a.get(i, j, k, l);
-            } else {
-              index[axis] -= a.shape[axis];
-              const [i2, j2, k2, l2] = index;
-              value = b.get(i2, j2, k2, l2);
-            }
-
-            result.set(value, i, j, k, l);
-          }
-        }
-      }
-    }
-
     return result;
   }
 

@@ -18,6 +18,7 @@
 import * as concat_util from '../../math/concat_util';
 import {NDArrayMath} from '../../math/math';
 import {Array1D, Array2D, Array3D, Array4D} from '../../math/ndarray';
+import * as util from '../../util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
@@ -51,14 +52,10 @@ export class Concat1D extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: SummedTensorArrayMap) {
-    const x1Size = this.x1Tensor.shape[0];
-    const x2Size = this.x2Tensor.shape[0];
-    const dy = gradientArrays.get(this.yTensor) as Array1D;
-    math.scope((keep) => {
-      const slice1Result = math.slice1D(dy, 0, x1Size);
-      const slice2Result = math.slice1D(dy, x1Size, x2Size);
-      gradientArrays.add(this.x1Tensor, slice1Result);
-      gradientArrays.add(this.x2Tensor, slice2Result);
+    math.scope(() => {
+      concatBackProp(
+          math, this.x1Tensor, this.x2Tensor, this.yTensor, 0, gradientArrays,
+          inferenceArrays);
     });
   }
 }
@@ -92,17 +89,10 @@ export class Concat2D extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: SummedTensorArrayMap) {
-    const dy = gradientArrays.get(this.yTensor) as Array2D;
-
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes2D(
-            this.x1Tensor.shape, this.yTensor.shape, this.axis);
-
-    math.scope((keep) => {
-      const slice1Result = math.slice2D(dy, x1Begin, x1Size);
-      const slice2Result = math.slice2D(dy, x2Begin, x2Size);
-      gradientArrays.add(this.x1Tensor, slice1Result);
-      gradientArrays.add(this.x2Tensor, slice2Result);
+    math.scope(() => {
+      concatBackProp(
+          math, this.x1Tensor, this.x2Tensor, this.yTensor, this.axis,
+          gradientArrays, inferenceArrays);
     });
   }
 }
@@ -126,7 +116,6 @@ export class Concat3D extends Operation {
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
     const x1 = inferenceArrays.get(this.x1Tensor) as Array3D;
     const x2 = inferenceArrays.get(this.x2Tensor) as Array3D;
-
     math.scope((keep) => {
       const concatResult = math.concat3D(x1, x2, this.axis);
       inferenceArrays.set(this.yTensor, keep(concatResult));
@@ -136,17 +125,10 @@ export class Concat3D extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: SummedTensorArrayMap) {
-    const dy = gradientArrays.get(this.yTensor) as Array3D;
-
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes3D(
-            this.x1Tensor.shape, this.yTensor.shape, this.axis);
-
-    math.scope((keep) => {
-      const slice1Result = math.slice3D(dy, x1Begin, x1Size);
-      const slice2Result = math.slice3D(dy, x2Begin, x2Size);
-      gradientArrays.add(this.x1Tensor, slice1Result);
-      gradientArrays.add(this.x2Tensor, slice2Result);
+    math.scope(() => {
+      concatBackProp(
+          math, this.x1Tensor, this.x2Tensor, this.yTensor, this.axis,
+          gradientArrays, inferenceArrays);
     });
   }
 }
@@ -180,17 +162,28 @@ export class Concat4D extends Operation {
   backProp(
       math: NDArrayMath, inferenceArrays: TensorArrayMap,
       gradientArrays: SummedTensorArrayMap) {
-    const dy = gradientArrays.get(this.yTensor) as Array4D;
-
-    const {x1Begin, x1Size, x2Begin, x2Size} =
-        concat_util.computeGradientSliceShapes4D(
-            this.x1Tensor.shape, this.yTensor.shape, this.axis);
-
-    math.scope((keep) => {
-      const slice1Result = math.slice4D(dy, x1Begin, x1Size);
-      const slice2Result = math.slice4D(dy, x2Begin, x2Size);
-      gradientArrays.add(this.x1Tensor, slice1Result);
-      gradientArrays.add(this.x2Tensor, slice2Result);
+    math.scope(() => {
+      concatBackProp(
+          math, this.x1Tensor, this.x2Tensor, this.yTensor, this.axis,
+          gradientArrays, inferenceArrays);
     });
   }
+}
+
+function concatBackProp(
+    math: NDArrayMath, aTensor: Tensor, bTensor: Tensor, yTensor: Tensor,
+    axis: number, gradArrays: SummedTensorArrayMap, infArrays: TensorArrayMap) {
+  const dy = gradArrays.get(yTensor);
+  const a = infArrays.get(aTensor);
+  const b = infArrays.get(bTensor);
+  const a2D = a.as2D(-1, util.sizeFromShape(a.shape.slice(axis)));
+  const b2D = b.as2D(-1, util.sizeFromShape(b.shape.slice(axis)));
+  const {aBegin, aSize, bBegin, bSize} = concat_util.computeGradientSliceShapes(
+      a2D.shape as [number, number], b2D.shape as [number, number]);
+  const dy2D = dy.as2D(-1, a2D.shape[1] + b2D.shape[1]);
+
+  const slice1Result = math.slice2D(dy2D, aBegin, aSize).reshapeAs(a);
+  const slice2Result = math.slice2D(dy2D, bBegin, bSize).reshapeAs(b);
+  gradArrays.add(aTensor, slice1Result);
+  gradArrays.add(bTensor, slice2Result);
 }
