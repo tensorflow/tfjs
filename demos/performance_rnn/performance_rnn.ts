@@ -12,26 +12,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
+import * as dl from 'deeplearn';
 
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, ENV, NDArray, NDArrayMath, Scalar} from 'deeplearn';
 import * as demo_util from '../util';
+
 import {KeyboardElement} from './keyboard_element';
 
 // tslint:disable-next-line:no-require-imports
 const Piano = require('tone-piano').Piano;
 
-let lstmKernel1: Array2D;
-let lstmBias1: Array1D;
-let lstmKernel2: Array2D;
-let lstmBias2: Array1D;
-let lstmKernel3: Array2D;
-let lstmBias3: Array1D;
-let c: Array2D[];
-let h: Array2D[];
-let fullyConnectedBiases: Array1D;
-let fullyConnectedWeights: Array2D;
-const forgetBias = Scalar.new(1.0);
+let lstmKernel1: dl.Array2D;
+let lstmBias1: dl.Array1D;
+let lstmKernel2: dl.Array2D;
+let lstmBias2: dl.Array1D;
+let lstmKernel3: dl.Array2D;
+let lstmBias3: dl.Array1D;
+let c: dl.Array2D[];
+let h: dl.Array2D[];
+let fcB: dl.Array1D;
+let fcW: dl.Array2D;
+const forgetBias = dl.Scalar.new(1.0);
 const activeNotes = new Map<number, number>();
 
 // How many steps to generate per generateStep call.
@@ -53,8 +53,8 @@ const PITCH_HISTOGRAM_SIZE = NOTES_PER_OCTAVE;
 
 const RESET_RNN_FREQUENCY_MS = 30000;
 
-let pitchHistogramEncoding: Array1D;
-let noteDensityEncoding: Array1D;
+let pitchHistogramEncoding: dl.Array1D;
+let noteDensityEncoding: dl.Array1D;
 let conditioned = false;
 
 let currentPianoTimeSec = 0;
@@ -98,7 +98,7 @@ function calculateEventSize(): number {
 
 const EVENT_SIZE = calculateEventSize();
 const PRIMER_IDX = 355;  // shift 1s.
-let lastSample = Scalar.new(PRIMER_IDX, 'int32');
+let lastSample = dl.Scalar.new(PRIMER_IDX, 'int32');
 
 const container = document.querySelector('#keyboard');
 const keyboardInterface = new KeyboardElement(container);
@@ -120,38 +120,39 @@ if (!isDeviceSupported) {
   start();
 }
 
-const math = ENV.math;
-
 let modelReady = false;
 
 function start() {
   piano.load(SALAMANDER_URL)
       .then(() => {
-        const reader = new CheckpointLoader(CHECKPOINT_URL);
+        const reader = new dl.CheckpointLoader(CHECKPOINT_URL);
         return reader.getAllVariables();
       })
-      .then((vars: {[varName: string]: NDArray}) => {
+      .then((vars: {[varName: string]: dl.NDArray}) => {
         document.querySelector('#status').classList.add('hidden');
         document.querySelector('#controls').classList.remove('hidden');
         document.querySelector('#keyboard').classList.remove('hidden');
 
         lstmKernel1 =
-            vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as Array2D;
-        lstmBias1 =
-            vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as Array1D;
+            vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as
+            dl.Array2D;
+        lstmBias1 = vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as
+            dl.Array1D;
 
         lstmKernel2 =
-            vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as Array2D;
-        lstmBias2 =
-            vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as Array1D;
+            vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as
+            dl.Array2D;
+        lstmBias2 = vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as
+            dl.Array1D;
 
         lstmKernel3 =
-            vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/kernel'] as Array2D;
-        lstmBias3 =
-            vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/bias'] as Array1D;
+            vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/kernel'] as
+            dl.Array2D;
+        lstmBias3 = vars['rnn/multi_rnn_cell/cell_2/basic_lstm_cell/bias'] as
+            dl.Array1D;
 
-        fullyConnectedBiases = vars['fully_connected/biases'] as Array1D;
-        fullyConnectedWeights = vars['fully_connected/weights'] as Array2D;
+        fcB = vars['fully_connected/biases'] as dl.Array1D;
+        fcW = vars['fully_connected/weights'] as dl.Array2D;
         modelReady = true;
         resetRnn();
       });
@@ -159,19 +160,19 @@ function start() {
 
 function resetRnn() {
   c = [
-    Array2D.zeros([1, lstmBias1.shape[0] / 4]),
-    Array2D.zeros([1, lstmBias2.shape[0] / 4]),
-    Array2D.zeros([1, lstmBias3.shape[0] / 4]),
+    dl.zeros([1, lstmBias1.shape[0] / 4]),
+    dl.zeros([1, lstmBias2.shape[0] / 4]),
+    dl.zeros([1, lstmBias3.shape[0] / 4]),
   ];
   h = [
-    Array2D.zeros([1, lstmBias1.shape[0] / 4]),
-    Array2D.zeros([1, lstmBias2.shape[0] / 4]),
-    Array2D.zeros([1, lstmBias3.shape[0] / 4]),
+    dl.zeros([1, lstmBias1.shape[0] / 4]),
+    dl.zeros([1, lstmBias2.shape[0] / 4]),
+    dl.zeros([1, lstmBias3.shape[0] / 4]),
   ];
   if (lastSample != null) {
     lastSample.dispose();
   }
-  lastSample = Scalar.new(PRIMER_IDX);
+  lastSample = dl.Scalar.new(PRIMER_IDX);
   currentPianoTimeSec = piano.now();
   pianoStartTimestampMs = performance.now() - currentPianoTimeSec * 1000;
   currentLoopId++;
@@ -293,14 +294,14 @@ function updateConditioningParams() {
   const noteDensityIdx = parseInt(densityControl.value, 10) || 0;
   const noteDensity = DENSITY_BIN_RANGES[noteDensityIdx];
   densityDisplay.innerHTML = noteDensity.toString();
-  noteDensityEncoding = Array1D.zeros([DENSITY_BIN_RANGES.length + 1]);
+  noteDensityEncoding = dl.Array1D.zeros([DENSITY_BIN_RANGES.length + 1]);
   noteDensityEncoding.set(1.0, noteDensityIdx + 1);
 
   if (pitchHistogramEncoding != null) {
     pitchHistogramEncoding.dispose();
     pitchHistogramEncoding = null;
   }
-  pitchHistogramEncoding = Array1D.zeros([PITCH_HISTOGRAM_SIZE]);
+  pitchHistogramEncoding = dl.Array1D.zeros([PITCH_HISTOGRAM_SIZE]);
   const pitchHistogramTotal = pitchHistogram.reduce((prev, val) => {
     return prev + val;
   });
@@ -387,22 +388,21 @@ document.getElementById('save-2').onclick = () => {
   updateConditioningParams();
 };
 
-function getConditioning(math: NDArrayMath): Array1D {
-  return math.scope(keep => {
+function getConditioning(): dl.Array1D {
+  return dl.ENV.math.scope(keep => {
     if (!conditioned) {
       // TODO(nsthorat): figure out why we have to cast these shapes to numbers.
       // The linter is complaining, though VSCode can infer the types.
       const size = 1 + (noteDensityEncoding.shape[0] as number) +
           (pitchHistogramEncoding.shape[0] as number);
-      const conditioning = Array1D.zeros([size]);
+      const conditioning: dl.Array1D = dl.zeros([size]);
       conditioning.set(1.0, 0);
       return conditioning;
     } else {
+      const axis = 0;
       const conditioningValues =
-          math.concat1D(noteDensityEncoding, pitchHistogramEncoding);
-      return math.concat1D(
-          Scalar.new(0.0).as1D(),  // conditioning on.
-          conditioningValues);
+          noteDensityEncoding.concat(pitchHistogramEncoding, axis);
+      return dl.Array1D.new([0]).concat(conditioningValues, axis);
     }
   });
 }
@@ -412,37 +412,38 @@ async function generateStep(loopId: number) {
     // Was part of an outdated generateStep() scheduled via setTimeout.
     return;
   }
-  await math.scope(async keep => {
-    const lstm1 =
-        math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
-    const lstm2 =
-        math.basicLSTMCell.bind(math, forgetBias, lstmKernel2, lstmBias2);
-    const lstm3 =
-        math.basicLSTMCell.bind(math, forgetBias, lstmKernel3, lstmBias3);
+  await dl.ENV.math.scope(async keep => {
+    const lstm1 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
+        dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
+    const lstm2 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
+        dl.basicLSTMCell(forgetBias, lstmKernel2, lstmBias2, data, c, h);
+    const lstm3 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
+        dl.basicLSTMCell(forgetBias, lstmKernel3, lstmBias3, data, c, h);
 
-    const outputs: Scalar[] = [];
+    const outputs: dl.Scalar[] = [];
     // Generate some notes.
     for (let i = 0; i < STEPS_PER_GENERATE_CALL; i++) {
       // Use last sampled output as the next input.
-      const eventInput = math.oneHot(lastSample.as1D(), EVENT_SIZE).as1D();
+      const eventInput = dl.oneHot(lastSample.as1D(), EVENT_SIZE).as1D();
       // Dispose the last sample from the previous generate call, since we
       // kept it.
       if (i === 0) {
         lastSample.dispose();
       }
-      const conditioning = getConditioning(math);
-      const input = math.concat1D(conditioning, eventInput);
+      const conditioning = getConditioning();
+      const axis = 0;
+      const input = conditioning.concat(eventInput, axis);
       const output =
-          math.multiRNNCell([lstm1, lstm2, lstm3], input.as2D(1, -1), c, h);
+          dl.multiRNNCell([lstm1, lstm2, lstm3], input.as2D(1, -1), c, h);
       c = output[0];
       h = output[1];
 
       const outputH = h[2];
-      const weightedResult = math.matMul(outputH, fullyConnectedWeights);
-      const logits = math.add(weightedResult, fullyConnectedBiases);
+      const logits = outputH.matMul(fcW).add(fcB);
 
-      const softmax = math.softmax(logits.as1D());
-      const sampledOutput = math.multinomial(softmax, 1).asScalar();
+      const softmax = logits.as1D().softmax();
+      const sampledOutput = dl.multinomial(softmax, 1).asScalar();
+
       outputs.push(sampledOutput);
       keep(sampledOutput);
       lastSample = sampledOutput;

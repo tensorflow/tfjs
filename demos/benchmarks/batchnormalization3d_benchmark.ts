@@ -14,8 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, ENV, NDArrayMath} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -30,18 +29,19 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
       });
     }
     const safeMode = false;
-    const math = new NDArrayMath('cpu', safeMode);
-    ENV.setMath(math);
-    const x = Array3D.randUniform([size, size, 8], -1, 1);
-    const mean = Array1D.new([0]);
-    const variance = Array1D.new([1]);
+    const math = new dl.NDArrayMath('cpu', safeMode);
+    dl.ENV.setMath(math);
+    const x: dl.Array3D = dl.randUniform([size, size, 8], -1, 1);
+    const mean = dl.Array1D.new([0]);
+    const variance = dl.Array1D.new([1]);
     const varianceEpsilon = .001;
     const start = performance.now();
 
-    math.batchNormalization3D(
-        x, mean, variance, varianceEpsilon, undefined, undefined);
+    x.batchNormalization(mean, variance, varianceEpsilon);
 
     const end = performance.now();
+
+    math.dispose();
 
     this.lastRunTimeMs = end - start;
     return this.lastRunTimeMs;
@@ -51,17 +51,18 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
 export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
   async run(size: number) {
     const safeMode = false;
-    const math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
-    const x = Array3D.randUniform([size, size, 8], -1, 1);
-    const mean = Array1D.new([0]);
-    const variance = Array1D.new([1]);
+    const math = new dl.NDArrayMath('webgl', safeMode);
+    dl.ENV.setMath(math);
+
+    const x: dl.Array3D = dl.randUniform([size, size, 8], -1, 1);
+    const mean = dl.Array1D.new([0]);
+    const variance = dl.Array1D.new([1]);
     const varianceEpsilon = .001;
 
-    const benchmark = () => math.batchNormalization3D(
-        x, mean, variance, varianceEpsilon, undefined, undefined);
+    const benchmark = () =>
+        x.batchNormalization(mean, variance, varianceEpsilon);
 
-    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
+    const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
 
     x.dispose();
     mean.dispose();

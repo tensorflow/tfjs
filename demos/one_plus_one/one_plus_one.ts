@@ -15,14 +15,13 @@
  * =============================================================================
  */
 
-import {ENV, Scalar} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 async function onePlusOne() {
-  const math = ENV.math;
-  const a = Scalar.new(1);
-  const b = Scalar.new(1);
+  const a = dl.Scalar.new(1);
+  const b = dl.Scalar.new(1);
 
-  const result = await math.add(a, b).data();
+  const result = await a.add(b).data();
 
   document.getElementById('output').innerText = result.toString();
 }

@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Array3D, conv_util, ENV, NDArrayMath} from 'deeplearn';
+import * as dl from 'deeplearn';
+
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
 
@@ -28,24 +28,25 @@ export interface PoolBenchmarkParams {
   stride: number;
 }
 
-function getPoolingOp(option: string, math: NDArrayMath): (
-    x: Array3D, filterSize: [number, number]|number,
-    strides: [number, number]|number, pad: 'valid'|'same'|number) => Array3D {
+function getPoolingOp(option: string, math: dl.NDArrayMath):
+    (x: dl.Array3D, filterSize: [number, number]|number,
+     strides: [number, number]|number, pad: 'valid'|'same'|number) =>
+        dl.Array3D {
   switch (option) {
     case 'max':
-      return (x: Array3D, filterSize: [number, number]|number,
+      return (x: dl.Array3D, filterSize: [number, number]|number,
               strides: [number, number]|number, pad: 'valid'|'same'|number) => {
-        return math.maxPool(x, filterSize, strides, pad);
+        return x.maxPool(filterSize, strides, pad);
       };
     case 'min':
-      return (x: Array3D, filterSize: [number, number]|number,
+      return (x: dl.Array3D, filterSize: [number, number]|number,
               strides: [number, number]|number, pad: 'valid'|'same'|number) => {
-        return math.minPool(x, filterSize, strides, pad);
+        return x.minPool(filterSize, strides, pad);
       };
     case 'avg':
-      return (x: Array3D, filterSize: [number, number]|number,
+      return (x: dl.Array3D, filterSize: [number, number]|number,
               strides: [number, number]|number, pad: 'valid'|'same'|number) => {
-        return math.avgPool(x.asType('float32'), filterSize, strides, pad);
+        return x.avgPool(filterSize, strides, pad);
       };
     default:
       throw new Error(`Not found such ops: ${option}`);
@@ -56,22 +57,25 @@ export class PoolCPUBenchmark implements BenchmarkTest {
   run(size: number, option: string,
       params: PoolBenchmarkParams): Promise<number> {
     const safeMode = false;
-    const math = new NDArrayMath('cpu', safeMode);
-    ENV.setMath(math);
+    const math = new dl.NDArrayMath('cpu', safeMode);
+    dl.ENV.setMath(math);
+
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
-    const zeroPad = conv_util.computeDefaultPad(xShape, fieldSize, stride);
+    const zeroPad = dl.conv_util.computeDefaultPad(xShape, fieldSize, stride);
     const op = getPoolingOp(option, math);
 
-    const x = Array3D.randUniform(xShape, -1, 1);
+    const x: dl.Array3D = dl.randUniform(xShape, -1, 1);
 
     const start = performance.now();
     for (let i = 0; i < CPU_OP_RUNS; i++) {
-      op(x as Array3D, fieldSize, stride, zeroPad);
+      op(x, fieldSize, stride, zeroPad);
     }
     const avgTime = (performance.now() - start) / CPU_OP_RUNS;
+
+    math.dispose();
 
     return new Promise<number>((resolve, reject) => {
       resolve(avgTime);
@@ -83,18 +87,21 @@ export class PoolGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string, params: PoolBenchmarkParams):
       Promise<number> {
     const safeMode = false;
-    const math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
+    const math = new dl.NDArrayMath('webgl', safeMode);
+    dl.ENV.setMath(math);
+
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
-    const x = Array3D.randUniform(xShape, -1, 1);
+    const x: dl.Array3D = dl.randUniform(xShape, -1, 1);
     const op = getPoolingOp(option, math);
 
     const benchmark = () => op(x, fieldSize, stride, 'same');
-    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
+    const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
+
     x.dispose();
+    math.dispose();
 
     return time;
   }

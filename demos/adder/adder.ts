@@ -15,18 +15,16 @@
  * =============================================================================
  */
 
-import {ENV, Scalar} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 const outputElement = document.getElementById('output');
 const inA: HTMLInputElement = document.getElementById('A') as HTMLInputElement;
 const inB: HTMLInputElement = document.getElementById('B') as HTMLInputElement;
 
-const math = ENV.math;
-
 export async function execute(event?: Event) {
-  const a = Scalar.new(+inA.value);
-  const b = Scalar.new(+inB.value);
-  const result = await math.add(a, b).data();
+  const a = dl.Scalar.new(+inA.value);
+  const b = dl.Scalar.new(+inB.value);
+  const result = await a.add(b).data();
   outputElement.innerText = result.toString();
 }
 

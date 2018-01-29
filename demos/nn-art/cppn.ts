@@ -26,10 +26,10 @@ const activationFunctionMap: {
   [activationFunction in ActivationFunction]: (ndarray: dl.Array2D) =>
       dl.Array2D
 } = {
-  'tanh': (x: dl.Array2D) => math.tanh(x),
-  'sin': (x: dl.Array2D) => math.sin(x),
-  'relu': (x: dl.Array2D) => math.relu(x),
-  'step': (x: dl.Array2D) => math.step(x)
+  'tanh': x => x.tanh(),
+  'sin': x => x.sin(),
+  'relu': x => x.relu(),
+  'step': x => x.step()
 };
 
 const NUM_IMAGE_SPACE_VARIABLES = 3;  // x, y, r
@@ -37,7 +37,7 @@ const NUM_LATENT_VARIABLES = 2;
 
 export class CPPN {
   private inputAtlas: dl.Array2D;
-  private ones: dl.Array2D<'float32'>;
+  private ones: dl.Array2D;
 
   private firstLayerWeights: dl.Array2D;
   private intermediateWeights: dl.Array2D[] = [];
@@ -75,11 +75,11 @@ export class CPPN {
       this.lastLayerWeights.dispose();
     }
 
-    this.firstLayerWeights = dl.Array2D.randTruncatedNormal(
+    this.firstLayerWeights = dl.truncatedNormal(
         [NUM_IMAGE_SPACE_VARIABLES + NUM_LATENT_VARIABLES, neuronsPerLayer], 0,
         weightsStdev);
     for (let i = 0; i < MAX_LAYERS; i++) {
-      this.intermediateWeights.push(dl.Array2D.randTruncatedNormal(
+      this.intermediateWeights.push(dl.truncatedNormal(
           [neuronsPerLayer, neuronsPerLayer], 0, weightsStdev));
     }
     this.lastLayerWeights = dl.Array2D.randTruncatedNormal(
@@ -118,31 +118,25 @@ export class CPPN {
     const lastOutput = math.scope(() => {
       const z1 = dl.Scalar.new(Math.sin(this.z1Counter));
       const z2 = dl.Scalar.new(Math.cos(this.z2Counter));
+      const z1Mat = z1.mul(this.ones) as dl.Array2D;
+      const z2Mat = z2.mul(this.ones) as dl.Array2D;
 
       const concatAxis = 1;
-      const latentVars = math.concat2D(
-          math.multiply(z1, this.ones) as dl.Array2D,
-          math.multiply(z2, this.ones) as dl.Array2D, concatAxis);
+      const latentVars = z1Mat.concat(z2Mat, concatAxis);
 
       const activation = (x: dl.Array2D) =>
           activationFunctionMap[this.selectedActivationFunctionName](x);
 
-      let lastOutput: dl.NDArray =
-          math.concat2D(this.inputAtlas, latentVars, concatAxis);
-      lastOutput = activation(
-          math.matMul(lastOutput as dl.Array2D, this.firstLayerWeights));
+      let lastOutput = this.inputAtlas.concat(latentVars, concatAxis);
+      lastOutput = activation(lastOutput.matMul(this.firstLayerWeights));
 
       for (let i = 0; i < this.numLayers; i++) {
-        const matmulResult =
-            math.matMul(lastOutput as dl.Array2D, this.intermediateWeights[i]);
-
-        lastOutput = activation(matmulResult);
+        lastOutput = activation(lastOutput.matMul(this.intermediateWeights[i]));
       }
 
-      return math
-          .sigmoid(math.matMul(lastOutput as dl.Array2D, this.lastLayerWeights))
-          .reshape(
-              [this.inferenceCanvas.height, this.inferenceCanvas.width, 3]);
+      return lastOutput.matMul(this.lastLayerWeights).sigmoid().reshape([
+        this.inferenceCanvas.height, this.inferenceCanvas.width, 3
+      ]);
     });
 
     await renderToCanvas(lastOutput as dl.Array3D, this.inferenceCanvas);

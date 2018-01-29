@@ -11,7 +11,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-import {ENV, NDArray} from 'deeplearn';
+import * as dl from 'deeplearn';
 import Vue from 'vue';
 
 import DemoFooter from '../footer.vue';
@@ -94,15 +94,18 @@ class TrainDisplay {
         ` - (Building training data - ${length} of ${size})`;
   }
 
-  clearTrainingData(): void { this.trainingDataElement.innerHTML = ''; }
+  clearTrainingData(): void {
+    this.trainingDataElement.innerHTML = '';
+  }
 
   private randomRGBA(): string {
     const s = 255;
-    return `rgba(${
-                   Math.round(Math.random() * s)
-                 },${
-                     Math.round(Math.random() * s)
-                   },${Math.round(Math.random() * s)},1)`;
+    const [r, g, b] = [
+      Math.round(Math.random() * s), Math.round(Math.random() * s),
+      Math.round(Math.random() * s)
+    ];
+
+    return `rgba(${r},${g},${b},1)`;
   }
 }
 
@@ -117,7 +120,7 @@ class WorldDisplay {
     document.querySelector('.worlds-display').appendChild(this.rootElement);
   }
 
-  displayWorld(world: NDArray, title: string): Element {
+  displayWorld(world: dl.NDArray, title: string): Element {
     const worldElement = document.createElement('div');
     worldElement.setAttribute('class', 'world');
 
@@ -154,12 +157,12 @@ class WorldDisplay {
 
 /** Manages displaying a list of world sequences (current, next, prediction) */
 class WorldContext {
-  world: NDArray;
-  worldNext: NDArray;
+  world: dl.NDArray;
+  worldNext: dl.NDArray;
   worldDisplay: WorldDisplay;
   predictionElement: Element = null;
 
-  constructor(worlds: [NDArray, NDArray]) {
+  constructor(worlds: [dl.NDArray, dl.NDArray]) {
     this.worldDisplay = new WorldDisplay();
 
     this.world = worlds[0];
@@ -168,7 +171,7 @@ class WorldContext {
     this.worldDisplay.displayWorld(this.worldNext, 'Next Sequence');
   }
 
-  displayPrediction(prediction: NDArray) {
+  displayPrediction(prediction: dl.NDArray) {
     if (this.predictionElement) {
       this.predictionElement.remove();
     }
@@ -177,11 +180,11 @@ class WorldContext {
   }
 }
 
-const math = ENV.math;
+const math = dl.ENV.math;
 const game = new GameOfLife(5, math);
 const model = new GameOfLifeModel(math);
 
-let trainingData: Array<[NDArray, NDArray]> = [];
+let trainingData: Array<[dl.NDArray, dl.NDArray]> = [];
 const worldContexts: WorldContext[] = [];
 
 const trainDisplay = new TrainDisplay();
@@ -243,14 +246,16 @@ async function trainAndRender() {
 
 // tslint:disable-next-line:no-default-export
 export default Vue.extend({
-  data() { return data; },
+  data() {
+    return data;
+  },
   components: {DemoHeader, DemoFooter, GraphSource},
   methods: {
-    onAddSequenceClicked: async() => {
+    onAddSequenceClicked: async () => {
       worldContexts.push(new WorldContext(game.generateGolExample()));
     },
 
-    onTrainModelClicked: async() => {
+    onTrainModelClicked: async () => {
       step = 0;
       trainingSteps = parseInt(data.trainingSteps, 10);
       trainingBatchSize = parseInt(data.trainingBatchSize, 10);
@@ -274,7 +279,7 @@ export default Vue.extend({
       }
     }
   },
-  mounted: async() => {
+  mounted: async () => {
     for (let i = 0; i < 5; i++) {
       worldContexts.push(new WorldContext(game.generateGolExample()));
     }

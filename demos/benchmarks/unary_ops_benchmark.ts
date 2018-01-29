@@ -15,46 +15,45 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Array2D, ENV, NDArray, NDArrayMath} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
 
-function getUnaryOp(option: string, math: NDArrayMath) {
+function getUnaryOp(option: string) {
   switch (option) {
     case 'log':
-      return (input: NDArray) => math.log(input);
+      return (x: dl.NDArray) => x.log();
     case 'exp':
-      return (input: NDArray) => math.exp(input);
+      return (x: dl.NDArray) => x.exp();
     case 'neg':
-      return (input: NDArray) => math.neg(input);
+      return (x: dl.NDArray) => x.neg();
     case 'sqrt':
-      return (input: NDArray) => math.sqrt(input);
+      return (x: dl.NDArray) => x.sqrt();
     case 'abs':
-      return (input: NDArray) => math.abs(input);
+      return (x: dl.NDArray) => x.abs();
     case 'relu':
-      return (input: NDArray) => math.relu(input);
+      return (x: dl.NDArray) => x.relu();
     case 'sigmoid':
-      return (input: NDArray) => math.sigmoid(input);
+      return (x: dl.NDArray) => x.sigmoid();
     case 'sin':
-      return (input: NDArray) => math.sin(input);
+      return (x: dl.NDArray) => x.sin();
     case 'cos':
-      return (input: NDArray) => math.cos(input);
+      return (x: dl.NDArray) => x.cos();
     case 'tan':
-      return (input: NDArray) => math.tan(input);
+      return (x: dl.NDArray) => x.tan();
     case 'asin':
-      return (input: NDArray) => math.asin(input);
+      return (x: dl.NDArray) => x.asin();
     case 'acos':
-      return (input: NDArray) => math.acos(input);
+      return (x: dl.NDArray) => x.acos();
     case 'atan':
-      return (input: NDArray) => math.atan(input);
+      return (x: dl.NDArray) => x.atan();
     case 'sinh':
-      return (input: NDArray) => math.sinh(input);
+      return (x: dl.NDArray) => x.sinh();
     case 'cosh':
-      return (input: NDArray) => math.cosh(input);
+      return (x: dl.NDArray) => x.cosh();
     case 'tanh':
-      return (input: NDArray) => math.tanh(input);
+      return (x: dl.NDArray) => x.tanh();
     default:
       throw new Error(`Not found such ops: ${option}`);
   }
@@ -63,15 +62,18 @@ function getUnaryOp(option: string, math: NDArrayMath) {
 export class UnaryOpsCPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string): Promise<number> {
     const safeMode = false;
-    const math = new NDArrayMath('cpu', safeMode);
-    ENV.setMath(math);
-    const input = Array2D.randUniform([size, size], -1, 1);
-    const op = getUnaryOp(option, math);
+    const math = new dl.NDArrayMath('cpu', safeMode);
+    dl.ENV.setMath(math);
+
+    const input: dl.Array2D = dl.randUniform([size, size], -1, 1);
+    const op = getUnaryOp(option);
     const start = performance.now();
 
     math.scope(() => {
       op(input).get();
     });
+
+    math.dispose();
 
     const end = performance.now();
     return end - start;
@@ -81,14 +83,15 @@ export class UnaryOpsCPUBenchmark implements BenchmarkTest {
 export class UnaryOpsGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string) {
     const safeMode = false;
-    const math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
-    const input = Array2D.randUniform([size, size], -1, 1);
-    const op = getUnaryOp(option, math);
+    const math = new dl.NDArrayMath('webgl', safeMode);
+    dl.ENV.setMath(math);
+
+    const input: dl.Array2D = dl.randUniform([size, size], -1, 1);
+    const op = getUnaryOp(option);
 
     const benchmark = () => op(input);
 
-    const time = await benchmark_util.warmupAndBenchmarkGPU(math, benchmark);
+    const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
 
     input.dispose();
     math.dispose();

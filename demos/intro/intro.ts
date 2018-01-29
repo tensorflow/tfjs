@@ -14,9 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CostReduction, ENV, FeedEntry, Graph, InCPUMemoryShuffledInputProviderBuilder, Scalar, Session, SGDOptimizer} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 // This file parallels (some of) the code in the introduction tutorial.
 
@@ -24,17 +22,13 @@ import {Array1D, Array2D, CostReduction, ENV, FeedEntry, Graph, InCPUMemoryShuff
  * 'NDArrayMath with WebGL backend' section of tutorial
  */
 async function intro() {
-  const math = ENV.math;
+  const a = dl.Array2D.new([2, 2], [1.0, 2.0, 3.0, 4.0]);
+  const b = dl.Array2D.new([2, 2], [0.0, 2.0, 4.0, 6.0]);
 
-  const a = Array2D.new([2, 2], [1.0, 2.0, 3.0, 4.0]);
-  const b = Array2D.new([2, 2], [0.0, 2.0, 4.0, 6.0]);
+  const size = dl.Scalar.new(a.size);
 
   // Non-blocking math calls.
-  const diff = math.sub(a, b);
-  const squaredDiff = math.elementWiseMul(diff, diff);
-  const sum = math.sum(squaredDiff);
-  const size = Scalar.new(a.size);
-  const average = math.divide(sum, size);
+  const average = a.sub(b).square().sum().div(size);
 
   console.log(`mean squared difference: ${await average.val()}`);
 
@@ -42,7 +36,7 @@ async function intro() {
    * 'Graphs and Tensors' section of tutorial
    */
 
-  const g = new Graph();
+  const g = new dl.Graph();
 
   // Placeholders are input containers. This is the container for where we
   // will feed an input NDArray when we execute the graph.
@@ -55,7 +49,7 @@ async function intro() {
   // Variables are containers that hold a value that can be updated from
   // training.
   // Here we initialize the multiplier variable randomly.
-  const multiplier = g.variable('multiplier', Array2D.randNormal([1, 3]));
+  const multiplier = g.variable('multiplier', dl.Array2D.randNormal([1, 3]));
 
   // Top level graph methods take Tensors and return Tensors.
   const outputTensor = g.matmul(multiplier, inputTensor);
@@ -65,31 +59,31 @@ async function intro() {
   console.log(outputTensor.shape);
 
   /**
-   * 'Session and FeedEntry' section of the tutorial.
+   * 'dl.Session and dl.FeedEntry' section of the tutorial.
    */
 
   const learningRate = .00001;
   const batchSize = 3;
 
-  const session = new Session(g, math);
-  const optimizer = new SGDOptimizer(learningRate);
+  const session = new dl.Session(g, dl.ENV.math);
+  const optimizer = new dl.SGDOptimizer(learningRate);
 
-  const inputs: Array1D[] = [
-    Array1D.new([1.0, 2.0, 3.0]), Array1D.new([10.0, 20.0, 30.0]),
-    Array1D.new([100.0, 200.0, 300.0])
+  const inputs: dl.Array1D[] = [
+    dl.Array1D.new([1.0, 2.0, 3.0]), dl.Array1D.new([10.0, 20.0, 30.0]),
+    dl.Array1D.new([100.0, 200.0, 300.0])
   ];
 
-  const labels: Array1D[] =
-      [Array1D.new([4.0]), Array1D.new([40.0]), Array1D.new([400.0])];
+  const labels: dl.Array1D[] =
+      [dl.Array1D.new([4.0]), dl.Array1D.new([40.0]), dl.Array1D.new([400.0])];
 
   // Shuffles inputs and labels and keeps them mutually in sync.
   const shuffledInputProviderBuilder =
-      new InCPUMemoryShuffledInputProviderBuilder([inputs, labels]);
+      new dl.InCPUMemoryShuffledInputProviderBuilder([inputs, labels]);
   const [inputProvider, labelProvider] =
       shuffledInputProviderBuilder.getInputProviders();
 
   // Maps tensors to InputProviders.
-  const feedEntries: FeedEntry[] = [
+  const feedEntries: dl.FeedEntry[] = [
     {tensor: inputTensor, data: inputProvider},
     {tensor: labelTensor, data: labelProvider}
   ];
@@ -98,20 +92,21 @@ async function intro() {
   for (let i = 0; i < NUM_BATCHES; i++) {
     // Wrap session.train in a scope so the cost gets cleaned up
     // automatically.
-    await math.scope(async () => {
+    await dl.ENV.math.scope(async () => {
       // Train takes a cost tensor to minimize. Trains one batch. Returns the
-      // average cost as a Scalar.
+      // average cost as a dl.Scalar.
       const cost = session.train(
-          costTensor, feedEntries, batchSize, optimizer, CostReduction.MEAN);
+          costTensor, feedEntries, batchSize, optimizer, dl.CostReduction.MEAN);
 
       console.log(`last average cost (${i}): ${await cost.val()}`);
     });
   }
 
-  const testInput = Array1D.new([0.1, 0.2, 0.3]);
+  const testInput = dl.Array1D.new([0.1, 0.2, 0.3]);
 
   // session.eval can take NDArrays as input data.
-  const testFeedEntries: FeedEntry[] = [{tensor: inputTensor, data: testInput}];
+  const testFeedEntries: dl.FeedEntry[] =
+      [{tensor: inputTensor, data: testInput}];
 
   const testOutput = session.eval(outputTensor, testFeedEntries);
 

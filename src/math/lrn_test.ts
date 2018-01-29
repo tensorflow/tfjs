@@ -374,7 +374,7 @@ const flatten = (arr: any): number[] => {
 
   test_util.describeMathCPU('localResponseNormalization3D', [tests]);
   test_util.describeMathGPU('localResponseNormalization3D', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+   // {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
   ]);
@@ -580,7 +580,7 @@ const flatten = (arr: any): number[] => {
 
   test_util.describeMathCPU('localResponseNormalization4D', [tests]);
   test_util.describeMathGPU('localResponseNormalization4D', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+   // {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
   ]);

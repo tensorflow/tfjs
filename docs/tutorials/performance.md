@@ -85,13 +85,13 @@ A function is passed to the function closure, `keep()`.
 automatically when the scope ends.
 
 ```ts
-const math = ENV.math;
+const math = dl.ENV.math;
 
 let output;
 
 math.scope(keep => {
   // CORRECT: By default, math tracks all NDArrays that are constructed.
-  const a = Scalar.new(2);
+  const a = dl.Scalar.new(2);
 
   // CORRECT: By default, math tracks all outputs of math functions.
   const c = math.neg(math.exp(a));
@@ -99,7 +99,7 @@ math.scope(keep => {
   // CORRECT: d is tracked by the parent scope.
   const d = math.scope(() => {
     // CORRECT: e will get cleaned up when this inner scope ends.
-    const e = Scalar.new(3);
+    const e = dl.Scalar.new(3);
 
     // CORRECT: The result of this math function is tracked. Since it is the
     // return value of this scope, it will not get cleaned up with this inner
