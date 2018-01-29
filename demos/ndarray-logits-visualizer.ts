@@ -14,8 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {Array1D, ENV} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
@@ -69,11 +68,11 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
   }
 
   drawLogits(
-      predictedLogits: Array1D<'float32'>, labelLogits: Array1D,
+      predictedLogits: dl.Array1D, labelLogits: dl.Array1D,
       labelClassNames?: string[]) {
-    const labelClass = ENV.math.argMax(labelLogits).get();
+    const labelClass = labelLogits.argMax().get();
 
-    const topk = this.topK(predictedLogits.dataSync(), TOP_K);
+    const topk = this.topK(predictedLogits.dataSync() as Float32Array, TOP_K);
     const topkIndices = topk.indices;
     const topkValues = topk.values;
 

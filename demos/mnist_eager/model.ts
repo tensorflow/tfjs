@@ -15,17 +15,13 @@ const math = dl.ENV.math;
 const optimizer = new dl.SGDOptimizer(LEARNING_RATE);
 
 // Set up the model and loss function.
-const weights = dl.variable(dl.Array2D.randNormal(
-    [IMAGE_SIZE, LABELS_SIZE], 0, 1 / Math.sqrt(IMAGE_SIZE), 'float32'));
+const weights: dl.Array2D = dl.variable(
+    dl.randNormal([IMAGE_SIZE, LABELS_SIZE], 0, 1 / Math.sqrt(IMAGE_SIZE)));
 
-const model = (xs: dl.Array2D<'float32'>): dl.Array2D<'float32'> => {
-  return math.matMul(xs, weights) as dl.Array2D<'float32'>;
-};
+const model = (xs: dl.Array2D) => xs.matMul(weights);
 
-const loss = (labels: dl.Array2D<'float32'>,
-              ys: dl.Array2D<'float32'>): dl.Scalar => {
-  return math.mean(math.softmaxCrossEntropyWithLogits(labels, ys)) as dl.Scalar;
-};
+const loss = (labels: dl.Array2D, ys: dl.Array2D) =>
+    dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
 
 // Train the model.
 export async function train(data: MnistData, log: (message: string) => void) {
@@ -43,22 +39,19 @@ export async function train(data: MnistData, log: (message: string) => void) {
   }
 }
 
-// Tests the model on a set
-export async function test(data: MnistData) {}
-
 // Predict the digit number from a batch of input images.
-export function predict(x: dl.Array2D<'float32'>): number[] {
+export function predict(x: dl.Array2D): number[] {
   const pred = math.scope(() => {
     const axis = 1;
-    return math.argMax(model(x), axis);
+    return model(x).argMax(axis);
   });
   return Array.from(pred.dataSync());
 }
 
 // Given a logits or label vector, return the class indices.
-export function classesFromLabel(y: dl.Array2D<'float32'>): number[] {
+export function classesFromLabel(y: dl.Array2D): number[] {
   const axis = 1;
-  const pred = math.argMax(y, axis);
+  const pred = y.argMax(axis);
 
   return Array.from(pred.dataSync());
 }

@@ -14,17 +14,14 @@
  * limitations under the License.
  * =============================================================================
  */
-
-// tslint:disable:restrict-plus-operands
-// tslint:disable-next-line:max-line-length
-import {AdagradOptimizer, Array2D, CostReduction, FeedEntry, Graph, InGPUMemoryShuffledInputProviderBuilder, NDArray, NDArrayMath, Session, Tensor} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 /** Generates GameOfLife sequence pairs (current sequence + next sequence) */
 export class GameOfLife {
-  math: NDArrayMath;
+  math: dl.NDArrayMath;
   size: number;
 
-  constructor(size: number, math: NDArrayMath) {
+  constructor(size: number, math: dl.NDArrayMath) {
     this.math = math;
     this.size = size;
   }
@@ -33,12 +30,12 @@ export class GameOfLife {
     this.size = size;
   }
 
-  generateGolExample(): [NDArray, NDArray] {
-    let world: NDArray;
-    let worldNext: NDArray;
+  generateGolExample(): [dl.NDArray, dl.NDArray] {
+    let world: dl.NDArray;
+    let worldNext: dl.NDArray;
     this.math.scope(keep => {
-      const randWorld =
-          Array2D.randUniform([this.size - 2, this.size - 2], 0, 2, 'int32');
+      const randWorld: dl.Array2D =
+          dl.randUniform([this.size - 2, this.size - 2], 0, 2, 'int32');
       const worldPadded = GameOfLife.padArray(randWorld);
       // TODO(kreeger): This logic can be vectorized and kept on the GPU with a
       // logical_or() and where() implementations.
@@ -63,40 +60,27 @@ export class GameOfLife {
       }
       world = keep(worldPadded);
       worldNext = keep(GameOfLife.padArray(
-          Array2D.new(randWorld.shape, nextWorldValues, 'int32')));
+          dl.Array2D.new(randWorld.shape, nextWorldValues, 'int32')));
     });
     return [world, worldNext];
   }
 
   /** Counts total sum of neighbors for a given world. */
-  private countNeighbors(size: number, worldPadded: Array2D): Array2D {
-    let neighborCount = this.math.add(
-        this.math.slice2D(worldPadded, [0, 0], [size - 2, size - 2]),
-        this.math.slice2D(worldPadded, [0, 1], [size - 2, size - 2]));
-    neighborCount = this.math.add(
-        neighborCount,
-        this.math.slice2D(worldPadded, [0, 2], [size - 2, size - 2]));
-    neighborCount = this.math.add(
-        neighborCount,
-        this.math.slice2D(worldPadded, [1, 0], [size - 2, size - 2]));
-    neighborCount = this.math.add(
-        neighborCount,
-        this.math.slice2D(worldPadded, [1, 2], [size - 2, size - 2]));
-    neighborCount = this.math.add(
-        neighborCount,
-        this.math.slice2D(worldPadded, [2, 0], [size - 2, size - 2]));
-    neighborCount = this.math.add(
-        neighborCount,
-        this.math.slice2D(worldPadded, [2, 1], [size - 2, size - 2]));
-    neighborCount = this.math.add(
-        neighborCount,
-        this.math.slice2D(worldPadded, [2, 2], [size - 2, size - 2]));
-    return neighborCount as Array2D;
+  private countNeighbors(size: number, worldPadded: dl.Array2D): dl.Array2D {
+    return worldPadded.slice([0, 0], [size - 2, size - 2])
+        .add(worldPadded.slice([0, 1], [size - 2, size - 2]))
+        .add(worldPadded.slice([0, 2], [size - 2, size - 2]))
+        .add(worldPadded.slice([0, 2], [size - 2, size - 2]))
+        .add(worldPadded.slice([1, 0], [size - 2, size - 2]))
+        .add(worldPadded.slice([1, 2], [size - 2, size - 2]))
+        .add(worldPadded.slice([2, 0], [size - 2, size - 2]))
+        .add(worldPadded.slice([2, 1], [size - 2, size - 2]))
+        .add(worldPadded.slice([2, 2], [size - 2, size - 2]));
   }
 
   /* Helper method to pad an array until the op is ready. */
   // TODO(kreeger, #409): Drop this when math.pad() is ready.
-  private static padArray(array: NDArray): Array2D<'int32'> {
+  private static padArray(array: dl.NDArray): dl.Array2D {
     const x1 = array.shape[0];
     const x2 = array.shape[1];
     const pad = 1;
@@ -122,7 +106,7 @@ export class GameOfLife {
         }
       }
     }
-    return Array2D.new(shape as [number, number], values, 'int32');
+    return dl.Array2D.new(shape as [number, number], values, 'int32');
   }
 }
 
@@ -131,34 +115,34 @@ export class GameOfLife {
  * next sequence.
  */
 export class GameOfLifeModel {
-  session: Session;
-  math: NDArrayMath;
+  session: dl.Session;
+  math: dl.NDArrayMath;
 
-  optimizer: AdagradOptimizer;
-  inputTensor: Tensor;
-  targetTensor: Tensor;
-  costTensor: Tensor;
-  predictionTensor: Tensor;
+  optimizer: dl.AdagradOptimizer;
+  inputTensor: dl.Tensor;
+  targetTensor: dl.Tensor;
+  costTensor: dl.Tensor;
+  predictionTensor: dl.Tensor;
 
   size: number;
   batchSize: number;
   step = 0;
 
   // Maps tensors to InputProviders
-  feedEntries: FeedEntry[];
+  feedEntries: dl.FeedEntry[];
 
-  constructor(math: NDArrayMath) {
+  constructor(math: dl.NDArrayMath) {
     this.math = math;
   }
 
   setupSession(
       boardSize: number, batchSize: number, initialLearningRate: number,
       numLayers: number, useLogCost: boolean): void {
-    this.optimizer = new AdagradOptimizer(initialLearningRate);
+    this.optimizer = new dl.AdagradOptimizer(initialLearningRate);
 
     this.size = boardSize;
     this.batchSize = batchSize;
-    const graph = new Graph();
+    const graph = new dl.Graph();
     const shape = this.size * this.size;
 
     this.inputTensor = graph.placeholder('input', [shape]);
@@ -181,46 +165,47 @@ export class GameOfLifeModel {
       this.costTensor =
           graph.meanSquaredCost(this.targetTensor, this.predictionTensor);
     }
-    this.session = new Session(graph, this.math);
+    this.session = new dl.Session(graph, this.math);
   }
 
-  trainBatch(fetchCost: boolean, worlds: Array<[NDArray, NDArray]>): number {
+  trainBatch(fetchCost: boolean, worlds: Array<[dl.NDArray, dl.NDArray]>):
+      number {
     this.setTrainingData(worlds);
 
     let costValue = -1;
     this.math.scope(() => {
       const cost = this.session.train(
           this.costTensor, this.feedEntries, this.batchSize, this.optimizer,
-          fetchCost ? CostReduction.MEAN : CostReduction.NONE);
+          fetchCost ? dl.CostReduction.MEAN : dl.CostReduction.NONE);
       costValue = cost.get();
     });
     return costValue;
   }
 
-  predict(world: NDArray): Array2D {
+  predict(world: dl.NDArray): dl.Array2D {
     let values = null;
     this.math.scope(() => {
       const mapping =
-          [{tensor: this.inputTensor, data: world.flatten().asType('float32')}];
+          [{tensor: this.inputTensor, data: world.flatten().toFloat()}];
 
       const evalOutput = this.session.eval(this.predictionTensor, mapping);
       values = evalOutput.dataSync();
     });
-    return Array2D.new([this.size, this.size], values);
+    return dl.Array2D.new([this.size, this.size], values);
   }
 
-  private setTrainingData(worlds: Array<[NDArray, NDArray]>): void {
+  private setTrainingData(worlds: Array<[dl.NDArray, dl.NDArray]>): void {
     const inputs = [];
     const outputs = [];
     for (let i = 0; i < worlds.length; i++) {
       const example = worlds[i];
-      inputs.push(example[0].flatten().asType('float32'));
-      outputs.push(example[1].flatten().asType('float32'));
+      inputs.push(example[0].flatten().toFloat());
+      outputs.push(example[1].flatten().toFloat());
     }
 
     // TODO(kreeger): Don't really need to shuffle these.
     const inputProviderBuilder =
-        new InGPUMemoryShuffledInputProviderBuilder([inputs, outputs]);
+        new dl.InGPUMemoryShuffledInputProviderBuilder([inputs, outputs]);
     const [inputProvider, targetProvider] =
         inputProviderBuilder.getInputProviders();
 
@@ -232,17 +217,19 @@ export class GameOfLifeModel {
 
   /* Helper method for creating a fully connected layer. */
   private static createFullyConnectedLayer(
-      graph: Graph, inputLayer: Tensor, layerIndex: number,
-      sizeOfThisLayer: number, includeRelu = true, includeBias = true): Tensor {
+      graph: dl.Graph, inputLayer: dl.Tensor, layerIndex: number,
+      sizeOfThisLayer: number, includeRelu = true,
+      includeBias = true): dl.Tensor {
     return graph.layers.dense(
-        'fully_connected_' + layerIndex, inputLayer, sizeOfThisLayer,
+        'fully_connected_' + layerIndex.toString(), inputLayer, sizeOfThisLayer,
         includeRelu ? (x) => graph.relu(x) : (x) => graph.sigmoid(x),
         includeBias);
   }
 
   /* Helper method for calculating loss. */
-  private logLoss(graph: Graph, labelTensor: Tensor, predictionTensor: Tensor):
-      Tensor {
+  private logLoss(
+      graph: dl.Graph, labelTensor: dl.Tensor,
+      predictionTensor: dl.Tensor): dl.Tensor {
     const epsilon = graph.constant(1e-7);
     const one = graph.constant(1);
     const negOne = graph.constant(-1);

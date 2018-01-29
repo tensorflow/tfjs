@@ -11,9 +11,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, ENV, NDArray, NDArrayMath, Scalar} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 import {Cache} from './ModelCache';
 
@@ -25,11 +23,11 @@ export class FontModel {
   dimensions = 40;
   range = 0.4;
   charIdMap: {[id: string]: number};
-  private variables: {[varName: string]: NDArray};
-  private math: NDArrayMath;
+  private variables: {[varName: string]: dl.NDArray};
+  private math: dl.NDArrayMath;
   private inferCache = new Cache(this, this.infer);
   private numberOfValidChars = 62;
-  private multiplierScalar = Scalar.new(255);
+  private multiplierScalar = dl.Scalar.new(255);
 
   constructor() {
     // Set up character ID mapping.
@@ -46,7 +44,7 @@ export class FontModel {
   }
 
   load(cb: () => void) {
-    const checkpointLoader = new CheckpointLoader(
+    const checkpointLoader = new dl.CheckpointLoader(
         'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/fonts/');
     checkpointLoader.getAllVariables().then(vars => {
       this.variables = vars;
@@ -63,11 +61,11 @@ export class FontModel {
   }
 
   init() {
-    this.math = ENV.math;
+    this.math = dl.ENV.math;
   }
 
   infer(args: Array<{}>) {
-    const embedding = args[0] as NDArray;
+    const embedding = args[0] as dl.NDArray;
     const ctx = args[1] as CanvasRenderingContext2D;
     const char = args[2] as string;
     const cb = args[3] as () => void;
@@ -78,33 +76,38 @@ export class FontModel {
     }
 
     const adjusted = this.math.scope(keep => {
-      const idx = Array1D.new([charId]);
-      const onehotVector =
-          this.math.oneHot(idx, this.numberOfValidChars).as1D();
+      const idx = dl.Array1D.new([charId]);
+      const onehotVector = dl.oneHot(idx, this.numberOfValidChars).as1D();
 
-      const inputData = this.math.concat1D(embedding.as1D(), onehotVector);
+      const axis = 0;
+      const inputData = embedding.as1D().concat(onehotVector, axis);
 
       let lastOutput = inputData;
 
       for (let i = 0; i < NUM_LAYERS; i++) {
         const weights =
-            this.variables[`Stack/fully_connected_${i + 1}/weights`] as Array2D;
+            this.variables[`Stack/fully_connected_${i + 1}/weights`] as
+            dl.Array2D;
         const biases = this.variables[`Stack/fully_connected_${i + 1}/biases`];
-        lastOutput =
-            this.math.relu(this.math.add(
-                this.math.vectorTimesMatrix(lastOutput, weights), biases)) as
-            Array1D;
+
+        lastOutput = lastOutput.as2D(-1, weights.shape[0])
+                         .matMul(weights)
+                         .add(biases)
+                         .relu() as dl.Array1D;
       }
 
-      const finalWeights = this.variables['fully_connected/weights'] as Array2D;
-      const finalBiases = this.variables['fully_connected/biases'] as Array2D;
-      const finalOutput = this.math.sigmoid(this.math.add(
-          this.math.vectorTimesMatrix(lastOutput, finalWeights), finalBiases));
+      const finalWeights =
+          this.variables['fully_connected/weights'] as dl.Array2D;
+      const finalBiases =
+          this.variables['fully_connected/biases'] as dl.Array2D;
+
+      const finalOutput = lastOutput.as2D(-1, finalWeights.shape[0])
+                              .matMul(finalWeights)
+                              .add(finalBiases)
+                              .sigmoid();
 
       // Convert the inferred tensor to the proper scaling then draw it.
-      const scaled =
-          this.math.scalarTimesArray(this.multiplierScalar, finalOutput);
-      return this.math.scalarMinusArray(this.multiplierScalar, scaled);
+      return this.multiplierScalar.sub(this.multiplierScalar.mul(finalOutput));
     });
 
     const d = adjusted.as3D(IMAGE_SIZE, IMAGE_SIZE, 1);

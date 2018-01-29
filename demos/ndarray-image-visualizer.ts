@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Array3D} from 'deeplearn';
+import * as dl from 'deeplearn';
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
 // tslint:disable-next-line
@@ -46,7 +46,7 @@ export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {
     this.canvas.style.height = `${height}px`;
   }
 
-  saveImageDataFromNDArray(ndarray: Array3D) {
+  saveImageDataFromNDArray(ndarray: dl.Array3D) {
     this.imageData = this.canvasContext.createImageData(
         this.canvas.width, this.canvas.height);
     if (ndarray.shape[2] === 1) {
@@ -56,7 +56,7 @@ export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {
     }
   }
 
-  drawRGBImageData(ndarray: Array3D) {
+  drawRGBImageData(ndarray: dl.Array3D) {
     let pixelOffset = 0;
     for (let i = 0; i < ndarray.shape[0]; i++) {
       for (let j = 0; j < ndarray.shape[1]; j++) {
@@ -68,7 +68,7 @@ export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {
     }
   }
 
-  drawGrayscaleImageData(ndarray: Array3D) {
+  drawGrayscaleImageData(ndarray: dl.Array3D) {
     let pixelOffset = 0;
     for (let i = 0; i < ndarray.shape[0]; i++) {
       for (let j = 0; j < ndarray.shape[1]; j++) {

@@ -1,7 +1,5 @@
 import * as dl from 'deeplearn';
 
-const math = dl.ENV.math;
-
 const TRAIN_TEST_RATIO = 5 / 6;
 
 const mnistConfig: dl.XhrDatasetConfig = {
@@ -35,7 +33,7 @@ export class MnistData {
   private shuffledTestIndex = 0;
 
   public nextTrainBatch(batchSize: number):
-      {xs: dl.Array2D<'float32'>, labels: dl.Array2D<'float32'>} {
+      {xs: dl.Array2D, labels: dl.Array2D} {
     return this.nextBatch(batchSize, this.trainingData, () => {
       this.shuffledTrainIndex =
           (this.shuffledTrainIndex + 1) % this.trainIndices.length;
@@ -44,7 +42,7 @@ export class MnistData {
   }
 
   public nextTestBatch(batchSize: number):
-      {xs: dl.Array2D<'float32'>, labels: dl.Array2D<'float32'>} {
+      {xs: dl.Array2D, labels: dl.Array2D} {
     return this.nextBatch(batchSize, this.testData, () => {
       this.shuffledTestIndex =
           (this.shuffledTestIndex + 1) % this.testIndices.length;
@@ -53,18 +51,18 @@ export class MnistData {
   }
 
   private nextBatch(
-      batchSize: number, data: dl.NDArray[][], index: () => number):
-      {xs: dl.Array2D<'float32'>, labels: dl.Array2D<'float32'>} {
-    let xs: dl.Array2D<'float32'> = null;
-    let labels: dl.Array2D<'float32'> = null;
+      batchSize: number, data: dl.NDArray[][],
+      index: () => number): {xs: dl.Array2D, labels: dl.Array2D} {
+    let xs: dl.Array2D = null;
+    let labels: dl.Array2D = null;
 
     for (let i = 0; i < batchSize; i++) {
       const idx = index();
 
-      const x = data[0][idx].reshape([1, 784]) as dl.Array2D<'float32'>;
+      const x = data[0][idx].reshape([1, 784]) as dl.Array2D;
       xs = concatWithNulls(xs, x);
 
-      const label = data[1][idx].reshape([1, 10]) as dl.Array2D<'float32'>;
+      const label = data[1][idx].reshape([1, 10]) as dl.Array2D;
       labels = concatWithNulls(labels, label);
     }
     return {xs, labels};
@@ -110,16 +108,15 @@ export class MnistData {
  * TODO(nsthorat): Add math.stack, similar to np.stack, which will avoid the
  * need for us allowing concating with null values.
  */
-function concatWithNulls(
-    ndarray1: dl.Array2D<'float32'>,
-    ndarray2: dl.Array2D<'float32'>): dl.Array2D<'float32'> {
-  if (ndarray1 == null && ndarray2 == null) {
+function concatWithNulls(x1: dl.Array2D, x2: dl.Array2D): dl.Array2D {
+  if (x1 == null && x2 == null) {
     return null;
   }
-  if (ndarray1 == null) {
-    return ndarray2;
-  } else if (ndarray2 === null) {
-    return ndarray1;
+  if (x1 == null) {
+    return x2;
+  } else if (x2 === null) {
+    return x1;
   }
-  return math.concat2D(ndarray1, ndarray2, 0) as dl.Array2D<'float32'>;
+  const axis = 0;
+  return x1.concat(x2, axis);
 }

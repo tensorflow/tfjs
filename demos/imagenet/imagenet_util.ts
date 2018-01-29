@@ -14,8 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {GPGPUContext, webgl_util} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 /**
  * Transposes the depth and the column dimensions of a 3D ndarray represented as
@@ -24,7 +23,7 @@ import {GPGPUContext, webgl_util} from 'deeplearn';
  * minValues and maxValues, which give min and max values per channel. These can
  * be computed from a max and min pooling layer.
  */
-export function getRenderGrayscaleChannelsCollageShader(gpgpu: GPGPUContext):
+export function getRenderGrayscaleChannelsCollageShader(gpgpu: dl.GPGPUContext):
     WebGLProgram {
   const fragmentShaderSource = `
     precision highp float;
@@ -85,19 +84,21 @@ export function getRenderGrayscaleChannelsCollageShader(gpgpu: GPGPUContext):
 }
 
 export function renderGrayscaleChannelsCollage(
-    gpgpu: GPGPUContext, unpackChannelsShader: WebGLProgram,
+    gpgpu: dl.GPGPUContext, unpackChannelsShader: WebGLProgram,
     sourceTex: WebGLTexture, minValuesTex: WebGLTexture,
     maxValuesTex: WebGLTexture, inputShapeRC: [number, number],
     imageSize: number, channels: number, textureSize: number, numRows: number) {
-  webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
+  dl.webgl_util.bindCanvasToFramebuffer(gpgpu.gl);
   gpgpu.setProgram(unpackChannelsShader);
 
-  const sourceSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
+  const sourceSamplerLocation = dl.webgl_util.getProgramUniformLocationOrThrow(
       gpgpu.gl, unpackChannelsShader, 'source');
-  const minValuesSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
-      gpgpu.gl, unpackChannelsShader, 'minValues');
-  const maxValuesSamplerLocation = webgl_util.getProgramUniformLocationOrThrow(
-      gpgpu.gl, unpackChannelsShader, 'maxValues');
+  const minValuesSamplerLocation =
+      dl.webgl_util.getProgramUniformLocationOrThrow(
+          gpgpu.gl, unpackChannelsShader, 'minValues');
+  const maxValuesSamplerLocation =
+      dl.webgl_util.getProgramUniformLocationOrThrow(
+          gpgpu.gl, unpackChannelsShader, 'maxValues');
 
   gpgpu.setInputMatrixTexture(sourceTex, sourceSamplerLocation, 0);
   gpgpu.setInputMatrixTexture(minValuesTex, minValuesSamplerLocation, 1);

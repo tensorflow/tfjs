@@ -15,26 +15,24 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, CheckpointLoader, ENV, NDArray, Scalar} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 // manifest.json lives in the same directory as the mnist demo.
-const reader = new CheckpointLoader('.');
+const reader = new dl.CheckpointLoader('.');
 reader.getAllVariables().then(vars => {
   // Get sample data.
   const xhr = new XMLHttpRequest();
   xhr.open('GET', 'sample_data.json');
   xhr.onload = async () => {
     const data = JSON.parse(xhr.responseText) as SampleData;
-    const math = ENV.math;
 
     // Wrap everything in a math.scope so we clean up intermediate NDArrays.
-    math.scope(async () => {
+    dl.ENV.math.scope(async () => {
       console.log(`Evaluation set: n=${data.images.length}.`);
 
       let numCorrect = 0;
       for (let i = 0; i < data.images.length; i++) {
-        const x = Array1D.new(data.images[i]);
+        const x = dl.Array1D.new(data.images[i]);
 
         // Infer through the model to get a prediction.
         const predictedLabel = Math.round(await infer(x, vars).val());
@@ -47,8 +45,8 @@ reader.getAllVariables().then(vars => {
         }
 
         // Show the image.
-        const result =
-            renderResults(Array1D.new(data.images[i]), label, predictedLabel);
+        const result = renderResults(
+            dl.Array1D.new(data.images[i]), label, predictedLabel);
         document.body.appendChild(result);
       }
 
@@ -72,27 +70,28 @@ export interface SampleData {
  * to the user. Math commands execute immediately, like numpy.
  */
 export function infer(
-    x: Array1D, vars: {[varName: string]: NDArray}): Scalar<'int32'> {
-  const hidden1W = vars['hidden1/weights'] as Array2D;
-  const hidden1B = vars['hidden1/biases'] as Array1D;
-  const hidden2W = vars['hidden2/weights'] as Array2D;
-  const hidden2B = vars['hidden2/biases'] as Array1D;
-  const softmaxW = vars['softmax_linear/weights'] as Array2D;
-  const softmaxB = vars['softmax_linear/biases'] as Array1D;
-  const math = ENV.math;
+    x: dl.Array1D, vars: {[varName: string]: dl.NDArray}): dl.Scalar {
+  const hidden1W = vars['hidden1/weights'] as dl.Array2D;
+  const hidden1B = vars['hidden1/biases'] as dl.Array1D;
+  const hidden2W = vars['hidden2/weights'] as dl.Array2D;
+  const hidden2B = vars['hidden2/biases'] as dl.Array1D;
+  const softmaxW = vars['softmax_linear/weights'] as dl.Array2D;
+  const softmaxB = vars['softmax_linear/biases'] as dl.Array1D;
+
   const hidden1 =
-      math.relu(math.add(math.vectorTimesMatrix(x, hidden1W), hidden1B)) as
-      Array1D;
-  const hidden2 =
-      math.relu(math.add(
-          math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Array1D;
+      x.as2D(-1, hidden1W.shape[0]).matMul(hidden1W).add(hidden1B).relu() as
+      dl.Array1D;
+  const hidden2 = hidden1.as2D(-1, hidden2W.shape[0])
+                      .matMul(hidden2W)
+                      .add(hidden2B)
+                      .relu() as dl.Array1D;
+  const logits =
+      hidden2.as2D(-1, softmaxW.shape[0]).matMul(softmaxW).add(softmaxB);
 
-  const logits = math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
-
-  return math.argMax(logits);
+  return logits.argMax();
 }
 
-function renderMnistImage(array: Array1D) {
+function renderMnistImage(array: dl.Array1D) {
   const width = 28;
   const height = 28;
   const canvas = document.createElement('canvas');
@@ -113,7 +112,8 @@ function renderMnistImage(array: Array1D) {
   return canvas;
 }
 
-function renderResults(array: Array1D, label: number, predictedLabel: number) {
+function renderResults(
+    array: dl.Array1D, label: number, predictedLabel: number) {
   const root = document.createElement('div');
   root.appendChild(renderMnistImage(array));
   const actual = document.createElement('div');

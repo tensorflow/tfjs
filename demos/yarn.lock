@@ -2281,11 +2281,8 @@ deeplearn-squeezenet@~0.1.9:
   version "0.1.9"
   resolved "https://registry.yarnpkg.com/deeplearn-squeezenet/-/deeplearn-squeezenet-0.1.9.tgz#a4194c31156cd2fa7421aaffcc6e3d4b3e3ef1c1"
 
-deeplearn@0.4.2:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.4.2.tgz#7e270f2056ebc6ced1308a964c4fe59c0c1f9f57"
-  dependencies:
-    seedrandom "~2.4.3"
+"deeplearn@file:../dist":
+  version "0.0.0"
 
 deepmerge@^1.5.2:
   version "1.5.2"
@@ -5748,10 +5745,6 @@ schema-utils@^0.3.0:
   resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-0.3.0.tgz#f5877222ce3e931edae039f17eb3716e7137f8cf"
   dependencies:
     ajv "^5.0.0"
-
-seedrandom@~2.4.3:
-  version "2.4.3"
-  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.3.tgz#2438504dad33917314bff18ac4d794f16d6aaecc"
 
 select-hose@^2.0.0:
   version "2.0.0"

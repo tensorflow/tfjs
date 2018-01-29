@@ -13,8 +13,8 @@
     "@types/node" "*"
 
 "@types/glob@*":
-  version "5.0.34"
-  resolved "https://registry.yarnpkg.com/@types/glob/-/glob-5.0.34.tgz#ee626c9be3da877d717911c6101eee0a9871bbf4"
+  version "5.0.35"
+  resolved "https://registry.yarnpkg.com/@types/glob/-/glob-5.0.35.tgz#1ae151c802cece940443b5ac246925c85189f32a"
   dependencies:
     "@types/events" "*"
     "@types/minimatch" "*"
@@ -33,8 +33,8 @@
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.5.54.tgz#a6b5f2ae2afb6e0307774e8c7c608e037d491c63"
 
 "@types/lodash@^4.14.37":
-  version "4.14.92"
-  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.92.tgz#6e3cb0b71a1e12180a47a42a744e856c3ae99a57"
+  version "4.14.97"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.97.tgz#7262d6d5fc5e87cdb3f68eb33accd4024f2b211e"
 
 "@types/marked@0.0.28":
   version "0.0.28"

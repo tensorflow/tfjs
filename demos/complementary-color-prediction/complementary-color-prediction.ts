@@ -15,40 +15,39 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Array1D, CostReduction, ENV, FeedEntry, Graph, InCPUMemoryShuffledInputProviderBuilder, Session, SGDOptimizer, Tensor} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 class ComplementaryColorModel {
   // Runs training.
-  session: Session;
+  session: dl.Session;
 
   // Encapsulates math operations on the CPU and GPU.
-  math = ENV.math;
+  math = dl.ENV.math;
 
   // An optimizer with a certain learning rate. Used for training.
   learningRate = 0.1;
-  optimizer: SGDOptimizer;
+  optimizer: dl.SGDOptimizer;
 
   // Each training batch will be on this many examples.
   batchSize = 50;
 
-  inputTensor: Tensor;
-  targetTensor: Tensor;
-  costTensor: Tensor;
-  predictionTensor: Tensor;
+  inputTensor: dl.Tensor;
+  targetTensor: dl.Tensor;
+  costTensor: dl.Tensor;
+  predictionTensor: dl.Tensor;
 
   // Maps tensors to InputProviders.
-  feedEntries: FeedEntry[];
+  feedEntries: dl.FeedEntry[];
 
   constructor() {
-    this.optimizer = new SGDOptimizer(this.learningRate);
+    this.optimizer = new dl.SGDOptimizer(this.learningRate);
   }
 
   /**
    * Constructs the graph of the model. Call this method before training.
    */
   setupSession(): void {
-    const graph = new Graph();
+    const graph = new dl.Graph();
 
     // This tensor contains the input. In this case, it is a scalar.
     this.inputTensor = graph.placeholder('input RGB value', [3]);
@@ -76,7 +75,7 @@ class ComplementaryColorModel {
         graph.meanSquaredCost(this.targetTensor, this.predictionTensor);
 
     // Create the session only after constructing the graph.
-    this.session = new Session(graph, this.math);
+    this.session = new dl.Session(graph, this.math);
 
     // Generate the data that will be used to train the model.
     this.generateTrainingData(1e5);
@@ -102,7 +101,7 @@ class ComplementaryColorModel {
     this.math.scope(() => {
       const cost = this.session.train(
           this.costTensor, this.feedEntries, this.batchSize, this.optimizer,
-          shouldFetchCost ? CostReduction.MEAN : CostReduction.NONE);
+          shouldFetchCost ? dl.CostReduction.MEAN : dl.CostReduction.NONE);
 
       if (!shouldFetchCost) {
         // We only train. We do not compute the cost.
@@ -129,7 +128,7 @@ class ComplementaryColorModel {
     this.math.scope(() => {
       const mapping = [{
         tensor: this.inputTensor,
-        data: Array1D.new(this.normalizeColor(rgbColor)),
+        data: dl.Array1D.new(this.normalizeColor(rgbColor)),
       }];
       const evalOutput = this.session.eval(this.predictionTensor, mapping);
       const values = evalOutput.dataSync();
@@ -143,7 +142,7 @@ class ComplementaryColorModel {
   }
 
   private createFullyConnectedLayer(
-      graph: Graph, inputLayer: Tensor, layerIndex: number,
+      graph: dl.Graph, inputLayer: dl.Tensor, layerIndex: number,
       sizeOfThisLayer: number) {
     return graph.layers.dense(
         `fully_connected_${layerIndex}`, inputLayer, sizeOfThisLayer,
@@ -165,16 +164,17 @@ class ComplementaryColorModel {
     }
 
     // Store the data within Array1Ds so that learnjs can use it.
-    const inputArray: Array1D[] =
-        rawInputs.map(c => Array1D.new(this.normalizeColor(c)));
-    const targetArray: Array1D[] = rawInputs.map(
-        c => Array1D.new(
+    const inputArray: dl.Array1D[] =
+        rawInputs.map(c => dl.Array1D.new(this.normalizeColor(c)));
+    const targetArray: dl.Array1D[] = rawInputs.map(
+        c => dl.Array1D.new(
             this.normalizeColor(this.computeComplementaryColor(c))));
 
     // This provider will shuffle the training data (and will do so in a way
     // that does not separate the input-target relationship).
     const shuffledInputProviderBuilder =
-        new InCPUMemoryShuffledInputProviderBuilder([inputArray, targetArray]);
+        new dl.InCPUMemoryShuffledInputProviderBuilder(
+            [inputArray, targetArray]);
     const [inputProvider, targetProvider] =
         shuffledInputProviderBuilder.getInputProviders();
 

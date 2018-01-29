@@ -15,8 +15,10 @@
  * =============================================================================
  */
 
-import {Array3D, ENV} from 'deeplearn';
+import * as dl from 'deeplearn';
+
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
+
 import {TransformNet} from './net';
 
 // tslint:disable-next-line:variable-name
@@ -239,8 +241,8 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
   }
 
   async runInference() {
-    await ENV.math.scope(async () => {
-      const preprocessed = Array3D.fromPixels(this.contentImgElement);
+    await dl.ENV.math.scope(async () => {
+      const preprocessed = dl.fromPixels(this.contentImgElement);
       const inferenceResult = await this.transformNet.predict(preprocessed);
       this.setCanvasShape(inferenceResult.shape);
       renderToCanvas(inferenceResult, this.canvas);
@@ -260,7 +262,7 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
   }
 }
 
-function renderToCanvas(a: Array3D, canvas: HTMLCanvasElement) {
+function renderToCanvas(a: dl.Array3D, canvas: HTMLCanvasElement) {
   const [height, width, ] = a.shape;
   const ctx = canvas.getContext('2d');
   const imageData = new ImageData(width, height);
