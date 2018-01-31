@@ -53,6 +53,11 @@ export type RegularArray<T> = T[]|T[][]|T[][][]|T[][][][];
 export type ArrayData<D extends DataType> =
     DataTypeMap[D]|RegularArray<number>|RegularArray<boolean>;
 
+// tslint:disable-next-line:no-any
+export interface RecursiveArray<T extends any> {
+  [index: number]: T|RecursiveArray<T>;
+}
+
 export type NamedArrayMap = {
   [name: string]: NDArray
 };

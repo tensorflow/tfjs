@@ -17,7 +17,6 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import * as util from '../util';
 import {MatrixOrientation} from './backends/types/matmul';
 import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
@@ -203,52 +202,6 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
   };
 
   test_util.describeMathGPU('scope', [gpuTests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
-
-// debug mode
-{
-  const gpuTests: MathTests = it => {
-    it('debug mode does not error when no nans', math => {
-      math.enableDebugMode();
-      const a = Array1D.new([2, -1, 0, 3]);
-      const res = math.relu(a);
-      test_util.expectArraysClose(res, [2, 0, 0, 3]);
-    });
-
-    it('debug mode errors when there are nans, float32', math => {
-      math.enableDebugMode();
-      const a = Array1D.new([2, NaN]);
-      const f = () => math.relu(a);
-      expect(f).toThrowError();
-    });
-
-    it('debug mode errors when there are nans, int32', math => {
-      math.enableDebugMode();
-      const a = Array1D.new([2, util.NAN_INT32], 'int32');
-      const f = () => math.relu(a);
-      expect(f).toThrowError();
-    });
-
-    it('debug mode errors when there are nans, bool', math => {
-      math.enableDebugMode();
-      const a = Array1D.new([1, util.NAN_BOOL], 'bool');
-      const f = () => math.relu(a);
-      expect(f).toThrowError();
-    });
-
-    it('no errors where there are nans, and debug mode is disabled', math => {
-      const a = Array1D.new([2, NaN]);
-      const res = math.relu(a);
-      test_util.expectArraysClose(res, [2, NaN]);
-    });
-  };
-
-  test_util.describeMathCPU('debug mode', [gpuTests]);
-  test_util.describeMathGPU('debug mode', [gpuTests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

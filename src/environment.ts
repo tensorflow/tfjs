@@ -27,8 +27,15 @@ export enum Type {
 }
 
 export interface Features {
-  // Whether the disjoint_query_timer extension is an available extension.
-  'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED'?: boolean;
+  // Whether to enable debug mode.
+  'DEBUG'?: boolean;
+  // The disjoint_query_timer extension version.
+  // 0: disabled, 1: EXT_disjoint_timer_query, 2:
+  // EXT_disjoint_timer_query_webgl2.
+  // In Firefox with WebGL 2.0,
+  // EXT_disjoint_timer_query_webgl2 is not available, so we must use the
+  // WebGL 1.0 extension.
+  'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'?: number;
   // Whether the timer object from the disjoint_query_timer extension gives
   // timing information that is reliable.
   'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'?: boolean;
@@ -42,7 +49,8 @@ export interface Features {
 }
 
 export const URL_PROPERTIES: URLProperty[] = [
-  {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED', type: Type.BOOLEAN},
+  {name: 'DEBUG', type: Type.BOOLEAN},
+  {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', type: Type.NUMBER},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
   {name: 'WEBGL_VERSION', type: Type.NUMBER},
   {name: 'WEBGL_FLOAT_TEXTURE_ENABLED', type: Type.BOOLEAN}, {
@@ -54,6 +62,11 @@ export const URL_PROPERTIES: URLProperty[] = [
 export interface URLProperty {
   name: keyof Features;
   type: Type;
+}
+
+function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
+  const ext = gl.getExtension(extensionName);
+  return ext != null;
 }
 
 function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
@@ -91,17 +104,27 @@ function isWebGLVersionEnabled(webGLVersion: 1|2) {
   return false;
 }
 
-function isWebGLDisjointQueryTimerEnabled(webGLVersion: number) {
+function getWebGLDisjointQueryTimerVersion(webGLVersion: number): number {
+  if (webGLVersion === 0) {
+    return 0;
+  }
+
+  let queryTimerVersion: number;
   const gl = getWebGLRenderingContext(webGLVersion);
 
-  const extensionName = webGLVersion === 1 ? 'EXT_disjoint_timer_query' :
-                                             'EXT_disjoint_timer_query_webgl2';
-  const ext = gl.getExtension(extensionName);
-  const isExtEnabled = ext != null;
+  if (hasExtension(gl, 'EXT_disjoint_timer_query_webgl2') &&
+      webGLVersion === 2) {
+    queryTimerVersion = 2;
+  } else if (hasExtension(gl, 'EXT_disjoint_timer_query')) {
+    queryTimerVersion = 1;
+  } else {
+    queryTimerVersion = 0;
+  }
+
   if (gl != null) {
     loseContext(gl);
   }
-  return isExtEnabled;
+  return queryTimerVersion;
 }
 
 function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
@@ -112,11 +135,11 @@ function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
   const gl = getWebGLRenderingContext(webGLVersion);
 
   if (webGLVersion === 1) {
-    if (gl.getExtension('OES_texture_float') == null) {
+    if (!hasExtension(gl, 'OES_texture_float')) {
       return false;
     }
   } else {
-    if (gl.getExtension('EXT_color_buffer_float') == null) {
+    if (!hasExtension(gl, 'EXT_color_buffer_float')) {
       return false;
     }
   }
@@ -152,8 +175,8 @@ function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
     return false;
   }
   const gl = getWebGLRenderingContext(webGLVersion);
-  const ext = gl.getExtension('WEBGL_get_buffer_sub_data_async');
-  const isEnabled = ext != null;
+
+  const isEnabled = hasExtension(gl, 'WEBGL_get_buffer_sub_data_async');
   loseContext(gl);
   return isEnabled;
 }
@@ -170,6 +193,13 @@ export class Environment {
     if (features != null) {
       this.features = features;
     }
+
+    if (this.get('DEBUG')) {
+      console.warn(
+          'Debugging mode is ON. The output of every math call will ' +
+          'be downloaded to CPU and checked for NaNs. ' +
+          'This significantly impacts performance.');
+    }
   }
 
   get<K extends keyof Features>(feature: K): Features[K] {
@@ -180,6 +210,10 @@ export class Environment {
     this.features[feature] = this.evaluateFeature(feature);
 
     return this.features[feature];
+  }
+
+  set<K extends keyof Features>(feature: K, value: Features[K]): void {
+    this.features[feature] = value;
   }
 
   getBestBackendType(): BackendType {
@@ -194,16 +228,18 @@ export class Environment {
   }
 
   private evaluateFeature<K extends keyof Features>(feature: K): Features[K] {
-    if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED') {
+    if (feature === 'DEBUG') {
+      return false;
+    } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') {
       const webGLVersion = this.get('WEBGL_VERSION');
 
       if (webGLVersion === 0) {
-        return false;
+        return 0;
       }
 
-      return isWebGLDisjointQueryTimerEnabled(webGLVersion);
+      return getWebGLDisjointQueryTimerVersion(webGLVersion);
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') {
-      return this.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED') &&
+      return this.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0 &&
           !device_util.isMobile();
     } else if (feature === 'WEBGL_VERSION') {
       if (isWebGLVersionEnabled(2)) {
@@ -276,8 +312,8 @@ export class Environment {
    * a module file (e.g. when importing `backend_webgl.ts`), and is used for
    * modular builds (e.g. custom deeplearn.js bundle with only webgl support).
    *
-   * @param factory: The backend factory function. When called, it should return
-   *     an instance of the backend.
+   * @param factory: The backend factory function. When called, it should
+   * return an instance of the backend.
    * @return False if the creation/registration failed. True otherwise.
    */
   registerBackend(name: BackendType, factory: () => MathBackend): boolean {
