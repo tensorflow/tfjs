@@ -306,6 +306,12 @@ export function getProgramUniformLocationOrThrow(
       'uniform "' + uniformName + '" not present in program.');
 }
 
+export function getProgramUniformLocation(
+    gl: WebGLRenderingContext, program: WebGLProgram,
+    uniformName: string): WebGLUniformLocation {
+  return gl.getUniformLocation(program, uniformName);
+}
+
 export function bindTextureToProgramUniformSampler(
     gl: WebGLRenderingContext, program: WebGLProgram, texture: WebGLTexture,
     uniformSamplerLocation: WebGLUniformLocation, textureUnit: number) {

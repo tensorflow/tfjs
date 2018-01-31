@@ -28,10 +28,9 @@ export interface NDArrayStorage {
   readSync(dataId: number): TypedArray;
   disposeData(dataId: number): void;
   write(dataId: number, values: TypedArray): void;
-  writePixels(
-      dataId: number,
+  fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): void;
+      numChannels: number): Array3D;
   time(query: () => NDArray): Promise<number>;
   register(dataId: number, shape: number[], dtype: DataType): void;
 }

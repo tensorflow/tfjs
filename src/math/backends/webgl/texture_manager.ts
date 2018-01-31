@@ -16,6 +16,7 @@
  */
 
 import {GPGPUContext} from './gpgpu_context';
+import {TextureType} from './tex_util';
 
 export class TextureManager {
   private numUsedTextures = 0;
@@ -27,8 +28,9 @@ export class TextureManager {
 
   constructor(private gpgpu: GPGPUContext) {}
 
-  acquireTexture(shapeRC: [number, number]): WebGLTexture {
-    const shapeKey = getKeyFromTextureShape(shapeRC);
+  acquireTexture(shapeRC: [number, number], texType = TextureType.FLOAT):
+      WebGLTexture {
+    const shapeKey = getKeyFromTextureShape(shapeRC, texType);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
@@ -51,8 +53,10 @@ export class TextureManager {
     return newTexture;
   }
 
-  releaseTexture(texture: WebGLTexture, shape: [number, number]): void {
-    const shapeKey = getKeyFromTextureShape(shape);
+  releaseTexture(
+      texture: WebGLTexture, shape: [number, number],
+      texType = TextureType.FLOAT): void {
+    const shapeKey = getKeyFromTextureShape(shape, texType);
     if (!(shapeKey in this.freeTextures)) {
       this.freeTextures[shapeKey] = [];
     }
@@ -97,6 +101,7 @@ export class TextureManager {
   }
 }
 
-function getKeyFromTextureShape(shapeRowsCol: [number, number]): string {
-  return `${shapeRowsCol[0]}_${shapeRowsCol[1]}`;
+function getKeyFromTextureShape(
+    shapeRowsCol: [number, number], texType: TextureType): string {
+  return `${shapeRowsCol[0]}_${shapeRowsCol[1]}_${texType}`;
 }
