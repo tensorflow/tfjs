@@ -20,18 +20,6 @@ let MAX_TEXTURE_SIZE: number = null;
 import * as util from '../../../util';
 import {ENV} from '../../../environment';
 
-export interface WebGLContextAttributes {
-  alpha?: boolean;
-  antialias?: boolean;
-  premultipliedAlpha?: boolean;
-  preserveDrawingBuffer?: boolean;
-  depth?: boolean;
-  stencil?: boolean;
-  failIfMajorPerformanceCaveat?: boolean;
-}
-
-export interface WebGLLoseContextExtension { loseContext(): void; }
-
 export function createWebGLRenderingContext(attributes: WebGLContextAttributes):
     WebGLRenderingContext {
   const canvas = document.createElement('canvas');

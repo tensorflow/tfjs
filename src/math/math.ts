@@ -210,8 +210,8 @@ export class NDArrayMath implements NDArrayManager {
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
 
-  time(query: () => NDArray): Promise<number> {
-    return this.backend.time(query);
+  time(f: () => void): Promise<number> {
+    return this.backend.time(f);
   }
 
   getNumArrays() {
@@ -273,7 +273,8 @@ export class NDArrayMath implements NDArrayManager {
    * and checked for NaNs. This significantly impacts performance.
    */
   enableDebugMode() {
-    this.engine.enableDebugMode();
+    ENV.set('DEBUG', true);
+
     console.warn(
         'Debugging mode is ON. The output of every math call will ' +
         'be downloaded to CPU and checked for NaNs. ' +

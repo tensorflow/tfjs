@@ -28,7 +28,7 @@ describe('disjoint query timer enabled', () => {
 
   it('no webgl', () => {
     ENV.setFeatures({'WEBGL_VERSION': 0});
-    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')).toBe(false);
+    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(0);
   });
 
   it('webgl 1', () => {
@@ -54,7 +54,7 @@ describe('disjoint query timer enabled', () => {
 
     ENV.setFeatures(features);
 
-    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')).toBe(true);
+    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(1);
   });
 
   it('webgl 2', () => {
@@ -79,7 +79,7 @@ describe('disjoint query timer enabled', () => {
     });
 
     ENV.setFeatures(features);
-    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')).toBe(true);
+    expect(ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION')).toBe(2);
   });
 });
 
@@ -90,7 +90,7 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 
   it('disjoint query timer disabled', () => {
     const features:
-        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED': false};
+        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 0};
 
     const env = new Environment(features);
 
@@ -100,7 +100,7 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 
   it('disjoint query timer enabled, mobile', () => {
     const features:
-        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED': true};
+        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 1};
     spyOn(device_util, 'isMobile').and.returnValue(true);
 
     const env = new Environment(features);
@@ -111,7 +111,7 @@ describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
 
   it('disjoint query timer enabled, not mobile', () => {
     const features:
-        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED': true};
+        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 1};
     spyOn(device_util, 'isMobile').and.returnValue(false);
 
     const env = new Environment(features);

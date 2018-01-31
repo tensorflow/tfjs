@@ -23,7 +23,8 @@ import {NDArrayMath} from '../math';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from '../ndarray';
 import * as reduce_util from '../reduce_util';
 import * as types from '../types';
-import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
+// tslint:disable-next-line:max-line-length
+import {DataType, DataTypeMap, Rank, RecursiveArray, TypedArray} from '../types';
 
 import {MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
@@ -62,11 +63,21 @@ import {TileProgram} from './webgl/tile_gpu';
 import {TransposeProgram} from './webgl/transpose_gpu';
 import * as unary_op from './webgl/unaryop_gpu';
 import {UnaryOpProgram} from './webgl/unaryop_gpu';
+import {WebGLQuery} from './webgl/webgl_types';
 import * as webgl_util from './webgl/webgl_util';
+
+type TimerNode = RecursiveArray<Promise<number>>|Promise<number>;
+export interface CPUTimerQuery {
+  startMs: number;
+  endMs?: number;
+}
 
 export class MathBackendWebGL implements MathBackend {
   private texData: {[dataId: number]: TextureData} = {};
   private canvas: HTMLCanvasElement;
+
+  private programTimersStack: TimerNode[];
+  private activeTimers: TimerNode[];
 
   register(dataId: number, shape: number[], dtype: DataType): void {
     if (dataId in this.texData) {
@@ -161,7 +172,7 @@ export class MathBackendWebGL implements MathBackend {
       return this.texData[dataId].values;
     }
 
-    if (!ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')) {
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 0) {
       return this.readSync(dataId);
     }
 
@@ -170,15 +181,64 @@ export class MathBackendWebGL implements MathBackend {
     await this.gpgpu.runQuery(() => {});
     return this.readSync(dataId);
   }
-  async time(query: () => NDArray): Promise<number> {
-    if (!ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_ENABLED')) {
-      const start = performance.now();
-      const a = query();
-      await a.data();
-      return performance.now() - start;
+
+  time(f: () => void): Promise<number> {
+    const oldActiveTimers = this.activeTimers;
+    const newActiveTimers: TimerNode[] = [];
+
+    let outerMostTime = false;
+    if (this.programTimersStack == null) {
+      this.programTimersStack = newActiveTimers;
+      outerMostTime = true;
+    } else {
+      this.activeTimers.push(newActiveTimers);
     }
-    return this.gpgpu.runQuery(query);
+    this.activeTimers = newActiveTimers;
+
+    f();
+
+    const flattenedActiveTimers = util.flatten(this.activeTimers);
+    this.activeTimers = oldActiveTimers;
+
+    if (outerMostTime) {
+      this.programTimersStack = null;
+    }
+
+    return new Promise<number>((resolve, reject) => {
+      Promise.all(flattenedActiveTimers).then(results => {
+        let sum = 0;
+        results.forEach(result => sum += result);
+
+        resolve(sum);
+      });
+    });
   }
+
+  private startTimer(): WebGLQuery|CPUTimerQuery {
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+      return this.gpgpu.beginQuery();
+    }
+    return {startMs: performance.now(), endMs: null};
+  }
+
+  private endTimer(query: WebGLQuery|CPUTimerQuery): WebGLQuery|
+      {startMs: number, endMs: number} {
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+      this.gpgpu.endQuery();
+      return query;
+    }
+    (query as CPUTimerQuery).endMs = performance.now();
+    return query;
+  }
+
+  private async getQueryTime(query: WebGLQuery|CPUTimerQuery): Promise<number> {
+    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
+      return this.gpgpu.pollQueryTime(query);
+    }
+    const timerQuery = query as CPUTimerQuery;
+    return timerQuery.endMs - timerQuery.startMs;
+  }
+
   disposeData(dataId: number): void {
     if (dataId in this.texData) {
       const {texture, texShape, texType} = this.texData[dataId];
@@ -424,8 +484,7 @@ export class MathBackendWebGL implements MathBackend {
     const reduceInfo = {windowSize, inSize, batchSize};
     const program = new ReduceProgram(reduceInfo, reduceType);
     const [rows, cols] = program.outputShape;
-    const output =
-        this.makeOutputArray(program.outputShape, dtype).as2D(rows, cols);
+    const output = this.makeOutputArray<Array2D>([rows, cols], dtype);
     this.compileAndRun(program, [x], output);
     // No need to run another GPGPU program.
     if (output.shape[1] === 1) {
@@ -448,8 +507,7 @@ export class MathBackendWebGL implements MathBackend {
     const program =
         new ArgMinMaxProgram(reduceInfo, reduceType, bestIndicesA == null);
     const [rows, cols] = program.outputShape;
-    const output =
-        this.makeOutputArray(program.outputShape, 'int32').as2D(rows, cols);
+    const output = this.makeOutputArray<Array2D>([rows, cols], 'int32');
     const inputs = [x];
     if (bestIndicesA != null) {
       inputs.push(bestIndicesA);
@@ -869,7 +927,19 @@ export class MathBackendWebGL implements MathBackend {
       return gpgpu_math.compileProgram(
           this.gpgpu, program, inputsData, outputData);
     });
+
+    const shouldTimeProgram = this.activeTimers != null;
+    let query: WebGLQuery|CPUTimerQuery;
+    if (shouldTimeProgram) {
+      query = this.startTimer();
+    }
+
     gpgpu_math.runProgram(binary, inputsData, outputData, customSetup);
+
+    if (shouldTimeProgram) {
+      query = this.endTimer(query);
+      this.activeTimers.push(this.getQueryTime(query));
+    }
     return output;
   }
 
