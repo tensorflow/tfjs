@@ -238,11 +238,10 @@ export class NDArrayMath implements NDArrayManager {
     this.registeredVariables[v.name] = v;
   }
 
-  writePixels(
-      dataId: number,
+  fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): void {
-    this.backend.writePixels(dataId, pixels, numChannels);
+      numChannels: number): Array3D {
+    return this.backend.fromPixels(pixels, numChannels);
   }
   write(dataId: number, values: TypedArray): void {
     this.backend.write(dataId, values);

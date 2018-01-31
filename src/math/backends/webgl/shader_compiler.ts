@@ -19,12 +19,10 @@ import {ENV} from '../../../environment';
 import * as util from '../../../util';
 import * as broadcast_util from '../../broadcast_util';
 import * as tex_util from './tex_util';
-import {TextureType} from './tex_util';
 
 export type ShapeInfo = {
   logicalShape: number[],
-  texShape: [number, number],
-  textureType: TextureType
+  texShape: [number, number]
 };
 
 export type InputInfo = {
@@ -270,20 +268,6 @@ const SHADER_PREFIX = `
       return fract(cos(dot(resultUV * seed, randomConst)) * 12345.6789);
   }
 
-  float sampleUVAndDepth(sampler2D texture, vec2 uv, int depth) {
-    float value;
-    if (depth == 0) {
-      value = texture2D(texture, uv).r;
-    } else if (depth == 1) {
-      value = texture2D(texture, uv).g;
-    } else if (depth == 2) {
-      value = texture2D(texture, uv).b;
-    } else if (depth == 3) {
-      value = texture2D(texture, uv).a;
-    }
-    return floor(value * 255.0 + 0.5);
-  }
-
   ${SAMPLE_1D_SNIPPET}
   ${SAMPLE_2D_SNIPPET}
   ${SAMPLE_3D_SNIPPET}
@@ -490,26 +474,22 @@ function getSampler3D(inputInfo: InputInfo): string {
   const texNumC = texShape[1];
   const stride0 = shape[1] * shape[2];
   const stride1 = shape[2];
-  const texType = inputInfo.shapeInfo.textureType;
 
-  if (texType === TextureType.DEFAULT) {
-    const {newShape, keptDims} = util.squeezeShape(shape);
-    const squeezedShape = newShape;
-    if (squeezedShape.length < shape.length) {
-      const newInputInfo = squeezeInputInfo(inputInfo, squeezedShape);
-      const params = ['row', 'col', 'depth'];
-      return `
+  const {newShape, keptDims} = util.squeezeShape(shape);
+  const squeezedShape = newShape;
+  if (squeezedShape.length < shape.length) {
+    const newInputInfo = squeezeInputInfo(inputInfo, squeezedShape);
+    const params = ['row', 'col', 'depth'];
+    return `
         ${getSamplerFromInInfo(newInputInfo)}
         float ${funcName}(int row, int col, int depth) {
           return ${funcName}(${getSqueezedParams(params, keptDims)});
         }
       `;
-    }
   }
 
   if (texNumC === stride0) {
-    if (texType === TextureType.DEFAULT) {
-      return `
+    return `
         float ${funcName}(int row, int col, int depth) {
           int texR = row;
           int texC = col * ${stride1} + depth;
@@ -518,20 +498,9 @@ function getSampler3D(inputInfo: InputInfo): string {
           return sample(${texName}, uv);
         }
       `;
-    } else if (texType === TextureType.RGBA_COLOR) {
-      return `
-        float ${funcName}(int row, int col, int depth) {
-          vec2 uv = (vec2(col, row) + halfCR) /
-                     vec2(${texNumC}.0, ${texNumR}.0);
-          return sampleUVAndDepth(${texName}, uv, depth);
-        }
-      `;
-    } else {
-      throw new Error(`Unknown TextureType ${texType}.`);
-    }
   }
 
-  if (texNumC === stride1 && texType === TextureType.DEFAULT) {
+  if (texNumC === stride1) {
     return `
     float ${funcName}(int row, int col, int depth) {
       int texR = row * ${shape[1]} + col;
@@ -542,24 +511,13 @@ function getSampler3D(inputInfo: InputInfo): string {
   `;
   }
 
-  if (texType === TextureType.DEFAULT) {
-    return `
+  return `
       float ${funcName}(int row, int col, int depth) {
         vec2 uv = UVfrom3D(
             ${texNumR}, ${texNumC}, ${stride0}, ${stride1}, row, col, depth);
         return sample(${texName}, uv);
       }
   `;
-  } else if (texType === TextureType.RGBA_COLOR) {
-    return `
-      float ${funcName}(int row, int col, int depth) {
-        vec2 uv = UVfrom2D(${texNumR}, ${texNumC}, ${shape[1]}, row, col);
-        return sampleUVAndDepth(${texName}, uv, depth);
-      }
-    `;
-  } else {
-    throw new Error(`Unknown TextureType ${texType}.`);
-  }
 }
 
 function getSampler4D(inputInfo: InputInfo): string {
@@ -700,8 +658,6 @@ function getSamplerAtOutputCoords(
     supportsBroadcasting: boolean) {
   const inTexShape = inputInfo.shapeInfo.texShape;
   const texName = inputInfo.name;
-  const isRGBAColorTexture =
-      inputInfo.shapeInfo.textureType === TextureType.RGBA_COLOR;
 
   const texFuncSnippet = texName.charAt(0).toUpperCase() + texName.slice(1);
   const funcName = 'get' + texFuncSnippet + 'AtOutCoords';
@@ -720,7 +676,7 @@ function getSamplerAtOutputCoords(
   }
 
   const outTexShape = outShapeInfo.texShape;
-  if (util.arraysEqual(inTexShape, outTexShape) && !isRGBAColorTexture) {
+  if (util.arraysEqual(inTexShape, outTexShape)) {
     return `
       float ${funcName}() {
         return sample(${texName}, resultUV);
@@ -728,26 +684,7 @@ function getSamplerAtOutputCoords(
     `;
   }
 
-  // For RGBA color textures, we expand the depth dimension to perform
-  // computations on the flattened texture before sampling.
-  const inTexExpandedShape = isRGBAColorTexture ?
-      [inTexShape[0], inTexShape[1] * inputInfo.shapeInfo.logicalShape[2]] :
-      inTexShape;
-
-  let sampleSnippet = `return sample(${texName}, uv);`;
-
-  let rgbaColorSnippet = '';
-  if (isRGBAColorTexture) {
-    rgbaColorSnippet = `
-      int col = texC / ${inputInfo.shapeInfo.logicalShape[2]};
-      int texD = texC - col * ${inputInfo.shapeInfo.logicalShape[2]};
-      texC = col;
-    `;
-
-    sampleSnippet = `return sampleUVAndDepth(${texName}, uv, texD);`;
-  }
-
-  const inSize = util.sizeFromShape(inTexExpandedShape);
+  const inSize = util.sizeFromShape(inTexShape);
   let broadcastSnippet = '';
   if (doBroadcast && broadcastOverOuter) {
     broadcastSnippet = `
@@ -761,15 +698,12 @@ function getSamplerAtOutputCoords(
                              vec2(${outTexShape[0]}, ${outTexShape[1]}));
       int index = resTexRC.x * ${outTexShape[1]} + resTexRC.y;
       ${broadcastSnippet}
-      int texR = index / ${inTexExpandedShape[1]};
-      int texC = index - texR * ${inTexExpandedShape[1]};
-
-      ${rgbaColorSnippet}
-
+      int texR = index / ${inTexShape[1]};
+      int texC = index - texR * ${inTexShape[1]};
       vec2 uv = (vec2(texC, texR) + halfCR) /
                  vec2(${inTexShape[1]}.0, ${inTexShape[0]}.0);
 
-      ${sampleSnippet}
+      return sample(${texName}, uv);
     }
   `;
 }

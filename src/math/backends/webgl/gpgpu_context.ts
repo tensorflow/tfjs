@@ -222,11 +222,17 @@ export class GPGPUContext {
     webgl_util.callAndCheck(this.gl, () => this.gl.useProgram(program));
   }
 
-  public getUniformLocation(program: WebGLProgram, uniformName: string):
-      WebGLUniformLocation {
+  public getUniformLocation(
+      program: WebGLProgram, uniformName: string,
+      shouldThrow = true): WebGLUniformLocation {
     this.throwIfDisposed();
-    return webgl_util.getProgramUniformLocationOrThrow(
-        this.gl, program, uniformName);
+    if (shouldThrow) {
+      return webgl_util.getProgramUniformLocationOrThrow(
+          this.gl, program, uniformName);
+    } else {
+      return webgl_util.getProgramUniformLocation(
+          this.gl, program, uniformName);
+    }
   }
 
   public getAttributeLocation(program: WebGLProgram, attribute: string):

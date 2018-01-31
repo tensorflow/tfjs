@@ -19,7 +19,7 @@ import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
-import {Array1D, Array2D, Array3D, Array4D, NDArray} from './ndarray';
+import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 import {Rank} from './types';
 
 const testsZeros: MathTests = it => {
@@ -956,7 +956,7 @@ const testsFromPixels: MathTests = it => {
     pixels.data[2] = 160;
     pixels.data[3] = 240;
 
-    const array = NDArray.fromPixels(pixels, 3);
+    const array = dl.fromPixels(pixels, 3);
 
     test_util.expectArraysEqual(array, [0, 80, 160]);
   });
@@ -968,7 +968,7 @@ const testsFromPixels: MathTests = it => {
     pixels.data[2] = 160;
     pixels.data[3] = 240;
 
-    const array = NDArray.fromPixels(pixels, 4);
+    const array = dl.fromPixels(pixels, 4);
 
     test_util.expectArraysEqual(array, [0, 80, 160, 240]);
   });
@@ -983,7 +983,7 @@ const testsFromPixels: MathTests = it => {
       pixels.data[i] = i * 2;
     }
 
-    const array = NDArray.fromPixels(pixels, 3);
+    const array = dl.fromPixels(pixels, 3);
 
     test_util.expectArraysEqual(
         array, [0, 2, 4, 8, 10, 12, 16, 18, 20, 24, 26, 28]);
@@ -998,12 +998,64 @@ const testsFromPixels: MathTests = it => {
       pixels.data[i] = i * 2;
     }
 
-    const array = NDArray.fromPixels(pixels, 4);
+    const array = dl.fromPixels(pixels, 4);
 
     test_util.expectArraysClose(
         array,
         new Int32Array(
             [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]));
+  });
+
+  it('fromPixels, 3 channels', () => {
+    const pixels = new ImageData(1, 2);
+    pixels.data[0] = 2;
+    pixels.data[1] = 3;
+    pixels.data[2] = 4;
+    pixels.data[3] = 255;  // Not used.
+    pixels.data[4] = 5;
+    pixels.data[5] = 6;
+    pixels.data[6] = 7;
+    pixels.data[7] = 255;  // Not used.
+
+    const res = dl.fromPixels(pixels, 3);
+    expect(res.shape).toEqual([2, 1, 3]);
+    expect(res.dtype).toBe('int32');
+    test_util.expectArraysClose(res, [2, 3, 4, 5, 6, 7]);
+  });
+
+  it('fromPixels, reshape, then do dl.add()', () => {
+    const pixels = new ImageData(1, 1);
+    pixels.data[0] = 2;
+    pixels.data[1] = 3;
+    pixels.data[2] = 4;
+    pixels.data[3] = 255;  // Not used.
+
+    const a = dl.fromPixels(pixels, 3).reshape([1, 1, 1, 3]);
+    const res = a.add(Scalar.new(2, 'int32'));
+    expect(res.shape).toEqual([1, 1, 1, 3]);
+    expect(res.dtype).toBe('int32');
+    test_util.expectArraysClose(res, [4, 5, 6]);
+  });
+
+  it('fromPixels + fromPixels', () => {
+    const pixelsA = new ImageData(1, 1);
+    pixelsA.data[0] = 255;
+    pixelsA.data[1] = 3;
+    pixelsA.data[2] = 4;
+    pixelsA.data[3] = 255;  // Not used.
+
+    const pixelsB = new ImageData(1, 1);
+    pixelsB.data[0] = 5;
+    pixelsB.data[1] = 6;
+    pixelsB.data[2] = 7;
+    pixelsB.data[3] = 255;  // Not used.
+
+    const a = dl.fromPixels(pixelsA, 3).toFloat();
+    const b = dl.fromPixels(pixelsB, 3).toFloat();
+    const res = a.add(b);
+    expect(res.shape).toEqual([1, 1, 3]);
+    expect(res.dtype).toBe('float32');
+    test_util.expectArraysClose(res, [260, 9, 11]);
   });
 };
 const testsClone: MathTests = it => {

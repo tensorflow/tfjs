@@ -52,14 +52,12 @@ export class MathBackendCPU implements MathBackend {
     this.throwIfNoData(dataId);
     this.data[dataId] = values;
   }
-  writePixels(
-      dataId: number,
+  fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): void {
+      numChannels: number): Array3D {
     if (pixels == null) {
       throw new Error('MathBackendCPU.writePixels(): pixels can not be null');
     }
-    this.throwIfNoData(dataId);
     let vals: Uint8ClampedArray;
     if (pixels instanceof ImageData) {
       vals = pixels.data;
@@ -98,7 +96,9 @@ export class MathBackendCPU implements MathBackend {
         }
       }
     }
-    this.data[dataId] = values;
+    const outShape: [number, number, number] =
+        [pixels.height, pixels.width, numChannels];
+    return Array3D.new(outShape, values, 'int32');
   }
   async read(dataId: number): Promise<TypedArray> {
     this.throwIfNoData(dataId);

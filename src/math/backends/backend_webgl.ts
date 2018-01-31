@@ -39,6 +39,7 @@ import {Conv2DDerBiasProgram, Conv2DDerFilterProgram, Conv2DDerInputProgram} fro
 import {Conv2DProgram} from './webgl/conv_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
 import {Copy2DProgram} from './webgl/copy_gpu';
+import {FromPixelsProgram} from './webgl/from_pixels_gpu';
 import {GatherProgram} from './webgl/gather_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
@@ -77,31 +78,18 @@ export class MathBackendWebGL implements MathBackend {
       values: null,
       texture: null,
       texShape: null,
-      textureType: null
+      texType: TextureType.FLOAT
     };
   }
-  writePixels(
-      dataId: number,
+  fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): void {
+      numChannels: number): Array3D {
     if (pixels == null) {
       throw new Error('MathBackendWebGL.writePixels(): pixels can not be null');
     }
-    this.throwIfNoData(dataId);
     const texShape: [number, number] = [pixels.height, pixels.width];
-    const texture = this.texData[dataId].texture ||
-        this.textureManager.acquireTexture(texShape);
-    const {shape} = this.texData[dataId];
+    const outShape = [pixels.height, pixels.width, numChannels];
 
-    this.texData[dataId] = {
-      shape,
-      values: null,
-      texture,
-      textureType: TextureType.RGBA_COLOR,
-      texShape,
-      numChannels,
-      dtype: 'int32'
-    };
     if (pixels instanceof HTMLVideoElement) {
       if (this.canvas == null) {
         throw new Error(
@@ -114,8 +102,18 @@ export class MathBackendWebGL implements MathBackend {
           pixels, 0, 0, pixels.width, pixels.height);
       pixels = this.canvas;
     }
-    // Pixel data is immediate storage since it already lives on gpu.
-    this.gpgpu.uploadPixelDataToTexture(texture, pixels);
+    const tempPixelArray = NDArray.make(texShape, {}, 'int32');
+
+    // This is a byte texture with pixels.
+    this.texData[tempPixelArray.dataId].texType = TextureType.UNSIGNED_BYTE;
+    this.gpgpu.uploadPixelDataToTexture(
+        this.getTexture(tempPixelArray.dataId), pixels);
+    const program = new FromPixelsProgram(outShape);
+    const res = this.compileAndRun(program, [tempPixelArray]);
+
+    tempPixelArray.dispose();
+
+    return res as Array3D;
   }
   write(dataId: number, values: TypedArray): void {
     if (values == null) {
@@ -123,13 +121,12 @@ export class MathBackendWebGL implements MathBackend {
     }
     this.throwIfNoData(dataId);
 
-    const {texture, texShape} = this.texData[dataId];
+    const {texture, texShape, texType} = this.texData[dataId];
     if (texture != null) {
       // Release the old texture.
-      this.textureManager.releaseTexture(texture, texShape);
+      this.textureManager.releaseTexture(texture, texShape, texType);
       this.texData[dataId].texture = null;
       this.texData[dataId].texShape = null;
-      this.texData[dataId].textureType = null;
     }
     this.texData[dataId].values = values;
 
@@ -140,32 +137,24 @@ export class MathBackendWebGL implements MathBackend {
 
   readSync(dataId: number): TypedArray {
     this.throwIfNoData(dataId);
-    const {texture, values, textureType, texShape, numChannels} =
-        this.texData[dataId];
+    const {texture, values, texShape} = this.texData[dataId];
     if (values != null) {
       this.cacheOnCPU(dataId);
       return values;
     }
-    let float32Values: Float32Array;
-    if (textureType === TextureType.DEFAULT) {
-      float32Values = this.gpgpu.downloadMatrixFromTexture(
-          texture, texShape[0], texShape[1]);
-    } else {
-      float32Values = this.gpgpu.downloadMatrixFromRGBAColorTexture(
-          texture, texShape[0], texShape[1], numChannels);
-    }
+    const float32Values =
+        this.gpgpu.downloadMatrixFromTexture(texture, texShape[0], texShape[1]);
     this.cacheOnCPU(dataId, float32Values);
     return this.texData[dataId].values;
   }
   async read(dataId: number): Promise<TypedArray> {
     this.throwIfNoData(dataId);
-    const {texture, values, textureType, texShape} = this.texData[dataId];
+    const {texture, values, texShape} = this.texData[dataId];
     if (values != null) {
       this.cacheOnCPU(dataId);
       return values;
     }
-    if (ENV.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED') &&
-        textureType === TextureType.DEFAULT) {
+    if (ENV.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED')) {
       const float32Values = await this.gpgpu.downloadMatrixFromTextureAsync(
           texture, texShape[0], texShape[1]);
       this.cacheOnCPU(dataId, float32Values);
@@ -192,9 +181,9 @@ export class MathBackendWebGL implements MathBackend {
   }
   disposeData(dataId: number): void {
     if (dataId in this.texData) {
-      const {texture, texShape} = this.texData[dataId];
+      const {texture, texShape, texType} = this.texData[dataId];
       if (texture != null) {
-        this.textureManager.releaseTexture(texture, texShape);
+        this.textureManager.releaseTexture(texture, texShape, texType);
       }
       delete this.texData[dataId];
     }
@@ -925,22 +914,23 @@ export class MathBackendWebGL implements MathBackend {
 
   private uploadToGPU(dataId: number): void {
     this.throwIfNoData(dataId);
-    const {shape, values, texture, dtype} = this.texData[dataId];
+    const {shape, values, texture, dtype, texType} = this.texData[dataId];
     if (texture != null) {
       // Array is already on GPU. No-op.
       return;
     }
     const texShape =
         webgl_util.getTextureShapeFromLogicalShape(this.gpgpu.gl, shape);
-    this.texData[dataId].textureType = TextureType.DEFAULT;
     this.texData[dataId].texShape = texShape;
-    const newTexture = this.textureManager.acquireTexture(texShape);
+    const newTexture = this.textureManager.acquireTexture(texShape, texType);
     this.texData[dataId].texture = newTexture;
     if (values != null) {
       this.gpgpu.uploadMatrixToTexture(
           newTexture, texShape[0],
           // TODO(smilkov): Propagate the original typed array to gpgpu.
           texShape[1], typedArrayToFloat32(values, dtype));
+      // Once uploaded, don't store the values on cpu.
+      this.texData[dataId].values = null;
     }
   }
 
@@ -949,12 +939,11 @@ export class MathBackendWebGL implements MathBackend {
     // on the gpu, to minimize likelihood of memory leak. We re-upload to gpu
     // the next time a gpgpu program needs the texture.
     const dontKeepCopyOnGPU = this.delayedStorage;
-    const {texture, texShape, dtype} = this.texData[dataId];
+    const {texture, texShape, dtype, texType} = this.texData[dataId];
     if (dontKeepCopyOnGPU && texture != null) {
-      this.textureManager.releaseTexture(texture, texShape);
+      this.textureManager.releaseTexture(texture, texShape, texType);
       this.texData[dataId].texture = null;
       this.texData[dataId].texShape = null;
-      this.texData[dataId].textureType = null;
     }
     if (float32Values != null) {
       this.texData[dataId].values = float32ToTypedArray(float32Values, dtype);
