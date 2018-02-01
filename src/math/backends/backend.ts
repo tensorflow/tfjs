@@ -48,8 +48,6 @@ export interface MathBackend extends NDArrayStorage, BackendTimer {
       a: Array2D, b: Array2D, aOrientation: MatrixOrientation,
       bOrientation: MatrixOrientation): Array2D;
 
-  clone<T extends NDArray>(ndarray: T): T;
-
   slice1D(x: Array1D, begin: number, size: number): Array1D;
   slice2D(x: Array2D, begin: [number, number], size: [number, number]): Array2D;
   slice3D(x: Array3D, begin: [number, number, number], size: [

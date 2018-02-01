@@ -60,9 +60,6 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
     return backend.matMul(
                config.inputs.a, config.inputs.b, config.args.aOrientation,
                config.args.bOrientation) as O;
-  } else if (kernelName === 'Clone') {
-    const config = inputAndArgs as UnaryNode<R>['inputAndArgs'];
-    return backend.clone(config.inputs.x) as O;
   } else if (kernelName === 'Slice1D') {
     const config = inputAndArgs as Slice1DNode['inputAndArgs'];
     return backend.slice1D(
@@ -363,7 +360,6 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
 
 export interface KernelConfigRegistry<R extends Rank> {
   MatMul: MatMulNode;
-  Clone: UnaryNode<R>;
   Slice1D: Slice1DNode;
   Slice2D: Slice2DNode;
   Slice3D: Slice3DNode;
