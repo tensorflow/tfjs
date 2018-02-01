@@ -58,8 +58,7 @@ export class Ops {
   /** Creates a ndarray with the same values/shape as the specified ndarray. */
   @operation
   static clone<T extends NDArray>(x: T): T {
-    const newValues = util.copyTypedArray(x.dataSync(), x.dtype);
-    return NDArray.make(x.shape, {values: newValues}, x.dtype) as T;
+    return NDArray.make(x.shape, {dataId: x.dataId}, x.dtype) as T;
   }
 
   @operation

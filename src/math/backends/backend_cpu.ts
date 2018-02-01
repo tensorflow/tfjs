@@ -129,10 +129,6 @@ export class MathBackendCPU implements MathBackend {
     }
   }
 
-  clone<T extends NDArray>(x: T): T {
-    return NDArray.make(x.shape, {values: new Float32Array(x.dataSync())}) as T;
-  }
-
   slice1D(x: Array1D, begin: number, size: number): Array1D {
     const newVals = x.dataSync().slice(begin, begin + size);
     return Array1D.new(newVals, x.dtype);

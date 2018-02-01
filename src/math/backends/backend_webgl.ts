@@ -39,7 +39,6 @@ import {ConcatProgram} from './webgl/concat_gpu';
 import {Conv2DDerBiasProgram, Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
 import {Conv2DProgram} from './webgl/conv_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
-import {Copy2DProgram} from './webgl/copy_gpu';
 import {FromPixelsProgram} from './webgl/from_pixels_gpu';
 import {GatherProgram} from './webgl/gather_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
@@ -283,19 +282,6 @@ export class MathBackendWebGL implements MathBackend {
     return this.gpgpu;
   }
 
-  clone<T extends NDArray>(x: T): T {
-    this.throwIfNoData(x.dataId);
-    this.uploadToGPU(x.dataId);
-    const {texShape} = this.texData[x.dataId];
-    // Pretend the source was in logical shape that matches the texture shape.
-    const source = x.as2D(texShape[0], texShape[1]);
-    // Do the same for output.
-    const output = this.makeOutputArray<Array2D>(texShape, x.dtype);
-    this.copy2D(source, [0, 0], texShape, output, [0, 0], texShape);
-    // Get back to the original logical shape.
-    return output.reshape(x.shape) as T;
-  }
-
   slice1D(x: Array1D, begin: number, size: number): Array1D {
     const program = new SliceProgram([size]);
     const customSetup = program.getCustomSetupFunc([begin]);
@@ -328,17 +314,6 @@ export class MathBackendWebGL implements MathBackend {
   reverse4D(x: Array4D, axis: number[]): Array4D {
     const program = new ReverseProgram(x.shape, axis);
     return this.compileAndRun(program, [x]);
-  }
-
-  private copy2D(
-      source: Array2D, sourceBeginRowCol: [number, number],
-      sourceSizeRowCol: [number, number], dest: Array2D,
-      destBeginRowCol: [number, number],
-      destSizeRowCol: [number, number]): void {
-    const program = new Copy2DProgram(sourceSizeRowCol[1], destSizeRowCol[1]);
-    const customSetup = program.getCustomSetupFunc(
-        sourceBeginRowCol, destBeginRowCol, destSizeRowCol);
-    this.compileAndRun(program, [source], dest, customSetup);
   }
 
   // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
