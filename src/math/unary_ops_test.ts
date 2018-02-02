@@ -1275,3 +1275,46 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
   ]);
 }
+
+// math.clip
+{
+  const tests: MathTests = it => {
+    it('basic', math => {
+      const a = Array1D.new([3, -1, 0, 100, -7, 2]);
+      const min = -1;
+      const max = 50;
+
+      const result = math.clip(a, min, max);
+
+      test_util.expectArraysClose(result, [3, -1, 0, 50, -1, 2]);
+    });
+
+    it('propagates NaNs', math => {
+      const a = Array1D.new([3, -1, 0, 100, -7, 2, NaN]);
+      const min = -1;
+      const max = 50;
+
+      const result = math.clip(a, min, max);
+
+      test_util.expectArraysClose(result, [3, -1, 0, 50, -1, 2, NaN]);
+    });
+
+    it('min greater than max', math => {
+      const a = Array1D.new([3, -1, 0, 100, -7, 2]);
+      const min = 1;
+      const max = -1;
+
+      const f = () => {
+        math.clip(a, min, max);
+      };
+      expect(f).toThrowError();
+    });
+  };
+
+  test_util.describeMathCPU('clip', [tests]);
+  test_util.describeMathGPU('clip', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
