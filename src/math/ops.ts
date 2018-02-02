@@ -162,6 +162,7 @@ export const multinomial = array_ops.Ops.multinomial;
 export const oneHot = array_ops.Ops.oneHot;
 export const pad1D = array_ops.Ops.pad1D;
 export const pad2D = array_ops.Ops.pad2D;
+export const range = array_ops.Ops.range;
 
 export const basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
 export const multiRNNCell = lstm_ops.Ops.multiRNNCell;

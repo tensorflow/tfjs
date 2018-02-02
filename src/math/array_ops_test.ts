@@ -1563,3 +1563,144 @@ import {Rank} from './types';
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
   ]);
 }
+
+// dl.range
+{
+  const testsRange: MathTests = it => {
+    it('start stop', () => {
+      const a = dl.range(0, 3);
+      test_util.expectArraysEqual(a, [0, 1, 2]);
+      expect(a.shape).toEqual([3]);
+
+      const b = dl.range(3, 8);
+      test_util.expectArraysEqual(b, [3, 4, 5, 6, 7]);
+      expect(b.shape).toEqual([5]);
+    });
+
+    it('start stop negative', () => {
+      const a = dl.range(-2, 3);
+      test_util.expectArraysEqual(a, [-2, -1, 0, 1, 2]);
+      expect(a.shape).toEqual([5]);
+
+      const b = dl.range(4, -2);
+      test_util.expectArraysEqual(b, [4, 3, 2, 1, 0, -1]);
+      expect(b.shape).toEqual([6]);
+    });
+
+    it('start stop step', () => {
+      const a = dl.range(4, 15, 4);
+      test_util.expectArraysEqual(a, [4, 8, 12]);
+      expect(a.shape).toEqual([3]);
+
+      const b = dl.range(4, 11, 4);
+      test_util.expectArraysEqual(b, [4, 8]);
+      expect(b.shape).toEqual([2]);
+
+      const c = dl.range(4, 17, 4);
+      test_util.expectArraysEqual(c, [4, 8, 12, 16]);
+      expect(c.shape).toEqual([4]);
+
+      const d = dl.range(0, 30, 5);
+      test_util.expectArraysEqual(d, [0, 5, 10, 15, 20, 25]);
+      expect(d.shape).toEqual([6]);
+
+      const e = dl.range(-3, 9, 2);
+      test_util.expectArraysEqual(e, [-3, -1, 1, 3, 5, 7]);
+      expect(e.shape).toEqual([6]);
+
+      const f = dl.range(3, 3);
+      test_util.expectArraysEqual(f, new Float32Array(0));
+      expect(f.shape).toEqual([0]);
+
+      const g = dl.range(3, 3, 1);
+      test_util.expectArraysEqual(g, new Float32Array(0));
+      expect(g.shape).toEqual([0]);
+
+      const h = dl.range(3, 3, 4);
+      test_util.expectArraysEqual(h, new Float32Array(0));
+      expect(h.shape).toEqual([0]);
+
+      const i = dl.range(-18, -2, 5);
+      test_util.expectArraysEqual(i, [-18, -13, -8, -3]);
+      expect(i.shape).toEqual([4]);
+    });
+
+    it('start stop large step', () => {
+      const a = dl.range(3, 10, 150);
+      test_util.expectArraysEqual(a, [3]);
+      expect(a.shape).toEqual([1]);
+
+      const b = dl.range(10, 500, 205);
+      test_util.expectArraysEqual(b, [10, 215, 420]);
+      expect(b.shape).toEqual([3]);
+
+      const c = dl.range(3, -10, -150);
+      test_util.expectArraysEqual(c, [3]);
+      expect(c.shape).toEqual([1]);
+
+      const d = dl.range(-10, -500, -205);
+      test_util.expectArraysEqual(d, [-10, -215, -420]);
+      expect(d.shape).toEqual([3]);
+    });
+
+    it('start stop negative step', () => {
+      const a = dl.range(0, -10, -1);
+      test_util.expectArraysEqual(a, [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]);
+      expect(a.shape).toEqual([10]);
+
+      const b = dl.range(0, -10);
+      test_util.expectArraysEqual(b, [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]);
+      expect(b.shape).toEqual([10]);
+
+      const c = dl.range(3, -4, -2);
+      test_util.expectArraysEqual(c, [3, 1, -1, -3]);
+      expect(c.shape).toEqual([4]);
+
+      const d = dl.range(-3, -18, -5);
+      test_util.expectArraysEqual(d, [-3, -8, -13]);
+      expect(d.shape).toEqual([3]);
+    });
+
+    it('start stop incompatible step', () => {
+      const a = dl.range(3, 10, -2);
+      test_util.expectArraysEqual(a, new Float32Array(0));
+      expect(a.shape).toEqual([0]);
+
+      const b = dl.range(40, 3, 2);
+      test_util.expectArraysEqual(b, new Float32Array(0));
+      expect(b.shape).toEqual([0]);
+    });
+
+    it('zero step', () => {
+      expect(() => dl.range(2, 10, 0)).toThrow();
+    });
+
+    it('should have default dtype', () => {
+      const a = dl.range(1, 4);
+      test_util.expectArraysEqual(a, [1, 2, 3]);
+      expect(a.dtype).toEqual('float32');
+      expect(a.shape).toEqual([3]);
+    });
+
+    it('should have float32 dtype', () => {
+      const a = dl.range(1, 4, undefined, 'float32');
+      test_util.expectArraysEqual(a, [1, 2, 3]);
+      expect(a.dtype).toEqual('float32');
+      expect(a.shape).toEqual([3]);
+    });
+
+    it('should have int32 dtype', () => {
+      const a = dl.range(1, 4, undefined, 'int32');
+      test_util.expectArraysEqual(a, [1, 2, 3]);
+      expect(a.dtype).toEqual('int32');
+      expect(a.shape).toEqual([3]);
+    });
+  };
+
+  test_util.describeMathCPU('range', [testsRange]);
+  test_util.describeMathGPU('range', [testsRange], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}

@@ -298,6 +298,52 @@ export class Ops {
     return ENV.engine.executeKernel(
         'Pad2D', {inputs: {x}, args: {paddings, constantValue}});
   }
+
+  /**
+   * Creates a new Array1D filled with the numbers in the range provided.
+   *
+   * The array is a is half-open interval meaning it includes start, but
+   * excludes stop. Decrementing ranges and negative step values are also
+   * supported.
+   *
+   * @param start An integer start value
+   * @param stop An integer stop value
+   * @param step An optional integer increment (will default to 1 or -1)
+   * @param dtype An optional dtype
+   */
+  @operation
+  static range(
+      start: number, stop: number, step = 1,
+      dtype: 'float32'|'int32' = 'float32'): Array1D {
+    if (step === 0) {
+      throw new Error('Cannot have a step of zero');
+    }
+
+    const sameStartStop = start === stop;
+    const increasingRangeNegativeStep = start < stop && step < 0;
+    const decreasingRangePositiveStep = stop < start && step > 1;
+
+    if (sameStartStop || increasingRangeNegativeStep ||
+        decreasingRangePositiveStep) {
+      return Ops.zeros([0], dtype);
+    }
+
+    const numElements = Math.abs(Math.ceil((stop - start) / step));
+    const values = makeZerosTypedArray(numElements, dtype);
+
+    if (stop < start && step === 1) {
+      // Auto adjust the step's sign if it hasn't been set
+      // (or was set to 1)
+      step = -1;
+    }
+
+    values[0] = start;
+    for (let i = 1; i < values.length; i++) {
+      values[i] = values[i - 1] + step;
+    }
+
+    return Array1D.new(values, dtype);
+  }
 }
 
 function makeZerosTypedArray<D extends DataType>(
