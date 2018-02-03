@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {keep, tidy} from '../../math/backends/tracking';
 import * as conv_util from '../../math/conv_util';
 import {NDArrayMath} from '../../math/math';
 import {Array3D} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 /**
@@ -51,7 +51,7 @@ export class MaxPool extends Operation {
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
     const x = inferenceArrays.get(this.xTensor) as Array3D;
-    math.scope((keep) => {
+    tidy(() => {
       inferenceArrays.set(
           this.yTensor,
           keep(math.maxPool(x, this.fieldSize, this.stride, this.pad)));
@@ -64,7 +64,7 @@ export class MaxPool extends Operation {
     const x = inferenceArrays.get(this.xTensor) as Array3D;
     const dy = gradientArrays.get(this.yTensor) as Array3D;
 
-    math.scope(() => {
+    tidy(() => {
       gradientArrays.add(
           this.xTensor,
           math.maxPoolBackprop(dy, x, this.fieldSize, this.stride, this.pad));

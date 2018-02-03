@@ -38,8 +38,7 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
   });
 
   it('returns the only node in the feed dictionary', () => {
-    const math = ENV.math;
-    math.scope(() => {
+    dl.tidy(() => {
       const node = new TestNode(new Graph(), '', {}, new Tensor([]));
       const fd =
           new FeedDictionary([{tensor: node.output, data: dl.zeros([1])}]);
@@ -50,8 +49,7 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
   });
 
   it('returns every node from the feed dictionary', () => {
-    const math = ENV.math;
-    math.scope(() => {
+    dl.tidy(() => {
       const n0 = new TestNode(new Graph(), '', {}, new Tensor([]));
       const n1 = new TestNode(new Graph(), '', {}, new Tensor([]));
       const n2 = new TestNode(new Graph(), '', {}, new Tensor([]));
@@ -78,7 +76,6 @@ describe('getTerminatingNodesFromFeedDictionary', () => {
 describe('addPersistentArraysToTensorArrayMap', () => {
   let map: TensorArrayMap;
   let g: Graph;
-  const math = ENV.math;
 
   beforeEach(() => {
     map = new TensorArrayMap();
@@ -122,7 +119,7 @@ describe('addPersistentArraysToTensorArrayMap', () => {
   });
 
   it('adds multiple ConstantNodes to the map', () => {
-    math.scope(() => {
+    dl.tidy(() => {
       const nodes = [
         new ConstantNode(g, dl.zeros([1])), new ConstantNode(g, dl.zeros([1])),
         new ConstantNode(g, dl.zeros([1]))

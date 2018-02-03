@@ -184,7 +184,7 @@ export class Ops {
       throw new Error(
           'Cannot construct NDArray with more than 4 channels from pixels.');
     }
-    return ENV.math.fromPixels(pixels, numChannels);
+    return ENV.backend.fromPixels(pixels, numChannels);
   }
 
   /** Reshapes the array. */

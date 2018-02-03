@@ -23,6 +23,7 @@ import * as session_util from '../../graph/session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar, Variable} from '../../math/ndarray';
+import {keep, tidy} from '../backends/tracking';
 import {NamedArrayMap} from '../types';
 
 export abstract class Optimizer {
@@ -112,7 +113,7 @@ export abstract class Optimizer {
       math: NDArrayMath, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
-    math.scope((keep) => {
+    tidy(() => {
       this.variableNodes.forEach(node => {
         const gradient = gradientArrayMap.get(node.output);
         const accumulatedGradient = this.variableGradients.get(node.output);

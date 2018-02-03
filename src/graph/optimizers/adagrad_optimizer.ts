@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+
+import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
 import {Optimizer} from '../../math/optimizers/optimizer';
@@ -51,7 +53,7 @@ export class AdagradOptimizer extends Optimizer {
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
-    math.scope((keep) => {
+    tidy(() => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);

@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {keep, tidy} from '../../math/backends/tracking';
 import * as conv_util from '../../math/conv_util';
 import {NDArrayMath} from '../../math/math';
 import {Array1D, Array3D, Array4D} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 /**
@@ -66,7 +66,7 @@ export class Convolution2D extends Operation {
     const biases = inferenceArrays.get(this.bTensor) as Array1D;
     const x = inferenceArrays.get(this.xTensor) as Array3D;
 
-    math.scope((keep) => {
+    tidy(() => {
       inferenceArrays.set(
           this.yTensor,
           keep(math.conv2d(x, weights, biases, this.stride, this.zeroPad)));
@@ -80,7 +80,7 @@ export class Convolution2D extends Operation {
     const x = inferenceArrays.get(this.xTensor) as Array3D;
     const dy = gradientArrays.get(this.yTensor) as Array3D;
 
-    math.scope(() => {
+    tidy(() => {
       const dw =
           math.conv2dDerFilter(x, dy, filter.shape, this.stride, this.zeroPad);
       const db = math.conv2dDerBias(dy);

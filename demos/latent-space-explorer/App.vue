@@ -110,7 +110,6 @@ export default {
 
     let fonts = new FontModel();
     fonts.load(() => {
-      fonts.init();
       this.$refs.loading.remove();
       this.model = fonts;
       this.range = fonts.range;

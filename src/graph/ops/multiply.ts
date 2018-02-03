@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 /**
@@ -48,7 +48,7 @@ export class Multiply extends Operation {
     const t1 = inferenceArrays.get(this.x1Tensor) as Scalar;
     const t2 = inferenceArrays.get(this.x2Tensor) as Scalar;
 
-    math.scope((keep) => {
+    tidy(() => {
       let result: NDArray;
       if (util.isScalarShape(t1.shape)) {
         result = math.scalarTimesArray(t1, t2);
@@ -68,7 +68,7 @@ export class Multiply extends Operation {
     const x2 = inferenceArrays.get(this.x2Tensor) as Scalar;
     const dy = gradientArrays.get(this.yTensor);
 
-    math.scope(() => {
+    tidy(() => {
       if (graph_util.shouldBackProp(this.x1Tensor)) {
         if (util.isScalarShape(this.x1Tensor.shape)) {
           const mul = math.elementWiseMul(dy, x2);

@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {keep, tidy} from '../../math/backends/tracking';
 import {MatrixOrientation} from '../../math/backends/types/matmul';
 import {NDArrayMath} from '../../math/math';
 import {Array1D, Array2D} from '../../math/ndarray';
 import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 /**
@@ -38,7 +38,7 @@ export class MatMul extends Operation {
     const x1 = inferenceArrays.get(this.x1Tensor);
     const x2 = inferenceArrays.get(this.x2Tensor);
 
-    math.scope((keep) => {
+    tidy(() => {
       if (x1.shape.length === 2 && x2.shape.length === 2) {
         inferenceArrays.set(
             this.yTensor, keep(math.matMul(x1 as Array2D, x2 as Array2D)));
@@ -70,7 +70,7 @@ export class MatMul extends Operation {
       dy = dy.reshape([dy.size, 1]);
     }
 
-    math.scope(() => {
+    tidy(() => {
       // y = x1 * x2
       // dx1 = dy * x2T
       // dx2 = x1T * dy

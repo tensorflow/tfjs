@@ -326,7 +326,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
     this.previousFrameTime = frameTimeStart;
     if (this.selectedIndex >= 0) {
       this.predicting = false;
-      await dl.ENV.math.scope(async () => {
+      await dl.tidy(async () => {
         const image = dl.fromPixels(this.webcamVideoElement);
         const indicators = document.querySelectorAll('.indicators');
         for (let i = 0; i < indicators.length; i++) {
@@ -339,7 +339,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
       });
     } else if (this.hasAnyTrainedClass) {
       this.predicting = true;
-      await dl.ENV.math.scope(async () => {
+      await dl.tidy(async () => {
         const image = dl.fromPixels(this.webcamVideoElement);
         const timeStart = performance.now();
         const results = await this.classifier.predictClass(image);

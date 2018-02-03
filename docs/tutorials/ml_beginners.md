@@ -107,12 +107,12 @@ a `NDArrayMath` object.
 
 For example, if you want to compute a matrix times a vector on the GPU:
 ```ts
-const math = dl.ENV.math;
+import * as dl from 'deeplearn';
 
 const matrixShape = [2, 3];  // 2 rows, 3 columns.
 const matrix = dl.Array2D.new(matrixShape, [10, 20, 30, 40, 50, 60]);
 const vector = dl.Array1D.new([0, 1, 2]);
-const result = math.matrixTimesVector(matrix, vector);
+const result = dl.matrixTimesVector(matrix, vector);
 
 console.log("result shape:", result.shape);
 console.log("result", await result.data());
@@ -226,6 +226,8 @@ object contains runtime state, weights, activations, and gradients
 So the function above would be implemented in **deeplearn.js** as follows:
 
 ```ts
+import * as dl from 'deeplearn';
+
 const graph = new dl.Graph();
 // Make a new input in the graph, called 'x', with shape [] (a Scalar).
 const x = graph.placeholder('x', []);
@@ -246,11 +248,10 @@ const cost = graph.meanSquaredCost(y, yLabel);
 
 // At this point the graph is set up, but has not yet been evaluated.
 // **deeplearn.js** needs a Session object to evaluate a graph.
-const math = dl.ENV.math;
-const session = new dl.Session(graph, math);
+const session = new dl.Session(graph, dl.ENV.math);
 
-// For more information on scope, check out the [tutorial on performance](performance.md).
-await math.scope(async () => {
+// For more information on tidy, check out the [tutorial on performance](performance.md).
+await dl.tidy(async () => {
   /**
    * Inference
    */

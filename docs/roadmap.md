@@ -17,15 +17,6 @@ recreate the model in **deeplearn.js** and use the weights from that checkpoint.
 We plan on building a way to port models directly from TensorFlow to
 **deeplearn.js** automatically from a `GraphDef`.
 
-## Decoupling NDArray from storage mechanism
-
-Currently, `NDArray`s are tightly coupled to their underlying storage. We will
-be decoupling the `NDArray` object from where it is actually stored, and add
-global tracking to all `NDArray`s so that we don't need to explicitly `track` them
-inside of a `math.scope()`.
-
-This also means `scope` will become a top level method.
-
 ## Eager mode
 
 To train or get gradients, you must use our `Graph` layer. We will be

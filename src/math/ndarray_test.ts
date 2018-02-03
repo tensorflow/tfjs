@@ -71,13 +71,6 @@ const tests: MathTests = it => {
     test_util.expectNumbersClose(t4.get(0, 1, 0, 0), 3);
     test_util.expectNumbersClose(t4.get(0, 1, 0, 1), 4);
 
-    const t4Like = dl.clone(t4);
-    // Change t4.
-    t4.set(10, 0, 0, 0, 1);
-    test_util.expectNumbersClose(t4.get(0, 0, 0, 1), 10);
-    // Make suree t4_like hasn't changed.
-    test_util.expectNumbersClose(t4Like.get(0, 0, 0, 1), 2);
-
     // NDArray of ones.
     const x = dl.ones<Rank.R3>([3, 4, 2]);
     expect(x.rank).toBe(3);
@@ -104,13 +97,7 @@ const tests: MathTests = it => {
 
     // Reshaping ndarrays.
     const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const b = a.reshape([3, 2, 1]);
     test_util.expectNumbersClose(a.get(1, 2), 6);
-
-    // Modify the reshaped ndarray.
-    b.set(10, 2, 1, 0);
-    // Make sure the original ndarray is also modified.
-    test_util.expectNumbersClose(a.get(1, 2), 10);
   });
 
   it('NDArray dataSync CPU --> GPU', () => {

@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Scalar, variable, Variable} from '../../math/ndarray';
+import {Array1D, Scalar, variable, Variable} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {MathTests} from '../../test_util';
 
@@ -234,6 +234,17 @@ const tests: MathTests = it => {
     expect(cost).toBe(null);
     // The stray variable should remain unchanged.
     test_util.expectArraysClose(strayVariable, [-1]);
+  });
+
+  it('throws error when f returns a non-scalar', math => {
+    const learningRate = .1;
+    const optimizer = new SGDOptimizer(learningRate);
+
+    const x = variable(Array1D.new([1, 2]));
+    const f = () => x.square();
+
+    // tslint:disable-next-line:no-any
+    expect(() => optimizer.minimize(f as any)).toThrowError();
   });
 };
 

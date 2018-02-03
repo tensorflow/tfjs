@@ -21,6 +21,7 @@ import {SessionRuntime} from '../../graph/session';
 // tslint:disable-next-line:max-line-length
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
+import {keep, tidy} from '../backends/tracking';
 import {Scalar} from '../ndarray';
 import {NamedArrayMap} from '../types';
 import {Optimizer} from './optimizer';
@@ -42,7 +43,7 @@ export class SGDOptimizer extends Optimizer {
       const gradient = variableGradients[varName];
       const value = math.registeredVariables[varName];
 
-      const newValue = math.scope(() => {
+      const newValue = tidy(() => {
         return math.add(math.multiply(this.c, gradient), value);
       });
 
@@ -55,7 +56,7 @@ export class SGDOptimizer extends Optimizer {
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
-    math.scope(keep => {
+    tidy(() => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);

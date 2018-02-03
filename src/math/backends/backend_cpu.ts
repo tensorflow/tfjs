@@ -184,7 +184,7 @@ export class MathBackendCPU implements MathBackend {
   }
 
   reverse4D(x: Array4D, axis: number[]): Array4D {
-    const result = ops.clone(x);
+    const result = ops.zerosLike(x);
 
     // Reverse axis only if the axis has dim != 1
     const revAxis = (i: number) => axis.indexOf(i) !== -1 && x.shape[i] !== 1;

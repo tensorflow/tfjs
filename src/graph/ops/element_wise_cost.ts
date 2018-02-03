@@ -14,8 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:max-line-length
+
 import {ENV} from '../../environment';
+import {keep, tidy} from '../../math/backends/tracking';
 // tslint:disable-next-line:max-line-length
 import {ElementWiseCostFunction, SquareCostFunc} from '../../math/cost_functions';
 import {NDArrayMath} from '../../math/math';
@@ -44,7 +45,7 @@ export class ElementWiseCost extends Operation {
     const x1 = inferenceArrays.get(this.x1Tensor);
     const x2 = inferenceArrays.get(this.x2Tensor);
 
-    math.scope((keep) => {
+    tidy(() => {
       const elementWiseCost = this.func.cost(math, x1, x2);
       const sum = math.sum(elementWiseCost);
       const result = math.scalarTimesArray(this.oneOverNScalar, sum);
@@ -58,7 +59,7 @@ export class ElementWiseCost extends Operation {
     const x1 = inferenceArrays.get(this.x1Tensor);
     const x2 = inferenceArrays.get(this.x2Tensor);
 
-    math.scope(() => {
+    tidy(() => {
       if (graph_util.shouldBackProp(this.x1Tensor)) {
         gradientArrays.add(this.x1Tensor, this.func.der(math, x1, x2));
       }
