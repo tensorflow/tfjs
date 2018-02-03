@@ -16,6 +16,7 @@
  */
 
 import {ENV} from '../../environment';
+import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
 import * as util from '../../util';
@@ -40,7 +41,7 @@ export class ReduceSum extends Operation {
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
     const x = inferenceArrays.get(this.x);
 
-    math.scope((keep) => {
+    tidy(() => {
       inferenceArrays.set(this.outTensor, keep(math.sum(x)));
     });
   }
@@ -52,7 +53,7 @@ export class ReduceSum extends Operation {
       return;
     }
 
-    math.scope(() => {
+    tidy(() => {
       const dy = gradientArrays.get(this.outTensor) as Scalar;
       gradientArrays.add(this.x, math.scalarTimesArray(dy, this.ones));
     });

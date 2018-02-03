@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {tidy} from './backends/tracking';
 
 /**
  * Decorator for wrapping functions that perform math operations on
@@ -27,7 +27,7 @@ export function operation(
   const fn = descriptor.value;
   // tslint:disable-next-line:no-any
   descriptor.value = (...args: any[]) => {
-    return ENV.math.scope(name, () => fn(...args));
+    return tidy(name, () => fn(...args));
   };
   return descriptor;
 }

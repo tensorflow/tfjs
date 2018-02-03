@@ -68,53 +68,51 @@ function again inside the resolved `Promise`. Alternatively, you can use
 for data to be ready.
 
 
-## Memory leaks & math.scope
+## Memory leaks & dl.tidy
 
 Preventing memory leaks in applications that may have an infinite loop
 (for example, reading from the webcam and making a prediction) is critical for
 performance.
 
-When math operations are used, you should wrap them in a math.scope() function
-closure as shown in the example below. The results of math operations in this
-scope will get disposed at the end of the scope, unless they are the value
-returned in the scope.
+When operations are used, you should wrap them in a `dl.tidy(f)` call where
+`f` is the function that does the job. All allocated memory in the function
+will get disposed at the end of the closure, except for the returned value.
 
 A function is passed to the function closure, `keep()`.
 
 `keep()` ensures that the NDArray passed to keep will not be cleaned up
-automatically when the scope ends.
+automatically when the closure ends.
 
 ```ts
-const math = dl.ENV.math;
+import * as dl from 'deeplearn';
 
 let output;
 
-math.scope(keep => {
-  // CORRECT: By default, math tracks all NDArrays that are constructed.
+dl.tidy(keep => {
+  // CORRECT: By default, dl tracks all NDArrays that are constructed.
   const a = dl.Scalar.new(2);
 
-  // CORRECT: By default, math tracks all outputs of math functions.
-  const c = math.neg(math.exp(a));
+  // CORRECT: By default, dl tracks all outputs of operations.
+  const c = a.exp().neg();
 
-  // CORRECT: d is tracked by the parent scope.
-  const d = math.scope(() => {
-    // CORRECT: e will get cleaned up when this inner scope ends.
+  // CORRECT: d is tracked by the parent function.
+  const d = dl.tidy(() => {
+    // CORRECT: e will get cleaned up when this inner function ends.
     const e = dl.Scalar.new(3);
 
-    // CORRECT: The result of this math function is tracked. Since it is the
-    // return value of this scope, it will not get cleaned up with this inner
-    // scope. However, the result will be tracked automatically in the parent
-    // scope.
-    return math.elementWiseMul(e, e);
+    // CORRECT: The result of this function is tracked. Since it is the
+    // return value, it will not get cleaned up after this function ends.
+    // It will instead, be tracked in the parent function.
+    return e.mul(e);
   });
 
-  // CORRECT, BUT BE CAREFUL: The output of math.tanh will be tracked
+  // CORRECT, BUT BE CAREFUL: The output of tanh() will be tracked
   // automatically, however we can call keep() on it so that it will be kept
-  // when the scope ends. That means if you are not careful about calling
+  // when the function ends. That means if you are not careful about calling
   // output.dispose() some time later, you might introduce a texture memory
   // leak. A better way to do this would be to return this value as a return
-  // value of a scope so that it gets tracked in a parent scope.
-  output = keep(math.tanh(d));
+  // value of a function so that it gets tracked in a parent scope.
+  output = keep(d.tanh());
 });
 ```
 
@@ -124,12 +122,11 @@ mechanism. This means when you are done with an NDArray that is GPU-resident,
 it must manually be disposed some time later. If you forget to manually call
 `ndarray.dispose()` when you are done with an NDArray, you will introduce
 a texture memory leak, which will cause serious performance issues.
-If you use `math.scope()`, any NDArrays created by `math.method()` and
-any other method that returns the result through a scope will automatically
-get cleaned up.
+If you use `dl.tidy(f)`, where `f` is your function that does work, any NDArrays
+created directly or indirectly will be automatically cleaned up after `f` ends.
 
 
-> If you want to do manual memory management and not use math.scope(), you can.
+> If you want to do manual memory management and not use dl.tidy(), you can.
 This is not recommended, but is useful for `NDArrayMathCPU` since CPU-resident
 memory will get cleaned up automatically by the JavaScript garbage collector.
 

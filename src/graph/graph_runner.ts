@@ -16,10 +16,10 @@
  */
 
 import {InputProvider} from '../data/input_provider';
+import {tidy} from '../math/backends/tracking';
 import {NDArrayMath} from '../math/math';
 import {NDArray, Scalar} from '../math/ndarray';
 import {Optimizer} from '../math/optimizers/optimizer';
-
 import {Tensor} from './graph';
 import {CostReduction, FeedEntry, Session} from './session';
 
@@ -165,7 +165,7 @@ export class GraphRunner {
     const costReduction =
         shouldComputeCost ? CostReduction.MEAN : CostReduction.NONE;
 
-    this.math.scope((keep) => {
+    tidy(() => {
       const avgCost = this.session.train(
           this.costTensor, this.trainFeedEntries, this.batchSize,
           this.optimizer, costReduction);
@@ -248,7 +248,7 @@ export class GraphRunner {
       return;
     }
 
-    this.math.scope(keep => {
+    tidy(() => {
       const feeds: FeedEntry[][] = [];
       const inferenceValues: NDArray[] = [];
 
@@ -306,7 +306,7 @@ export class GraphRunner {
 
     let metric = this.zeroScalar;
 
-    return this.math.scope((keep) => {
+    return tidy(() => {
       for (let i = 0; i < this.metricBatchSize; i++) {
         const metricValue =
             this.session.eval(this.metricTensor, this.metricFeedEntries) as

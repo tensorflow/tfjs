@@ -24,7 +24,6 @@ export class FontModel {
   range = 0.4;
   charIdMap: {[id: string]: number};
   private variables: {[varName: string]: dl.NDArray};
-  private math: dl.NDArrayMath;
   private inferCache = new Cache(this, this.infer);
   private numberOfValidChars = 62;
   private multiplierScalar = dl.Scalar.new(255);
@@ -60,10 +59,6 @@ export class FontModel {
     });
   }
 
-  init() {
-    this.math = dl.ENV.math;
-  }
-
   infer(args: Array<{}>) {
     const embedding = args[0] as dl.NDArray;
     const ctx = args[1] as CanvasRenderingContext2D;
@@ -75,7 +70,7 @@ export class FontModel {
       throw (new Error('Invalid character id'));
     }
 
-    const adjusted = this.math.scope(keep => {
+    const adjusted = dl.tidy(() => {
       const idx = dl.Array1D.new([charId]);
       const onehotVector = dl.oneHot(idx, this.numberOfValidChars).as1D();
 

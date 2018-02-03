@@ -20,9 +20,10 @@ import * as util from '../util';
 
 import * as array_ops from './array_ops';
 import {MathBackend} from './backends/backend';
-import {BackendEngine} from './backends/backend_engine';
-import {TapeNodeInputGradientArrays} from './backends/tape_types';
-import {ScopeFn, ScopeResult, ScopeResultImmediate} from './backends/tape_util';
+// tslint:disable-next-line:max-line-length
+import {customGradient, gradients, valueAndGradients, variableGradients, vjp} from './backends/gradients';
+import {ScopeResult} from './backends/tape_util';
+import {keep, tidy} from './backends/tracking';
 import * as batchnorm from './batchnorm';
 import * as binary_ops from './binary_ops';
 import * as compare from './compare';
@@ -32,8 +33,7 @@ import * as image_ops from './image_ops';
 import * as logical from './logical_ops';
 import * as lstm_ops from './lstm';
 import * as matmul from './matmul';
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, NDArray, Scalar, Variable} from './ndarray';
+import {Array1D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 import * as norm from './norm';
 import * as ops from './ops';
 import * as pool from './pool';
@@ -42,22 +42,10 @@ import * as reverse from './reverse';
 import * as slice from './slice';
 import * as softmax_ops from './softmax';
 import * as transpose from './transpose';
-import {NamedArrayMap, NamedVariableMap} from './types';
-import {Rank, TypedArray} from './types';
+import {Rank} from './types';
 import * as unary_ops from './unary_ops';
 
-export interface NDArrayManager {
-  getNumArrays(): number;
-  register(a: NDArray): void;
-  registerVariable(v: Variable): void;
-}
-
-export class NDArrayMath implements NDArrayManager {
-  engine: BackendEngine;
-  private registeredArrays = new Map<number, number>();
-  private backend: MathBackend;
-  private customBackend = false;
-
+export class NDArrayMath {
   // Ops.
   matMul = matmul.Ops.matMul;
   vectorTimesMatrix = matmul.Ops.vectorTimesMatrix;
@@ -207,177 +195,59 @@ export class NDArrayMath implements NDArrayManager {
   /** @deprecated Use dl.image.resizeBilinear() */
   resizeBilinear3D = image_ops.Ops.resizeBilinear;
 
-  // Public since optimizers will use it.
-  registeredVariables: NamedVariableMap = {};
+  // Tracking methods.
+  keep = keep;
 
-  time(f: () => void): Promise<number> {
-    return this.backend.time(f);
-  }
+  // Gradient methods.
+  customGradient = customGradient;
+  gradients = gradients;
+  valueAndGradients = valueAndGradients;
+  variableGradients = variableGradients;
+  vjp = vjp;
 
-  getNumArrays() {
-    return this.registeredArrays.size;
-  }
-
-  register(a: NDArray|Variable): void {
-    const refCount = this.registeredArrays.has(a.dataId) ?
-        this.registeredArrays.get(a.dataId) :
-        0;
-    if (refCount === 0) {
-      this.backend.register(a.dataId, a.shape, a.dtype);
-    }
-    this.registeredArrays.set(a.dataId, refCount + 1);
-    if (!(a instanceof Variable)) {
-      this.engine.track(a);
-    }
-  }
-
-  registerVariable(v: Variable) {
-    if (this.registeredVariables[v.name] != null) {
-      throw new Error(`Variable with name ${v.name} was already registered`);
-    }
-    this.registeredVariables[v.name] = v;
-  }
-
-  fromPixels(
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Array3D {
-    return this.backend.fromPixels(pixels, numChannels);
-  }
-  write(dataId: number, values: TypedArray): void {
-    this.backend.write(dataId, values);
-  }
-  readSync(dataId: number): TypedArray {
-    return this.backend.readSync(dataId);
-  }
-  read(dataId: number): Promise<TypedArray> {
-    return this.backend.read(dataId);
-  }
+  register: typeof ENV.engine.register;
+  engine: typeof ENV.engine;
+  getNumArrays: typeof ENV.engine.getNumArrays;
+  dispose: typeof ENV.engine.dispose;
+  registeredVariables: typeof ENV.engine.registeredVariables;
+  write: typeof ENV.engine.write;
+  read: typeof ENV.engine.read;
+  readSync: typeof ENV.engine.readSync;
+  disposeData: typeof ENV.engine.disposeData;
+  registerVariable: typeof ENV.engine.registerVariable;
+  startScope: typeof ENV.engine.startScope;
+  endScope: typeof ENV.engine.endScope;
 
   /**
    * @param safeMode In safe mode, you must use math operations inside
-   *     a math.scope() which will automatically clean up intermediate NDArrays.
+   *     a dl.tidy() which will automatically clean up intermediate NDArrays.
    */
   constructor(backend: BackendType|MathBackend, safeMode: boolean) {
-    if (typeof backend === 'string') {
-      this.backend = ENV.getBackend(backend);
-    } else {
-      this.customBackend = true;
-      this.backend = backend;
-    }
-    this.engine = new BackendEngine(this.backend, safeMode);
-    ENV.setMath(this);
+    ENV.setMath(this, backend, safeMode);
+    this.register = ENV.engine.register.bind(ENV.engine);
+    this.engine = ENV.engine;
+    this.getNumArrays = ENV.engine.getNumArrays.bind(ENV.engine);
+    this.dispose = ENV.engine.dispose.bind(ENV.engine);
+    this.registeredVariables = ENV.engine.registeredVariables;
+    this.write = ENV.engine.write.bind(ENV.engine);
+    this.read = ENV.engine.read.bind(ENV.engine);
+    this.readSync = ENV.engine.readSync.bind(ENV.engine);
+    this.disposeData = ENV.engine.disposeData.bind(ENV.engine);
+    this.registerVariable = ENV.engine.registerVariable.bind(ENV.engine);
+    this.startScope = ENV.engine.startScope.bind(ENV.engine);
+    this.endScope = ENV.engine.endScope.bind(ENV.engine);
   }
 
-  /**
-   * In debug mode, the output of every math call will be downloaded to the CPU
-   * and checked for NaNs. This significantly impacts performance.
-   */
-  enableDebugMode() {
-    ENV.set('DEBUG', true);
-
-    console.warn(
-        'Debugging mode is ON. The output of every math call will ' +
-        'be downloaded to CPU and checked for NaNs. ' +
-        'This significantly impacts performance.');
-  }
-
-  /**
-   * Executes the provided function and after it is executed, cleans up all
-   * intermediate NDArrays allocated by the function except those returned by
-   * the function.
-   *
-   * When in safe mode, you must enclose all `NDArray` creation and math ops
-   * inside a `math.scope()` to prevent memory leaks.
-   *
-   * @param nameOrScopeFn The name of the scope, or the function to execute.
-   *     If a name is provided, the 2nd argument should be the function.
-   *     If a name is provided, and debug mode is on, the timing and the memory
-   *     usage of the function will be tracked and displayed on the console
-   *     using the provided name.
-   * @param scopeFn The function to execute.
-   * @param gradientsMode If true, enables gradients mode.
-   *     See math.gradientsScope for details.
-   */
-  scope<T extends ScopeResult>(
-      nameOrScopeFn: string|ScopeFn<T>, scopeFn?: ScopeFn<T>,
-      gradientsMode = false): T {
-    if (scopeFn == null) {
-      // Called with only 1 argument.
-      if (typeof nameOrScopeFn !== 'function') {
-        throw new Error('Please provide a function to math.scope()');
-      }
-      scopeFn = nameOrScopeFn;
-      nameOrScopeFn = 'scope';
-    } else {
-      // Called with 2 arguments.
-      if (typeof nameOrScopeFn !== 'string' &&
-          !(nameOrScopeFn instanceof String)) {
-        throw new Error(
-            'When calling with two arguments, the first argument ' +
-            'to math.scope() must be a string');
-      }
-      if (typeof scopeFn !== 'function') {
-        throw new Error(
-            'When calling with two arguments, the 2nd argument ' +
-            'to math.scope() must be a function');
-      }
-      // TODO(nsthorat,smilkov): Do operation logging and performance profiling.
-    }
-    return this.engine.scope(nameOrScopeFn as string, scopeFn, gradientsMode);
-  }
-
-  /**
-   * Create a new gradients scope. Similar to scope, but forces all inner scopes
-   * to not clean up so that gradient operations can be used inside of this
-   * scope.
-   * @param nameOrScopeFn The name of the scope, or the function to execute.
-   *     If a name is provided, the 2nd argument should be the function.
-   *     If a name is provided, and debug mode is on, the timing and the memory
-   *     usage of the function will be tracked and displayed on the console
-   *     using the provided name.
-   * @param scopeFn The function to execute.
-   */
-  gradientsScope<T extends ScopeResult>(
-      nameOrScopeFn: string|ScopeFn<T>, scopeFn?: ScopeFn<T>): T {
-    const gradientsMode = true;
-    return this.scope(nameOrScopeFn, scopeFn, gradientsMode);
-  }
-
-  /**
-   * Start a scope. Use this with endScope() to achieve the same functionality
-   * as scope() without the need for a function closure.
-   */
-  startScope() {
-    const gradientsMode = false;
-    this.engine.startScope(gradientsMode);
-  }
-
-  /**
-   * End a scope. Use this with startScope() to achieve the same functionality
-   * as scope() without the need for a function closure.
-   */
-  endScope(result: ScopeResultImmediate) {
-    const gradientsMode = false;
-    this.engine.endScope(result, gradientsMode);
-  }
-
-  /**
-   * Keeps an NDArray in the current scope from being disposed automatically.
-   * @param result The NDArray to keep from being disposed.
-   */
-  keep<T extends NDArray>(result: T): T {
-    return this.engine.keep(result);
+  /** @deprecated Use dl.tidy() */
+  scope<T extends ScopeResult>(scopeFn?: ScopeFn<T>): T {
+    const keepFn = <T extends NDArray>(ndarray: T): T => keep(ndarray);
+    const trackFn = <T extends NDArray>(ndarray: T): T => ndarray;
+    return tidy(() => scopeFn(keepFn, trackFn));
   }
 
   /** @deprecated This is a no-op. */
   track<T extends NDArray>(result: T): T {
     return result;
-  }
-
-  dispose() {
-    if (this.customBackend) {
-      this.backend.dispose();
-    }
   }
 
   /**
@@ -392,11 +262,10 @@ export class NDArrayMath implements NDArrayManager {
             `ndarray, got shape ${x.shape}.`);
     let values: Array1D;
     let indices: Array1D;
-    this.scope('topK', () => {
-      values =
-          this.engine.executeKernel('TopKValues', {inputs: {x}, args: {k}});
+    tidy('topK', () => {
+      values = ENV.engine.executeKernel('TopKValues', {inputs: {x}, args: {k}});
       indices =
-          this.engine.executeKernel('TopKIndices', {inputs: {x}, args: {k}});
+          ENV.engine.executeKernel('TopKIndices', {inputs: {x}, args: {k}});
       return values;
     });
     const result = {values, indices};
@@ -453,7 +322,7 @@ export class NDArrayMath implements NDArrayManager {
             `NDArray of rank ${c2.rank}.`);
     util.assertShapesMatch(a.shape, b.shape, 'Error in scaledArrayAdd: ');
 
-    return this.scope('scaledArrayAdd', () => {
+    return tidy('scaledArrayAdd', () => {
       // TODO(nsthorat): Add an SGEMM kernel and then update this.
       return this.add(this.multiply(c1, a), this.multiply(c2, b)) as T;
     });
@@ -528,152 +397,11 @@ export class NDArrayMath implements NDArrayManager {
         `Error in localResponseNormalization3D: radius must be an integer
          but got radius ${radius}.`);
 
-    return this.engine.executeKernel(
+    return ENV.engine.executeKernel(
         'LRN4D', {inputs: {x}, args: {radius, bias, alpha, beta, normRegion}});
   }
-
-  /**
-   * Warning: this is not fully implemented yet. Use with caution.
-   *
-   * Computes and returns the vector jacobian product of f(x) with respect to x.
-   * This method allows you to provide a non-scalar dy to backprop from.
-   *
-   * @param f The function to execute. f() should return an NDArray of the same
-   * shape and dtype as dy.
-   * @param x The input to compute dy/dx over. This can be a single value or
-   * an object mapping a string to an NDArray. If using the object mode, this
-   * method will return an object of the same shape.
-   */
-  vjp<T extends NDArray|NamedArrayMap, R extends Rank>(
-      f: () => NDArray<R>, x: T, dy: NDArray<R>): T {
-    const keys = x instanceof NDArray ? null : Object.keys(x);
-    const xs = util.flattenNameArrayMap(x, keys);
-
-    const vjp = this.engine.vjp(f, xs, dy) as NDArray[];
-
-    if (x instanceof NDArray) {
-      return vjp[0] as T;
-    } else {
-      return util.unflattenToNameArrayMap(keys, vjp) as T;
-    }
-  }
-
-  /**
-   * Warning: this is not fully implemented yet. Use with caution.
-   *
-   * Computes and returns the gradient of f(x) with respect to x.
-   *
-   * @param f The function to execute. f() should return a scalar.
-   *          TODO(nsthorat): Accept non-scalars.
-   * @param x The input to compute de/dx over. This can be a single value or
-   * an object mapping a string to an NDArray. If using the object mode, this
-   * method will return an object of the same shape.
-   */
-  gradients<T extends NDArray|NamedArrayMap>(f: () => Scalar, x: T): T {
-    const keys = x instanceof NDArray ? null : Object.keys(x);
-    const xs = util.flattenNameArrayMap(x, keys);
-
-    const returnValue = false;
-    const gradients = this.engine.gradients(f, xs, returnValue) as NDArray[];
-
-    if (x instanceof NDArray) {
-      return gradients[0] as T;
-    } else {
-      return util.unflattenToNameArrayMap(keys, gradients) as T;
-    }
-  }
-
-  /**
-   * Computes and returns the gradient of f(x) with respect to the list of
-   * trainable variables provided by `varList`. If no list is provided, it
-   * defaults to all trainable variables.
-   * @param f The function to execute. f() should return a scalar.
-   * @param varList An optional list of variables to provide gradients with
-   * respect to. Defaults to all trainable variables.
-   */
-  variableGradients(f: () => Scalar, varList?: Variable[]):
-      {value: Scalar, gradients: NamedArrayMap} {
-    if (varList == null) {
-      // Get all of the trainable variables.
-      varList = [];
-      const varNames = Object.keys(this.registeredVariables);
-      for (let i = 0; i < varNames.length; i++) {
-        const variable = this.registeredVariables[varNames[i]];
-        if (variable.trainable) {
-          varList.push(variable);
-        }
-      }
-    } else {
-      // Prune non-trainable variables.
-      varList = varList.filter(variable => variable.trainable);
-    }
-
-    return this.engine.variableGradientsAndValue(f, varList);
-  }
-
-  /**
-   * Warning: this is not fully implemented yet. Use with caution.
-   *
-   * Computes and returns the gradient of f(x) with respect to x. Returns
-   * both f(x) and f'(x).
-   *
-   * @param f The function to execute. f() should return a scalar.
-   *          TODO(nsthorat): Accept non-scalars.
-   * @param x The input to compute de/dx over. This can be a single value or
-   * an object mapping a string to an NDArray. If using the object mode,
-   * this method will return an object of the same shape.
-   */
-  valueAndGradients<T extends NDArray|NamedArrayMap>(f: () => Scalar, x: T):
-      {value: Scalar, gradients: T} {
-    const keys = x instanceof NDArray ? null : Object.keys(x);
-    const xs = util.flattenNameArrayMap(x, keys);
-
-    const returnValue = true;
-    const valueAndGradients = this.engine.gradients(f, xs, returnValue) as
-        {value: Scalar, gradients: NDArray[]};
-
-    let gradients: T;
-    if (x instanceof NDArray) {
-      gradients = valueAndGradients.gradients[0] as T;
-    } else {
-      gradients =
-          util.unflattenToNameArrayMap(keys, valueAndGradients.gradients) as T;
-    }
-    return {value: valueAndGradients.value, gradients};
-  }
-
-  /**
-   * Evaluates a function f() with a custom gradient function f'() to use during
-   * backpropagation.
-   * @param f The function to evaluate in forward mode. Returns a value NDArray
-   * and a gradient function closure.
-   * @param inputs The inputs to compute the gradient with respect to. These
-   * NDArrays should be used in f().
-   * @param name An optional name for the customGradient method. Used for
-   * debugging.
-   */
-  customGradient<R extends Rank, T extends NDArray<R>>(
-      name: string, f: () => {
-        value: T,
-        gradients: (dy: T, y: T) => TapeNodeInputGradientArrays
-      },
-      inputs: NamedArrayMap): T {
-    return this.engine.customGradient(f, inputs, name == null ? '' : name);
-  }
-
-  disposeData(dataId: number): void {
-    if (!this.registeredArrays.has(dataId)) {
-      return;
-    }
-    const refCount = this.registeredArrays.get(dataId);
-    if (refCount <= 1) {
-      this.registeredArrays.delete(dataId);
-      this.backend.disposeData(dataId);
-    } else {
-      this.registeredArrays.set(dataId, refCount - 1);
-    }
-    // TODO(nsthorat): Construct an error and save the stack trace for
-    // debugging when in debug mode. Creating a stack trace is too expensive
-    // to do unconditionally.
-  }
 }
+
+export type ScopeFn<T extends ScopeResult> =
+    (keep: <T1 extends NDArray>(ndarray: T1) => T1,
+     track: <T2 extends NDArray>(ndarray: T2) => T2) => T;

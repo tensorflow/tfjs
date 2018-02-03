@@ -26,8 +26,8 @@ reader.getAllVariables().then(vars => {
   xhr.onload = async () => {
     const data = JSON.parse(xhr.responseText) as SampleData;
 
-    // Wrap everything in a math.scope so we clean up intermediate NDArrays.
-    dl.ENV.math.scope(async () => {
+    // Wrap everything in a dl.tidy so we clean up intermediate NDArrays.
+    dl.tidy(async () => {
       console.log(`Evaluation set: n=${data.images.length}.`);
 
       let numCorrect = 0;

@@ -15,8 +15,10 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
+import {gradientsScope} from './backends/gradients';
 import {MatrixOrientation} from './backends/types/matmul';
 import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
@@ -24,13 +26,13 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 {
   const gpuTests: MathTests = it => {
     it('scope returns NDArray', async math => {
-      await math.scope(async () => {
+      await dl.tidy(async () => {
         const a = Array1D.new([1, 2, 3]);
         let b = Array1D.new([0, 0, 0]);
 
         expect(math.getNumArrays()).toBe(2);
-        await math.scope(async () => {
-          const result = math.scope(() => {
+        await dl.tidy(async () => {
+          const result = dl.tidy(() => {
             b = math.addStrict(a, b);
             b = math.addStrict(a, b);
             b = math.addStrict(a, b);
@@ -66,8 +68,8 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
       const b = Array1D.new([0, -1, 1]);
       expect(math.getNumArrays()).toBe(2);
 
-      await math.scope(async () => {
-        const result = math.scope(() => {
+      await dl.tidy(async () => {
+        const result = dl.tidy(() => {
           math.add(a, b);
           return [math.add(a, b), math.subtract(a, b)];
         });
@@ -92,7 +94,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
       expect(math.getNumArrays()).toBe(2);
 
-      math.scope(() => {
+      dl.tidy(() => {
         b = math.addStrict(a, b);
         b = math.addStrict(a, b);
         b = math.addStrict(a, b);
@@ -109,8 +111,8 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
       expect(math.getNumArrays()).toBe(2);
 
-      await math.scope(async () => {
-        const result = math.scope(() => {
+      await dl.tidy(async () => {
+        const result = dl.tidy(() => {
           let c = math.add(a, b);
           c = math.add(a, c);
           c = math.add(a, c);
@@ -135,17 +137,17 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
       expect(math.getNumArrays()).toBe(2);
 
-      await math.scope(async () => {
-        const result = math.scope(() => {
+      await dl.tidy(async () => {
+        const result = dl.tidy(() => {
           b = math.addStrict(a, b);
-          b = math.scope(() => {
-            b = math.scope(() => {
+          b = dl.tidy(() => {
+            b = dl.tidy(() => {
               return math.addStrict(a, b);
             });
             // original a, b, and two intermediates.
             expect(math.getNumArrays()).toBe(4);
 
-            math.scope(() => {
+            dl.tidy(() => {
               math.addStrict(a, b);
             });
             // All the intermediates should be cleaned up.
@@ -166,7 +168,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
     it('single argument', math => {
       let hasRan = false;
-      math.scope(() => {
+      dl.tidy(() => {
         hasRan = true;
       });
       expect(hasRan).toBe(true);
@@ -174,13 +176,13 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
 
     it('single argument, but not a function throws error', math => {
       expect(() => {
-        math.scope('asdf');
+        dl.tidy('asdf');
       }).toThrowError();
     });
 
     it('2 arguments, first is string', math => {
       let hasRan = false;
-      math.scope('name', () => {
+      dl.tidy('name', () => {
         hasRan = true;
       });
       expect(hasRan).toBe(true);
@@ -189,14 +191,14 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
     it('2 arguments, but first is not string throws error', math => {
       expect(() => {
         // tslint:disable-next-line:no-any
-        math.scope(4 as any, () => {});
+        dl.tidy(4 as any, () => {});
       }).toThrowError();
     });
 
     it('2 arguments, but second is not a function throws error', math => {
       expect(() => {
         // tslint:disable-next-line:no-any
-        math.scope('name', 'another name' as any);
+        dl.tidy('name', 'another name' as any);
       }).toThrowError();
     });
   };
@@ -370,16 +372,6 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
       test_util.expectNumbersClose(gradients.get(), 6 * a.get(), 1e-1);
     });
 
-    it('Throws if y is not a scalar', math => {
-      const a = Array2D.new([2, 3], [-1, 2, -3, 10, -20, 30]);
-      const b = Array2D.new([3, 2], [2, -3, 4, -1, 2, -3]);
-
-      expect(
-          // tslint:disable-next-line:no-any
-          () => math.gradients(() => math.matMul(a, b) as any, {a, b}))
-          .toThrowError();
-    });
-
     it('works with reshape', math => {
       const a = Array2D.new([2, 2], [1, 2, 3, 4]);
       const exponent = Array1D.new([2, 2, 2, 2], 'int32');
@@ -484,16 +476,6 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
           1e-1);
     });
 
-    it('Throws is y is not a scalar', math => {
-      const a = Array2D.new([2, 3], [-1, 2, -3, 10, -20, 30]);
-      const b = Array2D.new([3, 2], [2, -3, 4, -1, 2, -3]);
-
-      expect(
-          // tslint:disable-next-line:no-any
-          () => math.valueAndGradients(() => math.matMul(a, b) as any, {a, b}))
-          .toThrowError();
-    });
-
     it('matmul + relu + inner scope', math => {
       const a = Array2D.new([2, 3], [-1, 2, -3, 10, -20, 30]);
       const b = Array2D.new([3, 2], [2, -3, 4, -1, 2, -3]);
@@ -503,7 +485,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
         // y = relu(m)
         // e = sum(y)
         const m = math.matMul(a, b);
-        return math.scope(() => {
+        return dl.tidy(() => {
           const y = math.relu(m);
           return math.sum(y);
         });
@@ -546,7 +528,7 @@ import {Array1D, Array2D, NDArray, Scalar} from './ndarray';
       const a = Scalar.new(2);
       expect(math.getNumArrays()).toBe(1);
 
-      const gradients = math.gradientsScope(() => {
+      const gradients = gradientsScope(() => {
         const der = math.gradients(() => {
           const result = math.pow(a, Scalar.new(3, 'int32'));
           expect(math.getNumArrays()).toBe(3);

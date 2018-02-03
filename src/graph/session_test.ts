@@ -31,8 +31,7 @@ describe('FeedDictionary', () => {
   });
 
   it('ctor populates dict from only feed entry', () => {
-    const math = ENV.math;
-    math.scope(() => {
+    dl.tidy(() => {
       const e: FeedEntry = {tensor: new Tensor([]), data: dl.zeros([1])};
       const d = new FeedDictionary([e]);
       expect(Object.keys(d.dict).length).toEqual(1);
@@ -104,7 +103,7 @@ describe('Session', () => {
     const y = g.add(g.square(x), g.constant(3));
     const session = new Session(g, math);
 
-    math.scope(() => {
+    dl.tidy(() => {
       const yVal = session.eval(y, [{tensor: x, data: Array1D.new([5, 4])}]);
       const expected = new Float32Array([28, 19]);
       test_util.expectArraysClose(yVal.dataSync(), expected);
@@ -118,7 +117,7 @@ describe('Session', () => {
     const y = g.add(xSquared, g.constant(3));
     const session = new Session(g, math);
 
-    math.scope(() => {
+    dl.tidy(() => {
       const yVal =
           session.eval(y, [{tensor: xSquared, data: Array1D.new([25, 16])}]);
       const expected = new Float32Array([28, 19]);
@@ -134,7 +133,7 @@ describe('Session', () => {
     const z = g.add(xSquared, g.constant(2));
     const session = new Session(g, math);
 
-    math.scope(() => {
+    dl.tidy(() => {
       const result =
           session.evalAll([y, z], [{tensor: x, data: Array1D.new([5, 4])}]);
       const expectedY = new Float32Array([28, 19]);
@@ -152,7 +151,7 @@ describe('Session', () => {
     const z = g.add(y, g.constant(1));
     const session = new Session(g, math);
 
-    math.scope(() => {
+    dl.tidy(() => {
       const result1 = session.eval(y, [{tensor: x, data: Array1D.new([5, 4])}]);
       const expectedY = new Float32Array([30, 20]);
       test_util.expectArraysClose(result1.dataSync(), expectedY);
@@ -288,7 +287,7 @@ describe('Session', () => {
     const math = new NDArrayMath('webgl', safeMode);
     ENV.setMath(math);
 
-    math.scope(() => {
+    dl.tidy(() => {
       const x = g.placeholder('x', [2]);
       const y = g.square(x);
       const session = new Session(g, math);
@@ -311,7 +310,7 @@ describe('Session', () => {
       disposeCopy(math, example) {}
     };
 
-    math.scope(() => {
+    dl.tidy(() => {
       const optimizer = new SGDOptimizer(0.1);
       const session = new Session(g, math);
       const x = g.placeholder('x', [2]);

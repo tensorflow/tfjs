@@ -92,7 +92,7 @@ async function intro() {
   for (let i = 0; i < NUM_BATCHES; i++) {
     // Wrap session.train in a scope so the cost gets cleaned up
     // automatically.
-    await dl.ENV.math.scope(async () => {
+    await dl.tidy(async () => {
       // Train takes a cost tensor to minimize. Trains one batch. Returns the
       // average cost as a dl.Scalar.
       const cost = session.train(

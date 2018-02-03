@@ -16,7 +16,7 @@
  */
 
 import * as util from '../../util';
-import {NDArray, Variable} from '../ndarray';
+import {NDArray} from '../ndarray';
 import {NamedArrayMap, RegularArray} from '../types';
 
 // tslint:disable-next-line:max-line-length
@@ -203,45 +203,10 @@ export function backpropagateGradients(
   }
 }
 
-export function computeVariableInputs(
-    tape: Tape, varList: Variable[]): Variable[] {
-  const trainableVariables: Variable[] = [];
-  const trainableVariablesSeen: {[ndarrayId: number]: boolean} = {};
-
-  const variableIds: {[ndarrayId: number]: boolean} = {};
-  varList.forEach(variable => {
-    variableIds[variable.id] = true;
-  });
-
-  for (let i = 0; i < tape.length; i++) {
-    const node = tape[i];
-    const inputs = node.inputAndArgs.inputs;
-
-    const keys = Object.keys(inputs);
-    for (const key of keys) {
-      const input = inputs[key];
-      if (input instanceof Variable && !trainableVariablesSeen[input.id]) {
-        // When specifying a variable list, filter out variables that aren't
-        // specified explicitly.
-        if (varList != null) {
-          if (variableIds[input.id] == null) {
-            continue;
-          }
-        }
-        trainableVariables.push(input);
-        trainableVariablesSeen[inputs[key].id] = true;
-      }
-    }
-  }
-  return trainableVariables;
-}
-
 export type ScopeResultImmediate =
-    void|NDArray|RegularArray<NDArray>|{[key: string]: NDArray};
+    void|NDArray|RegularArray<NDArray>|{[key: string]: NDArray | NDArray[]};
 export type ScopeResult = ScopeResultImmediate|Promise<ScopeResultImmediate>;
-export type ScopeFn<T extends ScopeResult> =
-    (keep: <T1 extends NDArray>(ndarray: T1) => T1,
-     track: <T2 extends NDArray>(ndarray: T2) => T2) => T;
+export type ScopeFn<T extends ScopeResult> = () => T;
 
 export function extractNDArraysFromScopeResult(result: ScopeResultImmediate):
     NDArray[] {
@@ -256,7 +221,7 @@ export function extractNDArraysFromScopeResult(result: ScopeResultImmediate):
   const resultObj = result as {[key: string]: NDArray};
   // Iteration over keys works also for arrays.
   for (const k in resultObj) {
-    list.push(...util.flatten(resultObj[k]));
+    list.push(...util.flatten(resultObj[k]).filter(x => x != null));
   }
   return list;
 }

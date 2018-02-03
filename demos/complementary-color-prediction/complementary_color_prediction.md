@@ -227,7 +227,7 @@ train1Batch(shouldFetchCost: boolean): number {
 
   // Train 1 batch.
   let costValue = -1;
-  this.math.scope(() => {
+  dl.tidy(() => {
     const cost = this.session.train(
         this.costTensor, this.feedEntries, this.batchSize, this.optimizer,
         shouldFetchCost ? CostReduction.MEAN : CostReduction.NONE);
@@ -250,7 +250,7 @@ In addition, we write a method for performing inference on any given color. We c
 ```ts
 predict(rgbColor: number[]): number[] {
   let complementColor: number[] = [];
-  this.math.scope((keep, track) => {
+  dl.tidy((keep, track) => {
     const mapping = [{
       tensor: this.inputTensor,
       data: Array1D.new(this.normalizeColor(rgbColor)),

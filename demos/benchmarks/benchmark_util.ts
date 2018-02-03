@@ -8,5 +8,5 @@ export async function warmupAndBenchmarkGPU(benchmark: () => dl.NDArray):
   await out.data();
   out.dispose();
   // Real timing.
-  return dl.ENV.math.time(benchmark);
+  return dl.time(benchmark);
 }

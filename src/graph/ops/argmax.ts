@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
+import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 /**
@@ -34,7 +34,7 @@ export class ArgMax extends Operation {
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
     const x = inferenceArrays.get(this.xTensor);
-    math.scope((keep) => {
+    tidy(() => {
       inferenceArrays.set(this.yTensor, keep(math.argMax(x)));
     });
   }

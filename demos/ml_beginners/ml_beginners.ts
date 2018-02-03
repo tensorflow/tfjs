@@ -55,7 +55,7 @@ async function mlBeginners() {
     // **deeplearn.js** needs a dl.Session object to evaluate a dl.Graph.
     const session = new dl.Session(g, math);
 
-    await math.scope(async () => {
+    await dl.tidy(async () => {
       /**
        * Inference
        */

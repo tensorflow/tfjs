@@ -21,7 +21,6 @@ const reader = new dl.CheckpointLoader('.');
 reader.getAllVariables().then(async vars => {
   const primerData = 3;
   const expected = [1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4];
-  const math = dl.ENV.math;
 
   const lstmKernel1 =
       vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as dl.Array2D;
@@ -38,7 +37,7 @@ reader.getAllVariables().then(async vars => {
 
   const results: number[] = [];
 
-  await math.scope(async () => {
+  await dl.tidy(async () => {
     const forgetBias = dl.Scalar.new(1.0);
     const lstm1 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
         dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);

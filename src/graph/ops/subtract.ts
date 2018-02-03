@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
 import {NDArray, Scalar} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 export class Subtract extends Operation {
@@ -46,7 +46,7 @@ export class Subtract extends Operation {
     const t1 = inferenceArrays.get(this.t1) as Scalar;
     const t2 = inferenceArrays.get(this.t2) as Scalar;
 
-    math.scope((keep) => {
+    tidy(() => {
       let result: NDArray;
       if (util.isScalarShape(t1.shape)) {
         result = math.scalarMinusArray(t1, t2);
@@ -64,7 +64,7 @@ export class Subtract extends Operation {
       gradientArrays: SummedTensorArrayMap) {
     const dy = gradientArrays.get(this.outTensor);
 
-    math.scope(() => {
+    tidy(() => {
       if (graph_util.shouldBackProp(this.t1)) {
         if (util.isScalarShape(this.t1.shape)) {
           const sum = math.sum(dy);

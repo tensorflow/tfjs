@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {tidy} from '../math/backends/tracking';
 import {NDArrayMath} from '../math/math';
 import {NDArray, Scalar} from '../math/ndarray';
 
@@ -33,7 +34,7 @@ export class TanHFunc implements ActivationFunction {
   }
 
   der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
-    return math.scope(() => {
+    return tidy(() => {
       const ySquared = math.multiplyStrict(y, y);
       // 1 - y^2.
       return math.subtract(this.one, ySquared as NDArray) as T;
@@ -81,7 +82,7 @@ export class SigmoidFunc implements ActivationFunction {
   }
 
   der<T extends NDArray>(math: NDArrayMath, x: T, y: T): T {
-    return math.scope(() => {
+    return tidy(() => {
       // y * (1 - y) = y - y^2
       const ySquared = math.multiplyStrict(y, y);
       return math.subStrict(y, ySquared) as T;

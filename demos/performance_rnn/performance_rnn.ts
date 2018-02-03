@@ -389,7 +389,7 @@ document.getElementById('save-2').onclick = () => {
 };
 
 function getConditioning(): dl.Array1D {
-  return dl.ENV.math.scope(keep => {
+  return dl.tidy(() => {
     if (!conditioned) {
       // TODO(nsthorat): figure out why we have to cast these shapes to numbers.
       // The linter is complaining, though VSCode can infer the types.
@@ -412,7 +412,7 @@ async function generateStep(loopId: number) {
     // Was part of an outdated generateStep() scheduled via setTimeout.
     return;
   }
-  await dl.ENV.math.scope(async keep => {
+  await dl.tidy(async () => {
     const lstm1 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
         dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
     const lstm2 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
@@ -445,12 +445,12 @@ async function generateStep(loopId: number) {
       const sampledOutput = dl.multinomial(softmax, 1).asScalar();
 
       outputs.push(sampledOutput);
-      keep(sampledOutput);
+      dl.keep(sampledOutput);
       lastSample = sampledOutput;
     }
 
-    c.forEach(val => keep(val));
-    h.forEach(val => keep(val));
+    c.forEach(val => dl.keep(val));
+    h.forEach(val => dl.keep(val));
 
     await outputs[outputs.length - 1].data();
 

@@ -14,8 +14,7 @@ limitations under the License.
 ==============================================================================*/
 'use strict';
 
-// tslint:disable-next-line:max-line-length
-import {Scalar, Session, SGDOptimizer, Tensor, Array1D, CostReduction, Graph, ENV, InCPUMemoryShuffledInputProviderBuilder} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 const EPSILON = 1e-7;
 
@@ -27,18 +26,17 @@ export const learnXOR = async () => {
   const iterations = getRandomIntegerInRange(800, 1000);
   const timeStart: number = performance.now();
   let loss: number;
-  let cost: Scalar;
+  let cost: dl.Scalar;
 
-  const graph = new Graph();
-  const math = ENV.math;
+  const graph = new dl.Graph();
 
   const input = graph.placeholder('input', [2]);
   const y = graph.placeholder('y', [1]);
 
   const hiddenLayer = graph.layers.dense(
-      'hiddenLayer', input, 10, (x: Tensor) => graph.relu(x), true);
+      'hiddenLayer', input, 10, (x: dl.Tensor) => graph.relu(x), true);
   const output = graph.layers.dense(
-      'outputLayer', hiddenLayer, 1, (x: Tensor) => graph.sigmoid(x), true);
+      'outputLayer', hiddenLayer, 1, (x: dl.Tensor) => graph.sigmoid(x), true);
 
   const costTensor = graph.reduceSum(graph.add(
       graph.multiply(
@@ -53,19 +51,21 @@ export const learnXOR = async () => {
                   graph.subtract(graph.constant([1]), output),
                   graph.constant([EPSILON])))))));
 
-  const session = new Session(graph, math);
-  const optimizer = new SGDOptimizer(0.2);
+  const session = new dl.Session(graph, dl.ENV.math);
+  const optimizer = new dl.SGDOptimizer(0.2);
 
   const inputArray = [
-    Array1D.new([0, 0]), Array1D.new([0, 1]), Array1D.new([1, 0]),
-    Array1D.new([1, 1])
+    dl.Array1D.new([0, 0]), dl.Array1D.new([0, 1]), dl.Array1D.new([1, 0]),
+    dl.Array1D.new([1, 1])
   ];
 
-  const targetArray =
-      [Array1D.new([0]), Array1D.new([1]), Array1D.new([1]), Array1D.new([0])];
+  const targetArray = [
+    dl.Array1D.new([0]), dl.Array1D.new([1]), dl.Array1D.new([1]),
+    dl.Array1D.new([0])
+  ];
 
   const shuffledInputProviderBuilder =
-      new InCPUMemoryShuffledInputProviderBuilder([inputArray, targetArray]);
+      new dl.InCPUMemoryShuffledInputProviderBuilder([inputArray, targetArray]);
 
   const [inputProvider, targetProvider] =
       shuffledInputProviderBuilder.getInputProviders();
@@ -76,10 +76,10 @@ export const learnXOR = async () => {
   /**
    * Train the model
    */
-  await math.scope(async () => {
+  await dl.tidy(async () => {
     for (let i = 0; i < iterations; i += 1) {
       cost = session.train(
-          costTensor, feedEntries, 4, optimizer, CostReduction.MEAN);
+          costTensor, feedEntries, 4, optimizer, dl.CostReduction.MEAN);
     }
     loss = await cost.val();
   });

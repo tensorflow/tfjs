@@ -10,8 +10,6 @@ const TRAIN_STEPS = 100;
 const IMAGE_SIZE = 784;
 const LABELS_SIZE = 10;
 
-const math = dl.ENV.math;
-
 const optimizer = new dl.SGDOptimizer(LEARNING_RATE);
 
 // Set up the model and loss function.
@@ -41,7 +39,7 @@ export async function train(data: MnistData, log: (message: string) => void) {
 
 // Predict the digit number from a batch of input images.
 export function predict(x: dl.Array2D): number[] {
-  const pred = math.scope(() => {
+  const pred = dl.tidy(() => {
     const axis = 1;
     return model(x).argMax(axis);
   });

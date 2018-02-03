@@ -69,7 +69,7 @@ export class UnaryOpsCPUBenchmark implements BenchmarkTest {
     const op = getUnaryOp(option);
     const start = performance.now();
 
-    math.scope(() => {
+    dl.tidy(() => {
       op(input).get();
     });
 

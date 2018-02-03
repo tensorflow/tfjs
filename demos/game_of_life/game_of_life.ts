@@ -33,7 +33,7 @@ export class GameOfLife {
   generateGolExample(): [dl.NDArray, dl.NDArray] {
     let world: dl.NDArray;
     let worldNext: dl.NDArray;
-    this.math.scope(keep => {
+    dl.tidy(() => {
       const randWorld: dl.Array2D =
           dl.randUniform([this.size - 2, this.size - 2], 0, 2, 'int32');
       const worldPadded = GameOfLife.padArray(randWorld);
@@ -58,8 +58,8 @@ export class GameOfLife {
         }
         nextWorldValues.push(nextVal);
       }
-      world = keep(worldPadded);
-      worldNext = keep(GameOfLife.padArray(
+      world = dl.keep(worldPadded);
+      worldNext = dl.keep(GameOfLife.padArray(
           dl.Array2D.new(randWorld.shape, nextWorldValues, 'int32')));
     });
     return [world, worldNext];
@@ -173,7 +173,7 @@ export class GameOfLifeModel {
     this.setTrainingData(worlds);
 
     let costValue = -1;
-    this.math.scope(() => {
+    dl.tidy(() => {
       const cost = this.session.train(
           this.costTensor, this.feedEntries, this.batchSize, this.optimizer,
           fetchCost ? dl.CostReduction.MEAN : dl.CostReduction.NONE);
@@ -184,7 +184,7 @@ export class GameOfLifeModel {
 
   predict(world: dl.NDArray): dl.Array2D {
     let values = null;
-    this.math.scope(() => {
+    dl.tidy(() => {
       const mapping =
           [{tensor: this.inputTensor, data: world.flatten().toFloat()}];
 

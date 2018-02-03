@@ -21,7 +21,6 @@ import {Array1D} from '../../math/ndarray';
 import * as test_util from '../../test_util';
 import {Graph} from '../graph';
 import {Session} from '../session';
-
 import {MomentumOptimizer} from './momentum_optimizer';
 
 describe('momentum optimizer', () => {
@@ -35,7 +34,7 @@ describe('momentum optimizer', () => {
       disposeCopy(math, example) {}
     };
 
-    math.scope(() => {
+    dl.tidy(() => {
       const g = new Graph();
       const x = g.placeholder('x', [2]);
       const w = g.variable('w', dl.zeros([1, 2]));

@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
+import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
 import {NDArray} from '../../math/ndarray';
 import * as util from '../../util';
 import {Tensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
-
 import {Operation} from './op';
 
 export class Reshape<T1 extends NDArray, T2 extends NDArray> extends Operation {
@@ -38,7 +38,7 @@ export class Reshape<T1 extends NDArray, T2 extends NDArray> extends Operation {
 
     const clone = math.clone(x);
 
-    math.scope(keep => {
+    tidy(() => {
       inferenceArrays.set(
           this.yTensor, keep(clone.reshape(this.yTensor.shape)));
     });
@@ -51,7 +51,7 @@ export class Reshape<T1 extends NDArray, T2 extends NDArray> extends Operation {
 
     const clone = math.clone(dy);
 
-    math.scope(() => {
+    tidy(() => {
       gradientArrays.add(this.xTensor, clone.reshape(this.xTensor.shape));
     });
   }
