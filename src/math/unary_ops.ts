@@ -17,7 +17,8 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-import {operation} from './decorators';
+
+import {doc, operation} from './decorators';
 import {NDArray, Scalar} from './ndarray';
 import * as ops from './ops';
 
@@ -26,6 +27,7 @@ export class Ops {
    * Computes -1 * A element-wise.
    * @param x The input array.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static neg<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Neg', {inputs: {x}}, (dy: T, y: T) => {
@@ -39,6 +41,7 @@ export class Ops {
    * generic.
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static ceil<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Ceil', {inputs: {x}}) as T;
@@ -49,6 +52,7 @@ export class Ops {
    *
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static floor<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Floor', {inputs: {x}}) as T;
@@ -58,6 +62,7 @@ export class Ops {
    * Computes exponential of the input NDArray element-wise. y = e ^ x
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static exp<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Exp', {inputs: {x}}, (dy: T, y: T) => {
@@ -69,6 +74,7 @@ export class Ops {
    * Computes natural logarithm of the input NDArray element-wise. y = ln(x)
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static log<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Log', {inputs: {x}}, (dy: T, y: T) => {
@@ -80,6 +86,7 @@ export class Ops {
    * Computes square root of the input NDArray element-wise. y = sqrt(x)
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sqrt<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Sqrt', {inputs: {x}}, (dy: T, y: T) => {
@@ -92,6 +99,7 @@ export class Ops {
    *
    * @param x The input array.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static square<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Square', {inputs: {x}}, (dy: T, y: T) => {
@@ -103,6 +111,7 @@ export class Ops {
    * Computes absolute value element-wise.
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static abs<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Abs', {inputs: {x}}, (dy: T, y: T) => {
@@ -116,6 +125,7 @@ export class Ops {
    * @param min Lower-bound of range to be clipped to.
    * @param max Upper-bound of range to be clipped to.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static clip<T extends NDArray>(x: T, min: number, max: number): T {
     util.assert(
@@ -130,6 +140,7 @@ export class Ops {
    * Computes rectified linear element-wise, max(x, 0).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static relu<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Relu', {inputs: {x}}, (dy: T, y: T) => {
@@ -142,6 +153,7 @@ export class Ops {
    * Computes exponential linear element-wise
    * @param x the input NDArray
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static elu<T extends NDArray>(x: T): T {
     const der = (dy: NDArray) => {
@@ -161,6 +173,7 @@ export class Ops {
    * Computes scaled exponential linear element-wise.
    * @hidden
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static selu<T extends NDArray>(x: T): T {
     const gradient = (dy: T, y: T) => {
@@ -191,6 +204,7 @@ export class Ops {
    * @param alpha scaling factor for negative values, defaults to 0.2
    * @return {NDArray}
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static leakyRelu<T extends NDArray>(x: T, alpha = 0.2): T {
     return ENV.engine.executeKernel(
@@ -203,6 +217,7 @@ export class Ops {
    * @param alpha scaling factor NDArray for negative values
    * @return {NDArray}
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static prelu<T extends NDArray>(x: T, alpha: T): T {
     const der = (dy: NDArray) => {
@@ -222,6 +237,7 @@ export class Ops {
    * Computes sigmoid element-wise, y = 1 / (1 + exp(-x)).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sigmoid<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Sigmoid', {inputs: {x}}, (dy: T, y: T) => {
@@ -235,6 +251,7 @@ export class Ops {
    *
    * TODO(smilkov): Fix dl.cos() and other ops that should return a float.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sin<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Sin', {inputs: {x}}, (dy: T, y: T) => {
@@ -246,6 +263,7 @@ export class Ops {
    * Computes cos of the input NDArray element-wise, y = cos(x).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static cos<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Cos', {inputs: {x}}, (dy: T, y: T) => {
@@ -257,6 +275,7 @@ export class Ops {
    * Computes tan of the input NDArray element-wise, y = tan(x).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static tan<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Tan', {inputs: {x}}, (dy: T, y: T) => {
@@ -268,6 +287,7 @@ export class Ops {
    * Computes asin of the input NDArray element-wise, y = asin(x).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static asin<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Asin', {inputs: {x}}, (dy: T, y: T) => {
@@ -281,6 +301,7 @@ export class Ops {
    * Computes acos of the input NDArray element-wise, y = acos(x).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static acos<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Acos', {inputs: {x}}, (dy: T, y: T) => {
@@ -294,6 +315,7 @@ export class Ops {
    * Computes atan of the input NDArray element-wise, y = atan(x).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static atan<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Atan', {inputs: {x}}, (dy: T, y: T) => {
@@ -305,6 +327,7 @@ export class Ops {
    * Computes hyperbolic sin of the input NDArray element-wise, y = sinh(x).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sinh<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Sinh', {inputs: {x}}, (dy: T, y: T) => {
@@ -316,6 +339,7 @@ export class Ops {
    * Computes hyperbolic cos of the input NDArray element-wise, y = cosh(x).
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static cosh<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Cosh', {inputs: {x}}, (dy: T, y: T) => {
@@ -327,6 +351,7 @@ export class Ops {
    * Computes hyperbolic tangent of the input NDArray element-wise.
    * @param x The input NDArray.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static tanh<T extends NDArray>(x: T): T {
     return ENV.engine.executeKernel('Tanh', {inputs: {x}}, (dy: T, y: T) => {
@@ -341,6 +366,7 @@ export class Ops {
    * @param x The input NDArray.
    * @param alpha The gradient when input is negative.
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static step<T extends NDArray>(x: T, alpha = 0.0): T {
     return ENV.engine.executeKernel('Step', {inputs: {x}, args: {alpha}}) as T;

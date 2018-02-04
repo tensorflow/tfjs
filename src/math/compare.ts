@@ -17,8 +17,9 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
+
 import * as broadcast_util from './broadcast_util';
-import {operation} from './decorators';
+import {doc, operation} from './decorators';
 import {NDArray} from './ndarray';
 
 export class Ops {
@@ -29,6 +30,7 @@ export class Ops {
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static notEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
@@ -36,6 +38,7 @@ export class Ops {
     return ENV.engine.executeKernel('NotEqual', {inputs: {a, b}}) as T;
   }
 
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static notEqualStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
@@ -49,6 +52,7 @@ export class Ops {
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static less<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
@@ -56,6 +60,7 @@ export class Ops {
     return ENV.engine.executeKernel('Less', {inputs: {a, b}}) as T;
   }
 
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static lessStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
@@ -69,6 +74,7 @@ export class Ops {
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static equal<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
@@ -76,6 +82,7 @@ export class Ops {
     return ENV.engine.executeKernel('Equal', {inputs: {a, b}}) as T;
   }
 
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static equalStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
@@ -89,6 +96,7 @@ export class Ops {
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static lessEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
@@ -96,6 +104,7 @@ export class Ops {
     return ENV.engine.executeKernel('LessEqual', {inputs: {a, b}}) as T;
   }
 
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static lessEqualStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
@@ -109,6 +118,7 @@ export class Ops {
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greater<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
@@ -116,6 +126,7 @@ export class Ops {
     return ENV.engine.executeKernel('Greater', {inputs: {a, b}}) as T;
   }
 
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greaterStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
@@ -129,6 +140,7 @@ export class Ops {
    * @param a The first input `NDArray`.
    * @param b The second input `NDArray`. Must have the same dtype as `a`.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greaterEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
@@ -136,6 +148,7 @@ export class Ops {
     return ENV.engine.executeKernel('GreaterEqual', {inputs: {a, b}}) as T;
   }
 
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greaterEqualStrict<T extends NDArray>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');

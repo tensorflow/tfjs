@@ -17,7 +17,8 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-import {operation} from './decorators';
+
+import {doc, operation} from './decorators';
 import {Array3D, Array4D} from './ndarray';
 
 export class Ops {
@@ -33,6 +34,7 @@ export class Ops {
    *     corners of images and resized images. If false, rescale by
    *     new_height/height. Treat similarly the width dimension.
    */
+  @doc({heading: 'Operations', subheading: 'Images', namespace: 'image'})
   @operation
   static resizeBilinear<T extends Array3D|Array4D>(
       images: T, size: [number, number], alignCorners = false): T {

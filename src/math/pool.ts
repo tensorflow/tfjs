@@ -19,7 +19,7 @@ import {ENV} from '../environment';
 import * as util from '../util';
 
 import * as conv_util from './conv_util';
-import {operation} from './decorators';
+import {doc, operation} from './decorators';
 import {Array3D, Array4D} from './ndarray';
 
 export class Ops {
@@ -42,6 +42,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static maxPool<T extends Array3D|Array4D>(
       x: T, filterSize: [number, number]|number,
@@ -156,6 +157,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static minPool<T extends Array3D|Array4D>(
       input: T, filterSize: [number, number]|number,
@@ -205,6 +207,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static avgPool<T extends Array3D|Array4D>(
       x: T, filterSize: [number, number]|number,

@@ -1,6 +1,7 @@
 node_modules/
 demos/**/*.js
 demos/**/*.js.map
+scripts/**/*.js
 !demos/playground/frame.js
 coverage/
 package-lock.json
