@@ -15,23 +15,24 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
 import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
-// math.batchNormalization4D
+// dl.batchNormalization4D
 {
   // TODO(nsthorat): Fix the precision for byte-packed batchnorm.
   const epsilon = 1e-1;
   const tests: MathTests = it => {
-    it('simple batchnorm4D, no offset or scale, 2x1x1x2', math => {
+    it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {
       const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization4D(
+      const result = dl.batchNormalization4D(
           x, mean, variance, varianceEpsilon, undefined, undefined);
 
       test_util.expectArraysClose(
@@ -49,14 +50,14 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm4D, no offset, 2x1x1x2', math => {
+    it('simple batchnorm4D, no offset, 2x1x1x2', () => {
       const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
       const scale = Array1D.new([4, 5]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization4D(
+      const result = dl.batchNormalization4D(
           x, mean, variance, varianceEpsilon, scale, undefined);
 
       test_util.expectArraysClose(
@@ -74,7 +75,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm4D, no scale, 2x1x1x2', math => {
+    it('simple batchnorm4D, no scale, 2x1x1x2', () => {
       const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
@@ -82,7 +83,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization4D(
+      const result = dl.batchNormalization4D(
           x, mean, variance, varianceEpsilon, undefined, offset);
 
       test_util.expectArraysClose(
@@ -104,7 +105,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm4D, 2x1x1x2', math => {
+    it('simple batchnorm4D, 2x1x1x2', () => {
       const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
@@ -113,7 +114,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization4D(
+      const result = dl.batchNormalization4D(
           x, mean, variance, varianceEpsilon, scale, offset);
 
       test_util.expectArraysClose(
@@ -144,18 +145,18 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
   ]);
 }
 
-// math.batchNormalization3D
+// dl.batchNormalization3D
 {
   // TODO(nsthorat): Fix the precision for byte-packed batchnorm.
   const epsilon = 1e-1;
   const tests: MathTests = it => {
-    it('simple batchnorm3D, no offset or scale, 2x1x2', math => {
+    it('simple batchnorm3D, no offset or scale, 2x1x2', () => {
       const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization3D(
+      const result = dl.batchNormalization3D(
           x, mean, variance, varianceEpsilon, undefined, undefined);
 
       test_util.expectArraysClose(
@@ -172,14 +173,14 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm3D, no offset, 2x1x2', math => {
+    it('simple batchnorm3D, no offset, 2x1x2', () => {
       const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
       const scale = Array1D.new([4, 5]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization3D(
+      const result = dl.batchNormalization3D(
           x, mean, variance, varianceEpsilon, scale, undefined);
 
       test_util.expectArraysClose(
@@ -196,7 +197,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm3D, no scale, 2x1x2', math => {
+    it('simple batchnorm3D, no scale, 2x1x2', () => {
       const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
@@ -204,7 +205,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization3D(
+      const result = dl.batchNormalization3D(
           x, mean, variance, varianceEpsilon, undefined, offset);
 
       test_util.expectArraysClose(
@@ -225,7 +226,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm3D, 2x1x2', math => {
+    it('simple batchnorm3D, 2x1x2', () => {
       const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
@@ -234,7 +235,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization3D(
+      const result = dl.batchNormalization3D(
           x, mean, variance, varianceEpsilon, scale, offset);
 
       test_util.expectArraysClose(
@@ -255,7 +256,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('batchnorm matches tensorflow, 2x3x3', math => {
+    it('batchnorm matches tensorflow, 2x3x3', () => {
       const x = Array3D.new(
           [2, 3, 3], [
             0.49955603, 0.04158615, -1.09440524, 2.03854165, -0.61578344,
@@ -269,7 +270,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const scale = Array1D.new([-0.5607271, 0.9878457, 0.25181573]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization3D(
+      const result = dl.batchNormalization3D(
           x, mean, variance, varianceEpsilon, scale, offset);
 
       test_util.expectArraysClose(
@@ -290,18 +291,18 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
   ]);
 }
 
-// math.batchNormalization2D
+// dl.batchNormalization2D
 {
   // TODO(nsthorat): Fix the precision for byte-packed batchnorm.
   const epsilon = 1e-1;
   const tests: MathTests = it => {
-    it('simple batchnorm2D, no offset or scale, 2x2', math => {
+    it('simple batchnorm2D, no offset or scale, 2x2', () => {
       const x = Array2D.new([2, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization2D(
+      const result = dl.batchNormalization2D(
           x, mean, variance, varianceEpsilon, undefined, undefined);
 
       test_util.expectArraysClose(
@@ -317,14 +318,14 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           ],
           epsilon);
     });
-    it('simple batchnorm2D, no offset, 2x2', math => {
+    it('simple batchnorm2D, no offset, 2x2', () => {
       const x = Array2D.new([2, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
       const scale = Array1D.new([4, 5]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization2D(
+      const result = dl.batchNormalization2D(
           x, mean, variance, varianceEpsilon, scale, undefined);
 
       test_util.expectArraysClose(
@@ -341,7 +342,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm2D, no scale, 2x2', math => {
+    it('simple batchnorm2D, no scale, 2x2', () => {
       const x = Array2D.new([2, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
@@ -349,7 +350,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization2D(
+      const result = dl.batchNormalization2D(
           x, mean, variance, varianceEpsilon, undefined, offset);
 
       test_util.expectArraysClose(
@@ -370,7 +371,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('simple batchnorm2D, 2x2', math => {
+    it('simple batchnorm2D, 2x2', () => {
       const x = Array2D.new([2, 2], [2, 100, 4, 400]);
       const mean = Array1D.new([1, 2]);
       const variance = Array1D.new([2, 3]);
@@ -379,7 +380,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization2D(
+      const result = dl.batchNormalization2D(
           x, mean, variance, varianceEpsilon, scale, offset);
 
       test_util.expectArraysClose(
@@ -400,7 +401,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
 
-    it('batchnorm2D matches tensorflow, 3x3', math => {
+    it('batchnorm2D matches tensorflow, 3x3', () => {
       const x =
           Array2D.new([3, 3], [
                         0.3136892, 0.92389025, 0.594782, 0.05021042, 0.67545404,
@@ -412,7 +413,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
       const scale = Array1D.new([0.62186907, 0.85673736, 0.19201061]);
       const varianceEpsilon = .001;
 
-      const result = math.batchNormalization2D(
+      const result = dl.batchNormalization2D(
           x, mean, variance, varianceEpsilon, scale, offset);
 
       test_util.expectArraysClose(
