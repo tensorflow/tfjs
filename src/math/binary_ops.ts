@@ -306,7 +306,12 @@ export class Ops {
   static minimum<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.executeKernel('Minimum', {inputs: {a, b}}) as T;
+    const der = (dy: NDArray, y: NDArray) => {
+      const derA = () => dy.mul(a.lessEqual(b).toFloat());
+      const derB = () => dy.mul(a.greater(b).toFloat());
+      return {a: derA, b: derB};
+    };
+    return ENV.engine.executeKernel('Minimum', {inputs: {a, b}}, der) as T;
   }
 
   /**
@@ -333,7 +338,12 @@ export class Ops {
   static maximum<T extends NDArray>(a: NDArray, b: NDArray): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.executeKernel('Maximum', {inputs: {a, b}}) as T;
+    const der = (dy: NDArray, y: NDArray) => {
+      const derA = () => dy.mul(a.greaterEqual(b).toFloat());
+      const derB = () => dy.mul(a.less(b).toFloat());
+      return {a: derA, b: derB};
+    };
+    return ENV.engine.executeKernel('Maximum', {inputs: {a, b}}, der) as T;
   }
 
   /**
