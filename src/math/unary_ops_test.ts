@@ -1396,6 +1396,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
 // math.selu
 {
+  const scaleAlpha = 1.7580993408473768599402175208123;
+  const scale = 1.0507009873554804934193349852946;
+
   const tests: MathTests = it => {
     it('calculate selu', math => {
       const a = Array1D.new([1, -1, 0]);
@@ -1410,6 +1413,50 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       const result = math.selu(a);
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [1.0507, NaN]);
+    });
+
+    it('gradients: Array1D', math => {
+      const aValues = [1, -1, 0];
+      const dyValues = [1, 2, 3];
+      const a = Array1D.new(aValues);
+      const dy = Array1D.new(dyValues);
+
+      const gradients = math.vjp(() => math.selu(a), a, dy);
+
+      const expected = [];
+      for (let i = 0; i < a.size; i++) {
+        if (aValues[i] > 0) {
+          expected[i] = dyValues[i] * scale;
+        } else {
+          expected[i] = dyValues[i] * scaleAlpha * Math.exp(aValues[i]);
+        }
+      }
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, expected, 1e-1);
+    });
+
+    it('gradients: Array2D', math => {
+      const aValues = [1, -1, 0, 0.5];
+      const dyValues = [1, 2, 3, 4];
+      const a = Array2D.new([2, 2], aValues);
+      const dy = Array2D.new([2, 2], dyValues);
+
+      const gradients = math.vjp(() => math.selu(a), a, dy);
+
+      const expected = [];
+      for (let i = 0; i < a.size; i++) {
+        if (aValues[i] > 0) {
+          expected[i] = dyValues[i] * scale;
+        } else {
+          expected[i] = dyValues[i] * scaleAlpha * Math.exp(aValues[i]);
+        }
+      }
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, expected, 1e-1);
     });
   };
   test_util.describeMathCPU('selu', [tests]);
