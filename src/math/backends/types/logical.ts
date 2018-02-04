@@ -29,7 +29,7 @@ export interface EqualNode extends KernelNode {
   };
 }
 
-// LogicalAnd/LogicalOr
+// LogicalAnd/LogicalOr/LogicalXor
 export interface LogicalNode extends KernelNode {
   inputAndArgs: {inputs: {a: NDArray; b: NDArray;};};
   output: NDArray;

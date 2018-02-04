@@ -94,6 +94,7 @@ export interface MathBackend extends NDArrayStorage, BackendTimer {
 
   logicalAnd(a: NDArray, b: NDArray): NDArray;
   logicalOr(a: NDArray, b: NDArray): NDArray;
+  logicalXor(a: NDArray, b: NDArray): NDArray;
 
   where(condition: NDArray, a: NDArray, b: NDArray, dtype: DataType): NDArray;
 

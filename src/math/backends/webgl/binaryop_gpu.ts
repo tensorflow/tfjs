@@ -55,6 +55,9 @@ export const LOGICAL_AND = CHECK_NAN_SNIPPET + `
 export const LOGICAL_OR = CHECK_NAN_SNIPPET + `
   return float(a >= 1.0 || b >= 1.0);
 `;
+export const LOGICAL_XOR = CHECK_NAN_SNIPPET + `
+  return float(a >= 1.0 ^^ b >= 1.0);
+`;
 export const PRELU = `
   return (a >= 0.0) ? a : b * a;
 `;

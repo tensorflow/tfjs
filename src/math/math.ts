@@ -131,6 +131,7 @@ export class NDArrayMath {
 
   logicalAnd = logical.Ops.logicalAnd;
   logicalOr = logical.Ops.logicalOr;
+  logicalXor = logical.Ops.logicalXor;
   where = logical.Ops.where;
 
   transpose = transpose.Ops.transpose;

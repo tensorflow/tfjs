@@ -464,6 +464,16 @@ export class MathBackendCPU implements MathBackend {
     });
   }
 
+  logicalXor(a: NDArray, b: NDArray): NDArray {
+    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
+      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
+        return util.getNaN('bool');
+      } else {
+        return aVal ^ bVal;
+      }
+    });
+  }
+
   where(condition: NDArray, a: NDArray, b: NDArray, dtype: DataType): NDArray {
     const values = condition.dataSync();
     const aValues = a.dataSync();
