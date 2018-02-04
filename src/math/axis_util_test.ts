@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import * as axis_util from './axis_util';
@@ -285,8 +284,8 @@ describe('axis_util getUndoAxesPermutation', () => {
     const undoPermutation = axis_util.getUndoAxesPermutation(axes);
 
     const a = dl.randNormal([2, 3, 4, 5]);
-    const aT = ENV.math.transpose(a, axes);
-    const aTT = ENV.math.transpose(aT, undoPermutation);
+    const aT = dl.transpose(a, axes);
+    const aTT = dl.transpose(aT, undoPermutation);
     test_util.expectArraysClose(a, aTT);
   });
 });

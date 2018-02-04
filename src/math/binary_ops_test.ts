@@ -15,49 +15,50 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {Array1D, Array2D, Scalar} from './ndarray';
 
-// math.prelu
+// dl.prelu
 {
   const tests: MathTests = it => {
-    it('basic', math => {
+    it('basic', () => {
       const x = Array1D.new([0, 1, -2, -4]);
       const a = Array1D.new([0.15, 0.2, 0.25, 0.15]);
-      const result = math.prelu(x, a);
+      const result = dl.prelu(x, a);
 
       expect(result.shape).toEqual(x.shape);
       test_util.expectArraysClose(result, [0, 1, -0.5, -0.6]);
     });
 
-    it('propagates NaN', math => {
+    it('propagates NaN', () => {
       const x = Array1D.new([0, 1, NaN]);
       const a = Array1D.new([0.15, 0.2, 0.25]);
-      const result = math.prelu(x, a);
+      const result = dl.prelu(x, a);
 
       expect(result.shape).toEqual(x.shape);
       test_util.expectArraysClose(result, [0, 1, NaN]);
     });
 
-    it('derivative', math => {
+    it('derivative', () => {
       const x = Array1D.new([0.5, 3, -0.1, -4]);
       const a = Array1D.new([0.2, 0.4, 0.25, 0.15]);
       const dy = Array1D.new([1, 1, 1, 1]);
 
-      const dx = math.vjp(() => math.prelu(x, a), x, dy);
+      const dx = dl.vjp(() => dl.prelu(x, a), x, dy);
 
       expect(dx.shape).toEqual(x.shape);
       expect(dx.dtype).toEqual('float32');
       test_util.expectArraysClose(dx, [1, 1, 0.25, 0.15]);
     });
 
-    it('derivative propagates NaN', math => {
+    it('derivative propagates NaN', () => {
       const x = Array1D.new([0.5, -0.1, NaN]);
       const a = Array1D.new([0.2, 0.3, 0.25]);
       const dy = Array1D.new([5, 50, 500]);
 
-      const dx = math.vjp(() => math.prelu(x, a), x, dy);
+      const dx = dl.vjp(() => dl.prelu(x, a), x, dy);
 
       expect(dx.shape).toEqual(x.shape);
       expect(dx.dtype).toEqual('float32');
@@ -73,85 +74,85 @@ import {Array1D, Array2D, Scalar} from './ndarray';
   ]);
 }
 
-// math.maximum
+// dl.maximum
 {
   const tests: MathTests = it => {
-    it('float32 and float32', math => {
+    it('float32 and float32', () => {
       const a = Array1D.new([0.5, 3, -0.1, -4]);
       const b = Array1D.new([0.2, 0.4, 0.25, 0.15]);
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.5, 3, 0.25, 0.15]);
     });
 
-    it('int32 and int32', math => {
+    it('int32 and int32', () => {
       const a = Array1D.new([1, 5, 2, 3], 'int32');
       const b = Array1D.new([2, 3, 1, 4], 'int32');
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       expect(result.dtype).toBe('int32');
       test_util.expectArraysEqual(result, [2, 5, 2, 4]);
     });
 
-    it('bool and bool', math => {
+    it('bool and bool', () => {
       const a = Array1D.new([true, false, false, true], 'bool');
       const b = Array1D.new([false, false, true, true], 'bool');
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       expect(result.dtype).toBe('bool');
       test_util.expectArraysEqual(result, [true, false, true, true]);
     });
 
-    it('different dtypes throws error', math => {
+    it('different dtypes throws error', () => {
       const a = Array1D.new([true, false, false, true], 'float32');
       const b = Array1D.new([false, false, true, true], 'int32');
       // tslint:disable-next-line:no-any
-      expect(() => math.maximum(a, b as any)).toThrowError();
+      expect(() => dl.maximum(a, b as any)).toThrowError();
     });
 
-    it('propagates NaN', math => {
+    it('propagates NaN', () => {
       const a = Array1D.new([0.5, -0.1, NaN]);
       const b = Array1D.new([0.2, 0.3, 0.25]);
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.5, 0.3, NaN]);
     });
 
-    it('broadcasts array1d and scalar', math => {
+    it('broadcasts array1d and scalar', () => {
       const a = Array1D.new([0.5, 3, -0.1, -4]);
       const b = Scalar.new(0.6);
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.6, 3, 0.6, 0.6]);
     });
 
-    it('broadcasts scalar and array1d', math => {
+    it('broadcasts scalar and array1d', () => {
       const a = Scalar.new(0.6);
       const b = Array1D.new([0.5, 3, -0.1, -4]);
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.6, 3, 0.6, 0.6]);
     });
 
-    it('broadcasts array1d and array2d', math => {
+    it('broadcasts array1d and array2d', () => {
       const a = Array1D.new([0.5, 0.3]);
       const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.5, 0.4, 0.6, 0.3]);
     });
 
-    it('broadcasts 2x1 array2d and 2x2 array2d', math => {
+    it('broadcasts 2x1 array2d and 2x2 array2d', () => {
       const a = Array2D.new([2, 1], [0.5, 0.3]);
       const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
-      const result = math.maximum(a, b);
+      const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.5, 0.5, 0.6, 0.3]);
@@ -218,85 +219,85 @@ import {Array1D, Array2D, Scalar} from './ndarray';
   ]);
 }
 
-// math.minimum
+// dl.minimum
 {
   const tests: MathTests = it => {
-    it('float32 and float32', math => {
+    it('float32 and float32', () => {
       const a = Array1D.new([0.5, 3, -0.1, -4]);
       const b = Array1D.new([0.2, 0.4, 0.25, 0.15]);
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.2, 0.4, -0.1, -4]);
     });
 
-    it('int32 and int32', math => {
+    it('int32 and int32', () => {
       const a = Array1D.new([1, 5, 2, 3], 'int32');
       const b = Array1D.new([2, 3, 1, 4], 'int32');
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       expect(result.dtype).toBe('int32');
       test_util.expectArraysEqual(result, [1, 3, 1, 3]);
     });
 
-    it('bool and bool', math => {
+    it('bool and bool', () => {
       const a = Array1D.new([true, false, false, true], 'bool');
       const b = Array1D.new([false, false, true, true], 'bool');
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       expect(result.dtype).toBe('bool');
       test_util.expectArraysEqual(result, [false, false, false, true]);
     });
 
-    it('different dtypes throws error', math => {
+    it('different dtypes throws error', () => {
       const a = Array1D.new([true, false, false, true], 'float32');
       const b = Array1D.new([false, false, true, true], 'int32');
       // tslint:disable-next-line:no-any
-      expect(() => math.minimum(a, b as any)).toThrowError();
+      expect(() => dl.minimum(a, b as any)).toThrowError();
     });
 
-    it('propagates NaN', math => {
+    it('propagates NaN', () => {
       const a = Array1D.new([0.5, -0.1, NaN]);
       const b = Array1D.new([0.2, 0.3, 0.25]);
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.2, -0.1, NaN]);
     });
 
-    it('broadcasts array1d and scalar', math => {
+    it('broadcasts array1d and scalar', () => {
       const a = Array1D.new([0.5, 3, -0.1, -4]);
       const b = Scalar.new(0.6);
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.5, 0.6, -0.1, -4]);
     });
 
-    it('broadcasts scalar and array1d', math => {
+    it('broadcasts scalar and array1d', () => {
       const a = Scalar.new(0.6);
       const b = Array1D.new([0.5, 3, -0.1, -4]);
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.5, 0.6, -0.1, -4]);
     });
 
-    it('broadcasts array1d and array2d', math => {
+    it('broadcasts array1d and array2d', () => {
       const a = Array1D.new([0.5, 0.3]);
       const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.2, 0.3, 0.5, 0.15]);
     });
 
-    it('broadcasts 2x1 array2d and 2x2 array2d', math => {
+    it('broadcasts 2x1 array2d and 2x2 array2d', () => {
       const a = Array2D.new([2, 1], [0.5, 0.3]);
       const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
-      const result = math.minimum(a, b);
+      const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.2, 0.4, 0.3, 0.15]);
