@@ -56,10 +56,10 @@ import {Rank} from './types';
         dl.zeros<Rank.R2>([1, lstmBias2.shape[0] / 4])
       ];
 
-      const onehot = dl.zeros<Rank.R2>([1, 2]);
+      const onehot = dl.buffer<Rank.R2>([1, 2], 'float32');
       onehot.set(1.0, 0, 0);
 
-      const output = math.multiRNNCell([lstm1, lstm2], onehot, c, h);
+      const output = math.multiRNNCell([lstm1, lstm2], onehot.toTensor(), c, h);
 
       test_util.expectArraysClose(output[0][0], [-0.7440074682235718]);
       test_util.expectArraysClose(output[0][1], [0.7460772395133972]);

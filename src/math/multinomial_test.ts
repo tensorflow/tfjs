@@ -60,11 +60,11 @@ const tests: MathTests = it => {
 
   it('Flip a ten-sided coin and check bounds', math => {
     const numOutcomes = 10;
-    const probs = dl.zeros<Rank.R1>([numOutcomes]);
+    const probs = dl.buffer<Rank.R1>([numOutcomes], 'float32');
     for (let i = 0; i < numOutcomes; ++i) {
       probs.set(1 / numOutcomes, i);
     }
-    const result = math.multinomial(probs, NUM_SAMPLES);
+    const result = math.multinomial(probs.toTensor(), NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), numOutcomes);

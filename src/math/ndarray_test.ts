@@ -314,43 +314,7 @@ const testsNew: MathTests = it => {
     expect(f).toThrowError();
   });
 };
-const testsFill: MathTests = it => {
-  it('1D fill', () => {
-    const a = dl.zeros<Rank.R1>([3]);
-    a.fill(2);
 
-    expect(a.dtype).toBe('float32');
-    expect(a.shape).toEqual([3]);
-    test_util.expectArraysClose(a, [2, 2, 2]);
-  });
-
-  it('2D fill', () => {
-    const a = dl.zeros<Rank.R1>([3, 2]);
-    a.fill(2);
-
-    expect(a.dtype).toBe('float32');
-    expect(a.shape).toEqual([3, 2]);
-    test_util.expectArraysClose(a, [2, 2, 2, 2, 2, 2]);
-  });
-
-  it('3D fill', () => {
-    const a = dl.zeros<Rank.R1>([3, 2, 1]);
-    a.fill(2);
-
-    expect(a.dtype).toBe('float32');
-    expect(a.shape).toEqual([3, 2, 1]);
-    test_util.expectArraysClose(a, [2, 2, 2, 2, 2, 2]);
-  });
-
-  it('4D fill', () => {
-    const a = dl.zeros<Rank.R1>([3, 2, 1, 2]);
-    a.fill(2);
-
-    expect(a.dtype).toBe('float32');
-    expect(a.shape).toEqual([3, 2, 1, 2]);
-    test_util.expectArraysClose(a, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
-  });
-};
 const testsScalarNew: MathTests = it => {
   it('default dtype', () => {
     const a = Scalar.new(3);
@@ -876,7 +840,7 @@ const testsAsXD: MathTests = it => {
 };
 
 const allTests = [
-  tests, testsNew, testsFill, testsScalarNew, testsArray1DNew, testsArray2DNew,
+  tests, testsNew, testsScalarNew, testsArray1DNew, testsArray2DNew,
   testsArray3DNew, testsArray4DNew, testsReshape, testsAsType, testsAsXD,
   testSqueeze
 ];
