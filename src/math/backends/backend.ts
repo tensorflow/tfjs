@@ -92,6 +92,7 @@ export interface MathBackend extends NDArrayStorage, BackendTimer {
   greater(a: NDArray, b: NDArray): NDArray;
   greaterEqual(a: NDArray, b: NDArray): NDArray;
 
+  logicalNot(a: NDArray): NDArray;
   logicalAnd(a: NDArray, b: NDArray): NDArray;
   logicalOr(a: NDArray, b: NDArray): NDArray;
   logicalXor(a: NDArray, b: NDArray): NDArray;
