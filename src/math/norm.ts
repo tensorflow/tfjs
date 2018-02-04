@@ -16,7 +16,7 @@
  */
 
 import * as axis_util from './axis_util';
-import {operation} from './decorators';
+import {doc, operation} from './decorators';
 import {NDArray, Scalar} from './ndarray';
 
 export class Ops {
@@ -48,6 +48,7 @@ export class Ops {
    * @param keepDims Optional. If true, the norm have the same dimensionality
    * as the input.
    */
+  @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static norm(
       x: NDArray, ord: number|'euclidean'|'fro' = 'euclidean',

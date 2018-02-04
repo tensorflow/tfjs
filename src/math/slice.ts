@@ -16,7 +16,8 @@
  */
 
 import {ENV} from '../environment';
-import {operation} from './decorators';
+
+import {doc, operation} from './decorators';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from './ndarray';
 import * as slice_util from './slice_util';
 import {Rank, ShapeMap} from './types';
@@ -30,6 +31,7 @@ export class Ops {
    * @param begin The offset to start the slice from.
    * @param size The size of the slice.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice1D(x: Array1D, begin: number, size: number): Array1D {
     slice_util.assertParamsValid(x, [begin], [size]);
@@ -45,6 +47,7 @@ export class Ops {
    * @param begin The [row, col] 2d coordinates to start the slice from.
    * @param size The size of the slice.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice2D(x: Array2D, begin: [number, number], size: [number, number]):
       Array2D {
@@ -61,6 +64,7 @@ export class Ops {
    * @param begin The [row, col, depth] 3d coordinates to start the slice from.
    * @param size The size of the slice.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice3D(x: Array3D, begin: [number, number, number], size: [
     number, number, number
@@ -79,6 +83,7 @@ export class Ops {
    *              slice from.
    * @param size The size of the slice.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice4D(x: Array4D, begin: [number, number, number, number], size: [
     number, number, number, number
@@ -88,6 +93,7 @@ export class Ops {
                'Slice4D', {inputs: {x}, args: {begin, size}}) as Array4D;
   }
 
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice<R extends Rank>(
       x: NDArray<R>, begin: ShapeMap[R], size: ShapeMap[R]): NDArray<R> {

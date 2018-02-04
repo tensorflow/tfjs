@@ -17,8 +17,9 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
+
 import * as concat_util from './concat_util';
-import {operation} from './decorators';
+import {doc, operation} from './decorators';
 import {Array1D, Array2D, Array3D, Array4D, NDArray} from './ndarray';
 
 export class Ops {
@@ -34,6 +35,7 @@ export class Ops {
    * @param b The second array.
    * @return The concatenated array.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static concat1D(a: Array1D, b: Array1D): Array1D {
     return Ops.concat(a, b, 0 /* axis */);
@@ -67,6 +69,7 @@ export class Ops {
    * @param axis The axis to concatenate along.
    * @return The concatenated array.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
     return Ops.concat(a, b, axis);
@@ -103,6 +106,7 @@ export class Ops {
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
     return Ops.concat(a, b, axis);
@@ -117,11 +121,13 @@ export class Ops {
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
     return Ops.concat(a, b, axis);
   }
 
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static concat<T extends NDArray>(a: T, b: T, axis: number): T {
     concat_util.assertParams(a.shape, b.shape, axis);

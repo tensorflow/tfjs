@@ -17,8 +17,9 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
+
 import * as axis_util from './axis_util';
-import {operation} from './decorators';
+import {doc, operation} from './decorators';
 import {NDArray} from './ndarray';
 import {Rank} from './types';
 
@@ -34,6 +35,7 @@ export class Ops {
    * @param x The array to transpose.
    * @param perm Optional. The permutation of the dimensions of a.
    */
+  @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static transpose<R extends Rank>(x: NDArray<R>, perm?: number[]): NDArray<R> {
     if (perm == null) {

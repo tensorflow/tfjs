@@ -1,0 +1,39 @@
+<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+<style>
+  body {
+    margin: 10px;
+  }
+  .documentation {
+    white-space: pre;
+  }
+  a {
+    color: inherit;
+  }
+</style>
+
+<h2>deeplearn.js API Reference</h2>
+
+{{#headings}}
+  <div class="heading">
+    <h3>{{name}}</h3>
+    {{#subheadings}}
+      <div class="subheading">
+        <h4>{{name}}</h4>
+        {{#methods}}
+          <div class="method">
+            <h5># <a name="{{path}}" href="#{{path}}">{{path}}</a></h5>
+            Defined in <a href="{{githubUrl}}" target=_blank>{{fileName}}</a><br>
+            <div class="documentation">{{documentation}}</div>
+            <ul>
+              {{#parameters}}
+                <li class="parameter">
+                  {{name}}: {{documentation}}
+                </li>
+              {{/parameters}}
+            </ul>
+          </div>
+        {{/methods}}
+      </div>
+    {{/subheadings}}
+  </div>
+{{/headings}}

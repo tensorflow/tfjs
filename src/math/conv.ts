@@ -17,8 +17,9 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
+
 import * as conv_util from './conv_util';
-import {operation} from './decorators';
+import {doc, operation} from './decorators';
 import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
 export class Ops {
@@ -43,6 +44,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv1d<T extends Array2D|Array3D>(
       input: T, filter: Array3D, bias: Array1D|null, stride: number,
@@ -116,6 +118,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv2d<T extends Array3D|Array4D>(
       x: T, filter: Array4D, bias: Array1D|null,
@@ -191,6 +194,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv2dDerInput<T extends Array3D|Array4D>(
       xShape: [number, number, number, number]|[number, number, number], dy: T,
@@ -349,6 +353,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv2dTranspose<T extends Array3D|Array4D>(
       x: T, filter: Array4D,
@@ -397,6 +402,7 @@ export class Ops {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
+  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static depthwiseConv2D<T extends Array3D|Array4D>(
       input: T, filter: Array4D, strides: [number, number]|number,

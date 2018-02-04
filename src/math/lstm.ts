@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {operation} from './decorators';
+import {doc, operation} from './decorators';
 import {Array1D, Array2D, Scalar} from './ndarray';
 
 export interface LSTMCell {
@@ -34,6 +34,7 @@ export class Ops {
    * @param h Array of previous cell outputs.
    * @return Tuple [nextCellStates, cellOutputs]
    */
+  @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
   static multiRNNCell(
       lstmCells: LSTMCell[], data: Array2D, c: Array2D[], h: Array2D[]):
@@ -67,6 +68,7 @@ export class Ops {
    * @param h Previous cell output.
    * @return Tuple [nextCellState, cellOutput]
    */
+  @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
   static basicLSTMCell(
       forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D, data: Array2D,
