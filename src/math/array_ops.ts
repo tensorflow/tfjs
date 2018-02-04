@@ -18,7 +18,7 @@
 import {ENV} from '../environment';
 import * as util from '../util';
 import {operation} from './decorators';
-import {Array1D, Array2D, Array3D, NDArray} from './ndarray';
+import {Array1D, Array2D, Array3D, NDArray, TensorBuffer} from './ndarray';
 import {MPRandGauss, RandNormalDataTypes} from './rand';
 import {DataType, DataTypeMap, Rank, ShapeMap} from './types';
 
@@ -36,6 +36,17 @@ export class Ops {
   static zeros<R extends Rank>(shape: ShapeMap[R], dtype?: DataType):
       NDArray<R> {
     const values = makeZerosTypedArray(util.sizeFromShape(shape), dtype);
+    return NDArray.make(shape, {values}, dtype);
+  }
+
+  @operation
+  /** Creates an NDArray filled with a value. */
+  static fill<R extends Rank>(
+      shape: ShapeMap[R], value: number, dtype: DataType = 'float32'):
+      NDArray<R> {
+    const values =
+        util.getTypedArrayFromDType(dtype, util.sizeFromShape(shape));
+    values.fill(value);
     return NDArray.make(shape, {values}, dtype);
   }
 
@@ -343,6 +354,17 @@ export class Ops {
     }
 
     return Array1D.new(values, dtype);
+  }
+
+  /**
+   * Creates an empty `TensorBuffer` with the specified `shape` and `dtype`.
+   * The values are stored in cpu as a `TypedArray`. Fill the buffer using
+   * `buffer.set()`, or by modifying directly `buffer.values`. When done,
+   * call `buffer.toTensor()` to get an immutable `Tensor` with those values.
+   */
+  static buffer<R extends Rank>(shape: ShapeMap[R], dtype: DataType):
+      TensorBuffer<R> {
+    return new TensorBuffer<R>(shape, dtype);
   }
 }
 

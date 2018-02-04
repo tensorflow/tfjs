@@ -272,15 +272,15 @@ const gpuTests: MathTests = it => {
   it('Matrix times vector, large matrix', math => {
     const maxTexSize = 16000;
     const sharedDim = maxTexSize + 4;
-    const matrix = dl.zeros<Rank.R2>([2, sharedDim]);
+    const matrix = dl.buffer<Rank.R2>([2, sharedDim], 'float32');
     matrix.set(1, 0, sharedDim - 3);
     matrix.set(1, 0, sharedDim - 2);
 
-    const v = dl.zeros<Rank.R1>([sharedDim]);
+    const v = dl.buffer<Rank.R1>([sharedDim], 'float32');
     v.set(1, sharedDim - 3);
     v.set(1, sharedDim - 2);
 
-    const result = math.matrixTimesVector(matrix, v);
+    const result = math.matrixTimesVector(matrix.toTensor(), v.toTensor());
     const expected = [2, 0];
     test_util.expectArraysClose(result, expected);
   });

@@ -294,20 +294,23 @@ function updateConditioningParams() {
   const noteDensityIdx = parseInt(densityControl.value, 10) || 0;
   const noteDensity = DENSITY_BIN_RANGES[noteDensityIdx];
   densityDisplay.innerHTML = noteDensity.toString();
-  noteDensityEncoding = dl.Array1D.zeros([DENSITY_BIN_RANGES.length + 1]);
-  noteDensityEncoding.set(1.0, noteDensityIdx + 1);
+  noteDensityEncoding =
+      dl.oneHot(
+            dl.Array1D.new([noteDensityIdx + 1]), DENSITY_BIN_RANGES.length + 1)
+          .as1D();
 
   if (pitchHistogramEncoding != null) {
     pitchHistogramEncoding.dispose();
     pitchHistogramEncoding = null;
   }
-  pitchHistogramEncoding = dl.Array1D.zeros([PITCH_HISTOGRAM_SIZE]);
+  const buffer = dl.buffer<dl.Rank.R1>([PITCH_HISTOGRAM_SIZE], 'float32');
   const pitchHistogramTotal = pitchHistogram.reduce((prev, val) => {
     return prev + val;
   });
   for (let i = 0; i < PITCH_HISTOGRAM_SIZE; i++) {
-    pitchHistogramEncoding.set(pitchHistogram[i] / pitchHistogramTotal, i);
+    buffer.set(pitchHistogram[i] / pitchHistogramTotal, i);
   }
+  pitchHistogramEncoding = buffer.toTensor();
 }
 
 document.getElementById('note-density').oninput = updateConditioningParams;
@@ -395,8 +398,8 @@ function getConditioning(): dl.Array1D {
       // The linter is complaining, though VSCode can infer the types.
       const size = 1 + (noteDensityEncoding.shape[0] as number) +
           (pitchHistogramEncoding.shape[0] as number);
-      const conditioning: dl.Array1D = dl.zeros([size]);
-      conditioning.set(1.0, 0);
+      const conditioning: dl.Array1D =
+          dl.oneHot(dl.Array1D.new([0]), size).as1D();
       return conditioning;
     } else {
       const axis = 0;

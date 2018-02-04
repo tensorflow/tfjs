@@ -16,6 +16,7 @@
  */
 
 import {NDArray} from './math/ndarray';
+import * as ops from './math/ops';
 
 /**
  * Initializer interface, all initializer implement this interface.
@@ -46,11 +47,9 @@ export class VarianceScalingInitializer implements Initializer {
     }
 
     if (this.distribution === 'normal') {
-      return NDArray.randTruncatedNormal(
-          weightsShape, 0.0, Math.sqrt(this.scale / n));
+      return ops.truncatedNormal(weightsShape, 0.0, Math.sqrt(this.scale / n));
     } else if (this.distribution === 'uniform') {
-      return NDArray.randUniform(
-          weightsShape, 0.0, Math.sqrt(3 * this.scale / n));
+      return ops.randUniform(weightsShape, 0.0, Math.sqrt(3 * this.scale / n));
     } else {
       throw new Error(
           `Unexpected distribution for variance scaling initializer: ` +
@@ -64,7 +63,7 @@ export class ZerosInitializer implements Initializer {
 
   initialize(weightsShape: number[], inputUnits: number, outputUnits: number):
       NDArray {
-    return NDArray.zeros(weightsShape);
+    return ops.zeros(weightsShape);
   }
 }
 
@@ -73,9 +72,7 @@ export class OnesInitializer implements Initializer {
 
   initialize(weightsShape: number[], inputUnits: number, outputUnits: number):
       NDArray {
-    const values = NDArray.zeros(weightsShape);
-    values.fill(1);
-    return values;
+    return ops.ones(weightsShape);
   }
 }
 
@@ -84,9 +81,7 @@ export class ConstantInitializer implements Initializer {
 
   initialize(weightsShape: number[], inputUnits: number, outputUnits: number):
       NDArray {
-    const values = NDArray.zeros(weightsShape);
-    values.fill(this.value);
-    return values;
+    return ops.fill(weightsShape, this.value);
   }
 }
 
@@ -104,7 +99,7 @@ export class RandomNormalInitializer implements Initializer {
 
   initialize(weightsShape: number[], inputUnits: number, outputUnits: number):
       NDArray {
-    return NDArray.randNormal(weightsShape, this.mean, this.stdev);
+    return ops.randNormal(weightsShape, this.mean, this.stdev);
   }
 }
 
@@ -113,7 +108,7 @@ export class RandomTruncatedNormalInitializer implements Initializer {
 
   initialize(weightsShape: number[], inputUnits: number, outputUnits: number):
       NDArray {
-    return NDArray.randTruncatedNormal(weightsShape, this.mean, this.stdev);
+    return ops.truncatedNormal(weightsShape, this.mean, this.stdev);
   }
 }
 
@@ -122,6 +117,6 @@ export class RandomUniformInitializer implements Initializer {
 
   initialize(weightsShape: number[], inputUnits: number, outputUnits: number):
       NDArray {
-    return NDArray.randUniform(weightsShape, this.minval, this.maxval);
+    return ops.randUniform(weightsShape, this.minval, this.maxval);
   }
 }

@@ -20,118 +20,117 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
 import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
-import {Rank} from './types';
 
 // dl.zeros
 {
   const tests: MathTests = it => {
     it('1D default dtype', () => {
-      const a = dl.zeros<Rank.R1>([3]);
+      const a: Array1D = dl.zeros([3]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysClose(a, [0, 0, 0]);
     });
 
     it('1D float32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([3], 'float32');
+      const a = dl.zeros([3], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysClose(a, [0, 0, 0]);
     });
 
     it('1D int32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([3], 'int32');
+      const a = dl.zeros([3], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysEqual(a, [0, 0, 0]);
     });
 
     it('1D bool dtype', () => {
-      const a = dl.zeros<Rank.R1>([3], 'bool');
+      const a = dl.zeros([3], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysEqual(a, [0, 0, 0]);
     });
 
     it('2D default dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2]);
+      const a = dl.zeros([3, 2]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysClose(a, [0, 0, 0, 0, 0, 0]);
     });
 
     it('2D float32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2], 'float32');
+      const a = dl.zeros([3, 2], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysClose(a, [0, 0, 0, 0, 0, 0]);
     });
 
     it('2D int32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2], 'int32');
+      const a = dl.zeros([3, 2], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysEqual(a, [0, 0, 0, 0, 0, 0]);
     });
 
     it('2D bool dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2], 'bool');
+      const a = dl.zeros([3, 2], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysEqual(a, [0, 0, 0, 0, 0, 0]);
     });
 
     it('3D default dtype', () => {
-      const a = dl.zeros<Rank.R1>([2, 2, 2]);
+      const a = dl.zeros([2, 2, 2]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysClose(a, [0, 0, 0, 0, 0, 0, 0, 0]);
     });
 
     it('3D float32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([2, 2, 2], 'float32');
+      const a = dl.zeros([2, 2, 2], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysClose(a, [0, 0, 0, 0, 0, 0, 0, 0]);
     });
 
     it('3D int32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([2, 2, 2], 'int32');
+      const a = dl.zeros([2, 2, 2], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysEqual(a, [0, 0, 0, 0, 0, 0, 0, 0]);
     });
 
     it('3D bool dtype', () => {
-      const a = dl.zeros<Rank.R1>([2, 2, 2], 'bool');
+      const a = dl.zeros([2, 2, 2], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysEqual(a, [0, 0, 0, 0, 0, 0, 0, 0]);
     });
 
     it('4D default dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2, 1, 1]);
+      const a = dl.zeros([3, 2, 1, 1]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysClose(a, [0, 0, 0, 0, 0, 0]);
     });
 
     it('4D float32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2, 1, 1], 'float32');
+      const a = dl.zeros([3, 2, 1, 1], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysClose(a, [0, 0, 0, 0, 0, 0]);
     });
 
     it('4D int32 dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2, 1, 1], 'int32');
+      const a = dl.zeros([3, 2, 1, 1], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysEqual(a, [0, 0, 0, 0, 0, 0]);
     });
 
     it('4D bool dtype', () => {
-      const a = dl.zeros<Rank.R1>([3, 2, 1, 1], 'bool');
+      const a = dl.zeros([3, 2, 1, 1], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysEqual(a, [0, 0, 0, 0, 0, 0]);
@@ -150,112 +149,112 @@ import {Rank} from './types';
 {
   const tests: MathTests = it => {
     it('1D default dtype', () => {
-      const a = dl.ones<Rank.R1>([3]);
+      const a = dl.ones([3]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysClose(a, [1, 1, 1]);
     });
 
     it('1D float32 dtype', () => {
-      const a = dl.ones<Rank.R1>([3], 'float32');
+      const a = dl.ones([3], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysClose(a, [1, 1, 1]);
     });
 
     it('1D int32 dtype', () => {
-      const a = dl.ones<Rank.R1>([3], 'int32');
+      const a = dl.ones([3], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysEqual(a, [1, 1, 1]);
     });
 
     it('1D bool dtype', () => {
-      const a = dl.ones<Rank.R1>([3], 'bool');
+      const a = dl.ones([3], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysEqual(a, [1, 1, 1]);
     });
 
     it('2D default dtype', () => {
-      const a = dl.ones<Rank.R2>([3, 2]);
+      const a = dl.ones([3, 2]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysClose(a, [1, 1, 1, 1, 1, 1]);
     });
 
     it('2D float32 dtype', () => {
-      const a = dl.ones<Rank.R2>([3, 2], 'float32');
+      const a = dl.ones([3, 2], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysClose(a, [1, 1, 1, 1, 1, 1]);
     });
 
     it('2D int32 dtype', () => {
-      const a = dl.ones<Rank.R2>([3, 2], 'int32');
+      const a = dl.ones([3, 2], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysEqual(a, [1, 1, 1, 1, 1, 1]);
     });
 
     it('2D bool dtype', () => {
-      const a = dl.ones<Rank.R2>([3, 2], 'bool');
+      const a = dl.ones([3, 2], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([3, 2]);
       test_util.expectArraysEqual(a, [1, 1, 1, 1, 1, 1]);
     });
 
     it('3D default dtype', () => {
-      const a = dl.ones<Rank.R3>([2, 2, 2]);
+      const a = dl.ones([2, 2, 2]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysClose(a, [1, 1, 1, 1, 1, 1, 1, 1]);
     });
 
     it('3D float32 dtype', () => {
-      const a = dl.ones<Rank.R3>([2, 2, 2], 'float32');
+      const a = dl.ones([2, 2, 2], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysClose(a, [1, 1, 1, 1, 1, 1, 1, 1]);
     });
 
     it('3D int32 dtype', () => {
-      const a = dl.ones<Rank.R3>([2, 2, 2], 'int32');
+      const a = dl.ones([2, 2, 2], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysEqual(a, [1, 1, 1, 1, 1, 1, 1, 1]);
     });
 
     it('3D bool dtype', () => {
-      const a = dl.ones<Rank.R3>([2, 2, 2], 'bool');
+      const a = dl.ones([2, 2, 2], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([2, 2, 2]);
       test_util.expectArraysEqual(a, [1, 1, 1, 1, 1, 1, 1, 1]);
     });
 
     it('4D default dtype', () => {
-      const a = dl.ones<Rank.R4>([3, 2, 1, 1]);
+      const a = dl.ones([3, 2, 1, 1]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysClose(a, [1, 1, 1, 1, 1, 1]);
     });
 
     it('4D float32 dtype', () => {
-      const a = dl.ones<Rank.R4>([3, 2, 1, 1], 'float32');
+      const a = dl.ones([3, 2, 1, 1], 'float32');
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysClose(a, [1, 1, 1, 1, 1, 1]);
     });
 
     it('4D int32 dtype', () => {
-      const a = dl.ones<Rank.R4>([3, 2, 1, 1], 'int32');
+      const a = dl.ones([3, 2, 1, 1], 'int32');
       expect(a.dtype).toBe('int32');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysEqual(a, [1, 1, 1, 1, 1, 1]);
     });
 
     it('4D bool dtype', () => {
-      const a = dl.ones<Rank.R4>([3, 2, 1, 1], 'bool');
+      const a = dl.ones([3, 2, 1, 1], 'bool');
       expect(a.dtype).toBe('bool');
       expect(a.shape).toEqual([3, 2, 1, 1]);
       test_util.expectArraysEqual(a, [1, 1, 1, 1, 1, 1]);
@@ -1699,6 +1698,46 @@ import {Rank} from './types';
 
   test_util.describeMathCPU('range', [testsRange]);
   test_util.describeMathGPU('range', [testsRange], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// dl.fill
+{
+  const testsFill: MathTests = it => {
+    it('1D fill', () => {
+      const a = dl.fill([3], 2);
+      expect(a.dtype).toBe('float32');
+      expect(a.shape).toEqual([3]);
+      test_util.expectArraysClose(a, [2, 2, 2]);
+    });
+
+    it('2D fill', () => {
+      const a = dl.fill([3, 2], 2);
+      expect(a.dtype).toBe('float32');
+      expect(a.shape).toEqual([3, 2]);
+      test_util.expectArraysClose(a, [2, 2, 2, 2, 2, 2]);
+    });
+
+    it('3D fill', () => {
+      const a = dl.fill([3, 2, 1], 2);
+      expect(a.dtype).toBe('float32');
+      expect(a.shape).toEqual([3, 2, 1]);
+      test_util.expectArraysClose(a, [2, 2, 2, 2, 2, 2]);
+    });
+
+    it('4D fill', () => {
+      const a = dl.fill([3, 2, 1, 2], 2);
+      expect(a.dtype).toBe('float32');
+      expect(a.shape).toEqual([3, 2, 1, 2]);
+      test_util.expectArraysClose(a, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
+    });
+  };
+
+  test_util.describeMathCPU('fill', [testsFill]);
+  test_util.describeMathGPU('fill', [testsFill], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

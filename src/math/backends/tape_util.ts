@@ -221,7 +221,9 @@ export function extractNDArraysFromScopeResult(result: ScopeResultImmediate):
   const resultObj = result as {[key: string]: NDArray};
   // Iteration over keys works also for arrays.
   for (const k in resultObj) {
-    list.push(...util.flatten(resultObj[k]).filter(x => x != null));
+    const sublist =
+        util.flatten(resultObj[k]).filter(x => x instanceof NDArray);
+    list.push(...sublist);
   }
   return list;
 }
