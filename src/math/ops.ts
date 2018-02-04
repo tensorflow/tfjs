@@ -99,6 +99,7 @@ export const notEqualStrict = compare_ops.Ops.notEqualStrict;
 
 export const logicalAnd = logical_ops.Ops.logicalAnd;
 export const logicalOr = logical_ops.Ops.logicalOr;
+export const logicalXor = logical_ops.Ops.logicalXor;
 export const where = logical_ops.Ops.where;
 
 export const abs = unary_ops.Ops.abs;

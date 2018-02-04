@@ -576,6 +576,13 @@ export class MathBackendWebGL implements MathBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
+  logicalXor(a: NDArray, b: NDArray): NDArray {
+    const program =
+        new BinaryOpProgram(binaryop_gpu.LOGICAL_XOR, a.shape, b.shape);
+    const output = this.makeOutputArray(program.outputShape, 'bool');
+    return this.compileAndRun(program, [a, b], output);
+  }
+
   where(condition: NDArray, a: NDArray, b: NDArray, dtype: DataType): NDArray {
     const program = new WhereProgram(condition.rank, a.shape, a.rank);
     const output = this.makeOutputArray(program.outputShape, dtype);

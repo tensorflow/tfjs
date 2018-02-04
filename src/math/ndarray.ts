@@ -560,6 +560,10 @@ export class NDArray<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.logicalOr(this, x);
   }
+  logicalXor(x: NDArray): NDArray {
+    this.throwIfDisposed();
+    return ops.logicalXor(this, x);
+  }
   where(condition: NDArray, x: NDArray): NDArray {
     this.throwIfDisposed();
     return ops.where(condition, this, x);
