@@ -25,6 +25,17 @@ import {DataType} from './types';
 
 export class Ops {
   /**
+   * Returns the truth value of NOT element-wise.
+   *
+   * @param x The input NDArray.
+   */
+  @operation
+  static logicalNot<T extends NDArray>(x: NDArray): T {
+    util.assert(x.dtype === 'bool', 'Error Array must be of type bool.');
+    return ENV.engine.executeKernel('LogicalNot', {inputs: {x}}) as T;
+  }
+
+  /**
    * Returns the truth value of a AND b element-wise. Supports broadcasting.
    *
    * @param a The first input `NDArray`. Must be of dtype bool.

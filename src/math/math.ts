@@ -129,6 +129,7 @@ export class NDArrayMath {
   subtract = this.sub;  // Alias.
   subStrict = binary_ops.Ops.subStrict;
 
+  logicalNot = logical.Ops.logicalNot;
   logicalAnd = logical.Ops.logicalAnd;
   logicalOr = logical.Ops.logicalOr;
   logicalXor = logical.Ops.logicalXor;

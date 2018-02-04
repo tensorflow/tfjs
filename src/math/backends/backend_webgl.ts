@@ -562,6 +562,11 @@ export class MathBackendWebGL implements MathBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
+  logicalNot<T extends NDArray>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.LOGICAL_NOT);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
   logicalAnd(a: NDArray, b: NDArray): NDArray {
     const program =
         new BinaryOpProgram(binaryop_gpu.LOGICAL_AND, a.shape, b.shape);
