@@ -519,6 +519,39 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
       const r = math.ceil(a);
       test_util.expectArraysClose(r, [2, NaN, -1]);
     });
+
+    it('gradients: Scalar', math => {
+      const a = Scalar.new(5.2);
+      const dy = Scalar.new(3);
+
+      const gradients = math.vjp(() => math.ceil(a), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [0], 1e-1);
+    });
+
+    it('gradients: Tensor1D', math => {
+      const a = Tensor1D.new([-1.1, 2.6, 3, -5.9]);
+      const dy = Tensor1D.new([1, 2, 3, 4]);
+
+      const gradients = math.vjp(() => math.ceil(a), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    });
+
+    it('gradients: Tensor2D', math => {
+      const a = Tensor2D.new([2, 2], [-3, 1, 2.2, 3]);
+      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+
+      const gradients = math.vjp(() => math.ceil(a), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    });
   };
 
   test_util.describeMathCPU('ceil', [tests]);
@@ -545,6 +578,39 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
       const a = Tensor1D.new([1.5, NaN, -1.4]);
       const r = math.floor(a);
       test_util.expectArraysClose(r, [1, NaN, -2]);
+    });
+
+    it('gradients: Scalar', math => {
+      const a = Scalar.new(5.2);
+      const dy = Scalar.new(3);
+
+      const gradients = math.vjp(() => math.ceil(a), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [0], 1e-1);
+    });
+
+    it('gradients: Tensor1D', math => {
+      const a = Tensor1D.new([-1.1, 2.6, 3, -5.9]);
+      const dy = Tensor1D.new([1, 2, 3, 4]);
+
+      const gradients = math.vjp(() => math.floor(a), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    });
+
+    it('gradients: Tensor2D', math => {
+      const a = Tensor2D.new([2, 2], [-3, 1, 2.2, 3]);
+      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+
+      const gradients = math.vjp(() => math.floor(a), a, dy);
+
+      expect(gradients.shape).toEqual(a.shape);
+      expect(gradients.dtype).toEqual('float32');
+      test_util.expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
     });
   };
 

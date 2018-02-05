@@ -44,18 +44,24 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static ceil<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Ceil', {inputs: {x}}) as T;
+    const gradient = (dy: T, y: T) => {
+      return {x: () => ops.zeros(y.shape)};
+    };
+    return ENV.engine.executeKernel('Ceil', {inputs: {x}}, gradient) as T;
   }
 
   /**
-   * Computes floor of input Tensor element-wise. y = floor(x).
-   *
-   * @param x The input Tensor.
+   * Computes floor of input NDArray element-wise. y = floor(x).
+   * TODO(manrajgrover): Fix gradient once backprop handles nulls
+   * @param x The input NDArray.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static floor<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Floor', {inputs: {x}}) as T;
+    const gradient = (dy: T, y: T) => {
+      return {x: () => ops.zeros(y.shape)};
+    };
+    return ENV.engine.executeKernel('Floor', {inputs: {x}}, gradient) as T;
   }
 
   /**
