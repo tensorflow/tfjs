@@ -82,7 +82,7 @@ import BasisDimensions from './components/BasisDimensions.vue';
 import FontChooser from './components/FontChooser.vue';
 import Alphabet from './components/Alphabet.vue';
 import {FontModel} from './utils/FontModel';
-import {Array1D} from 'deeplearn';
+import {Tensor1D} from 'deeplearn';
 
 export default {
   components: {
@@ -157,7 +157,7 @@ export default {
       // Set the selected sample and initial dimension slider values based
       // on the provided URL hash.
       this.dimSliderVals = dimVals;
-      this.selectedSample = Array1D.new(dimVals);
+      this.selectedSample = Tensor1D.new(dimVals);
     }
   }
 

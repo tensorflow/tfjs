@@ -18,11 +18,11 @@
 // tslint:disable-next-line:max-line-length
 import {InputProvider} from '../data/input_provider';
 import {NDArrayMath} from '../math/math';
-import {NDArray} from '../math/ndarray';
+import {Tensor} from '../math/tensor';
 import * as util from '../util';
 
 // tslint:disable-next-line:max-line-length
-import {ConstantNode, Node, PlaceholderNode, Tensor, VariableNode} from './graph';
+import {ConstantNode, Node, PlaceholderNode, SymbolicTensor, VariableNode} from './graph';
 import * as graph_util from './graph_util';
 import {Operation} from './ops/op';
 import {FeedDictionary} from './session';
@@ -53,7 +53,7 @@ export function getTerminatingNodesFromFeedDictionary(
  * @return The set of nodes to evaluate, in evaluation order.
  */
 export function getOrderedEvaluationSetFromEvalTensor(
-    evalTensors: Tensor[], feedDictionary: FeedDictionary): Node[] {
+    evalTensors: SymbolicTensor[], feedDictionary: FeedDictionary): Node[] {
   const terminatingNodes =
       getTerminatingNodesFromFeedDictionary(feedDictionary);
   const evalNodes = evalTensors.map(x => x.node);
@@ -102,7 +102,7 @@ export function getVariableNodesFromEvaluationSet(evaluationSet: Node[]):
 export function throwIfFeedDictionaryContainsNDArrays(
     feedDictionary: FeedDictionary) {
   Object.keys(feedDictionary.dict).forEach(tensorID => {
-    if (feedDictionary.dict[+tensorID].data instanceof NDArray) {
+    if (feedDictionary.dict[+tensorID].data instanceof Tensor) {
       throw new Error(
           'training requires FeedDictionary entries to be InputProviders' +
           'and not NDArrays.');
@@ -118,9 +118,9 @@ export function loadInputsFromFeedDictionaryToTensorArrayMap(
   Object.keys(batchFeed.dict).forEach(tensorID => {
     const feedEntry = batchFeed.dict[+tensorID];
 
-    let data: NDArray;
-    if (feedEntry.data instanceof NDArray) {
-      data = feedEntry.data as NDArray;
+    let data: Tensor;
+    if (feedEntry.data instanceof Tensor) {
+      data = feedEntry.data as Tensor;
     } else {
       const provider = feedEntry.data as InputProvider;
       data = provider.getNextCopy(math);
@@ -143,7 +143,7 @@ export function releaseFeedDictionaryInputsFromTensorArrayMap(
   Object.keys(batchFeed.dict).forEach(tensorID => {
     const feedEntry = batchFeed.dict[+tensorID];
 
-    if (!(feedEntry.data instanceof NDArray)) {
+    if (!(feedEntry.data instanceof Tensor)) {
       const provider = feedEntry.data as InputProvider;
 
       const feedEntryArray = activations.get(feedEntry.tensor);

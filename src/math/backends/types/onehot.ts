@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {Array1D, Array2D} from '../../ndarray';
+import {Tensor1D, Tensor2D} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface OneHotNode extends KernelNode {
   inputAndArgs: {
-    inputs: {indices: Array1D;};
+    inputs: {indices: Tensor1D;};
     args: {depth: number; onValue: number; offValue: number};
   };
-  output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => {
-    indices: () => Array1D;
+  output: Tensor2D;
+  gradient: (dy: Tensor2D, y: Tensor2D) => {
+    indices: () => Tensor1D;
   };
 }

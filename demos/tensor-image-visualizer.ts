@@ -19,10 +19,10 @@ import * as dl from 'deeplearn';
 import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 
 // tslint:disable-next-line
-export let NDArrayImageVisualizerPolymer: new () => PolymerHTMLElement =
-    PolymerElement({is: 'ndarray-image-visualizer', properties: {}});
+export let TensorImageVisualizerPolymer: new () => PolymerHTMLElement =
+    PolymerElement({is: 'tensor-image-visualizer', properties: {}});
 
-export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {
+export class TensorImageVisualizer extends TensorImageVisualizerPolymer {
   private canvas: HTMLCanvasElement;
   private canvasContext: CanvasRenderingContext2D;
   private imageData: ImageData;
@@ -46,33 +46,33 @@ export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {
     this.canvas.style.height = `${height}px`;
   }
 
-  saveImageDataFromNDArray(ndarray: dl.Array3D) {
+  saveImageDataFromTensor(tensor: dl.Tensor3D) {
     this.imageData = this.canvasContext.createImageData(
         this.canvas.width, this.canvas.height);
-    if (ndarray.shape[2] === 1) {
-      this.drawGrayscaleImageData(ndarray);
-    } else if (ndarray.shape[2] === 3) {
-      this.drawRGBImageData(ndarray);
+    if (tensor.shape[2] === 1) {
+      this.drawGrayscaleImageData(tensor);
+    } else if (tensor.shape[2] === 3) {
+      this.drawRGBImageData(tensor);
     }
   }
 
-  drawRGBImageData(ndarray: dl.Array3D) {
+  drawRGBImageData(tensor: dl.Tensor3D) {
     let pixelOffset = 0;
-    for (let i = 0; i < ndarray.shape[0]; i++) {
-      for (let j = 0; j < ndarray.shape[1]; j++) {
-        this.imageData.data[pixelOffset++] = ndarray.get(i, j, 0);
-        this.imageData.data[pixelOffset++] = ndarray.get(i, j, 1);
-        this.imageData.data[pixelOffset++] = ndarray.get(i, j, 2);
+    for (let i = 0; i < tensor.shape[0]; i++) {
+      for (let j = 0; j < tensor.shape[1]; j++) {
+        this.imageData.data[pixelOffset++] = tensor.get(i, j, 0);
+        this.imageData.data[pixelOffset++] = tensor.get(i, j, 1);
+        this.imageData.data[pixelOffset++] = tensor.get(i, j, 2);
         this.imageData.data[pixelOffset++] = 255;
       }
     }
   }
 
-  drawGrayscaleImageData(ndarray: dl.Array3D) {
+  drawGrayscaleImageData(tensor: dl.Tensor3D) {
     let pixelOffset = 0;
-    for (let i = 0; i < ndarray.shape[0]; i++) {
-      for (let j = 0; j < ndarray.shape[1]; j++) {
-        const value = ndarray.get(i, j, 0);
+    for (let i = 0; i < tensor.shape[0]; i++) {
+      for (let j = 0; j < tensor.shape[1]; j++) {
+        const value = tensor.get(i, j, 0);
         this.imageData.data[pixelOffset++] = value;
         this.imageData.data[pixelOffset++] = value;
         this.imageData.data[pixelOffset++] = value;
@@ -87,4 +87,4 @@ export class NDArrayImageVisualizer extends NDArrayImageVisualizerPolymer {
   }
 }
 document.registerElement(
-    NDArrayImageVisualizer.prototype.is, NDArrayImageVisualizer);
+    TensorImageVisualizer.prototype.is, TensorImageVisualizer);

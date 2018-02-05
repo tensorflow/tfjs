@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {NDArray} from '../../ndarray';
+import {Tensor} from '../../tensor';
 import {DataType} from '../../types';
 import {KernelNode} from '../tape_types';
 
 export interface CastNode extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray}; args: {newDType: DataType};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    x: () => NDArray
+  inputAndArgs: {inputs: {x: Tensor}; args: {newDType: DataType};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    x: () => Tensor
   };
 }

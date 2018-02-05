@@ -215,27 +215,27 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
       }
 
       // Render activations.
-      const activationNDArray = inferenceResult.activation;
+      const activationTensor = inferenceResult.activation;
 
       // Compute max and min per channel for normalization.
-      const maxValues = activationNDArray.maxPool(
-          activationNDArray.shape[1], activationNDArray.shape[1], 0);
-      const minValues = activationNDArray.minPool(
-          activationNDArray.shape[1], activationNDArray.shape[1], 0);
+      const maxValues = activationTensor.maxPool(
+          activationTensor.shape[1], activationTensor.shape[1], 0);
+      const minValues = activationTensor.minPool(
+          activationTensor.shape[1], activationTensor.shape[1], 0);
 
       // Logically resize the rendering canvas. The displayed width is fixed.
-      const imagesPerRow = Math.ceil(Math.sqrt(activationNDArray.shape[2]));
-      const numRows = Math.ceil(activationNDArray.shape[2] / imagesPerRow);
-      this.inferenceCanvas.width = imagesPerRow * activationNDArray.shape[0];
-      this.inferenceCanvas.height = numRows * activationNDArray.shape[0];
+      const imagesPerRow = Math.ceil(Math.sqrt(activationTensor.shape[2]));
+      const numRows = Math.ceil(activationTensor.shape[2] / imagesPerRow);
+      this.inferenceCanvas.width = imagesPerRow * activationTensor.shape[0];
+      this.inferenceCanvas.height = numRows * activationTensor.shape[0];
 
       imagenet_util.renderGrayscaleChannelsCollage(
           this.gpgpu, this.renderGrayscaleChannelsCollageShader,
-          this.backend.getTexture(activationNDArray.dataId),
+          this.backend.getTexture(activationTensor.dataId),
           this.backend.getTexture(minValues.dataId),
           this.backend.getTexture(maxValues.dataId),
-          this.backend.getTextureData(activationNDArray.dataId).texShape,
-          activationNDArray.shape[0], activationNDArray.shape[2],
+          this.backend.getTextureData(activationTensor.dataId).texShape,
+          activationTensor.shape[0], activationTensor.shape[2],
           this.inferenceCanvas.width, numRows);
       // Unclear why, but unless we wait for the gpu to fully end, we get a
       // flicker effect.

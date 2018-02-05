@@ -16,60 +16,58 @@
  */
 
 import {Conv2DInfo} from '../../conv_util';
-import {Array1D, Array4D} from '../../ndarray';
+import {Tensor1D, Tensor4D} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface Conv2DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array4D; filter: Array4D; bias?: Array1D;};
+    inputs: {x: Tensor4D; filter: Tensor4D; bias?: Tensor1D;};
     args: {convInfo: Conv2DInfo;};
   };
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    x: () => Array4D;
-    filter: () => Array4D;
-    bias?: () => Array1D;
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    x: () => Tensor4D;
+    filter: () => Tensor4D;
+    bias?: () => Tensor1D;
   };
 }
 
 export interface Conv2DDerInputNode extends KernelNode {
   inputAndArgs: {
-    inputs: {dy: Array4D; filter: Array4D;};
-    args: {convInfo: Conv2DInfo;};
+    inputs: {dy: Tensor4D; filter: Tensor4D;}; args: {convInfo: Conv2DInfo;};
   };
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    dy: () => Array4D;
-    filter: () => Array4D;
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    dy: () => Tensor4D;
+    filter: () => Tensor4D;
   };
 }
 
 export interface Conv2DDerFilterNode extends KernelNode {
-  inputAndArgs: {
-    inputs: {x: Array4D; dy: Array4D;};
-    args: {convInfo: Conv2DInfo;};
-  };
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    x: () => Array4D;
-    dy: () => Array4D;
+  inputAndArgs:
+      {inputs: {x: Tensor4D; dy: Tensor4D;}; args: {convInfo: Conv2DInfo;};};
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    x: () => Tensor4D;
+    dy: () => Tensor4D;
   };
 }
 
 export interface Conv2DDerBiasNode extends KernelNode {
-  inputAndArgs: {inputs: {dy: Array4D;};};
-  output: Array1D;
-  gradient: (dy: Array1D, y: Array1D) => {
-    dy: () => Array4D;
+  inputAndArgs: {inputs: {dy: Tensor4D;};};
+  output: Tensor1D;
+  gradient: (dy: Tensor1D, y: Tensor1D) => {
+    dy: () => Tensor4D;
   };
 }
 
 export interface DepthwiseConv2DNode extends KernelNode {
-  inputAndArgs:
-      {inputs: {x: Array4D; filter: Array4D;}; args: {convInfo: Conv2DInfo;};};
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    x: () => Array4D;
-    filter: () => Array4D;
+  inputAndArgs: {
+    inputs: {x: Tensor4D; filter: Tensor4D;}; args: {convInfo: Conv2DInfo;};
+  };
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    x: () => Tensor4D;
+    filter: () => Tensor4D;
   };
 }

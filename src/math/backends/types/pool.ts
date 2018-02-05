@@ -16,25 +16,25 @@
  */
 
 import {Conv2DInfo} from '../../conv_util';
-import {Array4D} from '../../ndarray';
+import {Tensor4D} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 // Pool
 export interface PoolNode extends KernelNode {
-  inputAndArgs: {inputs: {x: Array4D;}; args: {convInfo: Conv2DInfo;};};
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    x: () => Array4D;
+  inputAndArgs: {inputs: {x: Tensor4D;}; args: {convInfo: Conv2DInfo;};};
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    x: () => Tensor4D;
   };
 }
 
 // PoolBackprop
 export interface PoolBackpropNode extends KernelNode {
   inputAndArgs:
-      {inputs: {dy: Array4D; x: Array4D;}; args: {convInfo: Conv2DInfo;};};
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    dy: () => Array4D;
-    x: () => Array4D;
+      {inputs: {dy: Tensor4D; x: Tensor4D;}; args: {convInfo: Conv2DInfo;};};
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    dy: () => Tensor4D;
+    x: () => Tensor4D;
   };
 }

@@ -24,7 +24,6 @@
     "src/math/ndarray.ts",
     "src/math/backends/webgl/gpgpu_util.ts",
     "src/math/backends/webgl/gpgpu_context.ts",
-    "src/math/backends/webgl/render_ndarray_gpu_util.ts",
     "src/math/backends/webgl/webgl_util.ts",
     "src/util.ts",
     "src/version.ts"

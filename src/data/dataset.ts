@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArray} from '../math/ndarray';
+import {Tensor} from '../math/tensor';
 import * as util from '../util';
 
 const STATS_SAMPLE_PERCENTAGE = 0.1;
@@ -41,7 +41,7 @@ interface NormalizationInfo {
 }
 
 export abstract class InMemoryDataset {
-  protected dataset: NDArray[][]|null;
+  protected dataset: Tensor[][]|null;
 
   // Contains information necessary for reconstruction of the original data
   // after normalization.
@@ -57,7 +57,7 @@ export abstract class InMemoryDataset {
 
   abstract fetchData(): Promise<void>;
 
-  getData(): NDArray[][]|null {
+  getData(): Tensor[][]|null {
     return this.dataset;
   }
 
@@ -70,7 +70,7 @@ export abstract class InMemoryDataset {
   }
 
   // Computes stats across a sampled portion of the data.
-  private getStatsForData(data: NDArray[]): DataStats {
+  private getStatsForData(data: Tensor[]): DataStats {
     let inputMin = Number.POSITIVE_INFINITY;
     let inputMax = Number.NEGATIVE_INFINITY;
 
@@ -96,7 +96,7 @@ export abstract class InMemoryDataset {
   }
 
   /**
-   * @param examples NDArrays to be normalized.
+   * @param examples Tensors to be normalized.
    * @param curLowerBounds An array containing the minimum value for each
    * dimension or a fixed minimum value.
    * @param curUpperBounds An array containing the maximum value for each
@@ -107,9 +107,9 @@ export abstract class InMemoryDataset {
    * dimension, or a fixed maximum value to normalize the data to.
    */
   private normalizeExamplesToRange(
-      examples: NDArray[], curLowerBounds: Float32Array|number,
+      examples: Tensor[], curLowerBounds: Float32Array|number,
       curUpperBounds: Float32Array|number, newLowerBounds: Float32Array|number,
-      newUpperBounds: Float32Array|number): NDArray[] {
+      newUpperBounds: Float32Array|number): Tensor[] {
     const curBoundsIsPerDimension =
         (curUpperBounds instanceof Float32Array &&
          curLowerBounds instanceof Float32Array);
@@ -118,7 +118,7 @@ export abstract class InMemoryDataset {
          newUpperBounds instanceof Float32Array);
 
     const inputSize = util.sizeFromShape(examples[0].shape);
-    const newExamples: NDArray[] = [];
+    const newExamples: Tensor[] = [];
 
     examples.forEach(example => {
       const inputValues = example.dataSync();
@@ -148,7 +148,7 @@ export abstract class InMemoryDataset {
         }
       }
       newExamples.push(
-          NDArray.make(example.shape, {values: normalizedValues}, 'float32'));
+          Tensor.make(example.shape, {values: normalizedValues}, 'float32'));
     });
     return newExamples;
   }
@@ -240,7 +240,7 @@ export abstract class InMemoryDataset {
     this.normalizationInfo[dataIndex].isNormalized = false;
   }
 
-  unnormalizeExamples(examples: NDArray[], dataIndex: number): NDArray[] {
+  unnormalizeExamples(examples: Tensor[], dataIndex: number): Tensor[] {
     if (!this.isNormalized(dataIndex)) {
       return examples;
     }

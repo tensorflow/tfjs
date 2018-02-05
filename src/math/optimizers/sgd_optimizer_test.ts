@@ -17,7 +17,7 @@
 import {InputProvider} from '../../data/input_provider';
 import {Graph} from '../../graph/graph';
 import {Session} from '../../graph/session';
-import {Array1D, Scalar, variable} from '../../math/ndarray';
+import {Scalar, Tensor1D, variable} from '../../math/tensor';
 import * as test_util from '../../test_util';
 import {MathTests} from '../../test_util';
 
@@ -30,12 +30,12 @@ const tests: MathTests = it => {
 
     const x = variable(Scalar.new(4));
 
-    let numArrays = math.getNumArrays();
+    let numArrays = math.getNumTensors();
 
     let cost = optimizer.minimize(() => math.square(x), /* returnCost */ true);
 
     // Cost should be the only additional array.
-    expect(math.getNumArrays()).toBe(numArrays + 1);
+    expect(math.getNumTensors()).toBe(numArrays + 1);
 
     // de/dx = 2x
     const expectedValue1 = -2 * 4 * learningRate + 4;
@@ -43,11 +43,11 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(cost, [Math.pow(4, 2)]);
 
     cost.dispose();
-    numArrays = math.getNumArrays();
+    numArrays = math.getNumTensors();
 
     cost = optimizer.minimize(() => math.square(x), /* returnCost */ false);
-    // There should be no new additional NDArrays.
-    expect(math.getNumArrays()).toBe(numArrays);
+    // There should be no new additional Tensors.
+    expect(math.getNumTensors()).toBe(numArrays);
 
     const expectedValue2 = -2 * expectedValue1 * learningRate + expectedValue1;
     test_util.expectArraysClose(x, [expectedValue2]);
@@ -55,14 +55,14 @@ const tests: MathTests = it => {
 
     optimizer.dispose();
     x.dispose();
-    // There should be no more NDArrays.
-    expect(math.getNumArrays()).toBe(0);
+    // There should be no more Tensors.
+    expect(math.getNumTensors()).toBe(0);
   });
 
   it('graph', math => {
     const inputProvider: InputProvider = {
       getNextCopy() {
-        return Array1D.new([2, 4]);
+        return Tensor1D.new([2, 4]);
       },
       disposeCopy(math, example) {}
     };

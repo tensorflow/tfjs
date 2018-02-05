@@ -110,13 +110,13 @@ normalizeColor(rgbColor: number[]): number[] {
 }
 ```
 
-We store each input (now a list of 3 values between 0 and 1) within an `Array1D`, a deeplearn.js construct that places data on the GPU. `inputArray` and `targetArray` are both lists of `Array1D`s.
+We store each input (now a list of 3 values between 0 and 1) within an `Tensor1D`, a deeplearn.js construct that places data on the GPU. `inputArray` and `targetArray` are both lists of `Tensor1D`s.
 
 ```ts
-const inputArray: Array1D[] =
-    rawInputs.map(c => Array1D.new(this.normalizeColor(c)));
-const targetArray: Array1D[] = rawInputs.map(
-    c => Array1D.new(
+const inputArray: Tensor1D[] =
+    rawInputs.map(c => Tensor1D.new(this.normalizeColor(c)));
+const targetArray: Tensor1D[] = rawInputs.map(
+    c => Tensor1D.new(
         this.normalizeColor(this.computeComplementaryColor(c))));
 ```
 
@@ -253,7 +253,7 @@ predict(rgbColor: number[]): number[] {
   dl.tidy((keep, track) => {
     const mapping = [{
       tensor: this.inputTensor,
-      data: Array1D.new(this.normalizeColor(rgbColor)),
+      data: Tensor1D.new(this.normalizeColor(rgbColor)),
     }];
     const evalOutput = this.session.eval(this.predictionTensor, mapping);
     const values = evalOutput.dataSync();

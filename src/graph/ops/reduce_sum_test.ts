@@ -16,8 +16,8 @@
  */
 
 import {ENV} from '../../environment';
-import {Array1D, Array2D, Scalar} from '../../math/ndarray';
-import {Tensor} from '../graph';
+import {Tensor1D, Tensor2D, Scalar} from '../../math/tensor';
+import {SymbolicTensor} from '../graph';
 import {TensorArrayMap} from '../tensor_array_map';
 
 import {ReduceSum} from './reduce_sum';
@@ -38,8 +38,8 @@ describe('Reduce sum operation', () => {
 
   it('Reduces a scalar', () => {
     const xVal = Scalar.new(-3);
-    const x = new Tensor(xVal.shape);
-    const y = new Tensor([]);
+    const x = new SymbolicTensor(xVal.shape);
+    const y = new SymbolicTensor([]);
 
     activations.set(x, xVal);
     reduceSumOp = new ReduceSum(x, y);
@@ -51,9 +51,9 @@ describe('Reduce sum operation', () => {
   });
 
   it('Reduces a 1-D tensor', () => {
-    const xVal = Array1D.new([1, 2, 3]);
-    const x = new Tensor(xVal.shape);
-    const y = new Tensor([]);
+    const xVal = Tensor1D.new([1, 2, 3]);
+    const x = new SymbolicTensor(xVal.shape);
+    const y = new SymbolicTensor([]);
 
     activations.set(x, xVal);
     reduceSumOp = new ReduceSum(x, y);
@@ -65,9 +65,9 @@ describe('Reduce sum operation', () => {
   });
 
   it('Reduces a 2-D tensor', () => {
-    const xVal = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const x = new Tensor(xVal.shape);
-    const y = new Tensor([]);
+    const xVal = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const x = new SymbolicTensor(xVal.shape);
+    const y = new SymbolicTensor([]);
 
     activations.set(x, xVal);
     reduceSumOp = new ReduceSum(x, y);

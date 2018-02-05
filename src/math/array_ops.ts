@@ -19,103 +19,102 @@ import {ENV} from '../environment';
 import * as util from '../util';
 
 import {doc, operation} from './decorators';
-import {Array1D, Array2D, Array3D, NDArray, TensorBuffer} from './ndarray';
 import {MPRandGauss, RandNormalDataTypes} from './rand';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer} from './tensor';
 import {DataType, DataTypeMap, Rank, ShapeMap} from './types';
 
 export class Ops {
-  /** Creates a ndarray of ones with the specified shape. */
+  /** Creates a tensor of ones with the specified shape. */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static ones<R extends Rank>(shape: ShapeMap[R], dtype?: DataType):
-      NDArray<R> {
+  static ones<R extends Rank>(shape: ShapeMap[R], dtype?: DataType): Tensor<R> {
     const values = makeOnesTypedArray(util.sizeFromShape(shape), dtype);
-    return NDArray.make(shape, {values}, dtype);
+    return Tensor.make(shape, {values}, dtype);
   }
 
-  /** Creates a ndarray of zeros with the specified shape. */
+  /** Creates a tensor of zeros with the specified shape. */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static zeros<R extends Rank>(shape: ShapeMap[R], dtype?: DataType):
-      NDArray<R> {
+      Tensor<R> {
     const values = makeZerosTypedArray(util.sizeFromShape(shape), dtype);
-    return NDArray.make(shape, {values}, dtype);
+    return Tensor.make(shape, {values}, dtype);
   }
 
   @operation
-  /** Creates an NDArray filled with a value. */
+  /** Creates a Tensor filled with a value. */
   static fill<R extends Rank>(
       shape: ShapeMap[R], value: number, dtype: DataType = 'float32'):
-      NDArray<R> {
+      Tensor<R> {
     const values =
         util.getTypedArrayFromDType(dtype, util.sizeFromShape(shape));
     values.fill(value);
-    return NDArray.make(shape, {values}, dtype);
+    return Tensor.make(shape, {values}, dtype);
   }
 
   /**
-   * Creates a ndarray of ones with the same shape as the specified ndarray.
+   * Creates a tensor of ones with the same shape as the specified tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static onesLike<T extends NDArray>(x: T): T {
+  static onesLike<T extends Tensor>(x: T): T {
     return Ops.ones(x.shape, x.dtype) as T;
   }
 
   /**
-   * Creates a ndarray of zeros with the same shape as the specified ndarray.
+   * Creates a tensor of zeros with the same shape as the specified tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static zerosLike<T extends NDArray>(x: T): T {
+  static zerosLike<T extends Tensor>(x: T): T {
     return Ops.zeros(x.shape, x.dtype) as T;
   }
 
-  /** Creates a ndarray with the same values/shape as the specified ndarray. */
+  /** Creates a tensor with the same values/shape as the specified tensor. */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static clone<T extends NDArray>(x: T): T {
-    return NDArray.make(x.shape, {dataId: x.dataId}, x.dtype) as T;
+  static clone<T extends Tensor>(x: T): T {
+    return Tensor.make(x.shape, {dataId: x.dataId}, x.dtype) as T;
   }
 
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static randNormal<R extends Rank>(
       shape: ShapeMap[R], mean = 0, stdDev = 1,
-      dtype?: keyof RandNormalDataTypes, seed?: number): NDArray<R> {
+      dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
     if (dtype != null && (dtype as DataType) === 'bool') {
       throw new Error(`Unsupported data type ${dtype}`);
     }
     const randGauss =
         new MPRandGauss(mean, stdDev, dtype, false /* truncated */, seed);
-    return NDArray.rand(shape, () => randGauss.nextValue(), dtype);
+    return Tensor.rand(shape, () => randGauss.nextValue(), dtype);
   }
 
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static truncatedNormal<R extends Rank>(
       shape: ShapeMap[R], mean = 0, stdDev = 1,
-      dtype?: keyof RandNormalDataTypes, seed?: number): NDArray<R> {
+      dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
     if (dtype != null && (dtype as DataType) === 'bool') {
       throw new Error(`Unsupported data type ${dtype}`);
     }
     const randGauss =
         new MPRandGauss(mean, stdDev, dtype, true /* truncated */, seed);
-    return NDArray.rand(shape, () => randGauss.nextValue(), dtype);
+    return Tensor.rand(shape, () => randGauss.nextValue(), dtype);
   }
 
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static randUniform<R extends Rank>(
-      shape: ShapeMap[R], a: number, b: number, dtype?: DataType): NDArray<R> {
-    return NDArray.rand(shape, () => util.randUniform(a, b), dtype);
+      shape: ShapeMap[R], a: number, b: number, dtype?: DataType): Tensor<R> {
+    return Tensor.rand(shape, () => util.randUniform(a, b), dtype);
   }
 
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static rand<R extends Rank>(
       shape: ShapeMap[R], randFunction: () => number, dtype?: DataType):
-      NDArray<R> {
+      Tensor<R> {
     const size = util.sizeFromShape(shape);
 
     let values = null;
@@ -132,7 +131,7 @@ export class Ops {
     for (let i = 0; i < size; i++) {
       values[i] = randFunction();
     }
-    return NDArray.make(shape, {values}, dtype);
+    return Tensor.make(shape, {values}, dtype);
   }
 
   /**
@@ -148,8 +147,8 @@ export class Ops {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static multinomial(
-      probabilities: Array1D|Array2D, numSamples: number, seed?: number):
-      Array1D|Array2D {
+      probabilities: Tensor1D|Tensor2D, numSamples: number, seed?: number):
+      Tensor1D|Tensor2D {
     const numOutcomes = probabilities.size;
     if (numOutcomes < 2) {
       throw new Error(
@@ -167,7 +166,7 @@ export class Ops {
       probabilities = probabilities.as2D(1, -1);
     }
     const res = ENV.engine.executeKernel('Multinomial', {
-      inputs: {probs: (probabilities as Array2D)},
+      inputs: {probs: (probabilities as Tensor2D)},
       args: {numSamples, seed}
     });
     if (origRank === 1) {
@@ -190,8 +189,8 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static oneHot(indices: Array1D, depth: number, onValue = 1, offValue = 0):
-      Array2D {
+  static oneHot(indices: Tensor1D, depth: number, onValue = 1, offValue = 0):
+      Tensor2D {
     if (depth < 2) {
       throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
     }
@@ -203,10 +202,10 @@ export class Ops {
   @operation
   static fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels = 3): Array3D {
+      numChannels = 3): Tensor3D {
     if (numChannels > 4) {
       throw new Error(
-          'Cannot construct NDArray with more than 4 channels from pixels.');
+          'Cannot construct Tensor with more than 4 channels from pixels.');
     }
     return ENV.backend.fromPixels(pixels, numChannels);
   }
@@ -214,18 +213,18 @@ export class Ops {
   /** Reshapes the array. */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
-  static reshape<R2 extends Rank>(x: NDArray, newShape: ShapeMap[R2]):
-      NDArray<R2> {
+  static reshape<R2 extends Rank>(x: Tensor, newShape: ShapeMap[R2]):
+      Tensor<R2> {
     newShape = util.inferFromImplicitShape(newShape, x.size);
     util.assert(
         x.size === util.sizeFromShape(newShape),
         'new shape and old shape must have the same number of elements.');
 
-    const grad = (dy: NDArray<R2>, y: NDArray<R2>) => {
+    const grad = (dy: Tensor<R2>, y: Tensor<R2>) => {
       return {x: () => dy.reshape(x.shape)};
     };
     return ENV.engine.executeKernel(
-               'Reshape', {inputs: {x}, args: {newShape}}, grad) as NDArray<R2>;
+               'Reshape', {inputs: {x}, args: {newShape}}, grad) as Tensor<R2>;
   }
 
   /**
@@ -234,7 +233,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
-  static cast<T extends NDArray>(x: T, newDType: DataType): T {
+  static cast<T extends Tensor>(x: T, newDType: DataType): T {
     const grad = (dy: T, y: T) => {
       return {x: () => dy.reshape(dy.shape)};
     };
@@ -256,7 +255,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static tile<T extends NDArray>(x: T, reps: number[]): T {
+  static tile<T extends Tensor>(x: T, reps: number[]): T {
     util.assert(
         x.rank === reps.length,
         `Error in transpose: rank of input ${x.rank} ` +
@@ -273,13 +272,13 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static gather<T extends NDArray>(x: T, indices: Array1D, axis = 0): T {
+  static gather<T extends Tensor>(x: T, indices: Tensor1D, axis = 0): T {
     return ENV.engine.executeKernel(
                'Gather', {inputs: {x, indices}, args: {axis}}) as T;
   }
 
   /**
-   * Pads a Array1D.
+   * Pads a Tensor1D.
    *
    * This operation will pad an array according to the `paddings` you specify.
    *
@@ -293,8 +292,8 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static pad1D(x: Array1D, paddings: [number, number], constantValue = 0):
-      Array1D {
+  static pad1D(x: Tensor1D, paddings: [number, number], constantValue = 0):
+      Tensor1D {
     util.assert(
         paddings.length === 2,
         'Invalid number of paddings. Must be length of 2.');
@@ -303,7 +302,7 @@ export class Ops {
   }
 
   /**
-   * Pads a Array2D.
+   * Pads a Tensor2D.
    *
    * This operation will pad an array according to the `paddings` you specify.
    *
@@ -319,8 +318,8 @@ export class Ops {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static pad2D(
-      x: Array2D, paddings: [[number, number], [number, number]],
-      constantValue = 0): Array2D {
+      x: Tensor2D, paddings: [[number, number], [number, number]],
+      constantValue = 0): Tensor2D {
     util.assert(
         paddings.length === 2 && paddings[0].length === 2 &&
             paddings[1].length === 2,
@@ -330,7 +329,7 @@ export class Ops {
   }
 
   /**
-   * Creates a new Array1D filled with the numbers in the range provided.
+   * Creates a new Tensor1D filled with the numbers in the range provided.
    *
    * The array is a is half-open interval meaning it includes start, but
    * excludes stop. Decrementing ranges and negative step values are also
@@ -344,7 +343,7 @@ export class Ops {
   @operation
   static range(
       start: number, stop: number, step = 1,
-      dtype: 'float32'|'int32' = 'float32'): Array1D {
+      dtype: 'float32'|'int32' = 'float32'): Tensor1D {
     if (step === 0) {
       throw new Error('Cannot have a step of zero');
     }
@@ -372,7 +371,7 @@ export class Ops {
       values[i] = values[i - 1] + step;
     }
 
-    return Array1D.new(values, dtype);
+    return Tensor1D.new(values, dtype);
   }
 
   /**

@@ -16,9 +16,9 @@
  */
 
 import {ENV} from '../../environment';
-import {Array1D, Array2D} from '../../math/ndarray';
+import {Tensor1D, Tensor2D} from '../../math/tensor';
 import * as test_util from '../../test_util';
-import {Tensor} from '../graph';
+import {SymbolicTensor} from '../graph';
 import {TensorArrayMap} from '../tensor_array_map';
 
 import {ArgMax} from './argmax';
@@ -26,8 +26,8 @@ import {ArgMax} from './argmax';
 describe('Argmax oper', () => {
   const math = ENV.math;
 
-  let x: Tensor;
-  let y: Tensor;
+  let x: SymbolicTensor;
+  let y: SymbolicTensor;
   let tensorArrayMap: TensorArrayMap;
 
   beforeEach(() => {
@@ -39,10 +39,10 @@ describe('Argmax oper', () => {
     tensorArrayMap.disposeArray(y);
   });
 
-  it('argmax of Array1D', () => {
-    const vals = Array1D.new([0, 2, 1]);
-    x = new Tensor(vals.shape);
-    y = new Tensor([]);
+  it('argmax of Tensor1D', () => {
+    const vals = Tensor1D.new([0, 2, 1]);
+    x = new SymbolicTensor(vals.shape);
+    y = new SymbolicTensor([]);
     tensorArrayMap.set(x, vals);
 
     const argmaxOp = new ArgMax(x, y);
@@ -53,10 +53,10 @@ describe('Argmax oper', () => {
     test_util.expectNumbersClose(yVal.get(), 1);
   });
 
-  it('argmax of Array2D', () => {
-    const vals = Array2D.new([2, 3], [[0, 2, 1], [2, 3, 0]]);
-    x = new Tensor(vals.shape);
-    y = new Tensor([]);
+  it('argmax of Tensor2D', () => {
+    const vals = Tensor2D.new([2, 3], [[0, 2, 1], [2, 3, 0]]);
+    x = new SymbolicTensor(vals.shape);
+    y = new SymbolicTensor([]);
     tensorArrayMap.set(x, vals);
 
     const argmaxOp = new ArgMax(x, y);

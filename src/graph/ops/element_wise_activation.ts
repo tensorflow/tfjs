@@ -19,7 +19,7 @@ import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
 // tslint:disable-next-line:max-line-length
 import {ActivationFunction, EluFunc, LeakyReluFunc, ReLUFunc, SigmoidFunc, SquareFunc, TanHFunc} from '../activation_functions';
-import {Tensor} from '../graph';
+import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Operation} from './op';
 
@@ -28,7 +28,7 @@ import {Operation} from './op';
  */
 export class ElementWiseActivation extends Operation {
   constructor(
-      protected xTensor: Tensor, protected yTensor: Tensor,
+      protected xTensor: SymbolicTensor, protected yTensor: SymbolicTensor,
       private func: ActivationFunction) {
     super();
   }
@@ -66,7 +66,7 @@ export class ElementWiseActivation extends Operation {
  * @hidden
  */
 export class ReLU extends ElementWiseActivation {
-  constructor(xTensor: Tensor, yTensor: Tensor) {
+  constructor(xTensor: SymbolicTensor, yTensor: SymbolicTensor) {
     super(xTensor, yTensor, new ReLUFunc());
   }
 }
@@ -75,7 +75,7 @@ export class ReLU extends ElementWiseActivation {
  * @hidden
  */
 export class LeakyReLU extends ElementWiseActivation {
-  constructor(xTensor: Tensor, yTensor: Tensor, alpha: number) {
+  constructor(xTensor: SymbolicTensor, yTensor: SymbolicTensor, alpha: number) {
     super(xTensor, yTensor, new LeakyReluFunc(alpha));
   }
 }
@@ -84,7 +84,7 @@ export class LeakyReLU extends ElementWiseActivation {
  * @hidden
  */
 export class TanH extends ElementWiseActivation {
-  constructor(xTensor: Tensor, yTensor: Tensor) {
+  constructor(xTensor: SymbolicTensor, yTensor: SymbolicTensor) {
     super(xTensor, yTensor, new TanHFunc());
   }
 }
@@ -93,7 +93,7 @@ export class TanH extends ElementWiseActivation {
  * @hidden
  */
 export class Sigmoid extends ElementWiseActivation {
-  constructor(xTensor: Tensor, yTensor: Tensor) {
+  constructor(xTensor: SymbolicTensor, yTensor: SymbolicTensor) {
     super(xTensor, yTensor, new SigmoidFunc());
   }
 }
@@ -102,7 +102,7 @@ export class Sigmoid extends ElementWiseActivation {
  * @hidden
  */
 export class Square extends ElementWiseActivation {
-  constructor(xTensor: Tensor, yTensor: Tensor) {
+  constructor(xTensor: SymbolicTensor, yTensor: SymbolicTensor) {
     super(xTensor, yTensor, new SquareFunc());
   }
 }
@@ -111,7 +111,7 @@ export class Square extends ElementWiseActivation {
  * @hidden
  */
 export class Elu extends ElementWiseActivation {
-  constructor(xTensor: Tensor, yTensor: Tensor) {
+  constructor(xTensor: SymbolicTensor, yTensor: SymbolicTensor) {
     super(xTensor, yTensor, new EluFunc());
   }
 }
@@ -121,8 +121,8 @@ export class Elu extends ElementWiseActivation {
  */
 export class PReLU extends Operation {
   constructor(
-      private xTensor: Tensor, private alphaTensor: Tensor,
-      private yTensor: Tensor) {
+      private xTensor: SymbolicTensor, private alphaTensor: SymbolicTensor,
+      private yTensor: SymbolicTensor) {
     super();
   }
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {

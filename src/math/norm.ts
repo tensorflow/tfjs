@@ -17,7 +17,7 @@
 
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
-import {NDArray, Scalar} from './ndarray';
+import {Scalar, Tensor} from './tensor';
 
 export class Ops {
   /**
@@ -39,7 +39,7 @@ export class Ops {
    *
    * @param axis Optional. If axis is null (the default), the input is
    * considered a vector and a single vector norm is computed over the entire
-   * set of values in the NDArray, i.e. norm(x, ord) is equivalent
+   * set of values in the Tensor, i.e. norm(x, ord) is equivalent
    * to norm(x.reshape([-1]), ord). If axis is a integer, the input
    * is considered a batch of vectors, and axis determines the axis in x
    * over which to compute vector norms. If axis is a 2-tuple of integer it is
@@ -51,8 +51,8 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static norm(
-      x: NDArray, ord: number|'euclidean'|'fro' = 'euclidean',
-      axis: number|number[] = null, keepDims = false): NDArray {
+      x: Tensor, ord: number|'euclidean'|'fro' = 'euclidean',
+      axis: number|number[] = null, keepDims = false): Tensor {
     const norm = normInternal(x, ord, axis);
     let keepDimsShape = norm.shape;
     if (keepDims) {
@@ -64,7 +64,7 @@ export class Ops {
 }
 
 function normInternal(
-    x: NDArray, p: number|string, axis: number|number[] = null): NDArray {
+    x: Tensor, p: number|string, axis: number|number[] = null): Tensor {
   // scalar
   if (x.rank === 0) {
     return x.abs();
@@ -89,7 +89,7 @@ function normInternal(
     }
     if (p === 'euclidean' || p === 2) {
       // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-      return x.abs().pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as NDArray;
+      return x.abs().pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as Tensor;
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);
@@ -108,7 +108,7 @@ function normInternal(
     }
     if (p === 'fro' || p === 'euclidean') {
       // norm(x) = sqrt(sum(pow(x, 2)))
-      return x.pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as NDArray;
+      return x.pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as Tensor;
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);

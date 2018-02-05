@@ -193,13 +193,13 @@ describe('axis_util parseAxisParam', () => {
     expect(axis_util.parseAxisParam(axis, shape)).toEqual([]);
   });
 
-  it('axis=null returns 0 axis for array1d', () => {
+  it('axis=null returns 0 axis for Tensor1D', () => {
     const axis: number = null;
     const shape = [4];
     expect(axis_util.parseAxisParam(axis, shape)).toEqual([0]);
   });
 
-  it('axis=null returns all axes for array3d', () => {
+  it('axis=null returns all axes for Tensor3D', () => {
     const axis: number[] = null;
     const shape = [3, 1, 2];
     expect(axis_util.parseAxisParam(axis, shape)).toEqual([0, 1, 2]);

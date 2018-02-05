@@ -29,22 +29,22 @@ export interface PoolBenchmarkParams {
 }
 
 function getPoolingOp(option: string, math: dl.NDArrayMath):
-    (x: dl.Array3D, filterSize: [number, number]|number,
+    (x: dl.Tensor3D, filterSize: [number, number]|number,
      strides: [number, number]|number, pad: 'valid'|'same'|number) =>
-        dl.Array3D {
+        dl.Tensor3D {
   switch (option) {
     case 'max':
-      return (x: dl.Array3D, filterSize: [number, number]|number,
+      return (x: dl.Tensor3D, filterSize: [number, number]|number,
               strides: [number, number]|number, pad: 'valid'|'same'|number) => {
         return x.maxPool(filterSize, strides, pad);
       };
     case 'min':
-      return (x: dl.Array3D, filterSize: [number, number]|number,
+      return (x: dl.Tensor3D, filterSize: [number, number]|number,
               strides: [number, number]|number, pad: 'valid'|'same'|number) => {
         return x.minPool(filterSize, strides, pad);
       };
     case 'avg':
-      return (x: dl.Array3D, filterSize: [number, number]|number,
+      return (x: dl.Tensor3D, filterSize: [number, number]|number,
               strides: [number, number]|number, pad: 'valid'|'same'|number) => {
         return x.avgPool(filterSize, strides, pad);
       };
@@ -67,7 +67,7 @@ export class PoolCPUBenchmark implements BenchmarkTest {
     const zeroPad = dl.conv_util.computeDefaultPad(xShape, fieldSize, stride);
     const op = getPoolingOp(option, math);
 
-    const x: dl.Array3D = dl.randUniform(xShape, -1, 1);
+    const x: dl.Tensor3D = dl.randUniform(xShape, -1, 1);
 
     const start = performance.now();
     for (let i = 0; i < CPU_OP_RUNS; i++) {
@@ -94,7 +94,7 @@ export class PoolGPUBenchmark implements BenchmarkTest {
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
-    const x: dl.Array3D = dl.randUniform(xShape, -1, 1);
+    const x: dl.Tensor3D = dl.randUniform(xShape, -1, 1);
     const op = getPoolingOp(option, math);
 
     const benchmark = () => op(x, fieldSize, stride, 'same');

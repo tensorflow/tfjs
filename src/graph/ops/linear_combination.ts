@@ -17,8 +17,8 @@
 
 import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
-import {Scalar} from '../../math/ndarray';
-import {Tensor} from '../graph';
+import {Scalar} from '../../math/tensor';
+import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Operation} from './op';
@@ -34,9 +34,9 @@ export class LinearCombination extends Operation {
    * Computes c1*x1 + c2*x2.
    */
   constructor(
-      private x1Tensor: Tensor, private x2Tensor: Tensor,
-      private c1Tensor: Tensor, private c2Tensor: Tensor,
-      private outTensor: Tensor) {
+      private x1Tensor: SymbolicTensor, private x2Tensor: SymbolicTensor,
+      private c1Tensor: SymbolicTensor, private c2Tensor: SymbolicTensor,
+      private outTensor: SymbolicTensor) {
     super();
   }
 

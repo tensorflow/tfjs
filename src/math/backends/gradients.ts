@@ -17,8 +17,9 @@
 
 import {ENV} from '../../environment';
 import * as util from '../../util';
-import {NDArray, Scalar, Variable} from '../ndarray';
-import {NamedArrayMap, Rank} from '../types';
+import {Scalar, Tensor, Variable} from '../tensor';
+import {NamedTensorMap, Rank} from '../types';
+
 import {CustomGradientFunc} from './backend_engine';
 import {ScopeFn, ScopeResult} from './tape_util';
 import {tidy} from './tracking';
@@ -43,14 +44,14 @@ export function gradientsScope<T extends ScopeResult>(
  * Computes and returns the vector jacobian product of f(x) with respect to x.
  * This method allows you to provide a non-scalar dy to backprop from.
  *
- * @param f The function to execute. f() should return an NDArray of the same
+ * @param f The function to execute. f() should return a Tensor of the same
  * shape and dtype as dy.
  * @param x The input to compute dy/dx over. This can be a single value or
- * an object mapping a string to an NDArray. If using the object mode, this
+ * an object mapping a string to a Tensor. If using the object mode, this
  * method will return an object of the same shape.
  */
-export function vjp<T extends NDArray|NamedArrayMap, R extends Rank>(
-    f: () => NDArray<R>, x: T, dy: NDArray<R>): T {
+export function vjp<T extends Tensor|NamedTensorMap, R extends Rank>(
+    f: () => Tensor<R>, x: T, dy: Tensor<R>): T {
   const res = valueAndGradients(f, x, dy);
   res.value.dispose();
   return res.gradients;
@@ -59,13 +60,13 @@ export function vjp<T extends NDArray|NamedArrayMap, R extends Rank>(
 /**
  * Computes and returns the gradient of f(x) with respect to x.
  *
- * @param f The function to execute. f() should return an NDArray.
+ * @param f The function to execute. f() should return a Tensor.
  * @param x The input to compute de/dx over. This can be a single value or
- * an object mapping a string to an NDArray. If using the object mode, this
+ * an object mapping a string to a Tensor. If using the object mode, this
  * method will return an object of the same shape.
  */
-export function gradients<R extends Rank, T extends NDArray|NamedArrayMap>(
-    f: () => NDArray<R>, x: T): T {
+export function gradients<R extends Rank, T extends Tensor|NamedTensorMap>(
+    f: () => Tensor<R>, x: T): T {
   const res = valueAndGradients(f, x);
   res.value.dispose();
   return res.gradients;
@@ -80,7 +81,7 @@ export function gradients<R extends Rank, T extends NDArray|NamedArrayMap>(
  * respect to. Defaults to all trainable variables.
  */
 export function variableGradients(f: () => Scalar, varList?: Variable[]):
-    {value: Scalar, gradients: NamedArrayMap} {
+    {value: Scalar, gradients: NamedTensorMap} {
   if (varList == null) {
     // Get all of the trainable variables.
     varList = [];
@@ -96,7 +97,7 @@ export function variableGradients(f: () => Scalar, varList?: Variable[]):
         `The user-provided function must return a Scalar, but it returned a ` +
         `rank-${value.rank} tensor`);
   }
-  const namedGrads: NamedArrayMap = {};
+  const namedGrads: NamedTensorMap = {};
   varList.forEach((v, i) => {
     if (gradients[i] != null) {
       namedGrads[v.name] = gradients[i];
@@ -109,16 +110,16 @@ export function variableGradients(f: () => Scalar, varList?: Variable[]):
  * Computes and returns the gradient of f(x) with respect to x. Returns
  * both f(x) and f'(x).
  *
- * @param f The function to execute. f() should return an NDArray.
+ * @param f The function to execute. f() should return a Tensor.
  * @param x The input to compute de/dx over. This can be a single value or
- * an object mapping a string to an NDArray. If using the object mode,
+ * an object mapping a string to a Tensor. If using the object mode,
  * this method will return an object of the same shape.
  */
 export function
-valueAndGradients<R extends Rank, T extends NDArray|NamedArrayMap>(
-    f: () => NDArray<R>, x: T, dy?: NDArray<R>):
-    {value: NDArray<R>, gradients: T} {
-  const keys = x instanceof NDArray ? null : Object.keys(x);
+valueAndGradients<R extends Rank, T extends Tensor|NamedTensorMap>(
+    f: () => Tensor<R>, x: T, dy?: Tensor<R>):
+    {value: Tensor<R>, gradients: T} {
+  const keys = x instanceof Tensor ? null : Object.keys(x);
   const xs = util.flattenNameArrayMap(x, keys);
 
   const {value, gradients} = ENV.engine.gradients(f, xs, dy);
@@ -129,7 +130,7 @@ valueAndGradients<R extends Rank, T extends NDArray|NamedArrayMap>(
         `Make sure the xs you are computing gradients with respect ` +
         `to are used inside the gradient function.`);
   }
-  const resGradients = (x instanceof NDArray) ?
+  const resGradients = (x instanceof Tensor) ?
       gradients[0] as T :
       util.unflattenToNameArrayMap(keys, gradients) as T;
   return {value, gradients: resGradients};
@@ -142,12 +143,12 @@ valueAndGradients<R extends Rank, T extends NDArray|NamedArrayMap>(
  * @param f The function to evaluate in forward mode. Returns a value NDArray
  *    and a gradient function closure.
  * @param inputs The inputs to compute the gradient with respect to. These
- *    NDArrays should be used in f().
+ *    Tensors should be used in f().
  * @param name An optional name for the customGradient method. Used for
  *    debugging.
  */
-export function customGradient<T extends NDArray>(
-    name: string, f: CustomGradientFunc<T>, inputs: NamedArrayMap): T {
+export function customGradient<T extends Tensor>(
+    name: string, f: CustomGradientFunc<T>, inputs: NamedTensorMap): T {
   name = name || '';
   return ENV.engine.customGradient(name, f, inputs);
 }

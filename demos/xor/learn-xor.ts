@@ -34,9 +34,10 @@ export const learnXOR = async () => {
   const y = graph.placeholder('y', [1]);
 
   const hiddenLayer = graph.layers.dense(
-      'hiddenLayer', input, 10, (x: dl.Tensor) => graph.relu(x), true);
+      'hiddenLayer', input, 10, (x: dl.SymbolicTensor) => graph.relu(x), true);
   const output = graph.layers.dense(
-      'outputLayer', hiddenLayer, 1, (x: dl.Tensor) => graph.sigmoid(x), true);
+      'outputLayer', hiddenLayer, 1, (x: dl.SymbolicTensor) => graph.sigmoid(x),
+      true);
 
   const costTensor = graph.reduceSum(graph.add(
       graph.multiply(
@@ -55,13 +56,13 @@ export const learnXOR = async () => {
   const optimizer = new dl.SGDOptimizer(0.2);
 
   const inputArray = [
-    dl.Array1D.new([0, 0]), dl.Array1D.new([0, 1]), dl.Array1D.new([1, 0]),
-    dl.Array1D.new([1, 1])
+    dl.Tensor1D.new([0, 0]), dl.Tensor1D.new([0, 1]), dl.Tensor1D.new([1, 0]),
+    dl.Tensor1D.new([1, 1])
   ];
 
   const targetArray = [
-    dl.Array1D.new([0]), dl.Array1D.new([1]), dl.Array1D.new([1]),
-    dl.Array1D.new([0])
+    dl.Tensor1D.new([0]), dl.Tensor1D.new([1]), dl.Tensor1D.new([1]),
+    dl.Tensor1D.new([0])
   ];
 
   const shuffledInputProviderBuilder =

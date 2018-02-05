@@ -17,7 +17,7 @@
 
 import {ENV} from '../../../environment';
 import * as util from '../../../util';
-import {NDArray} from '../../ndarray';
+import {Tensor} from '../../tensor';
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {ShapeInfo} from './shader_compiler';
@@ -49,25 +49,25 @@ function shouldUploadNaNUniform(): boolean {
   return !ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED');
 }
 
-export interface ArrayData<T extends NDArray> {
-  array: T;
+export interface TensorData<T extends Tensor> {
+  tensor: T;
   texData: TextureData;
 }
 
-export function compileProgram<T extends NDArray, K extends NDArray>(
-    gpgpu: GPGPUContext, program: GPGPUProgram, inputs: Array<ArrayData<T>>,
-    output: ArrayData<K>): GPGPUBinary {
+export function compileProgram<T extends Tensor, K extends Tensor>(
+    gpgpu: GPGPUContext, program: GPGPUProgram, inputs: Array<TensorData<T>>,
+    output: TensorData<K>): GPGPUBinary {
   const userCode = program.userCode;
   const inputInfos = inputs.map((input, i) => {
     const shapeInfo = {
-      logicalShape: input.array.shape,
+      logicalShape: input.tensor.shape,
       texShape: input.texData.texShape
     };
     return {name: program.variableNames[i], shapeInfo};
   });
   const inShapeInfos = inputInfos.map(x => x.shapeInfo);
   const outShapeInfo = {
-    logicalShape: output.array.shape,
+    logicalShape: output.tensor.shape,
     texShape: output.texData.texShape
   };
   const source = shader_compiler.makeShader(
@@ -107,7 +107,7 @@ export function compileProgram<T extends NDArray, K extends NDArray>(
 }
 
 function validateBinaryAndProgram(
-    shapeInfos: ShapeInfo[], inputs: Array<ArrayData<NDArray>>) {
+    shapeInfos: ShapeInfo[], inputs: Array<TensorData<Tensor>>) {
   if (shapeInfos.length !== inputs.length) {
     throw Error(
         `Binary was compiled with ${shapeInfos.length} inputs, but ` +
@@ -117,7 +117,7 @@ function validateBinaryAndProgram(
   shapeInfos.forEach((s, i) => {
     const shapeA = s.logicalShape;
     const texShapeA = s.texShape;
-    const shapeB = inputs[i].array.shape;
+    const shapeB = inputs[i].tensor.shape;
     const texShapeB = inputs[i].texData.texShape;
 
     if (!util.arraysEqual(shapeA, shapeB)) {
@@ -133,8 +133,8 @@ function validateBinaryAndProgram(
   });
 }
 
-export function runProgram<T extends NDArray, K extends NDArray>(
-    binary: GPGPUBinary, inputs: Array<ArrayData<T>>, output: ArrayData<K>,
+export function runProgram<T extends Tensor, K extends Tensor>(
+    binary: GPGPUBinary, inputs: Array<TensorData<T>>, output: TensorData<K>,
     customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) =>
         void): void {
   validateBinaryAndProgram(binary.inShapeInfos, inputs);
@@ -163,11 +163,11 @@ export function runProgram<T extends NDArray, K extends NDArray>(
 }
 
 export function makeShaderKey(
-    program: GPGPUProgram, inputs: Array<ArrayData<NDArray>>,
-    output: ArrayData<NDArray>): string {
+    program: GPGPUProgram, inputs: Array<TensorData<Tensor>>,
+    output: TensorData<Tensor>): string {
   let keyInputs = '';
   inputs.concat(output).forEach(x => {
-    keyInputs += `${x.array.shape}_${x.texData.texShape}`;
+    keyInputs += `${x.tensor.shape}_${x.texData.texShape}`;
   });
   const keyUserCode = program.userCode;
   const keyBroadcast = (program.supportsBroadcasting === true).toString();

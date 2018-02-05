@@ -120,7 +120,7 @@ class WorldDisplay {
     document.querySelector('.worlds-display').appendChild(this.rootElement);
   }
 
-  displayWorld(world: dl.NDArray, title: string): Element {
+  displayWorld(world: dl.Tensor, title: string): Element {
     const worldElement = document.createElement('div');
     worldElement.setAttribute('class', 'world');
 
@@ -157,12 +157,12 @@ class WorldDisplay {
 
 /** Manages displaying a list of world sequences (current, next, prediction) */
 class WorldContext {
-  world: dl.NDArray;
-  worldNext: dl.NDArray;
+  world: dl.Tensor;
+  worldNext: dl.Tensor;
   worldDisplay: WorldDisplay;
   predictionElement: Element = null;
 
-  constructor(worlds: [dl.NDArray, dl.NDArray]) {
+  constructor(worlds: [dl.Tensor, dl.Tensor]) {
     this.worldDisplay = new WorldDisplay();
 
     this.world = worlds[0];
@@ -171,7 +171,7 @@ class WorldContext {
     this.worldDisplay.displayWorld(this.worldNext, 'Next Sequence');
   }
 
-  displayPrediction(prediction: dl.NDArray) {
+  displayPrediction(prediction: dl.Tensor) {
     if (this.predictionElement) {
       this.predictionElement.remove();
     }
@@ -184,7 +184,7 @@ const math = dl.ENV.math;
 const game = new GameOfLife(5, math);
 const model = new GameOfLifeModel(math);
 
-let trainingData: Array<[dl.NDArray, dl.NDArray]> = [];
+let trainingData: Array<[dl.Tensor, dl.Tensor]> = [];
 const worldContexts: WorldContext[] = [];
 
 const trainDisplay = new TrainDisplay();

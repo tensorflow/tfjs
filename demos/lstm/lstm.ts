@@ -23,39 +23,39 @@ reader.getAllVariables().then(async vars => {
   const expected = [1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4];
 
   const lstmKernel1 =
-      vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as dl.Array2D;
+      vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/kernel'] as dl.Tensor2D;
   const lstmBias1 =
-      vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as dl.Array1D;
+      vars['rnn/multi_rnn_cell/cell_0/basic_lstm_cell/bias'] as dl.Tensor1D;
 
   const lstmKernel2 =
-      vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as dl.Array2D;
+      vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/kernel'] as dl.Tensor2D;
   const lstmBias2 =
-      vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as dl.Array1D;
+      vars['rnn/multi_rnn_cell/cell_1/basic_lstm_cell/bias'] as dl.Tensor1D;
 
-  const fullyConnectedBiases = vars['fully_connected/biases'] as dl.Array1D;
-  const fullyConnectedWeights = vars['fully_connected/weights'] as dl.Array2D;
+  const fullyConnectedBiases = vars['fully_connected/biases'] as dl.Tensor1D;
+  const fullyConnectedWeights = vars['fully_connected/weights'] as dl.Tensor2D;
 
   const results: number[] = [];
 
   await dl.tidy(async () => {
     const forgetBias = dl.Scalar.new(1.0);
-    const lstm1 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
+    const lstm1 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
         dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
-    const lstm2 = (data: dl.Array2D, c: dl.Array2D, h: dl.Array2D) =>
+    const lstm2 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
         dl.basicLSTMCell(forgetBias, lstmKernel2, lstmBias2, data, c, h);
 
-    let c: dl.Array2D[] = [
+    let c: dl.Tensor2D[] = [
       dl.zeros([1, lstmBias1.shape[0] / 4]),
       dl.zeros([1, lstmBias2.shape[0] / 4])
     ];
-    let h: dl.Array2D[] = [
+    let h: dl.Tensor2D[] = [
       dl.zeros([1, lstmBias1.shape[0] / 4]),
       dl.zeros([1, lstmBias2.shape[0] / 4])
     ];
 
     let input = primerData;
     for (let i = 0; i < expected.length; i++) {
-      const onehot = dl.oneHot(dl.Array1D.new([input]), 10);
+      const onehot = dl.oneHot(dl.Tensor1D.new([input]), 10);
 
       const output = dl.multiRNNCell([lstm1, lstm2], onehot, c, h);
 

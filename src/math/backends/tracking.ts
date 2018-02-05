@@ -16,15 +16,15 @@
  */
 
 import {ENV} from '../../environment';
-import {NDArray} from '../ndarray';
+import {Tensor} from '../tensor';
 import {ScopeFn, ScopeResult, ScopeResultImmediate} from './tape_util';
 
 /**
  * Executes the provided function and after it is executed, cleans up all
- * intermediate NDArrays allocated by the function except those returned by
+ * intermediate Tensors allocated by the function except those returned by
  * the function.
  *
- * When in safe mode, you must enclose all `NDArray` creation and ops
+ * When in safe mode, you must enclose all `Tensor` creation and ops
  * inside a `dl.tidy()` to prevent memory leaks.
  *
  * @param nameOrFn The name of the closure, or the function to execute.
@@ -72,10 +72,10 @@ export function tidy<T extends ScopeResult>(
 }
 
 /**
- * Keeps an NDArray in the current scope from being disposed automatically.
- * @param result The NDArray to keep from being disposed.
+ * Keeps a Tensor in the current scope from being disposed automatically.
+ * @param result The Tensor to keep from being disposed.
  */
-export function keep<T extends NDArray>(result: T): T {
+export function keep<T extends Tensor>(result: T): T {
   return ENV.engine.keep(result);
 }
 

@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {Array1D, NDArray, Scalar} from './math/ndarray';
-import {NamedArrayMap} from './math/types';
+import {Scalar, Tensor, Tensor1D} from './math/tensor';
+import {NamedTensorMap} from './math/types';
 import * as test_util from './test_util';
 import {MathTests} from './test_util';
 import * as util from './util';
@@ -270,20 +270,20 @@ describe('util.squeezeShape', () => {
   const tests: MathTests = it => {
     it('not in list', math => {
       const a = Scalar.new(1);
-      const list: NDArray[] = [Scalar.new(1), Array1D.new([1, 2, 3])];
+      const list: Tensor[] = [Scalar.new(1), Tensor1D.new([1, 2, 3])];
 
-      expect(util.isNDArrayInList(a, list)).toBe(false);
+      expect(util.isTensorInList(a, list)).toBe(false);
     });
 
     it('in list', math => {
       const a = Scalar.new(1);
-      const list: NDArray[] = [Scalar.new(2), Array1D.new([1, 2, 3]), a];
+      const list: Tensor[] = [Scalar.new(2), Tensor1D.new([1, 2, 3]), a];
 
-      expect(util.isNDArrayInList(a, list)).toBe(true);
+      expect(util.isTensorInList(a, list)).toBe(true);
     });
   };
 
-  test_util.describeMathCPU('util.isNDArrayInList', [tests]);
+  test_util.describeMathCPU('util.isTensorInList', [tests]);
 }
 
 describe('util.checkForNaN', () => {
@@ -338,9 +338,9 @@ describe('util.checkForNaN', () => {
     it('basic', math => {
       const a = Scalar.new(1);
       const b = Scalar.new(3);
-      const c = Array1D.new([1, 2, 3]);
+      const c = Tensor1D.new([1, 2, 3]);
 
-      const map: NamedArrayMap = {a, b, c};
+      const map: NamedTensorMap = {a, b, c};
       expect(util.flattenNameArrayMap(map, Object.keys(map))).toEqual([
         a, b, c
       ]);
@@ -355,7 +355,7 @@ describe('util.checkForNaN', () => {
     it('basic', math => {
       const a = Scalar.new(1);
       const b = Scalar.new(3);
-      const c = Array1D.new([1, 2, 3]);
+      const c = Tensor1D.new([1, 2, 3]);
 
       expect(util.unflattenToNameArrayMap(['a', 'b', 'c'], [
         a, b, c

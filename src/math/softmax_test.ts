@@ -18,44 +18,44 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array1D, Array2D, Scalar} from './ndarray';
+import {Tensor1D, Tensor2D, Scalar} from './tensor';
 
 // softmax
 {
   const tests: MathTests = it => {
     it('regular test', math => {
-      const y = math.softmax(Array1D.new([2, 1, 3]));
+      const y = math.softmax(Tensor1D.new([2, 1, 3]));
 
       test_util.expectArraysClose(y, [0.24472847, 0.09003057, 0.66524095]);
       test_util.expectNumbersClose(y.get(0) + y.get(1) + y.get(2), 1);
     });
 
     it('overflow', math => {
-      const y = math.softmax(Array1D.new([1000, 1000]));
+      const y = math.softmax(Tensor1D.new([1000, 1000]));
 
       test_util.expectArraysClose(y, [0.5, 0.5]);
     });
 
     it('underflow', math => {
-      const y = math.softmax(Array1D.new([-1000, -1000]));
+      const y = math.softmax(Tensor1D.new([-1000, -1000]));
 
       test_util.expectArraysClose(y, [0.5, 0.5]);
     });
 
     it('Huge difference between probabilities', math => {
-      const y = math.softmax(Array1D.new([-1000, +1000]));
+      const y = math.softmax(Tensor1D.new([-1000, +1000]));
 
       test_util.expectArraysClose(y, [0, 1]);
     });
 
     it('Propagates NaNs', math => {
-      const a = Array1D.new([2, 1, NaN]);
+      const a = Tensor1D.new([2, 1, NaN]);
       const y = math.softmax(a);
       test_util.expectArraysClose(y, [NaN, NaN, NaN]);
     });
 
     it('2D, dim=1', math => {
-      const y = math.softmax(Array2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]), 1);
+      const y = math.softmax(Tensor2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]), 1);
       const expected = [
         0.24472847, 0.09003057, 0.66524095, 0.09003057, 0.66524095, 0.24472847
       ];
@@ -64,7 +64,7 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('2D, implicit dim=1', math => {
-      const y = math.softmax(Array2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]));
+      const y = math.softmax(Tensor2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]));
       const expected = [
         0.24472847, 0.09003057, 0.66524095, 0.09003057, 0.66524095, 0.24472847
       ];
@@ -74,15 +74,15 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 
     it('2D, dim=0 throws error', math => {
       const f = () => {
-        math.softmax(Array2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]), 0);
+        math.softmax(Tensor2D.new([2, 3], [[2, 1, 3], [1, 3, 2]]), 0);
       };
       expect(f).toThrowError();
     });
 
     it('1D gradient', math => {
-      const x = Array1D.new([10, 0, -1]);
+      const x = Tensor1D.new([10, 0, -1]);
       const y = math.softmax(x);
-      const dy = Array1D.new([1, 2, 3]);
+      const dy = Tensor1D.new([1, 2, 3]);
       const vjp = math.vjp(() => math.softmax(x), {x}, dy);
 
       const totalSum = math.sum(math.multiply(dy, y));
@@ -96,9 +96,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('2D gradient', math => {
-      const x = Array2D.new([2, 3], [10, 0, -1, 5, 4, 3]);
+      const x = Tensor2D.new([2, 3], [10, 0, -1, 5, 4, 3]);
       const y = math.softmax(x);
-      const dy = Array2D.new([2, 3], [3, 2, 1, 1, 2, 3]);
+      const dy = Tensor2D.new([2, 3], [3, 2, 1, 1, 2, 3]);
       const vjp = math.vjp(() => math.softmax(x), {x}, dy);
 
       const axis = -1;
@@ -126,8 +126,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('1D', math => {
-      const logits = Array1D.new([1, 2, 3]);
-      const label = Array1D.new([0.3, 0.6, 0.1]);
+      const logits = Tensor1D.new([1, 2, 3]);
+      const label = Tensor1D.new([0.3, 0.6, 0.1]);
       const softmaxLogits = math.softmax(logits);
 
       const y = math.softmaxCrossEntropy(label, logits);
@@ -141,8 +141,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('2D implicit dim', math => {
-      const logits = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-      const label = Array2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
+      const logits = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const label = Tensor2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
       const softmaxLogits = math.softmax(logits);
 
       const y = math.softmaxCrossEntropy(label, logits);
@@ -159,8 +159,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('2D, dim=1', math => {
-      const logits = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-      const label = Array2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
+      const logits = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const label = Tensor2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
       const dim = 1;
       const softmaxLogits = math.softmax(logits, dim);
 
@@ -178,16 +178,16 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('2D, dim=0 throws error', math => {
-      const logits = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-      const label = Array2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
+      const logits = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const label = Tensor2D.new([2, 3], [0.3, 0.6, 0.1, 0.2, 0.3, 0.5]);
       const dim = 0;
 
       expect(() => math.softmaxCrossEntropy(label, logits, dim)).toThrowError();
     });
 
     it('Propagates NaNs', math => {
-      const logits = Array1D.new([1, 2, NaN]);
-      const label = Array1D.new([0.3, 0.6, 0.1]);
+      const logits = Tensor1D.new([1, 2, NaN]);
+      const label = Tensor1D.new([0.3, 0.6, 0.1]);
 
       const y = math.softmaxCrossEntropy(label, logits);
 
@@ -196,8 +196,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('1D gradient', math => {
-      const logits = Array1D.new([1, 2, 3]);
-      const labels = Array1D.new([0.3, 0.6, 0.1]);
+      const logits = Tensor1D.new([1, 2, 3]);
+      const labels = Tensor1D.new([0.3, 0.6, 0.1]);
       const softmaxLogits = math.softmax(logits);
       const dy = Scalar.new(2);
 
@@ -221,10 +221,10 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('2D gradient', math => {
-      const logits = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-      const labels = Array2D.new([2, 3], [0.3, 0.6, 0.1, .2, .3, .5]);
+      const logits = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const labels = Tensor2D.new([2, 3], [0.3, 0.6, 0.1, .2, .3, .5]);
       const softmaxLogits = math.softmax(logits);
-      const dy = Array1D.new([2, 4]);
+      const dy = Tensor1D.new([2, 4]);
 
       const vjp = math.vjp(
           () => math.softmaxCrossEntropy(labels, logits), {labels, logits}, dy);

@@ -15,48 +15,48 @@
  * =============================================================================
  */
 
-import {Array1D, Array2D, Array3D, Array4D} from '../../ndarray';
+import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface Slice1DNode extends KernelNode {
-  inputAndArgs: {inputs: {x: Array1D;}; args: {begin: number; size: number;};};
-  output: Array1D;
-  gradient: (dy: Array1D, y: Array1D) => {
-    x: () => Array1D;
+  inputAndArgs: {inputs: {x: Tensor1D;}; args: {begin: number; size: number;};};
+  output: Tensor1D;
+  gradient: (dy: Tensor1D, y: Tensor1D) => {
+    x: () => Tensor1D;
   };
 }
 
 export interface Slice2DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array2D;};
+    inputs: {x: Tensor2D;};
     args: {begin: [number, number]; size: [number, number];};
   };
-  output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => {
-    x: () => Array2D;
+  output: Tensor2D;
+  gradient: (dy: Tensor2D, y: Tensor2D) => {
+    x: () => Tensor2D;
   };
 }
 
 export interface Slice3DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array3D;};
+    inputs: {x: Tensor3D;};
     args: {begin: [number, number, number]; size: [number, number, number];};
   };
-  output: Array3D;
-  gradient: (dy: Array3D, y: Array3D) => {
-    x: () => Array3D;
+  output: Tensor3D;
+  gradient: (dy: Tensor3D, y: Tensor3D) => {
+    x: () => Tensor3D;
   };
 }
 
 export interface Slice4DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array4D;}; args: {
+    inputs: {x: Tensor4D;}; args: {
       begin: [number, number, number, number];
       size: [number, number, number, number];
     };
   };
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    x: () => Array4D;
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    x: () => Tensor4D;
   };
 }

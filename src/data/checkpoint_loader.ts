@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArray} from '../math/ndarray';
+import {Tensor} from '../math/tensor';
 
 /**
  * @hidden
@@ -36,7 +36,7 @@ const MANIFEST_FILE = 'manifest.json';
 
 export class CheckpointLoader {
   private checkpointManifest: CheckpointManifest;
-  private variables: {[varName: string]: NDArray};
+  private variables: {[varName: string]: Tensor};
 
   constructor(private urlPath: string) {
     if (this.urlPath.charAt(this.urlPath.length - 1) !== '/') {
@@ -74,19 +74,19 @@ export class CheckpointLoader {
     });
   }
 
-  getAllVariables(): Promise<{[varName: string]: NDArray}> {
+  getAllVariables(): Promise<{[varName: string]: Tensor}> {
     if (this.variables != null) {
-      return new Promise<{[varName: string]: NDArray}>((resolve, reject) => {
+      return new Promise<{[varName: string]: Tensor}>((resolve, reject) => {
         resolve(this.variables);
       });
     }
 
-    return new Promise<{[varName: string]: NDArray}>((resolve, reject) => {
+    return new Promise<{[varName: string]: Tensor}>((resolve, reject) => {
       this.getCheckpointManifest().then(
           (checkpointDefinition: CheckpointManifest) => {
             const variableNames = Object.keys(this.checkpointManifest);
 
-            const variablePromises: Array<Promise<NDArray>> = [];
+            const variablePromises: Array<Promise<Tensor>> = [];
             for (let i = 0; i < variableNames.length; i++) {
               variablePromises.push(this.getVariable(variableNames[i]));
             }
@@ -102,13 +102,13 @@ export class CheckpointLoader {
     });
   }
 
-  getVariable(varName: string): Promise<NDArray> {
+  getVariable(varName: string): Promise<Tensor> {
     if (!(varName in this.checkpointManifest)) {
       throw new Error('Cannot load non-existant variable ' + varName);
     }
 
     const variableRequestPromiseMethod =
-        (resolve: (ndarray: NDArray) => void, reject: () => void) => {
+        (resolve: (tensor: Tensor) => void, reject: () => void) => {
           const xhr = new XMLHttpRequest();
           xhr.responseType = 'arraybuffer';
           const fname = this.checkpointManifest[varName].filename;
@@ -119,9 +119,9 @@ export class CheckpointLoader {
               throw new Error(`Not found variable ${varName}`);
             }
             const values = new Float32Array(xhr.response);
-            const ndarray =
-                NDArray.make(this.checkpointManifest[varName].shape, {values});
-            resolve(ndarray);
+            const tensor =
+                Tensor.make(this.checkpointManifest[varName].shape, {values});
+            resolve(tensor);
           };
           xhr.onerror = (error) => {
             throw new Error(`Could not fetch variable ${varName}: ${error}`);
@@ -130,12 +130,12 @@ export class CheckpointLoader {
         };
 
     if (this.checkpointManifest == null) {
-      return new Promise<NDArray>((resolve, reject) => {
+      return new Promise<Tensor>((resolve, reject) => {
         this.loadManifest().then(() => {
-          new Promise<NDArray>(variableRequestPromiseMethod).then(resolve);
+          new Promise<Tensor>(variableRequestPromiseMethod).then(resolve);
         });
       });
     }
-    return new Promise<NDArray>(variableRequestPromiseMethod);
+    return new Promise<Tensor>(variableRequestPromiseMethod);
   }
 }

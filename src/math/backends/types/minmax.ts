@@ -15,41 +15,41 @@
  * =============================================================================
  */
 
-import {NDArray} from '../../ndarray';
+import {Tensor} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 // Reduction min.
 export interface MinNode extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[]}};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    x: () => NDArray;
+  inputAndArgs: {inputs: {x: Tensor;}; args: {axes: number[]}};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    x: () => Tensor;
   };
 }
 
 // Element-wise min.
 export interface MinimumNode extends KernelNode {
-  inputAndArgs: {inputs: {a: NDArray, b: NDArray};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    a: () => NDArray, b: () => NDArray
+  inputAndArgs: {inputs: {a: Tensor, b: Tensor};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    a: () => Tensor, b: () => Tensor
   };
 }
 
 // Reduction Max
 export interface MaxNode extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[]}};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    x: () => NDArray;
+  inputAndArgs: {inputs: {x: Tensor;}; args: {axes: number[]}};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    x: () => Tensor;
   };
 }
 
 // Element-wise max.
 export interface MaximumNode extends KernelNode {
-  inputAndArgs: {inputs: {a: NDArray, b: NDArray};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    a: () => NDArray, b: () => NDArray
+  inputAndArgs: {inputs: {a: Tensor, b: Tensor};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    a: () => Tensor, b: () => Tensor
   };
 }

@@ -21,10 +21,10 @@ import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 const TOP_K = 3;
 
 // tslint:disable-next-line
-export let NDArrayLogitsVisualizerPolymer: new () => PolymerHTMLElement =
-    PolymerElement({is: 'ndarray-logits-visualizer', properties: {}});
+export let TensorLogitsVisualizerPolymer: new () => PolymerHTMLElement =
+    PolymerElement({is: 'tensor-logits-visualizer', properties: {}});
 
-export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
+export class TensorLogitsVisualizer extends TensorLogitsVisualizerPolymer {
   // Polymer properties.
   logitLabelElements: HTMLElement[];
   logitVizElements: HTMLElement[];
@@ -43,19 +43,19 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
       logitContainer.style.margin =
           `${height / ((2 * TOP_K) * (TOP_K + 1))}px 0`;
       logitContainer.className =
-          'single-logit-container ndarray-logits-visualizer';
+          'single-logit-container tensor-logits-visualizer';
 
       const logitLabelElement = document.createElement('div');
-      logitLabelElement.className = 'logit-label ndarray-logits-visualizer';
+      logitLabelElement.className = 'logit-label tensor-logits-visualizer';
       this.logitLabelElements.push(logitLabelElement);
 
       const logitVizOuterElement = document.createElement('div');
       logitVizOuterElement.className =
-          'logit-viz-outer ndarray-logits-visualizer';
+          'logit-viz-outer tensor-logits-visualizer';
 
       const logitVisInnerElement = document.createElement('div');
       logitVisInnerElement.className =
-          'logit-viz-inner ndarray-logits-visualizer';
+          'logit-viz-inner tensor-logits-visualizer';
       logitVisInnerElement.innerHTML = '&nbsp;';
       logitVizOuterElement.appendChild(logitVisInnerElement);
 
@@ -68,7 +68,7 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
   }
 
   drawLogits(
-      predictedLogits: dl.Array1D, labelLogits: dl.Array1D,
+      predictedLogits: dl.Tensor1D, labelLogits: dl.Tensor1D,
       labelClassNames?: string[]) {
     const labelClass = labelLogits.argMax().get();
 
@@ -113,4 +113,4 @@ export class NDArrayLogitsVisualizer extends NDArrayLogitsVisualizerPolymer {
 }
 
 document.registerElement(
-    NDArrayLogitsVisualizer.prototype.is, NDArrayLogitsVisualizer);
+    TensorLogitsVisualizer.prototype.is, TensorLogitsVisualizer);

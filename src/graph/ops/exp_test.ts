@@ -16,17 +16,17 @@
  */
 
 import {ENV} from '../../environment';
-import {Array1D} from '../../math/ndarray';
+import {Tensor1D} from '../../math/tensor';
 import * as test_util from '../../test_util';
-import {Tensor} from '../graph';
+import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Exp} from './exp';
 
 describe('exp operation', () => {
   const math = ENV.math;
 
-  let xTensor: Tensor;
-  let yTensor: Tensor;
+  let xTensor: SymbolicTensor;
+  let yTensor: SymbolicTensor;
   let expOp: Exp;
   let activations: TensorArrayMap;
   let gradients: SummedTensorArrayMap;
@@ -44,10 +44,10 @@ describe('exp operation', () => {
   });
 
   it('simple exp', () => {
-    const x = Array1D.new([1, 2, 3]);
+    const x = Tensor1D.new([1, 2, 3]);
 
-    xTensor = new Tensor(x.shape);
-    yTensor = new Tensor(x.shape);
+    xTensor = new SymbolicTensor(x.shape);
+    yTensor = new SymbolicTensor(x.shape);
 
     activations.set(xTensor, x);
 
@@ -60,7 +60,7 @@ describe('exp operation', () => {
     test_util.expectNumbersClose(y.get(1), Math.exp(x.get(1)));
     test_util.expectNumbersClose(y.get(2), Math.exp(x.get(2)));
 
-    const dy = Array1D.new([1, 2, 3]);
+    const dy = Tensor1D.new([1, 2, 3]);
     gradients.add(yTensor, dy);
 
     expOp.backProp(math, activations, gradients);

@@ -17,7 +17,7 @@
 
 import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
-import {NDArray, Scalar} from '../../math/ndarray';
+import {Tensor, Scalar} from '../../math/tensor';
 import {SGDOptimizer} from '../../math/optimizers/sgd_optimizer';
 import {NamedVariableMap} from '../../math/types';
 import {Node} from '../graph';
@@ -46,7 +46,7 @@ export class MomentumOptimizer extends SGDOptimizer {
     if (this.variableVelocities.size() === 0) {
       this.variableNodes.forEach(node => {
         this.variableVelocities.set(
-            node.output, NDArray.zeros(node.output.shape));
+            node.output, Tensor.zeros(node.output.shape));
       });
     }
   }

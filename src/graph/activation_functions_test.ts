@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {ENV} from '../environment';
-import {Array1D} from '../math/ndarray';
+import {Tensor1D} from '../math/tensor';
 import * as test_util from '../test_util';
 import * as util from '../util';
 // tslint:disable-next-line:max-line-length
@@ -25,7 +25,7 @@ describe('Activation functions', () => {
   const math = ENV.math;
 
   it('Tanh output', () => {
-    const x = Array1D.new([1, 3, -2, 100, -100, 0]);
+    const x = Tensor1D.new([1, 3, -2, 100, -100, 0]);
     const tanH = new TanHFunc();
     const y = tanH.output(math, x);
 
@@ -38,7 +38,7 @@ describe('Activation functions', () => {
   });
 
   it('Tanh derivative', () => {
-    const x = Array1D.new([1, 3, -2, 100, -100, 0]);
+    const x = Tensor1D.new([1, 3, -2, 100, -100, 0]);
     const tanH = new TanHFunc();
     const y = tanH.output(math, x);
     const dx = tanH.der(math, x, y);
@@ -49,7 +49,7 @@ describe('Activation functions', () => {
   });
 
   it('ReLU output', () => {
-    const x = Array1D.new([1, 3, -2]);
+    const x = Tensor1D.new([1, 3, -2]);
     const relu = new ReLUFunc();
     const y = relu.output(math, x);
 
@@ -59,7 +59,7 @@ describe('Activation functions', () => {
   });
 
   it('ReLU derivative', () => {
-    const x = Array1D.new([1, 3, -2]);
+    const x = Tensor1D.new([1, 3, -2]);
     const relu = new ReLUFunc();
     const y = relu.output(math, x);
     const dx = relu.der(math, x, y);
@@ -70,7 +70,7 @@ describe('Activation functions', () => {
   });
 
   it('LeakyRelu output', () => {
-    const x = Array1D.new([1, 3, -2]);
+    const x = Tensor1D.new([1, 3, -2]);
     const relu = new LeakyReluFunc(0.2);
     const y = relu.output(math, x);
 
@@ -80,7 +80,7 @@ describe('Activation functions', () => {
   });
 
   it('LeakyRelu derivative', () => {
-    const x = Array1D.new([1, 3, -2]);
+    const x = Tensor1D.new([1, 3, -2]);
     const relu = new LeakyReluFunc(0.2);
     const y = relu.output(math, x);
     const dx = relu.der(math, x, y);
@@ -91,7 +91,7 @@ describe('Activation functions', () => {
   });
 
   it('Sigmoid output', () => {
-    const x = Array1D.new([1, 3, -2, 100, -100, 0]);
+    const x = Tensor1D.new([1, 3, -2, 100, -100, 0]);
     const sigmoid = new SigmoidFunc();
     const y = sigmoid.output(math, x);
 
@@ -104,7 +104,7 @@ describe('Activation functions', () => {
   });
 
   it('Sigmoid derivative', () => {
-    const x = Array1D.new([1, 3, -2, 100, -100, 0]);
+    const x = Tensor1D.new([1, 3, -2, 100, -100, 0]);
     const sigmoid = new SigmoidFunc();
     const y = sigmoid.output(math, x);
     const dx = sigmoid.der(math, x, y);

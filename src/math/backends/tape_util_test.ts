@@ -16,10 +16,11 @@
  * =============================================================================
  */
 
-import {NamedArrayMap} from '../../math/types';
+import {NamedTensorMap} from '../../math/types';
 import * as test_util from '../../test_util';
 import {MathTests} from '../../test_util';
-import {NDArray, Scalar} from '../ndarray';
+import {Scalar, Tensor} from '../tensor';
+
 // tslint:disable-next-line:max-line-length
 import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types';
 import * as tape_util from './tape_util';
@@ -432,7 +433,7 @@ import * as tape_util from './tape_util';
 
       const dy = Scalar.new(1);
 
-      const accumulatedGradientsMap: {[ndarrayId: number]: NDArray} = {};
+      const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
       accumulatedGradientsMap[y.id] = dy;
 
       const tape: Tape = [{
@@ -457,7 +458,7 @@ import * as tape_util from './tape_util';
 
       const dy = Scalar.new(1);
 
-      const accumulatedGradientsMap: {[ndarrayId: number]: NDArray} = {};
+      const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
       accumulatedGradientsMap[y.id] = dy;
 
       const tape: Tape = [{
@@ -485,7 +486,7 @@ import * as tape_util from './tape_util';
 
       const dy = Scalar.new(1);
 
-      const accumulatedGradientsMap: {[ndarrayId: number]: NDArray} = {};
+      const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
       accumulatedGradientsMap[y.id] = dy;
 
       const tape: Tape = [
@@ -529,7 +530,7 @@ import * as tape_util from './tape_util';
 
       const dy = Scalar.new(1);
 
-      const accumulatedGradientsMap: {[ndarrayId: number]: NDArray} = {};
+      const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
       accumulatedGradientsMap[y.id] = dy;
 
       const tape: Tape = [
@@ -590,7 +591,7 @@ import * as tape_util from './tape_util';
 
          const dy = Scalar.new(1);
 
-         const accumulatedGradientsMap: {[ndarrayId: number]: NDArray} = {};
+         const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
          accumulatedGradientsMap[y.id] = dy;
 
          const tape: Array<TapeNode<TapeNodeOutput>> = [
@@ -602,7 +603,7 @@ import * as tape_util from './tape_util';
                inputs: {x},
              },
              output: {intermediate1, intermediate2},
-             gradient: (dy: NamedArrayMap, y: NamedArrayMap) => {
+             gradient: (dy: NamedTensorMap, y: NamedTensorMap) => {
                return {
                  x: () =>
                      math.multiply(dy['intermediate1'], dy['intermediate2'])
@@ -636,34 +637,33 @@ import * as tape_util from './tape_util';
   test_util.describeMathCPU('tape_util.backpropagateGradients', [tests]);
 }
 
-// extractNDArraysFromScopeResult
+// extractTensorsFromScopeResult
 {
   const tests: MathTests = it => {
-    it('null input returns empty array', math => {
-      const results = tape_util.extractNDArraysFromScopeResult(null);
+    it('null input returns empty tensor', math => {
+      const results = tape_util.extractTensorsFromScopeResult(null);
 
       expect(results).toEqual([]);
     });
 
-    it('ndarray input returns one element array', math => {
+    it('tensor input returns one element tensor', math => {
       const x = Scalar.new(1);
-      const results = tape_util.extractNDArraysFromScopeResult(x);
+      const results = tape_util.extractTensorsFromScopeResult(x);
 
       expect(results).toEqual([x]);
     });
 
-    it('name array map returns flattened array', math => {
+    it('name tensor map returns flattened tensor', math => {
       const x1 = Scalar.new(1);
       const x2 = Scalar.new(3);
       const x3 = Scalar.new(4);
-      const results = tape_util.extractNDArraysFromScopeResult({x1, x2, x3});
+      const results = tape_util.extractTensorsFromScopeResult({x1, x2, x3});
 
       expect(results).toEqual([x1, x2, x3]);
     });
   };
 
-  test_util.describeMathCPU(
-      'tape_util.extractNDArraysFromScopeResult', [tests]);
+  test_util.describeMathCPU('tape_util.extractTensorsFromScopeResult', [tests]);
 }
 
 {
@@ -690,6 +690,6 @@ import * as tape_util from './tape_util';
       });
     });
     test_util.describeMathCPU(
-        'tape_util.extractNDArraysFromScopeResult', [tests]);
+        'tape_util.extractTensorsFromScopeResult', [tests]);
   };
 }

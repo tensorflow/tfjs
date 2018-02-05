@@ -24,8 +24,8 @@ const mnistConfig: dl.XhrDatasetConfig = {
 
 export class MnistData {
   private dataset: dl.XhrDataset;
-  private trainingData: dl.NDArray[][];
-  private testData: dl.NDArray[][];
+  private trainingData: dl.Tensor[][];
+  private testData: dl.Tensor[][];
   private trainIndices: Uint32Array;
   private testIndices: Uint32Array;
 
@@ -33,7 +33,7 @@ export class MnistData {
   private shuffledTestIndex = 0;
 
   public nextTrainBatch(batchSize: number):
-      {xs: dl.Array2D, labels: dl.Array2D} {
+      {xs: dl.Tensor2D, labels: dl.Tensor2D} {
     return this.nextBatch(batchSize, this.trainingData, () => {
       this.shuffledTrainIndex =
           (this.shuffledTrainIndex + 1) % this.trainIndices.length;
@@ -42,7 +42,7 @@ export class MnistData {
   }
 
   public nextTestBatch(batchSize: number):
-      {xs: dl.Array2D, labels: dl.Array2D} {
+      {xs: dl.Tensor2D, labels: dl.Tensor2D} {
     return this.nextBatch(batchSize, this.testData, () => {
       this.shuffledTestIndex =
           (this.shuffledTestIndex + 1) % this.testIndices.length;
@@ -51,18 +51,18 @@ export class MnistData {
   }
 
   private nextBatch(
-      batchSize: number, data: dl.NDArray[][],
-      index: () => number): {xs: dl.Array2D, labels: dl.Array2D} {
-    let xs: dl.Array2D = null;
-    let labels: dl.Array2D = null;
+      batchSize: number, data: dl.Tensor[][],
+      index: () => number): {xs: dl.Tensor2D, labels: dl.Tensor2D} {
+    let xs: dl.Tensor2D = null;
+    let labels: dl.Tensor2D = null;
 
     for (let i = 0; i < batchSize; i++) {
       const idx = index();
 
-      const x = data[0][idx].reshape([1, 784]) as dl.Array2D;
+      const x = data[0][idx].reshape([1, 784]) as dl.Tensor2D;
       xs = concatWithNulls(xs, x);
 
-      const label = data[1][idx].reshape([1, 10]) as dl.Array2D;
+      const label = data[1][idx].reshape([1, 10]) as dl.Tensor2D;
       labels = concatWithNulls(labels, label);
     }
     return {xs, labels};
@@ -81,22 +81,22 @@ export class MnistData {
     this.testIndices = dl.util.createShuffledIndices(this.testData[0].length);
   }
 
-  private getTrainingData(): dl.NDArray[][] {
+  private getTrainingData(): dl.Tensor[][] {
     const [images, labels] =
-        this.dataset.getData() as [dl.NDArray[], dl.NDArray[]];
+        this.dataset.getData() as [dl.Tensor[], dl.Tensor[]];
 
     const end = Math.floor(TRAIN_TEST_RATIO * images.length);
 
     return [images.slice(0, end), labels.slice(0, end)];
   }
 
-  private getTestData(): dl.NDArray[][] {
+  private getTestData(): dl.Tensor[][] {
     const data = this.dataset.getData();
     if (data == null) {
       return null;
     }
     const [images, labels] =
-        this.dataset.getData() as [dl.NDArray[], dl.NDArray[]];
+        this.dataset.getData() as [dl.Tensor[], dl.Tensor[]];
 
     const start = Math.floor(TRAIN_TEST_RATIO * images.length);
 
@@ -108,7 +108,7 @@ export class MnistData {
  * TODO(nsthorat): Add math.stack, similar to np.stack, which will avoid the
  * need for us allowing concating with null values.
  */
-function concatWithNulls(x1: dl.Array2D, x2: dl.Array2D): dl.Array2D {
+function concatWithNulls(x1: dl.Tensor2D, x2: dl.Tensor2D): dl.Tensor2D {
   if (x1 == null && x2 == null) {
     return null;
   }

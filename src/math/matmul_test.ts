@@ -19,13 +19,13 @@ import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {MatrixOrientation} from './backends/types/matmul';
-import {Array1D, Array2D, Array3D} from './ndarray';
+import {Tensor1D, Tensor2D, Tensor3D} from './tensor';
 import {Rank} from './types';
 
 const commonTests: MathTests = it => {
   it('A x B', math => {
-    const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const b = Array2D.new([3, 2], [0, 1, -3, 2, 2, 1]);
+    const a = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const b = Tensor2D.new([3, 2], [0, 1, -3, 2, 2, 1]);
 
     const c = math.matMul(a, b);
 
@@ -34,8 +34,8 @@ const commonTests: MathTests = it => {
   });
 
   it('A x B^t', math => {
-    const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const b = Array2D.new([2, 3], [1, 0, 2, 4, 3, 0]);
+    const a = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const b = Tensor2D.new([2, 3], [1, 0, 2, 4, 3, 0]);
 
     const c = math.matMul(
         a, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED);
@@ -45,8 +45,8 @@ const commonTests: MathTests = it => {
   });
 
   it('A^t x B', math => {
-    const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const b = Array2D.new([2, 3], [1, 0, 2, 4, 3, 0]);
+    const a = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const b = Tensor2D.new([2, 3], [1, 0, 2, 4, 3, 0]);
 
     const c = math.matMul(
         a, b, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR);
@@ -56,8 +56,8 @@ const commonTests: MathTests = it => {
   });
 
   it('A^t x B^t', math => {
-    const a = Array2D.new([3, 2], [1, 2, 3, 4, 5, 6]);
-    const b = Array2D.new([2, 3], [1, 0, 2, 4, 3, 0]);
+    const a = Tensor2D.new([3, 2], [1, 2, 3, 4, 5, 6]);
+    const b = Tensor2D.new([2, 3], [1, 0, 2, 4, 3, 0]);
 
     const c = math.matMul(
         a, b, MatrixOrientation.TRANSPOSED, MatrixOrientation.TRANSPOSED);
@@ -100,8 +100,8 @@ const commonTests: MathTests = it => {
   });
 
   it('matmul throws when inner dimensions dont match', math => {
-    const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-    const b = Array2D.new([4, 2], [0, 1, -3, 2, 2, 1, 2, 2]);
+    const a = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+    const b = Tensor2D.new([4, 2], [0, 1, -3, 2, 2, 1, 2, 2]);
 
     expect(() => math.matMul(a, b)).toThrowError();
   });
@@ -109,16 +109,16 @@ const commonTests: MathTests = it => {
   it('matmul throws when passed non matrices', math => {
     // tslint:disable-next-line:no-any
     const a: any =
-        Array3D.new([2, 3, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    const b = Array2D.new([4, 2], [0, 1, -3, 2, 2, 1, 2, 2]);
+        Tensor3D.new([2, 3, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    const b = Tensor2D.new([4, 2], [0, 1, -3, 2, 2, 1, 2, 2]);
 
     expect(() => math.matMul(a, b)).toThrowError();
     expect(() => math.matMul(b, a)).toThrowError();
   });
 
   it('Vector times matrix', math => {
-    const v = Array1D.new([2, 3]);
-    const matrix = Array2D.new([2, 2], [1, 2, 3, 4]);
+    const v = Tensor1D.new([2, 3]);
+    const matrix = Tensor2D.new([2, 2], [1, 2, 3, 4]);
     const result = math.vectorTimesMatrix(v, matrix);
 
     const expected = [11, 16];
@@ -126,9 +126,9 @@ const commonTests: MathTests = it => {
   });
 
   it('Vector times matrix with implicit reshape', math => {
-    const v = Array1D.new([2, 3]);
+    const v = Tensor1D.new([2, 3]);
 
-    const matrix = Array2D.new([2, 2], [1, 2, 3, 4]);
+    const matrix = Tensor2D.new([2, 2], [1, 2, 3, 4]);
     const result = math.vectorTimesMatrix(v, matrix);
 
     const expected = [11, 16];
@@ -137,23 +137,23 @@ const commonTests: MathTests = it => {
 
   it('Vector times matrix throws when not passed a vector', math => {
     // tslint:disable-next-line:no-any
-    const v: any = Array2D.new([2, 2], [1, 2, 3, 4]);
-    const matrix = Array2D.new([2, 2], [1, 2, 3, 4]);
+    const v: any = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+    const matrix = Tensor2D.new([2, 2], [1, 2, 3, 4]);
 
     expect(() => math.vectorTimesMatrix(v, matrix)).toThrowError();
   });
 
   it('Vector times matrix throws when not passed a matrix', math => {
-    const v = Array1D.new([2, 3]);
+    const v = Tensor1D.new([2, 3]);
     // tslint:disable-next-line:no-any
-    const matrix: any = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+    const matrix: any = Tensor3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
 
     expect(() => math.vectorTimesMatrix(v, matrix)).toThrowError();
   });
 
   it('Matrix times vector', math => {
-    const matrix = Array2D.new([2, 2], [1, 2, 3, 4]);
-    const v = Array1D.new([2, 3]);
+    const matrix = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+    const v = Tensor1D.new([2, 3]);
     const result = math.matrixTimesVector(matrix, v);
 
     const expected = [8, 18];
@@ -161,8 +161,8 @@ const commonTests: MathTests = it => {
   });
 
   it('Matrix * vector propagates NaNs', math => {
-    const matrix = Array2D.new([2, 2], [1, 2, 3, 4]);
-    const v = Array1D.new([2, NaN]);
+    const matrix = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+    const v = Tensor1D.new([2, NaN]);
     const result = math.matrixTimesVector(matrix, v);
 
     const expected = [NaN, NaN];
@@ -171,39 +171,39 @@ const commonTests: MathTests = it => {
 
   it('matrix times vector throws when not passed a vector', math => {
     // tslint:disable-next-line:no-any
-    const v: any = Array2D.new([2, 2], [1, 2, 3, 4]);
-    const matrix = Array2D.new([2, 2], [1, 2, 3, 4]);
+    const v: any = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+    const matrix = Tensor2D.new([2, 2], [1, 2, 3, 4]);
 
     expect(() => math.matrixTimesVector(matrix, v)).toThrowError();
   });
 
   it('matrix times vector throws when not passed a matrix', math => {
-    const v = Array1D.new([2, 3]);
+    const v = Tensor1D.new([2, 3]);
 
     // tslint:disable-next-line:no-any
-    const matrix: any = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+    const matrix: any = Tensor3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
 
     expect(() => math.matrixTimesVector(matrix, v)).toThrowError();
   });
 
   it('Dot product', math => {
-    const v1 = Array1D.new([2, 3]);
-    const v2 = Array1D.new([2, 1]);
+    const v1 = Tensor1D.new([2, 3]);
+    const v2 = Tensor1D.new([2, 1]);
     const result = math.dotProduct(v1, v2);
 
     test_util.expectNumbersClose(result.get(), 7);
   });
 
   it('Dot product propagates NaNs', math => {
-    const v1 = Array1D.new([2, NaN]);
-    const v2 = Array1D.new([2, 1]);
+    const v1 = Tensor1D.new([2, NaN]);
+    const v2 = Tensor1D.new([2, 1]);
     const result = math.dotProduct(v1, v2);
     expect(result.get()).toEqual(NaN);
   });
 
   it('Dot product throws when vectors are different size', math => {
-    const v1 = Array1D.new([2, 3, 3]);
-    const v2 = Array1D.new([2, 1]);
+    const v1 = Tensor1D.new([2, 3, 3]);
+    const v2 = Tensor1D.new([2, 1]);
 
     expect(() => math.dotProduct(v1, v2)).toThrowError();
     expect(() => math.dotProduct(v2, v1)).toThrowError();
@@ -211,16 +211,16 @@ const commonTests: MathTests = it => {
 
   it('Dot product throws when passed non vectors', math => {
     // tslint:disable-next-line:no-any
-    const v1: any = Array2D.new([2, 2], [1, 2, 3, 3]);
-    const v2 = Array1D.new([2, 1]);
+    const v1: any = Tensor2D.new([2, 2], [1, 2, 3, 3]);
+    const v2 = Tensor1D.new([2, 1]);
 
     expect(() => math.dotProduct(v1, v2)).toThrowError();
     expect(() => math.dotProduct(v2, v1)).toThrowError();
   });
 
   it('Outer product', math => {
-    const v1 = Array1D.new([2, 3]);
-    const v2 = Array1D.new([2, 1]);
+    const v1 = Tensor1D.new([2, 3]);
+    const v2 = Tensor1D.new([2, 1]);
     const result = math.outerProduct(v1, v2);
 
     const expected = [4, 2, 6, 3];
@@ -230,9 +230,9 @@ const commonTests: MathTests = it => {
 
   // TODO(nsthorat): fix the precision for backprop.
   it('gradients: A * B', math => {
-    const a = Array2D.new([2, 3], [1, 2, 3, 10, 20, 30]);
-    const b = Array2D.new([3, 2], [2, 3, 4, 1, 2, 3]);
-    const dy = Array2D.new([2, 2], [1, 10, 20, 30]);
+    const a = Tensor2D.new([2, 3], [1, 2, 3, 10, 20, 30]);
+    const b = Tensor2D.new([3, 2], [2, 3, 4, 1, 2, 3]);
+    const dy = Tensor2D.new([2, 2], [1, 10, 20, 30]);
 
     const gradients = math.vjp(
         () => math.matMul(

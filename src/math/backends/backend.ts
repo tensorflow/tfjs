@@ -18,19 +18,19 @@
 
 import {Conv2DInfo} from '../conv_util';
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, NDArray} from '../ndarray';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, Rank, TypedArray} from '../types';
 
 import {MatrixOrientation} from './types/matmul';
 
-export interface NDArrayStorage {
+export interface TensorStorage {
   read(dataId: number): Promise<TypedArray>;
   readSync(dataId: number): TypedArray;
   disposeData(dataId: number): void;
   write(dataId: number, values: TypedArray): void;
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Array3D;
+      numChannels: number): Tensor3D;
   time(query: () => void): Promise<number>;
   register(dataId: number, shape: number[], dtype: DataType): void;
 }
@@ -43,21 +43,22 @@ export interface BackendTimer { time(f: () => void): Promise<number>; }
  * methods, this can be done gradually (throw an error for unimplemented
  * methods).
  */
-export interface MathBackend extends NDArrayStorage, BackendTimer {
+export interface MathBackend extends TensorStorage, BackendTimer {
   matMul(
-      a: Array2D, b: Array2D, aOrientation: MatrixOrientation,
-      bOrientation: MatrixOrientation): Array2D;
+      a: Tensor2D, b: Tensor2D, aOrientation: MatrixOrientation,
+      bOrientation: MatrixOrientation): Tensor2D;
 
-  slice1D(x: Array1D, begin: number, size: number): Array1D;
-  slice2D(x: Array2D, begin: [number, number], size: [number, number]): Array2D;
-  slice3D(x: Array3D, begin: [number, number, number], size: [
+  slice1D(x: Tensor1D, begin: number, size: number): Tensor1D;
+  slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
+      Tensor2D;
+  slice3D(x: Tensor3D, begin: [number, number, number], size: [
     number, number, number
-  ]): Array3D;
-  slice4D(x: Array4D, begin: [number, number, number, number], size: [
+  ]): Tensor3D;
+  slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
     number, number, number, number
-  ]): Array4D;
+  ]): Tensor4D;
 
-  reverse4D(a: Array4D, axis: number[]): Array4D;
+  reverse4D(a: Tensor4D, axis: number[]): Tensor4D;
 
   // Any concat of n-dimensional tensors across any axis can be reduced to
   // a concatenation of two-dimensional tensors across the axis 1 by first
@@ -69,137 +70,140 @@ export interface MathBackend extends NDArrayStorage, BackendTimer {
   // This method always take a rank-2 tensor (i.e a matrix) and concatenate it
   // along the axis 1 ("putting them next to each other" as opposed to
   // "putting them on top of one another").
-  concat(a: Array2D, b: Array2D): Array2D;
+  concat(a: Tensor2D, b: Tensor2D): Tensor2D;
 
-  neg<T extends NDArray>(a: T): T;
+  neg<T extends Tensor>(a: T): T;
 
-  add(a: NDArray, b: NDArray): NDArray;
-  subtract(a: NDArray, b: NDArray): NDArray;
-  multiply(a: NDArray, b: NDArray): NDArray;
-  divide(a: NDArray, b: NDArray): NDArray;
+  add(a: Tensor, b: Tensor): Tensor;
+  subtract(a: Tensor, b: Tensor): Tensor;
+  multiply(a: Tensor, b: Tensor): Tensor;
+  divide(a: Tensor, b: Tensor): Tensor;
 
-  sum(x: NDArray, axes: number[]): NDArray;
+  sum(x: Tensor, axes: number[]): Tensor;
 
-  argMin(x: NDArray, axes: number[]): NDArray;
-  argMax(x: NDArray, axes: number[]): NDArray;
+  argMin(x: Tensor, axes: number[]): Tensor;
+  argMax(x: Tensor, axes: number[]): Tensor;
 
-  equal(a: NDArray, b: NDArray): NDArray;
-  notEqual(a: NDArray, b: NDArray): NDArray;
+  equal(a: Tensor, b: Tensor): Tensor;
+  notEqual(a: Tensor, b: Tensor): Tensor;
 
-  less(a: NDArray, b: NDArray): NDArray;
-  lessEqual(a: NDArray, b: NDArray): NDArray;
+  less(a: Tensor, b: Tensor): Tensor;
+  lessEqual(a: Tensor, b: Tensor): Tensor;
 
-  greater(a: NDArray, b: NDArray): NDArray;
-  greaterEqual(a: NDArray, b: NDArray): NDArray;
+  greater(a: Tensor, b: Tensor): Tensor;
+  greaterEqual(a: Tensor, b: Tensor): Tensor;
 
-  logicalNot(a: NDArray): NDArray;
-  logicalAnd(a: NDArray, b: NDArray): NDArray;
-  logicalOr(a: NDArray, b: NDArray): NDArray;
-  logicalXor(a: NDArray, b: NDArray): NDArray;
+  logicalNot(a: Tensor): Tensor;
+  logicalAnd(a: Tensor, b: Tensor): Tensor;
+  logicalOr(a: Tensor, b: Tensor): Tensor;
+  logicalXor(a: Tensor, b: Tensor): Tensor;
 
-  where(condition: NDArray, a: NDArray, b: NDArray, dtype: DataType): NDArray;
+  where(condition: Tensor, a: Tensor, b: Tensor, dtype: DataType): Tensor;
 
-  topKValues<T extends NDArray>(x: T, k: number): Array1D;
-  topKIndices(x: NDArray, k: number): Array1D;
+  topKValues<T extends Tensor>(x: T, k: number): Tensor1D;
+  topKIndices(x: Tensor, k: number): Tensor1D;
 
-  min(x: NDArray, axes: number[]): NDArray;
-  minimum(a: NDArray, b: NDArray): NDArray;
+  min(x: Tensor, axes: number[]): Tensor;
+  minimum(a: Tensor, b: Tensor): Tensor;
 
-  max(x: NDArray, axes: number[]): NDArray;
-  maximum(a: NDArray, b: NDArray): NDArray;
+  max(x: Tensor, axes: number[]): Tensor;
+  maximum(a: Tensor, b: Tensor): Tensor;
 
-  ceil<T extends NDArray>(x: T): T;
-  floor<T extends NDArray>(x: T): T;
+  ceil<T extends Tensor>(x: T): T;
+  floor<T extends Tensor>(x: T): T;
 
-  pow<T extends NDArray>(a: T, b: NDArray): T;
-  exp<T extends NDArray>(x: T): T;
-  log<T extends NDArray>(x: T): T;
-  sqrt<T extends NDArray>(x: T): T;
+  pow<T extends Tensor>(a: T, b: Tensor): T;
+  exp<T extends Tensor>(x: T): T;
+  log<T extends Tensor>(x: T): T;
+  sqrt<T extends Tensor>(x: T): T;
 
-  square<T extends NDArray>(x: T): T;
+  square<T extends Tensor>(x: T): T;
 
-  relu<T extends NDArray>(x: T): T;
-  elu<T extends NDArray>(x: T): T;
-  eluDer<T extends NDArray>(x: T): T;
-  selu<T extends NDArray>(x: T): T;
-  leakyRelu<T extends NDArray>(x: T, alpha: number): T;
-  prelu<T extends NDArray>(x: T, alpha: T): T;
-  preluDer<T extends NDArray>(x: T, alpha: T): T;
-  int<R extends Rank>(x: NDArray<R>): NDArray<R>;
+  relu<T extends Tensor>(x: T): T;
+  elu<T extends Tensor>(x: T): T;
+  eluDer<T extends Tensor>(x: T): T;
+  selu<T extends Tensor>(x: T): T;
+  leakyRelu<T extends Tensor>(x: T, alpha: number): T;
+  prelu<T extends Tensor>(x: T, alpha: T): T;
+  preluDer<T extends Tensor>(x: T, alpha: T): T;
+  int<R extends Rank>(x: Tensor<R>): Tensor<R>;
 
-  clip<T extends NDArray>(x: T, min: number, max: number): T;
+  clip<T extends Tensor>(x: T, min: number, max: number): T;
 
-  abs<T extends NDArray>(x: T): T;
+  abs<T extends Tensor>(x: T): T;
 
-  sigmoid<T extends NDArray>(x: T): T;
+  sigmoid<T extends Tensor>(x: T): T;
 
-  sin<T extends NDArray>(x: T): T;
-  cos<T extends NDArray>(x: T): T;
-  tan<T extends NDArray>(x: T): T;
+  sin<T extends Tensor>(x: T): T;
+  cos<T extends Tensor>(x: T): T;
+  tan<T extends Tensor>(x: T): T;
 
-  asin<T extends NDArray>(x: T): T;
-  acos<T extends NDArray>(x: T): T;
-  atan<T extends NDArray>(x: T): T;
+  asin<T extends Tensor>(x: T): T;
+  acos<T extends Tensor>(x: T): T;
+  atan<T extends Tensor>(x: T): T;
 
-  sinh<T extends NDArray>(x: T): T;
-  cosh<T extends NDArray>(x: T): T;
-  tanh<T extends NDArray>(x: T): T;
+  sinh<T extends Tensor>(x: T): T;
+  cosh<T extends Tensor>(x: T): T;
+  tanh<T extends Tensor>(x: T): T;
 
-  step<T extends NDArray>(x: T, alpha: number): T;
+  step<T extends Tensor>(x: T, alpha: number): T;
 
-  conv2d(x: Array4D, filter: Array4D, bias: Array1D|null, convInfo: Conv2DInfo):
-      Array4D;
-  conv2dDerInput(dy: Array4D, filter: Array4D, convInfo: Conv2DInfo): Array4D;
-  conv2dDerFilter(x: Array4D, dY: Array4D, convInfo: Conv2DInfo): Array4D;
-  conv2dDerBias(dY: Array4D): Array1D;
+  conv2d(
+      x: Tensor4D, filter: Tensor4D, bias: Tensor1D|null,
+      convInfo: Conv2DInfo): Tensor4D;
+  conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D;
+  conv2dDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
+  conv2dDerBias(dY: Tensor4D): Tensor1D;
 
-  depthwiseConv2D(input: Array4D, filter: Array4D, convInfo: Conv2DInfo):
-      Array4D;
+  depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D;
 
-  maxPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
-  maxPoolBackprop(dy: Array4D, x: Array4D, convInfo: Conv2DInfo): Array4D;
+  maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
+  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
 
-  minPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
-  avgPool(x: Array4D, convInfo: Conv2DInfo): Array4D;
-  avgPoolBackprop(dy: Array4D, x: Array4D, convInfo: Conv2DInfo): Array4D;
+  minPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
+  avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
+  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
 
-  tile<T extends NDArray>(x: T, reps: number[]): T;
+  tile<T extends Tensor>(x: T, reps: number[]): T;
 
-  pad1D(x: Array1D, paddings: [number, number], constantValue: number): Array1D;
+  pad1D(x: Tensor1D, paddings: [number, number], constantValue: number):
+      Tensor1D;
   pad2D(
-      x: Array2D, paddings: [[number, number], [number, number]],
-      constantValue: number): Array2D;
+      x: Tensor2D, paddings: [[number, number], [number, number]],
+      constantValue: number): Tensor2D;
 
-  transpose<T extends NDArray>(x: T, perm: number[]): T;
+  transpose<T extends Tensor>(x: T, perm: number[]): T;
 
-  gather<T extends NDArray>(x: T, indices: Array1D, axis: number): T;
+  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T;
 
   resizeBilinear(
-      x: Array4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Array4D;
+      x: Tensor4D, newHeight: number, newWidth: number,
+      alignCorners: boolean): Tensor4D;
 
   batchNormalization2D(
-      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
-      varianceEpsilon: number, scale?: Array2D|Array1D,
-      offset?: Array2D|Array1D): Array2D;
+      x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
+      varianceEpsilon: number, scale?: Tensor2D|Tensor1D,
+      offset?: Tensor2D|Tensor1D): Tensor2D;
   batchNormalization3D(
-      x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-      varianceEpsilon: number, scale?: Array3D|Array1D,
-      offset?: Array3D|Array1D): Array3D;
+      x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
+      varianceEpsilon: number, scale?: Tensor3D|Tensor1D,
+      offset?: Tensor3D|Tensor1D): Tensor3D;
   batchNormalization4D(
-      x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
-      varianceEpsilon: number, scale?: Array4D|Array1D,
-      offset?: Array4D|Array1D): Array4D;
+      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
+      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
+      offset?: Tensor4D|Tensor1D): Tensor4D;
 
   localResponseNormalization4D(
-      x: Array4D, radius: number, bias: number, alpha: number, beta: number,
-      normRegion: 'acrossChannels'|'withinChannel'): Array4D;
+      x: Tensor4D, radius: number, bias: number, alpha: number, beta: number,
+      normRegion: 'acrossChannels'|'withinChannel'): Tensor4D;
 
-  multinomial(probabilities: Array2D, numSamples: number, seed: number):
-      Array2D;
+  multinomial(probabilities: Tensor2D, numSamples: number, seed: number):
+      Tensor2D;
 
-  oneHot(indices: Array1D, depth: number, onValue: number, offValue: number):
-      Array2D;
+  oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
+      Tensor2D;
 
   dispose(): void;
 }

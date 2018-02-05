@@ -18,13 +18,13 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array2D, Array3D} from './ndarray';
+import {Tensor2D, Tensor3D} from './tensor';
 
 // math.transpose
 {
   const tests: MathTests = it => {
     it('2D (no change)', math => {
-      const t = Array2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
+      const t = Tensor2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
       const t2 = math.transpose(t, [0, 1]);
 
       expect(t2.shape).toEqual(t.shape);
@@ -32,7 +32,7 @@ import {Array2D, Array3D} from './ndarray';
     });
 
     it('2D (transpose)', math => {
-      const t = Array2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
+      const t = Tensor2D.new([2, 4], [1, 11, 2, 22, 3, 33, 4, 44]);
       const t2 = math.transpose(t, [1, 0]);
 
       expect(t2.shape).toEqual([4, 2]);
@@ -40,7 +40,7 @@ import {Array2D, Array3D} from './ndarray';
     });
 
     it('3D [r, c, d] => [d, r, c]', math => {
-      const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
+      const t = Tensor3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
       const t2 = math.transpose(t, [2, 0, 1]);
 
       expect(t2.shape).toEqual([2, 2, 2]);
@@ -48,7 +48,7 @@ import {Array2D, Array3D} from './ndarray';
     });
 
     it('3D [r, c, d] => [d, c, r]', math => {
-      const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
+      const t = Tensor3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
       const t2 = math.transpose(t, [2, 1, 0]);
 
       expect(t2.shape).toEqual([2, 2, 2]);
@@ -56,10 +56,10 @@ import {Array2D, Array3D} from './ndarray';
     });
 
     it('gradient 3D [r, c, d] => [d, c, r]', math => {
-      const t = Array3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
+      const t = Tensor3D.new([2, 2, 2], [1, 11, 2, 22, 3, 33, 4, 44]);
       const perm = [2, 1, 0];
       const dy =
-          Array3D.new([2, 2, 2], [111, 211, 121, 221, 112, 212, 122, 222]);
+          Tensor3D.new([2, 2, 2], [111, 211, 121, 221, 112, 212, 122, 222]);
       const dt = math.vjp(() => math.transpose(t, perm), t, dy);
       expect(dt.shape).toEqual(t.shape);
       expect(dt.dtype).toEqual('float32');

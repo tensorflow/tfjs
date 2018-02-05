@@ -20,19 +20,19 @@ import * as util from '../util';
 
 import * as broadcast_util from './broadcast_util';
 import {doc, operation} from './decorators';
-import {NDArray} from './ndarray';
+import {Tensor} from './tensor';
 
 export class Ops {
   /**
    * Returns the truth value of (a != b) element-wise. Supports broadcasting.
    * For a stricter version without broadcasting use math.notEqualStrict().
    *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static notEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
+  static notEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('NotEqual', {inputs: {a, b}}) as T;
@@ -40,7 +40,7 @@ export class Ops {
 
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static notEqualStrict<T extends NDArray>(a: T, b: T): T {
+  static notEqualStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
     return a.notEqual(b);
   }
@@ -49,12 +49,12 @@ export class Ops {
    * Returns the truth value of (a < b) element-wise. Supports broadcasting.
    * For a stricter version without broadcasting use math.lessStrict().
    *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static less<T extends NDArray>(a: NDArray, b: NDArray): T {
+  static less<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Less', {inputs: {a, b}}) as T;
@@ -62,7 +62,7 @@ export class Ops {
 
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static lessStrict<T extends NDArray>(a: T, b: T): T {
+  static lessStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
     return a.less(b);
   }
@@ -71,12 +71,12 @@ export class Ops {
    * Returns the truth value of (a == b) element-wise. Supports broadcasting.
    * For a stricter version without broadcasting use math.equalStrict().
    *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static equal<T extends NDArray>(a: NDArray, b: NDArray): T {
+  static equal<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Equal', {inputs: {a, b}}) as T;
@@ -84,7 +84,7 @@ export class Ops {
 
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static equalStrict<T extends NDArray>(a: T, b: T): T {
+  static equalStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
     return a.equal(b);
   }
@@ -93,12 +93,12 @@ export class Ops {
    * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
    * For a stricter version without broadcasting use math.lessEqualStrict().
    *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static lessEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
+  static lessEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('LessEqual', {inputs: {a, b}}) as T;
@@ -106,7 +106,7 @@ export class Ops {
 
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static lessEqualStrict<T extends NDArray>(a: T, b: T): T {
+  static lessEqualStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
     return a.lessEqual(b);
   }
@@ -115,12 +115,12 @@ export class Ops {
    * Returns the truth value of (a > b) element-wise. Supports broadcasting.
    * For a stricter version without broadcasting use math.greaterStrict().
    *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static greater<T extends NDArray>(a: NDArray, b: NDArray): T {
+  static greater<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('Greater', {inputs: {a, b}}) as T;
@@ -128,7 +128,7 @@ export class Ops {
 
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static greaterStrict<T extends NDArray>(a: T, b: T): T {
+  static greaterStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
     return a.greater(b);
   }
@@ -137,12 +137,12 @@ export class Ops {
    * Returns the truth value of (a >= b) element-wise. Supports broadcasting.
    * For a stricter version without broadcasting use math.greaterEqualStrict().
    *
-   * @param a The first input `NDArray`.
-   * @param b The second input `NDArray`. Must have the same dtype as `a`.
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static greaterEqual<T extends NDArray>(a: NDArray, b: NDArray): T {
+  static greaterEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     return ENV.engine.executeKernel('GreaterEqual', {inputs: {a, b}}) as T;
@@ -150,7 +150,7 @@ export class Ops {
 
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static greaterEqualStrict<T extends NDArray>(a: T, b: T): T {
+  static greaterEqualStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');
     return a.greaterEqual(b);
   }

@@ -17,7 +17,7 @@
 
 import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
-import {NDArray, Scalar} from '../../math/ndarray';
+import {Tensor, Scalar} from '../../math/tensor';
 import {Optimizer} from '../../math/optimizers/optimizer';
 import {NamedVariableMap} from '../../math/types';
 import {Node} from '../graph';
@@ -51,13 +51,13 @@ export class AdamOptimizer extends Optimizer {
 
     if (this.firstMoment.size() === 0) {
       this.variableNodes.forEach(node => {
-        this.firstMoment.set(node.output, NDArray.zeros(node.output.shape));
+        this.firstMoment.set(node.output, Tensor.zeros(node.output.shape));
       });
     }
 
     if (this.secondMoment.size() === 0) {
       this.variableNodes.forEach(node => {
-        this.secondMoment.set(node.output, NDArray.zeros(node.output.shape));
+        this.secondMoment.set(node.output, Tensor.zeros(node.output.shape));
       });
     }
   }

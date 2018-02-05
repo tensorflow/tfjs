@@ -16,9 +16,9 @@
  */
 
 import {NDArrayMath} from '../math/math';
-import {NDArray} from '../math/ndarray';
+import {Tensor} from '../math/tensor';
 
-import {Tensor} from './graph';
+import {SymbolicTensor} from './graph';
 
 /**
  * TensorArrayMap is an internal map from Tensor IDs to NDArrays. Since NDArrays
@@ -34,7 +34,7 @@ export abstract class TensorArrayMapBase {
    * @param skipChecks False by default. If true will skip all checks.
    * @return The NDArray associated with the tensor.
    */
-  get(tensor: Tensor, skipChecks = false): NDArray {
+  get(tensor: SymbolicTensor, skipChecks = false): Tensor {
     if (!skipChecks && this.dict[tensor.id] === undefined) {
       throw new Error(`tensor ${tensor.id} not in array map.`);
     }
@@ -49,7 +49,7 @@ export abstract class TensorArrayMapBase {
    * Removes a tensor/NDArray pair from the map.
    * @param tensor The tensor key.
    */
-  delete(tensor: Tensor) {
+  delete(tensor: SymbolicTensor) {
     delete this.dict[tensor.id];
   }
 
@@ -57,11 +57,11 @@ export abstract class TensorArrayMapBase {
    * Nullifies a tensor pair from the map.
    * @param tensor The tensor key.
    */
-  nullify(tensor: Tensor) {
+  nullify(tensor: SymbolicTensor) {
     this.dict[tensor.id] = null;
   }
 
-  disposeArray(tensor: Tensor) {
+  disposeArray(tensor: SymbolicTensor) {
     if (this.dict[tensor.id] === undefined) {
       return;
     }
@@ -99,14 +99,14 @@ export abstract class TensorArrayMapBase {
    * @param tensor The tensor key.
    * @return True if the associated NDArray is null, else False.
    */
-  hasNullArray(tensor: Tensor): boolean {
+  hasNullArray(tensor: SymbolicTensor): boolean {
     if (this.dict[tensor.id] === undefined) {
       throw new Error(`tensor ${tensor.id} not in array map.`);
     }
     return this.dict[tensor.id] === null;
   }
 
-  protected dict: {[tensorID: number]: NDArray | null} = {};
+  protected dict: {[tensorID: number]: Tensor | null} = {};
 }
 
 export class TensorArrayMap extends TensorArrayMapBase {
@@ -115,7 +115,7 @@ export class TensorArrayMap extends TensorArrayMapBase {
    * @param tensor The tensor key.
    * @param array The NDArray value, can be null.
    */
-  set(tensor: Tensor, array: NDArray|null) {
+  set(tensor: SymbolicTensor, array: Tensor|null) {
     this.dict[tensor.id] = array;
   }
 }
@@ -130,7 +130,7 @@ export class SummedTensorArrayMap extends TensorArrayMapBase {
    * @param tensor The tensor key.
    * @param array The NDArray value.
    */
-  add(tensor: Tensor, array: NDArray) {
+  add(tensor: SymbolicTensor, array: Tensor) {
     if (this.dict[tensor.id] == null) {
       this.dict[tensor.id] = this.math.keep(array);
     } else {

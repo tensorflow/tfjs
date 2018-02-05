@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {Array4D} from '../../ndarray';
+import {Tensor4D} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface Reverse4DNode extends KernelNode {
-  inputAndArgs: {inputs: {x: Array4D;}; args: {axis: number[];};};
-  output: Array4D;
-  gradient: (dy: Array4D, y: Array4D) => {
-    x: () => Array4D;
+  inputAndArgs: {inputs: {x: Tensor4D;}; args: {axis: number[];};};
+  output: Tensor4D;
+  gradient: (dy: Tensor4D, y: Tensor4D) => {
+    x: () => Tensor4D;
   };
 }

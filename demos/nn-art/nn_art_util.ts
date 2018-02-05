@@ -31,7 +31,7 @@ export function createInputAtlas(
     }
   }
 
-  return dl.Array2D.new([imageSize * imageSize, inputNumDimensions], coords);
+  return dl.Tensor2D.new([imageSize * imageSize, inputNumDimensions], coords);
 }
 
 // Normalizes x, y to -.5 <=> +.5, adds a radius term, and pads zeros with the

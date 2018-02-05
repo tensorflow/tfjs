@@ -15,40 +15,40 @@
  * =============================================================================
  */
 
-import {NDArray} from '../../ndarray';
+import {Tensor} from '../../tensor';
 import {DataType} from '../../types';
 import {KernelNode} from '../tape_types';
 
 // Equal/NotEqual/Less/LessEqual/Greater/GreaterEqual
 export interface EqualNode extends KernelNode {
-  inputAndArgs: {inputs: {a: NDArray; b: NDArray;};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    a: () => NDArray;
-    b: () => NDArray;
+  inputAndArgs: {inputs: {a: Tensor; b: Tensor;};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    a: () => Tensor;
+    b: () => Tensor;
   };
 }
 
 // LogicalAnd/LogicalOr/LogicalXor
 export interface LogicalNode extends KernelNode {
-  inputAndArgs: {inputs: {a: NDArray; b: NDArray;};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    a: () => NDArray;
-    b: () => NDArray;
+  inputAndArgs: {inputs: {a: Tensor; b: Tensor;};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    a: () => Tensor;
+    b: () => Tensor;
   };
 }
 
 // Where
 export interface WhereNode extends KernelNode {
   inputAndArgs: {
-    inputs: {condition: NDArray; a: NDArray; b: NDArray;};
+    inputs: {condition: Tensor; a: Tensor; b: Tensor;};
     args: {dtype: DataType};
   };
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    condition: () => NDArray;
-    a: () => NDArray;
-    b: () => NDArray;
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    condition: () => Tensor;
+    a: () => Tensor;
+    b: () => Tensor;
   };
 }

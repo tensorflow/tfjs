@@ -22,8 +22,8 @@ const MAX_LAYERS = 10;
 
 export type ActivationFunction = 'tanh'|'sin'|'relu'|'step';
 const activationFunctionMap: {
-  [activationFunction in ActivationFunction]: (ndarray: dl.Array2D) =>
-      dl.Array2D
+  [activationFunction in ActivationFunction]: (tensor: dl.Tensor2D) =>
+      dl.Tensor2D
 } = {
   'tanh': x => x.tanh(),
   'sin': x => x.sin(),
@@ -35,12 +35,12 @@ const NUM_IMAGE_SPACE_VARIABLES = 3;  // x, y, r
 const NUM_LATENT_VARIABLES = 2;
 
 export class CPPN {
-  private inputAtlas: dl.Array2D;
-  private ones: dl.Array2D;
+  private inputAtlas: dl.Tensor2D;
+  private ones: dl.Tensor2D;
 
-  private firstLayerWeights: dl.Array2D;
-  private intermediateWeights: dl.Array2D[] = [];
-  private lastLayerWeights: dl.Array2D;
+  private firstLayerWeights: dl.Tensor2D;
+  private intermediateWeights: dl.Tensor2D[] = [];
+  private lastLayerWeights: dl.Tensor2D;
 
   private z1Counter = 0;
   private z2Counter = 0;
@@ -59,7 +59,7 @@ export class CPPN {
 
     this.inputAtlas = nn_art_util.createInputAtlas(
         canvasSize, NUM_IMAGE_SPACE_VARIABLES, NUM_LATENT_VARIABLES);
-    this.ones = dl.Array2D.ones([this.inputAtlas.shape[0], 1]);
+    this.ones = dl.Tensor2D.ones([this.inputAtlas.shape[0], 1]);
   }
 
   generateWeights(neuronsPerLayer: number, weightsStdev: number) {
@@ -81,7 +81,7 @@ export class CPPN {
       this.intermediateWeights.push(dl.truncatedNormal(
           [neuronsPerLayer, neuronsPerLayer], 0, weightsStdev));
     }
-    this.lastLayerWeights = dl.Array2D.randTruncatedNormal(
+    this.lastLayerWeights = dl.Tensor2D.randTruncatedNormal(
         [neuronsPerLayer, 3 /** max output channels */], 0, weightsStdev);
   }
 
@@ -117,13 +117,13 @@ export class CPPN {
     const lastOutput = dl.tidy(() => {
       const z1 = dl.Scalar.new(Math.sin(this.z1Counter));
       const z2 = dl.Scalar.new(Math.cos(this.z2Counter));
-      const z1Mat = z1.mul(this.ones) as dl.Array2D;
-      const z2Mat = z2.mul(this.ones) as dl.Array2D;
+      const z1Mat = z1.mul(this.ones) as dl.Tensor2D;
+      const z2Mat = z2.mul(this.ones) as dl.Tensor2D;
 
       const concatAxis = 1;
       const latentVars = z1Mat.concat(z2Mat, concatAxis);
 
-      const activation = (x: dl.Array2D) =>
+      const activation = (x: dl.Tensor2D) =>
           activationFunctionMap[this.selectedActivationFunctionName](x);
 
       let lastOutput = this.inputAtlas.concat(latentVars, concatAxis);
@@ -138,7 +138,7 @@ export class CPPN {
       ]);
     });
 
-    await renderToCanvas(lastOutput as dl.Array3D, this.inferenceCanvas);
+    await renderToCanvas(lastOutput as dl.Tensor3D, this.inferenceCanvas);
     await dl.util.nextFrame();
     this.runInferenceLoop();
   }
@@ -149,7 +149,7 @@ export class CPPN {
 }
 
 // TODO(nsthorat): Move this to a core library util.
-async function renderToCanvas(a: dl.Array3D, canvas: HTMLCanvasElement) {
+async function renderToCanvas(a: dl.Tensor3D, canvas: HTMLCanvasElement) {
   const [height, width, ] = a.shape;
   const ctx = canvas.getContext('2d');
   const imageData = new ImageData(width, height);

@@ -19,7 +19,7 @@ import * as dl from 'deeplearn';
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
 
-function getReductionOp(option: string): (x: dl.NDArray) => dl.Scalar {
+function getReductionOp(option: string): (x: dl.Tensor) => dl.Scalar {
   switch (option) {
     case 'max':
       return x => x.max();
@@ -44,7 +44,7 @@ export class ReductionOpsCPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('cpu', safeMode);
     dl.ENV.setMath(math);
 
-    const input: dl.Array2D = dl.randUniform([size, size], -1, 1);
+    const input: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
     const op = getReductionOp(option);
     const start = performance.now();
 
@@ -65,7 +65,7 @@ export class ReductionOpsGPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('webgl', safeMode);
     dl.ENV.setMath(math);
 
-    const input: dl.Array2D = dl.randUniform([size, size], -1, 1);
+    const input: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
     const op = getReductionOp(option);
 
     const benchmark = () => op(input);

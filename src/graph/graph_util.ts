@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ConstantNode, Node, Tensor} from './graph';
+import {ConstantNode, Node, SymbolicTensor} from './graph';
 import * as priority_queue from './priority_queue';
 import {PriorityQueue} from './priority_queue';
 import {TensorArrayMap} from './tensor_array_map';
@@ -118,7 +118,7 @@ export function isInputNode(node: Node): boolean {
   return Object.keys(node.inputs).length === 0;
 }
 
-export function shouldBackProp(t: Tensor): boolean {
+export function shouldBackProp(t: SymbolicTensor): boolean {
   return !(t.node instanceof ConstantNode);
 }
 

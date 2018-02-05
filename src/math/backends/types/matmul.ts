@@ -15,18 +15,18 @@
  * =============================================================================
  */
 
-import {Array2D} from '../../ndarray';
+import {Tensor2D} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface MatMulNode extends KernelNode {
   inputAndArgs: {
-    inputs: {a: Array2D; b: Array2D;};
+    inputs: {a: Tensor2D; b: Tensor2D;};
     args: {aOrientation: MatrixOrientation; bOrientation: MatrixOrientation};
   };
-  output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => {
-    a: () => Array2D;
-    b: () => Array2D;
+  output: Tensor2D;
+  gradient: (dy: Tensor2D, y: Tensor2D) => {
+    a: () => Tensor2D;
+    b: () => Tensor2D;
   };
 }
 

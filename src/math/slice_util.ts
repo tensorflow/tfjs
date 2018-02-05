@@ -17,10 +17,10 @@
 
 import * as util from '../util';
 
-import {NDArray} from './ndarray';
+import {Tensor} from './tensor';
 
 export function assertParamsValid(
-    input: NDArray, begin: number[], size: number[]): void {
+    input: Tensor, begin: number[], size: number[]): void {
   util.assert(
       input.rank === begin.length,
       `Error in slice${input.rank}D: Length of begin ${begin} must ` +

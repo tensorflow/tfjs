@@ -18,9 +18,9 @@
 import {keep, tidy} from '../../math/backends/tracking';
 import * as concat_util from '../../math/concat_util';
 import {NDArrayMath} from '../../math/math';
-import {Array1D, Array2D, Array3D, Array4D} from '../../math/ndarray';
+import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../../math/tensor';
 import * as util from '../../util';
-import {Tensor} from '../graph';
+import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Operation} from './op';
 
@@ -34,14 +34,14 @@ export class Concat1D extends Operation {
    * Concats two 1D tensors along an axis.
    */
   constructor(
-      private x1Tensor: Tensor, private x2Tensor: Tensor,
-      private yTensor: Tensor) {
+      private x1Tensor: SymbolicTensor, private x2Tensor: SymbolicTensor,
+      private yTensor: SymbolicTensor) {
     super();
   }
 
   feedForward(math: NDArrayMath, inferecenArrays: TensorArrayMap) {
-    const x1 = inferecenArrays.get(this.x1Tensor) as Array1D;
-    const x2 = inferecenArrays.get(this.x2Tensor) as Array1D;
+    const x1 = inferecenArrays.get(this.x1Tensor) as Tensor1D;
+    const x2 = inferecenArrays.get(this.x2Tensor) as Tensor1D;
 
     tidy(() => {
       const concatResult = math.concat1D(x1, x2);
@@ -70,15 +70,15 @@ export class Concat2D extends Operation {
    * Concats two 2D tensors along an axis.
    */
   constructor(
-      private x1Tensor: Tensor, private x2Tensor: Tensor, private axis: number,
-      private yTensor: Tensor) {
+      private x1Tensor: SymbolicTensor, private x2Tensor: SymbolicTensor,
+      private axis: number, private yTensor: SymbolicTensor) {
     super();
     concat_util.assertParams(x1Tensor.shape, x2Tensor.shape, axis);
   }
 
   feedForward(math: NDArrayMath, inferecenArrays: TensorArrayMap) {
-    const x1 = inferecenArrays.get(this.x1Tensor) as Array2D;
-    const x2 = inferecenArrays.get(this.x2Tensor) as Array2D;
+    const x1 = inferecenArrays.get(this.x1Tensor) as Tensor2D;
+    const x2 = inferecenArrays.get(this.x2Tensor) as Tensor2D;
 
     tidy(() => {
       const concatResult = math.concat2D(x1, x2, this.axis);
@@ -107,15 +107,15 @@ export class Concat3D extends Operation {
    * Concats two 3D tensors along an axis.
    */
   constructor(
-      private x1Tensor: Tensor, private x2Tensor: Tensor, private axis: number,
-      private yTensor: Tensor) {
+      private x1Tensor: SymbolicTensor, private x2Tensor: SymbolicTensor,
+      private axis: number, private yTensor: SymbolicTensor) {
     super();
     concat_util.assertParams(x1Tensor.shape, x2Tensor.shape, axis);
   }
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
-    const x1 = inferenceArrays.get(this.x1Tensor) as Array3D;
-    const x2 = inferenceArrays.get(this.x2Tensor) as Array3D;
+    const x1 = inferenceArrays.get(this.x1Tensor) as Tensor3D;
+    const x2 = inferenceArrays.get(this.x2Tensor) as Tensor3D;
     tidy(() => {
       const concatResult = math.concat3D(x1, x2, this.axis);
       inferenceArrays.set(this.yTensor, keep(concatResult));
@@ -143,15 +143,15 @@ export class Concat4D extends Operation {
    * Concats two 4D tensors along an axis.
    */
   constructor(
-      private x1Tensor: Tensor, private x2Tensor: Tensor, private axis: number,
-      private yTensor: Tensor) {
+      private x1Tensor: SymbolicTensor, private x2Tensor: SymbolicTensor,
+      private axis: number, private yTensor: SymbolicTensor) {
     super();
     concat_util.assertParams(x1Tensor.shape, x2Tensor.shape, axis);
   }
 
   feedForward(math: NDArrayMath, inferecenArrays: TensorArrayMap) {
-    const x1 = inferecenArrays.get(this.x1Tensor) as Array4D;
-    const x2 = inferecenArrays.get(this.x2Tensor) as Array4D;
+    const x1 = inferecenArrays.get(this.x1Tensor) as Tensor4D;
+    const x2 = inferecenArrays.get(this.x2Tensor) as Tensor4D;
 
     tidy(() => {
       const concatResult = math.concat4D(x1, x2, this.axis);
@@ -171,8 +171,9 @@ export class Concat4D extends Operation {
 }
 
 function concatBackProp(
-    math: NDArrayMath, aTensor: Tensor, bTensor: Tensor, yTensor: Tensor,
-    axis: number, gradArrays: SummedTensorArrayMap, infArrays: TensorArrayMap) {
+    math: NDArrayMath, aTensor: SymbolicTensor, bTensor: SymbolicTensor,
+    yTensor: SymbolicTensor, axis: number, gradArrays: SummedTensorArrayMap,
+    infArrays: TensorArrayMap) {
   const dy = gradArrays.get(yTensor);
   const a = infArrays.get(aTensor);
   const b = infArrays.get(bTensor);

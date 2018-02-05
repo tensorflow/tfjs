@@ -18,9 +18,9 @@
 import {ENV} from '../../environment';
 import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
-import {NDArray, Scalar} from '../../math/ndarray';
+import {Tensor, Scalar} from '../../math/tensor';
 import * as util from '../../util';
-import {Tensor} from '../graph';
+import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Operation} from './op';
@@ -30,13 +30,13 @@ import {Operation} from './op';
  */
 export class ReduceSum extends Operation {
   /** Element-wise add operation. Broadcasts if one of the tensors is scalar. */
-  constructor(private x: Tensor, private outTensor: Tensor) {
+  constructor(private x: SymbolicTensor, private outTensor: SymbolicTensor) {
     super();
     util.assertShapesMatch(outTensor.shape, []);
-    this.ones = ENV.math.keep(NDArray.ones(x.shape));
+    this.ones = ENV.math.keep(Tensor.ones(x.shape));
   }
 
-  private ones: NDArray;
+  private ones: Tensor;
 
   feedForward(math: NDArrayMath, inferenceArrays: TensorArrayMap) {
     const x = inferenceArrays.get(this.x);

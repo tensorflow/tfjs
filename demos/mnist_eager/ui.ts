@@ -13,7 +13,7 @@ export function trainingLog(message: string) {
 }
 
 export function showTestResults(
-    batch: {xs: dl.Array2D, labels: dl.Array2D}, predictions: number[],
+    batch: {xs: dl.Tensor2D, labels: dl.Tensor2D}, predictions: number[],
     labels: number[]) {
   statusElement.innerText = 'Testing...';
 
@@ -53,7 +53,7 @@ export function showTestResults(
   console.log(displayStr);
 }
 
-export function draw(image: dl.Array1D, canvas: HTMLCanvasElement) {
+export function draw(image: dl.Tensor1D, canvas: HTMLCanvasElement) {
   const [width, height] = [28, 28];
   canvas.width = width;
   canvas.height = height;

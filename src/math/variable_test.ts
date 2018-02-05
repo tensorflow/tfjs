@@ -18,41 +18,42 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
+
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, variable, Variable} from './ndarray';
+import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
 import {Rank} from './types';
 
 const tests: MathTests = it => {
   it('simple assign', math => {
-    const v = variable(Array1D.new([1, 2, 3]));
+    const v = variable(Tensor1D.new([1, 2, 3]));
     test_util.expectArraysClose(v, [1, 2, 3]);
 
-    v.assign(Array1D.new([4, 5, 6]));
+    v.assign(Tensor1D.new([4, 5, 6]));
     test_util.expectArraysClose(v, [4, 5, 6]);
   });
 
   it('default names are unique', math => {
-    const v = variable(Array1D.new([1, 2, 3]));
+    const v = variable(Tensor1D.new([1, 2, 3]));
     expect(v.name).not.toBeNull();
 
-    const v2 = variable(Array1D.new([1, 2, 3]));
+    const v2 = variable(Tensor1D.new([1, 2, 3]));
     expect(v2.name).not.toBeNull();
     expect(v.name).not.toBe(v2.name);
   });
 
   it('user provided name', math => {
-    const v = variable(Array1D.new([1, 2, 3]), true, 'myName');
+    const v = variable(Tensor1D.new([1, 2, 3]), true, 'myName');
     expect(v.name).toBe('myName');
   });
 
   it('if name already used, throw error', math => {
-    variable(Array1D.new([1, 2, 3]), true, 'myName');
-    expect(() => variable(Array1D.new([1, 2, 3]), true, 'myName'))
+    variable(Tensor1D.new([1, 2, 3]), true, 'myName');
+    expect(() => variable(Tensor1D.new([1, 2, 3]), true, 'myName'))
         .toThrowError();
   });
 
   it('math ops can take variables', math => {
-    const value = Array1D.new([1, 2, 3]);
+    const value = Tensor1D.new([1, 2, 3]);
     const v = variable(value);
     const res = math.sum(v);
     test_util.expectArraysClose(res, [6]);
@@ -60,83 +61,83 @@ const tests: MathTests = it => {
 
   it('variables are not affected by tidy', math => {
     let v: Variable<Rank.R1>;
-    expect(math.getNumArrays()).toBe(0);
+    expect(math.getNumTensors()).toBe(0);
 
     dl.tidy(() => {
-      const value = Array1D.new([1, 2, 3], 'float32');
-      expect(math.getNumArrays()).toBe(1);
+      const value = Tensor1D.new([1, 2, 3], 'float32');
+      expect(math.getNumTensors()).toBe(1);
 
       v = variable(value);
-      expect(math.getNumArrays()).toBe(1);
+      expect(math.getNumTensors()).toBe(1);
     });
 
-    expect(math.getNumArrays()).toBe(1);
+    expect(math.getNumTensors()).toBe(1);
     test_util.expectArraysClose(v, [1, 2, 3]);
 
     v.dispose();
-    expect(math.getNumArrays()).toBe(0);
+    expect(math.getNumTensors()).toBe(0);
   });
 
-  it('variables are assignable to ndarrays', () => {
+  it('variables are assignable to tensors', () => {
     // This test asserts compilation, not doing any run-time assertion.
     const x0: Variable<Rank.R0> = null;
     const y0: Scalar = x0;
     expect(y0).toBeNull();
 
     const x1: Variable<Rank.R1> = null;
-    const y1: Array1D = x1;
+    const y1: Tensor1D = x1;
     expect(y1).toBeNull();
 
     const x2: Variable<Rank.R2> = null;
-    const y2: Array2D = x2;
+    const y2: Tensor2D = x2;
     expect(y2).toBeNull();
 
     const x3: Variable<Rank.R3> = null;
-    const y3: Array3D = x3;
+    const y3: Tensor3D = x3;
     expect(y3).toBeNull();
 
     const x4: Variable<Rank.R4> = null;
-    const y4: Array4D = x4;
+    const y4: Tensor4D = x4;
     expect(y4).toBeNull();
 
     const xh: Variable = null;
-    const yh: NDArray = xh;
+    const yh: Tensor = xh;
     expect(yh).toBeNull();
   });
 
   it('assign will dispose old data', math => {
     let v: Variable<Rank.R1>;
-    v = variable(Array1D.new([1, 2, 3]));
-    expect(math.getNumArrays()).toBe(1);
+    v = variable(Tensor1D.new([1, 2, 3]));
+    expect(math.getNumTensors()).toBe(1);
     test_util.expectArraysClose(v, [1, 2, 3]);
 
-    const secondArray = Array1D.new([4, 5, 6]);
-    expect(math.getNumArrays()).toBe(2);
+    const secondArray = Tensor1D.new([4, 5, 6]);
+    expect(math.getNumTensors()).toBe(2);
 
     v.assign(secondArray);
     test_util.expectArraysClose(v, [4, 5, 6]);
     // Assign disposes the 1st array.
-    expect(math.getNumArrays()).toBe(1);
+    expect(math.getNumTensors()).toBe(1);
 
     v.dispose();
     // Disposing the variable disposes the 2nd array.
-    expect(math.getNumArrays()).toBe(0);
+    expect(math.getNumTensors()).toBe(0);
   });
 
   it('shape must match', math => {
-    const v = variable(Array1D.new([1, 2, 3]));
-    expect(() => v.assign(Array1D.new([1, 2]))).toThrowError();
+    const v = variable(Tensor1D.new([1, 2, 3]));
+    expect(() => v.assign(Tensor1D.new([1, 2]))).toThrowError();
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(Array2D.new([1, 2], [3, 4]) as any)).toThrowError();
+    expect(() => v.assign(Tensor2D.new([1, 2], [3, 4]) as any)).toThrowError();
   });
 
   it('dtype must match', math => {
-    const v = variable(Array1D.new([1, 2, 3]));
+    const v = variable(Tensor1D.new([1, 2, 3]));
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(Array1D.new([1, 1, 1], 'int32') as any))
+    expect(() => v.assign(Tensor1D.new([1, 1, 1], 'int32') as any))
         .toThrowError();
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(Array1D.new([true, false, true], 'bool') as any))
+    expect(() => v.assign(Tensor1D.new([true, false, true], 'bool') as any))
         .toThrowError();
   });
 };

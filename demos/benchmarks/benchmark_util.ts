@@ -1,7 +1,7 @@
 
 import * as dl from 'deeplearn';
 
-export async function warmupAndBenchmarkGPU(benchmark: () => dl.NDArray):
+export async function warmupAndBenchmarkGPU(benchmark: () => dl.Tensor):
     Promise<number> {
   // Warmup.
   const out = benchmark();

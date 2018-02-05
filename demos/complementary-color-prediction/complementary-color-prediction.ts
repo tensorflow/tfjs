@@ -31,10 +31,10 @@ class ComplementaryColorModel {
   // Each training batch will be on this many examples.
   batchSize = 50;
 
-  inputTensor: dl.Tensor;
-  targetTensor: dl.Tensor;
-  costTensor: dl.Tensor;
-  predictionTensor: dl.Tensor;
+  inputTensor: dl.SymbolicTensor;
+  targetTensor: dl.SymbolicTensor;
+  costTensor: dl.SymbolicTensor;
+  predictionTensor: dl.SymbolicTensor;
 
   // Maps tensors to InputProviders.
   feedEntries: dl.FeedEntry[];
@@ -128,7 +128,7 @@ class ComplementaryColorModel {
     dl.tidy(() => {
       const mapping = [{
         tensor: this.inputTensor,
-        data: dl.Array1D.new(this.normalizeColor(rgbColor)),
+        data: dl.Tensor1D.new(this.normalizeColor(rgbColor)),
       }];
       const evalOutput = this.session.eval(this.predictionTensor, mapping);
       const values = evalOutput.dataSync();
@@ -142,7 +142,7 @@ class ComplementaryColorModel {
   }
 
   private createFullyConnectedLayer(
-      graph: dl.Graph, inputLayer: dl.Tensor, layerIndex: number,
+      graph: dl.Graph, inputLayer: dl.SymbolicTensor, layerIndex: number,
       sizeOfThisLayer: number) {
     return graph.layers.dense(
         `fully_connected_${layerIndex}`, inputLayer, sizeOfThisLayer,
@@ -163,11 +163,11 @@ class ComplementaryColorModel {
       ];
     }
 
-    // Store the data within Array1Ds so that learnjs can use it.
-    const inputArray: dl.Array1D[] =
-        rawInputs.map(c => dl.Array1D.new(this.normalizeColor(c)));
-    const targetArray: dl.Array1D[] = rawInputs.map(
-        c => dl.Array1D.new(
+    // Store the data within Tensor1Ds so that learnjs can use it.
+    const inputArray: dl.Tensor1D[] =
+        rawInputs.map(c => dl.Tensor1D.new(this.normalizeColor(c)));
+    const targetArray: dl.Tensor1D[] = rawInputs.map(
+        c => dl.Tensor1D.new(
             this.normalizeColor(this.computeComplementaryColor(c))));
 
     // This provider will shuffle the training data (and will do so in a way
