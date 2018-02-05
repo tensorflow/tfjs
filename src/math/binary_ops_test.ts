@@ -159,12 +159,12 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
       test_util.expectArraysClose(result, [0.5, 0.5, 0.6, 0.3]);
     });
 
-    it('gradients: Scalar', math => {
+    it('gradients: Scalar', () => {
       const a = Scalar.new(5.2);
       const b = Scalar.new(0.6);
       const dy = Scalar.new(3);
 
-      const gradients = math.vjp(() => math.maximum(a, b), {a, b}, dy);
+      const gradients = dl.vjp(() => dl.maximum(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.b.shape).toEqual(b.shape);
@@ -175,12 +175,12 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
       test_util.expectArraysClose(gradients.b, [3 * 0], 1e-1);
     });
 
-    it('gradients: Tensor1D', math => {
+    it('gradients: Tensor1D', () => {
       const a = Tensor1D.new([1.1, 2.6, 3, 5.9]);
       const b = Tensor1D.new([1.0, 2.7, 3, 5.8]);
       const dy = Tensor1D.new([1, 2, 3, 4]);
 
-      const gradients = math.vjp(() => math.maximum(a, b), {a, b}, dy);
+      const gradients = dl.vjp(() => dl.maximum(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.b.shape).toEqual(b.shape);
@@ -193,12 +193,12 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
           gradients.b, [1 * 0, 2 * 1, 3 * 0, 4 * 0], 1e-1);
     });
 
-    it('gradients: Tensor2D', math => {
+    it('gradients: Tensor2D', () => {
       const a = Tensor2D.new([2, 2], [0.5, 0.3, 0.7, 0.9]);
       const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.7, 0.15]);
       const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
 
-      const gradients = math.vjp(() => math.maximum(a, b), {a, b}, dy);
+      const gradients = dl.vjp(() => dl.maximum(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.b.shape).toEqual(b.shape);
@@ -304,12 +304,12 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
       test_util.expectArraysClose(result, [0.2, 0.4, 0.3, 0.15]);
     });
 
-    it('gradients: Scalar', math => {
+    it('gradients: Scalar', () => {
       const a = Scalar.new(5.2);
       const b = Scalar.new(0.6);
       const dy = Scalar.new(3);
 
-      const gradients = math.vjp(() => math.minimum(a, b), {a, b}, dy);
+      const gradients = dl.vjp(() => dl.minimum(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.b.shape).toEqual(b.shape);
@@ -320,12 +320,12 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
       test_util.expectArraysClose(gradients.b, [3 * 1], 1e-1);
     });
 
-    it('gradients: Tensor1D', math => {
+    it('gradients: Tensor1D', () => {
       const a = Tensor1D.new([1.1, 2.6, 3, 5.9]);
       const b = Tensor1D.new([1.0, 2.7, 3, 5.8]);
       const dy = Tensor1D.new([1, 2, 3, 4]);
 
-      const gradients = math.vjp(() => math.minimum(a, b), {a, b}, dy);
+      const gradients = dl.vjp(() => dl.minimum(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.b.shape).toEqual(b.shape);
@@ -338,12 +338,12 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
           gradients.b, [1 * 1, 2 * 0, 3 * 0, 4 * 1], 1e-1);
     });
 
-    it('gradients: Tensor2D', math => {
+    it('gradients: Tensor2D', () => {
       const a = Tensor2D.new([2, 2], [0.5, 0.3, 0.7, 0.9]);
       const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.7, 0.15]);
       const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
 
-      const gradients = math.vjp(() => math.minimum(a, b), {a, b}, dy);
+      const gradients = dl.vjp(() => dl.minimum(a, b), {a, b}, dy);
 
       expect(gradients.a.shape).toEqual(a.shape);
       expect(gradients.b.shape).toEqual(b.shape);
