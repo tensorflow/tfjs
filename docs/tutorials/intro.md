@@ -135,7 +135,7 @@ const labelTensor = g.placeholder('label', labelShape);
 // Variables are containers that hold a value that can be updated from
 // training.
 // Here we initialize the multiplier variable randomly.
-const multiplier = g.variable('multiplier', dl.randNormal([1, 3]));
+const multiplier = g.variable('multiplier', dl.randomNormal([1, 3]));
 
 // Top level graph methods take Tensors and return Tensors.
 const outputTensor = g.matmul(multiplier, inputTensor);

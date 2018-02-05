@@ -14,8 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {tidy} from './backends/tracking';
+import {tidy} from '../globals';
 
 /**
  * Decorator for wrapping functions that perform math operations on
@@ -32,12 +31,12 @@ export function operation(
   return descriptor;
 }
 
-// Documentation
-
 export interface HeadingMap {
   'Tensors': 'Creation'|'Transformations'|'Slicing and Joining';
   'Operations': 'Arithmetic'|'Basic math'|'Matrices'|'Convolution'|
       'Normalization'|'Images'|'Logical'|'RNN'|'Reduction'|'Classification';
+  'Training': 'Gradients';
+  'Performance': 'Memory'|'Timing';
 }
 export type Heading = keyof HeadingMap;
 export type Namespace = 'losses'|'image';

@@ -107,7 +107,7 @@ import {Rank} from './types';
          const origStride = 1;
 
          const x = Tensor3D.new(inputShape, [2, 2]);
-         const w = dl.randNormal<Rank.R4>(
+         const w = dl.randomNormal<Rank.R4>(
              [fSize, fSize, origInputDepth, wrongOrigOutputDepth]);
 
          expect(

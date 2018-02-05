@@ -42,8 +42,8 @@ describe('Dataset', () => {
         Tensor2D.new([2, 3], [4, 5, 40, -4, 4, 1])
       ],
       [
-        dl.randNormal([1]), dl.randNormal([1]), dl.randNormal([1]),
-        dl.randNormal([1])
+        dl.randomNormal([1]), dl.randomNormal([1]), dl.randomNormal([1]),
+        dl.randomNormal([1])
       ]
     ];
     const dataset = new StubDataset(data);

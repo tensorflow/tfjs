@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {keep, tidy} from '../../math/backends/tracking';
+import {keep, tidy} from '../../globals';
 import * as conv_util from '../../math/conv_util';
 import {NDArrayMath} from '../../math/math';
 import {Tensor3D} from '../../math/tensor';

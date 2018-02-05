@@ -18,10 +18,11 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-
-import {gradientsScope} from './backends/gradients';
+import {Gradients} from './backends/gradients';
 import {MatrixOrientation} from './backends/types/matmul';
 import {Scalar, Tensor, Tensor1D, Tensor2D} from './tensor';
+
+const gradientsScope = Gradients.gradientsScope;
 
 // math.scope
 {

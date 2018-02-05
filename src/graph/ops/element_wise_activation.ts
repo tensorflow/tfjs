@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {keep, tidy} from '../../math/backends/tracking';
+import {keep, tidy} from '../../globals';
 import {NDArrayMath} from '../../math/math';
 // tslint:disable-next-line:max-line-length
 import {ActivationFunction, EluFunc, LeakyReluFunc, ReLUFunc, SigmoidFunc, SquareFunc, TanHFunc} from '../activation_functions';

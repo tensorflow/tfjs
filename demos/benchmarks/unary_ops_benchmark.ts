@@ -65,7 +65,7 @@ export class UnaryOpsCPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('cpu', safeMode);
     dl.ENV.setMath(math);
 
-    const input: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
+    const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
     const op = getUnaryOp(option);
     const start = performance.now();
 
@@ -86,7 +86,7 @@ export class UnaryOpsGPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('webgl', safeMode);
     dl.ENV.setMath(math);
 
-    const input: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
+    const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
     const op = getUnaryOp(option);
 
     const benchmark = () => op(input);

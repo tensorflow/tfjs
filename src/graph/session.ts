@@ -16,11 +16,12 @@
  */
 
 import {InputProvider} from '../data/input_provider';
-import {tidy} from '../math/backends/tracking';
+import {tidy} from '../globals';
 import {NDArrayMath} from '../math/math';
-import {Tensor, Scalar} from '../math/tensor';
 import {Optimizer} from '../math/optimizers/optimizer';
+import {Scalar, Tensor} from '../math/tensor';
 import * as util from '../util';
+
 import {Graph, Node, SymbolicTensor} from './graph';
 import * as operation_emitter from './operation_emitter';
 import {Operation} from './ops/op';

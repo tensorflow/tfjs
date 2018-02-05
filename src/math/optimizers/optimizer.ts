@@ -16,6 +16,7 @@
  */
 
 import {ENV} from '../../environment';
+import {keep, tidy} from '../../globals';
 import {Node, VariableNode} from '../../graph/graph';
 import {SessionRuntime} from '../../graph/session';
 import * as session_util from '../../graph/session_util';
@@ -23,7 +24,6 @@ import * as session_util from '../../graph/session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {Scalar, Tensor, Variable} from '../../math/tensor';
-import {keep, tidy} from '../backends/tracking';
 import {NamedTensorMap} from '../types';
 
 export abstract class Optimizer {

@@ -68,15 +68,15 @@ import {Rank} from './types';
     });
 
     it('basicLSTMCell with batch=2', math => {
-      const lstmKernel = dl.randNormal<Rank.R2>([3, 4]);
-      const lstmBias = dl.randNormal<Rank.R1>([4]);
+      const lstmKernel = dl.randomNormal<Rank.R2>([3, 4]);
+      const lstmBias = dl.randomNormal<Rank.R1>([4]);
       const forgetBias = Scalar.new(1.0);
 
-      const data = dl.randNormal<Rank.R2>([1, 2]);
+      const data = dl.randomNormal<Rank.R2>([1, 2]);
       const batchedData = math.concat2D(data, data, 0);  // 2x2
-      const c = dl.randNormal<Rank.R2>([1, 1]);
+      const c = dl.randomNormal<Rank.R2>([1, 1]);
       const batchedC = math.concat2D(c, c, 0);  // 2x1
-      const h = dl.randNormal<Rank.R2>([1, 1]);
+      const h = dl.randomNormal<Rank.R2>([1, 1]);
       const batchedH = math.concat2D(h, h, 0);  // 2x1
       const [newC, newH] = math.basicLSTMCell(
           forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);

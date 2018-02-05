@@ -117,7 +117,7 @@ import {Rank} from './types';
       const stride = 1;
 
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
-      const w = dl.randNormal<Rank.R3>([fSize, wrongInputDepth, outputDepth]);
+      const w = dl.randomNormal<Rank.R3>([fSize, wrongInputDepth, outputDepth]);
       const bias = Tensor1D.new([-1]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();

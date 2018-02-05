@@ -14,7 +14,7 @@ const optimizer = new dl.SGDOptimizer(LEARNING_RATE);
 
 // Set up the model and loss function.
 const weights: dl.Tensor2D = dl.variable(
-    dl.randNormal([IMAGE_SIZE, LABELS_SIZE], 0, 1 / Math.sqrt(IMAGE_SIZE)));
+    dl.randomNormal([IMAGE_SIZE, LABELS_SIZE], 0, 1 / Math.sqrt(IMAGE_SIZE)));
 
 const model = (xs: dl.Tensor2D) => xs.matMul(weights);
 

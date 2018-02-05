@@ -24,25 +24,43 @@ import {Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer} from './tensor';
 import {DataType, DataTypeMap, Rank, ShapeMap} from './types';
 
 export class Ops {
-  /** Creates a tensor of ones with the specified shape. */
+  /**
+   * Creates a tensor with all elements set to 1.
+   * @param shape An array of integers defining the output tensor shape.
+   * @param dtype The type of an element in the resulting tensor. Can
+   *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static ones<R extends Rank>(shape: ShapeMap[R], dtype?: DataType): Tensor<R> {
+  static ones<R extends Rank>(shape: ShapeMap[R], dtype: DataType = 'float32'):
+      Tensor<R> {
     const values = makeOnesTypedArray(util.sizeFromShape(shape), dtype);
     return Tensor.make(shape, {values}, dtype);
   }
 
-  /** Creates a tensor of zeros with the specified shape. */
+  /**
+   * Creates a tensor with all elements set to 0.
+   * @param shape An array of integers defining the output tensor shape.
+   * @param dtype The type of an element in the resulting tensor. Can
+   *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static zeros<R extends Rank>(shape: ShapeMap[R], dtype?: DataType):
+  static zeros<R extends Rank>(shape: ShapeMap[R], dtype: DataType = 'float32'):
       Tensor<R> {
     const values = makeZerosTypedArray(util.sizeFromShape(shape), dtype);
     return Tensor.make(shape, {values}, dtype);
   }
 
+  /**
+   * Creates a tensor filled with a scalar value.
+   * @param shape An array of integers defining the output tensor shape.
+   * @param value The scalar value to fill the tensor with.
+   * @param dtype The type of an element in the resulting tensor. Can
+   *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  /** Creates a Tensor filled with a value. */
   static fill<R extends Rank>(
       shape: ShapeMap[R], value: number, dtype: DataType = 'float32'):
       Tensor<R> {
@@ -53,7 +71,9 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor of ones with the same shape as the specified tensor.
+   * Creates a tensor with all elements set to 1 with the same shape as the
+   * given tensor.
+   * @param x A tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
@@ -62,7 +82,9 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor of zeros with the same shape as the specified tensor.
+   * Creates a tensor with all elements set to 0 with the same shape as the
+   * given tensor.
+   * @param x A tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
@@ -70,16 +92,28 @@ export class Ops {
     return Ops.zeros(x.shape, x.dtype) as T;
   }
 
-  /** Creates a tensor with the same values/shape as the specified tensor. */
+  /**
+   * Creates a new tensor with the same values and shape as the specified
+   * tensor.
+   * @param x The tensor to clone.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static clone<T extends Tensor>(x: T): T {
     return Tensor.make(x.shape, {dataId: x.dataId}, x.dtype) as T;
   }
 
+  /**
+   * Creates a tensor with values sampled from a normal distribution.
+   * @param shape An array of integers defining the output tensor shape.
+   * @param mean The mean of the normal distribution.
+   * @param stdDev The standard deviation of the normal distribution.
+   * @param dtype The data type of the output.
+   * @param seed The seed for the random number generator.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static randNormal<R extends Rank>(
+  static randomNormal<R extends Rank>(
       shape: ShapeMap[R], mean = 0, stdDev = 1,
       dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
     if (dtype != null && (dtype as DataType) === 'bool') {
@@ -90,6 +124,19 @@ export class Ops {
     return Tensor.rand(shape, () => randGauss.nextValue(), dtype);
   }
 
+  /**
+   * Creates a tensor with values sampled from a truncated normal distribution.
+   *
+   * The generated values follow a normal distribution with specified mean and
+   * standard deviation, except that values whose magnitude is more than 2
+   * standard deviations from the mean are dropped and re-picked.
+   *
+   * @param shape An array of integers defining the output tensor shape.
+   * @param mean The mean of the normal distribution.
+   * @param stdDev The standard deviation of the normal distribution.
+   * @param dtype The data type of the output.
+   * @param seed The seed for the random number generator.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static truncatedNormal<R extends Rank>(
@@ -103,13 +150,37 @@ export class Ops {
     return Tensor.rand(shape, () => randGauss.nextValue(), dtype);
   }
 
+  /**
+   * Creates a tensor with values sampled from a uniform distribution.
+   *
+   * The generated values follow a uniform distribution in the range [minval,
+   * maxval). The lower bound minval is included in the range, while the upper
+   * bound maxval is excluded.
+   *
+   * @param shape An array of integers defining the output tensor shape.
+   * @param minval The lower bound on the range of random values to generate.
+   *   Defaults to 0.
+   * @param maxval The upper bound on the range of random values to generate.
+   *   Defaults to 1.
+   * @param dtype The data type of the output tensor. Defaults to 'float32'.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static randUniform<R extends Rank>(
-      shape: ShapeMap[R], a: number, b: number, dtype?: DataType): Tensor<R> {
-    return Tensor.rand(shape, () => util.randUniform(a, b), dtype);
+  static randomUniform<R extends Rank>(
+      shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32'):
+      Tensor<R> {
+    return Tensor.rand(shape, () => util.randUniform(minval, maxval), dtype);
   }
 
+  /**
+   * Creates a tensor with values sampled from a random number generator
+   * function defined by the user.
+   *
+   * @param shape An array of integers defining the output tensor shape.
+   * @param randFunction A random number generator function which is called for
+   * each element in the output tensor.
+   * @param dtype The data type of the output tensor. Defaults to 'float32'.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static rand<R extends Rank>(
@@ -140,7 +211,7 @@ export class Ops {
    * @param probabilities 1D array with normalized outcome probabilities, or
    *     2D array of shape `[batchSize, numOutcomes]`.
    * @param numSamples Number of samples to draw for each row slice.
-   * @param seed Optional. The seed number.
+   * @param seed The seed number.
    * @return 1D array of shape `[numSamples]`, or 2D array of shape
    *     `[batchSize, numSamples]`, depending on the rank of the input.
    */
@@ -176,7 +247,7 @@ export class Ops {
   }
 
   /**
-   * Returns a one-hot array. The locations represented by `indices` take
+   * Creates a one-hot tensor. The locations represented by `indices` take
    * value `onValue` (defaults to 1), while all other locations take value
    * `offValue` (defaults to 0).
    *
@@ -198,6 +269,16 @@ export class Ops {
         'OneHot', {inputs: {indices}, args: {depth, onValue, offValue}});
   }
 
+  /**
+   * Creates a tensor from an image.
+   *
+   * @param pixels The input image to construct the tensor from. Accepts image
+   * of type `ImageData`, `HTMLImageElement`, `HTMLCanvasElement`, or
+   * `HTMLVideoElement`.
+   * @param numChannels The number of channels of the output tensor. The
+   * supported image types are all 4-channel by default, a numChannels value
+   * less than 4 allows you to ignore channels.
+   */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static fromPixels(
@@ -210,47 +291,65 @@ export class Ops {
     return ENV.backend.fromPixels(pixels, numChannels);
   }
 
-  /** Reshapes the array. */
+  /**
+   * Reshapes a tensor.
+   *
+   * Given a input tensor, returns a new tensor with the same values as the
+   * input tensor with shape `shape`.
+   *
+   * If one component of shape is the special value -1, the size of that
+   * dimension is computed so that the total size remains constant. In
+   * particular, a shape of [-1] flattens into 1-D. At most one component of
+   * shape can be -1.
+   *
+   * If shape is 1-D or higher, then the operation returns a tensor with shape
+   * shape filled with the values of tensor. In this case, the number of
+   * elements implied by shape must be the same as the number of elements in
+   * tensor.
+   * @param x A tensor.
+   * @param shape An array of integers defining the output tensor shape.
+   */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
-  static reshape<R2 extends Rank>(x: Tensor, newShape: ShapeMap[R2]):
-      Tensor<R2> {
-    newShape = util.inferFromImplicitShape(newShape, x.size);
+  static reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2> {
+    shape = util.inferFromImplicitShape(shape, x.size);
     util.assert(
-        x.size === util.sizeFromShape(newShape),
+        x.size === util.sizeFromShape(shape),
         'new shape and old shape must have the same number of elements.');
 
     const grad = (dy: Tensor<R2>, y: Tensor<R2>) => {
       return {x: () => dy.reshape(x.shape)};
     };
     return ENV.engine.executeKernel(
-               'Reshape', {inputs: {x}, args: {newShape}}, grad) as Tensor<R2>;
+               'Reshape', {inputs: {x}, args: {newShape: shape}}, grad) as
+        Tensor<R2>;
   }
 
   /**
-   * Casts a tensor to a new type. If the new type matches the old type,
-   * this is a no-op.
+   * Casts a tensor to a new dtype.
+   * @param x A tensor.
+   * @param dtype The dtype to cast the input tensor to.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
-  static cast<T extends Tensor>(x: T, newDType: DataType): T {
+  static cast<T extends Tensor>(x: T, dtype: DataType): T {
     const grad = (dy: T, y: T) => {
       return {x: () => dy.reshape(dy.shape)};
     };
     return ENV.engine.executeKernel(
-               'Cast', {inputs: {x}, args: {newDType}}, grad) as T;
+               'Cast', {inputs: {x}, args: {newDType: dtype}}, grad) as T;
   }
 
   /**
-   * Construct an array by repeating it the number of times given by reps.
+   * Construct an tensor by repeating it the number of times given by reps.
    *
-   * This operation creates a new array by replicating `input` `reps`
+   * This operation creates a new tensor by replicating `input` `reps`
    * times. The output tensor's i'th dimension has `input.shape[i] *
    * reps[i]` elements, and the values of `input` are replicated
    * `reps[i]` times along the i'th dimension. For example, tiling
    * `[a, b, c, d]` by `[2]` produces `[a, b, c, d, a, b, c, d]`.
    *
-   * @param x The array to transpose.
+   * @param x The tensor to transpose.
    * @param reps Determines the number of replications per dimension.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
@@ -264,11 +363,11 @@ export class Ops {
   }
 
   /**
-   * Gather slices from array `x`'s axis `axis` according to `indices`
+   * Gather slices from tensor `x`'s axis `axis` according to `indices`
    *
-   * @param x The array to transpose.
+   * @param x The tensor to transpose.
    * @param indices The indices of the values to extract.
-   * @param axis Optional. The axis over which to select values. Defaults to 0.
+   * @param axis The axis over which to select values. Defaults to 0.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
@@ -280,14 +379,14 @@ export class Ops {
   /**
    * Pads a Tensor1D.
    *
-   * This operation will pad an array according to the `paddings` you specify.
+   * This operation will pad a tensor according to the `paddings` you specify.
    *
    * This operation currently only implements the `CONSTANT` mode from
    * Tensorflow's `pad` operation.
    *
-   * @param x The array to pad.
+   * @param x The tensor to pad.
    * @param paddings A tuple of ints [padLeft, padRight], how much to pad on the
-   *     left and right side of the array.
+   *     left and right side of the tensor.
    * @param constantValue The scalar pad value to use. Defaults to 0.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
@@ -304,15 +403,15 @@ export class Ops {
   /**
    * Pads a Tensor2D.
    *
-   * This operation will pad an array according to the `paddings` you specify.
+   * This operation will pad a tensor according to the `paddings` you specify.
    *
    * This operation currently only implements the `CONSTANT` mode from
    * Tensorflow's `pad` operation.
    *
-   * @param x The array to pad.
+   * @param x The tensor to pad.
    * @param paddings A pair of tuple ints
    *     [[padTop, padBottom], [padLeft, padRight]], how much to pad on the
-   *     array.
+   *     tensor.
    * @param constantValue The scalar pad value to use. Defaults to 0.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
@@ -331,7 +430,7 @@ export class Ops {
   /**
    * Creates a new Tensor1D filled with the numbers in the range provided.
    *
-   * The array is a is half-open interval meaning it includes start, but
+   * The tensor is a is half-open interval meaning it includes start, but
    * excludes stop. Decrementing ranges and negative step values are also
    * supported.
    *
@@ -341,6 +440,7 @@ export class Ops {
    * @param dtype An optional dtype
    */
   @operation
+  @doc({heading: 'Tensors', subheading: 'Creation'})
   static range(
       start: number, stop: number, step = 1,
       dtype: 'float32'|'int32' = 'float32'): Tensor1D {
@@ -376,12 +476,18 @@ export class Ops {
 
   /**
    * Creates an empty `TensorBuffer` with the specified `shape` and `dtype`.
+   *
    * The values are stored in cpu as a `TypedArray`. Fill the buffer using
-   * `buffer.set()`, or by modifying directly `buffer.values`. When done,
-   * call `buffer.toTensor()` to get an immutable `Tensor` with those values.
+   * `buffer.set()`, or by modifying directly `buffer.values`.
+   *
+   * When done, call `buffer.toTensor()` to get an immutable `Tensor` with those
+   * values.
+   * @param shape An array of integers defining the output tensor shape.
+   * @param dtype The dtype of the buffer. Defaults to 'float32'.
    */
-  static buffer<R extends Rank>(shape: ShapeMap[R], dtype: DataType):
-      TensorBuffer<R> {
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static buffer<R extends Rank>(
+      shape: ShapeMap[R], dtype: DataType = 'float32'): TensorBuffer<R> {
     return new TensorBuffer<R>(shape, dtype);
   }
 }

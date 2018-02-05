@@ -17,13 +17,11 @@
 
 import {BackendType, ENV} from '../environment';
 import * as util from '../util';
-
 import * as array_ops from './array_ops';
 import {MathBackend} from './backends/backend';
-// tslint:disable-next-line:max-line-length
-import {customGradient, gradients, valueAndGradients, variableGradients, vjp} from './backends/gradients';
+import {Gradients} from './backends/gradients';
 import {ScopeResult} from './backends/tape_util';
-import {keep, tidy} from './backends/tracking';
+import {Tracking} from './backends/tracking';
 import * as batchnorm from './batchnorm';
 import * as binary_ops from './binary_ops';
 import * as compare from './compare';
@@ -44,6 +42,9 @@ import {Scalar, Tensor, Tensor1D, Tensor3D, Tensor4D} from './tensor';
 import * as transpose from './transpose';
 import {Rank} from './types';
 import * as unary_ops from './unary_ops';
+
+const tidy = Tracking.tidy;
+const keep = Tracking.keep;
 
 export class NDArrayMath {
   // Ops.
@@ -198,14 +199,14 @@ export class NDArrayMath {
   resizeBilinear3D = image_ops.Ops.resizeBilinear;
 
   // Tracking methods.
-  keep = keep;
+  keep = Tracking.keep;
 
   // Gradient methods.
-  customGradient = customGradient;
-  gradients = gradients;
-  valueAndGradients = valueAndGradients;
-  variableGradients = variableGradients;
-  vjp = vjp;
+  customGradient = Gradients.customGradient;
+  gradients = Gradients.gradients;
+  valueAndGradients = Gradients.valueAndGradients;
+  variableGradients = Gradients.variableGradients;
+  vjp = Gradients.vjp;
 
   register: typeof ENV.engine.register;
   engine: typeof ENV.engine;

@@ -30,6 +30,7 @@ export class Ops {
    *
    * @param x The input Tensor.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalNot<T extends Tensor>(x: Tensor): T {
     util.assert(x.dtype === 'bool', 'Error Array must be of type bool.');
@@ -74,6 +75,7 @@ export class Ops {
    * @param a The first input `Tensor`. Must be of dtype bool.
    * @param b The second input `Tensor`. Must be of dtype bool.
    */
+  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalXor<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assert(
