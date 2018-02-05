@@ -17,9 +17,9 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
+import * as ops from './ops';
 import {Scalar, Tensor} from './tensor';
 
 export class Ops {
@@ -132,7 +132,7 @@ export class Ops {
     // Use a custom gradient to bypass 2 gradient backprops since mean is used
     // extremely often.
     return ENV.math.customGradient('mean', () => {
-      const reduceSizeScalar = Scalar.new(reduceSize);
+      const reduceSizeScalar = ops.scalar(reduceSize);
       const res = x.div(reduceSizeScalar);
       const value = res.sum(axis, keepDims);
 

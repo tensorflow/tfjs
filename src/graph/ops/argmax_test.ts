@@ -16,11 +16,11 @@
  */
 
 import {ENV} from '../../environment';
-import {Tensor1D, Tensor2D} from '../../math/tensor';
+import * as dl from '../../index';
+import {Tensor1D} from '../../math/tensor';
 import * as test_util from '../../test_util';
 import {SymbolicTensor} from '../graph';
 import {TensorArrayMap} from '../tensor_array_map';
-
 import {ArgMax} from './argmax';
 
 describe('Argmax oper', () => {
@@ -54,7 +54,7 @@ describe('Argmax oper', () => {
   });
 
   it('argmax of Tensor2D', () => {
-    const vals = Tensor2D.new([2, 3], [[0, 2, 1], [2, 3, 0]]);
+    const vals = dl.tensor2d([[0, 2, 1], [2, 3, 0]], [2, 3]);
     x = new SymbolicTensor(vals.shape);
     y = new SymbolicTensor([]);
     tensorArrayMap.set(x, vals);

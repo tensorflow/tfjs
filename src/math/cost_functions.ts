@@ -17,7 +17,8 @@
 
 import {ENV} from '../environment';
 import {NDArrayMath} from './math';
-import {Tensor, Scalar} from './tensor';
+import * as ops from './ops';
+import {Scalar, Tensor} from './tensor';
 
 /**
  * An error function and its derivative.
@@ -30,7 +31,7 @@ export interface ElementWiseCostFunction {
 
 export class SquareCostFunc implements ElementWiseCostFunction {
   constructor() {
-    this.halfOne = ENV.math.keep(Scalar.new(0.5));
+    this.halfOne = ENV.math.keep(ops.scalar(0.5));
   }
 
   private halfOne: Scalar;

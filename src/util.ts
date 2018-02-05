@@ -17,8 +17,7 @@
 
 import {Tensor} from './math/tensor';
 // tslint:disable-next-line:max-line-length
-import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray} from './math/types';
-
+import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TypedArray} from './math/types';
 /** Shuffles the array using Fisher-Yates algorithm. */
 // tslint:disable-next-line:no-any
 export function shuffle(array: any[]|Uint32Array|Int32Array|
@@ -94,12 +93,18 @@ export function flatten<T extends number|boolean|Tensor|Promise<number>>(
   return ret;
 }
 
-export function inferShape(arr: number|boolean|RegularArray<number>|
+export function inferShape(val: TypedArray|number|boolean|RegularArray<number>|
                            RegularArray<boolean>): number[] {
+  if (isTypedArray(val)) {
+    return [(val as TypedArray).length];
+  }
+  if (!Array.isArray(val)) {
+    return [];  // Scalar.
+  }
   const shape: number[] = [];
-  while (arr instanceof Array) {
-    shape.push(arr.length);
-    arr = arr[0];
+  while (val instanceof Array) {
+    shape.push(val.length);
+    val = val[0];
   }
   return shape;
 }
@@ -436,4 +441,10 @@ export function copyTypedArray<D extends DataType>(
   } else {
     throw new Error(`Unknown data type ${dtype}`);
   }
+}
+
+export function isTypedArray(a: TypedArray|number|boolean|RegularArray<number>|
+                             RegularArray<boolean>): boolean {
+  return a instanceof Float32Array || a instanceof Int32Array ||
+      a instanceof Uint8Array;
 }

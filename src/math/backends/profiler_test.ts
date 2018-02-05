@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {Tensor, Scalar} from '../tensor';
-
+import * as dl from '../../index';
+import {Tensor} from '../tensor';
 import {BackendTimer} from './backend';
 import {Kernel} from './kernel_registry';
 import {Logger, Profiler} from './profiler';
@@ -55,7 +55,7 @@ describe('profiler.Profiler', () => {
 
     let kernelCalled = false;
     const result = 1;
-    const resultScalar = Scalar.new(result);
+    const resultScalar = dl.scalar(result);
 
     profiler.profileKernel('MatMul', () => {
       kernelCalled = true;
@@ -90,7 +90,7 @@ describe('profiler.Profiler', () => {
     let matmulKernelCalled = false;
     let maxKernelCalled = false;
     const result = 1;
-    const resultScalar = Scalar.new(result);
+    const resultScalar = dl.scalar(result);
 
     profiler.profileKernel('MatMul', () => {
       const result = profiler.profileKernel('Max', () => {

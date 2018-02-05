@@ -22,9 +22,9 @@ import {SessionRuntime} from '../../graph/session';
 // tslint:disable-next-line:max-line-length
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
+import * as ops from '../ops';
 import {Scalar} from '../tensor';
 import {NamedTensorMap} from '../types';
-
 import {Optimizer} from './optimizer';
 
 export class SGDOptimizer extends Optimizer {
@@ -84,6 +84,6 @@ export class SGDOptimizer extends Optimizer {
     if (this.c != null) {
       this.c.dispose();
     }
-    this.c = ENV.math.keep(Scalar.new(-learningRate));
+    this.c = ENV.math.keep(ops.scalar(-learningRate));
   }
 }

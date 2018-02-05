@@ -18,42 +18,41 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
 import {Rank} from './types';
 
 const tests: MathTests = it => {
   it('simple assign', math => {
-    const v = variable(Tensor1D.new([1, 2, 3]));
+    const v = variable(dl.tensor1d([1, 2, 3]));
     test_util.expectArraysClose(v, [1, 2, 3]);
 
-    v.assign(Tensor1D.new([4, 5, 6]));
+    v.assign(dl.tensor1d([4, 5, 6]));
     test_util.expectArraysClose(v, [4, 5, 6]);
   });
 
   it('default names are unique', math => {
-    const v = variable(Tensor1D.new([1, 2, 3]));
+    const v = variable(dl.tensor1d([1, 2, 3]));
     expect(v.name).not.toBeNull();
 
-    const v2 = variable(Tensor1D.new([1, 2, 3]));
+    const v2 = variable(dl.tensor1d([1, 2, 3]));
     expect(v2.name).not.toBeNull();
     expect(v.name).not.toBe(v2.name);
   });
 
   it('user provided name', math => {
-    const v = variable(Tensor1D.new([1, 2, 3]), true, 'myName');
+    const v = variable(dl.tensor1d([1, 2, 3]), true, 'myName');
     expect(v.name).toBe('myName');
   });
 
   it('if name already used, throw error', math => {
-    variable(Tensor1D.new([1, 2, 3]), true, 'myName');
-    expect(() => variable(Tensor1D.new([1, 2, 3]), true, 'myName'))
+    variable(dl.tensor1d([1, 2, 3]), true, 'myName');
+    expect(() => variable(dl.tensor1d([1, 2, 3]), true, 'myName'))
         .toThrowError();
   });
 
   it('math ops can take variables', math => {
-    const value = Tensor1D.new([1, 2, 3]);
+    const value = dl.tensor1d([1, 2, 3]);
     const v = variable(value);
     const res = math.sum(v);
     test_util.expectArraysClose(res, [6]);
@@ -64,7 +63,7 @@ const tests: MathTests = it => {
     expect(math.getNumTensors()).toBe(0);
 
     dl.tidy(() => {
-      const value = Tensor1D.new([1, 2, 3], 'float32');
+      const value = dl.tensor1d([1, 2, 3], 'float32');
       expect(math.getNumTensors()).toBe(1);
 
       v = variable(value);
@@ -107,11 +106,11 @@ const tests: MathTests = it => {
 
   it('assign will dispose old data', math => {
     let v: Variable<Rank.R1>;
-    v = variable(Tensor1D.new([1, 2, 3]));
+    v = variable(dl.tensor1d([1, 2, 3]));
     expect(math.getNumTensors()).toBe(1);
     test_util.expectArraysClose(v, [1, 2, 3]);
 
-    const secondArray = Tensor1D.new([4, 5, 6]);
+    const secondArray = dl.tensor1d([4, 5, 6]);
     expect(math.getNumTensors()).toBe(2);
 
     v.assign(secondArray);
@@ -125,19 +124,19 @@ const tests: MathTests = it => {
   });
 
   it('shape must match', math => {
-    const v = variable(Tensor1D.new([1, 2, 3]));
-    expect(() => v.assign(Tensor1D.new([1, 2]))).toThrowError();
+    const v = variable(dl.tensor1d([1, 2, 3]));
+    expect(() => v.assign(dl.tensor1d([1, 2]))).toThrowError();
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(Tensor2D.new([1, 2], [3, 4]) as any)).toThrowError();
+    expect(() => v.assign(dl.tensor2d([3, 4], [1, 2]) as any)).toThrowError();
   });
 
   it('dtype must match', math => {
-    const v = variable(Tensor1D.new([1, 2, 3]));
+    const v = variable(dl.tensor1d([1, 2, 3]));
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(Tensor1D.new([1, 1, 1], 'int32') as any))
+    expect(() => v.assign(dl.tensor1d([1, 1, 1], 'int32') as any))
         .toThrowError();
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(Tensor1D.new([true, false, true], 'bool') as any))
+    expect(() => v.assign(dl.tensor1d([true, false, true], 'bool') as any))
         .toThrowError();
   });
 };

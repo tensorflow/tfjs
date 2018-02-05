@@ -17,7 +17,8 @@
 
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
-import {Scalar, Tensor} from './tensor';
+import * as ops from './ops';
+import {Tensor} from './tensor';
 
 export class Ops {
   /**
@@ -89,7 +90,7 @@ function normInternal(
     }
     if (p === 'euclidean' || p === 2) {
       // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-      return x.abs().pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as Tensor;
+      return x.abs().pow(ops.scalar(2, 'int32')).sum(axis).sqrt() as Tensor;
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);
@@ -108,7 +109,7 @@ function normInternal(
     }
     if (p === 'fro' || p === 'euclidean') {
       // norm(x) = sqrt(sum(pow(x, 2)))
-      return x.pow(Scalar.new(2, 'int32')).sum(axis).sqrt() as Tensor;
+      return x.pow(ops.scalar(2, 'int32')).sum(axis).sqrt() as Tensor;
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);

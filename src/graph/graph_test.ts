@@ -17,6 +17,7 @@
 
 import * as dl from '../index';
 import * as conv_util from '../math/conv_util';
+import {Tensor} from '../math/tensor';
 import {ConstantNode, Graph, Node, SymbolicTensor, VariableNode} from './graph';
 import {FeedDictionary} from './session';
 import * as session_util from './session_util';
@@ -889,5 +890,11 @@ describe('Tensor', () => {
     const a = new SymbolicTensor([]);
     const b = new SymbolicTensor([]);
     expect(b.id).toEqual(a.id + 1);
+  });
+
+  it('symbolic tensor is assignable to tensor (compiler test)', () => {
+    const a = new SymbolicTensor([]);
+    const b: Tensor = a;
+    expect(b).toBe(a);
   });
 });

@@ -16,7 +16,8 @@
  */
 
 import * as util from '../../util';
-import {Tensor, Scalar} from '../tensor';
+import * as ops from '../ops';
+import {Tensor} from '../tensor';
 import {Rank} from '../types';
 import {MathBackend} from './backend';
 import {ArgMaxNode, ArgMinNode} from './types/argminmax';
@@ -201,7 +202,7 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
     if (newDType === 'int32') {
       return backend.int(x) as O;
     } else if (newDType === 'bool') {
-      return backend.notEqual(x, Scalar.new(0, x.dtype)) as O;
+      return backend.notEqual(x, ops.scalar(0, x.dtype)) as O;
     } else {
       throw new Error(`Error in Cast: unknown dtype argument (${newDType})`);
     }

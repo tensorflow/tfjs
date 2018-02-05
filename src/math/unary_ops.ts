@@ -17,10 +17,9 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-
 import {doc, operation} from './decorators';
 import * as ops from './ops';
-import {Scalar, Tensor} from './tensor';
+import {Tensor} from './tensor';
 
 export class Ops {
   /**
@@ -96,7 +95,7 @@ export class Ops {
   @operation
   static sqrt<T extends Tensor>(x: T): T {
     return ENV.engine.executeKernel('Sqrt', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.div(x.toFloat().sqrt().mul(Scalar.new(2)))};
+      return {x: () => dy.div(x.toFloat().sqrt().mul(ops.scalar(2)))};
     }) as T;
   }
 
@@ -109,7 +108,7 @@ export class Ops {
   @operation
   static square<T extends Tensor>(x: T): T {
     return ENV.engine.executeKernel('Square', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.mul(x.toFloat().mul(Scalar.new(2)))};
+      return {x: () => dy.mul(x.toFloat().mul(ops.scalar(2)))};
     }) as T;
   }
 
@@ -187,10 +186,10 @@ export class Ops {
         x: () => {
           // Currently, Scalars are not supported by ops.where
           util.assert(x.rank !== 0, 'Error in selu gradient: ');
-          const mask = x.greater(Scalar.new(0));
+          const mask = x.greater(ops.scalar(0));
 
-          const scaleAlpha = Scalar.new(1.7580993408473768599402175208123);
-          const scale = Scalar.new(1.0507009873554804934193349852946);
+          const scaleAlpha = ops.scalar(1.7580993408473768599402175208123);
+          const scale = ops.scalar(1.0507009873554804934193349852946);
 
           const greaterThanZeroDer = dy.mul(scale);
           const lessEqualZeroDer = dy.mul(scaleAlpha).mul(x.toFloat().exp());
@@ -247,7 +246,7 @@ export class Ops {
   @operation
   static sigmoid<T extends Tensor>(x: T): T {
     return ENV.engine.executeKernel('Sigmoid', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.mul(y.mul(Scalar.new(1).sub(y)))};
+      return {x: () => dy.mul(y.mul(ops.scalar(1).sub(y)))};
     }) as T;
   }
 
@@ -298,7 +297,7 @@ export class Ops {
   static asin<T extends Tensor>(x: T): T {
     return ENV.engine.executeKernel('Asin', {inputs: {x}}, (dy: T, y: T) => {
       return {
-        x: () => dy.div(Ops.sqrt(Scalar.new(1).sub(x.toFloat().square())))
+        x: () => dy.div(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square())))
       };
     }) as T;
   }
@@ -312,7 +311,7 @@ export class Ops {
   static acos<T extends Tensor>(x: T): T {
     return ENV.engine.executeKernel('Acos', {inputs: {x}}, (dy: T, y: T) => {
       return {
-        x: () => dy.div(Ops.sqrt(Scalar.new(1).sub(x.toFloat().square()))).neg()
+        x: () => dy.div(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square()))).neg()
       };
     }) as T;
   }
@@ -325,7 +324,7 @@ export class Ops {
   @operation
   static atan<T extends Tensor>(x: T): T {
     return ENV.engine.executeKernel('Atan', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.div(Scalar.new(1).add(x.toFloat().square()))};
+      return {x: () => dy.div(ops.scalar(1).add(x.toFloat().square()))};
     }) as T;
   }
 
@@ -361,7 +360,7 @@ export class Ops {
   @operation
   static tanh<T extends Tensor>(x: T): T {
     return ENV.engine.executeKernel('Tanh', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => Scalar.new(1).sub(y.square()).mul(dy)};
+      return {x: () => ops.scalar(1).sub(y.square()).mul(dy)};
     }) as T;
   }
 

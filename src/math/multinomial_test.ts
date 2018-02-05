@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor1D, Tensor2D} from './tensor';
+import {Tensor1D} from './tensor';
 import {Rank} from './types';
 
 const tests: MathTests = it => {
@@ -27,7 +27,7 @@ const tests: MathTests = it => {
   const EPSILON = 0.05;
 
   it('Flip a fair coin and check bounds', math => {
-    const probs = Tensor1D.new([0.5, 0.5]);
+    const probs = dl.tensor1d([0.5, 0.5]);
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
@@ -36,7 +36,7 @@ const tests: MathTests = it => {
   });
 
   it('Flip a two-sided coin with 100% of heads', math => {
-    const probs = Tensor1D.new([1, 0]);
+    const probs = dl.tensor1d([1, 0]);
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
@@ -45,7 +45,7 @@ const tests: MathTests = it => {
   });
 
   it('Flip a two-sided coin with 100% of tails', math => {
-    const probs = Tensor1D.new([0, 1]);
+    const probs = dl.tensor1d([0, 1]);
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
@@ -54,7 +54,7 @@ const tests: MathTests = it => {
   });
 
   it('Flip a single-sided coin throws error', math => {
-    const probs = Tensor1D.new([1]);
+    const probs = dl.tensor1d([1]);
     expect(() => math.multinomial(probs, NUM_SAMPLES)).toThrowError();
   });
 
@@ -74,7 +74,7 @@ const tests: MathTests = it => {
   it('Flip 3 three-sided coins, each coin is 100% biases', math => {
     const numOutcomes = 3;
     const probs =
-        Tensor2D.new([3, numOutcomes], [[0, 0, 1], [0, 1, 0], [1, 0, 0]]);
+        dl.tensor2d([[0, 0, 1], [0, 1, 0], [1, 0, 0]], [3, numOutcomes]);
     const result = math.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([3, NUM_SAMPLES]);

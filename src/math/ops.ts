@@ -35,20 +35,20 @@ import * as transpose_ops from './transpose';
 import * as unary_ops from './unary_ops';
 
 export const batchNormalization = batchnorm_ops.Ops.batchNormalization;
-export const batchNormalization2D = batchnorm_ops.Ops.batchNormalization2D;
-export const batchNormalization3D = batchnorm_ops.Ops.batchNormalization3D;
-export const batchNormalization4D = batchnorm_ops.Ops.batchNormalization4D;
+export const batchNormalization2d = batchnorm_ops.Ops.batchNormalization2d;
+export const batchNormalization3d = batchnorm_ops.Ops.batchNormalization3d;
+export const batchNormalization4d = batchnorm_ops.Ops.batchNormalization4d;
 
 export const concat = concat_ops.Ops.concat;
-export const concat1D = concat_ops.Ops.concat1D;
-export const concat2D = concat_ops.Ops.concat2D;
-export const concat3D = concat_ops.Ops.concat3D;
-export const concat4D = concat_ops.Ops.concat4D;
+export const concat1d = concat_ops.Ops.concat1d;
+export const concat2d = concat_ops.Ops.concat2d;
+export const concat3d = concat_ops.Ops.concat3d;
+export const concat4d = concat_ops.Ops.concat4d;
 
 export const conv1d = conv_ops.Ops.conv1d;
 export const conv2d = conv_ops.Ops.conv2d;
 export const conv2dTranspose = conv_ops.Ops.conv2dTranspose;
-export const depthwiseConv2D = conv_ops.Ops.depthwiseConv2D;
+export const depthwiseConv2d = conv_ops.Ops.depthwiseConv2d;
 
 export const dotProduct = matmul_ops.Ops.dotProduct;
 export const matMul = matmul_ops.Ops.matMul;
@@ -63,16 +63,16 @@ export const minPool = pool_ops.Ops.minPool;
 export const transpose = transpose_ops.Ops.transpose;
 
 export const reverse = reverse_ops.Ops.reverse;
-export const reverse1D = reverse_ops.Ops.reverse1D;
-export const reverse2D = reverse_ops.Ops.reverse2D;
-export const reverse3D = reverse_ops.Ops.reverse3D;
-export const reverse4D = reverse_ops.Ops.reverse4D;
+export const reverse1d = reverse_ops.Ops.reverse1d;
+export const reverse2d = reverse_ops.Ops.reverse2d;
+export const reverse3d = reverse_ops.Ops.reverse3d;
+export const reverse4d = reverse_ops.Ops.reverse4d;
 
 export const slice = slice_ops.Ops.slice;
-export const slice1D = slice_ops.Ops.slice1D;
-export const slice2D = slice_ops.Ops.slice2D;
-export const slice3D = slice_ops.Ops.slice3D;
-export const slice4D = slice_ops.Ops.slice4D;
+export const slice1d = slice_ops.Ops.slice1d;
+export const slice2d = slice_ops.Ops.slice2d;
+export const slice3d = slice_ops.Ops.slice3d;
+export const slice4d = slice_ops.Ops.slice4d;
 
 export const argMax = reduction_ops.Ops.argMax;
 export const argMaxEquals = reduction_ops.Ops.argMaxEquals;
@@ -162,11 +162,17 @@ export const tile = array_ops.Ops.tile;
 export const gather = array_ops.Ops.gather;
 export const multinomial = array_ops.Ops.multinomial;
 export const oneHot = array_ops.Ops.oneHot;
-export const pad1D = array_ops.Ops.pad1D;
-export const pad2D = array_ops.Ops.pad2D;
+export const pad1d = array_ops.Ops.pad1d;
+export const pad2d = array_ops.Ops.pad2d;
 export const range = array_ops.Ops.range;
 export const buffer = array_ops.Ops.buffer;
 export const fill = array_ops.Ops.fill;
+export const tensor = array_ops.Ops.tensor;
+export const scalar = array_ops.Ops.scalar;
+export const tensor1d = array_ops.Ops.tensor1d;
+export const tensor2d = array_ops.Ops.tensor2d;
+export const tensor3d = array_ops.Ops.tensor3d;
+export const tensor4d = array_ops.Ops.tensor4d;
 
 export const basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
 export const multiRNNCell = lstm_ops.Ops.multiRNNCell;

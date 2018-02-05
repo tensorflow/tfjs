@@ -37,7 +37,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat1D(a: Tensor1D, b: Tensor1D): Tensor1D {
+  static concat1d(a: Tensor1D, b: Tensor1D): Tensor1D {
     return Ops.concat(a, b, 0 /* axis */);
   }
 
@@ -71,7 +71,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat2D(a: Tensor2D, b: Tensor2D, axis: number): Tensor2D {
+  static concat2d(a: Tensor2D, b: Tensor2D, axis: number): Tensor2D {
     return Ops.concat(a, b, axis);
   }
 
@@ -108,7 +108,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat3D(a: Tensor3D, b: Tensor3D, axis: number): Tensor3D {
+  static concat3d(a: Tensor3D, b: Tensor3D, axis: number): Tensor3D {
     return Ops.concat(a, b, axis);
   }
 
@@ -123,7 +123,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat4D(a: Tensor4D, b: Tensor4D, axis: number): Tensor4D {
+  static concat4d(a: Tensor4D, b: Tensor4D, axis: number): Tensor4D {
     return Ops.concat(a, b, axis);
   }
 

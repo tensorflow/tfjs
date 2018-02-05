@@ -17,10 +17,10 @@
 import {InputProvider} from '../../data/input_provider';
 import {Graph} from '../../graph/graph';
 import {Session} from '../../graph/session';
-import {Scalar, Tensor1D, variable} from '../../math/tensor';
+import * as dl from '../../index';
+import {variable} from '../../math/tensor';
 import * as test_util from '../../test_util';
 import {MathTests} from '../../test_util';
-
 import {SGDOptimizer} from './sgd_optimizer';
 
 const tests: MathTests = it => {
@@ -28,7 +28,7 @@ const tests: MathTests = it => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(Scalar.new(4));
+    const x = variable(dl.scalar(4));
 
     let numArrays = math.getNumTensors();
 
@@ -62,7 +62,7 @@ const tests: MathTests = it => {
   it('graph', math => {
     const inputProvider: InputProvider = {
       getNextCopy() {
-        return Tensor1D.new([2, 4]);
+        return dl.tensor1d([2, 4]);
       },
       disposeCopy(math, example) {}
     };
