@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArray, Variable} from './ndarray';
+import {Tensor, Variable} from './tensor';
 
 export enum DType {
   float32 = 'float32',
@@ -58,8 +58,8 @@ export interface RecursiveArray<T extends any> {
   [index: number]: T|RecursiveArray<T>;
 }
 
-export type NamedArrayMap = {
-  [name: string]: NDArray
+export type NamedTensorMap = {
+  [name: string]: Tensor
 };
 
 export type NamedVariableMap = {

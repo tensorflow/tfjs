@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Graph, Tensor} from 'deeplearn';
+import {Graph, SymbolicTensor} from 'deeplearn';
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 import * as layer_builder from './layer_builder';
@@ -118,8 +118,8 @@ export class ModelLayer extends ModelLayerPolymer {
   }
 
   addLayer(
-      g: Graph, network: Tensor, index: number,
-      weights: LayerWeightsDict|null): Tensor {
+      g: Graph, network: SymbolicTensor, index: number,
+      weights: LayerWeightsDict|null): SymbolicTensor {
     return this.layerBuilder.addLayer(
         g, network, this.inputShape, index, weights);
   }

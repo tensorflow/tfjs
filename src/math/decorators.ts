@@ -19,7 +19,7 @@ import {tidy} from './backends/tracking';
 
 /**
  * Decorator for wrapping functions that perform math operations on
- * NDArrays. The function will be wrapped in a named scope that cleans all
+ * Tensors. The function will be wrapped in a named scope that cleans all
  * memory usage after the function is done.
  */
 export function operation(

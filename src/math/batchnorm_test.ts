@@ -19,7 +19,7 @@ import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
+import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
 // dl.batchNormalization4D
 {
@@ -27,9 +27,9 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
   const epsilon = 1e-1;
   const tests: MathTests = it => {
     it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {
-      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
+      const x = Tensor4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization4D(
@@ -51,10 +51,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm4D, no offset, 2x1x1x2', () => {
-      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const scale = Array1D.new([4, 5]);
+      const x = Tensor4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const scale = Tensor1D.new([4, 5]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization4D(
@@ -76,10 +76,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm4D, no scale, 2x1x1x2', () => {
-      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const offset = Array1D.new([4, 5]);
+      const x = Tensor4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const offset = Tensor1D.new([4, 5]);
 
       const varianceEpsilon = .001;
 
@@ -106,11 +106,11 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm4D, 2x1x1x2', () => {
-      const x = Array4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const offset = Array1D.new([3, 4]);
-      const scale = Array1D.new([4, 5]);
+      const x = Tensor4D.new([2, 1, 1, 2], new Float32Array([2, 100, 4, 400]));
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const offset = Tensor1D.new([3, 4]);
+      const scale = Tensor1D.new([4, 5]);
 
       const varianceEpsilon = .001;
 
@@ -151,9 +151,9 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
   const epsilon = 1e-1;
   const tests: MathTests = it => {
     it('simple batchnorm3D, no offset or scale, 2x1x2', () => {
-      const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
+      const x = Tensor3D.new([2, 1, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization3D(
@@ -174,10 +174,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm3D, no offset, 2x1x2', () => {
-      const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const scale = Array1D.new([4, 5]);
+      const x = Tensor3D.new([2, 1, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const scale = Tensor1D.new([4, 5]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization3D(
@@ -198,10 +198,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm3D, no scale, 2x1x2', () => {
-      const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const offset = Array1D.new([4, 5]);
+      const x = Tensor3D.new([2, 1, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const offset = Tensor1D.new([4, 5]);
 
       const varianceEpsilon = .001;
 
@@ -227,11 +227,11 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm3D, 2x1x2', () => {
-      const x = Array3D.new([2, 1, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const offset = Array1D.new([3, 4]);
-      const scale = Array1D.new([4, 5]);
+      const x = Tensor3D.new([2, 1, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const offset = Tensor1D.new([3, 4]);
+      const scale = Tensor1D.new([4, 5]);
 
       const varianceEpsilon = .001;
 
@@ -257,17 +257,17 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('batchnorm matches tensorflow, 2x3x3', () => {
-      const x = Array3D.new(
+      const x = Tensor3D.new(
           [2, 3, 3], [
             0.49955603, 0.04158615, -1.09440524, 2.03854165, -0.61578344,
             2.87533573, 1.18105987, 0.807462, 1.87888837, 2.26563962,
             -0.37040935, 1.35848753, -0.75347094, 0.15683117, 0.91925946,
             0.34121279, 0.92717143, 1.89683965
           ]);
-      const mean = Array1D.new([0.39745062, -0.48062894, 0.4847822]);
-      const variance = Array1D.new([0.32375343, 0.67117643, 1.08334653]);
-      const offset = Array1D.new([0.69398749, -1.29056387, 0.9429723]);
-      const scale = Array1D.new([-0.5607271, 0.9878457, 0.25181573]);
+      const mean = Tensor1D.new([0.39745062, -0.48062894, 0.4847822]);
+      const variance = Tensor1D.new([0.32375343, 0.67117643, 1.08334653]);
+      const offset = Tensor1D.new([0.69398749, -1.29056387, 0.9429723]);
+      const scale = Tensor1D.new([-0.5607271, 0.9878457, 0.25181573]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization3D(
@@ -297,9 +297,9 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
   const epsilon = 1e-1;
   const tests: MathTests = it => {
     it('simple batchnorm2D, no offset or scale, 2x2', () => {
-      const x = Array2D.new([2, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
+      const x = Tensor2D.new([2, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization2D(
@@ -319,10 +319,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
           epsilon);
     });
     it('simple batchnorm2D, no offset, 2x2', () => {
-      const x = Array2D.new([2, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const scale = Array1D.new([4, 5]);
+      const x = Tensor2D.new([2, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const scale = Tensor1D.new([4, 5]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization2D(
@@ -343,10 +343,10 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm2D, no scale, 2x2', () => {
-      const x = Array2D.new([2, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const offset = Array1D.new([4, 5]);
+      const x = Tensor2D.new([2, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const offset = Tensor1D.new([4, 5]);
 
       const varianceEpsilon = .001;
 
@@ -372,11 +372,11 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('simple batchnorm2D, 2x2', () => {
-      const x = Array2D.new([2, 2], [2, 100, 4, 400]);
-      const mean = Array1D.new([1, 2]);
-      const variance = Array1D.new([2, 3]);
-      const offset = Array1D.new([3, 4]);
-      const scale = Array1D.new([4, 5]);
+      const x = Tensor2D.new([2, 2], [2, 100, 4, 400]);
+      const mean = Tensor1D.new([1, 2]);
+      const variance = Tensor1D.new([2, 3]);
+      const offset = Tensor1D.new([3, 4]);
+      const scale = Tensor1D.new([4, 5]);
 
       const varianceEpsilon = .001;
 
@@ -403,14 +403,14 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
     it('batchnorm2D matches tensorflow, 3x3', () => {
       const x =
-          Array2D.new([3, 3], [
+          Tensor2D.new([3, 3], [
                         0.3136892, 0.92389025, 0.594782, 0.05021042, 0.67545404,
                         0.93910035, 0.13277993, 0.96474269, 0.88608916
                       ]);
-      const mean = Array1D.new([0.19526312, 0.74857256, 0.45166398]);
-      const variance = Array1D.new([0.22963001, 0.61521992, 0.46623685]);
-      const offset = Array1D.new([0.43098484, 0.77712237, 0.47916298]);
-      const scale = Array1D.new([0.62186907, 0.85673736, 0.19201061]);
+      const mean = Tensor1D.new([0.19526312, 0.74857256, 0.45166398]);
+      const variance = Tensor1D.new([0.22963001, 0.61521992, 0.46623685]);
+      const offset = Tensor1D.new([0.43098484, 0.77712237, 0.47916298]);
+      const scale = Tensor1D.new([0.62186907, 0.85673736, 0.19201061]);
       const varianceEpsilon = .001;
 
       const result = dl.batchNormalization2D(

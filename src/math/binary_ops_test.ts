@@ -18,14 +18,15 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Array1D, Array2D, Scalar} from './ndarray';
+
+import {Scalar, Tensor1D, Tensor2D} from './tensor';
 
 // dl.prelu
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const x = Array1D.new([0, 1, -2, -4]);
-      const a = Array1D.new([0.15, 0.2, 0.25, 0.15]);
+      const x = Tensor1D.new([0, 1, -2, -4]);
+      const a = Tensor1D.new([0.15, 0.2, 0.25, 0.15]);
       const result = dl.prelu(x, a);
 
       expect(result.shape).toEqual(x.shape);
@@ -33,8 +34,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('propagates NaN', () => {
-      const x = Array1D.new([0, 1, NaN]);
-      const a = Array1D.new([0.15, 0.2, 0.25]);
+      const x = Tensor1D.new([0, 1, NaN]);
+      const a = Tensor1D.new([0.15, 0.2, 0.25]);
       const result = dl.prelu(x, a);
 
       expect(result.shape).toEqual(x.shape);
@@ -42,9 +43,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('derivative', () => {
-      const x = Array1D.new([0.5, 3, -0.1, -4]);
-      const a = Array1D.new([0.2, 0.4, 0.25, 0.15]);
-      const dy = Array1D.new([1, 1, 1, 1]);
+      const x = Tensor1D.new([0.5, 3, -0.1, -4]);
+      const a = Tensor1D.new([0.2, 0.4, 0.25, 0.15]);
+      const dy = Tensor1D.new([1, 1, 1, 1]);
 
       const dx = dl.vjp(() => dl.prelu(x, a), x, dy);
 
@@ -54,9 +55,9 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('derivative propagates NaN', () => {
-      const x = Array1D.new([0.5, -0.1, NaN]);
-      const a = Array1D.new([0.2, 0.3, 0.25]);
-      const dy = Array1D.new([5, 50, 500]);
+      const x = Tensor1D.new([0.5, -0.1, NaN]);
+      const a = Tensor1D.new([0.2, 0.3, 0.25]);
+      const dy = Tensor1D.new([5, 50, 500]);
 
       const dx = dl.vjp(() => dl.prelu(x, a), x, dy);
 
@@ -78,8 +79,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('float32 and float32', () => {
-      const a = Array1D.new([0.5, 3, -0.1, -4]);
-      const b = Array1D.new([0.2, 0.4, 0.25, 0.15]);
+      const a = Tensor1D.new([0.5, 3, -0.1, -4]);
+      const b = Tensor1D.new([0.2, 0.4, 0.25, 0.15]);
       const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
@@ -87,8 +88,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('int32 and int32', () => {
-      const a = Array1D.new([1, 5, 2, 3], 'int32');
-      const b = Array1D.new([2, 3, 1, 4], 'int32');
+      const a = Tensor1D.new([1, 5, 2, 3], 'int32');
+      const b = Tensor1D.new([2, 3, 1, 4], 'int32');
       const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
@@ -97,8 +98,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('bool and bool', () => {
-      const a = Array1D.new([true, false, false, true], 'bool');
-      const b = Array1D.new([false, false, true, true], 'bool');
+      const a = Tensor1D.new([true, false, false, true], 'bool');
+      const b = Tensor1D.new([false, false, true, true], 'bool');
       const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
@@ -107,23 +108,23 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('different dtypes throws error', () => {
-      const a = Array1D.new([true, false, false, true], 'float32');
-      const b = Array1D.new([false, false, true, true], 'int32');
+      const a = Tensor1D.new([true, false, false, true], 'float32');
+      const b = Tensor1D.new([false, false, true, true], 'int32');
       // tslint:disable-next-line:no-any
       expect(() => dl.maximum(a, b as any)).toThrowError();
     });
 
     it('propagates NaN', () => {
-      const a = Array1D.new([0.5, -0.1, NaN]);
-      const b = Array1D.new([0.2, 0.3, 0.25]);
+      const a = Tensor1D.new([0.5, -0.1, NaN]);
+      const b = Tensor1D.new([0.2, 0.3, 0.25]);
       const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.5, 0.3, NaN]);
     });
 
-    it('broadcasts array1d and scalar', () => {
-      const a = Array1D.new([0.5, 3, -0.1, -4]);
+    it('broadcasts Tensor1D and scalar', () => {
+      const a = Tensor1D.new([0.5, 3, -0.1, -4]);
       const b = Scalar.new(0.6);
       const result = dl.maximum(a, b);
 
@@ -131,27 +132,27 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       test_util.expectArraysClose(result, [0.6, 3, 0.6, 0.6]);
     });
 
-    it('broadcasts scalar and array1d', () => {
+    it('broadcasts scalar and Tensor1D', () => {
       const a = Scalar.new(0.6);
-      const b = Array1D.new([0.5, 3, -0.1, -4]);
+      const b = Tensor1D.new([0.5, 3, -0.1, -4]);
       const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.6, 3, 0.6, 0.6]);
     });
 
-    it('broadcasts array1d and array2d', () => {
-      const a = Array1D.new([0.5, 0.3]);
-      const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
+    it('broadcasts Tensor1D and Tensor2D', () => {
+      const a = Tensor1D.new([0.5, 0.3]);
+      const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
       const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.5, 0.4, 0.6, 0.3]);
     });
 
-    it('broadcasts 2x1 array2d and 2x2 array2d', () => {
-      const a = Array2D.new([2, 1], [0.5, 0.3]);
-      const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
+    it('broadcasts 2x1 Tensor2D and 2x2 Tensor2D', () => {
+      const a = Tensor2D.new([2, 1], [0.5, 0.3]);
+      const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
       const result = dl.maximum(a, b);
 
       expect(result.shape).toEqual(b.shape);
@@ -174,10 +175,10 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       test_util.expectArraysClose(gradients.b, [3 * 0], 1e-1);
     });
 
-    it('gradients: Array1D', math => {
-      const a = Array1D.new([1.1, 2.6, 3, 5.9]);
-      const b = Array1D.new([1.0, 2.7, 3, 5.8]);
-      const dy = Array1D.new([1, 2, 3, 4]);
+    it('gradients: Tensor1D', math => {
+      const a = Tensor1D.new([1.1, 2.6, 3, 5.9]);
+      const b = Tensor1D.new([1.0, 2.7, 3, 5.8]);
+      const dy = Tensor1D.new([1, 2, 3, 4]);
 
       const gradients = math.vjp(() => math.maximum(a, b), {a, b}, dy);
 
@@ -192,10 +193,10 @@ import {Array1D, Array2D, Scalar} from './ndarray';
           gradients.b, [1 * 0, 2 * 1, 3 * 0, 4 * 0], 1e-1);
     });
 
-    it('gradients: Array2D', math => {
-      const a = Array2D.new([2, 2], [0.5, 0.3, 0.7, 0.9]);
-      const b = Array2D.new([2, 2], [0.2, 0.4, 0.7, 0.15]);
-      const dy = Array2D.new([2, 2], [1, 2, 3, 4]);
+    it('gradients: Tensor2D', math => {
+      const a = Tensor2D.new([2, 2], [0.5, 0.3, 0.7, 0.9]);
+      const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.7, 0.15]);
+      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
 
       const gradients = math.vjp(() => math.maximum(a, b), {a, b}, dy);
 
@@ -223,8 +224,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('float32 and float32', () => {
-      const a = Array1D.new([0.5, 3, -0.1, -4]);
-      const b = Array1D.new([0.2, 0.4, 0.25, 0.15]);
+      const a = Tensor1D.new([0.5, 3, -0.1, -4]);
+      const b = Tensor1D.new([0.2, 0.4, 0.25, 0.15]);
       const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
@@ -232,8 +233,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('int32 and int32', () => {
-      const a = Array1D.new([1, 5, 2, 3], 'int32');
-      const b = Array1D.new([2, 3, 1, 4], 'int32');
+      const a = Tensor1D.new([1, 5, 2, 3], 'int32');
+      const b = Tensor1D.new([2, 3, 1, 4], 'int32');
       const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
@@ -242,8 +243,8 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('bool and bool', () => {
-      const a = Array1D.new([true, false, false, true], 'bool');
-      const b = Array1D.new([false, false, true, true], 'bool');
+      const a = Tensor1D.new([true, false, false, true], 'bool');
+      const b = Tensor1D.new([false, false, true, true], 'bool');
       const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
@@ -252,23 +253,23 @@ import {Array1D, Array2D, Scalar} from './ndarray';
     });
 
     it('different dtypes throws error', () => {
-      const a = Array1D.new([true, false, false, true], 'float32');
-      const b = Array1D.new([false, false, true, true], 'int32');
+      const a = Tensor1D.new([true, false, false, true], 'float32');
+      const b = Tensor1D.new([false, false, true, true], 'int32');
       // tslint:disable-next-line:no-any
       expect(() => dl.minimum(a, b as any)).toThrowError();
     });
 
     it('propagates NaN', () => {
-      const a = Array1D.new([0.5, -0.1, NaN]);
-      const b = Array1D.new([0.2, 0.3, 0.25]);
+      const a = Tensor1D.new([0.5, -0.1, NaN]);
+      const b = Tensor1D.new([0.2, 0.3, 0.25]);
       const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [0.2, -0.1, NaN]);
     });
 
-    it('broadcasts array1d and scalar', () => {
-      const a = Array1D.new([0.5, 3, -0.1, -4]);
+    it('broadcasts Tensor1D and scalar', () => {
+      const a = Tensor1D.new([0.5, 3, -0.1, -4]);
       const b = Scalar.new(0.6);
       const result = dl.minimum(a, b);
 
@@ -276,27 +277,27 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       test_util.expectArraysClose(result, [0.5, 0.6, -0.1, -4]);
     });
 
-    it('broadcasts scalar and array1d', () => {
+    it('broadcasts scalar and Tensor1D', () => {
       const a = Scalar.new(0.6);
-      const b = Array1D.new([0.5, 3, -0.1, -4]);
+      const b = Tensor1D.new([0.5, 3, -0.1, -4]);
       const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.5, 0.6, -0.1, -4]);
     });
 
-    it('broadcasts array1d and array2d', () => {
-      const a = Array1D.new([0.5, 0.3]);
-      const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
+    it('broadcasts Tensor1D and Tensor2D', () => {
+      const a = Tensor1D.new([0.5, 0.3]);
+      const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
       const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(b.shape);
       test_util.expectArraysClose(result, [0.2, 0.3, 0.5, 0.15]);
     });
 
-    it('broadcasts 2x1 array2d and 2x2 array2d', () => {
-      const a = Array2D.new([2, 1], [0.5, 0.3]);
-      const b = Array2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
+    it('broadcasts 2x1 Tensor2D and 2x2 Tensor2D', () => {
+      const a = Tensor2D.new([2, 1], [0.5, 0.3]);
+      const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.6, 0.15]);
       const result = dl.minimum(a, b);
 
       expect(result.shape).toEqual(b.shape);
@@ -319,10 +320,10 @@ import {Array1D, Array2D, Scalar} from './ndarray';
       test_util.expectArraysClose(gradients.b, [3 * 1], 1e-1);
     });
 
-    it('gradients: Array1D', math => {
-      const a = Array1D.new([1.1, 2.6, 3, 5.9]);
-      const b = Array1D.new([1.0, 2.7, 3, 5.8]);
-      const dy = Array1D.new([1, 2, 3, 4]);
+    it('gradients: Tensor1D', math => {
+      const a = Tensor1D.new([1.1, 2.6, 3, 5.9]);
+      const b = Tensor1D.new([1.0, 2.7, 3, 5.8]);
+      const dy = Tensor1D.new([1, 2, 3, 4]);
 
       const gradients = math.vjp(() => math.minimum(a, b), {a, b}, dy);
 
@@ -337,10 +338,10 @@ import {Array1D, Array2D, Scalar} from './ndarray';
           gradients.b, [1 * 1, 2 * 0, 3 * 0, 4 * 1], 1e-1);
     });
 
-    it('gradients: Array2D', math => {
-      const a = Array2D.new([2, 2], [0.5, 0.3, 0.7, 0.9]);
-      const b = Array2D.new([2, 2], [0.2, 0.4, 0.7, 0.15]);
-      const dy = Array2D.new([2, 2], [1, 2, 3, 4]);
+    it('gradients: Tensor2D', math => {
+      const a = Tensor2D.new([2, 2], [0.5, 0.3, 0.7, 0.9]);
+      const b = Tensor2D.new([2, 2], [0.2, 0.4, 0.7, 0.15]);
+      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
 
       const gradients = math.vjp(() => math.minimum(a, b), {a, b}, dy);
 

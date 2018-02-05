@@ -17,7 +17,7 @@
 import {InputProvider} from '../../data/input_provider';
 import {ENV} from '../../environment';
 import * as dl from '../../index';
-import {Array1D} from '../../math/ndarray';
+import {Tensor1D} from '../../math/tensor';
 import * as test_util from '../../test_util';
 import {Graph} from '../graph';
 import {Session} from '../session';
@@ -29,7 +29,7 @@ describe('adadelta optimizer', () => {
 
     const inputProvider: InputProvider = {
       getNextCopy() {
-        return Array1D.new([2, 4]);
+        return Tensor1D.new([2, 4]);
       },
       disposeCopy(math, example) {}
     };

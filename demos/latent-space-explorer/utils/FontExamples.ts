@@ -12,10 +12,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-import {Array1D} from 'deeplearn';
+import {Tensor1D} from 'deeplearn';
 
 function convert(arr: number[]) {
-  return Array1D.new(arr);
+  return Tensor1D.new(arr);
 }
 /* tslint:disable:max-line-length */
 export const zero = convert([

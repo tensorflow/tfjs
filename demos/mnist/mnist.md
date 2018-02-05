@@ -70,7 +70,7 @@ server.
 
 To read the weights, we need to create a `CheckpointLoader` and point it to the
 manifest file. We then call `loader.getAllVariables()` which returns a
-dictionary that maps variable names to `NDArray`s. At that point, we are ready
+dictionary that maps variable names to `Tensor`s. At that point, we are ready
 to write our model. Here is a snippet demonstrating the use of
 `CheckpointLoader`:
 
@@ -81,18 +81,18 @@ const varLoader = new CheckpointLoader('.');
 varLoader.getAllVariables().then(async vars => {
   const math = ENV.math;
 
-  // Get NDArray of variables casted with expected dimension.
-  const hidden1W = vars['hidden1/weights'] as Array2D;
-  const hidden1B = vars['hidden1/biases'] as Array1D;
+  // Get Tensor of variables casted with expected dimension.
+  const hidden1W = vars['hidden1/weights'] as Tensor2D;
+  const hidden1B = vars['hidden1/biases'] as Tensor1D;
   // ...
 
   // Write your model here.
   const hidden1 =
       math.relu(math.add(math.vectorTimesMatrix(..., hidden1W), hidden1B)) as
-      Array1D;
+      Tensor1D;
   const hidden2 =
       math.relu(math.add(
-          math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Array1D;
+          math.vectorTimesMatrix(hidden1, hidden2W), hidden2B)) as Tensor1D;
 
   const logits = math.add(math.vectorTimesMatrix(hidden2, softmaxW), softmaxB);
 

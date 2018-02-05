@@ -16,10 +16,10 @@
  */
 
 import {doc, operation} from './decorators';
-import {Array1D, Array2D, Scalar} from './ndarray';
+import {Scalar, Tensor1D, Tensor2D} from './tensor';
 
 export interface LSTMCell {
-  (data: Array2D, c: Array2D, h: Array2D): [Array2D, Array2D];
+  (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D];
 }
 
 export class Ops {
@@ -37,8 +37,8 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
   static multiRNNCell(
-      lstmCells: LSTMCell[], data: Array2D, c: Array2D[], h: Array2D[]):
-      [Array2D[], Array2D[]] {
+      lstmCells: LSTMCell[], data: Tensor2D, c: Tensor2D[], h: Tensor2D[]):
+      [Tensor2D[], Tensor2D[]] {
     let input = data;
     const newStates = [];
     for (let i = 0; i < lstmCells.length; i++) {
@@ -47,8 +47,8 @@ export class Ops {
       newStates.push(output[1]);
       input = output[1];
     }
-    const newC: Array2D[] = [];
-    const newH: Array2D[] = [];
+    const newC: Tensor2D[] = [];
+    const newH: Tensor2D[] = [];
     for (let i = 0; i < newStates.length; i += 2) {
       newC.push(newStates[i]);
       newH.push(newStates[i + 1]);
@@ -71,11 +71,11 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
   static basicLSTMCell(
-      forgetBias: Scalar, lstmKernel: Array2D, lstmBias: Array1D, data: Array2D,
-      c: Array2D, h: Array2D): [Array2D, Array2D] {
+      forgetBias: Scalar, lstmKernel: Tensor2D, lstmBias: Tensor1D,
+      data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D] {
     const combined = data.concat(h, 1);
     const weighted = combined.matMul(lstmKernel);
-    const res = weighted.add(lstmBias) as Array2D;
+    const res = weighted.add(lstmBias) as Tensor2D;
 
     // i = input_gate, j = new_input, f = forget_gate, o = output_gate
     const batchSize = res.shape[0];
@@ -87,7 +87,7 @@ export class Ops {
     const o = res.slice([0, sliceCols * 3], sliceSize);
 
     const newC = i.sigmoid().mulStrict(j.tanh()).addStrict(
-        c.mulStrict(forgetBias.add(f).sigmoid() as Array2D));
+        c.mulStrict(forgetBias.add(f).sigmoid() as Tensor2D));
     const newH = newC.tanh().mulStrict(o.sigmoid());
     return [newC, newH];
   }

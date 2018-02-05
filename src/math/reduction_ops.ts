@@ -20,7 +20,7 @@ import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
-import {NDArray, Scalar} from './ndarray';
+import {Scalar, Tensor} from './tensor';
 
 export class Ops {
   /**
@@ -32,7 +32,7 @@ export class Ops {
    * If `axis` has no entries, all dimensions are reduced, and an array with a
    * single element is returned.
    *
-   * @param input The input NDArray.
+   * @param input The input Tensor.
    * @param axis Optional. The dimension(s) to reduce. If null (the default),
    *     reduces all dimensions.
    * @param keepDims Optional. If true, retains reduced dimensions with length
@@ -40,8 +40,8 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static logSumExp<T extends NDArray>(
-      input: NDArray, axis: number|number[] = null, keepDims = false): T {
+  static logSumExp<T extends Tensor>(
+      input: Tensor, axis: number|number[] = null, keepDims = false): T {
     const axes = axis_util.parseAxisParam(axis, input.shape);
     const xMax = input.max(axes, true /* keepDims */);
     const a = input.sub(xMax);
@@ -73,8 +73,8 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static sum<T extends NDArray>(
-      x: NDArray, axis: number|number[] = null, keepDims = false): T {
+  static sum<T extends Tensor>(
+      x: Tensor, axis: number|number[] = null, keepDims = false): T {
     const axes = axis_util.parseAxisParam(axis, x.shape);
     // Use a custom gradient to bypass 2 gradient backprops since sum is used
     // extremely often.
@@ -94,13 +94,13 @@ export class Ops {
         value = value.reshape(newShape);
       }
 
-      const gradients = (dy: NDArray) => {
+      const gradients = (dy: Tensor) => {
         const expandedDyShape = x.shape.slice();
         axes.forEach(axis => {
           expandedDyShape[axis] = 1;
         });
         const expandedDy = dy.reshape(expandedDyShape);
-        const derX = () => expandedDy.mul(NDArray.ones(x.shape, 'float32'));
+        const derX = () => expandedDy.mul(Tensor.ones(x.shape, 'float32'));
         return {x: derX};
       };
       return {value, gradients};
@@ -123,8 +123,8 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static mean<T extends NDArray>(
-      x: NDArray, axis: number|number[] = null, keepDims = false): T {
+  static mean<T extends Tensor>(
+      x: Tensor, axis: number|number[] = null, keepDims = false): T {
     const axes = axis_util.parseAxisParam(axis, x.shape);
     const shapes = axis_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceShape = shapes[1];
@@ -136,13 +136,13 @@ export class Ops {
       const res = x.div(reduceSizeScalar);
       const value = res.sum(axis, keepDims);
 
-      const gradients = (dy: NDArray) => {
+      const gradients = (dy: Tensor) => {
         const expandedDyShape = x.shape.slice();
         axes.forEach(axis => {
           expandedDyShape[axis] = 1;
         });
         const expandedDy = dy.reshape(expandedDyShape);
-        const derX = () => expandedDy.mul(NDArray.ones(x.shape, 'float32'))
+        const derX = () => expandedDy.mul(Tensor.ones(x.shape, 'float32'))
                                .div(reduceSizeScalar);
         return {x: derX};
       };
@@ -159,15 +159,15 @@ export class Ops {
    * If `axes` has no entries, all dimensions are reduced, and an array with a
    * single element is returned.
    *
-   * @param x The input NDArray.
+   * @param x The input Tensor.
    * @param axis Optional. The dimension(s) to reduce. By default it reduces
    *     all dimensions.
    * @param keepDims Optional. If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static min<T extends NDArray>(
-      x: NDArray, axis: number|number[] = null, keepDims = false): T {
+  static min<T extends Tensor>(
+      x: Tensor, axis: number|number[] = null, keepDims = false): T {
     const origAxes = axis_util.parseAxisParam(axis, x.shape);
     let axes = origAxes;
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
@@ -176,7 +176,7 @@ export class Ops {
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
     const res =
-        ENV.engine.executeKernel('Min', {inputs: {x}, args: {axes}}) as NDArray;
+        ENV.engine.executeKernel('Min', {inputs: {x}, args: {axes}}) as Tensor;
     if (keepDims) {
       const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
       return res.reshape(newShape) as T;
@@ -200,8 +200,8 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static max<T extends NDArray>(
-      x: NDArray, axis: number|number[] = null, keepDims = false): T {
+  static max<T extends Tensor>(
+      x: Tensor, axis: number|number[] = null, keepDims = false): T {
     const origAxes = axis_util.parseAxisParam(axis, x.shape);
     let axes = origAxes;
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
@@ -210,7 +210,7 @@ export class Ops {
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
     const res =
-        ENV.engine.executeKernel('Max', {inputs: {x}, args: {axes}}) as NDArray;
+        ENV.engine.executeKernel('Max', {inputs: {x}, args: {axes}}) as Tensor;
     if (keepDims) {
       const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
       return res.reshape(newShape) as T;
@@ -229,7 +229,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static argMin<T extends NDArray>(x: NDArray, axis: number = null): T {
+  static argMin<T extends Tensor>(x: Tensor, axis: number = null): T {
     let axes = axis_util.parseAxisParam(axis, x.shape);
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
     if (permutedAxes != null) {
@@ -249,7 +249,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static argMax<T extends NDArray>(x: NDArray, axis: number = null): T {
+  static argMax<T extends Tensor>(x: Tensor, axis: number = null): T {
     let axes = axis_util.parseAxisParam(axis, x.shape);
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
     if (permutedAxes != null) {
@@ -262,12 +262,12 @@ export class Ops {
 
   /**
    * Returns a 1 if the argMax of x1 and x2 are the same, otherwise 0.
-   * @param x1 The first input NDArray.
-   * @param x2 The second input NDArray.
+   * @param x1 The first input Tensor.
+   * @param x2 The second input Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static argMaxEquals(x1: NDArray, x2: NDArray): Scalar {
+  static argMaxEquals(x1: Tensor, x2: Tensor): Scalar {
     util.assertShapesMatch(x1.shape, x2.shape, 'Error in argMaxEquals: ');
     return x1.argMax().equal(x2.argMax());
   }
@@ -286,8 +286,8 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
-  static moments(x: NDArray, axis: number|number[] = null, keepDims = false):
-      {mean: NDArray, variance: NDArray} {
+  static moments(x: Tensor, axis: number|number[] = null, keepDims = false):
+      {mean: Tensor, variance: Tensor} {
     const axes = axis_util.parseAxisParam(axis, x.shape);
     const mean = x.mean(axes, keepDims);
     let keepDimsShape = mean.shape;

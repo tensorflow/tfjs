@@ -17,7 +17,7 @@
 
 import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
-import {NDArray, Scalar} from '../../math/ndarray';
+import {Tensor, Scalar} from '../../math/tensor';
 import {Optimizer} from '../../math/optimizers/optimizer';
 import {NamedVariableMap} from '../../math/types';
 import {Node} from '../graph';
@@ -44,7 +44,7 @@ export class AdagradOptimizer extends Optimizer {
     if (this.accumulatedSquaredGradients.size() === 0) {
       this.variableNodes.forEach(node => {
         this.accumulatedSquaredGradients.set(
-            node.output, NDArray.zeros(node.output.shape));
+            node.output, Tensor.zeros(node.output.shape));
       });
     }
   }

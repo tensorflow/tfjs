@@ -174,10 +174,10 @@ export const multiRNNCell = lstm_ops.Ops.multiRNNCell;
 export const softmax = softmax_ops.Ops.softmax;
 
 // So typings can propagate.
-import {NDArray, Array3D, Array4D} from './ndarray';
+import {Tensor, Tensor3D, Tensor4D} from './tensor';
 import {Rank} from './types';
 // tslint:disable-next-line:no-unused-expression
-[NDArray, Rank, Array3D, Array4D];
+[Tensor, Rank, Tensor3D, Tensor4D];
 
 export const losses = {
   softmaxCrossEntropy: softmax_ops.Ops.softmaxCrossEntropy

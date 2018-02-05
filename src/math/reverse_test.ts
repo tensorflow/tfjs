@@ -18,13 +18,13 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
+import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
 // math.reverse1D
 {
   const tests: MathTests = it => {
     it('reverse a 1D array', math => {
-      const input = Array1D.new([1, 2, 3, 4, 5]);
+      const input = Tensor1D.new([1, 2, 3, 4, 5]);
       const result = math.reverse1D(input);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [5, 4, 3, 2, 1]);
@@ -44,7 +44,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
   const tests: MathTests = it => {
     it('reverse a 2D array at axis [0]', math => {
       const axis = [0];
-      const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const a = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
       const result = math.reverse2D(a, axis);
 
       expect(result.shape).toEqual(a.shape);
@@ -53,7 +53,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
     it('reverse a 2D array at axis [1]', math => {
       const axis = [1];
-      const a = Array2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
+      const a = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
       const result = math.reverse2D(a, axis);
 
       expect(result.shape).toEqual(a.shape);
@@ -62,18 +62,18 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
     it('throws error with invalid input', math => {
       // tslint:disable-next-line:no-any
-      const x: any = Array1D.new([1, 20, 300, 4]);
+      const x: any = Tensor1D.new([1, 20, 300, 4]);
       expect(() => math.reverse2D(x, [0])).toThrowError();
     });
 
     it('throws error with invalid axis param', math => {
-      const x = Array2D.new([1, 4], [1, 20, 300, 4]);
+      const x = Tensor2D.new([1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse2D(x, [2])).toThrowError();
       expect(() => math.reverse2D(x, [-3])).toThrowError();
     });
 
     it('throws error with non integer axis param', math => {
-      const x = Array2D.new([1, 4], [1, 20, 300, 4]);
+      const x = Tensor2D.new([1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse2D(x, [0.5])).toThrowError();
     });
   };
@@ -108,7 +108,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     ];
 
     it('reverse a 3D array at axis [0]', math => {
-      const input = Array3D.new(shape, data);
+      const input = Tensor3D.new(shape, data);
       const result = math.reverse3D(input, [0]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -118,7 +118,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 3D array at axis [1]', math => {
-      const input = Array3D.new(shape, data);
+      const input = Tensor3D.new(shape, data);
       const result = math.reverse3D(input, [1]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -128,7 +128,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 3D array at axis [2]', math => {
-      const input = Array3D.new(shape, data);
+      const input = Tensor3D.new(shape, data);
       const result = math.reverse3D(input, [2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -138,7 +138,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 3D array at axis [0, 1]', math => {
-      const input = Array3D.new(shape, data);
+      const input = Tensor3D.new(shape, data);
       const result = math.reverse3D(input, [0, 1]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -148,7 +148,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 3D array at axis [0, 2]', math => {
-      const input = Array3D.new(shape, data);
+      const input = Tensor3D.new(shape, data);
       const result = math.reverse3D(input, [0, 2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -158,7 +158,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 3D array at axis [1, 2]', math => {
-      const input = Array3D.new(shape, data);
+      const input = Tensor3D.new(shape, data);
       const result = math.reverse3D(input, [1, 2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -169,18 +169,18 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
     it('throws error with invalid input', math => {
       // tslint:disable-next-line:no-any
-      const x: any = Array2D.new([1, 4], [1, 20, 300, 4]);
+      const x: any = Tensor2D.new([1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse3D(x, [1])).toThrowError();
     });
 
     it('throws error with invalid axis param', math => {
-      const x = Array3D.new([1, 1, 4], [1, 20, 300, 4]);
+      const x = Tensor3D.new([1, 1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse3D(x, [3])).toThrowError();
       expect(() => math.reverse3D(x, [-4])).toThrowError();
     });
 
     it('throws error with non integer axis param', math => {
-      const x = Array3D.new([1, 1, 4], [1, 20, 300, 4]);
+      const x = Tensor3D.new([1, 1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse3D(x, [0.5])).toThrowError();
     });
   };
@@ -243,7 +243,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     ];
 
     it('reverse a 4D array at axis [0]', math => {
-      const input = Array4D.new(shape, data);
+      const input = Tensor4D.new(shape, data);
       const result = math.reverse4D(input, [0]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -256,7 +256,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 4D array at axis [1]', math => {
-      const input = Array4D.new(shape, data);
+      const input = Tensor4D.new(shape, data);
       const result = math.reverse4D(input, [1]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -269,7 +269,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 4D array at axis [2]', math => {
-      const input = Array4D.new(shape, data);
+      const input = Tensor4D.new(shape, data);
       const result = math.reverse4D(input, [2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -282,7 +282,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 4D array at axis [3]', math => {
-      const input = Array4D.new(shape, data);
+      const input = Tensor4D.new(shape, data);
       const result = math.reverse4D(input, [3]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -295,7 +295,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 4D array at axis [0, 2]', math => {
-      const input = Array4D.new(shape, data);
+      const input = Tensor4D.new(shape, data);
       const result = math.reverse4D(input, [0, 2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -308,7 +308,7 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
     });
 
     it('reverse a 4D array at axis [1, 3]', math => {
-      const input = Array4D.new(shape, data);
+      const input = Tensor4D.new(shape, data);
       const result = math.reverse4D(input, [1, 3]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -322,18 +322,18 @@ import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
 
     it('throws error with invalid input', math => {
       // tslint:disable-next-line:no-any
-      const x: any = Array3D.new([1, 1, 4], [1, 20, 300, 4]);
+      const x: any = Tensor3D.new([1, 1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse4D(x, [1])).toThrowError();
     });
 
     it('throws error with invalid axis param', math => {
-      const x = Array4D.new([1, 1, 1, 4], [1, 20, 300, 4]);
+      const x = Tensor4D.new([1, 1, 1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse4D(x, [4])).toThrowError();
       expect(() => math.reverse4D(x, [-5])).toThrowError();
     });
 
     it('throws error with non integer axis param', math => {
-      const x = Array4D.new([1, 1, 1, 4], [1, 20, 300, 4]);
+      const x = Tensor4D.new([1, 1, 1, 4], [1, 20, 300, 4]);
       expect(() => math.reverse4D(x, [0.5])).toThrowError();
     });
   };

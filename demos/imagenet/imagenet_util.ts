@@ -17,7 +17,7 @@
 import * as dl from 'deeplearn';
 
 /**
- * Transposes the depth and the column dimensions of a 3D ndarray represented as
+ * Transposes the depth and the column dimensions of a 3D Tensor represented as
  * a 2D texture into a square collage with each channel rendered as a normalized
  * grayscale image. The normalization bounds are given as two sample2Ds,
  * minValues and maxValues, which give min and max values per channel. These can

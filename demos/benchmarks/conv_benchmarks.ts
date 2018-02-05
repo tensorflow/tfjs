@@ -43,11 +43,11 @@ export class ConvGPUBenchmark implements BenchmarkTest {
     const stride = params.stride;
     const pad = params.pad;
 
-    let x: dl.Array3D = dl.randUniform(inShape, -1, 1);
-    let W: dl.Array4D;
-    let b: dl.Array1D;
+    let x: dl.Tensor3D = dl.randUniform(inShape, -1, 1);
+    let W: dl.Tensor4D;
+    let b: dl.Tensor1D;
 
-    let benchmark: () => dl.NDArray;
+    let benchmark: () => dl.Tensor;
     if (opType === 'regular') {
       const regParams = params as RegularConvParams;
       const wShape = dl.conv_util.computeWeightsShape4D(

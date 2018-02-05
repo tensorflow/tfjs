@@ -18,11 +18,11 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
-import {Array2D} from './ndarray';
+import {Tensor2D} from './tensor';
 
 const commonTests: MathTests = it => {
-  it('returns a ndarray with the same shape and value', math => {
-    const a = Array2D.new([3, 3], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  it('returns a tensor with the same shape and value', math => {
+    const a = Tensor2D.new([3, 3], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
     const aPrime = math.clone(a);
     expect(aPrime.shape).toEqual(a.shape);
     test_util.expectArraysClose(aPrime, a);

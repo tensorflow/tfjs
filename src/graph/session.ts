@@ -18,10 +18,10 @@
 import {InputProvider} from '../data/input_provider';
 import {tidy} from '../math/backends/tracking';
 import {NDArrayMath} from '../math/math';
-import {NDArray, Scalar} from '../math/ndarray';
+import {Tensor, Scalar} from '../math/tensor';
 import {Optimizer} from '../math/optimizers/optimizer';
 import * as util from '../util';
-import {Graph, Node, Tensor} from './graph';
+import {Graph, Node, SymbolicTensor} from './graph';
 import * as operation_emitter from './operation_emitter';
 import {Operation} from './ops/op';
 import * as session_util from './session_util';
@@ -31,8 +31,8 @@ import {SummedTensorArrayMap, TensorArrayMap} from './tensor_array_map';
  * FeedEntry associates a tensor with user-provided NDArray data.
  */
 export type FeedEntry = {
-  tensor: Tensor,
-  data: NDArray|InputProvider
+  tensor: SymbolicTensor,
+  data: Tensor|InputProvider
 };
 
 /**
@@ -108,7 +108,7 @@ export class Session {
    * tensors with NDArrays.
    * @return The computed values of the tensors.
    */
-  evalAll(tensors: Tensor[], feedEntries: FeedEntry[]): NDArray[] {
+  evalAll(tensors: SymbolicTensor[], feedEntries: FeedEntry[]): Tensor[] {
     return tidy(() => {
       const feed = new FeedDictionary(feedEntries);
       const runtime = this.getOrCreateRuntime(tensors, feed);
@@ -146,7 +146,7 @@ export class Session {
    * tensors with NDArrays.
    * @return The computed value of the tensor.
    */
-  eval(tensor: Tensor, feedEntries: FeedEntry[]): NDArray {
+  eval(tensor: SymbolicTensor, feedEntries: FeedEntry[]): Tensor {
     return this.evalAll([tensor], feedEntries)[0];
   }
 
@@ -166,7 +166,7 @@ export class Session {
    * responsible for disposing the cost NDArray between train loops.
    */
   train(
-      costTensor: Tensor, feedEntries: FeedEntry[], batchSize: number,
+      costTensor: SymbolicTensor, feedEntries: FeedEntry[], batchSize: number,
       optimizer: Optimizer, costReduction = CostReduction.NONE): Scalar {
     util.assert(
         util.isScalarShape(costTensor.shape),
@@ -250,7 +250,7 @@ export class Session {
     return totalCost;
   }
 
-  private getOrCreateRuntime(tensors: Tensor[], feed: FeedDictionary):
+  private getOrCreateRuntime(tensors: SymbolicTensor[], feed: FeedDictionary):
       SessionRuntime {
     const key = this.makeRuntimeCacheKey(tensors, feed);
     let runtime = this.runtimeCache[key];
@@ -267,7 +267,8 @@ export class Session {
     return runtime;
   }
 
-  private makeRuntimeCacheKey(tensors: Tensor[], feed: FeedDictionary): string {
+  private makeRuntimeCacheKey(tensors: SymbolicTensor[], feed: FeedDictionary):
+      string {
     return tensors.map(x => x.id).sort().join('_') + '__' +
         Object.keys(feed.dict).sort().join('_');
   }

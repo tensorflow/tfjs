@@ -19,13 +19,13 @@ import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
-import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
+import {Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor, Scalar} from './tensor';
 
 // dl.zeros
 {
   const tests: MathTests = it => {
     it('1D default dtype', () => {
-      const a: Array1D = dl.zeros([3]);
+      const a: Tensor1D = dl.zeros([3]);
       expect(a.dtype).toBe('float32');
       expect(a.shape).toEqual([3]);
       test_util.expectArraysClose(a, [0, 0, 0]);
@@ -273,7 +273,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('1D default dtype', () => {
-      const a = Array1D.new([1, 2, 3]);
+      const a = Tensor1D.new([1, 2, 3]);
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([3]);
@@ -281,7 +281,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D float32 dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'float32');
+      const a = Tensor1D.new([1, 2, 3], 'float32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([3]);
@@ -289,7 +289,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D int32 dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'int32');
+      const a = Tensor1D.new([1, 2, 3], 'int32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([3]);
@@ -297,7 +297,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D bool dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'bool');
+      const a = Tensor1D.new([1, 2, 3], 'bool');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([3]);
@@ -305,7 +305,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D default dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4]);
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4]);
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2]);
@@ -313,7 +313,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D float32 dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'float32');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'float32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2]);
@@ -321,7 +321,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D int32 dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'int32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2]);
@@ -329,7 +329,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D bool dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'bool');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'bool');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2]);
@@ -337,7 +337,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D default dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4]);
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4]);
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -345,7 +345,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D float32 dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'float32');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'float32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -353,7 +353,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D int32 dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'int32');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'int32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -361,7 +361,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D bool dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'bool');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'bool');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -369,7 +369,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D default dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4]);
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4]);
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -377,7 +377,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D float32 dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'float32');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'float32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -385,7 +385,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D int32 dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'int32');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'int32');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -393,7 +393,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D bool dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'bool');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'bool');
       const b = dl.zerosLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -413,7 +413,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('1D default dtype', () => {
-      const a = Array1D.new([1, 2, 3]);
+      const a = Tensor1D.new([1, 2, 3]);
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([3]);
@@ -421,7 +421,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D float32 dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'float32');
+      const a = Tensor1D.new([1, 2, 3], 'float32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([3]);
@@ -429,7 +429,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D int32 dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'int32');
+      const a = Tensor1D.new([1, 2, 3], 'int32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([3]);
@@ -437,7 +437,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D bool dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'bool');
+      const a = Tensor1D.new([1, 2, 3], 'bool');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([3]);
@@ -445,7 +445,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D default dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4]);
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4]);
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2]);
@@ -453,7 +453,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D float32 dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'float32');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'float32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2]);
@@ -461,7 +461,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D int32 dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'int32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2]);
@@ -469,7 +469,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D bool dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'bool');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'bool');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2]);
@@ -477,7 +477,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D default dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4]);
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4]);
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -485,7 +485,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D float32 dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'float32');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'float32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -493,7 +493,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D int32 dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'int32');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'int32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -501,7 +501,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D bool dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'bool');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'bool');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -509,7 +509,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D default dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4]);
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4]);
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -517,7 +517,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D float32 dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'float32');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'float32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -525,7 +525,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D int32 dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'int32');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'int32');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -533,7 +533,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D bool dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'bool');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'bool');
       const b = dl.onesLike(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -802,7 +802,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     const EPSILON = 0.60;
     const SEED = 2002;
 
-    function assertTruncatedValues(array: NDArray, mean: number, stdv: number) {
+    function assertTruncatedValues(array: Tensor, mean: number, stdv: number) {
       const bounds = mean + stdv * 2;
       const values = array.dataSync();
       for (let i = 0; i < values.length; i++) {
@@ -1152,7 +1152,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('1D default dtype', () => {
-      const a = Array1D.new([1, 2, 3]);
+      const a = Tensor1D.new([1, 2, 3]);
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([3]);
@@ -1160,7 +1160,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D float32 dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'float32');
+      const a = Tensor1D.new([1, 2, 3], 'float32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([3]);
@@ -1168,7 +1168,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D int32 dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'int32');
+      const a = Tensor1D.new([1, 2, 3], 'int32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([3]);
@@ -1176,7 +1176,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D bool dtype', () => {
-      const a = Array1D.new([1, 2, 3], 'bool');
+      const a = Tensor1D.new([1, 2, 3], 'bool');
       const b = dl.clone(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([3]);
@@ -1184,7 +1184,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D default dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4]);
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4]);
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2]);
@@ -1192,7 +1192,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D float32 dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'float32');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'float32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2]);
@@ -1200,7 +1200,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D int32 dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'int32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2]);
@@ -1208,7 +1208,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D bool dtype', () => {
-      const a = Array2D.new([2, 2], [1, 2, 3, 4], 'bool');
+      const a = Tensor2D.new([2, 2], [1, 2, 3, 4], 'bool');
       const b = dl.clone(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2]);
@@ -1216,7 +1216,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D default dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4]);
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4]);
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -1224,7 +1224,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D float32 dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'float32');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'float32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -1232,7 +1232,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D int32 dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'int32');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'int32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -1240,7 +1240,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D bool dtype', () => {
-      const a = Array3D.new([2, 2, 1], [1, 2, 3, 4], 'bool');
+      const a = Tensor3D.new([2, 2, 1], [1, 2, 3, 4], 'bool');
       const b = dl.clone(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2, 1]);
@@ -1248,7 +1248,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D default dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4]);
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4]);
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -1256,7 +1256,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D float32 dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'float32');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'float32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('float32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -1264,7 +1264,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D int32 dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'int32');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'int32');
       const b = dl.clone(a);
       expect(b.dtype).toBe('int32');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -1272,7 +1272,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('4D bool dtype', () => {
-      const a = Array4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'bool');
+      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 3, 4], 'bool');
       const b = dl.clone(a);
       expect(b.dtype).toBe('bool');
       expect(b.shape).toEqual([2, 2, 1, 1]);
@@ -1292,7 +1292,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('1D (tile)', () => {
-      const t = Array1D.new([1, 2, 3]);
+      const t = Tensor1D.new([1, 2, 3]);
       const t2 = dl.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
@@ -1300,7 +1300,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D (tile)', () => {
-      const t = Array2D.new([2, 2], [1, 11, 2, 22]);
+      const t = Tensor2D.new([2, 2], [1, 11, 2, 22]);
       let t2 = dl.tile(t, [1, 2]);
 
       expect(t2.shape).toEqual([2, 4]);
@@ -1317,7 +1317,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D (tile)', () => {
-      const t = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+      const t = Tensor3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
       const t2 = dl.tile(t, [1, 2, 1]);
 
       expect(t2.shape).toEqual([2, 4, 2]);
@@ -1326,7 +1326,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('propagates NaNs', () => {
-      const t = Array1D.new([1, 2, NaN]);
+      const t = Tensor1D.new([1, 2, NaN]);
 
       const t2 = dl.tile(t, [2]);
 
@@ -1335,7 +1335,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D bool (tile)', () => {
-      const t = Array1D.new([true, false, true], 'bool');
+      const t = Tensor1D.new([true, false, true], 'bool');
       const t2 = dl.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
@@ -1344,7 +1344,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D bool (tile)', () => {
-      const t = Array2D.new([2, 2], [true, false, true, true], 'bool');
+      const t = Tensor2D.new([2, 2], [true, false, true, true], 'bool');
       let t2 = dl.tile(t, [1, 2]);
 
       expect(t2.shape).toEqual([2, 4]);
@@ -1364,7 +1364,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D bool (tile)', () => {
-      const t = Array3D.new(
+      const t = Tensor3D.new(
           [2, 2, 2], [true, false, true, false, true, false, true, false],
           'bool');
       const t2 = dl.tile(t, [1, 2, 1]);
@@ -1376,7 +1376,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('bool propagates NaNs', () => {
-      const t = Array1D.new([true, false, NaN] as boolean[], 'bool');
+      const t = Tensor1D.new([true, false, NaN] as boolean[], 'bool');
       const t2 = dl.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
@@ -1386,7 +1386,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('1D int32 (tile)', () => {
-      const t = Array1D.new([1, 2, 5], 'int32');
+      const t = Tensor1D.new([1, 2, 5], 'int32');
       const t2 = dl.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
@@ -1395,7 +1395,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('2D int32 (tile)', () => {
-      const t = Array2D.new([2, 2], [1, 2, 3, 4], 'int32');
+      const t = Tensor2D.new([2, 2], [1, 2, 3, 4], 'int32');
       let t2 = dl.tile(t, [1, 2]);
 
       expect(t2.shape).toEqual([2, 4]);
@@ -1415,7 +1415,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('3D int32 (tile)', () => {
-      const t = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8], 'int32');
+      const t = Tensor3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8], 'int32');
       const t2 = dl.tile(t, [1, 2, 1]);
 
       expect(t2.shape).toEqual([2, 4, 2]);
@@ -1425,7 +1425,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('int32 propagates NaNs', () => {
-      const t = Array1D.new([1, 3, NaN], 'int32');
+      const t = Tensor1D.new([1, 3, NaN], 'int32');
       const t2 = dl.tile(t, [2]);
 
       expect(t2.shape).toEqual([6]);
@@ -1447,29 +1447,29 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('1D (gather)', () => {
-      const t = Array1D.new([1, 2, 3]);
+      const t = Tensor1D.new([1, 2, 3]);
 
-      const t2 = dl.gather(t, Array1D.new([0, 2, 0, 1], 'int32'), 0);
+      const t2 = dl.gather(t, Tensor1D.new([0, 2, 0, 1], 'int32'), 0);
 
       expect(t2.shape).toEqual([4]);
       test_util.expectArraysClose(t2, [1, 3, 1, 2]);
     });
 
     it('2D (gather)', () => {
-      const t = Array2D.new([2, 2], [1, 11, 2, 22]);
-      let t2 = dl.gather(t, Array1D.new([1, 0, 0, 1], 'int32'), 0);
+      const t = Tensor2D.new([2, 2], [1, 11, 2, 22]);
+      let t2 = dl.gather(t, Tensor1D.new([1, 0, 0, 1], 'int32'), 0);
       expect(t2.shape).toEqual([4, 2]);
       test_util.expectArraysClose(t2, [2, 22, 1, 11, 1, 11, 2, 22]);
 
-      t2 = dl.gather(t, Array1D.new([1, 0, 0, 1], 'int32'), 1);
+      t2 = dl.gather(t, Tensor1D.new([1, 0, 0, 1], 'int32'), 1);
       expect(t2.shape).toEqual([2, 4]);
       test_util.expectArraysClose(t2, [11, 1, 1, 11, 22, 2, 2, 22]);
     });
 
     it('3D (gather)', () => {
-      const t = Array3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+      const t = Tensor3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
 
-      const t2 = dl.gather(t, Array1D.new([1, 0, 0, 1], 'int32'), 2);
+      const t2 = dl.gather(t, Tensor1D.new([1, 0, 0, 1], 'int32'), 2);
 
       expect(t2.shape).toEqual([2, 2, 4]);
       test_util.expectArraysClose(
@@ -1477,9 +1477,9 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('bool (gather)', () => {
-      const t = Array1D.new([true, false, true], 'bool');
+      const t = Tensor1D.new([true, false, true], 'bool');
 
-      const t2 = dl.gather(t, Array1D.new([0, 2, 0, 1], 'int32'), 0);
+      const t2 = dl.gather(t, Tensor1D.new([0, 2, 0, 1], 'int32'), 0);
 
       expect(t2.shape).toEqual([4]);
       expect(t2.dtype).toBe('bool');
@@ -1487,9 +1487,9 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('int32 (gather)', () => {
-      const t = Array1D.new([1, 2, 5], 'int32');
+      const t = Tensor1D.new([1, 2, 5], 'int32');
 
-      const t2 = dl.gather(t, Array1D.new([0, 2, 0, 1], 'int32'), 0);
+      const t2 = dl.gather(t, Tensor1D.new([0, 2, 0, 1], 'int32'), 0);
 
       expect(t2.shape).toEqual([4]);
       expect(t2.dtype).toBe('int32');
@@ -1497,9 +1497,9 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('propagates NaNs', () => {
-      const t = Array1D.new([1, 2, NaN]);
+      const t = Tensor1D.new([1, 2, NaN]);
 
-      const t2 = dl.gather(t, Array1D.new([0, 2, 0, 1], 'int32'), 0);
+      const t2 = dl.gather(t, Tensor1D.new([0, 2, 0, 1], 'int32'), 0);
 
       expect(t2.shape).toEqual([4]);
       test_util.expectArraysClose(t2, [1, NaN, 1, 2]);
@@ -1518,12 +1518,12 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
 {
   const tests: MathTests = it => {
     it('Depth 1 throws error', () => {
-      const indices = Array1D.new([0, 0, 0]);
+      const indices = Tensor1D.new([0, 0, 0]);
       expect(() => dl.oneHot(indices, 1)).toThrowError();
     });
 
     it('Depth 2, diagonal', () => {
-      const indices = Array1D.new([0, 1]);
+      const indices = Tensor1D.new([0, 1]);
       const res = dl.oneHot(indices, 2);
 
       expect(res.shape).toEqual([2, 2]);
@@ -1531,7 +1531,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('Depth 2, transposed diagonal', () => {
-      const indices = Array1D.new([1, 0]);
+      const indices = Tensor1D.new([1, 0]);
       const res = dl.oneHot(indices, 2);
 
       expect(res.shape).toEqual([2, 2]);
@@ -1539,7 +1539,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('Depth 3, 4 events', () => {
-      const indices = Array1D.new([2, 1, 2, 0]);
+      const indices = Tensor1D.new([2, 1, 2, 0]);
       const res = dl.oneHot(indices, 3);
 
       expect(res.shape).toEqual([4, 3]);
@@ -1547,7 +1547,7 @@ import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from './ndarray';
     });
 
     it('Depth 2 onValue=3, offValue=-2', () => {
-      const indices = Array1D.new([0, 1]);
+      const indices = Tensor1D.new([0, 1]);
       const res = dl.oneHot(indices, 2, 3, -2);
 
       expect(res.shape).toEqual([2, 2]);

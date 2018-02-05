@@ -20,7 +20,7 @@ import * as util from '../util';
 
 import * as concat_util from './concat_util';
 import {doc, operation} from './decorators';
-import {Array1D, Array2D, Array3D, Array4D, NDArray} from './ndarray';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
 export class Ops {
   /**
@@ -37,7 +37,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat1D(a: Array1D, b: Array1D): Array1D {
+  static concat1D(a: Tensor1D, b: Tensor1D): Tensor1D {
     return Ops.concat(a, b, 0 /* axis */);
   }
 
@@ -71,12 +71,12 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat2D(a: Array2D, b: Array2D, axis: number): Array2D {
+  static concat2D(a: Tensor2D, b: Tensor2D, axis: number): Tensor2D {
     return Ops.concat(a, b, axis);
   }
 
   /**
-   * Concatenates two 3D ndarrays along a given axis.
+   * Concatenates two 3D tensors along a given axis.
    *
    * For example, if:
    * A: shape(2, 1, 3) = | r1, g1, b1 |
@@ -108,12 +108,12 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat3D(a: Array3D, b: Array3D, axis: number): Array3D {
+  static concat3D(a: Tensor3D, b: Tensor3D, axis: number): Tensor3D {
     return Ops.concat(a, b, axis);
   }
 
   /**
-   * Concatenates two 4D ndarrays along a given axis. See math.concat2D() for
+   * Concatenates two 4D tensors along a given axis. See math.concat2D() for
    * documentation.
    *
    * @param a The first array to concat.
@@ -123,13 +123,13 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat4D(a: Array4D, b: Array4D, axis: number): Array4D {
+  static concat4D(a: Tensor4D, b: Tensor4D, axis: number): Tensor4D {
     return Ops.concat(a, b, axis);
   }
 
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat<T extends NDArray>(a: T, b: T, axis: number): T {
+  static concat<T extends Tensor>(a: T, b: T, axis: number): T {
     concat_util.assertParams(a.shape, b.shape, axis);
     const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
 
@@ -139,7 +139,7 @@ export class Ops {
     // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
     const {aBegin, aSize, bBegin, bSize} =
         concat_util.computeGradientSliceShapes(a2D.shape, b2D.shape);
-    const der = (dy: Array2D) => {
+    const der = (dy: Tensor2D) => {
       return {
         a: () => dy.slice(aBegin, aSize),
         b: () => dy.slice(bBegin, bSize)

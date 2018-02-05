@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArray, Scalar} from '../ndarray';
+import {Tensor, Scalar} from '../tensor';
 
 import {BackendTimer} from './backend';
 import {Kernel} from './kernel_registry';
@@ -36,7 +36,7 @@ class TestBackendTimer implements BackendTimer {
 
 class TestLogger extends Logger {
   logKernelProfile(
-      kernelName: Kernel, result: NDArray, vals: TypedArray, timeMs: number) {}
+      kernelName: Kernel, result: Tensor, vals: TypedArray, timeMs: number) {}
 }
 
 describe('profiler.Profiler', () => {

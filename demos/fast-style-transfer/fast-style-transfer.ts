@@ -262,7 +262,7 @@ export class StyleTransferDemo extends StyleTransferDemoPolymer {
   }
 }
 
-function renderToCanvas(a: dl.Array3D, canvas: HTMLCanvasElement) {
+function renderToCanvas(a: dl.Tensor3D, canvas: HTMLCanvasElement) {
   const [height, width, ] = a.shape;
   const ctx = canvas.getContext('2d');
   const imageData = new ImageData(width, height);

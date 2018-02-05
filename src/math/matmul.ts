@@ -20,7 +20,7 @@ import * as util from '../util';
 
 import {MatrixOrientation} from './backends/types/matmul';
 import {doc, operation} from './decorators';
-import {Array1D, Array2D, Scalar} from './ndarray';
+import {Scalar, Tensor1D, Tensor2D} from './tensor';
 
 export class Ops {
   /**
@@ -37,8 +37,8 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static matMul(
-      a: Array2D, b: Array2D, aOrientation = MatrixOrientation.REGULAR,
-      bOrientation = MatrixOrientation.REGULAR): Array2D {
+      a: Tensor2D, b: Tensor2D, aOrientation = MatrixOrientation.REGULAR,
+      bOrientation = MatrixOrientation.REGULAR): Tensor2D {
     const innerShapeA =
         (aOrientation === MatrixOrientation.REGULAR) ? a.shape[1] : a.shape[0];
     const innerShapeB =
@@ -52,13 +52,13 @@ export class Ops {
     util.assert(
         innerShapeA === innerShapeB,
         `Error in matMul: inner shapes (${innerShapeA}) and (` +
-            `${innerShapeB}) of NDArrays with shapes ${a.shape} and ` +
+            `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
             `${b.shape} and orientations ${MatrixOrientation[aOrientation]}` +
             ` and ${MatrixOrientation[bOrientation]} must match.`);
 
     return ENV.engine.executeKernel(
                'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}},
-               (dy: Array2D, y: Array2D) => {
+               (dy: Tensor2D, y: Tensor2D) => {
                  if (aOrientation === MatrixOrientation.TRANSPOSED ||
                      bOrientation === MatrixOrientation.TRANSPOSED) {
                    throw new Error(
@@ -67,12 +67,12 @@ export class Ops {
                  return {
                    a: () => dy.matMul(
                                 b.toFloat(), MatrixOrientation.REGULAR,
-                                MatrixOrientation.TRANSPOSED) as Array2D,
+                                MatrixOrientation.TRANSPOSED) as Tensor2D,
                    b: () => a.toFloat().matMul(
                                 dy, MatrixOrientation.TRANSPOSED,
-                                MatrixOrientation.REGULAR) as Array2D
+                                MatrixOrientation.REGULAR) as Tensor2D
                  };
-               }) as Array2D;
+               }) as Tensor2D;
   }
 
   /**
@@ -82,7 +82,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static vectorTimesMatrix(v: Array1D, matrix: Array2D): Array1D {
+  static vectorTimesMatrix(v: Tensor1D, matrix: Tensor2D): Tensor1D {
     util.assert(
         v.rank === 1,
         `Error in vectorTimesMatrix: first input must be rank 1, but got ` +
@@ -105,7 +105,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static matrixTimesVector(matrix: Array2D, v: Array1D): Array1D {
+  static matrixTimesVector(matrix: Tensor2D, v: Tensor1D): Tensor1D {
     util.assert(
         v.rank === 1,
         `Error in matrixTimesVector: second input must rank 1, but got ` +
@@ -130,7 +130,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static dotProduct(v1: Array1D, v2: Array1D): Scalar {
+  static dotProduct(v1: Tensor1D, v2: Tensor1D): Scalar {
     util.assert(
         v1.rank === 1 && v2.rank === 1,
         `Error in dotProduct: inputs must be rank 1, but got ranks ` +
@@ -149,7 +149,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static outerProduct(v1: Array1D, v2: Array1D): Array2D {
+  static outerProduct(v1: Tensor1D, v2: Tensor1D): Tensor2D {
     util.assert(
         v1.rank === 1 && v2.rank === 1,
         `Error in outerProduct: inputs must be rank 1, but got ranks ` +

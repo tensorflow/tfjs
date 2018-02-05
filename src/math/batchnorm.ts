@@ -19,28 +19,28 @@ import {ENV} from '../environment';
 import * as util from '../util';
 
 import {doc, operation} from './decorators';
-import {Array1D, Array2D, Array3D, Array4D, NDArray} from './ndarray';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {Rank} from './types';
 
 export class Ops {
   /**
    * Batch normalization 2D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Array2D. 2) In the common
+   * shapes: 1) The same shape as the input: an Tensor2D. 2) In the common
    * case, the depth dimension is the last dimension of x, so the values would
-   * be an Array1D of shape [depth].
-   * @param x The input NDArray.
-   * @param mean A mean NDArray.
-   * @param variance A variance NDArray.
+   * be an Tensor1D of shape [depth].
+   * @param x The input Tensor.
+   * @param mean A mean Tensor.
+   * @param variance A variance Tensor.
    * @param varianceEpsilon A small float number to avoid dividing by 0.
-   * @param scale A scale NDArray.
-   * @param offset An offset NDArray.
+   * @param scale A scale Tensor.
+   * @param offset An offset Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
   static batchNormalization2D(
-      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
-      varianceEpsilon = .001, scale?: Array2D|Array1D,
-      offset?: Array2D|Array1D): Array2D {
+      x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
+      varianceEpsilon = .001, scale?: Tensor2D|Tensor1D,
+      offset?: Tensor2D|Tensor1D): Tensor2D {
     util.assert(
         x.rank === 2,
         `Error in batchNormalization3D: x must be rank 3 but got rank ` +
@@ -69,27 +69,27 @@ export class Ops {
     return ENV.engine.executeKernel('BatchNorm2D', {
       inputs: {x, mean, variance, scale, offset},
       args: {varianceEpsilon}
-    }) as Array2D;
+    }) as Tensor2D;
   }
 
   /**
    * Batch normalization 3D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Array3D. 2) In the common
+   * shapes: 1) The same shape as the input: an Tensor3D. 2) In the common
    * case, the depth dimension is the last dimension of x, so the values would
-   * be an Array1D of shape [depth].
-   * @param x The input NDArray.
-   * @param mean A mean NDArray.
-   * @param variance A variance NDArray.
+   * be an Tensor1D of shape [depth].
+   * @param x The input Tensor.
+   * @param mean A mean Tensor.
+   * @param variance A variance Tensor.
    * @param varianceEpsilon A small float number to avoid dividing by 0.
-   * @param scale A scale NDArray.
-   * @param offset An offset NDArray.
+   * @param scale A scale Tensor.
+   * @param offset An offset Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
   static batchNormalization3D(
-      x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-      varianceEpsilon = .001, scale?: Array3D|Array1D,
-      offset?: Array3D|Array1D): Array3D {
+      x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
+      varianceEpsilon = .001, scale?: Tensor3D|Tensor1D,
+      offset?: Tensor3D|Tensor1D): Tensor3D {
     util.assert(
         x.rank === 3,
         `Error in batchNormalization3D: x must be rank 3 but got rank ` +
@@ -118,27 +118,27 @@ export class Ops {
     return ENV.engine.executeKernel('BatchNorm3D', {
       inputs: {x, mean, variance, scale, offset},
       args: {varianceEpsilon}
-    }) as Array3D;
+    }) as Tensor3D;
   }
 
   /**
    * Batch normalization 4D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Array4D. 2) In the common
+   * shapes: 1) The same shape as the input: an Tensor4D. 2) In the common
    * case, the depth dimension is the last dimension of x, so the values would
-   * be an Array1D of shape [depth].
-   * @param x The input NDArray.
-   * @param mean A mean NDArray.
-   * @param variance A variance NDArray.
+   * be an Tensor1D of shape [depth].
+   * @param x The input Tensor.
+   * @param mean A mean Tensor.
+   * @param variance A variance Tensor.
    * @param varianceEpsilon A small float number to avoid dividing by 0.
-   * @param scale A scale NDArray.
-   * @param offset An offset NDArray.
+   * @param scale A scale Tensor.
+   * @param offset An offset Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
   static batchNormalization4D(
-      x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
-      varianceEpsilon = .001, scale?: Array4D|Array1D,
-      offset?: Array4D|Array1D): Array4D {
+      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
+      varianceEpsilon = .001, scale?: Tensor4D|Tensor1D,
+      offset?: Tensor4D|Tensor1D): Tensor4D {
     util.assert(
         x.rank === 4,
         `Error in batchNormalization4D: x must be rank 4 but got rank ` +
@@ -167,36 +167,36 @@ export class Ops {
     return ENV.engine.executeKernel('BatchNorm4D', {
       inputs: {x, mean, variance, scale, offset},
       args: {varianceEpsilon}
-    }) as Array4D;
+    }) as Tensor4D;
   }
 
   @doc({heading: 'Operations', subheading: 'Normalization'})
   static batchNormalization<R extends Rank>(
-      x: NDArray<R>, mean: NDArray<R>|Array1D, variance: NDArray<R>|Array1D,
-      varianceEpsilon = .001, scale?: NDArray<R>|Array1D,
-      offset?: NDArray<R>|Array1D): NDArray<R> {
+      x: Tensor<R>, mean: Tensor<R>|Tensor1D, variance: Tensor<R>|Tensor1D,
+      varianceEpsilon = .001, scale?: Tensor<R>|Tensor1D,
+      offset?: Tensor<R>|Tensor1D): Tensor<R> {
     if (x.rank === 0) {
       throw new Error(`Batchnorm for scalar is not supported`);
     } else if (x.rank === 1) {
       throw new Error(`Batchnorm for rank 1 is not yet implemented`);
     } else if (x.rank === 2) {
       return Ops.batchNormalization2D(
-                 x as Array2D, mean as Array2D | Array1D,
-                 variance as Array2D | Array1D, varianceEpsilon,
-                 scale as Array2D | Array1D, offset as Array2D | Array1D) as
-          NDArray<R>;
+                 x as Tensor2D, mean as Tensor2D | Tensor1D,
+                 variance as Tensor2D | Tensor1D, varianceEpsilon,
+                 scale as Tensor2D | Tensor1D, offset as Tensor2D | Tensor1D) as
+          Tensor<R>;
     } else if (x.rank === 3) {
       return Ops.batchNormalization3D(
-                 x as Array3D, mean as Array3D | Array1D,
-                 variance as Array3D | Array1D, varianceEpsilon,
-                 scale as Array3D | Array1D, offset as Array3D | Array1D) as
-          NDArray<R>;
+                 x as Tensor3D, mean as Tensor3D | Tensor1D,
+                 variance as Tensor3D | Tensor1D, varianceEpsilon,
+                 scale as Tensor3D | Tensor1D, offset as Tensor3D | Tensor1D) as
+          Tensor<R>;
     } else if (x.rank === 4) {
       return Ops.batchNormalization4D(
-                 x as Array4D, mean as Array4D | Array1D,
-                 variance as Array4D | Array1D, varianceEpsilon,
-                 scale as Array4D | Array1D, offset as Array4D | Array1D) as
-          NDArray<R>;
+                 x as Tensor4D, mean as Tensor4D | Tensor1D,
+                 variance as Tensor4D | Tensor1D, varianceEpsilon,
+                 scale as Tensor4D | Tensor1D, offset as Tensor4D | Tensor1D) as
+          Tensor<R>;
     } else {
       throw new Error(`Batchnorm for rank ${x.rank} is not yet implemented`);
     }

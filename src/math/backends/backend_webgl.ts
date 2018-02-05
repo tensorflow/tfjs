@@ -20,8 +20,8 @@ import * as util from '../../util';
 import * as axis_util from '../axis_util';
 import {Conv2DInfo} from '../conv_util';
 import {NDArrayMath} from '../math';
-import {Array1D, Array2D, Array3D, Array4D, NDArray} from '../ndarray';
 import * as reduce_util from '../reduce_util';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
 // tslint:disable-next-line:max-line-length
 import {DataType, DataTypeMap, Rank, RecursiveArray, TypedArray} from '../types';
@@ -43,7 +43,7 @@ import {FromPixelsProgram} from './webgl/from_pixels_gpu';
 import {GatherProgram} from './webgl/gather_gpu';
 import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
-import {ArrayData, GPGPUBinary, GPGPUProgram} from './webgl/gpgpu_math';
+import {GPGPUBinary, GPGPUProgram, TensorData} from './webgl/gpgpu_math';
 import {WhereProgram} from './webgl/logical_gpu';
 import {LRNProgram} from './webgl/lrn_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
@@ -93,7 +93,7 @@ export class MathBackendWebGL implements MathBackend {
   }
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels: number): Array3D {
+      numChannels: number): Tensor3D {
     if (pixels == null) {
       throw new Error('MathBackendWebGL.writePixels(): pixels can not be null');
     }
@@ -112,7 +112,7 @@ export class MathBackendWebGL implements MathBackend {
           pixels, 0, 0, pixels.width, pixels.height);
       pixels = this.canvas;
     }
-    const tempPixelArray = NDArray.make(texShape, {}, 'int32');
+    const tempPixelArray = Tensor.make(texShape, {}, 'int32');
 
     // This is a byte texture with pixels.
     this.texData[tempPixelArray.dataId].texType = TextureType.UNSIGNED_BYTE;
@@ -123,7 +123,7 @@ export class MathBackendWebGL implements MathBackend {
 
     tempPixelArray.dispose();
 
-    return res as Array3D;
+    return res as Tensor3D;
   }
   write(dataId: number, values: TypedArray): void {
     if (values == null) {
@@ -282,71 +282,71 @@ export class MathBackendWebGL implements MathBackend {
     return this.gpgpu;
   }
 
-  slice1D(x: Array1D, begin: number, size: number): Array1D {
+  slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
     const program = new SliceProgram([size]);
     const customSetup = program.getCustomSetupFunc([begin]);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  slice2D(x: Array2D, begin: [number, number], size: [number, number]):
-      Array2D {
+  slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
+      Tensor2D {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  slice3D(x: Array3D, begin: [number, number, number], size: [
+  slice3D(x: Tensor3D, begin: [number, number, number], size: [
     number, number, number
-  ]): Array3D {
+  ]): Tensor3D {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  slice4D(x: Array4D, begin: [number, number, number, number], size: [
+  slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
     number, number, number, number
-  ]): Array4D {
+  ]): Tensor4D {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  reverse4D(x: Array4D, axis: number[]): Array4D {
+  reverse4D(x: Tensor4D, axis: number[]): Tensor4D {
     const program = new ReverseProgram(x.shape, axis);
     return this.compileAndRun(program, [x]);
   }
 
   // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
-  concat(a: Array2D, b: Array2D): Array2D {
+  concat(a: Tensor2D, b: Tensor2D): Tensor2D {
     const program = new ConcatProgram(a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
   }
 
-  neg<T extends NDArray>(x: T): T {
+  neg<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.NEG);
     return this.compileAndRun(program, [x]) as T;
   }
 
   matMul(
-      a: Array2D, b: Array2D, aOrientation: MatrixOrientation,
-      bOrientation: MatrixOrientation): Array2D {
+      a: Tensor2D, b: Tensor2D, aOrientation: MatrixOrientation,
+      bOrientation: MatrixOrientation): Tensor2D {
     const program =
         new MatMulProgram(a.shape, b.shape, aOrientation, bOrientation);
-    return this.compileAndRun<Array2D, Array2D>(program, [a, b]);
+    return this.compileAndRun<Tensor2D, Tensor2D>(program, [a, b]);
   }
 
-  multiply(a: NDArray, b: NDArray): NDArray {
+  multiply(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
     const output =
         this.makeOutputArray(
-            program.outputShape, types.upcastType(a.dtype, b.dtype)) as NDArray;
-    return this.compileAndRun(program, [a, b], output) as NDArray;
+            program.outputShape, types.upcastType(a.dtype, b.dtype)) as Tensor;
+    return this.compileAndRun(program, [a, b], output) as Tensor;
   }
 
   batchNormalization2D(
-      x: Array2D, mean: Array2D|Array1D, variance: Array2D|Array1D,
-      varianceEpsilon: number, scale?: Array2D|Array1D,
-      offset?: Array2D|Array1D): Array2D {
+      x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
+      varianceEpsilon: number, scale?: Tensor2D|Tensor1D,
+      offset?: Tensor2D|Tensor1D): Tensor2D {
     const inputs = [x, mean, variance];
 
     let offsetShape = null;
@@ -368,9 +368,9 @@ export class MathBackendWebGL implements MathBackend {
   }
 
   batchNormalization3D(
-      x: Array3D, mean: Array3D|Array1D, variance: Array3D|Array1D,
-      varianceEpsilon: number, scale?: Array3D|Array1D,
-      offset?: Array3D|Array1D): Array3D {
+      x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
+      varianceEpsilon: number, scale?: Tensor3D|Tensor1D,
+      offset?: Tensor3D|Tensor1D): Tensor3D {
     const inputs = [x, mean, variance];
 
     let offsetShape = null;
@@ -392,9 +392,9 @@ export class MathBackendWebGL implements MathBackend {
   }
 
   batchNormalization4D(
-      x: Array4D, mean: Array4D|Array1D, variance: Array4D|Array1D,
-      varianceEpsilon: number, scale?: Array4D|Array1D,
-      offset?: Array4D|Array1D): Array4D {
+      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
+      varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
+      offset?: Tensor4D|Tensor1D): Tensor4D {
     const inputs = [x, mean, variance];
 
     let offsetShape = null;
@@ -416,50 +416,50 @@ export class MathBackendWebGL implements MathBackend {
   }
 
   localResponseNormalization4D(
-      x: Array4D, radius: number, bias: number, alpha: number, beta: number,
-      normRegion: 'acrossChannels'|'withinChannel'): Array4D {
+      x: Tensor4D, radius: number, bias: number, alpha: number, beta: number,
+      normRegion: 'acrossChannels'|'withinChannel'): Tensor4D {
     const program =
         new LRNProgram(x.shape, radius, bias, alpha, beta, normRegion);
     return this.compileAndRun(program, [x]);
   }
 
-  tile<T extends NDArray>(x: T, reps: number[]): T {
+  tile<T extends Tensor>(x: T, reps: number[]): T {
     const program = new TileProgram(x.shape, reps);
     return this.compileAndRun(program, [x]);
   }
 
-  pad1D(x: Array1D, paddings: [number, number], constantValue: number):
-      Array1D {
+  pad1D(x: Tensor1D, paddings: [number, number], constantValue: number):
+      Tensor1D {
     const program = new Pad1DProgram(x.shape, paddings, constantValue);
     return this.compileAndRun(program, [x]);
   }
 
   pad2D(
-      x: Array2D, paddings: [[number, number], [number, number]],
-      constantValue: number): Array2D {
+      x: Tensor2D, paddings: [[number, number], [number, number]],
+      constantValue: number): Tensor2D {
     const program = new Pad2DProgram(x.shape, paddings, constantValue);
     return this.compileAndRun(program, [x]);
   }
 
-  transpose<T extends NDArray>(x: T, perm: number[]): T {
+  transpose<T extends Tensor>(x: T, perm: number[]): T {
     const program = new TransposeProgram(x.shape, perm);
     return this.compileAndRun(program, [x]);
   }
 
-  gather<T extends NDArray>(x: T, indices: Array1D, axis: number): T {
+  gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     const program = new GatherProgram(x.shape, indices.size, axis);
     return this.compileAndRun(program, [x, indices]);
   }
 
-  private reduce(x: Array2D, reduceType: 'max'|'min'|'sum', dtype: DataType):
-      Array2D {
+  private reduce(x: Tensor2D, reduceType: 'max'|'min'|'sum', dtype: DataType):
+      Tensor2D {
     const batchSize = x.shape[0];
     const inSize = x.shape[1];
     const windowSize = reduce_util.computeOptimalWindowSize(inSize);
     const reduceInfo = {windowSize, inSize, batchSize};
     const program = new ReduceProgram(reduceInfo, reduceType);
     const [rows, cols] = program.outputShape;
-    const output = this.makeOutputArray<Array2D>([rows, cols], dtype);
+    const output = this.makeOutputArray<Tensor2D>([rows, cols], dtype);
     this.compileAndRun(program, [x], output);
     // No need to run another GPGPU program.
     if (output.shape[1] === 1) {
@@ -469,8 +469,8 @@ export class MathBackendWebGL implements MathBackend {
   }
 
   private argReduce(
-      x: Array2D, reduceType: 'max'|'min',
-      bestIndicesA: Array2D = null): Array2D {
+      x: Tensor2D, reduceType: 'max'|'min',
+      bestIndicesA: Tensor2D = null): Tensor2D {
     let batchSize = x.shape[0];
     let inSize = x.shape[1];
     if (bestIndicesA != null) {
@@ -482,7 +482,7 @@ export class MathBackendWebGL implements MathBackend {
     const program =
         new ArgMinMaxProgram(reduceInfo, reduceType, bestIndicesA == null);
     const [rows, cols] = program.outputShape;
-    const output = this.makeOutputArray<Array2D>([rows, cols], 'int32');
+    const output = this.makeOutputArray<Tensor2D>([rows, cols], 'int32');
     const inputs = [x];
     if (bestIndicesA != null) {
       inputs.push(bestIndicesA);
@@ -495,7 +495,7 @@ export class MathBackendWebGL implements MathBackend {
     return this.argReduce(x, reduceType, output);
   }
 
-  sum(x: NDArray, axes: number[]): NDArray {
+  sum(x: Tensor, axes: number[]): Tensor {
     axis_util.assertAxesAreInnerMostDims('sum', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -505,7 +505,7 @@ export class MathBackendWebGL implements MathBackend {
     return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
   }
 
-  argMin(x: NDArray, axes: number[]): NDArray {
+  argMin(x: Tensor, axes: number[]): Tensor {
     axis_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -514,7 +514,7 @@ export class MathBackendWebGL implements MathBackend {
     return this.argReduce(a2D, 'min').reshape(outShape);
   }
 
-  argMax(x: NDArray, axes: number[]): NDArray {
+  argMax(x: Tensor, axes: number[]): Tensor {
     axis_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -523,86 +523,86 @@ export class MathBackendWebGL implements MathBackend {
     return this.argReduce(a2D, 'max').reshape(outShape);
   }
 
-  equal(a: NDArray, b: NDArray): NDArray {
+  equal(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.EQUAL, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  notEqual(a: NDArray, b: NDArray): NDArray {
+  notEqual(a: Tensor, b: Tensor): Tensor {
     const program =
         new BinaryOpProgram(binaryop_gpu.NOT_EQUAL, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  less(a: NDArray, b: NDArray): NDArray {
+  less(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.LESS, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  lessEqual(a: NDArray, b: NDArray): NDArray {
+  lessEqual(a: Tensor, b: Tensor): Tensor {
     const program =
         new BinaryOpProgram(binaryop_gpu.LESS_EQUAL, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  greater(a: NDArray, b: NDArray): NDArray {
+  greater(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.GREATER, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  greaterEqual(a: NDArray, b: NDArray): NDArray {
+  greaterEqual(a: Tensor, b: Tensor): Tensor {
     const program =
         new BinaryOpProgram(binaryop_gpu.GREATER_EQUAL, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  logicalNot<T extends NDArray>(x: T): T {
+  logicalNot<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.LOGICAL_NOT);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  logicalAnd(a: NDArray, b: NDArray): NDArray {
+  logicalAnd(a: Tensor, b: Tensor): Tensor {
     const program =
         new BinaryOpProgram(binaryop_gpu.LOGICAL_AND, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  logicalOr(a: NDArray, b: NDArray): NDArray {
+  logicalOr(a: Tensor, b: Tensor): Tensor {
     const program =
         new BinaryOpProgram(binaryop_gpu.LOGICAL_OR, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  logicalXor(a: NDArray, b: NDArray): NDArray {
+  logicalXor(a: Tensor, b: Tensor): Tensor {
     const program =
         new BinaryOpProgram(binaryop_gpu.LOGICAL_XOR, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
 
-  where(condition: NDArray, a: NDArray, b: NDArray, dtype: DataType): NDArray {
+  where(condition: Tensor, a: Tensor, b: Tensor, dtype: DataType): Tensor {
     const program = new WhereProgram(condition.rank, a.shape, a.rank);
     const output = this.makeOutputArray(program.outputShape, dtype);
     return this.compileAndRun(program, [condition, a, b], output);
   }
 
-  topKValues<T extends NDArray>(x: T, k: number): Array1D {
+  topKValues<T extends Tensor>(x: T, k: number): Tensor1D {
     throw new Error('topKValues GPU not yet implemented!');
   }
 
-  topKIndices(x: NDArray, k: number): Array1D {
+  topKIndices(x: Tensor, k: number): Tensor1D {
     throw new Error('topKIndices GPU not yet implemented!');
   }
 
-  min(x: NDArray, axes: number[]): NDArray {
+  min(x: Tensor, axes: number[]): Tensor {
     axis_util.assertAxesAreInnerMostDims('min', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -611,12 +611,12 @@ export class MathBackendWebGL implements MathBackend {
     return this.reduce(a2D, 'min', a2D.dtype).reshape(outShape);
   }
 
-  minimum(a: NDArray, b: NDArray): NDArray {
+  minimum(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.MIN, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
   }
 
-  max(x: NDArray, axes: number[]): NDArray {
+  max(x: Tensor, axes: number[]): Tensor {
     axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -625,230 +625,233 @@ export class MathBackendWebGL implements MathBackend {
     return this.reduce(a2D, 'max', a2D.dtype).reshape(outShape);
   }
 
-  maximum(a: NDArray, b: NDArray): NDArray {
+  maximum(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.MAX, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
   }
 
-  divide(a: NDArray, b: NDArray): NDArray {
+  divide(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'float32');
-    return this.compileAndRun<NDArray, NDArray>(program, [a, b], output);
+    return this.compileAndRun<Tensor, Tensor>(program, [a, b], output);
   }
 
-  add(a: NDArray, b: NDArray): NDArray {
+  add(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.ADD, a.shape, b.shape);
     const output =
         this.makeOutputArray(
-            program.outputShape, types.upcastType(a.dtype, b.dtype)) as NDArray;
-    return this.compileAndRun<NDArray, NDArray>(program, [a, b], output);
+            program.outputShape, types.upcastType(a.dtype, b.dtype)) as Tensor;
+    return this.compileAndRun<Tensor, Tensor>(program, [a, b], output);
   }
 
-  subtract(a: NDArray, b: NDArray): NDArray {
+  subtract(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
     const output =
         this.makeOutputArray(
-            program.outputShape, types.upcastType(a.dtype, b.dtype)) as NDArray;
-    return this.compileAndRun<NDArray, NDArray>(program, [a, b], output);
+            program.outputShape, types.upcastType(a.dtype, b.dtype)) as Tensor;
+    return this.compileAndRun<Tensor, Tensor>(program, [a, b], output);
   }
 
-  pow<T extends NDArray>(a: T, b: NDArray): T {
+  pow<T extends Tensor>(a: T, b: Tensor): T {
     const program = new BinaryOpProgram(binaryop_gpu.POW, a.shape, b.shape);
     const output =
         this.makeOutputArray(
             program.outputShape, types.upcastType(a.dtype, b.dtype)) as T;
-    return this.compileAndRun<NDArray, T>(program, [a, b], output);
+    return this.compileAndRun<Tensor, T>(program, [a, b], output);
   }
 
-  ceil<T extends NDArray>(x: T): T {
+  ceil<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.CEIL);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  floor<T extends NDArray>(x: T): T {
+  floor<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.FLOOR);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  exp<T extends NDArray>(x: T): T {
+  exp<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.EXP);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  log<T extends NDArray>(x: T): T {
+  log<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.LOG);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  sqrt<T extends NDArray>(x: T): T {
+  sqrt<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SQRT);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  square<T extends NDArray>(x: T): T {
+  square<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SQUARE);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  relu<T extends NDArray>(x: T): T {
+  relu<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.RELU);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  elu<T extends NDArray>(x: T): T {
+  elu<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ELU);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  eluDer<T extends NDArray>(x: T): T {
+  eluDer<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ELU_DER);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  selu<T extends NDArray>(x: T): T {
+  selu<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SELU);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  leakyRelu<T extends NDArray>(x: T, alpha: number): T {
+  leakyRelu<T extends Tensor>(x: T, alpha: number): T {
     const program = new UnaryOpProgram(x.shape, unary_op.LEAKY_RELU(alpha));
     return this.compileAndRun(program, [x]) as T;
   }
 
-  prelu<T extends NDArray>(a: T, b: T): T {
+  prelu<T extends Tensor>(a: T, b: T): T {
     const program = new BinaryOpProgram(binaryop_gpu.PRELU, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]) as T;
   }
 
-  preluDer<T extends NDArray>(a: T, b: T): T {
+  preluDer<T extends Tensor>(a: T, b: T): T {
     const program =
         new BinaryOpProgram(binaryop_gpu.PRELU_DER, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]) as T;
   }
 
-  int<R extends Rank>(x: NDArray<R>): NDArray<R> {
+  int<R extends Rank>(x: Tensor<R>): Tensor<R> {
     const program = new UnaryOpProgram(x.shape, unary_op.TO_INT);
     const output = this.makeOutputArray(program.outputShape, 'int32');
-    return this.compileAndRun(program, [x], output) as NDArray<R>;
+    return this.compileAndRun(program, [x], output) as Tensor<R>;
   }
 
-  clip<T extends NDArray>(x: T, min: number, max: number): T {
+  clip<T extends Tensor>(x: T, min: number, max: number): T {
     const program = new ClipProgram(x.shape, min, max);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  abs<T extends NDArray>(x: T): T {
+  abs<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ABS);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  sigmoid<T extends NDArray>(x: T): T {
+  sigmoid<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIGMOID);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  sin<T extends NDArray>(x: T): T {
+  sin<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIN);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  cos<T extends NDArray>(x: T): T {
+  cos<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.COS);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  tan<T extends NDArray>(x: T): T {
+  tan<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.TAN);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  asin<T extends NDArray>(x: T): T {
+  asin<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ASIN);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  acos<T extends NDArray>(x: T): T {
+  acos<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ACOS);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  atan<T extends NDArray>(x: T): T {
+  atan<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ATAN);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  sinh<T extends NDArray>(x: T): T {
+  sinh<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SINH);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  cosh<T extends NDArray>(x: T): T {
+  cosh<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.COSH);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  tanh<T extends NDArray>(x: T): T {
+  tanh<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.TANH);
     return this.compileAndRun(program, [x]) as T;
   }
 
-  step<T extends NDArray>(x: T, alpha: number): T {
+  step<T extends Tensor>(x: T, alpha: number): T {
     const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
     return this.compileAndRun(program, [x]) as T;
   }
 
-  conv2d(x: Array4D, filter: Array4D, bias: Array1D|null, convInfo: Conv2DInfo):
-      Array4D {
+  conv2d(
+      x: Tensor4D, filter: Tensor4D, bias: Tensor1D|null,
+      convInfo: Conv2DInfo): Tensor4D {
     const program = new Conv2DProgram(convInfo, bias != null);
     const inputs = bias != null ? [x, filter, bias] : [x, filter];
     return this.compileAndRun(program, inputs);
   }
 
-  conv2dDerInput(dy: Array4D, filter: Array4D, convInfo: Conv2DInfo): Array4D {
+  conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     const program = new Conv2DDerInputProgram(convInfo);
     return this.compileAndRun(program, [dy, filter]);
   }
 
-  conv2dDerFilter(x: Array4D, dy: Array4D, convInfo: Conv2DInfo): Array4D {
+  conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const program = new Conv2DDerFilterProgram(convInfo);
     return this.compileAndRun(program, [x, dy]);
   }
 
-  conv2dDerBias(dy: Array4D): Array1D {
+  conv2dDerBias(dy: Tensor4D): Tensor1D {
     const program = new Conv2DDerBiasProgram(dy.shape);
     return this.compileAndRun(program, [dy]);
   }
 
-  depthwiseConv2D(x: Array4D, filter: Array4D, convInfo: Conv2DInfo): Array4D {
+  depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     const program = new DepthwiseConv2DProgram(convInfo);
     return this.compileAndRun(program, [x, filter]);
   }
 
-  maxPool(x: Array4D, convInfo: Conv2DInfo): Array4D {
+  maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const program = new Pool2DProgram(convInfo, 'max', false);
     const output =
-        this.makeOutputArray(program.outputShape, x.dtype) as Array4D;
+        this.makeOutputArray(program.outputShape, x.dtype) as Tensor4D;
     return this.compileAndRun(program, [x], output);
   }
 
-  minPool(x: Array4D, convInfo: Conv2DInfo): Array4D {
+  minPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const program = new Pool2DProgram(convInfo, 'min', false);
     const output =
-        this.makeOutputArray(program.outputShape, x.dtype) as Array4D;
+        this.makeOutputArray(program.outputShape, x.dtype) as Tensor4D;
     return this.compileAndRun(program, [x], output);
   }
 
-  avgPool(x: Array4D, convInfo: Conv2DInfo): Array4D {
+  avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const program = new Pool2DProgram(convInfo, 'avg', false);
     const output = this.makeOutputArray(program.outputShape, 'float32');
-    return this.compileAndRun(program, [x], output) as Array4D;
+    return this.compileAndRun(program, [x], output) as Tensor4D;
   }
 
-  maxPoolBackprop(dy: Array4D, x: Array4D, convInfo: Conv2DInfo): Array4D {
+  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const getPositions = true;
     const maxPoolPositionsProgram =
         new Pool2DProgram(convInfo, 'max', getPositions);
-    const maxPoolPositions: Array4D =
+    const maxPoolPositions: Tensor4D =
         this.compileAndRun(maxPoolPositionsProgram, [x]);
 
     const maxPoolBackPropProgram = new MaxPool2DBackpropProgram(convInfo);
@@ -857,58 +860,58 @@ export class MathBackendWebGL implements MathBackend {
     const result = this.compileAndRun(
         maxPoolBackPropProgram, [dy, maxPoolPositions], output);
     maxPoolPositions.dispose();
-    return result as Array4D;
+    return result as Tensor4D;
   }
 
-  avgPoolBackprop(dy: Array4D, x: Array4D, convInfo: Conv2DInfo): Array4D {
+  avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const avgPoolBackpropProgram = new AvgPool2DBackpropProgram(convInfo);
     const output =
         this.makeOutputArray(avgPoolBackpropProgram.outputShape, x.dtype);
-    return this.compileAndRun(avgPoolBackpropProgram, [dy], output) as Array4D;
+    return this.compileAndRun(avgPoolBackpropProgram, [dy], output) as Tensor4D;
   }
 
   resizeBilinear(
-      x: Array4D, newHeight: number, newWidth: number,
-      alignCorners: boolean): Array4D {
+      x: Tensor4D, newHeight: number, newWidth: number,
+      alignCorners: boolean): Tensor4D {
     const program =
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
     return this.compileAndRun(program, [x]);
   }
 
-  multinomial(probs: Array2D, numSamples: number, seed: number): Array2D {
+  multinomial(probs: Tensor2D, numSamples: number, seed: number): Tensor2D {
     const batchSize = probs.shape[0];
     const numOutcomes = probs.shape[1];
     const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);
     const output =
-        this.makeOutputArray(program.outputShape, 'int32') as Array2D;
+        this.makeOutputArray(program.outputShape, 'int32') as Tensor2D;
     const customSetup = program.getCustomSetupFunc(seed);
     return this.compileAndRun(program, [probs], output, customSetup);
   }
 
-  oneHot(indices: Array1D, depth: number, onValue: number, offValue: number):
-      Array2D {
+  oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
+      Tensor2D {
     const program = new OneHotProgram(indices.size, depth, onValue, offValue);
     return this.compileAndRun(program, [indices]);
   }
 
-  private makeOutputArray<T extends NDArray>(shape: number[], dtype: DataType):
+  private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
       T {
-    return NDArray.make(shape, {}, dtype) as T;
+    return Tensor.make(shape, {}, dtype) as T;
   }
 
-  private compileAndRun<T extends NDArray, K extends NDArray>(
+  private compileAndRun<T extends Tensor, K extends Tensor>(
       program: GPGPUProgram, inputs: T[], output?: K,
       customSetup?: (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => void):
       K {
     if (output == null) {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
     }
-    const inputsData: Array<ArrayData<T>> = inputs.map(input => {
+    const inputsData: Array<TensorData<T>> = inputs.map(input => {
       this.uploadToGPU(input.dataId);
-      return {array: input, texData: this.texData[input.dataId]};
+      return {tensor: input, texData: this.texData[input.dataId]};
     });
     this.uploadToGPU(output.dataId);
-    const outputData = {array: output, texData: this.texData[output.dataId]};
+    const outputData = {tensor: output, texData: this.texData[output.dataId]};
     const key = gpgpu_math.makeShaderKey(program, inputsData, outputData);
     const binary = this.getAndSaveBinary(key, () => {
       return gpgpu_math.compileProgram(
@@ -962,7 +965,7 @@ export class MathBackendWebGL implements MathBackend {
   private throwIfNoData(dataId: number) {
     if (!(dataId in this.texData)) {
       throw new Error(
-          `No data found for NDArray with data id ${dataId}. ` +
+          `No data found for Tensor with data id ${dataId}. ` +
           `Use dl.ENV.math instead of constructing your own NDArrayMath. ` +
           `If you need to construct your own math, make sure this array is ` +
           `allocated after the math construction`);

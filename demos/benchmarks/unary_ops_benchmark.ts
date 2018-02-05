@@ -23,37 +23,37 @@ import * as benchmark_util from './benchmark_util';
 function getUnaryOp(option: string) {
   switch (option) {
     case 'log':
-      return (x: dl.NDArray) => x.log();
+      return (x: dl.Tensor) => x.log();
     case 'exp':
-      return (x: dl.NDArray) => x.exp();
+      return (x: dl.Tensor) => x.exp();
     case 'neg':
-      return (x: dl.NDArray) => x.neg();
+      return (x: dl.Tensor) => x.neg();
     case 'sqrt':
-      return (x: dl.NDArray) => x.sqrt();
+      return (x: dl.Tensor) => x.sqrt();
     case 'abs':
-      return (x: dl.NDArray) => x.abs();
+      return (x: dl.Tensor) => x.abs();
     case 'relu':
-      return (x: dl.NDArray) => x.relu();
+      return (x: dl.Tensor) => x.relu();
     case 'sigmoid':
-      return (x: dl.NDArray) => x.sigmoid();
+      return (x: dl.Tensor) => x.sigmoid();
     case 'sin':
-      return (x: dl.NDArray) => x.sin();
+      return (x: dl.Tensor) => x.sin();
     case 'cos':
-      return (x: dl.NDArray) => x.cos();
+      return (x: dl.Tensor) => x.cos();
     case 'tan':
-      return (x: dl.NDArray) => x.tan();
+      return (x: dl.Tensor) => x.tan();
     case 'asin':
-      return (x: dl.NDArray) => x.asin();
+      return (x: dl.Tensor) => x.asin();
     case 'acos':
-      return (x: dl.NDArray) => x.acos();
+      return (x: dl.Tensor) => x.acos();
     case 'atan':
-      return (x: dl.NDArray) => x.atan();
+      return (x: dl.Tensor) => x.atan();
     case 'sinh':
-      return (x: dl.NDArray) => x.sinh();
+      return (x: dl.Tensor) => x.sinh();
     case 'cosh':
-      return (x: dl.NDArray) => x.cosh();
+      return (x: dl.Tensor) => x.cosh();
     case 'tanh':
-      return (x: dl.NDArray) => x.tanh();
+      return (x: dl.Tensor) => x.tanh();
     default:
       throw new Error(`Not found such ops: ${option}`);
   }
@@ -65,7 +65,7 @@ export class UnaryOpsCPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('cpu', safeMode);
     dl.ENV.setMath(math);
 
-    const input: dl.Array2D = dl.randUniform([size, size], -1, 1);
+    const input: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
     const op = getUnaryOp(option);
     const start = performance.now();
 
@@ -86,7 +86,7 @@ export class UnaryOpsGPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('webgl', safeMode);
     dl.ENV.setMath(math);
 
-    const input: dl.Array2D = dl.randUniform([size, size], -1, 1);
+    const input: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
     const op = getUnaryOp(option);
 
     const benchmark = () => op(input);

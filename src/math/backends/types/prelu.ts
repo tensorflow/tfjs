@@ -15,17 +15,17 @@
  * =============================================================================
  */
 
-import {NDArray} from '../../ndarray';
+import {Tensor} from '../../tensor';
 import {Rank} from '../../types';
 import {KernelNode} from '../tape_types';
 
 // PReLU
-export interface PReLUNode<R extends Rank, T extends NDArray<R> = NDArray<R>>
+export interface PReLUNode<R extends Rank, T extends Tensor<R> = Tensor<R>>
     extends KernelNode {
   inputAndArgs: {inputs: {x: T; alpha: T;};};
   output: T;
-  gradient: (dy: NDArray<R>, y: T) => {
-    x: () => NDArray<R>;
-    alpha: () => NDArray<R>;
+  gradient: (dy: Tensor<R>, y: T) => {
+    x: () => Tensor<R>;
+    alpha: () => Tensor<R>;
   };
 }

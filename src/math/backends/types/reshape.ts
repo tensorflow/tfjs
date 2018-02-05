@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {NDArray} from '../../ndarray';
+import {Tensor} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface ReshapeNode extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray}; args: {newShape: number[]};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    x: () => NDArray
+  inputAndArgs: {inputs: {x: Tensor}; args: {newShape: number[]};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    x: () => Tensor
   };
 }

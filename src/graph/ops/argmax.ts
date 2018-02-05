@@ -17,7 +17,7 @@
 
 import {keep, tidy} from '../../math/backends/tracking';
 import {NDArrayMath} from '../../math/math';
-import {Tensor} from '../graph';
+import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {Operation} from './op';
 
@@ -28,7 +28,8 @@ export class ArgMax extends Operation {
   /**
    * An ArgMax operation.
    */
-  constructor(private xTensor: Tensor, private yTensor: Tensor) {
+  constructor(
+      private xTensor: SymbolicTensor, private yTensor: SymbolicTensor) {
     super();
   }
 

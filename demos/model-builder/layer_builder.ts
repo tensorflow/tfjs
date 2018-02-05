@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Array1D, Array2D, Array4D, conv_util, Graph, Initializer, NDArrayInitializer, Tensor, util, VarianceScalingInitializer, ZerosInitializer} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 /**
  * Classes that specify operation parameters, how they affect output shape,
@@ -93,8 +92,8 @@ export interface LayerBuilder {
   getLayerParams(): LayerParam[];
   getOutputShape(inputShape: number[]): number[];
   addLayer(
-      g: Graph, network: Tensor, inputShape: number[], index: number,
-      weights?: LayerWeightsDict|null): Tensor;
+      g: dl.Graph, network: dl.SymbolicTensor, inputShape: number[],
+      index: number, weights?: LayerWeightsDict|null): dl.SymbolicTensor;
   // Return null if no errors, otherwise return an array of errors.
   validate(inputShape: number[]): string[]|null;
 }
@@ -120,20 +119,20 @@ export class FullyConnectedLayerBuilder implements LayerBuilder {
   }
 
   addLayer(
-      g: Graph, network: Tensor, inputShape: number[], index: number,
-      weights: LayerWeightsDict|null): Tensor {
-    const inputSize = util.sizeFromShape(inputShape);
+      g: dl.Graph, network: dl.SymbolicTensor, inputShape: number[],
+      index: number, weights: LayerWeightsDict|null): dl.SymbolicTensor {
+    const inputSize = dl.util.sizeFromShape(inputShape);
     const wShape: [number, number] = [this.hiddenUnits, inputSize];
 
-    let weightsInitializer: Initializer;
-    let biasInitializer: Initializer;
+    let weightsInitializer: dl.Initializer;
+    let biasInitializer: dl.Initializer;
     if (weights != null) {
       weightsInitializer =
-          new NDArrayInitializer(Array2D.new(wShape, weights['W']));
-      biasInitializer = new NDArrayInitializer(Array1D.new(weights['b']));
+          new dl.TensorInitializer(dl.Tensor2D.new(wShape, weights['W']));
+      biasInitializer = new dl.TensorInitializer(dl.Tensor1D.new(weights['b']));
     } else {
-      weightsInitializer = new VarianceScalingInitializer();
-      biasInitializer = new ZerosInitializer();
+      weightsInitializer = new dl.VarianceScalingInitializer();
+      biasInitializer = new dl.ZerosInitializer();
     }
 
     const useBias = true;
@@ -144,7 +143,7 @@ export class FullyConnectedLayerBuilder implements LayerBuilder {
 
   validate(inputShape: number[]) {
     if (inputShape.length !== 1) {
-      return ['Input shape must be a Array1D.'];
+      return ['Input shape must be a Tensor1D.'];
     }
     return null;
   }
@@ -161,8 +160,8 @@ export class ReLULayerBuilder implements LayerBuilder {
   }
 
   addLayer(
-      g: Graph, network: Tensor, inputShape: number[], index: number,
-      weights: LayerWeightsDict|null): Tensor {
+      g: dl.Graph, network: dl.SymbolicTensor, inputShape: number[],
+      index: number, weights: LayerWeightsDict|null): dl.SymbolicTensor {
     return g.relu(network);
   }
 
@@ -221,24 +220,24 @@ export class Convolution2DLayerBuilder implements LayerBuilder {
   }
 
   getOutputShape(inputShape: number[]): number[] {
-    return conv_util.computeOutputShape3D(
+    return dl.conv_util.computeOutputShape3D(
         inputShape as [number, number, number], this.fieldSize,
         this.outputDepth, this.stride, this.zeroPad);
   }
 
   addLayer(
-      g: Graph, network: Tensor, inputShape: number[], index: number,
-      weights: LayerWeightsDict|null): Tensor {
+      g: dl.Graph, network: dl.SymbolicTensor, inputShape: number[],
+      index: number, weights: LayerWeightsDict|null): dl.SymbolicTensor {
     const wShape: [number, number, number, number] =
         [this.fieldSize, this.fieldSize, inputShape[2], this.outputDepth];
-    let w: Array4D;
-    let b: Array1D;
+    let w: dl.Tensor4D;
+    let b: dl.Tensor1D;
     if (weights != null) {
-      w = Array4D.new(wShape, weights['W']);
-      b = Array1D.new(weights['b']);
+      w = dl.Tensor4D.new(wShape, weights['W']);
+      b = dl.Tensor1D.new(weights['b']);
     } else {
-      w = Array4D.randTruncatedNormal(wShape, 0, 0.1);
-      b = Array1D.zeros([this.outputDepth]);
+      w = dl.Tensor4D.randTruncatedNormal(wShape, 0, 0.1);
+      b = dl.Tensor1D.zeros([this.outputDepth]);
     }
     const wTensor = g.variable(`conv2d-${index}-w`, w);
     const bTensor = g.variable(`conv2d-${index}-b`, b);
@@ -249,7 +248,7 @@ export class Convolution2DLayerBuilder implements LayerBuilder {
 
   validate(inputShape: number[]) {
     if (inputShape.length !== 3) {
-      return ['Input shape must be a Array3D.'];
+      return ['Input shape must be a Tensor3D.'];
     }
     return null;
   }
@@ -294,20 +293,20 @@ export class MaxPoolLayerBuilder implements LayerBuilder {
   }
 
   getOutputShape(inputShape: number[]): number[] {
-    return conv_util.computeOutputShape3D(
+    return dl.conv_util.computeOutputShape3D(
         inputShape as [number, number, number], this.fieldSize, inputShape[2],
         this.stride, this.zeroPad);
   }
 
   addLayer(
-      g: Graph, network: Tensor, inputShape: number[], index: number,
-      weights: LayerWeightsDict|null): Tensor {
+      g: dl.Graph, network: dl.SymbolicTensor, inputShape: number[],
+      index: number, weights: LayerWeightsDict|null): dl.SymbolicTensor {
     return g.maxPool(network, this.fieldSize, this.stride, this.zeroPad);
   }
 
   validate(inputShape: number[]) {
     if (inputShape.length !== 3) {
-      return ['Input shape must be a Array3D.'];
+      return ['Input shape must be a Tensor3D.'];
     }
     return null;
   }
@@ -332,14 +331,14 @@ export class ReshapeLayerBuilder implements LayerBuilder {
   }
 
   addLayer(
-      g: Graph, network: Tensor, inputShape: number[], index: number,
-      weights: LayerWeightsDict|null): Tensor {
+      g: dl.Graph, network: dl.SymbolicTensor, inputShape: number[],
+      index: number, weights: LayerWeightsDict|null): dl.SymbolicTensor {
     return g.reshape(network, this.outputShape);
   }
 
   validate(inputShape: number[]) {
-    const inputSize = util.sizeFromShape(inputShape);
-    const outputSize = util.sizeFromShape(this.outputShape);
+    const inputSize = dl.util.sizeFromShape(inputShape);
+    const outputSize = dl.util.sizeFromShape(this.outputShape);
     if (inputSize !== outputSize) {
       return [
         `Input size (${inputSize}) must match output size (${outputSize}).`
@@ -357,12 +356,12 @@ export class FlattenLayerBuilder implements LayerBuilder {
   }
 
   getOutputShape(inputShape: number[]): number[] {
-    return [util.sizeFromShape(inputShape)];
+    return [dl.util.sizeFromShape(inputShape)];
   }
 
   addLayer(
-      g: Graph, network: Tensor, inputShape: number[], index: number,
-      weights: LayerWeightsDict|null): Tensor {
+      g: dl.Graph, network: dl.SymbolicTensor, inputShape: number[],
+      index: number, weights: LayerWeightsDict|null): dl.SymbolicTensor {
     return g.reshape(network, this.getOutputShape(inputShape));
   }
 

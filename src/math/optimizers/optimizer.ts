@@ -22,9 +22,9 @@ import * as session_util from '../../graph/session_util';
 // tslint:disable-next-line:max-line-length
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
-import {NDArray, Scalar, Variable} from '../../math/ndarray';
+import {Scalar, Tensor, Variable} from '../../math/tensor';
 import {keep, tidy} from '../backends/tracking';
-import {NamedArrayMap} from '../types';
+import {NamedTensorMap} from '../types';
 
 export abstract class Optimizer {
   protected variableNodes: VariableNode[];
@@ -77,7 +77,7 @@ export abstract class Optimizer {
    * gradients computed with respect to. Defaults to all trainable variables.
    */
   computeGradients(f: () => Scalar, varList?: Variable[]):
-      {value: Scalar, gradients: NamedArrayMap} {
+      {value: Scalar, gradients: NamedTensorMap} {
     return ENV.math.variableGradients(f, varList);
   }
 
@@ -85,7 +85,7 @@ export abstract class Optimizer {
    * Updates variables by using the computed gradients.
    * @param variableGradients A mapping of variable name to its gradient value.
    */
-  abstract applyGradients(variableGradients: NamedArrayMap): void;
+  abstract applyGradients(variableGradients: NamedTensorMap): void;
 
   /**
    * Graph mode methods.
@@ -106,7 +106,7 @@ export abstract class Optimizer {
     }
     this.variableNodes.forEach(
         node => this.variableGradients.set(
-            node.output, math.keep(NDArray.zeros(node.output.shape))));
+            node.output, math.keep(Tensor.zeros(node.output.shape))));
   }
 
   afterExample(

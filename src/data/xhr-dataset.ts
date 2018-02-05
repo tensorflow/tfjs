@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import {NDArray} from '../math/ndarray';
+import {Tensor} from '../math/tensor';
 import * as util from '../util';
 
 import {InMemoryDataset} from './dataset';
 
 const PARSING_IMAGE_CANVAS_HEIGHT_PX = 1000;
 
-export interface NDArrayInfo {
+export interface TensorInfo {
   path: string;
   name: string;
   dataType: 'uint8'|'float32'|'png';
@@ -30,7 +30,7 @@ export interface NDArrayInfo {
 }
 
 export interface XhrDatasetConfig {
-  data: NDArrayInfo[];
+  data: TensorInfo[];
 
   labelClassNames?: string[];
   // Paths to pre-built models.
@@ -66,29 +66,29 @@ export class XhrDataset extends InMemoryDataset {
     this.xhrDatasetConfig = xhrDatasetConfig;
   }
 
-  protected getNDArray<T extends NDArray>(info: NDArrayInfo): Promise<T[]> {
+  protected getTensor<T extends Tensor>(info: TensorInfo): Promise<T[]> {
     const dataPromise = info.dataType === 'png' ?
         parseTypedArrayFromPng(info, info.shape as [number, number, number]) :
         parseTypedArrayFromBinary(info);
 
     const inputSize = util.sizeFromShape(info.shape);
     return dataPromise.then(data => {
-      const ndarrays: T[] = [];
+      const tensors: T[] = [];
       for (let i = 0; i < data.length / inputSize; i++) {
         const values = data.subarray(i * inputSize, (i + 1) * inputSize);
-        const ndarray =
-            NDArray.make(
+        const tensor =
+            Tensor.make(
                 info.shape, {values: new Float32Array(values)}, 'float32') as T;
-        ndarrays.push(ndarray);
+        tensors.push(tensor);
       }
-      return ndarrays;
+      return tensors;
     });
   }
 
   fetchData(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      const promises = this.xhrDatasetConfig.data.map(x => this.getNDArray(x));
-      Promise.all(promises).then((data: NDArray[][]) => {
+      const promises = this.xhrDatasetConfig.data.map(x => this.getTensor(x));
+      Promise.all(promises).then((data: Tensor[][]) => {
         this.dataset = data;
         resolve();
       });
@@ -96,7 +96,7 @@ export class XhrDataset extends InMemoryDataset {
   }
 }
 
-function parseTypedArrayFromBinary(info: NDArrayInfo):
+function parseTypedArrayFromBinary(info: TensorInfo):
     Promise<Float32Array|Uint8Array> {
   return new Promise<Float32Array|Uint8Array>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -144,7 +144,7 @@ function parseImage(
   if (img.width !== shape[0] * shape[1]) {
     throw new Error(
         `Image width (${img.width}) must be multiple of ` +
-        `rows*columns (${shape[0]}*${shape[1]}) of the ndarray`);
+        `rows*columns (${shape[0]}*${shape[1]}) of the tensor`);
   }
   // TODO(smilkov): Canvas has max width of 32,767px. This approach
   // (canvas.width = shape[0] * shape[1]) works with examples up to 181x181px.
@@ -183,7 +183,7 @@ function parseImage(
 }
 
 function parseTypedArrayFromPng(
-    info: NDArrayInfo, shape: [number, number, number]): Promise<Uint8Array> {
+    info: TensorInfo, shape: [number, number, number]): Promise<Uint8Array> {
   return new Promise<Uint8Array>((resolve, reject) => {
     let img = new Image();
     img.setAttribute('crossOrigin', '');

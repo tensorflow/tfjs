@@ -20,7 +20,7 @@ import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
-import {NDArray, Scalar} from './ndarray';
+import {Tensor, Scalar} from './tensor';
 
 export class Ops {
   /**
@@ -31,7 +31,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
-  static softmax<T extends NDArray>(logits: T, dim = -1): T {
+  static softmax<T extends Tensor>(logits: T, dim = -1): T {
     if (dim === -1) {
       dim = logits.rank - 1;
     }
@@ -92,7 +92,7 @@ export class Ops {
     namespace: 'losses'
   })
   @operation
-  static softmaxCrossEntropy<T extends NDArray, O extends NDArray>(
+  static softmaxCrossEntropy<T extends Tensor, O extends Tensor>(
       labels: T, logits: T, dim = -1): O {
     util.assertShapesMatch(
         labels.shape, logits.shape, 'Error in softmaxCrossEntropy: ');

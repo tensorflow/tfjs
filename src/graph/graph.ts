@@ -19,7 +19,7 @@
 import {Initializer, VarianceScalingInitializer, ZerosInitializer} from '../initializers';
 import * as concat_util from '../math/concat_util';
 import * as conv_util from '../math/conv_util';
-import {NDArray, Scalar} from '../math/ndarray';
+import {Scalar, Tensor} from '../math/tensor';
 import * as util from '../util';
 
 /**
@@ -30,8 +30,9 @@ export class GraphLayers {
   constructor(private g: Graph) {}
 
   dense(
-      name: string, x: Tensor, units: number,
-      activation: ((x: Tensor) => Tensor)|null = null, useBias = true,
+      name: string, x: SymbolicTensor, units: number,
+      activation: ((x: SymbolicTensor) => SymbolicTensor)|null = null,
+      useBias = true,
       kernelInitializer: Initializer = new VarianceScalingInitializer(),
       biasInitializer: Initializer = new ZerosInitializer()) {
     const weights = this.g.variable(
@@ -74,7 +75,7 @@ export class Graph {
    * @param data The NDArray to associate with this variable tensor.
    * @return The tensor representing the variable.
    */
-  variable(name: string, data: NDArray): Tensor {
+  variable(name: string, data: Tensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new VariableNode(this, name, data));
   }
 
@@ -87,7 +88,7 @@ export class Graph {
    * @param shape The shape of the placeholder tensor.
    * @return The tensor representing the placeholder.
    */
-  placeholder(name: string, shape: number[]): Tensor {
+  placeholder(name: string, shape: number[]): SymbolicTensor {
     return this.addNodeAndReturnOutput(new PlaceholderNode(this, name, shape));
   }
 
@@ -96,16 +97,16 @@ export class Graph {
    * @param value The value to return.
    * @return A node outputing the constant value.
    */
-  constant(value: ArrayData): Tensor {
-    let finalValue: NDArray;
+  constant(value: ArrayData): SymbolicTensor {
+    let finalValue: Tensor;
     if (typeof value === 'number') {
       finalValue = Scalar.new(value);
-    } else if (value instanceof NDArray) {
+    } else if (value instanceof Tensor) {
       finalValue = value;
     } else if (value instanceof Array) {
       const flatValues = util.flatten(value as number[]);
       const vals = new Float32Array(flatValues as number[]);
-      finalValue = NDArray.make(util.inferShape(value), {values: vals});
+      finalValue = Tensor.make(util.inferShape(value), {values: vals});
     } else {
       throw new Error('unimplemented constant type.');
     }
@@ -118,7 +119,7 @@ export class Graph {
    * @param shape The shape of the output tensor.
    * @return The tensor representing the reshape operation.
    */
-  reshape(x: Tensor, shape: number[]): Tensor {
+  reshape(x: SymbolicTensor, shape: number[]): SymbolicTensor {
     return this.addNodeAndReturnOutput(
         new ReshapeNode(this, 'Reshape', x, shape));
   }
@@ -131,8 +132,9 @@ export class Graph {
    * @param c2 Coefficient of t2. Must be size 1.
    * @return The tensor representing c1*t1+c2*t2.
    */
-  fusedLinearCombination(x1: Tensor, x2: Tensor, c1: Tensor, c2: Tensor):
-      Tensor {
+  fusedLinearCombination(
+      x1: SymbolicTensor, x2: SymbolicTensor, c1: SymbolicTensor,
+      c2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(
         new FusedLinearCombinationNode(this, x1, x2, c1, c2));
   }
@@ -143,7 +145,7 @@ export class Graph {
    * @param x2 The second input tensor.
    * @return The tensor representing t1+t2.
    */
-  add(x1: Tensor, x2: Tensor): Tensor {
+  add(x1: SymbolicTensor, x2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new AddNode(this, x1, x2));
   }
 
@@ -154,7 +156,7 @@ export class Graph {
    * @param x2 The second input tensor.
    * @return The tensor representing t1-t2.
    */
-  subtract(x1: Tensor, x2: Tensor): Tensor {
+  subtract(x1: SymbolicTensor, x2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new SubtractNode(this, x1, x2));
   }
 
@@ -165,7 +167,7 @@ export class Graph {
    * @param x2 The second input tensor.
    * @return The tensor representing t1*t2.
    */
-  multiply(x1: Tensor, x2: Tensor): Tensor {
+  multiply(x1: SymbolicTensor, x2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new MultiplyNode(this, x1, x2));
   }
 
@@ -176,7 +178,7 @@ export class Graph {
    * @param x2 The second input tensor.
    * @return The tensor representing t1 / t2.
    */
-  divide(x1: Tensor, x2: Tensor): Tensor {
+  divide(x1: SymbolicTensor, x2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new DivideNode(this, x1, x2));
   }
 
@@ -184,7 +186,7 @@ export class Graph {
    * Computes the sum of elements in the tensor.
    * @param x The input tensor.
    */
-  reduceSum(x: Tensor): Tensor {
+  reduceSum(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new ReduceSumNode(this, x));
   }
 
@@ -194,7 +196,7 @@ export class Graph {
    * @param x2 The second input tensor.
    * @return The tensor representing concat of two tensors along axis.
    */
-  concat1d(x1: Tensor, x2: Tensor): Tensor {
+  concat1d(x1: SymbolicTensor, x2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new Concat1DNode(this, x1, x2));
   }
 
@@ -205,7 +207,8 @@ export class Graph {
    * @param axis The axis to concatenate along.
    * @return The tensor representing concat of two tensors along axis.
    */
-  concat2d(x1: Tensor, x2: Tensor, axis: number): Tensor {
+  concat2d(x1: SymbolicTensor, x2: SymbolicTensor, axis: number):
+      SymbolicTensor {
     return this.addNodeAndReturnOutput(new Concat2DNode(this, x1, x2, axis));
   }
 
@@ -216,7 +219,8 @@ export class Graph {
    * @param axis The axis to concatenate along.
    * @return The tensor representing concat of two tensors along axis.
    */
-  concat3d(x1: Tensor, x2: Tensor, axis: number): Tensor {
+  concat3d(x1: SymbolicTensor, x2: SymbolicTensor, axis: number):
+      SymbolicTensor {
     return this.addNodeAndReturnOutput(new Concat3DNode(this, x1, x2, axis));
   }
 
@@ -227,7 +231,8 @@ export class Graph {
    * @param axis The axis to concatenate along.
    * @return The tensor representing concat of two tensors along axis.
    */
-  concat4d(x1: Tensor, x2: Tensor, axis: number): Tensor {
+  concat4d(x1: SymbolicTensor, x2: SymbolicTensor, axis: number):
+      SymbolicTensor {
     return this.addNodeAndReturnOutput(new Concat4DNode(this, x1, x2, axis));
   }
 
@@ -237,7 +242,7 @@ export class Graph {
    * @param x2 The second input tensor.
    * @return The tensor representing the dot product of x1 and x2.
    */
-  matmul(x1: Tensor, x2: Tensor): Tensor {
+  matmul(x1: SymbolicTensor, x2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new MatMulNode(this, x1, x2));
   }
 
@@ -253,8 +258,9 @@ export class Graph {
    * @return The tensor representing the convolution operation.
    */
   conv2d(
-      x: Tensor, w: Tensor, b: Tensor, fieldSize: number, outputDepth: number,
-      stride = 1, zeroPad?: number): Tensor {
+      x: SymbolicTensor, w: SymbolicTensor, b: SymbolicTensor,
+      fieldSize: number, outputDepth: number, stride = 1,
+      zeroPad?: number): SymbolicTensor {
     return this.addNodeAndReturnOutput(new Convolution2DNode(
         this, x, w, b, fieldSize, outputDepth, stride, zeroPad));
   }
@@ -267,7 +273,8 @@ export class Graph {
    * @param zeroPad The amount of zero padding on all sides of the input tensor.
    * @return The tensor representing the max pool operation.
    */
-  maxPool(x: Tensor, fieldSize: number, stride = 1, zeroPad?: number): Tensor {
+  maxPool(x: SymbolicTensor, fieldSize: number, stride = 1, zeroPad?: number):
+      SymbolicTensor {
     return this.addNodeAndReturnOutput(
         new MaxPoolNode(this, x, fieldSize, stride, zeroPad));
   }
@@ -277,7 +284,7 @@ export class Graph {
    * @param x The input tensor to the exp.
    * @return The tensor representing the e ^ x operation.
    */
-  exp(x: Tensor): Tensor {
+  exp(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new ExpNode(this, x));
   }
 
@@ -286,7 +293,7 @@ export class Graph {
    * @param x The input tensor to the log.
    * @return The tensor representing the ln(x) operation.
    */
-  log(x: Tensor): Tensor {
+  log(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new LogNode(this, x));
   }
 
@@ -295,7 +302,7 @@ export class Graph {
    * @param x The input tensor to the ReLU.
    * @return The tensor representing the ReLU operation.
    */
-  relu(x: Tensor): Tensor {
+  relu(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new ReLUNode(this, x));
   }
 
@@ -305,7 +312,7 @@ export class Graph {
    * @param alpha Negative slope coefficient.
    * @return The tensor representing the LeakyReLU operation.
    */
-  leakyRelu(x: Tensor, alpha: number): Tensor {
+  leakyRelu(x: SymbolicTensor, alpha: number): SymbolicTensor {
     return this.addNodeAndReturnOutput(new LeakyReLUNode(this, x, alpha));
   }
 
@@ -315,7 +322,7 @@ export class Graph {
    * @param alpha Negative slope coefficient tensor.
    * @return The tensor representing the PReLU operation.
    */
-  prelu(x: Tensor, alpha: Tensor): Tensor {
+  prelu(x: SymbolicTensor, alpha: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new PReLUNode(this, x, alpha));
   }
 
@@ -324,7 +331,7 @@ export class Graph {
    * @param x the input tensor to the Elu.
    * @return The tensor representing the Elu operation.
    */
-  elu(x: Tensor): Tensor {
+  elu(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new EluNode(this, x));
   }
 
@@ -333,7 +340,7 @@ export class Graph {
    * @param x The input tensor to the TanH.
    * @return The tensor representing the TanH operation.
    */
-  tanh(x: Tensor): Tensor {
+  tanh(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new TanHNode(this, x));
   }
 
@@ -342,7 +349,7 @@ export class Graph {
    * @param x The input tensor to the sigmoid.
    * @return The tensor representing the sigmoid operation.
    */
-  sigmoid(x: Tensor): Tensor {
+  sigmoid(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new SigmoidNode(this, x));
   }
 
@@ -350,7 +357,7 @@ export class Graph {
    * Computes square of x element-wise.
    * @param x The input tensor to the square.
    */
-  square(x: Tensor): Tensor {
+  square(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new SquareNode(this, x));
   }
 
@@ -360,7 +367,7 @@ export class Graph {
    * @param x The input logits.
    * @return The softmax probabilities.
    */
-  softmax(x: Tensor): Tensor {
+  softmax(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new SoftmaxNode(this, x));
   }
 
@@ -370,7 +377,8 @@ export class Graph {
    * @param target The label tensor.
    * @return The tensor representing the softmax cross-entropy cost operation.
    */
-  softmaxCrossEntropyCost(x: Tensor, target: Tensor): Tensor {
+  softmaxCrossEntropyCost(x: SymbolicTensor, target: SymbolicTensor):
+      SymbolicTensor {
     return this.addNodeAndReturnOutput(
         new SoftmaxCrossEntropyCostNode(this, x, target));
   }
@@ -381,7 +389,7 @@ export class Graph {
    * @param prediction The prediction tensor.
    * @return The tensor representing the mean-squared cost operation.
    */
-  meanSquaredCost(label: Tensor, prediction: Tensor) {
+  meanSquaredCost(label: SymbolicTensor, prediction: SymbolicTensor) {
     return this.addNodeAndReturnOutput(
         new MeanSquaredCostNode(this, label, prediction));
   }
@@ -391,7 +399,7 @@ export class Graph {
    * @param x The tensor with the value.
    * @return A Scalar tensor with the index of the maximum entry.
    */
-  argmax(x: Tensor): Tensor {
+  argmax(x: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new ArgMaxNode(this, x));
   }
 
@@ -401,11 +409,11 @@ export class Graph {
    * @param x2 Second input tensor to check against.
    * @return The tensor representing the argmax equals operation.
    */
-  argmaxEquals(x1: Tensor, x2: Tensor): Tensor {
+  argmaxEquals(x1: SymbolicTensor, x2: SymbolicTensor): SymbolicTensor {
     return this.addNodeAndReturnOutput(new ArgMaxEqualsNode(this, x1, x2));
   }
 
-  private addNodeAndReturnOutput(node: Node): Tensor {
+  private addNodeAndReturnOutput(node: Node): SymbolicTensor {
     this.nodes.push(node);
     node.validate();
     return node.output;
@@ -425,14 +433,14 @@ export class Graph {
  * operations return Tensor objects, which can be thought of as 'handles' to
  * operations.
  */
-export class Tensor {
+export class SymbolicTensor {
   node: Node;
   id: number;
   /**
    * @param shape The shape of this tensor, in dimension sizes.
    */
   constructor(public shape: number[]) {
-    this.id = Tensor.nextID++;
+    this.id = SymbolicTensor.nextID++;
   }
   private static nextID = 0;
 }
@@ -454,7 +462,8 @@ export abstract class Node {
    */
   constructor(
       public graph: Graph, public name: string,
-      public inputs: {[name: string]: Tensor}, public output: Tensor) {
+      public inputs: {[name: string]: SymbolicTensor},
+      public output: SymbolicTensor) {
     this.id = Node.nextID++;
     output.node = this;
   }
@@ -470,8 +479,8 @@ export abstract class Node {
  * @hidden
  */
 export class VariableNode extends Node {
-  constructor(graph: Graph, name: string, public data: NDArray) {
-    super(graph, name, {}, new Tensor(data.shape));
+  constructor(graph: Graph, name: string, public data: Tensor) {
+    super(graph, name, {}, new SymbolicTensor(data.shape));
   }
   validate() {
     util.assert(
@@ -489,7 +498,7 @@ export class VariableNode extends Node {
  */
 export class PlaceholderNode extends Node {
   constructor(graph: Graph, name: string, shape: number[]) {
-    super(graph, name, {}, new Tensor(shape));
+    super(graph, name, {}, new SymbolicTensor(shape));
   }
   validate() {}
 }
@@ -500,8 +509,8 @@ export class PlaceholderNode extends Node {
  * @hidden
  */
 export class ConstantNode extends Node {
-  constructor(graph: Graph, public data: NDArray) {
-    super(graph, 'Constant', {}, new Tensor(data.shape));
+  constructor(graph: Graph, public data: Tensor) {
+    super(graph, 'Constant', {}, new SymbolicTensor(data.shape));
   }
   validate() {
     util.assert(
@@ -519,9 +528,9 @@ export class ConstantNode extends Node {
 export class ReshapeNode extends Node {
   static readonly X = 'x';
   constructor(
-      graph: Graph, public name: string, private x: Tensor,
+      graph: Graph, public name: string, private x: SymbolicTensor,
       private shape: number[]) {
-    super(graph, name, {x}, new Tensor(shape));
+    super(graph, name, {x}, new SymbolicTensor(shape));
   }
   validate() {
     const xSize = util.sizeFromShape(this.x.shape);
@@ -544,9 +553,11 @@ export class FusedLinearCombinationNode extends Node {
   static readonly C1 = 'c1';
   static readonly C2 = 'c2';
   constructor(
-      graph: Graph, private t1: Tensor, private t2: Tensor, private c1: Tensor,
-      private c2: Tensor) {
-    super(graph, 'Linear Combination', {t1, t2, c1, c2}, new Tensor(t1.shape));
+      graph: Graph, private t1: SymbolicTensor, private t2: SymbolicTensor,
+      private c1: SymbolicTensor, private c2: SymbolicTensor) {
+    super(
+        graph, 'Linear Combination', {t1, t2, c1, c2},
+        new SymbolicTensor(t1.shape));
   }
 
   validate() {
@@ -571,12 +582,14 @@ export class AddNode extends Node {
   static readonly T1 = 't1';
   static readonly T2 = 't2';
 
-  constructor(graph: Graph, private t1: Tensor, private t2: Tensor) {
+  constructor(
+      graph: Graph, private t1: SymbolicTensor, private t2: SymbolicTensor) {
     super(
         graph, 'Add', {t1, t2},
-        new Tensor(util.sizeFromShape(t1.shape) === 1
-            ? t2.shape
-            : (t1.shape.length < t2.shape.length ? t2.shape : t1.shape)));
+        new SymbolicTensor(
+            util.sizeFromShape(t1.shape) === 1 ?
+                t2.shape :
+                (t1.shape.length < t2.shape.length ? t2.shape : t1.shape)));
   }
 
   validate() {
@@ -585,9 +598,9 @@ export class AddNode extends Node {
             util.sizeFromShape(this.t2.shape) === 1 ||
             util.arraysEqual(this.t1.shape, this.t2.shape) ||
             (this.t1.shape.length === 2 && this.t2.shape.length === 1 &&
-                this.t1.shape[1] === this.t2.shape[0]) ||
+             this.t1.shape[1] === this.t2.shape[0]) ||
             (this.t1.shape.length === 1 && this.t2.shape.length === 2 &&
-                this.t1.shape[0] === this.t2.shape[1]),
+             this.t1.shape[0] === this.t2.shape[1]),
         'Error adding add operation op: one of inputs must be scalar, ' +
             `shapes ${this.t1.shape} and ${this.t2.shape} must match,` +
             'or one of them can be broadcasted (2D and 1D).');
@@ -601,10 +614,12 @@ export class SubtractNode extends Node {
   static readonly T1 = 't1';
   static readonly T2 = 't2';
 
-  constructor(graph: Graph, private t1: Tensor, private t2: Tensor) {
+  constructor(
+      graph: Graph, private t1: SymbolicTensor, private t2: SymbolicTensor) {
     super(
         graph, 'Subtract', {t1, t2},
-        new Tensor(util.sizeFromShape(t1.shape) === 1 ? t2.shape : t1.shape));
+        new SymbolicTensor(
+            util.sizeFromShape(t1.shape) === 1 ? t2.shape : t1.shape));
   }
 
   validate() {
@@ -624,10 +639,12 @@ export class MultiplyNode extends Node {
   static readonly T1 = 't1';
   static readonly T2 = 't2';
 
-  constructor(graph: Graph, private t1: Tensor, private t2: Tensor) {
+  constructor(
+      graph: Graph, private t1: SymbolicTensor, private t2: SymbolicTensor) {
     super(
         graph, 'Multiply', {t1, t2},
-        new Tensor(util.sizeFromShape(t1.shape) === 1 ? t2.shape : t1.shape));
+        new SymbolicTensor(
+            util.sizeFromShape(t1.shape) === 1 ? t2.shape : t1.shape));
   }
 
   validate() {
@@ -647,10 +664,12 @@ export class DivideNode extends Node {
   static readonly T1 = 't1';
   static readonly T2 = 't2';
 
-  constructor(graph: Graph, private t1: Tensor, private t2: Tensor) {
+  constructor(
+      graph: Graph, private t1: SymbolicTensor, private t2: SymbolicTensor) {
     super(
         graph, 'Divide', {t1, t2},
-        new Tensor(util.sizeFromShape(t1.shape) === 1 ? t2.shape : t1.shape));
+        new SymbolicTensor(
+            util.sizeFromShape(t1.shape) === 1 ? t2.shape : t1.shape));
   }
 
   validate() {
@@ -669,8 +688,8 @@ export class DivideNode extends Node {
 export class ReduceSumNode extends Node {
   static readonly X = 'x';
 
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'ReduceSum', {x}, new Tensor([]));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'ReduceSum', {x}, new SymbolicTensor([]));
   }
 
   validate() {}
@@ -683,11 +702,10 @@ export class ReduceSumNode extends Node {
 export class Concat1DNode extends Node {
   static readonly X1 = 'x1';
   static readonly X2 = 'x2';
-  constructor(
-      graph: Graph, x1: Tensor, x2: Tensor) {
+  constructor(graph: Graph, x1: SymbolicTensor, x2: SymbolicTensor) {
     super(
         graph, 'Concat1D', {x1, x2},
-        new Tensor(concat_util.computeOutShape1D(x1.shape, x2.shape)));
+        new SymbolicTensor(concat_util.computeOutShape1D(x1.shape, x2.shape)));
   }
   validate() {}
 }
@@ -701,11 +719,12 @@ export class Concat2DNode extends Node {
   static readonly X2 = 'x2';
   static readonly AXIS = 'axis';
   constructor(
-      graph: Graph, private x1: Tensor, private x2: Tensor,
+      graph: Graph, private x1: SymbolicTensor, private x2: SymbolicTensor,
       public axis: number) {
     super(
         graph, 'Concat2D', {x1, x2},
-        new Tensor(concat_util.computeOutShape(x1.shape, x2.shape, axis)));
+        new SymbolicTensor(
+            concat_util.computeOutShape(x1.shape, x2.shape, axis)));
   }
   validate() {
     concat_util.assertParams(this.x1.shape, this.x2.shape, this.axis);
@@ -721,11 +740,12 @@ export class Concat3DNode extends Node {
   static readonly X2 = 'x2';
   static readonly AXIS = 'axis';
   constructor(
-      graph: Graph, private x1: Tensor, private x2: Tensor,
+      graph: Graph, private x1: SymbolicTensor, private x2: SymbolicTensor,
       public axis: number) {
     super(
         graph, 'Concat3D', {x1, x2},
-        new Tensor(concat_util.computeOutShape(x1.shape, x2.shape, axis)));
+        new SymbolicTensor(
+            concat_util.computeOutShape(x1.shape, x2.shape, axis)));
   }
   validate() {
     concat_util.assertParams(this.x1.shape, this.x2.shape, this.axis);
@@ -741,11 +761,12 @@ export class Concat4DNode extends Node {
   static readonly X2 = 'x2';
   static readonly AXIS = 'axis';
   constructor(
-      graph: Graph, private x1: Tensor, private x2: Tensor,
+      graph: Graph, private x1: SymbolicTensor, private x2: SymbolicTensor,
       public axis: number) {
     super(
         graph, 'Concat4D', {x1, x2},
-        new Tensor(concat_util.computeOutShape(x1.shape, x2.shape, axis)));
+        new SymbolicTensor(
+            concat_util.computeOutShape(x1.shape, x2.shape, axis)));
   }
   validate() {
     concat_util.assertParams(this.x1.shape, this.x2.shape, this.axis);
@@ -770,10 +791,11 @@ function getMatMulOutputShape(x1Shape: number[], x2Shape: number[]): number[] {
 export class MatMulNode extends Node {
   static readonly X1 = 'x1';
   static readonly X2 = 'x2';
-  constructor(graph: Graph, private x1: Tensor, private x2: Tensor) {
+  constructor(
+      graph: Graph, private x1: SymbolicTensor, private x2: SymbolicTensor) {
     super(
         graph, 'MatMul', {x1, x2},
-        new Tensor(getMatMulOutputShape(x1.shape, x2.shape)));
+        new SymbolicTensor(getMatMulOutputShape(x1.shape, x2.shape)));
   }
 
   validate() {
@@ -810,12 +832,12 @@ export class Convolution2DNode extends Node {
   static readonly W = 'w';
   static readonly B = 'b';
   constructor(
-      graph: Graph, private x: Tensor, private w: Tensor, private b: Tensor,
-      public fieldSize: number, public outputDepth: number, public stride = 1,
-      public zeroPad?: number) {
+      graph: Graph, private x: SymbolicTensor, private w: SymbolicTensor,
+      private b: SymbolicTensor, public fieldSize: number,
+      public outputDepth: number, public stride = 1, public zeroPad?: number) {
     super(
         graph, 'Convolution 2D', {x, w, b},
-        new Tensor(conv_util.computeOutputShape3D(
+        new SymbolicTensor(conv_util.computeOutputShape3D(
             x.shape as [number, number, number], fieldSize, outputDepth, stride,
             zeroPad)));
   }
@@ -847,11 +869,11 @@ export class Convolution2DNode extends Node {
 export class MaxPoolNode extends Node {
   static readonly X = 'x';
   constructor(
-      graph: Graph, private x: Tensor, public fieldSize: number,
+      graph: Graph, private x: SymbolicTensor, public fieldSize: number,
       public stride = 1, public zeroPad?: number) {
     super(
         graph, 'Max pool', {x},
-        new Tensor(conv_util.computeOutputShape3D(
+        new SymbolicTensor(conv_util.computeOutputShape3D(
             x.shape as [number, number, number], fieldSize, x.shape[2], stride,
             zeroPad)));
   }
@@ -869,8 +891,8 @@ export class MaxPoolNode extends Node {
  */
 export class ReLUNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'ReLU', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'ReLU', {x}, new SymbolicTensor(x.shape));
   }
   validate() {}
 }
@@ -882,8 +904,8 @@ export class ReLUNode extends Node {
 export class LeakyReLUNode extends Node {
   static readonly X = 'x';
   public alpha: number;
-  constructor(graph: Graph, x: Tensor, alpha: number) {
-    super(graph, 'LeakyReLU', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor, alpha: number) {
+    super(graph, 'LeakyReLU', {x}, new SymbolicTensor(x.shape));
     this.alpha = alpha;
   }
   validate() {}
@@ -897,21 +919,24 @@ export class PReLUNode extends Node {
   static readonly X = 'x';
   static readonly ALPHA = 'alpha';
 
-  constructor(graph: Graph, private x: Tensor, private alpha: Tensor) {
-    super(graph, 'PReLU', {x, alpha}, new Tensor(x.shape));
+  constructor(
+      graph: Graph, private x: SymbolicTensor, private alpha: SymbolicTensor) {
+    super(graph, 'PReLU', {x, alpha}, new SymbolicTensor(x.shape));
   }
 
   validate() {
-    util.assert(util.arraysEqual(this.x.shape, this.alpha.shape),
-      'Error adding pRelu op: the ' +
-        `shapes x: ${this.x.shape} and alpha: ${this.alpha.shape} must match.`);
+    util.assert(
+        util.arraysEqual(this.x.shape, this.alpha.shape),
+        'Error adding pRelu op: the ' +
+            `shapes x: ${this.x.shape} and alpha: ${
+                this.alpha.shape} must match.`);
   }
 }
 
 export class EluNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'Elu', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'Elu', {x}, new SymbolicTensor(x.shape));
   }
   validate() {}
 }
@@ -922,8 +947,8 @@ export class EluNode extends Node {
  */
 export class ExpNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'Exp', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'Exp', {x}, new SymbolicTensor(x.shape));
   }
   validate() {}
 }
@@ -934,8 +959,8 @@ export class ExpNode extends Node {
  */
 export class LogNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'Log', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'Log', {x}, new SymbolicTensor(x.shape));
   }
   validate() {}
 }
@@ -946,8 +971,8 @@ export class LogNode extends Node {
  */
 export class TanHNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'TanH', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'TanH', {x}, new SymbolicTensor(x.shape));
   }
   validate() {}
 }
@@ -958,8 +983,8 @@ export class TanHNode extends Node {
  */
 export class SigmoidNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'Sigmoid', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'Sigmoid', {x}, new SymbolicTensor(x.shape));
   }
   validate() {}
 }
@@ -970,8 +995,8 @@ export class SigmoidNode extends Node {
  */
 export class SquareNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, x: Tensor) {
-    super(graph, 'Square', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, x: SymbolicTensor) {
+    super(graph, 'Square', {x}, new SymbolicTensor(x.shape));
   }
   validate() {}
 }
@@ -984,8 +1009,10 @@ export class SquareNode extends Node {
 export class SoftmaxCrossEntropyCostNode extends Node {
   static readonly X = 'x';
   static readonly TARGET = 'target';
-  constructor(graph: Graph, private x: Tensor, private target: Tensor) {
-    super(graph, 'SoftmaxCrossEntropyCost', {x, target}, new Tensor([]));
+  constructor(
+      graph: Graph, private x: SymbolicTensor, private target: SymbolicTensor) {
+    super(
+        graph, 'SoftmaxCrossEntropyCost', {x, target}, new SymbolicTensor([]));
   }
   validate() {
     util.assert(
@@ -1001,8 +1028,8 @@ export class SoftmaxCrossEntropyCostNode extends Node {
 export class SoftmaxNode extends Node {
   static readonly X = 'x';
 
-  constructor(graph: Graph, private x: Tensor) {
-    super(graph, 'Softmax', {x}, new Tensor(x.shape));
+  constructor(graph: Graph, private x: SymbolicTensor) {
+    super(graph, 'Softmax', {x}, new SymbolicTensor(x.shape));
   }
   validate() {
     util.assert(
@@ -1023,8 +1050,12 @@ export class SoftmaxNode extends Node {
 export class MeanSquaredCostNode extends Node {
   static readonly LABEL = 'label';
   static readonly PREDICTION = 'prediction';
-  constructor(graph: Graph, private label: Tensor, private prediction: Tensor) {
-    super(graph, 'Mean Squared Cost', {label, prediction}, new Tensor([]));
+  constructor(
+      graph: Graph, private label: SymbolicTensor,
+      private prediction: SymbolicTensor) {
+    super(
+        graph, 'Mean Squared Cost', {label, prediction},
+        new SymbolicTensor([]));
   }
   validate() {
     util.assert(
@@ -1040,8 +1071,8 @@ export class MeanSquaredCostNode extends Node {
  */
 export class ArgMaxNode extends Node {
   static readonly X = 'x';
-  constructor(graph: Graph, public x: Tensor) {
-    super(graph, 'ArgMax', {x}, new Tensor([1]));
+  constructor(graph: Graph, public x: SymbolicTensor) {
+    super(graph, 'ArgMax', {x}, new SymbolicTensor([1]));
   }
   validate() {
     util.assert(
@@ -1057,8 +1088,9 @@ export class ArgMaxNode extends Node {
 export class ArgMaxEqualsNode extends Node {
   static readonly X1 = 'x1';
   static readonly X2 = 'x2';
-  constructor(graph: Graph, private x1: Tensor, private x2: Tensor) {
-    super(graph, 'ArgMaxEquals', {x1, x2}, new Tensor([1]));
+  constructor(
+      graph: Graph, private x1: SymbolicTensor, private x2: SymbolicTensor) {
+    super(graph, 'ArgMaxEquals', {x1, x2}, new SymbolicTensor([1]));
   }
   validate() {
     util.assert(
@@ -1072,4 +1104,4 @@ export class ArgMaxEqualsNode extends Node {
  * @hidden
  */
 export type ArrayData =
-    NDArray|number|number[]|number[][]|number[][][]|number[][][][];
+    Tensor|number|number[]|number[][]|number[][][]|number[][][][];

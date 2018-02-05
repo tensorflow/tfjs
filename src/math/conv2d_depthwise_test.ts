@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Array4D} from './ndarray';
+import {Tensor4D} from './tensor';
 import {Rank} from './types';
 
 // math.depthwiseConv2D
@@ -31,11 +31,11 @@ import {Rank} from './types';
       const chMul = 1;
       const inDepth = 1;
 
-      const x = Array4D.new([1, 3, 3, inDepth], [
+      const x = Tensor4D.new([1, 3, 3, inDepth], [
         0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641, 0.0741907,
         0.409265, 0.351377
       ]);
-      const w = Array4D.new(
+      const w = Tensor4D.new(
           [fSize, fSize, inDepth, chMul],
           [0.303873, 0.229223, 0.144333, 0.803373]);
       const result = math.depthwiseConv2D(x, w, stride, pad);
@@ -52,12 +52,12 @@ import {Rank} from './types';
       const chMul = 1;
       const inDepth = 2;
 
-      const x = Array4D.new([1, 3, 3, inDepth], [
+      const x = Tensor4D.new([1, 3, 3, inDepth], [
         0.111057, 0.661818, 0.701979, 0.424362, 0.992854, 0.417599, 0.423036,
         0.500499, 0.368484, 0.714135, 0.456693, 0.531058, 0.636636, 0.345024,
         0.0506303, 0.789682, 0.177473, 0.793569
       ]);
-      const w = Array4D.new([fSize, fSize, inDepth, chMul], [
+      const w = Tensor4D.new([fSize, fSize, inDepth, chMul], [
         0.614293, 0.0648011, 0.101113, 0.452887, 0.0582746, 0.426481, 0.872743,
         0.765767
       ]);
@@ -79,12 +79,12 @@ import {Rank} from './types';
       const chMul = 2;
       const inDepth = 2;
 
-      const x = Array4D.new([1, 3, 3, inDepth], [
+      const x = Tensor4D.new([1, 3, 3, inDepth], [
         0.675707, 0.758567, 0.413529, 0.963967, 0.217291, 0.101335, 0.804231,
         0.329673, 0.924503, 0.728742, 0.180217, 0.210459, 0.133869, 0.650827,
         0.047613, 0.554795, 0.653365, 0.442196
       ]);
-      const w = Array4D.new([fSize, fSize, inDepth, chMul], [
+      const w = Tensor4D.new([fSize, fSize, inDepth, chMul], [
         0.347154, 0.386692, 0.327191, 0.483784, 0.591807, 0.24263, 0.95182,
         0.174353, 0.592136, 0.623469, 0.988244, 0.660731, 0.946534, 0.0801365,
         0.864889, 0.874602
@@ -110,7 +110,7 @@ import {Rank} from './types';
       const chMul = 2;
       const inDepth = 2;
 
-      const x = Array4D.new([2, 3, 3, inDepth], [
+      const x = Tensor4D.new([2, 3, 3, inDepth], [
         0.261945, 0.0528113, 0.656698,  0.127345,  0.610039, 0.169131,
         0.458647, 0.0988288, 0.966109,  0.0421747, 0.82035,  0.274711,
         0.359377, 0.512113,  0.689682,  0.941571,  0.31961,  0.743826,
@@ -118,7 +118,7 @@ import {Rank} from './types';
         0.241437, 0.937999,  0.0957074, 0.773611,  0.46023,  0.469379,
         0.363789, 0.269745,  0.486136,  0.894215,  0.794299, 0.724615
       ]);
-      const w = Array4D.new([fSize, fSize, inDepth, chMul], [
+      const w = Tensor4D.new([fSize, fSize, inDepth, chMul], [
         0.240347, 0.906352, 0.478657, 0.825918, 0.380769, 0.184705, 0.238241,
         0.201907, 0.294087, 0.181165, 0.191303, 0.7225, 0.430064, 0.900622,
         0.670338, 0.33478
@@ -142,7 +142,7 @@ import {Rank} from './types';
       test_util.expectArraysClose(result, expected);
     });
 
-    it('Array3D is allowed', math => {
+    it('Tensor3D is allowed', math => {
       const fSize = 2;
       const pad = 'same';
       const stride = 1;

@@ -17,9 +17,9 @@
 
 import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
-import {NDArray, Scalar} from '../math/ndarray';
+import {Tensor, Scalar} from '../math/tensor';
 // tslint:disable-next-line:max-line-length
-import {ConstantNode, Graph, Node, PlaceholderNode, ReLUNode, SquareNode, Tensor, VariableNode} from './graph';
+import {ConstantNode, Graph, Node, PlaceholderNode, ReLUNode, SquareNode, SymbolicTensor, VariableNode} from './graph';
 import * as graph_util from './graph_util';
 import {TensorArrayMap} from './tensor_array_map';
 
@@ -35,16 +35,16 @@ describe('graph_util.getUnorderedEvaluationSet', () => {
   });
 
   it('returns only node in graph', () => {
-    const n = new TestNode(g, '', {}, new Tensor([]));
+    const n = new TestNode(g, '', {}, new SymbolicTensor([]));
     const path = graph_util.getUnorderedEvaluationSet([n], []);
     expect(path.length).toEqual(1);
     expect(path[0]).toBe(n);
   });
 
   it('returns both nodes in graph with two connected nodes', () => {
-    const t = new Tensor([]);
+    const t = new SymbolicTensor([]);
     const s = new TestNode(g, '', {}, t);
-    const e = new TestNode(g, '', {'t': t}, new Tensor([]));
+    const e = new TestNode(g, '', {'t': t}, new SymbolicTensor([]));
     const path = graph_util.getUnorderedEvaluationSet([e], []);
     expect(path.length).toEqual(2);
     expect(path).toContain(s);
@@ -52,11 +52,11 @@ describe('graph_util.getUnorderedEvaluationSet', () => {
   });
 
   it('adds nodes in the termination set', () => {
-    const t0 = new Tensor([]);
+    const t0 = new SymbolicTensor([]);
     const n0 = new TestNode(g, '', {}, t0);
-    const t1 = new Tensor([]);
+    const t1 = new SymbolicTensor([]);
     const n1 = new TestNode(g, '', {'t0': t0}, t1);
-    const n2 = new TestNode(g, '', {'t1': t1}, new Tensor([]));
+    const n2 = new TestNode(g, '', {'t1': t1}, new SymbolicTensor([]));
     const path = graph_util.getUnorderedEvaluationSet([n2], [n0]);
     expect(path.length).toEqual(3);
     expect(path).toContain(n0);
@@ -65,10 +65,10 @@ describe('graph_util.getUnorderedEvaluationSet', () => {
   });
 
   it('does not process inputs from nodes in the termination set', () => {
-    const t0 = new Tensor([]);
-    const t1 = new Tensor([]);
+    const t0 = new SymbolicTensor([]);
+    const t1 = new SymbolicTensor([]);
     const n1 = new TestNode(g, '', {'t0': t0}, t1);
-    const n2 = new TestNode(g, '', {'t1': t1}, new Tensor([]));
+    const n2 = new TestNode(g, '', {'t1': t1}, new SymbolicTensor([]));
     const path = graph_util.getUnorderedEvaluationSet([n2], [n1]);
     expect(path.length).toEqual(2);
     expect(path).toContain(n1);
@@ -76,11 +76,11 @@ describe('graph_util.getUnorderedEvaluationSet', () => {
   });
 
   it('accumulates multiple inputs from nodes', () => {
-    const t0 = new Tensor([]);
+    const t0 = new SymbolicTensor([]);
     const i0 = new TestNode(g, '', {}, t0);
-    const t1 = new Tensor([]);
+    const t1 = new SymbolicTensor([]);
     const i1 = new TestNode(g, '', {}, t1);
-    const n = new TestNode(g, '', {'t0': t0, 't1': t1}, new Tensor([]));
+    const n = new TestNode(g, '', {'t0': t0, 't1': t1}, new SymbolicTensor([]));
     const path = graph_util.getUnorderedEvaluationSet([n], []);
     expect(path.length).toEqual(3);
     expect(path).toContain(i0);
@@ -89,13 +89,14 @@ describe('graph_util.getUnorderedEvaluationSet', () => {
   });
 
   it('enqueues each node once even if there are multiple paths to it', () => {
-    const t0 = new Tensor([]);
+    const t0 = new SymbolicTensor([]);
     const n0 = new TestNode(g, '', {}, t0);
-    const t1 = new Tensor([]);
+    const t1 = new SymbolicTensor([]);
     const n1 = new TestNode(g, '', {'t0': t0}, t1);
-    const t2 = new Tensor([]);
+    const t2 = new SymbolicTensor([]);
     const n2 = new TestNode(g, '', {'t0': t0}, t2);
-    const n3 = new TestNode(g, '', {'t1': t1, 't2': t2}, new Tensor([]));
+    const n3 =
+        new TestNode(g, '', {'t1': t1, 't2': t2}, new SymbolicTensor([]));
     const set = graph_util.getUnorderedEvaluationSet([n3], []);
     expect(set.length).toEqual(4);
     expect(set).toContain(n0);
@@ -113,15 +114,15 @@ describe('graph_util.getOrderedEvaluationSet', () => {
   });
 
   it('returns only node in unordered set', () => {
-    const n = new TestNode(g, '', {}, new Tensor([]));
+    const n = new TestNode(g, '', {}, new SymbolicTensor([]));
     expect(graph_util.getOrderedEvaluationSet([n])).toEqual([n]);
   });
 
   it('orders dependencies first (2 nodes)', () => {
     // 0 => 1:  [0 1]
-    const t0 = new Tensor([]);
+    const t0 = new SymbolicTensor([]);
     const n0 = new TestNode(g, '', {}, t0);
-    const n1 = new TestNode(g, '', {'t0': t0}, new Tensor([]));
+    const n1 = new TestNode(g, '', {'t0': t0}, new SymbolicTensor([]));
     const unordered = [n1, n0];
     const ordered = [n0, n1];
     expect(graph_util.getOrderedEvaluationSet(unordered)).toEqual(ordered);
@@ -129,11 +130,12 @@ describe('graph_util.getOrderedEvaluationSet', () => {
 
   it('orders dependencies first (3 nodes)', () => {
     // 0 => 1, 1 => 2, 0 => 2:  [0 1 2]
-    const t0 = new Tensor([]);
+    const t0 = new SymbolicTensor([]);
     const n0 = new TestNode(g, '', {}, t0);
-    const t1 = new Tensor([]);
+    const t1 = new SymbolicTensor([]);
     const n1 = new TestNode(g, '', {'t0': t0}, t1);
-    const n2 = new TestNode(g, '', {'t0': t0, 't1': t1}, new Tensor([]));
+    const n2 =
+        new TestNode(g, '', {'t0': t0, 't1': t1}, new SymbolicTensor([]));
     const unordered = [n1, n2, n0];
     const ordered = [n0, n1, n2];
     expect(graph_util.getOrderedEvaluationSet(unordered)).toEqual(ordered);
@@ -145,15 +147,16 @@ describe('graph_util.getOrderedEvaluationSet', () => {
     // 2 => 3
     // 3 => 4
     // [0 1 2 3 4] or [0 2 1 3 4]
-    const t0 = new Tensor([]);
+    const t0 = new SymbolicTensor([]);
     const n0 = new TestNode(g, '', {}, t0);
-    const t1 = new Tensor([]);
+    const t1 = new SymbolicTensor([]);
     const n1 = new TestNode(g, '', {'t0': t0}, t1);
-    const t2 = new Tensor([]);
+    const t2 = new SymbolicTensor([]);
     const n2 = new TestNode(g, '', {'t0': t0}, t2);
-    const t3 = new Tensor([]);
+    const t3 = new SymbolicTensor([]);
     const n3 = new TestNode(g, '', {'t1': t1, 't2': t2}, t3);
-    const n4 = new TestNode(g, '', {'t0': t0, 't3': t3}, new Tensor([]));
+    const n4 =
+        new TestNode(g, '', {'t0': t0, 't3': t3}, new SymbolicTensor([]));
     const path = graph_util.getOrderedEvaluationSet([n4, n3, n2, n1, n0]);
     expect(path[0]).toBe(n0);
     const n2n1 = (path[1] === n2) && (path[2] === n1);
@@ -166,7 +169,7 @@ describe('graph_util.getOrderedEvaluationSet', () => {
 
 describe('graph_util.isInputNode', () => {
   let g: Graph;
-  let nda: NDArray;
+  let nda: Tensor;
 
   beforeEach(() => {
     g = new Graph();
@@ -188,7 +191,7 @@ describe('graph_util.isInputNode', () => {
   });
 
   it('returns false for ReLUNode', () => {
-    expect(graph_util.isInputNode(new ReLUNode(g, new Tensor([]))))
+    expect(graph_util.isInputNode(new ReLUNode(g, new SymbolicTensor([]))))
         .toEqual(false);
   });
 });

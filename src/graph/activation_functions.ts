@@ -17,27 +17,27 @@
 
 import {tidy} from '../math/backends/tracking';
 import {NDArrayMath} from '../math/math';
-import {NDArray, Scalar} from '../math/ndarray';
+import {Tensor, Scalar} from '../math/tensor';
 
 /** A node's activation function and its derivative. */
 export interface ActivationFunction {
-  output<T extends NDArray>(math: NDArrayMath, input: T): T;
-  der<T extends NDArray>(math: NDArrayMath, input: T, output: T): T;
+  output<T extends Tensor>(math: NDArrayMath, input: T): T;
+  der<T extends Tensor>(math: NDArrayMath, input: T, output: T): T;
   dispose(): void;
 }
 
 export class TanHFunc implements ActivationFunction {
   private one = Scalar.new(1);
 
-  output<T extends NDArray>(math: NDArrayMath, x: T) {
+  output<T extends Tensor>(math: NDArrayMath, x: T) {
     return math.tanh(x) as T;
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
+  der<T extends Tensor>(math: NDArrayMath, x: T, y: T) {
     return tidy(() => {
       const ySquared = math.multiplyStrict(y, y);
       // 1 - y^2.
-      return math.subtract(this.one, ySquared as NDArray) as T;
+      return math.subtract(this.one, ySquared as Tensor) as T;
     });
   }
 
@@ -47,11 +47,11 @@ export class TanHFunc implements ActivationFunction {
 }
 
 export class ReLUFunc implements ActivationFunction {
-  output<T extends NDArray>(math: NDArrayMath, x: T) {
+  output<T extends Tensor>(math: NDArrayMath, x: T) {
     return math.relu(x) as T;
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
+  der<T extends Tensor>(math: NDArrayMath, x: T, y: T) {
     return math.step(x) as T;
   }
 
@@ -65,11 +65,11 @@ export class LeakyReluFunc implements ActivationFunction {
     this.alpha = alpha;
   }
 
-  output<T extends NDArray>(math: NDArrayMath, x: T) {
+  output<T extends Tensor>(math: NDArrayMath, x: T) {
     return math.leakyRelu(x, this.alpha) as T;
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
+  der<T extends Tensor>(math: NDArrayMath, x: T, y: T) {
     return math.step(x, this.alpha) as T;
   }
 
@@ -77,11 +77,11 @@ export class LeakyReluFunc implements ActivationFunction {
 }
 
 export class SigmoidFunc implements ActivationFunction {
-  output<T extends NDArray>(math: NDArrayMath, x: T) {
+  output<T extends Tensor>(math: NDArrayMath, x: T) {
     return math.sigmoid(x) as T;
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T): T {
+  der<T extends Tensor>(math: NDArrayMath, x: T, y: T): T {
     return tidy(() => {
       // y * (1 - y) = y - y^2
       const ySquared = math.multiplyStrict(y, y);
@@ -95,13 +95,13 @@ export class SigmoidFunc implements ActivationFunction {
 export class SquareFunc implements ActivationFunction {
   private two = Scalar.new(2);
 
-  output<T extends NDArray>(math: NDArrayMath, x: T) {
+  output<T extends Tensor>(math: NDArrayMath, x: T) {
     return math.multiplyStrict(x, x) as T;
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T) {
+  der<T extends Tensor>(math: NDArrayMath, x: T, y: T) {
     // dy/dx = 2*x.
-    return math.multiply(this.two, x as NDArray) as T;
+    return math.multiply(this.two, x as Tensor) as T;
   }
 
   dispose() {
@@ -110,11 +110,11 @@ export class SquareFunc implements ActivationFunction {
 }
 
 export class EluFunc implements ActivationFunction {
-  output<T extends NDArray>(math: NDArrayMath, x: T) {
+  output<T extends Tensor>(math: NDArrayMath, x: T) {
     return math.elu(x) as T;
   }
 
-  der<T extends NDArray>(math: NDArrayMath, x: T, y: T): T {
+  der<T extends Tensor>(math: NDArrayMath, x: T, y: T): T {
     throw new Error('Not implemented');
   }
 

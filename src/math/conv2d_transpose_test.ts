@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Array2D, Array3D, Array4D} from './ndarray';
+import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {Rank} from './types';
 
 // math.conv2dTranspose
@@ -32,8 +32,8 @@ import {Rank} from './types';
       const origPad = 0;
       const origStride = 1;
 
-      const x = Array3D.new(inputShape, [2]);
-      const w = Array4D.new(
+      const x = Tensor3D.new(inputShape, [2]);
+      const w = Tensor4D.new(
           [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
 
       const result = math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad);
@@ -52,8 +52,8 @@ import {Rank} from './types';
       const origPad = 0;
       const origStride = 1;
 
-      const x = Array4D.new(inputShape, [2, 3]);
-      const w = Array4D.new(
+      const x = Tensor4D.new(inputShape, [2, 3]);
+      const w = Tensor4D.new(
           [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
 
       const result =
@@ -72,8 +72,8 @@ import {Rank} from './types';
       const origStride = 1;
 
       // tslint:disable-next-line:no-any
-      const x: any = Array2D.new([2, 1], [2, 2]);
-      const w = Array4D.new(
+      const x: any = Tensor2D.new([2, 1], [2, 2]);
+      const w = Tensor4D.new(
           [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
 
       expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
@@ -88,9 +88,9 @@ import {Rank} from './types';
       const origPad = 0;
       const origStride = 1;
 
-      const x = Array3D.new(inputShape, [2]);
+      const x = Tensor3D.new(inputShape, [2]);
       // tslint:disable-next-line:no-any
-      const w: any = Array3D.new([fSize, fSize, origInputDepth], [3, 1, 5, 0]);
+      const w: any = Tensor3D.new([fSize, fSize, origInputDepth], [3, 1, 5, 0]);
 
       expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
           .toThrowError();
@@ -106,7 +106,7 @@ import {Rank} from './types';
          const origPad = 0;
          const origStride = 1;
 
-         const x = Array3D.new(inputShape, [2, 2]);
+         const x = Tensor3D.new(inputShape, [2, 2]);
          const w = dl.randNormal<Rank.R4>(
              [fSize, fSize, origInputDepth, wrongOrigOutputDepth]);
 

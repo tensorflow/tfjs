@@ -15,29 +15,29 @@
  * =============================================================================
  */
 
-import {Array1D, Array2D} from '../../ndarray';
+import {Tensor1D, Tensor2D} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface Pad1DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array1D;};
+    inputs: {x: Tensor1D;};
     args: {paddings: [number, number], constantValue: number};
   };
-  output: Array1D;
-  gradient: (dy: Array1D, y: Array1D) => {
-    x: () => Array1D;
+  output: Tensor1D;
+  gradient: (dy: Tensor1D, y: Tensor1D) => {
+    x: () => Tensor1D;
   };
 }
 
 export interface Pad2DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Array2D;}; args: {
+    inputs: {x: Tensor2D;}; args: {
       paddings: [[number, number], [number, number]],
       constantValue: number
     };
   };
-  output: Array2D;
-  gradient: (dy: Array2D, y: Array2D) => {
-    x: () => Array2D;
+  output: Tensor2D;
+  gradient: (dy: Tensor2D, y: Tensor2D) => {
+    x: () => Tensor2D;
   };
 }

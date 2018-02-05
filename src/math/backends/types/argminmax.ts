@@ -15,21 +15,21 @@
  * =============================================================================
  */
 
-import {NDArray} from '../../ndarray';
+import {Tensor} from '../../tensor';
 import {KernelNode} from '../tape_types';
 
 export interface ArgMaxNode extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[];};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    x: () => NDArray;
+  inputAndArgs: {inputs: {x: Tensor;}; args: {axes: number[];};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    x: () => Tensor;
   };
 }
 
 export interface ArgMinNode extends KernelNode {
-  inputAndArgs: {inputs: {x: NDArray;}; args: {axes: number[];};};
-  output: NDArray;
-  gradient: (dy: NDArray, y: NDArray) => {
-    x: () => NDArray;
+  inputAndArgs: {inputs: {x: Tensor;}; args: {axes: number[];};};
+  output: Tensor;
+  gradient: (dy: Tensor, y: Tensor) => {
+    x: () => Tensor;
   };
 }

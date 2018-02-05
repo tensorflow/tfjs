@@ -15,16 +15,16 @@
  * =============================================================================
  */
 
-import {Array1D, NDArray} from '../../ndarray';
+import {Tensor1D, Tensor} from '../../tensor';
 import {Rank} from '../../types';
 import {KernelNode} from '../tape_types';
 
-export interface GatherNode<R extends Rank, T extends NDArray<R> = NDArray<R>>
+export interface GatherNode<R extends Rank, T extends Tensor<R> = Tensor<R>>
     extends KernelNode {
-  inputAndArgs: {inputs: {x: T; indices: Array1D;}; args: {axis: number};};
+  inputAndArgs: {inputs: {x: T; indices: Tensor1D;}; args: {axis: number};};
   output: T;
-  gradient: (dy: NDArray<R>, y: T) => {
-    x: () => NDArray<R>;
-    indices: () => Array1D;
+  gradient: (dy: Tensor<R>, y: T) => {
+    x: () => Tensor<R>;
+    indices: () => Tensor1D;
   };
 }

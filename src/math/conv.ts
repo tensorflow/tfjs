@@ -20,12 +20,12 @@ import * as util from '../util';
 
 import * as conv_util from './conv_util';
 import {doc, operation} from './decorators';
-import {Array1D, Array2D, Array3D, Array4D} from './ndarray';
+import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
 export class Ops {
   /**
    * Computes a 1D convolution over the input x.
-   * @param input The input ndarray, of rank 3 or rank 2, of shape
+   * @param input The input tensor, of rank 3 or rank 2, of shape
    *     `[batch, width, inChannels]`. If rank 2, batch of 1 is assumed.
    * @param filter The filter, rank 3, of shape
    *     [filterWidth, inDepth, outDepth].
@@ -46,10 +46,10 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
-  static conv1d<T extends Array2D|Array3D>(
-      input: T, filter: Array3D, bias: Array1D|null, stride: number,
+  static conv1d<T extends Tensor2D|Tensor3D>(
+      input: T, filter: Tensor3D, bias: Tensor1D|null, stride: number,
       pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input3D = input as Array3D;
+    let input3D = input as Tensor3D;
     let reshapedTo3D = false;
     if (input.rank === 2) {
       reshapedTo3D = true;
@@ -98,7 +98,7 @@ export class Ops {
   /**
    * Computes a 2D convolution over the input x.
    *
-   * @param x The input ndarray, of rank 4 or rank 3, of shape
+   * @param x The input tensor, of rank 4 or rank 3, of shape
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
    * assumed.
    * @param filter The filter, rank 4, of shape
@@ -120,11 +120,11 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
-  static conv2d<T extends Array3D|Array4D>(
-      x: T, filter: Array4D, bias: Array1D|null,
+  static conv2d<T extends Tensor3D|Tensor4D>(
+      x: T, filter: Tensor4D, bias: Tensor1D|null,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let x4D = x as Array4D;
+    let x4D = x as Tensor4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
       reshapedTo4D = true;
@@ -158,7 +158,7 @@ export class Ops {
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, filter.shape, strides, pad, dimRoundingMode);
 
-    const gradients = (dy: Array4D, y: Array4D) => {
+    const gradients = (dy: Tensor4D, y: Tensor4D) => {
       return {
         x: () => Ops.conv2dDerInput(x4D.shape, dy, filter, strides, pad),
         filter: () => Ops.conv2dDerFilter(x4D, dy, filter.shape, strides, pad),
@@ -196,9 +196,9 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
-  static conv2dDerInput<T extends Array3D|Array4D>(
+  static conv2dDerInput<T extends Tensor3D|Tensor4D>(
       xShape: [number, number, number, number]|[number, number, number], dy: T,
-      filter: Array4D, strides: [number, number]|number,
+      filter: Tensor4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     util.assert(
         xShape.length === dy.rank,
@@ -206,7 +206,7 @@ export class Ops {
             `(${xShape.length}) and rank of dy (${dy.rank}) must match`);
 
     let xShape4D = xShape as [number, number, number, number];
-    let dy4D = dy as Array4D;
+    let dy4D = dy as Tensor4D;
     let reshapedTo4D = false;
     if (dy.rank === 3) {
       reshapedTo4D = true;
@@ -261,8 +261,8 @@ export class Ops {
    * assumed.
    */
   @operation
-  static conv2dDerBias(dy: Array3D|Array4D): Array1D {
-    let dy4D = dy as Array4D;
+  static conv2dDerBias(dy: Tensor3D|Tensor4D): Tensor1D {
+    let dy4D = dy as Tensor4D;
     if (dy.rank === 3) {
       dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
     }
@@ -272,7 +272,7 @@ export class Ops {
   /**
    * Computes the derivative of the filter of a 2D convolution.
    *
-   * @param x The input ndarray, of rank 4 or rank 3 of shape
+   * @param x The input tensor, of rank 4 or rank 3 of shape
    *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
    * @param dy The dy image, of rank 4 or rank 3, of shape
    *     [batch, height, width, outDepth]. If rank 3, batch of 1 is assumed.
@@ -288,15 +288,15 @@ export class Ops {
    *     is of fractional size.
    */
   @operation
-  static conv2dDerFilter<T extends Array3D|Array4D>(
+  static conv2dDerFilter<T extends Tensor3D|Tensor4D>(
       x: T, dy: T, filterShape: [number, number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): Array4D {
-    let x4D = x as Array4D;
+      dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
+    let x4D = x as Tensor4D;
     if (x.rank === 3) {
       x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
     }
-    let dy4D = dy as Array4D;
+    let dy4D = dy as Tensor4D;
     if (dy4D.rank === 3) {
       dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
     }
@@ -355,8 +355,8 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
-  static conv2dTranspose<T extends Array3D|Array4D>(
-      x: T, filter: Array4D,
+  static conv2dTranspose<T extends Tensor3D|Tensor4D>(
+      x: T, filter: Tensor4D,
       outputShape: [number, number, number, number]|[number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
@@ -377,10 +377,10 @@ export class Ops {
    * See https://www.tensorflow.org/api_docs/python/tf/nn/depthwise_conv2d for
    * more details.
    *
-   * @param input The input ndarray, of rank 4 or rank 3, of shape
+   * @param input The input tensor, of rank 4 or rank 3, of shape
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
    * assumed.
-   * @param filter The filter ndarray, rank 4, of shape
+   * @param filter The filter tensor, rank 4, of shape
    *     `[filterHeight, filterWidth, inChannels, channelMultiplier]`.
    * @param strides The strides of the convolution: [strideHeight,
    * strideWidth]. If strides is a single number, then `strideHeight ==
@@ -404,11 +404,11 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
-  static depthwiseConv2D<T extends Array3D|Array4D>(
-      input: T, filter: Array4D, strides: [number, number]|number,
+  static depthwiseConv2D<T extends Tensor3D|Tensor4D>(
+      input: T, filter: Tensor4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, rates: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input4D = input as Array4D;
+    let input4D = input as Tensor4D;
     let reshapedTo4D = false;
     if (input.rank === 3) {
       reshapedTo4D = true;
