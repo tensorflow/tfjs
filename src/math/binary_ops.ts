@@ -17,9 +17,9 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-
 import * as broadcast_util from './broadcast_util';
 import {doc, operation} from './decorators';
+import {scalar} from './ops';
 import {Scalar, Tensor} from './tensor';
 
 export class Ops {
@@ -148,8 +148,8 @@ export class Ops {
             `Gradient of pow not yet supported for broadcasted shapes.`);
       }
       const derBase = () => {
-        const dx = exp.toFloat().mul(
-            base.pow(exp.sub(Scalar.new(1, 'int32'))).toFloat());
+        const dx =
+            exp.toFloat().mul(base.pow(exp.sub(scalar(1, 'int32'))).toFloat());
         return dy.mul(dx);
       };
       const derExp = () => {

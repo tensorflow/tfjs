@@ -404,7 +404,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
-  static depthwiseConv2D<T extends Tensor3D|Tensor4D>(
+  static depthwiseConv2d<T extends Tensor3D|Tensor4D>(
       input: T, filter: Tensor4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, rates: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {

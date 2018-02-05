@@ -17,8 +17,8 @@
 
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-
-import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
+import * as dl from '../index';
+import {Tensor3D, Tensor4D} from './tensor';
 
 const sqArr = (arr: number[]) => arr.map(d => d*d);
 const sumArr = (arr: number[]) => arr.reduce((prev, curr) => prev + curr, 0);
@@ -37,7 +37,7 @@ const flatten = (arr: any): number[] => {
 
     it('throws error with invalid input', math => {
       // tslint:disable-next-line:no-any
-      const x: any = Tensor2D.new([1, 4], new Float32Array([1, 20, 300, 4]));
+      const x: any = dl.tensor2d(new Float32Array([1, 20, 300, 4]), [1, 4]);
       const radius = 3;
 
       expect(() => math.localResponseNormalization3D(x, radius))

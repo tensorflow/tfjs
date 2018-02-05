@@ -433,13 +433,14 @@ export class Graph {
  * operations return Tensor objects, which can be thought of as 'handles' to
  * operations.
  */
-export class SymbolicTensor {
+export class SymbolicTensor extends Tensor {
   node: Node;
   id: number;
   /**
    * @param shape The shape of this tensor, in dimension sizes.
    */
   constructor(public shape: number[]) {
+    super([], 'float32');
     this.id = SymbolicTensor.nextID++;
   }
   private static nextID = 0;

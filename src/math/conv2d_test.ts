@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
+import {Tensor3D, Tensor4D} from './tensor';
 import {Rank} from './types';
 
 // math.conv2d
@@ -34,7 +34,7 @@ import {Rank} from './types';
 
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       const w = Tensor4D.new([fSize, fSize, inputDepth, outputDepth], [2]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       const result = math.conv2d(x, w, bias, stride, pad);
 
@@ -51,7 +51,7 @@ import {Rank} from './types';
 
       const x = Tensor4D.new(inShape, [1, 2, 3, 4, 5, 6, 7, 8]);
       const w = Tensor4D.new([fSize, fSize, inputDepth, outputDepth], [2]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       const result = math.conv2d(x, w, bias, stride, pad);
       expect(result.shape).toEqual([2, 2, 2, 1]);
@@ -71,7 +71,7 @@ import {Rank} from './types';
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       const w =
           Tensor4D.new([fSize, fSize, inputDepth, outputDepth], [3, 1, 5, 0]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       const result = math.conv2d(x, w, bias, stride, pad);
       test_util.expectArraysClose(result, [19]);
@@ -85,10 +85,10 @@ import {Rank} from './types';
       const stride = 1;
 
       // tslint:disable-next-line:no-any
-      const x: any = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const x: any = dl.tensor2d([1, 2, 3, 4], [2, 2]);
       const w =
           Tensor4D.new([fSize, fSize, inputDepth, outputDepth], [3, 1, 5, 0]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
     });
@@ -102,7 +102,7 @@ import {Rank} from './types';
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       // tslint:disable-next-line:no-any
       const w: any = Tensor3D.new([2, 2, 1], [3, 1, 5, 0]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
     });
@@ -119,7 +119,7 @@ import {Rank} from './types';
       const w =
           Tensor4D.new([fSize, fSize, inputDepth, outputDepth], [3, 1, 5, 0]);
       // tslint:disable-next-line:no-any
-      const bias: any = Tensor2D.new([2, 2], [2, 2, 2, 2]);
+      const bias: any = dl.tensor2d([2, 2, 2, 2], [2, 2]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
     });
@@ -136,7 +136,7 @@ import {Rank} from './types';
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       const w = dl.randomNormal<Rank.R4>(
           [fSize, fSize, wrongInputDepth, outputDepth]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
     });
@@ -153,7 +153,7 @@ import {Rank} from './types';
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       const w =
           dl.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad, dimRoundingMode))
           .toThrowError();
@@ -170,7 +170,7 @@ import {Rank} from './types';
       const filterShape: [number, number, number, number] =
           [filterSize, filterSize, inputDepth, outputDepth];
       const filter = dl.ones<Rank.R4>(filterShape);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
       const dy = Tensor3D.new([2, 2, 1], [3, 1, 2, 0]);
@@ -203,7 +203,7 @@ import {Rank} from './types';
           [filterSize, filterSize, inputDepth, outputDepth];
       const filter = dl.ones<Rank.R4>(filterShape);
 
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       const x = Tensor4D.new(
           inputShape, [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9]);

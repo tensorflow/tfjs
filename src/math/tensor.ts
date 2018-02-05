@@ -21,7 +21,7 @@ import {MatrixOrientation} from './backends/types/matmul';
 import * as ops from './ops';
 import {RandNormalDataTypes} from './rand';
 // tslint:disable-next-line:max-line-length
-import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TypedArray} from './types';
+import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray} from './types';
 
 /** @hidden */
 export interface TensorData {
@@ -730,7 +730,7 @@ export class Tensor<R extends Rank = Rank> {
       pad: 'valid'|'same'|number, rates: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     (this as Tensor).throwIfDisposed();
-    return ops.depthwiseConv2D(
+    return ops.depthwiseConv2d(
         this, filter, strides, pad, rates, dimRoundingMode);
   }
 
@@ -760,22 +760,14 @@ export class Tensor<R extends Rank = Rank> {
 
 export class Scalar extends Tensor<Rank.R0> {
   static new(value: number|boolean, dtype?: DataType): Scalar {
-    const values = [value] as number[] | boolean[];
-    return new Scalar([], dtype, toTypedArray(values, dtype));
+    return ops.scalar(value, dtype);
   }
 }
 
 export class Tensor1D extends Tensor<Rank.R1> {
   static new<D extends DataType = 'float32'>(
       values: DataTypeMap[D]|number[]|boolean[], dtype?: D): Tensor1D {
-    if (!instanceofTypedArray(values)) {
-      const inferredShape = util.inferShape(values as number[] | boolean[]);
-      util.assert(
-          inferredShape.length === 1,
-          `Error constructing Tensor1D. Shape of values ${inferredShape} is ` +
-              `not 1 dimensional.`);
-    }
-    return new Tensor1D([values.length], dtype, toTypedArray(values, dtype));
+    return ops.tensor1d(values, dtype);
   }
 }
 
@@ -784,17 +776,7 @@ export class Tensor2D extends Tensor<Rank.R2> {
       shape: [number, number],
       values: DataTypeMap[D]|number[]|number[][]|boolean[]|boolean[][],
       dtype?: D): Tensor2D {
-    if (!instanceofTypedArray(values)) {
-      const inferredShape = util.inferShape(values as number[] | boolean[]);
-      if (inferredShape.length > 1) {
-        util.assertShapesMatch(
-            shape, inferredShape,
-            `Error when constructing Tensor2D. Shape of values ` +
-                `${inferredShape} does not match the provided shape ` +
-                `${shape}. `);
-      }
-    }
-    return new Tensor2D(shape, dtype, toTypedArray(values, dtype));
+    return ops.tensor2d(values, shape, dtype);
   }
 }
 
@@ -803,17 +785,7 @@ export class Tensor3D extends Tensor<Rank.R3> {
       shape: [number, number, number],
       values: DataTypeMap[D]|number[]|number[][][]|boolean[]|boolean[][][],
       dtype?: D): Tensor3D {
-    if (!instanceofTypedArray(values)) {
-      const inferredShape = util.inferShape(values as number[] | boolean[]);
-      if (inferredShape.length > 1) {
-        util.assertShapesMatch(
-            shape, inferredShape,
-            `Error when constructing Tensor3D. Shape of values ` +
-                `${inferredShape} does not match the provided shape ` +
-                `${shape}. `);
-      }
-    }
-    return new Tensor3D(shape, dtype, toTypedArray(values, dtype));
+    return ops.tensor3d(values, shape, dtype);
   }
 }
 
@@ -822,17 +794,7 @@ export class Tensor4D extends Tensor<Rank.R4> {
       shape: [number, number, number, number],
       values: DataTypeMap[D]|number[]|number[][][][]|boolean[]|boolean[][][][],
       dtype?: D): Tensor4D {
-    if (!instanceofTypedArray(values)) {
-      const inferredShape = util.inferShape(values as number[] | boolean[]);
-      if (inferredShape.length > 1) {
-        util.assertShapesMatch(
-            shape, inferredShape,
-            `Error when constructing Tensor4D. Shape of values ` +
-                `${inferredShape} does not match the provided shape ` +
-                `${shape}. `);
-      }
-    }
-    return new Tensor4D(shape, dtype, toTypedArray(values, dtype));
+    return ops.tensor4d(values, shape, dtype);
   }
 }
 
@@ -897,29 +859,6 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
 
 const variable = Variable.variable;
 export {variable};
-
-function instanceofTypedArray(a: ArrayData<DataType>): boolean {
-  return a instanceof Float32Array || a instanceof Int32Array ||
-      a instanceof Uint8Array;
-}
-
-function noConversionNeeded<D extends DataType>(
-    a: ArrayData<D>, dtype: D): boolean {
-  return (a instanceof Float32Array && dtype === 'float32') ||
-      (a instanceof Int32Array && dtype === 'int32') ||
-      (a instanceof Uint8Array && dtype === 'bool');
-}
-
-function toTypedArray<D extends DataType>(
-    a: ArrayData<D>, dtype: D): DataTypeMap[D] {
-  if (noConversionNeeded(a, dtype)) {
-    return a as DataTypeMap[D];
-  }
-  if (Array.isArray(a)) {
-    a = util.flatten(a as number[]);
-  }
-  return util.copyTypedArray(a, dtype);
-}
 
 function computeStrides(shape: number[]): number[] {
   const rank = shape.length;

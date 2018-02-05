@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
+import {Tensor3D, Tensor4D} from './tensor';
 
 // math.maxPool
 {
@@ -95,7 +96,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     it('throws when x is not rank 3', math => {
       // tslint:disable-next-line:no-any
-      const x: any = Tensor2D.new([3, 3], [1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      const x: any = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
 
       expect(() => math.maxPool(x, 2, 1, 0)).toThrowError();
     });

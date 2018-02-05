@@ -33,7 +33,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
+  static slice1d(x: Tensor1D, begin: number, size: number): Tensor1D {
     slice_util.assertParamsValid(x, [begin], [size]);
     return ENV.engine.executeKernel(
                'Slice1D', {inputs: {x}, args: {begin, size}}) as Tensor1D;
@@ -49,7 +49,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
+  static slice2d(x: Tensor2D, begin: [number, number], size: [number, number]):
       Tensor2D {
     slice_util.assertParamsValid(x, begin, size);
     return ENV.engine.executeKernel(
@@ -66,7 +66,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static slice3D(x: Tensor3D, begin: [number, number, number], size: [
+  static slice3d(x: Tensor3D, begin: [number, number, number], size: [
     number, number, number
   ]): Tensor3D {
     slice_util.assertParamsValid(x, begin, size);
@@ -85,7 +85,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
+  static slice4d(x: Tensor4D, begin: [number, number, number, number], size: [
     number, number, number, number
   ]): Tensor4D {
     slice_util.assertParamsValid(x, begin, size);
@@ -100,17 +100,17 @@ export class Ops {
     if (x.rank === 0) {
       throw new Error('Slicing scalar is not possible');
     } else if (x.rank === 1) {
-      return Ops.slice1D(x as Tensor1D, begin[0], size[0]) as Tensor<R>;
+      return Ops.slice1d(x as Tensor1D, begin[0], size[0]) as Tensor<R>;
     } else if (x.rank === 2) {
-      return Ops.slice2D(
+      return Ops.slice2d(
                  x as Tensor2D, begin as [number, number],
                  size as [number, number]) as Tensor<R>;
     } else if (x.rank === 3) {
-      return Ops.slice3D(
+      return Ops.slice3d(
                  x as Tensor3D, begin as [number, number, number],
                  size as [number, number, number]) as Tensor<R>;
     } else if (x.rank === 4) {
-      return Ops.slice4D(
+      return Ops.slice4d(
                  x as Tensor4D, begin as [number, number, number, number],
                  size as [number, number, number, number]) as Tensor<R>;
     } else {

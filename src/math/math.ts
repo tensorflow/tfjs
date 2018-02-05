@@ -55,27 +55,27 @@ export class NDArrayMath {
   dotProduct = matmul.Ops.dotProduct;
 
   slice = slice.Ops.slice;
-  slice1D = slice.Ops.slice1D;
-  slice2D = slice.Ops.slice2D;
-  slice3D = slice.Ops.slice3D;
-  slice4D = slice.Ops.slice4D;
+  slice1D = slice.Ops.slice1d;
+  slice2D = slice.Ops.slice2d;
+  slice3D = slice.Ops.slice3d;
+  slice4D = slice.Ops.slice4d;
 
   reverse = reverse.Ops.reverse;
-  reverse1D = reverse.Ops.reverse1D;
-  reverse2D = reverse.Ops.reverse2D;
-  reverse3D = reverse.Ops.reverse3D;
-  reverse4D = reverse.Ops.reverse4D;
+  reverse1D = reverse.Ops.reverse1d;
+  reverse2D = reverse.Ops.reverse2d;
+  reverse3D = reverse.Ops.reverse3d;
+  reverse4D = reverse.Ops.reverse4d;
 
   concat = concat.Ops.concat;
-  concat1D = concat.Ops.concat1D;
-  concat2D = concat.Ops.concat2D;
-  concat3D = concat.Ops.concat3D;
-  concat4D = concat.Ops.concat4D;
+  concat1D = concat.Ops.concat1d;
+  concat2D = concat.Ops.concat2d;
+  concat3D = concat.Ops.concat3d;
+  concat4D = concat.Ops.concat4d;
 
   batchNormalization = batchnorm.Ops.batchNormalization;
-  batchNormalization2D = batchnorm.Ops.batchNormalization2D;
-  batchNormalization3D = batchnorm.Ops.batchNormalization3D;
-  batchNormalization4D = batchnorm.Ops.batchNormalization4D;
+  batchNormalization2D = batchnorm.Ops.batchNormalization2d;
+  batchNormalization3D = batchnorm.Ops.batchNormalization3d;
+  batchNormalization4D = batchnorm.Ops.batchNormalization4d;
 
   avgPool = pool.Ops.avgPool;
   maxPool = pool.Ops.maxPool;
@@ -86,7 +86,7 @@ export class NDArrayMath {
   conv1d = conv.Ops.conv1d;
   conv2d = conv.Ops.conv2d;
   conv2dTranspose = conv.Ops.conv2dTranspose;
-  depthwiseConv2D = conv.Ops.depthwiseConv2D;
+  depthwiseConv2D = conv.Ops.depthwiseConv2d;
   /** @deprecated */
   conv2dDerBias = conv.Ops.conv2dDerBias;
   /** @deprecated */
@@ -192,8 +192,8 @@ export class NDArrayMath {
   tile = array_ops.Ops.tile;
   oneHot = array_ops.Ops.oneHot;
   multinomial = array_ops.Ops.multinomial;
-  pad1D = array_ops.Ops.pad1D;
-  pad2D = array_ops.Ops.pad2D;
+  pad1D = array_ops.Ops.pad1d;
+  pad2D = array_ops.Ops.pad2d;
 
   /** @deprecated Use dl.image.resizeBilinear() */
   resizeBilinear3D = image_ops.Ops.resizeBilinear;

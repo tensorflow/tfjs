@@ -17,15 +17,153 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-
 import {doc, operation} from './decorators';
 import {MPRandGauss, RandNormalDataTypes} from './rand';
-import {Tensor, Tensor1D, Tensor2D, Tensor3D, TensorBuffer} from './tensor';
-import {DataType, DataTypeMap, Rank, ShapeMap} from './types';
+// tslint:disable-next-line:max-line-length
+import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from './tensor';
+// tslint:disable-next-line:max-line-length
+import {ArrayData, DataType, DataTypeMap, Rank, RegularArray, ShapeMap, TypedArray} from './types';
 
 export class Ops {
   /**
+   * Creates a tensor with the provided values, shape and dtype.
+   *
+   * @param values The values of the tensor. Can be nested array of numbers,
+   *     or a flat array, or a `TypedArray`.
+   * @param shape The shape of the tensor. Optional. If not provided,
+   *   it is inferred from `values`.
+   * @param dtype The data type.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static tensor<R extends Rank>(
+      values: TypedArray|number|boolean|RegularArray<number>|
+      RegularArray<boolean>,
+      shape?: ShapeMap[R], dtype: DataType = 'float32'): Tensor<R> {
+    const inferredShape = util.inferShape(values);
+    if (shape != null && inferredShape.length !== 1) {
+      util.assertShapesMatch(
+          shape, inferredShape,
+          `Error creating a new Tensor. ` +
+              `Inferred shape (${inferredShape}) does not match the ` +
+              `provided shape (${shape}). `);
+    }
+    if (!util.isTypedArray(values) && !Array.isArray(values)) {
+      values = [values] as number[];
+    }
+    shape = shape || inferredShape;
+    return Tensor.make(
+        shape, {values: toTypedArray(values as ArrayData<DataType>, dtype)},
+        dtype);
+  }
+
+  /**
+   * Creates rank-0 tensor (scalar) with the provided value and dtype.
+   *
+   * @param value The value of the scalar.
+   * @param dtype The data type.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static scalar(value: number|boolean, dtype: DataType = 'float32'): Scalar {
+    if (util.isTypedArray(value) || Array.isArray(value)) {
+      throw new Error(
+          'Error creating a new Scalar: value must be a primitive ' +
+          '(number|boolean)');
+    }
+    return Ops.tensor(value, [], dtype);
+  }
+
+  /**
+   * Creates rank-1 tensor with the provided values, shape and dtype.
+   *
+   * @param values The values of the tensor. Can be array of numbers,
+   *     or a `TypedArray`.
+   * @param dtype The data type.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static tensor1d(
+      values: TypedArray|number[]|boolean[], dtype: DataType = 'float32'):
+      Tensor1D {
+    const inferredShape = util.inferShape(values);
+    if (inferredShape.length !== 1) {
+      throw new Error(
+          'Error creating a new Tensor1D: values must be a flat/TypedArray');
+    }
+    return Ops.tensor(values, inferredShape as [number], dtype);
+  }
+
+  /**
+   * Creates rank-2 tensor with the provided values, shape and dtype.
+   *
+   * @param values The values of the tensor. Can be nested array of numbers,
+   *     or a flat array, or a `TypedArray`.
+   * @param shape The shape of the tensor. Optional. If not provided,
+   *   it is inferred from `values`.
+   * @param dtype The data type.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static tensor2d(
+      values: TypedArray|number[]|number[][]|boolean[]|boolean[][],
+      shape?: [number, number], dtype: DataType = 'float32'): Tensor2D {
+    const inferredShape = util.inferShape(values);
+    if (inferredShape.length !== 2 && inferredShape.length !== 1) {
+      throw new Error(
+          'Error creating a new Tensor2D: values must be number[][] ' +
+          'or flat/TypedArray');
+    }
+    shape = shape || inferredShape as [number, number];
+    return Ops.tensor(values, shape, dtype);
+  }
+
+  /**
+   * Creates rank-3 tensor with the provided values, shape and dtype.
+   *
+   * @param values The values of the tensor. Can be nested array of numbers,
+   *     or a flat array, or a `TypedArray`.
+   * @param shape The shape of the tensor. Optional. If not provided,
+   *   it is inferred from `values`.
+   * @param dtype The data type.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static tensor3d(
+      values: TypedArray|number[]|number[][][]|boolean[]|boolean[][][],
+      shape?: [number, number, number], dtype: DataType = 'float32'): Tensor3D {
+    const inferredShape = util.inferShape(values);
+    if (inferredShape.length !== 3 && inferredShape.length !== 1) {
+      throw new Error(
+          'Error creating a new Tensor3D: values must be number[][][]' +
+          'or flat/TypedArray');
+    }
+    shape = shape || inferredShape as [number, number, number];
+    return Ops.tensor(values, shape, dtype);
+  }
+
+  /**
+   * Creates rank-4 tensor with the provided values, shape and dtype.
+   *
+   * @param values The values of the tensor. Can be nested array of numbers,
+   *     or a flat array, or a `TypedArray`.
+   * @param shape The shape of the tensor. Optional. If not provided,
+   *   it is inferred from `values`.
+   * @param dtype The data type.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static tensor4d(
+      values: TypedArray|number[]|number[][][][]|boolean[]|boolean[][][][],
+      shape?: [number, number, number, number],
+      dtype: DataType = 'float32'): Tensor4D {
+    const inferredShape = util.inferShape(values);
+    if (inferredShape.length !== 4 && inferredShape.length !== 1) {
+      throw new Error(
+          'Error creating a new Tensor4D: values must be number[][][][]' +
+          'or flat/TypedArray');
+    }
+    shape = shape || inferredShape as [number, number, number, number];
+    return Ops.tensor(values, shape, dtype);
+  }
+
+  /**
    * Creates a tensor with all elements set to 1.
+   *
    * @param shape An array of integers defining the output tensor shape.
    * @param dtype The type of an element in the resulting tensor. Can
    *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
@@ -253,8 +391,8 @@ export class Ops {
    *
    * @param indices 1D Array of indices.
    * @param depth The depth of the one hot dimension.
-   * @param onValue A number used to fill in output when the index matches the
-   *     location.
+   * @param onValue A number used to fill in output when the index matches
+   * the location.
    * @param offValue A number used to fill in the output when the index does
    *     not match the location.
    */
@@ -391,7 +529,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static pad1D(x: Tensor1D, paddings: [number, number], constantValue = 0):
+  static pad1d(x: Tensor1D, paddings: [number, number], constantValue = 0):
       Tensor1D {
     util.assert(
         paddings.length === 2,
@@ -416,7 +554,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static pad2D(
+  static pad2d(
       x: Tensor2D, paddings: [[number, number], [number, number]],
       constantValue = 0): Tensor2D {
     util.assert(
@@ -471,7 +609,7 @@ export class Ops {
       values[i] = values[i - 1] + step;
     }
 
-    return Tensor1D.new(values, dtype);
+    return Ops.tensor1d(values, dtype);
   }
 
   /**
@@ -512,4 +650,22 @@ function makeOnesTypedArray<D extends DataType>(
     array[i] = 1;
   }
   return array;
+}
+
+function toTypedArray<D extends DataType>(
+    a: ArrayData<D>, dtype: D): DataTypeMap[D] {
+  if (noConversionNeeded(a, dtype)) {
+    return a as DataTypeMap[D];
+  }
+  if (Array.isArray(a)) {
+    a = util.flatten(a as number[]);
+  }
+  return util.copyTypedArray(a, dtype);
+}
+
+function noConversionNeeded<D extends DataType>(
+    a: ArrayData<D>, dtype: D): boolean {
+  return (a instanceof Float32Array && dtype === 'float32') ||
+      (a instanceof Int32Array && dtype === 'int32') ||
+      (a instanceof Uint8Array && dtype === 'bool');
 }

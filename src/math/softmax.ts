@@ -17,10 +17,10 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
-import {Scalar, Tensor} from './tensor';
+import * as ops from './ops';
+import {Tensor} from './tensor';
 
 export class Ops {
   /**
@@ -109,7 +109,7 @@ export class Ops {
     return ENV.math.customGradient('softmaxCrossEntropy', () => {
       const softmaxLogits = logits.softmax(dim);
       const costVector =
-          Scalar.new(1e-5).add(softmaxLogits).log().mul(labels).neg();
+          ops.scalar(1e-5).add(softmaxLogits).log().mul(labels).neg();
       const value = costVector.sum([dim]) as O;
 
       const gradients = (dy: O, y: O) => {

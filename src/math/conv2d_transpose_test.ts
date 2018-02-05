@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
+import {Tensor3D, Tensor4D} from './tensor';
 import {Rank} from './types';
 
 // math.conv2dTranspose
@@ -72,7 +72,7 @@ import {Rank} from './types';
       const origStride = 1;
 
       // tslint:disable-next-line:no-any
-      const x: any = Tensor2D.new([2, 1], [2, 2]);
+      const x: any = dl.tensor2d([2, 2], [2, 1]);
       const w = Tensor4D.new(
           [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
 

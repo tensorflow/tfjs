@@ -24,6 +24,7 @@ import * as session_util from '../../graph/session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {Scalar, Tensor, Variable} from '../../math/tensor';
+import * as ops from '../ops';
 import {NamedTensorMap} from '../types';
 
 export abstract class Optimizer {
@@ -34,7 +35,7 @@ export abstract class Optimizer {
     if (specifiedVariableList != null) {
       this.specifiedVariableNodes = specifiedVariableList as VariableNode[];
     }
-    this.one = ENV.math.keep(Scalar.new(1));
+    this.one = ENV.math.keep(ops.scalar(1));
   }
 
   /**
@@ -102,7 +103,7 @@ export abstract class Optimizer {
         this.cGraph.dispose();
       }
       this.prevBatchSize = batchSize;
-      this.cGraph = math.keep(Scalar.new(-this.learningRate / batchSize));
+      this.cGraph = math.keep(ops.scalar(-this.learningRate / batchSize));
     }
     this.variableNodes.forEach(
         node => this.variableGradients.set(

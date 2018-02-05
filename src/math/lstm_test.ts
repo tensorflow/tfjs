@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor1D, Tensor2D, Scalar} from './tensor';
+import {Tensor2D} from './tensor';
 import {Rank} from './types';
 
 // math.basicLSTMCell
@@ -31,17 +31,17 @@ import {Rank} from './types';
         -0.11299663782119751, -0.46332040429115295, -0.1765323281288147,
         0.6807947158813477, -0.8326982855796814, 0.6732975244522095
       ]);
-      const lstmBias1 = Tensor1D.new(
+      const lstmBias1 = dl.tensor1d(
           [1.090713620185852, -0.8282332420349121, 0, 1.0889357328414917]);
       const lstmKernel2 = Tensor2D.new([2, 4], [
         -1.893059492111206, -1.0185645818710327, -0.6270437240600586,
         -2.1829540729522705, -0.4583775997161865, -0.5454602241516113,
         -0.3114445209503174, 0.8450229167938232
       ]);
-      const lstmBias2 = Tensor1D.new(
+      const lstmBias2 = dl.tensor1d(
           [0.9906240105628967, 0.6248329877853394, 0, 1.0224634408950806]);
 
-      const forgetBias = Scalar.new(1.0);
+      const forgetBias = dl.scalar(1.0);
       const lstm1 =
           math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
       const lstm2 =
@@ -70,7 +70,7 @@ import {Rank} from './types';
     it('basicLSTMCell with batch=2', math => {
       const lstmKernel = dl.randomNormal<Rank.R2>([3, 4]);
       const lstmBias = dl.randomNormal<Rank.R1>([4]);
-      const forgetBias = Scalar.new(1.0);
+      const forgetBias = dl.scalar(1.0);
 
       const data = dl.randomNormal<Rank.R2>([1, 2]);
       const batchedData = math.concat2D(data, data, 0);  // 2x2

@@ -15,15 +15,15 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {SquareCostFunc} from './cost_functions';
-import {Tensor1D} from './tensor';
 
 const tests: MathTests = it => {
   it('Square cost', math => {
-    const y = Tensor1D.new([1, 3, -2]);
-    const target = Tensor1D.new([0, 3, -1.5]);
+    const y = dl.tensor1d([1, 3, -2]);
+    const target = dl.tensor1d([0, 3, -1.5]);
     const square = new SquareCostFunc();
     const cost = square.cost(math, y, target);
 
@@ -34,8 +34,8 @@ const tests: MathTests = it => {
   });
 
   it('Square derivative', math => {
-    const y = Tensor1D.new([1, 3, -2]);
-    const target = Tensor1D.new([0, 3, -1.5]);
+    const y = dl.tensor1d([1, 3, -2]);
+    const target = dl.tensor1d([0, 3, -1.5]);
     const square = new SquareCostFunc();
     const dy = square.der(math, y, target);
 

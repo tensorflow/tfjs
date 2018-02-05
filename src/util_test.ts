@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {Scalar, Tensor, Tensor1D} from './math/tensor';
+import * as dl from './index';
+import {Tensor} from './math/tensor';
 import {NamedTensorMap} from './math/types';
 import * as test_util from './test_util';
 import {MathTests} from './test_util';
@@ -90,6 +91,11 @@ describe('Util', () => {
       [[[5], [6]], [[4], [5]], [[1], [2]]]
     ];
     expect(util.inferShape(a)).toEqual([2, 3, 2, 1]);
+  });
+
+  it('infer shape of typed array', () => {
+    const a = new Float32Array([1, 2, 3, 4, 5]);
+    expect(util.inferShape(a)).toEqual([5]);
   });
 });
 
@@ -269,15 +275,15 @@ describe('util.squeezeShape', () => {
 {
   const tests: MathTests = it => {
     it('not in list', math => {
-      const a = Scalar.new(1);
-      const list: Tensor[] = [Scalar.new(1), Tensor1D.new([1, 2, 3])];
+      const a = dl.scalar(1);
+      const list: Tensor[] = [dl.scalar(1), dl.tensor1d([1, 2, 3])];
 
       expect(util.isTensorInList(a, list)).toBe(false);
     });
 
     it('in list', math => {
-      const a = Scalar.new(1);
-      const list: Tensor[] = [Scalar.new(2), Tensor1D.new([1, 2, 3]), a];
+      const a = dl.scalar(1);
+      const list: Tensor[] = [dl.scalar(2), dl.tensor1d([1, 2, 3]), a];
 
       expect(util.isTensorInList(a, list)).toBe(true);
     });
@@ -336,9 +342,9 @@ describe('util.checkForNaN', () => {
 {
   const tests: MathTests = it => {
     it('basic', math => {
-      const a = Scalar.new(1);
-      const b = Scalar.new(3);
-      const c = Tensor1D.new([1, 2, 3]);
+      const a = dl.scalar(1);
+      const b = dl.scalar(3);
+      const c = dl.tensor1d([1, 2, 3]);
 
       const map: NamedTensorMap = {a, b, c};
       expect(util.flattenNameArrayMap(map, Object.keys(map))).toEqual([
@@ -353,9 +359,9 @@ describe('util.checkForNaN', () => {
 {
   const tests: MathTests = it => {
     it('basic', math => {
-      const a = Scalar.new(1);
-      const b = Scalar.new(3);
-      const c = Tensor1D.new([1, 2, 3]);
+      const a = dl.scalar(1);
+      const b = dl.scalar(3);
+      const c = dl.tensor1d([1, 2, 3]);
 
       expect(util.unflattenToNameArrayMap(['a', 'b', 'c'], [
         a, b, c

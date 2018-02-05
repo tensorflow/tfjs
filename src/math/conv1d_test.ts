@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
+import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {Rank} from './types';
 
 // math.conv1d
@@ -35,7 +35,7 @@ import {Rank} from './types';
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       const w = Tensor3D.new([fSize, inputDepth, outputDepth], [3]);
 
-      const bias = Tensor1D.new([0]);
+      const bias = dl.tensor1d([0]);
 
       const result = math.conv1d(x, w, bias, stride, pad);
 
@@ -54,7 +54,7 @@ import {Rank} from './types';
       const x = Tensor2D.new(inputShape, [1, 2, 3, 4]);
       const w = Tensor3D.new([fSize, inputDepth, outputDepth], [2, 1]);
 
-      const bias = Tensor1D.new([0]);
+      const bias = dl.tensor1d([0]);
 
       const result = math.conv1d(x, w, bias, stride, pad);
 
@@ -70,9 +70,9 @@ import {Rank} from './types';
       const stride = 1;
 
       // tslint:disable-next-line:no-any
-      const x: any = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const x: any = dl.tensor2d([1, 2, 3, 4], [2, 2]);
       const w = Tensor3D.new([fSize, inputDepth, outputDepth], [3, 1]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
     });
@@ -86,7 +86,7 @@ import {Rank} from './types';
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       // tslint:disable-next-line:no-any
       const w: any = Tensor4D.new([2, 2, 1, 1], [3, 1, 5, 0]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
     });
@@ -102,7 +102,7 @@ import {Rank} from './types';
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       const w = Tensor3D.new([fSize, inputDepth, outputDepth], [3, 1]);
       // tslint:disable-next-line:no-any
-      const bias: any = Tensor2D.new([2, 2], [2, 2, 2, 2]);
+      const bias: any = dl.tensor2d([2, 2, 2, 2], [2, 2]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
     });
@@ -118,7 +118,7 @@ import {Rank} from './types';
 
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
       const w = dl.randomNormal<Rank.R3>([fSize, wrongInputDepth, outputDepth]);
-      const bias = Tensor1D.new([-1]);
+      const bias = dl.tensor1d([-1]);
 
       expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
     });

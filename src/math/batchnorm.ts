@@ -37,7 +37,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
-  static batchNormalization2D(
+  static batchNormalization2d(
       x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
       varianceEpsilon = .001, scale?: Tensor2D|Tensor1D,
       offset?: Tensor2D|Tensor1D): Tensor2D {
@@ -86,7 +86,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
-  static batchNormalization3D(
+  static batchNormalization3d(
       x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
       varianceEpsilon = .001, scale?: Tensor3D|Tensor1D,
       offset?: Tensor3D|Tensor1D): Tensor3D {
@@ -135,7 +135,7 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
-  static batchNormalization4D(
+  static batchNormalization4d(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon = .001, scale?: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D): Tensor4D {
@@ -180,19 +180,19 @@ export class Ops {
     } else if (x.rank === 1) {
       throw new Error(`Batchnorm for rank 1 is not yet implemented`);
     } else if (x.rank === 2) {
-      return Ops.batchNormalization2D(
+      return Ops.batchNormalization2d(
                  x as Tensor2D, mean as Tensor2D | Tensor1D,
                  variance as Tensor2D | Tensor1D, varianceEpsilon,
                  scale as Tensor2D | Tensor1D, offset as Tensor2D | Tensor1D) as
           Tensor<R>;
     } else if (x.rank === 3) {
-      return Ops.batchNormalization3D(
+      return Ops.batchNormalization3d(
                  x as Tensor3D, mean as Tensor3D | Tensor1D,
                  variance as Tensor3D | Tensor1D, varianceEpsilon,
                  scale as Tensor3D | Tensor1D, offset as Tensor3D | Tensor1D) as
           Tensor<R>;
     } else if (x.rank === 4) {
-      return Ops.batchNormalization4D(
+      return Ops.batchNormalization4d(
                  x as Tensor4D, mean as Tensor4D | Tensor1D,
                  variance as Tensor4D | Tensor1D, varianceEpsilon,
                  scale as Tensor4D | Tensor1D, offset as Tensor4D | Tensor1D) as

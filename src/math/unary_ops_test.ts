@@ -20,59 +20,57 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
 
-import {Scalar, Tensor1D, Tensor2D} from './tensor';
-
 // dl.relu
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const a = Tensor1D.new([1, -2, 0, 3, -0.1]);
+      const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
       const result = dl.relu(a);
       test_util.expectArraysClose(result, [1, 0, 0, 3, 0]);
     });
 
     it('does nothing to positive values', () => {
-      const a = Scalar.new(1);
+      const a = dl.scalar(1);
       const result = dl.relu(a);
       test_util.expectNumbersClose(result.get(), 1);
     });
 
     it('sets negative values to 0', () => {
-      const a = Scalar.new(-1);
+      const a = dl.scalar(-1);
       const result = dl.relu(a);
       test_util.expectNumbersClose(result.get(), 0);
     });
 
     it('preserves zero values', () => {
-      const a = Scalar.new(0);
+      const a = dl.scalar(0);
       const result = dl.relu(a);
       test_util.expectNumbersClose(result.get(), 0);
     });
 
     it('propagates NaNs, float32', () => {
-      const a = Tensor1D.new([1, -2, 0, 3, -0.1, NaN]);
+      const a = dl.tensor1d([1, -2, 0, 3, -0.1, NaN]);
       const result = dl.relu(a);
       expect(result.dtype).toBe('float32');
       test_util.expectArraysClose(result, [1, 0, 0, 3, 0, NaN]);
     });
 
     it('propagates NaNs, int32', () => {
-      const a = Tensor1D.new([1, -2, 0, 3, -1, util.NAN_INT32], 'int32');
+      const a = dl.tensor1d([1, -2, 0, 3, -1, util.NAN_INT32], 'int32');
       const result = dl.relu(a);
       expect(result.dtype).toBe('int32');
       test_util.expectArraysClose(result, [1, 0, 0, 3, 0, util.NAN_INT32]);
     });
 
     it('propagates NaNs, bool', () => {
-      const a = Tensor1D.new([1, 0, 0, 1, 0, util.NAN_BOOL], 'bool');
+      const a = dl.tensor1d([1, 0, 0, 1, 0, util.NAN_BOOL], 'bool');
       const result = dl.relu(a);
       expect(result.dtype).toBe('bool');
       test_util.expectArraysClose(result, [1, 0, 0, 1, 0, util.NAN_BOOL]);
     });
 
     it('gradients: positive scalar', () => {
-      const a = Scalar.new(3);
-      const dy = Scalar.new(5);
+      const a = dl.scalar(3);
+      const dy = dl.scalar(5);
 
       const gradients = dl.vjp(() => dl.relu(a), a, dy);
 
@@ -82,8 +80,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: negative scalar', () => {
-      const a = Scalar.new(-3);
-      const dy = Scalar.new(5);
+      const a = dl.scalar(-3);
+      const dy = dl.scalar(5);
 
       const gradients = dl.vjp(() => dl.relu(a), a, dy);
 
@@ -94,8 +92,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 
     it('gradients: array', () => {
       // TODO(nsthorat): Use 0 instead of -.001 when we fix the precision
-      const a = Tensor2D.new([2, 2], [1, -1, -.001, .1]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([1, -1, -.001, .1], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.relu(a), a, dy);
 
@@ -117,20 +115,20 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const a = Tensor1D.new([1, -2, 0, 3, -0.1]);
+      const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
       const result = dl.abs(a);
       test_util.expectArraysClose(result, [1, 2, 0, 3, 0.1]);
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([1, -2, 0, 3, -0.1, NaN]);
+      const a = dl.tensor1d([1, -2, 0, 3, -0.1, NaN]);
       const result = dl.abs(a);
       test_util.expectArraysClose(result, [1, 2, 0, 3, 0.1, NaN]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(4);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(4);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.abs(a), a, dy);
 
@@ -140,8 +138,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([1, 2, -3, 5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([1, 2, -3, 5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.abs(a), a, dy);
 
@@ -152,8 +150,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [3, -1, -2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([3, -1, -2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.abs(a), a, dy);
 
@@ -176,20 +174,20 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('with 1d tensor', () => {
-      const a = Tensor1D.new([1, -2, -.01, 3, -0.1]);
+      const a = dl.tensor1d([1, -2, -.01, 3, -0.1]);
       const result = dl.step(a);
       test_util.expectArraysClose(result, [1, 0, 0, 1, 0]);
     });
 
     it('with 2d tensor', () => {
-      const a = Tensor2D.new([2, 2], [1, -5, -3, 4]);
+      const a = dl.tensor2d([1, -5, -3, 4], [2, 2]);
       const result = dl.step(a);
       expect(result.shape).toEqual([2, 2]);
       test_util.expectArraysClose(result, [1, 0, 0, 1]);
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([1, -2, -.01, 3, NaN]);
+      const a = dl.tensor1d([1, -2, -.01, 3, NaN]);
       const result = dl.step(a);
       test_util.expectArraysClose(result, [1, 0, 0, 1, NaN]);
     });
@@ -207,21 +205,21 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const a = Tensor1D.new([1, -3, 2, 7, -4]);
+      const a = dl.tensor1d([1, -3, 2, 7, -4]);
       const result = dl.neg(a);
       test_util.expectArraysClose(result, [-1, 3, -2, -7, 4]);
     });
 
     it('propagate NaNs', () => {
-      const a = Tensor1D.new([1, -3, 2, 7, NaN]);
+      const a = dl.tensor1d([1, -3, 2, 7, NaN]);
       const result = dl.neg(a);
       const expected = [-1, 3, -2, -7, NaN];
       test_util.expectArraysClose(result, expected);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(4);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(4);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.neg(a), a, dy);
 
@@ -231,8 +229,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([1, 2, -3, 5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([1, 2, -3, 5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.neg(a), a, dy);
 
@@ -243,8 +241,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [3, -1, -2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([3, -1, -2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.neg(a), a, dy);
 
@@ -268,7 +266,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
 
       const result = dl.sigmoid(a);
 
@@ -280,14 +278,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([3, NaN]);
+      const a = dl.tensor1d([3, NaN]);
       const res = dl.sigmoid(a);
       test_util.expectArraysClose(res, [1 / (1 + Math.exp(-3)), NaN]);
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([1, 2, -3, 5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([1, 2, -3, 5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.sigmoid(a), a, dy);
 
@@ -313,21 +311,21 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('sqrt', () => {
-      const a = Tensor1D.new([2, 4]);
+      const a = dl.tensor1d([2, 4]);
       const r = dl.sqrt(a);
       test_util.expectNumbersClose(r.get(0), Math.sqrt(2));
       test_util.expectNumbersClose(r.get(1), Math.sqrt(4));
     });
 
     it('sqrt propagates NaNs', () => {
-      const a = Tensor1D.new([1, NaN]);
+      const a = dl.tensor1d([1, NaN]);
       const r = dl.sqrt(a);
       test_util.expectArraysClose(r, [Math.sqrt(1), NaN]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(4);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(4);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.sqrt(a), a, dy);
 
@@ -337,8 +335,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([1, 2, 3, 5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([1, 2, 3, 5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.sqrt(a), a, dy);
 
@@ -354,8 +352,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [3, 1, 2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([3, 1, 2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.sqrt(a), a, dy);
 
@@ -383,27 +381,27 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('1D array', () => {
-      const a = Tensor1D.new([2, 4, Math.sqrt(2)]);
+      const a = dl.tensor1d([2, 4, Math.sqrt(2)]);
       const r = dl.square(a);
       test_util.expectArraysClose(r, [4, 16, 2]);
     });
 
     it('2D array', () => {
-      const a = Tensor2D.new([2, 2], [1, 2, Math.sqrt(2), Math.sqrt(3)]);
+      const a = dl.tensor2d([1, 2, Math.sqrt(2), Math.sqrt(3)], [2, 2]);
       const r = dl.square(a);
       expect(r.shape).toEqual([2, 2]);
       test_util.expectArraysClose(r, [1, 4, 2, 3]);
     });
 
     it('square propagates NaNs', () => {
-      const a = Tensor1D.new([1.5, NaN]);
+      const a = dl.tensor1d([1.5, NaN]);
       const r = dl.square(a);
       test_util.expectArraysClose(r, [2.25, NaN]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.square(a), a, dy);
 
@@ -413,8 +411,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([-1, 2, 3, -5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([-1, 2, 3, -5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.square(a), a, dy);
 
@@ -424,8 +422,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [-3, 1, 2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([-3, 1, 2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.square(a), a, dy);
 
@@ -448,21 +446,21 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('log', () => {
-      const a = Tensor1D.new([1, 2]);
+      const a = dl.tensor1d([1, 2]);
       const r = dl.log(a);
       test_util.expectNumbersClose(r.get(0), Math.log(1));
       test_util.expectNumbersClose(r.get(1), Math.log(2));
     });
 
     it('log propagates NaNs', () => {
-      const a = Tensor1D.new([1, NaN]);
+      const a = dl.tensor1d([1, NaN]);
       const r = dl.log(a);
       test_util.expectArraysClose(r, [Math.log(1), NaN]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(5);
-      const dy = Scalar.new(3);
+      const a = dl.scalar(5);
+      const dy = dl.scalar(3);
 
       const gradients = dl.vjp(() => dl.log(a), a, dy);
 
@@ -472,8 +470,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([-1, 2, 3, -5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([-1, 2, 3, -5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.log(a), a, dy);
 
@@ -484,8 +482,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [-3, 1, 2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([-3, 1, 2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.log(a), a, dy);
 
@@ -508,7 +506,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const a = Tensor1D.new([1.5, 2.1, -1.4]);
+      const a = dl.tensor1d([1.5, 2.1, -1.4]);
       const r = dl.ceil(a);
       test_util.expectNumbersClose(r.get(0), 2);
       test_util.expectNumbersClose(r.get(1), 3);
@@ -516,14 +514,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([1.5, NaN, -1.4]);
+      const a = dl.tensor1d([1.5, NaN, -1.4]);
       const r = dl.ceil(a);
       test_util.expectArraysClose(r, [2, NaN, -1]);
     });
 
     it('gradients: Scalar', math => {
-      const a = Scalar.new(5.2);
-      const dy = Scalar.new(3);
+      const a = dl.scalar(5.2);
+      const dy = dl.scalar(3);
 
       const gradients = math.vjp(() => math.ceil(a), a, dy);
 
@@ -533,8 +531,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', math => {
-      const a = Tensor1D.new([-1.1, 2.6, 3, -5.9]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([-1.1, 2.6, 3, -5.9]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = math.vjp(() => math.ceil(a), a, dy);
 
@@ -544,8 +542,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', math => {
-      const a = Tensor2D.new([2, 2], [-3, 1, 2.2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([-3, 1, 2.2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = math.vjp(() => math.ceil(a), a, dy);
 
@@ -567,7 +565,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const a = Tensor1D.new([1.5, 2.1, -1.4]);
+      const a = dl.tensor1d([1.5, 2.1, -1.4]);
       const r = dl.floor(a);
 
       test_util.expectNumbersClose(r.get(0), 1);
@@ -576,14 +574,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([1.5, NaN, -1.4]);
+      const a = dl.tensor1d([1.5, NaN, -1.4]);
       const r = dl.floor(a);
       test_util.expectArraysClose(r, [1, NaN, -2]);
     });
 
     it('gradients: Scalar', math => {
-      const a = Scalar.new(5.2);
-      const dy = Scalar.new(3);
+      const a = dl.scalar(5.2);
+      const dy = dl.scalar(3);
 
       const gradients = math.vjp(() => math.ceil(a), a, dy);
 
@@ -593,8 +591,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', math => {
-      const a = Tensor1D.new([-1.1, 2.6, 3, -5.9]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([-1.1, 2.6, 3, -5.9]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = math.vjp(() => math.floor(a), a, dy);
 
@@ -604,8 +602,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', math => {
-      const a = Tensor2D.new([2, 2], [-3, 1, 2.2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([-3, 1, 2.2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = math.vjp(() => math.floor(a), a, dy);
 
@@ -627,7 +625,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('exp', () => {
-      const a = Tensor1D.new([1, 2, 0]);
+      const a = dl.tensor1d([1, 2, 0]);
       const r = dl.exp(a);
 
       test_util.expectNumbersClose(r.get(0), Math.exp(1));
@@ -636,14 +634,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('exp propagates NaNs', () => {
-      const a = Tensor1D.new([1, NaN, 0]);
+      const a = dl.tensor1d([1, NaN, 0]);
       const r = dl.exp(a);
       test_util.expectArraysClose(r, [Math.exp(1), NaN, 1]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(3);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(3);
 
       const gradients = dl.vjp(() => dl.exp(a), a, dy);
 
@@ -653,8 +651,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([-1, 2, 3, -5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([-1, 2, 3, -5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.exp(a), a, dy);
 
@@ -669,8 +667,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [-3, 1, 2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([-3, 1, 2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.exp(a), a, dy);
 
@@ -696,7 +694,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.sin(a);
 
       const expected = [];
@@ -707,14 +705,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.sin(a);
       test_util.expectArraysClose(res, [Math.sin(4), NaN, Math.sin(0)]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.sin(a), a, dy);
 
@@ -724,8 +722,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([-1, 2, 3, -5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([-1, 2, 3, -5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.sin(a), a, dy);
 
@@ -740,8 +738,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [-3, 1, 2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([-3, 1, 2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.sin(a), a, dy);
 
@@ -767,7 +765,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.cos(a);
 
       const expected = [];
@@ -778,14 +776,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.cos(a);
       test_util.expectArraysClose(res, [Math.cos(4), NaN, Math.cos(0)]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.cos(a), a, dy);
 
@@ -795,8 +793,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor1D', () => {
-      const a = Tensor1D.new([-1, 2, 3, -5]);
-      const dy = Tensor1D.new([1, 2, 3, 4]);
+      const a = dl.tensor1d([-1, 2, 3, -5]);
+      const dy = dl.tensor1d([1, 2, 3, 4]);
 
       const gradients = dl.vjp(() => dl.cos(a), a, dy);
 
@@ -812,8 +810,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('gradients: Tensor2D', () => {
-      const a = Tensor2D.new([2, 2], [-3, 1, 2, 3]);
-      const dy = Tensor2D.new([2, 2], [1, 2, 3, 4]);
+      const a = dl.tensor2d([-3, 1, 2, 3], [2, 2]);
+      const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
       const gradients = dl.vjp(() => dl.cos(a), a, dy);
 
@@ -842,7 +840,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.tan(a);
 
       const expected = [];
@@ -853,14 +851,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.tan(a);
       test_util.expectArraysClose(res, [Math.tan(4), NaN, Math.tan(0)]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.tan(a), a, dy);
 
@@ -873,8 +871,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [-1, 2, 3, -5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.tan(a), a, dy);
 
@@ -892,8 +890,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [-3, 1, 2, 3];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.tan(a), a, dy);
 
@@ -922,7 +920,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [.1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.asin(a);
 
       const expected = [];
@@ -933,14 +931,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.asin(a);
       test_util.expectArraysClose(res, [Math.asin(4), NaN, Math.asin(0)]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.asin(a), a, dy);
 
@@ -953,8 +951,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [-0.1, 0.2, 0.3, -0.5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.asin(a), a, dy);
 
@@ -971,8 +969,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [-0.3, 0.1, 0.2, 0.3];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.asin(a), a, dy);
 
@@ -1000,7 +998,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [.1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.acos(a);
 
       const expected = [];
@@ -1012,14 +1010,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.acos(a);
       test_util.expectArraysClose(res, [Math.acos(4), NaN, Math.acos(0)]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.acos(a), a, dy);
 
@@ -1032,8 +1030,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [-0.1, 0.2, 0.3, -0.5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.acos(a), a, dy);
 
@@ -1051,8 +1049,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [-0.3, 0.1, 0.2, 0.3];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.acos(a), a, dy);
 
@@ -1081,7 +1079,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.atan(a);
 
       const expected = [];
@@ -1092,14 +1090,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.atan(a);
       test_util.expectArraysClose(res, [Math.atan(4), NaN, Math.atan(0)]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.atan(a), a, dy);
 
@@ -1111,8 +1109,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [-0.1, 0.2, 0.3, -0.5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.atan(a), a, dy);
 
@@ -1129,8 +1127,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [-0.3, 0.1, 0.2, 0.3];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.atan(a), a, dy);
 
@@ -1161,7 +1159,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.sinh(a);
 
       const expected = [];
@@ -1172,15 +1170,15 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.sinh(a);
       test_util.expectArraysClose(
           res, [Math.sinh(4), NaN, Math.sinh(0)], epsilon);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.sinh(a), a, dy);
 
@@ -1192,8 +1190,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [-1, 2, 3, -5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.sinh(a), a, dy);
 
@@ -1210,8 +1208,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [-3, 1, 2, 3];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.sinh(a), a, dy);
 
@@ -1242,7 +1240,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, -1, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.cosh(a);
 
       const expected = [];
@@ -1255,15 +1253,15 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.cosh(a);
       test_util.expectArraysClose(
           res, [Math.cosh(4), NaN, Math.cosh(0)], epsilon);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.cosh(a), a, dy);
 
@@ -1275,8 +1273,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [-1, 2, 3, -5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.cosh(a), a, dy);
 
@@ -1293,8 +1291,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [-3, 1, 2, 3];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.cosh(a), a, dy);
 
@@ -1322,7 +1320,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
   const tests: MathTests = it => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
-      const a = Tensor1D.new(values);
+      const a = dl.tensor1d(values);
       const result = dl.tanh(a);
 
       const expected = [];
@@ -1333,14 +1331,14 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([4, NaN, 0]);
+      const a = dl.tensor1d([4, NaN, 0]);
       const res = dl.tanh(a);
       test_util.expectArraysClose(res, [util.tanh(4), NaN, util.tanh(0)]);
     });
 
     it('gradients: Scalar', () => {
-      const a = Scalar.new(0.5);
-      const dy = Scalar.new(8);
+      const a = dl.scalar(0.5);
+      const dy = dl.scalar(8);
 
       const gradients = dl.vjp(() => dl.tanh(a), a, dy);
 
@@ -1353,8 +1351,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [-1, 2, 3, -5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.tanh(a), a, dy);
 
@@ -1372,8 +1370,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [-3, 1, 2, 3];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.tanh(a), a, dy);
 
@@ -1401,7 +1399,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const a = Tensor1D.new([0, 1, -2]);
+      const a = dl.tensor1d([0, 1, -2]);
       const result = dl.leakyRelu(a);
 
       expect(result.shape).toEqual(a.shape);
@@ -1409,7 +1407,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaN', () => {
-      const a = Tensor1D.new([0, 1, NaN]);
+      const a = dl.tensor1d([0, 1, NaN]);
       const result = dl.leakyRelu(a);
 
       expect(result.shape).toEqual(a.shape);
@@ -1429,7 +1427,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('calculate elu', () => {
-      const a = Tensor1D.new([1, -1, 0]);
+      const a = dl.tensor1d([1, -1, 0]);
       const result = dl.elu(a);
 
       expect(result.shape).toEqual(a.shape);
@@ -1437,15 +1435,15 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('elu propagates NaN', () => {
-      const a = Tensor1D.new([1, NaN]);
+      const a = dl.tensor1d([1, NaN]);
       const result = dl.elu(a);
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [1, NaN]);
     });
 
     it('derivative', () => {
-      const x = Tensor1D.new([1, 3, -2]);
-      const dy = Tensor1D.new([5, 50, 500]);
+      const x = dl.tensor1d([1, 3, -2]);
+      const dy = dl.tensor1d([5, 50, 500]);
       const gradients = dl.vjp(() => dl.elu(x), x, dy);
 
       expect(gradients.shape).toEqual(x.shape);
@@ -1468,7 +1466,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 
   const tests: MathTests = it => {
     it('calculate selu', () => {
-      const a = Tensor1D.new([1, -1, 0]);
+      const a = dl.tensor1d([1, -1, 0]);
       const result = dl.selu(a);
 
       expect(result.shape).toEqual(a.shape);
@@ -1476,7 +1474,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('selu propagates NaN', () => {
-      const a = Tensor1D.new([1, NaN]);
+      const a = dl.tensor1d([1, NaN]);
       const result = dl.selu(a);
       expect(result.shape).toEqual(a.shape);
       test_util.expectArraysClose(result, [1.0507, NaN]);
@@ -1485,8 +1483,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor1D', () => {
       const aValues = [1, -1, 0];
       const dyValues = [1, 2, 3];
-      const a = Tensor1D.new(aValues);
-      const dy = Tensor1D.new(dyValues);
+      const a = dl.tensor1d(aValues);
+      const dy = dl.tensor1d(dyValues);
 
       const gradients = dl.vjp(() => dl.selu(a), a, dy);
 
@@ -1507,8 +1505,8 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     it('gradients: Tensor2D', () => {
       const aValues = [1, -1, 0, 0.5];
       const dyValues = [1, 2, 3, 4];
-      const a = Tensor2D.new([2, 2], aValues);
-      const dy = Tensor2D.new([2, 2], dyValues);
+      const a = dl.tensor2d(aValues, [2, 2]);
+      const dy = dl.tensor2d(dyValues, [2, 2]);
 
       const gradients = dl.vjp(() => dl.selu(a), a, dy);
 
@@ -1538,7 +1536,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
 {
   const tests: MathTests = it => {
     it('basic', () => {
-      const a = Tensor1D.new([3, -1, 0, 100, -7, 2]);
+      const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
       const min = -1;
       const max = 50;
 
@@ -1548,7 +1546,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('propagates NaNs', () => {
-      const a = Tensor1D.new([3, -1, 0, 100, -7, 2, NaN]);
+      const a = dl.tensor1d([3, -1, 0, 100, -7, 2, NaN]);
       const min = -1;
       const max = 50;
 
@@ -1558,7 +1556,7 @@ import {Scalar, Tensor1D, Tensor2D} from './tensor';
     });
 
     it('min greater than max', () => {
-      const a = Tensor1D.new([3, -1, 0, 100, -7, 2]);
+      const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
       const min = 1;
       const max = -1;
 

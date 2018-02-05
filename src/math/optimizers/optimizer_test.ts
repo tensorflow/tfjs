@@ -14,10 +14,11 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Scalar, Tensor1D, variable, Variable} from '../../math/tensor';
+
+import * as dl from '../../index';
+import {variable, Variable} from '../../math/tensor';
 import * as test_util from '../../test_util';
 import {MathTests} from '../../test_util';
-
 import {SGDOptimizer} from './sgd_optimizer';
 
 const tests: MathTests = it => {
@@ -25,9 +26,9 @@ const tests: MathTests = it => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(Scalar.new(4));
-    const bias = variable(Scalar.new(1));
-    const strayVariable = variable(Scalar.new(-1));
+    const x = variable(dl.scalar(4));
+    const bias = variable(dl.scalar(1));
+    const strayVariable = variable(dl.scalar(-1));
 
     let numArrays = math.getNumTensors();
 
@@ -75,9 +76,9 @@ const tests: MathTests = it => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(Scalar.new(4));
-    const bias = variable(Scalar.new(1));
-    const strayVariable = variable(Scalar.new(-1));
+    const x = variable(dl.scalar(4));
+    const bias = variable(dl.scalar(1));
+    const strayVariable = variable(dl.scalar(-1));
     const varList = [x, bias];
 
     const f = () => math.addStrict(math.square(x), bias);
@@ -109,9 +110,9 @@ const tests: MathTests = it => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(Scalar.new(4));
-    const bias = variable(Scalar.new(1));
-    const strayVariable = variable(Scalar.new(-1));
+    const x = variable(dl.scalar(4));
+    const bias = variable(dl.scalar(1));
+    const strayVariable = variable(dl.scalar(-1));
     const varList: Variable[] = [];
 
     const f = () => math.addStrict(math.square(x), bias);
@@ -141,9 +142,9 @@ const tests: MathTests = it => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(Scalar.new(4));
-    const bias = variable(Scalar.new(1));
-    const strayVariable = variable(Scalar.new(-1));
+    const x = variable(dl.scalar(4));
+    const bias = variable(dl.scalar(1));
+    const strayVariable = variable(dl.scalar(-1));
     const varList = [x];
 
     const f = () => math.addStrict(math.square(x), bias);
@@ -175,9 +176,9 @@ const tests: MathTests = it => {
     const optimizer = new SGDOptimizer(learningRate);
 
     const trainable = false;
-    const x = variable(Scalar.new(4), trainable);
-    const bias = variable(Scalar.new(1));
-    const strayVariable = variable(Scalar.new(-1));
+    const x = variable(dl.scalar(4), trainable);
+    const bias = variable(dl.scalar(1));
+    const strayVariable = variable(dl.scalar(-1));
 
     const f = () => math.addStrict(math.square(x), bias);
 
@@ -208,9 +209,9 @@ const tests: MathTests = it => {
     const optimizer = new SGDOptimizer(learningRate);
 
     const trainable = false;
-    const x = variable(Scalar.new(4), trainable);
-    const bias = variable(Scalar.new(1));
-    const strayVariable = variable(Scalar.new(-1));
+    const x = variable(dl.scalar(4), trainable);
+    const bias = variable(dl.scalar(1));
+    const strayVariable = variable(dl.scalar(-1));
     const varList = [x];
 
     const f = () => math.addStrict(math.square(x), bias);
@@ -240,7 +241,7 @@ const tests: MathTests = it => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(Tensor1D.new([1, 2]));
+    const x = variable(dl.tensor1d([1, 2]));
     const f = () => x.square();
 
     // tslint:disable-next-line:no-any

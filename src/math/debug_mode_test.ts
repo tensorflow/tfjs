@@ -15,42 +15,41 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
-
-import {Tensor1D, Tensor2D} from './tensor';
 
 // // debug mode
 {
   const tests: MathTests = it => {
     it('debug mode does not error when no nans', math => {
-      const a = Tensor1D.new([2, -1, 0, 3]);
+      const a = dl.tensor1d([2, -1, 0, 3]);
       const res = math.relu(a);
       test_util.expectArraysClose(res, [2, 0, 0, 3]);
     });
 
     it('debug mode errors when there are nans, float32', math => {
-      const a = Tensor1D.new([2, NaN]);
+      const a = dl.tensor1d([2, NaN]);
       const f = () => math.relu(a);
       expect(f).toThrowError();
     });
 
     it('debug mode errors when there are nans, int32', math => {
-      const a = Tensor1D.new([2, util.NAN_INT32], 'int32');
+      const a = dl.tensor1d([2, util.NAN_INT32], 'int32');
       const f = () => math.relu(a);
       expect(f).toThrowError();
     });
 
     it('debug mode errors when there are nans, bool', math => {
-      const a = Tensor1D.new([1, util.NAN_BOOL], 'bool');
+      const a = dl.tensor1d([1, util.NAN_BOOL], 'bool');
       const f = () => math.relu(a);
       expect(f).toThrowError();
     });
 
     it('A x B', math => {
-      const a = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
-      const b = Tensor2D.new([3, 2], [0, 1, -3, 2, 2, 1]);
+      const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+      const b = dl.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
       const c = math.matMul(a, b);
 
@@ -71,7 +70,7 @@ import {Tensor1D, Tensor2D} from './tensor';
 {
   const gpuTests: MathTests = it => {
     it('no errors where there are nans, and debug mode is disabled', math => {
-      const a = Tensor1D.new([2, NaN]);
+      const a = dl.tensor1d([2, NaN]);
       const res = math.relu(a);
       test_util.expectArraysClose(res, [2, NaN]);
     });
