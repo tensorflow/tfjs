@@ -134,8 +134,8 @@ import {Rank} from './types';
       const stride = 1;
 
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
-      const w =
-          dl.randNormal<Rank.R4>([fSize, fSize, wrongInputDepth, outputDepth]);
+      const w = dl.randomNormal<Rank.R4>(
+          [fSize, fSize, wrongInputDepth, outputDepth]);
       const bias = Tensor1D.new([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad)).toThrowError();
@@ -151,7 +151,8 @@ import {Rank} from './types';
       const dimRoundingMode = 'round';
 
       const x = Tensor3D.new(inputShape, [1, 2, 3, 4]);
-      const w = dl.randNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
+      const w =
+          dl.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
       const bias = Tensor1D.new([-1]);
 
       expect(() => math.conv2d(x, w, bias, stride, pad, dimRoundingMode))

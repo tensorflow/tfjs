@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {keep, tidy} from '../../math/backends/tracking';
+import {keep, tidy} from '../../globals';
 import * as concat_util from '../../math/concat_util';
 import {NDArrayMath} from '../../math/math';
 import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../../math/tensor';

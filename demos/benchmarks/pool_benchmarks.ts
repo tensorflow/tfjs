@@ -67,7 +67,7 @@ export class PoolCPUBenchmark implements BenchmarkTest {
     const zeroPad = dl.conv_util.computeDefaultPad(xShape, fieldSize, stride);
     const op = getPoolingOp(option, math);
 
-    const x: dl.Tensor3D = dl.randUniform(xShape, -1, 1);
+    const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
 
     const start = performance.now();
     for (let i = 0; i < CPU_OP_RUNS; i++) {
@@ -94,7 +94,7 @@ export class PoolGPUBenchmark implements BenchmarkTest {
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
-    const x: dl.Tensor3D = dl.randUniform(xShape, -1, 1);
+    const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
     const op = getPoolingOp(option, math);
 
     const benchmark = () => op(x, fieldSize, stride, 'same');

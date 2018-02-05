@@ -38,5 +38,6 @@ export interface DocMethod {
 export interface DocMethodParam {
   name: string;
   type: string;
+  optional: boolean;
   documentation: string;
 }

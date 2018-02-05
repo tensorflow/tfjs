@@ -15,13 +15,14 @@
  * =============================================================================
  */
 
-import {keep, tidy} from '../../math/backends/tracking';
+import {keep, tidy} from '../../globals';
 import {NDArrayMath} from '../../math/math';
-import {Tensor, Scalar} from '../../math/tensor';
+import {Scalar, Tensor} from '../../math/tensor';
 import * as util from '../../util';
 import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
+
 import {Operation} from './op';
 
 export class Subtract extends Operation {

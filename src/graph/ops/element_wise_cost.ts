@@ -16,7 +16,7 @@
  */
 
 import {ENV} from '../../environment';
-import {keep, tidy} from '../../math/backends/tracking';
+import {keep, tidy} from '../../globals';
 // tslint:disable-next-line:max-line-length
 import {ElementWiseCostFunction, SquareCostFunc} from '../../math/cost_functions';
 import {NDArrayMath} from '../../math/math';
@@ -25,6 +25,7 @@ import * as util from '../../util';
 import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
+
 import {Operation} from './op';
 
 /**

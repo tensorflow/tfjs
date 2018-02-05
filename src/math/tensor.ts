@@ -186,11 +186,11 @@ export class Tensor<R extends Rank = Rank> {
     return ops.rand(shape, randFunction, dtype);
   }
 
-  /** @deprecated Please use dl.randNormal() */
+  /** @deprecated Please use dl.randomNormal() */
   static randNormal<R extends Rank>(
       shape: ShapeMap[R], mean = 0, stdDev = 1,
       dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
-    return ops.randNormal(shape, mean, stdDev, dtype, seed);
+    return ops.randomNormal(shape, mean, stdDev, dtype, seed);
   }
 
   /** @deprecated Please use dl.truncatedNormal() */
@@ -200,10 +200,10 @@ export class Tensor<R extends Rank = Rank> {
     return ops.truncatedNormal(shape, mean, stdDev, dtype, seed);
   }
 
-  /** @deprecated Please use dl.randUniform() */
+  /** @deprecated Please use dl.randomUniform() */
   static randUniform<R extends Rank>(
       shape: ShapeMap[R], a: number, b: number, dtype?: DataType): Tensor<R> {
-    return ops.randUniform(shape, a, b, dtype);
+    return ops.randomUniform(shape, a, b, dtype);
   }
 
   /**

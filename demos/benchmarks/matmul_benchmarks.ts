@@ -31,8 +31,8 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('cpu', safeMode);
     dl.ENV.setMath(math);
 
-    const a: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
-    const b: dl.Tensor2D = dl.randUniform([size, size], -1, 1);
+    const a: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
+    const b: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
     const start = performance.now();
     math.matMul(a, b);
     const end = performance.now();
@@ -50,8 +50,8 @@ export class MatmulGPUBenchmark implements BenchmarkTest {
     const math = new dl.NDArrayMath('webgl', safeMode);
     dl.ENV.setMath(math);
 
-    const a: dl.Tensor2D = dl.randNormal([size, size]);
-    const b: dl.Tensor2D = dl.randNormal([size, size]);
+    const a: dl.Tensor2D = dl.randomNormal([size, size]);
+    const b: dl.Tensor2D = dl.randomNormal([size, size]);
 
     const benchmark = () => math.matMul(a, b);
 

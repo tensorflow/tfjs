@@ -9,9 +9,37 @@
   a {
     color: inherit;
   }
+  code {
+    background: #f7f7f7;
+    color: #37474f;
+    padding: 2px 4px;
+    font: 500 90%/1 Roboto Mono,monospace;
+    word-break: break-word;
+  }
+  .heading {
+    margin-left: 16px;
+    width: 600px;
+  }
+  .subheading {
+    margin-left: 16px;
+  }
+  .method {
+    padding-left: 16px;
+    border-left: 1px solid #ccc;
+    margin-bottom: 32px;
+  }
+  .parameter {
+    margin-left: 25px;
+  }
+  .param-name {
+    margin: 12px 0;
+  }
+  .param-docs {
+    padding: 4px 12px;
+  }
 </style>
 
-<h2>deeplearn.js API Reference</h2>
+<h3>deeplearn.js API Reference</h3>
 
 {{#headings}}
   <div class="heading">
@@ -22,15 +50,18 @@
         {{#methods}}
           <div class="method">
             <h5># <a name="{{path}}" href="#{{path}}">{{path}}</a></h5>
-            Defined in <a href="{{githubUrl}}" target=_blank>{{fileName}}</a><br>
             <div class="documentation">{{documentation}}</div>
-            <ul>
-              {{#parameters}}
-                <li class="parameter">
-                  {{name}}: {{documentation}}
-                </li>
-              {{/parameters}}
-            </ul>
+            <h6>Parameters:</h6>
+            {{#parameters}}
+              <div class="parameter">
+                <div class="param-name"><code>{{name}}: {{type}}</code></div>
+                <div class="param-docs">
+                  {{#optional}}(Optional){{/optional}} {{documentation}}
+                </div>
+              </div>
+            {{/parameters}}
+            <br>
+            Defined in <code><a href="{{githubUrl}}" target=_blank>{{fileName}}</a></code>
           </div>
         {{/methods}}
       </div>

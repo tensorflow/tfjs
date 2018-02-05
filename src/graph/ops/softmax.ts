@@ -16,9 +16,9 @@
  */
 
 import {ENV} from '../../environment';
-import {keep, tidy} from '../../math/backends/tracking';
+import {keep, tidy} from '../../globals';
 import {NDArrayMath} from '../../math/math';
-import {Tensor1D, Scalar} from '../../math/tensor';
+import {Scalar, Tensor1D} from '../../math/tensor';
 import * as util from '../../util';
 import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';

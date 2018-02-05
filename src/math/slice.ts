@@ -18,8 +18,8 @@
 import {ENV} from '../environment';
 
 import {doc, operation} from './decorators';
-import {Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor} from './tensor';
 import * as slice_util from './slice_util';
+import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {Rank, ShapeMap} from './types';
 
 export class Ops {

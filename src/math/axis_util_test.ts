@@ -283,7 +283,7 @@ describe('axis_util getUndoAxesPermutation', () => {
     const axes = [2, 0, 1, 3];
     const undoPermutation = axis_util.getUndoAxesPermutation(axes);
 
-    const a = dl.randNormal([2, 3, 4, 5]);
+    const a = dl.randomNormal([2, 3, 4, 5]);
     const aT = dl.transpose(a, axes);
     const aTT = dl.transpose(aT, undoPermutation);
     test_util.expectArraysClose(a, aTT);

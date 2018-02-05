@@ -108,9 +108,9 @@ describe('Convolution', () => {
     const outputDepth = 2;
     const fSize = 3;
     const stride = 1;
-    const weights = dl.randNormal([fSize, fSize, inputDepth, outputDepth]);
-    const biases = dl.randNormal([outputDepth]);
-    const x = dl.randNormal<Rank.R3>([5, 5, inputDepth]);
+    const weights = dl.randomNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = dl.randomNormal([outputDepth]);
+    const x = dl.randomNormal<Rank.R3>([5, 5, inputDepth]);
 
     wTensor = new SymbolicTensor(weights.shape);
     xTensor = new SymbolicTensor(x.shape);
@@ -138,9 +138,9 @@ describe('Convolution', () => {
     const fSize = 2;
     const stride = 1;
 
-    const weights = dl.randNormal([fSize, fSize, inputDepth, outputDepth]);
-    const biases = dl.randNormal([outputDepth]);
-    const x = dl.randNormal<Rank.R3>([5, 5, inputDepth]);
+    const weights = dl.randomNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = dl.randomNormal([outputDepth]);
+    const x = dl.randomNormal<Rank.R3>([5, 5, inputDepth]);
 
     wTensor = new SymbolicTensor(weights.shape);
     xTensor = new SymbolicTensor(x.shape);
@@ -169,9 +169,9 @@ describe('Convolution', () => {
     const stride = 1;
     const zeroPad = 1;
 
-    const weights = dl.randNormal([fSize, fSize, inputDepth, outputDepth]);
-    const biases = dl.randNormal([outputDepth]);
-    const x = dl.randNormal<Rank.R3>([30, 30, inputDepth]);
+    const weights = dl.randomNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = dl.randomNormal([outputDepth]);
+    const x = dl.randomNormal<Rank.R3>([30, 30, inputDepth]);
 
     wTensor = new SymbolicTensor(weights.shape);
     xTensor = new SymbolicTensor(x.shape);
@@ -204,10 +204,10 @@ describe('Convolution', () => {
     const stride = 1;
     const zeroPad = 0;
 
-    const x3d = dl.randNormal<Rank.R3>([3, 3, inputDepth]);
+    const x3d = dl.randomNormal<Rank.R3>([3, 3, inputDepth]);
     const x = x3d.as2D(3, 3);
-    const weights = dl.randNormal([fSize, fSize, inputDepth, outputDepth]);
-    const biases = dl.randNormal([outputDepth]);
+    const weights = dl.randomNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = dl.randomNormal([outputDepth]);
 
     wTensor = new SymbolicTensor(weights.shape);
     xTensor = new SymbolicTensor(x3d.shape);
@@ -256,7 +256,7 @@ describe('Convolution', () => {
             x.get(2, 1) * weights.get(1, 0, 0, 0) +
             x.get(2, 2) * weights.get(1, 1, 0, 0) + biases.get(0));
 
-    const dy3d = dl.randNormal([2, 2, 1]);
+    const dy3d = dl.randomNormal([2, 2, 1]);
 
     gradients.add(yTensor, dy3d);
 
@@ -314,9 +314,9 @@ describe('Convolution', () => {
     const stride = 1;
     const zeroPad = 1;
 
-    const weights = dl.randNormal([fSize, fSize, inputDepth, outputDepth]);
-    const biases = dl.randNormal([outputDepth]);
-    const x = dl.randNormal<Rank.R3>([10, 10, inputDepth]);
+    const weights = dl.randomNormal([fSize, fSize, inputDepth, outputDepth]);
+    const biases = dl.randomNormal([outputDepth]);
+    const x = dl.randomNormal<Rank.R3>([10, 10, inputDepth]);
 
     wTensor = new SymbolicTensor(weights.shape);
     xTensor = new SymbolicTensor(x.shape);
@@ -338,7 +338,7 @@ describe('Convolution', () => {
 
     assertNoNaNs(result);
 
-    const dy = dl.randNormal(result.shape as [number, number, number]);
+    const dy = dl.randomNormal(result.shape as [number, number, number]);
 
     gradients.add(yTensor, dy);
 

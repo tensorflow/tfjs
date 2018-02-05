@@ -982,7 +982,7 @@ import {Scalar, Tensor1D, Tensor2D, Tensor3D} from './tensor';
       const a = Tensor2D.new([2, 3], [2, 4, 6, 8, 10, 12]);
       const b = Tensor2D.new([2, 3], [1, 2, 3, 4, 5, 6]);
       // tslint:disable-next-line:no-any
-      const c1: any = dl.randNormal([10]);
+      const c1: any = dl.randomNormal([10]);
       const c2 = Scalar.new(2);
 
       expect(() => math.scaledArrayAdd(c1 as Scalar, a, c2, b)).toThrowError();

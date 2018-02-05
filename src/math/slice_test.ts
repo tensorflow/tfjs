@@ -73,7 +73,7 @@ import {Rank} from './types';
     });
 
     it('returns the upper-left submatrix when begin is [0, 0]', math => {
-      const a = dl.randUniform<Rank.R2>([10, 10], -1, 1);
+      const a = dl.randomUniform<Rank.R2>([10, 10], -1, 1);
       const b = math.slice2D(a, [0, 0], [2, 2]);
       const aValues = a.dataSync();
 

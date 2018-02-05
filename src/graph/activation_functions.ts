@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {tidy} from '../math/backends/tracking';
+import {tidy} from '../globals';
 import {NDArrayMath} from '../math/math';
-import {Tensor, Scalar} from '../math/tensor';
+import {Scalar, Tensor} from '../math/tensor';
 
 /** A node's activation function and its derivative. */
 export interface ActivationFunction {

@@ -35,7 +35,7 @@ export class GameOfLife {
     let worldNext: dl.Tensor;
     dl.tidy(() => {
       const randWorld: dl.Tensor2D =
-          dl.randUniform([this.size - 2, this.size - 2], 0, 2, 'int32');
+          dl.randomUniform([this.size - 2, this.size - 2], 0, 2, 'int32');
       const worldPadded = GameOfLife.padArray(randWorld);
       // TODO(kreeger): This logic can be vectorized and kept on the GPU with a
       // logical_or() and where() implementations.
