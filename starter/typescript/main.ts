@@ -1,11 +1,10 @@
-import {Array1D, ENV, Scalar} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 async function runExample() {
-  const math = ENV.math;
-  const a = Array1D.new([1, 2, 3]);
-  const b = Scalar.new(2);
+  const a = dl.Array1D.new([1, 2, 3]);
+  const b = dl.Scalar.new(2);
 
-  const result = math.add(a, b);
+  const result = dl.ENV.math.add(a, b);
 
   // Option 1: With async/await.
   // Caveat: in non-Chrome browsers you need to put this in an async function.
