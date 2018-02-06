@@ -18,6 +18,7 @@
 import * as device_util from './device_util';
 import {MathBackend} from './math/backends/backend';
 import {BackendEngine} from './math/backends/backend_engine';
+import {doc} from './math/decorators';
 import {NDArrayMath} from './math/math';
 import * as util from './util';
 
@@ -183,14 +184,16 @@ function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
 
 export type BackendType = 'webgl'|'cpu';
 
+/** List of currently supported backends ordered by preference. */
+const SUPPORTED_BACKENDS: BackendType[] = ['webgl', 'cpu'];
+
 export class Environment {
   private features: Features = {};
-  private globalMath: NDArrayMath = null;
+  private globalMath: NDArrayMath;
+  private globalEngine: BackendEngine;
   private BACKEND_REGISTRY: {[id: string]: MathBackend} = {};
   private backends: {[id: string]: MathBackend} = this.BACKEND_REGISTRY;
-
-  engine: BackendEngine;
-  backend: MathBackend;
+  private currentBackendType: BackendType;
 
   constructor(features?: Features) {
     if (features != null) {
@@ -203,6 +206,33 @@ export class Environment {
           'be downloaded to CPU and checked for NaNs. ' +
           'This significantly impacts performance.');
     }
+  }
+
+  /**
+   * Sets the backend (cpu, webgl, etc) responsible for creating tensors and
+   * executing operations on those tensors.
+   *
+   * @param backendType The backend type. Currently supports 'webgl'|'cpu'.
+   * @param safeMode Defaults to false. In safe mode, you are forced to
+   *     construct tensors and call math operations inside a dl.tidy() which
+   *     will automatically clean up intermediate tensors.
+   */
+  @doc({heading: 'Environment', subheading: ''})
+  static setBackend(backendType: BackendType, safeMode = false) {
+    if (!(backendType in ENV.backends)) {
+      throw new Error(`Backend type '${backendType}' not found in registry`);
+    }
+    ENV.globalMath = new NDArrayMath(backendType, safeMode);
+  }
+
+  /**
+   * Returns the current backend (cpu, webgl, etc). The backend is responsible
+   * for creating tensors and executing operations on those tensors.
+   */
+  @doc({heading: 'Environment', subheading: ''})
+  static getBackend(): BackendType {
+    ENV.initEngine();
+    return ENV.currentBackendType;
   }
 
   get<K extends keyof Features>(feature: K): Features[K] {
@@ -220,9 +250,8 @@ export class Environment {
   }
 
   getBestBackendType(): BackendType {
-    const orderedBackends: BackendType[] = ['webgl', 'cpu'];
-    for (let i = 0; i < orderedBackends.length; ++i) {
-      const backendId = orderedBackends[i];
+    for (let i = 0; i < SUPPORTED_BACKENDS.length; ++i) {
+      const backendId = SUPPORTED_BACKENDS[i];
       if (backendId in this.backends) {
         return backendId;
       }
@@ -272,6 +301,7 @@ export class Environment {
     if (this.globalMath != null) {
       this.globalMath.dispose();
       this.globalMath = null;
+      this.globalEngine = null;
     }
     if (this.backends !== this.BACKEND_REGISTRY) {
       for (const name in this.backends) {
@@ -288,16 +318,17 @@ export class Environment {
     }
     let customBackend = false;
     if (typeof backend === 'string') {
-      this.backend = ENV.getBackend(backend);
+      this.currentBackendType = backend;
+      backend = ENV.findBackend(backend);
     } else {
       customBackend = true;
-      this.backend = backend;
+      this.currentBackendType = 'custom' as BackendType;
     }
-    this.engine = new BackendEngine(this.backend, customBackend, safeMode);
+    this.globalEngine = new BackendEngine(backend, customBackend, safeMode);
     this.globalMath = math;
   }
 
-  getBackend(name: BackendType): MathBackend {
+  findBackend(name: BackendType): MathBackend {
     return this.backends[name];
   }
 
@@ -344,12 +375,24 @@ export class Environment {
     }
   }
 
+  /** @deprecated. Use ENV.engine. */
   get math(): NDArrayMath {
-    if (this.globalMath == null) {
-      const safeMode = false;
-      this.globalMath = new NDArrayMath(this.getBestBackendType(), safeMode);
+    if (this.globalEngine == null) {
+      this.initEngine();
     }
     return this.globalMath;
+  }
+
+  get engine(): BackendEngine {
+    if (this.globalEngine == null) {
+      this.initEngine();
+    }
+    return this.globalEngine;
+  }
+
+  private initEngine() {
+    const safeMode = false;
+    this.globalMath = new NDArrayMath(this.getBestBackendType(), safeMode);
   }
 }
 

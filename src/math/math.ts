@@ -208,16 +208,10 @@ export class NDArrayMath {
   variableGradients = Gradients.variableGradients;
   vjp = Gradients.vjp;
 
-  register: typeof ENV.engine.register;
   engine: typeof ENV.engine;
   getNumTensors: typeof ENV.engine.getNumTensors;
   dispose: typeof ENV.engine.dispose;
   registeredVariables: typeof ENV.engine.registeredVariables;
-  write: typeof ENV.engine.write;
-  read: typeof ENV.engine.read;
-  readSync: typeof ENV.engine.readSync;
-  disposeData: typeof ENV.engine.disposeData;
-  registerVariable: typeof ENV.engine.registerVariable;
   startScope: typeof ENV.engine.startScope;
   endScope: typeof ENV.engine.endScope;
 
@@ -227,16 +221,10 @@ export class NDArrayMath {
    */
   constructor(backend: BackendType|MathBackend, safeMode: boolean) {
     ENV.setMath(this, backend, safeMode);
-    this.register = ENV.engine.register.bind(ENV.engine);
     this.engine = ENV.engine;
     this.getNumTensors = ENV.engine.getNumTensors.bind(ENV.engine);
     this.dispose = ENV.engine.dispose.bind(ENV.engine);
     this.registeredVariables = ENV.engine.registeredVariables;
-    this.write = ENV.engine.write.bind(ENV.engine);
-    this.read = ENV.engine.read.bind(ENV.engine);
-    this.readSync = ENV.engine.readSync.bind(ENV.engine);
-    this.disposeData = ENV.engine.disposeData.bind(ENV.engine);
-    this.registerVariable = ENV.engine.registerVariable.bind(ENV.engine);
     this.startScope = ENV.engine.startScope.bind(ENV.engine);
     this.endScope = ENV.engine.endScope.bind(ENV.engine);
   }

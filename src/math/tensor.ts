@@ -130,9 +130,9 @@ export class Tensor<R extends Rank = Rank> {
     this.dataId = dataId != null ? dataId : Tensor.nextDataId++;
     this.id = Tensor.nextId++;
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-    ENV.math.register(this);
+    ENV.engine.registerTensor(this);
     if (values != null) {
-      ENV.math.write(this.dataId, values);
+      ENV.engine.write(this.dataId, values);
     }
   }
 
@@ -324,7 +324,7 @@ export class Tensor<R extends Rank = Rank> {
    */
   async data(): Promise<TypedArray> {
     this.throwIfDisposed();
-    return ENV.math.read(this.dataId);
+    return ENV.engine.read(this.dataId);
   }
 
   /**
@@ -333,7 +333,7 @@ export class Tensor<R extends Rank = Rank> {
    */
   dataSync(): TypedArray {
     this.throwIfDisposed();
-    return ENV.math.readSync(this.dataId);
+    return ENV.engine.readSync(this.dataId);
   }
 
   dispose(): void {
@@ -341,7 +341,7 @@ export class Tensor<R extends Rank = Rank> {
       return;
     }
     this.isDisposed = true;
-    ENV.math.disposeData(this.dataId);
+    ENV.engine.disposeData(this.dataId);
   }
 
   private isDisposed = false;
@@ -818,7 +818,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
       this.name = Variable.nextVarId.toString();
       Variable.nextVarId++;
     }
-    ENV.math.registerVariable(this);
+    ENV.engine.registerVariable(this);
   }
 
   /**
@@ -850,9 +850,9 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
           `shape of the new value (${newValue.shape}) and ` +
           `previous value (${this.shape}) must match`);
     }
-    ENV.math.disposeData(this.dataId);
+    ENV.engine.disposeData(this.dataId);
     this.dataId = newValue.dataId;
-    ENV.math.register(this);
+    ENV.engine.registerTensor(this);
     newValue.dispose();
   }
 }

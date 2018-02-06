@@ -123,10 +123,9 @@ export class MathBackendCPU implements MathBackend {
   private throwIfNoData(dataId: number) {
     if (!(dataId in this.data)) {
       throw new Error(
-          `No data found for Tensor with data id ${dataId}. ` +
-          `Use dl.ENV.math instead of constructing your own NDArrayMath. ` +
-          `If you need to construct your own math, make sure this array is ` +
-          `allocated after the math construction`);
+          `CPU backend: No data found for Tensor with data id ${dataId}. ` +
+          `Did you change your backend in the middle of the program? ` +
+          `New backends can't use Tensors created with previous backends`);
     }
   }
 
@@ -1653,15 +1652,12 @@ export class MathBackendCPU implements MathBackend {
 
 ENV.registerBackend('cpu', () => new MathBackendCPU());
 
-// TODO(nsthorat): Deprecate this once we export non-abstract NDArrayMath.
+/** @deprecated Call dl.setBackend('cpu') instead. */
 export class NDArrayMathCPU extends NDArrayMath {
   constructor(safeMode = false) {
     console.warn(
-        'new NDArrayMathCPU() is deprecated. Please use the global ' +
-        'dl.ENV.math. In rare cases, to construct your own NDArrayMath ' +
-        'that runs on CPU, use math = new NDArrayMath(\'cpu\', safeMode); ' +
-        'and make sure to set it as global: dl.ENV.setMath(math);');
+        'new NDArrayMathCPU() is deprecated. Please use ' +
+        'dl.setBackend(\'cpu\').');
     super('cpu', safeMode);
-    ENV.setMath(this);
   }
 }

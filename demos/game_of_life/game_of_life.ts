@@ -18,11 +18,9 @@ import * as dl from 'deeplearn';
 
 /** Generates GameOfLife sequence pairs (current sequence + next sequence) */
 export class GameOfLife {
-  math: dl.NDArrayMath;
   size: number;
 
-  constructor(size: number, math: dl.NDArrayMath) {
-    this.math = math;
+  constructor(size: number) {
     this.size = size;
   }
 
@@ -116,7 +114,6 @@ export class GameOfLife {
  */
 export class GameOfLifeModel {
   session: dl.Session;
-  math: dl.NDArrayMath;
 
   optimizer: dl.AdagradOptimizer;
   inputTensor: dl.SymbolicTensor;
@@ -130,10 +127,6 @@ export class GameOfLifeModel {
 
   // Maps tensors to InputProviders
   feedEntries: dl.FeedEntry[];
-
-  constructor(math: dl.NDArrayMath) {
-    this.math = math;
-  }
 
   setupSession(
       boardSize: number, batchSize: number, initialLearningRate: number,
@@ -165,7 +158,7 @@ export class GameOfLifeModel {
       this.costTensor =
           graph.meanSquaredCost(this.targetTensor, this.predictionTensor);
     }
-    this.session = new dl.Session(graph, this.math);
+    this.session = new dl.Session(graph, dl.ENV.math);
   }
 
   trainBatch(fetchCost: boolean, worlds: Array<[dl.Tensor, dl.Tensor]>):

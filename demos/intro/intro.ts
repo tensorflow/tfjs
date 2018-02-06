@@ -19,7 +19,7 @@ import * as dl from 'deeplearn';
 // This file parallels (some of) the code in the introduction tutorial.
 
 /**
- * 'NDArrayMath with WebGL backend' section of tutorial
+ * 'Math with WebGL backend' section of tutorial
  */
 async function intro() {
   const a = dl.tensor2d([1.0, 2.0, 3.0, 4.0], [2, 2]);

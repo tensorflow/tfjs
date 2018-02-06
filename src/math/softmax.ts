@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV} from '../environment';
+import {customGradient} from '../globals';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
@@ -51,7 +51,7 @@ export class Ops {
       };
     };
 
-    return ENV.math.customGradient('softmax', () => {
+    return customGradient('softmax', () => {
       // Do it in log space for numerical stability.
       // exp(X - logSumExp(X))
       const keepDims = true;
@@ -106,7 +106,7 @@ export class Ops {
           `and dim was ${dim}`);
     }
     // Use a custom gradient for numerical stability.
-    return ENV.math.customGradient('softmaxCrossEntropy', () => {
+    return customGradient('softmaxCrossEntropy', () => {
       const softmaxLogits = logits.softmax(dim);
       const costVector =
           ops.scalar(1e-5).add(softmaxLogits).log().mul(labels).neg();

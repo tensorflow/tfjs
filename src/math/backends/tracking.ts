@@ -95,6 +95,6 @@ export class Tracking {
    */
   @doc({heading: 'Performance', subheading: 'Timing'})
   static time(f: () => void): Promise<number> {
-    return ENV.backend.time(f);
+    return ENV.engine.time(f);
   }
 }

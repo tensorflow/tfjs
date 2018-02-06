@@ -64,7 +64,7 @@ const tests: MathTests = it => {
       getNextCopy() {
         return dl.tensor1d([2, 4]);
       },
-      disposeCopy(math, example) {}
+      disposeCopy(example) {}
     };
 
     const g = new Graph();
