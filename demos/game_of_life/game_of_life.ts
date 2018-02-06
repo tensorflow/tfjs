@@ -60,7 +60,7 @@ export class GameOfLife {
       }
       world = dl.keep(worldPadded);
       worldNext = dl.keep(GameOfLife.padArray(
-          dl.Tensor2D.new(randWorld.shape, nextWorldValues, 'int32')));
+          dl.tensor2d(nextWorldValues, randWorld.shape, 'int32')));
     });
     return [world, worldNext];
   }
@@ -106,7 +106,7 @@ export class GameOfLife {
         }
       }
     }
-    return dl.Tensor2D.new(shape as [number, number], values, 'int32');
+    return dl.tensor2d(values, shape as [number, number], 'int32');
   }
 }
 
@@ -191,7 +191,7 @@ export class GameOfLifeModel {
       const evalOutput = this.session.eval(this.predictionTensor, mapping);
       values = evalOutput.dataSync();
     });
-    return dl.Tensor2D.new([this.size, this.size], values);
+    return dl.tensor2d(values, [this.size, this.size]);
   }
 
   private setTrainingData(worlds: Array<[dl.Tensor, dl.Tensor]>): void {

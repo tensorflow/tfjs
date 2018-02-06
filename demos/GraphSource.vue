@@ -17,6 +17,6 @@ limitations under the License.
        Include this file in Vue applications that need Chart. -->
 </template>
 
-<<script>
+<script>
 const Chart = require('chart.js');
 </script>

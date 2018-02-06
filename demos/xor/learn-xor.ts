@@ -56,14 +56,12 @@ export const learnXOR = async () => {
   const optimizer = new dl.SGDOptimizer(0.2);
 
   const inputArray = [
-    dl.Tensor1D.new([0, 0]), dl.Tensor1D.new([0, 1]), dl.Tensor1D.new([1, 0]),
-    dl.Tensor1D.new([1, 1])
+    dl.tensor1d([0, 0]), dl.tensor1d([0, 1]), dl.tensor1d([1, 0]),
+    dl.tensor1d([1, 1])
   ];
 
-  const targetArray = [
-    dl.Tensor1D.new([0]), dl.Tensor1D.new([1]), dl.Tensor1D.new([1]),
-    dl.Tensor1D.new([0])
-  ];
+  const targetArray =
+      [dl.tensor1d([0]), dl.tensor1d([1]), dl.tensor1d([1]), dl.tensor1d([0])];
 
   const shuffledInputProviderBuilder =
       new dl.InCPUMemoryShuffledInputProviderBuilder([inputArray, targetArray]);

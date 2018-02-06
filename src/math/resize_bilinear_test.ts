@@ -15,15 +15,15 @@
  * =============================================================================
  */
 
+import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor3D, Tensor4D} from './tensor';
 
 // math.resizeBilinear
 {
   const tests: MathTests = it => {
     it('simple alignCorners=false', math => {
-      const input = Tensor3D.new([2, 2, 1], [2, 2, 4, 4]);
+      const input = dl.tensor3d([2, 2, 4, 4], [2, 2, 1]);
       const output = input.resizeBilinear([3, 3], false);
 
       test_util.expectArraysClose(
@@ -31,17 +31,20 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('simple alignCorners=true', math => {
-      const input = Tensor3D.new([2, 2, 1], [2, 2, 4, 4]);
+      const input = dl.tensor3d([2, 2, 4, 4], [2, 2, 1]);
       const output = input.resizeBilinear([3, 3], true);
 
       test_util.expectArraysClose(output, [2, 2, 2, 3, 3, 3, 4, 4, 4]);
     });
 
     it('matches tensorflow w/ random numbers alignCorners=false', math => {
-      const input = Tensor3D.new([2, 3, 2], [
-        1.19074044, 0.91373104, 2.01611669, -0.52270832, 0.38725395, 1.30809779,
-        0.61835143, 3.49600659, 2.09230986, 0.56473997, 0.03823943, 1.19864896
-      ]);
+      const input = dl.tensor3d(
+          [
+            1.19074044, 0.91373104, 2.01611669, -0.52270832, 0.38725395,
+            1.30809779, 0.61835143, 3.49600659, 2.09230986, 0.56473997,
+            0.03823943, 1.19864896
+          ],
+          [2, 3, 2]);
       const output = input.resizeBilinear([4, 5], false);
 
       test_util.expectArraysClose(output, [
@@ -56,10 +59,13 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('matches tensorflow w/ random numbers alignCorners=true', math => {
-      const input = Tensor3D.new([2, 3, 2], [
-        1.56324531, 2.13817752, 1.44398421, 1.07632684, 0.59306785, -0.36970865,
-        1.62451879, 1.8367334, 1.13944798, 2.01993218, 2.01919952, 2.67524054
-      ]);
+      const input = dl.tensor3d(
+          [
+            1.56324531, 2.13817752, 1.44398421, 1.07632684, 0.59306785,
+            -0.36970865, 1.62451879, 1.8367334, 1.13944798, 2.01993218,
+            2.01919952, 2.67524054
+          ],
+          [2, 3, 2]);
       const output = input.resizeBilinear([4, 5], true);
 
       test_util.expectArraysClose(output, [
@@ -74,7 +80,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('batch of 2, simple, alignCorners=true', math => {
-      const input = Tensor4D.new([2, 2, 2, 1], [2, 2, 4, 4, 3, 3, 5, 5]);
+      const input = dl.tensor4d([2, 2, 4, 4, 3, 3, 5, 5], [2, 2, 2, 1]);
       const output = input.resizeBilinear([3, 3], true /* alignCorners */);
 
       test_util.expectArraysClose(

@@ -29,9 +29,9 @@ export class TransformNet implements dl.Model {
 
   constructor(private style: string) {
     this.variableDictionary = {};
-    this.timesScalar = dl.Scalar.new(150);
-    this.plusScalar = dl.Scalar.new(255. / 2);
-    this.epsilonScalar = dl.Scalar.new(1e-3);
+    this.timesScalar = dl.scalar(150);
+    this.plusScalar = dl.scalar(255. / 2);
+    this.epsilonScalar = dl.scalar(1e-3);
   }
 
   setStyle(style: string) {
@@ -78,7 +78,7 @@ export class TransformNet implements dl.Model {
                  .mul(this.timesScalar)
                  .add(this.plusScalar)
                  .clip(0, 255)
-                 .div(dl.Scalar.new(255)) as dl.Tensor3D;
+                 .div(dl.scalar(255)) as dl.Tensor3D;
     });
 
     return img;

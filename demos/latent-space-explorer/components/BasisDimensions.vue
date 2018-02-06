@@ -39,9 +39,9 @@ limitations under the License.
 import Sample from './Sample.vue';
 import Tray from './Tray.vue';
 import {range} from 'd3-array';
-import {Tensor1D, ENV} from 'deeplearn';
+import * as dl from 'deeplearn';
 
-const math = ENV.math;
+const math = dl.ENV.math;
 
 export default {
   components: {Sample, Tray},
@@ -54,7 +54,7 @@ export default {
     model: function(m) {
       const dims = m ? m.dimensions: 0;
       this.basisDimensions = range(dims).map(dim => {
-        return math.oneHot(Tensor1D.new([dim]), dims).as1D();
+        return math.oneHot(dl.tensor1d([dim]), dims).as1D();
       });
     }
   },

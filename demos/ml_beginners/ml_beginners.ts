@@ -22,8 +22,8 @@ async function mlBeginners() {
   // This file parallels (some of) the code in the ML Beginners tutorial.
   {
     const matrixShape: [number, number] = [2, 3];  // 2 rows, 3 columns.
-    const matrix = dl.Tensor2D.new(matrixShape, [10, 20, 30, 40, 50, 60]);
-    const vector = dl.Tensor1D.new([0, 1, 2]);
+    const matrix = dl.tensor2d([10, 20, 30, 40, 50, 60], matrixShape);
+    const vector = dl.tensor1d([0, 1, 2]);
     const result = dl.matrixTimesVector(matrix, vector);
 
     console.log('result shape:', result.shape);
@@ -37,9 +37,9 @@ async function mlBeginners() {
     const x = g.placeholder('x', []);
     // Make new variables in the dl.Graph, 'a', 'b', 'c' with shape [] and
     // random initial values.
-    const a = g.variable('a', dl.Scalar.new(Math.random()));
-    const b = g.variable('b', dl.Scalar.new(Math.random()));
-    const c = g.variable('c', dl.Scalar.new(Math.random()));
+    const a = g.variable('a', dl.scalar(Math.random()));
+    const b = g.variable('b', dl.scalar(Math.random()));
+    const c = g.variable('c', dl.scalar(Math.random()));
     // Make new tensors representing the output of the operations of the
     // quadratic.
     const order2 = g.multiply(a, g.square(x));
@@ -63,7 +63,7 @@ async function mlBeginners() {
       // providing a value 4 for "x".
       // NOTE: "a", "b", and "c" are randomly initialized, so this will give us
       // something random.
-      let result = session.eval(y, [{tensor: x, data: dl.Scalar.new(4)}]);
+      let result = session.eval(y, [{tensor: x, data: dl.scalar(4)}]);
       console.log(await result.data());
 
       /**
@@ -73,13 +73,9 @@ async function mlBeginners() {
       // To do this, we need to provide examples of x and y.
       // The values given here are for values a = 3, b = 2, c = 1, with random
       // noise added to the output so it's not a perfect fit.
-      const xs = [
-        dl.Scalar.new(0), dl.Scalar.new(1), dl.Scalar.new(2), dl.Scalar.new(3)
-      ];
-      const ys = [
-        dl.Scalar.new(1.1), dl.Scalar.new(5.9), dl.Scalar.new(16.8),
-        dl.Scalar.new(33.9)
-      ];
+      const xs = [dl.scalar(0), dl.scalar(1), dl.scalar(2), dl.scalar(3)];
+      const ys =
+          [dl.scalar(1.1), dl.scalar(5.9), dl.scalar(16.8), dl.scalar(33.9)];
       // When training, it's important to shuffle your data!
       const shuffledInputProviderBuilder =
           new dl.InCPUMemoryShuffledInputProviderBuilder([xs, ys]);
@@ -109,7 +105,7 @@ async function mlBeginners() {
       }
 
       // Now print the value from the trained model for x = 4, should be ~57.0.
-      result = session.eval(y, [{tensor: x, data: dl.Scalar.new(4)}]);
+      result = session.eval(y, [{tensor: x, data: dl.scalar(4)}]);
       console.log('result should be ~57.0:');
       console.log(await result.data());
     });

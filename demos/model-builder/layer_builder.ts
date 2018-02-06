@@ -128,8 +128,8 @@ export class FullyConnectedLayerBuilder implements LayerBuilder {
     let biasInitializer: dl.Initializer;
     if (weights != null) {
       weightsInitializer =
-          new dl.TensorInitializer(dl.Tensor2D.new(wShape, weights['W']));
-      biasInitializer = new dl.TensorInitializer(dl.Tensor1D.new(weights['b']));
+          new dl.TensorInitializer(dl.tensor2d(weights['W'], wShape));
+      biasInitializer = new dl.TensorInitializer(dl.tensor1d(weights['b']));
     } else {
       weightsInitializer = new dl.VarianceScalingInitializer();
       biasInitializer = new dl.ZerosInitializer();
@@ -233,11 +233,11 @@ export class Convolution2DLayerBuilder implements LayerBuilder {
     let w: dl.Tensor4D;
     let b: dl.Tensor1D;
     if (weights != null) {
-      w = dl.Tensor4D.new(wShape, weights['W']);
-      b = dl.Tensor1D.new(weights['b']);
+      w = dl.tensor4d(weights['W'], wShape);
+      b = dl.tensor1d(weights['b']);
     } else {
-      w = dl.Tensor4D.randTruncatedNormal(wShape, 0, 0.1);
-      b = dl.Tensor1D.zeros([this.outputDepth]);
+      w = dl.truncatedNormal(wShape, 0, 0.1);
+      b = dl.zeros([this.outputDepth]);
     }
     const wTensor = g.variable(`conv2d-${index}-w`, w);
     const bTensor = g.variable(`conv2d-${index}-b`, b);

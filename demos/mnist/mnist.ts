@@ -32,7 +32,7 @@ reader.getAllVariables().then(vars => {
 
       let numCorrect = 0;
       for (let i = 0; i < data.images.length; i++) {
-        const x = dl.Tensor1D.new(data.images[i]);
+        const x = dl.tensor1d(data.images[i]);
 
         // Infer through the model to get a prediction.
         const predictedLabel = Math.round(await infer(x, vars).val());
@@ -45,8 +45,8 @@ reader.getAllVariables().then(vars => {
         }
 
         // Show the image.
-        const result = renderResults(
-            dl.Tensor1D.new(data.images[i]), label, predictedLabel);
+        const result =
+            renderResults(dl.tensor1d(data.images[i]), label, predictedLabel);
         document.body.appendChild(result);
       }
 

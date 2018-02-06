@@ -22,8 +22,8 @@ const inA: HTMLInputElement = document.getElementById('A') as HTMLInputElement;
 const inB: HTMLInputElement = document.getElementById('B') as HTMLInputElement;
 
 export async function execute(event?: Event) {
-  const a = dl.Scalar.new(+inA.value);
-  const b = dl.Scalar.new(+inB.value);
+  const a = dl.scalar(+inA.value);
+  const b = dl.scalar(+inB.value);
   const result = await a.add(b).data();
   outputElement.innerText = result.toString();
 }

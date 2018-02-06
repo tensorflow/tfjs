@@ -19,7 +19,7 @@ import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
-import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
+import {Tensor3D} from './tensor';
 
 // Equal:
 {
@@ -154,14 +154,14 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
       test_util.expectArraysClose(dl.equal(a, b), [0, 0, 0, 0, 0, 1]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       test_util.expectArraysClose(dl.equal(a, b), [1, 1, 1, 1, 1, 1]);
     });
     it('Tensor3D - float32', () => {
@@ -184,7 +184,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
       test_util.expectArraysClose(
           dl.equal(a, b), [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]);
     });
@@ -221,7 +221,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           dl.equal(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
     });
     it('3D and scalar', () => {
-      const a = Tensor3D.new([2, 3, 1], [1, 2, 3, 4, 5, -1]);
+      const a = dl.tensor3d([1, 2, 3, 4, 5, -1], [2, 3, 1]);
       const b = dl.scalar(-1);
       const res = dl.equal(a, b);
       expect(res.dtype).toBe('bool');
@@ -231,53 +231,53 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 8], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 8], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.equal(a, b), [0, 0, 0, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.equal(a, b), [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      a = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.equal(a, b), [0, 0, 0, 0]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 8.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 8.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.equal(a, b), [0, 0, 0, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.equal(a, b), [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      a = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.equal(a, b), [0, 0, 0, 0]);
     });
     it('broadcasting Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
       test_util.expectArraysClose(dl.equal(a, b), [1, 0, 0, 0, 1, 0, 0, 0]);
     });
     it('broadcasting Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          [2, 2, 1, 2],
           'float32');
       test_util.expectArraysClose(dl.equal(a, b), [1, 0, 0, 0, 1, 0, 0, 0]);
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 1, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.equal(a, b), [0, boolNaN, 1, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 1.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.equal(a, b), [0, boolNaN, 1, boolNaN]);
     });
   };
@@ -406,14 +406,14 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [0, 0, 0, 0, 0, 1]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [1, 1, 1, 1, 1, 1]);
     });
     it('Tensor3D - float32', () => {
@@ -436,7 +436,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
 
       const f = () => {
         dl.equalStrict(a, b);
@@ -481,35 +481,35 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 8], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 8], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [0, 0, 0, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      a = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [0, 0, 0, 0]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 8.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 8.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [0, 0, 0, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      a = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.equalStrict(a, b), [0, 0, 0, 0]);
     });
     it('mismatch Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
 
       const f = () => {
         dl.equalStrict(a, b);
@@ -517,11 +517,10 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(f).toThrowError();
     });
     it('mismatch Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
-          'float32');
+          [2, 2, 1, 2], 'float32');
 
       const f = () => {
         dl.equalStrict(a, b);
@@ -529,14 +528,14 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(f).toThrowError();
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 1, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(
           dl.equalStrict(a, b), [0, boolNaN, 1, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 1.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(
           dl.equalStrict(a, b), [0, boolNaN, 1, boolNaN]);
     });
@@ -692,14 +691,14 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
       test_util.expectArraysClose(dl.notEqual(a, b), [1, 1, 1, 1, 1, 0]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       test_util.expectArraysClose(dl.notEqual(a, b), [0, 0, 0, 0, 0, 0]);
     });
     it('Tensor3D - float32', () => {
@@ -722,7 +721,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
       test_util.expectArraysClose(
           dl.notEqual(a, b), [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1]);
     });
@@ -759,7 +758,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           dl.notEqual(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
     });
     it('3D and scalar', () => {
-      const a = Tensor3D.new([2, 3, 1], [1, 2, 3, 4, 5, -1]);
+      const a = dl.tensor3d([1, 2, 3, 4, 5, -1], [2, 3, 1]);
       const b = dl.scalar(-1);
       const res = dl.notEqual(a, b);
       expect(res.dtype).toBe('bool');
@@ -769,56 +768,56 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 8], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 8], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.notEqual(a, b), [1, 1, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.notEqual(a, b), [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      a = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.notEqual(a, b), [1, 1, 1, 1]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 8.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 8.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.notEqual(a, b), [1, 1, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.notEqual(a, b), [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      a = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.notEqual(a, b), [1, 1, 1, 1]);
     });
     it('broadcasting Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
       test_util.expectArraysClose(
           dl.notEqual(a, b), [0, 1, 1, 1, 0, 1, 1, 1]);
     });
     it('broadcasting Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          [2, 2, 1, 2],
           'float32');
       test_util.expectArraysClose(
           dl.notEqual(a, b), [0, 1, 1, 1, 0, 1, 1, 1]);
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 1, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(
           dl.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 1.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(
           dl.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
     });
@@ -958,15 +957,15 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
       test_util.expectArraysClose(
           dl.notEqualStrict(a, b), [1, 1, 1, 1, 1, 0]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       test_util.expectArraysClose(
           dl.notEqualStrict(a, b), [0, 0, 0, 0, 0, 0]);
     });
@@ -992,7 +991,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
 
       const f = () => {
         dl.notEqualStrict(a, b);
@@ -1037,35 +1036,35 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 8], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 8], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.notEqualStrict(a, b), [1, 1, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.notEqualStrict(a, b), [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      a = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(dl.notEqualStrict(a, b), [1, 1, 1, 1]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 8.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 8.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.notEqualStrict(a, b), [1, 1, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.notEqualStrict(a, b), [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      a = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(dl.notEqualStrict(a, b), [1, 1, 1, 1]);
     });
     it('mismatch Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
 
       const f = () => {
         dl.notEqualStrict(a, b);
@@ -1073,10 +1072,10 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(f).toThrowError();
     });
     it('mismatch Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          [2, 2, 1, 2],
           'float32');
 
       const f = () => {
@@ -1085,14 +1084,14 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(f).toThrowError();
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 1, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       test_util.expectArraysClose(
           dl.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 1.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       test_util.expectArraysClose(
           dl.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
     });
@@ -1260,7 +1259,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
@@ -1269,8 +1268,8 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 0, 1, 0, 1, 0]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -1302,7 +1301,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
       const res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -1349,63 +1348,63 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 7], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 7], [2, 2, 1, 1], 'int32');
       let res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 0, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      a = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
       res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 7.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 7.1], [2, 2, 1, 1], 'float32');
       let res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 0, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      a = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
       res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
     });
     it('broadcasting Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
       const res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 1, 1, 1, 0, 1, 0, 0]);
     });
     it('broadcasting Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          [2, 2, 1, 2],
           'float32');
       const res = dl.less(a, b);
 
@@ -1413,16 +1412,16 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       test_util.expectArraysClose(res, [0, 1, 1, 1, 0, 1, 0, 0]);
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 0, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       const res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 0.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       const res = dl.less(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -1457,8 +1456,8 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
        () => {
          const a = dl.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
          const b =
-             Tensor2D.new([2, 3],
-              [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+             dl.tensor2d(
+              [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
          expect(() => dl.lessStrict(a, b)).toThrowError();
          expect(() => dl.lessStrict(b, a)).toThrowError();
@@ -1485,10 +1484,10 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor4D:
     it('Tensor4D - strict version throws when a and b are different shape',
        () => {
-         const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-         const b = Tensor4D.new(
-             [2, 2, 1, 2],
+         const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+         const b = dl.tensor4d(
              [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             [2, 2, 1, 2],
              'float32');
 
          expect(() => dl.lessStrict(a, b)).toThrowError();
@@ -1658,7 +1657,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
@@ -1667,8 +1666,8 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 0, 1, 0, 1, 0]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -1700,7 +1699,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
       const res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -1747,63 +1746,63 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 7], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 7], [2, 2, 1, 1], 'int32');
       let res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 0, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      a = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
       res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 7.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 7.1], [2, 2, 1, 1], 'float32');
       let res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 0, 1, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      a = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
       res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
     });
     it('broadcasting Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
       const res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1, 1, 1, 0, 0]);
     });
     it('broadcasting Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          [2, 2, 1, 2],
           'float32');
       const res = dl.lessEqual(a, b);
 
@@ -1811,16 +1810,16 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       test_util.expectArraysClose(res, [1, 1, 1, 1, 1, 1, 0, 0]);
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 0, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       const res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 0.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       const res = dl.lessEqual(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -1854,8 +1853,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
        () => {
          const a = dl.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
          const b =
-             Tensor2D.new([2, 3],
-              [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+             dl.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
          expect(() => dl.lessEqualStrict(a, b)).toThrowError();
          expect(() => dl.lessEqualStrict(b, a)).toThrowError();
@@ -1882,10 +1880,10 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor4D:
     it('Tensor4D - strict version throws when a and b are different shape',
        () => {
-         const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-         const b = Tensor4D.new(
-             [2, 2, 1, 2],
+         const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+         const b = dl.tensor4d(
              [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             [2, 2, 1, 2],
              'float32');
 
          expect(() => dl.lessEqualStrict(a, b)).toThrowError();
@@ -2055,7 +2053,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [11]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [11]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
@@ -2064,8 +2062,8 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 1, 0, 1, 0, 0]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -2097,7 +2095,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
       const res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -2144,63 +2142,63 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 8], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 8], [2, 2, 1, 1], 'int32');
       let res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 1, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
+      a = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
       res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 8.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 8.1], [2, 2, 1, 1], 'float32');
       let res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 1, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 0, 0, 0]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
+      a = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
       res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
     });
     it('broadcasting Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
       const res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 0, 0, 0, 0, 0, 1, 1]);
     });
     it('broadcasting Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          [2, 2, 1, 2],
           'float32');
       const res = dl.greater(a, b);
 
@@ -2208,16 +2206,16 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       test_util.expectArraysClose(res, [0, 0, 0, 0, 0, 0, 1, 1]);
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 0, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       const res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 0.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       const res = dl.greater(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -2251,8 +2249,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
        () => {
          const a = dl.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
          const b =
-             Tensor2D.new([2, 3],
-              [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+             dl.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
          expect(() => dl.greaterStrict(a, b)).toThrowError();
          expect(() => dl.greaterStrict(b, a)).toThrowError();
@@ -2279,10 +2276,10 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor4D:
     it('Tensor4D - strict version throws when a and b are different shape',
        () => {
-         const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-         const b = Tensor4D.new(
-             [2, 2, 1, 2],
+         const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+         const b = dl.tensor4d(
              [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             [2, 2, 1, 2],
              'float32');
 
          expect(() => dl.greaterStrict(a, b)).toThrowError();
@@ -2452,7 +2449,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor3D:
     it('Tensor3D - int32', () => {
       let a =
-          Tensor3D.new([2, 3, 1], [[[1], [4], [5]], [[8], [9], [12]]], 'int32');
+          dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
       let b =
           Tensor3D.new([2, 3, 1],
             [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
@@ -2461,8 +2458,8 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 1, 0, 1, 0, 1]);
 
-      a = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
-      b = Tensor3D.new([2, 3, 1], [[[0], [0], [0]], [[1], [1], [1]]], 'int32');
+      a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
+      b = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
       res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -2494,7 +2491,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
           [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
           'int32');
       const b =
-          Tensor3D.new([2, 3, 1], [[[1], [2], [3]], [[7], [10], [9]]], 'int32');
+          dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
       const res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -2541,63 +2538,63 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
 
     // Tensor4D:
     it('Tensor4D - int32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1, 4, 5, 8], 'int32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2, 3, 6, 7], 'int32');
+      let a = dl.tensor4d([1, 4, 5, 8], [2, 2, 1, 1], 'int32');
+      let b = dl.tensor4d([2, 3, 6, 7], [2, 2, 1, 1], 'int32');
       let res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 1, 0, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [0, 1, 2, 3], 'int32');
+      a = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([0, 1, 2, 3], [2, 2, 1, 1], 'int32');
       res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [1, 1, 1, 1], 'int32');
-      b = Tensor4D.new([2, 2, 1, 1], [2, 2, 2, 2], 'int32');
+      a = dl.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'int32');
+      b = dl.tensor4d([2, 2, 2, 2], [2, 2, 1, 1], 'int32');
       res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 0, 0, 0]);
     });
     it('Tensor4D - float32', () => {
-      let a = Tensor4D.new([2, 2, 1, 1], [1.1, 4.1, 5.1, 8.1], 'float32');
-      let b = Tensor4D.new([2, 2, 1, 1], [2.1, 3.1, 6.1, 7.1], 'float32');
+      let a = dl.tensor4d([1.1, 4.1, 5.1, 8.1], [2, 2, 1, 1], 'float32');
+      let b = dl.tensor4d([2.1, 3.1, 6.1, 7.1], [2, 2, 1, 1], 'float32');
       let res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 1, 0, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 2.2, 3.3], 'float32');
+      a = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([0.1, 1.1, 2.2, 3.3], [2, 2, 1, 1], 'float32');
       res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 1, 1, 1]);
 
-      a = Tensor4D.new([2, 2, 1, 1], [0.1, 0.1, 0.1, 0.1], 'float32');
-      b = Tensor4D.new([2, 2, 1, 1], [1.1, 1.1, 1.1, 1.1], 'float32');
+      a = dl.tensor4d([0.1, 0.1, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      b = dl.tensor4d([1.1, 1.1, 1.1, 1.1], [2, 2, 1, 1], 'float32');
       res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [0, 0, 0, 0]);
     });
     it('broadcasting Tensor4D shapes - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, 2, 5, 9], 'int32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2], [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], 'int32');
+      const a = dl.tensor4d([1, 2, 5, 9], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d(
+          [[[[1, 2]], [[3, 4]]], [[[5, 6]], [[7, 8]]]], [2, 2, 1, 2], 'int32');
       const res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, 0, 0, 0, 1, 0, 1, 1]);
     });
     it('broadcasting Tensor4D shapes - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-      const b = Tensor4D.new(
-          [2, 2, 1, 2],
+      const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d(
           [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+          [2, 2, 1, 2],
           'float32');
       const res = dl.greaterEqual(a, b);
 
@@ -2605,16 +2602,16 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
       test_util.expectArraysClose(res, [1, 0, 0, 0, 1, 0, 1, 1]);
     });
     it('NaNs in Tensor4D - int32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1, NaN, 0, 0], 'int32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0, 1, 1, NaN], 'int32');
+      const a = dl.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
+      const b = dl.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
       const res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
       test_util.expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
     });
     it('NaNs in Tensor4D - float32', () => {
-      const a = Tensor4D.new([2, 2, 1, 1], [1.1, NaN, 0.1, 0.1], 'float32');
-      const b = Tensor4D.new([2, 2, 1, 1], [0.1, 1.1, 1.1, NaN], 'float32');
+      const a = dl.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
+      const b = dl.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       const res = dl.greaterEqual(a, b);
 
       expect(res.dtype).toBe('bool');
@@ -2648,8 +2645,7 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
        () => {
          const a = dl.tensor2d([[1.1], [7.1]], [2, 1], 'float32');
          const b =
-             Tensor2D.new([2, 3],
-              [[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], 'float32');
+             dl.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
 
          expect(() => dl.greaterEqualStrict(a, b)).toThrowError();
          expect(() => dl.greaterEqualStrict(b, a)).toThrowError();
@@ -2676,10 +2672,10 @@ import {Tensor2D, Tensor3D, Tensor4D} from './tensor';
     // Tensor4D:
     it('Tensor4D - strict version throws when a and b are different shape',
        () => {
-         const a = Tensor4D.new([2, 2, 1, 1], [1.1, 2.1, 5.1, 9.1], 'float32');
-         const b = Tensor4D.new(
-             [2, 2, 1, 2],
+         const a = dl.tensor4d([1.1, 2.1, 5.1, 9.1], [2, 2, 1, 1], 'float32');
+         const b = dl.tensor4d(
              [[[[1.1, 2.1]], [[3.1, 4.1]]], [[[5.1, 6.1]], [[7.1, 8.1]]]],
+             [2, 2, 1, 2],
              'float32');
 
          expect(() => dl.greaterEqualStrict(a, b)).toThrowError();

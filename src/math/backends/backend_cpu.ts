@@ -16,6 +16,7 @@
  */
 
 import * as seedrandom from 'seedrandom';
+
 import {ENV} from '../../environment';
 import * as util from '../../util';
 import * as broadcast_util from '../broadcast_util';
@@ -23,9 +24,11 @@ import * as concat_util from '../concat_util';
 import {Conv2DInfo} from '../conv_util';
 import {NDArrayMath} from '../math';
 import * as ops from '../ops';
+import {tensor2d, tensor3d, tensor4d} from '../ops';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
 import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
+
 import * as axis_util from './../axis_util';
 import {MathBackend} from './backend';
 import {MatrixOrientation} from './types/matmul';
@@ -96,7 +99,7 @@ export class MathBackendCPU implements MathBackend {
     }
     const outShape: [number, number, number] =
         [pixels.height, pixels.width, numChannels];
-    return Tensor3D.new(outShape, values, 'int32');
+    return tensor3d(values, outShape, 'int32');
   }
   async read(dataId: number): Promise<TypedArray> {
     this.throwIfNoData(dataId);
@@ -1472,7 +1475,7 @@ export class MathBackendCPU implements MathBackend {
               Math.sqrt(
                   varianceValues[i % varianceValues.length] + varianceEpsilon);
     }
-    return Tensor2D.new(x.shape, outValues);
+    return tensor2d(outValues, x.shape);
   }
 
   batchNormalization3D(
@@ -1493,7 +1496,7 @@ export class MathBackendCPU implements MathBackend {
               Math.sqrt(
                   varianceValues[i % varianceValues.length] + varianceEpsilon);
     }
-    return Tensor3D.new(x.shape, outValues);
+    return tensor3d(outValues, x.shape);
   }
 
   batchNormalization4D(
@@ -1514,7 +1517,7 @@ export class MathBackendCPU implements MathBackend {
               Math.sqrt(
                   varianceValues[i % varianceValues.length] + varianceEpsilon);
     }
-    return Tensor4D.new(x.shape, outValues);
+    return tensor4d(outValues, x.shape);
   }
 
   localResponseNormalization4D(

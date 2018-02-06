@@ -19,7 +19,6 @@ import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {MatrixOrientation} from './backends/types/matmul';
-import {Tensor3D} from './tensor';
 import {Rank} from './types';
 
 const commonTests: MathTests = it => {
@@ -109,7 +108,7 @@ const commonTests: MathTests = it => {
   it('matmul throws when passed non matrices', math => {
     // tslint:disable-next-line:no-any
     const a: any =
-        Tensor3D.new([2, 3, 2], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+        dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 2]);
     const b = dl.tensor2d([0, 1, -3, 2, 2, 1, 2, 2], [4, 2]);
 
     expect(() => math.matMul(a, b)).toThrowError();
@@ -146,7 +145,7 @@ const commonTests: MathTests = it => {
   it('Vector times matrix throws when not passed a matrix', math => {
     const v = dl.tensor1d([2, 3]);
     // tslint:disable-next-line:no-any
-    const matrix: any = Tensor3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+    const matrix: any = dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
 
     expect(() => math.vectorTimesMatrix(v, matrix)).toThrowError();
   });
@@ -181,7 +180,7 @@ const commonTests: MathTests = it => {
     const v = dl.tensor1d([2, 3]);
 
     // tslint:disable-next-line:no-any
-    const matrix: any = Tensor3D.new([2, 2, 2], [1, 2, 3, 4, 5, 6, 7, 8]);
+    const matrix: any = dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
 
     expect(() => math.matrixTimesVector(matrix, v)).toThrowError();
   });

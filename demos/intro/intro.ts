@@ -22,10 +22,10 @@ import * as dl from 'deeplearn';
  * 'NDArrayMath with WebGL backend' section of tutorial
  */
 async function intro() {
-  const a = dl.Tensor2D.new([2, 2], [1.0, 2.0, 3.0, 4.0]);
-  const b = dl.Tensor2D.new([2, 2], [0.0, 2.0, 4.0, 6.0]);
+  const a = dl.tensor2d([1.0, 2.0, 3.0, 4.0], [2, 2]);
+  const b = dl.tensor2d([0.0, 2.0, 4.0, 6.0], [2, 2]);
 
-  const size = dl.Scalar.new(a.size);
+  const size = dl.scalar(a.size);
 
   // Non-blocking math calls.
   const average = a.sub(b).square().sum().div(size);
@@ -49,7 +49,7 @@ async function intro() {
   // Variables are containers that hold a value that can be updated from
   // training.
   // Here we initialize the multiplier variable randomly.
-  const multiplier = g.variable('multiplier', dl.Tensor2D.randNormal([1, 3]));
+  const multiplier = g.variable('multiplier', dl.randomNormal([1, 3]));
 
   // Top level graph methods take Tensors and return Tensors.
   const outputTensor = g.matmul(multiplier, inputTensor);
@@ -69,13 +69,12 @@ async function intro() {
   const optimizer = new dl.SGDOptimizer(learningRate);
 
   const inputs: dl.Tensor1D[] = [
-    dl.Tensor1D.new([1.0, 2.0, 3.0]), dl.Tensor1D.new([10.0, 20.0, 30.0]),
-    dl.Tensor1D.new([100.0, 200.0, 300.0])
+    dl.tensor1d([1.0, 2.0, 3.0]), dl.tensor1d([10.0, 20.0, 30.0]),
+    dl.tensor1d([100.0, 200.0, 300.0])
   ];
 
-  const labels: dl.Tensor1D[] = [
-    dl.Tensor1D.new([4.0]), dl.Tensor1D.new([40.0]), dl.Tensor1D.new([400.0])
-  ];
+  const labels: dl.Tensor1D[] =
+      [dl.tensor1d([4.0]), dl.tensor1d([40.0]), dl.tensor1d([400.0])];
 
   // Shuffles inputs and labels and keeps them mutually in sync.
   const shuffledInputProviderBuilder =
@@ -103,7 +102,7 @@ async function intro() {
     });
   }
 
-  const testInput = dl.Tensor1D.new([0.1, 0.2, 0.3]);
+  const testInput = dl.tensor1d([0.1, 0.2, 0.3]);
 
   // session.eval can take Tensors as input data.
   const testFeedEntries: dl.FeedEntry[] =
