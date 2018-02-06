@@ -162,6 +162,7 @@ export const tile = array_ops.Ops.tile;
 export const gather = array_ops.Ops.gather;
 export const multinomial = array_ops.Ops.multinomial;
 export const oneHot = array_ops.Ops.oneHot;
+export const linspace = array_ops.Ops.linspace;
 export const pad1d = array_ops.Ops.pad1d;
 export const pad2d = array_ops.Ops.pad2d;
 export const range = array_ops.Ops.range;

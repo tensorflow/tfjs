@@ -566,6 +566,36 @@ export class Ops {
   }
 
   /**
+   * Return an evenly spaced sequence of numbers over the given interval.
+   *
+   * The stop value can be optionally excluded by passing setting [endpoint] to
+   * true.
+   *
+   * @param start The start value of the sequence
+   * @param stop The end value of the sequence
+   * @param num The number of values to generate
+   * @param endpoint Optional, determines whether stop is included in the
+   * sequence. Defaults to true.
+   */
+  @operation
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static linspace(start: number, stop: number, num: number) {
+    if (num === 0) {
+      throw new Error('Cannot request zero samples');
+    }
+
+    const step = (stop - start) / (num - 1);
+
+    const values = makeZerosTypedArray(num, 'float32');
+    values[0] = start;
+    for (let i = 1; i < values.length; i++) {
+      values[i] = values[i - 1] + step;
+    }
+
+    return Tensor1D.new(values, 'float32');
+  }
+
+  /**
    * Creates a new Tensor1D filled with the numbers in the range provided.
    *
    * The tensor is a is half-open interval meaning it includes start, but
