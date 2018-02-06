@@ -1563,6 +1563,61 @@ import * as util from '../util';
   ]);
 }
 
+// dl.linspace
+{
+  const testsLinspace: MathTests = it => {
+    it('start stop', () => {
+      const a = dl.linspace(1, 10, 10);
+      test_util.expectArraysEqual(a, [1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
+      expect(a.shape).toEqual([10]);
+
+      const b = dl.linspace(12, 17, 8);
+      test_util.expectArraysClose(b, [
+        12., 12.71428571, 13.42857143, 14.14285714, 14.85714286, 15.57142857,
+        16.28571429, 17.
+      ]);
+      expect(b.shape).toEqual([8]);
+
+      const c = dl.linspace(9, 0, 6);
+      test_util.expectArraysClose(c, [9., 7.2, 5.4, 3.6, 1.8, 0.]);
+      expect(c.shape).toEqual([6]);
+    });
+
+    it('negative start stop', () => {
+      const a = dl.linspace(-4, 5, 6);
+      test_util.expectArraysClose(a, [-4., -2.2, -0.4, 1.4, 3.2, 5.]);
+      expect(a.shape).toEqual([6]);
+    });
+
+    it('start negative stop', () => {
+      const a = dl.linspace(4, -5, 6);
+      test_util.expectArraysClose(a, [4., 2.2, 0.4, -1.4, -3.2, -5.]);
+      expect(a.shape).toEqual([6]);
+    });
+
+    it('negative start negative stop', () => {
+      const a = dl.linspace(-4, -5, 6);
+      test_util.expectArraysClose(a, [-4., -4.2, -4.4, -4.6, -4.8, -5.]);
+      expect(a.shape).toEqual([6]);
+
+      const b = dl.linspace(-9, -4, 5);
+      test_util.expectArraysClose(b, [-9., -7.75, -6.5, -5.25, -4.]);
+      expect(b.shape).toEqual([5]);
+    });
+
+    it('should throw with no samples', () => {
+      expect(() => dl.linspace(2, 10, 0)).toThrow();
+    });
+  };
+
+  test_util.describeMathCPU('linspace', [testsLinspace]);
+  test_util.describeMathGPU('linspace', [testsLinspace], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
 // dl.range
 {
   const testsRange: MathTests = it => {
