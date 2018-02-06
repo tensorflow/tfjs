@@ -20,7 +20,7 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {Rank} from './types';
 
-// math.basicLSTMCell
+// dl.basicLSTMCell
 {
   const tests: MathTests = it => {
     it('MultiRNNCell with 2 BasicLSTMCells', math => {
@@ -46,9 +46,9 @@ import {Rank} from './types';
 
       const forgetBias = dl.scalar(1.0);
       const lstm1 =
-          math.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
+          dl.basicLSTMCell.bind(math, forgetBias, lstmKernel1, lstmBias1);
       const lstm2 =
-          math.basicLSTMCell.bind(math, forgetBias, lstmKernel2, lstmBias2);
+          dl.basicLSTMCell.bind(math, forgetBias, lstmKernel2, lstmBias2);
 
       const c = [
         dl.zeros<Rank.R2>([1, lstmBias1.shape[0] / 4]),
@@ -62,7 +62,7 @@ import {Rank} from './types';
       const onehot = dl.buffer<Rank.R2>([1, 2], 'float32');
       onehot.set(1.0, 0, 0);
 
-      const output = math.multiRNNCell([lstm1, lstm2], onehot.toTensor(), c, h);
+      const output = dl.multiRNNCell([lstm1, lstm2], onehot.toTensor(), c, h);
 
       test_util.expectArraysClose(output[0][0], [-0.7440074682235718]);
       test_util.expectArraysClose(output[0][1], [0.7460772395133972]);
@@ -70,18 +70,18 @@ import {Rank} from './types';
       test_util.expectArraysClose(output[1][1], [0.5745711922645569]);
     });
 
-    it('basicLSTMCell with batch=2', math => {
+    it('basicLSTMCell with batch=2', () => {
       const lstmKernel = dl.randomNormal<Rank.R2>([3, 4]);
       const lstmBias = dl.randomNormal<Rank.R1>([4]);
       const forgetBias = dl.scalar(1.0);
 
       const data = dl.randomNormal<Rank.R2>([1, 2]);
-      const batchedData = math.concat2D(data, data, 0);  // 2x2
+      const batchedData = dl.concat2d(data, data, 0);  // 2x2
       const c = dl.randomNormal<Rank.R2>([1, 1]);
-      const batchedC = math.concat2D(c, c, 0);  // 2x1
+      const batchedC = dl.concat2d(c, c, 0);  // 2x1
       const h = dl.randomNormal<Rank.R2>([1, 1]);
-      const batchedH = math.concat2D(h, h, 0);  // 2x1
-      const [newC, newH] = math.basicLSTMCell(
+      const batchedH = dl.concat2d(h, h, 0);  // 2x1
+      const [newC, newH] = dl.basicLSTMCell(
           forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);
       expect(newC.get(0, 0)).toEqual(newC.get(1, 0));
       expect(newH.get(0, 0)).toEqual(newH.get(1, 0));

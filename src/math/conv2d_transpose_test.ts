@@ -20,10 +20,10 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {Rank} from './types';
 
-// math.conv2dTranspose
+// dl.conv2dTranspose
 {
   const tests: MathTests = it => {
-    it('input=2x2x1,d2=1,f=2,s=1,p=0', math => {
+    it('input=2x2x1,d2=1,f=2,s=1,p=0', () => {
       const origInputDepth = 1;
       const origOutputDepth = 1;
       const inputShape: [number, number, number] = [1, 1, origOutputDepth];
@@ -35,14 +35,14 @@ import {Rank} from './types';
       const w = dl.tensor4d(
           [3, 1, 5, 0], [fSize, fSize, origInputDepth, origOutputDepth]);
 
-      const result = math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad);
+      const result = dl.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad);
       const expected = [6, 2, 10, 0];
 
       expect(result.shape).toEqual([2, 2, 1]);
       test_util.expectArraysClose(result, expected);
     });
 
-    it('input=2x2x1,d2=1,f=2,s=1,p=0, batch=2', math => {
+    it('input=2x2x1,d2=1,f=2,s=1,p=0, batch=2', () => {
       const origInputDepth = 1;
       const origOutputDepth = 1;
       const inputShape: [number, number, number, number] =
@@ -56,14 +56,14 @@ import {Rank} from './types';
           [3, 1, 5, 0], [fSize, fSize, origInputDepth, origOutputDepth]);
 
       const result =
-          math.conv2dTranspose(x, w, [2, 2, 2, 1], origStride, origPad);
+          dl.conv2dTranspose(x, w, [2, 2, 2, 1], origStride, origPad);
       const expected = [6, 2, 10, 0, 9, 3, 15, 0];
 
       expect(result.shape).toEqual([2, 2, 2, 1]);
       test_util.expectArraysClose(result, expected);
     });
 
-    it('throws when x is not rank 3', math => {
+    it('throws when x is not rank 3', () => {
       const origInputDepth = 1;
       const origOutputDepth = 1;
       const fSize = 2;
@@ -75,11 +75,11 @@ import {Rank} from './types';
       const w = dl.tensor4d(
           [3, 1, 5, 0], [fSize, fSize, origInputDepth, origOutputDepth]);
 
-      expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
+      expect(() => dl.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
           .toThrowError();
     });
 
-    it('throws when weights is not rank 4', math => {
+    it('throws when weights is not rank 4', () => {
       const origInputDepth = 1;
       const origOutputDepth = 1;
       const inputShape: [number, number, number] = [1, 1, origOutputDepth];
@@ -91,12 +91,12 @@ import {Rank} from './types';
       // tslint:disable-next-line:no-any
       const w: any = dl.tensor3d([3, 1, 5, 0], [fSize, fSize, origInputDepth]);
 
-      expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
+      expect(() => dl.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
           .toThrowError();
     });
 
     it('throws when x depth does not match weights original output depth',
-       math => {
+       () => {
          const origInputDepth = 1;
          const origOutputDepth = 2;
          const wrongOrigOutputDepth = 3;
@@ -109,8 +109,7 @@ import {Rank} from './types';
          const w = dl.randomNormal<Rank.R4>(
              [fSize, fSize, origInputDepth, wrongOrigOutputDepth]);
 
-         expect(
-             () => math.conv2dTranspose(x, w, [2, 2, 2], origStride, origPad))
+         expect(() => dl.conv2dTranspose(x, w, [2, 2, 2], origStride, origPad))
              .toThrowError();
        });
   };

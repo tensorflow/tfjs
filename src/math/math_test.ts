@@ -35,10 +35,10 @@ const gradientsScope = Gradients.gradientsScope;
         expect(math.getNumTensors()).toBe(2);
         await dl.tidy(async () => {
           const result = dl.tidy(() => {
-            b = math.addStrict(a, b);
-            b = math.addStrict(a, b);
-            b = math.addStrict(a, b);
-            return math.add(a, b);
+            b = dl.addStrict(a, b);
+            b = dl.addStrict(a, b);
+            b = dl.addStrict(a, b);
+            return dl.add(a, b);
           });
 
           // result is new. All intermediates should be disposed.
@@ -72,8 +72,8 @@ const gradientsScope = Gradients.gradientsScope;
 
       await dl.tidy(async () => {
         const result = dl.tidy(() => {
-          math.add(a, b);
-          return [math.add(a, b), math.subtract(a, b)];
+          dl.add(a, b);
+          return [dl.add(a, b), dl.sub(a, b)];
         });
 
         // the 2 results are new. All intermediates should be disposed.
@@ -97,10 +97,10 @@ const gradientsScope = Gradients.gradientsScope;
       expect(math.getNumTensors()).toBe(2);
 
       dl.tidy(() => {
-        b = math.addStrict(a, b);
-        b = math.addStrict(a, b);
-        b = math.addStrict(a, b);
-        math.add(a, b);
+        b = dl.addStrict(a, b);
+        b = dl.addStrict(a, b);
+        b = dl.addStrict(a, b);
+        dl.add(a, b);
       });
 
       // all intermediates should be disposed.
@@ -115,10 +115,10 @@ const gradientsScope = Gradients.gradientsScope;
 
       await dl.tidy(async () => {
         const result = dl.tidy(() => {
-          let c = math.add(a, b);
-          c = math.add(a, c);
-          c = math.add(a, c);
-          return math.add(a, c);
+          let c = dl.add(a, b);
+          c = dl.add(a, c);
+          c = dl.add(a, c);
+          return dl.add(a, c);
         });
 
         // result is new. All intermediates should be disposed.
@@ -141,25 +141,25 @@ const gradientsScope = Gradients.gradientsScope;
 
       await dl.tidy(async () => {
         const result = dl.tidy(() => {
-          b = math.addStrict(a, b);
+          b = dl.addStrict(a, b);
           b = dl.tidy(() => {
             b = dl.tidy(() => {
-              return math.addStrict(a, b);
+              return dl.addStrict(a, b);
             });
             // original a, b, and two intermediates.
             expect(math.getNumTensors()).toBe(4);
 
             dl.tidy(() => {
-              math.addStrict(a, b);
+              dl.addStrict(a, b);
             });
             // All the intermediates should be cleaned up.
             expect(math.getNumTensors()).toBe(4);
 
-            return math.addStrict(a, b);
+            return dl.addStrict(a, b);
           });
           expect(math.getNumTensors()).toBe(4);
 
-          return math.addStrict(a, b);
+          return dl.addStrict(a, b);
         });
 
         expect(math.getNumTensors()).toBe(3);
@@ -168,7 +168,7 @@ const gradientsScope = Gradients.gradientsScope;
       expect(math.getNumTensors()).toBe(2);
     });
 
-    it('single argument', math => {
+    it('single argument', () => {
       let hasRan = false;
       dl.tidy(() => {
         hasRan = true;
@@ -176,13 +176,13 @@ const gradientsScope = Gradients.gradientsScope;
       expect(hasRan).toBe(true);
     });
 
-    it('single argument, but not a function throws error', math => {
+    it('single argument, but not a function throws error', () => {
       expect(() => {
         dl.tidy('asdf');
       }).toThrowError();
     });
 
-    it('2 arguments, first is string', math => {
+    it('2 arguments, first is string', () => {
       let hasRan = false;
       dl.tidy('name', () => {
         hasRan = true;
@@ -190,14 +190,14 @@ const gradientsScope = Gradients.gradientsScope;
       expect(hasRan).toBe(true);
     });
 
-    it('2 arguments, but first is not string throws error', math => {
+    it('2 arguments, but first is not string throws error', () => {
       expect(() => {
         // tslint:disable-next-line:no-any
         dl.tidy(4 as any, () => {});
       }).toThrowError();
     });
 
-    it('2 arguments, but second is not a function throws error', math => {
+    it('2 arguments, but second is not a function throws error', () => {
       expect(() => {
         // tslint:disable-next-line:no-any
         dl.tidy('name', 'another name' as any);
@@ -215,7 +215,7 @@ const gradientsScope = Gradients.gradientsScope;
 // fromPixels & math
 {
   const tests: MathTests = it => {
-    it('debug mode does not error when no nans', math => {
+    it('debug mode does not error when no nans', () => {
       const pixels = new ImageData(2, 2);
       for (let i = 0; i < 8; i++) {
         pixels.data[i] = 100;
@@ -227,7 +227,7 @@ const gradientsScope = Gradients.gradientsScope;
       const a = Tensor.fromPixels(pixels, 4);
       const b = dl.scalar(20, 'int32');
 
-      const res = math.add(a, b);
+      const res = dl.add(a, b);
 
       test_util.expectArraysEqual(res, [
         120, 120, 120, 120, 120, 120, 120, 120, 270, 270, 270, 270, 270, 270,
@@ -246,27 +246,27 @@ const gradientsScope = Gradients.gradientsScope;
 // vjp integration tests
 {
   const tests: MathTests = it => {
-    it('matmul + relu', math => {
+    it('matmul + relu', () => {
       const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
       const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
       const dy = dl.tensor2d([1, 10, 20, 30], [2, 2]);
 
-      const gradients = math.vjp(() => {
+      const gradients = dl.vjp(() => {
         // m = dot(a, b)
         // y = relu(m)
-        const m = math.matMul(a, b);
-        return math.relu(m);
+        const m = dl.matMul(a, b);
+        return dl.relu(m);
       }, {a, b}, dy);
 
       // dy/dm = step(m)
       // de/dm = de/dy * dy/dm = de/dy * step(m)
-      const dedm = math.multiplyStrict(dy, math.step(math.matMul(a, b)));
+      const dedm = dl.mulStrict(dy, dl.step(dl.matMul(a, b)));
 
       // de/da = dot(de/dy, bT)
       expect(gradients.a.shape).toEqual(a.shape);
       test_util.expectArraysClose(
           gradients.a,
-          math.matMul(
+          dl.matMul(
               dedm, b, MatrixOrientation.REGULAR,
               MatrixOrientation.TRANSPOSED));
 
@@ -274,19 +274,19 @@ const gradientsScope = Gradients.gradientsScope;
       expect(gradients.b.shape).toEqual(b.shape);
       test_util.expectArraysClose(
           gradients.b,
-          math.matMul(
+          dl.matMul(
               a, dedm, MatrixOrientation.TRANSPOSED,
               MatrixOrientation.REGULAR));
     });
 
-    it('second order nested gradient vjp & gradients', math => {
+    it('second order nested gradient vjp & gradients', () => {
       const a = dl.scalar(2);
       const b = dl.scalar(3, 'int32');
 
       const dy = dl.scalar(4);
 
-      const gradients = math.vjp(() => {
-        return math.gradients(() => math.pow(a, b), a);
+      const gradients = dl.vjp(() => {
+        return dl.gradients(() => dl.pow(a, b), a);
       }, a, dy);
 
       expect(gradients.shape).toEqual(a.shape);
@@ -296,15 +296,15 @@ const gradientsScope = Gradients.gradientsScope;
           1e-1);
     });
 
-    it('second order nested gradient', math => {
+    it('second order nested gradient', () => {
       const a = dl.scalar(2);
       const b = dl.scalar(3, 'int32');
 
       const dy1 = dl.scalar(3);
       const dy2 = dl.scalar(4);
 
-      const gradients = math.vjp(() => {
-        return math.vjp(() => math.pow(a, b), a, dy1);
+      const gradients = dl.vjp(() => {
+        return dl.vjp(() => dl.pow(a, b), a, dy1);
       }, a, dy2);
 
       expect(gradients.shape).toEqual(a.shape);
@@ -327,29 +327,29 @@ const gradientsScope = Gradients.gradientsScope;
 // gradients integration tests
 {
   const tests: MathTests = it => {
-    it('matmul + relu', math => {
+    it('matmul + relu', () => {
       const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
       const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
-      const gradients = math.gradients(() => {
+      const gradients = dl.gradients(() => {
         // m = dot(a, b)
         // y = relu(m)
         // e = sum(y)
-        const m = math.matMul(a, b);
-        const y = math.relu(m);
-        return math.sum(y);
+        const m = dl.matMul(a, b);
+        const y = dl.relu(m);
+        return dl.sum(y);
       }, {a, b});
 
       // de/dy = 1
       // dy/dm = step(m)
       // de/dm = de/dy * dy/dm = step(m)
-      const dedm = math.step(math.matMul(a, b));
+      const dedm = dl.step(dl.matMul(a, b));
 
       // de/da = dot(de/dy, bT)
       expect(gradients.a.shape).toEqual(a.shape);
       test_util.expectArraysClose(
           gradients.a,
-          math.matMul(
+          dl.matMul(
               dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
           1e-1);
 
@@ -357,16 +357,16 @@ const gradientsScope = Gradients.gradientsScope;
       expect(gradients.b.shape).toEqual(b.shape);
       test_util.expectArraysClose(
           gradients.b,
-          math.matMul(
+          dl.matMul(
               a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
           1e-1);
     });
 
-    it('second order nested gradient', math => {
+    it('second order nested gradient', () => {
       const a = dl.scalar(2);
-      const gradients = math.gradients(() => {
-        return math.gradients(() => {
-          return math.pow(a, dl.scalar(3, 'int32'));
+      const gradients = dl.gradients(() => {
+        return dl.gradients(() => {
+          return dl.pow(a, dl.scalar(3, 'int32'));
         }, a);
       }, a);
 
@@ -374,42 +374,42 @@ const gradientsScope = Gradients.gradientsScope;
       test_util.expectNumbersClose(gradients.get(), 6 * a.get(), 1e-1);
     });
 
-    it('works with reshape', math => {
+    it('works with reshape', () => {
       const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
       const exponent = dl.tensor1d([2, 2, 2, 2], 'int32');
 
-      const gradients = math.gradients(() => {
+      const gradients = dl.gradients(() => {
         const b = a.flatten();
-        const m = math.pow(b, exponent);
-        return math.sum(m);
+        const m = dl.pow(b, exponent);
+        return dl.sum(m);
       }, {a});
 
       expect(gradients.a.shape).toEqual([2, 2]);
       test_util.expectArraysClose(gradients.a, [2, 4, 6, 8]);
     });
 
-    it('reshape outside math.gradients() throws error', math => {
+    it('reshape outside math.gradients() throws error', () => {
       const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
       const b = a.flatten();
       const exponent = dl.tensor1d([2, 2, 2, 2], 'int32');
 
       const f = () => {
-        return math.gradients(() => {
-          const m = math.pow(b, exponent);
-          return math.sum(m);
+        return dl.gradients(() => {
+          const m = dl.pow(b, exponent);
+          return dl.sum(m);
         }, {a, b});
       };
       expect(f).toThrowError();
     });
 
-    it('works with asType', math => {
+    it('works with asType', () => {
       const a = dl.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
       const exponent = dl.tensor2d([2, 2, 2, 2], [2, 2], 'int32');
 
-      const gradients = math.gradients(() => {
+      const gradients = dl.gradients(() => {
         const b = a.toFloat();
-        const m = math.pow(b, exponent);
-        return math.sum(m);
+        const m = dl.pow(b, exponent);
+        return dl.sum(m);
       }, {a});
 
       expect(gradients.a.shape).toEqual([2, 2]);
@@ -417,15 +417,15 @@ const gradientsScope = Gradients.gradientsScope;
       test_util.expectArraysClose(gradients.a, [2, 4, 6, 8]);
     });
 
-    it('asType outside of math.gradients() throws error', math => {
+    it('asType outside of math.gradients() throws error', () => {
       const a = dl.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
       const b = a.toFloat();
       const exponent = dl.tensor2d([2, 2, 2, 2], [2, 2], 'int32');
 
       const f = () => {
-        return math.gradients(() => {
-          const m = math.pow(b, exponent);
-          return math.sum(m);
+        return dl.gradients(() => {
+          const m = dl.pow(b, exponent);
+          return dl.sum(m);
         }, {a});
       };
       expect(f).toThrowError();
@@ -443,17 +443,17 @@ const gradientsScope = Gradients.gradientsScope;
 // valueAndGradients integration tests
 {
   const tests: MathTests = it => {
-    it('matmul + relu', math => {
+    it('matmul + relu', () => {
       const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
       const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
-      const {value, gradients} = math.valueAndGradients(() => {
+      const {value, gradients} = dl.valueAndGradients(() => {
         // m = dot(a, b)
         // y = relu(m)
         // e = sum(y)
-        const m = math.matMul(a, b);
-        const y = math.relu(m);
-        return math.sum(y);
+        const m = dl.matMul(a, b);
+        const y = dl.relu(m);
+        return dl.sum(y);
       }, {a, b});
 
       test_util.expectNumbersClose(value.get(), 10, 1e-1);
@@ -461,35 +461,35 @@ const gradientsScope = Gradients.gradientsScope;
       // de/dy = 1
       // dy/dm = step(m)
       // de/dm = de/dy * dy/dm = step(m)
-      const dedm = math.step(math.matMul(a, b));
+      const dedm = dl.step(dl.matMul(a, b));
 
       // de/da = dot(de/dy, bT)
       test_util.expectArraysClose(
           gradients.a,
-          math.matMul(
+          dl.matMul(
               dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
           1e-1);
 
       // de/db = dot(aT, de/dy)
       test_util.expectArraysClose(
           gradients.b,
-          math.matMul(
+          dl.matMul(
               a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
           1e-1);
     });
 
-    it('matmul + relu + inner scope', math => {
+    it('matmul + relu + inner scope', () => {
       const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
       const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
-      const {value, gradients} = math.valueAndGradients(() => {
+      const {value, gradients} = dl.valueAndGradients(() => {
         // m = dot(a, b)
         // y = relu(m)
         // e = sum(y)
-        const m = math.matMul(a, b);
+        const m = dl.matMul(a, b);
         return dl.tidy(() => {
-          const y = math.relu(m);
-          return math.sum(y);
+          const y = dl.relu(m);
+          return dl.sum(y);
         });
       }, {a, b});
 
@@ -498,19 +498,19 @@ const gradientsScope = Gradients.gradientsScope;
       // de/dy = 1
       // dy/dm = step(m)
       // de/dm = de/dy * dy/dm = step(m)
-      const dedm = math.step(math.matMul(a, b));
+      const dedm = dl.step(dl.matMul(a, b));
 
       // de/da = dot(de/dy, bT)
       test_util.expectArraysClose(
           gradients.a,
-          math.matMul(
+          dl.matMul(
               dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
           1e-1);
 
       // de/db = dot(aT, de/dy)
       test_util.expectArraysClose(
           gradients.b,
-          math.matMul(
+          dl.matMul(
               a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
           1e-1);
     });
@@ -531,8 +531,8 @@ const gradientsScope = Gradients.gradientsScope;
       expect(math.getNumTensors()).toBe(1);
 
       const gradients = gradientsScope(() => {
-        const der = math.gradients(() => {
-          const result = math.pow(a, dl.scalar(3, 'int32'));
+        const der = dl.gradients(() => {
+          const result = dl.pow(a, dl.scalar(3, 'int32'));
           expect(math.getNumTensors()).toBe(3);
 
           return result as Scalar;
@@ -542,7 +542,7 @@ const gradientsScope = Gradients.gradientsScope;
         const numArrays = math.getNumTensors();
         expect(numArrays).toBeGreaterThan(3);
 
-        const result = math.gradients(() => der, a);
+        const result = dl.gradients(() => der, a);
 
         // New gradients shouldn't be disposed.
         expect(math.getNumTensors()).toBeGreaterThan(numArrays + 1);
@@ -568,17 +568,17 @@ const gradientsScope = Gradients.gradientsScope;
 // customGradients
 {
   const tests: MathTests = it => {
-    it('basic', math => {
+    it('basic', () => {
       const a = dl.scalar(3);
       const b = dl.scalar(2, 'int32');
       const dy = dl.scalar(4);
 
-      const vjp = math.vjp(() => {
-        return math.customGradient('test', () => {
-          const value = math.pow(a, b);
+      const vjp = dl.vjp(() => {
+        return dl.customGradient('test', () => {
+          const value = dl.pow(a, b);
 
           const gradients = (dy: Tensor, y: Tensor) => {
-            return {a: () => math.multiply(dy, dl.scalar(3))};
+            return {a: () => dl.mul(dy, dl.scalar(3))};
           };
 
           return {value, gradients};
@@ -589,19 +589,19 @@ const gradientsScope = Gradients.gradientsScope;
       test_util.expectArraysClose(vjp, [dy.get() * 3]);
     });
 
-    it('second order derivative through customGradient', math => {
+    it('second order derivative through customGradient', () => {
       const a = dl.scalar(3);
       const b = dl.scalar(2, 'int32');
 
       const dy1 = dl.scalar(5);
       const dy2 = dl.scalar(4);
 
-      const vjp = math.vjp(() => {
-        return math.vjp(() => {
-          return math.customGradient('test', () => {
-            const value = math.pow(a, b);
+      const vjp = dl.vjp(() => {
+        return dl.vjp(() => {
+          return dl.customGradient('test', () => {
+            const value = dl.pow(a, b);
             const gradients = (dy: Tensor, y: Tensor) => {
-              return {a: () => math.multiply(dy, a)};
+              return {a: () => dl.mul(dy, a)};
             };
 
             return {value, gradients};

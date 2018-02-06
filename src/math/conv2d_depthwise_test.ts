@@ -20,10 +20,10 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {Rank} from './types';
 
-// math.depthwiseConv2D
+// dl.depthwiseConv2D
 {
   const tests: MathTests = it => {
-    it('input=1x3x3x1,f=2,s=1,p=valid,chMul=1', math => {
+    it('input=1x3x3x1,f=2,s=1,p=valid,chMul=1', () => {
       const fSize = 2;
       const pad = 'valid';
       const stride = 1;
@@ -40,14 +40,14 @@ import {Rank} from './types';
           [0.303873, 0.229223, 0.144333, 0.803373],
           [fSize, fSize, inDepth, chMul],
       );
-      const result = math.depthwiseConv2D(x, w, stride, pad);
+      const result = dl.depthwiseConv2d(x, w, stride, pad);
       expect(result.shape).toEqual([1, 2, 2, 1]);
 
       const expected = [1.07022, 1.03167, 0.67041, 0.778863];
       test_util.expectArraysClose(result, expected);
     });
 
-    it('input=1x3x3x2,f=2,s=1,p=same,chMul=1', math => {
+    it('input=1x3x3x2,f=2,s=1,p=same,chMul=1', () => {
       const fSize = 2;
       const pad = 'same';
       const stride = 1;
@@ -67,7 +67,7 @@ import {Rank} from './types';
             0.872743, 0.765767
           ],
           [fSize, fSize, inDepth, chMul]);
-      const result = math.depthwiseConv2D(x, w, stride, pad);
+      const result = dl.depthwiseConv2d(x, w, stride, pad);
       expect(result.shape).toEqual([1, 3, 3, 2]);
 
       const expected = [
@@ -78,7 +78,7 @@ import {Rank} from './types';
       test_util.expectArraysClose(result, expected);
     });
 
-    it('input=1x3x3x2,f=2,s=1,p=same,chMul=2', math => {
+    it('input=1x3x3x2,f=2,s=1,p=same,chMul=2', () => {
       const fSize = 2;
       const pad = 'same';
       const stride = 1;
@@ -99,7 +99,7 @@ import {Rank} from './types';
             0.0801365, 0.864889, 0.874602
           ],
           [fSize, fSize, inDepth, chMul]);
-      const result = math.depthwiseConv2D(x, w, stride, pad);
+      const result = dl.depthwiseConv2d(x, w, stride, pad);
       expect(result.shape).toEqual([1, 3, 3, 4]);
 
       const expected = [
@@ -113,7 +113,7 @@ import {Rank} from './types';
       test_util.expectArraysClose(result, expected);
     });
 
-    it('input=2x3x3x2,f=2,s=1,p=same,chMul=2', math => {
+    it('input=2x3x3x2,f=2,s=1,p=same,chMul=2', () => {
       const fSize = 2;
       const pad = 'same';
       const stride = 1;
@@ -137,7 +137,7 @@ import {Rank} from './types';
             0.900622, 0.670338, 0.33478
           ],
           [fSize, fSize, inDepth, chMul]);
-      const result = math.depthwiseConv2D(x, w, stride, pad);
+      const result = dl.depthwiseConv2d(x, w, stride, pad);
       expect(result.shape).toEqual([2, 3, 3, 4]);
 
       const expected = [
@@ -156,7 +156,7 @@ import {Rank} from './types';
       test_util.expectArraysClose(result, expected);
     });
 
-    it('Tensor3D is allowed', math => {
+    it('Tensor3D is allowed', () => {
       const fSize = 2;
       const pad = 'same';
       const stride = 1;
@@ -165,7 +165,7 @@ import {Rank} from './types';
 
       const x = dl.zeros<Rank.R3>([3, 3, inDepth]);
       const w = dl.zeros<Rank.R4>([fSize, fSize, inDepth, chMul]);
-      const result = math.depthwiseConv2D(x, w, stride, pad);
+      const result = dl.depthwiseConv2d(x, w, stride, pad);
       expect(result.shape).toEqual([3, 3, inDepth * chMul]);
     });
   };

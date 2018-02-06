@@ -23,25 +23,25 @@ import {Rank} from './types';
 // math.slice1D
 {
   const tests: MathTests = it => {
-    it('slices 1x1 into 1x1 (effectively a copy)', math => {
+    it('slices 1x1 into 1x1 (effectively a copy)', () => {
       const a = dl.tensor1d([5]);
-      const result = math.slice1D(a, 0, 1);
+      const result = dl.slice1d(a, 0, 1);
 
       expect(result.shape).toEqual([1]);
       test_util.expectNumbersClose(result.get(0), 5);
     });
 
-    it('slices 5x1 into shape 2x1 starting at 3', math => {
+    it('slices 5x1 into shape 2x1 starting at 3', () => {
       const a = dl.tensor1d([1, 2, 3, 4, 5]);
-      const result = math.slice1D(a, 3, 2);
+      const result = dl.slice1d(a, 3, 2);
 
       expect(result.shape).toEqual([2]);
       test_util.expectArraysClose(result, [4, 5]);
     });
 
-    it('slices 5x1 into shape 3x1 starting at 1', math => {
+    it('slices 5x1 into shape 3x1 starting at 1', () => {
       const a = dl.tensor1d([1, 2, 3, 4, 5]);
-      const result = math.slice1D(a, 1, 3);
+      const result = dl.slice1d(a, 1, 3);
 
       expect(result.shape).toEqual([3]);
       test_util.expectArraysClose(result, [2, 3, 4]);
@@ -59,37 +59,37 @@ import {Rank} from './types';
 // math.slice2D
 {
   const tests: MathTests = it => {
-    it('slicing a 1x1 from a 1x1 returns a 1x1', math => {
+    it('slicing a 1x1 from a 1x1 returns a 1x1', () => {
       const a = dl.tensor2d([0], [1, 1]);
-      const b = math.slice2D(a, [0, 0], [1, 1]);
+      const b = dl.slice2d(a, [0, 0], [1, 1]);
       expect(b.shape).toEqual([1, 1]);
     });
 
-    it('returns a tensor of slice size', math => {
+    it('returns a tensor of slice size', () => {
       const a = dl.zeros<Rank.R2>([100, 100]);
-      const b = math.slice2D(a, [0, 0], [12, 34]);
+      const b = dl.slice2d(a, [0, 0], [12, 34]);
       expect(b.shape).toEqual([12, 34]);
     });
 
-    it('returns the upper-left submatrix when begin is [0, 0]', math => {
+    it('returns the upper-left submatrix when begin is [0, 0]', () => {
       const a = dl.randomUniform<Rank.R2>([10, 10], -1, 1);
-      const b = math.slice2D(a, [0, 0], [2, 2]);
+      const b = dl.slice2d(a, [0, 0], [2, 2]);
       const aValues = a.dataSync();
 
       test_util.expectArraysClose(
           b, [aValues[0], aValues[1], aValues[10], aValues[11]]);
     });
 
-    it('returns the rectangle specified', math => {
+    it('returns the rectangle specified', () => {
       const a = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [4, 3]);
-      const b = math.slice2D(a, [1, 1], [3, 2]);
+      const b = dl.slice2d(a, [1, 1], [3, 2]);
 
       test_util.expectArraysClose(b, [5, 6, 8, 9, 11, 12]);
     });
 
-    it('throws when requesting out of bounds slice', math => {
+    it('throws when requesting out of bounds slice', () => {
       const a = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [4, 3]);
-      expect(() => math.slice2D(a, [1, 1], [10, 10])).toThrowError();
+      expect(() => dl.slice2d(a, [1, 1], [10, 10])).toThrowError();
     });
   };
 

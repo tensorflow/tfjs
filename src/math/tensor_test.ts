@@ -716,7 +716,7 @@ const testsReshape: MathTests = it => {
     expect(b.shape).toEqual([3, 2]);
   });
 
-  it('reshape is functional', math => {
+  it('reshape is functional', () => {
     const a = dl.scalar(2.4);
     const b = a.reshape([]);
     expect(a.id).not.toBe(b.id);
@@ -724,6 +724,7 @@ const testsReshape: MathTests = it => {
     test_util.expectArraysClose(a, [2.4]);
   });
 };
+
 const testsAsType: MathTests = it => {
   it('scalar bool -> int32', () => {
     const a = dl.scalar(true, 'bool').toInt();
@@ -772,7 +773,7 @@ const testsAsType: MathTests = it => {
     test_util.expectArraysEqual(a, [1, 2, 0, 0, 5]);
   });
 
-  it('asType is functional', math => {
+  it('asType is functional', () => {
     const a = dl.scalar(2.4, 'float32');
     const b = a.toFloat();
     expect(a.id).not.toBe(b.id);
