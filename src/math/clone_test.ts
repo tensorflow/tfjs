@@ -20,9 +20,9 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 
 const commonTests: MathTests = it => {
-  it('returns a tensor with the same shape and value', math => {
+  it('returns a tensor with the same shape and value', () => {
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
-    const aPrime = math.clone(a);
+    const aPrime = dl.clone(a);
     expect(aPrime.shape).toEqual(a.shape);
     test_util.expectArraysClose(aPrime, a);
   });
