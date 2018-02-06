@@ -24,6 +24,7 @@ import * as session_util from '../../graph/session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {Scalar, Tensor, Variable} from '../../math/tensor';
+import {doc} from '../decorators';
 import * as ops from '../ops';
 import {NamedTensorMap} from '../types';
 
@@ -35,7 +36,7 @@ export abstract class Optimizer {
     if (specifiedVariableList != null) {
       this.specifiedVariableNodes = specifiedVariableList as VariableNode[];
     }
-    this.one = ENV.math.keep(ops.scalar(1));
+    this.one = keep(ops.scalar(1));
   }
 
   /**
@@ -49,6 +50,11 @@ export abstract class Optimizer {
    * the trainable variables in varList will be updated by minimize. Defaults to
    * all trainable variables.
    */
+  @doc({
+    heading: 'Training',
+    subheading: 'Optimizers',
+    subclasses: ['SGDOptimizer', 'MomentumOptimizer']
+  })
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
     const {value, gradients} = this.computeGradients(f, varList);

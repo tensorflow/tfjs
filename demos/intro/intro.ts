@@ -66,7 +66,7 @@ async function intro() {
   const batchSize = 3;
 
   const session = new dl.Session(g, dl.ENV.math);
-  const optimizer = new dl.SGDOptimizer(learningRate);
+  const optimizer = dl.train.sgd(learningRate);
 
   const inputs: dl.Tensor1D[] = [
     dl.tensor1d([1.0, 2.0, 3.0]), dl.tensor1d([10.0, 20.0, 30.0]),

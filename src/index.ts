@@ -37,7 +37,6 @@ export {AdadeltaOptimizer} from './graph/optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './graph/optimizers/adagrad_optimizer';
 export {AdamOptimizer} from './graph/optimizers/adam_optimizer';
 export {AdamaxOptimizer} from './graph/optimizers/adamax_optimizer';
-export {MomentumOptimizer} from './graph/optimizers/momentum_optimizer';
 export {RMSPropOptimizer} from './graph/optimizers/rmsprop_optimizer';
 export {CostReduction, FeedEntry, Session} from './graph/session';
 // tslint:disable-next-line:max-line-length
@@ -48,6 +47,7 @@ export {MatrixOrientation} from './math/backends/types/matmul';
 export {GPGPUContext} from './math/backends/webgl/gpgpu_context';
 export {LSTMCell} from './math/lstm';
 export {NDArrayMath} from './math/math';
+export {MomentumOptimizer} from './math/optimizers/momentum_optimizer';
 export {Optimizer} from './math/optimizers/optimizer';
 export {SGDOptimizer} from './math/optimizers/sgd_optimizer';
 // tslint:disable-next-line:max-line-length
@@ -67,4 +67,5 @@ export {
 };
 
 export * from './math/ops';
+export * from './train';
 export * from './globals';

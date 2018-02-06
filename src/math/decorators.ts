@@ -35,16 +35,17 @@ export interface HeadingMap {
   'Tensors': 'Creation'|'Transformations'|'Slicing and Joining';
   'Operations': 'Arithmetic'|'Basic math'|'Matrices'|'Convolution'|
       'Normalization'|'Images'|'Logical'|'RNN'|'Reduction'|'Classification';
-  'Training': 'Gradients';
+  'Training': 'Gradients'|'Optimizers';
   'Performance': 'Memory'|'Timing';
 }
 export type Heading = keyof HeadingMap;
-export type Namespace = 'losses'|'image';
+export type Namespace = 'losses'|'image'|'train';
 
 export interface DocInfo<H extends Heading> {
   heading: H;
   subheading: HeadingMap[H];
   namespace?: Namespace;
+  subclasses?: string[];
 }
 
 // Pass through function that does nothing. Only used for documentation.

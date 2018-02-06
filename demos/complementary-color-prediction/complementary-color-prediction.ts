@@ -40,7 +40,7 @@ class ComplementaryColorModel {
   feedEntries: dl.FeedEntry[];
 
   constructor() {
-    this.optimizer = new dl.SGDOptimizer(this.learningRate);
+    this.optimizer = dl.train.sgd(this.learningRate);
   }
 
   /**

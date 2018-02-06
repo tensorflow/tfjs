@@ -91,7 +91,7 @@ async function mlBeginners() {
       // updating weights. If this is too big, you may overstep and oscillate.
       // If it is too small, the model may take a long time to train.
       const LEARNING_RATE = .01;
-      const optimizer = new dl.SGDOptimizer(LEARNING_RATE);
+      const optimizer = dl.train.sgd(LEARNING_RATE);
       for (let i = 0; i < NUM_BATCHES; i++) {
         // Train takes a cost dl.Tensor to minimize; this call trains one batch
         // and returns the average cost of the batch as a dl.Scalar.

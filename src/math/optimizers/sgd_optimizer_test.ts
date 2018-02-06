@@ -26,16 +26,16 @@ import {SGDOptimizer} from './sgd_optimizer';
 const tests: MathTests = it => {
   it('basic', math => {
     const learningRate = .1;
-    const optimizer = new SGDOptimizer(learningRate);
+    const optimizer = dl.train.sgd(learningRate);
 
     const x = variable(dl.scalar(4));
 
-    let numArrays = math.getNumTensors();
+    let numTensors = math.getNumTensors();
 
     let cost = optimizer.minimize(() => math.square(x), /* returnCost */ true);
 
     // Cost should be the only additional array.
-    expect(math.getNumTensors()).toBe(numArrays + 1);
+    expect(math.getNumTensors()).toBe(numTensors + 1);
 
     // de/dx = 2x
     const expectedValue1 = -2 * 4 * learningRate + 4;
@@ -43,11 +43,11 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(cost, [Math.pow(4, 2)]);
 
     cost.dispose();
-    numArrays = math.getNumTensors();
+    numTensors = math.getNumTensors();
 
     cost = optimizer.minimize(() => math.square(x), /* returnCost */ false);
     // There should be no new additional Tensors.
-    expect(math.getNumTensors()).toBe(numArrays);
+    expect(math.getNumTensors()).toBe(numTensors);
 
     const expectedValue2 = -2 * expectedValue1 * learningRate + expectedValue1;
     test_util.expectArraysClose(x, [expectedValue2]);

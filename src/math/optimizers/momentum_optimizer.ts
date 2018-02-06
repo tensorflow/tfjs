@@ -15,37 +15,76 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import {keep, tidy} from '../../globals';
+import {Node} from '../../graph/graph';
+import {SessionRuntime} from '../../graph/session';
+// tslint:disable-next-line:max-line-length
+import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {SGDOptimizer} from '../../math/optimizers/sgd_optimizer';
 import {Scalar, Tensor} from '../../math/tensor';
-import {NamedVariableMap} from '../../math/types';
-import {Node} from '../graph';
-import {SessionRuntime} from '../session';
-import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
+import {NamedTensorMap, NamedVariableMap} from '../../math/types';
+import {doc} from '../decorators';
+import {scalar, zerosLike} from '../ops';
 
+/**
+ * Optimizer that implements momentum gradient descent.
+ *
+ * Use `dl.train.momentum` to create a momentum optimizer.
+ */
+@doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
 export class MomentumOptimizer extends SGDOptimizer {
+  private m: Scalar;
+  private variableVelocities: NamedTensorMap;
+
   constructor(
       protected learningRate: number, private momentum: number,
       specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
-    this.m = Scalar.new(this.momentum);
+    this.m = scalar(this.momentum);
+    this.variableVelocities = {};
   }
 
   applyGradients(variableGradients: NamedVariableMap) {
-    throw new Error(`Momentum optimizer not yet implemented for eager mode.`);
+    for (const variableName in variableGradients) {
+      const variable = ENV.engine.registeredVariables[variableName];
+      // Initialize velocities to 0.
+      if (this.variableVelocities[variableName] == null) {
+        this.variableVelocities[variableName] = keep(zerosLike(variable));
+      }
+
+      const oldVelocity = this.variableVelocities[variableName];
+      const gradient = variableGradients[variableName];
+
+      const [newVelocity, newVariableValue] = tidy(() => {
+        const newVelocity = this.m.mul(oldVelocity).add(gradient);
+        const newVariableValue = this.c.mul(newVelocity).add(variable);
+
+        return [newVelocity, newVariableValue];
+      });
+
+      this.variableVelocities[variableName].dispose();
+      this.variableVelocities[variableName] = keep(newVelocity);
+
+      variable.assign(newVariableValue);
+    }
   }
 
   beforeBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
+    if (this.variableVelocitiesGraph == null) {
+      this.variableVelocitiesGraph = new TensorArrayMap();
+    }
+
     super.beforeBatch(
         math, batchSize, runtime, activationArrayMap, gradientArrayMap);
 
-    if (this.variableVelocities.size() === 0) {
+    if (this.variableVelocitiesGraph.size() === 0) {
       this.variableNodes.forEach(node => {
-        this.variableVelocities.set(
+        this.variableVelocitiesGraph.set(
             node.output, Tensor.zeros(node.output.shape));
       });
     }
@@ -59,12 +98,14 @@ export class MomentumOptimizer extends SGDOptimizer {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);
-        const oldVelocity = this.variableVelocities.get(node.output);
+        const oldVelocity = this.variableVelocitiesGraph.get(node.output);
+
         const velocity =
             math.scaledArrayAdd(this.m, oldVelocity, this.one, gradient);
         const variable =
             math.scaledArrayAdd(this.cGraph, velocity, this.one, oldVariable);
-        this.variableVelocities.set(node.output, keep(velocity));
+
+        this.variableVelocitiesGraph.set(node.output, keep(velocity));
         activationArrayMap.set(node.output, keep(variable));
         node.data = variable;
 
@@ -80,13 +121,25 @@ export class MomentumOptimizer extends SGDOptimizer {
   dispose() {
     super.dispose();
     this.m.dispose();
-    this.variableVelocities.dispose();
+    if (this.variableVelocitiesGraph != null) {
+      this.variableVelocitiesGraph.dispose();
+    }
+    if (this.variableVelocities != null) {
+      for (const variableName in this.variableVelocities) {
+        this.variableVelocities[variableName].dispose();
+      }
+    }
   }
 
+  /**
+   * Sets the momentum of the optimizer.
+   *
+   * @param momentum
+   */
   setMomentum(momentum: number) {
     this.momentum = momentum;
   }
 
-  private variableVelocities = new TensorArrayMap();
-  private m: Scalar;
+  // Graph.
+  private variableVelocitiesGraph: TensorArrayMap;
 }
