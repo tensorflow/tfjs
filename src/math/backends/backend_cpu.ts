@@ -495,7 +495,10 @@ export class MathBackendCPU implements MathBackend {
     const result = ops.zeros(a.shape, dtype);
     const newValues = result.dataSync();
     let index = 0;
-    const offset = condition.rank > 1 || a.rank === 1 ? 1 : a.shape[1];
+    const offset = condition.rank === 0 || condition.rank > 1 || a.rank === 1 ?
+        1 :
+        a.shape[1];
+
     for (let i = 0; i < values.length; i++) {
       for (let j = 0; j < offset; j++) {
         if (values[i] === 1) {
