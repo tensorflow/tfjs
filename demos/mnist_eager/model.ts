@@ -10,7 +10,7 @@ const TRAIN_STEPS = 100;
 const IMAGE_SIZE = 784;
 const LABELS_SIZE = 10;
 
-const optimizer = new dl.SGDOptimizer(LEARNING_RATE);
+const optimizer = dl.train.sgd(LEARNING_RATE);
 
 // Set up the model and loss function.
 const weights: dl.Tensor2D = dl.variable(

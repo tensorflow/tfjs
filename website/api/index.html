@@ -23,19 +23,25 @@
   .subheading {
     margin-left: 16px;
   }
-  .method {
+  .symbol {
     padding-left: 16px;
     border-left: 1px solid #ccc;
     margin-bottom: 32px;
   }
-  .parameter {
+  .parameter, .method {
     margin-left: 25px;
   }
   .param-name {
     margin: 12px 0;
   }
-  .param-docs {
+  .param-docs  {
     padding: 4px 12px;
+  }
+  .method-name {
+    font-size: 20px;
+  }
+  .method-docs {
+    padding: 12px 0 0 16px;
   }
 </style>
 
@@ -47,23 +53,51 @@
     {{#subheadings}}
       <div class="subheading">
         <h4>{{name}}</h4>
-        {{#methods}}
-          <div class="method">
-            <h5># <a name="{{path}}" href="#{{path}}">{{path}}</a></h5>
+        {{#symbols}}
+          <div class="symbol">
+            <h5># <a name="{{dl.displayName}}" href="#dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}</h5>
+
             <div class="documentation">{{documentation}}</div>
-            <h6>Parameters:</h6>
-            {{#parameters}}
-              <div class="parameter">
-                <div class="param-name"><code>{{name}}: {{type}}</code></div>
-                <div class="param-docs">
-                  {{#optional}}(Optional){{/optional}} {{documentation}}
+
+            {{#isFunction}}
+              <h6>Parameters:</h6>
+              {{#parameters}}
+                <div class="parameter">
+                  <div class="param-name"><code>{{name}}: {{type}}</code></div>
+                  <div class="param-docs">
+                    {{#optional}}(Optional){{/optional}} {{documentation}}
+                  </div>
                 </div>
-              </div>
-            {{/parameters}}
+              {{/parameters}}
+              <h6>Returns: <code>{{returnType}}</code></h6>
+            {{/isFunction}}
+
+            {{#isClass}}
+              <h6>Methods:</h6>
+                {{#methods}}
+                  <div class="method">
+                    <div class="method-name"><code>{{displayName}}{{paramStr}}</code></div>
+                    <div class="method-docs">
+                      {{#optional}}(Optional){{/optional}} {{documentation}}
+
+                      <h6>Parameters:</h6>
+                      {{#parameters}}
+                        <div class="parameter">
+                          <div class="param-name"><code>{{name}}: {{type}}</code></div>
+                          <div class="param-docs">
+                            {{#optional}}(Optional){{/optional}} {{documentation}}
+                          </div>
+                        </div>
+                      {{/parameters}}
+                    </div>
+                  </div>
+                {{/methods}}
+            {{/isClass}}
+
             <br>
             Defined in <code><a href="{{githubUrl}}" target=_blank>{{fileName}}</a></code>
           </div>
-        {{/methods}}
+        {{/symbols}}
       </div>
     {{/subheadings}}
   </div>

@@ -21,8 +21,7 @@ import './model-layer';
 import '../demo-header';
 import '../demo-footer';
 
-// tslint:disable-next-line:max-line-length
-import {AdadeltaOptimizer, AdagradOptimizer, AdamaxOptimizer, AdamOptimizer, DataStats, ENV, FeedEntry, Graph, GraphRunner, GraphRunnerEventObserver, InCPUMemoryShuffledInputProviderBuilder, InMemoryDataset, MetricReduction, MomentumOptimizer, NDArrayMath, Optimizer, RMSPropOptimizer, Scalar, Session, SGDOptimizer, SymbolicTensor, Tensor, Tensor1D, Tensor3D, util, xhr_dataset, XhrDataset, XhrDatasetConfig} from 'deeplearn';
+import * as dl from 'deeplearn';
 
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 import {TensorImageVisualizer} from '../tensor-image-visualizer';
@@ -137,25 +136,25 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private selectedNormalizationOption: number;
 
   // Datasets and models.
-  private graphRunner: GraphRunner;
-  private graph: Graph;
-  private session: Session;
-  private optimizer: Optimizer;
-  private xTensor: SymbolicTensor;
-  private labelTensor: SymbolicTensor;
-  private costTensor: SymbolicTensor;
-  private accuracyTensor: SymbolicTensor;
-  private predictionTensor: SymbolicTensor;
+  private graphRunner: dl.GraphRunner;
+  private graph: dl.Graph;
+  private session: dl.Session;
+  private optimizer: dl.Optimizer;
+  private xTensor: dl.SymbolicTensor;
+  private labelTensor: dl.SymbolicTensor;
+  private costTensor: dl.SymbolicTensor;
+  private accuracyTensor: dl.SymbolicTensor;
+  private predictionTensor: dl.SymbolicTensor;
 
   private datasetNames: string[];
   private selectedDatasetName: string;
   private selectedModelName: string;
   private selectedOptimizerName: string;
   private loadedWeights: LayerWeightsDict[]|null;
-  private dataSets: {[datasetName: string]: InMemoryDataset};
-  private dataSet: InMemoryDataset;
-  private xhrDatasetConfigs: {[datasetName: string]: XhrDatasetConfig};
-  private datasetStats: DataStats[];
+  private dataSets: {[datasetName: string]: dl.InMemoryDataset};
+  private dataSet: dl.InMemoryDataset;
+  private xhrDatasetConfigs: {[datasetName: string]: dl.XhrDatasetConfig};
+  private datasetStats: dl.DataStats[];
   private learningRate: number;
   private momentum: number;
   private gamma: number;
@@ -187,13 +186,13 @@ export class ModelBuilder extends ModelBuilderPolymer {
 
   private layersContainer: HTMLDivElement;
 
-  private math: NDArrayMath;
+  private math: dl.NDArrayMath;
 
   ready() {
-    this.math = ENV.math;
+    this.math = dl.ENV.math;
 
     this.createGraphRunner();
-    this.optimizer = new MomentumOptimizer(this.learningRate, this.momentum);
+    this.optimizer = new dl.MomentumOptimizer(this.learningRate, this.momentum);
 
     // Set up datasets.
     this.populateDatasets();
@@ -294,13 +293,13 @@ export class ModelBuilder extends ModelBuilderPolymer {
   }
 
   createGraphRunner() {
-    const eventObserver: GraphRunnerEventObserver = {
+    const eventObserver: dl.GraphRunnerEventObserver = {
       batchesTrainedCallback: (batchesTrained: number) =>
           this.displayBatchesTrained(batchesTrained),
-      avgCostCallback: (avgCost: Scalar) => this.displayCost(avgCost),
-      metricCallback: (metric: Scalar) => this.displayAccuracy(metric),
+      avgCostCallback: (avgCost: dl.Scalar) => this.displayCost(avgCost),
+      metricCallback: (metric: dl.Scalar) => this.displayAccuracy(metric),
       inferenceExamplesCallback:
-          (inputFeeds: FeedEntry[][], inferenceOutputs: Tensor[]) =>
+          (inputFeeds: dl.FeedEntry[][], inferenceOutputs: dl.Tensor[]) =>
               this.displayInferenceExamplesOutput(inputFeeds, inferenceOutputs),
       inferenceExamplesPerSecCallback: (examplesPerSec: number) =>
           this.displayInferenceExamplesPerSec(examplesPerSec),
@@ -309,7 +308,8 @@ export class ModelBuilder extends ModelBuilderPolymer {
       totalTimeCallback: (totalTimeSec: number) => this.totalTimeSec =
           totalTimeSec.toFixed(1),
     };
-    this.graphRunner = new GraphRunner(this.math, this.session, eventObserver);
+    this.graphRunner =
+        new dl.GraphRunner(this.math, this.session, eventObserver);
   }
 
   isTraining(applicationState: ApplicationState): boolean {
@@ -320,20 +320,22 @@ export class ModelBuilder extends ModelBuilderPolymer {
     return applicationState === ApplicationState.IDLE;
   }
 
-  private getTestData(): Tensor[][] {
+  private getTestData(): dl.Tensor[][] {
     const data = this.dataSet.getData();
     if (data == null) {
       return null;
     }
-    const [images, labels] = this.dataSet.getData() as [Tensor[], Tensor[]];
+    const [images, labels] =
+        this.dataSet.getData() as [dl.Tensor[], dl.Tensor[]];
 
     const start = Math.floor(TRAIN_TEST_RATIO * images.length);
 
     return [images.slice(start), labels.slice(start)];
   }
 
-  private getTrainingData(): Tensor[][] {
-    const [images, labels] = this.dataSet.getData() as [Tensor[], Tensor[]];
+  private getTrainingData(): dl.Tensor[][] {
+    const [images, labels] =
+        this.dataSet.getData() as [dl.Tensor[], dl.Tensor[]];
 
     const end = Math.floor(TRAIN_TEST_RATIO * images.length);
 
@@ -348,7 +350,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
     }
     if (this.isValid && (testData != null)) {
       const inferenceShuffledInputProviderGenerator =
-          new InCPUMemoryShuffledInputProviderBuilder(testData);
+          new dl.InCPUMemoryShuffledInputProviderBuilder(testData);
       const [inferenceInputProvider, inferenceLabelProvider] =
           inferenceShuffledInputProviderGenerator.getInputProviders();
 
@@ -415,25 +417,26 @@ export class ModelBuilder extends ModelBuilderPolymer {
   private createOptimizer() {
     switch (this.selectedOptimizerName) {
       case 'sgd': {
-        return new SGDOptimizer(+this.learningRate);
+        return dl.train.sgd(this.learningRate);
       }
       case 'momentum': {
-        return new MomentumOptimizer(+this.learningRate, +this.momentum);
+        return dl.train.momentum(+this.learningRate, +this.momentum);
       }
       case 'rmsprop': {
-        return new RMSPropOptimizer(+this.learningRate, +this.gamma);
+        return new dl.RMSPropOptimizer(+this.learningRate, +this.gamma);
       }
       case 'adagrad': {
-        return new AdagradOptimizer(+this.learningRate);
+        return new dl.AdagradOptimizer(+this.learningRate);
       }
       case 'adadelta': {
-        return new AdadeltaOptimizer(+this.learningRate, +this.gamma);
+        return new dl.AdadeltaOptimizer(+this.learningRate, +this.gamma);
       }
       case 'adam': {
-        return new AdamOptimizer(+this.learningRate, +this.beta1, +this.beta2);
+        return new dl.AdamOptimizer(
+            +this.learningRate, +this.beta1, +this.beta2);
       }
       case 'adamax': {
-        return new AdamaxOptimizer(
+        return new dl.AdamaxOptimizer(
             +this.learningRate, +this.beta1, +this.beta2);
       }
       default: {
@@ -454,7 +457,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
       this.graphRunner.resetStatistics();
 
       const trainingShuffledInputProviderGenerator =
-          new InCPUMemoryShuffledInputProviderBuilder(trainingData);
+          new dl.InCPUMemoryShuffledInputProviderBuilder(trainingData);
       const [trainInputProvider, trainLabelProvider] =
           trainingShuffledInputProviderGenerator.getInputProviders();
 
@@ -464,7 +467,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
       ];
 
       const accuracyShuffledInputProviderGenerator =
-          new InCPUMemoryShuffledInputProviderBuilder(testData);
+          new dl.InCPUMemoryShuffledInputProviderBuilder(testData);
       const [accuracyInputProvider, accuracyLabelProvider] =
           accuracyShuffledInputProviderGenerator.getInputProviders();
 
@@ -476,7 +479,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
       this.graphRunner.train(
           this.costTensor, trainFeeds, this.batchSize, this.optimizer,
           undefined /** numBatches */, this.accuracyTensor, accuracyFeeds,
-          this.batchSize, MetricReduction.MEAN, EVAL_INTERVAL_MS,
+          this.batchSize, dl.MetricReduction.MEAN, EVAL_INTERVAL_MS,
           COST_INTERVAL_MS);
 
       this.showTrainStats = true;
@@ -494,7 +497,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
       return;
     }
 
-    this.graph = new Graph();
+    this.graph = new dl.Graph();
     const g = this.graph;
     this.xTensor = g.placeholder('input', this.inputShape);
     this.labelTensor = g.placeholder('label', this.labelShape);
@@ -516,7 +519,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
 
     this.loadedWeights = null;
 
-    this.session = new Session(g, this.math);
+    this.session = new dl.Session(g, this.math);
     this.graphRunner.setSession(this.session);
 
     this.startInference();
@@ -526,13 +529,13 @@ export class ModelBuilder extends ModelBuilderPolymer {
 
   private populateDatasets() {
     this.dataSets = {};
-    xhr_dataset.getXhrDatasetConfig(DATASETS_CONFIG_JSON)
+    dl.xhr_dataset.getXhrDatasetConfig(DATASETS_CONFIG_JSON)
         .then(
             xhrDatasetConfigs => {
               for (const datasetName in xhrDatasetConfigs) {
                 if (xhrDatasetConfigs.hasOwnProperty(datasetName)) {
                   this.dataSets[datasetName] =
-                      new XhrDataset(xhrDatasetConfigs[datasetName]);
+                      new dl.XhrDataset(xhrDatasetConfigs[datasetName]);
                 }
               }
               this.datasetNames = Object.keys(this.dataSets);
@@ -762,13 +765,13 @@ export class ModelBuilder extends ModelBuilderPolymer {
     this.examplesTrained = this.batchSize * totalBatchesTrained;
   }
 
-  displayCost(avgCost: Scalar) {
+  displayCost(avgCost: dl.Scalar) {
     this.costChartData.push(
         {x: this.graphRunner.getTotalBatchesTrained(), y: avgCost.get()});
     this.costChart.update();
   }
 
-  displayAccuracy(accuracy: Scalar) {
+  displayAccuracy(accuracy: dl.Scalar) {
     this.accuracyChartData.push({
       x: this.graphRunner.getTotalBatchesTrained(),
       y: accuracy.get() * 100
@@ -798,18 +801,18 @@ export class ModelBuilder extends ModelBuilderPolymer {
   }
 
   displayInferenceExamplesOutput(
-      inputFeeds: FeedEntry[][], inferenceOutputs: Tensor[]) {
-    let images: Tensor3D[] = [];
-    const logits: Tensor1D[] = [];
-    const labels: Tensor1D[] = [];
+      inputFeeds: dl.FeedEntry[][], inferenceOutputs: dl.Tensor[]) {
+    let images: dl.Tensor3D[] = [];
+    const logits: dl.Tensor1D[] = [];
+    const labels: dl.Tensor1D[] = [];
     for (let i = 0; i < inputFeeds.length; i++) {
-      images.push(inputFeeds[i][IMAGE_DATA_INDEX].data as Tensor3D);
-      labels.push(inputFeeds[i][LABEL_DATA_INDEX].data as Tensor1D);
-      logits.push(inferenceOutputs[i] as Tensor1D);
+      images.push(inputFeeds[i][IMAGE_DATA_INDEX].data as dl.Tensor3D);
+      labels.push(inputFeeds[i][LABEL_DATA_INDEX].data as dl.Tensor1D);
+      logits.push(inferenceOutputs[i] as dl.Tensor1D);
     }
 
     images = this.dataSet.unnormalizeExamples(images, IMAGE_DATA_INDEX) as
-        Tensor3D[];
+        dl.Tensor3D[];
 
     // Draw the images.
     for (let i = 0; i < inputFeeds.length; i++) {
@@ -865,7 +868,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
     if (this.hiddenLayers.length > 0) {
       const lastLayer = this.hiddenLayers[this.hiddenLayers.length - 1];
       valid = valid &&
-          util.arraysEqual(this.labelShape, lastLayer.getOutputShape());
+          dl.util.arraysEqual(this.labelShape, lastLayer.getOutputShape());
     }
     this.isValid = valid && (this.hiddenLayers.length > 0);
   }
