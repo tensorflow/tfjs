@@ -18,8 +18,8 @@
 import * as dl from 'deeplearn';
 
 async function onePlusOne() {
-  const a = dl.Scalar.new(1);
-  const b = dl.Scalar.new(1);
+  const a = dl.scalar(1);
+  const b = dl.scalar(1);
 
   const result = await a.add(b).data();
 

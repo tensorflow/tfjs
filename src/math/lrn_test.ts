@@ -18,9 +18,8 @@
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as dl from '../index';
-import {Tensor3D, Tensor4D} from './tensor';
 
-const sqArr = (arr: number[]) => arr.map(d => d*d);
+const sqArr = (arr: number[]) => arr.map(d => d * d);
 const sumArr = (arr: number[]) => arr.reduce((prev, curr) => prev + curr, 0);
 
 // tslint:disable-next-line:no-any
@@ -37,7 +36,7 @@ const flatten = (arr: any): number[] => {
 
     it('throws error with invalid input', math => {
       // tslint:disable-next-line:no-any
-      const x: any = dl.tensor2d(new Float32Array([1, 20, 300, 4]), [1, 4]);
+      const x: any = dl.tensor2d([1, 20, 300, 4], [1, 4]);
       const radius = 3;
 
       expect(() => math.localResponseNormalization3D(x, radius))
@@ -45,7 +44,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('throws error with invalid radius', math => {
-      const x = Tensor3D.new([1, 1, 4], new Float32Array([1, 20, 300, 4]));
+      const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       const radius = 0.5;
 
       expect(() => math.localResponseNormalization3D(x, radius))
@@ -53,7 +52,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('computes simple normalization across channels', math => {
-      const x = Tensor3D.new([1, 1, 4], new Float32Array([1, 20, 300, 4]));
+      const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -76,7 +75,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('uses beta = 1.0 to test GPU optimization', math => {
-      const x = Tensor3D.new([1, 1, 4], new Float32Array([1, 20, 300, 4]));
+      const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -99,7 +98,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('uses beta = 0.75 to test GPU optimization', math => {
-      const x = Tensor3D.new([1, 1, 4], new Float32Array([1, 20, 300, 4]));
+      const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -122,9 +121,9 @@ const flatten = (arr: any): number[] => {
     });
 
     it('computes complex normalization across channels', math => {
-      const x = Tensor3D.new([2, 2, 4], new Float32Array([
-        1, 20, 300, 4, 5, 15, 24, 200, 1, 20, 300, 4, 5, 15, 24, 200
-      ]));
+      const x = dl.tensor3d(
+        [1, 20, 300, 4, 5, 15, 24, 200, 1, 20, 300, 4, 5, 15, 24, 200],
+        [2, 2, 4]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -171,7 +170,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('computes simple normalization within channel', math => {
-      const x = Tensor3D.new([2, 2, 1], new Float32Array([1, 20, 300, 4]));
+      const x = dl.tensor3d([1, 20, 300, 4], [2, 2, 1]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -198,9 +197,9 @@ const flatten = (arr: any): number[] => {
     });
 
     it('computes complex normalization within channel', math => {
-      const x = Tensor3D.new([3, 3, 2], new Float32Array([
+      const x = dl.tensor3d([
         1, 20, 300, 4, 23, 25, 13, 156, 123, 5, 15, 24, 200, 12, 12, 13, 21, 3
-      ]));
+      ], [3, 3, 2]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -359,7 +358,7 @@ const flatten = (arr: any): number[] => {
             0.28860986,  0.03395459,  0.59127772]]
       ];
 
-      const x = Tensor3D.new([3, 3, 8], new Float32Array(flatten(input)));
+      const x = dl.tensor3d(flatten(input), [3, 3, 8]);
       const radius = 2;
       const bias = 1;
       const alpha = 1;
@@ -386,7 +385,7 @@ const flatten = (arr: any): number[] => {
 
     it('throws error with invalid input', math => {
       // tslint:disable-next-line:no-any
-      const x: any = Tensor3D.new([1, 1, 4], new Float32Array([1, 20, 300, 4]));
+      const x: any = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       const radius = 3;
 
       expect(() => math.localResponseNormalization4D(x, radius))
@@ -394,7 +393,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('throws error with invalid radius', math => {
-      const x = Tensor4D.new([1, 1, 1, 4], new Float32Array([1, 20, 300, 4]));
+      const x = dl.tensor4d([1, 20, 300, 4], [1, 1, 1, 4]);
       const radius = 0.5;
 
       expect(() => math.localResponseNormalization4D(x, radius))
@@ -402,8 +401,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('computes simple normalization across channels', math => {
-      const x = Tensor4D.new([2, 1, 1, 4],
-        new Float32Array([1, 20, 300, 4, 1, 20, 300, 4]));
+      const x = dl.tensor4d([1, 20, 300, 4, 1, 20, 300, 4], [2, 1, 1, 4]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -439,8 +437,7 @@ const flatten = (arr: any): number[] => {
     });
 
     it('computes simple normalization within channel', math => {
-      const x = Tensor4D.new([2, 2, 2, 1],
-        new Float32Array([1, 20, 50, 4, 1, 20, 50, 4]));
+      const x = dl.tensor4d([1, 20, 50, 4, 1, 20, 50, 4], [2, 2, 2, 1]);
       const radius = 1;
       const bias = 1;
       const alpha = 1;
@@ -569,7 +566,7 @@ const flatten = (arr: any): number[] => {
             0.13531584,  0.35629693,  0.64837402]]
       ]];
 
-      const x = Tensor4D.new([2, 3, 3, 8], new Float32Array(flatten(input)));
+      const x = dl.tensor4d(flatten(input), [2, 3, 3, 8]);
       const radius = 2;
 
       const result = math.localResponseNormalization4D(x, radius);

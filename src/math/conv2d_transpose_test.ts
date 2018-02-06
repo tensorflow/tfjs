@@ -18,7 +18,6 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor3D, Tensor4D} from './tensor';
 import {Rank} from './types';
 
 // math.conv2dTranspose
@@ -32,9 +31,9 @@ import {Rank} from './types';
       const origPad = 0;
       const origStride = 1;
 
-      const x = Tensor3D.new(inputShape, [2]);
-      const w = Tensor4D.new(
-          [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
+      const x = dl.tensor3d([2], inputShape);
+      const w = dl.tensor4d(
+          [3, 1, 5, 0], [fSize, fSize, origInputDepth, origOutputDepth]);
 
       const result = math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad);
       const expected = [6, 2, 10, 0];
@@ -52,9 +51,9 @@ import {Rank} from './types';
       const origPad = 0;
       const origStride = 1;
 
-      const x = Tensor4D.new(inputShape, [2, 3]);
-      const w = Tensor4D.new(
-          [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
+      const x = dl.tensor4d([2, 3], inputShape);
+      const w = dl.tensor4d(
+          [3, 1, 5, 0], [fSize, fSize, origInputDepth, origOutputDepth]);
 
       const result =
           math.conv2dTranspose(x, w, [2, 2, 2, 1], origStride, origPad);
@@ -73,8 +72,8 @@ import {Rank} from './types';
 
       // tslint:disable-next-line:no-any
       const x: any = dl.tensor2d([2, 2], [2, 1]);
-      const w = Tensor4D.new(
-          [fSize, fSize, origInputDepth, origOutputDepth], [3, 1, 5, 0]);
+      const w = dl.tensor4d(
+          [3, 1, 5, 0], [fSize, fSize, origInputDepth, origOutputDepth]);
 
       expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
           .toThrowError();
@@ -88,9 +87,9 @@ import {Rank} from './types';
       const origPad = 0;
       const origStride = 1;
 
-      const x = Tensor3D.new(inputShape, [2]);
+      const x = dl.tensor3d([2], inputShape);
       // tslint:disable-next-line:no-any
-      const w: any = Tensor3D.new([fSize, fSize, origInputDepth], [3, 1, 5, 0]);
+      const w: any = dl.tensor3d([3, 1, 5, 0], [fSize, fSize, origInputDepth]);
 
       expect(() => math.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad))
           .toThrowError();
@@ -106,7 +105,7 @@ import {Rank} from './types';
          const origPad = 0;
          const origStride = 1;
 
-         const x = Tensor3D.new(inputShape, [2, 2]);
+         const x = dl.tensor3d([2, 2], inputShape);
          const w = dl.randomNormal<Rank.R4>(
              [fSize, fSize, origInputDepth, wrongOrigOutputDepth]);
 

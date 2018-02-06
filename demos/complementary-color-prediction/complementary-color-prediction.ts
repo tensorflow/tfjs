@@ -128,7 +128,7 @@ class ComplementaryColorModel {
     dl.tidy(() => {
       const mapping = [{
         tensor: this.inputTensor,
-        data: dl.Tensor1D.new(this.normalizeColor(rgbColor)),
+        data: dl.tensor1d(this.normalizeColor(rgbColor)),
       }];
       const evalOutput = this.session.eval(this.predictionTensor, mapping);
       const values = evalOutput.dataSync();
@@ -165,9 +165,9 @@ class ComplementaryColorModel {
 
     // Store the data within Tensor1Ds so that learnjs can use it.
     const inputArray: dl.Tensor1D[] =
-        rawInputs.map(c => dl.Tensor1D.new(this.normalizeColor(c)));
+        rawInputs.map(c => dl.tensor1d(this.normalizeColor(c)));
     const targetArray: dl.Tensor1D[] = rawInputs.map(
-        c => dl.Tensor1D.new(
+        c => dl.tensor1d(
             this.normalizeColor(this.computeComplementaryColor(c))));
 
     // This provider will shuffle the training data (and will do so in a way

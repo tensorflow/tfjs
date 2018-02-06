@@ -18,7 +18,6 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Tensor3D, Tensor4D} from './tensor';
 
 // dl.reverse1D
 {
@@ -108,7 +107,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     ];
 
     it('reverse a 3D array at axis [0]', () => {
-      const input = Tensor3D.new(shape, data);
+      const input = dl.tensor3d(data, shape);
       const result = dl.reverse3d(input, [0]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -118,7 +117,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 3D array at axis [1]', () => {
-      const input = Tensor3D.new(shape, data);
+      const input = dl.tensor3d(data, shape);
       const result = dl.reverse3d(input, [1]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -128,7 +127,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 3D array at axis [2]', () => {
-      const input = Tensor3D.new(shape, data);
+      const input = dl.tensor3d(data, shape);
       const result = dl.reverse3d(input, [2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -138,7 +137,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 3D array at axis [0, 1]', () => {
-      const input = Tensor3D.new(shape, data);
+      const input = dl.tensor3d(data, shape);
       const result = dl.reverse3d(input, [0, 1]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -148,7 +147,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 3D array at axis [0, 2]', () => {
-      const input = Tensor3D.new(shape, data);
+      const input = dl.tensor3d(data, shape);
       const result = dl.reverse3d(input, [0, 2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -158,7 +157,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 3D array at axis [1, 2]', () => {
-      const input = Tensor3D.new(shape, data);
+      const input = dl.tensor3d(data, shape);
       const result = dl.reverse3d(input, [1, 2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -174,13 +173,13 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('throws error with invalid axis param', () => {
-      const x = Tensor3D.new([1, 1, 4], [1, 20, 300, 4]);
+      const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       expect(() => dl.reverse3d(x, [3])).toThrowError();
       expect(() => dl.reverse3d(x, [-4])).toThrowError();
     });
 
     it('throws error with non integer axis param', () => {
-      const x = Tensor3D.new([1, 1, 4], [1, 20, 300, 4]);
+      const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       expect(() => dl.reverse3d(x, [0.5])).toThrowError();
     });
   };
@@ -243,7 +242,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     ];
 
     it('reverse a 4D array at axis [0]', () => {
-      const input = Tensor4D.new(shape, data);
+      const input = dl.tensor4d(data, shape);
       const result = dl.reverse4d(input, [0]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -256,7 +255,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 4D array at axis [1]', () => {
-      const input = Tensor4D.new(shape, data);
+      const input = dl.tensor4d(data, shape);
       const result = dl.reverse4d(input, [1]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -269,7 +268,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 4D array at axis [2]', () => {
-      const input = Tensor4D.new(shape, data);
+      const input = dl.tensor4d(data, shape);
       const result = dl.reverse4d(input, [2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -282,7 +281,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 4D array at axis [3]', () => {
-      const input = Tensor4D.new(shape, data);
+      const input = dl.tensor4d(data, shape);
       const result = dl.reverse4d(input, [3]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -295,7 +294,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 4D array at axis [0, 2]', () => {
-      const input = Tensor4D.new(shape, data);
+      const input = dl.tensor4d(data, shape);
       const result = dl.reverse4d(input, [0, 2]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -308,7 +307,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('reverse a 4D array at axis [1, 3]', () => {
-      const input = Tensor4D.new(shape, data);
+      const input = dl.tensor4d(data, shape);
       const result = dl.reverse4d(input, [1, 3]);
       expect(result.shape).toEqual(input.shape);
       test_util.expectArraysClose(result, [
@@ -322,18 +321,18 @@ import {Tensor3D, Tensor4D} from './tensor';
 
     it('throws error with invalid input', () => {
       // tslint:disable-next-line:no-any
-      const x: any = Tensor3D.new([1, 1, 4], [1, 20, 300, 4]);
+      const x: any = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
       expect(() => dl.reverse4d(x, [1])).toThrowError();
     });
 
     it('throws error with invalid axis param', () => {
-      const x = Tensor4D.new([1, 1, 1, 4], [1, 20, 300, 4]);
+      const x = dl.tensor4d([1, 20, 300, 4], [1, 1, 1, 4]);
       expect(() => dl.reverse4d(x, [4])).toThrowError();
       expect(() => dl.reverse4d(x, [-5])).toThrowError();
     });
 
     it('throws error with non integer axis param', () => {
-      const x = Tensor4D.new([1, 1, 1, 4], [1, 20, 300, 4]);
+      const x = dl.tensor4d([1, 20, 300, 4], [1, 1, 1, 4]);
       expect(() => dl.reverse4d(x, [0.5])).toThrowError();
     });
   };

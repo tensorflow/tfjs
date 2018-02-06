@@ -31,7 +31,7 @@ let c: dl.Tensor2D[];
 let h: dl.Tensor2D[];
 let fcB: dl.Tensor1D;
 let fcW: dl.Tensor2D;
-const forgetBias = dl.Scalar.new(1.0);
+const forgetBias = dl.scalar(1.0);
 const activeNotes = new Map<number, number>();
 
 // How many steps to generate per generateStep call.
@@ -98,7 +98,7 @@ function calculateEventSize(): number {
 
 const EVENT_SIZE = calculateEventSize();
 const PRIMER_IDX = 355;  // shift 1s.
-let lastSample = dl.Scalar.new(PRIMER_IDX, 'int32');
+let lastSample = dl.scalar(PRIMER_IDX, 'int32');
 
 const container = document.querySelector('#keyboard');
 const keyboardInterface = new KeyboardElement(container);
@@ -172,7 +172,7 @@ function resetRnn() {
   if (lastSample != null) {
     lastSample.dispose();
   }
-  lastSample = dl.Scalar.new(PRIMER_IDX);
+  lastSample = dl.scalar(PRIMER_IDX);
   currentPianoTimeSec = piano.now();
   pianoStartTimestampMs = performance.now() - currentPianoTimeSec * 1000;
   currentLoopId++;
@@ -294,10 +294,10 @@ function updateConditioningParams() {
   const noteDensityIdx = parseInt(densityControl.value, 10) || 0;
   const noteDensity = DENSITY_BIN_RANGES[noteDensityIdx];
   densityDisplay.innerHTML = noteDensity.toString();
-  noteDensityEncoding = dl.oneHot(
-                              dl.Tensor1D.new([noteDensityIdx + 1]),
-                              DENSITY_BIN_RANGES.length + 1)
-                            .as1D();
+  noteDensityEncoding =
+      dl.oneHot(
+            dl.tensor1d([noteDensityIdx + 1]), DENSITY_BIN_RANGES.length + 1)
+          .as1D();
 
   if (pitchHistogramEncoding != null) {
     pitchHistogramEncoding.dispose();
@@ -399,13 +399,13 @@ function getConditioning(): dl.Tensor1D {
       const size = 1 + (noteDensityEncoding.shape[0] as number) +
           (pitchHistogramEncoding.shape[0] as number);
       const conditioning: dl.Tensor1D =
-          dl.oneHot(dl.Tensor1D.new([0]), size).as1D();
+          dl.oneHot(dl.tensor1d([0]), size).as1D();
       return conditioning;
     } else {
       const axis = 0;
       const conditioningValues =
           noteDensityEncoding.concat(pitchHistogramEncoding, axis);
-      return dl.Tensor1D.new([0]).concat(conditioningValues, axis);
+      return dl.tensor1d([0]).concat(conditioningValues, axis);
     }
   });
 }

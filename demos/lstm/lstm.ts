@@ -38,7 +38,7 @@ reader.getAllVariables().then(async vars => {
   const results: number[] = [];
 
   await dl.tidy(async () => {
-    const forgetBias = dl.Scalar.new(1.0);
+    const forgetBias = dl.scalar(1.0);
     const lstm1 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
         dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
     const lstm2 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
@@ -55,7 +55,7 @@ reader.getAllVariables().then(async vars => {
 
     let input = primerData;
     for (let i = 0; i < expected.length; i++) {
-      const onehot = dl.oneHot(dl.Tensor1D.new([input]), 10);
+      const onehot = dl.oneHot(dl.tensor1d([input]), 10);
 
       const output = dl.multiRNNCell([lstm1, lstm2], onehot, c, h);
 

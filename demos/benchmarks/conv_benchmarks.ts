@@ -38,7 +38,7 @@ export class ConvGPUBenchmark implements BenchmarkTest {
     dl.ENV.setMath(math);
 
     const inDepth = params.inDepth;
-    const inShape: [number, number, number] = [size, size, inDepth, 3];
+    const inShape: [number, number, number] = [size, size, inDepth];
     const filterSize = params.filterSize;
     const stride = params.stride;
     const pad = params.pad;
@@ -54,7 +54,6 @@ export class ConvGPUBenchmark implements BenchmarkTest {
           inDepth, regParams.outDepth, filterSize, filterSize);
       W = dl.randomUniform(wShape, -1, 1);
       b = dl.randomUniform([regParams.outDepth], -1, 1);
-
       benchmark = () => x.conv2d(W, b, stride, pad);
     } else if (opType === 'transposed') {
       const regParams = params as RegularConvParams;

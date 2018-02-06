@@ -59,7 +59,7 @@ export class CPPN {
 
     this.inputAtlas = nn_art_util.createInputAtlas(
         canvasSize, NUM_IMAGE_SPACE_VARIABLES, NUM_LATENT_VARIABLES);
-    this.ones = dl.Tensor2D.ones([this.inputAtlas.shape[0], 1]);
+    this.ones = dl.ones([this.inputAtlas.shape[0], 1]);
   }
 
   generateWeights(neuronsPerLayer: number, weightsStdev: number) {
@@ -81,7 +81,7 @@ export class CPPN {
       this.intermediateWeights.push(dl.truncatedNormal(
           [neuronsPerLayer, neuronsPerLayer], 0, weightsStdev));
     }
-    this.lastLayerWeights = dl.Tensor2D.randTruncatedNormal(
+    this.lastLayerWeights = dl.truncatedNormal(
         [neuronsPerLayer, 3 /** max output channels */], 0, weightsStdev);
   }
 
@@ -115,8 +115,8 @@ export class CPPN {
     this.z2Counter += 1 / this.z2Scale;
 
     const lastOutput = dl.tidy(() => {
-      const z1 = dl.Scalar.new(Math.sin(this.z1Counter));
-      const z2 = dl.Scalar.new(Math.cos(this.z2Counter));
+      const z1 = dl.scalar(Math.sin(this.z1Counter));
+      const z2 = dl.scalar(Math.cos(this.z2Counter));
       const z1Mat = z1.mul(this.ones) as dl.Tensor2D;
       const z2Mat = z2.mul(this.ones) as dl.Tensor2D;
 

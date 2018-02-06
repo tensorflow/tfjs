@@ -45,9 +45,9 @@ import Axis from './XAxis.vue';
 import {range} from 'd3-array';
 import {format} from 'd3-format';
 import {scaleLinear, scaleBand} from 'd3-scale';
-import {Scalar, ENV} from 'deeplearn';
+import * as dl from 'deeplearn';
 
-const math = ENV.math;
+const math = dl.ENV.math;
 
 export default {
   components: {Sample, Axis},
@@ -135,7 +135,7 @@ export default {
       let samples = [];
       for (var i = 0; i < this.numSamples; i++) {
         let delta = math.sub(
-          Scalar.new(this.pos(i)), Scalar.new(this.selectedValue));
+          dl.scalar(this.pos(i)), dl.scalar(this.selectedValue));
         let newSample = math.add(math.multiply(
           this.unitDirection, delta), this.selectedSample);
         samples.push({
@@ -156,7 +156,7 @@ export default {
     },
     select: function(x) {
       const value = this.hoverScale(x)
-      let delta = math.sub(Scalar.new(value), Scalar.new(this.selectedValue));
+      let delta = math.sub(dl.scalar(value), dl.scalar(this.selectedValue));
       let newSample = math.add(math.multiply(
         this.unitDirection, delta), this.selectedSample);
       this.$emit("select", {selectedSample: newSample});

@@ -19,7 +19,6 @@ import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as reduce_util from './reduce_util';
-import {Tensor3D, Tensor4D} from './tensor';
 
 // math.min
 {
@@ -1011,7 +1010,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('3D norm axis=0,1, matrix inf norm', math => {
-      const a = Tensor3D.new([3, 2, 1], [1, 2, -3, 1, 0, 1]);
+      const a = dl.tensor3d([1, 2, -3, 1, 0, 1], [3, 2, 1]);
       const norm = math.norm(a, Infinity, [0, 1]);
 
       expect(norm.shape).toEqual([1]);
@@ -1020,7 +1019,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('axis=0,1 keepDims in 3D array norm', math => {
-      const a = Tensor3D.new([3, 2, 1], [1, 2, 3, 0, 0, 1]);
+      const a = dl.tensor3d([1, 2, 3, 0, 0, 1], [3, 2, 1]);
       const norm = math.norm(a, Infinity, [0, 1], true);
 
       expect(norm.shape).toEqual([1, 1, 1]);
@@ -1029,7 +1028,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('axis=0,1 keepDims in 3D array norm', math => {
-      const a = Tensor3D.new([3, 2, 2], [1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1]);
+      const a = dl.tensor3d([1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1], [3, 2, 2]);
       const norm = math.norm(a, Infinity, [0, 1], true);
 
       expect(norm.shape).toEqual([1, 1, 2]);
@@ -1038,7 +1037,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('axis=null in 3D array norm', math => {
-      const a = Tensor3D.new([3, 2, 1], [1, 2, 3, 0, 0, 1]);
+      const a = dl.tensor3d([1, 2, 3, 0, 0, 1], [3, 2, 1]);
       const norm = math.norm(a, Infinity);
 
       expect(norm.shape).toEqual([]);
@@ -1047,7 +1046,7 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('axis=null in 4D array norm', math => {
-      const a = Tensor4D.new([3, 2, 1, 1], [1, 2, 3, 0, 0, 1]);
+      const a = dl.tensor4d([1, 2, 3, 0, 0, 1], [3, 2, 1, 1]);
       const norm = math.norm(a, Infinity);
 
       expect(norm.shape).toEqual([]);
@@ -1056,10 +1055,12 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('axis=0,1 in 4D array norm', math => {
-      const a = Tensor4D.new([3, 2, 2, 2], [
-        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
-        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
-      ]);
+      const a = dl.tensor4d(
+          [
+            1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
+            1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
+          ],
+          [3, 2, 2, 2]);
       const norm = math.norm(a, Infinity, [0, 1]);
 
       expect(norm.shape).toEqual([2, 2]);
@@ -1068,10 +1069,12 @@ import {Tensor3D, Tensor4D} from './tensor';
     });
 
     it('axis=0,1 in 4D array norm', math => {
-      const a = Tensor4D.new([3, 2, 2, 2], [
-        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
-        1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
-      ]);
+      const a = dl.tensor4d(
+          [
+            1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
+            1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
+          ],
+          [3, 2, 2, 2]);
       const norm = math.norm(a, Infinity, [0, 1], true);
 
       expect(norm.shape).toEqual([1, 1, 2, 2]);

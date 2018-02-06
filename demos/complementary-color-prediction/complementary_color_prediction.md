@@ -114,9 +114,9 @@ We store each input (now a list of 3 values between 0 and 1) within an `Tensor1D
 
 ```ts
 const inputArray: Tensor1D[] =
-    rawInputs.map(c => Tensor1D.new(this.normalizeColor(c)));
+    rawInputs.map(c => dl.tensor1d(this.normalizeColor(c)));
 const targetArray: Tensor1D[] = rawInputs.map(
-    c => Tensor1D.new(
+    c => dl.tensor1d(
         this.normalizeColor(this.computeComplementaryColor(c))));
 ```
 
@@ -253,7 +253,7 @@ predict(rgbColor: number[]): number[] {
   dl.tidy((keep, track) => {
     const mapping = [{
       tensor: this.inputTensor,
-      data: Tensor1D.new(this.normalizeColor(rgbColor)),
+      data: dl.tensor1d(this.normalizeColor(rgbColor)),
     }];
     const evalOutput = this.session.eval(this.predictionTensor, mapping);
     const values = evalOutput.dataSync();

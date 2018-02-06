@@ -26,7 +26,7 @@ export class FontModel {
   private variables: {[varName: string]: dl.Tensor};
   private inferCache = new Cache(this, this.infer);
   private numberOfValidChars = 62;
-  private multiplierScalar = dl.Scalar.new(255);
+  private multiplierScalar = dl.scalar(255);
 
   constructor() {
     // Set up character ID mapping.
@@ -71,7 +71,7 @@ export class FontModel {
     }
 
     const adjusted = dl.tidy(() => {
-      const idx = dl.Tensor1D.new([charId]);
+      const idx = dl.tensor1d([charId]);
       const onehotVector = dl.oneHot(idx, this.numberOfValidChars).as1D();
 
       const axis = 0;

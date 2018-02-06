@@ -18,7 +18,7 @@
 import * as dl from '../index';
 import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
-import {Scalar, Tensor2D, Tensor3D} from './tensor';
+import {Scalar, Tensor2D} from './tensor';
 
 // divide
 {
@@ -704,7 +704,7 @@ import {Scalar, Tensor2D, Tensor3D} from './tensor';
     });
 
     it('3D+scalar', () => {
-      const a = Tensor3D.new([2, 3, 1], [1, 2, 3, 4, 5, 6]);
+      const a = dl.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1]);
       const b = dl.scalar(-1);
       const res = dl.add(a, b);
       expect(res.shape).toEqual([2, 3, 1]);
@@ -864,7 +864,7 @@ import {Scalar, Tensor2D, Tensor3D} from './tensor';
     });
 
     it('3D-scalar', () => {
-      const a = Tensor3D.new([2, 3, 1], [1, 2, 3, 4, 5, 6]);
+      const a = dl.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1]);
       const b = dl.scalar(-1);
       const res = dl.sub(a, b);
       expect(res.shape).toEqual([2, 3, 1]);
