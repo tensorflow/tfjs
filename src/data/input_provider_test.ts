@@ -17,17 +17,11 @@
 
 import {ENV} from '../environment';
 import * as dl from '../index';
-import {NDArrayMath} from '../math/math';
-
 import {InCPUMemoryShuffledInputProviderBuilder} from './input_provider';
 
 describe('InCPUMemoryShuffledInputProviderBuilder', () => {
-  let math: NDArrayMath;
-
   beforeEach(() => {
-    const safeMode = false;
-    math = new NDArrayMath('cpu', safeMode);
-    ENV.setMath(math);
+    dl.setBackend('cpu');
   });
 
   afterEach(() => {
@@ -45,8 +39,8 @@ describe('InCPUMemoryShuffledInputProviderBuilder', () => {
 
     const seenNumbers: {[key: number]: boolean} = {};
     for (let i = 0; i < x1s.length; i++) {
-      const x1 = x1provider.getNextCopy(math);
-      const x2 = x2provider.getNextCopy(math);
+      const x1 = x1provider.getNextCopy();
+      const x2 = x2provider.getNextCopy();
 
       expect(x1.get() * 10).toEqual(x2.get());
 
@@ -79,12 +73,8 @@ describe('InCPUMemoryShuffledInputProviderBuilder', () => {
 });
 
 describe('InGPUMemoryShuffledInputProviderBuilder', () => {
-  let math: NDArrayMath;
-
   beforeEach(() => {
-    const safeMode = false;
-    math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
+    dl.setBackend('webgl');
   });
 
   afterEach(() => {
@@ -102,16 +92,16 @@ describe('InGPUMemoryShuffledInputProviderBuilder', () => {
 
     const seenNumbers: {[key: number]: boolean} = {};
     for (let i = 0; i < x1s.length; i++) {
-      const x1 = x1provider.getNextCopy(math);
-      const x2 = x2provider.getNextCopy(math);
+      const x1 = x1provider.getNextCopy();
+      const x2 = x2provider.getNextCopy();
 
       expect(x1.get() * 10).toEqual(x2.get());
 
       seenNumbers[x1.get()] = true;
       seenNumbers[x2.get()] = true;
 
-      x1provider.disposeCopy(math, x1);
-      x2provider.disposeCopy(math, x1);
+      x1provider.disposeCopy(x1);
+      x2provider.disposeCopy(x1);
     }
 
     // Values are shuffled, make sure we've seen everything.

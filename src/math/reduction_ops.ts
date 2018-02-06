@@ -16,6 +16,7 @@
  */
 
 import {ENV} from '../environment';
+import {customGradient} from '../globals';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
@@ -78,33 +79,35 @@ export class Ops {
     const axes = axis_util.parseAxisParam(axis, x.shape);
     // Use a custom gradient to bypass 2 gradient backprops since sum is used
     // extremely often.
-    return ENV.math.customGradient('sum', () => {
-      const permutation = axis_util.getAxesPermutation(axes, x.rank);
-      let reductionAxes = axes;
-      let permutedX = x;
-      if (permutation != null) {
-        permutedX = x.transpose(permutation);
-        reductionAxes =
-            axis_util.getInnerMostAxes(reductionAxes.length, x.rank);
-      }
-      let value = ENV.engine.executeKernel(
-          'Sum', {inputs: {x: permutedX}, args: {axes: reductionAxes}});
-      if (keepDims) {
-        const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
-        value = value.reshape(newShape);
-      }
+    return customGradient('sum', () => {
+             const permutation = axis_util.getAxesPermutation(axes, x.rank);
+             let reductionAxes = axes;
+             let permutedX = x;
+             if (permutation != null) {
+               permutedX = x.transpose(permutation);
+               reductionAxes =
+                   axis_util.getInnerMostAxes(reductionAxes.length, x.rank);
+             }
+             let value = ENV.engine.executeKernel(
+                 'Sum', {inputs: {x: permutedX}, args: {axes: reductionAxes}});
+             if (keepDims) {
+               const newShape =
+                   axis_util.expandShapeToKeepDim(value.shape, axes);
+               value = value.reshape(newShape);
+             }
 
-      const gradients = (dy: Tensor) => {
-        const expandedDyShape = x.shape.slice();
-        axes.forEach(axis => {
-          expandedDyShape[axis] = 1;
-        });
-        const expandedDy = dy.reshape(expandedDyShape);
-        const derX = () => expandedDy.mul(Tensor.ones(x.shape, 'float32'));
-        return {x: derX};
-      };
-      return {value, gradients};
-    }, {x}) as T;
+             const gradients = (dy: Tensor) => {
+               const expandedDyShape = x.shape.slice();
+               axes.forEach(axis => {
+                 expandedDyShape[axis] = 1;
+               });
+               const expandedDy = dy.reshape(expandedDyShape);
+               const derX = () =>
+                   expandedDy.mul(Tensor.ones(x.shape, 'float32'));
+               return {x: derX};
+             };
+             return {value, gradients};
+           }, {x}) as T;
   }
 
   /**
@@ -131,23 +134,24 @@ export class Ops {
     const reduceSize = util.sizeFromShape(reduceShape);
     // Use a custom gradient to bypass 2 gradient backprops since mean is used
     // extremely often.
-    return ENV.math.customGradient('mean', () => {
-      const reduceSizeScalar = ops.scalar(reduceSize);
-      const res = x.div(reduceSizeScalar);
-      const value = res.sum(axis, keepDims);
+    return customGradient('mean', () => {
+             const reduceSizeScalar = ops.scalar(reduceSize);
+             const res = x.div(reduceSizeScalar);
+             const value = res.sum(axis, keepDims);
 
-      const gradients = (dy: Tensor) => {
-        const expandedDyShape = x.shape.slice();
-        axes.forEach(axis => {
-          expandedDyShape[axis] = 1;
-        });
-        const expandedDy = dy.reshape(expandedDyShape);
-        const derX = () => expandedDy.mul(Tensor.ones(x.shape, 'float32'))
-                               .div(reduceSizeScalar);
-        return {x: derX};
-      };
-      return {value, gradients};
-    }, {x}) as T;
+             const gradients = (dy: Tensor) => {
+               const expandedDyShape = x.shape.slice();
+               axes.forEach(axis => {
+                 expandedDyShape[axis] = 1;
+               });
+               const expandedDy = dy.reshape(expandedDyShape);
+               const derX = () =>
+                   expandedDy.mul(Tensor.ones(x.shape, 'float32'))
+                       .div(reduceSizeScalar);
+               return {x: derX};
+             };
+             return {value, gradients};
+           }, {x}) as T;
   }
 
   /**

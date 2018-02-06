@@ -31,7 +31,7 @@ describe('adamax optimizer', () => {
       getNextCopy() {
         return Tensor1D.new([2, 4]);
       },
-      disposeCopy(math, example) {}
+      disposeCopy(example) {}
     };
 
     dl.tidy(() => {

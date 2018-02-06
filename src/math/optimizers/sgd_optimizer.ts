@@ -88,6 +88,6 @@ export class SGDOptimizer extends Optimizer {
     if (this.c != null) {
       this.c.dispose();
     }
-    this.c = ENV.math.keep(ops.scalar(-learningRate));
+    this.c = keep(ops.scalar(-learningRate));
   }
 }

@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {NDArrayMath} from '../math/math';
 import {Tensor} from '../math/tensor';
 import * as util from '../util';
 
@@ -26,15 +25,13 @@ export interface InputProvider {
   /**
    * Get the next input as a copy. This is important because the data might
    * get uploaded to the GPU and modify the original data.
-   * @param math NDArrayMath
    */
-  getNextCopy(math: NDArrayMath): Tensor;
+  getNextCopy(): Tensor;
   /**
    * Dispose the input copy.
-   * @param math NDArrayMath
    * @param copy The copy provided from getNextCopy
    */
-  disposeCopy(math: NDArrayMath, copy: Tensor): void;
+  disposeCopy(copy: Tensor): void;
 }
 
 /**
@@ -138,10 +135,10 @@ export class InCPUMemoryShuffledInputProviderBuilder extends
     const shuffledInputProvider = this;
 
     return {
-      getNextCopy(math: NDArrayMath): Tensor {
-        return Tensor.like(shuffledInputProvider.getNextInput(inputId));
+      getNextCopy(): Tensor {
+        return shuffledInputProvider.getNextInput(inputId).clone();
       },
-      disposeCopy(math: NDArrayMath, copy: Tensor) {
+      disposeCopy(copy: Tensor) {
         copy.dispose();
       }
     };
@@ -160,10 +157,10 @@ export class InGPUMemoryShuffledInputProviderBuilder extends
     const shuffledInputProvider = this;
 
     return {
-      getNextCopy(math: NDArrayMath): Tensor {
-        return math.clone(shuffledInputProvider.getNextInput(inputId));
+      getNextCopy(): Tensor {
+        return shuffledInputProvider.getNextInput(inputId).clone();
       },
-      disposeCopy(math: NDArrayMath, copy: Tensor) {
+      disposeCopy(copy: Tensor) {
         copy.dispose();
       }
     };

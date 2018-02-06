@@ -221,8 +221,8 @@ describe('Backend', () => {
   });
 
   it('default ENV has cpu and webgl, and webgl is the best available', () => {
-    expect(ENV.getBackend('webgl') != null).toBe(true);
-    expect(ENV.getBackend('cpu') != null).toBe(true);
+    expect(ENV.findBackend('webgl') != null).toBe(true);
+    expect(ENV.findBackend('cpu') != null).toBe(true);
     expect(ENV.getBestBackendType()).toBe('webgl');
   });
 
@@ -237,7 +237,7 @@ describe('Backend', () => {
       return backend;
     });
 
-    expect(ENV.getBackend('webgl')).toBe(backend);
+    expect(ENV.findBackend('webgl')).toBe(backend);
     expect(ENV.math).not.toBeNull();
   });
 
@@ -253,7 +253,7 @@ describe('Backend', () => {
     ENV.addCustomBackend('cpu', () => new MathBackendCPU());
     const success = ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
     expect(success).toBe(false);
-    expect(ENV.getBackend('webgl') == null).toBe(true);
+    expect(ENV.findBackend('webgl') == null).toBe(true);
     expect(ENV.getBestBackendType()).toBe('cpu');
   });
 });

@@ -18,7 +18,6 @@
 import {InputProvider} from '../data/input_provider';
 import {ENV} from '../environment';
 import * as dl from '../index';
-import {NDArrayMath} from '../math/math';
 import {SGDOptimizer} from '../math/optimizers/sgd_optimizer';
 import {Scalar, Tensor1D} from '../math/tensor';
 import * as test_util from '../test_util';
@@ -185,7 +184,7 @@ describe('Session', () => {
       getNextCopy() {
         return xs[idx++];
       },
-      disposeCopy(math, example) {}
+      disposeCopy(example) {}
     };
 
     // w = x^2 + x + 3
@@ -216,7 +215,7 @@ describe('Session', () => {
       getNextCopy() {
         return Tensor1D.new([2, 4]);
       },
-      disposeCopy(math, example) {}
+      disposeCopy(example) {}
     };
 
     // w = reduce_sum(x^2 + x + 3)
@@ -243,7 +242,7 @@ describe('Session', () => {
       getNextCopy() {
         return Tensor1D.new([1, 2]);
       },
-      disposeCopy(math, example) {}
+      disposeCopy(example) {}
     };
 
     // prediction = reduce_sum((x + b0)^2 + b1)
@@ -273,28 +272,24 @@ describe('Session', () => {
   });
 
   it('Safe mode math, no math scope eval throws', () => {
-    const safeMode = true;
-    const math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
+    dl.setBackend('webgl', true /* safeMode */);
 
     expect(() => {
       const x = g.placeholder('x', [2]);
       const y = g.square(x);
-      const session = new Session(g, math);
+      const session = new Session(g, dl.ENV.math);
       session.eval(y, [{tensor: x, data: Tensor1D.new([5, 4])}]);
     }).toThrowError();
     ENV.reset();
   });
 
   it('Safe mode math, math scope eval does not throw', () => {
-    const safeMode = true;
-    const math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
+    dl.setBackend('webgl', true /* safeMode */);
 
     dl.tidy(() => {
       const x = g.placeholder('x', [2]);
       const y = g.square(x);
-      const session = new Session(g, math);
+      const session = new Session(g, dl.ENV.math);
       const yVal = session.eval(y, [{tensor: x, data: Tensor1D.new([5, 4])}]);
       const expected = new Float32Array([25, 16]);
       test_util.expectArraysClose(yVal.dataSync(), expected);
@@ -303,20 +298,18 @@ describe('Session', () => {
   });
 
   it('Safe mode math, math scope train does not throw', () => {
-    const safeMode = true;
-    const math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
+    dl.setBackend('webgl', true /* safeMode */);
 
     const inputProvider: InputProvider = {
       getNextCopy() {
         return Tensor1D.new([2, 4]);
       },
-      disposeCopy(math, example) {}
+      disposeCopy(example) {}
     };
 
     dl.tidy(() => {
       const optimizer = new SGDOptimizer(0.1);
-      const session = new Session(g, math);
+      const session = new Session(g, dl.ENV.math);
       const x = g.placeholder('x', [2]);
       const y = g.square(x);
       const z = g.add(x, g.constant(3));
@@ -331,19 +324,17 @@ describe('Session', () => {
   });
 
   it('Safe mode math, no math scope train throws', () => {
-    const safeMode = true;
-    const math = new NDArrayMath('webgl', safeMode);
-    ENV.setMath(math);
+    dl.setBackend('webgl', true /* safeMode */);
 
     const inputProvider: InputProvider = {
       getNextCopy() {
         return Tensor1D.new([2, 4]);
       },
-      disposeCopy(math, example) {}
+      disposeCopy(example) {}
     };
 
     expect(() => {
-      const session = new Session(g, math);
+      const session = new Session(g, dl.ENV.math);
       const optimizer = new SGDOptimizer(0.1);
       const x = g.placeholder('x', [2]);
       const y = g.square(x);

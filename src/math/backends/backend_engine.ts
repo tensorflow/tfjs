@@ -19,10 +19,11 @@ import {ENV} from '../../environment';
 import {tidy} from '../../globals';
 import * as util from '../../util';
 import * as ops from '../ops';
-import {Tensor, Variable} from '../tensor';
-import {NamedTensorMap, NamedVariableMap, TypedArray} from '../types';
+import {Tensor, Tensor3D, Variable} from '../tensor';
+import {DataType, NamedTensorMap, NamedVariableMap, TypedArray} from '../types';
 import {Rank} from '../types';
-import {MathBackend} from './backend';
+
+import {MathBackend, TensorStorage} from './backend';
 import * as kernel_registry from './kernel_registry';
 import {KernelConfigRegistry} from './kernel_registry';
 import {Profiler} from './profiler';
@@ -42,12 +43,12 @@ export type CustomGradientFunc<T extends Tensor> = () => {
 
 export interface TensorManager {
   getNumTensors(): number;
-  register(a: Tensor): void;
+  registerTensor(a: Tensor): void;
   registerVariable(v: Variable): void;
   disposeData(dataId: number): void;
 }
 
-export class BackendEngine implements TensorManager {
+export class BackendEngine implements TensorManager, TensorStorage {
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
 
@@ -64,7 +65,7 @@ export class BackendEngine implements TensorManager {
   private profiler: Profiler;
 
   constructor(
-      private backend: MathBackend, private customBackend: boolean,
+      public backend: MathBackend, private customBackend: boolean,
       public safeMode: boolean) {
     // Create a default outer scope.
     this.activeScope = {keep: [], track: []};
@@ -108,20 +109,16 @@ export class BackendEngine implements TensorManager {
     return result;
   }
 
-  getBackend(): MathBackend {
-    return this.backend;
-  }
-
   getNumTensors() {
     return this.registeredTensors.size;
   }
 
-  register(a: Tensor|Variable): void {
+  registerTensor(a: Tensor|Variable): void {
     const refCount = this.registeredTensors.has(a.dataId) ?
         this.registeredTensors.get(a.dataId) :
         0;
     if (refCount === 0) {
-      this.backend.register(a.dataId, a.shape, a.dtype);
+      this.register(a.dataId, a.shape, a.dtype);
     }
     this.registeredTensors.set(a.dataId, refCount + 1);
     if (!(a instanceof Variable)) {
@@ -232,22 +229,6 @@ export class BackendEngine implements TensorManager {
     }
   }
 
-  disposeData(dataId: number): void {
-    if (!this.registeredTensors.has(dataId)) {
-      return;
-    }
-    const refCount = this.registeredTensors.get(dataId);
-    if (refCount <= 1) {
-      this.registeredTensors.delete(dataId);
-      this.backend.disposeData(dataId);
-    } else {
-      this.registeredTensors.set(dataId, refCount - 1);
-    }
-    // TODO(nsthorat): Construct an error and save the stack trace for
-    // debugging when in debug mode. Creating a stack trace is too expensive
-    // to do unconditionally.
-  }
-
   /**
    * Returns gradients of `f` w.r.t. each of the `xs`. The gradients returned
    * are of the same length as `xs`, but some might be null if `f` was not
@@ -300,6 +281,7 @@ export class BackendEngine implements TensorManager {
     return result;
   }
 
+  // TensorManager implementation.
   write(dataId: number, values: TypedArray): void {
     this.backend.write(dataId, values);
   }
@@ -308,6 +290,32 @@ export class BackendEngine implements TensorManager {
   }
   read(dataId: number): Promise<TypedArray> {
     return this.backend.read(dataId);
+  }
+  fromPixels(
+      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
+      numChannels: number): Tensor3D {
+    return this.backend.fromPixels(pixels, numChannels);
+  }
+  time(query: () => void): Promise<number> {
+    return this.backend.time(query);
+  }
+  register(dataId: number, shape: number[], dtype: DataType): void {
+    this.backend.register(dataId, shape, dtype);
+  }
+  disposeData(dataId: number): void {
+    if (!this.registeredTensors.has(dataId)) {
+      return;
+    }
+    const refCount = this.registeredTensors.get(dataId);
+    if (refCount <= 1) {
+      this.registeredTensors.delete(dataId);
+      this.backend.disposeData(dataId);
+    } else {
+      this.registeredTensors.set(dataId, refCount - 1);
+    }
+    // TODO(nsthorat): Construct an error and save the stack trace for
+    // debugging when in debug mode. Creating a stack trace is too expensive
+    // to do unconditionally.
   }
 
   /**

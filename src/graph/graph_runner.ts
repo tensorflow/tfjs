@@ -259,8 +259,7 @@ export class GraphRunner {
         const ndarrayFeedEntries: FeedEntry[] = [];
         for (let j = 0; j < this.inferenceFeedEntries.length; j++) {
           const feedEntry = this.inferenceFeedEntries[j];
-          const nextCopy =
-              (feedEntry.data as InputProvider).getNextCopy(this.math);
+          const nextCopy = (feedEntry.data as InputProvider).getNextCopy();
 
           ndarrayFeedEntries.push({tensor: feedEntry.tensor, data: nextCopy});
         }

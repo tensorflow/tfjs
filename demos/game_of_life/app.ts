@@ -180,9 +180,8 @@ class WorldContext {
   }
 }
 
-const math = dl.ENV.math;
-const game = new GameOfLife(5, math);
-const model = new GameOfLifeModel(math);
+const game = new GameOfLife(5);
+const model = new GameOfLifeModel();
 
 let trainingData: Array<[dl.Tensor, dl.Tensor]> = [];
 const worldContexts: WorldContext[] = [];

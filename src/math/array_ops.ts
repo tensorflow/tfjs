@@ -426,7 +426,7 @@ export class Ops {
       throw new Error(
           'Cannot construct Tensor with more than 4 channels from pixels.');
     }
-    return ENV.backend.fromPixels(pixels, numChannels);
+    return ENV.engine.fromPixels(pixels, numChannels);
   }
 
   /**

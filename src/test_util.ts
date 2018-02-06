@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV, Features} from './environment';
+import {BackendType, ENV, Environment, Features} from './environment';
 import {MathBackendCPU} from './math/backends/backend_cpu';
 import {MathBackendWebGL} from './math/backends/backend_webgl';
 import {NDArrayMath} from './math/math';
@@ -267,10 +267,9 @@ export function describeMathCPU(
   const testNameBase = 'CPU: math.' + name;
   describeWithFeaturesAndExecutor(
       testNameBase, tests as Tests[],
-      (testName, tests, features) => executeMathTests(testName, tests, () => {
-        const safeMode = true;
-        return new NDArrayMath(new MathBackendCPU(), safeMode);
-      }, features), featuresList);
+      (testName, tests, features) =>
+          executeMathTests(testName, tests, 'cpu', features),
+      featuresList);
 }
 
 export function describeMathGPU(
@@ -278,10 +277,9 @@ export function describeMathGPU(
   const testNameBase = 'WebGL: math.' + name;
   describeWithFeaturesAndExecutor(
       testNameBase, tests as Tests[],
-      (testName, tests, features) => executeMathTests(testName, tests, () => {
-        const safeMode = true;
-        return new NDArrayMath(new MathBackendWebGL(), safeMode);
-      }, features), featuresList);
+      (testName, tests, features) =>
+          executeMathTests(testName, tests, 'webgl', features),
+      featuresList);
 }
 
 export function describeCustom(
@@ -340,30 +338,26 @@ const PROMISE_XIT: It = (name: string, testFunc: () => void|Promise<void>) => {
 };
 
 export function executeMathTests(
-    testName: string, tests: MathTests[], mathFactory: () => NDArrayMath,
+    testName: string, tests: MathTests[], backendType: BackendType,
     features?: Features) {
-  let math: NDArrayMath;
-
   const customBeforeEach = () => {
-    math = mathFactory();
-    ENV.setMath(math);
-    math.startScope();
+    Environment.setBackend(backendType);
+    ENV.engine.startScope();
   };
   const customAfterEach = () => {
-    math.endScope(null);
-    math.dispose();
+    ENV.engine.endScope(null);
   };
   const customIt: It =
       (name: string, testFunc: (math: NDArrayMath) => void|Promise<void>) => {
-        PROMISE_IT(name, () => testFunc(math));
+        PROMISE_IT(name, () => testFunc(ENV.math));
       };
   const customFit: It =
       (name: string, testFunc: (math: NDArrayMath) => void|Promise<void>) => {
-        PROMISE_FIT(name, () => testFunc(math));
+        PROMISE_FIT(name, () => testFunc(ENV.math));
       };
   const customXit: It =
       (name: string, testFunc: (math: NDArrayMath) => void|Promise<void>) => {
-        PROMISE_XIT(name, () => testFunc(math));
+        PROMISE_XIT(name, () => testFunc(ENV.math));
       };
 
   executeTests(
