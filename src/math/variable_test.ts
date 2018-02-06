@@ -31,7 +31,7 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(v, [4, 5, 6]);
   });
 
-  it('default names are unique', math => {
+  it('default names are unique', () => {
     const v = variable(dl.tensor1d([1, 2, 3]));
     expect(v.name).not.toBeNull();
 
@@ -40,21 +40,21 @@ const tests: MathTests = it => {
     expect(v.name).not.toBe(v2.name);
   });
 
-  it('user provided name', math => {
+  it('user provided name', () => {
     const v = variable(dl.tensor1d([1, 2, 3]), true, 'myName');
     expect(v.name).toBe('myName');
   });
 
-  it('if name already used, throw error', math => {
+  it('if name already used, throw error', () => {
     variable(dl.tensor1d([1, 2, 3]), true, 'myName');
     expect(() => variable(dl.tensor1d([1, 2, 3]), true, 'myName'))
         .toThrowError();
   });
 
-  it('math ops can take variables', math => {
+  it('math ops can take variables', () => {
     const value = dl.tensor1d([1, 2, 3]);
     const v = variable(value);
-    const res = math.sum(v);
+    const res = dl.sum(v);
     test_util.expectArraysClose(res, [6]);
   });
 
@@ -123,14 +123,14 @@ const tests: MathTests = it => {
     expect(math.getNumTensors()).toBe(0);
   });
 
-  it('shape must match', math => {
+  it('shape must match', () => {
     const v = variable(dl.tensor1d([1, 2, 3]));
     expect(() => v.assign(dl.tensor1d([1, 2]))).toThrowError();
     // tslint:disable-next-line:no-any
     expect(() => v.assign(dl.tensor2d([3, 4], [1, 2]) as any)).toThrowError();
   });
 
-  it('dtype must match', math => {
+  it('dtype must match', () => {
     const v = variable(dl.tensor1d([1, 2, 3]));
     // tslint:disable-next-line:no-any
     expect(() => v.assign(dl.tensor1d([1, 1, 1], 'int32') as any))

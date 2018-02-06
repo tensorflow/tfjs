@@ -26,56 +26,56 @@ const tests: MathTests = it => {
   // Allowed Variance in probability (in %).
   const EPSILON = 0.05;
 
-  it('Flip a fair coin and check bounds', math => {
+  it('Flip a fair coin and check bounds', () => {
     const probs = dl.tensor1d([0.5, 0.5]);
-    const result = math.multinomial(probs, NUM_SAMPLES);
+    const result = dl.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
     test_util.expectArraysClose(outcomeProbs, [0.5, 0.5], EPSILON);
   });
 
-  it('Flip a two-sided coin with 100% of heads', math => {
+  it('Flip a two-sided coin with 100% of heads', () => {
     const probs = dl.tensor1d([1, 0]);
-    const result = math.multinomial(probs, NUM_SAMPLES);
+    const result = dl.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
     test_util.expectArraysClose(outcomeProbs, [1, 0], EPSILON);
   });
 
-  it('Flip a two-sided coin with 100% of tails', math => {
+  it('Flip a two-sided coin with 100% of tails', () => {
     const probs = dl.tensor1d([0, 1]);
-    const result = math.multinomial(probs, NUM_SAMPLES);
+    const result = dl.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
     test_util.expectArraysClose(outcomeProbs, [0, 1], EPSILON);
   });
 
-  it('Flip a single-sided coin throws error', math => {
+  it('Flip a single-sided coin throws error', () => {
     const probs = dl.tensor1d([1]);
-    expect(() => math.multinomial(probs, NUM_SAMPLES)).toThrowError();
+    expect(() => dl.multinomial(probs, NUM_SAMPLES)).toThrowError();
   });
 
-  it('Flip a ten-sided coin and check bounds', math => {
+  it('Flip a ten-sided coin and check bounds', () => {
     const numOutcomes = 10;
     const probs = dl.buffer<Rank.R1>([numOutcomes], 'float32');
     for (let i = 0; i < numOutcomes; ++i) {
       probs.set(1 / numOutcomes, i);
     }
-    const result = math.multinomial(probs.toTensor(), NUM_SAMPLES);
+    const result = dl.multinomial(probs.toTensor(), NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), numOutcomes);
     expect(outcomeProbs.length).toBeLessThanOrEqual(numOutcomes);
   });
 
-  it('Flip 3 three-sided coins, each coin is 100% biases', math => {
+  it('Flip 3 three-sided coins, each coin is 100% biases', () => {
     const numOutcomes = 3;
     const probs =
         dl.tensor2d([[0, 0, 1], [0, 1, 0], [1, 0, 0]], [3, numOutcomes]);
-    const result = math.multinomial(probs, NUM_SAMPLES);
+    const result = dl.multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([3, NUM_SAMPLES]);
 
@@ -95,9 +95,9 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(outcomeProbs, [1, 0, 0], EPSILON);
   });
 
-  it('passing Tensor3D throws error', math => {
+  it('passing Tensor3D throws error', () => {
     const probs = dl.zeros([3, 2, 2]) as Tensor1D;
-    expect(() => math.multinomial(probs, 3)).toThrowError();
+    expect(() => dl.multinomial(probs, 3)).toThrowError();
   });
 
   function computeProbs(

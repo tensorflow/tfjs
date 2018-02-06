@@ -22,7 +22,7 @@ import {MathTests} from '../test_util';
 // math.resizeBilinear
 {
   const tests: MathTests = it => {
-    it('simple alignCorners=false', math => {
+    it('simple alignCorners=false', () => {
       const input = dl.tensor3d([2, 2, 4, 4], [2, 2, 1]);
       const output = input.resizeBilinear([3, 3], false);
 
@@ -30,14 +30,14 @@ import {MathTests} from '../test_util';
           output, [2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]);
     });
 
-    it('simple alignCorners=true', math => {
+    it('simple alignCorners=true', () => {
       const input = dl.tensor3d([2, 2, 4, 4], [2, 2, 1]);
       const output = input.resizeBilinear([3, 3], true);
 
       test_util.expectArraysClose(output, [2, 2, 2, 3, 3, 3, 4, 4, 4]);
     });
 
-    it('matches tensorflow w/ random numbers alignCorners=false', math => {
+    it('matches tensorflow w/ random numbers alignCorners=false', () => {
       const input = dl.tensor3d(
           [
             1.19074044, 0.91373104, 2.01611669, -0.52270832, 0.38725395,
@@ -58,7 +58,7 @@ import {MathTests} from '../test_util';
       ]);
     });
 
-    it('matches tensorflow w/ random numbers alignCorners=true', math => {
+    it('matches tensorflow w/ random numbers alignCorners=true', () => {
       const input = dl.tensor3d(
           [
             1.56324531, 2.13817752, 1.44398421, 1.07632684, 0.59306785,
@@ -79,7 +79,7 @@ import {MathTests} from '../test_util';
       ]);
     });
 
-    it('batch of 2, simple, alignCorners=true', math => {
+    it('batch of 2, simple, alignCorners=true', () => {
       const input = dl.tensor4d([2, 2, 4, 4, 3, 3, 5, 5], [2, 2, 2, 1]);
       const output = input.resizeBilinear([3, 3], true /* alignCorners */);
 
