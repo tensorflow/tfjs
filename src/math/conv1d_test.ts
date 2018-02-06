@@ -20,10 +20,10 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import {Rank} from './types';
 
-// math.conv1d
+// dl.conv1d
 {
   const tests: MathTests = it => {
-    it('conv1d input=2x2x1,d2=1,f=1,s=1,p=same', math => {
+    it('conv1d input=2x2x1,d2=1,f=1,s=1,p=same', () => {
       const inputDepth = 1;
       const inputShape: [number, number, number] = [2, 2, inputDepth];
       const outputDepth = 1;
@@ -36,13 +36,13 @@ import {Rank} from './types';
 
       const bias = dl.tensor1d([0]);
 
-      const result = math.conv1d(x, w, bias, stride, pad);
+      const result = dl.conv1d(x, w, bias, stride, pad);
 
       expect(result.shape).toEqual([2, 2, 1]);
       test_util.expectArraysClose(result, [3, 6, 9, 12]);
     });
 
-    it('conv1d input=4x1,d2=1,f=2x1x1,s=1,p=valid', math => {
+    it('conv1d input=4x1,d2=1,f=2x1x1,s=1,p=valid', () => {
       const inputDepth = 1;
       const inputShape: [number, number] = [4, inputDepth];
       const outputDepth = 1;
@@ -55,13 +55,13 @@ import {Rank} from './types';
 
       const bias = dl.tensor1d([0]);
 
-      const result = math.conv1d(x, w, bias, stride, pad);
+      const result = dl.conv1d(x, w, bias, stride, pad);
 
       expect(result.shape).toEqual([3, 1]);
       test_util.expectArraysClose(result, [4, 7, 10]);
     });
 
-    it('throws when x is not rank 3', math => {
+    it('throws when x is not rank 3', () => {
       const inputDepth = 1;
       const outputDepth = 1;
       const fSize = 2;
@@ -73,10 +73,10 @@ import {Rank} from './types';
       const w = dl.tensor3d([3, 1], [fSize, inputDepth, outputDepth]);
       const bias = dl.tensor1d([-1]);
 
-      expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
+      expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
     });
 
-    it('throws when weights is not rank 3', math => {
+    it('throws when weights is not rank 3', () => {
       const inputDepth = 1;
       const inputShape: [number, number, number] = [2, 2, inputDepth];
       const pad = 0;
@@ -87,10 +87,10 @@ import {Rank} from './types';
       const w: any = dl.tensor4d([3, 1, 5, 0], [2, 2, 1, 1]);
       const bias = dl.tensor1d([-1]);
 
-      expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
+      expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
     });
 
-    it('throws when biases is not rank 1', math => {
+    it('throws when biases is not rank 1', () => {
       const inputDepth = 1;
       const inputShape: [number, number, number] = [2, 2, inputDepth];
       const outputDepth = 1;
@@ -103,10 +103,10 @@ import {Rank} from './types';
       // tslint:disable-next-line:no-any
       const bias: any = dl.tensor2d([2, 2, 2, 2], [2, 2]);
 
-      expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
+      expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
     });
 
-    it('throws when x depth does not match weight depth', math => {
+    it('throws when x depth does not match weight depth', () => {
       const inputDepth = 1;
       const wrongInputDepth = 5;
       const inputShape: [number, number, number] = [2, 2, inputDepth];
@@ -119,7 +119,7 @@ import {Rank} from './types';
       const w = dl.randomNormal<Rank.R3>([fSize, wrongInputDepth, outputDepth]);
       const bias = dl.tensor1d([-1]);
 
-      expect(() => math.conv1d(x, w, bias, stride, pad)).toThrowError();
+      expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
     });
   };
 

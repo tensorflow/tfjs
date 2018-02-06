@@ -20,60 +20,60 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as reduce_util from './reduce_util';
 
-// math.min
+// dl.min
 {
   const tests: MathTests = it => {
-    it('Tensor1D', math => {
+    it('Tensor1D', () => {
       const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
-      test_util.expectNumbersClose(math.min(a).get(), -7);
+      test_util.expectNumbersClose(dl.min(a).get(), -7);
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs', () => {
       const a = dl.tensor1d([3, NaN, 2]);
-      expect(math.min(a).get()).toEqual(NaN);
+      expect(dl.min(a).get()).toEqual(NaN);
     });
 
-    it('2D', math => {
+    it('2D', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      test_util.expectNumbersClose(math.min(a).get(), -7);
+      test_util.expectNumbersClose(dl.min(a).get(), -7);
     });
 
-    it('2D axis=[0,1]', math => {
+    it('2D axis=[0,1]', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      test_util.expectNumbersClose(math.min(a, [0, 1]).get(), -7);
+      test_util.expectNumbersClose(dl.min(a, [0, 1]).get(), -7);
     });
 
-    it('2D, axis=0', math => {
+    it('2D, axis=0', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      const r = math.min(a, 0);
+      const r = dl.min(a, 0);
 
       expect(r.shape).toEqual([3]);
       test_util.expectArraysClose(r, [3, -7, 0]);
     });
 
-    it('2D, axis=0, keepDims', math => {
+    it('2D, axis=0, keepDims', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      const r = math.min(a, 0, true /* keepDims */);
+      const r = dl.min(a, 0, true /* keepDims */);
 
       expect(r.shape).toEqual([1, 3]);
       test_util.expectArraysClose(r, [3, -7, 0]);
     });
 
-    it('2D, axis=1 provided as a number', math => {
+    it('2D, axis=1 provided as a number', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.min(a, 1);
+      const r = dl.min(a, 1);
       test_util.expectArraysClose(r, [2, -7]);
     });
 
-    it('2D, axis = -1 provided as a number', math => {
+    it('2D, axis = -1 provided as a number', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.min(a, -1);
+      const r = dl.min(a, -1);
       test_util.expectArraysClose(r, [2, -7]);
     });
 
-    it('2D, axis=[1]', math => {
+    it('2D, axis=[1]', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.min(a, [1]);
+      const r = dl.min(a, [1]);
       test_util.expectArraysClose(r, [2, -7]);
     });
   };
@@ -86,66 +86,66 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.max
+// dl.max
 {
   const tests: MathTests = it => {
-    it('with one element dominating', math => {
+    it('with one element dominating', () => {
       const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
-      const r = math.max(a);
+      const r = dl.max(a);
       test_util.expectNumbersClose(r.get(), 100);
     });
 
-    it('with all elements being the same', math => {
+    it('with all elements being the same', () => {
       const a = dl.tensor1d([3, 3, 3]);
-      const r = math.max(a);
+      const r = dl.max(a);
       test_util.expectNumbersClose(r.get(), 3);
     });
 
-    it('propagates NaNs', math => {
-      expect(math.max(dl.tensor1d([3, NaN, 2])).get()).toEqual(NaN);
+    it('propagates NaNs', () => {
+      expect(dl.max(dl.tensor1d([3, NaN, 2])).get()).toEqual(NaN);
     });
 
-    it('2D', math => {
+    it('2D', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      test_util.expectNumbersClose(math.max(a).get(), 100);
+      test_util.expectNumbersClose(dl.max(a).get(), 100);
     });
 
-    it('2D axis=[0,1]', math => {
+    it('2D axis=[0,1]', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      test_util.expectNumbersClose(math.max(a, [0, 1]).get(), 100);
+      test_util.expectNumbersClose(dl.max(a, [0, 1]).get(), 100);
     });
 
-    it('2D, axis=0', math => {
+    it('2D, axis=0', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      const r = math.max(a, [0]);
+      const r = dl.max(a, [0]);
 
       expect(r.shape).toEqual([3]);
       test_util.expectArraysClose(r, [100, -1, 2]);
     });
 
-    it('2D, axis=0, keepDims', math => {
+    it('2D, axis=0, keepDims', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      const r = math.max(a, [0], true /* keepDims */);
+      const r = dl.max(a, [0], true /* keepDims */);
 
       expect(r.shape).toEqual([1, 3]);
       test_util.expectArraysClose(r, [100, -1, 2]);
     });
 
-    it('2D, axis=1 provided as a number', math => {
+    it('2D, axis=1 provided as a number', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.max(a, 1);
+      const r = dl.max(a, 1);
       test_util.expectArraysClose(r, [5, 100]);
     });
 
-    it('2D, axis = -1 provided as a number', math => {
+    it('2D, axis = -1 provided as a number', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.max(a, -1);
+      const r = dl.max(a, -1);
       test_util.expectArraysClose(r, [5, 100]);
     });
 
-    it('2D, axis=[1]', math => {
+    it('2D, axis=[1]', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.max(a, [1]);
+      const r = dl.max(a, [1]);
       test_util.expectArraysClose(r, [5, 100]);
     });
   };
@@ -158,66 +158,66 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.argmax
+// dl.argmax
 {
   const tests: MathTests = it => {
-    it('Tensor1D', math => {
+    it('Tensor1D', () => {
       const a = dl.tensor1d([1, 0, 3, 2]);
-      const result = math.argMax(a);
+      const result = dl.argMax(a);
       expect(result.dtype).toBe('int32');
       expect(result.get()).toBe(2);
     });
 
-    it('one value', math => {
+    it('one value', () => {
       const a = dl.tensor1d([10]);
-      const result = math.argMax(a);
+      const result = dl.argMax(a);
       expect(result.dtype).toBe('int32');
       expect(result.get()).toBe(0);
     });
 
-    it('N > than parallelization threshold', math => {
+    it('N > than parallelization threshold', () => {
       const n = reduce_util.PARALLELIZE_THRESHOLD * 2;
       const values = new Float32Array(n);
       for (let i = 0; i < n; i++) {
         values[i] = i;
       }
       const a = dl.tensor1d(values);
-      const result = math.argMax(a);
+      const result = dl.argMax(a);
       expect(result.dtype).toBe('int32');
       expect(result.get()).toBe(n - 1);
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs', () => {
       const a = dl.tensor1d([5, 0, 3, NaN, 3]);
-      const res = math.argMax(a);
+      const res = dl.argMax(a);
       expect(res.dtype).toBe('int32');
       test_util.assertIsNan(res.get(), res.dtype);
     });
 
-    it('2D, no axis specified', math => {
+    it('2D, no axis specified', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      expect(math.argMax(a).get()).toBe(3);
+      expect(dl.argMax(a).get()).toBe(3);
     });
 
-    it('2D, axis=0', math => {
+    it('2D, axis=0', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      const r = math.argMax(a, 0);
+      const r = dl.argMax(a, 0);
 
       expect(r.shape).toEqual([3]);
       expect(r.dtype).toBe('int32');
       test_util.expectArraysEqual(r, [1, 0, 1]);
     });
 
-    it('2D, axis=1', math => {
+    it('2D, axis=1', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.argMax(a, 1);
+      const r = dl.argMax(a, 1);
       expect(r.dtype).toBe('int32');
       test_util.expectArraysEqual(r, [2, 0]);
     });
 
-    it('2D, axis = -1', math => {
+    it('2D, axis = -1', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
-      const r = math.argMax(a, -1);
+      const r = dl.argMax(a, -1);
       expect(r.dtype).toBe('int32');
       test_util.expectArraysEqual(r, [2, 0]);
     });
@@ -231,62 +231,62 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.argmin
+// dl.argmin
 {
   const tests: MathTests = it => {
-    it('Tensor1D', math => {
+    it('Tensor1D', () => {
       const a = dl.tensor1d([1, 0, 3, 2]);
-      const result = math.argMin(a);
+      const result = dl.argMin(a);
       expect(result.get()).toBe(1);
     });
 
-    it('one value', math => {
+    it('one value', () => {
       const a = dl.tensor1d([10]);
-      const result = math.argMin(a);
+      const result = dl.argMin(a);
       expect(result.get()).toBe(0);
     });
 
-    it('N > than parallelization threshold', math => {
+    it('N > than parallelization threshold', () => {
       const n = reduce_util.PARALLELIZE_THRESHOLD * 2;
       const values = new Float32Array(n);
       for (let i = 0; i < n; i++) {
         values[i] = n - i;
       }
       const a = dl.tensor1d(values);
-      const result = math.argMin(a);
+      const result = dl.argMin(a);
       expect(result.dtype).toBe('int32');
       expect(result.get()).toBe(n - 1);
     });
 
-    it('Arg min propagates NaNs', math => {
+    it('Arg min propagates NaNs', () => {
       const a = dl.tensor1d([5, 0, NaN, 7, 3]);
-      const res = math.argMin(a);
+      const res = dl.argMin(a);
       test_util.assertIsNan(res.get(), res.dtype);
     });
 
-    it('2D, no axis specified', math => {
+    it('2D, no axis specified', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      expect(math.argMin(a).get()).toBe(4);
+      expect(dl.argMin(a).get()).toBe(4);
     });
 
-    it('2D, axis=0', math => {
+    it('2D, axis=0', () => {
       const a = dl.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-      const r = math.argMin(a, 0);
+      const r = dl.argMin(a, 0);
 
       expect(r.shape).toEqual([3]);
       expect(r.dtype).toBe('int32');
       test_util.expectArraysEqual(r, [0, 1, 0]);
     });
 
-    it('2D, axis=1', math => {
+    it('2D, axis=1', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, -8], [2, 3]);
-      const r = math.argMin(a, 1);
+      const r = dl.argMin(a, 1);
       test_util.expectArraysEqual(r, [1, 2]);
     });
 
-    it('2D, axis = -1', math => {
+    it('2D, axis = -1', () => {
       const a = dl.tensor2d([3, 2, 5, 100, -7, -8], [2, 3]);
-      const r = math.argMin(a, -1);
+      const r = dl.argMin(a, -1);
       test_util.expectArraysEqual(r, [1, 2]);
     });
   };
@@ -299,34 +299,34 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.argMaxEquals
+// dl.argMaxEquals
 {
   const tests: MathTests = it => {
-    it('equals', math => {
+    it('equals', () => {
       const a = dl.tensor1d([5, 0, 3, 7, 3]);
       const b = dl.tensor1d([-100.3, -20.0, -10.0, -5, -100]);
-      const result = math.argMaxEquals(a, b);
+      const result = dl.argMaxEquals(a, b);
       expect(result.get()).toBe(1);
     });
 
-    it('not equals', math => {
+    it('not equals', () => {
       const a = dl.tensor1d([5, 0, 3, 1, 3]);
       const b = dl.tensor1d([-100.3, -20.0, -10.0, -5, 0]);
-      const result = math.argMaxEquals(a, b);
+      const result = dl.argMaxEquals(a, b);
       expect(result.get()).toBe(0);
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs', () => {
       const a = dl.tensor1d([0, 3, 1, 3]);
       const b = dl.tensor1d([NaN, -20.0, -10.0, -5]);
-      const result = math.argMaxEquals(a, b);
+      const result = dl.argMaxEquals(a, b);
       test_util.assertIsNan(result.get(), result.dtype);
     });
 
-    it('throws when given arrays of different shape', math => {
+    it('throws when given arrays of different shape', () => {
       const a = dl.tensor1d([5, 0, 3, 7, 3, 10]);
       const b = dl.tensor1d([-100.3, -20.0, -10.0, -5, -100]);
-      expect(() => math.argMaxEquals(a, b)).toThrowError();
+      expect(() => dl.argMaxEquals(a, b)).toThrowError();
     });
   };
 
@@ -338,32 +338,32 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.logSumExp
+// dl.logSumExp
 {
   const tests: MathTests = it => {
-    it('0', math => {
+    it('0', () => {
       const a = dl.scalar(0);
-      const result = math.logSumExp(a);
+      const result = dl.logSumExp(a);
       test_util.expectNumbersClose(result.get(), 0);
     });
 
-    it('basic', math => {
+    it('basic', () => {
       const a = dl.tensor1d([1, 2, -3]);
-      const result = math.logSumExp(a);
+      const result = dl.logSumExp(a);
 
       test_util.expectNumbersClose(
           result.get(), Math.log(Math.exp(1) + Math.exp(2) + Math.exp(-3)));
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs', () => {
       const a = dl.tensor1d([1, 2, NaN]);
-      const result = math.logSumExp(a);
+      const result = dl.logSumExp(a);
       expect(result.get()).toEqual(NaN);
     });
 
-    it('axes=0 in 2D array', math => {
+    it('axes=0 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const r = math.logSumExp(a, [0]);
+      const r = dl.logSumExp(a, [0]);
 
       expect(r.shape).toEqual([2]);
       const expected = [
@@ -373,9 +373,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(r, expected);
     });
 
-    it('axes=0 in 2D array, keepDims', math => {
+    it('axes=0 in 2D array, keepDims', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const r = math.logSumExp(a, [0], true /* keepDims */);
+      const r = dl.logSumExp(a, [0], true /* keepDims */);
 
       expect(r.shape).toEqual([1, 2]);
       const expected = [
@@ -385,9 +385,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(r, expected);
     });
 
-    it('axes=1 in 2D array', math => {
+    it('axes=1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.logSumExp(a, [1]);
+      const res = dl.logSumExp(a, [1]);
 
       expect(res.shape).toEqual([3]);
       const expected = [
@@ -398,9 +398,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(res, expected);
     });
 
-    it('axes = -1 in 2D array', math => {
+    it('axes = -1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.logSumExp(a, -1);
+      const res = dl.logSumExp(a, -1);
 
       expect(res.shape).toEqual([3]);
       const expected = [
@@ -411,9 +411,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(res, expected);
     });
 
-    it('2D, axes=1 provided as a single digit', math => {
+    it('2D, axes=1 provided as a single digit', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [2, 3]);
-      const res = math.logSumExp(a, 1);
+      const res = dl.logSumExp(a, 1);
 
       expect(res.shape).toEqual([2]);
       const expected = [
@@ -423,9 +423,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(res, expected);
     });
 
-    it('axes=0,1 in 2D array', math => {
+    it('axes=0,1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.logSumExp(a, [0, 1]);
+      const res = dl.logSumExp(a, [0, 1]);
 
       expect(res.shape).toEqual([]);
       const expected = [Math.log(
@@ -443,125 +443,125 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.sum
+// dl.sum
 {
   const tests: MathTests = it => {
-    it('basic', math => {
+    it('basic', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const result = math.sum(a);
+      const result = dl.sum(a);
       test_util.expectNumbersClose(result.get(), 7);
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs', () => {
       const a = dl.tensor2d([1, 2, 3, NaN, 0, 1], [3, 2]);
-      expect(math.sum(a).get()).toEqual(NaN);
+      expect(dl.sum(a).get()).toEqual(NaN);
     });
 
-    it('sum over dtype int32', math => {
+    it('sum over dtype int32', () => {
       const a = dl.tensor1d([1, 5, 7, 3], 'int32');
-      const sum = math.sum(a);
+      const sum = dl.sum(a);
       expect(sum.get()).toBe(16);
     });
 
-    it('sum over dtype bool', math => {
+    it('sum over dtype bool', () => {
       const a = dl.tensor1d([true, false, false, true, true], 'bool');
-      const sum = math.sum(a);
+      const sum = dl.sum(a);
       expect(sum.get()).toBe(3);
     });
 
-    it('sums all values in 2D array with keep dim', math => {
+    it('sums all values in 2D array with keep dim', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.sum(a, null, true /* keepDims */);
+      const res = dl.sum(a, null, true /* keepDims */);
 
       expect(res.shape).toEqual([1, 1]);
       test_util.expectArraysClose(res, [7]);
     });
 
-    it('sums across axis=0 in 2D array', math => {
+    it('sums across axis=0 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.sum(a, [0]);
+      const res = dl.sum(a, [0]);
 
       expect(res.shape).toEqual([2]);
       test_util.expectArraysClose(res, [4, 3]);
     });
 
-    it('sums across axis=0 in 2D array, keepDims', math => {
+    it('sums across axis=0 in 2D array, keepDims', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.sum(a, [0], true /* keepDims */);
+      const res = dl.sum(a, [0], true /* keepDims */);
 
       expect(res.shape).toEqual([1, 2]);
       test_util.expectArraysClose(res, [4, 3]);
     });
 
-    it('sums across axis=1 in 2D array', math => {
+    it('sums across axis=1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.sum(a, [1]);
+      const res = dl.sum(a, [1]);
 
       expect(res.shape).toEqual([3]);
       test_util.expectArraysClose(res, [3, 3, 1]);
     });
 
-    it('2D, axis=1 provided as number', math => {
+    it('2D, axis=1 provided as number', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [2, 3]);
-      const res = math.sum(a, 1);
+      const res = dl.sum(a, 1);
 
       expect(res.shape).toEqual([2]);
       test_util.expectArraysClose(res, [6, 1]);
     });
 
-    it('2D, axis = -1 provided as number', math => {
+    it('2D, axis = -1 provided as number', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [2, 3]);
-      const res = math.sum(a, -1);
+      const res = dl.sum(a, -1);
 
       expect(res.shape).toEqual([2]);
       test_util.expectArraysClose(res, [6, 1]);
     });
 
-    it('sums across axis=0,1 in 2D array', math => {
+    it('sums across axis=0,1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.sum(a, [0, 1]);
+      const res = dl.sum(a, [0, 1]);
 
       expect(res.shape).toEqual([]);
       test_util.expectArraysClose(res, [7]);
     });
 
-    it('2D, axis=[-1,-2] in 2D array', math => {
+    it('2D, axis=[-1,-2] in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.sum(a, [-1, -2]);
+      const res = dl.sum(a, [-1, -2]);
 
       expect(res.shape).toEqual([]);
       test_util.expectArraysClose(res, [7]);
     });
 
-    it('gradients: sum(2d)', math => {
+    it('gradients: sum(2d)', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
       const dy = dl.scalar(10);
 
-      const gradients = math.vjp(() => math.sum(a), a, dy);
+      const gradients = dl.vjp(() => dl.sum(a), a, dy);
 
       expect(gradients.shape).toEqual(a.shape);
       expect(gradients.dtype).toEqual('float32');
       test_util.expectArraysClose(gradients, [10, 10, 10, 10, 10, 10], 1e-1);
     });
 
-    it('gradients: sum(2d, axis=0)', math => {
+    it('gradients: sum(2d, axis=0)', () => {
       const a = dl.tensor2d([[1, 2], [3, 0], [0, 1]], [3, 2]);
       const dy = dl.tensor1d([10, 20]);
       const axis = 0;
 
-      const gradients = math.vjp(() => math.sum(a, axis), a, dy);
+      const gradients = dl.vjp(() => dl.sum(a, axis), a, dy);
 
       expect(gradients.shape).toEqual(a.shape);
       expect(gradients.dtype).toEqual('float32');
       test_util.expectArraysClose(gradients, [10, 20, 10, 20, 10, 20], 1e-1);
     });
 
-    it('gradients: sum(2d, axis=1)', math => {
+    it('gradients: sum(2d, axis=1)', () => {
       const a = dl.tensor2d([[1, 2], [3, 0], [0, 1]], [3, 2]);
       const dy = dl.tensor1d([10, 20, 30]);
       const axis = 1;
 
-      const gradients = math.vjp(() => math.sum(a, axis), a, dy);
+      const gradients = dl.vjp(() => dl.sum(a, axis), a, dy);
 
       expect(gradients.shape).toEqual(a.shape);
       expect(gradients.dtype).toEqual('float32');
@@ -577,109 +577,109 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.mean
+// dl.mean
 {
   const tests: MathTests = it => {
-    it('basic', math => {
+    it('basic', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const r = math.mean(a);
+      const r = dl.mean(a);
 
       expect(r.dtype).toBe('float32');
       test_util.expectNumbersClose(r.get(), 7 / 6);
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs', () => {
       const a = dl.tensor2d([1, 2, 3, NaN, 0, 1], [3, 2]);
-      const r = math.mean(a);
+      const r = dl.mean(a);
 
       expect(r.dtype).toBe('float32');
       expect(r.get()).toEqual(NaN);
     });
 
-    it('mean(int32) => float32', math => {
+    it('mean(int32) => float32', () => {
       const a = dl.tensor1d([1, 5, 7, 3], 'int32');
-      const r = math.mean(a);
+      const r = dl.mean(a);
 
       expect(r.dtype).toBe('float32');
       test_util.expectNumbersClose(r.get(), 4);
     });
 
-    it('mean(bool) => float32', math => {
+    it('mean(bool) => float32', () => {
       const a = dl.tensor1d([true, false, false, true, true], 'bool');
-      const r = math.mean(a);
+      const r = dl.mean(a);
 
       expect(r.dtype).toBe('float32');
       test_util.expectNumbersClose(r.get(), 3 / 5);
     });
 
-    it('2D array with keep dim', math => {
+    it('2D array with keep dim', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.mean(a, null, true /* keepDims */);
+      const res = dl.mean(a, null, true /* keepDims */);
 
       expect(res.shape).toEqual([1, 1]);
       expect(res.dtype).toBe('float32');
       test_util.expectArraysClose(res, [7 / 6]);
     });
 
-    it('axis=0 in 2D array', math => {
+    it('axis=0 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.mean(a, [0]);
+      const res = dl.mean(a, [0]);
 
       expect(res.shape).toEqual([2]);
       expect(res.dtype).toBe('float32');
       test_util.expectArraysClose(res, [4 / 3, 1]);
     });
 
-    it('axis=0 in 2D array, keepDims', math => {
+    it('axis=0 in 2D array, keepDims', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.mean(a, [0], true /* keepDims */);
+      const res = dl.mean(a, [0], true /* keepDims */);
 
       expect(res.shape).toEqual([1, 2]);
       expect(res.dtype).toBe('float32');
       test_util.expectArraysClose(res, [4 / 3, 1]);
     });
 
-    it('axis=1 in 2D array', math => {
+    it('axis=1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.mean(a, [1]);
+      const res = dl.mean(a, [1]);
 
       expect(res.dtype).toBe('float32');
       expect(res.shape).toEqual([3]);
       test_util.expectArraysClose(res, [1.5, 1.5, 0.5]);
     });
 
-    it('axis = -1 in 2D array', math => {
+    it('axis = -1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.mean(a, [-1]);
+      const res = dl.mean(a, [-1]);
 
       expect(res.dtype).toBe('float32');
       expect(res.shape).toEqual([3]);
       test_util.expectArraysClose(res, [1.5, 1.5, 0.5]);
     });
 
-    it('2D, axis=1 provided as number', math => {
+    it('2D, axis=1 provided as number', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [2, 3]);
-      const res = math.mean(a, 1);
+      const res = dl.mean(a, 1);
 
       expect(res.shape).toEqual([2]);
       expect(res.dtype).toBe('float32');
       test_util.expectArraysClose(res, [2, 1 / 3]);
     });
 
-    it('axis=0,1 in 2D array', math => {
+    it('axis=0,1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const res = math.mean(a, [0, 1]);
+      const res = dl.mean(a, [0, 1]);
 
       expect(res.shape).toEqual([]);
       expect(res.dtype).toBe('float32');
       test_util.expectArraysClose(res, [7 / 6]);
     });
 
-    it('gradients', math => {
+    it('gradients', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
       const dy = dl.scalar(1.5);
 
-      const vjp = math.vjp(() => math.mean(a), a, dy);
+      const vjp = dl.vjp(() => dl.mean(a), a, dy);
 
       expect(vjp.shape).toEqual(a.shape);
       test_util.expectArraysClose(vjp, [
@@ -688,11 +688,11 @@ import * as reduce_util from './reduce_util';
       ]);
     });
 
-    it('gradients throws for defined axis', math => {
+    it('gradients throws for defined axis', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
       const dy = dl.scalar(1.5);
 
-      expect(() => math.vjp(() => math.mean(a, 1), a, dy)).toThrowError();
+      expect(() => dl.vjp(() => dl.mean(a, 1), a, dy)).toThrowError();
     });
   };
 
@@ -704,12 +704,12 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.moments
+// dl.moments
 {
   const tests: MathTests = it => {
-    it('basic', math => {
+    it('basic', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const {mean, variance} = math.moments(a);
+      const {mean, variance} = dl.moments(a);
 
       expect(mean.dtype).toBe('float32');
       expect(variance.dtype).toBe('float32');
@@ -717,9 +717,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectNumbersClose(variance.get(), 1.1389);
     });
 
-    it('propagates NaNs', math => {
+    it('propagates NaNs', () => {
       const a = dl.tensor2d([1, 2, 3, NaN, 0, 1], [3, 2]);
-      const {mean, variance} = math.moments(a);
+      const {mean, variance} = dl.moments(a);
 
       expect(mean.dtype).toBe('float32');
       expect(variance.dtype).toBe('float32');
@@ -727,9 +727,9 @@ import * as reduce_util from './reduce_util';
       expect(variance.get()).toEqual(NaN);
     });
 
-    it('moments(int32) => float32', math => {
+    it('moments(int32) => float32', () => {
       const a = dl.tensor1d([1, 5, 7, 3], 'int32');
-      const {mean, variance} = math.moments(a);
+      const {mean, variance} = dl.moments(a);
 
       expect(mean.dtype).toBe('float32');
       expect(variance.dtype).toBe('float32');
@@ -737,9 +737,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectNumbersClose(variance.get(), 5);
     });
 
-    it('moments(bool) => float32', math => {
+    it('moments(bool) => float32', () => {
       const a = dl.tensor1d([true, false, false, true, true], 'bool');
-      const {mean, variance} = math.moments(a);
+      const {mean, variance} = dl.moments(a);
 
       expect(mean.dtype).toBe('float32');
       expect(variance.dtype).toBe('float32');
@@ -747,9 +747,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectNumbersClose(variance.get(), 0.23999998);
     });
 
-    it('2D array with keep dim', math => {
+    it('2D array with keep dim', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const {mean, variance} = math.moments(a, null, true /* keepDims */);
+      const {mean, variance} = dl.moments(a, null, true /* keepDims */);
 
       expect(mean.shape).toEqual([1, 1]);
       expect(mean.dtype).toBe('float32');
@@ -759,9 +759,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(variance, [1.138889]);
     });
 
-    it('axis=0 in 2D array', math => {
+    it('axis=0 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const {mean, variance} = math.moments(a, [0]);
+      const {mean, variance} = dl.moments(a, [0]);
 
       expect(mean.shape).toEqual([2]);
       expect(mean.dtype).toBe('float32');
@@ -771,9 +771,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(variance, [1.556, 2 / 3]);
     });
 
-    it('axis=1 in 2D array', math => {
+    it('axis=1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const {mean, variance} = math.moments(a, [1]);
+      const {mean, variance} = dl.moments(a, [1]);
 
       expect(mean.dtype).toBe('float32');
       expect(mean.shape).toEqual([3]);
@@ -783,9 +783,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(variance, [0.25, 2.25, 0.25]);
     });
 
-    it('2D, axis=1 provided as number', math => {
+    it('2D, axis=1 provided as number', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [2, 3]);
-      const {mean, variance} = math.moments(a, 1);
+      const {mean, variance} = dl.moments(a, 1);
 
       expect(mean.shape).toEqual([2]);
       expect(mean.dtype).toBe('float32');
@@ -795,9 +795,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(variance, [2 / 3, 0.222]);
     });
 
-    it('2D, axis=-1 provided as number', math => {
+    it('2D, axis=-1 provided as number', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [2, 3]);
-      const {mean, variance} = math.moments(a, -1);
+      const {mean, variance} = dl.moments(a, -1);
 
       expect(mean.shape).toEqual([2]);
       expect(mean.dtype).toBe('float32');
@@ -807,9 +807,9 @@ import * as reduce_util from './reduce_util';
       test_util.expectArraysClose(variance, [2 / 3, 0.222]);
     });
 
-    it('axis=0,1 in 2D array', math => {
+    it('axis=0,1 in 2D array', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const {mean, variance} = math.moments(a, [0, 1]);
+      const {mean, variance} = dl.moments(a, [0, 1]);
 
       expect(mean.shape).toEqual([]);
       expect(mean.dtype).toBe('float32');
@@ -828,254 +828,254 @@ import * as reduce_util from './reduce_util';
   ]);
 }
 
-// math.norm
+// dl.norm
 {
   const tests: MathTests = it => {
-    it('scalar norm', math => {
+    it('scalar norm', () => {
       const a = dl.scalar(-22.0);
-      const norm = math.norm(a);
+      const norm = dl.norm(a);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 22);
     });
 
-    it('vector inf norm', math => {
+    it('vector inf norm', () => {
       const a = dl.tensor1d([1, -2, 3, -4]);
-      const norm = math.norm(a, Infinity);
+      const norm = dl.norm(a, Infinity);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 4);
     });
 
-    it('vector -inf norm', math => {
+    it('vector -inf norm', () => {
       const a = dl.tensor1d([1, -2, 3, -4]);
-      const norm = math.norm(a, -Infinity);
+      const norm = dl.norm(a, -Infinity);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 1);
     });
 
-    it('vector 1 norm', math => {
+    it('vector 1 norm', () => {
       const a = dl.tensor1d([1, -2, 3, -4]);
-      const norm = math.norm(a, 1);
+      const norm = dl.norm(a, 1);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 10);
     });
 
-    it('vector euclidean norm', math => {
+    it('vector euclidean norm', () => {
       const a = dl.tensor1d([1, -2, 3, -4]);
-      const norm = math.norm(a, 'euclidean');
+      const norm = dl.norm(a, 'euclidean');
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 5.4772);
     });
 
-    it('vector 2-norm', math => {
+    it('vector 2-norm', () => {
       const a = dl.tensor1d([1, -2, 3, -4]);
-      const norm = math.norm(a, 2);
+      const norm = dl.norm(a, 2);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 5.4772);
     });
 
-    it('vector >2-norm to throw error', math => {
+    it('vector >2-norm to throw error', () => {
       const a = dl.tensor1d([1, -2, 3, -4]);
-      expect(() => math.norm(a, 3)).toThrowError();
+      expect(() => dl.norm(a, 3)).toThrowError();
     });
 
-    it('matrix inf norm', math => {
+    it('matrix inf norm', () => {
       const a = dl.tensor2d([1, 2, -3, 1, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, [0, 1]);
+      const norm = dl.norm(a, Infinity, [0, 1]);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 4);
     });
 
-    it('matrix -inf norm', math => {
+    it('matrix -inf norm', () => {
       const a = dl.tensor2d([1, 2, -3, 1, 0, 1], [3, 2]);
-      const norm = math.norm(a, -Infinity, [0, 1]);
+      const norm = dl.norm(a, -Infinity, [0, 1]);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 1);
     });
 
-    it('matrix 1 norm', math => {
+    it('matrix 1 norm', () => {
       const a = dl.tensor2d([1, 2, -3, 1, 1, 1], [3, 2]);
-      const norm = math.norm(a, 1, [0, 1]);
+      const norm = dl.norm(a, 1, [0, 1]);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 5);
     });
 
-    it('matrix euclidean norm', math => {
+    it('matrix euclidean norm', () => {
       const a = dl.tensor2d([1, 2, -3, 1, 1, 1], [3, 2]);
-      const norm = math.norm(a, 'euclidean', [0, 1]);
+      const norm = dl.norm(a, 'euclidean', [0, 1]);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 4.123);
     });
 
-    it('matrix fro norm', math => {
+    it('matrix fro norm', () => {
       const a = dl.tensor2d([1, 2, -3, 1, 1, 1], [3, 2]);
-      const norm = math.norm(a, 'fro', [0, 1]);
+      const norm = dl.norm(a, 'fro', [0, 1]);
 
       expect(norm.dtype).toBe('float32');
       test_util.expectNumbersClose(norm.get(), 4.123);
     });
 
-    it('matrix other norm to throw error', math => {
+    it('matrix other norm to throw error', () => {
       const a = dl.tensor2d([1, 2, -3, 1, 1, 1], [3, 2]);
-      expect(() => math.norm(a, 2, [0, 1])).toThrowError();
+      expect(() => dl.norm(a, 2, [0, 1])).toThrowError();
     });
 
-    it('propagates NaNs for norm', math => {
+    it('propagates NaNs for norm', () => {
       const a = dl.tensor2d([1, 2, 3, NaN, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, [0, 1]);
+      const norm = dl.norm(a, Infinity, [0, 1]);
 
       expect(norm.dtype).toBe('float32');
       expect(norm.get()).toEqual(NaN);
     });
 
-    it('axis=null in 2D array norm', math => {
+    it('axis=null in 2D array norm', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity);
+      const norm = dl.norm(a, Infinity);
 
       expect(norm.shape).toEqual([]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3]);
     });
 
-    it('2D array norm with keep dim', math => {
+    it('2D array norm with keep dim', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, null, true /* keepDims */);
+      const norm = dl.norm(a, Infinity, null, true /* keepDims */);
 
       expect(norm.shape).toEqual([1, 1]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3]);
     });
 
-    it('axis=0 in 2D array norm', math => {
+    it('axis=0 in 2D array norm', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, [0]);
+      const norm = dl.norm(a, Infinity, [0]);
 
       expect(norm.shape).toEqual([2]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3, 2]);
     });
 
-    it('axis=1 in 2D array norm', math => {
+    it('axis=1 in 2D array norm', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, [1]);
+      const norm = dl.norm(a, Infinity, [1]);
 
       expect(norm.dtype).toBe('float32');
       expect(norm.shape).toEqual([3]);
       test_util.expectArraysClose(norm, [2, 3, 1]);
     });
 
-    it('axis=1 keepDims in 2D array norm', math => {
+    it('axis=1 keepDims in 2D array norm', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, [1], true);
+      const norm = dl.norm(a, Infinity, [1], true);
 
       expect(norm.dtype).toBe('float32');
       expect(norm.shape).toEqual([3, 1]);
       test_util.expectArraysClose(norm, [2, 3, 1]);
     });
 
-    it('2D norm with axis=1 provided as number', math => {
+    it('2D norm with axis=1 provided as number', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [2, 3]);
-      const norm = math.norm(a, Infinity, 1);
+      const norm = dl.norm(a, Infinity, 1);
 
       expect(norm.shape).toEqual([2]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3, 1]);
     });
 
-    it('axis=0,1 in 2D array norm', math => {
+    it('axis=0,1 in 2D array norm', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, [0, 1]);
+      const norm = dl.norm(a, Infinity, [0, 1]);
 
       expect(norm.shape).toEqual([]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3]);
     });
 
-    it('axis=0,1 keepDims in 2D array norm', math => {
+    it('axis=0,1 keepDims in 2D array norm', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-      const norm = math.norm(a, Infinity, [0, 1], true);
+      const norm = dl.norm(a, Infinity, [0, 1], true);
 
       expect(norm.shape).toEqual([1, 1]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3]);
     });
 
-    it('3D norm axis=0,1, matrix inf norm', math => {
+    it('3D norm axis=0,1, matrix inf norm', () => {
       const a = dl.tensor3d([1, 2, -3, 1, 0, 1], [3, 2, 1]);
-      const norm = math.norm(a, Infinity, [0, 1]);
+      const norm = dl.norm(a, Infinity, [0, 1]);
 
       expect(norm.shape).toEqual([1]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [4]);
     });
 
-    it('axis=0,1 keepDims in 3D array norm', math => {
+    it('axis=0,1 keepDims in 3D array norm', () => {
       const a = dl.tensor3d([1, 2, 3, 0, 0, 1], [3, 2, 1]);
-      const norm = math.norm(a, Infinity, [0, 1], true);
+      const norm = dl.norm(a, Infinity, [0, 1], true);
 
       expect(norm.shape).toEqual([1, 1, 1]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3]);
     });
 
-    it('axis=0,1 keepDims in 3D array norm', math => {
+    it('axis=0,1 keepDims in 3D array norm', () => {
       const a = dl.tensor3d([1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1], [3, 2, 2]);
-      const norm = math.norm(a, Infinity, [0, 1], true);
+      const norm = dl.norm(a, Infinity, [0, 1], true);
 
       expect(norm.shape).toEqual([1, 1, 2]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [4, 3]);
     });
 
-    it('axis=null in 3D array norm', math => {
+    it('axis=null in 3D array norm', () => {
       const a = dl.tensor3d([1, 2, 3, 0, 0, 1], [3, 2, 1]);
-      const norm = math.norm(a, Infinity);
+      const norm = dl.norm(a, Infinity);
 
       expect(norm.shape).toEqual([]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3]);
     });
 
-    it('axis=null in 4D array norm', math => {
+    it('axis=null in 4D array norm', () => {
       const a = dl.tensor4d([1, 2, 3, 0, 0, 1], [3, 2, 1, 1]);
-      const norm = math.norm(a, Infinity);
+      const norm = dl.norm(a, Infinity);
 
       expect(norm.shape).toEqual([]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [3]);
     });
 
-    it('axis=0,1 in 4D array norm', math => {
+    it('axis=0,1 in 4D array norm', () => {
       const a = dl.tensor4d(
           [
             1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
             1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
           ],
           [3, 2, 2, 2]);
-      const norm = math.norm(a, Infinity, [0, 1]);
+      const norm = dl.norm(a, Infinity, [0, 1]);
 
       expect(norm.shape).toEqual([2, 2]);
       expect(norm.dtype).toBe('float32');
       test_util.expectArraysClose(norm, [4, 3, 4, 3]);
     });
 
-    it('axis=0,1 in 4D array norm', math => {
+    it('axis=0,1 in 4D array norm', () => {
       const a = dl.tensor4d(
           [
             1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1,
             1, 2, 3, 0, 0, 1, 1, 2, 3, 0, 0, 1
           ],
           [3, 2, 2, 2]);
-      const norm = math.norm(a, Infinity, [0, 1], true);
+      const norm = dl.norm(a, Infinity, [0, 1], true);
 
       expect(norm.shape).toEqual([1, 1, 2, 2]);
       expect(norm.dtype).toBe('float32');
