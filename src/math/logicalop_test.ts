@@ -20,7 +20,7 @@ import {MathTests} from '../test_util';
 import * as util from '../util';
 import * as dl from '../index';
 
-// LogicalNot:
+// dl.logicalNot:
 {
   const boolNaN = util.getNaN('bool');
 
@@ -90,7 +90,7 @@ import * as dl from '../index';
   ]);
 }
 
-// LogicalAnd:
+// dl.logicalAnd:
 {
   const boolNaN = util.getNaN('bool');
 
@@ -209,7 +209,7 @@ import * as dl from '../index';
   ]);
 }
 
-// LogicalOr:
+// dl.logicalOr:
 {
   const boolNaN = util.getNaN('bool');
 
@@ -328,7 +328,7 @@ import * as dl from '../index';
   ]);
 }
 
-// LogicalXor:
+// dl.logicalXor:
 {
   const boolNaN = util.getNaN('bool');
 
@@ -451,9 +451,16 @@ import * as dl from '../index';
   ]);
 }
 
-// Where
+// dl.where
 {
   const tests: MathTests = it => {
+    it('Scalars.', () => {
+      const a = dl.scalar(10);
+      const b = dl.scalar(20);
+      const c = dl.scalar(1, 'bool');
+
+      test_util.expectArraysClose(dl.where(c, a, b), [10]);
+    });
     it('Tensor1D', () => {
       const c = dl.tensor1d([1, 0, 1, 0], 'bool');
       const a = dl.tensor1d([10, 10, 10, 10]);
