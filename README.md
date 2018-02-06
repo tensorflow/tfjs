@@ -1,6 +1,6 @@
 # Getting started
 
-**TF Web converter** is an open source library to load a pretrained TensorFlow model into the browser and run inference through JS.
+**TF Web converter** is an open source library to load a pretrained TensorFlow model into the browser and run inference through deeplearn.js.
 
 ## Usage
 
