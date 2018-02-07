@@ -20,6 +20,8 @@ import * as test_util from '../test_util';
 import {MathTests} from '../test_util';
 import * as util from '../util';
 
+import * as selu_util from './selu_util';
+
 // dl.relu
 {
   const tests: MathTests = it => {
@@ -1461,8 +1463,8 @@ import * as util from '../util';
 
 // dl.selu
 {
-  const scaleAlpha = 1.7580993408473768599402175208123;
-  const scale = 1.0507009873554804934193349852946;
+  const scaleAlpha = selu_util.SELU_SCALEALPHA;
+  const scale = selu_util.SELU_SCALE;
 
   const tests: MathTests = it => {
     it('calculate selu', () => {

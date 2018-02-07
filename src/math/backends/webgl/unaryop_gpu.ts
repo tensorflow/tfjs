@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as selu_util from '../../selu_util';
+
 import {GPGPUProgram} from './gpgpu_math';
 
 export class UnaryOpProgram implements GPGPUProgram {
@@ -62,8 +64,8 @@ export const ELU_DER = `
 export const SELU = `
   // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
   // see: https://arxiv.org/abs/1706.02515
-  float scaleAlpha = 1.7580993408473768599402175208123;
-  float scale = 1.0507009873554804934193349852946;
+  float scaleAlpha = ${selu_util.SELU_SCALEALPHA};
+  float scale = ${selu_util.SELU_SCALE};
   return (x >= 0.0) ? scale * x : scaleAlpha * (exp(x) - 1.0);
 `;
 
