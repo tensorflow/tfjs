@@ -25,6 +25,7 @@ import {Conv2DInfo} from '../conv_util';
 import {NDArrayMath} from '../math';
 import * as ops from '../ops';
 import {tensor2d, tensor3d, tensor4d} from '../ops';
+import * as selu_util from '../selu_util';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
 import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
@@ -708,8 +709,8 @@ export class MathBackendCPU implements MathBackend {
   selu<T extends Tensor>(x: T): T {
     // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
     // see: https://arxiv.org/abs/1706.02515
-    const scaleAlpha = 1.7580993408473768599402175208123;
-    const scale = 1.0507009873554804934193349852946;
+    const scaleAlpha = selu_util.SELU_SCALEALPHA;
+    const scale = selu_util.SELU_SCALE;
 
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();

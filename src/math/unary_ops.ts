@@ -18,8 +18,10 @@
 import {ENV} from '../environment';
 import {zerosLike} from './ops';
 import * as util from '../util';
+
 import {doc, operation} from './decorators';
 import * as ops from './ops';
+import * as selu_util from './selu_util';
 import {Tensor} from './tensor';
 
 export class Ops {
@@ -196,8 +198,8 @@ export class Ops {
           util.assert(x.rank !== 0, 'Error in selu gradient: ');
           const mask = x.greater(ops.scalar(0));
 
-          const scaleAlpha = ops.scalar(1.7580993408473768599402175208123);
-          const scale = ops.scalar(1.0507009873554804934193349852946);
+          const scaleAlpha = ops.scalar(selu_util.SELU_SCALEALPHA);
+          const scale = ops.scalar(selu_util.SELU_SCALE);
 
           const greaterThanZeroDer = dy.mul(scale);
           const lessEqualZeroDer = dy.mul(scaleAlpha).mul(x.toFloat().exp());
