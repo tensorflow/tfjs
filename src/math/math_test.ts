@@ -24,16 +24,16 @@ import {Scalar, Tensor} from './tensor';
 
 const gradientsScope = Gradients.gradientsScope;
 
-// math.scope
+// dl.tidy
 {
   const gpuTests: MathTests = it => {
-    it('scope returns Tensor', async math => {
-      await dl.tidy(async () => {
+    it('returns Tensor', math => {
+      dl.tidy(() => {
         const a = dl.tensor1d([1, 2, 3]);
         let b = dl.tensor1d([0, 0, 0]);
 
-        expect(math.getNumTensors()).toBe(2);
-        await dl.tidy(async () => {
+        expect(dl.memory().numTensors).toBe(2);
+        dl.tidy(() => {
           const result = dl.tidy(() => {
             b = dl.addStrict(a, b);
             b = dl.addStrict(a, b);
@@ -42,59 +42,59 @@ const gradientsScope = Gradients.gradientsScope;
           });
 
           // result is new. All intermediates should be disposed.
-          expect(math.getNumTensors()).toBe(2 + 1);
+          expect(dl.memory().numTensors).toBe(2 + 1);
           test_util.expectArraysClose(result, [4, 8, 12]);
         });
 
         // a, b are still here, result should be disposed.
-        expect(math.getNumTensors()).toBe(2);
+        expect(dl.memory().numTensors).toBe(2);
       });
 
-      expect(math.getNumTensors()).toBe(0);
+      expect(dl.memory().numTensors).toBe(0);
     });
 
     it('multiple disposes does not affect num arrays', math => {
-      expect(math.getNumTensors()).toBe(0);
+      expect(dl.memory().numTensors).toBe(0);
       const a = dl.tensor1d([1, 2, 3]);
       const b = dl.tensor1d([1, 2, 3]);
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
       a.dispose();
       a.dispose();
-      expect(math.getNumTensors()).toBe(1);
+      expect(dl.memory().numTensors).toBe(1);
       b.dispose();
-      expect(math.getNumTensors()).toBe(0);
+      expect(dl.memory().numTensors).toBe(0);
     });
 
-    it('scope returns Tensor[]', async math => {
+    it('returns Tensor[]', math => {
       const a = dl.tensor1d([1, 2, 3]);
       const b = dl.tensor1d([0, -1, 1]);
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
 
-      await dl.tidy(async () => {
+      dl.tidy(() => {
         const result = dl.tidy(() => {
           dl.add(a, b);
           return [dl.add(a, b), dl.sub(a, b)];
         });
 
         // the 2 results are new. All intermediates should be disposed.
-        expect(math.getNumTensors()).toBe(4);
+        expect(dl.memory().numTensors).toBe(4);
         test_util.expectArraysClose(result[0], [1, 1, 4]);
         test_util.expectArraysClose(result[1], [1, 3, 2]);
-        expect(math.getNumTensors()).toBe(4);
+        expect(dl.memory().numTensors).toBe(4);
       });
 
       // the 2 results should be disposed.
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
       a.dispose();
       b.dispose();
-      expect(math.getNumTensors()).toBe(0);
+      expect(dl.memory().numTensors).toBe(0);
     });
 
-    it('basic scope usage without return', math => {
+    it('basic usage without return', math => {
       const a = dl.tensor1d([1, 2, 3]);
       let b = dl.tensor1d([0, 0, 0]);
 
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
 
       dl.tidy(() => {
         b = dl.addStrict(a, b);
@@ -104,42 +104,16 @@ const gradientsScope = Gradients.gradientsScope;
       });
 
       // all intermediates should be disposed.
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
     });
 
-    it('scope returns Promise<Tensor>', async math => {
-      const a = dl.tensor1d([1, 2, 3]);
-      const b = dl.tensor1d([0, 0, 0]);
-
-      expect(math.getNumTensors()).toBe(2);
-
-      await dl.tidy(async () => {
-        const result = dl.tidy(() => {
-          let c = dl.add(a, b);
-          c = dl.add(a, c);
-          c = dl.add(a, c);
-          return dl.add(a, c);
-        });
-
-        // result is new. All intermediates should be disposed.
-        expect(math.getNumTensors()).toBe(3);
-        test_util.expectArraysClose(result, [4, 8, 12]);
-      });
-
-      // result should be disposed. a and b are still allocated.
-      expect(math.getNumTensors()).toBe(2);
-      a.dispose();
-      b.dispose();
-      expect(math.getNumTensors()).toBe(0);
-    });
-
-    it('nested scope usage', async math => {
+    it('nested usage', math => {
       const a = dl.tensor1d([1, 2, 3]);
       let b = dl.tensor1d([0, 0, 0]);
 
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
 
-      await dl.tidy(async () => {
+      dl.tidy(() => {
         const result = dl.tidy(() => {
           b = dl.addStrict(a, b);
           b = dl.tidy(() => {
@@ -147,25 +121,25 @@ const gradientsScope = Gradients.gradientsScope;
               return dl.addStrict(a, b);
             });
             // original a, b, and two intermediates.
-            expect(math.getNumTensors()).toBe(4);
+            expect(dl.memory().numTensors).toBe(4);
 
             dl.tidy(() => {
               dl.addStrict(a, b);
             });
             // All the intermediates should be cleaned up.
-            expect(math.getNumTensors()).toBe(4);
+            expect(dl.memory().numTensors).toBe(4);
 
             return dl.addStrict(a, b);
           });
-          expect(math.getNumTensors()).toBe(4);
+          expect(dl.memory().numTensors).toBe(4);
 
           return dl.addStrict(a, b);
         });
 
-        expect(math.getNumTensors()).toBe(3);
+        expect(dl.memory().numTensors).toBe(3);
         test_util.expectArraysClose(result, [4, 8, 12]);
       });
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
     });
 
     it('single argument', () => {
@@ -205,7 +179,7 @@ const gradientsScope = Gradients.gradientsScope;
     });
   };
 
-  test_util.describeMathGPU('scope', [gpuTests], [
+  test_util.describeMathGPU('tidy', [gpuTests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
@@ -478,7 +452,7 @@ const gradientsScope = Gradients.gradientsScope;
           1e-1);
     });
 
-    it('matmul + relu + inner scope', () => {
+    it('matmul + relu + inner tidy', () => {
       const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
       const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
@@ -528,29 +502,29 @@ const gradientsScope = Gradients.gradientsScope;
   const tests: MathTests = it => {
     it('second order gradients with gradientsScope', math => {
       const a = dl.scalar(2);
-      expect(math.getNumTensors()).toBe(1);
+      expect(dl.memory().numTensors).toBe(1);
 
       const gradients = gradientsScope(() => {
         const der = dl.gradients(() => {
           const result = dl.pow(a, dl.scalar(3, 'int32'));
-          expect(math.getNumTensors()).toBe(3);
+          expect(dl.memory().numTensors).toBe(3);
 
           return result as Scalar;
         }, a);
 
         // Gradients shouldn't be disposed.
-        const numArrays = math.getNumTensors();
+        const numArrays = dl.memory().numTensors;
         expect(numArrays).toBeGreaterThan(3);
 
         const result = dl.gradients(() => der, a);
 
         // New gradients shouldn't be disposed.
-        expect(math.getNumTensors()).toBeGreaterThan(numArrays + 1);
+        expect(dl.memory().numTensors).toBeGreaterThan(numArrays + 1);
         return result;
       });
 
       // a and gradients are the only remaining arrays.
-      expect(math.getNumTensors()).toBe(2);
+      expect(dl.memory().numTensors).toBe(2);
 
       expect(gradients.shape).toEqual(a.shape);
       test_util.expectArraysClose(gradients, [2 * 3 * a.get()], 1e-1);
@@ -619,6 +593,57 @@ const gradientsScope = Gradients.gradientsScope;
 
   test_util.describeMathCPU('customGradient', [tests]);
   test_util.describeMathGPU('customGradient', [tests], [
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+  ]);
+}
+
+// dl.memory
+{
+  const tests: MathTests = it => {
+    it('Sum(float)', () => {
+      expect(dl.memory().numTensors).toBe(0);
+      expect(dl.memory().numBytes).toBe(0);
+      const sum = dl.tidy(() => {
+        const a = dl.tensor1d([1, 2, 3, 4]);
+        expect(dl.memory().numTensors).toBe(1);
+        expect(dl.memory().numBytes).toBe(4 * 4);
+        return a.sum();
+      });
+      expect(dl.memory().numTensors).toBe(1);
+      expect(dl.memory().numBytes).toBe(4);
+      test_util.expectArraysClose(sum, [1 + 2 + 3 + 4]);
+    });
+
+    it('Sum(bool)', () => {
+      const sum = dl.tidy(() => {
+        const a = dl.tensor1d([true, true, false, true], 'bool');
+        expect(dl.memory().numTensors).toBe(1);
+        expect(dl.memory().numBytes).toBe(4);
+        return a.sum();
+      });
+      expect(dl.memory().numTensors).toBe(1);
+      expect(dl.memory().numBytes).toBe(4);
+      expect(sum.dtype).toBe('int32');
+      test_util.expectArraysClose(sum, [1 + 1 + 0 + 1]);
+    });
+
+    it('Sum(int32)', () => {
+      const sum = dl.tidy(() => {
+        const a = dl.tensor1d([1, 1, 0, 1], 'int32');
+        expect(dl.memory().numTensors).toBe(1);
+        expect(dl.memory().numBytes).toBe(4 * 4);
+        return a.sum();
+      });
+      expect(dl.memory().numTensors).toBe(1);
+      expect(dl.memory().numBytes).toBe(4);
+      expect(sum.dtype).toBe('int32');
+      test_util.expectArraysClose(sum, [1 + 1 + 0 + 1]);
+    });
+  };
+  test_util.describeMathCPU('memory', [tests]);
+  test_util.describeMathGPU('memory', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

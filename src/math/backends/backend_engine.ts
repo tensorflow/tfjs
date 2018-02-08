@@ -19,11 +19,11 @@ import {ENV} from '../../environment';
 import {tidy} from '../../globals';
 import * as util from '../../util';
 import * as ops from '../ops';
-import {Tensor, Tensor3D, Variable} from '../tensor';
-import {DataType, NamedTensorMap, NamedVariableMap, TypedArray} from '../types';
+import {DataId, Tensor, Tensor3D, Variable} from '../tensor';
+import {NamedTensorMap, NamedVariableMap, TypedArray} from '../types';
 import {Rank} from '../types';
 
-import {MathBackend, TensorStorage} from './backend';
+import {MathBackend} from './backend';
 import * as kernel_registry from './kernel_registry';
 import {KernelConfigRegistry} from './kernel_registry';
 import {Profiler} from './profiler';
@@ -42,18 +42,26 @@ export type CustomGradientFunc<T extends Tensor> = () => {
 };
 
 export interface TensorManager {
-  getNumTensors(): number;
   registerTensor(a: Tensor): void;
   registerVariable(v: Variable): void;
-  disposeData(dataId: number): void;
+  disposeTensor(a: Tensor): void;
+  memory(): {numDataBuffers: number; numBytes: number;};
 }
 
-export class BackendEngine implements TensorManager, TensorStorage {
+export type MemoryInfo = {
+  numTensors: number; numDataBuffers: number; numBytes: number; backendInfo: {};
+  unreliable?: boolean;
+};
+
+export class BackendEngine implements TensorManager {
   // Public since optimizers will use it.
   registeredVariables: NamedVariableMap = {};
 
-  private registeredTensors = new Map<number, number>();
+  private refCounter = new WeakMap<DataId, number>();
   private nextTapeNodeId = 0;
+  private numBytes = 0;
+  private numTensors = 0;
+  private numDataBuffers = 0;
 
   private activeTape: Tape;
   private gradientScopeCount = 0;
@@ -109,21 +117,63 @@ export class BackendEngine implements TensorManager, TensorStorage {
     return result;
   }
 
-  getNumTensors() {
-    return this.registeredTensors.size;
-  }
+  // TensorManager implementation.
 
   registerTensor(a: Tensor|Variable): void {
-    const refCount = this.registeredTensors.has(a.dataId) ?
-        this.registeredTensors.get(a.dataId) :
-        0;
+    const refCount =
+        this.refCounter.has(a.dataId) ? this.refCounter.get(a.dataId) : 0;
+    this.numTensors++;
     if (refCount === 0) {
-      this.register(a.dataId, a.shape, a.dtype);
+      this.numDataBuffers++;
+      this.numBytes +=
+          util.sizeFromShape(a.shape) * util.bytesPerElement(a.dtype);
+      this.backend.register(a.dataId, a.shape, a.dtype);
     }
-    this.registeredTensors.set(a.dataId, refCount + 1);
+    this.refCounter.set(a.dataId, refCount + 1);
     if (!(a instanceof Variable)) {
       this.track(a);
     }
+  }
+
+  registerVariable(v: Variable) {
+    if (this.registeredVariables[v.name] != null) {
+      throw new Error(`Variable with name ${v.name} was already registered`);
+    }
+    this.registeredVariables[v.name] = v;
+  }
+
+  disposeTensor(a: Tensor): void {
+    if (!this.refCounter.has(a.dataId)) {
+      return;
+    }
+    this.numTensors--;
+    const refCount = this.refCounter.get(a.dataId);
+    if (refCount <= 1) {
+      this.refCounter.delete(a.dataId);
+      this.backend.disposeData(a.dataId);
+      this.numDataBuffers--;
+      this.numBytes -=
+          util.sizeFromShape(a.shape) * util.bytesPerElement(a.dtype);
+    } else {
+      this.refCounter.set(a.dataId, refCount - 1);
+    }
+    // TODO(nsthorat): Construct an error and save the stack trace for
+    // debugging when in debug mode. Creating a stack trace is too expensive
+    // to do unconditionally.
+  }
+
+  memory(): MemoryInfo {
+    const backendInfo = this.backend.memory();
+    const memInfo: MemoryInfo = {
+      numTensors: this.numTensors,
+      numDataBuffers: this.numDataBuffers,
+      numBytes: this.numBytes,
+      backendInfo,
+    };
+    if (backendInfo.unreliable) {
+      memInfo.unreliable = true;
+    }
+    return memInfo;
   }
 
   private shouldRecord(): boolean {
@@ -216,13 +266,6 @@ export class BackendEngine implements TensorManager, TensorStorage {
     });
   }
 
-  registerVariable(v: Variable) {
-    if (this.registeredVariables[v.name] != null) {
-      throw new Error(`Variable with name ${v.name} was already registered`);
-    }
-    this.registeredVariables[v.name] = v;
-  }
-
   dispose() {
     if (this.customBackend) {
       this.backend.dispose();
@@ -281,14 +324,14 @@ export class BackendEngine implements TensorManager, TensorStorage {
     return result;
   }
 
-  // TensorManager implementation.
-  write(dataId: number, values: TypedArray): void {
+  // Forwarding to backend.
+  write(dataId: DataId, values: TypedArray): void {
     this.backend.write(dataId, values);
   }
-  readSync(dataId: number): TypedArray {
+  readSync(dataId: DataId): TypedArray {
     return this.backend.readSync(dataId);
   }
-  read(dataId: number): Promise<TypedArray> {
+  read(dataId: DataId): Promise<TypedArray> {
     return this.backend.read(dataId);
   }
   fromPixels(
@@ -298,24 +341,6 @@ export class BackendEngine implements TensorManager, TensorStorage {
   }
   time(query: () => void): Promise<number> {
     return this.backend.time(query);
-  }
-  register(dataId: number, shape: number[], dtype: DataType): void {
-    this.backend.register(dataId, shape, dtype);
-  }
-  disposeData(dataId: number): void {
-    if (!this.registeredTensors.has(dataId)) {
-      return;
-    }
-    const refCount = this.registeredTensors.get(dataId);
-    if (refCount <= 1) {
-      this.registeredTensors.delete(dataId);
-      this.backend.disposeData(dataId);
-    } else {
-      this.registeredTensors.set(dataId, refCount - 1);
-    }
-    // TODO(nsthorat): Construct an error and save the stack trace for
-    // debugging when in debug mode. Creating a stack trace is too expensive
-    // to do unconditionally.
   }
 
   /**

@@ -18,21 +18,22 @@
 
 import {Conv2DInfo} from '../conv_util';
 // tslint:disable-next-line:max-line-length
-import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, Rank, TypedArray} from '../types';
 
 import {MatrixOrientation} from './types/matmul';
 
 export interface TensorStorage {
-  read(dataId: number): Promise<TypedArray>;
-  readSync(dataId: number): TypedArray;
-  disposeData(dataId: number): void;
-  write(dataId: number, values: TypedArray): void;
+  read(dataId: DataId): Promise<TypedArray>;
+  readSync(dataId: DataId): TypedArray;
+  disposeData(dataId: DataId): void;
+  write(dataId: DataId, values: TypedArray): void;
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D;
   time(query: () => void): Promise<number>;
-  register(dataId: number, shape: number[], dtype: DataType): void;
+  register(dataId: DataId, shape: number[], dtype: DataType): void;
+  memory(): {unreliable: boolean;};  // Backend-specific information.
 }
 
 export interface BackendTimer { time(f: () => void): Promise<number>; }
