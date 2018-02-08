@@ -209,7 +209,6 @@ export class NDArrayMath {
   vjp = Gradients.vjp;
 
   engine: typeof ENV.engine;
-  getNumTensors: typeof ENV.engine.getNumTensors;
   dispose: typeof ENV.engine.dispose;
   registeredVariables: typeof ENV.engine.registeredVariables;
   startScope: typeof ENV.engine.startScope;
@@ -222,7 +221,6 @@ export class NDArrayMath {
   constructor(backend: BackendType|MathBackend, safeMode: boolean) {
     ENV.setMath(this, backend, safeMode);
     this.engine = ENV.engine;
-    this.getNumTensors = ENV.engine.getNumTensors.bind(ENV.engine);
     this.dispose = ENV.engine.dispose.bind(ENV.engine);
     this.registeredVariables = ENV.engine.registeredVariables;
     this.startScope = ENV.engine.startScope.bind(ENV.engine);

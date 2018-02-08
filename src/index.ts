@@ -73,3 +73,4 @@ export * from './globals';
 
 export const setBackend = Environment.setBackend;
 export const getBackend = Environment.getBackend;
+export const memory = Environment.memory;

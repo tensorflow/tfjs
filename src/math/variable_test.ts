@@ -60,21 +60,21 @@ const tests: MathTests = it => {
 
   it('variables are not affected by tidy', math => {
     let v: Variable<Rank.R1>;
-    expect(math.getNumTensors()).toBe(0);
+    expect(dl.memory().numTensors).toBe(0);
 
     dl.tidy(() => {
       const value = dl.tensor1d([1, 2, 3], 'float32');
-      expect(math.getNumTensors()).toBe(1);
+      expect(dl.memory().numTensors).toBe(1);
 
       v = variable(value);
-      expect(math.getNumTensors()).toBe(1);
+      expect(dl.memory().numTensors).toBe(1);
     });
 
-    expect(math.getNumTensors()).toBe(1);
+    expect(dl.memory().numTensors).toBe(1);
     test_util.expectArraysClose(v, [1, 2, 3]);
 
     v.dispose();
-    expect(math.getNumTensors()).toBe(0);
+    expect(dl.memory().numTensors).toBe(0);
   });
 
   it('variables are assignable to tensors', () => {
@@ -107,20 +107,20 @@ const tests: MathTests = it => {
   it('assign will dispose old data', math => {
     let v: Variable<Rank.R1>;
     v = variable(dl.tensor1d([1, 2, 3]));
-    expect(math.getNumTensors()).toBe(1);
+    expect(dl.memory().numTensors).toBe(1);
     test_util.expectArraysClose(v, [1, 2, 3]);
 
     const secondArray = dl.tensor1d([4, 5, 6]);
-    expect(math.getNumTensors()).toBe(2);
+    expect(dl.memory().numTensors).toBe(2);
 
     v.assign(secondArray);
     test_util.expectArraysClose(v, [4, 5, 6]);
     // Assign disposes the 1st array.
-    expect(math.getNumTensors()).toBe(1);
+    expect(dl.memory().numTensors).toBe(1);
 
     v.dispose();
     // Disposing the variable disposes the 2nd array.
-    expect(math.getNumTensors()).toBe(0);
+    expect(dl.memory().numTensors).toBe(0);
   });
 
   it('shape must match', () => {

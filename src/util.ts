@@ -448,3 +448,13 @@ export function isTypedArray(a: TypedArray|number|boolean|RegularArray<number>|
   return a instanceof Float32Array || a instanceof Int32Array ||
       a instanceof Uint8Array;
 }
+
+export function bytesPerElement(dtype: DataType): number {
+  if (dtype === 'float32' || dtype === 'int32') {
+    return 4;
+  } else if (dtype === 'bool') {
+    return 1;
+  } else {
+    throw new Error(`Unknown dtype ${dtype}`);
+  }
+}

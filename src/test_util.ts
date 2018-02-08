@@ -372,11 +372,9 @@ function executeTests(
     customXit: It = PROMISE_XIT) {
   describe(testName, () => {
     beforeEach(() => {
-      if (features != null) {
-        ENV.setFeatures(features);
-        ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
-        ENV.addCustomBackend('cpu', () => new MathBackendCPU());
-      }
+      ENV.setFeatures(features || {});
+      ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
+      ENV.addCustomBackend('cpu', () => new MathBackendCPU());
 
       if (customBeforeEach != null) {
         customBeforeEach();
@@ -387,9 +385,7 @@ function executeTests(
       if (customAfterEach != null) {
         customAfterEach();
       }
-      if (features != null) {
-        ENV.reset();
-      }
+      ENV.reset();
     });
 
     tests.forEach(test => test(customIt, customFit, customXit));

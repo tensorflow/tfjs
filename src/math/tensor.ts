@@ -25,7 +25,7 @@ import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray} from './types';
 
 /** @hidden */
 export interface TensorData {
-  dataId?: number;
+  dataId?: DataId;
   values?: TypedArray;
 }
 
@@ -87,9 +87,18 @@ export class TensorBuffer<R extends Rank> {
   }
 }
 
+/**
+ * We wrap data id since we use weak map to avoid memory leaks.
+ * Since we have our own memory management, we have a reference counter
+ * mapping a tensor to its data, so there is always a pointer (even if that
+ * data is otherwise garbage collectable).
+ * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/
+ * Global_Objects/WeakMap
+ */
+export type DataId = object;  // object instead of {} to force non-primitive.
+
 export class Tensor<R extends Rank = Rank> {
   private static nextId = 0;
-  private static nextDataId = 0;
 
   /** Unique id of this tensor. */
   readonly id: number;
@@ -97,7 +106,7 @@ export class Tensor<R extends Rank = Rank> {
    * Id of the bucket holding the data for this tensor. Multiple arrays can
    * point to the same bucket (e.g. when calling array.reshape()).
    */
-  dataId: number;
+  dataId: DataId;
   /** The shape of the tensor. */
   readonly shape: ShapeMap[R];
   /** Number of elements in the tensor. */
@@ -116,7 +125,7 @@ export class Tensor<R extends Rank = Rank> {
 
   protected constructor(
       shape: ShapeMap[R], dtype: DataType, values?: TypedArray,
-      dataId?: number) {
+      dataId?: DataId) {
     this.size = util.sizeFromShape(shape);
     if (values != null) {
       util.assert(
@@ -127,7 +136,7 @@ export class Tensor<R extends Rank = Rank> {
     this.shape = shape;
     this.dtype = dtype || 'float32';
     this.strides = computeStrides(shape);
-    this.dataId = dataId != null ? dataId : Tensor.nextDataId++;
+    this.dataId = dataId != null ? dataId : {};
     this.id = Tensor.nextId++;
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
     ENV.engine.registerTensor(this);
@@ -341,7 +350,7 @@ export class Tensor<R extends Rank = Rank> {
       return;
     }
     this.isDisposed = true;
-    ENV.engine.disposeData(this.dataId);
+    ENV.engine.disposeTensor(this);
   }
 
   private isDisposed = false;
@@ -850,7 +859,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
           `shape of the new value (${newValue.shape}) and ` +
           `previous value (${this.shape}) must match`);
     }
-    ENV.engine.disposeData(this.dataId);
+    ENV.engine.disposeTensor(this);
     this.dataId = newValue.dataId;
     ENV.engine.registerTensor(this);
     newValue.dispose();

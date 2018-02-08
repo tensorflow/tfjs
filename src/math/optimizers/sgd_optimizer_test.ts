@@ -30,12 +30,12 @@ const tests: MathTests = it => {
 
     const x = variable(dl.scalar(4));
 
-    let numTensors = math.getNumTensors();
+    let numTensors = dl.memory().numTensors;
 
     let cost = optimizer.minimize(() => math.square(x), /* returnCost */ true);
 
     // Cost should be the only additional array.
-    expect(math.getNumTensors()).toBe(numTensors + 1);
+    expect(dl.memory().numTensors).toBe(numTensors + 1);
 
     // de/dx = 2x
     const expectedValue1 = -2 * 4 * learningRate + 4;
@@ -43,11 +43,11 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(cost, [Math.pow(4, 2)]);
 
     cost.dispose();
-    numTensors = math.getNumTensors();
+    numTensors = dl.memory().numTensors;
 
     cost = optimizer.minimize(() => math.square(x), /* returnCost */ false);
     // There should be no new additional Tensors.
-    expect(math.getNumTensors()).toBe(numTensors);
+    expect(dl.memory().numTensors).toBe(numTensors);
 
     const expectedValue2 = -2 * expectedValue1 * learningRate + expectedValue1;
     test_util.expectArraysClose(x, [expectedValue2]);
@@ -56,7 +56,7 @@ const tests: MathTests = it => {
     optimizer.dispose();
     x.dispose();
     // There should be no more Tensors.
-    expect(math.getNumTensors()).toBe(0);
+    expect(dl.memory().numTensors).toBe(0);
   });
 
   it('graph', math => {
