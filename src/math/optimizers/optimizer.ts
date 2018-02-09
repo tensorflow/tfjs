@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -35,7 +35,6 @@ export abstract class Optimizer {
     if (specifiedVariableList != null) {
       this.specifiedVariableNodes = specifiedVariableList as VariableNode[];
     }
-    this.one = keep(ops.scalar(1));
   }
 
   /**
@@ -52,7 +51,11 @@ export abstract class Optimizer {
   @doc({
     heading: 'Training',
     subheading: 'Optimizers',
-    subclasses: ['SGDOptimizer', 'MomentumOptimizer']
+    subclasses:
+        [
+          'SGDOptimizer', 'MomentumOptimizer', 'AdadeltaOptimizer',
+          'AdagradOptimizer'
+        ]
   })
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
@@ -139,7 +142,6 @@ export abstract class Optimizer {
     if (this.cGraph != null) {
       this.cGraph.dispose();
     }
-    this.one.dispose();
     if (this.variableNodes != null) {
       this.variableNodes.forEach(node => {
         node.data.dispose();
@@ -154,6 +156,5 @@ export abstract class Optimizer {
 
   protected variableGradients = new TensorArrayMap();
   protected prevBatchSize: number;
-  protected one: Scalar;
   protected cGraph: Scalar;
 }

@@ -55,7 +55,7 @@
         <h4>{{name}}</h4>
         {{#symbols}}
           <div class="symbol">
-            <h5># <a name="{{dl.displayName}}" href="#dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}</h5>
+            <h5># <a name="dl.{{displayName}}" href="#dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}</h5>
 
             <div class="documentation">{{documentation}}</div>
 
@@ -76,7 +76,7 @@
               <h6>Methods:</h6>
                 {{#methods}}
                   <div class="method">
-                    <div class="method-name"><code>{{displayName}}{{paramStr}}</code></div>
+                    <div class="method-name"><code>{{symbolName}}{{paramStr}}</code></div>
                     <div class="method-docs">
                       {{#optional}}(Optional){{/optional}} {{documentation}}
 

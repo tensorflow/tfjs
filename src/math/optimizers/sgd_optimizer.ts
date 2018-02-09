@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,7 +23,7 @@ import {SessionRuntime} from '../../graph/session';
 import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {doc} from '../decorators';
-import * as ops from '../ops';
+import {scalar} from '../ops';
 import {Scalar} from '../tensor';
 import {NamedTensorMap} from '../types';
 
@@ -38,29 +38,55 @@ import {Optimizer} from './optimizer';
 export class SGDOptimizer extends Optimizer {
   protected c: Scalar;
 
-  constructor(protected learningRate: number, specifiedVariableList?: Node[]) {
+  constructor(
+      protected learningRate: number, /** @deprecated only for graph */
+      specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
     this.setLearningRate(learningRate);
   }
 
-  // Eager mode
   applyGradients(variableGradients: NamedTensorMap) {
     const varNames = Object.keys(variableGradients);
     varNames.forEach(varName => {
       const gradient = variableGradients[varName];
       const value = ENV.engine.registeredVariables[varName];
 
-      const newValue = tidy(() => this.c.mul(gradient).add(value));
-
-      value.assign(newValue);
+      tidy(() => {
+        const newValue = this.c.mul(gradient).add(value);
+        value.assign(newValue);
+      });
     });
   }
 
+  /**
+   * Sets the learning rate of the optimizer.
+   */
+  /** @deprecated */
+  setLearningRate(learningRate: number) {
+    this.learningRate = learningRate;
+    if (this.c != null) {
+      this.c.dispose();
+    }
+    this.c = ENV.math.keep(scalar(-learningRate));
+  }
+
+  dispose() {
+    this.c.dispose();
+    if (this.one != null) {
+      this.one.dispose();
+    }
+    super.dispose();
+  }
+
   // Graph
+  /** @deprecated only for graph */
   afterBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
+    if (this.one == null) {
+      this.one = keep(scalar(1));
+    }
     tidy(() => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
@@ -78,16 +104,5 @@ export class SGDOptimizer extends Optimizer {
     this.variableGradients = new TensorArrayMap();
   }
 
-  dispose() {
-    this.c.dispose();
-    super.dispose();
-  }
-
-  setLearningRate(learningRate: number) {
-    this.learningRate = learningRate;
-    if (this.c != null) {
-      this.c.dispose();
-    }
-    this.c = keep(ops.scalar(-learningRate));
-  }
+  protected one: Scalar;
 }

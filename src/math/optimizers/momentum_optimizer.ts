@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,9 +24,10 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map
 import {NDArrayMath} from '../../math/math';
 import {SGDOptimizer} from '../../math/optimizers/sgd_optimizer';
 import {Scalar, Tensor} from '../../math/tensor';
-import {NamedTensorMap, NamedVariableMap} from '../../math/types';
+import {NamedVariableMap} from '../../math/types';
 import {doc} from '../decorators';
 import {scalar, zerosLike} from '../ops';
+import {variable} from '../tensor';
 
 /**
  * Optimizer that implements momentum gradient descent.
@@ -36,38 +37,35 @@ import {scalar, zerosLike} from '../ops';
 @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
 export class MomentumOptimizer extends SGDOptimizer {
   private m: Scalar;
-  private variableVelocities: NamedTensorMap;
+  private accumulations: NamedVariableMap;
 
   constructor(
       protected learningRate: number, private momentum: number,
       specifiedVariableList?: Node[]) {
     super(learningRate, specifiedVariableList);
     this.m = scalar(this.momentum);
-    this.variableVelocities = {};
+    this.accumulations = {};
   }
 
   applyGradients(variableGradients: NamedVariableMap) {
     for (const variableName in variableGradients) {
-      const variable = ENV.engine.registeredVariables[variableName];
-      // Initialize velocities to 0.
-      if (this.variableVelocities[variableName] == null) {
-        this.variableVelocities[variableName] = keep(zerosLike(variable));
+      const value = ENV.engine.registeredVariables[variableName];
+      if (this.accumulations[variableName] == null) {
+        const trainable = false;
+        this.accumulations[variableName] =
+            variable(zerosLike(value), trainable);
       }
 
-      const oldVelocity = this.variableVelocities[variableName];
+      const accumulation = this.accumulations[variableName];
       const gradient = variableGradients[variableName];
 
-      const [newVelocity, newVariableValue] = tidy(() => {
-        const newVelocity = this.m.mul(oldVelocity).add(gradient);
-        const newVariableValue = this.c.mul(newVelocity).add(variable);
+      tidy(() => {
+        const newAccumulation = this.m.mul(accumulation).add(gradient);
+        this.accumulations[variableName].assign(newAccumulation);
 
-        return [newVelocity, newVariableValue];
+        const newValue = this.c.mul(newAccumulation).add(value);
+        value.assign(newValue);
       });
-
-      this.variableVelocities[variableName].dispose();
-      this.variableVelocities[variableName] = keep(newVelocity);
-
-      variable.assign(newVariableValue);
     }
   }
 
@@ -94,6 +92,9 @@ export class MomentumOptimizer extends SGDOptimizer {
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
+    if (this.one == null) {
+      this.one = keep(scalar(1));
+    }
     tidy(() => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
@@ -121,12 +122,15 @@ export class MomentumOptimizer extends SGDOptimizer {
   dispose() {
     super.dispose();
     this.m.dispose();
+    if (this.one != null) {
+      this.one.dispose();
+    }
     if (this.variableVelocitiesGraph != null) {
       this.variableVelocitiesGraph.dispose();
     }
-    if (this.variableVelocities != null) {
-      for (const variableName in this.variableVelocities) {
-        this.variableVelocities[variableName].dispose();
+    if (this.accumulations != null) {
+      for (const variableName in this.accumulations) {
+        this.accumulations[variableName].dispose();
       }
     }
   }

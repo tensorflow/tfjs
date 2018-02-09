@@ -16,6 +16,8 @@
  */
 import {doc} from '../decorators';
 
+import {AdadeltaOptimizer} from './adadelta_optimizer';
+import {AdagradOptimizer} from './adagrad_optimizer';
 import {MomentumOptimizer} from './momentum_optimizer';
 import {SGDOptimizer} from './sgd_optimizer';
 
@@ -42,5 +44,37 @@ export class OptimizerConstructors {
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static momentum(learningRate: number, momentum: number): MomentumOptimizer {
     return new MomentumOptimizer(learningRate, momentum);
+  }
+
+  /**
+   * Constructs a `dl.train.AdadeltaOptimizer` that uses the Adadelta algorithm.
+   * See https://arxiv.org/abs/1212.5701
+   *
+   * @param learningRate
+   * @param rho
+   * @param epsilon
+   */
+  @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
+  static adadelta(learningRate = .001, rho = .95, epsilon = 1e-8):
+      AdadeltaOptimizer {
+    return new AdadeltaOptimizer(
+        learningRate, rho, undefined /** @deprecated specifiedVariableList */,
+        epsilon);
+  }
+
+  /**
+   * Constructs a `dl.train.AdagradOptimizer` that uses the Adagrad algorithm.
+   * See http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf or
+   * http://ruder.io/optimizing-gradient-descent/index.html#adagrad
+   *
+   * @param learningRate
+   * @param initialAccumulatorValue
+   */
+  @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
+  static adagrad(learningRate: number, initialAccumulatorValue = 0.1):
+      AdagradOptimizer {
+    return new AdagradOptimizer(
+        learningRate, undefined /** @deprecated specifiedVariableList */,
+        initialAccumulatorValue);
   }
 }

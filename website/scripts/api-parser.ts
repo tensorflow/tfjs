@@ -161,6 +161,17 @@ export function serializeClass(
     isClass: true
   };
 
+  // Parse the methods that are annotated with @doc.
+  node.members.forEach(member => {
+    if (ts.isMethodDeclaration(member) && !util.isStatic(member)) {
+      const docInfo = util.getDocDecorator(member, DOCUMENTATION_DECORATOR);
+      if (docInfo != null) {
+        docClass.methods.push(
+            serializeMethod(checker, member, docInfo, sourceFile));
+      }
+    }
+  });
+
   return docClass;
 }
 

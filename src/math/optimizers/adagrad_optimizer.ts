@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,25 +15,60 @@
  * =============================================================================
  */
 
+import {ENV} from '../../environment';
 import {keep, tidy} from '../../globals';
+import {Node} from '../../graph/graph';
+import {SessionRuntime} from '../../graph/session';
+// tslint:disable-next-line:max-line-length
+import {SummedTensorArrayMap, TensorArrayMap} from '../../graph/tensor_array_map';
 import {NDArrayMath} from '../../math/math';
 import {Optimizer} from '../../math/optimizers/optimizer';
 import {Scalar, Tensor} from '../../math/tensor';
 import {NamedVariableMap} from '../../math/types';
-import {Node} from '../graph';
-import {SessionRuntime} from '../session';
-import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
+import {fill, scalar} from '../ops';
+import {variable} from '../tensor';
 
 export class AdagradOptimizer extends Optimizer {
-  constructor(protected learningRate: number, specifiedVariableList?: Node[]) {
+  private c: Scalar;
+  private epsilon: Scalar;
+
+  private accumulatedGrads: NamedVariableMap = {};
+
+  constructor(
+      protected learningRate: number, specifiedVariableList?: Node[],
+      private initialAccumulatorValue = 0.1) {
     super(learningRate, specifiedVariableList);
-    this.eps = Scalar.new(1e-6);
+
+    this.c = keep(scalar(-learningRate));
+    this.epsilon = keep(scalar(1e-8));
   }
 
   applyGradients(variableGradients: NamedVariableMap) {
-    throw new Error(`Adagrad optimizer not yet implemented for eager mode.`);
+    for (const variableName in variableGradients) {
+      const value = ENV.engine.registeredVariables[variableName];
+      if (this.accumulatedGrads[variableName] == null) {
+        const trainable = false;
+        this.accumulatedGrads[variableName] = variable(
+            fill(value.shape, this.initialAccumulatorValue), trainable);
+      }
+
+      const gradient = variableGradients[variableName];
+      const accumulatedGrad = this.accumulatedGrads[variableName];
+
+      tidy(() => {
+        const newAccumulatedGrad = accumulatedGrad.add(gradient.square());
+        this.accumulatedGrads[variableName].assign(newAccumulatedGrad);
+
+        const newValue =
+            this.c
+                .mul(gradient.div(newAccumulatedGrad.add(this.epsilon).sqrt()))
+                .add(value);
+        value.assign(newValue);
+      });
+    }
   }
 
+  /** @deprecated */
   beforeBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
@@ -49,20 +84,25 @@ export class AdagradOptimizer extends Optimizer {
     }
   }
 
+  /** @deprecated */
   afterBatch(
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
+    if (this.one == null) {
+      this.one = keep(scalar(1));
+    }
     tidy(() => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);
         const oldCache = this.accumulatedSquaredGradients.get(node.output);
+
         const gradientSquare = math.multiply(gradient, gradient);
         const cache = math.add(oldCache, gradientSquare);
         const variable = math.scaledArrayAdd(
             this.cGraph,
-            math.divide(gradient, math.add(math.sqrt(cache), this.eps)),
+            math.divide(gradient, math.add(math.sqrt(cache), this.epsilon)),
             this.one, oldVariable);
         this.accumulatedSquaredGradients.set(node.output, keep(cache));
         activationArrayMap.set(node.output, keep(variable));
@@ -78,10 +118,20 @@ export class AdagradOptimizer extends Optimizer {
 
   dispose() {
     super.dispose();
-    this.eps.dispose();
-    this.accumulatedSquaredGradients.dispose();
+    this.epsilon.dispose();
+    this.c.dispose();
+    if (this.one != null) {
+      this.one.dispose();
+    }
+    if (this.accumulatedSquaredGradients != null) {
+      this.accumulatedSquaredGradients.dispose();
+    }
+    if (this.accumulatedGrads != null) {
+      Object.keys(this.accumulatedGrads)
+          .forEach(name => this.accumulatedGrads[name].dispose());
+    }
   }
 
   private accumulatedSquaredGradients = new TensorArrayMap();
-  private eps: Scalar;
+  private one: Scalar;
 }

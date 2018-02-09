@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@ import {SGDOptimizer} from './sgd_optimizer';
 const tests: MathTests = it => {
   it('basic', math => {
     const learningRate = .1;
-    const optimizer = new SGDOptimizer(learningRate);
+    const optimizer = dl.train.sgd(learningRate);
 
     const x = variable(dl.scalar(4));
     const bias = variable(dl.scalar(1));
@@ -76,7 +76,7 @@ const tests: MathTests = it => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(dl.scalar(4));
+    const x = dl.variable(dl.scalar(4));
     const bias = variable(dl.scalar(1));
     const strayVariable = variable(dl.scalar(-1));
     const varList = [x, bias];

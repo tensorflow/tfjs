@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,15 +16,65 @@
  */
 import {InputProvider} from '../../data/input_provider';
 import {ENV} from '../../environment';
+import {Graph} from '../../graph/graph';
+import {Session} from '../../graph/session';
 import * as dl from '../../index';
 import {Tensor1D} from '../../math/tensor';
 import * as test_util from '../../test_util';
-import {Graph} from '../graph';
-import {Session} from '../session';
+import {MathTests} from '../../test_util';
+
 import {AdagradOptimizer} from './adagrad_optimizer';
 
-describe('adagrad optimizer', () => {
-  it('basic', () => {
+const tests: MathTests = it => {
+  it('basic', math => {
+    const learningRate = .1;
+    const initialAccumulatorValue = .1;
+    const optimizer = dl.train.adagrad(learningRate, initialAccumulatorValue);
+
+    const x = dl.variable(dl.tensor1d([1, 2]));
+
+    const f = () => x.square().sum() as dl.Scalar;
+
+    let numTensors = dl.memory().numTensors;
+
+    let cost = optimizer.minimize(f, /* returnCost */ true);
+
+    // Cost & accumulator should be the only additional arrays.
+    expect(dl.memory().numTensors).toBe(numTensors + 2);
+
+    // epsilon = 1-e8
+    // newAccumulatedGrad = accumulatedGrad + grad^2
+    // x -= (learningRate * grad) / sqrt(newAccumulatedGrad + eps)
+    // de/dx = [2, 4]
+    // accumulatedGrad = [0.1, 0.1]
+    // newAccumulatedGrad = [4.1, 16.1]
+    // x = [0.9012270405, 1.900311042]
+    test_util.expectArraysClose(x, [0.9012270405, 1.9003110428]);
+
+    cost.dispose();
+    numTensors = dl.memory().numTensors;
+
+    cost = optimizer.minimize(f, /* returnCost */ false);
+
+    // de/dx = [1.802454081, 3.9501555214]
+    // accumulatedGrad = [4.1, 16.1]
+    // newAccumulatedGrad = [7.3488407141, 31.7037286432]
+    // x = [0.8347372764, 1.83015597828]
+    test_util.expectArraysClose(x, [0.8347372764, 1.83015597828]);
+
+    // There should be no new additional Tensors.
+    expect(dl.memory().numTensors).toBe(numTensors);
+
+    expect(cost).toBe(null);
+
+    x.dispose();
+    optimizer.dispose();
+
+    // There should be no more Tensors.
+    expect(dl.memory().numTensors).toBe(0);
+  });
+
+  it('graph', () => {
     const math = ENV.math;
 
     const inputProvider: InputProvider = {
@@ -61,4 +111,11 @@ describe('adagrad optimizer', () => {
       test_util.expectArraysClose(dydw2, new Float32Array([-.1707, -.1707]));
     });
   });
-});
+};
+
+test_util.describeMathCPU('AdagradOptimizer', [tests]);
+test_util.describeMathGPU('AdagradOptimizer', [tests], [
+  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
+  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
+]);
