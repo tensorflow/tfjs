@@ -115,12 +115,12 @@ const tests: MathTests = it => {
 
     v.assign(secondArray);
     test_util.expectArraysClose(v, [4, 5, 6]);
-    // Assign disposes the 1st array.
-    expect(dl.memory().numTensors).toBe(1);
+    // Assign doesn't dispose the 1st array.
+    expect(dl.memory().numTensors).toBe(2);
 
     v.dispose();
-    // Disposing the variable disposes the 2nd array.
-    expect(dl.memory().numTensors).toBe(0);
+    // Disposing the variable disposes itself.
+    expect(dl.memory().numTensors).toBe(1);
   });
 
   it('shape must match', () => {

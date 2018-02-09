@@ -862,7 +862,6 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     ENV.engine.disposeTensor(this);
     this.dataId = newValue.dataId;
     ENV.engine.registerTensor(this);
-    newValue.dispose();
   }
 }
 
