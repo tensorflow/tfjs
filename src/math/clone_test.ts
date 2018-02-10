@@ -16,20 +16,14 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
-const commonTests = () => {
+describeWithFlags('clone', ALL_ENVS, () => {
   it('returns a tensor with the same shape and value', () => {
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3]);
     const aPrime = dl.clone(a);
     expect(aPrime.shape).toEqual(a.shape);
-    test_util.expectArraysClose(aPrime, a);
+    expectArraysClose(aPrime, a);
   });
-};
-
-test_util.describeMathCPU('clone', [commonTests]);
-test_util.describeMathGPU('clone', [commonTests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

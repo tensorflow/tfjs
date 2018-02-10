@@ -19,10 +19,10 @@ import {Graph} from '../../graph/graph';
 import {Session} from '../../graph/session';
 import * as dl from '../../index';
 import {variable} from '../../math/tensor';
-import * as test_util from '../../test_util';
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../../test_util';
 import {SGDOptimizer} from './sgd_optimizer';
 
-const tests = () => {
+describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
   it('basic', () => {
     const learningRate = .1;
     const optimizer = dl.train.sgd(learningRate);
@@ -38,8 +38,8 @@ const tests = () => {
 
     // de/dx = 2x
     const expectedValue1 = -2 * 4 * learningRate + 4;
-    test_util.expectArraysClose(x, [expectedValue1]);
-    test_util.expectArraysClose(cost, [Math.pow(4, 2)]);
+    expectArraysClose(x, [expectedValue1]);
+    expectArraysClose(cost, [Math.pow(4, 2)]);
 
     cost.dispose();
     numTensors = dl.memory().numTensors;
@@ -49,7 +49,7 @@ const tests = () => {
     expect(dl.memory().numTensors).toBe(numTensors);
 
     const expectedValue2 = -2 * expectedValue1 * learningRate + expectedValue1;
-    test_util.expectArraysClose(x, [expectedValue2]);
+    expectArraysClose(x, [expectedValue2]);
     expect(cost).toBe(null);
 
     optimizer.dispose();
@@ -77,13 +77,6 @@ const tests = () => {
     // dw/dx = [2*x_1 + 1, 2*x_2 + 1]
     session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer);
     const dwdx = session.gradientArrayMap.get(x).dataSync();
-    test_util.expectArraysClose(dwdx, new Float32Array([5, 9]), 1e-1);
+    expectArraysClose(dwdx, new Float32Array([5, 9]), 1e-1);
   });
-};
-
-test_util.describeMathCPU('SGDOptimizer', [tests]);
-test_util.describeMathGPU('SGDOptimizer', [tests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

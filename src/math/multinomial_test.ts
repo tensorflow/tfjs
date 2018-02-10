@@ -16,11 +16,12 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Tensor1D} from './tensor';
 import {Rank} from './types';
 
-const tests = () => {
+describeWithFlags('multinomial', ALL_ENVS, () => {
   const NUM_SAMPLES = 10000;
   // Allowed Variance in probability (in %).
   const EPSILON = 0.05;
@@ -31,7 +32,7 @@ const tests = () => {
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
-    test_util.expectArraysClose(outcomeProbs, [0.5, 0.5], EPSILON);
+    expectArraysClose(outcomeProbs, [0.5, 0.5], EPSILON);
   });
 
   it('Flip a two-sided coin with 100% of heads', () => {
@@ -40,7 +41,7 @@ const tests = () => {
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
-    test_util.expectArraysClose(outcomeProbs, [1, 0], EPSILON);
+    expectArraysClose(outcomeProbs, [1, 0], EPSILON);
   });
 
   it('Flip a two-sided coin with 100% of tails', () => {
@@ -49,7 +50,7 @@ const tests = () => {
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
-    test_util.expectArraysClose(outcomeProbs, [0, 1], EPSILON);
+    expectArraysClose(outcomeProbs, [0, 1], EPSILON);
   });
 
   it('Flip a single-sided coin throws error', () => {
@@ -81,17 +82,17 @@ const tests = () => {
     // First coin always gets last event.
     let outcomeProbs =
         computeProbs(result.dataSync().slice(0, NUM_SAMPLES), numOutcomes);
-    test_util.expectArraysClose(outcomeProbs, [0, 0, 1], EPSILON);
+    expectArraysClose(outcomeProbs, [0, 0, 1], EPSILON);
 
     // Second coin always gets middle event.
     outcomeProbs = computeProbs(
         result.dataSync().slice(NUM_SAMPLES, 2 * NUM_SAMPLES), numOutcomes);
-    test_util.expectArraysClose(outcomeProbs, [0, 1, 0], EPSILON);
+    expectArraysClose(outcomeProbs, [0, 1, 0], EPSILON);
 
     // Third coin always gets first event
     outcomeProbs =
         computeProbs(result.dataSync().slice(2 * NUM_SAMPLES), numOutcomes);
-    test_util.expectArraysClose(outcomeProbs, [1, 0, 0], EPSILON);
+    expectArraysClose(outcomeProbs, [1, 0, 0], EPSILON);
   });
 
   it('passing Tensor3D throws error', () => {
@@ -115,11 +116,4 @@ const tests = () => {
     }
     return counts;
   }
-};
-
-test_util.describeMathCPU('multinomial', [tests]);
-test_util.describeMathGPU('multinomial', [tests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

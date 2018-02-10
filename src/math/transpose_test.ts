@@ -16,59 +16,49 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
-// dl.transpose
-{
-  const tests = () => {
-    it('2D (no change)', () => {
-      const t = dl.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
-      const t2 = dl.transpose(t, [0, 1]);
+describeWithFlags('transpose', ALL_ENVS, () => {
+  it('2D (no change)', () => {
+    const t = dl.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
+    const t2 = dl.transpose(t, [0, 1]);
 
-      expect(t2.shape).toEqual(t.shape);
-      test_util.expectArraysClose(t2, t);
-    });
+    expect(t2.shape).toEqual(t.shape);
+    expectArraysClose(t2, t);
+  });
 
-    it('2D (transpose)', () => {
-      const t = dl.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
-      const t2 = dl.transpose(t, [1, 0]);
+  it('2D (transpose)', () => {
+    const t = dl.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
+    const t2 = dl.transpose(t, [1, 0]);
 
-      expect(t2.shape).toEqual([4, 2]);
-      test_util.expectArraysClose(t2, [1, 3, 11, 33, 2, 4, 22, 44]);
-    });
+    expect(t2.shape).toEqual([4, 2]);
+    expectArraysClose(t2, [1, 3, 11, 33, 2, 4, 22, 44]);
+  });
 
-    it('3D [r, c, d] => [d, r, c]', () => {
-      const t = dl.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
-      const t2 = dl.transpose(t, [2, 0, 1]);
+  it('3D [r, c, d] => [d, r, c]', () => {
+    const t = dl.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
+    const t2 = dl.transpose(t, [2, 0, 1]);
 
-      expect(t2.shape).toEqual([2, 2, 2]);
-      test_util.expectArraysClose(t2, [1, 2, 3, 4, 11, 22, 33, 44]);
-    });
+    expect(t2.shape).toEqual([2, 2, 2]);
+    expectArraysClose(t2, [1, 2, 3, 4, 11, 22, 33, 44]);
+  });
 
-    it('3D [r, c, d] => [d, c, r]', () => {
-      const t = dl.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
-      const t2 = dl.transpose(t, [2, 1, 0]);
+  it('3D [r, c, d] => [d, c, r]', () => {
+    const t = dl.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
+    const t2 = dl.transpose(t, [2, 1, 0]);
 
-      expect(t2.shape).toEqual([2, 2, 2]);
-      test_util.expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
-    });
+    expect(t2.shape).toEqual([2, 2, 2]);
+    expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
+  });
 
-    it('gradient 3D [r, c, d] => [d, c, r]', () => {
-      const t = dl.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
-      const perm = [2, 1, 0];
-      const dy =
-          dl.tensor3d([111, 211, 121, 221, 112, 212, 122, 222], [2, 2, 2]);
-      const dt = dl.vjp(() => dl.transpose(t, perm), t, dy);
-      expect(dt.shape).toEqual(t.shape);
-      expect(dt.dtype).toEqual('float32');
-      test_util.expectArraysClose(dt, [111, 112, 121, 122, 211, 212, 221, 222]);
-    });
-  };
-
-  test_util.describeMathCPU('transpose', [tests]);
-  test_util.describeMathGPU('transpose', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
+  it('gradient 3D [r, c, d] => [d, c, r]', () => {
+    const t = dl.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
+    const perm = [2, 1, 0];
+    const dy = dl.tensor3d([111, 211, 121, 221, 112, 212, 122, 222], [2, 2, 2]);
+    const dt = dl.vjp(() => dl.transpose(t, perm), t, dy);
+    expect(dt.shape).toEqual(t.shape);
+    expect(dt.dtype).toEqual('float32');
+    expectArraysClose(dt, [111, 112, 121, 122, 211, 212, 221, 222]);
+  });
+});

@@ -16,72 +16,54 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import * as util from '../util';
 
-// debug mode
-{
-  const tests = () => {
-    it('debug mode does not error when no nans', () => {
-      const a = dl.tensor1d([2, -1, 0, 3]);
-      const res = dl.relu(a);
-      test_util.expectArraysClose(res, [2, 0, 0, 3]);
-    });
+const ALL_ENVS_DEBUG = ALL_ENVS.map(env => Object.assign({'DEBUG': true}, env));
+const ALL_ENVS_NO_DEBUG =
+    ALL_ENVS.map(env => Object.assign({'DEBUG': false}, env));
 
-    it('debug mode errors when there are nans, float32', () => {
-      const a = dl.tensor1d([2, NaN]);
-      const f = () => dl.relu(a);
-      expect(f).toThrowError();
-    });
+describeWithFlags('debug on', ALL_ENVS_DEBUG, () => {
+  it('debug mode does not error when no nans', () => {
+    const a = dl.tensor1d([2, -1, 0, 3]);
+    const res = dl.relu(a);
+    expectArraysClose(res, [2, 0, 0, 3]);
+  });
 
-    it('debug mode errors when there are nans, int32', () => {
-      const a = dl.tensor1d([2, util.NAN_INT32], 'int32');
-      const f = () => dl.relu(a);
-      expect(f).toThrowError();
-    });
+  it('debug mode errors when there are nans, float32', () => {
+    const a = dl.tensor1d([2, NaN]);
+    const f = () => dl.relu(a);
+    expect(f).toThrowError();
+  });
 
-    it('debug mode errors when there are nans, bool', () => {
-      const a = dl.tensor1d([1, util.NAN_BOOL], 'bool');
-      const f = () => dl.relu(a);
-      expect(f).toThrowError();
-    });
+  it('debug mode errors when there are nans, int32', () => {
+    const a = dl.tensor1d([2, util.NAN_INT32], 'int32');
+    const f = () => dl.relu(a);
+    expect(f).toThrowError();
+  });
 
-    it('A x B', () => {
-      const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-      const b = dl.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
+  it('debug mode errors when there are nans, bool', () => {
+    const a = dl.tensor1d([1, util.NAN_BOOL], 'bool');
+    const f = () => dl.relu(a);
+    expect(f).toThrowError();
+  });
 
-      const c = dl.matMul(a, b);
+  it('A x B', () => {
+    const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = dl.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
 
-      expect(c.shape).toEqual([2, 2]);
-      test_util.expectArraysClose(c, [0, 8, -3, 20]);
-    });
-  };
+    const c = dl.matMul(a, b);
 
-  test_util.describeMathCPU('debug mode on', [tests], [{'DEBUG': true}]);
-  test_util.describeMathGPU('debug mode on ', [tests], [
-    {'DEBUG': true, 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'DEBUG': true, 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'DEBUG': true, 'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(c, [0, 8, -3, 20]);
+  });
+});
 
-// debug mode off
-{
-  const gpuTests = () => {
-    it('no errors where there are nans, and debug mode is disabled', () => {
-      const a = dl.tensor1d([2, NaN]);
-      const res = dl.relu(a);
-      test_util.expectArraysClose(res, [2, NaN]);
-    });
-  };
-
-  test_util.describeMathCPU('debug mode off', [gpuTests], [{'DEBUG': false}]);
-  test_util.describeMathGPU('debug mode off', [gpuTests], [
-    {'DEBUG': false, 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'DEBUG': false, 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2}, {
-      'DEBUG': false,
-      'WEBGL_FLOAT_TEXTURE_ENABLED': false,
-      'WEBGL_VERSION': 1
-    }
-  ]);
-}
+describeWithFlags('debug off', ALL_ENVS_NO_DEBUG, () => {
+  it('no errors where there are nans, and debug mode is disabled', () => {
+    const a = dl.tensor1d([2, NaN]);
+    const res = dl.relu(a);
+    expectArraysClose(res, [2, NaN]);
+  });
+});

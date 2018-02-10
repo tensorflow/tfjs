@@ -17,7 +17,7 @@
 
 import * as dl from '../index';
 import {Tensor} from '../math/tensor';
-import * as test_util from '../test_util';
+import {expectArraysClose} from '../test_util';
 import {InMemoryDataset} from './dataset';
 
 class StubDataset extends InMemoryDataset {
@@ -53,31 +53,30 @@ describe('Dataset', () => {
 
     let normalizedInputs = dataset.getData()[0];
 
-    test_util.expectArraysClose(normalizedInputs[0], [0, 0, 0, 1, .25, .75]);
-    test_util.expectArraysClose(
+    expectArraysClose(normalizedInputs[0], [0, 0, 0, 1, .25, .75]);
+    expectArraysClose(
         normalizedInputs[1], [1 / 3, 1 / 3, 1 / 3, 2 / 3, .75, .5]);
-    test_util.expectArraysClose(
-        normalizedInputs[2], [2 / 3, 2 / 3, 2 / 3, 1 / 3, 0, 0]);
-    test_util.expectArraysClose(normalizedInputs[3], [1, 1, 1, 0, 1, 1]);
+    expectArraysClose(normalizedInputs[2], [2 / 3, 2 / 3, 2 / 3, 1 / 3, 0, 0]);
+    expectArraysClose(normalizedInputs[3], [1, 1, 1, 0, 1, 1]);
 
     dataset.normalizeWithinBounds(dataIndex, -1, 1);
 
     normalizedInputs = dataset.getData()[0];
 
-    test_util.expectArraysClose(normalizedInputs[0], [-1, -1, -1, 1, -.5, .5]);
-    test_util.expectArraysClose(
+    expectArraysClose(normalizedInputs[0], [-1, -1, -1, 1, -.5, .5]);
+    expectArraysClose(
         normalizedInputs[1], [-1 / 3, -1 / 3, -1 / 3, 1 / 3, .5, .0]);
-    test_util.expectArraysClose(
+    expectArraysClose(
         normalizedInputs[2], [1 / 3, 1 / 3, 1 / 3, -1 / 3, -1, -1]);
-    test_util.expectArraysClose(normalizedInputs[3], [1, 1, 1, -1, 1, 1]);
+    expectArraysClose(normalizedInputs[3], [1, 1, 1, -1, 1, 1]);
 
     dataset.removeNormalization(dataIndex);
 
     normalizedInputs = dataset.getData()[0];
 
-    test_util.expectArraysClose(normalizedInputs[0], [1, 2, 10, -1, -2, .75]);
-    test_util.expectArraysClose(normalizedInputs[1], [2, 3, 20, -2, 2, .5]);
-    test_util.expectArraysClose(normalizedInputs[2], [3, 4, 30, -3, -4, 0]);
-    test_util.expectArraysClose(normalizedInputs[3], [4, 5, 40, -4, 4, 1]);
+    expectArraysClose(normalizedInputs[0], [1, 2, 10, -1, -2, .75]);
+    expectArraysClose(normalizedInputs[1], [2, 3, 20, -2, 2, .5]);
+    expectArraysClose(normalizedInputs[2], [3, 4, 30, -3, -4, 0]);
+    expectArraysClose(normalizedInputs[3], [4, 5, 40, -4, 4, 1]);
   });
 });

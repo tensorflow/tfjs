@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import * as test_util from '../../test_util';
-import {Tests} from '../../test_util';
+// tslint:disable-next-line:max-line-length
+import {describeWithFlags, expectArraysClose, WEBGL_ENVS} from '../../test_util';
 import {MathBackendWebGL} from './backend_webgl';
 
-const tests: Tests = () => {
+describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
   it('delayed storage, reading', () => {
     const delayedStorage = true;
     const backend = new MathBackendWebGL(null, delayedStorage);
@@ -30,8 +30,7 @@ const tests: Tests = () => {
     expect(texManager.getNumUsedTextures()).toBe(0);
     backend.getTexture(dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
-    test_util.expectArraysClose(
-        backend.readSync(dataId), new Float32Array([1, 2, 3]));
+    expectArraysClose(backend.readSync(dataId), new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(0);
     backend.getTexture(dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
@@ -51,12 +50,10 @@ const tests: Tests = () => {
     // overwrite.
     backend.write(dataId, new Float32Array([4, 5, 6]));
     expect(texManager.getNumUsedTextures()).toBe(0);
-    test_util.expectArraysClose(
-        backend.readSync(dataId), new Float32Array([4, 5, 6]));
+    expectArraysClose(backend.readSync(dataId), new Float32Array([4, 5, 6]));
     backend.getTexture(dataId);
     expect(texManager.getNumUsedTextures()).toBe(1);
-    test_util.expectArraysClose(
-        backend.readSync(dataId), new Float32Array([4, 5, 6]));
+    expectArraysClose(backend.readSync(dataId), new Float32Array([4, 5, 6]));
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
 
@@ -68,8 +65,7 @@ const tests: Tests = () => {
     backend.register(dataId, [3], 'float32');
     backend.write(dataId, new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(1);
-    test_util.expectArraysClose(
-        backend.readSync(dataId), new Float32Array([1, 2, 3]));
+    expectArraysClose(backend.readSync(dataId), new Float32Array([1, 2, 3]));
     expect(texManager.getNumUsedTextures()).toBe(1);
     backend.disposeData(dataId);
     expect(texManager.getNumUsedTextures()).toBe(0);
@@ -85,8 +81,7 @@ const tests: Tests = () => {
     expect(texManager.getNumUsedTextures()).toBe(1);
     backend.write(dataId, new Float32Array([4, 5, 6]));
     expect(texManager.getNumUsedTextures()).toBe(1);
-    test_util.expectArraysClose(
-        backend.readSync(dataId), new Float32Array([4, 5, 6]));
+    expectArraysClose(backend.readSync(dataId), new Float32Array([4, 5, 6]));
     expect(texManager.getNumUsedTextures()).toBe(1);
     backend.disposeData(dataId);
     expect(texManager.getNumUsedTextures()).toBe(0);
@@ -106,10 +101,4 @@ const tests: Tests = () => {
     backend.dispose();
     expect(texManager.getNumUsedTextures()).toBe(0);
   });
-};
-
-test_util.describeCustom('backend_webgl', tests, [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

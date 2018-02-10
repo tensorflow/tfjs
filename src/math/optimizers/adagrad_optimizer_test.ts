@@ -20,11 +20,10 @@ import {Graph} from '../../graph/graph';
 import {Session} from '../../graph/session';
 import * as dl from '../../index';
 import {Tensor1D} from '../../math/tensor';
-import * as test_util from '../../test_util';
-
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../../test_util';
 import {AdagradOptimizer} from './adagrad_optimizer';
 
-const tests = () => {
+describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
   it('basic', () => {
     const learningRate = .1;
     const initialAccumulatorValue = .1;
@@ -48,7 +47,7 @@ const tests = () => {
     // accumulatedGrad = [0.1, 0.1]
     // newAccumulatedGrad = [4.1, 16.1]
     // x = [0.9012270405, 1.900311042]
-    test_util.expectArraysClose(x, [0.9012270405, 1.9003110428]);
+    expectArraysClose(x, [0.9012270405, 1.9003110428]);
 
     cost.dispose();
     numTensors = dl.memory().numTensors;
@@ -59,7 +58,7 @@ const tests = () => {
     // accumulatedGrad = [4.1, 16.1]
     // newAccumulatedGrad = [7.3488407141, 31.7037286432]
     // x = [0.8347372764, 1.83015597828]
-    test_util.expectArraysClose(x, [0.8347372764, 1.83015597828]);
+    expectArraysClose(x, [0.8347372764, 1.83015597828]);
 
     // There should be no new additional Tensors.
     expect(dl.memory().numTensors).toBe(numTensors);
@@ -99,7 +98,7 @@ const tests = () => {
       //                = [-0.1, -0.1]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw = session.activationArrayMap.get(w).dataSync();
-      test_util.expectArraysClose(dydw, new Float32Array([-.1, -0.1]));
+      expectArraysClose(dydw, new Float32Array([-.1, -0.1]));
       // cache = [old_cache_w1 + grad_w1**2,
       //                old_cache_w2 + grad_w2**2] = [4,16]
       // w = [ w1_old - lr*grad_w1/sqrt(cahce_w2 + eps),
@@ -107,14 +106,7 @@ const tests = () => {
       //                = [-0.1707, -0.1707]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw2 = session.activationArrayMap.get(w).dataSync();
-      test_util.expectArraysClose(dydw2, new Float32Array([-.1707, -.1707]));
+      expectArraysClose(dydw2, new Float32Array([-.1707, -.1707]));
     });
   });
-};
-
-test_util.describeMathCPU('AdagradOptimizer', [tests]);
-test_util.describeMathGPU('AdagradOptimizer', [tests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

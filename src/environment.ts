@@ -24,7 +24,8 @@ import * as util from './util';
 
 export enum Type {
   NUMBER,
-  BOOLEAN
+  BOOLEAN,
+  STRING
 }
 
 export interface Features {
@@ -47,6 +48,7 @@ export interface Features {
   'WEBGL_FLOAT_TEXTURE_ENABLED'?: boolean;
   // Whether WEBGL_get_buffer_sub_data_async is enabled.
   'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'?: boolean;
+  'BACKEND'?: BackendType;
 }
 
 export const URL_PROPERTIES: URLProperty[] = [
@@ -57,7 +59,8 @@ export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_FLOAT_TEXTURE_ENABLED', type: Type.BOOLEAN}, {
     name: 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED',
     type: Type.BOOLEAN
-  }
+  },
+  {name: 'BACKEND', type: Type.STRING}
 ];
 
 export interface URLProperty {
@@ -284,6 +287,8 @@ export class Environment {
   private evaluateFeature<K extends keyof Features>(feature: K): Features[K] {
     if (feature === 'DEBUG') {
       return false;
+    } else if (feature === 'BACKEND') {
+      return this.getBestBackendType();
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') {
       const webGLVersion = this.get('WEBGL_VERSION');
 
@@ -413,8 +418,7 @@ export class Environment {
   }
 
   private initEngine() {
-    const safeMode = false;
-    this.globalMath = new NDArrayMath(this.getBestBackendType(), safeMode);
+    this.globalMath = new NDArrayMath(ENV.get('BACKEND'), false /* safeMode */);
   }
 }
 
@@ -446,6 +450,9 @@ function getFeaturesFromURL(): Features {
           features[urlProperty.name] = +urlFlags[urlProperty.name];
         } else if (urlProperty.type === Type.BOOLEAN) {
           features[urlProperty.name] = urlFlags[urlProperty.name] === 'true';
+        } else if (urlProperty.type === Type.STRING) {
+          // tslint:disable-next-line:no-any
+          features[urlProperty.name] = urlFlags[urlProperty.name] as any;
         } else {
           console.warn(`Unknown URL param: ${urlProperty.name}.`);
         }

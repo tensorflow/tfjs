@@ -16,10 +16,10 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+import {ALL_ENVS, describeWithFlags, expectNumbersClose} from '../test_util';
 import {SquareCostFunc} from './cost_functions';
 
-const tests = () => {
+describeWithFlags('Square Cost', ALL_ENVS, () => {
   it('Square cost', () => {
     const y = dl.tensor1d([1, 3, -2]);
     const target = dl.tensor1d([0, 3, -1.5]);
@@ -27,9 +27,9 @@ const tests = () => {
     const cost = square.cost(y, target);
 
     // The cost function is 1/2 * (y - target)^2
-    test_util.expectNumbersClose(cost.get(0), 1 / 2);
-    test_util.expectNumbersClose(cost.get(1), 0 / 2);
-    test_util.expectNumbersClose(cost.get(2), 0.25 / 2);
+    expectNumbersClose(cost.get(0), 1 / 2);
+    expectNumbersClose(cost.get(1), 0 / 2);
+    expectNumbersClose(cost.get(2), 0.25 / 2);
   });
 
   it('Square derivative', () => {
@@ -38,15 +38,8 @@ const tests = () => {
     const square = new SquareCostFunc();
     const dy = square.der(y, target);
 
-    test_util.expectNumbersClose(dy.get(0), 1);
-    test_util.expectNumbersClose(dy.get(1), 0);
-    test_util.expectNumbersClose(dy.get(2), -0.5);
+    expectNumbersClose(dy.get(0), 1);
+    expectNumbersClose(dy.get(1), 0);
+    expectNumbersClose(dy.get(2), -0.5);
   });
-};
-
-test_util.describeMathCPU('Square cost', [tests]);
-test_util.describeMathGPU('Square cost', [tests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

@@ -16,11 +16,12 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
 import {MatrixOrientation} from './backends/types/matmul';
 import {Rank} from './types';
 
-const commonTests = () => {
+describeWithFlags('matmul', ALL_ENVS, () => {
   it('A x B', () => {
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
     const b = dl.tensor2d([0, 1, -3, 2, 2, 1], [3, 2]);
@@ -28,7 +29,7 @@ const commonTests = () => {
     const c = dl.matMul(a, b);
 
     expect(c.shape).toEqual([2, 2]);
-    test_util.expectArraysClose(c, [0, 8, -3, 20]);
+    expectArraysClose(c, [0, 8, -3, 20]);
   });
 
   it('A x B^t', () => {
@@ -39,7 +40,7 @@ const commonTests = () => {
         a, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED);
 
     const expected = [7, 10, 16, 31];
-    test_util.expectArraysClose(c, expected);
+    expectArraysClose(c, expected);
   });
 
   it('A^t x B', () => {
@@ -50,7 +51,7 @@ const commonTests = () => {
         a, b, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR);
 
     const expected = [17, 12, 2, 22, 15, 4, 27, 18, 6];
-    test_util.expectArraysClose(c, expected);
+    expectArraysClose(c, expected);
   });
 
   it('A^t x B^t', () => {
@@ -61,7 +62,7 @@ const commonTests = () => {
         a, b, MatrixOrientation.TRANSPOSED, MatrixOrientation.TRANSPOSED);
 
     const expected = [11, 13, 14, 20];
-    test_util.expectArraysClose(c, expected);
+    expectArraysClose(c, expected);
   });
 
   it('A x B^t shapes do not match', () => {
@@ -118,7 +119,7 @@ const commonTests = () => {
     const result = dl.vectorTimesMatrix(v, matrix);
 
     const expected = [11, 16];
-    test_util.expectArraysClose(result, expected);
+    expectArraysClose(result, expected);
   });
 
   it('Vector times matrix with implicit reshape', () => {
@@ -128,7 +129,7 @@ const commonTests = () => {
     const result = dl.vectorTimesMatrix(v, matrix);
 
     const expected = [11, 16];
-    test_util.expectArraysClose(result, expected);
+    expectArraysClose(result, expected);
   });
 
   it('Vector times matrix throws when not passed a vector', () => {
@@ -153,7 +154,7 @@ const commonTests = () => {
     const result = dl.matrixTimesVector(matrix, v);
 
     const expected = [8, 18];
-    test_util.expectArraysClose(result, expected);
+    expectArraysClose(result, expected);
   });
 
   it('Matrix * vector propagates NaNs', () => {
@@ -162,7 +163,7 @@ const commonTests = () => {
     const result = dl.matrixTimesVector(matrix, v);
 
     const expected = [NaN, NaN];
-    test_util.expectArraysClose(result, expected);
+    expectArraysClose(result, expected);
   });
 
   it('matrix times vector throws when not passed a vector', () => {
@@ -187,7 +188,7 @@ const commonTests = () => {
     const v2 = dl.tensor1d([2, 1]);
     const result = dl.dotProduct(v1, v2);
 
-    test_util.expectNumbersClose(result.get(), 7);
+    expectNumbersClose(result.get(), 7);
   });
 
   it('Dot product propagates NaNs', () => {
@@ -221,7 +222,7 @@ const commonTests = () => {
 
     const expected = [4, 2, 6, 3];
     expect(result.shape).toEqual([2, 2]);
-    test_util.expectArraysClose(result, expected);
+    expectArraysClose(result, expected);
   });
 
   // TODO(nsthorat): fix the precision for backprop.
@@ -236,7 +237,7 @@ const commonTests = () => {
         {a, b}, dy);
 
     // da = dy * bT
-    test_util.expectArraysClose(
+    expectArraysClose(
         gradients.a,
         [
           dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(0, 1),
@@ -250,7 +251,7 @@ const commonTests = () => {
 
     // db = aT * dy
     expect(gradients.b.shape).toEqual(b.shape);
-    test_util.expectArraysClose(
+    expectArraysClose(
         gradients.b,
         [
           a.get(0, 0) * dy.get(0, 0) + a.get(1, 0) * dy.get(1, 0),
@@ -262,9 +263,9 @@ const commonTests = () => {
         ],
         1e-1);
   });
-};
+});
 
-const gpuTests = () => {
+describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
   it('Matrix times vector, large matrix', () => {
     const maxTexSize = 16000;
     const sharedDim = maxTexSize + 4;
@@ -278,13 +279,6 @@ const gpuTests = () => {
 
     const result = dl.matrixTimesVector(matrix.toTensor(), v.toTensor());
     const expected = [2, 0];
-    test_util.expectArraysClose(result, expected);
+    expectArraysClose(result, expected);
   });
-};
-
-test_util.describeMathCPU('matMul', [commonTests]);
-test_util.describeMathGPU('matMul', [commonTests, gpuTests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

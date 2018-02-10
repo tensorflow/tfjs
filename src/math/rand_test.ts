@@ -15,14 +15,14 @@
  * =============================================================================
  */
 
-import * as test_util from '../test_util';
 import {MPRandGauss} from './rand';
+import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
 function isFloat(n: number): boolean {
   return Number(n) === n && n % 1 !== 0;
 }
 
-test_util.describeCustom('MPRandGauss', () => {
+describe('MPRandGauss', () => {
   const EPSILON = 0.05;
   const SEED = 2002;
 
@@ -39,8 +39,8 @@ test_util.describeCustom('MPRandGauss', () => {
     for (let i = 0; i < size; i++) {
       values.push(rand.nextValue());
     }
-    test_util.expectArrayInMeanStdRange(values, 0, 1.5, EPSILON);
-    test_util.jarqueBeraNormalityTest(values);
+    expectArrayInMeanStdRange(values, 0, 1.5, EPSILON);
+    jarqueBeraNormalityTest(values);
   });
 
   it('should handle int32 numbers', () => {
@@ -55,8 +55,8 @@ test_util.describeCustom('MPRandGauss', () => {
     for (let i = 0; i < size; i++) {
       values.push(rand.nextValue());
     }
-    test_util.expectArrayInMeanStdRange(values, 0, 2, EPSILON);
-    test_util.jarqueBeraNormalityTest(values);
+    expectArrayInMeanStdRange(values, 0, 2, EPSILON);
+    jarqueBeraNormalityTest(values);
   });
 
   it('Should not have a more than 2x std-d from mean for truncated values',
