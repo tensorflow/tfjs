@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import * as test_util from '../../../test_util';
+// tslint:disable-next-line:max-line-length
+import {expectArraysClose, expectNumbersClose} from '../../../test_util';
 import {MatrixOrientation} from '../types/matmul';
 
 import {GPGPUContext} from './gpgpu_context';
@@ -59,7 +60,7 @@ describe('mulmat_packed_gpu (1x1 * 1x1)', () => {
     const b = new Float32Array([3.4]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [1, 1], b, [1, 1]);
-    test_util.expectNumbersClose(result[0], 4.08);
+    expectNumbersClose(result[0], 4.08);
   });
 
   it('returns [356000] when multiplying [356] by [1000]', () => {
@@ -109,17 +110,17 @@ describe('mulmat_packed_gpu (dot product)', () => {
     const b = new Float32Array([0.5, 1.1, 12.4, 32.5, -123.98]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [1, a.length], b, [b.length, 1]);
-    const expected = test_util.cpuDotProduct(a, b);
-    test_util.expectNumbersClose(result[0], expected);
+    const expected = cpuDotProduct(a, b);
+    expectNumbersClose(result[0], expected);
   });
 
   it('computes a dot product on very large vectors', () => {
-    const a: Float32Array = test_util.randomArrayInRange(2048, -1, 1);
-    const b: Float32Array = test_util.randomArrayInRange(2048, -1, 1);
+    const a: Float32Array = randomArrayInRange(2048, -1, 1);
+    const b: Float32Array = randomArrayInRange(2048, -1, 1);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [1, a.length], b, [b.length, 1]);
-    const expected = test_util.cpuDotProduct(a, b);
-    test_util.expectNumbersClose(result[0], expected);
+    const expected = cpuDotProduct(a, b);
+    expectNumbersClose(result[0], expected);
   });
 });
 
@@ -153,8 +154,8 @@ describe('mulmat_packed_gpu (2x2 * 2x2)', () => {
   });
 
   it('returns the identity when multiplying two identity matrices', () => {
-    const a = test_util.makeIdentity(2);
-    const b = test_util.makeIdentity(2);
+    const a = makeIdentity(2);
+    const b = makeIdentity(2);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [2, 2], b, [2, 2]);
     expect(result).toEqual(cpuMul2x2(a, b));
@@ -177,7 +178,7 @@ describe('mulmat_packed_gpu (2x2 * 2x2)', () => {
   });
 
   it('returns B when A is identity', () => {
-    const a = test_util.makeIdentity(2);
+    const a = makeIdentity(2);
     const b = new Float32Array([11, -22, 33.333, -44.44444]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [2, 2], b, [2, 2]);
@@ -186,7 +187,7 @@ describe('mulmat_packed_gpu (2x2 * 2x2)', () => {
 
   it('returns A when B is identity', () => {
     const a = new Float32Array([11, -22, 33.333, -44.44444]);
-    const b = test_util.makeIdentity(2);
+    const b = makeIdentity(2);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [2, 2], b, [2, 2]);
     expect(result).toEqual(a);
@@ -211,7 +212,7 @@ describe('mulmat_packed_gpu (different shapes)', () => {
   });
 
   it('returns B (4x1) when A (4x4) is I', () => {
-    const a = test_util.makeIdentity(4);
+    const a = makeIdentity(4);
     const b = new Float32Array([1, 2, 3, 4]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [4, 4], b, [4, 1]);
@@ -223,8 +224,8 @@ describe('mulmat_packed_gpu (different shapes)', () => {
     const b = new Float32Array([9, 10, 11, 12]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [4, 2], b, [2, 2]);
-    const expected = test_util.cpuMultiplyMatrix(a, 4, 2, b, 2, 2);
-    test_util.expectArraysClose(result, expected);
+    const expected = cpuMultiplyMatrix(a, 4, 2, b, 2, 2);
+    expectArraysClose(result, expected);
   });
 
   it('multiplies a 4x1 by a non-identity 4x4', () => {
@@ -233,7 +234,7 @@ describe('mulmat_packed_gpu (different shapes)', () => {
     const b = new Float32Array([1, 2, 3, 4]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [4, 4], b, [4, 1]);
-    expect(result).toEqual(test_util.cpuMultiplyMatrix(a, 4, 4, b, 4, 1));
+    expect(result).toEqual(cpuMultiplyMatrix(a, 4, 4, b, 4, 1));
   });
 
   it('returns a 2x3 when multiplying a 2x4 by a 4x3', () => {
@@ -249,8 +250,8 @@ describe('mulmat_packed_gpu (different shapes)', () => {
     const b = new Float32Array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [2, 4], b, [4, 3]);
-    const expected = test_util.cpuMultiplyMatrix(a, 2, 4, b, 4, 3);
-    test_util.expectArraysClose(result, expected);
+    const expected = cpuMultiplyMatrix(a, 2, 4, b, 4, 3);
+    expectArraysClose(result, expected);
   });
 });
 
@@ -264,12 +265,12 @@ describe('mulmat_packed_gpu (large matrices)', () => {
   });
 
   it('multiplies 2 128x128s', () => {
-    const a = test_util.randomArrayInRange(128 * 128, -1, 1);
-    const b = test_util.randomArrayInRange(128 * 128, -1, 1);
+    const a = randomArrayInRange(128 * 128, -1, 1);
+    const b = randomArrayInRange(128 * 128, -1, 1);
     const result = mulmat_packed_gpu.uploadMultiplyMatrixPackedDownload(
         a, [128, 128], b, [128, 128]);
-    const expected = test_util.cpuMultiplyMatrix(a, 128, 128, b, 128, 128);
-    test_util.expectArraysClose(result, expected);
+    const expected = cpuMultiplyMatrix(a, 128, 128, b, 128, 128);
+    expectArraysClose(result, expected);
   });
 });
 
@@ -309,10 +310,9 @@ describe('mulmat_packed_gpu (multiple matrices)', () => {
         gpgpu, abxcProgram, ab, c, r, [4, 1]);
 
     const result = gpgpu.downloadMatrixFromPackedTexture(r, 4, 1);
-    const expected = test_util.cpuMultiplyMatrix(
-        test_util.cpuMultiplyMatrix(aData, 4, 2, bData, 2, 12), 4, 12, cData,
-        12, 1);
-    test_util.expectArraysClose(result, expected);
+    const expected = cpuMultiplyMatrix(
+        cpuMultiplyMatrix(aData, 4, 2, bData, 2, 12), 4, 12, cData, 12, 1);
+    expectArraysClose(result, expected);
 
     gpgpu.deleteMatrixTexture(a);
     gpgpu.deleteMatrixTexture(b);
@@ -343,8 +343,8 @@ describe('mulmat_packed_gpu A * B^t', () => {
         MatrixOrientation.TRANSPOSED);
 
     const bt = new Float32Array([b[0], b[2], b[1], b[3]]);
-    const expected = test_util.cpuMultiplyMatrix(a, 2, 2, bt, 2, 2);
-    test_util.expectArraysClose(result, expected);
+    const expected = cpuMultiplyMatrix(a, 2, 2, bt, 2, 2);
+    expectArraysClose(result, expected);
   });
 
   it('2x4 * 4x2', () => {
@@ -368,8 +368,8 @@ describe('mulmat_packed_gpu A * B^t', () => {
 
     const bt =
         new Float32Array([b[0], b[4], b[1], b[5], b[2], b[6], b[3], b[7]]);
-    const expected = test_util.cpuMultiplyMatrix(a, 2, 4, bt, 4, 2);
-    test_util.expectArraysClose(result, expected);
+    const expected = cpuMultiplyMatrix(a, 2, 4, bt, 4, 2);
+    expectArraysClose(result, expected);
   });
 });
 
@@ -404,3 +404,50 @@ describe('mulmat_packed_gpu (transposed versions)', () => {
     expect(c).toEqual(expected);
   });
 });
+
+function randomArrayInRange(
+    n: number, minValue: number, maxValue: number): Float32Array {
+  const v = new Float32Array(n);
+  const range = maxValue - minValue;
+  for (let i = 0; i < n; ++i) {
+    v[i] = (Math.random() * range) + minValue;
+  }
+  return v;
+}
+
+function makeIdentity(n: number): Float32Array {
+  const i = new Float32Array(n * n);
+  for (let j = 0; j < n; ++j) {
+    i[(j * n) + j] = 1;
+  }
+  return i;
+}
+
+function cpuMultiplyMatrix(
+    a: Float32Array, aRow: number, aCol: number, b: Float32Array, bRow: number,
+    bCol: number) {
+  const result = new Float32Array(aRow * bCol);
+  for (let r = 0; r < aRow; ++r) {
+    const aOffset = (r * aCol);
+    const cOffset = (r * bCol);
+    for (let c = 0; c < bCol; ++c) {
+      let d = 0;
+      for (let k = 0; k < aCol; ++k) {
+        d += a[aOffset + k] * b[(k * bCol) + c];
+      }
+      result[cOffset + c] = d;
+    }
+  }
+  return result;
+}
+
+function cpuDotProduct(a: Float32Array, b: Float32Array): number {
+  if (a.length !== b.length) {
+    throw new Error('cpuDotProduct: incompatible vectors.');
+  }
+  let d = 0;
+  for (let i = 0; i < a.length; ++i) {
+    d += a[i] * b[i];
+  }
+  return d;
+}

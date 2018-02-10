@@ -16,7 +16,7 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+import {expectArraysClose} from '../test_util';
 import * as axis_util from './axis_util';
 
 describe('axis_util combineLocations', () => {
@@ -286,6 +286,6 @@ describe('axis_util getUndoAxesPermutation', () => {
     const a = dl.randomNormal([2, 3, 4, 5]);
     const aT = dl.transpose(a, axes);
     const aTT = dl.transpose(aT, undoPermutation);
-    test_util.expectArraysClose(a, aTT);
+    expectArraysClose(a, aTT);
   });
 });

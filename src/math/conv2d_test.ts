@@ -16,217 +16,205 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Rank} from './types';
 
-// dl.conv2d
-{
-  const tests = () => {
-    it('x=[2,2,1] f=[1,1,1,2] s=1 p=0', () => {
-      const inputDepth = 1;
-      const inputShape: [number, number, number] = [2, 2, inputDepth];
-      const outputDepth = 1;
-      const fSize = 1;
-      const pad = 0;
-      const stride = 1;
+describeWithFlags('conv2d', ALL_ENVS, () => {
+  it('x=[2,2,1] f=[1,1,1,2] s=1 p=0', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
 
-      const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-      const w = dl.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
-      const bias = dl.tensor1d([-1]);
+    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
+    const w = dl.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
+    const bias = dl.tensor1d([-1]);
 
-      const result = dl.conv2d(x, w, bias, stride, pad);
+    const result = dl.conv2d(x, w, bias, stride, pad);
 
-      test_util.expectArraysClose(result, [1, 3, 5, 7]);
-    });
+    expectArraysClose(result, [1, 3, 5, 7]);
+  });
 
-    it('x=[2,2,2,1] f=[1,1,1,1] s=1 p=0', () => {
-      const inputDepth = 1;
-      const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
-      const outputDepth = 1;
-      const fSize = 1;
-      const pad = 0;
-      const stride = 1;
+  it('x=[2,2,2,1] f=[1,1,1,1] s=1 p=0', () => {
+    const inputDepth = 1;
+    const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
 
-      const x = dl.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
-      const w = dl.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
-      const bias = dl.tensor1d([-1]);
+    const x = dl.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
+    const w = dl.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
+    const bias = dl.tensor1d([-1]);
 
-      const result = dl.conv2d(x, w, bias, stride, pad);
-      expect(result.shape).toEqual([2, 2, 2, 1]);
-      const expected = [1, 3, 5, 7, 9, 11, 13, 15];
+    const result = dl.conv2d(x, w, bias, stride, pad);
+    expect(result.shape).toEqual([2, 2, 2, 1]);
+    const expected = [1, 3, 5, 7, 9, 11, 13, 15];
 
-      test_util.expectArraysClose(result, expected);
-    });
+    expectArraysClose(result, expected);
+  });
 
-    it('x=[2,2,1] f=[2,2,1,1] s=1 p=0', () => {
-      const inputDepth = 1;
-      const inputShape: [number, number, number] = [2, 2, inputDepth];
-      const outputDepth = 1;
-      const fSize = 2;
-      const pad = 0;
-      const stride = 1;
+  it('x=[2,2,1] f=[2,2,1,1] s=1 p=0', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad = 0;
+    const stride = 1;
 
-      const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-      const w =
-          dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
-      const bias = dl.tensor1d([-1]);
+    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
+    const w =
+        dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
+    const bias = dl.tensor1d([-1]);
 
-      const result = dl.conv2d(x, w, bias, stride, pad);
-      test_util.expectArraysClose(result, [19]);
-    });
+    const result = dl.conv2d(x, w, bias, stride, pad);
+    expectArraysClose(result, [19]);
+  });
 
-    it('throws when x is not rank 3', () => {
-      const inputDepth = 1;
-      const outputDepth = 1;
-      const fSize = 2;
-      const pad = 0;
-      const stride = 1;
+  it('throws when x is not rank 3', () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad = 0;
+    const stride = 1;
 
-      // tslint:disable-next-line:no-any
-      const x: any = dl.tensor2d([1, 2, 3, 4], [2, 2]);
-      const w =
-          dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
-      const bias = dl.tensor1d([-1]);
+    // tslint:disable-next-line:no-any
+    const x: any = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+    const w =
+        dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
+    const bias = dl.tensor1d([-1]);
 
-      expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
-    });
+    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
+  });
 
-    it('throws when weights is not rank 4', () => {
-      const inputDepth = 1;
-      const inputShape: [number, number, number] = [2, 2, inputDepth];
-      const pad = 0;
-      const stride = 1;
+  it('throws when weights is not rank 4', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const pad = 0;
+    const stride = 1;
 
-      const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-      // tslint:disable-next-line:no-any
-      const w: any = dl.tensor3d([3, 1, 5, 0], [2, 2, 1]);
-      const bias = dl.tensor1d([-1]);
+    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
+    // tslint:disable-next-line:no-any
+    const w: any = dl.tensor3d([3, 1, 5, 0], [2, 2, 1]);
+    const bias = dl.tensor1d([-1]);
 
-      expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
-    });
+    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
+  });
 
-    it('throws when biases is not rank 1', () => {
-      const inputDepth = 1;
-      const inputShape: [number, number, number] = [2, 2, inputDepth];
-      const outputDepth = 1;
-      const fSize = 2;
-      const pad = 0;
-      const stride = 1;
+  it('throws when biases is not rank 1', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad = 0;
+    const stride = 1;
 
-      const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-      const w =
-          dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
-      // tslint:disable-next-line:no-any
-      const bias: any = dl.tensor2d([2, 2, 2, 2], [2, 2]);
+    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
+    const w =
+        dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
+    // tslint:disable-next-line:no-any
+    const bias: any = dl.tensor2d([2, 2, 2, 2], [2, 2]);
 
-      expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
-    });
+    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
+  });
 
-    it('throws when x depth does not match weight depth', () => {
-      const inputDepth = 1;
-      const wrongInputDepth = 5;
-      const inputShape: [number, number, number] = [2, 2, inputDepth];
-      const outputDepth = 1;
-      const fSize = 2;
-      const pad = 0;
-      const stride = 1;
+  it('throws when x depth does not match weight depth', () => {
+    const inputDepth = 1;
+    const wrongInputDepth = 5;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad = 0;
+    const stride = 1;
 
-      const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-      const w = dl.randomNormal<Rank.R4>(
-          [fSize, fSize, wrongInputDepth, outputDepth]);
-      const bias = dl.tensor1d([-1]);
+    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
+    const w =
+        dl.randomNormal<Rank.R4>([fSize, fSize, wrongInputDepth, outputDepth]);
+    const bias = dl.tensor1d([-1]);
 
-      expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
-    });
+    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
+  });
 
-    it('throws when dimRoundingMode is set and pad is not a number', () => {
-      const inputDepth = 1;
-      const inputShape: [number, number, number] = [2, 2, inputDepth];
-      const outputDepth = 1;
-      const fSize = 2;
-      const pad = 'valid';
-      const stride = 1;
-      const dimRoundingMode = 'round';
+  it('throws when dimRoundingMode is set and pad is not a number', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const dimRoundingMode = 'round';
 
-      const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-      const w =
-          dl.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
-      const bias = dl.tensor1d([-1]);
+    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
+    const w = dl.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
+    const bias = dl.tensor1d([-1]);
 
-      expect(() => dl.conv2d(x, w, bias, stride, pad, dimRoundingMode))
-          .toThrowError();
-    });
+    expect(() => dl.conv2d(x, w, bias, stride, pad, dimRoundingMode))
+        .toThrowError();
+  });
 
-    it('gradient input=[3,3,1] f=[2,2,1,1] s=1 p=0', () => {
-      const inputDepth = 1;
-      const outputDepth = 1;
-      const inputShape: [number, number, number] = [3, 3, inputDepth];
-      const filterSize = 2;
-      const stride = 1;
-      const pad = 0;
+  it('gradient input=[3,3,1] f=[2,2,1,1] s=1 p=0', () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number] = [3, 3, inputDepth];
+    const filterSize = 2;
+    const stride = 1;
+    const pad = 0;
 
-      const filterShape: [number, number, number, number] =
-          [filterSize, filterSize, inputDepth, outputDepth];
-      const filter = dl.ones<Rank.R4>(filterShape);
-      const bias = dl.tensor1d([-1]);
+    const filterShape: [number, number, number, number] =
+        [filterSize, filterSize, inputDepth, outputDepth];
+    const filter = dl.ones<Rank.R4>(filterShape);
+    const bias = dl.tensor1d([-1]);
 
-      const x = dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
-      const dy = dl.tensor3d([3, 1, 2, 0], [2, 2, 1]);
+    const x = dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
+    const dy = dl.tensor3d([3, 1, 2, 0], [2, 2, 1]);
 
-      const vjp = dl.vjp(
-          () => dl.conv2d(x, filter, bias, stride, pad), {x, filter, bias}, dy);
+    const vjp = dl.vjp(
+        () => dl.conv2d(x, filter, bias, stride, pad), {x, filter, bias}, dy);
 
-      expect(vjp.x.shape).toEqual(x.shape);
-      test_util.expectArraysClose(vjp.x, [3, 4, 1, 5, 6, 1, 2, 2, 0]);
+    expect(vjp.x.shape).toEqual(x.shape);
+    expectArraysClose(vjp.x, [3, 4, 1, 5, 6, 1, 2, 2, 0]);
 
-      expect(vjp.filter.shape).toEqual(filterShape);
-      // TODO(nsthorat): Fix the precision for byte textures.
-      test_util.expectArraysClose(vjp.filter, [13, 19, 31, 37], 1e-1);
+    expect(vjp.filter.shape).toEqual(filterShape);
+    // TODO(nsthorat): Fix the precision for byte textures.
+    expectArraysClose(vjp.filter, [13, 19, 31, 37], 1e-1);
 
-      expect(vjp.bias.shape).toEqual(bias.shape);
-      test_util.expectArraysClose(vjp.bias, [6], 1e-1);
-    });
+    expect(vjp.bias.shape).toEqual(bias.shape);
+    expectArraysClose(vjp.bias, [6], 1e-1);
+  });
 
-    it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', () => {
-      const inputDepth = 1;
-      const outputDepth = 1;
-      const inputShape: [number, number, number, number] =
-          [2, 3, 3, inputDepth];
-      const filterSize = 2;
-      const stride = 1;
-      const pad = 0;
+  it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const inputShape: [number, number, number, number] = [2, 3, 3, inputDepth];
+    const filterSize = 2;
+    const stride = 1;
+    const pad = 0;
 
-      const filterShape: [number, number, number, number] =
-          [filterSize, filterSize, inputDepth, outputDepth];
-      const filter = dl.ones<Rank.R4>(filterShape);
+    const filterShape: [number, number, number, number] =
+        [filterSize, filterSize, inputDepth, outputDepth];
+    const filter = dl.ones<Rank.R4>(filterShape);
 
-      const bias = dl.tensor1d([-1]);
+    const bias = dl.tensor1d([-1]);
 
-      const x = dl.tensor4d(
-          [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
-      const dy = dl.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
+    const x = dl.tensor4d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
+    const dy = dl.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
-      const vjp = dl.vjp(
-          () => dl.conv2d(x, filter, bias, stride, pad), {x, filter, bias}, dy);
+    const vjp = dl.vjp(
+        () => dl.conv2d(x, filter, bias, stride, pad), {x, filter, bias}, dy);
 
-      expect(vjp.x.shape).toEqual(x.shape);
-      test_util.expectArraysClose(
-          vjp.x, [3, 4, 1, 5, 6, 1, 2, 2, 0, 3, 4, 1, 5, 6, 1, 2, 2, 0]);
+    expect(vjp.x.shape).toEqual(x.shape);
+    expectArraysClose(
+        vjp.x, [3, 4, 1, 5, 6, 1, 2, 2, 0, 3, 4, 1, 5, 6, 1, 2, 2, 0]);
 
-      expect(vjp.filter.shape).toEqual(filterShape);
-      // TODO(nsthorat): Fix the precision for byte textures.
-      test_util.expectArraysClose(
-          vjp.filter, [13 * 2, 19 * 2, 31 * 2, 37 * 2], 1e-1);
+    expect(vjp.filter.shape).toEqual(filterShape);
+    // TODO(nsthorat): Fix the precision for byte textures.
+    expectArraysClose(vjp.filter, [13 * 2, 19 * 2, 31 * 2, 37 * 2], 1e-1);
 
-      expect(vjp.bias.shape).toEqual(bias.shape);
-      test_util.expectArraysClose(vjp.bias, [12]);
-    });
-  };
-
-  test_util.describeMathCPU('conv2d', [tests]);
-  test_util.describeMathGPU('conv2d', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
+    expect(vjp.bias.shape).toEqual(bias.shape);
+    expectArraysClose(vjp.bias, [12]);
+  });
+});

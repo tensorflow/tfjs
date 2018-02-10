@@ -20,11 +20,10 @@ import {Graph} from '../../graph/graph';
 import {Session} from '../../graph/session';
 import * as dl from '../../index';
 import {Tensor1D} from '../../math/tensor';
-import * as test_util from '../../test_util';
-
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../../test_util';
 import {MomentumOptimizer} from './momentum_optimizer';
 
-const tests = () => {
+describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
   it('basic', () => {
     const learningRate = .1;
     const momentum = .5;
@@ -47,7 +46,7 @@ const tests = () => {
     // de/dx = [2, 4]
     // newAccumulation = [2, 4]
     // x = [.8, 1.6]
-    test_util.expectArraysClose(x, [.8, 1.6]);
+    expectArraysClose(x, [.8, 1.6]);
 
     cost.dispose();
     numTensors = dl.memory().numTensors;
@@ -58,7 +57,7 @@ const tests = () => {
     // accumulation = [2, 4]
     // newAccumulation = [2.6, 5.2]
     // x = [0.54, 1.08]
-    test_util.expectArraysClose(x, [0.54, 1.08]);
+    expectArraysClose(x, [0.54, 1.08]);
 
     // There should be no new additional Tensors.
     expect(dl.memory().numTensors).toBe(numTensors);
@@ -96,20 +95,13 @@ const tests = () => {
       // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.2, -0.4]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       let wValue = session.activationArrayMap.get(w).dataSync();
-      test_util.expectArraysClose(wValue, new Float32Array([-.2, -0.4]));
+      expectArraysClose(wValue, new Float32Array([-.2, -0.4]));
       // velocity_w = [momentum* old_vel_w1 + x_1,
       //                momentum* old_vel_w2 + x_2] = [3,6]
       // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.5, -1.0]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       wValue = session.activationArrayMap.get(w).dataSync();
-      test_util.expectArraysClose(wValue, new Float32Array([-.5, -1.0]));
+      expectArraysClose(wValue, new Float32Array([-.5, -1.0]));
     });
   });
-};
-
-test_util.describeMathCPU('MomentumOptimizer', [tests]);
-test_util.describeMathGPU('MomentumOptimizer', [tests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

@@ -17,10 +17,11 @@
 
 import * as dl from '../../index';
 import {variable, Variable} from '../../math/tensor';
-import * as test_util from '../../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../../test_util';
 import {SGDOptimizer} from './sgd_optimizer';
 
-const tests = () => {
+describeWithFlags('optimizer', ALL_ENVS, () => {
   it('basic', () => {
     const learningRate = .1;
     const optimizer = dl.train.sgd(learningRate);
@@ -42,11 +43,11 @@ const tests = () => {
     const expectedX1 = -2 * 4 * learningRate + 4;
     // de/db = 1
     const expectedBias1 = -1 * learningRate + 1;
-    test_util.expectArraysClose(x, [expectedX1]);
-    test_util.expectArraysClose(bias, [expectedBias1]);
-    test_util.expectArraysClose(cost, [Math.pow(4, 2) + 1]);
+    expectArraysClose(x, [expectedX1]);
+    expectArraysClose(bias, [expectedBias1]);
+    expectArraysClose(cost, [Math.pow(4, 2) + 1]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
 
     cost.dispose();
     numTensors = dl.memory().numTensors;
@@ -57,11 +58,11 @@ const tests = () => {
 
     const expectedX2 = -2 * expectedX1 * learningRate + expectedX1;
     const expectedBias2 = -learningRate + expectedBias1;
-    test_util.expectArraysClose(x, [expectedX2]);
-    test_util.expectArraysClose(bias, [expectedBias2]);
+    expectArraysClose(x, [expectedX2]);
+    expectArraysClose(bias, [expectedBias2]);
     expect(cost).toBe(null);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
 
     optimizer.dispose();
     x.dispose();
@@ -88,20 +89,20 @@ const tests = () => {
     const expectedX1 = -2 * 4 * learningRate + 4;
     // de/db = 1
     const expectedBias1 = -1 * learningRate + 1;
-    test_util.expectArraysClose(x, [expectedX1]);
-    test_util.expectArraysClose(bias, [expectedBias1]);
-    test_util.expectArraysClose(cost, [Math.pow(4, 2) + 1]);
+    expectArraysClose(x, [expectedX1]);
+    expectArraysClose(bias, [expectedBias1]);
+    expectArraysClose(cost, [Math.pow(4, 2) + 1]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
 
     cost = optimizer.minimize(f, /* returnCost */ false, varList);
 
     const expectedX2 = -2 * expectedX1 * learningRate + expectedX1;
     const expectedBias2 = -learningRate + expectedBias1;
-    test_util.expectArraysClose(x, [expectedX2]);
-    test_util.expectArraysClose(bias, [expectedBias2]);
+    expectArraysClose(x, [expectedX2]);
+    expectArraysClose(bias, [expectedBias2]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
     expect(cost).toBe(null);
   });
 
@@ -119,21 +120,21 @@ const tests = () => {
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
     // x should not have been updated.
-    test_util.expectArraysClose(x, [4]);
+    expectArraysClose(x, [4]);
     // bias should not have been updated.
-    test_util.expectArraysClose(bias, [1]);
-    test_util.expectArraysClose(cost, [Math.pow(4, 2) + 1]);
+    expectArraysClose(bias, [1]);
+    expectArraysClose(cost, [Math.pow(4, 2) + 1]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
 
     cost = optimizer.minimize(f, /* returnCost */ false, varList);
 
     // x again should not have been updated.
-    test_util.expectArraysClose(x, [4]);
+    expectArraysClose(x, [4]);
     // bias again should not have been updated.
-    test_util.expectArraysClose(bias, [1]);
+    expectArraysClose(bias, [1]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
     expect(cost).toBe(null);
   });
 
@@ -152,22 +153,22 @@ const tests = () => {
 
     // de/dx = 2x
     const expectedValue1 = -2 * 4 * learningRate + 4;
-    test_util.expectArraysClose(x, [expectedValue1]);
+    expectArraysClose(x, [expectedValue1]);
     // bias should remain unchanged.
-    test_util.expectArraysClose(bias, [1]);
-    test_util.expectArraysClose(cost, [Math.pow(4, 2) + 1]);
+    expectArraysClose(bias, [1]);
+    expectArraysClose(cost, [Math.pow(4, 2) + 1]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
 
     cost = optimizer.minimize(f, /* returnCost */ false, varList);
 
     const expectedValue2 = -2 * expectedValue1 * learningRate + expectedValue1;
-    test_util.expectArraysClose(x, [expectedValue2]);
+    expectArraysClose(x, [expectedValue2]);
     // Bias still should remain unchanged.
-    test_util.expectArraysClose(bias, [1]);
+    expectArraysClose(bias, [1]);
     expect(cost).toBe(null);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
   });
 
   it('only bias trainable', () => {
@@ -184,23 +185,23 @@ const tests = () => {
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
     // x should not have been updated.
-    test_util.expectArraysClose(x, [4]);
+    expectArraysClose(x, [4]);
     // de/db = 1
     const expectedBias1 = -1 * learningRate + 1;
-    test_util.expectArraysClose(bias, [expectedBias1]);
-    test_util.expectArraysClose(cost, [Math.pow(4, 2) + 1]);
+    expectArraysClose(bias, [expectedBias1]);
+    expectArraysClose(cost, [Math.pow(4, 2) + 1]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
 
     cost = optimizer.minimize(f, /* returnCost */ false);
 
     // x should not have been updated.
-    test_util.expectArraysClose(x, [4]);
+    expectArraysClose(x, [4]);
     const expectedBias2 = -learningRate + expectedBias1;
-    test_util.expectArraysClose(bias, [expectedBias2]);
+    expectArraysClose(bias, [expectedBias2]);
     expect(cost).toBe(null);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
   });
 
   it('only bias trainable, only x in varList does nothing', () => {
@@ -218,22 +219,22 @@ const tests = () => {
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
     // x should not have been updated.
-    test_util.expectArraysClose(x, [4]);
+    expectArraysClose(x, [4]);
     // bias should remain unchanged.
-    test_util.expectArraysClose(bias, [1]);
-    test_util.expectArraysClose(cost, [Math.pow(4, 2) + 1]);
+    expectArraysClose(bias, [1]);
+    expectArraysClose(cost, [Math.pow(4, 2) + 1]);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
 
     cost = optimizer.minimize(f, /* returnCost */ false, varList);
 
     // x should not have been updated.
-    test_util.expectArraysClose(x, [4]);
+    expectArraysClose(x, [4]);
     // bias should not have been updated.
-    test_util.expectArraysClose(bias, [1]);
+    expectArraysClose(bias, [1]);
     expect(cost).toBe(null);
     // The stray variable should remain unchanged.
-    test_util.expectArraysClose(strayVariable, [-1]);
+    expectArraysClose(strayVariable, [-1]);
   });
 
   it('throws error when f returns a non-scalar', () => {
@@ -246,11 +247,4 @@ const tests = () => {
     // tslint:disable-next-line:no-any
     expect(() => optimizer.minimize(f as any)).toThrowError();
   });
-};
-
-test_util.describeMathCPU('Optimizer', [tests]);
-test_util.describeMathGPU('Optimizer', [tests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

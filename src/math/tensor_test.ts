@@ -16,17 +16,18 @@
  */
 
 import * as dl from '../index';
-import * as test_util from '../test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from '../test_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {DType, Rank} from './types';
 
-const tests = () => {
+describeWithFlags('tensor', ALL_ENVS, () => {
   it('Tensors of arbitrary size', () => {
     // [1, 2, 3]
     let t: Tensor = dl.tensor1d([1, 2, 3]);
     expect(t.rank).toBe(1);
     expect(t.size).toBe(3);
-    test_util.expectArraysClose(t, [1, 2, 3]);
+    expectArraysClose(t, [1, 2, 3]);
     // Out of bounds indexing.
     expect(t.get(4)).toBeUndefined();
 
@@ -34,7 +35,7 @@ const tests = () => {
     t = dl.tensor2d([1, 2, 3], [1, 3]);
     expect(t.rank).toBe(2);
     expect(t.size).toBe(3);
-    test_util.expectArraysClose(t, [1, 2, 3]);
+    expectArraysClose(t, [1, 2, 3]);
     // Out of bounds indexing.
     expect(t.get(4)).toBeUndefined();
 
@@ -44,7 +45,7 @@ const tests = () => {
     expect(t.rank).toBe(2);
     expect(t.size).toBe(6);
 
-    test_util.expectArraysClose(t, [1, 2, 3, 4, 5, 6]);
+    expectArraysClose(t, [1, 2, 3, 4, 5, 6]);
 
     // Out of bounds indexing.
     expect(t.get(5, 3)).toBeUndefined();
@@ -57,15 +58,15 @@ const tests = () => {
     const t = dl.tensor1d([5, 3, 2]);
     expect(t.rank).toBe(1);
     expect(t.shape).toEqual([3]);
-    test_util.expectNumbersClose(t.get(1), 3);
+    expectNumbersClose(t.get(1), 3);
 
     expect(() => dl.tensor3d([1, 2], [1, 2, 3, 5])).toThrowError();
 
     const t4 = dl.tensor4d([1, 2, 3, 4], [1, 2, 1, 2]);
-    test_util.expectNumbersClose(t4.get(0, 0, 0, 0), 1);
-    test_util.expectNumbersClose(t4.get(0, 0, 0, 1), 2);
-    test_util.expectNumbersClose(t4.get(0, 1, 0, 0), 3);
-    test_util.expectNumbersClose(t4.get(0, 1, 0, 1), 4);
+    expectNumbersClose(t4.get(0, 0, 0, 0), 1);
+    expectNumbersClose(t4.get(0, 0, 0, 1), 2);
+    expectNumbersClose(t4.get(0, 1, 0, 0), 3);
+    expectNumbersClose(t4.get(0, 1, 0, 1), 4);
 
     // Tensor of ones.
     const x = dl.ones<Rank.R3>([3, 4, 2]);
@@ -74,7 +75,7 @@ const tests = () => {
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 4; j++) {
         for (let k = 0; k < 2; k++) {
-          test_util.expectNumbersClose(x.get(i, j, k), 1);
+          expectNumbersClose(x.get(i, j, k), 1);
         }
       }
     }
@@ -86,32 +87,30 @@ const tests = () => {
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 4; j++) {
         for (let k = 0; k < 2; k++) {
-          test_util.expectNumbersClose(z.get(i, j, k), 0);
+          expectNumbersClose(z.get(i, j, k), 0);
         }
       }
     }
 
     // Reshaping tensors.
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-    test_util.expectNumbersClose(a.get(1, 2), 6);
+    expectNumbersClose(a.get(1, 2), 6);
   });
 
   it('Tensor dataSync CPU --> GPU', () => {
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
-    test_util.expectArraysClose(
-        a.dataSync(), new Float32Array([1, 2, 3, 4, 5, 6]));
+    expectArraysClose(a.dataSync(), new Float32Array([1, 2, 3, 4, 5, 6]));
   });
 
   it('Tensor.data() CPU --> GPU', async () => {
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
-    test_util.expectArraysClose(
-        await a.data(), new Float32Array([1, 2, 3, 4, 5, 6]));
+    expectArraysClose(await a.data(), new Float32Array([1, 2, 3, 4, 5, 6]));
   });
 
   it('Scalar basic methods', () => {
     const a = dl.scalar(5);
-    test_util.expectNumbersClose(a.get(), 5);
-    test_util.expectArraysClose(a, [5]);
+    expectNumbersClose(a.get(), 5);
+    expectArraysClose(a, [5]);
     expect(a.rank).toBe(0);
     expect(a.size).toBe(1);
     expect(a.shape).toEqual([]);
@@ -264,11 +263,10 @@ const tests = () => {
     const b4: Tensor4D = a4;
     expect(b4).toBeNull();
   });
-};
-const testsNew = () => {
+
   it('dl.tensor1d() from number[]', () => {
     const a = dl.tensor1d([1, 2, 3]);
-    test_util.expectArraysClose(a, [1, 2, 3]);
+    expectArraysClose(a, [1, 2, 3]);
   });
 
   it('dl.tensor1d() from number[][], shape mismatch', () => {
@@ -278,7 +276,7 @@ const testsNew = () => {
 
   it('dl.tensor2d() from number[][]', () => {
     const a = dl.tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
+    expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
   });
 
   it('dl.tensor2d() from number[][], but shape does not match', () => {
@@ -288,7 +286,7 @@ const testsNew = () => {
 
   it('tensor3d() from number[][][]', () => {
     const a = dl.tensor3d([[[1], [2], [3]], [[4], [5], [6]]], [2, 3, 1]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
+    expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
   });
 
   it('tensor3d() from number[][][], but shape does not match', () => {
@@ -299,7 +297,7 @@ const testsNew = () => {
 
   it('tensor4d() from number[][][][]', () => {
     const a = dl.tensor4d([[[[1]], [[2]]], [[[4]], [[5]]]], [2, 2, 1, 1]);
-    test_util.expectArraysClose(a, [1, 2, 4, 5]);
+    expectArraysClose(a, [1, 2, 4, 5]);
   });
 
   it('tensor4d() from number[][][][], but shape does not match', () => {
@@ -309,37 +307,35 @@ const testsNew = () => {
     };
     expect(f).toThrowError();
   });
-};
 
-const testsScalarNew = () => {
   it('default dtype', () => {
     const a = dl.scalar(3);
     expect(a.dtype).toBe('float32');
-    test_util.expectArraysClose(a, [3]);
+    expectArraysClose(a, [3]);
   });
 
   it('float32 dtype', () => {
     const a = dl.scalar(3, 'float32');
     expect(a.dtype).toBe('float32');
-    test_util.expectArraysClose(a, [3]);
+    expectArraysClose(a, [3]);
   });
 
   it('int32 dtype', () => {
     const a = dl.scalar(3, 'int32');
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [3]);
+    expectArraysEqual(a, [3]);
   });
 
   it('int32 dtype, 3.9 => 3, like numpy', () => {
     const a = dl.scalar(3.9, 'int32');
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [3]);
+    expectArraysEqual(a, [3]);
   });
 
   it('int32 dtype, -3.9 => -3, like numpy', () => {
     const a = dl.scalar(-3.9, 'int32');
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [-3]);
+    expectArraysEqual(a, [-3]);
   });
 
   it('bool dtype, 3 => true, like numpy', () => {
@@ -378,44 +374,43 @@ const testsScalarNew = () => {
 
   it('default dtype from boolean', () => {
     const a = dl.scalar(false);
-    test_util.expectNumbersClose(a.get(), 0);
+    expectNumbersClose(a.get(), 0);
     expect(a.dtype).toBe('float32');
   });
-};
-const testsTensor1DNew = () => {
+
   it('default dtype', () => {
     const a = dl.tensor1d([1, 2, 3]);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([3]);
-    test_util.expectArraysClose(a, [1, 2, 3]);
+    expectArraysClose(a, [1, 2, 3]);
   });
 
   it('float32 dtype', () => {
     const a = dl.tensor1d([1, 2, 3], 'float32');
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([3]);
-    test_util.expectArraysClose(a, [1, 2, 3]);
+    expectArraysClose(a, [1, 2, 3]);
   });
 
   it('int32 dtype', () => {
     const a = dl.tensor1d([1, 2, 3], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([3]);
-    test_util.expectArraysEqual(a, [1, 2, 3]);
+    expectArraysEqual(a, [1, 2, 3]);
   });
 
   it('int32 dtype, non-ints get floored, like numpy', () => {
     const a = dl.tensor1d([1.1, 2.5, 3.9], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([3]);
-    test_util.expectArraysEqual(a, [1, 2, 3]);
+    expectArraysEqual(a, [1, 2, 3]);
   });
 
   it('int32 dtype, negative non-ints get ceiled, like numpy', () => {
     const a = dl.tensor1d([-1.1, -2.5, -3.9], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([3]);
-    test_util.expectArraysEqual(a, [-1, -2, -3]);
+    expectArraysEqual(a, [-1, -2, -3]);
   });
 
   it('bool dtype, !=0 is truthy, 0 is falsy, like numpy', () => {
@@ -431,55 +426,54 @@ const testsTensor1DNew = () => {
   it('default dtype from boolean[]', () => {
     const a = dl.tensor1d([false, false, true]);
     expect(a.dtype).toBe('float32');
-    test_util.expectArraysClose(a, [0, 0, 1]);
+    expectArraysClose(a, [0, 0, 1]);
   });
 
   it('int32 dtype from boolean[]', () => {
     const a = dl.tensor1d([false, false, true], 'int32');
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [0, 0, 1]);
+    expectArraysEqual(a, [0, 0, 1]);
   });
 
   it('bool dtype from boolean[]', () => {
     const a = dl.tensor1d([false, false, true], 'bool');
     expect(a.dtype).toBe('bool');
-    test_util.expectArraysEqual(a, [0, 0, 1]);
+    expectArraysEqual(a, [0, 0, 1]);
   });
-};
-const testsTensor2DNew = () => {
+
   it('default dtype', () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(a, [1, 2, 3, 4]);
   });
 
   it('float32 dtype', () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype', () => {
     const a = dl.tensor2d([[1, 2], [3, 4]], [2, 2], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2]);
-    test_util.expectArraysEqual(a, [1, 2, 3, 4]);
+    expectArraysEqual(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype, non-ints get floored, like numpy', () => {
     const a = dl.tensor2d([1.1, 2.5, 3.9, 4.0], [2, 2], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2]);
-    test_util.expectArraysEqual(a, [1, 2, 3, 4]);
+    expectArraysEqual(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype, negative non-ints get ceiled, like numpy', () => {
     const a = dl.tensor2d([-1.1, -2.5, -3.9, -4.0], [2, 2], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2]);
-    test_util.expectArraysEqual(a, [-1, -2, -3, -4]);
+    expectArraysEqual(a, [-1, -2, -3, -4]);
   });
 
   it('bool dtype, !=0 is truthy, 0 is falsy, like numpy', () => {
@@ -495,55 +489,53 @@ const testsTensor2DNew = () => {
   it('default dtype from boolean[]', () => {
     const a = dl.tensor2d([[false, false], [true, false]], [2, 2]);
     expect(a.dtype).toBe('float32');
-    test_util.expectArraysClose(a, [0, 0, 1, 0]);
+    expectArraysClose(a, [0, 0, 1, 0]);
   });
 
   it('int32 dtype from boolean[]', () => {
     const a = dl.tensor2d([[false, false], [true, false]], [2, 2], 'int32');
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [0, 0, 1, 0]);
+    expectArraysEqual(a, [0, 0, 1, 0]);
   });
 
   it('bool dtype from boolean[]', () => {
     const a = dl.tensor2d([[false, false], [true, false]], [2, 2], 'bool');
     expect(a.dtype).toBe('bool');
-    test_util.expectArraysEqual(a, [0, 0, 1, 0]);
+    expectArraysEqual(a, [0, 0, 1, 0]);
   });
-};
-const testsTensor3DNew = () => {
   it('default dtype', () => {
     const a = dl.tensor3d([1, 2, 3, 4], [2, 2, 1]);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2, 1]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(a, [1, 2, 3, 4]);
   });
 
   it('float32 dtype', () => {
     const a = dl.tensor3d([1, 2, 3, 4], [2, 2, 1]);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2, 1]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype', () => {
     const a = dl.tensor3d([[[1], [2]], [[3], [4]]], [2, 2, 1], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2, 1]);
-    test_util.expectArraysEqual(a, [1, 2, 3, 4]);
+    expectArraysEqual(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype, non-ints get floored, like numpy', () => {
     const a = dl.tensor3d([1.1, 2.5, 3.9, 4.0], [2, 2, 1], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2, 1]);
-    test_util.expectArraysEqual(a, [1, 2, 3, 4]);
+    expectArraysEqual(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype, negative non-ints get ceiled, like numpy', () => {
     const a = dl.tensor3d([-1.1, -2.5, -3.9, -4.0], [2, 2, 1], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2, 1]);
-    test_util.expectArraysEqual(a, [-1, -2, -3, -4]);
+    expectArraysEqual(a, [-1, -2, -3, -4]);
   });
 
   it('bool dtype, !=0 is truthy, 0 is falsy, like numpy', () => {
@@ -559,36 +551,35 @@ const testsTensor3DNew = () => {
   it('default dtype from boolean[]', () => {
     const a = dl.tensor3d([[[false], [false]], [[true], [false]]], [2, 2, 1]);
     expect(a.dtype).toBe('float32');
-    test_util.expectArraysClose(a, [0, 0, 1, 0]);
+    expectArraysClose(a, [0, 0, 1, 0]);
   });
 
   it('int32 dtype from boolean[]', () => {
     const a = dl.tensor3d(
         [[[false], [false]], [[true], [false]]], [2, 2, 1], 'int32');
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [0, 0, 1, 0]);
+    expectArraysEqual(a, [0, 0, 1, 0]);
   });
 
   it('bool dtype from boolean[]', () => {
     const a =
         dl.tensor3d([[[false], [false]], [[true], [false]]], [2, 2, 1], 'bool');
     expect(a.dtype).toBe('bool');
-    test_util.expectArraysEqual(a, [0, 0, 1, 0]);
+    expectArraysEqual(a, [0, 0, 1, 0]);
   });
-};
-const testsTensor4DNew = () => {
+
   it('default dtype', () => {
     const a = dl.tensor4d([1, 2, 3, 4], [2, 2, 1, 1]);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2, 1, 1]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(a, [1, 2, 3, 4]);
   });
 
   it('float32 dtype', () => {
     const a = dl.tensor4d([1, 2, 3, 4], [2, 2, 1, 1]);
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([2, 2, 1, 1]);
-    test_util.expectArraysClose(a, [1, 2, 3, 4]);
+    expectArraysClose(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype', () => {
@@ -596,21 +587,21 @@ const testsTensor4DNew = () => {
         dl.tensor4d([[[[1]], [[2]]], [[[3]], [[4]]]], [2, 2, 1, 1], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2, 1, 1]);
-    test_util.expectArraysEqual(a, [1, 2, 3, 4]);
+    expectArraysEqual(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype, non-ints get floored, like numpy', () => {
     const a = dl.tensor4d([1.1, 2.5, 3.9, 4.0], [2, 2, 1, 1], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2, 1, 1]);
-    test_util.expectArraysEqual(a, [1, 2, 3, 4]);
+    expectArraysEqual(a, [1, 2, 3, 4]);
   });
 
   it('int32 dtype, negative non-ints get ceiled, like numpy', () => {
     const a = dl.tensor4d([-1.1, -2.5, -3.9, -4.0], [2, 2, 1, 1], 'int32');
     expect(a.dtype).toBe('int32');
     expect(a.shape).toEqual([2, 2, 1, 1]);
-    test_util.expectArraysEqual(a, [-1, -2, -3, -4]);
+    expectArraysEqual(a, [-1, -2, -3, -4]);
   });
 
   it('bool dtype, !=0 is truthy, 0 is falsy, like numpy', () => {
@@ -627,24 +618,23 @@ const testsTensor4DNew = () => {
     const a =
         dl.tensor4d([[[[false], [false]], [[true], [false]]]], [1, 2, 2, 1]);
     expect(a.dtype).toBe('float32');
-    test_util.expectArraysClose(a, [0, 0, 1, 0]);
+    expectArraysClose(a, [0, 0, 1, 0]);
   });
 
   it('int32 dtype from boolean[]', () => {
     const a = dl.tensor4d(
         [[[[false], [false]], [[true], [false]]]], [1, 2, 2, 1], 'int32');
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [0, 0, 1, 0]);
+    expectArraysEqual(a, [0, 0, 1, 0]);
   });
 
   it('bool dtype from boolean[]', () => {
     const a = dl.tensor4d(
         [[[[false], [false]], [[true], [false]]]], [1, 2, 2, 1], 'bool');
     expect(a.dtype).toBe('bool');
-    test_util.expectArraysEqual(a, [0, 0, 1, 0]);
+    expectArraysEqual(a, [0, 0, 1, 0]);
   });
-};
-const testsReshape = () => {
+
   it('Scalar default dtype', () => {
     const a = dl.scalar(4);
     const b = a.reshape([1, 1]);
@@ -720,11 +710,9 @@ const testsReshape = () => {
     const b = a.reshape([]);
     expect(a.id).not.toBe(b.id);
     b.dispose();
-    test_util.expectArraysClose(a, [2.4]);
+    expectArraysClose(a, [2.4]);
   });
-};
 
-const testsAsType = () => {
   it('scalar bool -> int32', () => {
     const a = dl.scalar(true, 'bool').toInt();
     expect(a.dtype).toBe('int32');
@@ -734,7 +722,7 @@ const testsAsType = () => {
   it('Tensor1D float32 -> int32', () => {
     const a = dl.tensor1d([1.1, 3.9, -2.9, 0]).toInt();
     expect(a.dtype).toBe('int32');
-    test_util.expectArraysEqual(a, [1, 3, -2, 0]);
+    expectArraysEqual(a, [1, 3, -2, 0]);
   });
 
   it('Tensor2D float32 -> bool', () => {
@@ -759,17 +747,17 @@ const testsAsType = () => {
     const a =
         dl.tensor3d([true, false, false, true], [2, 2, 1], 'bool').toFloat();
     expect(a.dtype).toBe('float32');
-    test_util.expectArraysClose(a, [1, 0, 0, 1]);
+    expectArraysClose(a, [1, 0, 0, 1]);
   });
 
   it('bool CPU -> GPU -> CPU', () => {
     const a = dl.tensor1d([1, 2, 0, 0, 5], 'bool');
-    test_util.expectArraysEqual(a, [1, 1, 0, 0, 1]);
+    expectArraysEqual(a, [1, 1, 0, 0, 1]);
   });
 
   it('int32 CPU -> GPU -> CPU', () => {
     const a = dl.tensor1d([1, 2, 0, 0, 5], 'int32');
-    test_util.expectArraysEqual(a, [1, 2, 0, 0, 5]);
+    expectArraysEqual(a, [1, 2, 0, 0, 5]);
   });
 
   it('asType is functional', () => {
@@ -777,11 +765,9 @@ const testsAsType = () => {
     const b = a.toFloat();
     expect(a.id).not.toBe(b.id);
     b.dispose();
-    test_util.expectArraysClose(a, [2.4]);
+    expectArraysClose(a, [2.4]);
   });
-};
 
-const testSqueeze = () => {
   it('squeeze no axis', () => {
     const a = dl.tensor2d([4, 2, 1], [3, 1], 'bool');
     const b = a.squeeze();
@@ -798,8 +784,7 @@ const testSqueeze = () => {
     const a = dl.tensor3d([4, 2, 1], [3, 1, 1], 'bool');
     expect(() => a.squeeze([0, 1])).toThrowError('axis 0 is not 1');
   });
-};
-const testsAsXD = () => {
+
   it('scalar -> 2d', () => {
     const a = dl.scalar(4, 'int32');
     const b = a.as2D(1, 1);
@@ -834,17 +819,4 @@ const testsAsXD = () => {
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([4]);
   });
-};
-
-const allTests = [
-  tests, testsNew, testsScalarNew, testsTensor1DNew, testsTensor2DNew,
-  testsTensor3DNew, testsTensor4DNew, testsReshape, testsAsType, testsAsXD,
-  testSqueeze
-];
-
-test_util.describeMathCPU('Tensor', allTests);
-test_util.describeMathGPU('Tensor', allTests, [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});

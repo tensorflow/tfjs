@@ -18,7 +18,6 @@
 import * as dl from './index';
 import {Tensor} from './math/tensor';
 import {NamedTensorMap} from './math/types';
-import * as test_util from './test_util';
 import * as util from './util';
 
 describe('Util', () => {
@@ -271,25 +270,21 @@ describe('util.squeezeShape', () => {
   });
 });
 
-{
-  const tests = () => {
-    it('not in list', () => {
-      const a = dl.scalar(1);
-      const list: Tensor[] = [dl.scalar(1), dl.tensor1d([1, 2, 3])];
+describe('util.isTensorInList', () => {
+  it('not in list', () => {
+    const a = dl.scalar(1);
+    const list: Tensor[] = [dl.scalar(1), dl.tensor1d([1, 2, 3])];
 
-      expect(util.isTensorInList(a, list)).toBe(false);
-    });
+    expect(util.isTensorInList(a, list)).toBe(false);
+  });
 
-    it('in list', () => {
-      const a = dl.scalar(1);
-      const list: Tensor[] = [dl.scalar(2), dl.tensor1d([1, 2, 3]), a];
+  it('in list', () => {
+    const a = dl.scalar(1);
+    const list: Tensor[] = [dl.scalar(2), dl.tensor1d([1, 2, 3]), a];
 
-      expect(util.isTensorInList(a, list)).toBe(true);
-    });
-  };
-
-  test_util.describeMathCPU('util.isTensorInList', [tests]);
-}
+    expect(util.isTensorInList(a, list)).toBe(true);
+  });
+});
 
 describe('util.checkForNaN', () => {
   it('Float32Array has NaN', () => {
@@ -338,38 +333,28 @@ describe('util.checkForNaN', () => {
   });
 });
 
-{
-  const tests = () => {
-    it('basic', () => {
-      const a = dl.scalar(1);
-      const b = dl.scalar(3);
-      const c = dl.tensor1d([1, 2, 3]);
+describe('util.flattenNameArrayMap', () => {
+  it('basic', () => {
+    const a = dl.scalar(1);
+    const b = dl.scalar(3);
+    const c = dl.tensor1d([1, 2, 3]);
 
-      const map: NamedTensorMap = {a, b, c};
-      expect(util.flattenNameArrayMap(map, Object.keys(map))).toEqual([
-        a, b, c
-      ]);
-    });
-  };
+    const map: NamedTensorMap = {a, b, c};
+    expect(util.flattenNameArrayMap(map, Object.keys(map))).toEqual([a, b, c]);
+  });
+});
 
-  test_util.describeMathCPU('util.flattenNameArrayMap', [tests]);
-}
+describe('util.unflattenToNameArrayMap', () => {
+  it('basic', () => {
+    const a = dl.scalar(1);
+    const b = dl.scalar(3);
+    const c = dl.tensor1d([1, 2, 3]);
 
-{
-  const tests = () => {
-    it('basic', () => {
-      const a = dl.scalar(1);
-      const b = dl.scalar(3);
-      const c = dl.tensor1d([1, 2, 3]);
-
-      expect(util.unflattenToNameArrayMap(['a', 'b', 'c'], [
-        a, b, c
-      ])).toEqual({a, b, c});
-    });
-  };
-
-  test_util.describeMathCPU('util.unflattenToNameArrayMap', [tests]);
-}
+    expect(util.unflattenToNameArrayMap(['a', 'b', 'c'], [
+      a, b, c
+    ])).toEqual({a, b, c});
+  });
+});
 
 describe('util.hasEncodingLoss', () => {
   it('any to float32', () => {

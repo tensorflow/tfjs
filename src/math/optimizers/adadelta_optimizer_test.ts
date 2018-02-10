@@ -20,10 +20,10 @@ import {Graph} from '../../graph/graph';
 import {Session} from '../../graph/session';
 import * as dl from '../../index';
 import {Tensor1D} from '../../math/tensor';
-import * as test_util from '../../test_util';
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../../test_util';
 import {AdadeltaOptimizer} from './adadelta_optimizer';
 
-const tests = () => {
+describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
   it('basic', () => {
     const learningRate = .1;
     const rho = .95;
@@ -53,7 +53,7 @@ const tests = () => {
     // updates = [-2, -4]
     // newAccumulatedUpdate = [.2, .8]
     // x = [0.8, 1.6]
-    test_util.expectArraysClose(x, [0.8, 1.6]);
+    expectArraysClose(x, [0.8, 1.6]);
 
     cost.dispose();
     numTensors = dl.memory().numTensors;
@@ -66,7 +66,7 @@ const tests = () => {
     // newAccumulatedGrad = [0.318, 1.272]
     // updates = [-1.6, -3.2]
     // x = [0.64, 1.28]
-    test_util.expectArraysClose(x, [0.64, 1.28]);
+    expectArraysClose(x, [0.64, 1.28]);
 
     // There should be no new additional Tensors.
     expect(dl.memory().numTensors).toBe(numTensors);
@@ -115,7 +115,7 @@ const tests = () => {
       //
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw = session.activationArrayMap.get(w).dataSync();
-      test_util.expectArraysClose(dydw, new Float32Array([-0.2, -0.4]), 1e-2);
+      expectArraysClose(dydw, new Float32Array([-0.2, -0.4]), 1e-2);
       // cache = [gamma*old_cache_w1 + (1-gamma)*grad_w1**2,
       //            gamma*old_cache_w2 + (1-gamma)*grad_w2**2]
       //            = [1.44, 5.76]
@@ -128,14 +128,7 @@ const tests = () => {
       //            = [-0.4, -0.8]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw2 = session.activationArrayMap.get(w).dataSync();
-      test_util.expectArraysClose(dydw2, new Float32Array([-.4, -.8]), 1e-2);
+      expectArraysClose(dydw2, new Float32Array([-.4, -.8]), 1e-2);
     });
   });
-};
-
-test_util.describeMathCPU('AdadeltaOptimizer', [tests]);
-test_util.describeMathGPU('AdadeltaOptimizer', [tests], [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-]);
+});
