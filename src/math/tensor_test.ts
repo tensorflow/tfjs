@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {DType, Rank} from './types';
 
-const tests: MathTests = it => {
+const tests = () => {
   it('Tensors of arbitrary size', () => {
     // [1, 2, 3]
     let t: Tensor = dl.tensor1d([1, 2, 3]);
@@ -266,7 +265,7 @@ const tests: MathTests = it => {
     expect(b4).toBeNull();
   });
 };
-const testsNew: MathTests = it => {
+const testsNew = () => {
   it('dl.tensor1d() from number[]', () => {
     const a = dl.tensor1d([1, 2, 3]);
     test_util.expectArraysClose(a, [1, 2, 3]);
@@ -312,7 +311,7 @@ const testsNew: MathTests = it => {
   });
 };
 
-const testsScalarNew: MathTests = it => {
+const testsScalarNew = () => {
   it('default dtype', () => {
     const a = dl.scalar(3);
     expect(a.dtype).toBe('float32');
@@ -383,7 +382,7 @@ const testsScalarNew: MathTests = it => {
     expect(a.dtype).toBe('float32');
   });
 };
-const testsTensor1DNew: MathTests = it => {
+const testsTensor1DNew = () => {
   it('default dtype', () => {
     const a = dl.tensor1d([1, 2, 3]);
     expect(a.dtype).toBe('float32');
@@ -447,7 +446,7 @@ const testsTensor1DNew: MathTests = it => {
     test_util.expectArraysEqual(a, [0, 0, 1]);
   });
 };
-const testsTensor2DNew: MathTests = it => {
+const testsTensor2DNew = () => {
   it('default dtype', () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
     expect(a.dtype).toBe('float32');
@@ -511,7 +510,7 @@ const testsTensor2DNew: MathTests = it => {
     test_util.expectArraysEqual(a, [0, 0, 1, 0]);
   });
 };
-const testsTensor3DNew: MathTests = it => {
+const testsTensor3DNew = () => {
   it('default dtype', () => {
     const a = dl.tensor3d([1, 2, 3, 4], [2, 2, 1]);
     expect(a.dtype).toBe('float32');
@@ -577,7 +576,7 @@ const testsTensor3DNew: MathTests = it => {
     test_util.expectArraysEqual(a, [0, 0, 1, 0]);
   });
 };
-const testsTensor4DNew: MathTests = it => {
+const testsTensor4DNew = () => {
   it('default dtype', () => {
     const a = dl.tensor4d([1, 2, 3, 4], [2, 2, 1, 1]);
     expect(a.dtype).toBe('float32');
@@ -645,7 +644,7 @@ const testsTensor4DNew: MathTests = it => {
     test_util.expectArraysEqual(a, [0, 0, 1, 0]);
   });
 };
-const testsReshape: MathTests = it => {
+const testsReshape = () => {
   it('Scalar default dtype', () => {
     const a = dl.scalar(4);
     const b = a.reshape([1, 1]);
@@ -725,7 +724,7 @@ const testsReshape: MathTests = it => {
   });
 };
 
-const testsAsType: MathTests = it => {
+const testsAsType = () => {
   it('scalar bool -> int32', () => {
     const a = dl.scalar(true, 'bool').toInt();
     expect(a.dtype).toBe('int32');
@@ -782,7 +781,7 @@ const testsAsType: MathTests = it => {
   });
 };
 
-const testSqueeze: MathTests = it => {
+const testSqueeze = () => {
   it('squeeze no axis', () => {
     const a = dl.tensor2d([4, 2, 1], [3, 1], 'bool');
     const b = a.squeeze();
@@ -800,7 +799,7 @@ const testSqueeze: MathTests = it => {
     expect(() => a.squeeze([0, 1])).toThrowError('axis 0 is not 1');
   });
 };
-const testsAsXD: MathTests = it => {
+const testsAsXD = () => {
   it('scalar -> 2d', () => {
     const a = dl.scalar(4, 'int32');
     const b = a.as2D(1, 1);

@@ -37,7 +37,7 @@ export class Profiler {
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
     const vals = result.dataSync();
-    util.checkForNaN(vals, result.dtype, name);
+    util.checkForNaN(vals, result.dtype, kernelName);
 
     timer.then((timeMs: number) => {
       this.logger.logKernelProfile(kernelName, result, vals, timeMs);

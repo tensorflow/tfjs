@@ -17,11 +17,10 @@
 
 import {ENV} from '../../environment';
 import {keep, tidy} from '../../globals';
-// tslint:disable-next-line:max-line-length
-import {ElementWiseCostFunction, SquareCostFunc} from '../../math/cost_functions';
 import {NDArrayMath} from '../../math/math';
 import {Scalar} from '../../math/tensor';
 import * as util from '../../util';
+import {ElementWiseCostFunction, SquareCostFunc} from '../cost_functions';
 import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
@@ -48,7 +47,7 @@ export class ElementWiseCost extends Operation {
     const x2 = inferenceArrays.get(this.x2Tensor);
 
     tidy(() => {
-      const elementWiseCost = this.func.cost(math, x1, x2);
+      const elementWiseCost = this.func.cost(x1, x2);
       const sum = math.sum(elementWiseCost);
       const result = math.scalarTimesArray(this.oneOverNScalar, sum);
       inferenceArrays.set(this.yTensor, keep(result));
@@ -63,10 +62,10 @@ export class ElementWiseCost extends Operation {
 
     tidy(() => {
       if (graph_util.shouldBackProp(this.x1Tensor)) {
-        gradientArrays.add(this.x1Tensor, this.func.der(math, x1, x2));
+        gradientArrays.add(this.x1Tensor, this.func.der(x1, x2));
       }
       if (graph_util.shouldBackProp(this.x2Tensor)) {
-        gradientArrays.add(this.x2Tensor, this.func.der(math, x2, x1));
+        gradientArrays.add(this.x2Tensor, this.func.der(x2, x1));
       }
     });
   }

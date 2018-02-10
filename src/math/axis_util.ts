@@ -97,9 +97,9 @@ export function assertAxesAreInnerMostDims(
 }
 
 /**
- * Returns the axes permutation to be used with math.transpose, if such
+ * Returns the axes permutation to be used with `dl.transpose`, if such
  * permutation is neccesary. Otherwise it returns null. This method is used by
- * math operations that operate only on inner-most axes.
+ * operations that operate only on inner-most axes.
  */
 export function getAxesPermutation(axes: number[], rank: number): number[]|
     null {

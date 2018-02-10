@@ -17,12 +17,11 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import {Rank} from './types';
 
 // dl.conv2dTranspose
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('input=2x2x1,d2=1,f=2,s=1,p=0', () => {
       const origInputDepth = 1;
       const origOutputDepth = 1;

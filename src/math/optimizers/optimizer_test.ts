@@ -18,11 +18,10 @@
 import * as dl from '../../index';
 import {variable, Variable} from '../../math/tensor';
 import * as test_util from '../../test_util';
-import {MathTests} from '../../test_util';
 import {SGDOptimizer} from './sgd_optimizer';
 
-const tests: MathTests = it => {
-  it('basic', math => {
+const tests = () => {
+  it('basic', () => {
     const learningRate = .1;
     const optimizer = dl.train.sgd(learningRate);
 
@@ -32,7 +31,7 @@ const tests: MathTests = it => {
 
     let numTensors = dl.memory().numTensors;
 
-    const f = () => math.addStrict(math.square(x), bias);
+    const f = () => x.square().addStrict(bias);
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
@@ -72,7 +71,7 @@ const tests: MathTests = it => {
     expect(dl.memory().numTensors).toBe(0);
   });
 
-  it('varList array of all variables', math => {
+  it('varList array of all variables', () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
@@ -81,7 +80,7 @@ const tests: MathTests = it => {
     const strayVariable = variable(dl.scalar(-1));
     const varList = [x, bias];
 
-    const f = () => math.addStrict(math.square(x), bias);
+    const f = () => x.square().addStrict(bias);
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -106,7 +105,7 @@ const tests: MathTests = it => {
     expect(cost).toBe(null);
   });
 
-  it('varList empty array of variables to update updates nothing', math => {
+  it('varList empty array of variables to update updates nothing', () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
@@ -115,7 +114,7 @@ const tests: MathTests = it => {
     const strayVariable = variable(dl.scalar(-1));
     const varList: Variable[] = [];
 
-    const f = () => math.addStrict(math.square(x), bias);
+    const f = () => x.square().addStrict(bias);
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -138,7 +137,7 @@ const tests: MathTests = it => {
     expect(cost).toBe(null);
   });
 
-  it('varList subset of variables update', math => {
+  it('varList subset of variables update', () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
@@ -147,7 +146,7 @@ const tests: MathTests = it => {
     const strayVariable = variable(dl.scalar(-1));
     const varList = [x];
 
-    const f = () => math.addStrict(math.square(x), bias);
+    const f = () => x.square().addStrict(bias);
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -171,7 +170,7 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(strayVariable, [-1]);
   });
 
-  it('only bias trainable', math => {
+  it('only bias trainable', () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
@@ -180,7 +179,7 @@ const tests: MathTests = it => {
     const bias = variable(dl.scalar(1));
     const strayVariable = variable(dl.scalar(-1));
 
-    const f = () => math.addStrict(math.square(x), bias);
+    const f = () => x.square().addStrict(bias);
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
@@ -204,7 +203,7 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(strayVariable, [-1]);
   });
 
-  it('only bias trainable, only x in varList does nothing', math => {
+  it('only bias trainable, only x in varList does nothing', () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
@@ -214,7 +213,7 @@ const tests: MathTests = it => {
     const strayVariable = variable(dl.scalar(-1));
     const varList = [x];
 
-    const f = () => math.addStrict(math.square(x), bias);
+    const f = () => x.square().addStrict(bias);
 
     let cost = optimizer.minimize(f, /* returnCost */ true, varList);
 
@@ -237,7 +236,7 @@ const tests: MathTests = it => {
     test_util.expectArraysClose(strayVariable, [-1]);
   });
 
-  it('throws error when f returns a non-scalar', math => {
+  it('throws error when f returns a non-scalar', () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 

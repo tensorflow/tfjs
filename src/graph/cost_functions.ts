@@ -16,16 +16,15 @@
  */
 
 import {keep} from '../globals';
-import {NDArrayMath} from './math';
-import * as ops from './ops';
-import {Scalar, Tensor} from './tensor';
+import * as ops from '../math/ops';
+import {Scalar, Tensor} from '../math/tensor';
 
 /**
  * An error function and its derivative.
  */
 export interface ElementWiseCostFunction {
-  cost<T extends Tensor>(math: NDArrayMath, x1: T, x2: T): T;
-  der<T extends Tensor>(math: NDArrayMath, x1: T, x2: T): T;
+  cost<T extends Tensor>(x1: T, x2: T): T;
+  der<T extends Tensor>(x1: T, x2: T): T;
   dispose(): void;
 }
 
@@ -36,10 +35,10 @@ export class SquareCostFunc implements ElementWiseCostFunction {
 
   private halfOne: Scalar;
 
-  cost<T extends Tensor>(math: NDArrayMath, x1: T, x2: T): T {
-    const diff = math.subStrict(x1, x2);
-    const diffSquared = math.multiplyStrict(diff, diff);
-    const result = math.multiply(this.halfOne, diffSquared);
+  cost<T extends Tensor>(x1: T, x2: T): T {
+    const diff = x1.subStrict(x2);
+    const diffSquared = diff.square();
+    const result = this.halfOne.mul(diffSquared);
 
     diff.dispose();
     diffSquared.dispose();
@@ -47,8 +46,8 @@ export class SquareCostFunc implements ElementWiseCostFunction {
     return result as T;
   }
 
-  der<T extends Tensor>(math: NDArrayMath, x1: T, x2: T): T {
-    return math.subStrict(x1, x2) as T;
+  der<T extends Tensor>(x1: T, x2: T): T {
+    return x1.subStrict(x2) as T;
   }
 
   dispose() {

@@ -23,6 +23,7 @@ import * as concat_ops from './concat';
 import * as conv_ops from './conv';
 import * as image_ops from './image_ops';
 import * as logical_ops from './logical_ops';
+import * as lrn_ops from './lrn';
 import * as lstm_ops from './lstm';
 import * as matmul_ops from './matmul';
 import * as norm_ops from './norm';
@@ -179,6 +180,9 @@ export const basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
 export const multiRNNCell = lstm_ops.Ops.multiRNNCell;
 
 export const softmax = softmax_ops.Ops.softmax;
+
+export const localResponseNormalization =
+    lrn_ops.LRN.localResponseNormalization;
 
 // So typings can propagate.
 import {Tensor, Tensor3D, Tensor4D} from './tensor';

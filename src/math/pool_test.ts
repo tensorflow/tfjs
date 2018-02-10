@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.maxPool
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {
       const x = dl.tensor3d([0], [1, 1, 1]);
 
@@ -333,7 +332,7 @@ import {MathTests} from '../test_util';
 
 // dl.minPool
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1x1x1 in, 1x1 filter, 1 stride: [0] => [0]', () => {
       const a = dl.tensor3d([0], [1, 1, 1]);
       const result = dl.minPool(a, 1, 1, 0);
@@ -417,7 +416,7 @@ import {MathTests} from '../test_util';
 
 // dl.avgPool
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {
       const a = dl.tensor3d([0], [1, 1, 1]);
       const result = dl.avgPool(a, 1, 1, 0);

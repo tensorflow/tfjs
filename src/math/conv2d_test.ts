@@ -17,12 +17,11 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import {Rank} from './types';
 
 // dl.conv2d
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('x=[2,2,1] f=[1,1,1,2] s=1 p=0', () => {
       const inputDepth = 1;
       const inputShape: [number, number, number] = [2, 2, inputDepth];

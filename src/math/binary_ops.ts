@@ -20,7 +20,7 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {doc, operation} from './decorators';
 import {scalar} from './ops';
-import {Scalar, Tensor} from './tensor';
+import {Tensor} from './tensor';
 
 export class Ops {
   /**
@@ -153,9 +153,7 @@ export class Ops {
         return dy.mul(dx);
       };
       const derExp = () => {
-        throw new Error(
-            `Backprop through exponent of math.pow not ` +
-            `implemented yet.`);
+        throw new Error(`Backprop through exponent not implemented yet.`);
       };
       return {base: derBase, exp: derExp};
     };
@@ -212,14 +210,6 @@ export class Ops {
       return {a: derA, b: derB};
     };
     return ENV.engine.executeKernel('Mul', {inputs: {a, b}}, der) as T;
-  }
-
-  /**
-   * @deprecated Use mulStrict() instead.
-   */
-  @operation
-  static elementWiseMul<T extends Tensor>(a: T, b: T): T {
-    return a.mulStrict(b);
   }
 
   /**
@@ -283,26 +273,6 @@ export class Ops {
   static divStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
     return a.div(b) as T;
-  }
-
-  /** @deprecated Use div() instead. */
-  @operation
-  static scalarDividedByArray<T extends Tensor>(c: Scalar, a: T): T {
-    util.assert(
-        c.size === 1,
-        `Error in scalarDividedByArray: first argument must be rank 0, but ` +
-            `got Tensor of rank ${c.rank}.`);
-    return c.div(a) as T;
-  }
-
-  /** @deprecated Use div(A, c) instead. */
-  @operation
-  static arrayDividedByScalar<T extends Tensor>(a: T, c: Scalar): T {
-    util.assert(
-        c.size === 1,
-        `Error in arrayDividedByScalar: second argument must be rank 0, ` +
-            `but got Tensor of rank ${c.rank}.`);
-    return a.div(c) as T;
   }
 
   /**

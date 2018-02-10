@@ -17,12 +17,11 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import {Rank} from './types';
 
 // dl.depthwiseConv2D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('input=1x3x3x1,f=2,s=1,p=valid,chMul=1', () => {
       const fSize = 2;
       const pad = 'valid';

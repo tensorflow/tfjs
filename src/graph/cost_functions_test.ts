@@ -17,15 +17,14 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import {SquareCostFunc} from './cost_functions';
 
-const tests: MathTests = it => {
-  it('Square cost', math => {
+const tests = () => {
+  it('Square cost', () => {
     const y = dl.tensor1d([1, 3, -2]);
     const target = dl.tensor1d([0, 3, -1.5]);
     const square = new SquareCostFunc();
-    const cost = square.cost(math, y, target);
+    const cost = square.cost(y, target);
 
     // The cost function is 1/2 * (y - target)^2
     test_util.expectNumbersClose(cost.get(0), 1 / 2);
@@ -33,11 +32,11 @@ const tests: MathTests = it => {
     test_util.expectNumbersClose(cost.get(2), 0.25 / 2);
   });
 
-  it('Square derivative', math => {
+  it('Square derivative', () => {
     const y = dl.tensor1d([1, 3, -2]);
     const target = dl.tensor1d([0, 3, -1.5]);
     const square = new SquareCostFunc();
-    const dy = square.der(math, y, target);
+    const dy = square.der(y, target);
 
     test_util.expectNumbersClose(dy.get(0), 1);
     test_util.expectNumbersClose(dy.get(1), 0);

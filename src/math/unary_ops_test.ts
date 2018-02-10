@@ -17,14 +17,13 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import * as util from '../util';
 
 import * as selu_util from './selu_util';
 
 // dl.relu
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
       const result = dl.relu(a);
@@ -115,7 +114,7 @@ import * as selu_util from './selu_util';
 
 // dl.abs
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
       const result = dl.abs(a);
@@ -174,7 +173,7 @@ import * as selu_util from './selu_util';
 
 // dl.step
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('with 1d tensor', () => {
       const a = dl.tensor1d([1, -2, -.01, 3, -0.1]);
       const result = dl.step(a);
@@ -205,7 +204,7 @@ import * as selu_util from './selu_util';
 
 // dl.neg
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor1d([1, -3, 2, 7, -4]);
       const result = dl.neg(a);
@@ -265,7 +264,7 @@ import * as selu_util from './selu_util';
 
 // dl.sigmoid
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -311,7 +310,7 @@ import * as selu_util from './selu_util';
 
 // dl.sqrt
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('sqrt', () => {
       const a = dl.tensor1d([2, 4]);
       const r = dl.sqrt(a);
@@ -381,7 +380,7 @@ import * as selu_util from './selu_util';
 
 // dl.square
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D array', () => {
       const a = dl.tensor1d([2, 4, Math.sqrt(2)]);
       const r = dl.square(a);
@@ -446,7 +445,7 @@ import * as selu_util from './selu_util';
 
 // dl.log
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('log', () => {
       const a = dl.tensor1d([1, 2]);
       const r = dl.log(a);
@@ -506,7 +505,7 @@ import * as selu_util from './selu_util';
 
 // dl.ceil
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor1d([1.5, 2.1, -1.4]);
       const r = dl.ceil(a);
@@ -565,7 +564,7 @@ import * as selu_util from './selu_util';
 
 // dl.floor
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor1d([1.5, 2.1, -1.4]);
       const r = dl.floor(a);
@@ -625,7 +624,7 @@ import * as selu_util from './selu_util';
 
 // dl.exp
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('exp', () => {
       const a = dl.tensor1d([1, 2, 0]);
       const r = dl.exp(a);
@@ -693,7 +692,7 @@ import * as selu_util from './selu_util';
 
 // dl.sin
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -764,7 +763,7 @@ import * as selu_util from './selu_util';
 
 // dl.cos
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -839,7 +838,7 @@ import * as selu_util from './selu_util';
 
 // dl.tan
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -919,7 +918,7 @@ import * as selu_util from './selu_util';
 
 // dl.asin
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [.1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -997,7 +996,7 @@ import * as selu_util from './selu_util';
 
 // dl.acos
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [.1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -1078,7 +1077,7 @@ import * as selu_util from './selu_util';
 
 // dl.atan
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -1158,7 +1157,7 @@ import * as selu_util from './selu_util';
   // TODO(nsthorat): Fix the precision problem here.
   const epsilon = 1e-1;
 
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -1239,7 +1238,7 @@ import * as selu_util from './selu_util';
   // TODO(nsthorat): Fix the precision problem here.
   const epsilon = 1e-1;
 
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, -1, -4];
       const a = dl.tensor1d(values);
@@ -1319,7 +1318,7 @@ import * as selu_util from './selu_util';
 
 // dl.tanh
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const values = [1, -3, 2, 7, -4];
       const a = dl.tensor1d(values);
@@ -1399,7 +1398,7 @@ import * as selu_util from './selu_util';
 
 // dl.leakyRelu
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor1d([0, 1, -2]);
       const result = dl.leakyRelu(a);
@@ -1427,7 +1426,7 @@ import * as selu_util from './selu_util';
 
 // dl.elu
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('calculate elu', () => {
       const a = dl.tensor1d([1, -1, 0]);
       const result = dl.elu(a);
@@ -1466,7 +1465,7 @@ import * as selu_util from './selu_util';
   const scaleAlpha = selu_util.SELU_SCALEALPHA;
   const scale = selu_util.SELU_SCALE;
 
-  const tests: MathTests = it => {
+  const tests = () => {
     it('calculate selu', () => {
       const a = dl.tensor1d([1, -1, 0]);
       const result = dl.selu(a);
@@ -1536,7 +1535,7 @@ import * as selu_util from './selu_util';
 
 // dl.clip
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
       const min = -1;
@@ -1568,24 +1567,24 @@ import * as selu_util from './selu_util';
       expect(f).toThrowError();
     });
 
-    it('derivative: 1D tensor', math => {
+    it('derivative: 1D tensor', () => {
       const min = -1;
       const max = 2;
       const x = dl.tensor1d([3, -2, 1]);  // Only 1 is not clipped.
       const dy = dl.tensor1d([5, 50, 500]);
-      const gradients = math.vjp(() => math.clip(x, min, max), x, dy);
+      const gradients = dl.vjp(() => x.clip(min, max), x, dy);
 
       expect(gradients.shape).toEqual(x.shape);
       expect(gradients.dtype).toEqual('float32');
       test_util.expectArraysClose(gradients, [0, 0, 500], 1e-1);
     });
 
-    it('derivative: scalar', math => {
+    it('derivative: scalar', () => {
       const min = -1;
       const max = 2;
       const x = dl.scalar(-10);  // Clipped.
       const dy = dl.scalar(5);
-      const gradients = math.vjp(() => math.clip(x, min, max), x, dy);
+      const gradients = dl.vjp(() => x.clip(min, max), x, dy);
 
       expect(gradients.shape).toEqual(x.shape);
       expect(gradients.dtype).toEqual('float32');
