@@ -25,7 +25,7 @@ import {Tensor} from './tensor';
 export class Ops {
   /**
    * Returns the truth value of (a != b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.notEqualStrict().
+   * For a stricter version without broadcasting use dl.notEqualStrict().
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -47,7 +47,7 @@ export class Ops {
 
   /**
    * Returns the truth value of (a < b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.lessStrict().
+   * For a stricter version without broadcasting use dl.lessStrict().
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -69,7 +69,7 @@ export class Ops {
 
   /**
    * Returns the truth value of (a == b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.equalStrict().
+   * For a stricter version without broadcasting use dl.equalStrict().
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -91,7 +91,7 @@ export class Ops {
 
   /**
    * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.lessEqualStrict().
+   * For a stricter version without broadcasting use dl.lessEqualStrict().
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -113,7 +113,7 @@ export class Ops {
 
   /**
    * Returns the truth value of (a > b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.greaterStrict().
+   * For a stricter version without broadcasting use dl.greaterStrict().
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -135,7 +135,7 @@ export class Ops {
 
   /**
    * Returns the truth value of (a >= b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use math.greaterEqualStrict().
+   * For a stricter version without broadcasting use dl.greaterEqualStrict().
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.

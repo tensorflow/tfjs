@@ -17,25 +17,19 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
-
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
-import {Rank} from './types';
 
 export class Ops {
   /**
    * Reverses a 1D array
    * @param x The input array.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static reverse1d(x: Tensor1D): Tensor1D {
     util.assert(x.rank === 1, `Error in reverse1D: x must be rank 1 but got
              rank ${x.rank}.`);
-    const input4D = x.as4D(1, 1, 1, x.shape[0]);
-    const res = Ops.reverse4d(input4D, [3]);
-    return res.as1D();
+    return Ops.reverse(x, 0);
   }
 
   /**
@@ -44,15 +38,10 @@ export class Ops {
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static reverse2d(x: Tensor2D, axis: number|number[]): Tensor2D {
     util.assert(x.rank === 2, `Error in reverse2D: x must be rank 2 but got
              rank ${x.rank}.`);
-    const axisCleaned = axis_util.parseAxisParam(axis, x.shape).map(a => a + 2);
-    const input4D = x.as4D(1, 1, x.shape[0], x.shape[1]);
-    const res = Ops.reverse4d(input4D, axisCleaned);
-    return res.as2D(res.shape[2], res.shape[3]);
+    return Ops.reverse(x, axis);
   }
 
   /**
@@ -61,15 +50,10 @@ export class Ops {
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static reverse3d(x: Tensor3D, axis: number|number[]): Tensor3D {
     util.assert(x.rank === 3, `Error in reverse3D: x must be rank 3 but got
              rank ${x.rank}.`);
-    const axisCleaned = axis_util.parseAxisParam(axis, x.shape).map(a => a + 1);
-    const input4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-    const res = Ops.reverse4d(input4D, axisCleaned);
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
+    return Ops.reverse(x, axis);
   }
 
   /**
@@ -78,15 +62,10 @@ export class Ops {
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static reverse4d(x: Tensor4D, axis: number|number[]): Tensor4D {
     util.assert(x.rank === 4, `Error in reverse4D: x must be rank 4 but got
              rank ${x.rank}.`);
-    const axisCleaned = axis_util.parseAxisParam(axis, x.shape);
-    return ENV.engine.executeKernel(
-               'Reverse4D', {inputs: {x}, args: {axis: axisCleaned}}) as
-        Tensor4D;
+    return Ops.reverse(x, axis);
   }
 
   /**
@@ -98,20 +77,25 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static reverse<R extends Rank>(x: Tensor<R>, axis: number|number[]):
-      Tensor<R> {
+  static reverse<T extends Tensor>(x: T, axis: number|number[]): T {
+    let x4d: Tensor4D;
+    const axisCleaned =
+        axis_util.parseAxisParam(axis, x.shape).map(a => a + 4 - x.rank);
     if (x.rank === 0) {
-      return x.reshape(x.shape);
+      return x.clone();
     } else if (x.rank === 1) {
-      return Ops.reverse1d(x as Tensor1D) as Tensor<R>;
+      x4d = x.as4D(1, 1, 1, x.shape[0]);
     } else if (x.rank === 2) {
-      return Ops.reverse2d(x as Tensor2D, axis) as Tensor<R>;
+      x4d = x.as4D(1, 1, x.shape[0], x.shape[1]);
     } else if (x.rank === 3) {
-      return Ops.reverse3d(x as Tensor3D, axis) as Tensor<R>;
+      x4d = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
     } else if (x.rank === 4) {
-      return Ops.reverse4d(x as Tensor4D, axis) as Tensor<R>;
+      x4d = x as Tensor4D;
     } else {
       throw new Error(`Reverse for rank ${x.rank} is not yet implemented`);
     }
+    const res = ENV.engine.executeKernel(
+        'Reverse4D', {inputs: {x: x4d}, args: {axis: axisCleaned}});
+    return res.reshapeAs(x);
   }
 }

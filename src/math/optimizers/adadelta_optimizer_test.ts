@@ -21,11 +21,10 @@ import {Session} from '../../graph/session';
 import * as dl from '../../index';
 import {Tensor1D} from '../../math/tensor';
 import * as test_util from '../../test_util';
-import {MathTests} from '../../test_util';
 import {AdadeltaOptimizer} from './adadelta_optimizer';
 
-const tests: MathTests = it => {
-  it('basic', math => {
+const tests = () => {
+  it('basic', () => {
     const learningRate = .1;
     const rho = .95;
     const optimizer = dl.train.adadelta(learningRate, rho);

@@ -29,6 +29,7 @@ import * as concat from './concat';
 import * as conv from './conv';
 import * as image_ops from './image_ops';
 import * as logical from './logical_ops';
+import * as lrn_ops from './lrn';
 import * as lstm_ops from './lstm';
 import * as matmul from './matmul';
 import * as norm from './norm';
@@ -38,7 +39,7 @@ import * as reduction_ops from './reduction_ops';
 import * as reverse from './reverse';
 import * as slice from './slice';
 import * as softmax_ops from './softmax';
-import {Scalar, Tensor, Tensor1D, Tensor3D, Tensor4D} from './tensor';
+import {Scalar, Tensor, Tensor1D} from './tensor';
 import * as transpose from './transpose';
 import {Rank} from './types';
 import * as unary_ops from './unary_ops';
@@ -106,14 +107,10 @@ export class NDArrayMath {
 
   add = binary_ops.Ops.add;
   addStrict = binary_ops.Ops.addStrict;
-  /** @deprecated */
-  arrayDividedByScalar = binary_ops.Ops.arrayDividedByScalar;
   div = binary_ops.Ops.div;
   divide = this.div;  // Alias.
   divStrict = binary_ops.Ops.divStrict;
   divideStrict = this.divStrict;  // Alias.
-  /** @deprecated */
-  elementWiseMul = binary_ops.Ops.elementWiseMul;
   maximum = binary_ops.Ops.maximum;
   maximumStrict = binary_ops.Ops.maximumStrict;
   minimum = binary_ops.Ops.minimum;
@@ -124,8 +121,6 @@ export class NDArrayMath {
   multiplyStrict = this.mulStrict;  // Alias.
   pow = binary_ops.Ops.pow;
   powStrict = binary_ops.Ops.powStrict;
-  /** @deprecated */
-  scalarDividedByArray = binary_ops.Ops.scalarDividedByArray;
   sub = binary_ops.Ops.sub;
   subtract = this.sub;  // Alias.
   subStrict = binary_ops.Ops.subStrict;
@@ -198,6 +193,9 @@ export class NDArrayMath {
   /** @deprecated Use dl.image.resizeBilinear() */
   resizeBilinear3D = image_ops.Ops.resizeBilinear;
 
+  localResponseNormalization3D = lrn_ops.LRN.localResponseNormalization;
+  localResponseNormalization4D = lrn_ops.LRN.localResponseNormalization;
+
   // Tracking methods.
   keep = Tracking.keep;
 
@@ -214,10 +212,7 @@ export class NDArrayMath {
   startScope: typeof ENV.engine.startScope;
   endScope: typeof ENV.engine.endScope;
 
-  /**
-   * @param safeMode In safe mode, you must use math operations inside
-   *     a dl.tidy() which will automatically clean up intermediate Tensors.
-   */
+  /** @deprecated */
   constructor(backend: BackendType|MathBackend, safeMode: boolean) {
     ENV.setMath(this, backend, safeMode);
     this.engine = ENV.engine;
@@ -261,12 +256,35 @@ export class NDArrayMath {
     return result;
   }
 
-  /** @deprecated Use math.transpose() instead. */
+  /** @deprecated Use mulStrict() instead. */
+  elementWiseMul<T extends Tensor>(a: T, b: T): T {
+    return a.mulStrict(b);
+  }
+
+  /** @deprecated Use div() instead. */
+  scalarDividedByArray<T extends Tensor>(c: Scalar, a: T): T {
+    util.assert(
+        c.size === 1,
+        `Error in scalarDividedByArray: first argument must be rank 0, but ` +
+            `got Tensor of rank ${c.rank}.`);
+    return c.div(a) as T;
+  }
+
+  /** @deprecated Use div(A, c) instead. */
+  arrayDividedByScalar<T extends Tensor>(a: T, c: Scalar): T {
+    util.assert(
+        c.size === 1,
+        `Error in arrayDividedByScalar: second argument must be rank 0, ` +
+            `but got Tensor of rank ${c.rank}.`);
+    return a.div(c) as T;
+  }
+
+  /** @deprecated Use dl.transpose() instead. */
   switchDim<R extends Rank>(x: Tensor<R>, perm?: number[]): Tensor<R> {
     return ops.transpose<R>(x, perm);
   }
 
-  /** @deprecated Use math.add(c, A) instead. */
+  /** @deprecated Use dl.add(c, A) instead. */
   scalarPlusArray<T extends Tensor>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
@@ -275,7 +293,7 @@ export class NDArrayMath {
     return this.add(c, a) as T;
   }
 
-  /** @deprecated Use math.sub(c, A) instead. */
+  /** @deprecated Use dl.sub(c, A) instead. */
   scalarMinusArray<T extends Tensor>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
@@ -284,7 +302,7 @@ export class NDArrayMath {
     return this.subtract(c, a) as T;
   }
 
-  /** @deprecated Use math.sub(A, c) instead. */
+  /** @deprecated Use dl.sub(A, c) instead. */
   arrayMinusScalar<T extends Tensor>(a: T, c: Scalar): T {
     util.assert(
         c.size === 1,
@@ -293,13 +311,7 @@ export class NDArrayMath {
     return this.subtract(a, c) as T;
   }
 
-  /**
-   * Computes a scaled array add operation, c1 * A + c2 * B.
-   * @param c1 The first scalar in the scaled array add computation.
-   * @param a The first Tensor in the scaled array add computation.
-   * @param c2 The second scalar in the scaled array add computation.
-   * @param cb The second Tensor in the scaled array add computation.
-   */
+  /** @deprecated */
   scaledArrayAdd<T extends Tensor>(c1: Scalar, a: T, c2: Scalar, b: T): T {
     util.assert(
         c1.size === 1,
@@ -317,77 +329,13 @@ export class NDArrayMath {
     });
   }
 
-  /** @deprecated Use math.multiply(c, A) instead. */
+  /** @deprecated Use dl.multiply(c, A) instead. */
   scalarTimesArray<T extends Tensor>(c: Scalar, a: T): T {
     util.assert(
         c.size === 1,
         `Error in arrayDividedByScalar: first argument must be rank 0, but ` +
             `got rank ${c.rank}.`);
     return this.multiply(c, a) as T;
-  }
-
-  /**
-   * Normalizes the activation of a local neighborhood across or within
-   * channels.
-   * @param x The input Tensor.
-   * @param radius The number of adjacent channels or spatial locations of the
-   *     1D normalization window. In Tensorflow this param is called
-   *     'depth_radius' because only 'acrossChannels' mode is supported.
-   * @param bias A constant bias term for the basis.
-   * @param alpha A scale factor, usually positive.
-   * @param beta An exponent.
-   * @param normRegion A string from: ['acrossChannels', 'withinChannel'].
-   *     Default is 'acrossChannels'.
-   */
-  localResponseNormalization3D(
-      x: Tensor3D, radius = 5, bias = 1, alpha = 1, beta = 0.5,
-      normRegion: 'acrossChannels'|
-      'withinChannel' = 'acrossChannels'): Tensor3D {
-    util.assert(
-        x.rank === 3,
-        `Error in localResponseNormalization3D: x must be rank 3 but got
-         rank ${x.rank}.`);
-    util.assert(
-        util.isInt(radius),
-        `Error in localResponseNormalization3D: radius must be an integer
-         but got radius ${radius}.`);
-
-    const input4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
-    const res = this.localResponseNormalization4D(
-        input4D, radius, bias, alpha, beta, normRegion);
-    return res.as3D(res.shape[1], res.shape[2], res.shape[3]);
-  }
-
-  /**
-   * Normalizes the activation of a local neighborhood across or within
-   * channels.
-   * @param x The input Tensor. The 4-D input tensor is treated as a 3-D array
-   *     of 1D vectors (along the last dimension), and each vector is
-   * normalized independently.
-   * @param radius The number of adjacent channels or spatial locations of the
-   *     1D normalization window. In Tensorflow this param is called
-   *     'depth_radius' because only 'acrossChannels' mode is supported.
-   * @param bias A constant bias term for the basis.
-   * @param alpha A scale factor, usually positive.
-   * @param beta An exponent.
-   * @param normRegion A string from: ['acrossChannels', 'withinChannel'].
-   *     Default is 'acrossChannels'.
-   */
-  localResponseNormalization4D(
-      x: Tensor4D, radius = 5, bias = 1, alpha = 1, beta = 0.5,
-      normRegion: 'acrossChannels'|
-      'withinChannel' = 'acrossChannels'): Tensor4D {
-    util.assert(
-        x.rank === 4,
-        `Error in localResponseNormalization4D: x must be rank 4 but got
-         rank ${x.rank}.`);
-    util.assert(
-        util.isInt(radius),
-        `Error in localResponseNormalization3D: radius must be an integer
-         but got radius ${radius}.`);
-
-    return ENV.engine.executeKernel(
-        'LRN4D', {inputs: {x}, args: {radius, bias, alpha, beta, normRegion}});
   }
 }
 

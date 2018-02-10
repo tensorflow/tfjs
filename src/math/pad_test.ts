@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.pad1d
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Should pad 1D arrays', () => {
       const a = dl.tensor1d([1, 2, 3, 4, 5, 6], 'int32');
       const b = dl.pad1d(a, [2, 3]);
@@ -73,7 +72,7 @@ import {MathTests} from '../test_util';
 
 // dl.path2d
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Should pad 2D arrays', () => {
       let a = dl.tensor2d([[1], [2]], [2, 1], 'int32');
       let b = dl.pad2d(a, [[1, 1], [1, 1]]);

@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.prelu
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const x = dl.tensor1d([0, 1, -2, -4]);
       const a = dl.tensor1d([0.15, 0.2, 0.25, 0.15]);
@@ -75,7 +74,7 @@ import {MathTests} from '../test_util';
 
 // dl.maximum
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('float32 and float32', () => {
       const a = dl.tensor1d([0.5, 3, -0.1, -4]);
       const b = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);
@@ -220,7 +219,7 @@ import {MathTests} from '../test_util';
 
 // dl.minimum
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('float32 and float32', () => {
       const a = dl.tensor1d([0.5, 3, -0.1, -4]);
       const b = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);

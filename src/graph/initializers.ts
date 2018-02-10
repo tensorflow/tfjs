@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import * as ops from './math/ops';
-import {Tensor} from './math/tensor';
+import * as ops from '../math/ops';
+import {Tensor} from '../math/tensor';
 
 /**
  * Initializer interface, all initializer implement this interface.

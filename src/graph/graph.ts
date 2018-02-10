@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {Initializer, VarianceScalingInitializer, ZerosInitializer} from '../initializers';
 import * as concat_util from '../math/concat_util';
 import * as conv_util from '../math/conv_util';
 import {Scalar, Tensor} from '../math/tensor';
 import * as util from '../util';
+// tslint:disable-next-line:max-line-length
+import {Initializer, VarianceScalingInitializer, ZerosInitializer} from './initializers';
 
 /**
  * A layers sugar class around the graph that initializes variables

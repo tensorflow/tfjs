@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.softmax
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('regular test', () => {
       const y = dl.softmax(dl.tensor1d([2, 1, 3]));
 
@@ -125,7 +124,7 @@ import {MathTests} from '../test_util';
 
 // dl.softmaxCrossEntropy
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D', () => {
       const logits = dl.tensor1d([1, 2, 3]);
       const label = dl.tensor1d([0.3, 0.6, 0.1]);

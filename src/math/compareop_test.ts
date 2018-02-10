@@ -17,7 +17,6 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import * as util from '../util';
 import {Tensor3D} from './tensor';
 
@@ -25,7 +24,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -294,7 +293,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -553,7 +552,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -835,7 +834,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -1109,7 +1108,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -1440,7 +1439,7 @@ import {Tensor3D} from './tensor';
 // LessStrict:
 {
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - strict version throws when a and b are different shape',
        () => {
@@ -1507,7 +1506,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -1837,7 +1836,7 @@ import {Tensor3D} from './tensor';
 
 // LessEqualStrict:
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - strict version throws when a and b are different shape',
        () => {
@@ -1903,7 +1902,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -2233,7 +2232,7 @@ import {Tensor3D} from './tensor';
 
 // GreaterStrict:
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - strict version throws when a and b are different shape',
        () => {
@@ -2299,7 +2298,7 @@ import {Tensor3D} from './tensor';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - int32', () => {
       let a = dl.tensor1d([1, 4, 5], 'int32');
@@ -2629,7 +2628,7 @@ import {Tensor3D} from './tensor';
 
 // GreaterEqualStrict:
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D - strict version throws when a and b are different shape',
        () => {

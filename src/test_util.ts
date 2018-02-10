@@ -18,20 +18,11 @@
 import {BackendType, ENV, Environment, Features} from './environment';
 import {MathBackendCPU} from './math/backends/backend_cpu';
 import {MathBackendWebGL} from './math/backends/backend_webgl';
-import {NDArrayMath} from './math/math';
 import {Tensor} from './math/tensor';
 import {DataType, TypedArray} from './math/types';
 import * as util from './util';
 
-// This is how the it(), fit() and xit() function look in your tests
-export type MathIt = (name: string, testFn: (math: NDArrayMath) => void) =>
-    void;
-
-// This is the internal representation of the it(), fit() and xit() functions
-export type It = (name: string, testFn: () => void|Promise<void>) => void;
-
-export type MathTests = (it: MathIt, fit?: MathIt, xit?: MathIt) => void;
-export type Tests = (it: It, fit?: It, xit?: It) => void;
+export type Tests = () => void;
 
 /** Accuracy for tests. */
 // TODO(nsthorat || smilkov): Fix this low precision for byte-backed
@@ -263,20 +254,20 @@ export function cpuDotProduct(a: Float32Array, b: Float32Array): number {
 }
 
 export function describeMathCPU(
-    name: string, tests: MathTests[], featuresList?: Features[]) {
-  const testNameBase = 'CPU: math.' + name;
+    name: string, tests: Tests[], featuresList?: Features[]) {
+  const testNameBase = 'CPU: ' + name;
   describeWithFeaturesAndExecutor(
-      testNameBase, tests as Tests[],
+      testNameBase, tests,
       (testName, tests, features) =>
           executeMathTests(testName, tests, 'cpu', features),
       featuresList);
 }
 
 export function describeMathGPU(
-    name: string, tests: MathTests[], featuresList?: Features[]) {
-  const testNameBase = 'WebGL: math.' + name;
+    name: string, tests: Tests[], featuresList?: Features[]) {
+  const testNameBase = 'WebGL: ' + name;
   describeWithFeaturesAndExecutor(
-      testNameBase, tests as Tests[],
+      testNameBase, tests,
       (testName, tests, features) =>
           executeMathTests(testName, tests, 'webgl', features),
       featuresList);
@@ -307,38 +298,8 @@ function describeWithFeaturesAndExecutor(
   }
 }
 
-function resolveTestFuncPromise(testFunc: () => void|Promise<void>) {
-  return (done: DoneFn) => {
-    const result = testFunc();
-    if (result instanceof Promise) {
-      result.then(done, e => {
-        fail(e);
-        done();
-      });
-    } else {
-      done();
-    }
-  };
-}
-
-// A wrapper around it() that calls done automatically if the function returns
-// a Promise, aka if it's an async/await function.
-const PROMISE_IT: It = (name: string, testFunc: () => void|Promise<void>) => {
-  it(name, resolveTestFuncPromise(testFunc));
-};
-
-const PROMISE_FIT: It = (name: string, testFunc: () => void|Promise<void>) => {
-  // tslint:disable-next-line:ban
-  fit(name, resolveTestFuncPromise(testFunc));
-};
-
-const PROMISE_XIT: It = (name: string, testFunc: () => void|Promise<void>) => {
-  // tslint:disable-next-line:ban
-  xit(name, resolveTestFuncPromise(testFunc));
-};
-
 export function executeMathTests(
-    testName: string, tests: MathTests[], backendType: BackendType,
+    testName: string, tests: Tests[], backendType: BackendType,
     features?: Features) {
   const customBeforeEach = () => {
     Environment.setBackend(backendType);
@@ -347,29 +308,14 @@ export function executeMathTests(
   const customAfterEach = () => {
     ENV.engine.endScope(null);
   };
-  const customIt: It =
-      (name: string, testFunc: (math: NDArrayMath) => void|Promise<void>) => {
-        PROMISE_IT(name, () => testFunc(ENV.math));
-      };
-  const customFit: It =
-      (name: string, testFunc: (math: NDArrayMath) => void|Promise<void>) => {
-        PROMISE_FIT(name, () => testFunc(ENV.math));
-      };
-  const customXit: It =
-      (name: string, testFunc: (math: NDArrayMath) => void|Promise<void>) => {
-        PROMISE_XIT(name, () => testFunc(ENV.math));
-      };
 
   executeTests(
-      testName, tests as Tests[], features, customBeforeEach, customAfterEach,
-      customIt, customFit, customXit);
+      testName, tests as Tests[], features, customBeforeEach, customAfterEach);
 }
 
 function executeTests(
     testName: string, tests: Tests[], features?: Features,
-    customBeforeEach?: () => void, customAfterEach?: () => void,
-    customIt: It = PROMISE_IT, customFit: It = PROMISE_FIT,
-    customXit: It = PROMISE_XIT) {
+    customBeforeEach?: () => void, customAfterEach?: () => void) {
   describe(testName, () => {
     beforeEach(() => {
       ENV.setFeatures(features || {});
@@ -388,7 +334,7 @@ function executeTests(
       ENV.reset();
     });
 
-    tests.forEach(test => test(customIt, customFit, customXit));
+    tests.forEach(test => test());
   });
 }
 

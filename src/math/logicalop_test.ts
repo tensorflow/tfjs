@@ -16,7 +16,6 @@
  */
 
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import * as util from '../util';
 import * as dl from '../index';
 
@@ -24,7 +23,7 @@ import * as dl from '../index';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Tensor1D.', () => {
       let a = dl.tensor1d([1, 0, 0], 'bool');
       test_util.expectArraysClose(dl.logicalNot(a), [0, 1, 1]);
@@ -94,7 +93,7 @@ import * as dl from '../index';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Tensor1D.', () => {
       let a = dl.tensor1d([1, 0, 0], 'bool');
       let b = dl.tensor1d([0, 1, 0], 'bool');
@@ -213,7 +212,7 @@ import * as dl from '../index';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Tensor1D.', () => {
       let a = dl.tensor1d([1, 0, 0], 'bool');
       let b = dl.tensor1d([0, 1, 0], 'bool');
@@ -332,7 +331,7 @@ import * as dl from '../index';
 {
   const boolNaN = util.getNaN('bool');
 
-  const tests: MathTests = it => {
+  const tests = () => {
     // Tensor1D:
     it('Tensor1D.', () => {
       let a = dl.tensor1d([1, 0, 0], 'bool');
@@ -453,7 +452,7 @@ import * as dl from '../index';
 
 // dl.where
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Scalars.', () => {
       const a = dl.scalar(10);
       const b = dl.scalar(20);

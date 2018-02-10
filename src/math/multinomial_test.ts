@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import {Tensor1D} from './tensor';
 import {Rank} from './types';
 
-const tests: MathTests = it => {
+const tests = () => {
   const NUM_SAMPLES = 10000;
   // Allowed Variance in probability (in %).
   const EPSILON = 0.05;

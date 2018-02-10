@@ -21,12 +21,11 @@ import {Session} from '../../graph/session';
 import * as dl from '../../index';
 import {Tensor1D} from '../../math/tensor';
 import * as test_util from '../../test_util';
-import {MathTests} from '../../test_util';
 
 import {AdagradOptimizer} from './adagrad_optimizer';
 
-const tests: MathTests = it => {
-  it('basic', math => {
+const tests = () => {
+  it('basic', () => {
     const learningRate = .1;
     const initialAccumulatorValue = .1;
     const optimizer = dl.train.adagrad(learningRate, initialAccumulatorValue);

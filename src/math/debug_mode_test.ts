@@ -17,12 +17,11 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import * as util from '../util';
 
 // debug mode
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('debug mode does not error when no nans', () => {
       const a = dl.tensor1d([2, -1, 0, 3]);
       const res = dl.relu(a);
@@ -68,7 +67,7 @@ import * as util from '../util';
 
 // debug mode off
 {
-  const gpuTests: MathTests = it => {
+  const gpuTests = () => {
     it('no errors where there are nans, and debug mode is disabled', () => {
       const a = dl.tensor1d([2, NaN]);
       const res = dl.relu(a);

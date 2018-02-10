@@ -35,8 +35,6 @@ export class Ops {
    * @param b The second array.
    * @return The concatenated array.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static concat1d(a: Tensor1D, b: Tensor1D): Tensor1D {
     return Ops.concat(a, b, 0 /* axis */);
   }
@@ -69,8 +67,6 @@ export class Ops {
    * @param axis The axis to concatenate along.
    * @return The concatenated array.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static concat2d(a: Tensor2D, b: Tensor2D, axis: number): Tensor2D {
     return Ops.concat(a, b, axis);
   }
@@ -106,14 +102,12 @@ export class Ops {
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static concat3d(a: Tensor3D, b: Tensor3D, axis: number): Tensor3D {
     return Ops.concat(a, b, axis);
   }
 
   /**
-   * Concatenates two 4D tensors along a given axis. See math.concat2D() for
+   * Concatenates two 4D tensors along a given axis. See dl.concat2D() for
    * documentation.
    *
    * @param a The first array to concat.
@@ -121,8 +115,6 @@ export class Ops {
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static concat4d(a: Tensor4D, b: Tensor4D, axis: number): Tensor4D {
     return Ops.concat(a, b, axis);
   }

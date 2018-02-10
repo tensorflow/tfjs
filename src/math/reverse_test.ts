@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.reverse1D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('reverse a 1D array', () => {
       const input = dl.tensor1d([1, 2, 3, 4, 5]);
       const result = dl.reverse1d(input);
@@ -40,7 +39,7 @@ import {MathTests} from '../test_util';
 
 // dl.reverse2D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('reverse a 2D array at axis [0]', () => {
       const axis = [0];
       const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
@@ -87,7 +86,7 @@ import {MathTests} from '../test_util';
 
 // dl.reverse3D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     // [
     //   [
     //     [0,  1,  2,  3],
@@ -194,7 +193,7 @@ import {MathTests} from '../test_util';
 
 // dl.reverse4D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     // [
     //   [
     //     [

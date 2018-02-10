@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.transpose
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('2D (no change)', () => {
       const t = dl.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
       const t2 = dl.transpose(t, [0, 1]);

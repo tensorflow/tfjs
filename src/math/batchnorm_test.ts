@@ -17,13 +17,12 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.batchNormalization4D
 {
   // TODO(nsthorat): Fix the precision for byte-packed batchnorm.
   const epsilon = 1e-1;
-  const tests: MathTests = it => {
+  const tests = () => {
     it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {
       const x = dl.tensor4d([2, 100, 4, 400], [2, 1, 1, 2]);
       const mean = dl.tensor1d([1, 2]);
@@ -147,7 +146,7 @@ import {MathTests} from '../test_util';
 {
   // TODO(nsthorat): Fix the precision for byte-packed batchnorm.
   const epsilon = 1e-1;
-  const tests: MathTests = it => {
+  const tests = () => {
     it('simple batchnorm3D, no offset or scale, 2x1x2', () => {
       const x = dl.tensor3d([2, 100, 4, 400], [2, 1, 2]);
       const mean = dl.tensor1d([1, 2]);
@@ -297,7 +296,7 @@ import {MathTests} from '../test_util';
 {
   // TODO(nsthorat): Fix the precision for byte-packed batchnorm.
   const epsilon = 1e-1;
-  const tests: MathTests = it => {
+  const tests = () => {
     it('simple batchnorm2D, no offset or scale, 2x2', () => {
       const x = dl.tensor2d([2, 100, 4, 400], [2, 2]);
       const mean = dl.tensor1d([1, 2]);

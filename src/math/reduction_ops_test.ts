@@ -17,12 +17,11 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import * as reduce_util from './reduce_util';
 
 // dl.min
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Tensor1D', () => {
       const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
       test_util.expectNumbersClose(dl.min(a).get(), -7);
@@ -88,7 +87,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.max
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('with one element dominating', () => {
       const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
       const r = dl.max(a);
@@ -160,7 +159,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.argmax
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Tensor1D', () => {
       const a = dl.tensor1d([1, 0, 3, 2]);
       const result = dl.argMax(a);
@@ -233,7 +232,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.argmin
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Tensor1D', () => {
       const a = dl.tensor1d([1, 0, 3, 2]);
       const result = dl.argMin(a);
@@ -301,7 +300,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.argMaxEquals
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('equals', () => {
       const a = dl.tensor1d([5, 0, 3, 7, 3]);
       const b = dl.tensor1d([-100.3, -20.0, -10.0, -5, -100]);
@@ -340,7 +339,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.logSumExp
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('0', () => {
       const a = dl.scalar(0);
       const result = dl.logSumExp(a);
@@ -445,7 +444,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.sum
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
       const result = dl.sum(a);
@@ -579,7 +578,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.mean
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
       const r = dl.mean(a);
@@ -706,7 +705,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.moments
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('basic', () => {
       const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
       const {mean, variance} = dl.moments(a);
@@ -830,7 +829,7 @@ import * as reduce_util from './reduce_util';
 
 // dl.norm
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('scalar norm', () => {
       const a = dl.scalar(-22.0);
       const norm = dl.norm(a);

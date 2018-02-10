@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
 // dl.concat1D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('3 + 5', () => {
       const a = dl.tensor1d([3]);
       const b = dl.tensor1d([5]);
@@ -60,7 +59,7 @@ import {MathTests} from '../test_util';
 
 // dl.concat2D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('[[3]] + [[5]], axis=0', () => {
       const axis = 0;
       const a = dl.tensor2d([3], [1, 1]);
@@ -128,7 +127,7 @@ import {MathTests} from '../test_util';
 
 // dl.concat3D
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('shapes correct concat axis=0', () => {
       const tensor1 = dl.tensor3d([1, 2, 3], [1, 1, 3]);
       const tensor2 = dl.tensor3d([4, 5, 6], [1, 1, 3]);

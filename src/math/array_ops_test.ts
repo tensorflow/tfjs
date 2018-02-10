@@ -17,12 +17,11 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 import * as util from '../util';
 
 // dl.zeros
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D default dtype', () => {
       const a: dl.Tensor1D = dl.zeros([3]);
       expect(a.dtype).toBe('float32');
@@ -146,7 +145,7 @@ import * as util from '../util';
 
 // dl.ones
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D default dtype', () => {
       const a = dl.ones([3]);
       expect(a.dtype).toBe('float32');
@@ -270,7 +269,7 @@ import * as util from '../util';
 
 // dl.zerosLike
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D default dtype', () => {
       const a = dl.tensor1d([1, 2, 3]);
       const b = dl.zerosLike(a);
@@ -410,7 +409,7 @@ import * as util from '../util';
 
 // dl.onesLike
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D default dtype', () => {
       const a = dl.tensor1d([1, 2, 3]);
       const b = dl.onesLike(a);
@@ -550,7 +549,7 @@ import * as util from '../util';
 
 // dl.rand
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('should return a random 1D float32 array', () => {
       const shape: [number] = [10];
 
@@ -670,7 +669,7 @@ import * as util from '../util';
 
 // dl.randomNormal
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     const SEED = 2002;
     const EPSILON = 0.05;
 
@@ -796,7 +795,7 @@ import * as util from '../util';
 
 // dl.truncatedNormal
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     // Expect slightly higher variances for truncated values.
     const EPSILON = 0.60;
     const SEED = 2002;
@@ -913,7 +912,7 @@ import * as util from '../util';
 
 // dl.randomUniform
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('should return a random 1D float32 array', () => {
       const shape: [number] = [10];
 
@@ -1033,7 +1032,7 @@ import * as util from '../util';
 
 // dl.fromPixels
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('ImageData 1x1x3', () => {
       const pixels = new ImageData(1, 1);
       pixels.data[0] = 0;
@@ -1150,7 +1149,7 @@ import * as util from '../util';
 
 // dl.clone
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D default dtype', () => {
       const a = dl.tensor1d([1, 2, 3]);
       const b = dl.clone(a);
@@ -1290,7 +1289,7 @@ import * as util from '../util';
 
 // dl.tile
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D (tile)', () => {
       const t = dl.tensor1d([1, 2, 3]);
       const t2 = dl.tile(t, [2]);
@@ -1445,7 +1444,7 @@ import * as util from '../util';
 
 // dl.gather
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('1D (gather)', () => {
       const t = dl.tensor1d([1, 2, 3]);
 
@@ -1516,7 +1515,7 @@ import * as util from '../util';
 
 // dl.oneHot
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('Depth 1 throws error', () => {
       const indices = dl.tensor1d([0, 0, 0]);
       expect(() => dl.oneHot(indices, 1)).toThrowError();
@@ -1565,7 +1564,7 @@ import * as util from '../util';
 
 // dl.linspace
 {
-  const testsLinspace: MathTests = it => {
+  const testsLinspace = () => {
     it('start stop', () => {
       const a = dl.linspace(1, 10, 10);
       test_util.expectArraysEqual(a, [1., 2., 3., 4., 5., 6., 7., 8., 9., 10.]);
@@ -1620,7 +1619,7 @@ import * as util from '../util';
 
 // dl.range
 {
-  const testsRange: MathTests = it => {
+  const testsRange = () => {
     it('start stop', () => {
       const a = dl.range(0, 3);
       test_util.expectArraysEqual(a, [0, 1, 2]);
@@ -1761,7 +1760,7 @@ import * as util from '../util';
 
 // dl.fill
 {
-  const testsFill: MathTests = it => {
+  const testsFill = () => {
     it('1D fill', () => {
       const a = dl.fill([3], 2);
       expect(a.dtype).toBe('float32');

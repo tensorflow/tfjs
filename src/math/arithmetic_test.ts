@@ -17,12 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
-import {Scalar, Tensor2D} from './tensor';
 
 // divide
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('divide', () => {
       const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
       const c = dl.tensor2d([1, 2, 3, 4, 2, 5], [2, 3]);
@@ -252,7 +250,7 @@ import {Scalar, Tensor2D} from './tensor';
 
 // multiply
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('multiplyStrict same-shaped tensors', () => {
       const a = dl.tensor2d([1, 2, -3, -4], [2, 2]);
       const b = dl.tensor2d([5, 3, 4, -7], [2, 2]);
@@ -286,8 +284,8 @@ import {Scalar, Tensor2D} from './tensor';
       const a = dl.tensor2d([1, 2, -3, -4, 5, 6], [2, 3], 'float32');
       const b = dl.tensor2d([5, 3, 4, -7], [2, 2], 'int32');
 
-      expect(() => dl.mulStrict(a, b as Tensor2D as Tensor2D)).toThrowError();
-      expect(() => dl.mulStrict(b, a as Tensor2D as Tensor2D)).toThrowError();
+      expect(() => dl.mulStrict(a, b)).toThrowError();
+      expect(() => dl.mulStrict(b, a)).toThrowError();
     });
 
     it('multiplyStrict int32 * int32', () => {
@@ -464,7 +462,7 @@ import {Scalar, Tensor2D} from './tensor';
 
 // pow
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('same-shaped tensors', () => {
       const a = dl.tensor2d([1, -2, -3, 0, 7, 1], [2, 3]);
       const b = dl.tensor2d([5, 3, 4, 5, 2, -3], [2, 3], 'int32');
@@ -602,7 +600,7 @@ import {Scalar, Tensor2D} from './tensor';
 
 // element-wise add / sub
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('c + A', () => {
       const c = dl.scalar(5);
       const a = dl.tensor1d([1, 2, 3]);
@@ -752,7 +750,7 @@ import {Scalar, Tensor2D} from './tensor';
 
 // subtract
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('c - A', () => {
       const c = dl.scalar(5);
       const a = dl.tensor1d([7, 2, 3]);
@@ -951,55 +949,6 @@ import {Scalar, Tensor2D} from './tensor';
 
   test_util.describeMathCPU('subtract', [tests]);
   test_util.describeMathGPU('subtract', [tests], [
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-    {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}
-  ]);
-}
-
-// math.scaledArrayAdd
-{
-  const tests: MathTests = it => {
-    it('Scaled tensor add', math => {
-      const a = dl.tensor2d([2, 4, 6, 8, 10, 12], [2, 3]);
-      const b = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-      const c1 = dl.scalar(3);
-      const c2 = dl.scalar(2);
-
-      const result = math.scaledArrayAdd<Tensor2D>(c1, a, c2, b);
-
-      expect(result.shape).toEqual([2, 3]);
-      test_util.expectArraysClose(result, [8, 16, 24, 32, 40, 48]);
-
-      // Different sizes throws an error.
-      const wrongSizeMat = dl.tensor2d([1, 2, 3, 4], [2, 2]);
-      expect(() => math.scaledArrayAdd<Tensor2D>(c1, wrongSizeMat, c2, b))
-          .toThrowError();
-    });
-
-    it('throws when passed non-scalars', math => {
-      const a = dl.tensor2d([2, 4, 6, 8, 10, 12], [2, 3]);
-      const b = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
-      // tslint:disable-next-line:no-any
-      const c1: any = dl.randomNormal([10]);
-      const c2 = dl.scalar(2);
-
-      expect(() => math.scaledArrayAdd(c1 as Scalar, a, c2, b)).toThrowError();
-      expect(() => math.scaledArrayAdd(c2, a, c1 as Scalar, b)).toThrowError();
-    });
-
-    it('throws when Tensors are different shape', math => {
-      const a = dl.tensor2d([2, 4, 6, 8, 10, 12], [2, 3]);
-      const b = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
-      const c1 = dl.scalar(3);
-      const c2 = dl.scalar(2);
-
-      expect(() => math.scaledArrayAdd<Tensor2D>(c1, a, c2, b)).toThrowError();
-    });
-  };
-
-  test_util.describeMathCPU('scaledArrayAdd', [tests]);
-  test_util.describeMathGPU('scaledArrayAdd', [tests], [
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
     {'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}

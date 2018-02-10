@@ -17,11 +17,10 @@
 
 import * as dl from '../index';
 import * as test_util from '../test_util';
-import {MathTests} from '../test_util';
 
-// math.resizeBilinear
+// dl.resizeBilinear
 {
-  const tests: MathTests = it => {
+  const tests = () => {
     it('simple alignCorners=false', () => {
       const input = dl.tensor3d([2, 2, 4, 4], [2, 2, 1]);
       const output = input.resizeBilinear([3, 3], false);

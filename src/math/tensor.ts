@@ -425,7 +425,7 @@ export class Tensor<R extends Rank = Rank> {
         this, mean, variance, varianceEpsilon, scale, offset);
   }
 
-  clone(): Tensor<R> {
+  clone<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return ops.clone(this);
   }
@@ -764,6 +764,13 @@ export class Tensor<R extends Rank = Rank> {
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     (this as Tensor).throwIfDisposed();
     return ops.minPool(this, filterSize, strides, pad, dimRoundingMode);
+  }
+
+  localResponseNormalization<T extends Tensor3D|Tensor4D>(
+      this: T, radius = 5, bias = 1, alpha = 1, beta = 0.5,
+      normRegion: 'acrossChannels'|'withinChannel' = 'acrossChannels'): T {
+    return ops.localResponseNormalization(
+        this, radius, bias, alpha, beta, normRegion);
   }
 }
 

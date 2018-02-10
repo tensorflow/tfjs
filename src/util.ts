@@ -354,7 +354,7 @@ export function checkForNaN<D extends DataType>(
     vals: DataTypeMap[D], dtype: D, name: string): void {
   for (let i = 0; i < vals.length; i++) {
     if (isValNaN(vals[i], dtype)) {
-      throw Error(`The result of the last math.${name} has NaNs.`);
+      throw Error(`The result of the '${name}' has NaNs.`);
     }
   }
 }
