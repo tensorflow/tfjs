@@ -17,12 +17,13 @@
 
 import {ENV} from '../environment';
 import * as util from '../util';
+
 import {doc, operation} from './decorators';
-import {MPRandGauss, RandNormalDataTypes} from './rand';
+import {MPRandGauss} from './rand';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from './tensor';
 // tslint:disable-next-line:max-line-length
-import {ArrayData, DataType, DataTypeMap, Rank, RegularArray, ShapeMap, TypedArray} from './types';
+import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D} from './types';
 
 export class Ops {
   /**
@@ -36,9 +37,8 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static tensor<R extends Rank>(
-      values: TypedArray|number|boolean|RegularArray<number>|
-      RegularArray<boolean>,
-      shape?: ShapeMap[R], dtype: DataType = 'float32'): Tensor<R> {
+      values: TensorLike, shape?: ShapeMap[R], dtype: DataType = 'float32'):
+      Tensor<R> {
     const inferredShape = util.inferShape(values);
     if (shape != null && inferredShape.length !== 1) {
       util.assertShapesMatch(
@@ -80,9 +80,7 @@ export class Ops {
    * @param dtype The data type.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  static tensor1d(
-      values: TypedArray|number[]|boolean[], dtype: DataType = 'float32'):
-      Tensor1D {
+  static tensor1d(values: TensorLike1D, dtype: DataType = 'float32'): Tensor1D {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 1) {
       throw new Error(
@@ -102,8 +100,8 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static tensor2d(
-      values: TypedArray|number[]|number[][]|boolean[]|boolean[][],
-      shape?: [number, number], dtype: DataType = 'float32'): Tensor2D {
+      values: TensorLike2D, shape?: [number, number],
+      dtype: DataType = 'float32'): Tensor2D {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 2 && inferredShape.length !== 1) {
       throw new Error(
@@ -125,8 +123,8 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static tensor3d(
-      values: TypedArray|number[]|number[][][]|boolean[]|boolean[][][],
-      shape?: [number, number, number], dtype: DataType = 'float32'): Tensor3D {
+      values: TensorLike3D, shape?: [number, number, number],
+      dtype: DataType = 'float32'): Tensor3D {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 3 && inferredShape.length !== 1) {
       throw new Error(
@@ -148,8 +146,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static tensor4d(
-      values: TypedArray|number[]|number[][][][]|boolean[]|boolean[][][][],
-      shape?: [number, number, number, number],
+      values: TensorLike4D, shape?: [number, number, number, number],
       dtype: DataType = 'float32'): Tensor4D {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 4 && inferredShape.length !== 1) {
@@ -252,8 +249,8 @@ export class Ops {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static randomNormal<R extends Rank>(
-      shape: ShapeMap[R], mean = 0, stdDev = 1,
-      dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
+      shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
+      seed?: number): Tensor<R> {
     if (dtype != null && (dtype as DataType) === 'bool') {
       throw new Error(`Unsupported data type ${dtype}`);
     }
@@ -278,8 +275,8 @@ export class Ops {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static truncatedNormal<R extends Rank>(
-      shape: ShapeMap[R], mean = 0, stdDev = 1,
-      dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
+      shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
+      seed?: number): Tensor<R> {
     if (dtype != null && (dtype as DataType) === 'bool') {
       throw new Error(`Unsupported data type ${dtype}`);
     }
@@ -579,7 +576,7 @@ export class Ops {
    */
   @operation
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  static linspace(start: number, stop: number, num: number) {
+  static linspace(start: number, stop: number, num: number): Tensor1D {
     if (num === 0) {
       throw new Error('Cannot request zero samples');
     }

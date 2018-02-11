@@ -24,6 +24,7 @@ import {DocClass, DocFunction, DocFunctionParam, DocHeading, Docs, DocSubheading
 import * as util from './api-util';
 
 const DOCUMENTATION_DECORATOR = '@doc';
+const DOCUMENTATION_TYPE_ALIAS = 'docalias';
 const SRC_ROOT = 'src/';
 const PROGRAM_ROOT = SRC_ROOT + 'index.ts';
 
@@ -43,13 +44,23 @@ export function parse(): Docs {
   const docHeadings: DocHeading[] = [
     {
       name: 'Tensors',
+      description: `Tensors are the core datastructure of deeplearn.js. ` +
+          `They are a generalization of vectors and matrices to potentially ` +
+          `higher dimensions.`,
       subheadings: [
-        {name: 'Creation'}, {name: 'Transformations'},
-        {name: 'Slicing and Joining'}
+        {
+          name: 'Creation',
+          description: `This section describes how to construct tensors.`,
+          pin: [
+            'tensor', 'scalar', 'tensor1d', 'tensor2d', 'tensor3d', 'tensor4d'
+          ]
+        },
+        {name: 'Transformations'}, {name: 'Slicing and Joining'}
       ]
     },
     {
       name: 'Operations',
+      description: '',
       subheadings: [
         {name: 'Arithmetic'}, {name: 'Basic math'}, {name: 'Matrices'},
         {name: 'Convolution'}, {name: 'Reduction'}, {name: 'Normalization'},
@@ -57,35 +68,63 @@ export function parse(): Docs {
         {name: 'Logical'}
       ]
     },
-    {name: 'Training', subheadings: [{name: 'Gradients'}]},
-    {name: 'Performance', subheadings: [{name: 'Memory'}, {name: 'Timing'}]}
+    {
+      name: 'Training',
+      description: '',
+      subheadings: [
+        {name: 'Gradients'}, {
+          name: 'Optimizers',
+          pin: [
+            'train.sgd', 'train.SGDOptimizer', 'train.momentum',
+            'train.MomentumOptimizer', 'train.adagrad',
+            'train.AdagradOptimizer', 'train.adadelta',
+            'train.AdadeltaOptimizer'
+          ]
+        }
+      ]
+    },
+    {
+      name: 'Performance',
+      description: '',
+      subheadings: [{name: 'Memory', pin: ['tidy']}, {name: 'Timing'}]
+    },
+    {
+      name: 'Environment',
+      description: '',
+      subheadings: [{name: '', pin: ['setBackend']}]
+    }
   ];
 
-  // We keep an auxillary map of explicitly marked "subclass" fields on @doc to
-  // the method entries
+  // We keep an auxillary map of explicitly marked "subclass" fields on
+  // @doc to the method entries
   const subclassMethodMap: {[subclass: string]: DocFunction[]} = {};
+  const docTypeAliases: {[type: string]: string} = {};
 
-  // Use the same compiler options that we use to compile the library here.
+  // Use the same compiler options that we use to compile the library
+  // here.
   const tsconfig = JSON.parse(fs.readFileSync('tsconfig.json', 'utf8'));
 
   console.log(`Parsing AST from program root ${PROGRAM_ROOT}`);
   const program = ts.createProgram([PROGRAM_ROOT], tsconfig.compilerOptions);
   const checker = program.getTypeChecker();
 
-  // Visit all the nodes that are transitively linked from the source root.
+  // Visit all the nodes that are transitively linked from the source
+  // root.
   for (const sourceFile of program.getSourceFiles()) {
     if (!sourceFile.isDeclarationFile) {
       ts.forEachChild(
           sourceFile,
           node => visitNode(
-              docHeadings, subclassMethodMap, checker, node, sourceFile));
+              docHeadings, subclassMethodMap, docTypeAliases, checker, node,
+              sourceFile));
     }
   }
 
   util.addSubclassMethods(docHeadings, subclassMethodMap);
-
-  // Sort the documentation.
   util.sortMethods(docHeadings);
+  util.replaceDocTypeAliases(docHeadings, docTypeAliases);
+
+  // TODO(nsthorat): Link types to their symbol docs.
 
   const docs: Docs = {headings: docHeadings};
 
@@ -96,7 +135,8 @@ export function parse(): Docs {
 function visitNode(
     docHeadings: DocHeading[],
     subclassMethodMap: {[subclass: string]: DocFunction[]},
-    checker: ts.TypeChecker, node: ts.Node, sourceFile: ts.SourceFile) {
+    docTypeAliases: {[type: string]: string}, checker: ts.TypeChecker,
+    node: ts.Node, sourceFile: ts.SourceFile) {
   if (ts.isMethodDeclaration(node)) {
     const docInfo = util.getDocDecorator(node, DOCUMENTATION_DECORATOR);
 
@@ -132,12 +172,20 @@ function visitNode(
       subheading.symbols.push(
           serializeClass(checker, node, docInfo, sourceFile, docHeadings));
     }
+  } else if (
+      ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) {
+    const docAlias = util.getDocAlias(checker, node, DOCUMENTATION_TYPE_ALIAS);
+    if (docAlias != null) {
+      const symbol = checker.getSymbolAtLocation(node.name);
+      docTypeAliases[symbol.getName()] = docAlias;
+    }
   }
 
   ts.forEachChild(
       node,
-      node =>
-          visitNode(docHeadings, subclassMethodMap, checker, node, sourceFile));
+      node => visitNode(
+          docHeadings, subclassMethodMap, docTypeAliases, checker, node,
+          sourceFile));
 }
 
 export function serializeClass(
@@ -192,8 +240,10 @@ export function serializeMethod(
       checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!);
   const signature = type.getCallSignatures()[0];
 
-  const parameters =
-      signature.parameters.map(symbol => serializeParameter(checker, symbol));
+  const identifierGenericMap = util.getIdentifierGenericMap(node, symbol.name);
+
+  const parameters = signature.parameters.map(
+      symbol => serializeParameter(checker, symbol, identifierGenericMap));
   const paramStr = '(' +
       parameters.map(param => param.name + (param.optional ? '?' : ''))
           .join(', ') +
@@ -202,12 +252,29 @@ export function serializeMethod(
   const {displayFilename, githubUrl} =
       util.getFileInfo(node, sourceFile, repoPath, SRC_ROOT);
 
+  // Find a type node in the method signature. This is a return type. If it
+  // cannot be found (no return type), fall back to the standard way of getting
+  // the type. We do this because getting the full text of the type node is
+  // better than using the signature return type.
+  let returnType;
+  node.forEachChild(child => {
+    if (ts.isTypeNode(child)) {
+      returnType = child.getText();
+    }
+  });
+  if (returnType == null) {
+    // Fall back the the standard way of getting the type, which sometimes gives
+    // up and returns 'any' or '{}' for complex types.
+    returnType = checker.typeToString(signature.getReturnType());
+  }
+  returnType = util.sanitizeTypeString(returnType, identifierGenericMap);
+
   const method: DocFunction = {
     symbolName: symbol.name,
     displayName,
     paramStr,
     parameters,
-    returnType: checker.typeToString(signature.getReturnType()),
+    returnType,
     documentation: ts.displayPartsToString(signature.getDocumentationComment()),
     fileName: displayFilename,
     githubUrl,
@@ -218,12 +285,12 @@ export function serializeMethod(
 }
 
 function serializeParameter(
-    checker: ts.TypeChecker, symbol: ts.Symbol): DocFunctionParam {
+    checker: ts.TypeChecker, symbol: ts.Symbol,
+    identifierGenericMap: {[identifier: string]: string}): DocFunctionParam {
   return {
     name: symbol.getName(),
     documentation: ts.displayPartsToString(symbol.getDocumentationComment()),
-    type: checker.typeToString(
-        checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!)),
+    type: util.parameterTypeToString(checker, symbol, identifierGenericMap),
     optional: checker.isOptionalParameter(
         symbol.valueDeclaration as ts.ParameterDeclaration)
   };

@@ -23,6 +23,7 @@ export enum DType {
   bool = 'bool'
 }
 
+/** @docalias number[] */
 export interface ShapeMap {
   R0: number[];
   R1: [number];
@@ -37,6 +38,7 @@ export interface DataTypeMap {
   int32: Int32Array;
   bool: Uint8Array;
 }
+/** @docalias 'float32'|'int32'|'bool' */
 export type DataType = keyof DataTypeMap;
 export type TypedArray = DataTypeMap[DataType];
 
@@ -48,6 +50,21 @@ export enum Rank {
   R4 = 'R4'
 }
 
+/** @docalias TypedArray|Array */
+export type TensorLike =
+    TypedArray|number|boolean|number[]|number[][]|number[][][]|number[][][][]|
+    boolean[]|boolean[][]|boolean[][][]|boolean[][][][];
+/** @docalias TypedArray|Array */
+export type TensorLike1D = TypedArray|number[]|boolean[];
+/** @docalias TypedArray|Array */
+export type TensorLike2D = TypedArray|number[]|number[][]|boolean[]|boolean[][];
+/** @docalias TypedArray|Array */
+export type TensorLike3D =
+    TypedArray|number[]|number[][][]|boolean[]|boolean[][][];
+/** @docalias TypedArray|Array */
+export type TensorLike4D =
+    TypedArray|number[]|number[][][][]|boolean[]|boolean[][][][];
+
 export type FlatVector = boolean[]|number[]|TypedArray;
 export type RegularArray<T> = T[]|T[][]|T[][][]|T[][][][];
 export type ArrayData<D extends DataType> =
@@ -58,6 +75,7 @@ export interface RecursiveArray<T extends any> {
   [index: number]: T|RecursiveArray<T>;
 }
 
+/** @docalias {[name: string]: Tensor} */
 export type NamedTensorMap = {
   [name: string]: Tensor
 };

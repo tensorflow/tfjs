@@ -45,7 +45,7 @@ export type Namespace = 'losses'|'image'|'train';
 
 export interface DocInfo<H extends Heading> {
   heading: H;
-  subheading: HeadingMap[H];
+  subheading?: HeadingMap[H];
   namespace?: Namespace;
   subclasses?: string[];
 }
