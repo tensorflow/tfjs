@@ -19,6 +19,7 @@ import {doc} from '../decorators';
 import {AdadeltaOptimizer} from './adadelta_optimizer';
 import {AdagradOptimizer} from './adagrad_optimizer';
 import {MomentumOptimizer} from './momentum_optimizer';
+import {RMSPropOptimizer} from './rmsprop_optimizer';
 import {SGDOptimizer} from './sgd_optimizer';
 
 export class OptimizerConstructors {
@@ -44,6 +45,30 @@ export class OptimizerConstructors {
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static momentum(learningRate: number, momentum: number): MomentumOptimizer {
     return new MomentumOptimizer(learningRate, momentum);
+  }
+
+  /**
+   * Constructs a `dl.train.RMSPropOptimizer` that uses RMSProp gradient
+   * descent. This implementation uses plain momentum and is not centered
+   * version of RMSProp.
+   *
+   * See
+   * http://www.cs.toronto.edu/~tijmen/csc321/slides/lecture_slides_lec6.pdf
+   *
+   * @param learningRate The learning rate to use for the RMSProp gradient
+   * descent algorithm.
+   * @param decay The discounting factor for the history/coming gradient
+   * @param momentum The momentum to use for the RMSProp gradient descent
+   * algorithm.
+   * @param epsilon Small value to avoid zero denominator.
+   */
+  @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
+  static rmsprop(
+      learningRate: number, decay = .9, momentum = 0.0, epsilon = 1e-8):
+      RMSPropOptimizer {
+    return new RMSPropOptimizer(
+        learningRate, decay, momentum,
+        undefined /** @deprecated specifiedVariableList */, epsilon);
   }
 
   /**
