@@ -18,12 +18,17 @@ export interface Docs { headings: DocHeading[]; }
 
 export interface DocHeading {
   name: string;
+  description?: string;
   subheadings: DocSubheading[];
 }
 
 export interface DocSubheading {
   name: string;
+  description?: string;
   symbols?: DocSymbol[];
+  // Only used at initialization for sort-order. Pins by displayName, not symbol
+  // name (so that we use namespaces).
+  pin?: string[];
 }
 
 export type DocSymbol = DocFunction|DocClass;

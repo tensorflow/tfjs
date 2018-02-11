@@ -185,6 +185,7 @@ function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
   return isEnabled;
 }
 
+/** @docalias 'webgl'|'cpu' */
 export type BackendType = 'webgl'|'cpu';
 
 /** List of currently supported backends ordered by preference. */
@@ -220,7 +221,7 @@ export class Environment {
    *     construct tensors and call math operations inside a dl.tidy() which
    *     will automatically clean up intermediate tensors.
    */
-  @doc({heading: 'Environment', subheading: ''})
+  @doc({heading: 'Environment'})
   static setBackend(backendType: BackendType, safeMode = false) {
     if (!(backendType in ENV.backends)) {
       throw new Error(`Backend type '${backendType}' not found in registry`);
@@ -232,7 +233,7 @@ export class Environment {
    * Returns the current backend (cpu, webgl, etc). The backend is responsible
    * for creating tensors and executing operations on those tensors.
    */
-  @doc({heading: 'Environment', subheading: ''})
+  @doc({heading: 'Environment'})
   static getBackend(): BackendType {
     ENV.initEngine();
     return ENV.currentBackendType;

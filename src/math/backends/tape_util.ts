@@ -205,7 +205,9 @@ export function backpropagateGradients(
 
 export type ScopeResultImmediate =
     void|Tensor|RegularArray<Tensor>|{[key: string]: Tensor | Tensor[]};
+/** @docalias Tensor|Tensor[]|{[key: string]: Tensor}|void */
 export type ScopeResult = ScopeResultImmediate|Promise<ScopeResultImmediate>;
+/** @docalias Function */
 export type ScopeFn<T extends ScopeResult> = () => T;
 
 export function extractTensorsFromScopeResult(result: ScopeResultImmediate):

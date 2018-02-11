@@ -48,6 +48,9 @@ export function parseDocDecorators(
     if (decoratorStr.startsWith(decoratorName)) {
       const decoratorConfigStr = decoratorStr.substring(decoratorName.length);
       docInfo = eval(decoratorConfigStr);
+      if (docInfo.subheading == null) {
+        docInfo.subheading = '';
+      }
     }
   });
   return docInfo;
@@ -105,7 +108,7 @@ export function fillHeadingsAndGetSubheading(
     }
   }
   if (heading == null) {
-    heading = {name: docInfo.heading, subheadings: []};
+    heading = {name: docInfo.heading, description: '', subheadings: []};
     docHeadings.push(heading);
   }
 
@@ -148,6 +151,22 @@ export function sortMethods(docHeadings: DocHeading[]) {
     for (let j = 0; j < heading.subheadings.length; j++) {
       const subheading = heading.subheadings[j];
 
+      // Pin the symbols in order of the pins.
+      const pinnedSymbols = [];
+      if (subheading.pin != null) {
+        subheading.pin.forEach(pinnedSymbolName => {
+          // Loop backwards so we remove symbols.
+          for (let k = subheading.symbols.length - 1; k >= 0; k--) {
+            const symbol = subheading.symbols[k];
+            if (symbol.displayName === pinnedSymbolName) {
+              pinnedSymbols.push(symbol);
+              subheading.symbols.splice(k, 1);
+            }
+          }
+        });
+      }
+
+      // Sort non-pinned symbols by name.
       subheading.symbols.sort((a, b) => {
         if (a.displayName < b.displayName) {
           return -1;
@@ -156,6 +175,8 @@ export function sortMethods(docHeadings: DocHeading[]) {
         }
         return 0;
       });
+
+      subheading.symbols = pinnedSymbols.concat(subheading.symbols);
     }
   }
 }
@@ -182,4 +203,156 @@ export function isStatic(node: ts.MethodDeclaration): boolean {
     }
   });
   return isStatic;
+}
+
+/**
+ * Gets a doc alias, e.g. @docalias, from a interface / type alias.
+ */
+export function getDocAlias(
+    checker: ts.TypeChecker,
+    node: ts.InterfaceDeclaration|ts.TypeAliasDeclaration,
+    docTypeAlias: string) {
+  const symbol = checker.getSymbolAtLocation(node.name);
+  const docs = symbol.getDocumentationComment();
+  return getJsDocTag(symbol, docTypeAlias);
+}
+
+/**
+ * Finds a jsdoc tag by a given tag name for a symbol. e.g. @docalias number[]
+ * => number[].
+ */
+export function getJsDocTag(symbol: ts.Symbol, tag: string): string {
+  const tags = symbol.getJsDocTags();
+  for (let i = 0; i < tags.length; i++) {
+    const jsdocTag = tags[i];
+    if (jsdocTag.name === tag) {
+      return jsdocTag.text.trim();
+    }
+  }
+}
+
+/**
+ * Converts a function parameter symbol to its string type value.
+ */
+export function parameterTypeToString(
+    checker: ts.TypeChecker, symbol: ts.Symbol,
+    identifierGenericMap: {[identifier: string]: string}): string {
+  const valueDeclaration = symbol.valueDeclaration;
+
+  // Look for type nodes that aren't null and get the full text of the type
+  // node, falling back to using the checker to serialize the type.
+  let typeStr;
+  symbol.valueDeclaration.forEachChild(child => {
+    if (ts.isTypeNode(child) && child.kind != ts.SyntaxKind.NullKeyword) {
+      typeStr = child.getText();
+    }
+  });
+  if (typeStr == null) {
+    // Fall back to using the checkers method for converting the type to a
+    // string.
+    typeStr = checker.typeToString(
+        checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!))
+  }
+
+  return sanitizeTypeString(typeStr, identifierGenericMap);
+}
+
+/**
+ * Sanitizes a type string by removing generics and replacing generics.
+ *   e.g. Tensor<R> => Tensor
+ *   e.g. T => Tensor
+ */
+export function sanitizeTypeString(
+    typeString: string, identifierGenericMap: {[identifier: string]: string}) {
+  // If the return type is part of the generic map, use the mapped
+  // type. For example, <T extends Tensor> will replace "T" with
+  // "Tensor".
+  Object.keys(identifierGenericMap).forEach(identifier => {
+    const re = new RegExp('\\b' + identifier + '\\b', 'g');
+    typeString = typeString.replace(re, identifierGenericMap[identifier]);
+  });
+
+  // Remove generics.
+  typeString = typeString.replace(/(<.*>)/, '');
+
+  return typeString;
+}
+
+/**
+ * Computes a mapping of identifier to their generic type. For example:
+ *   method<T extends Tensor>() {}
+ * In this example, this method will return {'T': 'Tensor'}.
+ */
+export function getIdentifierGenericMap(
+    node: ts.MethodDeclaration,
+    nameRemove: string): {[generic: string]: string} {
+  const identifierGenericMap = {};
+
+  node.forEachChild(child => {
+    // TypeParameterDeclarations look like <T extends Tensor|NamedTensorMap>.
+    if (ts.isTypeParameterDeclaration(child)) {
+      let identifier;
+      let generic;
+      child.forEachChild(cc => {
+        // Type nodes are "Tensor|NamedTensorMap"
+        // Identifier nodes are "T".
+        if (ts.isTypeNode(cc)) {
+          generic = cc.getText();
+        } else if (ts.isIdentifier(cc)) {
+          identifier = cc.getText();
+        }
+      });
+      if (identifier != null && generic != null) {
+        identifierGenericMap[identifier] = generic;
+      }
+    }
+  });
+
+  return identifierGenericMap;
+}
+
+/**
+ * Iterate over all functions in the docs.
+ */
+export function foreachDocFunction(
+    docHeadings: DocHeading[], fn: (docFunction: DocFunction) => void) {
+  docHeadings.forEach(heading => {
+    heading.subheadings.forEach(subheading => {
+      subheading.symbols.forEach(untypedSymbol => {
+        if (untypedSymbol['isClass']) {
+          const symbol = untypedSymbol as DocClass;
+          symbol.methods.forEach(method => {
+            fn(method);
+          });
+        } else {
+          fn(untypedSymbol as DocFunction);
+        }
+      });
+    });
+  });
+}
+
+/**
+ * Replace all types with their aliases. e.g. ShapeMap[R2] => number[]
+ */
+export function replaceDocTypeAliases(
+    docHeadings: DocHeading[], docTypeAliases: {[type: string]: string}) {
+  foreachDocFunction(docHeadings, docFunction => {
+    docFunction.parameters.forEach(param => {
+      param.type = replaceDocTypeAlias(param.type, docTypeAliases);
+    });
+    docFunction.returnType =
+        replaceDocTypeAlias(docFunction.returnType, docTypeAliases);
+  });
+}
+
+export function replaceDocTypeAlias(
+    docTypeString: string, docTypeAliases: {[type: string]: string}): string {
+  Object.keys(docTypeAliases).forEach(type => {
+    if (docTypeString.indexOf(type) !== -1) {
+      const re = new RegExp('\\b' + type + '\\b(\\[.+\\])?', 'g');
+      docTypeString = docTypeString.replace(re, docTypeAliases[type]);
+    }
+  });
+  return docTypeString;
 }

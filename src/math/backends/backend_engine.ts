@@ -37,6 +37,10 @@ interface ScopeState {
   track: Tensor[];
 }
 
+/**
+ * @docalias () => {value: Tensor, gradients: (dy: Tensor, y: Tensor) =>
+ * {[inputName: string]: () => Tensor}}
+ */
 export type CustomGradientFunc<T extends Tensor> = () => {
   value: T, gradients: (dy: T, y: T) => TapeNodeInputGradientTensors
 };

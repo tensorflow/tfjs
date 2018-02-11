@@ -18,6 +18,9 @@
 import {doc, operation} from './decorators';
 import {Scalar, Tensor1D, Tensor2D} from './tensor';
 
+/**
+ * @docalias (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D]
+ */
 export interface LSTMCell {
   (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D];
 }
@@ -32,7 +35,6 @@ export class Ops {
    * @param data The input to the cell.
    * @param c Array of previous cell states.
    * @param h Array of previous cell outputs.
-   * @return Tuple [nextCellStates, cellOutputs]
    */
   @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
