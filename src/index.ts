@@ -38,7 +38,6 @@ export {GraphRunner, GraphRunnerEventObserver, MetricReduction} from './graph/gr
 export {ConstantInitializer, Initializer, OnesInitializer, RandomNormalInitializer, RandomTruncatedNormalInitializer, RandomUniformInitializer, TensorInitializer, VarianceScalingInitializer, ZerosInitializer} from './graph/initializers';
 export {AdamOptimizer} from './graph/optimizers/adam_optimizer';
 export {AdamaxOptimizer} from './graph/optimizers/adamax_optimizer';
-export {RMSPropOptimizer} from './graph/optimizers/rmsprop_optimizer';
 export {CostReduction, FeedEntry, Session} from './graph/session';
 export {MathBackendCPU, NDArrayMathCPU} from './math/backends/backend_cpu';
 export {MathBackendWebGL, NDArrayMathGPU} from './math/backends/backend_webgl';
@@ -50,6 +49,7 @@ export {AdadeltaOptimizer} from './math/optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './math/optimizers/adagrad_optimizer';
 export {MomentumOptimizer} from './math/optimizers/momentum_optimizer';
 export {Optimizer} from './math/optimizers/optimizer';
+export {RMSPropOptimizer} from './math/optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './math/optimizers/sgd_optimizer';
 // tslint:disable-next-line:max-line-length
 export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './math/tensor';

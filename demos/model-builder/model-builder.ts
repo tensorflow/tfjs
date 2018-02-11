@@ -423,7 +423,7 @@ export class ModelBuilder extends ModelBuilderPolymer {
         return dl.train.momentum(+this.learningRate, +this.momentum);
       }
       case 'rmsprop': {
-        return new dl.RMSPropOptimizer(+this.learningRate, +this.gamma);
+        return dl.train.rmsprop(+this.learningRate, +this.gamma);
       }
       case 'adagrad': {
         return dl.train.adagrad(+this.learningRate);
