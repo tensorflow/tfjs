@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
 import * as util from '../util';
+
+import {operation} from './operation';
 import * as ops from './ops';
 import {zerosLike} from './ops';
 import * as selu_util from './selu_util';
@@ -196,8 +197,6 @@ export class Ops {
     const gradient = (dy: T, y: T) => {
       return {
         x: () => {
-          // Currently, Scalars are not supported by ops.where
-          util.assert(x.rank !== 0, 'Error in selu gradient: ');
           const mask = x.greater(ops.scalar(0));
 
           const scaleAlpha = ops.scalar(selu_util.SELU_SCALEALPHA);

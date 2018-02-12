@@ -1246,6 +1246,31 @@ describeWithFlags('selu', ALL_ENVS, () => {
     expectArraysClose(result, [1.0507, NaN]);
   });
 
+  it('gradients: Scalar', () => {
+    let aValue = 1;
+    let dyValue = 1;
+    let a = dl.scalar(aValue);
+    let dy = dl.scalar(dyValue);
+
+    let gradients = dl.grad(a => dl.selu(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [dyValue * scale], 1e-1);
+
+    aValue = -1;
+    dyValue = 2;
+    a = dl.scalar(aValue);
+    dy = dl.scalar(dyValue);
+
+    gradients = dl.grad(a => dl.selu(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(
+        gradients, [dyValue * scaleAlpha * Math.exp(aValue)], 1e-1);
+  });
+
   it('gradients: Tensor1D', () => {
     const aValues = [1, -1, 0];
     const dyValues = [1, 2, 3];
