@@ -19,7 +19,7 @@
 import {InputProvider} from '../data/input_provider';
 import {ENV} from '../environment';
 import * as dl from '../index';
-import {Tensor} from '../math/tensor';
+import {Tensor} from '../tensor';
 // tslint:disable-next-line:max-line-length
 import {ConstantNode, Graph, Node, PlaceholderNode, SymbolicTensor, VariableNode} from './graph';
 import {FeedDictionary, FeedEntry} from './session';

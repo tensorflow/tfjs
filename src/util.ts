@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {Tensor} from './math/tensor';
+import {Tensor} from './tensor';
 // tslint:disable-next-line:max-line-length
-import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TypedArray} from './math/types';
+import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TypedArray} from './types';
 /** Shuffles the array using Fisher-Yates algorithm. */
 // tslint:disable-next-line:no-any
 export function shuffle(array: any[]|Uint32Array|Int32Array|

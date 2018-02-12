@@ -17,9 +17,9 @@
 
 import {ENV} from '../../environment';
 import * as dl from '../../index';
-import * as conv_util from '../../math/conv_util';
-import {Tensor1D, Tensor2D, Tensor} from '../../math/tensor';
-import {Rank} from '../../math/types';
+import * as conv_util from '../../ops/conv_util';
+import {Tensor1D, Tensor2D, Tensor} from '../../tensor';
+import {Rank} from '../../types';
 import * as test_util from '../../test_util';
 import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';

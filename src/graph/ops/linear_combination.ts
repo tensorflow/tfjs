@@ -16,8 +16,8 @@
  */
 
 import {keep, tidy} from '../../globals';
-import {NDArrayMath} from '../../math/math';
-import {Scalar} from '../../math/tensor';
+import {NDArrayMath} from '../../math';
+import {Scalar} from '../../tensor';
 import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';

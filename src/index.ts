@@ -18,9 +18,9 @@
 import * as xhr_dataset from './data/xhr-dataset';
 import * as environment from './environment';
 import {Environment} from './environment';
-import * as gpgpu_util from './math/backends/webgl/gpgpu_util';
-import * as webgl_util from './math/backends/webgl/webgl_util';
-import * as conv_util from './math/conv_util';
+import * as gpgpu_util from './kernels/webgl/gpgpu_util';
+import * as webgl_util from './kernels/webgl/webgl_util';
+import * as conv_util from './ops/conv_util';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
@@ -39,22 +39,22 @@ export {ConstantInitializer, Initializer, OnesInitializer, RandomNormalInitializ
 export {AdamOptimizer} from './graph/optimizers/adam_optimizer';
 export {AdamaxOptimizer} from './graph/optimizers/adamax_optimizer';
 export {CostReduction, FeedEntry, Session} from './graph/session';
-export {MathBackendCPU, NDArrayMathCPU} from './math/backends/backend_cpu';
-export {MathBackendWebGL, NDArrayMathGPU} from './math/backends/backend_webgl';
-export {MatrixOrientation} from './math/backends/types/matmul';
-export {GPGPUContext} from './math/backends/webgl/gpgpu_context';
-export {LSTMCell} from './math/lstm';
-export {NDArrayMath} from './math/math';
-export {AdadeltaOptimizer} from './math/optimizers/adadelta_optimizer';
-export {AdagradOptimizer} from './math/optimizers/adagrad_optimizer';
-export {MomentumOptimizer} from './math/optimizers/momentum_optimizer';
-export {Optimizer} from './math/optimizers/optimizer';
-export {RMSPropOptimizer} from './math/optimizers/rmsprop_optimizer';
-export {SGDOptimizer} from './math/optimizers/sgd_optimizer';
-// tslint:disable-next-line:max-line-length
-export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './math/tensor';
-export {Rank} from './math/types';
+export {MathBackendCPU, NDArrayMathCPU} from './kernels/backend_cpu';
+export {MathBackendWebGL, NDArrayMathGPU} from './kernels/backend_webgl';
+export {MatrixOrientation} from './kernels/types/matmul';
+export {GPGPUContext} from './kernels/webgl/gpgpu_context';
+export {NDArrayMath} from './math';
 export {Model} from './model';
+export {LSTMCell} from './ops/lstm';
+export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
+export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
+export {MomentumOptimizer} from './optimizers/momentum_optimizer';
+export {Optimizer} from './optimizers/optimizer';
+export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
+export {SGDOptimizer} from './optimizers/sgd_optimizer';
+// tslint:disable-next-line:max-line-length
+export {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
+export {Rank} from './types';
 export {version};
 // Second level exports.
 export {
@@ -67,7 +67,7 @@ export {
   xhr_dataset
 };
 
-export * from './math/ops';
+export * from './ops/ops';
 export * from './train';
 export * from './globals';
 

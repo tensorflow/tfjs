@@ -16,11 +16,11 @@
  */
 
 import {keep, tidy} from '../../globals';
-import {NDArrayMath} from '../../math/math';
-import {scalar} from '../../math/ops';
-import {Optimizer} from '../../math/optimizers/optimizer';
-import {Scalar, Tensor} from '../../math/tensor';
-import {NamedVariableMap} from '../../math/types';
+import {NDArrayMath} from '../../math';
+import {scalar} from '../../ops/ops';
+import {Optimizer} from '../../optimizers/optimizer';
+import {Scalar, Tensor} from '../../tensor';
+import {NamedVariableMap} from '../../types';
 import {Node} from '../graph';
 import {SessionRuntime} from '../session';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';

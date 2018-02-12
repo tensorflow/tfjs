@@ -16,7 +16,7 @@
  */
 
 import * as dl from '../index';
-import {Tensor} from '../math/tensor';
+import {Tensor} from '../tensor';
 import {expectArraysClose} from '../test_util';
 import {InMemoryDataset} from './dataset';
 

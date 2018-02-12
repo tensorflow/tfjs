@@ -15,7 +15,7 @@
  * =============================================================================
  */
 import {ENV} from '../../environment';
-import {Tensor1D, Tensor2D} from '../../math/tensor';
+import {Tensor1D, Tensor2D} from '../../tensor';
 import * as test_util from '../../test_util';
 import {expectArraysClose} from '../../test_util';
 import {SymbolicTensor} from '../graph';

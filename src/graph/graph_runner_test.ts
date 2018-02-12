@@ -16,10 +16,10 @@
  */
 
 import {ENV} from '../environment';
-import {NDArrayMath} from '../math/math';
-import {Tensor1D, Tensor, Scalar} from '../math/tensor';
-import {Optimizer} from '../math/optimizers/optimizer';
-import {SGDOptimizer} from '../math/optimizers/sgd_optimizer';
+import {NDArrayMath} from '../math';
+import {Tensor1D, Tensor, Scalar} from '../tensor';
+import {Optimizer} from '../optimizers/optimizer';
+import {SGDOptimizer} from '../optimizers/sgd_optimizer';
 
 import {Graph, SymbolicTensor} from './graph';
 // tslint:disable-next-line:max-line-length

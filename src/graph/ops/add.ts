@@ -16,8 +16,8 @@
  */
 
 import {keep, tidy} from '../../globals';
-import {NDArrayMath} from '../../math/math';
-import {Scalar, Tensor, Tensor2D} from '../../math/tensor';
+import {NDArrayMath} from '../../math';
+import {Scalar, Tensor, Tensor2D} from '../../tensor';
 import * as util from '../../util';
 import {SymbolicTensor} from '../graph';
 import * as graph_util from '../graph_util';

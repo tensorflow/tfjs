@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NDArrayMath} from '../../math/math';
+import {NDArrayMath} from '../../math';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 
 /**

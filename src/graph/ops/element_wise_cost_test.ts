@@ -16,7 +16,7 @@
  */
 
 import {ENV} from '../../environment';
-import {Tensor1D} from '../../math/tensor';
+import {Tensor1D} from '../../tensor';
 import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 import {MeanSquaredCost} from './element_wise_cost';
