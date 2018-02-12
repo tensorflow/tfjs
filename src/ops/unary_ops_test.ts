@@ -1237,6 +1237,50 @@ describeWithFlags('leakyRelu', ALL_ENVS, () => {
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0, 1, NaN]);
   });
+
+  it('gradients: Scalar', () => {
+    const a = dl.scalar(-4);
+    const dy = dl.scalar(8);
+    const alpha = 0.1;
+
+    const gradients = dl.grad((a) => dl.leakyRelu(a, alpha))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [8 * alpha], 1e-1);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const aValues = [1, -1, 0.1];
+    const dyValues = [1, 2, 3];
+    const alpha = 0.1;
+
+    const a = dl.tensor1d(aValues);
+    const dy = dl.tensor1d(dyValues);
+
+    const gradients = dl.grad((a) => dl.leakyRelu(a, alpha))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+
+    expectArraysClose(gradients, [1, 2 * alpha, 3], 1e-1);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const aValues = [1, -1, 0.1, 0.5];
+    const dyValues = [1, 2, 3, 4];
+    const alpha = 0.1;
+
+    const a = dl.tensor2d(aValues, [2, 2]);
+    const dy = dl.tensor2d(dyValues, [2, 2]);
+
+    const gradients = dl.grad((a) => dl.leakyRelu(a, alpha))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+
+    expectArraysClose(gradients, [1, 2 * alpha, 3, 4], 1e-1);
+  });
 });
 
 describeWithFlags('elu', ALL_ENVS, () => {

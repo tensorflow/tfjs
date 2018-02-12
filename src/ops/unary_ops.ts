@@ -225,8 +225,11 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static leakyRelu<T extends Tensor>(x: T, alpha = 0.2): T {
+    const gradient = (dy: T, y: T) => {
+      return {x: () => dy.mul(x.step(alpha))};
+    };
     return ENV.engine.executeKernel(
-               'LeakyRelu', {inputs: {x}, args: {alpha}}) as T;
+               'LeakyRelu', {inputs: {x}, args: {alpha}}, gradient) as T;
   }
 
   /**
