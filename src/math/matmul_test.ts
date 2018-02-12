@@ -18,6 +18,7 @@
 import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
+
 import {MatrixOrientation} from './backends/types/matmul';
 import {Rank} from './types';
 
@@ -231,14 +232,15 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     const b = dl.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
     const dy = dl.tensor2d([1, 10, 20, 30], [2, 2]);
 
-    const gradients = dl.vjp(
-        () => dl.matMul(
-            a, b, MatrixOrientation.REGULAR, MatrixOrientation.REGULAR),
-        {a, b}, dy);
+    const grads = dl.grads(
+        (a: dl.Tensor2D, b: dl.Tensor2D) => dl.matMul(
+            a, b, MatrixOrientation.REGULAR, MatrixOrientation.REGULAR));
+    const [da, db] = grads([a, b], dy);
 
     // da = dy * bT
+    expect(da.shape).toEqual(a.shape);
     expectArraysClose(
-        gradients.a,
+        da,
         [
           dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(0, 1),
           dy.get(0, 0) * b.get(1, 0) + dy.get(0, 1) * b.get(1, 1),
@@ -250,9 +252,9 @@ describeWithFlags('matmul', ALL_ENVS, () => {
         1e-1);
 
     // db = aT * dy
-    expect(gradients.b.shape).toEqual(b.shape);
+    expect(db.shape).toEqual(b.shape);
     expectArraysClose(
-        gradients.b,
+        db,
         [
           a.get(0, 0) * dy.get(0, 0) + a.get(1, 0) * dy.get(1, 0),
           a.get(0, 0) * dy.get(0, 1) + a.get(1, 0) * dy.get(1, 1),

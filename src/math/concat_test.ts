@@ -195,13 +195,15 @@ describeWithFlags('concat3D', ALL_ENVS, () => {
         dl.tensor3d([66, 6, 55, 5, 44, 4, 33, 3, 22, 2, 11, 1], [3, 2, 2]);
     const axis = 0;
 
-    const vjp = dl.vjp(() => dl.concat3d(x1, x2, axis), {x1, x2}, dy);
+    const grads = dl.grads(
+        (x1: dl.Tensor3D, x2: dl.Tensor3D) => dl.concat3d(x1, x2, axis));
+    const [dx1, dx2] = grads([x1, x2], dy);
 
-    expect(vjp.x1.shape).toEqual(x1.shape);
-    expectArraysClose(vjp.x1, [66, 6, 55, 5]);
+    expect(dx1.shape).toEqual(x1.shape);
+    expectArraysClose(dx1, [66, 6, 55, 5]);
 
-    expect(vjp.x2.shape).toEqual(x2.shape);
-    expectArraysClose(vjp.x2, [44, 4, 33, 3, 22, 2, 11, 1]);
+    expect(dx2.shape).toEqual(x2.shape);
+    expectArraysClose(dx2, [44, 4, 33, 3, 22, 2, 11, 1]);
   });
 
   it('gradient concat axis=1', () => {
@@ -211,13 +213,15 @@ describeWithFlags('concat3D', ALL_ENVS, () => {
         dl.tensor3d([66, 6, 55, 5, 44, 4, 33, 3, 22, 2, 11, 1], [2, 3, 2]);
     const axis = 1;
 
-    const vjp = dl.vjp(() => dl.concat3d(x1, x2, axis), {x1, x2}, dy);
+    const grads = dl.grads(
+        (x1: dl.Tensor3D, x2: dl.Tensor3D) => dl.concat3d(x1, x2, axis));
+    const [dx1, dx2] = grads([x1, x2], dy);
 
-    expect(vjp.x1.shape).toEqual(x1.shape);
-    expectArraysClose(vjp.x1, [66, 6, 33, 3]);
+    expect(dx1.shape).toEqual(x1.shape);
+    expectArraysClose(dx1, [66, 6, 33, 3]);
 
-    expect(vjp.x2.shape).toEqual(x2.shape);
-    expectArraysClose(vjp.x2, [55, 5, 44, 4, 22, 2, 11, 1]);
+    expect(dx2.shape).toEqual(x2.shape);
+    expectArraysClose(dx2, [55, 5, 44, 4, 22, 2, 11, 1]);
   });
 
   it('gradient concat axis=2', () => {
@@ -227,12 +231,14 @@ describeWithFlags('concat3D', ALL_ENVS, () => {
         [4, 40, 400, 3, 30, 300, 2, 20, 200, 1, 10, 100], [2, 2, 3]);
     const axis = 2;
 
-    const vjp = dl.vjp(() => dl.concat3d(x1, x2, axis), {x1, x2}, dy);
+    const grads = dl.grads(
+        (x1: dl.Tensor3D, x2: dl.Tensor3D) => dl.concat3d(x1, x2, axis));
+    const [dx1, dx2] = grads([x1, x2], dy);
 
-    expect(vjp.x1.shape).toEqual(x1.shape);
-    expectArraysClose(vjp.x1, [4, 3, 2, 1]);
+    expect(dx1.shape).toEqual(x1.shape);
+    expectArraysClose(dx1, [4, 3, 2, 1]);
 
-    expect(vjp.x2.shape).toEqual(x2.shape);
-    expectArraysClose(vjp.x2, [40, 400, 30, 300, 20, 200, 10, 100]);
+    expect(dx2.shape).toEqual(x2.shape);
+    expectArraysClose(dx2, [40, 400, 30, 300, 20, 200, 10, 100]);
   });
 });

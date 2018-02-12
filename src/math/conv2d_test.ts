@@ -171,18 +171,20 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
     const dy = dl.tensor3d([3, 1, 2, 0], [2, 2, 1]);
 
-    const vjp = dl.vjp(
-        () => dl.conv2d(x, filter, bias, stride, pad), {x, filter, bias}, dy);
+    const grads = dl.grads(
+        (x: dl.Tensor3D, filter: dl.Tensor4D, bias: dl.Tensor1D) =>
+            x.conv2d(filter, bias, stride, pad));
+    const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, [3, 4, 1, 5, 6, 1, 2, 2, 0]);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, [3, 4, 1, 5, 6, 1, 2, 2, 0]);
 
-    expect(vjp.filter.shape).toEqual(filterShape);
+    expect(dfilter.shape).toEqual(filterShape);
     // TODO(nsthorat): Fix the precision for byte textures.
-    expectArraysClose(vjp.filter, [13, 19, 31, 37], 1e-1);
+    expectArraysClose(dfilter, [13, 19, 31, 37], 1e-1);
 
-    expect(vjp.bias.shape).toEqual(bias.shape);
-    expectArraysClose(vjp.bias, [6], 1e-1);
+    expect(dbias.shape).toEqual(bias.shape);
+    expectArraysClose(dbias, [6], 1e-1);
   });
 
   it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', () => {
@@ -203,18 +205,20 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
     const dy = dl.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
-    const vjp = dl.vjp(
-        () => dl.conv2d(x, filter, bias, stride, pad), {x, filter, bias}, dy);
+    const grads = dl.grads(
+        (x: dl.Tensor4D, filter: dl.Tensor4D, bias: dl.Tensor1D) =>
+            x.conv2d(filter, bias, stride, pad));
+    const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
+    expect(dx.shape).toEqual(x.shape);
     expectArraysClose(
-        vjp.x, [3, 4, 1, 5, 6, 1, 2, 2, 0, 3, 4, 1, 5, 6, 1, 2, 2, 0]);
+        dx, [3, 4, 1, 5, 6, 1, 2, 2, 0, 3, 4, 1, 5, 6, 1, 2, 2, 0]);
 
-    expect(vjp.filter.shape).toEqual(filterShape);
+    expect(dfilter.shape).toEqual(filterShape);
     // TODO(nsthorat): Fix the precision for byte textures.
-    expectArraysClose(vjp.filter, [13 * 2, 19 * 2, 31 * 2, 37 * 2], 1e-1);
+    expectArraysClose(dfilter, [13 * 2, 19 * 2, 31 * 2, 37 * 2], 1e-1);
 
-    expect(vjp.bias.shape).toEqual(bias.shape);
-    expectArraysClose(vjp.bias, [12]);
+    expect(dbias.shape).toEqual(bias.shape);
+    expectArraysClose(dbias, [12]);
   });
 });

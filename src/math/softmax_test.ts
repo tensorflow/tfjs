@@ -80,12 +80,12 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const x = dl.tensor1d([10, 0, -1]);
     const y = dl.softmax(x);
     const dy = dl.tensor1d([1, 2, 3]);
-    const vjp = dl.vjp(() => dl.softmax(x), {x}, dy);
+    const dx = dl.grad((x) => x.softmax())(x, dy);
 
     const totalSum = dl.sum(dl.mul(dy, y));
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, [
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, [
       (dy.get(0) - totalSum.get()) * y.get(0),
       (dy.get(1) - totalSum.get()) * y.get(1),
       (dy.get(2) - totalSum.get()) * y.get(2)
@@ -96,13 +96,13 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     const x = dl.tensor2d([10, 0, -1, 5, 4, 3], [2, 3]);
     const y = dl.softmax(x);
     const dy = dl.tensor2d([3, 2, 1, 1, 2, 3], [2, 3]);
-    const vjp = dl.vjp(() => dl.softmax(x), {x}, dy);
+    const dx = dl.grad((x) => x.softmax())(x, dy);
 
     const axis = -1;
     const totalSum = dl.sum(dl.mulStrict(dy, y), axis);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, [
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, [
       (dy.get(0, 0) - totalSum.get(0)) * y.get(0, 0),
       (dy.get(0, 1) - totalSum.get(0)) * y.get(0, 1),
       (dy.get(0, 2) - totalSum.get(0)) * y.get(0, 2),
@@ -191,20 +191,19 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     const softmaxLogits = dl.softmax(logits);
     const dy = dl.scalar(2);
 
-    const vjp = dl.vjp(
-        () => dl.losses.softmaxCrossEntropy(labels, logits), {labels, logits},
-        dy);
+    const grads = dl.grads(
+        (labels, logits) => dl.losses.softmaxCrossEntropy(labels, logits));
+    const [dlabels, dlogits] = grads([labels, logits], dy);
 
-    expect(vjp.logits.shape).toEqual(logits.shape);
-    expect(vjp.labels.shape).toEqual(labels.shape);
-
-    expectArraysClose(vjp.logits, [
+    expect(dlogits.shape).toEqual(logits.shape);
+    expectArraysClose(dlogits, [
       dy.get() * (softmaxLogits.get(0) - labels.get(0)),
       dy.get() * (softmaxLogits.get(1) - labels.get(1)),
       dy.get() * (softmaxLogits.get(2) - labels.get(2))
     ]);
 
-    expectArraysClose(vjp.labels, [
+    expect(dlabels.shape).toEqual(labels.shape);
+    expectArraysClose(dlabels, [
       dy.get() * (labels.get(0) - softmaxLogits.get(0)),
       dy.get() * (labels.get(1) - softmaxLogits.get(1)),
       dy.get() * (labels.get(2) - softmaxLogits.get(2))
@@ -217,29 +216,18 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     const softmaxLogits = dl.softmax(logits);
     const dy = dl.tensor1d([2, 4]);
 
-    const vjp = dl.vjp(
-        () => dl.losses.softmaxCrossEntropy(labels, logits), {labels, logits},
-        dy);
+    const dlogits = dl.grad(
+        logits => dl.losses.softmaxCrossEntropy(labels, logits))(logits, dy);
 
-    expect(vjp.logits.shape).toEqual(logits.shape);
-    expect(vjp.labels.shape).toEqual(labels.shape);
+    expect(dlogits.shape).toEqual(logits.shape);
 
-    expectArraysClose(vjp.logits, [
+    expectArraysClose(dlogits, [
       dy.get(0) * (softmaxLogits.get(0, 0) - labels.get(0, 0)),
       dy.get(0) * (softmaxLogits.get(0, 1) - labels.get(0, 1)),
       dy.get(0) * (softmaxLogits.get(0, 2) - labels.get(0, 2)),
       dy.get(1) * (softmaxLogits.get(1, 0) - labels.get(1, 0)),
       dy.get(1) * (softmaxLogits.get(1, 1) - labels.get(1, 1)),
       dy.get(1) * (softmaxLogits.get(1, 2) - labels.get(1, 2))
-    ]);
-
-    expectArraysClose(vjp.labels, [
-      dy.get(0) * (labels.get(0, 0) - softmaxLogits.get(0, 0)),
-      dy.get(0) * (labels.get(0, 1) - softmaxLogits.get(0, 1)),
-      dy.get(0) * (labels.get(0, 2) - softmaxLogits.get(0, 2)),
-      dy.get(1) * (labels.get(1, 0) - softmaxLogits.get(1, 0)),
-      dy.get(1) * (labels.get(1, 1) - softmaxLogits.get(1, 1)),
-      dy.get(1) * (labels.get(1, 2) - softmaxLogits.get(1, 2))
     ]);
   });
 });
