@@ -1,106 +1,317 @@
-<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
-<style>
-  body {
-    margin: 10px;
-  }
-  .documentation {
-    white-space: pre;
-  }
-  a {
-    color: inherit;
-  }
-  code {
-    background: #f7f7f7;
-    color: #37474f;
-    padding: 2px 4px;
-    font: 500 90%/1 Roboto Mono,monospace;
-    word-break: break-word;
-  }
-  .heading {
-    margin-left: 16px;
-    width: 600px;
-  }
-  .subheading {
-    margin-left: 16px;
-  }
-  .symbol {
-    padding-left: 16px;
-    border-left: 1px solid #ccc;
-    margin-bottom: 32px;
-  }
-  .parameter, .method {
-    margin-left: 25px;
-  }
-  .param-name {
-    margin: 12px 0;
-  }
-  .param-docs  {
-    padding: 4px 12px;
-  }
-  .method-name {
-    font-size: 20px;
-  }
-  .method-docs {
-    padding: 12px 0 0 16px;
-  }
-</style>
+<head>
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h3>deeplearn.js API Reference</h3>
+  <style>
+    body {
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      margin: 0;
+      width: 100%;
+      height: 100%;
+    }
 
-{{#headings}}
-  <div class="heading">
-    <h3>{{name}}</h3>
-    <div class="heading-description">{{description}}</div>
-    {{#subheadings}}
-      <div class="subheading">
-        <h4>{{name}}</h4>
-        <div class="subheading-description">{{description}}</div>
-        {{#symbols}}
-          <div class="symbol">
-            <h5># <a name="dl.{{displayName}}" href="#dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}</h5>
+    a {
+      color: inherit;
+    }
 
-            <div class="documentation">{{documentation}}</div>
+    .container {
+      display: flex;
+      flex-direction: column;
+    }
 
-            {{#isFunction}}
-              <h6>Parameters:</h6>
-              {{#parameters}}
-                <div class="parameter">
-                  <div class="param-name"><code>{{name}}: {{type}}</code></div>
-                  <div class="param-docs">
-                    {{#optional}}(Optional){{/optional}} {{documentation}}
-                  </div>
-                </div>
-              {{/parameters}}
-              <h6>Returns: <code>{{returnType}}</code></h6>
-            {{/isFunction}}
+    .container nav {
+      position: fixed;
+      border-bottom: 1px solid lightgrey;
+      padding: 10px;
+      padding-left: 16px;
+      width: 100%;
+      height: 20px;
+    }
 
-            {{#isClass}}
-              <h6>Methods:</h6>
-                {{#methods}}
-                  <div class="method">
-                    <div class="method-name"><code>{{symbolName}}{{paramStr}}</code></div>
-                    <div class="method-docs">
-                      {{#optional}}(Optional){{/optional}} {{documentation}}
+    .container nav a {
+      color: black;
+      font-size: 18px
+    }
 
-                      <h6>Parameters:</h6>
-                      {{#parameters}}
-                        <div class="parameter">
-                          <div class="param-name"><code>{{name}}: {{type}}</code></div>
-                          <div class="param-docs">
-                            {{#optional}}(Optional){{/optional}} {{documentation}}
-                          </div>
-                        </div>
-                      {{/parameters}}
-                    </div>
-                  </div>
-                {{/methods}}
-            {{/isClass}}
+    .container nav .title {
+      display: inline-block;
+      text-align: center;
+    }
 
-            <br>
-            Defined in <code><a href="{{githubUrl}}" target=_blank>{{fileName}}</a></code>
+    .container .content-area {
+      display: flex;
+      flex-direction: row;
+      /* height: 100vh; */
+      /* overflow-y: hidden; */
+      margin-top: 40px;
+    }
+
+    .container .content-area .toc {
+      width: 25%;
+      min-width: 250px;
+      max-width: 350px;
+      height: calc(100vh - 40px);
+      overflow-y: auto;
+      overflow-x: hidden;
+
+    }
+
+    .container .content-area .reference {
+      flex-grow: 1;
+      height: calc(100vh - 40px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      margin-left: 40px;
+    }
+
+    .section {
+      padding: 16px;
+      margin-left: 0px;
+      margin-top: 16px;
+      padding-bottom: 32px;
+      /* border-bottom: 1px solid #d2d7da; */
+    }
+
+
+
+    .section-title {
+      margin-bottom: 0px;
+    }
+
+    .subsection {
+      margin-top: 16px;
+      margin-left: 16px;
+    }
+
+    .sub-section-title {
+      margin-bottom: 8px;
+      font-weight: 400;
+    }
+
+
+    /* TOC Pane */
+    .toc .section:nth-of-type(2) {
+      margin-top: 0;
+      padding-top: 0;
+    }
+
+    .toc .symbol {
+      padding: 0;
+      margin-left: 8px;
+      margin-bottom: 4px;
+      border: none;
+    }
+
+    .toc a {
+      font-weight: normal;
+      text-decoration-color: lightgrey;
+    }
+
+    /* .toc::-webkit-scrollbar {
+      -webkit-appearance: none;
+      width: 7px;
+    }
+
+    .toc::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background-color: rgba(0, 0, 0, .5);
+      -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+    } */
+
+    /* Reference Pane */
+
+    .reference .section {
+      max-width: 720px;
+    }
+
+    .reference .subsection {
+      margin-top: 40px;
+      margin-left: 0;
+    }
+
+    .reference .subsection-title {
+      font-weight: 200;
+      margin-bottom: 80px;
+      border-bottom: 1px solid rgb(96,125,139);
+    }
+
+    code {
+      background: #f7f7f7;
+      color: #37474f;
+      padding: 2px 4px;
+      font: 500 90%/1 Roboto Mono, monospace;
+      word-break: break-word;
+    }
+
+    .documentation {
+      white-space: pre;
+    }
+
+    .reference .symbol {
+      margin-left: 32px;
+      margin-bottom: 80px;
+      border-bottom: 1px dashed lightgrey;
+      padding-bottom: 50px;
+    }
+
+    .reference .symbol .documentation p {
+      margin: 0
+    }
+
+    .parameter {
+      margin-bottom: 8px;
+    }
+
+    .parameter-heading, .returns {
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    .method {
+      margin-left: 25px;
+    }
+
+    .param-name {
+      margin: 12px 0;
+    }
+
+    .param-docs {
+      padding: 4px 12px;
+    }
+
+    .method-name {
+      font-size: 20px;
+    }
+
+    .method-docs {
+      padding: 12px 0 0 16px;
+    }
+
+    .source-ref {
+      margin-top: 24px;
+      font-style: italic;
+    }
+
+    .source-ref a {
+      color: #346f91
+    }
+
+    .mdl-chip__text {
+      vertical-align: baseline !important;
+    }
+
+    .class-chip {
+      margin-left: 16px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <nav>
+      <a href="index.html">deeplearn.js</a>
+    </nav>
+
+    <div class="content-area">
+      <div class="toc">
+        <div class="section">
+          <div class='section-title mdl-typography--title'>API Reference </div>
+          <div class="sub-section-title mdl-typography--subhead-color-contrast">(v 0.5)</div>
+        </div>
+        {{#headings}}
+        <div class="section">
+          <div class="section-title mdl-typography--title">{{name}}</div>
+          {{#subheadings}}
+          <div class="subsection">
+            <div class="sub-section-title mdl-typography--subhead">{{name}}</div>
+            {{#symbols}}
+            <div class="symbol">
+              <a href="#dl.{{displayName}}">dl.{{displayName}}</a>
+            </div>
+            {{/symbols}}
           </div>
-        {{/symbols}}
+          {{/subheadings}}
+        </div>
+        {{/headings}}
       </div>
-    {{/subheadings}}
+
+
+      <div class="reference">
+        {{#headings}}
+        <div class="section">
+          {{#subheadings}}
+          <div class="subsection">
+            <div class="subsection-title mdl-typography--display-3">{{../name}} &nbsp;/&nbsp; {{name}}</div>
+            <div class="subheading-description">{{description}}</div>
+            {{#symbols}}
+            <div class="symbol">
+              <h5>#
+                <a name="dl.{{displayName}}" href="#dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}
+                {{#isClass}}
+                  <span class="class-chip mdl-chip">
+                    <span class="mdl-chip__text">Class</span>
+                  </span>
+                {{/isClass}}
+              </h5>
+
+              <div class="documentation">{{{markdown documentation}}}</div>
+
+              {{#isFunction}}
+              <div class="parameter-heading mdl-typography--subhead">Parameters:</div>
+              <ul>
+                {{#parameters}}
+                <li class="parameter">
+                  <span class="param-name">
+                    <code>{{name}}: {{type}}</code>
+                  </span>
+                  <span class="param-docs">
+                    {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
+                  </span>
+                </li>
+                {{/parameters}}
+              </ul>
+              <div class="returns mdl-typography--subhead">
+                Returns: <code>{{returnType}}</code>
+              </div>
+              {{/isFunction}} {{#isClass}}
+              <h6>Methods:</h6>
+              {{#methods}}
+              <div class="method">
+                <div class="method-name">
+                  <code>{{symbolName}}{{paramStr}}</code>
+                </div>
+                <div class="method-docs">
+                  {{#optional}}(Optional){{/optional}} {{{markdown documentation}}}
+
+                  <div class="parameter-heading mdl-typography--subhead">Parameters:</div>
+                  <ul>
+                    {{#parameters}}
+                    <li class="parameter">
+                      <span class="param-name">
+                        <code>{{name}}: {{type}}</code>
+                      </span>
+                      <span class="param-docs">
+                        {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
+                      </span>
+                    </li>
+                    {{/parameters}}
+                  </ul>
+                </div>
+              </div>
+              {{/methods}} {{/isClass}}
+
+              <div class="source-ref">
+                Defined in <a href="{{githubUrl}}" target=_blank>{{fileName}}</a>
+              </div>
+            </div>
+            {{/symbols}}
+          </div>
+          {{/subheadings}}
+        </div>
+        {{/headings}}
+      </div>
+    </div>
   </div>
-{{/headings}}
+</body>
