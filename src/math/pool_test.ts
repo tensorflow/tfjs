@@ -112,10 +112,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3, 1]);
     const expected = [0, 0, 0, 0, 1, 2, 0, 3, 4];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradients x=[3,3,1] f=[2,2] s=1 no dup max value, test #2', () => {
@@ -123,10 +123,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     const x = dl.tensor3d([9, 5, 6, 6, 8, 4, 9, 5, 10], [3, 3, 1]);
     const expected = [1, 0, 0, 0, 2, 0, 3, 0, 4];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradients x=[2,3,3,1] f=[2,2] s=1 no duplicate max value', () => {
@@ -136,10 +136,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 5, 6, 6, 8, 4, 9, 5, 10], [2, 3, 3, 1]);
     const expected = [0, 0, 0, 0, 1, 2, 0, 3, 4, 1, 0, 0, 0, 2, 0, 3, 0, 4];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor4D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[3,3,1] f=[2,2] s=1 dup max value, test 1', () => {
@@ -147,10 +147,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     const x = dl.tensor3d([0, 0, 0, 0, 5, 0, 0, 0, 0], [3, 3, 1]);
     const expected = [0, 0, 0, 0, 10, 0, 0, 0, 0];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[3,3,1] f=[2,2] s=1 dup max value, test 2', () => {
@@ -158,10 +158,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 3, 2, 1, 2, 1, 1, 1, 5], [3, 3, 1]);
     const expected = [0, 3, 0, 0, 3, 0, 0, 0, 4];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[2,3,3,1] f=[2,2] s=1 dup max value in 2nd input', () => {
@@ -171,10 +171,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     const expected = new Float32Array(
         [0, 0, 0, 0, 1, 2, 0, 3, 4, 0, 0, 0, 0, 5, 6, 0, 15, 0]);
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor4D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[4,4,1] f=[2,2] s=2 test #1', () => {
@@ -183,10 +183,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [4, 4, 1]);
     const expected = [0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 3, 0, 4];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 2, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 2, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[4,4,1] f=[2,2] s=2 test #2', () => {
@@ -195,10 +195,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
         [1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1], [4, 4, 1]);
     const expected = [0, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 0];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 2, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 2, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[5,5,1] f=[3,3] s=2 no duplicate max value', () => {
@@ -214,10 +214,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
       0, 2, 0, 0, 0, 0, 0, 0, 0, 3, 0, 4
     ];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 3, 2, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(3, 2, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[5,5,1] f=[3,3] s=2 duplicate max value', () => {
@@ -233,10 +233,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     ];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 3, 2, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(3, 2, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   // Max pool backprop depth > 1.
@@ -250,10 +250,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
         [3, 3, 2]);
     const expected = [0, 44, 0, 0, 0, 0, 0, 0, 1, 33, 2, 0, 0, 22, 3, 0, 4, 11];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[3,3,2] f=[2,2] s=1 duplicate max value', () => {
@@ -266,10 +266,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     const expected = new Float32Array(
         [0, 0, 0, 77, 0, 0, 0, 0, 10, 22, 0, 0, 0, 0, 0, 0, 0, 11]);
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=[4,4,2] f=[2,2] s=1', () => {
@@ -288,10 +288,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
       0, 0, 0, 0,  0, 0,  0, 0, 0, 0, 3, 33, 0, 44, 4, 0
     ];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 2, 2, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(2, 2, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 
   it('gradient x=5x5x2, f=3, s=2 no duplicate max value', () => {
@@ -312,10 +312,10 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
       0, 0, 0, 0, 0, 0, 0, 0, 0,   0, 3, 0, 0, 0, 4, 0
     ];
 
-    const vjp = dl.vjp(() => dl.maxPool(x, 3, 2, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.maxPool(3, 2, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, expected);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, expected);
   });
 });
 
@@ -472,12 +472,10 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
   it('gradient x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {
     const x = dl.tensor3d([0], [1, 1, 1]);
     const dy = dl.tensor3d([0], [1, 1, 1]);
-    const vjp = dl.vjp(() => {
-      return dl.avgPool(x, 1, 1, 0);
-    }, {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.avgPool(1, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, [0]);
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, [0]);
   });
 
   it('gradient x=[3,3,1] f=[2,2] s=1', () => {
@@ -486,10 +484,10 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const dy = dl.tensor3d([1, 2, 3, 4], [2, 2, 1]);
     const avgMultiplier = 1 / (2 * 2);
 
-    const vjp = dl.vjp(() => dl.avgPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor3D) => x.avgPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, [
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, [
       1 * avgMultiplier, 3 * avgMultiplier, 2 * avgMultiplier,
       4 * avgMultiplier, 10 * avgMultiplier, 6 * avgMultiplier,
       3 * avgMultiplier, 7 * avgMultiplier, 4 * avgMultiplier
@@ -503,10 +501,10 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const dy = dl.tensor4d([1, 2, 3, 4, 1, 2, 3, 4], [2, 2, 2, 1]);
     const avgMultiplier = 1 / (2 * 2);
 
-    const vjp = dl.vjp(() => dl.avgPool(x, 2, 1, 0), {x}, dy);
+    const dx = dl.grad((x: dl.Tensor4D) => x.avgPool(2, 1, 0))(x, dy);
 
-    expect(vjp.x.shape).toEqual(x.shape);
-    expectArraysClose(vjp.x, [
+    expect(dx.shape).toEqual(x.shape);
+    expectArraysClose(dx, [
       1 * avgMultiplier, 3 * avgMultiplier, 2 * avgMultiplier,
       4 * avgMultiplier, 10 * avgMultiplier, 6 * avgMultiplier,
       3 * avgMultiplier, 7 * avgMultiplier, 4 * avgMultiplier,

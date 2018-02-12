@@ -18,12 +18,8 @@
 import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from '../test_util';
-
-import {Gradients} from './backends/gradients';
 import {MatrixOrientation} from './backends/types/matmul';
-import {Scalar, Tensor} from './tensor';
-
-const gradientsScope = Gradients.gradientsScope;
+import {Tensor} from './tensor';
 
 describeWithFlags('tidy', ALL_ENVS, () => {
   it('returns Tensor', () => {
@@ -200,88 +196,19 @@ describeWithFlags('fromPixels + regular math op', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('vjp', ALL_ENVS, () => {
-  it('matmul + relu', () => {
-    const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
-    const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
-    const dy = dl.tensor2d([1, 10, 20, 30], [2, 2]);
-
-    const gradients = dl.vjp(() => {
-      // m = dot(a, b)
-      // y = relu(m)
-      const m = dl.matMul(a, b);
-      return dl.relu(m);
-    }, {a, b}, dy);
-
-    // dy/dm = step(m)
-    // de/dm = de/dy * dy/dm = de/dy * step(m)
-    const dedm = dl.mulStrict(dy, dl.step(dl.matMul(a, b)));
-
-    // de/da = dot(de/dy, bT)
-    expect(gradients.a.shape).toEqual(a.shape);
-    expectArraysClose(
-        gradients.a,
-        dl.matMul(
-            dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED));
-
-    // de/db = dot(aT, de/dy)
-    expect(gradients.b.shape).toEqual(b.shape);
-    expectArraysClose(
-        gradients.b,
-        dl.matMul(
-            a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR));
-  });
-
-  it('second order nested gradient vjp & gradients', () => {
-    const a = dl.scalar(2);
-    const b = dl.scalar(3, 'int32');
-
-    const dy = dl.scalar(4);
-
-    const gradients = dl.vjp(() => {
-      return dl.gradients(() => dl.pow(a, b), a);
-    }, a, dy);
-
-    expect(gradients.shape).toEqual(a.shape);
-    expectNumbersClose(
-        gradients.get(),
-        dy.get() * b.get() * (b.get() - 1) * Math.pow(a.get(), b.get() - 2),
-        1e-1);
-  });
-
-  it('second order nested gradient', () => {
-    const a = dl.scalar(2);
-    const b = dl.scalar(3, 'int32');
-
-    const dy1 = dl.scalar(3);
-    const dy2 = dl.scalar(4);
-
-    const gradients = dl.vjp(() => {
-      return dl.vjp(() => dl.pow(a, b), a, dy1);
-    }, a, dy2);
-
-    expect(gradients.shape).toEqual(a.shape);
-    expectNumbersClose(
-        gradients.get(),
-        dy2.get() * dy1.get() * b.get() * (b.get() - 1) *
-            Math.pow(a.get(), b.get() - 2),
-        1e-1);
-  });
-});
-
 describeWithFlags('gradients', ALL_ENVS, () => {
   it('matmul + relu', () => {
     const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
     const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
-    const gradients = dl.gradients(() => {
+    const [da, db] = dl.grads((a: dl.Tensor2D, b: dl.Tensor2D) => {
       // m = dot(a, b)
       // y = relu(m)
       // e = sum(y)
       const m = dl.matMul(a, b);
       const y = dl.relu(m);
       return dl.sum(y);
-    }, {a, b});
+    })([a, b]);
 
     // de/dy = 1
     // dy/dm = step(m)
@@ -289,58 +216,58 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     const dedm = dl.step(dl.matMul(a, b));
 
     // de/da = dot(de/dy, bT)
-    expect(gradients.a.shape).toEqual(a.shape);
+    expect(da.shape).toEqual(a.shape);
     expectArraysClose(
-        gradients.a,
+        da,
         dl.matMul(
             dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
         1e-1);
 
     // de/db = dot(aT, de/dy)
-    expect(gradients.b.shape).toEqual(b.shape);
+    expect(db.shape).toEqual(b.shape);
     expectArraysClose(
-        gradients.b,
+        db,
         dl.matMul(
             a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
         1e-1);
   });
 
-  it('second order nested gradient', () => {
-    const a = dl.scalar(2);
-    const gradients = dl.gradients(() => {
-      return dl.gradients(() => {
-        return dl.pow(a, dl.scalar(3, 'int32'));
-      }, a);
-    }, a);
+  it('grad(f)', () => {
+    const grad = dl.grad(x => x.square());
+    const result = grad(dl.tensor1d([.1, .2]));
+    expectArraysClose(result, [.2, .4]);
+  });
 
-    expect(gradients.shape).toEqual(a.shape);
-    expectNumbersClose(gradients.get(), 6 * a.get(), 1e-1);
+  it('grads(f)', () => {
+    const grads = dl.grads(x => x.square());
+    const result = grads([dl.tensor1d([.1, .2])]);
+    expectArraysClose(result[0], [.2, .4]);
   });
 
   it('works with reshape', () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
     const exponent = dl.tensor1d([2, 2, 2, 2], 'int32');
 
-    const gradients = dl.gradients(() => {
+    const da = dl.grad(a => {
       const b = a.flatten();
       const m = dl.pow(b, exponent);
       return dl.sum(m);
-    }, {a});
+    })(a);
 
-    expect(gradients.a.shape).toEqual([2, 2]);
-    expectArraysClose(gradients.a, [2, 4, 6, 8]);
+    expect(da.shape).toEqual([2, 2]);
+    expectArraysClose(da, [2, 4, 6, 8]);
   });
 
-  it('reshape outside dl.gradients() throws error', () => {
+  it('reshape outside dl.grads() throws error', () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
     const b = a.flatten();
     const exponent = dl.tensor1d([2, 2, 2, 2], 'int32');
 
     const f = () => {
-      return dl.gradients(() => {
+      dl.grads((a, b) => {
         const m = dl.pow(b, exponent);
         return dl.sum(m);
-      }, {a, b});
+      })([a, b]);
     };
     expect(f).toThrowError();
   });
@@ -349,27 +276,27 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
     const exponent = dl.tensor2d([2, 2, 2, 2], [2, 2], 'int32');
 
-    const gradients = dl.gradients(() => {
+    const da = dl.grad(a => {
       const b = a.toFloat();
       const m = dl.pow(b, exponent);
       return dl.sum(m);
-    }, {a});
+    })(a);
 
-    expect(gradients.a.shape).toEqual([2, 2]);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [2, 4, 6, 8]);
+    expect(da.shape).toEqual([2, 2]);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [2, 4, 6, 8]);
   });
 
-  it('asType outside of dl.gradients() throws error', () => {
+  it('asType outside of dl.grads() throws error', () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
     const b = a.toFloat();
     const exponent = dl.tensor2d([2, 2, 2, 2], [2, 2], 'int32');
 
     const f = () => {
-      return dl.gradients(() => {
+      dl.grad(a => {
         const m = dl.pow(b, exponent);
         return dl.sum(m);
-      }, {a});
+      })(a);
     };
     expect(f).toThrowError();
   });
@@ -380,14 +307,15 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
     const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
-    const {value, gradients} = dl.valueAndGradients(() => {
-      // m = dot(a, b)
-      // y = relu(m)
-      // e = sum(y)
-      const m = dl.matMul(a, b);
-      const y = dl.relu(m);
-      return dl.sum(y);
-    }, {a, b});
+    const {value, grads} =
+        dl.valueAndGrads((a: dl.Tensor2D, b: dl.Tensor2D) => {
+          // m = dot(a, b)
+          // y = relu(m)
+          // e = sum(y)
+          const m = dl.matMul(a, b);
+          const y = dl.relu(m);
+          return dl.sum(y);
+        })([a, b]);
 
     expectNumbersClose(value.get(), 10, 1e-1);
 
@@ -396,16 +324,17 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     // de/dm = de/dy * dy/dm = step(m)
     const dedm = dl.step(dl.matMul(a, b));
 
+    const [da, db] = grads;
     // de/da = dot(de/dy, bT)
     expectArraysClose(
-        gradients.a,
+        da,
         dl.matMul(
             dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
         1e-1);
 
     // de/db = dot(aT, de/dy)
     expectArraysClose(
-        gradients.b,
+        db,
         dl.matMul(
             a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
         1e-1);
@@ -415,16 +344,17 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     const a = dl.tensor2d([-1, 2, -3, 10, -20, 30], [2, 3]);
     const b = dl.tensor2d([2, -3, 4, -1, 2, -3], [3, 2]);
 
-    const {value, gradients} = dl.valueAndGradients(() => {
-      // m = dot(a, b)
-      // y = relu(m)
-      // e = sum(y)
-      const m = dl.matMul(a, b);
-      return dl.tidy(() => {
-        const y = dl.relu(m);
-        return dl.sum(y);
-      });
-    }, {a, b});
+    const {value, grads} =
+        dl.valueAndGrads((a: dl.Tensor2D, b: dl.Tensor2D) => {
+          // m = dot(a, b)
+          // y = relu(m)
+          // e = sum(y)
+          const m = dl.matMul(a, b);
+          return dl.tidy(() => {
+            const y = dl.relu(m);
+            return dl.sum(y);
+          });
+        })([a, b]);
 
     expectNumbersClose(value.get(), 10, 1e-1);
 
@@ -433,16 +363,17 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     // de/dm = de/dy * dy/dm = step(m)
     const dedm = dl.step(dl.matMul(a, b));
 
+    const [da, db] = grads;
     // de/da = dot(de/dy, bT)
     expectArraysClose(
-        gradients.a,
+        da,
         dl.matMul(
             dedm, b, MatrixOrientation.REGULAR, MatrixOrientation.TRANSPOSED),
         1e-1);
 
     // de/db = dot(aT, de/dy)
     expectArraysClose(
-        gradients.b,
+        db,
         dl.matMul(
             a, dedm, MatrixOrientation.TRANSPOSED, MatrixOrientation.REGULAR),
         1e-1);
@@ -450,34 +381,17 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
 });
 
 describeWithFlags('higher-order gradients', ALL_ENVS, () => {
-  it('second order gradients with gradientsScope', () => {
-    const a = dl.scalar(2);
-    expect(dl.memory().numTensors).toBe(1);
+  it('grad(grad(f))', () => {
+    const gradgrad = dl.grad(dl.grad(x => x.mul(x).mul(x)));
+    const result = gradgrad(dl.tensor1d([.1, .2]));
+    expectArraysClose(result, [.6, 1.2]);
+  });
 
-    const gradients = gradientsScope(() => {
-      const der = dl.gradients(() => {
-        const result = dl.pow(a, dl.scalar(3, 'int32'));
-        expect(dl.memory().numTensors).toBe(3);
-
-        return result as Scalar;
-      }, a);
-
-      // Gradients shouldn't be disposed.
-      const numArrays = dl.memory().numTensors;
-      expect(numArrays).toBeGreaterThan(3);
-
-      const result = dl.gradients(() => der, a);
-
-      // New gradients shouldn't be disposed.
-      expect(dl.memory().numTensors).toBeGreaterThan(numArrays + 1);
-      return result;
-    });
-
-    // a and gradients are the only remaining arrays.
-    expect(dl.memory().numTensors).toBe(2);
-
-    expect(gradients.shape).toEqual(a.shape);
-    expectArraysClose(gradients, [2 * 3 * a.get()], 1e-1);
+  it('grads(grads(f))', () => {
+    const grads = dl.grads(x => x.mul(x).mul(x));
+    const gradsgrads = dl.grads(x => grads([x])[0]);
+    const result = gradsgrads([dl.tensor1d([.1, .2])]);
+    expectArraysClose(result[0], [.6, 1.2]);
   });
 });
 
@@ -487,47 +401,36 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
     const b = dl.scalar(2, 'int32');
     const dy = dl.scalar(4);
 
-    const vjp = dl.vjp(() => {
-      return dl.customGradient('test', () => {
-        const value = dl.pow(a, b);
+    const customPow = dl.customGrad(a => {
+      const value = dl.pow(a, b);
+      const gradFunc = (dy: Tensor) => [dy.mul(dl.scalar(0.1))];
+      return {value, gradFunc};
+    });
 
-        const gradients = (dy: Tensor, y: Tensor) => {
-          return {a: () => dl.mul(dy, dl.scalar(3))};
-        };
-
-        return {value, gradients};
-      }, {a});
-    }, a, dy);
-
-    expect(vjp.shape).toEqual(a.shape);
-    expectArraysClose(vjp, [dy.get() * 3]);
+    const {value, grad} = dl.valueAndGrad(a => customPow(a))(a, dy);
+    expect(value.shape).toEqual(a.shape);
+    expectArraysClose(value, [9]);
+    expect(grad.shape).toEqual(a.shape);
+    expectArraysClose(grad, [.4]);
   });
 
   it('second order derivative through customGradient', () => {
     const a = dl.scalar(3);
     const b = dl.scalar(2, 'int32');
 
-    const dy1 = dl.scalar(5);
-    const dy2 = dl.scalar(4);
+    const dy = dl.scalar(5);
 
-    const vjp = dl.vjp(() => {
-      return dl.vjp(() => {
-        return dl.customGradient('test', () => {
-          const value = dl.pow(a, b);
-          const gradients = (dy: Tensor, y: Tensor) => {
-            return {a: () => dl.mul(dy, a)};
-          };
+    const customPow = dl.customGrad(a => {
+      const value = dl.pow(a, b);
+      const gradFunc = (dy: Tensor) => [dy.mul(a)];
+      return {value, gradFunc};
+    });
 
-          return {value, gradients};
-        }, {a});
-      }, a, dy1);
-    }, a, dy2);
+    const dda = dl.grad(dl.grad(a => customPow(a)))(a, dy);
+    expect(dda.shape).toEqual(a.shape);
 
-    expect(vjp.shape).toEqual(a.shape);
-
-    // First order: dy1 * a
-    // Second order: dy2 * dy1
-    expectArraysClose(vjp, [dy1.get() * dy2.get()]);
+    // First order: dy * a. Second order: dy.
+    expectArraysClose(dda, dy);
   });
 });
 

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {keep, tidy, variableGradients} from '../../globals';
+import {keep, tidy, variableGrads} from '../../globals';
 import {Node, VariableNode} from '../../graph/graph';
 import {SessionRuntime} from '../../graph/session';
 import * as session_util from '../../graph/session_util';
@@ -59,13 +59,13 @@ export abstract class Optimizer {
   })
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
-    const {value, gradients} = this.computeGradients(f, varList);
+    const {value, grads} = this.computeGradients(f, varList);
 
-    this.applyGradients(gradients);
+    this.applyGradients(grads);
 
     // Dispose gradients.
-    const varNames = Object.keys(gradients);
-    varNames.forEach(varName => gradients[varName].dispose());
+    const varNames = Object.keys(grads);
+    varNames.forEach(varName => grads[varName].dispose());
 
     if (returnCost) {
       return value as Scalar;
@@ -86,8 +86,8 @@ export abstract class Optimizer {
    * gradients computed with respect to. Defaults to all trainable variables.
    */
   computeGradients(f: () => Scalar, varList?: Variable[]):
-      {value: Scalar, gradients: NamedTensorMap} {
-    return variableGradients(f, varList);
+      {value: Scalar, grads: NamedTensorMap} {
+    return variableGrads(f, varList);
   }
 
   /**

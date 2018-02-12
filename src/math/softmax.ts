@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {customGradient} from '../globals';
+import {customGrad} from '../globals';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {doc, operation} from './decorators';
@@ -41,25 +41,24 @@ export class Ops {
           `Logits was rank ${logits.rank} and dim was ${dim}`);
     }
 
-    const gradients = (dy: T, y: T) => {
-      return {
-        logits: () => {
-          const dyTimesY = dy.mul(y);
-          const keepDims = true;
-          return dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y));
-        }
-      };
-    };
-
-    return customGradient('softmax', () => {
+    const customOp = customGrad(logits => {
       // Do it in log space for numerical stability.
       // exp(X - logSumExp(X))
       const keepDims = true;
       const lse = logits.logSumExp([dim], keepDims);
       const logResult = logits.toFloat().sub(lse);
-      const value = logResult.exp() as T;
-      return {value, gradients};
-    }, {logits});
+      const y = logResult.exp() as T;
+
+      const gradFunc = (dy: T) => {
+        const dyTimesY = dy.mul(y);
+        const keepDims = true;
+        return [dyTimesY.sub(dyTimesY.sum([dim], keepDims).mul(y))];
+      };
+
+      return {value: y, gradFunc};
+    });
+
+    return customOp(logits);
   }
 
   /**
@@ -106,23 +105,23 @@ export class Ops {
           `and dim was ${dim}`);
     }
     // Use a custom gradient for numerical stability.
-    return customGradient('softmaxCrossEntropy', () => {
-      const softmaxLogits = logits.softmax(dim);
+    const customOp = customGrad((labels, logits) => {
+      const predictedProbs = logits.softmax(dim);
       const costVector =
-          ops.scalar(1e-5).add(softmaxLogits).log().mul(labels).neg();
+          ops.scalar(1e-5).add(predictedProbs).log().mul(labels).neg();
       const value = costVector.sum([dim]) as O;
 
-      const gradients = (dy: O, y: O) => {
+      const gradFunc = (dy: O) => {
         const dyShape = axis_util.expandShapeToKeepDim(dy.shape, [dim]);
+        return [
+          dy.reshape(dyShape).mul(labels.toFloat().sub(predictedProbs)),
+          dy.reshape(dyShape).mul(predictedProbs.sub(labels.toFloat())),
 
-        return {
-          logits: () =>
-              dy.reshape(dyShape).mul(softmaxLogits.sub(labels.toFloat())),
-          labels: () => dy.reshape(dyShape).mul(labels.sub(softmaxLogits))
-        };
+        ];
       };
+      return {value, gradFunc};
+    });
 
-      return {value, gradients};
-    }, {labels, logits});
+    return customOp(labels, logits);
   }
 }

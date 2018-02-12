@@ -475,7 +475,7 @@ describeWithFlags('sum', ALL_ENVS, () => {
     const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const dy = dl.scalar(10);
 
-    const gradients = dl.vjp(() => dl.sum(a), a, dy);
+    const gradients = dl.grad(a => a.sum())(a, dy);
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
@@ -487,7 +487,7 @@ describeWithFlags('sum', ALL_ENVS, () => {
     const dy = dl.tensor1d([10, 20]);
     const axis = 0;
 
-    const gradients = dl.vjp(() => dl.sum(a, axis), a, dy);
+    const gradients = dl.grad(a => a.sum(axis))(a, dy);
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
@@ -499,7 +499,7 @@ describeWithFlags('sum', ALL_ENVS, () => {
     const dy = dl.tensor1d([10, 20, 30]);
     const axis = 1;
 
-    const gradients = dl.vjp(() => dl.sum(a, axis), a, dy);
+    const gradients = dl.grad(a => a.sum(axis))(a, dy);
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
@@ -607,10 +607,10 @@ describeWithFlags('mean', ALL_ENVS, () => {
     const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const dy = dl.scalar(1.5);
 
-    const vjp = dl.vjp(() => dl.mean(a), a, dy);
+    const da = dl.grad(a => a.mean())(a, dy);
 
-    expect(vjp.shape).toEqual(a.shape);
-    expectArraysClose(vjp, [
+    expect(da.shape).toEqual(a.shape);
+    expectArraysClose(da, [
       dy.get() / a.size, dy.get() / a.size, dy.get() / a.size,
       dy.get() / a.size, dy.get() / a.size, dy.get() / a.size
     ]);
@@ -620,7 +620,7 @@ describeWithFlags('mean', ALL_ENVS, () => {
     const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
     const dy = dl.scalar(1.5);
 
-    expect(() => dl.vjp(() => dl.mean(a, 1), a, dy)).toThrowError();
+    expect(() => dl.grad(a => a.mean(1))(a, dy)).toThrowError();
   });
 });
 

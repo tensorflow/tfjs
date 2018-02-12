@@ -19,7 +19,6 @@ import {BackendType, ENV} from '../environment';
 import * as util from '../util';
 import * as array_ops from './array_ops';
 import {MathBackend} from './backends/backend';
-import {Gradients} from './backends/gradients';
 import {ScopeResult} from './backends/tape_util';
 import {Tracking} from './backends/tracking';
 import * as batchnorm from './batchnorm';
@@ -198,13 +197,6 @@ export class NDArrayMath {
 
   // Tracking methods.
   keep = Tracking.keep;
-
-  // Gradient methods.
-  customGradient = Gradients.customGradient;
-  gradients = Gradients.gradients;
-  valueAndGradients = Gradients.valueAndGradients;
-  variableGradients = Gradients.variableGradients;
-  vjp = Gradients.vjp;
 
   engine: typeof ENV.engine;
   dispose: typeof ENV.engine.dispose;

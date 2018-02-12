@@ -22,8 +22,9 @@ export const tidy = Tracking.tidy;
 export const keep = Tracking.keep;
 export const time = Tracking.time;
 
-export const vjp = Gradients.vjp;
-export const gradients = Gradients.gradients;
-export const variableGradients = Gradients.variableGradients;
-export const valueAndGradients = Gradients.valueAndGradients;
-export const customGradient = Gradients.customGradient;
+export const grad = Gradients.grad;
+export const valueAndGrad = Gradients.valueAndGrad;
+export const grads = Gradients.grads;
+export const valueAndGrads = Gradients.valueAndGrads;
+export const variableGrads = Gradients.variableGrads;
+export const customGrad = Gradients.customGrad;

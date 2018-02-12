@@ -39,12 +39,12 @@ export class Tracking {
    *     usage of the function will be tracked and displayed on the console
    *     using the provided name.
    * @param fn The function to execute.
-   * @param gradientsMode If true, enables gradients mode.
-   *     See dl.gradientsScope for details.
+   * @param gradMode If true, starts a tape and doesn't dispose tensors.
+   *     See dl.gradScope for details.
    */
   @doc({heading: 'Performance', subheading: 'Memory'})
   static tidy<T extends ScopeResult>(
-      nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>, gradientsMode = false): T {
+      nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>, gradMode = false): T {
     if (fn == null) {
       // Called with only 1 argument.
       if (typeof nameOrFn !== 'function') {
@@ -66,14 +66,14 @@ export class Tracking {
       }
       // TODO(nsthorat,smilkov): Do operation logging and performance profiling.
     }
-    ENV.engine.startScope(gradientsMode);
+    ENV.engine.startScope(gradMode);
 
     const result = fn();
     if (result instanceof Promise) {
-      result.then(r => ENV.engine.endScope(r, gradientsMode));
+      result.then(r => ENV.engine.endScope(r, gradMode));
       return result;
     } else {
-      ENV.engine.endScope(result as ScopeResultImmediate, gradientsMode);
+      ENV.engine.endScope(result as ScopeResultImmediate, gradMode);
       return result;
     }
   }

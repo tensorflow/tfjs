@@ -110,60 +110,67 @@ describeWithFlags('div', ALL_ENVS, () => {
     const b = dl.scalar(2);
     const dy = dl.scalar(4);
 
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [4 / 2]);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [4 / 2]);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [-4 * 5 / (2 * 2)]);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-4 * 5 / (2 * 2)]);
   });
 
   it('gradient: Tensor1D', () => {
     const a = dl.tensor1d([1, 2, 3]);
     const b = dl.tensor1d([3, 4, 5]);
     const dy = dl.tensor1d([1, 10, 20]);
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [1 / 3, 10 / 4, 20 / 5]);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [-1 * 1 / 9, -10 * 2 / 16, -20 * 3 / 25]);
+    expect(da.shape).toEqual(a.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(da, [1 / 3, 10 / 4, 20 / 5]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-1 * 1 / 9, -10 * 2 / 16, -20 * 3 / 25]);
   });
 
   it('gradient: Tensor1D with int32', () => {
     const a = dl.tensor1d([1, 2, 3], 'int32');
     const b = dl.tensor1d([3, 4, 5], 'int32');
     const dy = dl.tensor1d([1, 10, 20]);
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [1 / 3, 10 / 4, 20 / 5]);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [-1 * 1 / 9, -10 * 2 / 16, -20 * 3 / 25]);
+    expect(da.shape).toEqual(a.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(da, [1 / 3, 10 / 4, 20 / 5]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-1 * 1 / 9, -10 * 2 / 16, -20 * 3 / 25]);
   });
 
   it('gradient: 1d<int32> with 1d<bool> ', () => {
     const a = dl.tensor1d([true, false, true], 'bool');
     const b = dl.tensor1d([1, 2, 3], 'int32');
     const dy = dl.tensor1d([1, 19, 20]);
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [1, 19 / 2, 20 / 3]);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [-1 / 1, 0, -20 / 9]);
+    expect(da.shape).toEqual(a.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(da, [1, 19 / 2, 20 / 3]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-1 / 1, 0, -20 / 9]);
   });
 
   it('gradient: Tensor2D', () => {
@@ -171,16 +178,17 @@ describeWithFlags('div', ALL_ENVS, () => {
     const b = dl.tensor2d([1, 3, 4, 5], [2, 2]);
     const dy = dl.tensor2d([1, 10, 15, 20], [2, 2]);
 
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [1 / 1, 10 / 3, 15 / 4, 20 / 5], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [1 / 1, 10 / 3, 15 / 4, 20 / 5], 1e-1);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
     expectArraysClose(
-        vjp.b, [-1 * 3 / 1, -10 * 1 / 9, -15 * 2 / 16, -20 * 3 / 25], 1e-1);
+        db, [-1 * 3 / 1, -10 * 1 / 9, -15 * 2 / 16, -20 * 3 / 25], 1e-1);
   });
 
   it('gradient: scalar / Tensor1D', () => {
@@ -188,15 +196,16 @@ describeWithFlags('div', ALL_ENVS, () => {
     const b = dl.tensor1d([3, 4, 5]);
     const dy = dl.tensor1d([6, 7, 8]);
 
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [6 / 3 + 7 / 4 + 8 / 5]);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [6 / 3 + 7 / 4 + 8 / 5]);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [-6 * 2 / 9, -7 * 2 / 16, -8 * 2 / 25]);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-6 * 2 / 9, -7 * 2 / 16, -8 * 2 / 25]);
   });
 
   it('gradient: Tensor2D / scalar', () => {
@@ -204,16 +213,17 @@ describeWithFlags('div', ALL_ENVS, () => {
     const b = dl.scalar(2);
     const dy = dl.tensor2d([[6, 7], [8, 9]], [2, 2]);
 
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [6 / 2, 7 / 2, 8 / 2, 9 / 2], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [6 / 2, 7 / 2, 8 / 2, 9 / 2], 1e-1);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
     expectArraysClose(
-        vjp.b, [-6 * 2 / 4 + -7 * 3 / 4 + -8 * 4 / 4 + -9 * 5 / 4], 1e-1);
+        db, [-6 * 2 / 4 + -7 * 3 / 4 + -8 * 4 / 4 + -9 * 5 / 4], 1e-1);
   });
 
   it('gradient: Tensor2D / Tensor2D w/ broadcast', () => {
@@ -221,16 +231,17 @@ describeWithFlags('div', ALL_ENVS, () => {
     const b = dl.tensor2d([[2, 3], [4, 5]], [2, 2]);
     const dy = dl.tensor2d([[6, 7], [8, 9]], [2, 2]);
 
-    const vjp = dl.vjp(() => dl.div(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.div(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [6 / 2 + 7 / 3, 8 / 4 + 9 / 5], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [6 / 2 + 7 / 3, 8 / 4 + 9 / 5], 1e-1);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
     expectArraysClose(
-        vjp.b, [-6 * 3 / 4, -7 * 3 / 9, -8 * 4 / 16, -9 * 4 / 25], 1e-1);
+        db, [-6 * 3 / 4, -7 * 3 / 9, -8 * 4 / 16, -9 * 4 / 25], 1e-1);
   });
 });
 
@@ -330,45 +341,50 @@ describeWithFlags('mul', ALL_ENVS, () => {
     const b = dl.scalar(2);
     const dy = dl.scalar(4);
 
-    const vjp = dl.vjp(() => dl.mul(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.mul(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [b.get() * dy.get()]);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [b.get() * dy.get()]);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [a.get() * dy.get()]);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [a.get() * dy.get()]);
   });
 
   it('gradient: Tensor1D', () => {
     const a = dl.tensor1d([1, 2, 3]);
     const b = dl.tensor1d([3, 4, 5]);
     const dy = dl.tensor1d([1, 10, 20]);
-    const vjp = dl.vjp(() => dl.mul(a, b), {a, b}, dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [3 * 1, 4 * 10, 5 * 20]);
+    const grads = dl.grads((a, b) => dl.mul(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [1 * 1, 2 * 10, 3 * 20]);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [3 * 1, 4 * 10, 5 * 20]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [1 * 1, 2 * 10, 3 * 20]);
   });
 
   it('gradient: Tensor1D with dtype int32', () => {
     const a = dl.tensor1d([1, 2, 3], 'int32');
     const b = dl.tensor1d([3, 4, 5], 'int32');
     const dy = dl.tensor1d([1, 10, 20]);
-    const vjp = dl.vjp(() => dl.mul(a, b), {a, b}, dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [3 * 1, 4 * 10, 5 * 20]);
+    const grads = dl.grads((a, b) => dl.mul(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [1 * 1, 2 * 10, 3 * 20]);
+    expect(da.shape).toEqual(a.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(da, [3 * 1, 4 * 10, 5 * 20]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [1 * 1, 2 * 10, 3 * 20]);
   });
 
   it('gradient: Tensor2D', () => {
@@ -376,15 +392,16 @@ describeWithFlags('mul', ALL_ENVS, () => {
     const b = dl.tensor2d([1, 3, 4, 5], [2, 2]);
     const dy = dl.tensor2d([1, 10, 15, 20], [2, 2]);
 
-    const vjp = dl.vjp(() => dl.mul(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.mul(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [1 * 1, 3 * 10, 4 * 15, 5 * 20], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [1 * 1, 3 * 10, 4 * 15, 5 * 20], 1e-1);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [3 * 1, 1 * 10, 2 * 15, 3 * 20], 1e-1);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [3 * 1, 1 * 10, 2 * 15, 3 * 20], 1e-1);
   });
 
   it('gradient: scalar * Tensor1D', () => {
@@ -392,15 +409,16 @@ describeWithFlags('mul', ALL_ENVS, () => {
     const b = dl.tensor1d([3, 4, 5]);
     const dy = dl.tensor1d([6, 7, 8]);
 
-    const vjp = dl.vjp(() => dl.mul(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.mul(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [3 * 6 + 4 * 7 + 5 * 8]);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [3 * 6 + 4 * 7 + 5 * 8]);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [2 * 6, 2 * 7, 2 * 8]);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [2 * 6, 2 * 7, 2 * 8]);
   });
 
   it('gradient: Tensor2D * scalar', () => {
@@ -408,15 +426,16 @@ describeWithFlags('mul', ALL_ENVS, () => {
     const b = dl.scalar(2);
     const dy = dl.tensor2d([[6, 7], [8, 9]], [2, 2]);
 
-    const vjp = dl.vjp(() => dl.mul(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.mul(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [2 * 6, 2 * 7, 2 * 8, 2 * 9], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [2 * 6, 2 * 7, 2 * 8, 2 * 9], 1e-1);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [2 * 6 + 3 * 7 + 4 * 8 + 5 * 9], 1e-1);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [2 * 6 + 3 * 7 + 4 * 8 + 5 * 9], 1e-1);
   });
 
   it('gradient: Tensor2D * Tensor2D w/ broadcast', () => {
@@ -424,15 +443,16 @@ describeWithFlags('mul', ALL_ENVS, () => {
     const b = dl.tensor2d([[2, 3], [4, 5]], [2, 2]);
     const dy = dl.tensor2d([[6, 7], [8, 9]], [2, 2]);
 
-    const vjp = dl.vjp(() => dl.mul(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.mul(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(vjp.a.shape).toEqual(a.shape);
-    expect(vjp.a.dtype).toEqual('float32');
-    expectArraysClose(vjp.a, [2 * 6 + 3 * 7, 4 * 8 + 5 * 9], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [2 * 6 + 3 * 7, 4 * 8 + 5 * 9], 1e-1);
 
-    expect(vjp.b.shape).toEqual(b.shape);
-    expect(vjp.b.dtype).toEqual('float32');
-    expectArraysClose(vjp.b, [6 * 3, 7 * 3, 8 * 4, 9 * 4], 1e-1);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [6 * 3, 7 * 3, 8 * 4, 9 * 4], 1e-1);
   });
 });
 
@@ -538,11 +558,12 @@ describeWithFlags('pow', ALL_ENVS, () => {
     const b = dl.scalar(2, 'int32');
     const dy = dl.scalar(3);
 
-    const gradients = dl.vjp(() => dl.pow(a, b), a, dy);
+    const grad = dl.grad(a => dl.pow(a, b));
+    const da = grad(a, dy);
 
-    expect(gradients.shape).toEqual(a.shape);
-    expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [2 * 5 * 3], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [2 * 5 * 3], 1e-1);
   });
 
   it('gradients: Tensor ^ Tensor', () => {
@@ -550,12 +571,13 @@ describeWithFlags('pow', ALL_ENVS, () => {
     const b = dl.tensor1d([3, 2, -1], 'int32');
     const dy = dl.tensor1d([1, 5, 10]);
 
-    const gradients = dl.vjp(() => dl.pow(a, b), a, dy);
+    const grad = dl.grad(a => dl.pow(a, b));
+    const da = grad(a, dy);
 
-    expect(gradients.shape).toEqual(a.shape);
-    expect(gradients.dtype).toEqual('float32');
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
     expectArraysClose(
-        gradients,
+        da,
         [
           3 * Math.pow(-1, 2) * 1, 2 * Math.pow(.5, 1) * 5,
           -1 * Math.pow(2, -2) * 10
@@ -677,30 +699,34 @@ describeWithFlags('add', ALL_ENVS, () => {
     const a = dl.scalar(2);
     const b = dl.tensor1d([3, 4, 5]);
     const dy = dl.tensor1d([7, 8, 9]);
-    const gradients = dl.vjp(() => dl.add(a, b), {a, b}, dy);
 
-    expect(gradients.a.shape).toEqual(a.shape);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [7 + 8 + 9], 1e-1);
+    const grads = dl.grads((a, b) => dl.add(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(gradients.b.shape).toEqual(b.shape);
-    expect(gradients.b.dtype).toEqual('float32');
-    expectArraysClose(gradients.b, [7, 8, 9], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [7 + 8 + 9], 1e-1);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [7, 8, 9], 1e-1);
   });
 
   it('gradient: 2D + 2D broadcast', () => {
     const a = dl.tensor2d([2, 3], [2, 1]);
     const b = dl.tensor2d([4, 5, 6, 7], [2, 2]);
     const dy = dl.tensor2d([5, 4, 3, 2], [2, 2]);
-    const gradients = dl.vjp(() => dl.add(a, b), {a, b}, dy);
 
-    expect(gradients.a.shape).toEqual(a.shape);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [5 + 4, 3 + 2], 1e-1);
+    const grads = dl.grads((a, b) => dl.add(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(gradients.b.shape).toEqual(b.shape);
-    expect(gradients.b.dtype).toEqual('float32');
-    expectArraysClose(gradients.b, [5, 4, 3, 2], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [5 + 4, 3 + 2], 1e-1);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [5, 4, 3, 2], 1e-1);
   });
 });
 
@@ -828,15 +854,16 @@ describeWithFlags('sub', ALL_ENVS, () => {
     const b = dl.tensor1d([3, 2, 1]);
     const dy = dl.tensor1d([1, 10, 20]);
 
-    const gradients = dl.vjp(() => dl.sub(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.sub(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(gradients.a.shape).toEqual(a.shape);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [1, 10, 20], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [1, 10, 20], 1e-1);
 
-    expect(gradients.b.shape).toEqual(b.shape);
-    expect(gradients.b.dtype).toEqual('float32');
-    expectArraysClose(gradients.b, [-1, -10, -20], 1e-1);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-1, -10, -20], 1e-1);
   });
 
   it('gradients: basic 2D arrays', () => {
@@ -844,59 +871,66 @@ describeWithFlags('sub', ALL_ENVS, () => {
     const b = dl.tensor2d([3, 2, 1, 0], [2, 2]);
     const dy = dl.tensor2d([1, 10, 15, 20], [2, 2]);
 
-    const gradients = dl.vjp(() => dl.sub(a, b), {a, b}, dy);
+    const grads = dl.grads((a, b) => dl.sub(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(gradients.a.shape).toEqual(a.shape);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [1, 10, 15, 20], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [1, 10, 15, 20], 1e-1);
 
-    expect(gradients.b.shape).toEqual(b.shape);
-    expect(gradients.b.dtype).toEqual('float32');
-    expectArraysClose(gradients.b, [-1, -10, -15, -20], 1e-1);
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-1, -10, -15, -20], 1e-1);
   });
 
   it('gradient: 1D - scalar broadcast', () => {
     const a = dl.tensor1d([3, 4, 5]);
     const b = dl.scalar(2);
     const dy = dl.tensor1d([7, 8, 9]);
-    const gradients = dl.vjp(() => dl.sub(a, b), {a, b}, dy);
 
-    expect(gradients.a.shape).toEqual(a.shape);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [7, 8, 9], 1e-1);
+    const grads = dl.grads((a, b) => dl.sub(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(gradients.b.shape).toEqual(b.shape);
-    expect(gradients.b.dtype).toEqual('float32');
-    expectArraysClose(gradients.b, [-7 - 8 - 9], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [7, 8, 9], 1e-1);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-7 - 8 - 9], 1e-1);
   });
 
   it('gradient: scalar - 1D broadcast', () => {
     const a = dl.scalar(2);
     const b = dl.tensor1d([3, 4, 5]);
     const dy = dl.tensor1d([7, 8, 9]);
-    const gradients = dl.vjp(() => dl.sub(a, b), {a, b}, dy);
 
-    expect(gradients.a.shape).toEqual(a.shape);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [7 + 8 + 9], 1e-1);
+    const grads = dl.grads((a, b) => dl.sub(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(gradients.b.shape).toEqual(b.shape);
-    expect(gradients.b.dtype).toEqual('float32');
-    expectArraysClose(gradients.b, [-7, -8, -9], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [7 + 8 + 9], 1e-1);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-7, -8, -9], 1e-1);
   });
 
   it('gradient: 2D - 2D broadcast', () => {
     const a = dl.tensor2d([4, 5, 6, 7], [2, 2]);
     const b = dl.tensor2d([2, 3], [2, 1]);
     const dy = dl.tensor2d([5, 4, 3, 2], [2, 2]);
-    const gradients = dl.vjp(() => dl.sub(a, b), {a, b}, dy);
 
-    expect(gradients.a.shape).toEqual(a.shape);
-    expect(gradients.a.dtype).toEqual('float32');
-    expectArraysClose(gradients.a, [5, 4, 3, 2], 1e-1);
+    const grads = dl.grads((a, b) => dl.sub(a, b));
+    const [da, db] = grads([a, b], dy);
 
-    expect(gradients.b.shape).toEqual(b.shape);
-    expect(gradients.b.dtype).toEqual('float32');
-    expectArraysClose(gradients.b, [-5 - 4, -3 - 2], 1e-1);
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [5, 4, 3, 2], 1e-1);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [-5 - 4, -3 - 2], 1e-1);
   });
 });
