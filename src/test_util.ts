@@ -16,10 +16,10 @@
  */
 
 import {ENV, Environment, Features} from './environment';
-import {MathBackendCPU} from './math/backends/backend_cpu';
-import {MathBackendWebGL} from './math/backends/backend_webgl';
-import {Tensor} from './math/tensor';
-import {DataType, TypedArray} from './math/types';
+import {MathBackendCPU} from './kernels/backend_cpu';
+import {MathBackendWebGL} from './kernels/backend_webgl';
+import {Tensor} from './tensor';
+import {DataType, TypedArray} from './types';
 import * as util from './util';
 
 export const WEBGL_ENVS: Features[] = [

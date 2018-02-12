@@ -17,9 +17,9 @@
 
 import * as device_util from './device_util';
 import {ENV, Environment, Features} from './environment';
-import {MathBackend} from './math/backends/backend';
-import {MathBackendCPU} from './math/backends/backend_cpu';
-import {MathBackendWebGL} from './math/backends/backend_webgl';
+import {KernelBackend} from './kernels/backend';
+import {MathBackendCPU} from './kernels/backend_cpu';
+import {MathBackendWebGL} from './kernels/backend_webgl';
 
 describe('disjoint query timer enabled', () => {
   afterEach(() => {
@@ -231,7 +231,7 @@ describe('Backend', () => {
         Features = {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2};
     ENV.setFeatures(features);
 
-    let backend: MathBackend;
+    let backend: KernelBackend;
     ENV.addCustomBackend('webgl', () => {
       backend = new MathBackendWebGL();
       return backend;

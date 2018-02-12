@@ -16,8 +16,8 @@
  */
 
 import {ENV} from '../../environment';
-import * as concat_util from '../../math/concat_util';
-import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../../math/tensor';
+import * as concat_util from '../../ops/concat_util';
+import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../../tensor';
 import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';
 

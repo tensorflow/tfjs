@@ -17,8 +17,8 @@
 
 import {ENV} from '../../environment';
 import {keep, tidy} from '../../globals';
-import {NDArrayMath} from '../../math/math';
-import {Scalar} from '../../math/tensor';
+import {NDArrayMath} from '../../math';
+import {Scalar} from '../../tensor';
 import * as util from '../../util';
 import {ElementWiseCostFunction, SquareCostFunc} from '../cost_functions';
 import {SymbolicTensor} from '../graph';

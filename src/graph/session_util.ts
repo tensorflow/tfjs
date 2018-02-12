@@ -17,8 +17,8 @@
 
 // tslint:disable-next-line:max-line-length
 import {InputProvider} from '../data/input_provider';
-import {NDArrayMath} from '../math/math';
-import {Tensor} from '../math/tensor';
+import {NDArrayMath} from '../math';
+import {Tensor} from '../tensor';
 import * as util from '../util';
 
 // tslint:disable-next-line:max-line-length

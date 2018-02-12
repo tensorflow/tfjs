@@ -15,5 +15,5 @@
  * =============================================================================
  */
 
-import './math/backends/backend_cpu';
-import './math/backends/backend_webgl';
+import './kernels/backend_cpu';
+import './kernels/backend_webgl';

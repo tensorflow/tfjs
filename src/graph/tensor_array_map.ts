@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {NDArrayMath} from '../math/math';
-import {Tensor} from '../math/tensor';
+import {NDArrayMath} from '../math';
+import {Tensor} from '../tensor';
 
 import {SymbolicTensor} from './graph';
 

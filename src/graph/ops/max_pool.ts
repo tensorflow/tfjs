@@ -16,9 +16,9 @@
  */
 
 import {keep, tidy} from '../../globals';
-import * as conv_util from '../../math/conv_util';
-import {NDArrayMath} from '../../math/math';
-import {Tensor3D} from '../../math/tensor';
+import * as conv_util from '../../ops/conv_util';
+import {NDArrayMath} from '../../math';
+import {Tensor3D} from '../../tensor';
 import * as util from '../../util';
 import {SymbolicTensor} from '../graph';
 import {SummedTensorArrayMap, TensorArrayMap} from '../tensor_array_map';

@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from './math/tensor';
+import {Tensor} from './tensor';
 
 export interface Model {
   load(): Promise<void|void[]>;

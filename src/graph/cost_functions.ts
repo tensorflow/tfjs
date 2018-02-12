@@ -16,8 +16,8 @@
  */
 
 import {keep} from '../globals';
-import * as ops from '../math/ops';
-import {Scalar, Tensor} from '../math/tensor';
+import * as ops from '../ops/ops';
+import {Scalar, Tensor} from '../tensor';
 
 /**
  * An error function and its derivative.

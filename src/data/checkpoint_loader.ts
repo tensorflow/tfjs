@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '../math/tensor';
+import {Tensor} from '../tensor';
 
 /**
  * @hidden

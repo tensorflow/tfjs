@@ -16,8 +16,8 @@
  */
 
 import {tidy} from '../globals';
-import {NDArrayMath} from '../math/math';
-import {Scalar, Tensor} from '../math/tensor';
+import {NDArrayMath} from '../math';
+import {Scalar, Tensor} from '../tensor';
 
 /** A node's activation function and its derivative. */
 export interface ActivationFunction {

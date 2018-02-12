@@ -17,7 +17,7 @@
 
 import {ENV} from '../environment';
 import * as dl from '../index';
-import {Tensor1D} from '../math/tensor';
+import {Tensor1D} from '../tensor';
 import {SymbolicTensor} from './graph';
 import {SummedTensorArrayMap, TensorArrayMap} from './tensor_array_map';
 

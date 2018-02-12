@@ -16,8 +16,8 @@
  */
 
 import * as dl from './index';
-import {Tensor} from './math/tensor';
-import {NamedTensorMap} from './math/types';
+import {Tensor} from './tensor';
+import {NamedTensorMap} from './types';
 import * as util from './util';
 
 describe('Util', () => {

@@ -16,7 +16,7 @@
  */
 
 import {ENV} from '../../environment';
-import {Tensor1D} from '../../math/tensor';
+import {Tensor1D} from '../../tensor';
 import {SymbolicTensor} from '../graph';
 import {TensorArrayMap} from '../tensor_array_map';
 import {ArgMaxEquals} from './argmaxequals';

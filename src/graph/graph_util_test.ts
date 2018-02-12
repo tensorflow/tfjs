@@ -17,7 +17,7 @@
 
 import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
-import {Tensor, Scalar} from '../math/tensor';
+import {Tensor, Scalar} from '../tensor';
 // tslint:disable-next-line:max-line-length
 import {ConstantNode, Graph, Node, PlaceholderNode, ReLUNode, SquareNode, SymbolicTensor, VariableNode} from './graph';
 import * as graph_util from './graph_util';

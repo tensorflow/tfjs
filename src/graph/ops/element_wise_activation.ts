@@ -16,7 +16,7 @@
  */
 
 import {keep, tidy} from '../../globals';
-import {NDArrayMath} from '../../math/math';
+import {NDArrayMath} from '../../math';
 // tslint:disable-next-line:max-line-length
 import {ActivationFunction, EluFunc, LeakyReluFunc, ReLUFunc, SigmoidFunc, SquareFunc, TanHFunc} from '../activation_functions';
 import {SymbolicTensor} from '../graph';

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor} from '../math/tensor';
+import {Tensor} from '../tensor';
 import * as util from '../util';
 
 const STATS_SAMPLE_PERCENTAGE = 0.1;

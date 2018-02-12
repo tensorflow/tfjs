@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import {Gradients} from './math/backends/gradients';
-import {Tracking} from './math/backends/tracking';
+import {Gradients} from './gradients';
+import {Tracking} from './tracking';
 
 export const tidy = Tracking.tidy;
 export const keep = Tracking.keep;
