@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import * as contrib from './contrib';
 import * as xhr_dataset from './data/xhr-dataset';
 import * as environment from './environment';
 import {Environment} from './environment';
@@ -58,6 +59,7 @@ export {Rank} from './types';
 export {version};
 // Second level exports.
 export {
+  contrib,
   conv_util,
   environment,
   gpgpu_util,
