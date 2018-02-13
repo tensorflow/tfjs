@@ -139,7 +139,7 @@ export class CPPN {
     });
 
     await renderToCanvas(lastOutput as dl.Tensor3D, this.inferenceCanvas);
-    await dl.util.nextFrame();
+    await dl.nextFrame();
     this.runInferenceLoop();
   }
 

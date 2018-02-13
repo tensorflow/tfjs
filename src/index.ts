@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {BrowserUtil} from './browser_util';
 import * as contrib from './contrib';
 import * as xhr_dataset from './data/xhr-dataset';
 import * as environment from './environment';
@@ -76,3 +77,5 @@ export * from './globals';
 export const setBackend = Environment.setBackend;
 export const getBackend = Environment.getBackend;
 export const memory = Environment.memory;
+
+export const nextFrame = BrowserUtil.nextFrame;
