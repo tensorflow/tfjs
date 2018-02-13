@@ -33,7 +33,7 @@ export async function train(data: MnistData, log: (message: string) => void) {
 
     log(`loss[${i}]: ${cost.dataSync()}`);
 
-    await dl.util.nextFrame();
+    await dl.nextFrame();
   }
 }
 

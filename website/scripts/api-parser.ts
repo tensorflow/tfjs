@@ -93,7 +93,8 @@ export function parse(): Docs {
     {
       name: 'Performance',
       description: '',
-      subheadings: [{name: 'Memory', pin: ['tidy']}, {name: 'Timing'}]
+      subheadings:
+          [{name: 'Memory', pin: ['tidy']}, {name: 'Timing', pin: ['time']}]
     },
     {
       name: 'Environment',
