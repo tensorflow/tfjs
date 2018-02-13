@@ -183,14 +183,6 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D;
 
-  batchNormalization2D(
-      x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor2D|Tensor1D,
-      offset?: Tensor2D|Tensor1D): Tensor2D;
-  batchNormalization3D(
-      x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor3D|Tensor1D,
-      offset?: Tensor3D|Tensor1D): Tensor3D;
   batchNormalization4D(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,

@@ -22,8 +22,7 @@ import * as util from '../util';
 
 import {KernelBackend} from './backend';
 import {ArgMaxNode, ArgMinNode} from './types/argminmax';
-// tslint:disable-next-line:max-line-length
-import {BatchNorm2DNode, BatchNorm3DNode, BatchNorm4DNode} from './types/batchnorm';
+import {BatchNorm4DNode} from './types/batchnorm';
 import {BinaryNode} from './types/binary';
 import {CastNode} from './types/cast';
 // tslint:disable-next-line:max-line-length
@@ -334,18 +333,6 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
                config.inputs.x, config.inputs.mean, config.inputs.variance,
                config.args.varianceEpsilon, config.inputs.scale,
                config.inputs.offset) as O;
-  } else if (kernelName === 'BatchNorm3D') {
-    const config = inputAndArgs as BatchNorm3DNode['inputAndArgs'];
-    return backend.batchNormalization3D(
-               config.inputs.x, config.inputs.mean, config.inputs.variance,
-               config.args.varianceEpsilon, config.inputs.scale,
-               config.inputs.offset) as O;
-  } else if (kernelName === 'BatchNorm2D') {
-    const config = inputAndArgs as BatchNorm2DNode['inputAndArgs'];
-    return backend.batchNormalization2D(
-               config.inputs.x, config.inputs.mean, config.inputs.variance,
-               config.args.varianceEpsilon, config.inputs.scale,
-               config.inputs.offset) as O;
   } else if (kernelName === 'LRN4D') {
     const config = inputAndArgs as LRN4DNode['inputAndArgs'];
     return backend.localResponseNormalization4D(
@@ -445,8 +432,6 @@ export interface KernelConfigRegistry<R extends Rank> {
   MinPool: PoolNode;
   ResizeBilinear: ResizeBilinearNode;
   BatchNorm4D: BatchNorm4DNode;
-  BatchNorm3D: BatchNorm3DNode;
-  BatchNorm2D: BatchNorm2DNode;
   LRN4D: LRN4DNode;
   Multinomial: MultinomialNode;
   OneHot: OneHotNode;

@@ -34,7 +34,7 @@ import {SGDOptimizer} from './sgd_optimizer';
  *
  * Use `dl.train.momentum` to create a momentum optimizer.
  */
-@doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
+@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
 export class MomentumOptimizer extends SGDOptimizer {
   private m: Scalar;
   private accumulations: NamedVariableMap;

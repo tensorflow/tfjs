@@ -15,19 +15,19 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {Rank} from '../types';
 import * as util from '../util';
 
+import {operation} from './operation';
+
 export class Ops {
   /**
-   * Batch normalization 2D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Tensor2D. 2) In the common
-   * case, the depth dimension is the last dimension of x, so the values would
-   * be an Tensor1D of shape [depth].
+   * Batch normalization, strictly for 2D. For the more relaxed version, see
+   * `batchNormalization`.
+   *
    * @param x The input Tensor.
    * @param mean A mean Tensor.
    * @param variance A variance Tensor.
@@ -66,17 +66,14 @@ export class Ops {
               `but got rank ${offset.rank}.`);
     }
 
-    return ENV.engine.executeKernel('BatchNorm2D', {
-      inputs: {x, mean, variance, scale, offset},
-      args: {varianceEpsilon}
-    }) as Tensor2D;
+    return Ops.batchNormalization(
+        x, mean, variance, varianceEpsilon, scale, offset);
   }
 
   /**
-   * Batch normalization 3D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Tensor3D. 2) In the common
-   * case, the depth dimension is the last dimension of x, so the values would
-   * be an Tensor1D of shape [depth].
+   * Batch normalization, strictly for 3D. For the more relaxed version, see
+   * `batchNormalization`.
+   *
    * @param x The input Tensor.
    * @param mean A mean Tensor.
    * @param variance A variance Tensor.
@@ -115,17 +112,14 @@ export class Ops {
               `but got rank ${offset.rank}.`);
     }
 
-    return ENV.engine.executeKernel('BatchNorm3D', {
-      inputs: {x, mean, variance, scale, offset},
-      args: {varianceEpsilon}
-    }) as Tensor3D;
+    return Ops.batchNormalization(
+        x, mean, variance, varianceEpsilon, scale, offset);
   }
 
   /**
-   * Batch normalization 4D. Mean, variance, scale, and offset can be of two
-   * shapes: 1) The same shape as the input: an Tensor4D. 2) In the common
-   * case, the depth dimension is the last dimension of x, so the values would
-   * be an Tensor1D of shape [depth].
+   * Batch normalization, strictly for 4D. For the more relaxed version, see
+   * `batchNormalization`.
+   *
    * @param x The input Tensor.
    * @param mean A mean Tensor.
    * @param variance A variance Tensor.
@@ -163,42 +157,72 @@ export class Ops {
           `Error in batchNormalization4D: offset must be rank 4 or rank 1 ` +
               `but got rank ${offset.rank}.`);
     }
-
-    return ENV.engine.executeKernel('BatchNorm4D', {
-      inputs: {x, mean, variance, scale, offset},
-      args: {varianceEpsilon}
-    }) as Tensor4D;
+    return Ops.batchNormalization(
+        x, mean, variance, varianceEpsilon, scale, offset);
   }
 
+  /**
+   * Batch normalization.
+   *
+   * As described in
+   * [http://arxiv.org/abs/1502.03167](http://arxiv.org/abs/1502.03167).
+   *
+   * Mean, variance, scale, and offset can be of two
+   * shapes:
+   *   - The same shape as the input.
+   *   - In the common case, the depth dimension is the last dimension of x, so
+   *     the values would be an Tensor1D of shape [depth].
+   *
+   * @param x The input Tensor.
+   * @param mean A mean Tensor.
+   * @param variance A variance Tensor.
+   * @param varianceEpsilon A small float number to avoid dividing by 0.
+   * @param scale A scale Tensor.
+   * @param offset An offset Tensor.
+   */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   static batchNormalization<R extends Rank>(
       x: Tensor<R>, mean: Tensor<R>|Tensor1D, variance: Tensor<R>|Tensor1D,
       varianceEpsilon = .001, scale?: Tensor<R>|Tensor1D,
       offset?: Tensor<R>|Tensor1D): Tensor<R> {
-    if (x.rank === 0) {
-      throw new Error(`Batchnorm for scalar is not supported`);
-    } else if (x.rank === 1) {
-      throw new Error(`Batchnorm for rank 1 is not yet implemented`);
+    let x4D: Tensor4D;
+    if (x.rank === 0 || x.rank === 1) {
+      x4D = x.as4D(1, 1, 1, x.size);
     } else if (x.rank === 2) {
-      return Ops.batchNormalization2d(
-                 x as Tensor2D, mean as Tensor2D | Tensor1D,
-                 variance as Tensor2D | Tensor1D, varianceEpsilon,
-                 scale as Tensor2D | Tensor1D, offset as Tensor2D | Tensor1D) as
-          Tensor<R>;
+      x4D = x.as4D(1, 1, x.shape[0], x.shape[1]);
     } else if (x.rank === 3) {
-      return Ops.batchNormalization3d(
-                 x as Tensor3D, mean as Tensor3D | Tensor1D,
-                 variance as Tensor3D | Tensor1D, varianceEpsilon,
-                 scale as Tensor3D | Tensor1D, offset as Tensor3D | Tensor1D) as
-          Tensor<R>;
-    } else if (x.rank === 4) {
-      return Ops.batchNormalization4d(
-                 x as Tensor4D, mean as Tensor4D | Tensor1D,
-                 variance as Tensor4D | Tensor1D, varianceEpsilon,
-                 scale as Tensor4D | Tensor1D, offset as Tensor4D | Tensor1D) as
-          Tensor<R>;
+      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]) as Tensor4D;
     } else {
-      throw new Error(`Batchnorm for rank ${x.rank} is not yet implemented`);
+      x4D = x as Tensor4D;
     }
+
+    return ENV.engine
+               .executeKernel('BatchNorm4D', {
+                 inputs: {
+                   x: x4D,
+                   mean: batchnormReshape4D(mean),
+                   variance: batchnormReshape4D(variance),
+                   scale: batchnormReshape4D(scale),
+                   offset: batchnormReshape4D(offset)
+                 },
+                 args: {varianceEpsilon}
+               })
+               .reshape(x.shape) as Tensor<R>;
   }
+}
+
+function batchnormReshape4D(x: Tensor): Tensor4D|Tensor1D {
+  if (x == null) {
+    return null;
+  }
+  if (x.rank === 0) {
+    return x.as1D();
+  } else if (x.rank === 1) {
+    return x as Tensor1D;
+  } else if (x.rank === 2) {
+    return x.as4D(1, 1, x.shape[0], x.shape[1]);
+  } else if (x.rank === 3) {
+    return x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+  }
+  return x as Tensor4D;
 }

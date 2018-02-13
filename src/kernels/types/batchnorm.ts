@@ -17,7 +17,7 @@
  */
 
 import {KernelNode} from '../../tape_types';
-import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../../tensor';
+import {Tensor1D, Tensor4D} from '../../tensor';
 
 export interface BatchNorm4DNode extends KernelNode {
   inputAndArgs: {
@@ -35,43 +35,5 @@ export interface BatchNorm4DNode extends KernelNode {
     variance: () => Tensor4D | Tensor1D;
     scale?: () => Tensor4D | Tensor1D;
     offset?: () => Tensor4D | Tensor1D;
-  };
-}
-
-export interface BatchNorm3DNode extends KernelNode {
-  inputAndArgs: {
-    inputs: {
-      x: Tensor3D; mean: Tensor3D | Tensor1D; variance: Tensor3D | Tensor1D;
-      scale?: Tensor3D | Tensor1D;
-      offset?: Tensor3D | Tensor1D;
-    };
-    args: {varianceEpsilon: number};
-  };
-  output: Tensor3D;
-  gradient: (dy: Tensor3D, y: Tensor3D) => {
-    x: () => Tensor3D;
-    mean: () => Tensor3D | Tensor1D;
-    variance: () => Tensor3D | Tensor1D;
-    scale?: () => Tensor3D | Tensor1D;
-    offset?: () => Tensor3D | Tensor1D;
-  };
-}
-
-export interface BatchNorm2DNode extends KernelNode {
-  inputAndArgs: {
-    inputs: {
-      x: Tensor2D; mean: Tensor2D | Tensor1D; variance: Tensor2D | Tensor1D;
-      scale?: Tensor2D | Tensor1D;
-      offset?: Tensor2D | Tensor1D;
-    };
-    args: {varianceEpsilon: number};
-  };
-  output: Tensor2D;
-  gradient: (dy: Tensor2D, y: Tensor2D) => {
-    x: () => Tensor2D;
-    mean: () => Tensor2D | Tensor1D;
-    variance: () => Tensor2D | Tensor1D;
-    scale?: () => Tensor2D | Tensor1D;
-    offset?: () => Tensor2D | Tensor1D;
   };
 }

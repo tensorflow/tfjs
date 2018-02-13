@@ -35,7 +35,6 @@ export class Gradients {
    *     using the provided name.
    * @param scopeFn The function to execute.
    */
-  @doc({heading: 'Training', subheading: 'Gradients'})
   static gradScope<T extends ScopeResult>(
       nameOrScopeFn: string|ScopeFn<T>, scopeFn?: ScopeFn<T>): T {
     return tidy(nameOrScopeFn, scopeFn, true /* gradScope */);

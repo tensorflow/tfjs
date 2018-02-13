@@ -34,7 +34,7 @@ import {Optimizer} from './optimizer';
  *
  * Use `dl.train.sgd` to create an SGD optimizer.
  */
-@doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
+@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
 export class SGDOptimizer extends Optimizer {
   protected c: Scalar;
 

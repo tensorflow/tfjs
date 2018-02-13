@@ -15,16 +15,17 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
+
 import * as concat_util from './concat_util';
+import {operation} from './operation';
 
 export class Ops {
   /**
-   * Concatenates two 1D arrays.
+   * Concatenates two 1D tensors. See `concat` for details.
    *
    * For example, if:
    * A: shape(3) = |r1, g1, b1|
@@ -40,7 +41,7 @@ export class Ops {
   }
 
   /**
-   * Concatenates two 2D arrays along a given axis.
+   * Concatenates two 2D tensors along a given axis. See `concat` for details.
    *
    * For example, if:
    * A: shape(2, 3) = | r1, g1, b1 |
@@ -72,7 +73,7 @@ export class Ops {
   }
 
   /**
-   * Concatenates two 3D tensors along a given axis.
+   * Concatenates two 3D tensors along a given axis. See `concat` for details.
    *
    * For example, if:
    * A: shape(2, 1, 3) = | r1, g1, b1 |
@@ -107,8 +108,7 @@ export class Ops {
   }
 
   /**
-   * Concatenates two 4D tensors along a given axis. See dl.concat2D() for
-   * documentation.
+   * Concatenates two 4D tensors along a given axis. See `concat` for details.
    *
    * @param a The first array to concat.
    * @param b The second array to conat.
@@ -119,6 +119,13 @@ export class Ops {
     return Ops.concat(a, b, axis);
   }
 
+  /**
+   * Concatenates two tensors along a given axis.
+   *
+   * @param a The first `Tensor` to concat.
+   * @param b The second `Tensor` to conat.
+   * @param axis The axis to concate along.
+   */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static concat<T extends Tensor>(a: T, b: T, axis: number): T {

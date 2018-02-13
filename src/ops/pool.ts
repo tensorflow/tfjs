@@ -15,32 +15,32 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
 import * as conv_util from './conv_util';
+import {operation} from './operation';
 
 export class Ops {
   /**
    * Computes the 2D max pooling of an image.
    *
    * @param x The input tensor, of rank 4 or rank 3 of shape
-   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
+   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+   * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
+   * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
+   * @param pad The type of padding algorithm.
+   *    - `same` and stride 1: output will be of same size as input,
    *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *    - `valid`: output will be smaller than input if filter is larger
    *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   *    - For more info, see this guide:
+   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+   *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+   * @param dimRoundingMode The rounding mode used when computing output
+   *     dimensions if pad is a number. If none is provided, it will not round
+   *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
@@ -142,20 +142,20 @@ export class Ops {
    * Computes the 2D min pooling of an image.
    *
    * @param input The input tensor, of rank 4 or rank 3 of shape
-   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
+   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+   * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
+   * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
+   * @param pad The type of padding algorithm.
+   *    - `same` and stride 1: output will be of same size as input,
    *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *    - `valid`: output will be smaller than input if filter is larger
    *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   *    - For more info, see this guide:
+   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+   *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+   * @param dimRoundingMode The rounding mode used when computing output
+   *     dimensions if pad is a number. If none is provided, it will not round
+   *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
@@ -192,20 +192,20 @@ export class Ops {
    * Computes the 2D average pooling of an image.
    *
    * @param x The input tensor, of rank 4 or rank 3 of shape
-   *     [batch, height, width, inChannels]. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
-   * @param strides The strides of the pooling: [strideHeight, strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
+   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+   * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
+   * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
+   * @param pad The type of padding algorithm:
+   *    - `same` and stride 1: output will be of same size as input,
    *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *    - `valid`: output will be smaller than input if filter is larger
    *       than 1x1.
-   *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   *    - For more info, see this guide:
+   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+   *         https://www.tensorflow.org/api_guides/python/nn#Convolution)
+   * @param dimRoundingMode The rounding mode used when computing output
+   *     dimensions if pad is a number. If none is provided, it will not round
+   *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation

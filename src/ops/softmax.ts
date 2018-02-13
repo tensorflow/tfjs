@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
 import * as util from '../util';
+
 import * as axis_util from './axis_util';
+import {operation} from './operation';
 import * as ops from './ops';
 
 export class Ops {
@@ -86,11 +87,7 @@ export class Ops {
    * @param dim The dimension softmax would be performed on. Defaults to -1
    *     which indicates the last dimension.
    */
-  @doc({
-    heading: 'Operations',
-    subheading: 'Classification',
-    namespace: 'losses'
-  })
+  @doc({heading: 'Training', subheading: 'Losses', namespace: 'losses'})
   @operation
   static softmaxCrossEntropy<T extends Tensor, O extends Tensor>(
       labels: T, logits: T, dim = -1): O {

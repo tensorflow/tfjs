@@ -15,17 +15,19 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
+import {operation} from './operation';
 
 export class Ops {
   /**
    * Returns the truth value of (a != b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use dl.notEqualStrict().
+   *
+   * We also expose `notEqualStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -38,7 +40,14 @@ export class Ops {
     return ENV.engine.executeKernel('NotEqual', {inputs: {a, b}}) as T;
   }
 
-  @doc({heading: 'Operations', subheading: 'Logical'})
+  /**
+   * Strict version of `notEqual` that forces `a` and `b` to be of the same
+   * shape.
+   *
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same shape and dtype as
+   *     `a`.
+   */
   @operation
   static notEqualStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
@@ -47,7 +56,9 @@ export class Ops {
 
   /**
    * Returns the truth value of (a < b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use dl.lessStrict().
+   *
+   * We also expose `lessStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -60,7 +71,14 @@ export class Ops {
     return ENV.engine.executeKernel('Less', {inputs: {a, b}}) as T;
   }
 
-  @doc({heading: 'Operations', subheading: 'Logical'})
+  /**
+   * Strict version of `less` that forces `a` and `b` to be of the same
+   * shape.
+   *
+   * @param a The first input `Tensor`.
+   * @param b The second input `Tensor`. Must have the same shape and dtype as
+   *     `a`.
+   */
   @operation
   static lessStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
@@ -69,7 +87,9 @@ export class Ops {
 
   /**
    * Returns the truth value of (a == b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use dl.equalStrict().
+   *
+   * We also expose `equalStrict` which has the same signature as this op
+   * and asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -82,7 +102,6 @@ export class Ops {
     return ENV.engine.executeKernel('Equal', {inputs: {a, b}}) as T;
   }
 
-  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static equalStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
@@ -91,7 +110,9 @@ export class Ops {
 
   /**
    * Returns the truth value of (a <= b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use dl.lessEqualStrict().
+   *
+   * We also expose `lessEqualStrict` which has the same signature as this op
+   * and asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -104,7 +125,6 @@ export class Ops {
     return ENV.engine.executeKernel('LessEqual', {inputs: {a, b}}) as T;
   }
 
-  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static lessEqualStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
@@ -113,7 +133,9 @@ export class Ops {
 
   /**
    * Returns the truth value of (a > b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use dl.greaterStrict().
+   *
+   * We also expose `greaterStrict` which has the same signature as this
+   * op and asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -126,7 +148,6 @@ export class Ops {
     return ENV.engine.executeKernel('Greater', {inputs: {a, b}}) as T;
   }
 
-  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greaterStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
@@ -135,7 +156,9 @@ export class Ops {
 
   /**
    * Returns the truth value of (a >= b) element-wise. Supports broadcasting.
-   * For a stricter version without broadcasting use dl.greaterEqualStrict().
+   *
+   * We also expose `greaterStrict` which has the same signature as this
+   * op and asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first input `Tensor`.
    * @param b The second input `Tensor`. Must have the same dtype as `a`.
@@ -148,7 +171,6 @@ export class Ops {
     return ENV.engine.executeKernel('GreaterEqual', {inputs: {a, b}}) as T;
   }
 
-  @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greaterEqualStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');

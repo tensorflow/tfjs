@@ -16,10 +16,10 @@
  */
 
 export interface HeadingMap {
-  'Tensors': 'Creation'|'Transformations'|'Slicing and Joining';
+  'Tensors': 'Creation'|'Classes'|'Transformations'|'Slicing and Joining';
   'Operations': 'Arithmetic'|'Basic math'|'Matrices'|'Convolution'|
       'Normalization'|'Images'|'Logical'|'RNN'|'Reduction'|'Classification';
-  'Training': 'Gradients'|'Optimizers';
+  'Training': 'Gradients'|'Optimizers'|'Losses'|'Classes';
   'Performance': 'Memory'|'Timing';
   // TODO(nsthorat): Make subheading optional.
   'Environment': '';

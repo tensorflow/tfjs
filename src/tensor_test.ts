@@ -16,10 +16,10 @@
  */
 
 import * as dl from './index';
-import {DType, Rank} from './types';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {DType, Rank} from './types';
 
 describeWithFlags('tensor', ALL_ENVS, () => {
   it('Tensors of arbitrary size', () => {
