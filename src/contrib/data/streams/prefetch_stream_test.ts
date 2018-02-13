@@ -21,6 +21,16 @@ import {PrefetchStream} from './data_stream';
 import {TestIntegerStream} from './data_stream_test';
 
 describe('PrefetchStream', () => {
+  // TODO(davidsoergel): Remove this once we figure out the timeout issue.
+  let originalTimeout: number;
+  beforeAll(() => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+  });
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+
   it('fetches a stream completely (stream size < buffer size)', done => {
     const prefetchStream = new PrefetchStream(new TestIntegerStream(), 500);
     const expectedResult: number[] = [];

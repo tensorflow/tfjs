@@ -42,6 +42,16 @@ export class TestIntegerStream extends DataStream<number> {
 }
 
 describe('DataStream', () => {
+  // TODO(davidsoergel): Remove this once we figure out the timeout issue.
+  let originalTimeout: number;
+  beforeAll(() => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+  });
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+
   it('collects all stream elements into an array', done => {
     const readStream = new TestIntegerStream();
     readStream.collectRemaining()
