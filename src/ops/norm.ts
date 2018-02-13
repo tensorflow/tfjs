@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {Tensor} from '../tensor';
+
 import * as axis_util from './axis_util';
+import {operation} from './operation';
 import * as ops from './ops';
 
 export class Ops {
@@ -30,7 +31,9 @@ export class Ops {
    *
    * @param x The input array.
    * @param ord Optional. Order of the norm. Supported norm types are
-   * following: ord         norm for matrices          norm for vectors
+   * following:
+   * ```
+   *     ord         norm for matrices          norm for vectors
    *     -------------------------------------------------------
    *     'euclidean' Frobenius norm             2-norm
    *     ‘fro’       Frobenius norm	            –
@@ -38,6 +41,7 @@ export class Ops {
    *     -Infinity   min(sum(abs(x), axis=1))   min(abs(x))
    *     1           max(sum(abs(x), axis=0))   sum(abs(x))
    *     2           -                          sum(abs(x)^2)^1/2*
+   * ```
    *
    * @param axis Optional. If axis is null (the default), the input is
    * considered a vector and a single vector norm is computed over the entire
@@ -55,7 +59,7 @@ export class Ops {
   static norm(
       x: Tensor, ord: number|'euclidean'|'fro' = 'euclidean',
       axis: number|number[] = null, keepDims = false): Tensor {
-    const norm = normInternal(x, ord, axis);
+    const norm = normImpl(x, ord, axis);
     let keepDimsShape = norm.shape;
     if (keepDims) {
       const axes = axis_util.parseAxisParam(axis, x.shape);
@@ -65,16 +69,15 @@ export class Ops {
   }
 }
 
-function normInternal(
+function normImpl(
     x: Tensor, p: number|string, axis: number|number[] = null): Tensor {
-  // scalar
   if (x.rank === 0) {
     return x.abs();
   }
 
   // consider vector when no axis is specified
   if (x.rank !== 1 && axis === null) {
-    return normInternal(x.reshape([-1]), p, axis);
+    return normImpl(x.reshape([-1]), p, axis);
   }
 
   // vector
@@ -110,7 +113,7 @@ function normInternal(
     }
     if (p === 'fro' || p === 'euclidean') {
       // norm(x) = sqrt(sum(pow(x, 2)))
-      return x.pow(ops.scalar(2, 'int32')).sum(axis).sqrt() as Tensor;
+      return x.square().sum(axis).sqrt();
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);

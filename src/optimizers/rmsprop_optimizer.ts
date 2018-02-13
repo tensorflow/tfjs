@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {doc} from '../doc';
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {Node} from '../graph/graph';
@@ -24,11 +25,17 @@ import * as session_util from '../graph/session_util';
 import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
 import {NDArrayMath} from '../math';
 import {scalar, zerosLike} from '../ops/ops';
-import {Optimizer} from './optimizer';
 import {Scalar, Tensor} from '../tensor';
-import {NamedVariableMap} from '../types';
 import {variable} from '../tensor';
+import {NamedVariableMap} from '../types';
+import {Optimizer} from './optimizer';
 
+/**
+ * Optimizer that implements the RMSProp optimization algorithm.
+ *
+ * Use `dl.train.rmsprop` to create a RMSProp ptimizer.
+ */
+@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
 export class RMSPropOptimizer extends Optimizer {
   private c: Scalar;
   private epsilon: Scalar;

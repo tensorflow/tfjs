@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {Rank, ShapeMap} from '../types';
+import {operation} from './operation';
 import * as slice_util from './slice_util';
 
 export class Ops {
@@ -31,7 +31,6 @@ export class Ops {
    * @param begin The offset to start the slice from.
    * @param size The size of the slice.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice1d(x: Tensor1D, begin: number, size: number): Tensor1D {
     slice_util.assertParamsValid(x, [begin], [size]);
@@ -47,7 +46,6 @@ export class Ops {
    * @param begin The [row, col] 2d coordinates to start the slice from.
    * @param size The size of the slice.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice2d(x: Tensor2D, begin: [number, number], size: [number, number]):
       Tensor2D {
@@ -64,7 +62,6 @@ export class Ops {
    * @param begin The [row, col, depth] 3d coordinates to start the slice from.
    * @param size The size of the slice.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice3d(x: Tensor3D, begin: [number, number, number], size: [
     number, number, number
@@ -83,7 +80,6 @@ export class Ops {
    *              slice from.
    * @param size The size of the slice.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice4d(x: Tensor4D, begin: [number, number, number, number], size: [
     number, number, number, number
@@ -93,6 +89,22 @@ export class Ops {
                'Slice4D', {inputs: {x}, args: {begin, size}}) as Tensor4D;
   }
 
+  /**
+   * Extracts a slice from a `Tensor` starting at coordinates `begin`
+   * and is of size `size`.
+   *
+   * Also available are stricter rank-specific methods with the same signature
+   * as this method that assert that `x` is of the given rank:
+   *   - `dl.slice1d`
+   *   - `dl.slice2d`
+   *   - `dl.slice3d`
+   *   - `dl.slice4d`
+   * @param x The input `Tensor` to slice from.
+   * @param begin The coordinates to start the slice from. The length of this
+   *     array should match the rank of `x`.
+   * @param size The size of the slice. The length of this array should match
+   *     the rank of `x`.
+   */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice<R extends Rank>(

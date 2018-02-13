@@ -15,19 +15,21 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
 import * as util from '../util';
+
 import * as broadcast_util from './broadcast_util';
+import {operation} from './operation';
 import {scalar} from './ops';
 
 export class Ops {
   /**
    * Adds two Tensors element-wise, A + B. Supports broadcasting.
-   * For a stricter version without broadcasting use addStrict().
    *
+   * We also expose `addStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
    * @param a The first `Tensor` to add.
    * @param b The second `Tensor` to add. Must have the same type as `a`.
    */
@@ -61,13 +63,13 @@ export class Ops {
   }
 
   /**
-   * Adds two Tensors element-wise, A + B. Inputs must
-   * be the same shape. For broadcasting support, use add() instead.
+   * Adds two Tensors element-wise, A + B.
+   *
+   * Inputs must be the same shape. For broadcasting support, use add() instead.
    *
    * @param a The first Tensor to multiply element-wise.
    * @param b The second Tensor to multiply element-wise.
    */
-  @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static addStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
@@ -76,7 +78,9 @@ export class Ops {
 
   /**
    * Subtracts two Tensors element-wise, A - B. Supports broadcasting.
-   * For a stricter version without broadcasting use subStrict().
+   *
+   * We also expose `subStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first `Tensor`.
    * @param b The second `Tensor`. Must have the same dtype as `a`.
@@ -112,12 +116,13 @@ export class Ops {
 
   /**
    * Subtracts two Tensors element-wise, A - B. Inputs must
-   * be the same shape. For broadcasting support, use sub() instead.
+   * be the same shape.
+   *
+   * For broadcasting support, use sub() instead.
    *
    * @param a The first Tensor to multiply element-wise.
    * @param b The second Tensor to multiply element-wise.
    */
-  @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static subStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
@@ -127,13 +132,20 @@ export class Ops {
   /**
    * Computes the power of one value to another. Supports broadcasting.
    * Given a tensor x and a tensor y, this operation computes x^y for
-   * corresponding elements in x and y. For example:
-   * x = tf.constant([[2, 2], [3, 3]])
-   * y = tf.constant([[8, 16], [2, 3]])
-   * pow(x, y)  # [[256, 65536], [9, 27]]
+   * corresponding elements in x and y.
    *
-   * @param base The base Tensor to pow element-wise.
-   * @param exp The exponent Tensor to pow element-wise.
+   * For example:
+   * ```js
+   * const a = dl.tensor([[2, 2], [3, 3]])
+   * const b = dl.tensor([[8, 16], [2, 3]])
+   * const y = dl.pow(a, b);  // [256, 65536, 9, 27]
+   * ```
+   *
+   * We also expose `powStrict` which has the same signature as this op and
+   * asserts that `base` and `exp` are the same shape (does not broadcast).
+   *
+   * @param base The base `Tensor` to pow element-wise.
+   * @param exp The exponent `Tensor` to pow element-wise.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
@@ -165,12 +177,13 @@ export class Ops {
 
   /**
    * Computes the power of one value to another. Inputs must
-   * be the same shape. For broadcasting support, use pow() instead.
+   * be the same shape.
+   *
+   * For broadcasting support, use pow() instead.
    *
    * @param base The base Tensor to pow element-wise.
    * @param exp The exponent Tensor to pow element-wise.
    */
-  @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static powStrict<T extends Tensor>(base: T, exp: Tensor): T {
     util.assertShapesMatch(base.shape, exp.shape, 'Error in powStrict: ');
@@ -179,7 +192,9 @@ export class Ops {
 
   /**
    * Multiplies two Tensors element-wise, A * B. Supports broadcasting.
-   * For a stricter version without broadcasting use mulStrict().
+   *
+   * We also expose `mulStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first `Tensor`.
    * @param b The second `Tensor`. Must have the same dtype as `a`.
@@ -214,13 +229,13 @@ export class Ops {
   }
 
   /**
-   * Multiplies two Tensors element-wise, A * B. Inputs must
-   * be the same shape. For broadcasting support, use mul().
+   * Multiplies two Tensors element-wise, A * B.
+   *
+   * Inputs must be the same shape. For broadcasting support, use mul().
    *
    * @param a The first `Tensor`.
    * @param b The second `Tensor`. Must have the same dtype as `a`.
    */
-  @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static mulStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in multiplyStrict: ');
@@ -229,7 +244,9 @@ export class Ops {
 
   /**
    * Divides two Tensors element-wise, A / B. Supports broadcasting.
-   * For a stricter version without broadcasting use divStrict().
+   *
+   * We also expose `divStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first `Tensor`.
    * @param b The second `Tensor`. Must have the same dtype as `a`.
@@ -264,12 +281,11 @@ export class Ops {
 
   /**
    * Divides two Tensors element-wise, A / B. Inputs must
-   * be the same shape. For broadcasting support, use div() instead.
+   * be the same shape.
    *
    * @param a The first Tensor to multiply element-wise.
    * @param b The second Tensor to multiply element-wise.
    */
-  @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static divStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
@@ -279,6 +295,9 @@ export class Ops {
   /**
    * Returns the min of a and b (`a < b ? a : b`) element-wise.
    * Supports broadcasting.
+   *
+   * We also expose `minimumStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first tensor.
    * @param b The second tensor. Must have the same type as `a`.
@@ -303,7 +322,6 @@ export class Ops {
    * @param a The first `Tensor`.
    * @param b The second `Tensor`. Must have the same dtype as `a`.
    */
-  @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static minimumStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
@@ -313,6 +331,10 @@ export class Ops {
   /**
    * Returns the max of a and b (`a > b ? a : b`) element-wise.
    * Supports broadcasting.
+   *
+   * We also expose `maximumStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
+   *
    *
    * @param a The first tensor.
    * @param b The second tensor. Must have the same type as `a`.
@@ -337,7 +359,6 @@ export class Ops {
    * @param a The first `Tensor`.
    * @param b The second `Tensor`. Must have the same dtype as `a`.
    */
-  @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static maximumStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');

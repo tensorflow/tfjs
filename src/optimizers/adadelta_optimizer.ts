@@ -36,7 +36,7 @@ import {Optimizer} from './optimizer';
  *
  * See: https://arxiv.org/abs/1212.5701
  */
-@doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
+@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
 export class AdadeltaOptimizer extends Optimizer {
   private c: Scalar;
   private epsilon: Scalar;

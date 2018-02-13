@@ -24,7 +24,7 @@ import * as broadcast_util from '../ops/broadcast_util';
 import * as concat_util from '../ops/concat_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as ops from '../ops/ops';
-import {tensor2d, tensor3d, tensor4d} from '../ops/ops';
+import {tensor3d, tensor4d} from '../ops/ops';
 import * as selu_util from '../ops/selu_util';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
@@ -1469,48 +1469,6 @@ export class MathBackendCPU implements KernelBackend {
     }
 
     return output.toTensor();
-  }
-
-  batchNormalization2D(
-      x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor2D|Tensor1D,
-      offset?: Tensor2D|Tensor1D): Tensor2D {
-    const xValues = x.dataSync();
-    const meanValues = mean.dataSync();
-    const varianceValues = variance.dataSync();
-    const scaleValues = scale ? scale.dataSync() : [1];
-    const offsetValues = offset ? offset.dataSync() : [0];
-    const outValues = new Float32Array(xValues.length);
-
-    for (let i = 0; i < xValues.length; i++) {
-      outValues[i] = offsetValues[i % offsetValues.length] +
-          (xValues[i] - meanValues[i % meanValues.length]) *
-              scaleValues[i % scaleValues.length] /
-              Math.sqrt(
-                  varianceValues[i % varianceValues.length] + varianceEpsilon);
-    }
-    return tensor2d(outValues, x.shape);
-  }
-
-  batchNormalization3D(
-      x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor3D|Tensor1D,
-      offset?: Tensor3D|Tensor1D): Tensor3D {
-    const xValues = x.dataSync();
-    const meanValues = mean.dataSync();
-    const varianceValues = variance.dataSync();
-    const scaleValues = scale ? scale.dataSync() : [1];
-    const offsetValues = offset ? offset.dataSync() : [0];
-    const outValues = new Float32Array(xValues.length);
-
-    for (let i = 0; i < xValues.length; i++) {
-      outValues[i] = offsetValues[i % offsetValues.length] +
-          (xValues[i] - meanValues[i % meanValues.length]) *
-              scaleValues[i % scaleValues.length] /
-              Math.sqrt(
-                  varianceValues[i % varianceValues.length] + varianceEpsilon);
-    }
-    return tensor3d(outValues, x.shape);
   }
 
   batchNormalization4D(

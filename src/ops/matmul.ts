@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {MatrixOrientation} from '../kernels/types/matmul';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
 import * as util from '../util';
+
+import {operation} from './operation';
 
 export class Ops {
   /**

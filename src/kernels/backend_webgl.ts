@@ -346,54 +346,6 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [a, b], output) as Tensor;
   }
 
-  batchNormalization2D(
-      x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor2D|Tensor1D,
-      offset?: Tensor2D|Tensor1D): Tensor2D {
-    const inputs = [x, mean, variance];
-
-    let offsetShape = null;
-    if (offset != null) {
-      offsetShape = offset.shape;
-      inputs.push(offset);
-    }
-
-    let scaleShape = null;
-    if (scale != null) {
-      scaleShape = scale.shape;
-      inputs.push(scale);
-    }
-
-    const program = new BatchNormProgram(
-        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-        varianceEpsilon);
-    return this.compileAndRun(program, inputs);
-  }
-
-  batchNormalization3D(
-      x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
-      varianceEpsilon: number, scale?: Tensor3D|Tensor1D,
-      offset?: Tensor3D|Tensor1D): Tensor3D {
-    const inputs = [x, mean, variance];
-
-    let offsetShape = null;
-    if (offset != null) {
-      offsetShape = offset.shape;
-      inputs.push(offset);
-    }
-
-    let scaleShape = null;
-    if (scale != null) {
-      scaleShape = scale.shape;
-      inputs.push(scale);
-    }
-
-    const program = new BatchNormProgram(
-        x.shape, mean.shape, variance.shape, offsetShape, scaleShape,
-        varianceEpsilon);
-    return this.compileAndRun(program, inputs);
-  }
-
   batchNormalization4D(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,

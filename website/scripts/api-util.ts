@@ -67,6 +67,13 @@ export function addSubclassMethods(
       const heading = docHeadings[i];
       for (let j = 0; j < heading.subheadings.length; j++) {
         const subheading = heading.subheadings[j];
+        if (subheading.symbols == null) {
+          throw new Error(
+              `Subheading '${subheading.name}' has no symbols. ` +
+              `Please remove it from the predefined docHeadings, or ` +
+              `add methods to the subheading in the code with @doc.`);
+        }
+
         for (let k = 0; k < subheading.symbols.length; k++) {
           const symbol = subheading.symbols[k];
           if (symbol['isClass'] != null && symbol.symbolName === subclass) {

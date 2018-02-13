@@ -136,11 +136,15 @@
       border-bottom: 1px solid rgb(96,125,139);
     }
 
+    .documentation pre {
+      background: #f7f7f7;
+    }
+
     code {
       background: #f7f7f7;
       color: #37474f;
       padding: 2px 4px;
-      font: 500 90%/1 Roboto Mono, monospace;
+      font: 500 90%/2 Roboto Mono, monospace;
       word-break: break-word;
     }
 
@@ -228,7 +232,7 @@
             <div class="sub-section-title mdl-typography--subhead">{{name}}</div>
             {{#symbols}}
             <div class="symbol">
-              <a href="#dl.{{displayName}}">dl.{{displayName}}</a>
+              <a href="#{{#isClass}}class:{{/isClass}}dl.{{displayName}}">dl.{{displayName}}</a>
             </div>
             {{/symbols}}
           </div>
@@ -248,7 +252,7 @@
             {{#symbols}}
             <div class="symbol">
               <h5>#
-                <a name="dl.{{displayName}}" href="#dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}
+                <a name="{{#isClass}}class:{{/isClass}}dl.{{displayName}}" href="#{{#isClass}}class:{{/isClass}}dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}
                 {{#isClass}}
                   <span class="class-chip mdl-chip">
                     <span class="mdl-chip__text">Class</span>

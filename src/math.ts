@@ -150,7 +150,7 @@ export class NDArrayMath {
   asin = unary_ops.Ops.asin;
   atan = unary_ops.Ops.atan;
   ceil = unary_ops.Ops.ceil;
-  clip = unary_ops.Ops.clip;
+  clip = unary_ops.Ops.clipByValue;
   cos = unary_ops.Ops.cos;
   cosh = unary_ops.Ops.cosh;
   elu = unary_ops.Ops.elu;

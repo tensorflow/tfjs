@@ -15,12 +15,12 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
 import * as conv_util from './conv_util';
+import {operation} from './operation';
 
 export class Ops {
   /**
@@ -28,21 +28,21 @@ export class Ops {
    * @param input The input tensor, of rank 3 or rank 2, of shape
    *     `[batch, width, inChannels]`. If rank 2, batch of 1 is assumed.
    * @param filter The filter, rank 3, of shape
-   *     [filterWidth, inDepth, outDepth].
-   * @param bias Optional bias, rank 1 of shape [outDepth].
+   *     `[filterWidth, inDepth, outDepth]`.
+   * @param bias Optional bias, rank 1 of shape `[outDepth]`.
    * @param stride The number of entries by which the filter is moved right at
    *     each step.
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
+   * @param pad The type of padding algorithm.
+   *    - `same` and stride 1: output will be of same size as input,
    *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *    - `valid`: output will be smaller than input if filter is larger
    *       than 1x1.
    *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+   *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+   * @param dimRoundingMode The rounding mode used when computing output
+   *     dimensions if pad is a number. If none is provided, it will not round
+   *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
@@ -102,21 +102,21 @@ export class Ops {
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
    * assumed.
    * @param filter The filter, rank 4, of shape
-   *     [filterHeight, filterWidth, inDepth, outDepth].
-   * @param bias Optional bias, rank 1 of shape [outDepth].
-   * @param strides The strides of the convolution: [strideHeight,
-   * strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *    - 'same' pad and stride 1: output will be of same size as input,
+   *     `[filterHeight, filterWidth, inDepth, outDepth]`.
+   * @param bias Bias to use during the convolution, shape `[outDepth]`.
+   * @param strides The strides of the convolution: `[strideHeight,
+   * strideWidth]`.
+   * @param pad The type of padding algorithm.
+   *    - `same` and stride 1: output will be of same size as input,
    *       regardless of filter size.
-   *    - 'valid' pad: output will be smaller than input if filter is larger
+   *    - `valid`: output will be smaller than input if filter is larger
    *       than 1x1.
    *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+   *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+   * @param dimRoundingMode The rounding mode used when computing output
+   *     dimensions if pad is a number. If none is provided, it will not round
+   *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
@@ -181,20 +181,21 @@ export class Ops {
    * @param xShape The shape of the input: [batch, height, width, inDepth].
    * If length of 3, batch of 1 is assumed.
    * @param dy The derivative of the output, of rank 4 or rank 3 of shape
-   *   [batch, outHeight, outWidth, outDepth]. If rank 3, batch of 1 is
+   *   `[batch, outHeight, outWidth, outDepth]`. If rank 3, batch of 1 is
    * assumed.
    * @param filter The filter, rank 4, of shape
-   *     [filterHeight, filterWidth, inDepth, outDepth].
-   * @param strides The strides of the convolution: [strideHeight,
-   * strideWidth].
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the forward prop of the op.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   *     `[filterHeight, filterWidth, inDepth, outDepth]`.
+   * @param strides The strides of the convolution: `[strideHeight,
+   * strideWidth]`.
+   * @param pad The type of padding algorithm used:
+   *    - `same` and stride 1: output will be of same size as input,
+   *       regardless of filter size.
+   *    - `valid`: output will be smaller than input if filter is larger
+   *       than 1x1.
+   * @param dimRoundingMode The rounding mode used when computing output
+   *     dimensions if pad is a number. If none is provided, it will not round
+   *     and error if the output is of fractional size.
    */
-  @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv2dDerInput<T extends Tensor3D|Tensor4D>(
       xShape: [number, number, number, number]|[number, number, number], dy: T,
@@ -338,20 +339,19 @@ export class Ops {
    * deconvolution.
    *
    * @param x The input image, of rank 4 or rank 3, of shape
-   *   [batch, height, width, inDepth]. If rank 3, batch of 1 is assumed.
+   *   `[batch, height, width, inDepth]`. If rank 3, batch of 1 is assumed.
    * @param filter The filter, rank 4, of shape
    *     `[filterHeight, filterWidth, outDepth, inDepth]`.
    *     `inDepth` must match `inDepth` in `x`.
    * @param outputShape Output shape, of rank 4 or rank 3:
-   *     [batch, height, width, outDepth]. If rank 3, batch of 1 is assumed.
+   *     `[batch, height, width, outDepth]`. If rank 3, batch of 1 is assumed.
    * @param strides The strides of the original convolution:
    *     `[strideHeight, strideWidth]`.
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm
-   *     used in the non-transpose version of the op.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   * @param pad  The type of padding algorithm used in the non-transpose version
+   *    of the op.
+   * @param dimRoundingMode The rounding mode used when computing output
+   *    dimensions if pad is a number. If none is provided, it will not round
+   *    and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
@@ -374,33 +374,35 @@ export class Ops {
    * `channelMultiplier` channels for each), then concatenates the results
    * together. The output has `inChannels * channelMultiplier` channels.
    *
-   * See https://www.tensorflow.org/api_docs/python/tf/nn/depthwise_conv2d for
-   * more details.
+   * See
+   * [https://www.tensorflow.org/api_docs/python/tf/nn/depthwise_conv2d](
+   *     https://www.tensorflow.org/api_docs/python/tf/nn/depthwise_conv2d)
+   * for more details.
    *
    * @param input The input tensor, of rank 4 or rank 3, of shape
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
    * assumed.
    * @param filter The filter tensor, rank 4, of shape
    *     `[filterHeight, filterWidth, inChannels, channelMultiplier]`.
-   * @param strides The strides of the convolution: [strideHeight,
-   * strideWidth]. If strides is a single number, then `strideHeight ==
+   * @param strides The strides of the convolution: `[strideHeight,
+   * strideWidth]`. If strides is a single number, then `strideHeight ==
    * strideWidth`.
-   * @param pad A string from: 'same', 'valid'. The type of padding algorithm.
-   *   - 'same' pad and stride 1: output will be of same size as input,
+   * @param pad The type of padding algorithm.
+   *   - `same` and stride 1: output will be of same size as input,
    *       regardless of filter size.
-   *   - 'valid' pad: output will be smaller than input if filter is larger
+   *   - `valid`: output will be smaller than input if filter is larger
    *       than 1x1.
    *   - For more info, see this guide:
-   *     https://www.tensorflow.org/api_guides/python/nn#Convolution
+   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+   *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
    * @param rates The dilation rates: `[rateHeight, rateWidth]` in which we
    *     sample input values across the height and width dimensions in atrous
    *     convolution. Defaults to `[1, 1]`. If `rate` is a single number, then
    *     `rateHeight == rateWidth`. If it is greater than 1, then all values
-   * of `strides` must be 1.
-   * @param dimRoundingMode A string from: 'ceil', 'round', 'floor'. The
-   *     rounding mode used when computing output dimensions if pad is a
-   *     number. If none is provided, it will not round and error if the output
-   *     is of fractional size.
+   *     of `strides` must be 1.
+   * @param dimRoundingMode The rounding mode used when computing output
+   *     dimensions if pad is a number. If none is provided, it will not round
+   *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation

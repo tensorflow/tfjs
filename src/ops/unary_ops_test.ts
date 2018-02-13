@@ -1405,7 +1405,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     const min = -1;
     const max = 50;
 
-    const result = dl.clip(a, min, max);
+    const result = dl.clipByValue(a, min, max);
 
     expectArraysClose(result, [3, -1, 0, 50, -1, 2]);
   });
@@ -1415,7 +1415,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     const min = -1;
     const max = 50;
 
-    const result = dl.clip(a, min, max);
+    const result = dl.clipByValue(a, min, max);
 
     expectArraysClose(result, [3, -1, 0, 50, -1, 2, NaN]);
   });
@@ -1426,7 +1426,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     const max = -1;
 
     const f = () => {
-      dl.clip(a, min, max);
+      dl.clipByValue(a, min, max);
     };
     expect(f).toThrowError();
   });

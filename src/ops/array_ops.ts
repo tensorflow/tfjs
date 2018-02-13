@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 // tslint:disable-next-line:max-line-length
@@ -24,11 +23,28 @@ import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} fr
 import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D} from '../types';
 import * as util from '../util';
 
+import {operation} from './operation';
 import {MPRandGauss} from './rand';
 
 export class Ops {
   /**
-   * Creates a tensor with the provided values, shape and dtype.
+   * Creates a `Tensor` with the provided values, shape and dtype.
+   *
+   * ```js
+   * // Pass an array of values to create a vector.
+   * dl.tensor([1, 2, 3, 4]).print()  // shape: [4]
+   * ```
+   *
+   * ```js
+   * // Pass a nested array of values to make a matrix or a higher
+   * // dimensional tensor.
+   * dl.tensor([[1, 2], [3, 4]]).print();  // shape: [2, 2]
+   * ```
+   *
+   * ```js
+   * // Pass a flat array and specify a shape yourself.
+   * dl.tensor([1, 2, 3, 4], [2, 2]).print();  // shape: [2, 2]
+   * ```
    *
    * @param values The values of the tensor. Can be nested array of numbers,
    *     or a flat array, or a `TypedArray`.
@@ -60,6 +76,14 @@ export class Ops {
   /**
    * Creates rank-0 tensor (scalar) with the provided value and dtype.
    *
+   * This method is mainly for self documentation and TypeScript typings as the
+   * same functionality can be achieved with `tensor`. In general, we recommend
+   * using this method as it makes code more readable.
+   *
+   * ```js
+   * dl.scalar(3.14).print();
+   * ```
+   *
    * @param value The value of the scalar.
    * @param dtype The data type.
    */
@@ -75,6 +99,14 @@ export class Ops {
 
   /**
    * Creates rank-1 tensor with the provided values, shape and dtype.
+   *
+   * This method is mainly for self documentation and TypeScript typings as the
+   * same functionality can be achieved with `tensor`. In general, we recommend
+   * using this method as it makes code more readable.
+   *
+   * ```js
+   * dl.tensor1d([1, 2, 3]).print();
+   * ```
    *
    * @param values The values of the tensor. Can be array of numbers,
    *     or a `TypedArray`.
@@ -93,6 +125,18 @@ export class Ops {
   /**
    * Creates rank-2 tensor with the provided values, shape and dtype.
    *
+   * This method is mainly for self documentation and TypeScript typings as the
+   * same functionality can be achieved with `tensor`. In general, we recommend
+   * using this method as it makes code more readable.
+   *
+   *  ```js
+   * // Pass a nested array.
+   * dl.tensor2d([[1, 2], [3, 4]]).print();
+   * ```
+   * ```js
+   * // Pass a flat array and specify a shape.
+   * dl.tensor2d([1, 2, 3, 4], [2, 2]).print();
+   * ```
    * @param values The values of the tensor. Can be nested array of numbers,
    *     or a flat array, or a `TypedArray`.
    * @param shape The shape of the tensor. Optional. If not provided,
@@ -116,6 +160,18 @@ export class Ops {
   /**
    * Creates rank-3 tensor with the provided values, shape and dtype.
    *
+   * This method is mainly for self documentation and TypeScript typings as
+   * the same functionality can be achieved with `tensor`. In general, we
+   * recommend using this method as it makes code more readable.
+   *
+   *  ```js
+   * // Pass a nested array.
+   * dl.tensor3d([[[1], [2]], [[3], [4]]]).print();
+   * ```
+   * ```js
+   * // Pass a flat array and specify a shape.
+   * dl.tensor3d([1, 2, 3, 4], [2, 2, 1]).print();
+   * ```
    * @param values The values of the tensor. Can be nested array of numbers,
    *     or a flat array, or a `TypedArray`.
    * @param shape The shape of the tensor. Optional. If not provided,
@@ -138,7 +194,14 @@ export class Ops {
 
   /**
    * Creates rank-4 tensor with the provided values, shape and dtype.
-   *
+   *  ```js
+   * // Pass a nested array.
+   * dl.tensor4d([[[[1], [2]], [[3], [4]]]]).print();
+   * ```
+   * ```js
+   * // Pass a flat array and specify a shape.
+   * dl.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]).print();
+   * ```
    * @param values The values of the tensor. Can be nested array of numbers,
    *     or a flat array, or a `TypedArray`.
    * @param shape The shape of the tensor. Optional. If not provided,
@@ -317,7 +380,6 @@ export class Ops {
    * each element in the output tensor.
    * @param dtype The data type of the output tensor. Defaults to 'float32'.
    */
-  @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static rand<R extends Rank>(
       shape: ShapeMap[R], randFunction: () => number, dtype?: DataType):
@@ -428,7 +490,7 @@ export class Ops {
   }
 
   /**
-   * Reshapes a tensor.
+   * Reshapes a tensor to a given shape.
    *
    * Given a input tensor, returns a new tensor with the same values as the
    * input tensor with shape `shape`.
@@ -459,6 +521,18 @@ export class Ops {
     return ENV.engine.executeKernel(
                'Reshape', {inputs: {x}, args: {newShape: shape}}, grad) as
         Tensor<R2>;
+  }
+
+  /**
+   * Removes dimensions of size 1 from the shape of a `Tensor`.
+   *
+   * @param axis An optional list of numbers. If specified, only
+   *     squeezes the dimensions listed. The dimension index starts at 0. It is
+   *     an error to squeeze a dimension that is not 1.
+   */
+  @doc({heading: 'Tensors', subheading: 'Transformations'})
+  static squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T {
+    return Ops.reshape(x, util.squeezeShape(x.shape, axis).newShape) as T;
   }
 
   /**
@@ -499,9 +573,9 @@ export class Ops {
   }
 
   /**
-   * Gather slices from tensor `x`'s axis `axis` according to `indices`
+   * Gather slices from tensor `x`'s axis `axis` according to `indices`.
    *
-   * @param x The tensor to transpose.
+   * @param x The input tensor.
    * @param indices The indices of the values to extract.
    * @param axis The axis over which to select values. Defaults to 0.
    */
@@ -513,7 +587,7 @@ export class Ops {
   }
 
   /**
-   * Pads a Tensor1D.
+   * Pads a Tensor1D with a given value.
    *
    * This operation will pad a tensor according to the `paddings` you specify.
    *
@@ -525,7 +599,6 @@ export class Ops {
    *     left and right side of the tensor.
    * @param constantValue The scalar pad value to use. Defaults to 0.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static pad1d(x: Tensor1D, paddings: [number, number], constantValue = 0):
       Tensor1D {
@@ -537,7 +610,7 @@ export class Ops {
   }
 
   /**
-   * Pads a Tensor2D.
+   * Pads a Tensor2D with a given value.
    *
    * This operation will pad a tensor according to the `paddings` you specify.
    *
@@ -550,7 +623,6 @@ export class Ops {
    *     tensor.
    * @param constantValue The scalar pad value to use. Defaults to 0.
    */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static pad2d(
       x: Tensor2D, paddings: [[number, number], [number, number]],
@@ -655,6 +727,37 @@ export class Ops {
   static buffer<R extends Rank>(
       shape: ShapeMap[R], dtype: DataType = 'float32'): TensorBuffer<R> {
     return new TensorBuffer<R>(shape, dtype);
+  }
+
+  /**
+   * Prints information about the `Tensor` including its data.
+   *
+   * @param verbose Whether to print verbose information about the `Tensor`,
+   * including dtype and size.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static print<T extends Tensor>(x: T, verbose = false): void {
+    let displayName = Tensor.name;
+    if (x.rank <= 4) {
+      displayName =
+          ['Scalar', 'Tensor1D', 'Tensor2D', 'Tensor3D', 'Tensor4D'][x.rank];
+    }
+
+    // Construct a new class so that we can display a rich object in the console
+    // that only has the properties that we want to show about the tensor but
+    // still shows it as if it's the proper class.
+    const C = new Function(`return class ${displayName} {}`)();
+
+    const displayTensor = new C();
+    displayTensor.shape = x.shape;
+    displayTensor.data = Array.from(x.dataSync());
+
+    if (verbose) {
+      displayTensor.dtype = x.dtype;
+      displayTensor.size = x.size;
+    }
+
+    console.log(displayTensor);
   }
 }
 
