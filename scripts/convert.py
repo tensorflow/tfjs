@@ -62,7 +62,7 @@ def optimize_graph(graph):
   """Takes a Python Graph object and optimizes the graph."""
   rewriter_config = rewriter_config_pb2.RewriterConfig()
   rewriter_config.optimizers[:] = ['pruning', 'constfold', 'arithmetic',
-                                'dependency', 'layout', 'pruning',
+                                'dependency', 'pruning',
                                 'constfold', 'arithmetic','dependency']
   meta_graph = tf.train.export_meta_graph(
       graph_def=graph.as_graph_def(), graph=graph)
