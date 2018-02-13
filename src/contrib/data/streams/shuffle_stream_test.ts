@@ -22,6 +22,16 @@ import {ShuffleStream} from './data_stream';
 import {TestIntegerStream} from './data_stream_test';
 
 describe('ShuffleStream', () => {
+  // TODO(davidsoergel): Remove this once we figure out the timeout issue.
+  let originalTimeout: number;
+  beforeAll(() => {
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+  });
+  afterAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
+  });
+
   it('shuffles a stream without replacement', done => {
     const baseStream = new TestIntegerStream();
     const shuffleStream = new ShuffleStream(baseStream, 1000);
