@@ -79,10 +79,8 @@ limitations under the License.
   </div>
   <div class="mdl-layout-spacer mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
   <div class= "intro-text mdl-cell mdl-cell--4-col mdl-cell--8-col-tablet mdl-cell-4-col-phone">
-    <p class='intro-body mdl-typography--body-1'>We provide two APIs, an
-    <span class="deeplearn-shine">immediate execution model</span> (think NumPy)
-    and a <span class="deeplearn-shine">deferred execution model</span>
-    mirroring the TensorFlow API.<br><br><span class="deeplearn-shine">deeplearn.js</span>
+    <p class='intro-body mdl-typography--body-1'>We provide an API that closely mirrors
+    the TensorFlow eager API.<br><br><span class="deeplearn-shine">deeplearn.js</span>
     was originally developed by the Google Brain PAIR team to build powerful
     interactive machine learning tools for the browser. You can use the library
     for everything from education, to model understanding, to art projects.</p>
