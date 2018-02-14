@@ -58,13 +58,17 @@ export class RMSPropOptimizer extends Optimizer {
       const value = ENV.engine.registeredVariables[variableName];
       if (this.accumulatedMeanSquares[variableName] == null) {
         const trainable = false;
-        this.accumulatedMeanSquares[variableName] =
-            variable(zerosLike(value), trainable);
+        tidy(() => {
+          this.accumulatedMeanSquares[variableName] =
+              variable(zerosLike(value), trainable);
+        });
       }
       if (this.accumulatedMoments[variableName] == null) {
         const trainable = false;
-        this.accumulatedMoments[variableName] =
-            variable(zerosLike(value), trainable);
+        tidy(() => {
+          this.accumulatedMoments[variableName] =
+              variable(zerosLike(value), trainable);
+        });
       }
 
       const accumulatedMeanSquare = this.accumulatedMeanSquares[variableName];

@@ -46,8 +46,10 @@ export class MomentumOptimizer extends SGDOptimizer {
       const value = ENV.engine.registeredVariables[variableName];
       if (this.accumulations[variableName] == null) {
         const trainable = false;
-        this.accumulations[variableName] =
-            variable(zerosLike(value), trainable);
+        tidy(() => {
+          this.accumulations[variableName] =
+              variable(zerosLike(value), trainable);
+        });
       }
 
       const accumulation = this.accumulations[variableName];

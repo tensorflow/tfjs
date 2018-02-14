@@ -945,7 +945,6 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
     super(
         initialValue.shape, initialValue.dtype, null /* values */,
         initialValue.dataId);
-    initialValue.dispose();
     this.name = name;
     if (this.name == null) {
       this.name = Variable.nextVarId.toString();
