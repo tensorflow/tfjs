@@ -30,7 +30,7 @@ import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor'
 import * as types from '../types';
 import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
 import * as util from '../util';
-import {KernelBackend} from './backend';
+import {BackendTimingInfo, KernelBackend} from './backend';
 
 export class MathBackendCPU implements KernelBackend {
   private data = new WeakMap<DataId, DataTypeMap[DataType]>();
@@ -117,10 +117,11 @@ export class MathBackendCPU implements KernelBackend {
     }
   }
 
-  async time(f: () => void): Promise<number> {
+  async time(f: () => void): Promise<BackendTimingInfo> {
     const start = performance.now();
     f();
-    return performance.now() - start;
+    const kernelMs = performance.now() - start;
+    return {kernelMs};
   }
   memory() {
     return {
