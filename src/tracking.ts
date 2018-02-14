@@ -16,6 +16,7 @@
  */
 
 import {doc} from './doc';
+import {TimingInfo} from './engine';
 import {ENV} from './environment';
 // tslint:disable-next-line:max-line-length
 import {ScopeFn, ScopeResult, ScopeResultImmediate} from './tape_util';
@@ -88,12 +89,20 @@ export class Tracking {
   }
 
   /**
-   * Executes `f()` and returns a promise that resolves with the elapsed time of
-   * `f()` in milliseconds.
+   * Executes `f()` and returns a promise that resolves with timing information.
+   *
+   * The result is an object with the following properties:
+   *
+   * - `wallMs`: wall execution time.
+   * - `kernelMs`: kernel execution time, ignoring data transfer.
+   * - On `WebGL` the following additional properties exist:
+   *   - `uploadWaitMs`: cpu blocking time on texture uploads.
+   *   - `downloadWaitMs`: cpu blocking time on texture downloads (readPixels).
+   *
    * @param f The function to execute and time.
    */
   @doc({heading: 'Performance', subheading: 'Timing'})
-  static time(f: () => void): Promise<number> {
+  static time(f: () => void): Promise<TimingInfo> {
     return ENV.engine.time(f);
   }
 }

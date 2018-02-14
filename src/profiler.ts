@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-import * as util from './util';
-import {Tensor} from './tensor';
-import {TypedArray} from './types';
-
 import {BackendTimer} from './kernels/backend';
 import {Kernel} from './kernels/kernel_registry';
+import {Tensor} from './tensor';
+import {TypedArray} from './types';
+import * as util from './util';
 
 export class Profiler {
   constructor(private backendTimer: BackendTimer, private logger?: Logger) {
@@ -39,8 +38,8 @@ export class Profiler {
     const vals = result.dataSync();
     util.checkForNaN(vals, result.dtype, kernelName);
 
-    timer.then((timeMs: number) => {
-      this.logger.logKernelProfile(kernelName, result, vals, timeMs);
+    timer.then(timing => {
+      this.logger.logKernelProfile(kernelName, result, vals, timing.kernelMs);
     });
 
     return result as T;

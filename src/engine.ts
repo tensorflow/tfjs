@@ -17,7 +17,7 @@
 
 import {ENV} from './environment';
 import {tidy} from './globals';
-import {KernelBackend} from './kernels/backend';
+import {BackendTimingInfo, KernelBackend} from './kernels/backend';
 import * as kernel_registry from './kernels/kernel_registry';
 import {KernelConfigRegistry} from './kernels/kernel_registry';
 import * as ops from './ops/ops';
@@ -54,9 +54,11 @@ export interface TensorManager {
 }
 
 export type MemoryInfo = {
-  numTensors: number; numDataBuffers: number; numBytes: number; backendInfo: {};
+  numTensors: number; numDataBuffers: number; numBytes: number;
   unreliable?: boolean;
 };
+
+export interface TimingInfo extends BackendTimingInfo { wallMs: number; }
 
 export class Engine implements TensorManager {
   // Public since optimizers will use it.
@@ -168,17 +170,11 @@ export class Engine implements TensorManager {
   }
 
   memory(): MemoryInfo {
-    const backendInfo = this.backend.memory();
-    const memInfo: MemoryInfo = {
-      numTensors: this.numTensors,
-      numDataBuffers: this.numDataBuffers,
-      numBytes: this.numBytes,
-      backendInfo,
-    };
-    if (backendInfo.unreliable) {
-      memInfo.unreliable = true;
-    }
-    return memInfo;
+    const info = this.backend.memory() as MemoryInfo;
+    info.numTensors = this.numTensors;
+    info.numDataBuffers = this.numDataBuffers;
+    info.numBytes = this.numBytes;
+    return info;
   }
 
   private shouldRecord(): boolean {
@@ -358,8 +354,11 @@ export class Engine implements TensorManager {
       numChannels: number): Tensor3D {
     return this.backend.fromPixels(pixels, numChannels);
   }
-  time(query: () => void): Promise<number> {
-    return this.backend.time(query);
+  async time(query: () => void): Promise<TimingInfo> {
+    const start = performance.now();
+    const timingInfo = await this.backend.time(query) as TimingInfo;
+    timingInfo.wallMs = performance.now() - start;
+    return timingInfo;
   }
 
   /**

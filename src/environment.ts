@@ -254,7 +254,6 @@ export class Environment {
    *    - On CPU, true. Due to automatic garbage collection, these numbers
    *     represent undisposed tensors, i.e. not wrapped in `dl.tidy()`, or
    *     lacking a call to `tensor.dispose()`.
-   * - `backendInfo`: Backend-specific information.
    */
   @doc({heading: 'Performance', subheading: 'Memory'})
   static memory(): MemoryInfo {
