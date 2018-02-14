@@ -7,6 +7,5 @@ export async function warmupAndBenchmarkGPU(benchmark: () => dl.Tensor):
   const out = benchmark();
   await out.data();
   out.dispose();
-  // Real timing.
-  return dl.time(benchmark);
+  return (await dl.time(benchmark)).kernelMs;
 }
