@@ -78,7 +78,8 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
 
     x.dispose();
     optimizer.dispose();
-    expect(dl.memory().numTensors).toBe(0);
+    // The only tensor remaining is the argument to variable().
+    expect(dl.memory().numTensors).toBe(1);
   });
 
   it('graph', () => {

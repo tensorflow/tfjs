@@ -54,8 +54,8 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
 
     optimizer.dispose();
     x.dispose();
-    // There should be no more Tensors.
-    expect(dl.memory().numTensors).toBe(0);
+    // The only tensor remaining is the argument to variable().
+    expect(dl.memory().numTensors).toBe(1);
   });
 
   it('graph', () => {

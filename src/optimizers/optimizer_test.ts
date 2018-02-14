@@ -68,8 +68,8 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     x.dispose();
     bias.dispose();
     strayVariable.dispose();
-    // There should be no more Tensors.
-    expect(dl.memory().numTensors).toBe(0);
+    // The only tensors remaining are the arguments to variable().
+    expect(dl.memory().numTensors).toBe(3);
   });
 
   it('varList array of all variables', () => {
