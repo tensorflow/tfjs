@@ -15,17 +15,18 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
 import * as axis_util from './axis_util';
+import {operation} from './operation';
 
 export class Ops {
   /**
-   * Reverses a 1D array
-   * @param x The input array.
+   * Reverses a `Tensor1D`.
+   *
+   * @param x The input tensor.
    */
   static reverse1d(x: Tensor1D): Tensor1D {
     util.assert(x.rank === 1, `Error in reverse1D: x must be rank 1 but got
@@ -34,8 +35,9 @@ export class Ops {
   }
 
   /**
-   * Reverses a 2D array along a specified axis
-   * @param x The input array.
+   * Reverses a `Tensor2D` along a specified axis
+   *
+   * @param x The input tensor.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).
    */
@@ -46,8 +48,8 @@ export class Ops {
   }
 
   /**
-   * Reverses a 3D array along a specified axis
-   * @param x The input array.
+   * Reverses a `Tensor3D` along a specified axis
+   * @param x The input tensor.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).
    */
@@ -58,8 +60,8 @@ export class Ops {
   }
 
   /**
-   * Reverses a 4D array along a specified axis
-   * @param x The input array.
+   * Reverses a `Tensor4D` along a specified axis
+   * @param x The input tensor.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).
    */
@@ -70,9 +72,9 @@ export class Ops {
   }
 
   /**
-   * Reverses a Tensor along a specified axis.
+   * Reverses a `Tensor` along a specified axis.
    *
-   * @param x The input array.
+   * @param x The input tensor.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).
    */

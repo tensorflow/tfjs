@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
+import {operation} from './operation';
 
 export class Ops {
   /**
@@ -29,10 +29,10 @@ export class Ops {
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
    * @param size The new shape `[newHeight, newWidth]` to resize the
    *     images to. Each channel is resized individually.
-   * @param alignCorners An optional bool. Defaults to False. If true, rescale
-   *     input by (new_height - 1) / (height - 1), which exactly aligns the 4
+   * @param alignCorners Defaults to False. If true, rescale
+   *     input by `(new_height - 1) / (height - 1)`, which exactly aligns the 4
    *     corners of images and resized images. If false, rescale by
-   *     new_height/height. Treat similarly the width dimension.
+   *     `new_height / height`. Treat similarly the width dimension.
    */
   @doc({heading: 'Operations', subheading: 'Images', namespace: 'image'})
   @operation

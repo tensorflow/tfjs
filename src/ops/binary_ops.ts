@@ -26,7 +26,7 @@ import {scalar} from './ops';
 
 export class Ops {
   /**
-   * Adds two Tensors element-wise, A + B. Supports broadcasting.
+   * Adds two `Tensor`s element-wise, A + B. Supports broadcasting.
    *
    * We also expose `addStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
@@ -63,7 +63,7 @@ export class Ops {
   }
 
   /**
-   * Adds two Tensors element-wise, A + B.
+   * Adds two `Tensor`s element-wise, A + B.
    *
    * Inputs must be the same shape. For broadcasting support, use add() instead.
    *
@@ -77,7 +77,7 @@ export class Ops {
   }
 
   /**
-   * Subtracts two Tensors element-wise, A - B. Supports broadcasting.
+   * Subtracts two `Tensor`s element-wise, A - B. Supports broadcasting.
    *
    * We also expose `subStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
@@ -115,7 +115,7 @@ export class Ops {
   }
 
   /**
-   * Subtracts two Tensors element-wise, A - B. Inputs must
+   * Subtracts two `Tensor`s element-wise, A - B. Inputs must
    * be the same shape.
    *
    * For broadcasting support, use sub() instead.
@@ -130,15 +130,15 @@ export class Ops {
   }
 
   /**
-   * Computes the power of one value to another. Supports broadcasting.
-   * Given a tensor x and a tensor y, this operation computes x^y for
+   * Computes the power of one `Tensor` to another. Supports broadcasting.
+   *
+   * Given a `Tensor` x and a `Tensor` y, this operation computes x^y for
    * corresponding elements in x and y.
    *
-   * For example:
    * ```js
    * const a = dl.tensor([[2, 2], [3, 3]])
    * const b = dl.tensor([[8, 16], [2, 3]])
-   * const y = dl.pow(a, b);  // [256, 65536, 9, 27]
+   * dl.pow(a, b).print();  // [256, 65536, 9, 27]
    * ```
    *
    * We also expose `powStrict` which has the same signature as this op and
@@ -176,13 +176,13 @@ export class Ops {
   }
 
   /**
-   * Computes the power of one value to another. Inputs must
+   * Computes the power of one `Tensor` to another. Inputs must
    * be the same shape.
    *
    * For broadcasting support, use pow() instead.
    *
-   * @param base The base Tensor to pow element-wise.
-   * @param exp The exponent Tensor to pow element-wise.
+   * @param base The base tensor to pow element-wise.
+   * @param exp The exponent tensor to pow element-wise.
    */
   @operation
   static powStrict<T extends Tensor>(base: T, exp: Tensor): T {
@@ -191,13 +191,13 @@ export class Ops {
   }
 
   /**
-   * Multiplies two Tensors element-wise, A * B. Supports broadcasting.
+   * Multiplies two `Tensor`s element-wise, A * B. Supports broadcasting.
    *
    * We also expose `mulStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first `Tensor`.
-   * @param b The second `Tensor`. Must have the same dtype as `a`.
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
@@ -229,12 +229,12 @@ export class Ops {
   }
 
   /**
-   * Multiplies two Tensors element-wise, A * B.
+   * Multiplies two `Tensor`s element-wise, A * B.
    *
    * Inputs must be the same shape. For broadcasting support, use mul().
    *
-   * @param a The first `Tensor`.
-   * @param b The second `Tensor`. Must have the same dtype as `a`.
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same dtype as `a`.
    */
   @operation
   static mulStrict<T extends Tensor>(a: T, b: T): T {
@@ -243,13 +243,13 @@ export class Ops {
   }
 
   /**
-   * Divides two Tensors element-wise, A / B. Supports broadcasting.
+   * Divides two `Tensor`s element-wise, A / B. Supports broadcasting.
    *
    * We also expose `divStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first `Tensor`.
-   * @param b The second `Tensor`. Must have the same dtype as `a`.
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
@@ -280,11 +280,11 @@ export class Ops {
   }
 
   /**
-   * Divides two Tensors element-wise, A / B. Inputs must
+   * Divides two `Tensor`s element-wise, A / B. Inputs must
    * be the same shape.
    *
-   * @param a The first Tensor to multiply element-wise.
-   * @param b The second Tensor to multiply element-wise.
+   * @param a The first tensor to multiply element-wise.
+   * @param b The second tensor to multiply element-wise.
    */
   @operation
   static divStrict<T extends Tensor>(a: T, b: T): T {
@@ -319,8 +319,8 @@ export class Ops {
    * Returns the min of a and b (`a < b ? a : b`) element-wise. Inputs must
    * be the same shape. For broadcasting support, use minimum().
    *
-   * @param a The first `Tensor`.
-   * @param b The second `Tensor`. Must have the same dtype as `a`.
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same dtype as `a`.
    */
   @operation
   static minimumStrict<T extends Tensor>(a: T, b: T): T {
@@ -356,8 +356,8 @@ export class Ops {
    * Returns the max of a and b (`a > b ? a : b`) element-wise. Inputs must
    * be the same shape. For broadcasting support, use maximum().
    *
-   * @param a The first `Tensor`.
-   * @param b The second `Tensor`. Must have the same dtype as `a`.
+   * @param a The first tensor.
+   * @param b The second tensor.. Must have the same dtype as `a`.
    */
   @operation
   static maximumStrict<T extends Tensor>(a: T, b: T): T {

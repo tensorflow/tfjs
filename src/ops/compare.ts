@@ -29,8 +29,8 @@ export class Ops {
    * We also expose `notEqualStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same dtype as `a`.
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -44,8 +44,8 @@ export class Ops {
    * Strict version of `notEqual` that forces `a` and `b` to be of the same
    * shape.
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same shape and dtype as
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same shape and dtype as
    *     `a`.
    */
   @operation
@@ -60,8 +60,8 @@ export class Ops {
    * We also expose `lessStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same dtype as `a`.
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -75,8 +75,8 @@ export class Ops {
    * Strict version of `less` that forces `a` and `b` to be of the same
    * shape.
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same shape and dtype as
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same shape and dtype as
    *     `a`.
    */
   @operation
@@ -91,8 +91,8 @@ export class Ops {
    * We also expose `equalStrict` which has the same signature as this op
    * and asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same dtype as `a`.
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -114,8 +114,8 @@ export class Ops {
    * We also expose `lessEqualStrict` which has the same signature as this op
    * and asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same dtype as `a`.
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -137,8 +137,8 @@ export class Ops {
    * We also expose `greaterStrict` which has the same signature as this
    * op and asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same dtype as `a`.
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -160,8 +160,8 @@ export class Ops {
    * We also expose `greaterStrict` which has the same signature as this
    * op and asserts that `a` and `b` are the same shape (does not broadcast).
    *
-   * @param a The first input `Tensor`.
-   * @param b The second input `Tensor`. Must have the same dtype as `a`.
+   * @param a The first input tensor.
+   * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation

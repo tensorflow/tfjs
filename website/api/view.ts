@@ -35,18 +35,22 @@ export type DocSymbol = DocFunction|DocClass;
 
 export interface DocClass {
   symbolName: string;
-  displayName: string;
+  namespace: string;
   documentation: string;
   fileName: string;
   githubUrl: string;
   methods: DocFunction[];
 
   isClass: true;
+
+  // Filled in by the linker.
+  displayName?: string;
+  urlHash?: string;
 }
 
 export interface DocFunction {
   symbolName: string;
-  displayName: string;
+  namespace: string;
   documentation: string;
   fileName: string;
   githubUrl: string;
@@ -56,6 +60,10 @@ export interface DocFunction {
   returnType: string;
 
   isFunction: true;
+
+  // Filled in by the linker.
+  displayName?: string;
+  urlHash?: string;
 }
 
 export interface DocFunctionParam {

@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {Node} from '../graph/graph';
@@ -30,12 +29,7 @@ import {NamedVariableMap} from '../types';
 
 import {Optimizer} from './optimizer';
 
-/**
- * Optimizer that implements the Adagrad optimization algorithm.
- *
- * Use `dl.train.adagrad` to create a Adagrad optimizer.
- */
-@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
+/** @doclink Optimizer */
 export class AdagradOptimizer extends Optimizer {
   private c: Scalar;
   private epsilon: Scalar;
