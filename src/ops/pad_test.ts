@@ -127,3 +127,28 @@ describeWithFlags('pad2d', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 });
+
+describeWithFlags('pad', ALL_ENVS, () => {
+  it('Pad tensor2d', () => {
+    let a = dl.tensor2d([[1], [2]], [2, 1], 'int32');
+    let b = dl.pad(a, [[1, 1], [1, 1]]);
+    // 0, 0, 0
+    // 0, 1, 0
+    // 0, 2, 0
+    // 0, 0, 0
+    expectArraysClose(b, [0, 0, 0, 0, 1, 0, 0, 2, 0, 0, 0, 0]);
+
+    a = dl.tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3], 'int32');
+    b = dl.pad(a, [[2, 2], [1, 1]]);
+    // 0, 0, 0, 0, 0
+    // 0, 0, 0, 0, 0
+    // 0, 1, 2, 3, 0
+    // 0, 4, 5, 6, 0
+    // 0, 0, 0, 0, 0
+    // 0, 0, 0, 0, 0
+    expectArraysClose(b, [
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0,
+      0, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    ]);
+  });
+});

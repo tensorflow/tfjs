@@ -17,10 +17,9 @@
 
 import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
-import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
-// tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectValuesInRange} from '../test_util';
 import * as util from '../util';
+import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
 describeWithFlags('zeros', ALL_ENVS, () => {
   it('1D default dtype', () => {
@@ -1630,5 +1629,123 @@ describeWithFlags('fill', ALL_ENVS, () => {
     expect(a.dtype).toBe('float32');
     expect(a.shape).toEqual([3, 2, 1, 2]);
     expectArraysClose(a, [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]);
+  });
+});
+
+describeWithFlags('stack', ALL_ENVS, () => {
+  it('scalars 3, 5 and 7', () => {
+    const a = dl.scalar(3);
+    const b = dl.scalar(5);
+    const c = dl.scalar(7);
+    const res = dl.stack([a, b, c]);
+    expect(res.shape).toEqual([3]);
+    expectArraysClose(res, [3, 5, 7]);
+  });
+
+  it('scalars 3, 5 and 7 along axis=1 throws error', () => {
+    const a = dl.scalar(3);
+    const b = dl.scalar(5);
+    const c = dl.scalar(7);
+    const f = () => dl.stack([a, b, c], 1);
+    expect(f).toThrowError();
+  });
+
+  it('non matching shapes throws error', () => {
+    const a = dl.scalar(3);
+    const b = dl.tensor1d([5]);
+    const f = () => dl.stack([a, b]);
+    expect(f).toThrowError();
+  });
+
+  it('non matching dtypes throws error', () => {
+    const a = dl.scalar(3);
+    const b = dl.scalar(5, 'bool');
+    const f = () => dl.stack([a, b]);
+    expect(f).toThrowError();
+  });
+
+  it('2d but axis=3 throws error', () => {
+    const a = dl.zeros([2, 2]);
+    const b = dl.zeros([2, 2]);
+    const f = () => dl.stack([a, b], 3 /* axis */);
+    expect(f).toThrowError();
+  });
+
+  it('[1,2], [3,4] and [5,6], axis=0', () => {
+    const a = dl.tensor1d([1, 2]);
+    const b = dl.tensor1d([3, 4]);
+    const c = dl.tensor1d([5, 6]);
+    const res = dl.stack([a, b, c], 0 /* axis */);
+    expect(res.shape).toEqual([3, 2]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6]);
+  });
+
+  it('[1,2], [3,4] and [5,6], axis=1', () => {
+    const a = dl.tensor1d([1, 2]);
+    const b = dl.tensor1d([3, 4]);
+    const c = dl.tensor1d([5, 6]);
+    const res = dl.stack([a, b, c], 1 /* axis */);
+    expect(res.shape).toEqual([2, 3]);
+    expectArraysClose(res, [1, 3, 5, 2, 4, 6]);
+  });
+
+  it('[[1,2],[3,4]] and [[5, 6], [7, 8]], axis=0', () => {
+    const a = dl.tensor2d([[1, 2], [3, 4]]);
+    const b = dl.tensor2d([[5, 6], [7, 8]]);
+    const res = dl.stack([a, b], 0 /* axis */);
+    expect(res.shape).toEqual([2, 2, 2]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6, 7, 8]);
+  });
+
+  it('[[1,2],[3,4]] and [[5, 6], [7, 8]], axis=2', () => {
+    const a = dl.tensor2d([[1, 2], [3, 4]]);
+    const b = dl.tensor2d([[5, 6], [7, 8]]);
+    const c = dl.tensor2d([[9, 10], [11, 12]]);
+    const res = dl.stack([a, b, c], 2 /* axis */);
+    expect(res.shape).toEqual([2, 2, 3]);
+    expectArraysClose(res, [1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12]);
+  });
+});
+
+describeWithFlags('expandDims', ALL_ENVS, () => {
+  it('scalar, default axis is 0', () => {
+    const res = dl.scalar(1).expandDims();
+    expect(res.shape).toEqual([1]);
+    expectArraysClose(res, [1]);
+  });
+
+  it('scalar, axis is out of bounds throws error', () => {
+    const f = () => dl.scalar(1).expandDims(1);
+    expect(f).toThrowError();
+  });
+
+  it('1d, axis=0', () => {
+    const res = dl.tensor1d([1, 2, 3]).expandDims(0 /* axis */);
+    expect(res.shape).toEqual([1, 3]);
+    expectArraysClose(res, [1, 2, 3]);
+  });
+
+  it('1d, axis=1', () => {
+    const res = dl.tensor1d([1, 2, 3]).expandDims(1 /* axis */);
+    expect(res.shape).toEqual([3, 1]);
+    expectArraysClose(res, [1, 2, 3]);
+  });
+
+  it('2d, axis=0', () => {
+    const res = dl.tensor2d([[1, 2], [3, 4], [5, 6]]).expandDims(0 /* axis */);
+    expect(res.shape).toEqual([1, 3, 2]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6]);
+  });
+
+  it('2d, axis=1', () => {
+    const res = dl.tensor2d([[1, 2], [3, 4], [5, 6]]).expandDims(1 /* axis */);
+    expect(res.shape).toEqual([3, 1, 2]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6]);
+  });
+
+  it('2d, axis=2', () => {
+    const res = dl.tensor2d([[1, 2], [3, 4], [5, 6]]).expandDims(2 /* axis */);
+    expect(res.shape).toEqual([3, 2, 1]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6]);
   });
 });

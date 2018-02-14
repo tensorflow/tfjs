@@ -40,11 +40,11 @@ export const batchNormalization2d = batchnorm_ops.Ops.batchNormalization2d;
 export const batchNormalization3d = batchnorm_ops.Ops.batchNormalization3d;
 export const batchNormalization4d = batchnorm_ops.Ops.batchNormalization4d;
 
-export const concat = concat_ops.Ops.concat;
-export const concat1d = concat_ops.Ops.concat1d;
-export const concat2d = concat_ops.Ops.concat2d;
-export const concat3d = concat_ops.Ops.concat3d;
-export const concat4d = concat_ops.Ops.concat4d;
+export const concat = concat_ops.Concat.concat;
+export const concat1d = concat_ops.Concat.concat1d;
+export const concat2d = concat_ops.Concat.concat2d;
+export const concat3d = concat_ops.Concat.concat3d;
+export const concat4d = concat_ops.Concat.concat4d;
 
 export const conv1d = conv_ops.Ops.conv1d;
 export const conv2d = conv_ops.Ops.conv2d;
@@ -165,8 +165,6 @@ export const gather = array_ops.Ops.gather;
 export const multinomial = array_ops.Ops.multinomial;
 export const oneHot = array_ops.Ops.oneHot;
 export const linspace = array_ops.Ops.linspace;
-export const pad1d = array_ops.Ops.pad1d;
-export const pad2d = array_ops.Ops.pad2d;
 export const range = array_ops.Ops.range;
 export const buffer = array_ops.Ops.buffer;
 export const fill = array_ops.Ops.fill;
@@ -177,6 +175,11 @@ export const tensor2d = array_ops.Ops.tensor2d;
 export const tensor3d = array_ops.Ops.tensor3d;
 export const tensor4d = array_ops.Ops.tensor4d;
 export const print = array_ops.Ops.print;
+export const expandDims = array_ops.Ops.expandDims;
+export const stack = array_ops.Ops.stack;
+export const pad = array_ops.Ops.pad;
+export const pad1d = array_ops.Ops.pad1d;
+export const pad2d = array_ops.Ops.pad2d;
 
 export const basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
 export const multiRNNCell = lstm_ops.Ops.multiRNNCell;
