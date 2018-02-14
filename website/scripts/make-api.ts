@@ -22,6 +22,7 @@
 
 import * as fs from 'fs';
 import * as HandleBars from 'handlebars';
+import * as hljs from 'highlight.js';
 import * as MarkdownIt from 'markdown-it';
 import * as minimist from 'minimist';
 import * as mkdirp from 'mkdirp';
@@ -70,19 +71,33 @@ const symbols: util.SymbolAndUrl[] = [
 ];
 util.linkSymbols(docs, symbols, TOPLEVEL_NAMESPACE, docLinkAliases);
 
-const md = new MarkdownIt();
+const md = new MarkdownIt({
+  highlight(str, lang) {
+    if (lang === 'js' && hljs.getLanguage(lang)) {
+      const highlighted = hljs.highlight(lang, str).value;
+      return '<pre class="hljs"><code class="hljs language-js">' + highlighted +
+          '</code></pre>\n';
+    }
+
+    return '';  // use external default escaping
+  }
+});
 
 // Add some helper functions
 HandleBars.registerHelper('markdown', attr => {
-  return md.render(attr);
+  if (attr) {
+    return md.render(attr);
+  }
 });
 
 // Renders a string to markdown but removes the outer <p> tag
 HandleBars.registerHelper('markdownInner', attr => {
-  const asMd =
-      md.render(attr.trim()).replace(/<p>/, '').replace(/(<\/p>\s*)$/, '');
+  if (attr) {
+    const asMd =
+        md.render(attr.trim()).replace(/<p>/, '').replace(/(<\/p>\s*)$/, '');
 
-  return asMd;
+    return asMd;
+  }
 });
 
 // Write the HTML.

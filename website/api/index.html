@@ -1,6 +1,7 @@
 <head>
-  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:300,400,500,700" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/deeplearn@latest"></script>
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/solarized-dark.min.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -13,6 +14,26 @@
 
     a {
       color: inherit;
+    }
+
+    table {
+      text-align: left;
+      font-family: "Roboto Mono", monospace;
+    }
+
+    thead {
+      background-color: #dedede;
+    }
+
+    th {
+      text-align: left;
+      padding: 4px;
+    }
+
+    td {
+      text-align: left;
+      padding: 8px;
+      padding-right: 16px;
     }
 
     .container {
@@ -131,22 +152,48 @@
     }
 
     .reference .subsection-title {
-      font-weight: 200;
-      margin-bottom: 80px;
+      font-weight: 300;
+      margin-bottom: 16px;
+      /* border-bottom: 1px solid rgb(96,125,139); */
+    }
+
+    .reference .subsection-description {
+      font-weight: 300;
+      margin-bottom: 96px;
       border-bottom: 1px solid rgb(96,125,139);
+      margin-left: 8px;
+    }
+
+    .reference .symbol-marker {
+      display: inline-block;
+      margin-right: 12px;
+      font-style: italic;
+      font-size: 90%;
+      color: grey;
     }
 
     .documentation pre, .param-docs pre {
       background: #f4f4f4;
     }
 
+    code.hljs {
+      border-radius: 5px;
+      padding-left: 16px;
+    }
+
+    pre.hljs {
+      margin: 0;
+      padding: 0;
+    }
+
+
+
     code, .param-name, .return-type {
+      background: #f7f7f7;
       background: #f4f4f4;
       color: #37474f;
       padding: 2px 4px;
       font: 500 90%/2 Roboto Mono, monospace;
-    }
-    code {
       word-break: break-word;
     }
 
@@ -162,9 +209,9 @@
 
     .reference .symbol {
       margin-left: 32px;
-      margin-bottom: 80px;
+      margin-bottom: 96px;
       border-bottom: 1px dashed lightgrey;
-      padding-bottom: 50px;
+      padding-bottom: 16px;
     }
 
     .reference .symbol .documentation p {
@@ -256,10 +303,11 @@
           {{#subheadings}}
           <div class="subsection">
             <div class="subsection-title mdl-typography--display-3">{{../name}} &nbsp;/&nbsp; {{name}}</div>
-            <div class="subheading-description">{{description}}</div>
+            <div class="subsection-description mdl-typography--headline">{{{description}}}</div>
             {{#symbols}}
             <div class="symbol">
-              <h5>#
+              <h5>
+                <span class='symbol-marker'>&fnof;</span>
                 <a name="{{urlHash}}" href="#{{urlHash}}">{{displayName}}</a>{{paramStr}}
                 {{#isClass}}
                   <span class="class-chip mdl-chip">
