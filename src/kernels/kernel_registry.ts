@@ -59,8 +59,8 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
   if (kernelName === 'MatMul') {
     const config = inputAndArgs as MatMulNode['inputAndArgs'];
     return backend.matMul(
-               config.inputs.a, config.inputs.b, config.args.aOrientation,
-               config.args.bOrientation) as O;
+               config.inputs.a, config.inputs.b, config.args.transposeA,
+               config.args.transposeB) as O;
   } else if (kernelName === 'Slice1D') {
     const config = inputAndArgs as Slice1DNode['inputAndArgs'];
     return backend.slice1D(

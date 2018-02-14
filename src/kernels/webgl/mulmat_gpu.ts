@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {MatrixOrientation} from '../types/matmul';
 import {GPGPUProgram} from './gpgpu_math';
 
 export class MatMulProgram implements GPGPUProgram {
@@ -24,25 +23,19 @@ export class MatMulProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      aShape: [number, number], bShape: [number, number],
-      aOrient = MatrixOrientation.REGULAR,
-      bOrient = MatrixOrientation.REGULAR) {
-    const outerShapeA =
-        (aOrient === MatrixOrientation.REGULAR) ? aShape[0] : aShape[1];
-    const outerShapeB =
-        (bOrient === MatrixOrientation.REGULAR) ? bShape[1] : bShape[0];
+      aShape: [number, number], bShape: [number, number], transposeA = false,
+      transposeB = false) {
+    const outerShapeA = transposeA ? aShape[1] : aShape[0];
+    const outerShapeB = transposeB ? bShape[0] : bShape[1];
+    const sharedDim = transposeA ? aShape[0] : aShape[1];
     this.outputShape = [outerShapeA, outerShapeB];
 
-    const sharedDim =
-        (aOrient === MatrixOrientation.REGULAR ? aShape[1] : aShape[0]);
     const aSnippetFromOffset = (vec4Offset: number, indexVar: string|number) =>
-        (aOrient === MatrixOrientation.REGULAR) ?
-        `aRow, ${indexVar} + ${vec4Offset}` :
-        `${indexVar} + ${vec4Offset}, aRow`;
+        transposeA ? `${indexVar} + ${vec4Offset}, aRow` :
+                     `aRow, ${indexVar} + ${vec4Offset}`;
     const bSnippetFromOffset = (vec4Offset: number, indexVar: string|number) =>
-        (bOrient === MatrixOrientation.REGULAR) ?
-        `${indexVar} + ${vec4Offset}, bCol` :
-        `bCol, ${indexVar} + ${vec4Offset}`;
+        transposeB ? `bCol, ${indexVar} + ${vec4Offset}` :
+                     `${indexVar} + ${vec4Offset}, bCol`;
 
     const sharedDimNearestVec4 = Math.floor(sharedDim / 4) * 4;
     const sharedDimVec4Remainder = sharedDim % 4;

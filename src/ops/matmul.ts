@@ -20,30 +20,27 @@ import {ENV} from '../environment';
 import {MatrixOrientation} from '../kernels/types/matmul';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
 import * as util from '../util';
-
 import {operation} from './operation';
 
 export class Ops {
   /**
-   * Computes the dot product of two matrices, A * B. These must be matrices,
-   * use matrixTimesVector and vectorTimesMatrix, dotProduct, and outerProduct
-   * in other cases.
+   * Computes the dot product of two matrices, A * B. These must be matrices.
+   *
    * @param a First matrix in dot product operation.
    * @param b Second matrix in dot product operation.
-   * @param aOrientation The MatrixOrientation of A. If using TRANSPOSED, will
-   * compute A^T * B.
-   * @param bOrientation The MatrixOrientation of B. If using TRANSPOSED, will
-   * compute A * B^T.
+   * @param transposeA If true, `a` is transposed before multiplication.
+   * @param transposeB If true, `b` is transposed before multiplication.
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static matMul(
-      a: Tensor2D, b: Tensor2D, aOrientation = MatrixOrientation.REGULAR,
-      bOrientation = MatrixOrientation.REGULAR): Tensor2D {
-    const innerShapeA =
-        (aOrientation === MatrixOrientation.REGULAR) ? a.shape[1] : a.shape[0];
-    const innerShapeB =
-        (bOrientation === MatrixOrientation.REGULAR) ? b.shape[0] : b.shape[1];
+      a: Tensor2D, b: Tensor2D, transposeA = false, transposeB = false):
+      Tensor2D {
+    // For backward compatibility.
+    [transposeA, transposeB] = [enumToBool(transposeA), enumToBool(transposeB)];
+
+    const innerShapeA = transposeA ? a.shape[0] : a.shape[1];
+    const innerShapeB = transposeB ? b.shape[1] : b.shape[0];
 
     util.assert(
         a.rank === 2 && b.rank === 2,
@@ -54,30 +51,26 @@ export class Ops {
         innerShapeA === innerShapeB,
         `Error in matMul: inner shapes (${innerShapeA}) and (` +
             `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
-            `${b.shape} and orientations ${MatrixOrientation[aOrientation]}` +
-            ` and ${MatrixOrientation[bOrientation]} must match.`);
+            `${b.shape} and transposeA=${transposeA}` +
+            ` and transposeB=${transposeB} must match.`);
 
     return ENV.engine.executeKernel(
-               'MatMul', {inputs: {a, b}, args: {aOrientation, bOrientation}},
+               'MatMul', {inputs: {a, b}, args: {transposeA, transposeB}},
                (dy: Tensor2D, y: Tensor2D) => {
-                 if (aOrientation === MatrixOrientation.TRANSPOSED ||
-                     bOrientation === MatrixOrientation.TRANSPOSED) {
+                 if (transposeA || transposeB) {
                    throw new Error(
                        `Backprop for transposed MatMul not yet implemented.`);
                  }
                  return {
-                   a: () => dy.matMul(
-                                b.toFloat(), MatrixOrientation.REGULAR,
-                                MatrixOrientation.TRANSPOSED) as Tensor2D,
-                   b: () => a.toFloat().matMul(
-                                dy, MatrixOrientation.TRANSPOSED,
-                                MatrixOrientation.REGULAR) as Tensor2D
+                   a: () => dy.matMul(b.toFloat(), false, true) as Tensor2D,
+                   b: () => a.toFloat().matMul(dy, true, false) as Tensor2D
                  };
                }) as Tensor2D;
   }
 
   /**
    * Computes the dot product of a vector and a matrix, v * B.
+   *
    * @param v The vector in dot product operation.
    * @param matrix The matrix in dot product operation.
    */
@@ -126,6 +119,7 @@ export class Ops {
 
   /**
    * Computes the dot product of two vectors, v1 * v2.
+   *
    * @param v1 The first vector in the dot product operation.
    * @param v2 The second vector in the dot product operation.
    */
@@ -145,6 +139,7 @@ export class Ops {
 
   /**
    * Computes the outer product of two vectors, v1 and v2.
+   *
    * @param v1 The first vector in the outer product operation.
    * @param v2 The second vector in the dot product operation.
    */
@@ -158,4 +153,14 @@ export class Ops {
 
     return v1.as2D(-1, 1).matMul(v2.as2D(1, -1));
   }
+}
+
+function enumToBool(transpose: boolean|MatrixOrientation): boolean {
+  if (transpose === MatrixOrientation.REGULAR) {
+    return false;
+  }
+  if (transpose === MatrixOrientation.TRANSPOSED) {
+    return true;
+  }
+  return transpose;
 }

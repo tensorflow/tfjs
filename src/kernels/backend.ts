@@ -21,8 +21,6 @@ import {Conv2DInfo} from '../ops/conv_util';
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, Rank, TypedArray} from '../types';
 
-import {MatrixOrientation} from './types/matmul';
-
 export interface TensorStorage {
   read(dataId: DataId): Promise<TypedArray>;
   readSync(dataId: DataId): TypedArray;
@@ -45,9 +43,8 @@ export interface BackendTimer { time(f: () => void): Promise<number>; }
  * methods).
  */
 export interface KernelBackend extends TensorStorage, BackendTimer {
-  matMul(
-      a: Tensor2D, b: Tensor2D, aOrientation: MatrixOrientation,
-      bOrientation: MatrixOrientation): Tensor2D;
+  matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
+      Tensor2D;
 
   slice1D(x: Tensor1D, begin: number, size: number): Tensor1D;
   slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
