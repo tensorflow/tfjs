@@ -22,6 +22,7 @@
     "cross-spawn": "~5.1.0",
     "fetch-mock": "~5.13.1",
     "handlebars": "~4.0.11",
+    "highlight.js": "9.12.0",
     "http-server": "~0.10.0",
     "jasmine-core": "~2.6.4",
     "karma": "~1.7.0",
