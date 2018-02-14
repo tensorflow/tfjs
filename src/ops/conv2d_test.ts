@@ -31,11 +31,10 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
 
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w = dl.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    const result = dl.conv2d(x, w, bias, stride, pad);
+    const result = dl.conv2d(x, w, stride, pad);
 
-    expectArraysClose(result, [1, 3, 5, 7]);
+    expectArraysClose(result, [2, 4, 6, 8]);
   });
 
   it('x=[2,2,2,1] f=[1,1,1,1] s=1 p=0', () => {
@@ -48,11 +47,10 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
 
     const x = dl.tensor4d([1, 2, 3, 4, 5, 6, 7, 8], inShape);
     const w = dl.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    const result = dl.conv2d(x, w, bias, stride, pad);
+    const result = dl.conv2d(x, w, stride, pad);
     expect(result.shape).toEqual([2, 2, 2, 1]);
-    const expected = [1, 3, 5, 7, 9, 11, 13, 15];
+    const expected = [2, 4, 6, 8, 10, 12, 14, 16];
 
     expectArraysClose(result, expected);
   });
@@ -68,10 +66,9 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w =
         dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    const result = dl.conv2d(x, w, bias, stride, pad);
-    expectArraysClose(result, [19]);
+    const result = dl.conv2d(x, w, stride, pad);
+    expectArraysClose(result, [20]);
   });
 
   it('throws when x is not rank 3', () => {
@@ -85,9 +82,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const x: any = dl.tensor2d([1, 2, 3, 4], [2, 2]);
     const w =
         dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
+    expect(() => dl.conv2d(x, w, stride, pad)).toThrowError();
   });
 
   it('throws when weights is not rank 4', () => {
@@ -99,26 +95,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     // tslint:disable-next-line:no-any
     const w: any = dl.tensor3d([3, 1, 5, 0], [2, 2, 1]);
-    const bias = dl.tensor1d([-1]);
 
-    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
-  });
-
-  it('throws when biases is not rank 1', () => {
-    const inputDepth = 1;
-    const inputShape: [number, number, number] = [2, 2, inputDepth];
-    const outputDepth = 1;
-    const fSize = 2;
-    const pad = 0;
-    const stride = 1;
-
-    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-    const w =
-        dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
-    // tslint:disable-next-line:no-any
-    const bias: any = dl.tensor2d([2, 2, 2, 2], [2, 2]);
-
-    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
+    expect(() => dl.conv2d(x, w, stride, pad)).toThrowError();
   });
 
   it('throws when x depth does not match weight depth', () => {
@@ -133,9 +111,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w =
         dl.randomNormal<Rank.R4>([fSize, fSize, wrongInputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    expect(() => dl.conv2d(x, w, bias, stride, pad)).toThrowError();
+    expect(() => dl.conv2d(x, w, stride, pad)).toThrowError();
   });
 
   it('throws when dimRoundingMode is set and pad is not a number', () => {
@@ -149,10 +126,8 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
 
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w = dl.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    expect(() => dl.conv2d(x, w, bias, stride, pad, dimRoundingMode))
-        .toThrowError();
+    expect(() => dl.conv2d(x, w, stride, pad, dimRoundingMode)).toThrowError();
   });
 
   it('gradient input=[3,3,1] f=[2,2,1,1] s=1 p=0', () => {
@@ -166,15 +141,13 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const filterShape: [number, number, number, number] =
         [filterSize, filterSize, inputDepth, outputDepth];
     const filter = dl.ones<Rank.R4>(filterShape);
-    const bias = dl.tensor1d([-1]);
 
     const x = dl.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
     const dy = dl.tensor3d([3, 1, 2, 0], [2, 2, 1]);
 
     const grads = dl.grads(
-        (x: dl.Tensor3D, filter: dl.Tensor4D, bias: dl.Tensor1D) =>
-            x.conv2d(filter, bias, stride, pad));
-    const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
+        (x: dl.Tensor3D, filter: dl.Tensor4D) => x.conv2d(filter, stride, pad));
+    const [dx, dfilter] = grads([x, filter], dy);
 
     expect(dx.shape).toEqual(x.shape);
     expectArraysClose(dx, [3, 4, 1, 5, 6, 1, 2, 2, 0]);
@@ -182,9 +155,6 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expect(dfilter.shape).toEqual(filterShape);
     // TODO(nsthorat): Fix the precision for byte textures.
     expectArraysClose(dfilter, [13, 19, 31, 37], 1e-1);
-
-    expect(dbias.shape).toEqual(bias.shape);
-    expectArraysClose(dbias, [6], 1e-1);
   });
 
   it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', () => {
@@ -199,16 +169,13 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         [filterSize, filterSize, inputDepth, outputDepth];
     const filter = dl.ones<Rank.R4>(filterShape);
 
-    const bias = dl.tensor1d([-1]);
-
     const x = dl.tensor4d(
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 2, 3, 4, 5, 6, 7, 8, 9], inputShape);
     const dy = dl.tensor4d([3, 1, 2, 0, 3, 1, 2, 0], [2, 2, 2, 1]);
 
     const grads = dl.grads(
-        (x: dl.Tensor4D, filter: dl.Tensor4D, bias: dl.Tensor1D) =>
-            x.conv2d(filter, bias, stride, pad));
-    const [dx, dfilter, dbias] = grads([x, filter, bias], dy);
+        (x: dl.Tensor4D, filter: dl.Tensor4D) => x.conv2d(filter, stride, pad));
+    const [dx, dfilter] = grads([x, filter], dy);
 
     expect(dx.shape).toEqual(x.shape);
     expectArraysClose(
@@ -217,8 +184,5 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expect(dfilter.shape).toEqual(filterShape);
     // TODO(nsthorat): Fix the precision for byte textures.
     expectArraysClose(dfilter, [13 * 2, 19 * 2, 31 * 2, 37 * 2], 1e-1);
-
-    expect(dbias.shape).toEqual(bias.shape);
-    expectArraysClose(dbias, [12]);
   });
 });

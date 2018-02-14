@@ -134,29 +134,3 @@ export class Conv2DDerInputProgram implements GPGPUProgram {
     `;
   }
 }
-
-export class Conv2DDerBiasProgram implements GPGPUProgram {
-  variableNames = ['dy'];
-  outputShape: number[];
-  userCode: string;
-
-  constructor(yShape: [number, number, number, number]) {
-    const [batchSize, yNumRows, yNumCols, outputDepth] = yShape;
-    this.outputShape = [outputDepth];
-    this.userCode = `
-      void main() {
-        int d2 = getOutputCoords();
-
-        float derBias = 0.0;
-        for (int b = 0; b < ${batchSize}; b++) {
-          for (int yR = 0; yR < ${yNumRows}; yR++) {
-            for (int yC = 0; yC < ${yNumCols}; yC++) {
-              derBias += getDy(b, yR, yC, d2);
-            }
-          }
-        }
-        setOutput(derBias);
-      }
-    `;
-  }
-}

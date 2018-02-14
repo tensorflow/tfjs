@@ -17,18 +17,16 @@
 
 import {Conv2DInfo} from '../../ops/conv_util';
 import {KernelNode} from '../../tape_types';
-import {Tensor1D, Tensor4D} from '../../tensor';
+import {Tensor4D} from '../../tensor';
 
 export interface Conv2DNode extends KernelNode {
   inputAndArgs: {
-    inputs: {x: Tensor4D; filter: Tensor4D; bias?: Tensor1D;};
-    args: {convInfo: Conv2DInfo;};
+    inputs: {x: Tensor4D; filter: Tensor4D;}; args: {convInfo: Conv2DInfo;};
   };
   output: Tensor4D;
   gradient: (dy: Tensor4D, y: Tensor4D) => {
     x: () => Tensor4D;
     filter: () => Tensor4D;
-    bias?: () => Tensor1D;
   };
 }
 
@@ -49,14 +47,6 @@ export interface Conv2DDerFilterNode extends KernelNode {
   output: Tensor4D;
   gradient: (dy: Tensor4D, y: Tensor4D) => {
     x: () => Tensor4D;
-    dy: () => Tensor4D;
-  };
-}
-
-export interface Conv2DDerBiasNode extends KernelNode {
-  inputAndArgs: {inputs: {dy: Tensor4D;};};
-  output: Tensor1D;
-  gradient: (dy: Tensor1D, y: Tensor1D) => {
     dy: () => Tensor4D;
   };
 }

@@ -28,7 +28,7 @@ import {CastNode} from './types/cast';
 // tslint:disable-next-line:max-line-length
 import {ConcatNode} from './types/concat';
 // tslint:disable-next-line:max-line-length
-import {Conv2DDerBiasNode, Conv2DDerFilterNode, Conv2DDerInputNode, Conv2DNode, DepthwiseConv2DNode} from './types/conv';
+import {Conv2DDerFilterNode, Conv2DDerInputNode, Conv2DNode, DepthwiseConv2DNode} from './types/conv';
 import {GatherNode} from './types/gather';
 import {EqualNode, LogicalNode, WhereNode} from './types/logical';
 import {LRN4DNode} from './types/lrn';
@@ -286,8 +286,8 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
   } else if (kernelName === 'Conv2D') {
     const config = inputAndArgs as Conv2DNode['inputAndArgs'];
     return backend.conv2d(
-               config.inputs.x, config.inputs.filter, config.inputs.bias,
-               config.args.convInfo) as O;
+               config.inputs.x, config.inputs.filter, config.args.convInfo) as
+        O;
   } else if (kernelName === 'Conv2DDerInput') {
     const config = inputAndArgs as Conv2DDerInputNode['inputAndArgs'];
     return backend.conv2dDerInput(
@@ -297,9 +297,6 @@ executeKernel<R extends Rank, K extends keyof KernelConfigRegistry<R>, O extends
     const config = inputAndArgs as Conv2DDerFilterNode['inputAndArgs'];
     return backend.conv2dDerFilter(
                config.inputs.x, config.inputs.dy, config.args.convInfo) as O;
-  } else if (kernelName === 'Conv2DDerBias') {
-    const config = inputAndArgs as Conv2DDerBiasNode['inputAndArgs'];
-    return backend.conv2dDerBias(config.inputs.dy) as O;
   } else if (kernelName === 'DepthwiseConv2D') {
     const config = inputAndArgs as DepthwiseConv2DNode['inputAndArgs'];
     return backend.depthwiseConv2D(
@@ -423,7 +420,6 @@ export interface KernelConfigRegistry<R extends Rank> {
   Conv2D: Conv2DNode;
   Conv2DDerInput: Conv2DDerInputNode;
   Conv2DDerFilter: Conv2DDerFilterNode;
-  Conv2DDerBias: Conv2DDerBiasNode;
   DepthwiseConv2D: Conv2DNode;
   MaxPool: PoolNode;
   MaxPoolBackprop: PoolBackpropNode;

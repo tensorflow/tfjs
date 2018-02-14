@@ -23,14 +23,8 @@ export class Conv2DProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(convInfo: Conv2DInfo, hasBias: boolean) {
-    if (hasBias) {
-      this.variableNames.push('bias');
-    }
-
+  constructor(convInfo: Conv2DInfo) {
     this.outputShape = convInfo.outShape;
-
-    const biasSnippet = hasBias ? 'dotProd += getBias(d2);' : '';
     const padTop = convInfo.padInfo.top;
     const padLeft = convInfo.padInfo.left;
     const strideHeight = convInfo.strideHeight;
@@ -117,7 +111,6 @@ export class Conv2DProgram implements GPGPUProgram {
             }
           }
         }
-        ${biasSnippet}
         setOutput(dotProd);
       }
     `;

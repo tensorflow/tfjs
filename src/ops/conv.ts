@@ -17,7 +17,7 @@
 
 import {doc} from '../doc';
 import {ENV} from '../environment';
-import {Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './operation';
@@ -30,7 +30,6 @@ export class Ops {
    *     `[batch, width, inChannels]`. If rank 2, batch of 1 is assumed.
    * @param filter The filter, rank 3, of shape
    *     `[filterWidth, inDepth, outDepth]`.
-   * @param bias Optional bias, rank 1 of shape `[outDepth]`.
    * @param stride The number of entries by which the filter is moved right at
    *     each step.
    * @param pad The type of padding algorithm.
@@ -48,8 +47,8 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv1d<T extends Tensor2D|Tensor3D>(
-      input: T, filter: Tensor3D, bias: Tensor1D|null, stride: number,
-      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+      input: T, filter: Tensor3D, stride: number, pad: 'valid'|'same'|number,
+      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     let input3D = input as Tensor3D;
     let reshapedTo3D = false;
     if (input.rank === 2) {
@@ -64,12 +63,6 @@ export class Ops {
         filter.rank === 3,
         `Error in conv1d: filter must be rank 3, but got rank ` +
             `${filter.rank}.`);
-    if (bias != null) {
-      util.assert(
-          bias.rank === 1,
-          `Error in conv1d: bias must be rank 1, but got rank ` +
-              `${bias.rank}.`);
-    }
     if (dimRoundingMode != null) {
       util.assert(
           util.isInt(pad as number),
@@ -88,8 +81,7 @@ export class Ops {
         input3D.as4D(input3D.shape[0], 1, input3D.shape[1], input3D.shape[2]);
     const strides: [number, number] = [1, stride];
 
-    const res =
-        Ops.conv2d(input4D, filter4D, bias, strides, pad, dimRoundingMode);
+    const res = Ops.conv2d(input4D, filter4D, strides, pad, dimRoundingMode);
     if (reshapedTo3D) {
       return res.as2D(res.shape[2], res.shape[3]) as T;
     }
@@ -104,7 +96,6 @@ export class Ops {
    * assumed.
    * @param filter The filter, rank 4, of shape
    *     `[filterHeight, filterWidth, inDepth, outDepth]`.
-   * @param bias Bias to use during the convolution, shape `[outDepth]`.
    * @param strides The strides of the convolution: `[strideHeight,
    * strideWidth]`.
    * @param pad The type of padding algorithm.
@@ -122,9 +113,8 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv2d<T extends Tensor3D|Tensor4D>(
-      x: T, filter: Tensor4D, bias: Tensor1D|null,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+      x: T, filter: Tensor4D, strides: [number, number]|number,
+      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
@@ -138,12 +128,6 @@ export class Ops {
         filter.rank === 4,
         `Error in conv2d: filter must be rank 4, but got rank ` +
             `${filter.rank}.`);
-    if (bias != null) {
-      util.assert(
-          bias.rank === 1,
-          `Error in conv2d: bias must be rank 1, but got rank ` +
-              `${bias.rank}.`);
-    }
     if (dimRoundingMode != null) {
       util.assert(
           util.isInt(pad as number),
@@ -162,14 +146,12 @@ export class Ops {
     const gradients = (dy: Tensor4D, y: Tensor4D) => {
       return {
         x: () => Ops.conv2dDerInput(x4D.shape, dy, filter, strides, pad),
-        filter: () => Ops.conv2dDerFilter(x4D, dy, filter.shape, strides, pad),
-        bias: () => Ops.conv2dDerBias(dy)
+        filter: () => Ops.conv2dDerFilter(x4D, dy, filter.shape, strides, pad)
       };
     };
 
     const res = ENV.engine.executeKernel(
-        'Conv2D', {inputs: {x: x4D, filter, bias}, args: {convInfo}},
-        gradients);
+        'Conv2D', {inputs: {x: x4D, filter}, args: {convInfo}}, gradients);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -253,22 +235,6 @@ export class Ops {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
     return res as T;
-  }
-
-  /**
-   * Computes the derivative of the bias of a 2D convolution.
-   *
-   * @param dy The gradient for the output of this op, of rank 4 or rank 3 of
-   *   shape [batch, height, width, outDepth]. If rank 3, batch of 1 is
-   * assumed.
-   */
-  @operation
-  static conv2dDerBias(dy: Tensor3D|Tensor4D): Tensor1D {
-    let dy4D = dy as Tensor4D;
-    if (dy.rank === 3) {
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
-    }
-    return ENV.engine.executeKernel('Conv2DDerBias', {inputs: {dy: dy4D}});
   }
 
   /**

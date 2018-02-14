@@ -822,17 +822,16 @@ export class Tensor<R extends Rank = Rank> {
 
   // Convolutions.
   conv1d<T extends Tensor2D|Tensor3D>(
-      this: T, filter: Tensor3D, bias: Tensor1D|null, stride: number,
-      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return ops.conv1d(this, filter, bias, stride, pad, dimRoundingMode);
-  }
-  conv2d<T extends Tensor3D|Tensor4D>(
-      this: T, filter: Tensor4D, bias: Tensor1D|null,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
+      this: T, filter: Tensor3D, stride: number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     (this as Tensor).throwIfDisposed();
-    return ops.conv2d(this, filter, bias, strides, pad, dimRoundingMode);
+    return ops.conv1d(this, filter, stride, pad, dimRoundingMode);
+  }
+  conv2d<T extends Tensor3D|Tensor4D>(
+      this: T, filter: Tensor4D, strides: [number, number]|number,
+      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    (this as Tensor).throwIfDisposed();
+    return ops.conv2d(this, filter, strides, pad, dimRoundingMode);
   }
   conv2dTranspose<T extends Tensor3D|Tensor4D>(
       this: T, filter: Tensor4D,
