@@ -16,10 +16,13 @@
  */
 
 import * as dl from '../index';
-// tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Tensor1D} from '../tensor';
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Rank} from '../types';
+import * as array_ops from './array_ops';
+
+// TODO(smilkov): Use dl.multinomial once exposed to the user.
+const multinomial = array_ops.Ops.multinomial;
 
 describeWithFlags('multinomial', ALL_ENVS, () => {
   const NUM_SAMPLES = 10000;
@@ -28,7 +31,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('Flip a fair coin and check bounds', () => {
     const probs = dl.tensor1d([0.5, 0.5]);
-    const result = dl.multinomial(probs, NUM_SAMPLES);
+    const result = multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -37,7 +40,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('Flip a two-sided coin with 100% of heads', () => {
     const probs = dl.tensor1d([1, 0]);
-    const result = dl.multinomial(probs, NUM_SAMPLES);
+    const result = multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -46,7 +49,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('Flip a two-sided coin with 100% of tails', () => {
     const probs = dl.tensor1d([0, 1]);
-    const result = dl.multinomial(probs, NUM_SAMPLES);
+    const result = multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -55,7 +58,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('Flip a single-sided coin throws error', () => {
     const probs = dl.tensor1d([1]);
-    expect(() => dl.multinomial(probs, NUM_SAMPLES)).toThrowError();
+    expect(() => multinomial(probs, NUM_SAMPLES)).toThrowError();
   });
 
   it('Flip a ten-sided coin and check bounds', () => {
@@ -64,7 +67,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
     for (let i = 0; i < numOutcomes; ++i) {
       probs.set(1 / numOutcomes, i);
     }
-    const result = dl.multinomial(probs.toTensor(), NUM_SAMPLES);
+    const result = multinomial(probs.toTensor(), NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), numOutcomes);
@@ -75,7 +78,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
     const numOutcomes = 3;
     const probs =
         dl.tensor2d([[0, 0, 1], [0, 1, 0], [1, 0, 0]], [3, numOutcomes]);
-    const result = dl.multinomial(probs, NUM_SAMPLES);
+    const result = multinomial(probs, NUM_SAMPLES);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([3, NUM_SAMPLES]);
 
@@ -97,7 +100,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('passing Tensor3D throws error', () => {
     const probs = dl.zeros([3, 2, 2]) as Tensor1D;
-    expect(() => dl.multinomial(probs, 3)).toThrowError();
+    expect(() => multinomial(probs, 3)).toThrowError();
   });
 
   function computeProbs(

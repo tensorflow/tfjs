@@ -150,13 +150,10 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
 
   step<T extends Tensor>(x: T, alpha: number): T;
 
-  conv2d(
-      x: Tensor4D, filter: Tensor4D, bias: Tensor1D|null,
-      convInfo: Conv2DInfo): Tensor4D;
+  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D;
   conv2dDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
-  conv2dDerBias(dY: Tensor4D): Tensor1D;
 
   depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D;

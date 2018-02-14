@@ -37,7 +37,7 @@ import {BinaryOpProgram} from './webgl/binaryop_gpu';
 import {ClipProgram} from './webgl/clip_gpu';
 import {ConcatProgram} from './webgl/concat_gpu';
 // tslint:disable-next-line:max-line-length
-import {Conv2DDerBiasProgram, Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
+import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
 import {Conv2DProgram} from './webgl/conv_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
 import {FromPixelsProgram} from './webgl/from_pixels_gpu';
@@ -776,12 +776,9 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
-  conv2d(
-      x: Tensor4D, filter: Tensor4D, bias: Tensor1D|null,
-      convInfo: Conv2DInfo): Tensor4D {
-    const program = new Conv2DProgram(convInfo, bias != null);
-    const inputs = bias != null ? [x, filter, bias] : [x, filter];
-    return this.compileAndRun(program, inputs);
+  conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+    const program = new Conv2DProgram(convInfo);
+    return this.compileAndRun(program, [x, filter]);
   }
 
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
@@ -793,11 +790,6 @@ export class MathBackendWebGL implements KernelBackend {
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const program = new Conv2DDerFilterProgram(convInfo);
     return this.compileAndRun(program, [x, dy]);
-  }
-
-  conv2dDerBias(dy: Tensor4D): Tensor1D {
-    const program = new Conv2DDerBiasProgram(dy.shape);
-    return this.compileAndRun(program, [dy]);
   }
 
   depthwiseConv2D(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):

@@ -88,8 +88,8 @@ export class TransformNet implements dl.Model {
       input: dl.Tensor3D, strides: number, relu: boolean,
       varId: number): dl.Tensor3D {
     const y = input.conv2d(
-        this.variables[this.varName(varId)] as dl.Tensor4D, null,
-        [strides, strides], 'same');
+        this.variables[this.varName(varId)] as dl.Tensor4D, [strides, strides],
+        'same');
 
     const y2 = this.instanceNorm(y, varId + 1);
 

@@ -445,7 +445,8 @@ async function generateStep(loopId: number) {
       const logits = outputH.matMul(fcW).add(fcB);
 
       const softmax = logits.as1D().softmax();
-      const sampledOutput = dl.multinomial(softmax, 1).asScalar();
+      // TODO(smilkov): Use dl.multinomial once exposed to the user.
+      const sampledOutput = dl.ENV.math.multinomial(softmax, 1).asScalar();
 
       outputs.push(sampledOutput);
       dl.keep(sampledOutput);

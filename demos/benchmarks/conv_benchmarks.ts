@@ -45,7 +45,6 @@ export class ConvGPUBenchmark implements BenchmarkTest {
 
     let x: dl.Tensor3D = dl.randomUniform(inShape, -1, 1);
     let W: dl.Tensor4D;
-    let b: dl.Tensor1D;
 
     let benchmark: () => dl.Tensor;
     if (opType === 'regular') {
@@ -53,8 +52,7 @@ export class ConvGPUBenchmark implements BenchmarkTest {
       const wShape = dl.conv_util.computeWeightsShape4D(
           inDepth, regParams.outDepth, filterSize, filterSize);
       W = dl.randomUniform(wShape, -1, 1);
-      b = dl.randomUniform([regParams.outDepth], -1, 1);
-      benchmark = () => x.conv2d(W, b, stride, pad);
+      benchmark = () => x.conv2d(W, stride, pad);
     } else if (opType === 'transposed') {
       const regParams = params as RegularConvParams;
       const wShape = dl.conv_util.computeWeightsShape4D(
@@ -80,9 +78,6 @@ export class ConvGPUBenchmark implements BenchmarkTest {
     x.dispose();
     W.dispose();
     math.dispose();
-    if (b != null) {
-      b.dispose();
-    }
 
     return time;
   }

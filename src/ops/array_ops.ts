@@ -454,7 +454,6 @@ export class Ops {
    * @return 1D array of shape `[numSamples]`, or 2D array of shape
    *     `[batchSize, numSamples]`, depending on the rank of the input.
    */
-  @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static multinomial(
       probabilities: Tensor1D|Tensor2D, numSamples: number, seed?: number):

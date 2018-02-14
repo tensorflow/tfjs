@@ -32,9 +32,7 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w = dl.tensor3d([3], [fSize, inputDepth, outputDepth]);
 
-    const bias = dl.tensor1d([0]);
-
-    const result = dl.conv1d(x, w, bias, stride, pad);
+    const result = dl.conv1d(x, w, stride, pad);
 
     expect(result.shape).toEqual([2, 2, 1]);
     expectArraysClose(result, [3, 6, 9, 12]);
@@ -51,9 +49,7 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const x = dl.tensor2d([1, 2, 3, 4], inputShape);
     const w = dl.tensor3d([2, 1], [fSize, inputDepth, outputDepth]);
 
-    const bias = dl.tensor1d([0]);
-
-    const result = dl.conv1d(x, w, bias, stride, pad);
+    const result = dl.conv1d(x, w, stride, pad);
 
     expect(result.shape).toEqual([3, 1]);
     expectArraysClose(result, [4, 7, 10]);
@@ -69,9 +65,8 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     // tslint:disable-next-line:no-any
     const x: any = dl.tensor2d([1, 2, 3, 4], [2, 2]);
     const w = dl.tensor3d([3, 1], [fSize, inputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
+    expect(() => dl.conv1d(x, w, stride, pad)).toThrowError();
   });
 
   it('throws when weights is not rank 3', () => {
@@ -83,25 +78,8 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     // tslint:disable-next-line:no-any
     const w: any = dl.tensor4d([3, 1, 5, 0], [2, 2, 1, 1]);
-    const bias = dl.tensor1d([-1]);
 
-    expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
-  });
-
-  it('throws when biases is not rank 1', () => {
-    const inputDepth = 1;
-    const inputShape: [number, number, number] = [2, 2, inputDepth];
-    const outputDepth = 1;
-    const fSize = 2;
-    const pad = 0;
-    const stride = 1;
-
-    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
-    const w = dl.tensor3d([3, 1], [fSize, inputDepth, outputDepth]);
-    // tslint:disable-next-line:no-any
-    const bias: any = dl.tensor2d([2, 2, 2, 2], [2, 2]);
-
-    expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
+    expect(() => dl.conv1d(x, w, stride, pad)).toThrowError();
   });
 
   it('throws when x depth does not match weight depth', () => {
@@ -115,8 +93,7 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
 
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w = dl.randomNormal<Rank.R3>([fSize, wrongInputDepth, outputDepth]);
-    const bias = dl.tensor1d([-1]);
 
-    expect(() => dl.conv1d(x, w, bias, stride, pad)).toThrowError();
+    expect(() => dl.conv1d(x, w, stride, pad)).toThrowError();
   });
 });

@@ -16,8 +16,8 @@
  */
 
 import {keep, tidy} from '../../globals';
-import * as conv_util from '../../ops/conv_util';
 import {NDArrayMath} from '../../math';
+import * as conv_util from '../../ops/conv_util';
 import {Tensor1D, Tensor3D, Tensor4D} from '../../tensor';
 import * as util from '../../util';
 import {SymbolicTensor} from '../graph';
@@ -84,7 +84,7 @@ export class Convolution2D extends Operation {
     tidy(() => {
       const dw =
           math.conv2dDerFilter(x, dy, filter.shape, this.stride, this.zeroPad);
-      const db = math.conv2dDerBias(dy);
+      const db = math.sum(dy, [0, 1] /* axis */);
       const dx =
           math.conv2dDerInput(x.shape, dy, filter, this.stride, this.zeroPad);
       gradientArrays.add(this.wTensor, dw);
