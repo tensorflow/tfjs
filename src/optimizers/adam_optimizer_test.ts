@@ -79,8 +79,8 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
     x.dispose();
     optimizer.dispose();
 
-    // There should be no more Tensors.
-    expect(dl.memory().numTensors).toBe(0);
+    // The only tensor remaining should be the argument to variable().
+    expect(dl.memory().numTensors).toBe(1);
   });
 
   it('graph', () => {

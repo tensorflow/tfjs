@@ -52,9 +52,11 @@ export class AdamOptimizer extends Optimizer {
     // b1, b2 keep initial value of beta* hyperparameters.
     this.beta1 = keep(scalar(beta1));
     this.beta2 = keep(scalar(beta2));
-    // accB* will be updated by batch.
-    this.accBeta1 = variable(scalar(beta1));
-    this.accBeta2 = variable(scalar(beta2));
+    tidy(() => {
+      // accB* will be updated by batch.
+      this.accBeta1 = variable(scalar(beta1));
+      this.accBeta2 = variable(scalar(beta2));
+    });
     this.oneMinusBeta1 = keep(scalar(1 - beta1));
     this.oneMinusBeta2 = keep(scalar(1 - beta2));
     this.one = keep(scalar(1));
