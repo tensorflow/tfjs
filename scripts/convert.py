@@ -20,12 +20,6 @@ flags.DEFINE_string('saved_model_dir', '', 'The saved model directory.')
 flags.DEFINE_string('output_node_names', '',
                     'The names of the output nodes, comma separated.')
 flags.DEFINE_string('output_graph', '', 'The name of the output graph file')
-flags.DEFINE_string('input_checkpoint', '',
-                    'TensorFlow variables file to load.')
-flags.DEFINE_boolean("input_binary", True,
-                    "Whether the input files are in binary format.")
-flags.DEFINE_string('input_saver', '', 'TensorFlow saver file to load.')
-flags.DEFINE_string('input_graph', '', 'TensorFlow GraphDef file to load.')
 flags.DEFINE_string(
     'saved_model_tags', 'serve',
     'Tags of the MetaGraphDef to load, in comma separated string format.'
@@ -69,24 +63,37 @@ def optimize_graph(graph):
   optimized_graph = tf_optimizer.OptimizeGraph(
       rewriter_config, meta_graph, cluster=get_cluster())
 
-  if FLAGS.output_graph:
-    head, tail = os.path.split(FLAGS.output_graph)
-    tf.train.write_graph(
-        optimized_graph, head, tail, as_text=False)
+  return optimize_graph
 
+def extract_weights(graph):
+  """Takes a Python Graph object and extract the weights."""
+  graph_def = graph.as_graph_def()
+  constants = [node for node in graph_def.node if node.op == 'Const']
+  print('Writing weight file ' + FLAGS.output_graph + '...')
+  index = 0
+  with open(os.path.abspath(FLAGS.output_graph + '.weight'), 'wb') as f:
+    with tf.Session(graph=graph) as sess:
+      for const in constants:
+        tensor = graph.get_tensor_by_name(const.name + ':0')
+        f.write(tensor.eval(session=sess).tobytes())
+        const.attr["index"].CopyFrom(attr_value_pb2.AttrValue(i=index))
+        del const.attr["value"]
+        index += tf.size(tensor).eval()
+
+  with open(os.path.abspath(FLAGS.output_graph), 'wb') as f:
+    f.write(graph_def.SerializeToString())
 
 def main(_):
 
 # Freeze the graph
-  freeze_graph.freeze_graph(FLAGS.input_graph, FLAGS.input_saver,
-                          FLAGS.input_binary, FLAGS.input_checkpoint,
+  freeze_graph.freeze_graph(', '', True, '',
                           FLAGS.output_node_names,
                           '', '',
                           FLAGS.output_graph + '.frozen', True, '',
                           saved_model_tags=FLAGS.saved_model_tags,
                           input_saved_model_dir=FLAGS.saved_model_dir)
   graph = load_graph(FLAGS.output_graph + '.frozen')
-  optimize_graph(graph)
+  extract_weights(optimize_graph(graph))
 
 
 if __name__ == '__main__':
