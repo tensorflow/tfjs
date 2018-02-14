@@ -16,9 +16,9 @@
  */
 
 import * as dl from '../index';
+import {Tensor2D} from '../tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
-import {Tensor2D} from '../tensor';
 import {Rank} from '../types';
 
 describeWithFlags('lstm', ALL_ENVS, () => {
@@ -74,11 +74,11 @@ describeWithFlags('lstm', ALL_ENVS, () => {
     const forgetBias = dl.scalar(1.0);
 
     const data = dl.randomNormal<Rank.R2>([1, 2]);
-    const batchedData = dl.concat2d(data, data, 0);  // 2x2
+    const batchedData = dl.concat2d([data, data], 0);  // 2x2
     const c = dl.randomNormal<Rank.R2>([1, 1]);
-    const batchedC = dl.concat2d(c, c, 0);  // 2x1
+    const batchedC = dl.concat2d([c, c], 0);  // 2x1
     const h = dl.randomNormal<Rank.R2>([1, 1]);
-    const batchedH = dl.concat2d(h, h, 0);  // 2x1
+    const batchedH = dl.concat2d([h, h], 0);  // 2x1
     const [newC, newH] = dl.basicLSTMCell(
         forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);
     expect(newC.get(0, 0)).toEqual(newC.get(1, 0));

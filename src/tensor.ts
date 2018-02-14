@@ -37,18 +37,29 @@ export interface TensorData {
  */
 @doc({heading: 'Tensors', subheading: 'Classes'})
 export class TensorBuffer<R extends Rank> {
-  values: TypedArray;
   private strides: number[];
 
-  constructor(public shape: ShapeMap[R], public dtype: DataType) {
-    this.values = util.getTypedArrayFromDType(dtype, util.sizeFromShape(shape));
+  constructor(
+      public shape: ShapeMap[R], public dtype: DataType,
+      public values: TypedArray) {
+    if (values != null) {
+      const n = values.length;
+      const size = util.sizeFromShape(shape);
+      util.assert(
+          n === size,
+          `Length of values '${n}' does not match the size ` +
+              `inferred by the shape '${size}'`);
+    }
+    this.values =
+        values || util.getTypedArrayFromDType(dtype, util.sizeFromShape(shape));
     this.strides = computeStrides(shape);
   }
 
   /**
    * Sets a value in the buffer at a given location.
+   *
    * @param value The value to set.
-   * @param locs  The location to set the value at.
+   * @param locs  The location indices.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   set(value: number, ...locs: number[]) {
@@ -61,6 +72,23 @@ export class TensorBuffer<R extends Rank> {
             `match the rank (${this.rank})`);
     const index = this.locToIndex(locs);
     this.values[index] = value;
+  }
+
+  /**
+   * Returns the value in the buffer at the provided location.
+   *
+   * @param locs The location indices.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  get(...locs: number[]): number {
+    if (locs.length === 0) {
+      locs = [0];
+    }
+    let index = locs[locs.length - 1];
+    for (let i = 0; i < locs.length - 1; ++i) {
+      index += this.strides[i] * locs[i];
+    }
+    return this.values[index];
   }
 
   locToIndex(locs: number[]): number {
@@ -239,9 +267,7 @@ export class Tensor<R extends Rank = Rank> {
     return ops.randomUniform(shape, a, b, dtype);
   }
 
-  /**
-   * Flatten a Tensor to a 1D array.
-   */
+  /** Flatten a Tensor to a 1D array. */
   @doc({heading: 'Tensors', subheading: 'Classes'})
   flatten(): Tensor1D {
     this.throwIfDisposed();
@@ -295,6 +321,7 @@ export class Tensor<R extends Rank = Rank> {
     return this.shape.length;
   }
 
+  /** @deprecated. Use `tensor.buffer().get(...locs)` */
   get(...locs: number[]) {
     this.throwIfDisposed();
     if (locs.length === 0) {
@@ -307,6 +334,7 @@ export class Tensor<R extends Rank = Rank> {
     return this.dataSync()[index];
   }
 
+  /** @deprecated. Use `tensor.buffer().get(...locs)` */
   async val(...locs: number[]): Promise<number> {
     if (locs.length === 0) {
       locs = [0];
@@ -316,6 +344,7 @@ export class Tensor<R extends Rank = Rank> {
     return this.get(...locs);
   }
 
+  /** @deprecated. Use `tensor.buffer().locToIndex(locs)` */
   locToIndex(locs: number[]): number {
     this.throwIfDisposed();
     if (this.rank === 0) {
@@ -330,6 +359,7 @@ export class Tensor<R extends Rank = Rank> {
     return index;
   }
 
+  /** @deprecated. Use `tensor.buffer().indexToLoc(index)` */
   indexToLoc(index: number): number[] {
     this.throwIfDisposed();
     if (this.rank === 0) {
@@ -354,6 +384,12 @@ export class Tensor<R extends Rank = Rank> {
   /** @deprecated Use data() instead. */
   getValuesAsync(): Promise<TypedArray> {
     return this.data();
+  }
+
+  /** Returns a `TensorBuffer` that holds the underlying data. */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
+  buffer(): TensorBuffer<R> {
+    return ops.buffer(this.shape, this.dtype, this.dataSync());
   }
 
   /**
@@ -410,27 +446,57 @@ export class Tensor<R extends Rank = Rank> {
     return this.asType('bool');
   }
 
-  // Chain API.
-
+  /** Prints the tensor. See `print` for details. */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
   print(verbose = false): void {
     return ops.print(this, verbose);
   }
 
-  /** Reshapes the current tensor into the provided shape. */
+  /**
+   * Reshapes the tensor into the provided shape.
+   * See `reshape` for more details.
+   */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
   reshape<R2 extends Rank>(newShape: ShapeMap[R2]): Tensor<R2> {
     this.throwIfDisposed();
     return ops.reshape(this, newShape);
   }
 
+  /** Reshapes the tensor into the shape of the provided tensor. */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
   reshapeAs<T extends Tensor>(x: T): T {
     this.throwIfDisposed();
     return this.reshape(x.shape) as T;
   }
 
+  /**
+   * Returns a `Tensor` that has expanded rank, by inserting a dimension
+   * into the tensor's shape. See `expandDims` for details.
+   */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
+  expandDims<R2 extends Rank>(axis = 0): Tensor<R2> {
+    return ops.expandDims(this, axis);
+  }
+
+  /**
+   * Returns a `Tensor` with dimensions of size 1 removed from the shape.
+   * See `squeeze` for more details.
+   */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
   squeeze<T extends Tensor>(axis?: number[]): T {
     this.throwIfDisposed();
     return ops.squeeze(this, axis);
   }
+
+  /** Returns a copy of the tensor. See `clone` for details. */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
+  clone<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.clone(this);
+  }
+
+  // Below is chain API that is not exposed to docs to avoid repetition. To
+  // expose a method, move it above this comment and add @doc and jsdoc.
 
   tile<T extends this>(this: T, reps: number[]): T {
     this.throwIfDisposed();
@@ -456,9 +522,16 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.reverse(this, axis);
   }
-  concat(x: Tensor<R>, axis: number): Tensor<R> {
+  concat<T extends Tensor>(this: T, x: T, axis = 0): T {
     this.throwIfDisposed();
-    return ops.concat(this, x, axis);
+    return ops.concat([this, x], axis);
+  }
+  stack(x: Tensor, axis = 0): Tensor {
+    return ops.stack([this, x], axis);
+  }
+  pad<T extends Tensor>(
+      this: T, paddings: Array<[number, number]>, constantValue = 0): T {
+    return ops.pad(this, paddings, constantValue);
   }
   batchNormalization(
       mean: Tensor<R>|Tensor1D, variance: Tensor<R>|Tensor1D,
@@ -467,11 +540,6 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.batchNormalization(
         this, mean, variance, varianceEpsilon, scale, offset);
-  }
-
-  clone<T extends Tensor>(this: T): T {
-    this.throwIfDisposed();
-    return ops.clone(this);
   }
 
   // Reduction ops.

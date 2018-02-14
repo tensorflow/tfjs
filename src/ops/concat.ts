@@ -23,25 +23,24 @@ import * as util from '../util';
 import * as concat_util from './concat_util';
 import {operation} from './operation';
 
-export class Ops {
+export class Concat {
   /**
-   * Concatenates two 1D tensors. See `concat` for details.
+   * Concatenates a list of `Tensor1D`s along an axis. See `concat` for details.
    *
    * For example, if:
    * A: shape(3) = |r1, g1, b1|
    * B: shape(2) = |r2, g2|
-   * C = concat1D(A, B) == |r1, g1, b1, r2, g2|
+   * C = dl.concat1d([A, B]) == |r1, g1, b1, r2, g2|
    *
-   * @param a The first array.
-   * @param b The second array.
+   * @param tensors A list of `Tensor`s to concatenate.
    * @return The concatenated array.
    */
-  static concat1d(a: Tensor1D, b: Tensor1D): Tensor1D {
-    return Ops.concat(a, b, 0 /* axis */);
+  static concat1d(tensors: Tensor1D[]): Tensor1D {
+    return Concat.concat(tensors, 0 /* axis */);
   }
 
   /**
-   * Concatenates two 2D tensors along a given axis. See `concat` for details.
+   * Concatenates a list of `Tensor2D`s along an axis. See `concat` for details.
    *
    * For example, if:
    * A: shape(2, 3) = | r1, g1, b1 |
@@ -50,7 +49,7 @@ export class Ops {
    * B: shape(2, 3) = | r3, g3, b3 |
    *                  | r4, g4, b4 |
    *
-   * C = concat2D(A, B, axis)
+   * C = dl.concat2d([A, B], axis)
    *
    * if axis = 0:
    * C: shape(4, 3) = | r1, g1, b1 |
@@ -63,17 +62,16 @@ export class Ops {
    *                   | r2, g2, b2, r4, g4, b4 |
    *
    *
-   * @param a The first array.
-   * @param b The second array.
+   * @param tensors A list of `Tensor`s to concatenate.
    * @param axis The axis to concatenate along.
    * @return The concatenated array.
    */
-  static concat2d(a: Tensor2D, b: Tensor2D, axis: number): Tensor2D {
-    return Ops.concat(a, b, axis);
+  static concat2d(tensors: Tensor2D[], axis: number): Tensor2D {
+    return Concat.concat(tensors, axis);
   }
 
   /**
-   * Concatenates two 3D tensors along a given axis. See `concat` for details.
+   * Concatenates a list of `Tensor3D`s along an axis. See `concat` for details.
    *
    * For example, if:
    * A: shape(2, 1, 3) = | r1, g1, b1 |
@@ -82,7 +80,7 @@ export class Ops {
    * B: shape(2, 1, 3) = | r3, g3, b3 |
    *                     | r4, g4, b4 |
    *
-   * C = concat3D(A, B, axis)
+   * C = dl.concat3d([A, B], axis)
    *
    * if axis = 0:
    * C: shape(4, 1, 3) = | r1, g1, b1 |
@@ -98,54 +96,60 @@ export class Ops {
    * C = shape(2, 1, 6) = | r1, g1, b1, r3, g3, b3 |
    *                      | r2, g2, b2, r4, g4, b4 |
    *
-   * @param a The first array to concat.
-   * @param b The second array to conat.
+   * @param tensors A list of `Tensor`s to concatenate.
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
-  static concat3d(a: Tensor3D, b: Tensor3D, axis: number): Tensor3D {
-    return Ops.concat(a, b, axis);
+  static concat3d(tensors: Tensor3D[], axis: number): Tensor3D {
+    return Concat.concat(tensors, axis);
   }
 
   /**
-   * Concatenates two 4D tensors along a given axis. See `concat` for details.
+   * Concatenates a list of `Tensor4D`s along an axis. See `concat` for details.
    *
-   * @param a The first array to concat.
-   * @param b The second array to conat.
+   * @param tensors A list of `Tensor`s to concatenate.
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
-  static concat4d(a: Tensor4D, b: Tensor4D, axis: number): Tensor4D {
-    return Ops.concat(a, b, axis);
+  static concat4d(tensors: Tensor4D[], axis: number): Tensor4D {
+    return Concat.concat(tensors, axis);
   }
 
   /**
-   * Concatenates two tensors along a given axis.
+   * Concatenates a list of `Tensor`s along a given axis.
    *
-   * @param a The first `Tensor` to concat.
-   * @param b The second `Tensor` to conat.
-   * @param axis The axis to concate along.
+   * The tensors ranks and types must match, and their sizes must match in all
+   * dimensions except `axis`.
+   *
+   * @param tensors A list of tensors to concatenate.
+   * @param axis The axis to concate along. Defaults to 0 (the first dim).
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat<T extends Tensor>(a: T, b: T, axis: number): T {
-    concat_util.assertParams(a.shape, b.shape, axis);
-    const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
-
-    // Do the reshape.
-    const a2D = a.as2D(-1, util.sizeFromShape(a.shape.slice(axis)));
-    const b2D = b.as2D(-1, util.sizeFromShape(b.shape.slice(axis)));
-    // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
-    const {aBegin, aSize, bBegin, bSize} =
-        concat_util.computeGradientSliceShapes(a2D.shape, b2D.shape);
-    const der = (dy: Tensor2D) => {
-      return {
-        a: () => dy.slice(aBegin, aSize),
-        b: () => dy.slice(bBegin, bSize)
-      };
-    };
-    const res =
-        ENV.engine.executeKernel('Concat', {inputs: {a: a2D, b: b2D}}, der);
-    return res.reshape(outShape) as T;
+  static concat<T extends Tensor>(tensors: T[], axis = 0): T {
+    util.assert(tensors.length >= 2, 'Pass at least two tensors to concat');
+    let result = tensors[0];
+    for (let i = 1; i < tensors.length; ++i) {
+      result = concat2Tensors(result, tensors[i], axis);
+    }
+    return result;
   }
+}
+
+function concat2Tensors<T extends Tensor>(a: T, b: T, axis: number): T {
+  concat_util.assertParams(a.shape, b.shape, axis);
+  const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
+
+  // Do the reshape.
+  const a2D = a.as2D(-1, util.sizeFromShape(a.shape.slice(axis)));
+  const b2D = b.as2D(-1, util.sizeFromShape(b.shape.slice(axis)));
+  // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
+  const {aBegin, aSize, bBegin, bSize} =
+      concat_util.computeGradientSliceShapes(a2D.shape, b2D.shape);
+  const der = (dy: Tensor2D) => {
+    return {a: () => dy.slice(aBegin, aSize), b: () => dy.slice(bBegin, bSize)};
+  };
+  const res =
+      ENV.engine.executeKernel('Concat', {inputs: {a: a2D, b: b2D}}, der);
+  return res.reshape(outShape) as T;
 }

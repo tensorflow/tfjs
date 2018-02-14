@@ -20,9 +20,9 @@ import {ENV} from '../environment';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
 // tslint:disable-next-line:max-line-length
-import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D} from '../types';
+import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from '../types';
 import * as util from '../util';
-
+import {Concat} from './concat';
 import {operation} from './operation';
 import {MPRandGauss} from './rand';
 
@@ -595,7 +595,7 @@ export class Ops {
   }
 
   /**
-   * Pads a Tensor1D with a given value.
+   * Pads a `Tensor1D` with a given value.
    *
    * This operation will pad a tensor according to the `paddings` you specify.
    *
@@ -603,9 +603,8 @@ export class Ops {
    * Tensorflow's `pad` operation.
    *
    * @param x The tensor to pad.
-   * @param paddings A tuple of ints [padLeft, padRight], how much to pad on the
-   *     left and right side of the tensor.
-   * @param constantValue The scalar pad value to use. Defaults to 0.
+   * @param paddings A tuple of ints `[padLeft, padRight]`, how much to pad.
+   * @param constantValue The pad value to use. Defaults to 0.
    */
   @operation
   static pad1d(x: Tensor1D, paddings: [number, number], constantValue = 0):
@@ -618,18 +617,15 @@ export class Ops {
   }
 
   /**
-   * Pads a Tensor2D with a given value.
-   *
-   * This operation will pad a tensor according to the `paddings` you specify.
+   * Pads a `Tensor2D` with a given value and the `paddings` you specify.
    *
    * This operation currently only implements the `CONSTANT` mode from
-   * Tensorflow's `pad` operation.
+   * TensorFlow's `pad` operation.
    *
    * @param x The tensor to pad.
-   * @param paddings A pair of tuple ints
-   *     [[padTop, padBottom], [padLeft, padRight]], how much to pad on the
-   *     tensor.
-   * @param constantValue The scalar pad value to use. Defaults to 0.
+   * @param paddings A pair of tuple ints:
+   *     `[[padTop, padBottom], [padLeft, padRight]]`, how much to pad.
+   * @param constantValue The pad value to use. Defaults to 0.
    */
   @operation
   static pad2d(
@@ -641,6 +637,83 @@ export class Ops {
         'Invalid number of paddings. Must be length of 2 each.');
     return ENV.engine.executeKernel(
         'Pad2D', {inputs: {x}, args: {paddings, constantValue}});
+  }
+
+  /**
+   * Pads a `Tensor` with a given value and the `paddings` you specify.
+   *
+   * This operation currently only implements the `CONSTANT` mode from
+   * Tensorflow's `pad` operation.
+   *
+   * @param x The tensor to pad.
+   * @param paddings An array of length `R` (the rank of the tensor), where each
+   *     element is a length-2 tuple of ints `[padBefore, padAfter]`, specifying
+   *     how much to pad along each dimension of the tensor.
+   * @param constantValue The pad value to use. Defaults to 0.
+   */
+  @doc({heading: 'Tensors', subheading: 'Transformations'})
+  @operation
+  static pad<T extends Tensor>(
+      x: T, paddings: Array<[number, number]>, constantValue = 0): T {
+    if (x.rank === 0) {
+      throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
+    } else if (x.rank === 1) {
+      return Ops.pad1d(x as Tensor1D, paddings[0], constantValue) as T;
+    } else if (x.rank === 2) {
+      return Ops.pad2d(
+                 x as Tensor2D,
+                 paddings as [[number, number], [number, number]],
+                 constantValue) as T;
+    } else {
+      throw new Error(`pad of rank-${x.rank} tensor is not yet supported`);
+    }
+  }
+
+  /**
+   * Stacks a list of rank-`R` `Tensor`s into one rank-`(R+1)` `Tensor`.
+   *
+   * @param tensors A list of tensor objects with the same shape and dtype.
+   * @param axis The axis to stack along. Defaults to 0 (the first dim).
+   */
+  @doc({heading: 'Tensors', subheading: 'Transformations'})
+  @operation
+  static stack<T extends Tensor>(tensors: T[], axis = 0): Tensor {
+    util.assert(tensors.length >= 2, 'Pass at least two tensors to dl.stack');
+    const rank = tensors[0].rank;
+    const shape = tensors[0].shape;
+    const dtype = tensors[0].dtype;
+
+    util.assert(axis <= rank, 'Axis must be <= rank of the tensor');
+
+    tensors.forEach(t => {
+      util.assertShapesMatch(
+          shape, t.shape,
+          'All tensors passed to stack must have matching shapes');
+    });
+
+    tensors.forEach(t => {
+      util.assert(
+          dtype === t.dtype,
+          'All tensors passed to stack must have matching dtypes');
+    });
+    const expandedTensors = tensors.map(t => t.expandDims(axis));
+    return Concat.concat(expandedTensors, axis);
+  }
+
+  /**
+   * Returns a `Tensor` that has expanded rank, by inserting a dimension
+   * into the tensor's shape.
+   *
+   * @param axis The dimension index at which to insert shape of `1`. Defaults
+   *     to 0 (the first dimension).
+   */
+  @doc({heading: 'Tensors', subheading: 'Transformations'})
+  @operation
+  static expandDims<R2 extends Rank>(x: Tensor, axis = 0): Tensor<R2> {
+    util.assert(axis <= x.rank, 'Axis must be <= rank of the tensor');
+    const newShape = x.shape.slice();
+    newShape.splice(axis, 0, 1);
+    return Ops.reshape(x, newShape);
   }
 
   /**
@@ -720,18 +793,19 @@ export class Ops {
   /**
    * Creates an empty `TensorBuffer` with the specified `shape` and `dtype`.
    *
-   * The values are stored in cpu as a `TypedArray`. Fill the buffer using
-   * `buffer.set()`, or by modifying directly `buffer.values`.
+   * The values are stored in cpu as `TypedArray`. Fill the buffer using
+   * `buffer.set()`, or by modifying directly `buffer.values`. When done,
+   * call `buffer.toTensor()` to get an immutable `Tensor` with those values.
    *
-   * When done, call `buffer.toTensor()` to get an immutable `Tensor` with those
-   * values.
    * @param shape An array of integers defining the output tensor shape.
    * @param dtype The dtype of the buffer. Defaults to 'float32'.
+   * @param values The values of the buffer as `TypedArray`. Defaults to zeros.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static buffer<R extends Rank>(
-      shape: ShapeMap[R], dtype: DataType = 'float32'): TensorBuffer<R> {
-    return new TensorBuffer<R>(shape, dtype);
+      shape: ShapeMap[R], dtype: DataType = 'float32', values?: TypedArray):
+      TensorBuffer<R> {
+    return new TensorBuffer<R>(shape, dtype, values);
   }
 
   /**
