@@ -21,7 +21,7 @@ import {Tensor2D} from '../../tensor';
 export interface MatMulNode extends KernelNode {
   inputAndArgs: {
     inputs: {a: Tensor2D; b: Tensor2D;};
-    args: {aOrientation: MatrixOrientation; bOrientation: MatrixOrientation};
+    args: {transposeA: boolean; transposeB: boolean};
   };
   output: Tensor2D;
   gradient: (dy: Tensor2D, y: Tensor2D) => {

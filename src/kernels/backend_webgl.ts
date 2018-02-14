@@ -26,9 +26,7 @@ import * as types from '../types';
 // tslint:disable-next-line:max-line-length
 import {DataType, DataTypeMap, Rank, RecursiveArray, TypedArray} from '../types';
 import * as util from '../util';
-
 import {KernelBackend} from './backend';
-import {MatrixOrientation} from './types/matmul';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {AvgPool2DBackpropProgram} from './webgl/avg_pool_backprop_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
@@ -330,11 +328,9 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
-  matMul(
-      a: Tensor2D, b: Tensor2D, aOrientation: MatrixOrientation,
-      bOrientation: MatrixOrientation): Tensor2D {
-    const program =
-        new MatMulProgram(a.shape, b.shape, aOrientation, bOrientation);
+  matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
+      Tensor2D {
+    const program = new MatMulProgram(a.shape, b.shape, transposeA, transposeB);
     return this.compileAndRun<Tensor2D, Tensor2D>(program, [a, b]);
   }
 

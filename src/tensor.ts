@@ -17,7 +17,6 @@
 
 import {doc} from './doc';
 import {ENV} from './environment';
-import {MatrixOrientation} from './kernels/types/matmul';
 import * as ops from './ops/ops';
 import {RandNormalDataTypes} from './ops/rand';
 import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray} from './types';
@@ -508,11 +507,9 @@ export class Tensor<R extends Rank = Rank> {
     return ops.gather(this, indices);
   }
 
-  matMul(
-      b: Tensor2D, aOrientation = MatrixOrientation.REGULAR,
-      bOrientation = MatrixOrientation.REGULAR): Tensor2D {
+  matMul(b: Tensor2D, transposeA = false, transposeB = false): Tensor2D {
     this.throwIfDisposed();
-    return ops.matMul(this as Tensor2D, b, aOrientation, bOrientation);
+    return ops.matMul(this as Tensor2D, b, transposeA, transposeB);
   }
   slice(begin: ShapeMap[R], size: ShapeMap[R]): Tensor<R> {
     this.throwIfDisposed();
