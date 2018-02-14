@@ -1,7 +1,7 @@
 <head>
   <script src="https://cdn.jsdelivr.net/npm/deeplearn@latest"></script>
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/solarized-dark.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/railscasts.min.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -127,6 +127,16 @@
     .toc a {
       font-weight: normal;
       text-decoration-color: lightgrey;
+      text-decoration: none;
+      transition-property: color, text-decoration-color, padding;
+      transition-duration: 0.15s;
+    }
+
+    .toc a.highlighted {
+      color: #0277BD;
+      text-decoration-color: #002b36;
+      padding-left: 6px;
+      font-weight: bold;
     }
 
     /* .toc::-webkit-scrollbar {
@@ -159,9 +169,16 @@
 
     .reference .subsection-description {
       font-weight: 300;
-      margin-bottom: 96px;
+      margin-bottom: 80px;
       border-bottom: 1px solid rgb(96,125,139);
       margin-left: 8px;
+      padding-bottom: 24px;
+      font-size: 21px;
+    }
+
+    .reference .subsection-description p {
+      font-size: inherit;
+      font-weight: inherit;
     }
 
     .reference .symbol-marker {
@@ -170,6 +187,12 @@
       font-style: italic;
       font-size: 90%;
       color: grey;
+    }
+
+    .reference .symbol-name {
+      text-decoration: none;
+      color: #0277BD;
+      margin-right: 0.33em;
     }
 
     .documentation pre, .param-docs pre {
@@ -182,35 +205,35 @@
     }
 
     pre.hljs {
-      margin: 0;
+      margin: 24px;
+      /* margin-left: 24px; */
       padding: 0;
     }
-
-
 
     code, .param-name, .return-type {
       background: #f7f7f7;
       background: #f4f4f4;
       color: #37474f;
-      padding: 2px 4px;
-      font: 500 90%/2 Roboto Mono, monospace;
+      /* padding: 2px 4px; */
+      font-weight: 500;
+      font-family: Roboto Mono, monospace;
       word-break: break-word;
     }
 
     .documentation a, .returns a,  .param-name a, .method-docs a, .param-docs a {
-      background: #f4f4f4;
-      padding: 4px 6px;
-      font: 500 90%/2 Roboto Mono, monospace;
+      /* background: #f4f4f4; */
+      color: #0277BD;
+      /* padding: 2px 2px; */
+      font-weight: 500;
+      font-family: Roboto Mono, monospace;
     }
 
-    .documentation {
-      white-space: pre;
-    }
+
 
     .reference .symbol {
       margin-left: 32px;
       margin-bottom: 96px;
-      border-bottom: 1px dashed lightgrey;
+      border-bottom: 1px solid #0277BD;
       padding-bottom: 16px;
     }
 
@@ -222,9 +245,12 @@
       margin-bottom: 8px;
     }
 
-    .parameter-heading, .returns {
+    .parameter-heading, .returns-header {
       margin-top: 8px;
       font-weight: 500;
+      font-variant: small-caps;
+      text-transform: lowercase;
+      font-size: 16px;
     }
 
     .method {
@@ -239,10 +265,6 @@
       padding: 4px 12px;
     }
 
-    .method-name {
-      font-size: 20px;
-    }
-
     .method-docs {
       padding: 12px 0 0 16px;
     }
@@ -253,21 +275,92 @@
     }
 
     .source-ref a {
-      color: #346f91
+      color:#0277BD;
     }
 
-    .mdl-chip__text {
-      vertical-align: baseline !important;
-    }
-
-    .class-chip {
-      margin-left: 16px;
+    .chip {
+      background: #f4f4f4;
+      display: inline-block;
+      padding: 0 6px 0 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 82%;
     }
 
   </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(e) {
+      // Find the symbol closest to the top of the page in the reference
+      // section and highlight it in the TOC section.
+
+      var refSymbols = document.querySelectorAll('.symbol-name');
+      var refArea = document.querySelector('.reference');
+      var tocArea = document.querySelector('.toc');
+
+      var lastHighlightedTocElement;
+
+      function updateTocView() {
+        var top = refArea && refArea.scrollTop
+
+        var found;
+        var tocFound;
+
+        for (var i = 0; i < refSymbols.length; i++) {
+          var symbol = refSymbols[i];
+          var sTop = symbol.offsetTop;
+          if (sTop > top) {
+            found = symbol;
+            break;
+          }
+        }
+
+        if (found) {
+          tocFound = tocArea.querySelector(`[href="#${found.getAttribute('name')}"]`)
+
+          if (lastHighlightedTocElement) {
+            lastHighlightedTocElement.classList.remove('highlighted');
+          }
+          tocFound.classList.add('highlighted');
+          tocFound.scrollIntoView(false);
+          lastHighlightedTocElement = tocFound;
+        }
+      }
+
+      refArea.addEventListener('scroll', updateTocView)
+      refArea.addEventListener('resize', updateTocView)
+    });
+  </script>
 </head>
 
 <body>
+  <!-- Partials -->
+  {{#*inline "paramList"}}
+    <div class="parameter-list">
+      <div class="parameter-heading">Parameters:</div>
+      <ul>
+        {{#parameters}}
+        <li class="parameter">
+          <span <span class="param-name">
+            {{name}}:&nbsp;{{{markdownInner type}}}
+          </span>
+          <span class="param-docs">
+            {{{markdownInner documentation}}}
+          </span>
+           {{#optional}}
+          <span class="chip">
+            Optional
+          </span>
+          {{/optional}}
+        </li>
+        {{/parameters}}
+      </ul>
+    </div>
+
+  {{/inline}}
+  <!-- END Partials -->
+
+
   <div class="container">
     <nav>
       <a href="index.html">deeplearn.js</a>
@@ -307,33 +400,26 @@
             {{#symbols}}
             <div class="symbol">
               <h5>
-                <span class='symbol-marker'>&fnof;</span>
-                <a name="{{urlHash}}" href="#{{urlHash}}">{{displayName}}</a>{{paramStr}}
-                {{#isClass}}
-                  <span class="class-chip mdl-chip">
-                    <span class="mdl-chip__text">Class</span>
-                  </span>
-                {{/isClass}}
+                {{#if isClass}}
+                  <span class="chip">Class</span>
+                {{else}}
+                  <span class="symbol-marker">&fnof;</span>
+                {{/if}}
+                <a class="symbol-name" name="{{urlHash}}" href="#{{urlHash}}">{{displayName}}</a>{{paramStr}}
               </h5>
 
               <div class="documentation">{{{markdown documentation}}}</div>
 
               {{#isFunction}}
-              <div class="parameter-heading mdl-typography--subhead">Parameters:</div>
-              <ul>
-                {{#parameters}}
-                <li class="parameter">
-                  <span class="param-name">
-                    {{name}}: {{{markdownInner type}}}
-                  </span>
-                  <span class="param-docs">
-                    {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
-                  </span>
-                </li>
-                {{/parameters}}
-              </ul>
-              <div class="returns mdl-typography--subhead">
-                Returns: <span class="return-type">{{{markdownInner returnType}}}</span>
+
+              <!-- Params -->
+              {{> paramList }}
+
+              <div class="returns">
+                <span class="returns-header">
+                   Returns:
+                </span>
+                <span class="return-type">{{{markdownInner returnType}}}</span>
               </div>
               {{/isFunction}} {{#isClass}}
               <h6>Methods:</h6>
@@ -345,19 +431,8 @@
                 <span class="method-docs">
                   {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
 
-                  <div class="parameter-heading mdl-typography--subhead">Parameters:</div>
-                  <ul>
-                    {{#parameters}}
-                    <li class="parameter">
-                      <span class="param-name">
-                        {{name}}: {{{markdownInner type}}}
-                      </span>
-                      <span class="param-docs">
-                        {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
-                      </span>
-                    </li>
-                    {{/parameters}}
-                  </ul>
+                  <!-- Params -->
+                  {{> paramList }}
                 </span>
               </div>
               {{/methods}} {{/isClass}}

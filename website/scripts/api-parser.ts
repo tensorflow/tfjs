@@ -50,13 +50,13 @@ export function parse():
       subheadings: [
         {
           name: 'Creation',
-          description: `Tensors are the core datastructure of deeplearn.js.
+          description: `<p>Tensors are the core datastructure of deeplearn.js.
              They are a generalization of vectors and matrices to potentially
              higher dimensions.
-             <br><br>
-             We have utility functions for common cases like 1D, 2D, 3D
+             </p>
+             <p>We have utility functions for common cases like 1D, 2D, 3D
              and 4D tensors, as well a number of functions to iniatialize
-             tensors in ways useful for machine learning`,
+             tensors in ways useful for machine learning</p>`,
           pin: [
             'tensor', 'scalar', 'tensor1d', 'tensor2d', 'tensor3d', 'tensor4d'
           ]
