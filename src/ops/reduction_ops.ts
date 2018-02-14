@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {customGrad} from '../globals';
 import {Scalar, Tensor} from '../tensor';
 import * as util from '../util';
 import * as axis_util from './axis_util';
+import {operation} from './operation';
 import * as ops from './ops';
 
 export class Ops {
@@ -34,10 +34,10 @@ export class Ops {
    * If `axis` has no entries, all dimensions are reduced, and an array with a
    * single element is returned.
    *
-   * @param input The input Tensor.
-   * @param axis Optional. The dimension(s) to reduce. If null (the default),
+   * @param input The input tensor.
+   * @param axis The dimension(s) to reduce. If null (the default),
    *     reduces all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with length
+   * @param keepDims If true, retains reduced dimensions with length
    *     of 1. Defaults to false.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
@@ -60,18 +60,18 @@ export class Ops {
   }
 
   /**
-   * Computes the sum of elements across dimensions of an array.
+   * Computes the sum of elements across dimensions of a `Tensor`.
    *
    * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
-   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
+   * is true, the rank of the `Tensor` is reduced by 1 for each entry in `axes`.
    * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If axes has no entries, all dimensions are reduced, and an array with a
+   * If axes has no entries, all dimensions are reduced, and a `Tensor` with a
    * single element is returned.
    *
-   * @param x The input array to compute the sum over.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
+   * @param x The input tensor to compute the sum over.
+   * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
+   * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
@@ -113,18 +113,18 @@ export class Ops {
   }
 
   /**
-   * Computes the mean of elements across dimensions of an array.
+   * Computes the mean of elements across dimensions of a `Tensor`.
    *
    * Reduces `x` along the dimensions given in `axis`. Unless `keepDims` is
-   * true, the rank of the array is reduced by 1 for each entry in `axis`.
+   * true, the rank of the `Tensor` is reduced by 1 for each entry in `axis`.
    * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If `axis` has no entries, all dimensions are reduced, and an array with a
-   * single element is returned.
+   * If `axis` has no entries, all dimensions are reduced, and a `Tensor` with
+   * a single element is returned.
    *
-   * @param x The input array.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
+   * @param x The input tensor.
+   * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
+   * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
@@ -168,9 +168,9 @@ export class Ops {
    * single element is returned.
    *
    * @param x The input Tensor.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
+   * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
+   * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
@@ -193,18 +193,18 @@ export class Ops {
   }
 
   /**
-   * Computes the maximum of elements across dimensions of an array.
+   * Computes the maximum of elements across dimensions of a `Tensor`.
    *
    * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
-   * is true, the rank of the array is reduced by 1 for each entry in `axes`.
+   * is true, the rank of the `Tensor` is reduced by 1 for each entry in `axes`.
    * If `keepDims` is true, the reduced dimensions are retained with length 1.
-   * If `axes` has no entries, all dimensions are reduced, and an array with a
-   * single element is returned.
+   * If `axes` has no entries, all dimensions are reduced, and an `Tensor` with
+   * a single element is returned.
    *
-   * @param x The input array.
-   * @param axis Optional. The dimension(s) to reduce. By default it reduces
+   * @param x The input tensor.
+   * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
-   * @param keepDims Optional. If true, retains reduced dimensions with size 1.
+   * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
@@ -227,11 +227,13 @@ export class Ops {
   }
 
   /**
-   * Returns the indices of the minimum values along an `axis`. The result has
-   * the same shape as `input` with the dimension along `axis` removed.
+   * Returns the indices of the minimum values along an `axis`.
    *
-   * @param x The input array.
-   * @param axis Optional. The dimension to reduce. By default it reduces
+   * The result has the same shape as `input` with the dimension along `axis`
+   * removed.
+   *
+   * @param x The input tensor.
+   * @param axis The dimension to reduce. By default it reduces
    * across all axes and returns the flat index.
    *
    */
@@ -248,11 +250,13 @@ export class Ops {
   }
 
   /**
-   * Returns the indices of the maximum values along an `axis`. The result has
-   * the same shape as `input` with the dimension along `axis` removed.
+   * Returns the indices of the maximum values along an `axis`.
    *
-   * @param x The input array.
-   * @param axis Optional. The dimension to reduce. By default it reduces
+   * The result has the same shape as `input` with the dimension along `axis`
+   * removed.
+   *
+   * @param x The input tensor.
+   * @param axis The dimension to reduce. By default it reduces
    *     across all axes and returns the flat index
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
@@ -270,8 +274,9 @@ export class Ops {
 
   /**
    * Returns a 1 if the argMax of x1 and x2 are the same, otherwise 0.
-   * @param x1 The first input Tensor.
-   * @param x2 The second input Tensor.
+   *
+   * @param x1 The first input tensor.
+   * @param x2 The second input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
@@ -285,8 +290,8 @@ export class Ops {
    * calculated by aggregating the contents of `x` across `axes`. If `x` is
    * 1-D and `axes = [0]` this is just the mean and variance of a vector.
    *
-   * @param x The input array.
-   * @param axis Optional. The dimension(s) along with to compute mean and
+   * @param x The input tensor.
+   * @param axis The dimension(s) along with to compute mean and
    *     variance. By default it reduces all dimensions.
    * @param keepDims If true, the moments have the same dimensionality as the
    *     input.

@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {Node} from '../graph/graph';
@@ -30,12 +29,7 @@ import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 import {Optimizer} from './optimizer';
 
-/**
- * Optimizer that implements the RMSProp optimization algorithm.
- *
- * Use `dl.train.rmsprop` to create a RMSProp ptimizer.
- */
-@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
+/** @doclink Optimizer */
 export class RMSPropOptimizer extends Optimizer {
   private c: Scalar;
   private epsilon: Scalar;

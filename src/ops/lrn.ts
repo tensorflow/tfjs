@@ -15,18 +15,18 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
+import {operation} from './operation';
 
 export class LRN {
   /**
    * Normalizes the activation of a local neighborhood across or within
    * channels.
    *
-   * @param x The input Tensor. The 4-D input tensor is treated as a 3-D array
+   * @param x The input tensor. The 4-D input tensor is treated as a 3-D array
    *     of 1D vectors (along the last dimension), and each vector is
    *     normalized independently.
    * @param radius The number of adjacent channels or spatial locations of the
@@ -35,8 +35,7 @@ export class LRN {
    * @param bias A constant bias term for the basis.
    * @param alpha A scale factor, usually positive.
    * @param beta An exponent.
-   * @param normRegion A string from: ['acrossChannels', 'withinChannel'].
-   *     Default is 'acrossChannels'.
+   * @param normRegion Default is 'acrossChannels'.
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation

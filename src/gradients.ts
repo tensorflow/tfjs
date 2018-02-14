@@ -47,7 +47,7 @@ export class Gradients {
    * which when called gives `df/dx`. If `dy` is provided, the gradient of
    * `f(x).mul(dy).sum()` w.r.t. `x` is computed instead.
    *
-   * If `f()` takes multiple inputs, use `dl.grads` instead.
+   * If `f()` takes multiple inputs, use `grads` instead.
    *
    * @param f The function f(x), to compute gradient for.
    */
@@ -69,7 +69,7 @@ export class Gradients {
    * If `dy` is provided, the gradient of `f(x).mul(dy).sum()` w.r.t. each input
    * is computed instead.
    *
-   * If `f()` takes a single input, use `dl.grad` instead.
+   * If `f()` takes a single input, use `grad` instead.
    *
    * @param f The function `f(x1, x2,...)` to compute gradients for.
    */
@@ -88,8 +88,8 @@ export class Gradients {
    * Like `dl.grad`, but returns also the value of `f()`. Useful when `f()`
    * returns a metric you want to show. The result is a rich object with
    * the following properties:
-   * - `grad`: The gradient of `f(x)` w.r.t `x` (result of `dl.grad`).
-   * - `value`: The value returned by `f(x)`.
+   * - grad: The gradient of `f(x)` w.r.t `x` (result of `grad`).
+   * - value: The value returned by `f(x)`.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O):
@@ -105,11 +105,11 @@ export class Gradients {
   }
 
   /**
-   * Like `dl.grads`, but returns also the value of `f()`. Useful when `f()`
+   * Like `grads`, but returns also the value of `f()`. Useful when `f()`
    * returns a metric you want to show. The result is a rich object with
    * the following properties:
-   * - `grads`: The gradients of `f()` w.r.t each input (result of `dl.grads`).
-   * - `value`: The value returned by `f(x)`.
+   * - grads: The gradients of `f()` w.r.t each input (result of `grads`).
+   * - value: The value returned by `f(x)`.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O):
@@ -130,7 +130,7 @@ export class Gradients {
    * defaults to all trainable variables.
    * @param f The function to execute. f() should return a scalar.
    * @param varList An optional list of variables to provide gradients with
-   * respect to. Defaults to all trainable variables.
+   *     respect to. Defaults to all trainable variables.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static variableGrads(f: () => Scalar, varList?: Variable[]):
@@ -169,8 +169,8 @@ export class Gradients {
    * using `f().gradFunc`.
    *
    * @param f The function to evaluate in forward mode, which should return
-   * `{value: Tensor, gradFunc: (dy) => Tensor[]}`, where gradFunc returns the
-   * custom gradients of `f` w.r.t. its inputs.
+   *     `{value: Tensor, gradFunc: (dy) => Tensor[]}`, where `gradFunc` returns
+   *     the custom gradients of `f` w.r.t. its inputs.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static customGrad<T extends Tensor>(f: CustomGradientFunc<T>):

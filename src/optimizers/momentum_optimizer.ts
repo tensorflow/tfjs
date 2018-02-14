@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {Node} from '../graph/graph';
@@ -29,12 +28,7 @@ import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 import {SGDOptimizer} from './sgd_optimizer';
 
-/**
- * Optimizer that implements momentum gradient descent.
- *
- * Use `dl.train.momentum` to create a momentum optimizer.
- */
-@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
+/** @doclink Optimizer */
 export class MomentumOptimizer extends SGDOptimizer {
   private m: Scalar;
   private accumulations: NamedVariableMap;

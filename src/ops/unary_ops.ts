@@ -27,7 +27,8 @@ import * as selu_util from './selu_util';
 export class Ops {
   /**
    * Computes `-1 * x` element-wise.
-   * @param x The input array.
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -38,7 +39,7 @@ export class Ops {
   }
 
   /**
-   * Computes ceiling of input Tensor element-wise: `ceil(x)`
+   * Computes ceiling of input `Tensor` element-wise: `ceil(x)`
    *
    * @param x The input Tensor.
    */
@@ -54,7 +55,7 @@ export class Ops {
 
   /**
    * Computes floor of input `Tensor` element-wise: `floor(x)`.
-   * @param x The input Tensor.
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -68,8 +69,8 @@ export class Ops {
   }
 
   /**
-   * Computes exponential of the input Tensor element-wise. `e ^ x`
-   * @param x The input Tensor.
+   * Computes exponential of the input `Tensor` element-wise. `e ^ x`
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -80,8 +81,8 @@ export class Ops {
   }
 
   /**
-   * Computes natural logarithm of the input Tensor element-wise: `ln(x)`
-   * @param x The input Tensor.
+   * Computes natural logarithm of the input `Tensor` element-wise: `ln(x)`
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -92,8 +93,8 @@ export class Ops {
   }
 
   /**
-   * Computes square root of the input Tensor element-wise: `y = sqrt(x)`
-   * @param x The input Tensor.
+   * Computes square root of the input `Tensor` element-wise: `y = sqrt(x)`
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -119,7 +120,7 @@ export class Ops {
   /**
    * Computes absolute value element-wise: `abs(x)`
    *
-   * @param x The input Tensor.
+   * @param x The input `Tensor`.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -131,7 +132,8 @@ export class Ops {
 
   /**
    * Clips values element-wise. `max(min(x, clipValueMax), clipValueMin)`
-   * @param x The input Tensor.
+   *
+   * @param x The input tensor.
    * @param clipValueMin Lower-bound of range to be clipped to.
    * @param clipValueMax Upper-bound of range to be clipped to.
    */
@@ -160,7 +162,8 @@ export class Ops {
 
   /**
    * Computes rectified linear element-wise: `max(x, 0)`
-   * @param x The input Tensor.
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -173,7 +176,8 @@ export class Ops {
 
   /**
    * Computes exponential linear element-wise, `x > 0 ? e ^ x - 1 : 0`
-   * @param x the input Tensor
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -195,6 +199,8 @@ export class Ops {
    * Computes scaled exponential linear element-wise.
    *
    * `x < 0 ? scale * alpha * (exp(x) - 1) : x`
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -226,9 +232,8 @@ export class Ops {
    * [http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf](
    *     http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf)
    *
-   * @param x the input Tensor
-   * @param alpha scaling factor for negative values, defaults to 0.2
-   * @return {Tensor}
+   * @param x The input tensor.
+   * @param alpha The scaling factor for negative values, defaults to 0.2.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -244,9 +249,9 @@ export class Ops {
    * Computes leaky rectified linear element-wise with parametric alphas.
    *
    * `x < 0 ? alpha * x : f(x) = x`
-   * @param x the input Tensor
-   * @param alpha scaling factor Tensor for negative values
-   * @return {Tensor}
+   *
+   * @param x The input tensor.
+   * @param alpha Scaling factor for negative values.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -266,7 +271,8 @@ export class Ops {
 
   /**
    * Computes sigmoid element-wise, `1 / (1 + exp(-x))`
-   * @param x The input Tensor.
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -278,7 +284,8 @@ export class Ops {
 
   /**
    * Computes sin of the input Tensor element-wise: `sin(x)`
-   * @param x The input Tensor.
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -289,8 +296,9 @@ export class Ops {
   }
 
   /**
-   * Computes cos of the input Tensor element-wise: `cos(x)`
-   * @param x The input Tensor.
+   * Computes cos of the input `Tensor` element-wise: `cos(x)`
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -301,8 +309,9 @@ export class Ops {
   }
 
   /**
-   * Computes tan of the input Tensor element-wise, `tan(x)`
-   * @param x The input Tensor.
+   * Computes tan of the input `Tensor` element-wise, `tan(x)`
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -313,8 +322,9 @@ export class Ops {
   }
 
   /**
-   * Computes asin of the input Tensor element-wise: `asin(x)`
-   * @param x The input Tensor.
+   * Computes asin of the input `Tensor` element-wise: `asin(x)`
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -327,8 +337,9 @@ export class Ops {
   }
 
   /**
-   * Computes acos of the input Tensor element-wise: `acos(x)`
-   * @param x The input Tensor.
+   * Computes acos of the input `Tensor` element-wise: `acos(x)`
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -341,8 +352,9 @@ export class Ops {
   }
 
   /**
-   * Computes atan of the input Tensor element-wise: `atan(x)`
-   * @param x The input Tensor.
+   * Computes atan of the input `Tensor` element-wise: `atan(x)`
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -353,8 +365,9 @@ export class Ops {
   }
 
   /**
-   * Computes hyperbolic sin of the input Tensor element-wise: `sinh(x)`
-   * @param x The input Tensor.
+   * Computes hyperbolic sin of the input `Tensor` element-wise: `sinh(x)`
+   *
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -365,8 +378,8 @@ export class Ops {
   }
 
   /**
-   * Computes hyperbolic cos of the input Tensor element-wise: `cosh(x)`
-   * @param x The input Tensor.
+   * Computes hyperbolic cos of the input `Tensor` element-wise: `cosh(x)`
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -377,8 +390,8 @@ export class Ops {
   }
 
   /**
-   * Computes hyperbolic tangent of the input Tensor element-wise: `tanh(x)`
-   * @param x The input Tensor.
+   * Computes hyperbolic tangent of the input `Tensor` element-wise: `tanh(x)`
+   * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
@@ -389,9 +402,9 @@ export class Ops {
   }
 
   /**
-   * Computes step of the input Tensor element-wise: `x > 0 ? 1 : alpha * x`
+   * Computes step of the input `Tensor` element-wise: `x > 0 ? 1 : alpha * x`
    *
-   * @param x The input Tensor.
+   * @param x The input tensor.
    * @param alpha The gradient when input is negative.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})

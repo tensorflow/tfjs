@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {Node} from '../graph/graph';
@@ -29,14 +28,7 @@ import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 import {Optimizer} from './optimizer';
 
-/**
- * Optimizer that implements the Adadelta algorithm.
- *
- * Use `dl.train.adadelta` to create an Adadelta optimizer.
- *
- * See: https://arxiv.org/abs/1212.5701
- */
-@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
+/** @doclink Optimizer */
 export class AdadeltaOptimizer extends Optimizer {
   private c: Scalar;
   private epsilon: Scalar;

@@ -136,16 +136,24 @@
       border-bottom: 1px solid rgb(96,125,139);
     }
 
-    .documentation pre {
-      background: #f7f7f7;
+    .documentation pre, .param-docs pre {
+      background: #f4f4f4;
     }
 
-    code {
-      background: #f7f7f7;
+    code, .param-name, .return-type {
+      background: #f4f4f4;
       color: #37474f;
       padding: 2px 4px;
       font: 500 90%/2 Roboto Mono, monospace;
+    }
+    code {
       word-break: break-word;
+    }
+
+    .documentation a, .returns a,  .param-name a, .method-docs a, .param-docs a {
+      background: #f4f4f4;
+      padding: 4px 6px;
+      font: 500 90%/2 Roboto Mono, monospace;
     }
 
     .documentation {
@@ -232,7 +240,7 @@
             <div class="sub-section-title mdl-typography--subhead">{{name}}</div>
             {{#symbols}}
             <div class="symbol">
-              <a href="#{{#isClass}}class:{{/isClass}}dl.{{displayName}}">dl.{{displayName}}</a>
+              <a href="#{{urlHash}}">{{displayName}}</a>
             </div>
             {{/symbols}}
           </div>
@@ -252,7 +260,7 @@
             {{#symbols}}
             <div class="symbol">
               <h5>#
-                <a name="{{#isClass}}class:{{/isClass}}dl.{{displayName}}" href="#{{#isClass}}class:{{/isClass}}dl.{{displayName}}">dl.{{displayName}}</a>{{paramStr}}
+                <a name="{{urlHash}}" href="#{{urlHash}}">{{displayName}}</a>{{paramStr}}
                 {{#isClass}}
                   <span class="class-chip mdl-chip">
                     <span class="mdl-chip__text">Class</span>
@@ -268,7 +276,7 @@
                 {{#parameters}}
                 <li class="parameter">
                   <span class="param-name">
-                    <code>{{name}}: {{type}}</code>
+                    {{name}}: {{{markdownInner type}}}
                   </span>
                   <span class="param-docs">
                     {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
@@ -277,24 +285,24 @@
                 {{/parameters}}
               </ul>
               <div class="returns mdl-typography--subhead">
-                Returns: <code>{{returnType}}</code>
+                Returns: <span class="return-type">{{{markdownInner returnType}}}</span>
               </div>
               {{/isFunction}} {{#isClass}}
               <h6>Methods:</h6>
               {{#methods}}
               <div class="method">
-                <div class="method-name">
+                <span class="method-name">
                   <code>{{symbolName}}{{paramStr}}</code>
-                </div>
-                <div class="method-docs">
-                  {{#optional}}(Optional){{/optional}} {{{markdown documentation}}}
+                </span>
+                <span class="method-docs">
+                  {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
 
                   <div class="parameter-heading mdl-typography--subhead">Parameters:</div>
                   <ul>
                     {{#parameters}}
                     <li class="parameter">
                       <span class="param-name">
-                        <code>{{name}}: {{type}}</code>
+                        {{name}}: {{{markdownInner type}}}
                       </span>
                       <span class="param-docs">
                         {{#optional}}(Optional){{/optional}} {{{markdownInner documentation}}}
@@ -302,7 +310,7 @@
                     </li>
                     {{/parameters}}
                   </ul>
-                </div>
+                </span>
               </div>
               {{/methods}} {{/isClass}}
 

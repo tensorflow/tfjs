@@ -25,6 +25,7 @@ import {operation} from './operation';
 export class Ops {
   /**
    * Computes a 1D convolution over the input x.
+   *
    * @param input The input tensor, of rank 3 or rank 2, of shape
    *     `[batch, width, inChannels]`. If rank 2, batch of 1 is assumed.
    * @param filter The filter, rank 3, of shape

@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
@@ -23,12 +22,13 @@ import * as types from '../types';
 import {DataType} from '../types';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
+import {operation} from './operation';
 
 export class Ops {
   /**
-   * Returns the truth value of NOT element-wise.
+   * Returns the truth value of `NOT x` element-wise.
    *
-   * @param x The input Tensor.
+   * @param x The input tensor. Must be of dtype 'bool'.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -40,8 +40,8 @@ export class Ops {
   /**
    * Returns the truth value of a AND b element-wise. Supports broadcasting.
    *
-   * @param a The first input `Tensor`. Must be of dtype bool.
-   * @param b The second input `Tensor`. Must be of dtype bool.
+   * @param a The first input tensor. Must be of dtype bool.
+   * @param b The second input tensor. Must be of dtype bool.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -54,10 +54,10 @@ export class Ops {
   }
 
   /**
-   * Returns the truth value of a OR b element-wise. Supports broadcasting.
+   * Returns the truth value of `a OR b` element-wise. Supports broadcasting.
    *
-   * @param a The first input `Tensor`. Must be of dtype bool.
-   * @param b The second input `Tensor`. Must be of dtype bool.
+   * @param a The first input tensor. Must be of dtype bool.
+   * @param b The second input tensor. Must be of dtype bool.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -70,10 +70,10 @@ export class Ops {
   }
 
   /**
-   * Returns the truth value of a XOR b element-wise. Supports broadcasting.
+   * Returns the truth value of `a XOR b` element-wise. Supports broadcasting.
    *
-   * @param a The first input `Tensor`. Must be of dtype bool.
-   * @param b The second input `Tensor`. Must be of dtype bool.
+   * @param a The first input tensor. Must be of dtype bool.
+   * @param b The second input tensor. Must be of dtype bool.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
@@ -88,12 +88,12 @@ export class Ops {
   /**
    * Returns the elements, either `a` or `b` depending on the `condition`.
    *
-   * @param condition The input as `Tensor. Must be of dtype bool.
-   * @param a Input as `Tensor` which may have the same shape as
-   *     `condition`. If `condition` is rank 1, `a` may have a higher rank but
+   * If the condition is true, select from `a`, otherwise select from `b`.
+   *
+   * @param condition The input condition. Must be of dtype bool.
+   * @param a If `condition` is rank 1, `a` may have a higher rank but
    *     its first dimension must match the size of `condition`.
-   * @param b Input as `Tensor` with the same shape and type as `a`.
-   * @return A `Tensor` with the same type and shape as `a` and `b`.
+   * @param b A tensor with the same shape and type as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation

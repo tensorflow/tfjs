@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {operation} from './operation';
 import {doc} from '../doc';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
+import {operation} from './operation';
 
 /**
  * @docalias (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D]
@@ -29,9 +29,13 @@ export interface LSTMCell {
 export class Ops {
   /**
    * Computes the next states and outputs of a stack of LSTMCells.
+   *
    * Each cell output is used as input to the next cell.
-   * This is only the forward mode.
+   *
+   * Returns `[cellState, cellOutput]`.
+   *
    * Derived from tf.contrib.rn.MultiRNNCell.
+   *
    * @param lstmCells Array of LSTMCell functions.
    * @param data The input to the cell.
    * @param c Array of previous cell states.
@@ -61,15 +65,17 @@ export class Ops {
 
   /**
    * Computes the next state and output of a BasicLSTMCell.
-   * This is only the forward mode.
+   *
+   * Returns `[newC, newH]`.
+   *
    * Derived from tf.contrib.rnn.BasicLSTMCell.
+   *
    * @param forgetBias Forget bias for the cell.
    * @param lstmKernel The weights for the cell.
    * @param lstmBias The bias for the cell.
    * @param data The input to the cell.
    * @param c Previous cell state.
    * @param h Previous cell output.
-   * @return Tuple [nextCellState, cellOutput]
    */
   @doc({heading: 'Operations', subheading: 'RNN'})
   @operation

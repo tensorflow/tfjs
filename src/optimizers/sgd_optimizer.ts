@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {Node} from '../graph/graph';
@@ -29,12 +28,7 @@ import {NamedTensorMap} from '../types';
 
 import {Optimizer} from './optimizer';
 
-/**
- * Optimizer that implements stochastic gradient descent.
- *
- * Use `dl.train.sgd` to create an SGD optimizer.
- */
-@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
+/** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
   protected c: Scalar;
 

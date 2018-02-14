@@ -74,7 +74,7 @@ export class Ops {
   }
 
   /**
-   * Creates rank-0 tensor (scalar) with the provided value and dtype.
+   * Creates rank-0 `Tensor` (scalar) with the provided value and dtype.
    *
    * This method is mainly for self documentation and TypeScript typings as the
    * same functionality can be achieved with `tensor`. In general, we recommend
@@ -98,7 +98,7 @@ export class Ops {
   }
 
   /**
-   * Creates rank-1 tensor with the provided values, shape and dtype.
+   * Creates rank-1 `Tensor` with the provided values, shape and dtype.
    *
    * This method is mainly for self documentation and TypeScript typings as the
    * same functionality can be achieved with `tensor`. In general, we recommend
@@ -123,7 +123,7 @@ export class Ops {
   }
 
   /**
-   * Creates rank-2 tensor with the provided values, shape and dtype.
+   * Creates rank-2 `Tensor` with the provided values, shape and dtype.
    *
    * This method is mainly for self documentation and TypeScript typings as the
    * same functionality can be achieved with `tensor`. In general, we recommend
@@ -137,10 +137,11 @@ export class Ops {
    * // Pass a flat array and specify a shape.
    * dl.tensor2d([1, 2, 3, 4], [2, 2]).print();
    * ```
+   *
    * @param values The values of the tensor. Can be nested array of numbers,
    *     or a flat array, or a `TypedArray`.
-   * @param shape The shape of the tensor. Optional. If not provided,
-   *   it is inferred from `values`.
+   * @param shape The shape of the tensor. If not provided, it is inferred from
+   *     `values`.
    * @param dtype The data type.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -158,7 +159,7 @@ export class Ops {
   }
 
   /**
-   * Creates rank-3 tensor with the provided values, shape and dtype.
+   * Creates rank-3 `Tensor` with the provided values, shape and dtype.
    *
    * This method is mainly for self documentation and TypeScript typings as
    * the same functionality can be achieved with `tensor`. In general, we
@@ -172,10 +173,11 @@ export class Ops {
    * // Pass a flat array and specify a shape.
    * dl.tensor3d([1, 2, 3, 4], [2, 2, 1]).print();
    * ```
+   *
    * @param values The values of the tensor. Can be nested array of numbers,
    *     or a flat array, or a `TypedArray`.
-   * @param shape The shape of the tensor. Optional. If not provided,
-   *   it is inferred from `values`.
+   * @param shape The shape of the tensor. If not provided,  it is inferred from
+   *     `values`.
    * @param dtype The data type.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -193,7 +195,7 @@ export class Ops {
   }
 
   /**
-   * Creates rank-4 tensor with the provided values, shape and dtype.
+   * Creates rank-4 `Tensor` with the provided values, shape and dtype.
    *  ```js
    * // Pass a nested array.
    * dl.tensor4d([[[[1], [2]], [[3], [4]]]]).print();
@@ -202,6 +204,7 @@ export class Ops {
    * // Pass a flat array and specify a shape.
    * dl.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]).print();
    * ```
+   *
    * @param values The values of the tensor. Can be nested array of numbers,
    *     or a flat array, or a `TypedArray`.
    * @param shape The shape of the tensor. Optional. If not provided,
@@ -223,11 +226,11 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with all elements set to 1.
+   * Creates a `Tensor` with all elements set to 1.
    *
    * @param shape An array of integers defining the output tensor shape.
-   * @param dtype The type of an element in the resulting tensor. Can
-   *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
+   * @param dtype The type of an element in the resulting tensor. Defaults to
+   *     'float'.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
@@ -238,7 +241,7 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with all elements set to 0.
+   * Creates a `Tensor` with all elements set to 0.
    * @param shape An array of integers defining the output tensor shape.
    * @param dtype The type of an element in the resulting tensor. Can
    *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
@@ -252,11 +255,12 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor filled with a scalar value.
+   * Creates a `Tensor` filled with a scalar value.
+   *
    * @param shape An array of integers defining the output tensor shape.
    * @param value The scalar value to fill the tensor with.
-   * @param dtype The type of an element in the resulting tensor. Can
-   *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
+   * @param dtype The type of an element in the resulting tensor. Defaults to
+   * 'float'.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
@@ -270,7 +274,7 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with all elements set to 1 with the same shape as the
+   * Creates a `Tensor` with all elements set to 1 with the same shape as the
    * given tensor.
    * @param x A tensor.
    */
@@ -281,8 +285,9 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with all elements set to 0 with the same shape as the
+   * Creates a `Tensor` with all elements set to 0 with the same shape as the
    * given tensor.
+   *
    * @param x A tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -303,7 +308,8 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with values sampled from a normal distribution.
+   * Creates a `Tensor` with values sampled from a normal distribution.
+   *
    * @param shape An array of integers defining the output tensor shape.
    * @param mean The mean of the normal distribution.
    * @param stdDev The standard deviation of the normal distribution.
@@ -324,7 +330,8 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with values sampled from a truncated normal distribution.
+   * Creates a `Tensor` with values sampled from a truncated normal
+   * distribution.
    *
    * The generated values follow a normal distribution with specified mean and
    * standard deviation, except that values whose magnitude is more than 2
@@ -350,7 +357,7 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with values sampled from a uniform distribution.
+   * Creates a `Tensor` with values sampled from a uniform distribution.
    *
    * The generated values follow a uniform distribution in the range [minval,
    * maxval). The lower bound minval is included in the range, while the upper
@@ -372,7 +379,7 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor with values sampled from a random number generator
+   * Creates a `Tensor` with values sampled from a random number generator
    * function defined by the user.
    *
    * @param shape An array of integers defining the output tensor shape.
@@ -404,7 +411,7 @@ export class Ops {
   }
 
   /**
-   * Draws samples from a multinomial distribution.
+   * Creates a `Tensor` with values drawn from a multinomial distribution.
    *
    * @param probabilities 1D array with normalized outcome probabilities, or
    *     2D array of shape `[batchSize, numOutcomes]`.
@@ -445,7 +452,7 @@ export class Ops {
   }
 
   /**
-   * Creates a one-hot tensor. The locations represented by `indices` take
+   * Creates a one-hot `Tensor`. The locations represented by `indices` take
    * value `onValue` (defaults to 1), while all other locations take value
    * `offValue` (defaults to 0).
    *
@@ -468,7 +475,7 @@ export class Ops {
   }
 
   /**
-   * Creates a tensor from an image.
+   * Creates a `Tensor` from an image.
    *
    * @param pixels The input image to construct the tensor from. Accepts image
    * of type `ImageData`, `HTMLImageElement`, `HTMLCanvasElement`, or
@@ -490,7 +497,7 @@ export class Ops {
   }
 
   /**
-   * Reshapes a tensor to a given shape.
+   * Reshapes a `Tensor` to a given shape.
    *
    * Given a input tensor, returns a new tensor with the same values as the
    * input tensor with shape `shape`.
@@ -504,6 +511,7 @@ export class Ops {
    * shape filled with the values of tensor. In this case, the number of
    * elements implied by shape must be the same as the number of elements in
    * tensor.
+   *
    * @param x A tensor.
    * @param shape An array of integers defining the output tensor shape.
    */
@@ -638,13 +646,10 @@ export class Ops {
   /**
    * Return an evenly spaced sequence of numbers over the given interval.
    *
-   * The stop value can be optionally excluded by passing setting [endpoint] to
-   * true.
-   *
    * @param start The start value of the sequence
    * @param stop The end value of the sequence
    * @param num The number of values to generate
-   * @param endpoint Optional, determines whether stop is included in the
+   * @param endpoint Determines whether stop is included in the
    * sequence. Defaults to true.
    */
   @operation
@@ -666,7 +671,7 @@ export class Ops {
   }
 
   /**
-   * Creates a new Tensor1D filled with the numbers in the range provided.
+   * Creates a new `Tensor1D` filled with the numbers in the range provided.
    *
    * The tensor is a is half-open interval meaning it includes start, but
    * excludes stop. Decrementing ranges and negative step values are also
@@ -674,8 +679,8 @@ export class Ops {
    *
    * @param start An integer start value
    * @param stop An integer stop value
-   * @param step An optional integer increment (will default to 1 or -1)
-   * @param dtype An optional dtype
+   * @param step An integer increment (will default to 1 or -1)
+   * @param dtype
    */
   @operation
   @doc({heading: 'Tensors', subheading: 'Creation'})

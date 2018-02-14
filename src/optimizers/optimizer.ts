@@ -27,6 +27,7 @@ import * as ops from '../ops/ops';
 import {Scalar, Tensor, Variable} from '../tensor';
 import {NamedTensorMap} from '../types';
 
+@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
 export abstract class Optimizer {
   protected variableNodes: VariableNode[];
   protected specifiedVariableNodes: VariableNode[]|null;
@@ -48,15 +49,7 @@ export abstract class Optimizer {
    * the trainable variables in varList will be updated by minimize. Defaults to
    * all trainable variables.
    */
-  @doc({
-    heading: 'Training',
-    subheading: 'Optimizers',
-    subclasses:
-        [
-          'SGDOptimizer', 'MomentumOptimizer', 'AdadeltaOptimizer',
-          'AdagradOptimizer'
-        ]
-  })
+  @doc({heading: 'Training', subheading: 'Optimizers'})
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
     const {value, grads} = this.computeGradients(f, varList);
