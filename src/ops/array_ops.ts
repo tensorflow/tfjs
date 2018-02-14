@@ -228,6 +228,10 @@ export class Ops {
   /**
    * Creates a `Tensor` with all elements set to 1.
    *
+   * ```js
+   * dl.ones([2, 2]).print();
+   * ```
+   *
    * @param shape An array of integers defining the output tensor shape.
    * @param dtype The type of an element in the resulting tensor. Defaults to
    *     'float'.
@@ -242,6 +246,11 @@ export class Ops {
 
   /**
    * Creates a `Tensor` with all elements set to 0.
+   *
+   * ```js
+   * dl.zeros([2, 2]).print();
+   * ```
+   *
    * @param shape An array of integers defining the output tensor shape.
    * @param dtype The type of an element in the resulting tensor. Can
    *     be 'float32', 'int32' or 'bool'. Defaults to 'float'.
@@ -256,6 +265,10 @@ export class Ops {
 
   /**
    * Creates a `Tensor` filled with a scalar value.
+   *
+   * ```js
+   * dl.fill([2, 2], 4).print();
+   * ```
    *
    * @param shape An array of integers defining the output tensor shape.
    * @param value The scalar value to fill the tensor with.
@@ -276,6 +289,11 @@ export class Ops {
   /**
    * Creates a `Tensor` with all elements set to 1 with the same shape as the
    * given tensor.
+   *
+   * ```js
+   * const x = dl.tensor([1, 2]);
+   * dl.onesLike(x).print();
+   * ```
    * @param x A tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -288,6 +306,11 @@ export class Ops {
    * Creates a `Tensor` with all elements set to 0 with the same shape as the
    * given tensor.
    *
+   * ```js
+   * const x = dl.tensor([1, 2]);
+   * dl.zerosLike(x).print();
+   * ```
+   *
    * @param x A tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -299,6 +322,12 @@ export class Ops {
   /**
    * Creates a new tensor with the same values and shape as the specified
    * tensor.
+   *
+   * ```js
+   * const x = dl.tensor([1, 2]);
+   * x.clone().print();
+   * ```
+   *
    * @param x The tensor to clone.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -412,6 +441,11 @@ export class Ops {
 
   /**
    * Creates a `Tensor` with values drawn from a multinomial distribution.
+   *
+   * ```js
+   * const probs = dl.tensor([.75, .25]);
+   * dl.multinomial(probs, 3).print();
+   * ```
    *
    * @param probabilities 1D array with normalized outcome probabilities, or
    *     2D array of shape `[batchSize, numOutcomes]`.
@@ -719,6 +753,9 @@ export class Ops {
   /**
    * Return an evenly spaced sequence of numbers over the given interval.
    *
+   * ```js
+   * dl.linspace(0, 9, 10).print();
+   * ```
    * @param start The start value of the sequence
    * @param stop The end value of the sequence
    * @param num The number of values to generate
@@ -797,6 +834,19 @@ export class Ops {
    * `buffer.set()`, or by modifying directly `buffer.values`. When done,
    * call `buffer.toTensor()` to get an immutable `Tensor` with those values.
    *
+   * When done, call `buffer.toTensor()` to get an immutable `Tensor` with those
+   * values.
+   *
+   * ```js
+   * // Create a buffer and set values at particular indices.
+   * const buffer = dl.buffer([2, 2]);
+   * buffer.set(3, 0, 0);
+   * buffer.set(5, 1, 0);
+   *
+   * // Convert the buffer back to a tensor.
+   * buffer.toTensor().print();
+   * ```
+   *
    * @param shape An array of integers defining the output tensor shape.
    * @param dtype The dtype of the buffer. Defaults to 'float32'.
    * @param values The values of the buffer as `TypedArray`. Defaults to zeros.
@@ -816,20 +866,22 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static print<T extends Tensor>(x: T, verbose = false): void {
-    let displayName = Tensor.name;
-    if (x.rank <= 4) {
-      displayName =
-          ['Scalar', 'Tensor1D', 'Tensor2D', 'Tensor3D', 'Tensor4D'][x.rank];
-    }
-
-    // Construct a new class so that we can display a rich object in the console
-    // that only has the properties that we want to show about the tensor but
-    // still shows it as if it's the proper class.
-    const C = new Function(`return class ${displayName} {}`)();
+    const C = class Tensor {
+      shape: number[];
+      data: number[];
+      dtype: string;
+      size: number;
+    };
 
     const displayTensor = new C();
     displayTensor.shape = x.shape;
     displayTensor.data = Array.from(x.dataSync());
+    displayTensor.toString = function() {
+      return `Tensor {\n` +
+          `  data: [${this.data.join(', ')}],\n` +
+          `  shape: [${x.shape.join(', ')}]\n` +
+          `}`;
+    };
 
     if (verbose) {
       displayTensor.dtype = x.dtype;

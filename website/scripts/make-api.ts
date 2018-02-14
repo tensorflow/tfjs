@@ -36,9 +36,28 @@ const TOPLEVEL_NAMESPACE = 'dl';
 const API_TEMPLATE_PATH = './website/api/index.html';
 const HTML_OUT_DIR = '/tmp/deeplearn-new-website/api/';
 
+const argv = minimist(process.argv.slice(2));
+
 shell.mkdir('-p', HTML_OUT_DIR);
 
+let bundleJsPath;
+if (argv['master']) {
+  // When using --master, build a deeplearn.js bundle if it doesn't exist. This
+  // is mainly for development.
+  if (!fs.existsSync(HTML_OUT_DIR + 'deeplearn.js')) {
+    shell.exec('./scripts/build-standalone.sh');
+    shell.cp('./dist/deeplearn.js', HTML_OUT_DIR);
+  }
+  bundleJsPath = 'deeplearn.js';
+} else {
+  // Read version and point to it.
+  const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  bundleJsPath = `https://cdn.jsdelivr.net/npm/deeplearn@${pkg.version}`;
+}
+console.log(`Using bundle path ${bundleJsPath}.`);
+
 const {docs, docLinkAliases} = parser.parse();
+docs.bundleJsPath = bundleJsPath;
 
 // Predefine some custom type links.
 const symbols: util.SymbolAndUrl[] = [
