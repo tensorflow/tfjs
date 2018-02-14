@@ -137,7 +137,7 @@ export class Ops {
    *
    * ```js
    * const a = dl.tensor([[2, 2], [3, 3]])
-   * const b = dl.tensor([[8, 16], [2, 3]])
+   * const b = dl.tensor([[8, 16], [2, 3]]).toInt()
    * dl.pow(a, b).print();  // [256, 65536, 9, 27]
    * ```
    *
