@@ -32,11 +32,13 @@ import * as ts from 'typescript';
 import * as parser from './api-parser';
 import * as util from './api-util';
 
+const argv = minimist(process.argv.slice(2));
+
 const TOPLEVEL_NAMESPACE = 'dl';
 const API_TEMPLATE_PATH = './website/api/index.html';
-const HTML_OUT_DIR = '/tmp/deeplearn-new-website/api/';
+const HTML_OUT_DIR = argv.o || '/tmp/deeplearn-new-website/api/';
 
-const argv = minimist(process.argv.slice(2));
+console.log('Building API docs to: ' + HTML_OUT_DIR, argv);
 
 shell.mkdir('-p', HTML_OUT_DIR);
 
