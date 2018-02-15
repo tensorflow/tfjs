@@ -16,9 +16,11 @@
  */
 
 import {doc} from '../doc';
+
 import {AdadeltaOptimizer} from './adadelta_optimizer';
 import {AdagradOptimizer} from './adagrad_optimizer';
 import {AdamOptimizer} from './adam_optimizer';
+import {AdamaxOptimizer} from './adamax_optimizer';
 import {MomentumOptimizer} from './momentum_optimizer';
 import {RMSPropOptimizer} from './rmsprop_optimizer';
 import {SGDOptimizer} from './sgd_optimizer';
@@ -105,6 +107,25 @@ export class OptimizerConstructors {
   }
 
   /**
+   * Constructs a `AdamaxOptimizer` that uses the Adam algorithm.
+   * See https://arxiv.org/abs/1412.6980
+   *
+   * @param learningRate
+   * @param beta1
+   * @param beta2
+   * @param decay
+   */
+  @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
+  static adamax(
+      learningRate = 0.002, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8,
+      decay = 0.0): AdamaxOptimizer {
+    return new AdamaxOptimizer(
+        learningRate, beta1, beta2, epsilon, decay,
+        undefined /** @deprecated specifiedVariableList */);
+  }
+
+  /**
+   * Constructs a `dl.train.AdagradOptimizer` that uses the Adagrad algorithm.
    * Constructs a `AdagradOptimizer` that uses the Adagrad algorithm.
    * See http://www.jmlr.org/papers/volume12/duchi11a/duchi11a.pdf or
    * http://ruder.io/optimizing-gradient-descent/index.html#adagrad
