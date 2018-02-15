@@ -35,6 +35,14 @@ export function streamFromItems<T>(items: T[]): DataStream<T> {
 }
 
 /**
+ * Create a `DataStream` of incrementing integers.
+ */
+export function streamFromIncrementing(start: number): DataStream<number> {
+  let i = start;
+  return streamFromFunction(() => i++);
+}
+
+/**
  * Create a `DataStream` from a function.
  */
 export function streamFromFunction<T>(func: () => T | Promise<T>):
@@ -95,12 +103,28 @@ export abstract class DataStream<T> {
   async collectRemaining(): Promise<T[]> {
     const result: T[] = [];
     let x = await this.next();
-    while (x !== undefined) {
+    while (x != null) {
       result.push(x);
       x = await this.next();
     }
     return result;
   }
+
+  /**
+   * Draw items from the stream until it is exhausted.
+   *
+   * This can be useful when the stream has side effects but no output.  In
+   * that case, calling this function guarantees that the stream will be fully
+   * processed.
+   */
+  async resolveFully(): Promise<void> {
+    let x = await this.next();
+    while (x != null) {
+      x = await this.next();
+    }
+  }
+
+  // TODO(soergel): Implement reduce() etc.
 
   /**
    * Filters this stream according to `predicate`.
@@ -124,6 +148,15 @@ export abstract class DataStream<T> {
    */
   map<S>(transform: (value: T) => S | Promise<S>): DataStream<S> {
     return new MapStream(this, transform);
+  }
+
+  /**
+   * Apply a function to every element of the stream.
+   *
+   * @param f A function to apply to each stream element.
+   */
+  async forEach(f: (value: T) => {}|Promise<{}>): Promise<void> {
+    return this.map(f).resolveFully();
   }
 
   /**
@@ -185,6 +218,8 @@ export abstract class DataStream<T> {
     return new PrefetchStream(this, bufferSize);
   }
 
+  // TODO(soergel): deep sharded shuffle, where supported
+
   /**
    * Randomly shuffles the elements of this stream.
    *
@@ -193,8 +228,8 @@ export abstract class DataStream<T> {
    * @param seed: (Optional.) An integer specifying the random seed that will
    *   be used to create the distribution.
    */
-  shuffle(bufferSize: number, seed?: string): DataStream<T> {
-    return new ShuffleStream(this, bufferSize, seed);
+  shuffle(windowSize: number, seed?: string): DataStream<T> {
+    return new ShuffleStream(this, windowSize, seed);
   }
 }
 
@@ -486,9 +521,9 @@ export class ShuffleStream<T> extends PrefetchStream<T> {
   private upstreamExhausted = false;
 
   constructor(
-      protected upstream: DataStream<T>, protected bufferSize: number,
+      protected upstream: DataStream<T>, protected windowSize: number,
       seed?: string) {
-    super(upstream, bufferSize);
+    super(upstream, windowSize);
     this.random = seedrandom(seed);
   }
 
