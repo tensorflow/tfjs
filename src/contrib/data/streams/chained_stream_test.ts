@@ -20,25 +20,17 @@ import {ChainedStream} from './data_stream';
 import {streamFromItems} from './data_stream';
 import {TestIntegerStream} from './data_stream_test';
 
-describe('ChainedStream', () => {
-  // TODO(davidsoergel): Remove this once we figure out the timeout issue.
-  let originalTimeout: number;
-  beforeAll(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-  });
-  afterAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-  });
+const SHORT_STREAM_LENGTH = 15;
 
+describe('ChainedStream', () => {
   it('produces a single underlying stream as expected', done => {
-    const chainedStreamPromise =
-        ChainedStream.create(streamFromItems([new TestIntegerStream()]));
+    const chainedStreamPromise = ChainedStream.create(
+        streamFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
 
     const expectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
-      for (let j = 0; j < 100; j++) {
-        expectedResult[i * 100 + j] = j;
+      for (let j = 0; j < SHORT_STREAM_LENGTH; j++) {
+        expectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
 
@@ -51,14 +43,15 @@ describe('ChainedStream', () => {
   });
   it('produces multiple underlying streams as expected', done => {
     const chainedStreamPromise = ChainedStream.create(streamFromItems([
-      new TestIntegerStream(), new TestIntegerStream(), new TestIntegerStream(),
-      new TestIntegerStream()
+      new TestIntegerStream(SHORT_STREAM_LENGTH),
+      new TestIntegerStream(SHORT_STREAM_LENGTH),
+      new TestIntegerStream(SHORT_STREAM_LENGTH)
     ]));
 
     const expectedResult: number[] = [];
-    for (let i = 0; i < 4; i++) {
-      for (let j = 0; j < 100; j++) {
-        expectedResult[i * 100 + j] = j;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < SHORT_STREAM_LENGTH; j++) {
+        expectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
 

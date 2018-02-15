@@ -110,7 +110,7 @@ describe('Dataset', () => {
     const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
     const readStreamPromise = a.repeat().getStream();
     readStreamPromise
-        .then(readStream => readStream.take(1234).collectRemaining())
+        .then(readStream => readStream.take(234).collectRemaining())
         .then(done)
         .catch(done.fail);
     done();
