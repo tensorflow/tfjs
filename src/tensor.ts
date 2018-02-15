@@ -879,6 +879,11 @@ export class Tensor<R extends Rank = Rank> {
     return ops.localResponseNormalization(
         this, radius, bias, alpha, beta, normRegion);
   }
+
+  variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {
+    this.throwIfDisposed();
+    return Variable.variable(this, trainable, name, dtype);
+  }
 }
 
 /** @doclink Tensor */
