@@ -84,7 +84,6 @@ export class NDArrayMath {
   conv2dDerInput = conv.Ops.conv2dDerInput;
 
   argMax = reduction_ops.Ops.argMax;
-  argMaxEquals = reduction_ops.Ops.argMaxEquals;
   argMin = reduction_ops.Ops.argMin;
   logSumExp = reduction_ops.Ops.logSumExp;
   max = reduction_ops.Ops.max;
@@ -371,6 +370,12 @@ export class NDArrayMath {
     }
     const res = ops.conv2d(x, filter, strides, pad, dimRoundingMode);
     return res.add(bias) as T;
+  }
+
+  /** @deprecated */
+  argMaxEquals(x1: Tensor, x2: Tensor): Scalar {
+    util.assertShapesMatch(x1.shape, x2.shape, 'Error in argMaxEquals: ');
+    return x1.argMax().equal(x2.argMax());
   }
 }
 

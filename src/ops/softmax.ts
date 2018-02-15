@@ -28,6 +28,18 @@ export class Ops {
   /**
    * Computes the softmax normalized vector given the logits.
    *
+   * ```js
+   * const a = dl.tensor1d([1, 2, 3]);
+   *
+   * a.softmax().print();  // or dl.softmax(a)
+   * ```
+   *
+   * ```js
+   * const a = dl.tensor2d([2, 4, 6, 1, 2, 3], [2, 3]);
+   *
+   * a.softmax().print();  // or dl.softmax(a)
+   * ```
+   *
    * @param logits The logits array.
    * @param dim The dimension softmax would be performed on. Defaults to -1
    *     which indicates the last dimension.

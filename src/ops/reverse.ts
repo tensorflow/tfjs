@@ -74,6 +74,18 @@ export class Ops {
   /**
    * Reverses a `Tensor` along a specified axis.
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3, 4]);
+   *
+   * x.reverse().print();
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * const axis = 1;
+   * x.reverse(axis).print();
+   * ```
    * @param x The input tensor.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)).

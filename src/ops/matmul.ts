@@ -26,6 +26,12 @@ export class Ops {
   /**
    * Computes the dot product of two matrices, A * B. These must be matrices.
    *
+   * ```js
+   * const a = dl.tensor2d([1, 2], [1, 2]);
+   * const b = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * a.matMul(b).print();  // or dl.matMul(a, b)
+   * ```
    * @param a First matrix in dot product operation.
    * @param b Second matrix in dot product operation.
    * @param transposeA If true, `a` is transposed before multiplication.
@@ -74,7 +80,6 @@ export class Ops {
    * @param v The vector in dot product operation.
    * @param matrix The matrix in dot product operation.
    */
-  @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static vectorTimesMatrix(v: Tensor1D, matrix: Tensor2D): Tensor1D {
     util.assert(
@@ -94,10 +99,10 @@ export class Ops {
 
   /**
    * Computes the dot product of a matrix and vector, A * v.
+   *
    * @param matrix The matrix in dot product operation.
    * @param v The vector in dot product operation.
    */
-  @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static matrixTimesVector(matrix: Tensor2D, v: Tensor1D): Tensor1D {
     util.assert(
@@ -123,7 +128,6 @@ export class Ops {
    * @param v1 The first vector in the dot product operation.
    * @param v2 The second vector in the dot product operation.
    */
-  @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static dotProduct(v1: Tensor1D, v2: Tensor1D): Scalar {
     util.assert(
@@ -140,6 +144,12 @@ export class Ops {
   /**
    * Computes the outer product of two vectors, v1 and v2.
    *
+   * ```js
+   * const a = dl.tensor1d([1, 2, 3]);
+   * const b = dl.tensor1d([3, 4, 5]);
+   *
+   * dl.outerProduct(a, b).print();
+   * ```
    * @param v1 The first vector in the outer product operation.
    * @param v2 The second vector in the dot product operation.
    */

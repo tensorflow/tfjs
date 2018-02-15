@@ -30,6 +30,21 @@ export class Ops {
    *
    * We also expose `addStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
+   *
+   * ```js
+   * const a = dl.tensor1d([1, 2, 3, 4]);
+   * const b = dl.tensor1d([10, 20, 30, 40]);
+   *
+   * a.add(b).print();  // or dl.add(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast add a with b.
+   * const a = dl.scalar(5);
+   * const b = dl.tensor1d([10, 20, 30, 40]);
+   *
+   * a.add(b).print();  // or dl.add(a, b)
+   * ```
    * @param a The first `Tensor` to add.
    * @param b The second `Tensor` to add. Must have the same type as `a`.
    */
@@ -82,6 +97,20 @@ export class Ops {
    * We also expose `subStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = dl.tensor1d([10, 20, 30, 40]);
+   * const b = dl.tensor1d([1, 2, 3, 4]);
+   *
+   * a.sub(b).print();  // or dl.sub(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast subtract a with b.
+   * const a = dl.tensor1d([10, 20, 30, 40]);
+   * const b = dl.scalar(5);
+   *
+   * a.sub(b).print();  // or dl.sub(a, b)
+   * ```
    * @param a The first `Tensor`.
    * @param b The second `Tensor`. Must have the same dtype as `a`.
    */
@@ -136,11 +165,18 @@ export class Ops {
    * corresponding elements in x and y.
    *
    * ```js
-   * const a = dl.tensor([[2, 2], [3, 3]])
-   * const b = dl.tensor([[8, 16], [2, 3]]).toInt()
-   * dl.pow(a, b).print();  // [256, 65536, 9, 27]
+   * const a = dl.tensor([[2, 3], [4, 5]])
+   * const b = dl.tensor([[1, 2], [3, 0]]).toInt();
+   *
+   * a.pow(b).print();  // or dl.pow(a, b)
    * ```
    *
+   * ```js
+   * const a = dl.tensor([[1, 2], [3, 4]])
+   * const b = dl.tensor(2).toInt();
+   *
+   * a.pow(b).print();  // or dl.pow(a, b)
+   * ```
    * We also expose `powStrict` which has the same signature as this op and
    * asserts that `base` and `exp` are the same shape (does not broadcast).
    *
@@ -156,7 +192,8 @@ export class Ops {
     broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
 
     const gradient = (dy: Tensor, y: Tensor) => {
-      if (!util.arraysEqual(base.shape, exp.shape)) {
+      if (!util.arraysEqual(base.shape, exp.shape) &&
+          !util.isScalarShape(exp.shape)) {
         throw new Error(
             `Gradient of pow not yet supported for broadcasted shapes.`);
       }
@@ -196,6 +233,20 @@ export class Ops {
    * We also expose `mulStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = dl.tensor1d([1, 2, 3, 4]);
+   * const b = dl.tensor1d([2, 3, 4, 5]);
+   *
+   * a.mul(b).print();  // or dl.mul(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast mul a with b.
+   * const a = dl.tensor1d([1, 2, 3, 4]);
+   * const b = dl.scalar(5);
+   *
+   * a.mul(b).print();  // or dl.mul(a, b)
+   * ```
    * @param a The first tensor.
    * @param b The second tensor. Must have the same dtype as `a`.
    */
@@ -248,6 +299,20 @@ export class Ops {
    * We also expose `divStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = dl.tensor1d([1, 4, 9, 16]);
+   * const b = dl.tensor1d([1, 2, 3, 4]);
+   *
+   * a.div(b).print();  // or dl.div(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast div a with b.
+   * const a = dl.tensor1d([2, 4, 6, 8]);
+   * const b = dl.scalar(2);
+   *
+   * a.div(b).print();  // or dl.div(a, b)
+   * ```
    * @param a The first tensor.
    * @param b The second tensor. Must have the same dtype as `a`.
    */
@@ -299,6 +364,20 @@ export class Ops {
    * We also expose `minimumStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = dl.tensor1d([1, 4, 3, 16]);
+   * const b = dl.tensor1d([1, 2, 9, 4]);
+   *
+   * a.minumum(b).print();  // or dl.minumum(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast minumum a with b.
+   * const a = dl.tensor1d([2, 4, 6, 8]);
+   * const b = dl.scalar(5);
+   *
+   * a.minumum(b).print();  // or dl.minumum(a, b)
+   * ```
    * @param a The first tensor.
    * @param b The second tensor. Must have the same type as `a`.
    */
@@ -335,7 +414,20 @@ export class Ops {
    * We also expose `maximumStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = dl.tensor1d([1, 4, 3, 16]);
+   * const b = dl.tensor1d([1, 2, 9, 4]);
    *
+   * a.maximum(b).print();  // or dl.maximum(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast maximum a with b.
+   * const a = dl.tensor1d([2, 4, 6, 8]);
+   * const b = dl.scalar(5);
+   *
+   * a.maximum(b).print();  // or dl.maximum(a, b)
+   * ```
    * @param a The first tensor.
    * @param b The second tensor. Must have the same type as `a`.
    */

@@ -511,6 +511,12 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.matMul(this as Tensor2D, b, transposeA, transposeB);
   }
+  norm(
+      ord: number|'euclidean'|'fro' = 'euclidean', axis: number|number[] = null,
+      keepDims = false): Tensor {
+    this.throwIfDisposed();
+    return ops.norm(this, ord, axis, keepDims);
+  }
   slice(begin: ShapeMap[R], size: ShapeMap[R]): Tensor<R> {
     this.throwIfDisposed();
     return ops.slice(this, begin, size);
@@ -569,10 +575,6 @@ export class Tensor<R extends Rank = Rank> {
   argMax<T extends Tensor>(axis: number = null): T {
     this.throwIfDisposed();
     return ops.argMax(this, axis);
-  }
-  argMaxEquals(x: Tensor): Scalar {
-    this.throwIfDisposed();
-    return ops.argMaxEquals(this, x);
   }
 
   // Binary ops.
@@ -740,7 +742,7 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.abs(this);
   }
-  clip(min: number, max: number): Tensor<R> {
+  clipByValue(min: number, max: number): Tensor<R> {
     this.throwIfDisposed();
     return ops.clipByValue(this, min, max);
   }
@@ -959,6 +961,12 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
 
   /**
    * Creates a new variable with the provided initial value.
+   * ```js
+   * const x = dl.variable(dl.tensor([1, 2, 3]));
+   * x.assign(dl.tensor([4, 5, 6]));
+   *
+   * x.print();
+   * ```
    *
    * @param initialValue A tensor.
    * @param trainable If true, optimizers are allowed to update it.
@@ -976,8 +984,8 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
   }
 
   /**
-   * Assign a new `Tensor` to this variable. The new `Tensor` must have the same
-   * shape and dtype as the old `Tensor`.
+   * Assign a new `Tensor` to this variable. The new `Tensor` must have the
+   * same shape and dtype as the old `Tensor`.
    */
   @doc({heading: 'Tensors', subheading: 'Classes'})
   assign(newValue: Tensor<R>): void {

@@ -99,6 +99,18 @@ export class Ops {
    *   - `dl.slice2d`
    *   - `dl.slice3d`
    *   - `dl.slice4d`
+   *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3, 4]);
+   *
+   * x.slice([1], [2]).print();
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * x.slice([1, 0], [1, 2]).print();
+   * ```
    * @param x The input `Tensor` to slice from.
    * @param begin The coordinates to start the slice from. The length of this
    *     array should match the rank of `x`.

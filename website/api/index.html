@@ -241,10 +241,6 @@
       padding-bottom: 16px;
     }
 
-    .reference .symbol .documentation p {
-      margin: 0
-    }
-
     .parameter {
       margin-bottom: 24px;
     }
@@ -302,7 +298,7 @@
       background: #f4f4f4;
       padding: 8px 16px;
       min-height: 16px;
-      white-space: pre;
+      white-space: pre-wrap;
       font-family: "Roboto Mono", monospace;
     }
 
@@ -495,7 +491,7 @@
     </div>
   </div>
   <script>
-    function executeCodeSnippet(consoleLogElement, codeSnippet) {
+    async function executeCodeSnippet(consoleLogElement, codeSnippet) {
       consoleLogElement.innerText = '';
 
       var oldLog = console.log;
@@ -503,9 +499,9 @@
         consoleLogElement.innerText += logStr + '\n';
       };
 
-      var snippet = 'dl.tidy(function() {' + codeSnippet + '});';
+      var snippet = 'dl.tidy(async function() {' + codeSnippet + '});';
 
-      eval(snippet);
+      await eval(snippet);
 
       console.log = oldLog;
     };

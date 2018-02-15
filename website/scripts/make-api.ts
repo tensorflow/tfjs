@@ -38,7 +38,7 @@ const TOPLEVEL_NAMESPACE = 'dl';
 const API_TEMPLATE_PATH = './website/api/index.html';
 const HTML_OUT_DIR = argv.o || '/tmp/deeplearn-new-website/api/';
 
-console.log('Building API docs to: ' + HTML_OUT_DIR, argv);
+console.log('Building API docs to: ' + HTML_OUT_DIR);
 
 shell.mkdir('-p', HTML_OUT_DIR);
 

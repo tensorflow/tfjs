@@ -34,6 +34,25 @@ export class Tracking {
    * When in safe mode, you must enclose all `Tensor` creation and ops
    * inside a `tidy` to prevent memory leaks.
    *
+   * ```js
+   * // y = 2 ^ 2 + 1
+   * const y = dl.tidy(() => {
+   *   // a, b, and one will be cleaned up when the tidy ends.
+   *   const one = dl.scalar(1);
+   *   const a = dl.scalar(2);
+   *   const b = a.square();
+   *
+   *   console.log('numTensors (in tidy): ' + dl.memory().numTensors);
+   *
+   *   // The value returned inside the tidy function will return
+   *   // through the tidy, in this case to the variable y.
+   *   return b.add(one);
+   * });
+   *
+   * console.log('numTensors (outside tidy): ' + dl.memory().numTensors);
+   * y.print();
+   * ```
+   *
    * @param nameOrFn The name of the closure, or the function to execute.
    *     If a name is provided, the 2nd argument should be the function.
    *     If a name is provided, and debug mode is on, the timing and the memory
@@ -79,9 +98,34 @@ export class Tracking {
   }
 
   /**
-   * Keeps a Tensor generated inside a `tidy` from being disposed
+   * Keeps a `Tensor` generated inside a `tidy` from being disposed
    * automatically.
-   * @param result The Tensor to keep from being disposed.
+   *
+   * ```js
+   * let b;
+   * const y = dl.tidy(() => {
+   *   const one = dl.scalar(1);
+   *   const a = dl.scalar(2);
+   *
+   *   // b will not be cleaned up by the tidy. a and one will be cleaned up
+   *   // when the tidy ends.
+   *   b = dl.keep(a.square());
+   *
+   *   console.log('numTensors (in tidy): ' + dl.memory().numTensors);
+   *
+   *   // The value returned inside the tidy function will return
+   *   // through the tidy, in this case to the variable y.
+   *   return b.add(one);
+   * });
+   *
+   * console.log('numTensors (outside tidy): ' + dl.memory().numTensors);
+   * console.log('y:');
+   * y.print();
+   * console.log('b:');
+   * b.print();
+   * ```
+   *
+   * @param result The tensor to keep from being disposed.
    */
   @doc({heading: 'Performance', subheading: 'Memory'})
   static keep<T extends Tensor>(result: T): T {
@@ -98,6 +142,13 @@ export class Tracking {
    * - On `WebGL` the following additional properties exist:
    *   - `uploadWaitMs`: cpu blocking time on texture uploads.
    *   - `downloadWaitMs`: cpu blocking time on texture downloads (readPixels).
+   *
+   * ```js
+   * const x = dl.randomNormal([20, 20]);
+   * const time = await dl.time(() => x.matMul(x));
+   *
+   * console.log(`kernelMs: ${time.kernelMs}, wallTimeMs: ${time.wallMs}`);
+   * ```
    *
    * @param f The function to execute and time.
    */
