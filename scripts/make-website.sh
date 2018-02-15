@@ -26,8 +26,7 @@ mkdir "$TMP_DIR"
 cp -r "docs" "$TMP_DIR/"
 
 # Make the documentation.
-./node_modules/.bin/typedoc --out "$TMP_DIR/docs/api/" --excludeExternals \
-  --excludeNotExported --excludePrivate --mode file --tsconfig tsconfig-doc.json
+./node_modules/.bin/ts-node ./website/scripts/make-api.ts -o $TMP_DIR/docs/api/ $1
 
 # Make demo directory (if not existing)
 mkdir -p "$TMP_DIR/demos"
