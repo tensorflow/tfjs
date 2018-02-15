@@ -193,7 +193,7 @@
       color: grey;
     }
 
-    .reference .symbol-name {
+    .reference .symbol .symbol-name {
       text-decoration: none;
       color: #0277BD;
       margin-right: 0.33em;
@@ -317,6 +317,16 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function(e) {
+      var isInViewport = function(elem) {
+        var bounding = elem.getBoundingClientRect();
+        return (
+          bounding.top >= 0 &&
+          bounding.left >= 0 &&
+          bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+          bounding.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+      };
+
       // Find the symbol closest to the top of the page in the reference
       // section and highlight it in the TOC section.
 
@@ -342,13 +352,18 @@
         }
 
         if (found) {
-          tocFound = tocArea.querySelector(`[href="#${found.getAttribute('name')}"]`)
+          tocFound = tocArea.querySelectorAll(`[href="#${found.getAttribute('name')}"]`)
+
+          // The first subheading in a section shares an href with its parent.
+          tocFound = tocFound.length > 1 ? tocFound[1] : tocFound[0];
 
           if (lastHighlightedTocElement) {
             lastHighlightedTocElement.classList.remove('highlighted');
           }
           tocFound.classList.add('highlighted');
-          // tocFound.scrollIntoView(false);
+          if(!isInViewport(tocFound)) {
+            tocFound.scrollIntoView(false);
+          }
           lastHighlightedTocElement = tocFound;
         }
       }
@@ -401,10 +416,14 @@
         </div>
         {{#headings}}
         <div class="section">
-          <div class="section-title mdl-typography--title">{{name}}</div>
+          <div class="section-title mdl-typography--title">
+            <a href="#{{name}}-{{subheadings.0.name}}">{{name}}</a>
+          </div>
           {{#subheadings}}
           <div class="subsection">
-            <div class="sub-section-title mdl-typography--subhead">{{name}}</div>
+            <div class="sub-section-title mdl-typography--subhead">
+              <a href="#{{../name}}-{{name}}">{{name}}</a>
+            </div>
             {{#symbols}}
             <div class="symbol">
               <a href="#{{urlHash}}">{{displayName}}</a>
@@ -421,7 +440,7 @@
         <div class="section">
           {{#subheadings}}
           <div class="subsection">
-            <div class="subsection-title mdl-typography--display-3">{{../name}} &nbsp;/&nbsp; {{name}}</div>
+            <div id="{{../name}}-{{name}}" name="{{../name}}-{{name}}" class="symbol-name subsection-title mdl-typography--display-3">{{../name}} &nbsp;/&nbsp; {{name}}</div>
             <div class="subsection-description mdl-typography--headline">{{{description}}}</div>
             {{#symbols}}
             <div class="symbol">
