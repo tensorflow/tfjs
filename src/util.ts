@@ -449,3 +449,7 @@ export function bytesPerElement(dtype: DataType): number {
     throw new Error(`Unknown dtype ${dtype}`);
   }
 }
+
+export function isFunction(f: Function) {
+  return !!(f && f.constructor && f.call && f.apply);
+}
