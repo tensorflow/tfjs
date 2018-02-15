@@ -9,12 +9,15 @@ import tensorflow as tf
 import sys
 import os
 
+from google.protobuf import text_format
 from absl import flags
 from tensorflow.python.tools import freeze_graph
+from tensorflow.core.framework import attr_value_pb2
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import rewriter_config_pb2
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
+from tensorflow.python.lib.io import file_io
 
 flags.DEFINE_string('saved_model_dir', '', 'The saved model directory.')
 flags.DEFINE_string('output_node_names', '',
@@ -63,11 +66,11 @@ def optimize_graph(graph):
   optimized_graph = tf_optimizer.OptimizeGraph(
       rewriter_config, meta_graph, cluster=get_cluster())
 
+  extract_weights(graph, optimized_graph)
   return optimize_graph
 
-def extract_weights(graph):
-  """Takes a Python Graph object and extract the weights."""
-  graph_def = graph.as_graph_def()
+def extract_weights(graph, graph_def):
+  """Takes a Python GraphDef object and extract the weights."""
   constants = [node for node in graph_def.node if node.op == 'Const']
   print('Writing weight file ' + FLAGS.output_graph + '...')
   index = 0
@@ -75,25 +78,36 @@ def extract_weights(graph):
     with tf.Session(graph=graph) as sess:
       for const in constants:
         tensor = graph.get_tensor_by_name(const.name + ':0')
+        """save the value of the tensor to the external file"""
         f.write(tensor.eval(session=sess).tobytes())
-        const.attr["index"].CopyFrom(attr_value_pb2.AttrValue(i=index))
-        del const.attr["value"]
-        index += tf.size(tensor).eval()
 
-  with open(os.path.abspath(FLAGS.output_graph), 'wb') as f:
-    f.write(graph_def.SerializeToString())
+        """store the index and length of the tensor in the external file"""
+        byte_length = tf.size(tensor).eval()
+        const.attr["index"].CopyFrom(attr_value_pb2.AttrValue(i=index))
+        const.attr["length"].CopyFrom(attr_value_pb2.AttrValue(i=byte_length))
+
+        """Remove the binary array from tensor and save it to the external file."""
+        const.attr["value"].tensor.ClearField('tensor_content')
+
+        index += byte_length * tensor.dtype.size
+
+  file_io.atomic_write_string_to_file(
+    os.path.abspath(FLAGS.output_graph), graph_def.SerializeToString())
+
+  file_io.atomic_write_string_to_file(
+    os.path.abspath(FLAGS.output_graph+'txt'), text_format.MessageToString(graph_def))
 
 def main(_):
 
 # Freeze the graph
-  freeze_graph.freeze_graph(', '', True, '',
+  freeze_graph.freeze_graph('', '', True, '',
                           FLAGS.output_node_names,
                           '', '',
                           FLAGS.output_graph + '.frozen', True, '',
                           saved_model_tags=FLAGS.saved_model_tags,
                           input_saved_model_dir=FLAGS.saved_model_dir)
   graph = load_graph(FLAGS.output_graph + '.frozen')
-  extract_weights(optimize_graph(graph))
+  optimize_graph(graph)
 
 
 if __name__ == '__main__':
