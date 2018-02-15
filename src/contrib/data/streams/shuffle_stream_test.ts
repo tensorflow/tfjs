@@ -21,35 +21,28 @@ import {streamFromConcatenatedFunction, streamFromItems} from './data_stream';
 import {ShuffleStream} from './data_stream';
 import {TestIntegerStream} from './data_stream_test';
 
-describe('ShuffleStream', () => {
-  // TODO(davidsoergel): Remove this once we figure out the timeout issue.
-  let originalTimeout: number;
-  beforeAll(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-  });
-  afterAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-  });
+const LONG_STREAM_LENGTH = 100;
+const SHORT_STREAM_LENGTH = 15;
 
+describe('ShuffleStream', () => {
   it('shuffles a stream without replacement', done => {
-    const baseStream = new TestIntegerStream();
+    const baseStream = new TestIntegerStream(LONG_STREAM_LENGTH);
     const shuffleStream = new ShuffleStream(baseStream, 1000);
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
-      for (let j = 0; j < 100; j++) {
-        notExpectedResult[i * 100 + j] = j;
+      for (let j = 0; j < LONG_STREAM_LENGTH; j++) {
+        notExpectedResult[i * LONG_STREAM_LENGTH + j] = j;
       }
     }
     shuffleStream.collectRemaining()
         .then(result => {
           expect(result).not.toEqual(notExpectedResult);
-          expect(result.length).toEqual(100);
-          const counts = new Array<number>(100);
+          expect(result.length).toEqual(LONG_STREAM_LENGTH);
+          const counts = new Array<number>(LONG_STREAM_LENGTH);
           result.forEach((x) => {
             counts[x] = (counts[x] || 0) + 1;
           });
-          for (let i = 0; i < 100; i++) {
+          for (let i = 0; i < LONG_STREAM_LENGTH; i++) {
             expect(counts[i]).toEqual(1);
           }
         })
@@ -58,25 +51,25 @@ describe('ShuffleStream', () => {
   });
 
   it('shuffles a single chained stream without replacement', done => {
-    const baseStreamPromise =
-        ChainedStream.create(streamFromItems([new TestIntegerStream()]));
+    const baseStreamPromise = ChainedStream.create(
+        streamFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
     const shuffleStreamPromise = baseStreamPromise.then(
         baseStream => new ShuffleStream(baseStream, 1000));
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
-      for (let j = 0; j < 100; j++) {
-        notExpectedResult[i * 100 + j] = j;
+      for (let j = 0; j < SHORT_STREAM_LENGTH; j++) {
+        notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
     shuffleStreamPromise
         .then(shuffleStream => shuffleStream.collectRemaining().then(result => {
           expect(result).not.toEqual(notExpectedResult);
-          expect(result.length).toEqual(100);
-          const counts = new Array<number>(100);
+          expect(result.length).toEqual(SHORT_STREAM_LENGTH);
+          const counts = new Array<number>(SHORT_STREAM_LENGTH);
           result.forEach((x) => {
             counts[x] = (counts[x] || 0) + 1;
           });
-          for (let i = 0; i < 100; i++) {
+          for (let i = 0; i < SHORT_STREAM_LENGTH; i++) {
             expect(counts[i]).toEqual(1);
           }
         }))
@@ -85,26 +78,26 @@ describe('ShuffleStream', () => {
   });
 
   it('shuffles multiple chained streams without replacement', done => {
-    const baseStreamPromise =
-        streamFromConcatenatedFunction(() => new TestIntegerStream(), 6);
+    const baseStreamPromise = streamFromConcatenatedFunction(
+        () => new TestIntegerStream(SHORT_STREAM_LENGTH), 3);
     const shuffleStreamPromise = baseStreamPromise.then(
         baseStream => new ShuffleStream(baseStream, 1000));
     const notExpectedResult: number[] = [];
-    for (let i = 0; i < 6; i++) {
-      for (let j = 0; j < 100; j++) {
-        notExpectedResult[i * 100 + j] = j;
+    for (let i = 0; i < 3; i++) {
+      for (let j = 0; j < SHORT_STREAM_LENGTH; j++) {
+        notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
     shuffleStreamPromise
         .then(shuffleStream => shuffleStream.collectRemaining().then(result => {
           expect(result).not.toEqual(notExpectedResult);
-          expect(result.length).toEqual(600);
-          const counts = new Array<number>(100);
+          expect(result.length).toEqual(3 * SHORT_STREAM_LENGTH);
+          const counts = new Array<number>(SHORT_STREAM_LENGTH);
           result.forEach((x) => {
             counts[x] = (counts[x] || 0) + 1;
           });
-          for (let i = 0; i < 100; i++) {
-            expect(counts[i]).toEqual(6);
+          for (let i = 0; i < SHORT_STREAM_LENGTH; i++) {
+            expect(counts[i]).toEqual(3);
           }
         }))
         .then(done)

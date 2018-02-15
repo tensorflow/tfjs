@@ -36,7 +36,7 @@ const csvBlob = new Blob([csvData]);
 const csvBlobWithHeaders = new Blob([csvDataWithHeaders]);
 
 describe('CSVDataset', () => {
-  it('Produces a stream of DatasetElements containing UTF8-decoded csv data',
+  it('produces a stream of DatasetElements containing UTF8-decoded csv data',
      done => {
        const source = new FileDataSource(csvBlob, {chunkSize: 10});
        const datasetPromise = CSVDataset.create(source, ['foo', 'bar', 'baz']);
@@ -58,7 +58,7 @@ describe('CSVDataset', () => {
              .catch(done.fail);
        });
      });
-  it('Reads CSV column headers when requested', done => {
+  it('reads CSV column headers when requested', done => {
     const source = new FileDataSource(csvBlobWithHeaders, {chunkSize: 10});
     const datasetPromise =
         CSVDataset.create(source, CsvHeaderConfig.READ_FIRST_LINE);
@@ -80,7 +80,7 @@ describe('CSVDataset', () => {
           .catch(done.fail);
     });
   });
-  it('Numbers CSV columns by default', done => {
+  it('numbers CSV columns by default', done => {
     const source = new FileDataSource(csvBlob, {chunkSize: 10});
     const datasetPromise = CSVDataset.create(source);
     datasetPromise.then(dataset => {

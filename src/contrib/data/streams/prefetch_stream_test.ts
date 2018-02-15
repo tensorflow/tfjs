@@ -21,15 +21,6 @@ import {PrefetchStream} from './data_stream';
 import {TestIntegerStream} from './data_stream_test';
 
 describe('PrefetchStream', () => {
-  // TODO(davidsoergel): Remove this once we figure out the timeout issue.
-  let originalTimeout: number;
-  beforeAll(() => {
-    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
-  });
-  afterAll(() => {
-    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
-  });
 
   it('fetches a stream completely (stream size < buffer size)', done => {
     const prefetchStream = new PrefetchStream(new TestIntegerStream(), 500);
@@ -50,12 +41,12 @@ describe('PrefetchStream', () => {
      done => {
        const baseStreamPromise = streamFromConcatenatedFunction(() => {
          return new TestIntegerStream();
-       }, 7);
+       }, 3);
 
        const prefetchStreamPromise = baseStreamPromise.then(
-           baseStream => new PrefetchStream(baseStream, 1000));
+           baseStream => new PrefetchStream(baseStream, 500));
        const expectedResult: number[] = [];
-       for (let i = 0; i < 7; i++) {
+       for (let i = 0; i < 3; i++) {
          for (let j = 0; j < 100; j++) {
            expectedResult[i * 100 + j] = j;
          }
@@ -75,12 +66,12 @@ describe('PrefetchStream', () => {
      done => {
        const baseStreamPromise = streamFromConcatenatedFunction(() => {
          return new TestIntegerStream();
-       }, 7);
+       }, 3);
 
        const prefetchStreamPromise = baseStreamPromise.then(
-           baseStream => new PrefetchStream(baseStream, 500));
+           baseStream => new PrefetchStream(baseStream, 122));
        const expectedResult: number[] = [];
-       for (let i = 0; i < 7; i++) {
+       for (let i = 0; i < 3; i++) {
          for (let j = 0; j < 100; j++) {
            expectedResult[i * 100 + j] = j;
          }
