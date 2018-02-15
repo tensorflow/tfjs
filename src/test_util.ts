@@ -22,16 +22,21 @@ import {Tensor} from './tensor';
 import {DataType, TypedArray} from './types';
 import * as util from './util';
 
-export const WEBGL_ENVS: Features[] = [
+const WEBGL_FLOAT_ENVS: Features[] = [
   {'BACKEND': 'webgl', 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'BACKEND': 'webgl', 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
   {
     'BACKEND': 'webgl',
-    'WEBGL_FLOAT_TEXTURE_ENABLED': false,
-    'WEBGL_VERSION': 1
-  },
+    'WEBGL_FLOAT_TEXTURE_ENABLED': true,
+    'WEBGL_VERSION': 2
+  }
 ];
+export const WEBGL_ENVS = WEBGL_FLOAT_ENVS.concat([{
+  'BACKEND': 'webgl',
+  'WEBGL_FLOAT_TEXTURE_ENABLED': false,
+  'WEBGL_VERSION': 1
+}]);
 export const CPU_ENVS: Features[] = [{'BACKEND': 'cpu'}];
+export const ALL_FLOAT_ENVS = WEBGL_FLOAT_ENVS.concat(CPU_ENVS);
 export const ALL_ENVS = WEBGL_ENVS.concat(CPU_ENVS);
 
 /** Accuracy for tests. */

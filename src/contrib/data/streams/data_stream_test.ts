@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {DataStream} from './data_stream';
+import {DataStream, streamFromIncrementing} from './data_stream';
 import {streamFromConcatenated} from './data_stream';
 import {streamFromConcatenatedFunction} from './data_stream';
 import {streamFromFunction, streamFromItems} from './data_stream';
@@ -185,6 +185,16 @@ describe('DataStream', () => {
     const func = () => ++i < 7 ? i : undefined;
 
     const readStream = streamFromFunction(func);
+    readStream.collectRemaining()
+        .then(result => {
+          expect(result).toEqual([0, 1, 2, 3, 4, 5, 6]);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
+  it('can be created with incrementing integers', done => {
+    const readStream = streamFromIncrementing(0).take(7);
     readStream.collectRemaining()
         .then(result => {
           expect(result).toEqual([0, 1, 2, 3, 4, 5, 6]);
