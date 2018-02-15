@@ -30,6 +30,14 @@ describeWithFlags('variable', ALL_ENVS, () => {
     expectArraysClose(v, [4, 5, 6]);
   });
 
+  it('simple chain assign', () => {
+    const v = dl.tensor1d([1, 2, 3]).variable();
+    expectArraysClose(v, [1, 2, 3]);
+
+    v.assign(dl.tensor1d([4, 5, 6]));
+    expectArraysClose(v, [4, 5, 6]);
+  });
+
   it('default names are unique', () => {
     const v = variable(dl.tensor1d([1, 2, 3]));
     expect(v.name).not.toBeNull();
@@ -50,9 +58,15 @@ describeWithFlags('variable', ALL_ENVS, () => {
         .toThrowError();
   });
 
-  it('math ops can take variables', () => {
+  it('ops can take variables', () => {
     const value = dl.tensor1d([1, 2, 3]);
     const v = variable(value);
+    const res = dl.sum(v);
+    expectArraysClose(res, [6]);
+  });
+
+  it('chained variables works', () => {
+    const v = dl.tensor1d([1, 2, 3]).variable();
     const res = dl.sum(v);
     expectArraysClose(res, [6]);
   });
