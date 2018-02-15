@@ -104,7 +104,7 @@ export class Ops {
         });
         const expandedDy = dy.reshape(expandedDyShape);
         const derX = expandedDy.mul(Tensor.ones(x.shape, 'float32'));
-        return [derX];
+        return derX;
       };
       return {value, gradFunc};
     });
@@ -150,7 +150,7 @@ export class Ops {
         const expandedDy = dy.reshape(expandedDyShape);
         const derX = expandedDy.mul(Tensor.ones(x.shape, 'float32'))
                          .div(reduceSizeScalar);
-        return [derX];
+        return derX;
       };
       return {value, gradFunc};
     });

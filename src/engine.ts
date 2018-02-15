@@ -37,13 +37,13 @@ interface ScopeState {
 }
 
 /**
- * @docalias (...inputs: Tensor[]) => {
+ * @docalias (a: Tensor, b: Tensor,...) => {
  *   value: Tensor,
- *   gradFunc: (dy: Tensor) => Tensor[]
+ *   gradFunc: (dy: Tensor) => Tensor|Tensor[]
  * }
  */
 export type CustomGradientFunc<T extends Tensor> = (...args: Tensor[]) => {
-  value: T, gradFunc: (dy: T) => Tensor[];
+  value: T, gradFunc: (dy: T) => Tensor | Tensor[];
 };
 
 export interface TensorManager {
@@ -287,23 +287,27 @@ export class Engine implements TensorManager {
   }
 
   /**
-   * Returns gradients of `f` w.r.t. each of the `xs`. The gradients returned
-   * are of the same length as `xs`, but some might be null if `f` was not
-   * a function of that `x`. It also takes optional dy to multiply the gradient,
-   * which defaults to `1`.
+   * Returns gradients of `f` with respect to each of the `xs`. The gradients
+   * returned are of the same length as `xs`, but some might be null if `f` was
+   * not a function of that `x`. It also takes optional dy to multiply the
+   * gradient, which defaults to `1`.
    */
-  gradients<T extends Tensor>(f: () => T, xs: Tensor[], dy?: T):
-      {value: T, grads: Tensor[]} {
+  gradients<T extends Tensor>(
+      f: () => T, xs: Tensor[], dy?: T,
+      allowNoGradients = false): {value: T, grads: Tensor[]} {
     return tidy('gradients', () => {
       const y = f();
+      util.assert(
+          y instanceof Tensor,
+          'The result y returned by f() must be a tensor.');
       // Filter out the nodes that don't connect x => y.
       const filteredTape =
           tape_util.getFilteredNodesXToY(this.activeTape, xs, y);
-      if (filteredTape.length === 0 && xs.length > 0) {
+      if (!allowNoGradients && filteredTape.length === 0 && xs.length > 0) {
         throw new Error(
-            `Cannot compute gradient: y is not a function of \`x\`s. ` +
-            `Make sure the xs you are computing gradients with respect ` +
-            `to are used inside the gradient function.`);
+            'Cannot compute gradient of y=f(x) with respect to x. Make sure ' +
+            'that the f you passed encloses all operations that lead from x ' +
+            'to y.');
       }
 
       const accumulatedGradientMap: {[tensorId: number]: Tensor} = {};
@@ -319,13 +323,27 @@ export class Engine implements TensorManager {
 
   customGrad<T extends Tensor>(f: CustomGradientFunc<T>):
       (...args: Tensor[]) => T {
-    this.customGradientDepth++;
-
+    util.assert(
+        util.isFunction(f),
+        'The f passed in customGrad(f) must be a function.');
     return (...inputs: Tensor[]): T => {
-      let gradientsFunc: (dy: T) => Tensor[];
+      util.assert(
+          inputs.every(t => t instanceof Tensor),
+          'The args passed in customGrad(f)(x1, x2,...) must all be tensors');
+      this.customGradientDepth++;
+
+      let gradientsFunc: (dy: T) => Tensor | Tensor[];
       const gradientsMode = true;
       const result = tidy(f.name, () => {
         const {value, gradFunc} = f(...inputs);
+        util.assert(
+            value instanceof Tensor,
+            'The function f passed in customGrad(f) must return an object ' +
+                'where `obj.value` is a tensor');
+        util.assert(
+            util.isFunction(gradFunc),
+            'The function f passed in customGrad(f) must return an object ' +
+                'where `obj.gradFunc` is a function.');
         gradientsFunc = gradFunc;
         return value;
       }, gradientsMode);
@@ -333,7 +351,22 @@ export class Engine implements TensorManager {
       this.customGradientDepth--;
 
       if (this.shouldRecord()) {
-        this.addTapeNode(inputs, result, gradientsFunc);
+        const gradFunc = (dy: T): Tensor[] => {
+          const res = gradientsFunc(dy);
+          const grads: Tensor[] = Array.isArray(res) ? res : [res];
+          util.assert(
+              grads.length === inputs.length,
+              'The function f passed in customGrad(f) must return an object ' +
+                  'where `obj.gradFunc` is a function that returns the same ' +
+                  'number of tensors as inputs passed to f(...).');
+          util.assert(
+              grads.every(t => t instanceof Tensor),
+              'The function f passed in customGrad(f) must return an object ' +
+                  'where `obj.gradFunc` is a function that returns a list of ' +
+                  'only tensors.');
+          return grads;
+        };
+        this.addTapeNode(inputs, result, gradFunc);
       }
       return result;
     };
