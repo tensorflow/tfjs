@@ -204,13 +204,18 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
       let count = 0;
       for (const className in topClassesToProbability) {
-        if (!(className in topClassesToProbability)) {
-          continue;
+        if (isWebcam) {
+          document.getElementById(`class${count}`).innerHTML = '';
+          document.getElementById(`prob${count}`).innerHTML = '';
+        } else {
+          if (!(className in topClassesToProbability)) {
+            continue;
+          }
+          document.getElementById(`class${count}`).innerHTML = className;
+          document.getElementById(`prob${count}`).innerHTML =
+              (Math.floor(1000 * topClassesToProbability[className]) / 1000)
+                  .toString();
         }
-        document.getElementById(`class${count}`).innerHTML = className;
-        document.getElementById(`prob${count}`).innerHTML =
-            (Math.floor(1000 * topClassesToProbability[className]) / 1000)
-                .toString();
         count++;
       }
 
