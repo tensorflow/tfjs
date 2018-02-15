@@ -32,6 +32,12 @@ export class Ops {
    * where `n` is the rank of the input `Tensor`. Hence by default, this
    * operation performs a regular matrix transpose on 2-D input `Tensor`s.
    *
+   * ```js
+   * const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+   *
+   * a.transpose().print();  // or dl.transpose(a)
+   * ```
+   *
    * @param x The tensor to transpose.
    * @param perm The permutation of the dimensions of a.
    */

@@ -259,35 +259,6 @@ describeWithFlags('argmin', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('argMaxEquals', ALL_ENVS, () => {
-  it('equals', () => {
-    const a = dl.tensor1d([5, 0, 3, 7, 3]);
-    const b = dl.tensor1d([-100.3, -20.0, -10.0, -5, -100]);
-    const result = dl.argMaxEquals(a, b);
-    expect(result.get()).toBe(1);
-  });
-
-  it('not equals', () => {
-    const a = dl.tensor1d([5, 0, 3, 1, 3]);
-    const b = dl.tensor1d([-100.3, -20.0, -10.0, -5, 0]);
-    const result = dl.argMaxEquals(a, b);
-    expect(result.get()).toBe(0);
-  });
-
-  it('propagates NaNs', () => {
-    const a = dl.tensor1d([0, 3, 1, 3]);
-    const b = dl.tensor1d([NaN, -20.0, -10.0, -5]);
-    const result = dl.argMaxEquals(a, b);
-    assertIsNan(result.get(), result.dtype);
-  });
-
-  it('throws when given arrays of different shape', () => {
-    const a = dl.tensor1d([5, 0, 3, 7, 3, 10]);
-    const b = dl.tensor1d([-100.3, -20.0, -10.0, -5, -100]);
-    expect(() => dl.argMaxEquals(a, b)).toThrowError();
-  });
-});
-
 describeWithFlags('logSumExp', ALL_ENVS, () => {
   it('0', () => {
     const a = dl.scalar(0);

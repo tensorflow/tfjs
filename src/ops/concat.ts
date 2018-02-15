@@ -121,6 +121,25 @@ export class Concat {
    * The tensors ranks and types must match, and their sizes must match in all
    * dimensions except `axis`.
    *
+   * ```js
+   * const a = dl.tensor1d([1, 2]);
+   * const b = dl.tensor1d([3, 4]);
+   * a.concat(b).print();  // or a.concat(b)
+   * ```
+   *
+   * ```js
+   * const a = dl.tensor1d([1, 2]);
+   * const b = dl.tensor1d([3, 4]);
+   * const c = dl.tensor1d([5, 6]);
+   * dl.concat([a, b, c]).print();
+   * ```
+   *
+   * ```js
+   * const a = dl.tensor2d([[1, 2], [10, 20]]);
+   * const b = dl.tensor2d([[3, 4], [30, 40]]);
+   * const axis = 1;
+   * dl.concat([a, b], axis).print();
+   * ```
    * @param tensors A list of tensors to concatenate.
    * @param axis The axis to concate along. Defaults to 0 (the first dim).
    */

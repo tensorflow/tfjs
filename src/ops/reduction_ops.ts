@@ -18,7 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {customGrad} from '../globals';
-import {Scalar, Tensor} from '../tensor';
+import {Tensor} from '../tensor';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {operation} from './operation';
@@ -34,6 +34,18 @@ export class Ops {
    * If `axis` has no entries, all dimensions are reduced, and an array with a
    * single element is returned.
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3]);
+   *
+   * x.logSumExp().print();  // or dl.logSumExp(x)
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * const axis = 1;
+   * x.logSumExp(axis).print();  // or dl.logSumExp(a, axis)
+   * ```
    * @param input The input tensor.
    * @param axis The dimension(s) to reduce. If null (the default),
    *     reduces all dimensions.
@@ -67,6 +79,19 @@ export class Ops {
    * If `keepDims` is true, the reduced dimensions are retained with length 1.
    * If axes has no entries, all dimensions are reduced, and a `Tensor` with a
    * single element is returned.
+   *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3]);
+   *
+   * x.sum().print();  // or dl.logSumExp(x)
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * const axis = 1;
+   * x.sum(axis).print();  // or dl.sum(x, axis)
+   * ```
    *
    * @param x The input tensor to compute the sum over.
    * @param axis The dimension(s) to reduce. By default it reduces
@@ -121,6 +146,19 @@ export class Ops {
    * If `axis` has no entries, all dimensions are reduced, and a `Tensor` with
    * a single element is returned.
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3]);
+   *
+   * x.mean().print();  // or dl.logSumExp(a)
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * const axis = 1;
+   * x.mean(axis).print();  // or dl.mean(x, axis)
+   * ```
+   *
    * @param x The input tensor.
    * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
@@ -167,6 +205,19 @@ export class Ops {
    * If `axes` has no entries, all dimensions are reduced, and an array with a
    * single element is returned.
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3]);
+   *
+   * x.min().print();  // or dl.min(x)
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * const axis = 1;
+   * x.min(axis).print();  // or dl.min(x, axis)
+   * ```
+   *
    * @param x The input Tensor.
    * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
@@ -201,6 +252,19 @@ export class Ops {
    * If `axes` has no entries, all dimensions are reduced, and an `Tensor` with
    * a single element is returned.
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3]);
+   *
+   * x.max().print();  // or dl.max(x)
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   *
+   * const axis = 1;
+   * x.max(axis).print();  // or dl.max(x, axis)
+   * ```
+   *
    * @param x The input tensor.
    * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
@@ -232,6 +296,19 @@ export class Ops {
    * The result has the same shape as `input` with the dimension along `axis`
    * removed.
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3]);
+   *
+   * x.argMin().print();  // or dl.argMin(x)
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 4, 3], [2, 2]);
+   *
+   * const axis = 1;
+   * x.argMin(axis).print();  // or dl.argMin(x, axis)
+   * ```
+   *
    * @param x The input tensor.
    * @param axis The dimension to reduce. By default it reduces
    * across all axes and returns the flat index.
@@ -255,6 +332,19 @@ export class Ops {
    * The result has the same shape as `input` with the dimension along `axis`
    * removed.
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 3]);
+   *
+   * x.argMax().print();  // or dl.argMax(x)
+   * ```
+   *
+   * ```js
+   * const x = dl.tensor2d([1, 2, 4, 3], [2, 2]);
+   *
+   * const axis = 1;
+   * x.argMax(axis).print();  // or dl.argMax(x, axis)
+   * ```
+   *
    * @param x The input tensor.
    * @param axis The dimension to reduce. By default it reduces
    *     across all axes and returns the flat index
@@ -270,19 +360,6 @@ export class Ops {
     }
 
     return ENV.engine.executeKernel('ArgMax', {inputs: {x}, args: {axes}}) as T;
-  }
-
-  /**
-   * Returns a 1 if the argMax of x1 and x2 are the same, otherwise 0.
-   *
-   * @param x1 The first input tensor.
-   * @param x2 The second input tensor.
-   */
-  @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
-  static argMaxEquals(x1: Tensor, x2: Tensor): Scalar {
-    util.assertShapesMatch(x1.shape, x2.shape, 'Error in argMaxEquals: ');
-    return x1.argMax().equal(x2.argMax());
   }
 
   /**

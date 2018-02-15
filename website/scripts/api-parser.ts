@@ -54,22 +54,46 @@ export function parse():
              They are a generalization of vectors and matrices to potentially
              higher dimensions.
              </p>
-             <p>We have utility functions for common cases like 1D, 2D, 3D
-             and 4D tensors, as well a number of functions to iniatialize
-             tensors in ways useful for machine learning</p>`,
+             <p>We have utility functions for common cases like Scalar, 1D,
+             2D, 3D and 4D tensors, as well a number of functions to initialize
+             tensors in ways useful for machine learning.</p>`,
           pin: [
             'tensor', 'scalar', 'tensor1d', 'tensor2d', 'tensor3d', 'tensor4d'
           ]
         },
-        {name: 'Classes', pin: ['Tensor', 'Variable', 'TensorBuffer']},
-        {name: 'Transformations'}, {name: 'Slicing and Joining'}
+        {
+          name: 'Classes',
+          description: `<p>
+          This section shows the main Tensor related classes in deeplearn.js and
+          the methods we expose on them.
+          </p>`,
+          pin: ['Tensor', 'Variable', 'TensorBuffer']
+        },
+        {
+          name: 'Transformations',
+          description: `<p>This section describes some common Tensor
+              transformations for reshaping and type-casting.</p>`
+        },
+        {
+          name: 'Slicing and Joining',
+          description: `<p>deeplearn.js provides several operations
+              to slice or extract parts of a tensor, or join multiple
+              tensors together.`
+        }
       ]
     },
     {
       name: 'Operations',
       description: '',
       subheadings: [
-        {name: 'Arithmetic', pin: ['add', 'sub', 'mul', 'div']},
+        {
+          name: 'Arithmetic',
+          description:
+              `<p>To perform mathematical computation on Tensors, we use
+              operations. Tensors are immutable, so all operations always return
+              new Tensors and never modify input Tensors.</p>`,
+          pin: ['add', 'sub', 'mul', 'div']
+        },
         {name: 'Basic math'}, {name: 'Matrices'}, {name: 'Convolution'},
         {name: 'Reduction'}, {name: 'Normalization'}, {name: 'Images'},
         {name: 'RNN'}, {name: 'Logical'}
@@ -77,7 +101,14 @@ export function parse():
     },
     {
       name: 'Training',
-      description: '',
+      description: `<p>We also provide an API to do perform training, and
+      compute gradients. We compute gradients eagerly, users provide a function
+      that is a combination of operations and we automatically differentiate
+      that function's output with respect to its inputs.
+
+      <p>For those familiar with TensorFlow, the API we expose exactly mirrors
+      the TensorFlow Eager API.
+      </p>`,
       subheadings: [
         {name: 'Gradients'},
         {name: 'Optimizers', pin: ['sgd', 'momentum', 'adagrad', 'adadelta']},
@@ -86,13 +117,16 @@ export function parse():
     },
     {
       name: 'Performance',
-      description: '',
+      description: `<p>`,
       subheadings:
           [{name: 'Memory', pin: ['tidy']}, {name: 'Timing', pin: ['time']}]
     },
     {
       name: 'Environment',
-      description: '',
+      description: `<p>deeplearn.js can run mathematical operations on
+          different backends. Currently, we support WebGL and JavaScript
+          CPU. By default, we choose the 'best' backend available, but
+          allow users to customize their backend.`,
       subheadings: [{name: '', pin: ['setBackend']}]
     }
   ];

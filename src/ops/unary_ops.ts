@@ -28,6 +28,12 @@ export class Ops {
   /**
    * Computes `-1 * x` element-wise.
    *
+   * ```js
+   * const x = dl.tensor2d([1, 2, -2, 0], [2, 2]);
+   *
+   * x.neg().print();  // or dl.neg(x)
+   * ```
+   *
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -41,6 +47,11 @@ export class Ops {
   /**
    * Computes ceiling of input `Tensor` element-wise: `ceil(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([.6, 1.1, -3.3]);
+   *
+   * x.ceil().print();  // or dl.ceil(x)
+   * ```
    * @param x The input Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -55,6 +66,12 @@ export class Ops {
 
   /**
    * Computes floor of input `Tensor` element-wise: `floor(x)`.
+   *
+   * ```js
+   * const x = dl.tensor1d([.6, 1.1, -3.3]);
+   *
+   * x.floor().print();  // or dl.floor(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -70,6 +87,12 @@ export class Ops {
 
   /**
    * Computes exponential of the input `Tensor` element-wise. `e ^ x`
+   *
+   * ```js
+   * const x = dl.tensor1d([1, 2, -3]);
+   *
+   * x.exp().print();  // or dl.exp(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -82,6 +105,12 @@ export class Ops {
 
   /**
    * Computes natural logarithm of the input `Tensor` element-wise: `ln(x)`
+   *
+   * ```js
+   * const x = dl.tensor1d([1, 2, Math.E]);
+   *
+   * x.log().print();  // or dl.log(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -94,6 +123,12 @@ export class Ops {
 
   /**
    * Computes square root of the input `Tensor` element-wise: `y = sqrt(x)`
+   *
+   * ```js
+   * const x = dl.tensor1d([1, 2, 4, -1]);
+   *
+   * x.sqrt().print();  // or dl.sqrt(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -107,6 +142,11 @@ export class Ops {
   /**
    * Computes square of `x` element-wise: `x ^ 2`
    *
+   * ```js
+   * const x = dl.tensor1d([1, 2, Math.sqrt(2), -1]);
+   *
+   * x.square().print();  // or dl.square(x)
+   * ```
    * @param x The input Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -120,6 +160,11 @@ export class Ops {
   /**
    * Computes absolute value element-wise: `abs(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   *
+   * x.abs().print();  // or dl.abs(x)
+   * ```
    * @param x The input `Tensor`.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -133,6 +178,11 @@ export class Ops {
   /**
    * Clips values element-wise. `max(min(x, clipValueMax), clipValueMin)`
    *
+   * ```js
+   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   *
+   * x.clipByValue(-2, 3).print();  // or dl.clipByValue(x, -2, 3)
+   * ```
    * @param x The input tensor.
    * @param clipValueMin Lower-bound of range to be clipped to.
    * @param clipValueMax Upper-bound of range to be clipped to.
@@ -163,6 +213,11 @@ export class Ops {
   /**
    * Computes rectified linear element-wise: `max(x, 0)`
    *
+   * ```js
+   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   *
+   * x.relu().print();  // or dl.relu(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -177,6 +232,11 @@ export class Ops {
   /**
    * Computes exponential linear element-wise, `x > 0 ? e ^ x - 1 : 0`
    *
+   * ```js
+   * const x = dl.tensor1d([-1, 1, -3, 2]);
+   *
+   * x.elu().print();  // or dl.elu(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -200,6 +260,11 @@ export class Ops {
    *
    * `x < 0 ? scale * alpha * (exp(x) - 1) : x`
    *
+   * ```js
+   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   *
+   * x.selu().print();  // or dl.selu(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -232,6 +297,11 @@ export class Ops {
    * [http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf](
    *     http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf)
    *
+   * ```js
+   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   *
+   * x.leakyRelu(0.1).print();  // or dl.leakyRelu(x, 0.1)
+   * ```
    * @param x The input tensor.
    * @param alpha The scaling factor for negative values, defaults to 0.2.
    */
@@ -250,6 +320,12 @@ export class Ops {
    *
    * `x < 0 ? alpha * x : f(x) = x`
    *
+   * ```js
+   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   * const alpha = dl.scalar(0.1);
+   *
+   * x.prelu(alpha).print();  // or dl.prelu(x, alpha)
+   * ```
    * @param x The input tensor.
    * @param alpha Scaling factor for negative values.
    */
@@ -272,6 +348,11 @@ export class Ops {
   /**
    * Computes sigmoid element-wise, `1 / (1 + exp(-x))`
    *
+   * ```js
+   * const x = dl.tensor1d([0, -1, 2, -3]);
+   *
+   * x.sigmoid().print();  // or dl.sigmoid(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -285,6 +366,11 @@ export class Ops {
   /**
    * Computes sin of the input Tensor element-wise: `sin(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
+   *
+   * x.sin().print();  // or dl.sin(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -298,6 +384,11 @@ export class Ops {
   /**
    * Computes cos of the input `Tensor` element-wise: `cos(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
+   *
+   * x.cos().print();  // or dl.cos(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -311,6 +402,11 @@ export class Ops {
   /**
    * Computes tan of the input `Tensor` element-wise, `tan(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
+   *
+   * x.tan().print();  // or dl.tan(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -324,6 +420,11 @@ export class Ops {
   /**
    * Computes asin of the input `Tensor` element-wise: `asin(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([0, 1, -1, .7]);
+   *
+   * x.asin().print();  // or dl.asin(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -339,6 +440,11 @@ export class Ops {
   /**
    * Computes acos of the input `Tensor` element-wise: `acos(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([0, 1, -1, .7]);
+   *
+   * x.acos().print();  // or dl.acos(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -354,6 +460,11 @@ export class Ops {
   /**
    * Computes atan of the input `Tensor` element-wise: `atan(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([0, 1, -1, .7]);
+   *
+   * x.atan().print();  // or dl.atan(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -367,6 +478,11 @@ export class Ops {
   /**
    * Computes hyperbolic sin of the input `Tensor` element-wise: `sinh(x)`
    *
+   * ```js
+   * const x = dl.tensor1d([0, 1, -1, .7]);
+   *
+   * x.sinh().print();  // or dl.sinh(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -379,6 +495,12 @@ export class Ops {
 
   /**
    * Computes hyperbolic cos of the input `Tensor` element-wise: `cosh(x)`
+   *
+   * ```js
+   * const x = dl.tensor1d([0, 1, -1, .7]);
+   *
+   * x.cosh().print();  // or dl.cosh(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -391,6 +513,12 @@ export class Ops {
 
   /**
    * Computes hyperbolic tangent of the input `Tensor` element-wise: `tanh(x)`
+   *
+   * ```js
+   * const x = dl.tensor1d([0, 1, -1, 70]);
+   *
+   * x.tanh().print();  // or dl.tanh(x)
+   * ```
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
@@ -404,6 +532,11 @@ export class Ops {
   /**
    * Computes step of the input `Tensor` element-wise: `x > 0 ? 1 : alpha * x`
    *
+   * ```js
+   * const x = dl.tensor1d([0, 2, -1, -3]);
+   *
+   * x.step(.5).print();  // or dl.step(x, .5)
+   * ```
    * @param x The input tensor.
    * @param alpha The gradient when input is negative.
    */

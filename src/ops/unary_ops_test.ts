@@ -1436,7 +1436,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     const max = 2;
     const x = dl.tensor1d([3, -2, 1]);  // Only 1 is not clipped.
     const dy = dl.tensor1d([5, 50, 500]);
-    const gradients = dl.grad(x => x.clip(min, max))(x, dy);
+    const gradients = dl.grad(x => x.clipByValue(min, max))(x, dy);
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');
@@ -1448,7 +1448,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
     const max = 2;
     const x = dl.scalar(-10);  // Clipped.
     const dy = dl.scalar(5);
-    const gradients = dl.grad(x => x.clip(min, max))(x, dy);
+    const gradients = dl.grad(x => x.clipByValue(min, max))(x, dy);
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');

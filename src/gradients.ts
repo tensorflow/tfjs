@@ -49,6 +49,28 @@ export class Gradients {
    * `x` is computed instead. `f(x)` must take a single tensor `x` and return a
    * single tensor `y`. If `f()` takes multiple inputs, use `grads` instead.
    *
+   * ```js
+   * // f(x) = x ^ 2
+   * const f = x => x.square();
+   * // f'(x) = 2x
+   * const g = dl.grad(f);
+   *
+   * const x = dl.tensor1d([2, 3]);
+   * g(x).print();
+   * ```
+   *
+   * ```js
+   * // f(x) = x ^ 3
+   * const f = x => x.pow(dl.scalar(3, 'int32'));
+   * // f'(x) = 3x ^ 2
+   * const g = dl.grad(f);
+   * // f''(x) = 6x
+   * const gg = dl.grad(g);
+   *
+   * const x = dl.tensor1d([2, 3]);
+   * gg(x).print();
+   * ```
+   *
    * @param f The function f(x), to compute gradient for.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
@@ -85,6 +107,21 @@ export class Gradients {
    * The provided `f` must take one or more tensors and return a single tensor
    * `y`. If `f()` takes a single input, we recommend using `grad` instead.
    *
+   * ```js
+   * // f(a, b) = a * b
+   * const f = (a, b) => a.mul(b);
+   * // df / da = b, df / db = a
+   * const g = dl.grads(f);
+   *
+   * const a = dl.tensor1d([2, 3]);
+   * const b = dl.tensor1d([-2, -3]);
+   * const [da, db] = g([a, b]);
+   * console.log('da');
+   * da.print();
+   * console.log('db');
+   * db.print();
+   * ```
+   *
    * @param f The function `f(x1, x2,...)` to compute gradients for.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
@@ -119,6 +156,21 @@ export class Gradients {
    * The result is a rich object with the following properties:
    * - grad: The gradient of `f(x)` w.r.t `x` (result of `grad`).
    * - value: The value returned by `f(x)`.
+   *
+   * ```js
+   * // f(x) = x ^ 2
+   * const f = x => x.square();
+   * // f'(x) = 2x
+   * const g = dl.valueAndGrad(f);
+   *
+   * const x = dl.tensor1d([2, 3]);
+   * const {value, grad} = g(x);
+   *
+   * console.log('value');
+   * value.print();
+   * console.log('grad');
+   * grad.print();
+   * ```
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static valueAndGrad<I extends Tensor, O extends Tensor>(f: (x: I) => O):
@@ -149,6 +201,27 @@ export class Gradients {
    * The result is a rich object with the following properties:
    * - grads: The gradients of `f()` w.r.t each input (result of `grads`).
    * - value: The value returned by `f(x)`.
+   *
+   * ```js
+   * // f(a, b) = a * b
+   * const f = (a, b) => a.mul(b);
+   * // df/da = b, df/db = a
+   * const g = dl.valueAndGrads(f);
+   *
+   * const a = dl.tensor1d([2, 3]);
+   * const b = dl.tensor1d([-2, -3]);
+   * const {value, grads} = g([a, b]);
+   *
+   * const [da, db] = grads;
+   *
+   * console.log('value');
+   * value.print();
+   *
+   * console.log('da');
+   * da.print();
+   * console.log('db');
+   * db.print();
+   * ```
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static valueAndGrads<O extends Tensor>(f: (...args: Tensor[]) => O):
@@ -183,9 +256,20 @@ export class Gradients {
    * trainable variables provided by `varList`. If no list is provided, it
    * defaults to all trainable variables.
    *
+   * ```js
+   * const a = dl.variable(dl.tensor1d([3, 4]));
+   * const b = dl.variable(dl.tensor1d([5, 6]));
+   * const x = dl.tensor1d([1, 2]);
+   *
+   * // f(a, b) = a * x ^ 2 + b * x
+   * const f = () => a.mul(x.square()).add(b.mul(x)).sum();
+   * // df/da = x ^ 2, df/db = x
+   * const {value, grads} = dl.variableGrads(f);
+   *
+   * Object.keys(grads).forEach(varName => grads[varName].print());
+   * ```
+   *
    * @param f The function to execute. f() should return a scalar.
-   * @param varList An optional list of variables to provide gradients with
-   *     respect to. Defaults to all trainable variables.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static variableGrads(f: () => Scalar, varList?: Variable[]):
@@ -238,6 +322,21 @@ export class Gradients {
    * another function `g(...inputs)` which takes the same inputs as `f`. When
    * called, `g` returns `f().value`. In backward mode, custom gradients with
    * respect to each input of `f` are computed using `f().gradFunc`.
+   *
+   * ```js
+   * const customOp = dl.customGrad(x => {
+   *   // Override gradient of our custom x ^ 2 op to be dy * abs(x);
+   *   return {value: x.square(), gradFunc: dy => [dy.mul(x.abs())]};
+   * });
+   *
+   * const x = dl.tensor1d([-1, -2, 3]);
+   * const dx = dl.grad(x => customOp(x));
+   *
+   * console.log(`f(x):`);
+   * customOp(x).print();
+   * console.log(`f'(x):`);
+   * dx(x).print();
+   * ```
    *
    * @param f The function to evaluate in forward mode, which should return
    *     `{value: Tensor, gradFunc: (dy) => Tensor[]}`, where `gradFunc` returns

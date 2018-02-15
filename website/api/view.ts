@@ -14,7 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-export interface Docs { headings: DocHeading[]; bundleJsPath: string;}
+export interface Docs {
+  headings: DocHeading[];
+  bundleJsPath?: string;
+}
 
 export interface DocHeading {
   name: string;

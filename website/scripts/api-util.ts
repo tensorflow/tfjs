@@ -435,7 +435,7 @@ function replaceSymbolsWithLinks(
     input: string, symbolsAndUrls: SymbolAndUrl[],
     isMarkdown: boolean): string {
   symbolsAndUrls.forEach(symbolAndUrl => {
-    const wrapper = isMarkdown ? '\`' : '\\b(?![\'])';
+    const wrapper = isMarkdown ? '\`' : '\\b(?![\'\:])';
     const re = new RegExp(wrapper + symbolAndUrl.symbolName + wrapper, 'g');
 
     let displayText;

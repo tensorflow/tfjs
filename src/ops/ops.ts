@@ -51,7 +51,6 @@ export const conv2d = conv_ops.Ops.conv2d;
 export const conv2dTranspose = conv_ops.Ops.conv2dTranspose;
 export const depthwiseConv2d = conv_ops.Ops.depthwiseConv2d;
 
-export const dotProduct = matmul_ops.Ops.dotProduct;
 export const matMul = matmul_ops.Ops.matMul;
 export const matrixTimesVector = matmul_ops.Ops.matrixTimesVector;
 export const outerProduct = matmul_ops.Ops.outerProduct;
@@ -76,7 +75,6 @@ export const slice3d = slice_ops.Ops.slice3d;
 export const slice4d = slice_ops.Ops.slice4d;
 
 export const argMax = reduction_ops.Ops.argMax;
-export const argMaxEquals = reduction_ops.Ops.argMaxEquals;
 export const argMin = reduction_ops.Ops.argMin;
 export const logSumExp = reduction_ops.Ops.logSumExp;
 export const max = reduction_ops.Ops.max;

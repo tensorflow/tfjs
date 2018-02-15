@@ -20,6 +20,8 @@ import * as dl from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
 
+import {Ops as MatmulOps} from './matmul';
+
 describeWithFlags('matmul', ALL_ENVS, () => {
   it('A x B', () => {
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
@@ -193,7 +195,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
   it('Dot product', () => {
     const v1 = dl.tensor1d([2, 3]);
     const v2 = dl.tensor1d([2, 1]);
-    const result = dl.dotProduct(v1, v2);
+    const result = MatmulOps.dotProduct(v1, v2);
 
     expectNumbersClose(result.get(), 7);
   });
@@ -201,7 +203,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
   it('Dot product propagates NaNs', () => {
     const v1 = dl.tensor1d([2, NaN]);
     const v2 = dl.tensor1d([2, 1]);
-    const result = dl.dotProduct(v1, v2);
+    const result = MatmulOps.dotProduct(v1, v2);
     expect(result.get()).toEqual(NaN);
   });
 
@@ -209,8 +211,8 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     const v1 = dl.tensor1d([2, 3, 3]);
     const v2 = dl.tensor1d([2, 1]);
 
-    expect(() => dl.dotProduct(v1, v2)).toThrowError();
-    expect(() => dl.dotProduct(v2, v1)).toThrowError();
+    expect(() => MatmulOps.dotProduct(v1, v2)).toThrowError();
+    expect(() => MatmulOps.dotProduct(v2, v1)).toThrowError();
   });
 
   it('Dot product throws when passed non vectors', () => {
@@ -218,8 +220,8 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     const v1: any = dl.tensor2d([1, 2, 3, 3], [2, 2]);
     const v2 = dl.tensor1d([2, 1]);
 
-    expect(() => dl.dotProduct(v1, v2)).toThrowError();
-    expect(() => dl.dotProduct(v2, v1)).toThrowError();
+    expect(() => MatmulOps.dotProduct(v1, v2)).toThrowError();
+    expect(() => MatmulOps.dotProduct(v2, v1)).toThrowError();
   });
 
   it('Outer product', () => {

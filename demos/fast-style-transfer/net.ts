@@ -77,7 +77,7 @@ export class TransformNet implements dl.Model {
       return convT3.tanh()
                  .mul(this.timesScalar)
                  .add(this.plusScalar)
-                 .clip(0, 255)
+                 .clipByValue(0, 255)
                  .div(dl.scalar(255)) as dl.Tensor3D;
     });
 
