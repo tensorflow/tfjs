@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-import {ALL_FLOAT_ENVS, describeWithFlags} from '../../test_util';
-
+import {ALL_ENVS, describeWithFlags} from '../../test_util';
 import {TestDataset} from './dataset_test';
 import {scaleTo01} from './statistics';
 
-describeWithFlags('makeDatasetStatistics', ALL_FLOAT_ENVS, () => {
+describeWithFlags('makeDatasetStatistics', ALL_ENVS, () => {
   it('computes numeric min and max over numbers, arrays, and Tensors', done => {
     const ds = new TestDataset().skip(55);
     ds.computeStatistics()
@@ -38,7 +37,7 @@ describeWithFlags('makeDatasetStatistics', ALL_FLOAT_ENVS, () => {
   });
 });
 
-describeWithFlags('scaleTo01', ALL_FLOAT_ENVS, () => {
+describeWithFlags('scaleTo01', ALL_ENVS, () => {
   it('scales numeric data to the [0, 1] interval', done => {
     const ds = new TestDataset().skip(55);
     const scaleFn = scaleTo01(55, 99 * 99 * 99);

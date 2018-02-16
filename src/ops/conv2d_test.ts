@@ -153,8 +153,7 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expectArraysClose(dx, [3, 4, 1, 5, 6, 1, 2, 2, 0]);
 
     expect(dfilter.shape).toEqual(filterShape);
-    // TODO(nsthorat): Fix the precision for byte textures.
-    expectArraysClose(dfilter, [13, 19, 31, 37], 1e-1);
+    expectArraysClose(dfilter, [13, 19, 31, 37]);
   });
 
   it('gradient x=[2,3,3,1] f=[2,2,1,1] s=1 p=0', () => {
@@ -182,7 +181,6 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
         dx, [3, 4, 1, 5, 6, 1, 2, 2, 0, 3, 4, 1, 5, 6, 1, 2, 2, 0]);
 
     expect(dfilter.shape).toEqual(filterShape);
-    // TODO(nsthorat): Fix the precision for byte textures.
-    expectArraysClose(dfilter, [13 * 2, 19 * 2, 31 * 2, 37 * 2], 1e-1);
+    expectArraysClose(dfilter, [13 * 2, 19 * 2, 31 * 2, 37 * 2]);
   });
 });

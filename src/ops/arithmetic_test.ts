@@ -183,12 +183,12 @@ describeWithFlags('div', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1 / 1, 10 / 3, 15 / 4, 20 / 5], 1e-1);
+    expectArraysClose(da, [1 / 1, 10 / 3, 15 / 4, 20 / 5]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
     expectArraysClose(
-        db, [-1 * 3 / 1, -10 * 1 / 9, -15 * 2 / 16, -20 * 3 / 25], 1e-1);
+        db, [-1 * 3 / 1, -10 * 1 / 9, -15 * 2 / 16, -20 * 3 / 25]);
   });
 
   it('gradient: scalar / Tensor1D', () => {
@@ -218,12 +218,11 @@ describeWithFlags('div', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [6 / 2, 7 / 2, 8 / 2, 9 / 2], 1e-1);
+    expectArraysClose(da, [6 / 2, 7 / 2, 8 / 2, 9 / 2]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(
-        db, [-6 * 2 / 4 + -7 * 3 / 4 + -8 * 4 / 4 + -9 * 5 / 4], 1e-1);
+    expectArraysClose(db, [-6 * 2 / 4 + -7 * 3 / 4 + -8 * 4 / 4 + -9 * 5 / 4]);
   });
 
   it('gradient: Tensor2D / Tensor2D w/ broadcast', () => {
@@ -236,12 +235,11 @@ describeWithFlags('div', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [6 / 2 + 7 / 3, 8 / 4 + 9 / 5], 1e-1);
+    expectArraysClose(da, [6 / 2 + 7 / 3, 8 / 4 + 9 / 5]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(
-        db, [-6 * 3 / 4, -7 * 3 / 9, -8 * 4 / 16, -9 * 4 / 25], 1e-1);
+    expectArraysClose(db, [-6 * 3 / 4, -7 * 3 / 9, -8 * 4 / 16, -9 * 4 / 25]);
   });
 });
 
@@ -397,11 +395,11 @@ describeWithFlags('mul', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1 * 1, 3 * 10, 4 * 15, 5 * 20], 1e-1);
+    expectArraysClose(da, [1 * 1, 3 * 10, 4 * 15, 5 * 20]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [3 * 1, 1 * 10, 2 * 15, 3 * 20], 1e-1);
+    expectArraysClose(db, [3 * 1, 1 * 10, 2 * 15, 3 * 20]);
   });
 
   it('gradient: scalar * Tensor1D', () => {
@@ -431,11 +429,11 @@ describeWithFlags('mul', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [2 * 6, 2 * 7, 2 * 8, 2 * 9], 1e-1);
+    expectArraysClose(da, [2 * 6, 2 * 7, 2 * 8, 2 * 9]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [2 * 6 + 3 * 7 + 4 * 8 + 5 * 9], 1e-1);
+    expectArraysClose(db, [2 * 6 + 3 * 7 + 4 * 8 + 5 * 9]);
   });
 
   it('gradient: Tensor2D * Tensor2D w/ broadcast', () => {
@@ -448,11 +446,11 @@ describeWithFlags('mul', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [2 * 6 + 3 * 7, 4 * 8 + 5 * 9], 1e-1);
+    expectArraysClose(da, [2 * 6 + 3 * 7, 4 * 8 + 5 * 9]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [6 * 3, 7 * 3, 8 * 4, 9 * 4], 1e-1);
+    expectArraysClose(db, [6 * 3, 7 * 3, 8 * 4, 9 * 4]);
   });
 });
 
@@ -563,7 +561,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [2 * 5 * 3], 1e-1);
+    expectArraysClose(da, [2 * 5 * 3]);
   });
 
   it('gradients: Tensor ^ Tensor', () => {
@@ -705,11 +703,11 @@ describeWithFlags('add', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [7 + 8 + 9], 1e-1);
+    expectArraysClose(da, [7 + 8 + 9]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [7, 8, 9], 1e-1);
+    expectArraysClose(db, [7, 8, 9]);
   });
 
   it('gradient: 2D + 2D broadcast', () => {
@@ -722,11 +720,11 @@ describeWithFlags('add', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [5 + 4, 3 + 2], 1e-1);
+    expectArraysClose(da, [5 + 4, 3 + 2]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [5, 4, 3, 2], 1e-1);
+    expectArraysClose(db, [5, 4, 3, 2]);
   });
 });
 
@@ -859,11 +857,11 @@ describeWithFlags('sub', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1, 10, 20], 1e-1);
+    expectArraysClose(da, [1, 10, 20]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [-1, -10, -20], 1e-1);
+    expectArraysClose(db, [-1, -10, -20]);
   });
 
   it('gradients: basic 2D arrays', () => {
@@ -876,11 +874,11 @@ describeWithFlags('sub', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1, 10, 15, 20], 1e-1);
+    expectArraysClose(da, [1, 10, 15, 20]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [-1, -10, -15, -20], 1e-1);
+    expectArraysClose(db, [-1, -10, -15, -20]);
   });
 
   it('gradient: 1D - scalar broadcast', () => {
@@ -893,11 +891,11 @@ describeWithFlags('sub', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [7, 8, 9], 1e-1);
+    expectArraysClose(da, [7, 8, 9]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [-7 - 8 - 9], 1e-1);
+    expectArraysClose(db, [-7 - 8 - 9]);
   });
 
   it('gradient: scalar - 1D broadcast', () => {
@@ -910,11 +908,11 @@ describeWithFlags('sub', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [7 + 8 + 9], 1e-1);
+    expectArraysClose(da, [7 + 8 + 9]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [-7, -8, -9], 1e-1);
+    expectArraysClose(db, [-7, -8, -9]);
   });
 
   it('gradient: 2D - 2D broadcast', () => {
@@ -927,10 +925,10 @@ describeWithFlags('sub', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [5, 4, 3, 2], 1e-1);
+    expectArraysClose(da, [5, 4, 3, 2]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
-    expectArraysClose(db, [-5 - 4, -3 - 2], 1e-1);
+    expectArraysClose(db, [-5 - 4, -3 - 2]);
   });
 });

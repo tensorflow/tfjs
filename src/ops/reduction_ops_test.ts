@@ -450,7 +450,7 @@ describeWithFlags('sum', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [10, 10, 10, 10, 10, 10], 1e-1);
+    expectArraysClose(gradients, [10, 10, 10, 10, 10, 10]);
   });
 
   it('gradients: sum(2d, axis=0)', () => {
@@ -462,7 +462,7 @@ describeWithFlags('sum', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [10, 20, 10, 20, 10, 20], 1e-1);
+    expectArraysClose(gradients, [10, 20, 10, 20, 10, 20]);
   });
 
   it('gradients: sum(2d, axis=1)', () => {
@@ -474,7 +474,7 @@ describeWithFlags('sum', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [10, 10, 20, 20, 30, 30], 1e-1);
+    expectArraysClose(gradients, [10, 10, 20, 20, 30, 30]);
   });
 });
 

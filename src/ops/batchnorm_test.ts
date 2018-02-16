@@ -19,9 +19,6 @@ import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
-// TODO(nsthorat): Fix the precision for byte-packed batchnorm.
-const epsilon = 1e-1;
-
 describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
   it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {
     const x = dl.tensor4d([2, 100, 4, 400], [2, 1, 1, 2]);
@@ -32,19 +29,16 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
     const result = dl.batchNormalization4d(
         x, mean, variance, varianceEpsilon, undefined, undefined);
 
-    expectArraysClose(
-        result,
-        [
-          (x.get(0, 0, 0, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(0, 0, 0, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-          (x.get(1, 0, 0, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(1, 0, 0, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      (x.get(0, 0, 0, 0) - mean.get(0)) * 1 /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(0, 0, 0, 1) - mean.get(1)) * 1 /
+          Math.sqrt(variance.get(1) + varianceEpsilon),
+      (x.get(1, 0, 0, 0) - mean.get(0)) * 1 /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(1, 0, 0, 1) - mean.get(1)) * 1 /
+          Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm4D, no offset, 2x1x1x2', () => {
@@ -57,19 +51,16 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
     const result = dl.batchNormalization4d(
         x, mean, variance, varianceEpsilon, scale, undefined);
 
-    expectArraysClose(
-        result,
-        [
-          (x.get(0, 0, 0, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(0, 0, 0, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-          (x.get(1, 0, 0, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(1, 0, 0, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      (x.get(0, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(0, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+          Math.sqrt(variance.get(1) + varianceEpsilon),
+      (x.get(1, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(1, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+          Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm4D, no scale, 2x1x1x2', () => {
@@ -83,23 +74,20 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
     const result = dl.batchNormalization4d(
         x, mean, variance, varianceEpsilon, undefined, offset);
 
-    expectArraysClose(
-        result,
-        [
-          offset.get(0) +
-              (x.get(0, 0, 0, 0) - mean.get(0)) * 1 /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(0, 0, 0, 1) - mean.get(1)) * 1 /
-                  Math.sqrt(variance.get(1) + varianceEpsilon),
-          offset.get(0) +
-              (x.get(1, 0, 0, 0) - mean.get(0)) * 1 /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(1, 0, 0, 1) - mean.get(1)) * 1 /
-                  Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      offset.get(0) +
+          (x.get(0, 0, 0, 0) - mean.get(0)) * 1 /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(0, 0, 0, 1) - mean.get(1)) * 1 /
+              Math.sqrt(variance.get(1) + varianceEpsilon),
+      offset.get(0) +
+          (x.get(1, 0, 0, 0) - mean.get(0)) * 1 /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(1, 0, 0, 1) - mean.get(1)) * 1 /
+              Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm4D, 2x1x1x2', () => {
@@ -114,23 +102,20 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
     const result = dl.batchNormalization4d(
         x, mean, variance, varianceEpsilon, scale, offset);
 
-    expectArraysClose(
-        result,
-        [
-          offset.get(0) +
-              (x.get(0, 0, 0, 0) - mean.get(0)) * scale.get(0) /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(0, 0, 0, 1) - mean.get(1)) * scale.get(1) /
-                  Math.sqrt(variance.get(1) + varianceEpsilon),
-          offset.get(0) +
-              (x.get(1, 0, 0, 0) - mean.get(0)) * scale.get(0) /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(1, 0, 0, 1) - mean.get(1)) * scale.get(1) /
-                  Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      offset.get(0) +
+          (x.get(0, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(0, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+              Math.sqrt(variance.get(1) + varianceEpsilon),
+      offset.get(0) +
+          (x.get(1, 0, 0, 0) - mean.get(0)) * scale.get(0) /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(1, 0, 0, 1) - mean.get(1)) * scale.get(1) /
+              Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 });
 
@@ -144,19 +129,16 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     const result = dl.batchNormalization3d(
         x, mean, variance, varianceEpsilon, undefined, undefined);
 
-    expectArraysClose(
-        result,
-        [
-          (x.get(0, 0, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(0, 0, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-          (x.get(1, 0, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(1, 0, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      (x.get(0, 0, 0) - mean.get(0)) * 1 /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(0, 0, 1) - mean.get(1)) * 1 /
+          Math.sqrt(variance.get(1) + varianceEpsilon),
+      (x.get(1, 0, 0) - mean.get(0)) * 1 /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(1, 0, 1) - mean.get(1)) * 1 /
+          Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm3D, no offset, 2x1x2', () => {
@@ -169,19 +151,16 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     const result = dl.batchNormalization3d(
         x, mean, variance, varianceEpsilon, scale, undefined);
 
-    expectArraysClose(
-        result,
-        [
-          (x.get(0, 0, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(0, 0, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-          (x.get(1, 0, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      (x.get(0, 0, 0) - mean.get(0)) * scale.get(0) /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(0, 0, 1) - mean.get(1)) * scale.get(1) /
+          Math.sqrt(variance.get(1) + varianceEpsilon),
+      (x.get(1, 0, 0) - mean.get(0)) * scale.get(0) /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
+          Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm3D, no scale, 2x1x2', () => {
@@ -195,23 +174,20 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     const result = dl.batchNormalization3d(
         x, mean, variance, varianceEpsilon, undefined, offset);
 
-    expectArraysClose(
-        result,
-        [
-          offset.get(0) +
-              (x.get(0, 0, 0) - mean.get(0)) * 1 /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(0, 0, 1) - mean.get(1)) * 1 /
-                  Math.sqrt(variance.get(1) + varianceEpsilon),
-          offset.get(0) +
-              (x.get(1, 0, 0) - mean.get(0)) * 1 /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(1, 0, 1) - mean.get(1)) * 1 /
-                  Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      offset.get(0) +
+          (x.get(0, 0, 0) - mean.get(0)) * 1 /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(0, 0, 1) - mean.get(1)) * 1 /
+              Math.sqrt(variance.get(1) + varianceEpsilon),
+      offset.get(0) +
+          (x.get(1, 0, 0) - mean.get(0)) * 1 /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(1, 0, 1) - mean.get(1)) * 1 /
+              Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm3D, 2x1x2', () => {
@@ -226,23 +202,20 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
     const result = dl.batchNormalization3d(
         x, mean, variance, varianceEpsilon, scale, offset);
 
-    expectArraysClose(
-        result,
-        [
-          offset.get(0) +
-              (x.get(0, 0, 0) - mean.get(0)) * scale.get(0) /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(0, 0, 1) - mean.get(1)) * scale.get(1) /
-                  Math.sqrt(variance.get(1) + varianceEpsilon),
-          offset.get(0) +
-              (x.get(1, 0, 0) - mean.get(0)) * scale.get(0) /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
-                  Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      offset.get(0) +
+          (x.get(0, 0, 0) - mean.get(0)) * scale.get(0) /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(0, 0, 1) - mean.get(1)) * scale.get(1) /
+              Math.sqrt(variance.get(1) + varianceEpsilon),
+      offset.get(0) +
+          (x.get(1, 0, 0) - mean.get(0)) * scale.get(0) /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
+              Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('batchnorm matches tensorflow, 2x3x3', () => {
@@ -281,19 +254,16 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
     const result = dl.batchNormalization2d(
         x, mean, variance, varianceEpsilon, undefined, undefined);
 
-    expectArraysClose(
-        result,
-        [
-          (x.get(0, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(0, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-          (x.get(1, 0) - mean.get(0)) * 1 /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(1, 1) - mean.get(1)) * 1 /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      (x.get(0, 0) - mean.get(0)) * 1 /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(0, 1) - mean.get(1)) * 1 /
+          Math.sqrt(variance.get(1) + varianceEpsilon),
+      (x.get(1, 0) - mean.get(0)) * 1 /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(1, 1) - mean.get(1)) * 1 /
+          Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
   it('simple batchnorm2D, no offset, 2x2', () => {
     const x = dl.tensor2d([2, 100, 4, 400], [2, 2]);
@@ -305,19 +275,16 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
     const result = dl.batchNormalization2d(
         x, mean, variance, varianceEpsilon, scale, undefined);
 
-    expectArraysClose(
-        result,
-        [
-          (x.get(0, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(0, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon),
-          (x.get(1, 0) - mean.get(0)) * scale.get(0) /
-              Math.sqrt(variance.get(0) + varianceEpsilon),
-          (x.get(1, 1) - mean.get(1)) * scale.get(1) /
-              Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      (x.get(0, 0) - mean.get(0)) * scale.get(0) /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(0, 1) - mean.get(1)) * scale.get(1) /
+          Math.sqrt(variance.get(1) + varianceEpsilon),
+      (x.get(1, 0) - mean.get(0)) * scale.get(0) /
+          Math.sqrt(variance.get(0) + varianceEpsilon),
+      (x.get(1, 1) - mean.get(1)) * scale.get(1) /
+          Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm2D, no scale, 2x2', () => {
@@ -331,23 +298,20 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
     const result = dl.batchNormalization2d(
         x, mean, variance, varianceEpsilon, undefined, offset);
 
-    expectArraysClose(
-        result,
-        [
-          offset.get(0) +
-              (x.get(0, 0) - mean.get(0)) * 1 /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(0, 1) - mean.get(1)) * 1 /
-                  Math.sqrt(variance.get(1) + varianceEpsilon),
-          offset.get(0) +
-              (x.get(1, 0) - mean.get(0)) * 1 /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(1, 1) - mean.get(1)) * 1 /
-                  Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      offset.get(0) +
+          (x.get(0, 0) - mean.get(0)) * 1 /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(0, 1) - mean.get(1)) * 1 /
+              Math.sqrt(variance.get(1) + varianceEpsilon),
+      offset.get(0) +
+          (x.get(1, 0) - mean.get(0)) * 1 /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(1, 1) - mean.get(1)) * 1 /
+              Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('simple batchnorm2D, 2x2', () => {
@@ -362,23 +326,20 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
     const result = dl.batchNormalization2d(
         x, mean, variance, varianceEpsilon, scale, offset);
 
-    expectArraysClose(
-        result,
-        [
-          offset.get(0) +
-              (x.get(0, 0) - mean.get(0)) * scale.get(0) /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(0, 1) - mean.get(1)) * scale.get(1) /
-                  Math.sqrt(variance.get(1) + varianceEpsilon),
-          offset.get(0) +
-              (x.get(1, 0) - mean.get(0)) * scale.get(0) /
-                  Math.sqrt(variance.get(0) + varianceEpsilon),
-          offset.get(1) +
-              (x.get(1, 1) - mean.get(1)) * scale.get(1) /
-                  Math.sqrt(variance.get(1) + varianceEpsilon)
-        ],
-        epsilon);
+    expectArraysClose(result, [
+      offset.get(0) +
+          (x.get(0, 0) - mean.get(0)) * scale.get(0) /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(0, 1) - mean.get(1)) * scale.get(1) /
+              Math.sqrt(variance.get(1) + varianceEpsilon),
+      offset.get(0) +
+          (x.get(1, 0) - mean.get(0)) * scale.get(0) /
+              Math.sqrt(variance.get(0) + varianceEpsilon),
+      offset.get(1) +
+          (x.get(1, 1) - mean.get(1)) * scale.get(1) /
+              Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
   });
 
   it('batchnorm2D matches tensorflow, 3x3', () => {

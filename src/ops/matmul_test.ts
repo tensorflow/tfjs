@@ -234,7 +234,6 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
-  // TODO(nsthorat): fix the precision for backprop.
   it('gradients: A * B', () => {
     const a = dl.tensor2d([1, 2, 3, 10, 20, 30], [2, 3]);
     const b = dl.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
@@ -264,17 +263,14 @@ describeWithFlags('matmul', ALL_ENVS, () => {
 
     // db = aT * dy
     expect(db.shape).toEqual(b.shape);
-    expectArraysClose(
-        db,
-        [
-          a.get(0, 0) * dy.get(0, 0) + a.get(1, 0) * dy.get(1, 0),
-          a.get(0, 0) * dy.get(0, 1) + a.get(1, 0) * dy.get(1, 1),
-          a.get(0, 1) * dy.get(0, 0) + a.get(1, 1) * dy.get(1, 0),
-          a.get(0, 1) * dy.get(0, 1) + a.get(1, 1) * dy.get(1, 1),
-          a.get(0, 2) * dy.get(0, 0) + a.get(1, 2) * dy.get(1, 0),
-          a.get(0, 2) * dy.get(0, 1) + a.get(1, 2) * dy.get(1, 1)
-        ],
-        1e-1);
+    expectArraysClose(db, [
+      a.get(0, 0) * dy.get(0, 0) + a.get(1, 0) * dy.get(1, 0),
+      a.get(0, 0) * dy.get(0, 1) + a.get(1, 0) * dy.get(1, 1),
+      a.get(0, 1) * dy.get(0, 0) + a.get(1, 1) * dy.get(1, 0),
+      a.get(0, 1) * dy.get(0, 1) + a.get(1, 1) * dy.get(1, 1),
+      a.get(0, 2) * dy.get(0, 0) + a.get(1, 2) * dy.get(1, 0),
+      a.get(0, 2) * dy.get(0, 1) + a.get(1, 2) * dy.get(1, 1)
+    ]);
   });
 });
 

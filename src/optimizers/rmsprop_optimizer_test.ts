@@ -69,7 +69,9 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     // accumulatedMoments = [0.44721, 0.44721]
     // newAccumulatedMoments = [0.26534, 0.32336]
     // x = [0.28745, 1.22943]
-    expectArraysClose(x, [0.28745, 1.222943]);
+
+    // TODO: Fix numerical precision.
+    expectArraysClose(x, [0.28745, 1.222943], 1e-2);
 
     // There should be no new additional Tensors.
     expect(dl.memory().numTensors).toBe(numTensors);
@@ -122,8 +124,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
       //    w1_old - moment_w1,
       //    w2_old - moment_w2
       // ] = [-0.44721358, -0.4472136]
-      expectArraysClose(
-          dydw, new Float32Array([-0.44721358, -0.4472136]), 1e-2);
+      expectArraysClose(dydw, new Float32Array([-0.44721358, -0.4472136]));
 
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw2 = session.activationArrayMap.get(w).dataSync();
@@ -145,7 +146,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
       //    w1_old - moment_w1,
       //    w2_old - moment_w2
       // ] = [-0.812191, -0.812191]
-      expectArraysClose(dydw2, new Float32Array([-0.812191, -0.812191]), 1e-1);
+      expectArraysClose(dydw2, new Float32Array([-0.812191, -0.812191]));
     });
   });
 });

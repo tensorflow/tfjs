@@ -156,7 +156,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
       //
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(dydw, new Float32Array([-0.1, -0.1]), 1e-1);
+      expectArraysClose(dydw, new Float32Array([-0.1, -0.1]));
 
       // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
       // new_first_m = [beta1*old_first_m_w1 + (1-beta1)*grad_w1,
@@ -180,7 +180,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw2 = session.activationArrayMap.get(w).dataSync();
       expectArraysClose(
-          dydw2, new Float32Array([-0.1909090909, -0.1909090909]), 1e-2);
+          dydw2, new Float32Array([-0.1909090909, -0.1909090909]));
     });
   });
 });

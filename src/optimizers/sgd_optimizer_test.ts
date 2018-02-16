@@ -77,6 +77,6 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
     // dw/dx = [2*x_1 + 1, 2*x_2 + 1]
     session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer);
     const dwdx = session.gradientArrayMap.get(x).dataSync();
-    expectArraysClose(dwdx, new Float32Array([5, 9]), 1e-1);
+    expectArraysClose(dwdx, new Float32Array([5, 9]));
   });
 });
