@@ -93,8 +93,7 @@ describeWithFlags('relu', ALL_ENVS, () => {
   });
 
   it('gradients: array', () => {
-    // TODO(nsthorat): Use 0 instead of -.001 when we fix the precision
-    const a = dl.tensor2d([1, -1, -.001, .1], [2, 2]);
+    const a = dl.tensor2d([1, -1, 0, .1], [2, 2]);
     const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
 
     const grad = dl.grad(a => dl.relu(a));
@@ -127,7 +126,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [8 * 1], 1e-1);
+    expectArraysClose(da, [8 * 1]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -138,7 +137,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1 * 1, 2 * 1, 3 * -1, 4 * 1], 1e-1);
+    expectArraysClose(da, [1 * 1, 2 * 1, 3 * -1, 4 * 1]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -149,7 +148,7 @@ describeWithFlags('abs', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1 * 1, 2 * -1, 3 * -1, 4 * 1], 1e-1);
+    expectArraysClose(da, [1 * 1, 2 * -1, 3 * -1, 4 * 1]);
   });
 });
 
@@ -187,7 +186,7 @@ describeWithFlags('step', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0], 1e-1);
+    expectArraysClose(gradients, [0]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -198,7 +197,7 @@ describeWithFlags('step', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    expectArraysClose(gradients, [0, 0, 0, 0]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -209,7 +208,7 @@ describeWithFlags('step', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    expectArraysClose(gradients, [0, 0, 0, 0]);
   });
 });
 
@@ -235,7 +234,7 @@ describeWithFlags('neg', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [8 * -1], 1e-1);
+    expectArraysClose(da, [8 * -1]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -246,7 +245,7 @@ describeWithFlags('neg', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1 * -1, 2 * -1, 3 * -1, 4 * -1], 1e-1);
+    expectArraysClose(da, [1 * -1, 2 * -1, 3 * -1, 4 * -1]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -257,7 +256,7 @@ describeWithFlags('neg', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [1 * -1, 2 * -1, 3 * -1, 4 * -1], 1e-1);
+    expectArraysClose(da, [1 * -1, 2 * -1, 3 * -1, 4 * -1]);
   });
 });
 
@@ -293,7 +292,7 @@ describeWithFlags('sigmoid', ALL_ENVS, () => {
       expected[i] = dy.get(i) * y * (1 - y);
     }
 
-    expectArraysClose(da, expected, 1e-2);
+    expectArraysClose(da, expected);
   });
 });
 
@@ -319,7 +318,7 @@ describeWithFlags('sqrt', ALL_ENVS, () => {
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
-    expectArraysClose(da, [8 / (2 * Math.sqrt(4))], 1e-1);
+    expectArraysClose(da, [8 / (2 * Math.sqrt(4))]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -385,7 +384,7 @@ describeWithFlags('square', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [2 * 5 * 8], 1e-1);
+    expectArraysClose(gradients, [2 * 5 * 8]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -396,7 +395,7 @@ describeWithFlags('square', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [-2, 4 * 2, 6 * 3, -10 * 4], 1e-1);
+    expectArraysClose(gradients, [-2, 4 * 2, 6 * 3, -10 * 4]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -407,7 +406,7 @@ describeWithFlags('square', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [-6 * 1, 2 * 2, 4 * 3, 6 * 4], 1e-1);
+    expectArraysClose(gradients, [-6 * 1, 2 * 2, 4 * 3, 6 * 4]);
   });
 });
 
@@ -433,7 +432,7 @@ describeWithFlags('log', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [3 / 5], 1e-1);
+    expectArraysClose(gradients, [3 / 5]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -444,7 +443,7 @@ describeWithFlags('log', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [1 / -1, 2 / 2, 3 / 3, 4 / -5], 1e-1);
+    expectArraysClose(gradients, [1 / -1, 2 / 2, 3 / 3, 4 / -5]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -455,7 +454,7 @@ describeWithFlags('log', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [1 / -3, 2 / 1, 3 / 2, 4 / 3], 1e-1);
+    expectArraysClose(gradients, [1 / -3, 2 / 1, 3 / 2, 4 / 3]);
   });
 });
 
@@ -482,7 +481,7 @@ describeWithFlags('ceil', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0], 1e-1);
+    expectArraysClose(gradients, [0]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -493,7 +492,7 @@ describeWithFlags('ceil', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    expectArraysClose(gradients, [0, 0, 0, 0]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -504,7 +503,7 @@ describeWithFlags('ceil', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    expectArraysClose(gradients, [0, 0, 0, 0]);
   });
 });
 
@@ -532,7 +531,7 @@ describeWithFlags('floor', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0], 1e-1);
+    expectArraysClose(gradients, [0]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -543,7 +542,7 @@ describeWithFlags('floor', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    expectArraysClose(gradients, [0, 0, 0, 0]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -554,7 +553,7 @@ describeWithFlags('floor', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0, 0, 0, 0], 1e-1);
+    expectArraysClose(gradients, [0, 0, 0, 0]);
   });
 });
 
@@ -582,7 +581,7 @@ describeWithFlags('exp', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [3 * Math.exp(0.5)], 1e-1);
+    expectArraysClose(gradients, [3 * Math.exp(0.5)]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -641,7 +640,7 @@ describeWithFlags('sin', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 * Math.cos(5)], 1e-1);
+    expectArraysClose(gradients, [8 * Math.cos(5)]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -700,7 +699,7 @@ describeWithFlags('cos', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 * Math.sin(5) * -1], 1e-1);
+    expectArraysClose(gradients, [8 * Math.sin(5) * -1]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -748,7 +747,7 @@ describeWithFlags('tan', ALL_ENVS, () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = Math.tan(values[i]);
     }
-    expectArraysClose(result, expected, 1e-1);
+    expectArraysClose(result, expected);
   });
 
   it('propagates NaNs', () => {
@@ -765,7 +764,7 @@ describeWithFlags('tan', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 / (Math.cos(0.5) * Math.cos(0.5))], 1e-1);
+    expectArraysClose(gradients, [8 / (Math.cos(0.5) * Math.cos(0.5))]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -783,7 +782,7 @@ describeWithFlags('tan', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -801,7 +800,7 @@ describeWithFlags('tan', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
@@ -832,7 +831,7 @@ describeWithFlags('asin', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 / Math.sqrt(1 - (0.5 * 0.5))], 1e-1);
+    expectArraysClose(gradients, [8 / Math.sqrt(1 - (0.5 * 0.5))]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -850,7 +849,7 @@ describeWithFlags('asin', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -868,7 +867,7 @@ describeWithFlags('asin', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
@@ -882,8 +881,7 @@ describeWithFlags('acos', ALL_ENVS, () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = Math.acos(values[i]);
     }
-    // TODO(nsthorat): Fix the precision with byte textures here.
-    expectArraysClose(result, expected, 1e-1);
+    expectArraysClose(result, expected);
   });
 
   it('propagates NaNs', () => {
@@ -900,7 +898,7 @@ describeWithFlags('acos', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [(-1 * 8) / Math.sqrt(1 - (0.5 * 0.5))], 1e-1);
+    expectArraysClose(gradients, [(-1 * 8) / Math.sqrt(1 - (0.5 * 0.5))]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -919,7 +917,7 @@ describeWithFlags('acos', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -938,7 +936,7 @@ describeWithFlags('acos', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
@@ -952,7 +950,7 @@ describeWithFlags('atan', ALL_ENVS, () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = Math.atan(values[i]);
     }
-    expectArraysClose(result, expected, 1e-3);
+    expectArraysClose(result, expected);
   });
 
   it('propagates NaNs', () => {
@@ -969,7 +967,7 @@ describeWithFlags('atan', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 / (1 + (0.5 * 0.5))], 1e-1);
+    expectArraysClose(gradients, [8 / (1 + (0.5 * 0.5))]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -987,7 +985,7 @@ describeWithFlags('atan', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -1005,14 +1003,11 @@ describeWithFlags('atan', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
 describeWithFlags('sinh', ALL_ENVS, () => {
-  // TODO(nsthorat): Fix the precision problem here.
-  const epsilon = 1e-1;
-
   it('basic', () => {
     const values = [1, -3, 2, 7, -4];
     const a = dl.tensor1d(values);
@@ -1022,13 +1017,13 @@ describeWithFlags('sinh', ALL_ENVS, () => {
     for (let i = 0; i < a.size; i++) {
       expected[i] = Math.sinh(values[i]);
     }
-    expectArraysClose(result, expected, epsilon);
+    expectArraysClose(result, expected);
   });
 
   it('propagates NaNs', () => {
     const a = dl.tensor1d([4, NaN, 0]);
     const res = dl.sinh(a);
-    expectArraysClose(res, [Math.sinh(4), NaN, Math.sinh(0)], epsilon);
+    expectArraysClose(res, [Math.sinh(4), NaN, Math.sinh(0)]);
   });
 
   it('gradients: Scalar', () => {
@@ -1039,7 +1034,7 @@ describeWithFlags('sinh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 * Math.cosh(0.5)], 1e-1);
+    expectArraysClose(gradients, [8 * Math.cosh(0.5)]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -1057,7 +1052,7 @@ describeWithFlags('sinh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -1075,14 +1070,11 @@ describeWithFlags('sinh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
 describeWithFlags('cosh', ALL_ENVS, () => {
-  // TODO(nsthorat): Fix the precision problem here.
-  const epsilon = 1e-1;
-
   it('basic', () => {
     const values = [1, -3, 2, -1, -4];
     const a = dl.tensor1d(values);
@@ -1094,13 +1086,13 @@ describeWithFlags('cosh', ALL_ENVS, () => {
     }
 
     // TODO(nsthorat): Fix the precision problem here.
-    expectArraysClose(result, expected, epsilon);
+    expectArraysClose(result, expected);
   });
 
   it('propagates NaNs', () => {
     const a = dl.tensor1d([4, NaN, 0]);
     const res = dl.cosh(a);
-    expectArraysClose(res, [Math.cosh(4), NaN, Math.cosh(0)], epsilon);
+    expectArraysClose(res, [Math.cosh(4), NaN, Math.cosh(0)]);
   });
 
   it('gradients: Scalar', () => {
@@ -1111,7 +1103,7 @@ describeWithFlags('cosh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 * Math.sinh(0.5)], 1e-1);
+    expectArraysClose(gradients, [8 * Math.sinh(0.5)]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -1129,7 +1121,7 @@ describeWithFlags('cosh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -1147,7 +1139,7 @@ describeWithFlags('cosh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
@@ -1178,8 +1170,7 @@ describeWithFlags('tanh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(
-        gradients, [8 * (1 - (Math.tanh(0.5) * Math.tanh(0.5)))], 1e-1);
+    expectArraysClose(gradients, [8 * (1 - (Math.tanh(0.5) * Math.tanh(0.5)))]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -1198,7 +1189,7 @@ describeWithFlags('tanh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -1217,7 +1208,7 @@ describeWithFlags('tanh', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
@@ -1247,7 +1238,7 @@ describeWithFlags('leakyRelu', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [8 * alpha], 1e-1);
+    expectArraysClose(gradients, [8 * alpha]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -1263,7 +1254,7 @@ describeWithFlags('leakyRelu', ALL_ENVS, () => {
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
 
-    expectArraysClose(gradients, [1, 2 * alpha, 3], 1e-1);
+    expectArraysClose(gradients, [1, 2 * alpha, 3]);
   });
 
   it('gradients: Tensor2D', () => {
@@ -1279,7 +1270,7 @@ describeWithFlags('leakyRelu', ALL_ENVS, () => {
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
 
-    expectArraysClose(gradients, [1, 2 * alpha, 3, 4], 1e-1);
+    expectArraysClose(gradients, [1, 2 * alpha, 3, 4]);
   });
 });
 
@@ -1306,7 +1297,7 @@ describeWithFlags('elu', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [5, 50, 500 * Math.exp(-2)], 1e-1);
+    expectArraysClose(gradients, [5, 50, 500 * Math.exp(-2)]);
   });
 });
 
@@ -1339,7 +1330,7 @@ describeWithFlags('selu', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [dyValue * scale], 1e-1);
+    expectArraysClose(gradients, [dyValue * scale]);
 
     aValue = -1;
     dyValue = 2;
@@ -1350,8 +1341,7 @@ describeWithFlags('selu', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(
-        gradients, [dyValue * scaleAlpha * Math.exp(aValue)], 1e-1);
+    expectArraysClose(gradients, [dyValue * scaleAlpha * Math.exp(aValue)]);
   });
 
   it('gradients: Tensor1D', () => {
@@ -1373,7 +1363,7 @@ describeWithFlags('selu', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 
   it('gradients: Tensor2D', () => {
@@ -1395,7 +1385,7 @@ describeWithFlags('selu', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, expected, 1e-1);
+    expectArraysClose(gradients, expected);
   });
 });
 
@@ -1440,7 +1430,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0, 0, 500], 1e-1);
+    expectArraysClose(gradients, [0, 0, 500]);
   });
 
   it('derivative: scalar', () => {
@@ -1452,6 +1442,6 @@ describeWithFlags('clip', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(x.shape);
     expect(gradients.dtype).toEqual('float32');
-    expectArraysClose(gradients, [0], 1e-1);
+    expectArraysClose(gradients, [0]);
   });
 });

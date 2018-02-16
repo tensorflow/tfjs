@@ -218,13 +218,13 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     expect(da.shape).toEqual(a.shape);
     let transposeA = false;
     let transposeB = true;
-    expectArraysClose(da, dl.matMul(dedm, b, transposeA, transposeB), 1e-1);
+    expectArraysClose(da, dl.matMul(dedm, b, transposeA, transposeB));
 
     // de/db = dot(aT, de/dy)
     expect(db.shape).toEqual(b.shape);
     transposeA = true;
     transposeB = false;
-    expectArraysClose(db, dl.matMul(a, dedm, transposeA, transposeB), 1e-1);
+    expectArraysClose(db, dl.matMul(a, dedm, transposeA, transposeB));
   });
 
   it('grad(f)', () => {
@@ -330,7 +330,7 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
           return dl.sum(y);
         })([a, b]);
 
-    expectNumbersClose(value.get(), 10, 1e-1);
+    expectNumbersClose(value.get(), 10);
 
     // de/dy = 1
     // dy/dm = step(m)
@@ -341,12 +341,12 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     // de/da = dot(de/dy, bT)
     let transposeA = false;
     let transposeB = true;
-    expectArraysClose(da, dl.matMul(dedm, b, transposeA, transposeB), 1e-1);
+    expectArraysClose(da, dl.matMul(dedm, b, transposeA, transposeB));
 
     // de/db = dot(aT, de/dy)
     transposeA = true;
     transposeB = false;
-    expectArraysClose(db, dl.matMul(a, dedm, transposeA, transposeB), 1e-1);
+    expectArraysClose(db, dl.matMul(a, dedm, transposeA, transposeB));
   });
 
   it('matmul + relu + inner tidy', () => {
@@ -365,7 +365,7 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
           });
         })([a, b]);
 
-    expectNumbersClose(value.get(), 10, 1e-1);
+    expectNumbersClose(value.get(), 10);
 
     // de/dy = 1
     // dy/dm = step(m)
@@ -376,12 +376,12 @@ describeWithFlags('valueAndGradients', ALL_ENVS, () => {
     // de/da = dot(de/dy, bT)
     let transposeA = false;
     let transposeB = true;
-    expectArraysClose(da, dl.matMul(dedm, b, transposeA, transposeB), 1e-1);
+    expectArraysClose(da, dl.matMul(dedm, b, transposeA, transposeB));
 
     // de/db = dot(aT, de/dy)
     transposeA = true;
     transposeB = false;
-    expectArraysClose(db, dl.matMul(a, dedm, transposeA, transposeB), 1e-1);
+    expectArraysClose(db, dl.matMul(a, dedm, transposeA, transposeB));
   });
 });
 

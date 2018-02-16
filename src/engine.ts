@@ -80,7 +80,7 @@ export class Engine implements TensorManager {
   private profiler: Profiler;
 
   constructor(
-      public backend: KernelBackend, private customBackend: boolean,
+      private backend: KernelBackend, private customBackend: boolean,
       public safeMode: boolean) {
     // Create a default outer scope.
     this.activeScope = {keep: [], track: []};

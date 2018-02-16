@@ -122,7 +122,7 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
       //
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(dydw, new Float32Array([-0.1, -0.1]), 1e-2);
+      expectArraysClose(dydw, new Float32Array([-0.1, -0.1]));
       // new_first_m = [beta1*old_first_m_w1 + (1-beta1)*grad_w1,
       //                beta1*old_first_m_w2 + (1-beta1)*grad_w2]
       //             = [0.8*0.4 + 0.2*2, 0.8*0.8 + 0.2*4]
@@ -140,7 +140,7 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
       //            = [-0.2, -0.2]
       session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
       const dydw2 = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(dydw2, new Float32Array([-.2, -.2]), 1e-2);
+      expectArraysClose(dydw2, new Float32Array([-.2, -.2]));
     });
   });
 });

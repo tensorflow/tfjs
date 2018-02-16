@@ -22,27 +22,22 @@ import {Tensor} from './tensor';
 import {DataType, TypedArray} from './types';
 import * as util from './util';
 
-const WEBGL_FLOAT_ENVS: Features[] = [
+export const WEBGL_ENVS: Features[] = [
   {'BACKEND': 'webgl', 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {
-    'BACKEND': 'webgl',
-    'WEBGL_FLOAT_TEXTURE_ENABLED': true,
-    'WEBGL_VERSION': 2
-  }
+  {'BACKEND': 'webgl', 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
+  // TODO(nsthorat,smilkov): Enable when byte-backed textures are fixed.
+  // {
+  // 'BACKEND': 'webgl',
+  // 'WEBGL_FLOAT_TEXTURE_ENABLED': false,
+  // 'WEBGL_VERSION': 1
+  // }
 ];
-export const WEBGL_ENVS = WEBGL_FLOAT_ENVS.concat([{
-  'BACKEND': 'webgl',
-  'WEBGL_FLOAT_TEXTURE_ENABLED': false,
-  'WEBGL_VERSION': 1
-}]);
+
 export const CPU_ENVS: Features[] = [{'BACKEND': 'cpu'}];
-export const ALL_FLOAT_ENVS = WEBGL_FLOAT_ENVS.concat(CPU_ENVS);
 export const ALL_ENVS = WEBGL_ENVS.concat(CPU_ENVS);
 
 /** Accuracy for tests. */
-// TODO(nsthorat || smilkov): Fix this low precision for byte-backed
-// textures.
-export const TEST_EPSILON = 1e-2;
+export const TEST_EPSILON = 1e-3;
 
 export function expectArraysClose(
     actual: Tensor|TypedArray|number[],

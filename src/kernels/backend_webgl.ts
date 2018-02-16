@@ -1004,16 +1004,6 @@ export class NDArrayMathGPU extends NDArrayMath {
         'dl.setBackend(\'webgl\').');
     super(new MathBackendWebGL(gpgpu), safeMode);
   }
-
-  // TODO(smilkov): Remove these two methods (used only in tests), and make
-  // engine.backend private.
-  getGPGPUContext(): GPGPUContext {
-    return (this.engine.backend as MathBackendWebGL).getGPGPUContext();
-  }
-
-  getTextureManager(): TextureManager {
-    return (this.engine.backend as MathBackendWebGL).getTextureManager();
-  }
 }
 
 function float32ToTypedArray<D extends DataType>(
