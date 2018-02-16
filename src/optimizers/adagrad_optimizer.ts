@@ -24,7 +24,6 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
 import {NDArrayMath} from '../math';
 import {fill, scalar} from '../ops/ops';
 import {Scalar, Tensor} from '../tensor';
-import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 
 import {Optimizer} from './optimizer';
@@ -51,8 +50,9 @@ export class AdagradOptimizer extends Optimizer {
       if (this.accumulatedGrads[variableName] == null) {
         const trainable = false;
         tidy(() => {
-          this.accumulatedGrads[variableName] = variable(
-              fill(value.shape, this.initialAccumulatorValue), trainable);
+          this.accumulatedGrads[variableName] =
+              fill(value.shape, this.initialAccumulatorValue)
+                  .variable(trainable);
         });
       }
 

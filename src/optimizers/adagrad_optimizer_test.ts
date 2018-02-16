@@ -29,7 +29,7 @@ describeWithFlags('AdagradOptimizer', ALL_ENVS, () => {
     const initialAccumulatorValue = .1;
     const optimizer = dl.train.adagrad(learningRate, initialAccumulatorValue);
 
-    const x = dl.variable(dl.tensor1d([1, 2]));
+    const x = dl.tensor1d([1, 2]).variable();
 
     const f = () => x.square().sum() as dl.Scalar;
 

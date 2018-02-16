@@ -29,7 +29,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     const momentum = .5;
     const optimizer = dl.train.momentum(learningRate, momentum);
 
-    const x = dl.variable(dl.tensor1d([1, 2]));
+    const x = dl.tensor1d([1, 2]).variable();
 
     const f = () => x.square().sum() as dl.Scalar;
 

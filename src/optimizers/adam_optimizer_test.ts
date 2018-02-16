@@ -29,7 +29,7 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
     const beta2 = .9;
     const optimizer = dl.train.adam(learningRate, beta1, beta2);
 
-    const x = dl.variable(dl.tensor1d([2, 4]));
+    const x = dl.tensor1d([2, 4]).variable();
 
     const f = () => x.square().sum() as dl.Scalar;
 

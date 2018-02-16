@@ -16,7 +16,7 @@
  */
 
 import * as dl from '../index';
-import {variable, Variable} from '../tensor';
+import {Variable} from '../tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {SGDOptimizer} from './sgd_optimizer';
@@ -26,9 +26,9 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = dl.train.sgd(learningRate);
 
-    const x = variable(dl.scalar(4));
-    const bias = variable(dl.scalar(1));
-    const strayVariable = variable(dl.scalar(-1));
+    const x = dl.scalar(4).variable();
+    const bias = dl.scalar(1).variable();
+    const strayVariable = dl.scalar(-1).variable();
 
     let numTensors = dl.memory().numTensors;
 
@@ -76,9 +76,9 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = dl.variable(dl.scalar(4));
-    const bias = variable(dl.scalar(1));
-    const strayVariable = variable(dl.scalar(-1));
+    const x = dl.scalar(4).variable();
+    const bias = dl.scalar(1).variable();
+    const strayVariable = dl.scalar(-1).variable();
     const varList = [x, bias];
 
     const f = () => x.square().addStrict(bias);
@@ -110,10 +110,10 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(dl.scalar(4));
-    const bias = variable(dl.scalar(1));
+    const x = dl.scalar(4).variable();
+    const bias = dl.scalar(1).variable();
     // Stray variable.
-    variable(dl.scalar(-1));
+    dl.scalar(-1).variable();
     const varList: Variable[] = [];
 
     const f = () => x.square().addStrict(bias);
@@ -126,9 +126,9 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(dl.scalar(4));
-    const bias = variable(dl.scalar(1));
-    const strayVariable = variable(dl.scalar(-1));
+    const x = dl.scalar(4).variable();
+    const bias = dl.scalar(1).variable();
+    const strayVariable = dl.scalar(-1).variable();
     const varList = [x];
 
     const f = () => x.square().addStrict(bias);
@@ -160,9 +160,9 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const optimizer = new SGDOptimizer(learningRate);
 
     const trainable = false;
-    const x = variable(dl.scalar(4), trainable);
-    const bias = variable(dl.scalar(1));
-    const strayVariable = variable(dl.scalar(-1));
+    const x = dl.scalar(4).variable(trainable);
+    const bias = dl.scalar(1).variable();
+    const strayVariable = dl.scalar(-1).variable();
 
     const f = () => x.square().addStrict(bias);
 
@@ -193,10 +193,10 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const optimizer = new SGDOptimizer(learningRate);
 
     const trainable = false;
-    const x = variable(dl.scalar(4), trainable);
-    const bias = variable(dl.scalar(1));
+    const x = dl.scalar(4).variable(trainable);
+    const bias = dl.scalar(1).variable();
     // stray variable.
-    variable(dl.scalar(-1));
+    dl.scalar(-1).variable();
     const varList = [x];
 
     const f = () => x.square().addStrict(bias);
@@ -209,7 +209,7 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = variable(dl.tensor1d([1, 2]));
+    const x = dl.tensor1d([1, 2]).variable();
     const f = () => x.square();
 
     // tslint:disable-next-line:no-any
