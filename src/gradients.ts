@@ -42,7 +42,7 @@ export class Gradients {
   }
 
   /**
-   * Provided `f(x)`, returns another function `g(x, dy?), which gives the
+   * Provided `f(x)`, returns another function `g(x, dy?)`, which gives the
    * gradient of `f(x)` with respect to `x`.
    *
    * If `dy` is provided, the gradient of `f(x).mul(dy).sum()` with respect to

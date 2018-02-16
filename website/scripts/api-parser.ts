@@ -110,7 +110,10 @@ export function parse():
       the TensorFlow Eager API.
       </p>`,
       subheadings: [
-        {name: 'Gradients'},
+        {
+          name: 'Gradients',
+          pin: ['grad', 'grads', 'valAndGrad', 'valAndGrads', 'customGrad']
+        },
         {name: 'Optimizers', pin: ['sgd', 'momentum', 'adagrad', 'adadelta']},
         {name: 'Losses'}, {name: 'Classes'}
       ]
