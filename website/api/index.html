@@ -41,6 +41,34 @@
       flex-direction: column;
     }
 
+    @media (max-width: 599px) {
+      body .container {
+        flex-direction: column;
+      }
+
+      body .container .content-area {
+        flex-direction: column;
+        height:auto;
+        width:100vw;
+      }
+
+      body .container .content-area .toc {
+        height:auto;
+        width:100vw;
+        max-width: 100vw;
+        overflow-y: auto;
+        overflow-x: auto;
+      }
+
+      body .container .content-area .reference {
+        height:auto;
+        width:100vw;
+        overflow-y: auto;
+        overflow-x: auto;
+        margin-left: 0;
+      }
+     }
+
     .container nav {
       position: fixed;
       border-bottom: 1px solid lightgrey;
@@ -50,6 +78,7 @@
       width: 100%;
       height: 32px;
       background-color: rgb(96,125,139);
+      z-index: 100;
     }
 
     .container nav a {
