@@ -24,7 +24,6 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
 import {NDArrayMath} from '../math';
 import {scalar, zerosLike} from '../ops/ops';
 import {Scalar, Tensor, Variable} from '../tensor';
-import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 
 import {Optimizer} from './optimizer';
@@ -57,8 +56,8 @@ export class AdamaxOptimizer extends Optimizer {
     this.decay = keep(scalar(decay));
 
     tidy(() => {
-      this.iteration = variable(scalar(0));
-      this.accBeta1 = variable(scalar(beta1));
+      this.iteration = scalar(0).variable();
+      this.accBeta1 = scalar(beta1).variable();
     });
 
     this.oneMinusBeta1 = keep(scalar(1 - beta1));
@@ -75,12 +74,12 @@ export class AdamaxOptimizer extends Optimizer {
         if (this.accumulatedFirstMoment[variableName] == null) {
           const trainable = false;
           this.accumulatedFirstMoment[variableName] =
-              variable(zerosLike(value), trainable);
+              zerosLike(value).variable(trainable);
         }
         if (this.accumulatedWeightedInfNorm[variableName] == null) {
           const trainable = false;
           this.accumulatedWeightedInfNorm[variableName] =
-              variable(zerosLike(value), trainable);
+              zerosLike(value).variable(trainable);
         }
 
         const gradient = variableGradients[variableName];

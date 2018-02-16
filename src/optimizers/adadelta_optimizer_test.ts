@@ -29,7 +29,7 @@ describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
     const rho = .95;
     const optimizer = dl.train.adadelta(learningRate, rho);
 
-    const x = dl.variable(dl.tensor1d([1, 2]));
+    const x = dl.tensor1d([1, 2]).variable();
 
     const f = () => x.square().sum() as dl.Scalar;
 

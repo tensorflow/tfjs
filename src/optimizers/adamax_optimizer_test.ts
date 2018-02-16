@@ -32,7 +32,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     const optimizer =
         dl.train.adamax(learningRate, beta1, beta2, undefined, decay);
 
-    const x = dl.variable(dl.tensor1d([2, 4]));
+    const x = dl.tensor1d([2, 4]).variable();
 
     const f = () => x.square().sum() as dl.Scalar;
 

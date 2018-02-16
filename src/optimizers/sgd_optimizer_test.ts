@@ -18,7 +18,6 @@ import {InputProvider} from '../data/input_provider';
 import {Graph} from '../graph/graph';
 import {Session} from '../graph/session';
 import * as dl from '../index';
-import {variable} from '../tensor';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {SGDOptimizer} from './sgd_optimizer';
 
@@ -27,7 +26,7 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = dl.train.sgd(learningRate);
 
-    const x = variable(dl.scalar(4));
+    const x = dl.scalar(4).variable();
 
     let numTensors = dl.memory().numTensors;
 

@@ -34,9 +34,9 @@ export class OptimizerConstructors {
    * const xs = dl.tensor1d([0, 1, 2, 3]);
    * const ys = dl.tensor1d([1.1, 5.9, 16.8, 33.9]);
    *
-   * const a = dl.variable(dl.scalar(Math.random()));
-   * const b = dl.variable(dl.scalar(Math.random()));
-   * const c = dl.variable(dl.scalar(Math.random()));
+   * const a = dl.scalar(Math.random()).variable();
+   * const b = dl.scalar(Math.random()).variable();
+   * const c = dl.scalar(Math.random()).variable();
    *
    * // y = a * x^2 + b * x + c.
    * const f = x => a.mul(x.square()).add(b.mul(x)).add(c);

@@ -25,7 +25,6 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
 import {NDArrayMath} from '../math';
 import {scalar, zerosLike} from '../ops/ops';
 import {Scalar, Tensor} from '../tensor';
-import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 import {Optimizer} from './optimizer';
 
@@ -60,14 +59,14 @@ export class RMSPropOptimizer extends Optimizer {
         const trainable = false;
         tidy(() => {
           this.accumulatedMeanSquares[variableName] =
-              variable(zerosLike(value), trainable);
+              zerosLike(value).variable(trainable);
         });
       }
       if (this.accumulatedMoments[variableName] == null) {
         const trainable = false;
         tidy(() => {
           this.accumulatedMoments[variableName] =
-              variable(zerosLike(value), trainable);
+              zerosLike(value).variable(trainable);
         });
       }
 

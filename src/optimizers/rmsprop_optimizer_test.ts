@@ -30,7 +30,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     const rho = 0.95;
     const optimizer = dl.train.rmsprop(learningRate, rho, moment);
 
-    const x = dl.variable(dl.tensor1d([1, 2]));
+    const x = dl.tensor1d([1, 2]).variable();
 
     const f = () => x.square().sum() as dl.Scalar;
 

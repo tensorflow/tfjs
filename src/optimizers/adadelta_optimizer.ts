@@ -24,7 +24,6 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
 import {NDArrayMath} from '../math';
 import {scalar, zerosLike} from '../ops/ops';
 import {Scalar, Tensor} from '../tensor';
-import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 import {Optimizer} from './optimizer';
 
@@ -57,14 +56,14 @@ export class AdadeltaOptimizer extends Optimizer {
         const trainable = false;
         tidy(() => {
           this.accumulatedGrads[variableName] =
-              variable(zerosLike(value), trainable);
+              zerosLike(value).variable(trainable);
         });
       }
       if (this.accumulatedUpdates[variableName] == null) {
         const trainable = false;
         tidy(() => {
           this.accumulatedUpdates[variableName] =
-              variable(zerosLike(value), trainable);
+              zerosLike(value).variable(trainable);
         });
       }
 

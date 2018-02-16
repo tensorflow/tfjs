@@ -24,7 +24,6 @@ import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
 import {NDArrayMath} from '../math';
 import {scalar, zerosLike} from '../ops/ops';
 import {Scalar, Tensor} from '../tensor';
-import {variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 import {SGDOptimizer} from './sgd_optimizer';
 
@@ -48,7 +47,7 @@ export class MomentumOptimizer extends SGDOptimizer {
         const trainable = false;
         tidy(() => {
           this.accumulations[variableName] =
-              variable(zerosLike(value), trainable);
+              zerosLike(value).variable(trainable);
         });
       }
 
