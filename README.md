@@ -169,7 +169,7 @@ we provide CPU fallbacks.
 ## Resources
 
 * [Tutorials](https://deeplearnjs.org/docs/tutorials/index.html)
-* [API Reference](https://deeplearnjs.org/docs/api/globals.html)
+* [API Reference](https://deeplearnjs.org/docs/api/index.html)
 * [Demos](https://deeplearnjs.org/index.html#demos)
 * [Roadmap](https://deeplearnjs.org/docs/roadmap.html)
 
