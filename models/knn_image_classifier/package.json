@@ -22,7 +22,7 @@
     "mkdirp": "~0.5.1",
     "tsify": "~3.0.3",
     "tslint": "~5.8.0",
-    "typescript": "~2.6.1",
+    "typescript": "2.7.2",
     "uglifyjs": "~2.4.11",
     "watchify": "~3.9.0"
   },

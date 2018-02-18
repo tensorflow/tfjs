@@ -55,7 +55,8 @@ describeWithFlags('pad1d', ALL_ENVS, () => {
   it('Should handle invalid paddings', () => {
     const a = dl.tensor1d([1, 2, 3, 4], 'int32');
     const f = () => {
-      dl.pad1d(a, [2, 2, 2]);
+      // tslint:disable-next-line:no-any
+      dl.pad1d(a, [2, 2, 2] as any);
     };
     expect(f).toThrowError();
   });
@@ -122,7 +123,8 @@ describeWithFlags('pad2d', ALL_ENVS, () => {
   it('Should handle invalid paddings', () => {
     const a = dl.tensor2d([[1], [2]], [2, 1], 'int32');
     const f = () => {
-      dl.pad2d(a, [[2, 2, 2], [1, 1, 1]]);
+      // tslint:disable-next-line:no-any
+      dl.pad2d(a, [[2, 2, 2], [1, 1, 1]] as any);
     };
     expect(f).toThrowError();
   });

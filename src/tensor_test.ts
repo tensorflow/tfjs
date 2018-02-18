@@ -60,7 +60,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(t.shape).toEqual([3]);
     expectNumbersClose(t.get(1), 3);
 
-    expect(() => dl.tensor3d([1, 2], [1, 2, 3, 5])).toThrowError();
+    // tslint:disable-next-line:no-any
+    expect(() => dl.tensor3d([1, 2], [1, 2, 3, 5] as any)).toThrowError();
 
     const t4 = dl.tensor4d([1, 2, 3, 4], [1, 2, 1, 2]);
     expectNumbersClose(t4.get(0, 0, 0, 0), 1);

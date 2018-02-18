@@ -538,7 +538,7 @@ describeWithFlags('rand', ALL_ENVS, () => {
   });
 
   it('should return a random 2D float32 array', () => {
-    const shape: [number] = [3, 4];
+    const shape = [3, 4];
 
     // Enusre defaults to float32 w/o type:
     let result = dl.rand(shape, () => util.randUniform(0, 2.5));
@@ -551,21 +551,21 @@ describeWithFlags('rand', ALL_ENVS, () => {
   });
 
   it('should return a random 2D int32 array', () => {
-    const shape: [number] = [3, 4];
+    const shape = [3, 4];
     const result = dl.rand(shape, () => util.randUniform(0, 2), 'int32');
     expect(result.dtype).toBe('int32');
     expectValuesInRange(result, 0, 2);
   });
 
   it('should return a random 2D bool array', () => {
-    const shape: [number] = [3, 4];
+    const shape = [3, 4];
     const result = dl.rand(shape, () => util.randUniform(0, 1), 'bool');
     expect(result.dtype).toBe('bool');
     expectValuesInRange(result, 0, 1);
   });
 
   it('should return a random 3D float32 array', () => {
-    const shape: [number] = [3, 4, 5];
+    const shape = [3, 4, 5];
 
     // Enusre defaults to float32 w/o type:
     let result = dl.rand(shape, () => util.randUniform(0, 2.5));
@@ -578,21 +578,21 @@ describeWithFlags('rand', ALL_ENVS, () => {
   });
 
   it('should return a random 3D int32 array', () => {
-    const shape: [number] = [3, 4, 5];
+    const shape = [3, 4, 5];
     const result = dl.rand(shape, () => util.randUniform(0, 2), 'int32');
     expect(result.dtype).toBe('int32');
     expectValuesInRange(result, 0, 2);
   });
 
   it('should return a random 3D bool array', () => {
-    const shape: [number] = [3, 4, 5];
+    const shape = [3, 4, 5];
     const result = dl.rand(shape, () => util.randUniform(0, 1), 'bool');
     expect(result.dtype).toBe('bool');
     expectValuesInRange(result, 0, 1);
   });
 
   it('should return a random 4D float32 array', () => {
-    const shape: [number] = [3, 4, 5, 6];
+    const shape = [3, 4, 5, 6];
 
     // Enusre defaults to float32 w/o type:
     let result = dl.rand(shape, () => util.randUniform(0, 2.5));
@@ -605,14 +605,14 @@ describeWithFlags('rand', ALL_ENVS, () => {
   });
 
   it('should return a random 4D int32 array', () => {
-    const shape: [number] = [3, 4, 5, 6];
+    const shape = [3, 4, 5, 6];
     const result = dl.rand(shape, () => util.randUniform(0, 2), 'int32');
     expect(result.dtype).toBe('int32');
     expectValuesInRange(result, 0, 2);
   });
 
   it('should return a random 4D bool array', () => {
-    const shape: [number] = [3, 4, 5, 6];
+    const shape = [3, 4, 5, 6];
     const result = dl.rand(shape, () => util.randUniform(0, 1), 'bool');
     expect(result.dtype).toBe('bool');
     expectValuesInRange(result, 0, 1);

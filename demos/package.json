@@ -74,7 +74,7 @@
     "polymer-bundler": "~3.0.1",
     "tone-piano": "0.0.5",
     "tsify": "~3.0.3",
-    "typescript": "2.6.1",
+    "typescript": "2.7.2",
     "uglifyjs": "~2.4.11",
     "watchify": "~3.9.0"
   },
