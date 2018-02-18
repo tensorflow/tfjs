@@ -19,6 +19,7 @@ import {doc} from './doc';
 import {ENV} from './environment';
 import * as ops from './ops/ops';
 import {RandNormalDataTypes} from './ops/rand';
+import * as tensor_util from './tensor_util';
 import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray} from './types';
 import * as util from './util';
 
@@ -492,6 +493,12 @@ export class Tensor<R extends Rank = Rank> {
   clone<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return ops.clone(this);
+  }
+
+  /** Returns a human-readable description of the tensor. Useful for logging. */
+  @doc({heading: 'Tensors', subheading: 'Classes'})
+  toString(): string {
+    return tensor_util.tensorToString(this, true /* verbose */);
   }
 
   // Below is chain API that is not exposed to docs to avoid repetition. To

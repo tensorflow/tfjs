@@ -19,9 +19,11 @@ import {doc} from '../doc';
 import {ENV} from '../environment';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
+import * as tensor_util from '../tensor_util';
 // tslint:disable-next-line:max-line-length
 import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from '../types';
 import * as util from '../util';
+
 import {Concat} from './concat';
 import {operation} from './operation';
 import {MPRandGauss} from './rand';
@@ -955,38 +957,7 @@ export class Ops {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static print<T extends Tensor>(x: T, verbose = false): void {
-    const C = class Tensor {
-      shape: number[];
-      values: number[];
-      dtype: string;
-      size: number;
-    };
-
-    const displayTensor = new C();
-    displayTensor.shape = x.shape;
-    displayTensor.values = Array.from(x.dataSync());
-    displayTensor.toString = function() {
-      const fields = [
-        `values: [${this.values.join(', ')}]`, `shape: [${x.shape.join(', ')}]`,
-        `rank: ${x.rank}`
-      ];
-      if (verbose) {
-        fields.push(`dtype: '${this.dtype}'`);
-        fields.push(`size: ${this.size}`);
-      }
-      for (let i = 0; i < fields.length; i++) {
-        fields[i] = '  ' + fields[i];
-      }
-
-      return 'TensorInfo {\n' + fields.join(',\n') + '\n}';
-    };
-
-    if (verbose) {
-      displayTensor.dtype = x.dtype;
-      displayTensor.size = x.size;
-    }
-
-    console.log(displayTensor);
+    console.log(tensor_util.tensorToString(x, verbose));
   }
 }
 
