@@ -15,8 +15,10 @@
         }
       },
       {
-        "type": "npm",
-        "script": "build",
+        "command": "yarn",
+        "label": "build",
+        "type": "shell",
+        "args": ["build", "--pretty", "false"],
         "problemMatcher": [
           "$tsc"
         ]

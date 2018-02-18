@@ -99,8 +99,8 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   });
 
   it('passing Tensor3D throws error', () => {
-    const probs = dl.zeros([3, 2, 2]) as Tensor1D;
-    expect(() => multinomial(probs, 3)).toThrowError();
+    const probs = dl.zeros([3, 2, 2]);
+    expect(() => multinomial(probs as Tensor1D, 3)).toThrowError();
   });
 
   function computeProbs(
