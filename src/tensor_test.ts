@@ -821,3 +821,103 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(b.shape).toEqual([4]);
   });
 });
+
+describe('tensor.toString', () => {
+  it('scalar', () => {
+    const str = dl.scalar(5).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 0\n' +
+        '  shape: []\n' +
+        '  values:\n' +
+        '    5');
+  });
+
+  it('1d tensor', () => {
+    const str = dl.zeros([4]).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 1\n' +
+        '  shape: [4]\n' +
+        '  values:\n' +
+        '    [0, 0, 0, 0]');
+  });
+
+  it('2d tensor', () => {
+    const str = dl.zeros([3, 3]).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 2\n' +
+        '  shape: [3,3]\n' +
+        '  values:\n' +
+        '    [[0, 0, 0],\n' +
+        '     [0, 0, 0],\n' +
+        '     [0, 0, 0]]');
+  });
+
+  it('3d tensor', () => {
+    const str = dl.zeros([3, 3, 2]).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 3\n' +
+        '  shape: [3,3,2]\n' +
+        '  values:\n' +
+        '    [[[0, 0],\n' +
+        '      [0, 0],\n' +
+        '      [0, 0]],\n\n' +
+        '     [[0, 0],\n' +
+        '      [0, 0],\n' +
+        '      [0, 0]],\n\n' +
+        '     [[0, 0],\n' +
+        '      [0, 0],\n' +
+        '      [0, 0]]]');
+  });
+
+  it('1d long tensor', () => {
+    const str = dl.zeros([100]).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 1\n' +
+        '  shape: [100]\n' +
+        '  values:\n' +
+        '    [0, 0, 0, ..., 0, 0, 0]');
+  });
+
+  it('2d long tensor', () => {
+    const str = dl.zeros([100, 100]).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 2\n' +
+        '  shape: [100,100]\n' +
+        '  values:\n' +
+        '    [[0, 0, 0, ..., 0, 0, 0],\n' +
+        '     [0, 0, 0, ..., 0, 0, 0],\n' +
+        '     [0, 0, 0, ..., 0, 0, 0],\n' +
+        '     ...,\n' +
+        '     [0, 0, 0, ..., 0, 0, 0],\n' +
+        '     [0, 0, 0, ..., 0, 0, 0],\n' +
+        '     [0, 0, 0, ..., 0, 0, 0]]');
+  });
+
+  it('2d with padding to align columns', () => {
+    const str = dl.tensor([
+                    [0.8597712, 3, 0.2740789], [0.6696132, 0.4825962, 2.75],
+                    [1.991, 0.0640865, 0.2983858]
+                  ]).toString();
+    expect(str).toEqual(
+        'Tensor\n' +
+        '  dtype: float32\n' +
+        '  rank: 2\n' +
+        '  shape: [3,3]\n' +
+        '  values:\n' +
+        '    [[0.8597712, 3        , 0.2740789],\n' +
+        '     [0.6696132, 0.4825962, 2.75     ],\n' +
+        '     [1.9910001, 0.0640865, 0.2983858]]');
+  });
+});
