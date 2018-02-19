@@ -790,13 +790,13 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 
-  int<R extends Rank>(x: Tensor<R>): Tensor<R> {
+  int<T extends Tensor>(x: T): T {
     const resultValues = new Int32Array(x.size);
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = values[i];
     }
-    return Tensor.make(x.shape, {values: resultValues}, 'int32') as Tensor<R>;
+    return Tensor.make(x.shape, {values: resultValues}, 'int32');
   }
 
   sigmoid<T extends Tensor>(x: T): T {

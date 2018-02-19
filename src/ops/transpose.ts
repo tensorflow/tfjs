@@ -18,7 +18,6 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {Rank} from '../types';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {operation} from './operation';
@@ -43,20 +42,19 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static transpose<R extends Rank>(x: Tensor<R>, perm?: number[]): Tensor<R> {
+  static transpose<T extends Tensor>(x: T, perm?: number[]): T {
     if (perm == null) {
       perm = x.shape.map((s, i) => i).reverse();
     }
-    const der = (dy: Tensor) => {
+    const der = (dy: T) => {
       const undoPerm = axis_util.getUndoAxesPermutation(perm);
-      const derX = () => dy.transpose(undoPerm);
-      return {x: derX};
+      return {x: () => dy.transpose(undoPerm)};
     };
     util.assert(
         x.rank === perm.length,
         `Error in transpose: rank of input ${x.rank} ` +
             `must match length of perm ${perm}.`);
-    return ENV.engine.executeKernel(
-               'Transpose', {inputs: {x}, args: {perm}}, der) as Tensor<R>;
+    return ENV.engine.runKernel(
+        backend => backend.transpose(x, perm), {x}, der);
   }
 }

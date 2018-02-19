@@ -42,11 +42,11 @@ export {CostReduction, FeedEntry, Session} from './graph/session';
 export {MathBackendCPU, NDArrayMathCPU} from './kernels/backend_cpu';
 // tslint:disable-next-line:max-line-length
 export {MathBackendWebGL, NDArrayMathGPU, WebGLTimingInfo} from './kernels/backend_webgl';
-export {MatrixOrientation} from './kernels/types/matmul';
 export {GPGPUContext} from './kernels/webgl/gpgpu_context';
 export {NDArrayMath} from './math';
 export {Model} from './model';
 export {LSTMCell} from './ops/lstm';
+export {MatrixOrientation} from './ops/matmul';
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
 export {AdagradOptimizer} from './optimizers/adagrad_optimizer';
 export {AdamOptimizer} from './optimizers/adam_optimizer';

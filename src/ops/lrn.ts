@@ -56,9 +56,9 @@ export class LRN {
       reshapedTo4D = true;
       x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
     }
-    const res = ENV.engine.executeKernel(
-        'LRN4D',
-        {inputs: {x: x4D}, args: {radius, bias, alpha, beta, normRegion}});
+    const res = ENV.engine.runKernel(
+        backend => backend.localResponseNormalization4D(
+            x4D, radius, bias, alpha, beta, normRegion));
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     } else {

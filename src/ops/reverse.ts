@@ -109,8 +109,8 @@ export class Ops {
     } else {
       throw new Error(`Reverse for rank ${x.rank} is not yet implemented`);
     }
-    const res = ENV.engine.executeKernel(
-        'Reverse4D', {inputs: {x: x4d}, args: {axis: axisCleaned}});
+    const res =
+        ENV.engine.runKernel(backend => backend.reverse4D(x4d, axisCleaned));
     return res.reshapeAs(x);
   }
 }

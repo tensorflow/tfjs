@@ -17,10 +17,15 @@
 
 import {doc} from '../doc';
 import {ENV} from '../environment';
-import {MatrixOrientation} from '../kernels/types/matmul';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
 import * as util from '../util';
 import {operation} from './operation';
+
+/** @deprecated Use bools transposeA and transposeB when calling matmul() */
+export enum MatrixOrientation {
+  REGULAR,
+  TRANSPOSED
+}
 
 export class Ops {
   /**
@@ -60,18 +65,17 @@ export class Ops {
             `${b.shape} and transposeA=${transposeA}` +
             ` and transposeB=${transposeB} must match.`);
 
-    return ENV.engine.executeKernel(
-               'MatMul', {inputs: {a, b}, args: {transposeA, transposeB}},
-               (dy: Tensor2D, y: Tensor2D) => {
-                 if (transposeA || transposeB) {
-                   throw new Error(
-                       `Backprop for transposed MatMul not yet implemented.`);
-                 }
-                 return {
-                   a: () => dy.matMul(b.toFloat(), false, true) as Tensor2D,
-                   b: () => a.toFloat().matMul(dy, true, false) as Tensor2D
-                 };
-               }) as Tensor2D;
+    const grad = (dy: Tensor2D) => {
+      if (transposeA || transposeB) {
+        throw new Error(`Backprop for transposed MatMul not yet implemented.`);
+      }
+      return {
+        a: () => dy.matMul(b.toFloat(), false, true),
+        b: () => a.toFloat().matMul(dy, true, false)
+      };
+    };
+    return ENV.engine.runKernel(
+        backend => backend.matMul(a, b, transposeA, transposeB), {a, b}, grad);
   }
 
   /**

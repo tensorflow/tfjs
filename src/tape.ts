@@ -15,12 +15,22 @@
  * =============================================================================
  */
 
-import * as util from './util';
 import {Tensor} from './tensor';
 import {NamedTensorMap, RegularArray} from './types';
+import * as util from './util';
 
-// tslint:disable-next-line:max-line-length
-import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types';
+export interface TapeNode {
+  id: number;
+  name: string;
+  output: Tensor;
+  // Optional params, defined only for ops with gradient impl.
+  inputs?: NamedTensorMap;
+  gradient?: (dy: Tensor|NamedTensorMap) => NamedGradientMap;
+}
+
+export type NamedGradientMap = {
+  [inputName: string]: () => Tensor;
+};
 
 /**
  * Computes a list of TapeNodes that connect x to y, filtering everything else
@@ -30,7 +40,7 @@ import {Tape, TapeNode, TapeNodeInputConfig, TapeNodeOutput} from './tape_types'
  * @param y The output Tensor.
  */
 export function getFilteredNodesXToY(
-    tape: Tape, xs: Tensor[], y: Tensor): Tape {
+    tape: TapeNode[], xs: Tensor[], y: Tensor): TapeNode[] {
   // Forward pass to compute all the nodes and Tensors that are transitively a
   // function of x.
   const tensorsFromX: {[tensorId: number]: boolean} = {};
@@ -41,22 +51,19 @@ export function getFilteredNodesXToY(
 
   for (let i = 0; i < tape.length; i++) {
     const node = tape[i];
-    const nodeInputs = node.inputAndArgs.inputs;
-
+    const nodeInputs = node.inputs;
+    if (nodeInputs == null) {
+      throw new Error(
+          `${node.name} is missing gradient implementation. ` +
+          `Failed to back-propagate.`);
+    }
     for (const inputName in nodeInputs) {
       const input = nodeInputs[inputName];
 
       let anyInputFromX = false;
       for (let j = 0; j < xs.length; j++) {
         if (tensorsFromX[input.id]) {
-          if (node.output instanceof Tensor) {
-            tensorsFromX[node.output.id] = true;
-          } else {
-            const keys = Object.keys(node.output);
-            for (const key of keys) {
-              tensorsFromX[node.output[key].id] = true;
-            }
-          }
+          tensorsFromX[node.output.id] = true;
           anyInputFromX = true;
           nodesFromX[node.id] = true;
           break;
@@ -76,17 +83,10 @@ export function getFilteredNodesXToY(
 
   for (let i = tape.length - 1; i >= 0; i--) {
     const node = tape[i];
-    const nodeInputs = node.inputAndArgs.inputs;
+    const nodeInputs = node.inputs;
 
     const outputs: Tensor[] = [];
-    if (node.output instanceof Tensor) {
-      outputs.push(node.output);
-    } else {
-      const keys = Object.keys(node.output);
-      for (const key of keys) {
-        outputs.push(node.output[key]);
-      }
-    }
+    outputs.push(node.output);
 
     // If any of the outputs lead to y, mark all of the inputs as leading to y.
     for (let j = 0; j < outputs.length; j++) {
@@ -101,40 +101,24 @@ export function getFilteredNodesXToY(
   }
 
   // Return the paths that come from x and lead to y.
-  const filteredTape: Tape = [];
+  const filteredTape: TapeNode[] = [];
   for (let i = 0; i < tape.length; i++) {
     const node = tape[i];
 
     if (nodesFromX[node.id] && nodesToY[node.id]) {
       // Prune the inputs from the node that aren't a function of x.
       const prunedInputs: {[inputName: string]: Tensor} = {};
-      for (const inputName in node.inputAndArgs.inputs) {
-        const nodeInput = node.inputAndArgs.inputs[inputName];
+      for (const inputName in node.inputs) {
+        const nodeInput = node.inputs[inputName];
         if (tensorsFromX[nodeInput.id]) {
           prunedInputs[inputName] = nodeInput;
         }
       }
 
-      let prunedOutputs: Tensor|{[outputName: string]: Tensor};
-      if (node.output instanceof Tensor) {
-        // Nothing to prune if the output is just a single Tensor since the
-        // node would have been pruned.
-        prunedOutputs = node.output;
-      } else {
-        // Prune the outputs from the node that don't lead to y.
-        prunedOutputs = {};
-        for (const outputName in node.output) {
-          const output = node.output[outputName];
-          if (tensorsLeadToY[output.id]) {
-            prunedOutputs[outputName] = node.output[outputName];
-          }
-        }
-      }
-
       // Copy the node and overwrite inputsAndArgs to the pruned version.
-      const prunedNode = Object.assign({}, node) as TapeNode<TapeNodeOutput>;
-      prunedNode.inputAndArgs = {inputs: prunedInputs};
-      prunedNode.output = prunedOutputs;
+      const prunedNode = Object.assign({}, node) as TapeNode;
+      prunedNode.inputs = prunedInputs;
+      prunedNode.output = node.output;
 
       filteredTape.push(prunedNode);
     }
@@ -151,21 +135,12 @@ export function getFilteredNodesXToY(
  */
 export function backpropagateGradients(
     tensorAccumulatedGradientMap: {[tensorId: number]: Tensor},
-    filteredTape: Tape) {
+    filteredTape: TapeNode[]) {
   // Walk the tape backwards and keep a map of Tensor to its gradient.
   for (let i = filteredTape.length - 1; i >= 0; i--) {
     const node = filteredTape[i];
 
-    let dy: Tensor|NamedTensorMap;
-    if (node.output instanceof Tensor) {
-      dy = tensorAccumulatedGradientMap[node.output.id];
-    } else {
-      dy = {};
-      const keys = Object.keys(node.output);
-      for (const key of keys) {
-        dy[key] = tensorAccumulatedGradientMap[node.output[key].id];
-      }
-    }
+    const dy = tensorAccumulatedGradientMap[node.output.id];
 
     if (node.gradient == null) {
       throw new Error(
@@ -174,8 +149,8 @@ export function backpropagateGradients(
     }
 
     // Backprop dy through this node and accumulate gradients over the inputs.
-    const inputGradients = node.gradient(dy, node.output);
-    for (const inputName in node.inputAndArgs.inputs) {
+    const inputGradients = node.gradient(dy);
+    for (const inputName in node.inputs) {
       if (!(inputName in inputGradients)) {
         throw new Error(
             `Cannot backprop through input ${inputName}. ` +
@@ -184,7 +159,7 @@ export function backpropagateGradients(
 
       // Call the gradient function.
       const dx = inputGradients[inputName]();
-      const x = node.inputAndArgs.inputs[inputName];
+      const x = node.inputs[inputName];
       if (!util.arraysEqual(dx.shape, x.shape)) {
         throw new Error(
             `Error in gradient for op ${node.name}. The gradient of input ` +
@@ -227,15 +202,4 @@ export function extractTensorsFromScopeResult(result: ScopeResultImmediate):
     list.push(...sublist);
   }
   return list;
-}
-
-export function stripUndefinedInputsFromInputConfig(
-    config: TapeNodeInputConfig): TapeNodeInputConfig {
-  const keys = Object.keys(config.inputs);
-  keys.forEach(key => {
-    if (config.inputs[key] == null) {
-      delete config.inputs[key];
-    }
-  });
-  return config;
 }

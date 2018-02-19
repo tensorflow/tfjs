@@ -16,7 +16,6 @@
  */
 
 import {BackendTimer} from './kernels/backend';
-import {Kernel} from './kernels/kernel_registry';
 import {Tensor} from './tensor';
 import {TypedArray} from './types';
 import * as util from './util';
@@ -28,7 +27,7 @@ export class Profiler {
     }
   }
 
-  profileKernel<T extends Tensor>(kernelName: Kernel, f: () => T): T {
+  profileKernel<T extends Tensor>(name: string, f: () => T): T {
     let result: T;
     const holdResultWrapperFn = () => {
       result = f();
@@ -36,10 +35,10 @@ export class Profiler {
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
     const vals = result.dataSync();
-    util.checkForNaN(vals, result.dtype, kernelName);
+    util.checkForNaN(vals, result.dtype, name);
 
     timer.then(timing => {
-      this.logger.logKernelProfile(kernelName, result, vals, timing.kernelMs);
+      this.logger.logKernelProfile(name, result, vals, timing.kernelMs);
     });
 
     return result as T;
@@ -48,9 +47,9 @@ export class Profiler {
 
 export class Logger {
   logKernelProfile(
-      kernelName: Kernel, result: Tensor, vals: TypedArray, timeMs: number) {
+      name: string, result: Tensor, vals: TypedArray, timeMs: number) {
     const time = util.rightPad(`${timeMs}ms`, 9);
-    const paddedName = util.rightPad(kernelName, 25);
+    const paddedName = util.rightPad(name, 25);
     const rank = result.rank;
     const size = result.size;
     const shape = util.rightPad(result.shape.toString(), 14);

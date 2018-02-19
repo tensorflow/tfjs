@@ -34,8 +34,7 @@ export class Ops {
   @operation
   static slice1d(x: Tensor1D, begin: number, size: number): Tensor1D {
     slice_util.assertParamsValid(x, [begin], [size]);
-    return ENV.engine.executeKernel(
-               'Slice1D', {inputs: {x}, args: {begin, size}}) as Tensor1D;
+    return ENV.engine.runKernel(backend => backend.slice1D(x, begin, size));
   }
 
   /**
@@ -50,8 +49,7 @@ export class Ops {
   static slice2d(x: Tensor2D, begin: [number, number], size: [number, number]):
       Tensor2D {
     slice_util.assertParamsValid(x, begin, size);
-    return ENV.engine.executeKernel(
-               'Slice2D', {inputs: {x}, args: {begin, size}}) as Tensor2D;
+    return ENV.engine.runKernel(backend => backend.slice2D(x, begin, size));
   }
 
   /**
@@ -67,8 +65,7 @@ export class Ops {
     number, number, number
   ]): Tensor3D {
     slice_util.assertParamsValid(x, begin, size);
-    return ENV.engine.executeKernel(
-               'Slice3D', {inputs: {x}, args: {begin, size}}) as Tensor3D;
+    return ENV.engine.runKernel(backend => backend.slice3D(x, begin, size));
   }
 
   /**
@@ -85,8 +82,7 @@ export class Ops {
     number, number, number, number
   ]): Tensor4D {
     slice_util.assertParamsValid(x, begin, size);
-    return ENV.engine.executeKernel(
-               'Slice4D', {inputs: {x}, args: {begin, size}}) as Tensor4D;
+    return ENV.engine.runKernel(backend => backend.slice4D(x, begin, size));
   }
 
   /**

@@ -24,10 +24,8 @@ import * as reduce_util from '../ops/reduce_util';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
-// tslint:disable-next-line:max-line-length
-import {DataType, DataTypeMap, Rank, RecursiveArray, TypedArray} from '../types';
+import {DataType, DataTypeMap, RecursiveArray, TypedArray} from '../types';
 import * as util from '../util';
-
 import {KernelBackend} from './backend';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {AvgPool2DBackpropProgram} from './webgl/avg_pool_backprop_gpu';
@@ -705,10 +703,10 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [a, b]) as T;
   }
 
-  int<R extends Rank>(x: Tensor<R>): Tensor<R> {
+  int<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.TO_INT);
     const output = this.makeOutputArray(program.outputShape, 'int32');
-    return this.compileAndRun(program, [x], output) as Tensor<R>;
+    return this.compileAndRun(program, [x], output) as T;
   }
 
   clip<T extends Tensor>(x: T, min: number, max: number): T {

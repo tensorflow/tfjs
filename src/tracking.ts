@@ -19,7 +19,7 @@ import {doc} from './doc';
 import {TimingInfo} from './engine';
 import {ENV} from './environment';
 // tslint:disable-next-line:max-line-length
-import {ScopeFn, ScopeResult, ScopeResultImmediate} from './tape_util';
+import {ScopeFn, ScopeResult, ScopeResultImmediate} from './tape';
 import {Tensor} from './tensor';
 
 export class Tracking {
@@ -64,13 +64,13 @@ export class Tracking {
   @doc({heading: 'Performance', subheading: 'Memory'})
   static tidy<T extends ScopeResult>(
       nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>, gradMode = false): T {
+    let name = null;
     if (fn == null) {
       // Called with only 1 argument.
       if (typeof nameOrFn !== 'function') {
         throw new Error('Please provide a function to dl.tidy()');
       }
       fn = nameOrFn;
-      nameOrFn = '';
     } else {
       // Called with 2 arguments.
       if (typeof nameOrFn !== 'string' && !(nameOrFn instanceof String)) {
@@ -83,9 +83,10 @@ export class Tracking {
             'When calling with two arguments, the 2nd argument ' +
             'to dl.tidy() must be a function');
       }
+      name = nameOrFn as string;
       // TODO(nsthorat,smilkov): Do operation logging and performance profiling.
     }
-    ENV.engine.startScope(gradMode);
+    ENV.engine.startScope(name, gradMode);
 
     const result = fn();
     if (result instanceof Promise) {

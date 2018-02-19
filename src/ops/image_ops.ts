@@ -54,9 +54,9 @@ export class Ops {
           images.as4D(1, images.shape[0], images.shape[1], images.shape[2]);
     }
     const [newHeight, newWidth] = size;
-    const res = ENV.engine.executeKernel(
-        'ResizeBilinear',
-        {inputs: {x: batchImages}, args: {newHeight, newWidth, alignCorners}});
+    const res = ENV.engine.runKernel(
+        backend => backend.resizeBilinear(
+            batchImages, newHeight, newWidth, alignCorners));
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }

@@ -193,18 +193,12 @@ export class Ops {
       x4D = x as Tensor4D;
     }
 
-    return ENV.engine
-               .executeKernel('BatchNorm4D', {
-                 inputs: {
-                   x: x4D,
-                   mean: batchnormReshape4D(mean),
-                   variance: batchnormReshape4D(variance),
-                   scale: batchnormReshape4D(scale),
-                   offset: batchnormReshape4D(offset)
-                 },
-                 args: {varianceEpsilon}
-               })
-               .reshape(x.shape) as Tensor<R>;
+    const res = ENV.engine.runKernel(
+        backend => backend.batchNormalization4D(
+            x4D, batchnormReshape4D(mean), batchnormReshape4D(variance),
+            varianceEpsilon, batchnormReshape4D(scale),
+            batchnormReshape4D(offset)));
+    return res.reshape(x.shape);
   }
 }
 

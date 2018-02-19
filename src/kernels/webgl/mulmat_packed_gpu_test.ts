@@ -16,9 +16,8 @@
  */
 
 // tslint:disable-next-line:max-line-length
+import {MatrixOrientation} from '../../ops/matmul';
 import {expectArraysClose, expectNumbersClose} from '../../test_util';
-import {MatrixOrientation} from '../types/matmul';
-
 import {GPGPUContext} from './gpgpu_context';
 import * as mulmat_packed_gpu from './mulmat_packed_gpu';
 
