@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {ENV} from 'deeplearn';
 import {ActivationFunction, CPPN} from '../nn-art/cppn';
-import * as demo_util from '../util';
 
 const inferenceCanvas =
     document.querySelector('#inference') as HTMLCanvasElement;
 
-if (demo_util.isWebGLSupported()) {
+if (ENV.get('WEBGL_VERSION') >= 1) {
   startCPPN();
 } else {
   document.getElementById('disabled-demo-overlay').style.display = '';
