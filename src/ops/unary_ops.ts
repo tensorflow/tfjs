@@ -39,9 +39,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static neg<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Neg', {inputs: {x}}, (dy: T, y: T) => {
+    const grad = (dy: T) => {
       return {x: () => dy.neg()};
-    }) as T;
+    };
+    return ENV.engine.runKernel(backend => backend.neg(x), {x}, grad);
   }
 
   /**
@@ -58,10 +59,10 @@ export class Ops {
   @operation
   static ceil<T extends Tensor>(x: T): T {
     // TODO(manrajgrover): Return null for gradients when backprop supports it.
-    const gradient = (dy: T, y: T) => {
-      return {x: () => ops.zeros(y.shape)};
+    const grad = (dy: T) => {
+      return {x: () => ops.zerosLike(dy)};
     };
-    return ENV.engine.executeKernel('Ceil', {inputs: {x}}, gradient) as T;
+    return ENV.engine.runKernel(backend => backend.ceil(x), {x}, grad);
   }
 
   /**
@@ -79,10 +80,10 @@ export class Ops {
   static floor<T extends Tensor>(x: T): T {
     // TODO(nsthorat): Let gradients be null for cases where we want to stop
     // backpropgation.
-    const gradient = (dy: T, y: T) => {
-      return {x: () => ops.zeros(y.shape)};
+    const grad = (dy: T) => {
+      return {x: () => ops.zerosLike(dy)};
     };
-    return ENV.engine.executeKernel('Floor', {inputs: {x}}, gradient) as T;
+    return ENV.engine.runKernel(backend => backend.floor(x), {x}, grad);
   }
 
   /**
@@ -98,9 +99,12 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static exp<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Exp', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.mul(y)};
-    }) as T;
+    const bck = (dy: T, saved: Tensor[]) => {
+      const [y] = saved;
+      return {x: () => dy.mulStrict(y as T)};
+    };
+    return ENV.engine.runKernel(
+        (backend, save) => save(backend.exp(x)), {x}, bck);
   }
 
   /**
@@ -116,9 +120,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static log<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Log', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.div(x.toFloat())};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => dy.divStrict(x.toFloat())};
+    };
+    return ENV.engine.runKernel(backend => backend.log(x), {x}, grad);
   }
 
   /**
@@ -134,9 +139,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sqrt<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Sqrt', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.div(x.toFloat().sqrt().mul(ops.scalar(2)))};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => dy.divStrict(x.toFloat().sqrt().mul(ops.scalar(2)))};
+    };
+    return ENV.engine.runKernel(backend => backend.sqrt(x), {x}, grad);
   }
 
   /**
@@ -152,9 +158,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static square<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Square', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.mul(x.toFloat().mul(ops.scalar(2)))};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(x.toFloat().mul(ops.scalar(2)))};
+    };
+    return ENV.engine.runKernel(backend => backend.square(x), {x}, grad);
   }
 
   /**
@@ -170,9 +177,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static abs<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Abs', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.mul(x.toFloat().step(-1))};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(x.toFloat().step(-1))};
+    };
+    return ENV.engine.runKernel(backend => backend.abs(x), {x}, grad);
   }
 
   /**
@@ -195,19 +203,18 @@ export class Ops {
         (clipValueMin <= clipValueMax),
         `Error in clip: min (${clipValueMin}) must be` +
             `less than or equal to max (${clipValueMax}).`);
-    return ENV.engine.executeKernel(
-               'Clip',
-               {inputs: {x}, args: {min: clipValueMin, max: clipValueMax}},
-               (dy: T, y: T) => {
-                 return {
-                   // TODO(cais): Fix gradients for the case where x = min or x
-                   // = max.
-                   x: () => dy.where(
-                       x.greater(ops.scalar(clipValueMin))
-                           .logicalAnd(x.less(ops.scalar(clipValueMax))),
-                       zerosLike(dy)),
-                 };
-               }) as T;
+    const grad = (dy: T) => {
+      return {
+        // TODO(cais): Fix gradients for the case where x = min or x
+        // = max.
+        x: () => dy.where(
+                     x.greater(ops.scalar(clipValueMin))
+                         .logicalAnd(x.less(ops.scalar(clipValueMax))),
+                     zerosLike(dy)) as T,
+      };
+    };
+    return ENV.engine.runKernel(
+        backend => backend.clip(x, clipValueMin, clipValueMax), {x}, grad);
   }
 
   /**
@@ -223,10 +230,11 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static relu<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Relu', {inputs: {x}}, (dy: T, y: T) => {
-      const stepRes = x.step() as Tensor;
-      return {x: () => dy.mul(stepRes.toFloat())};
-    }) as T;
+    const grad = (dy: T) => {
+      const stepRes = x.step();
+      return {x: () => dy.mulStrict(stepRes.toFloat())};
+    };
+    return ENV.engine.runKernel(backend => backend.relu(x), {x}, grad);
   }
 
   /**
@@ -242,17 +250,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static elu<T extends Tensor>(x: T): T {
-    const der = (dy: Tensor) => {
-      return {
-        x: () => dy.mul(eluDer(x)),
-        alpha: () => {
-          throw new Error(
-              'Derivative of prelu with respect to alpha is ' +
-              'not implemented yet');
-        }
-      };
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(eluDer(x))};
     };
-    return ENV.engine.executeKernel('Elu', {inputs: {x}}, der) as T;
+    return ENV.engine.runKernel(backend => backend.elu(x), {x}, grad);
   }
 
   /**
@@ -270,7 +271,7 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static selu<T extends Tensor>(x: T): T {
-    const gradient = (dy: T, y: T) => {
+    const grad = (dy: T) => {
       return {
         x: () => {
           const mask = x.greater(ops.scalar(0));
@@ -281,13 +282,11 @@ export class Ops {
           const greaterThanZeroDer = dy.mul(scale);
           const lessEqualZeroDer = dy.mul(scaleAlpha).mul(x.toFloat().exp());
 
-          const res = ops.where(mask, greaterThanZeroDer, lessEqualZeroDer);
-
-          return res;
+          return ops.where(mask, greaterThanZeroDer, lessEqualZeroDer) as T;
         }
       };
     };
-    return ENV.engine.executeKernel('Selu', {inputs: {x}}, gradient) as T;
+    return ENV.engine.runKernel(backend => backend.selu(x), {x}, grad);
   }
 
   /**
@@ -308,11 +307,11 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static leakyRelu<T extends Tensor>(x: T, alpha = 0.2): T {
-    const gradient = (dy: T, y: T) => {
-      return {x: () => dy.mul(x.step(alpha))};
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(x.step(alpha))};
     };
-    return ENV.engine.executeKernel(
-               'LeakyRelu', {inputs: {x}, args: {alpha}}, gradient) as T;
+    return ENV.engine.runKernel(
+        backend => backend.leakyRelu(x, alpha), {x}, grad);
   }
 
   /**
@@ -332,17 +331,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static prelu<T extends Tensor>(x: T, alpha: T): T {
-    const der = (dy: Tensor) => {
-      return {
-        x: () => dy.mul(preluDer(x, alpha)),
-        alpha: () => {
-          throw new Error(
-              'Derivative of prelu with respect to alpha is ' +
-              'not implemented yet');
-        }
-      };
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(preluDer(x, alpha))};
     };
-    return ENV.engine.executeKernel('PReLU', {inputs: {x, alpha}}, der) as T;
+    return ENV.engine.runKernel(backend => backend.prelu(x, alpha), {x}, grad);
   }
 
   /**
@@ -358,9 +350,12 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sigmoid<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Sigmoid', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.mul(y.mul(ops.scalar(1).sub(y)))};
-    }) as T;
+    const grad = (dy: T, saved: Tensor[]) => {
+      const [y] = saved;
+      return {x: () => dy.mulStrict(y.mul(ops.scalar(1).sub(y)))};
+    };
+    return ENV.engine.runKernel(
+        (backend, save) => save(backend.sigmoid(x)), {x}, grad);
   }
 
   /**
@@ -376,9 +371,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sin<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Sin', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => x.toFloat().cos().mul(dy)};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => x.toFloat().cos().mulStrict(dy)};
+    };
+    return ENV.engine.runKernel(backend => backend.sin(x), {x}, grad);
   }
 
   /**
@@ -394,9 +390,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static cos<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Cos', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => x.toFloat().sin().neg().mul(dy)};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => x.toFloat().sin().neg().mulStrict(dy)};
+    };
+    return ENV.engine.runKernel(backend => backend.cos(x), {x}, grad);
   }
 
   /**
@@ -412,9 +409,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static tan<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Tan', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.div(x.cos().square())};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => dy.divStrict(x.cos().square())};
+    };
+    return ENV.engine.runKernel(backend => backend.tan(x), {x}, grad);
   }
 
   /**
@@ -430,11 +428,12 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static asin<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Asin', {inputs: {x}}, (dy: T, y: T) => {
+    const grad = (dy: T) => {
       return {
-        x: () => dy.div(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square())))
+        x: () => dy.divStrict(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square())))
       };
-    }) as T;
+    };
+    return ENV.engine.runKernel(backend => backend.asin(x), {x}, grad);
   }
 
   /**
@@ -450,11 +449,13 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static acos<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Acos', {inputs: {x}}, (dy: T, y: T) => {
+    const grad = (dy: T) => {
       return {
-        x: () => dy.div(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square()))).neg()
+        x: () => dy.divStrict(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square())))
+                     .neg()
       };
-    }) as T;
+    };
+    return ENV.engine.runKernel(backend => backend.acos(x), {x}, grad);
   }
 
   /**
@@ -470,9 +471,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static atan<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Atan', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => dy.div(ops.scalar(1).add(x.toFloat().square()))};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => dy.divStrict(ops.scalar(1).add(x.toFloat().square()))};
+    };
+    return ENV.engine.runKernel(backend => backend.atan(x), {x}, grad);
   }
 
   /**
@@ -488,9 +490,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sinh<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Sinh', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => x.toFloat().cosh().mul(dy)};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => x.toFloat().cosh().mulStrict(dy)};
+    };
+    return ENV.engine.runKernel(backend => backend.sinh(x), {x}, grad);
   }
 
   /**
@@ -506,9 +509,10 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static cosh<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Cosh', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => x.toFloat().sinh().mul(dy)};
-    }) as T;
+    const grad = (dy: T) => {
+      return {x: () => x.toFloat().sinh().mulStrict(dy)};
+    };
+    return ENV.engine.runKernel(backend => backend.cosh(x), {x}, grad);
   }
 
   /**
@@ -524,9 +528,12 @@ export class Ops {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static tanh<T extends Tensor>(x: T): T {
-    return ENV.engine.executeKernel('Tanh', {inputs: {x}}, (dy: T, y: T) => {
-      return {x: () => ops.scalar(1).sub(y.square()).mul(dy)};
-    }) as T;
+    const grad = (dy: T, saved: Tensor[]) => {
+      const [y] = saved;
+      return {x: () => ops.scalar(1).sub(y.square()).mulStrict(dy) as T};
+    };
+    return ENV.engine.runKernel(
+        (backend, save) => save(backend.tanh(x)), {x}, grad);
   }
 
   /**
@@ -544,17 +551,17 @@ export class Ops {
   @operation
   static step<T extends Tensor>(x: T, alpha = 0.0): T {
     // TODO(manrajgrover): Return null for gradients when backprop supports it.
-    return ENV.engine.executeKernel(
-               'Step', {inputs: {x}, args: {alpha}}, (dy: T, y: T) => {
-                 return {x: () => ops.zeros(y.shape)};
-               }) as T;
+    const grad = (dy: T) => {
+      return {x: () => ops.zerosLike(dy)};
+    };
+    return ENV.engine.runKernel(backend => backend.step(x, alpha), {x}, grad);
   }
 }
 
-function preluDer(x: Tensor, alpha: Tensor): Tensor {
-  return ENV.engine.executeKernel('PReLUDer', {inputs: {x, alpha}}) as Tensor;
+function preluDer<T extends Tensor>(x: T, alpha: T): T {
+  return ENV.engine.runKernel(backend => backend.preluDer(x, alpha));
 }
 
-function eluDer(x: Tensor): Tensor {
-  return ENV.engine.executeKernel('EluDer', {inputs: {x}}) as Tensor;
+function eluDer<T extends Tensor>(x: T): T {
+  return ENV.engine.runKernel(backend => backend.eluDer(x));
 }

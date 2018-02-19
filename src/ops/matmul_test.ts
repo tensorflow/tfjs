@@ -19,7 +19,6 @@ import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
-
 import {Ops as MatmulOps} from './matmul';
 
 describeWithFlags('matmul', ALL_ENVS, () => {

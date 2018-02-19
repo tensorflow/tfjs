@@ -55,7 +55,7 @@ export class Ops {
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
-    const der = (dy: Tensor, y: Tensor) => {
+    const der = (dy: Tensor) => {
       const derA = () => {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -74,7 +74,7 @@ export class Ops {
       };
       return {a: derA, b: derB};
     };
-    return ENV.engine.executeKernel('Add', {inputs: {a, b}}, der) as T;
+    return ENV.engine.runKernel(backend => backend.add(a, b), {a, b}, der) as T;
   }
 
   /**
@@ -121,7 +121,7 @@ export class Ops {
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
-    const der = (dy: Tensor, y: Tensor) => {
+    const der = (dy: Tensor) => {
       const derA = () => {
         let res = dy;
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -140,7 +140,8 @@ export class Ops {
       };
       return {a: derA, b: derB};
     };
-    return ENV.engine.executeKernel('Sub', {inputs: {a, b}}, der) as T;
+    return ENV.engine.runKernel(
+               backend => backend.subtract(a, b), {a, b}, der) as T;
   }
 
   /**
@@ -185,31 +186,27 @@ export class Ops {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static pow<T extends Tensor>(base: Tensor, exp: Tensor): T {
+  static pow<T extends Tensor>(base: T, exp: Tensor): T {
     util.assert(
         exp.dtype === 'int32',
         'only supports int32 data type for the exponent parameter.');
     broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
 
-    const gradient = (dy: Tensor, y: Tensor) => {
+    const grad = (dy: Tensor) => {
       if (!util.arraysEqual(base.shape, exp.shape) &&
           !util.isScalarShape(exp.shape)) {
         throw new Error(
             `Gradient of pow not yet supported for broadcasted shapes.`);
       }
       const derBase = () => {
-        const dx =
-            exp.toFloat().mul(base.pow(exp.sub(scalar(1, 'int32'))).toFloat());
-        return dy.mul(dx);
+        const dx = exp.toFloat().mul(
+                       base.pow(exp.sub(scalar(1, 'int32'))).toFloat()) as T;
+        return dy.mulStrict(dx) as T;
       };
-      const derExp = () => {
-        throw new Error(`Backprop through exponent not implemented yet.`);
-      };
-      return {base: derBase, exp: derExp};
+      return {base: derBase};
     };
-
-    return ENV.engine.executeKernel('Pow', {inputs: {base, exp}}, gradient) as
-        T;
+    return ENV.engine.runKernel(
+               backend => backend.pow(base, exp), {base}, grad) as T;
   }
 
   /**
@@ -257,7 +254,7 @@ export class Ops {
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
-    const der = (dy: Tensor, y: Tensor) => {
+    const der = (dy: Tensor) => {
       const derA = () => {
         const res = dy.mul(b.toFloat());
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -276,7 +273,8 @@ export class Ops {
       };
       return {a: derA, b: derB};
     };
-    return ENV.engine.executeKernel('Mul', {inputs: {a, b}}, der) as T;
+    return ENV.engine.runKernel(
+               backend => backend.multiply(a, b), {a, b}, der) as T;
   }
 
   /**
@@ -321,7 +319,7 @@ export class Ops {
   static div<T extends Tensor>(a: Tensor, b: Tensor): T {
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const der = (dy: Tensor, y: Tensor) => {
+    const der = (dy: Tensor) => {
       const derA = () => {
         const res = dy.div(b.toFloat());
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
@@ -341,7 +339,8 @@ export class Ops {
       };
       return {a: derA, b: derB};
     };
-    return ENV.engine.executeKernel('Div', {inputs: {a, b}}, der) as T;
+    return ENV.engine.runKernel(backend => backend.divide(a, b), {a, b}, der) as
+        T;
   }
 
   /**
@@ -386,12 +385,13 @@ export class Ops {
   static minimum<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const der = (dy: Tensor, y: Tensor) => {
+    const der = (dy: Tensor) => {
       const derA = () => dy.mul(a.lessEqual(b).toFloat());
       const derB = () => dy.mul(a.greater(b).toFloat());
       return {a: derA, b: derB};
     };
-    return ENV.engine.executeKernel('Minimum', {inputs: {a, b}}, der) as T;
+    return ENV.engine.runKernel(
+               backend => backend.minimum(a, b), {a, b}, der) as T;
   }
 
   /**
@@ -436,12 +436,13 @@ export class Ops {
   static maximum<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    const der = (dy: Tensor, y: Tensor) => {
+    const der = (dy: Tensor) => {
       const derA = () => dy.mul(a.greaterEqual(b).toFloat());
       const derB = () => dy.mul(a.less(b).toFloat());
       return {a: derA, b: derB};
     };
-    return ENV.engine.executeKernel('Maximum', {inputs: {a, b}}, der) as T;
+    return ENV.engine.runKernel(
+               backend => backend.maximum(a, b), {a, b}, der) as T;
   }
 
   /**

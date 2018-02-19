@@ -17,7 +17,6 @@
 
 import * as dl from './index';
 import {BackendTimer, BackendTimingInfo} from './kernels/backend';
-import {Kernel} from './kernels/kernel_registry';
 import {TypedArray} from './kernels/webgl/tex_util';
 import {Logger, Profiler} from './profiler';
 import {Tensor} from './tensor';
@@ -37,7 +36,7 @@ class TestBackendTimer implements BackendTimer {
 
 class TestLogger extends Logger {
   logKernelProfile(
-      kernelName: Kernel, result: Tensor, vals: TypedArray, timeMs: number) {}
+      name: string, result: Tensor, vals: TypedArray, timeMs: number) {}
 }
 
 describe('profiler.Profiler', () => {

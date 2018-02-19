@@ -36,7 +36,7 @@ import * as slice from './ops/slice';
 import * as softmax_ops from './ops/softmax';
 import * as transpose from './ops/transpose';
 import * as unary_ops from './ops/unary_ops';
-import {ScopeResult} from './tape_util';
+import {ScopeResult} from './tape';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {Tracking} from './tracking';
 import {Rank} from './types';
@@ -227,9 +227,8 @@ export class NDArrayMath {
     let values: Tensor1D;
     let indices: Tensor1D;
     tidy('topK', () => {
-      values = ENV.engine.executeKernel('TopKValues', {inputs: {x}, args: {k}});
-      indices =
-          ENV.engine.executeKernel('TopKIndices', {inputs: {x}, args: {k}});
+      values = ENV.engine.runKernel(backend => backend.topKValues(x, k));
+      indices = ENV.engine.runKernel(backend => backend.topKIndices(x, k));
       return values;
     });
     const result = {values, indices};
@@ -261,7 +260,7 @@ export class NDArrayMath {
 
   /** @deprecated Use dl.transpose() instead. */
   switchDim<R extends Rank>(x: Tensor<R>, perm?: number[]): Tensor<R> {
-    return ops.transpose<R>(x, perm);
+    return ops.transpose(x, perm);
   }
 
   /** @deprecated Use dl.add(c, A) instead. */

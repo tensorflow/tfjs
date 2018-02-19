@@ -143,15 +143,16 @@ export class Ops {
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, filter.shape, strides, pad, dimRoundingMode);
 
-    const gradients = (dy: Tensor4D, y: Tensor4D) => {
+    const grad = (dy: Tensor4D) => {
       return {
         x: () => Ops.conv2dDerInput(x4D.shape, dy, filter, strides, pad),
         filter: () => Ops.conv2dDerFilter(x4D, dy, filter.shape, strides, pad)
       };
     };
 
-    const res = ENV.engine.executeKernel(
-        'Conv2D', {inputs: {x: x4D, filter}, args: {convInfo}}, gradients);
+    const res = ENV.engine.runKernel(
+        backend => backend.conv2d(x4D, filter, convInfo), {x: x4D, filter},
+        grad);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -229,8 +230,8 @@ export class Ops {
 
     const convInfo = conv_util.computeConv2DInfo(
         xShape4D, filter.shape, strides, pad, dimRoundingMode);
-    const res = ENV.engine.executeKernel(
-        'Conv2DDerInput', {inputs: {dy: dy4D, filter}, args: {convInfo}});
+    const res = ENV.engine.runKernel(
+        backend => backend.conv2dDerInput(dy4D, filter, convInfo));
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -297,8 +298,8 @@ export class Ops {
 
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, filterShape, strides, pad, dimRoundingMode);
-    return ENV.engine.executeKernel(
-        'Conv2DDerFilter', {inputs: {x: x4D, dy: dy4D}, args: {convInfo}});
+    return ENV.engine.runKernel(
+        backend => backend.conv2dDerFilter(x4D, dy4D, convInfo));
   }
 
   /**
@@ -412,8 +413,8 @@ export class Ops {
     const convInfo = conv_util.computeConv2DInfo(
         input4D.shape, filter.shape, strides, pad, dimRoundingMode,
         true /* depthwise */);
-    const res = ENV.engine.executeKernel(
-        'DepthwiseConv2D', {inputs: {x: input4D, filter}, args: {convInfo}});
+    const res = ENV.engine.runKernel(
+        backend => backend.depthwiseConv2D(input4D, filter, convInfo));
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }

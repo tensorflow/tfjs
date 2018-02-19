@@ -66,11 +66,11 @@ export class Ops {
     const convInfo = conv_util.computePool2DInfo(
         x4D.shape, filterSize, strides, pad, dimRoundingMode);
 
-    const gradients = (dy: Tensor4D, y: Tensor4D) => {
+    const grad = (dy: Tensor4D) => {
       return {x: () => Ops.maxPoolBackprop(dy, x4D, filterSize, strides, pad)};
     };
-    const res = ENV.engine.executeKernel(
-        'MaxPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
+    const res = ENV.engine.runKernel(
+        backend => backend.maxPool(x4D, convInfo), {x: x4D}, grad);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -130,8 +130,8 @@ export class Ops {
 
     const convInfo = conv_util.computePool2DInfo(
         input4D.shape, filterSize, strides, pad, dimRoundingMode);
-    const res = ENV.engine.executeKernel(
-        'MaxPoolBackprop', {inputs: {dy: dy4D, x: input4D}, args: {convInfo}});
+    const res = ENV.engine.runKernel(
+        backend => backend.maxPoolBackprop(dy4D, input4D, convInfo));
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -180,8 +180,8 @@ export class Ops {
     }
     const convInfo = conv_util.computePool2DInfo(
         input4D.shape, filterSize, strides, pad, dimRoundingMode);
-    const res = ENV.engine.executeKernel(
-        'MinPool', {inputs: {x: input4D}, args: {convInfo}});
+    const res =
+        ENV.engine.runKernel(backend => backend.minPool(input4D, convInfo));
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -232,11 +232,11 @@ export class Ops {
     const convInfo =
         conv_util.computePool2DInfo(x4D.shape, filterSize, strides, pad);
 
-    const gradients = (dy: Tensor4D, y: Tensor4D) => {
+    const grad = (dy: Tensor4D) => {
       return {x: () => Ops.avgPoolBackprop(dy, x4D, filterSize, strides, pad)};
     };
-    const res = ENV.engine.executeKernel(
-        'AvgPool', {inputs: {x: x4D}, args: {convInfo}}, gradients);
+    const res = ENV.engine.runKernel(
+        backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -285,8 +285,8 @@ export class Ops {
 
     const convInfo =
         conv_util.computePool2DInfo(input4D.shape, filterSize, strides, pad);
-    const res = ENV.engine.executeKernel(
-        'AvgPoolBackprop', {inputs: {dy: dy4D, x: input4D}, args: {convInfo}});
+    const res = ENV.engine.runKernel(
+        backend => backend.avgPoolBackprop(dy4D, input4D, convInfo));
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }

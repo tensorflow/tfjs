@@ -168,7 +168,7 @@ function concat2Tensors<T extends Tensor>(a: T, b: T, axis: number): T {
   const der = (dy: Tensor2D) => {
     return {a: () => dy.slice(aBegin, aSize), b: () => dy.slice(bBegin, bSize)};
   };
-  const res =
-      ENV.engine.executeKernel('Concat', {inputs: {a: a2D, b: b2D}}, der);
+  const res = ENV.engine.runKernel(
+      backend => backend.concat(a2D, b2D), {a: a2D, b: b2D}, der);
   return res.reshape(outShape) as T;
 }

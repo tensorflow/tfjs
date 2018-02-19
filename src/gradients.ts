@@ -19,7 +19,7 @@ import {doc} from './doc';
 import {CustomGradientFunc} from './engine';
 import {ENV} from './environment';
 import {tidy} from './globals';
-import {ScopeFn, ScopeResult} from './tape_util';
+import {ScopeFn, ScopeResult} from './tape';
 import {Scalar, Tensor, Variable} from './tensor';
 import {NamedTensorMap} from './types';
 import * as util from './util';
