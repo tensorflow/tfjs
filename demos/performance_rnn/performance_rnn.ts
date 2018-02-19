@@ -13,9 +13,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import * as dl from 'deeplearn';
-
-import * as demo_util from '../util';
-
 import {KeyboardElement} from './keyboard_element';
 
 // tslint:disable-next-line:no-require-imports
@@ -110,7 +107,7 @@ const SALAMANDER_URL = 'https://storage.googleapis.com/learnjs-data/' +
 const CHECKPOINT_URL = 'https://storage.googleapis.com/learnjs-data/' +
     'checkpoint_zoo/performance_rnn_v2';
 
-const isDeviceSupported = demo_util.isWebGLSupported();
+const isDeviceSupported = dl.ENV.get('WEBGL_VERSION') >= 1;
 
 if (!isDeviceSupported) {
   document.querySelector('#status').innerHTML =
