@@ -26,7 +26,7 @@ export interface LSTMCell {
   (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D];
 }
 
-export class Ops {
+export class LSTMOps {
   /**
    * Computes the next states and outputs of a stack of LSTMCells.
    *

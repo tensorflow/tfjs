@@ -26,6 +26,14 @@ describeWithFlags('reverse1d', ALL_ENVS, () => {
     expect(result.shape).toEqual(input.shape);
     expectArraysClose(result, [5, 4, 3, 2, 1]);
   });
+
+  it('grad', () => {
+    const a = dl.tensor1d([1, 2, 3]);
+    const dy = dl.tensor1d([10, 20, 30]);
+    const da = dl.grad((a: dl.Tensor1D) => dl.reverse1d(a))(a, dy);
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [30, 20, 10]);
+  });
 });
 
 describeWithFlags('reverse2d', ALL_ENVS, () => {
@@ -62,6 +70,30 @@ describeWithFlags('reverse2d', ALL_ENVS, () => {
   it('throws error with non integer axis param', () => {
     const x = dl.tensor2d([1, 20, 300, 4], [1, 4]);
     expect(() => dl.reverse2d(x, [0.5])).toThrowError();
+  });
+
+  it('grad', () => {
+    const a = dl.tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const dy = dl.tensor2d([[10, 20, 30], [40, 50, 60]]);
+    const da = dl.grad((a: dl.Tensor2D) => dl.reverse2d(a))(a, dy);
+    expect(da.shape).toEqual([2, 3]);
+    expectArraysClose(da, [60, 50, 40, 30, 20, 10]);
+  });
+
+  it('grad with reverse(axis=0)', () => {
+    const a = dl.tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const dy = dl.tensor2d([[10, 20, 30], [40, 50, 60]]);
+    const da = dl.grad((a: dl.Tensor2D) => dl.reverse2d(a, 0))(a, dy);
+    expect(da.shape).toEqual([2, 3]);
+    expectArraysClose(da, [40, 50, 60, 10, 20, 30]);
+  });
+
+  it('grad with reverse(axis=1)', () => {
+    const a = dl.tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const dy = dl.tensor2d([[10, 20, 30], [40, 50, 60]]);
+    const da = dl.grad((a: dl.Tensor2D) => dl.reverse2d(a, 1))(a, dy);
+    expect(da.shape).toEqual([2, 3]);
+    expectArraysClose(da, [30, 20, 10, 60, 50, 40]);
   });
 });
 

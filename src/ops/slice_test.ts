@@ -44,6 +44,14 @@ describeWithFlags('slice1d', ALL_ENVS, () => {
     expect(result.shape).toEqual([3]);
     expectArraysClose(result, [2, 3, 4]);
   });
+
+  it('grad', () => {
+    const a = dl.tensor1d([1, 2, 3, 4, 5]);
+    const dy = dl.tensor1d([10, 100]);
+    const da = dl.grad(x => dl.slice1d(a, 1, 2))(a, dy);
+    expect(da.shape).toEqual([5]);
+    expectArraysClose(da, [0, 10, 100, 0, 0]);
+  });
 });
 
 describeWithFlags('slice2d', ALL_ENVS, () => {
@@ -77,6 +85,15 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
   it('throws when requesting out of bounds slice', () => {
     const a = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [4, 3]);
     expect(() => dl.slice2d(a, [1, 1], [10, 10])).toThrowError();
+  });
+
+  it('grad', () => {
+    const a = dl.tensor2d([[1, 2, 3], [4, 5, 6]]);
+    const dy = dl.tensor2d([[20], [50]]);
+    const da =
+        dl.grad((x: dl.Tensor2D) => dl.slice2d(a, [0, 1], [2, 1]))(a, dy);
+    expect(da.shape).toEqual([2, 3]);
+    expectArraysClose(da, [0, 20, 0, 0, 50, 0]);
   });
 });
 

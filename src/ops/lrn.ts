@@ -21,7 +21,7 @@ import {Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
 import {operation} from './operation';
 
-export class LRN {
+export class LRNOps {
   /**
    * Normalizes the activation of a local neighborhood across or within
    * channels.

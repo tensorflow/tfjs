@@ -23,7 +23,7 @@ import * as util from '../util';
 
 import {operation} from './operation';
 
-export class Ops {
+export class BatchNormOps {
   /**
    * Batch normalization, strictly for 2D. For the more relaxed version, see
    * `batchNormalization`.
@@ -65,7 +65,7 @@ export class Ops {
               `but got rank ${offset.rank}.`);
     }
 
-    return Ops.batchNormalization(
+    return BatchNormOps.batchNormalization(
         x, mean, variance, varianceEpsilon, scale, offset);
   }
 
@@ -110,7 +110,7 @@ export class Ops {
               `but got rank ${offset.rank}.`);
     }
 
-    return Ops.batchNormalization(
+    return BatchNormOps.batchNormalization(
         x, mean, variance, varianceEpsilon, scale, offset);
   }
 
@@ -154,7 +154,7 @@ export class Ops {
           `Error in batchNormalization4D: offset must be rank 4 or rank 1 ` +
               `but got rank ${offset.rank}.`);
     }
-    return Ops.batchNormalization(
+    return BatchNormOps.batchNormalization(
         x, mean, variance, varianceEpsilon, scale, offset);
   }
 

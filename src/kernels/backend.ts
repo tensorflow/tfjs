@@ -50,17 +50,9 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D;
 
-  slice1D(x: Tensor1D, begin: number, size: number): Tensor1D;
-  slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
-      Tensor2D;
-  slice3D(x: Tensor3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Tensor3D;
-  slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Tensor4D;
+  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T;
 
-  reverse4D(a: Tensor4D, axis: number[]): Tensor4D;
+  reverse<T extends Tensor>(a: T, axis: number[]): T;
 
   // Any concat of n-dimensional tensors across any axis can be reduced to
   // a concatenation of two-dimensional tensors across the axis 1 by first
@@ -167,11 +159,8 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
 
   tile<T extends Tensor>(x: T, reps: number[]): T;
 
-  pad1D(x: Tensor1D, paddings: [number, number], constantValue: number):
-      Tensor1D;
-  pad2D(
-      x: Tensor2D, paddings: [[number, number], [number, number]],
-      constantValue: number): Tensor2D;
+  pad<T extends Tensor>(
+      x: T, paddings: Array<[number, number]>, constantValue: number): T;
 
   transpose<T extends Tensor>(x: T, perm: number[]): T;
 

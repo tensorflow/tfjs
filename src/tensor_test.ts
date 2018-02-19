@@ -783,7 +783,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('squeeze wrong axis', () => {
     const a = dl.tensor3d([4, 2, 1], [3, 1, 1], 'bool');
-    expect(() => a.squeeze([0, 1])).toThrowError('axis 0 is not 1');
+    expect(() => a.squeeze([0, 1])).toThrowError();
   });
 
   it('scalar -> 2d', () => {

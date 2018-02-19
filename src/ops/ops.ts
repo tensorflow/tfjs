@@ -15,176 +15,178 @@
  * =============================================================================
  */
 
-import * as array_ops from './array_ops';
-import * as batchnorm_ops from './batchnorm';
-import * as binary_ops from './binary_ops';
-import * as compare_ops from './compare';
-import * as concat_ops from './concat';
-import * as conv_ops from './conv';
-import * as image_ops from './image_ops';
-import * as logical_ops from './logical_ops';
-import * as lrn_ops from './lrn';
-import * as lstm_ops from './lstm';
-import * as matmul_ops from './matmul';
-import * as norm_ops from './norm';
-import * as pool_ops from './pool';
-import * as reduction_ops from './reduction_ops';
-import * as reverse_ops from './reverse';
-import * as slice_ops from './slice';
-import * as softmax_ops from './softmax';
-import * as transpose_ops from './transpose';
-import * as unary_ops from './unary_ops';
+import {ArrayOps} from './array_ops';
+import {BatchNormOps} from './batchnorm';
+import {BinaryOps} from './binary_ops';
+import {CompareOps} from './compare';
+import {ConcatOps} from './concat';
+import {ConvOps} from './conv';
+import {ImageOps} from './image_ops';
+import {LogicalOps} from './logical_ops';
+import {LRNOps} from './lrn';
+import {LSTMOps} from './lstm';
+import {MatmulOps} from './matmul';
+import {NormOps} from './norm';
+import {PoolOps} from './pool';
+import {ReductionOps} from './reduction_ops';
+import {ReverseOps} from './reverse';
+import {SliceOps} from './slice';
+import {SoftmaxOps} from './softmax';
+import {TransposeOps} from './transpose';
+import {UnaryOps} from './unary_ops';
 
-export const batchNormalization = batchnorm_ops.Ops.batchNormalization;
-export const batchNormalization2d = batchnorm_ops.Ops.batchNormalization2d;
-export const batchNormalization3d = batchnorm_ops.Ops.batchNormalization3d;
-export const batchNormalization4d = batchnorm_ops.Ops.batchNormalization4d;
+export const batchNormalization = BatchNormOps.batchNormalization;
+export const batchNormalization2d = BatchNormOps.batchNormalization2d;
+export const batchNormalization3d = BatchNormOps.batchNormalization3d;
+export const batchNormalization4d = BatchNormOps.batchNormalization4d;
 
-export const concat = concat_ops.Concat.concat;
-export const concat1d = concat_ops.Concat.concat1d;
-export const concat2d = concat_ops.Concat.concat2d;
-export const concat3d = concat_ops.Concat.concat3d;
-export const concat4d = concat_ops.Concat.concat4d;
+export const concat = ConcatOps.concat;
+export const concat1d = ConcatOps.concat1d;
+export const concat2d = ConcatOps.concat2d;
+export const concat3d = ConcatOps.concat3d;
+export const concat4d = ConcatOps.concat4d;
 
-export const conv1d = conv_ops.Ops.conv1d;
-export const conv2d = conv_ops.Ops.conv2d;
-export const conv2dTranspose = conv_ops.Ops.conv2dTranspose;
-export const depthwiseConv2d = conv_ops.Ops.depthwiseConv2d;
+export const conv1d = ConvOps.conv1d;
+export const conv2d = ConvOps.conv2d;
+export const conv2dTranspose = ConvOps.conv2dTranspose;
+export const depthwiseConv2d = ConvOps.depthwiseConv2d;
 
-export const matMul = matmul_ops.Ops.matMul;
-export const matrixTimesVector = matmul_ops.Ops.matrixTimesVector;
-export const outerProduct = matmul_ops.Ops.outerProduct;
-export const vectorTimesMatrix = matmul_ops.Ops.vectorTimesMatrix;
+export const matMul = MatmulOps.matMul;
+export const matrixTimesVector = MatmulOps.matrixTimesVector;
+export const outerProduct = MatmulOps.outerProduct;
+export const vectorTimesMatrix = MatmulOps.vectorTimesMatrix;
 
-export const avgPool = pool_ops.Ops.avgPool;
-export const maxPool = pool_ops.Ops.maxPool;
-export const minPool = pool_ops.Ops.minPool;
+export const avgPool = PoolOps.avgPool;
+export const maxPool = PoolOps.maxPool;
+export const minPool = PoolOps.minPool;
 
-export const transpose = transpose_ops.Ops.transpose;
+export const transpose = TransposeOps.transpose;
 
-export const reverse = reverse_ops.Ops.reverse;
-export const reverse1d = reverse_ops.Ops.reverse1d;
-export const reverse2d = reverse_ops.Ops.reverse2d;
-export const reverse3d = reverse_ops.Ops.reverse3d;
-export const reverse4d = reverse_ops.Ops.reverse4d;
+export const reverse = ReverseOps.reverse;
+export const reverse1d = ReverseOps.reverse1d;
+export const reverse2d = ReverseOps.reverse2d;
+export const reverse3d = ReverseOps.reverse3d;
+export const reverse4d = ReverseOps.reverse4d;
 
-export const slice = slice_ops.Ops.slice;
-export const slice1d = slice_ops.Ops.slice1d;
-export const slice2d = slice_ops.Ops.slice2d;
-export const slice3d = slice_ops.Ops.slice3d;
-export const slice4d = slice_ops.Ops.slice4d;
+export const slice = SliceOps.slice;
+export const slice1d = SliceOps.slice1d;
+export const slice2d = SliceOps.slice2d;
+export const slice3d = SliceOps.slice3d;
+export const slice4d = SliceOps.slice4d;
 
-export const argMax = reduction_ops.Ops.argMax;
-export const argMin = reduction_ops.Ops.argMin;
-export const logSumExp = reduction_ops.Ops.logSumExp;
-export const max = reduction_ops.Ops.max;
-export const mean = reduction_ops.Ops.mean;
-export const min = reduction_ops.Ops.min;
-export const moments = reduction_ops.Ops.moments;
-export const sum = reduction_ops.Ops.sum;
+export const argMax = ReductionOps.argMax;
+export const argMin = ReductionOps.argMin;
+export const logSumExp = ReductionOps.logSumExp;
+export const max = ReductionOps.max;
+export const mean = ReductionOps.mean;
+export const min = ReductionOps.min;
+export const moments = ReductionOps.moments;
+export const sum = ReductionOps.sum;
 
-export const equal = compare_ops.Ops.equal;
-export const equalStrict = compare_ops.Ops.equalStrict;
-export const greater = compare_ops.Ops.greater;
-export const greaterStrict = compare_ops.Ops.greaterStrict;
-export const greaterEqual = compare_ops.Ops.greaterEqual;
-export const greaterEqualStrict = compare_ops.Ops.greaterEqualStrict;
-export const less = compare_ops.Ops.less;
-export const lessStrict = compare_ops.Ops.lessStrict;
-export const lessEqual = compare_ops.Ops.lessEqual;
-export const lessEqualStrict = compare_ops.Ops.lessEqualStrict;
-export const notEqual = compare_ops.Ops.notEqual;
-export const notEqualStrict = compare_ops.Ops.notEqualStrict;
+export const equal = CompareOps.equal;
+export const equalStrict = CompareOps.equalStrict;
+export const greater = CompareOps.greater;
+export const greaterStrict = CompareOps.greaterStrict;
+export const greaterEqual = CompareOps.greaterEqual;
+export const greaterEqualStrict = CompareOps.greaterEqualStrict;
+export const less = CompareOps.less;
+export const lessStrict = CompareOps.lessStrict;
+export const lessEqual = CompareOps.lessEqual;
+export const lessEqualStrict = CompareOps.lessEqualStrict;
+export const notEqual = CompareOps.notEqual;
+export const notEqualStrict = CompareOps.notEqualStrict;
 
-export const logicalNot = logical_ops.Ops.logicalNot;
-export const logicalAnd = logical_ops.Ops.logicalAnd;
-export const logicalOr = logical_ops.Ops.logicalOr;
-export const logicalXor = logical_ops.Ops.logicalXor;
-export const where = logical_ops.Ops.where;
+export const logicalNot = LogicalOps.logicalNot;
+export const logicalAnd = LogicalOps.logicalAnd;
+export const logicalOr = LogicalOps.logicalOr;
+export const logicalXor = LogicalOps.logicalXor;
+export const where = LogicalOps.where;
 
-export const abs = unary_ops.Ops.abs;
-export const acos = unary_ops.Ops.acos;
-export const asin = unary_ops.Ops.asin;
-export const atan = unary_ops.Ops.atan;
-export const ceil = unary_ops.Ops.ceil;
-export const clipByValue = unary_ops.Ops.clipByValue;
-export const cos = unary_ops.Ops.cos;
-export const cosh = unary_ops.Ops.cosh;
-export const elu = unary_ops.Ops.elu;
-export const exp = unary_ops.Ops.exp;
-export const floor = unary_ops.Ops.floor;
-export const leakyRelu = unary_ops.Ops.leakyRelu;
-export const log = unary_ops.Ops.log;
-export const neg = unary_ops.Ops.neg;
-export const prelu = unary_ops.Ops.prelu;
-export const relu = unary_ops.Ops.relu;
-export const selu = unary_ops.Ops.selu;
-export const sigmoid = unary_ops.Ops.sigmoid;
-export const sin = unary_ops.Ops.sin;
-export const sinh = unary_ops.Ops.sinh;
-export const sqrt = unary_ops.Ops.sqrt;
-export const square = unary_ops.Ops.square;
-export const step = unary_ops.Ops.step;
-export const tan = unary_ops.Ops.tan;
-export const tanh = unary_ops.Ops.tanh;
+export const abs = UnaryOps.abs;
+export const acos = UnaryOps.acos;
+export const asin = UnaryOps.asin;
+export const atan = UnaryOps.atan;
+export const ceil = UnaryOps.ceil;
+export const clipByValue = UnaryOps.clipByValue;
+export const cos = UnaryOps.cos;
+export const cosh = UnaryOps.cosh;
+export const elu = UnaryOps.elu;
+export const exp = UnaryOps.exp;
+export const floor = UnaryOps.floor;
+export const leakyRelu = UnaryOps.leakyRelu;
+export const log = UnaryOps.log;
+export const neg = UnaryOps.neg;
+export const prelu = UnaryOps.prelu;
+export const relu = UnaryOps.relu;
+export const selu = UnaryOps.selu;
+export const sigmoid = UnaryOps.sigmoid;
+export const sin = UnaryOps.sin;
+export const sinh = UnaryOps.sinh;
+export const sqrt = UnaryOps.sqrt;
+export const square = UnaryOps.square;
+export const step = UnaryOps.step;
+export const tan = UnaryOps.tan;
+export const tanh = UnaryOps.tanh;
 
-export const add = binary_ops.Ops.add;
-export const addStrict = binary_ops.Ops.addStrict;
-export const div = binary_ops.Ops.div;
-export const divStrict = binary_ops.Ops.divStrict;
-export const maximum = binary_ops.Ops.maximum;
-export const maximumStrict = binary_ops.Ops.maximumStrict;
-export const minimum = binary_ops.Ops.minimum;
-export const minimumStrict = binary_ops.Ops.minimumStrict;
-export const mul = binary_ops.Ops.mul;
-export const mulStrict = binary_ops.Ops.mulStrict;
-export const pow = binary_ops.Ops.pow;
-export const powStrict = binary_ops.Ops.powStrict;
-export const sub = binary_ops.Ops.sub;
-export const subStrict = binary_ops.Ops.subStrict;
+export const add = BinaryOps.add;
+export const addStrict = BinaryOps.addStrict;
+export const div = BinaryOps.div;
+export const divStrict = BinaryOps.divStrict;
+export const maximum = BinaryOps.maximum;
+export const maximumStrict = BinaryOps.maximumStrict;
+export const minimum = BinaryOps.minimum;
+export const minimumStrict = BinaryOps.minimumStrict;
+export const mul = BinaryOps.mul;
+export const mulStrict = BinaryOps.mulStrict;
+export const pow = BinaryOps.pow;
+export const powStrict = BinaryOps.powStrict;
+export const sub = BinaryOps.sub;
+export const subStrict = BinaryOps.subStrict;
 
-export const norm = norm_ops.Ops.norm;
+export const norm = NormOps.norm;
 
-export const cast = array_ops.Ops.cast;
-export const clone = array_ops.Ops.clone;
-export const fromPixels = array_ops.Ops.fromPixels;
-export const ones = array_ops.Ops.ones;
-export const onesLike = array_ops.Ops.onesLike;
-export const zeros = array_ops.Ops.zeros;
-export const zerosLike = array_ops.Ops.zerosLike;
-export const rand = array_ops.Ops.rand;
-export const randomNormal = array_ops.Ops.randomNormal;
-export const truncatedNormal = array_ops.Ops.truncatedNormal;
-export const randomUniform = array_ops.Ops.randomUniform;
-export const reshape = array_ops.Ops.reshape;
-export const squeeze = array_ops.Ops.squeeze;
-export const tile = array_ops.Ops.tile;
-export const gather = array_ops.Ops.gather;
-export const oneHot = array_ops.Ops.oneHot;
-export const linspace = array_ops.Ops.linspace;
-export const range = array_ops.Ops.range;
-export const buffer = array_ops.Ops.buffer;
-export const fill = array_ops.Ops.fill;
-export const tensor = array_ops.Ops.tensor;
-export const scalar = array_ops.Ops.scalar;
-export const tensor1d = array_ops.Ops.tensor1d;
-export const tensor2d = array_ops.Ops.tensor2d;
-export const tensor3d = array_ops.Ops.tensor3d;
-export const tensor4d = array_ops.Ops.tensor4d;
-export const print = array_ops.Ops.print;
-export const expandDims = array_ops.Ops.expandDims;
-export const stack = array_ops.Ops.stack;
-export const pad = array_ops.Ops.pad;
-export const pad1d = array_ops.Ops.pad1d;
-export const pad2d = array_ops.Ops.pad2d;
+export const cast = ArrayOps.cast;
+export const clone = ArrayOps.clone;
+export const fromPixels = ArrayOps.fromPixels;
+export const ones = ArrayOps.ones;
+export const onesLike = ArrayOps.onesLike;
+export const zeros = ArrayOps.zeros;
+export const zerosLike = ArrayOps.zerosLike;
+export const rand = ArrayOps.rand;
+export const randomNormal = ArrayOps.randomNormal;
+export const truncatedNormal = ArrayOps.truncatedNormal;
+export const randomUniform = ArrayOps.randomUniform;
+export const reshape = ArrayOps.reshape;
+export const squeeze = ArrayOps.squeeze;
+export const tile = ArrayOps.tile;
+export const gather = ArrayOps.gather;
+export const oneHot = ArrayOps.oneHot;
+export const linspace = ArrayOps.linspace;
+export const range = ArrayOps.range;
+export const buffer = ArrayOps.buffer;
+export const fill = ArrayOps.fill;
+export const tensor = ArrayOps.tensor;
+export const scalar = ArrayOps.scalar;
+export const tensor1d = ArrayOps.tensor1d;
+export const tensor2d = ArrayOps.tensor2d;
+export const tensor3d = ArrayOps.tensor3d;
+export const tensor4d = ArrayOps.tensor4d;
+export const print = ArrayOps.print;
+export const expandDims = ArrayOps.expandDims;
+export const stack = ArrayOps.stack;
 
-export const basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
-export const multiRNNCell = lstm_ops.Ops.multiRNNCell;
+export const pad = ArrayOps.pad;
+export const pad1d = ArrayOps.pad1d;
+export const pad2d = ArrayOps.pad2d;
+export const pad3d = ArrayOps.pad3d;
+export const pad4d = ArrayOps.pad4d;
 
-export const softmax = softmax_ops.Ops.softmax;
+export const basicLSTMCell = LSTMOps.basicLSTMCell;
+export const multiRNNCell = LSTMOps.multiRNNCell;
 
-export const localResponseNormalization =
-    lrn_ops.LRN.localResponseNormalization;
+export const softmax = SoftmaxOps.softmax;
+
+export const localResponseNormalization = LRNOps.localResponseNormalization;
 
 // So typings can propagate.
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
@@ -193,9 +195,9 @@ import {Rank} from '../types';
 [Tensor, Rank, Tensor3D, Tensor4D];
 
 export const losses = {
-  softmaxCrossEntropy: softmax_ops.Ops.softmaxCrossEntropy
+  softmaxCrossEntropy: SoftmaxOps.softmaxCrossEntropy
 };
 
 export const image = {
-  resizeBilinear: image_ops.Ops.resizeBilinear
+  resizeBilinear: ImageOps.resizeBilinear
 };

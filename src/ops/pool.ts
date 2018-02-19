@@ -22,7 +22,7 @@ import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './operation';
 
-export class Ops {
+export class PoolOps {
   /**
    * Computes the 2D max pooling of an image.
    *
@@ -67,7 +67,9 @@ export class Ops {
         x4D.shape, filterSize, strides, pad, dimRoundingMode);
 
     const grad = (dy: Tensor4D) => {
-      return {x: () => Ops.maxPoolBackprop(dy, x4D, filterSize, strides, pad)};
+      return {
+        x: () => PoolOps.maxPoolBackprop(dy, x4D, filterSize, strides, pad)
+      };
     };
     const res = ENV.engine.runKernel(
         backend => backend.maxPool(x4D, convInfo), {x: x4D}, grad);
@@ -233,7 +235,9 @@ export class Ops {
         conv_util.computePool2DInfo(x4D.shape, filterSize, strides, pad);
 
     const grad = (dy: Tensor4D) => {
-      return {x: () => Ops.avgPoolBackprop(dy, x4D, filterSize, strides, pad)};
+      return {
+        x: () => PoolOps.avgPoolBackprop(dy, x4D, filterSize, strides, pad)
+      };
     };
     const res = ENV.engine.runKernel(
         backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);

@@ -49,7 +49,7 @@ import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
 import {MatMulProgram} from './webgl/mulmat_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
 import {OneHotProgram} from './webgl/onehot_gpu';
-import {Pad1DProgram, Pad2DProgram} from './webgl/pad_gpu';
+import {PadProgram} from './webgl/pad_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceProgram} from './webgl/reduce_gpu';
 import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
@@ -309,36 +309,13 @@ export class MathBackendWebGL implements KernelBackend {
     return this.gpgpu;
   }
 
-  slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
-    const program = new SliceProgram([size]);
-    const customSetup = program.getCustomSetupFunc([begin]);
-    return this.compileAndRun(program, [x], null, customSetup);
-  }
-
-  slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
-      Tensor2D {
+  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
   }
 
-  slice3D(x: Tensor3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Tensor3D {
-    const program = new SliceProgram(size);
-    const customSetup = program.getCustomSetupFunc(begin);
-    return this.compileAndRun(program, [x], null, customSetup);
-  }
-
-  slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Tensor4D {
-    const program = new SliceProgram(size);
-    const customSetup = program.getCustomSetupFunc(begin);
-    return this.compileAndRun(program, [x], null, customSetup);
-  }
-
-  reverse4D(x: Tensor4D, axis: number[]): Tensor4D {
+  reverse<T extends Tensor>(x: T, axis: number[]): T {
     const program = new ReverseProgram(x.shape, axis);
     return this.compileAndRun(program, [x]);
   }
@@ -405,16 +382,9 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  pad1D(x: Tensor1D, paddings: [number, number], constantValue: number):
-      Tensor1D {
-    const program = new Pad1DProgram(x.shape, paddings, constantValue);
-    return this.compileAndRun(program, [x]);
-  }
-
-  pad2D(
-      x: Tensor2D, paddings: [[number, number], [number, number]],
-      constantValue: number): Tensor2D {
-    const program = new Pad2DProgram(x.shape, paddings, constantValue);
+  pad<T extends Tensor>(
+      x: T, paddings: Array<[number, number]>, constantValue: number): T {
+    const program = new PadProgram(x.shape, paddings, constantValue);
     return this.compileAndRun(program, [x]);
   }
 

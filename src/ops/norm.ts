@@ -22,7 +22,7 @@ import * as axis_util from './axis_util';
 import {operation} from './operation';
 import * as ops from './ops';
 
-export class Ops {
+export class NormOps {
   /**
    * Computes the norm of scalar, vectors, and matrices.
    * This function can compute several different vector norms (the 1-norm, the

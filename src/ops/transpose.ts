@@ -22,7 +22,7 @@ import * as util from '../util';
 import * as axis_util from './axis_util';
 import {operation} from './operation';
 
-export class Ops {
+export class TransposeOps {
   /**
    * Transposes the `Tensor`. Permutes the dimensions according to `perm`.
    *

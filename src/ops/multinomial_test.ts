@@ -19,10 +19,10 @@ import * as dl from '../index';
 import {Tensor1D} from '../tensor';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Rank} from '../types';
-import * as array_ops from './array_ops';
+import {ArrayOps} from './array_ops';
 
 // TODO(smilkov): Use dl.multinomial once exposed to the user.
-const multinomial = array_ops.Ops.multinomial;
+const multinomial = ArrayOps.multinomial;
 
 describeWithFlags('multinomial', ALL_ENVS, () => {
   const NUM_SAMPLES = 10000;

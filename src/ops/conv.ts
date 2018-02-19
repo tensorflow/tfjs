@@ -22,7 +22,7 @@ import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './operation';
 
-export class Ops {
+export class ConvOps {
   /**
    * Computes a 1D convolution over the input x.
    *
@@ -81,7 +81,8 @@ export class Ops {
         input3D.as4D(input3D.shape[0], 1, input3D.shape[1], input3D.shape[2]);
     const strides: [number, number] = [1, stride];
 
-    const res = Ops.conv2d(input4D, filter4D, strides, pad, dimRoundingMode);
+    const res =
+        ConvOps.conv2d(input4D, filter4D, strides, pad, dimRoundingMode);
     if (reshapedTo3D) {
       return res.as2D(res.shape[2], res.shape[3]) as T;
     }
@@ -145,8 +146,9 @@ export class Ops {
 
     const grad = (dy: Tensor4D) => {
       return {
-        x: () => Ops.conv2dDerInput(x4D.shape, dy, filter, strides, pad),
-        filter: () => Ops.conv2dDerFilter(x4D, dy, filter.shape, strides, pad)
+        x: () => ConvOps.conv2dDerInput(x4D.shape, dy, filter, strides, pad),
+        filter: () =>
+            ConvOps.conv2dDerFilter(x4D, dy, filter.shape, strides, pad)
       };
     };
 
@@ -328,7 +330,7 @@ export class Ops {
       outputShape: [number, number, number, number]|[number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    return Ops.conv2dDerInput(
+    return ConvOps.conv2dDerInput(
         outputShape, x, filter, strides, pad, dimRoundingMode);
   }
 

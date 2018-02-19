@@ -24,7 +24,7 @@ import * as ops from './ops';
 import {zerosLike} from './ops';
 import * as selu_util from './selu_util';
 
-export class Ops {
+export class UnaryOps {
   /**
    * Computes `-1 * x` element-wise.
    *
@@ -430,7 +430,8 @@ export class Ops {
   static asin<T extends Tensor>(x: T): T {
     const grad = (dy: T) => {
       return {
-        x: () => dy.divStrict(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square())))
+        x: () =>
+            dy.divStrict(UnaryOps.sqrt(ops.scalar(1).sub(x.toFloat().square())))
       };
     };
     return ENV.engine.runKernel(backend => backend.asin(x), {x}, grad);
@@ -451,8 +452,9 @@ export class Ops {
   static acos<T extends Tensor>(x: T): T {
     const grad = (dy: T) => {
       return {
-        x: () => dy.divStrict(Ops.sqrt(ops.scalar(1).sub(x.toFloat().square())))
-                     .neg()
+        x: () =>
+            dy.divStrict(UnaryOps.sqrt(ops.scalar(1).sub(x.toFloat().square())))
+                .neg()
       };
     };
     return ENV.engine.runKernel(backend => backend.acos(x), {x}, grad);
