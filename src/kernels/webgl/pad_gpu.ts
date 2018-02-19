@@ -16,66 +16,53 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
+import {getCoordsDataType} from './shader_compiler';
 
-export class Pad1DProgram implements GPGPUProgram {
+export class PadProgram implements GPGPUProgram {
   variableNames = ['x'];
   outputShape: number[];
   userCode: string;
-  rank: number;
 
   constructor(
-      xShape: number[], paddings: [number, number], constantValue: number) {
-    const leftPadding = paddings[0];
-    const rightPadding = paddings[1];
-
-    this.outputShape = [leftPadding + xShape[0] + rightPadding];
-    this.rank = 1;
-
-    this.userCode = `
-      void main() {
-        int resRC = getOutputCoords();
-        if (resRC < ${leftPadding} || resRC >= ${leftPadding} + ${xShape[0]}) {
-          setOutput(float(${constantValue}));
-        } else {
-          setOutput(getX(resRC - ${leftPadding}));
-        }
-      }
-    `;
-  }
-}
-
-export class Pad2DProgram implements GPGPUProgram {
-  variableNames = ['x'];
-  outputShape: number[];
-  userCode: string;
-  rank: number;
-
-  constructor(
-      xShape: number[], paddings: [[number, number], [number, number]],
+      xShape: number[], paddings: Array<[number, number]>,
       constantValue: number) {
-    const topPadding = paddings[0][0];
-    const bottomPadding = paddings[0][1];
-    const leftPadding = paddings[1][0];
-    const rightPadding = paddings[1][1];
+    this.outputShape = paddings.map(
+        (p, i) => p[0] /* beforePad */ + xShape[i] + p[1] /* afterPad */);
+    const rank = xShape.length;
+    const type = getCoordsDataType(rank);
 
-    this.outputShape = [
-      topPadding + xShape[0] + bottomPadding,
-      leftPadding + xShape[1] + rightPadding
-    ];
-    this.rank = 2;
+    const start = paddings.map(p => p[0]).join(',');
+    const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
+    const unpackedCoords =
+        ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank);
 
-    const sourceCoords = `resRC.x - ${topPadding}, resRC.y - ${leftPadding}`;
+    if (rank === 1) {
+      this.userCode = `
+        int start = ${start};
+        int end = ${end};
 
+        void main() {
+          int outC = getOutputCoords();
+          if (outC < start || outC >= end) {
+            setOutput(float(${constantValue}));
+          } else {
+            setOutput(getX(outC - start));
+          }
+        }
+      `;
+      return;
+    }
     this.userCode = `
+      ${type} start = ${type}(${start});
+      ${type} end = ${type}(${end});
+
       void main() {
-        ivec2 resRC = getOutputCoords();
-        int topShape = ${topPadding} + ${xShape[0]};
-        int leftShape = ${leftPadding} + ${xShape[1]};
-        if (resRC.x < ${topPadding} || resRC.x >= topShape ||
-            resRC.y < ${leftPadding} || resRC.y >= leftShape) {
+        ${type} outC = getOutputCoords();
+        if (any(lessThan(outC, start)) || any(greaterThanEqual(outC, end))) {
           setOutput(float(${constantValue}));
         } else {
-          setOutput(getX(${sourceCoords}));
+          ${type} coords = outC - start;
+          setOutput(getX(${unpackedCoords}));
         }
       }
     `;

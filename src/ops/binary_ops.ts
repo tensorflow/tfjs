@@ -24,7 +24,7 @@ import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
 import {scalar} from './ops';
 
-export class Ops {
+export class BinaryOps {
   /**
    * Adds two `Tensor`s element-wise, A + B. Supports broadcasting.
    *

@@ -16,6 +16,7 @@
  */
 
 import {GPGPUProgram} from './gpgpu_math';
+import {getCoordsDataType} from './shader_compiler';
 
 export class ReverseProgram implements GPGPUProgram {
   variableNames = ['x'];
@@ -23,24 +24,35 @@ export class ReverseProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(xShape: number[], axis: number[]) {
+    const rank = xShape.length;
+    if (rank > 4) {
+      throw new Error(
+          `WebGL backend: Reverse of rank-${rank} tensor is not yet supported`);
+    }
     this.outputShape = xShape;
-    const getRevVar = (i: number) => {
+
+    if (rank === 1) {
+      this.userCode = `
+        void main() {
+          int coord = getOutputCoords();
+          setOutput(getX(${xShape[0]} - coord - 1));
+        }
+      `;
+      return;
+    }
+    const getInCoord = (i: number) => {
       if (axis.indexOf(i) !== -1 && xShape[i] !== 1) {
         return `${xShape[i]} - coords[${i}] - 1`;
       }
       return `coords[${i}]`;
     };
-
-    const b = getRevVar(0);
-    const r = getRevVar(1);
-    const c = getRevVar(2);
-    const d = getRevVar(3);
+    const inCoords = xShape.map((_, i) => getInCoord(i)).join(',');
+    const type = getCoordsDataType(rank);
 
     this.userCode = `
       void main() {
-        ivec4 coords = getOutputCoords();
-        float val = getX(${b}, ${r}, ${c}, ${d});
-        setOutput(val);
+        ${type} coords = getOutputCoords();
+        setOutput(getX(${inCoords}));
       }
     `;
   }

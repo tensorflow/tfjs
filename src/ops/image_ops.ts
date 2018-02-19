@@ -21,7 +21,7 @@ import {Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
 import {operation} from './operation';
 
-export class Ops {
+export class ImageOps {
   /**
    * Bilinear resize a batch of 3D images to a new shape.
    *

@@ -37,6 +37,8 @@ export interface TensorData {
  */
 @doc({heading: 'Tensors', subheading: 'Classes'})
 export class TensorBuffer<R extends Rank> {
+  size: number;
+
   private strides: number[];
 
   constructor(
@@ -53,6 +55,7 @@ export class TensorBuffer<R extends Rank> {
     this.values =
         values || util.getTypedArrayFromDType(dtype, util.sizeFromShape(shape));
     this.strides = computeStrides(shape);
+    this.size = util.sizeFromShape(shape);
   }
 
   /**
@@ -524,11 +527,12 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.norm(this, ord, axis, keepDims);
   }
-  slice(begin: ShapeMap[R], size: ShapeMap[R]): Tensor<R> {
+  slice<T extends Tensor<R>>(this: T, begin: ShapeMap[R], size: ShapeMap[R]):
+      T {
     this.throwIfDisposed();
     return ops.slice(this, begin, size);
   }
-  reverse(axis: number|number[]): Tensor<R> {
+  reverse<T extends Tensor>(this: T, axis?: number|number[]): T {
     this.throwIfDisposed();
     return ops.reverse(this, axis);
   }

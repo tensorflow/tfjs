@@ -19,11 +19,11 @@ import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
-
+import {parseAxisParam} from './axis_util';
 import * as concat_util from './concat_util';
 import {operation} from './operation';
 
-export class Concat {
+export class ConcatOps {
   /**
    * Concatenates a list of `Tensor1D`s along an axis. See `concat` for details.
    *
@@ -36,7 +36,7 @@ export class Concat {
    * @return The concatenated array.
    */
   static concat1d(tensors: Tensor1D[]): Tensor1D {
-    return Concat.concat(tensors, 0 /* axis */);
+    return ConcatOps.concat(tensors, 0 /* axis */);
   }
 
   /**
@@ -67,7 +67,7 @@ export class Concat {
    * @return The concatenated array.
    */
   static concat2d(tensors: Tensor2D[], axis: number): Tensor2D {
-    return Concat.concat(tensors, axis);
+    return ConcatOps.concat(tensors, axis);
   }
 
   /**
@@ -101,7 +101,7 @@ export class Concat {
    * @return The concatenated array.
    */
   static concat3d(tensors: Tensor3D[], axis: number): Tensor3D {
-    return Concat.concat(tensors, axis);
+    return ConcatOps.concat(tensors, axis);
   }
 
   /**
@@ -112,7 +112,7 @@ export class Concat {
    * @return The concatenated array.
    */
   static concat4d(tensors: Tensor4D[], axis: number): Tensor4D {
-    return Concat.concat(tensors, axis);
+    return ConcatOps.concat(tensors, axis);
   }
 
   /**
@@ -148,8 +148,10 @@ export class Concat {
   static concat<T extends Tensor>(tensors: T[], axis = 0): T {
     util.assert(tensors.length >= 2, 'Pass at least two tensors to concat');
     let result = tensors[0];
+    const axes = parseAxisParam(axis, result.shape);
+
     for (let i = 1; i < tensors.length; ++i) {
-      result = concat2Tensors(result, tensors[i], axis);
+      result = concat2Tensors(result, tensors[i], axes[0]);
     }
     return result;
   }

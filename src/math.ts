@@ -17,25 +17,25 @@
 
 import {BackendType, ENV} from './environment';
 import {KernelBackend} from './kernels/backend';
-import * as array_ops from './ops/array_ops';
-import * as batchnorm from './ops/batchnorm';
-import * as binary_ops from './ops/binary_ops';
-import * as compare from './ops/compare';
-import * as conv from './ops/conv';
-import * as image_ops from './ops/image_ops';
-import * as logical from './ops/logical_ops';
-import * as lrn_ops from './ops/lrn';
-import * as lstm_ops from './ops/lstm';
-import * as matmul from './ops/matmul';
-import * as norm from './ops/norm';
+import {ArrayOps} from './ops/array_ops';
+import {BatchNormOps} from './ops/batchnorm';
+import {BinaryOps} from './ops/binary_ops';
+import {CompareOps} from './ops/compare';
+import {ConvOps} from './ops/conv';
+import {ImageOps} from './ops/image_ops';
+import {LogicalOps} from './ops/logical_ops';
+import {LRNOps} from './ops/lrn';
+import {LSTMOps} from './ops/lstm';
+import {MatmulOps} from './ops/matmul';
+import {NormOps} from './ops/norm';
 import * as ops from './ops/ops';
-import * as pool from './ops/pool';
-import * as reduction_ops from './ops/reduction_ops';
-import * as reverse from './ops/reverse';
-import * as slice from './ops/slice';
-import * as softmax_ops from './ops/softmax';
-import * as transpose from './ops/transpose';
-import * as unary_ops from './ops/unary_ops';
+import {PoolOps} from './ops/pool';
+import {ReductionOps} from './ops/reduction_ops';
+import {ReverseOps} from './ops/reverse';
+import {SliceOps} from './ops/slice';
+import {SoftmaxOps} from './ops/softmax';
+import {TransposeOps} from './ops/transpose';
+import {UnaryOps} from './ops/unary_ops';
 import {ScopeResult} from './tape';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {Tracking} from './tracking';
@@ -47,141 +47,141 @@ const keep = Tracking.keep;
 
 export class NDArrayMath {
   // Ops.
-  matMul = matmul.Ops.matMul;
-  vectorTimesMatrix = matmul.Ops.vectorTimesMatrix;
-  outerProduct = matmul.Ops.outerProduct;
-  matrixTimesVector = matmul.Ops.matrixTimesVector;
-  dotProduct = matmul.Ops.dotProduct;
+  matMul = MatmulOps.matMul;
+  vectorTimesMatrix = MatmulOps.vectorTimesMatrix;
+  outerProduct = MatmulOps.outerProduct;
+  matrixTimesVector = MatmulOps.matrixTimesVector;
+  dotProduct = MatmulOps.dotProduct;
 
-  slice = slice.Ops.slice;
-  slice1D = slice.Ops.slice1d;
-  slice2D = slice.Ops.slice2d;
-  slice3D = slice.Ops.slice3d;
-  slice4D = slice.Ops.slice4d;
+  slice = SliceOps.slice;
+  slice1D = SliceOps.slice1d;
+  slice2D = SliceOps.slice2d;
+  slice3D = SliceOps.slice3d;
+  slice4D = SliceOps.slice4d;
 
-  reverse = reverse.Ops.reverse;
-  reverse1D = reverse.Ops.reverse1d;
-  reverse2D = reverse.Ops.reverse2d;
-  reverse3D = reverse.Ops.reverse3d;
-  reverse4D = reverse.Ops.reverse4d;
+  reverse = ReverseOps.reverse;
+  reverse1D = ReverseOps.reverse1d;
+  reverse2D = ReverseOps.reverse2d;
+  reverse3D = ReverseOps.reverse3d;
+  reverse4D = ReverseOps.reverse4d;
 
-  batchNormalization = batchnorm.Ops.batchNormalization;
-  batchNormalization2D = batchnorm.Ops.batchNormalization2d;
-  batchNormalization3D = batchnorm.Ops.batchNormalization3d;
-  batchNormalization4D = batchnorm.Ops.batchNormalization4d;
+  batchNormalization = BatchNormOps.batchNormalization;
+  batchNormalization2D = BatchNormOps.batchNormalization2d;
+  batchNormalization3D = BatchNormOps.batchNormalization3d;
+  batchNormalization4D = BatchNormOps.batchNormalization4d;
 
-  avgPool = pool.Ops.avgPool;
-  maxPool = pool.Ops.maxPool;
-  minPool = pool.Ops.minPool;
+  avgPool = PoolOps.avgPool;
+  maxPool = PoolOps.maxPool;
+  minPool = PoolOps.minPool;
   /** @deprecated */
-  maxPoolBackprop = pool.Ops.maxPoolBackprop;
+  maxPoolBackprop = PoolOps.maxPoolBackprop;
 
-  conv2dTranspose = conv.Ops.conv2dTranspose;
-  depthwiseConv2D = conv.Ops.depthwiseConv2d;
+  conv2dTranspose = ConvOps.conv2dTranspose;
+  depthwiseConv2D = ConvOps.depthwiseConv2d;
   /** @deprecated */
-  conv2dDerFilter = conv.Ops.conv2dDerFilter;
+  conv2dDerFilter = ConvOps.conv2dDerFilter;
   /** @deprecated */
-  conv2dDerInput = conv.Ops.conv2dDerInput;
+  conv2dDerInput = ConvOps.conv2dDerInput;
 
-  argMax = reduction_ops.Ops.argMax;
-  argMin = reduction_ops.Ops.argMin;
-  logSumExp = reduction_ops.Ops.logSumExp;
-  max = reduction_ops.Ops.max;
-  mean = reduction_ops.Ops.mean;
-  min = reduction_ops.Ops.min;
-  moments = reduction_ops.Ops.moments;
-  sum = reduction_ops.Ops.sum;
+  argMax = ReductionOps.argMax;
+  argMin = ReductionOps.argMin;
+  logSumExp = ReductionOps.logSumExp;
+  max = ReductionOps.max;
+  mean = ReductionOps.mean;
+  min = ReductionOps.min;
+  moments = ReductionOps.moments;
+  sum = ReductionOps.sum;
 
-  add = binary_ops.Ops.add;
-  addStrict = binary_ops.Ops.addStrict;
-  div = binary_ops.Ops.div;
+  add = BinaryOps.add;
+  addStrict = BinaryOps.addStrict;
+  div = BinaryOps.div;
   divide = this.div;  // Alias.
-  divStrict = binary_ops.Ops.divStrict;
+  divStrict = BinaryOps.divStrict;
   divideStrict = this.divStrict;  // Alias.
-  maximum = binary_ops.Ops.maximum;
-  maximumStrict = binary_ops.Ops.maximumStrict;
-  minimum = binary_ops.Ops.minimum;
-  minimumStrict = binary_ops.Ops.minimumStrict;
-  mul = binary_ops.Ops.mul;
+  maximum = BinaryOps.maximum;
+  maximumStrict = BinaryOps.maximumStrict;
+  minimum = BinaryOps.minimum;
+  minimumStrict = BinaryOps.minimumStrict;
+  mul = BinaryOps.mul;
   multiply = this.mul;  // Alias.
-  mulStrict = binary_ops.Ops.mulStrict;
+  mulStrict = BinaryOps.mulStrict;
   multiplyStrict = this.mulStrict;  // Alias.
-  pow = binary_ops.Ops.pow;
-  powStrict = binary_ops.Ops.powStrict;
-  sub = binary_ops.Ops.sub;
+  pow = BinaryOps.pow;
+  powStrict = BinaryOps.powStrict;
+  sub = BinaryOps.sub;
   subtract = this.sub;  // Alias.
-  subStrict = binary_ops.Ops.subStrict;
+  subStrict = BinaryOps.subStrict;
 
-  logicalNot = logical.Ops.logicalNot;
-  logicalAnd = logical.Ops.logicalAnd;
-  logicalOr = logical.Ops.logicalOr;
-  logicalXor = logical.Ops.logicalXor;
-  where = logical.Ops.where;
+  logicalNot = LogicalOps.logicalNot;
+  logicalAnd = LogicalOps.logicalAnd;
+  logicalOr = LogicalOps.logicalOr;
+  logicalXor = LogicalOps.logicalXor;
+  where = LogicalOps.where;
 
-  transpose = transpose.Ops.transpose;
+  transpose = TransposeOps.transpose;
 
-  equal = compare.Ops.equal;
-  equalStrict = compare.Ops.equalStrict;
-  greater = compare.Ops.greater;
-  greaterStrict = compare.Ops.greaterStrict;
-  greaterEqual = compare.Ops.greaterEqual;
-  greaterEqualStrict = compare.Ops.greaterEqualStrict;
-  less = compare.Ops.less;
-  lessStrict = compare.Ops.lessStrict;
-  lessEqual = compare.Ops.lessEqual;
-  lessEqualStrict = compare.Ops.lessEqualStrict;
-  notEqual = compare.Ops.notEqual;
-  notEqualStrict = compare.Ops.notEqualStrict;
+  equal = CompareOps.equal;
+  equalStrict = CompareOps.equalStrict;
+  greater = CompareOps.greater;
+  greaterStrict = CompareOps.greaterStrict;
+  greaterEqual = CompareOps.greaterEqual;
+  greaterEqualStrict = CompareOps.greaterEqualStrict;
+  less = CompareOps.less;
+  lessStrict = CompareOps.lessStrict;
+  lessEqual = CompareOps.lessEqual;
+  lessEqualStrict = CompareOps.lessEqualStrict;
+  notEqual = CompareOps.notEqual;
+  notEqualStrict = CompareOps.notEqualStrict;
 
-  abs = unary_ops.Ops.abs;
-  acos = unary_ops.Ops.acos;
-  asin = unary_ops.Ops.asin;
-  atan = unary_ops.Ops.atan;
-  ceil = unary_ops.Ops.ceil;
-  clip = unary_ops.Ops.clipByValue;
-  cos = unary_ops.Ops.cos;
-  cosh = unary_ops.Ops.cosh;
-  elu = unary_ops.Ops.elu;
-  exp = unary_ops.Ops.exp;
-  floor = unary_ops.Ops.floor;
-  leakyRelu = unary_ops.Ops.leakyRelu;
-  log = unary_ops.Ops.log;
-  neg = unary_ops.Ops.neg;
-  prelu = unary_ops.Ops.prelu;
-  relu = unary_ops.Ops.relu;
-  selu = unary_ops.Ops.selu;
-  sigmoid = unary_ops.Ops.sigmoid;
-  sin = unary_ops.Ops.sin;
-  sinh = unary_ops.Ops.sinh;
-  sqrt = unary_ops.Ops.sqrt;
-  square = unary_ops.Ops.square;
-  step = unary_ops.Ops.step;
-  tan = unary_ops.Ops.tan;
-  tanh = unary_ops.Ops.tanh;
+  abs = UnaryOps.abs;
+  acos = UnaryOps.acos;
+  asin = UnaryOps.asin;
+  atan = UnaryOps.atan;
+  ceil = UnaryOps.ceil;
+  clip = UnaryOps.clipByValue;
+  cos = UnaryOps.cos;
+  cosh = UnaryOps.cosh;
+  elu = UnaryOps.elu;
+  exp = UnaryOps.exp;
+  floor = UnaryOps.floor;
+  leakyRelu = UnaryOps.leakyRelu;
+  log = UnaryOps.log;
+  neg = UnaryOps.neg;
+  prelu = UnaryOps.prelu;
+  relu = UnaryOps.relu;
+  selu = UnaryOps.selu;
+  sigmoid = UnaryOps.sigmoid;
+  sin = UnaryOps.sin;
+  sinh = UnaryOps.sinh;
+  sqrt = UnaryOps.sqrt;
+  square = UnaryOps.square;
+  step = UnaryOps.step;
+  tan = UnaryOps.tan;
+  tanh = UnaryOps.tanh;
 
-  norm = norm.Ops.norm;
+  norm = NormOps.norm;
 
-  basicLSTMCell = lstm_ops.Ops.basicLSTMCell;
-  multiRNNCell = lstm_ops.Ops.multiRNNCell;
+  basicLSTMCell = LSTMOps.basicLSTMCell;
+  multiRNNCell = LSTMOps.multiRNNCell;
 
-  softmax = softmax_ops.Ops.softmax;
-  softmaxCrossEntropy = softmax_ops.Ops.softmaxCrossEntropy;
+  softmax = SoftmaxOps.softmax;
+  softmaxCrossEntropy = SoftmaxOps.softmaxCrossEntropy;
 
-  cast = array_ops.Ops.cast;
-  clone = array_ops.Ops.clone;
-  gather = array_ops.Ops.gather;
-  reshape = array_ops.Ops.reshape;
-  tile = array_ops.Ops.tile;
-  oneHot = array_ops.Ops.oneHot;
-  multinomial = array_ops.Ops.multinomial;
-  pad1D = array_ops.Ops.pad1d;
-  pad2D = array_ops.Ops.pad2d;
+  cast = ArrayOps.cast;
+  clone = ArrayOps.clone;
+  gather = ArrayOps.gather;
+  reshape = ArrayOps.reshape;
+  tile = ArrayOps.tile;
+  oneHot = ArrayOps.oneHot;
+  multinomial = ArrayOps.multinomial;
+  pad1D = ArrayOps.pad1d;
+  pad2D = ArrayOps.pad2d;
 
   /** @deprecated Use dl.image.resizeBilinear() */
-  resizeBilinear3D = image_ops.Ops.resizeBilinear;
+  resizeBilinear3D = ImageOps.resizeBilinear;
 
-  localResponseNormalization3D = lrn_ops.LRN.localResponseNormalization;
-  localResponseNormalization4D = lrn_ops.LRN.localResponseNormalization;
+  localResponseNormalization3D = LRNOps.localResponseNormalization;
+  localResponseNormalization4D = LRNOps.localResponseNormalization;
 
   // Tracking methods.
   keep = Tracking.keep;

@@ -24,7 +24,7 @@ import * as axis_util from './axis_util';
 import {operation} from './operation';
 import * as ops from './ops';
 
-export class Ops {
+export class ReductionOps {
   /**
    * Computes the log(sum(exp(elements across the reduction dimensions)).
    *

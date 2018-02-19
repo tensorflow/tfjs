@@ -27,7 +27,7 @@ export enum MatrixOrientation {
   TRANSPOSED
 }
 
-export class Ops {
+export class MatmulOps {
   /**
    * Computes the dot product of two matrices, A * B. These must be matrices.
    *

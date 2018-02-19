@@ -22,7 +22,7 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
 
-export class Ops {
+export class CompareOps {
   /**
    * Returns the truth value of (a != b) element-wise. Supports broadcasting.
    *

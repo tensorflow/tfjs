@@ -139,83 +139,29 @@ export class MathBackendCPU implements KernelBackend {
     }
   }
 
-  slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
-    const newVals = x.dataSync().slice(begin, begin + size);
-    return ops.tensor1d(newVals, x.dtype);
+  slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
+    const buffer = ops.buffer(size, x.dtype);
+
+    for (let i = 0; i < buffer.size; ++i) {
+      const loc = buffer.indexToLoc(i);
+      const xLoc = loc.map((idx, j) => idx + begin[j]);
+      buffer.set(x.get(...xLoc), ...loc);
+    }
+    return buffer.toTensor() as T;
   }
 
-  slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
-      Tensor2D {
-    const buffer = ops.buffer<Rank.R2>(size, x.dtype);
-    const [startI, startJ] = begin;
+  reverse<T extends Tensor>(x: T, axis: number[]): T {
+    const buffer = ops.buffer(x.shape, x.dtype);
+    const xBuffer = x.buffer();
 
-    for (let i = 0; i < size[0]; ++i) {
-      for (let j = 0; j < size[1]; ++j) {
-        const val = x.get(i + startI, j + startJ);
-        buffer.set(val, i, j);
-      }
-    }
-    return buffer.toTensor();
-  }
-
-  slice3D(x: Tensor3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Tensor3D {
-    const buffer = ops.buffer<Rank.R3>(size, x.dtype);
-    const [startI, startJ, startK] = begin;
-
-    for (let i = 0; i < size[0]; ++i) {
-      for (let j = 0; j < size[1]; ++j) {
-        for (let k = 0; k < size[2]; ++k) {
-          const val = x.get(i + startI, j + startJ, k + startK);
-          buffer.set(val, i, j, k);
-        }
-      }
-    }
-    return buffer.toTensor();
-  }
-  slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Tensor4D {
-    const buffer = ops.buffer<Rank.R4>(size, x.dtype);
-    const [startI, startJ, startK, startL] = begin;
-
-    for (let i = 0; i < size[0]; ++i) {
-      for (let j = 0; j < size[1]; ++j) {
-        for (let k = 0; k < size[2]; ++k) {
-          for (let l = 0; l < size[3]; ++l) {
-            const val = x.get(i + startI, j + startJ, k + startK, l + startL);
-            buffer.set(val, i, j, k, l);
-          }
-        }
-      }
-    }
-    return buffer.toTensor();
-  }
-
-  reverse4D(x: Tensor4D, axis: number[]): Tensor4D {
-    const buffer = ops.buffer<Rank.R4>(x.shape, x.dtype);
-
-    // Reverse axis only if the axis has dim != 1
-    const revAxis = (i: number) => axis.indexOf(i) !== -1 && x.shape[i] !== 1;
-
-    // naive O(n) reverse implementation
-    for (let b = 0; b < x.shape[0]; ++b) {
-      for (let r = 0; r < x.shape[1]; ++r) {
-        for (let c = 0; c < x.shape[2]; ++c) {
-          for (let d = 0; d < x.shape[3]; ++d) {
-            const b0 = revAxis(0) ? x.shape[0] - b - 1 : b;
-            const r0 = revAxis(1) ? x.shape[1] - r - 1 : r;
-            const c0 = revAxis(2) ? x.shape[2] - c - 1 : c;
-            const d0 = revAxis(3) ? x.shape[3] - d - 1 : d;
-            const val = x.get(b0, r0, c0, d0);
-            buffer.set(val, b, r, c, d);
-          }
-        }
-      }
+    for (let i = 0; i < buffer.size; i++) {
+      const outLoc = buffer.indexToLoc(i);
+      const inLoc = outLoc.slice();
+      axis.forEach(ax => inLoc[ax] = x.shape[ax] - 1 - inLoc[ax]);
+      buffer.set(xBuffer.get(...inLoc), ...outLoc);
     }
 
-    return buffer.toTensor();
+    return buffer.toTensor() as T;
   }
 
   // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
@@ -1089,65 +1035,23 @@ export class MathBackendCPU implements KernelBackend {
     return result.toTensor() as T;
   }
 
-  pad1D(x: Tensor1D, paddings: [number, number], constantValue: number):
-      Tensor1D {
-    const leftPadding = paddings[0];
-    const rightPadding = paddings[1];
-
-    const values = x.dataSync();
-    const result = ops.zeros<Rank.R1>(
-        [leftPadding + values.length + rightPadding], x.dtype);
-    const newValues = result.dataSync();
-
-    let z = 0;
-    for (let i = 0; i < newValues.length; i++) {
-      if (i >= leftPadding && i < leftPadding + values.length) {
-        newValues[i] = values[z++];
-      } else {
-        newValues[i] = constantValue;
-      }
+  pad<T extends Tensor>(
+      x: T, paddings: Array<[number, number]>, constantValue: number): T {
+    const outShape = paddings.map(
+        (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
+    const start = paddings.map(p => p[0]);
+    const xBuffer = x.buffer();
+    const buffer = ops.buffer(outShape, x.dtype);
+    if (constantValue !== 0) {
+      buffer.values.fill(constantValue);
     }
-    return result;
-  }
 
-  pad2D(
-      x: Tensor2D, paddings: [[number, number], [number, number]],
-      constantValue: number): Tensor2D {
-    const topPadding = paddings[0][0];
-    const bottomPadding = paddings[0][1];
-    const leftPadding = paddings[1][0];
-    const rightPadding = paddings[1][1];
-
-    const newShape: [number, number] = [
-      topPadding + x.shape[0] + bottomPadding,
-      leftPadding + x.shape[1] + rightPadding
-    ];
-
-    const result = ops.zeros<Rank.R2>(newShape, x.dtype);
-    const newValues = result.dataSync();
-
-    const values = x.dataSync();
-
-    let z = 0;
-    for (let i = 0; i < newShape[0]; i++) {
-      let rangeStart = -1;
-      let rangeEnd = -1;
-
-      if (i >= topPadding && i < newShape[0] - bottomPadding) {
-        rangeStart = i * newShape[1] + leftPadding;
-        rangeEnd = rangeStart + x.shape[1] - 1;
-      }
-
-      for (let j = 0; j < newShape[1]; j++) {
-        const v = i * newShape[1] + j;
-        if (v >= rangeStart && v <= rangeEnd) {
-          newValues[v] = values[z++];
-        } else {
-          newValues[v] = constantValue;
-        }
-      }
+    for (let i = 0; i < x.size; i++) {
+      const coords = xBuffer.indexToLoc(i);
+      const outCoords = coords.map((c, i) => c + start[i]);
+      buffer.set(x.get(...coords), ...outCoords);
     }
-    return result;
+    return buffer.toTensor() as T;
   }
 
   transpose<T extends Tensor>(x: T, perm: number[]): T {
