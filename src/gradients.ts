@@ -290,7 +290,14 @@ export class Gradients {
       }
     }
     // Prune non-trainable variables.
+    const originalVarCount = varList.length;
     varList = varList.filter(variable => variable.trainable);
+    util.assert(
+        varList.length > 0,
+        `variableGrads() expects at least one of the input variables to be ` +
+        `trainable, but none of the ${originalVarCount} variables is ` +
+        `trainable.`);
+
     const allowNoGradients = true;
     const {value, grads} =
         ENV.engine.gradients(f, varList, null, allowNoGradients);

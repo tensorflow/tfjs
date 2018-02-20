@@ -19,6 +19,7 @@ import * as dl from './index';
 import {Tensor} from './tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {ENV} from './environment';
 
 describeWithFlags('tidy', ALL_ENVS, () => {
   it('returns Tensor', () => {
@@ -312,6 +313,11 @@ describeWithFlags('gradients', ALL_ENVS, () => {
       })(a);
     };
     expect(f).toThrowError();
+  });
+
+  it('empty list of xs leads to Error', () => {
+    expect(() => ENV.engine.gradients(() => dl.scalar(1), [], dl.scalar(2)))
+        .toThrowError(/empty list of xs/);
   });
 });
 
