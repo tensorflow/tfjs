@@ -84,7 +84,7 @@ function predict(input) {
 function loss(prediction, actual) {
   // Having a good error metric is key for training a machine learning model
   const error = dl.scalar(actual).sub(prediction).square();
-  return error;
+  return error.asScalar();
 }
 
 /*
