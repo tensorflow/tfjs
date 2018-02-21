@@ -251,13 +251,8 @@ export function createFramebuffer(gl: WebGLRenderingContext): WebGLFramebuffer {
 export function bindVertexBufferToProgramAttribute(
     gl: WebGLRenderingContext, program: WebGLProgram, attribute: string,
     buffer: WebGLBuffer, arrayEntriesPerItem: number, itemStrideInBytes: number,
-    itemOffsetInBytes: number, attribLocations?: {[name: string]: number}) {
-  let loc = -1;
-  if ((attribLocations != null) && (attribute in attribLocations)) {
-    loc = attribLocations[attribute];
-  } else {
-    loc = gl.getAttribLocation(program, attribute);
-  }
+    itemOffsetInBytes: number) {
+  const loc = gl.getAttribLocation(program, attribute);
   if (loc === -1) {
     // The GPU compiler decided to strip out this attribute because it's unused,
     // thus no need to bind.
