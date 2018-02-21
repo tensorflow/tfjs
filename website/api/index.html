@@ -528,10 +528,8 @@
         consoleLogElement.innerText += logStr + '\n';
       };
 
-      var snippet = 'dl.tidy(async function() {' + codeSnippet + '});';
-
-      await eval(snippet);
-
+      var snippet = 'dl.tidy(function() {' + codeSnippet + '});';
+      eval(snippet);
       console.log = oldLog;
     };
 

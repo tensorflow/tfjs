@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
+import {ENV} from './environment';
 import * as dl from './index';
 import {Tensor} from './tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
-import {ENV} from './environment';
 
 describeWithFlags('tidy', ALL_ENVS, () => {
   it('returns Tensor', () => {
@@ -58,6 +58,22 @@ describeWithFlags('tidy', ALL_ENVS, () => {
     expect(dl.memory().numTensors).toBe(1);
     b.dispose();
     expect(dl.memory().numTensors).toBe(0);
+  });
+
+  it('allows primitive types', () => {
+    const a = dl.tidy(() => 5);
+    expect(a).toBe(5);
+
+    const b = dl.tidy(() => 'hello');
+    expect(b).toBe('hello');
+  });
+
+  it('allows complex types', () => {
+    const res = dl.tidy(() => {
+      return {a: dl.scalar(1), b: 'hello', c: [dl.scalar(2), 'world']};
+    });
+    expectArraysClose(res.a, [1]);
+    expectArraysClose(res.c[0] as dl.Scalar, [2]);
   });
 
   it('returns Tensor[]', () => {

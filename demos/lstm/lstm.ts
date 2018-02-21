@@ -35,9 +35,8 @@ reader.getAllVariables().then(async vars => {
   const fullyConnectedBiases = vars['fully_connected/biases'] as dl.Tensor1D;
   const fullyConnectedWeights = vars['fully_connected/weights'] as dl.Tensor2D;
 
-  const results: number[] = [];
-
-  await dl.tidy(async () => {
+  const results = dl.tidy(() => {
+    const results: dl.Tensor1D[] = [];
     const forgetBias = dl.scalar(1.0);
     const lstm1 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
         dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
@@ -53,9 +52,9 @@ reader.getAllVariables().then(async vars => {
       dl.zeros([1, lstmBias2.shape[0] / 4])
     ];
 
-    let input = primerData;
+    let input = dl.tensor1d([primerData]);
     for (let i = 0; i < expected.length; i++) {
-      const onehot = dl.oneHot(dl.tensor1d([input]), 10);
+      const onehot = dl.oneHot(input, 10);
 
       const output = dl.multiRNNCell([lstm1, lstm2], onehot, c, h);
 
@@ -65,15 +64,17 @@ reader.getAllVariables().then(async vars => {
       const outputH = h[1];
       const logits =
           outputH.matMul(fullyConnectedWeights).add(fullyConnectedBiases);
-
-      const result = await dl.argMax(logits).val();
+      const result = dl.argMax(logits).asType('float32').as1D();
       results.push(result);
       input = result;
     }
+    return results;
   });
+  const resultsData =
+      (await Promise.all(results.map(r => r.data()))).map(d => d[0]);
   document.getElementById('expected').innerHTML = expected.toString();
-  document.getElementById('results').innerHTML = results.toString();
-  if (dl.util.arraysEqual(expected, results)) {
+  document.getElementById('results').innerHTML = resultsData.toString();
+  if (dl.util.arraysEqual(expected, resultsData)) {
     document.getElementById('success').innerHTML = 'Success!';
   } else {
     document.getElementById('success').innerHTML = 'Failure.';
