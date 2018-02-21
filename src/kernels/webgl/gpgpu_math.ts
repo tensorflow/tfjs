@@ -16,14 +16,12 @@
  */
 
 import {ENV} from '../../environment';
-import * as util from '../../util';
 import {Tensor} from '../../tensor';
+import * as util from '../../util';
 import {GPGPUContext} from './gpgpu_context';
 import * as shader_compiler from './shader_compiler';
 import {ShapeInfo} from './shader_compiler';
 import {TextureData} from './tex_util';
-
-const ATTRIBUTE_NAMES = ['uv', 'clipSpacePos'];
 
 export interface GPGPUProgram {
   variableNames: string[];
@@ -36,7 +34,6 @@ export interface GPGPUBinary {
   webGLProgram: WebGLProgram;
   program: GPGPUProgram;
   uniformLocations: {[name: string]: WebGLUniformLocation};
-  attributeLocations: {[name: string]: number};
   gpgpu: GPGPUContext;
   source: string;
   inShapeInfos: ShapeInfo[];
@@ -82,11 +79,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     uniformLocations[uniformName] =
         gpgpu.getUniformLocation(webGLProgram, uniformName);
   }
-  const attributeLocations: {[name: string]: number} = {};
-  ATTRIBUTE_NAMES.forEach(attribute => {
-    attributeLocations[attribute] =
-        gpgpu.getAttributeLocation(webGLProgram, attribute);
-  });
 
   if (shouldUploadNaNUniform()) {
     const throwIfNaNUniformIsNotUsed = false;
@@ -99,7 +91,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     source,
     webGLProgram,
     uniformLocations,
-    attributeLocations,
     gpgpu,
     inShapeInfos,
     outShapeInfo
@@ -159,7 +150,7 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   if (customSetup != null) {
     customSetup(gpgpu, binary.webGLProgram);
   }
-  gpgpu.executeProgram(binary.attributeLocations);
+  gpgpu.executeProgram();
 }
 
 export function makeShaderKey(

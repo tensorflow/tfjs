@@ -190,6 +190,8 @@ export class GPGPUContext {
             this.gl, rows, columns));
   }
 
+  private firstProgram = true;
+
   public createProgram(fragmentShaderSource: string): WebGLProgram {
     this.throwIfDisposed();
     const gl = this.gl;
@@ -203,7 +205,12 @@ export class GPGPUContext {
     if (this.autoDebugValidate) {
       webgl_util.validateProgram(gl, program);
     }
-
+    if (this.firstProgram) {
+      this.firstProgram = false;
+      this.setProgram(program);
+      gpgpu_util.bindVertexProgramAttributeStreams(
+          gl, this.program, this.vertexBuffer);
+    }
     return program;
   }
 
@@ -295,12 +302,10 @@ export class GPGPUContext {
     webgl_util.validateFramebuffer(this.gl);
   }
 
-  public executeProgram(attribLocations?: {[name: string]: number}) {
+  public executeProgram() {
     this.throwIfDisposed();
     this.throwIfNoProgram();
     const gl = this.gl;
-    gpgpu_util.bindVertexProgramAttributeStreams(
-        gl, this.program, this.vertexBuffer, attribLocations);
     if (this.autoDebugValidate) {
       this.debugValidate();
     }
@@ -359,28 +364,23 @@ export class GPGPUContext {
 
       const query = gl2.createQuery();
       gl2.beginQuery(ext.TIME_ELAPSED_EXT, query);
-
-      return query;
-    } else {
-      const ext = this.getQueryTimerExtensionWebGL1();
-      const query = ext.createQueryEXT();
-
-      ext.beginQueryEXT(ext.TIME_ELAPSED_EXT, query);
-
       return query;
     }
+    const ext = this.getQueryTimerExtensionWebGL1();
+    const query = ext.createQueryEXT();
+    ext.beginQueryEXT(ext.TIME_ELAPSED_EXT, query);
+    return query;
   }
 
   endQuery() {
     if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 2) {
       const gl2 = this.gl as WebGL2RenderingContext;
       const ext = this.getQueryTimerExtensionWebGL2();
-
       gl2.endQuery(ext.TIME_ELAPSED_EXT);
-    } else {
-      const ext = this.getQueryTimerExtensionWebGL1();
-      ext.endQueryEXT(ext.TIME_ELAPSED_EXT);
+      return;
     }
+    const ext = this.getQueryTimerExtensionWebGL1();
+    ext.endQueryEXT(ext.TIME_ELAPSED_EXT);
   }
 
   private isQueryAvailable(query: WebGLQuery, queryTimerVersion: number):
