@@ -26,34 +26,36 @@ reader.getAllVariables().then(vars => {
   xhr.onload = async () => {
     const data = JSON.parse(xhr.responseText) as SampleData;
 
-    // Wrap everything in a dl.tidy so we clean up intermediate Tensors.
-    dl.tidy(async () => {
-      console.log(`Evaluation set: n=${data.images.length}.`);
+    console.log(`Evaluation set: n=${data.images.length}.`);
 
-      let numCorrect = 0;
-      for (let i = 0; i < data.images.length; i++) {
+    let numCorrect = 0;
+    for (let i = 0; i < data.images.length; i++) {
+      const inferred = dl.tidy(() => {
         const x = dl.tensor1d(data.images[i]);
-
+        return infer(x, vars);
         // Infer through the model to get a prediction.
-        const predictedLabel = Math.round(await infer(x, vars).val());
-        console.log(`Item ${i}, predicted label ${predictedLabel}.`);
+      });
+      const predictedLabel = Math.round(await inferred.val());
+      inferred.dispose();
+      console.log(`Item ${i}, predicted label ${predictedLabel}.`);
 
-        // Aggregate correctness to show accuracy.
-        const label = data.labels[i];
-        if (label === predictedLabel) {
-          numCorrect++;
-        }
+      // Aggregate correctness to show accuracy.
+      const label = data.labels[i];
+      if (label === predictedLabel) {
+        numCorrect++;
+      }
 
-        // Show the image.
+      // Show the image.
+      dl.tidy(() => {
         const result =
             renderResults(dl.tensor1d(data.images[i]), label, predictedLabel);
         document.body.appendChild(result);
-      }
+      });
+    }
 
-      // Compute final accuracy.
-      const accuracy = numCorrect * 100 / data.images.length;
-      document.getElementById('accuracy').innerHTML = `${accuracy}%`;
-    });
+    // Compute final accuracy.
+    const accuracy = numCorrect * 100 / data.images.length;
+    document.getElementById('accuracy').innerHTML = `${accuracy}%`;
   };
   xhr.onerror = (err) => console.error(err);
   xhr.send();
@@ -65,9 +67,9 @@ export interface SampleData {
 }
 
 /**
- * Infers through a 3-layer fully connected MNIST model using the Math API. This
- * is the lowest level user-facing API in deeplearn.js giving the most control
- * to the user. Math commands execute immediately, like numpy.
+ * Infers through a 3-layer fully connected MNIST model using the Math API.
+ * This is the lowest level user-facing API in deeplearn.js giving the most
+ * control to the user. Math commands execute immediately, like numpy.
  */
 export function infer(
     x: dl.Tensor1D, vars: {[varName: string]: dl.Tensor}): dl.Scalar {

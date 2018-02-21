@@ -90,16 +90,11 @@ async function intro() {
 
   const NUM_BATCHES = 10;
   for (let i = 0; i < NUM_BATCHES; i++) {
-    // Wrap session.train in a scope so the cost gets cleaned up
-    // automatically.
-    await dl.tidy(async () => {
-      // Train takes a cost tensor to minimize. Trains one batch. Returns the
-      // average cost as a dl.Scalar.
-      const cost = session.train(
-          costTensor, feedEntries, batchSize, optimizer, dl.CostReduction.MEAN);
-
-      console.log(`last average cost (${i}): ${await cost.val()}`);
-    });
+    // Train takes a cost tensor to minimize. Trains one batch. Returns the
+    // average cost as a dl.Scalar.
+    const cost = session.train(
+        costTensor, feedEntries, batchSize, optimizer, dl.CostReduction.MEAN);
+    console.log(`last average cost (${i}): ${await cost.val()}`);
   }
 
   const testInput = dl.tensor1d([0.1, 0.2, 0.3]);

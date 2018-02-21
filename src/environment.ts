@@ -405,21 +405,20 @@ export class Environment {
 
   /** @deprecated. Use ENV.engine. */
   get math(): NDArrayMath {
-    if (this.globalEngine == null) {
-      this.initEngine();
-    }
+    this.initEngine();
     return this.globalMath;
   }
 
   get engine(): Engine {
-    if (this.globalEngine == null) {
-      this.initEngine();
-    }
+    this.initEngine();
     return this.globalEngine;
   }
 
   private initEngine() {
-    this.globalMath = new NDArrayMath(ENV.get('BACKEND'), false /* safeMode */);
+    if (this.globalEngine == null) {
+      this.globalMath =
+          new NDArrayMath(ENV.get('BACKEND'), false /* safeMode */);
+    }
   }
 }
 

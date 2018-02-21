@@ -412,16 +412,18 @@ async function generateStep(loopId: number) {
     // Was part of an outdated generateStep() scheduled via setTimeout.
     return;
   }
-  await dl.tidy(async () => {
-    const lstm1 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
-        dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
-    const lstm2 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
-        dl.basicLSTMCell(forgetBias, lstmKernel2, lstmBias2, data, c, h);
-    const lstm3 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
-        dl.basicLSTMCell(forgetBias, lstmKernel3, lstmBias3, data, c, h);
 
-    const outputs: dl.Scalar[] = [];
+  const lstm1 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
+      dl.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
+  const lstm2 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
+      dl.basicLSTMCell(forgetBias, lstmKernel2, lstmBias2, data, c, h);
+  const lstm3 = (data: dl.Tensor2D, c: dl.Tensor2D, h: dl.Tensor2D) =>
+      dl.basicLSTMCell(forgetBias, lstmKernel3, lstmBias3, data, c, h);
+
+  let outputs: dl.Scalar[] = [];
+  [c, h, outputs] = dl.tidy(() => {
     // Generate some notes.
+    const innerOuts: dl.Scalar[] = [];
     for (let i = 0; i < STEPS_PER_GENERATE_CALL; i++) {
       // Use last sampled output as the next input.
       const eventInput = dl.oneHot(lastSample.as1D(), EVENT_SIZE).as1D();
@@ -435,6 +437,8 @@ async function generateStep(loopId: number) {
       const input = conditioning.concat(eventInput, axis);
       const output =
           dl.multiRNNCell([lstm1, lstm2, lstm3], input.as2D(1, -1), c, h);
+      c.forEach(c => c.dispose());
+      h.forEach(h => h.dispose());
       c = output[0];
       h = output[1];
 
@@ -445,31 +449,27 @@ async function generateStep(loopId: number) {
       // TODO(smilkov): Use dl.multinomial once exposed to the user.
       const sampledOutput = dl.ENV.math.multinomial(softmax, 1).asScalar();
 
-      outputs.push(sampledOutput);
-      dl.keep(sampledOutput);
+      innerOuts.push(sampledOutput);
       lastSample = sampledOutput;
     }
-
-    c.forEach(val => dl.keep(val));
-    h.forEach(val => dl.keep(val));
-
-    await outputs[outputs.length - 1].data();
-
-    for (let i = 0; i < outputs.length; i++) {
-      playOutput(await outputs[i].val());
-    }
-
-    if (piano.now() - currentPianoTimeSec > MAX_GENERATION_LAG_SECONDS) {
-      console.warn(
-          `Generation is ${
-              piano.now() - currentPianoTimeSec} seconds behind, ` +
-          `which is over ${MAX_NOTE_DURATION_SECONDS}. Resetting time!`);
-      currentPianoTimeSec = piano.now();
-    }
-    const delta = Math.max(
-        0, currentPianoTimeSec - piano.now() - GENERATION_BUFFER_SECONDS);
-    setTimeout(() => generateStep(loopId), delta * 1000);
+    return [c, h, innerOuts] as [dl.Tensor2D[], dl.Tensor2D[], dl.Scalar[]];
   });
+
+  await outputs[outputs.length - 1].data();
+
+  for (let i = 0; i < outputs.length; i++) {
+    playOutput(await outputs[i].val());
+  }
+
+  if (piano.now() - currentPianoTimeSec > MAX_GENERATION_LAG_SECONDS) {
+    console.warn(
+        `Generation is ${piano.now() - currentPianoTimeSec} seconds behind, ` +
+        `which is over ${MAX_NOTE_DURATION_SECONDS}. Resetting time!`);
+    currentPianoTimeSec = piano.now();
+  }
+  const delta = Math.max(
+      0, currentPianoTimeSec - piano.now() - GENERATION_BUFFER_SECONDS);
+  setTimeout(() => generateStep(loopId), delta * 1000);
 }
 
 let midi;
