@@ -15,7 +15,8 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Array1D, Array3D, Array4D, CheckpointLoader, Model, NDArray, NDArrayMath} from 'deeplearn';
+import * as dl from 'deeplearn';
+import {Tensor1D, Tensor3D, Tensor4D} from 'deeplearn';
 import * as model_util from '../util';
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
@@ -25,19 +26,16 @@ const GOOGLE_CLOUD_STORAGE_DIR =
 export type ActivationName = 'conv_1'|'maxpool_1'|'fire2'|'fire3'|'maxpool_2'|
     'fire4'|'fire5'|'maxpool_3'|'fire6'|'fire7'|'fire8'|'fire9'|'conv10';
 
-export class SqueezeNet implements Model {
-  private variables: {[varName: string]: NDArray};
-
-  private preprocessOffset = Array1D.new([103.939, 116.779, 123.68]);
-
-  constructor(private math: NDArrayMath) {}
+export class SqueezeNet {
+  private variables: {[varName: string]: dl.Tensor};
+  private preprocessOffset = dl.tensor1d([103.939, 116.779, 123.68]);
 
   /**
    * Loads necessary variables for SqueezeNet.
    */
   async load(): Promise<void> {
     const checkpointLoader =
-        new CheckpointLoader(GOOGLE_CLOUD_STORAGE_DIR + 'squeezenet1_1/');
+        new dl.CheckpointLoader(GOOGLE_CLOUD_STORAGE_DIR + 'squeezenet1_1/');
     this.variables = await checkpointLoader.getAllVariables();
   }
 
@@ -49,7 +47,7 @@ export class SqueezeNet implements Model {
    * @param input un-preprocessed input Array.
    * @return The pre-softmax logits.
    */
-  predict(input: Array3D): Array1D {
+  predict(input: Tensor3D): Tensor1D {
     return this.predictWithActivation(input).logits;
   }
 
@@ -61,23 +59,25 @@ export class SqueezeNet implements Model {
    * @param input un-preprocessed input Array.
    * @return A requested activation and the pre-softmax logits.
    */
-  predictWithActivation(input: Array3D, activationName?: ActivationName):
-      {logits: Array1D, activation: Array3D} {
-    const [logits, activation] = this.math.scope(() => {
-      let activation: Array3D;
+  predictWithActivation(input: Tensor3D, activationName?: ActivationName):
+      {logits: Tensor1D, activation: Tensor3D} {
+    return dl.tidy(() => {
+      let activation: Tensor3D;
       // Preprocess the input.
       const preprocessedInput =
-          this.math.subtract(input.asType('float32'), this.preprocessOffset) as
-          Array3D;
-      const conv1 = this.math.conv2d(
-          preprocessedInput, this.variables['conv1_W:0'] as Array4D,
-          this.variables['conv1_b:0'] as Array1D, 2, 0);
-      const conv1relu = this.math.relu(conv1);
+          dl.sub(input.asType('float32'), this.preprocessOffset) as Tensor3D;
+
+      const conv1relu =
+          preprocessedInput
+              .conv2d(this.variables['conv1_W:0'] as Tensor4D, 2, 0)
+              .add(this.variables['conv1_b:0'] as Tensor1D)
+              .relu() as Tensor3D;
+
       if (activationName === 'conv_1') {
         activation = conv1relu;
       }
 
-      const pool1 = this.math.maxPool(conv1relu, 3, 2, 0);
+      const pool1 = conv1relu.maxPool(3, 2, 0);
       if (activationName === 'maxpool_1') {
         activation = pool1;
       }
@@ -92,7 +92,7 @@ export class SqueezeNet implements Model {
         activation = fire3;
       }
 
-      const pool2 = this.math.maxPool(fire3, 3, 2, 'valid');
+      const pool2 = fire3.maxPool(3, 2, 'valid');
       if (activationName === 'maxpool_2') {
         activation = pool2;
       }
@@ -107,7 +107,7 @@ export class SqueezeNet implements Model {
         activation = fire5;
       }
 
-      const pool3 = this.math.maxPool(fire5, 3, 2, 0);
+      const pool3 = fire5.maxPool(3, 2, 0);
       if (activationName === 'maxpool_3') {
         activation = pool3;
       }
@@ -132,35 +132,43 @@ export class SqueezeNet implements Model {
         activation = fire9;
       }
 
-      const conv10 = this.math.conv2d(
-          fire9, this.variables['conv10_W:0'] as Array4D,
-          this.variables['conv10_b:0'] as Array1D, 1, 0);
+      const conv10 =
+          fire9.conv2d(this.variables['conv10_W:0'] as Tensor4D, 1, 0)
+              .add(this.variables['conv10_b:0']) as Tensor3D;
+
       if (activationName === 'conv10') {
         activation = conv10;
       }
-      return [
-        this.math.avgPool(conv10, conv10.shape[0], 1, 0).as1D(), activation
-      ];
+      return {
+        logits: dl.avgPool(conv10, conv10.shape[0], 1, 0).as1D() as Tensor1D,
+        activation: activation as Tensor3D
+      };
     });
-    return {activation: activation as Array3D, logits: logits as Array1D};
   }
 
-  private fireModule(input: Array3D, fireId: number) {
-    const y1 = this.math.conv2d(
-        input, this.variables[`fire${fireId}/squeeze1x1_W:0`] as Array4D,
-        this.variables[`fire${fireId}/squeeze1x1_b:0`] as Array1D, 1, 0);
-    const y2 = this.math.relu(y1);
-    const left1 = this.math.conv2d(
-        y2, this.variables[`fire${fireId}/expand1x1_W:0`] as Array4D,
-        this.variables[`fire${fireId}/expand1x1_b:0`] as Array1D, 1, 0);
-    const left2 = this.math.relu(left1);
+  private fireModule(input: Tensor3D, fireId: number) {
+    const y =
+        dl.conv2d(
+              input, this.variables[`fire${fireId}/squeeze1x1_W:0`] as Tensor4D,
+              1, 0)
+            .add(this.variables[`fire${fireId}/squeeze1x1_b:0`])
+            .relu() as Tensor3D;
 
-    const right1 = this.math.conv2d(
-        y2, this.variables[`fire${fireId}/expand3x3_W:0`] as Array4D,
-        this.variables[`fire${fireId}/expand3x3_b:0`] as Array1D, 1, 1);
-    const right2 = this.math.relu(right1);
+    const left =
+        dl.conv2d(
+              y, this.variables[`fire${fireId}/expand1x1_W:0`] as Tensor4D, 1,
+              0)
+            .add(this.variables[`fire${fireId}/expand1x1_b:0`])
+            .relu();
 
-    return this.math.concat3D(left2, right2, 2);
+    const right =
+        dl.conv2d(
+              y, this.variables[`fire${fireId}/expand3x3_W:0`] as Tensor4D, 1,
+              1)
+            .add(this.variables[`fire${fireId}/expand3x3_b:0`])
+            .relu();
+
+    return left.concat(right, 2) as Tensor3D;
   }
 
   /**
@@ -170,12 +178,13 @@ export class SqueezeNet implements Model {
    * @param logits Pre-softmax logits array.
    * @param topK How many top classes to return.
    */
-  async getTopKClasses(logits: Array1D, topK: number):
+  async getTopKClasses(logits: Tensor1D, topK: number):
       Promise<{[className: string]: number}> {
-    const predictions = this.math.scope(() => {
-      return this.math.softmax(logits).asType('float32');
+    const predictions = dl.tidy(() => {
+      return dl.softmax(logits).asType('float32');
     });
-    const topk = model_util.topK(await predictions.data(), topK);
+    const topk =
+        model_util.topK(await predictions.data() as Float32Array, topK);
     predictions.dispose();
     const topkIndices = topk.indices;
     const topkValues = topk.values;

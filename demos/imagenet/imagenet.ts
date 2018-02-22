@@ -111,7 +111,7 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
         imagenet_util.getRenderGrayscaleChannelsCollageShader(this.gpgpu);
 
     const cameraSetup = this.setupCameraInput();
-    this.squeezeNet = new SqueezeNet(this.math);
+    this.squeezeNet = new SqueezeNet();
 
     await Promise.all([this.squeezeNet.load(), cameraSetup]);
 
