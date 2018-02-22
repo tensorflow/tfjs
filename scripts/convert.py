@@ -30,6 +30,7 @@ flags.DEFINE_string(
 
 FLAGS = flags.FLAGS
 
+# grappler optimization configuration for GPU
 def get_cluster():
   named_device = device_properties_pb2.NamedDevice()
   named_device.name = '/GPU:0'
@@ -38,7 +39,6 @@ def get_cluster():
   cluster = gcluster.Cluster(devices=[named_device])
   return cluster
 
-
 def load_graph(graph_filename):
   """Loads GraphDef. Returns Python Graph object."""
   with tf.gfile.Open(graph_filename, 'rb') as f:
@@ -46,14 +46,13 @@ def load_graph(graph_filename):
     graph_def.ParseFromString(f.read())
 
   with tf.Graph().as_default() as graph:
-    # Set name to empty to avoid using the default name 'import'.
+#Set name to empty to avoid using the default name 'import'.
     tf.import_graph_def(graph_def, name='')
 
   for node in FLAGS.output_node_names.split(','):
     graph.add_to_collection('train_op',graph.get_operation_by_name(node.strip()))
 
   return graph
-
 
 def optimize_graph(graph):
   """Takes a Python Graph object and optimizes the graph."""
@@ -99,7 +98,7 @@ def extract_weights(graph, graph_def):
 
 def main(_):
 
-# Freeze the graph
+#Freeze the graph
   freeze_graph.freeze_graph('', '', True, '',
                           FLAGS.output_node_names,
                           '', '',

@@ -16,7 +16,7 @@
  */
 
 // Lookup table for non - utf8, with necessary escapes at(o >= 127 or o < 32)
-import {Array1D, Array2D, Array3D, Array4D, NDArray, Scalar} from 'deeplearn';
+import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn';
 
 import {tensorflow} from './index';
 import {TensorMap} from './types';
@@ -50,7 +50,7 @@ export async function buildWeightMap(
 
 function buildTensor(
     index: number, length: number, weight: ArrayBuffer,
-    tensor: tensorflow.ITensor): NDArray {
+    tensor: tensorflow.ITensor): Tensor {
   const dims = tensor.tensorShape.dim;
   const dimSizes = dims.map(dim => dim.size) as number[];
   switch (tensor.dtype) {
@@ -75,7 +75,7 @@ function buildTensor(
 function toNDArray(
     shape: number[],
     values: boolean[]|number[]|Int32Array|Float32Array|Uint8Array,
-    dtype: 'float32'|'int32'|'bool'): NDArray {
+    dtype: 'float32'|'int32'|'bool'): Tensor {
   if (values instanceof Int32Array || values instanceof Float32Array ||
       values instanceof Uint8Array) {
     values = Array.prototype.slice.call(values);
@@ -90,14 +90,14 @@ function toNDArray(
     case 0:
       return Scalar.new(values[0], dtype);
     case 1: {
-      return Array1D.new(values, dtype);
+      return Tensor1D.new(values, dtype);
     }
     case 2:
-      return Array2D.new(shape as [number, number], values, dtype);
+      return Tensor2D.new(shape as [number, number], values, dtype);
     case 3:
-      return Array3D.new(shape as [number, number, number], values, dtype);
+      return Tensor3D.new(shape as [number, number, number], values, dtype);
     case 4:
-      return Array4D.new(
+      return Tensor4D.new(
           shape as [number, number, number, number], values, dtype);
     default:
       throw new Error('dimension higher than 4 is not supported');
