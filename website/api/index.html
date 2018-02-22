@@ -96,8 +96,6 @@
     .container .content-area {
       display: flex;
       flex-direction: row;
-      /* height: 100vh; */
-      /* overflow-y: hidden; */
       margin-top: 52px;
     }
 
@@ -124,10 +122,7 @@
       margin-left: 0px;
       margin-top: 16px;
       padding-bottom: 32px;
-      /* border-bottom: 1px solid #d2d7da; */
     }
-
-
 
     .section-title {
       margin-bottom: 0px;
@@ -141,6 +136,13 @@
     .sub-section-title {
       margin-bottom: 8px;
       font-weight: 400;
+    }
+
+    .subsection-title::before, h5::before {
+      display: block;
+      content: "";
+      height: 60px;
+      margin: -60px 0 0;
     }
 
 
@@ -172,17 +174,6 @@
       font-weight: bold;
     }
 
-    /* .toc::-webkit-scrollbar {
-      -webkit-appearance: none;
-      width: 7px;
-    }
-
-    .toc::-webkit-scrollbar-thumb {
-      border-radius: 4px;
-      background-color: rgba(0, 0, 0, .5);
-      -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
-    } */
-
     /* Reference Pane */
 
     .reference .section {
@@ -197,7 +188,6 @@
     .reference .subsection-title {
       font-weight: 300;
       margin-bottom: 16px;
-      /* border-bottom: 1px solid rgb(96,125,139); */
     }
 
     .reference .subsection-description {
@@ -240,7 +230,6 @@
     pre.hljs {
       padding: 24px;
       padding-bottom: 32px;
-      /* margin-left: 24px; */
       margin: 0;
       background: white;
     }
@@ -249,16 +238,13 @@
       background: #f7f7f7;
       background: #f4f4f4;
       color: #37474f;
-      /* padding: 2px 4px; */
       font-weight: 500;
       font-family: Roboto Mono, monospace;
       word-break: break-word;
     }
 
     .documentation a, .returns a,  .param-name a, .method-docs a, .param-docs a {
-      /* background: #f4f4f4; */
       color: #0277BD;
-      /* padding: 2px 2px; */
       font-weight: 500;
       font-family: Roboto Mono, monospace;
     }
@@ -408,7 +394,7 @@
       <ul>
         {{#parameters}}
         <li class="parameter">
-          <span <span class="param-name">
+          <span class="param-name">
             {{name}}:&nbsp;{{{markdownInner type}}}
           </span>
           <span class="param-docs">
@@ -469,7 +455,7 @@
             <div class="subsection-description mdl-typography--headline">{{{description}}}</div>
             {{#symbols}}
             <div class="symbol">
-              <h5>
+              <h5 id="{{urlHash}}">
                 {{#if isClass}}
                   <span class="chip">Class</span>
                 {{else}}
