@@ -14,8 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-
-// Lookup table for non - utf8, with necessary escapes at(o >= 127 or o < 32)
+// tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn';
 
 import {tensorflow} from './index';
@@ -26,7 +25,6 @@ export function loadRemoteProtoFile(url: string): Promise<tensorflow.GraphDef> {
       .then(res => res.arrayBuffer())
       .then(buffer => tensorflow.GraphDef.decode(new Uint8Array(buffer)));
 }
-
 
 export function loadRemoteWeightFile(url: string): Promise<ArrayBuffer> {
   return fetch(new Request(url)).then(res => res.arrayBuffer());
@@ -70,7 +68,6 @@ function buildTensor(
       throw new Error(`tensor data type: ${tensor.dtype} is not supported`);
   }
 }
-
 
 function toNDArray(
     shape: number[],
