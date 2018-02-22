@@ -21,7 +21,7 @@
 
     resultElement.innerText = 'Predicting...';
 
-    const pixels = dl.Array3D.fromPixels(cat);
+    const pixels = dl.fromPixels(cat);
 
     const result = squeezeNet.predict(pixels);
 

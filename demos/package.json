@@ -53,8 +53,8 @@
     "@bower_components/webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.24",
     "chart.js": "~2.7.1",
     "deeplearn": "file:../dist/",
-    "deeplearn-knn-image-classifier": "~0.2.3",
-    "deeplearn-squeezenet": "~0.1.9",
+    "deeplearn-knn-image-classifier": "~0.3.0",
+    "deeplearn-squeezenet": "~0.2.0",
     "tslint": "~5.8.0",
     "vue": "~2.5.9"
   },

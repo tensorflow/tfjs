@@ -203,8 +203,7 @@ export class TeachableGamingDemo extends TeachableGamingDemoPolymer {
           });
     }
     this.classifier = new KNNImageClassifier(
-        TeachableGamingDemo.maxControls, TeachableGamingDemo.knnKValue,
-        dl.ENV.math);
+        TeachableGamingDemo.maxControls, TeachableGamingDemo.knnKValue);
     this.classifier.load();
     this.predictedIndex = -1;
     this.selectedIndex = -1;
