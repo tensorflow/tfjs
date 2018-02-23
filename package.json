@@ -1,7 +1,7 @@
 {
-  "name": "tfnodejs",
+  "name": "tf-nodejs",
   "version": "0.0.1",
-  "main": "./binding/build/Release/tfnodejs",
+  "main": "./build/Release/tfnodejs",
   "types": "./binding/tfnodejs.d.ts",
   "gypfile": true,
   "repository": {

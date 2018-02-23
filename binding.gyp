@@ -1,16 +1,16 @@
 #Binding config
 {
   'variables' : {
-    'tensorflow_include_dir' : '<(module_root_dir)/../deps/tensorflow/include',
-    'tensorflow_lib_dir' : '<(module_root_dir)/../deps/tensorflow/lib',
+    'tensorflow_include_dir' : '<(module_root_dir)/deps/tensorflow/include',
+    'tensorflow_lib_dir' : '<(module_root_dir)/deps/tensorflow/lib',
   },
   'targets' : [{
     'target_name' : 'tfnodejs',
     'sources' : [
-      'tensor_handle.cc',
-      'tf_node_binding.cc',
-      'tfe_context_env.cc',
-      'tfe_execute.cc',
+      'binding/tensor_handle.cc',
+      'binding/tf_node_binding.cc',
+      'binding/tfe_context_env.cc',
+      'binding/tfe_execute.cc',
     ],
     'include_dirs' : [ '..', '<(tensorflow_include_dir)' ],
     'conditions' : [
@@ -45,7 +45,7 @@
       {
         'action_name': 'download_libtensorflow',
         'inputs': [
-          '<(module_root_dir)/../scripts/download-libtensorflow.sh',
+          '<(module_root_dir)/scripts/download-libtensorflow.sh',
         ],
         'outputs': [
           '<(PRODUCT_DIR)/libtensorflow.so',
