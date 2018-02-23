@@ -15,7 +15,7 @@
     "clang-format": "~1.2.2",
     "cross-spawn": "~5.1.0",
     "http-server": "~0.10.0",
-    "jasmine-core": "~2.6.4",
+    "jasmine-core": "2.99.1",
     "karma": "~1.7.0",
     "karma-browserstack-launcher": "~1.3.0",
     "karma-chrome-launcher": "~2.2.0",
