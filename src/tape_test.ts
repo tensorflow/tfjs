@@ -18,7 +18,6 @@
 import * as dl from './index';
 import * as tape_util from './tape';
 import {TapeNode} from './tape';
-import {Scalar, Tensor} from './tensor';
 import {CPU_ENVS, describeWithFlags, expectArraysClose} from './test_util';
 
 describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
@@ -196,7 +195,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
 
     const dy = dl.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] =
@@ -213,7 +212,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
 
     const dy = dl.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] = [{
@@ -221,7 +220,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
       name: 'node0',
       inputs: {x},
       output: y,
-      gradient: (dy: Scalar) => {
+      gradient: (dy: dl.Scalar) => {
         return {x: () => dy.add(dl.scalar(1))};
       }
     }];
@@ -238,7 +237,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
 
     const dy = dl.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] = [
@@ -247,7 +246,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node0',
         inputs: {x},
         output: intermediate,
-        gradient: (dy: Scalar) => {
+        gradient: (dy: dl.Scalar) => {
           return {x: () => dy.add(dl.scalar(1))};
         }
       },
@@ -256,7 +255,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node1',
         inputs: {intermediate},
         output: y,
-        gradient: (dy: Scalar) => {
+        gradient: (dy: dl.Scalar) => {
           return {intermediate: () => dy.add(dl.scalar(1))};
         }
       }
@@ -276,7 +275,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
 
     const dy = dl.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] = [
@@ -285,7 +284,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node0',
         inputs: {x},
         output: intermediate1,
-        gradient: (dy: Scalar) => {
+        gradient: (dy: dl.Scalar) => {
           return {x: () => dy.add(dl.scalar(1))};
         }
       },
@@ -294,7 +293,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node1',
         inputs: {x},
         output: intermediate2,
-        gradient: (dy: Scalar) => {
+        gradient: (dy: dl.Scalar) => {
           return {x: () => dy.add(dl.scalar(1))};
         }
       },
@@ -303,7 +302,7 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node2',
         inputs: {intermediate1, intermediate2},
         output: y,
-        gradient: (dy: Scalar) => {
+        gradient: (dy: dl.Scalar) => {
           return {
             intermediate1: () => dy.add(dl.scalar(1)),
             intermediate2: () => dy.add(dl.scalar(1))
@@ -316,29 +315,5 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
 
     // dx = dy + 1 + 1 + 1 + 1 + 1
     expectArraysClose(accumulatedGradientsMap[x.id], [dy.dataSync()[0] + 5]);
-  });
-});
-
-describeWithFlags('extractTensorsFromScopeResult', CPU_ENVS, () => {
-  it('null input returns empty tensor', () => {
-    const results = tape_util.extractTensorsFromScopeResult(null);
-
-    expect(results).toEqual([]);
-  });
-
-  it('tensor input returns one element tensor', () => {
-    const x = dl.scalar(1);
-    const results = tape_util.extractTensorsFromScopeResult(x);
-
-    expect(results).toEqual([x]);
-  });
-
-  it('name tensor map returns flattened tensor', () => {
-    const x1 = dl.scalar(1);
-    const x2 = dl.scalar(3);
-    const x3 = dl.scalar(4);
-    const results = tape_util.extractTensorsFromScopeResult({x1, x2, x3});
-
-    expect(results).toEqual([x1, x2, x3]);
   });
 });

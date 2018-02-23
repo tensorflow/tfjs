@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-import {ENV} from './environment';
+import {extractTensorsFromScopeResult} from './engine';
 import * as dl from './index';
-import {Tensor} from './tensor';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {ALL_ENVS, CPU_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
 
 describeWithFlags('tidy', ALL_ENVS, () => {
   it('returns Tensor', () => {
@@ -200,7 +199,7 @@ describeWithFlags('fromPixels + regular math op', ALL_ENVS, () => {
       pixels.data[i] = 250;
     }
 
-    const a = Tensor.fromPixels(pixels, 4);
+    const a = dl.fromPixels(pixels, 4);
     const b = dl.scalar(20, 'int32');
 
     const res = dl.add(a, b);
@@ -302,6 +301,27 @@ describeWithFlags('gradients', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
 
+  it('does not error if irrelevant (pruned) ops are missing grads', () => {
+    const a = dl.tensor1d([true, true], 'bool');
+    const b = dl.tensor1d([false, true], 'bool');
+    const da = dl.grad(a => {
+      // Logical has no gradients, but it is irrelevant.
+      a.logicalAnd(b);
+      return a.sum();
+    })(a);
+    expectArraysClose(da, [1, 1]);
+  });
+
+  it('errors if relevant ops are missing grads', () => {
+    const a = dl.tensor1d([true, true], 'bool');
+    const b = dl.tensor1d([false, true], 'bool');
+    const dfda = dl.grad(a => {
+      // Logical has no gradients, but it's relevant to the output.
+      return a.logicalAnd(b);
+    });
+    expect(() => dfda(a)).toThrowError();
+  });
+
   it('works with asType', () => {
     const a = dl.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
     const exponent = dl.tensor2d([2, 2, 2, 2], [2, 2], 'int32');
@@ -329,11 +349,6 @@ describeWithFlags('gradients', ALL_ENVS, () => {
       })(a);
     };
     expect(f).toThrowError();
-  });
-
-  it('empty list of xs leads to Error', () => {
-    expect(() => ENV.engine.gradients(() => dl.scalar(1), [], dl.scalar(2)))
-        .toThrowError(/empty list of xs/);
   });
 });
 
@@ -430,7 +445,7 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
 
     const customPow = dl.customGrad(a => {
       const value = dl.pow(a, b);
-      const gradFunc = (dy: Tensor) => dy.mul(dl.scalar(0.1));
+      const gradFunc = (dy: dl.Tensor) => dy.mul(dl.scalar(0.1));
       return {value, gradFunc};
     });
 
@@ -449,7 +464,7 @@ describeWithFlags('customGradient', ALL_ENVS, () => {
 
     const customPow = dl.customGrad(a => {
       const value = dl.pow(a, b);
-      const gradFunc = (dy: Tensor) => dy.mul(a);
+      const gradFunc = (dy: dl.Tensor) => dy.mul(a);
       return {value, gradFunc};
     });
 
@@ -512,5 +527,29 @@ describeWithFlags('memory', ALL_ENVS, () => {
     expect(dl.memory().numBytes).toBe(4);
     expect(sum.dtype).toBe('int32');
     expectArraysClose(sum, [1 + 1 + 0 + 1]);
+  });
+});
+
+describeWithFlags('extractTensorsFromScopeResult', CPU_ENVS, () => {
+  it('null input returns empty tensor', () => {
+    const results = extractTensorsFromScopeResult(null);
+
+    expect(results).toEqual([]);
+  });
+
+  it('tensor input returns one element tensor', () => {
+    const x = dl.scalar(1);
+    const results = extractTensorsFromScopeResult(x);
+
+    expect(results).toEqual([x]);
+  });
+
+  it('name tensor map returns flattened tensor', () => {
+    const x1 = dl.scalar(1);
+    const x2 = dl.scalar(3);
+    const x3 = dl.scalar(4);
+    const results = extractTensorsFromScopeResult({x1, x2, x3});
+
+    expect(results).toEqual([x1, x2, x3]);
   });
 });

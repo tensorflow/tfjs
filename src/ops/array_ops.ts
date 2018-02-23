@@ -489,7 +489,7 @@ export class ArrayOps {
     const prob2D =
         origRank === 1 ? probabilities.as2D(1, -1) : probabilities as Tensor2D;
     const res = ENV.engine.runKernel(
-        backend => backend.multinomial(prob2D, numSamples, seed));
+        backend => backend.multinomial(prob2D, numSamples, seed), {prob2D});
 
     return origRank === 1 ? res.as1D() : res;
   }
@@ -518,7 +518,8 @@ export class ArrayOps {
       throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
     }
     return ENV.engine.runKernel(
-        backend => backend.oneHot(indices, depth, onValue, offValue));
+        backend => backend.oneHot(indices, depth, onValue, offValue),
+        {indices});
   }
 
   /**
@@ -671,7 +672,7 @@ export class ArrayOps {
         x.rank === reps.length,
         `Error in transpose: rank of input ${x.rank} ` +
             `must match length of reps ${reps}.`);
-    return ENV.engine.runKernel(backend => backend.tile(x, reps));
+    return ENV.engine.runKernel(backend => backend.tile(x, reps), {x});
   }
 
   /**
@@ -698,7 +699,8 @@ export class ArrayOps {
   @operation
   static gather<T extends Tensor>(x: T, indices: Tensor1D, axis = 0): T {
     const axes = parseAxisParam(axis, x.shape);
-    return ENV.engine.runKernel(backend => backend.gather(x, indices, axes[0]));
+    return ENV.engine.runKernel(
+        backend => backend.gather(x, indices, axes[0]), {x, indices});
   }
 
   /**

@@ -33,7 +33,7 @@ export class LogicalOps {
   @operation
   static logicalNot<T extends Tensor>(x: T): T {
     util.assert(x.dtype === 'bool', 'Error Array must be of type bool.');
-    return ENV.engine.runKernel(backend => backend.logicalNot(x));
+    return ENV.engine.runKernel(backend => backend.logicalNot(x), {x});
   }
 
   /**
@@ -49,7 +49,8 @@ export class LogicalOps {
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.logicalAnd(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.logicalAnd(a, b), {a, b}) as
+        T;
   }
 
   /**
@@ -65,7 +66,8 @@ export class LogicalOps {
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.logicalOr(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.logicalOr(a, b), {a, b}) as
+        T;
   }
 
   /**
@@ -81,7 +83,8 @@ export class LogicalOps {
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.logicalXor(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.logicalXor(a, b), {a, b}) as
+        T;
   }
 
   /**
@@ -117,6 +120,7 @@ export class LogicalOps {
     // Default to highest percision of number:
     const dtype = types.upcastType(a.dtype, b.dtype);
     return ENV.engine.runKernel(
-               backend => backend.where(condition, a, b, dtype)) as T;
+               backend => backend.where(condition, a, b, dtype),
+               {condition, a, b}) as T;
   }
 }

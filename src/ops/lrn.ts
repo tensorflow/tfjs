@@ -58,7 +58,8 @@ export class LRNOps {
     }
     const res = ENV.engine.runKernel(
         backend => backend.localResponseNormalization4D(
-            x4D, radius, bias, alpha, beta, normRegion));
+            x4D, radius, bias, alpha, beta, normRegion),
+        {x4D});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     } else {

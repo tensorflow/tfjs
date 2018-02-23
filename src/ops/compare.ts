@@ -37,7 +37,7 @@ export class CompareOps {
   static notEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.notEqual(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.notEqual(a, b), {a, b}) as T;
   }
 
   /**
@@ -68,7 +68,7 @@ export class CompareOps {
   static less<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.less(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.less(a, b), {a, b}) as T;
   }
 
   /**
@@ -99,7 +99,7 @@ export class CompareOps {
   static equal<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.equal(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.equal(a, b), {a, b}) as T;
   }
 
   @operation
@@ -122,7 +122,8 @@ export class CompareOps {
   static lessEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.lessEqual(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.lessEqual(a, b), {a, b}) as
+        T;
   }
 
   @operation
@@ -145,7 +146,7 @@ export class CompareOps {
   static greater<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.greater(a, b)) as T;
+    return ENV.engine.runKernel(backend => backend.greater(a, b), {a, b}) as T;
   }
 
   @operation
@@ -168,7 +169,8 @@ export class CompareOps {
   static greaterEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.greaterEqual(a, b)) as T;
+    return ENV.engine.runKernel(
+               backend => backend.greaterEqual(a, b), {a, b}) as T;
   }
 
   @operation

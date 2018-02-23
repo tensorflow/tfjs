@@ -233,7 +233,7 @@ export class ConvOps {
     const convInfo = conv_util.computeConv2DInfo(
         xShape4D, filter.shape, strides, pad, dimRoundingMode);
     const res = ENV.engine.runKernel(
-        backend => backend.conv2dDerInput(dy4D, filter, convInfo));
+        backend => backend.conv2dDerInput(dy4D, filter, convInfo), {dy4D});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -301,7 +301,7 @@ export class ConvOps {
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, filterShape, strides, pad, dimRoundingMode);
     return ENV.engine.runKernel(
-        backend => backend.conv2dDerFilter(x4D, dy4D, convInfo));
+        backend => backend.conv2dDerFilter(x4D, dy4D, convInfo), {x4D, dy4D});
   }
 
   /**
@@ -416,7 +416,8 @@ export class ConvOps {
         input4D.shape, filter.shape, strides, pad, dimRoundingMode,
         true /* depthwise */);
     const res = ENV.engine.runKernel(
-        backend => backend.depthwiseConv2D(input4D, filter, convInfo));
+        backend => backend.depthwiseConv2D(input4D, filter, convInfo),
+        {input4D, filter});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }

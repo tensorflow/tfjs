@@ -16,10 +16,8 @@
  */
 
 import {doc} from './doc';
-import {TimingInfo} from './engine';
+import {ScopeFn, ScopeResult, TimingInfo} from './engine';
 import {ENV} from './environment';
-// tslint:disable-next-line:max-line-length
-import {ScopeFn, ScopeResult} from './tape';
 import {Tensor} from './tensor';
 
 export class Tracking {
