@@ -1,0 +1,10 @@
+{
+    "name": "tfnodejs",
+    "version": "0.0.1",
+    "main": "./binding/build/Release/tfnodejs",
+    "types": "./binding/tfnodejs.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tensorflow/tf-nodejs.git"
+    }
+}
