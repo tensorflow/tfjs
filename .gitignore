@@ -1,3 +1,4 @@
 build/
-deps/libtensorflow/lib/*
+deps/tensorflow/include/*
+deps/tensorflow/lib/*
 node_modules/
