@@ -197,7 +197,8 @@ export class BatchNormOps {
         backend => backend.batchNormalization4D(
             x4D, batchnormReshape4D(mean), batchnormReshape4D(variance),
             varianceEpsilon, batchnormReshape4D(scale),
-            batchnormReshape4D(offset)));
+            batchnormReshape4D(offset)),
+        {x, mean, variance});
     return res.reshape(x.shape);
   }
 }

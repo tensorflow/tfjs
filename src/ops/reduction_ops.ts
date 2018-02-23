@@ -116,7 +116,7 @@ export class ReductionOps {
             axis_util.getInnerMostAxes(reductionAxes.length, x.rank);
       }
       let value = ENV.engine.runKernel(
-          backend => backend.sum(permutedX, reductionAxes));
+          backend => backend.sum(permutedX, reductionAxes), {permutedX});
       if (keepDims) {
         const newShape = axis_util.expandShapeToKeepDim(value.shape, axes);
         value = value.reshape(newShape);
@@ -234,7 +234,7 @@ export class ReductionOps {
       x = x.transpose(permutedAxes);
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
-    const res = ENV.engine.runKernel(backend => backend.min(x, axes));
+    const res = ENV.engine.runKernel(backend => backend.min(x, axes), {x});
     if (keepDims) {
       const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
       return res.reshape(newShape) as T;
@@ -280,7 +280,7 @@ export class ReductionOps {
       x = x.transpose(permutedAxes);
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
-    const res = ENV.engine.runKernel(backend => backend.max(x, axes));
+    const res = ENV.engine.runKernel(backend => backend.max(x, axes), {x});
     if (keepDims) {
       const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
       return res.reshape(newShape) as T;
@@ -321,7 +321,7 @@ export class ReductionOps {
       x = x.transpose(permutedAxes);
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
-    return ENV.engine.runKernel(backend => backend.argMin(x, axes)) as T;
+    return ENV.engine.runKernel(backend => backend.argMin(x, axes), {x}) as T;
   }
 
   /**
@@ -357,7 +357,7 @@ export class ReductionOps {
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
 
-    return ENV.engine.runKernel(backend => backend.argMax(x, axes)) as T;
+    return ENV.engine.runKernel(backend => backend.argMax(x, axes), {x}) as T;
   }
 
   /**

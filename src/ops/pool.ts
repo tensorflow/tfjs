@@ -133,7 +133,8 @@ export class PoolOps {
     const convInfo = conv_util.computePool2DInfo(
         input4D.shape, filterSize, strides, pad, dimRoundingMode);
     const res = ENV.engine.runKernel(
-        backend => backend.maxPoolBackprop(dy4D, input4D, convInfo));
+        backend => backend.maxPoolBackprop(dy4D, input4D, convInfo),
+        {dy4D, input4D});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -182,8 +183,8 @@ export class PoolOps {
     }
     const convInfo = conv_util.computePool2DInfo(
         input4D.shape, filterSize, strides, pad, dimRoundingMode);
-    const res =
-        ENV.engine.runKernel(backend => backend.minPool(input4D, convInfo));
+    const res = ENV.engine.runKernel(
+        backend => backend.minPool(input4D, convInfo), {input4D});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -290,7 +291,8 @@ export class PoolOps {
     const convInfo =
         conv_util.computePool2DInfo(input4D.shape, filterSize, strides, pad);
     const res = ENV.engine.runKernel(
-        backend => backend.avgPoolBackprop(dy4D, input4D, convInfo));
+        backend => backend.avgPoolBackprop(dy4D, input4D, convInfo),
+        {dy4D, input4D});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }

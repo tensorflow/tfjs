@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+import {ScopeResult} from './engine';
 import {BackendType, ENV} from './environment';
 import {KernelBackend} from './kernels/backend';
 import {ArrayOps} from './ops/array_ops';
@@ -36,7 +37,6 @@ import {SliceOps} from './ops/slice';
 import {SoftmaxOps} from './ops/softmax';
 import {TransposeOps} from './ops/transpose';
 import {UnaryOps} from './ops/unary_ops';
-import {ScopeResult} from './tape';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 import {Tracking} from './tracking';
 import {Rank} from './types';
@@ -227,8 +227,8 @@ export class NDArrayMath {
     let values: Tensor1D;
     let indices: Tensor1D;
     tidy('topK', () => {
-      values = ENV.engine.runKernel(backend => backend.topKValues(x, k));
-      indices = ENV.engine.runKernel(backend => backend.topKIndices(x, k));
+      values = ENV.engine.runKernel(backend => backend.topKValues(x, k), {x});
+      indices = ENV.engine.runKernel(backend => backend.topKIndices(x, k), {x});
       return values;
     });
     const result = {values, indices};

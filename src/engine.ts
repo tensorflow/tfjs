@@ -20,8 +20,7 @@ import {tidy} from './globals';
 import {BackendTimingInfo, KernelBackend} from './kernels/backend';
 import * as ops from './ops/ops';
 import {Profiler} from './profiler';
-// tslint:disable-next-line:max-line-length
-import {backpropagateGradients, extractTensorsFromScopeResult, getFilteredNodesXToY, ScopeResult} from './tape';
+import {backpropagateGradients, getFilteredNodesXToY} from './tape';
 import {NamedGradientMap, TapeNode} from './tape';
 import {DataId, Tensor, Tensor3D, Variable} from './tensor';
 import {NamedTensorMap, NamedVariableMap, TypedArray} from './types';
@@ -94,7 +93,7 @@ export class Engine implements TensorManager {
 
   runKernel<T extends Tensor, I extends NamedTensorMap>(
       forwardFunc: ForwardFunc<T>,
-      inputs?: I,
+      inputs: I,
       backwardsFunc?: (dy: T, saved: Tensor[]) => {[P in keyof I]: () => I[P]},
       ): T {
     let result: T;
@@ -118,11 +117,10 @@ export class Engine implements TensorManager {
       const tapeNode: TapeNode = {
         id: this.nextTapeNodeId++,
         name: scopeName,
-        output: result
+        inputs,
+        output: result,
+
       };
-      if (inputs != null) {
-        tapeNode.inputs = inputs;
-      }
       if (backwardsFunc != null) {
         tapeNode.gradient = (dy: T) => backwardsFunc(dy, saved);
       }
@@ -320,7 +318,7 @@ export class Engine implements TensorManager {
       }
 
       const accumulatedGradientMap: {[tensorId: number]: Tensor} = {};
-      accumulatedGradientMap[y.id] = (dy == null) ? ops.onesLike(y) : dy;
+      accumulatedGradientMap[y.id] = (dy == null) ? ops.ones(y.shape) : dy;
 
       // Backprop gradients through the filtered nodes.
       backpropagateGradients(accumulatedGradientMap, filteredTape);
@@ -418,4 +416,45 @@ export class Engine implements TensorManager {
     this.activeScope.track.push(result);
     return result;
   }
+}
+
+export type ScopeAny = void|Tensor|string|number|boolean|ScopeObject|ScopeArray;
+export interface ScopeObject { [x: string]: ScopeAny; }
+export interface ScopeArray extends Array<ScopeAny> {}
+
+// TODO(smilkov): Remove Promise<ScopeAny> in 0.6.0 and make it run-time error.
+/**
+ * @docalias void|number|string|Tensor|Tensor[]|{[key:
+ * string]:Tensor|number|string}
+ */
+export type ScopeResult = ScopeAny|Promise<ScopeAny>;
+
+/** @docalias Function */
+export type ScopeFn<T extends ScopeResult> = () => T;
+
+export function extractTensorsFromScopeResult(result: ScopeResult): Tensor[] {
+  if (result == null) {
+    return [];
+  }
+  if (result instanceof Tensor) {
+    return [result];
+  }
+
+  const list: Tensor[] = [];
+  const resultObj = result as {[key: string]: Tensor};
+  if (!isIterable(resultObj)) {
+    return [];
+  }
+
+  // Iteration over keys works also for arrays.
+  for (const k in resultObj) {
+    const sublist = util.flatten(resultObj[k]).filter(x => x instanceof Tensor);
+    list.push(...sublist);
+  }
+  return list;
+}
+
+// tslint:disable-next-line:no-any
+function isIterable(obj: any): boolean {
+  return Array.isArray(obj) || typeof obj === 'object';
 }

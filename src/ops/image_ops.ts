@@ -56,7 +56,8 @@ export class ImageOps {
     const [newHeight, newWidth] = size;
     const res = ENV.engine.runKernel(
         backend => backend.resizeBilinear(
-            batchImages, newHeight, newWidth, alignCorners));
+            batchImages, newHeight, newWidth, alignCorners),
+        {batchImages});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }

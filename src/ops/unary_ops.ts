@@ -561,9 +561,10 @@ export class UnaryOps {
 }
 
 function preluDer<T extends Tensor>(x: T, alpha: T): T {
-  return ENV.engine.runKernel(backend => backend.preluDer(x, alpha));
+  return ENV.engine.runKernel(
+      backend => backend.preluDer(x, alpha), {x, alpha});
 }
 
 function eluDer<T extends Tensor>(x: T): T {
-  return ENV.engine.runKernel(backend => backend.eluDer(x));
+  return ENV.engine.runKernel(backend => backend.eluDer(x), {x});
 }

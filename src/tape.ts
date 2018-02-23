@@ -23,8 +23,8 @@ export interface TapeNode {
   id: number;
   name: string;
   output: Tensor;
+  inputs: NamedTensorMap;
   // Optional params, defined only for ops with gradient impl.
-  inputs?: NamedTensorMap;
   gradient?: (dy: Tensor|NamedTensorMap) => NamedGradientMap;
 }
 
@@ -52,11 +52,6 @@ export function getFilteredNodesXToY(
   for (let i = 0; i < tape.length; i++) {
     const node = tape[i];
     const nodeInputs = node.inputs;
-    if (nodeInputs == null) {
-      throw new Error(
-          `${node.name} is missing gradient implementation. ` +
-          `Failed to back-propagate.`);
-    }
     for (const inputName in nodeInputs) {
       const input = nodeInputs[inputName];
 
@@ -176,45 +171,4 @@ export function backpropagateGradients(
       }
     }
   }
-}
-
-export type ScopeAny = void|Tensor|string|number|boolean|ScopeObject|ScopeArray;
-export interface ScopeObject { [x: string]: ScopeAny; }
-export interface ScopeArray extends Array<ScopeAny> {}
-
-// TODO(smilkov): Remove Promise<ScopeAny> in 0.6.0 and make it run-time error.
-/**
- * @docalias void|number|string|Tensor|Tensor[]|{[key:
- * string]:Tensor|number|string}
- */
-export type ScopeResult = ScopeAny|Promise<ScopeAny>;
-
-/** @docalias Function */
-export type ScopeFn<T extends ScopeResult> = () => T;
-
-export function extractTensorsFromScopeResult(result: ScopeResult): Tensor[] {
-  if (result == null) {
-    return [];
-  }
-  if (result instanceof Tensor) {
-    return [result];
-  }
-
-  const list: Tensor[] = [];
-  const resultObj = result as {[key: string]: Tensor};
-  if (!isIterable(resultObj)) {
-    return [];
-  }
-
-  // Iteration over keys works also for arrays.
-  for (const k in resultObj) {
-    const sublist = util.flatten(resultObj[k]).filter(x => x instanceof Tensor);
-    list.push(...sublist);
-  }
-  return list;
-}
-
-// tslint:disable-next-line:no-any
-function isIterable(obj: any): boolean {
-  return Array.isArray(obj) || typeof obj === 'object';
 }
