@@ -1,0 +1,281 @@
+[{
+  "tfOpName": "Placeholder",
+  "dlOpName": "placeholder"
+}, {
+  "tfOpName": "Const",
+  "dlOpName": "const"
+}, {
+  "tfOpName": "Add",
+  "dlOpName": "add"
+}, {
+  "tfOpName": "BiasAdd",
+  "dlOpName": "add"
+}, {
+  "tfOpName": "Floor",
+  "dlOpName": "floor"
+}, {
+  "tfOpName": "Mul",
+  "dlOpName": "multiply"
+}, {
+  "tfOpName": "MatMul",
+  "dlOpName": "matMul",
+  "params": [{
+      "tfParamName": "transpose_a",
+      "dlParamName": "transposeA",
+      "type": "bool",
+      "defaultValue": false
+    },{
+      "tfParamName": "transpose_b",
+      "dlParamName": "transposeB",
+      "type": "bool",
+      "defaultValue": false
+    }]
+}, {
+  "tfOpName": "Conv2D",
+  "dlOpName": "conv2d",
+  "params": [{
+      "tfParamName": "strides",
+      "dlParamName": "strides",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    },{
+      "tfParamName": "padding",
+      "dlParamName": "pad",
+      "type": "string",
+      "converter": "stringConverter"
+    }]
+}, {
+  "tfOpName": "DepthwiseConv2dNative",
+  "dlOpName": "depthwiseConv2D",
+  "params": [{
+      "tfParamName": "strides",
+      "dlParamName": "strides",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    },{
+      "tfParamName": "padding",
+      "dlParamName": "pad",
+      "type": "string",
+      "converter": "stringConverter"
+    }, {
+      "tfParamName": "rate",
+      "dlParamName": "rate",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    }]
+}, {
+  "tfOpName": "AvgPool",
+  "dlOpName": "avgPool",
+  "params": [{
+      "tfParamName": "strides",
+      "dlParamName": "strides",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    },{
+      "tfParamName": "padding",
+      "dlParamName": "pad",
+      "type": "string",
+      "converter": "stringConverter"
+    }, {
+      "tfParamName": "ksize",
+      "dlParamName": "kernelSize",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    }]
+}, {
+  "tfOpName": "MaxPool",
+  "dlOpName": "maxPool",
+  "params": [{
+      "tfParamName": "strides",
+      "dlParamName": "strides",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    },{
+      "tfParamName": "padding",
+      "dlParamName": "pad",
+      "type": "string",
+      "converter": "stringConverter"
+    }, {
+      "tfParamName": "ksize",
+      "dlParamName": "kernelSize",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    }]
+}, {
+  "tfOpName": "RandomUniform",
+  "dlOpName": "randUniform",
+  "params": [{
+      "tfInputIndex": "0",
+      "dlParamName": "shape",
+      "type": "number[]"
+    },{
+      "tfParamName": "minval",
+      "dlParamName": "minval",
+      "type": "number",
+      "defaultValue": 0
+    }, {
+      "tfParamName": "maxval",
+      "dlParamName": "maxval",
+      "type": "number"
+    }]
+}, {
+  "tfOpName": "RealDiv",
+  "dlOpName": "divide"
+}, {
+  "tfOpName": "Sigmoid",
+  "dlOpName": "sigmoid"
+}, {
+  "tfOpName": "Tanh",
+  "dlOpName": "tanh"
+}, {
+  "tfOpName": "Squeeze",
+  "dlOpName": "squeeze",
+  "params": [{
+      "tfParamName": "axis",
+      "tfParamNameDeprecated": "squeeze_dims",
+      "dlParamName": "axis",
+      "type": "number[]",
+      "converter": "numberArrayConverter"
+    }]
+}, {
+  "tfOpName": "Reshape",
+  "dlOpName": "reshape",
+  "params": [{
+      "tfInputIndex": 0,
+      "dlParamName": "shape",
+      "type": "number[]"
+    }]
+}, {
+  "tfOpName": "Slice",
+  "dlOpName": "slice",
+  "params": [{
+      "tfInputIndex": 0,
+      "dlParamName": "begin",
+      "type": "number[]"
+    }, {
+      "tfInputIndex": 1,
+      "dlParamName": "size",
+      "type": "number[]"
+    }]
+}, {
+  "tfOpName": "Fill",
+  "dlOpName": "fill",
+  "params": [{
+      "tfInputIndex": 0,
+      "dlParamName": "shape",
+      "type": "number[]"
+    }, {
+      "tfInputIndex": 1,
+      "dlParamName": "value",
+      "type": "number"
+    }]
+}, {
+  "tfOpName": "Sub",
+  "dlOpName": "sbutract"
+}, {
+  "tfOpName": "Exp",
+  "dlOpName": "exp"
+}, {
+  "tfOpName": "Relu",
+  "dlOpName": "relu"
+}, {
+  "tfOpName": "Relu6",
+  "dlOpName": "clip",
+  "params": [{
+    "dlParamName": "min",
+    "type": "number",
+    "defaultValue": 0
+  }, {
+    "dlParamName": "max",
+    "type": "number",
+    "defaultValue": 6
+  }]
+}, {
+  "tfOpName": "Minimum",
+  "dlOpName": "minimum"
+}, {
+  "tfOpName": "Maximum",
+  "dlOpName": "maximum"
+}, {
+  "tfOpName": "Max",
+  "dlOpName": "max",
+  "params": [{
+    "tfParamName": "axis",
+    "tfParamNameDeprecated": "reduction_indices",
+    "dlParamName": "axis",
+    "type": "number[]"
+  }, {
+    "tfParamName": "keep_dims",
+    "dlParamName": "keepDims",
+    "type": "bool"
+  }]
+}, {
+  "tfOpName": "Mean",
+  "dlOpName": "mean",
+  "params": [{
+    "tfParamName": "axis",
+    "tfParamNameDeprecated": "reduction_indices",
+    "dlParamName": "axis",
+    "type": "number[]"
+  }, {
+    "tfParamName": "keep_dims",
+    "dlParamName": "keepDims",
+    "type": "bool"
+  }]
+}, {
+  "tfOpName": "FusedBatchNorm",
+  "dlOpName": "batchNormalization",
+  "params": [{
+    "tfInputIndex": 1,
+    "dlParamName": "scale"
+  },{
+    "tfInputIndex": 2,
+    "dlParamName": "offset"
+  }, {
+    "tfInputIndex": 3,
+    "dlParamName": "mean"
+  }, {
+    "tfInputIndex": 4,
+    "dlParamName": "variance"
+  }, {
+    "tfParamName": "epislon",
+    "dlParamName": "varianceEpislon",
+    "type": "number",
+    "defaultValue": 0.001
+  }]
+}, {
+  "tfOpName": "Shape",
+  "dlOpName": "shape"
+}, {
+  "tfOpName": "Transpose",
+  "dlOpName": "transpose",
+  "params": [{
+      "tfInputIndex": 0,
+      "dlParamName": "perms",
+      "type": "number[]"
+    }]
+}, {
+  "tfOpName": "Rsqrt",
+  "dlOpName": "rsqrt"
+}, {
+  "tfOpName": "Softmax",
+  "dlOpName": "softmax",
+  "params": [{
+    "tfParamName": "axis",
+    "tfParamNameDeprecated": "dim",
+    "dlParamName": "dim",
+    "type": "number"
+  }]
+}, {
+  "tfOpName": "Identity",
+  "dlOpName": "identity"
+},{
+  "tfOpName": "ConcatV2",
+  "dlOpName": "concat",
+  "params": [{
+      "tfInputIndex": -1,
+      "dlParamName": "axis",
+      "type": "number[]"
+    }]
+}
+]
