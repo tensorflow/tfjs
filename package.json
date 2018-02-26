@@ -7,5 +7,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tf-nodejs.git"
+  },
+  "scripts": {
+    "format": "clang-format -i -style=Google binding/*.cc binding/*.h"
   }
 }
