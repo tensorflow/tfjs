@@ -371,15 +371,15 @@ export class BinaryOps {
    * const a = dl.tensor1d([1, 4, 3, 16]);
    * const b = dl.tensor1d([1, 2, 9, 4]);
    *
-   * a.minumum(b).print();  // or dl.minumum(a, b)
+   * a.minimum(b).print();  // or dl.minimum(a, b)
    * ```
    *
    * ```js
-   * // Broadcast minumum a with b.
+   * // Broadcast minimum a with b.
    * const a = dl.tensor1d([2, 4, 6, 8]);
    * const b = dl.scalar(5);
    *
-   * a.minumum(b).print();  // or dl.minumum(a, b)
+   * a.minimum(b).print();  // or dl.minimum(a, b)
    * ```
    *
    * @param a The first tensor.
