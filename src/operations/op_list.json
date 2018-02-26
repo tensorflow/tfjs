@@ -1,6 +1,11 @@
 [{
   "tfOpName": "Placeholder",
-  "dlOpName": "placeholder"
+  "dlOpName": "placeholder",
+  "params": [{
+      "tfParamName": "shape",
+      "dlParamName": "shape",
+      "type": "shape"
+    }]
 }, {
   "tfOpName": "Const",
   "dlOpName": "const"
@@ -15,7 +20,7 @@
   "dlOpName": "floor"
 }, {
   "tfOpName": "Mul",
-  "dlOpName": "multiply"
+  "dlOpName": "mul"
 }, {
   "tfOpName": "MatMul",
   "dlOpName": "matMul",
@@ -36,13 +41,15 @@
   "params": [{
       "tfParamName": "strides",
       "dlParamName": "strides",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
-    },{
+      "type": "number[]"
+    }, {
       "tfParamName": "padding",
       "dlParamName": "pad",
-      "type": "string",
-      "converter": "stringConverter"
+      "type": "string"
+    }, {
+      "tfParamName": "useCudnnOnGpu",
+      "dlParamName": "useCudnnOnGpu",
+      "type": "bool"
     }]
 }, {
   "tfOpName": "DepthwiseConv2dNative",
@@ -50,18 +57,15 @@
   "params": [{
       "tfParamName": "strides",
       "dlParamName": "strides",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
+      "type": "number[]"
     },{
       "tfParamName": "padding",
       "dlParamName": "pad",
-      "type": "string",
-      "converter": "stringConverter"
+      "type": "string"
     }, {
       "tfParamName": "rate",
       "dlParamName": "rate",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
+      "type": "number[]"
     }]
 }, {
   "tfOpName": "AvgPool",
@@ -69,8 +73,7 @@
   "params": [{
       "tfParamName": "strides",
       "dlParamName": "strides",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
+      "type": "number[]"
     },{
       "tfParamName": "padding",
       "dlParamName": "pad",
@@ -79,8 +82,7 @@
     }, {
       "tfParamName": "ksize",
       "dlParamName": "kernelSize",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
+      "type": "number[]"
     }]
 }, {
   "tfOpName": "MaxPool",
@@ -88,22 +90,19 @@
   "params": [{
       "tfParamName": "strides",
       "dlParamName": "strides",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
+      "type": "number[]"
     },{
       "tfParamName": "padding",
       "dlParamName": "pad",
-      "type": "string",
-      "converter": "stringConverter"
+      "type": "string"
     }, {
       "tfParamName": "ksize",
       "dlParamName": "kernelSize",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
+      "type": "number[]"
     }]
 }, {
   "tfOpName": "RandomUniform",
-  "dlOpName": "randUniform",
+  "dlOpName": "randomUniform",
   "params": [{
       "tfInputIndex": "0",
       "dlParamName": "shape",
@@ -134,8 +133,7 @@
       "tfParamName": "axis",
       "tfParamNameDeprecated": "squeeze_dims",
       "dlParamName": "axis",
-      "type": "number[]",
-      "converter": "numberArrayConverter"
+      "type": "number[]"
     }]
 }, {
   "tfOpName": "Reshape",
@@ -227,16 +225,20 @@
   "dlOpName": "batchNormalization",
   "params": [{
     "tfInputIndex": 1,
-    "dlParamName": "scale"
+    "dlParamName": "scale",
+    "type": "tensor"
   },{
     "tfInputIndex": 2,
-    "dlParamName": "offset"
+    "dlParamName": "offset",
+    "type": "tensor"
   }, {
     "tfInputIndex": 3,
-    "dlParamName": "mean"
+    "dlParamName": "mean",
+    "type": "tensor"
   }, {
     "tfInputIndex": 4,
-    "dlParamName": "variance"
+    "dlParamName": "variance",
+    "type": "tensor"
   }, {
     "tfParamName": "epislon",
     "dlParamName": "varianceEpislon",

@@ -1,3 +1,5 @@
+import {Tensor} from 'deeplearn/dist/tensor';
+
 /**
  * @license
  * Copyright 2017 Google Inc. All Rights Reserved.
@@ -15,13 +17,13 @@
  * =============================================================================
  */
 
-export interface ParamConverter<K, T> { convert(input: K): T; }
+export type ParamTypes = 'number'|'string'|'number[]'|'bool'|'shape'|'tensor';
 export interface ParamMapper {
   tfParamName?: string;
   tfParamNameDeprecated?: string;
   tfInputIndex?: number;
   dlParamName: string;
-  type: 'number'|'string'|'number[]'|'bool';
+  type: ParamTypes;
   converter?: string;
   defaultValue?: string|string[]|number|number[]|boolean|boolean[];
 }
@@ -48,7 +50,10 @@ export interface Graph {
   outputs: Node[];
 }
 
+export type ValueType =
+    string|string[]|number|number[]|boolean|boolean[]|Tensor;
 export interface ParamValue {
-  value: string|string[]|number|number[]|boolean|boolean[];
+  value: ValueType;
   inputIndex: number;
+  type: ParamTypes;
 }

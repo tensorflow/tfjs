@@ -31,7 +31,6 @@ export class OperationMapper {
   }
 
   private constructor() {
-    console.log(OpList);
     this.opMappers =
         (OpList as OpMapper[])
             .reduce<{[key: string]: OpMapper}>((map, mapper: OpMapper) => {
@@ -42,11 +41,10 @@ export class OperationMapper {
 
   transformGraph(graph: tensorflow.IGraphDef): Graph {
     const tfNodes = graph.node;
-    const nodes: {[key: string]: Node} =
-        tfNodes.reduce((map: {[key: string]: Node}, node) => {
-          map[node.name] = this.mapNode(node);
-          return map;
-        }, {});
+    const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
+      map[node.name] = this.mapNode(node);
+      return map;
+    }, {});
 
     const inputs: Node[] = [];
     const outputs: Node[] = [];
@@ -74,48 +72,49 @@ export class OperationMapper {
     const newNode: Node = {
       name: node.name,
       op: mapper.dlOpName,
-      inputNames: node.input,
+      inputNames: node.input || [],
       inputs: [],
       children: [],
       params: {}
     };
 
     if (!!mapper.params) {
-      newNode.params =
-          mapper.params.reduce((map: {[key: string]: ParamValue}, param) => {
-            const inputIndex = param.tfInputIndex;
-            let value = undefined;
-            if (inputIndex === undefined) {
-              switch (param.type) {
-                case 'string':
-                  value = this.getStringParam(
-                      node.attr, param.tfParamName,
-                      param.defaultValue as string);
-                  break;
-                case 'number':
-                  value = this.getNumberParam(
-                      node.attr, param.tfParamName,
-                      param.defaultValue as number);
-                  break;
-                case 'number[]':
-                  value = this.getNumericArrayParam(
-                      node.attr, param.tfParamName,
-                      param.defaultValue as number[]);
-                  break;
-                case 'bool':
-                  value = this.getBoolParam(
-                      node.attr, param.tfParamName,
-                      param.defaultValue as boolean);
-                  break;
-                default:
-                  throw new Error(
-                      'Unsupported param type: ' + param.type +
-                      ' for op: ' + node.op);
-              }
-            }
-            map[param.dlParamName] = {value, inputIndex};
-            return map;
-          }, {});
+      newNode.params = mapper.params.reduce<{[key: string]:
+                                                 ParamValue}>((map, param) => {
+        const inputIndex = param.tfInputIndex;
+        const type = param.type;
+        let value = undefined;
+        if (inputIndex === undefined) {
+          switch (param.type) {
+            case 'string':
+              value = this.getStringParam(
+                  node.attr, param.tfParamName, param.defaultValue as string);
+              break;
+            case 'number':
+              value = this.getNumberParam(
+                  node.attr, param.tfParamName, param.defaultValue as number);
+              break;
+            case 'number[]':
+              value = this.getNumericArrayParam(
+                  node.attr, param.tfParamName, param.defaultValue as number[]);
+              break;
+            case 'bool':
+              value = this.getBoolParam(
+                  node.attr, param.tfParamName, param.defaultValue as boolean);
+              break;
+            case 'shape':
+              value = this.getTensorShapeParam(
+                  node.attr, param.tfParamName, param.defaultValue as number[]);
+              break;
+            default:
+              throw new Error(
+                  'Unsupported param type: ' + param.type +
+                  ' for op: ' + node.op);
+          }
+        }
+        map[param.dlParamName] = {value, inputIndex, type};
+        return map;
+      }, {});
     }
     return newNode;
   }
@@ -142,12 +141,16 @@ export class OperationMapper {
         number;
   }
 
-  private getTensorParam(
+  private getTensorShapeParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-      def?: tensorflow.ITensor): tensorflow.ITensor|undefined {
+      def?: number[]): number[]|undefined {
     const param = attrs[name];
-    return param ? param.tensor || def : def;
+    if (param && param.shape) {
+      return param.shape.dim.map(dim => dim.size as number);
+    }
+    return def;
   }
+
   private getNumericArrayParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
       def: number[]): number[] {
