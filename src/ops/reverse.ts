@@ -86,7 +86,7 @@ export class ReverseOps {
    * const axis = 1;
    * x.reverse(axis).print();
    * ```
-   * @param x The input tensor.
+   * @param x The input tensor to be reversed.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)). Defaults to all axes.
    */

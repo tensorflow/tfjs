@@ -82,8 +82,8 @@ export class BinaryOps {
    *
    * Inputs must be the same shape. For broadcasting support, use add() instead.
    *
-   * @param a The first Tensor to multiply element-wise.
-   * @param b The second Tensor to multiply element-wise.
+   * @param a The first Tensor to add element-wise.
+   * @param b The second Tensor to add element-wise.
    */
   @operation
   static addStrict<T extends Tensor>(a: T, b: T): T {
@@ -111,8 +111,9 @@ export class BinaryOps {
    *
    * a.sub(b).print();  // or dl.sub(a, b)
    * ```
-   * @param a The first `Tensor`.
-   * @param b The second `Tensor`. Must have the same dtype as `a`.
+   * @param a The first `Tensor` to subtract from.
+   * @param b The second `Tensor` to be subtracted. Must have the same dtype as
+   * `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
@@ -150,8 +151,8 @@ export class BinaryOps {
    *
    * For broadcasting support, use sub() instead.
    *
-   * @param a The first Tensor to multiply element-wise.
-   * @param b The second Tensor to multiply element-wise.
+   * @param a The first Tensor to subtract element-wise.
+   * @param b The second Tensor to subtract element-wise.
    */
   @operation
   static subStrict<T extends Tensor>(a: T, b: T): T {
@@ -244,8 +245,8 @@ export class BinaryOps {
    *
    * a.mul(b).print();  // or dl.mul(a, b)
    * ```
-   * @param a The first tensor.
-   * @param b The second tensor. Must have the same dtype as `a`.
+   * @param a The first tensor to multiply.
+   * @param b The second tensor to multiply. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
@@ -282,8 +283,9 @@ export class BinaryOps {
    *
    * Inputs must be the same shape. For broadcasting support, use mul().
    *
-   * @param a The first tensor.
-   * @param b The second tensor. Must have the same dtype as `a`.
+   * @param a The first tensor to multiply.
+   * @param b The first tensor to multiply. Must have the same
+   *    dtype as `a`.
    */
   @operation
   static mulStrict<T extends Tensor>(a: T, b: T): T {
@@ -311,8 +313,10 @@ export class BinaryOps {
    *
    * a.div(b).print();  // or dl.div(a, b)
    * ```
-   * @param a The first tensor.
-   * @param b The second tensor. Must have the same dtype as `a`.
+   *
+   * @param a The first tensor as the numerator.
+   * @param b The second tensor as the denominator. Must have the same dtype as
+   * `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
@@ -347,8 +351,8 @@ export class BinaryOps {
    * Divides two `Tensor`s element-wise, A / B. Inputs must
    * be the same shape.
    *
-   * @param a The first tensor to multiply element-wise.
-   * @param b The second tensor to multiply element-wise.
+   * @param a The first tensor as the numerator for element-wise division.
+   * @param b The second tensor as the denominator for element-wise division.
    */
   @operation
   static divStrict<T extends Tensor>(a: T, b: T): T {
@@ -377,6 +381,7 @@ export class BinaryOps {
    *
    * a.minumum(b).print();  // or dl.minumum(a, b)
    * ```
+   *
    * @param a The first tensor.
    * @param b The second tensor. Must have the same type as `a`.
    */
@@ -428,6 +433,7 @@ export class BinaryOps {
    *
    * a.maximum(b).print();  // or dl.maximum(a, b)
    * ```
+   *
    * @param a The first tensor.
    * @param b The second tensor. Must have the same type as `a`.
    */
@@ -450,7 +456,7 @@ export class BinaryOps {
    * be the same shape. For broadcasting support, use maximum().
    *
    * @param a The first tensor.
-   * @param b The second tensor.. Must have the same dtype as `a`.
+   * @param b The second tensor. Must have the same dtype as `a`.
    */
   @operation
   static maximumStrict<T extends Tensor>(a: T, b: T): T {

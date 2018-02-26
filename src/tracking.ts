@@ -137,11 +137,11 @@ export class Tracking {
    *
    * The result is an object with the following properties:
    *
-   * - `wallMs`: wall execution time.
-   * - `kernelMs`: kernel execution time, ignoring data transfer.
-   * - On `WebGL` the following additional properties exist:
-   *   - `uploadWaitMs`: cpu blocking time on texture uploads.
-   *   - `downloadWaitMs`: cpu blocking time on texture downloads (readPixels).
+   * - `wallMs`: Wall execution time.
+   * - `kernelMs`: Kernel execution time, ignoring data transfer.
+   * - On `WebGL` The following additional properties exist:
+   *   - `uploadWaitMs`: CPU blocking time on texture uploads.
+   *   - `downloadWaitMs`: CPU blocking time on texture downloads (readPixels).
    *
    * ```js
    * const x = dl.randomNormal([20, 20]);

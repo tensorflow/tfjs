@@ -216,9 +216,9 @@ export class Environment {
    * Sets the backend (cpu, webgl, etc) responsible for creating tensors and
    * executing operations on those tensors.
    *
-   * @param backendType The backend type. Currently supports 'webgl'|'cpu'.
+   * @param backendType The backend type. Currently supports `'webgl'|'cpu'`.
    * @param safeMode Defaults to false. In safe mode, you are forced to
-   *     construct tensors and call math operations inside a dl.tidy() which
+   *     construct tensors and call math operations inside a `dl.tidy()` which
    *     will automatically clean up intermediate tensors.
    */
   @doc({heading: 'Environment'})
@@ -243,13 +243,13 @@ export class Environment {
    * Returns memory info at the current time in the program. The result is an
    * object with the following properties:
    *
-   * - `numBytes`: number of bytes allocated (undisposed) at this time.
-   * - `numTensors`: number of unique tensors allocated
-   * - `numDataBuffers`: number of unique data buffers allocated
+   * - `numBytes`: Number of bytes allocated (undisposed) at this time.
+   * - `numTensors`: Number of unique tensors allocated.
+   * - `numDataBuffers`: Number of unique data buffers allocated
    *   (undisposed) at this time, which is ≤ the number of tensors
    *   (e.g. `a.reshape(newShape)` makes a new Tensor that shares the same
    *   data buffer with `a`).
-   * - `unreliable`: optional boolean:
+   * - `unreliable`: `Optional` `boolean`:
    *    - On WebGL, not present (always reliable).
    *    - On CPU, true. Due to automatic garbage collection, these numbers
    *     represent undisposed tensors, i.e. not wrapped in `dl.tidy()`, or
