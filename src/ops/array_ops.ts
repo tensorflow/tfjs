@@ -314,7 +314,7 @@ export class ArrayOps {
    * dl.zerosLike(x).print();
    * ```
    *
-   * @param x A tensor.
+   * @param x The tensor of required shape.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
@@ -380,7 +380,7 @@ export class ArrayOps {
    * @param shape An array of integers defining the output tensor shape.
    * @param mean The mean of the normal distribution.
    * @param stdDev The standard deviation of the normal distribution.
-   * @param dtype The data type of the output.
+   * @param dtype The data type of the output tensor.
    * @param seed The seed for the random number generator.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -535,9 +535,7 @@ export class ArrayOps {
    * dl.fromPixels(image).print();
    * ```
    *
-   * @param pixels The input image to construct the tensor from. Accepts image
-   * of type `ImageData`, `HTMLImageElement`, `HTMLCanvasElement`, or
-   * `HTMLVideoElement`.
+   * @param pixels The input image to construct the tensor from.
    * @param numChannels The number of channels of the output tensor. The
    * supported image types are all 4-channel by default, a numChannels value
    * less than 4 allows you to ignore channels.
@@ -575,7 +573,7 @@ export class ArrayOps {
    * x.reshape([2, 2]).print();
    * ```
    *
-   * @param x A tensor.
+   * @param x The input tensor to be reshaped.
    * @param shape An array of integers defining the output tensor shape.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
@@ -600,6 +598,8 @@ export class ArrayOps {
    * const x = dl.tensor([1, 2, 3, 4], [1, 1, 4]);
    * x.squeeze().print();
    * ```
+   *
+   * @param x The input tensor to be squeezed.
    * @param axis An optional list of numbers. If specified, only
    *     squeezes the dimensions listed. The dimension index starts at 0. It is
    *     an error to squeeze a dimension that is not 1.
@@ -610,13 +610,13 @@ export class ArrayOps {
   }
 
   /**
-   * Casts a tensor to a new dtype.
+   * Casts a `Tensor` to a new dtype.
    *
    * ```js
    * const x = dl.tensor1d([1.5, 2.5, 3]);
    * dl.cast(x, 'int32').print();
    * ```
-   * @param x A tensor.
+   * @param x The input tensor to be casted.
    * @param dtype The dtype to cast the input tensor to.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
@@ -691,7 +691,7 @@ export class ArrayOps {
    *
    * x.gather(indices).print();
    * ```
-   * @param x The input tensor.
+   * @param x The input tensor whose slices to be gathered.
    * @param indices The indices of the values to extract.
    * @param axis The axis over which to select values. Defaults to 0.
    */
@@ -842,6 +842,7 @@ export class ArrayOps {
    * x.expandDims(axis).print();
    * ```
    *
+   * @param x The input tensor whose dimensions to be expanded.
    * @param axis The dimension index at which to insert shape of `1`. Defaults
    *     to 0 (the first dimension).
    */
@@ -860,9 +861,9 @@ export class ArrayOps {
    * ```js
    * dl.linspace(0, 9, 10).print();
    * ```
-   * @param start The start value of the sequence
-   * @param stop The end value of the sequence
-   * @param num The number of values to generate
+   * @param start The start value of the sequence.
+   * @param stop The end value of the sequence.
+   * @param num The number of values to generate.
    * @param endpoint Determines whether stop is included in the
    * sequence. Defaults to true.
    */
@@ -898,7 +899,7 @@ export class ArrayOps {
    * @param start An integer start value
    * @param stop An integer stop value
    * @param step An integer increment (will default to 1 or -1)
-   * @param dtype
+   * @param dtype The data type of the output tensor. Defaults to 'float32'.
    */
   @operation
   @doc({heading: 'Tensors', subheading: 'Creation'})
@@ -973,7 +974,7 @@ export class ArrayOps {
    * const verbose = true;
    * dl.tensor2d([1, 2, 3, 4], [2, 2]).print(verbose);
    * ```
-   *
+   * @param x The tensor to be printed.
    * @param verbose Whether to print verbose information about the ` Tensor`,
    * including dtype and size.
    */

@@ -150,7 +150,7 @@ export class Gradients {
   }
 
   /**
-   * Like `dl.grad`, but returns also the value of `f()`. Useful when `f()`
+   * Like `dl.grad`, but also returns the value of `f()`. Useful when `f()`
    * returns a metric you want to show.
    *
    * The result is a rich object with the following properties:
@@ -270,6 +270,7 @@ export class Gradients {
    * ```
    *
    * @param f The function to execute. f() should return a scalar.
+   * @param varList The list of trainable variables. Defaults to all variables.
    */
   @doc({heading: 'Training', subheading: 'Gradients'})
   static variableGrads(f: () => Scalar, varList?: Variable[]):
