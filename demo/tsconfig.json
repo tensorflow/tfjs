@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist"
+  },
+  "include": [
+    "index.ts",
+    "imagenet_classes.ts",
+    "mobilenet.ts"
+  ],
+  "exclude": [
+    "node_modules/",
+    "dist/"
+  ]
+}

@@ -1,0 +1,60 @@
+<!-- Copyright 2017 Google Inc. All Rights Reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+==============================================================================-->
+
+<script src="https://unpkg.com/deeplearn"></script>
+<script src="dist/bundle.js"></script>
+
+<img id="elephant"></img>
+<div id="result"></div>
+
+<script>
+  const elephant = document.getElementById('elephant');
+  elephant.onload = async () => {
+    const resultElement = document.getElementById('result');
+
+    resultElement.innerText = 'Loading mobilenet tensorflow model...';
+
+    // If dl isn't loaded, wait 1 second.
+    if (dl == null) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
+    const math = dl.ENV.math;
+    const tfModel = new tfdemo.MobileNet(math);
+    console.time('load');
+    await tfModel.load();
+    console.timeEnd('load');
+
+    resultElement.innerText = 'Predicting...';
+
+    const pixels = dl.Array3D.fromPixels(elephant);
+
+    console.time('predict');
+    const result = tfModel.predict(pixels);
+    console.timeEnd('predict');
+
+    console.time('predict 2');
+    tfModel.predict(pixels).dataSync();
+    console.timeEnd('predict 2');
+
+    resultElement.innerText = '';
+
+    const topK = await tfModel.getTopKClasses(result, 5);
+    for (const key in topK) {
+      resultElement.innerText += `${topK[key].toFixed(5)}: ${key}\n`;
+    };
+  };
+  elephant.src = 'elephant.jpg';
+</script>
