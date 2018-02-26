@@ -48,6 +48,11 @@ export class SqueezeNet {
    * @return The pre-softmax logits.
    */
   predict(input: Tensor3D): Tensor1D {
+    if (input.shape[0] !== 227 || input.shape[1] !== 227 ||
+        input.shape[2] !== 3) {
+      throw new Error(
+          `The input Tensor shape is [${input.shape}]. Should be [227,227,3]`);
+    }
     return this.predictWithActivation(input).logits;
   }
 
