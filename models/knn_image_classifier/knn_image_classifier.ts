@@ -224,6 +224,10 @@ export class KNNImageClassifier {
     return this.classExampleCount;
   }
 
+  getClassLogitsMatrices(): Tensor2D[] {
+     return this.classLogitsMatrices;
+  }
+
   /**
    * Clear the lazily-loaded train logits matrix due to a change in
    * training data.
