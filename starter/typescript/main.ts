@@ -1,10 +1,10 @@
 import * as dl from 'deeplearn';
 
 async function runExample() {
-  const a = dl.Array1D.new([1, 2, 3]);
-  const b = dl.Scalar.new(2);
+  const a = dl.tensor1d([1, 2, 3]);
+  const b = dl.scalar(2);
 
-  const result = dl.ENV.math.add(a, b);
+  const result = a.add(b);
 
   // Option 1: With async/await.
   // Caveat: in non-Chrome browsers you need to put this in an async function.
