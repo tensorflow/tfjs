@@ -97,6 +97,6 @@ function toNDArray(
       return Tensor4D.new(
           shape as [number, number, number, number], values, dtype);
     default:
-      throw new Error('dimension higher than 4 is not supported');
+      throw new Error('Tensor with dimension higher than 4 is not supported');
   }
 }
