@@ -147,11 +147,11 @@
   "tfOpName": "Slice",
   "dlOpName": "slice",
   "params": [{
-      "tfInputIndex": 0,
+      "tfInputIndex": 1,
       "dlParamName": "begin",
       "type": "number[]"
     }, {
-      "tfInputIndex": 1,
+      "tfInputIndex": 2,
       "dlParamName": "size",
       "type": "number[]"
     }]

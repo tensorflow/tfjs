@@ -53,7 +53,7 @@ export interface Graph {
 export type ValueType =
     string|string[]|number|number[]|boolean|boolean[]|Tensor;
 export interface ParamValue {
-  value: ValueType;
-  inputIndex: number;
+  value?: ValueType;
+  inputIndex?: number;
   type: ParamTypes;
 }

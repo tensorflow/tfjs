@@ -55,7 +55,7 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
           tensorMap[node.inputNames[1]] as dl.Tensor2D,
           node.params['transposeA'].value as boolean,
           node.params['transposeB'].value as boolean);
-    case 'conv2D': {
+    case 'conv2d': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
       return dl.conv2d(
@@ -77,7 +77,6 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'avgPool': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
-      const rate = getParamValue('rate', node, tensorMap) as number[];
       const kernelSize = getParamValue('ksize', node, tensorMap) as number[];
 
       return dl.avgPool(
@@ -89,7 +88,6 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'maxPool': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
-      const rate = getParamValue('rate', node, tensorMap) as number[];
       const kernelSize = getParamValue('ksize', node, tensorMap) as number[];
 
       return dl.maxPool(
@@ -101,8 +99,8 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'randomUniform': {
       return dl.randomUniform(
           Array.prototype.slice.call(tensorMap[node.inputNames[0]].dataSync()),
-          getParamValue('maxVal', node, tensorMap) as number,
-          getParamValue('minVal', node, tensorMap) as number, 'float32');
+          getParamValue('minVal', node, tensorMap) as number,
+          getParamValue('maxVal', node, tensorMap) as number, 'float32');
     }
 
     case 'div': {
@@ -134,8 +132,8 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       return dl.slice(tensorMap[node.inputNames[0]], begin, size);
     }
     case 'fill': {
-      const shape = getParamValue('begin', node, tensorMap) as number[];
-      const value = getParamValue('begin', node, tensorMap) as number[];
+      const shape = getParamValue('shape', node, tensorMap) as number[];
+      const value = getParamValue('value', node, tensorMap) as number[];
       return dl.fill(shape, value[0]);
     }
     case 'sub': {
