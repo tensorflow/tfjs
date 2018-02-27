@@ -186,7 +186,7 @@ function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
 }
 
 /** @docalias 'webgl'|'cpu' */
-export type BackendType = 'webgl'|'cpu';
+export type BackendType = 'webgl'|'cpu'|string;
 
 /** List of currently supported backends ordered by preference. */
 const SUPPORTED_BACKENDS: BackendType[] = ['webgl', 'cpu'];
