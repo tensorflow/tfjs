@@ -155,7 +155,7 @@ export abstract class DataStream<T> {
    *
    * @param f A function to apply to each stream element.
    */
-  async forEach(f: (value: T) => {}|Promise<{}>): Promise<void> {
+  async forEach(f: (value: T) => {} | Promise<{}>): Promise<void> {
     return this.map(f).resolveFully();
   }
 
@@ -190,7 +190,9 @@ export abstract class DataStream<T> {
    *   unaltered.
    */
   take(count: number): DataStream<T> {
-    if (count < 0 || count == null) return this;
+    if (count < 0 || count == null) {
+      return this;
+    }
     return new TakeStream(this, count);
   }
 
@@ -201,7 +203,9 @@ export abstract class DataStream<T> {
    *   is given, the entire stream is returned unaltered.
    */
   skip(count: number): DataStream<T> {
-    if (count < 0 || count == null) return this;
+    if (count < 0 || count == null) {
+      return this;
+    }
     return new SkipStream(this, count);
   }
 
@@ -503,7 +507,9 @@ export class PrefetchStream<T> extends DataStream<T> {
 
   async next(): Promise<T> {
     this.refill();
-    if (this.buffer.isEmpty()) return undefined;
+    if (this.buffer.isEmpty()) {
+      return undefined;
+    }
     const result = await this.buffer.shift();
     // TODO(soergel) benchmark performance with and without this.
     this.refill();
