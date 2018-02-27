@@ -1,4 +1,5 @@
 build/
+dist/
 deps/tensorflow/include/*
 deps/tensorflow/lib/*
 node_modules/
