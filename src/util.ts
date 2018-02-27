@@ -317,7 +317,9 @@ export function squeezeShape(shape: number[], axis?: number[]):
         newShape.push(shape[i]);
         keptDims.push(i);
       }
-      if (axis[j] <= i) j++;
+      if (axis[j] <= i) {
+        j++;
+      }
     }
     if (shape[i] > 1) {
       newShape.push(shape[i]);

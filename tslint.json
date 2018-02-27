@@ -19,6 +19,7 @@
       ["Boolean", "Use 'boolean' instead."]
     ],
     "class-name": true,
+    "curly": true,
     "interface-name": [true, "never-prefix"],
     "jsdoc-format": true,
     "forin": false,

@@ -146,16 +146,17 @@ class Utf8StreamImpl extends QueueStream<string> {
 }
 
 function utfWidth(firstByte: number): number {
-  if (firstByte >= 252)
+  if (firstByte >= 252) {
     return 6;
-  else if (firstByte >= 248)
+  } else if (firstByte >= 248) {
     return 5;
-  else if (firstByte >= 240)
+  } else if (firstByte >= 240) {
     return 4;
-  else if (firstByte >= 224)
+  } else if (firstByte >= 224) {
     return 3;
-  else if (firstByte >= 192)
+  } else if (firstByte >= 192) {
     return 2;
-  else
+  } else {
     return 1;
+  }
 }

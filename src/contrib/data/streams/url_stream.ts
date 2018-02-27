@@ -76,7 +76,9 @@ class URLStreamImpl extends QueueStream<Uint8Array> {
       this.fileReaderStream = new FileReaderStream(blob, this.options);
     }
     const chunk = await this.fileReaderStream.next();
-    if (chunk == null) return false;
+    if (chunk == null) {
+      return false;
+    }
     this.outputQueue.push(chunk);
     return true;
   }
