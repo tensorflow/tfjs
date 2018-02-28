@@ -12,13 +12,16 @@
     "build": "tsc",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "lint": "tslint -p . -t verbose",
-    "binding-test": "./node_modules/.bin/ts-node src/binding_test.ts"
+    "binding-demo": "./node_modules/.bin/ts-node src/binding_demo.ts",
+    "test": "jasmine-ts \"src/**/*_test.ts\""
   },
   "dependencies": {
     "deeplearn": "^0.5.0"
   },
   "devDependencies": {
+    "@types/jasmine": "^2.8.6",
     "clang-format": "^1.2.2",
+    "jasmine-ts": "^0.2.1",
     "ts-node": "^5.0.0",
     "tslint": "^5.9.1",
     "typescript": "^2.7.2"
