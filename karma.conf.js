@@ -29,7 +29,6 @@ module.exports = function(config) {
         allowJs: true,
         declaration: false,
         module: 'commonjs'
-
       }
     },
     reporters: ['progress', 'karma-typescript'],
