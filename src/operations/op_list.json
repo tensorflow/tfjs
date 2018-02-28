@@ -52,8 +52,8 @@
       "type": "bool"
     }]
 }, {
-  "tfOpName": "DepthwiseConv2dNative",
-  "dlOpName": "depthwiseConv2D",
+  "tfOpName": "DepthwiseConv2d",
+  "dlOpName": "depthwiseConv2d",
   "params": [{
       "tfParamName": "strides",
       "dlParamName": "strides",
@@ -63,7 +63,23 @@
       "dlParamName": "pad",
       "type": "string"
     }, {
-      "tfParamName": "rate",
+      "tfParamName": "dilations",
+      "dlParamName": "rate",
+      "type": "number[]"
+    }]
+}, {
+  "tfOpName": "DepthwiseConv2dNative",
+  "dlOpName": "depthwiseConv2d",
+  "params": [{
+      "tfParamName": "strides",
+      "dlParamName": "strides",
+      "type": "number[]"
+    },{
+      "tfParamName": "padding",
+      "dlParamName": "pad",
+      "type": "string"
+    }, {
+      "tfParamName": "dilations",
       "dlParamName": "rate",
       "type": "number[]"
     }]
@@ -241,7 +257,7 @@
     "type": "tensor"
   }, {
     "tfParamName": "epislon",
-    "dlParamName": "varianceEpislon",
+    "dlParamName": "epislon",
     "type": "number",
     "defaultValue": 0.001
   }]

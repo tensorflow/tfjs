@@ -14,8 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from 'deeplearn';
 
-export type TensorMap = {
-  [key: string]: Tensor
-};
+export {TensorMap} from './data/index';
+export {Model} from './executor/index';

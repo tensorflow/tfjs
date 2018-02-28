@@ -1,5 +1,3 @@
-import {Tensor} from 'deeplearn/dist/tensor';
-
 /**
  * @license
  * Copyright 2017 Google Inc. All Rights Reserved.
@@ -16,7 +14,7 @@ import {Tensor} from 'deeplearn/dist/tensor';
  * limitations under the License.
  * =============================================================================
  */
-
+import {Tensor} from 'deeplearn';
 export type ParamTypes = 'number'|'string'|'number[]'|'bool'|'shape'|'tensor';
 export interface ParamMapper {
   tfParamName?: string;
