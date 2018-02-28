@@ -13,30 +13,23 @@
     "url": "https://github.com/tensorflow/web.git"
   },
   "devDependencies": {
-    "browserify": "~14.5.0",
+    "browserify": "~16.1.0",
     "browserify-shim": "~3.8.14",
-    "deeplearn": "^0.4.1",
     "mkdirp": "~0.5.1",
-    "tsify": "~3.0.3",
-    "tslint": "~5.8.0",
-    "typescript": "~2.6.1",
+    "tsify": "~3.0.4",
+    "tslint": "~5.9.1",
+    "typescript": "~2.7.2",
     "uglifyjs": "~2.4.11",
-    "watchify": "~3.9.0"
+    "watchify": "~3.10.0"
   },
   "scripts": {
-    "preinstall": "cd .. && yarn prep && yarn build && cd ./demo && npm install ../",
     "prep": "yarn && mkdirp dist",
     "build": "tsc --sourceMap false && browserify -g browserify-shim --standalone tfdemo index.ts -p [tsify] -o dist/bundle.js",
     "lint": "tslint -p . -t verbose",
     "publish-npm": "yarn build && yarn publish"
   },
-  "browserify-shim": {
-    "deeplearn": "global:dl"
-  },
   "license": "Apache-2.0",
   "dependencies": {
-    "@types/long": "^3.0.32",
-    "protobufjs": "~6.8.0",
     "tf-js-converter": "file:.."
   }
 }

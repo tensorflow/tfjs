@@ -15,4 +15,5 @@
  * =============================================================================
  */
 
+export {IMAGENET_CLASSES} from './imagenet_classes';
 export {MobileNet} from './mobilenet';

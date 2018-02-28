@@ -16,12 +16,12 @@ limitations under the License.
 <script src="https://unpkg.com/deeplearn"></script>
 <script src="dist/bundle.js"></script>
 
-<img id="elephant"></img>
+<img id="cat"></img>
 <div id="result"></div>
 
 <script>
-  const elephant = document.getElementById('elephant');
-  elephant.onload = async () => {
+  const cat = document.getElementById('cat');
+  cat.onload = async () => {
     const resultElement = document.getElementById('result');
 
     resultElement.innerText = 'Loading mobilenet tensorflow model...';
@@ -31,24 +31,25 @@ limitations under the License.
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const math = dl.ENV.math;
-    const tfModel = new tfdemo.MobileNet(math);
+    const tfModel = new tfdemo.MobileNet();
     console.time('load');
-    await tfModel.load();
+    const loaded = await tfModel.load();
     console.timeEnd('load');
 
     resultElement.innerText = 'Predicting...';
 
-    const pixels = dl.Array3D.fromPixels(elephant);
+    const pixels = dl.Array3D.fromPixels(cat);
 
     console.time('predict');
     const result = tfModel.predict(pixels);
     console.timeEnd('predict');
 
-    console.time('predict 2');
-    tfModel.predict(pixels).dataSync();
-    console.timeEnd('predict 2');
-
+    for (let i = 2; i < 12; i++) {
+      console.time('predict ' + i);
+      const outputs = tfModel.predict(pixels);
+      outputs.dataSync();
+      console.timeEnd('predict ' + i);
+    }
     resultElement.innerText = '';
 
     const topK = await tfModel.getTopKClasses(result, 5);
@@ -56,5 +57,5 @@ limitations under the License.
       resultElement.innerText += `${topK[key].toFixed(5)}: ${key}\n`;
     };
   };
-  elephant.src = 'elephant.jpg';
+  cat.src = 'cat.jpg';
 </script>
