@@ -83,6 +83,7 @@ export class ConvOps {
 
     const res =
         ConvOps.conv2d(input4D, filter4D, strides, pad, dimRoundingMode);
+
     if (reshapedTo3D) {
       return res.as2D(res.shape[2], res.shape[3]) as T;
     }
@@ -118,6 +119,7 @@ export class ConvOps {
       pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
+
     if (x.rank === 3) {
       reshapedTo4D = true;
       x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
@@ -141,8 +143,10 @@ export class ConvOps {
         `Error in conv2d: depth of input (${x4D.shape[3]}) must match  ` +
             `input depth for filter ${filter.shape[2]}.`);
 
+    const dilations = 1;
+
     const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, filter.shape, strides, pad, dimRoundingMode);
+        x4D.shape, filter.shape, strides, dilations, pad, dimRoundingMode);
 
     const grad = (dy: Tensor4D) => {
       return {
@@ -230,8 +234,10 @@ export class ConvOps {
               `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
     }
 
+    const dilations = 1;
+
     const convInfo = conv_util.computeConv2DInfo(
-        xShape4D, filter.shape, strides, pad, dimRoundingMode);
+        xShape4D, filter.shape, strides, dilations, pad, dimRoundingMode);
     const res = ENV.engine.runKernel(
         backend => backend.conv2dDerInput(dy4D, filter, convInfo), {dy4D});
     if (reshapedTo4D) {
@@ -298,8 +304,10 @@ export class ConvOps {
               `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
     }
 
+    const dilations = 1;
+
     const convInfo = conv_util.computeConv2DInfo(
-        x4D.shape, filterShape, strides, pad, dimRoundingMode);
+        x4D.shape, filterShape, strides, dilations, pad, dimRoundingMode);
     return ENV.engine.runKernel(
         backend => backend.conv2dDerFilter(x4D, dy4D, convInfo), {x4D, dy4D});
   }
@@ -365,11 +373,11 @@ export class ConvOps {
    *   - For more info, see this guide:
    *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
    *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
-   * @param rates The dilation rates: `[rateHeight, rateWidth]` in which we
-   *     sample input values across the height and width dimensions in atrous
-   *     convolution. Defaults to `[1, 1]`. If `rate` is a single number, then
-   *     `rateHeight == rateWidth`. If it is greater than 1, then all values
-   *     of `strides` must be 1.
+   * @param dilations The dilation rates: `[dilationHeight, dilationWidth]`
+   *     in which we sample input values across the height and width dimensions
+   *     in atrous convolution. Defaults to `[1, 1]`. If `dilations` is a single
+   *     number, then `dilationHeight == dilationWidth`. If it is greater than
+   *     1, then all values of `strides` must be 1.
    * @param dimRoundingMode The rounding mode used when computing output
    *     dimensions if pad is a number. If none is provided, it will not round
    *     and error if the output is of fractional size.
@@ -378,7 +386,7 @@ export class ConvOps {
   @operation
   static depthwiseConv2d<T extends Tensor3D|Tensor4D>(
       input: T, filter: Tensor4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, rates: [number, number]|number = [1, 1],
+      pad: 'valid'|'same'|number, dilations: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     let input4D = input as Tensor4D;
     let reshapedTo4D = false;
@@ -399,12 +407,11 @@ export class ConvOps {
         `Error in depthwiseConv2D: number of input channels ` +
             `(${input4D.shape[3]}) must match the inChannels dimension in ` +
             `filter ${filter.shape[2]}.`);
-    rates = rates || [1, 1];
-    const [rateHeight, rateWidth] = parseTupleParam(rates);
+    const [dilationHeight, dilationWidth] = parseTupleParam(dilations);
     util.assert(
-        rateHeight === 1 && rateWidth === 1,
-        'Error in depthwiseConv2D: rates greater than 1 are not yet ' +
-            `supported. Got rates '${rates}'`);
+        dilationHeight === 1 && dilationWidth === 1,
+        'Error in depthwiseConv2D: dilation rates greater than 1 are not yet ' +
+            `supported. Got dilations '${dilations}'`);
     if (dimRoundingMode != null) {
       util.assert(
           util.isInt(pad as number),
@@ -413,7 +420,7 @@ export class ConvOps {
     }
 
     const convInfo = conv_util.computeConv2DInfo(
-        input4D.shape, filter.shape, strides, pad, dimRoundingMode,
+        input4D.shape, filter.shape, strides, dilations, pad, dimRoundingMode,
         true /* depthwise */);
     const res = ENV.engine.runKernel(
         backend => backend.depthwiseConv2D(input4D, filter, convInfo),
