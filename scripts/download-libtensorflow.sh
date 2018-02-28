@@ -8,13 +8,13 @@ CPU_LINUX="https://storage.googleapis.com/tf-buiilds/libtensorflow.tar.gz"
 
 target=""
 platform=$1
-if [ "$platform" == "linux-cpu" ]
+if [ "$platform" = "linux-cpu" ]
 then
   target=$CPU_LINUX
-elif [ "$platform" == "linux-gpu" ]
+elif [ "$platform" = "linux-gpu" ]
 then
   target=$GPU_LINUX
-elif [ "$platform" == "darwin" ]
+elif [ "$platform" = "darwin" ]
 then
   target=$CPU_DARWIN
 else
