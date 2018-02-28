@@ -25,6 +25,7 @@ const MODEL_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb';
 const WEIGHT_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb.weight';
 const INPUT_NODE_NAME = 'input';
 const OUPUT_NODE_NAME = 'MobilenetV1/Predictions/Reshape_1';
+
 export class MobileNet {
   // yolo variables
   private PREPROCESS_DIVISOR = dl.Scalar.new(255.0 / 2);
@@ -36,6 +37,7 @@ export class MobileNet {
   async load() {
     await this.model.load();
   }
+
   /**
    * Infer through SqueezeNet, assumes variables have been loaded. This does
    * standard ImageNet pre-processing before inferring through the model. This

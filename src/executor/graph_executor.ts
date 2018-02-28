@@ -52,7 +52,7 @@ export class GraphExecutor {
 
   execute(inputs: TensorMap): TensorMap {
     const tensors = this.compiledOrder.reduce<TensorMap>((map, node) => {
-      map[node.name] = this.executeOp(node, map);
+      map[node.name] = executeOp(node, map);
       return map;
     }, {...this.weightMap, ...inputs});
 
@@ -60,9 +60,5 @@ export class GraphExecutor {
       map[node.name] = tensors[node.name];
       return map;
     }, {});
-  }
-
-  executeOp(node: Node, tensorMap: TensorMap): Tensor {
-    return executeOp(node, tensorMap);
   }
 }
