@@ -1,0 +1,20 @@
+{
+  "name": "binding-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "demo": "./node_modules/.bin/ts-node src/demo.ts",
+    "build": "tsc",
+    "preinstall": "rm -rf ../node_modules"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^9.4.6",
+    "deeplearn": "^0.5.0",
+    "tf-nodejs": "file:../.",
+    "ts-node": "^4.1.0",
+    "typescript": "^2.7.2"
+  }
+}
