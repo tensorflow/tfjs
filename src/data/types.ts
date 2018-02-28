@@ -14,8 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {NDArray} from 'deeplearn';
+import {Tensor} from 'deeplearn';
 
 export type TensorMap = {
-  [key: string]: NDArray
+  [key: string]: Tensor
 };

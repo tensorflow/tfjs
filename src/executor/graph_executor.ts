@@ -16,12 +16,10 @@
  */
 
 import {Tensor} from 'deeplearn';
-import {precompile} from 'handlebars/handlebars.runtime';
 
 import {tensorflow} from '../data/index';
-import {TensorMap} from '../data/types';
-import {Graph, Node} from '../operations/index';
-import { executeOp } from '../operations/operation_executor';
+import {TensorMap} from '../data/index';
+import {executeOp, Graph, Node} from '../operations/index';
 
 export class GraphExecutor {
   private compiledOrder: Node[] = [];
@@ -56,7 +54,7 @@ export class GraphExecutor {
     const tensors = this.compiledOrder.reduce<TensorMap>((map, node) => {
       map[node.name] = this.executeOp(node, map);
       return map;
-    }, {});
+    }, {...this.weightMap, ...inputs});
 
     return this.graph.outputs.reduce<TensorMap>((map, node) => {
       map[node.name] = tensors[node.name];

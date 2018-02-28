@@ -14,6 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-
-export * from './compiled_api.js';
+export * from './compiled_api';
 export * from './loaders';
+export * from './types';

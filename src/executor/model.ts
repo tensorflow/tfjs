@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {buildWeightMap, loadRemoteProtoFile, loadRemoteWeightFile, tensorflow} from '../data/index';
-import {TensorMap} from '../data/types';
+import {TensorMap} from '../data/index';
 import {OperationMapper} from '../operations/index';
 
 import {GraphExecutor} from './graph_executor';
@@ -26,18 +26,18 @@ export class Model {
   private executor: GraphExecutor;
   constructor(private modelUrl: string, private weightUrl: string) {}
 
-  async load(): Promise<GraphExecutor> {
+  load(): Promise<boolean> {
     const graphPromise = loadRemoteProtoFile(this.modelUrl);
     const weightPromise = loadRemoteWeightFile(this.weightUrl);
     const weightMapPromise = buildWeightMap(graphPromise, weightPromise);
     const executorPromise = graphPromise.then(
-        graph =>
+        graph => this.executor =
             new GraphExecutor(OperationMapper.Instance.transformGraph(graph)));
 
     return Promise.all([weightMapPromise, executorPromise])
         .then(([weightMap, executor]) => {
           executor.weightMap = weightMap;
-          return executor;
+          return true;
         });
   }
 

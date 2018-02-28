@@ -77,7 +77,8 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'avgPool': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
-      const kernelSize = getParamValue('ksize', node, tensorMap) as number[];
+      const kernelSize =
+          getParamValue('kernelSize', node, tensorMap) as number[];
 
       return dl.avgPool(
           tensorMap[node.inputNames[0]] as dl.Tensor3D | dl.Tensor4D,
@@ -88,7 +89,8 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'maxPool': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
-      const kernelSize = getParamValue('ksize', node, tensorMap) as number[];
+      const kernelSize =
+          getParamValue('kernelSize', node, tensorMap) as number[];
 
       return dl.maxPool(
           tensorMap[node.inputNames[0]] as dl.Tensor3D | dl.Tensor4D,
@@ -147,7 +149,7 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'relu':
       return dl.relu(tensorMap[node.inputNames[0]]);
 
-    case 'relu6':
+    case 'clip':
       return dl.clipByValue(
           tensorMap[node.inputNames[0]],
           getParamValue('min', node, tensorMap) as number,
@@ -170,9 +172,7 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       const axis = getParamValue('axis', node, tensorMap) as number[];
       return dl.mean(tensorMap[node.inputNames[0]], axis);
     }
-    case 'fusedBatchNorm': {
-      const mean = getParamValue('axis', node, tensorMap) as number[];
-
+    case 'batchNormalization': {
       return dl.batchNormalization(
           tensorMap[node.inputNames[0]],
           getParamValue('mean', node, tensorMap) as dl.Tensor,
