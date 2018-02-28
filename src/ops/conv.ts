@@ -407,6 +407,9 @@ export class ConvOps {
         `Error in depthwiseConv2D: number of input channels ` +
             `(${input4D.shape[3]}) must match the inChannels dimension in ` +
             `filter ${filter.shape[2]}.`);
+    if (dilations == null) {
+      dilations = [1, 1];
+    }
     const [dilationHeight, dilationWidth] = parseTupleParam(dilations);
     util.assert(
         dilationHeight === 1 && dilationWidth === 1,
