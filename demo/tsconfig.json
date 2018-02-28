@@ -19,6 +19,12 @@
       "downlevelIteration": true
   },
   "include": [
-    "src/"
+    "index.ts",
+    "imagenet_classes.ts",
+    "mobilenet.ts"
+  ],
+  "exclude": [
+    "node_modules/",
+    "dist/"
   ]
 }

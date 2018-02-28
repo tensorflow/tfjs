@@ -14,8 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from 'deeplearn';
 
-export type TensorMap = {
-  [key: string]: Tensor
-};
+export {IMAGENET_CLASSES} from './imagenet_classes';
+export {MobileNet} from './mobilenet';

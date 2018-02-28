@@ -30,7 +30,7 @@ export function loadRemoteWeightFile(url: string): Promise<ArrayBuffer> {
   return fetch(new Request(url)).then(res => res.arrayBuffer());
 }
 
-export async function buildWeightMap(
+export function buildWeightMap(
     graphPromise: Promise<tensorflow.GraphDef>,
     weightPromise: Promise<ArrayBuffer>): Promise<TensorMap> {
   const tensorMap: TensorMap = {};

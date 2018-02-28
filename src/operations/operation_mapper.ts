@@ -14,11 +14,10 @@
  * limitations under the License.
  * =============================================================================
  */
-
 import {tensorflow} from '../data/index';
 
 import {ParamValue} from './index';
-import OpList from './op_list.json';
+import * as data from './op_list.json';
 import {Graph, Node, OpMapper} from './types';
 
 export class OperationMapper {
@@ -32,7 +31,7 @@ export class OperationMapper {
 
   private constructor() {
     this.opMappers =
-        (OpList as OpMapper[])
+        ((data as any) as OpMapper[])
             .reduce<{[key: string]: OpMapper}>((map, mapper: OpMapper) => {
               map[mapper.tfOpName] = mapper;
               return map;
@@ -120,10 +119,14 @@ export class OperationMapper {
   }
 
   private getStringParam(
-      attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-      def: string): string {
+      attrs: {[key: string]: tensorflow.IAttrValue}, name: string, def: string,
+      keepCase = false): string {
     const param = attrs[name];
-    return param ? String.fromCharCode.apply(null, param.s) || def : def;
+    if (param !== undefined) {
+      const value = String.fromCharCode.apply(null, param.s);
+      return keepCase ? value : value.toLowerCase();
+    }
+    return def;
   }
 
   private getBoolParam(
