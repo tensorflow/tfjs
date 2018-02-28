@@ -1325,6 +1325,41 @@ describeWithFlags('tile', ALL_ENVS, () => {
     expectArraysEqual(
         t2, [1, 3, util.getNaN('int32'), 1, 3, util.getNaN('int32')]);
   });
+
+  it('1D (tile) gradient', () => {
+    const x = dl.tensor1d([1, 2, 3]);
+    const dy = dl.tensor1d([0.1, 0.2, 0.3, 1, 2, 3, 10, 20, 30]);
+    const gradients = dl.grad(x => dl.tile(x, [3]))(x, dy);
+    expectArraysClose(gradients, dl.tensor1d([11.1, 22.2, 33.3]));
+  });
+
+  it('2D (tile) gradient', () => {
+    const x = dl.tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const dy = dl.tensor2d([[1, 2, 10, 20], [3, 4, 30, 40]], [2, 4]);
+    const gradients = dl.grad(x => dl.tile(x, [1, 2]))(x, dy);
+    expectArraysClose(gradients, dl.tensor2d([[11, 22], [33, 44]], [2, 2]));
+  });
+
+  it('3D (tile) gradient', () => {
+    const x = dl.tensor3d([[[1], [2]], [[3], [4]]], [2, 2, 1]);
+    const dy = dl.tensor3d(
+        [[[1, 10], [2, 20]], [[3, 30], [4, 40]]], [2, 2, 2]);
+    const gradients = dl.grad(x => dl.tile(x, [1, 1, 2]))(x, dy);
+    expectArraysClose(
+        gradients, dl.tensor3d([[[11], [22]], [[33], [44]]], [2, 2, 1]));
+  });
+
+  it('4D (tile) gradient', () => {
+    const x = dl.tensor4d([[[[1]], [[2]]], [[[3]], [[4]]]], [2, 2, 1, 1]);
+    const dy = dl.tensor4d(
+        [[[[1, 10], [100, 1000]], [[2, 20], [200, 2000]]],
+         [[[3, 30], [300, 3000]], [[4, 40], [400, 4000]]]], [2, 2, 2, 2]);
+    const gradients = dl.grad(x => dl.tile(x, [1, 1, 2, 2]))(x, dy);
+    expectArraysClose(
+        gradients,
+        dl.tensor4d(
+            [[[[1111]], [[2222]]], [[[3333]], [[4444]]]], [2, 2, 1, 1]));
+  });
 });
 
 describeWithFlags('gather', ALL_ENVS, () => {

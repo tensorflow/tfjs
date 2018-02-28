@@ -672,7 +672,55 @@ export class ArrayOps {
         x.rank === reps.length,
         `Error in transpose: rank of input ${x.rank} ` +
             `must match length of reps ${reps}.`);
-    return ENV.engine.runKernel(backend => backend.tile(x, reps), {x});
+    const grad = (dy: T) => {
+      const derX = () => {
+        let xGrad = ArrayOps.zerosLike(x);
+        // TODO(cais): Maybe reduce memory footprint by avoiding repeated
+        // slicing.
+        if (x.rank === 1) {
+          for (let i = 0; i < reps[0]; ++i) {
+            xGrad = xGrad.add(dy.slice([i * x.shape[0]], [x.shape[0]]));
+          }
+        } else if (x.rank === 2) {
+          for (let i = 0; i < reps[0]; ++i) {
+            for (let j = 0; j < reps[1]; ++j) {
+              xGrad = xGrad.add(dy.slice([i * x.shape[0], j * x.shape[1]],
+                                          [x.shape[0], x.shape[1]]));
+            }
+          }
+        } else if (x.rank === 3) {
+          for (let i = 0; i < reps[0]; ++i) {
+            for (let j = 0; j < reps[1]; ++j) {
+              for (let k = 0; k < reps[2]; ++k) {
+                xGrad = xGrad.add(dy.slice(
+                  [i * x.shape[0], j * x.shape[1], k * x.shape[2]],
+                  [x.shape[0], x.shape[1], x.shape[2]]));
+              }
+            }
+          }
+        } else if (x.rank === 4) {
+          for (let i = 0; i < reps[0]; ++i) {
+            for (let j = 0; j < reps[1]; ++j) {
+              for (let k = 0; k < reps[2]; ++k) {
+                for (let l = 0; l < reps[3]; ++l) {
+                  xGrad = xGrad.add(dy.slice(
+                   [i * x.shape[0], j * x.shape[1], k * x.shape[2],
+                    l * x.shape[3]],
+                   [x.shape[0], x.shape[1], x.shape[2], x.shape[3]]));
+                }
+              }
+            }
+         }
+        } else {
+          throw new Error(
+              `Gradient for tile operation is not implemented for rank-` +
+              `${x.rank} tensors yet.`);
+        }
+        return xGrad;
+      };
+      return {x: derX};
+    };
+    return ENV.engine.runKernel(backend => backend.tile(x, reps), {x}, grad);
   }
 
   /**
