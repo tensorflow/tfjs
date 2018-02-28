@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-declare class Context {
-  constructor();
-}
+declare class Context { constructor(); }
 
 declare class TensorHandle {
   constructor(shape: number[], dtype: number);
@@ -43,6 +41,7 @@ export const TF_BOOL: number;
 // TF OpAttrTypes
 export const TF_ATTR_STRING: number;
 export const TF_ATTR_INT: number;
+export const TF_ATTR_FLOAT: number;
 export const TF_ATTR_BOOL: number;
 export const TF_ATTR_TYPE: number;
 export const TF_ATTR_SHAPE: number;
@@ -53,5 +52,5 @@ export const TF_ATTR_FUNC: number;
 export const TF_Version: string;
 
 export function execute(
-    context: Context, op: string, op_attrs: TFEOpAttr[],
-    inputs: TensorHandle[], output: TensorHandle): void;
+    context: Context, op: string, op_attrs: TFEOpAttr[], inputs: TensorHandle[],
+    output: TensorHandle): void;
