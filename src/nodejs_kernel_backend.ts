@@ -20,8 +20,7 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank} from 'deeplearn/dist/types';
 
-// tslint:disable-next-line:max-line-length
-import {Context, execute, TensorHandle, TF_ATTR_BOOL, TF_ATTR_TYPE, TF_BOOL, TF_FLOAT, TF_INT32} from '../.';
+import {Context, TensorHandle} from './tfnodejs';
 
 export class NodeJSKernelBackend implements KernelBackend {
   // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
@@ -59,8 +58,15 @@ export class NodeJSKernelBackend implements KernelBackend {
   private tensorMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
 
-  constructor() {
-    this.context = new Context();
+  // TODO(kreeger): Find a way to type-def the binding instead of making
+  // everything global.
+  // tslint:disable-next-line:no-any
+  private binding: any;
+
+  // tslint:disable-next-line:no-any
+  constructor(binding: any) {
+    this.binding = binding;
+    this.context = new this.binding.Context();
   }
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
@@ -71,15 +77,20 @@ export class NodeJSKernelBackend implements KernelBackend {
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
     const opAttrs = [
-      {name: 'transpose_a', type: TF_ATTR_BOOL, value: transposeA},
-      {name: 'transpose_b', type: TF_ATTR_BOOL, value: transposeB},
-      {name: 'T', type: TF_ATTR_TYPE, value: TF_FLOAT}
+      {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
+      {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      }
     ];
     const output = this.makeOutputArray(a.shape, a.dtype);
-    execute(
+    this.binding.execute(
         this.context, 'MatMul', opAttrs,
         [this.tensorMap.get(a.dataId), this.tensorMap.get(b.dataId)],
         this.tensorMap.get(output.dataId));
+    console.log('performing matmul', output.dataSync());
     return output as Tensor2D;
   }
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
@@ -412,8 +423,16 @@ export class NodeJSKernelBackend implements KernelBackend {
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     // TODO - pass in the actual type of X
     const opAttrs = [
-      {name: 'T', type: TF_ATTR_TYPE, value: TF_FLOAT},
-      {name: 'Tpaddings', type: TF_ATTR_TYPE, value: TF_INT32}
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      },
+      {
+        name: 'Tpaddings',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
     ];
     const outShape = paddings.map(
         (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
@@ -424,7 +443,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
     // Different size:
     const output = this.makeOutputArray(outShape, x.dtype);
-    execute(
+    this.binding.execute(
         this.context, 'PadV2', opAttrs,
         [
           this.tensorMap.get(x.dataId),
@@ -493,19 +512,19 @@ export class NodeJSKernelBackend implements KernelBackend {
     let tfDtype: number;
     switch (dtype) {
       case 'float32':
-        tfDtype = TF_FLOAT;
+        tfDtype = this.binding.TF_FLOAT;
         break;
       case 'int32':
-        tfDtype = TF_INT32;
+        tfDtype = this.binding.TF_INT32;
         break;
       case 'bool':
-        tfDtype = TF_BOOL;
+        tfDtype = this.binding.TF_BOOL;
         break;
       default:
         console.log('unknown');
     }
 
-    this.tensorMap.set(dataId, new TensorHandle(shape, tfDtype));
+    this.tensorMap.set(dataId, new this.binding.TensorHandle(shape, tfDtype));
   }
   memory(): {unreliable: boolean;} {
     throw new Error('Method not implemented.');
