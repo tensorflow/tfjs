@@ -16,10 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-
 import * as data from '../data/index';
-import * as operations from '../operations/index';
-
 import {Model} from './index';
 
 const MODEL_URL = 'model url';

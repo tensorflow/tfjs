@@ -25,10 +25,12 @@ export class OperationMapper {
 
   private opMappers: {[key: string]: OpMapper};
 
+  // Singleton instance for the mapper
   public static get Instance() {
     return this._instance || (this._instance = new this());
   }
 
+  // Loads the op mapping from the JSON file.
   private constructor() {
     this.opMappers =
         // tslint:disable-next-line:no-any
@@ -39,6 +41,8 @@ export class OperationMapper {
             }, {});
   }
 
+  // Converts the model from Tensorflow GraphDef to local representation for
+  // deeplearn.js API
   transformGraph(graph: tensorflow.IGraphDef): Graph {
     const tfNodes = graph.node;
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {

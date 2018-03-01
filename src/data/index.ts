@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+
+// generated type definition for Tensorflow GraphDef proto
 export * from './compiled_api';
 export * from './loaders';
 export * from './types';
