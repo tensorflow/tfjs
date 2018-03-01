@@ -15,9 +15,7 @@
  * =============================================================================
  */
 
-import {Tensor, tidy} from 'deeplearn';
-
-import {tensorflow} from '../data/index';
+import {tidy} from 'deeplearn';
 import {TensorMap} from '../data/index';
 import * as operations from '../operations/index';
 
@@ -32,10 +30,14 @@ export class GraphExecutor {
   }
 
   constructor(private graph: operations.Graph) {
-    this.precompile();
+    this.compile();
   }
 
-  private precompile() {
+  /**
+   * Compile the inference graph to generate the topology order of op nodes,
+   * cache the result for inference execution.
+   */
+  private compile() {
     const stack = [...this.graph.inputs];
     const visited: {[key: string]: boolean} = {};
     while (stack.length > 0) {
@@ -50,6 +52,11 @@ export class GraphExecutor {
     }
   }
 
+  /**
+   * Execute the inference for given input tensors.
+   * @param inputs Tensor map for the model inputs, keyed by the input node
+   * names.
+   */
   execute(inputs: TensorMap): TensorMap {
     const outputs = tidy(() => {
       const tensors = this.compiledOrder.reduce<TensorMap>((map, node) => {
@@ -65,6 +72,9 @@ export class GraphExecutor {
     return outputs;
   }
 
+  /**
+   * Release the memory used by the weight tensors.
+   */
   dispose() {
     Object.keys(this.weightMap).forEach(key => this.weightMap[key].dispose());
   }

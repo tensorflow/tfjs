@@ -16,10 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-
-import * as data from '../data/index';
 import * as operations from '../operations/index';
-
 import {GraphExecutor} from './index';
 
 let executor: GraphExecutor;

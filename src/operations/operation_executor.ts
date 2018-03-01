@@ -31,6 +31,11 @@ export function getParamValue(
   return param.value;
 }
 
+/**
+ * Execute the op defined by the node object.
+ * @param node
+ * @param tensorMap contains tensors for executed nodes and weights
+ */
 export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
   switch (node.op) {
     case 'add': {
