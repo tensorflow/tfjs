@@ -82,56 +82,56 @@ export class CSVDataset extends Dataset {
     }
   }
 
-/**
- * Create a `CSVDataset`.
- *
- * @param input A `DataSource` providing a chunked, UTF8-encoded byte stream.
- * @param csvColumnNames The keys to use for the columns, in order.  If this
- *   argument is provided, it is assumed that the input file does not have a
- *   header line providing the column names.  If this argument is not provided
- *   (or is null or undefined), then the column names are read from the first
- *   line of the input.
- */
-static async create(
-    input: DataSource,
-    csvColumnNames: CsvHeaderConfig|string[] = CsvHeaderConfig.NUMBERED) {
-  const result = new CSVDataset(input);
-  await result.setCsvColumnNames(csvColumnNames);
-  return result;
-}
-
-async getStream(): Promise<DataStream<DatasetElement>> {
-  let lines = await this.base.getStream();
-  if (this.hasHeaderLine) {
-    // We previously read the first line to get the headers.
-    // Now that we're providing data, skip it.
-    lines = lines.skip(1);
+  /**
+   * Create a `CSVDataset`.
+   *
+   * @param input A `DataSource` providing a chunked, UTF8-encoded byte stream.
+   * @param csvColumnNames The keys to use for the columns, in order.  If this
+   *   argument is provided, it is assumed that the input file does not have a
+   *   header line providing the column names.  If this argument is not provided
+   *   (or is null or undefined), then the column names are read from the first
+   *   line of the input.
+   */
+  static async create(
+      input: DataSource,
+      csvColumnNames: CsvHeaderConfig|string[] = CsvHeaderConfig.NUMBERED) {
+    const result = new CSVDataset(input);
+    await result.setCsvColumnNames(csvColumnNames);
+    return result;
   }
-  return lines.map((x: DatasetElement) => this.makeDatasetElement(x));
-}
 
-makeDatasetElement(element: DatasetElement): DatasetElement {
-  const line = element[CSVDataset.textColumnName] as string;
-  // TODO(soergel): proper CSV parsing with escaping, quotes, etc.
-  // TODO(soergel): alternate separators, e.g. for TSV
-  const values = line.split(',');
-  const result: {[key: string]: ElementArray} = {};
-  for (let i = 0; i < this._csvColumnNames.length; i++) {
-    const value = values[i];
-    // TODO(soergel): specify data type using a schema
-    if (value === '') {
-      result[this._csvColumnNames[i]] = undefined;
-    } else {
-      const valueAsNum = Number(value);
-      if (isNaN(valueAsNum)) {
-        result[this._csvColumnNames[i]] = value;
+  getStream(): DataStream<DatasetElement> {
+    let lines = this.base.getStream();
+    if (this.hasHeaderLine) {
+      // We previously read the first line to get the headers.
+      // Now that we're providing data, skip it.
+      lines = lines.skip(1);
+    }
+    return lines.map((x: DatasetElement) => this.makeDatasetElement(x));
+  }
+
+  makeDatasetElement(element: DatasetElement): DatasetElement {
+    const line = element[CSVDataset.textColumnName] as string;
+    // TODO(soergel): proper CSV parsing with escaping, quotes, etc.
+    // TODO(soergel): alternate separators, e.g. for TSV
+    const values = line.split(',');
+    const result: {[key: string]: ElementArray} = {};
+    for (let i = 0; i < this._csvColumnNames.length; i++) {
+      const value = values[i];
+      // TODO(soergel): specify data type using a schema
+      if (value === '') {
+        result[this._csvColumnNames[i]] = undefined;
       } else {
-        result[this._csvColumnNames[i]] = valueAsNum;
+        const valueAsNum = Number(value);
+        if (isNaN(valueAsNum)) {
+          result[this._csvColumnNames[i]] = value;
+        } else {
+          result[this._csvColumnNames[i]] = valueAsNum;
+        }
       }
     }
+    return result;
   }
-  return result;
-}
 }
 
 // TODO(soergel): add more basic datasets for parity with tf.data

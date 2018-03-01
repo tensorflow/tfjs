@@ -43,7 +43,8 @@ describe('CSVDataset', () => {
        datasetPromise.then(dataset => {
          expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
          dataset.getStream()
-             .then(stream => stream.collectRemaining().then(result => {
+             .collectRemaining()
+             .then(result => {
                expect(result).toEqual([
                  {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
                  {'foo': 'ghi', 'bar': undefined, 'baz': 'jkl'},
@@ -53,7 +54,7 @@ describe('CSVDataset', () => {
                  {'foo': 'v', 'bar': 'w', 'baz': 'x'},
                  {'foo': 'y', 'bar': 'z', 'baz': undefined},
                ]);
-             }))
+             })
              .then(done)
              .catch(done.fail);
        });
@@ -65,7 +66,8 @@ describe('CSVDataset', () => {
     datasetPromise.then(dataset => {
       expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
       dataset.getStream()
-          .then(stream => stream.collectRemaining().then(result => {
+          .collectRemaining()
+          .then(result => {
             expect(result).toEqual([
               {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
               {'foo': 'ghi', 'bar': undefined, 'baz': 'jkl'},
@@ -75,7 +77,7 @@ describe('CSVDataset', () => {
               {'foo': 'v', 'bar': 'w', 'baz': 'x'},
               {'foo': 'y', 'bar': 'z', 'baz': undefined},
             ]);
-          }))
+          })
           .then(done)
           .catch(done.fail);
     });
@@ -86,7 +88,8 @@ describe('CSVDataset', () => {
     datasetPromise.then(dataset => {
       expect(dataset.csvColumnNames).toEqual(['0', '1', '2']);
       dataset.getStream()
-          .then(stream => stream.collectRemaining().then(result => {
+          .collectRemaining()
+          .then(result => {
             expect(result).toEqual([
               {'0': 'ab', '1': 'cd', '2': 'ef'},
               {'0': 'ghi', '1': undefined, '2': 'jkl'},
@@ -96,7 +99,7 @@ describe('CSVDataset', () => {
               {'0': 'v', '1': 'w', '2': 'x'},
               {'0': 'y', '1': 'z', '2': undefined},
             ]);
-          }))
+          })
           .then(done)
           .catch(done.fail);
     });

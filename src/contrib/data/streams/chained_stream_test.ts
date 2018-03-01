@@ -24,7 +24,7 @@ const SHORT_STREAM_LENGTH = 15;
 
 describe('ChainedStream', () => {
   it('produces a single underlying stream as expected', done => {
-    const chainedStreamPromise = ChainedStream.create(
+    const chainedStream = ChainedStream.create(
         streamFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
 
     const expectedResult: number[] = [];
@@ -34,15 +34,15 @@ describe('ChainedStream', () => {
       }
     }
 
-    chainedStreamPromise
-        .then(chainedStream => chainedStream.collectRemaining().then(result => {
+    chainedStream.collectRemaining()
+        .then(result => {
           expect(result).toEqual(expectedResult);
-        }))
+        })
         .then(done)
         .catch(done.fail);
   });
   it('produces multiple underlying streams as expected', done => {
-    const chainedStreamPromise = ChainedStream.create(streamFromItems([
+    const chainedStream = ChainedStream.create(streamFromItems([
       new TestIntegerStream(SHORT_STREAM_LENGTH),
       new TestIntegerStream(SHORT_STREAM_LENGTH),
       new TestIntegerStream(SHORT_STREAM_LENGTH)
@@ -55,10 +55,10 @@ describe('ChainedStream', () => {
       }
     }
 
-    chainedStreamPromise
-        .then(chainedStream => chainedStream.collectRemaining().then(result => {
+    chainedStream.collectRemaining()
+        .then(result => {
           expect(result).toEqual(expectedResult);
-        }))
+        })
         .then(done)
         .catch(done.fail);
   });

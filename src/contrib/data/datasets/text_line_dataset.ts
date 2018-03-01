@@ -43,7 +43,7 @@ export class TextLineDataset extends Dataset {
     super();
   }
 
-  async getStream(): Promise<DataStream<DatasetElement>> {
+  getStream(): DataStream<DatasetElement> {
     const readStream = this.input.getStream();
     const utf8Stream = readStream.decodeUTF8();
     const lineStream = utf8Stream.split('\n');
