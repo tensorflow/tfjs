@@ -1,12 +1,12 @@
 {
-  "name": "tf-nodejs",
+  "name": "tfjs-node",
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "gypfile": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/tensorflow/tf-nodejs.git"
+    "url": "https://github.com/tensorflow/tfjs-node.git"
   },
   "scripts": {
     "build": "tsc",

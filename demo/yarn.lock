@@ -121,7 +121,7 @@ supports-color@^5.2.0:
   dependencies:
     has-flag "^3.0.0"
 
-"tf-nodejs@file:..":
+"tfjs-node@file:..":
   version "0.0.1"
   dependencies:
     bindings "^1.3.0"

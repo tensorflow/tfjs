@@ -9,7 +9,7 @@
     ],
   },
   'targets' : [{
-    'target_name' : 'tfnodejs',
+    'target_name' : 'tfjs-node',
     'sources' : [
       'binding/tensor_handle.cc',
       'binding/tf_node_binding.cc',
