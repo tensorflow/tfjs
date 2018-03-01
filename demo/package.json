@@ -1,7 +1,7 @@
 {
   "name": "tf-js-converter-demo",
   "version": "0.0.1",
-  "description": "Import Tensorflow models and running in tfjs",
+  "description": "Import Tensorflow mobilenet models and running in tfjs",
   "main": "dist/tfdemo/index.js",
   "unpkg": "dist/bundle.js",
   "types": "dist/tfdemo/index.d.ts",

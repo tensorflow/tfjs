@@ -31,6 +31,7 @@ export class OperationMapper {
 
   private constructor() {
     this.opMappers =
+        // tslint:disable-next-line:no-any
         ((data as any) as OpMapper[])
             .reduce<{[key: string]: OpMapper}>((map, mapper: OpMapper) => {
               map[mapper.tfOpName] = mapper;
