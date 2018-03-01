@@ -61,6 +61,12 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
+  if (argc == 0) {
+    // A zero param was passed, simply wrap the struct with nullptr.
+    InitPlaceholderTensorHandle(env, js_this);
+    return js_this;
+  }
+
   napi_value shape_value = args[0];
   ENSURE_VALUE_IS_ARRAY(env, shape_value);
 
