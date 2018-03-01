@@ -15,10 +15,9 @@
  * =============================================================================
  */
 
-import {extractTensorsFromScopeResult} from './engine';
 import * as dl from './index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, CPU_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
 
 describeWithFlags('tidy', ALL_ENVS, () => {
   it('returns Tensor', () => {
@@ -527,29 +526,5 @@ describeWithFlags('memory', ALL_ENVS, () => {
     expect(dl.memory().numBytes).toBe(4);
     expect(sum.dtype).toBe('int32');
     expectArraysClose(sum, [1 + 1 + 0 + 1]);
-  });
-});
-
-describeWithFlags('extractTensorsFromScopeResult', CPU_ENVS, () => {
-  it('null input returns empty tensor', () => {
-    const results = extractTensorsFromScopeResult(null);
-
-    expect(results).toEqual([]);
-  });
-
-  it('tensor input returns one element tensor', () => {
-    const x = dl.scalar(1);
-    const results = extractTensorsFromScopeResult(x);
-
-    expect(results).toEqual([x]);
-  });
-
-  it('name tensor map returns flattened tensor', () => {
-    const x1 = dl.scalar(1);
-    const x2 = dl.scalar(3);
-    const x3 = dl.scalar(4);
-    const results = extractTensorsFromScopeResult({x1, x2, x3});
-
-    expect(results).toEqual([x1, x2, x3]);
   });
 });

@@ -17,6 +17,7 @@
 
 import * as dl from './index';
 import {Tensor} from './tensor';
+import {CPU_ENVS, describeWithFlags} from './test_util';
 import {NamedTensorMap} from './types';
 import * as util from './util';
 
@@ -380,5 +381,29 @@ describe('util.hasEncodingLoss', () => {
 
   it('bool to bool', () => {
     expect(util.hasEncodingLoss('bool', 'bool')).toBe(false);
+  });
+});
+
+describeWithFlags('extractTensorsFromAny', CPU_ENVS, () => {
+  it('null input returns empty tensor', () => {
+    const results = util.extractTensorsFromAny(null);
+
+    expect(results).toEqual([]);
+  });
+
+  it('tensor input returns one element tensor', () => {
+    const x = dl.scalar(1);
+    const results = util.extractTensorsFromAny(x);
+
+    expect(results).toEqual([x]);
+  });
+
+  it('name tensor map returns flattened tensor', () => {
+    const x1 = dl.scalar(1);
+    const x2 = dl.scalar(3);
+    const x3 = dl.scalar(4);
+    const results = util.extractTensorsFromAny({x1, x2, x3});
+
+    expect(results).toEqual([x1, x2, x3]);
   });
 });

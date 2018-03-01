@@ -23,7 +23,8 @@ import {Profiler} from './profiler';
 import {backpropagateGradients, getFilteredNodesXToY} from './tape';
 import {NamedGradientMap, TapeNode} from './tape';
 import {DataId, Tensor, Tensor3D, Variable} from './tensor';
-import {NamedTensorMap, NamedVariableMap, TypedArray} from './types';
+// tslint:disable-next-line:max-line-length
+import {NamedTensorMap, NamedVariableMap, TensorContainer, TypedArray} from './types';
 import * as util from './util';
 
 interface ScopeState {
@@ -247,7 +248,7 @@ export class Engine implements TensorManager {
    * End a scope. Use this with startScope() to achieve the same functionality
    * as scope() without the need for a function closure.
    */
-  endScope(result: ScopeResult, gradientsMode = false) {
+  endScope(result: TensorContainer, gradientsMode = false) {
     if (gradientsMode) {
       this.gradientScopeCount--;
       if (this.gradientScopeCount === 0) {
@@ -256,7 +257,7 @@ export class Engine implements TensorManager {
     }
 
     let tensorsToKeep = this.activeScope.keep;
-    const tensorsToTrackInParent = extractTensorsFromScopeResult(result);
+    const tensorsToTrackInParent = util.extractTensorsFromContainer(result);
     tensorsToKeep = tensorsToKeep.concat(tensorsToTrackInParent);
 
     // Dispose the arrays tracked in this scope.
@@ -418,43 +419,5 @@ export class Engine implements TensorManager {
   }
 }
 
-export type ScopeAny = void|Tensor|string|number|boolean|ScopeObject|ScopeArray;
-export interface ScopeObject { [x: string]: ScopeAny; }
-export interface ScopeArray extends Array<ScopeAny> {}
-
-// TODO(smilkov): Remove Promise<ScopeAny> in 0.6.0 and make it run-time error.
-/**
- * @docalias void|number|string|Tensor|Tensor[]|{[key:
- * string]:Tensor|number|string}
- */
-export type ScopeResult = ScopeAny|Promise<ScopeAny>;
-
 /** @docalias Function */
-export type ScopeFn<T extends ScopeResult> = () => T;
-
-export function extractTensorsFromScopeResult(result: ScopeResult): Tensor[] {
-  if (result == null) {
-    return [];
-  }
-  if (result instanceof Tensor) {
-    return [result];
-  }
-
-  const list: Tensor[] = [];
-  const resultObj = result as {[key: string]: Tensor};
-  if (!isIterable(resultObj)) {
-    return [];
-  }
-
-  // Iteration over keys works also for arrays.
-  for (const k in resultObj) {
-    const sublist = util.flatten(resultObj[k]).filter(x => x instanceof Tensor);
-    list.push(...sublist);
-  }
-  return list;
-}
-
-// tslint:disable-next-line:no-any
-function isIterable(obj: any): boolean {
-  return Array.isArray(obj) || typeof obj === 'object';
-}
+export type ScopeFn<T extends TensorContainer> = () => T;
