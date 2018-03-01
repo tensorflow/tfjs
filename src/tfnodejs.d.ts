@@ -18,6 +18,7 @@
 declare class Context { constructor(); }
 
 declare class TensorHandle {
+  constructor();
   constructor(shape: number[], dtype: number);
   bindBuffer(buffer: Float32Array|Int32Array|Uint8Array): void;
   data(): Float32Array|Int32Array|Uint8Array;

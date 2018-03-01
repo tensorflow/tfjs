@@ -29,6 +29,10 @@ struct TensorHandle {
   napi_env env;
 };
 
+// Initializes a `TensorHandle` object with the napi_env set, but null TF/TFE
+// pointers
+void InitPlaceholderTensorHandle(napi_env env, napi_value wrapped_value);
+
 // Initializes a `TensorHandle` object and wraps underlying TF/TFE pointers.
 void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
                       uint32_t shape_length, TF_DataType dtype);

@@ -55,7 +55,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   // END DROP
 
-  private tensorMap = new WeakMap<DataId, TensorHandle>();
+  private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
 
   // TODO(kreeger): Find a way to type-def the binding instead of making
@@ -69,9 +69,26 @@ export class NodeJSKernelBackend implements KernelBackend {
     this.context = new this.binding.Context();
   }
 
-  private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
-      T {
-    return Tensor.make(shape, {}, dtype) as T;
+  // Creates a new Tensor and maps the dataId to the passed in handle.
+  private createOutputTensor(handle: TensorHandle): Tensor {
+    const newId = {};
+    this.handleMap.set(newId, handle);
+
+    let dtype: DataType;
+    switch (handle.dtype) {
+      case this.binding.TF_FLOAT:
+        dtype = 'float32';
+        break;
+      case this.binding.TF_INT32:
+        dtype = 'int32';
+        break;
+      case this.binding.TF_BOOL:
+        dtype = 'bool';
+        break;
+      default:
+        throw new Error('Unknown dtype enum `${handle.dtype}`');
+    }
+    return Tensor.make(handle.shape, {dataId: newId}, dtype);
   }
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
@@ -85,13 +102,11 @@ export class NodeJSKernelBackend implements KernelBackend {
         value: this.binding.TF_FLOAT
       }
     ];
-    const output = this.makeOutputArray(a.shape, a.dtype);
+    const output = new this.binding.TensorHandle();
     this.binding.execute(
         this.context, 'MatMul', opAttrs,
-        [this.tensorMap.get(a.dataId), this.tensorMap.get(b.dataId)],
-        this.tensorMap.get(output.dataId));
-    console.log('performing matmul', output.dataSync());
-    return output as Tensor2D;
+        [this.handleMap.get(a.dataId), this.handleMap.get(b.dataId)], output);
+    return this.createOutputTensor(output) as Tensor2D;
   }
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
     throw new Error('Method not implemented.');
@@ -434,24 +449,22 @@ export class NodeJSKernelBackend implements KernelBackend {
         value: this.binding.TF_INT32
       }
     ];
-    const outShape = paddings.map(
-        (p, i) => p[0] /* beforePad */ + x.shape[i] + p[1] /* afterPad */);
 
     // Bind tensor values
     const paddingsTensor = Tensor2D.new([2, 2], paddings, 'int32');
     const constantTensor = Scalar.new(constantValue, x.dtype);
 
     // Different size:
-    const output = this.makeOutputArray(outShape, x.dtype);
+    const output = new this.binding.TensorHandle();
     this.binding.execute(
         this.context, 'PadV2', opAttrs,
         [
-          this.tensorMap.get(x.dataId),
-          this.tensorMap.get(paddingsTensor.dataId),
-          this.tensorMap.get(constantTensor.dataId)
+          this.handleMap.get(x.dataId),
+          this.handleMap.get(paddingsTensor.dataId),
+          this.handleMap.get(constantTensor.dataId)
         ],
-        this.tensorMap.get(output.dataId));
-    return output as T;
+        output);
+    return this.createOutputTensor(output) as T;
   }
   transpose<T extends Tensor<Rank>>(x: T, perm: number[]): T {
     throw new Error('Method not implemented.');
@@ -487,16 +500,16 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
-    return this.tensorMap.get(dataId).data();
+    return this.handleMap.get(dataId).data();
   }
   readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
-    return this.tensorMap.get(dataId).data();
+    return this.handleMap.get(dataId).data();
   }
   disposeData(dataId: object): void {
     // throw new Error('Method not implemented.');
   }
   write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
-    this.tensorMap.get(dataId).bindBuffer(values);
+    this.handleMap.get(dataId).bindBuffer(values);
   }
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
@@ -505,8 +518,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   register(dataId: object, shape: number[], dtype: 'float32'|'int32'|'bool'):
       void {
-    if (this.tensorMap.has(dataId)) {
-      console.log('Tensor already regsitered.');
+    if (this.handleMap.has(dataId)) {
+      return;
     }
 
     let tfDtype: number;
@@ -521,10 +534,10 @@ export class NodeJSKernelBackend implements KernelBackend {
         tfDtype = this.binding.TF_BOOL;
         break;
       default:
-        console.log('unknown');
+        throw new Error('Unknown dtype `${dtype}`');
     }
 
-    this.tensorMap.set(dataId, new this.binding.TensorHandle(shape, tfDtype));
+    this.handleMap.set(dataId, new this.binding.TensorHandle(shape, tfDtype));
   }
   memory(): {unreliable: boolean;} {
     throw new Error('Method not implemented.');
