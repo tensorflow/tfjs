@@ -32,7 +32,7 @@ export function getParamValue(
 }
 
 /**
- * Execute the op defined by the node object.
+ * Executes the op defined by the node object.
  * @param node
  * @param tensorMap contains tensors for executed nodes and weights
  */

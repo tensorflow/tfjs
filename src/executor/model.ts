@@ -31,7 +31,7 @@ export class Model {
   constructor(private modelUrl: string, private weightUrl: string) {}
 
   /**
-   * Load the model and weight files, construct the in memory weight map and
+   * Loads the model and weight files, construct the in memory weight map and
    * compile the inference graph.
    */
   load(): Promise<boolean> {
@@ -50,7 +50,7 @@ export class Model {
   }
 
   /**
-   * Execute infrerence for the model for given input tensors.
+   * Executes infrerence for the model for given input tensors.
    * @param inputs tensor map of the inputs for the model, keyed by the input
    * node names.
    */
@@ -59,7 +59,7 @@ export class Model {
   }
 
   /**
-   * Release the memory used by the weight tensors.
+   * Releases the memory used by the weight tensors.
    */
   dispose() {
     this.executor.dispose();

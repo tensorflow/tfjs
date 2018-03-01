@@ -34,7 +34,7 @@ export class GraphExecutor {
   }
 
   /**
-   * Compile the inference graph to generate the topology order of op nodes,
+   * Compiles the inference graph to generate the topology order of op nodes,
    * cache the result for inference execution.
    */
   private compile() {
@@ -53,7 +53,7 @@ export class GraphExecutor {
   }
 
   /**
-   * Execute the inference for given input tensors.
+   * Executes the inference for given input tensors.
    * @param inputs Tensor map for the model inputs, keyed by the input node
    * names.
    */
@@ -73,7 +73,7 @@ export class GraphExecutor {
   }
 
   /**
-   * Release the memory used by the weight tensors.
+   * Releases the memory used by the weight tensors.
    */
   dispose() {
     Object.keys(this.weightMap).forEach(key => this.weightMap[key].dispose());
