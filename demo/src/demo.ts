@@ -1,5 +1,5 @@
 import * as dl from 'deeplearn';
-import * as tf from 'tf-nodejs';
+import * as tf from 'tfjs-node';
 
 tf.bindTensorFlowBackend();
 
