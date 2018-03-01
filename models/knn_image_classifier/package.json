@@ -1,6 +1,6 @@
 {
   "name": "deeplearn-knn-image-classifier",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A KNN Image Classifier model in deeplearn.js",
   "main": "dist/knn_image_classifier/index.js",
   "unpkg": "dist/bundle.js",
