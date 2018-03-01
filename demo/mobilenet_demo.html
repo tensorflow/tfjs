@@ -56,6 +56,8 @@ limitations under the License.
     for (const key in topK) {
       resultElement.innerText += `${topK[key].toFixed(5)}: ${key}\n`;
     };
+
+    tfModel.dispose();
   };
   cat.src = 'cat.jpg';
 </script>
