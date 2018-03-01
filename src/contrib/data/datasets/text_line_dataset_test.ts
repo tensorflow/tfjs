@@ -31,13 +31,14 @@ describe('TextLineDataset', () => {
        const source = new FileDataSource(testBlob, {chunkSize: 10});
        const dataset = new TextLineDataset(source);
        dataset.getStream()
-           .then(stream => stream.collectRemaining().then(result => {
+           .collectRemaining()
+           .then(result => {
              expect(result).toEqual([
                {'line': 'ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ'},
                {'line': 'ᛋᚳᛖᚪᛚ᛫ᚦᛖᚪᚻ᛫ᛗᚪᚾᚾᚪ᛫ᚷᛖᚻᚹᛦᛚᚳ᛫ᛗᛁᚳᛚᚢᚾ᛫ᚻᛦᛏ᛫ᛞᚫᛚᚪᚾ'},
                {'line': 'ᚷᛁᚠ᛫ᚻᛖ᛫ᚹᛁᛚᛖ᛫ᚠᚩᚱ᛫ᛞᚱᛁᚻᛏᚾᛖ᛫ᛞᚩᛗᛖᛋ᛫ᚻᛚᛇᛏᚪᚾ᛬'},
              ]);
-           }))
+           })
            .then(done)
            .catch(done.fail);
      });
