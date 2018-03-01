@@ -14,7 +14,6 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn';
 
 import {tensorflow} from './index';

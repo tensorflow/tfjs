@@ -4,11 +4,11 @@
 
 ## Usage
 
-`yarn add @tf-web/converter` or `npm install @tf-web/converter`
+`yarn add @tensorflow/tfjs-converter` or `npm install @tensorflow/tfjs-converter`
 
 ## Development
 
-To build **TF Web converter** from source, we need to clone the project and prepare
+To build **Tensorflow.js converter** from source, we need to clone the project and prepare
 the dev environment:
 
 ```bash
@@ -35,10 +35,10 @@ $ yarn lint
 To run a subset of tests and/or on a specific browser:
 
 ```bash
-$ yarn test --browsers=Chrome --grep='multinomial'
+$ yarn test --browsers=Chrome --grep='execute'
  
 > ...
-> Chrome 62.0.3202 (Mac OS X 10.12.6): Executed 28 of 1891 (skipped 1863) SUCCESS (6.914 secs / 0.634 secs)
+> Chrome 64.0.3282 (Linux 0.0.0): Executed 39 of 39 SUCCESS (0.129 secs / 0 secs)
 ```
 
 To run the tests once and exit the karma process (helpful on Windows):
