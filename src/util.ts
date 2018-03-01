@@ -16,7 +16,7 @@
  */
 import {Tensor} from './tensor';
 // tslint:disable-next-line:max-line-length
-import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TypedArray} from './types';
+import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TensorContainer, TypedArray} from './types';
 
 /** Shuffles the array using Fisher-Yates algorithm. */
 // tslint:disable-next-line:no-any
@@ -455,4 +455,51 @@ export function bytesPerElement(dtype: DataType): number {
 
 export function isFunction(f: Function) {
   return !!(f && f.constructor && f.call && f.apply);
+}
+
+export function extractTensorsFromContainer(result: TensorContainer): Tensor[] {
+  return extractTensorsFromAny(result);
+}
+
+/**
+ * Extracts any `Tensor`s found within the provided object up to depth 1.
+ *
+ * @param container an object that may be a `Tensor` or may directly contain
+ *   `Tensor`s, such as a `Tensor[]` or `{key: Tensor, ...}`.  In general it
+ *   is safe to pass any object here, except that `Promise`s are not
+ *   supported.
+ * @returns An array of `Tensors` found within the passed object.  If the
+ *   argument is simply a `Tensor', a list containing that `Tensor` is
+ *   returned.  If the argument directly contains `Tensor`s, a list of them
+ *   will be returned.  `Tensor`s nested more deeply within the argument will
+ *   however not be found.  If the object is not a `Tensor` or does not
+ *   contain `Tensors`, an empty list is returned.
+ */
+// tslint:disable-next-line:no-any
+export function extractTensorsFromAny(result: any): Tensor[] {
+  if (result == null) {
+    return [];
+  }
+  if (result instanceof Tensor) {
+    return [result];
+  }
+
+  const list: Tensor[] = [];
+  // tslint:disable-next-line:no-any
+  const resultObj = result as {[key: string]: any};
+  if (!isIterable(resultObj)) {
+    return [];
+  }
+
+  // Iteration over keys works also for arrays.
+  for (const k in resultObj) {
+    const sublist = flatten(resultObj[k]).filter(x => x instanceof Tensor);
+    list.push(...sublist);
+  }
+  return list;
+}
+
+// tslint:disable-next-line:no-any
+function isIterable(obj: any): boolean {
+  return Array.isArray(obj) || typeof obj === 'object';
 }

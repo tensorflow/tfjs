@@ -17,11 +17,11 @@
 
 import {doc} from './doc';
 import {CustomGradientFunc} from './engine';
-import {ScopeFn, ScopeResult} from './engine';
+import {ScopeFn} from './engine';
 import {ENV} from './environment';
 import {tidy} from './globals';
 import {Scalar, Tensor, Variable} from './tensor';
-import {NamedTensorMap} from './types';
+import {NamedTensorMap, TensorContainer} from './types';
 import * as util from './util';
 
 export class Gradients {
@@ -36,7 +36,7 @@ export class Gradients {
    *     using the provided name.
    * @param scopeFn The function to execute.
    */
-  static gradScope<T extends ScopeResult>(
+  static gradScope<T extends TensorContainer>(
       nameOrScopeFn: string|ScopeFn<T>, scopeFn?: ScopeFn<T>): T {
     return tidy(nameOrScopeFn, scopeFn, true /* gradScope */);
   }
