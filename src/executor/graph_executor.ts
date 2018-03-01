@@ -15,15 +15,15 @@
  * =============================================================================
  */
 
-import {Tensor} from 'deeplearn';
+import {Tensor, tidy} from 'deeplearn';
 
 import {tensorflow} from '../data/index';
 import {TensorMap} from '../data/index';
-import {executeOp, Graph, Node} from '../operations/index';
+import * as operations from '../operations/index';
 
 export class GraphExecutor {
-  private compiledOrder: Node[] = [];
-  private _weightMap: TensorMap;
+  private compiledOrder: operations.Node[] = [];
+  private _weightMap: TensorMap = {};
   get weightMap(): TensorMap {
     return this._weightMap;
   }
@@ -31,7 +31,7 @@ export class GraphExecutor {
     this._weightMap = weightMap;
   }
 
-  constructor(private graph: Graph) {
+  constructor(private graph: operations.Graph) {
     this.precompile();
   }
 
@@ -51,14 +51,21 @@ export class GraphExecutor {
   }
 
   execute(inputs: TensorMap): TensorMap {
-    const tensors = this.compiledOrder.reduce<TensorMap>((map, node) => {
-      map[node.name] = executeOp(node, map);
-      return map;
-    }, {...this.weightMap, ...inputs});
+    const outputs = tidy(() => {
+      const tensors = this.compiledOrder.reduce<TensorMap>((map, node) => {
+        map[node.name] = operations.executeOp(node, map);
+        return map;
+      }, {...this.weightMap, ...inputs});
 
-    return this.graph.outputs.reduce<TensorMap>((map, node) => {
-      map[node.name] = tensors[node.name];
-      return map;
-    }, {});
+      return this.graph.outputs.reduce<TensorMap>((map, node) => {
+        map[node.name] = tensors[node.name];
+        return map;
+      }, {});
+    });
+    return outputs;
+  }
+
+  dispose() {
+    Object.keys(this.weightMap).forEach(key => this.weightMap[key].dispose());
   }
 }

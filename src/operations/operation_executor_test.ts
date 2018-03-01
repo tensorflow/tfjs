@@ -148,7 +148,7 @@ describe('node', () => {
         node.op = 'avgPool';
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
-        node.params['ksize'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.params['kernelSize'] = createNumericArrayAttr([1, 2, 2, 1]);
         const input = dl.Scalar.new(1.0);
         node.inputNames = ['input'];
 
@@ -164,7 +164,7 @@ describe('node', () => {
         node.op = 'maxPool';
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
-        node.params['ksize'] = createNumericArrayAttr([1, 2, 2, 1]);
+        node.params['kernelSize'] = createNumericArrayAttr([1, 2, 2, 1]);
         const input = dl.Scalar.new(1.0);
         node.inputNames = ['input'];
 
@@ -257,10 +257,10 @@ describe('node', () => {
       });
     });
 
-    describe('relu6', () => {
+    describe('clip', () => {
       it('should call dl.clipByValue', () => {
         spyOn(dl, 'clipByValue');
-        node.op = 'relu6';
+        node.op = 'clip';
         const input1 = dl.Scalar.new(1);
         node.inputNames = ['input1'];
         node.params['max'] = createNumberAttr(6);
