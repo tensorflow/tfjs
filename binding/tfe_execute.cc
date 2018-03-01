@@ -70,7 +70,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
   switch (tf_attr_type) {
     case TF_ATTR_STRING:
-      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_STRING");
+      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_STRING");
       break;
 
     case TF_ATTR_INT: {
@@ -102,19 +102,19 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_SHAPE:
-      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_SHAPE");
+      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_SHAPE");
       break;
     case TF_ATTR_TENSOR:
-      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_TENSOR");
+      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_TENSOR");
       break;
     case TF_ATTR_PLACEHOLDER:
-      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_PLACEHOLDER");
+      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_PLACEHOLDER");
       break;
     case TF_ATTR_FUNC:
-      REPORT_UNIMPLEMENTED_OPERATION("TF_ATTR_FUNC");
+      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_FUNC");
       break;
     default:
-      REPORT_UNKNOWN_TF_ATTR_TYPE(tf_attr_type);
+      REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);
       break;
   }
 }
@@ -130,7 +130,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
 
   TF_AutoStatus tf_status;
   TFE_Op* tfe_op = TFE_NewOp(context_env->context, opName, tf_status.status);
-  ENSURE_TF_OK(tf_status);
+  ENSURE_TF_OK(env, tf_status);
 
   // Assign inputs
   uint32_t inputs_length;
@@ -147,7 +147,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     ENSURE_NAPI_OK(env, nstatus);
 
     TFE_OpAddInput(tfe_op, handle->handle, tf_status.status);
-    ENSURE_TF_OK(tf_status);
+    ENSURE_TF_OK(env, tf_status);
   }
 
   uint32_t op_attrs_length;
@@ -169,7 +169,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   result_handles.push_back(nullptr);
 
   TFE_Execute(tfe_op, result_handles.data(), &num_retvals, tf_status.status);
-  ENSURE_TF_OK(tf_status);
+  ENSURE_TF_OK(env, tf_status);
 
   // Unwrap and assign
   TensorHandle* handle;
@@ -178,7 +178,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
 
   handle->handle = result_handles[0];
   handle->tensor = TFE_TensorHandleResolve(result_handles[0], tf_status.status);
-  ENSURE_TF_OK(tf_status);
+  ENSURE_TF_OK(env, tf_status);
 }
 
 }  // namespace tfnodejs

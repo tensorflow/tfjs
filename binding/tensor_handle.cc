@@ -65,7 +65,7 @@ void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
       byte_size = sizeof(uint8_t);
       break;
     default:
-      REPORT_UNKNOWN_TF_DATA_TYPE(dtype);
+      REPORT_UNKNOWN_TF_DATA_TYPE(env, dtype);
       break;
   }
 
@@ -80,7 +80,7 @@ void InitTensorHandle(napi_env env, napi_value wrapped_value, int64_t* shape,
       TF_AllocateTensor(dtype, shape, shape_length, buffer_length * byte_size);
 
   TFE_TensorHandle* tfe_handle = TFE_NewTensorHandle(tensor, tf_status.status);
-  ENSURE_TF_OK(tf_status);
+  ENSURE_TF_OK(env, tf_status);
 
   // Create underlying wrapper object. It will be reused when data is ready to
   // bind.
@@ -118,8 +118,8 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
       width = sizeof(uint8_t);
       break;
     default:
-      REPORT_UNKNOWN_TYPED_ARRAY_TYPE(array_type);
-      break;
+      REPORT_UNKNOWN_TYPED_ARRAY_TYPE(env, array_type);
+      return;
   }
 
   TensorHandle* handle;
@@ -151,8 +151,8 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
       array_type = napi_uint8_array;
       break;
     default:
-      REPORT_UNKNOWN_TF_DATA_TYPE(TF_TensorType(handle->tensor));
-      break;
+      REPORT_UNKNOWN_TF_DATA_TYPE(env, TF_TensorType(handle->tensor));
+      return;
   }
 
   // Determine the length of the array based on the shape of the tensor.

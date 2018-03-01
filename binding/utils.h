@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <cstdlib>
+#include <sstream>
 #include "../deps/tensorflow/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
 
@@ -29,10 +30,21 @@
 
 #define ARRAY_SIZE(array) (sizeof(array) / sizeof(array[0]))
 
-// TODO(kreeger): Convert all std::exit() calls to JS exceptions and report
-// through the binding.
+#define DEBUG 0
+
+#define DEBUG_LOG(message, file, lineNumber)                             \
+  do {                                                                   \
+    if (DEBUG)                                                           \
+      fprintf(stderr, "** -%s:%lu\n-- %s\n", file, lineNumber, message); \
+  } while (0)
 
 namespace tfnodejs {
+
+inline void NapiThrowError(napi_env env, const char* message, const char* file,
+                           const size_t lineNumber) {
+  DEBUG_LOG(message, file, lineNumber);
+  napi_throw_error(env, nullptr, message);
+}
 
 #define ENSURE_NAPI_OK(env, status) \
   EnsureNapiOK(env, status, __FILE__, __LINE__)
@@ -43,22 +55,20 @@ inline void EnsureNapiOK(napi_env env, napi_status status, const char* file,
     const napi_extended_error_info* error_info = 0;
     napi_get_last_error_info(env, &error_info);
 
-    fprintf(stderr, "** INVALID napi_status: %d\n", status);
-    fprintf(stderr, "- %s\n", error_info->error_message);
-    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-    std::exit(1);
+    std::ostringstream oss;
+    oss << "Invalid napi_status: " << error_info->error_message;
+    NapiThrowError(env, oss.str().c_str(), file, lineNumber);
   }
 }
 
-#define ENSURE_TF_OK(status) EnsureTFOK(status, __FILE__, __LINE__)
+#define ENSURE_TF_OK(env, status) EnsureTFOK(env, status, __FILE__, __LINE__)
 
-inline void EnsureTFOK(TF_AutoStatus& status, const char* file,
+inline void EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
                        const size_t lineNumber) {
   if (TF_GetCode(status.status) != TF_OK) {
-    fprintf(stderr, "** INVALID TF_Status: %d\n", TF_GetCode(status.status));
-    fprintf(stderr, "- %s\n", TF_Message(status.status));
-    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-    std::exit(1);
+    std::ostringstream oss;
+    oss << "Invalid TF_Status: " << TF_GetCode(status.status);
+    NapiThrowError(env, oss.str().c_str(), file, lineNumber);
   }
 }
 
@@ -71,9 +81,8 @@ inline void EnsureConstructorCall(napi_env env, napi_callback_info info,
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
   ENSURE_NAPI_OK(env, nstatus);
   if (js_target == nullptr) {
-    fprintf(stderr, "** Function not used as a constructor!\n");
-    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-    std::exit(1);
+    NapiThrowError(env, "Function not used as a constructor!", file,
+                   lineNumber);
   }
 }
 
@@ -85,9 +94,7 @@ inline void EnsureValueIsArray(napi_env env, napi_value value, const char* file,
   bool is_array;
   ENSURE_NAPI_OK(env, napi_is_array(env, value, &is_array));
   if (!is_array) {
-    fprintf(stderr, "** Argument is not an array!\n");
-    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-    std::exit(1);
+    NapiThrowError(env, "Argument is not an array!", file, lineNumber);
   }
 }
 
@@ -99,63 +106,62 @@ inline void EnsureValueIsTypedArray(napi_env env, napi_value value,
   bool is_array;
   ENSURE_NAPI_OK(env, napi_is_typedarray(env, value, &is_array));
   if (!is_array) {
-    fprintf(stderr, "** Argument is not a typed-array!\n");
-    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-    std::exit(1);
+    NapiThrowError(env, "Argument is not a typed-array!", file, lineNumber);
   }
 }
 
-#define ENSURE_VALUE_IS_LESS_THAN(value, max) \
-  EnsureValueIsLessThan(value, max, __FILE__, __LINE__)
+#define ENSURE_VALUE_IS_LESS_THAN(env, value, max) \
+  EnsureValueIsLessThan(env, value, max, __FILE__, __LINE__)
 
-inline void EnsureValueIsLessThan(uint32_t value, uint32_t max,
+inline void EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
                                   const char* file, const size_t lineNumber) {
   if (value > max) {
-    fprintf(stderr, "** Argument is greater than max: %d > %d!\n", value, max);
-    fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-    std::exit(1);
+    std::ostringstream oss;
+    oss << "Argument is greater than max: " << value << " > " << max;
+    NapiThrowError(env, oss.str().c_str(), file, lineNumber);
   }
 }
 
-#define REPORT_UNKNOWN_TF_DATA_TYPE(type) \
-  ReportUnknownTFDataType(type, __FILE__, __LINE__)
+#define REPORT_UNKNOWN_TF_DATA_TYPE(env, type) \
+  ReportUnknownTFDataType(env, type, __FILE__, __LINE__)
 
-inline void ReportUnknownTFDataType(TF_DataType type, const char* file,
-                                    const size_t lineNumber) {
-  fprintf(stderr, "** Unhandled TF_DataType: %d:\n", type);
-  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-  std::exit(1);
+inline void ReportUnknownTFDataType(napi_env env, TF_DataType type,
+                                    const char* file, const size_t lineNumber) {
+  std::ostringstream oss;
+  oss << "Unhandled TF_DataType: " << type;
+  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
 }
 
-#define REPORT_UNKNOWN_TF_ATTR_TYPE(type) \
-  ReportUnknownTFAttrType(type, __FILE__, __LINE__)
+#define REPORT_UNKNOWN_TF_ATTR_TYPE(env, type) \
+  ReportUnknownTFAttrType(env, type, __FILE__, __LINE__)
 
-inline void ReportUnknownTFAttrType(TF_AttrType type, const char* file,
-                                    const size_t lineNumber) {
-  fprintf(stderr, "** Unhandled TF_AttrType: %d:\n", type);
-  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-  std::exit(1);
+inline void ReportUnknownTFAttrType(napi_env env, TF_AttrType type,
+                                    const char* file, const size_t lineNumber) {
+  std::ostringstream oss;
+  oss << "Unhandled TF_AttrType: " << type;
+  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
 }
 
-#define REPORT_UNKNOWN_TYPED_ARRAY_TYPE(type) \
-  ReportUnknownTypedArrayType(type, __FILE__, __LINE__)
+#define REPORT_UNKNOWN_TYPED_ARRAY_TYPE(env, type) \
+  ReportUnknownTypedArrayType(env, type, __FILE__, __LINE__)
 
-inline void ReportUnknownTypedArrayType(napi_typedarray_type type,
+inline void ReportUnknownTypedArrayType(napi_env env, napi_typedarray_type type,
                                         const char* file,
                                         const size_t lineNumber) {
-  fprintf(stderr, "** Unhandled napi typed_array_type: %d:\n", type);
-  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-  std::exit(1);
+  std::ostringstream oss;
+  oss << "Unhandled napi typed_array_type: " << type;
+  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
 }
 
-#define REPORT_UNIMPLEMENTED_OPERATION(message) \
-  ReportUnimplementedOperation(message, __FILE__, __LINE__)
+#define REPORT_UNIMPLEMENTED_OPERATION(env, message) \
+  ReportUnimplementedOperation(env, message, __FILE__, __LINE__)
 
-inline void ReportUnimplementedOperation(const char* message, const char* file,
+inline void ReportUnimplementedOperation(napi_env env, const char* message,
+                                         const char* file,
                                          const size_t lineNumber) {
-  fprintf(stderr, "** Unhandled operation: %s:\n", message);
-  fprintf(stderr, "- %s:%lu\n", file, lineNumber);
-  std::exit(1);
+  std::ostringstream oss;
+  oss << "Unhandled operation: " << message;
+  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
 }
 
 }  // namespace tfnodejs

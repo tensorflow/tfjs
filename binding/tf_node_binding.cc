@@ -72,7 +72,7 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
 
   uint32_t shape_length;
   nstatus = napi_get_array_length(env, shape_value, &shape_length);
-  ENSURE_VALUE_IS_LESS_THAN(shape_length, MAX_TENSOR_SHAPE);
+  ENSURE_VALUE_IS_LESS_THAN(env, shape_length, MAX_TENSOR_SHAPE);
 
   int64_t shape[shape_length];
   for (uint32_t i = 0; i < shape_length; i++) {
