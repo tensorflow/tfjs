@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
 import * as data from '../data/index';
 import {OperationMapper} from '../operations/index';
 

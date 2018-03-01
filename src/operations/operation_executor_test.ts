@@ -14,10 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:max-line-length
 import * as dl from 'deeplearn';
 
-// tslint:disable-next-line:max-line-length
 import {executeOp, getParamValue, Node, ParamValue} from './index';
 
 describe('node', () => {
