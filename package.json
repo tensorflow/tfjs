@@ -12,7 +12,6 @@
     "build": "tsc",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "lint": "tslint -p . -t verbose",
-    "binding-demo": "./node_modules/.bin/ts-node src/binding_demo.ts",
     "test": "jasmine-ts \"src/**/*_test.ts\""
   },
   "devDependencies": {

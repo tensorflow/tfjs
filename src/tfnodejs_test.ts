@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
-const binding = bindings('tfjs-node.node');
+const binding = bindings('tfjs_binding.node');
 
 describe('Exposes TF_DataType enum values', () => {
   it('contains TF_FLOAT', () => {

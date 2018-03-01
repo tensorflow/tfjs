@@ -24,7 +24,7 @@ import bindings = require('bindings');
 export function bindTensorFlowBackend() {
   // TODO(kreeger): This anonymous function should throw an exception if the
   // binding is not installed.
-  const nodeBinding = bindings('tfjs-node.node');
+  const nodeBinding = bindings('tfjs_binding.node');
 
   // TODO(kreeger): Drop the 'webgl' hack when deeplearn 0.5.1 is released to
   // allow proper registration of new backends.
