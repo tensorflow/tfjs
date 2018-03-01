@@ -27,7 +27,7 @@ static void Cleanup(napi_env env, void* data, void* hint) {
 
   TF_AutoStatus tf_status;
   TFE_DeleteContext(context_env->context, tf_status.status);
-  ENSURE_TF_OK(tf_status);
+  ENSURE_TF_OK(env, tf_status);
 
   delete context_env;
 }
@@ -36,7 +36,7 @@ void InitAndBindTFEContextEnv(napi_env env, napi_value value) {
   TF_AutoStatus tf_status;
   TFE_ContextOptions* tfe_options = TFE_NewContextOptions();
   TFE_Context* tfe_context = TFE_NewContext(tfe_options, tf_status.status);
-  ENSURE_TF_OK(tf_status);
+  ENSURE_TF_OK(env, tf_status);
 
   TFE_DeleteContextOptions(tfe_options);
 
