@@ -38,6 +38,9 @@ export class MobileNet {
     await this.model.load();
   }
 
+  dispose() {
+    this.model.dispose();
+  }
   /**
    * Infer through SqueezeNet, assumes variables have been loaded. This does
    * standard ImageNet pre-processing before inferring through the model. This
