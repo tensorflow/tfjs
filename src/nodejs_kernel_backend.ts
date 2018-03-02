@@ -15,9 +15,10 @@
  * =============================================================================
  */
 
+import {scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
-import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
+import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -25,7 +26,7 @@ import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 export class NodeJSKernelBackend implements KernelBackend {
   // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
   slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
-    throw new Error('Method not implemented.');
+    return this.slice(x, [begin], [size]);
   }
   slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
       Tensor2D {
@@ -111,6 +112,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
+    // TODO - set attr type.
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
@@ -122,8 +124,35 @@ export class NodeJSKernelBackend implements KernelBackend {
         [this.handleMap.get(a.dataId), this.handleMap.get(b.dataId)], output);
     return this.createOutputTensor(output) as Tensor2D;
   }
+
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
-    throw new Error('Method not implemented.');
+    // TODO - set attr type.
+    const opAttrs = [
+      {
+        name: 'T',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_FLOAT
+      },
+      {
+        name: 'Index',
+        type: this.binding.TF_ATTR_TYPE,
+        value: this.binding.TF_INT32
+      }
+    ];
+    const output = new this.binding.TensorHandle();
+
+    // Bind tensor values
+    const beginTensor = tensor1d(begin, 'int32');
+    const sizeTensor = tensor1d(size, 'int32');
+
+    this.binding.execute(
+        this.context, 'Slice', opAttrs,
+        [
+          this.handleMap.get(x.dataId), this.handleMap.get(beginTensor.dataId),
+          this.handleMap.get(sizeTensor.dataId)
+        ],
+        output);
+    return this.createOutputTensor(output) as T;
   }
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
     throw new Error('Method not implemented.');
@@ -459,8 +488,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
 
     // Bind tensor values
-    const paddingsTensor = Tensor2D.new([2, 2], paddings, 'int32');
-    const constantTensor = Scalar.new(constantValue, x.dtype);
+    const paddingsTensor = tensor2d(paddings, [2, 2], 'int32');
+    const constantTensor = scalar(constantValue, x.dtype);
 
     const output = new this.binding.TensorHandle();
     this.binding.execute(

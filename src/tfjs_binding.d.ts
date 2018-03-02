@@ -30,7 +30,7 @@ declare class TensorHandle {
 declare class TFEOpAttr {
   name: string;
   type: number;
-  value: number|boolean|object;
+  value: number|boolean|object|Array<number>;
 }
 
 export interface TFJSBinding {
