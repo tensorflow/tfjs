@@ -64,14 +64,14 @@ export class CSVDataset extends Dataset {
 
   private async setCsvColumnNames(csvColumnNames: CsvHeaderConfig|string[]) {
     if (csvColumnNames == null || csvColumnNames === CsvHeaderConfig.NUMBERED) {
-      const stream = await this.base.getStream();
+      const stream = this.base.getStream();
       const firstElement = await stream.next();
       const firstLine: string =
           firstElement[CSVDataset.textColumnName] as string;
       this._csvColumnNames =
           Array.from(firstLine.split(',').keys()).map(x => x.toString());
     } else if (csvColumnNames === CsvHeaderConfig.READ_FIRST_LINE) {
-      const stream = await this.base.getStream();
+      const stream = this.base.getStream();
       const firstElement = await stream.next();
       const firstLine: string =
           firstElement[CSVDataset.textColumnName] as string;

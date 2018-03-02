@@ -18,6 +18,8 @@
 
 import * as seedrandom from 'seedrandom';
 
+import {tidy} from '../../globals';
+
 import {BatchDataset} from './batch_dataset';
 import {computeDatasetStatistics, DatasetStatistics} from './statistics';
 import {DataStream, streamFromFunction} from './streams/data_stream';
@@ -43,6 +45,10 @@ export abstract class Dataset {
   /*
    * Provide a new stream of elements.  Note this will also start new streams
    * from any underlying `Dataset`s.
+   *
+   * CAUTION: Any Tensors contained within the DatasetElements returned from
+   * this stream *must* be manually disposed to avoid a GPU memory leak.
+   * The dl.tidy() approach cannot be used in a asynchronous context.
    */
   abstract getStream(): DataStream<DatasetElement>;
 
@@ -91,10 +97,11 @@ export abstract class Dataset {
    *
    * @returns A `Dataset` of elements for which the predicate was true.
    */
-  filter(filterer: (value: DatasetElement) => boolean | Promise<boolean>):
-      Dataset {
+  filter(filterer: (value: DatasetElement) => boolean): Dataset {
     const base = this;
-    return datasetFromStreamFn(() => base.getStream().filter(filterer));
+    return datasetFromStreamFn(() => {
+      return base.getStream().filter(x => tidy(() => filterer(x)));
+    });
   }
 
   /**
@@ -105,10 +112,11 @@ export abstract class Dataset {
    *
    * @returns A `Dataset` of transformed elements.
    */
-  map(transform: (value: DatasetElement) => DatasetElement |
-          Promise<DatasetElement>): Dataset {
+  map(transform: (value: DatasetElement) => DatasetElement): Dataset {
     const base = this;
-    return datasetFromStreamFn(() => base.getStream().map(transform));
+    return datasetFromStreamFn(() => {
+      return base.getStream().map(x => tidy(() => transform(x)));
+    });
   }
 
   /**
@@ -230,6 +238,30 @@ export abstract class Dataset {
     return datasetFromStreamFn(() => base.getStream().prefetch(bufferSize));
   }
 
+  /**
+   * Collect all elements of this dataset into an array.
+   * Obviously this will succeed only for small datasets that fit in memory.
+   * Useful for testing.
+   *
+   * @returns A Promise for an array of elements, which will resolve
+   *   when a new stream has been obtained and fully consumed.
+   */
+  async collectAll() {
+    return this.getStream().collectRemaining();
+  }
+
+  /**
+   * Apply a function to every element of the dataset.
+   *
+   * After the function is applied to a `DatasetElement`, any Tensors contained
+   * within that element are disposed.
+   *
+   * @param f A function to apply to each dataset element.
+   */
+  async forEach(f: (input: DatasetElement) => {}): Promise<void> {
+    return this.getStream().forEach(f);
+  }
+
   /* TODO(soergel): for parity with tf.data:
   Dataset.flat_map()
   Dataset.zip()
@@ -261,17 +293,4 @@ export function datasetFromStreamFn(
  */
 export function datasetFromElements(items: DatasetElement[]): Dataset {
   return datasetFromStreamFn(() => streamFromItems(items));
-}
-
-/**
- * Create a `Dataset` by concatenating underlying `Dataset`s.
- *
- * Note that if the underlying `Dataset`s return elements in a
- * nondeterministic order, then this concatenated `Dataset` will do the same.
- */
-export function datasetFromConcatenated(datasets: Dataset[]) {
-  return datasetFromStreamFn(() => {
-    const streamStream = datasets.map(d => d.getStream());
-    return streamFromConcatenated(streamFromItems(streamStream));
-  });
 }

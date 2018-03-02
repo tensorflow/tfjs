@@ -66,19 +66,19 @@ export function scaleTo01(min: number, max: number): (value: ElementArray) =>
 export async function computeDatasetStatistics(
     dataset: Dataset, sampleSize?: number,
     shuffleWindowSize?: number): Promise<DatasetStatistics> {
-  let stream = await dataset.getStream();
+  let sampleDataset = dataset;
   // TODO(soergel): allow for deep shuffle where possible.
   if (shuffleWindowSize != null) {
-    stream = stream.shuffle(shuffleWindowSize);
+    sampleDataset = sampleDataset.shuffle(shuffleWindowSize);
   }
   if (sampleSize != null) {
-    stream = stream.take(sampleSize);
+    sampleDataset = sampleDataset.take(sampleSize);
   }
 
-  // TODO(soergel): prepare the column objects based on a schema.q
+  // TODO(soergel): prepare the column objects based on a schema.
   const result: DatasetStatistics = {};
 
-  await stream.forEach(e => {
+  await sampleDataset.forEach(e => {
     for (const key in e) {
       const value = e[key];
       if (typeof (value) === 'string') {

@@ -18,6 +18,8 @@
 
 import * as seedrandom from 'seedrandom';
 
+import {dispose} from '../../../globals';
+import {extractTensorsFromAny, isTensorInList} from '../../../util';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
 
@@ -134,7 +136,7 @@ export abstract class DataStream<T> {
    *
    * @returns A `DataStream` of elements for which the predicate was true.
    */
-  filter(predicate: (value: T) => boolean | Promise<boolean>): DataStream<T> {
+  filter(predicate: (value: T) => boolean): DataStream<T> {
     return new FilterStream(this, predicate);
   }
 
@@ -146,7 +148,7 @@ export abstract class DataStream<T> {
    *
    * @returns A `DataStream` of transformed elements.
    */
-  map<S>(transform: (value: T) => S | Promise<S>): DataStream<S> {
+  map<O>(transform: (value: T) => O): DataStream<O> {
     return new MapStream(this, transform);
   }
 
@@ -155,7 +157,7 @@ export abstract class DataStream<T> {
    *
    * @param f A function to apply to each stream element.
    */
-  async forEach(f: (value: T) => {} | Promise<{}>): Promise<void> {
+  async forEach(f: (value: T) => {}): Promise<void> {
     return this.map(f).resolveFully();
   }
 
@@ -285,6 +287,7 @@ class SkipStream<T> extends DataStream<T> {
       if (skipped == null) {
         return undefined;
       }
+      dispose(skipped);
     }
     return this.upstream.next();
   }
@@ -370,6 +373,7 @@ class BatchStream<T> extends QueueStream<T[]> {
       }
       return false;
     }
+
     this.currentBatch.push(item);
     if (this.currentBatch.length === this.batchSize) {
       this.outputQueue.push(this.currentBatch);
@@ -382,7 +386,7 @@ class BatchStream<T> extends QueueStream<T[]> {
 class FilterStream<T> extends QueueStream<T> {
   constructor(
       protected upstream: DataStream<T>,
-      protected predicate: (value: T) => boolean | Promise<boolean>) {
+      protected predicate: (value: T) => boolean) {
     super();
   }
 
@@ -391,21 +395,18 @@ class FilterStream<T> extends QueueStream<T> {
     if (item == null) {
       return false;
     }
-    let accept = this.predicate(item);
-    if (accept instanceof Promise) {
-      accept = await accept;
-    }
-    if (accept) {
+    if (this.predicate(item)) {
       this.outputQueue.push(item);
+    } else {
+      dispose(item);
     }
     return true;
   }
 }
 
-class MapStream<T, S> extends QueueStream<S> {
+class MapStream<I, O> extends QueueStream<O> {
   constructor(
-      protected upstream: DataStream<T>,
-      protected transform: (value: T) => S | Promise<S>) {
+      protected upstream: DataStream<I>, protected transform: (value: I) => O) {
     super();
   }
 
@@ -414,10 +415,24 @@ class MapStream<T, S> extends QueueStream<S> {
     if (item == null) {
       return false;
     }
-    let mapped = this.transform(item);
-    if (mapped instanceof Promise) {
-      mapped = await mapped;
+    const inputTensors = extractTensorsFromAny(item);
+    // Careful: the transform may mutate the item in place.
+    // that's why we have to remember the input Tensors above, and then below
+    // dispose only those that were not passed through to the output.
+    // Note too that the transform function is responsible for tidying any
+    // intermediate Tensors.  Here we are concerned only about the inputs.
+    const mapped = this.transform(item);
+
+    const outputTensors = extractTensorsFromAny(mapped);
+
+    // TODO(soergel) faster intersection
+    // TODO(soergel) move to dl.disposeExcept(in, out)?
+    for (const t of inputTensors) {
+      if (!isTensorInList(t, outputTensors)) {
+        t.dispose();
+      }
     }
+
     this.outputQueue.push(mapped);
     return true;
   }
