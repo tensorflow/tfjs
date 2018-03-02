@@ -21,37 +21,42 @@ declare class TensorHandle {
   constructor();
   constructor(shape: number[], dtype: number);
   bindBuffer(buffer: Float32Array|Int32Array|Uint8Array): void;
-  data(): Float32Array|Int32Array|Uint8Array;
+  dataSync(): Float32Array|Int32Array|Uint8Array;
 
   shape: number[];
   dtype: number;
 }
 
-// TFE Op Attr class.
 declare class TFEOpAttr {
   name: string;
   type: number;
   value: number|boolean|object;
 }
 
-// TF Types
-export const TF_FLOAT: number;
-export const TF_INT32: number;
-export const TF_BOOL: number;
+export interface TFJSBinding {
+  Context: typeof Context;
+  TensorHandle: typeof TensorHandle;
+  TFEOpAttr: typeof TFEOpAttr;
 
-// TF OpAttrTypes
-export const TF_ATTR_STRING: number;
-export const TF_ATTR_INT: number;
-export const TF_ATTR_FLOAT: number;
-export const TF_ATTR_BOOL: number;
-export const TF_ATTR_TYPE: number;
-export const TF_ATTR_SHAPE: number;
-export const TF_ATTR_TENSOR: number;
-export const TF_ATTR_PLACEHOLDER: number;
-export const TF_ATTR_FUNC: number;
+  // TF Types
+  TF_FLOAT: number;
+  TF_INT32: number;
+  TF_BOOL: number;
 
-export const TF_Version: string;
+  // TF OpAttrTypes
+  TF_ATTR_STRING: number;
+  TF_ATTR_INT: number;
+  TF_ATTR_FLOAT: number;
+  TF_ATTR_BOOL: number;
+  TF_ATTR_TYPE: number;
+  TF_ATTR_SHAPE: number;
+  TF_ATTR_TENSOR: number;
+  TF_ATTR_PLACEHOLDER: number;
+  TF_ATTR_FUNC: number;
 
-export function execute(
-    context: Context, op: string, op_attrs: TFEOpAttr[], inputs: TensorHandle[],
-    output: TensorHandle): void;
+  TF_Version: string;
+
+  execute(
+      context: Context, op: string, op_attrs: TFEOpAttr[],
+      inputs: TensorHandle[], output: TensorHandle): void;
+}

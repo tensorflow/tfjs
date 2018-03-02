@@ -20,7 +20,7 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank} from 'deeplearn/dist/types';
 
-import {Context, TensorHandle} from './tfnodejs';
+import {Context, TensorHandle, TFJSBinding} from './tfjs_binding';
 
 export class NodeJSKernelBackend implements KernelBackend {
   // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
@@ -58,13 +58,9 @@ export class NodeJSKernelBackend implements KernelBackend {
   private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
 
-  // TODO(kreeger): Find a way to type-def the binding instead of making
-  // everything global.
-  // tslint:disable-next-line:no-any
-  private binding: any;
+  private binding: TFJSBinding;
 
-  // tslint:disable-next-line:no-any
-  constructor(binding: any) {
+  constructor(binding: TFJSBinding) {
     this.binding = binding;
     this.context = new this.binding.Context();
   }
@@ -500,10 +496,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
-    return this.handleMap.get(dataId).data();
+    return this.handleMap.get(dataId).dataSync();
   }
   readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
-    return this.handleMap.get(dataId).data();
+    return this.handleMap.get(dataId).dataSync();
   }
   disposeData(dataId: object): void {
     // throw new Error('Method not implemented.');
