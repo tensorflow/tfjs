@@ -184,7 +184,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   napi_property_descriptor tensor_handle_properties[] = {
       {"bindBuffer", nullptr, SetTensorHandleBuffer, nullptr, nullptr, nullptr,
        napi_default, nullptr},
-      {"data", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
+      {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
        napi_default, nullptr},
       {"shape", nullptr, nullptr, GetTensorHandleShape, nullptr, nullptr,
        napi_default, nullptr},

@@ -20,11 +20,12 @@ import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
+import {TFJSBinding} from './tfjs_binding';
 
 export function bindTensorFlowBackend() {
   // TODO(kreeger): This anonymous function should throw an exception if the
   // binding is not installed.
-  const nodeBinding = bindings('tfjs_binding.node');
+  const nodeBinding = bindings('tfjs_binding.node') as TFJSBinding;
 
   // TODO(kreeger): Drop the 'webgl' hack when deeplearn 0.5.1 is released to
   // allow proper registration of new backends.

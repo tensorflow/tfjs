@@ -17,7 +17,8 @@
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
-const binding = bindings('tfjs_binding.node');
+import {TFJSBinding} from './tfjs_binding';
+const binding = bindings('tfjs_binding.node') as TFJSBinding;
 
 describe('Exposes TF_DataType enum values', () => {
   it('contains TF_FLOAT', () => {
@@ -68,9 +69,7 @@ describe('Exposes TF Version', () => {
 });
 
 describe('Context', () => {
-  it('Should throw an error if not a Constructor', () => {
-    expect(() => {
-      binding.Context();
-    }).toThrowError();
+  it('creates an instance', () => {
+    expect(new binding.Context()).toBeDefined();
   });
 });
