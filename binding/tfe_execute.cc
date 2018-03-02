@@ -69,9 +69,15 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
   ENSURE_NAPI_OK(env, nstatus);
 
   switch (tf_attr_type) {
-    case TF_ATTR_STRING:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_STRING");
+    case TF_ATTR_STRING: {
+      char value[NAPI_STRING_SIZE];
+      nstatus = napi_get_value_string_utf8(env, type_input_value, value,
+                                           NAPI_STRING_SIZE, nullptr);
+      ENSURE_NAPI_OK(env, nstatus);
+
+      TFE_OpSetAttrString(tfe_op, attr_name, value);
       break;
+    }
 
     case TF_ATTR_INT: {
       int64_t value;
@@ -101,18 +107,17 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
       break;
     }
 
-    case TF_ATTR_SHAPE:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_SHAPE");
+    case TF_ATTR_SHAPE: {
+      std::vector<int64_t> shape_vector;
+      ExtractArrayShape(env, type_input_value, &shape_vector);
+
+      TF_AutoStatus tf_status;
+      TFE_OpSetAttrShape(tfe_op, attr_name, shape_vector.data(),
+                         shape_vector.size(), tf_status.status);
+      ENSURE_TF_OK(env, tf_status);
       break;
-    case TF_ATTR_TENSOR:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_TENSOR");
-      break;
-    case TF_ATTR_PLACEHOLDER:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_PLACEHOLDER");
-      break;
-    case TF_ATTR_FUNC:
-      REPORT_UNIMPLEMENTED_OPERATION(env, "TF_ATTR_FUNC");
-      break;
+    }
+
     default:
       REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);
       break;

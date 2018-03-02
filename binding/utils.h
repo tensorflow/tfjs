@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <cstdlib>
 #include <sstream>
+#include <vector>
 #include "../deps/tensorflow/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
 
@@ -153,17 +154,27 @@ inline void ReportUnknownTypedArrayType(napi_env env, napi_typedarray_type type,
   NapiThrowError(env, oss.str().c_str(), file, lineNumber);
 }
 
-#define REPORT_UNIMPLEMENTED_OPERATION(env, message) \
-  ReportUnimplementedOperation(env, message, __FILE__, __LINE__)
+// Returns a vector with the shape values of an array.
+inline void ExtractArrayShape(napi_env env, napi_value array_value,
+                              std::vector<int64_t>* result) {
+  napi_status nstatus;
 
-inline void ReportUnimplementedOperation(napi_env env, const char* message,
-                                         const char* file,
-                                         const size_t lineNumber) {
-  std::ostringstream oss;
-  oss << "Unhandled operation: " << message;
-  NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+  uint32_t array_length;
+  nstatus = napi_get_array_length(env, array_value, &array_length);
+  ENSURE_NAPI_OK(env, nstatus);
+
+  for (uint32_t i = 0; i < array_length; i++) {
+    napi_value dimension_value;
+    nstatus = napi_get_element(env, array_value, i, &dimension_value);
+    ENSURE_NAPI_OK(env, nstatus);
+
+    int64_t dimension;
+    nstatus = napi_get_value_int64(env, dimension_value, &dimension);
+    ENSURE_NAPI_OK(env, nstatus);
+
+    result->push_back(dimension);
+  }
 }
-
 }  // namespace tfnodejs
 
 #endif  // TF_NODEJS_UTILS_H_
