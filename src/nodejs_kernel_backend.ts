@@ -20,7 +20,7 @@ import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 import {DataId, Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
 import {DataType, Rank} from 'deeplearn/dist/types';
 
-import {Context, TensorHandle, TFJSBinding} from './tfjs_binding';
+import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 export class NodeJSKernelBackend implements KernelBackend {
   // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
@@ -65,6 +65,20 @@ export class NodeJSKernelBackend implements KernelBackend {
     this.context = new this.binding.Context();
   }
 
+  // Returns the TF dtype for a given DataType.
+  private getTFDType(dataType: DataType): number {
+    switch (dataType) {
+      case 'float32':
+        return this.binding.TF_FLOAT;
+      case 'int32':
+        return this.binding.TF_INT32;
+      case 'bool':
+        return this.binding.TF_BOOL;
+      default:
+        throw new Error('Unknown dtype `${dtype}`');
+    }
+  }
+
   // Creates a new Tensor and maps the dataId to the passed in handle.
   private createOutputTensor(handle: TensorHandle): Tensor {
     const newId = {};
@@ -87,16 +101,20 @@ export class NodeJSKernelBackend implements KernelBackend {
     return Tensor.make(handle.shape, {dataId: newId}, dtype);
   }
 
+  private createTypeOpAttr(attrName: string, tensor: Tensor): TFEOpAttr {
+    return {
+      name: attrName,
+      type: this.binding.TF_ATTR_TYPE,
+      value: this.getTFDType(tensor.dtype)
+    };
+  }
+
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      }
+      this.createTypeOpAttr('T', a)
     ];
     const output = new this.binding.TensorHandle();
     this.binding.execute(
@@ -432,14 +450,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
   pad<T extends Tensor<Rank>>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
-    // TODO - pass in the actual type of X
     const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      },
-      {
+      this.createTypeOpAttr('T', x), {
         name: 'Tpaddings',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
@@ -450,7 +462,6 @@ export class NodeJSKernelBackend implements KernelBackend {
     const paddingsTensor = Tensor2D.new([2, 2], paddings, 'int32');
     const constantTensor = Scalar.new(constantValue, x.dtype);
 
-    // Different size:
     const output = new this.binding.TensorHandle();
     this.binding.execute(
         this.context, 'PadV2', opAttrs,
@@ -512,29 +523,16 @@ export class NodeJSKernelBackend implements KernelBackend {
       numChannels: number): Tensor3D {
     throw new Error('Method not implemented.');
   }
+
   register(dataId: object, shape: number[], dtype: 'float32'|'int32'|'bool'):
       void {
     if (this.handleMap.has(dataId)) {
       return;
     }
-
-    let tfDtype: number;
-    switch (dtype) {
-      case 'float32':
-        tfDtype = this.binding.TF_FLOAT;
-        break;
-      case 'int32':
-        tfDtype = this.binding.TF_INT32;
-        break;
-      case 'bool':
-        tfDtype = this.binding.TF_BOOL;
-        break;
-      default:
-        throw new Error('Unknown dtype `${dtype}`');
-    }
-
-    this.handleMap.set(dataId, new this.binding.TensorHandle(shape, tfDtype));
+    this.handleMap.set(
+        dataId, new this.binding.TensorHandle(shape, this.getTFDType(dtype)));
   }
+
   memory(): {unreliable: boolean;} {
     throw new Error('Method not implemented.');
   }
