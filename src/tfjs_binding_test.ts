@@ -51,15 +51,6 @@ describe('Exposes TF_AttrType enum values', () => {
   it('contains TF_ATTR_SHAPE', () => {
     expect(binding.TF_ATTR_SHAPE).toEqual(5);
   });
-  it('contains TF_ATTR_TENSOR', () => {
-    expect(binding.TF_ATTR_TENSOR).toEqual(6);
-  });
-  it('contains TF_ATTR_PLACEHOLDER', () => {
-    expect(binding.TF_ATTR_PLACEHOLDER).toEqual(7);
-  });
-  it('contains TF_ATTR_FUNC', () => {
-    expect(binding.TF_ATTR_FUNC).toEqual(8);
-  });
 });
 
 describe('Exposes TF Version', () => {

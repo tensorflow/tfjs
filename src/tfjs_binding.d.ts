@@ -50,9 +50,6 @@ export interface TFJSBinding {
   TF_ATTR_BOOL: number;
   TF_ATTR_TYPE: number;
   TF_ATTR_SHAPE: number;
-  TF_ATTR_TENSOR: number;
-  TF_ATTR_PLACEHOLDER: number;
-  TF_ATTR_FUNC: number;
 
   TF_Version: string;
 

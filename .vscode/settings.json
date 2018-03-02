@@ -1,7 +1,23 @@
 // Place your settings in this file to overwrite default and user settings.
 {
   "files.associations": {
-    "*.tcc": "cpp"
+    "*.tcc": "cpp",
+    "__bit_reference": "cpp",
+    "__functional_base": "cpp",
+    "algorithm": "cpp",
+    "atomic": "cpp",
+    "bitset": "cpp",
+    "chrono": "cpp",
+    "functional": "cpp",
+    "iterator": "cpp",
+    "limits": "cpp",
+    "locale": "cpp",
+    "memory": "cpp",
+    "ratio": "cpp",
+    "system_error": "cpp",
+    "tuple": "cpp",
+    "type_traits": "cpp",
+    "vector": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,

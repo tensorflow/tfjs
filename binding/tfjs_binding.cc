@@ -70,26 +70,16 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   napi_value shape_value = args[0];
   ENSURE_VALUE_IS_ARRAY(env, shape_value);
 
-  uint32_t shape_length;
-  nstatus = napi_get_array_length(env, shape_value, &shape_length);
-  ENSURE_VALUE_IS_LESS_THAN(env, shape_length, MAX_TENSOR_SHAPE);
-
-  int64_t shape[shape_length];
-  for (uint32_t i = 0; i < shape_length; i++) {
-    napi_value dimension_value;
-    nstatus = napi_get_element(env, shape_value, i, &dimension_value);
-    ENSURE_NAPI_OK(env, nstatus);
-
-    nstatus = napi_get_value_int64(env, dimension_value, &shape[i]);
-    ENSURE_NAPI_OK(env, nstatus);
-  }
+  std::vector<int64_t> shape_vector;
+  ExtractArrayShape(env, shape_value, &shape_vector);
 
   napi_value dtype_arg = args[1];
   int32_t dtype_int32_val;
   nstatus = napi_get_value_int32(env, dtype_arg, &dtype_int32_val);
   TF_DataType dtype = static_cast<TF_DataType>(dtype_int32_val);
 
-  InitTensorHandle(env, js_this, shape, shape_length, dtype);
+  InitTensorHandle(env, js_this, shape_vector.data(), shape_vector.size(),
+                   dtype);
   return js_this;
 }
 
@@ -232,9 +222,6 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
   EXPORT_INT_PROPERTY(TF_ATTR_BOOL);
   EXPORT_INT_PROPERTY(TF_ATTR_TYPE);
   EXPORT_INT_PROPERTY(TF_ATTR_SHAPE);
-  EXPORT_INT_PROPERTY(TF_ATTR_TENSOR);
-  EXPORT_INT_PROPERTY(TF_ATTR_PLACEHOLDER);
-  EXPORT_INT_PROPERTY(TF_ATTR_FUNC);
 #undef EXPORT_INT_PROPERTY
 
   return exports;
