@@ -70,7 +70,6 @@ done
 
 # Build vuejs demos.
 cd demos/
-./node_modules/.bin/poi build vue-demo/ -d "$TMP_DIR/demos/vue-demo/"
 ./node_modules/.bin/poi build latent-space-explorer/ \
   -d "$TMP_DIR/demos/latent-space-explorer/"
 cd ..
