@@ -16,6 +16,7 @@
  * =============================================================================
  */
 
+import {dispose} from '../../globals';
 import {Tensor} from '../../tensor';
 import * as util from '../../util';
 
@@ -46,8 +47,8 @@ export class BatchDataset {
    * from any underlying `Dataset`s or 'BatchDataset's.
    */
   async getStream(): Promise<DataStream<DatasetBatch>> {
-    const batchesAsArrays = (await this.base.getStream())
-                                .batch(this.batchSize, this.smallLastBatch);
+    const batchesAsArrays =
+        this.base.getStream().batch(this.batchSize, this.smallLastBatch);
     return batchesAsArrays.map(makeDatasetBatch);
   }
 }
@@ -77,7 +78,7 @@ function makeDatasetBatch(elements: DatasetElement[]): DatasetBatch {
   }
 
   const result: {[key: string]: (BatchArray|string[])} = {};
-  for (const key of keys) {
+  keys.forEach(key => {
     // this sanity check should always pass
     if (rotated[key].length !== elements.length) {
       throw new Error(
@@ -88,7 +89,9 @@ function makeDatasetBatch(elements: DatasetElement[]): DatasetBatch {
     } else {
       result[key] = batchConcat(rotated[key] as Array<number|number[]|Tensor>);
     }
-  }
+  });
+  elements.forEach(dispose);
+
   return result;
 }
 
