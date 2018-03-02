@@ -30,6 +30,32 @@ describe('matMul', () => {
   });
 });
 
+describe('slice tensor1d', () => {
+  it('slices 1x1 into 1x1 (effectively a copy)', () => {
+    const a = dl.tensor1d([5]);
+    const result = dl.slice1d(a, 0, 1);
+
+    expect(result.shape).toEqual([1]);
+    expect(result.get(0)).toEqual(5);
+  });
+
+  it('slices 5x1 into shape 2x1 starting at 3', () => {
+    const a = dl.tensor1d([1, 2, 3, 4, 5]);
+    const result = dl.slice1d(a, 3, 2);
+
+    expect(result.shape).toEqual([2]);
+    expect(result.dataSync()).toEqual(new Float32Array([4, 5]));
+  });
+
+  it('slices 5x1 into shape 3x1 starting at 1', () => {
+    const a = dl.tensor1d([1, 2, 3, 4, 5]);
+    const result = dl.slice1d(a, 1, 3);
+
+    expect(result.shape).toEqual([3]);
+    expect(result.dataSync()).toEqual(new Float32Array([2, 3, 4]));
+  });
+});
+
 describe('pad', () => {
   it('should work', () => {
     const t = dl.tensor2d([[1, 1], [1, 1]]);
