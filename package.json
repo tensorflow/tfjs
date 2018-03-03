@@ -10,6 +10,9 @@
     "url": "https://github.com/tensorflow/web.git"
   },
   "license": "Apache-2.0",
+  "peerDependencies": {
+    "deeplearn": "^0.5.0"
+  },
   "devDependencies": {
     "@types/jasmine": "~2.8.6",
     "@types/seedrandom": "~2.4.27",
