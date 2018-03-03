@@ -50,12 +50,12 @@ const SIMPLE_MODEL: data.tensorflow.IGraphDef = {
         length: {i: 4}
       }
     },
-    {name: 'Add', op: 'Add', input: ['Input', 'Const']}
+    {name: 'Add', op: 'Add', input: ['Input', 'Const'], attr: {}}
   ],
   versions: {producer: 1.0}
 };
 
-describe('operationMapper', () => {
+describe('Model', () => {
   beforeEach(() => {
     const graphPromise = new Promise((resolve => resolve(SIMPLE_MODEL)));
     spyOn(data, 'loadRemoteProtoFile').and.returnValue(graphPromise);
@@ -81,11 +81,15 @@ describe('operationMapper', () => {
   });
 
   describe('dispose', async () => {
-    const bias = dl.Tensor1D.new([1], 'int32');
-    spyOn(data, 'buildWeightMap').and.returnValue({'Const': bias});
-    await model.load();
-    model.dispose();
+    it('should dispose the weights', async () => {
+      const bias = dl.Tensor1D.new([1], 'int32');
+      spyOn(data, 'buildWeightMap').and.returnValue({'Const': bias});
+      spyOn(bias, 'dispose');
 
-    expect(bias.dispose).toHaveBeenCalled();
+      await model.load();
+      model.dispose();
+
+      expect(bias.dispose).toHaveBeenCalled();
+    });
   });
 });

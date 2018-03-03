@@ -33,6 +33,7 @@ describe('GraphExecutor', () => {
       children: [],
       name: 'input',
       op: 'placeholder',
+      category: 'graph',
       params: {}
     };
     constNode = {
@@ -41,6 +42,7 @@ describe('GraphExecutor', () => {
       children: [],
       name: 'const',
       op: 'const',
+      category: 'graph',
       params: {}
     };
     outputNode = {
@@ -49,6 +51,7 @@ describe('GraphExecutor', () => {
       children: [],
       name: 'output',
       op: 'add',
+      category: 'arithmetic',
       params: {}
     };
     graph = {

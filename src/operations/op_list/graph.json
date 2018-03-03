@@ -1,0 +1,24 @@
+[
+  {
+    "tfOpName": "Placeholder",
+    "dlOpName": "placeholder",
+    "category": "graph"
+  },
+  {
+    "tfOpName": "Const",
+    "dlOpName": "const",
+    "category": "graph"
+  },
+  {
+    "tfOpName": "Identity",
+    "dlOpName": "identity",
+    "category": "graph",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      }
+    ]
+  }
+]

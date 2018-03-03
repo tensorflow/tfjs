@@ -17,7 +17,18 @@
 import {tensorflow} from '../data/index';
 
 import {ParamValue} from './index';
-import * as data from './op_list.json';
+import * as arithmetic from './op_list/arithmetic.json';
+import * as basicMath from './op_list/basic_math.json';
+import * as convolution from './op_list/convolution.json';
+import * as creation from './op_list/creation.json';
+import * as graph from './op_list/graph.json';
+import * as logical from './op_list/logical.json';
+import * as matrices from './op_list/matrices.json';
+import * as normalization from './op_list/normalization.json';
+import * as reduction from './op_list/reduction.json';
+import * as sliceJoin from './op_list/slice_join.json';
+import * as transformation from './op_list/transformation.json';
+
 import {Graph, Node, OpMapper} from './types';
 
 export class OperationMapper {
@@ -32,13 +43,20 @@ export class OperationMapper {
 
   // Loads the op mapping from the JSON file.
   private constructor() {
-    this.opMappers =
-        // tslint:disable-next-line:no-any
-        ((data as any) as OpMapper[])
-            .reduce<{[key: string]: OpMapper}>((map, mapper: OpMapper) => {
-              map[mapper.tfOpName] = mapper;
-              return map;
-            }, {});
+    const mappersJson = [
+      ...(arithmetic as {}) as OpMapper[], ...(basicMath as {}) as OpMapper[],
+      ...(convolution as {}) as OpMapper[], ...(creation as {}) as OpMapper[],
+      ...(logical as {}) as OpMapper[], ...(graph as {}) as OpMapper[],
+      ...(matrices as {}) as OpMapper[], ...(normalization as {}) as OpMapper[],
+      ...(reduction as {}) as OpMapper[], ...(sliceJoin as {}) as OpMapper[],
+      ...(transformation as {}) as OpMapper[]
+    ];
+    this.opMappers = mappersJson.reduce<{[key: string]: OpMapper}>(
+        (map, mapper: OpMapper) => {
+          map[mapper.tfOpName] = mapper;
+          return map;
+        },
+        {});
   }
 
   // Converts the model from Tensorflow GraphDef to local representation for
@@ -76,6 +94,7 @@ export class OperationMapper {
     const newNode: Node = {
       name: node.name,
       op: mapper.dlOpName,
+      category: mapper.category,
       inputNames: node.input || [],
       inputs: [],
       children: [],
@@ -86,6 +105,7 @@ export class OperationMapper {
       newNode.params = mapper.params.reduce<{[key: string]:
                                                  ParamValue}>((map, param) => {
         const inputIndex = param.tfInputIndex;
+        const inputParamLength = param.tfInputParamLength;
         const type = param.type;
         let value = undefined;
         if (inputIndex === undefined) {
@@ -110,13 +130,20 @@ export class OperationMapper {
               value = this.getTensorShapeParam(
                   node.attr, param.tfParamName, param.defaultValue as number[]);
               break;
+            case 'dtype':
+              value = this.getDtypeParam(
+                  node.attr, param.tfParamName, param.defaultValue as string);
+              break;
+            case 'tensor':
+            case 'tensors':
+              break;
             default:
               throw new Error(
                   'Unsupported param type: ' + param.type +
                   ' for op: ' + node.op);
           }
         }
-        map[param.dlParamName] = {value, inputIndex, type};
+        map[param.dlParamName] = {value, inputIndex, type, inputParamLength};
         return map;
       }, {});
     }
@@ -148,7 +175,24 @@ export class OperationMapper {
     return (param ? ((param.f !== undefined) ? param.f : param.i) : def) as
         number;
   }
-
+  private getDtypeParam(
+      attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
+      def: string): string {
+    const param = attrs[name];
+    if (param && param.type) {
+      switch (param.type) {
+        case tensorflow.DataType.DT_FLOAT:
+          return 'float32';
+        case tensorflow.DataType.DT_INT32:
+          return 'int32';
+        case tensorflow.DataType.DT_BOOL:
+          return 'bool';
+        default:
+          return def;
+      }
+    }
+    return def;
+  }
   private getTensorShapeParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
       def?: number[]): number[]|undefined {

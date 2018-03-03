@@ -38,7 +38,7 @@
   },
   "scripts": {
     "prep": "yarn && mkdirp dist",
-    "build": "tsc && copyfiles -f src/data/compiled_api.* dist/data && copyfiles -f src/operations/op_list.json src/operations/typings.d.ts dist/operations",
+    "build": "tsc && copyfiles -f src/data/compiled_api.* dist/data && copyfiles -f src/operations/op_list/*.json dist/operations/op_list && copyfiles -f src/operations/typings.d.ts dist/operations",
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . -t verbose",

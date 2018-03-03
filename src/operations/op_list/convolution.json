@@ -1,0 +1,289 @@
+[
+  {
+    "tfOpName": "AvgPool",
+    "dlOpName": "avgPool",
+    "category": "convolution",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "strides",
+        "dlParamName": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "padding",
+        "dlParamName": "pad",
+        "type": "string"
+      },
+      {
+        "tfParamName": "data_format",
+        "dlParamName": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "ksize",
+        "dlParamName": "kernelSize",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "MaxPool",
+    "dlOpName": "maxPool",
+    "category": "convolution",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "strides",
+        "dlParamName": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "padding",
+        "dlParamName": "pad",
+        "type": "string"
+      },
+      {
+        "tfParamName": "data_format",
+        "dlParamName": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "ksize",
+        "dlParamName": "kernelSize",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "Conv1D",
+    "dlOpName": "conv1d",
+    "category": "convolution",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "input",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "filter",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "stride",
+        "dlParamName": "stride",
+        "type": "number"
+      },
+      {
+        "tfParamName": "padding",
+        "dlParamName": "pad",
+        "type": "string"
+      },
+      {
+        "tfParamName": "data_format",
+        "dlParamName": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "dilation",
+        "dlParamName": "dilation",
+        "type": "number",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "Conv2D",
+    "dlOpName": "conv2d",
+    "category": "convolution",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "filter",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "strides",
+        "dlParamName": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "padding",
+        "dlParamName": "pad",
+        "type": "string"
+      },
+      {
+        "tfParamName": "useCudnnOnGpu",
+        "dlParamName": "useCudnnOnGpu",
+        "type": "bool"
+      },
+      {
+        "tfParamName": "data_format",
+        "dlParamName": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "dilations",
+        "dlParamName": "dilations",
+        "type": "number[]",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "Conv2DTranspose",
+    "dlOpName": "conv2dTranspose",
+    "category": "convolution",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "filter",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "output_shape",
+        "dlParamName": "outputShape",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "strides",
+        "dlParamName": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "padding",
+        "dlParamName": "pad",
+        "type": "string"
+      },
+      {
+        "tfParamName": "data_format",
+        "dlParamName": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "DepthwiseConv2d",
+    "dlOpName": "depthwiseConv2d",
+    "category": "convolution",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "input",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "filter",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "strides",
+        "dlParamName": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "padding",
+        "dlParamName": "pad",
+        "type": "string"
+      },
+      {
+        "tfParamName": "data_format",
+        "dlParamName": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "dilations",
+        "dlParamName": "rates",
+        "type": "number[]"
+      }
+    ]
+  },
+  {
+    "tfOpName": "DepthwiseConv2dNative",
+    "dlOpName": "depthwiseConv2d",
+    "category": "convolution",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "input",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "filter",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "strides",
+        "dlParamName": "strides",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "padding",
+        "dlParamName": "pad",
+        "type": "string"
+      },
+      {
+        "tfParamName": "data_format",
+        "dlParamName": "dataFormat",
+        "type": "string",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "dilations",
+        "dlParamName": "rates",
+        "type": "number[]"
+      }
+    ]
+  }
+]

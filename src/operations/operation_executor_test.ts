@@ -16,7 +16,8 @@
  */
 import * as dl from 'deeplearn';
 
-import {executeOp, getParamValue, Node, ParamValue} from './index';
+import {getParamValue} from './executors/utils';
+import {executeOp, Node, ParamValue} from './index';
 
 describe('node', () => {
   let node: Node;
@@ -24,6 +25,7 @@ describe('node', () => {
     node = {
       name: 'test',
       op: 'const',
+      category: 'graph',
       inputNames: [],
       inputs: [],
       params: {},
@@ -36,7 +38,10 @@ describe('node', () => {
       it('should call dl.add', () => {
         spyOn(dl, 'add');
         node.op = 'add';
+        node.category = 'arithmetic';
         node.inputNames = ['input1', 'input2'];
+        node.params['a'] = createTensorAttr(0);
+        node.params['b'] = createTensorAttr(1);
         const input1 = dl.Scalar.new(1);
         const input2 = dl.Scalar.new(1);
 
@@ -49,7 +54,7 @@ describe('node', () => {
       it('should return from weight hash', () => {
         const test = dl.Scalar.new(1);
         node.op = 'const';
-        spyOn(dl, 'add');
+        node.category = 'graph';
 
         expect(executeOp(node, {test})).toBe(test);
       });
@@ -58,6 +63,7 @@ describe('node', () => {
       it('should return from feedDict hash', () => {
         const test = dl.Scalar.new(1);
         node.op = 'placeholder';
+        node.category = 'graph';
         spyOn(dl, 'add');
 
         expect(executeOp(node, {test})).toBe(test);
@@ -67,6 +73,9 @@ describe('node', () => {
       it('should call dl.floor', () => {
         spyOn(dl, 'floor');
         node.op = 'floor';
+        node.category = 'basic_math';
+        node.params['x'] = createTensorAttr(0);
+
         node.inputNames = ['input1'];
         const input1 = dl.Scalar.new(1);
 
@@ -79,6 +88,9 @@ describe('node', () => {
       it('should call dl.mul', () => {
         spyOn(dl, 'mul');
         node.op = 'mul';
+        node.category = 'arithmetic';
+        node.params['a'] = createTensorAttr(0);
+        node.params['b'] = createTensorAttr(1);
         node.inputNames = ['input1', 'input2'];
 
         const input1 = dl.Scalar.new(1.0);
@@ -94,8 +106,12 @@ describe('node', () => {
       it('should call dl.matMul', () => {
         spyOn(dl, 'matMul');
         node.op = 'matMul';
+        node.category = 'matrices';
         node.params['transposeA'] = createBoolAttr(false);
         node.params['transposeB'] = createBoolAttr(true);
+        node.params['x'] = createTensorAttr(0);
+        node.params['filter'] = createTensorAttr(1);
+
         const input1 = dl.Scalar.new(1.0);
         const input2 = dl.Scalar.new(1.0);
         node.inputNames = ['input1', 'input2'];
@@ -110,8 +126,11 @@ describe('node', () => {
       it('should call dl.conv2d', () => {
         spyOn(dl, 'conv2d');
         node.op = 'conv2d';
+        node.category = 'convolution';
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
+        node.params['x'] = createTensorAttr(0);
+
         const input1 = dl.Scalar.new(1.0);
         const input2 = dl.Scalar.new(1.0);
         node.inputNames = ['input1', 'input2'];
@@ -126,6 +145,8 @@ describe('node', () => {
       it('should call dl.depthwiseConv2d', () => {
         spyOn(dl, 'depthwiseConv2d');
         node.op = 'depthwiseConv2d';
+        node.category = 'convolution';
+        node.params['x'] = createTensorAttr(0);
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
         node.params['rate'] = createNumericArrayAttr([2, 2]);
@@ -144,6 +165,8 @@ describe('node', () => {
       it('should call dl.avgPool', () => {
         spyOn(dl, 'avgPool');
         node.op = 'avgPool';
+        node.category = 'reduction';
+        node.params['x'] = createTensorAttr(0);
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
         node.params['kernelSize'] = createNumericArrayAttr([1, 2, 2, 1]);
@@ -160,6 +183,8 @@ describe('node', () => {
       it('should call dl.maxPool', () => {
         spyOn(dl, 'maxPool');
         node.op = 'maxPool';
+        node.category = 'reduction';
+        node.params['x'] = createTensorAttr(0);
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
         node.params['kernelSize'] = createNumericArrayAttr([1, 2, 2, 1]);
@@ -174,8 +199,9 @@ describe('node', () => {
     describe('randomUniform', () => {
       it('should call dl.randomUniform', () => {
         spyOn(dl, 'randomUniform');
-        spyOn(dl, 'add');
         node.op = 'randomUniform';
+        node.category = 'creation';
+        node.params['x'] = createTensorAttr(0);
         const input1 = dl.Tensor1D.new([2, 2, 2]);
         node.inputNames = ['input1'];
         node.params['maxVal'] = createNumberAttr(1);
@@ -192,8 +218,11 @@ describe('node', () => {
       it('should call dl.div', () => {
         spyOn(dl, 'div');
         node.op = 'div';
+        node.category = 'arithmetic';
         const input1 = dl.Scalar.new(1);
         const input2 = dl.Scalar.new(1);
+        node.params['a'] = createTensorAttr(0);
+        node.params['b'] = createTensorAttr(1);
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
@@ -206,6 +235,8 @@ describe('node', () => {
       it('should call input reshape', () => {
         spyOn(dl, 'div');
         node.op = 'reshape';
+        node.params['shape'] = createTensorAttr(0);
+        node.params['b'] = createTensorAttr(1);
         const input1 = dl.Tensor1D.new([1, 2, 3, 4]);
         const input2 = dl.Tensor1D.new([2, 2]);
         spyOn(input1, 'reshape');
@@ -220,6 +251,7 @@ describe('node', () => {
       it('should call dl.squeeze', () => {
         spyOn(dl, 'squeeze');
         node.op = 'squeeze';
+        node.params['x'] = createTensorAttr(0);
         node.params['axis'] = createNumericArrayAttr([1, 2]);
         const input = dl.Tensor3D.new([2, 1, 1], [1.0, 1.0]);
         node.inputNames = ['input'];
@@ -233,6 +265,9 @@ describe('node', () => {
       it('should call dl.sub', () => {
         spyOn(dl, 'sub');
         node.op = 'sub';
+        node.params['a'] = createTensorAttr(0);
+        node.params['b'] = createTensorAttr(1);
+        node.category = 'arithmetic';
         const input1 = dl.Scalar.new(1);
         const input2 = dl.Scalar.new(1);
         node.inputNames = ['input1', 'input2'];
@@ -246,6 +281,8 @@ describe('node', () => {
       it('should call dl.relu', () => {
         spyOn(dl, 'relu');
         node.op = 'relu';
+        node.category = 'basic_math';
+        node.params['x'] = createTensorAttr(0);
         const input1 = dl.Scalar.new(1);
         node.inputNames = ['input1'];
 
@@ -255,12 +292,14 @@ describe('node', () => {
       });
     });
 
-    describe('clip', () => {
+    describe('clipByValue', () => {
       it('should call dl.clipByValue', () => {
         spyOn(dl, 'clipByValue');
-        node.op = 'clip';
+        node.op = 'clipByValue';
+        node.category = 'basic_math';
         const input1 = dl.Scalar.new(1);
         node.inputNames = ['input1'];
+        node.params['x'] = createTensorAttr(0);
         node.params['max'] = createNumberAttr(6);
         node.params['min'] = createNumberAttr(0);
 
@@ -274,7 +313,9 @@ describe('node', () => {
       it('should call dl.div', () => {
         const input1 = dl.Scalar.new(1);
         node.op = 'rsqrt';
+        node.category = 'basic_math';
         node.inputNames = ['input1'];
+        node.params['x'] = createTensorAttr(0);
         spyOn(dl, 'div');
         spyOn(dl, 'sqrt').and.returnValue(input1);
 
@@ -285,22 +326,12 @@ describe('node', () => {
       });
     });
 
-    describe('softmax', () => {
-      it('should call dl.softmax', () => {
-        spyOn(dl, 'softmax');
-        node.op = 'softmax';
-        const input1 = dl.Scalar.new(1);
-        node.inputNames = ['input1'];
-
-        executeOp(node, {input1});
-
-        expect(dl.softmax).toHaveBeenCalledWith(input1);
-      });
-    });
     describe('identity', () => {
       it('should return the input', () => {
         node.op = 'identity';
+        node.category = 'graph';
         const input1 = dl.Scalar.new(1);
+        node.params['x'] = createTensorAttr(0);
         node.inputNames = ['input1'];
 
         expect(executeOp(node, {input1})).toBe(input1);
@@ -310,9 +341,11 @@ describe('node', () => {
       it('should call dl.concat', () => {
         spyOn(dl, 'concat');
         node.op = 'concat';
+        node.category = 'slice_join';
         const input1 = dl.Tensor1D.new([1]);
         const input2 = dl.Tensor1D.new([1]);
         const input3 = dl.Scalar.new(0);
+
         node.inputNames = ['input1', 'input2', 'input3'];
         node.params['axis'] = createNumericArrayAttr([0]);
 
@@ -326,6 +359,7 @@ describe('node', () => {
       it('should call dl.slice', () => {
         spyOn(dl, 'slice');
         node.op = 'slice';
+        node.category = 'slice_join';
         const input1 = dl.Tensor1D.new([1, 2, 3]);
         const input2 = dl.Scalar.new(1);
         const input3 = dl.Scalar.new(1);
@@ -343,6 +377,7 @@ describe('node', () => {
       it('should call dl.fill', () => {
         spyOn(dl, 'fill');
         node.op = 'fill';
+        node.category = 'creation';
         const input1 = dl.Tensor1D.new([1, 2, 3]);
         const input2 = dl.Scalar.new(1);
         node.inputNames = ['input1', 'input2'];
