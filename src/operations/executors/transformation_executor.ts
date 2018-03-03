@@ -17,7 +17,7 @@
 
 import * as dl from 'deeplearn';
 import {TensorMap} from '../../data/types';
-import {Node, ValueType} from '../index';
+import {Node} from '../index';
 import {getParamValue} from './utils';
 
 /**
@@ -33,6 +33,11 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
           getParamValue('dtype', node, tensorMap) as 'int32' | 'float32' |
               'bool');
     }
+    case 'expandDims': {
+      const axis = node.params['axis'].value as number;
+      return dl.expandDims(
+          getParamValue('x', node, tensorMap) as dl.Tensor, axis);
+    }
     case 'squeeze': {
       const axis = node.params['axis'].value as number[];
       return dl.squeeze(getParamValue('x', node, tensorMap) as dl.Tensor, axis);
@@ -46,6 +51,7 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'pad': {
       return dl.pad(
           getParamValue('x', node, tensorMap) as dl.Tensor,
+          // tslint:disable-next-line:no-any
           getParamValue('padding', node, tensorMap) as any,
           getParamValue('constantValue', node, tensorMap) as number);
     }
@@ -53,3 +59,5 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
 }
+
+export const CATEGORY = 'transformation';

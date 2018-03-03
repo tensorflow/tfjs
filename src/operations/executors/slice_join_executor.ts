@@ -17,7 +17,7 @@
 
 import * as dl from 'deeplearn';
 import {TensorMap} from '../../data/types';
-import {Node, ValueType} from '../index';
+import {Node} from '../index';
 import {getParamValue} from './utils';
 
 /**
@@ -28,20 +28,20 @@ import {getParamValue} from './utils';
 export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
   switch (node.op) {
     case 'concat': {
-      const axis = getParamValue('axis', node, tensorMap) as number[];
+      const axis = getParamValue('axis', node, tensorMap) as number;
       const inputs = getParamValue('tensors', node, tensorMap) as dl.Tensor[];
-      return dl.concat(inputs, axis[0]);
+      return dl.concat(inputs, axis);
     }
     case 'gather': {
-      const axis = getParamValue('axis', node, tensorMap) as number[];
+      const axis = getParamValue('axis', node, tensorMap) as number;
       const input = getParamValue('x', node, tensorMap) as dl.Tensor;
       const indices = getParamValue('indices', node, tensorMap) as dl.Tensor1D;
-      return dl.gather(input, indices, axis[0]);
+      return dl.gather(input, indices, axis);
     }
     case 'reverse': {
-      const axis = getParamValue('axis', node, tensorMap) as number[];
-      const input = getParamValue('tensor', node, tensorMap) as dl.Tensor;
-      return dl.reverse(input, axis[0]);
+      const axis = getParamValue('axis', node, tensorMap) as number;
+      const input = getParamValue('x', node, tensorMap) as dl.Tensor;
+      return dl.reverse(input, axis);
     }
     case 'slice': {
       // tslint:disable-next-line:no-any
@@ -51,7 +51,7 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       return dl.slice(
           getParamValue('x', node, tensorMap) as dl.Tensor, begin, size);
     }
-    case 'pack': {
+    case 'stack': {
       const axis = getParamValue('axis', node, tensorMap) as number;
       return dl.stack(
           getParamValue('tensors', node, tensorMap) as dl.Tensor[], axis);
@@ -64,3 +64,5 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
 }
+
+export const CATEGORY = 'slice_join';

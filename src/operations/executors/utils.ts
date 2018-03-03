@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
 import {TensorMap} from '../../data/types';
 import {Node, ValueType} from '../index';
 
@@ -32,8 +31,9 @@ export function getParamValue(
           node.inputNames.splice(param.inputIndex);
       return inputs.map(name => tensorMap[name]);
     }
-    return Array.prototype.slice.call(
-        tensorMap[node.inputNames[param.inputIndex]].dataSync());
+    const data = Array.prototype.slice.call(
+        tensorMap[node.inputNames.slice(param.inputIndex)[0]].dataSync());
+    return param.type === 'number' ? data[0] : data;
   }
   return param.value;
 }

@@ -17,7 +17,7 @@
 
 import * as dl from 'deeplearn';
 import {TensorMap} from '../../data/types';
-import {Node, ValueType} from '../index';
+import {Node} from '../index';
 import {getParamValue} from './utils';
 
 /**
@@ -31,7 +31,7 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       const stride = getParamValue('stride', node, tensorMap) as number;
       const pad = getParamValue('pad', node, tensorMap);
       return dl.conv1d(
-          getParamValue('input', node, tensorMap) as dl.Tensor3D,
+          getParamValue('x', node, tensorMap) as dl.Tensor3D,
           getParamValue('filter', node, tensorMap) as dl.Tensor3D, stride,
           pad as 'valid' | 'same');
     }
@@ -58,11 +58,12 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
     case 'depthwiseConv2d': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
-      const rate = getParamValue('rate', node, tensorMap) as number[];
+      const rates = getParamValue('rates', node, tensorMap) as number[];
       return dl.depthwiseConv2d(
           getParamValue('input', node, tensorMap) as dl.Tensor3D | dl.Tensor4D,
           getParamValue('filter', node, tensorMap) as dl.Tensor4D,
-          [stride[1], stride[2]], pad as 'valid' | 'same', [rate[0], rate[1]]);
+          [stride[1], stride[2]], pad as 'valid' | 'same',
+          [rates[0], rates[1]]);
     }
 
     case 'avgPool': {
@@ -92,3 +93,5 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
 }
+
+export const CATEGORY = 'convolution';

@@ -17,7 +17,7 @@
 
 import * as dl from 'deeplearn';
 import {TensorMap} from '../../data/types';
-import {Node, ValueType} from '../index';
+import {Node} from '../index';
 import {getParamValue} from './utils';
 
 /**
@@ -29,8 +29,8 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
   switch (node.op) {
     case 'fill': {
       const shape = getParamValue('shape', node, tensorMap) as number[];
-      const value = getParamValue('value', node, tensorMap) as number[];
-      return dl.fill(shape, value[0]);
+      const value = getParamValue('value', node, tensorMap) as number;
+      return dl.fill(shape, value);
     }
     case 'linspace': {
       const start = getParamValue('start', node, tensorMap) as number;
@@ -93,3 +93,5 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
 }
+
+export const CATEGORY = 'creation';

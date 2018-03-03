@@ -6,7 +6,7 @@
   "unpkg": "dist/bundle.js",
   "types": "dist/tfdemo/index.d.ts",
   "peerDependencies": {
-    "tf-js-converter": "0.1.0"
+    "tfjs-converter": "0.1.0"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,6 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "tf-js-converter": "file:.."
+    "tfjs-converter": "file:.."
   }
 }

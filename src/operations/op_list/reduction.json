@@ -106,7 +106,7 @@
   },
   {
     "tfOpName": "ArgMin",
-    "dlOpName": "min",
+    "dlOpName": "argMin",
     "category": "reduction",
     "params": [
       {

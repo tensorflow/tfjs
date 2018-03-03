@@ -84,7 +84,7 @@
     "params": [
       {
         "tfInputIndex": 0,
-        "dlParamName": "input",
+        "dlParamName": "x",
         "type": "tensor"
       },
       {

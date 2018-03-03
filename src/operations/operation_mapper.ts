@@ -139,8 +139,7 @@ export class OperationMapper {
               break;
             default:
               throw new Error(
-                  'Unsupported param type: ' + param.type +
-                  ' for op: ' + node.op);
+                  `Unsupported param type: ${param.type} for op: ${node.op}`);
           }
         }
         map[param.dlParamName] = {value, inputIndex, type, inputParamLength};

@@ -122,5 +122,16 @@
         "defaultValue": 0.5
       }
     ]
+  },  {
+    "tfOpName": "Softmax",
+    "dlOpName": "softmax",
+    "category": "normalization",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      }
+    ]
   }
 ]

@@ -30,7 +30,7 @@ import * as normalization from './executors/normalization_executor';
 import * as reduction from './executors/reduction_executor';
 import * as sliceJoin from './executors/slice_join_executor';
 import * as transformation from './executors/transformation_executor';
-import {Node, ValueType} from './index';
+import {Node} from './index';
 
 /**
  * Executes the op defined by the node object.

@@ -17,7 +17,7 @@
 
 import * as dl from 'deeplearn';
 import {TensorMap} from '../../data/types';
-import {Node, ValueType} from '../index';
+import {Node} from '../index';
 import {getParamValue} from './utils';
 
 /**
@@ -44,8 +44,12 @@ export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
           getParamValue('alpha', node, tensorMap) as number,
           getParamValue('beta', node, tensorMap) as number);
     }
-
+    case 'softmax': {
+      return dl.softmax(getParamValue('x', node, tensorMap) as dl.Tensor);
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
 }
+
+export const CATEGORY = 'normalization';

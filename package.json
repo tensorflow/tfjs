@@ -1,5 +1,5 @@
 {
-  "name": "tf-js-converter",
+  "name": "tfjs-converter",
   "version": "0.1.0",
   "description": "Tensorflow model converter for javascript",
   "main": "dist/index.js",
