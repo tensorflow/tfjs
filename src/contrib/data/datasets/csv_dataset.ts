@@ -66,15 +66,21 @@ export class CSVDataset extends Dataset {
     if (csvColumnNames == null || csvColumnNames === CsvHeaderConfig.NUMBERED) {
       const stream = this.base.getStream();
       const firstElement = await stream.next();
+      if (firstElement.done) {
+        throw new Error('No data was found for CSV parsing.');
+      }
       const firstLine: string =
-          firstElement[CSVDataset.textColumnName] as string;
+          firstElement.value[CSVDataset.textColumnName] as string;
       this._csvColumnNames =
           Array.from(firstLine.split(',').keys()).map(x => x.toString());
     } else if (csvColumnNames === CsvHeaderConfig.READ_FIRST_LINE) {
       const stream = this.base.getStream();
       const firstElement = await stream.next();
+      if (firstElement.done) {
+        throw new Error('No data was found for CSV parsing.');
+      }
       const firstLine: string =
-          firstElement[CSVDataset.textColumnName] as string;
+          firstElement.value[CSVDataset.textColumnName] as string;
       this._csvColumnNames = firstLine.split(',');
       this.hasHeaderLine = true;
     } else {

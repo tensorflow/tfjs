@@ -76,8 +76,8 @@ class SplitStreamImpl extends QueueStream<string> {
   }
 
   async pump(): Promise<boolean> {
-    const chunk = await this.upstream.next();
-    if (chunk == null) {
+    const chunkResult = await this.upstream.next();
+    if (chunkResult.done) {
       if (this.carryover === '') {
         return false;
       }
@@ -88,7 +88,7 @@ class SplitStreamImpl extends QueueStream<string> {
       this.carryover = '';
       return true;
     }
-    const lines = chunk.split(this.separator);
+    const lines = chunkResult.value.split(this.separator);
     // Note the behavior: " ab ".split(' ') === ['', 'ab', '']
     // Thus the carryover may be '' if the separator falls on a chunk
     // boundary; this produces the correct result.

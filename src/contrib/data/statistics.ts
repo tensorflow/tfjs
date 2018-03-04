@@ -110,10 +110,6 @@ export async function computeDatasetStatistics(
         columnStats.max = Math.max(columnStats.max, recordMax);
       }
     }
-    // Returning undefined or null (i.e, type void) would indicate that the
-    // stream is exhausted.  So, we have to return *something* in order for
-    // resolveFully() to operate.
-    return {};
   });
   return result;
 }

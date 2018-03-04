@@ -165,7 +165,8 @@ export abstract class Dataset {
   repeat(count?: number): Dataset {
     const base = this;
     return datasetFromStreamFn(() => {
-      const streamStream = streamFromFunction(() => base.getStream());
+      const streamStream =
+          streamFromFunction(() => ({value: base.getStream(), done: false}));
       return streamFromConcatenated(streamStream.take(count));
     });
   }
@@ -257,8 +258,9 @@ export abstract class Dataset {
    * within that element are disposed.
    *
    * @param f A function to apply to each dataset element.
+   * @returns A `Promise` that resolves after all elements have been processed.
    */
-  async forEach(f: (input: DatasetElement) => {}): Promise<void> {
+  async forEach(f: (input: DatasetElement) => void): Promise<void> {
     return this.getStream().forEach(f);
   }
 

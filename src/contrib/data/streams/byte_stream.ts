@@ -92,14 +92,17 @@ class Utf8StreamImpl extends QueueStream<string> {
   }
 
   async pump(): Promise<boolean> {
-    let chunk = await this.upstream.next();
-    if (chunk == null) {
+    const chunkResult = await this.upstream.next();
+    let chunk;
+    if (chunkResult.done) {
       if (this.partial.length === 0) {
         return false;
       }
       // Pretend that the pump succeeded in order to emit the small last batch.
       // The next pump() call will actually fail.
       chunk = new Uint8Array([]);
+    } else {
+      chunk = chunkResult.value;
     }
     const partialBytesRemaining = this.partial.length - this.partialBytesValid;
     let nextIndex = partialBytesRemaining;

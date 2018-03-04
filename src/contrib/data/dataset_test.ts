@@ -24,9 +24,9 @@ class TestDatasetElementStream extends DataStream<dl.contrib.DatasetElement> {
   data = Array.from({length: 100}, (v, k) => k);
   currentIndex = 0;
 
-  async next(): Promise<dl.contrib.DatasetElement> {
+  async next(): Promise<IteratorResult<dl.contrib.DatasetElement>> {
     if (this.currentIndex >= 100) {
-      return undefined;
+      return {value: null, done: true};
     }
     const elementNumber = this.data[this.currentIndex];
     const result = {
@@ -43,7 +43,7 @@ class TestDatasetElementStream extends DataStream<dl.contrib.DatasetElement> {
       'string': `Item ${elementNumber}`
     };
     this.currentIndex++;
-    return result;
+    return {value: result, done: false};
   }
 }
 
