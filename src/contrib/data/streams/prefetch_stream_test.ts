@@ -38,9 +38,8 @@ describe('PrefetchStream', () => {
 
   it('fetches a chained stream completely (stream size < buffer size)',
      async done => {
-       const baseStream = streamFromConcatenatedFunction(() => {
-         return new TestIntegerStream();
-       }, 3);
+       const baseStream = streamFromConcatenatedFunction(
+           () => ({value: new TestIntegerStream(), done: false}), 3);
 
        const prefetchStream = new PrefetchStream(baseStream, 500);
 
@@ -61,9 +60,8 @@ describe('PrefetchStream', () => {
 
   it('fetches a chained stream completely (stream size > buffer size)',
      done => {
-       const baseStream = streamFromConcatenatedFunction(() => {
-         return new TestIntegerStream();
-       }, 3);
+       const baseStream = streamFromConcatenatedFunction(
+           () => ({value: new TestIntegerStream(), done: false}), 3);
 
        const prefetchStream = new PrefetchStream(baseStream, 122);
        const expectedResult: number[] = [];

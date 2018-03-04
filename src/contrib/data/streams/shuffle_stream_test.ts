@@ -78,7 +78,9 @@ describe('ShuffleStream', () => {
 
   it('shuffles multiple chained streams without replacement', done => {
     const baseStream = streamFromConcatenatedFunction(
-        () => new TestIntegerStream(SHORT_STREAM_LENGTH), 3);
+        () =>
+            ({value: new TestIntegerStream(SHORT_STREAM_LENGTH), done: false}),
+        3);
     const shuffleStream = new ShuffleStream(baseStream, 1000);
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 3; i++) {

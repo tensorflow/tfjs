@@ -46,9 +46,9 @@ export class FileReaderStream extends ByteStream {
     this.chunkSize = options.chunkSize || 1024 * 1024;
   }
 
-  async next(): Promise<Uint8Array> {
+  async next(): Promise<IteratorResult<Uint8Array>> {
     if (this.offset >= this.file.size) {
-      return undefined;
+      return {value: null, done: true};
     }
     const chunk = new Promise<Uint8Array>((resolve, reject) => {
       // TODO(soergel): is this a performance issue?
@@ -81,6 +81,6 @@ export class FileReaderStream extends ByteStream {
       fileReader.readAsArrayBuffer(slice);
       this.offset = end;
     });
-    return chunk;
+    return {value: (await chunk), done: false};
   }
 }
