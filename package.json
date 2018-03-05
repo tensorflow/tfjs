@@ -40,7 +40,8 @@
     "tslint-no-circular-imports": "~0.2.0",
     "typescript": "2.7.2",
     "uglify-js": "~3.0.28",
-    "watchify": "~3.9.0"
+    "watchify": "~3.9.0",
+    "deeplearn-docs": "https://github.com/PAIR-code/deeplearnjs-docs"
   },
   "scripts": {
     "prep": "yarn && mkdirp dist && yarn build && cd demos/ && yarn prep && cd ..",
@@ -48,7 +49,8 @@
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . -t verbose",
-    "make-version": "sh -c ./scripts/make-version"
+    "make-version": "sh -c ./scripts/make-version",
+    "make-api": "ts-node ./scripts/build-api.ts"
   },
   "dependencies": {
     "seedrandom": "~2.4.3",
