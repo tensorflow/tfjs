@@ -494,12 +494,13 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expectArraysClose(result, [NaN, 27, NaN, 0], 0.05);
   });
 
-  it('throws when passed non int32 exponent param', () => {
-    const a = dl.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
-    const b = dl.tensor2d([5, 3, 4, -7], [2, 2], 'float32');
+  it('handles non int32 exponent param', () => {
+    const a = dl.tensor1d([2, 4]);
+    const b = dl.tensor1d([.5, 1.2]);
 
-    // tslint:disable-next-line
-    expect(() => dl.pow(a, b as any)).toThrowError();
+    const result = dl.pow(a, b);
+    const expected = [Math.pow(2, 0.5), Math.pow(4, 1.2)];
+    expectArraysClose(result, expected);
   });
 
   it('broadcasting same rank Tensors different shape', () => {
@@ -543,12 +544,13 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expect(() => dl.powStrict(a, b)).toThrowError();
   });
 
-  it('powStrict throws when passed non int32 exponent param', () => {
-    const a = dl.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
-    const b = dl.tensor2d([5, 3, 4, -7], [2, 2], 'float32');
+  it('powStrict handles non int32 exponent param', () => {
+    const a = dl.tensor1d([2, 4]);
+    const b = dl.tensor1d([.5, 1.2]);
 
-    // tslint:disable-next-line
-    expect(() => dl.powStrict(a, b as any)).toThrowError();
+    const result = dl.powStrict(a, b);
+    const expected = [Math.pow(2, 0.5), Math.pow(4, 1.2)];
+    expectArraysClose(result, expected);
   });
 
   it('gradients: Scalar ^ Scalar', () => {
@@ -564,6 +566,19 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expectArraysClose(da, [2 * 5 * 3]);
   });
 
+  it('gradients: Scalar ^ Scalar fractional exponent', () => {
+    const a = dl.scalar(4.0);
+    const b = dl.scalar(1.5);
+    const dy = dl.scalar(3.0);
+
+    const grad = dl.grad(a => dl.pow(a, b));
+    const da = grad(a, dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [1.5 * Math.pow(4, 0.5) * 3]);
+  });
+  
   it('gradients: Tensor ^ Tensor', () => {
     const a = dl.tensor1d([-1, .5, 2]);
     const b = dl.tensor1d([3, 2, -1], 'int32');
