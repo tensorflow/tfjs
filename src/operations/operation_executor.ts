@@ -16,20 +16,21 @@
  */
 
 import * as dl from 'deeplearn';
-import {TensorMap} from '../data/types';
-import {Node, ValueType} from './index';
 
-export function getParamValue(
-    paramName: string, node: Node, tensorMap: TensorMap): ValueType {
-  const param = node.params[paramName];
-  if (param.inputIndex !== undefined) {
-    return param.type === 'tensor' ?
-        tensorMap[node.inputNames[param.inputIndex]] :
-        Array.prototype.slice.call(
-            tensorMap[node.inputNames[param.inputIndex]].dataSync());
-  }
-  return param.value;
-}
+import {TensorMap} from '../data/types';
+
+import * as arithmetic from './executors/arithmetic_executor';
+import * as basicMath from './executors/basic_math_executor';
+import * as convolution from './executors/convolution_executor';
+import * as creation from './executors/creation_executor';
+import * as graph from './executors/graph_executor';
+import * as logical from './executors/logical_executor';
+import * as matrices from './executors/matrices_executor';
+import * as normalization from './executors/normalization_executor';
+import * as reduction from './executors/reduction_executor';
+import * as sliceJoin from './executors/slice_join_executor';
+import * as transformation from './executors/transformation_executor';
+import {Node} from './index';
 
 /**
  * Executes the op defined by the node object.
@@ -37,181 +38,29 @@ export function getParamValue(
  * @param tensorMap contains tensors for executed nodes and weights
  */
 export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
-  switch (node.op) {
-    case 'add': {
-      return dl.add(
-          tensorMap[node.inputNames[0]], tensorMap[node.inputNames[1]]);
-    }
-    case 'const': {
-      return tensorMap[node.name];
-    }
-    case 'placeholder':
-      return tensorMap[node.name];
-    case 'placeholderWithDefault':
-      return tensorMap[node.name] || tensorMap[node.inputNames[0]];
-    case 'floor':
-      return dl.floor(tensorMap[node.inputNames[0]]);
-    case 'mul':
-      return dl.mul(
-          tensorMap[node.inputNames[0]], tensorMap[node.inputNames[1]]);
-    case 'matMul':
-      return dl.matMul(
-          tensorMap[node.inputNames[0]] as dl.Tensor2D,
-          tensorMap[node.inputNames[1]] as dl.Tensor2D,
-          node.params['transposeA'].value as boolean,
-          node.params['transposeB'].value as boolean);
-    case 'conv2d': {
-      const stride = getParamValue('strides', node, tensorMap) as number[];
-      const pad = getParamValue('pad', node, tensorMap);
-      return dl.conv2d(
-          tensorMap[node.inputNames[0]] as dl.Tensor3D | dl.Tensor4D,
-          tensorMap[node.inputNames[1]] as dl.Tensor4D, [stride[1], stride[2]],
-          pad as 'valid' | 'same');
-    }
-
-    case 'depthwiseConv2d': {
-      const stride = getParamValue('strides', node, tensorMap) as number[];
-      const pad = getParamValue('pad', node, tensorMap);
-      const rate = getParamValue('rate', node, tensorMap) as number[];
-      return dl.depthwiseConv2d(
-          tensorMap[node.inputNames[0]] as dl.Tensor3D | dl.Tensor4D,
-          tensorMap[node.inputNames[1]] as dl.Tensor4D, [stride[1], stride[2]],
-          pad as 'valid' | 'same', [rate[0], rate[1]]);
-    }
-
-    case 'avgPool': {
-      const stride = getParamValue('strides', node, tensorMap) as number[];
-      const pad = getParamValue('pad', node, tensorMap);
-      const kernelSize =
-          getParamValue('kernelSize', node, tensorMap) as number[];
-
-      return dl.avgPool(
-          tensorMap[node.inputNames[0]] as dl.Tensor3D | dl.Tensor4D,
-          [kernelSize[1], kernelSize[2]], [stride[1], stride[2]],
-          pad as 'valid' | 'same');
-    }
-
-    case 'maxPool': {
-      const stride = getParamValue('strides', node, tensorMap) as number[];
-      const pad = getParamValue('pad', node, tensorMap);
-      const kernelSize =
-          getParamValue('kernelSize', node, tensorMap) as number[];
-
-      return dl.maxPool(
-          tensorMap[node.inputNames[0]] as dl.Tensor3D | dl.Tensor4D,
-          [kernelSize[1], kernelSize[2]], [stride[1], stride[2]],
-          pad as 'valid' | 'same');
-    }
-
-    case 'randomUniform': {
-      return dl.randomUniform(
-          Array.prototype.slice.call(tensorMap[node.inputNames[0]].dataSync()),
-          getParamValue('minVal', node, tensorMap) as number,
-          getParamValue('maxVal', node, tensorMap) as number, 'float32');
-    }
-
-    case 'div': {
-      return dl.div(
-          tensorMap[node.inputNames[0]], tensorMap[node.inputNames[1]]);
-    }
-
-    case 'sigmoid': {
-      return dl.sigmoid(tensorMap[node.inputNames[0]]);
-    }
-    case 'tanh': {
-      return dl.tanh(tensorMap[node.inputNames[0]]);
-    }
-    case 'squeeze': {
-      const axis = node.params['axis'].value as number[];
-      return dl.squeeze(tensorMap[node.inputNames[0]], axis);
-    }
-
-    case 'reshape': {
-      return tensorMap[node.inputNames[0]].reshape(
-          Array.prototype.slice.call(tensorMap[node.inputNames[1]].dataSync()));
-    }
-
-    case 'slice': {
-      // tslint:disable-next-line:no-any
-      const begin = getParamValue('begin', node, tensorMap) as any;
-      // tslint:disable-next-line:no-any
-      const size = getParamValue('size', node, tensorMap) as any;
-      return dl.slice(tensorMap[node.inputNames[0]], begin, size);
-    }
-    case 'fill': {
-      const shape = getParamValue('shape', node, tensorMap) as number[];
-      const value = getParamValue('value', node, tensorMap) as number[];
-      return dl.fill(shape, value[0]);
-    }
-    case 'sub': {
-      return dl.sub(
-          tensorMap[node.inputNames[0]], tensorMap[node.inputNames[1]]);
-    }
-
-    case 'exp': {
-      return dl.exp(tensorMap[node.inputNames[0]]);
-    }
-    case 'relu':
-      return dl.relu(tensorMap[node.inputNames[0]]);
-
-    case 'clip':
-      return dl.clipByValue(
-          tensorMap[node.inputNames[0]],
-          getParamValue('min', node, tensorMap) as number,
-          getParamValue('max', node, tensorMap) as number);
-
-    case 'minimum': {
-      return dl.minimum(
-          tensorMap[node.inputNames[0]], tensorMap[node.inputNames[1]]);
-    }
-    case 'maximum': {
-      return dl.maximum(
-          tensorMap[node.inputNames[0]], tensorMap[node.inputNames[1]]);
-    }
-    case 'max': {
-      const axis = getParamValue('axis', node, tensorMap) as number[];
-      const keepDims = getParamValue('keepDims', node, tensorMap) as boolean;
-      return dl.max(tensorMap[node.inputNames[0]], axis, keepDims);
-    }
-    case 'mean': {
-      const axis = getParamValue('axis', node, tensorMap) as number[];
-      return dl.mean(tensorMap[node.inputNames[0]], axis);
-    }
-    case 'batchNormalization': {
-      return dl.batchNormalization(
-          tensorMap[node.inputNames[0]],
-          getParamValue('mean', node, tensorMap) as dl.Tensor,
-          getParamValue('variance', node, tensorMap) as dl.Tensor,
-          getParamValue('epislon', node, tensorMap) as number,
-          getParamValue('scale', node, tensorMap) as dl.Tensor,
-          getParamValue('offset', node, tensorMap) as dl.Tensor,
-      );
-    }
-    case 'shape': {
-      return dl.Tensor1D.new(tensorMap[node.inputNames[0]].shape, 'int32');
-    }
-    case 'transpose': {
-      return dl.transpose(
-          tensorMap[node.inputNames[3]],
-          getParamValue('perms', node, tensorMap) as number[]);
-    }
-    case 'rsqrt':
-      return dl.div(
-          dl.Scalar.new(1.0, 'float32'),
-          dl.sqrt(tensorMap[node.inputNames[0]]));
-
-    case 'softmax':
-      return dl.softmax(tensorMap[node.inputNames[0]]);
-
-    case 'identity':
-      return tensorMap[node.inputNames[0]];
-
-    case 'concat': {
-      const axis = getParamValue('axis', node, tensorMap) as number[];
-      const inputs = node.inputNames.slice(0, -1).map(name => tensorMap[name]);
-      return dl.concat(inputs, axis[0]);
-    }
-
+  switch (node.category) {
+    case 'arithmetic':
+      return arithmetic.executeOp(node, tensorMap);
+    case 'basic_math':
+      return basicMath.executeOp(node, tensorMap);
+    case 'convolution':
+      return convolution.executeOp(node, tensorMap);
+    case 'creation':
+      return creation.executeOp(node, tensorMap);
+    case 'graph':
+      return graph.executeOp(node, tensorMap);
+    case 'logical':
+      return logical.executeOp(node, tensorMap);
+    case 'matrices':
+      return matrices.executeOp(node, tensorMap);
+    case 'normalization':
+      return normalization.executeOp(node, tensorMap);
+    case 'reduction':
+      return reduction.executeOp(node, tensorMap);
+    case 'slice_join':
+      return sliceJoin.executeOp(node, tensorMap);
+    case 'transformation':
+      return transformation.executeOp(node, tensorMap);
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

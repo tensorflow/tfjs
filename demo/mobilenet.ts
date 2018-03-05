@@ -16,7 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-import {Model, TensorMap} from 'tf-js-converter';
+import {Model, TensorMap} from 'tfjs-converter';
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =

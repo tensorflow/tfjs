@@ -66,7 +66,7 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       op: 'Const',
       attr: {dtype: {type: tensorflow.DataType.DT_INT32}, value: {i: 1}}
     },
-    {name: 'Fill', op: 'Fill', input: ['Shape', 'Value']}, {
+    {name: 'Fill', op: 'Fill', input: ['Shape', 'Value'], attr: {}}, {
       name: 'Conv2D',
       op: 'Conv2D',
       input: ['image_placeholder', 'Const'],
