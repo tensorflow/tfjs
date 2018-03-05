@@ -98,6 +98,15 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
                         napi_value typed_array_value) {
   napi_status nstatus;
 
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK(env, nstatus);
+
+  if (handle->tensor == nullptr) {
+    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in bindBuffer()");
+    return;
+  }
+
   napi_typedarray_type array_type;
   size_t array_length;
   void* array_data;
@@ -106,15 +115,30 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
                                &array_length, &array_data, nullptr, nullptr);
   ENSURE_NAPI_OK(env, nstatus);
 
+  // Double check the underlying TF_Tensor type matches the supplied
+  // typed-array.
+  TF_DataType dtype = TF_TensorType(handle->tensor);
   size_t width = 0;
   switch (array_type) {
     case napi_float32_array:
+      if (dtype != TF_FLOAT) {
+        NAPI_THROW_ERROR(env, "Tensor type does not match Float32Array");
+        return;
+      }
       width = sizeof(float);
       break;
     case napi_int32_array:
+      if (dtype != TF_INT32) {
+        NAPI_THROW_ERROR(env, "Tensor type does not match Int32Array");
+        return;
+      }
       width = sizeof(int32_t);
       break;
     case napi_uint8_array:
+      if (dtype != TF_BOOL) {
+        NAPI_THROW_ERROR(env, "Tensor type does not match Uint8Array");
+        return;
+      }
       width = sizeof(uint8_t);
       break;
     default:
@@ -122,9 +146,11 @@ void BindTensorJSBuffer(napi_env env, napi_value wrapped_value,
       return;
   }
 
-  TensorHandle* handle;
-  nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(env, nstatus);
+  // TODO Ensure that shape matches the allocated TF_Tensor buffer.
+  if (array_length * width != TF_TensorByteSize(handle->tensor)) {
+    NAPI_THROW_ERROR(env, "Tensor shape does not match size of typed array");
+    return;
+  }
 
   memcpy(TF_TensorData(handle->tensor), array_data, array_length * width);
 }
@@ -136,10 +162,13 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
+  if (handle->tensor == nullptr) {
+    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in dataSync()");
+    return;
+  }
+
   // Determine the type of the array
   napi_typedarray_type array_type;
-  void* data = TF_TensorData(handle->tensor);
-  size_t byte_length = TF_TensorByteSize(handle->tensor);
   switch (TF_TensorType(handle->tensor)) {
     case TF_FLOAT:
       array_type = napi_float32_array;
@@ -166,6 +195,9 @@ void GetTensorData(napi_env env, napi_value wrapped_value, napi_value* result) {
     }
   }
 
+  void* data = TF_TensorData(handle->tensor);
+  size_t byte_length = TF_TensorByteSize(handle->tensor);
+
   napi_value array_buffer_value;
   nstatus = napi_create_external_arraybuffer(env, data, byte_length, nullptr,
                                              nullptr, &array_buffer_value);
@@ -183,6 +215,11 @@ void GetTensorShape(napi_env env, napi_value wrapped_value,
   TensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
+
+  if (handle->tensor == nullptr) {
+    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in shape");
+    return;
+  }
 
   uint32_t num_dims = TF_NumDims(handle->tensor);
   nstatus = napi_create_array_with_length(env, num_dims, result);
@@ -205,6 +242,11 @@ void GetTensorDtype(napi_env env, napi_value wrapped_value,
   TensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
+
+  if (handle->tensor == nullptr) {
+    NAPI_THROW_ERROR(env, "Uninitialized TensorHandle used in dtype");
+    return;
+  }
 
   TF_DataType dtype = TF_TensorType(handle->tensor);
   nstatus = napi_create_int32(env, dtype, result);
