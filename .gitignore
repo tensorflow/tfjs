@@ -10,3 +10,4 @@ npm-debug.log
 dist/
 .idea/
 deeplearn-*.tgz
+**/*.pyc
