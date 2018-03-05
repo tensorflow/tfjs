@@ -37,7 +37,8 @@
     "uglify-js": "~3.0.28",
     "watchify": "~3.9.0",
     "handlebars": "^4.0.11",
-    "copyfiles": "^1.2.0"
+    "copyfiles": "^1.2.0",
+    "deeplearn": "^0.5.0"
   },
   "scripts": {
     "prep": "yarn && mkdirp dist",
@@ -52,7 +53,6 @@
   },
   "dependencies": {
     "@types/long": "^3.0.32",
-    "deeplearn": "^0.5.0",
     "protobufjs": "^6.8.0"
   }
 }
