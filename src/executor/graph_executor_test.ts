@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,8 +68,8 @@ describe('GraphExecutor', () => {
   describe('execute graph', () => {
     describe('graph level', () => {
       it('should execute the op', () => {
-        const inputTensor = dl.Scalar.new(1, 'float32');
-        const constTensor = dl.Scalar.new(2, 'float32');
+        const inputTensor = dl.scalar(1);
+        const constTensor = dl.scalar(2);
         const spy =
             spyOn(operations, 'executeOp')
                 .and.callFake((node: operations.Node) => {
