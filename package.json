@@ -1,5 +1,5 @@
 {
-  "name": "tf-js-converter",
+  "name": "tfjs-converter",
   "version": "0.1.0",
   "description": "Tensorflow model converter for javascript",
   "main": "dist/index.js",
@@ -10,6 +10,9 @@
     "url": "https://github.com/tensorflow/web.git"
   },
   "license": "Apache-2.0",
+  "peerDependencies": {
+    "deeplearn": "^0.5.0"
+  },
   "devDependencies": {
     "@types/jasmine": "~2.8.6",
     "@types/seedrandom": "~2.4.27",
@@ -34,11 +37,12 @@
     "uglify-js": "~3.0.28",
     "watchify": "~3.9.0",
     "handlebars": "^4.0.11",
-    "copyfiles": "^1.2.0"
+    "copyfiles": "^1.2.0",
+    "deeplearn": "^0.5.0"
   },
   "scripts": {
     "prep": "yarn && mkdirp dist",
-    "build": "tsc && copyfiles -f src/data/compiled_api.* dist/data && copyfiles -f src/operations/op_list.json src/operations/typings.d.ts dist/operations",
+    "build": "tsc && copyfiles -f src/data/compiled_api.* dist/data && copyfiles -f src/operations/op_list/*.json dist/operations/op_list && copyfiles -f src/operations/typings.d.ts dist/operations",
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . -t verbose",
@@ -49,7 +53,6 @@
   },
   "dependencies": {
     "@types/long": "^3.0.32",
-    "deeplearn": "^0.5.0",
     "protobufjs": "^6.8.0"
   }
 }

@@ -5,9 +5,6 @@
   "main": "dist/tfdemo/index.js",
   "unpkg": "dist/bundle.js",
   "types": "dist/tfdemo/index.d.ts",
-  "peerDependencies": {
-    "tf-js-converter": "0.1.0"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/web.git"
@@ -30,6 +27,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "tf-js-converter": "file:.."
+    "deeplearn": "^0.5.0",
+    "tfjs-converter": "file:.."
   }
 }
