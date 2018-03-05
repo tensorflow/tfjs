@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,64 +16,64 @@
  */
 
 import * as dl from 'deeplearn';
+
 import {TensorMap} from '../../data/types';
 import {Node} from '../index';
+
+import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-/**
- * Executes the op defined by the node object.
- * @param node
- * @param tensorMap contains tensors for executed nodes and weights
- */
-export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
-  switch (node.op) {
-    case 'equal': {
-      return dl.equal(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
+export let executeOp: OpExecutor =
+    (node: Node, tensorMap: TensorMap): dl.Tensor => {
+      switch (node.op) {
+        case 'equal': {
+          return dl.equal(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'greater': {
+          return dl.greater(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'greaterEqual': {
+          return dl.greaterEqual(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'less': {
+          return dl.less(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'lessEqual': {
+          return dl.lessEqual(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'logicalAnd': {
+          return dl.logicalAnd(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'logicalNot': {
+          return dl.logicalNot(
+              getParamValue('a', node, tensorMap) as dl.Tensor);
+        }
+        case 'logicalOr': {
+          return dl.logicalOr(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'where': {
+          return dl.where(
+              getParamValue('condition', node, tensorMap) as dl.Tensor,
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
     }
-    case 'greater': {
-      return dl.greater(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'greaterEqual': {
-      return dl.greaterEqual(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'less': {
-      return dl.less(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'lessEqual': {
-      return dl.lessEqual(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'logicalAnd': {
-      return dl.logicalAnd(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'logicalNot': {
-      return dl.logicalNot(getParamValue('a', node, tensorMap) as dl.Tensor);
-    }
-    case 'logicalOr': {
-      return dl.logicalOr(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'where': {
-      return dl.where(
-          getParamValue('condition', node, tensorMap) as dl.Tensor,
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-}
 
 export const CATEGORY = 'logical';

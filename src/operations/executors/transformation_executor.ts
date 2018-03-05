@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,48 +16,48 @@
  */
 
 import * as dl from 'deeplearn';
+
 import {TensorMap} from '../../data/types';
 import {Node} from '../index';
+
+import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-/**
- * Executes the op defined by the node object.
- * @param node
- * @param tensorMap contains tensors for executed nodes and weights
- */
-export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
-  switch (node.op) {
-    case 'cast': {
-      return dl.cast(
-          getParamValue('x', node, tensorMap) as dl.Tensor,
-          getParamValue('dtype', node, tensorMap) as 'int32' | 'float32' |
-              'bool');
-    }
-    case 'expandDims': {
-      const axis = node.params['axis'].value as number;
-      return dl.expandDims(
-          getParamValue('x', node, tensorMap) as dl.Tensor, axis);
-    }
-    case 'squeeze': {
-      const axis = node.params['axis'].value as number[];
-      return dl.squeeze(getParamValue('x', node, tensorMap) as dl.Tensor, axis);
-    }
+export let executeOp: OpExecutor =
+    (node: Node, tensorMap: TensorMap): dl.Tensor => {
+      switch (node.op) {
+        case 'cast': {
+          return dl.cast(
+              getParamValue('x', node, tensorMap) as dl.Tensor,
+              getParamValue('dtype', node, tensorMap) as 'int32' | 'float32' |
+                  'bool');
+        }
+        case 'expandDims': {
+          const axis = node.params['axis'].value as number;
+          return dl.expandDims(
+              getParamValue('x', node, tensorMap) as dl.Tensor, axis);
+        }
+        case 'squeeze': {
+          const axis = node.params['axis'].value as number[];
+          return dl.squeeze(
+              getParamValue('x', node, tensorMap) as dl.Tensor, axis);
+        }
 
-    case 'reshape': {
-      return dl.reshape(
-          getParamValue('x', node, tensorMap) as dl.Tensor,
-          getParamValue('shape', node, tensorMap) as number[]);
+        case 'reshape': {
+          return dl.reshape(
+              getParamValue('x', node, tensorMap) as dl.Tensor,
+              getParamValue('shape', node, tensorMap) as number[]);
+        }
+        case 'pad': {
+          return dl.pad(
+              getParamValue('x', node, tensorMap) as dl.Tensor,
+              // tslint:disable-next-line:no-any
+              getParamValue('padding', node, tensorMap) as any,
+              getParamValue('constantValue', node, tensorMap) as number);
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
     }
-    case 'pad': {
-      return dl.pad(
-          getParamValue('x', node, tensorMap) as dl.Tensor,
-          // tslint:disable-next-line:no-any
-          getParamValue('padding', node, tensorMap) as any,
-          getParamValue('constantValue', node, tensorMap) as number);
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-}
 
 export const CATEGORY = 'transformation';

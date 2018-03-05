@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,40 +16,39 @@
  */
 
 import * as dl from 'deeplearn';
+
 import {TensorMap} from '../../data/types';
 import {Node} from '../index';
+
+import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-/**
- * Executes the op defined by the node object.
- * @param node
- * @param tensorMap contains tensors for executed nodes and weights
- */
-export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
-  switch (node.op) {
-    case 'batchNormalization': {
-      return dl.batchNormalization(
-          getParamValue('x', node, tensorMap) as dl.Tensor,
-          getParamValue('mean', node, tensorMap) as dl.Tensor,
-          getParamValue('variance', node, tensorMap) as dl.Tensor,
-          getParamValue('epislon', node, tensorMap) as number,
-          getParamValue('scale', node, tensorMap) as dl.Tensor,
-          getParamValue('offset', node, tensorMap) as dl.Tensor);
+export let executeOp: OpExecutor =
+    (node: Node, tensorMap: TensorMap): dl.Tensor => {
+      switch (node.op) {
+        case 'batchNormalization': {
+          return dl.batchNormalization(
+              getParamValue('x', node, tensorMap) as dl.Tensor,
+              getParamValue('mean', node, tensorMap) as dl.Tensor,
+              getParamValue('variance', node, tensorMap) as dl.Tensor,
+              getParamValue('epislon', node, tensorMap) as number,
+              getParamValue('scale', node, tensorMap) as dl.Tensor,
+              getParamValue('offset', node, tensorMap) as dl.Tensor);
+        }
+        case 'localResponseNormalization': {
+          return dl.localResponseNormalization(
+              getParamValue('x', node, tensorMap) as dl.Tensor3D | dl.Tensor4D,
+              getParamValue('radius', node, tensorMap) as number,
+              getParamValue('bias', node, tensorMap) as number,
+              getParamValue('alpha', node, tensorMap) as number,
+              getParamValue('beta', node, tensorMap) as number);
+        }
+        case 'softmax': {
+          return dl.softmax(getParamValue('x', node, tensorMap) as dl.Tensor);
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
     }
-    case 'localResponseNormalization': {
-      return dl.localResponseNormalization(
-          getParamValue('x', node, tensorMap) as dl.Tensor3D | dl.Tensor4D,
-          getParamValue('radius', node, tensorMap) as number,
-          getParamValue('bias', node, tensorMap) as number,
-          getParamValue('alpha', node, tensorMap) as number,
-          getParamValue('beta', node, tensorMap) as number);
-    }
-    case 'softmax': {
-      return dl.softmax(getParamValue('x', node, tensorMap) as dl.Tensor);
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-}
 
 export const CATEGORY = 'normalization';

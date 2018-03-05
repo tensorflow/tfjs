@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {DataType, DType} from 'deeplearn/dist/types';
+
 import {tensorflow} from '../data/index';
 
 import {ParamValue} from './index';
@@ -28,7 +30,6 @@ import * as normalization from './op_list/normalization.json';
 import * as reduction from './op_list/reduction.json';
 import * as sliceJoin from './op_list/slice_join.json';
 import * as transformation from './op_list/transformation.json';
-
 import {Graph, Node, OpMapper} from './types';
 
 export class OperationMapper {
@@ -132,7 +133,7 @@ export class OperationMapper {
               break;
             case 'dtype':
               value = this.getDtypeParam(
-                  node.attr, param.tfParamName, param.defaultValue as string);
+                  node.attr, param.tfParamName, param.defaultValue as DataType);
               break;
             case 'tensor':
             case 'tensors':
@@ -176,7 +177,7 @@ export class OperationMapper {
   }
   private getDtypeParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
-      def: string): string {
+      def: DataType): DataType {
     const param = attrs[name];
     if (param && param.type) {
       switch (param.type) {

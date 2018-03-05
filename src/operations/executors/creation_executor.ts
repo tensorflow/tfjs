@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,82 +16,82 @@
  */
 
 import * as dl from 'deeplearn';
+import {DataType} from 'deeplearn/dist/types';
+import {DType, ShapeMap} from 'deeplearn/dist/types';
+
 import {TensorMap} from '../../data/types';
 import {Node} from '../index';
+
+import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-/**
- * Executes the op defined by the node object.
- * @param node
- * @param tensorMap contains tensors for executed nodes and weights
- */
-export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
-  switch (node.op) {
-    case 'fill': {
-      const shape = getParamValue('shape', node, tensorMap) as number[];
-      const value = getParamValue('value', node, tensorMap) as number;
-      return dl.fill(shape, value);
+export let executeOp: OpExecutor =
+    (node: Node, tensorMap: TensorMap): dl.Tensor => {
+      switch (node.op) {
+        case 'fill': {
+          const shape = getParamValue('shape', node, tensorMap) as number[];
+          const value = getParamValue('value', node, tensorMap) as number;
+          return dl.fill(shape, value);
+        }
+        case 'linspace': {
+          const start = getParamValue('start', node, tensorMap) as number;
+          const stop = getParamValue('stop', node, tensorMap) as number;
+          const num = getParamValue('num', node, tensorMap) as number;
+          return dl.linspace(start, stop, num);
+        }
+        case 'oneHot': {
+          const indices =
+              getParamValue('indices', node, tensorMap) as dl.Tensor1D;
+          const depth = getParamValue('depth', node, tensorMap) as number;
+          const onValue = getParamValue('onValue', node, tensorMap) as number;
+          const offValue = getParamValue('offValue', node, tensorMap) as number;
+          return dl.oneHot(indices, depth, onValue, offValue);
+        }
+        case 'ones': {
+          return dl.ones(
+              getParamValue('shape', node, tensorMap) as number[],
+              getParamValue('dtype', node, tensorMap) as DataType);
+        }
+        case 'onesLike': {
+          return dl.onesLike(getParamValue('x', node, tensorMap) as dl.Tensor);
+        }
+        case 'randomUniform': {
+          return dl.randomUniform(
+              // tslint:disable-next-line:no-any
+              getParamValue('shape', node, tensorMap) as any,
+              getParamValue('minval', node, tensorMap) as number,
+              getParamValue('maxval', node, tensorMap) as number,
+              getParamValue('dtype', node, tensorMap) as DataType);
+        }
+        case 'range': {
+          const start = getParamValue('start', node, tensorMap) as number;
+          const stop = getParamValue('stop', node, tensorMap) as number;
+          const step = getParamValue('step', node, tensorMap) as number;
+          return dl.range(
+              start, stop, step,
+              getParamValue('dtype', node, tensorMap) as 'float32' | 'int32');
+        }
+        case 'truncatedNormal': {
+          const shape = getParamValue('shape', node, tensorMap) as number[];
+          const mean = getParamValue('mean', node, tensorMap) as number;
+          const stdDev = getParamValue('stdDev', node, tensorMap) as number;
+          const seed = getParamValue('seed', node, tensorMap) as number;
+          return dl.truncatedNormal(
+              shape, mean, stdDev,
+              getParamValue('dtype', node, tensorMap) as 'float32' | 'int32',
+              seed);
+        }
+        case 'zeros': {
+          return dl.zeros(
+              getParamValue('shape', node, tensorMap) as number[],
+              getParamValue('dtype', node, tensorMap) as DataType);
+        }
+        case 'zerosLike': {
+          return dl.zerosLike(getParamValue('x', node, tensorMap) as dl.Tensor);
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
     }
-    case 'linspace': {
-      const start = getParamValue('start', node, tensorMap) as number;
-      const stop = getParamValue('stop', node, tensorMap) as number;
-      const num = getParamValue('num', node, tensorMap) as number;
-      return dl.linspace(start, stop, num);
-    }
-    case 'oneHot': {
-      const indices = getParamValue('indices', node, tensorMap) as dl.Tensor1D;
-      const depth = getParamValue('depth', node, tensorMap) as number;
-      const onValue = getParamValue('onValue', node, tensorMap) as number;
-      const offValue = getParamValue('offValue', node, tensorMap) as number;
-      return dl.oneHot(indices, depth, onValue, offValue);
-    }
-    case 'ones': {
-      return dl.ones(
-          getParamValue('shape', node, tensorMap) as number[],
-          getParamValue('dtype', node, tensorMap) as 'float32' | 'int32' |
-              'bool');
-    }
-    case 'onesLike': {
-      return dl.onesLike(getParamValue('x', node, tensorMap) as dl.Tensor);
-    }
-    case 'randomUniform': {
-      return dl.randomUniform(
-          // tslint:disable-next-line:no-any
-          getParamValue('shape', node, tensorMap) as any,
-          getParamValue('minval', node, tensorMap) as number,
-          getParamValue('maxval', node, tensorMap) as number,
-          getParamValue('dtype', node, tensorMap) as 'float32' | 'int32' |
-              'bool');
-    }
-    case 'range': {
-      const start = getParamValue('start', node, tensorMap) as number;
-      const stop = getParamValue('stop', node, tensorMap) as number;
-      const step = getParamValue('step', node, tensorMap) as number;
-      return dl.range(
-          start, stop, step,
-          getParamValue('dtype', node, tensorMap) as 'float32' | 'int32');
-    }
-    case 'truncatedNormal': {
-      const shape = getParamValue('shape', node, tensorMap) as number[];
-      const mean = getParamValue('mean', node, tensorMap) as number;
-      const stdDev = getParamValue('stdDev', node, tensorMap) as number;
-      const seed = getParamValue('seed', node, tensorMap) as number;
-      return dl.truncatedNormal(
-          shape, mean, stdDev,
-          getParamValue('dtype', node, tensorMap) as 'float32' | 'int32', seed);
-    }
-    case 'zeros': {
-      return dl.zeros(
-          getParamValue('shape', node, tensorMap) as number[],
-          getParamValue('dtype', node, tensorMap) as 'float32' | 'int32' |
-              'bool');
-    }
-    case 'zerosLike': {
-      return dl.zerosLike(getParamValue('x', node, tensorMap) as dl.Tensor);
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-}
 
 export const CATEGORY = 'creation';

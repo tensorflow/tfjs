@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,54 +16,53 @@
  */
 
 import * as dl from 'deeplearn';
+
 import {TensorMap} from '../../data/types';
 import {Node} from '../index';
+
+import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-/**
- * Executes the op defined by the node object.
- * @param node
- * @param tensorMap contains tensors for executed nodes and weights
- */
-export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
-  switch (node.op) {
-    case 'add': {
-      return dl.add(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'mul':
-      return dl.mul(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    case 'div': {
-      return dl.div(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'sub': {
-      return dl.sub(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'minimum': {
-      return dl.minimum(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'maximum': {
-      return dl.maximum(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    case 'pow': {
-      return dl.pow(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor);
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-}
+export let executeOp: OpExecutor =
+    (node: Node, tensorMap: TensorMap): dl.Tensor => {
+      switch (node.op) {
+        case 'add': {
+          return dl.add(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'mul':
+          return dl.mul(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        case 'div': {
+          return dl.div(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'sub': {
+          return dl.sub(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'minimum': {
+          return dl.minimum(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'maximum': {
+          return dl.maximum(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        case 'pow': {
+          return dl.pow(
+              getParamValue('a', node, tensorMap) as dl.Tensor,
+              getParamValue('b', node, tensorMap) as dl.Tensor);
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
+    };
 
 export const CATEGORY = 'arithmetic';

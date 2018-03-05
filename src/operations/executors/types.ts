@@ -17,30 +17,12 @@
 
 import * as dl from 'deeplearn';
 
-import {TensorMap} from '../../data/types';
+import {TensorMap} from '../../data/index';
 import {Node} from '../index';
 
-import {OpExecutor} from './types';
-import {getParamValue} from './utils';
-
-export let executeOp: OpExecutor =
-    (node: Node, tensorMap: TensorMap): dl.Tensor => {
-      switch (node.op) {
-        case 'const': {
-          return tensorMap[node.name];
-        }
-        case 'placeholder':
-          return tensorMap[node.name];
-        case 'identity':
-          return getParamValue('x', node, tensorMap) as dl.Tensor;
-        case 'shape':
-          return dl.tensor1d(
-              (getParamValue('x', node, tensorMap) as dl.Tensor).shape,
-              'int32');
-
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
-    }
-
-export const CATEGORY = 'graph';
+/**
+ * Executes the op defined by the node object.
+ * @param node mapped deeplearn node from the tensorflow NodeDef object
+ * @param tensorMap contains tensors for executed nodes and weights
+ */
+export interface OpExecutor { (node: Node, tensorMap: TensorMap): dl.Tensor; }
