@@ -18,9 +18,7 @@
     resultElement.innerText = 'Predicting...';
 
     const pixels = dl.Array3D.fromPixels(cat);
-
     const result = await mobileNet.predict(pixels);
-
     resultElement.innerText = '';
 
     const topK = await mobileNet.getTopKClasses(result, 5);
