@@ -41,6 +41,9 @@
 
 namespace tfnodejs {
 
+#define NAPI_THROW_ERROR(env, message) \
+  NapiThrowError(env, message, __FILE__, __LINE__);
+
 inline void NapiThrowError(napi_env env, const char* message, const char* file,
                            const size_t lineNumber) {
   DEBUG_LOG(message, file, lineNumber);
@@ -48,9 +51,11 @@ inline void NapiThrowError(napi_env env, const char* message, const char* file,
 }
 
 #define ENSURE_NAPI_OK(env, status) \
-  EnsureNapiOK(env, status, __FILE__, __LINE__)
+  if (!EnsureNapiOK(env, status, __FILE__, __LINE__)) return;
+#define ENSURE_NAPI_OK_RETVAL(env, status, retval) \
+  if (!EnsureNapiOK(env, status, __FILE__, __LINE__)) return retval;
 
-inline void EnsureNapiOK(napi_env env, napi_status status, const char* file,
+inline bool EnsureNapiOK(napi_env env, napi_status status, const char* file,
                          const size_t lineNumber) {
   if (status != napi_ok) {
     const napi_extended_error_info* error_info = 0;
@@ -60,66 +65,87 @@ inline void EnsureNapiOK(napi_env env, napi_status status, const char* file,
     oss << "Invalid napi_status: " << error_info->error_message;
     NapiThrowError(env, oss.str().c_str(), file, lineNumber);
   }
+  return status == napi_ok;
 }
 
-#define ENSURE_TF_OK(env, status) EnsureTFOK(env, status, __FILE__, __LINE__)
+#define ENSURE_TF_OK(env, status) \
+  if (!EnsureTFOK(env, status, __FILE__, __LINE__)) return;
+#define ENSURE_TF_OK_RETVAL(env, status, retval) \
+  if (!EnsureTFOK(env, status, __FILE__, __LINE__)) return retval;
 
-inline void EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
+inline bool EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
                        const size_t lineNumber) {
-  if (TF_GetCode(status.status) != TF_OK) {
+  TF_Code tf_code = TF_GetCode(status.status);
+  if (tf_code != TF_OK) {
     std::ostringstream oss;
     oss << "Invalid TF_Status: " << TF_GetCode(status.status);
     NapiThrowError(env, oss.str().c_str(), file, lineNumber);
   }
+  return tf_code == TF_OK;
 }
 
-#define ENSURE_CONSTRUCTOR_CALL(env, nstatus) \
-  EnsureConstructorCall(env, info, __FILE__, __LINE__)
+#define ENSURE_CONSTRUCTOR_CALL(env, info) \
+  if (!EnsureConstructorCall(env, info, __FILE__, __LINE__)) return;
+#define ENSURE_CONSTRUCTOR_CALL_RETVAL(env, info, retval) \
+  if (!EnsureConstructorCall(env, info, __FILE__, __LINE__)) return retval;
 
-inline void EnsureConstructorCall(napi_env env, napi_callback_info info,
+inline bool EnsureConstructorCall(napi_env env, napi_callback_info info,
                                   const char* file, const size_t lineNumber) {
   napi_value js_target;
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
-  ENSURE_NAPI_OK(env, nstatus);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, false);
   if (js_target == nullptr) {
     NapiThrowError(env, "Function not used as a constructor!", file,
                    lineNumber);
   }
+  return js_target != nullptr;
 }
 
 #define ENSURE_VALUE_IS_ARRAY(env, value) \
-  EnsureValueIsArray(env, value, __FILE__, __LINE__)
+  if (!EnsureValueIsArray(env, value, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_ARRAY_RETVAL(env, value, retval) \
+  if (!EnsureValueIsArray(env, value, __FILE__, __LINE__)) return retval;
 
-inline void EnsureValueIsArray(napi_env env, napi_value value, const char* file,
+inline bool EnsureValueIsArray(napi_env env, napi_value value, const char* file,
                                const size_t lineNumber) {
   bool is_array;
-  ENSURE_NAPI_OK(env, napi_is_array(env, value, &is_array));
+  ENSURE_NAPI_OK_RETVAL(env, napi_is_array(env, value, &is_array), false);
   if (!is_array) {
     NapiThrowError(env, "Argument is not an array!", file, lineNumber);
   }
+  return is_array;
 }
 
 #define ENSURE_VALUE_IS_TYPED_ARRAY(env, value) \
-  EnsureValueIsTypedArray(env, value, __FILE__, __LINE__)
+  if (!EnsureValueIsTypedArray(env, value, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, value, retval) \
+  if (!EnsureValueIsTypedArray(env, value, __FILE__, __LINE__)) return retval;
 
-inline void EnsureValueIsTypedArray(napi_env env, napi_value value,
+inline bool EnsureValueIsTypedArray(napi_env env, napi_value value,
                                     const char* file, const size_t lineNumber) {
   bool is_array;
-  ENSURE_NAPI_OK(env, napi_is_typedarray(env, value, &is_array));
+  ENSURE_NAPI_OK_RETVAL(env, napi_is_typedarray(env, value, &is_array), false);
   if (!is_array) {
     NapiThrowError(env, "Argument is not a typed-array!", file, lineNumber);
   }
+  return is_array;
 }
 
 #define ENSURE_VALUE_IS_LESS_THAN(env, value, max) \
-  EnsureValueIsLessThan(env, value, max, __FILE__, __LINE__)
+  if (!EnsureValueIsLessThan(env, value, max, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_LESS_THAN_RETVAL(env, value, max, retval)  \
+  if (!EnsureValueIsLessThan(env, value, max, __FILE__, __LINE__)) \
+    return retval;
 
-inline void EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
+inline bool EnsureValueIsLessThan(napi_env env, uint32_t value, uint32_t max,
                                   const char* file, const size_t lineNumber) {
   if (value > max) {
     std::ostringstream oss;
     oss << "Argument is greater than max: " << value << " > " << max;
     NapiThrowError(env, oss.str().c_str(), file, lineNumber);
+    return false;
+  } else {
+    return true;
   }
 }
 

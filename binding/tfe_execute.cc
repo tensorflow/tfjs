@@ -133,6 +133,17 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   nstatus = napi_unwrap(env, context, reinterpret_cast<void**>(&context_env));
   ENSURE_NAPI_OK(env, nstatus);
 
+  // Ensure default constructor was used on the output Tensor (pointers be
+  // nullptr).
+  TensorHandle* handle;
+  nstatus = napi_unwrap(env, output_tensor, reinterpret_cast<void**>(&handle));
+  ENSURE_NAPI_OK(env, nstatus);
+  if (handle->tensor != nullptr || handle->handle != nullptr) {
+    NAPI_THROW_ERROR(
+        env, "Invalid output Tensor not built with default constructor");
+    return;
+  }
+
   TF_AutoStatus tf_status;
   TFE_Op* tfe_op = TFE_NewOp(context_env->context, opName, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
@@ -165,6 +176,14 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     ENSURE_NAPI_OK(env, nstatus);
 
     AssignOpAttr(env, tfe_op, cur_op_attr);
+
+    // Check to see if an exception exists, if so return a failure.
+    bool has_exception = false;
+    nstatus = napi_is_exception_pending(env, &has_exception);
+    ENSURE_NAPI_OK(env, nstatus);
+    if (has_exception) {
+      return;
+    }
   }
 
   int num_retvals = 1;
@@ -176,11 +195,8 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   TFE_Execute(tfe_op, result_handles.data(), &num_retvals, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
-  // Unwrap and assign
-  TensorHandle* handle;
-  nstatus = napi_unwrap(env, output_tensor, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(env, nstatus);
-
+  // Swap pointers on the output tensor. This tensor is ensured to have nullptr
+  // for all references so no cleanup is needed.
   handle->handle = result_handles[0];
   handle->tensor = TFE_TensorHandleResolve(result_handles[0], tf_status.status);
   ENSURE_TF_OK(env, tf_status);
