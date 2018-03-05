@@ -188,9 +188,6 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static pow<T extends Tensor>(base: T, exp: Tensor): T {
-    util.assert(
-        exp.dtype === 'int32',
-        'only supports int32 data type for the exponent parameter.');
     broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
 
     const grad = (dy: Tensor) => {
@@ -200,8 +197,9 @@ export class BinaryOps {
             `Gradient of pow not yet supported for broadcasted shapes.`);
       }
       const derBase = () => {
-        const dx = exp.toFloat().mul(
-                       base.pow(exp.sub(scalar(1, 'int32'))).toFloat()) as T;
+        const expFloat = exp.toFloat();
+        const dx = expFloat.mul(
+                       base.toFloat().pow(expFloat.sub(scalar(1)))) as T;
         return dy.mulStrict(dx) as T;
       };
       return {base: derBase};
