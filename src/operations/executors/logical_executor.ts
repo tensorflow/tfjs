@@ -23,57 +23,56 @@ import {Node} from '../index';
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor =
-    (node: Node, tensorMap: TensorMap): dl.Tensor => {
-      switch (node.op) {
-        case 'equal': {
-          return dl.equal(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        case 'greater': {
-          return dl.greater(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        case 'greaterEqual': {
-          return dl.greaterEqual(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        case 'less': {
-          return dl.less(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        case 'lessEqual': {
-          return dl.lessEqual(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        case 'logicalAnd': {
-          return dl.logicalAnd(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        case 'logicalNot': {
-          return dl.logicalNot(
-              getParamValue('a', node, tensorMap) as dl.Tensor);
-        }
-        case 'logicalOr': {
-          return dl.logicalOr(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        case 'where': {
-          return dl.where(
-              getParamValue('condition', node, tensorMap) as dl.Tensor,
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
-        }
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
+export let executeOp: OpExecutor = (node: Node,
+                                    tensorMap: TensorMap): dl.Tensor => {
+  switch (node.op) {
+    case 'equal': {
+      return dl.equal(
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
     }
+    case 'greater': {
+      return dl.greater(
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
+    }
+    case 'greaterEqual': {
+      return dl.greaterEqual(
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
+    }
+    case 'less': {
+      return dl.less(
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
+    }
+    case 'lessEqual': {
+      return dl.lessEqual(
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
+    }
+    case 'logicalAnd': {
+      return dl.logicalAnd(
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
+    }
+    case 'logicalNot': {
+      return dl.logicalNot(getParamValue('a', node, tensorMap) as dl.Tensor);
+    }
+    case 'logicalOr': {
+      return dl.logicalOr(
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
+    }
+    case 'where': {
+      return dl.where(
+          getParamValue('condition', node, tensorMap) as dl.Tensor,
+          getParamValue('a', node, tensorMap) as dl.Tensor,
+          getParamValue('b', node, tensorMap) as dl.Tensor);
+    }
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+};
 
 export const CATEGORY = 'logical';

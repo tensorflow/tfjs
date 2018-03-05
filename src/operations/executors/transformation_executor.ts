@@ -23,41 +23,40 @@ import {Node} from '../index';
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor =
-    (node: Node, tensorMap: TensorMap): dl.Tensor => {
-      switch (node.op) {
-        case 'cast': {
-          return dl.cast(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
-              getParamValue('dtype', node, tensorMap) as 'int32' | 'float32' |
-                  'bool');
-        }
-        case 'expandDims': {
-          const axis = node.params['axis'].value as number;
-          return dl.expandDims(
-              getParamValue('x', node, tensorMap) as dl.Tensor, axis);
-        }
-        case 'squeeze': {
-          const axis = node.params['axis'].value as number[];
-          return dl.squeeze(
-              getParamValue('x', node, tensorMap) as dl.Tensor, axis);
-        }
-
-        case 'reshape': {
-          return dl.reshape(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
-              getParamValue('shape', node, tensorMap) as number[]);
-        }
-        case 'pad': {
-          return dl.pad(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
-              // tslint:disable-next-line:no-any
-              getParamValue('padding', node, tensorMap) as any,
-              getParamValue('constantValue', node, tensorMap) as number);
-        }
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
+export let executeOp: OpExecutor = (node: Node,
+                                    tensorMap: TensorMap): dl.Tensor => {
+  switch (node.op) {
+    case 'cast': {
+      return dl.cast(
+          getParamValue('x', node, tensorMap) as dl.Tensor,
+          getParamValue('dtype', node, tensorMap) as 'int32' | 'float32' |
+              'bool');
     }
+    case 'expandDims': {
+      const axis = node.params['axis'].value as number;
+      return dl.expandDims(
+          getParamValue('x', node, tensorMap) as dl.Tensor, axis);
+    }
+    case 'squeeze': {
+      const axis = node.params['axis'].value as number[];
+      return dl.squeeze(getParamValue('x', node, tensorMap) as dl.Tensor, axis);
+    }
+
+    case 'reshape': {
+      return dl.reshape(
+          getParamValue('x', node, tensorMap) as dl.Tensor,
+          getParamValue('shape', node, tensorMap) as number[]);
+    }
+    case 'pad': {
+      return dl.pad(
+          getParamValue('x', node, tensorMap) as dl.Tensor,
+          // tslint:disable-next-line:no-any
+          getParamValue('padding', node, tensorMap) as any,
+          getParamValue('constantValue', node, tensorMap) as number);
+    }
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+};
 
 export const CATEGORY = 'transformation';

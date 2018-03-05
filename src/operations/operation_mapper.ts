@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType, DType} from 'deeplearn/dist/types';
+import {DataType} from 'deeplearn/dist/types';
 
 import {tensorflow} from '../data/index';
 

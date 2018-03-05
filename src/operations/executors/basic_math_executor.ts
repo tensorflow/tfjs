@@ -23,66 +23,65 @@ import {Node} from '../index';
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor =
-    (node: Node, tensorMap: TensorMap): dl.Tensor => {
-      switch (node.op) {
-        case 'abs':
-          return dl.abs(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'acos':
-          return dl.acos(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'asin':
-          return dl.asin(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'atan':
-          return dl.atan(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'ceil':
-          return dl.ceil(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'cos':
-          return dl.cos(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'cosh':
-          return dl.cosh(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'elu':
-          return dl.elu(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'exp':
-          return dl.exp(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'floor':
-          return dl.floor(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'log':
-          return dl.log(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'relu':
-          return dl.relu(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'selu':
-          return dl.selu(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'sigmoid':
-          return dl.sigmoid(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'sin':
-          return dl.sin(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'sinh': {
-          return dl.sinh(getParamValue('x', node, tensorMap) as dl.Tensor);
-        }
-        case 'sqrt': {
-          return dl.sqrt(getParamValue('x', node, tensorMap) as dl.Tensor);
-        }
-        case 'square': {
-          return dl.square(getParamValue('x', node, tensorMap) as dl.Tensor);
-        }
-        case 'tanh': {
-          return dl.tanh(getParamValue('x', node, tensorMap) as dl.Tensor);
-        }
-        case 'tan':
-          return dl.tan(getParamValue('x', node, tensorMap) as dl.Tensor);
-        case 'clipByValue':
-          return dl.clipByValue(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
-              getParamValue('clipValueMin', node, tensorMap) as number,
-              getParamValue('clipValueMax', node, tensorMap) as number);
-        case 'rsqrt':
-          return dl.div(
-              dl.scalar(1.0, 'float32'),
-              dl.sqrt(tensorMap[node.inputNames[0]]));
-
-        default:
-          throw TypeError(`Node type ${node.op} is not implemented`);
-      }
+export let executeOp: OpExecutor = (node: Node,
+                                    tensorMap: TensorMap): dl.Tensor => {
+  switch (node.op) {
+    case 'abs':
+      return dl.abs(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'acos':
+      return dl.acos(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'asin':
+      return dl.asin(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'atan':
+      return dl.atan(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'ceil':
+      return dl.ceil(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'cos':
+      return dl.cos(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'cosh':
+      return dl.cosh(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'elu':
+      return dl.elu(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'exp':
+      return dl.exp(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'floor':
+      return dl.floor(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'log':
+      return dl.log(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'relu':
+      return dl.relu(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'selu':
+      return dl.selu(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'sigmoid':
+      return dl.sigmoid(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'sin':
+      return dl.sin(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'sinh': {
+      return dl.sinh(getParamValue('x', node, tensorMap) as dl.Tensor);
     }
+    case 'sqrt': {
+      return dl.sqrt(getParamValue('x', node, tensorMap) as dl.Tensor);
+    }
+    case 'square': {
+      return dl.square(getParamValue('x', node, tensorMap) as dl.Tensor);
+    }
+    case 'tanh': {
+      return dl.tanh(getParamValue('x', node, tensorMap) as dl.Tensor);
+    }
+    case 'tan':
+      return dl.tan(getParamValue('x', node, tensorMap) as dl.Tensor);
+    case 'clipByValue':
+      return dl.clipByValue(
+          getParamValue('x', node, tensorMap) as dl.Tensor,
+          getParamValue('clipValueMin', node, tensorMap) as number,
+          getParamValue('clipValueMax', node, tensorMap) as number);
+    case 'rsqrt':
+      return dl.div(
+          dl.scalar(1.0, 'float32'), dl.sqrt(tensorMap[node.inputNames[0]]));
+
+    default:
+      throw TypeError(`Node type ${node.op} is not implemented`);
+  }
+};
 
 export const CATEGORY = 'basic_math';

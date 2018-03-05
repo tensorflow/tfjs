@@ -49,6 +49,6 @@ export let executeOp: OpExecutor =
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
       }
-    }
+    };
 
 export const CATEGORY = 'normalization';
