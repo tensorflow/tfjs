@@ -70,14 +70,21 @@ export class OptimizerConstructors {
    * Constructs a `MomentumOptimizer` that uses momentum gradient
    * descent.
    *
+   * See
+   * [http://proceedings.mlr.press/v28/sutskever13.pdf](
+   * http://proceedings.mlr.press/v28/sutskever13.pdf)
+   *
    * @param learningRate The learning rate to use for the Momentum gradient
    * descent algorithm.
    * @param momentum The momentum to use for the momentum gradient descent
    * algorithm.
    */
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
-  static momentum(learningRate: number, momentum: number): MomentumOptimizer {
-    return new MomentumOptimizer(learningRate, momentum);
+  static momentum(learningRate: number, momentum: number, useNesterov = false):
+      MomentumOptimizer {
+    return new MomentumOptimizer(
+        learningRate, momentum,
+        undefined /** @deprecated specifiedVariableList */, useNesterov);
   }
 
   /**

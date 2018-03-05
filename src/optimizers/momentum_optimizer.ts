@@ -25,6 +25,7 @@ import {NDArrayMath} from '../math';
 import {scalar, zerosLike} from '../ops/ops';
 import {Scalar, Tensor} from '../tensor';
 import {NamedVariableMap} from '../types';
+
 import {SGDOptimizer} from './sgd_optimizer';
 
 /** @doclink Optimizer */
@@ -34,7 +35,7 @@ export class MomentumOptimizer extends SGDOptimizer {
 
   constructor(
       protected learningRate: number, private momentum: number,
-      specifiedVariableList?: Node[]) {
+      specifiedVariableList?: Node[], private useNesterov = false) {
     super(learningRate, specifiedVariableList);
     this.m = scalar(this.momentum);
     this.accumulations = {};
@@ -55,10 +56,15 @@ export class MomentumOptimizer extends SGDOptimizer {
       const gradient = variableGradients[variableName];
 
       tidy(() => {
+        let newValue: Tensor;
         const newAccumulation = this.m.mul(accumulation).add(gradient);
+        if (this.useNesterov) {
+          newValue =
+              this.c.mul(gradient.add(newAccumulation.mul(this.m))).add(value);
+        } else {
+          newValue = this.c.mul(newAccumulation).add(value);
+        }
         this.accumulations[variableName].assign(newAccumulation);
-
-        const newValue = this.c.mul(newAccumulation).add(value);
         value.assign(newValue);
       });
     }
@@ -87,19 +93,20 @@ export class MomentumOptimizer extends SGDOptimizer {
       math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
       activationArrayMap: TensorArrayMap,
       gradientArrayMap: SummedTensorArrayMap) {
-    if (this.one == null) {
-      this.one = keep(scalar(1));
-    }
     tidy(() => {
       this.variableNodes.forEach(node => {
         const oldVariable = activationArrayMap.get(node.output);
         const gradient = this.variableGradients.get(node.output);
         const oldVelocity = this.variableVelocitiesGraph.get(node.output);
 
-        const velocity =
-            math.scaledArrayAdd(this.m, oldVelocity, this.one, gradient);
-        const variable =
-            math.scaledArrayAdd(this.cGraph, velocity, this.one, oldVariable);
+        let variable: Tensor;
+        const velocity = this.m.mul(oldVelocity).add(gradient);
+        if (this.useNesterov) {
+          variable = this.cGraph.mul(gradient.add(velocity.mul(this.m)))
+                         .add(oldVariable);
+        } else {
+          variable = this.cGraph.mul(velocity).add(oldVariable);
+        }
 
         this.variableVelocitiesGraph.set(node.output, keep(velocity));
         activationArrayMap.set(node.output, keep(variable));
@@ -117,9 +124,6 @@ export class MomentumOptimizer extends SGDOptimizer {
   dispose() {
     super.dispose();
     this.m.dispose();
-    if (this.one != null) {
-      this.one.dispose();
-    }
     if (this.variableVelocitiesGraph != null) {
       this.variableVelocitiesGraph.dispose();
     }
