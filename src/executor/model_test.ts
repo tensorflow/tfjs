@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -52,7 +52,7 @@ const SIMPLE_MODEL: data.tensorflow.IGraphDef = {
     },
     {name: 'Add', op: 'Add', input: ['Input', 'Const'], attr: {}}
   ],
-  versions: {producer: 1.0}
+  versions: {producer: 1.0, minConsumer: 3}
 };
 
 describe('Model', () => {
@@ -73,7 +73,7 @@ describe('Model', () => {
   describe('predict', () => {
     it('should generate the output', async () => {
       await model.load();
-      const input = dl.Tensor1D.new([1], 'int32');
+      const input = dl.tensor1d([1], 'int32');
       const output = model.predict({'Input': input});
       expect(Object.keys(output)).toEqual(['Add']);
       expect(output['Add'].dataSync()[0]).toEqual(2);
@@ -82,7 +82,7 @@ describe('Model', () => {
 
   describe('dispose', async () => {
     it('should dispose the weights', async () => {
-      const bias = dl.Tensor1D.new([1], 'int32');
+      const bias = dl.tensor1d([1], 'int32');
       spyOn(data, 'buildWeightMap').and.returnValue({'Const': bias});
       spyOn(bias, 'dispose');
 
@@ -90,6 +90,13 @@ describe('Model', () => {
       model.dispose();
 
       expect(bias.dispose).toHaveBeenCalled();
+    });
+  });
+
+  describe('getVersion', async () => {
+    it('should return the version info from the tf model', async () => {
+      await model.load();
+      expect(model.modelVersion).toEqual('1.3');
     });
   });
 });
