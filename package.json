@@ -27,7 +27,7 @@
     "build-npm": "./scripts/build-npm.sh"
   },
   "dependencies": {
-    "deeplearn": "link:../deeplearnjs/",
-    "tfjs-layers": "link:../tfjs-layers/"
+    "@tensorflow/tfjs-core": "link:../deeplearnjs/",
+    "@tensorflow/tfjs-layers": "link:../tfjs-layers/"
   }
 }

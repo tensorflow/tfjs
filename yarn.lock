@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@tensorflow/tfjs-core@link:../deeplearnjs":
+  version "0.0.0"
+  uid ""
+
+"@tensorflow/tfjs-layers@link:../tfjs-layers":
+  version "0.0.0"
+  uid ""
+
 acorn@^3.2.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-3.3.0.tgz#45e37fb39e8da3f25baee3ff5369e2bb5f22017a"
@@ -50,10 +58,6 @@ commander@~2.11.0:
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
-
-"deeplearn@link:../deeplearnjs":
-  version "0.0.0"
-  uid ""
 
 estree-walker@^0.2.1:
   version "0.2.1"
@@ -349,10 +353,6 @@ seedrandom@~2.4.3:
 source-map@~0.5.1:
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
-
-"tfjs-layers@link:../tfjs-layers":
-  version "0.0.0"
-  uid ""
 
 typescript@2.7.2:
   version "2.7.2"
