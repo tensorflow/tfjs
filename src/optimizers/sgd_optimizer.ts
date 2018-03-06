@@ -16,12 +16,7 @@
  */
 
 import {ENV} from '../environment';
-import {keep, tidy} from '../globals';
-import {Node} from '../graph/graph';
-import {SessionRuntime} from '../graph/session';
-// tslint:disable-next-line:max-line-length
-import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
-import {NDArrayMath} from '../math';
+import {tidy} from '../globals';
 import {scalar} from '../ops/ops';
 import {Scalar} from '../tensor';
 import {NamedTensorMap} from '../types';
@@ -32,10 +27,8 @@ import {Optimizer} from './optimizer';
 export class SGDOptimizer extends Optimizer {
   protected c: Scalar;
 
-  constructor(
-      protected learningRate: number, /** @deprecated only for graph */
-      specifiedVariableList?: Node[]) {
-    super(learningRate, specifiedVariableList);
+  constructor(protected learningRate: number) {
+    super();
     this.setLearningRate(learningRate);
   }
 
@@ -66,37 +59,5 @@ export class SGDOptimizer extends Optimizer {
 
   dispose() {
     this.c.dispose();
-    if (this.one != null) {
-      this.one.dispose();
-    }
-    super.dispose();
   }
-
-  // Graph
-  /** @deprecated only for graph */
-  afterBatch(
-      math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
-      activationArrayMap: TensorArrayMap,
-      gradientArrayMap: SummedTensorArrayMap) {
-    if (this.one == null) {
-      this.one = keep(scalar(1));
-    }
-    tidy(() => {
-      this.variableNodes.forEach(node => {
-        const oldVariable = activationArrayMap.get(node.output);
-        const gradient = this.variableGradients.get(node.output);
-        const variable =
-            math.scaledArrayAdd(this.cGraph, gradient, this.one, oldVariable);
-        activationArrayMap.set(node.output, keep(variable));
-        node.data = variable;
-
-        oldVariable.dispose();
-      });
-    });
-
-    this.variableGradients.dispose();
-    this.variableGradients = new TensorArrayMap();
-  }
-
-  protected one: Scalar;
 }

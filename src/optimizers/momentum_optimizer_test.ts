@@ -14,14 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import {InputProvider} from '../data/input_provider';
-import {ENV} from '../environment';
-import {Graph} from '../graph/graph';
-import {Session} from '../graph/session';
+
 import * as dl from '../index';
-import {Tensor1D} from '../tensor';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
-import {MomentumOptimizer} from './momentum_optimizer';
 
 describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
   it('basic', () => {
@@ -69,40 +64,6 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
 
     // The only tensor remaining is the argument to variable().
     expect(dl.memory().numTensors).toBe(1);
-  });
-
-  it('graph', () => {
-    const math = ENV.math;
-
-    const inputProvider: InputProvider = {
-      getNextCopy() {
-        return Tensor1D.new([2, 4]);
-      },
-      disposeCopy(example) {}
-    };
-
-    dl.tidy(() => {
-      const g = new Graph();
-      const x = g.placeholder('x', [2]);
-      const w = g.variable('w', dl.zeros([1, 2]));
-      const b = g.variable('b', dl.zeros([1]));
-      const y = g.reduceSum(g.add(g.matmul(w, x), b));
-      const optimizer = new MomentumOptimizer(0.1, 0.5);
-      const session = new Session(g, math);
-      // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
-      // velocity_w = [momentum* old_vel_w1 + x_1,
-      //                momentum* old_vel_w2 + x_2] = [2,4]
-      // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.2, -0.4]
-      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      let wValue = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(wValue, new Float32Array([-.2, -0.4]));
-      // velocity_w = [momentum* old_vel_w1 + x_1,
-      //                momentum* old_vel_w2 + x_2] = [3,6]
-      // w = [ w_old - lr*vel_w1, w_old - lr*vel_w2] = [-0.5, -1.0]
-      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      wValue = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(wValue, new Float32Array([-.5, -1.0]));
-    });
   });
 
   it('basic - with Nesterov', () => {
@@ -154,57 +115,5 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
 
     // The only tensor remaining is the argument to variable().
     expect(dl.memory().numTensors).toBe(1);
-  });
-
-  it('graph - with Nesterov', () => {
-    const math = ENV.math;
-
-    const inputProvider: InputProvider = {
-      getNextCopy() {
-        return Tensor1D.new([2, 4]);
-      },
-      disposeCopy(example) {}
-    };
-
-    dl.tidy(() => {
-      const g = new Graph();
-      const x = g.placeholder('x', [2]);
-      const w = g.variable('w', dl.zeros([1, 2]));
-      const b = g.variable('b', dl.zeros([1]));
-      const y = g.reduceSum(g.add(g.matmul(w, x), b));
-      const optimizer = new MomentumOptimizer(0.1, 0.5, undefined, true);
-      const session = new Session(g, math);
-      // w = reduce_sum(w_1 * x_1 + w_2 * x_2 + b) = [0, 0]
-      // velocity_w = [momentum * old_vel_w1 + x_1,
-      //                momentum * old_vel_w2 + x_2] = [2, 4]
-      // w = [
-      //     w1_old - lr * (vel_w1 * momentum + x_1),
-      //     w2_old - lr * (vel_w2 * momentum + x_2)
-      // ] = [
-      //     0 - 0.1 * (2 * 0.5 + 2),
-      //     0 - 0.1 * (4 * 0.5 + 4),
-      // ]
-      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      let wValue = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(wValue, new Float32Array([-.3, -0.6]));
-      // w = reduce_sum(w_1 * x_1 + w_2 * x_2 + b) = [-0.3, -0.6]
-      // velocity_w = [
-      //    momentum * old_vel_w1 + x_1,
-      //    momentum * old_vel_w2 + x_2
-      // ] = [
-      //    0.5 * 2 + 2,
-      //    0.5 * 4 + 4
-      // ] = [3, 6]
-      // w = [
-      //     w1_old - lr * (vel_w1 * momentum + x_1),
-      //     w2_old - lr * (vel_w2 * momentum + x_2)
-      // ] = [
-      //     -0.3 - 0.1 * (3 * 0.5 + 2),
-      //     -0.6 - 0.1 * (6 * 0.5 + 4),
-      // ] = [-0.65, -1.3]
-      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      wValue = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(wValue, new Float32Array([-.65, -1.3]));
-    });
   });
 });

@@ -553,7 +553,7 @@ export class ShuffleStream<T> extends PrefetchStream<T> {
       protected upstream: DataStream<T>, protected windowSize: number,
       seed?: string) {
     super(upstream, windowSize);
-    this.random = seedrandom(seed);
+    this.random = seedrandom.alea(seed || performance.now().toString());
   }
 
   private randomInt(max: number) {

@@ -82,9 +82,7 @@ export class OptimizerConstructors {
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static momentum(learningRate: number, momentum: number, useNesterov = false):
       MomentumOptimizer {
-    return new MomentumOptimizer(
-        learningRate, momentum,
-        undefined /** @deprecated specifiedVariableList */, useNesterov);
+    return new MomentumOptimizer(learningRate, momentum, useNesterov);
   }
 
   /**
@@ -107,9 +105,7 @@ export class OptimizerConstructors {
   static rmsprop(
       learningRate: number, decay = .9, momentum = 0.0, epsilon = 1e-8):
       RMSPropOptimizer {
-    return new RMSPropOptimizer(
-        learningRate, decay, momentum,
-        undefined /** @deprecated specifiedVariableList */, epsilon);
+    return new RMSPropOptimizer(learningRate, decay, momentum, epsilon);
   }
 
   /**
@@ -125,9 +121,7 @@ export class OptimizerConstructors {
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
       AdamOptimizer {
-    return new AdamOptimizer(
-        learningRate, beta1, beta2, epsilon,
-        undefined /** @deprecated specifiedVariableList */);
+    return new AdamOptimizer(learningRate, beta1, beta2, epsilon);
   }
 
   /**
@@ -143,9 +137,7 @@ export class OptimizerConstructors {
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static adadelta(learningRate = .001, rho = .95, epsilon = 1e-8):
       AdadeltaOptimizer {
-    return new AdadeltaOptimizer(
-        learningRate, rho, undefined /** @deprecated specifiedVariableList */,
-        epsilon);
+    return new AdadeltaOptimizer(learningRate, rho, epsilon);
   }
 
   /**
@@ -163,9 +155,7 @@ export class OptimizerConstructors {
   static adamax(
       learningRate = 0.002, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8,
       decay = 0.0): AdamaxOptimizer {
-    return new AdamaxOptimizer(
-        learningRate, beta1, beta2, epsilon, decay,
-        undefined /** @deprecated specifiedVariableList */);
+    return new AdamaxOptimizer(learningRate, beta1, beta2, epsilon, decay);
   }
 
   /**

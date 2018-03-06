@@ -14,13 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import {InputProvider} from '../data/input_provider';
-import {ENV} from '../environment';
-import {Graph} from '../graph/graph';
-import {Session} from '../graph/session';
+
 import * as dl from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
-import {AdamOptimizer} from './adam_optimizer';
 
 describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
   it('basic', () => {
@@ -81,66 +77,5 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
 
     // The only tensor remaining should be the argument to variable().
     expect(dl.memory().numTensors).toBe(1);
-  });
-
-  it('graph', () => {
-    const math = ENV.math;
-
-    const inputProvider: InputProvider = {
-      getNextCopy() {
-        return dl.tensor1d([2, 4]);
-      },
-      disposeCopy(example) {}
-    };
-
-    dl.tidy(() => {
-      const learningRate = .1;
-      const beta1 = .8;
-      const beta2 = .9;
-
-      const g = new Graph();
-      const x = g.placeholder('x', [2]);
-      const w = g.variable('w', dl.zeros([1, 2]));
-      const b = g.variable('b', dl.zeros([1]));
-      const y = g.reduceSum(g.add(g.matmul(w, x), b));
-      const optimizer = new AdamOptimizer(learningRate, beta1, beta2);
-      const session = new Session(g, math);
-      // w = reduce_sum(w_1*x_1 + w_2*x_2 + b)
-      // new_first_m = [beta1*old_first_m_w1 + (1-beta1)*grad_w1,
-      //                beta1*old_first_m_w2 + (1-beta1)*grad_w2]
-      //             = [.4, .8]
-      // new_second_m = [beta2*old_second_m_w1 + (1-beta2)*grad_w1**2,
-      //                 beta2*old_second_m_w2 + (1-beta2)*grad_w2**2]
-      //              = [.4, 1.6]
-      // m = [new_first_m/(1-acc_beta1)] = [2, 4]
-      // v = [new_second_m/(1-acc_beta2)] = [4, 16]
-      // updates = [m_1/(sqrt(v_1) + eps),
-      //            m_2/(sqrt(v_2) + eps)]
-      //            = [1.0, 1.0]
-      // w = [ w1_old - lr*updates_1, w2_old - lr*updates_2]
-      //            = [-0.1, -0.1]
-      //
-      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(dydw, new Float32Array([-0.1, -0.1]));
-      // new_first_m = [beta1*old_first_m_w1 + (1-beta1)*grad_w1,
-      //                beta1*old_first_m_w2 + (1-beta1)*grad_w2]
-      //             = [0.8*0.4 + 0.2*2, 0.8*0.8 + 0.2*4]
-      //             = [0.72, 1.44]
-      // new_second_m = [beta2*old_second_m_w1 + (1-beta2)*grad_w1**2,
-      //                 beta2*old_second_m_w2 + (1-beta2)*grad_w2**2]
-      //              = [0.9*0.4 + 0.1*4, 0.9*1.6+0.1*16]
-      //              = [0.76, 3.04]
-      // m = [new_first_m/(1-acc_beta1)] = [2, 4]
-      // v = [new_second_m/(1-acc_beta2)] = [4, 16]
-      // updates = [m_1/sqrt(v_1) + eps,
-      //            m_2/sqrt(v_2) + eps]
-      //            = [1.0, 1.0]
-      // w = [ w1_old - lr*updates_1, w2_old - lr*updates_2]
-      //            = [-0.2, -0.2]
-      session.train(y, [{tensor: x, data: inputProvider}], 1, optimizer);
-      const dydw2 = session.activationArrayMap.get(w).dataSync();
-      expectArraysClose(dydw2, new Float32Array([-.2, -.2]));
-    });
   });
 });

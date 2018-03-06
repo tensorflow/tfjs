@@ -17,15 +17,9 @@
 
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
-import {Node} from '../graph/graph';
-import {SessionRuntime} from '../graph/session';
-// tslint:disable-next-line:max-line-length
-import {SummedTensorArrayMap, TensorArrayMap} from '../graph/tensor_array_map';
-import {NDArrayMath} from '../math';
 import {scalar, zerosLike} from '../ops/ops';
-import {Scalar, Tensor, Variable} from '../tensor';
+import {Scalar, Variable} from '../tensor';
 import {NamedVariableMap} from '../types';
-
 import {Optimizer} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
@@ -44,8 +38,8 @@ export class AdamOptimizer extends Optimizer {
 
   constructor(
       protected learningRate: number, beta1: number, beta2: number,
-      epsilon = 1e-8, specifiedVariableList?: Node[]) {
-    super(learningRate, specifiedVariableList);
+      epsilon = 1e-8) {
+    super();
     this.c = keep(scalar(-learningRate));
     this.eps = keep(scalar(epsilon));
     // b1, b2 keep initial value of beta* hyperparameters.
@@ -107,75 +101,7 @@ export class AdamOptimizer extends Optimizer {
     });
   }
 
-  beforeBatch(
-      math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
-      activationArrayMap: TensorArrayMap,
-      gradientArrayMap: SummedTensorArrayMap) {
-    super.beforeBatch(
-        math, batchSize, runtime, activationArrayMap, gradientArrayMap);
-
-    if (this.firstMomentGraph.size() === 0) {
-      this.variableNodes.forEach(node => {
-        this.firstMomentGraph.set(node.output, Tensor.zeros(node.output.shape));
-      });
-    }
-
-    if (this.secondMomentGraph.size() === 0) {
-      this.variableNodes.forEach(node => {
-        this.secondMomentGraph.set(
-            node.output, Tensor.zeros(node.output.shape));
-      });
-    }
-  }
-
-  afterBatch(
-      math: NDArrayMath, batchSize: number, runtime: SessionRuntime,
-      activationArrayMap: TensorArrayMap,
-      gradientArrayMap: SummedTensorArrayMap) {
-    tidy(() => {
-      const oneMinusAccBeta1 = this.one.sub(this.accBeta1);
-      const oneMinusAccBeta2 = this.one.sub(this.accBeta2);
-
-      this.variableNodes.forEach(node => {
-        const oldVariable = activationArrayMap.get(node.output);
-        const gradient = this.variableGradients.get(node.output);
-
-        const oldFirstMoment = this.firstMomentGraph.get(node.output);
-        const oldSecondMoment = this.secondMomentGraph.get(node.output);
-
-        const newFirstMoment = math.scaledArrayAdd(
-            this.beta1, oldFirstMoment, this.oneMinusBeta1, gradient);
-        const newSecondMoment = math.scaledArrayAdd(
-            this.beta2, oldSecondMoment, this.oneMinusBeta2, gradient.square());
-
-        const biasCorrectedFirstMoment = newFirstMoment.div(oneMinusAccBeta1);
-        const biasCorrectedSecondMoment = newSecondMoment.div(oneMinusAccBeta2);
-        const variable = math.scaledArrayAdd(
-            this.cGraph,
-            biasCorrectedFirstMoment.div(
-                this.eps.add(biasCorrectedSecondMoment.sqrt())),
-            this.one, oldVariable);
-        activationArrayMap.set(node.output, keep(variable));
-        node.data = variable;
-
-        this.firstMomentGraph.set(node.output, keep(newFirstMoment));
-        this.secondMomentGraph.set(node.output, keep(newSecondMoment));
-
-        oldVariable.dispose();
-        gradient.dispose();
-        oldFirstMoment.dispose();
-        oldSecondMoment.dispose();
-      });
-      this.accBeta1.assign(this.accBeta1.mul(this.beta1));
-      this.accBeta2.assign(this.accBeta2.mul(this.beta2));
-    });
-
-    this.variableGradients.dispose();
-    this.variableGradients = new TensorArrayMap();
-  }
-
   dispose() {
-    super.dispose();
     this.c.dispose();
     this.eps.dispose();
     this.beta1.dispose();
@@ -185,14 +111,6 @@ export class AdamOptimizer extends Optimizer {
     this.oneMinusBeta1.dispose();
     this.oneMinusBeta2.dispose();
     this.one.dispose();
-
-    if (this.firstMomentGraph != null) {
-      this.firstMomentGraph.dispose();
-    }
-
-    if (this.secondMomentGraph != null) {
-      this.secondMomentGraph.dispose();
-    }
 
     if (this.accumulatedFirstMoment != null) {
       Object.keys(this.accumulatedFirstMoment)
@@ -204,9 +122,4 @@ export class AdamOptimizer extends Optimizer {
           .forEach(name => this.accumulatedSecondMoment[name].dispose());
     }
   }
-
-  // Average of gradient
-  private firstMomentGraph = new TensorArrayMap();
-  // Average of squared gradient
-  private secondMomentGraph = new TensorArrayMap();
 }
