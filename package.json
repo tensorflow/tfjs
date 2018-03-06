@@ -1,0 +1,29 @@
+{
+  "name": "@tensorflow/tfjs",
+  "version": "0.0.1",
+  "description": "An open-source machine learning framework.",
+  "private": true,
+  "main": "dist/index",
+  "jsdelivr": "dist/tf.min.js",
+  "unpkg": "dist/tf.min.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tensorflow/tfjs.git"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "browserify": "~16.1.1",
+    "tsify": "~3.0.4",
+    "typescript": "2.7.2",
+    "uglify-js": "~3.0.28"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build-npm": "./scripts/build-npm.sh"
+  },
+  "dependencies": {
+    "deeplearn": "link:../deeplearnjs/",
+    "tfjs-layers": "link:../tfjs-layers/"
+  }
+}
