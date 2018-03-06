@@ -217,7 +217,7 @@ export abstract class Dataset {
   shuffle(bufferSize: number, seed?: string, reshuffleEachIteration = true):
       Dataset {
     const base = this;
-    const random = seedrandom(seed);
+    const random = seedrandom.alea(seed || performance.now().toString());
     return datasetFromStreamFn(() => {
       let seed2 = random.int32();
       if (reshuffleEachIteration) {

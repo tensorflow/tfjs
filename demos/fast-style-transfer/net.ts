@@ -19,7 +19,7 @@ import * as dl from 'deeplearn';
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/transformnet/';
 
-export class TransformNet implements dl.Model {
+export class TransformNet {
   private variables: {[varName: string]: dl.Tensor};
   private variableDictionary:
       {[styleName: string]: {[varName: string]: dl.Tensor}};

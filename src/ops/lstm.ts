@@ -22,9 +22,9 @@ import {operation} from './operation';
 /**
  * @docalias (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D]
  */
-export interface LSTMCell {
+export type LSTMCellFunc = {
   (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D];
-}
+};
 
 export class LSTMOps {
   /**
@@ -44,7 +44,7 @@ export class LSTMOps {
   @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
   static multiRNNCell(
-      lstmCells: LSTMCell[], data: Tensor2D, c: Tensor2D[], h: Tensor2D[]):
+      lstmCells: LSTMCellFunc[], data: Tensor2D, c: Tensor2D[], h: Tensor2D[]):
       [Tensor2D[], Tensor2D[]] {
     let input = data;
     const newStates = [];

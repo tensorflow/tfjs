@@ -14,12 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import {InputProvider} from '../data/input_provider';
-import {Graph} from '../graph/graph';
-import {Session} from '../graph/session';
+
 import * as dl from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
-import {SGDOptimizer} from './sgd_optimizer';
 
 describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
   it('basic', () => {
@@ -55,27 +52,5 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
     x.dispose();
     // The only tensor remaining is the argument to variable().
     expect(dl.memory().numTensors).toBe(1);
-  });
-
-  it('graph', () => {
-    const inputProvider: InputProvider = {
-      getNextCopy() {
-        return dl.tensor1d([2, 4]);
-      },
-      disposeCopy(example) {}
-    };
-
-    const g = new Graph();
-    const x = g.placeholder('x', [2]);
-    const y = g.square(x);
-    const z = g.add(x, g.constant(3));
-    const w = g.reduceSum(g.add(y, z));
-    const optimizer = new SGDOptimizer(0.1);
-    const session = new Session(g, dl.ENV.math);
-    // w = reduce_sum(x^2 + x + 3)
-    // dw/dx = [2*x_1 + 1, 2*x_2 + 1]
-    session.train(w, [{tensor: x, data: inputProvider}], 1, optimizer);
-    const dwdx = session.gradientArrayMap.get(x).dataSync();
-    expectArraysClose(dwdx, new Float32Array([5, 9]));
   });
 });
