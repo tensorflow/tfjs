@@ -30,7 +30,8 @@ export let executeOp: OpExecutor = (node: Node,
       return tensorMap[node.name];
     }
     case 'placeholder':
-      return tensorMap[node.name];
+      const def = getParamValue('default', node, tensorMap) as dl.Tensor;
+      return tensorMap[node.name] ? tensorMap[node.name] : def;
     case 'identity':
       return getParamValue('x', node, tensorMap) as dl.Tensor;
     case 'shape':

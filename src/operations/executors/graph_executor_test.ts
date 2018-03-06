@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,7 +24,7 @@ import {createTensorAttr} from './test_helper';
 describe('graph', () => {
   let node: Node;
   const input1 = dl.Array1D.new([1]);
-
+  const input2 = dl.Array1D.new([1]);
   beforeEach(() => {
     node = {
       name: 'input1',
@@ -48,6 +48,12 @@ describe('graph', () => {
       it('should return input', () => {
         node.op = 'placeholder';
         expect(executeOp(node, {input1})).toEqual(input1);
+      });
+      it('should return default if input not set', () => {
+        node.inputNames = ['input2'];
+        node.op = 'placeholder';
+        node.params.default = createTensorAttr(0);
+        expect(executeOp(node, {input2})).toEqual(input2);
       });
     });
     describe('identity', () => {
