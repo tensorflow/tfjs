@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    "module": "es6",
-    "moduleResolution": "node",
+    "module": "commonjs",
     "noImplicitAny": true,
     "sourceMap": true,
     "removeComments": true,

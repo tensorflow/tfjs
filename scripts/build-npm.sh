@@ -20,7 +20,7 @@ set -e
 rm -rf dist/
 yarn
 node_modules/.bin/tsc --sourceMap false
-node_modules/.bin/rollup -c
+node_modules/.bin/browserify --standalone tf src/index.ts -p [tsify] > dist/tf.js
 node_modules/.bin/uglifyjs dist/tf.js -c -m -o dist/tf.min.js
 echo "Stored standalone library at dist/tf(.min).js"
 npm pack

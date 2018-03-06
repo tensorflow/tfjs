@@ -15,5 +15,5 @@
  * =============================================================================
  */
 
-export * from '@tensorflow/tfjs-core';
-export * from '@tensorflow/tfjs-layers';
+export * from 'deeplearn';
+export * from 'tfjs-layers';
