@@ -1,0 +1,16 @@
+.vscode/
+scripts/
+src/
+coverage/
+node_modules/
+karma.conf.js
+tensorflow-tfjs-*.tgz
+dist/**/*.js.map
+dist/**/*_test.js
+dist/**/*_test.d.ts
+.travis.yml
+.npmignore
+CONTRIBUTING.md
+tslint.json
+yarn.lock
+tsconfig.json
