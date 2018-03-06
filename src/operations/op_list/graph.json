@@ -1,5 +1,17 @@
 [
   {
+    "tfOpName": "PlaceholderWithDefault",
+    "dlOpName": "placeholder",
+    "category": "graph",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "default",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
     "tfOpName": "Placeholder",
     "dlOpName": "placeholder",
     "category": "graph"

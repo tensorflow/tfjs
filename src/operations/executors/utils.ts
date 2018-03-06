@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google Inc. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,7 @@ import {Node, ValueType} from '../index';
 export function getParamValue(
     paramName: string, node: Node, tensorMap: TensorMap): ValueType {
   const param = node.params[paramName];
-  if (param.inputIndex !== undefined) {
+  if (param && param.inputIndex !== undefined) {
     if (param.type === 'tensor') {
       return tensorMap[node.inputNames[param.inputIndex]];
     }
@@ -35,5 +35,5 @@ export function getParamValue(
         tensorMap[node.inputNames.slice(param.inputIndex)[0]].dataSync());
     return param.type === 'number' ? data[0] : data;
   }
-  return param.value;
+  return param && param.value;
 }
