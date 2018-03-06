@@ -13,5 +13,4 @@ dist/**/*_test.d.ts
 CONTRIBUTING.md
 tslint.json
 yarn.lock
-rollup.config.js
 tsconfig.json
