@@ -45,10 +45,10 @@ const output: string[] = [];
 
 output.push('# Supported Tensorflow Ops\n\n');
 
-generateTable('Arithmetic Graph', (arithmetic as {}) as OpMapper[], output);
-generateTable('Basic Math Graph', (basicMath as {}) as OpMapper[], output);
-generateTable('Convolution Graph', (convolution as {}) as OpMapper[], output);
-generateTable('Tensor Creation Graph', (creation as {}) as OpMapper[], output);
+generateTable('Arithmetic', (arithmetic as {}) as OpMapper[], output);
+generateTable('Basic Math', (basicMath as {}) as OpMapper[], output);
+generateTable('Convolution', (convolution as {}) as OpMapper[], output);
+generateTable('Tensor Creation', (creation as {}) as OpMapper[], output);
 generateTable('Tensorflow Graph', (graph as {}) as OpMapper[], output);
 generateTable('Logical', (logical as {}) as OpMapper[], output);
 generateTable('Matrices', (matrices as {}) as OpMapper[], output);

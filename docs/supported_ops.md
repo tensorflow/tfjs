@@ -1,6 +1,6 @@
 # Supported Tensorflow Ops
 
-## Arithmetic Graph Ops
+## Arithmetic Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|---|
@@ -12,7 +12,7 @@
 |Squeeze|squeeze|
 
 
-## Basic Math Graph Ops
+## Basic Math Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|---|
@@ -24,7 +24,7 @@
 |Squeeze|squeeze|
 
 
-## Convolution Graph Ops
+## Convolution Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|---|
@@ -36,7 +36,7 @@
 |Squeeze|squeeze|
 
 
-## Tensor Creation Graph Ops
+## Tensor Creation Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|---|
