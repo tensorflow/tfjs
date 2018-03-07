@@ -24,13 +24,13 @@ In the above example, generated files are:
 You need to make both model and weight files accessible through an url and feed them to the Model class.
 
 ```typescript
-import {Model} from 'tfjs-converter';
+import {TFModel} from 'tfjs-converter';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/tf_model_zoo/mobilenet_v1_1.0_224/';
 const MODEL_FILE_URL = 'optimized_model.pb';
 const WEIGHT_FILE_URL = 'optimized_model.pb.weight';
 
-const model = new Model(MODEL_FILE_URL, WEIGHT_FILE_URL);
-model.predict({input}) // run the inference on your model.
+const model = new TFModel(MODEL_FILE_URL, WEIGHT_FILE_URL);
+model.eval({input}) // run the inference on your model.
 ```
