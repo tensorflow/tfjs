@@ -3,6 +3,8 @@
 CPU_DARWIN="http://ci.tensorflow.org/view/Nightly/job/nightly-libtensorflow/TYPE=mac-slave/lastSuccessfulBuild/artifact/lib_package/libtensorflow-cpu-darwin-x86_64.tar.gz"
 GPU_LINUX="http://ci.tensorflow.org/view/Nightly/job/nightly-libtensorflow/TYPE=gpu-linux/lastSuccessfulBuild/artifact/lib_package/libtensorflow-gpu-linux-x86_64.tar.gz"
 # TODO(kreeger): Use nightly links when Jenkins TF uses an updated bazel.
+# Build new package:
+# `bazel build --config opt //tensorflow/tools/lib_package:libtensorflow`
 CPU_LINUX="https://storage.googleapis.com/tf-buiilds/libtensorflow.tar.gz"
 # CPU_LINUX="http://ci.tensorflow.org/view/Nightly/job/nightly-libtensorflow/TYPE=cpu-slave/lastSuccessfulBuild/artifact/lib_package/libtensorflow-cpu-linux-x86_64.tar.gz"
 
