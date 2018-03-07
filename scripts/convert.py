@@ -8,6 +8,8 @@ from __future__ import print_function
 import tensorflow as tf
 import sys
 import os
+import json
+
 
 from google.protobuf import text_format
 from absl import flags
@@ -54,6 +56,18 @@ def load_graph(graph_filename):
 
   return graph
 
+# validate the graph nodes are supported
+def validate(nodes):
+  ops = []
+  for filename in os.listdir('src/operations/op_list'):
+    with open('src/operations/op_list/' + filename) as json_data:
+      ops += json.load(json_data)
+
+  names = set([x['tfOpName'] for x in ops])
+  not_supported = set([x.op for x in [x for x in nodes if (x.op not in
+      names)]])
+  return not_supported
+
 def optimize_graph(graph):
   """Takes a Python Graph object and optimizes the graph."""
   rewriter_config = rewriter_config_pb2.RewriterConfig()
@@ -78,7 +92,8 @@ def extract_weights(graph, graph_def):
       for const in constants:
         tensor = graph.get_tensor_by_name(const.name + ':0')
         """save the value of the tensor to the external file"""
-        f.write(tensor.eval(session=sess).tobytes())
+        value = tensor.eval(session=sess)
+        f.write(value if isinstance(value, bytes) else value.tobytes())
 
         """store the index and length of the tensor in the external file"""
         byte_length = tf.size(tensor).eval()
@@ -106,7 +121,11 @@ def main(_):
                           saved_model_tags=FLAGS.saved_model_tags,
                           input_saved_model_dir=FLAGS.saved_model_dir)
   graph = load_graph(FLAGS.output_graph + '.frozen')
-  optimize_graph(graph)
+  unsupported = validate(graph.as_graph_def().node)
+  if len(unsupported) > 0:
+    print('Unsupported Ops in the model\n' + ', '.join(unsupported))
+  else:
+    optimize_graph(graph)
 
 
 if __name__ == '__main__':
