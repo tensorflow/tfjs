@@ -1,6 +1,6 @@
 # Getting started
 
-**TF Web converter** is an open source library to load a pretrained TensorFlow model into the browser and run inference through deeplearn.js.
+**Tensorflow.js converter** is an open source library to load a pretrained TensorFlow model into the browser and run inference through Tensorflow.js.
 
 ## Usage
 
@@ -16,8 +16,8 @@ To build **Tensorflow.js converter** from source, we need to clone the project a
 the dev environment:
 
 ```bash
-$ git clone https://github.com/tensorflow/web.git
-$ cd web
+$ git clone https://github.com/tensorflow/tfjs-converter.git
+$ cd tfjs-converter
 $ yarn prep # Installs dependencies.
 ```
 

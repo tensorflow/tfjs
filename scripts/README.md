@@ -1,10 +1,10 @@
 # Prepare Tensorflow model
 
-**convert.py** is an python script that convert the Tensorflow SavedModel for web consumption.
+**convert.py** is an python script that converts the Tensorflow SavedModel files for web consumption.
 
 ## Usage
 
-`python convert.py --saved_model_dir=/tmp/mobilenet/ --output_node_names='MobilenetV1/Predictions/Reshape_1' --output_graph=/tmp/mobilenet/optimized_model.pb --saved_model_tags=SERVE`
+`python convert.py --saved_model_dir=/tmp/mobilenet/ --output_node_names='MobilenetV1/Predictions/Reshape_1' --output_graph=/tmp/mobilenet/optimized_model.pb --saved_model_tags=serve`
 
 | Options         | Description                                                      | Default value |
 |---|---|---|
@@ -15,8 +15,8 @@
 
 ## Outputs
 
-This script would generate two files, one is model topology, one is the weight collection.
-For the above command example, generated files are:
+This script would generate two files, one is model topology file, one is the weight collection file.
+In the above example, generated files are:
 1. optimized_model.pb (model)
 2. otpimized_model.pb.weight (weight)
 
@@ -32,5 +32,5 @@ const MODEL_FILE_URL = 'optimized_model.pb';
 const WEIGHT_FILE_URL = 'optimized_model.pb.weight';
 
 const model = new Model(MODEL_FILE_URL, WEIGHT_FILE_URL);
-model.predict({...}) // run the inference on your model.
+model.predict({input}) // run the inference on your model.
 ```
