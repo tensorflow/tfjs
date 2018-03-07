@@ -16,7 +16,8 @@
  */
 
 import * as dl from 'deeplearn';
-import {Model, TensorMap} from 'tfjs-converter';
+import {TensorMap, TFModel} from 'tfjs-converter';
+
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
@@ -29,7 +30,7 @@ const OUPUT_NODE_NAME = 'MobilenetV1/Predictions/Reshape_1';
 export class MobileNet {
   // yolo variables
   private PREPROCESS_DIVISOR = dl.Scalar.new(255.0 / 2);
-  private model = new Model(
+  private model = new TFModel(
       GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
       GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_FILE_URL);
   constructor() {}
@@ -57,7 +58,7 @@ export class MobileNet {
         preprocessedInput.reshape([1, ...preprocessedInput.shape]);
     const dict: TensorMap = {};
     dict[INPUT_NODE_NAME] = reshapedInput;
-    return this.model.predict(dict)[OUPUT_NODE_NAME];
+    return this.model.eval(dict)[OUPUT_NODE_NAME];
   }
 
   async getTopKClasses(logits: dl.Tensor1D, topK: number, offset = 0):
