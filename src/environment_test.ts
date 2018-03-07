@@ -238,7 +238,6 @@ describe('Backend', () => {
     });
 
     expect(ENV.findBackend('webgl')).toBe(backend);
-    expect(ENV.math).not.toBeNull();
   });
 
   it('double registration fails', () => {

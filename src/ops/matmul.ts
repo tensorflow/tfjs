@@ -21,12 +21,6 @@ import {Scalar, Tensor1D, Tensor2D} from '../tensor';
 import * as util from '../util';
 import {operation} from './operation';
 
-/** @deprecated Use bools transposeA and transposeB when calling matmul() */
-export enum MatrixOrientation {
-  REGULAR,
-  TRANSPOSED
-}
-
 export class MatmulOps {
   /**
    * Computes the dot product of two matrices, A * B. These must be matrices.
@@ -47,9 +41,6 @@ export class MatmulOps {
   static matMul(
       a: Tensor2D, b: Tensor2D, transposeA = false, transposeB = false):
       Tensor2D {
-    // For backward compatibility.
-    [transposeA, transposeB] = [enumToBool(transposeA), enumToBool(transposeB)];
-
     const innerShapeA = transposeA ? a.shape[0] : a.shape[1];
     const innerShapeB = transposeB ? b.shape[1] : b.shape[0];
 
@@ -167,14 +158,4 @@ export class MatmulOps {
 
     return v1.as2D(-1, 1).matMul(v2.as2D(1, -1));
   }
-}
-
-function enumToBool(transpose: boolean|MatrixOrientation): boolean {
-  if (transpose === MatrixOrientation.REGULAR) {
-    return false;
-  }
-  if (transpose === MatrixOrientation.TRANSPOSED) {
-    return true;
-  }
-  return transpose;
 }

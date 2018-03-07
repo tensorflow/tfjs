@@ -1342,8 +1342,7 @@ describeWithFlags('tile', ALL_ENVS, () => {
 
   it('3D (tile) gradient', () => {
     const x = dl.tensor3d([[[1], [2]], [[3], [4]]], [2, 2, 1]);
-    const dy = dl.tensor3d(
-        [[[1, 10], [2, 20]], [[3, 30], [4, 40]]], [2, 2, 2]);
+    const dy = dl.tensor3d([[[1, 10], [2, 20]], [[3, 30], [4, 40]]], [2, 2, 2]);
     const gradients = dl.grad(x => dl.tile(x, [1, 1, 2]))(x, dy);
     expectArraysClose(
         gradients, dl.tensor3d([[[11], [22]], [[33], [44]]], [2, 2, 1]));
@@ -1352,8 +1351,11 @@ describeWithFlags('tile', ALL_ENVS, () => {
   it('4D (tile) gradient', () => {
     const x = dl.tensor4d([[[[1]], [[2]]], [[[3]], [[4]]]], [2, 2, 1, 1]);
     const dy = dl.tensor4d(
-        [[[[1, 10], [100, 1000]], [[2, 20], [200, 2000]]],
-         [[[3, 30], [300, 3000]], [[4, 40], [400, 4000]]]], [2, 2, 2, 2]);
+        [
+          [[[1, 10], [100, 1000]], [[2, 20], [200, 2000]]],
+          [[[3, 30], [300, 3000]], [[4, 40], [400, 4000]]]
+        ],
+        [2, 2, 2, 2]);
     const gradients = dl.grad(x => dl.tile(x, [1, 1, 2, 2]))(x, dy);
     expectArraysClose(
         gradients,
@@ -1399,7 +1401,7 @@ describeWithFlags('gather', ALL_ENVS, () => {
 
     expect(t2.shape).toEqual([4]);
     expect(t2.dtype).toBe('bool');
-    expect(t2.getValues()).toEqual(new Uint8Array([1, 1, 1, 0]));
+    expect(t2.dataSync()).toEqual(new Uint8Array([1, 1, 1, 0]));
   });
 
   it('int32 (gather)', () => {
@@ -1409,7 +1411,7 @@ describeWithFlags('gather', ALL_ENVS, () => {
 
     expect(t2.shape).toEqual([4]);
     expect(t2.dtype).toBe('int32');
-    expect(t2.getValues()).toEqual(new Int32Array([1, 5, 1, 2]));
+    expect(t2.dataSync()).toEqual(new Int32Array([1, 5, 1, 2]));
   });
 
   it('propagates NaNs', () => {

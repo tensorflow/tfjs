@@ -15,11 +15,10 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {MatrixOrientation} from '../../ops/matmul';
 import {expectArraysClose, expectNumbersClose} from '../../test_util';
 import {GPGPUContext} from './gpgpu_context';
 import * as mulmat_packed_gpu from './mulmat_packed_gpu';
+import {MatrixOrientation} from './mulmat_packed_gpu';
 
 describe('mulmat_packed_gpu (1x1 * 1x1)', () => {
   it('returns a 1x1 matrix', () => {

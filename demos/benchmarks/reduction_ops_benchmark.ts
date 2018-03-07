@@ -40,9 +40,7 @@ function getReductionOp(option: string): (x: dl.Tensor) => dl.Scalar {
 
 export class ReductionOpsCPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string): Promise<number> {
-    const safeMode = false;
-    const math = new dl.NDArrayMath('cpu', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('cpu');
 
     const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
     const op = getReductionOp(option);
@@ -52,8 +50,6 @@ export class ReductionOpsCPUBenchmark implements BenchmarkTest {
       op(input).get();
     });
 
-    math.dispose();
-
     const end = performance.now();
     return end - start;
   }
@@ -61,9 +57,7 @@ export class ReductionOpsCPUBenchmark implements BenchmarkTest {
 
 export class ReductionOpsGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string) {
-    const safeMode = false;
-    const math = new dl.NDArrayMath('webgl', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('webgl');
 
     const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
     const op = getReductionOp(option);
@@ -73,7 +67,6 @@ export class ReductionOpsGPUBenchmark implements BenchmarkTest {
     const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
 
     input.dispose();
-    math.dispose();
 
     return time;
   }

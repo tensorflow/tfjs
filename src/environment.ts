@@ -19,7 +19,6 @@ import * as device_util from './device_util';
 import {doc} from './doc';
 import {Engine, MemoryInfo} from './engine';
 import {KernelBackend} from './kernels/backend';
-import {NDArrayMath} from './math';
 import * as util from './util';
 
 export enum Type {
@@ -193,7 +192,6 @@ const SUPPORTED_BACKENDS: BackendType[] = ['webgl', 'cpu'];
 
 export class Environment {
   private features: Features = {};
-  private globalMath: NDArrayMath;
   private globalEngine: Engine;
   private BACKEND_REGISTRY: {[id: string]: KernelBackend} = {};
   private backends: {[id: string]: KernelBackend} = this.BACKEND_REGISTRY;
@@ -226,7 +224,7 @@ export class Environment {
     if (!(backendType in ENV.backends)) {
       throw new Error(`Backend type '${backendType}' not found in registry`);
     }
-    ENV.globalMath = new NDArrayMath(backendType, safeMode);
+    ENV.initBackend(backendType, safeMode);
   }
 
   /**
@@ -235,7 +233,7 @@ export class Environment {
    */
   @doc({heading: 'Environment'})
   static getBackend(): BackendType {
-    ENV.initEngine();
+    ENV.initDefaultBackend();
     return ENV.currentBackendType;
   }
 
@@ -325,9 +323,8 @@ export class Environment {
 
   reset() {
     this.features = getFeaturesFromURL();
-    if (this.globalMath != null) {
-      this.globalMath.dispose();
-      this.globalMath = null;
+    if (this.globalEngine != null) {
+      this.globalEngine.dispose();
       this.globalEngine = null;
     }
     if (this.backends !== this.BACKEND_REGISTRY) {
@@ -338,12 +335,7 @@ export class Environment {
     }
   }
 
-  setMath(
-      math: NDArrayMath, backend?: BackendType|KernelBackend,
-      safeMode = false) {
-    if (this.globalMath === math) {
-      return;
-    }
+  private initBackend(backend?: BackendType|KernelBackend, safeMode = false) {
     let customBackend = false;
     if (typeof backend === 'string') {
       this.currentBackendType = backend;
@@ -353,7 +345,6 @@ export class Environment {
       this.currentBackendType = 'custom' as BackendType;
     }
     this.globalEngine = new Engine(backend, customBackend, safeMode);
-    this.globalMath = math;
   }
 
   findBackend(name: BackendType): KernelBackend {
@@ -403,21 +394,14 @@ export class Environment {
     }
   }
 
-  /** @deprecated. Use ENV.engine. */
-  get math(): NDArrayMath {
-    this.initEngine();
-    return this.globalMath;
-  }
-
   get engine(): Engine {
-    this.initEngine();
+    this.initDefaultBackend();
     return this.globalEngine;
   }
 
-  private initEngine() {
+  private initDefaultBackend() {
     if (this.globalEngine == null) {
-      this.globalMath =
-          new NDArrayMath(ENV.get('BACKEND'), false /* safeMode */);
+      this.initBackend(ENV.get('BACKEND'), false /* safeMode */);
     }
   }
 }

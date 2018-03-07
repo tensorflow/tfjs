@@ -16,20 +16,21 @@
  */
 
 import * as seedrandom from 'seedrandom';
+
 import {ENV} from '../environment';
-import {NDArrayMath} from '../math';
 import * as axis_util from '../ops/axis_util';
 import * as broadcast_util from '../ops/broadcast_util';
 import * as concat_util from '../ops/concat_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as ops from '../ops/ops';
-import {tensor3d, tensor4d} from '../ops/ops';
+import {buffer, tensor3d, tensor4d} from '../ops/ops';
 import * as selu_util from '../ops/selu_util';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
 import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
 import * as util from '../util';
+
 import {BackendTimingInfo, KernelBackend} from './backend';
 
 export class MathBackendCPU implements KernelBackend {
@@ -1019,7 +1020,7 @@ export class MathBackendCPU implements KernelBackend {
       newShape[i] = x.shape[i] * reps[i];
     }
     const result = ops.buffer(newShape, x.dtype);
-    const values = x.dataSync();
+    const xBuf = x.buffer();
     for (let i = 0; i < result.values.length; ++i) {
       const newLoc = result.indexToLoc(i);
 
@@ -1028,9 +1029,9 @@ export class MathBackendCPU implements KernelBackend {
         originalLoc[i] = newLoc[i] % x.shape[i];
       }
 
-      const originalIndex = x.locToIndex(originalLoc);
+      const originalIndex = xBuf.locToIndex(originalLoc);
 
-      result.values[i] = values[originalIndex];
+      result.values[i] = xBuf.values[originalIndex];
     }
     return result.toTensor() as T;
   }
@@ -1059,11 +1060,12 @@ export class MathBackendCPU implements KernelBackend {
     for (let i = 0; i < newShape.length; i++) {
       newShape[i] = x.shape[perm[i]];
     }
-    const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
-    const result = Tensor.make(newShape, {values: resultValues}) as T;
+    const result = buffer(newShape, x.dtype);
+
+    const xBuf = x.buffer();
     for (let i = 0; i < x.size; ++i) {
-      const loc = x.indexToLoc(i);
+      const loc = xBuf.indexToLoc(i);
 
       // Permute location.
       const newLoc: number[] = new Array(loc.length);
@@ -1072,28 +1074,28 @@ export class MathBackendCPU implements KernelBackend {
       }
 
       const newIndex = result.locToIndex(newLoc);
-      resultValues[newIndex] = values[i];
+      result.values[newIndex] = values[i];
     }
-    return result;
+    return result.toTensor() as T;
   }
 
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     const newShape: number[] = x.shape.slice();
     const indicesValues = indices.dataSync();
     newShape[axis] = indicesValues.length;
-    const result = ops.zeros(newShape, x.dtype) as T;
-    const values = x.dataSync();
-    const resultValues = result.dataSync();
+    const result = buffer(newShape, x.dtype);
+    const xBuf = x.buffer();
+
     for (let i = 0; i < result.size; ++i) {
       const newLoc = result.indexToLoc(i);
 
       const originalLoc: number[] = newLoc.slice();
       originalLoc[axis] = indicesValues[newLoc[axis]];
 
-      const originalIndex = x.locToIndex(originalLoc);
-      resultValues[i] = values[originalIndex];
+      const originalIndex = xBuf.locToIndex(originalLoc);
+      result.values[i] = xBuf.values[originalIndex];
     }
-    return result;
+    return result.toTensor() as T;
   }
 
   private pool(x: Tensor4D, convInfo: Conv2DInfo, poolType: 'max'|'min'|'avg'):
@@ -1476,16 +1478,18 @@ export class MathBackendCPU implements KernelBackend {
     const aBroadcastDims = broadcast_util.getBroadcastDims(a.shape, newShape);
     const bBroadcastDims = broadcast_util.getBroadcastDims(b.shape, newShape);
 
+    const aBuf = a.buffer();
+    const bBuf = b.buffer();
     for (let i = 0; i < result.values.length; ++i) {
       const loc = result.indexToLoc(i);
 
       const aLoc = loc.slice(-a.rank);
       aBroadcastDims.forEach(d => aLoc[d] = 0);
-      const aIndex = a.locToIndex(aLoc);
+      const aIndex = aBuf.locToIndex(aLoc);
 
       const bLoc = loc.slice(-b.rank);
       bBroadcastDims.forEach(d => bLoc[d] = 0);
-      const bIndex = b.locToIndex(bLoc);
+      const bIndex = bBuf.locToIndex(bLoc);
 
       result.values[i] = op(aValues[aIndex], bValues[bIndex]);
     }
@@ -1495,13 +1499,3 @@ export class MathBackendCPU implements KernelBackend {
 }
 
 ENV.registerBackend('cpu', () => new MathBackendCPU());
-
-/** @deprecated Call dl.setBackend('cpu') instead. */
-export class NDArrayMathCPU extends NDArrayMath {
-  constructor(safeMode = false) {
-    console.warn(
-        'new NDArrayMathCPU() is deprecated. Please use ' +
-        'dl.setBackend(\'cpu\').');
-    super('cpu', safeMode);
-  }
-}

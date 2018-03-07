@@ -117,15 +117,11 @@ export function sumOutType(type: DataType) {
   return upcastType(type, 'int32');
 }
 
-export type TensorContainerAny = void|Tensor|string|number|boolean|
-    TensorContainerObject|TensorContainerArray;
-export interface TensorContainerObject { [x: string]: TensorContainer; }
-export interface TensorContainerArray extends Array<TensorContainer> {}
-
-// TODO(smilkov): Remove Promise<TensorContainerAny> in 0.6.0 and make it
-// run-time error.
 /**
  * @docalias void|number|string|Tensor|Tensor[]|{[key:
  * string]:Tensor|number|string}
  */
-export type TensorContainer = TensorContainerAny|Promise<TensorContainerAny>;
+export type TensorContainer = void|Tensor|string|number|boolean|
+    TensorContainerObject|TensorContainerArray;
+export interface TensorContainerObject { [x: string]: TensorContainer; }
+export interface TensorContainerArray extends Array<TensorContainer> {}

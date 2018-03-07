@@ -18,7 +18,6 @@
 import {doc} from './doc';
 import {ENV} from './environment';
 import * as ops from './ops/ops';
-import {RandNormalDataTypes} from './ops/rand';
 import * as tensor_util from './tensor_util';
 import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray} from './types';
 import * as util from './util';
@@ -200,32 +199,6 @@ export class Tensor<R extends Rank = Rank> {
     }
   }
 
-  /** @deprecated Please use dl.ones() */
-  static ones<R extends Rank>(shape: ShapeMap[R], dtype?: DataType): Tensor<R> {
-    return ops.ones(shape, dtype);
-  }
-
-  /** @deprecated Please use dl.zeros() */
-  static zeros<R extends Rank>(shape: ShapeMap[R], dtype?: DataType):
-      Tensor<R> {
-    return ops.zeros(shape, dtype);
-  }
-
-  /** @deprecated Please use dl.onesLike() */
-  static onesLike<T extends Tensor>(x: T): T {
-    return ops.onesLike(x);
-  }
-
-  /** @deprecated Please use dl.zerosLike() */
-  static zerosLike<T extends Tensor>(x: T): T {
-    return ops.zerosLike(x);
-  }
-
-  /** @deprecated Please use dl.clone() */
-  static like<T extends Tensor>(x: T): T {
-    return ops.clone(x);
-  }
-
   /**
    * Makes a new tensor with the provided shape and values. Values should be in
    * a flat array.
@@ -234,40 +207,6 @@ export class Tensor<R extends Rank = Rank> {
                                              R extends Rank = Rank>(
       shape: ShapeMap[R], data: TensorData, dtype?: D): T {
     return new Tensor(shape, dtype, data.values, data.dataId) as T;
-  }
-
-  /** @deprecated Please use dl.fromPixels() */
-  static fromPixels(
-      pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
-      numChannels = 3): Tensor3D {
-    return ops.fromPixels(pixels, numChannels);
-  }
-
-  /** @deprecated Please use dl.rand() */
-  static rand<R extends Rank>(
-      shape: ShapeMap[R], randFunction: () => number,
-      dtype?: DataType): Tensor<R> {
-    return ops.rand(shape, randFunction, dtype);
-  }
-
-  /** @deprecated Please use dl.randomNormal() */
-  static randNormal<R extends Rank>(
-      shape: ShapeMap[R], mean = 0, stdDev = 1,
-      dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
-    return ops.randomNormal(shape, mean, stdDev, dtype, seed);
-  }
-
-  /** @deprecated Please use dl.truncatedNormal() */
-  static randTruncatedNormal<R extends Rank>(
-      shape: ShapeMap[R], mean = 0, stdDev = 1,
-      dtype?: keyof RandNormalDataTypes, seed?: number): Tensor<R> {
-    return ops.truncatedNormal(shape, mean, stdDev, dtype, seed);
-  }
-
-  /** @deprecated Please use dl.randomUniform() */
-  static randUniform<R extends Rank>(
-      shape: ShapeMap[R], a: number, b: number, dtype?: DataType): Tensor<R> {
-    return ops.randomUniform(shape, a, b, dtype);
   }
 
   /** Flatten a Tensor to a 1D array. */
@@ -346,7 +285,13 @@ export class Tensor<R extends Rank = Rank> {
     return this.shape.length;
   }
 
-  /** @deprecated. Use `tensor.buffer().get(...locs)` */
+  /**
+   * Returns the value in the tensor at the provided location.
+   * If using WebGL backend, this is a blocking call.
+   * Prefer calling the `async data()[flatIndex]` method instead.
+   *
+   * @param locs The location indices.
+   */
   get(...locs: number[]) {
     this.throwIfDisposed();
     if (locs.length === 0) {
@@ -357,58 +302,6 @@ export class Tensor<R extends Rank = Rank> {
       index += this.strides[i] * locs[i];
     }
     return this.dataSync()[index];
-  }
-
-  /** @deprecated. Use `tensor.buffer().get(...locs)` */
-  async val(...locs: number[]): Promise<number> {
-    if (locs.length === 0) {
-      locs = [0];
-    }
-    this.throwIfDisposed();
-    await this.data();
-    return this.get(...locs);
-  }
-
-  /** @deprecated. Use `tensor.buffer().locToIndex(locs)` */
-  locToIndex(locs: number[]): number {
-    this.throwIfDisposed();
-    if (this.rank === 0) {
-      return 0;
-    } else if (this.rank === 1) {
-      return locs[0];
-    }
-    let index = locs[locs.length - 1];
-    for (let i = 0; i < locs.length - 1; ++i) {
-      index += this.strides[i] * locs[i];
-    }
-    return index;
-  }
-
-  /** @deprecated. Use `tensor.buffer().indexToLoc(index)` */
-  indexToLoc(index: number): number[] {
-    this.throwIfDisposed();
-    if (this.rank === 0) {
-      return [];
-    } else if (this.rank === 1) {
-      return [index];
-    }
-    const locs: number[] = new Array(this.shape.length);
-    for (let i = 0; i < locs.length - 1; ++i) {
-      locs[i] = Math.floor(index / this.strides[i]);
-      index -= locs[i] * this.strides[i];
-    }
-    locs[locs.length - 1] = index;
-    return locs;
-  }
-
-  /** @deprecated Use dataSync() instead. */
-  getValues(): TypedArray {
-    return this.dataSync();
-  }
-
-  /** @deprecated Use data() instead. */
-  getValuesAsync(): Promise<TypedArray> {
-    return this.data();
   }
 
   /** Returns a `TensorBuffer` that holds the underlying data. */
@@ -1079,12 +972,3 @@ function computeStrides(shape: number[]): number[] {
   }
   return strides;
 }
-
-// Aliases for backwards compatibility.
-export {
-  Tensor as NDArray,
-  Tensor1D as Array1D,
-  Tensor2D as Array2D,
-  Tensor3D as Array3D,
-  Tensor4D as Array4D
-};

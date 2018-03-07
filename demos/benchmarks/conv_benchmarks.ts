@@ -33,9 +33,7 @@ export interface DepthwiseConvParams extends ConvParams { channelMul: number; }
 
 export class ConvGPUBenchmark implements BenchmarkTest {
   async run(size: number, opType: string, params: ConvParams): Promise<number> {
-    const safeMode = false;
-    const math = new dl.NDArrayMath('webgl', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('webgl');
 
     const inDepth = params.inDepth;
     const inShape: [number, number, number] = [size, size, inDepth];
@@ -49,14 +47,14 @@ export class ConvGPUBenchmark implements BenchmarkTest {
     let benchmark: () => dl.Tensor;
     if (opType === 'regular') {
       const regParams = params as RegularConvParams;
-      const wShape = dl.conv_util.computeWeightsShape4D(
-          inDepth, regParams.outDepth, filterSize, filterSize);
+      const wShape: [number, number, number, number] =
+          [filterSize, filterSize, inDepth, regParams.outDepth];
       W = dl.randomUniform(wShape, -1, 1);
       benchmark = () => x.conv2d(W, stride, pad);
     } else if (opType === 'transposed') {
       const regParams = params as RegularConvParams;
-      const wShape = dl.conv_util.computeWeightsShape4D(
-          inDepth, regParams.outDepth, filterSize, filterSize);
+      const wShape: [number, number, number, number] =
+          [filterSize, filterSize, inDepth, regParams.outDepth];
       W = dl.randomUniform(wShape, -1, 1);
       x = dl.randomUniform([size, size, regParams.outDepth], -1, 1);
 
@@ -64,8 +62,8 @@ export class ConvGPUBenchmark implements BenchmarkTest {
           x.conv2dTranspose(W, [size, size, inDepth], stride, pad);
     } else if (opType === 'depthwise') {
       const depthwiseParams = params as DepthwiseConvParams;
-      const wShape = dl.conv_util.computeWeightsShape4D(
-          inDepth, depthwiseParams.channelMul, filterSize, filterSize);
+      const wShape: [number, number, number, number] =
+          [filterSize, filterSize, inDepth, depthwiseParams.channelMul];
       W = dl.randomUniform(wShape, -1, 1);
 
       benchmark = () => x.depthwiseConv2D(W, stride, pad);
@@ -77,7 +75,6 @@ export class ConvGPUBenchmark implements BenchmarkTest {
 
     x.dispose();
     W.dispose();
-    math.dispose();
 
     return time;
   }

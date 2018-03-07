@@ -15,9 +15,13 @@
  * =============================================================================
  */
 
-import {MatrixOrientation} from '../../ops/matmul';
 import {GPGPUContext} from './gpgpu_context';
 import * as webgl_util from './webgl_util';
+
+export enum MatrixOrientation {
+  REGULAR,
+  TRANSPOSED
+}
 
 export function getFragmentShaderSource(
     sharedDimension: number, aOrientation: MatrixOrientation,

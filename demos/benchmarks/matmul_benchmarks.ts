@@ -27,18 +27,13 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
         resolve(-1);
       });
     }
-    const safeMode = false;
-    const math = new dl.NDArrayMath('cpu', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('cpu');
 
     const a: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
     const b: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
     const start = performance.now();
-    math.matMul(a, b);
+    dl.matMul(a, b);
     const end = performance.now();
-
-    math.dispose();
-
     this.lastRunTimeMs = end - start;
     return this.lastRunTimeMs;
   }
@@ -46,20 +41,17 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
 
 export class MatmulGPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
-    const safeMode = false;
-    const math = new dl.NDArrayMath('webgl', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('webgl');
 
     const a: dl.Tensor2D = dl.randomNormal([size, size]);
     const b: dl.Tensor2D = dl.randomNormal([size, size]);
 
-    const benchmark = () => math.matMul(a, b);
+    const benchmark = () => dl.matMul(a, b);
 
     const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
 
     a.dispose();
     b.dispose();
-    math.dispose();
 
     return time;
   }

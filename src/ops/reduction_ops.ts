@@ -128,7 +128,7 @@ export class ReductionOps {
           expandedDyShape[axis] = 1;
         });
         const expandedDy = dy.reshape(expandedDyShape);
-        const derX = expandedDy.mul(Tensor.ones(x.shape, 'float32'));
+        const derX = expandedDy.mul(ops.ones(x.shape, 'float32'));
         return derX;
       };
       return {value, gradFunc};
@@ -186,8 +186,8 @@ export class ReductionOps {
           expandedDyShape[axis] = 1;
         });
         const expandedDy = dy.reshape(expandedDyShape);
-        const derX = expandedDy.mul(Tensor.ones(x.shape, 'float32'))
-                         .div(reduceSizeScalar);
+        const derX =
+            expandedDy.mul(ops.ones(x.shape, 'float32')).div(reduceSizeScalar);
         return derX;
       };
       return {value, gradFunc};

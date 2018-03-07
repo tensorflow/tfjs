@@ -118,27 +118,27 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('indexToLoc Scalar', () => {
-    const a = dl.scalar(0);
+    const a = dl.scalar(0).buffer();
     expect(a.indexToLoc(0)).toEqual([]);
 
-    const b = dl.zeros<Rank.R0>([]);
+    const b = dl.zeros<Rank.R0>([]).buffer();
     expect(b.indexToLoc(0)).toEqual([]);
   });
 
   it('indexToLoc Tensor1D', () => {
-    const a = dl.zeros([3]);
+    const a = dl.zeros([3]).buffer();
     expect(a.indexToLoc(0)).toEqual([0]);
     expect(a.indexToLoc(1)).toEqual([1]);
     expect(a.indexToLoc(2)).toEqual([2]);
 
-    const b = dl.zeros<Rank.R1>([3]);
+    const b = dl.zeros<Rank.R1>([3]).buffer();
     expect(b.indexToLoc(0)).toEqual([0]);
     expect(b.indexToLoc(1)).toEqual([1]);
     expect(b.indexToLoc(2)).toEqual([2]);
   });
 
   it('indexToLoc Tensor2D', () => {
-    const a = dl.zeros([3, 2]);
+    const a = dl.zeros([3, 2]).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 1]);
     expect(a.indexToLoc(2)).toEqual([1, 0]);
@@ -146,7 +146,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.indexToLoc(4)).toEqual([2, 0]);
     expect(a.indexToLoc(5)).toEqual([2, 1]);
 
-    const b = dl.zeros<Rank.R2>([3, 2]);
+    const b = dl.zeros<Rank.R2>([3, 2]).buffer();
     expect(b.indexToLoc(0)).toEqual([0, 0]);
     expect(b.indexToLoc(1)).toEqual([0, 1]);
     expect(b.indexToLoc(2)).toEqual([1, 0]);
@@ -156,7 +156,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('indexToLoc Tensor3D', () => {
-    const a = dl.zeros([3, 2, 2]);
+    const a = dl.zeros([3, 2, 2]).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 0, 1]);
     expect(a.indexToLoc(2)).toEqual([0, 1, 0]);
@@ -165,7 +165,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.indexToLoc(5)).toEqual([1, 0, 1]);
     expect(a.indexToLoc(11)).toEqual([2, 1, 1]);
 
-    const b = dl.zeros<Rank.R3>([3, 2, 2]);
+    const b = dl.zeros<Rank.R3>([3, 2, 2]).buffer();
     expect(b.indexToLoc(0)).toEqual([0, 0, 0]);
     expect(b.indexToLoc(1)).toEqual([0, 0, 1]);
     expect(b.indexToLoc(2)).toEqual([0, 1, 0]);
@@ -177,7 +177,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('indexToLoc Tensor 5D', () => {
     const values = new Float32Array([1, 2, 3, 4]);
-    const a = Tensor.make([2, 1, 1, 1, 2], {values});
+    const a = Tensor.make([2, 1, 1, 1, 2], {values}).buffer();
     expect(a.indexToLoc(0)).toEqual([0, 0, 0, 0, 0]);
     expect(a.indexToLoc(1)).toEqual([0, 0, 0, 0, 1]);
     expect(a.indexToLoc(2)).toEqual([1, 0, 0, 0, 0]);
@@ -185,27 +185,27 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('locToIndex Scalar', () => {
-    const a = dl.scalar(0);
+    const a = dl.scalar(0).buffer();
     expect(a.locToIndex([])).toEqual(0);
 
-    const b = dl.zeros<Rank.R0>([]);
+    const b = dl.zeros<Rank.R0>([]).buffer();
     expect(b.locToIndex([])).toEqual(0);
   });
 
   it('locToIndex Tensor1D', () => {
-    const a = dl.zeros<Rank.R1>([3]);
+    const a = dl.zeros<Rank.R1>([3]).buffer();
     expect(a.locToIndex([0])).toEqual(0);
     expect(a.locToIndex([1])).toEqual(1);
     expect(a.locToIndex([2])).toEqual(2);
 
-    const b = dl.zeros<Rank.R1>([3]);
+    const b = dl.zeros<Rank.R1>([3]).buffer();
     expect(b.locToIndex([0])).toEqual(0);
     expect(b.locToIndex([1])).toEqual(1);
     expect(b.locToIndex([2])).toEqual(2);
   });
 
   it('locToIndex Tensor2D', () => {
-    const a = dl.zeros<Rank.R2>([3, 2]);
+    const a = dl.zeros<Rank.R2>([3, 2]).buffer();
     expect(a.locToIndex([0, 0])).toEqual(0);
     expect(a.locToIndex([0, 1])).toEqual(1);
     expect(a.locToIndex([1, 0])).toEqual(2);
@@ -213,7 +213,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.locToIndex([2, 0])).toEqual(4);
     expect(a.locToIndex([2, 1])).toEqual(5);
 
-    const b = dl.zeros<Rank.R2>([3, 2]);
+    const b = dl.zeros<Rank.R2>([3, 2]).buffer();
     expect(b.locToIndex([0, 0])).toEqual(0);
     expect(b.locToIndex([0, 1])).toEqual(1);
     expect(b.locToIndex([1, 0])).toEqual(2);
@@ -223,7 +223,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   });
 
   it('locToIndex Tensor3D', () => {
-    const a = dl.zeros<Rank.R3>([3, 2, 2]);
+    const a = dl.zeros<Rank.R3>([3, 2, 2]).buffer();
     expect(a.locToIndex([0, 0, 0])).toEqual(0);
     expect(a.locToIndex([0, 0, 1])).toEqual(1);
     expect(a.locToIndex([0, 1, 0])).toEqual(2);
@@ -232,7 +232,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(a.locToIndex([1, 0, 1])).toEqual(5);
     expect(a.locToIndex([2, 1, 1])).toEqual(11);
 
-    const b = dl.zeros<Rank.R3>([3, 2, 2]);
+    const b = dl.zeros<Rank.R3>([3, 2, 2]).buffer();
     expect(b.locToIndex([0, 0, 0])).toEqual(0);
     expect(b.locToIndex([0, 0, 1])).toEqual(1);
     expect(b.locToIndex([0, 1, 0])).toEqual(2);
