@@ -428,7 +428,7 @@
     ]
   },
   {
-    "tfOpName": "tanh",
+    "tfOpName": "Tanh",
     "dlOpName": "tanh",
     "category": "basic_math",
     "params": [
