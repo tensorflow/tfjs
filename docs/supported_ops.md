@@ -3,7 +3,7 @@
 ## Arithmetic Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -15,7 +15,7 @@
 ## Basic Math Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -27,7 +27,7 @@
 ## Convolution Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -39,7 +39,7 @@
 ## Tensor Creation Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -51,7 +51,7 @@
 ## Tensorflow Graph Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -63,7 +63,7 @@
 ## Logical Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -75,7 +75,7 @@
 ## Matrices Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -87,7 +87,7 @@
 ## Normalization Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -99,7 +99,7 @@
 ## Reduction Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -111,7 +111,7 @@
 ## Slice and Join Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
@@ -123,7 +123,7 @@
 ## Transformation Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
-|---|---|---|
+|---|---|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
