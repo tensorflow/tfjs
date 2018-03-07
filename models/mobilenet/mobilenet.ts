@@ -69,8 +69,7 @@ export class MobileNet {
 
       const x13 = this.depthwiseConvBlock(x12, 2, 12);
       const x14 = this.depthwiseConvBlock(x13, 1, 13);
-
-      const x15 = x14.avgPool(x14.shape[0], 1, 0);
+      const x15 = x14.avgPool(7, 2, 'valid');
       const x16Filter =
           this.variables['MobilenetV1/Logits/Conv2d_1c_1x1/weights'] as
           dl.Tensor4D;
