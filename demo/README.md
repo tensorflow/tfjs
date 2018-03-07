@@ -1,24 +1,17 @@
 # Tensorflow model import demo
 
-This package contains a set of demos for importing pretrained tensorflow models.
-
-## Installation
-You can use this as standalone es5 bundle like this:
-
+This package contains a demo for importing pretrained mobilenet tensorflow models.
 
 ## Usage
 
-To run the demo, use the following:
+To run the demo, use the following commands:
 
 ```bash
-cd models/tensorflow/demo
+cd demo
 
 yarn prep
 yarn build
 
 # Starts a webserver, navigate to any of the following links:
-# localhost:8000/squeezenet_demo.html
-# localhost:8000/mobilenet_demo.html
-# localhost:8000/inception_demo.html
 python -m SimpleHTTPServer
 ```
