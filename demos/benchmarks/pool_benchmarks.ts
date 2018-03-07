@@ -28,7 +28,7 @@ export interface PoolBenchmarkParams {
   stride: number;
 }
 
-function getPoolingOp(option: string, math: dl.NDArrayMath):
+function getPoolingOp(option: string):
     (x: dl.Tensor3D, filterSize: [number, number]|number,
      strides: [number, number]|number, pad: 'valid'|'same'|number) =>
         dl.Tensor3D {
@@ -56,16 +56,14 @@ function getPoolingOp(option: string, math: dl.NDArrayMath):
 export class PoolCPUBenchmark implements BenchmarkTest {
   run(size: number, option: string,
       params: PoolBenchmarkParams): Promise<number> {
-    const safeMode = false;
-    const math = new dl.NDArrayMath('cpu', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('cpu');
 
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
     const zeroPad = dl.conv_util.computeDefaultPad(xShape, fieldSize, stride);
-    const op = getPoolingOp(option, math);
+    const op = getPoolingOp(option);
 
     const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
 
@@ -74,9 +72,6 @@ export class PoolCPUBenchmark implements BenchmarkTest {
       op(x, fieldSize, stride, zeroPad);
     }
     const avgTime = (performance.now() - start) / CPU_OP_RUNS;
-
-    math.dispose();
-
     return new Promise<number>((resolve, reject) => {
       resolve(avgTime);
     });
@@ -86,22 +81,19 @@ export class PoolCPUBenchmark implements BenchmarkTest {
 export class PoolGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string, params: PoolBenchmarkParams):
       Promise<number> {
-    const safeMode = false;
-    const math = new dl.NDArrayMath('webgl', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('webgl');
 
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
     const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
-    const op = getPoolingOp(option, math);
+    const op = getPoolingOp(option);
 
     const benchmark = () => op(x, fieldSize, stride, 'same');
     const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
 
     x.dispose();
-    math.dispose();
 
     return time;
   }

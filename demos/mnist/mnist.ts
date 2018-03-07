@@ -35,7 +35,7 @@ reader.getAllVariables().then(vars => {
         return infer(x, vars);
         // Infer through the model to get a prediction.
       });
-      const predictedLabel = Math.round(await inferred.val());
+      const predictedLabel = Math.round((await inferred.data())[0]);
       inferred.dispose();
       console.log(`Item ${i}, predicted label ${predictedLabel}.`);
 

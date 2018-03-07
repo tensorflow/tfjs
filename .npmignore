@@ -9,7 +9,6 @@ coverage/
 node_modules/
 website/
 karma.conf.js
-tsconfig-doc.json
 deeplearn-*.tgz
 dist/demos/
 dist/**/*.js.map

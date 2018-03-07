@@ -91,9 +91,7 @@ export class Tracking {
     ENV.engine.startScope(name, gradMode);
     const result = fn();
     if (result instanceof Promise) {
-      console.warn(
-          'Returning a promise inside of tidy is dangerous. ' +
-          'This will be a run-time error in 0.6.0');
+      console.error('Cannot return a Promise inside of tidy.');
     }
     ENV.engine.endScope(result, gradMode);
     return result;

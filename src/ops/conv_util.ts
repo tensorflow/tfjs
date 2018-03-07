@@ -132,10 +132,7 @@ export function computeConv2DInfo(
   };
 }
 
-/**
- * @deprecated Use `conv_util.computeConvInfo` instead.
- */
-export function computeOutputShape3D(
+function computeOutputShape3D(
     inShape: [number, number, number], fieldSize: number, outDepth: number,
     stride: number, zeroPad?: number,
     roundingMode?: 'floor'|'round'|'ceil'): [number, number, number] {
@@ -166,21 +163,6 @@ export function computeDefaultPad(
     inputShape: [number, number, number], fieldSize: number,
     stride: number): number {
   return Math.floor((inputShape[0] * (stride - 1) - stride + fieldSize) / 2);
-}
-
-/** @deprecated Use conv_util.getShapes(convInfo) instead. */
-export function computeWeightsShape4D(
-    inputDepth: number, outputDepth: number, filterHeight: number,
-    filterWidth: number): [number, number, number, number] {
-  return [filterHeight, filterWidth, inputDepth, outputDepth];
-}
-
-/** @deprecated Use conv_util.computeConv2DInfo() instead. */
-export function computeDilatedRC(
-    rc: [number, number], origStride: number): [number, number] {
-  const rowsDilated = (rc[0] - 1) * origStride + 1;
-  const colsDilated = (rc[1] - 1) * origStride + 1;
-  return [rowsDilated, colsDilated];
 }
 
 function parseTupleParam(param: number|[number, number]): [number, number] {

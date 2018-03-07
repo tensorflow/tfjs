@@ -16,7 +16,7 @@
  */
 
 import {ENV} from '../environment';
-import {tidy} from '../globals';
+import {keep, tidy} from '../globals';
 import {scalar} from '../ops/ops';
 import {Scalar} from '../tensor';
 import {NamedTensorMap} from '../types';
@@ -48,13 +48,12 @@ export class SGDOptimizer extends Optimizer {
   /**
    * Sets the learning rate of the optimizer.
    */
-  /** @deprecated */
   setLearningRate(learningRate: number) {
     this.learningRate = learningRate;
     if (this.c != null) {
       this.c.dispose();
     }
-    this.c = ENV.math.keep(scalar(-learningRate));
+    this.c = keep(scalar(-learningRate));
   }
 
   dispose() {

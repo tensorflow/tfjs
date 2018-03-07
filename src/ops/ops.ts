@@ -156,6 +156,7 @@ export const rand = ArrayOps.rand;
 export const randomNormal = ArrayOps.randomNormal;
 export const truncatedNormal = ArrayOps.truncatedNormal;
 export const randomUniform = ArrayOps.randomUniform;
+export const multinomial = ArrayOps.multinomial;
 export const reshape = ArrayOps.reshape;
 export const squeeze = ArrayOps.squeeze;
 export const tile = ArrayOps.tile;

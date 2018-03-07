@@ -31,8 +31,7 @@ export class AdagradOptimizer extends Optimizer {
   private accumulatedGrads: NamedVariableMap = {};
 
   constructor(
-      protected learningRate: number, specifiedVariableList?: Node[],
-      private initialAccumulatorValue = 0.1) {
+      protected learningRate: number, private initialAccumulatorValue = 0.1) {
     super();
     this.c = keep(scalar(-learningRate));
     this.epsilon = keep(scalar(1e-8));

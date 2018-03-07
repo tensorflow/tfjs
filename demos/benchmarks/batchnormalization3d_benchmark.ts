@@ -28,9 +28,7 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
         resolve(-1);
       });
     }
-    const safeMode = false;
-    const math = new dl.NDArrayMath('cpu', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('cpu');
     const x: dl.Tensor3D = dl.randomUniform([size, size, 8], -1, 1);
     const mean = dl.tensor1d([0]);
     const variance = dl.tensor1d([1]);
@@ -41,8 +39,6 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
 
     const end = performance.now();
 
-    math.dispose();
-
     this.lastRunTimeMs = end - start;
     return this.lastRunTimeMs;
   }
@@ -50,9 +46,7 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
 
 export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
   async run(size: number) {
-    const safeMode = false;
-    const math = new dl.NDArrayMath('webgl', safeMode);
-    dl.ENV.setMath(math);
+    dl.setBackend('webgl');
 
     const x: dl.Tensor3D = dl.randomUniform([size, size, 8], -1, 1);
     const mean = dl.tensor1d([0]);
@@ -67,7 +61,6 @@ export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
     x.dispose();
     mean.dispose();
     variance.dispose();
-    math.dispose();
 
     return time;
   }

@@ -53,7 +53,6 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
   inputNames: string[];
   selectedInputName: string;
 
-  private math: dl.NDArrayMath;
   private backend: dl.MathBackendWebGL;
   private gpgpu: dl.GPGPUContext;
   private renderGrayscaleChannelsCollageShader: WebGLShader;
@@ -76,10 +75,11 @@ export class ImagenetDemo extends ImagenetDemoPolymer {
 
     const gl = dl.gpgpu_util.createWebGLContext(this.inferenceCanvas);
     this.gpgpu = new dl.GPGPUContext(gl);
-    this.backend = new dl.MathBackendWebGL(this.gpgpu);
-    const safeMode = false;
-    this.math = new dl.NDArrayMath(this.backend, safeMode);
-    dl.ENV.setMath(this.math);
+    dl.ENV.registerBackend('custom', () => {
+      this.backend = new dl.MathBackendWebGL(this.gpgpu);
+      return this.backend;
+    });
+    dl.setBackend('custom');
 
     this.layerNames = [
       'conv_1', 'maxpool_1', 'fire2', 'fire3', 'maxpool_2', 'fire4', 'fire5',
