@@ -60,9 +60,8 @@ export class MobileNet {
     return this.model.predict(dict)[OUPUT_NODE_NAME];
   }
 
-  async getTopKClasses(logits: dl.Tensor1D, topK: number, offset = 0):
+  async getTopKClasses(predictions: dl.Tensor1D, topK: number, offset = 0):
       Promise<{[className: string]: number}> {
-    const predictions = dl.softmax(logits).asType('float32');
     const topk = this.topK(predictions.dataSync() as Float32Array, topK);
     predictions.dispose();
     const topkIndices = topk.indices;
