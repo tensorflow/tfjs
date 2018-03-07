@@ -67,7 +67,7 @@ console.log(
 function generateTable(category: string, ops: OpMapper[], output: string[]) {
   output.push(`## ${category} Ops\n\n`);
   output.push('|Tensorflow Op Name|Tensorflow.js Op Name|\n');
-  output.push('|---|---|---|\n');
+  output.push('|---|---|\n');
   ((transformation as {}) as OpMapper[]).forEach(element => {
     output.push(`|${element.tfOpName}|${element.dlOpName}|\n`);
   });
