@@ -46,9 +46,9 @@ color-name@^1.1.1:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.3.tgz#a7d0558bd89c42f795dd42328f740831ca53bc25"
 
-deeplearn@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.5.0.tgz#015c25fb35fcbf40cf9f31d9fff7760af7a436ec"
+deeplearn@next:
+  version "0.6.0-alpha"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha.tgz#996b2f5d16b3d937b69dfc703412d830886e4d10"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"

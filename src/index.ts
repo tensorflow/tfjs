@@ -27,8 +27,7 @@ export function bindTensorFlowBackend() {
   // binding is not installed.
   const nodeBinding = bindings('tfjs_binding.node') as TFJSBinding;
 
-  // TODO(kreeger): Drop the 'webgl' hack when deeplearn 0.5.1 is released to
-  // allow proper registration of new backends.
-  ENV.addCustomBackend('webgl', () => new NodeJSKernelBackend(nodeBinding));
-  Environment.setBackend('webgl');
+  ENV.addCustomBackend(
+      'tensorflow', () => new NodeJSKernelBackend(nodeBinding));
+  Environment.setBackend('tensorflow');
 }
