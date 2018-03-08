@@ -950,7 +950,7 @@ export class ArrayOps {
       values[i] = values[i - 1] + step;
     }
 
-    return Tensor1D.new(values, 'float32');
+    return ArrayOps.tensor1d(values, 'float32');
   }
 
   /**

@@ -486,7 +486,7 @@ export class MathBackendCPU implements KernelBackend {
     }
     return {
       values: ops.tensor1d(topkValues, x.dtype),
-      indices: Tensor1D.new<'int32'>(topkIndices)
+      indices: ops.tensor1d(topkIndices, 'int32')
     };
   }
 

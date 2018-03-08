@@ -19,7 +19,6 @@ import * as dl from '../index';
 // tslint:disable-next-line:max-line-length
 import {describeWithFlags, ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
 import * as util from '../util';
-import {Tensor3D} from '../tensor';
 
 const boolNaN = util.getNaN('bool');
 
@@ -153,8 +152,8 @@ describeWithFlags('equal', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
+        dl.tensor3d(
+          [[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
     expectArraysClose(dl.equal(a, b), [0, 0, 0, 0, 0, 1]);
 
     a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
@@ -162,58 +161,57 @@ describeWithFlags('equal', ALL_ENVS, () => {
     expectArraysClose(dl.equal(a, b), [1, 1, 1, 1, 1, 1]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
-        'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+    let a = dl.tensor3d([[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+      [2, 3, 1], 'float32');
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+        [2, 3, 1],
         'float32');
     expectArraysClose(dl.equal(a, b), [0, 0, 0, 0, 0, 1]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+      [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1],'float32');
+    b = dl.tensor3d(
+      [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     expectArraysClose(dl.equal(a, b), [1, 1, 1, 1, 1, 1]);
   });
   it('broadcasting Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
-        'int32');
+    const a = dl.tensor3d(
+      [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+      [2, 3, 2], 'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
     expectArraysClose(
         dl.equal(a, b), [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]);
   });
   it('broadcasting Tensor3D shapes - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
     expectArraysClose(
         dl.equal(a, b), [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]);
   });
   it('NaNs in Tensor3D - int32', () => {
     const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+        dl.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
     const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+        dl.tensor3d([[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
     expectArraysClose(
         dl.equal(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+      [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     expectArraysClose(
         dl.equal(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
   });
@@ -392,8 +390,7 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
+        dl.tensor3d([[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
     expectArraysClose(dl.equalStrict(a, b), [0, 0, 0, 0, 0, 1]);
 
     a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
@@ -401,23 +398,26 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     expectArraysClose(dl.equalStrict(a, b), [1, 1, 1, 1, 1, 1]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+    let a = dl.tensor3d(
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+        [2, 3, 1],
         'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+        [2, 3, 1],
         'float32');
     expectArraysClose(dl.equalStrict(a, b), [0, 0, 0, 0, 0, 1]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
+    b = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     expectArraysClose(dl.equalStrict(a, b), [1, 1, 1, 1, 1, 1]);
   });
   it('mismatch Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+    const a = dl.tensor3d(
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+        [2, 3, 2],
         'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -428,15 +428,16 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
   it('mismatch Tensor3D shapes - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
 
     const f = () => {
@@ -446,19 +447,19 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
   });
   it('NaNs in Tensor3D - int32', () => {
     const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+        dl.tensor3d(
+          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
     const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+        dl.tensor3d(
+          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
     expectArraysClose(
         dl.equalStrict(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+       [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     expectArraysClose(
         dl.equalStrict(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
   });
@@ -664,8 +665,8 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
+        dl.tensor3d(
+          [[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
     expectArraysClose(dl.notEqual(a, b), [1, 1, 1, 1, 1, 0]);
 
     a = dl.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'int32');
@@ -673,23 +674,30 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     expectArraysClose(dl.notEqual(a, b), [0, 0, 0, 0, 0, 0]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+    let a = dl.tensor3d(
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+        [2, 3, 1],
         'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+        [2, 3, 1],
         'float32');
     expectArraysClose(dl.notEqual(a, b), [1, 1, 1, 1, 1, 0]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]],
+        [2, 3, 1],
+        'float32');
+    b = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]],
+        [2, 3, 1],
+        'float32');
     expectArraysClose(dl.notEqual(a, b), [0, 0, 0, 0, 0, 0]);
   });
   it('broadcasting Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+    const a = dl.tensor3d(
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+        [2, 3, 2],
         'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -697,34 +705,35 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
         dl.notEqual(a, b), [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1]);
   });
   it('broadcasting Tensor3D shapes - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
     expectArraysClose(
         dl.notEqual(a, b), [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1]);
   });
   it('NaNs in Tensor3D - int32', () => {
     const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+        dl.tensor3d(
+          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
     const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+        dl.tensor3d(
+          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
     expectArraysClose(
         dl.notEqual(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1] ,'float32');
     expectArraysClose(
         dl.notEqual(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
   });
@@ -917,8 +926,8 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [12]]], 'int32');
+        dl.tensor3d(
+          [[[2], [3], [6]], [[7], [10], [12]]], [2, 3, 1], 'int32');
     expectArraysClose(
         dl.notEqualStrict(a, b), [1, 1, 1, 1, 1, 0]);
 
@@ -928,25 +937,26 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
         dl.notEqualStrict(a, b), [0, 0, 0, 0, 0, 0]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+    let a = dl.tensor3d(
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1],
         'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]],
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [12.1]]], [2, 3, 1],
         'float32');
     expectArraysClose(
         dl.notEqualStrict(a, b), [1, 1, 1, 1, 1, 0]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
+    b = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     expectArraysClose(
         dl.notEqualStrict(a, b), [0, 0, 0, 0, 0, 0]);
   });
   it('mismatch Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+    const a = dl.tensor3d(
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+        [2, 3, 2],
         'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -957,15 +967,16 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     expect(f).toThrowError();
   });
   it('mismatch Tensor3D shapes - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
 
     const f = () => {
@@ -975,19 +986,19 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
   });
   it('NaNs in Tensor3D - int32', () => {
     const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+        dl.tensor3d(
+          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
     const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+        dl.tensor3d(
+          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
     expectArraysClose(
         dl.notEqualStrict(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     expectArraysClose(
         dl.notEqualStrict(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
   });
@@ -1206,8 +1217,8 @@ describeWithFlags('less', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
+        dl.tensor3d(
+          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = dl.less(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1221,29 +1232,32 @@ describeWithFlags('less', ALL_ENVS, () => {
     expectArraysClose(res, [0, 0, 0, 0, 0, 0]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+    let a = dl.tensor3d(
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+        [2, 3, 1],
         'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+        [2, 3, 1],
         'float32');
     let res = dl.less(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 0, 1, 0, 1, 0]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.0]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.0]]], [2, 3, 1], 'float32');
+    b = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     res = dl.less(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 0, 0, 0, 0, 1]);
   });
   it('broadcasting Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+    const a = dl.tensor3d(
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+        [2, 3, 2],
         'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -1253,15 +1267,16 @@ describeWithFlags('less', ALL_ENVS, () => {
     expectArraysClose(res, [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0]);
   });
   it('broadcasting Tensor3D float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
     const res = dl.less(a, b);
 
@@ -1270,21 +1285,22 @@ describeWithFlags('less', ALL_ENVS, () => {
   });
   it('NaNs in Tensor3D - int32', () => {
     const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+        dl.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
     const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+        dl.tensor3d(
+          [[[0], [0], [1]], [[1], [0], [NaN]]],
+          [2, 3, 1],
+          'int32');
     const res = dl.less(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, boolNaN, 0, 1, 0, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     const res = dl.less(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1399,15 +1415,16 @@ describeWithFlags('lessStrict', ALL_ENVS, () => {
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
       () => {
-        const a = Tensor3D.new(
-            [2, 3, 2],
+        const a = dl.tensor3d(
             [
               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
             ],
+            [2, 3, 2],
             'float32');
-        const b = Tensor3D.new(
-            [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        const b = dl.tensor3d(
+            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+            [2, 3, 1],
             'float32');
 
         expect(() => dl.lessStrict(a, b)).toThrowError();
@@ -1579,8 +1596,8 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
+        dl.tensor3d(
+          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = dl.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1594,29 +1611,31 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expectArraysClose(res, [1, 1, 1, 1, 1, 1]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+    let a = dl.tensor3d(
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+        [2, 3, 1],
         'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+        [2, 3, 1],
         'float32');
     let res = dl.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 0, 1, 0, 1, 0]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.2]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.2]]], [2, 3, 1], 'float32');
+    b = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     res = dl.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 1, 1, 1, 1, 0]);
   });
   it('broadcasting Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+    const a = dl.tensor3d(
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
         'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -1626,15 +1645,16 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expectArraysClose(res, [1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0]);
   });
   it('broadcasting Tensor3D float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
     const res = dl.lessEqual(a, b);
 
@@ -1643,21 +1663,21 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
   });
   it('NaNs in Tensor3D - int32', () => {
     const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+        dl.tensor3d(
+          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
     const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+        dl.tensor3d(
+          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
     const res = dl.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, boolNaN, 1, 1, 1, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     const res = dl.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1771,15 +1791,16 @@ describeWithFlags('lessEqualStrict', ALL_ENVS, () => {
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
       () => {
-        const a = Tensor3D.new(
-            [2, 3, 2],
+        const a = dl.tensor3d(
             [
               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
             ],
+            [2, 3, 2],
             'float32');
-        const b = Tensor3D.new(
-            [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        const b = dl.tensor3d(
+            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+            [2, 3, 1],
             'float32');
 
         expect(() => dl.lessEqualStrict(a, b)).toThrowError();
@@ -1951,8 +1972,8 @@ describeWithFlags('greater', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [11]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
+        dl.tensor3d(
+          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = dl.greater(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -1966,29 +1987,31 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expectArraysClose(res, [0, 0, 0, 0, 0, 0]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [11.1]]],
+    let a = dl.tensor3d(
+        [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [11.1]]],
+        [2, 3, 1],
         'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+        [2, 3, 1],
         'float32');
     let res = dl.greater(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 1, 0, 1, 0, 0]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.2]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.2]]], [2, 3, 1], 'float32');
+    b = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     res = dl.greater(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 0, 0, 0, 0, 1]);
   });
   it('broadcasting Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+    const a = dl.tensor3d(
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]], [2, 3, 2],
         'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -1998,15 +2021,16 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expectArraysClose(res, [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1]);
   });
   it('broadcasting Tensor3D float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
     const res = dl.greater(a, b);
 
@@ -2014,22 +2038,20 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expectArraysClose(res, [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1]);
   });
   it('NaNs in Tensor3D - int32', () => {
-    const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
-    const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+    const a = dl.tensor3d(
+        [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
+    const b = dl.tensor3d(
+        [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
     const res = dl.greater(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, boolNaN, 0, 0, 0, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     const res = dl.greater(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2143,15 +2165,16 @@ describeWithFlags('greaterStrict', ALL_ENVS, () => {
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
       () => {
-        const a = Tensor3D.new(
-            [2, 3, 2],
+        const a = dl.tensor3d(
             [
               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
             ],
+            [2, 3, 2],
             'float32');
-        const b = Tensor3D.new(
-            [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        const b = dl.tensor3d(
+            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+            [2, 3, 1],
             'float32');
 
         expect(() => dl.greaterStrict(a, b)).toThrowError();
@@ -2324,8 +2347,8 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     let a =
         dl.tensor3d([[[1], [4], [5]], [[8], [9], [12]]], [2, 3, 1], 'int32');
     let b =
-        Tensor3D.new([2, 3, 1],
-          [[[2], [3], [6]], [[7], [10], [11]]], 'int32');
+        dl.tensor3d(
+          [[[2], [3], [6]], [[7], [10], [11]]], [2, 3, 1], 'int32');
     let res = dl.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2339,29 +2362,31 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expectArraysClose(res, [1, 1, 1, 1, 1, 1]);
   });
   it('Tensor3D - float32', () => {
-    let a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]],
+    let a = dl.tensor3d(
+       [[[1.1], [4.1], [5.1]], [[8.1], [9.1], [12.1]]], [2, 3, 1],
         'float32');
-    let b = Tensor3D.new(
-        [2, 3, 1], [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+    let b = dl.tensor3d(
+        [[[2.1], [3.1], [6.1]], [[7.1], [10.1], [11.1]]],
+        [2, 3, 1],
         'float32');
     let res = dl.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 1, 0, 1, 0, 1]);
 
-    a = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.2]]], 'float32');
-    b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], 'float32');
+    a = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.2]]], [2, 3, 1], 'float32');
+    b = dl.tensor3d(
+        [[[0.1], [0.1], [0.1]], [[1.1], [1.1], [1.1]]], [2, 3, 1], 'float32');
     res = dl.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 1, 1, 1, 1, 1]);
   });
   it('broadcasting Tensor3D shapes - int32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2], [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+    const a = dl.tensor3d(
+        [[[1, 0], [2, 3], [4, 5]], [[6, 7], [9, 8], [10, 11]]],
+        [2, 3, 2],
         'int32');
     const b =
         dl.tensor3d([[[1], [2], [3]], [[7], [10], [9]]], [2, 3, 1], 'int32');
@@ -2371,15 +2396,16 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expectArraysClose(res, [1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1]);
   });
   it('broadcasting Tensor3D float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 2],
+    const a = dl.tensor3d(
         [
           [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
           [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
         ],
+        [2, 3, 2],
         'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+    const b = dl.tensor3d(
+        [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        [2, 3, 1],
         'float32');
     const res = dl.greaterEqual(a, b);
 
@@ -2388,21 +2414,21 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
   });
   it('NaNs in Tensor3D - int32', () => {
     const a =
-        Tensor3D.new([2, 3, 1],
-          [[[1], [NaN], [1]], [[0], [0], [0]]], 'int32');
+        dl.tensor3d(
+          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
     const b =
-        Tensor3D.new([2, 3, 1],
-          [[[0], [0], [1]], [[1], [0], [NaN]]], 'int32');
+        dl.tensor3d(
+          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
     const res = dl.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, boolNaN, 1, 0, 1, boolNaN]);
   });
   it('NaNs in Tensor3D - float32', () => {
-    const a = Tensor3D.new(
-        [2, 3, 1], [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], 'float32');
-    const b = Tensor3D.new(
-        [2, 3, 1], [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], 'float32');
+    const a = dl.tensor3d(
+        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
+    const b = dl.tensor3d(
+        [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     const res = dl.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
@@ -2516,15 +2542,16 @@ describeWithFlags('greaterEqualStrict', ALL_ENVS, () => {
   // Tensor3D:
   it('Tensor3D - strict version throws when a and b are different shape',
       () => {
-        const a = Tensor3D.new(
-            [2, 3, 2],
+        const a = dl.tensor3d(
             [
               [[1.1, 0.1], [2.1, 3.1], [4.1, 5.1]],
               [[6.1, 7.1], [9.1, 8.1], [10.1, 11.1]]
             ],
+            [2, 3, 2],
             'float32');
-        const b = Tensor3D.new(
-            [2, 3, 1], [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+        const b = dl.tensor3d(
+            [[[1.1], [2.1], [3.1]], [[7.1], [10.1], [9.1]]],
+            [2, 3, 1],
             'float32');
 
         expect(() => dl.greaterEqualStrict(a, b)).toThrowError();
