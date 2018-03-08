@@ -16,7 +16,8 @@
       "pretty": true,
       "noFallthroughCasesInSwitch": true,
       "allowUnreachableCode": false,
-      "downlevelIteration": true
+      "downlevelIteration": true,
+      "noStrictGenericChecks": true
   },
   "include": [
     "index.ts",

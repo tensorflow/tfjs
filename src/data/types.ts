@@ -15,7 +15,3 @@
  * =============================================================================
  */
 import {Tensor} from 'deeplearn';
-
-export type TensorMap = {
-  [key: string]: Tensor
-};

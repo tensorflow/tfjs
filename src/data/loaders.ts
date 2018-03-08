@@ -15,10 +15,10 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn';
+import * as dl from 'deeplearn';
+import {NamedTensorMap} from 'deeplearn/dist/types';
 
 import {tensorflow} from './index';
-import {TensorMap} from './types';
 
 /**
  * Loads the model topology file and build the in memory graph of the model.
@@ -45,8 +45,8 @@ export function loadRemoteWeightFile(url: string): Promise<ArrayBuffer> {
  */
 export function buildWeightMap(
     graphPromise: Promise<tensorflow.GraphDef>,
-    weightPromise: Promise<ArrayBuffer>): Promise<TensorMap> {
-  const tensorMap: TensorMap = {};
+    weightPromise: Promise<ArrayBuffer>): Promise<NamedTensorMap> {
+  const tensorMap: NamedTensorMap = {};
   return Promise.all([graphPromise, weightPromise]).then(([graph, weight]) => {
     const constNodes = graph.node.filter(node => node.op === 'Const');
     constNodes.forEach(node => {
@@ -69,7 +69,7 @@ export function buildWeightMap(
  */
 function buildTensor(
     index: number, length: number, weight: ArrayBuffer,
-    tensor: tensorflow.ITensor): Tensor {
+    tensor: tensorflow.ITensor): dl.Tensor {
   const dims = tensor.tensorShape.dim;
   const dimSizes = dims.map(dim => dim.size) as number[];
   switch (tensor.dtype) {
@@ -93,7 +93,7 @@ function buildTensor(
 function toNDArray(
     shape: number[],
     values: boolean[]|number[]|Int32Array|Float32Array|Uint8Array,
-    dtype: 'float32'|'int32'|'bool'): Tensor {
+    dtype: 'float32'|'int32'|'bool'): dl.Tensor {
   if (values instanceof Int32Array || values instanceof Float32Array ||
       values instanceof Uint8Array) {
     values = Array.prototype.slice.call(values);
@@ -106,17 +106,21 @@ function toNDArray(
 
   switch (shape.length) {
     case 0:
-      return Scalar.new(values[0], dtype);
+      return dl.scalar(values[0], dtype);
     case 1: {
-      return Tensor1D.new(values, dtype);
+      return dl.tensor1d(values, dtype);
     }
     case 2:
-      return Tensor2D.new(shape as [number, number], values, dtype);
+      return dl.tensor2d(
+          shape as [number, number], values as [number, number], dtype);
     case 3:
-      return Tensor3D.new(shape as [number, number, number], values, dtype);
+      return dl.tensor3d(
+          shape as [number, number, number], values as [number, number, number],
+          dtype);
     case 4:
-      return Tensor4D.new(
-          shape as [number, number, number, number], values, dtype);
+      return dl.tensor4d(
+          shape as [number, number, number, number],
+          values as [number, number, number, number], dtype);
     default:
       throw new Error('Tensor with dimension higher than 4 is not supported');
   }

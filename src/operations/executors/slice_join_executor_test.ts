@@ -24,9 +24,9 @@ import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttr, cre
 
 describe('slice join', () => {
   let node: Node;
-  const input1 = dl.Scalar.new(1);
-  const input2 = dl.Scalar.new(2);
-  const input3 = dl.Scalar.new(3);
+  const input1 = dl.scalar(1);
+  const input2 = dl.scalar(2);
+  const input3 = dl.scalar(3);
   describe('multi-tensor ops', () => {
     beforeEach(() => {
       node = {

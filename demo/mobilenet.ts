@@ -16,23 +16,24 @@
  */
 
 import * as dl from 'deeplearn';
-import {TensorMap, TFModel} from 'tfjs-converter';
+import {NamedTensorMap} from 'deeplearn/dist/types';
+import {TFModel} from 'tfjs-converter';
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/tf_model_zoo/';
 const MODEL_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb';
-const WEIGHT_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb.weight';
+const WEIGHT_MANIFEST_FILE_URL = 'mobilenet_v1_1.0_224/weight_manifest.json';
 const INPUT_NODE_NAME = 'input';
 const OUPUT_NODE_NAME = 'MobilenetV1/Predictions/Reshape_1';
 
 export class MobileNet {
   // yolo variables
-  private PREPROCESS_DIVISOR = dl.Scalar.new(255.0 / 2);
+  private PREPROCESS_DIVISOR = dl.scalar(255.0 / 2);
   private model = new TFModel(
       GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
-      GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_FILE_URL);
+      GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
   constructor() {}
 
   async load() {
@@ -56,7 +57,7 @@ export class MobileNet {
         this.PREPROCESS_DIVISOR);
     const reshapedInput =
         preprocessedInput.reshape([1, ...preprocessedInput.shape]);
-    const dict: TensorMap = {};
+    const dict: NamedTensorMap = {};
     dict[INPUT_NODE_NAME] = reshapedInput;
     return this.model.eval(dict)[OUPUT_NODE_NAME];
   }

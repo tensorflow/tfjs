@@ -16,8 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-
-import {TensorMap} from '../data/types';
+import {NamedTensorMap} from 'deeplearn/dist/types';
 
 import * as arithmetic from './executors/arithmetic_executor';
 import * as basicMath from './executors/basic_math_executor';
@@ -37,7 +36,7 @@ import {Node} from './index';
  * @param node
  * @param tensorMap contains tensors for executed nodes and weights
  */
-export function executeOp(node: Node, tensorMap: TensorMap): dl.Tensor {
+export function executeOp(node: Node, tensorMap: NamedTensorMap): dl.Tensor {
   switch (node.category) {
     case 'arithmetic':
       return arithmetic.executeOp(node, tensorMap);

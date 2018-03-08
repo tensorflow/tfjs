@@ -23,8 +23,8 @@ import {createTensorAttr} from './test_helper';
 
 describe('graph', () => {
   let node: Node;
-  const input1 = dl.Array1D.new([1]);
-  const input2 = dl.Array1D.new([1]);
+  const input1 = dl.tensor1d([1]);
+  const input2 = dl.tensor1d([1]);
   beforeEach(() => {
     node = {
       name: 'input1',
