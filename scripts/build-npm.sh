@@ -19,6 +19,14 @@ set -e
 
 rm -rf dist/
 yarn
+
+### Remove the next few commands when tfjs-layers is published.
+cd node_modules/tfjs-layers/
+yarn && yarn build
+rm -r node_modules/deeplearn/
+cd ../..
+###########################
+
 node_modules/.bin/tsc --sourceMap false
 node_modules/.bin/browserify --standalone tf src/index.ts -p [tsify] > dist/tf.js
 node_modules/.bin/uglifyjs dist/tf.js -c -m -o dist/tf.min.js

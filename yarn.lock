@@ -342,9 +342,12 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-"deeplearn@link:../deeplearnjs":
-  version "0.0.0"
-  uid ""
+deeplearn@next:
+  version "0.6.0-alpha2"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha2.tgz#a7cc508fa16a6b6e5afcca2490f0ae2e11ecbdfd"
+  dependencies:
+    seedrandom "~2.4.3"
+    utf8 "~2.1.2"
 
 defined@^1.0.0:
   version "1.0.0"
@@ -903,9 +906,9 @@ syntax-error@^1.1.1:
   dependencies:
     acorn-node "^1.2.0"
 
-"tfjs-layers@link:../tfjs-layers":
-  version "0.0.0"
-  uid ""
+"tfjs-layers@git+https://github.com/tensorflow/tfjs-layers.git#da1c0514ea716320ea45d66859a7564f65710c44":
+  version "0.0.1"
+  resolved "git+https://github.com/tensorflow/tfjs-layers.git#da1c0514ea716320ea45d66859a7564f65710c44"
 
 through2@^2.0.0:
   version "2.0.3"
