@@ -19,7 +19,7 @@ import {scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
-import {DataType, Rank} from 'deeplearn/dist/types';
+import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -76,12 +76,28 @@ export class NodeJSKernelBackend implements KernelBackend {
     return Tensor.make(handle.shape, {dataId: newId}, dtype);
   }
 
-  private createTypeOpAttr(attrName: string, tensor: Tensor): TFEOpAttr {
+  private getInputTensors(tensors: Tensor[]): TensorHandle[] {
+    const inputs: TensorHandle[] = [];
+    for (let i = 0; i < tensors.length; i++) {
+      inputs.push(this.handleMap.get(tensors[i].dataId));
+    }
+    return inputs;
+  }
+
+  private createTypeOpAttr(attrName: string, dtype: DataType): TFEOpAttr {
     return {
       name: attrName,
       type: this.binding.TF_ATTR_TYPE,
-      value: this.getTFDType(tensor.dtype)
+      value: this.getTFDType(dtype)
     };
+  }
+
+  private execute(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
+      Tensor {
+    const output = new this.binding.TensorHandle();
+    this.binding.execute(
+        this.context, name, opAttrs, this.getInputTensors(inputs), output);
+    return this.createOutputTensor(output);
   }
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
@@ -89,37 +105,25 @@ export class NodeJSKernelBackend implements KernelBackend {
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
-      this.createTypeOpAttr('T', a)
+      this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
     ];
-    const output = new this.binding.TensorHandle();
-    this.binding.execute(
-        this.context, 'MatMul', opAttrs,
-        [this.handleMap.get(a.dataId), this.handleMap.get(b.dataId)], output);
-    return this.createOutputTensor(output) as Tensor2D;
+    return this.execute('MatMul', opAttrs, [a, b]) as Tensor2D;
   }
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x), {
+      this.createTypeOpAttr('T', x.dtype), {
         name: 'Index',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
       }
     ];
-    const output = new this.binding.TensorHandle();
 
     // Bind tensor values
     const beginTensor = tensor1d(begin, 'int32');
     const sizeTensor = tensor1d(size, 'int32');
 
-    this.binding.execute(
-        this.context, 'Slice', opAttrs,
-        [
-          this.handleMap.get(x.dataId), this.handleMap.get(beginTensor.dataId),
-          this.handleMap.get(sizeTensor.dataId)
-        ],
-        output);
-    return this.createOutputTensor(output) as T;
+    return this.execute('Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
   }
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
     throw new Error('Method not implemented.');
@@ -131,16 +135,20 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Add', opAttrs, [a, b]) as Tensor<Rank>;
   }
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Sub', opAttrs, [a, b]) as Tensor<Rank>;
   }
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Mul', opAttrs, [a, b]) as Tensor<Rank>;
   }
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Div', opAttrs, [a, b]) as Tensor<Rank>;
   }
   sum(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     throw new Error('Method not implemented.');
@@ -226,7 +234,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   relu<T extends Tensor<Rank>>(x: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', x.dtype)];
+    return this.execute('Relu', opAttrs, [x]) as T;
   }
   elu<T extends Tensor<Rank>>(x: T): T {
     throw new Error('Method not implemented.');
@@ -447,7 +456,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   pad<T extends Tensor<Rank>>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     const opAttrs = [
-      this.createTypeOpAttr('T', x), {
+      this.createTypeOpAttr('T', x.dtype), {
         name: 'Tpaddings',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
@@ -458,16 +467,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     const paddingsTensor = tensor2d(paddings, [2, 2], 'int32');
     const constantTensor = scalar(constantValue, x.dtype);
 
-    const output = new this.binding.TensorHandle();
-    this.binding.execute(
-        this.context, 'PadV2', opAttrs,
-        [
-          this.handleMap.get(x.dataId),
-          this.handleMap.get(paddingsTensor.dataId),
-          this.handleMap.get(constantTensor.dataId)
-        ],
-        output);
-    return this.createOutputTensor(output) as T;
+    return this.execute(
+               'PadV2', opAttrs, [x, paddingsTensor, constantTensor]) as T;
   }
   transpose<T extends Tensor<Rank>>(x: T, perm: number[]): T {
     throw new Error('Method not implemented.');

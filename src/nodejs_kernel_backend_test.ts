@@ -16,6 +16,8 @@
  */
 
 import * as dl from 'deeplearn';
+import {expectArraysClose} from 'deeplearn/dist/test_util';
+
 import {bindTensorFlowBackend} from '.';
 
 // BeforeEach?
@@ -26,7 +28,7 @@ describe('matMul', () => {
     const t1 = dl.tensor2d([[1, 2], [3, 4]]);
     const t2 = dl.tensor2d([[5, 6], [7, 8]]);
     const result = t1.matMul(t2);
-    expect(result.dataSync()).toEqual(new Float32Array([19, 22, 43, 50]));
+    expectArraysClose(result, [19, 22, 43, 50]);
   });
 });
 
@@ -44,7 +46,7 @@ describe('slice tensor1d', () => {
     const result = dl.slice1d(a, 3, 2);
 
     expect(result.shape).toEqual([2]);
-    expect(result.dataSync()).toEqual(new Float32Array([4, 5]));
+    expectArraysClose(result, [4, 5]);
   });
 
   it('slices 5x1 into shape 3x1 starting at 1', () => {
@@ -52,7 +54,7 @@ describe('slice tensor1d', () => {
     const result = dl.slice1d(a, 1, 3);
 
     expect(result.shape).toEqual([3]);
-    expect(result.dataSync()).toEqual(new Float32Array([2, 3, 4]));
+    expectArraysClose(result, [2, 3, 4]);
   });
 });
 
@@ -60,8 +62,45 @@ describe('pad', () => {
   it('should work', () => {
     const t = dl.tensor2d([[1, 1], [1, 1]]);
     const result = dl.pad2d(t, [[1, 1], [1, 1]]);
-    expect(result.dataSync()).toEqual(new Float32Array([
-      0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0
-    ]));
+    expectArraysClose(result, [0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0]);
+  });
+});
+
+describe('relu', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
+    expectArraysClose(dl.relu(a), [1, 0, 0, 3, 0]);
+  });
+});
+
+describe('add', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 1]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.add(b), [3, 3]);
+  });
+});
+
+describe('sub', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([2, 2]);
+    const b = dl.tensor1d([1, 1]);
+    expectArraysClose(a.sub(b), [1, 1]);
+  });
+});
+
+describe('div', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 4]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.div(b), [2, 2]);
+  });
+});
+
+describe('multiply', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([2, 2]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.mul(b), [4, 4]);
   });
 });
