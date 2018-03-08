@@ -16,4 +16,4 @@
  */
 
 export * from './graph_executor';
-export * from './model';
+export * from './tf_model';

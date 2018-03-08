@@ -70,7 +70,7 @@ describe('Model', () => {
     expect(loaded).toBe(true);
   });
 
-  describe('predict', () => {
+  describe('eval', () => {
     it('should generate the output', async () => {
       await model.load();
       const input = dl.tensor1d([1], 'int32');

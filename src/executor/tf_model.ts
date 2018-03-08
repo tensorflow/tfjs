@@ -21,7 +21,7 @@ import {OperationMapper} from '../operations/index';
 
 import {GraphExecutor} from './graph_executor';
 
-export class Model {
+export class TFModel {
   private executor: GraphExecutor;
   private version = 'n/a';
   // Returns the version information for the tensorflow model GraphDef.
@@ -63,7 +63,7 @@ export class Model {
    * @param inputs tensor map of the inputs for the model, keyed by the input
    * node names.
    */
-  predict(inputs: data.TensorMap): data.TensorMap {
+  eval(inputs: data.TensorMap): data.TensorMap {
     return this.executor.execute(inputs);
   }
 

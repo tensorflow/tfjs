@@ -16,4 +16,4 @@
  */
 
 export {TensorMap} from './data/index';
-export {Model} from './executor/index';
+export {TFModel} from './executor/index';

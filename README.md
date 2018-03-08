@@ -8,7 +8,7 @@
 
 2. Use the scripts/converter.py to convert your Tensorflow [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md). ([details steps](./scripts/README.md))
 
-3. Instantiate the [Model class](./src/executor/model) and run inference. [Example](./demo/mobilenet.ts)
+3. Instantiate the [TFModel class](./src/executor/tf_model) and run inference. [Example](./demo/mobilenet.ts)
 
 ## Development
 
