@@ -53,49 +53,50 @@ static napi_value NewTensorHandle(napi_env env, napi_callback_info info) {
   ENSURE_CONSTRUCTOR_CALL_RETVAL(env, info, nullptr);
 
   napi_status nstatus;
+  size_t argc = 0;
+  napi_value js_this;
+  nstatus = napi_get_cb_info(env, info, &argc, nullptr, &js_this, nullptr);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
-  // This method takes two arguments - shape and dtype.
-  size_t argc = 2;
+  InitTensorHandle(env, js_this);
+  return js_this;
+}
+
+static napi_value CopyTensorHandleBuffer(napi_env env,
+                                         napi_callback_info info) {
+  napi_status nstatus;
+
+  // Binding buffer takes 3 params: shape, dtype, buffer.
+  size_t argc = 3;
   napi_value args[argc];
   napi_value js_this;
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
-  if (argc == 0) {
-    // A zero param was passed, simply wrap the struct with nullptr.
-    InitPlaceholderTensorHandle(env, js_this);
+  if (argc < 3) {
+    NAPI_THROW_ERROR(env, "Invalid number of arguments passed to bindBuffer()");
     return js_this;
   }
 
+  // Param 0 shoud be shape:
   napi_value shape_value = args[0];
   ENSURE_VALUE_IS_ARRAY_RETVAL(env, shape_value, js_this);
 
   std::vector<int64_t> shape_vector;
   ExtractArrayShape(env, shape_value, &shape_vector);
 
+  // Param 1 should be dtype:
   napi_value dtype_arg = args[1];
   int32_t dtype_int32_val;
   nstatus = napi_get_value_int32(env, dtype_arg, &dtype_int32_val);
   TF_DataType dtype = static_cast<TF_DataType>(dtype_int32_val);
 
-  InitTensorHandle(env, js_this, shape_vector.data(), shape_vector.size(),
-                   dtype);
-  return js_this;
-}
-
-static napi_value SetTensorHandleBuffer(napi_env env, napi_callback_info info) {
-  napi_status nstatus;
-
-  // This method should take only one param - a typed array.
-  size_t argc = 1;
-  napi_value typed_array_value;
-  napi_value js_this;
-  nstatus =
-      napi_get_cb_info(env, info, &argc, &typed_array_value, &js_this, nullptr);
-  ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
-
+  // Param 2 should be typed-array:
+  napi_value typed_array_value = args[2];
   ENSURE_VALUE_IS_TYPED_ARRAY_RETVAL(env, typed_array_value, js_this);
-  BindTensorJSBuffer(env, js_this, typed_array_value);
+
+  CopyTensorJSBuffer(env, js_this, shape_vector.data(), shape_vector.size(),
+                     dtype, typed_array_value);
 
   return js_this;
 }
@@ -172,7 +173,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
 
   // Tensor Handle class
   napi_property_descriptor tensor_handle_properties[] = {
-      {"bindBuffer", nullptr, SetTensorHandleBuffer, nullptr, nullptr, nullptr,
+      {"copyBuffer", nullptr, CopyTensorHandleBuffer, nullptr, nullptr, nullptr,
        napi_default, nullptr},
       {"dataSync", nullptr, GetTensorHandleData, nullptr, nullptr, nullptr,
        napi_default, nullptr},
@@ -180,6 +181,7 @@ static napi_value InitTFNodeJSBinding(napi_env env, napi_value exports) {
        napi_default, nullptr},
       {"dtype", nullptr, nullptr, GetTensorHandleDtype, nullptr, nullptr,
        napi_default, nullptr}};
+  ;
 
   napi_value tensor_handle_class;
   nstatus =

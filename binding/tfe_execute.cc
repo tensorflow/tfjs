@@ -138,7 +138,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   TensorHandle* handle;
   nstatus = napi_unwrap(env, output_tensor, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
-  if (handle->tensor != nullptr || handle->handle != nullptr) {
+  if (handle->handle != nullptr) {
     NAPI_THROW_ERROR(
         env, "Invalid output Tensor not built with default constructor");
     return;
@@ -195,11 +195,9 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   TFE_Execute(tfe_op, result_handles.data(), &num_retvals, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
-  // Swap pointers on the output tensor. This tensor is ensured to have nullptr
-  // for all references so no cleanup is needed.
+  // Swap pointer on the output tensor handle. This handle is ensured to have
+  // nullptr for all references so no cleanup is needed.
   handle->handle = result_handles[0];
-  handle->tensor = TFE_TensorHandleResolve(result_handles[0], tf_status.status);
-  ENSURE_TF_OK(env, tf_status);
 }
 
 }  // namespace tfnodejs
