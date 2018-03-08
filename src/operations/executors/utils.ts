@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {TensorMap} from '../../data/types';
+import {NamedTensorMap} from 'deeplearn/dist/types';
 import {Node, ValueType} from '../index';
 
 export function getParamValue(
-    paramName: string, node: Node, tensorMap: TensorMap): ValueType {
+    paramName: string, node: Node, tensorMap: NamedTensorMap): ValueType {
   const param = node.params[paramName];
   if (param && param.inputIndex !== undefined) {
     if (param.type === 'tensor') {

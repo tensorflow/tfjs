@@ -14,6 +14,4 @@
  * limitations under the License.
  * =============================================================================
  */
-
-export {TensorMap} from './data/index';
 export {TFModel} from './executor/index';

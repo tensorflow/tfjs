@@ -18,14 +18,14 @@
 import * as dl from 'deeplearn';
 import {DataType} from 'deeplearn/dist/types';
 
-import {TensorMap} from '../../data/types';
+import {NamedTensorMap} from 'deeplearn/dist/types';
 import {Node} from '../index';
 
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor = (node: Node,
-                                    tensorMap: TensorMap): dl.Tensor => {
+                                    tensorMap: NamedTensorMap): dl.Tensor => {
   switch (node.op) {
     case 'fill': {
       const shape = getParamValue('shape', node, tensorMap) as number[];

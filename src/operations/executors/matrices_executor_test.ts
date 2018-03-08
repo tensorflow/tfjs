@@ -24,8 +24,8 @@ import {createBoolAttr, createNumericArrayAttr, createTensorAttr} from './test_h
 
 describe('matrices', () => {
   let node: Node;
-  const input1 = dl.Scalar.new(1);
-  const input2 = dl.Scalar.new(2);
+  const input1 = dl.scalar(1);
+  const input2 = dl.scalar(2);
 
   beforeEach(() => {
     node = {

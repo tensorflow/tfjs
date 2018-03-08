@@ -24,7 +24,7 @@ import {createBoolAttr, createNumberAttr, createTensorAttr} from './test_helper'
 
 describe('reduction', () => {
   let node: Node;
-  const input1 = dl.Scalar.new(1);
+  const input1 = dl.scalar(1);
 
   beforeEach(() => {
     node = {
