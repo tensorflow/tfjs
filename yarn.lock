@@ -21,8 +21,8 @@ acorn@^4.0.3:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.13.tgz#105495ae5361d697bd195c825192e1ad7f253787"
 
 acorn@^5.4.1:
-  version "5.5.1"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.5.1.tgz#84e05a9ea0acbe131227da50301e62464dc9c1d8"
+  version "5.5.3"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.5.3.tgz#f473dd47e0277a08e28e9bec5aeeb04751f0b8c9"
 
 any-promise@^1.3.0:
   version "1.3.0"
@@ -342,9 +342,12 @@ date-now@^0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
-"deeplearn@link:../deeplearnjs":
-  version "0.0.0"
-  uid ""
+deeplearn@next:
+  version "0.6.0-alpha2"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha2.tgz#a7cc508fa16a6b6e5afcca2490f0ae2e11ecbdfd"
+  dependencies:
+    seedrandom "~2.4.3"
+    utf8 "~2.1.2"
 
 defined@^1.0.0:
   version "1.0.0"
@@ -429,7 +432,7 @@ function-bind@^1.0.2:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.1.tgz#a56899d3ea3c9bab874bb9773b7c5ede92f4895d"
 
-glob@^7.1.0:
+glob@^7.0.5, glob@^7.1.0:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/glob/-/glob-7.1.2.tgz#c19c9df9a028702d678612384a6552404c636d15"
   dependencies:
@@ -794,6 +797,12 @@ resolve@^1.1.4, resolve@^1.4.0:
   dependencies:
     path-parse "^1.0.5"
 
+rimraf@~2.6.2:
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.6.2.tgz#2ed8150d24a16ea8651e6d6ef0f47c4158ce7a36"
+  dependencies:
+    glob "^7.0.5"
+
 ripemd160@^2.0.0, ripemd160@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/ripemd160/-/ripemd160-2.0.1.tgz#0f4584295c53a3628af7e6d79aca21ce57d1c6e7"
@@ -903,9 +912,9 @@ syntax-error@^1.1.1:
   dependencies:
     acorn-node "^1.2.0"
 
-"tfjs-layers@link:../tfjs-layers":
-  version "0.0.0"
-  uid ""
+"tfjs-layers@git+https://github.com/tensorflow/tfjs-layers.git#da1c0514ea716320ea45d66859a7564f65710c44":
+  version "0.0.1"
+  resolved "git+https://github.com/tensorflow/tfjs-layers.git#da1c0514ea716320ea45d66859a7564f65710c44"
 
 through2@^2.0.0:
   version "2.0.3"

@@ -14,16 +14,18 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "browserify": "~16.1.1",
+    "rimraf": "~2.6.2",
     "tsify": "~3.0.4",
     "typescript": "2.7.2",
     "uglify-js": "~3.0.28"
   },
   "scripts": {
+    "prep": "yarn && cd node_modules/tfjs-layers/ && yarn && yarn build && rimraf node_modules/deeplearn/",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh"
   },
   "dependencies": {
-    "deeplearn": "link:../deeplearnjs/",
-    "tfjs-layers": "link:../tfjs-layers/"
+    "deeplearn": "next",
+    "tfjs-layers": "git+https://github.com/tensorflow/tfjs-layers.git#da1c0514ea716320ea45d66859a7564f65710c44"
   }
 }
