@@ -2,6 +2,8 @@
 {
   "files.associations": {
     "*.tcc": "cpp",
+    "system_error": "cpp",
+    "type_traits": "cpp",
     "__bit_reference": "cpp",
     "__functional_base": "cpp",
     "algorithm": "cpp",
@@ -14,10 +16,9 @@
     "locale": "cpp",
     "memory": "cpp",
     "ratio": "cpp",
-    "system_error": "cpp",
     "tuple": "cpp",
-    "type_traits": "cpp",
-    "vector": "cpp"
+    "vector": "cpp",
+    "__locale": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,

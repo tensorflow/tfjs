@@ -70,95 +70,69 @@ describe('TensorHandle', () => {
     expect(new binding.TensorHandle()).toBeDefined();
   });
 
-  it('throws exception when shape is called on default constructor', () => {
+  it('throws exception when shape is called on non-used handle', () => {
     expect(() => {
       // tslint:disable-next-line:no-unused-expression
       new binding.TensorHandle().shape;
     }).toThrowError();
   });
 
-  it('throws exception when dtype is called on default constructor', () => {
+  it('throws exception when dtype is called on a non-used handle', () => {
     expect(() => {
       // tslint:disable-next-line:no-unused-expression
       new binding.TensorHandle().dtype;
     }).toThrowError();
   });
 
-  it('throws exception when bindBuffer() is called on default constructor',
-     () => {
-       expect(() => {
-         // tslint:disable-next-line:no-unused-expression
-         new binding.TensorHandle().bindBuffer(new Float32Array([1]));
-       }).toThrowError();
-     });
+  it('throws exception when dataSync() is called on non-used handle', () => {
+    expect(() => {
+      // tslint:disable-next-line:no-unused-expression
+      new binding.TensorHandle().dataSync();
+    }).toThrowError();
+  });
 
-  it('throws exception when dataSync() is called on default constructor',
-     () => {
-       expect(() => {
-         // tslint:disable-next-line:no-unused-expression
-         new binding.TensorHandle().dataSync();
-       }).toThrowError();
-     });
-
-  it('creates a valid handle with shape and type', () => {
-    const handle = new binding.TensorHandle([2], binding.TF_INT32);
+  it('creates a valid handle with shape and type when data is bound', () => {
+    const handle = new binding.TensorHandle();
+    handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
     expect(handle).toBeDefined();
     expect(handle.shape).toEqual([2]);
     expect(handle.dtype).toEqual(binding.TF_INT32);
-  });
-
-  it('reads and writes data to valid handle', () => {
-    const handle = new binding.TensorHandle([2], binding.TF_INT32);
-    handle.bindBuffer(new Int32Array([1, 2]));
     expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
   });
 
-  it('throws exception when data does not match dtype', () => {
-    // TensorHandle w/ TF_INT32 and mismatched typed arrays:
-    expect(() => {
-      new binding.TensorHandle([2], binding.TF_INT32)
-          .bindBuffer(new Float32Array([1, 2]));
-    }).toThrowError();
-    expect(() => {
-      new binding.TensorHandle([2], binding.TF_INT32)
-          .bindBuffer(new Uint8Array([1, 0]));
-    }).toThrowError();
-    // TensorHandle w/ TF_FLOAT and mismatched typed arrays:
-    expect(() => {
-      new binding.TensorHandle([2], binding.TF_FLOAT)
-          .bindBuffer(new Int32Array([1, 2]));
-    }).toThrowError();
-    expect(() => {
-      new binding.TensorHandle([2], binding.TF_FLOAT)
-          .bindBuffer(new Uint8Array([1, 0]));
-    }).toThrowError();
-    // TensorHandle w/ TF_BOOL and mismatched typed arrays:
-    expect(() => {
-      new binding.TensorHandle([2], binding.TF_BOOL).bindBuffer(new Int32Array([
-        1, 2
-      ]));
-    }).toThrowError();
-    expect(() => {
-      new binding.TensorHandle([2], binding.TF_BOOL)
-          .bindBuffer(new Float32Array([1, 0]));
-    }).toThrowError();
+  it('reuses handles with different shape', () => {
+    const handle = new binding.TensorHandle();
+    handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
+    expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
+
+    handle.copyBuffer([2], binding.TF_FLOAT, new Float32Array([3, 4]));
+    expect(handle.dataSync()).toEqual(new Float32Array([3, 4]));
+  });
+
+  it('reuses handles with different dtype', () => {
+    const handle = new binding.TensorHandle();
+    handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
+    expect(handle.dataSync()).toEqual(new Int32Array([1, 2]));
+
+    handle.copyBuffer([4], binding.TF_INT32, new Int32Array([3, 4, 5, 6]));
+    expect(handle.dataSync()).toEqual(new Int32Array([3, 4, 5, 6]));
   });
 
   it('throws exception when shape does not match data', () => {
     expect(() => {
-      new binding.TensorHandle([2], binding.TF_INT32)
-          .bindBuffer(new Int32Array([1, 2, 3]));
+      new binding.TensorHandle().copyBuffer(
+          [2], binding.TF_INT32, new Int32Array([1, 2, 3]));
     }).toThrowError();
     expect(() => {
-      new binding.TensorHandle([4], binding.TF_INT32)
-          .bindBuffer(new Int32Array([1, 2, 3]));
+      new binding.TensorHandle().copyBuffer(
+          [4], binding.TF_INT32, new Int32Array([1, 2, 3]));
     }).toThrowError();
   });
 
   it('throws exception with invalid dtype', () => {
     expect(() => {
       // tslint:disable-next-line:no-unused-expression
-      new binding.TensorHandle([1], 1000);
+      new binding.TensorHandle().copyBuffer([1], 1000, new Int32Array([1]));
     }).toThrowError();
   });
 });
@@ -172,10 +146,10 @@ describe('execute()', () => {
     {name: 'transpose_b', type: binding.TF_ATTR_BOOL, value: false},
     {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_FLOAT}
   ];
-  const tensorA = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
-  tensorA.bindBuffer(new Float32Array([1, 2, 3, 4]));
-  const tensorB = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
-  tensorB.bindBuffer(new Float32Array([4, 3, 2, 1]));
+  const tensorA = new binding.TensorHandle();
+  tensorA.copyBuffer([2, 2], binding.TF_FLOAT, new Float32Array([1, 2, 3, 4]));
+  const tensorB = new binding.TensorHandle();
+  tensorB.copyBuffer([2, 2], binding.TF_FLOAT, new Float32Array([4, 3, 2, 1]));
   const matMulInput = [tensorA, tensorB];
 
   it('throws exception with invalid Context', () => {
@@ -208,13 +182,6 @@ describe('execute()', () => {
     expect(() => {
       binding.execute(
           new binding.Context(), name, matMulOpAttrs, matMulInput, null);
-    }).toThrowError();
-  });
-
-  it('throws exception with output as non-default constructor', () => {
-    expect(() => {
-      const result = new binding.TensorHandle([2, 2], binding.TF_FLOAT);
-      binding.execute(context, name, matMulOpAttrs, matMulInput, result);
     }).toThrowError();
   });
 

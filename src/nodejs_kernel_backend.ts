@@ -23,7 +23,13 @@ import {DataType, Rank} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
+type TensorInfo = {
+  shape: number[],
+  dtype: number
+};
+
 export class NodeJSKernelBackend implements KernelBackend {
+  private shapeMap = new WeakMap<DataId, TensorInfo>();
   private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
 
@@ -80,7 +86,6 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
       Tensor2D {
-    // TODO - set attr type.
     const opAttrs = [
       {name: 'transpose_a', type: this.binding.TF_ATTR_BOOL, value: transposeA},
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
@@ -94,14 +99,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
-    // TODO - set attr type.
     const opAttrs = [
-      {
-        name: 'T',
-        type: this.binding.TF_ATTR_TYPE,
-        value: this.binding.TF_FLOAT
-      },
-      {
+      this.createTypeOpAttr('T', x), {
         name: 'Index',
         type: this.binding.TF_ATTR_TYPE,
         value: this.binding.TF_INT32
@@ -512,22 +511,31 @@ export class NodeJSKernelBackend implements KernelBackend {
   disposeData(dataId: object): void {
     // throw new Error('Method not implemented.');
   }
+
   write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
-    this.handleMap.get(dataId).bindBuffer(values);
+    if (!this.shapeMap.has(dataId)) {
+      throw new Error(`Tensor ${dataId} was not registered!`);
+    }
+    if (!this.handleMap.has(dataId)) {
+      this.handleMap.set(dataId, new this.binding.TensorHandle());
+    }
+
+    const info = this.shapeMap.get(dataId);
+    this.handleMap.get(dataId).copyBuffer(info.shape, info.dtype, values);
   }
+
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {
     throw new Error('Method not implemented.');
   }
 
-  register(dataId: object, shape: number[], dtype: 'float32'|'int32'|'bool'):
+  register(dataId: object, tShape: number[], dtype: 'float32'|'int32'|'bool'):
       void {
-    if (this.handleMap.has(dataId)) {
-      return;
+    if (this.shapeMap.has(dataId)) {
+      throw new Error(`Tensor ${dataId} is already registered!`);
     }
-    this.handleMap.set(
-        dataId, new this.binding.TensorHandle(shape, this.getTFDType(dtype)));
+    this.shapeMap.set(dataId, {shape: tShape, dtype: this.getTFDType(dtype)});
   }
 
   memory(): {unreliable: boolean;} {
