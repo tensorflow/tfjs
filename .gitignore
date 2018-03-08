@@ -4,3 +4,4 @@ npm-debug.log
 .DS_Store
 dist/
 tensorflow-tfjs-*.tgz
+yarn-error.log
