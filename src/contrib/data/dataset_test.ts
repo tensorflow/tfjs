@@ -216,7 +216,7 @@ describeWithFlags('Dataset', CPU_ENVS, () => {
     try {
       const ds = new TestDataset();
       expect(dl.memory().numTensors).toEqual(0);
-      await ds.map(x => ({'a': dl.Tensor1D.new([1, 2, 3])})).collectAll();
+      await ds.map(x => ({'a': dl.tensor1d([1, 2, 3])})).collectAll();
       // Each element of the test dataset contains 2 Tensors.
       // Our map operation discarded both Tensors and created one new one.
       // Thus the mapped data contains 100 elements with 1 Tensor each.

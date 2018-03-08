@@ -55,18 +55,23 @@ describeWithFlags('Dataset.batch()', CPU_ENVS, () => {
           expect((lastBatch['string'] as string[]).length).toEqual(4);
 
           expectArraysClose(
-              lastBatch['number'] as dl.Tensor,
-              dl.Tensor1D.new([96, 97, 98, 99]));
+              lastBatch['number'] as dl.Tensor, dl.tensor1d([96, 97, 98, 99]));
           expectArraysClose(
-              lastBatch['numberArray'] as dl.Tensor, dl.Tensor2D.new([4, 3], [
-                [96, 96 ** 2, 96 ** 3], [97, 97 ** 2, 97 ** 3],
-                [98, 98 ** 2, 98 ** 3], [99, 99 ** 2, 99 ** 3]
-              ]));
+              lastBatch['numberArray'] as dl.Tensor,
+              dl.tensor2d(
+                  [
+                    [96, 96 ** 2, 96 ** 3], [97, 97 ** 2, 97 ** 3],
+                    [98, 98 ** 2, 98 ** 3], [99, 99 ** 2, 99 ** 3]
+                  ],
+                  [4, 3]));
           expectArraysClose(
-              lastBatch['Tensor'] as dl.Tensor, dl.Tensor2D.new([4, 3], [
-                [96, 96 ** 2, 96 ** 3], [97, 97 ** 2, 97 ** 3],
-                [98, 98 ** 2, 98 ** 3], [99, 99 ** 2, 99 ** 3]
-              ]));
+              lastBatch['Tensor'] as dl.Tensor,
+              dl.tensor2d(
+                  [
+                    [96, 96 ** 2, 96 ** 3], [97, 97 ** 2, 97 ** 3],
+                    [98, 98 ** 2, 98 ** 3], [99, 99 ** 2, 99 ** 3]
+                  ],
+                  [4, 3]));
           expect(lastBatch['string'] as string[]).toEqual([
             'Item 96', 'Item 97', 'Item 98', 'Item 99'
           ]);

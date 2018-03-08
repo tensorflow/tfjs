@@ -16,8 +16,8 @@
  * =============================================================================
  */
 
-import {Scalar, Tensor} from '../../tensor';
-
+import * as ops from '../../ops/ops';
+import {Tensor} from '../../tensor';
 import {Dataset} from './dataset';
 import {ElementArray} from './types';
 
@@ -45,8 +45,8 @@ export type DatasetStatistics = {
 export function scaleTo01(min: number, max: number): (value: ElementArray) =>
     ElementArray {
   const range = max - min;
-  const minTensor: Tensor = Scalar.new(min);
-  const rangeTensor: Tensor = Scalar.new(range);
+  const minTensor: Tensor = ops.scalar(min);
+  const rangeTensor: Tensor = ops.scalar(range);
   return (value: ElementArray): ElementArray => {
     if (typeof (value) === 'string') {
       throw new Error('Can\'t scale a string.');

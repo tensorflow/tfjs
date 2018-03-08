@@ -19,7 +19,7 @@ import {doc} from './doc';
 import {ENV} from './environment';
 import * as ops from './ops/ops';
 import * as tensor_util from './tensor_util';
-import {DataType, DataTypeMap, Rank, ShapeMap, TypedArray} from './types';
+import {DataType, Rank, ShapeMap, TypedArray} from './types';
 import * as util from './util';
 
 /** @hidden */
@@ -835,50 +835,11 @@ export class Tensor<R extends Rank = Rank> {
   }
 }
 
-/** @doclink Tensor */
-export class Scalar extends Tensor<Rank.R0> {
-  static new(value: number|boolean, dtype?: DataType): Scalar {
-    return ops.scalar(value, dtype);
-  }
-}
-
-/** @doclink Tensor */
-export class Tensor1D extends Tensor<Rank.R1> {
-  static new<D extends DataType = 'float32'>(
-      values: DataTypeMap[D]|number[]|boolean[], dtype?: D): Tensor1D {
-    return ops.tensor1d(values, dtype);
-  }
-}
-
-/** @doclink Tensor */
-export class Tensor2D extends Tensor<Rank.R2> {
-  static new<D extends DataType = 'float32'>(
-      shape: [number, number],
-      values: DataTypeMap[D]|number[]|number[][]|boolean[]|boolean[][],
-      dtype?: D): Tensor2D {
-    return ops.tensor2d(values, shape, dtype);
-  }
-}
-
-/** @doclink Tensor */
-export class Tensor3D extends Tensor<Rank.R3> {
-  static new<D extends DataType = 'float32'>(
-      shape: [number, number, number],
-      values: DataTypeMap[D]|number[]|number[][][]|boolean[]|boolean[][][],
-      dtype?: D): Tensor3D {
-    return ops.tensor3d(values, shape, dtype);
-  }
-}
-
-/** @doclink Tensor */
-export class Tensor4D extends Tensor<Rank.R4> {
-  static new<D extends DataType = 'float32'>(
-      shape: [number, number, number, number],
-      values: DataTypeMap[D]|number[]|number[][][][]|boolean[]|boolean[][][][],
-      dtype?: D): Tensor4D {
-    return ops.tensor4d(values, shape, dtype);
-  }
-}
+export type Scalar = Tensor<Rank.R0>;
+export type Tensor1D = Tensor<Rank.R1>;
+export type Tensor2D = Tensor<Rank.R2>;
+export type Tensor3D = Tensor<Rank.R3>;
+export type Tensor4D = Tensor<Rank.R4>;
 
 /**
  * A mutable `Tensor`, useful for persisting state, e.g. for training.
