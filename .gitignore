@@ -1,0 +1,14 @@
+node_modules/
+**/*.js
+**/*.js.map
+coverage/
+
+npm-debug.log
+yarn-error.log
+.DS_Store
+dist/
+.idea/
+
+bazel-*
+
+*.pyc

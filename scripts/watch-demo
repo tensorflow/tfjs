@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+/**
+ * @license
+ * Copyright 2018 Google LLC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file or at
+ * https://opensource.org/licenses/MIT.
+ */
+
+/**
+ * This script will watch a typescript demo and automatically recompile the
+ * TypeScript code when it changes, generating a bundle.js file alongside
+ * inside a TypeScript demo directory.
+ *
+ * To use this script, from the root of the repo run:
+ *   ./scripts/watch-demo $DEMO_DIR
+ *
+ * DEMO_DIR is the path of the directory containing the demo. This script
+ * expects the directory name of the demo to match the filename of the
+ * main typescript entry point.
+ *
+ * E.g., this compiles 'demos/pacman/pacman.ts':
+ *   ./scripts/watch-demo ./demos/pacman/
+ * E.g., this compiles 'demos/addition_rnn/addition_rnn.ts':
+ *   ./scripts/watch-demo ./demos/addition_rnn
+ */
+const path = require('path');
+const spawn = require('cross-spawn');
+const opn = require('opn');
+var argv = require('minimist')(process.argv.slice(2));
+
+const demoPath = argv._[0];
+
+const demoFolder = path.basename(demoPath);
+const outputPath = path.join(demoPath, 'bundle.js')
+const tsPath = path.join(demoPath, demoFolder + '.ts');
+
+const cmd = path.join('.', 'node_modules', '.bin', 'watchify');
+
+const tsifyCmd = ['tsify', '-p', './demos/tsconfig.json'];
+
+// tsifyCmd is passed to the watchify command, so the arguments should be
+// wrapped in [].
+tsifyCmd[0] = '[' + tsifyCmd[0];
+tsifyCmd[tsifyCmd.length - 1] += ']';
+
+const watchify = spawn(cmd, [tsPath, '-p', ...tsifyCmd, '-v',
+    '--debug', '-o' , outputPath], {detached: false});
+watchify.stdout.pipe(process.stdout);
+watchify.stderr.pipe(process.stderr);
+
+let httpServerStarted = false;
+
+console.log('Waiting for initial compile...');
+watchify.stderr.on('data', (data) => {
+  if (data.toString().includes(`bytes written to`)) {
+    if (!httpServerStarted) {
+      const httpCmd = path.join('node_modules', '.bin', 'http-server');
+      const httpServer = spawn(httpCmd, ['-c-1'], { detached: false});
+
+      httpServer.stdout.on('data', data => {
+        data = data.toString().split('\n')[0].trim();
+        if (data.startsWith('http://127.0.0.1:')) {
+          // Open a browser pointing to the demo.
+          opn(path.join(data, demoPath));
+        }
+      });
+
+      httpServer.stdout.pipe(process.stdout);
+      httpServer.stderr.pipe(process.stderr);
+      httpServerStarted = true;
+    }
+  }
+});

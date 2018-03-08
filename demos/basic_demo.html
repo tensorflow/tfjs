@@ -1,0 +1,51 @@
+<!--
+Copyright 2018 Google LLC
+
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.
+=============================================================================
+-->
+
+
+<!doctype html>
+<body>
+<h1>TensorFlow.js Layers: Basic Demo</h1>
+<div>
+  All this demo does is create a basic model and run some values through it.
+  If you don't see any content below this summary, then it's not working. (In
+  that case, check the console.)
+</div>
+<br>
+<div>
+  Note: This demo assumes that tensorflow.debug.js exists in ../../dist/bin.
+</div>
+<br>
+<div id="layers_output"></div>
+<div id="ones_output"></div>
+<div id="network_output"></div>
+<script src="../dist/tensorflow.debug.js"></script>
+<script>
+  window.onload = function() {
+    const model = tfjs_layers.sequential({});
+    model.add(tfjs_layers.layers.dense({inputDim: 1, units: 1, name: 'layer_1'}));
+    model.add(tfjs_layers.layers.dense({units: 1, name: 'layer_2'}));
+
+    const layerNames = [];
+    model.layers.map(function(x) { layerNames.push(x.name); });
+    document.getElementById('layers_output').innerText = 'Layer names: ' +
+      layerNames.join(', ');
+
+    const batchSize = 5;
+    const input = tfjs_layers.backend.ones([batchSize, 1]);
+    const onesMessage =
+    document.getElementById('ones_output').innerText = 'Ones of size [5, 1]: ' +
+      input.dataSync().join(', ');
+
+    const result = model.apply(input);
+    document.getElementById('network_output').innerText = 'Result of running ' +
+    'through a two layer network: ' + result.dataSync().join(', ');
+  };
+
+</script>
+</body>

@@ -1,0 +1,20 @@
+{
+  "name": "tfjs-layers-demos",
+  "version": "0.1.0",
+  "description": "Demos for TensorFlow.js layers, not published",
+  "private": true,
+  "dependencies": {
+    "clang-format": "~1.2.2",
+    "deeplearn": "0.5.0",
+    "tfjs-layers": "file:../dist/",
+    "pacman": "nsthorat/pacman",
+    "tslint": "~5.6.0",
+    "tslint-no-circular-imports": "^0.2.1",
+    "typescript": "2.4.2",
+    "vega-embed": "^3.0.0"
+  },
+  "scripts": {
+    "prep": "rm -r node_modules/ && yarn",
+    "test": "karma start"
+  }
+}

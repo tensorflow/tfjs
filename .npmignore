@@ -1,0 +1,16 @@
+.vscode/
+demos/
+scripts/
+src/
+coverage/
+node_modules/
+karma.conf.js
+dist/demos/
+dist/**/*.js.map
+dist/**/*_test.js
+dist/**/*_test.d.ts
+.travis.yml
+.npmignore
+CONTRIBUTING.md
+tslint.json
+yarn.lock

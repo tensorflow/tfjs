@@ -1,0 +1,138 @@
+<!--
+Copyright 2018 Google LLC
+
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.
+=============================================================================
+-->
+
+<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+<title>Webcam Pacman</title>
+
+<style>
+  body {
+    padding: 20px;
+  }
+  .container {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  #pacman {
+    margin-left: 100px;
+    width: 400px;
+  }
+  .class-controller {
+    display: table-cell;
+    width: 150px;
+  }
+  #webcam {
+    width: 400px;
+    transform: scaleX(-1);
+  }
+  #status {
+    width: 100%;
+    text-align: center;
+    font-size: 22px;
+    padding: 10px 0;
+  }
+
+  #controls, #webcam-container {
+    vertical-align: top;
+  }
+
+  .thumb {
+    width: 150px;
+    height: 150px;
+    transform: scaleX(-1);
+  }
+  #up, #down, #left, #right {
+    width: 150px;
+  }
+
+  .hyperparam-name, .hyperparam-input {
+    display: table-cell;
+  }
+  .hyperparam {
+    display: table-row;
+  }
+  .train-container, .predict-container {
+    display: table-cell;
+  }
+  #webcam-controller-container {
+    width: 600px;
+  }
+  #fps-container {
+    width: 50px;
+    margin: 0 auto;
+  }
+  #fps-label {
+    display: inline-block;
+  }
+</style>
+
+<div id="status">Loading mobilenet...</div>
+
+<div class="container">
+  <div class="controller">
+
+    <div id="webcam-controller-container">
+      <div id="webcam-container">
+        <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
+      </div>
+      <div id="controls" style="display: none"> <!-- This gets unhidden when the model loads. -->
+        <div class="class-controller" id="up-container">
+          <button class="mdl-button mdl-js-button mdl-button--raised" id="up">up</button>
+          <canvas width=224 height=224 id="up-thumb" class="thumb"></canvas>
+        </div>
+        <div class="class-controller" id="down-container">
+          <button class="mdl-button mdl-js-button mdl-button--raised" id="down">down</button>
+          <canvas width=224 height=224 id="down-thumb" class="thumb"></canvas>
+        </div>
+        <div class="class-controller" id="left-container">
+          <button class="mdl-button mdl-js-button mdl-button--raised" id="left">left</button>
+          <canvas width=224 height=224 id="left-thumb" class="thumb"></canvas>
+        </div>
+        <div class="class-controller" id="right-container">
+          <button class="mdl-button mdl-js-button mdl-button--raised" id="right">right</button>
+          <canvas width=224 height=224 id="right-thumb" class="thumb"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <br>
+    <div class="train-container" style="visibility: hidden">
+      <button class="mdl-button mdl-js-button mdl-button--raised" id="train">train</button>
+      <div id="hyperparams">
+        <div class="hyperparam">
+          <div class="hyperparam-name">Learning rate</div>
+          <input type="number" id="learningRate" class="hyperparam-input"></input>
+        </div>
+        <div class="hyperparam">
+          <div class="hyperparam-name">Batch size (fraction of dataset)</div>
+          <input type="number" id="batchSizeFraction" class="hyperparam-input"></input>
+        </div>
+        <div class="hyperparam">
+          <div class="hyperparam-name">Epochs</div>
+          <input type="number" id="epochs" class="hyperparam-input"></input>
+        </div>
+        <div class="hyperparam">
+          <div class="hyperparam-name">Dense units</div>
+          <input type="number" id="dense-units" class="hyperparam-input"></input>
+        </div>
+      </div>
+      <div id="cost-container">Cost: <span id="cost"></span></div>
+    </div>
+    <div class="predict-container" style="visibility: hidden">
+      <button class="mdl-button mdl-js-button mdl-button--raised" id="predict">predict</button>
+    </div>
+    <div id="inferenceTime"></div>
+  </div>
+  <div id="pacman-container">
+    <div id="pacman"></div>
+  </div>
+</div>
+
+<script src="../node_modules/pacman/modernizr-1.5.min.js"></script>
+<script src="../node_modules/pacman/pacman.js"></script>
+<script src="bundle.js"></script>

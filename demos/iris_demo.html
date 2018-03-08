@@ -1,0 +1,195 @@
+<!--
+Copyright 2018 Google LLC
+
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.
+=============================================================================
+-->
+
+<!doctype html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+  <script src="../dist/tensorflow.debug.js"></script>
+  <script src="../dist/demo/iris.keras.model.js"></script>
+  <script src="../dist/demo/iris.keras.weights.js"></script>
+</head>
+
+<style>
+  .input-div {
+    padding: 5px;
+    font-family: monospace;
+  }
+  .predict-div {
+    padding: 5px;
+    padding-top: 20px;
+  }
+  .predict-table {
+    font-family: monospace;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border: 1px solid black;
+  }
+  td {
+    padding-left: 5px;
+    padding-right: 5px;
+    padding-bottom: 5px;
+  }
+  #predict-header {
+    font-weight: bold;
+  }
+  .output-div {
+    padding: 5px;
+    padding-top: 20px;
+    font-family: monospace;
+    font-weight: bold;
+  }
+  .input-label {
+    display: inline-block;
+    width: 150px;
+  }
+</style>
+
+<body>
+  <h1>TensorFlow.js Layers: Iris Demo</h1>
+  <div>
+    <a target="_blank" href="https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data">
+      View training data
+    </a>
+  </div>
+  <div class='input-div'>
+    <span class="input-label">Petal length: </span>
+    <input id="petal-length" value="5.1"></input>
+    <button id="petal-length-inc">+</button>
+    <button id="petal-length-dec">-</button>
+  </div>
+  <div class='input-div'>
+    <span class="input-label">Petal width: </span>
+    <input id="petal-width" value="3.5"></input>
+    <button id="petal-width-inc">+</button>
+    <button id="petal-width-dec">-</button>
+  </div>
+  <div class='input-div'>
+    <span class="input-label">Sepal length: </span>
+    <input id="sepal-length" value="1.4"></input>
+    <button id="sepal-length-inc">+</button>
+    <button id="sepal-length-dec">-</button>
+  </div>
+  <div class='input-div'>
+    <span class="input-label">Sepal width: </span>
+    <input id="sepal-width" value="0.2"></input>
+    <button id="sepal-width-inc">+</button>
+    <button id="sepal-width-dec">-</button>
+  </div>
+
+  <div class='predict-div'>
+    <table class='predict-table'>
+      <tr id='predict-header'>
+      </tr>
+      <tr id='predict-values'>
+        </tr>
+    </table>
+  </div>
+
+  <div class='output-div'>
+    <span class="input-label">Output class: </span>
+    <input id="winner" readonly="true"></input>
+  </div>
+
+  <script>
+    const irisClasses = ['setosa', 'versicolor', 'virginica'];
+    const increment = 0.1;
+
+    const model = tfjs_layers.modelFromJSON(irisModelJSON);
+
+    model.loadWeights(irisWeightsJSON);
+
+    function predict() {
+      inputData = [
+          Number($('#petal-length').val()),
+          Number($('#petal-width').val()),
+          Number($('#sepal-length').val()),
+          Number($('#sepal-width').val()),
+      ];
+
+      const input = tfjs_layers.dl.tensor2d([inputData], [1, 4]);
+
+      // TODO(cais): Maybe use a math scope.
+      const predictOut = model.predict(input).dataSync();
+      const winner = irisClasses[_.indexOf(predictOut, _.max(predictOut))];
+
+      $('#predict-header').empty();
+      for (const irisClass of irisClasses) {
+        const titleTd = $('<td>' + irisClass + '</td>');
+        $('#predict-header').append(titleTd);
+      }
+      $('#predict-values').empty();
+      for (const predictVal of predictOut) {
+        const valTd = $('<td>' + predictVal.toFixed(4) + '</td>');
+        $('#predict-values').append(valTd);
+      }
+
+      $('#winner').val(winner);
+    }
+
+    $('#petal-length-inc').click(() => {
+      $('#petal-length').val(
+          (Number($('#petal-length').val()) + increment).toFixed(1));
+      predict();
+    });
+    $('#petal-length-dec').click(() => {
+      $('#petal-length').val(
+          (Number($('#petal-length').val()) - increment).toFixed(1));
+      predict();
+    });
+    $('#petal-width-inc').click(() => {
+      $('#petal-width').val(
+          (Number($('#petal-width').val()) + increment).toFixed(1));
+      predict();
+    });
+    $('#petal-width-dec').click(() => {
+      $('#petal-width').val(
+          (Number($('#petal-width').val()) - increment).toFixed(1));
+      predict();
+    });
+    $('#sepal-length-inc').click(() => {
+      $('#sepal-length').val(
+          (Number($('#sepal-length').val()) + increment).toFixed(1));
+      predict();
+    });
+    $('#sepal-length-dec').click(() => {
+      $('#sepal-length').val(
+          (Number($('#sepal-length').val()) - increment).toFixed(1));
+      predict();
+    });
+    $('#sepal-width-inc').click(() => {
+      $('#sepal-width').val(
+          (Number($('#sepal-width').val()) + increment).toFixed(1));
+      predict();
+    });
+    $('#sepal-width-dec').click(() => {
+      $('#sepal-width').val(
+          (Number($('#sepal-width').val()) - increment).toFixed(1));
+      predict();
+    });
+
+    $('#petal-length').change(() => {
+      predict();
+    });
+    $('#petal-width').change(() => {
+      predict();
+    });
+    $('#sepal-length').change(() => {
+      predict();
+    });
+    $('#sepal-width').change(() => {
+      predict();
+    });
+
+    predict();
+
+  </script>
+</body>

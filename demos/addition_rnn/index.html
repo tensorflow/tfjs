@@ -1,0 +1,92 @@
+<!--
+Copyright 2018 Google LLC
+
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.
+=============================================================================
+-->
+
+<!doctype html>
+<head>
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+</head>
+
+<style>
+  body {
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    margin-top: 50px;
+    margin-left: 50px;
+  }
+  .setting {
+    padding-bottom: 6px;
+  }
+  .setting-label {
+    display: inline-block;
+    width: 12em;
+  }
+  .answer-correct {
+    color: green;
+  }
+  .answer-wrong {
+    color: red;
+  }
+  .canvases {
+    display: inline-block;
+  }
+</style>
+
+<body>
+  <h1>TensorFlow.js Layers: Addition RNN Demo</h1>
+  <div>
+    <div>
+      <div class="setting">
+        <span class="setting-label">Digits:</span>
+        <input id="digits" value="2"></input>
+      </div>
+      <div class="setting">
+        <span class="setting-label">Training Size:</span>
+        <input id="trainingSize" value="5000"></input>
+      </div>
+      <div class="setting">
+        <span class="setting-label">RNN Type:</span>
+        <select id="rnnType">
+          <option value="SimpleRNN">SimpleRNN</option>
+          <option value="GRU">GRU</option>
+          <option value="LSTM">LSTM</option>
+        </select>
+      </div>
+      <div class="setting">
+        <span class="setting-label">RNN Layers:</span>
+        <input id="rnnLayers" value="1"></input>
+      </div>
+      <div class="setting">
+        <span class="setting-label">RNN Hidden Layer Size:</span>
+        <input id="rnnLayerSize" value="128"></input>
+      </div>
+      <div class="setting">
+        <span class="setting-label">Batch Size:</span>
+        <input id="batchSize" value="128"></input>
+      </div>
+      <div class="setting">
+        <span class="setting-label">Train Iterations:</span>
+        <input id="trainIterations" value="100"></input>
+      </div>
+      <div class="setting">
+        <span class="setting-label"># of test examples:</span>
+        <input id="numTestExamples" value="20"></input>
+      </div>
+    </div>
+    <button id="trainModel">Train Model</button>
+    <div id="trainStatus"></div>
+    <div>
+      <div class="canvases" id="lossCanvas"></div>
+      <div class="canvases" id="accuracyCanvas"></div>
+      <div class="canvases" id="examplesPerSecCanvas"></div>
+    </div>
+    <div id="testExamples"></div>
+  </div>
+
+</body>
+
+<script src="bundle.js"></script>
