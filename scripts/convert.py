@@ -21,7 +21,7 @@ from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.lib.io import file_io
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'lib/deeplearn/scripts'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'node_modules/deeplearn-src/scripts/'))
 import write_weights as deeplearn
 
 flags.DEFINE_string('saved_model_dir', '', 'The saved model directory.')
