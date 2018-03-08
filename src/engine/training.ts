@@ -578,9 +578,10 @@ export interface ModelCompileConfig {
  * TensorFlow.js. `tf.model` is a factory function that creates an instance
  * of `Model`.
  *
- * To create a `Model`, specify its input(s) and output(s), which are
- * `SymoblicTensor`s from `Input` layers and layers that perform mathematical
- * and neural-network operations.
+ * To create a `Model`, specify its input(s) and output(s). Inputs are
+ * `SymbolicTensor`s provided by `Input` layers. Outputs are `SymbolicTensor`s
+ * provided by other layers that perform mathematical and neural-network
+ * operations.
  *
  * For example, the following code snippet defines a model consisting of
  * two `dense` layers, with of 10 and 4 units, respectively.

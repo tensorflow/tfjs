@@ -309,7 +309,8 @@ generic_utils.ClassNameMap.register('Dense', Dense);
 /**
  * Flattens the input. Does not affect the batch size.
  *
- * A `Flatten` layer flattens its inputs into an 1D for each batch example.
+ * A `Flatten` layer flattens each batch sample in its inputs to 1D (hence the
+ * output is 2D total).
  *
  * For example:
  *
