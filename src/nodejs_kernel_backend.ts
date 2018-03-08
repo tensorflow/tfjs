@@ -24,38 +24,6 @@ import {DataType, Rank} from 'deeplearn/dist/types';
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 export class NodeJSKernelBackend implements KernelBackend {
-  // TODO(kreeger): Drop when 0.5.1 deeplearn is released.
-  slice1D(x: Tensor1D, begin: number, size: number): Tensor1D {
-    return this.slice(x, [begin], [size]);
-  }
-  slice2D(x: Tensor2D, begin: [number, number], size: [number, number]):
-      Tensor2D {
-    throw new Error('Method not implemented.');
-  }
-  slice3D(x: Tensor3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Tensor3D {
-    throw new Error('Method not implemented.');
-  }
-  slice4D(x: Tensor4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Tensor4D {
-    throw new Error('Method not implemented.');
-  }
-  reverse4D(a: Tensor4D, axis: number[]): Tensor4D {
-    throw new Error('Method not implemented.');
-  }
-  pad1D(x: Tensor1D, paddings: [number, number], constantValue: number):
-      Tensor1D {
-    throw new Error('Method not implemented.');
-  }
-  pad2D(
-      x: Tensor2D, paddings: [[number, number], [number, number]],
-      constantValue: number): Tensor2D {
-    return this.pad(x, paddings, constantValue);
-  }
-  // END DROP
-
   private handleMap = new WeakMap<DataId, TensorHandle>();
   private context: Context;
 

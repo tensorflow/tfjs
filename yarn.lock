@@ -141,9 +141,9 @@ decamelize@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
 
-deeplearn@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.5.0.tgz#015c25fb35fcbf40cf9f31d9fff7760af7a436ec"
+deeplearn@next:
+  version "0.6.0-alpha"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha.tgz#996b2f5d16b3d937b69dfc703412d830886e4d10"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
