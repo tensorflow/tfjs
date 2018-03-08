@@ -21,6 +21,7 @@
     "copyfiles": "^1.2.0",
     "cross-spawn": "~6.0.4",
     "deeplearn": "next",
+    "deeplearn-src": "git+https://github.com/PAIR-code/deeplearnjs.git#c24c1e6959faffac5b676bb5cee64f9745577bb0",
     "handlebars": "^4.0.11",
     "http-server": "~0.11.1",
     "jasmine-core": "~3.1.0",

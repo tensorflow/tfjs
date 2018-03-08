@@ -1,3 +1,0 @@
-[submodule "lib/deeplearn"]
-	path = lib/deeplearn
-	url = git@github.com:PAIR-code/deeplearnjs.git
