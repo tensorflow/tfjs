@@ -343,7 +343,7 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   private isDisposed = false;
-  protected throwIfDisposed() {
+  private throwIfDisposed() {
     if (this.isDisposed) {
       throw new Error(`Tensor is disposed.`);
     }
@@ -450,7 +450,7 @@ export class Tensor<R extends Rank = Rank> {
 
   gather<T extends this>(this: T, indices: Tensor1D, axis = 0): T {
     this.throwIfDisposed();
-    return ops.gather(this, indices);
+    return ops.gather(this, indices, axis);
   }
 
   matMul(b: Tensor2D, transposeA = false, transposeB = false): Tensor2D {
