@@ -16,8 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-import {NamedTensorMap} from 'deeplearn/dist/types';
-import {TFModel} from 'tfjs-converter';
+import {NamedTensorMap, TFModel} from 'tfjs-converter';
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
 

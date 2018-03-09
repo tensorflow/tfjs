@@ -16,7 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-import {NamedTensorMap} from 'deeplearn/dist/types';
+import {NamedTensorMap} from '../../data/index';
 
 import {Node} from '../index';
 

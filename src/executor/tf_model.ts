@@ -16,7 +16,7 @@
  */
 
 import * as dl from 'deeplearn';
-import {NamedTensorMap} from 'deeplearn/dist/types';
+import {NamedTensorMap} from '../data/index';
 import {WeightsManifestConfig} from 'deeplearn/dist/weights_loader';
 
 import * as data from '../data/index';
