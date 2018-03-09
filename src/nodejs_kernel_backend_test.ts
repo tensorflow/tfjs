@@ -73,6 +73,34 @@ describe('relu', () => {
   });
 });
 
+describe('reverse', () => {
+  it('should work', () => {
+    const input = dl.tensor1d([1, 2, 3, 4, 5]);
+    const result = dl.reverse(input);
+    expect(result.shape).toEqual(input.shape);
+    expectArraysClose(result, [5, 4, 3, 2, 1]);
+  });
+});
+
+describe('concat', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([3]);
+    const b = dl.tensor1d([5]);
+
+    const result = dl.concat1d([a, b]);
+    const expected = [3, 5];
+    expectArraysClose(result, expected);
+  });
+});
+
+describe('neg', () => {
+  it('should work', () => {
+    const input = dl.tensor1d([1, 2, 3, 4, 5]);
+    const result = dl.neg(input);
+    expectArraysClose(result, [-1, -2, -3, -4, -5]);
+  });
+});
+
 describe('add', () => {
   it('should work', () => {
     const a = dl.tensor1d([1, 1]);
@@ -89,6 +117,14 @@ describe('sub', () => {
   });
 });
 
+describe('multiply', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([2, 2]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.mul(b), [4, 4]);
+  });
+});
+
 describe('div', () => {
   it('should work', () => {
     const a = dl.tensor1d([4, 4]);
@@ -97,10 +133,81 @@ describe('div', () => {
   });
 });
 
-describe('multiply', () => {
+describe('sum', () => {
   it('should work', () => {
-    const a = dl.tensor1d([2, 2]);
+    const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
+    const result = dl.sum(a);
+    expect(result.get()).toEqual(7);
+  });
+});
+
+describe('equal', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 2]);
     const b = dl.tensor1d([2, 2]);
-    expectArraysClose(a.mul(b), [4, 4]);
+    expectArraysClose(a.equal(b), [0, 1]);
+  });
+});
+
+describe('notEqual', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 2]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.notEqual(b), [1, 0]);
+  });
+});
+
+describe('less', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.less(b), [0, 1]);
+  });
+});
+
+describe('lessEqual', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1, 3]);
+    const b = dl.tensor1d([2, 2, 3]);
+    expectArraysClose(a.lessEqual(b), [0, 1, 1]);
+  });
+});
+
+describe('greater', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1]);
+    const b = dl.tensor1d([2, 2]);
+    expectArraysClose(a.greater(b), [1, 0]);
+  });
+});
+
+describe('greaterEqual', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([4, 1, 3]);
+    const b = dl.tensor1d([2, 2, 3]);
+    expectArraysClose(a.greaterEqual(b), [1, 0, 1]);
+  });
+});
+
+describe('logicalNot', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([0, 1, 1], 'bool');
+    expectArraysClose(dl.logicalNot(a), [1, 0, 0]);
+  });
+});
+
+describe('logicalAnd', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 0, 1], 'bool');
+    const b = dl.tensor1d([0, 1, 1], 'bool');
+    expectArraysClose(a.logicalAnd(b), [0, 0, 1]);
+  });
+});
+
+describe('logicalOr', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 0, 0], 'bool');
+    const b = dl.tensor1d([0, 1, 0], 'bool');
+    expectArraysClose(a.logicalOr(b), [1, 1, 0]);
   });
 });

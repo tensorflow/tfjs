@@ -125,70 +125,114 @@ export class NodeJSKernelBackend implements KernelBackend {
 
     return this.execute('Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
   }
+
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      this.createTypeOpAttr('Tidx', 'int32'),
+      this.createTypeOpAttr('T', a.dtype)
+    ];
+    const axisTensor = tensor1d(axis, 'int32');
+    return this.execute('ReverseV2', opAttrs, [a, axisTensor]) as T;
   }
+
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {name: 'N', type: this.binding.TF_ATTR_INT, value: 2},
+      this.createTypeOpAttr('Tidx', 'int32'),
+      this.createTypeOpAttr('T', a.dtype)
+    ];
+    const axisTensor = scalar(0, 'int32');
+    return this.execute('ConcatV2', opAttrs, [a, b, axisTensor]) as Tensor2D;
   }
+
   neg<T extends Tensor<Rank>>(a: T): T {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', a.dtype)];
+    return this.execute('Neg', opAttrs, [a]) as T;
   }
+
   add(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Add', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Sub', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Mul', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.execute('Div', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   sum(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+    const axisTensor = tensor1d(axes, 'int32');
+    return this.execute('Sum', opAttrs, [x, axisTensor]) as Tensor<Rank>;
   }
+
   argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
   argMax(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
+
   equal(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Equal', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   notEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('NotEqual', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   less(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Less', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   lessEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('LessEqual', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   greater(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('Greater', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   greaterEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.execute('GreaterEqual', opAttrs, [a, b]) as Tensor<Rank>;
   }
+
   logicalNot<T extends Tensor<Rank>>(a: T): T {
-    throw new Error('Method not implemented.');
+    return this.execute('LogicalNot', [], [a]) as T;
   }
+
   logicalAnd(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    return this.execute('LogicalAnd', [], [a, b]) as Tensor<Rank>;
   }
+
   logicalOr(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+    return this.execute('LogicalOr', [], [a, b]) as Tensor<Rank>;
   }
+
   logicalXor(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     throw new Error('Method not implemented.');
   }
+
   where(
       condition: Tensor<Rank>, a: Tensor<Rank>, b: Tensor<Rank>,
       dtype: 'float32'|'int32'|'bool'): Tensor<Rank> {

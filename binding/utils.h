@@ -78,7 +78,8 @@ inline bool EnsureTFOK(napi_env env, TF_AutoStatus& status, const char* file,
   TF_Code tf_code = TF_GetCode(status.status);
   if (tf_code != TF_OK) {
     std::ostringstream oss;
-    oss << "Invalid TF_Status: " << TF_GetCode(status.status);
+    oss << "Invalid TF_Status: " << TF_GetCode(status.status) << std::endl;
+    oss << "Message: " << TF_Message(status.status);
     NapiThrowError(env, oss.str().c_str(), file, lineNumber);
   }
   return tf_code == TF_OK;
