@@ -43,8 +43,8 @@ And the manifest and weight files are in the same location. For example:
 
 ```
   http://example.org/models/mobilenet/weights_manifest.json
-  http://example.org/models/mobilenet/group1-shard1od2
-  http://example.org/models/mobilenet/group1-shard2od2
+  http://example.org/models/mobilenet/group1-shard1of2
+  http://example.org/models/mobilenet/group1-shard2of2
 ```
 
 3. Instantiate the [Model class](./src/executor/tf_model) and run inference. [Example](./demo/mobilenet.ts)
@@ -52,13 +52,11 @@ And the manifest and weight files are in the same location. For example:
 ```typescript
 import {TFModel} from 'tfjs-converter';
 
-const GOOGLE_CLOUD_STORAGE_DIR =
-    'https://storage.googleapis.com/learnjs-data/tf_model_zoo/mobilenet_v1_1.0_224/';
-const MODEL_FILE_URL = 'optimized_model.pb';
-const WEIGHT_MANIFEST_FILE_URL = 'weights_manifest.json';
+const MODEL_FILE_URL = 'http://example.org/models/mobilenet/web_model.pb';
+const WEIGHT_MANIFEST_FILE_URL = 'http://example.org/models/mobilenet/weights_manifest.json';
 
-const model = new Model(MODEL_FILE_URL, WEIGHT_FILE_URL);
-model.predict({input: dl.fromPixels(cat)}) // run the inference on your model.
+const model = new TFModel(MODEL_FILE_URL, WEIGHT_MANIFEST_FILE_URL);
+model.eval({input: dl.fromPixels(cat)}) // run the inference on your model.
 ```
 
 ## Development
