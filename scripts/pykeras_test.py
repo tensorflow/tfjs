@@ -44,13 +44,11 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    out = pykeras.dispatch_pykeras_conversion(h5py.File(h5_path))
+    json, groups = pykeras.dispatch_pykeras_conversion(h5py.File(h5_path))
+    self.assertTrue(len(json) == 0)
 
     # Check the loaded weights.
-    self.assertEqual(keras.__version__, out['keras_version'])
-    self.assertEqual('tensorflow', out['backend'])
-    weights = out['weights']
-    weights1 = weights['MyDense1']
+    weights1 = groups[0]
     self.assertEqual(2, len(weights1))
     # contents of weights are verified in tests of the library code
 
@@ -67,18 +65,16 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model.save(h5_path)
 
     # Load the saved weights as a JSON string.
-    out = pykeras.dispatch_pykeras_conversion(h5py.File(h5_path))
+    json, groups = pykeras.dispatch_pykeras_conversion(h5py.File(h5_path))
     # check the model topology was stored
-    self.assertTrue('layers' in out['model_config'])
+    self.assertTrue('layers' in json['model_config'])
 
     # Check the loaded weights.
-    self.assertEqual(keras.__version__, out['keras_version'])
-    self.assertEqual('tensorflow', out['backend'])
-    weights = out['model_weights']
-    weights1 = weights['MergedDense1']
+    self.assertEqual(keras.__version__, json['keras_version'])
+    self.assertEqual('tensorflow', json['backend'])
+    weights1 = groups[0]
     self.assertEqual(2, len(weights1))
     # contents of weights are verified in tests of the library code
-
 
   def testConvertWeightsFromSequentialModel(self):
     sequential_model = keras.models.Sequential([
@@ -91,21 +87,13 @@ class ConvertH5WeightsTest(unittest.TestCase):
     sequential_model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    out = pykeras.dispatch_pykeras_conversion(h5py.File(h5_path))
+    json, groups = pykeras.dispatch_pykeras_conversion(h5py.File(h5_path))
+    self.assertTrue(len(json) == 0)
 
     # Check the loaded weights.
-    self.assertEqual(keras.__version__, out['keras_version'])
-    self.assertEqual('tensorflow', out['backend'])
-    weights1 = out['weights']['Dense1']
+    weights1 = groups[0]
     self.assertEqual(2, len(weights1))
     # contents of weights are verified in tests of the library code
-
-  def testNegativeDecimalPlacesRaisesException(self):
-    model = keras.models.Sequential([keras.layers.Dense(1, input_shape=(2,))])
-    h5_path = os.path.join(self._tmp_dir, 'Model.h5')
-    model.save_weights(h5_path)
-    with self.assertRaises(ValueError):
-      pykeras.dispatch_pykeras_conversion(h5py.File(h5_path), decimal_places=-1)
 
 
 if __name__ == '__main__':

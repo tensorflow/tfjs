@@ -970,6 +970,13 @@ deep-is@~0.1.3:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.3.tgz#b369d6fb5dbc13eecf524f91b070feedc357cf34"
 
+deeplearn-src@PAIR-code/deeplearnjs:
+  version "0.6.0-alpha2"
+  resolved "https://codeload.github.com/PAIR-code/deeplearnjs/tar.gz/c24c1e6959faffac5b676bb5cee64f9745577bb0"
+  dependencies:
+    seedrandom "~2.4.3"
+    utf8 "~2.1.2"
+
 deeplearn@next:
   version "0.6.0-alpha"
   resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha.tgz#996b2f5d16b3d937b69dfc703412d830886e4d10"
