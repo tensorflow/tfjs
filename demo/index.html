@@ -31,33 +31,33 @@ limitations under the License.
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
-    const tfModel = new tfdemo.MobileNet();
+    const mobilenet = new tfdemo.MobileNet();
     console.time('load');
-    await tfModel.load();
+    await mobilenet.load();
     console.timeEnd('load');
 
     resultElement.innerText = 'Predicting...';
 
-    const pixels = dl.Array3D.fromPixels(cat);
+    const pixels = dl.fromPixels(cat);
 
     console.time('predict');
-    const result = tfModel.predict(pixels);
+    const result = mobilenet.predict(pixels);
     console.timeEnd('predict');
 
     for (let i = 2; i < 12; i++) {
       console.time('predict ' + i);
-      const outputs = tfModel.predict(pixels);
+      const outputs = mobilenet.predict(pixels);
       outputs.dataSync();
       console.timeEnd('predict ' + i);
     }
     resultElement.innerText = '';
 
-    const topK = await tfModel.getTopKClasses(result, 5);
+    const topK = await mobilenet.getTopKClasses(result, 5);
     for (const key in topK) {
       resultElement.innerText += `${topK[key].toFixed(5)}: ${key}\n`;
     };
 
-    tfModel.dispose();
+    mobileNet.dispose();
   };
   cat.src = 'cat.jpg';
 </script>
