@@ -99,17 +99,7 @@ def extract_weights(graph, graph_def):
       if not(isinstance(value, np.ndarray)):
         value = np.array(value)
 
-      dtype = 'unknown'
-      if tensor.dtype == tf.float32:
-        dtype = 'float32'
-      elif tensor.dtype == tf.int32:
-        dtype = 'int32'
-      elif tensor.dtype == tf.bool:
-        dtype = 'bool'
-      else:
-        raise Exception('unsupported constant dtype: ' + tensor.dtype)
-
-      const_manifest.append({'name': const.name, 'data': value, 'dtype': dtype})
+      const_manifest.append({'name': const.name, 'data': value})
 
       """Remove the binary array from tensor and save it to the external file."""
       const.attr["value"].tensor.ClearField('tensor_content')
