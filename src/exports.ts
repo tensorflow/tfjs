@@ -24,7 +24,7 @@ import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normal
 import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
-import {modelFromJSON as modelFromJSONInternal, Sequential, SequentialConfig} from './models';
+import {loadModel as loadModelInternal, ModelAndWeightsConfig, modelFromJSON as modelFromJSONInternal, Sequential, SequentialConfig} from './models';
 import {ConfigDict, SymbolicTensor} from './types';
 
 // tslint:enable:max-line-length
@@ -42,6 +42,11 @@ export class ModelExports {
 
   static sequential(config: SequentialConfig): Sequential {
     return new Sequential(config);
+  }
+
+  static async loadModel(modelAndWeights: ModelAndWeightsConfig):
+      Promise<Model> {
+    return loadModelInternal(modelAndWeights);
   }
 
   static modelFromJSON(jsonString: string, customObjects?: ConfigDict): Model {

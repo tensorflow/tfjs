@@ -9,14 +9,92 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, Tensor, zeros} from 'deeplearn';
+import {ones, Scalar, scalar, Tensor, WeightsManifestConfig, zeros} from 'deeplearn';
 
 import * as K from './backend/deeplearnjs_backend';
 import {Dense, Reshape} from './layers/core';
-import {modelFromJSON, Sequential} from './models';
+import {loadModel, modelFromJSON, Sequential} from './models';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 
 // tslint:enable:max-line-length
+
+const sampleJson1 = `{
+  "class_name": "Model",
+  "keras_version": "2.0.7",
+  "config": {
+    "layers": [
+      {
+        "class_name": "InputLayer",
+        "config": {
+          "dtype": "float32",
+          "batch_input_shape": [
+            null,
+            32
+          ],
+          "name": "input_6",
+          "sparse": false
+        },
+        "inbound_nodes": [],
+        "name": "input_6"
+      },
+      {
+        "class_name": "Dense",
+        "config": {
+          "units": 32,
+          "bias_constraint": null,
+          "use_bias": true,
+          "kernel_initializer": {
+            "class_name": "VarianceScaling",
+            "config": {
+              "distribution": "uniform",
+              "scale": 1,
+              "seed": null,
+              "mode": "fan_avg"
+            }
+          },
+          "activation": "linear",
+          "bias_regularizer": null,
+          "activity_regularizer": null,
+          "trainable": true,
+          "kernel_constraint": null,
+          "kernel_regularizer": null,
+          "name": "dense_6",
+          "bias_initializer": {
+            "class_name": "Zeros",
+            "config": {}
+          }
+        },
+        "inbound_nodes": [
+          [
+            [
+              "input_6",
+              0,
+              0,
+              {}
+            ]
+          ]
+        ],
+        "name": "dense_6"
+      }
+    ],
+    "input_layers": [
+      [
+        "input_6",
+        0,
+        0
+      ]
+    ],
+    "output_layers": [
+      [
+        "dense_6",
+        0,
+        0
+      ]
+    ],
+    "name": "test"
+  },
+  "backend": "tensorflow"
+}`;
 
 describeMathCPU('model_from_json', () => {
   const useJSONObjectValues = [false, true];
@@ -29,84 +107,8 @@ describeMathCPU('model_from_json', () => {
            model = Model(inputs=a, outputs=b, name="test")
            model.to_json())
            */
-         const json = `{
-          "class_name": "Model",
-          "keras_version": "2.0.7",
-          "config": {
-            "layers": [
-              {
-                "class_name": "InputLayer",
-                "config": {
-                  "dtype": "float32",
-                  "batch_input_shape": [
-                    null,
-                    32
-                  ],
-                  "name": "input_6",
-                  "sparse": false
-                },
-                "inbound_nodes": [],
-                "name": "input_6"
-              },
-              {
-                "class_name": "Dense",
-                "config": {
-                  "units": 32,
-                  "bias_constraint": null,
-                  "use_bias": true,
-                  "kernel_initializer": {
-                    "class_name": "VarianceScaling",
-                    "config": {
-                      "distribution": "uniform",
-                      "scale": 1,
-                      "seed": null,
-                      "mode": "fan_avg"
-                    }
-                  },
-                  "activation": "linear",
-                  "bias_regularizer": null,
-                  "activity_regularizer": null,
-                  "trainable": true,
-                  "kernel_constraint": null,
-                  "kernel_regularizer": null,
-                  "name": "dense_6",
-                  "bias_initializer": {
-                    "class_name": "Zeros",
-                    "config": {}
-                  }
-                },
-                "inbound_nodes": [
-                  [
-                    [
-                      "input_6",
-                      0,
-                      0,
-                      {}
-                    ]
-                  ]
-                ],
-                "name": "dense_6"
-              }
-            ],
-            "input_layers": [
-              [
-                "input_6",
-                0,
-                0
-              ]
-            ],
-            "output_layers": [
-              [
-                "dense_6",
-                0,
-                0
-              ]
-            ],
-            "name": "test"
-          },
-          "backend": "tensorflow"
-        }`;
-         const model = modelFromJSON(useJSONObject ? JSON.parse(json) : json);
+         const model = modelFromJSON(
+             useJSONObject ? JSON.parse(sampleJson1) : sampleJson1);
          expect(model.name).toEqual('test');
          const allZeros = zeros([1, 32]);
          expectTensorsClose(model.apply(allZeros) as Tensor, allZeros);
@@ -179,9 +181,7 @@ describeMathCPU('model_from_json', () => {
     expect(prediction.shape).toEqual([1, 10]);
     expect(K.sum(prediction).dataSync()).toBeCloseTo(1);
   });
-});
 
-describeMathCPU('model_from_json', () => {
   it('Serialization round-tripping', () => {
     // tslint:disable:max-line-length
     const json =
@@ -194,6 +194,92 @@ describeMathCPU('model_from_json', () => {
     expect(reparsedJson['class_name']).toEqual(origJson['class_name']);
     // Intentionally skipping backend and keras_version fields.
     expect(reparsedJson['config']).toEqual(origJson['config']);
+  });
+});
+
+describeMathCPU('loadModel', () => {
+  const setupFakeWeightFiles =
+      (fileBufferMap:
+           {[filename: string]: Float32Array|Int32Array|ArrayBuffer}) => {
+        spyOn(window, 'fetch').and.callFake((path: string) => {
+          return new Response(fileBufferMap[path]);
+        });
+      };
+
+  const pathPrefixes = ['.', './', './model-home', './model-home/'];
+  for (const pathPrefix of pathPrefixes) {
+    it(`pathPrefix=${pathPrefix}`, async done => {
+      const path0 = pathPrefix.endsWith('/') ? `${pathPrefix}weight_0` :
+                                               `${pathPrefix}/weight_0`;
+      const path1 = pathPrefix.endsWith('/') ? `${pathPrefix}weight_1` :
+                                               `${pathPrefix}/weight_1`;
+      const fileBufferMap:
+          {[filename: string]: Float32Array|Int32Array|ArrayBuffer} = {};
+      fileBufferMap[path0] =
+          ones([32, 32], 'float32').dataSync() as Float32Array;
+      fileBufferMap[path1] = ones([32], 'float32').dataSync() as Float32Array;
+      setupFakeWeightFiles(fileBufferMap);
+      // Use a randomly generated layer name to prevent interaction with other
+      // unite tests that load the same sample JSON.
+      const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
+      const weightsManifest: WeightsManifestConfig = [
+        {
+          'paths': ['weight_0'],
+          'weights': [{
+            'name': `${denseLayerName}/kernel`,
+            'dtype': 'float32',
+            'shape': [32, 32]
+          }],
+        },
+        {
+          'paths': ['weight_1'],
+          'weights': [{
+            'name': `${denseLayerName}/bias`,
+            'dtype': 'float32',
+            'shape': [32]
+          }],
+        }
+      ];
+      const configJson = JSON.parse(sampleJson1);
+      configJson['config']['layers'][1]['config']['name'] = denseLayerName;
+      const model = await loadModel(
+          {
+            modelTopology: configJson,
+            weightsManifest,
+          },
+          pathPrefix);
+      expectTensorsClose(model.weights[0].read(), ones([32, 32], 'float32'));
+      expectTensorsClose(model.weights[1].read(), ones([32], 'float32'));
+      done();
+    });
+  }
+
+  it(`Missing weight in manifest leads to error`, async done => {
+    setupFakeWeightFiles({
+      './weight_0': ones([32, 32], 'float32').dataSync() as Float32Array,
+      './weight_1': ones([32], 'float32').dataSync() as Float32Array,
+    });
+    // Use a randomly generated layer name to prevent interaction with other
+    // unite tests that load the same sample JSON.
+    const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
+    const weightsManifest: WeightsManifestConfig = [
+      {
+        'paths': ['weight_0'],
+        'weights': [{
+          'name': `${denseLayerName}/kernel`,
+          'dtype': 'float32',
+          'shape': [32, 32]
+        }],
+      },
+    ];  // Missing bias.
+    const configJson = JSON.parse(sampleJson1);
+    configJson['config']['layers'][1]['config']['name'] = denseLayerName;
+    loadModel({
+      modelTopology: configJson,
+      weightsManifest,
+    }).catch(err => {
+      done();
+    });
   });
 });
 

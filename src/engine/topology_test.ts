@@ -9,16 +9,16 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor2d, zeros} from 'deeplearn';
+import {Tensor, tensor1d, tensor2d, zeros} from 'deeplearn';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
 import {Dense, Reshape} from '../layers/core';
-import {DType, LayerVariable, Shape, SymbolicTensor} from '../types';
+import {DType, LayerVariable, NamedTensorMap, Shape, SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {execute, FeedDict} from './executor';
-import {Container, getSourceInputs, Input, InputLayer, InputSpec, Layer, loadWeightsFromJson, Node} from './topology';
+import {Container, getSourceInputs, Input, InputLayer, InputSpec, Layer, loadWeightsFromJson, loadWeightsFromNamedTensorMap, Node} from './topology';
 
 // tslint:enable
 
@@ -262,7 +262,7 @@ describeMathCPU('Layer', () => {
          expect(layer.batchInputShape).toEqual(batchInputShape);
        });
 
-    for (const [batchSize, inputShape, expectedBatchInputShape] of[
+    for (const [batchSize, inputShape, expectedBatchInputShape] of [
              [null, [], [null]], [null, [1], [null, 1]], [3, [], [3]],
              [3, [1], [3, 1]]]) {
       it('initializes batchInputShape to layerConfig.inputShape.', () => {
@@ -1173,6 +1173,35 @@ describeMathCPUAndGPU('Container', () => {
     expect(makeContainer).toThrowError(/layer names should be unique/);
   });
 
+  it('weights gets all weights.', () => {
+    const inputShape = [1, 6];
+    const inputLayer = Input({shape: inputShape});
+    const layer1 = new Dense({units: 2, useBias: false});
+    const layer2 = new Dense({units: 1, useBias: true});
+    const output = layer2.apply(layer1.apply(inputLayer)) as SymbolicTensor;
+
+    const container = new Container({inputs: [inputLayer], outputs: [output]});
+    expect(container.weights.length).toEqual(3);
+    expect(container.weights[0].name).toEqual(layer1.weights[0].name);
+    expect(container.weights[1].name).toEqual(layer2.weights[0].name);
+    expect(container.weights[2].name).toEqual(layer2.weights[1].name);
+  });
+
+  it('trainableWeights and nonTrainableWeights.', () => {
+    const inputShape = [1, 6];
+    const inputLayer = Input({shape: inputShape});
+    const layer1 = new Dense({units: 2, useBias: false});
+    const layer2 = new Dense({units: 1, useBias: true});
+    const output = layer2.apply(layer1.apply(inputLayer)) as SymbolicTensor;
+
+    const container = new Container({inputs: [inputLayer], outputs: [output]});
+    expect(container.trainableWeights.length).toEqual(3);
+    expect(container.trainableWeights[0].name).toEqual(layer1.weights[0].name);
+    expect(container.trainableWeights[1].name).toEqual(layer2.weights[0].name);
+    expect(container.trainableWeights[2].name).toEqual(layer2.weights[1].name);
+    expect(container.nonTrainableWeights.length).toEqual(0);
+  });
+
   it('call() executes all layers.', () => {
     const inputShape = [1, 6];
     const finalShape = [3, 2];
@@ -1319,6 +1348,8 @@ describe('getSourceInputs()', () => {
   });
 });
 
+// TODO(cais): Maybe remove this test once loadWeightsFromJson is removed
+//   (b/74015805).
 describeMathCPUAndGPU('loadWeightsFromJson', () => {
   const inputTensor =
       Input({shape: [3], name: 'inputLayer', dtype: DType.float32});
@@ -1493,5 +1524,35 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
     expectTensorsClose(
         denseLayer.apply(tensor2d([[1, 1, 1]], [1, 3])) as Tensor,
         tensor2d([[0.9, 1.2]], [1, 2]));
+  });
+});
+
+describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
+  const inputTensor =
+      Input({shape: [3], name: 'inputLayer', dtype: DType.float32});
+
+  it('One layer', () => {
+    const denseLayer =
+        new Dense({units: 2, useBias: true, name: 'dense_layer'});
+    denseLayer.apply(inputTensor);
+    const namedWeightsMap: NamedTensorMap = {};
+    namedWeightsMap[denseLayer.weights[0].name] =
+        tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+    namedWeightsMap[denseLayer.weights[1].name] = tensor1d([10, 20]);
+    loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer]);
+    expectTensorsClose(
+        denseLayer.weights[0].read(), tensor2d([1, 2, 3, 4, 5, 6], [3, 2]));
+    expectTensorsClose(denseLayer.weights[1].read(), tensor1d([10, 20]));
+  });
+
+  it('Unset weights leads to error', () => {
+    const denseLayer =
+        new Dense({units: 2, useBias: true, name: 'dense_layer'});
+    denseLayer.apply(inputTensor);
+    const namedWeightsMap: NamedTensorMap = {};
+    namedWeightsMap[denseLayer.weights[0].name] =
+        tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
+    expect(() => loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer]))
+        .toThrowError(/1 of 2 weights are not set: .*bias.*/);
   });
 });
