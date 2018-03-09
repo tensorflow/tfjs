@@ -22,20 +22,24 @@
     "karma-typescript": "^3.0.12",
     "minimist": "~1.2.0",
     "opn": "~5.1.0",
+    "rimraf": "~2.6.2",
     "tsify": "~3.0.1",
     "tslint": "~5.6.0",
     "tslint-no-circular-imports": "^0.2.1",
     "typedoc": "~0.8.0",
     "typescript": "2.4.2",
     "uglify-js": "~3.0.28",
-    "underscore": "~1.8.3",
     "watchify": "~3.9.0"
   },
   "scripts": {
     "prep": "yarn && mkdirp dist/ && yarn build && cd demos/ && yarn prep && cd ..",
     "build": "tsc",
+    "build-npm": "./scripts/build-npm.sh",
     "test": "karma start",
     "lint": "tslint -p . --type-check -t verbose"
+  },
+  "dependencies": {
+    "underscore": "~1.8.3"
   },
   "peerDependencies": {
     "deeplearn": "next"

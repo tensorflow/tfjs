@@ -2,7 +2,7 @@ node_modules/
 **/bundle.js
 **/*.js.map
 coverage/
-
+*.tgz
 npm-debug.log
 yarn-error.log
 .DS_Store
