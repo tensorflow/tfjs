@@ -27,16 +27,17 @@ export interface HeadingMap {
 export type Heading = keyof HeadingMap;
 export type Namespace = 'losses'|'image'|'train';
 
-export interface DocInfo<H extends Heading> {
-  heading: H;
-  subheading?: HeadingMap[H];
-  namespace?: Namespace;
+export interface DocInfo {  //<H extends Heading> {
+  heading: string;          // H;
+  subheading?: string;      // HeadingMap[H];
+  namespace?: string;       // Namespace;
   subclasses?: string[];
   useDocsFrom?: string;
+  configParamIndices?: number[];
 }
 
 // Pass through function that does nothing. Only used for documentation.
-export function doc<H extends Heading>(info: DocInfo<H>) {
+export function doc(info: DocInfo) {  //<H extends Heading>(info: DocInfo<H>) {
   // tslint:disable-next-line:no-any
   return (...args: any[]) => {};
 }
