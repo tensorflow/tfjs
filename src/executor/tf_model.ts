@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {loadWeights} from 'deeplearn';
+import * as dl from 'deeplearn';
 import {NamedTensorMap} from 'deeplearn/dist/types';
 import {WeightsManifestConfig} from 'deeplearn/dist/weights_loader';
 
@@ -51,32 +51,42 @@ export class TFModel {
     url.pathname = segments.join('/');
     this.pathPrefix = url.toString();
   }
-  private loadWeightManifest(): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', this.weightManifestUrl);
 
-      xhr.onload = () => {
-        this.weightManifest = JSON.parse(xhr.responseText);
-        resolve();
-      };
-      xhr.onerror = (error) => {
-        throw new Error(`${this.weightManifestUrl} not found. ${error}`);
-      };
-      xhr.send();
-    });
+  /**
+   * Loads the model topology file and build the in memory graph of the model.
+   */
+  private loadRemoteProtoFile(): Promise<tensorflow.GraphDef> {
+    return fetch(new Request(this.modelUrl))
+        .then(res => res.arrayBuffer())
+        .then(buffer => tensorflow.GraphDef.decode(new Uint8Array(buffer)))
+        .catch(error => {
+          throw new Error(`${this.modelUrl} not found. ${error}`);
+        });
+  }
+
+  /**
+   * Loads and parses the weight manifest JSON file from the url, weight loader
+   * uses the manifest config to download the set of weight files.
+   */
+  private loadWeightManifest(): Promise<void> {
+    return fetch(new Request(this.weightManifestUrl))
+        .then(res => res.clone().json())
+        .then(config => this.weightManifest = config)
+        .catch(error => {
+          throw new Error(`${this.weightManifestUrl} not found. ${error}`);
+        });
   }
   /**
    * Loads the model and weight files, construct the in memory weight map and
    * compile the inference graph.
    */
   load(): Promise<boolean> {
-    const graphPromise = data.loadRemoteProtoFile(this.modelUrl);
+    const graphPromise = this.loadRemoteProtoFile();
     graphPromise.then(
         (graph) => this.version =
             `${graph.versions.producer}.${graph.versions.minConsumer}`);
     const weightMapPromise = this.loadWeightManifest().then(
-        () => loadWeights(this.weightManifest, this.pathPrefix));
+        () => dl.loadWeights(this.weightManifest, this.pathPrefix));
     const executorPromise = graphPromise.then(
         graph => this.executor =
             new GraphExecutor(OperationMapper.Instance.transformGraph(graph)));
