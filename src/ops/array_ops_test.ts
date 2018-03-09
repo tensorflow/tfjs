@@ -1422,6 +1422,14 @@ describeWithFlags('gather', ALL_ENVS, () => {
     expect(t2.shape).toEqual([4]);
     expectArraysClose(t2, [1, NaN, 1, 2]);
   });
+
+  it('chaining, axis=1', () => {
+    const x = dl.zeros([2, 4, 6]);
+    // [0, 2, 4]
+    const indices = dl.range(0, 6, 2);
+    const axis = 2;
+    expect(x.gather(indices, axis).shape).toEqual([2, 4, 3]);
+  });
 });
 
 describeWithFlags('oneHot', ALL_ENVS, () => {
