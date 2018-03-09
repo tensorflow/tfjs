@@ -17,7 +17,7 @@
 
 import {tidy} from 'deeplearn';
 
-import {NamedTensorMap} from 'deeplearn/dist/types';
+import {NamedTensorMap} from '../data/index';
 import * as operations from '../operations/index';
 
 export class GraphExecutor {
