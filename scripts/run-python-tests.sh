@@ -12,4 +12,5 @@
 set -e
 
 pip install -r ./scripts/requirements.txt
+export PYTHONPATH="./:./node_modules/deeplearn-src/scripts:$PYTHONPATH"
 python -m unittest discover scripts "*_test.py"

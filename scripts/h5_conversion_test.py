@@ -44,10 +44,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model = keras.models.Model(inputs=[input_tensor], outputs=[output])
     h5_path = os.path.join(self._tmp_dir, 'MyModel.h5')
     model.save_weights(h5_path)
-
     # Load the saved weights as a JSON string.
     out = self._converter.h5_weights_to_json(h5py.File(h5_path))
-
     # Check the loaded weights.
     self.assertEqual(keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
@@ -72,6 +70,42 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertEqual([4, 2], kernel2['shape'])
     self.assertEqual(np.ones([4, 2]).tolist(), kernel2['value'])
 
+
+  def testConvertWeightsFromSimpleModelTFJS(self):
+    input_tensor = keras.layers.Input((3,))
+    dense1 = keras.layers.Dense(
+        4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
+        name='MyDense10')(input_tensor)
+    output = keras.layers.Dense(
+        2, use_bias=False, kernel_initializer='ones', name='MyDense20')(dense1)
+    model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+    h5_path = os.path.join(self._tmp_dir, 'MyModel.h5')
+    model.save_weights(h5_path)
+
+    # Load the saved weights as a JSON string.
+    groups = self._converter.h5_weights_to_tfjs_format(h5py.File(h5_path))
+
+    # Check the loaded weights.
+    weights1 = groups[0]
+    self.assertEqual(2, len(weights1))
+    kernel1 = weights1[0]
+    self.assertEqual('MyDense10/kernel:0', kernel1['name'])
+    self.assertEqual('float32', kernel1['data'].dtype)
+    self.assertEqual((3, 4), kernel1['data'].shape)
+    self.assertTrue(np.allclose(np.ones([3, 4]), kernel1['data']))
+    bias1 = weights1[1]
+    self.assertEqual('MyDense10/bias:0', bias1['name'])
+    self.assertEqual('float32', bias1['data'].dtype)
+    self.assertEqual((4,), bias1['data'].shape)
+    self.assertTrue(np.allclose(np.zeros([4]), bias1['data']))
+    weights2 = groups[1]
+    self.assertEqual(1, len(weights2))
+    kernel2 = weights2[0]
+    self.assertEqual('MyDense20/kernel:0', kernel2['name'])
+    self.assertEqual('float32', kernel2['data'].dtype)
+    self.assertEqual((4, 2), kernel2['data'].shape)
+    self.assertTrue(np.allclose(np.ones([4, 2]), kernel2['data']))
+
   def testConvertMergedModelFromSimpleModel(self):
     input_tensor = keras.layers.Input((3,))
     dense1 = keras.layers.Dense(
@@ -84,15 +118,12 @@ class ConvertH5WeightsTest(unittest.TestCase):
     h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
     model.save(h5_path)
     config_json = json.loads(model.to_json(), encoding='utf8')
-
     # Load the saved weights as a JSON string.
     out = self._converter.h5_merged_saved_model_to_json(h5py.File(h5_path))
     saved_topology = json.loads(out['model_config'])
-
     # check the model topology was stored
     self.assertEqual(config_json['class_name'], saved_topology['class_name'])
     self.assertEqual(config_json['config'], saved_topology['config'])
-
     # Check the loaded weights.
     self.assertEqual(keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
@@ -117,6 +148,49 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertEqual([4, 2], kernel2['shape'])
     self.assertEqual(np.ones([4, 2]).tolist(), kernel2['value'])
 
+  def testConvertMergedModelFromSimpleModelTFJS(self):
+    input_tensor = keras.layers.Input((3,))
+    dense1 = keras.layers.Dense(
+        4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
+        name='MergedDense10')(input_tensor)
+    output = keras.layers.Dense(
+        2, use_bias=False,
+        kernel_initializer='ones', name='MergedDense20')(dense1)
+    model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+    h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
+    model.save(h5_path)
+    config_json = json.loads(model.to_json(), encoding='utf8')
+
+    # Load the saved weights as a JSON string.
+    out, groups = self._converter.h5_merged_saved_model_to_tfjs_format(h5py.File(h5_path))
+    saved_topology = json.loads(out['model_config'])
+
+    # check the model topology was stored
+    self.assertEqual(config_json['class_name'], saved_topology['class_name'])
+    self.assertEqual(config_json['config'], saved_topology['config'])
+
+    # Check the loaded weights.
+    self.assertEqual(keras.__version__, out['keras_version'])
+    self.assertEqual('tensorflow', out['backend'])
+    weights1 = groups[0]
+    self.assertEqual(2, len(weights1))
+    kernel1 = weights1[0]
+    self.assertEqual('MergedDense10/kernel:0', kernel1['name'])
+    self.assertEqual('float32', kernel1['data'].dtype)
+    self.assertEqual((3, 4), kernel1['data'].shape)
+    self.assertTrue(np.allclose(np.ones([3, 4]), kernel1['data']))
+    bias1 = weights1[1]
+    self.assertEqual('MergedDense10/bias:0', bias1['name'])
+    self.assertEqual('float32', bias1['data'].dtype)
+    self.assertEqual((4,), bias1['data'].shape)
+    self.assertTrue(np.allclose(np.zeros([4]), bias1['data']))
+    weights2 = groups[1]
+    self.assertEqual(1, len(weights2))
+    kernel2 = weights2[0]
+    self.assertEqual('MergedDense20/kernel:0', kernel2['name'])
+    self.assertEqual('float32', kernel2['data'].dtype)
+    self.assertEqual((4, 2), kernel2['data'].shape)
+    self.assertTrue(np.allclose(np.ones([4, 2]), kernel2['data']))
 
   def testConvertWeightsFromSequentialModel(self):
     sequential_model = keras.models.Sequential([
@@ -127,10 +201,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
             1, use_bias=False, kernel_initializer='ones', name='Dense2')])
     h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
     sequential_model.save_weights(h5_path)
-
     # Load the saved weights as a JSON string.
     out = self._converter.h5_weights_to_json(h5py.File(h5_path))
-
     # Check the loaded weights.
     self.assertEqual(keras.__version__, out['keras_version'])
     self.assertEqual('tensorflow', out['backend'])
@@ -154,10 +226,43 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertEqual([3, 1], kernel2['shape'])
     self.assertEqual(np.ones([3, 1]).tolist(), kernel2['value'])
 
+  def testConvertWeightsFromSequentialModelTFJS(self):
+    sequential_model = keras.models.Sequential([
+        keras.layers.Dense(
+            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+            name='Dense10'),
+        keras.layers.Dense(
+            1, use_bias=False, kernel_initializer='ones', name='Dense20')])
+    h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+    sequential_model.save_weights(h5_path)
+
+    # Load the saved weights as a JSON string.
+    groups = self._converter.h5_weights_to_tfjs_format(h5py.File(h5_path))
+
+    # Check the loaded weights.
+    weights1 = groups[0]
+    self.assertEqual(2, len(weights1))
+    kernel1 = weights1[0]
+    self.assertEqual('Dense10/kernel:0', kernel1['name'])
+    self.assertEqual('float32', kernel1['data'].dtype)
+    self.assertEqual((2, 3), kernel1['data'].shape)
+    self.assertTrue(np.allclose(np.ones([2, 3]).tolist(), kernel1['data']))
+    bias1 = weights1[1]
+    self.assertEqual('Dense10/bias:0', bias1['name'])
+    self.assertEqual('float32', bias1['data'].dtype)
+    self.assertEqual((3,), bias1['data'].shape)
+    self.assertTrue(np.allclose(np.zeros([3]).tolist(), bias1['data']))
+    weights2 = groups[1]
+    self.assertEqual(1, len(weights2))
+    kernel2 = weights2[0]
+    self.assertEqual('Dense20/kernel:0', kernel2['name'])
+    self.assertEqual('float32', kernel2['data'].dtype)
+    self.assertEqual((3, 1), kernel2['data'].shape)
+    self.assertTrue(np.allclose(np.ones([3, 1]).tolist(), kernel2['data']))
+
   def testNegativeDecimalPlacesRaisesException(self):
     with self.assertRaises(ValueError):
       h5_conversion.HDF5Converter(-1)
-
 
 if __name__ == '__main__':
   unittest.main()
