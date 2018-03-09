@@ -153,7 +153,7 @@ function trainStep(data, labels, returnCost = true) {
     // Compute loss of the current model and return it. Calculating this loss
     // should involve the variables we are trying to optimize.
     //
-    // Once we return the less the optimizer will adjust the network
+    // Once we return the loss the optimizer will adjust the network
     // weights for our next iteration.
     return loss(prediction, labels);
   }, returnCost);
