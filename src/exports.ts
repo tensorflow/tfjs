@@ -13,6 +13,8 @@
  */
 
 // tslint:disable:max-line-length
+import {doc} from 'deeplearn';
+
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, LayerConfig} from './engine/topology';
 import {Model} from './engine/training';
 import {Conv1D, Conv2D, ConvLayerConfig} from './layers/convolutional';
@@ -36,6 +38,7 @@ export class ModelExports {
 
   // Model and related factory methods.
 
+  @doc({heading: 'Models', useDocsFrom: 'Model'})
   static model(config: ContainerConfig): Model {
     return new Model(config);
   }
@@ -73,6 +76,13 @@ export class LayerExports {
     return new Conv1D(config);
   }
 
+  @doc({
+    heading: 'Layers',
+    subheading: 'Convolutional',
+    namespace: 'layers',
+    useDocsFrom: 'Conv2D',
+    configParamIndices: [0]
+  })
   static conv2d(config: ConvLayerConfig) {
     return new Conv2D(config);
   }
