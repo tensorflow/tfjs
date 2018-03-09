@@ -16,6 +16,6 @@
  */
 import {Tensor} from 'deeplearn';
 
-export type TensorMap = {
+export type NamedTensorMap = {
   [key: string]: Tensor
 };

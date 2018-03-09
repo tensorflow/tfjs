@@ -16,8 +16,8 @@
  */
 
 import * as dl from 'deeplearn';
+import {NamedTensorMap} from '../../data/index';
 
-import {TensorMap} from '../../data/index';
 import {Node} from '../index';
 
 /**
@@ -25,4 +25,6 @@ import {Node} from '../index';
  * @param node mapped deeplearn node from the tensorflow NodeDef object
  * @param tensorMap contains tensors for executed nodes and weights
  */
-export interface OpExecutor { (node: Node, tensorMap: TensorMap): dl.Tensor; }
+export interface OpExecutor {
+  (node: Node, tensorMap: NamedTensorMap): dl.Tensor;
+}
