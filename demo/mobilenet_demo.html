@@ -33,7 +33,7 @@ limitations under the License.
 
     const tfModel = new tfdemo.MobileNet();
     console.time('load');
-    const loaded = await tfModel.load();
+    await tfModel.load();
     console.timeEnd('load');
 
     resultElement.innerText = 'Predicting...';
