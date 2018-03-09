@@ -16,11 +16,9 @@
  */
 
 import * as dl from 'deeplearn';
-import {NamedTensorMap} from '../data/index';
 import {WeightsManifestConfig} from 'deeplearn/dist/weights_loader';
 
-import * as data from '../data/index';
-import {tensorflow} from '../data/index';
+import {NamedTensorMap, tensorflow} from '../data/index';
 import {OperationMapper} from '../operations/index';
 
 import {GraphExecutor} from './graph_executor';
@@ -80,7 +78,7 @@ export class TFModel {
    * Loads the model and weight files, construct the in memory weight map and
    * compile the inference graph.
    */
-  load(): Promise<boolean> {
+  async load(): Promise<boolean> {
     const graphPromise = this.loadRemoteProtoFile();
     graphPromise.then(
         (graph) => this.version =
@@ -91,7 +89,7 @@ export class TFModel {
         graph => this.executor =
             new GraphExecutor(OperationMapper.Instance.transformGraph(graph)));
 
-    return Promise.all([weightMapPromise, executorPromise])
+    return await Promise.all([weightMapPromise, executorPromise])
         .then(([weightMap, executor]) => {
           executor.weightMap = weightMap;
           return true;
