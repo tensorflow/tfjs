@@ -15,7 +15,8 @@
         "noUnusedParameters": false,
         "pretty": true,
         "noFallthroughCasesInSwitch": true,
-        "allowUnreachableCode": false
+        "allowUnreachableCode": false,
+        "experimentalDecorators": true
     },
     "include": ["src/"]
 }
