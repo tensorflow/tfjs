@@ -11,7 +11,7 @@
 /* Original source keras/models.py */
 
 // tslint:disable:max-line-length
-import {Scalar, Tensor} from 'deeplearn';
+import {loadWeights, Scalar, Tensor, WeightsManifestConfig} from 'deeplearn';
 
 import * as K from './backend/deeplearnjs_backend';
 import {History} from './callbacks';
@@ -19,7 +19,7 @@ import {getSourceInputs, Input, Layer, Node} from './engine/topology';
 import {Model, ModelCompileConfig, ModelFitConfig, ModelLoggingVerbosity} from './engine/training';
 import {RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
-import {Shape} from './types';
+import {NamedTensorMap, Shape} from './types';
 import {ConfigDict, ConfigDictArray, JsonValue, SymbolicTensor} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
@@ -39,6 +39,40 @@ export function modelFromJSON(
       typeof json === 'string' ? JSON.parse(json) as JsonValue : json;
   const tsConfig = convertPythonicToTs(pythonicConfig) as ConfigDict;
   return deserialize(tsConfig, customObjects);
+}
+
+export type ModelAndWeightsConfig = {
+  modelTopology: JsonValue|string,
+  weightsManifest: WeightsManifestConfig,
+};
+
+/**
+ * Load a model, including its topology and weights.
+ *
+ * @param modelAndWeights An instance of `ModelAndWeightsConfig`, a JSON object
+ *   consisting of two fields:
+ *     - modelTopology: A JSON configuration for the model topology. It follows
+ *       the format of the return value of Keras
+ *       [Model.to_json()](https://keras.io/models/about-keras-models/)
+ *     - weightsManifest: An instance of `WeightsManifestConfig`, which consists
+ *       of an `Array` of Weights.
+ * @param pathPrefix Path prefix to be prepended to the paths in the weights
+ *   manifest before fetching from the paths.
+ * @returns A `Promise` of `Model`, with the topology and weights loaded.
+ */
+// TODO(cais): Add link to the core's documentation of `WeightManifestConfig`.
+export async function loadModel(
+    modelAndWeights: ModelAndWeightsConfig, pathPrefix = './'): Promise<Model> {
+  const model = modelFromJSON(modelAndWeights.modelTopology);
+  const weightValues =
+      await loadWeights(
+          modelAndWeights.weightsManifest, pathPrefix,
+          model.weights.map(weight => weight.name)) as NamedTensorMap;
+
+  const skipMismatches: boolean = null;
+  const isNamedTensorMap = true;
+  model.loadWeights(weightValues, skipMismatches, isNamedTensorMap);
+  return model;
 }
 
 /**

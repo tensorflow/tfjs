@@ -21,7 +21,7 @@ import * as optimizers from './optimizers';
 export {Callback, CallbackList, CustomCallback, CustomCallbackConfig, Logs} from './callbacks';
 export {Model} from './engine/training';
 
-export {Sequential} from './models';
+export {ModelAndWeightsConfig, Sequential} from './models';
 export {SymbolicTensor} from './types';
 export {dl};  // TODO(cais): Remove this export (b/74099819).
 export {backend, optimizers};
@@ -29,6 +29,7 @@ export {backend, optimizers};
 
 export const model = ModelExports.model;
 export const sequential = ModelExports.sequential;
+export const loadModel = ModelExports.loadModel;
 export const modelFromJSON = ModelExports.modelFromJSON;
 export const input = ModelExports.input;
 export const inputLayer = ModelExports.inputLayer;
