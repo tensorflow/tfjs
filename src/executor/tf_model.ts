@@ -53,26 +53,27 @@ export class TFModel {
   /**
    * Loads the model topology file and build the in memory graph of the model.
    */
-  private loadRemoteProtoFile(): Promise<tensorflow.GraphDef> {
-    return fetch(new Request(this.modelUrl))
-        .then(res => res.arrayBuffer())
-        .then(buffer => tensorflow.GraphDef.decode(new Uint8Array(buffer)))
-        .catch(error => {
-          throw new Error(`${this.modelUrl} not found. ${error}`);
-        });
+  private async loadRemoteProtoFile(): Promise<tensorflow.GraphDef> {
+    try {
+      const response = await fetch(new Request(this.modelUrl));
+      return tensorflow.GraphDef.decode(
+          new Uint8Array(await response.arrayBuffer()));
+    } catch (error) {
+      throw new Error(`${this.modelUrl} not found. ${error}`);
+    }
   }
 
   /**
    * Loads and parses the weight manifest JSON file from the url, weight loader
    * uses the manifest config to download the set of weight files.
    */
-  private loadWeightManifest(): Promise<void> {
-    return fetch(new Request(this.weightManifestUrl))
-        .then(res => res.clone().json())
-        .then(config => this.weightManifest = config)
-        .catch(error => {
-          throw new Error(`${this.weightManifestUrl} not found. ${error}`);
-        });
+  private async loadWeightManifest(): Promise<void> {
+    try {
+      const manifest = await fetch(new Request(this.weightManifestUrl));
+      this.weightManifest = await manifest.clone().json();
+    } catch (error) {
+      throw new Error(`${this.weightManifestUrl} not found. ${error}`);
+    }
   }
   /**
    * Loads the model and weight files, construct the in memory weight map and
@@ -80,20 +81,19 @@ export class TFModel {
    */
   async load(): Promise<boolean> {
     const graphPromise = this.loadRemoteProtoFile();
-    graphPromise.then(
-        (graph) => this.version =
-            `${graph.versions.producer}.${graph.versions.minConsumer}`);
-    const weightMapPromise = this.loadWeightManifest().then(
-        () => dl.loadWeights(this.weightManifest, this.pathPrefix));
-    const executorPromise = graphPromise.then(
-        graph => this.executor =
-            new GraphExecutor(OperationMapper.Instance.transformGraph(graph)));
+    const manifestPromise = this.loadWeightManifest();
 
-    return await Promise.all([weightMapPromise, executorPromise])
-        .then(([weightMap, executor]) => {
-          executor.weightMap = weightMap;
-          return true;
-        });
+    const [graph, manifest] =
+        await Promise.all([graphPromise, manifestPromise]);
+
+    this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
+    const weightMap =
+        await dl.loadWeights(this.weightManifest, this.pathPrefix);
+    this.executor =
+        new GraphExecutor(OperationMapper.Instance.transformGraph(graph));
+    this.executor.weightMap = weightMap;
+
+    return true;
   }
 
   /**
