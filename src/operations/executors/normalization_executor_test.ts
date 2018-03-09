@@ -23,7 +23,7 @@ import {createNumberAttr, createTensorAttr} from './test_helper';
 
 describe('normalization', () => {
   let node: Node;
-  const input1 = dl.Scalar.new(1);
+  const input1 = dl.scalar(1);
 
   beforeEach(() => {
     node = {
@@ -48,10 +48,10 @@ describe('normalization', () => {
         node.params.variance = createTensorAttr(4);
         node.params.epislon = createNumberAttr(5);
         node.inputNames = ['input1', 'input2', 'input3', 'input4', 'input5'];
-        const input2 = dl.Scalar.new(1);
-        const input3 = dl.Scalar.new(2);
-        const input4 = dl.Scalar.new(3);
-        const input5 = dl.Scalar.new(4);
+        const input2 = dl.scalar(1);
+        const input3 = dl.scalar(2);
+        const input4 = dl.scalar(3);
+        const input5 = dl.scalar(4);
         executeOp(node, {input1, input2, input3, input4, input5});
 
         expect(dl.batchNormalization)

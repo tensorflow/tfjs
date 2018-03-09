@@ -15,5 +15,5 @@
  * =============================================================================
  */
 
-export {TensorMap} from './data/index';
+export {NamedTensorMap} from './data/index';
 export {TFModel} from './executor/index';

@@ -24,7 +24,7 @@ import {createNumberAttr, createNumericArrayAttr, createStrAttr, createTensorAtt
 
 describe('convolution', () => {
   let node: Node;
-  const input = dl.Scalar.new(1);
+  const input = dl.scalar(1);
 
   beforeEach(() => {
     node = {
@@ -74,8 +74,8 @@ describe('convolution', () => {
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
 
-        const input1 = dl.Scalar.new(1.0);
-        const input2 = dl.Scalar.new(1.0);
+        const input1 = dl.scalar(1.0);
+        const input2 = dl.scalar(1.0);
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
@@ -92,8 +92,8 @@ describe('convolution', () => {
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
 
-        const input1 = dl.Scalar.new(1.0);
-        const input2 = dl.Scalar.new(1.0);
+        const input1 = dl.scalar(1.0);
+        const input2 = dl.scalar(1.0);
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
@@ -111,8 +111,8 @@ describe('convolution', () => {
         node.params['stride'] = createNumberAttr(1);
         node.params['pad'] = createStrAttr('same');
 
-        const input1 = dl.Scalar.new(1.0);
-        const input2 = dl.Scalar.new(1.0);
+        const input1 = dl.scalar(1.0);
+        const input2 = dl.scalar(1.0);
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
@@ -131,8 +131,8 @@ describe('convolution', () => {
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
         node.params['rates'] = createNumericArrayAttr([2, 2]);
-        const input1 = dl.Scalar.new(1.0);
-        const input2 = dl.Scalar.new(1.0);
+        const input1 = dl.scalar(1.0);
+        const input2 = dl.scalar(1.0);
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});

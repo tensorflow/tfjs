@@ -23,7 +23,7 @@ import {executeOp} from './transformation_executor';
 
 describe('transformation', () => {
   let node: Node;
-  const input1 = dl.Scalar.new(1);
+  const input1 = dl.scalar(1);
 
   beforeEach(() => {
     node = {
@@ -65,7 +65,7 @@ describe('transformation', () => {
         node.params.padding = createNumericArrayAttrFromIndex(1);
         node.params.constantValue = createNumberAttr(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = dl.Array1D.new([1, 1]);
+        const input2 = dl.tensor1d([1, 1]);
 
         executeOp(node, {input1, input2});
 
@@ -78,7 +78,7 @@ describe('transformation', () => {
         node.op = 'reshape';
         node.params.shape = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = dl.Array1D.new([1, 1]);
+        const input2 = dl.tensor1d([1, 1]);
 
         executeOp(node, {input1, input2});
 

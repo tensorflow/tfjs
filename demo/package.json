@@ -27,7 +27,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "deeplearn": "^0.5.0",
+    "deeplearn": "next",
     "tfjs-converter": "file:.."
   }
 }

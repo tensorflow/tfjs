@@ -17,14 +17,14 @@
 
 import * as dl from 'deeplearn';
 
-import {TensorMap} from '../../data/types';
+import {NamedTensorMap} from '../../data/index';
 import {Node} from '../index';
 
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
-    (node: Node, tensorMap: TensorMap): dl.Tensor => {
+    (node: Node, tensorMap: NamedTensorMap): dl.Tensor => {
       switch (node.op) {
         case 'add': {
           return dl.add(

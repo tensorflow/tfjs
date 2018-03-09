@@ -23,7 +23,7 @@ import {createNumberAttr, createTensorAttr} from './test_helper';
 
 describe('basic math', () => {
   let node: Node;
-  const input1 = dl.Scalar.new(1);
+  const input1 = dl.scalar(1);
 
   beforeEach(() => {
     node = {
@@ -64,7 +64,7 @@ describe('basic math', () => {
     });
     describe('rsqrt', () => {
       it('should call dl.div', () => {
-        const input1 = dl.Scalar.new(1);
+        const input1 = dl.scalar(1);
         node.op = 'rsqrt';
         spyOn(dl, 'div');
         spyOn(dl, 'sqrt').and.returnValue(input1);

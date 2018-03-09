@@ -9,7 +9,7 @@ import tensorflow as tf
 import sys
 import os
 import json
-
+import numpy as np
 
 from google.protobuf import text_format
 from absl import flags
@@ -20,6 +20,9 @@ from tensorflow.core.protobuf import rewriter_config_pb2
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.lib.io import file_io
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'node_modules/deeplearn-src/scripts/'))
+import write_weights as deeplearn
 
 flags.DEFINE_string('saved_model_dir', '', 'The saved model directory.')
 flags.DEFINE_string('output_node_names', '',
@@ -86,24 +89,22 @@ def extract_weights(graph, graph_def):
   """Takes a Python GraphDef object and extract the weights."""
   constants = [node for node in graph_def.node if node.op == 'Const']
   print('Writing weight file ' + FLAGS.output_graph + '...')
-  index = 0
-  with open(os.path.abspath(FLAGS.output_graph + '.weight'), 'wb') as f:
-    with tf.Session(graph=graph) as sess:
-      for const in constants:
-        tensor = graph.get_tensor_by_name(const.name + ':0')
-        """save the value of the tensor to the external file"""
-        value = tensor.eval(session=sess)
-        f.write(value if isinstance(value, bytes) else value.tobytes())
+  const_manifest = []
+  path = os.path.dirname(FLAGS.output_graph)
 
-        """store the index and length of the tensor in the external file"""
-        byte_length = tf.size(tensor).eval()
-        const.attr["index"].CopyFrom(attr_value_pb2.AttrValue(i=index))
-        const.attr["length"].CopyFrom(attr_value_pb2.AttrValue(i=byte_length))
+  with tf.Session(graph=graph) as sess:
+    for const in constants:
+      tensor = graph.get_tensor_by_name(const.name + ':0')
+      value = tensor.eval(session=sess)
+      if not(isinstance(value, np.ndarray)):
+        value = np.array(value)
 
-        """Remove the binary array from tensor and save it to the external file."""
-        const.attr["value"].tensor.ClearField('tensor_content')
+      const_manifest.append({'name': const.name, 'data': value})
 
-        index += byte_length * tensor.dtype.size
+      """Remove the binary array from tensor and save it to the external file."""
+      const.attr["value"].tensor.ClearField('tensor_content')
+
+  deeplearn.write_weights([const_manifest], path)
 
   file_io.atomic_write_string_to_file(
     os.path.abspath(FLAGS.output_graph), graph_def.SerializeToString())
