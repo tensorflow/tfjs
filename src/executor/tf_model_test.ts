@@ -16,13 +16,18 @@
  */
 
 import * as dl from 'deeplearn';
+
 import * as data from '../data/index';
+
 import {TFModel} from './index';
 
-const MODEL_URL = 'model url';
-const WEIGHT_URL = 'weight url';
+const MODEL_URL = 'http://example.org/model.pb';
+const WEIGHT_MANIFEST_URL = 'http://example.org/weights_manifest.json';
 let model: TFModel;
-const WEIGHT_ARRAY = new Int32Array([1]);
+const bias = dl.tensor1d([1], 'int32');
+const WEIGHT_MAP = {
+  'Const': bias
+};
 const SIMPLE_MODEL: data.tensorflow.IGraphDef = {
   node: [
     {
@@ -57,11 +62,13 @@ const SIMPLE_MODEL: data.tensorflow.IGraphDef = {
 
 describe('Model', () => {
   beforeEach(() => {
-    const graphPromise = new Promise((resolve => resolve(SIMPLE_MODEL)));
-    spyOn(data, 'loadRemoteProtoFile').and.returnValue(graphPromise);
-    const weightPromise = new Promise((resolve => resolve(WEIGHT_ARRAY)));
-    spyOn(data, 'loadRemoteWeightFile').and.returnValue(weightPromise);
-    model = new TFModel(MODEL_URL, WEIGHT_URL);
+    spyOn(data.tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
+    const weightPromise = new Promise((resolve => resolve(WEIGHT_MAP)));
+    spyOn(dl, 'loadWeights').and.returnValue(weightPromise);
+    model = new TFModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+    spyOn(window, 'fetch')
+        .and.callFake(() => new Promise(
+            (resolve => resolve(new Response(JSON.stringify({json: 'ok!'}))))));
   });
   afterEach(() => {});
 
@@ -82,8 +89,7 @@ describe('Model', () => {
 
   describe('dispose', async () => {
     it('should dispose the weights', async () => {
-      const bias = dl.tensor1d([1], 'int32');
-      spyOn(data, 'buildWeightMap').and.returnValue({'Const': bias});
+      model = new TFModel(MODEL_URL, WEIGHT_MANIFEST_URL);
       spyOn(bias, 'dispose');
 
       await model.load();
