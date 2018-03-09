@@ -6,7 +6,7 @@ It has two main pieces:
 2. [Javascript API](./src/executor/tf_model), simple one line API for inference.
 
 ## Dependencies
-The python coversion script requires following packages:
+The python conversion script requires following packages:
 
 ```bash
   $ pip install tensorflow numpy absl-py protobuf
@@ -19,7 +19,7 @@ The python coversion script requires following packages:
 2. Use the scripts/converter.py to convert your Tensorflow [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md).
 
 ```bash
-$ `python node_modules/@tensorflow/tfjs-converter/scripts/convert.py --saved_model_dir=/tmp/mobilenet/ --output_node_names='MobilenetV1/Predictions/Reshape_1' --output_graph=/tmp/mobilenet/web_model.pb --saved_model_tags=serve`
+$ python node_modules/@tensorflow/tfjs-converter/scripts/convert.py --saved_model_dir=/tmp/mobilenet/ --output_node_names='MobilenetV1/Predictions/Reshape_1' --output_graph=/tmp/mobilenet/web_model.pb --saved_model_tags=serve
 ```
 
 | Options         | Description                                                      | Default value |
@@ -56,7 +56,8 @@ const MODEL_FILE_URL = 'http://example.org/models/mobilenet/web_model.pb';
 const WEIGHT_MANIFEST_FILE_URL = 'http://example.org/models/mobilenet/weights_manifest.json';
 
 const model = new TFModel(MODEL_FILE_URL, WEIGHT_MANIFEST_FILE_URL);
-model.eval({input: dl.fromPixels(cat)}) // run the inference on your model.
+const cat = document.getElementById('cat');
+model.predict({input: dl.fromPixels(cat)}) // run the inference on your model.
 ```
 
 ## Development
