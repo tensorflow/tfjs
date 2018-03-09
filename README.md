@@ -3,7 +3,7 @@
 **Tensorflow.js converter** is an open source library to load a pretrained TensorFlow model into the browser and run inference through Tensorflow.js.
 It has two main pieces:
 1. [Coversion Python script](./scripts/convert.py), converts your Tensorflow SavedModel to web friendly format.
-2. [Javascript API](./src/executor/tf_model), simple one line API for inference.
+2. [Javascript API](./src/executor/tf_model.ts), simple one line API for inference.
 
 ## Dependencies
 The python conversion script requires following packages:
