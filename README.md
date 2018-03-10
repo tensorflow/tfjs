@@ -16,7 +16,7 @@ The python conversion script requires following packages:
 
 1. `yarn add @tensorflow/tfjs-converter` or `npm install @tensorflow/tfjs-converter`
 
-2. Use the scripts/converter.py to convert your Tensorflow [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md).
+2. Use the scripts/convert.py to convert your Tensorflow [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md).
 
 ```bash
 $ python node_modules/@tensorflow/tfjs-converter/scripts/convert.py --saved_model_dir=/tmp/mobilenet/ --output_node_names='MobilenetV1/Predictions/Reshape_1' --output_graph=/tmp/mobilenet/web_model.pb --saved_model_tags=serve
@@ -32,14 +32,14 @@ $ python node_modules/@tensorflow/tfjs-converter/scripts/convert.py --saved_mode
 
 ### Outputs
 
-This script would generate two files, one is model topology file, one is the weight collection file.
+This script would generate a collection of files, including model topology file, weight manifest file and weight files.
 In the above example, generated files are:
 * web_model.pb (model)
 * weights_manifest.json (weight manifest file)
 * group1-shard\*of\* (collection of weight files)
 
-You need to make the model, weight manifest and weight file collection are accessible through url.
-And the manifest and weight files are in the same location. For example:
+You need to have the model, weight manifest and weight files accessible through url.
+And the manifest and weight files should share the the same url path. For example:
 
 ```
   http://example.org/models/mobilenet/weights_manifest.json
@@ -47,7 +47,7 @@ And the manifest and weight files are in the same location. For example:
   http://example.org/models/mobilenet/group1-shard2of2
 ```
 
-3. Instantiate the [Model class](./src/executor/tf_model) and run inference. [Example](./demo/mobilenet.ts)
+3. Instantiate the [TFModel class](./src/executor/tf_model.ts) and run inference. [Example](./demo/mobilenet.ts)
 
 ```typescript
 import {TFModel} from 'tfjs-converter';
