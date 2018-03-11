@@ -195,7 +195,7 @@ export class BatchNormalization extends Layer {
     this.movingMean = this.addWeight(
         'moving_mean', shape, null, this.movingMeanInitializer, null, false);
     this.movingVariance = this.addWeight(
-        'moving_mean', shape, null, this.movingVarianceInitializer, null,
+        'moving_variance', shape, null, this.movingVarianceInitializer, null,
         false);
     this.built = true;
   }

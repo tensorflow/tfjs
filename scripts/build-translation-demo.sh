@@ -33,18 +33,25 @@ if [[ -z "${DATA_PATH}" ]]; then
 fi
 shift 1
 
-EPOCHS_FLAG=""
+if [[ ! -f ${DATA_PATH} ]]; then
+  echo "ERORR: Cannot find training data at path '${DATA_PATH}'"
+  exit 1
+fi
+
+TRAIN_EPOCHS=100
+DEMO_PORT=8000
 while true; do
-  if [[ ! -z "$1" ]]; then
-    if [[ "$1" == "--epochs" ]]; then
-      EPOCHS_FLAG="--epochs $2"
-      shift 2
-    else
-      echo "ERROR: Unrecognized flag: $1"
-      exit 1
-    fi
-  else
+  if [[ "$1" == "--port" ]]; then
+    DEMO_PORT=$2
+    shift 2
+  elif [[ "$1" == "--epochs" ]]; then
+    TRAIN_EPOCHS=$2
+    shift 2
+  elif [[ -z "$1" ]]; then
     break
+  else
+    echo "ERROR: Unrecognized argument: $1"
+    exit 1
   fi
 done
 
@@ -52,49 +59,28 @@ done
 "${SCRIPTS_DIR}/build-standalone.sh"
 
 DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
+ARTIFACTS_DIR="${DEMO_PATH}/translation"
 mkdir -p "${DEMO_PATH}"
-
-# TODO(cais): Do not hardcode the paths. Obtain them from a Python training
-#   script.
-MODEL_JSON="${DEMO_PATH}/translation.keras.model.json"
-WEIGHTS_JSON="${DEMO_PATH}/translation.keras.weights.json"
-METADATA_JSON="${DEMO_PATH}/translation.keras.metadata.json"
+rm -rf "${ARTIFACTS_DIR}"
 
 # Train the model and generate:
-#   * model JSON file
-#   * weights JSON file
+#   * saved model in TensorFlow.js
 #   * metadata JSON file.
-PYTHONPATH="${SCRIPTS_DIR}/.." python "${SCRIPTS_DIR}/translation.py" \
+export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+python "${SCRIPTS_DIR}/translation.py" \
     "${DATA_PATH}" \
     --recurrent_initializer glorot_uniform \
-    --model_json_path "${MODEL_JSON}" \
-    --weights_json_path "${WEIGHTS_JSON}" \
-    --metadata_json_path "${METADATA_JSON}" \
-    ${EPOCHS_FLAG}
+    --artifacts_dir "${ARTIFACTS_DIR}" \
+    --epochs "${TRAIN_EPOCHS}"
 # TODO(cais): This --recurrent_initializer is a workaround for the limitation
 # in TensorFlow.js Layers that the default recurrent initializer "Orthogonal" is
 # currently not supported. Remove this once "Orthogonal" becomes available.
 
-# Prepend "const * = " to the json files.
-MODEL_JS="${DEMO_PATH}/translation.keras.model.js"
-printf "const translationModelJSON = " > "${MODEL_JS}"
-cat "${MODEL_JSON}" >> "${MODEL_JS}"
-printf ";" >> "${MODEL_JS}"
-rm "${MODEL_JSON}"
-
-# Prepend "const * = " to metadata (includes token indices etc.).
-METADATA_JS="${DEMO_PATH}/translation.keras.metadata.js"
-printf "const translationMetadata = " > "${METADATA_JS}"
-cat "${METADATA_JSON}" >> "${METADATA_JS}"
-printf ";" >> "${METADATA_JS}"
-rm "${METADATA_JSON}"
-
-WEIGHTS_JS=""${DEMO_PATH}/translation.keras.weights.js""
-printf "const translationWeightsJSON = " > "${WEIGHTS_JS}"
-cat "${WEIGHTS_JSON}" >> "${WEIGHTS_JS}"
-printf ";" >> "${WEIGHTS_JS}"
-rm "${WEIGHTS_JSON}"
-
 echo
-echo "Now you can open the demo by:"
-echo "  google-chrome demos/translation_demo.html &"
+echo "-----------------------------------------------------------"
+echo "Once the HTTP server has started, you can view the demo at:"
+echo "  http://localhost:${DEMO_PORT}/demos/translation_demo.html"
+echo "-----------------------------------------------------------"
+echo
+
+node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

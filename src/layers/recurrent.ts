@@ -15,6 +15,7 @@
 import {Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
+// tslint:disable:max-line-length
 import * as activations from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
@@ -27,6 +28,7 @@ import {DType, Shape, SymbolicTensor} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
+// tslint:enable:max-line-length
 
 export interface BaseRNNLayerConfig extends LayerConfig {
   /**
@@ -816,7 +818,7 @@ export class SimpleRNNCell extends RNNCell {
         this.kernelInitializer, this.kernelRegularizer, true,
         this.kernelConstraint);
     this.recurrentKernel = this.addWeight(
-        'recurrentKernel', [this.units, this.units], null,
+        'recurrent_kernel', [this.units, this.units], null,
         this.recurrentInitializer, this.recurrentRegularizer, true,
         this.recurrentConstraint);
     if (this.useBias) {
@@ -1194,7 +1196,7 @@ export class GRUCell extends RNNCell {
         'kernel', [inputDim, this.units * 3], null, this.kernelInitializer,
         this.kernelRegularizer, true, this.kernelConstraint);
     this.recurrentKernel = this.addWeight(
-        'recurrentKernel', [this.units, this.units * 3], null,
+        'recurrent_kernel', [this.units, this.units * 3], null,
         this.recurrentInitializer, this.recurrentRegularizer, true,
         this.recurrentConstraint);
     if (this.useBias) {
@@ -1590,7 +1592,7 @@ export class LSTMCell extends RNNCell {
         'kernel', [inputDim, this.units * 4], null, this.kernelInitializer,
         this.kernelRegularizer, true, this.kernelConstraint);
     this.recurrentKernel = this.addWeight(
-        'recurrentKernel', [this.units, this.units * 4], null,
+        'recurrent_kernel', [this.units, this.units * 4], null,
         this.recurrentInitializer, this.recurrentRegularizer, true,
         this.recurrentConstraint);
     let biasInitializer: Initializer;

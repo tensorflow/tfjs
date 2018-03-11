@@ -19,24 +19,41 @@ set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Parse input arguments.
+DEMO_PORT=8000
+while true; do
+  if [[ "$1" == "--port" ]]; then
+    DEMO_PORT=$2
+    shift 2
+  elif [[ -z "$1" ]]; then
+    break
+  else
+    echo "ERROR: Unrecognized argument: $1"
+    exit 1
+  fi
+done
+
 # Build TensorFlow.js Layers standalone.
 "${SCRIPTS_DIR}/build-standalone.sh"
 
 DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
+ARTIFACTS_DIR="${DEMO_PATH}/mobilenet"
 mkdir -p "${DEMO_PATH}"
+rm -rf "${ARTIFACTS_DIR}"
 
 # Run Python script to generate the model and weights JSON files.
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
-PYTHONPATH="${SCRIPTS_DIR}/.." python "${SCRIPTS_DIR}/mobilenet.py" \
+export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+python "${SCRIPTS_DIR}/mobilenet.py" \
     --mode "serialize" \
-    --model_json_path "${DEMO_PATH}/mobilenet.keras.model.json" \
-    --weights_json_path "${DEMO_PATH}/mobilenet.keras.weights.json"
-
-# Copy and convert class names json file to local js file.
-cp "${SCRIPTS_DIR}/imagenet_class_names.json" "${DEMO_PATH}/"
+    --artifacts_dir "${ARTIFACTS_DIR}"
 
 echo
-echo "Now you can open the demo by:"
-echo "  python -m SimpleHTTPServer"
-echo "  google-chrome http://localhost:8000/demos/mobilenet_demo.html &"
+echo "-----------------------------------------------------------"
+echo "Once the HTTP server has started, you can view the demo at:"
+echo "  http://localhost:${DEMO_PORT}/demos/mobilenet_demo.html"
+echo "-----------------------------------------------------------"
+echo
+
+node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

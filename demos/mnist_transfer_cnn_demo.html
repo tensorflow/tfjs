@@ -14,10 +14,6 @@ https://opensource.org/licenses/MIT.
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
   <script src="../dist/tfjs_layers.debug.js"></script>
-  <script src="../dist/demo/mnist_transfer_cnn.keras.model.js"></script>
-  <script src="../dist/demo/mnist_transfer_cnn.keras.weights.js"></script>
-  <script src="../dist/demo/mnist_transfer_cnn.gte5.train.js"></script>
-  <script src="../dist/demo/mnist_transfer_cnn.gte5.test.js"></script>
 </head>
 
 <style>
@@ -149,250 +145,259 @@ https://opensource.org/licenses/MIT.
   </div>
 
   <script>
-    function deserializeModel() {
-      console.log('Deserialization model architecture.');
-      const model = tfjs_layers.modelFromJSON(mnistModelJSON);
+    (async () => {
+      const artifactsDir = '../../dist/demo/mnist_transfer_cnn/';
 
-      console.log('Loading model weights.');
-      model.loadWeights(mnistWeightsJSON);
-      return model;
-    }
+      console.log('Loading model...');
+      $('#retrainStatus').text('Loading model...');
+      const model = await tfjs_layers.loadModel(artifactsDir + 'model.json');
+      console.log('Done loading model.');
+      $('#retrainStatus').text('');
 
-    const model = deserializeModel();
+      // Load data for transfer learning.
+      console.log('Loading data for transfer learning...');
+      $('#retrainStatus').text('Loading data for transfer learning...');
+      const gte5TrainData =
+          await (await fetch(artifactsDir + 'gte5.train.json')).json();
+      const gte5TestData =
+          await (await fetch(artifactsDir + 'gte5.train.json')).json();
+      console.log('Done loading data for transfer learning.');
+      $('#retrainStatus').text('');
 
-    // Some hard-coded MNIST image examples for interactive testing.
-    const testExamples = {}
-    const digitCounts = {5: 0, 6: 0, 7: 0, 8: 0, 9: 0};
-    const examplesPerDigit = 10;
-    // Enter one example of each of 5, 6, 7, 8, 9 in `testExamples`.
-    for (let i = gte5TestData.length - 1; i >= 0; --i) {
-      const datum = gte5TestData[i];
-      const digit = datum.y + 5;
-      if (digitCounts[digit] >= examplesPerDigit) {
-        continue;
-      }
-      digitCounts[digit]++;
-      const key = String(digit) + '_' + String(digitCounts[digit]);
-      testExamples[key] = [];
-      for (const row of datum.x) {
-        testExamples[key] = testExamples[key].concat(row);
-      }
-      if (_.keys(testExamples).length >= 5 * examplesPerDigit) {
-        break;
-      }
-    }
-
-    const imageSize = model.layers[0].batchInputShape[1];
-
-    const imageInput = $('#image-input');
-    const testImageSelect = $('#test-image-select');
-
-    // Convert an image vector (length 784) representing an MNIST image into
-    // human-friendly a text representation.
-    //
-    // Args:
-    //   imageVector: An Array of Numbers of length `imageSize * imageSize`.
-    //
-    // Returns:
-    //   A String representing the image.
-    function imageVectorToText(imageVector) {
-      if (imageVector.length !== imageSize * imageSize) {
-        throw new Error('Incorrect length of image vector (expected ' +
-                        imageSize * imageSize + '; got ' +
-                        imageVector.length + ')');
-      }
-      let text = '';
-      for (let i = 0; i < imageSize * imageSize; ++i) {
-        if (i % imageSize === 0 && i > 0) {
-          text += '\n';
+      // Some hard-coded MNIST image examples for interactive testing.
+      const testExamples = {}
+      const digitCounts = {5: 0, 6: 0, 7: 0, 8: 0, 9: 0};
+      const examplesPerDigit = 10;
+      // Enter one example of each of 5, 6, 7, 8, 9 in `testExamples`.
+      for (let i = gte5TestData.length - 1; i >= 0; --i) {
+        const datum = gte5TestData[i];
+        const digit = datum.y + 5;
+        if (digitCounts[digit] >= examplesPerDigit) {
+          continue;
         }
-        const numString = imageVector[i].toString();
-        text += ' '.repeat(numString.length < 4 ? 4 - numString.length : 0) + numString;
+        digitCounts[digit]++;
+        const key = String(digit) + '_' + String(digitCounts[digit]);
+        testExamples[key] = [];
+        for (const row of datum.x) {
+          testExamples[key] = testExamples[key].concat(row);
+        }
+        if (_.keys(testExamples).length >= 5 * examplesPerDigit) {
+          break;
+        }
       }
-      return text;
-    }
 
-    // Convert a text representation of an MNIST image into an deeplearn Tensor4D
-    // of shape [1, imageSize, imageSize, 1].
-    //
-    // Args:
-    //   text: A String representing the MNIST image.
-    //
-    // Returns:
-    //   A Tensor4D instance representing the image, in a size-1 batch.
-    //     Shape: [1, imageSize, imageSize, 1].
-    function textToImageArray(text) {
-      // Split into rows.
-      const pixels = [];
-      const rows = text.split('\n');
-      for (const row of rows) {
-        const tokens = row.split(' ');
-        for (const token of tokens) {
-          if (token.length > 0) {
-            pixels.push(Number.parseInt(token) / 255);
+      const imageSize = model.layers[0].batchInputShape[1];
+
+      const imageInput = $('#image-input');
+      const testImageSelect = $('#test-image-select');
+
+      // Convert an image vector (length 784) representing an MNIST image into
+      // human-friendly a text representation.
+      //
+      // Args:
+      //   imageVector: An Array of Numbers of length `imageSize * imageSize`.
+      //
+      // Returns:
+      //   A String representing the image.
+      function imageVectorToText(imageVector) {
+        if (imageVector.length !== imageSize * imageSize) {
+          throw new Error('Incorrect length of image vector (expected ' +
+                          imageSize * imageSize + '; got ' +
+                          imageVector.length + ')');
+        }
+        let text = '';
+        for (let i = 0; i < imageSize * imageSize; ++i) {
+          if (i % imageSize === 0 && i > 0) {
+            text += '\n';
+          }
+          const numString = imageVector[i].toString();
+          text += ' '.repeat(numString.length < 4 ? 4 - numString.length : 0) + numString;
+        }
+        return text;
+      }
+
+      // Convert a text representation of an MNIST image into an deeplearn Tensor4D
+      // of shape [1, imageSize, imageSize, 1].
+      //
+      // Args:
+      //   text: A String representing the MNIST image.
+      //
+      // Returns:
+      //   A Tensor4D instance representing the image, in a size-1 batch.
+      //     Shape: [1, imageSize, imageSize, 1].
+      function textToImageArray(text) {
+        // Split into rows.
+        const pixels = [];
+        const rows = text.split('\n');
+        for (const row of rows) {
+          const tokens = row.split(' ');
+          for (const token of tokens) {
+            if (token.length > 0) {
+              pixels.push(Number.parseInt(token) / 255);
+            }
           }
         }
-      }
-      if (pixels.length !== imageSize * imageSize) {
-        throw new Error('Incorrect length of image vector (expected ' +
-                        imageSize * imageSize + '; got ' +
-                        pixels.length + ')');
-      }
-      return tfjs_layers.dl.tensor4d(pixels, [1, imageSize, imageSize, 1]);
-    }
-
-    // Perform prediction on the input image using the loaded model.
-    function predict() {
-      let batchInput = null;
-      try {
-        batchInput = textToImageArray(imageInput.val());
-      } catch (e) {
-        $('#predict-header').empty();
-        const errorTd = $('<td>Error:&nbsp;' + e.message + '</td>');
-        $('#predict-header').append(errorTd);
-        $('#predict-values').empty();
-      }
-
-      tfjs_layers.dl.tidy(() => {
-        const predictOut = Array.from(model.predict(batchInput).dataSync());
-        const winner = _.indexOf(predictOut, _.max(predictOut));
-
-        $('#predict-header').empty();
-        for (let i = 0; i < 5; ++i) {
-          const titleTd = $('<td>' + String(i + 5) + '</td>')
-          $('#predict-header').append(titleTd);
+        if (pixels.length !== imageSize * imageSize) {
+          throw new Error('Incorrect length of image vector (expected ' +
+                          imageSize * imageSize + '; got ' +
+                          pixels.length + ')');
         }
-        $('#predict-values').empty();
-        for (const predictVal of predictOut) {
-          const valTd = $('<td>' + predictVal.toFixed(6) + '</td>');
-          $('#predict-values').append(valTd);
+        return tfjs_layers.dl.tensor4d(pixels, [1, imageSize, imageSize, 1]);
+      }
+
+      // Perform prediction on the input image using the loaded model.
+      function predict() {
+        let batchInput = null;
+        try {
+          batchInput = textToImageArray(imageInput.val());
+        } catch (e) {
+          $('#predict-header').empty();
+          const errorTd = $('<td>Error:&nbsp;' + e.message + '</td>');
+          $('#predict-header').append(errorTd);
+          $('#predict-values').empty();
         }
-        $('#winner').val(winner + 5);
-      });
-    }
 
-    imageInput.keyup(() => {
-      predict();
-    });
+        tfjs_layers.dl.tidy(() => {
+          const predictOut = Array.from(model.predict(batchInput).dataSync());
+          const winner = _.indexOf(predictOut, _.max(predictOut));
 
-    testImageSelect.change(() => {
-      imageInput.val(imageVectorToText(testExamples[testImageSelect.val()]));
-      predict();
-    });
-
-    imageInput.val(imageVectorToText(testExamples['5_1']));
-
-    // Convert an MNIST dataset to two deeplearn.js Tensors.
-    const numClasses = 5;
-    function indexToOneHot(index, numClasses) {
-      const oneHot = [];
-      for (let i = 0; i < numClasses; ++i) {
-        oneHot.push(i === index ? 1 : 0);
+          $('#predict-header').empty();
+          for (let i = 0; i < 5; ++i) {
+            const titleTd = $('<td>' + String(i + 5) + '</td>')
+            $('#predict-header').append(titleTd);
+          }
+          $('#predict-values').empty();
+          for (const predictVal of predictOut) {
+            const valTd = $('<td>' + predictVal.toFixed(6) + '</td>');
+            $('#predict-values').append(valTd);
+          }
+          $('#winner').val(winner + 5);
+        });
       }
-      return oneHot;
-    }
-    function convertDataToTensors(data) {
-      const numExamples = data.length;
-      const imgRows = data[0].x.length;
-      const imgCols = data[0].x[0].length;
-      const xs = [];
-      const ys = [];
-      data.map(example => {
-        xs.push(example.x);
-        ys.push(indexToOneHot(example.y, numClasses));
+
+      imageInput.keyup(() => {
+        predict();
       });
-      let xsTensor = tfjs_layers.backend.reshape(
-          tfjs_layers.dl.tensor3d(xs, [numExamples, imgRows, imgCols]),
-          [numExamples, imgRows, imgCols, 1]);
-      xsTensor = tfjs_layers.backend.scalarTimesArray(
-          tfjs_layers.dl.scalar(1 / 255), xsTensor);
-      let ysTensor = tfjs_layers.dl.tensor2d(ys, [numExamples, numClasses]);
-      return [xsTensor, ysTensor];
-    }
 
-    const trainProg = $('#trainProg');
+      testImageSelect.change(() => {
+        imageInput.val(imageVectorToText(testExamples[testImageSelect.val()]));
+        predict();
+      });
 
-    console.log('Converting gte5 data to tensors.');
-    const gte5TrainXsAndYs = convertDataToTensors(gte5TrainData);
-    const gte5TrainXs = gte5TrainXsAndYs[0];
-    const gte5TrainYs = gte5TrainXsAndYs[1];
-    const gte5TestXsAndYs = convertDataToTensors(gte5TestData);
-    const gte5TestXs = gte5TestXsAndYs[0];
-    const gte5TestYs = gte5TestXsAndYs[1];
+      imageInput.val(imageVectorToText(testExamples['5_1']));
 
-    // Perform retraining on the loaded model.
-    async function retrainModel() {
-      // Check that the layer types are correct.
-      console.assert(model.layers[0].constructor.name === 'Conv2D');
-      console.assert(model.layers[1].constructor.name === 'Activation');
-      console.assert(model.layers[2].constructor.name === 'Conv2D');
-      console.assert(model.layers[3].constructor.name === 'Activation');
-      console.assert(model.layers[4].constructor.name === 'MaxPooling2D');
-      console.assert(model.layers[5].constructor.name === 'Dropout');
-      console.assert(model.layers[6].constructor.name === 'Flatten');
-
-      console.log('Freezing feature layers of the model.');
-      for (let i = 0; i < 7; ++i) {
-        model.layers[i].trainable = false;
+      // Convert an MNIST dataset to two deeplearn.js Tensors.
+      const numClasses = 5;
+      function indexToOneHot(index, numClasses) {
+        const oneHot = [];
+        for (let i = 0; i < numClasses; ++i) {
+          oneHot.push(i === index ? 1 : 0);
+        }
+        return oneHot;
       }
-      model.compile({
-          loss: 'categoricalCrossentropy',
-          optimizer: 'Adam',
-          metrics: ['acc'],
-      });
+      function convertDataToTensors(data) {
+        const numExamples = data.length;
+        const imgRows = data[0].x.length;
+        const imgCols = data[0].x[0].length;
+        const xs = [];
+        const ys = [];
+        data.map(example => {
+          xs.push(example.x);
+          ys.push(indexToOneHot(example.y, numClasses));
+        });
+        let xsTensor = tfjs_layers.backend.reshape(
+            tfjs_layers.dl.tensor3d(xs, [numExamples, imgRows, imgCols]),
+            [numExamples, imgRows, imgCols, 1]);
+        xsTensor = tfjs_layers.backend.scalarTimesArray(
+            tfjs_layers.dl.scalar(1 / 255), xsTensor);
+        let ysTensor = tfjs_layers.dl.tensor2d(ys, [numExamples, numClasses]);
+        return [xsTensor, ysTensor];
+      }
 
-      // Verify that the trainable weights are correct after the freezing.
-      console.assert(model.trainableWeights.length === 4);
-      console.assert(_.isEqual(model.trainableWeights[0].shape, [4608, 128]));
-      console.assert(_.isEqual(model.trainableWeights[1].shape, [128]));
-      console.assert(_.isEqual(model.trainableWeights[2].shape, [128, 5]));
-      console.assert(_.isEqual(model.trainableWeights[3].shape, [5]));
+      const trainProg = $('#trainProg');
 
-      const batchSize = 128;
-      const epochs = Number.parseInt($("#epochs").val())
+      console.log('Converting gte5 data to tensors.');
+      const gte5TrainXsAndYs = convertDataToTensors(gte5TrainData);
+      const gte5TrainXs = gte5TrainXsAndYs[0];
+      const gte5TrainYs = gte5TrainXsAndYs[1];
+      const gte5TestXsAndYs = convertDataToTensors(gte5TestData);
+      const gte5TestXs = gte5TestXsAndYs[0];
+      const gte5TestYs = gte5TestXsAndYs[1];
 
-      // Custom callback for updating the progress bar at the end of epochs.
-      const customCallbackConfig = {
-          onTrainBegin: async (logs) => {
-            $('#retrainStatus').text(
-                'Please wait and do NOT click anything while the model ' +
-                'retrains...');
-            $('#retrainStatus').css('color', 'blue');
-            trainProg.val(0);
-            await tfjs_layers.dl.nextFrame();
-          },
-          onTrainEnd: async (logs) => {
-            $('#retrainStatus').text(
-                'Done retraining ' + epochs + ' epochs. Standing by.');
-            $('#retrainStatus').css('color', 'black');
-            await tfjs_layers.dl.nextFrame();
-          },
-          onEpochEnd: async (epoch, logs) => {
-            $('#retrainStatus').text(
-                'Please wait and do NOT click anything while the model ' +
-                'retrains... (Epoch ' + (epoch + 1) + ' of ' +  epochs + ')');
-            trainProg.val((epoch + 1) / epochs * 100);
-            await tfjs_layers.dl.nextFrame();
-          },
-      };
+      // Perform retraining on the loaded model.
+      async function retrainModel() {
+        // Check that the layer types are correct.
+        console.assert(model.layers[0].constructor.name === 'Conv2D');
+        console.assert(model.layers[1].constructor.name === 'Activation');
+        console.assert(model.layers[2].constructor.name === 'Conv2D');
+        console.assert(model.layers[3].constructor.name === 'Activation');
+        console.assert(model.layers[4].constructor.name === 'MaxPooling2D');
+        console.assert(model.layers[5].constructor.name === 'Dropout');
+        console.assert(model.layers[6].constructor.name === 'Flatten');
 
-      console.log('Retraining model.');
-      const beginMs = performance.now();
-      const history = await model.fit({
-          x: gte5TrainXs,
-          y: gte5TrainYs,
-          batchSize: batchSize,
-          epochs: epochs,
-          // TODO(cais): visualize validation results in frontend during
-          //   training. See b/73735367.
-          // validationData: [gte5TestXs, gte5TestYs],
-          callbacks: customCallbackConfig,
-      });
-      console.log(history.history);
-      console.log('DONE retraining model: elapsed time = ' +
-                  (performance.now() - beginMs).toFixed(1) + ' ms');
-    }
+        console.log('Freezing feature layers of the model.');
+        for (let i = 0; i < 7; ++i) {
+          model.layers[i].trainable = false;
+        }
+        model.compile({
+            loss: 'categoricalCrossentropy',
+            optimizer: 'Adam',
+            metrics: ['acc'],
+        });
 
-    $('#retrain').click(retrainModel);
+        // Verify that the trainable weights are correct after the freezing.
+        console.assert(model.trainableWeights.length === 4);
+        console.assert(_.isEqual(model.trainableWeights[0].shape, [4608, 128]));
+        console.assert(_.isEqual(model.trainableWeights[1].shape, [128]));
+        console.assert(_.isEqual(model.trainableWeights[2].shape, [128, 5]));
+        console.assert(_.isEqual(model.trainableWeights[3].shape, [5]));
+
+        const batchSize = 128;
+        const epochs = Number.parseInt($("#epochs").val())
+
+        // Custom callback for updating the progress bar at the end of epochs.
+        const customCallbackConfig = {
+            onTrainBegin: async (logs) => {
+              $('#retrainStatus').text(
+                  'Please wait and do NOT click anything while the model ' +
+                  'retrains...');
+              $('#retrainStatus').css('color', 'blue');
+              trainProg.val(0);
+              await tfjs_layers.dl.nextFrame();
+            },
+            onTrainEnd: async (logs) => {
+              $('#retrainStatus').text(
+                  'Done retraining ' + epochs + ' epochs. Standing by.');
+              $('#retrainStatus').css('color', 'black');
+              await tfjs_layers.dl.nextFrame();
+            },
+            onEpochEnd: async (epoch, logs) => {
+              $('#retrainStatus').text(
+                  'Please wait and do NOT click anything while the model ' +
+                  'retrains... (Epoch ' + (epoch + 1) + ' of ' +  epochs + ')');
+              trainProg.val((epoch + 1) / epochs * 100);
+              await tfjs_layers.dl.nextFrame();
+            },
+        };
+
+        console.log('Retraining model.');
+        const beginMs = performance.now();
+        const history = await model.fit({
+            x: gte5TrainXs,
+            y: gte5TrainYs,
+            batchSize: batchSize,
+            epochs: epochs,
+            // TODO(cais): visualize validation results in frontend during
+            //   training. See b/73735367.
+            // validationData: [gte5TestXs, gte5TestYs],
+            callbacks: customCallbackConfig,
+        });
+        console.log(history.history);
+        console.log('DONE retraining model: elapsed time = ' +
+                    (performance.now() - beginMs).toFixed(1) + ' ms');
+      }
+
+      $('#retrain').click(retrainModel);
+    })();
   </script>
 </body>

@@ -13,7 +13,6 @@ https://opensource.org/licenses/MIT.
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="../dist/tfjs_layers.debug.js"></script>
-  <script src="../dist/demo/benchmarks.keras.js"></script>
 </head>
 
 <style>
@@ -69,113 +68,116 @@ https://opensource.org/licenses/MIT.
     </tbody>
   </table>
   <script>
-    const lossMap = {
-      mean_squared_error: 'meanSquaredError',
-      categorical_crossentropy: 'categoricalCrossentropy',
-    };
-    // TODO(cais): Maybe TF.js Layers should tolerate these Python-style names
-    // for losses.
+    (async () => {
+      const artifactsDir = '../../dist/demo/benchmarks/';
 
-    $('#pyKerasVersion').text(benchmarks.metadata.keras_version);
-    $('#tfVersion').text(benchmarks.metadata.tensorflow_version);
-    $('#tfUsesGPU').text(benchmarks.metadata.tensorflow_uses_gpu);
+      console.log('Loading benchmarks...');
+      const benchmarks =
+          await (await fetch(artifactsDir + 'benchmarks.json')).json();
+      console.log('Done loading benchmarks:', benchmarks);
 
-    function deserializeModel(modelJSON, weightsJSON) {
-      console.log('Deserializing model architecture.');
-      const model = tfjs_layers.modelFromJSON(modelJSON);
-
-      console.log('Loading model weights.');
-      model.loadWeights(weightsJSON);
-      return model;
-    }
-
-    const FIT_BURNIN_EPOCHS = benchmarks.config.FIT_BURNIN_EPOCHS;
-    const PREDICT_BURNINS = benchmarks.config.PREDICT_BURNINS;
-    const PREDICT_RUNS = benchmarks.config.PREDICT_RUNS;
-
-    async function runBenchmark(modelBenchmark) {
-      const model = deserializeModel(modelBenchmark.model_json,
-                                     modelBenchmark.weights_json);
-      const batchSize = modelBenchmark.batch_size;
-      const xs = tfjs_layers.backend.randomUniform(
-          [batchSize].concat(modelBenchmark.input_shape));
-      const ys = tfjs_layers.backend.randomUniform(
-          [batchSize].concat(modelBenchmark.target_shape));
-      model.compile({
-        optimizer: modelBenchmark.optimizer,
-        loss: lossMap[modelBenchmark.loss],
-      });
-
-      // Perform fit() burn-in.
-      await model.fit({
-        x: xs,
-        y: ys,
-        batchSize: modelBenchmark.batch_size,
-        epochs: FIT_BURNIN_EPOCHS});
-      model.trainableWeights[0].read().dataSync();
-
-      const trainBeginMs = performance.now();
-      await model.fit({
-        x: xs,
-        y: ys,
-        batchSize: modelBenchmark.batch_size,
-        epochs: modelBenchmark.train_epochs});
-      // After the fit() call, call dataSync() to let the scheduled GPU
-      // operations to complete before proceeding.
-      model.trainableWeights[0].read().dataSync();
-      const trainEndMs = performance.now();
-      const trainTimeMs = (trainEndMs - trainBeginMs) / modelBenchmark.train_epochs;
-
-      // Perform predict() burn-in.
-      let output;
-      for (let i = 0; i < PREDICT_BURNINS; ++i) {
-        output = await model.predict(xs);
-      }
-      // Time predict() a number of times and take the average.
-      const predictBeginMs = performance.now();
-      for (let i = 0; i < PREDICT_RUNS; ++i) {
-        output = await model.predict(xs);
-      }
-      // After all the model.predict() calls, invoke dataSync() once to let the
-      // scheduled GPU operations complete before proceeding.
-      output.dataSync();
-      const predictEndMs = performance.now();
-      const predictTimeMs = (predictEndMs - predictBeginMs) / PREDICT_RUNS;
-      return {
-        predictTimeMs: predictTimeMs,
-        trainTimeMs: trainTimeMs,
+      const lossMap = {
+        mean_squared_error: 'meanSquaredError',
+        categorical_crossentropy: 'categoricalCrossentropy',
       };
-    }
+      // TODO(cais): Maybe TF.js Layers should tolerate these Python-style names
+      // for losses.
 
-    $('#runBenchmarks').click(() => {
-      $('#status').text('Running benchmarks...');
-      const run = async () => {
-        for (let i = 0; i < benchmarks.models.length; ++i) {
-          const modelBenchmark = benchmarks.models[i];
-          const modelName = modelBenchmark.name;
-          $('#status').text(
-              'Running model (' + (i + 1) + ' of ' + benchmarks.models.length +
-              '): "' + modelName +
-              '" ... (Please wait patiently. Do NOT click anything.)');
-          await tfjs_layers.dl.nextFrame();
-          console.log('Benchmarking model: ' + modelName);
-          const result = await runBenchmark(modelBenchmark);
-          console.log('result:', result);
-          $('#resultsTable').find('tbody')
-              .append($('<tr>')
-                  .append($('<td>').append(modelName))
-                  .append($('<td>').append(modelBenchmark.description))
-                  .append($('<td>').append(modelBenchmark.batch_size))
-                  .append($('<td>').append(modelBenchmark.train_epochs))
-                  .append($('<td>').append((modelBenchmark.train_time * 1e3).toFixed(1)))
-                  .append($('<td>').append(result.trainTimeMs.toFixed(1)))
-                  .append($('<td>').append((modelBenchmark.predict_time * 1e3).toFixed(1)))
-                  .append($('<td>').append(result.predictTimeMs.toFixed(1))));
+      $('#pyKerasVersion').text(benchmarks.metadata.keras_version);
+      $('#tfVersion').text(benchmarks.metadata.tensorflow_version);
+      $('#tfUsesGPU').text(benchmarks.metadata.tensorflow_uses_gpu);
+
+      const FIT_BURNIN_EPOCHS = benchmarks.config.FIT_BURNIN_EPOCHS;
+      const PREDICT_BURNINS = benchmarks.config.PREDICT_BURNINS;
+      const PREDICT_RUNS = benchmarks.config.PREDICT_RUNS;
+
+      async function runBenchmark(modelName) {
+        const modelPath = artifactsDir + modelName + '/';
+        console.log('Loading model "' + modelName + '" and benchmark data...');
+        const model = await tfjs_layers.loadModel(modelPath + 'model.json');
+        console.log('Done loading model "' + modelName + '" and benchmark data.');
+
+        const benchmarkData = await (await fetch(modelPath + 'data.json')).json();
+
+        const batchSize = benchmarkData.batch_size;
+        const xs = tfjs_layers.backend.randomUniform(
+            [batchSize].concat(benchmarkData.input_shape));
+        const ys = tfjs_layers.backend.randomUniform(
+            [batchSize].concat(benchmarkData.target_shape));
+        model.compile({
+          optimizer: benchmarkData.optimizer,
+          loss: lossMap[benchmarkData.loss],
+        });
+
+        // Perform fit() burn-in.
+        await model.fit({
+          x: xs,
+          y: ys,
+          batchSize: benchmarkData.batch_size,
+          epochs: FIT_BURNIN_EPOCHS});
+        model.trainableWeights[0].read().dataSync();
+
+        const trainBeginMs = performance.now();
+        await model.fit({
+          x: xs,
+          y: ys,
+          batchSize: benchmarkData.batch_size,
+          epochs: benchmarkData.train_epochs});
+        // After the fit() call, call dataSync() to let the scheduled GPU
+        // operations to complete before proceeding.
+        model.trainableWeights[0].read().dataSync();
+        const trainEndMs = performance.now();
+        const trainTimeMs = (trainEndMs - trainBeginMs) / benchmarkData.train_epochs;
+
+        // Perform predict() burn-in.
+        let output;
+        for (let i = 0; i < PREDICT_BURNINS; ++i) {
+          output = await model.predict(xs);
         }
-        $('#status').text('Standing by.');
-      };
-      run();
-    });
+        // Time predict() a number of times and take the average.
+        const predictBeginMs = performance.now();
+        for (let i = 0; i < PREDICT_RUNS; ++i) {
+          output = await model.predict(xs);
+        }
+        // After all the model.predict() calls, invoke dataSync() once to let the
+        // scheduled GPU operations complete before proceeding.
+        output.dataSync();
+        const predictEndMs = performance.now();
+        const predictTimeMs = (predictEndMs - predictBeginMs) / PREDICT_RUNS;
+        return {
+          originalData: benchmarkData,
+          predictTimeMs: predictTimeMs,
+          trainTimeMs: trainTimeMs,
+        };
+      }
 
+      $('#runBenchmarks').click(() => {
+        $('#status').text('Running benchmarks...');
+        const run = async () => {
+          for (let i = 0; i < benchmarks.models.length; ++i) {
+            const modelName = benchmarks.models[i];
+            $('#status').text(
+                'Running model (' + (i + 1) + ' of ' + benchmarks.models.length +
+                '): "' + modelName +
+                '" ... (Please wait patiently. Do NOT click anything.)');
+            await tfjs_layers.dl.nextFrame();
+            console.log('Benchmarking model: ' + modelName);
+            const result = await runBenchmark(modelName);
+            $('#resultsTable').find('tbody')
+                .append($('<tr>')
+                    .append($('<td>').append(modelName))
+                    .append($('<td>').append(result.originalData.description))
+                    .append($('<td>').append(result.originalData.batch_size))
+                    .append($('<td>').append(result.originalData.train_epochs))
+                    .append($('<td>').append((result.originalData.train_time * 1e3).toFixed(1)))
+                    .append($('<td>').append(result.trainTimeMs.toFixed(1)))
+                    .append($('<td>').append((result.originalData.predict_time * 1e3).toFixed(1)))
+                    .append($('<td>').append(result.predictTimeMs.toFixed(1))));
+          }
+          $('#status').text('Standing by.');
+        };
+        run();
+      });
+    })();
   </script>
 </body>

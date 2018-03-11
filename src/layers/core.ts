@@ -15,6 +15,7 @@
 import {Scalar, Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
+// tslint:disable:max-line-length
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
@@ -27,6 +28,7 @@ import {ConfigDict, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneTensor} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
+// tslint:enable:max-line-length
 
 export interface DropoutLayerConfig extends LayerConfig {
   /** float between 0 and 1. Fraction of the input units to drop. */

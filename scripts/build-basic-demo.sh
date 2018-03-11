@@ -32,10 +32,10 @@ while true; do
 done
 
 echo
-echo "---------------------------------------------------------------------"
+echo "-----------------------------------------------------------"
 echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}/demos/polynomial_regression_demo.html"
-echo "---------------------------------------------------------------------"
+echo "  http://localhost:${DEMO_PORT}/demos/basic_demo.html"
+echo "-----------------------------------------------------------"
 echo
 
 node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

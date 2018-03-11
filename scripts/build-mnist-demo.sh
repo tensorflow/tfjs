@@ -7,7 +7,6 @@
 # https://opensource.org/licenses/MIT.
 # =============================================================================
 
-
 # Builds the MNIST demo for TensorFlow.js Layers.
 # Usage example: do under the root of the source repository:
 #   ./scripts/build-mnist-demo.sh
@@ -21,44 +20,50 @@ SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Parse input arguments.
 NO_TRAIN=0
+TRAIN_EPOCHS=12
+DEMO_PORT=8000
 while true; do
   if [[ "$1" == "--no_train" ]]; then
     NO_TRAIN=1
+    shift
+  elif [[ "$1" == "--port" ]]; then
+    DEMO_PORT=$2
+    shift 2
+  elif [[ "$1" == "--epochs" ]]; then
+    TRAIN_EPOCHS=$2
+    shift 2
   elif [[ -z "$1" ]]; then
     break
+  else
+    echo "ERROR: Unrecognized argument: $1"
+    exit 1
   fi
-  shift
 done
 
 # Build TensorFlow.js standalone.
 "${SCRIPTS_DIR}/build-standalone.sh"
 
 DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
+ARTIFACTS_DIR="${DEMO_PATH}/mnist"
 mkdir -p "${DEMO_PATH}"
+rm -rf "${ARTIFACTS_DIR}"
 
 if [[ "${NO_TRAIN}" != "1" ]]; then
   # Run Python script to generate the model and weights JSON files.
   # The extension names are ".js" because they will later be converted into
   # sourceable JavaScript files.
-  PYTHONPATH="${SCRIPTS_DIR}/.." python "${SCRIPTS_DIR}/mnist.py" \
-      --model_json_path "${DEMO_PATH}/mnist.keras.model.json" \
-      --weights_json_path "${DEMO_PATH}/mnist.keras.weights.json"
-
-  # Prepend "const * = " to the json files
-  printf "const mnistModelJSON = " > "${DEMO_PATH}/mnist.keras.model.js"
-  cat "${DEMO_PATH}/mnist.keras.model.json" >> "${DEMO_PATH}/mnist.keras.model.js"
-  printf ";" >> "${DEMO_PATH}/mnist.keras.model.js"
-  rm "${DEMO_PATH}/mnist.keras.model.json"
-
-  printf "const mnistWeightsJSON = " > "${DEMO_PATH}/mnist.keras.weights.js"
-  cat "${DEMO_PATH}/mnist.keras.weights.json" >> "${DEMO_PATH}/mnist.keras.weights.js"
-  printf ";" >> "${DEMO_PATH}/mnist.keras.weights.js"
-  rm "${DEMO_PATH}/mnist.keras.weights.json"
+  export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+  python "${SCRIPTS_DIR}/mnist.py" \
+      --epochs "${TRAIN_EPOCHS}" --artifacts_dir "${ARTIFACTS_DIR}"
 else
   printf "\nSkipped model training.\n"
 fi
 
 echo
-echo "Now you can open the demo by:"
-echo "  google-chrome demos/mnist_demo.html &"
+echo "-----------------------------------------------------------"
+echo "Once the HTTP server has started, you can view the demo at:"
+echo "  http://localhost:${DEMO_PORT}/demos/mnist_demo.html"
+echo "-----------------------------------------------------------"
+echo
 
+node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

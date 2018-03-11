@@ -24,6 +24,7 @@ py_binary(
     srcs = ["h5_conversion.py"],
     deps = [
         ":expect_h5py_installed",
+        ":expect_keras_installed",
         ":expect_numpy_installed",
     ],
 )
@@ -62,7 +63,6 @@ py_binary(
     name = "benchmarks",
     srcs = ["benchmarks.py"],
     deps = [
-        ":expect_h5py_installed",
         ":expect_keras_installed",
         ":expect_numpy_installed",
         ":h5_conversion",
@@ -102,7 +102,6 @@ py_binary(
     name = "iris",
     srcs = ["iris.py"],
     deps = [
-        ":expect_h5py_installed",
         ":expect_keras_installed",
         ":expect_numpy_installed",
         ":h5_conversion",
@@ -122,7 +121,6 @@ py_binary(
     name = "mnist",
     srcs = ["mnist.py"],
     deps = [
-        ":expect_h5py_installed",
         ":expect_keras_installed",
         ":h5_conversion",
     ],
@@ -141,7 +139,6 @@ py_binary(
     name = "mnist_transfer_cnn",
     srcs = ["mnist_transfer_cnn.py"],
     deps = [
-        ":expect_h5py_installed",
         ":expect_keras_installed",
         ":h5_conversion",
     ],

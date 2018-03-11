@@ -16,6 +16,7 @@
 import {Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
+// tslint:disable:max-line-length
 import * as K from '../backend/deeplearnjs_backend';
 import {Constraint, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -26,6 +27,7 @@ import {Shape} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape} from '../utils/generic_utils';
+// tslint:enable:max-line-length
 
 export interface EmbeddingLayerConfig extends LayerConfig {
   /**

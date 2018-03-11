@@ -64,7 +64,8 @@ export class ModelExports {
     useDocsFrom: 'loadModelInternal',
     configParamIndices: [0]
   })
-  static loadModel(modelAndWeights: ModelAndWeightsConfig): Promise<Model> {
+  static async loadModel(modelAndWeights: string |
+    ModelAndWeightsConfig): Promise<Model> {
     return loadModelInternal(modelAndWeights);
   }
 

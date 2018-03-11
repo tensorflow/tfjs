@@ -14,8 +14,23 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import json
+import os
+import tempfile
+
 import h5py
+import keras
 import numpy as np
+
+import write_weights  # pylint: disable=import-error
+
+# File name for the indexing JSON file in an artifact directory.
+ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
+
+# JSON string keys for fields of the indexing JSON.
+ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
+ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
+
 
 class HDF5Converter(object):
   """Helper class to convert HDF5 format to JSON + binary weights format
@@ -30,20 +45,31 @@ class HDF5Converter(object):
           decimal_places)
     self.decimal_places = decimal_places
 
+  def _normalize_weight_name(self, weight_name):
+    name = weight_name.decode('utf8')
+    if name.endswith(':0'):
+      # Python TensorFlow weight names ends with the output slot, which is
+      # not applicable to TensorFlow.js.
+      name = name[:-2]
+    return name
+
   def convert_h5_group(self, group, names):
     """Construct a weights group entry.
+
     Args:
       group: The HDF5 group data.
       names: The names of the sub-fields within the group.
+
     Returns:
-      An array of weight groups. (see write_weights in TFJS).
+      An array of weight groups (see `write_weights` in TensorFlow.js).
     """
     if not names:
       return None
+    names = [name.decode('utf8') for name in names]
     weight_values = [
         np.array(group[weight_name]) for weight_name in names]
     group_out = [{
-        'name': weight_name.decode('utf8'),
+        'name': self._normalize_weight_name(weight_name),
         'data': weight_value
     } for (weight_name, weight_value) in zip(names, weight_values)]
     return group_out
@@ -59,7 +85,7 @@ class HDF5Converter(object):
     weight_values = [
         np.array(group[weight_name]) for weight_name in names]
     group_out = [{
-        'name': weight_name.decode('utf8'),
+        'name': self._normalize_weight_name(weight_name),
         'dtype': str(weight_value.dtype),
         'shape': list(weight_value.shape),
         'value': np.round(weight_value, self.decimal_places).tolist(),
@@ -80,8 +106,10 @@ class HDF5Converter(object):
 
   def _initialize_output_dictionary(self, h5file):
     """Prepopulate required fields for all data foramts.
+
     Args:
       h5file: Valid h5file object.
+
     Returns:
       A dictionary with common fields sets, shared across formats.
     """
@@ -92,7 +120,6 @@ class HDF5Converter(object):
 
   def _ensure_h5file(self, h5file):
     if not isinstance(h5file, h5py.File):
-      print("Creating file")
       return h5py.File(h5file)
     else:
       return h5file
@@ -109,32 +136,32 @@ class HDF5Converter(object):
 
     Args:
       h5file: An instance of h5py.File, or the path to an h5py file.
+
     Returns:
-      (json, groups)
-        json: a JSON dictionary holding topology and system metadata.
+      (model_json, groups)
+        model_json: a JSON dictionary holding topology and system metadata.
         group: an array of group_weights as defined in tfjs write_weights.
+
     Raises:
       ValueError: If the Keras version of the HDF5 file is not supported.
     """
     h5file = self._ensure_h5file(h5file)
     self._check_version(h5file)
-    json = self._initialize_output_dictionary(h5file)
+    model_json = self._initialize_output_dictionary(h5file)
 
-    json['model_config'] = h5file.attrs['model_config']
+    model_json['model_config'] = h5file.attrs['model_config']
     if 'training_config' in h5file.attrs:
-      json['training_config'] = h5file.attrs['training_config']
+      model_json['training_config'] = h5file.attrs['training_config']
     groups = []
 
     layer_names = [n.decode('utf8') for n in h5file['model_weights']]
     for layer_name in layer_names:
       layer = h5file['model_weights'][layer_name]
       group = self.convert_h5_group(
-          layer,
-          [name.decode('utf8') for name in layer.attrs['weight_names']])
+          layer, [name for name in layer.attrs['weight_names']])
       if group is not None:
         groups.append(group)
-    return json, groups
-
+    return model_json, groups
 
   def h5_weights_to_tfjs_format(self, h5file):
     """Load weight values from a Keras HDF5 file and to a binary format.
@@ -165,8 +192,7 @@ class HDF5Converter(object):
     for layer_name in layer_names:
       layer = h5file[layer_name]
       group = self.convert_h5_group(
-          layer,
-          [name.decode('utf8') for name in layer.attrs['weight_names']])
+          layer, [name for name in layer.attrs['weight_names']])
       if group is not None:
         groups.append(group)
     return groups
@@ -198,8 +224,7 @@ class HDF5Converter(object):
     for layer_name in layer_names:
       layer = h5file['model_weights'][layer_name]
       model_weights[layer_name] = self.convert_h5_group_to_ascii(
-          layer,
-          [name.decode('utf8') for name in layer.attrs['weight_names']])
+          layer, [name for name in layer.attrs['weight_names']])
     if 'optimizer_weights' in h5file:
       optimizer_names = [n.decode('utf8') for n in h5file['optimizer_weights']]
       for optimizer_name in optimizer_names:
@@ -207,15 +232,14 @@ class HDF5Converter(object):
         for key, value in optimizer.items():
           if isinstance(value, h5py.Dataset):
             optimizer_weights[optimizer_name] = [{
-                'name' : key.decode('utf8'),
+                'name' : self._normalize_weight_name(key),
                 'dtype' : str(value.dtype),
                 'shape' : list(value.shape),
                 'value' :round(value.value, self.decimal_places)
             }]
           elif isinstance(value, h5py.Group):
             optimizer_weights[optimizer_name] = self.convert_h5_group_to_ascii(
-                value,
-                [name.decode('utf8') for name, _ in value.items()])
+                value, [name for name, _ in value.items()])
           else:
             print('Unknown h5py storage type in input file optimizer weights')
             print('key %s, value %s' % (key, value))
@@ -276,27 +300,70 @@ class HDF5Converter(object):
     for layer_name in layer_names:
       layer = h5file[layer_name]
       out_weights[layer_name] = self.convert_h5_group_to_ascii(
-          layer,
-          [name.decode('utf8') for name in layer.attrs['weight_names']])
+          layer, [name for name in layer.attrs['weight_names']])
     return out
 
-  def write_artifacts(self, topology, weights, output_dir, topology_filename="topology.json"):
+  def write_artifacts(self,
+                      topology,
+                      weights,
+                      output_dir):
     """Writes weights and topology to the output_dir.
 
-    If topology is empty, only emit weights to output_dir.
+    If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
 
     Args:
       topology: a JSON dictionary, representing the Keras config.
       weights: an array of weight groups (as defined in tfjs write_weights).
       output_dir: the directory to hold all the contents.
-      topology_filename: filename for the topology json file.
     """
-    write_weights(weights, output_dir)
-
+    # TODO(cais, nielsene): This method should allow optional arguments of
+    #   `write_weights.write_weights` (e.g., shard size) and forward them.
     # We write the topology after since write_weights makes no promises about
     # preserving directory contents.
-    if not topology.empty:
-      json_path = os.join(output_dir, topology_filename)
-      json_string = json.dumps(topology)
-      with open(json_path, 'wt') as json_file:
-        json_file.write(json_string)
+    model_json = {}
+    model_json[ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
+    weights_manifest = write_weights.write_weights(
+        weights, output_dir, write_manifest=False)
+    if not isinstance(weights_manifest, list):
+      weights_manifest = json.loads(weights_manifest)
+    assert isinstance(weights_manifest, list)
+    model_json[ARTIFACT_WEIGHTS_MANIFEST_KEY] = weights_manifest
+
+    model_json_path = os.path.join(output_dir, ARTIFACT_MODEL_JSON_FILE_NAME)
+    with open(model_json_path, 'wt') as f:
+      json.dump(model_json, f)
+
+
+def save_model(model, artifacts_dir):
+  r"""Save a Keras model and its weigths in TensorFlow.js format.
+
+  Args:
+    model: An instance of `keras.Model`.
+    artifacts_dir: The directory in which the artifacts will be saved.
+      The artifacts to be saved include:
+        - model.json: A JSON representing the model. It has the following
+          fields:
+          - 'modelTopology': A JSON object describing the topology of the model,
+            along with additional information such as training. It is obtained
+            through calling `keras.models.save_model`.
+          - 'weightsManifest': A TensorFlow.js-format JSON manifest for the
+            model's weights.
+        - files containing weight values in groups, with the file name pattern
+          group(\d+)-shard(\d+)of(\d+).
+      If the directory does not exist, this function will attempt to create it.
+
+  Raises:
+    ValueError: If `artifacts_dir` already exists as a file (not a directory).
+  """
+  temp_h5_path = tempfile.mktemp() + '.h5'
+  keras.models.save_model(model, temp_h5_path)
+  # TODO(cais): Maybe get rid of the class HDF5Converter to simplify the code.
+  converter = HDF5Converter()
+  topology_json, weights_group = (
+      converter.h5_merged_saved_model_to_tfjs_format(temp_h5_path))
+  if os.path.isfile(artifacts_dir):
+    raise ValueError('Path "%s" already exists as a file.' % artifacts_dir)
+  elif not os.path.isdir(artifacts_dir):
+    os.makedirs(artifacts_dir)
+  converter.write_artifacts(topology_json, weights_group, artifacts_dir)
+  os.remove(temp_h5_path)

@@ -15,6 +15,7 @@
 import {Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
+// tslint:disable:max-line-length
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
 import {DataFormat, PaddingMode} from '../common';
@@ -27,6 +28,7 @@ import {Shape} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import {convOutputLength, normalizeArray} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
+// tslint:enable:max-line-length
 
 /**
  * LayerConfig for convoluational layers.
