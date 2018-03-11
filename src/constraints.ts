@@ -225,27 +225,28 @@ export class MinMaxNorm extends Constraint {
 }
 ClassNameMap.register('MinMaxNorm', MinMaxNorm);
 
-export function serialize(constraint: Constraint): ConfigDictValue {
+export function serializeConstraint(constraint: Constraint): ConfigDictValue {
   return serializeKerasObject(constraint);
 }
 
-export function deserialize(
+export function deserializeConstraint(
     config: ConfigDict, customObjects: ConfigDict = {}): Constraint {
   return deserializeKerasObject(
       config, ClassNameMap.getMap().pythonClassNameMap, customObjects,
       'constraint');
 }
 
-export function get(identifier: string|ConfigDict|Constraint): Constraint {
+export function getConstraint(identifier: string|ConfigDict|
+                              Constraint): Constraint {
   if (identifier == null) {
     return null;
   }
   if (typeof identifier === 'string') {
     const config = {className: identifier, config: {}};
-    return deserialize(config);
+    return deserializeConstraint(config);
   } else if (identifier instanceof Constraint) {
     return identifier;
   } else {
-    return deserialize(identifier);
+    return deserializeConstraint(identifier);
   }
 }

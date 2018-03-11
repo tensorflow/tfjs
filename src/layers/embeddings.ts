@@ -17,11 +17,11 @@ import {Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
-import * as constraints from '../constraints';
+import {Constraint, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import * as initializers from '../initializers';
-import * as regularizers from '../regularizers';
+import {getInitializer, Initializer, serializeInitializer} from '../initializers';
+import {getRegularizer, Regularizer, serializeRegularizer} from '../regularizers';
 import {Shape} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
@@ -43,23 +43,23 @@ export interface EmbeddingLayerConfig extends LayerConfig {
    *     Initializer for the `embeddings` matrix
    *     (see [initializers](../initializers.md)).
    */
-  embeddingsInitializer?: string|initializers.Initializer;
+  embeddingsInitializer?: string|Initializer;
   /**
    * embeddingsRegularizer:
    *     Regularizer function applied to the `embeddings` matrix.
    */
-  embeddingsRegularizer?: string|regularizers.Regularizer;
+  embeddingsRegularizer?: string|Regularizer;
   /**
    * activityRegularizer:
    *     Regularizer function applied to the activation.
    */
-  activityRegularizer?: string|regularizers.Regularizer;
+  activityRegularizer?: string|Regularizer;
   /**
    *  embeddingsConstraint: Constraint function applied to
    *     the `embeddings` matrix
    *     (see [constraints](../constraints.md)).
    */
-  embeddingsConstraint?: string|constraints.Constraint;
+  embeddingsConstraint?: string|Constraint;
   /**
    * mask_zero: Whether or not the input value 0 is a special "padding"
    *     value that should be masked out.
@@ -95,15 +95,15 @@ export interface EmbeddingLayerConfig extends LayerConfig {
 export class Embedding extends Layer {
   private inputDim: number;
   private outputDim: number;
-  private embeddingsInitializer: initializers.Initializer;
+  private embeddingsInitializer: Initializer;
   private maskZero: boolean;
   private inputLength: number|number[];
 
   private embeddings: LayerVariable = null;
 
   readonly DEFAULT_EMBEDDINGS_INITIALIZER = 'RandomUniform';
-  private readonly embeddingsRegularizer?: regularizers.Regularizer;
-  private readonly embeddingsConstraint?: constraints.Constraint;
+  private readonly embeddingsRegularizer?: Regularizer;
+  private readonly embeddingsConstraint?: Constraint;
 
   constructor(config: EmbeddingLayerConfig) {
     super(config);
@@ -129,11 +129,11 @@ export class Embedding extends Layer {
     }
     this.inputDim = config.inputDim;
     this.outputDim = config.outputDim;
-    this.embeddingsInitializer = initializers.get(
+    this.embeddingsInitializer = getInitializer(
         config.embeddingsInitializer || this.DEFAULT_EMBEDDINGS_INITIALIZER);
-    this.embeddingsRegularizer = regularizers.get(config.embeddingsRegularizer);
-    this.activityRegularizer = regularizers.get(config.activityRegularizer);
-    this.embeddingsConstraint = constraints.get(config.embeddingsConstraint);
+    this.embeddingsRegularizer = getRegularizer(config.embeddingsRegularizer);
+    this.activityRegularizer = getRegularizer(config.activityRegularizer);
+    this.embeddingsConstraint = getConstraint(config.embeddingsConstraint);
     this.maskZero = config.maskZero;
     this.inputLength = config.inputLength;
   }
@@ -195,10 +195,10 @@ export class Embedding extends Layer {
     const config = {
       inputDim: this.inputDim,
       outputDim: this.outputDim,
-      embeddingsInitializer: initializers.serialize(this.embeddingsInitializer),
-      embeddingsRegularizer: regularizers.serialize(this.embeddingsRegularizer),
-      activityRegularizer: regularizers.serialize(this.activityRegularizer),
-      embeddingsConstraint: constraints.serialize(this.embeddingsConstraint),
+      embeddingsInitializer: serializeInitializer(this.embeddingsInitializer),
+      embeddingsRegularizer: serializeRegularizer(this.embeddingsRegularizer),
+      activityRegularizer: serializeRegularizer(this.activityRegularizer),
+      embeddingsConstraint: serializeConstraint(this.embeddingsConstraint),
       maskZero: this.maskZero,
       inputLength: this.inputLength
     };

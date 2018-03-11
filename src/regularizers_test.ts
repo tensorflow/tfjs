@@ -12,7 +12,7 @@
 
 import {tensor1d} from 'deeplearn';
 
-import {deserialize, get, l1, l1_l2, L1L2, l2, serialize} from './regularizers';
+import {deserializeRegularizer, getRegularizer, l1, l1_l2, L1L2, l2, serializeRegularizer} from './regularizers';
 import {ConfigDict, LayerVariable} from './types';
 import {describeMathCPU, expectTensorsClose} from './utils/test_utils';
 
@@ -52,18 +52,19 @@ describeMathCPU('regularizers.get', () => {
   });
 
   it('by string', () => {
-    const regularizer = get('L1L2');
+    const regularizer = getRegularizer('L1L2');
     expectTensorsClose(
         regularizer.apply(variable), (new L1L2()).apply(variable));
   });
   it('by existing object', () => {
     const origReg = l1_l2(1, 2);
-    const regularizer = get(origReg);
+    const regularizer = getRegularizer(origReg);
     expect(regularizer).toEqual(origReg);
   });
   it('by config dict', () => {
     const origReg = l1_l2(1, 2);
-    const regularizer = get(serialize(origReg) as ConfigDict);
+    const regularizer =
+        getRegularizer(serializeRegularizer(origReg) as ConfigDict);
     expectTensorsClose(regularizer.apply(variable), origReg.apply(variable));
   });
 });
@@ -71,9 +72,9 @@ describeMathCPU('regularizers.get', () => {
 describeMathCPU('Regularizer Serialization', () => {
   it('Built-ins', () => {
     const regularizer = l1_l2(1, 2);
-    const config = serialize(regularizer) as ConfigDict;
-    const reconstituted = deserialize(config);
-    const roundTripConfig = serialize(reconstituted) as ConfigDict;
+    const config = serializeRegularizer(regularizer) as ConfigDict;
+    const reconstituted = deserializeRegularizer(config);
+    const roundTripConfig = serializeRegularizer(reconstituted) as ConfigDict;
     expect(roundTripConfig.className).toEqual('L1L2');
     const nestedConfig = roundTripConfig.config as ConfigDict;
     expect(nestedConfig.l1).toEqual(1);

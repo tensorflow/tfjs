@@ -494,24 +494,26 @@ ClassNameMap.register('LeCunNormal', LeCunNormal);
 // TODO(cais): Implement Orthogonal once the deeplearn.js feature is fulfilled:
 //   https://github.com/PAIR-code/deeplearnjs/issues/245
 
-function deserialize(
+function deserializeInitializer(
     config: ConfigDict, customObjects: ConfigDict = {}): Initializer {
   return deserializeKerasObject(
       config, ClassNameMap.getMap().pythonClassNameMap, customObjects,
       'initializer');
 }
 
-export function serialize(initializer: Initializer): ConfigDictValue {
+export function serializeInitializer(initializer: Initializer):
+    ConfigDictValue {
   return serializeKerasObject(initializer);
 }
 
-export function get(identifier: string|Initializer|ConfigDict): Initializer {
+export function getInitializer(identifier: string|Initializer|
+                               ConfigDict): Initializer {
   if (typeof identifier === 'string') {
     const config = {className: identifier, config: {}};
-    return deserialize(config);
+    return deserializeInitializer(config);
   } else if (identifier instanceof Initializer) {
     return identifier;
   } else {
-    return deserialize(identifier);
+    return deserializeInitializer(identifier);
   }
 }

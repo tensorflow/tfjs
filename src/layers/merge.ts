@@ -235,8 +235,8 @@ export class Merge extends Layer {
  * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape).
  *
- * // TODO(cais): Add examples.
  */
+// TODO(cais): Add examples.
 export class Add extends Merge {
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);

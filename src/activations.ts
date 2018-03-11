@@ -18,7 +18,7 @@ import {ConfigDictValue} from './types';
 export type ActivationFn = (tensor: Tensor, axis?: number) => Tensor;
 
 // TODO(cais): Consider switching arg type from string to Enum.
-export function get(initializerType: string): ActivationFn {
+export function getActivation(initializerType: string): ActivationFn {
   if (initializerType == null || initializerType.toLowerCase() === 'linear') {
     return linear;
   } else if (initializerType.toLowerCase() === 'elu') {
@@ -147,6 +147,6 @@ export function softmax(x: Tensor, axis: number = (-1)): Tensor {
   return K.softmax(x, axis);
 }
 
-export function serialize(activation: ActivationFn): ConfigDictValue {
+export function serializeActivation(activation: ActivationFn): ConfigDictValue {
   return activation.name;
 }

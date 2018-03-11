@@ -15,14 +15,14 @@
 import {Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
-import * as activations from '../activations';
+import {ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
 import {DataFormat, PaddingMode} from '../common';
-import * as constraints from '../constraints';
+import {Constraint, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import * as initializers from '../initializers';
-import * as regularizers from '../regularizers';
+import {getInitializer, Initializer, serializeInitializer} from '../initializers';
+import {getRegularizer, Regularizer, serializeRegularizer} from '../regularizers';
 import {Shape} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import {convOutputLength, normalizeArray} from '../utils/conv_utils';
@@ -34,32 +34,33 @@ import * as generic_utils from '../utils/generic_utils';
  */
 export interface ConvLayerConfig extends LayerConfig {
   /**
-   * kernelSize: An integer or an array of integers, specifying the
-   *   dimensions of the convolution window.
+   * The dimensions of the convolution window. If kernelSize is a number, the
+   * convolutional window will be square.
    */
   kernelSize: number|number[];
 
   /**
-   * filters: Integer, the dimensionality of the output space
-   *   (i.e. the number output of filters in the convolution).
+   * The dimensionality of the output space (i.e. the number output of
+   * filters in the convolution).
    */
   filters?: number;
 
   /**
-   * strides: An integer or tuple/list of n integers,
-   *   specifying the strides of the convolution.
-   *   Specifying any stride value != 1 is incompatible with specifying
-   *   any `dilationRate` value != 1.
+   * The strides of the convolution. If strides is a number, strides in both
+   * dimensions are equal.
+   *
+   * Specifying any stride value != 1 is incompatible with specifying any
+   * `dilationRate` value != 1.
    */
   strides?: number|number[];
 
   /**
-   * padding: Padding mode, e.g., VALID.
+   * Padding mode.
    */
   padding?: PaddingMode;
 
   /**
-   * dataFormat: Format of the data, e.g., CHANNEL_LAST.
+   * Format of the data, e.g., CHANNEL_LAST.
    *   The ordering of the dimensions in the inputs.
    *   `channels_last` corresponds to inputs with shape
    *   `(batch, ..., channels)` while `channels_first` corresponds to
@@ -69,7 +70,7 @@ export interface ConvLayerConfig extends LayerConfig {
   dataFormat?: DataFormat;
 
   /**
-   * dilation_rate: An integer or array of integers, specifying
+   * An integer or array of integers, specifying
    *   the dilation rate to use for dilated convolution.
    *   Currently, specifying any `dilationRate` value != 1 is
    *   incompatible with specifying any `strides` value != 1.
@@ -77,52 +78,52 @@ export interface ConvLayerConfig extends LayerConfig {
   dilationRate?: number|number[];
 
   /**
-   * activation: Activation function to use
-   *   If you don't specify anything, no activation is applied
+   * Activation function of the layer.
+   *
+   * If you don't specify the activation, none is applied
    *   (ie. "linear" activation: `a(x) = x`).
    */
   activation?: string;
 
   /**
-   * useBias: Boolean, whether the layer uses a bias vector.
+   * Whether the layer uses a bias vector. Defaults to false.
    */
   useBias?: boolean;
 
   /**
-   * kernelInitializer: Initializer for the `kernel` weights matrix
+   * Initializer for the `kernel` weights matrix.
    */
-  kernelInitializer?: string|initializers.Initializer;
+  kernelInitializer?: string|Initializer;
 
   /**
-   * biasInitializer: Initializer for the bias vector
+   * Initializer for the bias vector.
    */
-  biasInitializer?: string|initializers.Initializer;
+  biasInitializer?: string|Initializer;
 
   /**
-   * kernelConstraint: Constraint for the kernel weights
+   * Constraint for the kernel weights.
    */
-  kernelConstraint?: string|constraints.Constraint;
+  kernelConstraint?: string|Constraint;
 
   /**
-   * biasConstraint: Constraint for the bias vector
+   * Constraint for the bias vector.
    */
-  biasConstraint?: string|constraints.Constraint;
+  biasConstraint?: string|Constraint;
 
   /**
-   * kernelRegularizer:  Regularizer function applied to the `kernel` weights
-   * matrix
+   * Regularizer function applied to the `kernel` weights matrix.
    */
-  kernelRegularizer?: string|regularizers.Regularizer;
+  kernelRegularizer?: string|Regularizer;
 
   /**
-   * biasRegularizer:  Regularizer function applied to the bias vector
+   * Regularizer function applied to the bias vector.
    */
-  biasRegularizer?: string|regularizers.Regularizer;
+  biasRegularizer?: string|Regularizer;
 
   /**
-   * activityRegularizer:  Regularizer function applied to the activation
+   * Regularizer function applied to the activation.
    */
-  activityRegularizer?: string|regularizers.Regularizer;
+  activityRegularizer?: string|Regularizer;
 }
 
 /**
@@ -136,14 +137,14 @@ export abstract class Conv extends Layer {
   protected readonly padding: PaddingMode;
   protected readonly dataFormat: DataFormat;
   protected readonly dilationRate: number|number[];
-  protected readonly activation: activations.ActivationFn;
+  protected readonly activation: ActivationFn;
   protected readonly useBias: boolean;
-  protected readonly kernelInitializer?: initializers.Initializer;
-  protected readonly biasInitializer?: initializers.Initializer;
-  protected readonly kernelConstraint?: constraints.Constraint;
-  protected readonly biasConstraint?: constraints.Constraint;
-  protected readonly kernelRegularizer?: regularizers.Regularizer;
-  protected readonly biasRegularizer?: regularizers.Regularizer;
+  protected readonly kernelInitializer?: Initializer;
+  protected readonly biasInitializer?: Initializer;
+  protected readonly kernelConstraint?: Constraint;
+  protected readonly biasConstraint?: Constraint;
+  protected readonly kernelRegularizer?: Regularizer;
+  protected readonly biasRegularizer?: Regularizer;
 
   protected kernel: LayerVariable = null;
   protected bias: LayerVariable = null;
@@ -176,17 +177,17 @@ export abstract class Conv extends Layer {
           'Non-default dilation is not implemented for convolution layers ' +
           'yet.');
     }
-    this.activation = activations.get(config.activation);
+    this.activation = getActivation(config.activation);
     this.useBias = config.useBias == null ? true : config.useBias;
-    this.kernelInitializer = initializers.get(
+    this.kernelInitializer = getInitializer(
         config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-    this.biasInitializer = initializers.get(
-        config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
-    this.kernelConstraint = constraints.get(config.kernelConstraint);
-    this.biasConstraint = constraints.get(config.biasConstraint);
-    this.kernelRegularizer = regularizers.get(config.kernelRegularizer);
-    this.biasRegularizer = regularizers.get(config.biasRegularizer);
-    this.activityRegularizer = regularizers.get(config.activityRegularizer);
+    this.biasInitializer =
+        getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
+    this.kernelConstraint = getConstraint(config.kernelConstraint);
+    this.biasConstraint = getConstraint(config.biasConstraint);
+    this.kernelRegularizer = getRegularizer(config.kernelRegularizer);
+    this.biasRegularizer = getRegularizer(config.biasRegularizer);
+    this.activityRegularizer = getRegularizer(config.activityRegularizer);
   }
 
   build(inputShape: Shape|Shape[]): void {
@@ -272,15 +273,15 @@ export abstract class Conv extends Layer {
       padding: this.padding,
       dataFormat: this.dataFormat,
       dilationRate: this.dilationRate,
-      activation: activations.serialize(this.activation),
+      activation: serializeActivation(this.activation),
       useBias: this.useBias,
-      kernelInitializer: initializers.serialize(this.kernelInitializer),
-      biasInitializer: initializers.serialize(this.biasInitializer),
-      kernelRegularizer: regularizers.serialize(this.kernelRegularizer),
-      biasRegularizer: regularizers.serialize(this.biasRegularizer),
-      activityRegularizer: regularizers.serialize(this.activityRegularizer),
-      kernelConstraint: constraints.serialize(this.kernelConstraint),
-      biasConstraint: constraints.serialize(this.biasConstraint)
+      kernelInitializer: serializeInitializer(this.kernelInitializer),
+      biasInitializer: serializeInitializer(this.biasInitializer),
+      kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
+      biasRegularizer: serializeRegularizer(this.biasRegularizer),
+      activityRegularizer: serializeRegularizer(this.activityRegularizer),
+      kernelConstraint: serializeConstraint(this.kernelConstraint),
+      biasConstraint: serializeConstraint(this.biasConstraint)
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -293,9 +294,12 @@ export abstract class Conv extends Layer {
  * 2D convolution layer (e.g. spatial convolution over images).
  *
  * This layer creates a convolution kernel that is convolved
- * with the layer input to produce a tensor of outputs. If `useBias` is True,
- * a bias vector is created and added to the outputs. Finally, if
- * `activation` is not `None`, it is applied to the outputs as well.
+ * with the layer input to produce a tensor of outputs.
+ *
+ * If `useBias` is True, a bias vector is created and added to the outputs.
+ *
+ * If `activation` is not `None`, it is applied to the outputs as well.
+ *
  * When using this layer as the first layer in a model,
  * provide the keyword argument `inputShape`
  * (Array of integers, does not include the sample axis),

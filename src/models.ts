@@ -11,7 +11,7 @@
 /* Original source keras/models.py */
 
 // tslint:disable:max-line-length
-import {loadWeights, Scalar, Tensor, WeightsManifestConfig} from 'deeplearn';
+import {doc, loadWeights, Scalar, Tensor, WeightsManifestConfig} from 'deeplearn';
 
 import * as K from './backend/deeplearnjs_backend';
 import {History} from './callbacks';
@@ -33,7 +33,7 @@ import {convertPythonicToTs} from './utils/serialization_utils';
  *       considered during deserialization.
  * @returns A TensorFlow.js Layers `Model` instance (uncompiled).
  */
-export function modelFromJSON(
+export function modelFromJSONInternal(
     json: JsonValue|string, customObjects?: ConfigDict): Model {
   const pythonicConfig =
       typeof json === 'string' ? JSON.parse(json) as JsonValue : json;
@@ -41,10 +41,10 @@ export function modelFromJSON(
   return deserialize(tsConfig, customObjects);
 }
 
-export type ModelAndWeightsConfig = {
-  modelTopology: JsonValue|string,
-  weightsManifest: WeightsManifestConfig,
-};
+export interface ModelAndWeightsConfig {
+  modelTopology: JsonValue|string;
+  weightsManifest: WeightsManifestConfig;
+}
 
 /**
  * Load a model, including its topology and weights.
@@ -61,9 +61,9 @@ export type ModelAndWeightsConfig = {
  * @returns A `Promise` of `Model`, with the topology and weights loaded.
  */
 // TODO(cais): Add link to the core's documentation of `WeightManifestConfig`.
-export async function loadModel(
+export async function loadModelInternal(
     modelAndWeights: ModelAndWeightsConfig, pathPrefix = './'): Promise<Model> {
-  const model = modelFromJSON(modelAndWeights.modelTopology);
+  const model = modelFromJSONInternal(modelAndWeights.modelTopology);
   const weightValues =
       await loadWeights(
           modelAndWeights.weightsManifest, pathPrefix,
@@ -147,6 +147,7 @@ export interface SequentialConfig {
  * console.log(model.outputs[0].shape);
  * ```
  */
+@doc({heading: 'Models', subheading: 'Classes'})
 export class Sequential extends Model {
   private model: Model;
   private _updatable: boolean;
