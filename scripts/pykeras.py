@@ -12,11 +12,9 @@ from __future__ import print_function
 
 import argparse
 import json
-import os
 
 import h5py
 from scripts import h5_conversion
-import write_weights
 
 
 def dispatch_pykeras_conversion(pykeras_file):
@@ -60,4 +58,4 @@ if __name__ == '__main__':
   h5_file = h5py.File(args.h5_path)
 
   json, groups = dispatch_pykeras_conversion(h5_file)
-  h5_conversion.HDF5Converter().write_artifacts(json, groups, args.output_dir, filename)
+  h5_conversion.HDF5Converter().write_artifacts(json, groups, args.output_dir)

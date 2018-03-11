@@ -206,52 +206,59 @@ describeMathCPU('loadModel', () => {
         });
       };
 
+  const isModelConfigNestedValues = [false, true];
   const pathPrefixes = ['.', './', './model-home', './model-home/'];
-  for (const pathPrefix of pathPrefixes) {
-    it(`pathPrefix=${pathPrefix}`, async done => {
-      const path0 = pathPrefix.endsWith('/') ? `${pathPrefix}weight_0` :
-                                               `${pathPrefix}/weight_0`;
-      const path1 = pathPrefix.endsWith('/') ? `${pathPrefix}weight_1` :
-                                               `${pathPrefix}/weight_1`;
-      const fileBufferMap:
-          {[filename: string]: Float32Array|Int32Array|ArrayBuffer} = {};
-      fileBufferMap[path0] =
-          ones([32, 32], 'float32').dataSync() as Float32Array;
-      fileBufferMap[path1] = ones([32], 'float32').dataSync() as Float32Array;
-      setupFakeWeightFiles(fileBufferMap);
-      // Use a randomly generated layer name to prevent interaction with other
-      // unite tests that load the same sample JSON.
-      const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
-      const weightsManifest: WeightsManifestConfig = [
-        {
-          'paths': ['weight_0'],
-          'weights': [{
-            'name': `${denseLayerName}/kernel`,
-            'dtype': 'float32',
-            'shape': [32, 32]
-          }],
-        },
-        {
-          'paths': ['weight_1'],
-          'weights': [{
-            'name': `${denseLayerName}/bias`,
-            'dtype': 'float32',
-            'shape': [32]
-          }],
-        }
-      ];
-      const configJson = JSON.parse(sampleJson1);
-      configJson['config']['layers'][1]['config']['name'] = denseLayerName;
-      const model = await loadModelInternal(
+  for (const isModelConfigNested of isModelConfigNestedValues) {
+    for (const pathPrefix of pathPrefixes) {
+      it(`pathPrefix=${pathPrefix}`, async done => {
+        const path0 = pathPrefix.endsWith('/') ? `${pathPrefix}weight_0` :
+                                                 `${pathPrefix}/weight_0`;
+        const path1 = pathPrefix.endsWith('/') ? `${pathPrefix}weight_1` :
+                                                 `${pathPrefix}/weight_1`;
+        const fileBufferMap:
+            {[filename: string]: Float32Array|Int32Array|ArrayBuffer} = {};
+        fileBufferMap[path0] =
+            ones([32, 32], 'float32').dataSync() as Float32Array;
+        fileBufferMap[path1] = ones([32], 'float32').dataSync() as Float32Array;
+        setupFakeWeightFiles(fileBufferMap);
+        // Use a randomly generated layer name to prevent interaction with
+        // other unite tests that load the same sample JSON.
+        const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
+        const weightsManifest: WeightsManifestConfig = [
           {
-            modelTopology: configJson,
-            weightsManifest,
+            'paths': ['weight_0'],
+            'weights': [{
+              'name': `${denseLayerName}/kernel`,
+              'dtype': 'float32',
+              'shape': [32, 32]
+            }],
           },
-          pathPrefix);
-      expectTensorsClose(model.weights[0].read(), ones([32, 32], 'float32'));
-      expectTensorsClose(model.weights[1].read(), ones([32], 'float32'));
-      done();
-    });
+          {
+            'paths': ['weight_1'],
+            'weights': [{
+              'name': `${denseLayerName}/bias`,
+              'dtype': 'float32',
+              'shape': [32]
+            }],
+          }
+        ];
+        let configJson = JSON.parse(sampleJson1);
+        configJson['config']['layers'][1]['config']['name'] = denseLayerName;
+        if (isModelConfigNested) {
+          // Simulate case in which `configJson` contains not only
+          // `model_config`, but also other data, such as training.
+          configJson = {'model_config': configJson};
+        }
+        const model = await loadModelInternal({
+          modelTopology: configJson,
+          weightsManifest,
+          pathPrefix,
+        });
+        expectTensorsClose(model.weights[0].read(), ones([32, 32], 'float32'));
+        expectTensorsClose(model.weights[1].read(), ones([32], 'float32'));
+        done();
+      });
+    }
   }
 
   it(`Missing weight in manifest leads to error`, async done => {

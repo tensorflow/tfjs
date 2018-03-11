@@ -19,31 +19,38 @@ set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Parse input arguments.
+DEMO_PORT=8000
+while true; do
+  if [[ "$1" == "--port" ]]; then
+    DEMO_PORT=$2
+    shift 2
+  elif [[ -z "$1" ]]; then
+    break
+  else
+    echo "ERROR: Unrecognized argument: $1"
+    exit 1
+  fi
+done
+
 # Build TensorFlow.js Layers standalone.
-"${SCRIPTS_DIR}/build-standalone.sh"
+"${SCRIPTS_DIR}/build-standalone.sh"  # TODO(cais): Restore.
 
 DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
-mkdir -p "${DEMO_PATH}"
+ARTIFACTS_DIR="${DEMO_PATH}/iris"
+rm -rf "${ARTIFACTS_DIR}"
 
 # Run Python script to generate the model and weights JSON files.
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
-PYTHONPATH="${SCRIPTS_DIR}/.." python "${SCRIPTS_DIR}/iris.py" \
-    --model_json_path "${DEMO_PATH}/iris.keras.model.json" \
-    --weights_json_path "${DEMO_PATH}/iris.keras.weights.json"
-
-# Prepend "const * = " to the json files.
-printf "const irisModelJSON = " > "${DEMO_PATH}/iris.keras.model.js"
-cat "${DEMO_PATH}/iris.keras.model.json" >> "${DEMO_PATH}/iris.keras.model.js"
-printf ";" >> "${DEMO_PATH}/iris.keras.model.js"
-rm "${DEMO_PATH}/iris.keras.model.json"
-
-printf "const irisWeightsJSON = " > "${DEMO_PATH}/iris.keras.weights.js"
-cat "${DEMO_PATH}/iris.keras.weights.json" >> "${DEMO_PATH}/iris.keras.weights.js"
-printf ";" >> "${DEMO_PATH}/iris.keras.weights.js"
-rm "${DEMO_PATH}/iris.keras.weights.json"
+export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+python "${SCRIPTS_DIR}/iris.py" --artifacts_dir "${ARTIFACTS_DIR}"
 
 echo
-echo "Now you can open the demo by:"
-echo "  google-chrome demos/iris_demo.html &"
+echo "-----------------------------------------------------------"
+echo "Once the HTTP server has started, you can view the demo at:"
+echo "  http://localhost:${DEMO_PORT}/demos/iris_demo.html"
+echo "-----------------------------------------------------------"
+echo
 
+node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

@@ -42,22 +42,12 @@ class MnistTest(unittest.TestCase):
     return input_shape, x_train, y_train, x_test, y_test
 
   def testTrainWithFakeDataAndSave(self):
-    model_json_path = os.path.join(self._tmp_dir, 'mnist.keras.model.json')
-    weights_json_path = os.path.join(self._tmp_dir, 'mnist.keras.weights.json')
-    merged_json_path = os.path.join(self._tmp_dir, 'mnist.keras.merged.json')
     input_shape, x_train, y_train, x_test, y_test = self._getFakeMnistData()
     mnist.train(
-        input_shape, x_train, y_train, x_test, y_test, 2, 5,
-        model_json_path, weights_json_path, merged_json_path)
+        input_shape, x_train, y_train, x_test, y_test, 2, 5, self._tmp_dir)
 
     # Check that the model json file is created.
-    json.load(open(model_json_path, 'rt'))
-
-    # Check that the weights json file is created.
-    json.load(open(weights_json_path, 'rt'))
-
-    # Check that the merged json file is created.
-    json.load(open(merged_json_path, 'rt'))
+    json.load(open(os.path.join(self._tmp_dir, 'model.json'), 'rt'))
 
 
 if __name__ == '__main__':

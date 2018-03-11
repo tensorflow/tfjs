@@ -69,6 +69,9 @@ https://opensource.org/licenses/MIT.
 <body>
   <h1>TensorFlow.js Layers: MobileNet Demo</h1>
   <!-- selector for image file -->
+  <div>
+    <span id="demo-status"></span>
+  </div>
   <input type="file" id="files" name="files[]" multiple />
   <!-- ouptut holds the thumbnail / prediction pairs. -->
   <output id="imgs_and_predictions"></output>
@@ -139,30 +142,23 @@ https://opensource.org/licenses/MIT.
 
       document.getElementById('files').addEventListener('change', handleFileSelect, false);
 
-      const modelConfigPath = '../dist/demo/mobilenet.keras.model.json';
-      const modelWeightsPath = '../dist/demo/mobilenet.keras.weights.json';
-      const imagenetClassesPath = '../dist/demo/imagenet_class_names.json';
-      let imagenetClasses;
-      // Reads the model from the disk.
-      async function deserializeModel() {
-        const modelConfigRequest = await fetch(modelConfigPath);
-        const modelConfig = await modelConfigRequest.json();
-        const modelWeightsRequest = await fetch(modelWeightsPath);
-        const modelWeights = await modelWeightsRequest.json();
-        const imagenetClassesRequest = await fetch(imagenetClassesPath);
-        imagenetClasses = await imagenetClassesRequest.json();
+      const demoStatus = $('#demo-status');
+      const artifactsDir = '../../dist/demo/mobilenet/';
 
-        console.log('Deserializing model architecture.');
-        const model = tfjs_layers.modelFromJSON(modelConfig);
+      // Load model.
+      console.log('Loading model...');
+      demoStatus.text('Loading model...');
+      const model = await tfjs_layers.loadModel(artifactsDir + 'model.json');
+      console.log('Done loading model.');
+      demoStatus.text('');
 
-        console.log('Loading model weights.');
-        model.loadWeights(modelWeights);
-
-        console.log('Done loading model.');
-        return model;
-      }
-
-      const model = await deserializeModel();
+      // Load the imagenet class names.
+      console.log('Loading Imagenet class names...');
+      demoStatus.text('Loading Imagenet class names...');
+      const imagenetClasses =
+          await (await fetch(artifactsDir + 'imagenet_class_names.json')).json();
+      console.log('Done loading Imagenet class names:', imagenetClasses);
+      demoStatus.text('');
 
       function topKIndices(inputArray, NUM_PREDICTIONS) {
         let copyArray = inputArray.slice()

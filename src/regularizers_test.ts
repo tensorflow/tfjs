@@ -12,9 +12,11 @@
 
 import {tensor1d} from 'deeplearn';
 
+// tslint:disable:max-line-length
 import {deserializeRegularizer, getRegularizer, l1, l1_l2, L1L2, l2, serializeRegularizer} from './regularizers';
 import {ConfigDict, LayerVariable} from './types';
 import {describeMathCPU, expectTensorsClose} from './utils/test_utils';
+// tslint:enable:max-line-length
 
 describeMathCPU('Built-in Regularizers', () => {
   it('l1_l2', () => {

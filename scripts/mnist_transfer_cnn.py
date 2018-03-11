@@ -17,9 +17,7 @@ from __future__ import print_function
 import argparse
 import datetime
 import json
-import os
 
-import h5py
 import keras
 from keras import backend as K
 
@@ -103,7 +101,7 @@ def train_model(model,
   print('Test accuracy:', score[1])
 
 
-def write_mnist_examples_to_js_file(x, y, js_path, variable_name):
+def write_mnist_examples_to_json_file(x, y, js_path):
   """Write a batch of MNIST examples to a JavaScript (.js) file.
 
   Args:
@@ -112,16 +110,13 @@ def write_mnist_examples_to_js_file(x, y, js_path, variable_name):
     y: A numpy array representing the image labels (as integer indices),
       with shape (NUM_EXAMPLES,).
     js_path: Path to the JavaScript file to write to.
-    variable_name: Name of the JavaScript const.
   """
   data = []
   num_examples = x.shape[0]
   for i in range(num_examples):
     data.append({'x': x[i, ...].tolist(), 'y': int(y[i])})
   with open(js_path, 'wt') as f:
-    f.write('const ' + variable_name + ' = ')
     f.write(json.dumps(data))
-    f.write(';\n')
 
 
 def write_gte5_data(x_train_gte5,
@@ -140,13 +135,13 @@ def write_gte5_data(x_train_gte5,
       if the value is '/tmp/foo', the train and test files will be written
       at '/tmp/foo.train.js' and '/tmp/foo.test.js', respectively.
   """
-  gte5_train_path = gte5_data_path_prefix + '.train.js'
-  write_mnist_examples_to_js_file(
-      x_train_gte5, y_train_gte5, gte5_train_path, 'gte5TrainData')
+  gte5_train_path = gte5_data_path_prefix + '.train.json'
+  write_mnist_examples_to_json_file(
+      x_train_gte5, y_train_gte5, gte5_train_path)
   print('Wrote gte5 training data to: %s' % gte5_train_path)
-  gte5_test_path = gte5_data_path_prefix + '.test.js'
-  write_mnist_examples_to_js_file(
-      x_test_gte5, y_test_gte5, gte5_test_path, 'gte5TestData')
+  gte5_test_path = gte5_data_path_prefix + '.test.json'
+  write_mnist_examples_to_json_file(
+      x_test_gte5, y_test_gte5, gte5_test_path)
   print('Wrote gte5 test data to: %s' % gte5_test_path)
 
 
@@ -159,9 +154,7 @@ def train_and_save_model(filters,
                          y_train_lt5,
                          x_test_lt5,
                          y_test_lt5,
-                         model_json_path,
-                         weights_json_path,
-                         merged_json_path,
+                         artifacts_dir,
                          optimizer='adam'):
   """Train and save MNIST CNN model.
 
@@ -175,11 +168,8 @@ def train_and_save_model(filters,
     y_train_lt5: y (label) data for training: digits < 5.
     x_test_lt5: x (image) data for test (validation): digits < 5.
     y_test_lt5: y (label) data for test (validation): digits < 5.
-    model_json_path: Path to save the JSON configuration of the trained Keras
-      model at.
-    weights_json_path: Path to save the JSON serialization of the weights in the
-      trained Keras model at.
-    merged_json_path: Path to save the architecture-weights merged JSON file.
+    artifacts_dir: Directory to save the model artifacts (model topology JSON,
+      weights and weight manifest) in.
     optimizer: The name of the optimizer to use, as a string.
   """
 
@@ -208,30 +198,7 @@ def train_and_save_model(filters,
               (x_train_lt5, y_train_lt5),
               (x_test_lt5, y_test_lt5),
               NUM_CLASSES, batch_size=batch_size, epochs=epochs)
-
-  # Save model.
-  merged_model_h5_path = merged_json_path + '.h5'
-  keras.models.save_model(model, merged_model_h5_path)
-  with open(merged_json_path, 'wt') as f:
-    f.write(json.dumps(
-        h5_conversion.HDF5Converter().h5_merged_saved_model_to_json(
-            merged_model_h5_path)))
-  os.remove(merged_model_h5_path)
-  print('Saved save_model (model + weights) at %s' % merged_json_path)
-
-  with open(model_json_path, 'wt') as f:
-    f.write(model.to_json())
-  print('Saved topology at: %s' % model_json_path)
-
-  weights_h5_path = weights_json_path + '.h5'
-  model.save_weights(weights_h5_path)
-  with open(weights_json_path, 'wt') as f:
-    f.write(
-        json.dumps(
-            h5_conversion.HDF5Converter().h5_weights_to_json(h5py.File(
-                weights_h5_path))))
-  os.remove(weights_h5_path)
-  print('Saved weights at: %s' % weights_json_path)
+  h5_conversion.save_model(model, artifacts_dir)
 
 
 def main():
@@ -251,9 +218,7 @@ def main():
                        y_train_lt5,
                        x_test_lt5,
                        y_test_lt5,
-                       FLAGS.model_json_path,
-                       FLAGS.weights_json_path,
-                       FLAGS.merged_json_path,
+                       FLAGS.artifacts_dir,
                        optimizer=FLAGS.optimizer)
 
 
@@ -285,26 +250,15 @@ if __name__ == '__main__':
       default=3,
       help='Convolutional kernel size.')
   parser.add_argument(
+      '--artifacts_dir',
+      type=str,
+      default='/tmp/mnist.keras',
+      help='Local path for saving the TensorFlow.js artifacts.')
+  parser.add_argument(
       '--optimizer',
       type=str,
       default='adam',
       help='Name of the optimizer to use for training.')
-  parser.add_argument(
-      '--model_json_path',
-      type=str,
-      default='/tmp/mnist_transfer_cnn.keras.model.json',
-      help='Local path for the Keras model definition JSON file.')
-  parser.add_argument(
-      '--weights_json_path',
-      type=str,
-      default='/tmp/mnist_transfer_cnn.keras.weights.json',
-      help='Local path for the Keras model weights JSON file.')
-  parser.add_argument(
-      '--merged_json_path',
-      type=str,
-      default='/tmp/mnist_transfer_cnn.keras.merged.json',
-      help='Local path for the Keras model architecture-weights merged JSON '
-      'file.')
   parser.add_argument(
       '--gte5_cutoff',
       type=int,

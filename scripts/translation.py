@@ -22,7 +22,6 @@ import io
 import json
 import os
 
-import h5py
 from keras.models import Model
 from keras.layers import Input, LSTM, Dense
 import numpy as np
@@ -70,7 +69,11 @@ def read_data():
       [(char, i) for i, char in enumerate(target_characters)])
 
   # Save the token indices to file.
-  with io.open(FLAGS.metadata_json_path, 'w', encoding='utf-8') as f:
+  metadata_json_path = os.path.join(
+      FLAGS.artifacts_dir, 'translation.metadata.json')
+  if not os.path.isdir(os.path.dirname(metadata_json_path)):
+    os.makedirs(os.path.dirname(metadata_json_path))
+  with io.open(metadata_json_path, 'w', encoding='utf-8') as f:
     metadata = {
         'input_token_index': input_token_index,
         'target_token_index': target_token_index,
@@ -78,7 +81,7 @@ def read_data():
         'max_decoder_seq_length': max_decoder_seq_length
     }
     f.write(json.dumps(metadata, ensure_ascii=False))
-  print('Saved metadata at: %s' % FLAGS.metadata_json_path)
+  print('Saved metadata at: %s' % metadata_json_path)
 
   encoder_input_data = np.zeros(
       (len(input_texts), max_encoder_seq_length, num_encoder_tokens),
@@ -239,21 +242,7 @@ def main():
             epochs=FLAGS.epochs,
             validation_split=0.2)
 
-  # Save model.
-  # TODO(cais): Add megred model.
-  with open(FLAGS.model_json_path, 'wt') as f:
-    f.write(model.to_json())
-  print('Saved topology at: %s' % FLAGS.model_json_path)
-
-  weights_h5_path = FLAGS.weights_json_path + '.h5'
-  model.save_weights(weights_h5_path)
-  with open(FLAGS.weights_json_path, 'wt') as f:
-    f.write(
-        json.dumps(
-            h5_conversion.HDF5Converter().h5_weights_to_json(h5py.File(
-                weights_h5_path))))
-  os.remove(weights_h5_path)
-  print('Saved weights at: %s' % FLAGS.weights_json_path)
+  h5_conversion.save_model(model, FLAGS.artifacts_dir)
 
   # Next: inference mode (sampling).
   # Here's the drill:
@@ -304,22 +293,6 @@ if __name__ == '__main__':
       type=str,
       help='Path to the training data, e.g., ~/ml-data/fra-eng/fra.txt')
   parser.add_argument(
-      '--model_json_path',
-      type=str,
-      default='/tmp/translation.keras.model.json',
-      help='Local path for the Keras model definition JSON file.')
-  parser.add_argument(
-      '--weights_json_path',
-      type=str,
-      default='/tmp/translation.keras.weights.json',
-      help='Local path for the Keras model weights JSON file.')
-  parser.add_argument(
-      '--metadata_json_path',
-      type=str,
-      default='/tmp/translation.keras.metadata.json',
-      help='Local path for the metadata JSON file, which will include ' +
-      'data such as max sequence lengths and token indices.')
-  parser.add_argument(
       '--batch_size',
       type=int,
       default=64,
@@ -353,6 +326,11 @@ if __name__ == '__main__':
       default='orthogonal',
       help='Custom initializer for recurrent kernels of LSTMs (e.g., '
       'glorot_uniform)')
+  parser.add_argument(
+      '--artifacts_dir',
+      type=str,
+      default='/tmp/translation.keras',
+      help='Local path for saving the TensorFlow.js artifacts.')
 
   FLAGS, _ = parser.parse_known_args()
   main()

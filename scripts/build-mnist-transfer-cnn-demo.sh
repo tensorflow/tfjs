@@ -7,7 +7,6 @@
 # https://opensource.org/licenses/MIT.
 # =============================================================================
 
-
 # Builds the MNIST demo for TensorFlow.js Layers.
 # Usage example: do under the root of the source repository:
 #   ./scripts/build-mnist-demo.sh
@@ -19,32 +18,47 @@ set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+TRAIN_EPOCHS=5
+DEMO_PORT=8000
+while true; do
+  if [[ "$1" == "--port" ]]; then
+    DEMO_PORT=$2
+    shift 2
+  elif [[ "$1" == "--epochs" ]]; then
+    TRAIN_EPOCHS=$2
+    shift 2
+  elif [[ -z "$1" ]]; then
+    break
+  else
+    echo "ERROR: Unrecognized argument: $1"
+    exit 1
+  fi
+done
+
 # Build TensorFlow.js Layers standalone.
 "${SCRIPTS_DIR}/build-standalone.sh"
 
 DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
+ARTIFACTS_DIR="${DEMO_PATH}/mnist_transfer_cnn"
 mkdir -p "${DEMO_PATH}"
+rm -rf "${ARTIFACTS_DIR}"
+mkdir -p "${ARTIFACTS_DIR}"
 
 # Run Python script to generate the model and weights JSON files.
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
-PYTHONPATH="${SCRIPTS_DIR}/.." python "${SCRIPTS_DIR}/mnist_transfer_cnn.py" \
-    --model_json_path "${DEMO_PATH}/mnist_transfer_cnn.keras.model.json" \
-    --weights_json_path "${DEMO_PATH}/mnist_transfer_cnn.keras.weights.json" \
-    --gte5_data_path_prefix "${DEMO_PATH}/mnist_transfer_cnn.gte5" \
+export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+python "${SCRIPTS_DIR}/mnist_transfer_cnn.py" \
+    --epochs "${TRAIN_EPOCHS}" \
+    --artifacts_dir "${ARTIFACTS_DIR}" \
+    --gte5_data_path_prefix "${ARTIFACTS_DIR}/gte5" \
     --gte5_cutoff 1024
 
-# Prepend "const * = " to the json files
-printf "const mnistModelJSON = " > "${DEMO_PATH}/mnist_transfer_cnn.keras.model.js"
-cat "${DEMO_PATH}/mnist_transfer_cnn.keras.model.json" >> "${DEMO_PATH}/mnist_transfer_cnn.keras.model.js"
-printf ";" >> "${DEMO_PATH}/mnist_transfer_cnn.keras.model.js"
-rm "${DEMO_PATH}/mnist_transfer_cnn.keras.model.json"
-
-printf "const mnistWeightsJSON = " > "${DEMO_PATH}/mnist_transfer_cnn.keras.weights.js"
-cat "${DEMO_PATH}/mnist_transfer_cnn.keras.weights.json" >> "${DEMO_PATH}/mnist_transfer_cnn.keras.weights.js"
-printf ";" >> "${DEMO_PATH}/mnist_transfer_cnn.keras.weights.js"
-rm "${DEMO_PATH}/mnist_transfer_cnn.keras.weights.json"
-
 echo
-echo "Now you can open the demo by:"
-echo "  google-chrome demos/mnist_transfer_cnn_demo.html &"
+echo "------------------------------------------------------------------"
+echo "Once the HTTP server has started, you can view the demo at:"
+echo "  http://localhost:${DEMO_PORT}/demos/mnist_transfer_cnn_demo.html"
+echo "------------------------------------------------------------------"
+echo
+
+node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

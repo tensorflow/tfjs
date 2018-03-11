@@ -15,10 +15,7 @@ from __future__ import division
 from __future__ import print_function
 
 import argparse
-import json
-import os
 
-import h5py
 import keras
 from keras import backend as K
 
@@ -55,9 +52,7 @@ def train(input_shape,
           y_test,
           epochs,
           batch_size,
-          model_json_path,
-          weights_json_path,
-          merged_json_path):
+          artifacts_dir):
   """Train a Keras model for MNIST data classification and save result as JSON.
 
   Args:
@@ -71,11 +66,8 @@ def train(input_shape,
     y_test: Test target one-hot labels, an `numpy.ndarray` of shape
       `[num_test_examples, NUM_CLASSES]`.
     epochs: Number of epochs to train the Keras model for.
-    model_json_path: Path to save the JSON configuration of the trained Keras
-      model at.
-    weights_json_path: Path to save the JSON serialization of the weights in the
-      trained Keras model at.
-    merged_json_path: Path to save the architecture-weights merged JSON file.
+    artifacts_dir: Directory to save the model artifacts (model topology JSON,
+      weights and weight manifest) in.
   """
   model = keras.models.Sequential()
   model.add(keras.layers.Conv2D(
@@ -94,35 +86,13 @@ def train(input_shape,
             verbose=1,
             validation_data=(x_test, y_test))
 
-  merged_model_h5_path = merged_json_path + '.h5'
-  keras.models.save_model(model, merged_model_h5_path)
-  with open(merged_json_path, 'wt') as f:
-    f.write(json.dumps(
-        h5_conversion.HDF5Converter().h5_merged_saved_model_to_json(
-            merged_model_h5_path)))
-  os.remove(merged_model_h5_path)
-  print('Saved save_model (model + weights) at %s' % merged_json_path)
-
-  with open(model_json_path, 'wt') as f:
-    f.write(model.to_json())
-  print('Saved topology at: %s' % model_json_path)
-
-  weights_h5_path = weights_json_path + '.h5'
-  model.save_weights(weights_h5_path)
-  with open(weights_json_path, 'wt') as f:
-    f.write(
-        json.dumps(
-            h5_conversion.HDF5Converter().h5_weights_to_json(h5py.File(
-                weights_h5_path))))
-  os.remove(weights_h5_path)
-  print('Saved weights at: %s' % weights_json_path)
+  h5_conversion.save_model(model, artifacts_dir)
 
 
 def main():
   input_shape, x_train, y_train, x_test, y_test = _prep_dataset()
   train(input_shape, x_train, y_train, x_test, y_test,
-        FLAGS.epochs, FLAGS.batch_size, FLAGS.model_json_path,
-        FLAGS.weights_json_path, FLAGS.merged_json_path)
+        FLAGS.epochs, FLAGS.batch_size, FLAGS.artifacts_dir)
 
 
 if __name__ == '__main__':
@@ -138,20 +108,10 @@ if __name__ == '__main__':
       default=128,
       help='Batch size for training.')
   parser.add_argument(
-      '--model_json_path',
+      '--artifacts_dir',
       type=str,
-      default='/tmp/mnist.keras.model.json',
-      help='Local path for the Keras model definition JSON file.')
-  parser.add_argument(
-      '--weights_json_path',
-      type=str,
-      default='/tmp/mnist.keras.weights.json',
-      help='Local path for the Keras model weights JSON file.')
-  parser.add_argument(
-      '--merged_json_path',
-      type=str,
-      default='/tmp/mnist.keras.merged.json',
-      help='Local path for the Keras model topology & weights JSON file.')
+      default='/tmp/mnist.keras',
+      help='Local path for saving the TensorFlow.js artifacts.')
 
   FLAGS, _ = parser.parse_known_args()
   main()

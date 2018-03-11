@@ -18,10 +18,8 @@ import argparse
 import functools
 import json
 import os
-import tempfile
 import time
 
-import h5py
 import keras
 import numpy as np
 import tensorflow as tf
@@ -34,13 +32,16 @@ _PREDICT_BURNINS = 1  # How many predict() runs to do before timing predict().
 _PREDICT_RUNS = 20  # How many runs of predict() to average over.
 
 
-def benchmark_and_serialize_model(model_fn,
+def benchmark_and_serialize_model(model_name,
+                                  description,
+                                  model_fn,
                                   input_shape,
                                   target_shape,
                                   optimizer,
                                   loss,
                                   batch_size,
-                                  train_epochs):
+                                  train_epochs,
+                                  artifacts_dir):
   """Benchmark a model's fit() and predict() calls; serialize the model.
 
   Args:
@@ -53,13 +54,20 @@ def benchmark_and_serialize_model(model_fn,
     loss: The loss function to use during training.
     batch_size: Batch size to use for training.
     train_epochs: Number of training epochs, not including the burn-in epoch(s).
+    artifacts_dir: Directory to save the data in. The data includes:
+      * topology and weights of the models, in TensorFlow.js format
+      * metadata and benchmark information in a file named `data.json`,
+        including:
+        - the name and description of the model
+        - the name of the optimizer used during benchmarking of training
+        - loss value
+        - the input and output shapes of the model
+        - benchmark results from Python Keras.
 
   Returns:
-    1. The model serialized as a JSON string.
-    2. The model's trained weights seraizlied as a JSON object.
-    3. Total fit() time per epoch, averaged over the epochs not including the
+    1. Total fit() time per epoch, averaged over the epochs not including the
        burn-in one.
-    4. Average predict() time over all the _PREDICT_RUNS.
+    2. Average predict() time over all the _PREDICT_RUNS.
   """
   model = model_fn(input_shape, target_shape)
   model.compile(optimizer=optimizer, loss=loss)
@@ -83,16 +91,28 @@ def benchmark_and_serialize_model(model_fn,
     model.predict(xs)
   predict_t_end = time.time()
 
-  weights_h5_path = tempfile.mktemp() + '.h5'
-  model.save_weights(weights_h5_path)
-  weights_json = h5_conversion.HDF5Converter().h5_weights_to_json(h5py.File(
-      weights_h5_path))
-  os.remove(weights_h5_path)
+  # Save the model and weights.
+  h5_conversion.save_model(model, artifacts_dir)
 
-  return (model.to_json(), weights_json,
-          (train_t_end - train_t_begin) / train_epochs,
-          (predict_t_end - predict_t_begin) / _PREDICT_RUNS)
+  # Save data about the model and benchmark results.
+  train_time = (train_t_end - train_t_begin) / train_epochs
+  predict_time = (predict_t_end - predict_t_begin) / _PREDICT_RUNS
+  data = {
+      'name': model_name,
+      'description': description,
+      'optimizer': optimizer,
+      'loss': loss,
+      'input_shape': input_shape,
+      'target_shape': target_shape,
+      'batch_size': batch_size,
+      'train_epochs': train_epochs,
+      'train_time': train_time,
+      'predict_time': predict_time,
+  }
+  with open(os.path.join(artifacts_dir, 'data.json'), 'wt') as f:
+    f.write(json.dumps(data))
 
+  return train_time, predict_time
 
 def dense_tiny_model_fn(input_shape, target_shape):
   assert len(target_shape) == 1
@@ -173,30 +193,21 @@ def main():
        (input_shape[0], target_shape[0], optimizer, loss))]
 
   for model_name, model_fn, description in names_fns_and_descriptions:
-    (model_json, weights_json, train_time, predict_time) = (
-        benchmark_and_serialize_model(model_fn,
-                                      input_shape,
-                                      target_shape,
-                                      optimizer,
-                                      loss,
-                                      batch_size,
-                                      train_epochs))
+    train_time, predict_time = (
+        benchmark_and_serialize_model(
+            model_name,
+            description,
+            model_fn,
+            input_shape,
+            target_shape,
+            optimizer,
+            loss,
+            batch_size,
+            train_epochs,
+            os.path.join(FLAGS.data_root, model_name)))
+    benchmarks['models'].append(model_name)
     print('train_time = %g s' % train_time)
     print('predict_time = %g s' % predict_time)
-    benchmarks['models'].append({
-        'name': model_name,
-        'description': description,
-        'optimizer': optimizer,
-        'loss': loss,
-        'model_json': model_json,
-        'weights_json': weights_json,
-        'input_shape': input_shape,
-        'target_shape': target_shape,
-        'batch_size': batch_size,
-        'train_epochs': train_epochs,
-        'train_time': train_time,
-        'predict_time': predict_time,
-    })
 
   # Conv2d models.
   optimizer = 'adam'
@@ -212,41 +223,32 @@ def main():
       (1, 2, 4, 8, 16, 24, 26, 28, 30, 32)]
 
   for model_name, model_fn, description in names_fns_and_descriptions:
-    model_json, weights_json, train_time, predict_time = (
-        benchmark_and_serialize_model(model_fn,
-                                      input_shape,
-                                      target_shape,
-                                      optimizer,
-                                      loss,
-                                      batch_size,
-                                      train_epochs))
+    train_time, predict_time = (
+        benchmark_and_serialize_model(
+            model_name,
+            description,
+            model_fn,
+            input_shape,
+            target_shape,
+            optimizer,
+            loss,
+            batch_size,
+            train_epochs,
+            os.path.join(FLAGS.data_root, model_name)))
+    benchmarks['models'].append(model_name)
     print('train_time = %g s' % train_time)
     print('predict_time = %g s' % predict_time)
-    benchmarks['models'].append({
-        'name': model_name,
-        'description': description,
-        'optimizer': optimizer,
-        'loss': loss,
-        'model_json': model_json,
-        'weights_json': weights_json,
-        'input_shape': input_shape,
-        'target_shape': target_shape,
-        'batch_size': batch_size,
-        'train_epochs': train_epochs,
-        'train_time': train_time,
-        'predict_time': predict_time,
-    })
 
-  with open(FLAGS.js_path, 'wt') as f:
-    f.write('const benchmarks = ' + json.dumps(benchmarks) + ';\n')
+  with open(os.path.join(FLAGS.data_root, 'benchmarks.json'), 'wt') as f:
+    json.dump(benchmarks, f)
 
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser('Benchmarks demo.')
   parser.add_argument(
-      'js_path',
+      'data_root',
       type=str,
-      help='Path where the data .js file will be saved.')
+      help='Local path for saving the results of benchmarks.')
 
   FLAGS, _ = parser.parse_known_args()
   main()

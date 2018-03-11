@@ -18,9 +18,7 @@ Mode "serialize":
 
   python scripts/mobilenet.py \
       --mode=serialize \
-      --model_json_path=/tmp/mobilenet.keras.model.json \
-      --weights_json_path=/tmp/mobilenet.keras.weights.json
-
+      --artifacts ./dist/demo/mobilenet
 
 Mode "apply":
   Applies the pre-trained Keras mobilenet model to a provided image.  This is
@@ -40,8 +38,8 @@ from __future__ import print_function
 import argparse
 import json
 import os
+import shutil
 
-import h5py
 import numpy as np
 from PIL import Image
 
@@ -53,21 +51,7 @@ def _serialize_mobilenet_model_to_json():
   """Writes a complete keras.Model to disk into JS readable format.
   """
   model = mobilenet.MobileNet(alpha=.25)
-  model_json_path = FLAGS.model_json_path
-  weights_json_path = FLAGS.weights_json_path
-  with open(model_json_path, 'wt') as f:
-    f.write(model.to_json())
-  print('Saved model at: %s' % model_json_path)
-
-  # Write the weights in h5 format, then convert to JSON and delete original.
-  weights_h5_path = weights_json_path + '.h5'
-  model.save_weights(weights_h5_path)
-  with open(weights_json_path, 'wt') as f:
-    f.write(
-        json.dumps(h5_conversion.HDF5Converter().h5_weights_to_json(
-            h5py.File(weights_h5_path))))
-  os.remove(weights_h5_path)
-  print('Saved weights at: %s' % weights_json_path)
+  h5_conversion.save_model(model, FLAGS.artifacts_dir)
 
 
 def _load_image(file_name, new_size):
@@ -124,6 +108,11 @@ def _apply_mobilenet_model_to_image():
 def main():
   if FLAGS.mode == 'serialize':
     _serialize_mobilenet_model_to_json()
+
+    # Write ImageNet class names data to artifact directory.
+    shutil.copyfile(
+        'scripts/imagenet_class_names.json',
+        os.path.join(FLAGS.artifacts_dir, 'imagenet_class_names.json'))
   elif FLAGS.mode == 'apply':
     _apply_mobilenet_model_to_image()
   else:
@@ -138,15 +127,10 @@ if __name__ == '__main__':
       default='',
       help='Mode for mobilenet tool.  Either "serialize" or "apply".')
   parser.add_argument(
-      '--model_json_path',
+      '--artifacts_dir',
       type=str,
-      default='/tmp/mobilenet.keras.model.json',
-      help='Local path for the Keras model definition JSON file.')
-  parser.add_argument(
-      '--weights_json_path',
-      type=str,
-      default='/tmp/mobilenet.keras.weights.json',
-      help='Local path for the Keras model weights JSON file.')
+      default='/tmp/mobilenet.keras',
+      help='Local path for saving the TensorFlow.js artifacts.')
   parser.add_argument(
       '--img_file_name',
       type=str,
