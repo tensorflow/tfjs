@@ -79,27 +79,28 @@ export function l1_l2(l1 = 0.01, l2 = 0.01): Regularizer {
   return new L1L2(l1, l2);
 }
 
-export function serialize(constraint: Regularizer): ConfigDictValue {
+export function serializeRegularizer(constraint: Regularizer): ConfigDictValue {
   return serializeKerasObject(constraint);
 }
 
-export function deserialize(
+export function deserializeRegularizer(
     config: ConfigDict, customObjects: ConfigDict = {}): Regularizer {
   return deserializeKerasObject(
       config, ClassNameMap.getMap().pythonClassNameMap, customObjects,
       'regularizer');
 }
 
-export function get(identifier: string|ConfigDict|Regularizer): Regularizer {
+export function getRegularizer(identifier: string|ConfigDict|
+                               Regularizer): Regularizer {
   if (identifier == null) {
     return null;
   }
   if (typeof identifier === 'string') {
     const config = {className: identifier, config: {}};
-    return deserialize(config);
+    return deserializeRegularizer(config);
   } else if (identifier instanceof Regularizer) {
     return identifier;
   } else {
-    return deserialize(identifier);
+    return deserializeRegularizer(identifier);
   }
 }

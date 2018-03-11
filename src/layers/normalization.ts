@@ -154,16 +154,19 @@ export class BatchNormalization extends Layer {
     this.epsilon = config.epsilon == null ? 1e-3 : config.epsilon;
     this.center = config.center == null ? true : config.center;
     this.scale = config.scale == null ? true : config.scale;
-    this.betaInitializer = initializers.get(config.betaInitializer || 'Zeros');
-    this.gammaInitializer = initializers.get(config.gammaInitializer || 'Ones');
+    this.betaInitializer =
+        initializers.getInitializer(config.betaInitializer || 'Zeros');
+    this.gammaInitializer =
+        initializers.getInitializer(config.gammaInitializer || 'Ones');
     this.movingMeanInitializer =
-        initializers.get(config.movingMeanInitializer || 'Zeros');
+        initializers.getInitializer(config.movingMeanInitializer || 'Zeros');
     this.movingVarianceInitializer =
-        initializers.get(config.movingVarianceInitializer || 'Ones');
-    this.betaConstraint = constraints.get(config.betaConstraint);
-    this.gammaConstraint = constraints.get(config.gammaConstraint);
-    this.betaRegularizer = regularizers.get(config.betaRegularizer);
-    this.gammaRegularizer = regularizers.get(config.gammaRegularizer);
+        initializers.getInitializer(config.movingVarianceInitializer || 'Ones');
+    this.betaConstraint = constraints.getConstraint(config.betaConstraint);
+    this.gammaConstraint = constraints.getConstraint(config.gammaConstraint);
+    this.betaRegularizer = regularizers.getRegularizer(config.betaRegularizer);
+    this.gammaRegularizer =
+        regularizers.getRegularizer(config.gammaRegularizer);
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -250,15 +253,18 @@ export class BatchNormalization extends Layer {
       epsilon: this.epsilon,
       center: this.center,
       scale: this.scale,
-      betaInitializer: initializers.serialize(this.betaInitializer),
-      gammaInitializer: initializers.serialize(this.gammaInitializer),
-      movingMeanInitializer: initializers.serialize(this.movingMeanInitializer),
+      betaInitializer: initializers.serializeInitializer(this.betaInitializer),
+      gammaInitializer:
+          initializers.serializeInitializer(this.gammaInitializer),
+      movingMeanInitializer:
+          initializers.serializeInitializer(this.movingMeanInitializer),
       movingVarianceInitializer:
-          initializers.serialize(this.movingVarianceInitializer),
-      betaRegularizer: regularizers.serialize(this.betaRegularizer),
-      gammaRegularizer: regularizers.serialize(this.gammaRegularizer),
-      betaConstraint: constraints.serialize(this.betaConstraint),
-      gammaConstraint: constraints.serialize(this.gammaConstraint)
+          initializers.serializeInitializer(this.movingVarianceInitializer),
+      betaRegularizer: regularizers.serializeRegularizer(this.betaRegularizer),
+      gammaRegularizer:
+          regularizers.serializeRegularizer(this.gammaRegularizer),
+      betaConstraint: constraints.serializeConstraint(this.betaConstraint),
+      gammaConstraint: constraints.serializeConstraint(this.gammaConstraint)
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);

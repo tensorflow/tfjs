@@ -20,12 +20,14 @@ import {Layer} from './engine/topology';
 // tslint:enable:max-line-length
 
 
+/** @docalias 'float32'|'int32'|'bool' */
 export enum DType {
   float32 = 'float32',
   int32 = 'int32',
   bool = 'bool',
 }
 
+/** @docalias number[] */
 export type Shape = number[];
 
 /**
@@ -262,9 +264,7 @@ export type RnnStepFunction =
  * and support for Enums.
  */
 export type JsonValue = boolean|number|string|null|JsonArray|JsonDict;
-export interface JsonDict {
-  [key: string]: JsonValue;
-}
+export interface JsonDict { [key: string]: JsonValue; }
 export interface JsonArray extends Array<JsonValue> {}
 
 /**
@@ -284,9 +284,7 @@ export interface JsonArray extends Array<JsonValue> {}
  */
 export type ConfigDictValue =
     boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict {
-  [key: string]: ConfigDictValue;
-}
+export interface ConfigDict { [key: string]: ConfigDictValue; }
 export interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 export type NamedTensorMap = {

@@ -16,10 +16,10 @@ import {Tensor} from 'deeplearn';
 
 import * as K from '../backend/deeplearnjs_backend';
 import {DataFormat} from '../common';
-import * as constraints from '../constraints';
+import {Constraint, getConstraint} from '../constraints';
 import {ValueError} from '../errors';
-import * as initializers from '../initializers';
-import * as regularizers from '../regularizers';
+import {getInitializer, Initializer} from '../initializers';
+import {getRegularizer, Regularizer} from '../regularizers';
 import {LayerVariable, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
@@ -48,17 +48,17 @@ export interface DepthwiseConv2DLayerConfig extends ConvLayerConfig {
    * Initializer for the depthwise kernel matrix.
    * Default: GlorotNormal.
    */
-  depthwiseInitializer?: string|initializers.Initializer;
+  depthwiseInitializer?: string|Initializer;
 
   /**
    * Constraint for the depthwise kernel matrix.
    */
-  depthwiseConstraint?: string|constraints.Constraint;
+  depthwiseConstraint?: string|Constraint;
 
   /**
    * Regulzarizer function for the depthwise kernel matrix.
    */
-  depthwiseRegularizer?: string|regularizers.Regularizer;
+  depthwiseRegularizer?: string|Regularizer;
 }
 
 /**
@@ -71,9 +71,9 @@ export interface DepthwiseConv2DLayerConfig extends ConvLayerConfig {
  */
 export class DepthwiseConv2D extends Conv2D {
   private readonly depthMultiplier: number;
-  private readonly depthwiseInitializer: initializers.Initializer;
-  private readonly depthwiseConstraint: constraints.Constraint;
-  private readonly depthwiseRegularizer: regularizers.Regularizer;
+  private readonly depthwiseInitializer: Initializer;
+  private readonly depthwiseConstraint: Constraint;
+  private readonly depthwiseRegularizer: Regularizer;
 
   private depthwiseKernel: LayerVariable = null;
 
@@ -81,10 +81,10 @@ export class DepthwiseConv2D extends Conv2D {
     super(config);
     this.depthMultiplier =
         config.depthMultiplier == null ? 1 : config.depthMultiplier;
-    this.depthwiseInitializer = initializers.get(
+    this.depthwiseInitializer = getInitializer(
         config.depthwiseInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-    this.depthwiseConstraint = constraints.get(config.depthwiseConstraint);
-    this.depthwiseRegularizer = regularizers.get(config.depthwiseRegularizer);
+    this.depthwiseConstraint = getConstraint(config.depthwiseConstraint);
+    this.depthwiseRegularizer = getRegularizer(config.depthwiseRegularizer);
   }
 
   build(inputShape: Shape|Shape[]): void {

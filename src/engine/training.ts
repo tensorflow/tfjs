@@ -12,7 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as dl from 'deeplearn';
-import {Scalar, Tensor, Tensor1D, tensor1d} from 'deeplearn';
+import {doc, Scalar, Tensor, Tensor1D, tensor1d} from 'deeplearn';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
@@ -610,6 +610,7 @@ export interface ModelCompileConfig {
  * See also:
  *   `Sequential`, `modelFromJSON`, `loadModel`.
  */
+@doc({heading: 'Models', subheading: 'Classes'})
 export class Model extends Container {
   optimizer: optimizers.Optimizer;
   loss: string|string[]|{[outputName: string]: string};
