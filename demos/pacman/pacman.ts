@@ -138,7 +138,9 @@ function getActivation(): tf.Tensor4D {
 async function loadMobilenet(): Promise<tfl.Model> {
   console.log('Loading mobilenet...');
   // TODO(nsthorat): Move these to GCP when they are no longer JSON.
-  const model = await tfl.loadModel('../../dist/demo/mobilenet/model.json');
+  const model = await tfl.loadModel(
+      // tslint:disable-next-line:max-line-length
+      'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
   console.log('Done loading mobilenet.');
 
   // Return a model that outputs an internal activation.
