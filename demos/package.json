@@ -5,7 +5,7 @@
   "private": true,
   "dependencies": {
     "clang-format": "~1.2.2",
-    "deeplearn": "0.5.0",
+    "deeplearn": "next",
     "tfjs-layers": "file:../dist/",
     "pacman": "nsthorat/pacman",
     "tslint": "~5.6.0",

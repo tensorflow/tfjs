@@ -972,8 +972,8 @@ deeplearn-src@PAIR-code/deeplearnjs:
     utf8 "~2.1.2"
 
 deeplearn@next:
-  version "0.6.0-alpha3"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha3.tgz#c378799ec65a85c97cd991e053b1201e70976b75"
+  version "0.6.0-alpha4"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha4.tgz#9af14dd9569160cd5f25615434ad54fb2b2bfc04"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
