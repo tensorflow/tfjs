@@ -26,8 +26,8 @@ import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normal
 import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
-import {loadModelInternal, ModelAndWeightsConfig, modelFromJSONInternal, Sequential, SequentialConfig} from './models';
-import {ConfigDict, JsonValue, SymbolicTensor} from './types';
+import {loadModelInternal, Sequential, SequentialConfig} from './models';
+import {SymbolicTensor} from './types';
 
 // tslint:enable:max-line-length
 
@@ -61,22 +61,10 @@ export class ModelExports {
   @doc({
     heading: 'Models',
     subheading: 'Loading',
-    useDocsFrom: 'loadModelInternal',
-    configParamIndices: [0]
+    useDocsFrom: 'loadModelInternal'
   })
-  static async loadModel(modelAndWeights: string |
-    ModelAndWeightsConfig): Promise<Model> {
-    return loadModelInternal(modelAndWeights);
-  }
-
-  @doc({
-    heading: 'Models',
-    subheading: 'Loading',
-    useDocsFrom: 'modelFromJSONInternal'
-  })
-  static modelFromJSON(
-      jsonString: JsonValue|string, customObjects?: ConfigDict): Model {
-    return modelFromJSONInternal(jsonString, customObjects);
+  static loadModel(modelConfigPath: string): Promise<Model> {
+    return loadModelInternal(modelConfigPath);
   }
 
   @doc({

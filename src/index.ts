@@ -30,7 +30,6 @@ export {backend, optimizers};
 export const model = ModelExports.model;
 export const sequential = ModelExports.sequential;
 export const loadModel = ModelExports.loadModel;
-export const modelFromJSON = ModelExports.modelFromJSON;
 export const input = ModelExports.input;
 export const inputLayer = ModelExports.inputLayer;
 

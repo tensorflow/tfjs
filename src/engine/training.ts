@@ -575,8 +575,7 @@ export interface ModelCompileConfig {
  * The `Model` class adds training & evaluation routines to a `Container`.
  *
  * A `Model` is the basic unit of training, inference and evaluation in
- * TensorFlow.js. `tf.model` is a factory function that creates an instance
- * of `Model`.
+ * TensorFlow.js. To create a `Model, use `model`.
  *
  * To create a `Model`, specify its input(s) and output(s). Inputs are
  * `SymbolicTensor`s provided by `Input` layers. Outputs are `SymbolicTensor`s
@@ -641,6 +640,7 @@ export class Model extends Container {
     super(config);
   }
 
+  @doc({heading: 'Models', subheading: 'Classes'})
   compile(config: ModelCompileConfig): void {
     if (config.loss == null) {
       config.loss = [];
@@ -882,6 +882,7 @@ export class Model extends Container {
    *   metrics). The attribute `model.metricsNames` will give you the display
    *   labels for the scalar outputs.
    */
+  @doc({heading: 'Models', subheading: 'Classes'})
   evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[], batchSize = 32,
       verbose?: ModelLoggingVerbosity, sampleWeight?: Tensor,
@@ -1018,6 +1019,7 @@ export class Model extends Container {
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
    */
+  @doc({heading: 'Models', subheading: 'Classes'})
   predict(x: Tensor|Tensor[], batchSize = 32, verbose = false): Tensor
       |Tensor[] {
     checkInputData(x, this.inputNames, this.feedInputShapes, false);
@@ -1034,6 +1036,7 @@ export class Model extends Container {
    * @param x: Input samples, as an Tensor
    * @return Tensor(s) of predictions
    */
+  @doc({heading: 'Models', subheading: 'Classes'})
   predictOnBatch(x: Tensor): Tensor|Tensor[] {
     checkInputData(x, this.inputNames, this.feedInputShapes, true);
     // TODO(cais): Take care of the learning_phase boolean flag.
@@ -1377,6 +1380,7 @@ export class Model extends Container {
    * @exception ValueError In case of mismatch between the provided input data
    *   and what the model expects.
    */
+  @doc({heading: 'Models', subheading: 'Classes'})
   async fit(config: ModelFitConfig): Promise<History> {
     if (config.batchSize == null) {
       config.batchSize = 32;
@@ -1404,7 +1408,6 @@ export class Model extends Container {
     let doValidation = false;
     let valX: Tensor|Tensor[];
     let valY: Tensor|Tensor[];
-    let valSampleWeight: Tensor|Tensor[];
     let valIns: Tensor[];
     if (config.validationData != null && config.validationData.length > 0) {
       doValidation = true;
@@ -1412,7 +1415,6 @@ export class Model extends Container {
         // config.validationData consists of valX and valY.
         valX = config.validationData[0];
         valY = config.validationData[1];
-        valSampleWeight = null;
       } else if (config.validationData.length === 3) {
         throw new NotImplementedError(
             'validationData including sample weights is not supported yet.');
