@@ -13,6 +13,7 @@ REQUIRED_PACKAGES = [
     'h5py >= 2.7.1',
     'keras >= 2.1.4',
     'numpy >= 1.14.1',
+    'six >= 1.11.0',
 ]
 
 CONSOLE_SCRIPTS = [

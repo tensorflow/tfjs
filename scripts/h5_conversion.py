@@ -21,6 +21,7 @@ import tempfile
 import h5py
 import keras
 import numpy as np
+import six
 
 import write_weights  # pylint: disable=import-error
 
@@ -30,6 +31,15 @@ ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
 # JSON string keys for fields of the indexing JSON.
 ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
 ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
+
+
+def as_text(bytes_or_text, encoding='utf-8'):
+  if isinstance(bytes_or_text, six.text_type):
+    return bytes_or_text
+  elif isinstance(bytes_or_text, bytes):
+    return bytes_or_text.decode(encoding)
+  else:
+    raise TypeError('Expected binary or unicode string, got %r' % bytes_or_text)
 
 
 class HDF5Converter(object):
@@ -46,7 +56,7 @@ class HDF5Converter(object):
     self.decimal_places = decimal_places
 
   def _normalize_weight_name(self, weight_name):
-    name = weight_name.decode('utf8')
+    name = as_text(weight_name)
     if name.endswith(':0'):
       # Python TensorFlow weight names ends with the output slot, which is
       # not applicable to TensorFlow.js.
@@ -65,7 +75,7 @@ class HDF5Converter(object):
     """
     if not names:
       return None
-    names = [name.decode('utf8') for name in names]
+    names = [as_text(name) for name in names]
     weight_values = [
         np.array(group[weight_name]) for weight_name in names]
     group_out = [{
@@ -99,7 +109,7 @@ class HDF5Converter(object):
     Raises:
       ValueError: if the KerasVersion of the HDF5 file is unsupported.
     """
-    keras_version = h5file.attrs['keras_version']
+    keras_version = as_text(h5file.attrs['keras_version'])
     if keras_version.split('.')[0] != '2':
       raise ValueError(
           'Expected Keras version 2; got Keras version %s' % keras_version)
@@ -114,8 +124,8 @@ class HDF5Converter(object):
       A dictionary with common fields sets, shared across formats.
     """
     out = dict()
-    out['keras_version'] = h5file.attrs['keras_version']
-    out['backend'] = h5file.attrs['backend']
+    out['keras_version'] = as_text(h5file.attrs['keras_version'])
+    out['backend'] = as_text(h5file.attrs['backend'])
     return out
 
   def _ensure_h5file(self, h5file):
@@ -125,7 +135,7 @@ class HDF5Converter(object):
       return h5file
 
   def _ensure_json_dict(self, item):
-    return item if isinstance(item, dict) else json.loads(item)
+    return item if isinstance(item, dict) else json.loads(as_text(item))
 
   def h5_merged_saved_model_to_tfjs_format(self, h5file):
     """Load topology & weight values from HDF5 file and convert.
@@ -160,7 +170,7 @@ class HDF5Converter(object):
 
     groups = []
 
-    layer_names = [n.decode('utf8') for n in h5file['model_weights']]
+    layer_names = [as_text(n) for n in h5file['model_weights']]
     for layer_name in layer_names:
       layer = h5file['model_weights'][layer_name]
       group = self.convert_h5_group(
@@ -193,7 +203,7 @@ class HDF5Converter(object):
     groups = []
 
     # pylint: disable=not-an-iterable
-    layer_names = [n.decode('utf8') for n in h5file.attrs['layer_names']]
+    layer_names = [as_text(n) for n in h5file.attrs['layer_names']]
     # pylint: enable=not-an-iterable
     for layer_name in layer_names:
       layer = h5file[layer_name]
@@ -226,13 +236,13 @@ class HDF5Converter(object):
     out['optimizer_weights'] = dict()
     model_weights = out['model_weights']
     optimizer_weights = out['optimizer_weights']
-    layer_names = [n.decode('utf8') for n in h5file['model_weights']]
+    layer_names = [as_text(n) for n in h5file['model_weights']]
     for layer_name in layer_names:
       layer = h5file['model_weights'][layer_name]
       model_weights[layer_name] = self.convert_h5_group_to_ascii(
           layer, [name for name in layer.attrs['weight_names']])
     if 'optimizer_weights' in h5file:
-      optimizer_names = [n.decode('utf8') for n in h5file['optimizer_weights']]
+      optimizer_names = [as_text(n) for n in h5file['optimizer_weights']]
       for optimizer_name in optimizer_names:
         optimizer = h5file['optimizer_weights'][optimizer_name]
         for key, value in optimizer.items():
@@ -301,7 +311,7 @@ class HDF5Converter(object):
     out['weights'] = dict()
     out_weights = out['weights']
     # pylint: disable=not-an-iterable
-    layer_names = [n.decode('utf8') for n in h5file.attrs['layer_names']]
+    layer_names = [as_text(n) for n in h5file.attrs['layer_names']]
     # pylint: enable=not-an-iterable
     for layer_name in layer_names:
       layer = h5file[layer_name]

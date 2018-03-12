@@ -76,6 +76,8 @@ you prefer.
    bazel test scripts/...
    ```
 
+Be sure to run the tests under **both** Python 2 and Python 3.
+
 ## Code Structure
 
 ## Types
