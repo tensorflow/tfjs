@@ -320,6 +320,10 @@ class HDF5Converter(object):
     #   `write_weights.write_weights` (e.g., shard size) and forward them.
     # We write the topology after since write_weights makes no promises about
     # preserving directory contents.
+    if os.path.isfile(output_dir):
+      raise ValueError(
+          'Path "%d" already exists as a file (not a directory).' % output_dir)
+
     model_json = {}
     model_json[ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
     weights_manifest = write_weights.write_weights(

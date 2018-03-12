@@ -7,7 +7,6 @@
 # https://opensource.org/licenses/MIT.
 # =============================================================================
 
-
 # Builds the MobileNet demo for TensorFlow.js Layers.
 # Usage example: do under the root of the source repository:
 #   ./scripts/build-mobilenet-demo.sh
@@ -56,4 +55,5 @@ echo "  http://localhost:${DEMO_PORT}/demos/mobilenet_demo.html"
 echo "-----------------------------------------------------------"
 echo
 
+cd "${SCRIPTS_DIR}/.."
 node_modules/http-server/bin/http-server -p "${DEMO_PORT}"

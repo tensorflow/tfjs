@@ -41,8 +41,8 @@ py_test(
 )
 
 py_binary(
-    name = "pykeras",
-    srcs = ["pykeras.py"],
+    name = "keras_model_converter",
+    srcs = ["keras_model_converter.py"],
     deps = [
         ":expect_h5py_installed",
         ":h5_conversion",
@@ -50,10 +50,9 @@ py_binary(
 )
 
 py_test(
-    name = "pykeras_test",
-    srcs = ["pykeras_test.py"],
+    name = "keras_model_converter_test",
+    srcs = ["keras_model_converter_test.py"],
     deps = [
-        ":expect_h5py_installed",
         ":expect_keras_installed",
         ":pykeras",
     ],

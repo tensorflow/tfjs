@@ -83,4 +83,5 @@ echo "  http://localhost:${DEMO_PORT}/demos/translation_demo.html"
 echo "-----------------------------------------------------------"
 echo
 
+cd "${SCRIPTS_DIR}/.."
 node_modules/http-server/bin/http-server -p "${DEMO_PORT}"
