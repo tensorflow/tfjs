@@ -2,6 +2,7 @@
 demos/
 scripts/
 src/
+tools/
 coverage/
 node_modules/
 karma.conf.js
@@ -11,6 +12,10 @@ dist/**/*_test.js
 dist/**/*_test.d.ts
 .travis.yml
 .npmignore
+.pylintrc
 CONTRIBUTING.md
+DEVELOPMENT.md
 tslint.json
+WORKSPACE
 yarn.lock
+yarn-error.log
