@@ -121,7 +121,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     config_json = json.loads(model.to_json(), encoding='utf8')
     # Load the saved weights as a JSON string.
     out = self._converter.h5_merged_saved_model_to_json(h5py.File(h5_path))
-    saved_topology = json.loads(out['model_config'])
+    saved_topology = json.loads(h5_conversion.as_text(out['model_config']))
     # check the model topology was stored
     self.assertEqual(config_json['class_name'], saved_topology['class_name'])
     self.assertEqual(config_json['config'], saved_topology['config'])

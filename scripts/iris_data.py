@@ -185,7 +185,7 @@ def load():
     iris_y.append(IRIS_CLASSES.index(items[-1].replace('Iris-', '')))
 
   # Randomly shuffle the data.
-  iris_xy = zip(iris_x, iris_y)
+  iris_xy = list(zip(iris_x, iris_y))
   np.random.shuffle(iris_xy)
   iris_x, iris_y = zip(*iris_xy)
   return (np.array(iris_x, dtype=np.float32),
