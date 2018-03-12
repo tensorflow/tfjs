@@ -12,7 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as dl from 'deeplearn';
-import {Tensor, variable} from 'deeplearn';
+import {doc, Tensor, variable} from 'deeplearn';
 
 import {getUniqueTensorName} from './common';
 import {Constraint} from './constraints';
@@ -59,12 +59,11 @@ export interface TensorInterface {
 let _nextUniqueTensorId = 0;
 
 /**
- * SymbolicTensor class.
- *
  * `SymbolicTensor` is a symbolic `Tensor` without any concrete value.
  * It can be used during the building phase of models that involve no actual
  * execution of the computation defined in the model.
  */
+@doc({heading: 'Models', 'subheading': 'Classes'})
 export class SymbolicTensor implements TensorInterface {
   /* A unique ID for the tensor to be able to differentiate tensors. */
   readonly id: number;
