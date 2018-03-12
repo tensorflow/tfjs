@@ -61,4 +61,5 @@ echo "  http://localhost:${DEMO_PORT}/demos/mnist_transfer_cnn_demo.html"
 echo "------------------------------------------------------------------"
 echo
 
+cd "${SCRIPTS_DIR}/.."
 node_modules/http-server/bin/http-server -p "${DEMO_PORT}"
