@@ -124,6 +124,9 @@ class HDF5Converter(object):
     else:
       return h5file
 
+  def _ensure_json_dict(self, item):
+    return item if isinstance(item, dict) else json.loads(item)
+
   def h5_merged_saved_model_to_tfjs_format(self, h5file):
     """Load topology & weight values from HDF5 file and convert.
 
@@ -149,9 +152,12 @@ class HDF5Converter(object):
     self._check_version(h5file)
     model_json = self._initialize_output_dictionary(h5file)
 
-    model_json['model_config'] = h5file.attrs['model_config']
+    model_json['model_config'] = self._ensure_json_dict(
+        h5file.attrs['model_config'])
     if 'training_config' in h5file.attrs:
-      model_json['training_config'] = h5file.attrs['training_config']
+      model_json['training_config'] = self._ensure_json_dict(
+          h5file.attrs['training_config'])
+
     groups = []
 
     layer_names = [n.decode('utf8') for n in h5file['model_weights']]
@@ -325,6 +331,7 @@ class HDF5Converter(object):
           'Path "%d" already exists as a file (not a directory).' % output_dir)
 
     model_json = {}
+
     model_json[ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
     weights_manifest = write_weights.write_weights(
         weights, output_dir, write_manifest=False)
