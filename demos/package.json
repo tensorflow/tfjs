@@ -6,7 +6,7 @@
   "dependencies": {
     "deeplearn": "next",
     "pacman": "nsthorat/pacman",
-    "tfjs-layers": "file:../dist/"
+    "@tensorflow/tfjs-layers": "file:../dist/"
   },
   "scripts": {
     "prep": "rimraf node_modules/ && yarn",

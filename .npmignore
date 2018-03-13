@@ -10,6 +10,7 @@ dist/demos/
 dist/**/*.js.map
 dist/**/*_test.js
 dist/**/*_test.d.ts
+*.tgz
 .travis.yml
 .npmignore
 .pylintrc
