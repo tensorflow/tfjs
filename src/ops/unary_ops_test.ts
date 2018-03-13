@@ -458,6 +458,56 @@ describeWithFlags('log', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('log1p', ALL_ENVS, () => {
+  it('log1p', () => {
+    const a = dl.tensor1d([1, 2]);
+    const r = dl.log1p(a);
+    expectNumbersClose(r.get(0), Math.log1p(1));
+    expectNumbersClose(r.get(1), Math.log1p(2));
+  });
+
+  it('log1p propagates NaNs', () => {
+    const a = dl.tensor1d([1, NaN]);
+    const r = dl.log1p(a);
+    expectArraysClose(r, [Math.log1p(1), NaN]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = dl.scalar(5);
+    const dy = dl.scalar(3);
+
+    const gradients = dl.grad(a => dl.log1p(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [3 / (1 + 5)]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const a = dl.tensor1d([-1, 2, 3, -5]);
+    const dy = dl.tensor1d([1, 2, 3, 4]);
+
+    const gradients = dl.grad(a => dl.log1p(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(
+        gradients, [Infinity, 2 / (1 + 2), 3 / (1 + 3), 4 / (1 + -5)]);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const a = dl.tensor2d([-3, 1, 2, 3], [2, 2]);
+    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+
+    const gradients = dl.grad(a => dl.log1p(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(
+        gradients, [1 / (1 + -3), 2 / (1 + 1), 3 / (1 + 2), 4 / (1 + 3)]);
+  });
+});
+
 describeWithFlags('ceil', ALL_ENVS, () => {
   it('basic', () => {
     const a = dl.tensor1d([1.5, 2.1, -1.4]);
