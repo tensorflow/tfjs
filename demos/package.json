@@ -4,16 +4,19 @@
   "description": "Demos for TensorFlow.js layers, not published",
   "private": true,
   "dependencies": {
-    "clang-format": "~1.2.2",
     "deeplearn": "next",
-    "tfjs-layers": "file:../dist/",
     "pacman": "nsthorat/pacman",
-    "tslint": "~5.6.0",
-    "tslint-no-circular-imports": "^0.2.1",
-    "typescript": "2.4.2"
+    "tfjs-layers": "file:../dist/"
   },
   "scripts": {
-    "prep": "rm -r node_modules/ && yarn",
+    "prep": "rimraf node_modules/ && yarn",
     "test": "karma start"
+  },
+  "devDependencies": {
+    "clang-format": "~1.2.2",
+    "tslint": "~5.6.0",
+    "tslint-no-circular-imports": "^0.2.1",
+    "typescript": "2.4.2",
+    "rimraf": "^2.6.2"
   }
 }

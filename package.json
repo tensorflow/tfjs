@@ -32,7 +32,7 @@
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "prep": "yarn && mkdirp dist/ && yarn build && cd demos/ && yarn prep && cd ..",
+    "prep": "yarn && yarn build && cd demos/ && yarn prep && cd ..",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "test": "karma start",
