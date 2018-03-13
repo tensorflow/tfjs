@@ -26,6 +26,6 @@
   },
   "dependencies": {
     "deeplearn": "next",
-    "tfjs-layers": "./tfjs-layers-0.0.1.tgz"
+    "@tensorflow/tfjs-layers": "./tensorflow-tfjs-layers-0.0.1.tgz"
   }
 }
