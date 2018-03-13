@@ -343,8 +343,8 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
 deeplearn@next:
-  version "0.6.0-alpha2"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha2.tgz#a7cc508fa16a6b6e5afcca2490f0ae2e11ecbdfd"
+  version "0.6.0-alpha4"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha4.tgz#9af14dd9569160cd5f25615434ad54fb2b2bfc04"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
@@ -912,9 +912,11 @@ syntax-error@^1.1.1:
   dependencies:
     acorn-node "^1.2.0"
 
-"tfjs-layers@git+https://github.com/tensorflow/tfjs-layers.git#da1c0514ea716320ea45d66859a7564f65710c44":
+tfjs-layers@./tfjs-layers-0.0.1.tgz:
   version "0.0.1"
-  resolved "git+https://github.com/tensorflow/tfjs-layers.git#da1c0514ea716320ea45d66859a7564f65710c44"
+  resolved "./tfjs-layers-0.0.1.tgz#2ac3bb9e393c51ba5c7a8e7d88aa40cb38621c7c"
+  dependencies:
+    underscore "~1.8.3"
 
 through2@^2.0.0:
   version "2.0.3"
@@ -977,8 +979,12 @@ uglify-js@~3.0.28:
     source-map "~0.5.1"
 
 umd@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/umd/-/umd-3.0.1.tgz#8ae556e11011f63c2596708a8837259f01b3d60e"
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/umd/-/umd-3.0.2.tgz#95bdbc6d3983050df600431f44e5faeb4b7b3d45"
+
+underscore@~1.8.3:
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
 
 url@~0.11.0:
   version "0.11.0"
