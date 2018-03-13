@@ -26,15 +26,10 @@ declare const PACMAN:
 declare const KEY: {[key: string]: number};
 declare const Pacman: {FPS: number};
 
-// Fraction of examples collected to use for batch size.
-const BATCH_SIZE_FRACTION = .4;
-const LEARNING_RATE = .01;
-const NUM_EPOCHS = 20;
-const DENSE_UNITS = 100;
-
+let isPredicting = false;
 const NUM_CLASSES = 4;
 
-const PACMAN_FPS = 10;
+const PACMAN_FPS = 15;
 Pacman.FPS = PACMAN_FPS;
 
 // This forces the buffer sub data async extension to turn off.
@@ -48,7 +43,7 @@ const CONTROL_CODES = ['ARROW_UP', 'ARROW_DOWN', 'ARROW_LEFT', 'ARROW_RIGHT'];
 const webcamElement = document.getElementById('webcam') as HTMLVideoElement;
 const webcam = new Webcam(webcamElement);
 
-const costElement = document.getElementById('cost') as HTMLSpanElement;
+const trainStatus = document.getElementById('train-status') as HTMLDivElement;
 
 let mobilenet: tfl.Model;
 let model: tfl.Sequential;
@@ -56,6 +51,10 @@ let model: tfl.Sequential;
 const controllerDataset = new ControllerDataset(NUM_CLASSES);
 
 async function train() {
+  trainStatus.innerHTML = 'Training...';
+  await tf.nextFrame();
+  await tf.nextFrame();
+
   isPredicting = false;
   model = tfl.sequential({
     layers: [
@@ -87,7 +86,7 @@ async function train() {
         `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
   }
 
-  await model.fit({
+  model.fit({
     x: controllerDataset.xs,
     y: controllerDataset.ys,
     batchSize,
@@ -95,13 +94,12 @@ async function train() {
     callbacks: {
       onBatchEnd: async (batch: number, logs: tfl.Logs) => {
         const cost = await (logs.loss as tf.Tensor).data();
-        costElement.innerText = '' + cost[0];
-      },
-    },
+        trainStatus.innerText = 'Cost: ' + cost[0].toFixed(5);
+      }
+    }
   });
 }
 
-let isPredicting = false;
 async function predict() {
   statusElement.style.visibility = 'visible';
   let lastTime = performance.now();
@@ -203,21 +201,17 @@ document.getElementById('predict').addEventListener('click', () => {
 // Set hyper params from values above.
 const learningRateElement =
     document.getElementById('learningRate') as HTMLInputElement;
-learningRateElement.value = LEARNING_RATE.toString();
 const getLearningRate = () => +learningRateElement.value;
 
 const batchSizeFractionElement =
     document.getElementById('batchSizeFraction') as HTMLInputElement;
-batchSizeFractionElement.value = BATCH_SIZE_FRACTION.toString();
 const getBatchSizeFraction = () => +batchSizeFractionElement.value;
 
 const epochsElement = document.getElementById('epochs') as HTMLInputElement;
-epochsElement.value = '' + NUM_EPOCHS;
 const getEpochs = () => +epochsElement.value;
 
 const denseUnitsElement =
     document.getElementById('dense-units') as HTMLInputElement;
-denseUnitsElement.value = DENSE_UNITS.toString();
 const getDenseUnits = () => +denseUnitsElement.value;
 const statusElement = document.getElementById('status');
 
@@ -229,7 +223,7 @@ async function pacman() {
   document.getElementById('controls').style.display = '';
   (document.getElementsByClassName('train-container')[0] as HTMLDivElement)
       .style.visibility = 'visible';
-  (document.getElementsByClassName('predict-container')[0] as HTMLDivElement)
+  (document.getElementById('cost-container') as HTMLDivElement)
       .style.visibility = 'visible';
   statusElement.style.visibility = 'hidden';
 }
