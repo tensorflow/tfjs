@@ -174,6 +174,12 @@ function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
 }
 
 function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
+  // TODO(nsthorat): Remove this once we fix
+  // https://github.com/PAIR-code/deeplearnjs/issues/848
+  if (webGLVersion > 0) {
+    return false;
+  }
+
   if (webGLVersion !== 2) {
     return false;
   }

@@ -150,8 +150,10 @@ describe('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED', () => {
 
     const env = new Environment(features);
 
+    // TODO(nsthorat): Expect true when we fix
+    // https://github.com/PAIR-code/deeplearnjs/issues/848
     expect(env.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'))
-        .toBe(true);
+        .toBe(false);
   });
 
   it('WebGL 1 disabled', () => {
