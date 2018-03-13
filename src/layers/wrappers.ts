@@ -378,7 +378,7 @@ export class Bidirectional extends Wrapper {
       inputs = (inputs as Tensor[] | SymbolicTensor[])[0];
     }
 
-    if (initialState == null) {
+    if (initialState == null || initialState.length === 0) {
       const applyOutputs = super.apply(inputs, kwargs);
       return applyOutputs;
     } else {

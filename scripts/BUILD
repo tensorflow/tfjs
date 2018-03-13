@@ -80,6 +80,25 @@ py_test(
     ],
 )
 
+py_binary(
+    name = "imdb",
+    srcs = ["imdb.py"],
+    deps = [
+        ":expect_h5py_installed",
+        ":expect_keras_installed",
+        ":h5_conversion",
+    ],
+)
+
+py_test(
+    name = "imdb_test",
+    srcs = ["imdb_test.py"],
+    deps = [
+        ":expect_numpy_installed",
+        ":imdb",
+    ],
+)
+
 py_library(
     name = "iris_data",
     srcs = ["iris_data.py"],
