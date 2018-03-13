@@ -105,8 +105,9 @@ async function predict() {
   let lastTime = performance.now();
   while (isPredicting) {
     const prediction = tf.tidy(() => {
-      const img = getActivation();
-      return (model.predict(img) as tf.Tensor);
+      const img = webcam.capture();
+      const act = getActivation(img);
+      return (model.predict(act) as tf.Tensor);
     });
 
     const classId = (await prediction.as1D().argMax().data())[0];
@@ -126,20 +127,26 @@ async function predict() {
 }
 
 function addExample(label: number) {
-  tf.tidy(() => controllerDataset.addExample(getActivation(), label));
+  const thumbCanvas =
+      document.getElementById(CONTROLS[label] + '-thumb') as HTMLCanvasElement;
+  tf.tidy(() => {
+    const img = webcam.capture();
+    if (thumbDisplayed[label] == null) {
+      draw(img, thumbCanvas);
+    }
+    controllerDataset.addExample(getActivation(img), label);
+  });
 }
 
-function getActivation(): tf.Tensor4D {
-  return tf.tidy(() => mobilenet.predict(webcam.capture()) as tf.Tensor4D);
+function getActivation(img: tf.Tensor3D): tf.Tensor4D {
+  return tf.tidy(() => mobilenet.predict(img.expandDims(0)) as tf.Tensor4D);
 }
 
 async function loadMobilenet(): Promise<tfl.Model> {
-  console.log('Loading mobilenet...');
   // TODO(nsthorat): Move these to GCP when they are no longer JSON.
   const model = await tfl.loadModel(
       // tslint:disable-next-line:max-line-length
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
-  console.log('Done loading mobilenet.');
 
   // Return a model that outputs an internal activation.
   const layer = model.getLayer('conv_pw_13_relu');
@@ -148,7 +155,16 @@ async function loadMobilenet(): Promise<tfl.Model> {
 
 let mouseDown = false;
 const totals = [0, 0, 0, 0];
-async function addExamples(label: number) {
+
+const upButton = document.getElementById('up');
+const downButton = document.getElementById('down');
+const leftButton = document.getElementById('left');
+const rightButton = document.getElementById('right');
+
+const thumbDisplayed: {[label: number]: boolean} = {};
+
+async function handler(label: number) {
+  mouseDown = true;
   const className = CONTROLS[label];
   const button = document.getElementById(className);
   while (mouseDown) {
@@ -157,38 +173,32 @@ async function addExamples(label: number) {
     await tf.nextFrame();
   }
 }
-const upButton = document.getElementById('up');
-const downButton = document.getElementById('down');
-const leftButton = document.getElementById('left');
-const rightButton = document.getElementById('right');
 
-const thumbDisplayed: {[label: number]: boolean} = {};
-const handler = (label: number) => {
-  return () => {
-    if (thumbDisplayed[label] == null) {
-      const thumb = document.getElementById(CONTROLS[label] + '-thumb') as
-          HTMLCanvasElement;
-      const destCtx = thumb.getContext('2d');
-      destCtx.drawImage(webcamElement, 0, 0, thumb.width, thumb.height);
+function draw(image: tf.Tensor3D, canvas: HTMLCanvasElement) {
+  const [width, height] = [224, 224];
+  const ctx = canvas.getContext('2d');
+  const imageData = new ImageData(width, height);
+  const data = image.dataSync();
+  for (let i = 0; i < height * width; ++i) {
+    const j = i * 4;
+    imageData.data[j + 0] = (data[i * 3 + 0] + 1) * 127;
+    imageData.data[j + 1] = (data[i * 3 + 1] + 1) * 127;
+    imageData.data[j + 2] = (data[i * 3 + 2] + 1) * 127;
+    imageData.data[j + 3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
+}
 
-      thumbDisplayed[label] = true;
-    }
-
-    mouseDown = true;
-    addExamples(label);
-  };
-};
-
-upButton.addEventListener('mousedown', handler(0));
+upButton.addEventListener('mousedown', () => handler(0));
 upButton.addEventListener('mouseup', () => mouseDown = false);
 
-downButton.addEventListener('mousedown', handler(1));
+downButton.addEventListener('mousedown', () => handler(1));
 downButton.addEventListener('mouseup', () => mouseDown = false);
 
-leftButton.addEventListener('mousedown', handler(2));
+leftButton.addEventListener('mousedown', () => handler(2));
 leftButton.addEventListener('mouseup', () => mouseDown = false);
 
-rightButton.addEventListener('mousedown', handler(3));
+rightButton.addEventListener('mousedown', () => handler(3));
 rightButton.addEventListener('mouseup', () => mouseDown = false);
 
 document.getElementById('train').addEventListener('click', () => train());
@@ -215,9 +225,12 @@ const denseUnitsElement =
 const getDenseUnits = () => +denseUnitsElement.value;
 const statusElement = document.getElementById('status');
 
-async function pacman() {
+async function init() {
   await webcam.setup();
   mobilenet = await loadMobilenet();
+
+  // Warm up the model.
+  tf.tidy(() => getActivation(webcam.capture()));
 
   // Show the controls once everything has loaded.
   document.getElementById('controls').style.display = '';
@@ -249,4 +262,5 @@ function fireEvent(keyCode: string) {
 // TODO(nsthorat): Host this somewhere not here.
 PACMAN.init(pacmanElement, '../node_modules/pacman/');
 
-pacman();
+// Initialize the application.
+init();
