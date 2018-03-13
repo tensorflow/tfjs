@@ -16,4 +16,4 @@
  */
 
 export * from 'deeplearn';
-export * from 'tfjs-layers';
+export * from '@tensorflow/tfjs-layers';
