@@ -127,6 +127,26 @@ export class UnaryOps {
   }
 
   /**
+   * Computes natural logarithm of the input `Tensor` plus one
+   * element-wise: `ln(1 + x)`
+   *
+   * ```js
+   * const x = dl.tensor1d([1, 2, Math.E - 1]);
+   *
+   * x.log1p().print();  // or dl.log1p(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static log1p<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {x: () => dy.divStrict(x.add(ops.scalar(1)))};
+    };
+    return ENV.engine.runKernel(backend => backend.log1p(x), {x}, grad);
+  }
+
+  /**
    * Computes square root of the input `Tensor` element-wise: `y = sqrt(x)`
    *
    * ```js
