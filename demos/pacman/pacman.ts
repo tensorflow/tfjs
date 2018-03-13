@@ -15,8 +15,8 @@
  *
  * NOTE: This expects you to have run ./scripts/build-mobilenet-demo.sh
  */
+import * as tfl from '@tensorflow/tfjs-layers';
 import * as tf from 'deeplearn';
-import * as tfl from 'tfjs-layers';
 
 import {ControllerDataset} from './controller_dataset';
 import {Webcam} from './webcam';
