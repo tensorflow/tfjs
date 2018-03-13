@@ -343,8 +343,8 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
 deeplearn@next:
-  version "0.6.0-alpha4"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha4.tgz#9af14dd9569160cd5f25615434ad54fb2b2bfc04"
+  version "0.6.0-alpha5"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha5.tgz#1651d717eb2be1e38e5108d298545631da8cb7a3"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
@@ -914,7 +914,7 @@ syntax-error@^1.1.1:
 
 tfjs-layers@./tfjs-layers-0.0.1.tgz:
   version "0.0.1"
-  resolved "./tfjs-layers-0.0.1.tgz#2ac3bb9e393c51ba5c7a8e7d88aa40cb38621c7c"
+  resolved "./tfjs-layers-0.0.1.tgz#d9e411ecf2cc7ca27954c7f398f5b8698cff1d62"
   dependencies:
     underscore "~1.8.3"
 
