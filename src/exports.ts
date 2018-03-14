@@ -15,8 +15,10 @@
 // tslint:disable:max-line-length
 import {doc} from 'deeplearn';
 
+import {MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, LayerConfig} from './engine/topology';
 import {Model} from './engine/training';
+import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, LeCunNormal, Ones, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
 import {Conv1D, Conv2D, ConvLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
 import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig} from './layers/core';
@@ -27,6 +29,7 @@ import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
+import {l1, L1Config, L1L2, L1L2Config, l2, L2Config} from './regularizers';
 import {SymbolicTensor} from './types';
 
 // tslint:enable:max-line-length
@@ -54,7 +57,7 @@ export class ModelExports {
     useDocsFrom: 'Sequential',
     configParamIndices: [0]
   })
-  static sequential(config: SequentialConfig): Sequential {
+  static sequential(config?: SequentialConfig): Sequential {
     return new Sequential(config);
   }
 
@@ -460,5 +463,191 @@ export class LayerExports {
   })
   static timeDistributed(config: WrapperLayerConfig): TimeDistributed {
     return new TimeDistributed(config);
+  }
+}
+
+export class ConstraintExports {
+  @doc({
+    heading: 'Constraints',
+    namespace: 'constraints',
+    useDocsFrom: 'MaxNorm',
+    configParamIndices: [0]
+  })
+  static maxNorm(config: MaxNormConfig): MaxNorm {
+    return new MaxNorm(config);
+  }
+
+  @doc({
+    heading: 'Constraints',
+    namespace: 'constraints',
+    useDocsFrom: 'UnitNorm',
+    configParamIndices: [0]
+  })
+  static unitNorm(config: UnitNormConfig): UnitNorm {
+    return new UnitNorm(config);
+  }
+
+  @doc(
+      {heading: 'Constraints', namespace: 'constraints', useDocsFrom: 'NonNeg'})
+  static nonNeg(): NonNeg {
+    return new NonNeg();
+  }
+
+  @doc({
+    heading: 'Constraints',
+    namespace: 'constraints',
+    useDocsFrom: 'MinMaxNormConfig',
+    configParamIndices: [0]
+  })
+  static minMaxNorm(config: MinMaxNormConfig): MinMaxNorm {
+    return new MinMaxNorm(config);
+  }
+}
+
+export class InitializerExports {
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'Zeros'
+  })
+  static zeros(): Zeros {
+    return new Zeros();
+  }
+
+  @doc(
+      {heading: 'Initializers', namespace: 'initializers', useDocsFrom: 'Ones'})
+  static ones(): Ones {
+    return new Ones();
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'Constant',
+    configParamIndices: [0]
+
+  })
+  static constant(config: ConstantConfig): Constant {
+    return new Constant(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'RandomUniform',
+    configParamIndices: [0]
+
+  })
+  static randomUniform(config: RandomUniformConfig): RandomUniform {
+    return new RandomUniform(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'RandomNormal',
+    configParamIndices: [0]
+
+  })
+  static randomNormal(config: RandomNormalConfig): RandomNormal {
+    return new RandomNormal(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'TruncatedNormal',
+    configParamIndices: [0]
+
+  })
+  static truncatedNormal(config: TruncatedNormalConfig): TruncatedNormal {
+    return new TruncatedNormal(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'Identity',
+    configParamIndices: [0]
+
+  })
+  static identity(config: IdentityConfig): Identity {
+    return new Identity(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'VarianceScaling',
+    configParamIndices: [0]
+
+  })
+  static varianceScaling(config: VarianceScalingConfig): VarianceScaling {
+    return new VarianceScaling(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'GlorotUniform',
+    configParamIndices: [0]
+
+  })
+  static glorotUniform(config: SeedOnlyInitializerConfig): GlorotUniform {
+    return new GlorotUniform(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'GlorotNormal',
+    configParamIndices: [0]
+
+  })
+  static glorotNormal(config: SeedOnlyInitializerConfig): GlorotNormal {
+    return new GlorotNormal(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'HeNormal',
+    configParamIndices: [0]
+
+  })
+  static heNormal(config: SeedOnlyInitializerConfig): HeNormal {
+    return new HeNormal(config);
+  }
+
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'LeCunNormal',
+    configParamIndices: [0]
+
+  })
+  static leCunNormal(config: SeedOnlyInitializerConfig): LeCunNormal {
+    return new LeCunNormal(config);
+  }
+}
+
+export class RegularizerExports {
+  @doc(
+      {heading: 'Regularizers', namespace: 'regularizers', useDocsFrom: 'L1L2'})
+  static l1l2(config?: L1L2Config): L1L2 {
+    return new L1L2(config);
+  }
+
+  @doc(
+      {heading: 'Regularizers', namespace: 'regularizers', useDocsFrom: 'L1L2'})
+  static l1(config?: L1Config): L1L2 {
+    return l1(config);
+  }
+
+  @doc(
+      {heading: 'Regularizers', namespace: 'regularizers', useDocsFrom: 'L1L2'})
+  static l2(config?: L2Config): L1L2 {
+    return l2(config);
   }
 }

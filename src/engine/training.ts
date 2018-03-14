@@ -607,7 +607,7 @@ export interface ModelCompileConfig {
  * ```
  *
  * See also:
- *   `Sequential`, `modelFromJSON`, `loadModel`.
+ *   `Sequential`, `loadModel`.
  */
 @doc({heading: 'Models', subheading: 'Classes'})
 export class Model extends Container {

@@ -13,9 +13,11 @@
 // tslint:disable:max-line-length
 import {Tensor1D, tensor1d} from 'deeplearn';
 
-import {deserializeConstraint, getConstraint, MinMaxNorm, MinMaxNormConfig, NonNeg, serializeConstraint} from './constraints';
+import {deserializeConstraint, getConstraint, serializeConstraint} from './constraints';
+import * as tfl from './index';
 import {ConfigDict} from './types';
 import {describeMathCPU, expectTensorsClose} from './utils/test_utils';
+
 // tslint:enable:max-line-length
 
 describeMathCPU('Built-in Constraints', () => {
@@ -65,13 +67,12 @@ describeMathCPU('constraints.get', () => {
     expect(nestedConfig.axis).toEqual(0);
   });
   it('by existing object', () => {
-    const origConstraint = new NonNeg();
+    const origConstraint = tfl.constraints.nonNeg();
     expect(getConstraint(origConstraint)).toEqual(origConstraint);
   });
   it('by config dict', () => {
-    const config:
-        MinMaxNormConfig = {minValue: 0, maxValue: 2, rate: 3, axis: 4};
-    const origConstraint = new MinMaxNorm(config);
+    const origConstraint = tfl.constraints.minMaxNorm(
+        {minValue: 0, maxValue: 2, rate: 3, axis: 4});
     const constraint =
         getConstraint(serializeConstraint(origConstraint) as ConfigDict);
     expect(serializeConstraint(constraint))

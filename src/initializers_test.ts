@@ -14,8 +14,9 @@
 
 // tslint:disable:max-line-length
 import {tensor2d} from 'deeplearn';
+import * as tfl from './index';
 
-import {Distribution, FanMode, getInitializer, GlorotUniform, serializeInitializer, Zeros} from './initializers';
+import {Distribution, FanMode, getInitializer, serializeInitializer, Zeros} from './initializers';
 import {DType} from './types';
 import {ConfigDict} from './types';
 import * as math_utils from './utils/math_utils';
@@ -291,7 +292,7 @@ describeMathCPU('initializers.get', () => {
     expect(initializer).toEqual(origInit);
   });
   it('by config dict', () => {
-    const origInit = new GlorotUniform({seed: 10});
+    const origInit = tfl.initializers.glorotUniform({seed: 10});
     const initializer =
         getInitializer(serializeInitializer(origInit) as ConfigDict);
     expect(serializeInitializer(initializer))
