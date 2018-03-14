@@ -43,11 +43,18 @@ export class TFModel {
   }
 
   private getPathPrefix() {
-    const url = new URL(this.weightManifestUrl);
-    const segments = url.pathname.split('/');
-    segments.splice(-1);
-    url.pathname = segments.join('/');
-    this.pathPrefix = url.toString();
+    const isAbsolute = /^[a-z][a-z0-9+.-]*:/.test(this.weightManifestUrl);
+    if (isAbsolute) {
+      const url = new URL(this.weightManifestUrl);
+      const segments = url.pathname.split('/');
+      segments.splice(-1);
+      url.pathname = segments.join('/');
+      this.pathPrefix = url.toString();
+    } else {
+      const segments = this.weightManifestUrl.split('/');
+      segments.splice(-1);
+      this.pathPrefix = segments.join('/');
+    }
   }
 
   /**
