@@ -11,7 +11,7 @@
 /* Original source: keras/contraints.py */
 
 // tslint:disable:max-line-length
-import {Tensor} from 'deeplearn';
+import {doc, Tensor} from 'deeplearn';
 
 import * as K from './backend/deeplearnjs_backend';
 import {ConfigDict, ConfigDictValue} from './types';
@@ -28,6 +28,7 @@ function calcL2Norms(w: Tensor, axis: number): Tensor {
 /**
  * Base class for functions that impose constraints on weight values
  */
+@doc({heading: 'Constraints', subheading: 'Classes', namespace: 'constraints'})
 export abstract class Constraint {
   /* Porting note: was __call__, apply chosen to match other similar choices */
   abstract apply(w: Tensor): Tensor;
@@ -68,6 +69,7 @@ export interface MaxNormConfig {
  *       - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting
  * Srivastava, Hinton, et al.
  * 2014](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
+ * @docalias Constraint
  */
 export class MaxNorm extends Constraint {
   private maxValue: number;
@@ -116,6 +118,7 @@ export interface UnitNormConfig {
 
 /**
  * Constrains the weights incident to each hidden unit to have unit norm.
+ * @docalias Constraint
  */
 export class UnitNorm extends Constraint {
   private axis: number;
@@ -140,6 +143,7 @@ ClassNameMap.register('UnitNorm', UnitNorm);
 
 /**
  * Constains the weight to be non-negative.
+ * @docalias Constraint
  */
 export class NonNeg extends Constraint {
   apply(w: Tensor): Tensor {
@@ -182,6 +186,7 @@ export interface MinMaxNormConfig {
   rate?: number;
 }
 
+/** @docalias Constraint */
 export class MinMaxNorm extends Constraint {
   private minValue: number;
   private maxValue: number;

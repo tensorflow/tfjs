@@ -1358,10 +1358,12 @@ export interface InputConfig {
  *
  * Example:
  *
- *     // this is a logistic regression in TF.js Layers:
- *     x = new Input(shape=[32]);
- *     y = new Dense(16, activation='softmax').apply(x);
- *     model = new Model(x, y);
+ * ```js
+ * // Simple logistic regression:
+ * x = tf.input({shape: [32]});
+ * y = tf.layers.dense({units: 16, activation: 'softmax'}).apply(x);
+ * model = tf.model({inputs: x, outputs: y});
+ * ```
  */
 export function Input(config: InputConfig): SymbolicTensor {
   if (config.batchShape == null && config.shape == null) {

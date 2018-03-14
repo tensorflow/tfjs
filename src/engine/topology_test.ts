@@ -13,7 +13,8 @@ import {Tensor, tensor1d, tensor2d, zeros} from 'deeplearn';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
-import {Dense, Reshape} from '../layers/core';
+import * as tfl from '../index';
+import {Reshape} from '../layers/core';
 import {DType, LayerVariable, NamedTensorMap, Shape, SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
@@ -262,7 +263,7 @@ describeMathCPU('Layer', () => {
          expect(layer.batchInputShape).toEqual(batchInputShape);
        });
 
-    for (const [batchSize, inputShape, expectedBatchInputShape] of [
+    for (const [batchSize, inputShape, expectedBatchInputShape] of[
              [null, [], [null]], [null, [1], [null, 1]], [3, [], [3]],
              [3, [1], [3, 1]]]) {
       it('initializes batchInputShape to layerConfig.inputShape.', () => {
@@ -1176,8 +1177,8 @@ describeMathCPUAndGPU('Container', () => {
   it('weights gets all weights.', () => {
     const inputShape = [1, 6];
     const inputLayer = Input({shape: inputShape});
-    const layer1 = new Dense({units: 2, useBias: false});
-    const layer2 = new Dense({units: 1, useBias: true});
+    const layer1 = tfl.layers.dense({units: 2, useBias: false});
+    const layer2 = tfl.layers.dense({units: 1, useBias: true});
     const output = layer2.apply(layer1.apply(inputLayer)) as SymbolicTensor;
 
     const container = new Container({inputs: [inputLayer], outputs: [output]});
@@ -1190,8 +1191,8 @@ describeMathCPUAndGPU('Container', () => {
   it('trainableWeights and nonTrainableWeights.', () => {
     const inputShape = [1, 6];
     const inputLayer = Input({shape: inputShape});
-    const layer1 = new Dense({units: 2, useBias: false});
-    const layer2 = new Dense({units: 1, useBias: true});
+    const layer1 = tfl.layers.dense({units: 2, useBias: false});
+    const layer2 = tfl.layers.dense({units: 1, useBias: true});
     const output = layer2.apply(layer1.apply(inputLayer)) as SymbolicTensor;
 
     const container = new Container({inputs: [inputLayer], outputs: [output]});
@@ -1271,7 +1272,8 @@ describeMathCPUAndGPU('Container', () => {
     const inputLayer = Input({shape: inputShape});
     const layer1 = new Reshape({targetShape: [4], name: 'reshapeLayer'});
     const layer1Output = layer1.apply(inputLayer) as SymbolicTensor;
-    const layer2 = new Dense({units: 2, useBias: false, name: 'denseLayer'});
+    const layer2 =
+        tfl.layers.dense({units: 2, useBias: false, name: 'denseLayer'});
     const layer2Output = layer2.apply(layer1Output) as SymbolicTensor;
     const container =
         new Container({inputs: [inputLayer], outputs: [layer2Output]});
@@ -1287,7 +1289,8 @@ describeMathCPUAndGPU('Container', () => {
     const inputLayer = Input({shape: inputShape});
     const layer1 = new Reshape({targetShape: [4], name: 'reshapeLayer'});
     const layer1Output = layer1.apply(inputLayer) as SymbolicTensor;
-    const layer2 = new Dense({units: 2, useBias: false, name: 'denseLayer'});
+    const layer2 =
+        tfl.layers.dense({units: 2, useBias: false, name: 'denseLayer'});
     const layer2Output = layer2.apply(layer1Output) as SymbolicTensor;
     const container =
         new Container({inputs: [inputLayer], outputs: [layer2Output]});
@@ -1355,7 +1358,8 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
       Input({shape: [3], name: 'inputLayer', dtype: DType.float32});
 
   it('One layer', () => {
-    const denseLayer = new Dense({units: 2, useBias: true, name: 'denseLayer'});
+    const denseLayer =
+        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
     denseLayer.apply(inputTensor);
     const weightsJSON = {
       'keras_version': '2.1.2',
@@ -1387,9 +1391,9 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
 
   it('Two layers', () => {
     const denseLayer1 =
-        new Dense({units: 2, useBias: true, name: 'denseLayer1'});
+        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer1'});
     const denseLayer2 =
-        new Dense({units: 1, useBias: false, name: 'denseLayer2'});
+        tfl.layers.dense({units: 1, useBias: false, name: 'denseLayer2'});
     denseLayer2.apply(denseLayer1.apply(inputTensor));
     const weightsJSON = {
       'keras_version': '2.1.2',
@@ -1429,7 +1433,8 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
   });
 
   it('Missing weights for a layer', () => {
-    const denseLayer = new Dense({units: 2, useBias: true, name: 'denseLayer'});
+    const denseLayer =
+        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
     denseLayer.apply(inputTensor);
     const weightsJSON = {
       'keras_version': '2.1.2',
@@ -1444,7 +1449,8 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
   });
 
   it('Missing a single weight', () => {
-    const denseLayer = new Dense({units: 2, useBias: true, name: 'denseLayer'});
+    const denseLayer =
+        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
     denseLayer.apply(inputTensor);
     const weightsJSON = {
       'keras_version': '2.1.2',
@@ -1472,7 +1478,8 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
   });
 
   it('Shape mismatch in a single weight', () => {
-    const denseLayer = new Dense({units: 2, useBias: true, name: 'denseLayer'});
+    const denseLayer =
+        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
     denseLayer.apply(inputTensor);
     const weightsJSON = {
       'keras_version': '2.1.2',
@@ -1497,7 +1504,8 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
   });
 
   it('skipMismatch=true tolerates a single missing weight', () => {
-    const denseLayer = new Dense({units: 2, useBias: true, name: 'denseLayer'});
+    const denseLayer =
+        tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
     denseLayer.apply(inputTensor);
     const weightsJSON = {
       'keras_version': '2.1.2',
@@ -1533,7 +1541,7 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
 
   it('One layer', () => {
     const denseLayer =
-        new Dense({units: 2, useBias: true, name: 'dense_layer'});
+        tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
     denseLayer.apply(inputTensor);
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].name] =
@@ -1547,7 +1555,7 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
 
   it('Unset weights leads to error', () => {
     const denseLayer =
-        new Dense({units: 2, useBias: true, name: 'dense_layer'});
+        tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
     denseLayer.apply(inputTensor);
     const namedWeightsMap: NamedTensorMap = {};
     namedWeightsMap[denseLayer.weights[0].name] =

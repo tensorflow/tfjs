@@ -11,7 +11,7 @@
 /* original source: keras/regularizers.py */
 
 // tslint:disable:max-line-length
-import {Scalar, Tensor, zeros} from 'deeplearn';
+import {doc, Scalar, Tensor, zeros} from 'deeplearn';
 
 import * as K from './backend/deeplearnjs_backend';
 import {LayerVariable} from './types';
@@ -25,18 +25,43 @@ import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './util
  */
 export abstract class Regularizer { abstract apply(x: LayerVariable): Tensor; }
 
+export interface L1L2Config {
+  /** L1 regularization rate. Defaults to 0.01. */
+  l1?: number;
+  /** L2 regularization rate. Defaults to 0.01. */
+  l2?: number;
+}
+
+export interface L1Config {
+  /** L1 regularization rate. Defaults to 0.01. */
+  l1: number;
+}
+
+export interface L2Config {
+  /** L2 regularization rate. Defaults to 0.01. */
+  l2: number;
+}
+
 /**
  * Regularizer for L1 and L2 regularization.
+ *
+ * Adds a term to the loss to penalize large weights:
+ * loss += sum(l1 * abs(x)) + sum(l2 * x^2)
  */
+@doc({heading: 'Regularizers', namespace: 'regularizers'})
 export class L1L2 extends Regularizer {
   private readonly l1: Scalar;
   private readonly l2: Scalar;
   private readonly hasL1: boolean;
   private readonly hasL2: boolean;
-  constructor(l1 = 0.0, l2 = 0.0) {
+  constructor(config?: L1L2Config) {
     super();
+
+    const l1 = config == null || config.l1 == null ? 0.01 : config.l1;
+    const l2 = config == null || config.l2 == null ? 0.01 : config.l2;
     this.hasL1 = l1 !== 0;
     this.hasL2 = l2 !== 0;
+
     this.l1 = K.getScalar(l1);
     this.l2 = K.getScalar(l2);
   }
@@ -62,22 +87,33 @@ export class L1L2 extends Regularizer {
   }
   static fromConfig(cls: generic_utils.Constructor<L1L2>, config: ConfigDict):
       L1L2 {
-    return new L1L2(config.l1 as number, config.l2 as number);
+    return new L1L2({l1: config.l1 as number, l2: config.l2 as number});
   }
 }
 ClassNameMap.register('L1L2', L1L2);
 
-export function l1(l = 0.01): Regularizer {
-  return new L1L2(l);
+/**
+ * Regularizer for L1 regularization.
+ *
+ * Adds a term to the loss to penalize large weights:
+ * loss += sum(l1 * abs(x))
+ * @param config l1 config.
+ */
+export function l1(config?: L1Config) {
+  return new L1L2({l1: config != null ? config.l1 : null, l2: 0});
 }
 
-export function l2(l = 0.01): Regularizer {
-  return new L1L2(0, l);
+/**
+ * Regularizer for L2 regularization.
+ *
+ * Adds a term to the loss to penalize large weights:
+ * loss += sum(l2 * x^2)
+ * @param config l2 config.
+ */
+export function l2(config: L2Config) {
+  return new L1L2({l2: config != null ? config.l2 : null, l1: 0});
 }
 
-export function l1_l2(l1 = 0.01, l2 = 0.01): Regularizer {
-  return new L1L2(l1, l2);
-}
 
 export function serializeRegularizer(constraint: Regularizer): ConfigDictValue {
   return serializeKerasObject(constraint);

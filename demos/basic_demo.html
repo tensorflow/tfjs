@@ -27,7 +27,7 @@ https://opensource.org/licenses/MIT.
 <script src="../dist/tfjs_layers.debug.js"></script>
 <script>
   window.onload = function() {
-    const model = tfjs_layers.sequential({});
+    const model = tfjs_layers.sequential();
     model.add(tfjs_layers.layers.dense({inputDim: 1, units: 1, name: 'layer_1'}));
     model.add(tfjs_layers.layers.dense({units: 1, name: 'layer_2'}));
 
