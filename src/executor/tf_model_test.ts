@@ -23,6 +23,8 @@ import {TFModel} from './index';
 
 const MODEL_URL = 'http://example.org/model.pb';
 const WEIGHT_MANIFEST_URL = 'http://example.org/weights_manifest.json';
+const RELATIVE_MODEL_URL = '/path/model.pb';
+const RELATIVE_WEIGHT_MANIFEST_URL = '/path/weights_manifest.json';
 let model: TFModel;
 const bias = dl.tensor1d([1], 'int32');
 const WEIGHT_MAP = {
@@ -67,12 +69,14 @@ describe('Model', () => {
     spyOn(dl, 'loadWeights').and.returnValue(weightPromise);
     model = new TFModel(MODEL_URL, WEIGHT_MANIFEST_URL);
     spyOn(window, 'fetch')
-        .and.callFake(() => new Promise(
-            (resolve => resolve(new Response(JSON.stringify({json: 'ok!'}))))));
+        .and.callFake(
+            () => new Promise(
+                (resolve =>
+                     resolve(new Response(JSON.stringify({json: 'ok!'}))))));
   });
   afterEach(() => {});
 
-  describe('load', async () => {
+  it('load', async () => {
     const loaded = await model.load();
     expect(loaded).toBe(true);
   });
@@ -103,6 +107,17 @@ describe('Model', () => {
     it('should return the version info from the tf model', async () => {
       await model.load();
       expect(model.modelVersion).toEqual('1.3');
+    });
+  });
+
+  describe('relative path', () => {
+    beforeEach(() => {
+      model = new TFModel(RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
+    });
+
+    it('load', async () => {
+      const loaded = await model.load();
+      expect(loaded).toBe(true);
     });
   });
 });
