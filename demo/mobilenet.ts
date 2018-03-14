@@ -20,7 +20,7 @@ import {NamedTensorMap, TFModel} from 'tfjs-converter';
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
-    'https://storage.googleapis.com/learnjs-data/tf_model_zoo/';
+    'https://storage.googleapis.com/tfjs-models/savedmodel/';
 const MODEL_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb';
 const WEIGHT_MANIFEST_FILE_URL = 'mobilenet_v1_1.0_224/weights_manifest.json';
 const INPUT_NODE_NAME = 'input';
