@@ -19,11 +19,11 @@ import * as _ from 'underscore';
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
 import {DataFormat, PaddingMode} from '../common';
-import {Constraint, getConstraint, serializeConstraint} from '../constraints';
+import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {getInitializer, Initializer, serializeInitializer} from '../initializers';
-import {getRegularizer, Regularizer, serializeRegularizer} from '../regularizers';
+import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
+import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Shape} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import {convOutputLength, normalizeArray} from '../utils/conv_utils';
@@ -95,37 +95,37 @@ export interface ConvLayerConfig extends LayerConfig {
   /**
    * Initializer for the `kernel` weights matrix.
    */
-  kernelInitializer?: string|Initializer;
+  kernelInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the bias vector.
    */
-  biasInitializer?: string|Initializer;
+  biasInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Constraint for the kernel weights.
    */
-  kernelConstraint?: string|Constraint;
+  kernelConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Constraint for the bias vector.
    */
-  biasConstraint?: string|Constraint;
+  biasConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Regularizer function applied to the `kernel` weights matrix.
    */
-  kernelRegularizer?: string|Regularizer;
+  kernelRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Regularizer function applied to the bias vector.
    */
-  biasRegularizer?: string|Regularizer;
+  biasRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Regularizer function applied to the activation.
    */
-  activityRegularizer?: string|Regularizer;
+  activityRegularizer?: RegularizerIdentifier|Regularizer;
 }
 
 /**
@@ -205,6 +205,7 @@ export abstract class Conv extends Layer {
     const inputDim = inputShape[channelAxis];
 
     const kernelShape = this.kernelSize.concat([inputDim, this.filters]);
+
     this.kernel = this.addWeight(
         'kernel', kernelShape, null, this.kernelInitializer,
         this.kernelRegularizer, true, this.kernelConstraint);

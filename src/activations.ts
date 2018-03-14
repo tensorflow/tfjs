@@ -16,33 +16,38 @@ import {ValueError} from './errors';
 import {ConfigDictValue} from './types';
 
 export type ActivationFn = (tensor: Tensor, axis?: number) => Tensor;
+export type ActivationIdentifier = 'elu'|'hardsigmoid'|'linear'|'relu'|'relu6'|
+    'selu'|'sigmoid'|'softmax'|'softplus'|'softsign'|'tanh'|string;
 
 // TODO(cais): Consider switching arg type from string to Enum.
-export function getActivation(initializerType: string): ActivationFn {
-  if (initializerType == null || initializerType.toLowerCase() === 'linear') {
+export function getActivation(activationType: ActivationIdentifier):
+    ActivationFn {
+  if (activationType == null) {
     return linear;
-  } else if (initializerType.toLowerCase() === 'elu') {
+  } else if (activationType.toLowerCase() === 'elu') {
     return elu;
-  } else if (initializerType.toLowerCase() === 'relu') {
-    return relu;
-  } else if (initializerType.toLowerCase() === 'relu6') {
-    return relu6;
-  } else if (initializerType.toLowerCase() === 'selu') {
-    return selu;
-  } else if (initializerType.toLowerCase() === 'sigmoid') {
-    return sigmoid;
-  } else if (initializerType.toLowerCase() === 'hardsigmoid') {
+  } else if (activationType.toLowerCase() === 'hardsigmoid') {
     return hardSigmoid;
-  } else if (initializerType.toLowerCase() === 'softmax') {
+  } else if (activationType.toLowerCase() === 'linear') {
+    return linear;
+  } else if (activationType.toLowerCase() === 'relu') {
+    return relu;
+  } else if (activationType.toLowerCase() === 'relu6') {
+    return relu6;
+  } else if (activationType.toLowerCase() === 'selu') {
+    return selu;
+  } else if (activationType.toLowerCase() === 'sigmoid') {
+    return sigmoid;
+  } else if (activationType.toLowerCase() === 'softmax') {
     return softmax;
-  } else if (initializerType.toLowerCase() === 'softplus') {
+  } else if (activationType.toLowerCase() === 'softplus') {
     return softplus;
-  } else if (initializerType.toLowerCase() === 'softsign') {
+  } else if (activationType.toLowerCase() === 'softsign') {
     return softsign;
-  } else if (initializerType.toLowerCase() === 'tanh') {
+  } else if (activationType.toLowerCase() === 'tanh') {
     return tanh;
   } else {
-    throw new ValueError(`Unsupported activation function ${initializerType}`);
+    throw new ValueError(`Unsupported activation function ${activationType}`);
   }
 }
 

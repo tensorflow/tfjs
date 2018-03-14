@@ -508,6 +508,10 @@ ClassNameMap.register('LeCunNormal', LeCunNormal);
 // TODO(cais): Implement Orthogonal once the deeplearn.js feature is fulfilled:
 //   https://github.com/PAIR-code/deeplearnjs/issues/245
 
+export type InitializerIdentifier = 'Constant'|'GlorotNormal'|'GlorotUniform'|
+    'HeNormal'|'Identity'|'LeCunNormal'|'Ones'|'RandomNormal'|'RandomUniform'|
+    'TruncatedNormal'|'VarianceScaling'|'Zeros'|string;
+
 function deserializeInitializer(
     config: ConfigDict, customObjects: ConfigDict = {}): Initializer {
   return deserializeKerasObject(
@@ -520,7 +524,7 @@ export function serializeInitializer(initializer: Initializer):
   return serializeKerasObject(initializer);
 }
 
-export function getInitializer(identifier: string|Initializer|
+export function getInitializer(identifier: InitializerIdentifier|Initializer|
                                ConfigDict): Initializer {
   if (typeof identifier === 'string') {
     const config = {className: identifier, config: {}};
