@@ -76,7 +76,7 @@ async function train() {
     ]
   });
 
-  const sgd = new tfl.optimizers.Adam({lr: getLearningRate()});
+  const sgd = tf.train.adam(getLearningRate());
   model.compile({optimizer: sgd, loss: 'categoricalCrossentropy'});
 
   const batchSize =
