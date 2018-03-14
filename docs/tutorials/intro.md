@@ -55,7 +55,7 @@ this is a relatively expensive operation, so you would likely want to call the a
 
 ### Operations (Ops)
 
-While Tensors allow us to store data, ops allow us to manipulate data. __deeplearn.js__ comes with a wide variety of mathematical opearations suitable for linear algebra and machine learning. These include unary ops like `square()` and binary ops like `add()` and `mul()` Generally speaking an op will do some transformation on one of more tensors and return a new tensor as a result.
+While Tensors allow us to store data, ops allow us to manipulate data. __deeplearn.js__ comes with a wide variety of mathematical operations suitable for linear algebra and machine learning. These include unary ops like `square()` and binary ops like `add()` and `mul()` Generally speaking an op will do some transformation on one of more tensors and return a new tensor as a result.
 
 ```js
 let a = dl.tensor2d([[1.0, 2.0], [3.0, 4.0]]);
