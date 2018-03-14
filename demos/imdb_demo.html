@@ -93,7 +93,6 @@ https://opensource.org/licenses/MIT.
         // Convert to lower case and remove all punctuations.
         const inputText = reviewText.value
             .trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
-        console.log('input:', inputText);  // DEBUG
         // Look up word indices.
         const inputBuffer = tfjs_layers.dl.buffer([1, maxLen], 'float32');
         for (let i = 0; i < inputText.length; ++i) {

@@ -172,7 +172,7 @@ export class LayerVariable {
   readonly name: string;
   readonly trainable: boolean;
 
-  protected val: dl.Variable;
+  protected readonly val: dl.Variable;
   readonly constraint: Constraint;
   /**
    * Construct Variable from a Tensor or a ConcreteTensor.
@@ -263,7 +263,9 @@ export type RnnStepFunction =
  * and support for Enums.
  */
 export type JsonValue = boolean|number|string|null|JsonArray|JsonDict;
-export interface JsonDict { [key: string]: JsonValue; }
+export interface JsonDict {
+  [key: string]: JsonValue;
+}
 export interface JsonArray extends Array<JsonValue> {}
 
 /**
@@ -283,7 +285,9 @@ export interface JsonArray extends Array<JsonValue> {}
  */
 export type ConfigDictValue =
     boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict { [key: string]: ConfigDictValue; }
+export interface ConfigDict {
+  [key: string]: ConfigDictValue;
+}
 export interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 export type NamedTensorMap = {
