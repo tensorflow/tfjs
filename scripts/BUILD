@@ -172,19 +172,6 @@ py_test(
 )
 
 py_binary(
-    name = "mobilenet",
-    srcs = ["mobilenet.py"],
-    data = [
-        "imagenet_class_names.json",
-    ],
-    deps = [
-        ":expect_h5py_installed",
-        ":expect_keras_installed",
-        ":h5_conversion",
-    ],
-)
-
-py_binary(
     name = "translation",
     srcs = ["translation.py"],
     deps = [
