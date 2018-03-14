@@ -230,6 +230,9 @@ export class MinMaxNorm extends Constraint {
 }
 ClassNameMap.register('MinMaxNorm', MinMaxNorm);
 
+export type ConstraintIdentifier =
+    'MaxNorm'|'MinMaxNorm'|'NonNeg'|'UnitNorm'|string;
+
 export function serializeConstraint(constraint: Constraint): ConfigDictValue {
   return serializeKerasObject(constraint);
 }
@@ -241,7 +244,7 @@ export function deserializeConstraint(
       'constraint');
 }
 
-export function getConstraint(identifier: string|ConfigDict|
+export function getConstraint(identifier: ConstraintIdentifier|ConfigDict|
                               Constraint): Constraint {
   if (identifier == null) {
     return null;

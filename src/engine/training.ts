@@ -577,7 +577,7 @@ export interface ModelCompileConfig {
  * A `Model` is the basic unit of training, inference and evaluation in
  * TensorFlow.js. To create a `Model, use `model`.
  *
- * To create a `Model`, specify its input(s) and output(s). Inputs are
+ * When creating a `Model`, specify its input(s) and output(s). Inputs are
  * `SymbolicTensor`s provided by `Input` layers. Outputs are `SymbolicTensor`s
  * provided by other layers that perform mathematical and neural-network
  * operations.

@@ -115,6 +115,8 @@ export function l2(config: L2Config) {
 }
 
 
+export type RegularizerIdentifier = 'L1L2'|string;
+
 export function serializeRegularizer(constraint: Regularizer): ConfigDictValue {
   return serializeKerasObject(constraint);
 }
@@ -126,7 +128,7 @@ export function deserializeRegularizer(
       'regularizer');
 }
 
-export function getRegularizer(identifier: string|ConfigDict|
+export function getRegularizer(identifier: RegularizerIdentifier|ConfigDict|
                                Regularizer): Regularizer {
   if (identifier == null) {
     return null;

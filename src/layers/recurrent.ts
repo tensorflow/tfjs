@@ -16,18 +16,19 @@ import {Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
 // tslint:disable:max-line-length
-import * as activations from '../activations';
+import {ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
-import {Constraint, getConstraint, serializeConstraint} from '../constraints';
+import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec} from '../engine/topology';
 import {Layer, LayerConfig} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
-import {getInitializer, Initializer, Ones, serializeInitializer} from '../initializers';
-import {getRegularizer, Regularizer, serializeRegularizer} from '../regularizers';
+import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
+import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {DType, Shape, SymbolicTensor} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
+
 // tslint:enable:max-line-length
 
 export interface BaseRNNLayerConfig extends LayerConfig {
@@ -663,7 +664,7 @@ export interface SimpleRNNCellLayerConfig extends LayerConfig {
    * Default: hyperbolic tangent (`tanh`).
    * If you pass `null`,  'linear' activation will be applied.
    */
-  activation?: string;
+  activation?: ActivationIdentifier;
 
   /**
    * Whether the layer uses a bias vector.
@@ -674,55 +675,55 @@ export interface SimpleRNNCellLayerConfig extends LayerConfig {
    * Initializer for the `kernel` weights matrix, used for the linear
    * transformation of the inputs (see [initializers](../initializers.md)).
    */
-  kernelInitializer?: string|Initializer;
+  kernelInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the `recurrentKernel` weights matrix, used for
    * linear transformation of the recurrent state
    * (see [initializers](../initializers.md)).
    */
-  recurrentInitializer?: string|Initializer;
+  recurrentInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the bias vector (see [initializers](../initializers.md)).
    */
-  biasInitializer?: string|Initializer;
+  biasInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Regularizer function applied to the `kernel` weights matrix
    * (see [regularizer](../regularizers.md)).
    */
-  kernelRegularizer?: string|Regularizer;
+  kernelRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Regularizer function applied to the `recurrent_kernel` weights matrix.
    * (see [regularizer](../regularizers.md))
    */
-  recurrentRegularizer?: string|Regularizer;
+  recurrentRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Regularizer function applied to the bias vector.
    * (see [regularizer](../regularizers.md))
    */
-  biasRegularizer?: string|Regularizer;
+  biasRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Constraint function applied to the `kernel` weights matrix.
    * (see [constraints](../constraints.md)).
    */
-  kernelConstraint?: string|Constraint;
+  kernelConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Constraint function applied to the `recurrentKernel` weights matrix.
    * (see [constraints](../constraints.md)).
    */
-  recurrentConstraint?: string|Constraint;
+  recurrentConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Constraintfunction applied to the bias vector.
    * (see [constraints](../constraints.md)).
    */
-  biasConstraint?: string|Constraint;
+  biasConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Float number between 0 and 1. Fraction of the units to drop for the linear
@@ -739,7 +740,7 @@ export interface SimpleRNNCellLayerConfig extends LayerConfig {
 
 export class SimpleRNNCell extends RNNCell {
   readonly units: number;
-  readonly activation: activations.ActivationFn;
+  readonly activation: ActivationFn;
   readonly useBias: boolean;
 
   readonly kernelInitializer: Initializer;
@@ -778,7 +779,7 @@ export class SimpleRNNCell extends RNNCell {
   constructor(config: SimpleRNNCellLayerConfig) {
     super(config);
     this.units = config.units;
-    this.activation = activations.getActivation(
+    this.activation = getActivation(
         config.activation === undefined ? this.DEFAULT_ACTIVATION :
                                           config.activation);
     this.useBias = config.useBias === undefined ? true : config.useBias;
@@ -871,7 +872,7 @@ export class SimpleRNNCell extends RNNCell {
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
-      activation: activations.serializeActivation(this.activation),
+      activation: serializeActivation(this.activation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -905,7 +906,7 @@ export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
    * If you pass `null`, no activation will be applied
    * (i.e., "linear" activation: `a(x) = x`).
    */
-  activation?: string;
+  activation?: ActivationIdentifier;
 
   /**
    * Whether the layer uses a bias vector.
@@ -916,55 +917,55 @@ export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
    * Initializer for the `kernel` weights matrix, used for the linear
    * transformation of the inputs (see [initializers](../initializers.md)).
    */
-  kernelInitializer?: string|Initializer;
+  kernelInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the `recurrentKernel` weights matrix, used for
    * linear transformation of the recurrent state
    * (see [initializers](../initializers.md)).
    */
-  recurrentInitializer?: string|Initializer;
+  recurrentInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the bias vector (see [initializers](../initializers.md)).
    */
-  biasInitializer?: string|Initializer;
+  biasInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Regularizer function applied to the `kernel` weights matrix
    * (see [regularizer](../regularizers.md)).
    */
-  kernelRegularizer?: string|Regularizer;
+  kernelRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Regularizer function applied to the `recurrent_kernel` weights matrix.
    * (see [regularizer](../regularizers.md))
    */
-  recurrentRegularizer?: string|Regularizer;
+  recurrentRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Regularizer function applied to the bias vector.
    * (see [regularizer](../regularizers.md))
    */
-  biasRegularizer?: string|Regularizer;
+  biasRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Constraint function applied to the `kernel` weights matrix.
    * (see [constraints](../constraints.md)).
    */
-  kernelConstraint?: string|Constraint;
+  kernelConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Constraint function applied to the `recurrentKernel` weights matrix.
    * (see [constraints](../constraints.md)).
    */
-  recurrentConstraint?: string|Constraint;
+  recurrentConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Constraintfunction applied to the bias vector.
    * (see [constraints](../constraints.md)).
    */
-  biasConstraint?: string|Constraint;
+  biasConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Float number between 0 and 1. Fraction of the units to drop for the linear
@@ -1005,7 +1006,7 @@ export class SimpleRNN extends RNN {
     return (this.cell as SimpleRNNCell).units;
   }
 
-  get activation(): activations.ActivationFn {
+  get activation(): ActivationFn {
     return (this.cell as SimpleRNNCell).activation;
   }
 
@@ -1060,7 +1061,7 @@ export class SimpleRNN extends RNN {
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
-      activation: activations.serializeActivation(this.activation),
+      activation: serializeActivation(this.activation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -1110,8 +1111,8 @@ export interface GRUCellLayerConfig extends SimpleRNNCellLayerConfig {
  */
 export class GRUCell extends RNNCell {
   readonly units: number;
-  readonly activation: activations.ActivationFn;
-  readonly recurrentActivation: activations.ActivationFn;
+  readonly activation: ActivationFn;
+  readonly recurrentActivation: ActivationFn;
   readonly useBias: boolean;
 
   readonly kernelInitializer: Initializer;
@@ -1153,10 +1154,10 @@ export class GRUCell extends RNNCell {
     super(config);
 
     this.units = config.units;
-    this.activation = activations.getActivation(
+    this.activation = getActivation(
         config.activation === undefined ? this.DEFAULT_ACTIVATION :
                                           config.activation);
-    this.recurrentActivation = activations.getActivation(
+    this.recurrentActivation = getActivation(
         config.activation === undefined ? this.DEFAULT_RECURRENT_ACTIVATION :
                                           config.recurrentActivation);
     this.useBias = config.useBias == null ? true : config.useBias;
@@ -1311,7 +1312,7 @@ export class GRUCell extends RNNCell {
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
-      activation: activations.serializeActivation(this.activation),
+      activation: serializeActivation(this.activation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -1377,7 +1378,7 @@ export class GRU extends RNN {
     return (this.cell as GRUCell).units;
   }
 
-  get activation(): activations.ActivationFn {
+  get activation(): ActivationFn {
     return (this.cell as GRUCell).activation;
   }
 
@@ -1436,7 +1437,7 @@ export class GRU extends RNN {
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
-      activation: activations.serializeActivation(this.activation),
+      activation: serializeActivation(this.activation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -1477,7 +1478,7 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
    * If you pass `null`, no activation is applied
    * (ie. "linear" activation: `a(x) = x`).
    */
-  recurrentActivation?: string;
+  recurrentActivation?: ActivationIdentifier;
 
   /**
    * If `true`, add 1 to the bias of the forget gate at initialization.
@@ -1504,8 +1505,8 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
  */
 export class LSTMCell extends RNNCell {
   readonly units: number;
-  readonly activation: activations.ActivationFn;
-  readonly recurrentActivation: activations.ActivationFn;
+  readonly activation: ActivationFn;
+  readonly recurrentActivation: ActivationFn;
   readonly useBias: boolean;
 
   readonly kernelInitializer: Initializer;
@@ -1548,10 +1549,10 @@ export class LSTMCell extends RNNCell {
     super(config);
 
     this.units = config.units;
-    this.activation = activations.getActivation(
+    this.activation = getActivation(
         config.activation === undefined ? this.DEFAULT_ACTIVATION :
                                           config.activation);
-    this.recurrentActivation = activations.getActivation(
+    this.recurrentActivation = getActivation(
         config.activation === undefined ? this.DEFAULT_RECURRENT_ACTIVATION :
                                           config.recurrentActivation);
     this.useBias = config.useBias == null ? true : config.useBias;
@@ -1731,7 +1732,7 @@ export class LSTMCell extends RNNCell {
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
-      activation: activations.serializeActivation(this.activation),
+      activation: serializeActivation(this.activation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -1807,7 +1808,7 @@ export class LSTM extends RNN {
     return (this.cell as LSTMCell).units;
   }
 
-  get activation(): activations.ActivationFn {
+  get activation(): ActivationFn {
     return (this.cell as LSTMCell).activation;
   }
 
@@ -1870,7 +1871,7 @@ export class LSTM extends RNN {
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
-      activation: activations.serializeActivation(this.activation),
+      activation: serializeActivation(this.activation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),

@@ -15,15 +15,17 @@
 import {Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
+// tslint:disable:max-line-length
 import * as K from '../backend/deeplearnjs_backend';
-import * as constraints from '../constraints';
+import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import * as initializers from '../initializers';
-import * as regularizers from '../regularizers';
+import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
+import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Shape} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
+// tslint:enable:max-line-length
 
 export interface BatchNormalizationLayerConfig extends LayerConfig {
   /**
@@ -66,45 +68,45 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
    * Initializer for the beta weight.
    * Default: 'Zeros'.
    */
-  betaInitializer?: string|initializers.Initializer;
+  betaInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the gamma weight.
    * Default: 'Ones'.
    */
-  gammaInitializer?: string|initializers.Initializer;
+  gammaInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the moving mean.
    * Default: 'Zeros'
    */
-  movingMeanInitializer?: string|initializers.Initializer;
+  movingMeanInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the moving variance.
    * Default: 'Ones'.
    */
-  movingVarianceInitializer?: string|initializers.Initializer;
+  movingVarianceInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Optional constraint for the beta weight.
    */
-  betaConstraint?: string|constraints.Constraint;
+  betaConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Optional constraint for gamma weight.
    */
-  gammaConstraint?: string|constraints.Constraint;
+  gammaConstraint?: ConstraintIdentifier|Constraint;
 
   /**
    * Optional regularizer for the beta weight.
    */
-  betaRegularizer?: string|regularizers.Regularizer;
+  betaRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Optional regularizer for the gamma weight.
    */
-  gammaRegularizer?: string|regularizers.Regularizer;
+  gammaRegularizer?: RegularizerIdentifier|Regularizer;
 }
 
 
@@ -133,14 +135,14 @@ export class BatchNormalization extends Layer {
   private readonly epsilon: number;
   private readonly center: boolean;
   private readonly scale: boolean;
-  private readonly betaInitializer: initializers.Initializer;
-  private readonly gammaInitializer: initializers.Initializer;
-  private readonly movingMeanInitializer: initializers.Initializer;
-  private readonly movingVarianceInitializer: initializers.Initializer;
-  private readonly betaConstraint: constraints.Constraint;
-  private readonly gammaConstraint: constraints.Constraint;
-  private readonly betaRegularizer: regularizers.Regularizer;
-  private readonly gammaRegularizer: regularizers.Regularizer;
+  private readonly betaInitializer: Initializer;
+  private readonly gammaInitializer: Initializer;
+  private readonly movingMeanInitializer: Initializer;
+  private readonly movingVarianceInitializer: Initializer;
+  private readonly betaConstraint: Constraint;
+  private readonly gammaConstraint: Constraint;
+  private readonly betaRegularizer: Regularizer;
+  private readonly gammaRegularizer: Regularizer;
   private gamma: LayerVariable;
   private beta: LayerVariable;
   private movingMean: LayerVariable;
@@ -154,19 +156,16 @@ export class BatchNormalization extends Layer {
     this.epsilon = config.epsilon == null ? 1e-3 : config.epsilon;
     this.center = config.center == null ? true : config.center;
     this.scale = config.scale == null ? true : config.scale;
-    this.betaInitializer =
-        initializers.getInitializer(config.betaInitializer || 'Zeros');
-    this.gammaInitializer =
-        initializers.getInitializer(config.gammaInitializer || 'Ones');
+    this.betaInitializer = getInitializer(config.betaInitializer || 'Zeros');
+    this.gammaInitializer = getInitializer(config.gammaInitializer || 'Ones');
     this.movingMeanInitializer =
-        initializers.getInitializer(config.movingMeanInitializer || 'Zeros');
+        getInitializer(config.movingMeanInitializer || 'Zeros');
     this.movingVarianceInitializer =
-        initializers.getInitializer(config.movingVarianceInitializer || 'Ones');
-    this.betaConstraint = constraints.getConstraint(config.betaConstraint);
-    this.gammaConstraint = constraints.getConstraint(config.gammaConstraint);
-    this.betaRegularizer = regularizers.getRegularizer(config.betaRegularizer);
-    this.gammaRegularizer =
-        regularizers.getRegularizer(config.gammaRegularizer);
+        getInitializer(config.movingVarianceInitializer || 'Ones');
+    this.betaConstraint = getConstraint(config.betaConstraint);
+    this.gammaConstraint = getConstraint(config.gammaConstraint);
+    this.betaRegularizer = getRegularizer(config.betaRegularizer);
+    this.gammaRegularizer = getRegularizer(config.gammaRegularizer);
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -253,18 +252,15 @@ export class BatchNormalization extends Layer {
       epsilon: this.epsilon,
       center: this.center,
       scale: this.scale,
-      betaInitializer: initializers.serializeInitializer(this.betaInitializer),
-      gammaInitializer:
-          initializers.serializeInitializer(this.gammaInitializer),
-      movingMeanInitializer:
-          initializers.serializeInitializer(this.movingMeanInitializer),
+      betaInitializer: serializeInitializer(this.betaInitializer),
+      gammaInitializer: serializeInitializer(this.gammaInitializer),
+      movingMeanInitializer: serializeInitializer(this.movingMeanInitializer),
       movingVarianceInitializer:
-          initializers.serializeInitializer(this.movingVarianceInitializer),
-      betaRegularizer: regularizers.serializeRegularizer(this.betaRegularizer),
-      gammaRegularizer:
-          regularizers.serializeRegularizer(this.gammaRegularizer),
-      betaConstraint: constraints.serializeConstraint(this.betaConstraint),
-      gammaConstraint: constraints.serializeConstraint(this.gammaConstraint)
+          serializeInitializer(this.movingVarianceInitializer),
+      betaRegularizer: serializeRegularizer(this.betaRegularizer),
+      gammaRegularizer: serializeRegularizer(this.gammaRegularizer),
+      betaConstraint: serializeConstraint(this.betaConstraint),
+      gammaConstraint: serializeConstraint(this.gammaConstraint)
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
