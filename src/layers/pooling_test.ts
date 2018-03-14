@@ -145,50 +145,55 @@ describe('Pooling Layers 2D: Symbolic', () => {
   const poolModes = [PoolMode.AVG, PoolMode.MAX];
   const paddingModes = [undefined, PaddingMode.VALID, PaddingMode.SAME];
   const dataFormats = [DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
+  const poolSizeIsNumberValues = [false, true];
 
   for (const poolMode of poolModes) {
     for (const paddingMode of paddingModes) {
       for (const dataFormat of dataFormats) {
         for (const poolSize of poolSizes) {
-          const testTitle = `poolSize=${poolSize}, ` +
-              `${DataFormat[dataFormat]}, ${PaddingMode[paddingMode]}, ` +
-              `${PoolMode[poolMode]}`;
-          it(testTitle, () => {
-            const inputShape = dataFormat === DataFormat.CHANNEL_FIRST ?
-                [2, 16, 11, 9] :
-                [2, 11, 9, 16];
-            const symbolicInput =
-                new SymbolicTensor(DType.float32, inputShape, null, [], null);
+          for (const poolSizeIsNumber of poolSizeIsNumberValues) {
+            const testTitle = `poolSize=${poolSize}, ` +
+                `${DataFormat[dataFormat]}, ${PaddingMode[paddingMode]}, ` +
+                `${PoolMode[poolMode]}, ` +
+                `poollSizeIsNumber=${poolSizeIsNumber}`;
+            it(testTitle, () => {
+              const inputShape = dataFormat === DataFormat.CHANNEL_FIRST ?
+                  [2, 16, 11, 9] :
+                  [2, 11, 9, 16];
+              const symbolicInput =
+                  new SymbolicTensor(DType.float32, inputShape, null, [], null);
 
-            const poolConstructor =
-                poolMode === PoolMode.AVG ? AvgPooling2D : MaxPooling2D;
-            const poolingLayer = new poolConstructor({
-              poolSize: [poolSize, poolSize],
-              padding: paddingMode,
-              dataFormat,
+              const poolConstructor =
+                  poolMode === PoolMode.AVG ? AvgPooling2D : MaxPooling2D;
+              const poolingLayer = new poolConstructor({
+                poolSize: poolSizeIsNumber ? poolSize : [poolSize, poolSize],
+                padding: paddingMode,
+                dataFormat,
+              });
+
+              const output =
+                  poolingLayer.apply(symbolicInput) as SymbolicTensor;
+
+              let outputRows = poolSize === 2 ? 5 : 3;
+              if (paddingMode === PaddingMode.SAME) {
+                outputRows++;
+              }
+              let outputCols = poolSize === 2 ? 4 : 3;
+              if (paddingMode === PaddingMode.SAME && poolSize === 2) {
+                outputCols++;
+              }
+
+              let expectedShape: [number, number, number, number];
+              if (dataFormat === DataFormat.CHANNEL_FIRST) {
+                expectedShape = [2, 16, outputRows, outputCols];
+              } else {
+                expectedShape = [2, outputRows, outputCols, 16];
+              }
+
+              expect(output.shape).toEqual(expectedShape);
+              expect(output.dtype).toEqual(symbolicInput.dtype);
             });
-
-            const output = poolingLayer.apply(symbolicInput) as SymbolicTensor;
-
-            let outputRows = poolSize === 2 ? 5 : 3;
-            if (paddingMode === PaddingMode.SAME) {
-              outputRows++;
-            }
-            let outputCols = poolSize === 2 ? 4 : 3;
-            if (paddingMode === PaddingMode.SAME && poolSize === 2) {
-              outputCols++;
-            }
-
-            let expectedShape: [number, number, number, number];
-            if (dataFormat === DataFormat.CHANNEL_FIRST) {
-              expectedShape = [2, 16, outputRows, outputCols];
-            } else {
-              expectedShape = [2, outputRows, outputCols, 16];
-            }
-
-            expect(output.shape).toEqual(expectedShape);
-            expect(output.dtype).toEqual(symbolicInput.dtype);
-          });
+          }
         }
       }
     }
