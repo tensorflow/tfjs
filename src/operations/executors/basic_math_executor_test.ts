@@ -23,7 +23,7 @@ import {createNumberAttr, createTensorAttr} from './test_helper';
 
 describe('basic math', () => {
   let node: Node;
-  const input1 = dl.scalar(1);
+  const input1 = [dl.scalar(1)];
 
   beforeEach(() => {
     node = {
@@ -47,7 +47,7 @@ describe('basic math', () => {
             node.op = op;
             executeOp(node, {input1});
 
-            expect(spy).toHaveBeenCalledWith(input1);
+            expect(spy).toHaveBeenCalledWith(input1[0]);
           });
         });
     describe('clipByValue', () => {
@@ -59,19 +59,19 @@ describe('basic math', () => {
 
         executeOp(node, {input1});
 
-        expect(dl.clipByValue).toHaveBeenCalledWith(input1, 0, 6);
+        expect(dl.clipByValue).toHaveBeenCalledWith(input1[0], 0, 6);
       });
     });
     describe('rsqrt', () => {
       it('should call dl.div', () => {
-        const input1 = dl.scalar(1);
+        const input1 = [dl.scalar(1)];
         node.op = 'rsqrt';
         spyOn(dl, 'div');
         spyOn(dl, 'sqrt').and.returnValue(input1);
 
         executeOp(node, {input1});
 
-        expect(dl.sqrt).toHaveBeenCalledWith(input1);
+        expect(dl.sqrt).toHaveBeenCalledWith(input1[0]);
         expect(dl.div).toHaveBeenCalledWith(jasmine.any(dl.Tensor), input1);
       });
     });

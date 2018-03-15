@@ -32,6 +32,7 @@ import * as sliceJoin from './op_list/slice_join.json';
 import * as transformation from './op_list/transformation.json';
 import {Graph, Node, OpMapper} from './types';
 
+const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'Next'];
 export class OperationMapper {
   private static _instance: OperationMapper;
 
@@ -60,12 +61,18 @@ export class OperationMapper {
         {});
   }
 
+  private isControlFlow(node: tensorflow.INodeDef) {
+    return CONTROL_FLOW_OPS.some(op => op === node.op);
+  }
+
   // Converts the model from Tensorflow GraphDef to local representation for
   // deeplearn.js API
   transformGraph(graph: tensorflow.IGraphDef): Graph {
     const tfNodes = graph.node;
+    let withControlFlow = false;
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
+      if (this.isControlFlow(node)) withControlFlow = true;
       return map;
     }, {});
 
@@ -84,7 +91,7 @@ export class OperationMapper {
       const node = nodes[key];
       if (node.children.length === 0) outputs.push(node);
     });
-    return {nodes, inputs, outputs};
+    return {nodes, inputs, outputs, withControlFlow};
   }
 
   private mapNode(node: tensorflow.INodeDef): Node {

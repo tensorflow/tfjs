@@ -23,8 +23,8 @@ import {createTensorAttr} from './test_helper';
 
 describe('arithmetic', () => {
   let node: Node;
-  const input1 = dl.scalar(1);
-  const input2 = dl.scalar(1);
+  const input1 = [dl.scalar(1)];
+  const input2 = [dl.scalar(1)];
 
   beforeEach(() => {
     node = {
@@ -45,7 +45,7 @@ describe('arithmetic', () => {
         node.op = op;
         executeOp(node, {input1, input2});
 
-        expect(spy).toHaveBeenCalledWith(input1, input2);
+        expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
       });
     }));
   });

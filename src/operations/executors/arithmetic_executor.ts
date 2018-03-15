@@ -17,48 +17,48 @@
 
 import * as dl from 'deeplearn';
 
-import {NamedTensorMap} from '../../data/index';
+import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
 
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
-    (node: Node, tensorMap: NamedTensorMap): dl.Tensor => {
+    (node: Node, tensorMap: NamedTensorsMap): dl.Tensor[] => {
       switch (node.op) {
         case 'add': {
-          return dl.add(
+          return [dl.add(
               getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
+              getParamValue('b', node, tensorMap) as dl.Tensor)];
         }
         case 'mul':
-          return dl.mul(
+          return [dl.mul(
               getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
+              getParamValue('b', node, tensorMap) as dl.Tensor)];
         case 'div': {
-          return dl.div(
+          return [dl.div(
               getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
+              getParamValue('b', node, tensorMap) as dl.Tensor)];
         }
         case 'sub': {
-          return dl.sub(
+          return [dl.sub(
               getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
+              getParamValue('b', node, tensorMap) as dl.Tensor)];
         }
         case 'minimum': {
-          return dl.minimum(
+          return [dl.minimum(
               getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
+              getParamValue('b', node, tensorMap) as dl.Tensor)];
         }
         case 'maximum': {
-          return dl.maximum(
+          return [dl.maximum(
               getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
+              getParamValue('b', node, tensorMap) as dl.Tensor)];
         }
         case 'pow': {
-          return dl.pow(
+          return [dl.pow(
               getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor);
+              getParamValue('b', node, tensorMap) as dl.Tensor)];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

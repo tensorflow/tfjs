@@ -18,7 +18,7 @@
 import * as dl from 'deeplearn';
 import {WeightsManifestConfig} from 'deeplearn/dist/weights_loader';
 
-import {NamedTensorMap, tensorflow} from '../data/index';
+import {NamedTensorMap, NamedTensorsMap, tensorflow} from '../data/index';
 import {OperationMapper} from '../operations/index';
 
 import {GraphExecutor} from './graph_executor';
@@ -90,7 +90,7 @@ export class TFModel {
     const graphPromise = this.loadRemoteProtoFile();
     const manifestPromise = this.loadWeightManifest();
 
-    const [graph, manifest] =
+    const [graph, _] =
         await Promise.all([graphPromise, manifestPromise]);
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
@@ -98,8 +98,7 @@ export class TFModel {
         await dl.loadWeights(this.weightManifest, this.pathPrefix);
     this.executor =
         new GraphExecutor(OperationMapper.Instance.transformGraph(graph));
-    this.executor.weightMap = weightMap;
-
+    this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
     return true;
   }
 
@@ -107,11 +106,29 @@ export class TFModel {
    * Executes infrerence for the model for given input tensors.
    * @param inputs tensor map of the inputs for the model, keyed by the input
    * node names.
+   * @param outputs output node name from the Tensorflow model, if no outputs
+   * are specified, the default outputs of the model would be used. You can
+   * inspect intermediate nodes of the model by adding them to the outputs
+   * array.
+   *
+   * @returns A single tensor if provided with a single output or no outputs are
+   * provided and there is only one default output, otherwise return a tensor
+   * map.
    */
-  eval(inputs: NamedTensorMap): NamedTensorMap {
-    return this.executor.execute(inputs);
+  eval(inputs: NamedTensorMap, outputs?: string|string[]): dl.Tensor
+      |NamedTensorMap {
+    const result = this.executor.execute(
+        this.convertTensorMapToTensorsMap(inputs), outputs);
+    const keys = Object.keys(result);
+    return (keys.length === 1) ? result[keys[0]] : result;
   }
 
+  private convertTensorMapToTensorsMap(map: NamedTensorMap): NamedTensorsMap {
+    return Object.keys(map).reduce((newMap: NamedTensorsMap, key) => {
+      newMap[key] = [map[key]];
+      return newMap;
+    }, {});
+  }
   /**
    * Releases the memory used by the weight tensors.
    */

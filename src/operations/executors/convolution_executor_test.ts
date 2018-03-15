@@ -24,7 +24,7 @@ import {createNumberAttr, createNumericArrayAttr, createStrAttr, createTensorAtt
 
 describe('convolution', () => {
   let node: Node;
-  const input = dl.scalar(1);
+  const input = [dl.scalar(1)];
 
   beforeEach(() => {
     node = {
@@ -49,7 +49,8 @@ describe('convolution', () => {
 
         executeOp(node, {input});
 
-        expect(dl.avgPool).toHaveBeenCalledWith(input, [2, 2], [2, 2], 'same');
+        expect(dl.avgPool)
+            .toHaveBeenCalledWith(input[0], [2, 2], [2, 2], 'same');
       });
     });
 
@@ -63,7 +64,8 @@ describe('convolution', () => {
 
         executeOp(node, {input});
 
-        expect(dl.maxPool).toHaveBeenCalledWith(input, [2, 2], [2, 2], 'same');
+        expect(dl.maxPool)
+            .toHaveBeenCalledWith(input[0], [2, 2], [2, 2], 'same');
       });
     });
     describe('Conv2d', () => {
@@ -74,13 +76,14 @@ describe('convolution', () => {
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
 
-        const input1 = dl.scalar(1.0);
-        const input2 = dl.scalar(1.0);
+        const input1 = [dl.scalar(1.0)];
+        const input2 = [dl.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
 
-        expect(dl.conv2d).toHaveBeenCalledWith(input1, input2, [2, 2], 'same');
+        expect(dl.conv2d).toHaveBeenCalledWith(
+            input1[0], input2[0], [2, 2], 'same');
       });
     });
     describe('conv2dTranspose', () => {
@@ -92,14 +95,15 @@ describe('convolution', () => {
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
 
-        const input1 = dl.scalar(1.0);
-        const input2 = dl.scalar(1.0);
+        const input1 = [dl.scalar(1.0)];
+        const input2 = [dl.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
 
         expect(dl.conv2dTranspose)
-            .toHaveBeenCalledWith(input1, input2, [1, 2, 2, 2], [2, 2], 'same');
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], [1, 2, 2, 2], [2, 2], 'same');
       });
     });
     describe('Conv1d', () => {
@@ -111,13 +115,13 @@ describe('convolution', () => {
         node.params['stride'] = createNumberAttr(1);
         node.params['pad'] = createStrAttr('same');
 
-        const input1 = dl.scalar(1.0);
-        const input2 = dl.scalar(1.0);
+        const input1 = [dl.scalar(1.0)];
+        const input2 = [dl.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
 
-        expect(dl.conv1d).toHaveBeenCalledWith(input1, input2, 1, 'same');
+        expect(dl.conv1d).toHaveBeenCalledWith(input1[0], input2[0], 1, 'same');
       });
     });
 
@@ -131,14 +135,14 @@ describe('convolution', () => {
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
         node.params['rates'] = createNumericArrayAttr([2, 2]);
-        const input1 = dl.scalar(1.0);
-        const input2 = dl.scalar(1.0);
+        const input1 = [dl.scalar(1.0)];
+        const input2 = [dl.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
 
         executeOp(node, {input1, input2});
 
         expect(dl.depthwiseConv2d)
-            .toHaveBeenCalledWith(input1, input2, [2, 2], 'same', [2, 2]);
+            .toHaveBeenCalledWith(input1[0], input2[0], [2, 2], 'same', [2, 2]);
       });
     });
   });

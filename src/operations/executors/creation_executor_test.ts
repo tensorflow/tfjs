@@ -24,8 +24,8 @@ import {createDtypeAttr, createNumberAttr, createNumberAttrFromIndex, createNume
 
 describe('creation', () => {
   let node: Node;
-  const input1 = dl.tensor1d([1, 2, 3]);
-  const input2 = dl.scalar(1);
+  const input1 = [dl.tensor1d([1, 2, 3])];
+  const input2 = [dl.scalar(1)];
 
   beforeEach(() => {
     node = {
@@ -60,8 +60,8 @@ describe('creation', () => {
         node.params['stop'] = createNumberAttrFromIndex(1);
         node.params['num'] = createNumberAttrFromIndex(2);
         node.inputNames = ['input', 'input2', 'input3'];
-        const input = dl.scalar(0);
-        const input3 = dl.scalar(2);
+        const input = [dl.scalar(0)];
+        const input3 = [dl.scalar(2)];
         executeOp(node, {input, input2, input3});
 
         expect(dl.linspace).toHaveBeenCalledWith(0, 1, 2);
@@ -76,9 +76,9 @@ describe('creation', () => {
         node.params['onValue'] = createNumberAttrFromIndex(2);
         node.params['offValue'] = createNumberAttrFromIndex(3);
         node.inputNames = ['input', 'input2', 'input3', 'input4'];
-        const input = dl.tensor1d([0]);
-        const input3 = dl.scalar(2);
-        const input4 = dl.scalar(3);
+        const input = [dl.tensor1d([0])];
+        const input3 = [dl.scalar(2)];
+        const input4 = [dl.scalar(3)];
         executeOp(node, {input, input2, input3, input4});
 
         expect(dl.oneHot).toHaveBeenCalledWith([0], 1, 2, 3);
@@ -101,7 +101,7 @@ describe('creation', () => {
         node.op = 'onesLike';
         executeOp(node, {input1});
 
-        expect(dl.onesLike).toHaveBeenCalledWith(input1);
+        expect(dl.onesLike).toHaveBeenCalledWith(input1[0]);
       });
     });
     describe('range', () => {
@@ -113,8 +113,8 @@ describe('creation', () => {
         node.params['step'] = createNumberAttr(2);
         node.params['dtype'] = createDtypeAttr('float32');
         node.inputNames = ['input', 'input2', 'input3'];
-        const input = dl.scalar(0);
-        const input3 = dl.scalar(2);
+        const input = [dl.scalar(0)];
+        const input3 = [dl.scalar(2)];
         executeOp(node, {input, input2, input3});
 
         expect(dl.range).toHaveBeenCalledWith(0, 1, 2, 'float32');
@@ -171,7 +171,7 @@ describe('creation', () => {
         node.op = 'zerosLike';
         executeOp(node, {input1});
 
-        expect(dl.zerosLike).toHaveBeenCalledWith(input1);
+        expect(dl.zerosLike).toHaveBeenCalledWith(input1[0]);
       });
     });
   });

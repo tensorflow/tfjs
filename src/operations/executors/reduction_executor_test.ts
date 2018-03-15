@@ -24,7 +24,7 @@ import {createBoolAttr, createNumberAttr, createTensorAttr} from './test_helper'
 
 describe('reduction', () => {
   let node: Node;
-  const input1 = dl.scalar(1);
+  const input1 = [dl.scalar(1)];
 
   beforeEach(() => {
     node = {
@@ -49,7 +49,7 @@ describe('reduction', () => {
         node.op = op;
         executeOp(node, {input1});
 
-        expect(spy).toHaveBeenCalledWith(input1, 1, true);
+        expect(spy).toHaveBeenCalledWith(input1[0], 1, true);
       });
     });
     describe('argMax', () => {
@@ -58,7 +58,7 @@ describe('reduction', () => {
         node.op = 'argMax';
         executeOp(node, {input1});
 
-        expect(dl.argMax).toHaveBeenCalledWith(input1, 1);
+        expect(dl.argMax).toHaveBeenCalledWith(input1[0], 1);
       });
     });
     describe('argMin', () => {
@@ -67,7 +67,7 @@ describe('reduction', () => {
         node.op = 'argMin';
         executeOp(node, {input1});
 
-        expect(dl.argMin).toHaveBeenCalledWith(input1, 1);
+        expect(dl.argMin).toHaveBeenCalledWith(input1[0], 1);
       });
     });
   });

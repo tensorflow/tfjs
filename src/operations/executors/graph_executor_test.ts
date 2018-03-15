@@ -23,8 +23,8 @@ import {createTensorAttr} from './test_helper';
 
 describe('graph', () => {
   let node: Node;
-  const input1 = dl.tensor1d([1]);
-  const input2 = dl.tensor1d([1]);
+  const input1 = [dl.tensor1d([1])];
+  const input2 = [dl.tensor1d([1])];
   beforeEach(() => {
     node = {
       name: 'input1',
@@ -70,7 +70,7 @@ describe('graph', () => {
         node.params.x = createTensorAttr(0);
         node.op = 'shape';
         expect(Array.prototype.slice.call(
-                   executeOp(node, {input: input1}).dataSync()))
+                   executeOp(node, {input: input1})[0].dataSync()))
             .toEqual([1]);
       });
     });

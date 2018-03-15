@@ -23,7 +23,8 @@ import {executeOp} from './transformation_executor';
 
 describe('transformation', () => {
   let node: Node;
-  const input1 = dl.scalar(1);
+  const input1 = [dl.scalar(1)];
+  const input2 = [dl.tensor1d([1, 1])];
 
   beforeEach(() => {
     node = {
@@ -45,7 +46,7 @@ describe('transformation', () => {
         node.params.dtype = createDtypeAttr('float32');
         executeOp(node, {input1});
 
-        expect(dl.cast).toHaveBeenCalledWith(input1, 'float32');
+        expect(dl.cast).toHaveBeenCalledWith(input1[0], 'float32');
       });
     });
     describe('expandDims', () => {
@@ -55,7 +56,7 @@ describe('transformation', () => {
         node.params.axis = createNumberAttr(1);
         executeOp(node, {input1});
 
-        expect(dl.expandDims).toHaveBeenCalledWith(input1, 1);
+        expect(dl.expandDims).toHaveBeenCalledWith(input1[0], 1);
       });
     });
     describe('pad', () => {
@@ -65,11 +66,10 @@ describe('transformation', () => {
         node.params.padding = createNumericArrayAttrFromIndex(1);
         node.params.constantValue = createNumberAttr(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = dl.tensor1d([1, 1]);
 
         executeOp(node, {input1, input2});
 
-        expect(dl.pad).toHaveBeenCalledWith(input1, [1, 1], 1);
+        expect(dl.pad).toHaveBeenCalledWith(input1[0], [1, 1], 1);
       });
     });
     describe('reshape', () => {
@@ -78,11 +78,10 @@ describe('transformation', () => {
         node.op = 'reshape';
         node.params.shape = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
-        const input2 = dl.tensor1d([1, 1]);
 
         executeOp(node, {input1, input2});
 
-        expect(dl.reshape).toHaveBeenCalledWith(input1, [1, 1]);
+        expect(dl.reshape).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
     });
     describe('squeeze', () => {
@@ -92,7 +91,7 @@ describe('transformation', () => {
         node.params.axis = createNumberAttr(1);
         executeOp(node, {input1});
 
-        expect(dl.squeeze).toHaveBeenCalledWith(input1, 1);
+        expect(dl.squeeze).toHaveBeenCalledWith(input1[0], 1);
       });
     });
   });

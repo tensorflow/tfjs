@@ -42,7 +42,7 @@ const WEIGHT_MANIFEST_FILE_URL = 'http://example.org/models/mobilenet/weights_ma
 
 const model = new TFModel(MODEL_FILE_URL, WEIGHT_MANIFEST_FILE_URL);
 const cat = document.getElementById('cat');
-model.predict({input: dl.fromPixels(cat)}) // run the inference on your model.
+model.predict({input: dl.fromPixels(cat)}); // run the inference on your model.
 ```
 
 
