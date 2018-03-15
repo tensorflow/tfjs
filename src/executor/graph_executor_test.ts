@@ -57,7 +57,8 @@ describe('GraphExecutor', () => {
     graph = {
       inputs: [constNode, inputNode],
       nodes: {'input': inputNode, 'const': constNode, 'output': outputNode},
-      outputs: [outputNode]
+      outputs: [outputNode],
+      withControlFlow: false
     };
     inputNode.children.push(outputNode);
     constNode.children.push(outputNode);
@@ -76,7 +77,7 @@ describe('GraphExecutor', () => {
                   return node.op === 'const' ? constTensor : inputTensor;
                 });
 
-        executor.execute({input: inputTensor});
+        executor.execute({input: [inputTensor]});
 
         expect(spy.calls.allArgs()).toEqual([
           [inputNode, jasmine.any(Object)], [constNode, jasmine.any(Object)],

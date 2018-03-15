@@ -54,6 +54,7 @@ export interface Graph {
   nodes: {[key: string]: Node};
   inputs: Node[];
   outputs: Node[];
+  withControlFlow: boolean;
 }
 
 export type ValueType =

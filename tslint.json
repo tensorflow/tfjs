@@ -37,7 +37,7 @@
       "no-require-imports": true,
       "no-string-throw": true,
       "no-unused-expression": true,
-      "no-unused-variable": true,
+      "no-unused-variable": [true, {"ignore-pattern": "^_"}],
       "no-var-keyword": true,
       "object-literal-shorthand": true,
       "only-arrow-functions": [true, "allow-declarations", "allow-named-functions"],
@@ -57,4 +57,3 @@
       ]
     }
   }
-  

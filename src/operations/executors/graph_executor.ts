@@ -17,26 +17,26 @@
 
 import * as dl from 'deeplearn';
 
-import {NamedTensorMap} from '../../data/index';
+import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
 
 import {OpExecutor} from './types';
-import {getParamValue} from './utils';
+import {getParamValue, getTensor} from './utils';
 
-export let executeOp: OpExecutor = (node: Node,
-                                    tensorMap: NamedTensorMap): dl.Tensor => {
+export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
+                                       dl.Tensor[] => {
   switch (node.op) {
     case 'const': {
       return tensorMap[node.name];
     }
     case 'placeholder':
       const def = getParamValue('default', node, tensorMap) as dl.Tensor;
-      return tensorMap[node.name] ? tensorMap[node.name] : def;
+      return [getTensor(node.name, tensorMap) || def];
     case 'identity':
-      return getParamValue('x', node, tensorMap) as dl.Tensor;
+      return [getParamValue('x', node, tensorMap) as dl.Tensor];
     case 'shape':
-      return dl.tensor1d(
-          (getParamValue('x', node, tensorMap) as dl.Tensor).shape, 'int32');
+      return [dl.tensor1d(
+          (getParamValue('x', node, tensorMap) as dl.Tensor).shape, 'int32')];
 
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

@@ -24,9 +24,9 @@ import {createNumberAttr, createNumberAttrFromIndex, createNumericArrayAttr, cre
 
 describe('slice join', () => {
   let node: Node;
-  const input1 = dl.scalar(1);
-  const input2 = dl.scalar(2);
-  const input3 = dl.scalar(3);
+  const input1 = [dl.scalar(1)];
+  const input2 = [dl.scalar(2)];
+  const input3 = [dl.scalar(3)];
   describe('multi-tensor ops', () => {
     beforeEach(() => {
       node = {
@@ -49,7 +49,7 @@ describe('slice join', () => {
           node.op = op;
           executeOp(node, {input1, input2, input3});
 
-          expect(spy).toHaveBeenCalledWith([input1, input2], 3);
+          expect(spy).toHaveBeenCalledWith([input1[0], input2[0]], 3);
         });
       });
     });
@@ -74,7 +74,7 @@ describe('slice join', () => {
         node.inputNames = ['input1', 'input2'];
         executeOp(node, {input1, input2});
 
-        expect(dl.reverse).toHaveBeenCalledWith(input1, 2);
+        expect(dl.reverse).toHaveBeenCalledWith(input1[0], 2);
       });
 
       it('should call dl.tile', () => {
@@ -84,7 +84,7 @@ describe('slice join', () => {
         node.inputNames = ['input1', 'input2'];
         executeOp(node, {input1, input2});
 
-        expect(dl.tile).toHaveBeenCalledWith(input1, 2);
+        expect(dl.tile).toHaveBeenCalledWith(input1[0], 2);
       });
 
       it('should call dl.slice', () => {
@@ -94,7 +94,7 @@ describe('slice join', () => {
         node.params.size = createNumericArrayAttr([2]);
         executeOp(node, {input1});
 
-        expect(dl.slice).toHaveBeenCalledWith(input1, [1], [2]);
+        expect(dl.slice).toHaveBeenCalledWith(input1[0], [1], [2]);
       });
 
       it('should call dl.gather', () => {
@@ -105,7 +105,7 @@ describe('slice join', () => {
         node.inputNames = ['input1', 'input2'];
         executeOp(node, {input1, input2});
 
-        expect(dl.gather).toHaveBeenCalledWith(input1, input2, 1);
+        expect(dl.gather).toHaveBeenCalledWith(input1[0], input2[0], 1);
       });
     });
   });

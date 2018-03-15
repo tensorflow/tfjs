@@ -17,16 +17,17 @@
 
 import {tidy} from 'deeplearn';
 
-import {NamedTensorMap} from '../data/index';
+import {NamedTensorMap, NamedTensorsMap} from '../data/index';
+import {getTensor} from '../operations/executors/utils';
 import * as operations from '../operations/index';
 
 export class GraphExecutor {
   private compiledOrder: operations.Node[] = [];
-  private _weightMap: NamedTensorMap = {};
-  get weightMap(): NamedTensorMap {
+  private _weightMap: NamedTensorsMap = {};
+  get weightMap(): NamedTensorsMap {
     return this._weightMap;
   }
-  set weightMap(weightMap: NamedTensorMap) {
+  set weightMap(weightMap: NamedTensorsMap) {
     this._weightMap = weightMap;
   }
 
@@ -57,26 +58,39 @@ export class GraphExecutor {
    * Executes the inference for given input tensors.
    * @param inputs Tensor map for the model inputs, keyed by the input node
    * names.
+   * @param outputs output node name from the Tensorflow model, if no outputs
+   * are specified, the default outputs of the model would be used. You can
+   * inspect intermediate nodes of the model by adding them to the outputs
+   * array.
    */
-  execute(inputs: NamedTensorMap): NamedTensorMap {
-    const outputs = tidy(() => {
-      const tensors = this.compiledOrder.reduce<NamedTensorMap>((map, node) => {
-        map[node.name] = operations.executeOp(node, map);
-        return map;
-      }, {...this.weightMap, ...inputs});
 
-      return this.graph.outputs.reduce<NamedTensorMap>((map, node) => {
-        map[node.name] = tensors[node.name];
+  execute(inputs: NamedTensorsMap, outputs?: string|string[]): NamedTensorMap {
+    const result = tidy(() => {
+      const tensors =
+          this.compiledOrder.reduce<NamedTensorsMap>((map, node) => {
+            map[node.name] = operations.executeOp(node, map);
+            return map;
+          }, {...this.weightMap, ...inputs});
+      if (outputs && !(outputs instanceof Array)) {
+        outputs = [outputs];
+      }
+      const requestedOutputs =
+          (outputs || this.graph.outputs.map(node => node.name)) as string[];
+
+      return requestedOutputs.reduce<NamedTensorMap>((map, name) => {
+        map[name] = getTensor(name, tensors);
         return map;
       }, {});
     });
-    return outputs;
+    return result;
   }
 
   /**
    * Releases the memory used by the weight tensors.
    */
   dispose() {
-    Object.keys(this.weightMap).forEach(key => this.weightMap[key].dispose());
+    Object.keys(this.weightMap)
+        .forEach(
+            key => this.weightMap[key].forEach(tensor => tensor.dispose()));
   }
 }

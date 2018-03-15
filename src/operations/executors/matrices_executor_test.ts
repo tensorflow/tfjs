@@ -24,8 +24,8 @@ import {createBoolAttr, createNumericArrayAttr, createTensorAttr} from './test_h
 
 describe('matrices', () => {
   let node: Node;
-  const input1 = dl.scalar(1);
-  const input2 = dl.scalar(2);
+  const input1 = [dl.scalar(1)];
+  const input2 = [dl.scalar(2)];
 
   beforeEach(() => {
     node = {
@@ -48,7 +48,8 @@ describe('matrices', () => {
         node.params.transposeB = createBoolAttr(false);
         executeOp(node, {input1, input2});
 
-        expect(dl.matMul).toHaveBeenCalledWith(input1, input2, true, false);
+        expect(dl.matMul).toHaveBeenCalledWith(
+            input1[0], input2[0], true, false);
       });
     });
 
@@ -63,7 +64,7 @@ describe('matrices', () => {
         };
         executeOp(node, {input1});
 
-        expect(dl.transpose).toHaveBeenCalledWith(input1, [1, 2]);
+        expect(dl.transpose).toHaveBeenCalledWith(input1[0], [1, 2]);
       });
     });
   });

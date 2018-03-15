@@ -23,8 +23,8 @@ import {createTensorAttr} from './test_helper';
 
 describe('logical', () => {
   let node: Node;
-  const input1 = dl.scalar(1);
-  const input2 = dl.scalar(2);
+  const input1 = [dl.scalar(1)];
+  const input2 = [dl.scalar(2)];
 
   beforeEach(() => {
     node = {
@@ -47,7 +47,7 @@ describe('logical', () => {
             node.op = op;
             executeOp(node, {input1, input2});
 
-            expect(spy).toHaveBeenCalledWith(input1, input2);
+            expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
           });
         });
     describe('logicalNot', () => {
@@ -56,7 +56,7 @@ describe('logical', () => {
         node.op = 'logicalNot';
         executeOp(node, {input1});
 
-        expect(dl.logicalNot).toHaveBeenCalledWith(input1);
+        expect(dl.logicalNot).toHaveBeenCalledWith(input1[0]);
       });
     });
 
@@ -66,10 +66,10 @@ describe('logical', () => {
         node.op = 'where';
         node.inputNames = ['input1', 'input2', 'input3'];
         node.params.condition = createTensorAttr(2);
-        const input3 = dl.scalar(1);
+        const input3 = [dl.scalar(1)];
         executeOp(node, {input1, input2, input3});
 
-        expect(dl.where).toHaveBeenCalledWith(input3, input1, input2);
+        expect(dl.where).toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
       });
     });
   });
