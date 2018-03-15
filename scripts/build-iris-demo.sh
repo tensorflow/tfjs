@@ -19,23 +19,6 @@ set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Parse input arguments.
-DEMO_PORT=8000
-while true; do
-  if [[ "$1" == "--port" ]]; then
-    DEMO_PORT=$2
-    shift 2
-  elif [[ -z "$1" ]]; then
-    break
-  else
-    echo "ERROR: Unrecognized argument: $1"
-    exit 1
-  fi
-done
-
-# Build TensorFlow.js Layers standalone.
-"${SCRIPTS_DIR}/build-standalone.sh"  # TODO(cais): Restore.
-
 DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
 ARTIFACTS_DIR="${DEMO_PATH}/iris"
 rm -rf "${ARTIFACTS_DIR}"
@@ -47,11 +30,11 @@ export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-sr
 python "${SCRIPTS_DIR}/iris.py" --artifacts_dir "${ARTIFACTS_DIR}"
 
 echo
-echo "-----------------------------------------------------------"
-echo "Once the HTTP server has started, you can view the demo at:"
-echo "  http://localhost:${DEMO_PORT}/demos/iris_demo.html"
-echo "-----------------------------------------------------------"
+echo "----------------------------------------------------------------"
+echo "TensorFlow.js artifacts have been generated at"
+echo "  ${ARTIFACTS_DIR}"
+echo 
+echo "See https://github.com/tensorflow/tfjs-examples/tree/master/iris"
+echo "for how to load and serve the saved model in the browser." 
+echo "----------------------------------------------------------------"
 echo
-
-cd "${SCRIPTS_DIR}/.."
-node_modules/http-server/bin/http-server -p "${DEMO_PORT}"
