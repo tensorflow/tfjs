@@ -62,8 +62,10 @@ def load_graph(graph_filename):
 # validate the graph nodes are supported
 def validate(nodes):
   ops = []
-  for filename in os.listdir('src/operations/op_list'):
-    with open('src/operations/op_list/' + filename) as json_data:
+  op_list_path = 'src/operations/op_list/'
+  dir_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..')
+  for filename in os.listdir(os.path.join(dir_path, op_list_path)):
+    with open(os.path.join(dir_path, op_list_path, filename)) as json_data:
       ops += json.load(json_data)
 
   names = set([x['tfOpName'] for x in ops])
