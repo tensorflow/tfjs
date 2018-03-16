@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-layers@./tensorflow-tfjs-layers-0.0.1.tgz":
+"@tensorflow/tfjs-layers@0.0.1":
   version "0.0.1"
-  resolved "./tensorflow-tfjs-layers-0.0.1.tgz#ace31ad6b6d9a9e7caad7e5f157086c6b7299662"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.1.tgz#e988a897a89dc86f116969d5d49628d4eb79e9a0"
   dependencies:
     underscore "~1.8.3"
 
@@ -349,8 +349,8 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
 deeplearn@next:
-  version "0.6.0-alpha4"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha4.tgz#9af14dd9569160cd5f25615434ad54fb2b2bfc04"
+  version "0.6.0-alpha5"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha5.tgz#1651d717eb2be1e38e5108d298545631da8cb7a3"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
@@ -870,8 +870,8 @@ stream-combiner2@^1.1.1:
     readable-stream "^2.0.2"
 
 stream-http@^2.0.0:
-  version "2.8.0"
-  resolved "https://registry.yarnpkg.com/stream-http/-/stream-http-2.8.0.tgz#fd86546dac9b1c91aff8fc5d287b98fafb41bc10"
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/stream-http/-/stream-http-2.8.1.tgz#d0441be1a457a73a733a8a7b53570bebd9ef66a4"
   dependencies:
     builtin-status-codes "^3.0.0"
     inherits "^2.0.1"
@@ -917,12 +917,6 @@ syntax-error@^1.1.1:
   resolved "https://registry.yarnpkg.com/syntax-error/-/syntax-error-1.4.0.tgz#2d9d4ff5c064acb711594a3e3b95054ad51d907c"
   dependencies:
     acorn-node "^1.2.0"
-
-tfjs-layers@./tfjs-layers-0.0.1.tgz:
-  version "0.0.1"
-  resolved "./tfjs-layers-0.0.1.tgz#2ac3bb9e393c51ba5c7a8e7d88aa40cb38621c7c"
-  dependencies:
-    underscore "~1.8.3"
 
 through2@^2.0.0:
   version "2.0.3"
@@ -985,8 +979,8 @@ uglify-js@~3.0.28:
     source-map "~0.5.1"
 
 umd@^3.0.0:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/umd/-/umd-3.0.2.tgz#95bdbc6d3983050df600431f44e5faeb4b7b3d45"
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/umd/-/umd-3.0.3.tgz#aa9fe653c42b9097678489c01000acb69f0b26cf"
 
 underscore@~1.8.3:
   version "1.8.3"
