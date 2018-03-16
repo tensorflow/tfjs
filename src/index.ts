@@ -17,3 +17,14 @@
 
 export * from 'deeplearn';
 export * from '@tensorflow/tfjs-layers';
+
+// Import versions of all sub-packages.
+import {version_core} from 'deeplearn';
+import {version_layers} from '@tensorflow/tfjs-layers';
+import {version as version_union} from './version';
+
+export const version = {
+  'tfjs-core': version_core,
+  'tfjs-layers': version_layers,
+  'tfjs': version_union
+};
