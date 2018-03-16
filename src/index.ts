@@ -51,7 +51,7 @@ export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, va
 export {Rank} from './types';
 export {WeightsManifestConfig} from './weights_loader';
 export {loadWeights} from './weights_loader';
-export {version};
+export {version as version_core};
 // Second level exports.
 export {
   contrib,
