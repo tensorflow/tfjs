@@ -7,7 +7,7 @@
   "unpkg": "dist/tfjsconverter.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tensorflow/web.git"
+    "url": "https://github.com/tensorflow/tfjs-converter.git"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
