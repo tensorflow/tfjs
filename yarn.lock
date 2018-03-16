@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-layers@0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.1.tgz#e988a897a89dc86f116969d5d49628d4eb79e9a0"
+"@tensorflow/tfjs-layers@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.3.tgz#d361f16861270818eab65a3bf1a9e15f48a7e6d9"
   dependencies:
     underscore "~1.8.3"
 
@@ -349,8 +349,8 @@ date-now@^0.1.4:
   resolved "https://registry.yarnpkg.com/date-now/-/date-now-0.1.4.tgz#eaf439fd4d4848ad74e5cc7dbef200672b9e345b"
 
 deeplearn@next:
-  version "0.6.0-alpha5"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha5.tgz#1651d717eb2be1e38e5108d298545631da8cb7a3"
+  version "0.6.0-alpha6"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha6.tgz#5f9b3af18db3186dbdc5e05310369fbf30131921"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
