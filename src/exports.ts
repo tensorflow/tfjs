@@ -16,7 +16,7 @@
 import {doc} from 'deeplearn';
 
 import {MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
-import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, LayerConfig} from './engine/topology';
+import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';
 import {Model} from './engine/training';
 import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, LeCunNormal, Ones, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
 import {Conv1D, Conv2D, ConvLayerConfig} from './layers/convolutional';
@@ -26,7 +26,7 @@ import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, MergeLayerConfig, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
 import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
-import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
+import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNNCell, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
 import {l1, L1Config, L1L2, L1L2Config, l2, L2Config} from './regularizers';
@@ -86,7 +86,7 @@ export class ModelExports {
     useDocsFrom: 'InputLayer',
     configParamIndices: [0]
   })
-  static inputLayer(config: InputLayerConfig): InputLayer {
+  static inputLayer(config: InputLayerConfig): Layer {
     return new InputLayer(config);
   }
 }
@@ -105,7 +105,7 @@ export class LayerExports {
     useDocsFrom: 'Conv1D',
     configParamIndices: [0]
   })
-  static conv1d(config: ConvLayerConfig): Conv1D {
+  static conv1d(config: ConvLayerConfig): Layer {
     return new Conv1D(config);
   }
 
@@ -116,7 +116,7 @@ export class LayerExports {
     useDocsFrom: 'Conv2D',
     configParamIndices: [0]
   })
-  static conv2d(config: ConvLayerConfig) {
+  static conv2d(config: ConvLayerConfig): Layer {
     return new Conv2D(config);
   }
 
@@ -129,7 +129,7 @@ export class LayerExports {
     useDocsFrom: 'DepthwiseConv2D',
     configParamIndices: [0]
   })
-  static depthwiseConv2d(config: DepthwiseConv2DLayerConfig): DepthwiseConv2D {
+  static depthwiseConv2d(config: DepthwiseConv2DLayerConfig): Layer {
     return new DepthwiseConv2D(config);
   }
 
@@ -141,7 +141,7 @@ export class LayerExports {
     useDocsFrom: 'Activation',
     configParamIndices: [0]
   })
-  static activation(config: ActivationLayerConfig): Activation {
+  static activation(config: ActivationLayerConfig): Layer {
     return new Activation(config);
   }
 
@@ -152,7 +152,7 @@ export class LayerExports {
     useDocsFrom: 'Dense',
     configParamIndices: [0]
   })
-  static dense(config: DenseLayerConfig): Dense {
+  static dense(config: DenseLayerConfig): Layer {
     return new Dense(config);
   }
 
@@ -163,7 +163,7 @@ export class LayerExports {
     useDocsFrom: 'Dropout',
     configParamIndices: [0]
   })
-  static dropout(config: DropoutLayerConfig): Dropout {
+  static dropout(config: DropoutLayerConfig): Layer {
     return new Dropout(config);
   }
 
@@ -174,7 +174,7 @@ export class LayerExports {
     useDocsFrom: 'Flatten',
     configParamIndices: [0]
   })
-  static flatten(config?: LayerConfig): Flatten {
+  static flatten(config?: LayerConfig): Layer {
     return new Flatten(config);
   }
 
@@ -185,7 +185,7 @@ export class LayerExports {
     useDocsFrom: 'RepeatVector',
     configParamIndices: [0]
   })
-  static repeatVector(config: RepeatVectorLayerConfig): RepeatVector {
+  static repeatVector(config: RepeatVectorLayerConfig): Layer {
     return new RepeatVector(config);
   }
 
@@ -196,7 +196,7 @@ export class LayerExports {
     useDocsFrom: 'Embedding',
     configParamIndices: [0]
   })
-  static embedding(config: EmbeddingLayerConfig): Embedding {
+  static embedding(config: EmbeddingLayerConfig): Layer {
     return new Embedding(config);
   }
 
@@ -209,7 +209,7 @@ export class LayerExports {
     useDocsFrom: 'Add',
     configParamIndices: [0]
   })
-  static add(config: MergeLayerConfig): Add {
+  static add(config: MergeLayerConfig): Layer {
     return new Add(config);
   }
 
@@ -220,7 +220,7 @@ export class LayerExports {
     useDocsFrom: 'Average',
     configParamIndices: [0]
   })
-  static average(config: MergeLayerConfig): Average {
+  static average(config: MergeLayerConfig): Layer {
     return new Average(config);
   }
 
@@ -231,7 +231,7 @@ export class LayerExports {
     useDocsFrom: 'Concatenate',
     configParamIndices: [0]
   })
-  static concatenate(config: ConcatenateLayerConfig): Concatenate {
+  static concatenate(config: ConcatenateLayerConfig): Layer {
     return new Concatenate(config);
   }
 
@@ -242,7 +242,7 @@ export class LayerExports {
     useDocsFrom: 'Maximum',
     configParamIndices: [0]
   })
-  static maximum(config: MergeLayerConfig): Maximum {
+  static maximum(config: MergeLayerConfig): Layer {
     return new Maximum(config);
   }
 
@@ -253,7 +253,7 @@ export class LayerExports {
     useDocsFrom: 'Minimum',
     configParamIndices: [0]
   })
-  static minimum(config: MergeLayerConfig): Minimum {
+  static minimum(config: MergeLayerConfig): Layer {
     return new Minimum(config);
   }
 
@@ -264,7 +264,7 @@ export class LayerExports {
     useDocsFrom: 'Multiply',
     configParamIndices: [0]
   })
-  static multiply(config: MergeLayerConfig): Multiply {
+  static multiply(config: MergeLayerConfig): Layer {
     return new Multiply(config);
   }
 
@@ -277,8 +277,7 @@ export class LayerExports {
     useDocsFrom: 'BatchNormalization',
     configParamIndices: [0]
   })
-  static batchNormalization(config: BatchNormalizationLayerConfig):
-      BatchNormalization {
+  static batchNormalization(config: BatchNormalizationLayerConfig): Layer {
     return new BatchNormalization(config);
   }
 
@@ -290,7 +289,7 @@ export class LayerExports {
     useDocsFrom: 'AvgPooling1D',
     configParamIndices: [0]
   })
-  static avgPooling1d(config: Pooling1DLayerConfig): AvgPooling1D {
+  static avgPooling1d(config: Pooling1DLayerConfig): Layer {
     return new AvgPooling1D(config);
   }
 
@@ -301,7 +300,7 @@ export class LayerExports {
     useDocsFrom: 'AvgPooling2D',
     configParamIndices: [0]
   })
-  static avgPooling2d(config: Pooling2DLayerConfig): AvgPooling2D {
+  static avgPooling2d(config: Pooling2DLayerConfig): Layer {
     return new AvgPooling2D(config);
   }
 
@@ -312,7 +311,7 @@ export class LayerExports {
     useDocsFrom: 'GlobalAveragePooling1D',
     configParamIndices: [0]
   })
-  static globalAveragePooling1d(config: LayerConfig): GlobalAveragePooling1D {
+  static globalAveragePooling1d(config: LayerConfig): Layer {
     return new GlobalAveragePooling1D(config);
   }
 
@@ -323,8 +322,7 @@ export class LayerExports {
     useDocsFrom: 'GlobalAveragePooling2D',
     configParamIndices: [0]
   })
-  static globalAveragePooling2d(config: GlobalPooling2DLayerConfig):
-      GlobalAveragePooling2D {
+  static globalAveragePooling2d(config: GlobalPooling2DLayerConfig): Layer {
     return new GlobalAveragePooling2D(config);
   }
 
@@ -335,7 +333,7 @@ export class LayerExports {
     useDocsFrom: 'GlobalMaxPooling1D',
     configParamIndices: [0]
   })
-  static globalMaxPooling1d(config: LayerConfig): GlobalMaxPooling1D {
+  static globalMaxPooling1d(config: LayerConfig): Layer {
     return new GlobalMaxPooling1D(config);
   }
 
@@ -346,8 +344,7 @@ export class LayerExports {
     useDocsFrom: 'GlobalMaxPooling2D',
     configParamIndices: [0]
   })
-  static globalMaxPooling2d(config: GlobalPooling2DLayerConfig):
-      GlobalMaxPooling2D {
+  static globalMaxPooling2d(config: GlobalPooling2DLayerConfig): Layer {
     return new GlobalMaxPooling2D(config);
   }
 
@@ -358,7 +355,7 @@ export class LayerExports {
     useDocsFrom: 'MaxPooling1D',
     configParamIndices: [0]
   })
-  static maxPooling1d(config: Pooling1DLayerConfig): MaxPooling1D {
+  static maxPooling1d(config: Pooling1DLayerConfig): Layer {
     return new MaxPooling1D(config);
   }
 
@@ -369,7 +366,7 @@ export class LayerExports {
     useDocsFrom: 'MaxPooling2D',
     configParamIndices: [0]
   })
-  static maxPooling2d(config: Pooling2DLayerConfig): MaxPooling2D {
+  static maxPooling2d(config: Pooling2DLayerConfig): Layer {
     return new MaxPooling2D(config);
   }
 
@@ -382,7 +379,7 @@ export class LayerExports {
     useDocsFrom: 'GRU',
     configParamIndices: [0]
   })
-  static gru(config: GRULayerConfig): GRU {
+  static gru(config: GRULayerConfig): Layer {
     return new GRU(config);
   }
 
@@ -393,7 +390,7 @@ export class LayerExports {
     useDocsFrom: 'GRUCell',
     configParamIndices: [0]
   })
-  static gruCell(config: GRUCellLayerConfig): GRUCell {
+  static gruCell(config: GRUCellLayerConfig): RNNCell {
     return new GRUCell(config);
   }
 
@@ -404,7 +401,7 @@ export class LayerExports {
     useDocsFrom: 'LSTM',
     configParamIndices: [0]
   })
-  static lstm(config: LSTMLayerConfig): LSTM {
+  static lstm(config: LSTMLayerConfig): Layer {
     return new LSTM(config);
   }
 
@@ -415,7 +412,7 @@ export class LayerExports {
     useDocsFrom: 'LSTMCell',
     configParamIndices: [0]
   })
-  static lstmCell(config: LSTMCellLayerConfig): LSTMCell {
+  static lstmCell(config: LSTMCellLayerConfig): RNNCell {
     return new LSTMCell(config);
   }
 
@@ -426,7 +423,7 @@ export class LayerExports {
     useDocsFrom: 'SimpleRNN',
     configParamIndices: [0]
   })
-  static simpleRNN(config: SimpleRNNLayerConfig): SimpleRNN {
+  static simpleRNN(config: SimpleRNNLayerConfig): Layer {
     return new SimpleRNN(config);
   }
 
@@ -437,7 +434,7 @@ export class LayerExports {
     useDocsFrom: 'SimpleRNNCell',
     configParamIndices: [0]
   })
-  static simpleRNNCell(config: SimpleRNNCellLayerConfig): SimpleRNNCell {
+  static simpleRNNCell(config: SimpleRNNCellLayerConfig): RNNCell {
     return new SimpleRNNCell(config);
   }
 
@@ -450,7 +447,7 @@ export class LayerExports {
     useDocsFrom: 'Bidirectional',
     configParamIndices: [0]
   })
-  static bidirectional(config: BidirectionalLayerConfig): Bidirectional {
+  static bidirectional(config: BidirectionalLayerConfig): Layer {
     return new Bidirectional(config);
   }
 
@@ -461,7 +458,7 @@ export class LayerExports {
     useDocsFrom: 'TimeDistributed',
     configParamIndices: [0]
   })
-  static timeDistributed(config: WrapperLayerConfig): TimeDistributed {
+  static timeDistributed(config: WrapperLayerConfig): Layer {
     return new TimeDistributed(config);
   }
 }
