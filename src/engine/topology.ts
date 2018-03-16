@@ -320,7 +320,7 @@ let _nextLayerID = 0;
 /**
  * Abstract base layer class.
  */
-@doc({heading: 'Layers', subheading: 'Classes'})
+@doc({heading: 'Layers'})
 export class Layer {
   /** Name for this layer. Must be unique within a model. */
   name: string;
@@ -1217,10 +1217,9 @@ export interface InputLayerConfig {
   dtype?: DType;
   /**
    * Whether the placeholder created is meant to be sparse.
-   *
-   * TODO(michaelterry): Not clear whether we'll need this or not.
    */
-  sparse?: boolean;
+  sparse?: boolean;  // TODO(michaelterry): Not clear whether we'll need this.
+
   /** Name of the layer. */
   name?: string;
 }

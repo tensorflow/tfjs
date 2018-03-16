@@ -154,19 +154,12 @@ export interface SequentialConfig {
  * `sequential` is a factory function that creates an instance of
  * `Sequential`.
  *
- * # Arguments
- * @param layers An `Array` of layers to add to the model during construction.
- *
- * # Note
- *     The first layer passed to a Sequential model
- *     should have a defined input shape. What that
- *     means is that it should have received an `inputShape`
- *     or `batchInputShape` argument,
- *     or for some type of layers (recurrent, Dense...)
- *     an `inputDim` argument.
+ * Note: The first layer passed to a Sequential model should have a defined
+ * input shape. What that means is that it should have received an `inputShape`
+ * or `batchInputShape` argument, or for some type of layers (recurrent,
+ * Dense...) an `inputDim` argument.
  *
  * Examples:
- * // TODO(michaelterry): We don't support inputDim.
  *
  * ```js
  * const model = tf.sequential();
