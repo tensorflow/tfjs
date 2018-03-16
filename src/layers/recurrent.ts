@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Recurrent Neural Network Layers.
  */
 
-import {Tensor} from 'deeplearn';
+import {doc, Tensor} from 'deeplearn';
 import * as _ from 'underscore';
 
 // tslint:disable:max-line-length
@@ -645,6 +645,7 @@ generic_utils.ClassNameMap.register('RNN', RNN);
  *   equivalent of this in PyKeras. Having a common parent class forgoes the
  *   need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
  */
+@doc({heading: 'Layers', subheading: 'Classes'})
 export abstract class RNNCell extends Layer {
   /**
    * Size(s) of the states.

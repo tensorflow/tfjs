@@ -320,7 +320,7 @@ let _nextLayerID = 0;
 /**
  * Abstract base layer class.
  */
-@doc({heading: 'Layers'})
+@doc({heading: 'Layers', subheading: 'Classes'})
 export class Layer {
   /** Name for this layer. Must be unique within a model. */
   name: string;
