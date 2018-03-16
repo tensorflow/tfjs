@@ -20,12 +20,11 @@
     "uglify-js": "~3.0.28"
   },
   "scripts": {
-    "prep": "yarn && cd node_modules/tfjs-layers/ && yarn && yarn build && rimraf node_modules/deeplearn/",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh"
   },
   "dependencies": {
     "deeplearn": "next",
-    "tfjs-layers": "./tfjs-layers-0.0.1.tgz"
+    "@tensorflow/tfjs-layers": "0.0.1"
   }
 }
