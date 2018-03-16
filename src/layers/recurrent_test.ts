@@ -21,10 +21,10 @@ import {ModelAndWeightsConfig, modelFromJSON} from '../models';
 import * as optimizers from '../optimizers';
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense} from './core';
-import {GRU, LSTM, RNN, RNNCell, SimpleRNN} from './recurrent';
+import {GRU, GRUCell, LSTM, LSTMCell, RNN, RNNCell, SimpleRNN, SimpleRNNCell, StackedRNNCells} from './recurrent';
 // tslint:enable:max-line-length
 
 /**
@@ -980,12 +980,16 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
 
 describeMathCPU('LSTM-deserialization', () => {
   it('modelFromConfig', done => {
-    modelFromJSON(fakeLSTMModel).then(model => {
-      const encoderInputs = K.zeros([1, 3, 71], DType.float32);
-      const decoderInputs = K.zeros([1, 3, 94], DType.float32);
-      const outputs = model.predict([encoderInputs, decoderInputs]) as Tensor;
-      expect(outputs.shape).toEqual([1, 3, 94]);
-    }).then(done).catch(done.fail);
+    modelFromJSON(fakeLSTMModel)
+        .then(model => {
+          const encoderInputs = K.zeros([1, 3, 71], DType.float32);
+          const decoderInputs = K.zeros([1, 3, 94], DType.float32);
+          const outputs =
+              model.predict([encoderInputs, decoderInputs]) as Tensor;
+          expect(outputs.shape).toEqual([1, 3, 94]);
+        })
+        .then(done)
+        .catch(done.fail);
   });
 });
 
@@ -1150,3 +1154,175 @@ const fakeLSTMModel: ModelAndWeightsConfig = {
     'backend': 'tensorflow'
   }
 };
+
+describeMathCPU('StackedRNNCells Symbolic', () => {
+  it('With SimpleRNNCell', () => {
+    const stackedRNN = new RNN({
+      cell: new StackedRNNCells({
+        cells: [
+          new SimpleRNNCell({units: 3, recurrentInitializer: 'GlorotNormal'}),
+          new SimpleRNNCell({units: 2, recurrentInitializer: 'GlorotNormal'})
+        ],
+      })
+    });
+    const input =
+        new SymbolicTensor(DType.float32, [16, 10, 7], null, [], null);
+    const output = stackedRNN.apply(input) as SymbolicTensor;
+    expect(output.shape).toEqual([16, 2]);
+
+    // 3 trainable weights from each cell.
+    expect(stackedRNN.trainableWeights.length).toEqual(6);
+    expect(stackedRNN.nonTrainableWeights.length).toEqual(0);
+    // Kernel, recurrent kernel and bias of 1st cell.
+    expect(stackedRNN.getWeights()[0].shape).toEqual([7, 3]);
+    expect(stackedRNN.getWeights()[1].shape).toEqual([3, 3]);
+    expect(stackedRNN.getWeights()[2].shape).toEqual([3]);
+    // Kernel, recurrent kernel and bias of 2nd cell.
+    expect(stackedRNN.getWeights()[3].shape).toEqual([3, 2]);
+    expect(stackedRNN.getWeights()[4].shape).toEqual([2, 2]);
+    expect(stackedRNN.getWeights()[5].shape).toEqual([2]);
+  });
+
+  it('With LSTMCell', () => {
+    const stackedRNN = new RNN({
+      cell: new StackedRNNCells({
+        cells: [
+          new LSTMCell({units: 3, recurrentInitializer: 'GlorotNormal'}),
+          new LSTMCell({units: 2, recurrentInitializer: 'GlorotNormal'})
+        ],
+      })
+    });
+    const input =
+        new SymbolicTensor(DType.float32, [16, 10, 7], null, [], null);
+    const output = stackedRNN.apply(input) as SymbolicTensor;
+    expect(output.shape).toEqual([16, 2]);
+
+    // 3 trainable weights from each cell.
+    expect(stackedRNN.trainableWeights.length).toEqual(6);
+    expect(stackedRNN.nonTrainableWeights.length).toEqual(0);
+    // Kernel, recurrent kernel and bias of 1st cell.
+    expect(stackedRNN.getWeights()[0].shape).toEqual([7, 12]);
+    expect(stackedRNN.getWeights()[1].shape).toEqual([3, 12]);
+    expect(stackedRNN.getWeights()[2].shape).toEqual([12]);
+    // expect(stackedRNN.getWeights()[2].shape).toEqual([3]);
+    // Kernel, recurrent kernel and bias of 2nd cell.
+    expect(stackedRNN.getWeights()[3].shape).toEqual([3, 8]);
+    expect(stackedRNN.getWeights()[4].shape).toEqual([2, 8]);
+    expect(stackedRNN.getWeights()[5].shape).toEqual([8]);
+  });
+
+  it('RNN with cell array creates StackedRNNCell', () => {
+    const stackedRNN = new RNN({
+      cell: [
+        new GRUCell({units: 3, recurrentInitializer: 'GlorotNormal'}),
+        new GRUCell({units: 2, recurrentInitializer: 'GlorotNormal'}),
+      ],
+    });
+    const input =
+        new SymbolicTensor(DType.float32, [16, 10, 7], null, [], null);
+    const output = stackedRNN.apply(input) as SymbolicTensor;
+    expect(output.shape).toEqual([16, 2]);
+
+    // 3 trainable weights from each cell.
+    expect(stackedRNN.trainableWeights.length).toEqual(6);
+    expect(stackedRNN.nonTrainableWeights.length).toEqual(0);
+    // Kernel, recurrent kernel and bias of 1st cell.
+    expect(stackedRNN.getWeights()[0].shape).toEqual([7, 9]);
+    expect(stackedRNN.getWeights()[1].shape).toEqual([3, 9]);
+    expect(stackedRNN.getWeights()[2].shape).toEqual([9]);
+    // expect(stackedRNN.getWeights()[2].shape).toEqual([3]);
+    // Kernel, recurrent kernel and bias of 2nd cell.
+    expect(stackedRNN.getWeights()[3].shape).toEqual([3, 6]);
+    expect(stackedRNN.getWeights()[4].shape).toEqual([2, 6]);
+    expect(stackedRNN.getWeights()[5].shape).toEqual([6]);
+  });
+});
+
+describeMathGPU('StackedRNNCells Tensor', () => {
+  // The golden values for assertion below can be obtained with the following
+  // Python Keras code:
+  //
+  // ```python
+  // import keras
+  // import numpy as np
+  //
+  // stacked_rnn = keras.layers.RNN(
+  //     [
+  //       keras.layers.SimpleRNNCell(
+  //           3,
+  //           kernel_initializer='ones',
+  //           recurrent_initializer='ones',
+  //           use_bias=False),
+  //       keras.layers.GRUCell(
+  //           2,
+  //           kernel_initializer='ones',
+  //           recurrent_initializer='ones',
+  //           use_bias=False),
+  //       keras.layers.LSTMCell(
+  //           1,
+  //           kernel_initializer='ones',
+  //           recurrent_initializer='ones',
+  //           use_bias=False),
+  //     ])
+  //
+  // t_input = keras.layers.Input(batch_shape=(2, 3, 4))
+  // t_output = stacked_rnn(t_input)
+  // print(t_input.shape)
+  // print(t_output.shape)
+  //
+  // model = keras.Model(t_input, t_output)
+  //
+  // input_val = np.array([
+  //     [
+  //         [0.1, -0.1, 0.2, -0.2], [-0.1, 0.1, -0.2, 0.2],
+  //         [0.1, 0.1, -0.2, -0.2]
+  //     ],
+  //     [
+  //         [0.05, -0.05, 0.1, -0.1], [-0.05, 0.05, -0.1, 0.1],
+  //         [0.05, 0.05, -0.1, -0.1]
+  //     ]
+  // ])
+  // print(model.predict(input_val))
+  // ```
+  it('Forward pass', () => {
+    const stackedRNN = new RNN({
+      cell: new StackedRNNCells({
+        cells: [
+          new SimpleRNNCell({
+            units: 3,
+            recurrentInitializer: 'Ones',
+            kernelInitializer: 'Ones',
+            useBias: false
+          }),
+          new GRUCell({
+            units: 2,
+            recurrentInitializer: 'Ones',
+            kernelInitializer: 'Ones',
+            useBias: false
+          }),
+          new LSTMCell({
+            units: 1,
+            recurrentInitializer: 'Ones',
+            kernelInitializer: 'Ones',
+            useBias: false
+          }),
+        ],
+      })
+    });
+    const input = tensor3d(
+        [
+          [
+            [0.1, -0.1, 0.2, -0.2], [-0.1, 0.1, -0.2, 0.2],
+            [0.1, 0.1, -0.2, -0.2]
+          ],
+          [
+            [0.05, -0.05, 0.1, -0.1], [-0.05, 0.05, -0.1, 0.1],
+            [0.05, 0.05, -0.1, -0.1]
+          ]
+        ],
+        [2, 3, 4]);
+    const output = stackedRNN.apply(input) as Tensor;
+    expectTensorsClose(
+        output, tensor2d([[-0.07715216], [-0.05906887]], [2, 1]));
+  });
+});

@@ -14,6 +14,7 @@
 
 import {Tensor} from 'deeplearn';
 
+// tslint:disable:max-line-length
 import * as K from '../backend/deeplearnjs_backend';
 import {DataFormat} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint} from '../constraints';
@@ -26,6 +27,7 @@ import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
 
 import {Conv2D, ConvLayerConfig} from './convolutional';
+// tslint:enable:max-line-length
 
 export interface DepthwiseConv2DLayerConfig extends ConvLayerConfig {
   /**
