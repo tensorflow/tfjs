@@ -20,7 +20,7 @@ export {Callback, CallbackList, CustomCallback, CustomCallbackConfig, Logs} from
 export {Model} from './engine/training';
 export {ModelAndWeightsConfig, Sequential} from './models';
 export {SymbolicTensor} from './types';
-export {version} from './version';
+export {version as version_layers} from './version';
 
 export {dl};  // TODO(cais): Remove this export (b/74099819).
 export {backend};
