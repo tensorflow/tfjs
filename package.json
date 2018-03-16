@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-layers",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "TensorFlow layers API in JavaScript",
   "private": false,
   "main": "dist/index.js",
@@ -35,6 +35,7 @@
     "prep": "yarn && yarn build && cd demos/ && yarn prep && cd ..",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
+    "publish-npm": "./scripts/publish-npm.sh",
     "test": "karma start",
     "lint": "tslint -p . --type-check -t verbose"
   },
