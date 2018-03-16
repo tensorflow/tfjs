@@ -20,7 +20,7 @@
 # 3) Commit to the master branch.
 
 # Then:
-# 4) Run this script as `yarn publish-npm` from the base dir of the project.
+# 4) Run this script as `./scripts/publish-npm.sh` from the project base dir.
 
 set -e
 
