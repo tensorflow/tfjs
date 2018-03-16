@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+// Copyright 2018 Google LLC
+//
+// Use of this source code is governed by an MIT-style
+// license that can be found in the LICENSE file or at
+// https://opensource.org/licenses/MIT.
+// =============================================================================
+
+
+// Run this script from the base directory (not the script directory):
+// ./scripts/make-version
+
+var fs = require('fs');
+var exec = require('child_process').exec;
+
+var version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
+var tag = `v${version}`;
+
+exec(`git tag ${tag}`, err => {
+  if (err) {
+    throw new Error(`Could not git tag with ${tag}: ${err.message}.`);
+  }
+  console.log(`Successfully tagged with ${tag}.`);
+});
+
+exec(`git push --tags`, err => {
+  if (err) {
+    throw new Error(`Could not push git tags: ${err.message}.`);
+  }
+  console.log(`Successfully pushed tags.`);
+});
