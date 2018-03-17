@@ -12,7 +12,6 @@ https://opensource.org/licenses/MIT.
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
   <script src="../dist/tfjs_layers.debug.js"></script>
 </head>
 
@@ -142,7 +141,7 @@ https://opensource.org/licenses/MIT.
       }
 
       // Perform prediction on the input image using the loaded model.
-      function predict() {
+      async function predict() {
         let batchInput = null;
         try {
           batchInput = textToImageArray(imageInput.val());
@@ -153,8 +152,8 @@ https://opensource.org/licenses/MIT.
           $('#predict-values').empty();
         }
         // TODO(cais): Maybe use a tidy().
-        const predictOut = Array.from(model.predict(batchInput).dataSync());
-        const winner = _.indexOf(predictOut, _.max(predictOut));
+        const predictOut = await model.predict(batchInput);
+        const winner = predictOut.argMax();
 
         $('#predict-header').empty();
         for (let i = 0; i < 10; ++i) {
@@ -162,12 +161,14 @@ https://opensource.org/licenses/MIT.
           $('#predict-header').append(titleTd);
         }
         $('#predict-values').empty();
-        for (const predictVal of predictOut) {
+        for (const predictVal of predictOut.dataSync()) {
           const valTd = $('<td>' + predictVal.toFixed(10) + '</td>');
           $('#predict-values').append(valTd);
         }
+        $('#winner').val(winner.dataSync()[0]);
 
-        $('#winner').val(winner);
+        predictOut.dispose();
+        winner.dispose();
       }
 
       imageInput.keyup(() => {

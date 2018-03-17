@@ -35,7 +35,7 @@ describeMathCPU('model_from_json', () => {
         .catch(done.fail);
   });
 
-  it('reconstitutes mnist non-sequential mode.', done => {
+  it('reconstitutes mnist non-sequential mode.', async done => {
     /*
     input_shape = (28,28,1)
     num_classes=10
@@ -63,17 +63,18 @@ describeMathCPU('model_from_json', () => {
     model.to_json()
       */
     modelFromJSON(fakeNonSequentialModel)
-        .then(model => {
+        .then(async model => {
           expect(model.name).toEqual('mnist');
           expect(model.layers.length).toEqual(9);
-          const prediction = model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
+          const prediction =
+              await model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
           expect(prediction.shape).toEqual([1, 10]);
           expect(K.sum(prediction).dataSync()).toBeCloseTo(1);
           done();
         })
         .catch(done.fail);
   });
-  it('reconstitutes mnist sequential mode.', () => {
+  it('reconstitutes mnist sequential mode.', async done => {
     /*
     input_shape = (28,28,1)
     num_classes = 10
@@ -93,11 +94,12 @@ describeMathCPU('model_from_json', () => {
     model.to_json())
     */
 
-    modelFromJSON(fakeMnistModel).then(model => {
+    modelFromJSON(fakeMnistModel).then(async model => {
       expect(model.layers.length).toEqual(8);
-      const prediction = model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
+      const prediction = await model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
       expect(prediction.shape).toEqual([1, 10]);
       expect(K.sum(prediction).dataSync()).toBeCloseTo(1);
+      done();
     });
   });
 
@@ -274,10 +276,11 @@ describeMathCPUAndGPU('Sequential', () => {
         model.apply(getInputs()) as Tensor, getExpectedOutputs());
   });
 
-  it('predict() threads data through the model.', () => {
+  it('predict() threads data through the model.', async done => {
     const model = tfl.sequential({layers});
     expectTensorsClose(
-        model.predict(getInputs()) as Tensor, getExpectedOutputs());
+        await model.predict(getInputs()) as Tensor, getExpectedOutputs());
+    done();
   });
 
   it('predictOnBatch() threads data through the model.', () => {
@@ -318,18 +321,20 @@ describeMathCPUAndGPU('Sequential', () => {
         history.history['loss'][1] as Scalar, scalar(0.015178224071860313));
   });
 
-  it('Calling evaluate before compile leads to error', () => {
+  it('Calling evaluate before compile leads to error', async done => {
     const batchSize = 5;
     const inputSize = 4;
     const denseLayer1 = tfl.layers.dense({units: 3, inputShape: [inputSize]});
     const model = tfl.sequential({layers: [denseLayer1]});
     const xs = K.ones([batchSize, inputSize]);
     const ys = K.ones([batchSize, 1]);
-    expect(() => model.evaluate(xs, ys))
-        .toThrowError(/needs to be compiled before/);
+    model.evaluate(xs, ys).catch(err => {
+      expect(err.message).toMatch(/needs to be compiled before/);
+      done();
+    });
   });
 
-  it('compile() and evaluate()', () => {
+  it('compile() and evaluate()', async done => {
     const batchSize = 5;
     const inputSize = 4;
     const xs = K.ones([batchSize, inputSize]);
@@ -344,8 +349,9 @@ describeMathCPUAndGPU('Sequential', () => {
         tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'Ones'});
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-    const losses = model.evaluate(xs, ys, {batchSize}) as Scalar;
+    const losses = await model.evaluate(xs, ys, {batchSize}) as Scalar;
     expectTensorsClose(losses, scalar(121));
+    done();
   });
 });
 

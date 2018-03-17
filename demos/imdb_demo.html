@@ -89,7 +89,7 @@ https://opensource.org/licenses/MIT.
       const model = await tfjs_layers.loadModel(artifactsDir + 'model.json');
       console.log('Loading model weights');
 
-      runInference.addEventListener('click', () => {
+      runInference.addEventListener('click', async () => {
         // Convert to lower case and remove all punctuations.
         const inputText = reviewText.value
             .trim().toLowerCase().replace(/(\.|\,|\!)/g, '').split(' ');
@@ -105,11 +105,13 @@ https://opensource.org/licenses/MIT.
 
         document.getElementById('status').textContent = 'Running inference';
         const beginMs = performance.now();
-        const predictOut = model.predict(input).dataSync()[0];
+        const predictOut = await model.predict(input);
+        const score = predictOut.dataSync()[0];
+        predictOut.dispose();
         const endMs = performance.now();
 
         document.getElementById('status').textContent =
-            'Inference result (0 - negative; 1 - positive): ' + predictOut +
+            'Inference result (0 - negative; 1 - positive): ' + score +
             ' (elapsed: ' + (endMs - beginMs) + ' ms)';
       });
     })();

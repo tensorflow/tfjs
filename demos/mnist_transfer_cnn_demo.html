@@ -246,7 +246,7 @@ https://opensource.org/licenses/MIT.
       }
 
       // Perform prediction on the input image using the loaded model.
-      function predict() {
+      async function predict() {
         let batchInput = null;
         try {
           batchInput = textToImageArray(imageInput.val());
@@ -257,22 +257,23 @@ https://opensource.org/licenses/MIT.
           $('#predict-values').empty();
         }
 
-        tfjs_layers.dl.tidy(() => {
-          const predictOut = Array.from(model.predict(batchInput).dataSync());
-          const winner = _.indexOf(predictOut, _.max(predictOut));
+        const predictOut = await model.predict(batchInput);
+        const winner = predictOut.argMax();
 
-          $('#predict-header').empty();
-          for (let i = 0; i < 5; ++i) {
-            const titleTd = $('<td>' + String(i + 5) + '</td>')
-            $('#predict-header').append(titleTd);
-          }
-          $('#predict-values').empty();
-          for (const predictVal of predictOut) {
-            const valTd = $('<td>' + predictVal.toFixed(6) + '</td>');
-            $('#predict-values').append(valTd);
-          }
-          $('#winner').val(winner + 5);
-        });
+        $('#predict-header').empty();
+        for (let i = 0; i < 5; ++i) {
+          const titleTd = $('<td>' + String(i + 5) + '</td>')
+          $('#predict-header').append(titleTd);
+        }
+        $('#predict-values').empty();
+        for (const predictVal of predictOut.dataSync()) {
+          const valTd = $('<td>' + predictVal.toFixed(6) + '</td>');
+          $('#predict-values').append(valTd);
+        }
+        $('#winner').val(winner.dataSync()[0] + 5);
+
+        predictOut.dispose();
+        winner.dispose();
       }
 
       imageInput.keyup(() => {
