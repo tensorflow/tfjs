@@ -16,8 +16,23 @@ import * as K from './backend/deeplearnjs_backend';
 import {Model} from './engine/training';
 import * as generic_utils from './utils/generic_utils';
 
-export type Logs = {
+/**
+ * Logs in which values can be either numbers or Tensors (Scalars).
+ *
+ * Used internally.
+ */
+export type UnresolvedLogs = {
   [key: string]: number|Scalar;
+};
+
+
+/**
+ * Logs in which values can only be numbers.
+ *
+ * Used when calling client-provided custom callbacks.
+ */
+export type Logs = {
+  [key: string]: number;
 };
 
 export type Params = {
@@ -60,17 +75,17 @@ export abstract class Callback {
     this.model = model;
   }
 
-  async onEpochBegin(epoch: number, logs?: Logs) {}
+  async onEpochBegin(epoch: number, logs?: UnresolvedLogs) {}
 
-  async onEpochEnd(epoch: number, logs?: Logs) {}
+  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {}
 
-  async onBatchBegin(batch: number, logs?: Logs) {}
+  async onBatchBegin(batch: number, logs?: UnresolvedLogs) {}
 
-  async onBatchEnd(batch: number, logs?: Logs) {}
+  async onBatchEnd(batch: number, logs?: UnresolvedLogs) {}
 
-  async onTrainBegin(logs?: Logs) {}
+  async onTrainBegin(logs?: UnresolvedLogs) {}
 
-  async onTrainEnd(logs?: Logs) {}
+  async onTrainEnd(logs?: UnresolvedLogs) {}
 }
 
 /**
@@ -123,7 +138,7 @@ export class CallbackList {
    * @param epoch Index of epoch.
    * @param logs Dictionary of logs.
    */
-  async onEpochBegin(epoch: number, logs?: Logs) {
+  async onEpochBegin(epoch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -137,7 +152,7 @@ export class CallbackList {
    * @param epoch Index of epoch.
    * @param logs Dictionary of logs.
    */
-  async onEpochEnd(epoch: number, logs?: Logs) {
+  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -151,7 +166,7 @@ export class CallbackList {
    * @param batch Index of batch within the current epoch.
    * @param logs Dictionary of logs.
    */
-  async onBatchBegin(batch: number, logs?: Logs) {
+  async onBatchBegin(batch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -165,7 +180,7 @@ export class CallbackList {
    * @param batch Index of batch within the current epoch.
    * @param logs Dictionary of logs.
    */
-  async onBatchEnd(batch: number, logs?: Logs) {
+  async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -178,7 +193,7 @@ export class CallbackList {
    * Called at the beginning of training.
    * @param logs Dictionary of logs.
    */
-  async onTrainBegin(logs?: Logs) {
+  async onTrainBegin(logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -191,7 +206,7 @@ export class CallbackList {
    * Called at the end of training.
    * @param logs Dictionary of logs.
    */
-  async onTrainEnd(logs?: Logs) {
+  async onTrainEnd(logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -208,7 +223,7 @@ export class CallbackList {
  */
 export class BaseLogger extends Callback {
   private seen: number;
-  private totals: Logs;
+  private totals: UnresolvedLogs;
   private scalarCache: {[batchSize: number]: Scalar};
 
   constructor() {
@@ -216,12 +231,12 @@ export class BaseLogger extends Callback {
     this.scalarCache = {};
   }
 
-  async onEpochBegin(epoch: number, logs?: Logs) {
+  async onEpochBegin(epoch: number, logs?: UnresolvedLogs) {
     this.seen = 0;
     this.totals = {};
   }
 
-  async onBatchEnd(batch: number, logs?: Logs) {
+  async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -250,7 +265,7 @@ export class BaseLogger extends Callback {
     }
   }
 
-  async onEpochEnd(epoch: number, logs?: Logs) {
+  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
     if (logs != null) {
       for (const key of this.params['metrics'] as string[]) {
         if (this.totals[key] == null) {
@@ -273,6 +288,31 @@ export class BaseLogger extends Callback {
 }
 
 /**
+ * Turn any Scalar values in a Logs object into actual number values.
+ *
+ * @param logs The `Logs` object to be resolved in place.
+ */
+export async function resolveScalarsInLogs(logs: UnresolvedLogs) {
+  if (logs == null) {
+    return;
+  }
+  const promises: Array<Promise<Float32Array|Int32Array|Uint8Array>> = [];
+  const keys: string[] = [];
+  for (const key in logs) {
+    const value = logs[key];
+    if (typeof value !== 'number') {
+      const valueScalar = value as Tensor;
+      promises.push(valueScalar.data());
+      keys.push(key);
+    }
+  }
+  const values = await Promise.all(promises);
+  for (let i = 0; i < values.length; ++i) {
+    logs[keys[i]] = values[i][0];
+  }
+}
+
+/**
  * Callback that records events into a `History` object. This callback is
  * automatically applied to every TF.js Layers model. The `History` object gets
  * returned by the `fit` method of models.
@@ -281,12 +321,12 @@ export class History extends Callback {
   epoch: number[];
   history: {[key: string]: Array<number|Tensor>};
 
-  async onTrainBegin(logs?: Logs) {
+  async onTrainBegin(logs?: UnresolvedLogs) {
     this.epoch = [];
     this.history = {};
   }
 
-  async onEpochEnd(epoch: number, logs?: Logs) {
+  async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
     if (logs == null) {
       logs = {};
     }
@@ -355,39 +395,45 @@ export class CustomCallback extends Callback {
     this.batchEnd = config.onBatchEnd;
   }
 
-  async onEpochBegin(epoch: number, logs?: Logs) {
+  async onEpochBegin(epoch: number, logs?: UnresolvedLogs): Promise<void> {
     if (this.epochBegin != null) {
-      await this.epochBegin(epoch, logs);
+      await resolveScalarsInLogs(logs);
+      await this.epochBegin(epoch, logs as Logs);
     }
   }
 
-  async onEpochEnd(epoch: number, logs?: Logs) {
+  async onEpochEnd(epoch: number, logs?: UnresolvedLogs): Promise<void> {
     if (this.epochEnd != null) {
-      await this.epochEnd(epoch, logs);
+      await resolveScalarsInLogs(logs);
+      await this.epochEnd(epoch, logs as Logs);
     }
   }
 
-  async onBatchBegin(batch: number, logs?: Logs) {
+  async onBatchBegin(batch: number, logs?: UnresolvedLogs): Promise<void> {
     if (this.batchBegin != null) {
-      await this.batchBegin(batch, logs);
+      await resolveScalarsInLogs(logs);
+      await this.batchBegin(batch, logs as Logs);
     }
   }
 
-  async onBatchEnd(batch: number, logs?: Logs) {
+  async onBatchEnd(batch: number, logs?: UnresolvedLogs): Promise<void> {
     if (this.batchEnd != null) {
-      await this.batchEnd(batch, logs);
+      await resolveScalarsInLogs(logs);
+      await this.batchEnd(batch, logs as Logs);
     }
   }
 
-  async onTrainBegin(logs?: Logs) {
+  async onTrainBegin(logs?: UnresolvedLogs): Promise<void> {
     if (this.trainBegin != null) {
-      await this.trainBegin(logs);
+      await resolveScalarsInLogs(logs);
+      await this.trainBegin(logs as Logs);
     }
   }
 
-  async onTrainEnd(logs?: Logs) {
+  async onTrainEnd(logs?: UnresolvedLogs): Promise<void> {
     if (this.trainEnd != null) {
-      await this.trainEnd(logs);
+      await resolveScalarsInLogs(logs);
+      await this.trainEnd(logs as Logs);
     }
   }
 }

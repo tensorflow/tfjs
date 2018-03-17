@@ -866,6 +866,8 @@ describeMathCPUAndGPU('Model.fit', () => {
         const epochEndEpochs: number[] = [];
         const batchBeginBatches: number[] = [];
         const batchEndBatches: number[] = [];
+        const batchEndLosses: number[] = [];
+        const epochEndLosses: number[] = [];
         const customCallbackConfig: CustomCallbackConfig = {
           onTrainBegin: async (logs?: Logs) => {
             trainBeginLogs.push(logs);
@@ -878,12 +880,14 @@ describeMathCPUAndGPU('Model.fit', () => {
           },
           onEpochEnd: async (epoch: number, logs?: Logs) => {
             epochEndEpochs.push(epoch);
+            epochEndLosses.push(logs['loss']);
           },
           onBatchBegin: async (batch: number, logs?: Logs) => {
             batchBeginBatches.push(batch);
           },
           onBatchEnd: async (batch: number, logs?: Logs) => {
             batchEndBatches.push(batch);
+            batchEndLosses.push(logs['loss']);
           }
         };
         const customCallback = isConfig ?
@@ -901,6 +905,16 @@ describeMathCPUAndGPU('Model.fit', () => {
         expect(epochEndEpochs).toEqual([0, 1]);
         expect(batchBeginBatches).toEqual([0, 1, 2, 0, 1, 2]);
         expect(batchEndBatches).toEqual([0, 1, 2, 0, 1, 2]);
+
+        // The optimization problem is a convex one (a single Dense layer),
+        // the learning rate low (default 0.01 for SGD). So it should be fine to
+        // assert monotonic assert monotonic decrease in loss value.
+        expect(batchEndLosses.length).toEqual(6);
+        for (let i = 1; i < batchEndLosses.length; ++i) {
+          expect(batchEndLosses[i]).toBeLessThan(batchEndLosses[i - 1]);
+        }
+        expect(epochEndLosses.length).toEqual(2);
+        expect(epochEndLosses[1]).toBeLessThan(epochEndLosses[0]);
         done();
       });
     }

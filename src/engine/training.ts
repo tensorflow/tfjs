@@ -16,7 +16,7 @@ import {doc, Optimizer, Scalar, Tensor, Tensor1D, tensor1d} from 'deeplearn';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
-import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, History, Logs, standardizeCallbacks} from '../callbacks';
+import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
@@ -1235,7 +1235,7 @@ export class Model extends Container {
 
     for (let epoch = initialEpoch; epoch < epochs; ++epoch) {
       await callbackList.onEpochBegin(epoch);
-      const epochLogs: Logs = {};
+      const epochLogs: UnresolvedLogs = {};
       let epochIndexArray = indexArray;
       if (stepsPerEpoch != null) {
         throw new NotImplementedError(
@@ -1255,7 +1255,7 @@ export class Model extends Container {
         for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
           // TODO(cais): dl.tidy() should not be leaked from the backend.
           //   Wrap it with a backend function called mathScope.
-          const batchLogs: Logs = {};
+          const batchLogs: UnresolvedLogs = {};
           await callbackList.onBatchBegin(batchIndex, batchLogs);
           dl.tidy(() => {
             const batchStart = batches[batchIndex][0];
