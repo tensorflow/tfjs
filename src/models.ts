@@ -11,7 +11,7 @@
 /* Original source keras/models.py */
 
 // tslint:disable:max-line-length
-import {doc, loadWeights, Scalar, Tensor, WeightsManifestConfig} from 'deeplearn';
+import {doc, loadWeights, Scalar, Tensor, WeightsManifestConfig} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/deeplearnjs_backend';
 import {History} from './callbacks';

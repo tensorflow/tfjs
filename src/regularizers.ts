@@ -11,7 +11,7 @@
 /* original source: keras/regularizers.py */
 
 // tslint:disable:max-line-length
-import {doc, Scalar, Tensor, zeros} from 'deeplearn';
+import {doc, Scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/deeplearnjs_backend';
 import {LayerVariable} from './types';

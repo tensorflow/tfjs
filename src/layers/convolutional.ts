@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Convolutional Layers
  */
 
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 // tslint:disable:max-line-length

@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {expandDims, Tensor, tensor2d, Tensor2D, tensor3d, tensor4d} from 'deeplearn';
+import {expandDims, Tensor, tensor2d, Tensor2D, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
 import {DType} from '../types';

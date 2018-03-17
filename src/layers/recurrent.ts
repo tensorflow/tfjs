@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Recurrent Neural Network Layers.
  */
 
-import {doc, Tensor} from 'deeplearn';
+import {doc, Tensor} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 // tslint:disable:max-line-length

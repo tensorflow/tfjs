@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {scalar} from 'deeplearn';
+import {scalar} from '@tensorflow/tfjs-core';
 
 import {BaseLogger, CallbackList, History, resolveScalarsInLogs, UnresolvedLogs} from './callbacks';
 import {Model} from './engine/training';

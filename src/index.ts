@@ -10,7 +10,7 @@
 
 // This file lists all exports of TensorFlow.js Layers
 
-import * as dl from 'deeplearn';
+import * as dl from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import * as backend from './backend/deeplearnjs_backend';

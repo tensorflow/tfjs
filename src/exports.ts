@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {doc} from 'deeplearn';
+import {doc} from '@tensorflow/tfjs-core';
 
 import {MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';

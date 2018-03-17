@@ -12,7 +12,7 @@
  * Unit tests for metrics.ts.
  */
 
-import {scalar, tensor1d, tensor2d} from 'deeplearn';
+import {scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
 
 import {binaryAccuracy, categoricalAccuracy, get} from './metrics';
 import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';

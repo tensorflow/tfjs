@@ -11,8 +11,8 @@
 /* Original Source: engine/training.py */
 
 // tslint:disable:max-line-length
-import * as dl from 'deeplearn';
-import {doc, Optimizer, Scalar, Tensor, Tensor1D, tensor1d} from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
+import {doc, Optimizer, Scalar, Tensor, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
@@ -927,8 +927,8 @@ export class Model extends Container {
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
   async evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
-      Promise<Scalar|Scalar[]> {
+      x: Tensor|Tensor[], y: Tensor|Tensor[],
+      config: ModelEvaluateConfig = {}): Promise<Scalar|Scalar[]> {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
@@ -1009,7 +1009,7 @@ export class Model extends Container {
     const outs: Tensor[] = [];
     // TODO(cais): Can the scope() be pushed down inside the for loop?
     for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
-      const batchOuts = dl.tidy(() => {
+      const batchOuts = tfc.tidy(() => {
         const batchStart = batches[batchIndex][0];
         const batchEnd = batches[batchIndex][1];
         // TODO(cais): Take care of the case of the last element is a flag for
@@ -1253,11 +1253,11 @@ export class Model extends Container {
 
         const batches = makeBatches(numTrainSamples, batchSize);
         for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
-          // TODO(cais): dl.tidy() should not be leaked from the backend.
+          // TODO(cais): tfc.tidy() should not be leaked from the backend.
           //   Wrap it with a backend function called mathScope.
           const batchLogs: UnresolvedLogs = {};
           await callbackList.onBatchBegin(batchIndex, batchLogs);
-          dl.tidy(() => {
+          tfc.tidy(() => {
             const batchStart = batches[batchIndex][0];
             const batchEnd = batches[batchIndex][1];
             const batchIds = K.sliceAlongFirstAxis(
@@ -1386,7 +1386,7 @@ export class Model extends Container {
 
   private makeTestFunction() {
     this.testFunction = (data: Tensor[]) => {
-      return dl.tidy(() => {
+      return tfc.tidy(() => {
         const valOutputs: Scalar[] = [];
         let totalLoss: Scalar;
         const inputs = data.slice(0, this.inputs.length);

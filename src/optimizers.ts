@@ -20,7 +20,7 @@
  */
 
 // tslint:disable:max-line-length
-import {AdagradOptimizer, AdamOptimizer, Optimizer as CoreOptimizer, RMSPropOptimizer, Scalar, SGDOptimizer, train, Variable} from 'deeplearn';
+import {AdagradOptimizer, AdamOptimizer, Optimizer as CoreOptimizer, RMSPropOptimizer, Scalar, SGDOptimizer, train, Variable} from '@tensorflow/tfjs-core';
 
 // tslint:enable:max-line-length
 

@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {environment, Tensor, test_util} from 'deeplearn';
+import {environment, Tensor, test_util} from '@tensorflow/tfjs-core';
 
 import {setBackend} from '../backend/deeplearnjs_backend';
 import {ValueError} from '../errors';

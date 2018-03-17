@@ -11,8 +11,8 @@
 /** Defines allowable data types for tensors. */
 
 // tslint:disable:max-line-length
-import * as dl from 'deeplearn';
-import {doc, Tensor, variable} from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
+import {doc, Tensor, variable} from '@tensorflow/tfjs-core';
 
 import {getUniqueTensorName} from './common';
 import {Constraint} from './constraints';
@@ -172,7 +172,7 @@ export class LayerVariable {
   readonly name: string;
   readonly trainable: boolean;
 
-  protected readonly val: dl.Variable;
+  protected readonly val: tfc.Variable;
   readonly constraint: Constraint;
   /**
    * Construct Variable from a Tensor or a ConcreteTensor.
@@ -263,9 +263,7 @@ export type RnnStepFunction =
  * and support for Enums.
  */
 export type JsonValue = boolean|number|string|null|JsonArray|JsonDict;
-export interface JsonDict {
-  [key: string]: JsonValue;
-}
+export interface JsonDict { [key: string]: JsonValue; }
 export interface JsonArray extends Array<JsonValue> {}
 
 /**
@@ -285,9 +283,7 @@ export interface JsonArray extends Array<JsonValue> {}
  */
 export type ConfigDictValue =
     boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict {
-  [key: string]: ConfigDictValue;
-}
+export interface ConfigDict { [key: string]: ConfigDictValue; }
 export interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 export type NamedTensorMap = {

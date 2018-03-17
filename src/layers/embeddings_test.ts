@@ -13,14 +13,15 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor3d} from 'deeplearn';
-import {expectArraysClose} from 'deeplearn/dist/test_util';
+import {Tensor, tensor3d, test_util} from '@tensorflow/tfjs-core';
 
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {describeMathCPU} from '../utils/test_utils';
 
 import {Embedding} from './embeddings';
+
+const expectArraysClose = test_util.expectArraysClose;
 
 // tslint:enable:max-line-length
 

@@ -9,7 +9,7 @@
  */
 
 // Layer activation functions
-import {scalar, Tensor} from 'deeplearn';
+import {scalar, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/deeplearnjs_backend';
 import {ValueError} from './errors';
