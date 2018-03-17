@@ -10,9 +10,9 @@
 
 // tslint:disable:max-line-length
 import {ones, Scalar, scalar, Tensor, WeightsManifestConfig, zeros} from 'deeplearn';
-import * as tfl from './index';
 
 import * as K from './backend/deeplearnjs_backend';
+import * as tfl from './index';
 import {Reshape} from './layers/core';
 import {ModelAndWeightsConfig, modelFromJSON} from './models';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
@@ -30,8 +30,8 @@ describeMathCPU('model_from_json', () => {
           expect(model.name).toEqual('test');
           const allZeros = zeros([1, 32]);
           expectTensorsClose(model.apply(allZeros) as Tensor, allZeros);
+          done();
         })
-        .then(done)
         .catch(done.fail);
   });
 
@@ -69,8 +69,8 @@ describeMathCPU('model_from_json', () => {
           const prediction = model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
           expect(prediction.shape).toEqual([1, 10]);
           expect(K.sum(prediction).dataSync()).toBeCloseTo(1);
+          done();
         })
-        .then(done)
         .catch(done.fail);
   });
   it('reconstitutes mnist sequential mode.', () => {
@@ -175,15 +175,20 @@ describeMathCPU('loadModel', () => {
           modelTopology,
           weightsManifest,
           pathPrefix,
-        }).then(model => {
-          expectTensorsClose(model.weights[0].read(), ones([32, 32], 'float32'));
-          expectTensorsClose(model.weights[1].read(), ones([32], 'float32'));
-        }).then(done).catch(done.fail);
+        })
+            .then(model => {
+              expectTensorsClose(
+                  model.weights[0].read(), ones([32, 32], 'float32'));
+              expectTensorsClose(
+                  model.weights[1].read(), ones([32], 'float32'));
+            })
+            .then(done)
+            .catch(done.fail);
       });
     }
   }
 
-  it(`Missing weight in manifest leads to error`,  done => {
+  it(`Missing weight in manifest leads to error`, done => {
     setupFakeWeightFiles({
       './weight_0': ones([32, 32], 'float32').dataSync() as Float32Array,
       './weight_1': ones([32], 'float32').dataSync() as Float32Array,
@@ -208,7 +213,9 @@ describeMathCPU('loadModel', () => {
     modelFromJSON({
       modelTopology: configJson,
       weightsManifest,
-    }).then(() => done.fail).catch(done);
+    })
+        .then(() => done.fail)
+        .catch(done);
   });
 });
 
@@ -305,7 +312,7 @@ describeMathCPUAndGPU('Sequential', () => {
         tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'Ones'});
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-    const history = await model.fit({x: xs, y: ys, batchSize, epochs: 2});
+    const history = await model.fit(xs, ys, {batchSize, epochs: 2});
     expectTensorsClose(history.history['loss'][0] as Scalar, scalar(121));
     expectTensorsClose(
         history.history['loss'][1] as Scalar, scalar(0.015178224071860313));
@@ -337,7 +344,7 @@ describeMathCPUAndGPU('Sequential', () => {
         tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'Ones'});
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-    const losses = model.evaluate(xs, ys, batchSize) as Scalar;
+    const losses = model.evaluate(xs, ys, {batchSize}) as Scalar;
     expectTensorsClose(losses, scalar(121));
   });
 });
@@ -742,188 +749,187 @@ const fakeMnistModel: ModelAndWeightsConfig = {
 
 const fakeRoundtripModel: ModelAndWeightsConfig = {
   modelTopology: {
-    "backend": "tensorflow",
-    "class_name": "Model",
-    "keras_version": "2.1.1",
-    "config": {
-      "name": "mnist",
-      "output_layers": [["dense_16", 0, 0]],
-      "layers": [{
-        "class_name": "InputLayer",
-        "name": "input_6",
-        "inbound_nodes": [],
-        "config": {
-          "batch_input_shape": [null, 28, 28, 1],
-          "sparse": false,
-          "name": "input_6",
-          "dtype": "float32"
+    'backend': 'tensorflow',
+    'class_name': 'Model',
+    'keras_version': '2.1.1',
+    'config': {
+      'name': 'mnist',
+      'output_layers': [['dense_16', 0, 0]],
+      'layers': [
+        {
+          'class_name': 'InputLayer',
+          'name': 'input_6',
+          'inbound_nodes': [],
+          'config': {
+            'batch_input_shape': [null, 28, 28, 1],
+            'sparse': false,
+            'name': 'input_6',
+            'dtype': 'float32'
+          }
+        },
+        {
+          'class_name': 'Conv2D',
+          'name': 'conv2d_15',
+          'inbound_nodes': [[['input_6', 0, 0, {}]]],
+          'config': {
+            'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+            'padding': 'valid',
+            'use_bias': true,
+            'strides': [1, 1],
+            'bias_regularizer': null,
+            'activity_regularizer': null,
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'mode': 'fan_avg',
+                'seed': null
+              }
+            },
+            'data_format': 'channels_last',
+            'dilation_rate': [1, 1],
+            'kernel_constraint': null,
+            'kernel_regularizer': null,
+            'kernel_size': [3, 3],
+            'activation': 'relu',
+            'name': 'conv2d_15',
+            'filters': 32,
+            'trainable': true,
+            'bias_constraint': null
+          }
+        },
+        {
+          'class_name': 'Conv2D',
+          'name': 'conv2d_16',
+          'inbound_nodes': [[['conv2d_15', 0, 0, {}]]],
+          'config': {
+            'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+            'padding': 'valid',
+            'use_bias': true,
+            'strides': [1, 1],
+            'bias_regularizer': null,
+            'activity_regularizer': null,
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'mode': 'fan_avg',
+                'seed': null
+              }
+            },
+            'data_format': 'channels_last',
+            'dilation_rate': [1, 1],
+            'kernel_constraint': null,
+            'kernel_regularizer': null,
+            'kernel_size': [3, 3],
+            'activation': 'relu',
+            'name': 'conv2d_16',
+            'filters': 64,
+            'trainable': true,
+            'bias_constraint': null
+          }
+        },
+        {
+          'class_name': 'MaxPooling2D',
+          'name': 'max_pooling2d_8',
+          'inbound_nodes': [[['conv2d_16', 0, 0, {}]]],
+          'config': {
+            'padding': 'valid',
+            'strides': [2, 2],
+            'pool_size': [2, 2],
+            'data_format': 'channels_last',
+            'name': 'max_pooling2d_8',
+            'trainable': true
+          }
+        },
+        {
+          'class_name': 'Dropout',
+          'name': 'dropout_15',
+          'inbound_nodes': [[['max_pooling2d_8', 0, 0, {}]]],
+          'config': {
+            'rate': 0.25,
+            'noise_shape': null,
+            'name': 'dropout_15',
+            'trainable': true,
+            'seed': null
+          }
+        },
+        {
+          'class_name': 'Flatten',
+          'name': 'flatten_8',
+          'inbound_nodes': [[['dropout_15', 0, 0, {}]]],
+          'config': {'name': 'flatten_8', 'trainable': true}
+        },
+        {
+          'class_name': 'Dense',
+          'name': 'dense_15',
+          'inbound_nodes': [[['flatten_8', 0, 0, {}]]],
+          'config': {
+            'use_bias': true,
+            'bias_regularizer': null,
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'mode': 'fan_avg',
+                'seed': null
+              }
+            },
+            'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+            'kernel_constraint': null,
+            'bias_constraint': null,
+            'kernel_regularizer': null,
+            'activation': 'relu',
+            'name': 'dense_15',
+            'activity_regularizer': null,
+            'trainable': true,
+            'units': 128
+          }
+        },
+        {
+          'class_name': 'Dropout',
+          'name': 'dropout_16',
+          'inbound_nodes': [[['dense_15', 0, 0, {}]]],
+          'config': {
+            'rate': 0.5,
+            'noise_shape': null,
+            'name': 'dropout_16',
+            'trainable': true,
+            'seed': null
+          }
+        },
+        {
+          'class_name': 'Dense',
+          'name': 'dense_16',
+          'inbound_nodes': [[['dropout_16', 0, 0, {}]]],
+          'config': {
+            'use_bias': true,
+            'bias_regularizer': null,
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'mode': 'fan_avg',
+                'seed': null
+              }
+            },
+            'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+            'kernel_constraint': null,
+            'bias_constraint': null,
+            'kernel_regularizer': null,
+            'activation': 'softmax',
+            'name': 'dense_16',
+            'activity_regularizer': null,
+            'trainable': true,
+            'units': 10
+          }
         }
-      }, {
-        "class_name": "Conv2D",
-        "name": "conv2d_15",
-        "inbound_nodes": [[["input_6", 0, 0, {}]]],
-        "config": {
-          "bias_initializer": {
-            "class_name": "Zeros", "config": {}
-          },
-          "padding": "valid",
-          "use_bias": true,
-          "strides": [1, 1],
-          "bias_regularizer": null,
-          "activity_regularizer": null,
-          "kernel_initializer": {
-            "class_name": "VarianceScaling",
-            "config": {
-              "distribution": "uniform", "scale": 1.0, "mode": "fan_avg", "seed": null
-            }
-          },
-          "data_format": "channels_last",
-          "dilation_rate": [1, 1],
-          "kernel_constraint": null,
-          "kernel_regularizer": null,
-          "kernel_size": [3, 3],
-          "activation": "relu",
-          "name": "conv2d_15",
-          "filters": 32,
-          "trainable": true,
-          "bias_constraint": null
-        }
-      }, {
-        "class_name": "Conv2D",
-        "name": "conv2d_16",
-        "inbound_nodes": [[["conv2d_15", 0, 0, {}]]],
-        "config": {
-          "bias_initializer": {
-            "class_name": "Zeros",
-            "config": {}
-          },
-          "padding": "valid",
-          "use_bias": true,
-          "strides": [1, 1],
-          "bias_regularizer": null,
-          "activity_regularizer": null,
-          "kernel_initializer": {
-            "class_name": "VarianceScaling",
-            "config": {
-              "distribution": "uniform",
-              "scale": 1.0,
-              "mode": "fan_avg",
-              "seed": null
-            }
-          },
-          "data_format": "channels_last",
-          "dilation_rate": [1, 1],
-          "kernel_constraint": null,
-          "kernel_regularizer": null,
-          "kernel_size": [3, 3],
-          "activation": "relu",
-          "name": "conv2d_16",
-          "filters": 64,
-          "trainable": true,
-          "bias_constraint": null
-        }
-      }, {
-        "class_name": "MaxPooling2D",
-        "name": "max_pooling2d_8",
-        "inbound_nodes": [[["conv2d_16", 0, 0, {}]]],
-        "config": {
-          "padding": "valid",
-          "strides": [2, 2],
-          "pool_size": [2, 2],
-          "data_format": "channels_last",
-          "name": "max_pooling2d_8",
-          "trainable": true
-        }
-      }, {
-        "class_name": "Dropout",
-        "name": "dropout_15",
-        "inbound_nodes": [[["max_pooling2d_8", 0, 0, {}]]],
-        "config": {
-          "rate": 0.25,
-          "noise_shape": null,
-          "name": "dropout_15",
-          "trainable": true,
-          "seed": null
-        }
-      }, {
-        "class_name": "Flatten",
-        "name": "flatten_8",
-        "inbound_nodes": [[["dropout_15", 0, 0, {}]]],
-        "config": {
-          "name": "flatten_8",
-          "trainable": true
-        }
-      }, {
-        "class_name": "Dense",
-        "name": "dense_15",
-        "inbound_nodes": [[["flatten_8", 0, 0, {}]]],
-        "config": {
-          "use_bias": true,
-          "bias_regularizer": null,
-          "kernel_initializer": {
-            "class_name": "VarianceScaling",
-            "config": {
-              "distribution": "uniform",
-              "scale": 1.0,
-              "mode": "fan_avg",
-              "seed": null
-            }
-          },
-          "bias_initializer": {
-            "class_name": "Zeros",
-            "config": {}
-          },
-          "kernel_constraint": null,
-          "bias_constraint": null,
-          "kernel_regularizer": null,
-          "activation": "relu",
-          "name": "dense_15",
-          "activity_regularizer": null,
-          "trainable": true,
-          "units": 128
-        }
-      }, {
-        "class_name": "Dropout",
-        "name": "dropout_16",
-        "inbound_nodes": [[["dense_15", 0, 0, {}]]],
-        "config": {
-          "rate": 0.5,
-          "noise_shape": null,
-          "name": "dropout_16",
-          "trainable": true,
-          "seed": null
-        }
-      }, {
-        "class_name": "Dense",
-        "name": "dense_16",
-        "inbound_nodes": [[["dropout_16", 0, 0, {}]]],
-        "config": {
-          "use_bias": true,
-          "bias_regularizer": null,
-          "kernel_initializer": {
-            "class_name": "VarianceScaling",
-            "config": {
-              "distribution": "uniform",
-              "scale": 1.0,
-              "mode": "fan_avg",
-              "seed": null
-            }
-          },
-          "bias_initializer": {
-            "class_name": "Zeros",
-            "config": {}
-          },
-          "kernel_constraint": null,
-          "bias_constraint": null,
-          "kernel_regularizer": null,
-          "activation": "softmax",
-          "name": "dense_16",
-          "activity_regularizer": null,
-          "trainable": true,
-          "units": 10
-        }
-      }],
-      "input_layers": [["input_6", 0, 0]]
+      ],
+      'input_layers': [['input_6', 0, 0]]
     }
   }
 };

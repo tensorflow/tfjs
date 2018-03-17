@@ -110,17 +110,13 @@ https://opensource.org/licenses/MIT.
         });
 
         // Perform fit() burn-in.
-        await model.fit({
-          x: xs,
-          y: ys,
+        await model.fit(xs, ys, {
           batchSize: benchmarkData.batch_size,
           epochs: FIT_BURNIN_EPOCHS});
         model.trainableWeights[0].read().dataSync();
 
         const trainBeginMs = performance.now();
-        await model.fit({
-          x: xs,
-          y: ys,
+        await model.fit(xs, ys, {
           batchSize: benchmarkData.batch_size,
           epochs: benchmarkData.train_epochs});
         // After the fit() call, call dataSync() to let the scheduled GPU
