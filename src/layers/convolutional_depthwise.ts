@@ -12,6 +12,7 @@
  * TensorFlow.js Layers: Depthwise Convolutional Layers
  */
 
+// tslint:disable:max-line-length
 import {Tensor} from 'deeplearn';
 
 // tslint:disable:max-line-length

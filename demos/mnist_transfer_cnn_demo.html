@@ -382,9 +382,7 @@ https://opensource.org/licenses/MIT.
 
         console.log('Retraining model.');
         const beginMs = performance.now();
-        const history = await model.fit({
-            x: gte5TrainXs,
-            y: gte5TrainYs,
+        const history = await model.fit(gte5TrainXs, gte5TrainYs, {
             batchSize: batchSize,
             epochs: epochs,
             // TODO(cais): visualize validation results in frontend during

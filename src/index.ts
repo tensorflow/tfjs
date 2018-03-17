@@ -17,13 +17,16 @@ import * as backend from './backend/deeplearnjs_backend';
 import {ConstraintExports, InitializerExports, LayerExports, ModelExports, RegularizerExports} from './exports';
 
 export {Callback, CallbackList, CustomCallback, CustomCallbackConfig, Logs} from './callbacks';
-export {Model} from './engine/training';
-export {ModelAndWeightsConfig, Sequential} from './models';
+export {Layer} from './engine/topology';
+export {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig, ModelPredictConfig} from './engine/training';
+export {GRUCellLayerConfig, GRULayerConfig, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
+export {ModelAndWeightsConfig, Sequential, SequentialConfig} from './models';
 export {SymbolicTensor} from './types';
 export {version as version_layers} from './version';
 
 export {dl};  // TODO(cais): Remove this export (b/74099819).
 export {backend};
+
 // tslint:enable:max-line-length
 
 export const model = ModelExports.model;

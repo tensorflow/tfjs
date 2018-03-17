@@ -26,7 +26,7 @@ import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, MergeLayerConfig, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
 import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
-import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNNCell, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
+import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
 import {l1, L1Config, L1L2, L1L2Config, l2, L2Config} from './regularizers';
@@ -442,10 +442,21 @@ export class LayerExports {
     heading: 'Layers',
     subheading: 'Recurrent',
     namespace: 'layers',
-    useDocsFrom: 'StackedRNNCells',
+    useDocsFrom: 'RNN',
     configParamIndices: [0]
   })
-  static stackedRNNCells(config: StackedRNNCellsConfig): StackedRNNCells {
+  static rnn(config: RNNLayerConfig): RNN {
+    return new RNN(config);
+  }
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Recurrent',
+    namespace: 'layers',
+    useDocsFrom: 'RNN',
+    configParamIndices: [0]
+  })
+  static stackedRNNCells(config: StackedRNNCellsConfig): RNNCell {
     return new StackedRNNCells(config);
   }
 
