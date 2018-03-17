@@ -12,8 +12,13 @@
  * Unit tests for callbacks.
  */
 
-import {BaseLogger, CallbackList, History, Logs} from './callbacks';
+// tslint:disable:max-line-length
+import {scalar} from 'deeplearn';
+
+import {BaseLogger, CallbackList, History, resolveScalarsInLogs, UnresolvedLogs} from './callbacks';
 import {Model} from './engine/training';
+import {describeMathCPUAndGPU} from './utils/test_utils';
+// tslint:enable:max-line-length
 
 class MockModel extends Model {
   constructor(name: string) {
@@ -32,7 +37,7 @@ describe('BaseLogger Callback', () => {
     await baseLogger.onBatchEnd(1, {batch: 1, size: 10, loss: 6});
     await baseLogger.onBatchBegin(2);
     await baseLogger.onBatchEnd(2, {batch: 2, size: 5, loss: 7});
-    const epochLog: Logs = {val_loss: 3};
+    const epochLog: UnresolvedLogs = {val_loss: 3};
     await baseLogger.onEpochEnd(0, epochLog);
     expect(epochLog['val_loss'] as number).toEqual(3);
     expect(epochLog['loss'] as number)
@@ -47,7 +52,7 @@ describe('BaseLogger Callback', () => {
       await baseLogger.onEpochBegin(i);
       await baseLogger.onBatchBegin(0);
       await baseLogger.onBatchEnd(0, {batch: 0, size: 10, loss: -5});
-      const epochLog: Logs = {val_loss: 3};
+      const epochLog: UnresolvedLogs = {val_loss: 3};
       await baseLogger.onEpochEnd(i, epochLog);
     }
     await baseLogger.onEpochBegin(numOldEpochs);
@@ -57,7 +62,7 @@ describe('BaseLogger Callback', () => {
     await baseLogger.onBatchEnd(1, {batch: 1, size: 10, loss: 6});
     await baseLogger.onBatchBegin(2);
     await baseLogger.onBatchEnd(2, {batch: 2, size: 5, loss: 7});
-    const epochLog: Logs = {val_loss: 3};
+    const epochLog: UnresolvedLogs = {val_loss: 3};
     await baseLogger.onEpochEnd(numOldEpochs, epochLog);
     expect(epochLog['val_loss'] as number).toEqual(3);
     expect(epochLog['loss'] as number)
@@ -154,6 +159,37 @@ describe('CallbackList', () => {
     await callbackList.onTrainBegin();
     expect(history2.epoch).toEqual([]);
     expect(history2.history).toEqual({});
+    done();
+  });
+});
+
+describeMathCPUAndGPU('resolveScalarsInLogs', () => {
+  it('Resolve mixed numbers and scalars', async done => {
+    const logs: UnresolvedLogs = {
+      'a': 1,
+      'b': scalar(2),
+      'c': -3,
+      'd': scalar(-4),
+    };
+    await resolveScalarsInLogs(logs);
+    expect(logs['a']).toEqual(1);
+    expect(logs['b']).toEqual(2);
+    expect(logs['c']).toEqual(-3);
+    expect(logs['d']).toEqual(-4);
+    done();
+  });
+
+  it('Resolve null works fine', async done => {
+    const logs: UnresolvedLogs = null;
+    await resolveScalarsInLogs(logs);
+    expect(logs).toEqual(null);
+    done();
+  });
+
+  it('Resolve empty works fine', async done => {
+    const logs: UnresolvedLogs = {};
+    await resolveScalarsInLogs(logs);
+    expect(logs).toEqual({});
     done();
   });
 });
