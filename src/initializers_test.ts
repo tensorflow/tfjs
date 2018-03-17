@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {tensor2d} from 'deeplearn';
+import {tensor2d} from '@tensorflow/tfjs-core';
 import * as tfl from './index';
 
 import {Distribution, FanMode, getInitializer, serializeInitializer, Zeros} from './initializers';

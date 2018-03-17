@@ -13,8 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import * as dl from 'deeplearn';
-import {Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, variableGrads} from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
+import {Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, variableGrads} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import {DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
@@ -46,7 +46,7 @@ function disposeScalarCache() {
 }
 
 export function setBackend(requestedBackend: 'cpu'|'webgl') {
-  dl.setBackend(requestedBackend);
+  tfc.setBackend(requestedBackend);
   backend = requestedBackend;
   disposeScalarCache();
 }
@@ -60,7 +60,7 @@ export function getBackend(): 'cpu'|'webgl' {
  * @param x
  */
 export function keep(x: Tensor): Tensor {
-  return dl.keep(x);
+  return tfc.keep(x);
 }
 
 const scalarCache: {[typeKey: string]: {[key: number]: Scalar}} = {
@@ -77,7 +77,7 @@ export function getScalar(value: number, dtype?: DType): Scalar {
   }
   if (scalarCache[dtype][value] == null) {
     scalarCache[dtype][value] = scalar(value, dtype);
-    dl.keep(scalarCache[dtype][value]);
+    tfc.keep(scalarCache[dtype][value]);
   }
   return scalarCache[dtype][value];
 }
@@ -209,7 +209,7 @@ export function reshape(x: Tensor, shape: Shape): Tensor {
  * @returns The resultant tensor of the tranpose.
  */
 export function transpose(x: Tensor, perm?: number[]): Tensor {
-  return dl.transpose(x, perm);
+  return tfc.transpose(x, perm);
 }
 
 export const permuteDimensions = transpose;
@@ -221,7 +221,7 @@ export const permuteDimensions = transpose;
  * @returns The result of the reverse operation.
  */
 export function reverse(x: Tensor, axes: number|number[]): Tensor {
-  return dl.reverse(x, axes);
+  return tfc.reverse(x, axes);
 }
 
 /**
@@ -245,7 +245,7 @@ export function expandDims(x: Tensor, axis = -1): Tensor {
  * @param axis which axes to remove.
  */
 export function squeeze(x: Tensor, axis: number): Tensor {
-  return dl.squeeze(x, [axis]);
+  return tfc.squeeze(x, [axis]);
 }
 
 /**
@@ -308,15 +308,15 @@ export function sliceAlongFirstAxis(
     array: Tensor, start: number, size: number): Tensor {
   switch (array.rank) {
     case 1:
-      return dl.slice1d(array as Tensor1D, start, size);
+      return tfc.slice1d(array as Tensor1D, start, size);
     case 2:
-      return dl.slice2d(array as Tensor2D, [start, 0], [size, array.shape[1]]);
+      return tfc.slice2d(array as Tensor2D, [start, 0], [size, array.shape[1]]);
     case 3:
-      return dl.slice3d(
+      return tfc.slice3d(
           array as Tensor3D, [start, 0, 0],
           [size, array.shape[1], array.shape[2]]);
     case 4:
-      return dl.slice4d(
+      return tfc.slice4d(
           array as Tensor4D, [start, 0, 0, 0],
           [size, array.shape[1], array.shape[2], array.shape[3]]);
     default:
@@ -338,15 +338,15 @@ export function sliceAlongLastAxis(
     array: Tensor, start: number, size: number): Tensor {
   switch (array.rank) {
     case 1:
-      return dl.slice1d(array as Tensor1D, start, size);
+      return tfc.slice1d(array as Tensor1D, start, size);
     case 2:
-      return dl.slice2d(array as Tensor2D, [0, start], [array.shape[0], size]);
+      return tfc.slice2d(array as Tensor2D, [0, start], [array.shape[0], size]);
     case 3:
-      return dl.slice3d(
+      return tfc.slice3d(
           array as Tensor3D, [0, 0, start],
           [array.shape[0], array.shape[1], size]);
     case 4:
-      return dl.slice4d(
+      return tfc.slice4d(
           array as Tensor4D, [0, 0, 0, start],
           [array.shape[0], array.shape[1], array.shape[2], size]);
     default:
@@ -373,12 +373,12 @@ export function concatenate(tensors: Tensor[], axis = -1): Tensor {
     }
   }
   if (axis === ndim(tensors[0])) {
-    // Porting Note: This is necessary because dl.concat() requires axis to be
+    // Porting Note: This is necessary because tfc.concat() requires axis to be
     //   in the interval [-rank, rank).
     axis = -1;
   }
   // Porting Note: Sparse concat is not supported yet.
-  return dl.concat(tensors, axis);
+  return tfc.concat(tensors, axis);
 }
 
 /**
@@ -391,13 +391,13 @@ export function concatenate(tensors: Tensor[], axis = -1): Tensor {
 export function concatAlongFirstAxis(a: Tensor, b: Tensor): Tensor {
   switch (a.rank) {
     case 1:
-      return dl.concat1d([a as Tensor1D, b as Tensor1D]);
+      return tfc.concat1d([a as Tensor1D, b as Tensor1D]);
     case 2:
-      return dl.concat2d([a as Tensor2D, b as Tensor2D], 0);
+      return tfc.concat2d([a as Tensor2D, b as Tensor2D], 0);
     case 3:
-      return dl.concat3d([a as Tensor3D, b as Tensor3D], 0);
+      return tfc.concat3d([a as Tensor3D, b as Tensor3D], 0);
     case 4:
-      return dl.concat4d([a as Tensor4D, b as Tensor4D], 0);
+      return tfc.concat4d([a as Tensor4D, b as Tensor4D], 0);
     default:
       throw new ValueError(
           'concatAlongFirstAxis() received an unsupported subtype of ' +
@@ -421,7 +421,7 @@ export function tile(x: Tensor, n: number|number[]): Tensor {
         `The length of input n (${n.length}) does not match ` +
         `the number of dimensions in input x (${ndim(x)})`);
   }
-  return dl.tile(x, n);
+  return tfc.tile(x, n);
 }
 
 /* Creation and manipulation of tensors and variables */
@@ -477,7 +477,7 @@ export function batchSetValue(
  */
 export function zeros(shape: Shape, dtype?: DType): Tensor {
   // TODO(cais): Implement logic for dtype.
-  return dl.zeros(shape);
+  return tfc.zeros(shape);
 }
 
 /**
@@ -504,7 +504,7 @@ export function zerosVariable(
  */
 export function zerosLike(
     x: Tensor, dtype?: DType, name?: string): LayerVariable {
-  return new LayerVariable(dl.zerosLike(x), dtype, name);
+  return new LayerVariable(tfc.zerosLike(x), dtype, name);
 }
 
 /**
@@ -517,7 +517,7 @@ export function zerosLike(
  */
 export function ones(shape: Shape, dtype?: DType): Tensor {
   // TODO(cais): Implement logic for dtype.
-  return dl.ones(shape);
+  return tfc.ones(shape);
 }
 
 /**
@@ -531,7 +531,7 @@ export function ones(shape: Shape, dtype?: DType): Tensor {
 export function onesVariable(
     shape: Shape, dtype?: DType, name?: string): LayerVariable {
   // TODO(cais): Implement logic for dtype.
-  const allocated = dl.ones(shape);
+  const allocated = tfc.ones(shape);
   return new LayerVariable(allocated, dtype, name);
 }
 
@@ -545,7 +545,7 @@ export function onesVariable(
  */
 export function onesLike(
     x: Tensor, dtype?: DType, name?: string): LayerVariable {
-  const allocated = dl.onesLike(x);
+  const allocated = tfc.onesLike(x);
   return new LayerVariable(allocated, dtype, name);
 }
 
@@ -596,7 +596,7 @@ export function eyeVariable(
  * @param x Tensor to negate.
  */
 export function neg(x: Tensor): Tensor {
-  return dl.neg(x);
+  return tfc.neg(x);
 }
 
 /**
@@ -606,7 +606,7 @@ export function neg(x: Tensor): Tensor {
  * @returns Result of the addition.
  */
 export function add(x: Tensor, y: Tensor): Tensor {
-  return dl.add(x, y);
+  return tfc.add(x, y);
 }
 
 /**
@@ -616,7 +616,7 @@ export function add(x: Tensor, y: Tensor): Tensor {
  * @returns Result of the subtraction.
  */
 export function subtract(x: Tensor, y: Tensor): Tensor {
-  return dl.sub(x, y);
+  return tfc.sub(x, y);
 }
 
 /**
@@ -626,7 +626,7 @@ export function subtract(x: Tensor, y: Tensor): Tensor {
  * @returns Result of the multiplication.
  */
 export function multiply(x: Tensor, y: Tensor): Tensor {
-  return dl.mul(x, y);
+  return tfc.mul(x, y);
 }
 
 /**
@@ -636,7 +636,7 @@ export function multiply(x: Tensor, y: Tensor): Tensor {
  * @returns Result of the division.
  */
 export function divide(x: Tensor, y: Tensor): Tensor {
-  return dl.div(x, y);
+  return tfc.div(x, y);
 }
 
 /**
@@ -646,7 +646,7 @@ export function divide(x: Tensor, y: Tensor): Tensor {
  * @returns The result of the multiplication.
  */
 export function scalarTimesArray(c: Scalar, x: Tensor): Tensor {
-  return dl.mul(c, x);
+  return tfc.mul(c, x);
 }
 
 /**
@@ -656,7 +656,7 @@ export function scalarTimesArray(c: Scalar, x: Tensor): Tensor {
  * @returns The result of the addition.
  */
 export function scalarPlusArray(c: Scalar, x: Tensor): Tensor {
-  return dl.add(c, x);
+  return tfc.add(c, x);
 }
 
 /* Creation of random tensors. */
@@ -673,7 +673,7 @@ export function randomUniform(
     seed?: number): Tensor {
   // TODO(cais): Implement logic for dtype and seed once they are supported
   // by deeplearn.js.
-  return dl.randomUniform(shape, minval, maxval);
+  return tfc.randomUniform(shape, minval, maxval);
 }
 
 /**
@@ -715,7 +715,7 @@ export function truncatedNormal(
     seed?: number): Tensor {
   // TODO(cais): Implement logic for dtype and seed once they are supported
   // by deeplearn.js.
-  return dl.truncatedNormal(shape, mean, stddev);
+  return tfc.truncatedNormal(shape, mean, stddev);
 }
 
 /**
@@ -754,7 +754,7 @@ export function randomNormal(
     throw new NotImplementedError(`randomNormal does not support dType bool.`);
   }
   const dtypeString = (dtype === DType.float32) ? 'float32' : 'int32';
-  return dl.randomNormal(shape, mean, stddev, dtypeString, seed);
+  return tfc.randomNormal(shape, mean, stddev, dtypeString, seed);
 }
 
 /**
@@ -793,7 +793,7 @@ export function update(x: LayerVariable, xNew: Tensor): LayerVariable {
  * @return The Variable updated.
  */
 export function updateAdd(x: LayerVariable, increment: Tensor): LayerVariable {
-  return x.write(dl.add(x.read(), increment));
+  return x.write(tfc.add(x.read(), increment));
 }
 
 /**
@@ -803,7 +803,7 @@ export function updateAdd(x: LayerVariable, increment: Tensor): LayerVariable {
  * @return The Variable updated.
  */
 export function updateSub(x: LayerVariable, decrement: Tensor): LayerVariable {
-  return x.write(dl.sub(x.read(), decrement));
+  return x.write(tfc.sub(x.read(), decrement));
 }
 
 /* Linear Algebra */
@@ -826,13 +826,13 @@ export function dot(x: Tensor, y: Tensor): Tensor {
         `y shape = ${shape}`);
   } else {
     if (ndim(x) === 2) {
-      return dl.matMul(x as Tensor2D, y as Tensor2D);
+      return tfc.matMul(x as Tensor2D, y as Tensor2D);
     } else if (ndim(x) === 3) {
       const xShape0 = x.shape[0];
       const xShape1 = x.shape[1];
       const xShape2 = x.shape[2];
       x = x.reshape([xShape0 * xShape1, xShape2]);
-      return dl.matMul(x as Tensor2D, y as Tensor2D).reshape([
+      return tfc.matMul(x as Tensor2D, y as Tensor2D).reshape([
         xShape0, xShape1, y.shape[1]
       ]);
     } else {
@@ -857,7 +857,7 @@ export function oneHot(indices: Tensor, numClasses: number): Tensor {
         'Only 1D one-hot tensors are supported in the ' +
         'deeplearn backend, at present.');
   }
-  return dl.oneHot(indices as Tensor1D, numClasses);
+  return tfc.oneHot(indices as Tensor1D, numClasses);
 }
 
 /* Elementary math functions. */
@@ -875,7 +875,7 @@ export function mean(
     x: Tensor, axis?: number|number[], keepDims?: boolean): Scalar|Tensor {
   // TODO(michaelterry): Remove once negative supported axes in deeplearn.js
   axis = normalizeAxis(x, axis);
-  return dl.mean(x, axis, keepDims);
+  return tfc.mean(x, axis, keepDims);
 }
 
 /**
@@ -885,7 +885,7 @@ export function mean(
  * @returns The argmax index tensor.
  */
 export function argmax(x: Tensor, axis = -1): Tensor {
-  return dl.argMax(x, axis);
+  return tfc.argMax(x, axis);
 }
 
 /**
@@ -900,7 +900,7 @@ export function gather(
   if (Array.isArray(indices)) {
     indices = tensor1d(indices);
   }
-  return dl.gather(reference, indices, axis);
+  return tfc.gather(reference, indices, axis);
 }
 
 /**
@@ -917,7 +917,7 @@ export function gather(
  */
 export function max(
     x: Tensor, axis?: number|number[], keepDims?: boolean): Scalar|Tensor {
-  return dl.max(x, axis, keepDims);
+  return tfc.max(x, axis, keepDims);
 }
 
 /**
@@ -933,7 +933,7 @@ export function max(
  */
 export function min(
     x: Tensor, axis?: number|number[], keepDims?: boolean): Scalar|Tensor {
-  return dl.min(x, axis, keepDims);
+  return tfc.min(x, axis, keepDims);
 }
 
 /**
@@ -943,7 +943,7 @@ export function min(
  * @return: Tensor with the minimum values between `x` and `y`.
  */
 export function minimum(x: Tensor, y: Tensor): Tensor {
-  return dl.minimum(x, y);
+  return tfc.minimum(x, y);
 }
 /**
  * Sum value in a tensor.
@@ -958,7 +958,7 @@ export function minimum(x: Tensor, y: Tensor): Tensor {
  */
 export function sum(
     x: Tensor, axis?: number|number[], keepDims?: boolean): Tensor {
-  return dl.sum(x, axis, keepDims);
+  return tfc.sum(x, axis, keepDims);
 }
 
 /**
@@ -967,7 +967,7 @@ export function sum(
  * @return element-wise |x|.
  */
 export function abs(x: Tensor): Tensor {
-  return dl.abs(x);
+  return tfc.abs(x);
 }
 
 /**
@@ -976,7 +976,7 @@ export function abs(x: Tensor): Tensor {
  * @return element-wise x^2
  */
 export function square(x: Tensor): Tensor {
-  return dl.mulStrict(x, x);
+  return tfc.mulStrict(x, x);
 }
 
 /**
@@ -985,7 +985,7 @@ export function square(x: Tensor): Tensor {
  * @return element-wise sqrt(x)
  */
 export function sqrt(x: Tensor): Tensor {
-  return dl.sqrt(x);
+  return tfc.sqrt(x);
 }
 
 /**
@@ -994,7 +994,7 @@ export function sqrt(x: Tensor): Tensor {
  * @return element-wise exp(x)
  */
 export function exp(x: Tensor): Tensor {
-  return dl.exp(x);
+  return tfc.exp(x);
 }
 
 /**
@@ -1004,7 +1004,7 @@ export function exp(x: Tensor): Tensor {
  * @returns Element-wise log(x).
  */
 export function log(x: Tensor): Tensor {
-  return dl.log(x);
+  return tfc.log(x);
 }
 
 /**
@@ -1027,7 +1027,7 @@ export function pow(x: Tensor, a: Tensor|number): Tensor {
     throw new NotImplementedError(
         `Non-int32 dtype (${a.dtype}) is not supported by pow() yet`);
   }
-  return dl.pow(x, a as Tensor);
+  return tfc.pow(x, a as Tensor);
 }
 
 /**
@@ -1039,7 +1039,7 @@ export function pow(x: Tensor, a: Tensor|number): Tensor {
  * @returns Tensor with values limited to be between min_value and max_value
  */
 export function clip(x: Tensor, minValue: number, maxValue: number): Tensor {
-  return dl.clipByValue(x, minValue, maxValue);
+  return tfc.clipByValue(x, minValue, maxValue);
 }
 
 /**
@@ -1049,7 +1049,7 @@ export function clip(x: Tensor, minValue: number, maxValue: number): Tensor {
  * @returns A tensor of the same shape as `x`, consisting of `0`(s) and `1`(s).
  */
 export function equal(x: Tensor, y: Tensor): Tensor {
-  return dl.equal(x, y);
+  return tfc.equal(x, y);
 }
 
 /**
@@ -1059,7 +1059,7 @@ export function equal(x: Tensor, y: Tensor): Tensor {
  * @returns A tensor of the same shape as `x`, consisting of `0`(s) and `1`(s).
  */
 export function greater(x: Tensor, y: Tensor): Tensor {
-  return dl.greater(x, y);
+  return tfc.greater(x, y);
 }
 
 /**
@@ -1069,14 +1069,14 @@ export function greater(x: Tensor, y: Tensor): Tensor {
  * @returns A tensor of the same shape as `x`, consisting of `0`(s) and `1`(s).
  */
 export function greaterEqual(x: Tensor, y: Tensor): Tensor {
-  return dl.greaterEqual(x, y);
+  return tfc.greaterEqual(x, y);
 }
 
 /**
  * Element-wise maximum of two tensors.
  */
 export function maximum(x: Tensor, y: Tensor): Tensor {
-  return dl.maximum(x, y);
+  return tfc.maximum(x, y);
 }
 
 /**
@@ -1086,7 +1086,7 @@ export function maximum(x: Tensor, y: Tensor): Tensor {
  * @returns Element-wise sin(x).
  */
 export function sin(x: ConcreteTensor): Tensor {
-  return dl.sin(x.value());
+  return tfc.sin(x.value());
 }
 
 /**
@@ -1096,7 +1096,7 @@ export function sin(x: ConcreteTensor): Tensor {
  * @returns Element-wise cos(x).
  */
 export function cos(x: ConcreteTensor): Tensor {
-  return dl.cos(x.value());
+  return tfc.cos(x.value());
 }
 
 /* Normalization operations. */
@@ -1120,16 +1120,16 @@ export function batchNormalization(
     epsilon = 1e-3): Tensor {
   let out: Tensor;
   if (ndim(x) === 2) {
-    out = dl.batchNormalization2d(
+    out = tfc.batchNormalization2d(
         x as Tensor2D, mean as Tensor2D | Tensor1D,
         variance as Tensor2D | Tensor1D, epsilon);
   } else if (ndim(x) === 3) {
     // TODO(cais): Check rank; give proper error message.
-    out = dl.batchNormalization3d(
+    out = tfc.batchNormalization3d(
         x as Tensor3D, mean as Tensor3D | Tensor1D,
         variance as Tensor3D | Tensor1D, epsilon);
   } else if (ndim(x) === 4) {
-    out = dl.batchNormalization4d(
+    out = tfc.batchNormalization4d(
         x as Tensor4D, mean as Tensor4D | Tensor1D,
         variance as Tensor4D | Tensor1D, epsilon);
   } else {
@@ -1167,7 +1167,7 @@ export function biasAdd(
   if (dataFormat) {
     throw new NotImplementedError('dataFormat logic is not yet implemented.');
   }
-  return dl.add(x, bias);
+  return tfc.add(x, bias);
 }
 
 /**
@@ -1183,7 +1183,7 @@ export function elu(x: Tensor, alpha = 1): Tensor {
         `Support for alpha values other than 1 (${alpha}) is not implemented ` +
         `yet.`);
   }
-  return dl.elu(x);
+  return tfc.elu(x);
 }
 
 /**
@@ -1195,7 +1195,7 @@ export function elu(x: Tensor, alpha = 1): Tensor {
  * @return Output of the SELU operation.
  */
 export function selu(x: Tensor): Tensor {
-  return dl.selu(x);
+  return tfc.selu(x);
 }
 
 /**
@@ -1205,7 +1205,7 @@ export function selu(x: Tensor): Tensor {
  */
 export function relu(x: Tensor): Tensor {
   // TODO(cais): Add params alpha and max_value.
-  return dl.relu(x);
+  return tfc.relu(x);
 }
 
 /**
@@ -1217,7 +1217,7 @@ export function relu(x: Tensor): Tensor {
  * @returns Output.
  */
 export function softplus(x: Tensor): Tensor {
-  return dl.log(dl.add(getScalar(1), dl.exp(x)));
+  return tfc.log(tfc.add(getScalar(1), tfc.exp(x)));
 }
 
 /**
@@ -1229,7 +1229,7 @@ export function softplus(x: Tensor): Tensor {
  * @returns Output.
  */
 export function softsign(x: Tensor): Tensor {
-  return dl.div(x, dl.add(getScalar(1), dl.abs(x)));
+  return tfc.div(x, tfc.add(getScalar(1), tfc.abs(x)));
 }
 
 /**
@@ -1239,7 +1239,7 @@ export function softsign(x: Tensor): Tensor {
  * @returns Element-wise tanh(x).
  */
 export function tanh(x: Tensor): Tensor {
-  return dl.tanh(x);
+  return tfc.tanh(x);
 }
 
 /**
@@ -1264,13 +1264,13 @@ export function dropout(
   if (seed != null) {
     throw new NotImplementedError('seed is not implemented for dropout yet.');
   }
-  let multiplier = dl.step(dl.add(
+  let multiplier = tfc.step(tfc.add(
       neg(level) as Scalar, randomUniform(x.shape, 0, 1, DType.float32)));
   // Scale the kept elements, so the expected sum is unchanged.
-  multiplier = dl.mul(
+  multiplier = tfc.mul(
       divide(getScalar(1), subtract(getScalar(1), level)) as Scalar,
       multiplier);
-  return dl.mul(x, multiplier);
+  return tfc.mul(x, multiplier);
 }
 
 /**
@@ -1280,7 +1280,7 @@ export function dropout(
  */
 export function l2Normalize(x: Tensor, axis?: number): Tensor {
   const squareSum = sum(square(x), axis, true);
-  const epsilonTensor = scalarTimesArray(scalar(epsilon()), dl.onesLike(x));
+  const epsilonTensor = scalarTimesArray(scalar(epsilon()), tfc.onesLike(x));
   const norm = sqrt(maximum(squareSum, epsilonTensor));
   return divide(x, norm);
 }
@@ -1293,7 +1293,7 @@ export function l2Normalize(x: Tensor, axis?: number): Tensor {
 function preprocessConv2DInput(x: Tensor, dataFormat: DataFormat): Tensor {
   // TODO(cais): Cast type to float32 if not.
   if (dataFormat === DataFormat.CHANNEL_FIRST) {
-    return dl.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+    return tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
   } else {
     return x;
   }
@@ -1355,7 +1355,7 @@ export function conv1dWithBias(
         'The support for CASUAL padding mode in conv1dWithBias is not ' +
         'implemented yet.');
   }
-  let y: Tensor = dl.conv1d(
+  let y: Tensor = tfc.conv1d(
       x as Tensor2D | Tensor3D, kernel as Tensor3D, strides,
       padding === PaddingMode.SAME ? 'same' : 'valid');
   if (bias != null) {
@@ -1432,14 +1432,14 @@ export function conv2dWithBias(
         'The support for CASUAL padding mode in conv1dWithBias is not ' +
         'implemented yet.');
   }
-  y = dl.conv2d(
+  y = tfc.conv2d(
       y as Tensor3D | Tensor4D, kernel as Tensor4D, strides as [number, number],
       padding === PaddingMode.SAME ? 'same' : 'valid');
   if (bias != null) {
     y = biasAdd(y, bias as Tensor1D);
   }
   if (dataFormat === DataFormat.CHANNEL_FIRST) {
-    y = dl.transpose(y, [0, 3, 1, 2]);
+    y = tfc.transpose(y, [0, 3, 1, 2]);
   }
   return y;
 }
@@ -1474,11 +1474,11 @@ export function depthwiseConv2d(
         `depthwiseKernel is required to be 4-D, but is instead ` +
         `${ndim(depthwiseKernel)}-D`);
   }
-  y = dl.depthwiseConv2d(
+  y = tfc.depthwiseConv2d(
       y as Tensor4D, depthwiseKernel as Tensor4D, strides,
       padding === PaddingMode.SAME ? 'same' : 'valid', dilationRate);
   if (dataFormat === DataFormat.CHANNEL_FIRST) {
-    y = dl.transpose(y, [0, 3, 1, 2]);
+    y = tfc.transpose(y, [0, 3, 1, 2]);
   }
   return y;
 }
@@ -1517,16 +1517,16 @@ export function pool2d(
   const paddingString = (padding === PaddingMode.SAME) ? 'same' : 'valid';
   if (poolMode === PoolMode.MAX) {
     // TODO(cais): Rank check?
-    y = dl.maxPool(x as Tensor4D, poolSize, strides, paddingString);
+    y = tfc.maxPool(x as Tensor4D, poolSize, strides, paddingString);
   } else {  // PoolMode.AVG
     // TODO(cais): Check the dtype and rank of x and give clear error message
     //   if those are incorrect.
-    y = dl.avgPool(
+    y = tfc.avgPool(
         // TODO(cais): Rank check?
         x as Tensor3D | Tensor4D, poolSize, strides, paddingString);
   }
   if (dataFormat === DataFormat.CHANNEL_FIRST) {
-    y = dl.transpose(y, [0, 3, 1, 2]);  // NHWC -> NCHW.
+    y = tfc.transpose(y, [0, 3, 1, 2]);  // NHWC -> NCHW.
   }
   return y;
 }
@@ -1579,7 +1579,7 @@ export function getUid(prefix = ''): string {
  * across the last dimension.
  */
 export function softmax(x: Tensor, axis = -1): Tensor {
-  return dl.softmax(x, axis);
+  return tfc.softmax(x, axis);
 }
 
 /**
@@ -1601,8 +1601,8 @@ export function categoricalCrossentropy(
     output = divide(output, outputSum);
   }
   output = clip(output, epsilon(), 1 - epsilon());
-  return dl.neg(
-      dl.sum(dl.mul(target, dl.log(output)), shape(output).length - 1));
+  return tfc.neg(
+      tfc.sum(tfc.mul(target, tfc.log(output)), shape(output).length - 1));
 }
 
 /**
@@ -1616,10 +1616,10 @@ export function categoricalCrossentropy(
  */
 export function sparseCategoricalCrossentropy(
     target: Tensor, output: Tensor, fromLogits = false): Tensor {
-  const flatTarget = dl.floor(flatten(target)) as Tensor1D;
+  const flatTarget = tfc.floor(flatten(target)) as Tensor1D;
   const outputShape = shape(output);
   const oneHotTarget = reshape(
-      dl.oneHot(flatTarget, outputShape[outputShape.length - 1]), outputShape);
+      tfc.oneHot(flatTarget, outputShape[outputShape.length - 1]), outputShape);
   return categoricalCrossentropy(oneHotTarget, output, fromLogits);
 }
 
@@ -1636,7 +1636,7 @@ export function binaryCrossentropy(
   let y: Tensor;
   if (!fromLogits) {
     y = clip(output, epsilon(), 1 - epsilon());
-    y = log(divide(y, subtract(dl.onesLike(y), y)));
+    y = log(divide(y, subtract(tfc.onesLike(y), y)));
   } else {
     y = output;
   }
@@ -1666,11 +1666,11 @@ export function binaryCrossentropy(
  */
 export function sigmoidCrossEntropyWithLogits(
     target: Tensor, output: Tensor): Tensor {
-  const maxOutput = dl.maximum(output, dl.zerosLike(output));
-  const outputXTarget = dl.mul(output, target);
+  const maxOutput = tfc.maximum(output, tfc.zerosLike(output));
+  const outputXTarget = tfc.mul(output, target);
   const sigmoidOutput =
-      dl.log(dl.add(getScalar(1), dl.exp(dl.neg(dl.abs(output)))));
-  const result = dl.add(dl.sub(maxOutput, outputXTarget), sigmoidOutput);
+      tfc.log(tfc.add(getScalar(1), tfc.exp(tfc.neg(tfc.abs(output)))));
+  const result = tfc.add(tfc.sub(maxOutput, outputXTarget), sigmoidOutput);
   return result;
 }
 
@@ -1678,7 +1678,7 @@ export function sigmoidCrossEntropyWithLogits(
  * Element-wise sigmoid.
  */
 export function sigmoid(x: Tensor): Tensor {
-  return dl.sigmoid(x);
+  return tfc.sigmoid(x);
 }
 
 /**
@@ -1838,7 +1838,7 @@ export function gradients(
   // TODO(cais): The return type signature can be simplified if deeplearn makes
   //   the corresponding type public.
   const variableList =
-      variables.map(variable => variable.read() as dl.Variable);
+      variables.map(variable => variable.read() as tfc.Variable);
   const valudAndGrads = variableGrads(lossFn, variableList);
   return variables.map(variable => valudAndGrads.grads[variable.name]);
 }

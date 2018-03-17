@@ -11,7 +11,7 @@
 /* Original source: utils/generic_utils.py */
 
 // tslint:disable:max-line-length
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import {AssertionError, AttributeError, IndexError, ValueError} from '../errors';

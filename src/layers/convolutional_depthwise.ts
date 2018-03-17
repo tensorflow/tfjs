@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import * as K from '../backend/deeplearnjs_backend';

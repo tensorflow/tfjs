@@ -12,7 +12,7 @@
  * Executor: Evaluates SymbolicTensor based on feeds.
  */
 
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 import {ValueError} from '../errors';
 import {SymbolicTensor} from '../types';
 import {InputLayer} from './topology';

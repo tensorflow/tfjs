@@ -11,7 +11,7 @@
 /* Unit tests for constraints */
 
 // tslint:disable:max-line-length
-import {Tensor1D, tensor1d} from 'deeplearn';
+import {Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 
 import {deserializeConstraint, getConstraint, serializeConstraint} from './constraints';
 import * as tfl from './index';

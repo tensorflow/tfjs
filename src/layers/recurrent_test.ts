@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, Tensor, tensor2d, tensor3d} from 'deeplearn';
+import {Scalar, scalar, Tensor, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/deeplearnjs_backend';
 import * as metrics from '../metrics';

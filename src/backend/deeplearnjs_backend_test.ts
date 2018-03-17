@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from 'deeplearn';
+import {Scalar, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';

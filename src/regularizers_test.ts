@@ -10,7 +10,7 @@
 
 /* Unit tests for constraints */
 
-import {tensor1d} from 'deeplearn';
+import {tensor1d} from '@tensorflow/tfjs-core';
 import * as tfl from './index';
 
 // tslint:disable:max-line-length

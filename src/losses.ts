@@ -10,7 +10,7 @@
 
 /* Original Source: losses.py */
 
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/deeplearnjs_backend';
 import {ValueError} from './errors';

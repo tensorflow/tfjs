@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Core Layers.
  */
 
-import {Scalar, Tensor} from 'deeplearn';
+import {Scalar, Tensor} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 // tslint:disable:max-line-length

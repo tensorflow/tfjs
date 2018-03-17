@@ -12,7 +12,7 @@
  * Unit tests for activations.ts.
  */
 // tslint:disable:max-line-length
-import {scalar, tensor1d, tensor2d, tensor3d} from 'deeplearn';
+import {scalar, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {elu, hardSigmoid, linear, relu, relu6, selu, sigmoid, softmax, softplus, softsign, tanh} from './activations';
 import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';

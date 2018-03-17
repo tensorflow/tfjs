@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor2d, tensor3d, tensor4d} from 'deeplearn';
+import {Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';

@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {scalar, tensor1d, zeros} from 'deeplearn';
+import {scalar, tensor1d, zeros} from '@tensorflow/tfjs-core';
 
 import {nameScope} from './backend/deeplearnjs_backend';
 import {NonNeg} from './constraints';

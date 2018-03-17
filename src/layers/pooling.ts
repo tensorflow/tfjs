@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Pooling Layers.
  */
 
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/deeplearnjs_backend';
 import {DataFormat, PaddingMode, PoolMode} from '../common';

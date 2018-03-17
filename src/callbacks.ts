@@ -10,7 +10,7 @@
 
 /* Original source: keras/callbacks.py */
 
-import {Scalar, Tensor, tidy} from 'deeplearn';
+import {Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/deeplearnjs_backend';
 import {Model} from './engine/training';

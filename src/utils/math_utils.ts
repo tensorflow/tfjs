@@ -19,8 +19,8 @@
  * 2) not having to convert the returned Tensors to numbers.
  */
 
-import * as dl from 'deeplearn';
-import {scalar, Tensor1D, tensor1d} from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
+import {scalar, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 
 export type ArrayTypes = Uint8Array|Int32Array|Float32Array;
 
@@ -70,7 +70,7 @@ function toArray1D(array: number[]|Float32Array): Tensor1D {
  * @return minimum value.
  */
 export function min(array: number[]|Float32Array): number {
-  return dl.min(toArray1D(array)).dataSync()[0];
+  return tfc.min(toArray1D(array)).dataSync()[0];
 }
 
 /**
@@ -79,7 +79,7 @@ export function min(array: number[]|Float32Array): number {
  * @return maximum value
  */
 export function max(array: number[]|Float32Array): number {
-  return dl.max(toArray1D(array)).dataSync()[0];
+  return tfc.max(toArray1D(array)).dataSync()[0];
 }
 
 /**
@@ -88,7 +88,7 @@ export function max(array: number[]|Float32Array): number {
  * @return The sum.
  */
 export function sum(array: number[]|Float32Array): number {
-  return dl.sum(toArray1D(array)).dataSync()[0];
+  return tfc.sum(toArray1D(array)).dataSync()[0];
 }
 
 /**
@@ -106,7 +106,7 @@ export function mean(array: number[]|Float32Array): number {
  * @return The variance.
  */
 export function variance(array: number[]|Float32Array): number {
-  const demeaned = dl.sub(toArray1D(array), scalar(mean(array)));
-  const sumSquare = dl.sum(dl.mulStrict(demeaned, demeaned)).dataSync()[0];
+  const demeaned = tfc.sub(toArray1D(array), scalar(mean(array)));
+  const sumSquare = tfc.sum(tfc.mulStrict(demeaned, demeaned)).dataSync()[0];
   return sumSquare / array.length;
 }

@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, Scalar, scalar, Tensor, WeightsManifestConfig, zeros} from 'deeplearn';
+import {ones, Scalar, scalar, Tensor, WeightsManifestConfig, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/deeplearnjs_backend';
 import * as tfl from './index';

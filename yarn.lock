@@ -2,6 +2,13 @@
 # yarn lockfile v1
 
 
+"@tensorflow/tfjs-core@~0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.0.1.tgz#087be00020ed2e581c9e35dea2ca8dd2be537707"
+  dependencies:
+    seedrandom "~2.4.3"
+    utf8 "~2.1.2"
+
 "@types/events@*":
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/@types/events/-/events-1.2.0.tgz#81a6731ce4df43619e5c8c945383b3e62a89ea86"
@@ -967,13 +974,6 @@ deep-is@~0.1.3:
 deeplearn-src@PAIR-code/deeplearnjs:
   version "0.6.0-alpha6"
   resolved "https://codeload.github.com/PAIR-code/deeplearnjs/tar.gz/fbed9615387373d4b7f112d9d94db7275b2a4436"
-  dependencies:
-    seedrandom "~2.4.3"
-    utf8 "~2.1.2"
-
-deeplearn@next:
-  version "0.6.0-alpha6"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha6.tgz#5f9b3af18db3186dbdc5e05310369fbf30131921"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
