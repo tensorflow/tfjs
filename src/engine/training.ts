@@ -640,7 +640,7 @@ export interface ModelCompileConfig {
  * // The model can be used for training, evaluation and prediction.
  * // For example, the following line runs prediction with the model on
  * // some fake data.
- * model.predict(tf.ones([2, 5])).print();
+ * (await model.predict(tf.ones([2, 5]))).print();
  * ```
  *
  * See also:
@@ -908,9 +908,10 @@ export class Model extends Container {
    *   layers: [tf.layers.dense({units: 1, inputShape: [10]})]
    * });
    * model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-   * model.evaluate(tf.ones([8, 10]), tf.ones([8, 1]), {
+   * const result = await model.evaluate(tf.ones([8, 10]), tf.ones([8, 1]), {
    *   batchSize: 4,
-   * }).print();
+   * });
+   * result.print();
    * ```
    *
    * @param x `Tensor` of test data, or an `Array` of `Tensor`s if the model has
@@ -919,15 +920,15 @@ export class Model extends Container {
    *   has multiple outputs.
    * @param config A `ModelEvaluateConfig`, containing optional fields.
    *
-   * @return Scalar test loss (if the model has a single output and no
-   *   metrics) or list of scalars (if the model has multiple outputs and/or
-   *   metrics). The attribute `model.metricsNames` will give you the display
-   *   labels for the scalar outputs.
+   * @return `Scalar` test loss (if the model has a single output and no
+   *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
+   *   and/or metrics), as a `Promise`. The attribute `model.metricsNames`
+   *   will give you the display labels for the scalar outputs.
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
-  evaluate(
+  async evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
-      Scalar|Scalar[] {
+      Promise<Scalar|Scalar[]> {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
@@ -1060,15 +1061,15 @@ export class Model extends Container {
    *   the model has multiple inputs.
    * @param conifg A `ModelPredictConfig` object containing optional fields.
    *
-   * @return Tensor(s) of predictions.
+   * @return Prediction results as a `Promise` of `Tensor`(s).
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [1]})
-  predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}): Tensor
-      |Tensor[] {
+  async predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}):
+      Promise<Tensor|Tensor[]> {
     checkInputData(x, this.inputNames, this.feedInputShapes, false);
     // TODO(cais): Take care of stateful models.
     //   if (this.stateful) ...
@@ -1293,7 +1294,7 @@ export class Model extends Container {
                 }
               }
             }
-            return outs;  // TODO(cais): Confirm.
+            return outs;
           });
           await callbackList.onBatchEnd(batchIndex, batchLogs);
           // TODO(cais): return outs as list of Tensor.

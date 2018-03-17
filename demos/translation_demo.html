@@ -105,9 +105,9 @@ https://opensource.org/licenses/MIT.
           outputs: [decoderOutputs].concat(decoderStates)
       });
 
-      function decodeSequence(inputSeq) {
+      async function decodeSequence(inputSeq) {
         // Encode the inputs state vectors.
-        let statesValue = encoderModel.predict(inputSeq);
+        let statesValue = await encoderModel.predict(inputSeq);
 
         // Generate empty target sequence of length 1.
         let targetSeq = tfjs_layers.dl.buffer([1, 1, numDecoderTokens]);
@@ -121,7 +121,7 @@ https://opensource.org/licenses/MIT.
         let decodedSentence = '';
         while (!stopCondition) {
           const predictOutputs =
-              decoderModel.predict([targetSeq.toTensor()].concat(statesValue));
+              await decoderModel.predict([targetSeq.toTensor()].concat(statesValue));
           const outputTokens = predictOutputs[0];
           const h = predictOutputs[1];
           const c = predictOutputs[2];
@@ -184,10 +184,10 @@ https://opensource.org/licenses/MIT.
         return encoded.toTensor();
       }
 
-      function doTranslation() {
+      async function doTranslation() {
         const inputSentence = $('#englishSentence').val();
         const inputSeq = encodeString(inputSentence);
-        const decodedSentence = decodeSequence(inputSeq);
+        const decodedSentence = await decodeSequence(inputSeq);
         $('#frenchSentence').val(decodedSentence);
       }
 
