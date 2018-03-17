@@ -90,8 +90,7 @@ export class TFModel {
     const graphPromise = this.loadRemoteProtoFile();
     const manifestPromise = this.loadWeightManifest();
 
-    const [graph, _] =
-        await Promise.all([graphPromise, manifestPromise]);
+    const [graph, ] = await Promise.all([graphPromise, manifestPromise]);
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
     const weightMap =

@@ -1,10 +1,11 @@
 {
-  "name": "tfjs-converter",
-  "version": "0.1.0",
+  "name": "@tensorflow/tfjs-converter",
+  "version": "0.0.1",
   "description": "Tensorflow model converter for javascript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "unpkg": "dist/tfjsconverter.js",
+  "unpkg": "dist/tf-converter.min.js",
+  "jsdelivr": "dist/tf-converter.min.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/tensorflow/tfjs-converter.git"
@@ -17,12 +18,13 @@
     "@types/jasmine": "~2.8.6",
     "@types/seedrandom": "~2.4.27",
     "browserify": "~16.1.0",
+    "browserify-shim": "~3.8.14",
     "clang-format": "~1.2.2",
-    "copyfiles": "^1.2.0",
+    "copyfiles": "~1.2.0",
     "cross-spawn": "~6.0.4",
     "deeplearn": "next",
     "deeplearn-src": "git+https://github.com/PAIR-code/deeplearnjs.git#c24c1e6959faffac5b676bb5cee64f9745577bb0",
-    "handlebars": "^4.0.11",
+    "handlebars": "~4.0.11",
     "http-server": "~0.11.1",
     "jasmine-core": "~3.1.0",
     "karma": "~2.0.0",
@@ -32,18 +34,18 @@
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~3.0.12",
     "opn": "~5.1.0",
+    "rimraf": "~2.6.2",
     "shelljs": "~0.7.8",
     "ts-node": "~4.1.0",
     "tsify": "~3.0.1",
     "tslint": "~5.8.0",
     "tslint-no-circular-imports": "~0.2.0",
     "typedoc": "~0.8.0",
-    "typescript": "^2.7.2",
+    "typescript": "~2.7.2",
     "uglify-js": "~3.0.28",
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "prep": "yarn && mkdirp dist",
     "build": "tsc && copyfiles -f src/data/compiled_api.* dist/data && copyfiles -f src/operations/op_list/*.json dist/operations/op_list && copyfiles -f src/operations/typings.d.ts dist/operations",
     "build-npm": "./scripts/build-npm.sh",
     "test": "karma start",
@@ -55,7 +57,7 @@
     "deeplearn": "global:dl"
   },
   "dependencies": {
-    "@types/long": "^3.0.32",
-    "protobufjs": "^6.8.0"
+    "@types/long": "~3.0.32",
+    "protobufjs": "~6.8.0"
   }
 }

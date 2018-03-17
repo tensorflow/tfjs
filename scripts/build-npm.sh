@@ -20,4 +20,7 @@ set -e
 rimraf dist/
 yarn
 yarn build
+browserify -g browserify-shim --standalone tf_converter src/index.ts -p [tsify] > dist/tf-converter.js
+uglifyjs dist/tf-converter.js -c -m -o dist/tf-converter.min.js
+echo "Stored standalone library at dist/tf-converter(.min).js"
 npm pack
