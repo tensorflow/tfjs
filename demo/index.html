@@ -13,51 +13,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================-->
 
-<script src="https://unpkg.com/deeplearn"></script>
-<script src="dist/bundle.js"></script>
-
-<img id="cat"></img>
-<div id="result"></div>
-
-<script>
-  const cat = document.getElementById('cat');
-  cat.onload = async () => {
-    const resultElement = document.getElementById('result');
-
-    resultElement.innerText = 'Loading mobilenet tensorflow model...';
-
-    // If dl isn't loaded, wait 1 second.
-    if (dl == null) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+<!doctype html>
+<html>
+  <head></head>
+  <style>
+    body {
+      font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+      margin-top: 50px;
+      margin-left: 50px;
     }
+  </style>
 
-    const mobilenet = new tfdemo.MobileNet();
-    console.time('load');
-    await mobilenet.load();
-    console.timeEnd('load');
+  <body>
+    <h1>TensorFlow.js Converter: MobileNet</h1>
+    <img id="cat"></img>
+    <div id="result"></div>
+  </body>
 
-    resultElement.innerText = 'Predicting...';
-
-    const pixels = dl.fromPixels(cat);
-
-    console.time('predict');
-    const result = mobilenet.predict(pixels);
-    console.timeEnd('predict');
-
-    for (let i = 2; i < 12; i++) {
-      console.time('predict ' + i);
-      const outputs = mobilenet.predict(pixels);
-      outputs.dataSync();
-      console.timeEnd('predict ' + i);
-    }
-    resultElement.innerText = '';
-
-    const topK = await mobilenet.getTopKClasses(result, 5);
-    for (const key in topK) {
-      resultElement.innerText += `${topK[key].toFixed(5)}: ${key}\n`;
-    };
-
-    mobilenet.dispose();
-  };
-  cat.src = 'cat.jpg';
-</script>
+  <script src="index.js"></script>
+</html>

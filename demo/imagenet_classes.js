@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-export const IMAGENET_CLASSES: {[key: number]: string} = {
+export const IMAGENET_CLASSES = {
   0: 'background',
   1: 'tench, Tinca tinca',
   2: 'goldfish, Carassius auratus',

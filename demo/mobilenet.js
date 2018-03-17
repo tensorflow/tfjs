@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
-import {NamedTensorMap, TFModel} from 'tfjs-converter';
+import * as tf from '@tensorflow/tfjs';
+import {NamedTensorMap, TFModel} from '@tensorflow/tfjs-converter';
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
@@ -24,14 +24,17 @@ const GOOGLE_CLOUD_STORAGE_DIR =
 const MODEL_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb';
 const WEIGHT_MANIFEST_FILE_URL = 'mobilenet_v1_1.0_224/weights_manifest.json';
 const INPUT_NODE_NAME = 'input';
+const OUTPUT_NODE_NAME = 'MobilenetV1/Predictions/Reshape_1';
+const PREPROCESS_DIVISOR = tf.scalar(255 / 2);
 
 export class MobileNet {
   // yolo variables
-  private PREPROCESS_DIVISOR = dl.scalar(255.0 / 2);
-  private model = new TFModel(
+
+  constructor() {
+    this.model = new TFModel(
       GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
       GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
-  constructor() {}
+  }
 
   async load() {
     await this.model.load();
@@ -48,49 +51,31 @@ export class MobileNet {
    * @param input un-preprocessed input Array.
    * @return The pre-softmax logits.
    */
-  predict(input: dl.Tensor): dl.Tensor {
-    const preprocessedInput = dl.div(
-        dl.sub(input.asType('float32'), this.PREPROCESS_DIVISOR),
-        this.PREPROCESS_DIVISOR);
+  predict(input) {
+    const preprocessedInput = tf.div(
+        tf.sub(input.asType('float32'), PREPROCESS_DIVISOR),
+        PREPROCESS_DIVISOR);
     const reshapedInput =
         preprocessedInput.reshape([1, ...preprocessedInput.shape]);
-    const dict: NamedTensorMap = {};
+    const dict = {};
     dict[INPUT_NODE_NAME] = reshapedInput;
-
-    // The output node is determined by the model, when it is not provided to the eval method.
-    return this.model.eval(dict) as dl.Tensor;
+    return this.model.eval(dict)[OUTPUT_NODE_NAME];
   }
 
-  async getTopKClasses(predictions: dl.Tensor1D, topK: number, offset = 0):
-      Promise<{[className: string]: number}> {
-    const topk = this.topK(predictions.dataSync() as Float32Array, topK);
+  getTopKClasses(predictions, topK) {
+    const values = predictions.dataSync();
     predictions.dispose();
-    const topkIndices = topk.indices;
-    const topkValues = topk.values;
 
-    const topClassesToProbability: {[className: string]: number} = {};
-    for (let i = 0; i < topkIndices.length; i++) {
-      topClassesToProbability[IMAGENET_CLASSES[topkIndices[i] + offset]] =
-          topkValues[i];
-    }
-    return topClassesToProbability;
-  }
-
-  private topK(values: Float32Array, k: number):
-      {values: Float32Array, indices: Int32Array} {
-    const valuesAndIndices: Array<{value: number, index: number}> = [];
+    let predictionList = [];
     for (let i = 0; i < values.length; i++) {
-      valuesAndIndices.push({value: values[i], index: i});
+      predictionList.push({value: values[i], index: i});
     }
-    valuesAndIndices.sort((a, b) => {
+    predictionList = predictionList.sort((a, b) => {
       return b.value - a.value;
+    }).slice(0, topK);
+
+    return predictionList.map(x => {
+      return {label: IMAGENET_CLASSES[x.index], value: x.value};
     });
-    const topkValues = new Float32Array(k);
-    const topkIndices = new Int32Array(k);
-    for (let i = 0; i < k; i++) {
-      topkValues[i] = valuesAndIndices[i].value;
-      topkIndices[i] = valuesAndIndices[i].index;
-    }
-    return {values: topkValues, indices: topkIndices};
   }
 }
