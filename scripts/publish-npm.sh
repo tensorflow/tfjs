@@ -20,9 +20,16 @@
 # 3) Commit to the master branch.
 
 # Then:
-# 4) Run this script as `./scripts/publish-npm.sh` from the project base dir.
+# 4) Run this script as `./scripts/publish-npm.sh` from the master branch.
 
 set -e
+
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+
+if [ "$BRANCH" != "master" ]; then
+  echo "Error: Switch to the master branch before tagging."
+  exit
+fi
 
 yarn build-npm
 ./scripts/make-version # This is for safety in case you forgot to do 2).
