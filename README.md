@@ -10,7 +10,7 @@ This repository contains the logic and scripts to form a **union** package,
 
 - [TensorFlow.js Core](https://github.com/tensorflow/tfjs-core),
   a flexible low-level API, formerly known as *deeplearn.js*.
-- [TensorFlow.js Layer](https://github.com/tensorflow/tfjs-layers),
+- [TensorFlow.js Layers](https://github.com/tensorflow/tfjs-layers),
   a high-level API modeled after [Keras](https://keras.io/).
 
 For more information on the APIs, follow the links to their respective
