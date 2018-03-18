@@ -1,12 +1,13 @@
 # TensorFlow.js: Union Package
 
-A part of the [TensorFlow](https://www.tensorflow.org) ecosystem,
-TensorFlow.js is a machine learning framework for JavaScript developers.
-It supports building, training and serving machine learning models in the
-browser using WebGL acceleration. You can also import pre-trained TensorFlow
+TensorFlow.js is a JavaScript library for building, training and serving
+machine learning models. When running in the browser, it utilizes WebGL
+acceleration. TensorFlow.js is a part of the
+[TensorFlow](https://www.tensorflow.org) ecosystem.
+You can import pre-trained TensorFlow
 [SavedModels](https://www.tensorflow.org/programmers_guide/saved_model) and
 [Keras models](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model),
-for execution and retraining in the browser.
+for execution and retraining.
 
 For more information on the API, follow the links to their Core and Layers
 repositories below, or visit [js.tensorflow.org](https://js.tensorflow.org).
