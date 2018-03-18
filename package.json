@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
@@ -24,7 +24,7 @@
     "build-npm": "./scripts/build-npm.sh"
   },
   "dependencies": {
-    "deeplearn": "next",
-    "@tensorflow/tfjs-layers": "0.0.3"
+    "@tensorflow/tfjs-core": "0.0.1",
+    "@tensorflow/tfjs-layers": "0.0.4"
   }
 }

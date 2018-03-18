@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-export * from 'deeplearn';
+export * from '@tensorflow/tfjs-core';
 export * from '@tensorflow/tfjs-layers';
 
 // Import versions of all sub-packages.
-import {version_core} from 'deeplearn';
+import {version_core} from '@tensorflow/tfjs-core';
 import {version_layers} from '@tensorflow/tfjs-layers';
 import {version as version_union} from './version';
 
