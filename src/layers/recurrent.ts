@@ -1434,7 +1434,7 @@ export class GRU extends RNN {
     return (this.cell as GRUCell).recurrentDropout;
   }
 
-  get implementatin(): number {
+  get implementation(): number {
     return (this.cell as GRUCell).implementation;
   }
 
@@ -1455,7 +1455,7 @@ export class GRU extends RNN {
       biasConstraint: serializeConstraint(this.biasConstraint),
       dropout: this.dropout,
       recurrentDropout: this.recurrentDropout,
-      implementation: this.implementatin,
+      implementation: this.implementation,
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
@@ -1870,7 +1870,7 @@ export class LSTM extends RNN {
     return (this.cell as LSTMCell).recurrentDropout;
   }
 
-  get implementatin(): number {
+  get implementation(): number {
     return (this.cell as LSTMCell).implementation;
   }
 
@@ -1892,7 +1892,7 @@ export class LSTM extends RNN {
       biasConstraint: serializeConstraint(this.biasConstraint),
       dropout: this.dropout,
       recurrentDropout: this.recurrentDropout,
-      implementation: this.implementatin,
+      implementation: this.implementation,
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
