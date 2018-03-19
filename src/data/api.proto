@@ -14,7 +14,7 @@
 // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/protobuf/saver.proto
 // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/protobuf/meta_graph.proto
 // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/protobuf/saved_model.proto
-//
+// https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/framework/function.proto
 
 syntax = "proto3";
 package tensorflow;
@@ -191,6 +191,7 @@ message VersionDef {
 message GraphDef {
   repeated NodeDef node = 1;
   VersionDef versions = 4;
+  FunctionDefLibrary library = 2;
 }
 
 message CollectionDef {
@@ -325,4 +326,22 @@ message MetaGraphDef {
 message SavedModel {
   int64 saved_model_schema_version = 1;
   repeated MetaGraphDef meta_graphs = 2;
+}
+
+message FunctionDefLibrary {
+  repeated FunctionDef function = 1;
+  repeated GradientDef gradient = 2;
+}
+
+message FunctionDef {
+  OpDef signature = 1;
+  map<string, AttrValue> attr = 5;
+  reserved 2;
+  repeated NodeDef node_def = 3;
+  map<string, string> ret = 4;
+}
+
+message GradientDef {
+  string function_name = 1;  // The function name.
+  string gradient_func = 2;  // The gradient function's name.
 }

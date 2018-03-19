@@ -3742,6 +3742,7 @@ $root.tensorflow = (function() {
          * @interface IGraphDef
          * @property {Array.<tensorflow.INodeDef>|null} [node] GraphDef node
          * @property {tensorflow.IVersionDef|null} [versions] GraphDef versions
+         * @property {tensorflow.IFunctionDefLibrary|null} [library] GraphDef library
          */
 
         /**
@@ -3777,6 +3778,14 @@ $root.tensorflow = (function() {
         GraphDef.prototype.versions = null;
 
         /**
+         * GraphDef library.
+         * @member {tensorflow.IFunctionDefLibrary|null|undefined} library
+         * @memberof tensorflow.GraphDef
+         * @instance
+         */
+        GraphDef.prototype.library = null;
+
+        /**
          * Creates a new GraphDef instance using the specified properties.
          * @function create
          * @memberof tensorflow.GraphDef
@@ -3803,6 +3812,8 @@ $root.tensorflow = (function() {
             if (message.node != null && message.node.length)
                 for (var i = 0; i < message.node.length; ++i)
                     $root.tensorflow.NodeDef.encode(message.node[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.library != null && message.hasOwnProperty("library"))
+                $root.tensorflow.FunctionDefLibrary.encode(message.library, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.versions != null && message.hasOwnProperty("versions"))
                 $root.tensorflow.VersionDef.encode(message.versions, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             return writer;
@@ -3846,6 +3857,9 @@ $root.tensorflow = (function() {
                     break;
                 case 4:
                     message.versions = $root.tensorflow.VersionDef.decode(reader, reader.uint32());
+                    break;
+                case 2:
+                    message.library = $root.tensorflow.FunctionDefLibrary.decode(reader, reader.uint32());
                     break;
                 default:
                     reader.skipType(tag & 7);
@@ -3896,6 +3910,11 @@ $root.tensorflow = (function() {
                 if (error)
                     return "versions." + error;
             }
+            if (message.library != null && message.hasOwnProperty("library")) {
+                var error = $root.tensorflow.FunctionDefLibrary.verify(message.library);
+                if (error)
+                    return "library." + error;
+            }
             return null;
         };
 
@@ -3926,6 +3945,11 @@ $root.tensorflow = (function() {
                     throw TypeError(".tensorflow.GraphDef.versions: object expected");
                 message.versions = $root.tensorflow.VersionDef.fromObject(object.versions);
             }
+            if (object.library != null) {
+                if (typeof object.library !== "object")
+                    throw TypeError(".tensorflow.GraphDef.library: object expected");
+                message.library = $root.tensorflow.FunctionDefLibrary.fromObject(object.library);
+            }
             return message;
         };
 
@@ -3944,13 +3968,17 @@ $root.tensorflow = (function() {
             var object = {};
             if (options.arrays || options.defaults)
                 object.node = [];
-            if (options.defaults)
+            if (options.defaults) {
+                object.library = null;
                 object.versions = null;
+            }
             if (message.node && message.node.length) {
                 object.node = [];
                 for (var j = 0; j < message.node.length; ++j)
                     object.node[j] = $root.tensorflow.NodeDef.toObject(message.node[j], options);
             }
+            if (message.library != null && message.hasOwnProperty("library"))
+                object.library = $root.tensorflow.FunctionDefLibrary.toObject(message.library, options);
             if (message.versions != null && message.hasOwnProperty("versions"))
                 object.versions = $root.tensorflow.VersionDef.toObject(message.versions, options);
             return object;
@@ -9561,6 +9589,798 @@ $root.tensorflow = (function() {
         };
 
         return SavedModel;
+    })();
+
+    tensorflow.FunctionDefLibrary = (function() {
+
+        /**
+         * Properties of a FunctionDefLibrary.
+         * @memberof tensorflow
+         * @interface IFunctionDefLibrary
+         * @property {Array.<tensorflow.IFunctionDef>|null} ["function"] FunctionDefLibrary function
+         * @property {Array.<tensorflow.IGradientDef>|null} [gradient] FunctionDefLibrary gradient
+         */
+
+        /**
+         * Constructs a new FunctionDefLibrary.
+         * @memberof tensorflow
+         * @classdesc Represents a FunctionDefLibrary.
+         * @implements IFunctionDefLibrary
+         * @constructor
+         * @param {tensorflow.IFunctionDefLibrary=} [properties] Properties to set
+         */
+        function FunctionDefLibrary(properties) {
+            this["function"] = [];
+            this.gradient = [];
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * FunctionDefLibrary function.
+         * @member {Array.<tensorflow.IFunctionDef>} function
+         * @memberof tensorflow.FunctionDefLibrary
+         * @instance
+         */
+        FunctionDefLibrary.prototype["function"] = $util.emptyArray;
+
+        /**
+         * FunctionDefLibrary gradient.
+         * @member {Array.<tensorflow.IGradientDef>} gradient
+         * @memberof tensorflow.FunctionDefLibrary
+         * @instance
+         */
+        FunctionDefLibrary.prototype.gradient = $util.emptyArray;
+
+        /**
+         * Creates a new FunctionDefLibrary instance using the specified properties.
+         * @function create
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {tensorflow.IFunctionDefLibrary=} [properties] Properties to set
+         * @returns {tensorflow.FunctionDefLibrary} FunctionDefLibrary instance
+         */
+        FunctionDefLibrary.create = function create(properties) {
+            return new FunctionDefLibrary(properties);
+        };
+
+        /**
+         * Encodes the specified FunctionDefLibrary message. Does not implicitly {@link tensorflow.FunctionDefLibrary.verify|verify} messages.
+         * @function encode
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {tensorflow.IFunctionDefLibrary} message FunctionDefLibrary message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FunctionDefLibrary.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message["function"] != null && message["function"].length)
+                for (var i = 0; i < message["function"].length; ++i)
+                    $root.tensorflow.FunctionDef.encode(message["function"][i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.gradient != null && message.gradient.length)
+                for (var i = 0; i < message.gradient.length; ++i)
+                    $root.tensorflow.GradientDef.encode(message.gradient[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Encodes the specified FunctionDefLibrary message, length delimited. Does not implicitly {@link tensorflow.FunctionDefLibrary.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {tensorflow.IFunctionDefLibrary} message FunctionDefLibrary message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FunctionDefLibrary.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a FunctionDefLibrary message from the specified reader or buffer.
+         * @function decode
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {tensorflow.FunctionDefLibrary} FunctionDefLibrary
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FunctionDefLibrary.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.tensorflow.FunctionDefLibrary();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    if (!(message["function"] && message["function"].length))
+                        message["function"] = [];
+                    message["function"].push($root.tensorflow.FunctionDef.decode(reader, reader.uint32()));
+                    break;
+                case 2:
+                    if (!(message.gradient && message.gradient.length))
+                        message.gradient = [];
+                    message.gradient.push($root.tensorflow.GradientDef.decode(reader, reader.uint32()));
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes a FunctionDefLibrary message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {tensorflow.FunctionDefLibrary} FunctionDefLibrary
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FunctionDefLibrary.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a FunctionDefLibrary message.
+         * @function verify
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        FunctionDefLibrary.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message["function"] != null && message.hasOwnProperty("function")) {
+                if (!Array.isArray(message["function"]))
+                    return "function: array expected";
+                for (var i = 0; i < message["function"].length; ++i) {
+                    var error = $root.tensorflow.FunctionDef.verify(message["function"][i]);
+                    if (error)
+                        return "function." + error;
+                }
+            }
+            if (message.gradient != null && message.hasOwnProperty("gradient")) {
+                if (!Array.isArray(message.gradient))
+                    return "gradient: array expected";
+                for (var i = 0; i < message.gradient.length; ++i) {
+                    var error = $root.tensorflow.GradientDef.verify(message.gradient[i]);
+                    if (error)
+                        return "gradient." + error;
+                }
+            }
+            return null;
+        };
+
+        /**
+         * Creates a FunctionDefLibrary message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {tensorflow.FunctionDefLibrary} FunctionDefLibrary
+         */
+        FunctionDefLibrary.fromObject = function fromObject(object) {
+            if (object instanceof $root.tensorflow.FunctionDefLibrary)
+                return object;
+            var message = new $root.tensorflow.FunctionDefLibrary();
+            if (object["function"]) {
+                if (!Array.isArray(object["function"]))
+                    throw TypeError(".tensorflow.FunctionDefLibrary.function: array expected");
+                message["function"] = [];
+                for (var i = 0; i < object["function"].length; ++i) {
+                    if (typeof object["function"][i] !== "object")
+                        throw TypeError(".tensorflow.FunctionDefLibrary.function: object expected");
+                    message["function"][i] = $root.tensorflow.FunctionDef.fromObject(object["function"][i]);
+                }
+            }
+            if (object.gradient) {
+                if (!Array.isArray(object.gradient))
+                    throw TypeError(".tensorflow.FunctionDefLibrary.gradient: array expected");
+                message.gradient = [];
+                for (var i = 0; i < object.gradient.length; ++i) {
+                    if (typeof object.gradient[i] !== "object")
+                        throw TypeError(".tensorflow.FunctionDefLibrary.gradient: object expected");
+                    message.gradient[i] = $root.tensorflow.GradientDef.fromObject(object.gradient[i]);
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Creates a plain object from a FunctionDefLibrary message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof tensorflow.FunctionDefLibrary
+         * @static
+         * @param {tensorflow.FunctionDefLibrary} message FunctionDefLibrary
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        FunctionDefLibrary.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.arrays || options.defaults) {
+                object["function"] = [];
+                object.gradient = [];
+            }
+            if (message["function"] && message["function"].length) {
+                object["function"] = [];
+                for (var j = 0; j < message["function"].length; ++j)
+                    object["function"][j] = $root.tensorflow.FunctionDef.toObject(message["function"][j], options);
+            }
+            if (message.gradient && message.gradient.length) {
+                object.gradient = [];
+                for (var j = 0; j < message.gradient.length; ++j)
+                    object.gradient[j] = $root.tensorflow.GradientDef.toObject(message.gradient[j], options);
+            }
+            return object;
+        };
+
+        /**
+         * Converts this FunctionDefLibrary to JSON.
+         * @function toJSON
+         * @memberof tensorflow.FunctionDefLibrary
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        FunctionDefLibrary.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return FunctionDefLibrary;
+    })();
+
+    tensorflow.FunctionDef = (function() {
+
+        /**
+         * Properties of a FunctionDef.
+         * @memberof tensorflow
+         * @interface IFunctionDef
+         * @property {tensorflow.IOpDef|null} [signature] FunctionDef signature
+         * @property {Object.<string,tensorflow.IAttrValue>|null} [attr] FunctionDef attr
+         * @property {Array.<tensorflow.INodeDef>|null} [nodeDef] FunctionDef nodeDef
+         * @property {Object.<string,string>|null} [ret] FunctionDef ret
+         */
+
+        /**
+         * Constructs a new FunctionDef.
+         * @memberof tensorflow
+         * @classdesc Represents a FunctionDef.
+         * @implements IFunctionDef
+         * @constructor
+         * @param {tensorflow.IFunctionDef=} [properties] Properties to set
+         */
+        function FunctionDef(properties) {
+            this.attr = {};
+            this.nodeDef = [];
+            this.ret = {};
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * FunctionDef signature.
+         * @member {tensorflow.IOpDef|null|undefined} signature
+         * @memberof tensorflow.FunctionDef
+         * @instance
+         */
+        FunctionDef.prototype.signature = null;
+
+        /**
+         * FunctionDef attr.
+         * @member {Object.<string,tensorflow.IAttrValue>} attr
+         * @memberof tensorflow.FunctionDef
+         * @instance
+         */
+        FunctionDef.prototype.attr = $util.emptyObject;
+
+        /**
+         * FunctionDef nodeDef.
+         * @member {Array.<tensorflow.INodeDef>} nodeDef
+         * @memberof tensorflow.FunctionDef
+         * @instance
+         */
+        FunctionDef.prototype.nodeDef = $util.emptyArray;
+
+        /**
+         * FunctionDef ret.
+         * @member {Object.<string,string>} ret
+         * @memberof tensorflow.FunctionDef
+         * @instance
+         */
+        FunctionDef.prototype.ret = $util.emptyObject;
+
+        /**
+         * Creates a new FunctionDef instance using the specified properties.
+         * @function create
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {tensorflow.IFunctionDef=} [properties] Properties to set
+         * @returns {tensorflow.FunctionDef} FunctionDef instance
+         */
+        FunctionDef.create = function create(properties) {
+            return new FunctionDef(properties);
+        };
+
+        /**
+         * Encodes the specified FunctionDef message. Does not implicitly {@link tensorflow.FunctionDef.verify|verify} messages.
+         * @function encode
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {tensorflow.IFunctionDef} message FunctionDef message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FunctionDef.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.signature != null && message.hasOwnProperty("signature"))
+                $root.tensorflow.OpDef.encode(message.signature, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.nodeDef != null && message.nodeDef.length)
+                for (var i = 0; i < message.nodeDef.length; ++i)
+                    $root.tensorflow.NodeDef.encode(message.nodeDef[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            if (message.ret != null && message.hasOwnProperty("ret"))
+                for (var keys = Object.keys(message.ret), i = 0; i < keys.length; ++i)
+                    writer.uint32(/* id 4, wireType 2 =*/34).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 2 =*/18).string(message.ret[keys[i]]).ldelim();
+            if (message.attr != null && message.hasOwnProperty("attr"))
+                for (var keys = Object.keys(message.attr), i = 0; i < keys.length; ++i) {
+                    writer.uint32(/* id 5, wireType 2 =*/42).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
+                    $root.tensorflow.AttrValue.encode(message.attr[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
+                }
+            return writer;
+        };
+
+        /**
+         * Encodes the specified FunctionDef message, length delimited. Does not implicitly {@link tensorflow.FunctionDef.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {tensorflow.IFunctionDef} message FunctionDef message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        FunctionDef.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a FunctionDef message from the specified reader or buffer.
+         * @function decode
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {tensorflow.FunctionDef} FunctionDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FunctionDef.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.tensorflow.FunctionDef(), key;
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.signature = $root.tensorflow.OpDef.decode(reader, reader.uint32());
+                    break;
+                case 5:
+                    reader.skip().pos++;
+                    if (message.attr === $util.emptyObject)
+                        message.attr = {};
+                    key = reader.string();
+                    reader.pos++;
+                    message.attr[key] = $root.tensorflow.AttrValue.decode(reader, reader.uint32());
+                    break;
+                case 3:
+                    if (!(message.nodeDef && message.nodeDef.length))
+                        message.nodeDef = [];
+                    message.nodeDef.push($root.tensorflow.NodeDef.decode(reader, reader.uint32()));
+                    break;
+                case 4:
+                    reader.skip().pos++;
+                    if (message.ret === $util.emptyObject)
+                        message.ret = {};
+                    key = reader.string();
+                    reader.pos++;
+                    message.ret[key] = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes a FunctionDef message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {tensorflow.FunctionDef} FunctionDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        FunctionDef.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a FunctionDef message.
+         * @function verify
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        FunctionDef.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.signature != null && message.hasOwnProperty("signature")) {
+                var error = $root.tensorflow.OpDef.verify(message.signature);
+                if (error)
+                    return "signature." + error;
+            }
+            if (message.attr != null && message.hasOwnProperty("attr")) {
+                if (!$util.isObject(message.attr))
+                    return "attr: object expected";
+                var key = Object.keys(message.attr);
+                for (var i = 0; i < key.length; ++i) {
+                    var error = $root.tensorflow.AttrValue.verify(message.attr[key[i]]);
+                    if (error)
+                        return "attr." + error;
+                }
+            }
+            if (message.nodeDef != null && message.hasOwnProperty("nodeDef")) {
+                if (!Array.isArray(message.nodeDef))
+                    return "nodeDef: array expected";
+                for (var i = 0; i < message.nodeDef.length; ++i) {
+                    var error = $root.tensorflow.NodeDef.verify(message.nodeDef[i]);
+                    if (error)
+                        return "nodeDef." + error;
+                }
+            }
+            if (message.ret != null && message.hasOwnProperty("ret")) {
+                if (!$util.isObject(message.ret))
+                    return "ret: object expected";
+                var key = Object.keys(message.ret);
+                for (var i = 0; i < key.length; ++i)
+                    if (!$util.isString(message.ret[key[i]]))
+                        return "ret: string{k:string} expected";
+            }
+            return null;
+        };
+
+        /**
+         * Creates a FunctionDef message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {tensorflow.FunctionDef} FunctionDef
+         */
+        FunctionDef.fromObject = function fromObject(object) {
+            if (object instanceof $root.tensorflow.FunctionDef)
+                return object;
+            var message = new $root.tensorflow.FunctionDef();
+            if (object.signature != null) {
+                if (typeof object.signature !== "object")
+                    throw TypeError(".tensorflow.FunctionDef.signature: object expected");
+                message.signature = $root.tensorflow.OpDef.fromObject(object.signature);
+            }
+            if (object.attr) {
+                if (typeof object.attr !== "object")
+                    throw TypeError(".tensorflow.FunctionDef.attr: object expected");
+                message.attr = {};
+                for (var keys = Object.keys(object.attr), i = 0; i < keys.length; ++i) {
+                    if (typeof object.attr[keys[i]] !== "object")
+                        throw TypeError(".tensorflow.FunctionDef.attr: object expected");
+                    message.attr[keys[i]] = $root.tensorflow.AttrValue.fromObject(object.attr[keys[i]]);
+                }
+            }
+            if (object.nodeDef) {
+                if (!Array.isArray(object.nodeDef))
+                    throw TypeError(".tensorflow.FunctionDef.nodeDef: array expected");
+                message.nodeDef = [];
+                for (var i = 0; i < object.nodeDef.length; ++i) {
+                    if (typeof object.nodeDef[i] !== "object")
+                        throw TypeError(".tensorflow.FunctionDef.nodeDef: object expected");
+                    message.nodeDef[i] = $root.tensorflow.NodeDef.fromObject(object.nodeDef[i]);
+                }
+            }
+            if (object.ret) {
+                if (typeof object.ret !== "object")
+                    throw TypeError(".tensorflow.FunctionDef.ret: object expected");
+                message.ret = {};
+                for (var keys = Object.keys(object.ret), i = 0; i < keys.length; ++i)
+                    message.ret[keys[i]] = String(object.ret[keys[i]]);
+            }
+            return message;
+        };
+
+        /**
+         * Creates a plain object from a FunctionDef message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof tensorflow.FunctionDef
+         * @static
+         * @param {tensorflow.FunctionDef} message FunctionDef
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        FunctionDef.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.arrays || options.defaults)
+                object.nodeDef = [];
+            if (options.objects || options.defaults) {
+                object.ret = {};
+                object.attr = {};
+            }
+            if (options.defaults)
+                object.signature = null;
+            if (message.signature != null && message.hasOwnProperty("signature"))
+                object.signature = $root.tensorflow.OpDef.toObject(message.signature, options);
+            if (message.nodeDef && message.nodeDef.length) {
+                object.nodeDef = [];
+                for (var j = 0; j < message.nodeDef.length; ++j)
+                    object.nodeDef[j] = $root.tensorflow.NodeDef.toObject(message.nodeDef[j], options);
+            }
+            var keys2;
+            if (message.ret && (keys2 = Object.keys(message.ret)).length) {
+                object.ret = {};
+                for (var j = 0; j < keys2.length; ++j)
+                    object.ret[keys2[j]] = message.ret[keys2[j]];
+            }
+            if (message.attr && (keys2 = Object.keys(message.attr)).length) {
+                object.attr = {};
+                for (var j = 0; j < keys2.length; ++j)
+                    object.attr[keys2[j]] = $root.tensorflow.AttrValue.toObject(message.attr[keys2[j]], options);
+            }
+            return object;
+        };
+
+        /**
+         * Converts this FunctionDef to JSON.
+         * @function toJSON
+         * @memberof tensorflow.FunctionDef
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        FunctionDef.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return FunctionDef;
+    })();
+
+    tensorflow.GradientDef = (function() {
+
+        /**
+         * Properties of a GradientDef.
+         * @memberof tensorflow
+         * @interface IGradientDef
+         * @property {string|null} [functionName] GradientDef functionName
+         * @property {string|null} [gradientFunc] GradientDef gradientFunc
+         */
+
+        /**
+         * Constructs a new GradientDef.
+         * @memberof tensorflow
+         * @classdesc Represents a GradientDef.
+         * @implements IGradientDef
+         * @constructor
+         * @param {tensorflow.IGradientDef=} [properties] Properties to set
+         */
+        function GradientDef(properties) {
+            if (properties)
+                for (var keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * GradientDef functionName.
+         * @member {string} functionName
+         * @memberof tensorflow.GradientDef
+         * @instance
+         */
+        GradientDef.prototype.functionName = "";
+
+        /**
+         * GradientDef gradientFunc.
+         * @member {string} gradientFunc
+         * @memberof tensorflow.GradientDef
+         * @instance
+         */
+        GradientDef.prototype.gradientFunc = "";
+
+        /**
+         * Creates a new GradientDef instance using the specified properties.
+         * @function create
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {tensorflow.IGradientDef=} [properties] Properties to set
+         * @returns {tensorflow.GradientDef} GradientDef instance
+         */
+        GradientDef.create = function create(properties) {
+            return new GradientDef(properties);
+        };
+
+        /**
+         * Encodes the specified GradientDef message. Does not implicitly {@link tensorflow.GradientDef.verify|verify} messages.
+         * @function encode
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {tensorflow.IGradientDef} message GradientDef message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GradientDef.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.functionName != null && message.hasOwnProperty("functionName"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.functionName);
+            if (message.gradientFunc != null && message.hasOwnProperty("gradientFunc"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.gradientFunc);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified GradientDef message, length delimited. Does not implicitly {@link tensorflow.GradientDef.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {tensorflow.IGradientDef} message GradientDef message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        GradientDef.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a GradientDef message from the specified reader or buffer.
+         * @function decode
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {tensorflow.GradientDef} GradientDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GradientDef.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            var end = length === undefined ? reader.len : reader.pos + length, message = new $root.tensorflow.GradientDef();
+            while (reader.pos < end) {
+                var tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1:
+                    message.functionName = reader.string();
+                    break;
+                case 2:
+                    message.gradientFunc = reader.string();
+                    break;
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes a GradientDef message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {tensorflow.GradientDef} GradientDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        GradientDef.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a GradientDef message.
+         * @function verify
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        GradientDef.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.functionName != null && message.hasOwnProperty("functionName"))
+                if (!$util.isString(message.functionName))
+                    return "functionName: string expected";
+            if (message.gradientFunc != null && message.hasOwnProperty("gradientFunc"))
+                if (!$util.isString(message.gradientFunc))
+                    return "gradientFunc: string expected";
+            return null;
+        };
+
+        /**
+         * Creates a GradientDef message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {tensorflow.GradientDef} GradientDef
+         */
+        GradientDef.fromObject = function fromObject(object) {
+            if (object instanceof $root.tensorflow.GradientDef)
+                return object;
+            var message = new $root.tensorflow.GradientDef();
+            if (object.functionName != null)
+                message.functionName = String(object.functionName);
+            if (object.gradientFunc != null)
+                message.gradientFunc = String(object.gradientFunc);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from a GradientDef message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof tensorflow.GradientDef
+         * @static
+         * @param {tensorflow.GradientDef} message GradientDef
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        GradientDef.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            var object = {};
+            if (options.defaults) {
+                object.functionName = "";
+                object.gradientFunc = "";
+            }
+            if (message.functionName != null && message.hasOwnProperty("functionName"))
+                object.functionName = message.functionName;
+            if (message.gradientFunc != null && message.hasOwnProperty("gradientFunc"))
+                object.gradientFunc = message.gradientFunc;
+            return object;
+        };
+
+        /**
+         * Converts this GradientDef to JSON.
+         * @function toJSON
+         * @memberof tensorflow.GradientDef
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        GradientDef.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        return GradientDef;
     })();
 
     return tensorflow;
