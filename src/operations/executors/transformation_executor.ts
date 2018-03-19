@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
@@ -24,33 +24,33 @@ import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap): dl.Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap): tfc.Tensor[] => {
       switch (node.op) {
         case 'cast': {
-          return [dl.cast(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
+          return [tfc.cast(
+              getParamValue('x', node, tensorMap) as tfc.Tensor,
               getParamValue('dtype', node, tensorMap) as 'int32' | 'float32' |
                   'bool')];
         }
         case 'expandDims': {
           const axis = node.params['axis'].value as number;
-          return [dl.expandDims(
-              getParamValue('x', node, tensorMap) as dl.Tensor, axis)];
+          return [tfc.expandDims(
+              getParamValue('x', node, tensorMap) as tfc.Tensor, axis)];
         }
         case 'squeeze': {
           const axis = node.params['axis'].value as number[];
-          return [dl.squeeze(
-              getParamValue('x', node, tensorMap) as dl.Tensor, axis)];
+          return [tfc.squeeze(
+              getParamValue('x', node, tensorMap) as tfc.Tensor, axis)];
         }
 
         case 'reshape': {
-          return [dl.reshape(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
+          return [tfc.reshape(
+              getParamValue('x', node, tensorMap) as tfc.Tensor,
               getParamValue('shape', node, tensorMap) as number[])];
         }
         case 'pad': {
-          return [dl.pad(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
+          return [tfc.pad(
+              getParamValue('x', node, tensorMap) as tfc.Tensor,
               // tslint:disable-next-line:no-any
               getParamValue('padding', node, tensorMap) as any,
               getParamValue('constantValue', node, tensorMap) as number)];

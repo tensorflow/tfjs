@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 
 export type NamedTensorMap = {
   [key: string]: Tensor

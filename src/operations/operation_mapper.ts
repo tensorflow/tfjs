@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {DataType} from 'deeplearn/dist/types';
+import {DataType} from '@tensorflow/tfjs-core/dist/types';
 
 import {tensorflow} from '../data/index';
 

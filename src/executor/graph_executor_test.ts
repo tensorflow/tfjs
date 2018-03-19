@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 import * as operations from '../operations/index';
 import {GraphExecutor} from './index';
 
@@ -69,8 +69,8 @@ describe('GraphExecutor', () => {
   describe('execute graph', () => {
     describe('graph level', () => {
       it('should execute the op', () => {
-        const inputTensor = dl.scalar(1);
-        const constTensor = dl.scalar(2);
+        const inputTensor = tfc.scalar(1);
+        const constTensor = tfc.scalar(2);
         const spy =
             spyOn(operations, 'executeOp')
                 .and.callFake((node: operations.Node) => {

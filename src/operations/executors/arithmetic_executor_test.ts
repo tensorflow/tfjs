@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {Node} from '../index';
 
@@ -23,8 +23,8 @@ import {createTensorAttr} from './test_helper';
 
 describe('arithmetic', () => {
   let node: Node;
-  const input1 = [dl.scalar(1)];
-  const input2 = [dl.scalar(1)];
+  const input1 = [tfc.scalar(1)];
+  const input2 = [tfc.scalar(1)];
 
   beforeEach(() => {
     node = {
@@ -40,8 +40,8 @@ describe('arithmetic', () => {
 
   describe('executeOp', () => {
     ['add', 'mul', 'div', 'sub', 'maximum', 'minimum', 'pow'].forEach((op => {
-      it('should call dl.' + op, () => {
-        const spy = spyOn(dl, op as 'add');
+      it('should call tfc.' + op, () => {
+        const spy = spyOn(tfc, op as 'add');
         node.op = op;
         executeOp(node, {input1, input2});
 

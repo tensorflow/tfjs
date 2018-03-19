@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {Node} from '../index';
 
@@ -23,8 +23,8 @@ import {createTensorAttr} from './test_helper';
 
 describe('graph', () => {
   let node: Node;
-  const input1 = [dl.tensor1d([1])];
-  const input2 = [dl.tensor1d([1])];
+  const input1 = [tfc.tensor1d([1])];
+  const input2 = [tfc.tensor1d([1])];
   beforeEach(() => {
     node = {
       name: 'input1',

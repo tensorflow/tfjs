@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
@@ -23,56 +23,57 @@ import {Node} from '../index';
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
-                                       dl.Tensor[] => {
-  switch (node.op) {
-    case 'equal': {
-      return [dl.equal(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    case 'greater': {
-      return [dl.greater(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    case 'greaterEqual': {
-      return [dl.greaterEqual(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    case 'less': {
-      return [dl.less(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    case 'lessEqual': {
-      return [dl.lessEqual(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    case 'logicalAnd': {
-      return [dl.logicalAnd(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    case 'logicalNot': {
-      return [dl.logicalNot(getParamValue('a', node, tensorMap) as dl.Tensor)];
-    }
-    case 'logicalOr': {
-      return [dl.logicalOr(
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    case 'where': {
-      return [dl.where(
-          getParamValue('condition', node, tensorMap) as dl.Tensor,
-          getParamValue('a', node, tensorMap) as dl.Tensor,
-          getParamValue('b', node, tensorMap) as dl.Tensor)];
-    }
-    default:
-      throw TypeError(`Node type ${node.op} is not implemented`);
-  }
-};
+export let executeOp: OpExecutor =
+    (node: Node, tensorMap: NamedTensorsMap): tfc.Tensor[] => {
+      switch (node.op) {
+        case 'equal': {
+          return [tfc.equal(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'greater': {
+          return [tfc.greater(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'greaterEqual': {
+          return [tfc.greaterEqual(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'less': {
+          return [tfc.less(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'lessEqual': {
+          return [tfc.lessEqual(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'logicalAnd': {
+          return [tfc.logicalAnd(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'logicalNot': {
+          return [tfc.logicalNot(
+              getParamValue('a', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'logicalOr': {
+          return [tfc.logicalOr(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        case 'where': {
+          return [tfc.where(
+              getParamValue('condition', node, tensorMap) as tfc.Tensor,
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
+        }
+        default:
+          throw TypeError(`Node type ${node.op} is not implemented`);
+      }
+    };
 
 export const CATEGORY = 'logical';

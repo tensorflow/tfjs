@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tfc from '@tensorflow/tfjs-core';
 import {MobileNet} from './mobilenet';
 import imageURL from './cat.jpg';
 
@@ -30,7 +30,7 @@ cat.onload = async () => {
   await mobileNet.load();
   console.timeEnd('Loading of model');
 
-  const pixels = tf.fromPixels(cat);
+  const pixels = tfc.fromPixels(cat);
 
   console.time('First prediction');
   let result = mobileNet.predict(pixels);

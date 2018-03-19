@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {tidy} from 'deeplearn';
+import {tidy} from '@tensorflow/tfjs-core';
 
 import {NamedTensorMap, NamedTensorsMap} from '../data/index';
 import {getTensor} from '../operations/executors/utils';
