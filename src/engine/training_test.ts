@@ -186,7 +186,7 @@ describe('makeBatches', () => {
 });
 
 describeMathCPUAndGPU('Model.predict', () => {
-  it('1 input, 1 output', async done => {
+  it('1 input, 1 output', () => {
     const inputTensor =
         Input({shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
     const layer = new Reshape({targetShape: [2, 6]});
@@ -194,12 +194,11 @@ describeMathCPUAndGPU('Model.predict', () => {
     const model =
         new Model({inputs: [inputTensor], outputs: [output], name: 'model1x1'});
     const xs = K.ones([10, 3, 4]);
-    const ys = await model.predict(xs, {batchSize: 4}) as Tensor;
+    const ys = model.predict(xs, {batchSize: 4}) as Tensor;
     expectTensorsClose(ys, K.ones([10, 2, 6]));
-    done();
   });
 
-  it('1 input, 1 output, tensor as input argument', async done => {
+  it('1 input, 1 output, tensor as input argument', () => {
     const inputTensor =
         Input({shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
     const layer = new Reshape({targetShape: [2, 6]});
@@ -207,12 +206,11 @@ describeMathCPUAndGPU('Model.predict', () => {
     const model =
         new Model({inputs: [inputTensor], outputs: [output], name: 'model1x1'});
     const xs = K.ones([10, 3, 4]);
-    const ys = await model.predict(xs) as Tensor;
+    const ys = model.predict(xs) as Tensor;
     expectTensorsClose(ys, K.ones([10, 2, 6]));
-    done();
   });
 
-  it('1 input as Array, 1 output', async done => {
+  it('1 input as Array, 1 output', () => {
     const inputTensor =
         Input({shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
     const layer = new Reshape({targetShape: [2, 6]});
@@ -220,12 +218,11 @@ describeMathCPUAndGPU('Model.predict', () => {
     const model =
         new Model({inputs: [inputTensor], outputs: [output], name: 'model1x1'});
     const xs = K.ones([10, 3, 4]);
-    const ys = await model.predict([xs], {batchSize: 4}) as Tensor;
+    const ys = model.predict([xs], {batchSize: 4}) as Tensor;
     expectTensorsClose(ys, K.ones([10, 2, 6]));
-    done();
   });
 
-  it('1 input, 2 outputs', async done => {
+  it('1 input, 2 outputs', () => {
     const inputTensor =
         Input({shape: [3, 4], name: 'inputLayer2', dtype: DType.float32});
     const layer1 = new Reshape({targetShape: [2, 6]});
@@ -235,14 +232,13 @@ describeMathCPUAndGPU('Model.predict', () => {
     const model = new Model(
         {inputs: [inputTensor], outputs: [output1, output2], name: 'model1x2'});
     const xs = K.ones([10, 3, 4]);
-    const ys = await model.predict(xs, {batchSize: 4}) as Tensor[];
+    const ys = model.predict(xs, {batchSize: 4}) as Tensor[];
     expect(ys.length).toEqual(2);
     expectTensorsClose(ys[0], K.ones([10, 2, 6]));
     expectTensorsClose(ys[1], K.ones([10, 12]));
-    done();
   });
 
-  it('2 inputs, 2 outputs', async done => {
+  it('2 inputs, 2 outputs', () => {
     const inputTensor1 =
         Input({shape: [3, 4], name: 'inputLayer3', dtype: DType.float32});
     const inputTensor2 =
@@ -258,14 +254,13 @@ describeMathCPUAndGPU('Model.predict', () => {
     });
     const xs1 = K.ones([10, 3, 4]);
     const xs2 = K.ones([10, 3, 3]);
-    const ys = await model.predict([xs1, xs2], {batchSize: 4}) as Tensor[];
+    const ys = model.predict([xs1, xs2], {batchSize: 4}) as Tensor[];
     expect(ys.length).toEqual(2);
     expectTensorsClose(ys[0], K.ones([10, 2, 6]));
     expectTensorsClose(ys[1], K.ones([10, 9]));
-    done();
   });
 
-  it('Incorrect number of inputs leads to exception: 1 vs 2', async done => {
+  it('Incorrect number of inputs leads to exception: 1 vs 2', () => {
     const inputTensor =
         Input({shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
     const layer = new Reshape({targetShape: [2, 6]});
@@ -273,13 +268,13 @@ describeMathCPUAndGPU('Model.predict', () => {
     const model = new Model(
         {inputs: [inputTensor], outputs: [output], name: 'model_inc_1x1'});
     const xs1 = K.ones([10, 3, 4]);
-    model.predict([xs1, xs1]).catch(err => {
-      expect(err.message).toMatch(/.*Expected.*1 Tensor.*got 2 Tensor.*/);
-      done();
-    });
+
+    expect(() => model.predict([
+      xs1, xs1
+    ])).toThrowError(/.*Expected.*1 Tensor.*got 2 Tensor.*/);
   });
 
-  it('Incorrect number of inputs leads to exception: 2 vs 3', async done => {
+  it('Incorrect number of inputs leads to exception: 2 vs 3', () => {
     const inputTensor1 =
         Input({shape: [3, 4], name: 'inputLayer_inc_3', dtype: DType.float32});
     const inputTensor2 =
@@ -294,13 +289,13 @@ describeMathCPUAndGPU('Model.predict', () => {
       name: 'model_inc_2x2'
     });
     const xs1 = K.ones([10, 3, 4]);
-    model.predict([xs1, xs1, xs1]).catch(err => {
-      expect(err.message).toMatch(/.*Expected.*2 Tensor.*got 3 Tensor.*/);
-      done();
-    });
+
+    expect(() => model.predict([
+      xs1, xs1, xs1
+    ])).toThrowError(/.*Expected.*2 Tensor.*got 3 Tensor.*/);
   });
 
-  it('Incorrect input shape leads to exception', async done => {
+  it('Incorrect input shape leads to exception', () => {
     const inputTensor =
         Input({shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
     const layer = new Reshape({targetShape: [2, 6]});
@@ -308,11 +303,9 @@ describeMathCPUAndGPU('Model.predict', () => {
     const model = new Model(
         {inputs: [inputTensor], outputs: [output], name: 'model_inc_1x1'});
     const xs1 = K.ones([2, 4, 3]);
-    model.predict(xs1).catch(err => {
-      expect(err.message)
-          .toMatch(/.*expected.* shape \[null,3,4\].*but got.*\[2,4,3\]/);
-      done();
-    });
+
+    expect(() => model.predict(xs1))
+        .toThrowError(/.*expected.* shape \[null,3,4\].*but got.*\[2,4,3\]/);
   });
 });
 
@@ -965,13 +958,12 @@ describeMathCPUAndGPU('Model.evaluate', () => {
     y = K.ones([numExamples, outputSize]);
   }
 
-  it('Calling evaluate before compile leads to error', async done => {
+  it('Calling evaluate before compile leads to error', () => {
     prepModel();
     prepData();
-    model.evaluate(x, y).catch(err => {
-      expect(err.message).toMatch(/must compile a model before/);
-      done();
-    });
+
+    expect(() => model.evaluate(x, y))
+        .toThrowError(/must compile a model before/);
   });
 
   const metricsValues: string[][] = [null, ['mse']];
@@ -980,11 +972,11 @@ describeMathCPUAndGPU('Model.evaluate', () => {
     for (const batchSize of batchSizes) {
       const testTitle =
           `metrics=${JSON.stringify(metrics)}, batchSize=${batchSize}`;
-      it(testTitle, async done => {
+      it(testTitle, () => {
         prepModel();
         prepData();
         model.compile({optimizer: 'sgd', loss: 'meanSquaredError', metrics});
-        const losses = await model.evaluate(x, y, {batchSize});
+        const losses = model.evaluate(x, y, {batchSize});
         if (metrics == null) {
           expectTensorsClose(losses as Scalar, scalar(1));
         } else {
@@ -993,7 +985,6 @@ describeMathCPUAndGPU('Model.evaluate', () => {
           expectTensorsClose(lossesArray[0], scalar(1));
           expectTensorsClose(lossesArray[1], scalar(1));
         }
-        done();
       });
     }
   }

@@ -53,7 +53,7 @@ const ys = tf.tensor2d([[1], [3], [5], [7]], [4, 1]);
 await model.fit(xs, ys, {epochs: 50});
 
 // Ater the training, perform inference.
-const output = await model.predict(tf.tensor2d([[5]], [1, 1]));
+const output = model.predict(tf.tensor2d([[5]], [1, 1]));
 output.print();
 ```
 

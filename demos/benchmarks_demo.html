@@ -128,12 +128,12 @@ https://opensource.org/licenses/MIT.
         // Perform predict() burn-in.
         let output;
         for (let i = 0; i < PREDICT_BURNINS; ++i) {
-          output = await model.predict(xs);
+          output = model.predict(xs);
         }
         // Time predict() a number of times and take the average.
         const predictBeginMs = performance.now();
         for (let i = 0; i < PREDICT_RUNS; ++i) {
-          output = await model.predict(xs);
+          output = model.predict(xs);
         }
         // After all the model.predict() calls, invoke dataSync() once to let the
         // scheduled GPU operations complete before proceeding.

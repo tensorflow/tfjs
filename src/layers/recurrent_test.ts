@@ -981,13 +981,13 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
 describeMathCPU('LSTM-deserialization', () => {
   it('modelFromConfig', async done => {
     modelFromJSON(fakeLSTMModel)
-        .then(async model => {
+        .then(model => {
           const encoderInputs = K.zeros([1, 3, 71], DType.float32);
           const decoderInputs = K.zeros([1, 3, 94], DType.float32);
           const outputs =
-              await model.predict([encoderInputs, decoderInputs]) as Tensor;
-          done();
+              model.predict([encoderInputs, decoderInputs]) as Tensor;
           expect(outputs.shape).toEqual([1, 3, 94]);
+          done();
         })
         .catch(done.fail);
   });

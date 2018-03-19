@@ -640,7 +640,7 @@ export interface ModelCompileConfig {
  * // The model can be used for training, evaluation and prediction.
  * // For example, the following line runs prediction with the model on
  * // some fake data.
- * (await model.predict(tf.ones([2, 5]))).print();
+ * model.predict(tf.ones([2, 5])).print();
  * ```
  *
  * See also:
@@ -908,9 +908,8 @@ export class Model extends Container {
    *   layers: [tf.layers.dense({units: 1, inputShape: [10]})]
    * });
    * model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-   * const result = await model.evaluate(tf.ones([8, 10]), tf.ones([8, 1]), {
-   *   batchSize: 4,
-   * });
+   * const result = model.evaluate(
+   *     tf.ones([8, 10]), tf.ones([8, 1]), {batchSize: 4});
    * result.print();
    * ```
    *
@@ -922,13 +921,13 @@ export class Model extends Container {
    *
    * @return `Scalar` test loss (if the model has a single output and no
    *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
-   *   and/or metrics), as a `Promise`. The attribute `model.metricsNames`
+   *   and/or metrics). The attribute `model.metricsNames`
    *   will give you the display labels for the scalar outputs.
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
-  async evaluate(
+  evaluate(
       x: Tensor|Tensor[], y: Tensor|Tensor[],
-      config: ModelEvaluateConfig = {}): Promise<Scalar|Scalar[]> {
+      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
@@ -1061,15 +1060,15 @@ export class Model extends Container {
    *   the model has multiple inputs.
    * @param conifg A `ModelPredictConfig` object containing optional fields.
    *
-   * @return Prediction results as a `Promise` of `Tensor`(s).
+   * @return Prediction results as a `Tensor`(s).
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [1]})
-  async predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}):
-      Promise<Tensor|Tensor[]> {
+  predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}): Tensor
+      |Tensor[] {
     checkInputData(x, this.inputNames, this.feedInputShapes, false);
     // TODO(cais): Take care of stateful models.
     //   if (this.stateful) ...

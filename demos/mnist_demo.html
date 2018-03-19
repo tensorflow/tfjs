@@ -152,7 +152,7 @@ https://opensource.org/licenses/MIT.
           $('#predict-values').empty();
         }
         // TODO(cais): Maybe use a tidy().
-        const predictOut = await model.predict(batchInput);
+        const predictOut = model.predict(batchInput);
         const winner = predictOut.argMax();
 
         $('#predict-header').empty();

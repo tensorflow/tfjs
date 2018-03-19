@@ -105,7 +105,7 @@ https://opensource.org/licenses/MIT.
 
         document.getElementById('status').textContent = 'Running inference';
         const beginMs = performance.now();
-        const predictOut = await model.predict(input);
+        const predictOut = model.predict(input);
         const score = predictOut.dataSync()[0];
         predictOut.dispose();
         const endMs = performance.now();
