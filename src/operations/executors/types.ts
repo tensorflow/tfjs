@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 import {NamedTensorsMap} from '../../data/index';
 
 import {Node} from '../index';
@@ -26,5 +26,5 @@ import {Node} from '../index';
  * @param tensorMap contains tensors for executed nodes and weights
  */
 export interface OpExecutor {
-  (node: Node, tensorMap: NamedTensorsMap): dl.Tensor[];
+  (node: Node, tensorMap: NamedTensorsMap): tfc.Tensor[];
 }

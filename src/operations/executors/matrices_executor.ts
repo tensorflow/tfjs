@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
@@ -24,17 +24,17 @@ import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap): dl.Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap): tfc.Tensor[] => {
       switch (node.op) {
         case 'matMul':
-          return [dl.matMul(
-              getParamValue('a', node, tensorMap) as dl.Tensor2D,
-              getParamValue('b', node, tensorMap) as dl.Tensor2D,
+          return [tfc.matMul(
+              getParamValue('a', node, tensorMap) as tfc.Tensor2D,
+              getParamValue('b', node, tensorMap) as tfc.Tensor2D,
               getParamValue('transposeA', node, tensorMap) as boolean,
               getParamValue('transposeB', node, tensorMap) as boolean)];
         case 'transpose':
-          return [dl.transpose(
-              getParamValue('x', node, tensorMap) as dl.Tensor,
+          return [tfc.transpose(
+              getParamValue('x', node, tensorMap) as tfc.Tensor,
               getParamValue('perm', node, tensorMap) as number[])];
 
         default:

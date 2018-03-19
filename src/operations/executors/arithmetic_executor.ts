@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
@@ -24,41 +24,41 @@ import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor =
-    (node: Node, tensorMap: NamedTensorsMap): dl.Tensor[] => {
+    (node: Node, tensorMap: NamedTensorsMap): tfc.Tensor[] => {
       switch (node.op) {
         case 'add': {
-          return [dl.add(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor)];
+          return [tfc.add(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
         }
         case 'mul':
-          return [dl.mul(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor)];
+          return [tfc.mul(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
         case 'div': {
-          return [dl.div(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor)];
+          return [tfc.div(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
         }
         case 'sub': {
-          return [dl.sub(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor)];
+          return [tfc.sub(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
         }
         case 'minimum': {
-          return [dl.minimum(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor)];
+          return [tfc.minimum(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
         }
         case 'maximum': {
-          return [dl.maximum(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor)];
+          return [tfc.maximum(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
         }
         case 'pow': {
-          return [dl.pow(
-              getParamValue('a', node, tensorMap) as dl.Tensor,
-              getParamValue('b', node, tensorMap) as dl.Tensor)];
+          return [tfc.pow(
+              getParamValue('a', node, tensorMap) as tfc.Tensor,
+              getParamValue('b', node, tensorMap) as tfc.Tensor)];
         }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);

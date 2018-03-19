@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from 'deeplearn';
+import {Tensor} from '@tensorflow/tfjs-core';
 export type ParamTypes =
     'number'|'string'|'number[]'|'bool'|'shape'|'tensor'|'tensors'|'dtype';
 export type Category =

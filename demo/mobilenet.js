@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs';
+import * as tfc from '@tensorflow/tfjs-core';
 import {NamedTensorMap, TFModel} from '@tensorflow/tfjs-converter';
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
@@ -25,7 +25,7 @@ const MODEL_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb';
 const WEIGHT_MANIFEST_FILE_URL = 'mobilenet_v1_1.0_224/weights_manifest.json';
 const INPUT_NODE_NAME = 'input';
 const OUTPUT_NODE_NAME = 'MobilenetV1/Predictions/Reshape_1';
-const PREPROCESS_DIVISOR = tf.scalar(255 / 2);
+const PREPROCESS_DIVISOR = tfc.scalar(255 / 2);
 
 export class MobileNet {
   // yolo variables
@@ -52,14 +52,14 @@ export class MobileNet {
    * @return The pre-softmax logits.
    */
   predict(input) {
-    const preprocessedInput = tf.div(
-        tf.sub(input.asType('float32'), PREPROCESS_DIVISOR),
+    const preprocessedInput = tfc.div(
+        tfc.sub(input.asType('float32'), PREPROCESS_DIVISOR),
         PREPROCESS_DIVISOR);
     const reshapedInput =
         preprocessedInput.reshape([1, ...preprocessedInput.shape]);
     const dict = {};
     dict[INPUT_NODE_NAME] = reshapedInput;
-    return this.model.eval(dict)[OUTPUT_NODE_NAME];
+    return this.model.eval(dict, OUTPUT_NODE_NAME);
   }
 
   getTopKClasses(predictions, topK) {

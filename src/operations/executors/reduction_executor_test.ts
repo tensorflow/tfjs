@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import {Node} from '../index';
 
@@ -24,7 +24,7 @@ import {createBoolAttr, createNumberAttr, createTensorAttr} from './test_helper'
 
 describe('reduction', () => {
   let node: Node;
-  const input1 = [dl.scalar(1)];
+  const input1 = [tfc.scalar(1)];
 
   beforeEach(() => {
     node = {
@@ -44,8 +44,8 @@ describe('reduction', () => {
 
   describe('executeOp', () => {
     ['max', 'mean', 'min', 'sum'].forEach(op => {
-      it('should call dl.' + op, () => {
-        const spy = spyOn(dl, op as 'max');
+      it('should call tfc.' + op, () => {
+        const spy = spyOn(tfc, op as 'max');
         node.op = op;
         executeOp(node, {input1});
 
@@ -53,21 +53,21 @@ describe('reduction', () => {
       });
     });
     describe('argMax', () => {
-      it('should call dl.argMax', () => {
-        spyOn(dl, 'argMax');
+      it('should call tfc.argMax', () => {
+        spyOn(tfc, 'argMax');
         node.op = 'argMax';
         executeOp(node, {input1});
 
-        expect(dl.argMax).toHaveBeenCalledWith(input1[0], 1);
+        expect(tfc.argMax).toHaveBeenCalledWith(input1[0], 1);
       });
     });
     describe('argMin', () => {
-      it('should call dl.argMin', () => {
-        spyOn(dl, 'argMin');
+      it('should call tfc.argMin', () => {
+        spyOn(tfc, 'argMin');
         node.op = 'argMin';
         executeOp(node, {input1});
 
-        expect(dl.argMin).toHaveBeenCalledWith(input1[0], 1);
+        expect(tfc.argMin).toHaveBeenCalledWith(input1[0], 1);
       });
     });
   });

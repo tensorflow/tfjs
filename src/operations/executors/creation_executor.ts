@@ -15,8 +15,8 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
-import {DataType} from 'deeplearn/dist/types';
+import * as tfc from '@tensorflow/tfjs-core';
+import {DataType} from '@tensorflow/tfjs-core/dist/types';
 
 import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
@@ -25,36 +25,36 @@ import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
 export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
-                                       dl.Tensor[] => {
+                                       tfc.Tensor[] => {
   switch (node.op) {
     case 'fill': {
       const shape = getParamValue('shape', node, tensorMap) as number[];
       const value = getParamValue('value', node, tensorMap) as number;
-      return [dl.fill(shape, value)];
+      return [tfc.fill(shape, value)];
     }
     case 'linspace': {
       const start = getParamValue('start', node, tensorMap) as number;
       const stop = getParamValue('stop', node, tensorMap) as number;
       const num = getParamValue('num', node, tensorMap) as number;
-      return [dl.linspace(start, stop, num)];
+      return [tfc.linspace(start, stop, num)];
     }
     case 'oneHot': {
-      const indices = getParamValue('indices', node, tensorMap) as dl.Tensor1D;
+      const indices = getParamValue('indices', node, tensorMap) as tfc.Tensor1D;
       const depth = getParamValue('depth', node, tensorMap) as number;
       const onValue = getParamValue('onValue', node, tensorMap) as number;
       const offValue = getParamValue('offValue', node, tensorMap) as number;
-      return [dl.oneHot(indices, depth, onValue, offValue)];
+      return [tfc.oneHot(indices, depth, onValue, offValue)];
     }
     case 'ones': {
-      return [dl.ones(
+      return [tfc.ones(
           getParamValue('shape', node, tensorMap) as number[],
           getParamValue('dtype', node, tensorMap) as DataType)];
     }
     case 'onesLike': {
-      return [dl.onesLike(getParamValue('x', node, tensorMap) as dl.Tensor)];
+      return [tfc.onesLike(getParamValue('x', node, tensorMap) as tfc.Tensor)];
     }
     case 'randomUniform': {
-      return [dl.randomUniform(
+      return [tfc.randomUniform(
           // tslint:disable-next-line:no-any
           getParamValue('shape', node, tensorMap) as any,
           getParamValue('minval', node, tensorMap) as number,
@@ -65,7 +65,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
       const start = getParamValue('start', node, tensorMap) as number;
       const stop = getParamValue('stop', node, tensorMap) as number;
       const step = getParamValue('step', node, tensorMap) as number;
-      return [dl.range(
+      return [tfc.range(
           start, stop, step,
           getParamValue('dtype', node, tensorMap) as 'float32' | 'int32')];
     }
@@ -74,18 +74,18 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
       const mean = getParamValue('mean', node, tensorMap) as number;
       const stdDev = getParamValue('stdDev', node, tensorMap) as number;
       const seed = getParamValue('seed', node, tensorMap) as number;
-      return [dl.truncatedNormal(
+      return [tfc.truncatedNormal(
           shape, mean, stdDev,
           getParamValue('dtype', node, tensorMap) as 'float32' | 'int32',
           seed)];
     }
     case 'zeros': {
-      return [dl.zeros(
+      return [tfc.zeros(
           getParamValue('shape', node, tensorMap) as number[],
           getParamValue('dtype', node, tensorMap) as DataType)];
     }
     case 'zerosLike': {
-      return [dl.zerosLike(getParamValue('x', node, tensorMap) as dl.Tensor)];
+      return [tfc.zerosLike(getParamValue('x', node, tensorMap) as tfc.Tensor)];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

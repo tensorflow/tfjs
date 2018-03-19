@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tfc from '@tensorflow/tfjs-core';
 
 import * as data from '../data/index';
 
@@ -26,7 +26,7 @@ const WEIGHT_MANIFEST_URL = 'http://example.org/weights_manifest.json';
 const RELATIVE_MODEL_URL = '/path/model.pb';
 const RELATIVE_WEIGHT_MANIFEST_URL = '/path/weights_manifest.json';
 let model: TFModel;
-const bias = dl.tensor1d([1], 'int32');
+const bias = tfc.tensor1d([1], 'int32');
 const WEIGHT_MAP = {
   'Const': bias
 };
@@ -66,7 +66,7 @@ describe('Model', () => {
   beforeEach(() => {
     spyOn(data.tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
     const weightPromise = new Promise((resolve => resolve(WEIGHT_MAP)));
-    spyOn(dl, 'loadWeights').and.returnValue(weightPromise);
+    spyOn(tfc, 'loadWeights').and.returnValue(weightPromise);
     model = new TFModel(MODEL_URL, WEIGHT_MANIFEST_URL);
     spyOn(window, 'fetch')
         .and.callFake(
@@ -84,9 +84,9 @@ describe('Model', () => {
   describe('eval', () => {
     it('should generate the output', async () => {
       await model.load();
-      const input = dl.tensor1d([1], 'int32');
+      const input = tfc.tensor1d([1], 'int32');
       const output = model.eval({'Input': input}, 'Add');
-      expect((output as dl.Tensor).dataSync()[0]).toEqual(2);
+      expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
   });
 
