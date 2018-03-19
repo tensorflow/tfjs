@@ -16,7 +16,7 @@
 import {tensor2d} from '@tensorflow/tfjs-core';
 import * as tfl from './index';
 
-import {Distribution, FanMode, getInitializer, serializeInitializer, Zeros} from './initializers';
+import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, Zeros} from './initializers';
 import {DType} from './types';
 import {ConfigDict} from './types';
 import * as math_utils from './utils/math_utils';
@@ -283,8 +283,8 @@ describeMathCPU('initializers.get', () => {
     const config = serializeInitializer(initializer) as ConfigDict;
     const nestedConfig = config.config as ConfigDict;
     expect(nestedConfig.scale).toEqual(1.0);
-    expect(nestedConfig.mode).toEqual(FanMode.FAN_AVG);
-    expect(nestedConfig.distribution).toEqual(Distribution.NORMAL);
+    expect(nestedConfig.mode).toEqual('fanAvg');
+    expect(nestedConfig.distribution).toEqual('normal');
   });
   it('by existing object', () => {
     const origInit = new Zeros();
@@ -305,5 +305,58 @@ describe('Invalid intializer identifier', () => {
     expect(() => {
       getInitializer('invalid_initializer_id');
     }).toThrowError();
+  });
+});
+
+
+describe('checkFanMode', () => {
+  it('Valid values', () => {
+    for (const validValue of VALID_FAN_MODE_VALUES) {
+      // Using implicit "expect().toNotThrow()" for valid values
+      checkFanMode(validValue);
+    }
+  });
+  it('Invalid values', () => {
+    // Test invalid values are rejected, and reported in the error.
+    expect(function() {
+      checkFanMode('foo')
+    }).toThrowError(/foo/);
+    try {
+      checkFanMode('bad');
+    } catch (e) {
+      // Test that the error message contains the list of valid values.
+      for (const validValue of VALID_FAN_MODE_VALUES) {
+        if (validValue == null) {
+          continue;
+        }
+        expect(e).toMatch(validValue);
+      }
+    }
+  });
+});
+
+describe('checkDistribution', () => {
+  it('Valid values', () => {
+    for (const validValue of VALID_DISTRIBUTION_VALUES) {
+      // Using implicit "expect().toNotThrow()" for valid values
+      checkDistribution(validValue);
+    }
+  });
+  it('Invalid values', () => {
+    // Test invalid values are rejected, and reported in the error.
+    expect(function() {
+      checkDistribution('foo')
+    }).toThrowError(/foo/);
+    try {
+      checkDistribution('bad');
+    } catch (e) {
+      // Test that the error message contains the list of valid values.
+      for (const validValue of VALID_DISTRIBUTION_VALUES) {
+        if (validValue == null) {
+          continue;
+        }
+        expect(e).toMatch(validValue);
+      }
+    }
   });
 });

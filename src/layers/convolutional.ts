@@ -18,7 +18,7 @@ import * as _ from 'underscore';
 // tslint:disable:max-line-length
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
-import {DataFormat, PaddingMode} from '../common';
+import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
@@ -171,9 +171,11 @@ export abstract class Conv extends Layer {
     this.kernelSize = normalizeArray(config.kernelSize, rank, 'kernelSize');
     this.strides = normalizeArray(
         config.strides == null ? 1 : config.strides, rank, 'strides');
-    this.padding = config.padding == null ? PaddingMode.VALID : config.padding;
+    this.padding = config.padding == null ? 'valid' : config.padding;
+    checkPaddingMode(this.padding);
     this.dataFormat =
-        config.dataFormat == null ? DataFormat.CHANNEL_LAST : config.dataFormat;
+        config.dataFormat == null ? 'channelLast' : config.dataFormat;
+    checkDataFormat(this.dataFormat);
 
     this.dilationRate = config.dilationRate == null ? 1 : config.dilationRate;
     if (!(this.dilationRate === 1 ||
@@ -198,9 +200,8 @@ export abstract class Conv extends Layer {
 
   build(inputShape: Shape|Shape[]): void {
     inputShape = generic_utils.getExactlyOneShape(inputShape);
-    const channelAxis = this.dataFormat === DataFormat.CHANNEL_FIRST ?
-        1 :
-        inputShape.length - 1;
+    const channelAxis =
+        this.dataFormat === 'channelFirst' ? 1 : inputShape.length - 1;
     if (inputShape[channelAxis] == null) {
       throw new ValueError(
           `The channel dimension of the input should be defined. ` +
@@ -249,7 +250,7 @@ export abstract class Conv extends Layer {
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = generic_utils.getExactlyOneShape(inputShape);
     const newSpace: number[] = [];
-    const space = (this.dataFormat === DataFormat.CHANNEL_LAST) ?
+    const space = (this.dataFormat === 'channelLast') ?
         inputShape.slice(1, inputShape.length - 1) :
         inputShape.slice(2);
     for (let i = 0; i < space.length; ++i) {
@@ -261,7 +262,7 @@ export abstract class Conv extends Layer {
     }
 
     let outputShape = [inputShape[0]];
-    if (this.dataFormat === DataFormat.CHANNEL_LAST) {
+    if (this.dataFormat === 'channelLast') {
       outputShape = outputShape.concat(newSpace);
       outputShape.push(this.filters);
     } else {
@@ -307,12 +308,11 @@ export abstract class Conv extends Layer {
  *
  * If `activation` is not `null`, it is applied to the outputs as well.
  *
- * When using this layer as the first layer in a model, `inputShape` should be
- * specified. `inputShape` is array of integers which does not include the
- * sample axis.
- *
- * e.g. `inputShape=[128, 128, 3]` for 128x128 RGB pictures in
- * `dataFormat=DataFormat.CHANNEL_LAST`.
+ * When using this layer as the first layer in a model,
+ * provide the keyword argument `inputShape`
+ * (Array of integers, does not include the sample axis),
+ * e.g. `inputShape=[128, 128, 3]` for 128x128 RGB pictures
+ * in `dataFormat='channelLast'`.
  */
 export class Conv2D extends Conv {
   constructor(config: ConvLayerConfig) {

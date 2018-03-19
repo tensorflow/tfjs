@@ -12,7 +12,86 @@
  * Unit tests for common.ts.
  */
 
-import {isValidTensorName} from './common';
+import {checkDataFormat, checkPaddingMode, checkPoolMode, isValidTensorName, VALID_DATA_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './common';
+
+describe('checkDataFormat', () => {
+  it('Valid values', () => {
+    for (const validValue of VALID_DATA_FORMAT_VALUES) {
+      // Using implicit "expect().toNotThrow()" for valid values
+      checkDataFormat(validValue);
+    }
+  });
+  it('Invalid values', () => {
+    // Test invalid values are rejected, and reported in the error.
+    expect(function() {
+      checkDataFormat('foo')
+    }).toThrowError(/foo/);
+    try {
+      checkDataFormat('bad');
+    } catch (e) {
+      // Test that the error message contains the list of valid values.
+      for (const validValue of VALID_DATA_FORMAT_VALUES) {
+        if (validValue == null) {
+          continue;
+        }
+        expect(e).toMatch(validValue);
+      }
+    }
+  });
+});
+
+describe('checkPaddingMode', () => {
+  it('Valid values', () => {
+    for (const validValue of VALID_PADDING_MODE_VALUES) {
+      // Using implicit "expect().toNotThrow()" for valid values
+      checkPaddingMode(validValue);
+    }
+  });
+  it('Invalid values', () => {
+    // Test invalid values are rejected, and reported in the error.
+    expect(function() {
+      checkPaddingMode('foo')
+    }).toThrowError(/foo/);
+    try {
+      checkPaddingMode('bad');
+    } catch (e) {
+      // Test that the error message contains the list of valid values.
+      for (const validValue of VALID_PADDING_MODE_VALUES) {
+        if (validValue == null) {
+          continue;
+        }
+        expect(e).toMatch(validValue);
+      }
+    }
+  });
+});
+
+describe('checkPoolMode', () => {
+  it('Valid values', () => {
+    for (const validValue of VALID_POOL_MODE_VALUES) {
+      // Using implicit "expect().toNotThrow()" for valid values
+      checkPoolMode(validValue);
+    }
+  });
+  it('Invalid values', () => {
+    // Test invalid values are rejected, and reported in the error.
+    expect(function() {
+      checkPoolMode('foo')
+    }).toThrowError(/foo/);
+    try {
+      checkPoolMode('bad');
+    } catch (e) {
+      // Test that the error message contains the list of valid values.
+      for (const validValue of VALID_POOL_MODE_VALUES) {
+        if (validValue == null) {
+          continue;
+        }
+        expect(e).toMatch(validValue);
+      }
+    }
+  });
+});
+
 
 describe('isValidTensorName', () => {
   it('Valid tensor names', () => {

@@ -13,8 +13,6 @@
  * Porting Note: serialization_utils is a tfjs-layers only file, not found
  * int the original PyKeras.
  */
-import {DataFormat, PaddingMode} from '../common';
-import {Distribution, FanMode} from '../initializers';
 import {ConfigDictValue, JsonValue} from '../types';
 
 import {convertPythonicToTs, convertTsToPythonic} from './serialization_utils';
@@ -71,18 +69,14 @@ describe('convertPythonToTs', () => {
   });
   // We promote certan fields to enums
   it('enum promotion', () => {
-    expect(convertPythonicToTs({mode: 'fan_out'})).toEqual({
-      mode: FanMode.FAN_OUT
-    });
+    expect(convertPythonicToTs({mode: 'fan_out'})).toEqual({mode: 'fanOut'});
     expect(convertPythonicToTs({distribution: 'normal'})).toEqual({
-      distribution: Distribution.NORMAL
+      distribution: 'normal'
     });
     expect(convertPythonicToTs({data_format: 'channels_last'})).toEqual({
-      dataFormat: DataFormat.CHANNEL_LAST
+      dataFormat: 'channelLast'
     });
-    expect(convertPythonicToTs({padding: 'valid'})).toEqual({
-      padding: PaddingMode.VALID
-    });
+    expect(convertPythonicToTs({padding: 'valid'})).toEqual({padding: 'valid'});
   });
 });
 
@@ -139,17 +133,13 @@ describe('convertTsToPythonic', () => {
   });
   // We need to stringify our enums
   it('enum promotion', () => {
-    expect(convertTsToPythonic({mode: FanMode.FAN_OUT})).toEqual({
-      mode: 'fan_out'
-    });
-    expect(convertTsToPythonic({distribution: Distribution.NORMAL})).toEqual({
+    expect(convertTsToPythonic({mode: 'fanOut'})).toEqual({mode: 'fan_out'});
+    expect(convertTsToPythonic({distribution: 'normal'})).toEqual({
       distribution: 'normal'
     });
-    expect(convertTsToPythonic({dataFormat: DataFormat.CHANNEL_LAST})).toEqual({
+    expect(convertTsToPythonic({dataFormat: 'channelLast'})).toEqual({
       data_format: 'channels_last'
     });
-    expect(convertTsToPythonic({padding: PaddingMode.VALID})).toEqual({
-      padding: 'valid'
-    });
+    expect(convertTsToPythonic({padding: 'valid'})).toEqual({padding: 'valid'});
   });
 });

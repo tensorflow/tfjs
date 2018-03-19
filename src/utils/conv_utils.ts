@@ -61,7 +61,7 @@ export function convOutputLength(
   }
   const dilatedFilterSize = fliterSize + (fliterSize - 1) * (dilation - 1);
   let outputLength: number;
-  if (padding === PaddingMode.SAME) {
+  if (padding === 'same') {
     outputLength = inputLength;
   } else {  // VALID
     outputLength = inputLength - dilatedFilterSize + 1;
