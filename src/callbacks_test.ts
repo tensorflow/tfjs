@@ -15,7 +15,7 @@
 // tslint:disable:max-line-length
 import {scalar} from '@tensorflow/tfjs-core';
 
-import {BaseLogger, CallbackList, History, resolveScalarsInLogs, UnresolvedLogs} from './callbacks';
+import {BaseLogger, CallbackList, History, resolveScalarsInLogs, UnresolvedLogs, disposeTensorsInLogs} from './callbacks';
 import {Model} from './engine/training';
 import {describeMathCPUAndGPU} from './utils/test_utils';
 // tslint:enable:max-line-length
@@ -192,4 +192,23 @@ describeMathCPUAndGPU('resolveScalarsInLogs', () => {
     expect(logs).toEqual({});
     done();
   });
+});
+
+describeMathCPUAndGPU('disposeTensorsInLogs', () => {
+  it('Resolve mixed numbers and scalars', () => {
+    const logs: UnresolvedLogs = {
+      'a': 1,
+      'b': scalar(2),
+      'c': -3,
+      'd': scalar(-4),
+    };
+    disposeTensorsInLogs(logs);
+    expect(logs['a']).toEqual(1);
+    // tslint:disable-next-line:no-any
+    expect((logs['b'] as any).isDisposed).toEqual(true);
+    expect(logs['c']).toEqual(-3);
+    // tslint:disable-next-line:no-any
+    expect((logs['d'] as any).isDisposed).toEqual(true);
+  });
+
 });
