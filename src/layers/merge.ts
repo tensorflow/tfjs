@@ -22,8 +22,6 @@ import {Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as mathUtils from '../utils/math_utils';
 
-export interface MergeLayerConfig extends LayerConfig {}
-
 /**
  * Generic merge layer for elementwise merge functions.
  *
@@ -32,7 +30,7 @@ export interface MergeLayerConfig extends LayerConfig {}
 export class Merge extends Layer {
   protected reshapeRequired: boolean;
 
-  constructor(config?: MergeLayerConfig) {
+  constructor(config?: LayerConfig) {
     super(config || {});
     this.supportsMasking = true;
   }
@@ -238,8 +236,8 @@ export class Merge extends Layer {
  */
 // TODO(cais): Add examples.
 export class Add extends Merge {
-  constructor() {
-    super({});
+  constructor(config?: LayerConfig) {
+    super(config);
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -261,8 +259,8 @@ generic_utils.ClassNameMap.register('Add', Add);
  * shape, and returns a single tensor (also of the same shape).
  */
 export class Multiply extends Merge {
-  constructor() {
-    super({});
+  constructor(config?: LayerConfig) {
+    super(config);
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -282,8 +280,8 @@ generic_utils.ClassNameMap.register('Multiply', Multiply);
  * single tensor (also of the same shape).
  */
 export class Average extends Merge {
-  constructor() {
-    super({});
+  constructor(config?: LayerConfig) {
+    super(config);
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -303,8 +301,8 @@ generic_utils.ClassNameMap.register('Average', Average);
  * single tensor (also of the same shape).
  */
 export class Maximum extends Merge {
-  constructor() {
-    super({});
+  constructor(config?: LayerConfig) {
+    super(config);
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -324,8 +322,8 @@ generic_utils.ClassNameMap.register('Maximum', Maximum);
  * single tensor (also of the same shape).
  */
 export class Minimum extends Merge {
-  constructor() {
-    super({});
+  constructor(config?: LayerConfig) {
+    super(config);
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -338,7 +336,7 @@ export class Minimum extends Merge {
 }
 generic_utils.ClassNameMap.register('Minimum', Minimum);
 
-export interface ConcatenateLayerConfig extends MergeLayerConfig {
+export interface ConcatenateLayerConfig extends LayerConfig {
   /**
    * Axis along which to concatenate.
    */
