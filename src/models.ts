@@ -416,7 +416,7 @@ export class Sequential extends Model {
    *   layers: [tf.layers.dense({units: 1, inputShape: [10]})]
    * });
    * model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-   * const result = await model.evaluate(tf.ones([8, 10]), tf.ones([8, 1]), {
+   * const result = model.evaluate(tf.ones([8, 10]), tf.ones([8, 1]), {
    *   batchSize: 4,
    * });
    * result.print();
@@ -430,13 +430,13 @@ export class Sequential extends Model {
    *
    * @return `Scalar` test loss (if the model has a single output and no
    *   metrics) or `Array` of `Scalar`s (if the model has multiple outputs
-   *   and/or metrics), as a `Promise`. The attribute `model.metricsNames`
+   *   and/or metrics). The attribute `model.metricsNames`
    *   will give you the display labels for the scalar outputs.
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
-  async evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
-      Promise<Scalar|Scalar[]> {
+  evaluate(
+      x: Tensor|Tensor[], y: Tensor|Tensor[],
+      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -456,22 +456,22 @@ export class Sequential extends Model {
    * const model = tf.sequential({
    *   layers: [tf.layers.dense({units: 1, inputShape: [10]})]
    * });
-   * (await model.predict(tf.ones([2, 5]))).print();
+   * model.predict(tf.ones([2, 5])).print();
    * ```
    *
    * @param x The input data, as an Tensor, or an `Array` of `Tensor`s if
    *   the model has multiple inputs.
    * @param conifg A `ModelPredictConfig` object containing optional fields.
    *
-   * @return `Tensor`(s) of predictions, as a `Promise`.
+   * @return `Tensor`(s) of predictions.
    *
    * @exception ValueError In case of mismatch between the provided input data
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [1]})
-  async predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}):
-      Promise<Tensor|Tensor[]> {
+  predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}): Tensor
+      |Tensor[] {
     if (this.model == null) {
       this.build();
     }
