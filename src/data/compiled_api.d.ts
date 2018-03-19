@@ -1,4 +1,5 @@
 import * as $protobuf from "protobufjs";
+
 /** Namespace tensorflow. */
 export namespace tensorflow {
 
@@ -1090,6 +1091,9 @@ export namespace tensorflow {
 
         /** GraphDef versions */
         versions?: (tensorflow.IVersionDef|null);
+
+        /** GraphDef library */
+        library?: (tensorflow.IFunctionDefLibrary|null);
     }
 
     /** Represents a GraphDef. */
@@ -1106,6 +1110,9 @@ export namespace tensorflow {
 
         /** GraphDef versions. */
         public versions?: (tensorflow.IVersionDef|null);
+
+        /** GraphDef library. */
+        public library?: (tensorflow.IFunctionDefLibrary|null);
 
         /**
          * Creates a new GraphDef instance using the specified properties.
@@ -3223,6 +3230,306 @@ export namespace tensorflow {
 
         /**
          * Converts this SavedModel to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
+    }
+
+    /** Properties of a FunctionDefLibrary. */
+    interface IFunctionDefLibrary {
+
+        /** FunctionDefLibrary function */
+        "function"?: (tensorflow.IFunctionDef[]|null);
+
+        /** FunctionDefLibrary gradient */
+        gradient?: (tensorflow.IGradientDef[]|null);
+    }
+
+    /** Represents a FunctionDefLibrary. */
+    class FunctionDefLibrary implements IFunctionDefLibrary {
+
+        /**
+         * Constructs a new FunctionDefLibrary.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: tensorflow.IFunctionDefLibrary);
+
+        /** FunctionDefLibrary function. */
+        public function: tensorflow.IFunctionDef[];
+
+        /** FunctionDefLibrary gradient. */
+        public gradient: tensorflow.IGradientDef[];
+
+        /**
+         * Creates a new FunctionDefLibrary instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns FunctionDefLibrary instance
+         */
+        public static create(properties?: tensorflow.IFunctionDefLibrary): tensorflow.FunctionDefLibrary;
+
+        /**
+         * Encodes the specified FunctionDefLibrary message. Does not implicitly {@link tensorflow.FunctionDefLibrary.verify|verify} messages.
+         * @param message FunctionDefLibrary message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: tensorflow.IFunctionDefLibrary, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Encodes the specified FunctionDefLibrary message, length delimited. Does not implicitly {@link tensorflow.FunctionDefLibrary.verify|verify} messages.
+         * @param message FunctionDefLibrary message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(message: tensorflow.IFunctionDefLibrary, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a FunctionDefLibrary message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns FunctionDefLibrary
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.FunctionDefLibrary;
+
+        /**
+         * Decodes a FunctionDefLibrary message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns FunctionDefLibrary
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.FunctionDefLibrary;
+
+        /**
+         * Verifies a FunctionDefLibrary message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): (string|null);
+
+        /**
+         * Creates a FunctionDefLibrary message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns FunctionDefLibrary
+         */
+        public static fromObject(object: { [k: string]: any }): tensorflow.FunctionDefLibrary;
+
+        /**
+         * Creates a plain object from a FunctionDefLibrary message. Also converts values to other types if specified.
+         * @param message FunctionDefLibrary
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(message: tensorflow.FunctionDefLibrary, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+        /**
+         * Converts this FunctionDefLibrary to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
+    }
+
+    /** Properties of a FunctionDef. */
+    interface IFunctionDef {
+
+        /** FunctionDef signature */
+        signature?: (tensorflow.IOpDef|null);
+
+        /** FunctionDef attr */
+        attr?: ({ [k: string]: tensorflow.IAttrValue }|null);
+
+        /** FunctionDef nodeDef */
+        nodeDef?: (tensorflow.INodeDef[]|null);
+
+        /** FunctionDef ret */
+        ret?: ({ [k: string]: string }|null);
+    }
+
+    /** Represents a FunctionDef. */
+    class FunctionDef implements IFunctionDef {
+
+        /**
+         * Constructs a new FunctionDef.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: tensorflow.IFunctionDef);
+
+        /** FunctionDef signature. */
+        public signature?: (tensorflow.IOpDef|null);
+
+        /** FunctionDef attr. */
+        public attr: { [k: string]: tensorflow.IAttrValue };
+
+        /** FunctionDef nodeDef. */
+        public nodeDef: tensorflow.INodeDef[];
+
+        /** FunctionDef ret. */
+        public ret: { [k: string]: string };
+
+        /**
+         * Creates a new FunctionDef instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns FunctionDef instance
+         */
+        public static create(properties?: tensorflow.IFunctionDef): tensorflow.FunctionDef;
+
+        /**
+         * Encodes the specified FunctionDef message. Does not implicitly {@link tensorflow.FunctionDef.verify|verify} messages.
+         * @param message FunctionDef message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: tensorflow.IFunctionDef, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Encodes the specified FunctionDef message, length delimited. Does not implicitly {@link tensorflow.FunctionDef.verify|verify} messages.
+         * @param message FunctionDef message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(message: tensorflow.IFunctionDef, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a FunctionDef message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns FunctionDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.FunctionDef;
+
+        /**
+         * Decodes a FunctionDef message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns FunctionDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.FunctionDef;
+
+        /**
+         * Verifies a FunctionDef message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): (string|null);
+
+        /**
+         * Creates a FunctionDef message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns FunctionDef
+         */
+        public static fromObject(object: { [k: string]: any }): tensorflow.FunctionDef;
+
+        /**
+         * Creates a plain object from a FunctionDef message. Also converts values to other types if specified.
+         * @param message FunctionDef
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(message: tensorflow.FunctionDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+        /**
+         * Converts this FunctionDef to JSON.
+         * @returns JSON object
+         */
+        public toJSON(): { [k: string]: any };
+    }
+
+    /** Properties of a GradientDef. */
+    interface IGradientDef {
+
+        /** GradientDef functionName */
+        functionName?: (string|null);
+
+        /** GradientDef gradientFunc */
+        gradientFunc?: (string|null);
+    }
+
+    /** Represents a GradientDef. */
+    class GradientDef implements IGradientDef {
+
+        /**
+         * Constructs a new GradientDef.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: tensorflow.IGradientDef);
+
+        /** GradientDef functionName. */
+        public functionName: string;
+
+        /** GradientDef gradientFunc. */
+        public gradientFunc: string;
+
+        /**
+         * Creates a new GradientDef instance using the specified properties.
+         * @param [properties] Properties to set
+         * @returns GradientDef instance
+         */
+        public static create(properties?: tensorflow.IGradientDef): tensorflow.GradientDef;
+
+        /**
+         * Encodes the specified GradientDef message. Does not implicitly {@link tensorflow.GradientDef.verify|verify} messages.
+         * @param message GradientDef message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: tensorflow.IGradientDef, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Encodes the specified GradientDef message, length delimited. Does not implicitly {@link tensorflow.GradientDef.verify|verify} messages.
+         * @param message GradientDef message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encodeDelimited(message: tensorflow.IGradientDef, writer?: $protobuf.Writer): $protobuf.Writer;
+
+        /**
+         * Decodes a GradientDef message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns GradientDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.GradientDef;
+
+        /**
+         * Decodes a GradientDef message from the specified reader or buffer, length delimited.
+         * @param reader Reader or buffer to decode from
+         * @returns GradientDef
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.GradientDef;
+
+        /**
+         * Verifies a GradientDef message.
+         * @param message Plain object to verify
+         * @returns `null` if valid, otherwise the reason why it is not
+         */
+        public static verify(message: { [k: string]: any }): (string|null);
+
+        /**
+         * Creates a GradientDef message from a plain object. Also converts values to their respective internal types.
+         * @param object Plain object
+         * @returns GradientDef
+         */
+        public static fromObject(object: { [k: string]: any }): tensorflow.GradientDef;
+
+        /**
+         * Creates a plain object from a GradientDef message. Also converts values to other types if specified.
+         * @param message GradientDef
+         * @param [options] Conversion options
+         * @returns Plain object
+         */
+        public static toObject(message: tensorflow.GradientDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
+
+        /**
+         * Converts this GradientDef to JSON.
          * @returns JSON object
          */
         public toJSON(): { [k: string]: any };
