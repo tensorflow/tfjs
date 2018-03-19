@@ -16,7 +16,7 @@ import {doc, Optimizer, Scalar, Tensor, Tensor1D, tensor1d} from '@tensorflow/tf
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
-import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
+import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, disposeTensorsInLogs, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
@@ -1293,11 +1293,14 @@ export class Model extends Container {
                 }
               }
             }
-            return outs;
           });
+
           await callbackList.onBatchEnd(batchIndex, batchLogs);
+          disposeTensorsInLogs(batchLogs);
           // TODO(cais): return outs as list of Tensor.
         }
+
+        epochIndexArray1D.dispose();
       }
       // TODO(cais): Run validation at the end of the epoch.
       await callbackList.onEpochEnd(epoch, epochLogs);
@@ -1568,7 +1571,6 @@ export class Model extends Container {
           losses.push(loss);
           // TODO(cais): push Scalar instead.
           const meanLoss = K.mean(loss) as Scalar;
-          K.keep(meanLoss);
           // TODO(cais): Use a scope() instead, to avoid ownership.
           lossValues.push(meanLoss);
           if (i === 0) {
@@ -1597,16 +1599,8 @@ export class Model extends Container {
         return totalLoss as Scalar;
       };
 
-      this.optimizer.updateVariables(
+      const totalLossValue = this.optimizer.updateVariables(
           totalLossFunction, this.collectedTrainableWeights);
-
-      // TODO(cais): Append the metrics when they are available.
-      // Calculate the total loss value.
-      let totalLossValue = lossValues[0];
-      for (let i = 1; i < lossValues.length; ++i) {
-        totalLossValue =
-            K.scalarPlusArray(totalLossValue, lossValues[i]) as Scalar;
-      }
 
       return [totalLossValue].concat(metricsValues);
     };

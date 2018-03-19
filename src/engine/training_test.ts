@@ -396,6 +396,9 @@ describeMathCPUAndGPU('Model.fit', () => {
              expectTensorsClose(
                  newWeightsValue, tensor2d(expectedValueArray, [inputSize, 1]));
              done();
+           })
+           .catch(err => {
+             done.fail(err.stack);
            });
      });
 
@@ -413,7 +416,7 @@ describeMathCPUAndGPU('Model.fit', () => {
           done();
         })
         .catch(err => {
-          done.fail();
+          done.fail(err.stack);
         });
   });
 
@@ -912,6 +915,28 @@ describeMathCPUAndGPU('Model.fit', () => {
       });
     }
   }
+
+  // TODO(cais): Uncommment the test below once the 1-tensor leak during
+  // //   `updateVariable` is fixed.
+  // it('Repeated fit calls leads to no memory leak: no validation',
+  //    async done => {
+  //      createDenseModelAndData();
+
+  //      model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+  //      // Use batchSize === numSamples to get exactly one batch.
+  //      await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
+  //      const numTensors1 = memory().numTensors;
+  //      await model.fit(inputs, targets, {batchSize: numSamples, epochs: 1});
+  //      const numTensors2 = memory().numTensors;
+  //      if (numTensors2 > numTensors1) {
+  //        done.fail(
+  //            `Memory leak detected during fit(): Leaked ` +
+  //            `${numTensors2 - numTensors1} tensor(s) after the ` +
+  //            `second fit() call.`);
+  //      } else {
+  //        done();
+  //      }
+  //    });
 
   it('Invalid dict loss: nonexistent output name', () => {
     createDenseModelAndData();

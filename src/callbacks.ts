@@ -301,7 +301,7 @@ export async function resolveScalarsInLogs(logs: UnresolvedLogs) {
   for (const key in logs) {
     const value = logs[key];
     if (typeof value !== 'number') {
-      const valueScalar = value as Tensor;
+      const valueScalar = value as Scalar;
       promises.push(valueScalar.data());
       keys.push(key);
     }
@@ -309,6 +309,24 @@ export async function resolveScalarsInLogs(logs: UnresolvedLogs) {
   const values = await Promise.all(promises);
   for (let i = 0; i < values.length; ++i) {
     logs[keys[i]] = values[i][0];
+  }
+}
+
+/**
+ * Dispose all Tensors in an UnresolvedLogs object.
+ *
+ * @param logs An `UnresolvedLogs` object potentially containing `Tensor`s in
+ *   places where the values can be `Tensor` or `number`.
+ */
+export function disposeTensorsInLogs(logs: UnresolvedLogs) {
+  if (logs == null) {
+    return;
+  }
+  for (const key in logs) {
+    const value = logs[key];
+    if (typeof value !== 'number') {
+      value.dispose();
+    }
   }
 }
 

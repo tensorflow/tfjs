@@ -104,10 +104,12 @@ export abstract class LayersOptimizer {
    *
    * @param lossFn A function to calculate the loss.
    * @param params The variables to optimize/update.
+   *
+   * @return Loss value as a `Scalar`.
    */
-  updateVariables(lossFn: () => Scalar, params: LayerVariable[]): void {
+  updateVariables(lossFn: () => Scalar, params: LayerVariable[]): Scalar {
     const variables = params.map(param => param.read() as Variable);
-    this.optimizer.minimize(lossFn, false, variables);
+    return this.optimizer.minimize(lossFn, true, variables);
   }
 
   static fromConfig<T>(cls: Constructor<T>, config: ConfigDict): T {
