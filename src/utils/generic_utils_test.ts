@@ -8,8 +8,6 @@
  * =============================================================================
  */
 
-import {DataFormat} from '../common';
-
 import * as utils from './generic_utils';
 import {pyNormalizeArrayIndex} from './generic_utils';
 
@@ -279,7 +277,7 @@ describe('SerializableEnumRegistry', () => {
   it('correctly maps', () => {
     expect(
         utils.SerializableEnumRegistry.lookup('data_format', 'channels_first'))
-        .toEqual(DataFormat.CHANNEL_FIRST);
+        .toEqual('channelFirst');
   });
 });
 

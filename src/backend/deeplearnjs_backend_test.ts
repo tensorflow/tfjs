@@ -1895,19 +1895,19 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
   // channels, and several reasonable data formats.
 
   const outChannelsArray = [1, 2];
-  const dataFormats =
-      [undefined, DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
-  const paddingModes = [undefined, PaddingMode.SAME, PaddingMode.VALID];
+  const dataFormats:DataFormat[] =
+      [undefined, 'channelFirst', 'channelLast'];
+  const paddingModes:PaddingMode[] = [undefined, 'same', 'valid'];
   const stride = 1;
 
   for (const outChannels of outChannelsArray) {
     for (const dataFormat of dataFormats) {
       for (const paddingMode of paddingModes) {
         const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
-            `${PaddingMode[paddingMode]}, ${DataFormat[dataFormat]}`;
+            `${paddingMode}, ${dataFormat}`;
         it(testTitle, () => {
           let x: Tensor = tensor3d(xLength4Data, [1, 4, 1]);
-          if (dataFormat === DataFormat.CHANNEL_FIRST) {
+          if (dataFormat === 'channelFirst') {
             x = K.transpose(x, [0, 2, 1]);  // NWC -> NCW.
           }
 
@@ -1926,7 +1926,7 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
 
           let yExpectedShape: [number, number, number];
           let yExpectedData: number[];
-          if (paddingMode === PaddingMode.VALID || paddingMode === undefined) {
+          if (paddingMode === 'valid' || paddingMode === undefined) {
             if (outChannels === 1) {
               yExpectedShape = [1, 3, 1];
               yExpectedData = [-7.8, -17.8, -37.8];
@@ -1934,7 +1934,7 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
               yExpectedShape = [1, 3, 2];
               yExpectedData = [-7.8, -6.8, -17.8, -16.8, -37.8, -36.8];
             }
-          } else if (paddingMode === PaddingMode.SAME) {
+          } else if (paddingMode === 'same') {
             if (outChannels === 1) {
               yExpectedShape = [1, 4, 1];
               yExpectedData = [-7.8, -17.8, -37.8, 82.2];
@@ -1957,10 +1957,10 @@ describeMathCPUAndGPU('conv1d', () => {
 
   const stride = 2;
   const outChannels = 2;
-  const dataFormat = DataFormat.CHANNEL_LAST;
-  const paddingMode = PaddingMode.VALID;
+  const dataFormat = 'channelLast';
+  const paddingMode = 'valid';
   const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
-      `${PaddingMode[paddingMode]}, ${DataFormat[dataFormat]}`;
+      `${paddingMode}, ${dataFormat}`;
   it(testTitle, () => {
     const x = tensor3d(xLength4Data, [1, 4, 1]);
     let kernelData: number[] = [];
@@ -1981,24 +1981,24 @@ describeMathCPUAndGPU('conv2d', () => {
   ]]];
   const kernel2by2Data = [1, 0, 0, -1];
 
-  const dataFormats =
-      [undefined, DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
-  const paddingModes = [undefined, PaddingMode.SAME, PaddingMode.VALID];
+  const dataFormats:DataFormat[] =
+      [undefined, 'channelFirst', 'channelLast'];
+  const paddingModes:PaddingMode[] = [undefined, 'same', 'valid'];
   const stridesArray = [1, 2];
 
   for (const dataFormat of dataFormats) {
     for (const paddingMode of paddingModes) {
       for (const stride of stridesArray) {
-        const testTitle = `stride=${stride}, ${PaddingMode[paddingMode]}, ` +
-            `${DataFormat[dataFormat]}`;
+        const testTitle = `stride=${stride}, ${paddingMode}, ` +
+            `${dataFormat}`;
         it(testTitle, () => {
           let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
-          if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+          if (dataFormat !== 'channelFirst') {
             x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
           }
           const kernel = tensor4d(kernel2by2Data, [2, 2, 1, 1]);
           const y = K.conv2d(
-              x, kernel, [stride, stride], PaddingMode.VALID, dataFormat);
+              x, kernel, [stride, stride], 'valid', dataFormat);
 
           let yExpected: Tensor;
           if (stride === 1) {
@@ -2008,7 +2008,7 @@ describeMathCPUAndGPU('conv2d', () => {
           } else if (stride === 2) {
             yExpected = tensor4d([[[[-30, -30], [30, 30]]]], [1, 1, 2, 2]);
           }
-          if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+          if (dataFormat !== 'channelFirst') {
             yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
           }
           expectTensorsClose(y, yExpected);
@@ -2027,9 +2027,9 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
   const biasScalarData = [2.2];
 
   const outChannelsArray = [2, 3];
-  const dataFormats =
-      [undefined, DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
-  const paddingModes = [undefined, PaddingMode.SAME, PaddingMode.VALID];
+  const dataFormats:DataFormat[] =
+      [undefined, 'channelFirst', 'channelLast'];
+  const paddingModes:PaddingMode[] = [undefined, 'same', 'valid'];
   const stridesArray = [1, 2];
 
   for (const outChannels of outChannelsArray) {
@@ -2037,10 +2037,10 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
       for (const paddingMode of paddingModes) {
         for (const stride of stridesArray) {
           const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
-              `${PaddingMode[paddingMode]}, ${DataFormat[dataFormat]}`;
+              `${paddingMode}, ${dataFormat}`;
           it(testTitle, () => {
             let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
-            if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+            if (dataFormat !== 'channelFirst') {
               x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
             }
 
@@ -2055,7 +2055,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
             const bias = tensor1d(biasData);
 
             const y = K.conv2dWithBias(
-                x, kernel, bias, [stride, stride], PaddingMode.VALID,
+                x, kernel, bias, [stride, stride], 'valid',
                 dataFormat);
 
             let yExpectedShape: [number, number, number, number];
@@ -2076,7 +2076,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
               yExpectedData = yExpectedData.concat(yExpectedDataPerChannel);
             }
             let yExpected: Tensor = tensor4d(yExpectedData, yExpectedShape);
-            if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+            if (dataFormat !== 'channelFirst') {
               yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
             }
             expectTensorsClose(y, yExpected);
@@ -2093,9 +2093,9 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
     [-20, -40, -60, -80]
   ]]];
 
-  const dataFormats =
-      [undefined, DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
-  const paddingModes = [undefined, PaddingMode.SAME, PaddingMode.VALID];
+  const dataFormats:DataFormat[] =
+      [undefined, 'channelFirst', 'channelLast'];
+  const paddingModes:PaddingMode[] = [undefined, 'same', 'valid'];
   const stridesArray = [1, 2];
   const depthMultipliers = [1, 2];
 
@@ -2103,11 +2103,11 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
     for (const paddingMode of paddingModes) {
       for (const stride of stridesArray) {
         for (const depthMultiplier of depthMultipliers) {
-          const testTitle = `stride=${stride}, ${PaddingMode[paddingMode]}, ` +
-              `${DataFormat[dataFormat]}, depthMultiplier=${depthMultiplier}`;
+          const testTitle = `stride=${stride}, ${paddingMode}, ` +
+              `${dataFormat}, depthMultiplier=${depthMultiplier}`;
           it(testTitle, () => {
             let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
-            if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+            if (dataFormat !== 'channelFirst') {
               x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
             }
 
@@ -2120,7 +2120,7 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
               kernel = tensor4d([1, -1, 0, 0, 0, 0, -1, 1], [2, 2, 1, 2]);
             }
             const y = K.depthwiseConv2d(
-                x, kernel, [stride, stride], PaddingMode.VALID, dataFormat);
+                x, kernel, [stride, stride], 'valid', dataFormat);
 
             let yExpected: Tensor;
             if (stride === 1) {
@@ -2145,7 +2145,7 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
                     [1, 2, 2, 2]);
               }
             }
-            if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+            if (dataFormat !== 'channelFirst') {
               yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
             }
             expectTensorsClose(y, yExpected);
@@ -2173,22 +2173,22 @@ describeMathCPUAndGPU('pool2d', () => {
     [0, -2, -4, -6, -8]
   ]]];
 
-  const poolModes = [undefined, PoolMode.MAX, PoolMode.AVG];
-  const dataFormats =
-      [undefined, DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
+  const poolModes: PoolMode[] = [undefined, 'max', 'avg'];
+  const dataFormats:DataFormat[] =
+      [undefined, 'channelFirst', 'channelLast'];
   const stridesArray = [1, 2];
   for (const poolMode of poolModes) {
     for (const dataFormat of dataFormats) {
       for (const stride of stridesArray) {
-        const testTitle = `4x4, ${stride}, same, ${DataFormat[dataFormat]}, ` +
-            `${PoolMode[poolMode]}`;
+        const testTitle = `4x4, ${stride}, same, ${dataFormat}, ` +
+            `${poolMode}`;
         it(testTitle, () => {
           let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
-          if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+          if (dataFormat !== 'channelFirst') {
             x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
           }
           let yExpected: Tensor;
-          if (poolMode === PoolMode.AVG) {
+          if (poolMode === 'avg') {
             if (stride === 1) {
               yExpected = tensor4d(
                   [[[
@@ -2211,11 +2211,11 @@ describeMathCPUAndGPU('pool2d', () => {
               yExpected = tensor4d([[[[40, 80], [-10, -50]]]], [1, 1, 2, 2]);
             }
           }
-          if (dataFormat !== DataFormat.CHANNEL_FIRST) {
+          if (dataFormat !== 'channelFirst') {
             yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
           }
           const y = K.pool2d(
-              x, [2, 2], [stride, stride], PaddingMode.SAME, dataFormat,
+              x, [2, 2], [stride, stride], 'same', dataFormat,
               poolMode);
           expectTensorsClose(y, yExpected);
         });
@@ -2224,10 +2224,10 @@ describeMathCPUAndGPU('pool2d', () => {
   }
 
   for (const poolMode of poolModes) {
-    it(`5x5, 2, same, CHANNEL_FIRST, ${PoolMode[poolMode]}`, () => {
+    it(`5x5, 2, same, CHANNEL_FIRST, ${poolMode}`, () => {
       const x5by5 = tensor4d(x5by5Data, [1, 1, 5, 5]);
       let yExpected = tensor4d(x4by4Data, [1, 1, 4, 4]);
-      if (poolMode === PoolMode.AVG) {
+      if (poolMode === 'avg') {
         yExpected = tensor4d(
             [[[[0.75, 4.5, 3.75], [-0.25, -2, -1.75], [-0.5, -2.5, -2]]]],
             [1, 1, 3, 3]);
@@ -2236,24 +2236,24 @@ describeMathCPUAndGPU('pool2d', () => {
             tensor4d([[[[2, 6, 8], [0, 0, 0], [0, -4, -8]]]], [1, 1, 3, 3]);
       }
       const y = K.pool2d(
-          x5by5, [2, 2], [2, 2], PaddingMode.SAME, DataFormat.CHANNEL_FIRST,
+          x5by5, [2, 2], [2, 2], 'same', 'channelFirst',
           poolMode);
       expectTensorsClose(y, yExpected);
     });
   }
 
   for (const poolMode of poolModes) {
-    it(`5x5, 2, valid, CHANNEL_LAST, ${PoolMode[poolMode]}`, () => {
+    it(`5x5, 2, valid, CHANNEL_LAST, ${poolMode}`, () => {
       const x5by5 =
           K.transpose(tensor4d(x5by5Data, [1, 1, 5, 5]), [0, 2, 3, 1]);
       let yExpected: Tensor4D;
-      if (poolMode === PoolMode.AVG) {
+      if (poolMode === 'avg') {
         yExpected = tensor4d([[[[0.75, 4.5], [-0.25, -2]]]], [1, 1, 2, 2]);
       } else {
         yExpected = tensor4d([[[[2, 6], [0, 0]]]], [1, 1, 2, 2]);
       }
       const y = K.pool2d(
-          x5by5, [2, 2], [2, 2], PaddingMode.VALID, DataFormat.CHANNEL_LAST,
+          x5by5, [2, 2], [2, 2], 'valid', 'channelLast',
           poolMode);
       expectTensorsClose(y, K.transpose(yExpected, [0, 2, 3, 1]));
     });

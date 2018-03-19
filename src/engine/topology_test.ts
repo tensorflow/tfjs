@@ -1027,7 +1027,7 @@ describeMathCPUAndGPU('Container.fromConfig', () => {
               className: 'VarianceScaling',
               config: {
                 distribution: 'uniform',
-                mode: 'fan_avg',
+                mode: 'fanAvg',
                 scale: 1.0,
                 seed: null as number
               }

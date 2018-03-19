@@ -26,8 +26,8 @@ import {Conv1D, Conv2D} from './convolutional';
 
 describeMathCPU('Conv2D Layers: Symbolic', () => {
   const filtersArray = [1, 64];
-  const paddingModes = [undefined, PaddingMode.VALID, PaddingMode.SAME];
-  const dataFormats = [DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
+  const paddingModes: PaddingMode[] = [undefined, 'valid', 'same'];
+  const dataFormats: DataFormat[] = ['channelFirst', 'channelLast'];
   const kernelSizes = [[2, 2], [3, 4]];
   // In this test suite, `undefined` means strides is the same as kernelSize.
   const stridesArray = [undefined, 1];
@@ -41,9 +41,9 @@ describeMathCPU('Conv2D Layers: Symbolic', () => {
             const testTitle = `filters=${filters}, kernelSize=${
                                   JSON.stringify(kernelSize)}, ` +
                 `strides=${JSON.stringify(strides)}, ` +
-                `${DataFormat[dataFormat]}, ${PaddingMode[padding]}`;
+                `${dataFormat}, ${padding}`;
             it(testTitle, () => {
-              const inputShape = dataFormat === DataFormat.CHANNEL_FIRST ?
+              const inputShape = dataFormat === 'channelFirst' ?
                   [2, 16, 11, 9] :
                   [2, 11, 9, 16];
               const symbolicInput =
@@ -63,25 +63,25 @@ describeMathCPU('Conv2D Layers: Symbolic', () => {
               let outputCols: number;
               if (stride === undefined) {  // Same strides as kernelSize.
                 outputRows = kernelSize[0] === 2 ? 5 : 3;
-                if (padding === PaddingMode.SAME) {
+                if (padding === 'same') {
                   outputRows++;
                 }
                 outputCols = kernelSize[1] === 2 ? 4 : 2;
-                if (padding === PaddingMode.SAME) {
+                if (padding === 'same') {
                   outputCols++;
                 }
               } else {  // strides: 1.
                 outputRows = kernelSize[0] === 2 ? 10 : 9;
-                if (padding === PaddingMode.SAME) {
+                if (padding === 'same') {
                   outputRows += kernelSize[0] - 1;
                 }
                 outputCols = kernelSize[1] === 2 ? 8 : 6;
-                if (padding === PaddingMode.SAME) {
+                if (padding === 'same') {
                   outputCols += kernelSize[1] - 1;
                 }
               }
               let expectedShape: [number, number, number, number];
-              if (dataFormat === DataFormat.CHANNEL_FIRST) {
+              if (dataFormat === 'channelFirst') {
                 expectedShape = [2, filters, outputRows, outputCols];
               } else {
                 expectedShape = [2, outputRows, outputCols, filters];
@@ -119,7 +119,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
             filters: 1,
             kernelSize: [2, 2],
             strides: [2, 2],
-            dataFormat: DataFormat.CHANNEL_FIRST,
+            dataFormat: 'channelFirst',
             useBias,
             kernelInitializer: 'Ones',
             biasInitializer,
@@ -149,7 +149,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
       filters: 1,
       kernelSize: [2, 2],
       strides: [2, 2],
-      dataFormat: DataFormat.CHANNEL_LAST,
+      dataFormat: 'channelLast',
       useBias: false,
       kernelInitializer: 'Ones',
       activation: 'linear',
@@ -168,7 +168,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
         filters: 1,
         kernelSize: [2, 2],
         strides: [2, 2],
-        dataFormat: DataFormat.CHANNEL_FIRST,
+        dataFormat: 'channelFirst',
         useBias: false,
         kernelInitializer: 'Ones',
         dilationRate: explicitDefaultDilation,
@@ -183,14 +183,13 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
 
 describeMathCPU('Conv1D Layers: Symbolic', () => {
   const filtersArray = [1, 4];
-  const paddingModes = [undefined, PaddingMode.VALID, PaddingMode.SAME];
+  const paddingModes: PaddingMode[] = [undefined, 'valid', 'same'];
   const stridesArray = [undefined, 1];
 
   for (const filters of filtersArray) {
     for (const padding of paddingModes) {
       for (const strides of stridesArray) {
-        const testTitle =
-            `filters=${filters}, padding=${PaddingMode[padding]}, ` +
+        const testTitle = `filters=${filters}, padding=${padding}, ` +
             `strides=${strides}`;
         it(testTitle, () => {
           const inputShape = [2, 8, 3];
@@ -202,13 +201,13 @@ describeMathCPU('Conv1D Layers: Symbolic', () => {
             kernelSize: 2,
             strides,
             padding,
-            dataFormat: DataFormat.CHANNEL_LAST,
+            dataFormat: 'channelLast',
           });
 
           const output = conv1dLayer.apply(symbolicInput) as SymbolicTensor;
 
           const expectedShape = [2, 7, filters];
-          if (padding === PaddingMode.SAME) {
+          if (padding === 'same') {
             expectedShape[1] = 8;
           }
           expect(output.shape).toEqual(expectedShape);
@@ -237,7 +236,7 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
           filters: 1,
           kernelSize: 2,
           strides,
-          dataFormat: DataFormat.CHANNEL_LAST,
+          dataFormat: 'channelLast',
           useBias: true,
           kernelInitializer: 'Ones',
           biasInitializer: 'Ones',

@@ -26,33 +26,32 @@ import {DepthwiseConv2D} from './convolutional_depthwise';
 // tslint:enable:max-line-length
 
 describeMathCPU('DepthwiseConv2D-Symbolic', () => {
-  const dataFormats = [DataFormat.CHANNEL_FIRST, DataFormat.CHANNEL_LAST];
+  const dataFormats: DataFormat[] = ['channelFirst', 'channelLast'];
   const kernelSizes: [number|[number, number]] = [2, [2, 2]];
   const depthMultipliers = [1, 3];
-  const paddingModes = [PaddingMode.VALID, PaddingMode.SAME];
+  const paddingModes: PaddingMode[] = ['valid', 'same'];
 
   for (const dataFormat of dataFormats) {
     for (const kernelSize of kernelSizes) {
       for (const depthMultiplier of depthMultipliers) {
         for (const padding of paddingModes) {
-          const testTitle = `dataFormat=${DataFormat[dataFormat]}, ` +
+          const testTitle = `dataFormat=${dataFormat}, ` +
               `kernelSize=${JSON.stringify(kernelSize)}, ` +
               `depthMultiplier=${depthMultiplier}, ` +
-              `paddingMode=${PaddingMode[padding]}`;
+              `paddingMode=${padding}`;
           it(testTitle, () => {
             const depthwiseConvLayer = new DepthwiseConv2D(
                 {dataFormat, kernelSize, depthMultiplier, padding});
-            const inputShape = dataFormat === DataFormat.CHANNEL_FIRST ?
-                [1, 8, 10, 10] :
-                [1, 10, 10, 8];
+            const inputShape =
+                dataFormat === 'channelFirst' ? [1, 8, 10, 10] : [1, 10, 10, 8];
             const symbolicInput =
                 new SymbolicTensor(DType.float32, inputShape, null, [], null);
             const symbolicOutput =
                 depthwiseConvLayer.apply(symbolicInput) as SymbolicTensor;
 
-            const outputImageSize = padding === PaddingMode.VALID ? 9 : 10;
+            const outputImageSize = padding === 'valid' ? 9 : 10;
             let expectedShape: [number, number, number, number];
-            if (dataFormat === DataFormat.CHANNEL_FIRST) {
+            if (dataFormat === 'channelFirst') {
               expectedShape =
                   [1, 8 * depthMultiplier, outputImageSize, outputImageSize];
             } else {
@@ -83,14 +82,13 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
   ]]];
 
   const depthMultipliers = [1, 2];
-  const useBiases = [false, true];
+  const useBiases = [false];
   const biasInitializers = ['Zeros', 'Ones'];
 
   for (const depthMultiplier of depthMultipliers) {
     for (const useBias of useBiases) {
       for (const biasInitializer of biasInitializers) {
-        const testTitle =
-            `CHANNEL_FIRST, depthMultiplier=${depthMultiplier}, ` +
+        const testTitle = `channelFirst, depthMultiplier=${depthMultiplier}, ` +
             `useBias=${useBias}, biasInitializer=${biasInitializer}, ` +
             `activation=relu`;
         it(testTitle, () => {
@@ -99,7 +97,7 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
             kernelSize: [2, 2],
             depthMultiplier,
             strides: [2, 2],
-            dataFormat: DataFormat.CHANNEL_FIRST,
+            dataFormat: 'channelFirst',
             useBias,
             depthwiseInitializer: 'Ones',
             biasInitializer,
@@ -129,14 +127,14 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
     }
   }
 
-  it('CHANNEL_LAST', () => {
-    // Convert input to CHANNEL_LAST.
+  it('channelLast', () => {
+    // Convert input to channelLast.
     const x = K.transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
     const conv2dLayer = new DepthwiseConv2D({
       depthMultiplier: 2,
       kernelSize: [2, 2],
       strides: [2, 2],
-      dataFormat: DataFormat.CHANNEL_LAST,
+      dataFormat: 'channelLast',
       useBias: false,
       depthwiseInitializer: 'Ones',
       activation: 'linear',

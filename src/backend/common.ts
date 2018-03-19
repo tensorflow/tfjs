@@ -31,5 +31,5 @@ export function setEpsilon(e: number) {
  * Returns the default image data format convention.
  */
 export function imageDataFormat(): DataFormat {
-  return DataFormat.CHANNEL_LAST;
+  return 'channelLast';
 }
