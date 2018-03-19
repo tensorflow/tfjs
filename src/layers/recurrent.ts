@@ -645,10 +645,11 @@ export class RNN extends Layer {
 generic_utils.ClassNameMap.register('RNN', RNN);
 
 /**
- * Porting Note: This is a common parent class for RNN cells. There is no
- *   equivalent of this in PyKeras. Having a common parent class forgoes the
- *   need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
+ * An RNNCell layer.
  */
+// Porting Note: This is a common parent class for RNN cells. There is no
+// equivalent of this in PyKeras. Having a common parent class forgoes the
+//  need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
 @doc({heading: 'Layers', subheading: 'Classes'})
 export abstract class RNNCell extends Layer {
   /**
@@ -901,15 +902,16 @@ generic_utils.ClassNameMap.register('SimpleRNNCell', SimpleRNNCell);
 
 export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
   /**
-   * units: Positive integer, dimensionality of the output space.
+   * Positive integer, dimensionality of the output space.
    */
   units: number;
 
   /**
-   * Activation function to use (see [activations](../activations.md)).
-   * Default: hyperbolic tangent (`tanh`).
-   * If you pass `null`, no activation will be applied
-   * (i.e., "linear" activation: `a(x) = x`).
+   * Activation function to use.
+   *
+   * Defaults to  hyperbolic tangent (`tanh`)
+   *
+   * If you pass `null`, no activation will be applied.
    */
   activation?: ActivationIdentifier;
 
@@ -920,66 +922,59 @@ export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
 
   /**
    * Initializer for the `kernel` weights matrix, used for the linear
-   * transformation of the inputs (see [initializers](../initializers.md)).
+   * transformation of the inputs.
    */
   kernelInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the `recurrentKernel` weights matrix, used for
-   * linear transformation of the recurrent state
-   * (see [initializers](../initializers.md)).
+   * linear transformation of the recurrent state.
    */
   recurrentInitializer?: InitializerIdentifier|Initializer;
 
   /**
-   * Initializer for the bias vector (see [initializers](../initializers.md)).
+   * Initializer for the bias vector.
    */
   biasInitializer?: InitializerIdentifier|Initializer;
 
   /**
-   * Regularizer function applied to the `kernel` weights matrix
-   * (see [regularizer](../regularizers.md)).
+   * Regularizer function applied to the kernel weights matrix.
    */
   kernelRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
-   * Regularizer function applied to the `recurrent_kernel` weights matrix.
-   * (see [regularizer](../regularizers.md))
+   * Regularizer function applied to the recurrentKernel weights matrix.
    */
   recurrentRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
    * Regularizer function applied to the bias vector.
-   * (see [regularizer](../regularizers.md))
    */
   biasRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
-   * Constraint function applied to the `kernel` weights matrix.
-   * (see [constraints](../constraints.md)).
+   * Constraint function applied to the kernel weights matrix.
    */
   kernelConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Constraint function applied to the `recurrentKernel` weights matrix.
-   * (see [constraints](../constraints.md)).
+   * Constraint function applied to the recurrentKernel weights matrix.
    */
   recurrentConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Constraintfunction applied to the bias vector.
-   * (see [constraints](../constraints.md)).
+   * Constraint function applied to the bias vector.
    */
   biasConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Float number between 0 and 1. Fraction of the units to drop for the linear
+   * Number between 0 and 1. Fraction of the units to drop for the linear
    * transformation of the inputs.
    */
   dropout?: number;
 
   /**
-   * Float number between 0 and 1. Fraction of the units to drop for the linear
+   * Number between 0 and 1. Fraction of the units to drop for the linear
    * transformation of the recurrent state.
    */
   recurrentDropout?: number;
@@ -1093,20 +1088,22 @@ generic_utils.ClassNameMap.register('SimpleRNN', SimpleRNN);
 export interface GRUCellLayerConfig extends SimpleRNNCellLayerConfig {
   /**
    * Activation function to use for the recurrent step.
-   * (see [activations](../activations.md)).
-   * Default: hard sigmoid (`hardSigomid`).
-   * If you pass `null`, no activation is applied
-   * (ie. "linear" activation: `a(x) = x`).
+   *
+   * Defaults to hard sigmoid (`hardSigomid`).
+   *
+   * If `null`, no activation is applied.
    */
   recurrentActivation?: string;
 
   /**
    * Implementation mode, either 1 or 2.
-   *   Mode 1 will structure its operations as a larger number of
-   *   smaller dot products and additions, whereas mode 2 will
-   *   batch them into fewer, larger operations. These modes will
-   *   have different performance profiles on different hardware and
-   *   for different applications.
+   *
+   * Mode 1 will structure its operations as a larger number of
+   *   smaller dot products and additions.
+   *
+   * Mode 2 will batch them into fewer, larger operations. These modes will
+   * have different performance profiles on different hardware and
+   * for different applications.
    */
   implementation?: number;
 }
@@ -1345,11 +1342,13 @@ generic_utils.ClassNameMap.register('GRUCell', GRUCell);
 export interface GRULayerConfig extends SimpleRNNLayerConfig {
   /**
    * Implementation mode, either 1 or 2.
-   *   Mode 1 will structure its operations as a larger number of
-   *   smaller dot products and additions, whereas mode 2 will
-   *   batch them into fewer, larger operations. These modes will
-   *   have different performance profiles on different hardware and
-   *   for different applications.
+   *
+   * Mode 1 will structure its operations as a larger number of
+   * smaller dot products and additions.
+   *
+   * Mode 2 will batch them into fewer, larger operations. These modes will
+   * have different performance profiles on different hardware and
+   * for different applications.
    */
   implementation?: number;
 }
@@ -1478,10 +1477,10 @@ generic_utils.ClassNameMap.register('GRU', GRU);
 export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
   /**
    * Activation function to use for the recurrent step.
-   * (see [activations](../activations.md)).
-   * Default: hard sigmoid (`hardSigomid`).
-   * If you pass `null`, no activation is applied
-   * (ie. "linear" activation: `a(x) = x`).
+   *
+   * Defaults to hard sigmoid (`hardSigomid`).
+   *
+   * If `null`, no activation is applied.
    */
   recurrentActivation?: ActivationIdentifier;
 
@@ -1496,17 +1495,19 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
 
   /**
    * Implementation mode, either 1 or 2.
-   *   Mode 1 will structure its operations as a larger number of
-   *   smaller dot products and additions, whereas mode 2 will
-   *   batch them into fewer, larger operations. These modes will
-   *   have different performance profiles on different hardware and
-   *   for different applications.
+   *
+   * Mode 1 will structure its operations as a larger number of
+   *   smaller dot products and additions.
+   *
+   * Mode 2 will batch them into fewer, larger operations. These modes will
+   * have different performance profiles on different hardware and
+   * for different applications.
    */
   implementation?: number;
 }
 
 /**
- * Cell class for the LSTM layer.
+ * LSTMCell layer.
  */
 export class LSTMCell extends RNNCell {
   readonly units: number;

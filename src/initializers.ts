@@ -508,6 +508,7 @@ ClassNameMap.register('LeCunNormal', LeCunNormal);
 // TODO(cais): Implement Orthogonal once the deeplearn.js feature is fulfilled:
 //   https://github.com/PAIR-code/deeplearnjs/issues/245
 
+/** @docinline */
 export type InitializerIdentifier = 'Constant'|'GlorotNormal'|'GlorotUniform'|
     'HeNormal'|'Identity'|'LeCunNormal'|'Ones'|'RandomNormal'|'RandomUniform'|
     'TruncatedNormal'|'VarianceScaling'|'Zeros'|string;

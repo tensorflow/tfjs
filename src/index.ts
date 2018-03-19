@@ -17,9 +17,8 @@ import * as backend from './backend/deeplearnjs_backend';
 import {ConstraintExports, InitializerExports, LayerExports, ModelExports, RegularizerExports} from './exports';
 
 export {Callback, CallbackList, CustomCallback, CustomCallbackConfig, Logs} from './callbacks';
-export {Layer} from './engine/topology';
 export {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig, ModelPredictConfig} from './engine/training';
-export {GRUCellLayerConfig, GRULayerConfig, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
+export {GRUCellLayerConfig, GRULayerConfig, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNLayerConfig, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig} from './layers/recurrent';
 export {ModelAndWeightsConfig, Sequential, SequentialConfig} from './models';
 export {SymbolicTensor} from './types';
 export {version as version_layers} from './version';

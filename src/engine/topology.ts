@@ -277,34 +277,38 @@ export class Node {
 export interface LayerConfig {
   /**
    * If defined, will be used to create an input layer to insert before this
-   * layer. If both inputShape and batchInputShape are defined, batchInputShape
-   * will be used. Only applicable to input layers.
+   * layer. If both `inputShape` and `batchInputShape` are defined,
+   * `batchInputShape` will be used. This argument is only applicable to input
+   * layers (the first layer of a model).
    */
   inputShape?: Shape;
   /**
    * If defined, will be used to create an input layer to insert before this
-   * layer. If both inputShape and batchInputShape are defined, batchInputShape
-   * will be used. Only applicable to input layers.
+   * layer. If both `inputShape` and `batchInputShape` are defined,
+   * `batchInputShape` will be used. This argument is only applicable to input
+   * layers (the first layer of a model).
    */
   batchInputShape?: Shape;
   /**
-   * If inputShape is specified, but not batchInputShape, batchSize is used
-   * to construct the batchInputShape: [batchSize].concat(inputShape)
+   * If `inputShape` is specified and `batchInputShape` is *not* specifiedd,
+   * `batchSize` is used to construct the `batchInputShape`: `[batchSize,
+   * ...inputShape]`
    */
   batchSize?: number;
   /**
-   * DType for this layer. If not specified, defaults to K.floatx(). Only
-   * applicable to input layers.
+   * The data-type for this layer. Defaults to 'float32'.
+   * This argument is only applicable to input layers (the first layer of a
+   * model).
    */
   dtype?: DType;
-  /** Optional name for this layer. */
+  /** Name for this layer. */
   name?: string;
-  /** Whether this layer is trainable. If not specified, defaults to true. */
+  /** Whether this layer is trainable. Defaults to true. */
   trainable?: boolean;
-  // TODO(cais): Document this.
+  /** Whether the weights of this layer are updatable by `fit`. */
   updatable?: boolean;
   /**
-   * If defined, the layer's initial weight values will be set to this argument.
+   * Initial weight values of the layer.
    */
   weights?: Tensor[];
   /** Legacy support. Do not use for new code. */
@@ -318,9 +322,13 @@ export type CallHook = () => void;
 let _nextLayerID = 0;
 
 /**
- * Abstract base layer class.
+ * A layer is a grouping of operations and weights that can be composed to
+ * create a `Model`.
+ *
+ * Layers are constructed by using the functions under the
+ * [tf.layers](#Layers-Core) namespace.
  */
-@doc({heading: 'Layers', subheading: 'Classes'})
+@doc({heading: 'Layers', subheading: 'Classes', namespace: 'layers'})
 export class Layer {
   /** Name for this layer. Must be unique within a model. */
   name: string;

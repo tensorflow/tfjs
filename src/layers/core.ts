@@ -31,16 +31,16 @@ import * as math_utils from '../utils/math_utils';
 // tslint:enable:max-line-length
 
 export interface DropoutLayerConfig extends LayerConfig {
-  /** float between 0 and 1. Fraction of the input units to drop. */
+  /** Float between 0 and 1. Fraction of the input units to drop. */
   rate: number;
 
   /**
-   * Integer array representing the shape of the
-   * binary dropout mask that will be multiplied with the input.
-   * For instance, if your inputs have shape
-   * `(batchSize, timesteps, features)` and
-   * you want the dropout mask to be the same for all timesteps,
-   * you can use `noise_shape=(batch_size, 1, features)`.
+   * Integer array representing the shape of the binary dropout mask that will
+   * be multiplied with the input.
+   *
+   * For instance, if your inputs have shape `(batchSize, timesteps, features)`
+   * and you want the dropout mask to be the same for all timesteps, you can use
+   * `noise_shape=(batch_size, 1, features)`.
    */
   noiseShape?: number[];
 
@@ -49,15 +49,12 @@ export interface DropoutLayerConfig extends LayerConfig {
 }
 
 /**
- * Applies Dropout to the input.
+ * Applies
+ * [dropout](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf) to
+ * the input.
  *
- * Dropout consists in randomly setting
- * a fraction `rate` of input units to 0 at each update during training time,
- * which helps prevent overfitting.
- *
- * References
- * - [Dropout: A Simple Way to Prevent Neural Networks from
- * Overfitting](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
+ * Dropout consists in randomly setting a fraction `rate` of input units to 0 at
+ * each update during training time, which helps prevent overfitting.
  */
 export class Dropout extends Layer {
   private readonly rate: number;
@@ -131,74 +128,82 @@ export interface DenseLayerConfig extends LayerConfig {
   /** Positive integer, dimensionality of the output space. */
   units: number;
   /**
-   * Activation function to use (see [activations](../activations.md)).
-   * If you don't specify anything, no activation is applied (ie. "linear"
-   * activation: `a(x) = x`).
+   * Activation function to use.
+   *
+   * If unspecified, no activation is applied.
    */
   activation?: ActivationIdentifier;
-  /** Whether the layer uses a bias vector. */
+  /** Whether to apply a bias. */
   useBias?: boolean;
   /**
-   * Initializer for the `kernel` weights matrix (see
-   * [initializers](../initializers.md)).
+   * Initializer for the dense kernel weights matrix.
    */
   kernelInitializer?: InitializerIdentifier|Initializer;
   /**
-   * Initializer for the bias vector (see [initializers](../initializers.md)).
+   * Initializer for the bias vector.
    */
   biasInitializer?: InitializerIdentifier|Initializer;
   /**
-   * If inputShape is not specified, and inputDim is, then the expected
-   * inputShape is [inputDim].
+   * If specified, defines inputShape as `[inputDim]`.
    */
   inputDim?: number;
 
   /**
-   * kernelConstraint: Constraint for the kernel weights
+   * Constraint for the kernel weights.
    */
   kernelConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * biasConstraint: Constraint for the bias vector
+   * Constraint for the bias vector.
    */
   biasConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * kernelRegularizer:  Regularizer function applied to the `kernel` weights
-   * matrix
+   * Regularizer function applied to the dense kernel weights matrix.
    */
   kernelRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
-   * biasRegularizer:  Regularizer function applied to the bias vector
+   * Regularizer function applied to the bias vector.
    */
   biasRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
-   * activityRegularizer:  Regularizer function applied to the activation
+   * Regularizer function applied to the activation.
    */
   activityRegularizer?: RegularizerIdentifier|Regularizer;
 }
 
 /**
- * Just your regular densely-connected NN layer.
- *   `Dense` implements the operation:
- *   `output = activation(dot(input, kernel) + bias)`
- *   where `activation` is the element-wise activation function
- *   passed as the `activation` argument, `kernel` is a weights matrix
- *   created by the layer, and `bias` is a bias vector created by the layer
- *   (only applicable if `useBias` is `true`).
- *   Note: if the input to the layer has a rank greater than 2, then
- *   it is flattened prior to the initial dot product with `kernel`.
+ * Creates a dense (fully connected) layer.
  *
- * Input shape
- *   nD tensor with shape: `(batchSize, ..., inputDim)`.
+ * This layer implements the operation:
+ *   `output = activation(dot(input, kernel) + bias)`
+ *
+ * `activation` is the element-wise activation function
+ *   passed as the `activation` argument.
+ *
+ * `kernel` is a weights matrix created by the layer.
+ *
+ * `bias` is a bias vector created by the layer (only applicable if `useBias`
+ * is `true`).
+ *
+ * **Input shape:**
+ *
+ *   nD `Tensor` with shape: `(batchSize, ..., inputDim)`.
+ *
  *   The most common situation would be
  *   a 2D input with shape `(batchSize, inputDim)`.
- * Output shape
+ *
+ * **Output shape:**
+ *
  *   nD tensor with shape: `(batchSize, ..., units)`.
+ *
  *   For instance, for a 2D input with shape `(batchSize, inputDim)`,
  *   the output would have shape `(batchSize, units)`.
+ *
+ * Note: if the input to the layer has a rank greater than 2, then it is
+ * flattened prior to the initial dot product with the kernel.
  */
 export class Dense extends Layer {
   private units: number;
@@ -311,8 +316,8 @@ generic_utils.ClassNameMap.register('Dense', Dense);
 /**
  * Flattens the input. Does not affect the batch size.
  *
- * A `Flatten` layer flattens each batch sample in its inputs to 1D (hence the
- * output is 2D total).
+ * A `Flatten` layer flattens each batch in its inputs to 1D (making the output
+ * 2D).
  *
  * For example:
  *
@@ -355,9 +360,9 @@ generic_utils.ClassNameMap.register('Flatten', Flatten);
 
 export interface ActivationLayerConfig extends LayerConfig {
   /**
-   * Name of activation function to use. See [activations](../activations.ts).
+   * Name of the activation function to use.
    */
-  activation: string;
+  activation: ActivationIdentifier;
 }
 
 /**
@@ -388,7 +393,7 @@ export interface ReshapeLayerConfig extends LayerConfig {
 
 export interface RepeatVectorLayerConfig extends LayerConfig {
   /**
-   * Integer, repetition factor.
+   * The integer number of times to repeat the input.
    */
   n: number;
 }

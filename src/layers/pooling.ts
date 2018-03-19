@@ -25,12 +25,13 @@ import * as generic_utils from '../utils/generic_utils';
 
 export interface Pooling1DLayerConfig extends LayerConfig {
   /**
-   * Integer size of the window to pool over.
+   * Size of the window to pool over, should be an integer.
    */
   poolSize?: number;
   /**
    * Period at which to sample the pooled values.
-   * If None, it will default to `poolSize`.
+   *
+   * If `null`, defaults to `poolSize`.
    */
   strides?: number;
   /** PaddingMode.VALID or PaddingMode.SAME */
@@ -121,9 +122,9 @@ generic_utils.ClassNameMap.register('MaxPooling1D', MaxPooling1D);
 /**
  * Average pooling operation for spatial data.
  *
- *  Input shape:  `[batchSize, inLength, channels]`
+ * Input shape: `[batchSize, inLength, channels]`
  *
- *  Output shape: `[batchSize, pooledLength, channels]`
+ * Output shape: `[batchSize, pooledLength, channels]`
  */
 export class AvgPooling1D extends Pooling1D {
   constructor(config: Pooling1DLayerConfig) {
@@ -141,23 +142,26 @@ generic_utils.ClassNameMap.register('AvgPooling1D', AvgPooling1D);
 
 export interface Pooling2DLayerConfig extends LayerConfig {
   /**
-   * Integer or tuple of 2 integers, factors by which to downscale
-   * [vertical, horizontal].
+   * Factors by which to downscale in each dimension [vertical, horizontal].
+   * Expects an integer or an array of 2 integers.
    *
-   * [2, 2] will halve the input in both spatial dimension.
+   * For example, `[2, 2]` will halve the input in both spatial dimension.
    * If only one integer is specified, the same window length
    * will be used for both dimensions.
    */
   poolSize?: number|[number, number];
 
   /**
-   * Integer, tuple of 2 integers, or None.
+   * The size of the stride in each dimension of the pooling window. Expects an
+   * integer or an array of 2 integers. Integer, tuple of 2 integers, or None.
    *
-   * If None, it will default to `poolSize`.
+   * If `null`, defaults to `poolSize`.
    */
   strides?: [number, number];
 
+  /** The padding type to use for the pooling layer. */
   padding?: PaddingMode;
+  /** The data format to use for the pooling layer. */
   dataFormat?: DataFormat;
 }
 
@@ -263,7 +267,7 @@ generic_utils.ClassNameMap.register('MaxPooling2D', MaxPooling2D);
 /**
  * Average pooling operation for spatial data.
  *
- * Input shape
+ * Input shape:
  *  - If `dataFormat === CHANNEL_LAST`:
  *      4D tensor with shape:
  *      `[batchSize, rows, cols, channels]`

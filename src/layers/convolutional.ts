@@ -31,7 +31,7 @@ import * as generic_utils from '../utils/generic_utils';
 // tslint:enable:max-line-length
 
 /**
- * LayerConfig for convoluational layers.
+ * LayerConfig for convolutional layers.
  * Applies to convolution of all ranks (e.g, Conv1D, Conv2D).
  */
 export interface ConvLayerConfig extends LayerConfig {
@@ -42,14 +42,14 @@ export interface ConvLayerConfig extends LayerConfig {
   kernelSize: number|number[];
 
   /**
-   * The dimensionality of the output space (i.e. the number output of
-   * filters in the convolution).
+   * The dimensionality of the output space (i.e. the number of filters in the
+   * convolution).
    */
   filters?: number;
 
   /**
-   * The strides of the convolution. If strides is a number, strides in both
-   * dimensions are equal.
+   * The strides of the convolution in each dimension. If strides is a number,
+   * strides in both dimensions are equal.
    *
    * Specifying any stride value != 1 is incompatible with specifying any
    * `dilationRate` value != 1.
@@ -62,28 +62,32 @@ export interface ConvLayerConfig extends LayerConfig {
   padding?: PaddingMode;
 
   /**
-   * Format of the data, e.g., CHANNEL_LAST.
-   *   The ordering of the dimensions in the inputs.
-   *   `channels_last` corresponds to inputs with shape
-   *   `(batch, ..., channels)` while `channels_first` corresponds to
-   *   inputs with shape `(batch, channels, ...)`.
-   *   Defaults to "channels_last".
+   * Format of the data, which determines the ordering of the dimensions in
+   * the inputs.
+   *
+   * `channels_last` corresponds to inputs with shape
+   *   `(batch, ..., channels)`
+   *
+   *  `channels_first` corresponds to inputs with shape `(batch, channels,
+   * ...)`.
+   *
+   * Defaults to `channels_last`.
    */
   dataFormat?: DataFormat;
 
   /**
-   * An integer or array of integers, specifying
-   *   the dilation rate to use for dilated convolution.
-   *   Currently, specifying any `dilationRate` value != 1 is
-   *   incompatible with specifying any `strides` value != 1.
+   * The dilation rate to use for the dilated convolution in each dimension.
+   * Should be an integer or array of integers.
+   *
+   * Currently, specifying any `dilationRate` value != 1 is incompatible with
+   * specifying any `strides` value != 1.
    */
   dilationRate?: number|number[];
 
   /**
    * Activation function of the layer.
    *
-   * If you don't specify the activation, none is applied
-   *   (ie. "linear" activation: `a(x) = x`).
+   * If you don't specify the activation, none is applied.
    */
   activation?: string;
 
@@ -93,7 +97,7 @@ export interface ConvLayerConfig extends LayerConfig {
   useBias?: boolean;
 
   /**
-   * Initializer for the `kernel` weights matrix.
+   * Initializer for the convolutional kernel weights matrix.
    */
   kernelInitializer?: InitializerIdentifier|Initializer;
 
@@ -103,7 +107,7 @@ export interface ConvLayerConfig extends LayerConfig {
   biasInitializer?: InitializerIdentifier|Initializer;
 
   /**
-   * Constraint for the kernel weights.
+   * Constraint for the convolutional kernel weights.
    */
   kernelConstraint?: ConstraintIdentifier|Constraint;
 
@@ -113,7 +117,7 @@ export interface ConvLayerConfig extends LayerConfig {
   biasConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Regularizer function applied to the `kernel` weights matrix.
+   * Regularizer function applied to the kernel weights matrix.
    */
   kernelRegularizer?: RegularizerIdentifier|Regularizer;
 
@@ -301,13 +305,14 @@ export abstract class Conv extends Layer {
  *
  * If `useBias` is True, a bias vector is created and added to the outputs.
  *
- * If `activation` is not `None`, it is applied to the outputs as well.
+ * If `activation` is not `null`, it is applied to the outputs as well.
  *
- * When using this layer as the first layer in a model,
- * provide the keyword argument `inputShape`
- * (Array of integers, does not include the sample axis),
- * e.g. `inputShape=[128, 128, 3]` for 128x128 RGB pictures
- * in `dataFormat=DataFormat.CHANNEL_LAST`.
+ * When using this layer as the first layer in a model, `inputShape` should be
+ * specified. `inputShape` is array of integers which does not include the
+ * sample axis.
+ *
+ * e.g. `inputShape=[128, 128, 3]` for 128x128 RGB pictures in
+ * `dataFormat=DataFormat.CHANNEL_LAST`.
  */
 export class Conv2D extends Conv {
   constructor(config: ConvLayerConfig) {
@@ -328,13 +333,17 @@ generic_utils.ClassNameMap.register('Conv2D', Conv2D);
  * This layer creates a convolution kernel that is convolved
  * with the layer input over a single spatial (or temporal) dimension
  * to produce a tensor of outputs.
+ *
  * If `use_bias` is True, a bias vector is created and added to the outputs.
- * Finally, if `activation` is not `null` or `undefined`,
- * it is applied to the outputs as well.
- * When using this layer as the first layer in a model,
- * provide an `inputShape` argument Array or `null`, e.g.
- * `[10, 128]` for sequences of 10 vectors of 128-dimensional vectors,
- * or `[null, 128]` for variable-length sequences of 128-dimensional vectors.
+ *
+ * If `activation` is not `null`, it is applied to the outputs as well.
+ *
+ * When using this layer as the first layer in a model, provide an `inputShape`
+ * argument `Array` or `null`.
+ *
+ * For example, `inputShape` would be:
+ * - `[10, 128]` for sequences of 10 vectors of 128-dimensional vectors
+ * - `[null, 128]` for variable-length sequences of 128-dimensional vectors.
  */
 export class Conv1D extends Conv {
   constructor(config: ConvLayerConfig) {

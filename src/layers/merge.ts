@@ -32,8 +32,8 @@ export interface MergeLayerConfig extends LayerConfig {}
 export class Merge extends Layer {
   protected reshapeRequired: boolean;
 
-  constructor(config: MergeLayerConfig) {
-    super(config);
+  constructor(config?: MergeLayerConfig) {
+    super(config || {});
     this.supportsMasking = true;
   }
 
@@ -238,6 +238,10 @@ export class Merge extends Layer {
  */
 // TODO(cais): Add examples.
 export class Add extends Merge {
+  constructor() {
+    super({});
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
@@ -257,6 +261,10 @@ generic_utils.ClassNameMap.register('Add', Add);
  * shape, and returns a single tensor (also of the same shape).
  */
 export class Multiply extends Merge {
+  constructor() {
+    super({});
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.ones(inputs[0].shape);
     for (const input of inputs) {
@@ -274,6 +282,10 @@ generic_utils.ClassNameMap.register('Multiply', Multiply);
  * single tensor (also of the same shape).
  */
 export class Average extends Merge {
+  constructor() {
+    super({});
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
@@ -291,6 +303,10 @@ generic_utils.ClassNameMap.register('Average', Average);
  * single tensor (also of the same shape).
  */
 export class Maximum extends Merge {
+  constructor() {
+    super({});
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
@@ -308,6 +324,10 @@ generic_utils.ClassNameMap.register('Maximum', Maximum);
  * single tensor (also of the same shape).
  */
 export class Minimum extends Merge {
+  constructor() {
+    super({});
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
