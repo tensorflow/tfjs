@@ -31,66 +31,58 @@ import {getExactlyOneShape} from '../utils/generic_utils';
 
 export interface EmbeddingLayerConfig extends LayerConfig {
   /**
-   * inputDim:
-   *     int > 0. Size of the vocabulary, i.e. maximum integer index + 1.
+   * Integer > 0. Size of the vocabulary, i.e. maximum integer index + 1.
    */
   inputDim: number;
   /**
-   * outputDim:
-   *     int >= 0. Dimension of the dense embedding.
+   * Integer >= 0. Dimension of the dense embedding.
    */
   outputDim: number;
   /**
-   * embeddingsInitializer:
-   *     Initializer for the `embeddings` matrix
-   *     (see [initializers](../initializers.md)).
+   * Initializer for the `embeddings` matrix.
    */
   embeddingsInitializer?: InitializerIdentifier|Initializer;
   /**
-   * embeddingsRegularizer:
-   *     Regularizer function applied to the `embeddings` matrix.
+   * Regularizer function applied to the `embeddings` matrix.
    */
   embeddingsRegularizer?: RegularizerIdentifier|Regularizer;
   /**
-   * activityRegularizer:
-   *     Regularizer function applied to the activation.
+   * Regularizer function applied to the activation.
    */
   activityRegularizer?: RegularizerIdentifier|Regularizer;
   /**
-   *  embeddingsConstraint: Constraint function applied to
-   *     the `embeddings` matrix
-   *     (see [constraints](../constraints.md)).
+   * Constraint function applied to the `embeddings` matrix.
    */
   embeddingsConstraint?: ConstraintIdentifier|Constraint;
   /**
-   * mask_zero: Whether or not the input value 0 is a special "padding"
-   *     value that should be masked out.
-   *     This is useful when using [recurrent layers](recurrent.md)
-   *     which may take variable length input.
-   *     If this is `True` then all subsequent layers
-   *     in the model need to support masking or an exception will be raised.
-   *     If mask_zero is set to True, as a consequence, index 0 cannot be
-   *     used in the vocabulary (input_dim should equal size of
-   *     vocabulary + 1).
+   * Whether the input value 0 is a special "padding" value that should be
+   * masked out. This is useful when using recurrent layers which may take
+   * variable length input.
+   *
+   * If this is `True` then all subsequent layers in the model need to support
+   * masking or an exception will be raised. If maskZero is set to `True`, as a
+   * consequence, index 0 cannot be used in the vocabulary (inputDim should
+   * equal size of vocabulary + 1).
    */
   maskZero?: boolean;
   /**
-   * inputLength:
-   *     Length of input sequences, when it is constant.
-   *     This argument is required if you are going to connect
-   *     `Flatten` then `Dense` layers upstream
-   *     (without it, the shape of the dense outputs cannot be computed).
+   * Length of input sequences, when it is constant.
+   *
+   * This argument is required if you are going to connect `flatten` then
+   * `dense` layers upstream (without it, the shape of the dense outputs cannot
+   * be computed).
    */
   inputLength?: number|number[];
 }
 
 /**
- * Turns positive integers (indexes) into dense vectors of fixed size.
+ * Maps positive integers (indices) into dense vectors of fixed size.
  * eg. [[4], [20]] -> [[0.25, 0.1], [0.6, -0.2]]
  *
- * Input shape: 2D tensor with shape: `[batchSize, sequenceLength]`.
+ * **Input shape:** 2D tensor with shape: `[batchSize, sequenceLength]`.
  *
- * Output shape: 3D tensor with shape: `[batchSize, sequenceLength, outputDim]`.
+ * **Output shape:** 3D tensor with shape: `[batchSize, sequenceLength,
+ * outputDim]`.
  */
 export class Embedding extends Layer {
   private inputDim: number;

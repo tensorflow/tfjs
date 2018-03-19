@@ -29,29 +29,29 @@ import * as generic_utils from '../utils/generic_utils';
 
 export interface BatchNormalizationLayerConfig extends LayerConfig {
   /**
-   * Integer, the axis that should be normalized (typically the features axis).
+   * The integer axis that should be normalized (typically the features axis).
+   * Defaults to -1.
+   *
    * For instance, after a `Conv2D` layer with `data_format="channels_first"`,
-   * set `axis=1` in `BatchNormalization`.
-   * Default: -1.
+   * set `axis=1` in `batchNormalization`.
    */
   axis?: number;
 
   /**
-   * Momentum of the moving average.
-   * Default: 0.99.
+   * Momentum of the moving average. Defaults to 0.99.
    */
   momentum?: number;
 
   /**
-   * Small float added to the variance to avoid dividing by zero.
-   * Default: 1e-3.
+   * Small float added to the variance to avoid dividing by zero. Defaults to
+   * 1e-3.
    */
   epsilon?: number;
 
   /**
    * If `true`, add offset of `beta` to normalized tensor.
    * If `false`, `beta` is ignored.
-   * Default: true.
+   * Defaults to true.
    */
   center?: boolean;
 
@@ -60,51 +60,51 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
    * If `false`, `gamma` is not used.
    * When the next layer is linear (also e.g. `nn.relu`),
    * this can be disabled since the scaling will be done by the next layer.
-   * Default: true.
+   * Defaults to true.
    */
   scale?: boolean;
 
   /**
    * Initializer for the beta weight.
-   * Default: 'Zeros'.
+   *  Defaults to 'Zeros'.
    */
   betaInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the gamma weight.
-   * Default: 'Ones'.
+   *  Defaults to 'Ones'.
    */
   gammaInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the moving mean.
-   * Default: 'Zeros'
+   * Defaults to 'Zeros'
    */
   movingMeanInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the moving variance.
-   * Default: 'Ones'.
+   *  Defaults to 'Ones'.
    */
   movingVarianceInitializer?: InitializerIdentifier|Initializer;
 
   /**
-   * Optional constraint for the beta weight.
+   * Constraint for the beta weight.
    */
   betaConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Optional constraint for gamma weight.
+   * Constraint for gamma weight.
    */
   gammaConstraint?: ConstraintIdentifier|Constraint;
 
   /**
-   * Optional regularizer for the beta weight.
+   * Regularizer for the beta weight.
    */
   betaRegularizer?: RegularizerIdentifier|Regularizer;
 
   /**
-   * Optional regularizer for the gamma weight.
+   * Regularizer for the gamma weight.
    */
   gammaRegularizer?: RegularizerIdentifier|Regularizer;
 }

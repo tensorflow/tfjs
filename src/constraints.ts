@@ -230,6 +230,7 @@ export class MinMaxNorm extends Constraint {
 }
 ClassNameMap.register('MinMaxNorm', MinMaxNorm);
 
+/** @docinline */
 export type ConstraintIdentifier =
     'MaxNorm'|'MinMaxNorm'|'NonNeg'|'UnitNorm'|string;
 
