@@ -29,18 +29,27 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
     case 'conv1d': {
       const stride = getParamValue('stride', node, tensorMap) as number;
       const pad = getParamValue('pad', node, tensorMap);
+      const dataFormat =
+          (getParamValue('dataFormat', node, tensorMap) as string)
+              .toUpperCase();
+      const dilation = getParamValue('dilation', node, tensorMap) as number;
       return [tfc.conv1d(
           getParamValue('x', node, tensorMap) as tfc.Tensor3D,
           getParamValue('filter', node, tensorMap) as tfc.Tensor3D, stride,
-          pad as 'valid' | 'same')];
+          pad as 'valid' | 'same', dataFormat as 'NWC' | 'NCW', dilation)];
     }
     case 'conv2d': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
+      const dataFormat =
+          (getParamValue('dataFormat', node, tensorMap) as string)
+              .toUpperCase();
+      const dilations = getParamValue('dilations', node, tensorMap) as number[];
       return [tfc.conv2d(
           getParamValue('x', node, tensorMap) as tfc.Tensor3D | tfc.Tensor4D,
           getParamValue('filter', node, tensorMap) as tfc.Tensor4D,
-          [stride[1], stride[2]], pad as 'valid' | 'same')];
+          [stride[1], stride[2]], pad as 'valid' | 'same',
+          dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
     }
     case 'conv2dTranspose': {
       const shape =
@@ -57,13 +66,17 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
     case 'depthwiseConv2d': {
       const stride = getParamValue('strides', node, tensorMap) as number[];
       const pad = getParamValue('pad', node, tensorMap);
-      const rates = getParamValue('rates', node, tensorMap) as number[];
+      const dilations = getParamValue('dilations', node, tensorMap) as number[];
+      const dataFormat =
+          (getParamValue('dataFormat', node, tensorMap) as string)
+              .toUpperCase();
+
       return [tfc.depthwiseConv2d(
           getParamValue('input', node, tensorMap) as tfc.Tensor3D |
               tfc.Tensor4D,
           getParamValue('filter', node, tensorMap) as tfc.Tensor4D,
           [stride[1], stride[2]], pad as 'valid' | 'same',
-          [rates[0], rates[1]])];
+          dataFormat as 'NHWC' | 'NCHW', [dilations[0], dilations[1]])];
     }
 
     case 'avgPool': {
