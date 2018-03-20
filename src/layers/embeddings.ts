@@ -172,7 +172,7 @@ export class Embedding extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     // Embedding layer accepts only a single input.
     let input = generic_utils.getExactlyOneTensor(inputs);
     if (K.dtype(input) !== 'int32') {

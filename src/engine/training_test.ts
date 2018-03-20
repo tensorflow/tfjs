@@ -964,6 +964,55 @@ describeMathCPUAndGPU('Model.fit', () => {
   });
 });
 
+describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
+  it('Correct training arg during fit/evaluate/predict', async done => {
+    const inputTensor =
+        Input({shape: [1], name: 'inputLayer1', dtype: DType.float32});
+    const layer1 = tfl.layers.dense({units: 1});
+    const layer2 = tfl.layers.dropout({rate: 0.5});
+
+    // Hook the dropout layer to observe the training arg values during the
+    // fit(), evaluate() and predict() calls.
+    const dropoutLayerTrainingFlags: boolean[] = [];
+    // tslint:disable:no-any
+    const recordDropoutTrainingArgHook =
+        (inputs: Tensor|Tensor[], kwargs: any) => {
+          dropoutLayerTrainingFlags.push(kwargs.training as boolean);
+        };
+    // tslint:enable:no-any
+    layer2.setCallHook(recordDropoutTrainingArgHook);
+
+    const output = layer2.apply(layer1.apply(inputTensor)) as SymbolicTensor;
+    const model = new Model({inputs: [inputTensor], outputs: [output]});
+    model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+    const xs = K.ones([4, 1]);
+    const ys = K.ones([4, 1]);
+
+    // 1. Call fit: Dropout layer should be called twice, with training as
+    // true.
+    try {
+      await model.fit(xs, ys, {epochs: 2, batchSize: 4});
+    } catch (err) {
+      done.fail(err.stack);
+    }
+    expect(dropoutLayerTrainingFlags).toEqual([true, true]);
+
+    // 2. Call evaluate, Dropout layer should be called once, without
+    // training defined.
+    model.evaluate(xs, ys, {batchSize: 4});
+    expect(dropoutLayerTrainingFlags).toEqual([true, true, undefined]);
+
+    // 3. Call predict, Dropout layer should be called once, without training
+    //   defined.
+    model.predict(xs, {batchSize: 4});
+    expect(dropoutLayerTrainingFlags).toEqual([
+      true, true, undefined, undefined
+    ]);
+
+    done();
+  });
+});
+
 describeMathCPUAndGPU('Model.evaluate', () => {
   const numExamples = 8;
   const inputSize = 2;
