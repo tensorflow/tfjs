@@ -66,10 +66,11 @@ class ConvertTest(unittest.TestCase):
             }]
         }]
         # Load the saved weights as a JSON string.
-        output_json = json.load(
-            open(
-                os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
-                             'weights_manifest.json'), 'rt'))
+        weights_manifest = open(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'weights_manifest.json'), 'rt')
+        output_json = json.load(weights_manifest)
+        weights_manifest.close()
         self.assertEqual(output_json, weights)
 
         # Check the content of the output directory.
