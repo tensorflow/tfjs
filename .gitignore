@@ -9,5 +9,5 @@ npm-debug.log
 .DS_Store
 dist/
 .idea/
-deeplearn-*.tgz
+*.tgz
 **/*.pyc
