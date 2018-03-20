@@ -12,7 +12,9 @@
  * Unit tests for common.ts.
  */
 
+// tslint:disable:max-line-length
 import {checkDataFormat, checkPaddingMode, checkPoolMode, isValidTensorName, VALID_DATA_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './common';
+// tslint:enable:max-line-length
 
 describe('checkDataFormat', () => {
   it('Valid values', () => {
@@ -23,9 +25,7 @@ describe('checkDataFormat', () => {
   });
   it('Invalid values', () => {
     // Test invalid values are rejected, and reported in the error.
-    expect(function() {
-      checkDataFormat('foo')
-    }).toThrowError(/foo/);
+    expect(() => checkDataFormat('foo')).toThrowError(/foo/);
     try {
       checkDataFormat('bad');
     } catch (e) {
@@ -49,9 +49,7 @@ describe('checkPaddingMode', () => {
   });
   it('Invalid values', () => {
     // Test invalid values are rejected, and reported in the error.
-    expect(function() {
-      checkPaddingMode('foo')
-    }).toThrowError(/foo/);
+    expect(() => checkPaddingMode('foo')).toThrowError(/foo/);
     try {
       checkPaddingMode('bad');
     } catch (e) {
@@ -75,9 +73,7 @@ describe('checkPoolMode', () => {
   });
   it('Invalid values', () => {
     // Test invalid values are rejected, and reported in the error.
-    expect(function() {
-      checkPoolMode('foo')
-    }).toThrowError(/foo/);
+    expect(() => checkPoolMode('foo')).toThrowError(/foo/);
     try {
       checkPoolMode('bad');
     } catch (e) {

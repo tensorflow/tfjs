@@ -12,6 +12,7 @@
  * TensorFlow.js Layers: Pooling Layers.
  */
 
+// tslint:disable:max-line-length
 import {Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/deeplearnjs_backend';
@@ -22,6 +23,7 @@ import {NotImplementedError} from '../errors';
 import {ConfigDict, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
+// tslint:enable:max-line-length
 
 export interface Pooling1DLayerConfig extends LayerConfig {
   /**
