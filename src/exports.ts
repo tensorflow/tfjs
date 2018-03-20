@@ -41,22 +41,99 @@ export class ModelExports {
 
   // Model and related factory methods.
 
-  @doc({
-    heading: 'Models',
-    subheading: 'Creation',
-    useDocsFrom: 'Model',
-    configParamIndices: [0]
-  })
+  /**
+   * A model is a data structure that consists of `Layers` and defines inputs
+   * and outputs.
+   *
+   * When creating a `Model`, specify its input(s) and output(s). Layers
+   * are used to wire input(s) to output(s).
+   *
+   * For example, the following code snippet defines a model consisting of
+   * two `dense` layers, with 10 and 4 units, respectively.
+   *
+   * ```js
+   * // Define input, which has a size of 5 (not including batch dimension).
+   * const input = tf.input({shape: [5]});
+   *
+   * // First dense layer uses relu activation.
+   * const denseLayer1 = tf.layers.dense({units: 10, activation: 'relu'});
+   * // Second dense layer uses softmax activation.
+   * const denseLayer2 = tf.layers.dense({units: 2, activation: 'softmax'});
+   *
+   * // Obtain the output symbolic tensor by applying the layers on the input.
+   * const output = denseLayer2.apply(denseLayer1.apply(input));
+   *
+   * // Create the model based on the inputs.
+   * const model = tf.model({inputs: input, outputs: output});
+   *
+   * // The model can be used for training, evaluation and prediction.
+   * // For example, the following line runs prediction with the model on
+   * // some fake data.
+   * model.predict(tf.ones([2, 5])).print();
+   * ```
+   * See also:
+   *   `sequential`, `loadModel`.
+   */
+
+  @doc({heading: 'Models', subheading: 'Creation', configParamIndices: [0]})
   static model(config: ContainerConfig): Model {
     return new Model(config);
   }
 
-  @doc({
-    heading: 'Models',
-    subheading: 'Creation',
-    useDocsFrom: 'Sequential',
-    configParamIndices: [0]
-  })
+  /**
+   * Creates a `Sequential` model.  A sequential model is any model where the
+   * outputs of one layer are the inputs to the next layer, i.e. the model
+   * topology is a simple 'stack' of layers, with no branching or skipping.
+   *
+   * This means that the first layer passed to a Sequential model should have a
+   * defined input shape. What that means is that it should have received an
+   * `inputShape` or `batchInputShape` argument, or for some type of layers
+   * (recurrent, Dense...) an `inputDim` argument.
+   *
+   * Examples:
+   *
+   * ```js
+   * const model = tf.sequential();
+   *
+   * // First layer must have a defined input shape
+   * model.add(tf.layers.dense({units: 32, inputShape: [50]}));
+   * // Afterwards, TF.js does automatic shape inference.
+   * model.add(tf.layers.dense({units: 4}));
+   *
+   * // Inspect the inferred shape of the model's output, which equals
+   * // `[null, 4]`. The 1st dimension is the undetermined batch dimension; the
+   * // 2nd is the output size of the model's last layer.
+   * console.log(model.outputs[0].shape);
+   * ```
+   *
+   * It is also possible to specify a batch size (with potentially undetermined
+   * batch dimension, denoted by "null") for the first layer using the
+   * `batchInputShape` key. The following example is equivalent to the above:
+   *
+   * ```js
+   * const model = tf.sequential();
+   *
+   * // First layer must have a defined input shape
+   * model.add(tf.layers.dense({units: 32, batchInputShape: [null, 50]}));
+   * // Afterwards, TF.js does automatic shape inference.
+   * model.add(tf.layers.dense({units: 4}));
+   *
+   * // Inspect the inferred shape of the model's output.
+   * console.log(model.outputs[0].shape);
+   * ```
+   *
+   * You can also use an `Array` of already-constructed `Layer`s to create
+   * a `Sequential` model:
+   *
+   * ```js
+   * const model = tf.sequential({
+   *   layers: [tf.layers.dense({units: 32, inputShape: [50]}),
+   *            tf.layers.dense({units: 4})]
+   * });
+   * console.log(model.outputs[0].shape);
+   * ```
+   */
+  @doc({heading: 'Models', subheading: 'Creation', configParamIndices: [0]})
   static sequential(config?: SequentialConfig): Sequential {
     return new Sequential(config);
   }
