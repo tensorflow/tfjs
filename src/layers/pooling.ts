@@ -79,7 +79,7 @@ export abstract class Pooling1D extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     // Add dummy last dimension.
     inputs = K.expandDims(generic_utils.getExactlyOneTensor(inputs), 2);
     const output = this.poolingFunction(
@@ -220,7 +220,7 @@ export abstract class Pooling2D extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     return this.poolingFunction(
         generic_utils.getExactlyOneTensor(inputs), this.poolSize, this.strides,
         this.padding, this.dataFormat);

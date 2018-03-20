@@ -92,7 +92,7 @@ export class Dropout extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     const input = generic_utils.getExactlyOneTensor(inputs);
     if (this.noiseShape != null && !_.isEqual(input.shape, this.noiseShape)) {
       throw new NotImplementedError(
@@ -280,7 +280,7 @@ export class Dense extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     // Dense layer accepts only a single input.
     const input = generic_utils.getExactlyOneTensor(inputs);
     let output = K.dot(input, this.kernel.read());
@@ -352,7 +352,7 @@ export class Flatten extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     return K.batchFlatten(generic_utils.getExactlyOneTensor(inputs));
   }
 }
@@ -379,7 +379,7 @@ export class Activation extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     const input = generic_utils.getExactlyOneTensor(inputs);
     return this.activation(input);
   }
@@ -529,7 +529,7 @@ export class Reshape extends Layer {
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
-    this.invokeCallHook();
+    this.invokeCallHook(inputs, kwargs);
     const input = generic_utils.getExactlyOneTensor(inputs);
     const inputShape = K.shape(input);
     const outputShape = inputShape.slice(0, 1).concat(
