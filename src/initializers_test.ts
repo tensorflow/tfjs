@@ -318,9 +318,7 @@ describe('checkFanMode', () => {
   });
   it('Invalid values', () => {
     // Test invalid values are rejected, and reported in the error.
-    expect(function() {
-      checkFanMode('foo')
-    }).toThrowError(/foo/);
+    expect(() => checkFanMode('foo')).toThrowError(/foo/);
     try {
       checkFanMode('bad');
     } catch (e) {
@@ -344,9 +342,7 @@ describe('checkDistribution', () => {
   });
   it('Invalid values', () => {
     // Test invalid values are rejected, and reported in the error.
-    expect(function() {
-      checkDistribution('foo')
-    }).toThrowError(/foo/);
+    expect(() => checkDistribution('foo')).toThrowError(/foo/);
     try {
       checkDistribution('bad');
     } catch (e) {
