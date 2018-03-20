@@ -17,12 +17,27 @@
 # Before you run this script, do this:
 # 1) Update the version in package.json
 # 2) Run ./scripts/make-version from the base dir of the project.
-# 3) Commit to the master branch.
+# 3) Run `yarn` to update `yarn.lock`, in case you updated dependencies
+# 4) Commit to the master branch.
 
 # Then:
-# 4) Run this script as `./scripts/publish-npm.sh` from the project base dir.
+# 5) Checkout the master branch of this repo.
+# 6) Run this script as `./scripts/publish-npm.sh` from the project base dir.
 
 set -e
+
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+ORIGIN=`git config --get remote.origin.url`
+
+if [ "$BRANCH" != "master" ]; then
+  echo "Error: Switch to the master branch before publishing."
+  exit
+fi
+
+if [ "$ORIGIN" != "https://github.com/tensorflow/tfjs.git" ]; then
+  echo "Error: Switch to the main repo (tensorflow/tfjs) before publishing."
+  exit
+fi
 
 yarn build-npm
 ./scripts/make-version # This is for safety in case you forgot to do 2).
