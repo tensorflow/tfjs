@@ -40,6 +40,8 @@ export type Conv2DInfo = {
   dataFormat: 'channelsFirst'|'channelsLast',
   strideHeight: number,
   strideWidth: number,
+  dilationHeight: number,
+  dilationWidth: number,
   filterHeight: number,
   filterWidth: number,
   padInfo: PadInfo,
@@ -126,6 +128,8 @@ export function computeConv2DInfo(
     strideWidth,
     filterHeight,
     filterWidth,
+    dilationHeight,
+    dilationWidth,
     inShape,
     outShape,
     filterShape
@@ -161,8 +165,10 @@ function computeOutputShape3D(
 
 export function computeDefaultPad(
     inputShape: [number, number, number], fieldSize: number,
-    stride: number): number {
-  return Math.floor((inputShape[0] * (stride - 1) - stride + fieldSize) / 2);
+    stride: number, dilation = 1): number {
+  const effectiveFieldSize = getEffectiveFilterSize(fieldSize, dilation);
+  return Math.floor(
+    (inputShape[0] * (stride - 1) - stride + effectiveFieldSize) / 2);
 }
 
 function parseTupleParam(param: number|[number, number]): [number, number] {

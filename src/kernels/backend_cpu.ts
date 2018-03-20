@@ -863,6 +863,8 @@ export class MathBackendCPU implements KernelBackend {
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
     const padLeft = convInfo.padInfo.left;
     const padTop = convInfo.padInfo.top;
     const y = ops.buffer<Rank.R4>(convInfo.outShape, x.dtype);
@@ -871,17 +873,24 @@ export class MathBackendCPU implements KernelBackend {
       for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
         for (let yR = 0; yR < convInfo.outHeight; ++yR) {
           const xRCorner = yR * convInfo.strideHeight - padLeft;
-          const xRMin = Math.max(0, xRCorner);
-          const xRMax = Math.min(convInfo.inHeight, filterHeight + xRCorner);
           for (let yC = 0; yC < convInfo.outWidth; ++yC) {
             const xCCorner = yC * convInfo.strideWidth - padTop;
-            const xCMin = Math.max(0, xCCorner);
-            const xCMax = Math.min(convInfo.inWidth, filterWidth + xCCorner);
+
             let dotProd = 0;
-            for (let xR = xRMin; xR < xRMax; ++xR) {
-              const wR = xR - xRCorner;
-              for (let xC = xCMin; xC < xCMax; ++xC) {
-                const wC = xC - xCCorner;
+            for (let wR = 0; wR < filterHeight; wR++) {
+              const xR = xRCorner + wR * dilationHeight;
+
+              if (xR < 0 || xR >= convInfo.inHeight) {
+                continue;
+              }
+
+              for (let wC = 0; wC < filterWidth; wC++) {
+                const xC = xCCorner + wC * dilationWidth;
+
+                if (xC < 0 || xC >= convInfo.inWidth) {
+                  continue;
+                }
+
                 for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
                   const pixel = x.get(b, xR, xC, d1);
                   const weight = filter.get(wR, wC, d1, d2);
@@ -989,6 +998,8 @@ export class MathBackendCPU implements KernelBackend {
       Tensor4D {
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
     const padLeft = convInfo.padInfo.left;
     const padTop = convInfo.padInfo.top;
     const chMul = convInfo.outChannels / convInfo.inChannels;
@@ -998,18 +1009,24 @@ export class MathBackendCPU implements KernelBackend {
       for (let d1 = 0; d1 < convInfo.inChannels; ++d1) {
         for (let yR = 0; yR < convInfo.outHeight; ++yR) {
           const xRCorner = yR * convInfo.strideHeight - padLeft;
-          const xRMin = Math.max(0, xRCorner);
-          const xRMax = Math.min(convInfo.inHeight, filterHeight + xRCorner);
           for (let yC = 0; yC < convInfo.outWidth; ++yC) {
             const xCCorner = yC * convInfo.strideWidth - padTop;
-            const xCMin = Math.max(0, xCCorner);
-            const xCMax = Math.min(convInfo.inWidth, filterWidth + xCCorner);
             for (let q = 0; q < chMul; ++q) {
               let dotProd = 0;
-              for (let xR = xRMin; xR < xRMax; ++xR) {
-                const wR = xR - xRCorner;
-                for (let xC = xCMin; xC < xCMax; ++xC) {
-                  const wC = xC - xCCorner;
+              for (let wR = 0; wR < filterHeight; ++wR) {
+                const xR = xRCorner + wR * dilationHeight;
+
+                if (xR < 0 || xR >= convInfo.inHeight) {
+                  continue;
+                }
+
+                for (let wC = 0; wC < filterWidth; ++wC) {
+                  const xC = xCCorner + wC * dilationWidth;
+
+                  if (xC < 0 || xC >= convInfo.inWidth) {
+                    continue;
+                  }
+
                   const pixel = x.get(b, xR, xC, d1);
                   const weight = filter.get(wR, wC, d1, q);
                   dotProd += pixel * weight;
@@ -1021,6 +1038,7 @@ export class MathBackendCPU implements KernelBackend {
         }
       }
     }
+
     return y.toTensor();
   }
 

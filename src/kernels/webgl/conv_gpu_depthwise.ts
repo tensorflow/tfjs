@@ -32,6 +32,8 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
     const padLeft = convInfo.padInfo.left;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
     const channelMul = convInfo.outChannels / convInfo.inChannels;
@@ -56,14 +58,14 @@ export class DepthwiseConv2DProgram implements GPGPUProgram {
         float dotProd = 0.0;
         // TODO(dsmilkov): Flatten the two for loops and vec4 the operations.
         for (int wR = 0; wR < ${filterHeight}; wR++) {
-          int xR = xRCorner + wR;
+          int xR = xRCorner + wR * ${dilationHeight};
 
           if (xR < 0 || xR >= ${xNumRows}) {
             continue;
           }
 
           for (int wC = 0; wC < ${filterWidth}; wC++) {
-            int xC = xCCorner + wC;
+            int xC = xCCorner + wC * ${dilationWidth};
 
             if (xC < 0 || xC >= ${xNumCols}) {
               continue;

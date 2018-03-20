@@ -776,15 +776,20 @@ export class Tensor<R extends Rank = Rank> {
   // Convolutions.
   conv1d<T extends Tensor2D|Tensor3D>(
       this: T, filter: Tensor3D, stride: number, pad: 'valid'|'same'|number,
+      dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     (this as Tensor).throwIfDisposed();
-    return ops.conv1d(this, filter, stride, pad, dimRoundingMode);
+    return ops.conv1d(
+        this, filter, stride, pad, dataFormat, dilation, dimRoundingMode);
   }
   conv2d<T extends Tensor3D|Tensor4D>(
       this: T, filter: Tensor4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
+      dilations: [number, number]|number = [1, 1],
+      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     (this as Tensor).throwIfDisposed();
-    return ops.conv2d(this, filter, strides, pad, dimRoundingMode);
+    return ops.conv2d(
+        this, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
   }
   conv2dTranspose<T extends Tensor3D|Tensor4D>(
       this: T, filter: Tensor4D,
@@ -797,11 +802,12 @@ export class Tensor<R extends Rank = Rank> {
   }
   depthwiseConv2D<T extends Tensor3D|Tensor4D>(
       this: T, filter: Tensor4D, strides: [number, number]|number,
-      pad: 'valid'|'same'|number, dilations: [number, number]|number = [1, 1],
+      pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
+      dilations: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
     (this as Tensor).throwIfDisposed();
     return ops.depthwiseConv2d(
-        this, filter, strides, pad, dilations, dimRoundingMode);
+        this, filter, strides, pad, dataFormat, dilations, dimRoundingMode);
   }
 
   // Pooling.
