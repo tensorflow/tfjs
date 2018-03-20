@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.0.1",
+    "@tensorflow/tfjs-core": "0.0.2",
     "@types/jasmine": "~2.5.53",
     "@types/underscore": "^1.8.7",
     "browserify": "~16.1.0",
@@ -42,6 +42,6 @@
     "underscore": "~1.8.3"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.0.1"
+    "@tensorflow/tfjs-core": "0.0.2"
   }
 }

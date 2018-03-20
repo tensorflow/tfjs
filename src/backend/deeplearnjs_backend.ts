@@ -1482,7 +1482,7 @@ export function depthwiseConv2d(
   }
   y = tfc.depthwiseConv2d(
       y as Tensor4D, depthwiseKernel as Tensor4D, strides,
-      padding === 'same' ? 'same' : 'valid', dilationRate);
+      padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
   if (dataFormat === 'channelFirst') {
     y = tfc.transpose(y, [0, 3, 1, 2]);
   }
