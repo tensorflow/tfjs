@@ -117,6 +117,7 @@ export interface ModelAndWeightsConfig {
 // TODO(cais): Add link to the core's documentation of `WeightManifestConfig`.
 export async function loadModelInternal(modelConfigPath: string):
     Promise<Model> {
+  // TODO(soergel): accept a Request object too, not just a url string.
   const modelConfigRequest = await fetch(modelConfigPath);
   const modelConfig = await modelConfigRequest.json() as ModelAndWeightsConfig;
   if (modelConfig['modelTopology'] == null) {
