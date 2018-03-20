@@ -52,7 +52,8 @@ done
 DEMO_PATH="${SCRIPTS_DIR}/../dist/demo"
 mkdir -p "${DEMO_PATH}"
 
-export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+# Make sure you install the tensorflowjs pip package first.
+
 PYTHONPATH="${SCRIPTS_DIR}/.." python "${SCRIPTS_DIR}/imdb.py" \
     "${MODEL_TYPE}" \
     --epochs "${TRAIN_EPOCHS}" \

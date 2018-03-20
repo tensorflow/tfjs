@@ -25,8 +25,7 @@ import os
 from keras.models import Model
 from keras.layers import Input, LSTM, Dense
 import numpy as np
-
-from scripts import h5_conversion
+import tensorflowjs as tfjs
 
 
 def read_data():
@@ -242,7 +241,7 @@ def main():
             epochs=FLAGS.epochs,
             validation_split=0.2)
 
-  h5_conversion.save_model(model, FLAGS.artifacts_dir)
+  tfjs.converters.save_keras_model(model, FLAGS.artifacts_dir)
 
   # Next: inference mode (sampling).
   # Here's the drill:

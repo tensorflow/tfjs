@@ -18,8 +18,7 @@ import argparse
 
 import keras
 from keras import backend as K
-
-from scripts import h5_conversion
+import tensorflowjs as tfjs
 
 # Input image dimensions.
 IMG_ROWS, IMG_COLS = 28, 28
@@ -86,7 +85,7 @@ def train(input_shape,
             verbose=1,
             validation_data=(x_test, y_test))
 
-  h5_conversion.save_model(model, artifacts_dir)
+  tfjs.converters.save_keras_model(model, artifacts_dir)
 
 
 def main():

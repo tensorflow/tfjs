@@ -19,7 +19,7 @@ import unittest
 
 import keras
 
-from scripts import keras_model_converter
+from tensorflowjs.converters import converter
 
 
 class ConvertH5WeightsTest(unittest.TestCase):
@@ -45,7 +45,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    model_json, groups = keras_model_converter.dispatch_pykeras_conversion(
+    model_json, groups = converter.dispatch_pykeras_conversion(
         h5_path, output_dir=self._tmp_dir)
     self.assertIsNone(model_json)
 
@@ -74,7 +74,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     model.save(h5_path)
 
     # Load the saved weights as a JSON string.
-    model_json, groups = keras_model_converter.dispatch_pykeras_conversion(
+    model_json, groups = converter.dispatch_pykeras_conversion(
         h5_path, output_dir=self._tmp_dir)
     # check the model topology was stored
     self.assertIsInstance(model_json['model_config'], dict)
@@ -106,7 +106,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     sequential_model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    model_json, groups = keras_model_converter.dispatch_pykeras_conversion(
+    model_json, groups = converter.dispatch_pykeras_conversion(
         h5_path, output_dir=self._tmp_dir)
     self.assertIsNone(model_json)
 
@@ -130,7 +130,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
             name='Dense1')])
     h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
     sequential_model.save_weights(h5_path)
-    keras_model_converter.dispatch_pykeras_conversion(
+    converter.dispatch_pykeras_conversion(
         h5_path, output_dir=output_dir)
 
     # Check the content of the output directory.
@@ -153,7 +153,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     sequential_model.save_weights(h5_path)
 
     with self.assertRaisesRegexp(ValueError, r'already exists as a file'):
-      keras_model_converter.dispatch_pykeras_conversion(
+      converter.dispatch_pykeras_conversion(
           h5_path, output_dir=output_path)
 
 

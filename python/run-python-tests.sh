@@ -11,20 +11,26 @@
 
 set -e
 
-TEST_FILES_GLOB='*_test.py'
+SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+"${SCRIPTS_DIR}/copy_write_weights.sh"
+
+TEST_FILES_GLOB='**/*_test.py'
 if [[ ! -z $1 ]]; then
   TEST_FILES_GLOB="$1"
   echo "TEST_FILES_GLOB: ${TEST_FILES_GLOB}"
 fi
 
-pip install -r ./scripts/requirements.txt
+pip install -r "${SCRIPTS_DIR}/requirements.txt"
 
-TEST_FILES=scripts/${TEST_FILES_GLOB}
+cd "${SCRIPTS_DIR}"
 
-export PYTHONPATH="./:./node_modules/deeplearn-src/scripts:$PYTHONPATH"
+TEST_FILES=tensorflowjs/${TEST_FILES_GLOB}
+
+export PYTHONPATH=".:${PYTHONPATH}"
 for TEST_FILE in ${TEST_FILES}; do
-  BASE_FILE_NAME="$(realpath --relative-to="scripts" ${TEST_FILE})"
-  python -m unittest discover scripts "${BASE_FILE_NAME}"
+  echo "Running test: ${TEST_FILE}"
+  python "${TEST_FILE}"
 done
 
 echo

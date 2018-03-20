@@ -20,8 +20,7 @@ import json
 
 import keras
 from keras import backend as K
-
-from scripts import h5_conversion
+import tensorflowjs as tfjs
 
 # Input image dimensions.
 IMG_ROWS, IMG_COLS = 28, 28
@@ -198,7 +197,7 @@ def train_and_save_model(filters,
               (x_train_lt5, y_train_lt5),
               (x_test_lt5, y_test_lt5),
               NUM_CLASSES, batch_size=batch_size, epochs=epochs)
-  h5_conversion.save_model(model, artifacts_dir)
+  tfjs.converters.save_keras_model(model, artifacts_dir)
 
 
 def main():

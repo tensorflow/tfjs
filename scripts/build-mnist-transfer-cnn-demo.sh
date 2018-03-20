@@ -47,7 +47,10 @@ mkdir -p "${ARTIFACTS_DIR}"
 # Run Python script to generate the model and weights JSON files.
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
-export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+
+# Make sure you have installed the tensorfowjs pip package first.
+
+export PYTHONPATH="${SCRIPTS_DIR}/..:${PYTHONPATH}"
 python "${SCRIPTS_DIR}/mnist_transfer_cnn.py" \
     --epochs "${TRAIN_EPOCHS}" \
     --artifacts_dir "${ARTIFACTS_DIR}" \
