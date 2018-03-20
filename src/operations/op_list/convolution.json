@@ -106,7 +106,7 @@
         "tfParamName": "data_format",
         "dlParamName": "dataFormat",
         "type": "string",
-        "notSupported": true
+        "defaultValue": "NWC"
       },
       {
         "tfParamName": "T",
@@ -118,7 +118,7 @@
         "tfParamName": "dilation",
         "dlParamName": "dilation",
         "type": "number",
-        "notSupported": true
+        "defaultValue": 1
       }
     ]
   },
@@ -162,13 +162,12 @@
         "tfParamName": "data_format",
         "dlParamName": "dataFormat",
         "type": "string",
-        "notSupported": true
+        "defaultValue": "NHWC"
       },
       {
         "tfParamName": "dilations",
         "dlParamName": "dilations",
-        "type": "number[]",
-        "notSupported": true
+        "type": "number[]"
       }
     ]
   },
@@ -239,11 +238,11 @@
         "tfParamName": "data_format",
         "dlParamName": "dataFormat",
         "type": "string",
-        "notSupported": true
+        "defaultValue": "NHWC"
       },
       {
         "tfParamName": "dilations",
-        "dlParamName": "rates",
+        "dlParamName": "dilations",
         "type": "number[]"
       }
     ]
@@ -277,11 +276,11 @@
         "tfParamName": "data_format",
         "dlParamName": "dataFormat",
         "type": "string",
-        "notSupported": true
+        "defaultValue": "NHWC"
       },
       {
         "tfParamName": "dilations",
-        "dlParamName": "rates",
+        "dlParamName": "dilations",
         "type": "number[]"
       }
     ]

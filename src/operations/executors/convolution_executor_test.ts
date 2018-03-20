@@ -75,6 +75,8 @@ describe('convolution', () => {
         node.params['filter'] = createTensorAttr(1);
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
+        node.params['dataFormat'] = createStrAttr('NHWC');
+        node.params['dilations'] = createNumericArrayAttr([2, 2]);
 
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(1.0)];
@@ -83,7 +85,8 @@ describe('convolution', () => {
         executeOp(node, {input1, input2});
 
         expect(tfc.conv2d)
-            .toHaveBeenCalledWith(input1[0], input2[0], [2, 2], 'same');
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], [2, 2], 'same', 'NHWC', [2, 2]);
       });
     });
     describe('conv2dTranspose', () => {
@@ -114,6 +117,8 @@ describe('convolution', () => {
         node.params['filter'] = createTensorAttr(1);
         node.params['stride'] = createNumberAttr(1);
         node.params['pad'] = createStrAttr('same');
+        node.params['dataFormat'] = createStrAttr('NWC');
+        node.params['dilation'] = createNumberAttr(1);
 
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(1.0)];
@@ -122,7 +127,7 @@ describe('convolution', () => {
         executeOp(node, {input1, input2});
 
         expect(tfc.conv1d)
-            .toHaveBeenCalledWith(input1[0], input2[0], 1, 'same');
+            .toHaveBeenCalledWith(input1[0], input2[0], 1, 'same', 'NWC', 1);
       });
     });
 
@@ -135,7 +140,8 @@ describe('convolution', () => {
         node.params['filter'] = createTensorAttr(1);
         node.params['strides'] = createNumericArrayAttr([1, 2, 2, 1]);
         node.params['pad'] = createStrAttr('same');
-        node.params['rates'] = createNumericArrayAttr([2, 2]);
+        node.params['dataFormat'] = createStrAttr('NHWC');
+        node.params['dilations'] = createNumericArrayAttr([2, 2]);
         const input1 = [tfc.scalar(1.0)];
         const input2 = [tfc.scalar(1.0)];
         node.inputNames = ['input1', 'input2'];
@@ -143,7 +149,8 @@ describe('convolution', () => {
         executeOp(node, {input1, input2});
 
         expect(tfc.depthwiseConv2d)
-            .toHaveBeenCalledWith(input1[0], input2[0], [2, 2], 'same', [2, 2]);
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], [2, 2], 'same', 'NHWC', [2, 2]);
       });
     });
   });
