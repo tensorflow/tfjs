@@ -26,15 +26,18 @@ rm -rf "${ARTIFACTS_DIR}"
 # Run Python script to generate the model and weights JSON files.
 # The extension names are ".js" because they will later be converted into
 # sourceable JavaScript files.
-export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+
+# Make sure you install the tensorflowjs pip package first.
+
+export PYTHONPATH="${SCRIPTS_DIR}/.."
 python "${SCRIPTS_DIR}/iris.py" --artifacts_dir "${ARTIFACTS_DIR}"
 
 echo
 echo "----------------------------------------------------------------"
 echo "TensorFlow.js artifacts have been generated at"
 echo "  ${ARTIFACTS_DIR}"
-echo 
+echo
 echo "See https://github.com/tensorflow/tfjs-examples/tree/master/iris"
-echo "for how to load and serve the saved model in the browser." 
+echo "for how to load and serve the saved model in the browser."
 echo "----------------------------------------------------------------"
 echo

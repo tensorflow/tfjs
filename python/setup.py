@@ -17,15 +17,25 @@ REQUIRED_PACKAGES = [
 ]
 
 CONSOLE_SCRIPTS = [
-    'keras_model_converter = keras_model_converter:main',
+    'tensorflowjs_converter = tensorflowjs.converters.converter:main',
 ]
 
 setuptools.setup(
-    name='keras_model_converter',
-    version='0.1.0',
-    py_modules=['h5_conversion', 'keras_model_converter', 'write_weights'],
+    name='tensorflowjs',
+    version='0.0.1',
+    description='Python Libraries and Tools for TensorFlow.js',
+    url='https://js.tensorflow.org/',
+    py_modules=[
+        'tensorflowjs',
+        'tensorflowjs.write_weights',
+        'tensorflowjs.converters',
+        'tensorflowjs.converters.h5_conversion',
+        'tensorflowjs.converters.converter',
+    ],
     install_requires=REQUIRED_PACKAGES,
     entry_points={
         'console_scripts': CONSOLE_SCRIPTS,
     },
+    license='MIT',
+    keywords='tensorflow javascript machine deep learning converter',
 )

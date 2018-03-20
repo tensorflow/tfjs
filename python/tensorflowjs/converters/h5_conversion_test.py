@@ -20,7 +20,7 @@ import h5py
 import keras
 import numpy as np
 
-from scripts import h5_conversion
+from tensorflowjs.converters import h5_conversion
 
 
 class ConvertH5WeightsTest(unittest.TestCase):
@@ -271,7 +271,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     dense_layer = keras.layers.Dense(3)
     t_output = dense_layer(t_input)
     model = keras.Model(t_input, t_output)
-    h5_conversion.save_model(model, self._tmp_dir)
+    h5_conversion.save_keras_model(model, self._tmp_dir)
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
@@ -294,7 +294,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     os.makedirs(artifacts_dir)
     model = keras.Sequential()
     model.add(keras.layers.Dense(3, input_shape=[2]))
-    h5_conversion.save_model(model, artifacts_dir)
+    h5_conversion.save_keras_model(model, artifacts_dir)
 
     # Verify the content of the artifacts output directory.
     self.assertTrue(
@@ -321,7 +321,7 @@ class ConvertH5WeightsTest(unittest.TestCase):
     t_output = dense_layer(t_input)
     model = keras.Model(t_input, t_output)
     with self.assertRaisesRegexp(ValueError, r'already exists as a file'):
-      h5_conversion.save_model(model, artifacts_dir)
+      h5_conversion.save_keras_model(model, artifacts_dir)
 
 
 if __name__ == '__main__':

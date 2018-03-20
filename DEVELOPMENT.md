@@ -56,7 +56,8 @@ For Python linter, install `pylint`, e.g.,
 
 To run the Python linter:
 ```sh
-pylint scripts/
+cd python
+pylint tensorflowjs
 ```
 
 To run the python unit tests, there are two options. You can choose the one that
@@ -65,7 +66,8 @@ you prefer.
 1. Run the tests using the `run-python-tests.sh` script:
 
    ```sh
-   scripts/run-python-tests.sh
+   cd python
+   ./run-python-tests.sh
    ```
 
 2. Run the tests using Bazel. See bazel installation guide
@@ -73,10 +75,26 @@ you prefer.
    is installed, do:
 
    ```sh
+   cd python
+   ./copy_write_weights.sh
    bazel test scripts/...
    ```
 
 Be sure to run the tests under **both** Python 2 and Python 3.
+
+#### Building the tensorflowjs pip package
+
+```sh
+cd python
+
+# You need to specify a folder where the pip wheel file will be stored, e.g.,
+./build-pip-package.sh /tmp/my_tensorflowjs_pip
+
+# If the script succeeds, you canuse `pip install` to install the pip package:
+
+pip install --force-reinstall \
+  /tmp/my_tensorflowjs_pip/tensorflowjs-0.0.1-py2-none-any.whl
+```
 
 ## Code Structure
 

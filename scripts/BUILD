@@ -20,27 +20,6 @@ py_library(
 )
 
 py_binary(
-    name = "h5_conversion",
-    srcs = ["h5_conversion.py"],
-    deps = [
-        ":expect_h5py_installed",
-        ":expect_keras_installed",
-        ":expect_numpy_installed",
-    ],
-)
-
-py_test(
-    name = "h5_conversion_test",
-    srcs = ["h5_conversion_test.py"],
-    deps = [
-        ":expect_h5py_installed",
-        ":expect_keras_installed",
-        ":expect_numpy_installed",
-        ":h5_conversion",
-    ],
-)
-
-py_binary(
     name = "keras_model_converter",
     srcs = ["keras_model_converter.py"],
     deps = [

@@ -23,7 +23,7 @@ import keras
 import numpy as np
 import six
 
-import write_weights  # pylint: disable=import-error
+from tensorflowjs import write_weights  # pylint: disable=import-error
 
 # File name for the indexing JSON file in an artifact directory.
 ARTIFACT_MODEL_JSON_FILE_NAME = 'model.json'
@@ -355,7 +355,7 @@ class HDF5Converter(object):
       json.dump(model_json, f)
 
 
-def save_model(model, artifacts_dir):
+def save_keras_model(model, artifacts_dir):
   r"""Save a Keras model and its weigths in TensorFlow.js format.
 
   Args:

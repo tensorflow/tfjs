@@ -25,15 +25,22 @@ DEST_DIR="$1"
 
 mkdir -p "${DEST_DIR}"
 
-yarn run prep
+"${SCRIPTS_DIR}/copy_write_weights.sh"
 
 TMP_DIR=$(mktemp -d)
+echo "Using temporary directory: ${TMP_DIR}"
 
-cp "${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts/write_weights.py" \
-    "${TMP_DIR}/"
-cp "${SCRIPTS_DIR}/h5_conversion.py" "${TMP_DIR}/"
-cp "${SCRIPTS_DIR}/keras_model_converter.py" "${TMP_DIR}/"
-cp "${SCRIPTS_DIR}/setup.py" "${TMP_DIR}/"
+pushd "${SCRIPTS_DIR}" > /dev/null
+PY_FILES=$(find ./ -name '*.py' ! -name '*_test.py')
+
+echo
+for PY_FILE in ${PY_FILES}; do
+  echo "Copying ${PY_FILE}"
+  cp --parents "${PY_FILE}" "${TMP_DIR}/"
+done
+echo
+
+popd
 
 pushd "${TMP_DIR}" > /dev/null
 

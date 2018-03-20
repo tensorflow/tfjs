@@ -24,8 +24,7 @@ import keras
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.client import device_lib
-
-from scripts import h5_conversion
+import tensorflowjs as tfjs
 
 _FIT_BURNIN_EPOCHS = 1  # How many epochs to call fit() for before timing fit().
 _PREDICT_BURNINS = 1  # How many predict() runs to do before timing predict().
@@ -92,7 +91,7 @@ def benchmark_and_serialize_model(model_name,
   predict_t_end = time.time()
 
   # Save the model and weights.
-  h5_conversion.save_model(model, artifacts_dir)
+  tfjs.converters.save_keras_model(model, artifacts_dir)
 
   # Save data about the model and benchmark results.
   train_time = (train_t_end - train_t_begin) / train_epochs

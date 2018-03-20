@@ -63,10 +63,12 @@ ARTIFACTS_DIR="${DEMO_PATH}/translation"
 mkdir -p "${DEMO_PATH}"
 rm -rf "${ARTIFACTS_DIR}"
 
+# Make sure you have installed the tensorflowjs pip package first.
+
 # Train the model and generate:
 #   * saved model in TensorFlow.js
 #   * metadata JSON file.
-export PYTHONPATH="${SCRIPTS_DIR}/..:${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts:${PYTHONPATH}"
+export PYTHONPATH="${SCRIPTS_DIR}/..:${PYTHONPATH}"
 python "${SCRIPTS_DIR}/translation.py" \
     "${DATA_PATH}" \
     --recurrent_initializer glorot_uniform \

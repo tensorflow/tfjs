@@ -14,9 +14,9 @@ import argparse
 
 import keras
 import numpy as np
+import tensorflowjs as tfjs
 
 from scripts import iris_data
-from scripts import h5_conversion
 
 
 def train(epochs,
@@ -62,7 +62,7 @@ def train(epochs,
   final_train_accuracy = np.mean((pred_ys == true_ys).astype(np.float32))
   print('Accuracy on the training set: %g' % final_train_accuracy)
 
-  h5_conversion.save_model(model, artifacts_dir)
+  tfjs.converters.save_keras_model(model, artifacts_dir)
 
   return final_train_accuracy
 
