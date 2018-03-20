@@ -38,8 +38,20 @@ for PY_FILE in ${PY_FILES}; do
   echo "Copying ${PY_FILE}"
   cp --parents "${PY_FILE}" "${TMP_DIR}/"
 done
-echo
 
+# Copy README.md.
+echo "Copying README.md"
+cp "${SCRIPTS_DIR}/README.md" "${TMP_DIR}/"
+
+# Copy LICENSE.
+echo "Copying LICENSE"
+cp "${SCRIPTS_DIR}/../LICENSE" "${TMP_DIR}/LICENSE.txt"
+
+# Copy setup.cfg
+echo "Copying setup.cfg"
+cp "${SCRIPTS_DIR}/setup.cfg" "${TMP_DIR}/"
+
+echo
 popd
 
 pushd "${TMP_DIR}" > /dev/null
