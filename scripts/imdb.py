@@ -238,7 +238,7 @@ if __name__ == '__main__':
       '--num_show',
       type=int,
       default=5,
-      help='Number of sentences to show perdiction score on after training.')
+      help='Number of sentences to show prediction score on after training.')
   parser.add_argument(
       '--artifacts_dir',
       type=str,
