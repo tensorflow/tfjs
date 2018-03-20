@@ -2,8 +2,25 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-layers@file:../dist":
-  version "0.0.0"
+"@tensorflow/tfjs-core@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.0.1.tgz#087be00020ed2e581c9e35dea2ca8dd2be537707"
+  dependencies:
+    seedrandom "~2.4.3"
+    utf8 "~2.1.2"
+
+"@tensorflow/tfjs-layers@0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.5.tgz#b9f2a96b2af3a5d610027b90e181d1f36abfff94"
+  dependencies:
+    underscore "~1.8.3"
+
+"@tensorflow/tfjs@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs/-/tfjs-0.0.4.tgz#1e1c196e8f9d4f7200530a0c4ae73a5217a9726a"
+  dependencies:
+    "@tensorflow/tfjs-core" "0.0.1"
+    "@tensorflow/tfjs-layers" "0.0.5"
 
 "@types/node@^8.0.28":
   version "8.9.5"
@@ -103,13 +120,6 @@ commander@^2.12.1, commander@^2.9.0:
 concat-map@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/concat-map/-/concat-map-0.0.1.tgz#d8a96bd77fd68df7793a73036a3ba0d5405d477b"
-
-deeplearn@next:
-  version "0.6.0-alpha5"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha5.tgz#1651d717eb2be1e38e5108d298545631da8cb7a3"
-  dependencies:
-    seedrandom "~2.4.3"
-    utf8 "~2.1.2"
 
 diff@^3.2.0:
   version "3.5.0"
@@ -295,6 +305,10 @@ typescript@2.4.2:
 typescript@^2.5.2:
   version "2.7.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.7.2.tgz#2d615a1ef4aee4f574425cdff7026edf81919836"
+
+underscore@~1.8.3:
+  version "1.8.3"
+  resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
 
 utf8@~2.1.2:
   version "2.1.2"

@@ -4,12 +4,10 @@
   "description": "Demos for TensorFlow.js layers, not published",
   "private": true,
   "dependencies": {
-    "deeplearn": "next",
     "pacman": "nsthorat/pacman",
-    "@tensorflow/tfjs-layers": "file:../dist/"
+    "@tensorflow/tfjs": "0.0.4"
   },
   "scripts": {
-    "prep": "rimraf node_modules/ && yarn",
     "test": "karma start"
   },
   "devDependencies": {

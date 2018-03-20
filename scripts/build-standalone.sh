@@ -23,7 +23,7 @@ BROWSERIFY=node_modules/.bin/browserify
 UGLIFYJS=node_modules/.bin/uglifyjs
 
 cd "${SCRIPTS_DIR}/.."
-"${YARN}" run prep
+"${YARN}"
 mkdir -p "${DIST_DIR}"
 "${BROWSERIFY}" --standalone "${IMPORT_NAME}" src/index.ts -p [tsify] > "${DIST_DIR}/${PACKAGE_NAME}.js"
 "${UGLIFYJS}" "${DIST_DIR}/${PACKAGE_NAME}.js" -c -m -o "${DIST_DIR}/${PACKAGE_NAME}.min.js"

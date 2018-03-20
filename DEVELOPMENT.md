@@ -4,7 +4,7 @@
 
 * As a preparatory step, run:
   ```bash
-  yarn run prep
+  yarn
   ```
 * Our TypeScript source code follows the Google
   [clang format](https://clang.llvm.org/docs/ClangFormatStyleOptions.html).

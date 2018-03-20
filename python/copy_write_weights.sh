@@ -16,7 +16,7 @@ set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-yarn run prep
+yarn
 
 cp "${SCRIPTS_DIR}/../node_modules/deeplearn-src/scripts/write_weights.py" \
   "${SCRIPTS_DIR}/tensorflowjs/"

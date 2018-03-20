@@ -19,7 +19,7 @@ YARN=yarn
 TYPEDOC=node_modules/.bin/typedoc
 
 rm -rf "${DOC_DIR}"
-"${YARN}" run prep
+"${YARN}"
 "${TYPEDOC}" --out "${DOC_DIR}" --excludeExternals --excludeNotExported \
   --excludePrivate --mode file --tsconfig tsconfig-doc.json
 

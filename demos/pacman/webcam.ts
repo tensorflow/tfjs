@@ -7,7 +7,7 @@
  * https://opensource.org/licenses/MIT.
  * =============================================================================
  */
-import * as tf from 'deeplearn';
+import * as tf from '@tensorflow/tfjs';
 
 const oneTwentySeven = tf.scalar(127);
 const one = tf.scalar(1);
