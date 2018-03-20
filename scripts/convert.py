@@ -21,15 +21,10 @@ from tensorflow.python.tools import freeze_graph
 
 from google.protobuf import text_format
 
-<<<<<<< HEAD
-sys.path.append(os.path.join(os.path.dirname(__file__),
-                             '..', 'node_modules/deeplearn-src/scripts/'))
-=======
 sys.path.append(
     os.path.join(
         os.path.dirname(__file__), '..',
         'node_modules/deeplearn-src/scripts/'))
->>>>>>> b0f7a902c29db10bba86364a0f704c57db379a3e
 import write_weights as tfc
 
 flags.DEFINE_string('saved_model_dir', '', 'The saved model directory.')
