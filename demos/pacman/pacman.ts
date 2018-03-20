@@ -15,8 +15,7 @@
  *
  * NOTE: This expects you to have run ./scripts/build-mobilenet-demo.sh
  */
-import * as tfl from '@tensorflow/tfjs-layers';
-import * as tf from 'deeplearn';
+import * as tf from '@tensorflow/tfjs';
 
 import {ControllerDataset} from './controller_dataset';
 import {Webcam} from './webcam';
@@ -45,8 +44,8 @@ const webcam = new Webcam(webcamElement);
 
 const trainStatus = document.getElementById('train-status') as HTMLDivElement;
 
-let mobilenet: tfl.Model;
-let model: tfl.Sequential;
+let mobilenet: tf.Model;
+let model: tf.Sequential;
 
 const controllerDataset = new ControllerDataset(NUM_CLASSES);
 
@@ -56,9 +55,9 @@ async function train() {
   await tf.nextFrame();
 
   isPredicting = false;
-  model = tfl.sequential({
+  model = tf.sequential({
     layers: [
-      tfl.layers.flatten({inputShape: [7, 7, 256]}), tfl.layers.dense({
+      tf.layers.flatten({inputShape: [7, 7, 256]}), tf.layers.dense({
         units: getDenseUnits(),
         activation: 'relu',
         kernelInitializer: 'VarianceScaling',
@@ -66,7 +65,7 @@ async function train() {
         useBias: true,
         inputShape: [1000]
       }),
-      tfl.layers.dense({
+      tf.layers.dense({
         units: NUM_CLASSES,
         kernelInitializer: 'VarianceScaling',
         kernelRegularizer: 'L1L2',
@@ -86,15 +85,12 @@ async function train() {
         `Batch size is 0 or NaN. Please choose a non-zero fraction.`);
   }
 
-  model.fit({
-    x: controllerDataset.xs,
-    y: controllerDataset.ys,
+  model.fit(controllerDataset.xs, controllerDataset.ys, {
     batchSize,
     epochs: getEpochs(),
     callbacks: {
-      onBatchEnd: async (batch: number, logs: tfl.Logs) => {
-        const cost = await (logs.loss as tf.Tensor).data();
-        trainStatus.innerText = 'Cost: ' + cost[0].toFixed(5);
+      onBatchEnd: async (batch: number, logs: tf.Logs) => {
+        trainStatus.innerText = 'Cost: ' + logs.loss.toFixed(5);
       }
     }
   });
@@ -142,15 +138,15 @@ function getActivation(img: tf.Tensor3D): tf.Tensor4D {
   return tf.tidy(() => mobilenet.predict(img.expandDims(0)) as tf.Tensor4D);
 }
 
-async function loadMobilenet(): Promise<tfl.Model> {
+async function loadMobilenet(): Promise<tf.Model> {
   // TODO(nsthorat): Move these to GCP when they are no longer JSON.
-  const model = await tfl.loadModel(
+  const model = await tf.loadModel(
       // tslint:disable-next-line:max-line-length
       'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
 
   // Return a model that outputs an internal activation.
   const layer = model.getLayer('conv_pw_13_relu');
-  return tfl.model({inputs: model.inputs, outputs: layer.output});
+  return tf.model({inputs: model.inputs, outputs: layer.output});
 }
 
 let mouseDown = false;

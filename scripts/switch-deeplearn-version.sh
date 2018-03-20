@@ -97,11 +97,11 @@ else
   exit 1
 fi
 
-# Call yarn link / prep / build in the deeplearn source folder.
+# Call yarn link / build in the deeplearn source folder.
 # In case another deeplearn repo has been registered.
 yarn unlink || echo "No deeplearn is registered with yarn link."
 yarn link
-yarn prep
+yarn
 yarn build
 
 # cd back to where we started and call yarn link deeplearn.

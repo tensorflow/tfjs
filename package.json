@@ -32,7 +32,6 @@
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "prep": "yarn && yarn build && cd demos/ && yarn prep && cd ..",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "publish-npm": "./scripts/publish-npm.sh",
