@@ -29,6 +29,8 @@ export class Conv2DProgram implements GPGPUProgram {
     const padLeft = convInfo.padInfo.left;
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
+    const dilationHeight = convInfo.dilationHeight;
+    const dilationWidth = convInfo.dilationWidth;
     const filterHeight = convInfo.filterHeight;
     const filterWidth = convInfo.filterWidth;
 
@@ -52,14 +54,14 @@ export class Conv2DProgram implements GPGPUProgram {
         // ? = to be determined. : = across all values in that axis.
         float dotProd = 0.0;
         for (int wR = 0; wR < ${filterHeight}; wR++) {
-          int xR = xRCorner + wR;
+          int xR = xRCorner + wR * ${dilationHeight};
 
           if (xR < 0 || xR >= ${convInfo.inHeight}) {
             continue;
           }
 
           for (int wC = 0; wC < ${filterWidth}; wC++) {
-            int xC = xCCorner + wC;
+            int xC = xCCorner + wC * ${dilationWidth};
 
             if (xC < 0 || xC >= ${convInfo.inWidth}) {
               continue;

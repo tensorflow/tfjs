@@ -21,7 +21,7 @@ import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('conv2d', ALL_ENVS, () => {
-  it('x=[2,2,1] f=[1,1,1,2] s=1 p=0', () => {
+  it('x=[2,2,1] f=[1,1,1,2] s=1 d=1 p=0', () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
@@ -37,7 +37,7 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expectArraysClose(result, [2, 4, 6, 8]);
   });
 
-  it('x=[2,2,2,1] f=[1,1,1,1] s=1 p=0', () => {
+  it('x=[2,2,2,1] f=[1,1,1,1] s=1 d=1 p=0', () => {
     const inputDepth = 1;
     const inShape: [number, number, number, number] = [2, 2, 2, inputDepth];
     const outputDepth = 1;
@@ -55,20 +55,52 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
-  it('x=[2,2,1] f=[2,2,1,1] s=1 p=0', () => {
+  it('x=[2,2,1] f=[2,2,1,1] s=1 d=1 p=0', () => {
     const inputDepth = 1;
     const inputShape: [number, number, number] = [2, 2, inputDepth];
     const outputDepth = 1;
     const fSize = 2;
     const pad = 0;
     const stride = 1;
+    const dataFormat = 'NHWC';
+    const dilation = 1;
 
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w =
         dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
 
-    const result = dl.conv2d(x, w, stride, pad);
+    const result = dl.conv2d(x, w, stride, pad, dataFormat, dilation);
     expectArraysClose(result, [20]);
+  });
+
+  it('x=[4,4,1] f=[2,2,1,1] s=1 d=2 p=0', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [4, 4, inputDepth];
+    const outputDepth = 1;
+    const fSize = 2;
+    const fSizeDilated = 3;
+    const pad = 0;
+    const stride = 1;
+    const dataFormat = 'NHWC';
+    const dilation = 2;
+    const noDilation = 1;
+
+    const x = dl.tensor3d(
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], inputShape);
+    const w =
+        dl.tensor4d([3, 1, 5, 2], [fSize, fSize, inputDepth, outputDepth]);
+    // adding a dilation rate is equivalent to using a filter
+    // with 0s for the dilation rate
+    const wDilated = dl.tensor4d(
+        [3, 0, 1, 0, 0, 0, 5, 0, 2],
+        [fSizeDilated, fSizeDilated, inputDepth, outputDepth]);
+
+    const result = dl.conv2d(x, w, stride, pad, dataFormat, dilation);
+    const expectedResult =
+        dl.conv2d(x, wDilated, stride, pad, dataFormat, noDilation);
+
+    expect(result.shape).toEqual(expectedResult.shape);
+    expectArraysClose(result, expectedResult);
   });
 
   it('throws when x is not rank 3', () => {
@@ -122,12 +154,35 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     const fSize = 2;
     const pad = 'valid';
     const stride = 1;
+    const dataFormat = 'NHWC';
+    const dilation = 1;
     const dimRoundingMode = 'round';
 
     const x = dl.tensor3d([1, 2, 3, 4], inputShape);
     const w = dl.randomNormal<Rank.R4>([fSize, fSize, inputDepth, outputDepth]);
 
-    expect(() => dl.conv2d(x, w, stride, pad, dimRoundingMode)).toThrowError();
+    expect(
+        () =>
+            dl.conv2d(x, w, stride, pad, dataFormat, dilation, dimRoundingMode))
+        .toThrowError();
+  });
+
+  it('throws when both stride and dilation are greater than 1', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const outputDepth = 1;
+    const fSize = 2;
+    const pad = 0;
+    const stride: [number, number] = [2, 1];
+    const dataFormat = 'NHWC';
+    const dilation: [number, number] = [1, 2];
+
+    const x = dl.tensor3d([1, 2, 3, 4], inputShape);
+    const w =
+        dl.tensor4d([3, 1, 5, 0], [fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => dl.conv2d(x, w, stride, pad, dataFormat, dilation))
+        .toThrowError();
   });
 
   it('gradient input=[3,3,1] f=[2,2,1,1] s=1 p=0', () => {
