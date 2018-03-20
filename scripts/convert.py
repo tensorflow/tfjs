@@ -21,8 +21,15 @@ from tensorflow.python.tools import freeze_graph
 
 from google.protobuf import text_format
 
+<<<<<<< HEAD
 sys.path.append(os.path.join(os.path.dirname(__file__),
                              '..', 'node_modules/deeplearn-src/scripts/'))
+=======
+sys.path.append(
+    os.path.join(
+        os.path.dirname(__file__), '..',
+        'node_modules/deeplearn-src/scripts/'))
+>>>>>>> b0f7a902c29db10bba86364a0f704c57db379a3e
 import write_weights as tfc
 
 flags.DEFINE_string('saved_model_dir', '', 'The saved model directory.')
@@ -31,8 +38,7 @@ flags.DEFINE_string('output_node_names', '',
 flags.DEFINE_string('output_graph', '', 'The name of the output graph file')
 flags.DEFINE_string(
     'saved_model_tags', 'serve',
-    'Tags of the MetaGraphDef to load, in comma separated string format.'
-)
+    'Tags of the MetaGraphDef to load, in comma separated string format.')
 
 FLAGS = flags.FLAGS
 
@@ -47,7 +53,7 @@ def get_cluster():
     return cluster
 
 
-def load_graph(graph_filename):
+def load_graph(graph_filename, output_node_names):
     """Loads GraphDef. Returns Python Graph object.
 
     Args:
@@ -61,14 +67,11 @@ def load_graph(graph_filename):
         # Set name to empty to avoid using the default name 'import'.
         tf.import_graph_def(graph_def, name='')
 
-    for node in FLAGS.output_node_names.split(','):
-        graph.add_to_collection(
-            'train_op', graph.get_operation_by_name(node.strip()))
+    for node in output_node_names.split(','):
+        graph.add_to_collection('train_op',
+                                graph.get_operation_by_name(node.strip()))
 
     return graph
-
-# validate the graph nodes are supported
-
 
 def validate(nodes):
     """Validate if the node's op is compatible with TensorFlow.js.
@@ -84,31 +87,32 @@ def validate(nodes):
             ops += json.load(json_data)
 
     names = set([x['tfOpName'] for x in ops])
-    not_supported = set([x.op for x in [x for x in nodes if (x.op not in
-                                                             names)]])
+    not_supported = set(
+        [x.op for x in [x for x in nodes if x.op not in names]])
     return not_supported
 
 
-def optimize_graph(graph):
+def optimize_graph(graph, output_graph):
     """Takes a Python Graph object and optimizes the graph.
 
     Args:
       graph: tf.Graph tensorflow dataflow graph
     """
     rewriter_config = rewriter_config_pb2.RewriterConfig()
-    rewriter_config.optimizers[:] = ['pruning', 'constfold', 'arithmetic',
-                                     'dependency', 'pruning',
-                                     'constfold', 'arithmetic', 'dependency']
+    rewriter_config.optimizers[:] = [
+        'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning',
+        'constfold', 'arithmetic', 'dependency'
+    ]
     meta_graph = tf.train.export_meta_graph(
         graph_def=graph.as_graph_def(), graph=graph)
     optimized_graph = tf_optimizer.OptimizeGraph(
         rewriter_config, meta_graph, cluster=get_cluster())
 
-    extract_weights(graph, optimized_graph)
+    extract_weights(graph, optimized_graph, output_graph)
     return optimize_graph
 
 
-def extract_weights(graph, graph_def):
+def extract_weights(graph, graph_def, output_graph):
     """Takes a Python GraphDef object and extract the weights.
 
     Args:
@@ -117,9 +121,9 @@ def extract_weights(graph, graph_def):
         the model topology
     """
     constants = [node for node in graph_def.node if node.op == 'Const']
-    print('Writing weight file ' + FLAGS.output_graph + '...')
+    print('Writing weight file ' + output_graph + '...')
     const_manifest = []
-    path = os.path.dirname(FLAGS.output_graph)
+    path = os.path.dirname(output_graph)
 
     with tf.Session(graph=graph) as sess:
         for const in constants:
@@ -136,30 +140,50 @@ def extract_weights(graph, graph_def):
     tfc.write_weights([const_manifest], path)
 
     file_io.atomic_write_string_to_file(
-        os.path.abspath(FLAGS.output_graph), graph_def.SerializeToString())
+        os.path.abspath(output_graph), graph_def.SerializeToString())
 
     file_io.atomic_write_string_to_file(
-        os.path.abspath(FLAGS.output_graph+'txt'), text_format.MessageToString(graph_def))
+        os.path.abspath(output_graph + 'txt'),
+        text_format.MessageToString(graph_def))
 
 
-def main(_):
+def convert(output_node_names, output_graph, saved_model_tags,
+            saved_model_dir):
     """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
     Optimize and convert the model to Tensorflow.js format, when the model passes
     the compatiblity check.
+
+    Args
+      output_node_names: string The names of the output nodes, comma separated.
+      output_graph: string The name of the output graph file.
+      saved_model_tags: string Tagset of the MetaGraphDef to load, in comma separated string format.
+      saved_model_dir: string The saved model directory.
+
     """
-    # Freeze the graph
-    freeze_graph.freeze_graph('', '', True, '',
-                              FLAGS.output_node_names,
-                              '', '',
-                              FLAGS.output_graph + '.frozen', True, '',
-                              saved_model_tags=FLAGS.saved_model_tags,
-                              input_saved_model_dir=FLAGS.saved_model_dir)
-    graph = load_graph(FLAGS.output_graph + '.frozen')
+    freeze_graph.freeze_graph(
+        '',
+        '',
+        True,
+        '',
+        output_node_names,
+        '',
+        '',
+        output_graph + '.frozen',
+        True,
+        '',
+        saved_model_tags=saved_model_tags,
+        input_saved_model_dir=saved_model_dir)
+    graph = load_graph(output_graph + '.frozen', output_node_names)
     unsupported = validate(graph.as_graph_def().node)
     if unsupported:
         print('Unsupported Ops in the model\n' + ', '.join(unsupported))
     else:
-        optimize_graph(graph)
+        optimize_graph(graph, output_graph)
+
+
+def main(_):
+    convert(FLAGS.output_node_names, FLAGS.output_graph,
+            FLAGS.saved_model_tags, FLAGS.saved_model_dir)
 
 
 if __name__ == '__main__':
