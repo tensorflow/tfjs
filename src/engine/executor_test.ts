@@ -101,13 +101,13 @@ describeMathCPUAndGPU('Executor', () => {
   it('Linear Graph Topology', () => {
     const x = Input({shape: [2], name: 'fooInput', dtype: DType.float32});
     const denseLayer1 =
-        new Dense({units: 5, activation: 'linear', kernelInitializer: 'Ones'});
+        new Dense({units: 5, activation: 'linear', kernelInitializer: 'ones'});
     const y = denseLayer1.apply(x);
     const u = Input({shape: [2], name: 'fooInput', dtype: DType.float32});
     const denseLayer2 =
-        new Dense({units: 5, activation: 'linear', kernelInitializer: 'Ones'});
+        new Dense({units: 5, activation: 'linear', kernelInitializer: 'ones'});
     const denseLayer3 =
-        new Dense({units: 3, activation: 'linear', kernelInitializer: 'Ones'});
+        new Dense({units: 3, activation: 'linear', kernelInitializer: 'ones'});
     const v = denseLayer2.apply(u);
     const w = denseLayer3.apply(v);
 
@@ -153,20 +153,20 @@ describeMathCPUAndGPU('Executor', () => {
     const denseLayer1 = new Dense({
       units: 5,
       activation: 'linear',
-      kernelInitializer: 'Ones',
+      kernelInitializer: 'ones',
       name: 'denseLayer1'
     });
     const y = denseLayer1.apply(x);
     const denseLayer2 = new Dense({
       units: 4,
       activation: 'linear',
-      kernelInitializer: 'Ones',
+      kernelInitializer: 'ones',
       name: 'denseLayer2'
     });
     const denseLayer3 = new Dense({
       units: 3,
       activation: 'linear',
-      kernelInitializer: 'Ones',
+      kernelInitializer: 'ones',
       name: 'denseLayer3'
     });
     const z1 = denseLayer2.apply(y) as SymbolicTensor;
@@ -184,7 +184,7 @@ describeMathCPUAndGPU('Executor', () => {
       expectTensorsClose(
           outputs[0], tensor2d([10, 10, 10, 10, 10, 10, 10, 10], [2, 4]));
       expectTensorsClose(
-          outputs[1], tensor2d([2, 3], [10, 10, 10, 10, 10, 10]));
+          outputs[1], tensor2d([10, 10, 10, 10, 10, 10], [2, 3]));
       // The counter should have been incremented twice, because execute() is
       // called twice, once on CPU and once on GPU.
       expect(callCounter).toEqual(2);

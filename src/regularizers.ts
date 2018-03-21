@@ -115,7 +115,13 @@ export function l2(config: L2Config) {
 }
 
 /** @docinline */
-export type RegularizerIdentifier = 'L1L2'|string;
+export type RegularizerIdentifier = 'l1l2'|string;
+
+// Maps the JavaScript-like identifier keys to the corresponding keras symbols.
+export const REGULARIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP:
+    {[identifier in RegularizerIdentifier]: string} = {
+      'l1l2': 'L1L2'
+    };
 
 export function serializeRegularizer(constraint: Regularizer): ConfigDictValue {
   return serializeKerasObject(constraint);
@@ -134,7 +140,10 @@ export function getRegularizer(identifier: RegularizerIdentifier|ConfigDict|
     return null;
   }
   if (typeof identifier === 'string') {
-    const config = {className: identifier, config: {}};
+    const className = identifier in REGULARIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP ?
+        REGULARIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP[identifier] :
+        identifier;
+    const config = {className, config: {}};
     return deserializeRegularizer(config);
   } else if (identifier instanceof Regularizer) {
     return identifier;

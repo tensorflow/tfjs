@@ -765,35 +765,43 @@ export class SimpleRNNCell extends RNNCell {
   readonly recurrentDropout: number;
 
   readonly stateSize: number;
-  private readonly dropoutMask: Tensor;
-  private readonly recurrentDropoutMask: Tensor;
 
   kernel: LayerVariable;
   recurrentKernel: LayerVariable;
   bias: LayerVariable;
 
   readonly DEFAULT_ACTIVATION = 'tanh';
-  readonly DEFAULT_KERNEL_INITIALIZER = 'GlorotNormal';
-  readonly DEFAULT_RECURRENT_INITIALIZER = 'Orthogonal';
+  readonly DEFAULT_KERNEL_INITIALIZER = 'glorotNormal';
+  readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
   // Porting Note: The default recurrent kernel initializer, 'Orthogonal',
   //   is not supported by the initializers yet, due to the lack
-  //   of singular-value decompoistion (SVD) in the deeplearn.js backend.
+  //   of singular-value decomposition (SVD) in the deeplearn.js backend.
   // TODO(cais): Remove this porting note when 'Orthogonal' initializer is
   //   available.
-  readonly DEFAULT_BIAS_INITIALIZER = 'Zeros';
+
+  readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
 
   constructor(config: SimpleRNNCellLayerConfig) {
     super(config);
     this.units = config.units;
     this.activation = getActivation(
-        config.activation === undefined ? this.DEFAULT_ACTIVATION :
-                                          config.activation);
-    this.useBias = config.useBias === undefined ? true : config.useBias;
+        config.activation == null ? this.DEFAULT_ACTIVATION :
+                                    config.activation);
+    this.useBias = config.useBias == null ? true : config.useBias;
 
     this.kernelInitializer = getInitializer(
         config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
+
+    if (config.recurrentInitializer == null) {
+      // TODO(cais|nsthorat): Remove this and default to orthogonal once we
+      // support SVD in tfjs-core.
+      throw new ValueError(
+          `Currently the default 'orthogonal' intializer is not implemented. ` +
+          `Please specify a recurrent kernel initializer`);
+    }
     this.recurrentInitializer = getInitializer(
         config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
+
     this.biasInitializer =
         getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
 
@@ -813,8 +821,6 @@ export class SimpleRNNCell extends RNNCell {
           [0, config.recurrentDropout == null ? 0 : config.recurrentDropout])
     ]);
     this.stateSize = this.units;
-    this.dropoutMask = null;
-    this.recurrentDropoutMask = null;
   }
 
   build(inputShape: Shape|Shape[]): void {
@@ -1133,20 +1139,19 @@ export class GRUCell extends RNNCell {
   readonly recurrentDropout: number;
 
   readonly stateSize: number;
-  private readonly dropoutMask: Tensor;
-  private readonly recurrentDropoutMask: Tensor;
   readonly implementation: number;
 
   readonly DEFAULT_ACTIVATION = 'tanh';
   readonly DEFAULT_RECURRENT_ACTIVATION = 'hardSigmoid';
-  readonly DEFAULT_KERNEL_INITIALIZER = 'GlorotNormal';
-  readonly DEFAULT_RECURRENT_INITIALIZER = 'Orthogonal';
+  readonly DEFAULT_KERNEL_INITIALIZER = 'glorotNormal';
+  readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
   // Porting Note: The default recurrent kernel initializer, 'Orthogonal',
   //   is not supported by the initializers yet, due to the lack
   //   of singular-value decomposition (SVD) in the deeplearn.js backend.
   // TODO(cais): Remove this porting note when 'Orthogonal' initializer is
   //   available.
-  readonly DEFAULT_BIAS_INITIALIZER = 'Zeros';
+
+  readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
 
   kernel: LayerVariable;
   recurrentKernel: LayerVariable;
@@ -1166,8 +1171,16 @@ export class GRUCell extends RNNCell {
 
     this.kernelInitializer = getInitializer(
         config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-    this.recurrentInitializer = getInitializer(
-        config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
+
+    if (config.recurrentInitializer == null) {
+      // TODO(cais|nsthorat): Remove this and default to orthogonal once we
+      // support SVD in tfjs-core.
+      throw new ValueError(
+          `Currently the default 'orthogonal' intializer is not implemented. ` +
+          `Please specify a recurrent kernel initializer`);
+    }
+    this.recurrentInitializer = getInitializer(config.recurrentInitializer);
+
     this.biasInitializer =
         getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
 
@@ -1188,8 +1201,6 @@ export class GRUCell extends RNNCell {
     ]);
     this.implementation = config.implementation;
     this.stateSize = this.units;
-    this.dropoutMask = null;
-    this.recurrentDropoutMask = null;
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -1486,7 +1497,7 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
 
   /**
    * If `true`, add 1 to the bias of the forget gate at initialization.
-   * Setting it to `true` will also force `biasInitializer = 'Zeros'`.
+   * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
    * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
@@ -1503,7 +1514,7 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
    * have different performance profiles on different hardware and
    * for different applications.
    */
-  implementation?: number;
+  implementation?: 1|2;
 }
 
 /**
@@ -1532,20 +1543,19 @@ export class LSTMCell extends RNNCell {
   readonly recurrentDropout: number;
 
   readonly stateSize: number[];
-  private readonly dropoutMask: Tensor;
-  private readonly recurrentDropoutMask: Tensor;
   readonly implementation: number;
 
   readonly DEFAULT_ACTIVATION = 'tanh';
   readonly DEFAULT_RECURRENT_ACTIVATION = 'hardSigmoid';
-  readonly DEFAULT_KERNEL_INITIALIZER = 'GlorotNormal';
-  readonly DEFAULT_RECURRENT_INITIALIZER = 'Orthogonal';
-  // Porting Note: The default recurrent kernel initializer, 'Orthogonal',
+  readonly DEFAULT_KERNEL_INITIALIZER = 'glorotNormal';
+  readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
+  // Porting Note: The default recurrent kernel initializer, 'orthogonal',
   //   is not supported by the initializers yet, due to the lack
   //   of singular-value decomposition (SVD) in the deeplearn.js backend.
   // TODO(cais): Remove this porting note when 'Orthogonal' initializer is
   //   available.
-  readonly DEFAULT_BIAS_INITIALIZER = 'Zeros';
+
+  readonly DEFAULT_BIAS_INITIALIZER = 'zeros';
 
   kernel: LayerVariable;
   recurrentKernel: LayerVariable;
@@ -1565,8 +1575,16 @@ export class LSTMCell extends RNNCell {
 
     this.kernelInitializer = getInitializer(
         config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-    this.recurrentInitializer = getInitializer(
-        config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
+
+    if (config.recurrentInitializer == null) {
+      // TODO(cais|nsthorat): Remove this and default to orthogonal once we
+      // support SVD in tfjs-core.
+      throw new ValueError(
+          `Currently the default 'orthogonal' intializer is not implemented. ` +
+          `Please specify a recurrent kernel initializer`);
+    }
+    this.recurrentInitializer = getInitializer(config.recurrentInitializer);
+
     this.biasInitializer =
         getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
     this.unitForgetBias = config.unitForgetBias;
@@ -1588,8 +1606,6 @@ export class LSTMCell extends RNNCell {
     ]);
     this.implementation = config.implementation;
     this.stateSize = [this.units, this.units];
-    this.dropoutMask = null;
-    this.recurrentDropoutMask = null;
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -1767,7 +1783,7 @@ generic_utils.ClassNameMap.register('LSTMCell', LSTMCell);
 export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
   /**
    * If `true`, add 1 to the bias of the forget gate at initialization.
-   * Setting it to `true` will also force `biasInitializer = 'Zeros'`.
+   * Setting it to `true` will also force `biasInitializer = 'zeros'`.
    * This is recommended in
    * [Jozefowicz et
    * al.](http://www.jmlr.org/proceedings/papers/v37/jozefowicz15.pdf).
@@ -1782,7 +1798,7 @@ export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
    *   have different performance profiles on different hardware and
    *   for different applications.
    */
-  implementation?: number;
+  implementation?: 1|2;
 }
 
 /**
@@ -1790,7 +1806,7 @@ export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
  */
 export class LSTM extends RNN {
   constructor(config: LSTMLayerConfig) {
-    if (config.implementation === 0) {
+    if (config.implementation as number === 0) {
       console.warn(
           '`implementation=0` has been deprecated, and now defaults to ' +
           '`implementation=1`. Please update your layer call.');

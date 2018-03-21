@@ -155,8 +155,8 @@ export abstract class Conv extends Layer {
   protected kernel: LayerVariable = null;
   protected bias: LayerVariable = null;
 
-  readonly DEFAULT_KERNEL_INITIALIZER = 'GlorotNormal';
-  readonly DEFAULT_BIAS_INITIALIZER = 'Zeros';
+  readonly DEFAULT_KERNEL_INITIALIZER: InitializerIdentifier = 'glorotNormal';
+  readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
 
   constructor(rank: number, config: ConvLayerConfig) {
     super(config);

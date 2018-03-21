@@ -215,8 +215,8 @@ export class Dense extends Layer {
   private kernel: LayerVariable = null;
   private bias: LayerVariable = null;
 
-  readonly DEFAULT_KERNEL_INITIALIZER = 'GlorotNormal';
-  readonly DEFAULT_BIAS_INITIALIZER = 'Zeros';
+  readonly DEFAULT_KERNEL_INITIALIZER: InitializerIdentifier = 'glorotNormal';
+  readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
   private readonly kernelConstraint?: Constraint;
   private readonly biasConstraint?: Constraint;
   private readonly kernelRegularizer?: Regularizer;

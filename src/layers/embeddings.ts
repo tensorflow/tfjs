@@ -93,7 +93,8 @@ export class Embedding extends Layer {
 
   private embeddings: LayerVariable = null;
 
-  readonly DEFAULT_EMBEDDINGS_INITIALIZER = 'RandomUniform';
+  readonly DEFAULT_EMBEDDINGS_INITIALIZER: InitializerIdentifier =
+      'randomUniform';
   private readonly embeddingsRegularizer?: Regularizer;
   private readonly embeddingsConstraint?: Constraint;
 

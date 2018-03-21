@@ -515,9 +515,27 @@ ClassNameMap.register('LeCunNormal', LeCunNormal);
 //   https://github.com/PAIR-code/deeplearnjs/issues/245
 
 /** @docinline */
-export type InitializerIdentifier = 'Constant'|'GlorotNormal'|'GlorotUniform'|
-    'HeNormal'|'Identity'|'LeCunNormal'|'Ones'|'RandomNormal'|'RandomUniform'|
-    'TruncatedNormal'|'VarianceScaling'|'Zeros'|string;
+export type InitializerIdentifier = 'constant'|'glorotNormal'|'glorotUniform'|
+    'heNormal'|'identity'|'leCunNormal'|'ones'|'randomNormal'|'randomUniform'|
+    'truncatedNormal'|'varianceScaling'|'zeros'|string;
+
+// Maps the JavaScript-like identifier keys to the corresponding registry
+// symbols.
+export const INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP:
+    {[identifier in InitializerIdentifier]: string} = {
+      'constant': 'Constant',
+      'glorotNormal': 'GlorotNormal',
+      'glorotUniform': 'GlorotUniform',
+      'heNormal': 'HeNormal',
+      'identity': 'Identity',
+      'leCunNormal': 'LeCunNormal',
+      'ones': 'Ones',
+      'randomNormal': 'RandomNormal',
+      'randomUniform': 'RandomUniform',
+      'truncatedNormal': 'TruncatedNormal',
+      'varianceScaling': 'VarianceScaling',
+      'zeros': 'Zeros'
+    };
 
 function deserializeInitializer(
     config: ConfigDict, customObjects: ConfigDict = {}): Initializer {
@@ -534,7 +552,10 @@ export function serializeInitializer(initializer: Initializer):
 export function getInitializer(identifier: InitializerIdentifier|Initializer|
                                ConfigDict): Initializer {
   if (typeof identifier === 'string') {
-    const config = {className: identifier, config: {}};
+    const className = identifier in INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP ?
+        INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP[identifier] :
+        identifier;
+    const config = {className, config: {}};
     return deserializeInitializer(config);
   } else if (identifier instanceof Initializer) {
     return identifier;

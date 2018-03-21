@@ -688,7 +688,7 @@ export function randomUniform(
  */
 export function randomUniformVariable(
     shape: Shape, minval: number, maxval: number, dtype?: DType, seed?: number,
-    name = 'RandomUniform'): LayerVariable {
+    name = 'randomUniform'): LayerVariable {
   return new LayerVariable(
       randomUniform(shape, minval, maxval, dtype, seed), dtype, name);
 }
@@ -730,7 +730,7 @@ export function truncatedNormal(
  */
 export function truncatedNormalVariable(
     shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType, seed?: number,
-    name = 'TruncatedNormal'): LayerVariable {
+    name = 'truncatedNormal'): LayerVariable {
   // TODO(cais): Implement logic for dtype and seed once they are supported
   // by deeplearn.js.
   return new LayerVariable(
@@ -769,7 +769,7 @@ export function randomNormal(
  */
 export function randomNormalVariable(
     shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType, seed?: number,
-    name = 'RandomNormal'): LayerVariable {
+    name = 'randomNormal'): LayerVariable {
   return new LayerVariable(
       randomNormal(shape, mean, stddev, dtype, seed), dtype, name);
 }
