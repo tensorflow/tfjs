@@ -16,7 +16,6 @@
  */
 
 import {BrowserUtil} from './browser_util';
-import * as contrib from './contrib';
 import * as xhr_dataset from './data/xhr-dataset';
 import * as environment from './environment';
 import {Environment} from './environment';
@@ -54,7 +53,6 @@ export {loadWeights} from './weights_loader';
 export {version as version_core};
 // Second level exports.
 export {
-  contrib,
   conv_util,
   environment,
   gpgpu_util,
