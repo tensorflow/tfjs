@@ -11,6 +11,4 @@ dist/
 
 bazel-*
 
-python/tensorflowjs/write_weights.py
-
 *.pyc

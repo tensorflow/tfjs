@@ -62,7 +62,7 @@ def dispatch_pykeras_conversion(h5_path, output_dir=None):
 
 def main():
   parser = argparse.ArgumentParser(
-      'TensorFlow.js model converters.'
+      'TensorFlow.js model converters.')
   parser.add_argument(
       'input_path',
       type=str,

@@ -33,3 +33,13 @@ py_library(
         ":expect_numpy_installed",
     ],
 )
+
+py_test(
+    name = "write_weights_test",
+    srcs = ["write_weights_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":expect_numpy_installed",
+        ":write_weights",
+    ],
+)
