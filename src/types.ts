@@ -59,9 +59,10 @@ export interface TensorInterface {
 let _nextUniqueTensorId = 0;
 
 /**
- * `SymbolicTensor` is a symbolic `Tensor` without any concrete value.
- * It can be used during the building phase of models that involve no actual
- * execution of the computation defined in the model.
+ * `SymbolicTensor` is a placeholder for a Tensor without any concrete value.
+ *
+ * They are most often encountered when building a graph of `Layer`s for a
+ * a `Model` and the input data's shape, but not values are known.
  */
 @doc({heading: 'Models', 'subheading': 'Classes'})
 export class SymbolicTensor implements TensorInterface {

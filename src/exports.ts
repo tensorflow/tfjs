@@ -213,10 +213,10 @@ export class LayerExports {
     return new DepthwiseConv2D(config);
   }
 
-  // Core Layers.
+  // Basic Layers.
   @doc({
     heading: 'Layers',
-    subheading: 'Core',
+    subheading: 'Basic',
     namespace: 'layers',
     useDocsFrom: 'Activation',
     configParamIndices: [0]
@@ -227,7 +227,7 @@ export class LayerExports {
 
   @doc({
     heading: 'Layers',
-    subheading: 'Core',
+    subheading: 'Basic',
     namespace: 'layers',
     useDocsFrom: 'Dense',
     configParamIndices: [0]
@@ -238,7 +238,7 @@ export class LayerExports {
 
   @doc({
     heading: 'Layers',
-    subheading: 'Core',
+    subheading: 'Basic',
     namespace: 'layers',
     useDocsFrom: 'Dropout',
     configParamIndices: [0]
@@ -249,7 +249,7 @@ export class LayerExports {
 
   @doc({
     heading: 'Layers',
-    subheading: 'Core',
+    subheading: 'Basic',
     namespace: 'layers',
     useDocsFrom: 'Flatten',
     configParamIndices: [0]
@@ -260,7 +260,7 @@ export class LayerExports {
 
   @doc({
     heading: 'Layers',
-    subheading: 'Core',
+    subheading: 'Basic',
     namespace: 'layers',
     useDocsFrom: 'RepeatVector',
     configParamIndices: [0]
@@ -271,7 +271,7 @@ export class LayerExports {
 
   @doc({
     heading: 'Layers',
-    subheading: 'Core',
+    subheading: 'Basic',
     namespace: 'layers',
     useDocsFrom: 'Embedding',
     configParamIndices: [0]

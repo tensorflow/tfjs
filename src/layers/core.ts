@@ -9,7 +9,7 @@
  */
 
 /**
- * TensorFlow.js Layers: Core Layers.
+ * TensorFlow.js Layers: Basic Layers.
  */
 
 import {Scalar, Tensor} from '@tensorflow/tfjs-core';

@@ -328,7 +328,7 @@ let _nextLayerID = 0;
  * create a `Model`.
  *
  * Layers are constructed by using the functions under the
- * [tf.layers](#Layers-Core) namespace.
+ * [tf.layers](#Layers-Basic) namespace.
  */
 @doc({heading: 'Layers', subheading: 'Classes', namespace: 'layers'})
 export class Layer {
@@ -757,22 +757,16 @@ export class Layer {
   }
 
   /**
-   * Wrapper around this.call(), for handling internal references.
+   * Builds or executes a `Layer's logic.
    *
-   * This is a replacement for __call__() in Python.
+   * When called with `Tensor`(s), execute the `Layer`s computation and
+   * return Tensor(s).
    *
-   * If a `SymbolicTensor` is passed:
-   *   - We call this.addInboundNode().
-   *   - If necessary, we `build` the layer to match
-   *       the shape of the input(s).
-   *   - We update the shape of every input tensor with
-   *       its new shape (obtained via self.computeOutputShape).
-   *       This is done as part of addInboundNode().
-   *   - We update the history of the output tensor(s)
-   *       with the current layer.
-   *       This is done as part of addInboundNode().
+   * When called with `SymbolicTensor`(s), this will prepare the layer for
+   * future execution.  This entails internal book-keeping on shapes of
+   * expected Tensors, wiring layers together, and initializing weights.
    *
-   * @param inputs Can be a tensor or list/tuple of tensors.
+   * @param inputs a `Tensor` or `SymbolicTensor` or an Array of them.
    * @param kwargs Additional keyword arguments to be passed to `call()`.
    *
    * @return Output of the layer's `call` method.
@@ -780,6 +774,7 @@ export class Layer {
    * @exception ValueError error in case the layer is missing shape information
    *   for its `build` call.
    */
+  // Porting Note: This is a replacement for __call__() in Python.
   @doc({heading: 'Models', 'subheading': 'Classes'})
   apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
