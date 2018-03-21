@@ -18,7 +18,7 @@ import {doc} from '@tensorflow/tfjs-core';
 import {MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';
 import {Model} from './engine/training';
-import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, LeCunNormal, Ones, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
+import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, LeCunNormal, Ones, Orthogonal, OrthogonalConfig, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
 import {Conv1D, Conv2D, ConvLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
 import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig} from './layers/core';
@@ -728,6 +728,16 @@ export class InitializerExports {
   })
   static leCunNormal(config: SeedOnlyInitializerConfig): LeCunNormal {
     return new LeCunNormal(config);
+  }
+
+  @doc({
+    heading: 'Initializers',
+    namespace: 'initializers',
+    useDocsFrom: 'Orthogonal',
+    configParamIndices: [0]
+  })
+  static orthogonal(config: OrthogonalConfig): Orthogonal {
+    return new Orthogonal(config);
   }
 }
 
