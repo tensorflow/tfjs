@@ -1,0 +1,123 @@
+{
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "definitions": {
+        "Category": {
+            "enum": [
+                "arithmetic",
+                "basic_math",
+                "convolution",
+                "creation",
+                "graph",
+                "logical",
+                "matrices",
+                "normalization",
+                "reduction",
+                "slice_join",
+                "transformation"
+            ],
+            "type": "string"
+        },
+        "OpMapper": {
+            "properties": {
+                "category": {
+                    "$ref": "#/definitions/Category"
+                },
+                "dlOpName": {
+                    "type": "string"
+                },
+                "params": {
+                    "items": {
+                        "$ref": "#/definitions/ParamMapper"
+                    },
+                    "type": "array"
+                },
+                "tfOpName": {
+                    "type": "string"
+                },
+                "unsupportedParams": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "ParamMapper": {
+            "properties": {
+                "converter": {
+                    "type": "string"
+                },
+                "defaultValue": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "type": "string"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "items": {
+                                "type": "number"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "items": {
+                                "type": "boolean"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": [
+                                "string",
+                                "number",
+                                "boolean"
+                            ]
+                        }
+                    ]
+                },
+                "dlParamName": {
+                    "type": "string"
+                },
+                "notSupported": {
+                    "type": "boolean"
+                },
+                "tfInputIndex": {
+                    "type": "number"
+                },
+                "tfInputParamLength": {
+                    "type": "number"
+                },
+                "tfParamName": {
+                    "type": "string"
+                },
+                "tfParamNameDeprecated": {
+                    "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/ParamTypes"
+                }
+            },
+            "type": "object"
+        },
+        "ParamTypes": {
+            "enum": [
+                "bool",
+                "dtype",
+                "number",
+                "number[]",
+                "shape",
+                "string",
+                "tensor",
+                "tensors"
+            ],
+            "type": "string"
+        }
+    },
+    "items": {
+        "$ref": "#/definitions/OpMapper"
+    },
+    "type": "array"
+}
+

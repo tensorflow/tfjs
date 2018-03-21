@@ -100,12 +100,12 @@
         "type": "tensor"
       },
       {
-        "tfInputIndex": "clip_value_min",
+        "tfParamName": "clip_value_min",
         "dlParamName": "clipValueMin",
         "type": "number"
       },
       {
-        "tfInputIndex": "clip_value_max",
+        "tfParamName": "clip_value_max",
         "dlParamName": "clipValueMax",
         "type": "number"
       }

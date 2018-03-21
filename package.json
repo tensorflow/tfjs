@@ -18,6 +18,7 @@
     "@tensorflow/tfjs-core": "0.0.2",
     "@types/jasmine": "~2.8.6",
     "@types/seedrandom": "~2.4.27",
+    "ajv": "~6.3.0",
     "browserify": "~16.1.0",
     "browserify-shim": "~3.8.14",
     "clang-format": "~1.2.2",
