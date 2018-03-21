@@ -9,9 +9,9 @@
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
 
-"@tensorflow/tfjs-layers@0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.5.tgz#b9f2a96b2af3a5d610027b90e181d1f36abfff94"
+"@tensorflow/tfjs-layers@0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.6.tgz#b771777d45c37722e700bc36c72e23cc0ae07766"
   dependencies:
     underscore "~1.8.3"
 
