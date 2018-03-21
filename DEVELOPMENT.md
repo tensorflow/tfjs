@@ -76,7 +76,6 @@ you prefer.
 
    ```sh
    cd python
-   ./copy_write_weights.sh
    bazel test scripts/...
    ```
 

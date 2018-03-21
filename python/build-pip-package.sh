@@ -25,8 +25,6 @@ DEST_DIR="$1"
 
 mkdir -p "${DEST_DIR}"
 
-"${SCRIPTS_DIR}/copy_write_weights.sh"
-
 TMP_DIR=$(mktemp -d)
 echo "Using temporary directory: ${TMP_DIR}"
 

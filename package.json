@@ -12,7 +12,6 @@
     "browserify": "~16.1.0",
     "clang-format": "~1.2.2",
     "cross-spawn": "~5.1.0",
-    "deeplearn-src": "PAIR-code/deeplearnjs",
     "http-server": "~0.10.0",
     "jasmine-core": "~2.6.4",
     "karma": "~1.7.0",
