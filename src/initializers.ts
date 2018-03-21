@@ -9,12 +9,12 @@
  */
 
 // tslint:disable:max-line-length
-import {doc, scalar, Scalar, Tensor} from '@tensorflow/tfjs-core';
+import {doc, scalar, Scalar, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import * as K from './backend/deeplearnjs_backend';
 import {checkDataFormat, DataFormat} from './common';
-import {ValueError} from './errors';
+import {NotImplementedError, ValueError} from './errors';
 import {DType, Shape} from './types';
 import {ConfigDict, ConfigDictValue} from './types';
 import {ClassNameMap, Constructor, deserializeKerasObject, SerializableEnumRegistry, serializeKerasObject} from './utils/generic_utils';
@@ -407,7 +407,7 @@ ClassNameMap.register('VarianceScaling', VarianceScaling);
 
 export interface SeedOnlyInitializerConfig {
   /** Random number generator seed. */
-  seed: number;
+  seed?: number;
 }
 
 /**
@@ -511,13 +511,66 @@ export class LeCunNormal extends VarianceScaling {
 }
 ClassNameMap.register('LeCunNormal', LeCunNormal);
 
-// TODO(cais): Implement Orthogonal once the deeplearn.js feature is fulfilled:
-//   https://github.com/PAIR-code/deeplearnjs/issues/245
+export interface OrthogonalConfig extends SeedOnlyInitializerConfig {
+  /**
+   * Multiplicative factor to apply to the orthogonal matrix. Defaults to 1.
+   */
+  gain?: number;
+}
+
+/**
+ * Initializer that generates a random orthogonal matrix.
+ *
+ * Reference:
+ * [Saxe et al., http://arxiv.org/abs/1312.6120](http://arxiv.org/abs/1312.6120)
+ */
+export class Orthogonal extends Initializer {
+  readonly DEFAULT_GAIN = 1;
+  protected readonly gain: number;
+  protected readonly seed: number;
+
+  constructor(config?: OrthogonalConfig) {
+    super();
+    this.gain = config.gain == null ? this.DEFAULT_GAIN : config.gain;
+    this.seed = config.seed;
+
+    if (this.seed != null) {
+      throw new NotImplementedError(
+          'Random seed is not implemented for Orthogonal Initializer yet.');
+    }
+  }
+
+  apply(shape: Shape, dtype?: DType): Tensor {
+    if (shape.length !== 2) {
+      throw new NotImplementedError(
+          'The Orthogonal Initializer does not support non-2D shapes yet.');
+    }
+    const normalizedShape = shape[0] >= shape[1] ? shape : [shape[1], shape[0]];
+    // TODO(cais): Add seed support.
+    const a = K.randomNormal(normalizedShape, 0, 1, DType.float32);
+    let q = K.qr(a as Tensor2D)[0];
+    if (q.shape[1] > normalizedShape[1]) {
+      q = q.slice([0, 0], normalizedShape);
+    }
+    if (shape[0] < shape[1]) {
+      q = q.transpose();
+    }
+    return K.scalarTimesArray(K.getScalar(this.gain), q);
+  }
+
+  getConfig(): ConfigDict {
+    return {
+      gain: this.gain,
+      seed: this.seed,
+    };
+  }
+}
+ClassNameMap.register('Orthogonal', Orthogonal);
 
 /** @docinline */
 export type InitializerIdentifier = 'constant'|'glorotNormal'|'glorotUniform'|
-    'heNormal'|'identity'|'leCunNormal'|'ones'|'randomNormal'|'randomUniform'|
-    'truncatedNormal'|'varianceScaling'|'zeros'|string;
+    'heNormal'|'identity'|'leCunNormal'|'ones'|'orthogonal'|'randomNormal'|
+    'randomUniform'|'truncatedNormal'|'varianceScaling'|'zeros'|string;
 
 // Maps the JavaScript-like identifier keys to the corresponding registry
 // symbols.
@@ -530,6 +583,7 @@ export const INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP:
       'identity': 'Identity',
       'leCunNormal': 'LeCunNormal',
       'ones': 'Ones',
+      'orthogonal': 'Orthogonal',
       'randomNormal': 'RandomNormal',
       'randomUniform': 'RandomUniform',
       'truncatedNormal': 'TruncatedNormal',

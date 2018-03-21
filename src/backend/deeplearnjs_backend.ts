@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, variableGrads} from '@tensorflow/tfjs-core';
+import {onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
@@ -841,6 +841,107 @@ export function dot(x: Tensor, y: Tensor): Tensor {
           `x shape = ${shape}`);
     }
   }
+}
+
+/**
+ * Compute the sign Tensor of an input Tensor.
+ *
+ * Elements of the input `Tensor` that are === 0 are mapped to 0.
+ * Elements of the input `Tensor` that are > 0 are mapped to 1.
+ * Elements of the input `Tensor` that are < 0 are mapped to -1.
+ *
+ * @param x Input `Tensor`.
+ * @return The sign `Tensor`.
+ */
+export function sign(x: Tensor): Tensor {
+  // TOOD(cais): Move to the core.
+  const zerosLikeX = coreZerosLike(x);
+  const onesLikeX = coreOnesLike(x);
+  return where(
+      equal(x, zerosLikeX), zerosLikeX,
+      where(
+          greater(x, coreZerosLike(x)), onesLikeX,
+          scalarTimesArray(getScalar(-1), onesLikeX)));
+}
+
+/**
+ * Compute QR decomposition of m-by-n matrix using Householder transformation.
+ *
+ * Requires `m >= n`.
+ *
+ * Implementation based on
+ *   [http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf]
+ * (http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf)
+ *
+ * @param x The 2D `Tensor` (matrix) to be QR-decomposed. Must have
+ *   `x.shape[0] >= x.shape[1]`.
+ * @return An `Array` of two `Tensor`s: `[Q, R]`, where `Q` is a unitary
+ *   matrix of size `[x.shape[0], x.shape[0]]`. `R` has the same shape as
+ *   `x`.
+ * @throws ValueError if `x.shape[0] < x.shape[1]`, or if `x`'s rank is not 2.
+ */
+export function qr(x: Tensor2D): [Tensor, Tensor] {
+  // TODO(cais): Extend support to >2D as in `tf.qr` and move this function to
+  //   the core.
+  if (x.shape.length !== 2) {
+    throw new ValueError(
+        `qr() requires a 2D Tensor, but got a ${x.shape.length}D Tensor.`);
+  }
+  if (x.shape[0] < x.shape[1]) {
+    throw new ValueError(
+        `qr() requires x.shape[0] >= x.shape[1], but got shape: [${x.shape}]`);
+  }
+
+  const m = x.shape[0];
+  const n = x.shape[1];
+
+  let q = eye(m) as Tensor2D;  // Orthogonal transform so far.
+  let r = x;                   // Transformed matrix so far.
+
+  const one2D = tensor2d([[1]], [1, 1]);
+  for (let j = 0; j < n; ++j) {
+    // Find H = I - tau * w * w', to put zeros below R(j, j).
+    const rjEnd1 = r.slice([j, j], [m - j, 1]);
+    const normX = tfc.norm(rjEnd1);
+    const rjj = r.slice([j, j], [1, 1]);
+    const s = tfc.neg(sign(rjj)) as Tensor2D;
+    const u1 = rjj.sub(multiply(s, normX)) as Tensor2D;
+    const wPre = divide(rjEnd1, u1);
+    let w: Tensor2D;
+    if (wPre.shape[0] === 1) {
+      w = one2D;
+    } else {
+      w = one2D.concat(
+              wPre.slice([1, 0], [wPre.shape[0] - 1, wPre.shape[1]]), 0) as
+          Tensor2D;
+    }
+    const tau = tfc.neg(divide(tfc.matMul(s, u1), normX)) as Tensor2D;
+
+    // -- R := HR, Q := QH.
+    const rjEndAll = r.slice([j, 0], [m - j, n]);
+    const tauTimesW = tau.mul(w) as Tensor2D;
+    if (j === 0) {
+      r = rjEndAll.sub(tauTimesW.matMul(w.transpose().matMul(rjEndAll)));
+    } else {
+      r = r.slice([0, 0], [j, n])
+              .concat(
+                  rjEndAll.sub(
+                      tauTimesW.matMul(w.transpose().matMul(rjEndAll))),
+                  0) as Tensor2D;
+    }
+    const qAllJEnd = q.slice([0, j], [m, q.shape[1] - j]);
+    if (j === 0) {
+      q = qAllJEnd.sub(qAllJEnd.matMul(w).matMul(tauTimesW.transpose()));
+    } else {
+      q = q.slice([0, 0], [m, j])
+              .concat(
+                  qAllJEnd.sub(
+                      qAllJEnd.matMul(w).matMul(tauTimesW.transpose())),
+                  1) as Tensor2D;
+    }
+  }
+
+  return [q, r];
 }
 
 /**

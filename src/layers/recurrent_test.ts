@@ -319,22 +319,16 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
 });
 
 describeMathCPU('SimpleRNN Symbolic', () => {
-  const recurrentInitializer = 'ones';
-  // TODO(cais): This hard-coded initializer is to circumvent the current
-  //   limitation that 'Orthogonal' initializer is not available yet..
-  //   Remove it when it is available.
-
   it('returnSequences=false, returnState=false', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const simpleRNN = new SimpleRNN({units: 5, recurrentInitializer});
+    const simpleRNN = new SimpleRNN({units: 5});
     const output = simpleRNN.apply(input) as SymbolicTensor;
     expect(output.shape).toEqual([9, 5]);
   });
 
   it('returnSequences=false, returnState=true', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const simpleRNN =
-        new SimpleRNN({units: 5, returnState: true, recurrentInitializer});
+    const simpleRNN = new SimpleRNN({units: 5, returnState: true});
     const output = simpleRNN.apply(input) as SymbolicTensor[];
     expect(output.length).toEqual(2);
     expect(output[0].shape).toEqual([9, 5]);
@@ -343,8 +337,7 @@ describeMathCPU('SimpleRNN Symbolic', () => {
 
   it('returnSequences=true, returnState=false', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const simpleRNN =
-        new SimpleRNN({units: 5, returnSequences: true, recurrentInitializer});
+    const simpleRNN = new SimpleRNN({units: 5, returnSequences: true});
     const output = simpleRNN.apply(input) as SymbolicTensor;
     expect(output.shape).toEqual([9, 10, 5]);
   });
@@ -355,7 +348,6 @@ describeMathCPU('SimpleRNN Symbolic', () => {
       units: 5,
       returnSequences: true,
       returnState: true,
-      recurrentInitializer
     });
     const output = simpleRNN.apply(input) as SymbolicTensor[];
     expect(output.length).toEqual(2);
@@ -516,21 +508,16 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
 });
 
 describeMathCPU('GRU Symbolic', () => {
-  const recurrentInitializer = 'ones';
-  // TODO(cais): This hard-coded initializer is to circumvent the current
-  //   limitation that 'Orthogonal' initializer is not available yet..
-  //   Remove it when it is available.
-
   it('returnSequences=false, returnState=false', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const gru = new GRU({units: 5, recurrentInitializer});
+    const gru = new GRU({units: 5});
     const output = gru.apply(input) as SymbolicTensor;
     expect(output.shape).toEqual([9, 5]);
   });
 
   it('returnSequences=false, returnState=true', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const gru = new GRU({units: 5, returnState: true, recurrentInitializer});
+    const gru = new GRU({units: 5, returnState: true});
     const output = gru.apply(input) as SymbolicTensor[];
     expect(output.length).toEqual(2);
     expect(output[0].shape).toEqual([9, 5]);
@@ -539,8 +526,7 @@ describeMathCPU('GRU Symbolic', () => {
 
   it('returnSequences=true, returnState=false', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const gru =
-        new GRU({units: 5, returnSequences: true, recurrentInitializer});
+    const gru = new GRU({units: 5, returnSequences: true});
     const output = gru.apply(input) as SymbolicTensor;
     expect(output.shape).toEqual([9, 10, 5]);
   });
@@ -551,7 +537,6 @@ describeMathCPU('GRU Symbolic', () => {
       units: 5,
       returnSequences: true,
       returnState: true,
-      recurrentInitializer
     });
     const output = gru.apply(input) as SymbolicTensor[];
     expect(output.length).toEqual(2);
@@ -563,7 +548,7 @@ describeMathCPU('GRU Symbolic', () => {
      () => {
        const input =
            new SymbolicTensor(DType.float32, [2, 3, 4], null, [], null);
-       const gru = new GRU({units: 5, returnState: true, recurrentInitializer});
+       const gru = new GRU({units: 5, returnState: true});
        gru.apply(input);
        expect(gru.trainable).toEqual(true);
        // Trainable weights: kernel, recurrent kernel and bias.
@@ -710,11 +695,8 @@ describeMathCPUAndGPU('GRU Tensor', () => {
       recurrentInitializer: 'zeros',
       useBias: false
     });
-    const dense = new Dense({
-      units: 1,
-      kernelInitializer: 'ones',
-      useBias: false
-    });
+    const dense =
+        new Dense({units: 1, kernelInitializer: 'ones', useBias: false});
 
     const sgd = new optimizers.SGD({lr: 1});
     const x = K.ones([batchSize, sequenceLength, inputSize]);
@@ -739,21 +721,16 @@ describeMathCPUAndGPU('GRU Tensor', () => {
 });
 
 describeMathCPU('LSTM Symbolic', () => {
-  const recurrentInitializer = 'ones';
-  // TODO(cais): This hard-coded initializer is to circumvent the current
-  //   limitation that 'Orthogonal' initializer is not available yet..
-  //   Remove it when it is available.
-
   it('returnSequences=false, returnState=false', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const lstm = new LSTM({units: 5, recurrentInitializer});
+    const lstm = new LSTM({units: 5});
     const output = lstm.apply(input) as SymbolicTensor;
     expect(output.shape).toEqual([9, 5]);
   });
 
   it('returnSequences=false, returnState=true', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const lstm = new LSTM({units: 5, returnState: true, recurrentInitializer});
+    const lstm = new LSTM({units: 5, returnState: true});
     const output = lstm.apply(input) as SymbolicTensor[];
     expect(output.length).toEqual(3);
     expect(output[0].shape).toEqual([9, 5]);
@@ -763,8 +740,7 @@ describeMathCPU('LSTM Symbolic', () => {
 
   it('returnSequences=true, returnState=false', () => {
     const input = new SymbolicTensor(DType.float32, [9, 10, 8], null, [], null);
-    const lstm =
-        new LSTM({units: 5, returnSequences: true, recurrentInitializer});
+    const lstm = new LSTM({units: 5, returnSequences: true});
     const output = lstm.apply(input) as SymbolicTensor;
     expect(output.shape).toEqual([9, 10, 5]);
   });
@@ -775,7 +751,6 @@ describeMathCPU('LSTM Symbolic', () => {
       units: 5,
       returnSequences: true,
       returnState: true,
-      recurrentInitializer
     });
     const output = lstm.apply(input) as SymbolicTensor[];
     expect(output.length).toEqual(3);
@@ -788,8 +763,7 @@ describeMathCPU('LSTM Symbolic', () => {
      () => {
        const input =
            new SymbolicTensor(DType.float32, [2, 3, 4], null, [], null);
-       const lstm =
-           new LSTM({units: 5, returnState: true, recurrentInitializer});
+       const lstm = new LSTM({units: 5, returnState: true});
        lstm.apply(input);
        expect(lstm.trainable).toEqual(true);
        // Trainable weights: kernel, recurrent kernel and bias.
@@ -839,7 +813,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
   //   when it becomes available.
   // TODO(cais): Test dropout and recurrentDropout when implemented.
 
-  const implementations: Array<(1|2)> = [1, 2];
+  const implementations: Array<(1 | 2)> = [1, 2];
   const returnStateValues = [false, true];
   const returnSequencesValues = [false, true];
   for (const implementation of implementations) {

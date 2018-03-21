@@ -773,12 +773,6 @@ export class SimpleRNNCell extends RNNCell {
   readonly DEFAULT_ACTIVATION = 'tanh';
   readonly DEFAULT_KERNEL_INITIALIZER = 'glorotNormal';
   readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
-  // Porting Note: The default recurrent kernel initializer, 'Orthogonal',
-  //   is not supported by the initializers yet, due to the lack
-  //   of singular-value decomposition (SVD) in the deeplearn.js backend.
-  // TODO(cais): Remove this porting note when 'Orthogonal' initializer is
-  //   available.
-
   readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
 
   constructor(config: SimpleRNNCellLayerConfig) {
@@ -791,14 +785,6 @@ export class SimpleRNNCell extends RNNCell {
 
     this.kernelInitializer = getInitializer(
         config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-
-    if (config.recurrentInitializer == null) {
-      // TODO(cais|nsthorat): Remove this and default to orthogonal once we
-      // support SVD in tfjs-core.
-      throw new ValueError(
-          `Currently the default 'orthogonal' intializer is not implemented. ` +
-          `Please specify a recurrent kernel initializer`);
-    }
     this.recurrentInitializer = getInitializer(
         config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
 
@@ -1143,14 +1129,9 @@ export class GRUCell extends RNNCell {
 
   readonly DEFAULT_ACTIVATION = 'tanh';
   readonly DEFAULT_RECURRENT_ACTIVATION = 'hardSigmoid';
+
   readonly DEFAULT_KERNEL_INITIALIZER = 'glorotNormal';
   readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
-  // Porting Note: The default recurrent kernel initializer, 'Orthogonal',
-  //   is not supported by the initializers yet, due to the lack
-  //   of singular-value decomposition (SVD) in the deeplearn.js backend.
-  // TODO(cais): Remove this porting note when 'Orthogonal' initializer is
-  //   available.
-
   readonly DEFAULT_BIAS_INITIALIZER: InitializerIdentifier = 'zeros';
 
   kernel: LayerVariable;
@@ -1171,15 +1152,8 @@ export class GRUCell extends RNNCell {
 
     this.kernelInitializer = getInitializer(
         config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-
-    if (config.recurrentInitializer == null) {
-      // TODO(cais|nsthorat): Remove this and default to orthogonal once we
-      // support SVD in tfjs-core.
-      throw new ValueError(
-          `Currently the default 'orthogonal' intializer is not implemented. ` +
-          `Please specify a recurrent kernel initializer`);
-    }
-    this.recurrentInitializer = getInitializer(config.recurrentInitializer);
+    this.recurrentInitializer = getInitializer(
+        config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
 
     this.biasInitializer =
         getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);
@@ -1549,11 +1523,6 @@ export class LSTMCell extends RNNCell {
   readonly DEFAULT_RECURRENT_ACTIVATION = 'hardSigmoid';
   readonly DEFAULT_KERNEL_INITIALIZER = 'glorotNormal';
   readonly DEFAULT_RECURRENT_INITIALIZER = 'orthogonal';
-  // Porting Note: The default recurrent kernel initializer, 'orthogonal',
-  //   is not supported by the initializers yet, due to the lack
-  //   of singular-value decomposition (SVD) in the deeplearn.js backend.
-  // TODO(cais): Remove this porting note when 'Orthogonal' initializer is
-  //   available.
 
   readonly DEFAULT_BIAS_INITIALIZER = 'zeros';
 
@@ -1575,15 +1544,8 @@ export class LSTMCell extends RNNCell {
 
     this.kernelInitializer = getInitializer(
         config.kernelInitializer || this.DEFAULT_KERNEL_INITIALIZER);
-
-    if (config.recurrentInitializer == null) {
-      // TODO(cais|nsthorat): Remove this and default to orthogonal once we
-      // support SVD in tfjs-core.
-      throw new ValueError(
-          `Currently the default 'orthogonal' intializer is not implemented. ` +
-          `Please specify a recurrent kernel initializer`);
-    }
-    this.recurrentInitializer = getInitializer(config.recurrentInitializer);
+    this.recurrentInitializer = getInitializer(
+        config.recurrentInitializer || this.DEFAULT_RECURRENT_INITIALIZER);
 
     this.biasInitializer =
         getInitializer(config.biasInitializer || this.DEFAULT_BIAS_INITIALIZER);

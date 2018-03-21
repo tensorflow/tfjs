@@ -13,14 +13,15 @@
  */
 
 // tslint:disable:max-line-length
-import {tensor2d} from '@tensorflow/tfjs-core';
-import * as tfl from './index';
+import {Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
-import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, Zeros} from './initializers';
+import * as K from './backend/deeplearnjs_backend';
+import * as tfl from './index';
+import {checkDistribution, checkFanMode, getInitializer, Orthogonal, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, Zeros} from './initializers';
 import {DType} from './types';
 import {ConfigDict} from './types';
 import * as math_utils from './utils/math_utils';
-import {describeMathCPU, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
 // tslint:enable:max-line-length
 
@@ -419,5 +420,44 @@ describe('checkDistribution', () => {
         expect(e).toMatch(validValue);
       }
     }
+  });
+});
+
+describeMathCPUAndGPU('Orthogonal Initializer', () => {
+  it('2x2', () => {
+    const init = getInitializer('Orthogonal');
+    const w = init.apply([2, 2], DType.float32) as Tensor2D;
+    expect(w.shape).toEqual([2, 2]);
+    expect(w.dtype).toEqual(DType.float32);
+    // Assert that columns of w are orthogonal (w is a unitary matrix).
+    expectTensorsClose(w.transpose().matMul(w), K.eye(2));
+  });
+
+  it('1x1 with gain', () => {
+    const init = new Orthogonal({gain: 3});
+    const w = init.apply([1, 1], DType.float32) as Tensor2D;
+    expect(w.shape).toEqual([1, 1]);
+    expect(w.dtype).toEqual(DType.float32);
+    // Assert that columns of w are orthogonal (w is a unitary matrix) and the
+    // gain has been reflected.
+    expectTensorsClose(w.transpose().matMul(w), tensor2d([[9]], [1, 1]));
+  });
+
+  it('4x2', () => {
+    const init = getInitializer('Orthogonal');
+    const w = init.apply([4, 2], DType.float32) as Tensor2D;
+    expect(w.shape).toEqual([4, 2]);
+    expect(w.dtype).toEqual(DType.float32);
+    // Assert that columns of w are orthogonal.
+    expectTensorsClose(w.transpose().matMul(w), K.eye(2));
+  });
+
+  it('2x4', () => {
+    const init = getInitializer('Orthogonal');
+    const w = init.apply([2, 4], DType.float32) as Tensor2D;
+    expect(w.shape).toEqual([2, 4]);
+    expect(w.dtype).toEqual(DType.float32);
+    // Assert that columns of w are orthogonal.
+    expectTensorsClose(w.matMul(w.transpose()), K.eye(2));
   });
 });
