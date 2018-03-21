@@ -489,3 +489,13 @@ describe('tanh', () => {
     expectArraysClose(result, expected);
   });
 });
+
+describe('oneHot', () => {
+  it('should work', () => {
+    const indices = dl.tensor1d([0, 1], 'int32');
+    const res = dl.oneHot(indices, 2);
+
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [1, 0, 0, 1]);
+  });
+});
