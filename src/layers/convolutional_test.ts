@@ -17,11 +17,13 @@ import {Tensor, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/deeplearnjs_backend';
 import {DataFormat, PaddingMode} from '../common';
+import {InitializerIdentifier} from '../initializers';
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Conv1D, Conv2D} from './convolutional';
+
 // tslint:enable:max-line-length
 
 describeMathCPU('Conv2D Layers: Symbolic', () => {
@@ -104,7 +106,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
   ]]];
 
   const useBiases = [false, true];
-  const biasInitializers = ['Zeros', 'Ones'];
+  const biasInitializers: InitializerIdentifier[] = ['zeros', 'ones'];
   const activations = [null, 'linear', 'relu'];
 
   for (const useBias of useBiases) {
@@ -121,14 +123,14 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
             strides: [2, 2],
             dataFormat: 'channelFirst',
             useBias,
-            kernelInitializer: 'Ones',
+            kernelInitializer: 'ones',
             biasInitializer,
-            activation,
+            activation
           });
           const y = conv2dLayer.apply(x) as Tensor;
 
           let yExpectedData = [100, 260, -100, -260];
-          if (useBias && biasInitializer === 'Ones') {
+          if (useBias && biasInitializer === 'ones') {
             yExpectedData = yExpectedData.map(element => element + 1);
           }
           if (activation === 'relu') {
@@ -151,8 +153,8 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
       strides: [2, 2],
       dataFormat: 'channelLast',
       useBias: false,
-      kernelInitializer: 'Ones',
-      activation: 'linear',
+      kernelInitializer: 'ones',
+      activation: 'linear'
     });
     const y = conv2dLayer.apply(x) as Tensor;
     const yExpected = tensor4d([100, 260, -100, -260], [1, 2, 2, 1]);
@@ -170,8 +172,8 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
         strides: [2, 2],
         dataFormat: 'channelFirst',
         useBias: false,
-        kernelInitializer: 'Ones',
-        dilationRate: explicitDefaultDilation,
+        kernelInitializer: 'ones',
+        dilationRate: explicitDefaultDilation
       });
       const x = tensor4d(x4by4Data, [1, 1, 4, 4]);
       const y = conv2dLayer.apply(x) as Tensor;
@@ -238,9 +240,9 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
           strides,
           dataFormat: 'channelLast',
           useBias: true,
-          kernelInitializer: 'Ones',
-          biasInitializer: 'Ones',
-          activation,
+          kernelInitializer: 'ones',
+          biasInitializer: 'ones',
+          activation
         });
         const y = conv1dLayer.apply(x) as Tensor;
 

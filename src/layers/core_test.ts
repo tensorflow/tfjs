@@ -16,7 +16,9 @@
 import {scalar, Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
+import {ActivationIdentifier} from '../activations';
 import * as K from '../backend/deeplearnjs_backend';
+import {InitializerIdentifier} from '../initializers';
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {arrayProd} from '../utils/math_utils';
@@ -194,8 +196,9 @@ describeMathCPU('Dense Layer: Symbolic', () => {
 describeMathCPUAndGPU('Dense Layer: Tensor', () => {
   const units = 6;
   const useBiases = [null, false, true];
-  const biasInitializers = ['Zeros', 'Ones'];
-  const activations = [null, 'linear', 'relu', 'softmax'];
+  const biasInitializers: InitializerIdentifier[] = ['zeros', 'ones'];
+  const activations: ActivationIdentifier[] =
+      [null, 'linear', 'relu', 'softmax'];
   const inputLastDims = [5, 8];
   // TODO(cais): Test Tensor1D, Tensor3D, Tensor4D once those are supported by
   // the backend.
@@ -215,14 +218,14 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
                  useBias,
                  biasInitializer,
                  activation,
-                 kernelInitializer: 'Ones',
+                 kernelInitializer: 'ones'
                });
                let expectedElementValue: number;
                if (activation === 'softmax') {
                  expectedElementValue = 1 / units;
                } else {
                  expectedElementValue = input.shape[input.shape.length - 1];
-                 if (useBias !== false && biasInitializer === 'Ones') {
+                 if (useBias !== false && biasInitializer === 'ones') {
                    expectedElementValue += 1;
                  }
                }
@@ -248,7 +251,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
     const input2 = K.ones([3, 2]);  // Okay.
     const input3 = K.ones([3, 3]);  // Leads to error.
 
-    const denseLayer = new Dense({units: 4, kernelInitializer: 'Ones'});
+    const denseLayer = new Dense({units: 4, kernelInitializer: 'ones'});
     expectTensorsClose(
         denseLayer.apply(input1) as Tensor,
         tensor2d([2, 2, 2, 2, 2, 2, 2, 2], [2, 4]));
@@ -262,7 +265,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
        const concreteInput = K.ones([2, 2]);
        const symbolicInput =
            new SymbolicTensor(DType.float32, [2, 2], null, [], null);
-       const denseLayer = new Dense({units: 4, kernelInitializer: 'Ones'});
+       const denseLayer = new Dense({units: 4, kernelInitializer: 'ones'});
 
        expectTensorsClose(
            denseLayer.apply(concreteInput) as Tensor,
@@ -277,7 +280,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
     const concreteInput = K.ones([2, 2]);
     const symbolicInput =
         new SymbolicTensor(DType.float32, [2, 3], null, [], null);
-    const denseLayer = new Dense({units: 4, kernelInitializer: 'Ones'});
+    const denseLayer = new Dense({units: 4, kernelInitializer: 'ones'});
 
     expectTensorsClose(
         denseLayer.apply(concreteInput) as Tensor,

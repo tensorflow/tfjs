@@ -54,11 +54,17 @@ describeMathCPU('regularizers.get', () => {
     variable = new LayerVariable(tensor1d([1, -2, 3, -4]));
   });
 
-  it('by string', () => {
+  it('by string - lower camel', () => {
+    const regularizer = getRegularizer('l1l2');
+    expectTensorsClose(
+        regularizer.apply(variable), tfl.regularizers.l1l2().apply(variable));
+  });
+  it('by string - upper camel', () => {
     const regularizer = getRegularizer('L1L2');
     expectTensorsClose(
         regularizer.apply(variable), tfl.regularizers.l1l2().apply(variable));
   });
+
   it('by existing object', () => {
     const origReg = tfl.regularizers.l1l2({l1: 1, l2: 2});
     const regularizer = getRegularizer(origReg);

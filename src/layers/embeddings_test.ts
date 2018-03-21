@@ -71,11 +71,8 @@ describeMathCPU('Embedding Layers: With explicit inputLength', () => {
 describeMathCPU('Embedding Layers: Tensor', () => {
   it('check value equality', () => {
     const x = tensor3d([0, 5, 1, 1, 1, 1, 1, 1], [1, 2, 4]);
-    const embeddingLayer = new Embedding({
-      inputDim: 6,
-      outputDim: 3,
-      embeddingsInitializer: 'RandomUniform',
-    });
+    const embeddingLayer = new Embedding(
+        {inputDim: 6, outputDim: 3, embeddingsInitializer: 'randomUniform'});
     const y = embeddingLayer.apply(x) as Tensor;
     const yExpectedShape = [1, 2, 4, 3];
     expect(y.shape).toEqual(yExpectedShape);

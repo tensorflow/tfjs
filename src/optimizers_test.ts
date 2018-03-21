@@ -138,7 +138,7 @@ describeMathGPU('Adam optimizer', () => {
       const inputSize = 4;
 
       const denseLayer = new Dense(
-          {units: 1, kernelInitializer: 'Ones', biasInitializer: 'Ones'});
+          {units: 1, kernelInitializer: 'ones', biasInitializer: 'ones'});
       const lr = 0.2;
       const beta1 = 0.9;
       const beta2 = 0.999;
@@ -187,7 +187,7 @@ describeMathGPU('Adam optimizer', () => {
     const inputSize = 4;
 
     const denseLayer = new Dense(
-        {units: 1, kernelInitializer: 'Ones', biasInitializer: 'Ones'});
+        {units: 1, kernelInitializer: 'ones', biasInitializer: 'ones'});
     const adam1 = new Adam({lr: 0.2});
     const adam2 = new Adam({lr: 0.2});
 
@@ -238,7 +238,7 @@ describeMathGPU('RMSProp optimizer', () => {
       const inputSize = 4;
 
       const denseLayer = new Dense(
-          {units: 1, kernelInitializer: 'Ones', biasInitializer: 'Ones'});
+          {units: 1, kernelInitializer: 'ones', biasInitializer: 'ones'});
       const lr = 0.2;
       const rmsProp =
           fromConfig ? new RMSProp({lr}) : new RMSProp(train.rmsprop(lr));
@@ -316,7 +316,7 @@ describeMathGPU('Adagrad optimizer', () => {
       const inputSize = 4;
 
       const denseLayer = new Dense(
-          {units: 1, kernelInitializer: 'Ones', biasInitializer: 'Ones'});
+          {units: 1, kernelInitializer: 'ones', biasInitializer: 'ones'});
       const lr = 0.2;
       const adagrad =
           fromConfig ? new Adagrad({lr}) : new Adagrad(train.adagrad(lr));

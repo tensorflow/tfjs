@@ -232,7 +232,17 @@ ClassNameMap.register('MinMaxNorm', MinMaxNorm);
 
 /** @docinline */
 export type ConstraintIdentifier =
-    'MaxNorm'|'MinMaxNorm'|'NonNeg'|'UnitNorm'|string;
+    'maxNorm'|'minMaxNorm'|'nonNeg'|'unitNorm'|string;
+
+// Maps the JavaScript-like identifier keys to the corresponding registry
+// symbols.
+export const CONSTRAINT_IDENTIFIER_REGISTRY_SYMBOL_MAP:
+    {[identifier in ConstraintIdentifier]: string} = {
+      'maxNorm': 'MaxNorm',
+      'minMaxNorm': 'MinMaxNorm',
+      'nonNeg': 'NonNeg',
+      'unitNorm': 'UnitNorm'
+    };
 
 export function serializeConstraint(constraint: Constraint): ConfigDictValue {
   return serializeKerasObject(constraint);
@@ -251,7 +261,10 @@ export function getConstraint(identifier: ConstraintIdentifier|ConfigDict|
     return null;
   }
   if (typeof identifier === 'string') {
-    const config = {className: identifier, config: {}};
+    const className = identifier in CONSTRAINT_IDENTIFIER_REGISTRY_SYMBOL_MAP ?
+        CONSTRAINT_IDENTIFIER_REGISTRY_SYMBOL_MAP[identifier] :
+        identifier;
+    const config = {className, config: {}};
     return deserializeConstraint(config);
   } else if (identifier instanceof Constraint) {
     return identifier;

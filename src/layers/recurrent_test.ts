@@ -319,7 +319,7 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
 });
 
 describeMathCPU('SimpleRNN Symbolic', () => {
-  const recurrentInitializer = 'Ones';
+  const recurrentInitializer = 'ones';
   // TODO(cais): This hard-coded initializer is to circumvent the current
   //   limitation that 'Orthogonal' initializer is not available yet..
   //   Remove it when it is available.
@@ -381,10 +381,10 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
       const timeSteps = 1;
       const simpleRNN = new SimpleRNN({
         units,
-        kernelInitializer: 'Ones',
-        recurrentInitializer: 'Ones',
-        biasInitializer: 'Ones',
-        activation,
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
+        biasInitializer: 'ones',
+        activation
       });
       const input = K.ones([batchSize, timeSteps, inputSize]);
       const output = simpleRNN.apply(input) as Tensor;
@@ -409,9 +409,9 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
         units,
         returnSequences: true,
         returnState,
-        kernelInitializer: 'Ones',
-        recurrentInitializer: 'Ones',
-        biasInitializer: 'Ones',
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
+        biasInitializer: 'ones',
         activation: 'linear'
       });
       const input = K.ones([batchSize, timeSteps, inputSize]);
@@ -481,13 +481,13 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     const batchSize = 5;
     const simpleRNN = new SimpleRNN({
       units: 1,
-      kernelInitializer: 'Ones',
-      recurrentInitializer: 'Ones',
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
       useBias: false,
     });
     const dense = new Dense({
       units: 1,
-      kernelInitializer: 'Ones',
+      kernelInitializer: 'ones',
       useBias: false,
     });
 
@@ -516,7 +516,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
 });
 
 describeMathCPU('GRU Symbolic', () => {
-  const recurrentInitializer = 'Ones';
+  const recurrentInitializer = 'ones';
   // TODO(cais): This hard-coded initializer is to circumvent the current
   //   limitation that 'Orthogonal' initializer is not available yet..
   //   Remove it when it is available.
@@ -625,9 +625,9 @@ describeMathCPUAndGPU('GRU Tensor', () => {
         it(testTitle, () => {
           const gru = new GRU({
             units,
-            kernelInitializer: 'Ones',
-            recurrentInitializer: 'Ones',
-            biasInitializer: 'Ones',
+            kernelInitializer: 'ones',
+            recurrentInitializer: 'ones',
+            biasInitializer: 'ones',
             returnState,
             returnSequences,
             implementation
@@ -706,14 +706,14 @@ describeMathCPUAndGPU('GRU Tensor', () => {
     const batchSize = 5;
     const gru = new GRU({
       units: 1,
-      kernelInitializer: 'Zeros',
-      recurrentInitializer: 'Zeros',
-      useBias: false,
+      kernelInitializer: 'zeros',
+      recurrentInitializer: 'zeros',
+      useBias: false
     });
     const dense = new Dense({
       units: 1,
-      kernelInitializer: 'Ones',
-      useBias: false,
+      kernelInitializer: 'ones',
+      useBias: false
     });
 
     const sgd = new optimizers.SGD({lr: 1});
@@ -739,7 +739,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
 });
 
 describeMathCPU('LSTM Symbolic', () => {
-  const recurrentInitializer = 'Ones';
+  const recurrentInitializer = 'ones';
   // TODO(cais): This hard-coded initializer is to circumvent the current
   //   limitation that 'Orthogonal' initializer is not available yet..
   //   Remove it when it is available.
@@ -839,7 +839,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
   //   when it becomes available.
   // TODO(cais): Test dropout and recurrentDropout when implemented.
 
-  const implementations = [1, 2];
+  const implementations: Array<(1|2)> = [1, 2];
   const returnStateValues = [false, true];
   const returnSequencesValues = [false, true];
   for (const implementation of implementations) {
@@ -851,9 +851,9 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
         it(testTitle, () => {
           const lstm = new LSTM({
             units,
-            kernelInitializer: 'Ones',
-            recurrentInitializer: 'Ones',
-            biasInitializer: 'Ones',
+            kernelInitializer: 'ones',
+            recurrentInitializer: 'ones',
+            biasInitializer: 'ones',
             returnState,
             returnSequences,
             implementation
@@ -941,13 +941,13 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
       const batchSize = 5;
       const lstm = new LSTM({
         units: 1,
-        kernelInitializer: 'Zeros',
-        recurrentInitializer: 'Zeros',
+        kernelInitializer: 'zeros',
+        recurrentInitializer: 'zeros',
         useBias: false,
       });
       const dense = new Dense({
         units: 1,
-        kernelInitializer: 'Ones',
+        kernelInitializer: 'ones',
         useBias: false,
       });
 
@@ -1160,8 +1160,8 @@ describeMathCPU('StackedRNNCells Symbolic', () => {
     const stackedRNN = new RNN({
       cell: new StackedRNNCells({
         cells: [
-          new SimpleRNNCell({units: 3, recurrentInitializer: 'GlorotNormal'}),
-          new SimpleRNNCell({units: 2, recurrentInitializer: 'GlorotNormal'})
+          new SimpleRNNCell({units: 3, recurrentInitializer: 'glorotNormal'}),
+          new SimpleRNNCell({units: 2, recurrentInitializer: 'glorotNormal'})
         ],
       })
     });
@@ -1187,8 +1187,8 @@ describeMathCPU('StackedRNNCells Symbolic', () => {
     const stackedRNN = new RNN({
       cell: new StackedRNNCells({
         cells: [
-          new LSTMCell({units: 3, recurrentInitializer: 'GlorotNormal'}),
-          new LSTMCell({units: 2, recurrentInitializer: 'GlorotNormal'})
+          new LSTMCell({units: 3, recurrentInitializer: 'glorotNormal'}),
+          new LSTMCell({units: 2, recurrentInitializer: 'glorotNormal'})
         ],
       })
     });
@@ -1214,8 +1214,8 @@ describeMathCPU('StackedRNNCells Symbolic', () => {
   it('RNN with cell array creates StackedRNNCell', () => {
     const stackedRNN = new RNN({
       cell: [
-        new GRUCell({units: 3, recurrentInitializer: 'GlorotNormal'}),
-        new GRUCell({units: 2, recurrentInitializer: 'GlorotNormal'}),
+        new GRUCell({units: 3, recurrentInitializer: 'glorotNormal'}),
+        new GRUCell({units: 2, recurrentInitializer: 'glorotNormal'}),
       ],
     });
     const input =
@@ -1290,20 +1290,20 @@ describeMathGPU('StackedRNNCells Tensor', () => {
         cells: [
           new SimpleRNNCell({
             units: 3,
-            recurrentInitializer: 'Ones',
-            kernelInitializer: 'Ones',
+            recurrentInitializer: 'ones',
+            kernelInitializer: 'ones',
             useBias: false
           }),
           new GRUCell({
             units: 2,
-            recurrentInitializer: 'Ones',
-            kernelInitializer: 'Ones',
+            recurrentInitializer: 'ones',
+            kernelInitializer: 'ones',
             useBias: false
           }),
           new LSTMCell({
             units: 1,
-            recurrentInitializer: 'Ones',
-            kernelInitializer: 'Ones',
+            recurrentInitializer: 'ones',
+            kernelInitializer: 'ones',
             useBias: false
           }),
         ],

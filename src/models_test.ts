@@ -306,11 +306,11 @@ describeMathCPUAndGPU('Sequential', () => {
     const denseLayer1 = tfl.layers.dense({
       units: 3,
       useBias: false,
-      kernelInitializer: 'Ones',
+      kernelInitializer: 'ones',
       inputShape: [inputSize]
     });
     const denseLayer2 =
-        tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'Ones'});
+        tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'ones'});
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const history = await model.fit(xs, ys, {batchSize, epochs: 2});
@@ -338,11 +338,11 @@ describeMathCPUAndGPU('Sequential', () => {
     const denseLayer1 = tfl.layers.dense({
       units: 3,
       useBias: false,
-      kernelInitializer: 'Ones',
+      kernelInitializer: 'ones',
       inputShape: [inputSize]
     });
     const denseLayer2 =
-        tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'Ones'});
+        tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'ones'});
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const losses = model.evaluate(xs, ys, {batchSize}) as Scalar;

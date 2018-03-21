@@ -69,7 +69,7 @@ describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
     // Given an all-ones Dense kernel and no bias, the output at each timestep
     // is expected to be [3, 7, 11, 15], give or take a minus sign.
     const wrapper = new TimeDistributed({
-      layer: new Dense({units: 1, kernelInitializer: 'Ones', useBias: false})
+      layer: new Dense({units: 1, kernelInitializer: 'ones', useBias: false})
     });
     const output = wrapper.apply(input) as Tensor;
     expectTensorsClose(
@@ -98,7 +98,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
             new SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
         const bidi = new Bidirectional({
           layer: new SimpleRNN(
-              {units: 3, recurrentInitializer: 'GlorotNormal', returnState}),
+              {units: 3, recurrentInitializer: 'glorotNormal', returnState}),
           mergeMode,
         });
         // TODO(cais): Remove recurrentInitializer once Orthogonal initializer
@@ -150,7 +150,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
     const bidi = new Bidirectional({
       layer: new SimpleRNN({
         units: 3,
-        recurrentInitializer: 'GlorotNormal',
+        recurrentInitializer: 'glorotNormal',
         returnSequences: true,
         returnState: true
       }),
@@ -201,8 +201,8 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
     bidi = new Bidirectional({
       layer: new SimpleRNN({
         units,
-        kernelInitializer: 'Ones',
-        recurrentInitializer: 'Ones',
+        kernelInitializer: 'ones',
+        recurrentInitializer: 'ones',
         useBias: false,
         returnState
       }),

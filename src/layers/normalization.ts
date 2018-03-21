@@ -66,19 +66,19 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
 
   /**
    * Initializer for the beta weight.
-   *  Defaults to 'Zeros'.
+   *  Defaults to 'zeros'.
    */
   betaInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the gamma weight.
-   *  Defaults to 'Ones'.
+   *  Defaults to `ones`.
    */
   gammaInitializer?: InitializerIdentifier|Initializer;
 
   /**
    * Initializer for the moving mean.
-   * Defaults to 'Zeros'
+   * Defaults to `zeros`
    */
   movingMeanInitializer?: InitializerIdentifier|Initializer;
 
@@ -156,12 +156,12 @@ export class BatchNormalization extends Layer {
     this.epsilon = config.epsilon == null ? 1e-3 : config.epsilon;
     this.center = config.center == null ? true : config.center;
     this.scale = config.scale == null ? true : config.scale;
-    this.betaInitializer = getInitializer(config.betaInitializer || 'Zeros');
-    this.gammaInitializer = getInitializer(config.gammaInitializer || 'Ones');
+    this.betaInitializer = getInitializer(config.betaInitializer || 'zeros');
+    this.gammaInitializer = getInitializer(config.gammaInitializer || 'ones');
     this.movingMeanInitializer =
-        getInitializer(config.movingMeanInitializer || 'Zeros');
+        getInitializer(config.movingMeanInitializer || 'zeros');
     this.movingVarianceInitializer =
-        getInitializer(config.movingVarianceInitializer || 'Ones');
+        getInitializer(config.movingVarianceInitializer || 'ones');
     this.betaConstraint = getConstraint(config.betaConstraint);
     this.gammaConstraint = getConstraint(config.gammaConstraint);
     this.betaRegularizer = getRegularizer(config.betaRegularizer);
