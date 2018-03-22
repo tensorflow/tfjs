@@ -25,14 +25,12 @@ else
 fi
 
 TARGET_DIRECTORY="deps/tensorflow/"
+LIBTENSORFLOW="lib/libtensorflow.so"
 
-# TODO(kreeger): Drop this when the eager header ships w/ libtensorflow.
-eager_include_path="deps/tensorflow/include/tensorflow/c/eager"
-mkdir -p $eager_include_path
-curl -o \
-  $eager_include_path"/c_api.h" \
-  "https://raw.githubusercontent.com/tensorflow/tensorflow/master/tensorflow/c/eager/c_api.h"
-
-curl -L \
-  $target |
-  tar -C $TARGET_DIRECTORY -xz
+# Ensure that at least libtensorflow.so is downloaded.
+if [ ! -e "$TARGET_DIRECTORY${LIBTENSORFLOW}" ]
+then
+  curl -L \
+    $target |
+    tar -C $TARGET_DIRECTORY -xz
+fi

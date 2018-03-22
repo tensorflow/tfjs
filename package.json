@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "clean": "rm -rf deps/tensorflow/*",
     "format": "clang-format -i -style=Google binding/*.cc binding/*.h",
     "lint": "tslint -p . -t verbose",
     "test": "jasmine-ts \"src/**/*_test.ts\""
