@@ -86,7 +86,7 @@ describe('pyNormalizeArrayIndex', () => {
     });
   }
 
-  for (const [index, expected] of[[-1, 2], [-2, 1], [-3, 0]]) {
+  for (const [index, expected] of [[-1, 2], [-2, 1], [-3, 0]]) {
     it('returns index if index < 0 and abs(index) <= x.length', () => {
       expect(pyNormalizeArrayIndex(x, index)).toEqual(expected);
     });
@@ -236,7 +236,7 @@ describe('isAllNull', () => {
 });
 
 describe('toSnakeCase', () => {
-  for (const [inputString, expectedOutput] of[
+  for (const [inputString, expectedOutput] of [
            ['', ''], ['A', 'a'], ['AA', 'aa'], ['AAA', 'aaa'], ['AAa', 'a_aa'],
            ['AA0', 'a_a0'], ['aB', 'a_b'], ['aBC', 'a_bc'], ['aBc', 'a_bc'],
            ['_', 'private_'], ['a', 'a'], ['_a', 'private_a']]) {
@@ -247,7 +247,7 @@ describe('toSnakeCase', () => {
 });
 
 describe('toCamelCase', () => {
-  for (const [inputString, expectedOutput] of[
+  for (const [inputString, expectedOutput] of [
            ['', ''], ['A', 'A'], ['aa', 'aa'], ['a_a', 'aA'],
            ['a_aa', 'aAa']]) {
     it('creates expected output', () => {
@@ -277,7 +277,7 @@ describe('SerializableEnumRegistry', () => {
   it('correctly maps', () => {
     expect(
         utils.SerializableEnumRegistry.lookup('data_format', 'channels_first'))
-        .toEqual('channelFirst');
+        .toEqual('channelsFirst');
   });
 });
 

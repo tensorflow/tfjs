@@ -29,7 +29,7 @@ import {Conv1D, Conv2D} from './convolutional';
 describeMathCPU('Conv2D Layers: Symbolic', () => {
   const filtersArray = [1, 64];
   const paddingModes: PaddingMode[] = [undefined, 'valid', 'same'];
-  const dataFormats: DataFormat[] = ['channelFirst', 'channelLast'];
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
   const kernelSizes = [[2, 2], [3, 4]];
   // In this test suite, `undefined` means strides is the same as kernelSize.
   const stridesArray = [undefined, 1];
@@ -45,7 +45,7 @@ describeMathCPU('Conv2D Layers: Symbolic', () => {
                 `strides=${JSON.stringify(strides)}, ` +
                 `${dataFormat}, ${padding}`;
             it(testTitle, () => {
-              const inputShape = dataFormat === 'channelFirst' ?
+              const inputShape = dataFormat === 'channelsFirst' ?
                   [2, 16, 11, 9] :
                   [2, 11, 9, 16];
               const symbolicInput =
@@ -83,7 +83,7 @@ describeMathCPU('Conv2D Layers: Symbolic', () => {
                 }
               }
               let expectedShape: [number, number, number, number];
-              if (dataFormat === 'channelFirst') {
+              if (dataFormat === 'channelsFirst') {
                 expectedShape = [2, filters, outputRows, outputCols];
               } else {
                 expectedShape = [2, outputRows, outputCols, filters];
@@ -121,7 +121,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
             filters: 1,
             kernelSize: [2, 2],
             strides: [2, 2],
-            dataFormat: 'channelFirst',
+            dataFormat: 'channelsFirst',
             useBias,
             kernelInitializer: 'ones',
             biasInitializer,
@@ -151,7 +151,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
       filters: 1,
       kernelSize: [2, 2],
       strides: [2, 2],
-      dataFormat: 'channelLast',
+      dataFormat: 'channelsLast',
       useBias: false,
       kernelInitializer: 'ones',
       activation: 'linear'
@@ -170,7 +170,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
         filters: 1,
         kernelSize: [2, 2],
         strides: [2, 2],
-        dataFormat: 'channelFirst',
+        dataFormat: 'channelsFirst',
         useBias: false,
         kernelInitializer: 'ones',
         dilationRate: explicitDefaultDilation
@@ -203,7 +203,7 @@ describeMathCPU('Conv1D Layers: Symbolic', () => {
             kernelSize: 2,
             strides,
             padding,
-            dataFormat: 'channelLast',
+            dataFormat: 'channelsLast',
           });
 
           const output = conv1dLayer.apply(symbolicInput) as SymbolicTensor;
@@ -238,7 +238,7 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
           filters: 1,
           kernelSize: 2,
           strides,
-          dataFormat: 'channelLast',
+          dataFormat: 'channelsLast',
           useBias: true,
           kernelInitializer: 'ones',
           biasInitializer: 'ones',

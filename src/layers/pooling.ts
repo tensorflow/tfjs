@@ -84,7 +84,7 @@ export abstract class Pooling1D extends Layer {
     inputs = K.expandDims(generic_utils.getExactlyOneTensor(inputs), 2);
     const output = this.poolingFunction(
         generic_utils.getExactlyOneTensor(inputs), [this.poolSize[0], 1],
-        [this.strides[0], 1], this.padding, 'channelLast');
+        [this.strides[0], 1], this.padding, 'channelsLast');
     // Remove dummy last dimension.
     return K.squeeze(output, 2);
   }
@@ -190,7 +190,7 @@ export abstract class Pooling2D extends Layer {
     this.strides = config.strides == null ? this.poolSize : config.strides;
     this.padding = config.padding == null ? 'valid' : config.padding;
     this.dataFormat =
-        config.dataFormat == null ? 'channelLast' : config.dataFormat;
+        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
     checkDataFormat(this.dataFormat);
     checkPaddingMode(this.padding);
 
@@ -200,14 +200,14 @@ export abstract class Pooling2D extends Layer {
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = generic_utils.getExactlyOneShape(inputShape);
     let rows =
-        this.dataFormat === 'channelFirst' ? inputShape[2] : inputShape[1];
+        this.dataFormat === 'channelsFirst' ? inputShape[2] : inputShape[1];
     let cols =
-        this.dataFormat === 'channelFirst' ? inputShape[3] : inputShape[2];
+        this.dataFormat === 'channelsFirst' ? inputShape[3] : inputShape[2];
     rows =
         convOutputLength(rows, this.poolSize[0], this.padding, this.strides[0]);
     cols =
         convOutputLength(cols, this.poolSize[1], this.padding, this.strides[1]);
-    if (this.dataFormat === 'channelFirst') {
+    if (this.dataFormat === 'channelsFirst') {
       return [inputShape[0], inputShape[1], rows, cols];
     } else {
       return [inputShape[0], rows, cols, inputShape[3]];
@@ -385,14 +385,14 @@ export abstract class GlobalPooling2D extends Layer {
   constructor(config: GlobalPooling2DLayerConfig) {
     super(config);
     this.dataFormat =
-        config.dataFormat == null ? 'channelLast' : config.dataFormat;
+        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
     checkDataFormat(this.dataFormat);
     this.inputSpec = [new InputSpec({ndim: 4})];
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = inputShape as Shape;
-    if (this.dataFormat === 'channelLast') {
+    if (this.dataFormat === 'channelsLast') {
       return [inputShape[0], inputShape[3]];
     } else {
       return [inputShape[0], inputShape[1]];
@@ -428,7 +428,7 @@ export class GlobalAveragePooling2D extends GlobalPooling2D {
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
-    if (this.dataFormat === 'channelLast') {
+    if (this.dataFormat === 'channelsLast') {
       return K.mean(input, [1, 2]);
     } else {
       return K.mean(input, [2, 3]);
@@ -454,7 +454,7 @@ export class GlobalMaxPooling2D extends GlobalPooling2D {
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
-    if (this.dataFormat === 'channelLast') {
+    if (this.dataFormat === 'channelsLast') {
       return K.max(input, [1, 2]);
     } else {
       return K.max(input, [2, 3]);

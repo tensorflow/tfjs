@@ -96,7 +96,7 @@ export class DepthwiseConv2D extends Conv2D {
           `Inputs to DepthwiseConv2D should have rank 4. ` +
           `Received input shape: ${JSON.stringify(inputShape)}.`);
     }
-    const channelAxis = this.dataFormat === 'channelFirst' ? 1 : 3;
+    const channelAxis = this.dataFormat === 'channelsFirst' ? 1 : 3;
     if (inputShape[channelAxis] == null || inputShape[channelAxis] < 0) {
       throw new ValueError(
           'The channel dimension of the inputs to DepthwiseConv2D should ' +
@@ -140,20 +140,20 @@ export class DepthwiseConv2D extends Conv2D {
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = getExactlyOneShape(inputShape);
     const rows =
-        this.dataFormat === 'channelFirst' ? inputShape[2] : inputShape[1];
+        this.dataFormat === 'channelsFirst' ? inputShape[2] : inputShape[1];
     const cols =
-        this.dataFormat === 'channelFirst' ? inputShape[3] : inputShape[2];
-    const outFilters = this.dataFormat === 'channelFirst' ?
+        this.dataFormat === 'channelsFirst' ? inputShape[3] : inputShape[2];
+    const outFilters = this.dataFormat === 'channelsFirst' ?
         inputShape[1] * this.depthMultiplier :
         inputShape[3] * this.depthMultiplier;
     const outRows = convOutputLength(
         rows, this.kernelSize[0], this.padding, this.strides[0]);
     const outCols = convOutputLength(
         cols, this.kernelSize[1], this.padding, this.strides[1]);
-    if (this.dataFormat === 'channelFirst') {
+    if (this.dataFormat === 'channelsFirst') {
       return [inputShape[0], outFilters, outRows, outCols];
     } else {
-      // In this case, assume 'channelLast'.
+      // In this case, assume 'channelsLast'.
       return [inputShape[0], outRows, outCols, outFilters];
     }
   }
