@@ -19,7 +19,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {Node} from '../index';
 
 import {executeOp} from './graph_executor';
-import {createTensorAttr} from './test_helper';
+import {createNumberAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('graph', () => {
   let node: Node;
@@ -73,6 +73,29 @@ describe('graph', () => {
                    executeOp(node, {input: input1})[0].dataSync()))
             .toEqual([1]);
       });
+    });
+    describe('noop', () => {
+      it('should return empty', () => {
+        node.op = 'noop';
+        expect(executeOp(node, {})).toEqual([]);
+      });
+    });
+  });
+  describe('print', () => {
+    it('should return empty', () => {
+      node.op = 'print';
+      node.inputNames = ['input1', 'input2'];
+      node.params.x = createTensorAttr(0);
+      node.params.data = createTensorsAttr(1, 1);
+      node.params.message = createStrAttr('message');
+      node.params.summarize = createNumberAttr(1);
+      spyOn(console, 'log');
+      spyOn(console, 'warn');
+
+      expect(executeOp(node, {input1, input2})).toEqual(input1);
+      expect(console.warn).toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith('message');
+      expect(console.log).toHaveBeenCalledWith([1]);
     });
   });
 });

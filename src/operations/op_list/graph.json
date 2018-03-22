@@ -44,6 +44,46 @@
         "type": "tensor"
       }
     ]
+  },
+  {
+    "tfOpName": "Print",
+    "dlOpName": "print",
+    "category": "graph",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "tfInputParamLength": 1,
+        "dlParamName": "data",
+        "type": "tensors"
+      },
+      {
+        "tfParamName": "message",
+        "dlParamName": "message",
+        "type": "string"
+      },
+      {
+        "tfParamName": "first_n",
+        "dlParamName": "firstN",
+        "type": "number",
+        "notSupprted": true
+      },
+      {
+        "tfParamName": "summarize",
+        "dlParamName": "summarize",
+        "type": "number",
+        "defaultValue": 3
+      }
+    ]
+  },
+  {
+    "tfOpName": "NoOp",
+    "dlOpName": "noop",
+    "category": "graph",
+    "params": []
   }
-
 ]
