@@ -37,6 +37,22 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
     case 'shape':
       return [tfc.tensor1d(
           (getParamValue('x', node, tensorMap) as tfc.Tensor).shape, 'int32')];
+    case 'noop':
+      return [];
+    case 'print':
+      const input = getParamValue('x', node, tensorMap) as tfc.Tensor;
+      const data = getParamValue('data', node, tensorMap) as tfc.Tensor[];
+      const message = getParamValue('message', node, tensorMap) as string;
+      const summarize = getParamValue('summarize', node, tensorMap) as number;
+      console.warn(
+          'The graph has a tf.print() operation,' +
+          'usually used for debugging, which slows down performance.');
+      console.log(message);
+      for (let i = 0; i < data.length; i++) {
+        console.log(
+            Array.prototype.slice.call(data[0].dataSync()).slice(0, summarize));
+      }
+      return [input];
 
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
