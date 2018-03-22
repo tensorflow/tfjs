@@ -8,3 +8,7 @@ dist/
 .idea/
 *.tgz
 .cache
+
+bazel-*
+
+*.pyc
