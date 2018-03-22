@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Artifact conversion to and from Python Keras."""
+"""Artifact conversion to and from Python TensorFlow and Keras."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -24,6 +24,7 @@ import os
 import h5py
 
 from tensorflowjs.converters import keras_h5_conversion
+from tensorflowjs.converters import tf_saved_model_conversion
 
 
 def dispatch_pykeras_conversion(h5_path, output_dir=None):
@@ -74,38 +75,55 @@ def main():
   parser.add_argument(
       'input_path',
       type=str,
-      help='Path to the input file or directory.')
+      help='Path to the input file or directory. For input format "keras", '
+      'an HDF5 (.h5) file is expected. For input format "tensorflow", '
+      'a SavedModel directory is expected.')
   parser.add_argument(
       '--input_format',
       type=str,
       required=True,
-      choices=set(['keras']),
-      help='Input format.'
+      choices=set(['keras', 'tf_saved_model']),
+      help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
       '    `keras.model.save_model()` method).\n'
       '  - A weights-only HDF5 (e.g., generated with Keras Model\'s '
-      '    `save_weights()` method).')
+      '    `save_weights()` method). \n'
+      'For "tensorflow", a SavedModel is expected.')
   parser.add_argument(
-      '--output_format',
+      '--output_node_names',
       type=str,
-      required=True,
-      choices=set(['tensorflowjs']),
-      help='Output format. Currently it has to be \'tensorflowjs\'')
+      help='The names of the output nodes, separated by commas. E.g., '
+      '"logits,activations". Applicable only if input format is '
+      '"tf_saved_model".')
+  parser.add_argument(
+      '--saved_model_tags',
+      type=str,
+      default='serve',
+      help='Tags of the MetaGraphDef to load, in comma separated string '
+      'format. Defaults to "serve". Applicable only if input format is '
+      '"tf_saved_model".')
   parser.add_argument(
       'output_dir', type=str, help='Path for all output artifacts.')
 
   FLAGS = parser.parse_args()
 
-  if FLAGS.output_format == 'tensorflowjs':
-    # TODO(cais, piyu): More conversion logics can be added as additional
-    #   branches below.
-    if FLAGS.input_format == 'keras':
-      dispatch_pykeras_conversion(FLAGS.input_path, output_dir=FLAGS.output_dir)
-    else:
-      raise ValueError('Invalid input format: \'%s\'' % FLAGS.input_format)
+  # TODO(cais, piyu): More conversion logics can be added as additional
+  #   branches below.
+  if FLAGS.input_format == 'keras':
+    if FLAGS.output_node_names:
+      raise ValueError(
+          'The --output_node_names flag is applicable only to input format '
+          '"tensorflow", but the current input format is "keras".')
+
+    dispatch_pykeras_conversion(FLAGS.input_path, output_dir=FLAGS.output_dir)
+  elif FLAGS.input_path == 'tf_saved_model':
+    tf_saved_model_conversion.convert_tf_saved_model(FLAGS.output_node_names,
+                                                     FLAGS.output_dir,
+                                                     FLAGS.saved_model_tags,
+                                                     FLAGS.input_path)
   else:
-    raise ValueError('Invalid output format: \'%s\'' % FLAGS.output_format)
+    raise ValueError('Invalid input format: \'%s\'' % FLAGS.input_format)
 
 
 if __name__ == '__main__':

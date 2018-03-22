@@ -18,12 +18,10 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys
 import os
 import json
 import numpy as np
 
-from absl import flags
 import tensorflow as tf
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import rewriter_config_pb2
@@ -34,15 +32,7 @@ from tensorflow.python.tools import freeze_graph
 
 from tensorflowjs import write_weights
 
-flags.DEFINE_string('saved_model_dir', '', 'The saved model directory.')
-flags.DEFINE_string('output_node_names', '',
-                    'The names of the output nodes, comma separated.')
-flags.DEFINE_string('output_graph', '', 'The name of the output graph file')
-flags.DEFINE_string(
-    'saved_model_tags', 'serve',
-    'Tags of the MetaGraphDef to load, in comma separated string format.')
-
-FLAGS = flags.FLAGS
+DEFAULT_MODEL_PB_FILENAME = 'tensorflowjs_model.pb'
 
 
 def get_cluster():
@@ -147,8 +137,10 @@ def extract_weights(graph, graph_def, output_graph):
       os.path.abspath(output_graph), graph_def.SerializeToString())
 
 
-def convert(output_node_names, output_graph, saved_model_tags,
-            saved_model_dir):
+def convert_tf_saved_model(output_node_names,
+                           output_dir,
+                           saved_model_tags,
+                           saved_model_dir):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -156,15 +148,19 @@ def convert(output_node_names, output_graph, saved_model_tags,
 
   Args:
     output_node_names: string The names of the output nodes, comma separated.
-    output_graph: string The name of the output graph file.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
+      - possibly sharded binary weight files.
     saved_model_tags: string Tagset of the MetaGraphDef to load, in comma
       separated string format.
     saved_model_dir: string The saved model directory.
   """
 
-  directory = os.path.dirname(output_graph)
-  if not os.path.exists(directory):
-    os.makedirs(directory)
+  if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
 
   frozen_file = output_graph + '.frozen'
   freeze_graph.freeze_graph(
@@ -187,16 +183,6 @@ def convert(output_node_names, output_graph, saved_model_tags,
   else:
     optimize_graph(graph, output_graph)
 
-  # clean up the temp files
+  # Clean up the temp files.
   if os.path.exists(frozen_file):
     os.remove(frozen_file)
-
-
-def main(_):
-  convert(FLAGS.output_node_names, FLAGS.output_graph,
-          FLAGS.saved_model_tags, FLAGS.saved_model_dir)
-
-
-if __name__ == '__main__':
-  FLAGS(sys.argv)
-  tf.app.run(main)

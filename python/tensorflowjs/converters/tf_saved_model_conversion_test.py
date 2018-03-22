@@ -63,10 +63,10 @@ class ConvertTest(unittest.TestCase):
   def test_convert_saved_model(self):
     self.create_saved_model()
 
-    tf_saved_model_conversion.convert(
+    tf_saved_model_conversion.convert_tf_saved_model(
         'Softmax',
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
-                     'converted_model.pb'), 'serve',
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        'serve',
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR))
 
     weights = [{
@@ -89,7 +89,7 @@ class ConvertTest(unittest.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
-                         'converted_model.pb')))
+                         'tensorflowjs_model.pb')))
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
