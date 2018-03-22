@@ -47,9 +47,15 @@ setuptools.setup(
         'tensorflowjs',
         'tensorflowjs.write_weights',
         'tensorflowjs.converters',
-        'tensorflowjs.converters.keras_h5_conversion',
         'tensorflowjs.converters.converter',
+        'tensorflowjs.converters.keras_h5_conversion',
+        'tensorflowjs.converters.tf_saved_model_conversion',
     ],
+    include_package_data=True,
+    packages=['tensorflowjs/op_list'],
+    package_data={
+        'tensorflowjs/op_list': ['*.json']
+    },
     install_requires=REQUIRED_PACKAGES,
     entry_points={
         'console_scripts': CONSOLE_SCRIPTS,
