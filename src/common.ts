@@ -19,14 +19,14 @@ const nameMap: Map<string, number> = new Map<string, number>();
 // TODO(cais): Perhaps move the enums to a more suitable place, e.g.,
 //   constants.ts.
 /** @docinline */
-export type DataFormat = 'channelFirst'|'channelLast';
+export type DataFormat = 'channelsFirst'|'channelsLast';
 SerializableEnumRegistry.register(
     'data_format',
-    {'channels_first': 'channelFirst', 'channels_last': 'channelLast'});
+    {'channels_first': 'channelsFirst', 'channels_last': 'channelsLast'});
 // TODO(nielsene): Unify the registry with the valid constant list for
 // less repetition.
 export const VALID_DATA_FORMAT_VALUES =
-    ['channelFirst', 'channelLast', undefined, null];
+    ['channelsFirst', 'channelsLast', undefined, null];
 export function checkDataFormat(value?: string): void {
   if (value == null) {
     return;

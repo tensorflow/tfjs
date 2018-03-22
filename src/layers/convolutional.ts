@@ -174,7 +174,7 @@ export abstract class Conv extends Layer {
     this.padding = config.padding == null ? 'valid' : config.padding;
     checkPaddingMode(this.padding);
     this.dataFormat =
-        config.dataFormat == null ? 'channelLast' : config.dataFormat;
+        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
     checkDataFormat(this.dataFormat);
 
     this.dilationRate = config.dilationRate == null ? 1 : config.dilationRate;
@@ -201,7 +201,7 @@ export abstract class Conv extends Layer {
   build(inputShape: Shape|Shape[]): void {
     inputShape = generic_utils.getExactlyOneShape(inputShape);
     const channelAxis =
-        this.dataFormat === 'channelFirst' ? 1 : inputShape.length - 1;
+        this.dataFormat === 'channelsFirst' ? 1 : inputShape.length - 1;
     if (inputShape[channelAxis] == null) {
       throw new ValueError(
           `The channel dimension of the input should be defined. ` +
@@ -250,7 +250,7 @@ export abstract class Conv extends Layer {
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = generic_utils.getExactlyOneShape(inputShape);
     const newSpace: number[] = [];
-    const space = (this.dataFormat === 'channelLast') ?
+    const space = (this.dataFormat === 'channelsLast') ?
         inputShape.slice(1, inputShape.length - 1) :
         inputShape.slice(2);
     for (let i = 0; i < space.length; ++i) {
@@ -262,7 +262,7 @@ export abstract class Conv extends Layer {
     }
 
     let outputShape = [inputShape[0]];
-    if (this.dataFormat === 'channelLast') {
+    if (this.dataFormat === 'channelsLast') {
       outputShape = outputShape.concat(newSpace);
       outputShape.push(this.filters);
     } else {
@@ -312,7 +312,7 @@ export abstract class Conv extends Layer {
  * provide the keyword argument `inputShape`
  * (Array of integers, does not include the sample axis),
  * e.g. `inputShape=[128, 128, 3]` for 128x128 RGB pictures
- * in `dataFormat='channelLast'`.
+ * in `dataFormat='channelsLast'`.
  */
 export class Conv2D extends Conv {
   constructor(config: ConvLayerConfig) {

@@ -74,7 +74,7 @@ describe('convertPythonToTs', () => {
       distribution: 'normal'
     });
     expect(convertPythonicToTs({data_format: 'channels_last'})).toEqual({
-      dataFormat: 'channelLast'
+      dataFormat: 'channelsLast'
     });
     expect(convertPythonicToTs({padding: 'valid'})).toEqual({padding: 'valid'});
   });
@@ -137,7 +137,7 @@ describe('convertTsToPythonic', () => {
     expect(convertTsToPythonic({distribution: 'normal'})).toEqual({
       distribution: 'normal'
     });
-    expect(convertTsToPythonic({dataFormat: 'channelLast'})).toEqual({
+    expect(convertTsToPythonic({dataFormat: 'channelsLast'})).toEqual({
       data_format: 'channels_last'
     });
     expect(convertTsToPythonic({padding: 'valid'})).toEqual({padding: 'valid'});

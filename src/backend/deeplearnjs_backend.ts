@@ -1395,7 +1395,7 @@ export function l2Normalize(x: Tensor, axis?: number): Tensor {
 function preprocessConv2DInput(x: Tensor, dataFormat: DataFormat): Tensor {
   // TODO(cais): Cast type to float32 if not.
   checkDataFormat(dataFormat);
-  if (dataFormat === 'channelFirst') {
+  if (dataFormat === 'channelsFirst') {
     return tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
   } else {
     return x;
@@ -1450,7 +1450,7 @@ export function conv1dWithBias(
 
   // TODO(cais): Support CASUAL padding mode.
 
-  if (dataFormat === 'channelFirst') {
+  if (dataFormat === 'channelsFirst') {
     x = transpose(x, [0, 2, 1]);  // NCW -> NWC.
   }
   if (padding === 'casual') {
@@ -1493,7 +1493,7 @@ export function conv1d(
  * @param kernel kernel of the convolution.
  * @param strides strides array.
  * @param padding padding mode. Default to 'valid'.
- * @param dataFormat data format. Defaults to 'channelLast'.
+ * @param dataFormat data format. Defaults to 'channelsLast'.
  * @param dilationRate dilation rate array.
  * @returns Result of the 2D pooling.
  */
@@ -1544,7 +1544,7 @@ export function conv2dWithBias(
   if (bias != null) {
     y = biasAdd(y, bias as Tensor1D);
   }
-  if (dataFormat === 'channelFirst') {
+  if (dataFormat === 'channelsFirst') {
     y = tfc.transpose(y, [0, 3, 1, 2]);
   }
   return y;
@@ -1584,7 +1584,7 @@ export function depthwiseConv2d(
   y = tfc.depthwiseConv2d(
       y as Tensor4D, depthwiseKernel as Tensor4D, strides,
       padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
-  if (dataFormat === 'channelFirst') {
+  if (dataFormat === 'channelsFirst') {
     y = tfc.transpose(y, [0, 3, 1, 2]);
   }
   return y;
@@ -1596,7 +1596,7 @@ export function depthwiseConv2d(
  * @param poolSize
  * @param stridesdes strides. Defaults to [1, 1].
  * @param padding padding. Defaults to 'valid'.
- * @param dataFormat data format. Defaults to 'channelLast'.
+ * @param dataFormat data format. Defaults to 'channelsLast'.
  * @param poolMode Mode of pooling. Defaults to 'max'.
  * @returns Result of the 2D pooling.
  */
@@ -1635,7 +1635,7 @@ export function pool2d(
         // TODO(cais): Rank check?
         x as Tensor3D | Tensor4D, poolSize, strides, paddingString);
   }
-  if (dataFormat === 'channelFirst') {
+  if (dataFormat === 'channelsFirst') {
     y = tfc.transpose(y, [0, 3, 1, 2]);  // NHWC -> NCHW.
   }
   return y;
