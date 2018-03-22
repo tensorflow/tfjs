@@ -17,5 +17,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-# pylint: disable=unused-imports
+# pylint: disable=unused-imports,line-too-long
 from tensorflowjs.converters.keras_h5_conversion import save_keras_model
+from tensorflowjs.converters.tf_saved_model_conversion import convert_tf_saved_model

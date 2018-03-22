@@ -24,13 +24,13 @@ py_test(
 py_library(
     name = "tf_saved_model_conversion",
     srcs = ["tf_saved_model_conversion.py"],
+    data = ["//tensorflowjs:op_list_jsons"],
     srcs_version = "PY2AND3",
     deps = [
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:expect_tensorflow_installed",
         "//tensorflowjs:write_weights",
     ],
-    data = ["//tensorflowjs:op_list_jsons"],
 )
 
 py_test(
@@ -49,6 +49,7 @@ py_binary(
     srcs_version = "PY2AND3",
     deps = [
         ":keras_h5_conversion",
+        ":tf_saved_model_conversion",
         "//tensorflowjs:expect_h5py_installed",
     ],
 )
