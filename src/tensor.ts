@@ -845,10 +845,15 @@ export class Tensor<R extends Rank = Rank> {
   }
 }
 
+/** @doclink Tensor */
 export type Scalar = Tensor<Rank.R0>;
+/** @doclink Tensor */
 export type Tensor1D = Tensor<Rank.R1>;
+/** @doclink Tensor */
 export type Tensor2D = Tensor<Rank.R2>;
+/** @doclink Tensor */
 export type Tensor3D = Tensor<Rank.R3>;
+/** @doclink Tensor */
 export type Tensor4D = Tensor<Rank.R4>;
 
 /**
