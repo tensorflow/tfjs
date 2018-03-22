@@ -104,12 +104,20 @@ static napi_value CopyTensorHandleBuffer(napi_env env,
 static napi_value GetTensorHandleData(napi_env env, napi_callback_info info) {
   napi_status nstatus;
 
+  size_t argc = 1;
+  napi_value context_value;
   napi_value js_this;
-  nstatus = napi_get_cb_info(env, info, 0, nullptr, &js_this, nullptr);
+  nstatus =
+      napi_get_cb_info(env, info, &argc, &context_value, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
+  if (argc < 1) {
+    NAPI_THROW_ERROR(env, "Invalid number of arguments passed to dataSync()");
+    return js_this;
+  }
+
   napi_value result;
-  GetTensorData(env, js_this, &result);
+  GetTensorData(env, context_value, js_this, &result);
   return result;
 }
 

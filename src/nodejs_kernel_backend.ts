@@ -625,10 +625,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     throw new Error('Method not implemented.');
   }
   async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
-    return this.handleMap.get(dataId).dataSync();
+    return this.handleMap.get(dataId).dataSync(this.context);
   }
   readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
-    return this.handleMap.get(dataId).dataSync();
+    return this.handleMap.get(dataId).dataSync(this.context);
   }
   disposeData(dataId: object): void {
     // throw new Error('Method not implemented.');
