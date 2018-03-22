@@ -93,20 +93,20 @@ export interface ModelAndWeightsConfig {
 }
 
 /**
- * Load a model, including its topology and optionally weights.
+ * Load a model, including its topology and optionally weights.  See the
+ * Tutorial named "How to import a Keras Model" for usage examples.
  *
  * @param modelConfigPath A path to the `ModelAndWeightsConfig` JSON describing
  * the model in the canonical TensorFlow.js format.
  *
- *   This provides the most convenient way to load a TensorFlow.js saved model.
- *
- *   The content of `model.json` is assumed to be a JSON object with the
+ *   The content of the JSON file is assumed to be a JSON object with the
  *   following fields and values:
- *   - 'modelTopology': A JSON object that can be
- *     - a model architecture JSON consistent with the format of the return
- *      value of `keras.Model.to_json()`, or
- *     - a full model JSON in the format of `keras.models.save_model()`.
+ *   - 'modelTopology': A JSON object that can be either of:
+ *     1. a model architecture JSON consistent with the format of the return
+ *      value of `keras.Model.to_json()`
+ *     2. a full model JSON in the format of `keras.models.save_model()`.
  *   - 'weightsManifest': A TensorFlow.js weights manifest.
+ *
  *   See the Python converter function `save_model()` for more details.
  *
  *   It is also assumed that model weights can be accessed from relative paths
