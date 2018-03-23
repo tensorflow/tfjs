@@ -36,7 +36,7 @@ export class Merge extends Layer {
   }
 
   /**
-   * Logic for merging multplie tensors, to be overridden by subclasses.
+   * Logic for merging multiple tensors, to be overridden by subclasses.
    * @param inputs
    */
   protected mergeFunction(inputs: Tensor[]): Tensor {

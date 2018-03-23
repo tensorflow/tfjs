@@ -1279,7 +1279,21 @@ export interface InputLayerConfig {
 }
 
 /**
- * Layer to be used as an entry point into a graph.
+ * An input layer is an entry point into a `Model`.
+ *
+ * `InputLayer` is generated automatically for `Sequential` models by specifying
+ * the `inputshape` or `batchInputShape` for the first layer.  It should not be
+ * specified explicitly.
+ *
+ * ```js
+ * // Define a model which simply adds two inputs.
+ * const inputA = tf.input({shape: [3]});
+ * const inputB = tf.input({shape: [3]});
+ * const sum = tf.layers.add().apply([inputA, inputB]);
+ * const model = tf.model({inputs: [inputA, inputB], outputs: sum});
+ * const batchSize = 2;
+ * model.predict([tf.ones([batchSize, 3]), tf.ones([batchSize, 3])]).print();
+ * ```
  */
 export class InputLayer extends Layer {
   sparse: boolean;
@@ -1406,16 +1420,19 @@ export interface InputConfig {
 }
 
 /**
- * `Input()` is used to instantiate a SymbolicTensor, and represents
- * the input to a model.
+ * `Input()` is used to instantiate a `SymbolicTensor`, and represents
+ * the input to a model.  Users should call the `input()` factory function for
+ * consistency with other generator functions.
  *
  * Example:
  *
  * ```js
- * // Simple logistic regression:
+ * // Defines a simple logistic regression model with 32 dimensional input
+ * // and 3 dimensional output.
  * x = tf.input({shape: [32]});
- * y = tf.layers.dense({units: 16, activation: 'softmax'}).apply(x);
+ * y = tf.layers.dense({units: 3, activation: 'softmax'}).apply(x);
  * model = tf.model({inputs: x, outputs: y});
+ * model.predict(tf.ones([2, 32])).print();
  * ```
  */
 export function Input(config: InputConfig): SymbolicTensor {
