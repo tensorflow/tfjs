@@ -41,6 +41,13 @@ py_library(
     ],
 )
 
+py_library(
+    name = "version",
+    srcs = ["version.py"],
+    srcs_version = "PY2AND3",
+    deps = [],
+)
+
 py_test(
     name = "write_weights_test",
     srcs = ["write_weights_test.py"],
