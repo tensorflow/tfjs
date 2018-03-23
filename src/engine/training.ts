@@ -624,7 +624,7 @@ export class Model extends Container {
   loss: string|string[]|{[outputName: string]: string};
   lossFunctions: LossOrMetricFn[];
 
-  // TOOD(cais): These private variables should probably not have the string
+  // TODO(cais): These private variables should probably not have the string
   //   'feed' in their names, because we are not dealing with a symbolic
   //   backend.
   private feedOutputShapes: Shape[];
@@ -725,7 +725,7 @@ export class Model extends Container {
 
     // TODO(cais): Add logic for weighted losses.
     // TODO(cais): Add logic for output masks.
-    // TOOD(cais): Add logic for sample weights.
+    // TODO(cais): Add logic for sample weights.
     const skipTargetIndices: number[] = [];
 
     // Prepare metrics.
@@ -752,7 +752,8 @@ export class Model extends Container {
         }
       }
 
-      // TODO(cais): Add regularizer penalties.
+      // Porting Note: Due to the imperative nature of the backend, we calculate
+      //   the regularizer penalties in the totalLossFunction, instead of here.
     });
 
     const nestedMetrics = collectMetrics(config.metrics, this.outputNames);
@@ -785,7 +786,7 @@ export class Model extends Container {
           let metricName: string;
           let accFn: LossOrMetricFn;
           let weightedMetricFn: LossOrMetricFn;
-          //  TOOD(cais): Use 'weights_' for weighted metrics.
+          //  TODO(cais): Use 'weights_' for weighted metrics.
 
           for (const metric of metrics) {
             if (['accuracy', 'acc', 'crossentropy', 'ce'].indexOf(metric) !==
@@ -906,8 +907,8 @@ export class Model extends Container {
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
   evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[],
-      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
+      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
+      Scalar|Scalar[] {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
@@ -1107,7 +1108,7 @@ export class Model extends Container {
             y, this.feedOutputNames, outputShapes, false, 'target') as Tensor[];
     // TODO(cais): Standardize sampleWeights & classWeights.
     checkArrayLengths(x, y, null);
-    // TOOD(cais): Check sampleWeights as well.
+    // TODO(cais): Check sampleWeights as well.
     checkLossAndTargetCompatibility(y, this.feedLossFns, this.feedOutputShapes);
     if (this.stateful && batchSize != null && batchSize > 0) {
       if (x[0].shape[0] % batchSize !== 0) {
@@ -1451,7 +1452,7 @@ export class Model extends Container {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // Validate user data.
-    // TOOD(cais): Add sampleWeight and  classWeight.
+    // TODO(cais): Add sampleWeight and  classWeight.
     const standardizedOuts = this.standardizeUserData(x, y, false, batchSize);
     let inputs = standardizedOuts[0];
     let targets = standardizedOuts[1];
@@ -1586,6 +1587,12 @@ export class Model extends Container {
         }
 
         totalLoss = K.mean(totalLoss);
+
+        // Add regularizer penalties.
+        this.calculateLosses().forEach(regularizerLoss => {
+          totalLoss = K.add(totalLoss, regularizerLoss);
+        });
+
         return totalLoss as Scalar;
       };
 
@@ -1615,7 +1622,7 @@ export class Model extends Container {
         trainFunction, ins, outLabels, batchSize, config.epochs, config.verbose,
         callbacks, valFunction, valIns, config.shuffle, callbackMetrics, null,
         null, null);
-    // TOOD(cais): Add value to outLabels.
+    // TODO(cais): Add value to outLabels.
     // TODO(cais): Add initialEpoch.
   }
 }

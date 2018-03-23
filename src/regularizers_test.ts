@@ -10,59 +10,57 @@
 
 /* Unit tests for constraints */
 
-import {tensor1d} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d} from '@tensorflow/tfjs-core';
 import * as tfl from './index';
 
 // tslint:disable:max-line-length
 import {deserializeRegularizer, getRegularizer, serializeRegularizer} from './regularizers';
-import {ConfigDict, LayerVariable} from './types';
+import {ConfigDict} from './types';
 import {describeMathCPU, expectTensorsClose} from './utils/test_utils';
 // tslint:enable:max-line-length
 
 describeMathCPU('Built-in Regularizers', () => {
   it('l1_l2', () => {
-    const variable = new LayerVariable(tensor1d([1, -2, 3, -4]));
+    const x = tensor1d([1, -2, 3, -4]);
     const regularizer = tfl.regularizers.l1l2();
-    const score = regularizer.apply(variable);
+    const score = regularizer.apply(x);
     expectTensorsClose(
-        score, tensor1d([0.01 * (1 + 2 + 3 + 4) + 0.01 * (1 + 4 + 9 + 16)]));
+        score, scalar(0.01 * (1 + 2 + 3 + 4) + 0.01 * (1 + 4 + 9 + 16)));
   });
   it('l1', () => {
-    const variable = new LayerVariable(tensor1d([1, -2, 3, -4]));
+    const x = tensor1d([1, -2, 3, -4]);
     const regularizer = tfl.regularizers.l1();
-    const score = regularizer.apply(variable);
-    expectTensorsClose(score, tensor1d([0.01 * (1 + 2 + 3 + 4)]));
+    const score = regularizer.apply(x);
+    expectTensorsClose(score, scalar(0.01 * (1 + 2 + 3 + 4)));
   });
   it('l2', () => {
-    const variable = new LayerVariable(tensor1d([1, -2, 3, -4]));
+    const x = tensor1d([1, -2, 3, -4]);
     const regularizer = tfl.regularizers.l2();
-    const score = regularizer.apply(variable);
-    expectTensorsClose(score, tensor1d([0.01 * (1 + 4 + 9 + 16)]));
+    const score = regularizer.apply(x);
+    expectTensorsClose(score, scalar(0.01 * (1 + 4 + 9 + 16)));
   });
   it('l1_l2 non default', () => {
-    const variable = new LayerVariable(tensor1d([1, -2, 3, -4]));
+    const x = tensor1d([1, -2, 3, -4]);
     const regularizer = tfl.regularizers.l1l2({l1: 1, l2: 2});
-    const score = regularizer.apply(variable);
+    const score = regularizer.apply(x);
     expectTensorsClose(
-        score, tensor1d([1 * (1 + 2 + 3 + 4) + 2 * (1 + 4 + 9 + 16)]));
+        score, scalar(1 * (1 + 2 + 3 + 4) + 2 * (1 + 4 + 9 + 16)));
   });
 });
 
 describeMathCPU('regularizers.get', () => {
-  let variable: LayerVariable;
+  let x: Tensor;
   beforeEach(() => {
-    variable = new LayerVariable(tensor1d([1, -2, 3, -4]));
+    x = tensor1d([1, -2, 3, -4]);
   });
 
   it('by string - lower camel', () => {
     const regularizer = getRegularizer('l1l2');
-    expectTensorsClose(
-        regularizer.apply(variable), tfl.regularizers.l1l2().apply(variable));
+    expectTensorsClose(regularizer.apply(x), tfl.regularizers.l1l2().apply(x));
   });
   it('by string - upper camel', () => {
     const regularizer = getRegularizer('L1L2');
-    expectTensorsClose(
-        regularizer.apply(variable), tfl.regularizers.l1l2().apply(variable));
+    expectTensorsClose(regularizer.apply(x), tfl.regularizers.l1l2().apply(x));
   });
 
   it('by existing object', () => {
@@ -74,7 +72,7 @@ describeMathCPU('regularizers.get', () => {
     const origReg = tfl.regularizers.l1l2({l1: 1, l2: 2});
     const regularizer =
         getRegularizer(serializeRegularizer(origReg) as ConfigDict);
-    expectTensorsClose(regularizer.apply(variable), origReg.apply(variable));
+    expectTensorsClose(regularizer.apply(x), origReg.apply(x));
   });
 });
 

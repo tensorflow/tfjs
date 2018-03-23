@@ -12,7 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {doc, Tensor, variable} from '@tensorflow/tfjs-core';
+import {doc, Scalar, Tensor, variable} from '@tensorflow/tfjs-core';
 
 import {getUniqueTensorName} from './common';
 import {Constraint} from './constraints';
@@ -241,6 +241,11 @@ export class LayerVariable {
  */
 export type LossOrMetricFn = (yTrue: Tensor, yPred: Tensor) => Tensor;
 
+/**
+ * Type for a regularizer function.
+ */
+export type RegularizerFn = () => Scalar;
+
 /*
  * The type for an RNN step function.
  * The arguments are:
@@ -264,7 +269,9 @@ export type RnnStepFunction =
  * and support for Enums.
  */
 export type JsonValue = boolean|number|string|null|JsonArray|JsonDict;
-export interface JsonDict { [key: string]: JsonValue; }
+export interface JsonDict {
+  [key: string]: JsonValue;
+}
 export interface JsonArray extends Array<JsonValue> {}
 
 /**
@@ -284,7 +291,9 @@ export interface JsonArray extends Array<JsonValue> {}
  */
 export type ConfigDictValue =
     boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict { [key: string]: ConfigDictValue; }
+export interface ConfigDict {
+  [key: string]: ConfigDictValue;
+}
 export interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 export type NamedTensorMap = {

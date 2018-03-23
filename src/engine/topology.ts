@@ -11,16 +11,16 @@
 /* Original source: keras/engine/topology.py */
 
 // tslint:disable:max-line-length
-import {doc, Tensor} from '@tensorflow/tfjs-core';
+import {doc, Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
 import {Constraint} from '../constraints';
-import {AttributeError, RuntimeError, ValueError} from '../errors';
+import {AttributeError, NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {Initializer} from '../initializers';
 import {deserialize as deserializeLayer} from '../layers/serialization';
 import {Regularizer} from '../regularizers';
-import {ConcreteTensor, ConfigDict, DType, JsonDict, LayerVariable, NamedTensorMap, Shape, SymbolicTensor, TensorInterface} from '../types';
+import {ConfigDict, DType, JsonDict, LayerVariable, NamedTensorMap, RegularizerFn, Shape, SymbolicTensor, TensorInterface} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {convertTsToPythonic} from '../utils/serialization_utils';
 // tslint:enable:max-line-length
@@ -358,10 +358,8 @@ export class Layer {
 
   protected _trainableWeights: LayerVariable[];
   private _nonTrainableWeights: LayerVariable[];
-  private _losses: TensorInterface[];
+  private _losses: RegularizerFn[];
   private _updates: TensorInterface[];
-  protected perInputLosses: {[hash: string]: TensorInterface[]};
-  protected perInputUpdates: {[hash: string]: Op[]};
   private _built: boolean;
   private _callHook: CallHook = null;
 
@@ -386,8 +384,6 @@ export class Layer {
     this._nonTrainableWeights = [];
     this._losses = [];
     this._updates = [];
-    this.perInputLosses = {};
-    this.perInputUpdates = {};
     this._built = false;
 
     /*
@@ -563,8 +559,21 @@ export class Layer {
         this.getNodeAtIndex(0, 'output').outputTensors);
   }
 
-  get losses(): TensorInterface[] {
+  get losses(): RegularizerFn[] {
     return this._losses;
+  }
+
+  /**
+   * Retrieves the Layer's current loss values.
+   *
+   * Used for regularizers during training.
+   */
+  calculateLosses(): Scalar[] {
+    // Porting Node: This is an augmentation to Layer.loss in PyKeras.
+    //   In PyKeras, Layer.loss returns symbolic tensors. Here a concrete
+    //   Tensor (specifically Scalar) values are returned. This is due to the
+    //   imperative backend.
+    return this.losses.map(lossFn => lossFn());
   }
 
   get updates(): TensorInterface[] {
@@ -893,14 +902,13 @@ export class Layer {
           outputListCopy.push(x);
         }
         output = generic_utils.singletonOrArray(outputListCopy);
-        if (this.activityRegularizer !== undefined &&
-            this.activityRegularizer !== null) {
-          const regularizationLosses = generic_utils.toList(output).map(
-              x => this.activityRegularizer.apply(x));
-          this.addLoss(
-              regularizationLosses.map(loss => new ConcreteTensor(loss)),
-              generic_utils.toList(inputs));
+
+        if (this.activityRegularizer != null) {
+          throw new NotImplementedError(
+              'Layer invocation in the presence of activity ' +
+              'regularizer(s) is not supported yet.');
         }
+
         // TODO(michaelterry): Call addInboundNode()?
         return output;
       } else {
@@ -934,6 +942,13 @@ export class Layer {
         this.addInboundNode(
             inputs as SymbolicTensor | SymbolicTensor[], output, null, null,
             inputShape, outputShape, kwargs);
+
+        if (this.activityRegularizer != null) {
+          throw new NotImplementedError(
+              'Layer invocation in the presence of activity ' +
+              'regularizer(s) is not supported yet.');
+        }
+
         return output;
       }
     });
@@ -1022,7 +1037,7 @@ export class Layer {
         initializer.apply(shape, dtype), dtype, name, trainable, constraint);
     // Request backend not to dispose the weights of the model on scope() exit.
     if (regularizer != null) {
-      this.addLoss(new ConcreteTensor(regularizer.apply(weight)));
+      this.addLoss(() => regularizer.apply(weight.read()));
     }
     if (trainable == null) {
       trainable = true;
@@ -1041,32 +1056,15 @@ export class Layer {
    * The loss may potentionally be conditional on some inputs tensors,
    * for instance activity losses are conditional on the layer's inputs.
    */
-  addLoss(
-      losses: TensorInterface|TensorInterface[],
-      inputs: TensorInterface|TensorInterface[] = null): void {
-    if (losses == null || losses === []) {
+  addLoss(losses: RegularizerFn|RegularizerFn[]): void {
+    if (losses == null || Array.isArray(losses) && losses.length === 0) {
       return;
     }
     // Update this.losses
     losses = generic_utils.toList(losses);
-    if (this.losses !== undefined && this.losses !== null) {
+    if (this._losses !== undefined && this._losses !== null) {
       this.losses.push(...losses);
     }
-    // Update self.perInputUpdates
-    if (inputs instanceof Array && inputs.length === 0) {
-      inputs = null;
-    }
-    let inputsHash;
-    if (inputs != null) {
-      inputsHash = generic_utils.objectListUid(inputs);
-    } else {
-      // Updates indexed by None are unconditional rather than input dependent
-      inputsHash = null;
-    }
-    if (!(inputsHash in this.perInputLosses)) {
-      this.perInputLosses[inputsHash] = [];
-    }
-    this.perInputLosses[inputsHash].push(...losses);
   }
 
   /**
@@ -1654,7 +1652,6 @@ export class Container extends Layer {
       included in the layers are relevant to the current graph).
     */
     // ids of all nodes relevant to the Container:
-    const containerNodes = new Set<string>();
     const nodesDepths: {[nodeID: string]: number} = {};
     // To recover nodes from their ID.
     const nodeIDToNode: {[nodeID: string]: Node} = {};
@@ -1705,7 +1702,7 @@ export class Container extends Layer {
           }
 
           // Update containerNodes.
-          containerNodes.add(Container.nodeKey(layer, nodeIndex));
+          this.containerNodes.add(Container.nodeKey(layer, nodeIndex));
 
           // Store the traversal order for layer sorting.
           if (!(layer.id in layerIndices)) {
@@ -1859,7 +1856,6 @@ export class Container extends Layer {
     }
 
     // Set this.containerNodes and this.nodesByDepth.
-    this.containerNodes = containerNodes;
     this.nodesByDepth = nodesByDepth;
 
     // Ensure name unicity, which will be crucial for serialization
@@ -2223,16 +2219,12 @@ export class Container extends Layer {
             outputMasks = generic_utils.toList(
                 layer.computeMask(computedTensors, computedMasks));
           }
-          if (layer.activityRegularizer !== undefined &&
-              layer.activityRegularizer != null) {
-            const regularizationLosses: Tensor[] = [];
-            for (const x of generic_utils.toList(computedTensors)) {
-              regularizationLosses.push(layer.activityRegularizer.apply(x));
-            }
-            layer.addLoss(
-                regularizationLosses.map(loss => new ConcreteTensor(loss)));
-          }
 
+          if (layer.activityRegularizer) {
+            throw new NotImplementedError(
+                'Model invocation with concrete Tensor value(s) in the ' +
+                'presence of activity regularizer(s) is not supported yet.');
+          }
           // TODO(michaelterry): Add model updates and losses
 
           // Update tensor map.
@@ -2319,6 +2311,32 @@ export class Container extends Layer {
       }
     }
     throw new ValueError(`No such layer: ${name}`);
+  }
+
+  /**
+   * Retrieves the Container's current loss values.
+   *
+   * Used for regularizers during training.
+   */
+  calculateLosses(): Scalar[] {
+    // Porting Node: This is an augmentation to Container.loss in PyKeras.
+    //   In PyKeras, Container.loss returns symbolic tensors. Here a concrete
+    //   Tensor (specifically Scalar) values are returned. This is due to the
+    //   imperative backend.
+    return tidy(() => {
+      const losses: Scalar[] = [];
+      for (const layer of this.layers) {
+        for (let nodeIndex = 0; nodeIndex < layer.inboundNodes.length;
+             ++nodeIndex) {
+          const nodeKey = Container.nodeKey(layer, nodeIndex);
+          if (this.containerNodes.has(nodeKey)) {
+            losses.push(...layer.calculateLosses());
+          }
+        }
+      }
+      // TODO(cais): Add any unconditional model-level losses?
+      return losses;
+    });
   }
 
   getConfig(): ConfigDict {

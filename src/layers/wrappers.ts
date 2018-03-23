@@ -19,7 +19,7 @@ import * as K from '../backend/deeplearnjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {Shape, TensorInterface} from '../types';
-import {ConfigDict, LayerVariable, RnnStepFunction, SymbolicTensor} from '../types';
+import {ConfigDict, LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
 import {RNN} from './recurrent';
@@ -106,7 +106,7 @@ export abstract class Wrapper extends Layer {
 
   // TODO(cais): Implement getUpdatesFor().
 
-  get losses(): TensorInterface[] {
+  get losses(): RegularizerFn[] {
     return this.layer.losses;
   }
 

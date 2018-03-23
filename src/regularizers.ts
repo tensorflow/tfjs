@@ -14,7 +14,6 @@
 import {doc, Scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/deeplearnjs_backend';
-import {LayerVariable} from './types';
 import {ConfigDict, ConfigDictValue} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
@@ -23,7 +22,9 @@ import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './util
 /**
  * Regularizer base class.
  */
-export abstract class Regularizer { abstract apply(x: LayerVariable): Tensor; }
+export abstract class Regularizer {
+  abstract apply(x: Tensor): Scalar;
+}
 
 export interface L1L2Config {
   /** L1 regularization rate. Defaults to 0.01. */
@@ -69,18 +70,17 @@ export class L1L2 extends Regularizer {
    * Porting note: Renamed from __call__.
    * @param x Variable of which to calculate the regularization score.
    */
-  apply(x: LayerVariable): Tensor {
+  apply(x: Tensor): Scalar {
     let regularization: Tensor = zeros([1]);
     if (this.hasL1) {
-      regularization = K.add(
-          regularization, K.sum(K.scalarTimesArray(this.l1, K.abs(x.read()))));
+      regularization =
+          K.add(regularization, K.sum(K.scalarTimesArray(this.l1, K.abs(x))));
     }
     if (this.hasL2) {
       regularization = K.add(
-          regularization,
-          K.sum(K.scalarTimesArray(this.l2, K.square(x.read()))));
+          regularization, K.sum(K.scalarTimesArray(this.l2, K.square(x))));
     }
-    return regularization;
+    return regularization.asScalar();
   }
   getConfig(): ConfigDict {
     return {'l1': this.l1.dataSync()[0], 'l2': this.l2.dataSync()[0]};

@@ -22,6 +22,7 @@ import * as tfl from '../index';
 import {Dropout, Flatten, Reshape} from '../layers/core';
 import {SimpleRNN} from '../layers/recurrent';
 import {TimeDistributed} from '../layers/wrappers';
+import {Regularizer} from '../regularizers';
 import {DType, SymbolicTensor} from '../types';
 import {pyListRepeat} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
@@ -334,9 +335,13 @@ describeMathCPUAndGPU('Model.fit', () => {
   let targets1: Tensor;
   let targets2: Tensor;
 
-  function createDenseModelAndData(useBias = false): void {
-    const layer =
-        tfl.layers.dense({units: 1, useBias, kernelInitializer: 'ones'});
+  function createDenseModelAndData(
+      useBias = false,
+      kernelRegularizer?: string|Regularizer,
+      biasRegularizer?: string|Regularizer,
+      ): void {
+    const layer = tfl.layers.dense(
+        {units: 1, useBias, kernelInitializer: 'ones', kernelRegularizer});
     const output = layer.apply(inputTensor) as SymbolicTensor;
     model = new Model({inputs: [inputTensor], outputs: [output]});
     inputs = K.ones([numSamples, inputSize]);
@@ -915,6 +920,90 @@ describeMathCPUAndGPU('Model.fit', () => {
       });
     }
   }
+
+  it('Using custom regularizer', async done => {
+    // The golden values used for assertion can be obtained with PyKeras code:
+    //
+    // ```python
+    // import keras
+    // import numpy as np
+    //
+    // model = keras.Sequential([
+    //     keras.layers.Dense(
+    //         1, kernel_initializer='ones', use_bias=False, input_shape=[4],
+    //         kernel_regularizer=keras.regularizers.l1_l2(1, 1))
+    // ]);
+    //
+    // xs = np.ones([5, 4])
+    // ys = np.ones([5, 1])
+    //
+    // model.compile(optimizer='sgd', loss='mean_squared_error')
+    //
+    // history = model.fit(xs, ys, epochs=2)
+    // print(model.get_weights()[0])
+    // print(history.history)
+    //
+    // ```
+    createDenseModelAndData(false, tfl.regularizers.l1l2({l1: 1, l2: 1}));
+
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    // Use batchSize === numSamples to get exactly one batch.
+    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
+        .then(history => {
+          expectTensorsClose(
+              model.layers[1].getWeights()[0],
+              tensor2d([0.829, 0.829, 0.829, 0.829], [4, 1]));
+          expect(history.history.loss.length).toEqual(2);
+          expect(history.history.loss[0]).toBeCloseTo(17);
+          expect(history.history.loss[1]).toBeCloseTo(13.92);
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
+
+  it('Using string regularizer', async done => {
+    // The golden values used for assertion can be obtained with PyKeras code:
+    //
+    // ```python
+    // import keras
+    // import numpy as np
+    //
+    // model = keras.Sequential([
+    //     keras.layers.Dense(
+    //         1, kernel_initializer='ones', use_bias=False, input_shape=[4],
+    //         kernel_regularizer='l1l2')
+    // ]);
+    //
+    // xs = np.ones([5, 4])
+    // ys = np.ones([5, 1])
+    //
+    // model.compile(optimizer='sgd', loss='mean_squared_error')
+    //
+    // history = model.fit(xs, ys, epochs=2)
+    // print(model.get_weights()[0])
+    // print(history.history)
+    //
+    // ```
+    createDenseModelAndData(false, 'l1l2');
+
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    // Use batchSize === numSamples to get exactly one batch.
+    model.fit(inputs, targets, {batchSize: numSamples, epochs: 2})
+        .then(history => {
+          expectTensorsClose(
+              model.layers[1].getWeights()[0],
+              tensor2d([0.884, 0.884, 0.884, 0.884], [4, 1]));
+          expect(history.history.loss.length).toEqual(2);
+          expect(history.history.loss[0]).toBeCloseTo(9.08);
+          expect(history.history.loss[1]).toBeCloseTo(7.68);
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
 
   // TODO(cais): Uncommment the test below once the 1-tensor leak during
   // //   `updateVariable` is fixed.

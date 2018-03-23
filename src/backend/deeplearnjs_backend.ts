@@ -854,7 +854,7 @@ export function dot(x: Tensor, y: Tensor): Tensor {
  * @return The sign `Tensor`.
  */
 export function sign(x: Tensor): Tensor {
-  // TOOD(cais): Move to the core.
+  // TODO(cais): Move to the core.
   const zerosLikeX = coreZerosLike(x);
   const onesLikeX = coreOnesLike(x);
   return where(
