@@ -214,11 +214,15 @@ void GetTensorData(napi_env env, napi_value context_value,
   // Determine the length of the array based on the shape of the tensor.
   size_t length = 0;
   uint32_t num_dims = TF_NumDims(tensor);
-  for (uint32_t i = 0; i < num_dims; i++) {
-    if (i == 0) {
-      length = TF_Dim(tensor, i);
-    } else {
-      length *= TF_Dim(tensor, i);
+  if (num_dims == 0) {
+    length = 1;
+  } else {
+    for (uint32_t i = 0; i < num_dims; i++) {
+      if (i == 0) {
+        length = TF_Dim(tensor, i);
+      } else {
+        length *= TF_Dim(tensor, i);
+      }
     }
   }
 
@@ -258,19 +262,24 @@ void GetTensorShape(napi_env env, napi_value wrapped_value,
   uint32_t num_dims = TFE_TensorHandleNumDims(handle->handle, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
-  nstatus = napi_create_array_with_length(env, num_dims, result);
-  ENSURE_NAPI_OK(env, nstatus);
-
-  for (uint32_t i = 0; i < num_dims; i++) {
-    napi_value cur_dim;
-    nstatus = napi_create_int64(
-        env, TFE_TensorHandleDim(handle->handle, i, tf_status.status),
-        &cur_dim);
-    ENSURE_TF_OK(env, tf_status);
+  if (num_dims == 0) {
+    nstatus = napi_create_array_with_length(env, 0, result);
+    ENSURE_NAPI_OK(env, nstatus);
+  } else {
+    nstatus = napi_create_array_with_length(env, num_dims, result);
     ENSURE_NAPI_OK(env, nstatus);
 
-    nstatus = napi_set_element(env, *result, i, cur_dim);
-    ENSURE_NAPI_OK(env, nstatus);
+    for (uint32_t i = 0; i < num_dims; i++) {
+      napi_value cur_dim;
+      nstatus = napi_create_int64(
+          env, TFE_TensorHandleDim(handle->handle, i, tf_status.status),
+          &cur_dim);
+      ENSURE_TF_OK(env, tf_status);
+      ENSURE_NAPI_OK(env, nstatus);
+
+      nstatus = napi_set_element(env, *result, i, cur_dim);
+      ENSURE_NAPI_OK(env, nstatus);
+    }
   }
 }
 
