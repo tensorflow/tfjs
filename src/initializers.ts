@@ -82,7 +82,6 @@ export abstract class Initializer {
 
 /**
  * Initializer that generates tensors initialized to 0.
- * @docalias Initializer
  */
 export class Zeros extends Initializer {
   apply(shape: Shape, dtype?: DType): Tensor {
@@ -93,7 +92,6 @@ ClassNameMap.register('Zeros', Zeros);
 
 /**
  * Initializer that generates tensors initialized to 1.
- * @docalias Initializer
  */
 export class Ones extends Initializer {
   apply(shape: Shape, dtype?: DType): Tensor {
@@ -109,7 +107,6 @@ export interface ConstantConfig {
 
 /**
  * Initializer that generates values initialized to some constant.
- * @docalias Initializer
  */
 export class Constant extends Initializer {
   private value: number;
@@ -146,7 +143,6 @@ export interface RandomUniformConfig {
  *
  * Values will be distributed uniformly between the configured minval and
  * maxval.
- * @docalias Initializer
  */
 export class RandomUniform extends Initializer {
   readonly DEFAULT_MINVAL = -0.05;
@@ -184,7 +180,6 @@ export interface RandomNormalConfig {
 /**
  * Initializer that generates random values initialized to a normal
  * distribution.
- * @docalias Initializer
  */
 export class RandomNormal extends Initializer {
   readonly DEFAULT_MEAN = 0.;
@@ -226,7 +221,6 @@ export interface TruncatedNormalConfig {
  * These values are similar to values from a `RandomNormal` except that values
  * more than two standard deviations from the mean are discarded and re-drawn.
  * This is the recommended initializer for neural network weights and filters.
- * @docalias Initializer
  */
 export class TruncatedNormal extends Initializer {
   readonly DEFAULT_MEAN = 0.;
@@ -262,7 +256,6 @@ export interface IdentityConfig {
 /**
  * Initializer that generates the identity matrix.
  * Only use for square 2D matrices.
- * @docalias Initializer
  */
 export class Identity extends Initializer {
   private gain: Scalar;
@@ -345,7 +338,6 @@ export interface VarianceScalingConfig {
  * With distribution=UNIFORM,
  * samples are drawn from a uniform distribution
  * within [-limit, limit], with `limit = sqrt(3 * scale / n)`.
- * @docalias Initializer
  */
 export class VarianceScaling extends Initializer {
   private scale: number;
@@ -420,7 +412,6 @@ export interface SeedOnlyInitializerConfig {
  * Reference:
  *   Glorot & Bengio, AISTATS 2010
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf.
- * @docalias Initializer
  */
 export class GlorotUniform extends VarianceScaling {
   /**
@@ -451,7 +442,6 @@ ClassNameMap.register('GlorotUniform', GlorotUniform);
  * Reference:
  *   Glorot & Bengio, AISTATS 2010
  *       http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf
- * @docalias Initializer
  */
 export class GlorotNormal extends VarianceScaling {
   /**
@@ -481,7 +471,6 @@ ClassNameMap.register('GlorotNormal', GlorotNormal);
  *
  * Reference:
  *     He et al., http://arxiv.org/abs/1502.01852
- * @docalias Initializer
  */
 export class HeNormal extends VarianceScaling {
   constructor(config?: SeedOnlyInitializerConfig) {
@@ -501,7 +490,6 @@ ClassNameMap.register('HeNormal', HeNormal);
  * References:
  *   [Self-Normalizing Neural Networks](https://arxiv.org/abs/1706.02515)
  *   [Efficient Backprop](http://yann.lecun.com/exdb/publis/pdf/lecun-98b.pdf)
- * @docalias Initializer
  */
 export class LeCunNormal extends VarianceScaling {
   constructor(config?: SeedOnlyInitializerConfig) {
