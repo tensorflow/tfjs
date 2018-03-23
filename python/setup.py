@@ -7,7 +7,7 @@
 """Build pip wheel for model_converter."""
 
 import setuptools
-
+from tensorflowjs import version
 
 REQUIRED_PACKAGES = [
     'h5py >= 2.7.1',
@@ -22,7 +22,7 @@ CONSOLE_SCRIPTS = [
 
 setuptools.setup(
     name='tensorflowjs',
-    version='0.0.1',
+    version=version,
     description='Python Libraries and Tools for TensorFlow.js',
     url='https://js.tensorflow.org/',
     author='Google LLC',

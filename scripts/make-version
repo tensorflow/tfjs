@@ -18,7 +18,7 @@ var fs = require('fs');
 
 var version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
 
-const versionCode =
+const npmVersionCode =
 `/** @license See the LICENSE file. */
 
 // This code is auto-generated, do not modify this file!
@@ -26,9 +26,22 @@ const version = '${version}';
 export {version};
 `
 
-fs.writeFile('src/version.ts', versionCode, err => {
+fs.writeFile('src/version.ts', npmVersionCode, err => {
   if (err != null) {
-    throw new Error(`Could not save version file ${version}: ${err}`);
+    throw new Error(`Could not save npm version file ${version}: ${err}`);
   }
-  console.log(`Version file for version ${version} saved sucessfully.`);
+  console.log(`Version file for npm version ${version} saved sucessfully.`);
+});
+
+const pipVersionCode =
+`# @license See the LICENSE file.
+
+# This code is auto-generated, do not modify this file!
+version = '${version}'
+`
+fs.writeFile('python/tensorflowjs/version.py', pipVersionCode, err => {
+  if (err != null) {
+    throw new Error(`Could not save pip version file ${version}: ${err}`);
+  }
+  console.log(`Version file for pip version ${version} saved sucessfully.`);
 });
