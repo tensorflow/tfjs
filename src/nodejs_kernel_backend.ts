@@ -86,7 +86,7 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
     return [
-      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: true},
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
       this.createTypeOpAttr('T', tensor.dtype),
       this.createTypeOpAttr('Tidx', 'int32')
     ];

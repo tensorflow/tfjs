@@ -136,6 +136,28 @@ describe('TensorHandle', () => {
       new binding.TensorHandle().copyBuffer([1], 1000, new Int32Array([1]));
     }).toThrowError();
   });
+
+  it('works with 0-dim tensors', () => {
+    // Reduce op (e.g 'Max') will produce a 0-dim TFE_Tensor.
+    const output = new binding.TensorHandle();
+
+    const axes = new binding.TensorHandle();
+    axes.copyBuffer([1], binding.TF_INT32, new Int32Array([0]));
+
+    const input = new binding.TensorHandle();
+    input.copyBuffer([3], binding.TF_INT32, new Int32Array([1, 2, 3]));
+
+    const attrs = [
+      {name: 'keep_dims', type: binding.TF_ATTR_BOOL, value: false},
+      {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32},
+      {name: 'Tidx', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32}
+    ];
+
+    binding.execute(context, 'Max', attrs, [input, axes], output);
+    expect(output.shape).toEqual([]);
+    expect(output.dtype).toEqual(binding.TF_INT32);
+    expect(output.dataSync(context)).toEqual(new Int32Array([3]));
+  });
 });
 
 describe('execute()', () => {
