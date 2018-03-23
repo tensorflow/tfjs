@@ -69,7 +69,6 @@ export interface MaxNormConfig {
  *       - [Dropout: A Simple Way to Prevent Neural Networks from Overfitting
  * Srivastava, Hinton, et al.
  * 2014](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
- * @docalias Constraint
  */
 export class MaxNorm extends Constraint {
   private maxValue: number;
@@ -118,7 +117,6 @@ export interface UnitNormConfig {
 
 /**
  * Constrains the weights incident to each hidden unit to have unit norm.
- * @docalias Constraint
  */
 export class UnitNorm extends Constraint {
   private axis: number;
@@ -143,7 +141,6 @@ ClassNameMap.register('UnitNorm', UnitNorm);
 
 /**
  * Constains the weight to be non-negative.
- * @docalias Constraint
  */
 export class NonNeg extends Constraint {
   apply(w: Tensor): Tensor {
@@ -186,7 +183,6 @@ export interface MinMaxNormConfig {
   rate?: number;
 }
 
-/** @docalias Constraint */
 export class MinMaxNorm extends Constraint {
   private minValue: number;
   private maxValue: number;
