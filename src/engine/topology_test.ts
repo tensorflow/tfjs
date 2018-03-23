@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import * as K from '../backend/deeplearnjs_backend';
@@ -263,7 +263,7 @@ describeMathCPU('Layer', () => {
          expect(layer.batchInputShape).toEqual(batchInputShape);
        });
 
-    for (const [batchSize, inputShape, expectedBatchInputShape] of[
+    for (const [batchSize, inputShape, expectedBatchInputShape] of [
              [null, [], [null]], [null, [1], [null, 1]], [3, [], [3]],
              [3, [1], [3, 1]]]) {
       it('initializes batchInputShape to layerConfig.inputShape.', () => {
@@ -1328,6 +1328,44 @@ describeMathCPUAndGPU('Container', () => {
     const container = createSimpleTwoLayerContainer()[0];
     expect(() => container.getLayer())
         .toThrowError(/Provide either a layer name or layer index/);
+  });
+});
+
+describeMathCPUAndGPU('Container.calculateLosses', () => {
+  function createSimpleOneLayerContainer(useRegularizers: boolean):
+      [Container, Layer[]] {
+    const inputShape = [2];
+    const inputLayer = Input({shape: inputShape});
+    const kernelRegularizer =
+        useRegularizers ? tfl.regularizers.l1({l1: 2}) : null;
+    const biasRegularizer =
+        useRegularizers ? tfl.regularizers.l2({l2: 3}) : null;
+    const denseLayer = tfl.layers.dense({
+      units: 2,
+      kernelInitializer: 'ones',
+      biasInitializer: 'ones',
+      kernelRegularizer,
+      biasRegularizer,
+      name: 'denseLayer'
+    });
+    const layer2Output = denseLayer.apply(inputLayer) as SymbolicTensor;
+    const container =
+        new Container({inputs: [inputLayer], outputs: [layer2Output]});
+    return [container, [denseLayer]];
+  }
+
+  it('L1 and L2', () => {
+    const container = createSimpleOneLayerContainer(true)[0];
+    const losses = container.calculateLosses();
+    expect(losses.length).toEqual(2);
+    expectTensorsClose(losses[0], scalar(2 * (1 + 1 + 1 + 1)));
+    expectTensorsClose(losses[1], scalar(3 * (1 + 1)));
+  });
+
+  it('No regularizers', () => {
+    const container = createSimpleOneLayerContainer(false)[0];
+    const losses = container.calculateLosses();
+    expect(losses.length).toEqual(0);
   });
 });
 

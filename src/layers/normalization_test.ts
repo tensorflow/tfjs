@@ -72,5 +72,5 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     }
   }
 
-  // TOOD(cais): Test BatchNormalization under training model.
+  // TODO(cais): Test BatchNormalization under training model.
 });
