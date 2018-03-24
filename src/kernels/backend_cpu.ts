@@ -32,6 +32,7 @@ import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
 import * as util from '../util';
 
 import {BackendTimingInfo, KernelBackend} from './backend';
+import * as backend_util from './backend_util';
 
 export class MathBackendCPU implements KernelBackend {
   private data = new WeakMap<DataId, DataTypeMap[DataType]>();
@@ -1314,6 +1315,15 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return dx.toTensor();
+  }
+
+  cast<T extends Tensor<types.Rank>>(x: T, dtype: DataType): T {
+    return backend_util.castTensor(x, dtype, this);
+  }
+
+  reshape<T extends Tensor<types.Rank>, R extends types.Rank>(
+      x: T, shape: types.ShapeMap[R]): Tensor<R> {
+    return backend_util.reshapeTensor(x, shape);
   }
 
   minPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
