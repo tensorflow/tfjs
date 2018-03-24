@@ -22,7 +22,7 @@ CONSOLE_SCRIPTS = [
 
 setuptools.setup(
     name='tensorflowjs',
-    version=version,
+    version=version.version,
     description='Python Libraries and Tools for TensorFlow.js',
     url='https://js.tensorflow.org/',
     author='Google LLC',
@@ -45,6 +45,7 @@ setuptools.setup(
     ],
     py_modules=[
         'tensorflowjs',
+        'tensorflowjs.version',
         'tensorflowjs.write_weights',
         'tensorflowjs.converters',
         'tensorflowjs.converters.converter',

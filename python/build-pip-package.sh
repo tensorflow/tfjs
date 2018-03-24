@@ -20,19 +20,29 @@ set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [[ $# != 1 ]]; then
+if [[ $# -lt 1 ]]; then
   echo "Usage:"
-  echo "  build-pip-packages.sh <OUTPUT_DIR>"
+  echo "  build-pip-packages.sh [--test] <OUTPUT_DIR>"
   echo
   echo "Args:"
   echo "  OUTPUT_DIR: Directory where the pip (.whl) file will be written."
+  echo "  --test:     Test the pip package by installing it and running"
+  echo "              test_pip_package.py against the install."
+  echo
   exit 1
 fi
+
+RUN_TEST=0
+if [[ "$1" == "--test" ]]; then
+  RUN_TEST=1
+  shift
+fi
+
 DEST_DIR="$1"
 
 mkdir -p "${DEST_DIR}"
 
-TMP_DIR=$(mktemp -d)
+TMP_DIR="$(mktemp -d)"
 echo "Using temporary directory: ${TMP_DIR}"
 
 pushd "${SCRIPTS_DIR}" > /dev/null
@@ -83,10 +93,43 @@ mv dist/*.whl "${DEST_DIR}/"
 
 popd > /dev/null
 
+WHEEL_PATH=""
 echo
 echo "Generated wheel file(s) in ${DEST_DIR} :"
 for WHEEL in ${WHEELS}; do
-  echo "  $(basename "${WHEEL}")"
+  WHEEL_BASE_NAME="$(basename "${WHEEL}")"
+  echo "  ${WHEEL_BASE_NAME}"
+  WHEEL_PATH="${DEST_DIR}/${WHEEL_BASE_NAME}"
 done
 
 rm -rf "${TMP_DIR}"
+
+# Run test on install.
+if [[ "${RUN_TEST}" == "1" ]]; then
+  pip uninstall -y tensorflowjs || \
+    echo "It appears that tensorflowjs is not installed."
+
+  echo
+  echo "Installing tensorflowjs from wheel at path: ${WHEEL_PATH}..."
+  echo
+
+  pip install --force-reinstall "${WHEEL_PATH}"
+
+  TEST_ON_INSTALL_DIR="$(mktemp -d)"
+
+  cp "${SCRIPTS_DIR}/test_pip_package.py" "${TEST_ON_INSTALL_DIR}"
+
+  pushd "${TEST_ON_INSTALL_DIR}" > /dev/null
+
+  python test_pip_package.py
+
+  popd > /dev/null
+
+  rm -rf "${TEST_ON_INSTALL_DIR}"
+
+  echo
+  echo "Test-on-install PASSED."
+  echo
+  echo "Your pip wheel is at:"
+  echo "  ${WHEEL_PATH}"
+fi

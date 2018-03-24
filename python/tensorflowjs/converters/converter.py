@@ -117,7 +117,7 @@ def main():
           '"tensorflow", but the current input format is "keras".')
 
     dispatch_pykeras_conversion(FLAGS.input_path, output_dir=FLAGS.output_dir)
-  elif FLAGS.input_path == 'tf_saved_model':
+  elif FLAGS.input_format == 'tf_saved_model':
     tf_saved_model_conversion.convert_tf_saved_model(FLAGS.output_node_names,
                                                      FLAGS.output_dir,
                                                      FLAGS.saved_model_tags,
