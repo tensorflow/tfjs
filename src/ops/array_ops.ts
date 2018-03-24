@@ -16,7 +16,7 @@
  */
 
 import {doc} from '../doc';
-import {ForwardFunc} from '../engine';
+// import {ForwardFunc} from '../engine';
 import {ENV} from '../environment';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
@@ -606,7 +606,7 @@ export class ArrayOps {
       return {x: () => dy.reshape(x.shape)};
     };
     return ENV.engine.runKernel(
-        backend => Tensor.make(shape, {dataId: x.dataId}, x.dtype), {x}, grad);
+        backend => backend.reshape(x, shape), {x}, grad);
   }
 
   /**
@@ -640,24 +640,11 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
   static cast<T extends Tensor>(x: T, dtype: DataType): T {
-    const forw: ForwardFunc<T> = backend => {
-      if (!util.hasEncodingLoss(x.dtype, dtype)) {
-        // We don't change the underlying data, since we cast to higher
-        // precision.
-        return Tensor.make(x.shape, {dataId: x.dataId}, dtype) as T;
-      }
-      if (dtype === 'int32') {
-        return backend.int(x);
-      } else if (dtype === 'bool') {
-        return backend.notEqual(x, ArrayOps.scalar(0, x.dtype)) as T;
-      } else {
-        throw new Error(`Error in Cast: unknown dtype argument (${dtype})`);
-      }
-    };
     const grad = (dy: T) => {
       return {x: () => dy.clone()};
     };
-    return ENV.engine.runKernel(forw, {x}, grad) as T;
+    return ENV.engine.runKernel(backend => backend.cast(x, dtype), {x}, grad) as
+        T;
   }
 
   /**
