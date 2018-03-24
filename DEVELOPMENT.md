@@ -31,69 +31,15 @@
 * As a required step for code review and submission, run and pass the TypeScript
   linter (`tslint`):
   ```bash
-  yarn run lint
+  yarn lint
   ```
 * As a required step for code review and submission, run and pass all unit
   tests:
   ```bash
-  yarn run test
+  yarn test
   ```
   The above command opens Chrome and Firefox and uses them to run all TypeScript
   unit tests.
-
-### Python Development
-
-There are some Python libraries, binary and tests in the `scripts/` directory.
-
-As a prerequisite, install the following dependencies for python testing
-* `pip install h5py`
-* `pip install keras`
-* `pip install numpy`
-* `pip install tensorflow`
-
-For Python linter, install `pylint`, e.g.,
-* `apt-get install -y pylint`
-
-To run the Python linter:
-```sh
-cd python
-pylint tensorflowjs
-```
-
-To run the python unit tests, there are two options. You can choose the one that
-you prefer.
-
-1. Run the tests using the `run-python-tests.sh` script:
-
-   ```sh
-   cd python
-   ./run-python-tests.sh
-   ```
-
-2. Run the tests using Bazel. See bazel installation guide
-   [here](https://docs.bazel.build/versions/master/install.html). Once bazel
-   is installed, do:
-
-   ```sh
-   cd python
-   bazel test scripts/...
-   ```
-
-Be sure to run the tests under **both** Python 2 and Python 3.
-
-#### Building the tensorflowjs pip package
-
-```sh
-cd python
-
-# You need to specify a folder where the pip wheel file will be stored, e.g.,
-./build-pip-package.sh /tmp/my_tensorflowjs_pip
-
-# If the script succeeds, you can use `pip install` to install the pip package:
-
-pip install --force-reinstall \
-  /tmp/my_tensorflowjs_pip/tensorflowjs-0.0.1-py2-none-any.whl
-```
 
 ## Code Structure
 
