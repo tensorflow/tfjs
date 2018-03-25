@@ -135,12 +135,12 @@ memory will get cleaned up automatically by the JavaScript garbage collector.
 ## Debug mode
 
 Another way to monitor your application is by calling
-`NDArrayMath.enableDebugMode()`. In debug mode, we will profile every
-`NDArrayMath` function that gets called while the application is running,
+`dl.ENV.set('DEBUG',true)`. In debug mode, we will profile every
+`Tensor` function that gets called while the application is running,
 logging the command, the wall time in milliseconds, the rank, shape and the
 size. We also will check the activations for NaNs and throw an exception as soon as a NaN is introduced.
 
-![NDArrayMath.enableDebugMode](debugmode.png "NDArrayMath.enableDebugMode")
+![DEBUG](debugmode.png "DEBUG")
 
 This can give you a sense for which operations are the bottleneck in
 your application, and which activations are using large amounts of memory.
