@@ -159,6 +159,21 @@ def convolutional_model_fn(num_filters, input_shape, target_shape):
   return model
 
 
+_RNN_TYPE_MAP = {
+    'SimpleRNN': keras.layers.SimpleRNN,
+    'GRU': keras.layers.GRU,
+    'LSTM': keras.layers.LSTM
+}
+
+
+def rnn_model_fn(rnn_type, input_shape, target_shape):
+  """Recurrent neural network model."""
+  rnnConstructor = _RNN_TYPE_MAP[rnn_type]
+  layers = [rnnConstructor(target_shape[0], input_shape=input_shape)]
+  model = keras.models.Sequential(layers)
+  return model
+
+
 def main():
   benchmarks = dict()
   benchmarks['metadata'] = {
@@ -220,6 +235,37 @@ def main():
        'Flatten();Dense(128);Dense(10)|%s|%s' %
        (num_filters, num_filters, optimizer, loss)) for num_filters in
       (1, 2, 4, 8, 16, 24, 26, 28, 30, 32)]
+
+  for model_name, model_fn, description in names_fns_and_descriptions:
+    train_time, predict_time = (
+        benchmark_and_serialize_model(
+            model_name,
+            description,
+            model_fn,
+            input_shape,
+            target_shape,
+            optimizer,
+            loss,
+            batch_size,
+            train_epochs,
+            os.path.join(FLAGS.data_root, model_name)))
+    benchmarks['models'].append(model_name)
+    print('train_time = %g s' % train_time)
+    print('predict_time = %g s' % predict_time)
+
+  # RNN models.
+  optimizer = 'rmsprop'
+  loss = 'categorical_crossentropy'
+  input_shape = [20, 20]
+  target_shape = [20]
+  batch_size = 128
+  train_epochs = 10
+  names_fns_and_descriptions = [
+      ("rnn-%s" % rnn_type,
+       functools.partial(rnn_model_fn, rnn_type),
+       '%s(input_shape=%s, target_shape=%s)|%s|%s' %
+       (rnn_type, input_shape, target_shape, optimizer, loss))
+      for rnn_type in ('SimpleRNN', 'GRU', 'LSTM')]
 
   for model_name, model_fn, description in names_fns_and_descriptions:
     train_time, predict_time = (
