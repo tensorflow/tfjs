@@ -10,7 +10,7 @@ A 2-step process to import your model:
 1. [A python script](./scripts/convert.py) that converts from a TensorFlow
 SavedModel to a web friendly format. If you already have a converted model, or
 are using an already hosted model (e.g. MobileNet), skip this step.
-2. [Javascript API](./src/executor/tf_model.ts), for loading and running inference.
+2. [Javascript API](./src/executor/frozen_model.ts), for loading and running inference.
 
 ## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) to a web-friendly format
 
@@ -69,16 +69,16 @@ following location:
 
 `yarn add @tensorflow/tfjs-converter` or `npm install @tensorflow/tfjs-converter`
 
-2. Instantiate the [TFModel class](./src/executor/tf_model.ts) and run inference.
+2. Instantiate the [FrozenModel class](./src/executor/frozen_model.ts) and run inference.
 
 ```typescript
 import * as tfc from '@tensorflow/tfjs-core';
-import {TFModel} from '@tensorflow/tfjs-converter';
+import {loadFrozenModel} from '@tensorflow/tfjs-converter';
 
 const MODEL_URL = 'https://.../mobilenet/web_model.pb';
 const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
 
-const model = new TFModel(MODEL_URL, WEIGHTS_URL);
+const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL);
 const cat = document.getElementById('cat');
 model.predict({input: tfc.fromPixels(cat)});
 ```

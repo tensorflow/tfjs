@@ -19,6 +19,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {Node} from '../index';
 
 import {executeOp} from './graph_executor';
+// tslint:disable-next-line:max-line-length
 import {createNumberAttr, createStrAttr, createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('graph', () => {
