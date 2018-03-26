@@ -19,7 +19,7 @@ import {scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
-import {DataType, Rank, upcastType} from 'deeplearn/dist/types';
+import {DataType, Rank, ShapeMap, upcastType} from 'deeplearn/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
@@ -318,6 +318,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Log', x) as T;
   }
 
+  log1p<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+
   sqrt<T extends Tensor<Rank>>(x: T): T {
     return this.executeSingleInput('Sqrt', x) as T;
   }
@@ -562,6 +566,26 @@ export class NodeJSKernelBackend implements KernelBackend {
   }): Tensor4D {
     throw new Error('Method not implemented.');
   }
+
+  reshape<T extends Tensor<Rank>, R extends Rank>(x: T, shape: ShapeMap[R]):
+      Tensor<R> {
+    const shapeTensor = tensor1d(shape, 'int32');
+
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tshape', shapeTensor.dtype)
+    ];
+    return this.execute('Reshape', opAttrs, [x, shapeTensor]) as Tensor<R>;
+  }
+
+  cast<T extends Tensor<Rank>>(x: T, dtype: DataType): T {
+    const opAttrs = [
+      this.createTypeOpAttr('SrcT', x.dtype),
+      this.createTypeOpAttr('DstT', dtype)
+    ];
+    return this.execute('Cast', opAttrs, [x]) as T;
+  }
+
   tile<T extends Tensor<Rank>>(x: T, reps: number[]): T {
     throw new Error('Method not implemented.');
   }

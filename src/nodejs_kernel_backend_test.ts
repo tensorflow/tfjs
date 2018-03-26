@@ -59,6 +59,23 @@ describe('slice tensor1d', () => {
   });
 });
 
+describe('reshape', () => {
+  it('should work', () => {
+    const a = dl.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1]);
+    const b = a.reshape([6]);
+    expect(b.dtype).toBe('float32');
+    expect(b.shape).toEqual([6]);
+  });
+});
+
+describe('cast', () => {
+  it('should work', () => {
+    const a = dl.tensor1d([1, 2, 3, 4, 5], 'int32');
+    const b = dl.cast(a, 'float32');
+    expect(b.dtype).toBe('float32');
+  });
+});
+
 describe('pad', () => {
   it('should work', () => {
     const t = dl.tensor2d([[1, 1], [1, 1]]);
