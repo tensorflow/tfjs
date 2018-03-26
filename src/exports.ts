@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {doc, Tensor} from '@tensorflow/tfjs-core';
+import {doc} from '@tensorflow/tfjs-core';
 
 import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';
@@ -23,7 +23,7 @@ import {Conv1D, Conv2D, ConvLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
 import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
-import {addInternal, averageInternal, concatenateInternal, ConcatenateLayerConfig, maximumInternal, minimumInternal, multiplyInternal} from './layers/merge';
+import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
 import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
@@ -286,73 +286,66 @@ export class LayerExports {
     heading: 'Layers',
     subheading: 'Merge',
     namespace: 'layers',
-    useDocsFrom: 'addInternal',
+    useDocsFrom: 'Add',
     configParamIndices: [0]
   })
-  static add(config: SymbolicTensor[]|Tensor[]|LayerConfig): Layer
-      |SymbolicTensor|Tensor {
-    return addInternal(config);
+  static add(config?: LayerConfig): Layer {
+    return new Add(config);
   }
 
   @doc({
     heading: 'Layers',
     subheading: 'Merge',
     namespace: 'layers',
-    useDocsFrom: 'averageInternal',
+    useDocsFrom: 'Average',
     configParamIndices: [0]
   })
-  static average(config: SymbolicTensor[]|Tensor[]|LayerConfig): Layer
-      |SymbolicTensor|Tensor {
-    return averageInternal(config);
+  static average(config?: LayerConfig): Layer {
+    return new Average(config);
   }
 
   @doc({
     heading: 'Layers',
     subheading: 'Merge',
     namespace: 'layers',
-    useDocsFrom: 'concatenateInternal',
+    useDocsFrom: 'Concatenate',
     configParamIndices: [0]
   })
-  static concatenateInternal(config: SymbolicTensor[]|Tensor[]|
-                             ConcatenateLayerConfig): Layer|SymbolicTensor
-      |Tensor {
-    return concatenateInternal(config);
+  static concatenate(config: ConcatenateLayerConfig): Layer {
+    return new Concatenate(config);
   }
 
   @doc({
     heading: 'Layers',
     subheading: 'Merge',
     namespace: 'layers',
-    useDocsFrom: 'maximumInternal',
+    useDocsFrom: 'Maximum',
     configParamIndices: [0]
   })
-  static maximum(config: SymbolicTensor[]|Tensor[]|LayerConfig): Layer
-      |SymbolicTensor|Tensor {
-    return maximumInternal(config);
+  static maximum(config?: LayerConfig): Layer {
+    return new Maximum(config);
   }
 
   @doc({
     heading: 'Layers',
     subheading: 'Merge',
     namespace: 'layers',
-    useDocsFrom: 'minimumInternal',
+    useDocsFrom: 'Minimum',
     configParamIndices: [0]
   })
-  static minimum(config: SymbolicTensor[]|Tensor[]|LayerConfig): Layer
-      |SymbolicTensor|Tensor {
-    return minimumInternal(config);
+  static minimum(config?: LayerConfig): Layer {
+    return new Minimum(config);
   }
 
   @doc({
     heading: 'Layers',
     subheading: 'Merge',
     namespace: 'layers',
-    useDocsFrom: 'multiplyInternal',
+    useDocsFrom: 'Multiply',
     configParamIndices: [0]
   })
-  static multiply(config: SymbolicTensor[]|Tensor[]|LayerConfig): Layer
-      |SymbolicTensor|Tensor {
-    return multiplyInternal(config);
+  static multiply(config?: LayerConfig): Layer {
+    return new Multiply(config);
   }
 
   // Normalization Layers.

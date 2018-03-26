@@ -23,9 +23,9 @@ import * as generic_utils from '../utils/generic_utils';
 import * as mathUtils from '../utils/math_utils';
 
 /**
- * Generic merge layer for elementwise merge functions.
+ * Generic Merge layer for element-wise merge functions.
  *
- * Used to implement `Sum`, `Average`, etc.
+ * Used to implement `Sum`, `Average`, `Concatenate`, etc.
  */
 export class Merge extends Layer {
   protected reshapeRequired: boolean;
@@ -228,7 +228,7 @@ export class Merge extends Layer {
 }
 
 /**
- * Layer that adds a list of inputs.
+ * Layer that performs element-wise addition on an `Array` of inputs.
  *
  * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). The inputs are specified as an
@@ -245,7 +245,6 @@ export class Merge extends Layer {
  * // dimension.
  * ```
  */
-// TODO(cais): Add examples.
 export class Add extends Merge {
   constructor(config?: LayerConfig) {
     super(config as LayerConfig);
@@ -306,8 +305,8 @@ generic_utils.ClassNameMap.register('Add', Add);
  * // Gives [[11, 22], [33, 44]].
  *
  */
-export function addInternal(config?: SymbolicTensor[]|Tensor[]|
-                            LayerConfig): Layer|SymbolicTensor|Tensor {
+export function add(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
+    SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Add({});
     return layer.apply(config as SymbolicTensor[] | Tensor[]) as
@@ -319,7 +318,7 @@ export function addInternal(config?: SymbolicTensor[]|Tensor[]|
 }
 
 /**
- * Layer that multiplies (element-wise) an Array of inputs.
+ * Layer that multiplies (element-wise) an `Array` of inputs.
  *
  * It takes as input an Array of tensors, all of the same
  * shape, and returns a single tensor (also of the same shape).
@@ -395,8 +394,8 @@ generic_utils.ClassNameMap.register('Multiply', Multiply);
  * // Gives [[10, 40], [90, 160]].
  *
  */
-export function multiplyInternal(config?: SymbolicTensor[]|Tensor[]|
-                                 LayerConfig): Layer|SymbolicTensor|Tensor {
+export function multiply(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
+    SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Multiply({});
     return layer.apply(config as SymbolicTensor[] | Tensor[]) as
@@ -408,7 +407,7 @@ export function multiplyInternal(config?: SymbolicTensor[]|Tensor[]|
 }
 
 /**
- * Layer that averages a list of inputs.
+ * Layer that performs element-wise averaging on an `Array` of inputs.
  *
  * It takes as input a list of tensors, all of the same shape, and returns a
  * single tensor (also of the same shape). For example:
@@ -484,8 +483,8 @@ generic_utils.ClassNameMap.register('Average', Average);
  * // Gives [[5.5, 11], [16.5, 22]].
  *
  */
-export function averageInternal(config?: SymbolicTensor[]|Tensor[]|
-                                LayerConfig): Layer|SymbolicTensor|Tensor {
+export function average(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
+    SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Average({});
     return layer.apply(config as SymbolicTensor[] | Tensor[]) as
@@ -497,7 +496,7 @@ export function averageInternal(config?: SymbolicTensor[]|Tensor[]|
 }
 
 /**
- * Layer that computes the maximum (element-wise) a list of inputs.
+ * Layer that computes the element-wise maximum an `Array` of inputs.
  *
  * It takes as input a list of tensors, all of the same shape and returns a
  * single tensor (also of the same shape). For example:
@@ -572,8 +571,8 @@ generic_utils.ClassNameMap.register('Maximum', Maximum);
  * // Gives [[10, 20], [30, 40]].
  *
  */
-export function maximumInternal(config?: SymbolicTensor[]|Tensor[]|
-                                LayerConfig): Layer|SymbolicTensor|Tensor {
+export function maximum(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
+    SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Maximum({});
     return layer.apply(config as SymbolicTensor[] | Tensor[]) as
@@ -585,7 +584,7 @@ export function maximumInternal(config?: SymbolicTensor[]|Tensor[]|
 }
 
 /**
- * Layer that computes the minimum (element-wise) a list of inputs.
+ * Layer that computes the element-wise minimum of an `Array` of inputs.
  *
  * It takes as input a list of tensors, all of the same shape and returns a
  * single tensor (also of the same shape). For example:
@@ -660,8 +659,8 @@ generic_utils.ClassNameMap.register('Minimum', Minimum);
  * // Gives [[1, 2], [3, 4]].
  *
  */
-export function minimumInternal(config?: SymbolicTensor[]|Tensor[]|
-                                LayerConfig): Layer|SymbolicTensor|Tensor {
+export function minimum(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
+    SymbolicTensor|Tensor {
   if (Array.isArray(config)) {
     const layer = new Minimum({});
     return layer.apply(config as SymbolicTensor[] | Tensor[]) as
@@ -680,7 +679,7 @@ export interface ConcatenateLayerConfig extends LayerConfig {
 }
 
 /**
- * Layer that concatenates a list of inputs.
+ * Layer that concatenates an `Array` of inputs.
  *
  * It takes a list of tensors, all of the same shape except for the
  * concatenation axis, and returns a single tensor, the concatenation
@@ -701,7 +700,7 @@ export class Concatenate extends Merge {
   readonly DEFAULT_AXIS = -1;
   private readonly axis: number;
 
-  constructor(config: ConcatenateLayerConfig) {
+  constructor(config?: ConcatenateLayerConfig) {
     super(config);
     if (config == null) {
       config = {};
@@ -831,9 +830,9 @@ generic_utils.ClassNameMap.register('Concatenate', Concatenate);
  * // Gives [[1, 2, 10, 20], [3, 4, 30, 40]].
  *
  */
-export function concatenateInternal(config?: SymbolicTensor[]|Tensor[]|
-                                    ConcatenateLayerConfig): Layer|
-    SymbolicTensor|Tensor {
+export function concatenate(config?: SymbolicTensor[]|Tensor[]|
+                            ConcatenateLayerConfig): Layer|SymbolicTensor|
+    Tensor {
   if (Array.isArray(config)) {
     const layer = new Concatenate({});
     return layer.apply(config as SymbolicTensor[] | Tensor[]) as
