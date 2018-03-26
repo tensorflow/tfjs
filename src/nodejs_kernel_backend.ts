@@ -153,7 +153,8 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('Tidx', 'int32'),
       this.createTypeOpAttr('T', a.dtype)
     ];
-    const axisTensor = scalar(0, 'int32');
+    // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
+    const axisTensor = scalar(1, 'int32');
     return this.execute('ConcatV2', opAttrs, [a, b, axisTensor]) as Tensor2D;
   }
 
