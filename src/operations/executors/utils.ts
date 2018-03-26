@@ -41,7 +41,8 @@ export function getParamValue(
   return param && param.value;
 }
 
-export function getTensor(name: string, tensorMap: NamedTensorsMap): tfc.Tensor {
+export function getTensor(
+    name: string, tensorMap: NamedTensorsMap): tfc.Tensor {
   const index = name.lastIndexOf(':');
   if (index === -1) {
     return tensorMap[name] ? tensorMap[name][0] : undefined;

@@ -22,7 +22,7 @@ import {OperationMapper} from '../operations/index';
 
 import {GraphExecutor} from './graph_executor';
 
-export class TFModel {
+export class FrozenModel {
   private executor: GraphExecutor;
   private version = 'n/a';
   private weightManifest: tfc.WeightsManifestConfig;
@@ -113,7 +113,7 @@ export class TFModel {
    * provided and there is only one default output, otherwise return a tensor
    * map.
    */
-  eval(inputs: NamedTensorMap, outputs?: string|string[]): tfc.Tensor
+  execute(inputs: NamedTensorMap, outputs?: string|string[]): tfc.Tensor
       |NamedTensorMap {
     const result = this.executor.execute(
         this.convertTensorMapToTensorsMap(inputs), outputs);
@@ -133,4 +133,11 @@ export class TFModel {
   dispose() {
     this.executor.dispose();
   }
+}
+
+export async function loadFrozenModel(
+    modelUrl: string, weightsManifestUrl: string): Promise<FrozenModel> {
+  const model = new FrozenModel(modelUrl, weightsManifestUrl);
+  await model.load();
+  return model;
 }

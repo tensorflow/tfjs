@@ -16,4 +16,4 @@
  */
 
 export * from './graph_executor';
-export * from './tf_model';
+export * from './frozen_model';

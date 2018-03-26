@@ -16,7 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {NamedTensorMap, TFModel} from '@tensorflow/tfjs-converter';
+import {NamedTensorMap, loadFrozenModel} from '@tensorflow/tfjs-converter';
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
@@ -28,20 +28,18 @@ const OUTPUT_NODE_NAME = 'MobilenetV1/Predictions/Reshape_1';
 const PREPROCESS_DIVISOR = tfc.scalar(255 / 2);
 
 export class MobileNet {
-  // yolo variables
+  constructor() {}
 
-  constructor() {
-    this.model = new TFModel(
+  async load() {
+    this.model = await loadFrozenModel(
       GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
       GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
   }
 
-  async load() {
-    await this.model.load();
-  }
-
   dispose() {
-    this.model.dispose();
+    if (this.model) {
+      this.model.dispose();
+    }
   }
   /**
    * Infer through SqueezeNet, assumes variables have been loaded. This does
@@ -59,7 +57,7 @@ export class MobileNet {
         preprocessedInput.reshape([1, ...preprocessedInput.shape]);
     const dict = {};
     dict[INPUT_NODE_NAME] = reshapedInput;
-    return this.model.eval(dict, OUTPUT_NODE_NAME);
+    return this.model.execute(dict, OUTPUT_NODE_NAME);
   }
 
   getTopKClasses(predictions, topK) {
