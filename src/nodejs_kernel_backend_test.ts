@@ -102,6 +102,15 @@ describe('concat', () => {
     const expected = [3, 5];
     expectArraysClose(result, expected);
   });
+
+  it('should work with 2darray', () => {
+    const a = dl.ones([1, 10], 'int32');
+    const b = dl.ones([1, 10], 'int32');
+    const c = dl.concat([a, b]);
+    expect(c.shape).toEqual([2, 10]);
+    const d = dl.concat([c, a]);
+    expect(d.shape).toEqual([3, 10]);
+  });
 });
 
 describe('neg', () => {
