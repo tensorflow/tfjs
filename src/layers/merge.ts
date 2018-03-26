@@ -18,7 +18,7 @@ import * as _ from 'underscore';
 import * as K from '../backend/deeplearnjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape} from '../types';
+import {Shape, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as mathUtils from '../utils/math_utils';
 
@@ -231,13 +231,24 @@ export class Merge extends Layer {
  * Layer that adds a list of inputs.
  *
  * It takes as input a list of tensors, all of the same shape, and returns a
- * single tensor (also of the same shape).
+ * single tensor (also of the same shape). The inputs are specified as an
+ * `Array` when the `apply` method of the `Add` layer instance is called. For
+ * example:
  *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const addLayer = tf.layers.add();
+ * const sum = addLayer.apply([input1, input2]);
+ * console.log(sum.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
  */
 // TODO(cais): Add examples.
 export class Add extends Merge {
   constructor(config?: LayerConfig) {
-    super(config);
+    super(config as LayerConfig);
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -250,13 +261,79 @@ export class Add extends Merge {
 }
 generic_utils.ClassNameMap.register('Add', Add);
 
-//  TODO(cais): Add class Subtract.
+/**
+ * Calculate the element-wise sum of inputs, which all have the same shape.
+ *
+ * This function can be invoked in three ways.
+ *
+ * 1. Construct an instance of `Add` layer, by using no input argument
+ *    or a single configuration argument. The resultant `Add` layer can then
+ *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *
+ * ```js
+ * const addLayer = tf.layers.add();
+ *
+ * // The layer can be applied to inputs.
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = addLayer.apply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `SymbolicTensor`. For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = tf.layers.add([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `Tensor` as the result of the computation. For example:
+ *
+ * ```js
+ * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+ * const input2 = tf.tensor2d([10, 20, 30, 40], [2, 2]);
+ * tf.layers.add([input1, input2]).print();
+ * // Gives [[11, 22], [33, 44]].
+ *
+ */
+export function addInternal(config?: SymbolicTensor[]|Tensor[]|
+                            LayerConfig): Layer|SymbolicTensor|Tensor {
+  if (Array.isArray(config)) {
+    const layer = new Add({});
+    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
+        SymbolicTensor |
+        Tensor;
+  } else {
+    return new Add(config);
+  }
+}
 
 /**
  * Layer that multiplies (element-wise) an Array of inputs.
  *
  * It takes as input an Array of tensors, all of the same
  * shape, and returns a single tensor (also of the same shape).
+ * For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const input3 = tf.input({shape: [2, 2]});
+ * const multiplyLayer = tf.layers.multiply();
+ * const product = multiplyLayer.apply([input1, input2, input3]);
+ * console.log(product.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
  */
 export class Multiply extends Merge {
   constructor(config?: LayerConfig) {
@@ -274,10 +351,77 @@ export class Multiply extends Merge {
 generic_utils.ClassNameMap.register('Multiply', Multiply);
 
 /**
+ * Calculate the element-wise product of inputs, which all have the same shape.
+ *
+ * This function can be invoked in three ways.
+ *
+ * 1. Construct an instance of `Multiply` layer, by using no input argument
+ *    or a single configuration argument. The resultant `Multiply` layer can
+ *    then be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *
+ * ```js
+ * const multiplyLayer = tf.layers.multiply();
+ *
+ * // The layer can be applied to inputs.
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = multiplyLayer.apply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `SymbolicTensor`. For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = tf.layers.multiply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `Tensor` as the result of the computation. For example:
+ *
+ * ```js
+ * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+ * const input2 = tf.tensor2d([10, 20, 30, 40], [2, 2]);
+ * tf.layers.multiply([input1, input2]).print();
+ * // Gives [[10, 40], [90, 160]].
+ *
+ */
+export function multiplyInternal(config?: SymbolicTensor[]|Tensor[]|
+                                 LayerConfig): Layer|SymbolicTensor|Tensor {
+  if (Array.isArray(config)) {
+    const layer = new Multiply({});
+    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
+        SymbolicTensor |
+        Tensor;
+  } else {
+    return new Multiply(config);
+  }
+}
+
+/**
  * Layer that averages a list of inputs.
  *
  * It takes as input a list of tensors, all of the same shape, and returns a
- * single tensor (also of the same shape).
+ * single tensor (also of the same shape). For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const averageLayer = tf.layers.average();
+ * const average = averageLayer.apply([input1, input2]);
+ * console.log(average.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
  */
 export class Average extends Merge {
   constructor(config?: LayerConfig) {
@@ -295,10 +439,78 @@ export class Average extends Merge {
 generic_utils.ClassNameMap.register('Average', Average);
 
 /**
+ * Calculate the element-wise arithmetic mean of inputs, which all have the same
+ * shape.
+ *
+ * This function can be invoked in three ways.
+ *
+ * 1. Construct an instance of `Average` layer, by using no input argument
+ *    or a single configuration argument. The resultant `Average` layer can then
+ *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *
+ * ```js
+ * const averageLayer = tf.layers.average();
+ *
+ * // The layer can be applied to inputs.
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = averageLayer.apply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `SymbolicTensor`. For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = tf.layers.average([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `Tensor` as the result of the computation. For example:
+ *
+ * ```js
+ * const input1 = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+ * const input2 = tf.tensor2d([10, 20, 30, 40], [2, 2]);
+ * tf.layers.average([input1, input2]).print();
+ * // Gives [[5.5, 11], [16.5, 22]].
+ *
+ */
+export function averageInternal(config?: SymbolicTensor[]|Tensor[]|
+                                LayerConfig): Layer|SymbolicTensor|Tensor {
+  if (Array.isArray(config)) {
+    const layer = new Average({});
+    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
+        SymbolicTensor |
+        Tensor;
+  } else {
+    return new Average(config);
+  }
+}
+
+/**
  * Layer that computes the maximum (element-wise) a list of inputs.
  *
  * It takes as input a list of tensors, all of the same shape and returns a
- * single tensor (also of the same shape).
+ * single tensor (also of the same shape). For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const maxLayer = tf.layers.maximum();
+ * const max = maxLayer.apply([input1, input2]);
+ * console.log(max.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
  */
 export class Maximum extends Merge {
   constructor(config?: LayerConfig) {
@@ -306,9 +518,9 @@ export class Maximum extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = K.zeros(inputs[0].shape);
-    for (const input of inputs) {
-      output = K.maximum(output, input);
+    let output = inputs[0];
+    for (let i = 1; i < inputs.length; ++i) {
+      output = K.maximum(output, inputs[i]);
     }
     return output;
   }
@@ -316,10 +528,77 @@ export class Maximum extends Merge {
 generic_utils.ClassNameMap.register('Maximum', Maximum);
 
 /**
+ * Calculate the element-wise maximum of inputs, which all have the same shape.
+ *
+ * This function can be invoked in three ways.
+ *
+ * 1. Construct an instance of `Maximum` layer, by using no input argument
+ *    or a single configuration argument. The resultant `Maximum` layer can then
+ *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *
+ * ```js
+ * const maximumLayer = tf.layers.maximum();
+ *
+ * // The layer can be applied to inputs.
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = maximumLayer.apply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `SymbolicTensor`. For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = tf.layers.maximum([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `Tensor` as the result of the computation. For example:
+ *
+ * ```js
+ * const input1 = tf.tensor2d([1, 20, 3, 40], [2, 2]);
+ * const input2 = tf.tensor2d([10, 2, 30, 4], [2, 2]);
+ * tf.layers.maximum([input1, input2]).print();
+ * // Gives [[10, 20], [30, 40]].
+ *
+ */
+export function maximumInternal(config?: SymbolicTensor[]|Tensor[]|
+                                LayerConfig): Layer|SymbolicTensor|Tensor {
+  if (Array.isArray(config)) {
+    const layer = new Maximum({});
+    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
+        SymbolicTensor |
+        Tensor;
+  } else {
+    return new Maximum(config);
+  }
+}
+
+/**
  * Layer that computes the minimum (element-wise) a list of inputs.
  *
  * It takes as input a list of tensors, all of the same shape and returns a
- * single tensor (also of the same shape).
+ * single tensor (also of the same shape). For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const minLayer = tf.layers.minimum();
+ * const min = minLayer.apply([input1, input2]);
+ * console.log(min.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
  */
 export class Minimum extends Merge {
   constructor(config?: LayerConfig) {
@@ -327,14 +606,71 @@ export class Minimum extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = K.zeros(inputs[0].shape);
-    for (const input of inputs) {
-      output = K.minimum(output, input);
+    let output = inputs[0];
+    for (let i = 1; i < inputs.length; ++i) {
+      output = K.minimum(output, inputs[i]);
     }
     return output;
   }
 }
 generic_utils.ClassNameMap.register('Minimum', Minimum);
+
+/**
+ * Calculate the element-wise minimum of inputs, which all have the same shape.
+ *
+ * This function can be invoked in three ways.
+ *
+ * 1. Construct an instance of `Minimum` layer, by using no input argument
+ *    or a single configuration argument. The resultant `Minimum` layer can then
+ *    be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *
+ * ```js
+ * const minimumLayer = tf.layers.minimum();
+ *
+ * // The layer can be applied to inputs.
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = minimumLayer.apply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `SymbolicTensor`. For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 2]});
+ * const output = tf.layers.minimum([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension.
+ * ```
+ *
+ * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `Tensor` as the result of the computation. For example:
+ *
+ * ```js
+ * const input1 = tf.tensor2d([1, 20, 3, 40], [2, 2]);
+ * const input2 = tf.tensor2d([10, 2, 30, 4], [2, 2]);
+ * tf.layers.minimum([input1, input2]).print();
+ * // Gives [[1, 2], [3, 4]].
+ *
+ */
+export function minimumInternal(config?: SymbolicTensor[]|Tensor[]|
+                                LayerConfig): Layer|SymbolicTensor|Tensor {
+  if (Array.isArray(config)) {
+    const layer = new Minimum({});
+    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
+        SymbolicTensor |
+        Tensor;
+  } else {
+    return new Minimum(config);
+  }
+}
 
 export interface ConcatenateLayerConfig extends LayerConfig {
   /**
@@ -348,7 +684,18 @@ export interface ConcatenateLayerConfig extends LayerConfig {
  *
  * It takes a list of tensors, all of the same shape except for the
  * concatenation axis, and returns a single tensor, the concatenation
- * of all inputs.
+ * of all inputs. For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 2]});
+ * const input2 = tf.input({shape: [2, 3]});
+ * const concatLayer = tf.layers.concatenate();
+ * const output = concatLayer.apply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 5], with the first dimension as the undetermined batch
+ * // dimension. The last dimension (5) is the result of concatenating the
+ * // last dimensions of the inputs (2 and 3).
+ * ```
  */
 export class Concatenate extends Merge {
   readonly DEFAULT_AXIS = -1;
@@ -356,6 +703,9 @@ export class Concatenate extends Merge {
 
   constructor(config: ConcatenateLayerConfig) {
     super(config);
+    if (config == null) {
+      config = {};
+    }
     this.axis = config.axis == null ? this.DEFAULT_AXIS : config.axis;
     this.supportsMasking = true;
     this.reshapeRequired = false;
@@ -433,6 +783,66 @@ export class Concatenate extends Merge {
   // TODO(cais): Add getConfig();
 }
 generic_utils.ClassNameMap.register('Concatenate', Concatenate);
+
+/**
+ * Concatenate an `Array` of inputs.
+ *
+ * This function can be invoked in three ways.
+ *
+ * 1. Construct an instance of `Concatenate` layer, by using no input argument
+ *    or a single configuration argument. The resultant `Concatenate` layer can
+ *    then be used on `SymbolicTensor`s or `Tensor`s. For example:
+ *
+ * ```js
+ * const concatLayer = tf.layers.concatenate();
+ *
+ * // The layer can be applied to inputs.
+ * const input1 = tf.input({shape: [2, 3]});
+ * const input2 = tf.input({shape: [2, 4]});
+ * const output = concatLayer.apply([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 7], with the first dimension as the undetermined batch
+ * // dimension and the last dimension as the result of concatenating the
+ * // last dimensions of the two inputs.
+ * ```
+ *
+ * 2. Invoke directly on an `Array` of `SymbolicTensor`s. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `SymbolicTensor`. For example:
+ *
+ * ```js
+ * const input1 = tf.input({shape: [2, 3]});
+ * const input2 = tf.input({shape: [2, 4]});
+ * const output = tf.layers.concatenate([input1, input2]);
+ * console.log(output.shape);
+ * // You get [null, 2, 2], with the first dimension as the undetermined batch
+ * // dimension and the last dimension as the result of concatenating the
+ * // last dimensions of the two inputs.
+ * ```
+ *
+ * 3. Invoke directly on `Tensor`s, i.e., concrete values. This constructs
+ *    an `Layer` object internally and calls its `apply` method on the inputs,
+ *    generating a new `Tensor` as the result of the computation. For example:
+ *
+ * ```js
+ * const input1 = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+ * const input2 = tf.tensor2d([[10, 20], [30, 40]], [2, 2]);
+ * tf.layers.concatenate([input1, input2]).print();
+ * // Gives [[1, 2, 10, 20], [3, 4, 30, 40]].
+ *
+ */
+export function concatenateInternal(config?: SymbolicTensor[]|Tensor[]|
+                                    ConcatenateLayerConfig): Layer|
+    SymbolicTensor|Tensor {
+  if (Array.isArray(config)) {
+    const layer = new Concatenate({});
+    return layer.apply(config as SymbolicTensor[] | Tensor[]) as
+        SymbolicTensor |
+        Tensor;
+  } else {
+    return new Concatenate(config);
+  }
+}
 
 // TODO(cais): Add class Dot.
 
