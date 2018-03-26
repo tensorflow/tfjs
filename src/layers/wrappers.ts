@@ -169,7 +169,7 @@ export abstract class Wrapper extends Layer {
  * // The output will then have shape `[32, 10, 8]`.
  *
  * // In subsequent layers, there is no need for `inputShape`:
- * model.add(tf.layers.timeDistributed({layer: tf.layers.dense({units: 32})});
+ * model.add(tf.layers.timeDistributed({layer: tf.layers.dense({units: 32})}));
  * // Now model.outputShape = [null, 10, 32].
  * ```
  *
