@@ -1427,9 +1427,9 @@ export interface InputConfig {
  * ```js
  * // Defines a simple logistic regression model with 32 dimensional input
  * // and 3 dimensional output.
- * x = tf.input({shape: [32]});
- * y = tf.layers.dense({units: 3, activation: 'softmax'}).apply(x);
- * model = tf.model({inputs: x, outputs: y});
+ * const x = tf.input({shape: [32]});
+ * const y = tf.layers.dense({units: 3, activation: 'softmax'}).apply(x);
+ * const model = tf.model({inputs: x, outputs: y});
  * model.predict(tf.ones([2, 32])).print();
  * ```
  */
