@@ -15,7 +15,6 @@
 # ==============================================================================
 
 # Build pip package for keras_model_converter.
-
 set -e
 
 SCRIPTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -41,6 +40,8 @@ fi
 DEST_DIR="$1"
 
 mkdir -p "${DEST_DIR}"
+
+DEST_DIR="$(cd "${DEST_DIR}" 2>/dev/null && pwd -P)"
 
 TMP_DIR="$(mktemp -d)"
 echo "Using temporary directory: ${TMP_DIR}"
