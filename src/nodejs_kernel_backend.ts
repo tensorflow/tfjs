@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {scalar, tensor1d, tensor2d} from 'deeplearn';
+import {fill, ones, scalar, tensor1d, tensor2d} from 'deeplearn';
 import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
@@ -262,9 +262,12 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   where(
       condition: Tensor<Rank>, a: Tensor<Rank>, b: Tensor<Rank>,
-      dtype: 'float32'|'int32'|'bool'): Tensor<Rank> {
-    throw new Error('Method not implemented.');
+      dtype: DataType): Tensor<Rank> {
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    // 'Select' Op is where with additional inputs.
+    return this.execute('Select', opAttrs, [condition, a, b]);
   }
+
   topKValues<T extends Tensor<Rank>>(x: T, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
@@ -412,8 +415,14 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
-    throw new Error('Method not implemented.');
+    const dtype = x.dtype;
+    const nans = this.isNaN(x);
+    const stepNoNans = this.where(
+        this.greater(x, scalar(0, dtype)), ones(x.shape),
+        fill(x.shape, alpha, dtype), dtype);
+    return this.where(nans, x, stepNoNans, dtype) as T;
   }
+
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: {
     batchSize: number; inHeight: number; inWidth: number; inChannels: number;
     outHeight: number;
@@ -630,6 +639,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       Tensor2D {
     throw new Error('Method not implemented.');
   }
+
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D {
     const depthTensor = scalar(depth, 'int32');
@@ -688,7 +698,12 @@ export class NodeJSKernelBackend implements KernelBackend {
   memory(): {unreliable: boolean;} {
     throw new Error('Method not implemented.');
   }
+
   time(f: () => void): Promise<BackendTimingInfo> {
     throw new Error('Method not implemented.');
+  }
+
+  isNaN<T extends Tensor<Rank>>(x: T): T {
+    return this.executeSingleInput('IsNan', x) as T;
   }
 }
