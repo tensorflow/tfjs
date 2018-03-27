@@ -47,7 +47,8 @@ def as_text(bytes_or_text, encoding='utf-8'):
   elif isinstance(bytes_or_text, bytes):
     return bytes_or_text.decode(encoding)
   else:
-    raise TypeError('Expected binary or unicode string, got %r' % bytes_or_text)
+    raise TypeError('Expected binary or unicode string, got %r' %
+                    bytes_or_text)
 
 
 class HDF5Converter(object):
