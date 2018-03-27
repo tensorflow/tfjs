@@ -134,9 +134,10 @@ export class MnistDataset {
   }
 
   nextTrainBatch(batchSize: number): {image: dl.Tensor2D, label: dl.Tensor2D} {
-    const size = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
+    const batchIndexMax = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
         NUM_TRAIN_EXAMPLES - this.batchIndex :
         batchSize + this.batchIndex;
+    const size = batchIndexMax - this.batchIndex;
 
     // Only create one big array to hold batch of images.
     const imagesShape = [size, IMAGE_FLAT_SIZE];
@@ -146,7 +147,7 @@ export class MnistDataset {
     let label: dl.Tensor2D;
 
     let imageOffset = 0;
-    while (this.batchIndex < size) {
+    while (this.batchIndex < batchIndexMax) {
       images.set(this.dataset[0][this.batchIndex], imageOffset);
 
       const labelFlat = dl.oneHot(
