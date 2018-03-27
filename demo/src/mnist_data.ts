@@ -18,6 +18,7 @@
 import {equal} from 'assert';
 import * as dl from 'deeplearn';
 import {TypedArray} from 'deeplearn/dist/types';
+import {sizeFromShape} from 'deeplearn/dist/util';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
@@ -133,21 +134,20 @@ export class MnistDataset {
   }
 
   nextTrainBatch(batchSize: number): {image: dl.Tensor2D, label: dl.Tensor2D} {
-    let image: dl.Tensor2D = null;
-    let label: dl.Tensor2D = null;
-
     const size = this.batchIndex + batchSize > NUM_TRAIN_EXAMPLES ?
         NUM_TRAIN_EXAMPLES - this.batchIndex :
         batchSize + this.batchIndex;
 
-    for (; this.batchIndex < size; this.batchIndex++) {
-      const imageFlat =
-          dl.tensor2d(this.dataset[0][this.batchIndex], [1, IMAGE_FLAT_SIZE]);
-      if (image == null) {
-        image = imageFlat;
-      } else {
-        image = image.concat(imageFlat);
-      }
+    // Only create one big array to hold batch of images.
+    const imagesShape = [size, IMAGE_FLAT_SIZE];
+    const images = new Float32Array(sizeFromShape(imagesShape));
+
+    // Labels must be converted to one-hot, do so through each iteration
+    let label: dl.Tensor2D;
+
+    let imageOffset = 0;
+    while (this.batchIndex < size) {
+      images.set(this.dataset[0][this.batchIndex], imageOffset);
 
       const labelFlat = dl.oneHot(
           dl.tensor1d(this.dataset[1][this.batchIndex], 'int32'),
@@ -157,8 +157,14 @@ export class MnistDataset {
       } else {
         label = label.concat(labelFlat);
       }
+
+      imageOffset += IMAGE_FLAT_SIZE;
+      this.batchIndex++;
     }
 
-    return {image, label: label.toFloat()};
+    return {
+      image: dl.tensor2d(images, [size, IMAGE_FLAT_SIZE]),
+      label: label.toFloat()
+    };
   }
 }
