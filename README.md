@@ -7,42 +7,41 @@ into the browser and run inference through [TensorFlow.js](https://js.tensorflow
 
 A 2-step process to import your model:
 
-1. [A python script](./scripts/convert.py) that converts from a TensorFlow
-SavedModel to a web friendly format. If you already have a converted model, or
-are using an already hosted model (e.g. MobileNet), skip this step.
-2. [Javascript API](./src/executor/frozen_model.ts), for loading and running inference.
+1. A python pip package to convert a TensorFlow SavedModel to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
+2. [Javascript API](./src/executor/tf_model.ts), for loading and running inference.
 
 ## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) to a web-friendly format
 
-1. Clone the github repo:
+1. Install the TensorFlow.js pip package:
 
 ```bash
-  $ git clone git@github.com:tensorflow/tfjs-converter.git
+  $ pip install tensorflowjs
 ```
 
-2. Install following pip packages:
+2. Run converter script provided the pacakge
 
+Usage:
 ```bash
-  $ pip install tensorflow numpy absl-py protobuf
-```
-
-3. Run the `convert.py` script
-
-```bash
-$ cd tfjs-converter/
-$ python scripts/convert.py \
-    --saved_model_dir=/tmp/mobilenet/ \
+$ tensorflowjs_coverter \
+    --input_format=tf_saved_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    --output_graph=/tmp/mobilenet/web_model.pb \
     --saved_model_tags=serve
+    /mobilenet/saved_model \
+    /mobilenet/web_model
 ```
+
+|Positional Arguments | Description |
+|---|---|
+|`input_path`  | Full path of the saved model directory.|
+|`output_dir`  | Path for all output artifacts.|
+
 
 | Options | Description
 |---|---|
-|`saved_model_dir`  | Full path of the saved model directory |
-|`output_node_names`| The names of the output nodes, comma separated |
-|`output_graph`     | Full path of the name for the output graph file|
-|`saved_model_tags` | Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.
+|`--input_format`     | The format of input model, use tf_saved_model for SavedModel. |
+|`--output_node_names`| he names of the output nodes, separated by commas.|
+|`--saved_model_tags` | Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
+
 
 ### Web-friendly format
 
@@ -80,7 +79,7 @@ const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
 
 const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL);
 const cat = document.getElementById('cat');
-model.predict({input: tfc.fromPixels(cat)});
+model.execute({input: tfc.fromPixels(cat)});
 ```
 
 Check out our working [MobileNet demo](./demo/README.md).
