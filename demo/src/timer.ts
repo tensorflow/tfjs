@@ -31,7 +31,7 @@ export class Timer {
 
   end() {
     if (this.hrStart === null) {
-      throw 'End() called before start()';
+      throw new Error('End() called before start()');
     }
     this.hrEnd = process.hrtime(this.hrStart);
   }
