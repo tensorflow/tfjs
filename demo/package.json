@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "demo": "./node_modules/.bin/ts-node src/demo.ts",
+    "demo": "ts-node src/demo.ts",
+    "mnist-data": "ts-node src/mnist_data_demo.ts",
     "build": "tsc",
-    "preinstall": "rm -rf ../node_modules"
+    "preinstall": "rm -rf ../node_modules && rm -rf node_modules"
   },
   "author": "",
   "license": "ISC",
