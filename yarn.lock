@@ -2,16 +2,16 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.0.2.tgz#3275ec114db4cc89ca729ffad67a25849236aa61"
+"@tensorflow/tfjs-core@0.6.0-alpha7":
+  version "0.6.0-alpha7"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.6.0-alpha7.tgz#72e010b7176e302ce3a99627e7bca8d5da88bd15"
   dependencies:
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
 
-"@tensorflow/tfjs-layers@0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.0.5.tgz#b9f2a96b2af3a5d610027b90e181d1f36abfff94"
+"@tensorflow/tfjs-layers@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.1.0.tgz#622db3515c2614eea2d900e54d604063823ac26f"
   dependencies:
     underscore "~1.8.3"
 
