@@ -199,6 +199,12 @@ describe('greater', () => {
     const b = dl.tensor1d([2, 2]);
     expectArraysClose(a.greater(b), [1, 0]);
   });
+
+  it('should work with scalar', () => {
+    const a = dl.tensor1d([4, 1]);
+    const b = dl.tensor1d([2]);
+    expectArraysClose(a.greater(b), [1, 0]);
+  });
 });
 
 describe('greaterEqual', () => {
@@ -523,5 +529,28 @@ describe('oneHot', () => {
 
     expect(res.shape).toEqual([2, 2]);
     expectArraysClose(res, [1, 0, 0, 1]);
+  });
+});
+
+describe('where', () => {
+  it('should work', () => {
+    const c = dl.tensor1d([1, 0, 1, 0], 'bool');
+    const a = dl.tensor1d([10, 10, 10, 10]);
+    const b = dl.tensor1d([20, 20, 20, 20]);
+    expectArraysClose(dl.where(c, a, b), [10, 20, 10, 20]);
+  });
+});
+
+describe('step', () => {
+  it('with 1d tensor', () => {
+    const a = dl.tensor1d([1, -2, -.01, 3, -0.1]);
+    const result = dl.step(a);
+    expectArraysClose(result, [1, 0, 0, 1, 0]);
+  });
+
+  it('with 1d tensor and alpha', () => {
+    const a = dl.tensor1d([1, -2, -.01, 3, NaN]);
+    const result = dl.step(a, 0.1);
+    expectArraysClose(result, [1, 0.1, 0.1, 1, NaN]);
   });
 });
