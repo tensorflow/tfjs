@@ -57,11 +57,13 @@ def dispatch_pykeras_conversion(h5_path, output_dir=None):
     model_json = None
     groups = converter.h5_weights_to_tfjs_format(h5_file)
   else:
-    model_json, groups = converter.h5_merged_saved_model_to_tfjs_format(h5_file)
+    model_json, groups = converter.h5_merged_saved_model_to_tfjs_format(
+        h5_file)
 
   if output_dir:
     if os.path.isfile(output_dir):
-      raise ValueError('Output path "%s" already exists as a file' % output_dir)
+      raise ValueError(
+          'Output path "%s" already exists as a file' % output_dir)
     elif not os.path.isdir(output_dir):
       os.makedirs(output_dir)
     converter.write_artifacts(model_json, groups, output_dir)
@@ -70,8 +72,7 @@ def dispatch_pykeras_conversion(h5_path, output_dir=None):
 
 
 def main():
-  parser = argparse.ArgumentParser(
-      'TensorFlow.js model converters.')
+  parser = argparse.ArgumentParser('TensorFlow.js model converters.')
   parser.add_argument(
       'input_path',
       type=str,
@@ -116,12 +117,12 @@ def main():
           'The --output_node_names flag is applicable only to input format '
           '"tensorflow", but the current input format is "keras".')
 
-    dispatch_pykeras_conversion(FLAGS.input_path, output_dir=FLAGS.output_dir)
+    dispatch_pykeras_conversion(
+        FLAGS.input_path, output_dir=FLAGS.output_dir)
   elif FLAGS.input_format == 'tf_saved_model':
-    tf_saved_model_conversion.convert_tf_saved_model(FLAGS.output_node_names,
-                                                     FLAGS.output_dir,
-                                                     FLAGS.saved_model_tags,
-                                                     FLAGS.input_path)
+    tf_saved_model_conversion.convert_tf_saved_model(
+        FLAGS.input_path, FLAGS.output_node_names,
+        FLAGS.output_dir, saved_model_tags=FLAGS.saved_model_tags)
   else:
     raise ValueError('Invalid input format: \'%s\'' % FLAGS.input_format)
 

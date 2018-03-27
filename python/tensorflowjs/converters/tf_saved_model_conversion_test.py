@@ -64,10 +64,10 @@ class ConvertTest(unittest.TestCase):
     self.create_saved_model()
 
     tf_saved_model_conversion.convert_tf_saved_model(
-        'Softmax',
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
-        'serve',
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR))
+        'Softmax',
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
 
     weights = [{
         'paths': ['group1-shard1of1'],
