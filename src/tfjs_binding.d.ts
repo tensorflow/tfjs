@@ -56,5 +56,5 @@ export interface TFJSBinding {
 
   execute(
       context: Context, op: string, op_attrs: TFEOpAttr[],
-      inputs: TensorHandle[], output: TensorHandle): void;
+      inputs: TensorHandle[], output: TensorHandle[]): void;
 }

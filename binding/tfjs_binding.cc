@@ -154,7 +154,16 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
   nstatus = napi_get_cb_info(env, info, &argc, args, &js_this, nullptr);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, js_this);
 
-  // TODO - assert that the proper number of values is passed in.
+  // Ensure arguments:
+  if (argc < 5) {
+    NAPI_THROW_ERROR(env, "Invalid number of arguments passed to execute()");
+    return js_this;
+  }
+  ENSURE_VALUE_IS_OBJECT_RETVAL(env, args[0], js_this);
+  ENSURE_VALUE_IS_STRING_RETVAL(env, args[1], js_this);
+  ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[2], js_this);
+  ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[3], js_this);
+  ENSURE_VALUE_IS_ARRAY_RETVAL(env, args[4], js_this);
 
   char op_name[NAPI_STRING_SIZE];
   nstatus = napi_get_value_string_utf8(env, args[1], op_name, NAPI_STRING_SIZE,
@@ -166,7 +175,7 @@ static napi_value ExecuteTFE(napi_env env, napi_callback_info info) {
             op_name,
             args[2],   // TFEOpAttr array
             args[3],   // TensorHandle array
-            args[4]);  // Output TensorHandle.
+            args[4]);  // Output TensorHandle array.
   return js_this;
 }
 
