@@ -32,18 +32,18 @@ export class BinaryOps {
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * ```js
-   * const a = dl.tensor1d([1, 2, 3, 4]);
-   * const b = dl.tensor1d([10, 20, 30, 40]);
+   * const a = tf.tensor1d([1, 2, 3, 4]);
+   * const b = tf.tensor1d([10, 20, 30, 40]);
    *
-   * a.add(b).print();  // or dl.add(a, b)
+   * a.add(b).print();  // or tf.add(a, b)
    * ```
    *
    * ```js
    * // Broadcast add a with b.
-   * const a = dl.scalar(5);
-   * const b = dl.tensor1d([10, 20, 30, 40]);
+   * const a = tf.scalar(5);
+   * const b = tf.tensor1d([10, 20, 30, 40]);
    *
-   * a.add(b).print();  // or dl.add(a, b)
+   * a.add(b).print();  // or tf.add(a, b)
    * ```
    * @param a The first `Tensor` to add.
    * @param b The second `Tensor` to add. Must have the same type as `a`.
@@ -98,18 +98,18 @@ export class BinaryOps {
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * ```js
-   * const a = dl.tensor1d([10, 20, 30, 40]);
-   * const b = dl.tensor1d([1, 2, 3, 4]);
+   * const a = tf.tensor1d([10, 20, 30, 40]);
+   * const b = tf.tensor1d([1, 2, 3, 4]);
    *
-   * a.sub(b).print();  // or dl.sub(a, b)
+   * a.sub(b).print();  // or tf.sub(a, b)
    * ```
    *
    * ```js
    * // Broadcast subtract a with b.
-   * const a = dl.tensor1d([10, 20, 30, 40]);
-   * const b = dl.scalar(5);
+   * const a = tf.tensor1d([10, 20, 30, 40]);
+   * const b = tf.scalar(5);
    *
-   * a.sub(b).print();  // or dl.sub(a, b)
+   * a.sub(b).print();  // or tf.sub(a, b)
    * ```
    * @param a The first `Tensor` to subtract from.
    * @param b The second `Tensor` to be subtracted. Must have the same dtype as
@@ -167,17 +167,17 @@ export class BinaryOps {
    * corresponding elements in x and y.
    *
    * ```js
-   * const a = dl.tensor([[2, 3], [4, 5]])
-   * const b = dl.tensor([[1, 2], [3, 0]]).toInt();
+   * const a = tf.tensor([[2, 3], [4, 5]])
+   * const b = tf.tensor([[1, 2], [3, 0]]).toInt();
    *
-   * a.pow(b).print();  // or dl.pow(a, b)
+   * a.pow(b).print();  // or tf.pow(a, b)
    * ```
    *
    * ```js
-   * const a = dl.tensor([[1, 2], [3, 4]])
-   * const b = dl.tensor(2).toInt();
+   * const a = tf.tensor([[1, 2], [3, 4]])
+   * const b = tf.tensor(2).toInt();
    *
-   * a.pow(b).print();  // or dl.pow(a, b)
+   * a.pow(b).print();  // or tf.pow(a, b)
    * ```
    * We also expose `powStrict` which has the same signature as this op and
    * asserts that `base` and `exp` are the same shape (does not broadcast).
@@ -198,8 +198,8 @@ export class BinaryOps {
       }
       const derBase = () => {
         const expFloat = exp.toFloat();
-        const dx = expFloat.mul(
-                       base.toFloat().pow(expFloat.sub(scalar(1)))) as T;
+        const dx =
+            expFloat.mul(base.toFloat().pow(expFloat.sub(scalar(1)))) as T;
         return dy.mulStrict(dx) as T;
       };
       return {base: derBase};
@@ -230,18 +230,18 @@ export class BinaryOps {
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * ```js
-   * const a = dl.tensor1d([1, 2, 3, 4]);
-   * const b = dl.tensor1d([2, 3, 4, 5]);
+   * const a = tf.tensor1d([1, 2, 3, 4]);
+   * const b = tf.tensor1d([2, 3, 4, 5]);
    *
-   * a.mul(b).print();  // or dl.mul(a, b)
+   * a.mul(b).print();  // or tf.mul(a, b)
    * ```
    *
    * ```js
    * // Broadcast mul a with b.
-   * const a = dl.tensor1d([1, 2, 3, 4]);
-   * const b = dl.scalar(5);
+   * const a = tf.tensor1d([1, 2, 3, 4]);
+   * const b = tf.scalar(5);
    *
-   * a.mul(b).print();  // or dl.mul(a, b)
+   * a.mul(b).print();  // or tf.mul(a, b)
    * ```
    * @param a The first tensor to multiply.
    * @param b The second tensor to multiply. Must have the same dtype as `a`.
@@ -298,18 +298,18 @@ export class BinaryOps {
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * ```js
-   * const a = dl.tensor1d([1, 4, 9, 16]);
-   * const b = dl.tensor1d([1, 2, 3, 4]);
+   * const a = tf.tensor1d([1, 4, 9, 16]);
+   * const b = tf.tensor1d([1, 2, 3, 4]);
    *
-   * a.div(b).print();  // or dl.div(a, b)
+   * a.div(b).print();  // or tf.div(a, b)
    * ```
    *
    * ```js
    * // Broadcast div a with b.
-   * const a = dl.tensor1d([2, 4, 6, 8]);
-   * const b = dl.scalar(2);
+   * const a = tf.tensor1d([2, 4, 6, 8]);
+   * const b = tf.scalar(2);
    *
-   * a.div(b).print();  // or dl.div(a, b)
+   * a.div(b).print();  // or tf.div(a, b)
    * ```
    *
    * @param a The first tensor as the numerator.
@@ -366,18 +366,18 @@ export class BinaryOps {
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * ```js
-   * const a = dl.tensor1d([1, 4, 3, 16]);
-   * const b = dl.tensor1d([1, 2, 9, 4]);
+   * const a = tf.tensor1d([1, 4, 3, 16]);
+   * const b = tf.tensor1d([1, 2, 9, 4]);
    *
-   * a.minimum(b).print();  // or dl.minimum(a, b)
+   * a.minimum(b).print();  // or tf.minimum(a, b)
    * ```
    *
    * ```js
    * // Broadcast minimum a with b.
-   * const a = dl.tensor1d([2, 4, 6, 8]);
-   * const b = dl.scalar(5);
+   * const a = tf.tensor1d([2, 4, 6, 8]);
+   * const b = tf.scalar(5);
    *
-   * a.minimum(b).print();  // or dl.minimum(a, b)
+   * a.minimum(b).print();  // or tf.minimum(a, b)
    * ```
    *
    * @param a The first tensor.
@@ -418,18 +418,18 @@ export class BinaryOps {
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * ```js
-   * const a = dl.tensor1d([1, 4, 3, 16]);
-   * const b = dl.tensor1d([1, 2, 9, 4]);
+   * const a = tf.tensor1d([1, 4, 3, 16]);
+   * const b = tf.tensor1d([1, 2, 9, 4]);
    *
-   * a.maximum(b).print();  // or dl.maximum(a, b)
+   * a.maximum(b).print();  // or tf.maximum(a, b)
    * ```
    *
    * ```js
    * // Broadcast maximum a with b.
-   * const a = dl.tensor1d([2, 4, 6, 8]);
-   * const b = dl.scalar(5);
+   * const a = tf.tensor1d([2, 4, 6, 8]);
+   * const b = tf.scalar(5);
    *
-   * a.maximum(b).print();  // or dl.maximum(a, b)
+   * a.maximum(b).print();  // or tf.maximum(a, b)
    * ```
    *
    * @param a The first tensor.

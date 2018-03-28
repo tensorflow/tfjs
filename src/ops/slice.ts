@@ -79,19 +79,19 @@ export class SliceOps {
    *
    * Also available are stricter rank-specific methods with the same signature
    * as this method that assert that `x` is of the given rank:
-   *   - `dl.slice1d`
-   *   - `dl.slice2d`
-   *   - `dl.slice3d`
-   *   - `dl.slice4d`
+   *   - `tf.slice1d`
+   *   - `tf.slice2d`
+   *   - `tf.slice3d`
+   *   - `tf.slice4d`
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 3, 4]);
+   * const x = tf.tensor1d([1, 2, 3, 4]);
    *
    * x.slice([1], [2]).print();
    * ```
    *
    * ```js
-   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
    *
    * x.slice([1, 0], [1, 2]).print();
    * ```

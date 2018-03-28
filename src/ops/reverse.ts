@@ -75,13 +75,13 @@ export class ReverseOps {
    * Reverses a `Tensor` along a specified axis.
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 3, 4]);
+   * const x = tf.tensor1d([1, 2, 3, 4]);
    *
    * x.reverse().print();
    * ```
    *
    * ```js
-   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
    *
    * const axis = 1;
    * x.reverse(axis).print();

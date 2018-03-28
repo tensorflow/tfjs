@@ -30,9 +30,9 @@ export class NormOps {
    * and matrix norms (Frobenius, 1-norm, and inf-norm).
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 3, 4]);
+   * const x = tf.tensor1d([1, 2, 3, 4]);
    *
-   * x.norm().print();  // or dl.norm(x)
+   * x.norm().print();  // or tf.norm(x)
    * ```
    *
    * @param x The input array.

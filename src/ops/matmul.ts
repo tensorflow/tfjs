@@ -26,10 +26,10 @@ export class MatmulOps {
    * Computes the dot product of two matrices, A * B. These must be matrices.
    *
    * ```js
-   * const a = dl.tensor2d([1, 2], [1, 2]);
-   * const b = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   * const a = tf.tensor2d([1, 2], [1, 2]);
+   * const b = tf.tensor2d([1, 2, 3, 4], [2, 2]);
    *
-   * a.matMul(b).print();  // or dl.matMul(a, b)
+   * a.matMul(b).print();  // or tf.matMul(a, b)
    * ```
    * @param a First matrix in dot product operation.
    * @param b Second matrix in dot product operation.
@@ -140,10 +140,10 @@ export class MatmulOps {
    * Computes the outer product of two vectors, v1 and v2.
    *
    * ```js
-   * const a = dl.tensor1d([1, 2, 3]);
-   * const b = dl.tensor1d([3, 4, 5]);
+   * const a = tf.tensor1d([1, 2, 3]);
+   * const b = tf.tensor1d([3, 4, 5]);
    *
-   * dl.outerProduct(a, b).print();
+   * tf.outerProduct(a, b).print();
    * ```
    * @param v1 The first vector in the outer product operation.
    * @param v2 The second vector in the dot product operation.

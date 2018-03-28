@@ -29,9 +29,9 @@ export class UnaryOps {
    * Computes `-1 * x` element-wise.
    *
    * ```js
-   * const x = dl.tensor2d([1, 2, -2, 0], [2, 2]);
+   * const x = tf.tensor2d([1, 2, -2, 0], [2, 2]);
    *
-   * x.neg().print();  // or dl.neg(x)
+   * x.neg().print();  // or tf.neg(x)
    * ```
    *
    * @param x The input tensor.
@@ -49,9 +49,9 @@ export class UnaryOps {
    * Computes ceiling of input `Tensor` element-wise: `ceil(x)`
    *
    * ```js
-   * const x = dl.tensor1d([.6, 1.1, -3.3]);
+   * const x = tf.tensor1d([.6, 1.1, -3.3]);
    *
-   * x.ceil().print();  // or dl.ceil(x)
+   * x.ceil().print();  // or tf.ceil(x)
    * ```
    * @param x The input Tensor.
    */
@@ -69,9 +69,9 @@ export class UnaryOps {
    * Computes floor of input `Tensor` element-wise: `floor(x)`.
    *
    * ```js
-   * const x = dl.tensor1d([.6, 1.1, -3.3]);
+   * const x = tf.tensor1d([.6, 1.1, -3.3]);
    *
-   * x.floor().print();  // or dl.floor(x)
+   * x.floor().print();  // or tf.floor(x)
    * ```
    * @param x The input tensor.
    */
@@ -90,9 +90,9 @@ export class UnaryOps {
    * Computes exponential of the input `Tensor` element-wise. `e ^ x`
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, -3]);
+   * const x = tf.tensor1d([1, 2, -3]);
    *
-   * x.exp().print();  // or dl.exp(x)
+   * x.exp().print();  // or tf.exp(x)
    * ```
    * @param x The input tensor.
    */
@@ -111,9 +111,9 @@ export class UnaryOps {
    * Computes natural logarithm of the input `Tensor` element-wise: `ln(x)`
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, Math.E]);
+   * const x = tf.tensor1d([1, 2, Math.E]);
    *
-   * x.log().print();  // or dl.log(x)
+   * x.log().print();  // or tf.log(x)
    * ```
    * @param x The input tensor.
    */
@@ -131,9 +131,9 @@ export class UnaryOps {
    * element-wise: `ln(1 + x)`
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, Math.E - 1]);
+   * const x = tf.tensor1d([1, 2, Math.E - 1]);
    *
-   * x.log1p().print();  // or dl.log1p(x)
+   * x.log1p().print();  // or tf.log1p(x)
    * ```
    * @param x The input tensor.
    */
@@ -150,9 +150,9 @@ export class UnaryOps {
    * Computes square root of the input `Tensor` element-wise: `y = sqrt(x)`
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 4, -1]);
+   * const x = tf.tensor1d([1, 2, 4, -1]);
    *
-   * x.sqrt().print();  // or dl.sqrt(x)
+   * x.sqrt().print();  // or tf.sqrt(x)
    * ```
    * @param x The input tensor.
    */
@@ -169,9 +169,9 @@ export class UnaryOps {
    * Computes square of `x` element-wise: `x ^ 2`
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, Math.sqrt(2), -1]);
+   * const x = tf.tensor1d([1, 2, Math.sqrt(2), -1]);
    *
-   * x.square().print();  // or dl.square(x)
+   * x.square().print();  // or tf.square(x)
    * ```
    * @param x The input Tensor.
    */
@@ -188,9 +188,9 @@ export class UnaryOps {
    * Computes absolute value element-wise: `abs(x)`
    *
    * ```js
-   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   * const x = tf.tensor1d([-1, 2, -3, 4]);
    *
-   * x.abs().print();  // or dl.abs(x)
+   * x.abs().print();  // or tf.abs(x)
    * ```
    * @param x The input `Tensor`.
    */
@@ -207,9 +207,9 @@ export class UnaryOps {
    * Clips values element-wise. `max(min(x, clipValueMax), clipValueMin)`
    *
    * ```js
-   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   * const x = tf.tensor1d([-1, 2, -3, 4]);
    *
-   * x.clipByValue(-2, 3).print();  // or dl.clipByValue(x, -2, 3)
+   * x.clipByValue(-2, 3).print();  // or tf.clipByValue(x, -2, 3)
    * ```
    * @param x The input tensor.
    * @param clipValueMin Lower-bound of range to be clipped to.
@@ -241,9 +241,9 @@ export class UnaryOps {
    * Computes rectified linear element-wise: `max(x, 0)`
    *
    * ```js
-   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   * const x = tf.tensor1d([-1, 2, -3, 4]);
    *
-   * x.relu().print();  // or dl.relu(x)
+   * x.relu().print();  // or tf.relu(x)
    * ```
    * @param x The input tensor.
    */
@@ -261,9 +261,9 @@ export class UnaryOps {
    * Computes exponential linear element-wise, `x > 0 ? e ^ x - 1 : 0`
    *
    * ```js
-   * const x = dl.tensor1d([-1, 1, -3, 2]);
+   * const x = tf.tensor1d([-1, 1, -3, 2]);
    *
-   * x.elu().print();  // or dl.elu(x)
+   * x.elu().print();  // or tf.elu(x)
    * ```
    * @param x The input tensor.
    */
@@ -282,9 +282,9 @@ export class UnaryOps {
    * `x < 0 ? scale * alpha * (exp(x) - 1) : x`
    *
    * ```js
-   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   * const x = tf.tensor1d([-1, 2, -3, 4]);
    *
-   * x.selu().print();  // or dl.selu(x)
+   * x.selu().print();  // or tf.selu(x)
    * ```
    * @param x The input tensor.
    */
@@ -317,9 +317,9 @@ export class UnaryOps {
    *     http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf)
    *
    * ```js
-   * const x = dl.tensor1d([-1, 2, -3, 4]);
+   * const x = tf.tensor1d([-1, 2, -3, 4]);
    *
-   * x.leakyRelu(0.1).print();  // or dl.leakyRelu(x, 0.1)
+   * x.leakyRelu(0.1).print();  // or tf.leakyRelu(x, 0.1)
    * ```
    * @param x The input tensor.
    * @param alpha The scaling factor for negative values, defaults to 0.2.
@@ -340,10 +340,10 @@ export class UnaryOps {
    * `x < 0 ? alpha * x : f(x) = x`
    *
    * ```js
-   * const x = dl.tensor1d([-1, 2, -3, 4]);
-   * const alpha = dl.scalar(0.1);
+   * const x = tf.tensor1d([-1, 2, -3, 4]);
+   * const alpha = tf.scalar(0.1);
    *
-   * x.prelu(alpha).print();  // or dl.prelu(x, alpha)
+   * x.prelu(alpha).print();  // or tf.prelu(x, alpha)
    * ```
    * @param x The input tensor.
    * @param alpha Scaling factor for negative values.
@@ -361,9 +361,9 @@ export class UnaryOps {
    * Computes sigmoid element-wise, `1 / (1 + exp(-x))`
    *
    * ```js
-   * const x = dl.tensor1d([0, -1, 2, -3]);
+   * const x = tf.tensor1d([0, -1, 2, -3]);
    *
-   * x.sigmoid().print();  // or dl.sigmoid(x)
+   * x.sigmoid().print();  // or tf.sigmoid(x)
    * ```
    * @param x The input tensor.
    */
@@ -382,9 +382,9 @@ export class UnaryOps {
    * Computes sin of the input Tensor element-wise: `sin(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
+   * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
    *
-   * x.sin().print();  // or dl.sin(x)
+   * x.sin().print();  // or tf.sin(x)
    * ```
    * @param x The input tensor.
    */
@@ -401,9 +401,9 @@ export class UnaryOps {
    * Computes cos of the input `Tensor` element-wise: `cos(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
+   * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
    *
-   * x.cos().print();  // or dl.cos(x)
+   * x.cos().print();  // or tf.cos(x)
    * ```
    * @param x The input tensor.
    */
@@ -420,9 +420,9 @@ export class UnaryOps {
    * Computes tan of the input `Tensor` element-wise, `tan(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
+   * const x = tf.tensor1d([0, Math.PI / 2, Math.PI * 3 / 4]);
    *
-   * x.tan().print();  // or dl.tan(x)
+   * x.tan().print();  // or tf.tan(x)
    * ```
    * @param x The input tensor.
    */
@@ -439,9 +439,9 @@ export class UnaryOps {
    * Computes asin of the input `Tensor` element-wise: `asin(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, 1, -1, .7]);
+   * const x = tf.tensor1d([0, 1, -1, .7]);
    *
-   * x.asin().print();  // or dl.asin(x)
+   * x.asin().print();  // or tf.asin(x)
    * ```
    * @param x The input tensor.
    */
@@ -461,9 +461,9 @@ export class UnaryOps {
    * Computes acos of the input `Tensor` element-wise: `acos(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, 1, -1, .7]);
+   * const x = tf.tensor1d([0, 1, -1, .7]);
    *
-   * x.acos().print();  // or dl.acos(x)
+   * x.acos().print();  // or tf.acos(x)
    * ```
    * @param x The input tensor.
    */
@@ -484,9 +484,9 @@ export class UnaryOps {
    * Computes atan of the input `Tensor` element-wise: `atan(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, 1, -1, .7]);
+   * const x = tf.tensor1d([0, 1, -1, .7]);
    *
-   * x.atan().print();  // or dl.atan(x)
+   * x.atan().print();  // or tf.atan(x)
    * ```
    * @param x The input tensor.
    */
@@ -503,9 +503,9 @@ export class UnaryOps {
    * Computes hyperbolic sin of the input `Tensor` element-wise: `sinh(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, 1, -1, .7]);
+   * const x = tf.tensor1d([0, 1, -1, .7]);
    *
-   * x.sinh().print();  // or dl.sinh(x)
+   * x.sinh().print();  // or tf.sinh(x)
    * ```
    * @param x The input tensor.
    */
@@ -522,9 +522,9 @@ export class UnaryOps {
    * Computes hyperbolic cos of the input `Tensor` element-wise: `cosh(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, 1, -1, .7]);
+   * const x = tf.tensor1d([0, 1, -1, .7]);
    *
-   * x.cosh().print();  // or dl.cosh(x)
+   * x.cosh().print();  // or tf.cosh(x)
    * ```
    * @param x The input tensor.
    */
@@ -541,9 +541,9 @@ export class UnaryOps {
    * Computes hyperbolic tangent of the input `Tensor` element-wise: `tanh(x)`
    *
    * ```js
-   * const x = dl.tensor1d([0, 1, -1, 70]);
+   * const x = tf.tensor1d([0, 1, -1, 70]);
    *
-   * x.tanh().print();  // or dl.tanh(x)
+   * x.tanh().print();  // or tf.tanh(x)
    * ```
    * @param x The input tensor.
    */
@@ -562,9 +562,9 @@ export class UnaryOps {
    * Computes step of the input `Tensor` element-wise: `x > 0 ? 1 : alpha * x`
    *
    * ```js
-   * const x = dl.tensor1d([0, 2, -1, -3]);
+   * const x = tf.tensor1d([0, 2, -1, -3]);
    *
-   * x.step(.5).print();  // or dl.step(x, .5)
+   * x.step(.5).print();  // or tf.step(x, .5)
    * ```
    * @param x The input tensor.
    * @param alpha The gradient when input is negative.

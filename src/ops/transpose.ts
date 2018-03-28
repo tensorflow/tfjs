@@ -32,9 +32,9 @@ export class TransposeOps {
    * operation performs a regular matrix transpose on 2-D input `Tensor`s.
    *
    * ```js
-   * const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+   * const a = tf.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
    *
-   * a.transpose().print();  // or dl.transpose(a)
+   * a.transpose().print();  // or tf.transpose(a)
    * ```
    *
    * @param x The tensor to transpose.

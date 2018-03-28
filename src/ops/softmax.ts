@@ -29,15 +29,15 @@ export class SoftmaxOps {
    * Computes the softmax normalized vector given the logits.
    *
    * ```js
-   * const a = dl.tensor1d([1, 2, 3]);
+   * const a = tf.tensor1d([1, 2, 3]);
    *
-   * a.softmax().print();  // or dl.softmax(a)
+   * a.softmax().print();  // or tf.softmax(a)
    * ```
    *
    * ```js
-   * const a = dl.tensor2d([2, 4, 6, 1, 2, 3], [2, 3]);
+   * const a = tf.tensor2d([2, 4, 6, 1, 2, 3], [2, 3]);
    *
-   * a.softmax().print();  // or dl.softmax(a)
+   * a.softmax().print();  // or tf.softmax(a)
    * ```
    *
    * @param logits The logits array.

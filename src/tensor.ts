@@ -885,8 +885,8 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
   /**
    * Creates a new variable with the provided initial value.
    * ```js
-   * const x = dl.variable(dl.tensor([1, 2, 3]));
-   * x.assign(dl.tensor([4, 5, 6]));
+   * const x = tf.variable(tf.tensor([1, 2, 3]));
+   * x.assign(tf.tensor([4, 5, 6]));
    *
    * x.print();
    * ```
