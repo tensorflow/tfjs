@@ -45,19 +45,18 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@tensorflow/tfjs-converter@0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.0.3.tgz#861a44f9c0baae527a064d44109bf617e14a0789"
+"@tensorflow/tfjs-converter@0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.1.0.tgz#8c305d34b5290122f2af368c33dc4fa2f688d9a2"
   dependencies:
     "@types/long" "~3.0.32"
     protobufjs "~6.8.0"
 
-"@tensorflow/tfjs-core@0.0.2":
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.0.2.tgz#3275ec114db4cc89ca729ffad67a25849236aa61"
+"@tensorflow/tfjs-core@0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.6.0.tgz#e33d9889472b0599291ecdb7fa83579586b21e66"
   dependencies:
     seedrandom "~2.4.3"
-    utf8 "~2.1.2"
 
 "@types/long@^3.0.32", "@types/long@~3.0.32":
   version "3.0.32"
@@ -3861,10 +3860,6 @@ use@^3.1.0:
 utf8-byte-length@^1.0.1:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/utf8-byte-length/-/utf8-byte-length-1.0.4.tgz#f45f150c4c66eee968186505ab93fcbb8ad6bf61"
-
-utf8@~2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/utf8/-/utf8-2.1.2.tgz#1fa0d9270e9be850d9b05027f63519bf46457d96"
 
 util-deprecate@~1.0.1:
   version "1.0.2"
