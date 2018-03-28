@@ -36,18 +36,18 @@ export class ArrayOps {
    *
    * ```js
    * // Pass an array of values to create a vector.
-   * dl.tensor([1, 2, 3, 4]).print();
+   * tf.tensor([1, 2, 3, 4]).print();
    * ```
    *
    * ```js
    * // Pass a nested array of values to make a matrix or a higher
    * // dimensional tensor.
-   * dl.tensor([[1, 2], [3, 4]]).print();
+   * tf.tensor([[1, 2], [3, 4]]).print();
    * ```
    *
    * ```js
    * // Pass a flat array and specify a shape yourself.
-   * dl.tensor([1, 2, 3, 4], [2, 2]).print();
+   * tf.tensor([1, 2, 3, 4], [2, 2]).print();
    * ```
    *
    * @param values The values of the tensor. Can be nested array of numbers,
@@ -80,12 +80,11 @@ export class ArrayOps {
   /**
    * Creates rank-0 `Tensor` (scalar) with the provided value and dtype.
    *
-   * This method is mainly for self documentation and TypeScript typings as the
-   * same functionality can be achieved with `tensor`. In general, we recommend
-   * using this method as it makes code more readable.
+   * The same functionality can be achieved with `tensor`, but in general
+   * we recommend using `scalar` as it makes the code more readable.
    *
    * ```js
-   * dl.scalar(3.14).print();
+   * tf.scalar(3.14).print();
    * ```
    *
    * @param value The value of the scalar.
@@ -104,12 +103,11 @@ export class ArrayOps {
   /**
    * Creates rank-1 `Tensor` with the provided values, shape and dtype.
    *
-   * This method is mainly for self documentation and TypeScript typings as the
-   * same functionality can be achieved with `tensor`. In general, we recommend
-   * using this method as it makes code more readable.
+   * The same functionality can be achieved with `tensor`, but in general
+   * we recommend using `tensor1d` as it makes the code more readable.
    *
    * ```js
-   * dl.tensor1d([1, 2, 3]).print();
+   * tf.tensor1d([1, 2, 3]).print();
    * ```
    *
    * @param values The values of the tensor. Can be array of numbers,
@@ -129,17 +127,16 @@ export class ArrayOps {
   /**
    * Creates rank-2 `Tensor` with the provided values, shape and dtype.
    *
-   * This method is mainly for self documentation and TypeScript typings as the
-   * same functionality can be achieved with `tensor`. In general, we recommend
-   * using this method as it makes code more readable.
+   * The same functionality can be achieved with `tensor`, but in general
+   * we recommend using `tensor2d` as it makes the code more readable.
    *
    *  ```js
    * // Pass a nested array.
-   * dl.tensor2d([[1, 2], [3, 4]]).print();
+   * tf.tensor2d([[1, 2], [3, 4]]).print();
    * ```
    * ```js
    * // Pass a flat array and specify a shape.
-   * dl.tensor2d([1, 2, 3, 4], [2, 2]).print();
+   * tf.tensor2d([1, 2, 3, 4], [2, 2]).print();
    * ```
    *
    * @param values The values of the tensor. Can be nested array of numbers,
@@ -165,17 +162,16 @@ export class ArrayOps {
   /**
    * Creates rank-3 `Tensor` with the provided values, shape and dtype.
    *
-   * This method is mainly for self documentation and TypeScript typings as
-   * the same functionality can be achieved with `tensor`. In general, we
-   * recommend using this method as it makes code more readable.
+   * The same functionality can be achieved with `tensor`, but in general
+   * we recommend using `tensor3d` as it makes the code more readable.
    *
    *  ```js
    * // Pass a nested array.
-   * dl.tensor3d([[[1], [2]], [[3], [4]]]).print();
+   * tf.tensor3d([[[1], [2]], [[3], [4]]]).print();
    * ```
    * ```js
    * // Pass a flat array and specify a shape.
-   * dl.tensor3d([1, 2, 3, 4], [2, 2, 1]).print();
+   * tf.tensor3d([1, 2, 3, 4], [2, 2, 1]).print();
    * ```
    *
    * @param values The values of the tensor. Can be nested array of numbers,
@@ -200,13 +196,17 @@ export class ArrayOps {
 
   /**
    * Creates rank-4 `Tensor` with the provided values, shape and dtype.
+   *
+   * The same functionality can be achieved with `tensor`, but in general
+   * we recommend using `tensor4d` as it makes the code more readable.
+   *
    *  ```js
    * // Pass a nested array.
-   * dl.tensor4d([[[[1], [2]], [[3], [4]]]]).print();
+   * tf.tensor4d([[[[1], [2]], [[3], [4]]]]).print();
    * ```
    * ```js
    * // Pass a flat array and specify a shape.
-   * dl.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]).print();
+   * tf.tensor4d([1, 2, 3, 4], [1, 2, 2, 1]).print();
    * ```
    *
    * @param values The values of the tensor. Can be nested array of numbers,
@@ -233,7 +233,7 @@ export class ArrayOps {
    * Creates a `Tensor` with all elements set to 1.
    *
    * ```js
-   * dl.ones([2, 2]).print();
+   * tf.ones([2, 2]).print();
    * ```
    *
    * @param shape An array of integers defining the output tensor shape.
@@ -252,7 +252,7 @@ export class ArrayOps {
    * Creates a `Tensor` with all elements set to 0.
    *
    * ```js
-   * dl.zeros([2, 2]).print();
+   * tf.zeros([2, 2]).print();
    * ```
    *
    * @param shape An array of integers defining the output tensor shape.
@@ -271,7 +271,7 @@ export class ArrayOps {
    * Creates a `Tensor` filled with a scalar value.
    *
    * ```js
-   * dl.fill([2, 2], 4).print();
+   * tf.fill([2, 2], 4).print();
    * ```
    *
    * @param shape An array of integers defining the output tensor shape.
@@ -295,8 +295,8 @@ export class ArrayOps {
    * given tensor.
    *
    * ```js
-   * const x = dl.tensor([1, 2]);
-   * dl.onesLike(x).print();
+   * const x = tf.tensor([1, 2]);
+   * tf.onesLike(x).print();
    * ```
    * @param x A tensor.
    */
@@ -311,8 +311,8 @@ export class ArrayOps {
    * given tensor.
    *
    * ```js
-   * const x = dl.tensor([1, 2]);
-   * dl.zerosLike(x).print();
+   * const x = tf.tensor([1, 2]);
+   * tf.zerosLike(x).print();
    * ```
    *
    * @param x The tensor of required shape.
@@ -328,7 +328,7 @@ export class ArrayOps {
    * tensor.
    *
    * ```js
-   * const x = dl.tensor([1, 2]);
+   * const x = tf.tensor([1, 2]);
    * x.clone().print();
    * ```
    *
@@ -344,7 +344,7 @@ export class ArrayOps {
    * Creates a `Tensor` with values sampled from a normal distribution.
    *
    * ```js
-   * dl.randomNormal([2, 2]).print();
+   * tf.randomNormal([2, 2]).print();
    * ```
    *
    * @param shape An array of integers defining the output tensor shape.
@@ -375,7 +375,7 @@ export class ArrayOps {
    * distribution.
    *
    * ```js
-   * dl.truncatedNormal([2, 2]).print();
+   * tf.truncatedNormal([2, 2]).print();
    * ```
    *
    * The generated values follow a normal distribution with specified mean and
@@ -413,7 +413,7 @@ export class ArrayOps {
    * bound maxval is excluded.
    *
    * ```js
-   * dl.randomUniform([2, 2]).print();
+   * tf.randomUniform([2, 2]).print();
    * ```
    *
    * @param shape An array of integers defining the output tensor shape.
@@ -518,7 +518,7 @@ export class ArrayOps {
    * `offValue` (defaults to 0).
    *
    * ```js
-   * dl.oneHot(dl.tensor1d([0, 1]), 3).print();
+   * tf.oneHot(tf.tensor1d([0, 1]), 3).print();
    * ```
    *
    * @param indices 1D Array of indices.
@@ -550,7 +550,7 @@ export class ArrayOps {
    * image.data[2] = 200;
    * image.data[3] = 255;
    *
-   * dl.fromPixels(image).print();
+   * tf.fromPixels(image).print();
    * ```
    *
    * @param pixels The input image to construct the tensor from.
@@ -587,7 +587,7 @@ export class ArrayOps {
    * tensor.
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 3, 4]);
+   * const x = tf.tensor1d([1, 2, 3, 4]);
    * x.reshape([2, 2]).print();
    * ```
    *
@@ -613,7 +613,7 @@ export class ArrayOps {
    * Removes dimensions of size 1 from the shape of a `Tensor`.
    *
    * ```js
-   * const x = dl.tensor([1, 2, 3, 4], [1, 1, 4]);
+   * const x = tf.tensor([1, 2, 3, 4], [1, 1, 4]);
    * x.squeeze().print();
    * ```
    *
@@ -631,8 +631,8 @@ export class ArrayOps {
    * Casts a `Tensor` to a new dtype.
    *
    * ```js
-   * const x = dl.tensor1d([1.5, 2.5, 3]);
-   * dl.cast(x, 'int32').print();
+   * const x = tf.tensor1d([1.5, 2.5, 3]);
+   * tf.cast(x, 'int32').print();
    * ```
    * @param x The input tensor to be casted.
    * @param dtype The dtype to cast the input tensor to.
@@ -657,13 +657,13 @@ export class ArrayOps {
    * `[a, b, c, d]` by `[2]` produces `[a, b, c, d, a, b, c, d]`.
    *
    * ```js
-   * const a = dl.tensor1d([1, 2]);
+   * const a = tf.tensor1d([1, 2]);
    *
    * a.tile([2]).print();    // or a.tile([2])
    * ```
    *
    * ```js
-   * const a = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+   * const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
    *
    * a.tile([1, 2]).print();  // or a.tile([1, 2])
    * ```
@@ -734,15 +734,15 @@ export class ArrayOps {
    * Gather slices from tensor `x`'s axis `axis` according to `indices`.
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 3, 4]);
-   * const indices = dl.tensor1d([1, 3, 3]);
+   * const x = tf.tensor1d([1, 2, 3, 4]);
+   * const indices = tf.tensor1d([1, 3, 3]);
    *
    * x.gather(indices).print();
    * ```
    *
    * ```js
-   * const x = dl.tensor2d([1, 2, 3, 4], [2, 2]);
-   * const indices = dl.tensor1d([1, 1, 0]);
+   * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+   * const indices = tf.tensor1d([1, 1, 0]);
    *
    * x.gather(indices).print();
    * ```
@@ -818,11 +818,10 @@ export class ArrayOps {
   /**
    * Pads a `Tensor` with a given value and paddings.
    *
-   * This operation currently only implements the `CONSTANT` mode from
-   * Tensorflow's `pad` operation.
+   * This operation currently only implements the `CONSTANT` mode.
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 3, 4]);
+   * const x = tf.tensor1d([1, 2, 3, 4]);
    * x.pad([[1, 2]]).print();
    * ```
    * @param x The tensor to pad.
@@ -853,10 +852,10 @@ export class ArrayOps {
    * Stacks a list of rank-`R` `Tensor`s into one rank-`(R+1)` `Tensor`.
    *
    * ```js
-   * const a = dl.tensor1d([1, 2]);
-   * const b = dl.tensor1d([3, 4]);
-   * const c = dl.tensor1d([5, 6]);
-   * dl.stack([a, b, c]).print();
+   * const a = tf.tensor1d([1, 2]);
+   * const b = tf.tensor1d([3, 4]);
+   * const c = tf.tensor1d([5, 6]);
+   * tf.stack([a, b, c]).print();
    * ```
    *
    * @param tensors A list of tensor objects with the same shape and dtype.
@@ -892,7 +891,7 @@ export class ArrayOps {
    * into the tensor's shape.
    *
    * ```js
-   * const x = dl.tensor1d([1, 2, 3, 4]);
+   * const x = tf.tensor1d([1, 2, 3, 4]);
    * const axis = 1;
    * x.expandDims(axis).print();
    * ```
@@ -914,7 +913,7 @@ export class ArrayOps {
    * Return an evenly spaced sequence of numbers over the given interval.
    *
    * ```js
-   * dl.linspace(0, 9, 10).print();
+   * tf.linspace(0, 9, 10).print();
    * ```
    * @param start The start value of the sequence.
    * @param stop The end value of the sequence.
@@ -948,7 +947,7 @@ export class ArrayOps {
    * supported.
    *
    * ```js
-   * dl.range(0, 9, 2).print();
+   * tf.range(0, 9, 2).print();
    * ```
    *
    * @param start An integer start value
@@ -1003,7 +1002,7 @@ export class ArrayOps {
    *
    * ```js
    * // Create a buffer and set values at particular indices.
-   * const buffer = dl.buffer([2, 2]);
+   * const buffer = tf.buffer([2, 2]);
    * buffer.set(3, 0, 0);
    * buffer.set(5, 1, 0);
    *
@@ -1027,7 +1026,7 @@ export class ArrayOps {
    *
    * ```js
    * const verbose = true;
-   * dl.tensor2d([1, 2, 3, 4], [2, 2]).print(verbose);
+   * tf.tensor2d([1, 2, 3, 4], [2, 2]).print(verbose);
    * ```
    * @param x The tensor to be printed.
    * @param verbose Whether to print verbose information about the ` Tensor`,

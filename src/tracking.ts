@@ -39,20 +39,20 @@ export class Tracking {
    *
    * ```js
    * // y = 2 ^ 2 + 1
-   * const y = dl.tidy(() => {
+   * const y = tf.tidy(() => {
    *   // a, b, and one will be cleaned up when the tidy ends.
-   *   const one = dl.scalar(1);
-   *   const a = dl.scalar(2);
+   *   const one = tf.scalar(1);
+   *   const a = tf.scalar(2);
    *   const b = a.square();
    *
-   *   console.log('numTensors (in tidy): ' + dl.memory().numTensors);
+   *   console.log('numTensors (in tidy): ' + tf.memory().numTensors);
    *
    *   // The value returned inside the tidy function will return
    *   // through the tidy, in this case to the variable y.
    *   return b.add(one);
    * });
    *
-   * console.log('numTensors (outside tidy): ' + dl.memory().numTensors);
+   * console.log('numTensors (outside tidy): ' + tf.memory().numTensors);
    * y.print();
    * ```
    *
@@ -70,7 +70,7 @@ export class Tracking {
     if (fn == null) {
       // Called with only 1 argument.
       if (typeof nameOrFn !== 'function') {
-        throw new Error('Please provide a function to dl.tidy()');
+        throw new Error('Please provide a function to tidy()');
       }
       fn = nameOrFn;
     } else {
@@ -78,12 +78,12 @@ export class Tracking {
       if (typeof nameOrFn !== 'string' && !(nameOrFn instanceof String)) {
         throw new Error(
             'When calling with two arguments, the first argument ' +
-            'to dl.tidy() must be a string');
+            'to tidy() must be a string');
       }
       if (typeof fn !== 'function') {
         throw new Error(
             'When calling with two arguments, the 2nd argument ' +
-            'to dl.tidy() must be a function');
+            'to tidy() must be a function');
       }
       name = nameOrFn as string;
       // TODO(nsthorat,smilkov): Do operation logging and performance
@@ -119,22 +119,22 @@ export class Tracking {
    *
    * ```js
    * let b;
-   * const y = dl.tidy(() => {
-   *   const one = dl.scalar(1);
-   *   const a = dl.scalar(2);
+   * const y = tf.tidy(() => {
+   *   const one = tf.scalar(1);
+   *   const a = tf.scalar(2);
    *
    *   // b will not be cleaned up by the tidy. a and one will be cleaned up
    *   // when the tidy ends.
-   *   b = dl.keep(a.square());
+   *   b = tf.keep(a.square());
    *
-   *   console.log('numTensors (in tidy): ' + dl.memory().numTensors);
+   *   console.log('numTensors (in tidy): ' + tf.memory().numTensors);
    *
    *   // The value returned inside the tidy function will return
    *   // through the tidy, in this case to the variable y.
    *   return b.add(one);
    * });
    *
-   * console.log('numTensors (outside tidy): ' + dl.memory().numTensors);
+   * console.log('numTensors (outside tidy): ' + tf.memory().numTensors);
    * console.log('y:');
    * y.print();
    * console.log('b:');
@@ -161,8 +161,8 @@ export class Tracking {
    *   - `downloadWaitMs`: CPU blocking time on texture downloads (readPixels).
    *
    * ```js
-   * const x = dl.randomNormal([20, 20]);
-   * const time = await dl.time(() => x.matMul(x));
+   * const x = tf.randomNormal([20, 20]);
+   * const time = await tf.time(() => x.matMul(x));
    *
    * console.log(`kernelMs: ${time.kernelMs}, wallTimeMs: ${time.wallMs}`);
    * ```

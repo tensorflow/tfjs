@@ -21,7 +21,7 @@ export class BrowserUtil {
    * Returns a promise that resolve when a requestAnimationFrame has completed.
    *
    * This is simply a sugar method so that users can do the following:
-   * `await dl.nextFrame();`
+   * `await tf.nextFrame();`
    */
   @doc({heading: 'Performance', subheading: 'Timing'})
   static nextFrame(): Promise<void> {
