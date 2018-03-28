@@ -102,14 +102,14 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   private executeSingleInput(name: string, input: Tensor): Tensor {
     const opAttrs = [this.createTypeOpAttr('T', input.dtype)];
-    return this.execute(name, opAttrs, [input]);
+    return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
-  private execute(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
-      Tensor {
+  private executeSingleOutput(
+      name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]): Tensor {
     const output = new this.binding.TensorHandle();
     this.binding.execute(
-        this.context, name, opAttrs, this.getInputTensors(inputs), output);
+        this.context, name, opAttrs, this.getInputTensors(inputs), [output]);
     return this.createOutputTensor(output);
   }
 
@@ -122,7 +122,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       {name: 'transpose_b', type: this.binding.TF_ATTR_BOOL, value: transposeB},
       this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
     ];
-    return this.execute('MatMul', opAttrs, [a, b]) as Tensor2D;
+    return this.executeSingleOutput('MatMul', opAttrs, [a, b]) as Tensor2D;
   }
 
   slice<T extends Tensor<Rank>>(x: T, begin: number[], size: number[]): T {
@@ -135,7 +135,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     const beginTensor = tensor1d(begin, 'int32');
     const sizeTensor = tensor1d(size, 'int32');
 
-    return this.execute('Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
+    return this.executeSingleOutput(
+               'Slice', opAttrs, [x, beginTensor, sizeTensor]) as T;
   }
 
   reverse<T extends Tensor<Rank>>(a: T, axis: number[]): T {
@@ -144,7 +145,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('T', a.dtype)
     ];
     const axisTensor = tensor1d(axis, 'int32');
-    return this.execute('ReverseV2', opAttrs, [a, axisTensor]) as T;
+    return this.executeSingleOutput('ReverseV2', opAttrs, [a, axisTensor]) as T;
   }
 
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
@@ -155,7 +156,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
     const axisTensor = scalar(1, 'int32');
-    return this.execute('ConcatV2', opAttrs, [a, b, axisTensor]) as Tensor2D;
+    return this.executeSingleOutput('ConcatV2', opAttrs, [a, b, axisTensor]) as
+        Tensor2D;
   }
 
   neg<T extends Tensor<Rank>>(a: T): T {
@@ -166,33 +168,34 @@ export class NodeJSKernelBackend implements KernelBackend {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Add', opAttrs, [a, b]);
+    return this.executeSingleOutput('Add', opAttrs, [a, b]);
   }
 
   subtract(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Sub', opAttrs, [a, b]);
+    return this.executeSingleOutput('Sub', opAttrs, [a, b]);
   }
 
   multiply(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Mul', opAttrs, [a, b]);
+    return this.executeSingleOutput('Mul', opAttrs, [a, b]);
   }
 
   divide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Div', opAttrs, [a, b]);
+    return this.executeSingleOutput('Div', opAttrs, [a, b]);
   }
 
   sum(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     const axisTensor = tensor1d(axes, 'int32');
-    return this.execute('Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
+    return this.executeSingleOutput(
+        'Sum', this.createReductionOpAttrs(x), [x, axisTensor]);
   }
 
   argMin(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
@@ -206,54 +209,54 @@ export class NodeJSKernelBackend implements KernelBackend {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Equal', opAttrs, [a, b]);
+    return this.executeSingleOutput('Equal', opAttrs, [a, b]);
   }
 
   notEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('NotEqual', opAttrs, [a, b]);
+    return this.executeSingleOutput('NotEqual', opAttrs, [a, b]);
   }
 
   less(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Less', opAttrs, [a, b]);
+    return this.executeSingleOutput('Less', opAttrs, [a, b]);
   }
 
   lessEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('LessEqual', opAttrs, [a, b]);
+    return this.executeSingleOutput('LessEqual', opAttrs, [a, b]);
   }
 
   greater(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Greater', opAttrs, [a, b]);
+    return this.executeSingleOutput('Greater', opAttrs, [a, b]);
   }
 
   greaterEqual(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('GreaterEqual', opAttrs, [a, b]);
+    return this.executeSingleOutput('GreaterEqual', opAttrs, [a, b]);
   }
 
   logicalNot<T extends Tensor<Rank>>(a: T): T {
-    return this.execute('LogicalNot', [], [a]) as T;
+    return this.executeSingleOutput('LogicalNot', [], [a]) as T;
   }
 
   logicalAnd(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    return this.execute('LogicalAnd', [], [a, b]);
+    return this.executeSingleOutput('LogicalAnd', [], [a, b]);
   }
 
   logicalOr(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
-    return this.execute('LogicalOr', [], [a, b]);
+    return this.executeSingleOutput('LogicalOr', [], [a, b]);
   }
 
   logicalXor(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
@@ -265,7 +268,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       dtype: DataType): Tensor<Rank> {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     // 'Select' Op is where with additional inputs.
-    return this.execute('Select', opAttrs, [condition, a, b]);
+    return this.executeSingleOutput('Select', opAttrs, [condition, a, b]);
   }
 
   topKValues<T extends Tensor<Rank>>(x: T, k: number): Tensor1D {
@@ -277,26 +280,28 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   min(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     const axesTensor = tensor1d(axes, 'int32');
-    return this.execute('Min', this.createReductionOpAttrs(x), [x, axesTensor]);
+    return this.executeSingleOutput(
+        'Min', this.createReductionOpAttrs(x), [x, axesTensor]);
   }
 
   minimum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Minimum', opAttrs, [a, b]);
+    return this.executeSingleOutput('Minimum', opAttrs, [a, b]);
   }
 
   max(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
     const axesTensor = tensor1d(axes, 'int32');
-    return this.execute('Max', this.createReductionOpAttrs(x), [x, axesTensor]);
+    return this.executeSingleOutput(
+        'Max', this.createReductionOpAttrs(x), [x, axesTensor]);
   }
 
   maximum(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Maximum', opAttrs, [a, b]);
+    return this.executeSingleOutput('Maximum', opAttrs, [a, b]);
   }
 
   ceil<T extends Tensor<Rank>>(x: T): T {
@@ -311,7 +316,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     // TODO(kreeger): Tensors must be up-typed before Op execution:
     // https://github.com/tensorflow/tfjs-node/issues/32
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.execute('Pow', opAttrs, [a, b]) as T;
+    return this.executeSingleOutput('Pow', opAttrs, [a, b]) as T;
   }
 
   exp<T extends Tensor<Rank>>(x: T): T {
@@ -585,7 +590,8 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('T', x.dtype),
       this.createTypeOpAttr('Tshape', shapeTensor.dtype)
     ];
-    return this.execute('Reshape', opAttrs, [x, shapeTensor]) as Tensor<R>;
+    return this.executeSingleOutput('Reshape', opAttrs, [x, shapeTensor]) as
+        Tensor<R>;
   }
 
   cast<T extends Tensor<Rank>>(x: T, dtype: DataType): T {
@@ -593,7 +599,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('SrcT', x.dtype),
       this.createTypeOpAttr('DstT', dtype)
     ];
-    return this.execute('Cast', opAttrs, [x]) as T;
+    return this.executeSingleOutput('Cast', opAttrs, [x]) as T;
   }
 
   tile<T extends Tensor<Rank>>(x: T, reps: number[]): T {
@@ -610,7 +616,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('Tpaddings', paddingsTensor.dtype)
     ];
 
-    return this.execute(
+    return this.executeSingleOutput(
                'PadV2', opAttrs, [x, paddingsTensor, constantTensor]) as T;
   }
   transpose<T extends Tensor<Rank>>(x: T, perm: number[]): T {
@@ -652,7 +658,7 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('TI', indices.dtype)
     ];
 
-    return this.execute('OneHot', opAttrs, [
+    return this.executeSingleOutput('OneHot', opAttrs, [
       indices, depthTensor, onValueTensor, offValueTensor
     ]) as Tensor2D;
   }

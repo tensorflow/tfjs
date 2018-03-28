@@ -95,11 +95,60 @@ inline bool EnsureConstructorCall(napi_env env, napi_callback_info info,
   napi_value js_target;
   napi_status nstatus = napi_get_new_target(env, info, &js_target);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, false);
-  if (js_target == nullptr) {
+  bool is_target = js_target != nullptr;
+  if (!is_target) {
     NapiThrowError(env, "Function not used as a constructor!", file,
                    lineNumber);
   }
-  return js_target != nullptr;
+  return is_target;
+}
+
+#define ENSURE_VALUE_IS_OBJECT(env, value) \
+  if (!EnsureValueIsObject(env, value, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_OBJECT_RETVAL(env, value, retval) \
+  if (!EnsureValueIsObject(env, value, __FILE__, __LINE__)) return retval;
+
+inline bool EnsureValueIsObject(napi_env env, napi_value value,
+                                const char* file, const size_t lineNumber) {
+  napi_valuetype type;
+  ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
+  bool is_object = type == napi_object;
+  if (!is_object) {
+    NapiThrowError(env, "Argument is not an object!", file, lineNumber);
+  }
+  return is_object;
+}
+
+#define ENSURE_VALUE_IS_STRING(env, value) \
+  if (!EnsureValueIsString(env, value, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_STRING_RETVAL(env, value, retval) \
+  if (!EnsureValueIsString(env, value, __FILE__, __LINE__)) return retval;
+
+inline bool EnsureValueIsString(napi_env env, napi_value value,
+                                const char* file, const size_t lineNumber) {
+  napi_valuetype type;
+  ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
+  bool is_string = type == napi_string;
+  if (!is_string) {
+    NapiThrowError(env, "Argument is not a string!", file, lineNumber);
+  }
+  return is_string;
+}
+
+#define ENSURE_VALUE_IS_NUMBER(env, value) \
+  if (!EnsureValueIsNumber(env, value, __FILE__, __LINE__)) return;
+#define ENSURE_VALUE_IS_NUMBER_RETVAL(env, value, retval) \
+  if (!EnsureValueIsNumber(env, value, __FILE__, __LINE__)) return retval;
+
+inline bool EnsureValueIsNumber(napi_env env, napi_value value,
+                                const char* file, const size_t lineNumber) {
+  napi_valuetype type;
+  ENSURE_NAPI_OK_RETVAL(env, napi_typeof(env, value, &type), false);
+  bool is_number = type == napi_number;
+  if (!is_number) {
+    NapiThrowError(env, "Argument is not a string!", file, lineNumber);
+  }
+  return is_number;
 }
 
 #define ENSURE_VALUE_IS_ARRAY(env, value) \

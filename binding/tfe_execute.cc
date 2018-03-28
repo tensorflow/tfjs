@@ -126,23 +126,12 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
 void ExecuteOp(napi_env env, napi_value context, const char* opName,
                napi_value op_attr_inputs, napi_value inputs,
-               napi_value output_tensor) {
+               napi_value output_tensor_array) {
   napi_status nstatus;
 
   TFEContextEnv* context_env;
   nstatus = napi_unwrap(env, context, reinterpret_cast<void**>(&context_env));
   ENSURE_NAPI_OK(env, nstatus);
-
-  // Ensure default constructor was used on the output Tensor (pointers be
-  // nullptr).
-  TensorHandle* handle;
-  nstatus = napi_unwrap(env, output_tensor, reinterpret_cast<void**>(&handle));
-  ENSURE_NAPI_OK(env, nstatus);
-  if (handle->handle != nullptr) {
-    NAPI_THROW_ERROR(
-        env, "Invalid output Tensor not built with default constructor");
-    return;
-  }
 
   TF_AutoStatus tf_status;
   TFE_Op* tfe_op = TFE_NewOp(context_env->context, opName, tf_status.status);
@@ -186,18 +175,41 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     }
   }
 
-  int num_retvals = 1;
-  // Push one `nullptr` to get a valid pointer in the call to `TFE_Execute()`
-  // below.
-  std::vector<TFE_TensorHandle*> result_handles;
-  result_handles.push_back(nullptr);
+  // Number of outputs will match the passed in output tensor handles.
+  uint32_t output_length;
+  nstatus = napi_get_array_length(env, output_tensor_array, &output_length);
+  ENSURE_NAPI_OK(env, nstatus);
 
-  TFE_Execute(tfe_op, result_handles.data(), &num_retvals, tf_status.status);
+  // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()` below.
+  std::vector<TFE_TensorHandle*> result_handles;
+  for (uint32_t i = 0; i < output_length; i++) {
+    result_handles.push_back(nullptr);
+  }
+
+  int size = result_handles.size();
+  TFE_Execute(tfe_op, result_handles.data(), &size, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
-  // Swap pointer on the output tensor handle. This handle is ensured to have
-  // nullptr for all references so no cleanup is needed.
-  handle->handle = result_handles[0];
+  // Swap pointer on the output tensor handles.
+  for (uint32_t i = 0; i < output_length; i++) {
+    napi_value output_value;
+    nstatus = napi_get_element(env, output_tensor_array, i, &output_value);
+    ENSURE_NAPI_OK(env, nstatus);
+
+    TensorHandle* handle;
+    nstatus = napi_unwrap(env, output_value, reinterpret_cast<void**>(&handle));
+    ENSURE_NAPI_OK(env, nstatus);
+    // Ensure that handle is from an unused tensor handle so no cleanup is
+    // needed.
+    // TODO(kreeger): If handle reuse, this needs to be tweaked.
+    if (handle->handle != nullptr) {
+      NAPI_THROW_ERROR(
+          env, "Invalid output Tensor not built with default constructor");
+      return;
+    }
+
+    handle->handle = result_handles[i];
+  }
 }
 
 }  // namespace tfnodejs

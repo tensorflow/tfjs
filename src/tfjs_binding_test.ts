@@ -153,7 +153,7 @@ describe('TensorHandle', () => {
       {name: 'Tidx', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32}
     ];
 
-    binding.execute(context, 'Max', attrs, [input, axes], output);
+    binding.execute(context, 'Max', attrs, [input, axes], [output]);
     expect(output.shape).toEqual([]);
     expect(output.dtype).toEqual(binding.TF_INT32);
     expect(output.dataSync(context)).toEqual(new Int32Array([3]));
@@ -163,7 +163,7 @@ describe('TensorHandle', () => {
 describe('execute()', () => {
   const context = new binding.Context();
   const name = 'MatMul';
-  const output = new binding.TensorHandle();
+  const output = [new binding.TensorHandle()];
   const matMulOpAttrs = [
     {name: 'transpose_a', type: binding.TF_ATTR_BOOL, value: false},
     {name: 'transpose_b', type: binding.TF_ATTR_BOOL, value: false},
@@ -363,6 +363,8 @@ describe('execute()', () => {
 
   it('should work for matmul', () => {
     binding.execute(context, name, matMulOpAttrs, matMulInput, output);
-    expect(output.dataSync(context)).toEqual(new Float32Array([8, 5, 20, 13]));
+    expect(output[0].dataSync(context)).toEqual(new Float32Array([
+      8, 5, 20, 13
+    ]));
   });
 });
