@@ -2277,12 +2277,20 @@ deeplearn-knn-image-classifier@~0.3.0:
   dependencies:
     deeplearn-squeezenet "~0.2.0"
 
+deeplearn-legacy-loader@0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/deeplearn-legacy-loader/-/deeplearn-legacy-loader-0.0.1.tgz#7e850a33e5dfbed174a5c1a1cb3bcdabb42f569c"
+
 deeplearn-squeezenet@~0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/deeplearn-squeezenet/-/deeplearn-squeezenet-0.2.0.tgz#b5d37317defe4ee2cd71cffe5a9af30ccb13145f"
 
-"deeplearn@file:../dist":
-  version "0.0.0"
+deeplearn@next:
+  version "0.6.0-alpha6"
+  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha6.tgz#5f9b3af18db3186dbdc5e05310369fbf30131921"
+  dependencies:
+    seedrandom "~2.4.3"
+    utf8 "~2.1.2"
 
 deepmerge@^1.5.2:
   version "1.5.2"
@@ -5746,6 +5754,10 @@ schema-utils@^0.3.0:
   dependencies:
     ajv "^5.0.0"
 
+seedrandom@~2.4.3:
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/seedrandom/-/seedrandom-2.4.3.tgz#2438504dad33917314bff18ac4d794f16d6aaecc"
+
 select-hose@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/select-hose/-/select-hose-2.0.0.tgz#625d8658f865af43ec962bfc376a37359a4994ca"
@@ -6674,6 +6686,10 @@ user-home@^2.0.0:
   resolved "https://registry.yarnpkg.com/user-home/-/user-home-2.0.0.tgz#9c70bfd8169bc1dcbf48604e0f04b8b49cde9e9f"
   dependencies:
     os-homedir "^1.0.0"
+
+utf8@~2.1.2:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/utf8/-/utf8-2.1.2.tgz#1fa0d9270e9be850d9b05027f63519bf46457d96"
 
 util-deprecate@~1.0.1:
   version "1.0.2"

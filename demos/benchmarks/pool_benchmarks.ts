@@ -28,25 +28,24 @@ export interface PoolBenchmarkParams {
   stride: number;
 }
 
-function getPoolingOp(option: string):
-    (x: dl.Tensor3D, filterSize: [number, number]|number,
-     strides: [number, number]|number, pad: 'valid'|'same'|number) =>
-        dl.Tensor3D {
+function getPoolingOp(option: string): (
+    x: dl.Tensor3D, filterSize: [number, number]|number,
+    strides: [number, number]|number) => dl.Tensor3D {
   switch (option) {
     case 'max':
       return (x: dl.Tensor3D, filterSize: [number, number]|number,
-              strides: [number, number]|number, pad: 'valid'|'same'|number) => {
-        return x.maxPool(filterSize, strides, pad);
+              strides: [number, number]|number) => {
+        return x.maxPool(filterSize, strides, 'same');
       };
     case 'min':
       return (x: dl.Tensor3D, filterSize: [number, number]|number,
-              strides: [number, number]|number, pad: 'valid'|'same'|number) => {
-        return x.minPool(filterSize, strides, pad);
+              strides: [number, number]|number) => {
+        return x.minPool(filterSize, strides, 'same');
       };
     case 'avg':
       return (x: dl.Tensor3D, filterSize: [number, number]|number,
-              strides: [number, number]|number, pad: 'valid'|'same'|number) => {
-        return x.avgPool(filterSize, strides, pad);
+              strides: [number, number]|number) => {
+        return x.avgPool(filterSize, strides, 'same');
       };
     default:
       throw new Error(`Not found such ops: ${option}`);
@@ -62,14 +61,13 @@ export class PoolCPUBenchmark implements BenchmarkTest {
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
-    const zeroPad = dl.conv_util.computeDefaultPad(xShape, fieldSize, stride);
     const op = getPoolingOp(option);
 
     const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
 
     const start = performance.now();
     for (let i = 0; i < CPU_OP_RUNS; i++) {
-      op(x, fieldSize, stride, zeroPad);
+      op(x, fieldSize, stride);
     }
     const avgTime = (performance.now() - start) / CPU_OP_RUNS;
     return new Promise<number>((resolve, reject) => {
@@ -90,7 +88,7 @@ export class PoolGPUBenchmark implements BenchmarkTest {
     const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
     const op = getPoolingOp(option);
 
-    const benchmark = () => op(x, fieldSize, stride, 'same');
+    const benchmark = () => op(x, fieldSize, stride);
     const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
 
     x.dispose();

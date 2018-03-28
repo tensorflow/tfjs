@@ -52,11 +52,12 @@
     "@bower_components/web-animations-js": "web-animations/web-animations-js#^2.2.0",
     "@bower_components/webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.24",
     "chart.js": "~2.7.1",
-    "deeplearn": "file:../dist/",
+    "deeplearn": "next",
     "deeplearn-knn-image-classifier": "~0.3.0",
     "deeplearn-squeezenet": "~0.2.0",
     "tslint": "~5.8.0",
-    "vue": "~2.5.9"
+    "vue": "~2.5.9",
+    "deeplearn-legacy-loader": "0.0.1"
   },
   "repository": {
     "type": "git",
@@ -68,7 +69,6 @@
     "d3-format": "~1.2.1",
     "d3-scale": "~1.0.7",
     "minimist": "~1.2.0",
-    "mkdirp": "~0.5.1",
     "poi": "~9.6.8",
     "poi-preset-typescript": "~9.0.2",
     "polymer-bundler": "~3.0.1",
@@ -79,7 +79,6 @@
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "prep": "yarn",
     "build": "tsc",
     "lint": "tslint -p . -t verbose"
   },

@@ -50,7 +50,7 @@ function runYarn(filePath) {
   shell.cd(filePath);
   shell.echo('=======================================================');
   shell.echo('Building', filePath);
-  run('yarn prep', filePath);
+  run('yarn', filePath);
   run('yarn build', filePath);
   run('yarn lint', filePath);
   shell.cd(cwd);

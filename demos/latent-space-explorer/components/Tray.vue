@@ -47,8 +47,6 @@ import {format} from 'd3-format';
 import {scaleLinear, scaleBand} from 'd3-scale';
 import * as dl from 'deeplearn';
 
-const math = dl.ENV.math;
-
 export default {
   components: {Sample, Axis},
   data() {
@@ -108,9 +106,10 @@ export default {
   },
   methods: {
     computeDirection() {
-      let length = math.sum(math.multiply(this.direction, this.direction));
-      this.unitDirection = math.divide(this.direction, length);
-      const scalar = math.dotProduct(this.unitDirection, this.selectedSample);
+      let length = dl.sum(dl.mul(this.direction, this.direction));
+      this.unitDirection = dl.div(this.direction, length);
+      const scalar = dl.matMul(this.unitDirection.as2D(1, -1),
+        this.selectedSample.as2D(-1, 1)).asScalar();
       scalar.data().then(values => {
         this.selectedValue = values[0];
         this.selectedX = this.hoverScale.invert(this.selectedValue);
@@ -134,9 +133,9 @@ export default {
     recomputeSamples: function() {
       let samples = [];
       for (var i = 0; i < this.numSamples; i++) {
-        let delta = math.sub(
+        let delta = dl.sub(
           dl.scalar(this.pos(i)), dl.scalar(this.selectedValue));
-        let newSample = math.add(math.multiply(
+        let newSample = dl.add(dl.mul(
           this.unitDirection, delta), this.selectedSample);
         samples.push({
           sample: newSample,
@@ -156,8 +155,8 @@ export default {
     },
     select: function(x) {
       const value = this.hoverScale(x)
-      let delta = math.sub(dl.scalar(value), dl.scalar(this.selectedValue));
-      let newSample = math.add(math.multiply(
+      let delta = dl.sub(dl.scalar(value), dl.scalar(this.selectedValue));
+      let newSample = dl.add(dl.mul(
         this.unitDirection, delta), this.selectedSample);
       this.$emit("select", {selectedSample: newSample});
     }

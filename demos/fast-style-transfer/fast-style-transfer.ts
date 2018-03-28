@@ -16,7 +16,6 @@
  */
 
 import * as dl from 'deeplearn';
-
 import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
 
 import {TransformNet} from './net';

@@ -13,6 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import * as dl from 'deeplearn';
+import {CheckpointLoader} from 'deeplearn-legacy-loader';
 import {KeyboardElement} from './keyboard_element';
 
 // tslint:disable-next-line:no-require-imports
@@ -122,7 +123,7 @@ let modelReady = false;
 function start() {
   piano.load(SALAMANDER_URL)
       .then(() => {
-        const reader = new dl.CheckpointLoader(CHECKPOINT_URL);
+        const reader = new CheckpointLoader(CHECKPOINT_URL);
         return reader.getAllVariables();
       })
       .then((vars: {[varName: string]: dl.Tensor}) => {

@@ -14,6 +14,12 @@
 # limitations under the License.
 # =============================================================================
 
-scripts/build-standalone.sh
-node_modules/.bin/tsc --sourceMap false
+set -e
+
+rimraf dist/
+yarn
+tsc --sourceMap false
+browserify --standalone dl src/index.ts -p [tsify] > dist/deeplearn.js
+uglifyjs dist/deeplearn.js -c -m -o dist/deeplearn.min.js
+echo "Stored standalone library at dist/deeplearn(.min).js"
 npm pack

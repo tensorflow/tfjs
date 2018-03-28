@@ -12,7 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 import * as dl from 'deeplearn';
-
+import {CheckpointLoader} from 'deeplearn-legacy-loader';
 import {Cache} from './ModelCache';
 
 const NUM_LAYERS = 4;
@@ -43,7 +43,7 @@ export class FontModel {
   }
 
   load(cb: () => void) {
-    const checkpointLoader = new dl.CheckpointLoader(
+    const checkpointLoader = new CheckpointLoader(
         'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/fonts/');
     checkpointLoader.getAllVariables().then(vars => {
       this.variables = vars;
