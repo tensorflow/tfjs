@@ -56,7 +56,7 @@ async function runBenchmark(artifactsDir, modelName, config) {
   const trainTimeMs = (trainEndMs - trainBeginMs) / benchmarkData.train_epochs;
 
   // Perform predict() burn-in.
-  tfc.tidy(() => {
+  return tfc.tidy(() => {
     let output;
     for (let i = 0; i < PREDICT_BURNINS; ++i) {
       output = tfc.tidy(() => {
@@ -73,14 +73,14 @@ async function runBenchmark(artifactsDir, modelName, config) {
     // After all the model.predict() calls, invoke dataSync() once to let the
     // scheduled GPU operations complete before proceeding.
     output.dataSync();
+    const predictEndMs = performance.now();
+    const predictTimeMs = (predictEndMs - predictBeginMs) / PREDICT_RUNS;
+    return {
+      originalData: benchmarkData,
+      predictTimeMs: predictTimeMs,
+      trainTimeMs: trainTimeMs,
+    };
   });
-  const predictEndMs = performance.now();
-  const predictTimeMs = (predictEndMs - predictBeginMs) / PREDICT_RUNS;
-  return {
-    originalData: benchmarkData,
-    predictTimeMs: predictTimeMs,
-    trainTimeMs: trainTimeMs,
-  };
 }
 
 function getRunAllBenchmarks(artifactsDir, benchmarks) {
