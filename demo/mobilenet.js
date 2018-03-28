@@ -15,8 +15,9 @@
  * =============================================================================
  */
 
+import {loadFrozenModel, NamedTensorMap} from '@tensorflow/tfjs-converter';
 import * as tfc from '@tensorflow/tfjs-core';
-import {NamedTensorMap, loadFrozenModel} from '@tensorflow/tfjs-converter';
+
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
@@ -32,8 +33,8 @@ export class MobileNet {
 
   async load() {
     this.model = await loadFrozenModel(
-      GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
-      GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
+        GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
+        GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
   }
 
   dispose() {
@@ -42,12 +43,12 @@ export class MobileNet {
     }
   }
   /**
-   * Infer through SqueezeNet, assumes variables have been loaded. This does
-   * standard ImageNet pre-processing before inferring through the model. This
-   * method returns named activations as well as pre-softmax logits.
+   * Infer through MobileNet. This does standard ImageNet pre-processing before
+   * inferring through the model. This method returns named activations as well
+   * as softmax logits.
    *
    * @param input un-preprocessed input Array.
-   * @return The pre-softmax logits.
+   * @return The softmax logits.
    */
   predict(input) {
     const preprocessedInput = tfc.div(
@@ -68,9 +69,11 @@ export class MobileNet {
     for (let i = 0; i < values.length; i++) {
       predictionList.push({value: values[i], index: i});
     }
-    predictionList = predictionList.sort((a, b) => {
-      return b.value - a.value;
-    }).slice(0, topK);
+    predictionList = predictionList
+                         .sort((a, b) => {
+                           return b.value - a.value;
+                         })
+                         .slice(0, topK);
 
     return predictionList.map(x => {
       return {label: IMAGENET_CLASSES[x.index], value: x.value};
