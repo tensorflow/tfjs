@@ -29,7 +29,6 @@ export const model = ModelExports.model;
 export const sequential = ModelExports.sequential;
 export const loadModel = ModelExports.loadModel;
 export const input = ModelExports.input;
-export const inputLayer = ModelExports.inputLayer;
 
 export const layers = LayerExports;
 
