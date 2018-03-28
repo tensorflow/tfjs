@@ -23,7 +23,7 @@
 
 namespace tfnodejs {
 
-struct TensorHandle {
+struct WrappedTensorHandle {
   TFE_TensorHandle* handle;
   napi_env env;
 };

@@ -41,7 +41,7 @@ bool IsCPUDevice(std::string& device_name) {
 }
 
 void Cleanup(napi_env env, void* data, void* hint) {
-  TensorHandle* handle = static_cast<TensorHandle*>(data);
+  WrappedTensorHandle* handle = static_cast<WrappedTensorHandle*>(data);
   if (handle->handle != nullptr) {
     TFE_DeleteTensorHandle(handle->handle);
     handle->handle = nullptr;
@@ -50,7 +50,7 @@ void Cleanup(napi_env env, void* data, void* hint) {
 }
 
 void InitTensorHandle(napi_env env, napi_value wrapped_value) {
-  TensorHandle* handle = new TensorHandle();
+  WrappedTensorHandle* handle = new WrappedTensorHandle();
   handle->handle = nullptr;
   handle->env = env;
 
@@ -64,7 +64,7 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
                         napi_value typed_array_value) {
   napi_status nstatus;
 
-  TensorHandle* handle;
+  WrappedTensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
@@ -162,7 +162,7 @@ void GetTensorData(napi_env env, napi_value context_value,
     return;
   }
 
-  TensorHandle* handle;
+  WrappedTensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
@@ -249,7 +249,7 @@ void GetTensorShape(napi_env env, napi_value wrapped_value,
                     napi_value* result) {
   napi_status nstatus;
 
-  TensorHandle* handle;
+  WrappedTensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 
@@ -287,7 +287,7 @@ void GetTensorDtype(napi_env env, napi_value wrapped_value,
                     napi_value* result) {
   napi_status nstatus;
 
-  TensorHandle* handle;
+  WrappedTensorHandle* handle;
   nstatus = napi_unwrap(env, wrapped_value, reinterpret_cast<void**>(&handle));
   ENSURE_NAPI_OK(env, nstatus);
 

@@ -147,7 +147,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     nstatus = napi_get_element(env, inputs, i, &cur_input);
     ENSURE_NAPI_OK(env, nstatus);
 
-    TensorHandle* handle;
+    WrappedTensorHandle* handle;
     nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle));
     ENSURE_NAPI_OK(env, nstatus);
 
@@ -196,7 +196,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     nstatus = napi_get_element(env, output_tensor_array, i, &output_value);
     ENSURE_NAPI_OK(env, nstatus);
 
-    TensorHandle* handle;
+    WrappedTensorHandle* handle;
     nstatus = napi_unwrap(env, output_value, reinterpret_cast<void**>(&handle));
     ENSURE_NAPI_OK(env, nstatus);
     // Ensure that handle is from an unused tensor handle so no cleanup is
