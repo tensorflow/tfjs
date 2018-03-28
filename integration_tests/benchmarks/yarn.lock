@@ -9,9 +9,9 @@
     seedrandom "~2.4.3"
     utf8 "~2.1.2"
 
-"@tensorflow/tfjs-layers@file:../../tensorflow-tfjs-layers-0.0.7.tgz":
-  version "0.0.7"
-  resolved "file:../../tensorflow-tfjs-layers-0.0.7.tgz#60df6d3f6424de0b7a03867cd11d983fb0ac9801"
+"@tensorflow/tfjs-layers@file:../../tensorflow-tfjs-layers-0.1.0.tgz":
+  version "0.1.0"
+  resolved "file:../../tensorflow-tfjs-layers-0.1.0.tgz#753efc03987e74103a8876e926c54e2e5c3197cb"
   dependencies:
     underscore "~1.8.3"
 
