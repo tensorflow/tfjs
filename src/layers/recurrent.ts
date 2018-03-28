@@ -1632,7 +1632,7 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
  *   tf.layers.lstmCell({units: 4}),
  *   tf.layers.lstmCell({units: 8}),
  * ];
- * const rnn = tf.layers.lstm({cell: cells, returnSequences: true});
+ * const rnn = tf.layers.rnn({cell: cells, returnSequences: true});
  *
  * // Create an input with 10 time steps and a length-20 vector at each step.
  * const input = tf.input({shape: [10, 20]});
