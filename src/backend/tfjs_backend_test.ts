@@ -20,7 +20,7 @@ import {DataFormat, PaddingMode, PoolMode} from '../common';
 import {ConcreteTensor, DType, LayerVariable, SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import * as K from './deeplearnjs_backend';
+import * as K from './tfjs_backend';
 
 // tslint:enable
 

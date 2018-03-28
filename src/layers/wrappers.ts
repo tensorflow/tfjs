@@ -15,7 +15,7 @@
 // tslint:disable:max-line-length
 import {Tensor} from '@tensorflow/tfjs-core';
 
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {Shape, TensorInterface} from '../types';

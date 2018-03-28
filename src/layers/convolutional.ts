@@ -17,7 +17,7 @@ import * as _ from 'underscore';
 
 // tslint:disable:max-line-length
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';

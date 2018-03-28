@@ -15,7 +15,7 @@
 // tslint:disable:max-line-length
 import {Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import * as tfl from './index';
 import {checkDistribution, checkFanMode, getInitializer, Orthogonal, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, Zeros} from './initializers';
 import {DType} from './types';

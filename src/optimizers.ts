@@ -24,7 +24,7 @@ import {AdagradOptimizer, AdamOptimizer, Optimizer as CoreOptimizer, RMSPropOpti
 
 // tslint:enable:max-line-length
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import {NotImplementedError, ValueError} from './errors';
 import {ConfigDict, LayerVariable} from './types';
 import {ClassNameMap, Constructor} from './utils/generic_utils';

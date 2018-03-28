@@ -14,7 +14,7 @@
 import {doc, Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {Constraint} from '../constraints';
 import {AttributeError, NotImplementedError, RuntimeError, ValueError} from '../errors';
 import {Initializer} from '../initializers';
@@ -1984,7 +1984,7 @@ export class Container extends Layer {
       kerasVersion: 'tfjs-layers pre-release',
       // TODO(nielsene): Replace something like K.backend() once
       // possible.
-      backend: 'deeplearn.js'
+      backend: 'TensorFlow.js'
     };
     return modelConfig;
   }

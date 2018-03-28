@@ -125,7 +125,7 @@ export class ConcreteTensor implements TensorInterface {
    */
   constructor(val: Tensor, name?: string) {
     // TODO(cais): This is faked to always give float32 for now. Implement real
-    // logic once deeplearn.js supports DTypes.
+    // logic once TensorFlow.js Core supports DTypes.
     this.dtype = DType.float32;
     this.shape = val.shape;
     this.val = val;
@@ -224,7 +224,7 @@ export class LayerVariable {
    * @return This Variable.
    */
   write(newVal: Tensor|ConcreteTensor) {
-    // TODO(cais): Once deeplearn.js supports Tensor.dtype, check dtype match.
+    // TODO(cais): Once  TF.js Core supports Tensor.dtype, check dtype match.
     checkShapesMatch(this.val, newVal);
     this.val.assign(getValueTensor(newVal));
     if (this.constraint != null) {
@@ -269,9 +269,7 @@ export type RnnStepFunction =
  * and support for Enums.
  */
 export type JsonValue = boolean|number|string|null|JsonArray|JsonDict;
-export interface JsonDict {
-  [key: string]: JsonValue;
-}
+export interface JsonDict { [key: string]: JsonValue; }
 export interface JsonArray extends Array<JsonValue> {}
 
 /**
@@ -291,9 +289,7 @@ export interface JsonArray extends Array<JsonValue> {}
  */
 export type ConfigDictValue =
     boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict {
-  [key: string]: ConfigDictValue;
-}
+export interface ConfigDict { [key: string]: ConfigDictValue; }
 export interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 export type NamedTensorMap = {

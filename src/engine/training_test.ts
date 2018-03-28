@@ -16,7 +16,7 @@
 import {Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, zeros} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
 import * as tfl from '../index';
 import {Dropout, Flatten, Reshape} from '../layers/core';

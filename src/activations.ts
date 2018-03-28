@@ -11,7 +11,7 @@
 // Layer activation functions
 import {scalar, Tensor} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import {ValueError} from './errors';
 import {ConfigDictValue} from './types';
 

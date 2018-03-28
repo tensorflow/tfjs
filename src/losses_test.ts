@@ -14,7 +14,7 @@
 
 import {scalar, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import * as losses from './losses';
 import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 

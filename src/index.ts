@@ -11,7 +11,7 @@
 // This file lists all exports of TensorFlow.js Layers
 
 // tslint:disable:max-line-length
-import * as backend from './backend/deeplearnjs_backend';
+import * as backend from './backend/tfjs_backend';
 import {ConstraintExports, InitializerExports, LayerExports, ModelExports, RegularizerExports} from './exports';
 
 export {Callback, CallbackList, CustomCallback, CustomCallbackConfig, Logs} from './callbacks';

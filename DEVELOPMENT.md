@@ -45,6 +45,6 @@
 
 ## Types
 
-* Tensors are represented as `Tensor` from deeplearn.js.
+* Tensors are represented as `Tensor` from TensorFlow.js Core.
 * Tensor shape is represented as an array of number (`number[]`), in a way
-  consistent with deeplearn.js.
+  consistent with TensorFlow.js Core.

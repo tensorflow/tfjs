@@ -12,7 +12,7 @@
 
 import {Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import {Model} from './engine/training';
 import * as generic_utils from './utils/generic_utils';
 
@@ -253,7 +253,7 @@ export class BaseLogger extends Callback {
         if (!this.totals.hasOwnProperty(key)) {
           this.totals[key] = K.getScalar(0);
         }
-        // TODO(cais): Do not leak tidy from deeplearn.js.
+        // TODO(cais): Do not leak tidy from TensorFlow.js Core.
         tidy(() => {
           this.totals[key] =
               K.scalarPlusArray(
