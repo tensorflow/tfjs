@@ -16,7 +16,7 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint} from '../constraints';
 import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier} from '../initializers';

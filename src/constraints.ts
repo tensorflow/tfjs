@@ -13,7 +13,7 @@
 // tslint:disable:max-line-length
 import {doc, Tensor} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import {ConfigDict, ConfigDictValue} from './types';
 import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 // tslint:enable:max-line-length

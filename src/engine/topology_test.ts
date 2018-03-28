@@ -12,7 +12,7 @@
 import {scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import {Reshape} from '../layers/core';
 import {DType, LayerVariable, NamedTensorMap, Shape, SymbolicTensor} from '../types';

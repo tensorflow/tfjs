@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import {onesLike, Tensor} from '@tensorflow/tfjs-core';
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import {NotImplementedError, ValueError} from './errors';
 import {cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError} from './losses';
 import {LossOrMetricFn} from './types';

@@ -15,7 +15,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {doc, Optimizer, Scalar, Tensor, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, disposeTensorsInLogs, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import * as losses from '../losses';
@@ -907,8 +907,8 @@ export class Model extends Container {
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
   evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
-      Scalar|Scalar[] {
+      x: Tensor|Tensor[], y: Tensor|Tensor[],
+      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
@@ -1516,7 +1516,7 @@ export class Model extends Container {
     // TODO(cais): Handle use_learning_phase and learning_phase?
 
     // Porting Note: Here we see a key deviation of tfjs-layers from Keras.
-    //  Due to the imperative nature of tfjs-layers' backend (deeplearn.js),
+    //  Due to the imperative nature of tfjs-layers' backend (tfjs-core),
     //  we do not construct symbolic computation graphs to embody the training
     //  process. Instead, we define a function that performs the training
     //  action.

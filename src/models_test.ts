@@ -11,7 +11,7 @@
 // tslint:disable:max-line-length
 import {ones, Scalar, scalar, Tensor, WeightsManifestConfig, zeros} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import * as tfl from './index';
 import {Reshape} from './layers/core';
 import {ModelAndWeightsConfig, modelFromJSON} from './models';

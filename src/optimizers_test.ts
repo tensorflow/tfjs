@@ -15,7 +15,7 @@
 // tslint:disable:max-line-length
 import {Scalar, scalar, Tensor, tensor1d, tensor2d, train} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import {Dense} from './layers/core';
 import * as metrics from './metrics';
 import {Adagrad, Adam, get as getOptimizer, RMSProp, SGD} from './optimizers';

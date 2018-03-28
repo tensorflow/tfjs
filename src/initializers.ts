@@ -12,7 +12,7 @@
 import {doc, scalar, Scalar, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
-import * as K from './backend/deeplearnjs_backend';
+import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
 import {NotImplementedError, ValueError} from './errors';
 import {DType, Shape} from './types';

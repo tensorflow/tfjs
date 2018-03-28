@@ -15,7 +15,7 @@
 // tslint:disable:max-line-length
 import {Tensor} from '@tensorflow/tfjs-core';
 
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
 import {InputSpec} from '../engine/topology';
 import {Layer, LayerConfig} from '../engine/topology';

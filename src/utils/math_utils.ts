@@ -13,7 +13,7 @@
  *
  * This file contains some frequently used math function that operates on
  * number[] or Float32Array and return a number. Many of these functions are
- * not-so-thick wrappers around deeplearn.js function. But they offer the
+ * not-so-thick wrappers around TF.js Core functions. But they offer the
  * convenience of
  * 1) not having to convert the inputs into Tensors,
  * 2) not having to convert the returned Tensors to numbers.
@@ -56,7 +56,7 @@ export function arrayProd(
 
 /**
  * A helper function transforms the two input types to an instance of Tensor1D,
- * so the return value can be fed directly into various deeplearn.js functions.
+ * so the return value can be fed directly into various TF.js Core functions.
  * @param array
  */
 function toArray1D(array: number[]|Float32Array): Tensor1D {

@@ -17,7 +17,7 @@ import {scalar, Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-cor
 import * as _ from 'underscore';
 
 import {ActivationIdentifier} from '../activations';
-import * as K from '../backend/deeplearnjs_backend';
+import * as K from '../backend/tfjs_backend';
 import {InitializerIdentifier} from '../initializers';
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
