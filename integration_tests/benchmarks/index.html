@@ -1,0 +1,74 @@
+<!--
+Copyright 2018 Google LLC
+
+Use of this source code is governed by an MIT-style
+license that can be found in the LICENSE file or at
+https://opensource.org/licenses/MIT.
+=============================================================================
+-->
+
+<!doctype html>
+<head>
+  <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+</head>
+
+<style>
+  body {
+    font-family: monospace;
+    margin-left: 1em;
+    margin-top: 1em;
+  }
+  table, th, td {
+    border: 1px solid black;
+    padding: 0.5em;
+  }
+  table > thead {
+    font-weight: bold;
+  }
+  #controlSection {
+    padding-bottom: 1em;
+  }
+  .metadata {
+    padding-left: 1em;
+  }
+</style>
+
+<body>
+  <h1>TensorFlow.js Layers: Benchmarks Demo</h1>
+  <div id='controlSection'>
+    <button id="runBenchmarks">Run Benchmarks</button>
+    <span id="status">Standing by.</span>
+  </div>
+  <div>
+    Python Keras version:<span class="metadata" id="pyKerasVersion"></span>
+  </div>
+  <div>
+    TensorFlow version:<span class="metadata" id="tfVersion"></span>
+  </div>
+  <div>
+    TensorFlow uses GPU:<span class="metadata" id="tfUsesGPU"></span>
+  </div>
+  <!-- TODO(soergel): Add additional metadata here, such as:
+    * CPU information
+    * Number of cores
+    * Browser name
+    * WebGL version
+    * tfjs / tfjs-layers version
+  -->
+
+  <table id='resultsTable'>
+    <thead>
+      <td>Model name</td>
+      <td>Model description</td>
+      <td>Batch size</td>
+      <td>fit() epochs</td>
+      <td>fit() (ms)<br/>Keras</td>
+      <td>fit() (ms)<br/>TF.js Layers</td>
+      <td>predict() (ms)<br/>Keras</td>
+      <td>predict() (ms)<br/>TF.js Layers</td>
+    </thead>
+    <tbody id='resultsBody'>
+    </tbody>
+  </table>
+  <script src='index.js'></script>
+</body>

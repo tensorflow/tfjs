@@ -1,4 +1,4 @@
-node_modules/
+**/node_modules/
 **/bundle.js
 **/*.js.map
 coverage/
@@ -12,3 +12,5 @@ dist/
 bazel-*
 
 *.pyc
+
+.cache
