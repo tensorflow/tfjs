@@ -79,7 +79,7 @@ the dev environment:
 ```bash
 $ git clone https://github.com/PAIR-code/deeplearnjs.git
 $ cd deeplearnjs
-$ yarn prep # Installs dependencies.
+$ yarn # Installs dependencies.
 ```
 
 #### Yarn vs NPM
@@ -135,21 +135,11 @@ $ yarn test --single-run
 ```
 
 #### Packaging (browser and npm)
-To build a standalone ES5 library that can be imported in the browser with a
-`<script>` tag:
 
 ```bash
-$ ./scripts/build-standalone.sh # Builds standalone library.
->> Stored standalone library at dist/deeplearn(.min).js
-```
-
-To build an npm package:
-
-```bash
-$ ./scripts/build-npm.sh
-...
-Stored standalone library at dist/deeplearn(.min).js
-deeplearn-VERSION.tgz
+$ yarn build-npm
+> Stored standalone library at dist/deeplearn(.min).js
+> deeplearn-VERSION.tgz
 ```
 
 To install it locally, run `npm install ./deeplearn-VERSION.tgz`.

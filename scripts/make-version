@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Copyright 2017 Google Inc. All Rights Reserved.
+// Copyright 2018 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
 // limitations under the License.
 // =============================================================================
 
-var fs = require('fs');
 
-var version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
-var tag = `v${version}`;
+// Run this script from the base directory (not the script directory):
+// ./scripts/make-version
+
+const fs = require('fs');
+const version = JSON.parse(fs.readFileSync('package.json', 'utf8')).version;
 
 const versionCode =
 `/** @license See the LICENSE file. */
@@ -28,9 +30,8 @@ export {version};
 `
 
 fs.writeFile('src/version.ts', versionCode, err => {
-  if (err != null) {
-    return console.error(`Could not save version file ${version}: ${err}`);
-  } else {
-    console.log(`Version file for version ${version} saved sucessfully.`);
+  if (err) {
+    throw new Error(`Could not save version file ${version}: ${err}`);
   }
+  console.log(`Version file for version ${version} saved sucessfully.`);
 });

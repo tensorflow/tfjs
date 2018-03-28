@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import * as dl from 'deeplearn';
+import {CheckpointLoader} from 'deeplearn-legacy-loader';
 
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/learnjs-data/checkpoint_zoo/transformnet/';
@@ -45,7 +46,7 @@ export class TransformNet {
   async load(): Promise<void> {
     if (this.variableDictionary[this.style] == null) {
       const checkpointLoader =
-          new dl.CheckpointLoader(GOOGLE_CLOUD_STORAGE_DIR + this.style + '/');
+          new CheckpointLoader(GOOGLE_CLOUD_STORAGE_DIR + this.style + '/');
       this.variableDictionary[this.style] =
           await checkpointLoader.getAllVariables();
     }

@@ -41,8 +41,6 @@ import Tray from './Tray.vue';
 import {range} from 'd3-array';
 import * as dl from 'deeplearn';
 
-const math = dl.ENV.math;
-
 export default {
   components: {Sample, Tray},
   data() {
@@ -54,7 +52,7 @@ export default {
     model: function(m) {
       const dims = m ? m.dimensions: 0;
       this.basisDimensions = range(dims).map(dim => {
-        return math.oneHot(dl.tensor1d([dim]), dims).as1D();
+        return dl.oneHot(dl.tensor1d([dim]), dims).as1D();
       });
     }
   },
