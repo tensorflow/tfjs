@@ -28,9 +28,15 @@ type TensorInfo = {
   dtype: number
 };
 
+// Holds the state of a TensorHandle. Used for delayed memory upload.
+type TensorHandleContext = {
+  handle: TensorHandle,
+  values: Float32Array|Int32Array|Uint8Array
+}
+
 export class NodeJSKernelBackend implements KernelBackend {
   private shapeMap = new WeakMap<DataId, TensorInfo>();
-  private handleMap = new WeakMap<DataId, TensorHandle>();
+  private handleContextMap = new WeakMap<DataId, TensorHandleContext>();
   private context: Context;
 
   private binding: TFJSBinding;
@@ -57,7 +63,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   // Creates a new Tensor and maps the dataId to the passed in handle.
   private createOutputTensor(handle: TensorHandle): Tensor {
     const newId = {};
-    this.handleMap.set(newId, handle);
+    this.handleContextMap.set(newId, {handle, values: null});
 
     let dtype: DataType;
     switch (handle.dtype) {
@@ -76,10 +82,21 @@ export class NodeJSKernelBackend implements KernelBackend {
     return Tensor.make(handle.shape, {dataId: newId}, dtype);
   }
 
+  // Prepares Tensor instances for Op execution.
   private getInputTensors(tensors: Tensor[]): TensorHandle[] {
     const inputs: TensorHandle[] = [];
     for (let i = 0; i < tensors.length; i++) {
-      inputs.push(this.handleMap.get(tensors[i].dataId));
+      const handleState = this.handleContextMap.get(tensors[i].dataId);
+      if (handleState.values != null) {
+        // Values were delayed to write into the TensorHandle. Do that before Op
+        // execution and clear stored values.
+        const info = this.shapeMap.get(tensors[i].dataId);
+        handleState.handle.copyBuffer(
+            info.shape, info.dtype, handleState.values);
+        handleState.values = null;
+        this.handleContextMap.set(tensors[i].dataId, handleState);
+      }
+      inputs.push(handleState.handle);
     }
     return inputs;
   }
@@ -665,12 +682,20 @@ export class NodeJSKernelBackend implements KernelBackend {
   dispose(): void {
     throw new Error('Method not implemented.');
   }
+
   async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
-    return this.handleMap.get(dataId).dataSync(this.context);
+    return this.readSync(dataId);
   }
+
   readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
-    return this.handleMap.get(dataId).dataSync(this.context);
+    const context = this.handleContextMap.get(dataId);
+    if (context.values == null) {
+      return context.handle.dataSync(this.context);
+    } else {
+      return context.values;
+    }
   }
+
   disposeData(dataId: object): void {
     // throw new Error('Method not implemented.');
   }
@@ -679,12 +704,16 @@ export class NodeJSKernelBackend implements KernelBackend {
     if (!this.shapeMap.has(dataId)) {
       throw new Error(`Tensor ${dataId} was not registered!`);
     }
-    if (!this.handleMap.has(dataId)) {
-      this.handleMap.set(dataId, new this.binding.TensorHandle());
+    if (this.handleContextMap.has(dataId)) {
+      // Handle is being re-used.
+      const state = this.handleContextMap.get(dataId);
+      state.values = values;
+      this.handleContextMap.set(dataId, state);
+    } else {
+      // Create a new handle:
+      this.handleContextMap.set(
+          dataId, {handle: new this.binding.TensorHandle(), values});
     }
-
-    const info = this.shapeMap.get(dataId);
-    this.handleMap.get(dataId).copyBuffer(info.shape, info.dtype, values);
   }
 
   fromPixels(

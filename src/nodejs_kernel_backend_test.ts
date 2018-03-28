@@ -24,6 +24,16 @@ import {bindTensorFlowBackend} from '.';
 // BeforeEach?
 bindTensorFlowBackend();
 
+describe('delayed upload', () => {
+  it('should handle data before op execution', () => {
+    const t = dl.tensor1d([1, 2, 3]);
+    expectArraysClose(t, [1, 2, 3]);
+
+    const r = t.add(dl.tensor1d([4, 5, 6]));
+    expectArraysClose(r, [5, 7, 9]);
+  });
+});
+
 describe('matMul', () => {
   it('should work', () => {
     const t1 = dl.tensor2d([[1, 2], [3, 4]]);
