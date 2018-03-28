@@ -121,7 +121,7 @@ import tensorflowjs as tfjs
 # ... Create and train your Keras model.
 
 # Save your Keras model in TensorFlow.js format.
-tfjs.converter.save_keras_model(model, '/path/to/tfjs_artifacts/')
+tfjs.converters.save_keras_model(model, '/path/to/tfjs_artifacts/')
 
 # Then use your favorite web server to serve the directory at a URL, say
 #   http://foo.bar/tfjs_artifacts/model.json
