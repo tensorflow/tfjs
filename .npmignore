@@ -11,6 +11,7 @@ dist/demos/
 dist/**/*.js.map
 dist/**/*_test.js
 dist/**/*_test.d.ts
+integration_tests/
 *.tgz
 .travis.yml
 .npmignore
