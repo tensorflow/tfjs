@@ -2,12 +2,11 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@0.6.0-alpha7":
-  version "0.6.0-alpha7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.6.0-alpha7.tgz#72e010b7176e302ce3a99627e7bca8d5da88bd15"
+"@tensorflow/tfjs-core@0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.6.0.tgz#e33d9889472b0599291ecdb7fa83579586b21e66"
   dependencies:
     seedrandom "~2.4.3"
-    utf8 "~2.1.2"
 
 "@types/events@*":
   version "1.2.0"
@@ -3402,10 +3401,6 @@ useragent@^2.1.12:
   dependencies:
     lru-cache "4.1.x"
     tmp "0.0.x"
-
-utf8@~2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/utf8/-/utf8-2.1.2.tgz#1fa0d9270e9be850d9b05027f63519bf46457d96"
 
 util-deprecate@~1.0.1:
   version "1.0.2"

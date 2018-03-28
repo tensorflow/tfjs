@@ -1,12 +1,12 @@
 {
   "name": "@tensorflow/tfjs-layers",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TensorFlow layers API in JavaScript",
   "private": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.6.0-alpha7",
+    "@tensorflow/tfjs-core": "0.6.0",
     "@types/jasmine": "~2.5.53",
     "@types/underscore": "^1.8.7",
     "browserify": "~16.1.0",
@@ -41,6 +41,6 @@
     "underscore": "~1.8.3"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.6.0-alpha7"
+    "@tensorflow/tfjs-core": "0.6.0"
   }
 }
