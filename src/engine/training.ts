@@ -612,8 +612,8 @@ export interface ModelCompileConfig {
  * A `Model` is a directed, acyclic graph of `Layer`s plus methods for
  * training, evaluation, prediction and saving.
  *
- * The `Model` is the basic unit of training, inference and evaluation in
- * TensorFlow.js. To create a `Model, use `model`.
+ * `Model` is the basic unit of training, inference and evaluation in
+ * TensorFlow.js. To create a `Model`, use `model`.
  *
  * See also:
  *   `Sequential`, `loadModel`.
