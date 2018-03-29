@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import {fill, ones, scalar, tensor1d, tensor2d} from 'deeplearn';
-import {BackendTimingInfo, KernelBackend} from 'deeplearn/dist/kernels/backend';
+import {fill, ones, scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, KernelBackend} from '@tensorflow/tfjs-core/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
-import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from 'deeplearn/dist/tensor';
-import {DataType, Rank, ShapeMap, upcastType} from 'deeplearn/dist/types';
+import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core/dist/tensor';
+import {DataType, Rank, ShapeMap, upcastType} from '@tensorflow/tfjs-core/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 

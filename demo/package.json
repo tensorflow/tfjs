@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "demo": "ts-node src/demo.ts",
     "mnist": "ts-node src/mnist.ts",
     "mnist-data": "ts-node src/mnist_data_demo.ts",
     "build": "tsc",
@@ -14,7 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^9.4.6",
-    "deeplearn": "next",
+    "@tensorflow/tfjs-core": "0.6.0",
     "tfjs-node": "file:../.",
     "ts-node": "^4.1.0",
     "typescript": "^2.7.2"

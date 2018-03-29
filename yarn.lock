@@ -2,6 +2,12 @@
 # yarn lockfile v1
 
 
+"@tensorflow/tfjs-core@0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.6.0.tgz#e33d9889472b0599291ecdb7fa83579586b21e66"
+  dependencies:
+    seedrandom "~2.4.3"
+
 "@types/bindings@^1.3.0":
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/@types/bindings/-/bindings-1.3.0.tgz#e9cd75a96d7abc1ecba0dc7eecb09a9f96cd417c"
@@ -92,8 +98,8 @@ chalk@^2.0.0, chalk@^2.3.0:
     supports-color "^5.3.0"
 
 clang-format@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/clang-format/-/clang-format-1.2.2.tgz#a7277a03fce9aa4e387ddaa83b60d99dab115737"
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/clang-format/-/clang-format-1.2.3.tgz#2763561aa7449c43737480f8df3a2b5b66e6cf37"
   dependencies:
     async "^1.5.2"
     glob "^7.0.0"
@@ -140,13 +146,6 @@ cross-spawn@^5.0.1:
 decamelize@^1.1.1:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/decamelize/-/decamelize-1.2.0.tgz#f6534d15148269b20352e7bee26f501f9a191290"
-
-deeplearn@next:
-  version "0.6.0-alpha7"
-  resolved "https://registry.yarnpkg.com/deeplearn/-/deeplearn-0.6.0-alpha7.tgz#ca19def5d9794dc1de223bfcad9703fd6bc1bd07"
-  dependencies:
-    seedrandom "~2.4.3"
-    utf8 "~2.1.2"
 
 diff@^3.1.0, diff@^3.2.0:
   version "3.5.0"
@@ -677,18 +676,14 @@ tslint@^5.9.1:
     tsutils "^2.12.1"
 
 tsutils@^2.12.1:
-  version "2.22.2"
-  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.22.2.tgz#0b9f3d87aa3eb95bd32d26ce2b88aa329a657951"
+  version "2.25.0"
+  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.25.0.tgz#14d616ef59224a3c9fb7eb483e1c182b6665ae5e"
   dependencies:
     tslib "^1.8.1"
 
 typescript@^2.4.1, typescript@^2.7.2:
-  version "2.7.2"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.7.2.tgz#2d615a1ef4aee4f574425cdff7026edf81919836"
-
-utf8@~2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/utf8/-/utf8-2.1.2.tgz#1fa0d9270e9be850d9b05027f63519bf46457d96"
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.8.1.tgz#6160e4f8f195d5ba81d4876f9c0cc1fbc0820624"
 
 v8flags@^3.0.0:
   version "3.0.2"

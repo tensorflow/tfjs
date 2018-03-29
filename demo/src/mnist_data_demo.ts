@@ -15,15 +15,15 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
-import * as tf from 'tfjs-node';
+import * as tf from '@tensorflow/tfjs-core';
+import {bindTensorFlowBackend} from 'tfjs-node';
 
 import {MnistDataset} from './mnist_data';
 import {Timer} from './timer';
 
-tf.bindTensorFlowBackend();
+bindTensorFlowBackend();
 
-function testPrint(image: dl.Tensor, label: dl.Tensor) {
+function testPrint(image: tf.Tensor, label: tf.Tensor) {
   const data = image.dataSync();
   console.log(`--- Label: ${label.dataSync()}`);
   let test = '';
@@ -52,7 +52,7 @@ async function loadTest() {
   const timer = new Timer();
   timer.start();
   for (let i = 0; i < 2000 && dataset.hasMoreData(); i++) {
-    dl.tidy(() => {
+    tf.tidy(() => {
       dataset.nextTrainBatch(100);
       if (i % 100 === 0) {
         console.log(`Batch ${i} of 2000`);
