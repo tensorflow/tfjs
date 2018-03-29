@@ -409,7 +409,7 @@ export class Sequential extends Model {
    * const model = tf.sequential({
    *   layers: [tf.layers.dense({units: 1, inputShape: [10]})]
    * });
-   * model.predict(tf.ones([2, 5])).print();
+   * model.predict(tf.ones([2, 10])).print();
    * ```
    *
    * @param x The input data, as an Tensor, or an `Array` of `Tensor`s if
