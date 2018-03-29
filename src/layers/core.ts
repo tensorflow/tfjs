@@ -327,7 +327,7 @@ generic_utils.ClassNameMap.register('Dense', Dense);
  * // Inspect the inferred output shape of the flatten layer, which
  * // equals `[null, 12]`. The 2nd dimension is 4 * 3, i.e., the result of the
  * // flattening. (The 1st dimension is the undermined batch size.)
- * console.log(flattenLayer.apply(input).shape);
+ * console.log(JSON.stringify(flattenLayer.apply(input).shape));
  * ```
  */
 export class Flatten extends Layer {

@@ -388,8 +388,8 @@ export class Sequential extends Model {
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
   evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[],
-      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
+      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
+      Scalar|Scalar[] {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -475,6 +475,7 @@ export class Sequential extends Model {
    *   batchSize: 4,
    *   epochs: 3
    * });
+   * ```
    *
    * @param x `Tensor` of training data, or an array of `Tensor`s if the model
    *   has multiple inputs. If all inputs in the model are named, you can also
