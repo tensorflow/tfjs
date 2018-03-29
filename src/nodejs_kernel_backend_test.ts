@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable-next-line:max-line-length
-import {expectArraysClose, expectArraysEqual, expectNumbersClose} from 'deeplearn/dist/test_util';
+import {expectArraysClose, expectArraysEqual, expectNumbersClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {bindTensorFlowBackend} from '.';
 
@@ -26,18 +26,18 @@ bindTensorFlowBackend();
 
 describe('delayed upload', () => {
   it('should handle data before op execution', () => {
-    const t = dl.tensor1d([1, 2, 3]);
+    const t = tf.tensor1d([1, 2, 3]);
     expectArraysClose(t, [1, 2, 3]);
 
-    const r = t.add(dl.tensor1d([4, 5, 6]));
+    const r = t.add(tf.tensor1d([4, 5, 6]));
     expectArraysClose(r, [5, 7, 9]);
   });
 });
 
 describe('matMul', () => {
   it('should work', () => {
-    const t1 = dl.tensor2d([[1, 2], [3, 4]]);
-    const t2 = dl.tensor2d([[5, 6], [7, 8]]);
+    const t1 = tf.tensor2d([[1, 2], [3, 4]]);
+    const t2 = tf.tensor2d([[5, 6], [7, 8]]);
     const result = t1.matMul(t2);
     expectArraysClose(result, [19, 22, 43, 50]);
   });
@@ -45,24 +45,24 @@ describe('matMul', () => {
 
 describe('slice tensor1d', () => {
   it('slices 1x1 into 1x1 (effectively a copy)', () => {
-    const a = dl.tensor1d([5]);
-    const result = dl.slice1d(a, 0, 1);
+    const a = tf.tensor1d([5]);
+    const result = tf.slice1d(a, 0, 1);
 
     expect(result.shape).toEqual([1]);
     expect(result.get(0)).toEqual(5);
   });
 
   it('slices 5x1 into shape 2x1 starting at 3', () => {
-    const a = dl.tensor1d([1, 2, 3, 4, 5]);
-    const result = dl.slice1d(a, 3, 2);
+    const a = tf.tensor1d([1, 2, 3, 4, 5]);
+    const result = tf.slice1d(a, 3, 2);
 
     expect(result.shape).toEqual([2]);
     expectArraysClose(result, [4, 5]);
   });
 
   it('slices 5x1 into shape 3x1 starting at 1', () => {
-    const a = dl.tensor1d([1, 2, 3, 4, 5]);
-    const result = dl.slice1d(a, 1, 3);
+    const a = tf.tensor1d([1, 2, 3, 4, 5]);
+    const result = tf.slice1d(a, 1, 3);
 
     expect(result.shape).toEqual([3]);
     expectArraysClose(result, [2, 3, 4]);
@@ -71,7 +71,7 @@ describe('slice tensor1d', () => {
 
 describe('reshape', () => {
   it('should work', () => {
-    const a = dl.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1]);
+    const a = tf.tensor3d([1, 2, 3, 4, 5, 6], [2, 3, 1]);
     const b = a.reshape([6]);
     expect(b.dtype).toBe('float32');
     expect(b.shape).toEqual([6]);
@@ -80,24 +80,24 @@ describe('reshape', () => {
 
 describe('cast', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 2, 3, 4, 5], 'int32');
-    const b = dl.cast(a, 'float32');
+    const a = tf.tensor1d([1, 2, 3, 4, 5], 'int32');
+    const b = tf.cast(a, 'float32');
     expect(b.dtype).toBe('float32');
   });
 });
 
 describe('pad', () => {
   it('should work', () => {
-    const t = dl.tensor2d([[1, 1], [1, 1]]);
-    const result = dl.pad2d(t, [[1, 1], [1, 1]]);
+    const t = tf.tensor2d([[1, 1], [1, 1]]);
+    const result = tf.pad2d(t, [[1, 1], [1, 1]]);
     expectArraysClose(result, [0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0]);
   });
 });
 
 describe('reverse', () => {
   it('should work', () => {
-    const input = dl.tensor1d([1, 2, 3, 4, 5]);
-    const result = dl.reverse(input);
+    const input = tf.tensor1d([1, 2, 3, 4, 5]);
+    const result = tf.reverse(input);
     expect(result.shape).toEqual(input.shape);
     expectArraysClose(result, [5, 4, 3, 2, 1]);
   });
@@ -105,161 +105,161 @@ describe('reverse', () => {
 
 describe('concat', () => {
   it('should work', () => {
-    const a = dl.tensor1d([3]);
-    const b = dl.tensor1d([5]);
+    const a = tf.tensor1d([3]);
+    const b = tf.tensor1d([5]);
 
-    const result = dl.concat1d([a, b]);
+    const result = tf.concat1d([a, b]);
     const expected = [3, 5];
     expectArraysClose(result, expected);
   });
 
   it('should work with 2darray', () => {
-    const a = dl.ones([1, 10], 'int32');
-    const b = dl.ones([1, 10], 'int32');
-    const c = dl.concat([a, b]);
+    const a = tf.ones([1, 10], 'int32');
+    const b = tf.ones([1, 10], 'int32');
+    const c = tf.concat([a, b]);
     expect(c.shape).toEqual([2, 10]);
-    const d = dl.concat([c, a]);
+    const d = tf.concat([c, a]);
     expect(d.shape).toEqual([3, 10]);
   });
 });
 
 describe('neg', () => {
   it('should work', () => {
-    const input = dl.tensor1d([1, 2, 3, 4, 5]);
-    const result = dl.neg(input);
+    const input = tf.tensor1d([1, 2, 3, 4, 5]);
+    const result = tf.neg(input);
     expectArraysClose(result, [-1, -2, -3, -4, -5]);
   });
 });
 
 describe('add', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 1]);
-    const b = dl.tensor1d([2, 2]);
+    const a = tf.tensor1d([1, 1]);
+    const b = tf.tensor1d([2, 2]);
     expectArraysClose(a.add(b), [3, 3]);
   });
 });
 
 describe('sub', () => {
   it('should work', () => {
-    const a = dl.tensor1d([2, 2]);
-    const b = dl.tensor1d([1, 1]);
+    const a = tf.tensor1d([2, 2]);
+    const b = tf.tensor1d([1, 1]);
     expectArraysClose(a.sub(b), [1, 1]);
   });
 });
 
 describe('multiply', () => {
   it('should work', () => {
-    const a = dl.tensor1d([2, 2]);
-    const b = dl.tensor1d([2, 2]);
+    const a = tf.tensor1d([2, 2]);
+    const b = tf.tensor1d([2, 2]);
     expectArraysClose(a.mul(b), [4, 4]);
   });
 });
 
 describe('div', () => {
   it('should work', () => {
-    const a = dl.tensor1d([4, 4]);
-    const b = dl.tensor1d([2, 2]);
+    const a = tf.tensor1d([4, 4]);
+    const b = tf.tensor1d([2, 2]);
     expectArraysClose(a.div(b), [2, 2]);
   });
 });
 
 describe('sum', () => {
   it('should work', () => {
-    const a = dl.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
-    const result = dl.sum(a);
+    const a = tf.tensor2d([1, 2, 3, 0, 0, 1], [3, 2]);
+    const result = tf.sum(a);
     expect(result.get()).toEqual(7);
   });
 });
 
 describe('equal', () => {
   it('should work', () => {
-    const a = dl.tensor1d([4, 2]);
-    const b = dl.tensor1d([2, 2]);
+    const a = tf.tensor1d([4, 2]);
+    const b = tf.tensor1d([2, 2]);
     expectArraysClose(a.equal(b), [0, 1]);
   });
 });
 
 describe('notEqual', () => {
   it('should work', () => {
-    const a = dl.tensor1d([4, 2]);
-    const b = dl.tensor1d([2, 2]);
+    const a = tf.tensor1d([4, 2]);
+    const b = tf.tensor1d([2, 2]);
     expectArraysClose(a.notEqual(b), [1, 0]);
   });
 });
 
 describe('less', () => {
   it('should work', () => {
-    const a = dl.tensor1d([4, 1]);
-    const b = dl.tensor1d([2, 2]);
+    const a = tf.tensor1d([4, 1]);
+    const b = tf.tensor1d([2, 2]);
     expectArraysClose(a.less(b), [0, 1]);
   });
 });
 
 describe('lessEqual', () => {
   it('should work', () => {
-    const a = dl.tensor1d([4, 1, 3]);
-    const b = dl.tensor1d([2, 2, 3]);
+    const a = tf.tensor1d([4, 1, 3]);
+    const b = tf.tensor1d([2, 2, 3]);
     expectArraysClose(a.lessEqual(b), [0, 1, 1]);
   });
 });
 
 describe('greater', () => {
   it('should work', () => {
-    const a = dl.tensor1d([4, 1]);
-    const b = dl.tensor1d([2, 2]);
+    const a = tf.tensor1d([4, 1]);
+    const b = tf.tensor1d([2, 2]);
     expectArraysClose(a.greater(b), [1, 0]);
   });
 
   it('should work with scalar', () => {
-    const a = dl.tensor1d([4, 1]);
-    const b = dl.tensor1d([2]);
+    const a = tf.tensor1d([4, 1]);
+    const b = tf.tensor1d([2]);
     expectArraysClose(a.greater(b), [1, 0]);
   });
 });
 
 describe('greaterEqual', () => {
   it('should work', () => {
-    const a = dl.tensor1d([4, 1, 3]);
-    const b = dl.tensor1d([2, 2, 3]);
+    const a = tf.tensor1d([4, 1, 3]);
+    const b = tf.tensor1d([2, 2, 3]);
     expectArraysClose(a.greaterEqual(b), [1, 0, 1]);
   });
 });
 
 describe('logicalNot', () => {
   it('should work', () => {
-    const a = dl.tensor1d([0, 1, 1], 'bool');
-    expectArraysClose(dl.logicalNot(a), [1, 0, 0]);
+    const a = tf.tensor1d([0, 1, 1], 'bool');
+    expectArraysClose(tf.logicalNot(a), [1, 0, 0]);
   });
 });
 
 describe('logicalAnd', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 0, 1], 'bool');
-    const b = dl.tensor1d([0, 1, 1], 'bool');
+    const a = tf.tensor1d([1, 0, 1], 'bool');
+    const b = tf.tensor1d([0, 1, 1], 'bool');
     expectArraysClose(a.logicalAnd(b), [0, 0, 1]);
   });
 });
 
 describe('logicalOr', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 0, 0], 'bool');
-    const b = dl.tensor1d([0, 1, 0], 'bool');
+    const a = tf.tensor1d([1, 0, 0], 'bool');
+    const b = tf.tensor1d([0, 1, 0], 'bool');
     expectArraysClose(a.logicalOr(b), [1, 1, 0]);
   });
 });
 
 describe('min', () => {
   it('should work', () => {
-    const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
-    expectNumbersClose(dl.min(a).get(), -7);
+    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
+    expectNumbersClose(tf.min(a).get(), -7);
   });
 });
 
 describe('minimum', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
-    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
-    const result = dl.minimum(a, b);
+    const a = tf.tensor1d([1, 5, 2, 3], 'int32');
+    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('int32');
@@ -269,16 +269,16 @@ describe('minimum', () => {
 
 describe('max', () => {
   it('should work', () => {
-    const a = dl.tensor1d([3, -1, 0, 100, -7, 2]);
-    expectNumbersClose(dl.max(a).get(), 100);
+    const a = tf.tensor1d([3, -1, 0, 100, -7, 2]);
+    expectNumbersClose(tf.max(a).get(), 100);
   });
 });
 
 describe('maximum', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
-    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
-    const result = dl.maximum(a, b);
+    const a = tf.tensor1d([1, 5, 2, 3], 'int32');
+    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('int32');
@@ -288,8 +288,8 @@ describe('maximum', () => {
 
 describe('ceil', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1.5, 2.1, -1.4]);
-    const r = dl.ceil(a);
+    const a = tf.tensor1d([1.5, 2.1, -1.4]);
+    const r = tf.ceil(a);
     expectNumbersClose(r.get(0), 2);
     expectNumbersClose(r.get(1), 3);
     expectNumbersClose(r.get(2), -1);
@@ -298,8 +298,8 @@ describe('ceil', () => {
 
 describe('floor', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1.5, 2.1, -1.4]);
-    const r = dl.floor(a);
+    const a = tf.tensor1d([1.5, 2.1, -1.4]);
+    const r = tf.floor(a);
     expectNumbersClose(r.get(0), 1);
     expectNumbersClose(r.get(1), 2);
     expectNumbersClose(r.get(2), -2);
@@ -308,10 +308,10 @@ describe('floor', () => {
 
 describe('pow', () => {
   it('should work', () => {
-    const a = dl.tensor2d([1, -2, -3, 0, 7, 1], [2, 3]);
-    const b = dl.tensor2d([5, 3, 4, 5, 2, -3], [2, 3]);
+    const a = tf.tensor2d([1, -2, -3, 0, 7, 1], [2, 3]);
+    const b = tf.tensor2d([5, 3, 4, 5, 2, -3], [2, 3]);
     const expected = [1, -8, 81, 0, 49, 1];
-    const result = dl.pow(a, b);
+    const result = tf.pow(a, b);
 
     expect(result.shape).toEqual([2, 3]);
     expectArraysClose(result, expected, 0.01);
@@ -320,8 +320,8 @@ describe('pow', () => {
 
 describe('exp', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 2, 0]);
-    const r = dl.exp(a);
+    const a = tf.tensor1d([1, 2, 0]);
+    const r = tf.exp(a);
 
     expectNumbersClose(r.get(0), Math.exp(1));
     expectNumbersClose(r.get(1), Math.exp(2));
@@ -331,8 +331,8 @@ describe('exp', () => {
 
 describe('log', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, 2]);
-    const r = dl.log(a);
+    const a = tf.tensor1d([1, 2]);
+    const r = tf.log(a);
     expectNumbersClose(r.get(0), Math.log(1));
     expectNumbersClose(r.get(1), Math.log(2));
   });
@@ -340,8 +340,8 @@ describe('log', () => {
 
 describe('sqrt', () => {
   it('should work', () => {
-    const a = dl.tensor1d([2, 4]);
-    const r = dl.sqrt(a);
+    const a = tf.tensor1d([2, 4]);
+    const r = tf.sqrt(a);
     expectNumbersClose(r.get(0), Math.sqrt(2));
     expectNumbersClose(r.get(1), Math.sqrt(4));
   });
@@ -349,23 +349,23 @@ describe('sqrt', () => {
 
 describe('square', () => {
   it('should work', () => {
-    const a = dl.tensor1d([2, 4, Math.sqrt(2)]);
-    const r = dl.square(a);
+    const a = tf.tensor1d([2, 4, Math.sqrt(2)]);
+    const r = tf.square(a);
     expectArraysClose(r, [4, 16, 2]);
   });
 });
 
 describe('relu', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
-    expectArraysClose(dl.relu(a), [1, 0, 0, 3, 0]);
+    const a = tf.tensor1d([1, -2, 0, 3, -0.1]);
+    expectArraysClose(tf.relu(a), [1, 0, 0, 3, 0]);
   });
 });
 
 describe('elu', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, -1, 0]);
-    const result = dl.elu(a);
+    const a = tf.tensor1d([1, -1, 0]);
+    const result = tf.elu(a);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [1, -0.6321, 0]);
@@ -374,8 +374,8 @@ describe('elu', () => {
 
 describe('selu', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, -1, 0]);
-    const result = dl.selu(a);
+    const a = tf.tensor1d([1, -1, 0]);
+    const result = tf.selu(a);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [1.0507, -1.1113, 0]);
@@ -384,8 +384,8 @@ describe('selu', () => {
 
 describe('abs', () => {
   it('should work', () => {
-    const a = dl.tensor1d([1, -2, 0, 3, -0.1]);
-    const result = dl.abs(a);
+    const a = tf.tensor1d([1, -2, 0, 3, -0.1]);
+    const result = tf.abs(a);
     expectArraysClose(result, [1, 2, 0, 3, 0.1]);
   });
 });
@@ -393,9 +393,9 @@ describe('abs', () => {
 describe('sigmoid', () => {
   it('should work', () => {
     const values = [1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
+    const a = tf.tensor1d(values);
 
-    const result = dl.sigmoid(a);
+    const result = tf.sigmoid(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -408,8 +408,8 @@ describe('sigmoid', () => {
 describe('sin', () => {
   it('should work', () => {
     const values = [1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.sin(a);
+    const a = tf.tensor1d(values);
+    const result = tf.sin(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -422,8 +422,8 @@ describe('sin', () => {
 describe('cos', () => {
   it('should work', () => {
     const values = [1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.cos(a);
+    const a = tf.tensor1d(values);
+    const result = tf.cos(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -436,8 +436,8 @@ describe('cos', () => {
 describe('tan', () => {
   it('should work', () => {
     const values = [1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.tan(a);
+    const a = tf.tensor1d(values);
+    const result = tf.tan(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -450,8 +450,8 @@ describe('tan', () => {
 describe('asin', () => {
   it('should work', () => {
     const values = [.1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.asin(a);
+    const a = tf.tensor1d(values);
+    const result = tf.asin(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -464,8 +464,8 @@ describe('asin', () => {
 describe('acos', () => {
   it('should work', () => {
     const values = [.1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.acos(a);
+    const a = tf.tensor1d(values);
+    const result = tf.acos(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -478,8 +478,8 @@ describe('acos', () => {
 describe('atan', () => {
   it('should work', () => {
     const values = [1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.atan(a);
+    const a = tf.tensor1d(values);
+    const result = tf.atan(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -492,8 +492,8 @@ describe('atan', () => {
 describe('sinh', () => {
   it('should work', () => {
     const values = [1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.sinh(a);
+    const a = tf.tensor1d(values);
+    const result = tf.sinh(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -506,8 +506,8 @@ describe('sinh', () => {
 describe('cosh', () => {
   it('should work', () => {
     const values = [1, -3, 2, -1, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.cosh(a);
+    const a = tf.tensor1d(values);
+    const result = tf.cosh(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -521,8 +521,8 @@ describe('cosh', () => {
 describe('tanh', () => {
   it('should work', () => {
     const values = [1, -3, 2, 7, -4];
-    const a = dl.tensor1d(values);
-    const result = dl.tanh(a);
+    const a = tf.tensor1d(values);
+    const result = tf.tanh(a);
 
     const expected = [];
     for (let i = 0; i < a.size; i++) {
@@ -534,8 +534,8 @@ describe('tanh', () => {
 
 describe('oneHot', () => {
   it('should work', () => {
-    const indices = dl.tensor1d([0, 1], 'int32');
-    const res = dl.oneHot(indices, 2);
+    const indices = tf.tensor1d([0, 1], 'int32');
+    const res = tf.oneHot(indices, 2);
 
     expect(res.shape).toEqual([2, 2]);
     expectArraysClose(res, [1, 0, 0, 1]);
@@ -544,23 +544,23 @@ describe('oneHot', () => {
 
 describe('where', () => {
   it('should work', () => {
-    const c = dl.tensor1d([1, 0, 1, 0], 'bool');
-    const a = dl.tensor1d([10, 10, 10, 10]);
-    const b = dl.tensor1d([20, 20, 20, 20]);
-    expectArraysClose(dl.where(c, a, b), [10, 20, 10, 20]);
+    const c = tf.tensor1d([1, 0, 1, 0], 'bool');
+    const a = tf.tensor1d([10, 10, 10, 10]);
+    const b = tf.tensor1d([20, 20, 20, 20]);
+    expectArraysClose(tf.where(c, a, b), [10, 20, 10, 20]);
   });
 });
 
 describe('step', () => {
   it('with 1d tensor', () => {
-    const a = dl.tensor1d([1, -2, -.01, 3, -0.1]);
-    const result = dl.step(a);
+    const a = tf.tensor1d([1, -2, -.01, 3, -0.1]);
+    const result = tf.step(a);
     expectArraysClose(result, [1, 0, 0, 1, 0]);
   });
 
   it('with 1d tensor and alpha', () => {
-    const a = dl.tensor1d([1, -2, -.01, 3, NaN]);
-    const result = dl.step(a, 0.1);
+    const a = tf.tensor1d([1, -2, -.01, 3, NaN]);
+    const result = tf.step(a, 0.1);
     expectArraysClose(result, [1, 0.1, 0.1, 1, NaN]);
   });
 });

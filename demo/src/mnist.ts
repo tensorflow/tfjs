@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
-import * as tf from 'tfjs-node';
+import * as tf from '@tensorflow/tfjs-core';
+import {bindTensorFlowBackend} from 'tfjs-node';
 
 import {MnistDataset} from './mnist_data';
 import {Timer} from './timer';
 
-tf.bindTensorFlowBackend();
+bindTensorFlowBackend();
 
 const HIDDEN_1 = 128;
 const HIDDEN_2 = 32;
@@ -32,39 +32,41 @@ const IMAGE_PIXELS = IMAGE_SIZE * IMAGE_SIZE;
 
 // first layer weights
 const weights1 =
-    dl.variable(dl.truncatedNormal(
+    tf.variable(tf.truncatedNormal(
         [IMAGE_PIXELS, HIDDEN_1], null, 1.0 / Math.sqrt(IMAGE_PIXELS))) as
-    dl.Tensor2D;
-const biases1 = dl.zeros([HIDDEN_1]);
+    tf.Tensor2D;
+const biases1 = tf.zeros([HIDDEN_1]);
 
 // second layer weights
 const weights2 =
-    dl.variable(dl.truncatedNormal(
-        [HIDDEN_1, HIDDEN_2], null, 1.0 / Math.sqrt(HIDDEN_1))) as dl.Tensor2D;
-const biases2 = dl.zeros([HIDDEN_2]);
+    tf.variable(tf.truncatedNormal(
+        [HIDDEN_1, HIDDEN_2], null, 1.0 / Math.sqrt(HIDDEN_1))) as tf.Tensor2D;
+const biases2 = tf.zeros([HIDDEN_2]);
 
 // third layer weights
 const weights3 =
-    dl.variable(dl.truncatedNormal(
+    tf.variable(tf.truncatedNormal(
         [HIDDEN_2, NUM_CLASSES], null, 1.0 / Math.sqrt(HIDDEN_2))) as
-    dl.Tensor2D;
-const biases3 = dl.zeros([NUM_CLASSES]);
+    tf.Tensor2D;
+const biases3 = tf.zeros([NUM_CLASSES]);
 
 // Hyperparameters.
 const LEARNING_RATE = .1;
 const BATCH_SIZE = 100;
 const TRAIN_STEPS = 2000;
 
-const optimizer = dl.train.sgd(LEARNING_RATE);
+const optimizer = tf.train.sgd(LEARNING_RATE);
 
-function model(inputImages: dl.Tensor2D): dl.Tensor2D {
-  const hidden1 = dl.matMul(inputImages, weights1).add(biases1).relu() as dl.Tensor2D;
-  const hidden2 = dl.matMul(hidden1, weights2).add(biases2).relu() as dl.Tensor2D;
-  return dl.matMul(hidden2, weights3).add(biases3) as dl.Tensor2D;
+function model(inputImages: tf.Tensor2D): tf.Tensor2D {
+  const hidden1 =
+      tf.matMul(inputImages, weights1).add(biases1).relu() as tf.Tensor2D;
+  const hidden2 =
+      tf.matMul(hidden1, weights2).add(biases2).relu() as tf.Tensor2D;
+  return tf.matMul(hidden2, weights3).add(biases3) as tf.Tensor2D;
 }
 
-function loss(labels: dl.Tensor2D, ys: dl.Tensor2D): dl.Scalar {
-  return dl.losses.softmaxCrossEntropy(labels, ys).mean() as dl.Scalar;
+function loss(labels: tf.Tensor2D, ys: tf.Tensor2D): tf.Scalar {
+  return tf.losses.softmaxCrossEntropy(labels, ys).mean() as tf.Scalar;
 }
 
 async function runTraining() {

@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV, Environment} from 'deeplearn/dist/environment';
+import {ENV, Environment} from '@tensorflow/tfjs-core/dist/environment';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
