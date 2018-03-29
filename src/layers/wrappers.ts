@@ -170,6 +170,7 @@ export abstract class Wrapper extends Layer {
  *
  * // In subsequent layers, there is no need for `inputShape`:
  * model.add(tf.layers.timeDistributed({layer: tf.layers.dense({units: 32})}));
+ * console.log(JSON.stringify(model.outputs[0].shape));
  * // Now model.outputShape = [null, 10, 32].
  * ```
  *
@@ -184,6 +185,7 @@ export abstract class Wrapper extends Layer {
  *   layer: tf.layers.conv2d({filters: 64, kernelSize: [3, 3]}),
  *   inputShape: [10, 299, 299, 3],
  * }));
+ * console.log(JSON.stringify(model.outputs[0].shape));
  * ```
  */
 export class TimeDistributed extends Wrapper {

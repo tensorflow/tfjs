@@ -807,7 +807,7 @@ export class Layer {
    * // output1.shape is [null, 4]. The first dimension is the undetermined
    * // batch size. The second dimension comes from flattening the [2, 2]
    * // shape.
-   * console.log(output1.shape);
+   * console.log(JSON.stringify(output1.shape));
    *
    * // The output SymbolicTensor of the flatten layer can be used to call
    * // the apply() of the dense layer:
@@ -816,7 +816,7 @@ export class Layer {
    * // output2.shape is [null, 1]. The first dimension is the undetermined
    * // batch size. The second dimension matches the number of units of the
    * // dense layer.
-   * console.log(output2.shape);
+   * console.log(JSON.stringify(output2.shape));
    *
    * // The input and output and be used to construct a model that consists
    * // of the flatten and dense layers.

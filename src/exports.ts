@@ -103,7 +103,7 @@ export class ModelExports {
    * ```js
    * const model = tf.sequential();
    *
-   * // First layer must have a defined input shape
+   * // First layer must have an input shape defined.
    * model.add(tf.layers.dense({units: 32, inputShape: [50]}));
    * // Afterwards, TF.js does automatic shape inference.
    * model.add(tf.layers.dense({units: 4}));
@@ -111,7 +111,7 @@ export class ModelExports {
    * // Inspect the inferred shape of the model's output, which equals
    * // `[null, 4]`. The 1st dimension is the undetermined batch dimension; the
    * // 2nd is the output size of the model's last layer.
-   * console.log(model.outputs[0].shape);
+   * console.log(JSON.stringify(model.outputs[0].shape));
    * ```
    *
    * It is also possible to specify a batch size (with potentially undetermined
@@ -127,7 +127,7 @@ export class ModelExports {
    * model.add(tf.layers.dense({units: 4}));
    *
    * // Inspect the inferred shape of the model's output.
-   * console.log(model.outputs[0].shape);
+   * console.log(JSON.stringify(model.outputs[0].shape));
    * ```
    *
    * You can also use an `Array` of already-constructed `Layer`s to create
@@ -138,7 +138,7 @@ export class ModelExports {
    *   layers: [tf.layers.dense({units: 32, inputShape: [50]}),
    *            tf.layers.dense({units: 4})]
    * });
-   * console.log(model.outputs[0].shape);
+   * console.log(JSON.stringify(model.outputs[0].shape));
    * ```
    */
   @doc({heading: 'Models', subheading: 'Creation', configParamIndices: [0]})

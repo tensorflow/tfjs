@@ -240,7 +240,7 @@ export class Merge extends Layer {
  * const input2 = tf.input({shape: [2, 2]});
  * const addLayer = tf.layers.add();
  * const sum = addLayer.apply([input1, input2]);
- * console.log(sum.shape);
+ * console.log(JSON.stringify(sum.shape));
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
@@ -417,7 +417,7 @@ export function multiply(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
  * const input2 = tf.input({shape: [2, 2]});
  * const averageLayer = tf.layers.average();
  * const average = averageLayer.apply([input1, input2]);
- * console.log(average.shape);
+ * console.log(JSON.stringify(average.shape));
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
@@ -506,7 +506,7 @@ export function average(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
  * const input2 = tf.input({shape: [2, 2]});
  * const maxLayer = tf.layers.maximum();
  * const max = maxLayer.apply([input1, input2]);
- * console.log(max.shape);
+ * console.log(JSON.stringify(max.shape));
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
@@ -594,7 +594,7 @@ export function maximum(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
  * const input2 = tf.input({shape: [2, 2]});
  * const minLayer = tf.layers.minimum();
  * const min = minLayer.apply([input1, input2]);
- * console.log(min.shape);
+ * console.log(JSON.stringify(min.shape));
  * // You get [null, 2, 2], with the first dimension as the undetermined batch
  * // dimension.
  * ```
@@ -690,7 +690,7 @@ export interface ConcatenateLayerConfig extends LayerConfig {
  * const input2 = tf.input({shape: [2, 3]});
  * const concatLayer = tf.layers.concatenate();
  * const output = concatLayer.apply([input1, input2]);
- * console.log(output.shape);
+ * console.log(JSON.stringify(output.shape));
  * // You get [null, 2, 5], with the first dimension as the undetermined batch
  * // dimension. The last dimension (5) is the result of concatenating the
  * // last dimensions of the inputs (2 and 3).
