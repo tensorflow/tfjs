@@ -3,15 +3,15 @@
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
 training and deploying machine learning models.
 
-**Develop ML in the Browser**
+**Develop ML in the Browser** <br/>
 Use flexible and intuitive APIs to build models from scratch using the low-level
 JavaScript linear algebra library or the high-level layers API.
 
-**Run Existing models**
+**Run Existing models** <br/>
 Use TensorFlow.js model converters to run pre-existing TensorFlow models right
 in the browser.
 
-**Retrain Existing models**
+**Retrain Existing models** <br/>
 Retrain pre-existing ML models using sensor data connected to the browser, or
 other client-side data.
 
@@ -103,6 +103,8 @@ output.print();
 For a deeper dive into building models, see the
 [MNIST tutorial](https://js.tensorflow.org/tutorials/mnist.html)
 
+## Importing pre-trained models
+
 We also support porting pre-trained models from:
 - [TensorFlow SavedModel](https://github.com/tensorflow/tfjs-converter).
 - [Keras](https://js.tensorflow.org/tutorials/import-keras.html). 
@@ -110,13 +112,9 @@ We also support porting pre-trained models from:
 ## Find out more
 
 TensorFlow.js is a part of the
-[TensorFlow](https://www.tensorflow.org) ecosystem.
-You can import pre-trained TensorFlow
-[SavedModels](https://www.tensorflow.org/programmers_guide/saved_model) and
-[Keras models](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model),
-for execution and retraining.
-
-For more information on the API, follow the links to their Core and Layers
-repositories below, or visit [js.tensorflow.org](https://js.tensorflow.org).
-
+[TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
+- [js.tensorflow.org](https://js.tensorflow.org)
+- [Tutorials](https://js.tensorflow.org/tutorials)
+- [API reference](https://js.tensorflow.org/api/latest/)
+- [Help mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
 
