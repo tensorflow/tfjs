@@ -42,7 +42,7 @@ two packages:
   a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
 
-If you care about bundle size, you can import those individual packages.
+If you care about bundle size, you can import those packages individually.
 
 ## Examples
 
@@ -53,7 +53,7 @@ and our [tutorials](https://js.tensorflow.org/tutorials/).
 
 ## Getting started
 
-Let's add a scalar value to a 1D Tensor. TensorFlow.js supports _broadcasting_
+Let's add a scalar value to a vector. TensorFlow.js supports _broadcasting_
 the value of scalar over all the elements in the tensor.
 
 ```js
@@ -105,13 +105,13 @@ For a deeper dive into building models, see the
 
 ## Importing pre-trained models
 
-We also support porting pre-trained models from:
-- [TensorFlow SavedModel](https://github.com/tensorflow/tfjs-converter).
-- [Keras](https://js.tensorflow.org/tutorials/import-keras.html). 
+We support porting pre-trained models from:
+- [TensorFlow SavedModel](https://github.com/tensorflow/tfjs-converter)
+- [Keras](https://js.tensorflow.org/tutorials/import-keras.html)
 
 ## Find out more
 
-TensorFlow.js is a part of the
+[TensorFlow.js](https://js.tensorflow.org) is a part of the
 [TensorFlow](https://www.tensorflow.org) ecosystem. For more info:
 - [js.tensorflow.org](https://js.tensorflow.org)
 - [Tutorials](https://js.tensorflow.org/tutorials)
