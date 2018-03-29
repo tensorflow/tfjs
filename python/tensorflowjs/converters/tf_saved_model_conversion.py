@@ -102,24 +102,29 @@ def optimize_graph(graph, output_graph):
   optimized_graph = tf_optimizer.OptimizeGraph(
       rewriter_config, meta_graph, cluster=get_cluster())
 
-  extract_weights(graph, optimized_graph, output_graph)
+  extract_weights(optimized_graph, output_graph)
   return optimize_graph
 
 
-def extract_weights(graph, graph_def, output_graph):
+def extract_weights(graph_def, output_graph):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
-    graph: tf.Graph tensorflow dataflow graph
     graph_def: tf.GraphDef tensorflow GraphDef proto object, which represents
       the model topology
   """
   constants = [node for node in graph_def.node if node.op == 'Const']
+  # removed the conditional inputs for constants
+  for const in constants:
+    del const.input[:]
+
   print('Writing weight file ' + output_graph + '...')
   const_manifest = []
   path = os.path.dirname(output_graph)
 
+  graph = tf.Graph()
   with tf.Session(graph=graph) as sess:
+    tf.import_graph_def(graph_def, name='')
     for const in constants:
       tensor = graph.get_tensor_by_name(const.name + ':0')
       value = tensor.eval(session=sess)
