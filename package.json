@@ -12,10 +12,10 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.0.2"
+    "@tensorflow/tfjs-core": "0.6.0"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.0.2",
+    "@tensorflow/tfjs-core": "0.6.0",
     "@types/jasmine": "~2.8.6",
     "@types/seedrandom": "~2.4.27",
     "ajv": "~6.3.0",
