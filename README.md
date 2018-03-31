@@ -50,6 +50,9 @@ Check out our
 [examples repository](https://github.com/tensorflow/tfjs-examples)
 and our [tutorials](https://js.tensorflow.org/tutorials/).
 
+## Migrating from deeplearn.js
+See [these release notes](https://github.com/tensorflow/tfjs-core/releases/tag/v0.6.0)
+for how to migrate from deeplearn.js to TensorFlow.js.
 
 ## Getting started
 
