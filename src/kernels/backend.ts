@@ -135,6 +135,7 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   asin<T extends Tensor>(x: T): T;
   acos<T extends Tensor>(x: T): T;
   atan<T extends Tensor>(x: T): T;
+  atan2<T extends Tensor>(a: T, b: T): T;
 
   sinh<T extends Tensor>(x: T): T;
   cosh<T extends Tensor>(x: T): T;

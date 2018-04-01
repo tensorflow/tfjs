@@ -730,6 +730,11 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
+  atan2<T extends Tensor>(a: T, b: T): T {
+    const program = new BinaryOpProgram(binaryop_gpu.ATAN2, a.shape, b.shape);
+    return this.compileAndRun(program, [a, b]) as T;
+  }
+
   sinh<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SINH);
     return this.compileAndRun(program, [x]) as T;

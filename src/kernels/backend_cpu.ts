@@ -820,6 +820,12 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 
+  atan2<T extends Tensor>(a: T, b: T): T {
+    return this.broadcastedBinaryOp(
+               a, b, a.dtype, (aValue, bValue) => Math.atan2(aValue, bValue)) as
+        T;
+  }
+
   sinh<T extends Tensor>(x: T): T {
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();

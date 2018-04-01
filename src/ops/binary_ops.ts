@@ -22,7 +22,7 @@ import * as util from '../util';
 
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
-import {scalar} from './ops';
+import {neg, scalar, square} from './ops';
 
 export class BinaryOps {
   /**
@@ -460,5 +460,51 @@ export class BinaryOps {
   static maximumStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
     return a.maximum(b);
+  }
+
+  /*
+   * Computes arctangent of `Tensor`s a / b element-wise: `atan2(a, b)`.
+   * Supports broadcasting.
+   *
+   * ```js
+   * const a = tf.tensor1d([1.0, 1.0, -1.0, .7]);
+   * const b = tf.tensor1d([2.0, 13.0, 3.5, .21]);
+   *
+   * tf.atan2(x, y).print()
+   *```
+   *
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same dtype as `a`.
+   *
+   */
+  @operation
+  static atan2<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertTypesMatch(a, b);
+    const outShape =
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+
+    const der = (dy: Tensor) => {
+      const derA = () => {
+        const d = BinaryOps.add(square(a), square(b));
+        let res = dy.mul(b.div(d));
+        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        if (reduceAxes.length > 0) {
+          res = res.sum(reduceAxes);
+        }
+        return res.reshape(a.shape);
+      };
+      const derB = () => {
+        const d = BinaryOps.add(square(a), square(b)) as T;
+        let res = neg(dy.mul(a.div(d)));
+        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        if (reduceAxes.length > 0) {
+          res = res.sum(reduceAxes);
+        }
+        return res.reshape(b.shape);
+      };
+      return {a: derA, b: derB};
+    };
+    return ENV.engine.runKernel(backend => backend.atan2(a, b), {a, b}, der) as
+        T;
   }
 }
