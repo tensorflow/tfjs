@@ -51,7 +51,7 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
   /**
    * If `true`, add offset of `beta` to normalized tensor.
    * If `false`, `beta` is ignored.
-   * Defaults to true.
+   * Defaults to `true`.
    */
   center?: boolean;
 
@@ -60,7 +60,7 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
    * If `false`, `gamma` is not used.
    * When the next layer is linear (also e.g. `nn.relu`),
    * this can be disabled since the scaling will be done by the next layer.
-   * Defaults to true.
+   * Defaults to `true`.
    */
   scale?: boolean;
 
@@ -225,14 +225,15 @@ export class BatchNormalization extends Layer {
         const broadcastBeta =
             this.center ? K.reshape(this.beta.read(), broadcastShape) : null;
         const broadcastGamma =
-            this.center ? K.reshape(this.gamma.read(), broadcastShape) : null;
+            this.scale ? K.reshape(this.gamma.read(), broadcastShape) : null;
         return K.batchNormalization(
             input, broadcastMovingMean, broadcastMovingVariance, broadcastBeta,
             broadcastGamma, this.epsilon);
       } else {
         return K.batchNormalization(
             input, this.movingMean.read(), this.movingVariance.read(),
-            this.beta.read(), this.gamma.read(), this.epsilon);
+            this.beta == null ? null : this.beta.read(),
+            this.gamma == null ? null : this.gamma.read(), this.epsilon);
       }
     };
 
