@@ -23,6 +23,7 @@
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tensor_handle.h"
 #include "tf_auto_status.h"
+#include "tfe_auto_op.h"
 #include "tfe_context_env.h"
 #include "utils.h"
 
@@ -134,7 +135,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   ENSURE_NAPI_OK(env, nstatus);
 
   TF_AutoStatus tf_status;
-  TFE_Op* tfe_op = TFE_NewOp(context_env->context, opName, tf_status.status);
+  TFE_AutoOp tfe_op(TFE_NewOp(context_env->context, opName, tf_status.status));
   ENSURE_TF_OK(env, tf_status);
 
   // Assign inputs
@@ -151,7 +152,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     nstatus = napi_unwrap(env, cur_input, reinterpret_cast<void**>(&handle));
     ENSURE_NAPI_OK(env, nstatus);
 
-    TFE_OpAddInput(tfe_op, handle->handle, tf_status.status);
+    TFE_OpAddInput(tfe_op.op, handle->handle, tf_status.status);
     ENSURE_TF_OK(env, tf_status);
   }
 
@@ -164,7 +165,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
     nstatus = napi_get_element(env, op_attr_inputs, i, &cur_op_attr);
     ENSURE_NAPI_OK(env, nstatus);
 
-    AssignOpAttr(env, tfe_op, cur_op_attr);
+    AssignOpAttr(env, tfe_op.op, cur_op_attr);
 
     // Check to see if an exception exists, if so return a failure.
     bool has_exception = false;
@@ -187,7 +188,7 @@ void ExecuteOp(napi_env env, napi_value context, const char* opName,
   }
 
   int size = result_handles.size();
-  TFE_Execute(tfe_op, result_handles.data(), &size, tf_status.status);
+  TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
   // Swap pointer on the output tensor handles.

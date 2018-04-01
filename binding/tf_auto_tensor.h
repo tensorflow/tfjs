@@ -15,22 +15,22 @@
  * =============================================================================
  */
 
-#ifndef TF_NODEJS_TF_AUTO_STATUS_H_
-#define TF_NODEJS_TF_AUTO_STATUS_H_
+#ifndef TF_NODEJS_TF_AUTO_TENSOR_H_
+#define TF_NODEJS_TF_AUTO_TENSOR_H_
 
 #include "../deps/tensorflow/include/tensorflow/c/c_api.h"
 
 namespace tfnodejs {
 
-// Automatically cleans up a TF_Status instance.
-class TF_AutoStatus {
+// Automatically cleans up a TF_Tensor instance.
+class TF_AutoTensor {
  public:
-  TF_AutoStatus() : status(TF_NewStatus()) {}
-  virtual ~TF_AutoStatus() { TF_DeleteStatus(status); }
+  TF_AutoTensor(TF_Tensor* tensor) : tensor(tensor) {}
+  virtual ~TF_AutoTensor() { TF_DeleteTensor(tensor); }
 
-  TF_Status* status;
+  TF_Tensor* tensor;
 };
 
 }  // namespace tfnodejs
 
-#endif  // TF_NODEJS_TF_AUTO_STATUS_H_
+#endif  // TF_NODEJS_TF_AUTO_TENSOR_H_
