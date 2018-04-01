@@ -108,6 +108,26 @@ export class UnaryOps {
   }
 
   /**
+   * Computes exponential of the input `Tensor` minus one element-wise.
+   * `e ^ x - 1`
+   *
+   * ```js
+   * const x = tf.tensor1d([1, 2, -3]);
+   *
+   * x.expm1().print();  // or tf.expm1(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static expm1<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(x.exp())};
+    };
+    return ENV.engine.runKernel(backend => backend.expm1(x), {x}, grad);
+  }
+
+  /**
    * Computes natural logarithm of the input `Tensor` element-wise: `ln(x)`
    *
    * ```js
