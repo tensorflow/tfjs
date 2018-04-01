@@ -555,6 +555,13 @@ export class MathBackendCPU implements KernelBackend {
         a, b, a.dtype, (aVal, bVal) => Math.max(aVal, bVal));
   }
 
+  squaredDifference(a: Tensor, b: Tensor): Tensor {
+    return this.broadcastedBinaryOp(a, b, a.dtype, (aVal, bVal) => {
+      const diff = aVal - bVal;
+      return diff * diff;
+    });
+  }
+
   ceil<T extends Tensor>(x: T): T {
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);

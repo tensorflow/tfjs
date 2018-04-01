@@ -31,6 +31,7 @@ export const POW = `
   return (round(mod(b, 2.0)) == 0 || round(mod(b, 2.0)) == 2) ?
       pow(abs(a), b) : sign(a) * pow(abs(a), b);
 `;
+export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 export const EQUAL = CHECK_NAN_SNIPPET + `
   return float(a == b);
 `;

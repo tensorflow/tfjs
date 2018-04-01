@@ -578,6 +578,12 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [a, b]);
   }
 
+  squaredDifference(a: Tensor, b: Tensor): Tensor {
+    const program =
+        new BinaryOpProgram(binaryop_gpu.SQUARED_DIFFERENCE, a.shape, b.shape);
+    return this.compileAndRun(program, [a, b]);
+  }
+
   divide(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.DIV, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'float32');

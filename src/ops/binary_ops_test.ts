@@ -197,6 +197,161 @@ describeWithFlags('maximum', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('squaredDifference', ALL_ENVS, () => {
+  it('float32 and float32', () => {
+    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
+    const b = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);
+    const result = dl.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(result, [
+      Math.pow(0.5 - 0.2, 2), Math.pow(3 - 0.4, 2), Math.pow(-0.1 - 0.25, 2),
+      Math.pow(-4 - 0.15, 2)
+    ]);
+  });
+
+  it('int32 and int32', () => {
+    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
+    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
+    const result = dl.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expect(result.dtype).toBe('int32');
+    expectArraysEqual(result, [
+      Math.pow(1 - 2, 2), Math.pow(5 - 3, 2), Math.pow(2 - 1, 2),
+      Math.pow(3 - 4, 2)
+    ]);
+  });
+
+  it('different dtypes throws error', () => {
+    const a = dl.tensor1d([0.5, 3, -0.1, -4], 'float32');
+    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
+    // tslint:disable-next-line:no-any
+    expect(() => dl.squaredDifference(a, b as any)).toThrowError();
+  });
+
+  it('propagates NaN', () => {
+    const a = dl.tensor1d([0.5, -0.1, NaN]);
+    const b = dl.tensor1d([0.2, 0.3, 0.25]);
+    const result = dl.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(
+        result, [Math.pow(0.5 - 0.2, 2), Math.pow(-0.1 - 0.3, 2), NaN]);
+  });
+
+  it('broadcasts Tensor1D and scalar', () => {
+    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
+    const b = dl.scalar(0.6);
+    const result = dl.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(a.shape);
+    expectArraysClose(result, [
+      Math.pow(0.5 - 0.6, 2), Math.pow(3 - 0.6, 2), Math.pow(-0.1 - 0.6, 2),
+      Math.pow(-4 - 0.6, 2)
+    ]);
+  });
+
+  it('broadcasts scalar and Tensor1D', () => {
+    const a = dl.scalar(0.6);
+    const b = dl.tensor1d([0.5, 3, -0.1, -4]);
+    const result = dl.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(b.shape);
+    expectArraysClose(result, [
+      Math.pow(0.6 - 0.5, 2), Math.pow(0.6 - 3, 2), Math.pow(0.6 - (-0.1), 2),
+      Math.pow(0.6 - (-4), 2)
+    ]);
+  });
+
+  it('broadcasts Tensor1D and Tensor2D', () => {
+    const a = dl.tensor1d([0.5, 0.3]);
+    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = dl.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(b.shape);
+    expectArraysClose(result, [
+      Math.pow(0.5 - 0.2, 2), Math.pow(0.3 - 0.4, 2), Math.pow(0.5 - 0.6, 2),
+      Math.pow(0.3 - 0.15, 2)
+    ]);
+  });
+
+  it('broadcasts 2x1 Tensor2D and 2x2 Tensor2D', () => {
+    const a = dl.tensor2d([0.5, 0.3], [2, 1]);
+    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = dl.squaredDifference(a, b);
+
+    expect(result.shape).toEqual(b.shape);
+    expectArraysClose(result, [
+      Math.pow(0.5 - 0.2, 2), Math.pow(0.5 - 0.4, 2), Math.pow(0.3 - 0.6, 2),
+      Math.pow(0.3 - 0.15, 2)
+    ]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = dl.scalar(5.2);
+    const b = dl.scalar(0.6);
+    const dy = dl.scalar(3);
+
+    const grads = dl.grads((a, b) => dl.squaredDifference(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+    expect(da.dtype).toEqual('float32');
+    expect(db.dtype).toEqual('float32');
+
+    expectArraysClose(da, [3 * 2 * (5.2 - 0.6)]);
+    expectArraysClose(db, [3 * 2 * (0.6 - 5.2)]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const a = dl.tensor1d([1.1, 2.6, 3, 5.9]);
+    const b = dl.tensor1d([1.0, 2.7, 3, 5.8]);
+    const dy = dl.tensor1d([1, 2, 3, 1]);
+
+    const grads = dl.grads((a, b) => dl.squaredDifference(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+    expect(da.dtype).toEqual('float32');
+    expect(db.dtype).toEqual('float32');
+
+    expectArraysClose(da, [
+      1 * 2 * (1.1 - 1.0), 2 * 2 * (2.6 - 2.7), 3 * 2 * (3 - 3),
+      1 * 2 * (5.9 - 5.8)
+    ]);
+    expectArraysClose(db, [
+      1 * 2 * (1.0 - 1.1), 2 * 2 * (2.7 - 2.6), 3 * 2 * (3 - 3),
+      1 * 2 * (5.8 - 5.9)
+    ]);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const a = dl.tensor2d([0.5, 0.3, 0.7, 0.9], [2, 2]);
+    const b = dl.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
+    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+
+    const grads = dl.grads((a, b) => dl.squaredDifference(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(db.shape).toEqual(b.shape);
+    expect(da.dtype).toEqual('float32');
+    expect(db.dtype).toEqual('float32');
+
+    expectArraysClose(da, [
+      1 * 2 * (0.5 - 0.2), 2 * 2 * (0.3 - 0.4), 3 * 2 * (0.7 - 0.7),
+      4 * 2 * (0.9 - 0.15)
+    ]);
+    expectArraysClose(db, [
+      1 * 2 * (0.2 - 0.5), 2 * 2 * (0.4 - 0.3), 3 * 2 * (0.7 - 0.7),
+      4 * 2 * (0.15 - 0.9)
+    ]);
+  });
+});
+
 describeWithFlags('minimum', ALL_ENVS, () => {
   it('float32 and float32', () => {
     const a = dl.tensor1d([0.5, 3, -0.1, -4]);

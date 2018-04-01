@@ -462,6 +462,63 @@ export class BinaryOps {
     return a.maximum(b);
   }
 
+  /**
+   * Returns (a - b) * (a - b) element-wise.
+   * Supports broadcasting.
+   *
+   * We also expose `squaredDifferenceStrict` which has the same signature as
+   * this op and asserts that `a` and `b` are the same shape (does not
+   * broadcast).
+   *
+   * ```js
+   * const a = tf.tensor1d([1, 4, 3, 16]);
+   * const b = tf.tensor1d([1, 2, 9, 4]);
+   *
+   * a.squaredDifference(b).print();  // or tf.squaredDifference(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast squared difference  a with b.
+   * const a = tf.tensor1d([2, 4, 6, 8]);
+   * const b = tf.scalar(5);
+   *
+   * a.squaredDifference(b).print();  // or tf.squaredDifference(a, b)
+   * ```
+   *
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same type as `a`.
+   */
+  @doc({heading: 'Operations', subheading: 'Arithmetic'})
+  @operation
+  static squaredDifference<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertTypesMatch(a, b);
+    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const der = (dy: Tensor) => {
+      const two = scalar(2);
+      const derA = () => dy.mul(a.sub(b).mul(two));
+      const derB = () => dy.mul(b.sub(a).mul(two));
+      return {a: derA, b: derB};
+    };
+    return ENV.engine.runKernel(
+               backend => backend.squaredDifference(a, b), {a, b}, der) as T;
+  }
+
+  /**
+   * Returns (a - b) * (a - b) element-wise.
+   *
+   * Inputs must be the same shape. For broadcasting support, use
+   * squaredDifference() instead.
+   *
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same type as `a`.
+   */
+  @operation
+  static squaredDifferenceStrict<T extends Tensor>(a: T, b: T): T {
+    util.assertShapesMatch(
+        a.shape, b.shape, 'Error in squaredDifferenceStrict: ');
+    return a.squaredDifference(b);
+  }
+
   /*
    * Computes arctangent of `Tensor`s a / b element-wise: `atan2(a, b)`.
    * Supports broadcasting.

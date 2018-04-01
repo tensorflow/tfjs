@@ -102,6 +102,8 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   max(x: Tensor, axes: number[]): Tensor;
   maximum(a: Tensor, b: Tensor): Tensor;
 
+  squaredDifference(a: Tensor, b: Tensor): Tensor;
+
   ceil<T extends Tensor>(x: T): T;
   floor<T extends Tensor>(x: T): T;
 
