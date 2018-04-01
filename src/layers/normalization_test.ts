@@ -13,13 +13,14 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import {onesLike, Tensor, tensor2d, tensor3d, tensor4d, zerosLike} from '@tensorflow/tfjs-core';
 
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {BatchNormalization} from './normalization';
+
 // tslint:enable
 
 describeMathCPU('BatchNormalization Layers: Symbolic', () => {
@@ -71,6 +72,43 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
       });
     }
   }
+
+  it('no center', () => {
+    const layer = new BatchNormalization({center: false, axis: 0});
+    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
+    expect(layer.getWeights().length).toEqual(3);
+    // Firt weight is gamma.
+    expectTensorsClose(layer.getWeights()[0], onesLike(layer.getWeights()[0]));
+    // Second weight is moving mean.
+    expectTensorsClose(layer.getWeights()[1], zerosLike(layer.getWeights()[1]));
+    // Third weight is moving variance.
+    expectTensorsClose(layer.getWeights()[2], onesLike(layer.getWeights()[2]));
+  });
+
+  it('no scale', () => {
+    const layer = new BatchNormalization({scale: false, axis: 0});
+    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
+    expect(layer.getWeights().length).toEqual(3);
+    // Firt weight is beta.
+    expectTensorsClose(layer.getWeights()[0], zerosLike(layer.getWeights()[0]));
+    // Second weight is moving mean.
+    expectTensorsClose(layer.getWeights()[1], zerosLike(layer.getWeights()[1]));
+    // Third weight is moving variance.
+    expectTensorsClose(layer.getWeights()[2], onesLike(layer.getWeights()[2]));
+  });
+
+  it('no center, no scale', () => {
+    const layer = new BatchNormalization({scale: false, center: false});
+    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
+    expect(layer.getWeights().length).toEqual(2);
+    // First weight is moving mean.
+    expectTensorsClose(layer.getWeights()[0], zerosLike(layer.getWeights()[0]));
+    // Second weight is moving variance.
+    expectTensorsClose(layer.getWeights()[1], onesLike(layer.getWeights()[1]));
+  });
 
   // TODO(cais): Test BatchNormalization under training model.
 });
