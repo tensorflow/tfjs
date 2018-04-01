@@ -23,6 +23,7 @@
 #include <string>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
+#include "tf_auto_tensor.h"
 #include "tfe_context_env.h"
 #include "utils.h"
 
@@ -135,17 +136,17 @@ void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
   // TODO(kreeger): Check to see if the Deallocator param can be used to
   // automatically cleanup with JS runtime.
   const size_t byte_size = num_elements * width;
-  TF_Tensor* tensor = TF_AllocateTensor(dtype, shape, shape_length, byte_size);
-  memcpy(TF_TensorData(tensor), array_data, byte_size);
+  TF_AutoTensor tensor(
+      TF_AllocateTensor(dtype, shape, shape_length, byte_size));
+  memcpy(TF_TensorData(tensor.tensor), array_data, byte_size);
 
   TF_AutoStatus tf_status;
-  TFE_TensorHandle* tfe_handle = TFE_NewTensorHandle(tensor, tf_status.status);
+  TFE_TensorHandle* tfe_handle =
+      TFE_NewTensorHandle(tensor.tensor, tf_status.status);
   ENSURE_TF_OK(env, tf_status);
 
   // Reference the new TFE_TensorHandle to the wrapped object.
   handle->handle = tfe_handle;
-
-  TF_DeleteTensor(tensor);
 }
 
 void GetTensorData(napi_env env, napi_value context_value,
