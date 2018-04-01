@@ -130,6 +130,7 @@ export const tan = UnaryOps.tan;
 export const tanh = UnaryOps.tanh;
 
 export const add = BinaryOps.add;
+export const atan2 = BinaryOps.atan2;
 export const addStrict = BinaryOps.addStrict;
 export const div = BinaryOps.div;
 export const divStrict = BinaryOps.divStrict;

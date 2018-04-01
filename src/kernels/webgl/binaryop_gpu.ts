@@ -71,6 +71,10 @@ export const MIN = CHECK_NAN_SNIPPET + `
   return min(a, b);
 `;
 
+export const ATAN2 = CHECK_NAN_SNIPPET + `
+  return atan(a, b);
+`;
+
 export class BinaryOpProgram implements GPGPUProgram {
   variableNames = ['A', 'B'];
   outputShape: number[];
