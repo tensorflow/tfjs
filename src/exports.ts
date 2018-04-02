@@ -19,6 +19,7 @@ import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';
 import {Model} from './engine/training';
 import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, Initializer, LeCunNormal, Ones, Orthogonal, OrthogonalConfig, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
+import {ELU, ELULayerConfig, LeakyReLU, LeakyReLULayerConfig, Softmax, SoftmaxLayerConfig, ThresholdedReLU, ThresholdedReLULayerConfig} from './layers/advanced_activations';
 import {Conv1D, Conv2D, ConvLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
 import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig} from './layers/core';
@@ -188,6 +189,52 @@ export class LayerExports {
 
   // Alias for `tf.input`.
   static input = ModelExports.input;
+
+  // Advanced Activation Layers.
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Advanced Activation',
+    namespace: 'layers',
+    useDocsFrom: 'ELU',
+    configParamIndices: [0]
+  })
+  static elu(config?: ELULayerConfig): Layer {
+    return new ELU(config);
+  }
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Advanced Activation',
+    namespace: 'layers',
+    useDocsFrom: 'LeakyReLU',
+    configParamIndices: [0]
+  })
+  static leakyReLU(config?: LeakyReLULayerConfig): Layer {
+    return new LeakyReLU(config);
+  }
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Advanced Activation',
+    namespace: 'layers',
+    useDocsFrom: 'Softmax',
+    configParamIndices: [0]
+  })
+  static softmax(config?: SoftmaxLayerConfig): Layer {
+    return new Softmax(config);
+  }
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Advanced Activation',
+    namespace: 'layers',
+    useDocsFrom: 'ThresholdedReLU',
+    configParamIndices: [0]
+  })
+  static thresohldedReLU(config?: ThresholdedReLULayerConfig): Layer {
+    return new ThresholdedReLU(config);
+  }
 
   // Convolutional Layers.
 
