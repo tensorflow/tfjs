@@ -34,5 +34,5 @@ fs.writeFile('src/version.ts', versionCode, err => {
   if (err) {
     throw new Error(`Could not save version file ${version}: ${err}`);
   }
-  console.log(`Version file for version ${version} saved sucessfully.`);
+  console.log(`Version file for version ${version} saved successfully.`);
 });
