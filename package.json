@@ -14,10 +14,11 @@
     "cross-spawn": "~5.1.0",
     "http-server": "~0.10.0",
     "jasmine-core": "~2.6.4",
-    "karma": "~1.7.0",
+    "karma": "~2.0.0",
+    "karma-browserstack-launcher": "~1.3.0",
     "karma-chrome-launcher": "~2.2.0",
-    "karma-firefox-launcher": "~1.0.1",
-    "karma-jasmine": "~1.1.0",
+    "karma-firefox-launcher": "~1.1.0",
+    "karma-jasmine": "~1.1.1",
     "karma-typescript": "^3.0.12",
     "minimist": "~1.2.0",
     "opn": "~5.1.0",
@@ -35,6 +36,7 @@
     "build-npm": "./scripts/build-npm.sh",
     "publish-npm": "./scripts/publish-npm.sh",
     "test": "karma start",
+    "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . --type-check -t verbose"
   },
   "dependencies": {
