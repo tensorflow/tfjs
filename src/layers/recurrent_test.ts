@@ -13,12 +13,11 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, Tensor, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
+import {Scalar, scalar, Tensor, tensor2d, tensor3d, train} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import * as metrics from '../metrics';
 import {ModelAndWeightsConfig, modelFromJSON} from '../models';
-import * as optimizers from '../optimizers';
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
@@ -483,7 +482,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
       useBias: false,
     });
 
-    const sgd = new optimizers.SGD({lr: 5});
+    const sgd = train.sgd(5);
     const x = K.ones([batchSize, sequenceLength, inputSize]);
     const y = K.zeros([batchSize, 1]);
     dense.apply(simpleRNN.apply(x));
@@ -492,8 +491,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
           .asScalar();
     };
     for (let i = 0; i < 2; ++i) {
-      sgd.updateVariables(
-          lossFn, simpleRNN.trainableWeights.concat(dense.trainableWeights));
+      sgd.minimize(lossFn);
     }
     expectTensorsClose(
         simpleRNN.getWeights()[0],
@@ -698,7 +696,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
     const dense =
         new Dense({units: 1, kernelInitializer: 'ones', useBias: false});
 
-    const sgd = new optimizers.SGD({lr: 1});
+    const sgd = train.sgd(1);
     const x = K.ones([batchSize, sequenceLength, inputSize]);
     const y = K.ones([batchSize, 1]);
     dense.apply(gru.apply(x));
@@ -707,8 +705,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
           .asScalar();
     };
     for (let i = 0; i < 2; ++i) {
-      sgd.updateVariables(
-          lossFn, gru.trainableWeights.concat(dense.trainableWeights));
+      sgd.minimize(lossFn);
     }
     expectTensorsClose(
         gru.getWeights()[0],
@@ -925,7 +922,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
         useBias: false,
       });
 
-      const sgd = new optimizers.SGD({lr: 1});
+      const sgd = train.sgd(1);
       const x = K.ones([batchSize, sequenceLength, inputSize]);
       const y = K.ones([batchSize, 1]);
       dense.apply(lstm.apply(x));
@@ -934,8 +931,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
             .asScalar();
       };
       for (let i = 0; i < 2; ++i) {
-        sgd.updateVariables(
-            lossFn, lstm.trainableWeights.concat(dense.trainableWeights));
+        sgd.minimize(lossFn);
       }
       expectTensorsClose(
           lstm.getWeights()[0],
