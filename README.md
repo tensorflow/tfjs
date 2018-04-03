@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/tensorflow/tfjs-layers.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs-layers)
+
 # TensorFlow.js Layers: High-Level Machine Learning Model API
 
 A part of the TensorFlow.js ecosystem, TensorFlow.js Layers is a high-level
