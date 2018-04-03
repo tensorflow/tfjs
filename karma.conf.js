@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,7 +32,8 @@ module.exports = function(config) {
         allowJs: true,
         declaration: false,
         module: 'commonjs'
-      }
+      },
+      reports: {} // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome', 'Firefox'],
@@ -40,7 +41,8 @@ module.exports = function(config) {
       username: process.env.BROWSERSTACK_USERNAME,
       accessKey: process.env.BROWSERSTACK_KEY
     },
-    browserNoActivityTimeout: 300000,
+    reportSlowerThan: 500,
+    browserNoActivityTimeout: 30000,
     customLaunchers: {
       bs_chrome_mac: {
         base: 'BrowserStack',
@@ -55,7 +57,7 @@ module.exports = function(config) {
         browser_version: 'latest',
         os: 'OS X',
         os_version: 'Sierra'
-      },
+      }
     },
     client: {
       args: ['--grep', config.grep || '']
