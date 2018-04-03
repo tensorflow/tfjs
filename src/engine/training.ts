@@ -620,7 +620,7 @@ export interface ModelCompileConfig {
  */
 @doc({heading: 'Models', subheading: 'Classes'})
 export class Model extends Container {
-  optimizer: optimizers.LayersOptimizer;
+  optimizer: Optimizer;
   loss: string|string[]|{[outputName: string]: string};
   lossFunctions: LossOrMetricFn[];
 
@@ -664,13 +664,16 @@ export class Model extends Container {
     }
     this.loss = config.loss;
 
-    const optimizerConstructor = optimizers.get(config.optimizer);
     if (typeof config.optimizer === 'string') {
-      this.optimizer = new optimizerConstructor({});
+      this.optimizer = optimizers.getOptimizer(config.optimizer);
     } else {
-      this.optimizer = new optimizerConstructor(config.optimizer);
-      // TODO(cais): This should call a factory method.
+      if (!(config.optimizer instanceof Optimizer)) {
+        throw new ValueError(
+            `User-defined optimizer must be an instance of tf.Optimizer.`);
+      }
+      this.optimizer = config.optimizer;
     }
+
     // TODO(cais): Add lossWeights.
     // TODO(cais): Add sampleWeightMode.
 
@@ -1596,8 +1599,11 @@ export class Model extends Container {
         return totalLoss as Scalar;
       };
 
-      const totalLossValue = this.optimizer.updateVariables(
-          totalLossFunction, this.collectedTrainableWeights);
+      const variables = this.collectedTrainableWeights.map(
+          param => param.read() as tfc.Variable);
+      const returnCost = true;
+      const totalLossValue =
+          this.optimizer.minimize(totalLossFunction, returnCost, variables);
 
       return [totalLossValue].concat(metricsValues);
     };
