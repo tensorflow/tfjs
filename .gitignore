@@ -1,5 +1,5 @@
 build/
 dist/
-deps/tensorflow/include/*
-deps/tensorflow/lib/*
+deps/
 node_modules/
+yarn-error.log

@@ -27,6 +27,8 @@ fi
 TARGET_DIRECTORY="deps/tensorflow/"
 LIBTENSORFLOW="lib/libtensorflow.so"
 
+mkdir -p $TARGET_DIRECTORY
+
 # Ensure that at least libtensorflow.so is downloaded.
 if [ ! -e "$TARGET_DIRECTORY${LIBTENSORFLOW}" ]
 then

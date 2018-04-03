@@ -567,8 +567,8 @@ describe('step', () => {
 
 describe('transpose', () => {
   it('should work', () => {
-    const t = dl.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
-    const t2 = dl.transpose(t, [1, 0]);
+    const t = tf.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
+    const t2 = tf.transpose(t, [1, 0]);
 
     expect(t2.shape).toEqual([4, 2]);
     expectArraysClose(t2, [1, 3, 11, 33, 2, 4, 22, 44]);
@@ -577,12 +577,12 @@ describe('transpose', () => {
 
 describe('gather', () => {
   it('should work', () => {
-    const t = dl.tensor2d([1, 11, 2, 22], [2, 2]);
-    let t2 = dl.gather(t, dl.tensor1d([1, 0, 0, 1], 'int32'), 0);
+    const t = tf.tensor2d([1, 11, 2, 22], [2, 2]);
+    let t2 = tf.gather(t, tf.tensor1d([1, 0, 0, 1], 'int32'), 0);
     expect(t2.shape).toEqual([4, 2]);
     expectArraysClose(t2, [2, 22, 1, 11, 1, 11, 2, 22]);
 
-    t2 = dl.gather(t, dl.tensor1d([1, 0, 0, 1], 'int32'), 1);
+    t2 = tf.gather(t, tf.tensor1d([1, 0, 0, 1], 'int32'), 1);
     expect(t2.shape).toEqual([2, 4]);
     expectArraysClose(t2, [11, 1, 1, 11, 22, 2, 2, 22]);
   });
