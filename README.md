@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/tensorflow/tfjs-converter.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs-converter)
+
 # Getting started
 
 **TensorFlow.js converter** is an open source library to load a pretrained
