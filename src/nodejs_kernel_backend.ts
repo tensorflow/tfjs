@@ -16,9 +16,11 @@
  */
 
 import {fill, ones, scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
+// tslint:disable-next-line:max-line-length
 import {BackendTimingInfo, KernelBackend} from '@tensorflow/tfjs-core/dist/kernels/backend';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core/dist/tensor';
+// tslint:disable-next-line:max-line-length
 import {DataType, Rank, ShapeMap, upcastType} from '@tensorflow/tfjs-core/dist/types';
 
 import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -32,7 +34,7 @@ type TensorInfo = {
 type TensorHandleContext = {
   handle: TensorHandle,
   values: Float32Array|Int32Array|Uint8Array
-}
+};
 
 export class NodeJSKernelBackend implements KernelBackend {
   private shapeMap = new WeakMap<DataId, TensorInfo>();
