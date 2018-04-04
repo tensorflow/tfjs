@@ -177,7 +177,11 @@ export class ReductionOps {
     // extremely often.
     const customOp = customGrad(x => {
       const reduceSizeScalar = ops.scalar(reduceSize);
-      const res = x.div(reduceSizeScalar);
+      // Cast if needed.
+      const xReduce = reduceSizeScalar.dtype === x.dtype ?
+          x :
+          x.cast(reduceSizeScalar.dtype);
+      const res = xReduce.div(reduceSizeScalar);
       const value = res.sum(axis, keepDims);
 
       const gradFunc = (dy: Tensor) => {

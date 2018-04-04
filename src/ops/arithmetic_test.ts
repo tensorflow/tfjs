@@ -62,6 +62,14 @@ describeWithFlags('div', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
+  it('throws when passed tensors of different types', () => {
+    const a = dl.tensor2d([1, 2, 3, 4, 5, 6], [2, 3]);
+    const b = dl.tensor2d([1, 2, 3, 4, 2, 5], [2, 3], 'int32');
+
+    expect(() => dl.div(a, b)).toThrowError();
+    expect(() => dl.div(b, a)).toThrowError();
+  });
+
   it('throws when passed tensors of different shapes', () => {
     const a = dl.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
     const b = dl.tensor2d([5, 3, 4, -7], [2, 2]);
@@ -161,7 +169,7 @@ describeWithFlags('div', ALL_ENVS, () => {
     const b = dl.tensor1d([1, 2, 3], 'int32');
     const dy = dl.tensor1d([1, 19, 20]);
 
-    const grads = dl.grads((a, b) => dl.div(a, b));
+    const grads = dl.grads((a, b) => dl.div(a.toInt(), b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -578,7 +586,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expect(da.dtype).toEqual('float32');
     expectArraysClose(da, [1.5 * Math.pow(4, 0.5) * 3]);
   });
-  
+
   it('gradients: Tensor ^ Tensor', () => {
     const a = dl.tensor1d([-1, .5, 2]);
     const b = dl.tensor1d([3, 2, -1], 'int32');

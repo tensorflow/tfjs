@@ -319,6 +319,7 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static div<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertTypesMatch(a, b);
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const der = (dy: Tensor) => {
