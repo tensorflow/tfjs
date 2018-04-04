@@ -15,15 +15,8 @@
  * =============================================================================
  */
 
-declare class Context { constructor(); }
-
-declare class TensorHandle {
-  constructor();
-  copyBuffer(
-      shape: number[], dtype: number,
-      buffer: Float32Array|Int32Array|Uint8Array): void;
-  dataSync(context: Context): Float32Array|Int32Array|Uint8Array;
-
+declare class TensorMetadata {
+  id: number;
   shape: number[];
   dtype: number;
 }
@@ -35,9 +28,24 @@ declare class TFEOpAttr {
 }
 
 export interface TFJSBinding {
-  Context: typeof Context;
-  TensorHandle: typeof TensorHandle;
+  TensorMetadata: typeof TensorMetadata;
   TFEOpAttr: typeof TFEOpAttr;
+
+  // Creates a tensor with the backend:
+  createTensor(
+      shape: number[], dtype: number,
+      buffer: Float32Array|Int32Array|Uint8Array): number;
+
+  // Deletes a tensor with the backend:
+  deleteTensor(tensorId: number): void;
+
+  // Reads data-sync from a tensor on the backend:
+  tensorDataSync(tensorId: number): Float32Array|Int32Array|Uint8Array;
+
+  // Executes an Op on the backend, returns an array of output TensorMetadata:
+  executeOp(
+      opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
+      numOutputs: number): TensorMetadata[]
 
   // TF Types
   TF_FLOAT: number;
@@ -53,8 +61,4 @@ export interface TFJSBinding {
   TF_ATTR_SHAPE: number;
 
   TF_Version: string;
-
-  execute(
-      context: Context, op: string, op_attrs: TFEOpAttr[],
-      inputs: TensorHandle[], output: TensorHandle[]): void;
 }

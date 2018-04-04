@@ -15,39 +15,37 @@
  * =============================================================================
  */
 
-#ifndef TF_NODEJS_TENSOR_BINDING_H_
-#define TF_NODEJS_TENSOR_BINDING_H_
+#ifndef TF_NODEJS_TFE_UTILS_H_
+#define TF_NODEJS_TFE_UTILS_H_
 
 #include <node_api.h>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
 
-struct WrappedTensorHandle {
-  TFE_TensorHandle* handle;
-  napi_env env;
-};
-
-// Initializes a `TensorHandle` object with the napi_env set, but null TF/TFE
-// pointers
-void InitTensorHandle(napi_env env, napi_value wrapped_value);
-
-// Copies a JS typed-array to the wrapped TF/TFE pointers.
-void CopyTensorJSBuffer(napi_env env, napi_value wrapped_value, int64_t* shape,
-                        uint32_t shape_length, TF_DataType dtype,
-                        napi_value typed_array_value);
+// Creates a TFE_TensorHandle from a typed array.
+TFE_TensorHandle* CreateTFE_TensorHandleFromTypedArray(
+    napi_env env, int64_t* shape, uint32_t shape_length, TF_DataType dtype,
+    napi_value typed_array_value);
 
 // Returns a typed-array as a `napi_value` with the data associated with the
 // TF/TFE pointers.
-void GetTensorData(napi_env env, napi_value context_value,
-                   napi_value wrapped_value, napi_value* result);
+void CopyTFE_TensorHandleDataToTypedArray(napi_env env,
+                                          TFE_Context* tfe_context,
+                                          TFE_TensorHandle* tfe_tensor_handle,
+                                          napi_value* result);
 
 // Returns an array as a `napi_value` with shape of the Tensor.
-void GetTensorShape(napi_env env, napi_value wrapped_value, napi_value* result);
+void GetTFE_TensorHandleShape(napi_env env, TFE_TensorHandle* handle,
+                              napi_value* result);
 
 // Returns a type as a `napi_value` with the type of the Tensor.
-void GetTensorDtype(napi_env env, napi_value wrapped_value, napi_value* result);
+void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
+                             napi_value* result);
+
+// Assigns attributes to an Op from a given list of inputs attributes.
+void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value);
 
 }  // namespace tfnodejs
 
-#endif  // TF_NODEJS_TENSOR_BINDING_H_
+#endif  // TF_NODEJS_TFE_UTILS_H_

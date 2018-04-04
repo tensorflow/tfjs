@@ -18,7 +18,10 @@
     "ratio": "cpp",
     "tuple": "cpp",
     "vector": "cpp",
-    "__locale": "cpp"
+    "__locale": "cpp",
+    "*.ipp": "cpp",
+    "array": "cpp",
+    "initializer_list": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,
