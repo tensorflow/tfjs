@@ -12,7 +12,7 @@ import {PaddingMode} from '../common';
 import {ValueError} from '../errors';
 
 import {pyListRepeat} from './generic_utils';
-import {isInteger} from './math_utils';
+import {isInteger, max} from './math_utils';
 
 /**
  * Transforms a single number of array of numbers into an array of numbers.
@@ -68,4 +68,21 @@ export function convOutputLength(
   }
   // TODO(cais): Implement logic for padding modes 'casual' and 'full'.
   return Math.floor((outputLength + stride - 1) / stride);
+}
+
+export function deconvLength(
+    dimSize: number, strideSize: number, kernelSize: number,
+    padding: PaddingMode): number {
+  if (dimSize == null) {
+    return null;
+  }
+
+  if (padding === 'valid') {
+    dimSize = dimSize * strideSize + max([kernelSize - strideSize, 0]);
+  } else if (padding === 'same') {
+    dimSize = dimSize * strideSize;
+  } else {
+    throw new ValueError(`Unsupport padding mode: ${padding}.`);
+  }
+  return dimSize;
 }
