@@ -524,6 +524,12 @@ export class Tensor<R extends Rank = Rank> {
     return ops.argMax(this, axis);
   }
 
+  // Transformations
+  cast<T extends this>(dtype: DataType): T {
+    this.throwIfDisposed();
+    return ops.cast(this as T, dtype);
+  }
+
   // Binary ops.
 
   add<T extends Tensor>(x: Tensor): T {
