@@ -714,6 +714,51 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [2.4]);
   });
 
+  it('cast bool -> bool', () => {
+    const a = dl.tensor1d([1, 0], 'bool');
+    expect(a.cast('bool').dtype).toEqual('bool');
+  });
+
+  it('cast bool -> int32', () => {
+    const a = dl.tensor1d([1, 0], 'bool');
+    expect(a.cast('int32').dtype).toEqual('int32');
+  });
+
+  it('cast bool -> float32', () => {
+    const a = dl.tensor1d([1, 0], 'bool');
+    expect(a.cast('float32').dtype).toEqual('float32');
+  });
+
+  it('cast int32 -> bool', () => {
+    const a = dl.tensor1d([1, 0], 'int32');
+    expect(a.cast('bool').dtype).toEqual('bool');
+  });
+
+  it('cast int32 -> int32', () => {
+    const a = dl.tensor1d([1, 2], 'int32');
+    expect(a.cast('int32').dtype).toEqual('int32');
+  });
+
+  it('cast int32 -> float32', () => {
+    const a = dl.tensor1d([1, 2], 'int32');
+    expect(a.cast('float32').dtype).toEqual('float32');
+  });
+
+  it('cast float32 -> bool', () => {
+    const a = dl.tensor1d([1.0, 0.0]);
+    expect(a.cast('bool').dtype).toEqual('bool');
+  });
+
+  it('cast float32 -> int32', () => {
+    const a = dl.tensor1d([1.0, 2.0]);
+    expect(a.cast('int32').dtype).toEqual('int32');
+  });
+
+  it('cast float32 -> float32', () => {
+    const a = dl.tensor1d([1.0, 2.0]);
+    expect(a.cast('float32').dtype).toEqual('float32');
+  });
+
   it('scalar bool -> int32', () => {
     const a = dl.scalar(true, 'bool').toInt();
     expect(a.dtype).toBe('int32');
