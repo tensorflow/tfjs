@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/tensorflow/tfjs-converter.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs-converter)
+
 # Getting started
 
 **TensorFlow.js converter** is an open source library to load a pretrained
@@ -22,7 +24,7 @@ A 2-step process to import your model:
 
 Usage:
 ```bash
-$ tensorflowjs_coverter \
+$ tensorflowjs_converter \
     --input_format=tf_saved_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
     --saved_model_tags=serve
