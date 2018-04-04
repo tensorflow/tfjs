@@ -1,7 +1,5 @@
 To get help from the community, check out our [Google group](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs).
 
-Else, submit an issue based on the following template. 
-
 Issue Template:
 
 #### TensorFlow.js version
