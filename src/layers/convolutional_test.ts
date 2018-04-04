@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import {ones, scalar, Tensor, tensor3d, tensor4d, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {DataFormat, PaddingMode} from '../common';
@@ -22,7 +22,7 @@ import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {Conv1D, Conv2D} from './convolutional';
+import {Conv1D, Conv2D, Conv2DTranspose} from './convolutional';
 
 // tslint:enable:max-line-length
 
@@ -180,6 +180,94 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
       const yExpected = tensor4d([100, 260, -100, -260], [1, 1, 2, 2]);
       expectTensorsClose(y, yExpected);
     });
+  }
+});
+
+describeMathCPU('Conv2DTranspose: Symbolic', () => {
+  const filtersArray = [1, 64];
+  const paddingModes: PaddingMode[] = [undefined, 'valid', 'same'];
+  const kernelSizes = [2, [2, 2], [3, 4]];
+  const stridesArray = [undefined, 2];
+
+  for (const filters of filtersArray) {
+    for (const padding of paddingModes) {
+      for (const kernelSize of kernelSizes) {
+        for (const strides of stridesArray) {
+          const testTitle = `filters=${filters}, paddingMode=${padding},` +
+              `kernelSize=${JSON.stringify(kernelSize)}, strides=${strides}`;
+          it(testTitle, () => {
+            const inputShape = [2, 11, 9, 16];
+            const x =
+                new SymbolicTensor(DType.float32, inputShape, null, [], null);
+
+            const layer =
+                new Conv2DTranspose({filters, kernelSize, padding, strides});
+            const y = layer.apply(x) as SymbolicTensor;
+
+            let expectedShape: [number, number, number, number];
+            if (strides === undefined) {
+              if (padding === 'valid' || padding === undefined) {
+                if (kernelSize as number === 2 ||
+                    util.arraysEqual(kernelSize as number[], [2, 2])) {
+                  expectedShape = [2, 12, 10, filters];
+                } else if (util.arraysEqual(kernelSize as number[], [3, 4])) {
+                  expectedShape = [2, 13, 12, filters];
+                }
+              } else if (padding === 'same') {
+                expectedShape = [2, 11, 9, filters];
+              }
+            } else {
+              if (padding === 'valid' || padding === undefined) {
+                if (kernelSize as number === 2 ||
+                    util.arraysEqual(kernelSize as number[], [2, 2])) {
+                  expectedShape = [2, 22, 18, filters];
+                } else if (util.arraysEqual(kernelSize as number[], [3, 4])) {
+                  expectedShape = [2, 23, 20, filters];
+                }
+              } else if (padding === 'same') {
+                expectedShape = [2, 22, 18, filters];
+              }
+            }
+            expect(y.shape).toEqual(expectedShape);
+          });
+        }
+      }
+    }
+  }
+});
+
+describeMathCPUAndGPU('Conv2DTranspose: Tensor', () => {
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const stridesArray = [2, [2, 2]];
+  for (const dataFormat of dataFormats) {
+    for (const strides of stridesArray) {
+      const testTitle =
+          `filters=8, kernelSize=[2,2], padding=valid, strides=${strides}` +
+          `dataFormat=${dataFormat}`;
+      it(testTitle, () => {
+        const filters = 8;
+        const kernelSize = [2, 2];
+        const padding = 'valid';
+        const strides = 2;
+        const layer = new Conv2DTranspose({
+          filters,
+          kernelSize,
+          padding,
+          strides,
+          dataFormat,
+          kernelInitializer: 'ones',
+          biasInitializer: 'ones'
+        });
+
+        const x = ones([2, 3, 4, 2]);
+        const y = layer.apply(x) as Tensor;
+        if (dataFormat === 'channelsLast') {
+          expectTensorsClose(y, ones([2, 6, 8, 8]).mul(scalar(3)));
+        } else {
+          expectTensorsClose(y, ones([2, 8, 8, 4]).mul(scalar(4)));
+        }
+      });
+    }
   }
 });
 

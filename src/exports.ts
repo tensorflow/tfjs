@@ -20,7 +20,7 @@ import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer
 import {Model} from './engine/training';
 import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, Initializer, LeCunNormal, Ones, Orthogonal, OrthogonalConfig, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
 import {ELU, ELULayerConfig, LeakyReLU, LeakyReLULayerConfig, Softmax, SoftmaxLayerConfig, ThresholdedReLU, ThresholdedReLULayerConfig} from './layers/advanced_activations';
-import {Conv1D, Conv2D, ConvLayerConfig} from './layers/convolutional';
+import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
 import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
@@ -258,6 +258,17 @@ export class LayerExports {
   })
   static conv2d(config: ConvLayerConfig): Layer {
     return new Conv2D(config);
+  }
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Convolutional',
+    namespace: 'layers',
+    useDocsFrom: 'Conv2DTranspose',
+    configParamIndices: [0]
+  })
+  static conv2dTranspose(config: ConvLayerConfig): Layer {
+    return new Conv2DTranspose(config);
   }
 
   // Convolutional (depthwise) Layers.

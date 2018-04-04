@@ -1259,17 +1259,68 @@ export function batchNormalization(
  */
 export function biasAdd(
     x: Tensor, bias: Tensor, dataFormat?: DataFormat): Tensor {
+  if (dataFormat == null) {
+    dataFormat = imageDataFormat();
+  }
   checkDataFormat(dataFormat);
+
   if (ndim(bias) !== 1 && ndim(bias) !== ndim(x)) {
     throw new ValueError(
         'Unexpected bias dimensions: ' + ndim(bias) +
         '; expected it to be 1 or ' + ndim(x));
   }
+  const biasShape = bias.shape;
 
-  if (dataFormat) {
-    throw new NotImplementedError('dataFormat logic is not yet implemented.');
+  let y: Tensor;
+  if (ndim(x) === 5) {
+    if (dataFormat === 'channelsFirst') {
+      if (biasShape.length === 1) {
+        y = x.add(bias.reshape([1, biasShape[0], 1, 1, 1]));
+      } else {
+        y = x.add(bias.reshape(
+            [1, biasShape[3], biasShape[0], biasShape[1], biasShape[2]]));
+      }
+    } else if (dataFormat === 'channelsLast') {
+      if (biasShape.length === 1) {
+        y = x.add(bias.reshape([1, 1, 1, 1, biasShape[0]]));
+      } else {
+        y = x.add(bias.reshape([1].concat(biasShape)));
+      }
+    }
+  } else if (ndim(x) === 4) {
+    if (dataFormat === 'channelsFirst') {
+      if (biasShape.length === 1) {
+        y = x.add(bias.reshape([1, biasShape[0], 1, 1]));
+      } else {
+        y = x.add(bias.reshape([1, biasShape[2], biasShape[0], biasShape[1]]));
+      }
+    } else if (dataFormat === 'channelsLast') {
+      if (biasShape.length === 1) {
+        y = x.add(bias.reshape([1, 1, 1, biasShape[0]]));
+      } else {
+        y = x.add(bias.reshape([1].concat(biasShape)));
+      }
+    }
+  } else if (ndim(x) === 3) {
+    if (dataFormat === 'channelsFirst') {
+      if (biasShape.length === 1) {
+        y = x.add(bias.reshape([1, biasShape[0], 1]));
+      } else {
+        y = x.add(bias.reshape([1, biasShape[1], biasShape[0]]));
+      }
+    } else if (dataFormat === 'channelsLast') {
+      if (biasShape.length === 1) {
+        y = x.add(bias.reshape([1, 1, biasShape[0]]));
+      } else {
+        y = x.add(bias.reshape([1].concat(biasShape)));
+      }
+    }
+  } else if (ndim(x) < 3) {
+    y = x.add(bias);
+  } else {
+    throw new ValueError(`Unsupported input rank by biasAdd: ${ndim(x)}`);
   }
-  return tfc.add(x, bias);
+  return y;
 }
 
 /**
