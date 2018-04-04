@@ -251,6 +251,14 @@ inline void ExtractArrayShape(napi_env env, napi_value array_value,
     result->push_back(dimension);
   }
 }
+
+inline bool IsExceptionPending(napi_env env) {
+  bool has_exception = false;
+  ENSURE_NAPI_OK_RETVAL(env, napi_is_exception_pending(env, &has_exception),
+                        has_exception);
+  return has_exception;
+}
+
 }  // namespace tfnodejs
 
 #endif  // TF_NODEJS_UTILS_H_

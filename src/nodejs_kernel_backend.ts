@@ -23,29 +23,21 @@ import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '@tensorflo
 // tslint:disable-next-line:max-line-length
 import {DataType, Rank, ShapeMap, upcastType} from '@tensorflow/tfjs-core/dist/types';
 
-import {Context, TensorHandle, TFEOpAttr, TFJSBinding} from './tfjs_binding';
+import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
   shape: number[],
-  dtype: number
-};
-
-// Holds the state of a TensorHandle. Used for delayed memory upload.
-type TensorHandleContext = {
-  handle: TensorHandle,
-  values: Float32Array|Int32Array|Uint8Array
+  dtype: number,
+  values: Float32Array|Int32Array|Uint8Array,
+  id: number
 };
 
 export class NodeJSKernelBackend implements KernelBackend {
-  private shapeMap = new WeakMap<DataId, TensorInfo>();
-  private handleContextMap = new WeakMap<DataId, TensorHandleContext>();
-  private context: Context;
-
   private binding: TFJSBinding;
+  private tensorMap = new WeakMap<DataId, TensorInfo>();
 
   constructor(binding: TFJSBinding) {
     this.binding = binding;
-    this.context = new this.binding.Context();
   }
 
   // Returns the TF dtype for a given DataType.
@@ -62,13 +54,19 @@ export class NodeJSKernelBackend implements KernelBackend {
     }
   }
 
-  // Creates a new Tensor and maps the dataId to the passed in handle.
-  private createOutputTensor(handle: TensorHandle): Tensor {
+  // Creates a new Tensor and maps the dataId to the passed in ID.
+  private createOutputTensor(metadata: TensorMetadata): Tensor {
     const newId = {};
-    this.handleContextMap.set(newId, {handle, values: null});
+
+    this.tensorMap.set(newId, {
+      shape: metadata.shape,
+      dtype: metadata.dtype,
+      id: metadata.id,
+      values: null
+    });
 
     let dtype: DataType;
-    switch (handle.dtype) {
+    switch (metadata.dtype) {
       case this.binding.TF_FLOAT:
         dtype = 'float32';
         break;
@@ -79,28 +77,28 @@ export class NodeJSKernelBackend implements KernelBackend {
         dtype = 'bool';
         break;
       default:
-        throw new Error(`Unknown dtype enum ${handle.dtype}`);
+        throw new Error(`Unknown dtype enum ${metadata.dtype}`);
     }
-    return Tensor.make(handle.shape, {dataId: newId}, dtype);
+    return Tensor.make(metadata.shape, {dataId: newId}, dtype);
   }
 
   // Prepares Tensor instances for Op execution.
-  private getInputTensors(tensors: Tensor[]): TensorHandle[] {
-    const inputs: TensorHandle[] = [];
+  private getInputTensorIds(tensors: Tensor[]): number[] {
+    const ids: number[] = [];
     for (let i = 0; i < tensors.length; i++) {
-      const handleState = this.handleContextMap.get(tensors[i].dataId);
-      if (handleState.values != null) {
+      const info = this.tensorMap.get(tensors[i].dataId);
+      // TODO - what about ID in this case? Handle in write()??
+      if (info.values != null) {
         // Values were delayed to write into the TensorHandle. Do that before Op
         // execution and clear stored values.
-        const info = this.shapeMap.get(tensors[i].dataId);
-        handleState.handle.copyBuffer(
-            info.shape, info.dtype, handleState.values);
-        handleState.values = null;
-        this.handleContextMap.set(tensors[i].dataId, handleState);
+        info.id =
+            this.binding.createTensor(info.shape, info.dtype, info.values);
+        info.values = null;
+        this.tensorMap.set(tensors[i].dataId, info);
       }
-      inputs.push(handleState.handle);
+      ids.push(info.id);
     }
-    return inputs;
+    return ids;
   }
 
   private createReductionOpAttrs(tensor: Tensor): TFEOpAttr[] {
@@ -126,10 +124,54 @@ export class NodeJSKernelBackend implements KernelBackend {
 
   private executeSingleOutput(
       name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]): Tensor {
-    const output = new this.binding.TensorHandle();
-    this.binding.execute(
-        this.context, name, opAttrs, this.getInputTensors(inputs), [output]);
-    return this.createOutputTensor(output);
+    const outputMetadata = this.binding.executeOp(
+        name, opAttrs, this.getInputTensorIds(inputs), 1);
+    return this.createOutputTensor(outputMetadata[0]);
+  }
+
+  dispose(): void {
+    throw new Error('Method not implemented.');
+  }
+
+  async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
+    return this.readSync(dataId);
+  }
+
+  readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
+    if (!this.tensorMap.has(dataId)) {
+      throw new Error(`Tensor ${dataId} was not registered!`);
+    }
+    const info = this.tensorMap.get(dataId);
+    if (info.values != null) {
+      return info.values;
+    } else {
+      const values = this.binding.tensorDataSync(info.id);
+      info.values = values;
+      this.tensorMap.set(dataId, info);
+      return values;
+    }
+  }
+
+  disposeData(dataId: object): void {
+    this.binding.deleteTensor(this.tensorMap.get(dataId).id);
+    this.tensorMap.delete(dataId);
+  }
+
+  write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
+    if (!this.tensorMap.has(dataId)) {
+      throw new Error(`Tensor ${dataId} was not registered!`);
+    }
+
+    const info = this.tensorMap.get(dataId);
+    info.values = values;
+    this.tensorMap.set(dataId, info);
+  }
+
+  register(dataId: object, shape: number[], dtype: DataType): void {
+    if (!this.tensorMap.has(dataId)) {
+      this.tensorMap.set(
+          dataId, {shape, dtype: this.getTFDType(dtype), values: null, id: -1});
+    }
   }
 
   matMul(a: Tensor2D, b: Tensor2D, transposeA: boolean, transposeB: boolean):
@@ -668,55 +710,11 @@ export class NodeJSKernelBackend implements KernelBackend {
       indices, depthTensor, onValueTensor, offValueTensor
     ]) as Tensor2D;
   }
-  dispose(): void {
-    throw new Error('Method not implemented.');
-  }
-
-  async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
-    return this.readSync(dataId);
-  }
-
-  readSync(dataId: object): Float32Array|Int32Array|Uint8Array {
-    const context = this.handleContextMap.get(dataId);
-    if (context.values == null) {
-      return context.handle.dataSync(this.context);
-    } else {
-      return context.values;
-    }
-  }
-
-  disposeData(dataId: object): void {
-    // throw new Error('Method not implemented.');
-  }
-
-  write(dataId: object, values: Float32Array|Int32Array|Uint8Array): void {
-    if (!this.shapeMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} was not registered!`);
-    }
-    if (this.handleContextMap.has(dataId)) {
-      // Handle is being re-used.
-      const state = this.handleContextMap.get(dataId);
-      state.values = values;
-      this.handleContextMap.set(dataId, state);
-    } else {
-      // Create a new handle:
-      this.handleContextMap.set(
-          dataId, {handle: new this.binding.TensorHandle(), values});
-    }
-  }
 
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {
     throw new Error('Method not implemented.');
-  }
-
-  register(dataId: object, tShape: number[], dtype: 'float32'|'int32'|'bool'):
-      void {
-    if (this.shapeMap.has(dataId)) {
-      throw new Error(`Tensor ${dataId} is already registered!`);
-    }
-    this.shapeMap.set(dataId, {shape: tShape, dtype: this.getTFDType(dtype)});
   }
 
   memory(): {unreliable: boolean;} {

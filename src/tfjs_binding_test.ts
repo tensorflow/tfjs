@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
-import {TFJSBinding, TFEOpAttr, TensorHandle} from './tfjs_binding';
+import {TFJSBinding, TFEOpAttr} from './tfjs_binding';
 const binding = bindings('tfjs_binding.node') as TFJSBinding;
 
 describe('Exposes TF_DataType enum values', () => {
@@ -59,93 +59,35 @@ describe('Exposes TF Version', () => {
   });
 });
 
-describe('Context', () => {
-  it('creates an instance', () => {
-    expect(new binding.Context()).toBeDefined();
+describe('tensor management', () => {
+  it('Creates and deletes a valid tensor', () => {
+    const values = new Int32Array([1, 2]);
+    const id = binding.createTensor([2], binding.TF_INT32, values);
+    expect(id).toBeDefined();
+
+    binding.deleteTensor(id);
   });
-});
-
-describe('TensorHandle', () => {
-  const context = new binding.Context();
-  it('should create with default constructor', () => {
-    expect(new binding.TensorHandle()).toBeDefined();
-  });
-
-  it('throws exception when shape is called on non-used handle', () => {
-    expect(() => {
-      // tslint:disable-next-line:no-unused-expression
-      new binding.TensorHandle().shape;
-    }).toThrowError();
-  });
-
-  it('throws exception when dtype is called on a non-used handle', () => {
-    expect(() => {
-      // tslint:disable-next-line:no-unused-expression
-      new binding.TensorHandle().dtype;
-    }).toThrowError();
-  });
-
-  it('throws exception when dataSync() is called on non-used handle', () => {
-    expect(() => {
-      // tslint:disable-next-line:no-unused-expression
-      new binding.TensorHandle().dataSync(context);
-    }).toThrowError();
-  });
-
-  it('creates a valid handle with shape and type when data is bound', () => {
-    const handle = new binding.TensorHandle();
-    handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-    expect(handle).toBeDefined();
-    expect(handle.shape).toEqual([2]);
-    expect(handle.dtype).toEqual(binding.TF_INT32);
-    expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
-  });
-
-  it('reuses handles with different shape', () => {
-    const handle = new binding.TensorHandle();
-    handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-    expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
-
-    handle.copyBuffer([2], binding.TF_FLOAT, new Float32Array([3, 4]));
-    expect(handle.dataSync(context)).toEqual(new Float32Array([3, 4]));
-  });
-
-  it('reuses handles with different dtype', () => {
-    const handle = new binding.TensorHandle();
-    handle.copyBuffer([2], binding.TF_INT32, new Int32Array([1, 2]));
-    expect(handle.dataSync(context)).toEqual(new Int32Array([1, 2]));
-
-    handle.copyBuffer([4], binding.TF_INT32, new Int32Array([3, 4, 5, 6]));
-    expect(handle.dataSync(context)).toEqual(new Int32Array([3, 4, 5, 6]));
-  });
-
   it('throws exception when shape does not match data', () => {
     expect(() => {
-      new binding.TensorHandle().copyBuffer(
-          [2], binding.TF_INT32, new Int32Array([1, 2, 3]));
+      binding.createTensor([2], binding.TF_INT32, new Int32Array([1, 2, 3]));
     }).toThrowError();
     expect(() => {
-      new binding.TensorHandle().copyBuffer(
-          [4], binding.TF_INT32, new Int32Array([1, 2, 3]));
+      binding.createTensor([4], binding.TF_INT32, new Int32Array([1, 2, 3]));
     }).toThrowError();
   });
-
   it('throws exception with invalid dtype', () => {
     expect(() => {
       // tslint:disable-next-line:no-unused-expression
-      new binding.TensorHandle().copyBuffer([1], 1000, new Int32Array([1]));
+      binding.createTensor([1], 1000, new Int32Array([1]));
     }).toThrowError();
   });
-
   it('works with 0-dim tensors', () => {
     // Reduce op (e.g 'Max') will produce a 0-dim TFE_Tensor.
-    const output = new binding.TensorHandle();
 
-    const axes = new binding.TensorHandle();
-    axes.copyBuffer([1], binding.TF_INT32, new Int32Array([0]));
-
-    const input = new binding.TensorHandle();
-    input.copyBuffer([3], binding.TF_INT32, new Int32Array([1, 2, 3]));
+    const inputId =
+        binding.createTensor([3], binding.TF_INT32, new Int32Array([1, 2, 3]));
+    const axesId =
+        binding.createTensor([1], binding.TF_INT32, new Int32Array([0]));
 
     const attrs = [
       {name: 'keep_dims', type: binding.TF_ATTR_BOOL, value: false},
@@ -153,217 +95,201 @@ describe('TensorHandle', () => {
       {name: 'Tidx', type: binding.TF_ATTR_TYPE, value: binding.TF_INT32}
     ];
 
-    binding.execute(context, 'Max', attrs, [input, axes], [output]);
-    expect(output.shape).toEqual([]);
-    expect(output.dtype).toEqual(binding.TF_INT32);
-    expect(output.dataSync(context)).toEqual(new Int32Array([3]));
+    const outputMetadata =
+        binding.executeOp('Max', attrs, [inputId, axesId], 1);
+    expect(outputMetadata.length).toBe(1);
+
+    expect(outputMetadata[0].id).toBeDefined();
+    expect(outputMetadata[0].shape).toEqual([]);
+    expect(outputMetadata[0].dtype).toEqual(binding.TF_INT32);
+    expect(binding.tensorDataSync(outputMetadata[0].id))
+        .toEqual(new Int32Array([3]));
   });
 });
 
-describe('execute()', () => {
-  const context = new binding.Context();
+describe('executeOp', () => {
   const name = 'MatMul';
-  const output = [new binding.TensorHandle()];
   const matMulOpAttrs = [
     {name: 'transpose_a', type: binding.TF_ATTR_BOOL, value: false},
     {name: 'transpose_b', type: binding.TF_ATTR_BOOL, value: false},
     {name: 'T', type: binding.TF_ATTR_TYPE, value: binding.TF_FLOAT}
   ];
-  const tensorA = new binding.TensorHandle();
-  tensorA.copyBuffer([2, 2], binding.TF_FLOAT, new Float32Array([1, 2, 3, 4]));
-  const tensorB = new binding.TensorHandle();
-  tensorB.copyBuffer([2, 2], binding.TF_FLOAT, new Float32Array([4, 3, 2, 1]));
-  const matMulInput = [tensorA, tensorB];
-
-  it('throws exception with invalid Context', () => {
-    expect(() => {
-      binding.execute(
-          null, 'Test', [] as TFEOpAttr[], [] as TensorHandle[], null);
-    }).toThrowError();
-  });
+  const aId = binding.createTensor(
+      [2, 2], binding.TF_FLOAT, new Float32Array([1, 2, 3, 4]));
+  const bId = binding.createTensor(
+      [2, 2], binding.TF_FLOAT, new Float32Array([4, 3, 2, 1]));
+  const matMulInput = [aId, bId];
 
   it('throws exception with invalid Op Name', () => {
     expect(() => {
-      binding.execute(
-          context, null, [] as TFEOpAttr[], [] as TensorHandle[], null);
+      binding.executeOp(null, [] as TFEOpAttr[], [] as number[], null);
     }).toThrowError();
   });
-
   it('throws exception with invalid TFEOpAttr', () => {
     expect(() => {
-      binding.execute(context, 'Equal', null, [] as TensorHandle[], null);
+      binding.executeOp('Equal', null, [] as number[], null);
     }).toThrowError();
   });
-
   it('throws excpetion with invalid inputs', () => {
     expect(() => {
-      binding.execute(context, name, matMulOpAttrs, [] as TensorHandle[], null);
+      binding.executeOp(name, matMulOpAttrs, [] as number[], null);
     }).toThrowError();
   });
-
-  it('throws exception with invalid output', () => {
+  it('throws exception with invalid output number', () => {
     expect(() => {
-      binding.execute(
-          new binding.Context(), name, matMulOpAttrs, matMulInput, null);
+      binding.executeOp(name, matMulOpAttrs, matMulInput, null);
     }).toThrowError();
   });
-
   it('throws exception with invalid TF_ATTR_STRING op attr', () => {
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_STRING, value: null}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_STRING, value: false}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_STRING, value: 1}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_STRING, value: new Object()}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_STRING, value: [1, 2, 3]}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
   });
-
   it('throws exception with invalid TF_ATTR_INT op attr', () => {
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_INT, value: null}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_INT, value: false}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_INT, value: new Object()}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_INT, value: 'test'}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_INT, value: [1, 2, 3]}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
   });
-
   it('throws exception with invalid TF_ATTR_FLOAT op attr', () => {
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_FLOAT, value: null}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_FLOAT, value: false}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_FLOAT, value: new Object()}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_FLOAT, value: 'test'}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_FLOAT, value: [1, 2, 3]}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
   });
-
   it('throws exception with invalid TF_ATTR_BOOL op attr', () => {
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_BOOL, value: null}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_BOOL, value: 10}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_BOOL, value: new Object()}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_BOOL, value: 'test'}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_BOOL, value: [1, 2, 3]}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
   });
-
   it('throws exception with invalid TF_ATTR_TYPE op attr', () => {
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: null}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: new Object()}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: 'test'}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: [1, 2, 3]}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
   });
-
   it('throws exception with invalid TF_ATTR_SHAPE op attr', () => {
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: null}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: new Object()}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
     expect(() => {
       const badOpAttrs: TFEOpAttr[] =
           [{name: 'T', type: binding.TF_ATTR_TYPE, value: 'test'}];
-      binding.execute(context, name, badOpAttrs, matMulInput, output);
+      binding.executeOp(name, badOpAttrs, matMulInput, 1);
     }).toThrowError();
   });
-
   it('should work for matmul', () => {
-    binding.execute(context, name, matMulOpAttrs, matMulInput, output);
-    expect(output[0].dataSync(context)).toEqual(new Float32Array([
+    const output = binding.executeOp(name, matMulOpAttrs, matMulInput, 1);
+    expect(binding.tensorDataSync(output[0].id)).toEqual(new Float32Array([
       8, 5, 20, 13
     ]));
   });
