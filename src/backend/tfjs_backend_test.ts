@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
+import {Scalar, scalar, slice, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
 import * as _ from 'underscore';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
@@ -21,8 +21,7 @@ import {ConcreteTensor, DType, LayerVariable, SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import * as K from './tfjs_backend';
-
-// tslint:enable
+// tslint:enable:max-line-length
 
 const CT = ConcreteTensor;
 
@@ -392,6 +391,58 @@ describeMathCPUAndGPU('squeeze', () => {
     const x = tensor2d([[10, 20, 30]]);
     const y = tensor1d([10, 20, 30]);
     expectTensorsClose(K.squeeze(x, 0), y);
+  });
+});
+
+describeMathCPUAndGPU('temporalPadding', () => {
+  it('default padding 1-1', () => {
+    const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
+    const y = K.temporalPadding(x);
+    expectTensorsClose(y, tensor3d([
+                         [[0, 0], [1, 2], [3, 4], [0, 0]],
+                         [[0, 0], [-1, -2], [-3, -4], [0, 0]]
+                       ]));
+  });
+  it('custom padding 2-2', () => {
+    const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
+    const y = K.temporalPadding(x, [2, 2]);
+    expectTensorsClose(
+        y, tensor3d([
+          [[0, 0], [0, 0], [1, 2], [3, 4], [0, 0], [0, 0]],
+          [[0, 0], [0, 0], [-1, -2], [-3, -4], [0, 0], [0, 0]]
+        ]));
+  });
+});
+
+describeMathCPUAndGPU('spatial2dPadding', () => {
+  it('default padding 1-1-1-1', () => {
+    const x = K.ones([2, 3, 4, 3]);
+    const y = K.spatial2dPadding(x);
+
+    expect(y.shape).toEqual([2, 5, 6, 3]);
+    expectTensorsClose(slice(y, [0, 1, 1, 0], [2, 3, 4, 3]), x);
+    expectTensorsClose(
+        slice(y, [0, 0, 0, 0], [2, 1, 6, 3]), K.zeros([2, 1, 6, 3]));
+    expectTensorsClose(
+        slice(y, [0, 4, 0, 0], [2, 1, 6, 3]), K.zeros([2, 1, 6, 3]));
+    expectTensorsClose(
+        slice(y, [0, 0, 0, 0], [2, 5, 1, 3]), K.zeros([2, 5, 1, 3]));
+    expectTensorsClose(
+        slice(y, [0, 0, 5, 0], [2, 5, 1, 3]), K.zeros([2, 5, 1, 3]));
+  });
+
+  it('custom padding 2-2-3-0', () => {
+    const x = K.ones([2, 3, 4, 3]);
+    const y = K.spatial2dPadding(x, [[2, 2], [3, 0]]);
+    expect(y.shape).toEqual([2, 7, 7, 3]);
+
+    expectTensorsClose(slice(y, [0, 2, 3, 0], [2, 3, 4, 3]), x);
+    expectTensorsClose(
+        slice(y, [0, 0, 0, 0], [2, 2, 7, 3]), K.zeros([2, 2, 7, 3]));
+    expectTensorsClose(
+        slice(y, [0, 5, 0, 0], [2, 2, 7, 3]), K.zeros([2, 2, 7, 3]));
+    expectTensorsClose(
+        slice(y, [0, 0, 0, 0], [2, 7, 3, 3]), K.zeros([2, 7, 3, 3]));
   });
 });
 

@@ -18,8 +18,7 @@ import {ones, scalar, Tensor, tensor3d, tensor4d, util} from '@tensorflow/tfjs-c
 import * as K from '../backend/tfjs_backend';
 import {DataFormat, PaddingMode} from '../common';
 import {InitializerIdentifier} from '../initializers';
-import {DType} from '../types';
-import {SymbolicTensor} from '../types';
+import {DType, SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Conv1D, Conv2D, Conv2DTranspose} from './convolutional';
