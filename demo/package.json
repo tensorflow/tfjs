@@ -6,8 +6,8 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@tensorflow/tfjs-converter": "0.1.0",
-    "@tensorflow/tfjs-core": "0.6.0"
+    "@tensorflow/tfjs-converter": "0.1.1",
+    "@tensorflow/tfjs-core": "0.6.1"
   },
   "scripts": {
     "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
