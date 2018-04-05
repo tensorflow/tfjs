@@ -443,4 +443,25 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
       done();
     }
   });
+
+  it('should use request option', done => {
+    setupFakeWeightFiles({'./weightfile0': new Float32Array([1, 2, 3])});
+
+    const manifest: WeightsManifestConfig = [{
+      'paths': ['weightfile0'],
+      'weights': [{'name': 'weight0', 'dtype': 'float32', 'shape': [3]}]
+    }];
+
+    const weightsNamesToFetch = ['weight0'];
+    dl.loadWeights(
+          manifest, './', weightsNamesToFetch, {credentials: 'include'})
+        .then(weights => {
+          expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
+          expect(window.fetch).toHaveBeenCalledWith('./weightfile0', {
+            credentials: 'include'
+          });
+        })
+        .then(done)
+        .catch(done.fail);
+  });
 });
