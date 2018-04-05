@@ -26,6 +26,7 @@ import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, Dro
 import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
+import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './layers/padding';
 import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
@@ -430,6 +431,19 @@ export class LayerExports {
   })
   static batchNormalization(config: BatchNormalizationLayerConfig): Layer {
     return new BatchNormalization(config);
+  }
+
+  // Padding Layers.
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Padding',
+    namespace: 'layers',
+    useDocsFrom: 'ZeroPadding2D',
+    configParamIndices: [0]
+  })
+  static zeroPadding2d(config: ZeroPadding2DLayerConfig): Layer {
+    return new ZeroPadding2D(config);
   }
 
   // Pooling Layers.
