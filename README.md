@@ -20,7 +20,7 @@ A 2-step process to import your model:
   $ pip install tensorflowjs
 ```
 
-2. Run converter script provided the pacakge
+2. Run converter script provided in the package
 
 Usage:
 ```bash
@@ -41,7 +41,7 @@ $ tensorflowjs_converter \
 | Options | Description
 |---|---|
 |`--input_format`     | The format of input model, use tf_saved_model for SavedModel. |
-|`--output_node_names`| he names of the output nodes, separated by commas.|
+|`--output_node_names`| The names of the output nodes, separated by commas.|
 |`--saved_model_tags` | Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
 
 
@@ -90,7 +90,7 @@ Check out our working [MobileNet demo](./demo/README.md).
 
 Currently TensorFlow.js only supports a limited set of TensorFlow Ops. See the
 [full list](./docs/supported_ops.md).
-If your model uses an unsupported ops, the `tensorflowjs_coverter` script will fail and
+If your model uses an unsupported ops, the `tensorflowjs_converter` script will fail and
 produce a list of the unsupported ops in your model. Please file issues to let us
 know what ops you need support with.
 
@@ -99,7 +99,7 @@ know what ops you need support with.
 
 1. What TensorFlow models does the converter currently support?
 
-Image-based models (MobileNet, SqueezeNet, add more if you tested) are the most supported. Models with control flow ops (e.g. RNNs) are not yet supported. The tensorflowjs_coverter script will validate the model you have and show a list of unsupported ops in your model. See [this list](./docs/supported_ops.md) for which ops are currently supported.
+Image-based models (MobileNet, SqueezeNet, add more if you tested) are the most supported. Models with control flow ops (e.g. RNNs) are not yet supported. The tensorflowjs_converter script will validate the model you have and show a list of unsupported ops in your model. See [this list](./docs/supported_ops.md) for which ops are currently supported.
 
 2. Will model with large weights work?
 
@@ -113,7 +113,7 @@ Yes, we are splitting the weights into files of 4MB chunks, which enable the bro
 
 Not yet. We are planning to add quantization support soon.
 
-5. Why the predict() method for inference is so much slower on the first time then the subsequent calls?
+5. Why is the predict() method for inference so much slower on the first call than the subsequent calls?
 
 The time of first call also includes the compilation time of WebGL shader programs for the model. After the first call the shader programs are cached, which makes the subsequent calls much faster. You can warm up the cache by calling the predict method with an all zero inputs, right after the completion of the model loading.
 
