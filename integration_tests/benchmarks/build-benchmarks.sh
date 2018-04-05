@@ -44,10 +44,12 @@ python "${DEMO_DIR}/python/benchmarks.py" "${DATA_ROOT}"
 
 echo Building local TensorFlow.js Layers NPM package...
 cd ../..
-yarn build-npm
+yarn build
+yarn link
 
 cd ${DEMO_DIR}
 yarn
+yarn link "@tensorflow/tfjs-layers"
 yarn build
 
 echo

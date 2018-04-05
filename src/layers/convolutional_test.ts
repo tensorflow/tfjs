@@ -233,6 +233,16 @@ describeMathCPU('Conv2DTranspose: Symbolic', () => {
       }
     }
   }
+
+  it('Correct weight names', () => {
+    const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
+    const layer = new Conv2DTranspose({filters: 2, kernelSize: [3, 3]});
+    layer.apply(x);  // Let the layer build first.
+
+    expect(layer.weights.length).toEqual(2);
+    expect(layer.weights[0].name.indexOf('/kernel')).toBeGreaterThan(0);
+    expect(layer.weights[1].name.indexOf('/bias')).toBeGreaterThan(0);
+  });
 });
 
 describeMathCPUAndGPU('Conv2DTranspose: Tensor', () => {
