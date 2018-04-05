@@ -397,7 +397,7 @@ export class Conv2DTranspose extends Conv2D {
         this.kernelRegularizer, true, this.kernelConstraint);
     if (this.useBias) {
       this.bias = this.addWeight(
-          'kernel', [this.filters], DType.float32, this.biasInitializer,
+          'bias', [this.filters], DType.float32, this.biasInitializer,
           this.biasRegularizer, true, this.biasConstraint);
     }
 

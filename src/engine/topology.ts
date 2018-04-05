@@ -363,6 +363,8 @@ export class Layer {
   private _built: boolean;
   private _callHook: CallHook = null;
 
+  private _addedWeightNames: string[] = [];
+
   readonly id: number;
 
   // Porting Notes: PyKeras does not have this property in this base Layer
@@ -1030,6 +1032,13 @@ export class Layer {
       name: string, shape: Shape, dtype?: DType, initializer?: Initializer,
       regularizer?: Regularizer, trainable?: boolean,
       constraint?: Constraint): LayerVariable {
+    // Reject duplicate weight names.
+    if (this._addedWeightNames.indexOf(name) !== -1) {
+      throw new ValueError(
+          `Duplicate weight name ${name} for layer ${this.name}`);
+    }
+    this._addedWeightNames.push(name);
+
     if (dtype == null) {
       dtype = K.floatx();
     }

@@ -14,12 +14,13 @@ import * as _ from 'underscore';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
+import * as initializers from '../initializers';
 import {Reshape} from '../layers/core';
 import {DType, LayerVariable, NamedTensorMap, Shape, SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {execute, FeedDict} from './executor';
-import {Container, getSourceInputs, Input, InputLayer, InputSpec, Layer, loadWeightsFromJson, loadWeightsFromNamedTensorMap, Node} from './topology';
+import {Container, getSourceInputs, Input, InputLayer, InputSpec, Layer, LayerConfig, loadWeightsFromJson, loadWeightsFromNamedTensorMap, Node} from './topology';
 
 // tslint:enable
 
@@ -290,6 +291,22 @@ describeMathCPU('Layer', () => {
       const weights = [K.zeros([1])];
       const layer = new Layer({weights});
       expect(layer.initialWeights).toEqual(weights);
+    });
+
+    it('Layer with duplicate weight names throws error', () => {
+      class LayerForTest extends Layer {
+        constructor(config: LayerConfig) {
+          super(config);
+          this.addWeight(
+              'foo', [1, 2], DType.float32,
+              initializers.getInitializer('zeros'));
+          this.addWeight(
+              'foo', [2, 3], DType.float32,
+              initializers.getInitializer('zeros'));
+        }
+      }
+      expect(() => new LayerForTest({}))
+          .toThrowError(/[Dd]uplicate weight name/);
     });
   });
 
