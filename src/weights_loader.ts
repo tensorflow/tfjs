@@ -46,7 +46,8 @@ const DTYPE_VALUE_SIZE_MAP: {[dtype: string]: number} = {
  */
 export async function loadWeights(
     manifest: WeightsManifestConfig, filePathPrefix = '',
-    weightNames?: string[]): Promise<NamedTensorMap> {
+    weightNames?: string[],
+    requestOptions?: RequestInit): Promise<NamedTensorMap> {
   // TODO(nsthorat): Groups are currently fetched atomically. If you need a
   // single weight from a group, the whole group will be fetched. At a future
   // date, we should support fetching only the individual shards within a
@@ -124,7 +125,7 @@ export async function loadWeights(
     manifest[i].paths.forEach(filepath => {
       const fetchUrl = filePathPrefix +
           (!filePathPrefix.endsWith('/') ? '/' : '') + filepath;
-      requests.push(fetch(fetchUrl));
+      requests.push(fetch(fetchUrl, requestOptions));
     });
   });
 
