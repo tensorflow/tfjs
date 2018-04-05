@@ -90,7 +90,7 @@ describe('Model', () => {
     });
   });
 
-  describe('dispose', async () => {
+  describe('dispose', () => {
     it('should dispose the weights', async () => {
       model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
       spyOn(bias, 'dispose');
@@ -102,7 +102,7 @@ describe('Model', () => {
     });
   });
 
-  describe('getVersion', async () => {
+  describe('getVersion', () => {
     it('should return the version info from the tf model', async () => {
       await model.load();
       expect(model.modelVersion).toEqual('1.3');
@@ -120,8 +120,20 @@ describe('Model', () => {
     });
   });
 
-  describe('loadFrozenModel', async () => {
+  it('should loadFrozenModel', async () => {
     const model = await loadFrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+    expect(model).not.toBeUndefined();
+  });
+
+  it('should loadFrozenModel with request options', async () => {
+    const model = await loadFrozenModel(
+        MODEL_URL, WEIGHT_MANIFEST_URL, {credentials: 'include'});
+    expect(window.fetch).toHaveBeenCalledWith(MODEL_URL, {
+      credentials: 'include'
+    });
+    expect(window.fetch).toHaveBeenCalledWith(WEIGHT_MANIFEST_URL, {
+      credentials: 'include'
+    });
     expect(model).not.toBeUndefined();
   });
 });
