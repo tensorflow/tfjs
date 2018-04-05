@@ -96,8 +96,8 @@ export class FrozenModel {
     const [graph, ] = await Promise.all([graphPromise, manifestPromise]);
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
-    const weightMap =
-        await tfc.loadWeights(this.weightManifest, this.pathPrefix);
+    const weightMap = await tfc.loadWeights(
+        this.weightManifest, this.pathPrefix, undefined, this.requestOption);
     this.executor =
         new GraphExecutor(OperationMapper.Instance.transformGraph(graph));
     this.executor.weightMap = this.convertTensorMapToTensorsMap(weightMap);
