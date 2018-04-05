@@ -20,9 +20,10 @@ A 2-step process to import your model:
   $ pip install tensorflowjs
 ```
 
-2. Run converter script provided in the package
+2. Run the converter script provided by the pip package:
 
 Usage:
+
 ```bash
 $ tensorflowjs_converter \
     --input_format=tf_saved_model \
@@ -85,6 +86,15 @@ model.execute({input: tfc.fromPixels(cat)});
 ```
 
 Check out our working [MobileNet demo](./demo/README.md).
+
+If your server requests credentials for accessing the model files, you can provide the optional RequestOption param.
+
+```typescript
+const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL,
+    {credentials: 'include'});
+```
+
+Please see [fetch() documentation](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch) for details.
 
 ## Supported operations
 
