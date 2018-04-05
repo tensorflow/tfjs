@@ -147,10 +147,13 @@ export function describeWithFlags(
 function executeTests(
     testName: string, tests: () => void, features?: Features) {
   describe(testName, () => {
-    beforeEach(() => {
+    beforeAll(() => {
       ENV.setFeatures(features || {});
       ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
       ENV.addCustomBackend('cpu', () => new MathBackendCPU());
+    });
+
+    beforeEach(() => {
       if (features && features.BACKEND != null) {
         Environment.setBackend(features.BACKEND);
       }
@@ -159,6 +162,9 @@ function executeTests(
 
     afterEach(() => {
       ENV.engine.endScope(null);
+    });
+
+    afterAll(() => {
       ENV.reset();
     });
 
