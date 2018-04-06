@@ -224,11 +224,9 @@ export class CallbackList {
 export class BaseLogger extends Callback {
   private seen: number;
   private totals: UnresolvedLogs;
-  private scalarCache: {[batchSize: number]: Scalar};
 
   constructor() {
     super();
-    this.scalarCache = {};
   }
 
   async onEpochBegin(epoch: number, logs?: UnresolvedLogs) {
