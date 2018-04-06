@@ -1479,8 +1479,8 @@ export class Model extends Container {
       } else {
         throw new ValueError(
             `When passing validation data, it must contain 2 (valX, valY) ` +
-            `or 3 (valX, valY, valSampleWeight) items, however it contains ` +
-            `${config.validationData.length} items`);
+            `or 3 (valX, valY, valSampleWeight) items; ` +
+            `${config.validationData} is invalid.`);
       }
 
       const valStandardized =

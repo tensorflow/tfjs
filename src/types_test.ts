@@ -94,10 +94,6 @@ describeMathCPU('ConcreteTensor Test', () => {
   it('Read value', () => {
     const v1 = new CT(scalar(10), 'foo');
     expect(v1.value().dataSync()).toEqual(new Float32Array([10]));
-
-    let v1Value = v1.value();
-    v1Value = scalar(20);
-    expect(v1.value().dataSync()).toEqual(new Float32Array([10]));
   });
 
   it('Generates unique ID', () => {
@@ -184,10 +180,6 @@ describeMathCPU('Variable', () => {
 
   it('Read value', () => {
     const v1 = new LayerVariable(scalar(10), null, 'foo');
-    expect(v1.read().dataSync()).toEqual(new Float32Array([10]));
-
-    let v1Value = v1.read();
-    v1Value = scalar(20);
     expect(v1.read().dataSync()).toEqual(new Float32Array([10]));
   });
 

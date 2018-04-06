@@ -43,12 +43,6 @@ export interface WrapperLayerConfig extends LayerConfig {
  */
 export abstract class Wrapper extends Layer {
   readonly layer: Layer;
-  /**
-   * Tracks mapping of Wrapper inputs to inner layer inputs. Useful when
-   * the inner layer has update ops that depend on its inputs (as opposed
-   * to the inputs to the Wrapper layer).
-   */
-  private inputMap: {[key: string]: SymbolicTensor[]};
 
   constructor(config: WrapperLayerConfig) {
     // Porting Note: In PyKeras, `self.layer` is set prior to the calling
@@ -60,7 +54,6 @@ export abstract class Wrapper extends Layer {
     //   and the setter of `this.layer`.
     super(config);
     this.layer = config.layer;
-    this.inputMap = {};
   }
 
   build(inputShape: Shape|Shape[]): void {
