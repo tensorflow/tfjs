@@ -66,25 +66,36 @@ class HDF5Converter(object):
       name = name[:-2]
     return name
 
-  def convert_h5_group(self, group, names):
+  def _convert_h5_group(self, group):
     """Construct a weights group entry.
 
     Args:
-      group: The HDF5 group data.
-      names: The names of the sub-fields within the group.
+      group: The HDF5 group data, possibly nested.
 
     Returns:
       An array of weight groups (see `write_weights` in TensorFlow.js).
     """
-    if not names:
-      return None
-    names = [as_text(name) for name in names]
-    weight_values = [
-        np.array(group[weight_name]) for weight_name in names]
-    group_out = [{
-        'name': self._normalize_weight_name(weight_name),
-        'data': weight_value
-    } for (weight_name, weight_value) in zip(names, weight_values)]
+    group_out = []
+    if 'weight_names' in group.attrs:
+      # This is a leaf node in namespace (e.g., 'Dense' in 'foo/bar/Dense').
+      names = [name for name in group.attrs['weight_names']]
+      if not names:
+        return group_out
+
+      names = [as_text(name) for name in names]
+      weight_values = [
+          np.array(group[weight_name]) for weight_name in names]
+      group_out += [{
+          'name': self._normalize_weight_name(weight_name),
+          'data': weight_value
+      } for (weight_name, weight_value) in zip(names, weight_values)]
+    else:
+      # This is *not* a leaf level in the namespace (e.g., 'foo' in
+      # 'foo/bar/Dense').
+      for key in group.keys():
+        # Call this method recursively.
+        group_out += self._convert_h5_group(group[key])
+
     return group_out
 
   def _check_version(self, h5file):
@@ -155,12 +166,12 @@ class HDF5Converter(object):
 
     groups = []
 
-    layer_names = [as_text(n) for n in h5file['model_weights']]
+    model_weights = h5file['model_weights']
+    layer_names = [as_text(n) for n in model_weights]
     for layer_name in layer_names:
-      layer = h5file['model_weights'][layer_name]
-      group = self.convert_h5_group(
-          layer, [name for name in layer.attrs['weight_names']])
-      if group is not None:
+      layer = model_weights[layer_name]
+      group = self._convert_h5_group(layer)
+      if group:
         groups.append(group)
     return model_json, groups
 
@@ -192,9 +203,8 @@ class HDF5Converter(object):
     # pylint: enable=not-an-iterable
     for layer_name in layer_names:
       layer = h5file[layer_name]
-      group = self.convert_h5_group(
-          layer, [name for name in layer.attrs['weight_names']])
-      if group is not None:
+      group = self._convert_h5_group(layer)
+      if group:
         groups.append(group)
     return groups
 

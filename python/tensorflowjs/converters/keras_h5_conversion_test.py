@@ -78,6 +78,38 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertEqual((4, 2), kernel2['data'].shape)
     self.assertTrue(np.allclose(np.ones([4, 2]), kernel2['data']))
 
+  def testConvertModelWithNestedLayerNames(self):
+    model = keras.Sequential()
+
+    # Add a layer with a nested layer name, i.e., a layer name with slash(es)
+    # in it.
+    model.add(keras.layers.Dense(2, input_shape=[12], name='dense'))
+    model.add(keras.layers.Dense(8, name='foo/dense'))
+    model.add(keras.layers.Dense(4, name='foo/bar/dense'))
+    tfjs_path = os.path.join(self._tmp_dir, 'nested_layer_names_model')
+    keras_h5_conversion.save_keras_model(model, tfjs_path)
+
+    # Check model.json and weights manifest.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rt') as f:
+      model_json = json.load(f)
+    self.assertTrue(model_json['modelTopology'])
+    weights_manifest = model_json['weightsManifest']
+    weight_shapes = dict()
+    for group in weights_manifest:
+      for weight in group['weights']:
+        weight_shapes[weight['name']] = weight['shape']
+    self.assertEqual(
+        sorted(['dense/kernel', 'dense/bias', 'foo/dense/kernel',
+                'foo/dense/bias', 'foo/bar/dense/kernel',
+                'foo/bar/dense/bias']),
+        sorted(list(weight_shapes.keys())))
+    self.assertEqual([12, 2], weight_shapes['dense/kernel'])
+    self.assertEqual([2], weight_shapes['dense/bias'])
+    self.assertEqual([2, 8], weight_shapes['foo/dense/kernel'])
+    self.assertEqual([8], weight_shapes['foo/dense/bias'])
+    self.assertEqual([8, 4], weight_shapes['foo/bar/dense/kernel'])
+    self.assertEqual([4], weight_shapes['foo/bar/dense/bias'])
+
   def testConvertMergedModelFromSimpleModel(self):
     input_tensor = keras.layers.Input((3,))
     dense1 = keras.layers.Dense(
