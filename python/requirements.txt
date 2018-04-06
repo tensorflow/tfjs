@@ -1,5 +1,6 @@
 h5py==2.7.1
 keras==2.1.4
 numpy==1.14.1
+pylint==1.8.3
 six==1.11.0
 tensorflow==1.7.0

@@ -1,6 +1,29 @@
-language: node_js
-node_js: "8"
-script:
-  - yarn build
-  - yarn lint
-  - yarn test-travis
+matrix:
+  include:
+    - language: node_js
+      node_js: "8"
+      script:
+        - yarn build
+        - yarn lint
+        - yarn test-travis
+
+    - language: python
+      python: 2.7
+      before_script:
+        - pip install -r python/requirements.txt
+        - cd python
+      script:
+        - pylint --rcfile=.pylintrc tensorflowjs
+        - ./run-python-tests.sh
+        - deactivate && ./build-pip-package.sh --test /tmp/tfjs-pips
+
+    - language: python
+      python: 3.6
+      before_script:
+        - pip install -r python/requirements.txt
+        - cd python
+      script:
+        - pylint --rcfile=.pylintrc tensorflowjs
+        - ./run-python-tests.sh
+        # Note: Since the build-pip-package.sh script runs both py2 and py3,
+        #   there is no need to run it again in this Python 3.6 environment.
