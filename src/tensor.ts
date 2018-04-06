@@ -436,8 +436,8 @@ export class Tensor<R extends Rank = Rank> {
 
   /** Returns a human-readable description of the tensor. Useful for logging. */
   @doc({heading: 'Tensors', subheading: 'Classes'})
-  toString(): string {
-    return tensor_util.tensorToString(this, true /* verbose */);
+  toString(verbose = false): string {
+    return tensor_util.tensorToString(this, verbose);
   }
 
   // Below is chain API that is not exposed to docs to avoid repetition. To
