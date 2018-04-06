@@ -211,8 +211,10 @@ class ConvertH5WeightsTest(unittest.TestCase):
     dense_layer = keras.layers.Dense(3)
     t_output = dense_layer(t_input)
     model = keras.Model(t_input, t_output)
-    with self.assertRaisesRegexp(ValueError, r'already exists as a file'):
+    with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+        ValueError, r'already exists as a file'):
       keras_h5_conversion.save_keras_model(model, artifacts_dir)
+
 
 
 if __name__ == '__main__':

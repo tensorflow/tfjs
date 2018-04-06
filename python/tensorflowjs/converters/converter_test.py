@@ -160,7 +160,8 @@ class ConvertH5WeightsTest(unittest.TestCase):
     h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
     sequential_model.save_weights(h5_path)
 
-    with self.assertRaisesRegexp(ValueError, r'already exists as a file'):
+    with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+        ValueError, r'already exists as a file'):
       converter.dispatch_pykeras_conversion(
           h5_path, output_dir=output_path)
 
