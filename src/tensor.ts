@@ -703,6 +703,10 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.sqrt(this);
   }
+  rsqrt<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.rsqrt(this);
+  }
   square<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return ops.square(this);

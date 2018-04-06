@@ -113,6 +113,10 @@ export const SQRT = CHECK_NAN_SNIPPET + `
   return sqrt(x);
 `;
 
+export const RSQRT = CHECK_NAN_SNIPPET + `
+  return inversesqrt(x);
+`;
+
 export const SIGMOID = `
   return 1.0 / (1.0 + exp(-1.0 * x));
 `;

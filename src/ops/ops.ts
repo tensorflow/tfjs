@@ -125,6 +125,7 @@ export const sigmoid = UnaryOps.sigmoid;
 export const sin = UnaryOps.sin;
 export const sinh = UnaryOps.sinh;
 export const sqrt = UnaryOps.sqrt;
+export const rsqrt = UnaryOps.rsqrt;
 export const square = UnaryOps.square;
 export const step = UnaryOps.step;
 export const tan = UnaryOps.tan;
