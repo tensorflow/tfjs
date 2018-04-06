@@ -186,6 +186,28 @@ export class UnaryOps {
   }
 
   /**
+   * Computes reciprocal of square root of the input `Tensor` element-wise:
+   * `y = 1 / sqrt(x)`
+   *
+   * ```js
+   * const x = tf.tensor1d([1, 2, 4, -1]);
+   *
+   * x.rsqrt().print();  // or tf.rsqrt(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static rsqrt<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {
+        x: () => dy.divStrict(x.pow(ops.scalar(1.5)).mul(ops.scalar(2))).neg()
+      };
+    };
+    return ENV.engine.runKernel(backend => backend.rsqrt(x), {x}, grad);
+  }
+
+  /**
    * Computes square of `x` element-wise: `x ^ 2`
    *
    * ```js

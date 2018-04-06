@@ -356,6 +356,66 @@ describeWithFlags('sqrt', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('rsqrt', ALL_ENVS, () => {
+  it('rsqrt', () => {
+    const a = dl.tensor1d([2, 4]);
+    const r = dl.rsqrt(a);
+    expectNumbersClose(r.get(0), 1 / Math.sqrt(2));
+    expectNumbersClose(r.get(1), 1 / Math.sqrt(4));
+  });
+
+  it('rsqrt propagates NaNs', () => {
+    const a = dl.tensor1d([1, NaN]);
+    const r = dl.rsqrt(a);
+    expectArraysClose(r, [1 / Math.sqrt(1), NaN]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = dl.scalar(4);
+    const dy = dl.scalar(8);
+
+    const da = dl.grad(a => dl.rsqrt(a))(a, dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [(-1 * 8) / (2 * Math.pow(4, 1.5))]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const a = dl.tensor1d([1, 2, 3, 5]);
+    const dy = dl.tensor1d([1, 2, 3, 4]);
+
+    const gradients = dl.grad(a => dl.rsqrt(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(
+        gradients,
+        [
+          -1 * 1 / (2 * Math.pow(1, 1.5)), -1 * 2 / (2 * Math.pow(2, 1.5)),
+          -1 * 3 / (2 * Math.pow(3, 1.5)), -1 * 4 / (2 * Math.pow(5, 1.5))
+        ],
+        1e-1);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const a = dl.tensor2d([3, 1, 2, 3], [2, 2]);
+    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+
+    const gradients = dl.grad(a => dl.rsqrt(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(
+        gradients,
+        [
+          -1 * 1 / (2 * Math.pow(3, 1.5)), -1 * 2 / (2 * Math.pow(1, 1.5)),
+          -1 * 3 / (2 * Math.pow(2, 1.5)), -1 * 4 / (2 * Math.pow(3, 1.5))
+        ],
+        1e-1);
+  });
+});
+
 describeWithFlags('square', ALL_ENVS, () => {
   it('1D array', () => {
     const a = dl.tensor1d([2, 4, Math.sqrt(2)]);
