@@ -168,6 +168,10 @@ export const SQUARE = `
   return x * x;
 `;
 
+export const RECIPROCAL = CHECK_NAN_SNIPPET + `
+  return 1.0 / x;
+`;
+
 export const LOGICAL_NOT = CHECK_NAN_SNIPPET + `
   return float(!(x >= 1.0));
 `;

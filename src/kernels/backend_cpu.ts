@@ -674,6 +674,20 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: newValues}) as T;
   }
 
+  reciprocal<T extends Tensor>(x: T): T {
+    const values = x.dataSync();
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      const value = values[i];
+      if (util.isValNaN(value, x.dtype)) {
+        newValues[i] = util.getNaN(x.dtype);
+      } else {
+        newValues[i] = 1 / value;
+      }
+    }
+    return Tensor.make(x.shape, {values: newValues}) as T;
+  }
+
   relu<T extends Tensor>(x: T): T {
     const res = ops.zeros(x.shape, x.dtype);
     const resVals = res.dataSync();

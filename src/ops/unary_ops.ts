@@ -246,6 +246,25 @@ export class UnaryOps {
   }
 
   /**
+   * Computes reciprocal of x element-wise: `1 / x`
+   *
+   * ```js
+   * const x = tf.tensor1d([0, 1, 2]);
+   *
+   * x.reciprocal().print();  // or tf.reciprocal(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static reciprocal<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {x: () => dy.divStrict(x.square().neg())};
+    };
+    return ENV.engine.runKernel(backend => backend.reciprocal(x), {x}, grad);
+  }
+
+  /**
    * Computes absolute value element-wise: `abs(x)`
    *
    * ```js
