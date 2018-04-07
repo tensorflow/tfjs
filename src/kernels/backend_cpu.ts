@@ -591,6 +591,21 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: newValues}) as T;
   }
 
+  sign<T extends Tensor>(x: T): T {
+    const values = x.dataSync();
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      if (values[i] < 0) {
+        newValues[i] = -1;
+      } else if (values[i] > 0) {
+        newValues[i] = 1;
+      } else {
+        newValues[i] = 0;
+      }
+    }
+    return Tensor.make(x.shape, {values: newValues}) as T;
+  }
+
   exp<T extends Tensor>(x: T): T {
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);

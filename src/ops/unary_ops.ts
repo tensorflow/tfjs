@@ -87,6 +87,25 @@ export class UnaryOps {
   }
 
   /**
+   * Returns an element-wise indication of the sign of a number.
+   *
+   * ```js
+   * const x = tf.tensor1d([.6, 1.1, -3.3, NaN, 0]);
+   *
+   * x.sign().print();  // or tf.sign(x)
+   * ```
+   * @param x The input Tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static sign<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {x: () => ops.zerosLike(dy)};
+    };
+    return ENV.engine.runKernel(backend => backend.sign(x), {x}, grad);
+  }
+
+  /**
    * Computes exponential of the input `Tensor` element-wise. `e ^ x`
    *
    * ```js
