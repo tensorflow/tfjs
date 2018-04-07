@@ -37,12 +37,13 @@ export interface TensorData {
 @doc({heading: 'Tensors', subheading: 'Classes'})
 export class TensorBuffer<R extends Rank> {
   size: number;
+  shape: ShapeMap[R];
+  values: TypedArray;
 
   private strides: number[];
 
   constructor(
-      public shape: ShapeMap[R], public dtype: DataType,
-      public values: TypedArray) {
+      shape: ShapeMap[R], public dtype: DataType, values: TypedArray) {
     if (values != null) {
       const n = values.length;
       const size = util.sizeFromShape(shape);
@@ -51,6 +52,7 @@ export class TensorBuffer<R extends Rank> {
           `Length of values '${n}' does not match the size ` +
               `inferred by the shape '${size}'`);
     }
+    this.shape = shape.slice();
     this.values =
         values || util.getTypedArrayFromDType(dtype, util.sizeFromShape(shape));
     this.strides = computeStrides(shape);
@@ -187,7 +189,7 @@ export class Tensor<R extends Rank = Rank> {
           `Constructing tensor of shape (${this.size}) should match the ` +
               `length of values (${values.length})`);
     }
-    this.shape = shape;
+    this.shape = shape.slice();
     this.dtype = dtype || 'float32';
     this.strides = computeStrides(shape);
     this.dataId = dataId != null ? dataId : {};
