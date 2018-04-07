@@ -120,6 +120,7 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   rsqrt<T extends Tensor>(x: T): T;
 
   square<T extends Tensor>(x: T): T;
+  reciprocal<T extends Tensor>(x: T): T;
 
   relu<T extends Tensor>(x: T): T;
   elu<T extends Tensor>(x: T): T;

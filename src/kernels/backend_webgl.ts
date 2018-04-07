@@ -669,6 +669,11 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
+  reciprocal<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.RECIPROCAL);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
   relu<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.RELU);
     return this.compileAndRun(program, [x]) as T;
