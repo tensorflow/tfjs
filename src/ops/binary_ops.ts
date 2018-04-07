@@ -360,6 +360,72 @@ export class BinaryOps {
   }
 
   /**
+   * Returns the mod of a and b element-wise.
+   * `floor(x / y) * y + mod(x, y) = x`
+   * Supports broadcasting.
+   *
+   * We also expose `modStrict` which has the same signature as this op and
+   * asserts that `a` and `b` are the same shape (does not broadcast).
+   *
+   * ```js
+   * const a = tf.tensor1d([1, 4, 3, 16]);
+   * const b = tf.tensor1d([1, 2, 9, 4]);
+   *
+   * a.mod(b).print();  // or tf.mod(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast a mod b.
+   * const a = tf.tensor1d([2, 4, 6, 8]);
+   * const b = tf.scalar(5);
+   *
+   * a.mod(b).print();  // or tf.mod(a, b)
+   * ```
+   *
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same type as `a`.
+   */
+  @doc({heading: 'Operations', subheading: 'Arithmetic'})
+  @operation
+  static mod<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertTypesMatch(a, b);
+    const outShape =
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const der = (dy: Tensor) => {
+      const derA = () => {
+        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        if (reduceAxes.length > 0) {
+          return dy.sum(reduceAxes).reshape(a.shape);
+        }
+        return dy;
+      };
+      const derB = () => {
+        const res = dy.mul(a.div(b).floor().neg());
+        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        if (reduceAxes.length > 0) {
+          return res.sum(reduceAxes).reshape(b.shape);
+        }
+        return res;
+      };
+      return {a: derA, b: derB};
+    };
+    return ENV.engine.runKernel(backend => backend.mod(a, b), {a, b}, der) as T;
+  }
+
+  /**
+   * Returns the mod of a and b (`a < b ? a : b`) element-wise. Inputs must
+   * be the same shape. For broadcasting support, use mod().
+   *
+   * @param a The first tensor.
+   * @param b The second tensor. Must have the same dtype as `a`.
+   */
+  @operation
+  static modStrict<T extends Tensor>(a: T, b: T): T {
+    util.assertShapesMatch(a.shape, b.shape, 'Error in modStrict: ');
+    return a.mod(b);
+  }
+
+  /**
    * Returns the min of a and b (`a < b ? a : b`) element-wise.
    * Supports broadcasting.
    *

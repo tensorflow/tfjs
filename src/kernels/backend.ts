@@ -99,6 +99,8 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   min(x: Tensor, axes: number[]): Tensor;
   minimum(a: Tensor, b: Tensor): Tensor;
 
+  mod(a: Tensor, b: Tensor): Tensor;
+
   max(x: Tensor, axes: number[]): Tensor;
   maximum(a: Tensor, b: Tensor): Tensor;
 
