@@ -28,12 +28,30 @@ function getUnaryOp(option: string) {
       return (x: dl.Tensor) => x.exp();
     case 'neg':
       return (x: dl.Tensor) => x.neg();
+    case 'ceil':
+      return (x: dl.Tensor) => x.ceil();
+    case 'floor':
+      return (x: dl.Tensor) => x.floor();
+    case 'log1p':
+      return (x: dl.Tensor) => x.log1p();
     case 'sqrt':
       return (x: dl.Tensor) => x.sqrt();
+    case 'square':
+      return (x: dl.Tensor) => x.square();
     case 'abs':
       return (x: dl.Tensor) => x.abs();
     case 'relu':
       return (x: dl.Tensor) => x.relu();
+    case 'elu':
+      return (x: dl.Tensor) => x.elu();
+    case 'selu':
+      return (x: dl.Tensor) => x.selu();
+    case 'leakyRelu':
+      return (x: dl.Tensor) => x.leakyRelu();
+    case 'prelu':
+      // TODO: Configurable from UI
+      const alpha = dl.scalar(0.1);
+      return (x: dl.Tensor) => x.prelu(alpha);
     case 'sigmoid':
       return (x: dl.Tensor) => x.sigmoid();
     case 'sin':
@@ -54,6 +72,8 @@ function getUnaryOp(option: string) {
       return (x: dl.Tensor) => x.cosh();
     case 'tanh':
       return (x: dl.Tensor) => x.tanh();
+    case 'step':
+      return (x: dl.Tensor) => x.step();
     default:
       throw new Error(`Not found such ops: ${option}`);
   }
