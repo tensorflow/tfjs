@@ -72,6 +72,10 @@ export const MIN = CHECK_NAN_SNIPPET + `
   return min(a, b);
 `;
 
+export const MOD = CHECK_NAN_SNIPPET + `
+  return mod(a, b);
+`;
+
 export const ATAN2 = CHECK_NAN_SNIPPET + `
   return atan(a, b);
 `;

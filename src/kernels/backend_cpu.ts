@@ -523,6 +523,17 @@ export class MathBackendCPU implements KernelBackend {
         a, b, a.dtype, (aVal, bVal) => Math.min(aVal, bVal));
   }
 
+  mod(a: Tensor, b: Tensor): Tensor {
+    return this.broadcastedBinaryOp(a, b, a.dtype, (aVal, bVal) => {
+      const rem = aVal % bVal;
+      if ((aVal < 0 && bVal < 0) || (aVal >= 0 && bVal >= 0)) {
+        return rem;
+      } else {
+        return (rem + bVal) % bVal;
+      }
+    });
+  }
+
   max(x: Tensor, axes: number[]): Tensor {
     axis_util.assertAxesAreInnerMostDims('max', axes, x.rank);
     const [outShape, reduceShape] =
