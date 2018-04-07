@@ -637,7 +637,7 @@ describeWithFlags('floor', ALL_ENVS, () => {
     const a = dl.scalar(5.2);
     const dy = dl.scalar(3);
 
-    const gradients = dl.grad(a => dl.ceil(a))(a, dy);
+    const gradients = dl.grad(a => dl.floor(a))(a, dy);
 
     expect(gradients.shape).toEqual(a.shape);
     expect(gradients.dtype).toEqual('float32');
