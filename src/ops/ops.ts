@@ -115,6 +115,7 @@ export const elu = UnaryOps.elu;
 export const exp = UnaryOps.exp;
 export const expm1 = UnaryOps.expm1;
 export const floor = UnaryOps.floor;
+export const sign = UnaryOps.sign;
 export const leakyRelu = UnaryOps.leakyRelu;
 export const log = UnaryOps.log;
 export const log1p = UnaryOps.log1p;

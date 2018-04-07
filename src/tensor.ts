@@ -693,6 +693,10 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.floor(this);
   }
+  sign<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.sign(this);
+  }
   exp<T extends Tensor>(this: T): T {
     this.throwIfDisposed();
     return ops.exp(this);
