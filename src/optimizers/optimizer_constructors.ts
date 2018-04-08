@@ -100,12 +100,16 @@ export class OptimizerConstructors {
    * @param momentum The momentum to use for the RMSProp gradient descent
    * algorithm.
    * @param epsilon Small value to avoid zero denominator.
+   * @param centered If true, gradients are normalized by the estimated
+   * variance of the gradient.
    */
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static rmsprop(
-      learningRate: number, decay = .9, momentum = 0.0, epsilon = 1e-8):
+      learningRate: number, decay = .9, momentum = 0.0, epsilon = 1e-8,
+      centered = false):
       RMSPropOptimizer {
-    return new RMSPropOptimizer(learningRate, decay, momentum, epsilon);
+    return new RMSPropOptimizer(learningRate, decay, momentum, epsilon,
+      centered);
   }
 
   /**

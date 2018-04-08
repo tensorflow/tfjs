@@ -78,4 +78,72 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     // The only tensor remaining is the argument to variable().
     expect(dl.memory().numTensors).toBe(1);
   });
+
+ it('gradient with centered momentum', () => {
+    const learningRate = 0.1;
+    const moment = 0.1;
+    const rho = 0.95;
+    const eps = 1e-8;
+    const optimizer = dl.train.rmsprop(learningRate, rho, moment, eps, true);
+
+    const x = dl.tensor1d([1, 2]).variable();
+
+    const f = () => x.square().sum() as dl.Scalar;
+
+    let numTensors = dl.memory().numTensors;
+
+    let cost = optimizer.minimize(f, /* returnCost */ true);
+
+    // Cost & 3 accumulators should be the only additional arrays.
+    expect(dl.memory().numTensors).toBe(numTensors + 4);
+
+    // epsilon = 1e-8
+    // newAccumulatedMeanSquare =
+    //          rho * accumulatedMeanSquare + (1 - rho) * grad ^ 2 = [.2, .8]
+    // newAccumulatedMeanGrad =
+    //          rho * accumulatedMeanGrad + (1 - rho) * grad = [0.1, 0.2]
+    // newAccumulatedMoments = momentum * accumulatedMoments +
+    //          learning_rate * gradient / sqrt(newAccumulatedMeanSquare
+    //            - newAccumulatedMeanGrad * 2 +
+    //              epsilon) = 0.1 * 0 + ((0.1 * 2)
+    //                / sqrt(0.2 - 0.01 + 1e-8)) = 0.458831
+    // x -= learningRate * newAccumulatedMoments
+    //
+    // de/dx = [2, 4]
+    // accumulatedMeanSquare = [0, 0]
+    // newAccumulatedMeanSquare = [.2, .8]
+    // newAccumulatedMeanGrad = [.1, .2]
+    // accumulatedMoments = [0, 0]
+    // newAccumulatedMoments = [0.45883, 0.458831]
+    // x = [0.54117, 1.541169]
+    expectArraysClose(x, [0.54117, 1.541169]);
+
+    cost.dispose();
+    numTensors = dl.memory().numTensors;
+
+    cost = optimizer.minimize(f, /* returnCost */ false);
+
+    // x = [0.54117, 1.541169]
+    // de/dx = [1.08234, 3.082338]
+    // accumulatedMeanSquare = [0.2, 0.8]
+    // accumulatedMeanGrad = [.1, .2]
+    // newAccumulatedMeanSquare = [0.248572, 1.235040]
+    // newAccumulatedMeanGrad = [0.149117, 0.3441169]
+    // accumulatedMoments = [0.45883, 0.458831]
+    // newAccumulatedMoments = [0.273385, 0.3375766]
+    // x = [0.267785, 1.2035924]
+
+    // TODO: Fix numerical precision.
+    expectArraysClose(x, [0.267785, 1.2035924], 1e-2);
+
+    // There should be no new additional Tensors.
+    expect(dl.memory().numTensors).toBe(numTensors);
+
+    expect(cost).toBe(null);
+
+    x.dispose();
+    optimizer.dispose();
+    // The only tensor remaining is the argument to variable().
+    expect(dl.memory().numTensors).toBe(1);
+  });
 });
