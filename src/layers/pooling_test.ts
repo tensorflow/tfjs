@@ -21,7 +21,7 @@ import {SymbolicTensor} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, MaxPooling1D, MaxPooling2D} from './pooling';
+import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, MaxPooling1D, MaxPooling2D} from './pooling';
 
 // tslint:enable:max-line-length
 
@@ -45,7 +45,7 @@ describe('Pooling Layers 1D: Symbolic', () => {
             const symbolicInput =
                 new SymbolicTensor(DType.float32, inputShape, null, [], null);
             const poolConstructor =
-                poolMode === 'avg' ? AvgPooling1D : MaxPooling1D;
+                poolMode === 'avg' ? AveragePooling1D : MaxPooling1D;
             const poolingLayer = new poolConstructor({
               poolSize,
               strides,
@@ -84,7 +84,7 @@ describeMathCPUAndGPU('Pooling Layers 1D: Tensor', () => {
           ]);
           const x2by8by1 = expandDims(x2by8, 2);
           const poolConstructor =
-              poolMode === 'avg' ? AvgPooling1D : MaxPooling1D;
+              poolMode === 'avg' ? AveragePooling1D : MaxPooling1D;
           const poolingLayer = new poolConstructor({
             poolSize,
             strides: stride,
@@ -164,7 +164,7 @@ describe('Pooling Layers 2D: Symbolic', () => {
                   new SymbolicTensor(DType.float32, inputShape, null, [], null);
 
               const poolConstructor =
-                  poolMode === 'avg' ? AvgPooling2D : MaxPooling2D;
+                  poolMode === 'avg' ? AveragePooling2D : MaxPooling2D;
               const poolingLayer = new poolConstructor({
                 poolSize: poolSizeIsNumber ? poolSize : [poolSize, poolSize],
                 padding: paddingMode,
@@ -224,7 +224,7 @@ describeMathCPUAndGPU('Pooling Layers 2D: Tensor', () => {
             const x4by4 = tensor4d(xArrayData, [batchSize, channels, 4, 4]);
 
             const poolConstructor =
-                poolMode === 'avg' ? AvgPooling2D : MaxPooling2D;
+                poolMode === 'avg' ? AveragePooling2D : MaxPooling2D;
             const poolingLayer = new poolConstructor({
               poolSize: [2, 2],
               strides: [stride, stride],
