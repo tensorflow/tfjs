@@ -42,8 +42,7 @@ export class TensorBuffer<R extends Rank> {
 
   private strides: number[];
 
-  constructor(
-      shape: ShapeMap[R], public dtype: DataType, values: TypedArray) {
+  constructor(shape: ShapeMap[R], public dtype: DataType, values: TypedArray) {
     if (values != null) {
       const n = values.length;
       const size = util.sizeFromShape(shape);
@@ -670,6 +669,10 @@ export class Tensor<R extends Rank = Rank> {
   logicalOr(x: Tensor): Tensor {
     this.throwIfDisposed();
     return ops.logicalOr(this, x);
+  }
+  logicalNot<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.logicalNot(this);
   }
   logicalXor(x: Tensor): Tensor {
     this.throwIfDisposed();
