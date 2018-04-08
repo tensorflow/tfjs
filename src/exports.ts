@@ -27,7 +27,7 @@ import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
 import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './layers/padding';
-import {AvgPooling1D, AvgPooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
+import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
@@ -451,22 +451,38 @@ export class LayerExports {
     heading: 'Layers',
     subheading: 'Pooling',
     namespace: 'layers',
-    useDocsFrom: 'AvgPooling1D',
+    useDocsFrom: 'AveragePooling1D',
     configParamIndices: [0]
   })
+  static averagePooling1d(config: Pooling1DLayerConfig): Layer {
+    return new AveragePooling1D(config);
+  }
+  static avgPool1d(config: Pooling1DLayerConfig): Layer {
+    return LayerExports.averagePooling1d(config);
+  }
+  // For backwards compatibility.
+  // See https://github.com/tensorflow/tfjs/issues/152
   static avgPooling1d(config: Pooling1DLayerConfig): Layer {
-    return new AvgPooling1D(config);
+    return LayerExports.averagePooling1d(config);
   }
 
   @doc({
     heading: 'Layers',
     subheading: 'Pooling',
     namespace: 'layers',
-    useDocsFrom: 'AvgPooling2D',
+    useDocsFrom: 'AveragePooling2D',
     configParamIndices: [0]
   })
+  static averagePooling2d(config: Pooling2DLayerConfig): Layer {
+    return new AveragePooling2D(config);
+  }
+  static avgPool2d(config: Pooling2DLayerConfig): Layer {
+    return LayerExports.averagePooling2d(config);
+  }
+  // For backwards compatibility.
+  // See https://github.com/tensorflow/tfjs/issues/152
   static avgPooling2d(config: Pooling2DLayerConfig): Layer {
-    return new AvgPooling2D(config);
+    return LayerExports.averagePooling2d(config);
   }
 
   @doc({
