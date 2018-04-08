@@ -37,6 +37,16 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
     const a = dl.tensor1d([1, NaN, 0], 'bool');
     expectArraysClose(dl.logicalNot(a), [0, boolNaN, 1]);
   });
+  it('Tests chaining in Tensor1D', () => {
+    let a = dl.tensor1d([1, 0, 0], 'bool');
+    expectArraysClose(a.logicalNot(), [0, 1, 1]);
+
+    a = dl.tensor1d([0, 0, 0], 'bool');
+    expectArraysClose(a.logicalNot(), [1, 1, 1]);
+
+    a = dl.tensor1d([1, 1], 'bool');
+    expectArraysClose(a.logicalNot(), [0, 0]);
+  });
 
   it('Tensor2D', () => {
     let a = dl.tensor2d([[1, 0, 1], [0, 0, 0]], [2, 3], 'bool');
