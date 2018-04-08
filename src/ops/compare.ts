@@ -158,7 +158,7 @@ export class CompareOps {
   /**
    * Returns the truth value of (a >= b) element-wise. Supports broadcasting.
    *
-   * We also expose `greaterStrict` which has the same signature as this
+   * We also expose `greaterEqualStrict` which has the same signature as this
    * op and asserts that `a` and `b` are the same shape (does not broadcast).
    *
    * @param a The first input tensor.
