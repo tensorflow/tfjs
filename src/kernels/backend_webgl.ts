@@ -632,6 +632,11 @@ export class MathBackendWebGL implements KernelBackend {
   sign<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIGN);
     return this.compileAndRun(program, [x]) as T;
+  }    
+
+  round<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.ROUND);
+    return this.compileAndRun(program, [x]) as T;
   }
 
   exp<T extends Tensor>(x: T): T {

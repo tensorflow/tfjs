@@ -606,6 +606,27 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: newValues}) as T;
   }
 
+  round<T extends Tensor>(x: T): T {
+    const values = x.dataSync();
+    const newValues = new Float32Array(values.length);
+    for (let i = 0; i < values.length; ++i) {
+      // The algorithm is based on banker's rounding.
+      const base = Math.floor(values[i]);
+      if (values[i] - base < 0.5) {
+        newValues[i] = Math.floor(values[i]);
+      } else if (values[i] - base > 0.5) {
+        newValues[i] = Math.ceil(values[i]);
+      } else {
+        if (base % 2.0 === 0.0) {
+          newValues[i] = base;
+        } else {
+          newValues[i] = base + 1.0;
+        }
+      }
+    }
+    return Tensor.make(x.shape, {values: newValues}) as T;
+  }  
+
   exp<T extends Tensor>(x: T): T {
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);

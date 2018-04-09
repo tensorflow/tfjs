@@ -97,6 +97,23 @@ export const SIGN = `
   return sign(x);
 `;
 
+export const ROUND = `
+  // OpenGL ES does not support round function.
+  // The algorithm is based on banker's rounding.
+  float base = floor(x);
+  if ((x - base) < 0.5) {
+    return floor(x);
+  } else if ((x - base) > 0.5) {
+    return ceil(x);
+  } else {
+    if (mod(base, 2.0) == 0.0) {
+      return base;
+    } else {
+      return base + 1.0;
+    }
+  }
+`;
+
 export const EXP = `
   return exp(x);
 `;

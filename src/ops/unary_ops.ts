@@ -106,6 +106,28 @@ export class UnaryOps {
   }
 
   /**
+   * Computes round of input `Tensor` element-wise: `round(x)`.
+   * It implements banker's rounding.
+   *
+   * ```js
+   * const x = dl.tensor1d([.6, 1.1, -3.3]);
+   *
+   * x.round().print();  // or dl.round(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static round<T extends Tensor>(x: T): T {
+    // TODO(nsthorat): Let gradients be null for cases where we want to stop
+    // backpropgation.
+    const grad = (dy: T) => {
+      return {x: () => ops.zerosLike(dy)};
+    };
+    return ENV.engine.runKernel(backend => backend.round(x), {x}, grad);
+  }  
+
+  /**
    * Computes exponential of the input `Tensor` element-wise. `e ^ x`
    *
    * ```js

@@ -108,6 +108,7 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
 
   ceil<T extends Tensor>(x: T): T;
   floor<T extends Tensor>(x: T): T;
+  round<T extends Tensor>(x: T): T;
 
   sign<T extends Tensor>(x: T): T;
 
