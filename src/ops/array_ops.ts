@@ -887,6 +887,64 @@ export class ArrayOps {
   }
 
   /**
+   * Splits a `Tensor` into sub tensors.
+   *
+   * If `numOrSizeSplits` is a number, splits `x` along dimension `axis`
+   * into `numOrSizeSplits` smaller tensors.
+   * Requires that `numOrSizeSplits` evenly divides `x.shape[axis]`.
+   *
+   * If `numOrSizeSplits` is a number array, splits `x` into
+   * `(numOrSizeSplits.length` pieces. The shape of the `i`-th piece has the
+   * same size as `x` except along dimension `axis` where the size is
+   * `numOrSizeSplits[i]`.
+   *
+   * ```js
+   * const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+   * const [a, b] = tf.split(x, 2, 1);
+   * a.print();
+   * b.print();
+   *
+   * const [c, d, e] = tf.split(x, [1, 2, 1], 1);
+   * c.print();
+   * d.print();
+   * e.print();
+   * ```
+   *
+   * @param x The input tensor to split.
+   * @param numOrSizeSplits Either an integer indicating the number of
+   * splits along the axis or an array of integers containing the sizes of each
+   * output tensor along the axis. If a number then it must evenly divide
+   * `x.shape[axis]`; otherwise the sum of sizes must match `x.shape[axis]`.
+   * @param axis The dimension along which to split. Defaults to 0 (the first
+   * dim).
+   */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
+  @operation
+  static split(x: Tensor, numOrSizeSplits: number[]|number, axis = 0) {
+    axis = parseAxisParam(axis, x.shape)[0];
+    let splitSizes: number[];
+    if (typeof (numOrSizeSplits) === 'number') {
+      util.assert(
+          x.shape[axis] % numOrSizeSplits === 0,
+          'Number of splits must evenly divide the axis.');
+      splitSizes = Array(numOrSizeSplits).fill(x.shape[axis] / numOrSizeSplits);
+    } else {
+      util.assert(
+          x.shape[axis] === numOrSizeSplits.reduce((a, b) => a + b),
+          'The sum of sizes must match the size of the axis dimension.');
+      splitSizes = numOrSizeSplits;
+    }
+    const begin = Array(x.rank).fill(0);
+    const size = x.shape.slice();
+    return splitSizes.map(s => {
+      size[axis] = s;
+      const slice = x.slice(begin, size);
+      begin[axis] += s;
+      return slice;
+    });
+  }
+
+  /**
    * Returns a `Tensor` that has expanded rank, by inserting a dimension
    * into the tensor's shape.
    *
@@ -997,8 +1055,8 @@ export class ArrayOps {
    * `buffer.set()`, or by modifying directly `buffer.values`. When done,
    * call `buffer.toTensor()` to get an immutable `Tensor` with those values.
    *
-   * When done, call `buffer.toTensor()` to get an immutable `Tensor` with those
-   * values.
+   * When done, call `buffer.toTensor()` to get an immutable `Tensor` with
+   * those values.
    *
    * ```js
    * // Create a buffer and set values at particular indices.
@@ -1012,7 +1070,8 @@ export class ArrayOps {
    *
    * @param shape An array of integers defining the output tensor shape.
    * @param dtype The dtype of the buffer. Defaults to 'float32'.
-   * @param values The values of the buffer as `TypedArray`. Defaults to zeros.
+   * @param values The values of the buffer as `TypedArray`. Defaults to
+   * zeros.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static buffer<R extends Rank>(
