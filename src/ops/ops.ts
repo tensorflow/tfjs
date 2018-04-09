@@ -123,6 +123,7 @@ export const neg = UnaryOps.neg;
 export const prelu = UnaryOps.prelu;
 export const relu = UnaryOps.relu;
 export const reciprocal = UnaryOps.reciprocal;
+export const round = UnaryOps.round;
 export const selu = UnaryOps.selu;
 export const sigmoid = UnaryOps.sigmoid;
 export const sin = UnaryOps.sin;
