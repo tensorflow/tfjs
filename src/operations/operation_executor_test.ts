@@ -19,6 +19,7 @@ import * as basic_math from './executors/basic_math_executor';
 import * as convolution from './executors/convolution_executor';
 import * as creation from './executors/creation_executor';
 import * as graph from './executors/graph_executor';
+import * as image from './executors/image_executor';
 import * as logical from './executors/logical_executor';
 import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
@@ -43,8 +44,8 @@ describe('OperationExecutor', () => {
   });
 
   describe('executeOp', () => {
-    [arithmetic, basic_math, convolution, creation, graph, logical, matrices,
-     normalization, reduction, slice_join, transformation]
+    [arithmetic, basic_math, convolution, creation, image, graph, logical,
+     matrices, normalization, reduction, slice_join, transformation]
         .forEach(category => {
           it('should call ' + category.CATEGORY + ' executor', () => {
             spyOn(category, 'executeOp');

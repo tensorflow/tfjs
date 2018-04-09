@@ -1,0 +1,30 @@
+[
+  {
+    "tfOpName": "ResizeBilinear",
+    "dlOpName": "resizeBilinear",
+    "category": "image",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "image",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "size",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "align_corners",
+        "dlParamName": "alignCorners",
+        "type": "bool"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  }
+]

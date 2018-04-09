@@ -17,9 +17,9 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 export type ParamTypes =
     'number'|'string'|'number[]'|'bool'|'shape'|'tensor'|'tensors'|'dtype';
-export type Category =
-    'arithmetic'|'basic_math'|'convolution'|'creation'|'graph'|'logical'|
-    'matrices'|'normalization'|'reduction'|'slice_join'|'transformation';
+export type Category = 'arithmetic'|'basic_math'|'convolution'|'creation'|
+    'image'|'graph'|'logical'|'matrices'|'normalization'|'reduction'|
+    'slice_join'|'transformation';
 export interface ParamMapper {
   tfParamName?: string;
   tfParamNameDeprecated?: string;

@@ -23,6 +23,7 @@ import * as basicMath from './basic_math.json';
 import * as convolution from './convolution.json';
 import * as creation from './creation.json';
 import * as graph from './graph.json';
+import * as image from './image.json';
 import * as logical from './logical.json';
 import * as matrices from './matrices.json';
 import * as normalization from './normalization.json';
@@ -43,6 +44,7 @@ describe('OpListTest', () => {
       convolution,
       creation,
       logical,
+      image,
       graph,
       matrices,
       normalization,

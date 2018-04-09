@@ -16,6 +16,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+
 import {NamedTensorsMap} from '../data/index';
 
 import * as arithmetic from './executors/arithmetic_executor';
@@ -23,6 +24,7 @@ import * as basicMath from './executors/basic_math_executor';
 import * as convolution from './executors/convolution_executor';
 import * as creation from './executors/creation_executor';
 import * as graph from './executors/graph_executor';
+import * as image from './executors/image_executor';
 import * as logical from './executors/logical_executor';
 import * as matrices from './executors/matrices_executor';
 import * as normalization from './executors/normalization_executor';
@@ -47,6 +49,8 @@ export function executeOp(
       return convolution.executeOp(node, tensorMap);
     case 'creation':
       return creation.executeOp(node, tensorMap);
+    case 'image':
+      return image.executeOp(node, tensorMap);
     case 'graph':
       return graph.executeOp(node, tensorMap);
     case 'logical':
