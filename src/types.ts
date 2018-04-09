@@ -14,7 +14,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {doc, Scalar, Tensor, variable} from '@tensorflow/tfjs-core';
 
-import {getUniqueTensorName} from './common';
+import {getScopedTensorName, getUniqueTensorName} from './common';
 import {Constraint} from './constraints';
 import {Layer} from './engine/topology';
 // tslint:enable:max-line-length
@@ -68,7 +68,12 @@ let _nextUniqueTensorId = 0;
 export class SymbolicTensor implements TensorInterface {
   /* A unique ID for the tensor to be able to differentiate tensors. */
   readonly id: number;
+  // The fully scoped name of this Variable, including a unique suffix if needed
   readonly name?: string;
+  // The originally requested fully scoped name of this Variable, not including
+  // any unique suffix.  This may be needed when restoring weights because this
+  // original name is used as a key.
+  readonly originalName?: string;
   /**
    * Replacement for _keras_history.
    */
@@ -99,7 +104,8 @@ export class SymbolicTensor implements TensorInterface {
       readonly outputTensorIndex?: number) {
     this.id = _nextUniqueTensorId++;
     if (name != null) {
-      this.name = getUniqueTensorName(name);
+      this.originalName = getScopedTensorName(name);
+      this.name = getUniqueTensorName(this.originalName);
     }
   }
 }
@@ -113,7 +119,12 @@ export class ConcreteTensor implements TensorInterface {
   readonly shape: Shape;
 
   readonly id: number;
+  // The fully scoped name of this Variable, including a unique suffix if needed
   readonly name?: string;
+  // The originally requested fully scoped name of this Variable, not including
+  // any unique suffix.  This may be needed when restoring weights because this
+  // original name is used as a key.
+  readonly originalName?: string;
 
   protected val: Tensor;
 
@@ -132,7 +143,8 @@ export class ConcreteTensor implements TensorInterface {
     this.id = _nextUniqueTensorId++;
 
     if (name != null) {
-      this.name = getUniqueTensorName(name);
+      this.originalName = getScopedTensorName(name);
+      this.name = getUniqueTensorName(this.originalName);
     }
   }
 
@@ -170,7 +182,12 @@ export class LayerVariable {
   readonly shape: Shape;
 
   readonly id: number;
+  // The fully scoped name of this Variable, including a unique suffix if needed
   readonly name: string;
+  // The originally requested fully scoped name of this Variable, not including
+  // any unique suffix.  This may be needed when restoring weights because this
+  // original name is used as a key.
+  readonly originalName: string;
   readonly trainable: boolean;
 
   protected readonly val: tfc.Variable;
@@ -196,8 +213,11 @@ export class LayerVariable {
     this.dtype = dtype == null ? DType.float32 : dtype;
     this.shape = val.shape;
     this.id = _nextUniqueTensorId++;
-    this.name =
-        getUniqueTensorName(name == null ? DEFAULT_VARIABLE_NAME_PREFIX : name);
+
+    name = name == null ? DEFAULT_VARIABLE_NAME_PREFIX : name;
+    this.originalName = getScopedTensorName(name);
+    this.name = getUniqueTensorName(this.originalName);
+
     this.trainable = trainable;
     this.constraint = constraint;
 
