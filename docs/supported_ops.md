@@ -120,6 +120,13 @@
 |Softmax|softmax|
 
 
+## Image Ops
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|ResizeBilinear|resizeBilinear|
+
+
 ## Reduction Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
