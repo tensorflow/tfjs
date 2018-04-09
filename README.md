@@ -15,23 +15,6 @@ in the browser.
 Retrain pre-existing ML models using sensor data connected to the browser, or
 other client-side data.
 
-## Importing
-
-You can import TensorFlow.js directly via yarn or npm:
-`yarn add @tensorflow/tfjs` or `npm install @tensorflow/tfjs`.
-
-Alternatively you can use a script tag. The library will be available as
-a global variable named `tf`:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-<!-- or -->
-<script src="https://unpkg.com/@tensorflow/tfjs@latest"></script>
-```
-
-You can also specify which version to load replacing `@latest`
-with a specific version string (e.g. `0.6.0`).
-
 ## About this repo
 
 This repository contains the logic and scripts that combine
@@ -56,55 +39,87 @@ for how to migrate from deeplearn.js to TensorFlow.js.
 
 ## Getting started
 
-Let's add a scalar value to a vector. TensorFlow.js supports _broadcasting_
-the value of scalar over all the elements in the tensor.
+There are two main ways to get TensorFlow.js in your JavaScript project:
+via <a href="https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_JavaScript_within_a_webpage" target="_blank">script tags</a> <strong>or</strong> by installing it from <a href="https://www.npmjs.com/" target="_blank">NPM</a>
+and using a build tool like <a href="https://parceljs.org/" target="_blank">Parcel</a>,
+<a href="https://webpack.js.org/" target="_blank">WebPack</a>, or <a href="https://rollupjs.org/guide/en" target="_blank">Rollup</a>.
 
-```js
-import * as tf from '@tensorflow/tfjs'; // If not loading the script as a global
+### via Script Tag
+      
+Add the following code to an HTML file:
 
-const a = tf.tensor1d([1, 2, 3]);
-const b = tf.scalar(2);
+```html
+<html>
+  <head>
+    <!-- Load TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.8.0"> </script>
 
-const result = a.add(b); // a is not modified, result is a new tensor
-result.data().then(data => console.log(data)); // Float32Array([3, 4, 5]
+    <!-- Place your code in the script tag below. You can also use an external .js file -->
+    <script>
+      // Notice there is no 'import' statement. 'tf' is available on the index-page
+      // because of the script tag above.
 
-// Alternatively you can use a blocking call to get the data.
-// However this might slow your program down if called repeatedly.
-console.log(result.dataSync()); // Float32Array([3, 4, 5]
+      // Define a model for linear regression.
+      const model = tf.sequential();
+      model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+
+      // Prepare the model for training: Specify the loss and the optimizer.
+      model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+      // Generate some synthetic data for training.
+      const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
+      const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
+
+      // Train the model using the data.
+      model.fit(xs, ys).then(() => {
+        // Use the model to do inference on a data point the model hasn't seen before:
+        // Open the browser devtools to see the output
+        model.predict(tf.tensor2d([5], [1, 1])).print();
+      });
+    </script>
+  </head>
+
+  <body>
+  </body>
+</html>
 ```
 
-See the
-[core-concepts tutorial](https://js.tensorflow.org/tutorials/core-concepts.html)
- for more.
+Open up that html file in your browser and the code should run!
 
-Now, let's build a toy model to perform linear regression.
+### via NPM
+
+Add TensorFlow.js to your project using <a href="https://yarnpkg.com/en/" target="_blank">yarn</a> <em>or</em> <a href="https://docs.npmjs.com/cli/npm" target="_blank">npm</a>. <b>Note:</b> Because
+we use ES2017 syntax (such as `import`), this workflow assumes you are using a bundler/transpiler
+to convert your code to something the browser understands. See our
+<a href='https://github.com/tensorflow/tfjs-examples' target="_blank">examples</a>
+to see how we use <a href="https://parceljs.org/" target="_blank">Parcel</a> to build
+our code. However you are free to use any build tool that you prefer.
+
+
 
 ```js
 import * as tf from '@tensorflow/tfjs';
 
-// A sequential model is a container which you can add layers to.
+// Define a model for linear regression.
 const model = tf.sequential();
-
-// Add a dense layer with 1 output unit.
 model.add(tf.layers.dense({units: 1, inputShape: [1]}));
 
-// Specify the loss type and optimizer for training.
+// Prepare the model for training: Specify the loss and the optimizer.
 model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
 // Generate some synthetic data for training.
-const xs = tf.tensor2d([[1], [2], [3], [4]], [4, 1]);
-const ys = tf.tensor2d([[1], [3], [5], [7]], [4, 1]);
+const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
+const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
 
-// Train the model.
-await model.fit(xs, ys, {epochs: 500});
-
-// After the training, perform inference.
-const output = model.predict(tf.tensor2d([[5]], [1, 1]));
-output.print();
+// Train the model using the data.
+model.fit(xs, ys).then(() => {
+  // Use the model to do inference on a data point the model hasn't seen before:
+  model.predict(tf.tensor2d([5], [1, 1])).print();
+});
 ```
 
-For a deeper dive into building models, see the
-[MNIST tutorial](https://js.tensorflow.org/tutorials/mnist.html)
+See our <a href='./tutorials'>tutorials</a>, <a href='https://github.com/tensorflow/tfjs-examples' target="_blank">examples</a>
+and <a href="./api/{{latestVersion}}/">documentation</a> for more details.
 
 ## Importing pre-trained models
 
@@ -120,4 +135,3 @@ We support porting pre-trained models from:
 - [Tutorials](https://js.tensorflow.org/tutorials)
 - [API reference](https://js.tensorflow.org/api/latest/)
 - [Help mailing list](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs)
-
