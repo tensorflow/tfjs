@@ -51,6 +51,7 @@ export const conv1d = ConvOps.conv1d;
 export const conv2d = ConvOps.conv2d;
 export const conv2dTranspose = ConvOps.conv2dTranspose;
 export const depthwiseConv2d = ConvOps.depthwiseConv2d;
+export const separableConv2d = ConvOps.separableConv2d;
 
 export const matMul = MatmulOps.matMul;
 export const matrixTimesVector = MatmulOps.matrixTimesVector;
