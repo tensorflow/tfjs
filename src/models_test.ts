@@ -18,7 +18,7 @@ import {ModelAndWeightsConfig, modelFromJSON} from './models';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 
 describeMathCPU('model_from_json', () => {
-  it(`reconstitutes pythonic json string`, done => {
+  it('reconstitutes pythonic json string', done => {
     /* python generating code
         a=Input(shape=(32,))
         b=Dense(32)(a)
@@ -172,11 +172,7 @@ describeMathCPU('loadModel', () => {
           // `model_config`, but also other data, such as training.
           modelTopology = {'model_config': modelTopology};
         }
-        modelFromJSON({
-          modelTopology,
-          weightsManifest,
-          pathPrefix,
-        })
+        modelFromJSON({modelTopology, weightsManifest, pathPrefix})
             .then(model => {
               expectTensorsClose(
                   model.weights[0].read(), ones([32, 32], 'float32'));
@@ -189,7 +185,7 @@ describeMathCPU('loadModel', () => {
     }
   }
 
-  it(`Missing weight in manifest leads to error`, done => {
+  it('Missing weight in manifest leads to error', done => {
     setupFakeWeightFiles({
       './weight_0': ones([32, 32], 'float32').dataSync() as Float32Array,
       './weight_1': ones([32], 'float32').dataSync() as Float32Array,
@@ -211,12 +207,67 @@ describeMathCPU('loadModel', () => {
     const configJson =
         JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
     configJson['config']['layers'][1]['config']['name'] = denseLayerName;
-    modelFromJSON({
-      modelTopology: configJson,
-      weightsManifest,
-    })
+    modelFromJSON({modelTopology: configJson, weightsManifest, pathPrefix: '.'})
         .then(() => done.fail)
         .catch(done);
+  });
+
+  it('Loads weights despite uniqueified tensor names', async done => {
+    try {
+      setupFakeWeightFiles({
+        './weight_0': ones([32, 32], 'float32').dataSync() as Float32Array,
+        './weight_1': ones([32], 'float32').dataSync() as Float32Array,
+      });
+      const denseLayerName = 'dense_uniqueify';
+      const weightsManifest: WeightsManifestConfig = [
+        {
+          'paths': ['weight_0'],
+          'weights': [{
+            'name': `${denseLayerName}/kernel`,
+            'dtype': 'float32',
+            'shape': [32, 32]
+          }],
+        },
+        {
+          'paths': ['weight_1'],
+          'weights': [{
+            'name': `${denseLayerName}/bias`,
+            'dtype': 'float32',
+            'shape': [32]
+          }],
+        }
+      ];
+      // JSON.parse and stringify to deep copy fakeSequentialModel.
+      const configJson =
+          JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
+      configJson['config']['layers'][1]['config']['name'] = denseLayerName;
+      const model1 = await modelFromJSON(
+          {modelTopology: configJson, weightsManifest, pathPrefix: '.'});
+      expect(model1.weights[0].name).toEqual('dense_uniqueify/kernel');
+      expect(model1.weights[0].originalName).toEqual('dense_uniqueify/kernel');
+      expect(model1.weights[1].name).toEqual('dense_uniqueify/bias');
+      expect(model1.weights[1].originalName).toEqual('dense_uniqueify/bias');
+      expectTensorsClose(model1.weights[0].read(), ones([32, 32], 'float32'));
+      expectTensorsClose(model1.weights[1].read(), ones([32], 'float32'));
+
+      // On the second load, the variable names will be uniqueified.  This test
+      // succeeds only because we maintain the name mapping, so we can load
+      // weights--keyed by non-unique names in the weight manifest--into
+      // variables with newly uniqueified names.
+      const model2 = await modelFromJSON(
+          {modelTopology: configJson, weightsManifest, pathPrefix: '.'});
+      // note unique suffix
+      expect(model2.weights[0].name).toEqual('dense_uniqueify/kernel_1');
+      expect(model2.weights[0].originalName).toEqual('dense_uniqueify/kernel');
+      // note unique suffix
+      expect(model2.weights[1].name).toEqual('dense_uniqueify/bias_1');
+      expect(model2.weights[1].originalName).toEqual('dense_uniqueify/bias');
+      expectTensorsClose(model2.weights[0].read(), ones([32, 32], 'float32'));
+      expectTensorsClose(model2.weights[1].read(), ones([32], 'float32'));
+      done();
+    } catch (e) {
+      done.fail(e.stack);
+    }
   });
 });
 

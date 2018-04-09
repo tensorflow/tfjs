@@ -13,7 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {checkDataFormat, checkPaddingMode, checkPoolMode, isValidTensorName, VALID_DATA_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './common';
+import {checkDataFormat, checkPaddingMode, checkPoolMode, getUniqueTensorName, isValidTensorName, VALID_DATA_FORMAT_VALUES, VALID_PADDING_MODE_VALUES, VALID_POOL_MODE_VALUES} from './common';
+
 // tslint:enable:max-line-length
 
 describe('checkDataFormat', () => {
@@ -127,5 +128,25 @@ describe('isValidTensorName', () => {
   it('Invalid tensor names: non-ASCII', () => {
     expect(isValidTensorName('フ')).toEqual(false);
     expect(isValidTensorName('ξ')).toEqual(false);
+  });
+});
+
+describe('getUniqueTensorName', () => {
+  it('Adds unique suffixes to tensor names', () => {
+    expect(getUniqueTensorName('xx')).toEqual('xx');
+    expect(getUniqueTensorName('xx')).toEqual('xx_1');
+    expect(getUniqueTensorName('xx')).toEqual('xx_2');
+    expect(getUniqueTensorName('xx')).toEqual('xx_3');
+  });
+
+  it('Correctly handles preexisting unique suffixes on tensor names', () => {
+    expect(getUniqueTensorName('yy')).toEqual('yy');
+    expect(getUniqueTensorName('yy')).toEqual('yy_1');
+    expect(getUniqueTensorName('yy_1')).toEqual('yy_1_1');
+    expect(getUniqueTensorName('yy')).toEqual('yy_2');
+    expect(getUniqueTensorName('yy_1')).toEqual('yy_1_2');
+    expect(getUniqueTensorName('yy_2')).toEqual('yy_2_1');
+    expect(getUniqueTensorName('yy')).toEqual('yy_3');
+    expect(getUniqueTensorName('yy_1_1')).toEqual('yy_1_1_1');
   });
 });

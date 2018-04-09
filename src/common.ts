@@ -14,6 +14,9 @@
 import {ValueError} from './errors';
 import {SerializableEnumRegistry} from './utils/generic_utils';
 
+// A map from the requested scoped name of a Tensor to the number of Tensors
+// wanting that name so far.  This allows enforcing name uniqueness by appending
+// an incrementing index, e.g. scope/name, scope/name_1, scope/name_2, etc.
 const nameMap: Map<string, number> = new Map<string, number>();
 
 // TODO(cais): Perhaps move the enums to a more suitable place, e.g.,
@@ -98,27 +101,45 @@ function currentNameScopePrefix(): string {
 }
 
 /**
- * Get unique names for Tensors (and Variables).
- * @param prefix
- * @return Unique name string.
+ * Get the name a Tensor (or Variable) would have if not uniqueified.
+ * @param tensorName
+ * @return Scoped name string.
  */
-export function getUniqueTensorName(prefix: string): string {
-  if (!isValidTensorName(prefix)) {
-    throw new Error('Not a valid tensor name: \'' + prefix + '\'');
+export function getScopedTensorName(tensorName: string): string {
+  if (!isValidTensorName(tensorName)) {
+    throw new Error('Not a valid tensor name: \'' + tensorName + '\'');
   }
+  return currentNameScopePrefix() + tensorName;
+}
 
-  prefix = currentNameScopePrefix() + prefix;
-
-  if (!nameMap.has(prefix)) {
-    nameMap.set(prefix, 0);
+/**
+ * Get unique names for Tensors and Variables.
+ * @param scopedName The fully-qualified name of the Tensor, i.e. as produced by
+ *  `getScopedTensorName()`.
+ * @return A unique version of the given fully scoped name.
+ *   If this is the first time that the scoped name is seen in this session,
+ *   then the given `scopedName` is returned unaltered.  If the same name is
+ *   seen again (producing a collision), an incrementing suffix is added to the
+ *   end of the name, so it takes the form 'scope/name_1', 'scope/name_2', etc.
+ */
+export function getUniqueTensorName(scopedName: string): string {
+  if (!isValidTensorName(scopedName)) {
+    throw new Error('Not a valid tensor name: \'' + scopedName + '\'');
   }
-  const index = nameMap.get(prefix);
-  nameMap.set(prefix, nameMap.get(prefix) + 1);
+  if (!nameMap.has(scopedName)) {
+    nameMap.set(scopedName, 0);
+  }
+  const index = nameMap.get(scopedName);
+  nameMap.set(scopedName, nameMap.get(scopedName) + 1);
 
   if (index > 0) {
-    return prefix + '_' + index;
+    const result = scopedName + '_' + index;
+    // Mark the composed name as used in case someone wants
+    // to call getUniqueTensorName("name_1").
+    nameMap.set(result, 1);
+    return result;
   } else {
-    return prefix;
+    return scopedName;
   }
 }
 
