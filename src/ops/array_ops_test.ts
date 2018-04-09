@@ -1752,6 +1752,42 @@ describeWithFlags('stack', ALL_ENVS, () => {
   });
 });
 
+describeWithFlags('split', ALL_ENVS, () => {
+  it('split by number', () => {
+    const x = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const res = dl.split(x, 2, 1);
+    expect(res.length).toEqual(2);
+    expect(res[0].shape).toEqual([2, 2]);
+    expectArraysClose(res[0], [1, 2, 5, 6]);
+    expect(res[1].shape).toEqual([2, 2]);
+    expectArraysClose(res[1], [3, 4, 7, 8]);
+  });
+
+  it('split by sizes', () => {
+    const x = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const res = dl.split(x, [1, 2, 1], 1);
+    expect(res.length).toEqual(3);
+    expect(res[0].shape).toEqual([2, 1]);
+    expectArraysClose(res[0], [1, 5]);
+    expect(res[1].shape).toEqual([2, 2]);
+    expectArraysClose(res[1], [2, 3, 6, 7]);
+    expect(res[2].shape).toEqual([2, 1]);
+    expectArraysClose(res[2], [4, 8]);
+  });
+
+  it('sizes to not sum to axis size throws error', () => {
+    const x = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const f = () => dl.split(x, [1, 2], 1);
+    expect(f).toThrowError();
+  });
+
+  it('number of splits does not evenly divide axis', () => {
+    const x = dl.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
+    const f = () => dl.split(x, 3, 1);
+    expect(f).toThrowError();
+  });
+});
+
 describeWithFlags('expandDims', ALL_ENVS, () => {
   it('scalar, default axis is 0', () => {
     const res = dl.scalar(1).expandDims();
