@@ -1750,6 +1750,13 @@ describeWithFlags('stack', ALL_ENVS, () => {
     expect(res.shape).toEqual([2, 2, 3]);
     expectArraysClose(res, [1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12]);
   });
+
+  it('single tensor', () => {
+    const a = dl.tensor2d([[1, 2], [3, 4]]);
+    const res = dl.stack([a], 2 /* axis */);
+    expect(res.shape).toEqual([2, 2, 1]);
+    expectArraysClose(res, [1, 2, 3, 4]);
+  });
 });
 
 describeWithFlags('split', ALL_ENVS, () => {
