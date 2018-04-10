@@ -55,6 +55,13 @@ describeWithFlags('concat1d', ALL_ENVS, () => {
     const result = dl.concat1d([a, b, c, d]);
     expectArraysClose(result, [3, 5, 7, 9]);
   });
+
+  it('single tensor', () => {
+    const a = dl.tensor1d([3]);
+
+    const result = dl.concat1d([a]);
+    expectArraysClose(result, [3]);
+  });
 });
 
 describeWithFlags('concat2d', ALL_ENVS, () => {
