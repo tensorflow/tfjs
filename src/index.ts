@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {ENV, Environment} from '@tensorflow/tfjs-core/dist/environment';
+import * as tfc from '@tensorflow/tfjs-core';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
@@ -27,7 +27,7 @@ export function bindTensorFlowBackend() {
   // binding is not installed.
   const nodeBinding = bindings('tfjs_binding.node') as TFJSBinding;
 
-  ENV.addCustomBackend(
+  tfc.ENV.registerBackend(
       'tensorflow', () => new NodeJSKernelBackend(nodeBinding));
-  Environment.setBackend('tensorflow');
+  tfc.setBackend('tensorflow');
 }
