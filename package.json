@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
@@ -37,7 +37,7 @@
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "0.6.0",
-    "@tensorflow/tfjs-layers": "0.2.0"
+    "@tensorflow/tfjs-core": "0.6.1",
+    "@tensorflow/tfjs-layers": "0.3.0"
   }
 }
