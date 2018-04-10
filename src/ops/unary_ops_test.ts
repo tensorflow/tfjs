@@ -1773,3 +1773,278 @@ describeWithFlags('round', ALL_ENVS, () => {
     expectArraysClose(gradients, [0, 0, 0, 0]);
   });
 });
+
+describeWithFlags('asinh', ALL_ENVS, () => {
+  it('basic', () => {
+    const values = [1, -3, 2, 7, -4];
+    const a = dl.tensor1d(values);
+    const result = dl.asinh(a);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.asinh(values[i]);
+    }
+    expectArraysClose(result, expected);
+  });
+
+  it('scalar', () => {
+    const a = dl.scalar(1);
+    const result = dl.asinh(a);
+
+    const expected = [Math.asinh(1)];
+    expectArraysClose(result, expected);
+  });
+
+  it('tensor2D', () => {
+    const values = [1, -3, 2, 7];
+    const a = dl.tensor2d(values, [2, 2]);
+    const result = dl.asinh(a);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.asinh(values[i]);
+    }
+    expectArraysClose(result, expected);
+  });
+
+  it('propagates NaNs', () => {
+    const a = dl.tensor1d([4, NaN, 0]);
+    const res = dl.asinh(a);
+    expectArraysClose(res, [Math.asinh(4), NaN, Math.asinh(0)]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = dl.scalar(0.5);
+    const dy = dl.scalar(8);
+
+    const gradients = dl.grad(a => dl.asinh(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [8 / Math.sqrt(1.0 + 0.5 * 0.5)]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const aValues = [-1, 2, 3, -5];
+    const dyValues = [1, 2, 3, 4];
+    const a = dl.tensor1d(aValues);
+    const dy = dl.tensor1d(dyValues);
+
+    const gradients = dl.grad(a => dl.asinh(a))(a, dy);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = dyValues[i] / Math.sqrt(1 + aValues[i] * aValues[i]);
+    }
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const aValues = [-3, 1, 2, 3];
+    const dyValues = [1, 2, 3, 4];
+    const a = dl.tensor2d(aValues, [2, 2]);
+    const dy = dl.tensor2d(dyValues, [2, 2]);
+
+    const gradients = dl.grad(a => dl.asinh(a))(a, dy);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = dyValues[i] / Math.sqrt(1 + aValues[i] * aValues[i]);
+    }
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+});
+
+describeWithFlags('acosh', ALL_ENVS, () => {
+  it('basic', () => {
+    const values = [2, 3, 4, 5, 6];
+    const a = dl.tensor1d(values);
+    const result = dl.acosh(a);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.acosh(values[i]);
+    }
+    expectArraysClose(result, expected);
+  });
+
+  it('scalar', () => {
+    const value = 2;
+    const a = dl.scalar(value);
+    const result = dl.acosh(a);
+
+    const expected = [Math.acosh(value)];
+    expectArraysClose(result, expected);
+  });
+
+  it('tensor2d', () => {
+    const values = [2, 3, 4, 5];
+    const a = dl.tensor2d(values, [2, 2]);
+    const result = dl.acosh(a);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.acosh(values[i]);
+    }
+    expectArraysClose(result, expected);
+  });
+
+  it('propagates NaNs', () => {
+    const a = dl.tensor1d([4, NaN, 2]);
+    const res = dl.acosh(a);
+    expectArraysClose(res, [Math.acosh(4), NaN, Math.acosh(2)]);
+  });
+
+  it('NaN outside function domain', () => {
+    const a = dl.tensor1d([4, -1, 2]);
+    const res = dl.acosh(a);
+    expectArraysClose(res, [Math.acosh(4), NaN, Math.acosh(2)]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = dl.scalar(1.5);
+    const dy = dl.scalar(8);
+
+    const gradients = dl.grad(a => dl.acosh(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [8.0 / Math.sqrt(1.5 * 1.5 - 1.0)]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const aValues = [2, 3, 5, 10];
+    const dyValues = [1, 2, 3, 4];
+    const a = dl.tensor1d(aValues);
+    const dy = dl.tensor1d(dyValues);
+
+    const gradients = dl.grad(a => dl.acosh(a))(a, dy);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = dyValues[i] / Math.sqrt(Math.pow(aValues[i], 2) - 1.0);
+    }
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const aValues = [2, 3, 5, 7];
+    const dyValues = [1, 2, 3, 4];
+    const a = dl.tensor2d(aValues, [2, 2]);
+    const dy = dl.tensor2d(dyValues, [2, 2]);
+
+    const gradients = dl.grad(a => dl.acosh(a))(a, dy);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = dyValues[i] / Math.sqrt(Math.pow(aValues[i], 2) - 1.0);
+    }
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+});
+
+describeWithFlags('atanh', ALL_ENVS, () => {
+  it('basic', () => {
+    const values = [-0.25, 0.25, 0.5, .75, -0.4];
+    const a = dl.tensor1d(values);
+    const result = dl.atanh(a);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.atanh(values[i]);
+    }
+    expectArraysClose(result, expected);
+  });
+
+  it('scalar', () => {
+    const value = 0.2;
+    const a = dl.scalar(value);
+    const result = dl.atanh(a);
+
+    const expected = [Math.atanh(value)];
+    expectArraysClose(result, expected);
+  });
+
+  it('tensor2d', () => {
+    const values = [0.2, 0.3, 0.4, 0.5];
+    const a = dl.tensor2d(values, [2, 2]);
+    const result = dl.atanh(a);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = Math.atanh(values[i]);
+    }
+    expectArraysClose(result, expected);
+  });
+
+  it('propagates NaNs', () => {
+    const a = dl.tensor1d([0.5, NaN, 0]);
+    const res = dl.atanh(a);
+    expectArraysClose(res, [Math.atanh(0.5), NaN, Math.atanh(0)]);
+  });
+
+  it('NaN outside function domain', () => {
+    const a = dl.tensor1d([-2, 0, 2]);
+    const res = dl.atanh(a);
+    expectArraysClose(res, [NaN, Math.atanh(0), NaN]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = dl.scalar(0.5);
+    const dy = dl.scalar(8);
+
+    const gradients = dl.grad(a => dl.atanh(a))(a, dy);
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [8 / (1 - 0.5 * 0.5)]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const aValues = [-0.1, 0.2, 0.3, -0.5];
+    const dyValues = [1, 2, 3, 4];
+    const a = dl.tensor1d(aValues);
+    const dy = dl.tensor1d(dyValues);
+
+    const gradients = dl.grad(a => dl.atanh(a))(a, dy);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = dyValues[i] / (1 - Math.pow(aValues[i], 2));
+    }
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const aValues = [-0.3, 0.1, 0.2, 0.3];
+    const dyValues = [1, 2, 3, 4];
+    const a = dl.tensor2d(aValues, [2, 2]);
+    const dy = dl.tensor2d(dyValues, [2, 2]);
+
+    const gradients = dl.grad(a => dl.atanh(a))(a, dy);
+
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+      expected[i] = dyValues[i] / (1 - Math.pow(aValues[i], 2));
+    }
+
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+});

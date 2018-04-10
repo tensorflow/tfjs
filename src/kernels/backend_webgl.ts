@@ -786,6 +786,21 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
+  asinh<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.ASINH);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
+  acosh<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.ACOSH);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
+  atanh<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.ATANH);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
   step<T extends Tensor>(x: T, alpha: number): T {
     const program = new UnaryOpProgram(x.shape, unary_op.STEP(alpha));
     return this.compileAndRun(program, [x]) as T;

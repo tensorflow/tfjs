@@ -661,6 +661,72 @@ export class UnaryOps {
   }
 
   /**
+   * Computes inverse hyperbolic sin of the input `Tensor` element-wise:
+   * `asinh(x)`
+   *
+   * ```js
+   * const x = tf.tensor1d([0, 1, -1, .7]);
+   *
+   * x.asinh().print();  // or tf.asinh(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static asinh<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {
+        x: () =>
+            dy.divStrict(UnaryOps.sqrt(ops.scalar(1).add(x.toFloat().square())))
+      };
+    };
+    return ENV.engine.runKernel(backend => backend.asinh(x), {x}, grad);
+  }
+
+  /**
+   * Computes the inverse hyperbolic cos of the input `Tensor` element-wise:
+   * `acosh(x)`
+   *
+   * ```js
+   * const x = tf.tensor1d([10, 1, 3, 5.7]);
+   *
+   * x.acosh().print();  // or tf.acosh(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static acosh<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {
+        x: () =>
+            dy.divStrict(UnaryOps.sqrt(x.toFloat().square().sub(ops.scalar(1))))
+      };
+    };
+    return ENV.engine.runKernel(backend => backend.acosh(x), {x}, grad);
+  }
+
+  /**
+   * Computes inverse hyperbolic tan of the input `Tensor` element-wise:
+   * `atanh(x)`
+   *
+   * ```js
+   * const x = tf.tensor1d([0, .1, -.1, .7]);
+   *
+   * x.atanh().print();  // or tf.atanh(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static atanh<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {x: () => dy.divStrict(ops.scalar(1).sub(x.toFloat().square()))};
+    };
+    return ENV.engine.runKernel(backend => backend.atanh(x), {x}, grad);
+  }
+
+  /**
    * Computes step of the input `Tensor` element-wise: `x > 0 ? 1 : alpha * x`
    *
    * ```js

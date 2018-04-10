@@ -151,6 +151,10 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   cosh<T extends Tensor>(x: T): T;
   tanh<T extends Tensor>(x: T): T;
 
+  asinh<T extends Tensor>(x: T): T;
+  acosh<T extends Tensor>(x: T): T;
+  atanh<T extends Tensor>(x: T): T;
+
   step<T extends Tensor>(x: T, alpha: number): T;
 
   conv2d(x: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
