@@ -800,6 +800,18 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.tanh(this);
   }
+  asinh<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.asinh(this);
+  }
+  acosh<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.acosh(this);
+  }
+  atanh<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.atanh(this);
+  }
   step<T extends Tensor>(this: T, alpha = 0.0): T {
     this.throwIfDisposed();
     return ops.step(this, alpha);

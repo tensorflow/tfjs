@@ -181,6 +181,18 @@ export const TANH = `
   return sign(x) * (1.0 - e2x) / (1.0 + e2x);
 `;
 
+export const ASINH = `
+  return log(x + sqrt(x * x + 1.0));
+`;
+
+export const ACOSH = `
+  return log(x + sqrt(x * x - 1.0));
+`;
+
+export const ATANH = `
+  return (log(1.0 + x) - log(1.0 - x)) / 2.0;
+`;
+
 export const SQUARE = `
   return x * x;
 `;

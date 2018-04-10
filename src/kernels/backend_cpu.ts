@@ -940,6 +940,33 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 
+  asinh<T extends Tensor>(x: T): T {
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.asinh(values[i]);
+    }
+    return Tensor.make(x.shape, {values: resultValues}) as T;
+  }
+
+  acosh<T extends Tensor>(x: T): T {
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.acosh(values[i]);
+    }
+    return Tensor.make(x.shape, {values: resultValues}) as T;
+  }
+
+  atanh<T extends Tensor>(x: T): T {
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+    for (let i = 0; i < values.length; ++i) {
+      resultValues[i] = Math.atanh(values[i]);
+    }
+    return Tensor.make(x.shape, {values: resultValues}) as T;
+  }
+
   step<T extends Tensor>(x: T, alpha = 0): T {
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
