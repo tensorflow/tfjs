@@ -160,7 +160,62 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
     expectTensorsClose(y, yExpected);
   });
 
-  const explicitDefaultDilations: Array<number|number[]> = [1, [1, 1]];
+  const dilationRateValues: Array<number|[number, number]> = [2, [2, 2]];
+  for (const dilationRate of dilationRateValues) {
+    it(`CHANNEL_LAST, dilationRate=${dilationRate}`, () => {
+      const x = tensor4d(
+          [[
+            [
+              [0.89240986], [0.54892443], [0.24670805], [0.03983783],
+              [0.56602233]
+            ],
+
+            [
+              [0.21421895], [0.58529864], [0.60060781], [0.66895784],
+              [0.08855761]
+            ],
+
+            [
+              [0.56657235], [0.25803428], [0.17971111], [0.65166403],
+              [0.70492866]
+            ],
+
+            [
+              [0.46641512], [0.05765411], [0.52517211], [0.62557303],
+              [0.30612501]
+            ],
+
+            [
+              [0.8406994], [0.56932724], [0.96028134], [0.34666753],
+              [0.04458038]
+            ]
+          ]],
+          [1, 5, 5, 1]);
+      const conv2dLayer = new Conv2D({
+        filters: 1,
+        kernelSize: [2, 2],
+        strides: 1,
+        dataFormat: 'channelsLast',
+        useBias: false,
+        kernelInitializer: 'ones',
+        activation: 'linear',
+        dilationRate
+      });
+      const y = conv2dLayer.apply(x) as Tensor;
+      const yExpected = tensor4d(
+          [[
+            [[1.8854014], [1.4984605], [1.6973702]],
+
+            [[1.8064139], [1.9374835], [1.5204625]],
+
+            [[2.547264], [1.8256931], [1.8895016]]
+          ]],
+          [1, 3, 3, 1]);
+      expectTensorsClose(y, yExpected);
+    });
+  }
+
+  const explicitDefaultDilations: Array<number|[number, number]> = [1, [1, 1]];
   for (const explicitDefaultDilation of explicitDefaultDilations) {
     const testTitle = 'Explicit default dilation rate: ' +
         JSON.stringify(explicitDefaultDilation);
@@ -360,4 +415,27 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
       });
     }
   }
+
+  it('dilationRate = 2', () => {
+    const x = tensor3d(
+        [
+          0.0024236, 0.54829558, 0.47628448, 0.2971449, 0.7984293, 0.71802861,
+          0.53109141, 0.85882819
+        ],
+        [1, 8, 1]);
+    const conv1dLayer = new Conv1D({
+      filters: 1,
+      kernelSize: 2,
+      strides: 1,
+      useBias: true,
+      kernelInitializer: 'ones',
+      biasInitializer: 'ones',
+      dilationRate: 2
+    });
+    const y = conv1dLayer.apply(x) as Tensor;
+    const yExpected = tensor3d(
+        [1.478708, 1.8454404, 2.2747138, 2.0151734, 2.3295207, 2.5768569],
+        [1, 6, 1]);
+    expectTensorsClose(y, yExpected);
+  });
 });

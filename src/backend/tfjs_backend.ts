@@ -1552,11 +1552,6 @@ export function conv1dWithBias(
     dataFormat = imageDataFormat();
   }
   checkDataFormat(dataFormat);
-  if (dilationRate !== 1) {
-    throw new NotImplementedError(
-        `dilationRate = ${dilationRate} is not implemented for 1D ` +
-        `convolution yet.`);
-  }
 
   // Check the ranks of x, kernel and bias.
   if (x.shape.length !== 3) {
@@ -1587,7 +1582,7 @@ export function conv1dWithBias(
   }
   let y: Tensor = tfc.conv1d(
       x as Tensor2D | Tensor3D, kernel as Tensor3D, strides,
-      padding === 'same' ? 'same' : 'valid');
+      padding === 'same' ? 'same' : 'valid', 'NWC', dilationRate);
   if (bias != null) {
     y = biasAdd(y, bias);
   }
@@ -1645,10 +1640,6 @@ export function conv2dWithBias(
     dataFormat = imageDataFormat();
   }
   checkDataFormat(dataFormat);
-  if (dilationRate != null) {
-    throw new NotImplementedError(
-        'Support for non-default dilation rate is not implemented yet.');
-  }
   if (ndim(x) !== 3 && ndim(x) !== 4) {
     throw new ValueError(
         `conv2dWithBias expects input to be of rank 3 or 4, but received ` +
@@ -1667,7 +1658,7 @@ export function conv2dWithBias(
   }
   y = tfc.conv2d(
       y as Tensor3D | Tensor4D, kernel as Tensor4D, strides as [number, number],
-      padding === 'same' ? 'same' : 'valid');
+      padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
   if (bias != null) {
     y = biasAdd(y, bias as Tensor1D);
   }
