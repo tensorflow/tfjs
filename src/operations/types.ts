@@ -52,6 +52,7 @@ export interface Node {
 
 export interface Graph {
   nodes: {[key: string]: Node};
+  placeholders: Node[];
   inputs: Node[];
   outputs: Node[];
   withControlFlow: boolean;

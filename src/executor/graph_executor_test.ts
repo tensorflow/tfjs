@@ -58,7 +58,8 @@ describe('GraphExecutor', () => {
       inputs: [constNode, inputNode],
       nodes: {'input': inputNode, 'const': constNode, 'output': outputNode},
       outputs: [outputNode],
-      withControlFlow: false
+      withControlFlow: false,
+      placeholders: [inputNode]
     };
     inputNode.children.push(outputNode);
     constNode.children.push(outputNode);
@@ -67,6 +68,16 @@ describe('GraphExecutor', () => {
   afterEach(() => {});
 
   describe('execute graph', () => {
+    describe('initialization', () => {
+      it('should expose placehoder', () => {
+        expect(executor.inputNodes).toEqual(['input']);
+      });
+
+      it('should expose output', () => {
+        expect(executor.outputNodes).toEqual(['output']);
+      });
+    });
+
     describe('graph level', () => {
       it('should execute the op', () => {
         const inputTensor = tfc.scalar(1);
@@ -83,6 +94,18 @@ describe('GraphExecutor', () => {
           [inputNode, jasmine.any(Object)], [constNode, jasmine.any(Object)],
           [outputNode, jasmine.any(Object)]
         ]);
+      });
+
+      it('should throw exception if missing inputs', () => {
+        expect(() => executor.execute({}))
+            .toThrow(new Error('Missing input placeholders: input'));
+      });
+
+      it('should throw exception if contains extra inputs', () => {
+        const inputTensor = tfc.scalar(1);
+        expect(
+            () => executor.execute({test: [inputTensor], input: [inputTensor]}))
+            .toThrow(new Error('Extra input tensors: test'));
       });
     });
   });
