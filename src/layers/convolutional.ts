@@ -13,7 +13,6 @@
  */
 
 import {conv2dTranspose, Tensor, Tensor4D, tidy} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 // tslint:disable:max-line-length
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
@@ -77,12 +76,12 @@ export interface ConvLayerConfig extends LayerConfig {
 
   /**
    * The dilation rate to use for the dilated convolution in each dimension.
-   * Should be an integer or array of integers.
+   * Should be an integer or array of two integers.
    *
    * Currently, specifying any `dilationRate` value != 1 is incompatible with
    * specifying any `strides` value != 1.
    */
-  dilationRate?: number|number[];
+  dilationRate?: number|[number, number];
 
   /**
    * Activation function of the layer.
@@ -142,7 +141,7 @@ export abstract class Conv extends Layer {
   protected readonly strides: number[];
   protected readonly padding: PaddingMode;
   protected readonly dataFormat: DataFormat;
-  protected readonly dilationRate: number|number[];
+  protected readonly dilationRate: number|[number, number];
   protected readonly activation: ActivationFn;
   protected readonly useBias: boolean;
   protected readonly kernelInitializer?: Initializer;
@@ -178,13 +177,21 @@ export abstract class Conv extends Layer {
     checkDataFormat(this.dataFormat);
 
     this.dilationRate = config.dilationRate == null ? 1 : config.dilationRate;
-    if (!(this.dilationRate === 1 ||
-          (Array.isArray(this.dilationRate) &&
-           _.isEqual(_.uniq(this.dilationRate), [1])))) {
-      throw new NotImplementedError(
-          'Non-default dilation is not implemented for convolution layers ' +
-          'yet.');
+    if (this.rank === 1 && Array.isArray(this.dilationRate)) {
+      throw new ValueError(
+          `dilationRate must be a number for 1D convolution, but ` +
+          `received ${JSON.stringify(this.dilationRate)}`);
     }
+    if (this.rank === 2) {
+      if (typeof this.dilationRate === 'number') {
+        this.dilationRate = [this.dilationRate, this.dilationRate];
+      } else if (this.dilationRate.length !== 2) {
+        throw new ValueError(
+            `dilationRate must be a number or array of two numbers for 2D ` +
+            `convolution, but received ${JSON.stringify(this.dilationRate)}`);
+      }
+    }
+
     this.activation = getActivation(config.activation);
     this.useBias = config.useBias == null ? true : config.useBias;
     this.kernelInitializer = getInitializer(
@@ -229,14 +236,16 @@ export abstract class Conv extends Layer {
     inputs = generic_utils.getExactlyOneTensor(inputs);
     let outputs: Tensor;
     const biasValue = this.bias == null ? null : this.bias.read();
+
     if (this.rank === 1) {
       outputs = K.conv1dWithBias(
           inputs, this.kernel.read(), biasValue, this.strides[0], this.padding,
-          this.dataFormat);
+          this.dataFormat, this.dilationRate as number);
     } else if (this.rank === 2) {
+      // TODO(cais): Move up to constructor.
       outputs = K.conv2dWithBias(
           inputs, this.kernel.read(), biasValue, this.strides, this.padding,
-          this.dataFormat);
+          this.dataFormat, this.dilationRate as [number, number]);
     } else if (this.rank === 3) {
       throw new NotImplementedError('3D convolution is not implemented yet.');
     }
