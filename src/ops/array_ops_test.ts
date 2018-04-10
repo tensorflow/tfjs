@@ -1083,11 +1083,11 @@ describeWithFlags('clone', ALL_ENVS, () => {
   });
 
   it('1D bool dtype', () => {
-    const a = dl.tensor1d([1, 2, 3], 'bool');
+    const a = dl.tensor1d([1, 1, 0], 'bool');
     const b = dl.clone(a);
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([3]);
-    expectArraysEqual(b, [1, 1, 1]);
+    expectArraysEqual(b, [1, 1, 0]);
   });
 
   it('2D default dtype', () => {
@@ -1115,11 +1115,11 @@ describeWithFlags('clone', ALL_ENVS, () => {
   });
 
   it('2D bool dtype', () => {
-    const a = dl.tensor2d([1, 2, 3, 4], [2, 2], 'bool');
+    const a = dl.tensor2d([1, 1, 1, 0], [2, 2], 'bool');
     const b = dl.clone(a);
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([2, 2]);
-    expectArraysEqual(b, [1, 1, 1, 1]);
+    expectArraysEqual(b, [1, 1, 1, 0]);
   });
 
   it('3D default dtype', () => {
@@ -1147,11 +1147,11 @@ describeWithFlags('clone', ALL_ENVS, () => {
   });
 
   it('3D bool dtype', () => {
-    const a = dl.tensor3d([1, 2, 3, 4], [2, 2, 1], 'bool');
+    const a = dl.tensor3d([1, 1, 1, 0], [2, 2, 1], 'bool');
     const b = dl.clone(a);
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([2, 2, 1]);
-    expectArraysEqual(b, [1, 1, 1, 1]);
+    expectArraysEqual(b, [1, 1, 1, 0]);
   });
 
   it('4D default dtype', () => {
@@ -1179,11 +1179,41 @@ describeWithFlags('clone', ALL_ENVS, () => {
   });
 
   it('4D bool dtype', () => {
-    const a = dl.tensor4d([1, 2, 3, 4], [2, 2, 1, 1], 'bool');
+    const a = dl.tensor4d([1, 1, 1, 0], [2, 2, 1, 1], 'bool');
     const b = dl.clone(a);
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([2, 2, 1, 1]);
-    expectArraysEqual(b, [1, 1, 1, 1]);
+    expectArraysEqual(b, [1, 1, 1, 0]);
+  });
+
+  it('gradient: 1D', () => {
+    const a = dl.tensor1d([1, 2, 3]);
+    const dy = dl.tensor1d([4, 5, 6]);
+    const da = dl.grad(x => dl.clone(x))(a, dy);
+
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [4, 5, 6]);
+  });
+
+  it('gradient: 2D int32', () => {
+    const a = dl.tensor2d([1, 2, 3, 4], [2, 2], 'int32');
+    const dy = dl.tensor2d([5, 6, 7, 8], [2, 2], 'float32');
+    const da = dl.grad(x => dl.clone(x))(a, dy);
+
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual([2, 2]);
+    expectArraysEqual(da, [5, 6, 7, 8]);
+  });
+
+  it('gradient: 4D bool', () => {
+    const a = dl.tensor4d([1, 1, 1, 0], [2, 2, 1, 1], 'bool');
+    const dy = dl.tensor4d([5, 6, 7, 8], [2, 2, 1, 1], 'float32');
+    const da = dl.grad(x => dl.clone(x))(a, dy);
+
+    expect(da.dtype).toBe('float32');
+    expect(da.shape).toEqual([2, 2, 1, 1]);
+    expectArraysEqual(da, [5, 6, 7, 8]);
   });
 });
 

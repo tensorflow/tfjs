@@ -327,8 +327,7 @@ export class ArrayOps {
    * Creates a new tensor with the same values and shape as the specified
    * tensor.
    *
-   * ```js
-   * const x = tf.tensor([1, 2]);
+   * ```js   * const x = tf.tensor([1, 2]);
    * x.clone().print();
    * ```
    *
@@ -337,7 +336,14 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static clone<T extends Tensor>(x: T): T {
-    return Tensor.make(x.shape, {dataId: x.dataId}, x.dtype) as T;
+    const der = (dy: T) => {
+      return {x: () => dy.toFloat()};
+    };
+
+    return ENV.engine.runKernel(
+               backend =>
+                   Tensor.make(x.shape, {dataId: x.dataId}, x.dtype) as T,
+               {x}, der) as T;
   }
 
   /**
