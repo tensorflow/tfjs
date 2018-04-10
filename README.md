@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/tensorflow/tfjs.svg?branch=master)](https://travis-ci.org/tensorflow/tfjs)
 # TensorFlow.js
 
 TensorFlow.js is an open-source hardware-accelerated JavaScript library for
