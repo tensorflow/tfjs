@@ -70,9 +70,11 @@ export class OperationMapper {
   transformGraph(graph: tensorflow.IGraphDef): Graph {
     const tfNodes = graph.node;
     let withControlFlow = false;
+    const placeholders: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
       if (this.isControlFlow(node)) withControlFlow = true;
+      if (node.op === 'Placeholder') placeholders.push(map[node.name]);
       return map;
     }, {});
 
@@ -91,7 +93,7 @@ export class OperationMapper {
       const node = nodes[key];
       if (node.children.length === 0) outputs.push(node);
     });
-    return {nodes, inputs, outputs, withControlFlow};
+    return {nodes, inputs, outputs, placeholders, withControlFlow};
   }
 
   private mapNode(node: tensorflow.INodeDef): Node {
