@@ -31,12 +31,12 @@ ORIGIN=`git config --get remote.origin.url`
 
 if [ "$BRANCH" != "master" ]; then
   echo "Error: Switch to the master branch before publishing."
-  exit
+  exit 1
 fi
 
 if [ "$ORIGIN" != "https://github.com/tensorflow/tfjs.git" ]; then
   echo "Error: Switch to the main repo (tensorflow/tfjs) before publishing."
-  exit
+  exit 1
 fi
 
 yarn build-npm
