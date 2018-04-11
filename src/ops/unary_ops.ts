@@ -110,9 +110,9 @@ export class UnaryOps {
    * It implements banker's rounding.
    *
    * ```js
-   * const x = dl.tensor1d([.6, 1.1, -3.3]);
+   * const x = tf.tensor1d([.6, 1.1, -3.3]);
    *
-   * x.round().print();  // or dl.round(x)
+   * x.round().print();  // or tf.round(x)
    * ```
    * @param x The input tensor.
    */
@@ -125,7 +125,7 @@ export class UnaryOps {
       return {x: () => ops.zerosLike(dy)};
     };
     return ENV.engine.runKernel(backend => backend.round(x), {x}, grad);
-  }  
+  }
 
   /**
    * Computes exponential of the input `Tensor` element-wise. `e ^ x`

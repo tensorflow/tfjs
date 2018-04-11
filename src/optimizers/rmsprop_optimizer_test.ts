@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
 describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
@@ -23,18 +23,18 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
-    const optimizer = dl.train.rmsprop(learningRate, rho, moment);
+    const optimizer = tf.train.rmsprop(learningRate, rho, moment);
 
-    const x = dl.tensor1d([1, 2]).variable();
+    const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as dl.Scalar;
+    const f = () => x.square().sum() as tf.Scalar;
 
-    let numTensors = dl.memory().numTensors;
+    let numTensors = tf.memory().numTensors;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
     // Cost & 2 accumulators should be the only additional arrays.
-    expect(dl.memory().numTensors).toBe(numTensors + 3);
+    expect(tf.memory().numTensors).toBe(numTensors + 3);
 
     // epsilon = 1e-8
     // newAccumulatedMeanSquare =
@@ -53,7 +53,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [0.55279, 1.55279]);
 
     cost.dispose();
-    numTensors = dl.memory().numTensors;
+    numTensors = tf.memory().numTensors;
 
     cost = optimizer.minimize(f, /* returnCost */ false);
 
@@ -69,33 +69,33 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [0.28745, 1.222943], 1e-2);
 
     // There should be no new additional Tensors.
-    expect(dl.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
 
     expect(cost).toBe(null);
 
     x.dispose();
     optimizer.dispose();
     // The only tensor remaining is the argument to variable().
-    expect(dl.memory().numTensors).toBe(1);
+    expect(tf.memory().numTensors).toBe(1);
   });
 
- it('gradient with centered momentum', () => {
+  it('gradient with centered momentum', () => {
     const learningRate = 0.1;
     const moment = 0.1;
     const rho = 0.95;
     const eps = 1e-8;
-    const optimizer = dl.train.rmsprop(learningRate, rho, moment, eps, true);
+    const optimizer = tf.train.rmsprop(learningRate, rho, moment, eps, true);
 
-    const x = dl.tensor1d([1, 2]).variable();
+    const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as dl.Scalar;
+    const f = () => x.square().sum() as tf.Scalar;
 
-    let numTensors = dl.memory().numTensors;
+    let numTensors = tf.memory().numTensors;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
     // Cost & 3 accumulators should be the only additional arrays.
-    expect(dl.memory().numTensors).toBe(numTensors + 4);
+    expect(tf.memory().numTensors).toBe(numTensors + 4);
 
     // epsilon = 1e-8
     // newAccumulatedMeanSquare =
@@ -119,7 +119,7 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [0.54117, 1.541169]);
 
     cost.dispose();
-    numTensors = dl.memory().numTensors;
+    numTensors = tf.memory().numTensors;
 
     cost = optimizer.minimize(f, /* returnCost */ false);
 
@@ -137,13 +137,13 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [0.267785, 1.2035924], 1e-2);
 
     // There should be no new additional Tensors.
-    expect(dl.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
 
     expect(cost).toBe(null);
 
     x.dispose();
     optimizer.dispose();
     // The only tensor remaining is the argument to variable().
-    expect(dl.memory().numTensors).toBe(1);
+    expect(tf.memory().numTensors).toBe(1);
   });
 });

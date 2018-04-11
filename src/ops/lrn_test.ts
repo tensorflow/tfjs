@@ -17,7 +17,7 @@
 
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
-import * as dl from '../index';
+import * as tf from '../index';
 
 const sqArr = (arr: number[]) => arr.map(d => d * d);
 const sumArr = (arr: number[]) => arr.reduce((prev, curr) => prev + curr, 0);
@@ -33,7 +33,7 @@ const flatten = (arr: any): number[] => {
 describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   it('throws error with invalid input', () => {
     // tslint:disable-next-line:no-any
-    const x: any = dl.tensor2d([1, 20, 300, 4], [1, 4]);
+    const x: any = tf.tensor2d([1, 20, 300, 4], [1, 4]);
     const radius = 3;
 
     expect(() => x.localResponseNormalization(radius))
@@ -41,7 +41,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('throws error with invalid radius', () => {
-    const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
+    const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 0.5;
 
     expect(() => x.localResponseNormalization(radius))
@@ -49,7 +49,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('computes simple normalization across channels', () => {
-    const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
+    const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
@@ -72,7 +72,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('uses beta = 1.0 to test GPU optimization', () => {
-    const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
+    const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
@@ -95,7 +95,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('uses beta = 0.75 to test GPU optimization', () => {
-    const x = dl.tensor3d([1, 20, 300, 4], [1, 1, 4]);
+    const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
@@ -118,7 +118,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('computes complex normalization across channels', () => {
-    const x = dl.tensor3d(
+    const x = tf.tensor3d(
       [1, 20, 300, 4, 5, 15, 24, 200, 1, 20, 300, 4, 5, 15, 24, 200],
       [2, 2, 4]);
     const radius = 1;
@@ -167,7 +167,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('computes simple normalization within channel', () => {
-    const x = dl.tensor3d([1, 20, 300, 4], [2, 2, 1]);
+    const x = tf.tensor3d([1, 20, 300, 4], [2, 2, 1]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
@@ -194,7 +194,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
   });
 
   it('computes complex normalization within channel', () => {
-    const x = dl.tensor3d([
+    const x = tf.tensor3d([
       1, 20, 300, 4, 23, 25, 13, 156, 123, 5, 15, 24, 200, 12, 12, 13, 21, 3
     ], [3, 3, 2]);
     const radius = 1;
@@ -355,7 +355,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
           0.28860986,  0.03395459,  0.59127772]]
     ];
 
-    const x = dl.tensor3d(flatten(input), [3, 3, 8]);
+    const x = tf.tensor3d(flatten(input), [3, 3, 8]);
     const radius = 2;
     const bias = 1;
     const alpha = 1;
@@ -371,7 +371,7 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
 describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
   it('throws error with invalid input', () => {
     // tslint:disable-next-line:no-any
-    const x: any = dl.tensor2d([1, 20, 300, 4], [1, 4]);
+    const x: any = tf.tensor2d([1, 20, 300, 4], [1, 4]);
     const radius = 3;
 
     expect(() => x.localResponseNormalization(radius))
@@ -379,7 +379,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
   });
 
   it('throws error with invalid radius', () => {
-    const x = dl.tensor4d([1, 20, 300, 4], [1, 1, 1, 4]);
+    const x = tf.tensor4d([1, 20, 300, 4], [1, 1, 1, 4]);
     const radius = 0.5;
 
     expect(() => x.localResponseNormalization(radius))
@@ -387,7 +387,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
   });
 
   it('computes simple normalization across channels', () => {
-    const x = dl.tensor4d([1, 20, 300, 4, 1, 20, 300, 4], [2, 1, 1, 4]);
+    const x = tf.tensor4d([1, 20, 300, 4, 1, 20, 300, 4], [2, 1, 1, 4]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
@@ -423,7 +423,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
   });
 
   it('computes simple normalization within channel', () => {
-    const x = dl.tensor4d([1, 20, 50, 4, 1, 20, 50, 4], [2, 2, 2, 1]);
+    const x = tf.tensor4d([1, 20, 50, 4, 1, 20, 50, 4], [2, 2, 2, 1]);
     const radius = 1;
     const bias = 1;
     const alpha = 1;
@@ -552,7 +552,7 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
           0.13531584,  0.35629693,  0.64837402]]
     ]];
 
-    const x = dl.tensor4d(flatten(input), [2, 3, 3, 8]);
+    const x = tf.tensor4d(flatten(input), [2, 3, 3, 8]);
     const radius = 2;
 
     const result = x.localResponseNormalization(radius);

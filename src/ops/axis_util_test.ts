@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 import {describeWithFlags, expectArraysClose} from '../test_util';
 import * as axis_util from './axis_util';
 
@@ -283,9 +283,9 @@ describeWithFlags('axis_util getUndoAxesPermutation', [{}], () => {
     const axes = [2, 0, 1, 3];
     const undoPermutation = axis_util.getUndoAxesPermutation(axes);
 
-    const a = dl.randomNormal([2, 3, 4, 5]);
-    const aT = dl.transpose(a, axes);
-    const aTT = dl.transpose(aT, undoPermutation);
+    const a = tf.randomNormal([2, 3, 4, 5]);
+    const aT = tf.transpose(a, axes);
+    const aTT = tf.transpose(aT, undoPermutation);
     expectArraysClose(a, aTT);
   });
 });

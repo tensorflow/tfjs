@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from './index';
+import * as tf from './index';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from './test_util';
@@ -23,79 +23,79 @@ import {Rank} from './types';
 
 describeWithFlags('variable', ALL_ENVS, () => {
   it('simple assign', () => {
-    const v = variable(dl.tensor1d([1, 2, 3]));
+    const v = variable(tf.tensor1d([1, 2, 3]));
     expectArraysClose(v, [1, 2, 3]);
 
-    v.assign(dl.tensor1d([4, 5, 6]));
+    v.assign(tf.tensor1d([4, 5, 6]));
     expectArraysClose(v, [4, 5, 6]);
   });
 
   it('simple chain assign', () => {
-    const v = dl.tensor1d([1, 2, 3]).variable();
+    const v = tf.tensor1d([1, 2, 3]).variable();
     expectArraysClose(v, [1, 2, 3]);
 
-    v.assign(dl.tensor1d([4, 5, 6]));
+    v.assign(tf.tensor1d([4, 5, 6]));
     expectArraysClose(v, [4, 5, 6]);
   });
 
   it('default names are unique', () => {
-    const v = variable(dl.tensor1d([1, 2, 3]));
+    const v = variable(tf.tensor1d([1, 2, 3]));
     expect(v.name).not.toBeNull();
 
-    const v2 = variable(dl.tensor1d([1, 2, 3]));
+    const v2 = variable(tf.tensor1d([1, 2, 3]));
     expect(v2.name).not.toBeNull();
     expect(v.name).not.toBe(v2.name);
   });
 
   it('user provided name', () => {
-    const v = variable(dl.tensor1d([1, 2, 3]), true, 'myName');
+    const v = variable(tf.tensor1d([1, 2, 3]), true, 'myName');
     expect(v.name).toBe('myName');
   });
 
   it('if name already used, throw error', () => {
-    variable(dl.tensor1d([1, 2, 3]), true, 'myName');
-    expect(() => variable(dl.tensor1d([1, 2, 3]), true, 'myName'))
+    variable(tf.tensor1d([1, 2, 3]), true, 'myName');
+    expect(() => variable(tf.tensor1d([1, 2, 3]), true, 'myName'))
         .toThrowError();
   });
 
   it('ops can take variables', () => {
-    const value = dl.tensor1d([1, 2, 3]);
+    const value = tf.tensor1d([1, 2, 3]);
     const v = variable(value);
-    const res = dl.sum(v);
+    const res = tf.sum(v);
     expectArraysClose(res, [6]);
   });
 
   it('chained variables works', () => {
-    const v = dl.tensor1d([1, 2, 3]).variable();
-    const res = dl.sum(v);
+    const v = tf.tensor1d([1, 2, 3]).variable();
+    const res = tf.sum(v);
     expectArraysClose(res, [6]);
   });
 
   it('variables are not affected by tidy', () => {
     let v: Variable<Rank.R1>;
-    expect(dl.memory().numTensors).toBe(0);
+    expect(tf.memory().numTensors).toBe(0);
 
-    dl.tidy(() => {
-      const value = dl.tensor1d([1, 2, 3], 'float32');
-      expect(dl.memory().numTensors).toBe(1);
+    tf.tidy(() => {
+      const value = tf.tensor1d([1, 2, 3], 'float32');
+      expect(tf.memory().numTensors).toBe(1);
 
       v = variable(value);
-      expect(dl.memory().numTensors).toBe(2);
+      expect(tf.memory().numTensors).toBe(2);
     });
 
-    expect(dl.memory().numTensors).toBe(1);
+    expect(tf.memory().numTensors).toBe(1);
     expectArraysClose(v, [1, 2, 3]);
 
     v.dispose();
-    expect(dl.memory().numTensors).toBe(0);
+    expect(tf.memory().numTensors).toBe(0);
   });
 
   it('constructor does not dispose', () => {
-    const a = dl.scalar(2);
-    const v = dl.variable(a);
+    const a = tf.scalar(2);
+    const v = tf.variable(a);
 
-    expect(dl.memory().numTensors).toBe(2);
-    expect(dl.memory().numDataBuffers).toBe(1);
+    expect(tf.memory().numTensors).toBe(2);
+    expect(tf.memory().numDataBuffers).toBe(1);
     expectArraysClose(v, [2]);
     expectArraysClose(a, [2]);
   });
@@ -129,44 +129,44 @@ describeWithFlags('variable', ALL_ENVS, () => {
 
   it('assign does not dispose old data', () => {
     let v: Variable<Rank.R1>;
-    v = variable(dl.tensor1d([1, 2, 3]));
+    v = variable(tf.tensor1d([1, 2, 3]));
 
-    expect(dl.memory().numTensors).toBe(2);
-    expect(dl.memory().numDataBuffers).toBe(1);
+    expect(tf.memory().numTensors).toBe(2);
+    expect(tf.memory().numDataBuffers).toBe(1);
 
     expectArraysClose(v, [1, 2, 3]);
 
-    const secondArray = dl.tensor1d([4, 5, 6]);
-    expect(dl.memory().numTensors).toBe(3);
-    expect(dl.memory().numDataBuffers).toBe(2);
+    const secondArray = tf.tensor1d([4, 5, 6]);
+    expect(tf.memory().numTensors).toBe(3);
+    expect(tf.memory().numDataBuffers).toBe(2);
 
     v.assign(secondArray);
     expectArraysClose(v, [4, 5, 6]);
     // Assign doesn't dispose the 1st array.
-    expect(dl.memory().numTensors).toBe(3);
-    expect(dl.memory().numDataBuffers).toBe(2);
+    expect(tf.memory().numTensors).toBe(3);
+    expect(tf.memory().numDataBuffers).toBe(2);
 
     v.dispose();
     // Disposing the variable disposes itself. The input to variable and
     // secondArray are the only remaining tensors.
-    expect(dl.memory().numTensors).toBe(2);
-    expect(dl.memory().numDataBuffers).toBe(2);
+    expect(tf.memory().numTensors).toBe(2);
+    expect(tf.memory().numDataBuffers).toBe(2);
   });
 
   it('shape must match', () => {
-    const v = variable(dl.tensor1d([1, 2, 3]));
-    expect(() => v.assign(dl.tensor1d([1, 2]))).toThrowError();
+    const v = variable(tf.tensor1d([1, 2, 3]));
+    expect(() => v.assign(tf.tensor1d([1, 2]))).toThrowError();
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(dl.tensor2d([3, 4], [1, 2]) as any)).toThrowError();
+    expect(() => v.assign(tf.tensor2d([3, 4], [1, 2]) as any)).toThrowError();
   });
 
   it('dtype must match', () => {
-    const v = variable(dl.tensor1d([1, 2, 3]));
+    const v = variable(tf.tensor1d([1, 2, 3]));
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(dl.tensor1d([1, 1, 1], 'int32') as any))
+    expect(() => v.assign(tf.tensor1d([1, 1, 1], 'int32') as any))
         .toThrowError();
     // tslint:disable-next-line:no-any
-    expect(() => v.assign(dl.tensor1d([true, false, true], 'bool') as any))
+    expect(() => v.assign(tf.tensor1d([true, false, true], 'bool') as any))
         .toThrowError();
   });
 });

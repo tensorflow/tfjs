@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 import {Variable} from '../tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
@@ -24,20 +24,20 @@ import {SGDOptimizer} from './sgd_optimizer';
 describeWithFlags('optimizer', ALL_ENVS, () => {
   it('basic', () => {
     const learningRate = .1;
-    const optimizer = dl.train.sgd(learningRate);
+    const optimizer = tf.train.sgd(learningRate);
 
-    const x = dl.scalar(4).variable();
-    const bias = dl.scalar(1).variable();
-    const strayVariable = dl.scalar(-1).variable();
+    const x = tf.scalar(4).variable();
+    const bias = tf.scalar(1).variable();
+    const strayVariable = tf.scalar(-1).variable();
 
-    let numTensors = dl.memory().numTensors;
+    let numTensors = tf.memory().numTensors;
 
     const f = () => x.square().addStrict(bias);
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
     // Cost should be the only additional array.
-    expect(dl.memory().numTensors).toBe(numTensors + 1);
+    expect(tf.memory().numTensors).toBe(numTensors + 1);
 
     // de/dx = 2x
     const expectedX1 = -2 * 4 * learningRate + 4;
@@ -50,11 +50,11 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     expectArraysClose(strayVariable, [-1]);
 
     cost.dispose();
-    numTensors = dl.memory().numTensors;
+    numTensors = tf.memory().numTensors;
 
     cost = optimizer.minimize(f, /* returnCost */ false);
     // There should be no new additional Tensors.
-    expect(dl.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
 
     const expectedX2 = -2 * expectedX1 * learningRate + expectedX1;
     const expectedBias2 = -learningRate + expectedBias1;
@@ -69,16 +69,16 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     bias.dispose();
     strayVariable.dispose();
     // The only tensors remaining are the arguments to variable().
-    expect(dl.memory().numTensors).toBe(3);
+    expect(tf.memory().numTensors).toBe(3);
   });
 
   it('varList array of all variables', () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = dl.scalar(4).variable();
-    const bias = dl.scalar(1).variable();
-    const strayVariable = dl.scalar(-1).variable();
+    const x = tf.scalar(4).variable();
+    const bias = tf.scalar(1).variable();
+    const strayVariable = tf.scalar(-1).variable();
     const varList = [x, bias];
 
     const f = () => x.square().addStrict(bias);
@@ -110,10 +110,10 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = dl.scalar(4).variable();
-    const bias = dl.scalar(1).variable();
+    const x = tf.scalar(4).variable();
+    const bias = tf.scalar(1).variable();
     // Stray variable.
-    dl.scalar(-1).variable();
+    tf.scalar(-1).variable();
     const varList: Variable[] = [];
 
     const f = () => x.square().addStrict(bias);
@@ -126,9 +126,9 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = dl.scalar(4).variable();
-    const bias = dl.scalar(1).variable();
-    const strayVariable = dl.scalar(-1).variable();
+    const x = tf.scalar(4).variable();
+    const bias = tf.scalar(1).variable();
+    const strayVariable = tf.scalar(-1).variable();
     const varList = [x];
 
     const f = () => x.square().addStrict(bias);
@@ -160,9 +160,9 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const optimizer = new SGDOptimizer(learningRate);
 
     const trainable = false;
-    const x = dl.scalar(4).variable(trainable);
-    const bias = dl.scalar(1).variable();
-    const strayVariable = dl.scalar(-1).variable();
+    const x = tf.scalar(4).variable(trainable);
+    const bias = tf.scalar(1).variable();
+    const strayVariable = tf.scalar(-1).variable();
 
     const f = () => x.square().addStrict(bias);
 
@@ -193,10 +193,10 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const optimizer = new SGDOptimizer(learningRate);
 
     const trainable = false;
-    const x = dl.scalar(4).variable(trainable);
-    const bias = dl.scalar(1).variable();
+    const x = tf.scalar(4).variable(trainable);
+    const bias = tf.scalar(1).variable();
     // stray variable.
-    dl.scalar(-1).variable();
+    tf.scalar(-1).variable();
     const varList = [x];
 
     const f = () => x.square().addStrict(bias);
@@ -209,7 +209,7 @@ describeWithFlags('optimizer', ALL_ENVS, () => {
     const learningRate = .1;
     const optimizer = new SGDOptimizer(learningRate);
 
-    const x = dl.tensor1d([1, 2]).variable();
+    const x = tf.tensor1d([1, 2]).variable();
     const f = () => x.square();
 
     // tslint:disable-next-line:no-any

@@ -30,7 +30,7 @@ export class ConcatOps {
    * For example, if:
    * A: shape(3) = |r1, g1, b1|
    * B: shape(2) = |r2, g2|
-   * C = dl.concat1d([A, B]) == |r1, g1, b1, r2, g2|
+   * C = tf.concat1d([A, B]) == |r1, g1, b1, r2, g2|
    *
    * @param tensors A list of `Tensor`s to concatenate.
    * @return The concatenated array.
@@ -49,7 +49,7 @@ export class ConcatOps {
    * B: shape(2, 3) = | r3, g3, b3 |
    *                  | r4, g4, b4 |
    *
-   * C = dl.concat2d([A, B], axis)
+   * C = tf.concat2d([A, B], axis)
    *
    * if axis = 0:
    * C: shape(4, 3) = | r1, g1, b1 |
@@ -80,7 +80,7 @@ export class ConcatOps {
    * B: shape(2, 1, 3) = | r3, g3, b3 |
    *                     | r4, g4, b4 |
    *
-   * C = dl.concat3d([A, B], axis)
+   * C = tf.concat3d([A, B], axis)
    *
    * if axis = 0:
    * C: shape(4, 1, 3) = | r1, g1, b1 |

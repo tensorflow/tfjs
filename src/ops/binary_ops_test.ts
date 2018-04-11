@@ -15,35 +15,35 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('prelu', ALL_ENVS, () => {
   it('basic', () => {
-    const x = dl.tensor1d([0, 1, -2, -4]);
-    const a = dl.tensor1d([0.15, 0.2, 0.25, 0.15]);
-    const result = dl.prelu(x, a);
+    const x = tf.tensor1d([0, 1, -2, -4]);
+    const a = tf.tensor1d([0.15, 0.2, 0.25, 0.15]);
+    const result = tf.prelu(x, a);
 
     expect(result.shape).toEqual(x.shape);
     expectArraysClose(result, [0, 1, -0.5, -0.6]);
   });
 
   it('propagates NaN', () => {
-    const x = dl.tensor1d([0, 1, NaN]);
-    const a = dl.tensor1d([0.15, 0.2, 0.25]);
-    const result = dl.prelu(x, a);
+    const x = tf.tensor1d([0, 1, NaN]);
+    const a = tf.tensor1d([0.15, 0.2, 0.25]);
+    const result = tf.prelu(x, a);
 
     expect(result.shape).toEqual(x.shape);
     expectArraysClose(result, [0, 1, NaN]);
   });
 
   it('derivative', () => {
-    const x = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const a = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);
-    const dy = dl.tensor1d([1, 1, 1, 1]);
+    const x = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const a = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
+    const dy = tf.tensor1d([1, 1, 1, 1]);
 
-    const dx = dl.grad(x => dl.prelu(x, a))(x, dy);
+    const dx = tf.grad(x => tf.prelu(x, a))(x, dy);
 
     expect(dx.shape).toEqual(x.shape);
     expect(dx.dtype).toEqual('float32');
@@ -51,11 +51,11 @@ describeWithFlags('prelu', ALL_ENVS, () => {
   });
 
   it('derivative propagates NaN', () => {
-    const x = dl.tensor1d([0.5, -0.1, NaN]);
-    const a = dl.tensor1d([0.2, 0.3, 0.25]);
-    const dy = dl.tensor1d([5, 50, 500]);
+    const x = tf.tensor1d([0.5, -0.1, NaN]);
+    const a = tf.tensor1d([0.2, 0.3, 0.25]);
+    const dy = tf.tensor1d([5, 50, 500]);
 
-    const dx = dl.grad(x => dl.prelu(x, a))(x, dy);
+    const dx = tf.grad(x => tf.prelu(x, a))(x, dy);
 
     expect(dx.shape).toEqual(x.shape);
     expect(dx.dtype).toEqual('float32');
@@ -65,18 +65,18 @@ describeWithFlags('prelu', ALL_ENVS, () => {
 
 describeWithFlags('maximum', ALL_ENVS, () => {
   it('float32 and float32', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const b = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);
-    const result = dl.maximum(a, b);
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.5, 3, 0.25, 0.15]);
   });
 
   it('int32 and int32', () => {
-    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
-    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
-    const result = dl.maximum(a, b);
+    const a = tf.tensor1d([1, 5, 2, 3], 'int32');
+    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('int32');
@@ -84,9 +84,9 @@ describeWithFlags('maximum', ALL_ENVS, () => {
   });
 
   it('bool and bool', () => {
-    const a = dl.tensor1d([true, false, false, true], 'bool');
-    const b = dl.tensor1d([false, false, true, true], 'bool');
-    const result = dl.maximum(a, b);
+    const a = tf.tensor1d([true, false, false, true], 'bool');
+    const b = tf.tensor1d([false, false, true, true], 'bool');
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('bool');
@@ -94,63 +94,63 @@ describeWithFlags('maximum', ALL_ENVS, () => {
   });
 
   it('different dtypes throws error', () => {
-    const a = dl.tensor1d([true, false, false, true], 'float32');
-    const b = dl.tensor1d([false, false, true, true], 'int32');
+    const a = tf.tensor1d([true, false, false, true], 'float32');
+    const b = tf.tensor1d([false, false, true, true], 'int32');
     // tslint:disable-next-line:no-any
-    expect(() => dl.maximum(a, b as any)).toThrowError();
+    expect(() => tf.maximum(a, b as any)).toThrowError();
   });
 
   it('propagates NaN', () => {
-    const a = dl.tensor1d([0.5, -0.1, NaN]);
-    const b = dl.tensor1d([0.2, 0.3, 0.25]);
-    const result = dl.maximum(a, b);
+    const a = tf.tensor1d([0.5, -0.1, NaN]);
+    const b = tf.tensor1d([0.2, 0.3, 0.25]);
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.5, 0.3, NaN]);
   });
 
   it('broadcasts Tensor1D and scalar', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const b = dl.scalar(0.6);
-    const result = dl.maximum(a, b);
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = tf.scalar(0.6);
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.6, 3, 0.6, 0.6]);
   });
 
   it('broadcasts scalar and Tensor1D', () => {
-    const a = dl.scalar(0.6);
-    const b = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const result = dl.maximum(a, b);
+    const a = tf.scalar(0.6);
+    const b = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.6, 3, 0.6, 0.6]);
   });
 
   it('broadcasts Tensor1D and Tensor2D', () => {
-    const a = dl.tensor1d([0.5, 0.3]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.maximum(a, b);
+    const a = tf.tensor1d([0.5, 0.3]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.5, 0.4, 0.6, 0.3]);
   });
 
   it('broadcasts 2x1 Tensor2D and 2x2 Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3], [2, 1]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.maximum(a, b);
+    const a = tf.tensor2d([0.5, 0.3], [2, 1]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.5, 0.5, 0.6, 0.3]);
   });
 
   it('gradients: Scalar', () => {
-    const a = dl.scalar(5.2);
-    const b = dl.scalar(0.6);
-    const dy = dl.scalar(3);
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
 
-    const grads = dl.grads((a, b) => dl.maximum(a, b));
+    const grads = tf.grads((a, b) => tf.maximum(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -163,11 +163,11 @@ describeWithFlags('maximum', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor1D', () => {
-    const a = dl.tensor1d([1.1, 2.6, 3, 5.9]);
-    const b = dl.tensor1d([1.0, 2.7, 3, 5.8]);
-    const dy = dl.tensor1d([1, 2, 3, 4]);
+    const a = tf.tensor1d([1.1, 2.6, 3, 5.9]);
+    const b = tf.tensor1d([1.0, 2.7, 3, 5.8]);
+    const dy = tf.tensor1d([1, 2, 3, 4]);
 
-    const grads = dl.grads((a, b) => dl.maximum(a, b));
+    const grads = tf.grads((a, b) => tf.maximum(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -180,11 +180,11 @@ describeWithFlags('maximum', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3, 0.7, 0.9], [2, 2]);
-    const b = dl.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
-    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+    const a = tf.tensor2d([0.5, 0.3, 0.7, 0.9], [2, 2]);
+    const b = tf.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.maximum(a, b));
+    const grads = tf.grads((a, b) => tf.maximum(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -199,9 +199,9 @@ describeWithFlags('maximum', ALL_ENVS, () => {
 
 describeWithFlags('squaredDifference', ALL_ENVS, () => {
   it('float32 and float32', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const b = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);
-    const result = dl.squaredDifference(a, b);
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
+    const result = tf.squaredDifference(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [
@@ -211,9 +211,9 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('int32 and int32', () => {
-    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
-    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
-    const result = dl.squaredDifference(a, b);
+    const a = tf.tensor1d([1, 5, 2, 3], 'int32');
+    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
+    const result = tf.squaredDifference(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('int32');
@@ -224,16 +224,16 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('different dtypes throws error', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4], 'float32');
-    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
+    const a = tf.tensor1d([0.5, 3, -0.1, -4], 'float32');
+    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
     // tslint:disable-next-line:no-any
-    expect(() => dl.squaredDifference(a, b as any)).toThrowError();
+    expect(() => tf.squaredDifference(a, b as any)).toThrowError();
   });
 
   it('propagates NaN', () => {
-    const a = dl.tensor1d([0.5, -0.1, NaN]);
-    const b = dl.tensor1d([0.2, 0.3, 0.25]);
-    const result = dl.squaredDifference(a, b);
+    const a = tf.tensor1d([0.5, -0.1, NaN]);
+    const b = tf.tensor1d([0.2, 0.3, 0.25]);
+    const result = tf.squaredDifference(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(
@@ -241,9 +241,9 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('broadcasts Tensor1D and scalar', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const b = dl.scalar(0.6);
-    const result = dl.squaredDifference(a, b);
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = tf.scalar(0.6);
+    const result = tf.squaredDifference(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [
@@ -253,9 +253,9 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('broadcasts scalar and Tensor1D', () => {
-    const a = dl.scalar(0.6);
-    const b = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const result = dl.squaredDifference(a, b);
+    const a = tf.scalar(0.6);
+    const b = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const result = tf.squaredDifference(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [
@@ -265,9 +265,9 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('broadcasts Tensor1D and Tensor2D', () => {
-    const a = dl.tensor1d([0.5, 0.3]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.squaredDifference(a, b);
+    const a = tf.tensor1d([0.5, 0.3]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.squaredDifference(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [
@@ -277,9 +277,9 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('broadcasts 2x1 Tensor2D and 2x2 Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3], [2, 1]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.squaredDifference(a, b);
+    const a = tf.tensor2d([0.5, 0.3], [2, 1]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.squaredDifference(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [
@@ -289,11 +289,11 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('gradients: Scalar', () => {
-    const a = dl.scalar(5.2);
-    const b = dl.scalar(0.6);
-    const dy = dl.scalar(3);
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
 
-    const grads = dl.grads((a, b) => dl.squaredDifference(a, b));
+    const grads = tf.grads((a, b) => tf.squaredDifference(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -306,11 +306,11 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor1D', () => {
-    const a = dl.tensor1d([1.1, 2.6, 3, 5.9]);
-    const b = dl.tensor1d([1.0, 2.7, 3, 5.8]);
-    const dy = dl.tensor1d([1, 2, 3, 1]);
+    const a = tf.tensor1d([1.1, 2.6, 3, 5.9]);
+    const b = tf.tensor1d([1.0, 2.7, 3, 5.8]);
+    const dy = tf.tensor1d([1, 2, 3, 1]);
 
-    const grads = dl.grads((a, b) => dl.squaredDifference(a, b));
+    const grads = tf.grads((a, b) => tf.squaredDifference(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -329,11 +329,11 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3, 0.7, 0.9], [2, 2]);
-    const b = dl.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
-    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+    const a = tf.tensor2d([0.5, 0.3, 0.7, 0.9], [2, 2]);
+    const b = tf.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.squaredDifference(a, b));
+    const grads = tf.grads((a, b) => tf.squaredDifference(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -354,18 +354,18 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
 
 describeWithFlags('minimum', ALL_ENVS, () => {
   it('float32 and float32', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const b = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);
-    const result = dl.minimum(a, b);
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.2, 0.4, -0.1, -4]);
   });
 
   it('int32 and int32', () => {
-    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
-    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
-    const result = dl.minimum(a, b);
+    const a = tf.tensor1d([1, 5, 2, 3], 'int32');
+    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('int32');
@@ -373,9 +373,9 @@ describeWithFlags('minimum', ALL_ENVS, () => {
   });
 
   it('bool and bool', () => {
-    const a = dl.tensor1d([true, false, false, true], 'bool');
-    const b = dl.tensor1d([false, false, true, true], 'bool');
-    const result = dl.minimum(a, b);
+    const a = tf.tensor1d([true, false, false, true], 'bool');
+    const b = tf.tensor1d([false, false, true, true], 'bool');
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('bool');
@@ -383,63 +383,63 @@ describeWithFlags('minimum', ALL_ENVS, () => {
   });
 
   it('different dtypes throws error', () => {
-    const a = dl.tensor1d([true, false, false, true], 'float32');
-    const b = dl.tensor1d([false, false, true, true], 'int32');
+    const a = tf.tensor1d([true, false, false, true], 'float32');
+    const b = tf.tensor1d([false, false, true, true], 'int32');
     // tslint:disable-next-line:no-any
-    expect(() => dl.minimum(a, b as any)).toThrowError();
+    expect(() => tf.minimum(a, b as any)).toThrowError();
   });
 
   it('propagates NaN', () => {
-    const a = dl.tensor1d([0.5, -0.1, NaN]);
-    const b = dl.tensor1d([0.2, 0.3, 0.25]);
-    const result = dl.minimum(a, b);
+    const a = tf.tensor1d([0.5, -0.1, NaN]);
+    const b = tf.tensor1d([0.2, 0.3, 0.25]);
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.2, -0.1, NaN]);
   });
 
   it('broadcasts Tensor1D and scalar', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const b = dl.scalar(0.6);
-    const result = dl.minimum(a, b);
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = tf.scalar(0.6);
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.5, 0.6, -0.1, -4]);
   });
 
   it('broadcasts scalar and Tensor1D', () => {
-    const a = dl.scalar(0.6);
-    const b = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const result = dl.minimum(a, b);
+    const a = tf.scalar(0.6);
+    const b = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.5, 0.6, -0.1, -4]);
   });
 
   it('broadcasts Tensor1D and Tensor2D', () => {
-    const a = dl.tensor1d([0.5, 0.3]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.minimum(a, b);
+    const a = tf.tensor1d([0.5, 0.3]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.2, 0.3, 0.5, 0.15]);
   });
 
   it('broadcasts 2x1 Tensor2D and 2x2 Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3], [2, 1]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.minimum(a, b);
+    const a = tf.tensor2d([0.5, 0.3], [2, 1]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.2, 0.4, 0.3, 0.15]);
   });
 
   it('gradients: Scalar', () => {
-    const a = dl.scalar(5.2);
-    const b = dl.scalar(0.6);
-    const dy = dl.scalar(3);
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
 
-    const grads = dl.grads((a, b) => dl.minimum(a, b));
+    const grads = tf.grads((a, b) => tf.minimum(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -452,11 +452,11 @@ describeWithFlags('minimum', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor1D', () => {
-    const a = dl.tensor1d([1.1, 2.6, 3, 5.9]);
-    const b = dl.tensor1d([1.0, 2.7, 3, 5.8]);
-    const dy = dl.tensor1d([1, 2, 3, 4]);
+    const a = tf.tensor1d([1.1, 2.6, 3, 5.9]);
+    const b = tf.tensor1d([1.0, 2.7, 3, 5.8]);
+    const dy = tf.tensor1d([1, 2, 3, 4]);
 
-    const grads = dl.grads((a, b) => dl.minimum(a, b));
+    const grads = tf.grads((a, b) => tf.minimum(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -469,11 +469,11 @@ describeWithFlags('minimum', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3, 0.7, 0.9], [2, 2]);
-    const b = dl.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
-    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+    const a = tf.tensor2d([0.5, 0.3, 0.7, 0.9], [2, 2]);
+    const b = tf.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.minimum(a, b));
+    const grads = tf.grads((a, b) => tf.minimum(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -488,18 +488,18 @@ describeWithFlags('minimum', ALL_ENVS, () => {
 
 describeWithFlags('mod', ALL_ENVS, () => {
   it('float32 and float32', () => {
-    const a = dl.tensor1d([0.5, 3, -0.1, -4]);
-    const b = dl.tensor1d([0.2, 0.4, 0.25, 0.15]);
-    const result = dl.mod(a, b);
+    const a = tf.tensor1d([0.5, 3, -0.1, -4]);
+    const b = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
+    const result = tf.mod(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.1, 0.2, 0.15, 0.05]);
   });
 
   it('int32 and int32', () => {
-    const a = dl.tensor1d([1, 5, 2, 3], 'int32');
-    const b = dl.tensor1d([2, 3, 1, 4], 'int32');
-    const result = dl.mod(a, b);
+    const a = tf.tensor1d([1, 5, 2, 3], 'int32');
+    const b = tf.tensor1d([2, 3, 1, 4], 'int32');
+    const result = tf.mod(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expect(result.dtype).toBe('int32');
@@ -507,25 +507,25 @@ describeWithFlags('mod', ALL_ENVS, () => {
   });
 
   it('different dtypes throws error', () => {
-    const a = dl.tensor1d([1.1, 2.2, 3.3, 4.4], 'float32');
-    const b = dl.tensor1d([1, 2, 3, 4], 'int32');
+    const a = tf.tensor1d([1.1, 2.2, 3.3, 4.4], 'float32');
+    const b = tf.tensor1d([1, 2, 3, 4], 'int32');
     // tslint:disable-next-line:no-any
-    expect(() => dl.mod(a, b as any)).toThrowError();
+    expect(() => tf.mod(a, b as any)).toThrowError();
   });
 
   it('propagates NaN', () => {
-    const a = dl.tensor1d([5, -1, NaN]);
-    const b = dl.tensor1d([2, 3, 0.25]);
-    const result = dl.mod(a, b);
+    const a = tf.tensor1d([5, -1, NaN]);
+    const b = tf.tensor1d([2, 3, 0.25]);
+    const result = tf.mod(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [1, 2, NaN]);
   });
 
   it('broadcasts Tensor1D and scalar', () => {
-    const a = dl.tensor1d([0.5, 2.5, -0.1, -4], 'float32');
-    const b = dl.scalar(0.6);
-    const result = dl.mod(a, b);
+    const a = tf.tensor1d([0.5, 2.5, -0.1, -4], 'float32');
+    const b = tf.scalar(0.6);
+    const result = tf.mod(a, b);
 
     expect(result.shape).toEqual(a.shape);
     expectArraysClose(result, [0.5, 0.1, 0.5, 0.2]);
@@ -533,38 +533,38 @@ describeWithFlags('mod', ALL_ENVS, () => {
 
   it('broadcasts scalar and Tensor1D', () => {
     // TODO(manraj): Fix for case fmod(0.6, -0.1)
-    const a = dl.scalar(2);
-    const b = dl.tensor1d([3, 3, -1, -4]);
-    const result = dl.mod(a, b);
+    const a = tf.scalar(2);
+    const b = tf.tensor1d([3, 3, -1, -4]);
+    const result = tf.mod(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [2, 2, 0, -2]);
   });
 
   it('broadcasts Tensor1D and Tensor2D', () => {
-    const a = dl.tensor1d([0.5, 0.3]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.mod(a, b);
+    const a = tf.tensor1d([0.5, 0.3]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.mod(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.1, 0.3, 0.5, 0.0]);
   });
 
   it('broadcasts 2x1 Tensor2D and 2x2 Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3], [2, 1]);
-    const b = dl.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
-    const result = dl.mod(a, b);
+    const a = tf.tensor2d([0.5, 0.3], [2, 1]);
+    const b = tf.tensor2d([0.2, 0.4, 0.6, 0.15], [2, 2]);
+    const result = tf.mod(a, b);
 
     expect(result.shape).toEqual(b.shape);
     expectArraysClose(result, [0.1, 0.1, 0.3, 0.0]);
   });
 
   it('gradients: Scalar', () => {
-    const a = dl.scalar(5.2);
-    const b = dl.scalar(0.6);
-    const dy = dl.scalar(3);
+    const a = tf.scalar(5.2);
+    const b = tf.scalar(0.6);
+    const dy = tf.scalar(3);
 
-    const grads = dl.grads((a, b) => dl.mod(a, b));
+    const grads = tf.grads((a, b) => tf.mod(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -577,11 +577,11 @@ describeWithFlags('mod', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor1D', () => {
-    const a = dl.tensor1d([1.1, 2.6, 3, 5.9]);
-    const b = dl.tensor1d([1.0, 2.7, 3, 5.8]);
-    const dy = dl.tensor1d([1, 2, 3, 4]);
+    const a = tf.tensor1d([1.1, 2.6, 3, 5.9]);
+    const b = tf.tensor1d([1.0, 2.7, 3, 5.8]);
+    const dy = tf.tensor1d([1, 2, 3, 4]);
 
-    const grads = dl.grads((a, b) => dl.mod(a, b));
+    const grads = tf.grads((a, b) => tf.mod(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -597,11 +597,11 @@ describeWithFlags('mod', ALL_ENVS, () => {
   });
 
   it('gradients: Tensor2D', () => {
-    const a = dl.tensor2d([0.5, 0.3, 0.7, 0.91], [2, 2]);
-    const b = dl.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
-    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+    const a = tf.tensor2d([0.5, 0.3, 0.7, 0.91], [2, 2]);
+    const b = tf.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.mod(a, b));
+    const grads = tf.grads((a, b) => tf.mod(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -617,11 +617,11 @@ describeWithFlags('mod', ALL_ENVS, () => {
   });
 
   it('gradients: broadcasts scalar and Tensor1D', () => {
-    const a = dl.scalar(0.7);
-    const b = dl.tensor1d([0.2, 0.3, 0.4, 0.5]);
-    const dy = dl.tensor1d([1, 2, 3, 4]);
+    const a = tf.scalar(0.7);
+    const b = tf.tensor1d([0.2, 0.3, 0.4, 0.5]);
+    const dy = tf.tensor1d([1, 2, 3, 4]);
 
-    const grads = dl.grads((a, b) => dl.mod(a, b));
+    const grads = tf.grads((a, b) => tf.mod(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -637,11 +637,11 @@ describeWithFlags('mod', ALL_ENVS, () => {
   });
 
   it('broadcasts Tensor1D and Tensor2D', () => {
-    const a = dl.tensor1d([0.5, 0.3]);
-    const b = dl.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
-    const dy = dl.tensor2d([1, 2, 3, 4], [2, 2]);
+    const a = tf.tensor1d([0.5, 0.3]);
+    const b = tf.tensor2d([0.2, 0.4, 0.7, 0.15], [2, 2]);
+    const dy = tf.tensor2d([1, 2, 3, 4], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.mod(a, b));
+    const grads = tf.grads((a, b) => tf.mod(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -661,10 +661,10 @@ describeWithFlags('atan2', ALL_ENVS, () => {
     const aValues = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0];
     const bValues = [1.0, 2.5, 3.5, 4.5, 2.0, 5.0];
 
-    const a = dl.tensor2d(aValues, [2, 3]);
-    const c = dl.tensor2d(bValues, [2, 3]);
+    const a = tf.tensor2d(aValues, [2, 3]);
+    const c = tf.tensor2d(bValues, [2, 3]);
 
-    const r = dl.atan2(a, c);
+    const r = tf.atan2(a, c);
     const expected = [];
 
     for (let i = 0; i < a.size; i++) {
@@ -674,10 +674,10 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('propagates NaNs', () => {
-    const a = dl.tensor2d([1.0, 2.0], [2, 1]);
-    const c = dl.tensor2d([3.0, NaN], [2, 1]);
+    const a = tf.tensor2d([1.0, 2.0], [2, 1]);
+    const c = tf.tensor2d([3.0, NaN], [2, 1]);
 
-    const r = dl.atan2(a, c);
+    const r = tf.atan2(a, c);
 
     expectArraysClose(r, [Math.atan2(1.0, 3.0), NaN]);
   });
@@ -686,10 +686,10 @@ describeWithFlags('atan2', ALL_ENVS, () => {
     const aValues = [1.0, 2.0, -3.0, -4.0];
     const bValues = [2.0, 3.0];
 
-    const a = dl.tensor2d(aValues, [2, 2]);
-    const b = dl.tensor2d(bValues, [2, 1]);
+    const a = tf.tensor2d(aValues, [2, 2]);
+    const b = tf.tensor2d(bValues, [2, 1]);
 
-    const result = dl.atan2(a, b);
+    const result = tf.atan2(a, b);
 
     expect(result.shape).toEqual([2, 2]);
     const expected = [
@@ -700,26 +700,26 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('throws when passed tensors of different shapes', () => {
-    const a = dl.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
-    const b = dl.tensor2d([5, 3, 4, -7], [2, 2]);
+    const a = tf.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([5, 3, 4, -7], [2, 2]);
 
-    expect(() => dl.atan2(a, b)).toThrowError();
-    expect(() => dl.atan2(b, a)).toThrowError();
+    expect(() => tf.atan2(a, b)).toThrowError();
+    expect(() => tf.atan2(b, a)).toThrowError();
   });
 
   it('throws when passed tensors of different types', () => {
-    const a = dl.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
-    const b = dl.tensor2d([5.0, 3.0, 4.0, -7.0], [2, 2]);
+    const a = tf.tensor2d([1, 2, -3, -4, 5, 6], [2, 3]);
+    const b = tf.tensor2d([5.0, 3.0, 4.0, -7.0], [2, 2]);
 
-    expect(() => dl.atan2(a, b)).toThrowError();
-    expect(() => dl.atan2(b, a)).toThrowError();
+    expect(() => tf.atan2(a, b)).toThrowError();
+    expect(() => tf.atan2(b, a)).toThrowError();
   });
 
   it('atan2 of scalar and array propagates NaNs', () => {
-    const c = dl.scalar(NaN);
-    const a = dl.tensor2d([1, 2, 3], [1, 3]);
+    const c = tf.scalar(NaN);
+    const a = tf.tensor2d([1, 2, 3], [1, 3]);
 
-    const r = dl.atan2(c, a);
+    const r = tf.atan2(c, a);
 
     expectArraysEqual(r, [NaN, NaN, NaN]);
   });
@@ -727,10 +727,10 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   it('atan2 of scalar and array', () => {
     const aValues = [1, 2, 3, 4, 5, 6];
 
-    const a = dl.tensor2d(aValues, [2, 3]);
-    const c = dl.scalar(2);
+    const a = tf.tensor2d(aValues, [2, 3]);
+    const c = tf.scalar(2);
 
-    const r = dl.atan2(a, c);
+    const r = tf.atan2(a, c);
     const expected = [];
 
     for (let i = 0; i < a.size; i++) {
@@ -740,11 +740,11 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('gradient: Scalar', () => {
-    const a = dl.scalar(5);
-    const b = dl.scalar(2);
-    const dy = dl.scalar(4);
+    const a = tf.scalar(5);
+    const b = tf.scalar(2);
+    const dy = tf.scalar(4);
 
-    const grads = dl.grads((a, b) => dl.atan2(a, b));
+    const grads = tf.grads((a, b) => tf.atan2(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -757,11 +757,11 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('gradient: Tensor1D', () => {
-    const a = dl.tensor1d([1, 2, 3]);
-    const b = dl.tensor1d([3, 4, 5]);
-    const dy = dl.tensor1d([1, 10, 20]);
+    const a = tf.tensor1d([1, 2, 3]);
+    const b = tf.tensor1d([3, 4, 5]);
+    const dy = tf.tensor1d([1, 10, 20]);
 
-    const grads = dl.grads((a, b) => dl.atan2(a, b));
+    const grads = tf.grads((a, b) => tf.atan2(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -774,11 +774,11 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('gradient: Tensor2D', () => {
-    const a = dl.tensor2d([3, 1, 2, 3], [2, 2]);
-    const b = dl.tensor2d([1, 3, 4, 5], [2, 2]);
-    const dy = dl.tensor2d([1, 10, 15, 20], [2, 2]);
+    const a = tf.tensor2d([3, 1, 2, 3], [2, 2]);
+    const b = tf.tensor2d([1, 3, 4, 5], [2, 2]);
+    const dy = tf.tensor2d([1, 10, 15, 20], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.atan2(a, b));
+    const grads = tf.grads((a, b) => tf.atan2(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -792,11 +792,11 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('gradient: scalar / Tensor1D', () => {
-    const a = dl.scalar(2);
-    const b = dl.tensor1d([3, 4, 5]);
-    const dy = dl.tensor1d([6, 7, 8]);
+    const a = tf.scalar(2);
+    const b = tf.tensor1d([3, 4, 5]);
+    const dy = tf.tensor1d([6, 7, 8]);
 
-    const grads = dl.grads((a, b) => dl.atan2(a, b));
+    const grads = tf.grads((a, b) => tf.atan2(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -809,11 +809,11 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('gradient: Tensor2D / scalar', () => {
-    const a = dl.tensor2d([[2, 3], [4, 5]], [2, 2]);
-    const b = dl.scalar(2);
-    const dy = dl.tensor2d([[6, 7], [8, 9]], [2, 2]);
+    const a = tf.tensor2d([[2, 3], [4, 5]], [2, 2]);
+    const b = tf.scalar(2);
+    const dy = tf.tensor2d([[6, 7], [8, 9]], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.atan2(a, b));
+    const grads = tf.grads((a, b) => tf.atan2(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
@@ -827,11 +827,11 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   });
 
   it('gradient: Tensor2D / Tensor2D w/ broadcast', () => {
-    const a = dl.tensor2d([3, 4], [2, 1]);
-    const b = dl.tensor2d([[2, 3], [4, 5]], [2, 2]);
-    const dy = dl.tensor2d([[6, 7], [8, 9]], [2, 2]);
+    const a = tf.tensor2d([3, 4], [2, 1]);
+    const b = tf.tensor2d([[2, 3], [4, 5]], [2, 2]);
+    const dy = tf.tensor2d([[6, 7], [8, 9]], [2, 2]);
 
-    const grads = dl.grads((a, b) => dl.atan2(a, b));
+    const grads = tf.grads((a, b) => tf.atan2(a, b));
     const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);

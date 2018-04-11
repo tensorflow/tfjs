@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as dl from './index';
+import * as tf from './index';
 import {CPU_ENVS, describeWithFlags, expectArraysClose} from './test_util';
 import {WeightsManifestConfig} from './weights_loader';
 
@@ -36,7 +36,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
     }];
 
     const weightsNamesToFetch = ['weight0'];
-    dl.loadWeights(manifest, './', weightsNamesToFetch)
+    tf.loadWeights(manifest, './', weightsNamesToFetch)
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
 
@@ -64,7 +64,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
     }];
 
     // Load the first weight.
-    dl.loadWeights(manifest, './', ['weight0'])
+    tf.loadWeights(manifest, './', ['weight0'])
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
 
@@ -92,7 +92,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
     }];
 
     // Load the second weight.
-    dl.loadWeights(manifest, './', ['weight1'])
+    tf.loadWeights(manifest, './', ['weight1'])
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
 
@@ -120,7 +120,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
     }];
 
     // Load all weights.
-    dl.loadWeights(manifest, './', ['weight0', 'weight1'])
+    tf.loadWeights(manifest, './', ['weight0', 'weight1'])
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
 
@@ -159,7 +159,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
     }];
 
     // Load all weights.
-    dl.loadWeights(manifest, './', ['weight0', 'weight1'])
+    tf.loadWeights(manifest, './', ['weight0', 'weight1'])
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
 
@@ -196,7 +196,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
       'weights': [{'name': 'weight0', 'dtype': 'float32', 'shape': [5, 2]}]
     }];
 
-    dl.loadWeights(manifest, './', ['weight0'])
+    tf.loadWeights(manifest, './', ['weight0'])
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(3);
 
@@ -238,7 +238,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
       ]
     }];
 
-    dl.loadWeights(manifest, './', ['weight0', 'weight1'])
+    tf.loadWeights(manifest, './', ['weight0', 'weight1'])
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(3);
 
@@ -282,7 +282,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
       }
     ];
 
-    dl.loadWeights(manifest, './', ['weight0', 'weight1'])
+    tf.loadWeights(manifest, './', ['weight0', 'weight1'])
         .then(weights => {
           // Only the first group should be fetched.
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
@@ -327,7 +327,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
       }
     ];
 
-    dl.loadWeights(manifest, './', ['weight0', 'weight2'])
+    tf.loadWeights(manifest, './', ['weight0', 'weight2'])
         .then(weights => {
           // Both groups need to be fetched.
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(2);
@@ -373,7 +373,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
     ];
 
     // Don't pass a third argument to loadWeights to load all weights.
-    dl.loadWeights(manifest, './')
+    tf.loadWeights(manifest, './')
         .then(weights => {
           // Both groups need to be fetched.
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(2);
@@ -415,7 +415,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
 
     const weightsNamesToFetch = ['doesntexist'];
     try {
-      await dl.loadWeights(manifest, './', weightsNamesToFetch);
+      await tf.loadWeights(manifest, './', weightsNamesToFetch);
       done.fail();
     } catch (e) {
       done();
@@ -437,7 +437,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
 
     const weightsNamesToFetch = ['weight0'];
     try {
-      await dl.loadWeights(manifest, './', weightsNamesToFetch);
+      await tf.loadWeights(manifest, './', weightsNamesToFetch);
       done.fail();
     } catch (e) {
       done();
@@ -453,7 +453,7 @@ describeWithFlags('loadWeights', CPU_ENVS, () => {
     }];
 
     const weightsNamesToFetch = ['weight0'];
-    dl.loadWeights(
+    tf.loadWeights(
           manifest, './', weightsNamesToFetch, {credentials: 'include'})
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);

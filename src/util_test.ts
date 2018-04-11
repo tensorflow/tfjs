@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from './index';
+import * as tf from './index';
 import {Tensor} from './tensor';
 import {CPU_ENVS, describeWithFlags} from './test_util';
 import {NamedTensorMap} from './types';
@@ -273,15 +273,15 @@ describe('util.squeezeShape', () => {
 
 describe('util.isTensorInList', () => {
   it('not in list', () => {
-    const a = dl.scalar(1);
-    const list: Tensor[] = [dl.scalar(1), dl.tensor1d([1, 2, 3])];
+    const a = tf.scalar(1);
+    const list: Tensor[] = [tf.scalar(1), tf.tensor1d([1, 2, 3])];
 
     expect(util.isTensorInList(a, list)).toBe(false);
   });
 
   it('in list', () => {
-    const a = dl.scalar(1);
-    const list: Tensor[] = [dl.scalar(2), dl.tensor1d([1, 2, 3]), a];
+    const a = tf.scalar(1);
+    const list: Tensor[] = [tf.scalar(2), tf.tensor1d([1, 2, 3]), a];
 
     expect(util.isTensorInList(a, list)).toBe(true);
   });
@@ -336,9 +336,9 @@ describe('util.checkForNaN', () => {
 
 describe('util.flattenNameArrayMap', () => {
   it('basic', () => {
-    const a = dl.scalar(1);
-    const b = dl.scalar(3);
-    const c = dl.tensor1d([1, 2, 3]);
+    const a = tf.scalar(1);
+    const b = tf.scalar(3);
+    const c = tf.tensor1d([1, 2, 3]);
 
     const map: NamedTensorMap = {a, b, c};
     expect(util.flattenNameArrayMap(map, Object.keys(map))).toEqual([a, b, c]);
@@ -347,9 +347,9 @@ describe('util.flattenNameArrayMap', () => {
 
 describe('util.unflattenToNameArrayMap', () => {
   it('basic', () => {
-    const a = dl.scalar(1);
-    const b = dl.scalar(3);
-    const c = dl.tensor1d([1, 2, 3]);
+    const a = tf.scalar(1);
+    const b = tf.scalar(3);
+    const c = tf.tensor1d([1, 2, 3]);
 
     expect(util.unflattenToNameArrayMap(['a', 'b', 'c'], [
       a, b, c
@@ -392,16 +392,16 @@ describeWithFlags('extractTensorsFromAny', CPU_ENVS, () => {
   });
 
   it('tensor input returns one element tensor', () => {
-    const x = dl.scalar(1);
+    const x = tf.scalar(1);
     const results = util.extractTensorsFromAny(x);
 
     expect(results).toEqual([x]);
   });
 
   it('name tensor map returns flattened tensor', () => {
-    const x1 = dl.scalar(1);
-    const x2 = dl.scalar(3);
-    const x3 = dl.scalar(4);
+    const x1 = tf.scalar(1);
+    const x2 = tf.scalar(3);
+    const x3 = tf.scalar(4);
     const results = util.extractTensorsFromAny({x1, x2, x3});
 
     expect(results).toEqual([x1, x2, x3]);

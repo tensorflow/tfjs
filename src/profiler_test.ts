@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from './index';
+import * as tf from './index';
 import {BackendTimer, BackendTimingInfo} from './kernels/backend';
 import {TypedArray} from './kernels/webgl/tex_util';
 import {Logger, Profiler} from './profiler';
@@ -55,7 +55,7 @@ describe('profiler.Profiler', () => {
 
     let kernelCalled = false;
     const result = 1;
-    const resultScalar = dl.scalar(result);
+    const resultScalar = tf.scalar(result);
 
     profiler.profileKernel('MatMul', () => {
       kernelCalled = true;
@@ -90,7 +90,7 @@ describe('profiler.Profiler', () => {
     let matmulKernelCalled = false;
     let maxKernelCalled = false;
     const result = 1;
-    const resultScalar = dl.scalar(result);
+    const resultScalar = tf.scalar(result);
 
     profiler.profileKernel('MatMul', () => {
       const result = profiler.profileKernel('Max', () => {

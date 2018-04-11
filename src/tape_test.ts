@@ -15,18 +15,18 @@
  * =============================================================================
  */
 
-import * as dl from './index';
+import * as tf from './index';
 import * as tape_util from './tape';
 import {TapeNode} from './tape';
 import {CPU_ENVS, describeWithFlags, expectArraysClose} from './test_util';
 
 describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
   it('getFilteredNodesXToY no paths from x to y', () => {
-    const x = dl.scalar(1);
-    const intermediate1 = dl.scalar(0);
+    const x = tf.scalar(1);
+    const intermediate1 = tf.scalar(0);
 
-    const intermediate2 = dl.scalar(0);
-    const y = dl.scalar(2);
+    const intermediate2 = tf.scalar(0);
+    const y = tf.scalar(2);
 
     const tape: TapeNode[] = [
       {
@@ -52,8 +52,8 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
   });
 
   it('getFilteredNodesXToY one operation x => y', () => {
-    const x = dl.scalar(1);
-    const y = dl.scalar(2);
+    const x = tf.scalar(1);
+    const y = tf.scalar(2);
 
     const tape: TapeNode[] =
         [{id: 0, name: 'node0', inputs: {x}, output: y, gradient: null}];
@@ -65,9 +65,9 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
   });
 
   it('getFilteredNodesXToY 1 operation [x0, x1] => y, all input paths', () => {
-    const x0 = dl.scalar(0);
-    const x1 = dl.scalar(1);
-    const y = dl.scalar(2);
+    const x0 = tf.scalar(0);
+    const x1 = tf.scalar(1);
+    const y = tf.scalar(2);
 
     const tape: TapeNode[] =
         [{id: 0, name: 'node0', inputs: {x0, x1}, output: y, gradient: null}];
@@ -80,9 +80,9 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
 
   it('getFilteredNodesXToY one operation [x0, x1] => y, one input paths',
      () => {
-       const x0 = dl.scalar(0);
-       const x1 = dl.scalar(1);
-       const y = dl.scalar(2);
+       const x0 = tf.scalar(0);
+       const x1 = tf.scalar(1);
+       const y = tf.scalar(2);
 
        const tape: TapeNode[] = [
          {id: 0, name: 'node0', inputs: {x0, x1}, output: y, gradient: null}
@@ -98,9 +98,9 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
      });
 
   it('getFilteredNodesXToY two operations x => intermediate => y', () => {
-    const x = dl.scalar(1);
-    const intermediate = dl.scalar(0);
-    const y = dl.scalar(2);
+    const x = tf.scalar(1);
+    const intermediate = tf.scalar(0);
+    const y = tf.scalar(2);
 
     const tape: TapeNode[] = [
       {id: 0, name: 'node0', inputs: {x}, output: intermediate, gradient: null},
@@ -122,11 +122,11 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
   it('getFilteredNodesXToY two operations [x0, x1], [x2] => ' +
          'intermediate => y',
      () => {
-       const x0 = dl.scalar(1);
-       const x1 = dl.scalar(2);
-       const x2 = dl.scalar(3);
-       const intermediate = dl.scalar(4);
-       const y = dl.scalar(2);
+       const x0 = tf.scalar(1);
+       const x1 = tf.scalar(2);
+       const x2 = tf.scalar(3);
+       const intermediate = tf.scalar(4);
+       const y = tf.scalar(2);
 
        const tape: TapeNode[] = [
          {
@@ -153,9 +153,9 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
      });
 
   it('getFilteredNodesXToY x => y and x => orphan', () => {
-    const x = dl.scalar(1);
-    const orphan = dl.scalar(0);
-    const y = dl.scalar(2);
+    const x = tf.scalar(1);
+    const orphan = tf.scalar(0);
+    const y = tf.scalar(2);
 
     const tape: TapeNode[] = [
       {id: 0, name: 'node0', inputs: {x}, output: orphan, gradient: null},
@@ -170,9 +170,9 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
   });
 
   it('getFilteredNodesXToY x => y and orphan => y', () => {
-    const x = dl.scalar(1);
-    const orphan = dl.scalar(0);
-    const y = dl.scalar(2);
+    const x = tf.scalar(1);
+    const orphan = tf.scalar(0);
+    const y = tf.scalar(2);
 
     const tape: TapeNode[] = [
       {id: 0, name: 'node0', inputs: {x, orphan}, output: y, gradient: null}
@@ -190,12 +190,12 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
 
 describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
   it('Throws if gradient is not defined', () => {
-    const x = dl.scalar(0);
-    const y = dl.scalar(1);
+    const x = tf.scalar(0);
+    const y = tf.scalar(1);
 
-    const dy = dl.scalar(1);
+    const dy = tf.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: tf.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] =
@@ -207,12 +207,12 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
   });
 
   it('basic backprop with 1 node', () => {
-    const x = dl.scalar(0);
-    const y = dl.scalar(1);
+    const x = tf.scalar(0);
+    const y = tf.scalar(1);
 
-    const dy = dl.scalar(1);
+    const dy = tf.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: tf.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] = [{
@@ -220,8 +220,8 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
       name: 'node0',
       inputs: {x},
       output: y,
-      gradient: (dy: dl.Scalar) => {
-        return {x: () => dy.add(dl.scalar(1))};
+      gradient: (dy: tf.Scalar) => {
+        return {x: () => dy.add(tf.scalar(1))};
       }
     }];
 
@@ -231,13 +231,13 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
   });
 
   it('basic backprop with 2 nodes', () => {
-    const x = dl.scalar(0);
-    const intermediate = dl.scalar(1);
-    const y = dl.scalar(2);
+    const x = tf.scalar(0);
+    const intermediate = tf.scalar(1);
+    const y = tf.scalar(2);
 
-    const dy = dl.scalar(1);
+    const dy = tf.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: tf.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] = [
@@ -246,8 +246,8 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node0',
         inputs: {x},
         output: intermediate,
-        gradient: (dy: dl.Scalar) => {
-          return {x: () => dy.add(dl.scalar(1))};
+        gradient: (dy: tf.Scalar) => {
+          return {x: () => dy.add(tf.scalar(1))};
         }
       },
       {
@@ -255,8 +255,8 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node1',
         inputs: {intermediate},
         output: y,
-        gradient: (dy: dl.Scalar) => {
-          return {intermediate: () => dy.add(dl.scalar(1))};
+        gradient: (dy: tf.Scalar) => {
+          return {intermediate: () => dy.add(tf.scalar(1))};
         }
       }
     ];
@@ -268,14 +268,14 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
   });
 
   it('basic backprop with a split node accumulates gradients', () => {
-    const x = dl.scalar(0);
-    const intermediate1 = dl.scalar(1);
-    const intermediate2 = dl.scalar(2);
-    const y = dl.scalar(3);
+    const x = tf.scalar(0);
+    const intermediate1 = tf.scalar(1);
+    const intermediate2 = tf.scalar(2);
+    const y = tf.scalar(3);
 
-    const dy = dl.scalar(1);
+    const dy = tf.scalar(1);
 
-    const accumulatedGradientsMap: {[tensorId: number]: dl.Tensor} = {};
+    const accumulatedGradientsMap: {[tensorId: number]: tf.Tensor} = {};
     accumulatedGradientsMap[y.id] = dy;
 
     const tape: TapeNode[] = [
@@ -284,8 +284,8 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node0',
         inputs: {x},
         output: intermediate1,
-        gradient: (dy: dl.Scalar) => {
-          return {x: () => dy.add(dl.scalar(1))};
+        gradient: (dy: tf.Scalar) => {
+          return {x: () => dy.add(tf.scalar(1))};
         }
       },
       {
@@ -293,8 +293,8 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node1',
         inputs: {x},
         output: intermediate2,
-        gradient: (dy: dl.Scalar) => {
-          return {x: () => dy.add(dl.scalar(1))};
+        gradient: (dy: tf.Scalar) => {
+          return {x: () => dy.add(tf.scalar(1))};
         }
       },
       {
@@ -302,10 +302,10 @@ describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
         name: 'node2',
         inputs: {intermediate1, intermediate2},
         output: y,
-        gradient: (dy: dl.Scalar) => {
+        gradient: (dy: tf.Scalar) => {
           return {
-            intermediate1: () => dy.add(dl.scalar(1)),
-            intermediate2: () => dy.add(dl.scalar(1))
+            intermediate1: () => dy.add(tf.scalar(1)),
+            intermediate2: () => dy.add(tf.scalar(1))
           };
         }
       }

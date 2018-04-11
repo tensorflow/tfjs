@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
 describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
@@ -25,18 +25,18 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     const beta2 = 0.9;
     const decay = 0.1;
     const optimizer =
-        dl.train.adamax(learningRate, beta1, beta2, undefined, decay);
+        tf.train.adamax(learningRate, beta1, beta2, undefined, decay);
 
-    const x = dl.tensor1d([2, 4]).variable();
+    const x = tf.tensor1d([2, 4]).variable();
 
-    const f = () => x.square().sum() as dl.Scalar;
+    const f = () => x.square().sum() as tf.Scalar;
 
-    let numTensors = dl.memory().numTensors;
+    let numTensors = tf.memory().numTensors;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
     // Cost & 2 accumulators should be the only additional arrays.
-    expect(dl.memory().numTensors).toBe(numTensors + 3);
+    expect(tf.memory().numTensors).toBe(numTensors + 3);
     // new_first_m = [
     //    beta1 * old_first_m_w1 + (1-beta1) * grad_w1,
     //    beta1 * old_first_m_w2 + (1-beta1) * grad_w2
@@ -62,7 +62,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [1.9, 3.9]);
 
     cost.dispose();
-    numTensors = dl.memory().numTensors;
+    numTensors = tf.memory().numTensors;
 
     cost = optimizer.minimize(f, /* returnCost */ false);
 
@@ -99,7 +99,7 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     //
     expectArraysClose(x, [1.80697, 3.8086]);
     // There should be no new additional Tensors.
-    expect(dl.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
 
     expect(cost).toBe(null);
 
@@ -107,6 +107,6 @@ describeWithFlags('AdamaxOptimizer', ALL_ENVS, () => {
     optimizer.dispose();
 
     // The only tensor remaining should be the argument to variable().
-    expect(dl.memory().numTensors).toBe(1);
+    expect(tf.memory().numTensors).toBe(1);
   });
 });
