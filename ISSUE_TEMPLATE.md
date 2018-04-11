@@ -1,4 +1,4 @@
-If you would like to get help from the community, our [Google group](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs) might be a better fit.
+To get help from the community, check out our [Google group](https://groups.google.com/a/tensorflow.org/forum/#!forum/tfjs).
 
 #### TensorFlow.js version
 
