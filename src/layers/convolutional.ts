@@ -12,9 +12,9 @@
  * TensorFlow.js Layers: Convolutional Layers
  */
 
-import {conv2dTranspose, Tensor, Tensor4D, tidy} from '@tensorflow/tfjs-core';
-
 // tslint:disable:max-line-length
+import {conv2dTranspose, separableConv2d, Tensor, Tensor4D, tidy} from '@tensorflow/tfjs-core';
+
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
@@ -514,6 +514,238 @@ export class Conv2DTranspose extends Conv2D {
   }
 }
 generic_utils.ClassNameMap.register('Conv2DTranspose', Conv2DTranspose);
+
+
+export interface SeparableConvLayerConfig extends ConvLayerConfig {
+  /**
+   * The number of depthwise convolution output channels for each input
+   * channel.
+   * The total number of depthwise convolution output channels will be equal to
+   * `filtersIn * depthMultiplier`.
+   * Default: 1.
+   */
+  depthMultiplier?: number;
+
+  /**
+   * Initializer for the depthwise kernel matrix.
+   */
+  depthwiseInitializer?: InitializerIdentifier|Initializer;
+
+  /**
+   * Initializer for the pointwise kernel matrix.
+   */
+  pointwiseInitializer?: InitializerIdentifier|Initializer;
+
+  /**
+   * Regularizer function applied to the depthwise kernel matrix.
+   */
+  depthwiseRegularizer?: RegularizerIdentifier|Regularizer;
+
+  /**
+   * Regularizer function applied to the pointwise kernel matrix.
+   */
+  pointwiseRegularizer?: RegularizerIdentifier|Regularizer;
+
+  /**
+   * Constraint function applied to the depthwise kernel matrix.
+   */
+  depthwiseConstraint?: ConstraintIdentifier|Constraint;
+
+  /**
+   * Constraint function applied to the pointwise kernel matrix.
+   */
+  pointwiseConstraint?: ConstraintIdentifier|Constraint;
+}
+
+
+export class SeparableConv extends Conv {
+  readonly depthMultiplier: number;
+
+  protected readonly depthwiseInitializer?: Initializer;
+  protected readonly depthwiseRegularizer?: Regularizer;
+  protected readonly depthwiseConstraint?: Constraint;
+  protected readonly pointwiseInitializer?: Initializer;
+  protected readonly pointwiseRegularizer?: Regularizer;
+  protected readonly pointwiseConstraint?: Constraint;
+
+  readonly DEFAULT_DEPTHWISE_INITIALIZER: InitializerIdentifier =
+      'glorotUniform';
+  readonly DEFAULT_POINTWISE_INITIALIZER: InitializerIdentifier =
+      'glorotUniform';
+
+  protected depthwiseKernel: LayerVariable = null;
+  protected pointwiseKernel: LayerVariable = null;
+
+  constructor(rank: number, config?: SeparableConvLayerConfig) {
+    super(rank, config);
+
+    if (config.filters == null) {
+      throw new ValueError(
+          'The `filters` configuration field is required by SeparableConv, ' +
+          'but is unspecified.');
+    }
+    if (config.kernelInitializer != null || config.kernelRegularizer != null ||
+        config.kernelConstraint != null) {
+      throw new ValueError(
+          'Fields kernelInitializer, kernelRegularizer and kernelConstraint ' +
+          'are invalid for SeparableConv2D. Use depthwiseInitializer, ' +
+          'depthwiseRegularizer, depthwiseConstraint, pointwiseInitializer, ' +
+          'pointwiseRegularizer and pointwiseConstraint instead.');
+    }
+    if (config.padding != null && config.padding !== 'same' &&
+        config.padding !== 'valid') {
+      throw new ValueError(
+          `SeparableConv${this.rank}D supports only padding modes: ` +
+          `'same' and 'valid', but received ${JSON.stringify(config.padding)}`);
+    }
+
+    this.depthMultiplier =
+        config.depthMultiplier == null ? 1 : config.depthMultiplier;
+    this.depthwiseInitializer = getInitializer(
+        config.depthwiseInitializer || this.DEFAULT_DEPTHWISE_INITIALIZER);
+    this.depthwiseRegularizer = getRegularizer(config.depthwiseRegularizer);
+    this.depthwiseConstraint = getConstraint(config.depthwiseConstraint);
+    this.pointwiseInitializer = getInitializer(
+        config.depthwiseInitializer || this.DEFAULT_POINTWISE_INITIALIZER);
+    this.pointwiseRegularizer = getRegularizer(config.pointwiseRegularizer);
+    this.pointwiseConstraint = getConstraint(config.pointwiseConstraint);
+  }
+
+  build(inputShape: Shape|Shape[]): void {
+    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    if (inputShape.length < this.rank + 2) {
+      throw new ValueError(
+          `Inputs to SeparableConv${this.rank}D should have rank ` +
+          `${this.rank + 2}, but received input shape: ` +
+          `${JSON.stringify(inputShape)}`);
+    }
+    const channelAxis =
+        this.dataFormat === 'channelsFirst' ? 1 : inputShape.length - 1;
+    if (inputShape[channelAxis] == null || inputShape[channelAxis] < 0) {
+      throw new ValueError(
+          `The channel dimension of the inputs should be defined, ` +
+          `but found ${JSON.stringify(inputShape[channelAxis])}`);
+    }
+
+    const inputDim = inputShape[channelAxis];
+    const depthwiseKernelShape =
+        this.kernelSize.concat([inputDim, this.depthMultiplier]);
+    const pointwiseKernelShape = [];
+    for (let i = 0; i < this.rank; ++i) {
+      pointwiseKernelShape.push(1);
+    }
+    pointwiseKernelShape.push(inputDim * this.depthMultiplier, this.filters);
+
+    const trainable = true;
+    this.depthwiseKernel = this.addWeight(
+        'depthwise_kernel', depthwiseKernelShape, DType.float32,
+        this.depthwiseInitializer, this.depthwiseRegularizer, trainable,
+        this.depthwiseConstraint);
+    this.pointwiseKernel = this.addWeight(
+        'pointwise_kernel', pointwiseKernelShape, DType.float32,
+        this.pointwiseInitializer, this.pointwiseRegularizer, trainable,
+        this.pointwiseConstraint);
+    if (this.useBias) {
+      this.bias = this.addWeight(
+          'bias', [this.filters], DType.float32, this.biasInitializer,
+          this.biasRegularizer, trainable, this.biasConstraint);
+    } else {
+      this.bias = null;
+    }
+
+    this.inputSpec =
+        [new InputSpec({ndim: this.rank + 2, axes: {[channelAxis]: inputDim}})];
+    this.built = true;
+  }
+
+  // tslint:disable-next-line:no-any
+  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+    inputs = generic_utils.getExactlyOneTensor(inputs);
+
+    let output: Tensor;
+    if (this.rank === 1) {
+      throw new NotImplementedError(
+          '1D separable convolution is not implemented yet.');
+    } else if (this.rank === 2) {
+      if (this.dataFormat === 'channelsFirst') {
+        inputs = K.transpose(inputs, [0, 2, 3, 1]);  // NCHW -> NHWC.
+      }
+
+      output = separableConv2d(
+          inputs as Tensor4D, this.depthwiseKernel.read() as Tensor4D,
+          this.pointwiseKernel.read() as Tensor4D,
+          this.strides as [number, number], this.padding as 'same' | 'valid',
+          this.dilationRate, 'NHWC');
+    }
+
+    if (this.useBias) {
+      output = K.biasAdd(output, this.bias.read(), this.dataFormat);
+    }
+    if (this.activation != null) {
+      output = this.activation(output);
+    }
+
+    if (this.dataFormat === 'channelsFirst') {
+      output = K.transpose(output, [0, 3, 1, 2]);  // NHWC -> NCHW.
+    }
+    return output;
+  }
+
+  getConfig(): ConfigDict {
+    const config = super.getConfig();
+    delete config['rank'];
+    delete config['kernelInitializer'];
+    delete config['kernelRegularizer'];
+    delete config['kernelConstraint'];
+    config['depthwiseInitializer'] =
+        serializeInitializer(this.depthwiseInitializer);
+    config['pointwiseInitializer'] =
+        serializeInitializer(this.pointwiseInitializer);
+    config['depthwiseRegularizer'] =
+        serializeRegularizer(this.depthwiseRegularizer);
+    config['pointwiseRegularizer'] =
+        serializeRegularizer(this.pointwiseRegularizer);
+    config['depthwiseConstraint'] =
+        serializeConstraint(this.depthwiseConstraint);
+    config['pointwiseConstraint'] =
+        serializeConstraint(this.pointwiseConstraint);
+    return config;
+  }
+}
+
+/**
+ * Depthwise separable 2D convolution.
+ *
+ * Separable convolution consists of first performing
+ * a depthwise spatial convolution
+ * (which acts on each input channel separately)
+ * followed by a pointwise convolution which mixes together the resulting
+ * output channels. The `depthMultiplier` argument controls how many
+ * output channels are generated per input channel in the depthwise step.
+ *
+ * Intuitively, separable convolutions can be understood as
+ * a way to factorize a convolution kernel into two smaller kernels,
+ * or as an extreme version of an Inception block.
+ *
+ * Input shape:
+ *   4D tensor with shape:
+ *     `[batch, channels, rows, cols]` if data_format='channelsFirst'
+ *   or 4D tensor with shape:
+ *     `[batch, rows, cols, channels]` if data_format='channelsLast'.
+ *
+ * Output shape:
+ *   4D tensor with shape:
+ *     `[batch, filters, newRows, newCols]` if data_format='channelsFirst'
+ *   or 4D tensor with shape:
+ *     `[batch, newRows, newCols, filters]` if data_format='channelsLast'.
+ *     `rows` and `cols` values might have changed due to padding.
+ */
+export class SeparableConv2D extends SeparableConv {
+  constructor(config?: SeparableConvLayerConfig) {
+    super(2, config);
+  }
+}
+generic_utils.ClassNameMap.register('SeparableConv2D', SeparableConv2D);
 
 /**
  * 1D convolution layer (e.g., temporal convolution).
