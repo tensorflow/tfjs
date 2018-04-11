@@ -13,15 +13,15 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, scalar, Tensor, tensor3d, tensor4d, util} from '@tensorflow/tfjs-core';
+import {ones, scalar, Tensor, tensor3d, Tensor4D, tensor4d, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {DataFormat, PaddingMode} from '../common';
 import {InitializerIdentifier} from '../initializers';
 import {DType, SymbolicTensor} from '../types';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {Conv1D, Conv2D, Conv2DTranspose} from './convolutional';
+import {Conv1D, Conv2D, Conv2DTranspose, SeparableConv2D} from './convolutional';
 
 // tslint:enable:max-line-length
 
@@ -438,4 +438,200 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
         [1, 6, 1]);
     expectTensorsClose(y, yExpected);
   });
+});
+
+describeMathCPU('SeparableConv2D Layers: Symbolic', () => {
+  const filtersArray = [1, 8];
+  const paddingModes: PaddingMode[] = [undefined, 'valid', 'same'];
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const kernelSizes = [[2, 2], [3, 4]];
+  // In this test suite, `undefined` means strides is the same as kernelSize.
+  const stridesArray = [undefined, 1];
+  const dilationRates = [undefined, 2];
+
+  for (const filters of filtersArray) {
+    for (const padding of paddingModes) {
+      for (const dataFormat of dataFormats) {
+        for (const kernelSize of kernelSizes) {
+          for (const stride of stridesArray) {
+            for (const dilationRate of dilationRates) {
+              const strides = stride || kernelSize;
+              const testTitle = `filters=${filters}, kernelSize=${
+                                    JSON.stringify(kernelSize)}, ` +
+                  `strides=${JSON.stringify(strides)}, ` +
+                  `dataFormat=${dataFormat}, padding=${padding}, ` +
+                  `dilationRate=${dilationRate}`;
+              it(testTitle, () => {
+                const inputShape = dataFormat === 'channelsFirst' ?
+                    [2, 16, 11, 9] :
+                    [2, 11, 9, 16];
+                const symbolicInput = new SymbolicTensor(
+                    DType.float32, inputShape, null, [], null);
+
+                const layer = new SeparableConv2D({
+                  filters,
+                  kernelSize,
+                  strides,
+                  padding,
+                  dataFormat,
+                  dilationRate,
+                });
+
+                const output = layer.apply(symbolicInput) as SymbolicTensor;
+
+                let outputRows: number;
+                let outputCols: number;
+                if (dilationRate == null) {
+                  if (stride === undefined) {  // Same strides as kernelSize.
+                    outputRows = kernelSize[0] === 2 ? 5 : 3;
+                    if (padding === 'same') {
+                      outputRows++;
+                    }
+                    outputCols = kernelSize[1] === 2 ? 4 : 2;
+                    if (padding === 'same') {
+                      outputCols++;
+                    }
+                  } else {  // strides: 1.
+                    outputRows = kernelSize[0] === 2 ? 10 : 9;
+                    if (padding === 'same') {
+                      outputRows += kernelSize[0] - 1;
+                    }
+                    outputCols = kernelSize[1] === 2 ? 8 : 6;
+                    if (padding === 'same') {
+                      outputCols += kernelSize[1] - 1;
+                    }
+                  }
+                } else {
+                  if (padding === 'same') {
+                    if (stride === undefined) {  // Same strides as kernelSize.
+                      outputRows = kernelSize[0] === 2 ? 6 : 4;
+                      outputCols = kernelSize[1] === 2 ? 5 : 3;
+                    } else {  // strides: 1.
+                      outputRows = 11;
+                      outputCols = 9;
+                    }
+                  } else {
+                    if (stride === undefined) {  // Same strides as kernelSize.
+                      outputRows = kernelSize[0] === 2 ? 5 : 3;
+                      outputCols = kernelSize[1] === 2 ? 4 : 1;
+                    } else {  // strides: 1.
+                      outputRows = kernelSize[0] === 2 ? 9 : 7;
+                      outputCols = kernelSize[1] === 2 ? 7 : 3;
+                    }
+                  }
+                }
+                let expectedShape: [number, number, number, number];
+                if (dataFormat === 'channelsFirst') {
+                  expectedShape = [2, filters, outputRows, outputCols];
+                } else {
+                  expectedShape = [2, outputRows, outputCols, filters];
+                }
+
+                expect(output.shape).toEqual(expectedShape);
+                expect(output.dtype).toEqual(symbolicInput.dtype);
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  it('Incorrect input rank throws error', () => {
+    const layer = new SeparableConv2D({
+      filters: 1,
+      kernelSize: [2, 2],
+      strides: 1,
+    });
+    const symbolicInput =
+        new SymbolicTensor(DType.float32, [2, 3, 4], null, [], null);
+    expect(() => layer.apply(symbolicInput)).toThrowError(/rank 4/);
+  });
+
+  it('Undefined channel axis throws error', () => {
+    const layer = new SeparableConv2D({
+      filters: 1,
+      kernelSize: [2, 2],
+      strides: 1,
+    });
+    const symbolicInput =
+        new SymbolicTensor(DType.float32, [1, , 2, 3, null], null, [], null);
+    expect(() => layer.apply(symbolicInput))
+        .toThrowError(/channel dimension .* should be defined/);
+  });
+});
+
+describeMathGPU('SeparableConv2D Layer: Tensor', () => {
+  const x5by5Data = [
+    1,  3,  5,  7,  9,  2,  4,   6,  8, 10, -1, -3, -5,
+    -7, -9, -2, -4, -6, -8, -10, -1, 1, -1, 1,  -1
+  ];
+
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const dilationRates: number[] = [undefined, 2];
+  const useBiases = [false, true];
+  const biasInitializers: InitializerIdentifier[] = ['zeros', 'ones'];
+  const activations = [null, 'linear', 'relu'];
+
+  for (const dataFormat of dataFormats) {
+    for (const dilationRate of dilationRates) {
+      for (const useBias of useBiases) {
+        for (const biasInitializer of biasInitializers) {
+          for (const activation of activations) {
+            const testTitle = `dataFormat=${dataFormat}, ` +
+                `dilationRate=${dilationRate}, ` +
+                `useBias=${useBias}, biasInitializer=${biasInitializer}, ` +
+                `activation=${activation}`;
+            it(testTitle, () => {
+              let x = tensor4d(x5by5Data, [1, 5, 5, 1]);
+              if (dataFormat === 'channelsFirst') {
+                x = K.transpose(x, [0, 3, 1, 2]) as Tensor4D;  // NHWC -> NCHW.
+              }
+
+              const conv2dLayer = new SeparableConv2D({
+                depthMultiplier: 1,
+                filters: 1,
+                kernelSize: [2, 2],
+                strides: 1,
+                dilationRate,
+                dataFormat,
+                useBias,
+                depthwiseInitializer: 'ones',
+                pointwiseInitializer: 'ones',
+                biasInitializer,
+                activation
+              });
+              const y = conv2dLayer.apply(x) as Tensor;
+
+              let yExpectedData: number[];
+              if (dilationRate === 2) {
+                yExpectedData = [0, 0, 0, 0, 0, 0, -8, -8, -16];
+              } else {
+                yExpectedData = [
+                  10, 18, 26, 34, 2, 2, 2, 2, -10, -18, -26, -34, -6, -10, -14,
+                  -18
+                ];
+              }
+              if (useBias && biasInitializer === 'ones') {
+                yExpectedData = yExpectedData.map(element => element + 1);
+              }
+              if (activation === 'relu') {
+                yExpectedData =
+                    yExpectedData.map(element => element >= 0 ? element : 0);
+              }
+
+              let yExpected = dilationRate === 2 ?
+                  tensor4d(yExpectedData, [1, 3, 3, 1]) :
+                  tensor4d(yExpectedData, [1, 4, 4, 1]);
+              if (dataFormat === 'channelsFirst') {
+                yExpected = K.transpose(yExpected, [0, 3, 1, 2]) as
+                    Tensor4D;  // NHWC -> NCHW.
+              }
+              expectTensorsClose(y, yExpected);
+            });
+          }
+        }
+      }
+    }
+  }
 });
