@@ -327,7 +327,9 @@ export class ArrayOps {
    * Creates a new tensor with the same values and shape as the specified
    * tensor.
    *
-   * ```js   * const x = tf.tensor([1, 2]);
+   * ```js
+   * const x = tf.tensor([1, 2]);
+   *
    * x.clone().print();
    * ```
    *
