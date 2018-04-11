@@ -15,25 +15,25 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
 describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
   it('basic', () => {
     const learningRate = .1;
     const momentum = .5;
-    const optimizer = dl.train.momentum(learningRate, momentum);
+    const optimizer = tf.train.momentum(learningRate, momentum);
 
-    const x = dl.tensor1d([1, 2]).variable();
+    const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as dl.Scalar;
+    const f = () => x.square().sum() as tf.Scalar;
 
-    let numTensors = dl.memory().numTensors;
+    let numTensors = tf.memory().numTensors;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
     // Cost / velocity should be the only additional arrays.
-    expect(dl.memory().numTensors).toBe(numTensors + 2);
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
 
     // newAccumulation = momentum * accumulation + gradient
     // newVariable += -learningRate * newAccumulation + variable
@@ -44,7 +44,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [.8, 1.6]);
 
     cost.dispose();
-    numTensors = dl.memory().numTensors;
+    numTensors = tf.memory().numTensors;
 
     cost = optimizer.minimize(f, /* returnCost */ false);
 
@@ -55,7 +55,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [0.54, 1.08]);
 
     // There should be no new additional Tensors.
-    expect(dl.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
 
     expect(cost).toBe(null);
 
@@ -63,25 +63,25 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     optimizer.dispose();
 
     // The only tensor remaining is the argument to variable().
-    expect(dl.memory().numTensors).toBe(1);
+    expect(tf.memory().numTensors).toBe(1);
   });
 
   it('basic - with Nesterov', () => {
     const learningRate = .1;
     const momentum = .5;
     const useNesterov = true;
-    const optimizer = dl.train.momentum(learningRate, momentum, useNesterov);
+    const optimizer = tf.train.momentum(learningRate, momentum, useNesterov);
 
-    const x = dl.tensor1d([1, 2]).variable();
+    const x = tf.tensor1d([1, 2]).variable();
 
-    const f = () => x.square().sum() as dl.Scalar;
+    const f = () => x.square().sum() as tf.Scalar;
 
-    let numTensors = dl.memory().numTensors;
+    let numTensors = tf.memory().numTensors;
 
     let cost = optimizer.minimize(f, /* returnCost */ true);
 
     // Cost / velocity should be the only additional arrays.
-    expect(dl.memory().numTensors).toBe(numTensors + 2);
+    expect(tf.memory().numTensors).toBe(numTensors + 2);
 
     // newAccumulation = momentum * accumulation + gradient
     // newVariable = -learningRate * (newAccumulation * momentum + gradient) +
@@ -94,7 +94,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [.7, 1.4]);
 
     cost.dispose();
-    numTensors = dl.memory().numTensors;
+    numTensors = tf.memory().numTensors;
 
     cost = optimizer.minimize(f, /* returnCost */ false);
 
@@ -106,7 +106,7 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     expectArraysClose(x, [0.44, 0.88]);
 
     // There should be no new additional Tensors.
-    expect(dl.memory().numTensors).toBe(numTensors);
+    expect(tf.memory().numTensors).toBe(numTensors);
 
     expect(cost).toBe(null);
 
@@ -114,6 +114,6 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
     optimizer.dispose();
 
     // The only tensor remaining is the argument to variable().
-    expect(dl.memory().numTensors).toBe(1);
+    expect(tf.memory().numTensors).toBe(1);
   });
 });

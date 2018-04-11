@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 import {Tensor1D} from '../tensor';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Rank} from '../types';
@@ -26,10 +26,10 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   const EPSILON = 0.05;
 
   it('Flip a fair coin and check bounds', () => {
-    const probs = dl.tensor1d([0.5, 0.5]);
+    const probs = tf.tensor1d([0.5, 0.5]);
     const seed: number = null;
     const normalized = true;
-    const result = dl.multinomial(probs, NUM_SAMPLES, seed, normalized);
+    const result = tf.multinomial(probs, NUM_SAMPLES, seed, normalized);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -37,10 +37,10 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   });
 
   it('Flip a two-sided coin with 100% of heads', () => {
-    const probs = dl.tensor1d([1, 0]);
+    const probs = tf.tensor1d([1, 0]);
     const seed: number = null;
     const normalized = true;
-    const result = dl.multinomial(probs, NUM_SAMPLES, seed, normalized);
+    const result = tf.multinomial(probs, NUM_SAMPLES, seed, normalized);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -48,10 +48,10 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   });
 
   it('Flip a two-sided coin with 100% of tails', () => {
-    const probs = dl.tensor1d([0, 1]);
+    const probs = tf.tensor1d([0, 1]);
     const seed: number = null;
     const normalized = true;
-    const result = dl.multinomial(probs, NUM_SAMPLES, seed, normalized);
+    const result = tf.multinomial(probs, NUM_SAMPLES, seed, normalized);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -59,23 +59,23 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   });
 
   it('Flip a single-sided coin throws error', () => {
-    const probs = dl.tensor1d([1]);
+    const probs = tf.tensor1d([1]);
     const seed: number = null;
     const normalized = true;
-    expect(() => dl.multinomial(probs, NUM_SAMPLES, seed, normalized))
+    expect(() => tf.multinomial(probs, NUM_SAMPLES, seed, normalized))
         .toThrowError();
   });
 
   it('Flip a ten-sided coin and check bounds', () => {
     const numOutcomes = 10;
-    const probs = dl.buffer<Rank.R1>([numOutcomes], 'float32');
+    const probs = tf.buffer<Rank.R1>([numOutcomes], 'float32');
     for (let i = 0; i < numOutcomes; ++i) {
       probs.set(1 / numOutcomes, i);
     }
     const seed: number = null;
     const normalized = true;
     const result =
-        dl.multinomial(probs.toTensor(), NUM_SAMPLES, seed, normalized);
+        tf.multinomial(probs.toTensor(), NUM_SAMPLES, seed, normalized);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), numOutcomes);
@@ -85,10 +85,10 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   it('Flip 3 three-sided coins, each coin is 100% biases', () => {
     const numOutcomes = 3;
     const probs =
-        dl.tensor2d([[0, 0, 1], [0, 1, 0], [1, 0, 0]], [3, numOutcomes]);
+        tf.tensor2d([[0, 0, 1], [0, 1, 0], [1, 0, 0]], [3, numOutcomes]);
     const seed: number = null;
     const normalized = true;
-    const result = dl.multinomial(probs, NUM_SAMPLES, seed, normalized);
+    const result = tf.multinomial(probs, NUM_SAMPLES, seed, normalized);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([3, NUM_SAMPLES]);
 
@@ -109,10 +109,10 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   });
 
   it('passing Tensor3D throws error', () => {
-    const probs = dl.zeros([3, 2, 2]);
+    const probs = tf.zeros([3, 2, 2]);
     const seed: number = null;
     const normalized = true;
-    expect(() => dl.multinomial(probs as Tensor1D, 3, seed, normalized))
+    expect(() => tf.multinomial(probs as Tensor1D, 3, seed, normalized))
         .toThrowError();
   });
 

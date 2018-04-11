@@ -97,7 +97,7 @@ export function assertAxesAreInnerMostDims(
 }
 
 /**
- * Returns the axes permutation to be used with `dl.transpose`, if such
+ * Returns the axes permutation to be used with `tf.transpose`, if such
  * permutation is neccesary. Otherwise it returns null. This method is used by
  * operations that operate only on inner-most axes.
  */

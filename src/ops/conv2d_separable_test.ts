@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from '../index';
+import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
 describeWithFlags('separableConv2d', ALL_ENVS, () => {
@@ -27,25 +27,25 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const inDepth = 1;
     const outDepth = 2;
 
-    const x = dl.tensor4d(
+    const x = tf.tensor4d(
         [
           0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
           0.0741907, 0.409265, 0.351377
         ],
         [1, 3, 3, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [0.303873, 0.229223, 0.144333, 0.803373],
         [fSize, fSize, inDepth, chMul],
     );
     const pointwiseFilter =
-        dl.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
+        tf.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
 
     const result =
-        dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
 
     expectArraysClose(
         result,
-        dl.tensor4d(
+        tf.tensor4d(
             [
               0.10702161, -0.21404321, 0.10316753, -0.20633507, 0.06704096,
               -0.13408193, 0.07788632, -0.15577264
@@ -61,28 +61,28 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const inDepth = 1;
     const outDepth = 3;
 
-    const x = dl.tensor4d(
+    const x = tf.tensor4d(
         [
           0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
           0.0741907, 0.409265, 0.351377
         ],
         [1, 3, 3, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [
           0.303873, 0.229223, 0.144333, 0.803373, -0.303873, -0.229223,
           -0.144333, -0.803373
         ],
         [fSize, fSize, inDepth, chMul],
     );
-    const pointwiseFilter = dl.tensor4d(
+    const pointwiseFilter = tf.tensor4d(
         [0.1, -0.2, -0.1, 0.2, 0.15, 0.15], [1, 1, inDepth * chMul, outDepth]);
 
     const result =
-        dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
 
     expectArraysClose(
         result,
-        dl.tensor4d(
+        tf.tensor4d(
             [
               0.00305368, 0.0140969, 0.00980358, -0.10853045, -0.06339455,
               -0.0699412, 0.11010849, 0.0347524, 0.05214475, 0.10307151,
@@ -99,25 +99,25 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const inDepth = 1;
     const outDepth = 2;
 
-    const x = dl.tensor3d(
+    const x = tf.tensor3d(
         [
           0.230664, 0.987388, 0.0685208, 0.419224, 0.887861, 0.731641,
           0.0741907, 0.409265, 0.351377
         ],
         [3, 3, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [0.303873, 0.229223, 0.144333, 0.803373],
         [fSize, fSize, inDepth, chMul],
     );
     const pointwiseFilter =
-        dl.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
+        tf.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
 
     const result =
-        dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
 
     expectArraysClose(
         result,
-        dl.tensor3d(
+        tf.tensor3d(
             [
               0.10702161, -0.21404321, 0.10316753, -0.20633507, 0.06704096,
               -0.13408193, 0.07788632, -0.15577264
@@ -133,26 +133,26 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const inDepth = 1;
     const outDepth = 2;
 
-    const x = dl.tensor4d(
+    const x = tf.tensor4d(
         [
           0.675707, 0.758567, 0.413529, 0.963967, 0.217291, 0.101335, 0.804231,
           0.329673, 0.924503, 0.728742, 0.180217, 0.210459, 0.133869, 0.650827,
           0.047613, 0.554795
         ],
         [1, 4, 4, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [0.303873, 0.229223, 0.144333, 0.803373],
         [fSize, fSize, inDepth, chMul],
     );
     const pointwiseFilter =
-        dl.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
+        tf.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
 
     const result =
-        dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
 
     expectArraysClose(
         result,
-        dl.tensor4d(
+        tf.tensor4d(
             [
               0.04919822, -0.09839644, 0.07275512, -0.14551024, 0.09901544,
               -0.19803089, 0.05555845, -0.11111691
@@ -168,7 +168,7 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const inDepth = 1;
     const outDepth = 2;
 
-    const x = dl.tensor4d(
+    const x = tf.tensor4d(
         [
           0.675707,  0.758567,  0.413529,  0.963967,  0.217291,  0.101335,
           0.804231,  0.329673,  0.924503,  0.728742,  0.180217,  0.210459,
@@ -178,19 +178,19 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
           -0.047613, -0.554795
         ],
         [2, 4, 4, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [0.303873, 0.229223, 0.144333, 0.803373],
         [fSize, fSize, inDepth, chMul],
     );
     const pointwiseFilter =
-        dl.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
+        tf.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
 
     const result =
-        dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
 
     expectArraysClose(
         result,
-        dl.tensor4d(
+        tf.tensor4d(
             [
               0.04919822, -0.09839644, 0.07275512, -0.14551024, 0.09901544,
               -0.19803089, 0.05555845, -0.11111691, -0.04919822, 0.09839644,
@@ -208,7 +208,7 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const inDepth = 2;
     const outDepth = 2;
 
-    const x = dl.tensor4d(
+    const x = tf.tensor4d(
         [
           0.675707,  0.758567,  0.413529,  0.963967,  0.217291,  0.101335,
           0.804231,  0.329673,  0.924503,  0.728742,  0.180217,  0.210459,
@@ -218,22 +218,22 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
           -0.047613, -0.554795
         ],
         [1, 4, 4, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [
           0.303873, 0.229223, 0.144333, 0.803373, 0.98976838, 0.56597068,
           0.42654137, 0.66445535
         ],
         [fSize, fSize, inDepth, chMul],
     );
-    const pointwiseFilter = dl.tensor4d(
+    const pointwiseFilter = tf.tensor4d(
         [0.1, -0.2, 0.05, -0.05], [1, 1, inDepth * chMul, outDepth]);
 
     const result =
-        dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
 
     expectArraysClose(
         result,
-        dl.tensor4d(
+        tf.tensor4d(
             [
               0.20072255, -0.32641545, 0.08474462, -0.11823604, -0.20072255,
               0.32641545, -0.08474462, 0.11823604
@@ -250,26 +250,26 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const outDepth = 2;
     const dilationRate = 2;
 
-    const x = dl.tensor4d(
+    const x = tf.tensor4d(
         [
           0.675707, 0.758567, 0.413529, 0.963967, 0.217291, 0.101335, 0.804231,
           0.329673, 0.924503, 0.728742, 0.180217, 0.210459, 0.133869, 0.650827,
           0.047613, 0.554795
         ],
         [1, 4, 4, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [0.303873, 0.229223, 0.144333, 0.803373],
         [fSize, fSize, inDepth, chMul],
     );
     const pointwiseFilter =
-        dl.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
+        tf.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
 
-    const result = dl.separableConv2d(
+    const result = tf.separableConv2d(
         x, depthwiseFilter, pointwiseFilter, stride, pad, dilationRate);
 
     expectArraysClose(
         result,
-        dl.tensor4d(
+        tf.tensor4d(
             [
               0.05783373, -0.11566745, 0.07257301, -0.14514601, 0.03079498,
               -0.06158997, 0.06460048, -0.12920095
@@ -285,26 +285,26 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
     const inDepth = 1;
     const outDepth = 2;
 
-    const x = dl.tensor4d(
+    const x = tf.tensor4d(
         [
           0.675707, 0.758567, 0.413529, 0.963967, 0.217291, 0.101335, 0.804231,
           0.329673, 0.924503, 0.728742, 0.180217, 0.210459, 0.133869, 0.650827,
           0.047613, 0.554795
         ],
         [1, 4, 4, inDepth]);
-    const depthwiseFilter = dl.tensor4d(
+    const depthwiseFilter = tf.tensor4d(
         [0.303873, 0.229223, 0.144333, 0.803373],
         [fSize, fSize, inDepth, chMul],
     );
     const pointwiseFilter =
-        dl.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
+        tf.tensor4d([0.1, -0.2], [1, 1, inDepth * chMul, outDepth]);
 
     const result =
-        dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
 
     expectArraysClose(
         result,
-        dl.tensor4d(
+        tf.tensor4d(
             [
               0.04919822,  -0.09839644, 0.09860218,  -0.19720435, 0.07275512,
               -0.14551024, 0.03405062,  -0.06810125, 0.08081452,  -0.16162904,
@@ -319,64 +319,64 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
 
   it('Incorrect input rank raises error', () => {
     // tslint:disable-next-line:no-any
-    const x = dl.zeros([4, 4]) as any;
-    const depthwiseFilter = dl.zeros([2, 2, 1, 3]) as dl.Tensor4D;
-    const pointwiseFilter = dl.zeros([1, 1, 2, 4]) as dl.Tensor4D;
+    const x = tf.zeros([4, 4]) as any;
+    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
+    const pointwiseFilter = tf.zeros([1, 1, 2, 4]) as tf.Tensor4D;
     expect(
         () =>
-            dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
+            tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
         .toThrowError(/rank 4/);
   });
 
   it('Incorrect depthwise filter rank raises error', () => {
-    const x = dl.zeros([1, 4, 4, 1]) as dl.Tensor4D;
+    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
     // tslint:disable-next-line:no-any
-    const depthwiseFilter = dl.zeros([2, 2, 1]) as any;
-    const pointwiseFilter = dl.zeros([1, 1, 2, 4]) as dl.Tensor4D;
+    const depthwiseFilter = tf.zeros([2, 2, 1]) as any;
+    const pointwiseFilter = tf.zeros([1, 1, 2, 4]) as tf.Tensor4D;
     expect(
         () =>
-            dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
+            tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
         .toThrowError(/rank 4/);
   });
 
   it('Incorrect depthwise filter rank raises error', () => {
-    const x = dl.zeros([1, 4, 4, 1]) as dl.Tensor4D;
-    const depthwiseFilter = dl.zeros([2, 2, 1, 3]) as dl.Tensor4D;
+    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
+    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
     // tslint:disable-next-line:no-any
-    const pointwiseFilter = dl.zeros([1, 1, 2]) as any;
+    const pointwiseFilter = tf.zeros([1, 1, 2]) as any;
     expect(
         () =>
-            dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
+            tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
         .toThrowError(/rank 4/);
   });
 
   it('Incorrect point filter 1st dimension raises error', () => {
-    const x = dl.zeros([1, 4, 4, 1]) as dl.Tensor4D;
-    const depthwiseFilter = dl.zeros([2, 2, 1, 3]) as dl.Tensor4D;
-    const pointwiseFilter = dl.zeros([2, 1, 3, 6]) as dl.Tensor4D;
+    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
+    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
+    const pointwiseFilter = tf.zeros([2, 1, 3, 6]) as tf.Tensor4D;
     expect(
         () =>
-            dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
+            tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
         .toThrowError(/must be 1, but got 2/);
   });
 
   it('Incorrect point filter 2nd dimension raises error', () => {
-    const x = dl.zeros([1, 4, 4, 1]) as dl.Tensor4D;
-    const depthwiseFilter = dl.zeros([2, 2, 1, 3]) as dl.Tensor4D;
-    const pointwiseFilter = dl.zeros([1, 5, 3, 6]) as dl.Tensor4D;
+    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
+    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
+    const pointwiseFilter = tf.zeros([1, 5, 3, 6]) as tf.Tensor4D;
     expect(
         () =>
-            dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
+            tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
         .toThrowError(/must be 1, but got 5/);
   });
 
   it('Incorrect pointwise filter 3rd dimension raises error', () => {
-    const x = dl.zeros([1, 4, 4, 1]) as dl.Tensor4D;
-    const depthwiseFilter = dl.zeros([2, 2, 1, 3]) as dl.Tensor4D;
-    const pointwiseFilter = dl.zeros([1, 1, 4, 6]) as dl.Tensor4D;
+    const x = tf.zeros([1, 4, 4, 1]) as tf.Tensor4D;
+    const depthwiseFilter = tf.zeros([2, 2, 1, 3]) as tf.Tensor4D;
+    const pointwiseFilter = tf.zeros([1, 1, 4, 6]) as tf.Tensor4D;
     expect(
         () =>
-            dl.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
+            tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
         .toThrowError(/must be 3, but got 4/);
   });
 });
