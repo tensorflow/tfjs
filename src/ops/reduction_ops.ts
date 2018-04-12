@@ -83,7 +83,7 @@ export class ReductionOps {
    * ```js
    * const x = tf.tensor1d([1, 2, 3]);
    *
-   * x.sum().print();  // or tf.logSumExp(x)
+   * x.sum().print();  // or tf.sum(x)
    * ```
    *
    * ```js
@@ -149,7 +149,7 @@ export class ReductionOps {
    * ```js
    * const x = tf.tensor1d([1, 2, 3]);
    *
-   * x.mean().print();  // or tf.logSumExp(a)
+   * x.mean().print();  // or tf.mean(a)
    * ```
    *
    * ```js
