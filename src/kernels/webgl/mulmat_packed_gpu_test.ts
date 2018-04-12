@@ -15,12 +15,13 @@
  * =============================================================================
  */
 
-import {expectArraysClose, expectNumbersClose} from '../../test_util';
+// tslint:disable-next-line:max-line-length
+import {describeWithFlags, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../../test_util';
 import {GPGPUContext} from './gpgpu_context';
 import * as mulmat_packed_gpu from './mulmat_packed_gpu';
 import {MatrixOrientation} from './mulmat_packed_gpu';
 
-describe('mulmat_packed_gpu (1x1 * 1x1)', () => {
+describeWithFlags('mulmat_packed_gpu (1x1 * 1x1)', WEBGL_ENVS, () => {
   it('returns a 1x1 matrix', () => {
     const a = new Float32Array([0]);
     const b = new Float32Array([0]);
@@ -78,7 +79,7 @@ describe('mulmat_packed_gpu (1x1 * 1x1)', () => {
   });
 });
 
-describe('mulmat_packed_gpu (dot product)', () => {
+describeWithFlags('mulmat_packed_gpu (dot product)', WEBGL_ENVS, () => {
   it('returns a 1x1 matrix', () => {
     const a = new Float32Array(5);
     const b = new Float32Array(5);
@@ -142,7 +143,7 @@ function cpuMul2x2(a: Float32Array, b: Float32Array): Float32Array {
   return result;
 }
 
-describe('mulmat_packed_gpu (2x2 * 2x2)', () => {
+describeWithFlags('mulmat_packed_gpu (2x2 * 2x2)', WEBGL_ENVS, () => {
   it('returns a 2x2 matrix', () => {
     const a = new Float32Array([0, 0, 0, 0]);
     const b = new Float32Array([0, 0, 0, 0]);
@@ -200,7 +201,7 @@ describe('mulmat_packed_gpu (2x2 * 2x2)', () => {
   });
 });
 
-describe('mulmat_packed_gpu (different shapes)', () => {
+describeWithFlags('mulmat_packed_gpu (different shapes)', WEBGL_ENVS, () => {
   it('returns a 4x1 when multiplying a 4x4 with a 4x1', () => {
     const a = new Float32Array(16);
     const b = new Float32Array(4);
@@ -253,7 +254,7 @@ describe('mulmat_packed_gpu (different shapes)', () => {
   });
 });
 
-describe('mulmat_packed_gpu (large matrices)', () => {
+describeWithFlags('mulmat_packed_gpu (large matrices)', WEBGL_ENVS, () => {
   it('returns 128x128 when multiplying 2 128x128s', () => {
     const a = new Float32Array(128 * 128);
     const b = new Float32Array(128 * 128);
@@ -272,7 +273,7 @@ describe('mulmat_packed_gpu (large matrices)', () => {
   });
 });
 
-describe('mulmat_packed_gpu (multiple matrices)', () => {
+describeWithFlags('mulmat_packed_gpu (multiple matrices)', WEBGL_ENVS, () => {
   it('4x2 * 2x12 * 12x1 === 4x1', () => {
     const aData = new Float32Array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]);
     const bData = new Float32Array([
@@ -323,7 +324,7 @@ describe('mulmat_packed_gpu (multiple matrices)', () => {
   });
 });
 
-describe('mulmat_packed_gpu A * B^t', () => {
+describeWithFlags('mulmat_packed_gpu A * B^t', WEBGL_ENVS, () => {
   it('1x1 * 1x1', () => {
     const a = new Float32Array([2]);
     const b = new Float32Array([3]);
@@ -371,7 +372,7 @@ describe('mulmat_packed_gpu A * B^t', () => {
   });
 });
 
-describe('mulmat_packed_gpu (transposed versions)', () => {
+describeWithFlags('mulmat_packed_gpu (transposed versions)', WEBGL_ENVS, () => {
   it('A * B^t', () => {
     const a = new Float32Array([1, 2, 3, 4, 5, 6]);
     const b = new Float32Array([1, 0, 2, 4, 3, 0]);

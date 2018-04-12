@@ -64,11 +64,7 @@ describeWithFlags('GPGPUContext downloadMatrixFromTexture', WEBGL_ENVS, () => {
   });
 });
 
-const FLOAT_ENVS = [
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-];
-describeWithFlags('GPGPUContext color texture with float', FLOAT_ENVS, () => {
+describeWithFlags('GPGPUContext color texture with float', WEBGL_ENVS, () => {
   let gpgpu: GPGPUContext;
   let texture: WebGLTexture;
 
@@ -90,31 +86,32 @@ describeWithFlags('GPGPUContext color texture with float', FLOAT_ENVS, () => {
   });
 });
 
-const BYTE_ENV = [{'WEBGL_FLOAT_TEXTURE_ENABLED': false, 'WEBGL_VERSION': 1}];
-describeWithFlags('GPGPUContext color texture with byte', BYTE_ENV, () => {
-  let gpgpu: GPGPUContext;
-  let texture: WebGLTexture;
+describeWithFlags(
+    'GPGPUContext color texture with byte',
+    {'WEBGL_FLOAT_TEXTURE_ENABLED': false}, () => {
+      let gpgpu: GPGPUContext;
+      let texture: WebGLTexture;
 
-  afterEach(() => {
-    gpgpu.deleteMatrixTexture(texture);
-    gpgpu.dispose();
-  });
+      afterEach(() => {
+        gpgpu.deleteMatrixTexture(texture);
+        gpgpu.dispose();
+      });
 
-  it('basic', () => {
-    gpgpu = new GPGPUContext();
-    gpgpu.enableAutomaticDebugValidation(true);
-    texture = gpgpu.createMatrixTexture(1, 1);
+      it('basic', () => {
+        gpgpu = new GPGPUContext();
+        gpgpu.enableAutomaticDebugValidation(true);
+        texture = gpgpu.createMatrixTexture(1, 1);
 
-    gpgpu.setOutputMatrixTexture(texture, 1, 1);
-    const uintArray = tex_util.encodeFloatArray(new Float32Array([0.123]));
-    gpgpu.gl.clearColor(
-        uintArray[0] / 255, uintArray[1] / 255, uintArray[2] / 255,
-        uintArray[3] / 255);
-    gpgpu.gl.clear(gpgpu.gl.COLOR_BUFFER_BIT);
-    const result = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
-    expectNumbersClose(result[0], 0.123);
-  });
-});
+        gpgpu.setOutputMatrixTexture(texture, 1, 1);
+        const uintArray = tex_util.encodeFloatArray(new Float32Array([0.123]));
+        gpgpu.gl.clearColor(
+            uintArray[0] / 255, uintArray[1] / 255, uintArray[2] / 255,
+            uintArray[3] / 255);
+        gpgpu.gl.clear(gpgpu.gl.COLOR_BUFFER_BIT);
+        const result = gpgpu.downloadMatrixFromTexture(texture, 1, 1);
+        expectNumbersClose(result[0], 0.123);
+      });
+    });
 
 describeWithFlags('GPGPUContext setOutputMatrixTexture', WEBGL_ENVS, () => {
   let gpgpu: GPGPUContext;
@@ -175,41 +172,42 @@ describeWithFlags('GPGPUContext setOutputMatrixTexture', WEBGL_ENVS, () => {
   });
 });
 
-describe('GPGPUContext setOutputPackedMatrixTexture', () => {
-  let gpgpu: GPGPUContext;
-  let texture: WebGLTexture;
+describeWithFlags(
+    'GPGPUContext setOutputPackedMatrixTexture', WEBGL_ENVS, () => {
+      let gpgpu: GPGPUContext;
+      let texture: WebGLTexture;
 
-  beforeEach(() => {
-    gpgpu = new GPGPUContext();
-    gpgpu.enableAutomaticDebugValidation(true);
-  });
+      beforeEach(() => {
+        gpgpu = new GPGPUContext();
+        gpgpu.enableAutomaticDebugValidation(true);
+      });
 
-  afterEach(() => {
-    if (texture != null) {
-      gpgpu.deleteMatrixTexture(texture);
-    }
-    gpgpu.dispose();
-  });
+      afterEach(() => {
+        if (texture != null) {
+          gpgpu.deleteMatrixTexture(texture);
+        }
+        gpgpu.dispose();
+      });
 
-  it('sets the output texture property to the output texture', () => {
-    texture = gpgpu.createPackedMatrixTexture(1, 1);
-    gpgpu.setOutputPackedMatrixTexture(texture, 1, 1);
-    expect(gpgpu.outputTexture).toBe(texture);
-  });
+      it('sets the output texture property to the output texture', () => {
+        texture = gpgpu.createPackedMatrixTexture(1, 1);
+        gpgpu.setOutputPackedMatrixTexture(texture, 1, 1);
+        expect(gpgpu.outputTexture).toBe(texture);
+      });
 
-  it('sets the gl viewport to the output packed texture dimensions', () => {
-    const columns = 456;
-    const rows = 123;
-    texture = gpgpu.createPackedMatrixTexture(rows, columns);
-    gpgpu.setOutputPackedMatrixTexture(texture, rows, columns);
-    const [width, height] =
-        tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
-    const expected = new Int32Array([0, 0, width, height]);
-    expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
-  });
-});
+      it('sets the gl viewport to the output packed texture dimensions', () => {
+        const columns = 456;
+        const rows = 123;
+        texture = gpgpu.createPackedMatrixTexture(rows, columns);
+        gpgpu.setOutputPackedMatrixTexture(texture, rows, columns);
+        const [width, height] =
+            tex_util.getPackedMatrixTextureShapeWidthHeight(rows, columns);
+        const expected = new Int32Array([0, 0, width, height]);
+        expect(gpgpu.gl.getParameter(gpgpu.gl.VIEWPORT)).toEqual(expected);
+      });
+    });
 
-describe('GPGPUContext setOutputMatrixWriteRegion', () => {
+describeWithFlags('GPGPUContext setOutputMatrixWriteRegion', WEBGL_ENVS, () => {
   let gpgpu: GPGPUContext;
   let program: WebGLProgram;
   let output: WebGLTexture;
@@ -283,7 +281,7 @@ describe('GPGPUContext setOutputMatrixWriteRegion', () => {
   });
 });
 
-describe('GPGPUContext', () => {
+describeWithFlags('GPGPUContext', WEBGL_ENVS, () => {
   let gpgpu: GPGPUContext;
 
   beforeEach(() => {

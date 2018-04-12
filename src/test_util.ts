@@ -22,19 +22,14 @@ import {Tensor} from './tensor';
 import {DataType, TypedArray} from './types';
 import * as util from './util';
 
-export const WEBGL_ENVS: Features[] = [
-  {'BACKEND': 'webgl', 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 1},
-  {'BACKEND': 'webgl', 'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2},
-  // TODO(nsthorat,smilkov): Enable when byte-backed textures are fixed.
-  // {
-  // 'BACKEND': 'webgl',
-  // 'WEBGL_FLOAT_TEXTURE_ENABLED': false,
-  // 'WEBGL_VERSION': 1
-  // }
-];
-
-export const CPU_ENVS: Features[] = [{'BACKEND': 'cpu'}];
-export const ALL_ENVS = WEBGL_ENVS.concat(CPU_ENVS);
+// Constraints for testing.
+export const WEBGL_ENVS: Features = {
+  'BACKEND': 'test-webgl'
+};
+export const CPU_ENVS: Features = {
+  'BACKEND': 'test-cpu'
+};
+export const ALL_ENVS = {};
 
 /** Accuracy for tests. */
 export const TEST_EPSILON = 1e-3;
@@ -97,6 +92,10 @@ export function expectArraysClose(
   }
 }
 
+export function expectPromiseToFail(fn: () => Promise<{}>, done: DoneFn): void {
+  fn().then(() => done.fail(), () => done());
+}
+
 export function expectArraysEqual(
     actual: Tensor|TypedArray|number[],
     expected: Tensor|TypedArray|number[]|boolean[]) {
@@ -137,21 +136,76 @@ export function expectValuesInRange(
 }
 
 export function describeWithFlags(
-    name: string, featuresList: Features[], tests: () => void) {
-  featuresList.forEach(features => {
+    name: string, constraints: Features, tests: () => void) {
+  const envFeatures = TEST_ENV_FEATURES.filter(f => {
+    return Object.keys(constraints).every(key => {
+      // tslint:disable-next-line:no-any
+      return (constraints as any)[key] === (f as any)[key];
+    });
+  });
+  envFeatures.forEach(features => {
     const testName = name + ' ' + JSON.stringify(features);
     executeTests(testName, tests, features);
   });
 }
 
-function executeTests(
-    testName: string, tests: () => void, features?: Features) {
-  describe(testName, () => {
-    beforeEach(() => {
-      ENV.setFeatures(features || {});
-      ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
-      ENV.addCustomBackend('cpu', () => new MathBackendCPU());
+let BEFORE_ALL = (features: Features) => {
+  ENV.registerBackend('test-webgl', () => new MathBackendWebGL());
+  ENV.registerBackend('test-cpu', () => new MathBackendCPU());
+};
+let AFTER_ALL = (features: Features) => {
+  ENV.removeBackend('test-webgl');
+  ENV.removeBackend('test-cpu');
+};
+let BEFORE_EACH = (features: Features) => {};
+let AFTER_EACH = (features: Features) => {};
 
+let TEST_ENV_FEATURES: Features[] = [
+  {
+    'BACKEND': 'test-webgl',
+    'WEBGL_FLOAT_TEXTURE_ENABLED': true,
+    'WEBGL_VERSION': 1
+  },
+  {
+    'BACKEND': 'test-webgl',
+    'WEBGL_FLOAT_TEXTURE_ENABLED': true,
+    'WEBGL_VERSION': 2
+  },
+  {'BACKEND': 'test-cpu'}
+  // TODO(nsthorat,smilkov): Enable when byte-backed textures are fixed.
+  // {
+  // 'BACKEND': 'webgl',
+  // 'WEBGL_FLOAT_TEXTURE_ENABLED': false,
+  // 'WEBGL_VERSION': 1
+  // }
+];
+
+export function setBeforeAll(f: (features: Features) => void) {
+  BEFORE_ALL = f;
+}
+export function setAfterAll(f: (features: Features) => void) {
+  AFTER_ALL = f;
+}
+export function setBeforeEach(f: (features: Features) => void) {
+  BEFORE_EACH = f;
+}
+export function setAfterEach(f: (features: Features) => void) {
+  AFTER_EACH = f;
+}
+
+export function setTestEnvFeatures(features: Features[]) {
+  TEST_ENV_FEATURES = features;
+}
+
+function executeTests(testName: string, tests: () => void, features: Features) {
+  describe(testName, () => {
+    beforeAll(() => {
+      ENV.setFeatures(features);
+      BEFORE_ALL(features);
+    });
+
+    beforeEach(() => {
+      BEFORE_EACH(features);
       if (features && features.BACKEND != null) {
         Environment.setBackend(features.BACKEND);
       }
@@ -160,6 +214,11 @@ function executeTests(
 
     afterEach(() => {
       ENV.engine.endScope(null);
+      AFTER_EACH(features);
+    });
+
+    afterAll(() => {
+      AFTER_ALL(features);
       ENV.reset();
     });
 

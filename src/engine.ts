@@ -83,9 +83,7 @@ export class Engine implements TensorManager {
   private scopeStack: ScopeState[];
   private profiler: Profiler;
 
-  constructor(
-      private backend: KernelBackend, private customBackend: boolean,
-      public safeMode: boolean) {
+  constructor(private backend: KernelBackend, public safeMode: boolean) {
     // Create a default outer scope.
     this.activeScope = {keep: [], track: []};
     this.scopeStack = [this.activeScope];
@@ -287,11 +285,7 @@ export class Engine implements TensorManager {
     });
   }
 
-  dispose() {
-    if (this.customBackend) {
-      this.backend.dispose();
-    }
-  }
+  dispose() {}
 
   /**
    * Returns gradients of `f` with respect to each of the `xs`. The gradients
