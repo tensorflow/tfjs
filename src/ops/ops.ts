@@ -165,6 +165,7 @@ export const norm = NormOps.norm;
 export const cast = ArrayOps.cast;
 export const clone = ArrayOps.clone;
 export const fromPixels = ArrayOps.fromPixels;
+export const toPixels = ArrayOps.toPixels;
 export const ones = ArrayOps.ones;
 export const onesLike = ArrayOps.onesLike;
 export const zeros = ArrayOps.zeros;
