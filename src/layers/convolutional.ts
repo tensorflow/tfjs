@@ -81,7 +81,7 @@ export interface ConvLayerConfig extends LayerConfig {
    * Currently, specifying any `dilationRate` value != 1 is incompatible with
    * specifying any `strides` value != 1.
    */
-  dilationRate?: number|[number, number];
+  dilationRate?: number|[number]|[number, number];
 
   /**
    * Activation function of the layer.
@@ -141,7 +141,7 @@ export abstract class Conv extends Layer {
   protected readonly strides: number[];
   protected readonly padding: PaddingMode;
   protected readonly dataFormat: DataFormat;
-  protected readonly dilationRate: number|[number, number];
+  protected readonly dilationRate: number|[number]|[number, number];
   protected readonly activation: ActivationFn;
   protected readonly useBias: boolean;
   protected readonly kernelInitializer?: Initializer;
@@ -177,10 +177,13 @@ export abstract class Conv extends Layer {
     checkDataFormat(this.dataFormat);
 
     this.dilationRate = config.dilationRate == null ? 1 : config.dilationRate;
-    if (this.rank === 1 && Array.isArray(this.dilationRate)) {
+    if (this.rank === 1 &&
+        (Array.isArray(this.dilationRate) &&
+         (this.dilationRate as number[]).length !== 1)) {
       throw new ValueError(
-          `dilationRate must be a number for 1D convolution, but ` +
-          `received ${JSON.stringify(this.dilationRate)}`);
+          `dilationRate must be a number or an array of a single number ` +
+          `for 1D convolution, but received ` +
+          `${JSON.stringify(this.dilationRate)}`);
     }
     if (this.rank === 2) {
       if (typeof this.dilationRate === 'number') {
@@ -675,7 +678,7 @@ export class SeparableConv extends Conv {
           inputs as Tensor4D, this.depthwiseKernel.read() as Tensor4D,
           this.pointwiseKernel.read() as Tensor4D,
           this.strides as [number, number], this.padding as 'same' | 'valid',
-          this.dilationRate, 'NHWC');
+          this.dilationRate as [number, number], 'NHWC');
     }
 
     if (this.useBias) {

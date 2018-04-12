@@ -416,28 +416,31 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
     }
   }
 
-  it('dilationRate = 2', () => {
-    const x = tensor3d(
-        [
-          0.0024236, 0.54829558, 0.47628448, 0.2971449, 0.7984293, 0.71802861,
-          0.53109141, 0.85882819
-        ],
-        [1, 8, 1]);
-    const conv1dLayer = new Conv1D({
-      filters: 1,
-      kernelSize: 2,
-      strides: 1,
-      useBias: true,
-      kernelInitializer: 'ones',
-      biasInitializer: 'ones',
-      dilationRate: 2
+  const dilationRates: Array<number|[number]> = [2, [2]];
+  for (const dilationRate of dilationRates) {
+    it(`dilationRate = ${dilationRate}`, () => {
+      const x = tensor3d(
+          [
+            0.0024236, 0.54829558, 0.47628448, 0.2971449, 0.7984293, 0.71802861,
+            0.53109141, 0.85882819
+          ],
+          [1, 8, 1]);
+      const conv1dLayer = new Conv1D({
+        filters: 1,
+        kernelSize: 2,
+        strides: 1,
+        useBias: true,
+        kernelInitializer: 'ones',
+        biasInitializer: 'ones',
+        dilationRate,
+      });
+      const y = conv1dLayer.apply(x) as Tensor;
+      const yExpected = tensor3d(
+          [1.478708, 1.8454404, 2.2747138, 2.0151734, 2.3295207, 2.5768569],
+          [1, 6, 1]);
+      expectTensorsClose(y, yExpected);
     });
-    const y = conv1dLayer.apply(x) as Tensor;
-    const yExpected = tensor3d(
-        [1.478708, 1.8454404, 2.2747138, 2.0151734, 2.3295207, 2.5768569],
-        [1, 6, 1]);
-    expectTensorsClose(y, yExpected);
-  });
+  }
 });
 
 describeMathCPU('SeparableConv2D Layers: Symbolic', () => {
