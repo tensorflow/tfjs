@@ -153,7 +153,10 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   disposeData(dataId: object): void {
-    this.binding.deleteTensor(this.tensorMap.get(dataId).id);
+    const id = this.tensorMap.get(dataId).id;
+    if (id != null && id >= 0) {
+      this.binding.deleteTensor(id);
+    }
     this.tensorMap.delete(dataId);
   }
 
@@ -452,6 +455,41 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Tanh', x) as T;
   }
 
+  mod(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    throw new Error('Method not implemented.');
+  }
+  round<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  sign<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  rsqrt<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  reciprocal<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  asinh<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  acosh<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  atanh<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+
+  squaredDifference(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    throw new Error('Method not implemented.');
+  }
+  expm1<T extends Tensor<Rank>>(x: T): T {
+    throw new Error('Method not implemented.');
+  }
+  atan2<T extends Tensor<Rank>>(a: T, b: T): T {
+    throw new Error('Method not implemented.');
+  }
+
   step<T extends Tensor<Rank>>(x: T, alpha: number): T {
     const dtype = x.dtype;
     const nans = this.isNaN(x);
@@ -641,7 +679,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   pad<T extends Tensor<Rank>>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     // Bind tensor values
-    const paddingsTensor = tensor2d(paddings, [2, 2], 'int32');
+    const paddingsTensor = tensor2d(paddings, [paddings.length, 2], 'int32');
     const constantTensor = scalar(constantValue, x.dtype);
 
     const opAttrs = [
