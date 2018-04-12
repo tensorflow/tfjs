@@ -20,8 +20,9 @@ import {ENV, Environment, Features} from './environment';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
+import {describeWithFlags, WEBGL_ENVS} from './test_util';
 
-describe('disjoint query timer enabled', () => {
+describeWithFlags('disjoint query timer enabled', WEBGL_ENVS, () => {
   afterEach(() => {
     ENV.reset();
   });
@@ -83,90 +84,93 @@ describe('disjoint query timer enabled', () => {
   });
 });
 
-describe('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', () => {
-  afterEach(() => {
-    ENV.reset();
-  });
+describeWithFlags(
+    'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', WEBGL_ENVS, () => {
+      afterEach(() => {
+        ENV.reset();
+      });
 
-  it('disjoint query timer disabled', () => {
-    const features:
-        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 0};
+      it('disjoint query timer disabled', () => {
+        const features:
+            Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 0};
 
-    const env = new Environment(features);
+        const env = new Environment(features);
 
-    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
-        .toBe(false);
-  });
+        expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+            .toBe(false);
+      });
 
-  it('disjoint query timer enabled, mobile', () => {
-    const features:
-        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 1};
-    spyOn(device_util, 'isMobile').and.returnValue(true);
+      it('disjoint query timer enabled, mobile', () => {
+        const features:
+            Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 1};
+        spyOn(device_util, 'isMobile').and.returnValue(true);
 
-    const env = new Environment(features);
+        const env = new Environment(features);
 
-    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
-        .toBe(false);
-  });
+        expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+            .toBe(false);
+      });
 
-  it('disjoint query timer enabled, not mobile', () => {
-    const features:
-        Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 1};
-    spyOn(device_util, 'isMobile').and.returnValue(false);
+      it('disjoint query timer enabled, not mobile', () => {
+        const features:
+            Features = {'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION': 1};
+        spyOn(device_util, 'isMobile').and.returnValue(false);
 
-    const env = new Environment(features);
+        const env = new Environment(features);
 
-    expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE')).toBe(true);
-  });
-});
-
-describe('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED', () => {
-  afterEach(() => {
-    ENV.reset();
-  });
-
-  beforeEach(() => {
-    spyOn(document, 'createElement').and.returnValue({
-      getContext: (context: string) => {
-        if (context === 'webgl2') {
-          return {
-            getExtension: (extensionName: string) => {
-              if (extensionName === 'WEBGL_get_buffer_sub_data_async') {
-                return {};
-              } else if (extensionName === 'WEBGL_lose_context') {
-                return {loseContext: () => {}};
-              }
-              return null;
-            }
-          };
-        }
-        return null;
-      }
+        expect(env.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'))
+            .toBe(true);
+      });
     });
-  });
 
-  it('WebGL 2 enabled', () => {
-    const features: Features = {'WEBGL_VERSION': 2};
+describeWithFlags(
+    'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED', WEBGL_ENVS, () => {
+      afterEach(() => {
+        ENV.reset();
+      });
 
-    const env = new Environment(features);
+      beforeEach(() => {
+        spyOn(document, 'createElement').and.returnValue({
+          getContext: (context: string) => {
+            if (context === 'webgl2') {
+              return {
+                getExtension: (extensionName: string) => {
+                  if (extensionName === 'WEBGL_get_buffer_sub_data_async') {
+                    return {};
+                  } else if (extensionName === 'WEBGL_lose_context') {
+                    return {loseContext: () => {}};
+                  }
+                  return null;
+                }
+              };
+            }
+            return null;
+          }
+        });
+      });
 
-    // TODO(nsthorat): Expect true when we fix
-    // https://github.com/PAIR-code/deeplearnjs/issues/848
-    expect(env.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'))
-        .toBe(false);
-  });
+      it('WebGL 2 enabled', () => {
+        const features: Features = {'WEBGL_VERSION': 2};
 
-  it('WebGL 1 disabled', () => {
-    const features: Features = {'WEBGL_VERSION': 1};
+        const env = new Environment(features);
 
-    const env = new Environment(features);
+        // TODO(nsthorat): Expect true when we fix
+        // https://github.com/PAIR-code/deeplearnjs/issues/848
+        expect(env.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'))
+            .toBe(false);
+      });
 
-    expect(env.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'))
-        .toBe(false);
-  });
-});
+      it('WebGL 1 disabled', () => {
+        const features: Features = {'WEBGL_VERSION': 1};
 
-describe('WebGL version', () => {
+        const env = new Environment(features);
+
+        expect(env.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'))
+            .toBe(false);
+      });
+    });
+
+describeWithFlags('WebGL version', WEBGL_ENVS, () => {
   afterEach(() => {
     ENV.reset();
   });
@@ -222,44 +226,30 @@ describe('Backend', () => {
     ENV.reset();
   });
 
-  it('default ENV has cpu and webgl, and webgl is the best available', () => {
-    expect(ENV.findBackend('webgl') != null).toBe(true);
-    expect(ENV.findBackend('cpu') != null).toBe(true);
-    expect(ENV.getBestBackendType()).toBe('webgl');
-  });
-
-  it('custom webgl registration', () => {
-    const features:
-        Features = {'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2};
-    ENV.setFeatures(features);
-
+  it('custom cpu registration', () => {
     let backend: KernelBackend;
-    ENV.addCustomBackend('webgl', () => {
-      backend = new MathBackendWebGL();
+    ENV.registerBackend('custom-cpu', () => {
+      backend = new MathBackendCPU();
       return backend;
     });
 
-    expect(ENV.findBackend('webgl')).toBe(backend);
-  });
-
-  it('double registration fails', () => {
-    ENV.setFeatures({'WEBGL_FLOAT_TEXTURE_ENABLED': true, 'WEBGL_VERSION': 2});
-    ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
-    expect(() => ENV.addCustomBackend('webgl', () => new MathBackendWebGL()))
-        .toThrowError();
+    expect(ENV.findBackend('custom-cpu')).toBe(backend);
+    ENV.removeBackend('custom-cpu');
   });
 
   it('webgl not supported, falls back to cpu', () => {
     ENV.setFeatures({'WEBGL_VERSION': 0});
-    ENV.addCustomBackend('cpu', () => new MathBackendCPU());
-    const success = ENV.addCustomBackend('webgl', () => new MathBackendWebGL());
+    ENV.registerBackend('custom-cpu', () => new MathBackendCPU(), 3);
+    const success =
+        ENV.registerBackend('custom-webgl', () => new MathBackendWebGL(), 4);
     expect(success).toBe(false);
-    expect(ENV.findBackend('webgl') == null).toBe(true);
-    expect(ENV.getBestBackendType()).toBe('cpu');
+    expect(ENV.findBackend('custom-webgl') == null).toBe(true);
+    expect(ENV.getBestBackendType()).toBe('custom-cpu');
+    ENV.removeBackend('custom-cpu');
   });
 
   it('default custom background null', () => {
-    expect(ENV.findBackend('custom')).not.toBeDefined();
+    expect(ENV.findBackend('custom')).toBeNull();
   });
 
   it('allow custom backend', () => {
@@ -267,5 +257,6 @@ describe('Backend', () => {
     const success = ENV.registerBackend('custom', () => backend);
     expect(success).toBeTruthy();
     expect(ENV.findBackend('custom')).toEqual(backend);
+    ENV.removeBackend('custom');
   });
 });

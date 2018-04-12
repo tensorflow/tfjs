@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import {describeWithFlags, WEBGL_ENVS} from '../../test_util';
 import {GPGPUContext} from './gpgpu_context';
 import * as gpgpu_util from './gpgpu_util';
 
-describe('gpgpu_util createWebGLContext', () => {
+describeWithFlags('gpgpu_util createWebGLContext', WEBGL_ENVS, () => {
   let gpgpu: GPGPUContext;
 
   beforeEach(() => {
@@ -54,7 +55,7 @@ describe('gpgpu_util createWebGLContext', () => {
   });
 });
 
-describe('gpgpu_util createMatrixTexture', () => {
+describeWithFlags('gpgpu_util createMatrixTexture', WEBGL_ENVS, () => {
   it('sets the TEXTURE_WRAP S+T parameters to CLAMP_TO_EDGE', () => {
     const gpgpu = new GPGPUContext();
     const tex = gpgpu_util.createMatrixTexture(gpgpu.gl, 32, 32);
@@ -86,7 +87,7 @@ describe('gpgpu_util createMatrixTexture', () => {
   });
 });
 
-describe('gpgpu_util createPackedMatrixTexture', () => {
+describeWithFlags('gpgpu_util createPackedMatrixTexture', WEBGL_ENVS, () => {
   it('sets the TEXTURE_WRAP S+T parameters to CLAMP_TO_EDGE', () => {
     const gpgpu = new GPGPUContext();
     const tex = gpgpu_util.createPackedMatrixTexture(gpgpu.gl, 32, 32);

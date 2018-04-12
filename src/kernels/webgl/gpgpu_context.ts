@@ -190,7 +190,7 @@ export class GPGPUContext {
             this.gl, rows, columns));
   }
 
-  private firstProgram = true;
+  private vertexAttrsAreBound = false;
 
   public createProgram(fragmentShaderSource: string): WebGLProgram {
     this.throwIfDisposed();
@@ -205,10 +205,9 @@ export class GPGPUContext {
     if (this.autoDebugValidate) {
       webgl_util.validateProgram(gl, program);
     }
-    if (this.firstProgram) {
-      this.firstProgram = false;
+    if (!this.vertexAttrsAreBound) {
       this.setProgram(program);
-      gpgpu_util.bindVertexProgramAttributeStreams(
+      this.vertexAttrsAreBound = gpgpu_util.bindVertexProgramAttributeStreams(
           gl, this.program, this.vertexBuffer);
     }
     return program;
