@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, assertIsNan, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from '../test_util';
+import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from '../test_util';
 import * as reduce_util from './reduce_util';
 
 describeWithFlags('min', ALL_ENVS, () => {
@@ -26,9 +26,9 @@ describeWithFlags('min', ALL_ENVS, () => {
     expectNumbersClose(tf.min(a).get(), -7);
   });
 
-  it('propagates NaNs', () => {
+  it('ignores NaNs', () => {
     const a = tf.tensor1d([3, NaN, 2]);
-    expect(tf.min(a).get()).toEqual(NaN);
+    expect(tf.min(a).get()).toEqual(2);
   });
 
   it('2D', () => {
@@ -89,8 +89,8 @@ describeWithFlags('max', ALL_ENVS, () => {
     expectNumbersClose(r.get(), 3);
   });
 
-  it('propagates NaNs', () => {
-    expect(tf.max(tf.tensor1d([3, NaN, 2])).get()).toEqual(NaN);
+  it('ignores NaNs', () => {
+    expect(tf.max(tf.tensor1d([3, NaN, 2])).get()).toEqual(3);
   });
 
   it('2D', () => {
@@ -165,11 +165,11 @@ describeWithFlags('argmax', ALL_ENVS, () => {
     expect(result.get()).toBe(n - 1);
   });
 
-  it('propagates NaNs', () => {
-    const a = tf.tensor1d([5, 0, 3, NaN, 3]);
+  it('ignores NaNs', () => {
+    const a = tf.tensor1d([0, 3, 5, NaN, 3]);
     const res = tf.argMax(a);
     expect(res.dtype).toBe('int32');
-    assertIsNan(res.get(), res.dtype);
+    expect(res.get()).toBe(2);
   });
 
   it('2D, no axis specified', () => {
@@ -226,10 +226,10 @@ describeWithFlags('argmin', ALL_ENVS, () => {
     expect(result.get()).toBe(n - 1);
   });
 
-  it('Arg min propagates NaNs', () => {
-    const a = tf.tensor1d([5, 0, NaN, 7, 3]);
+  it('ignores NaNs', () => {
+    const a = tf.tensor1d([5, 0, NaN, -1, 3]);
     const res = tf.argMin(a);
-    assertIsNan(res.get(), res.dtype);
+    expect(res.get()).toBe(3);
   });
 
   it('2D, no axis specified', () => {
@@ -810,7 +810,7 @@ describeWithFlags('norm', ALL_ENVS, () => {
 
   it('propagates NaNs for norm', () => {
     const a = tf.tensor2d([1, 2, 3, NaN, 0, 1], [3, 2]);
-    const norm = tf.norm(a, Infinity, [0, 1]);
+    const norm = tf.norm(a);
 
     expect(norm.dtype).toBe('float32');
     expect(norm.get()).toEqual(NaN);

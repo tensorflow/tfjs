@@ -17,7 +17,7 @@
 
 import * as tf from './index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
+import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('tidy', ALL_ENVS, () => {
   it('returns Tensor', () => {
@@ -188,7 +188,7 @@ describeWithFlags('tidy', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('fromPixels + regular math op', ALL_ENVS, () => {
+describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
   it('debug mode does not error when no nans', () => {
     const pixels = new ImageData(2, 2);
     for (let i = 0; i < 8; i++) {

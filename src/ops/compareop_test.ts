@@ -18,9 +18,6 @@
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
 import {describeWithFlags, ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
-import * as util from '../util';
-
-const boolNaN = util.getNaN('bool');
 
 describeWithFlags('equal', ALL_ENVS, () => {
   it('Tensor1D - int32', () => {
@@ -67,16 +64,10 @@ describeWithFlags('equal', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-
-    expectArraysClose(tf.equal(a, b), [0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
-    expectArraysClose(tf.equal(a, b), [0, boolNaN, boolNaN]);
+    expectArraysClose(tf.equal(a, b), [0, 0, 0]);
   });
   it('scalar and 1D broadcast', () => {
     const a = tf.scalar(2);
@@ -119,16 +110,10 @@ describeWithFlags('equal', ALL_ENVS, () => {
         tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
     expectArraysClose(tf.equal(a, b), [0, 1, 0, 1, 0, 0]);
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [1, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    expectArraysClose(
-        tf.equal(a, b), [0, boolNaN, boolNaN, 1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
-    expectArraysClose(tf.equal(a, b), [0, boolNaN, 1, boolNaN]);
+    expectArraysClose(tf.equal(a, b), [0, 0, 1, 0]);
   });
   it('2D and 2D broadcast each with 1 dim', () => {
     const a = tf.tensor2d([1, 2, 5], [1, 3]);
@@ -199,21 +184,13 @@ describeWithFlags('equal', ALL_ENVS, () => {
     expectArraysClose(
         tf.equal(a, b), [1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0]);
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a =
-        tf.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b =
-        tf.tensor3d([[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
-    expectArraysClose(
-        tf.equal(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
       [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     expectArraysClose(
-        tf.equal(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
+        tf.equal(a, b), [0, 0, 1, 0, 1, 0]);
   });
   it('3D and scalar', () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, -1], [2, 3, 1]);
@@ -265,15 +242,10 @@ describeWithFlags('equal', ALL_ENVS, () => {
         'float32');
     expectArraysClose(tf.equal(a, b), [1, 0, 0, 0, 1, 0, 0, 0]);
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    expectArraysClose(tf.equal(a, b), [0, boolNaN, 1, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
       const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
       const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
-      expectArraysClose(tf.equal(a, b), [0, boolNaN, 1, boolNaN]);
+      expectArraysClose(tf.equal(a, b), [0, 0, 1, 0]);
   });
 });
 
@@ -320,17 +292,11 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-    expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
     expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, boolNaN]);
+        tf.equalStrict(a, b), [0, 0, 0]);
   });
 
   // Tensor2D:
@@ -372,17 +338,11 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [1, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, boolNaN, 1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, 1, boolNaN]);
+        tf.equalStrict(a, b), [0, 0, 1, 0]);
   });
 
   // Tensor3D:
@@ -445,23 +405,13 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a =
-        tf.tensor3d(
-          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b =
-        tf.tensor3d(
-          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
-    expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
        [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
         [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, 1, 0, 1, boolNaN]);
+        tf.equalStrict(a, b), [0, 0, 1, 0, 1, 0]);
   });
 
   // Tensor4D:
@@ -512,17 +462,11 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, 1, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
     const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     expectArraysClose(
-        tf.equalStrict(a, b), [0, boolNaN, 1, boolNaN]);
+        tf.equalStrict(a, b), [0, 0, 1, 0]);
   });
 });
 
@@ -571,24 +515,18 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-
-    expectArraysClose(tf.notEqual(a, b), [1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
-    expectArraysClose(tf.notEqual(a, b), [1, boolNaN, boolNaN]);
+    expectArraysClose(tf.notEqual(a, b), [1, 1, 1]);
   });
-  it('propagates NaNs', () => {
+  it('works with NaNs', () => {
     const a = tf.tensor1d([2, 5, NaN]);
     const b = tf.tensor1d([4, 5, -1]);
 
     const res = tf.notEqual(a, b);
     expect(res.dtype).toBe('bool');
-    expectArraysEqual(res, [1, 0, util.NAN_BOOL]);
+    expectArraysEqual(res, [1, 0, 1]);
   });
   it('scalar and 1D broadcast', () => {
     const a = tf.scalar(2);
@@ -631,17 +569,10 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
         tf.tensor2d([[0.1, 1.1, 2.1], [7.1, 8.1, 9.1]], [2, 3], 'float32');
     expectArraysClose(tf.notEqual(a, b), [1, 0, 1, 0, 1, 1]);
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [1, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    expectArraysClose(
-        tf.notEqual(a, b), [1, boolNaN, boolNaN, 0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
-    expectArraysClose(
-        tf.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
+    expectArraysClose(tf.notEqual(a, b), [1, 1, 0, 1]);
   });
   it('2D and scalar broadcast', () => {
     const a = tf.tensor2d([1, 2, 3, 2, 5, 6], [2, 3]);
@@ -719,23 +650,13 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     expectArraysClose(
         tf.notEqual(a, b), [0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1]);
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a =
-        tf.tensor3d(
-          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b =
-        tf.tensor3d(
-          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
-    expectArraysClose(
-        tf.notEqual(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
         [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1] ,'float32');
     expectArraysClose(
-        tf.notEqual(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
+        tf.notEqual(a, b), [1, 1, 0, 1, 0, 1]);
   });
   it('3D and scalar', () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, -1], [2, 3, 1]);
@@ -789,17 +710,11 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     expectArraysClose(
         tf.notEqual(a, b), [0, 1, 1, 1, 0, 1, 1, 1]);
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    expectArraysClose(
-        tf.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
     const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     expectArraysClose(
-        tf.notEqual(a, b), [1, boolNaN, 0, boolNaN]);
+        tf.notEqual(a, b), [1, 1, 0, 1]);
   });
 });
 
@@ -846,17 +761,11 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-    expectArraysClose(
-        tf.notEqualStrict(a, b), [1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
     expectArraysClose(
-        tf.notEqualStrict(a, b), [1, boolNaN, boolNaN]);
+        tf.notEqualStrict(a, b), [1, 1, 1]);
   });
   it('strict version throws when x and y are different shape', () => {
     const a = tf.tensor1d([2]);
@@ -907,18 +816,11 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [1, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    expectArraysClose(
-        tf.notEqualStrict(a, b),
-        [1, boolNaN, boolNaN, 0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     expectArraysClose(
-        tf.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
+        tf.notEqualStrict(a, b), [1, 1, 0, 1]);
   });
 
   // Tensor3D:
@@ -984,23 +886,13 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a =
-        tf.tensor3d(
-          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b =
-        tf.tensor3d(
-          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
-    expectArraysClose(
-        tf.notEqualStrict(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
     const b = tf.tensor3d(
         [[[0.1], [0.1], [1.1]], [[1.1], [0.1], [NaN]]], [2, 3, 1], 'float32');
     expectArraysClose(
-        tf.notEqualStrict(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
+        tf.notEqualStrict(a, b), [1, 1, 0, 1, 0, 1]);
   });
 
   // Tensor4D:
@@ -1052,17 +944,11 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    expectArraysClose(
-        tf.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
     const a = tf.tensor4d([1.1, NaN, 1.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     expectArraysClose(
-        tf.notEqualStrict(a, b), [1, boolNaN, 0, boolNaN]);
+        tf.notEqualStrict(a, b), [1, 1, 0, 1]);
   });
 });
 
@@ -1127,21 +1013,13 @@ describeWithFlags('less', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-    const res = tf.less(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
     const res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, boolNaN]);
+    expectArraysClose(res, [1, 0, 0]);
   });
 
   // Tensor2D:
@@ -1194,22 +1072,13 @@ describeWithFlags('less', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 0, 1, 0, 1, 1]);
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [0, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    const res = tf.less(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(
-        res, [0, boolNaN, boolNaN, 1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [0.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
+    expectArraysClose(res, [0, 0, 1, 0]);
   });
 
   // Tensor3D:
@@ -1283,19 +1152,6 @@ describeWithFlags('less', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0]);
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a =
-        tf.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b =
-        tf.tensor3d(
-          [[[0], [0], [1]], [[1], [0], [NaN]]],
-          [2, 3, 1],
-          'int32');
-    const res = tf.less(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 0, 1, 0, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
@@ -1304,7 +1160,7 @@ describeWithFlags('less', ALL_ENVS, () => {
     const res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 0, 1, 0, boolNaN]);
+    expectArraysClose(res, [0, 0, 0, 1, 0, 0]);
   });
 
   // Tensor4D:
@@ -1372,21 +1228,13 @@ describeWithFlags('less', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 1, 1, 1, 0, 1, 0, 0]);
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    const res = tf.less(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
     const a = tf.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     const res = tf.less(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
+    expectArraysClose(res, [0, 0, 1, 0]);
   });
 });
 
@@ -1506,21 +1354,13 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-    const res = tf.lessEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
     const res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, boolNaN]);
+    expectArraysClose(res, [1, 0, 0]);
   });
 
   // Tensor2D:
@@ -1573,22 +1413,13 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 1, 1, 1, 1, 1]);
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [0, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    const res = tf.lessEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(
-        res, [0, boolNaN, boolNaN, 1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [0.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
+    expectArraysClose(res, [0, 0, 1, 0]);
   });
 
   // Tensor3D:
@@ -1661,18 +1492,6 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0]);
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a =
-        tf.tensor3d(
-          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b =
-        tf.tensor3d(
-          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
-    const res = tf.lessEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, 1, 1, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
@@ -1681,7 +1500,7 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     const res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, 1, 1, boolNaN]);
+    expectArraysClose(res, [0, 0, 1, 1, 1, 0]);
   });
 
   // Tensor4D:
@@ -1749,21 +1568,13 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 1, 1, 1, 1, 1, 0, 0]);
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    const res = tf.lessEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
     const a = tf.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     const res = tf.lessEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, 1, boolNaN]);
+    expectArraysClose(res, [0, 0, 1, 0]);
   });
 });
 
@@ -1882,21 +1693,13 @@ describeWithFlags('greater', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-    const res = tf.greater(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
     const res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, boolNaN]);
+    expectArraysClose(res, [0, 0, 0]);
   });
 
   // Tensor2D:
@@ -1949,22 +1752,13 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 0, 0, 0, 0, 0]);
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [0, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    const res = tf.greater(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(
-        res, [1, boolNaN, boolNaN, 0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [0.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
+    expectArraysClose(res, [1, 0, 0, 0]);
   });
 
   // Tensor3D:
@@ -2037,16 +1831,6 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1]);
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a = tf.tensor3d(
-        [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b = tf.tensor3d(
-        [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
-    const res = tf.greater(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, 0, 0, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
@@ -2055,7 +1839,7 @@ describeWithFlags('greater', ALL_ENVS, () => {
     const res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, 0, 0, boolNaN]);
+    expectArraysClose(res, [1, 0, 0, 0, 0, 0]);
   });
 
   // Tensor4D:
@@ -2123,21 +1907,13 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 0, 0, 0, 0, 0, 1, 1]);
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    const res = tf.greater(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
     const a = tf.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     const res = tf.greater(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
+    expectArraysClose(res, [1, 0, 0, 0]);
   });
 });
 
@@ -2257,21 +2033,13 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D - int32', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'int32');
-    const b = tf.tensor1d([0, 0, NaN], 'int32');
-    const res = tf.greaterEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor1D - float32', () => {
     const a = tf.tensor1d([1.1, NaN, 2.1], 'float32');
     const b = tf.tensor1d([2.1, 3.1, NaN], 'float32');
     const res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [0, boolNaN, boolNaN]);
+    expectArraysClose(res, [0, 0, 0]);
   });
 
   // Tensor2D:
@@ -2324,22 +2092,13 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 1, 0, 1, 0, 0]);
   });
-  it('NaNs in Tensor2D - int32', () => {
-    const a = tf.tensor2d([[1, NaN, 2], [0, NaN, NaN]], [2, 3], 'int32');
-    const b = tf.tensor2d([[0, NaN, NaN], [1, NaN, 3]], [2, 3], 'int32');
-    const res = tf.greaterEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(
-        res, [1, boolNaN, boolNaN, 0, boolNaN, boolNaN]);
-  });
   it('NaNs in Tensor2D - float32', () => {
     const a = tf.tensor2d([[1.1, NaN], [0.1, NaN]], [2, 2], 'float32');
     const b = tf.tensor2d([[0.1, NaN], [1.1, NaN]], [2, 2], 'float32');
     const res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
+    expectArraysClose(res, [1, 0, 0, 0]);
   });
 
   // Tensor3D:
@@ -2412,18 +2171,6 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1]);
   });
-  it('NaNs in Tensor3D - int32', () => {
-    const a =
-        tf.tensor3d(
-          [[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'int32');
-    const b =
-        tf.tensor3d(
-          [[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'int32');
-    const res = tf.greaterEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 1, 0, 1, boolNaN]);
-  });
   it('NaNs in Tensor3D - float32', () => {
     const a = tf.tensor3d(
         [[[1.1], [NaN], [1.1]], [[0.1], [0.1], [0.1]]], [2, 3, 1], 'float32');
@@ -2432,7 +2179,7 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     const res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 1, 0, 1, boolNaN]);
+    expectArraysClose(res, [1, 0, 1, 0, 1, 0]);
   });
 
   // Tensor4D:
@@ -2500,21 +2247,13 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 0, 0, 0, 1, 0, 1, 1]);
   });
-  it('NaNs in Tensor4D - int32', () => {
-    const a = tf.tensor4d([1, NaN, 0, 0], [2, 2, 1, 1], 'int32');
-    const b = tf.tensor4d([0, 1, 1, NaN], [2, 2, 1, 1], 'int32');
-    const res = tf.greaterEqual(a, b);
-
-    expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
-  });
   it('NaNs in Tensor4D - float32', () => {
     const a = tf.tensor4d([1.1, NaN, 0.1, 0.1], [2, 2, 1, 1], 'float32');
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     const res = tf.greaterEqual(a, b);
 
     expect(res.dtype).toBe('bool');
-    expectArraysClose(res, [1, boolNaN, 0, boolNaN]);
+    expectArraysClose(res, [1, 0, 0, 0]);
   });
 });
 

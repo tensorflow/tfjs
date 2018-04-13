@@ -56,10 +56,6 @@ export class ReduceProgram implements GPGPUProgram {
       if (${isReduceSum}) {
         sumValue += dot(values, ones);
       } else {
-        if (hasNaN(values)) {
-          setOutput(getNaN(values));
-          return;
-        }
         minMaxValue = ${compareOp}(values, minMaxValue);
       }
     `;

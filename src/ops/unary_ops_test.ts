@@ -54,20 +54,6 @@ describeWithFlags('relu', ALL_ENVS, () => {
     expectArraysClose(result, [1, 0, 0, 3, 0, NaN]);
   });
 
-  it('propagates NaNs, int32', () => {
-    const a = tf.tensor1d([1, -2, 0, 3, -1, util.NAN_INT32], 'int32');
-    const result = tf.relu(a);
-    expect(result.dtype).toBe('int32');
-    expectArraysClose(result, [1, 0, 0, 3, 0, util.NAN_INT32]);
-  });
-
-  it('propagates NaNs, bool', () => {
-    const a = tf.tensor1d([1, 0, 0, 1, 0, util.NAN_BOOL], 'bool');
-    const result = tf.relu(a);
-    expect(result.dtype).toBe('bool');
-    expectArraysClose(result, [1, 0, 0, 1, 0, util.NAN_BOOL]);
-  });
-
   it('gradients: positive scalar', () => {
     const a = tf.scalar(3);
     const dy = tf.scalar(5);

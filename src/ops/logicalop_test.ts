@@ -17,9 +17,6 @@
 
 import * as tf from '../index';
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
-import * as util from '../util';
-
-const boolNaN = util.getNaN('bool');
 
 describeWithFlags('logicalNot', ALL_ENVS, () => {
   it('Tensor1D.', () => {
@@ -31,10 +28,6 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
 
     a = tf.tensor1d([1, 1], 'bool');
     expectArraysClose(tf.logicalNot(a), [0, 0]);
-  });
-  it('NaNs in Tensor1D', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'bool');
-    expectArraysClose(tf.logicalNot(a), [0, boolNaN, 1]);
   });
   it('Tests chaining in Tensor1D', () => {
     let a = tf.tensor1d([1, 0, 0], 'bool');
@@ -54,10 +47,6 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
     a = tf.tensor2d([[0, 0, 0], [1, 1, 1]], [2, 3], 'bool');
     expectArraysClose(tf.logicalNot(a), [1, 1, 1, 0, 0, 0]);
   });
-  it('NaNs in Tensor2D', () => {
-    const a = tf.tensor2d([[1, NaN], [0, NaN]], [2, 2], 'bool');
-    expectArraysClose(tf.logicalNot(a), [0, boolNaN, 1, boolNaN]);
-  });
 
   it('Tensor3D', () => {
     let a = tf.tensor3d([[[1], [0], [1]], [[0], [0], [0]]], [2, 3, 1], 'bool');
@@ -65,11 +54,6 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
 
     a = tf.tensor3d([[[0], [0], [0]], [[1], [1], [1]]], [2, 3, 1], 'bool');
     expectArraysClose(tf.logicalNot(a), [1, 1, 1, 0, 0, 0]);
-  });
-  it('NaNs in Tensor3D', () => {
-    const a =
-        tf.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'bool');
-    expectArraysClose(tf.logicalNot(a), [0, boolNaN, 0, 1, 1, 1]);
   });
 
   it('Tensor4D', () => {
@@ -81,10 +65,6 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
 
     a = tf.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'bool');
     expectArraysClose(tf.logicalNot(a), [0, 0, 0, 0]);
-  });
-  it('NaNs in Tensor4D', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'bool');
-    expectArraysClose(tf.logicalNot(a), [0, boolNaN, 0, 1]);
   });
 });
 
@@ -110,11 +90,6 @@ describeWithFlags('logicalAnd', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'bool');
-    const b = tf.tensor1d([0, 0, NaN], 'bool');
-    expectArraysClose(tf.logicalAnd(a, b), [0, boolNaN, boolNaN]);
-  });
 
   it('Tensor2D', () => {
     let a = tf.tensor2d([[1, 0, 1], [0, 0, 0]], [2, 3], 'bool');
@@ -129,11 +104,6 @@ describeWithFlags('logicalAnd', ALL_ENVS, () => {
     const a = tf.tensor2d([[1], [0]], [2, 1], 'bool');
     const b = tf.tensor2d([[0, 1, 0], [0, 1, 0]], [2, 3], 'bool');
     expectArraysClose(tf.logicalAnd(a, b), [0, 1, 0, 0, 0, 0]);
-  });
-  it('NaNs in Tensor2D', () => {
-    const a = tf.tensor2d([[1, NaN], [0, NaN]], [2, 2], 'bool');
-    const b = tf.tensor2d([[0, NaN], [1, NaN]], [2, 2], 'bool');
-    expectArraysClose(tf.logicalAnd(a, b), [0, boolNaN, 0, boolNaN]);
   });
 
   it('Tensor3D', () => {
@@ -154,13 +124,6 @@ describeWithFlags('logicalAnd', ALL_ENVS, () => {
     expectArraysClose(
         tf.logicalAnd(a, b), [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0]);
   });
-  it('NaNs in Tensor3D', () => {
-    const a =
-        tf.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'bool');
-    const b =
-        tf.tensor3d([[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'bool');
-    expectArraysClose(tf.logicalAnd(a, b), [0, boolNaN, 1, 0, 0, boolNaN]);
-  });
 
   it('Tensor4D', () => {
     let a = tf.tensor4d([1, 0, 1, 0], [2, 2, 1, 1], 'bool');
@@ -180,11 +143,6 @@ describeWithFlags('logicalAnd', ALL_ENVS, () => {
     const b = tf.tensor4d(
         [[[[1, 0]], [[0, 0]]], [[[0, 0]], [[1, 1]]]], [2, 2, 1, 2], 'bool');
     expectArraysClose(tf.logicalAnd(a, b), [1, 0, 0, 0, 0, 0, 0, 0]);
-  });
-  it('NaNs in Tensor4D', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'bool');
-    const b = tf.tensor4d([0, 1, 0, NaN], [2, 2, 1, 1], 'bool');
-    expectArraysClose(tf.logicalAnd(a, b), [0, boolNaN, 0, boolNaN]);
   });
 });
 
@@ -210,11 +168,6 @@ describeWithFlags('logicalOr', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'bool');
-    const b = tf.tensor1d([0, 0, NaN], 'bool');
-    expectArraysClose(tf.logicalOr(a, b), [1, boolNaN, boolNaN]);
-  });
 
   it('Tensor2D', () => {
     let a = tf.tensor2d([[1, 0, 1], [0, 0, 0]], [2, 3], 'bool');
@@ -229,11 +182,6 @@ describeWithFlags('logicalOr', ALL_ENVS, () => {
     const a = tf.tensor2d([[1], [0]], [2, 1], 'bool');
     const b = tf.tensor2d([[0, 0, 0], [0, 1, 0]], [2, 3], 'bool');
     expectArraysClose(tf.logicalOr(a, b), [1, 1, 1, 0, 1, 0]);
-  });
-  it('NaNs in Tensor2D', () => {
-    const a = tf.tensor2d([[1, NaN], [0, NaN]], [2, 2], 'bool');
-    const b = tf.tensor2d([[0, NaN], [1, NaN]], [2, 2], 'bool');
-    expectArraysClose(tf.logicalOr(a, b), [1, boolNaN, 1, boolNaN]);
   });
 
   it('Tensor3D', () => {
@@ -252,13 +200,6 @@ describeWithFlags('logicalOr', ALL_ENVS, () => {
     const b =
         tf.tensor3d([[[0], [0], [1]], [[1], [0], [0]]], [2, 3, 1], 'bool');
     expectArraysClose(tf.logicalOr(a, b), [1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0]);
-  });
-  it('NaNs in Tensor3D', () => {
-    const a =
-        tf.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'bool');
-    const b =
-        tf.tensor3d([[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'bool');
-    expectArraysClose(tf.logicalOr(a, b), [1, boolNaN, 1, 1, 0, boolNaN]);
   });
 
   it('Tensor4D', () => {
@@ -279,11 +220,6 @@ describeWithFlags('logicalOr', ALL_ENVS, () => {
     const b = tf.tensor4d(
         [[[[1, 0]], [[0, 0]]], [[[0, 0]], [[1, 1]]]], [2, 2, 1, 2], 'bool');
     expectArraysClose(tf.logicalOr(a, b), [1, 1, 0, 0, 1, 1, 1, 1]);
-  });
-  it('NaNs in Tensor4D', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'bool');
-    const b = tf.tensor4d([0, 1, 0, NaN], [2, 2, 1, 1], 'bool');
-    expectArraysClose(tf.logicalOr(a, b), [1, boolNaN, 1, boolNaN]);
   });
 });
 
@@ -309,11 +245,6 @@ describeWithFlags('logicalXor', ALL_ENVS, () => {
     };
     expect(f).toThrowError();
   });
-  it('NaNs in Tensor1D', () => {
-    const a = tf.tensor1d([1, NaN, 0], 'bool');
-    const b = tf.tensor1d([0, 0, NaN], 'bool');
-    expectArraysClose(tf.logicalXor(a, b), [1, boolNaN, boolNaN]);
-  });
 
   // Tensor2D:
   it('Tensor2D', () => {
@@ -329,11 +260,6 @@ describeWithFlags('logicalXor', ALL_ENVS, () => {
     const a = tf.tensor2d([[1], [0]], [2, 1], 'bool');
     const b = tf.tensor2d([[0, 0, 0], [0, 1, 0]], [2, 3], 'bool');
     expectArraysClose(tf.logicalXor(a, b), [1, 1, 1, 0, 1, 0]);
-  });
-  it('NaNs in Tensor2D', () => {
-    const a = tf.tensor2d([[1, NaN], [0, NaN]], [2, 2], 'bool');
-    const b = tf.tensor2d([[0, NaN], [1, NaN]], [2, 2], 'bool');
-    expectArraysClose(tf.logicalXor(a, b), [1, boolNaN, 1, boolNaN]);
   });
 
   // Tensor3D:
@@ -355,13 +281,6 @@ describeWithFlags('logicalXor', ALL_ENVS, () => {
     expectArraysClose(
         tf.logicalXor(a, b), [1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0]);
   });
-  it('NaNs in Tensor3D', () => {
-    const a =
-        tf.tensor3d([[[1], [NaN], [1]], [[0], [0], [0]]], [2, 3, 1], 'bool');
-    const b =
-        tf.tensor3d([[[0], [0], [1]], [[1], [0], [NaN]]], [2, 3, 1], 'bool');
-    expectArraysClose(tf.logicalXor(a, b), [1, boolNaN, 0, 1, 0, boolNaN]);
-  });
 
   // Tensor4D:
   it('Tensor4D', () => {
@@ -382,11 +301,6 @@ describeWithFlags('logicalXor', ALL_ENVS, () => {
     const b = tf.tensor4d(
         [[[[1, 0]], [[0, 0]]], [[[0, 0]], [[1, 1]]]], [2, 2, 1, 2], 'bool');
     expectArraysClose(tf.logicalXor(a, b), [0, 1, 0, 0, 1, 1, 1, 1]);
-  });
-  it('NaNs in Tensor4D', () => {
-    const a = tf.tensor4d([1, NaN, 1, 0], [2, 2, 1, 1], 'bool');
-    const b = tf.tensor4d([0, 1, 0, NaN], [2, 2, 1, 1], 'bool');
-    expectArraysClose(tf.logicalXor(a, b), [1, boolNaN, 1, boolNaN]);
   });
 });
 
