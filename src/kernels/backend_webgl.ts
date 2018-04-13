@@ -632,7 +632,7 @@ export class MathBackendWebGL implements KernelBackend {
   sign<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIGN);
     return this.compileAndRun(program, [x]) as T;
-  }    
+  }
 
   round<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ROUND);
@@ -1042,9 +1042,7 @@ function float32ToTypedArray<D extends DataType>(
     const result = (dtype === 'int32') ? new Int32Array(a.length) :
                                          new Uint8Array(a.length);
     for (let i = 0; i < result.length; ++i) {
-      let val = a[i];
-      val = isNaN(val) ? util.getNaN(dtype) : Math.round(val);
-      result[i] = val;
+      result[i] = Math.round(a[i]);
     }
     return result;
   } else {
@@ -1054,14 +1052,5 @@ function float32ToTypedArray<D extends DataType>(
 
 function typedArrayToFloat32<D extends DataType>(
     a: DataTypeMap[D], dtype: D): Float32Array {
-  if (a instanceof Float32Array) {
-    return a;
-  } else {
-    const res = new Float32Array(a.length);
-    for (let i = 0; i < res.length; i++) {
-      const val = a[i];
-      res[i] = util.isValNaN(val, dtype) ? NaN : val;
-    }
-    return res;
-  }
+  return (a instanceof Float32Array) ? a : new Float32Array(a);
 }

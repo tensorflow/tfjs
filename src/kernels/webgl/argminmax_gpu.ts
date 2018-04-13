@@ -50,10 +50,6 @@ export class ArgMinMaxProgram implements GPGPUProgram {
         for (int i = 0; i < ${windowSize}; i++) {
           int inIdx = ${indexSnippet};
           float candidate = getA(batch, inIdx);
-          if (isNaN(candidate)) {
-            setOutput(candidate);
-            return;
-          }
           if (candidate ${compOp} bestValue) {
             bestValue = candidate;
             bestIndex = inIdx;

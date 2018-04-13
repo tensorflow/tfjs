@@ -32,49 +32,36 @@ export const POW = `
       pow(abs(a), b) : sign(a) * pow(abs(a), b);
 `;
 export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
-export const EQUAL = CHECK_NAN_SNIPPET + `
-  return float(a == b);
-`;
-export const NOT_EQUAL = CHECK_NAN_SNIPPET + `
-  return float(a != b);
-`;
-export const LESS = CHECK_NAN_SNIPPET + `
-  return float(a < b);
-`;
-export const LESS_EQUAL = CHECK_NAN_SNIPPET + `
-  return float(a <= b);
-`;
-export const GREATER = CHECK_NAN_SNIPPET + `
-  return float(a > b);
-`;
-export const GREATER_EQUAL = CHECK_NAN_SNIPPET + `
-  return float(a >= b);
-`;
-export const LOGICAL_AND = CHECK_NAN_SNIPPET + `
-  return float(a >= 1.0 && b >= 1.0);
-`;
-export const LOGICAL_OR = CHECK_NAN_SNIPPET + `
-  return float(a >= 1.0 || b >= 1.0);
-`;
-export const LOGICAL_XOR = CHECK_NAN_SNIPPET + `
-  return float(a >= 1.0 ^^ b >= 1.0);
-`;
-export const PRELU = `
-  return (a >= 0.0) ? a : b * a;
-`;
-export const PRELU_DER = `
-  return (a > 0.0) ? 1.0 : ((a < 0.0) ? b : a);
-`;
+
+export const EQUAL = `return float(a == b);`;
+
+export const NOT_EQUAL = `return float(a != b);`;
+
+export const LESS = `return float(a < b);`;
+
+export const LESS_EQUAL = `return float(a <= b);`;
+
+export const GREATER = `return float(a > b);`;
+
+export const GREATER_EQUAL = `return float(a >= b);`;
+
+export const LOGICAL_AND = `return float(a >= 1.0 && b >= 1.0);`;
+
+export const LOGICAL_OR = `return float(a >= 1.0 || b >= 1.0);`;
+
+export const LOGICAL_XOR = `return float(a >= 1.0 ^^ b >= 1.0);`;
+
+export const PRELU = `return (a >= 0.0) ? a : b * a;`;
+
+export const PRELU_DER = `return (a > 0.0) ? 1.0 : ((a < 0.0) ? b : a);`;
+
 export const MAX = CHECK_NAN_SNIPPET + `
   return max(a, b);
 `;
 export const MIN = CHECK_NAN_SNIPPET + `
   return min(a, b);
 `;
-
-export const MOD = CHECK_NAN_SNIPPET + `
-  return mod(a, b);
-`;
+export const MOD = `return mod(a, b);`;
 
 export const ATAN2 = CHECK_NAN_SNIPPET + `
   return atan(a, b);

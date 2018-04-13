@@ -291,10 +291,6 @@ export class MathBackendCPU implements KernelBackend {
       let minIndex = 0;
       for (let j = 0; j < reduceSize; ++j) {
         const value = aVals[offset + j];
-        if (isNaN(value)) {
-          minIndex = util.NAN_INT32;
-          break;
-        }
         if (value < min) {
           min = value;
           minIndex = j;
@@ -320,10 +316,6 @@ export class MathBackendCPU implements KernelBackend {
       let maxIndex = 0;
       for (let j = 0; j < reduceSize; ++j) {
         const value = aVals[offset + j];
-        if (isNaN(value)) {
-          maxIndex = util.NAN_INT32;
-          break;
-        }
         if (value > max) {
           max = value;
           maxIndex = j;
@@ -336,61 +328,37 @@ export class MathBackendCPU implements KernelBackend {
 
   equal(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return (aVal === bVal) ? 1 : 0;
-      }
+      return (aVal === bVal) ? 1 : 0;
     });
   }
 
   notEqual(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return (aVal !== bVal) ? 1 : 0;
-      }
+      return (aVal !== bVal) ? 1 : 0;
     });
   }
 
   less(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return (aVal < bVal) ? 1 : 0;
-      }
+      return (aVal < bVal) ? 1 : 0;
     });
   }
 
   lessEqual(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return (aVal <= bVal) ? 1 : 0;
-      }
+      return (aVal <= bVal) ? 1 : 0;
     });
   }
 
   greater(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return (aVal > bVal) ? 1 : 0;
-      }
+      return (aVal > bVal) ? 1 : 0;
     });
   }
 
   greaterEqual(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return (aVal >= bVal) ? 1 : 0;
-      }
+      return (aVal >= bVal) ? 1 : 0;
     });
   }
 
@@ -398,42 +366,26 @@ export class MathBackendCPU implements KernelBackend {
     const values = x.dataSync();
     const newValues = new Int32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
-      if (util.isValNaN(values[i], x.dtype)) {
-        newValues[i] = util.getNaN('bool');
-      } else {
-        newValues[i] = values[i] ? 0 : 1;
-      }
+      newValues[i] = values[i] ? 0 : 1;
     }
     return Tensor.make(x.shape, {values: newValues}, 'bool') as T;
   }
 
   logicalAnd(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return aVal && bVal;
-      }
+      return aVal && bVal;
     });
   }
 
   logicalOr(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return aVal || bVal;
-      }
+      return aVal || bVal;
     });
   }
 
   logicalXor(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      if (util.isValNaN(aVal, a.dtype) || util.isValNaN(bVal, b.dtype)) {
-        return util.getNaN('bool');
-      } else {
-        return aVal ^ bVal;
-      }
+      return aVal ^ bVal;
     });
   }
 
@@ -505,10 +457,6 @@ export class MathBackendCPU implements KernelBackend {
       let min = aVals[0];
       for (let j = 0; j < reduceSize; ++j) {
         const value = aVals[offset + j];
-        if (isNaN(value)) {
-          min = Number.NaN;
-          break;
-        }
         if (value < min) {
           min = value;
         }
@@ -548,10 +496,6 @@ export class MathBackendCPU implements KernelBackend {
       let max = aVals[offset];
       for (let j = 0; j < reduceSize; ++j) {
         const value = aVals[offset + j];
-        if (isNaN(value)) {
-          max = Number.NaN;
-          break;
-        }
         if (value > max) {
           max = value;
         }
@@ -625,7 +569,7 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return Tensor.make(x.shape, {values: newValues}) as T;
-  }  
+  }
 
   exp<T extends Tensor>(x: T): T {
     const values = x.dataSync();
@@ -699,12 +643,7 @@ export class MathBackendCPU implements KernelBackend {
     const values = x.dataSync();
     const newValues = new Float32Array(values.length);
     for (let i = 0; i < values.length; ++i) {
-      const value = values[i];
-      if (util.isValNaN(value, x.dtype)) {
-        newValues[i] = util.getNaN(x.dtype);
-      } else {
-        newValues[i] = 1 / value;
-      }
+      newValues[i] = 1 / values[i];
     }
     return Tensor.make(x.shape, {values: newValues}) as T;
   }
@@ -714,12 +653,7 @@ export class MathBackendCPU implements KernelBackend {
     const resVals = res.dataSync();
     const inVals = x.dataSync();
     for (let i = 0; i < inVals.length; ++i) {
-      const val = inVals[i];
-      if (util.isValNaN(val, x.dtype)) {
-        resVals[i] = util.getNaN(res.dtype);
-      } else {
-        resVals[i] = Math.max(0, inVals[i]);
-      }
+      resVals[i] = Math.max(0, inVals[i]);
     }
     return res as T;
   }
@@ -972,8 +906,8 @@ export class MathBackendCPU implements KernelBackend {
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
       const value = values[i];
-      if (util.isValNaN(value, x.dtype)) {
-        resultValues[i] = util.getNaN(x.dtype);
+      if (isNaN(value)) {
+        resultValues[i] = NaN;
       } else {
         resultValues[i] = value > 0 ? 1 : alpha;
       }

@@ -41,25 +41,15 @@ export class UnaryOpProgram implements GPGPUProgram {
   }
 }
 
-const CHECK_NAN_SNIPPET = `
-  if (isNaN(x)) return x;
-`;
+const CHECK_NAN_SNIPPET = `if (isNaN(x)) return x;`;
 
-export const ABS = `
-  return abs(x);
-`;
+export const ABS = `return abs(x);`;
 
-export const RELU = CHECK_NAN_SNIPPET + `
-  return (x < 0.0) ? 0.0 : x;
-`;
+export const RELU = `return (x < 0.0) ? 0.0 : x;`;
 
-export const ELU = `
-  return (x >= 0.0) ? x : (exp(x) - 1.0);
-`;
+export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
-export const ELU_DER = `
-  return (x >= 0.0) ? 1.0 : exp(x);
-`;
+export const ELU_DER = `return (x >= 0.0) ? 1.0 : exp(x);`;
 
 export const SELU = `
   // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
@@ -70,9 +60,7 @@ export const SELU = `
 `;
 
 export function LEAKY_RELU(alpha: number) {
-  return `
-    return (x >= 0.0) ? x : ${alpha} * x;
-  `;
+  return `return (x >= 0.0) ? x : ${alpha} * x;`;
 }
 
 export function STEP(alpha = 0.0) {
@@ -81,21 +69,13 @@ export function STEP(alpha = 0.0) {
   `;
 }
 
-export const NEG = `
-  return -x;
-`;
+export const NEG = `return -x;`;
 
-export const CEIL = `
-  return ceil(x);
-`;
+export const CEIL = `return ceil(x);`;
 
-export const FLOOR = `
-  return floor(x);
-`;
+export const FLOOR = `return floor(x);`;
 
-export const SIGN = `
-  return sign(x);
-`;
+export const SIGN = `return sign(x);`;
 
 export const ROUND = `
   // OpenGL ES does not support round function.
@@ -114,53 +94,29 @@ export const ROUND = `
   }
 `;
 
-export const EXP = `
-  return exp(x);
-`;
+export const EXP = `return exp(x);`;
 
-export const EXPM1 = `
-  return exp(x) - 1.0;
-`;
+export const EXPM1 = `return exp(x) - 1.0;`;
 
-export const LOG = `
-  return log(x);
-`;
+export const LOG = `return log(x);`;
 
-export const LOG1P = `
-  return log(1.0 + x);
-`;
+export const LOG1P = `return log(1.0 + x);`;
 
-export const SQRT = CHECK_NAN_SNIPPET + `
-  return sqrt(x);
-`;
+export const SQRT = `return sqrt(x);`;
 
-export const RSQRT = CHECK_NAN_SNIPPET + `
-  return inversesqrt(x);
-`;
+export const RSQRT = `return inversesqrt(x);`;
 
-export const SIGMOID = `
-  return 1.0 / (1.0 + exp(-1.0 * x));
-`;
+export const SIGMOID = `return 1.0 / (1.0 + exp(-1.0 * x));`;
 
-export const SIN = CHECK_NAN_SNIPPET + `
-  return sin(x);
-`;
+export const SIN = `return sin(x);`;
 
-export const COS = CHECK_NAN_SNIPPET + `
-  return cos(x);
-`;
+export const COS = `return cos(x);`;
 
-export const TAN = `
-  return tan(x);
-`;
+export const TAN = `return tan(x);`;
 
-export const ASIN = CHECK_NAN_SNIPPET + `
-  return asin(x);
-`;
+export const ASIN = `return asin(x);`;
 
-export const ACOS = CHECK_NAN_SNIPPET + `
-  return acos(x);
-`;
+export const ACOS = `return acos(x);`;
 
 export const ATAN = CHECK_NAN_SNIPPET + `
   return atan(x);
@@ -181,30 +137,16 @@ export const TANH = `
   return sign(x) * (1.0 - e2x) / (1.0 + e2x);
 `;
 
-export const ASINH = `
-  return log(x + sqrt(x * x + 1.0));
-`;
+export const ASINH = `return log(x + sqrt(x * x + 1.0));`;
 
-export const ACOSH = `
-  return log(x + sqrt(x * x - 1.0));
-`;
+export const ACOSH = `return log(x + sqrt(x * x - 1.0));`;
 
-export const ATANH = `
-  return (log(1.0 + x) - log(1.0 - x)) / 2.0;
-`;
+export const ATANH = `return (log(1.0 + x) - log(1.0 - x)) / 2.0;`;
 
-export const SQUARE = `
-  return x * x;
-`;
+export const SQUARE = `return x * x;`;
 
-export const RECIPROCAL = CHECK_NAN_SNIPPET + `
-  return 1.0 / x;
-`;
+export const RECIPROCAL = `return 1.0 / x;`;
 
-export const LOGICAL_NOT = CHECK_NAN_SNIPPET + `
-  return float(!(x >= 1.0));
-`;
+export const LOGICAL_NOT = `return float(!(x >= 1.0));`;
 
-export const TO_INT = `
-  return float(int(x));
-`;
+export const TO_INT = `return float(int(x));`;

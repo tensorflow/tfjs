@@ -650,7 +650,7 @@ describeWithFlags('randomNormal', ALL_ENVS, () => {
   });
 
   it('should return a float32 2D of random normal values', () => {
-    const SAMPLES = 250;
+    const SAMPLES = 100;
 
     // Ensure defaults to float32.
     let result = tf.randomNormal([SAMPLES, SAMPLES], 0, 2.5, null, SEED);
@@ -676,60 +676,54 @@ describeWithFlags('randomNormal', ALL_ENVS, () => {
   });
 
   it('should return a float32 3D of random normal values', () => {
-    const SAMPLES = 50;
+    const SAMPLES_SHAPE = [20, 20, 20];
 
     // Ensure defaults to float32.
-    let result =
-        tf.randomNormal([SAMPLES, SAMPLES, SAMPLES], 0, 0.5, null, SEED);
+    let result = tf.randomNormal(SAMPLES_SHAPE, 0, 0.5, null, SEED);
     expect(result.dtype).toBe('float32');
-    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES]);
+    expect(result.shape).toEqual(SAMPLES_SHAPE);
     jarqueBeraNormalityTest(result);
     expectArrayInMeanStdRange(result, 0, 0.5, EPSILON);
 
-    result =
-        tf.randomNormal([SAMPLES, SAMPLES, SAMPLES], 0, 1.5, 'float32', SEED);
+    result = tf.randomNormal(SAMPLES_SHAPE, 0, 1.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
-    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES]);
+    expect(result.shape).toEqual(SAMPLES_SHAPE);
     jarqueBeraNormalityTest(result);
     expectArrayInMeanStdRange(result, 0, 1.5, EPSILON);
   });
 
   it('should return a int32 3D of random normal values', () => {
-    const SAMPLES = 50;
-    const result =
-        tf.randomNormal([SAMPLES, SAMPLES, SAMPLES], 0, 2, 'int32', SEED);
+    const SAMPLES_SHAPE = [20, 20, 20];
+    const result = tf.randomNormal(SAMPLES_SHAPE, 0, 2, 'int32', SEED);
     expect(result.dtype).toBe('int32');
-    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES]);
+    expect(result.shape).toEqual(SAMPLES_SHAPE);
     jarqueBeraNormalityTest(result);
     expectArrayInMeanStdRange(result, 0, 2, EPSILON);
   });
 
   it('should return a float32 4D of random normal values', () => {
-    const SAMPLES = 25;
+    const SAMPLES_SHAPE = [10, 10, 10, 10];
 
     // Ensure defaults to float32.
-    let result = tf.randomNormal(
-        [SAMPLES, SAMPLES, SAMPLES, SAMPLES], 0, 0.5, null, SEED);
+    let result = tf.randomNormal(SAMPLES_SHAPE, 0, 0.5, null, SEED);
     expect(result.dtype).toBe('float32');
-    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES, SAMPLES]);
+    expect(result.shape).toEqual(SAMPLES_SHAPE);
     jarqueBeraNormalityTest(result);
     expectArrayInMeanStdRange(result, 0, 0.5, EPSILON);
 
-    result = tf.randomNormal(
-        [SAMPLES, SAMPLES, SAMPLES, SAMPLES], 0, 1.5, 'float32', SEED);
+    result = tf.randomNormal(SAMPLES_SHAPE, 0, 1.5, 'float32', SEED);
     expect(result.dtype).toBe('float32');
-    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES, SAMPLES]);
+    expect(result.shape).toEqual(SAMPLES_SHAPE);
     jarqueBeraNormalityTest(result);
     expectArrayInMeanStdRange(result, 0, 1.5, EPSILON);
   });
 
   it('should return a int32 4D of random normal values', () => {
-    const SAMPLES = 25;
+    const SAMPLES_SHAPE = [10, 10, 10, 10];
 
-    const result = tf.randomNormal(
-        [SAMPLES, SAMPLES, SAMPLES, SAMPLES], 0, 2, 'int32', SEED);
+    const result = tf.randomNormal(SAMPLES_SHAPE, 0, 2, 'int32', SEED);
     expect(result.dtype).toBe('int32');
-    expect(result.shape).toEqual([SAMPLES, SAMPLES, SAMPLES, SAMPLES]);
+    expect(result.shape).toEqual(SAMPLES_SHAPE);
     jarqueBeraNormalityTest(result);
     expectArrayInMeanStdRange(result, 0, 2, EPSILON);
   });
@@ -951,7 +945,7 @@ describeWithFlags('randomUniform', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('fromPixels', ALL_ENVS, () => {
+describeWithFlags('fromPixels', WEBGL_ENVS, () => {
   it('ImageData 1x1x3', () => {
     const pixels = new ImageData(1, 1);
     pixels.data[0] = 0;
@@ -1592,16 +1586,6 @@ describeWithFlags('tile', ALL_ENVS, () => {
     expectArraysEqual(t2, [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]);
   });
 
-  it('bool propagates NaNs', () => {
-    const t = tf.tensor1d([true, false, NaN] as boolean[], 'bool');
-    const t2 = tf.tile(t, [2]);
-
-    expect(t2.shape).toEqual([6]);
-    expect(t2.dtype).toBe('bool');
-    expectArraysEqual(
-        t2, [1, 0, util.getNaN('bool'), 1, 0, util.getNaN('bool')]);
-  });
-
   it('1D int32 (tile)', () => {
     const t = tf.tensor1d([1, 2, 5], 'int32');
     const t2 = tf.tile(t, [2]);
@@ -1637,16 +1621,6 @@ describeWithFlags('tile', ALL_ENVS, () => {
     expect(t2.shape).toEqual([2, 4, 2]);
     expect(t2.dtype).toBe('int32');
     expectArraysEqual(t2, [1, 2, 3, 4, 1, 2, 3, 4, 5, 6, 7, 8, 5, 6, 7, 8]);
-  });
-
-  it('int32 propagates NaNs', () => {
-    const t = tf.tensor1d([1, 3, NaN], 'int32');
-    const t2 = tf.tile(t, [2]);
-
-    expect(t2.shape).toEqual([6]);
-    expect(t2.dtype).toBe('int32');
-    expectArraysEqual(
-        t2, [1, 3, util.getNaN('int32'), 1, 3, util.getNaN('int32')]);
   });
 
   it('1D (tile) gradient', () => {

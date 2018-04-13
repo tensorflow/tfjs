@@ -19,7 +19,7 @@ import {ENV, Environment, Features} from './environment';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
 import {Tensor} from './tensor';
-import {DataType, TypedArray} from './types';
+import {TypedArray} from './types';
 import * as util from './util';
 
 // Constraints for testing.
@@ -224,10 +224,4 @@ function executeTests(testName: string, tests: () => void, features: Features) {
 
     tests();
   });
-}
-
-export function assertIsNan(val: number, dtype: DataType) {
-  if (!util.isValNaN(val, dtype)) {
-    throw new Error(`Value ${val} does not represent NaN for dtype ${dtype}`);
-  }
 }

@@ -16,9 +16,7 @@
  */
 
 import * as tf from './index';
-// tslint:disable-next-line:max-line-length
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from './test_util';
-import * as util from './util';
 
 describeWithFlags('debug on', ALL_ENVS, () => {
   beforeAll(() => {
@@ -37,18 +35,6 @@ describeWithFlags('debug on', ALL_ENVS, () => {
 
   it('debug mode errors when there are nans, float32', () => {
     const a = tf.tensor1d([2, NaN]);
-    const f = () => tf.relu(a);
-    expect(f).toThrowError();
-  });
-
-  it('debug mode errors when there are nans, int32', () => {
-    const a = tf.tensor1d([2, util.NAN_INT32], 'int32');
-    const f = () => tf.relu(a);
-    expect(f).toThrowError();
-  });
-
-  it('debug mode errors when there are nans, bool', () => {
-    const a = tf.tensor1d([1, util.NAN_BOOL], 'bool');
     const f = () => tf.relu(a);
     expect(f).toThrowError();
   });

@@ -270,37 +270,6 @@ export function inferFromImplicitShape(
   return newShape;
 }
 
-export const NAN_INT32 = 1 << 31;
-export const NAN_BOOL = 255;
-export const NAN_FLOAT32 = NaN;
-
-export function getNaN(dtype: DataType): number {
-  if (dtype === 'float32') {
-    return NAN_FLOAT32;
-  } else if (dtype === 'int32') {
-    return NAN_INT32;
-  } else if (dtype === 'bool') {
-    return NAN_BOOL;
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-
-export function isValNaN(val: number, dtype: DataType): boolean {
-  if (isNaN(val)) {
-    return true;
-  }
-  if (dtype === 'float32') {
-    return false;
-  } else if (dtype === 'int32') {
-    return val === NAN_INT32;
-  } else if (dtype === 'bool') {
-    return val === NAN_BOOL;
-  } else {
-    throw new Error(`Unknown dtype ${dtype}`);
-  }
-}
-
 /** Reduces the shape by removing all dimensions of shape 1. */
 export function squeezeShape(shape: number[], axis?: number[]):
     {newShape: number[], keptDims: number[]} {
@@ -355,8 +324,12 @@ export function isTensorInList(tensor: Tensor, tensorList: Tensor[]): boolean {
 
 export function checkForNaN<D extends DataType>(
     vals: DataTypeMap[D], dtype: D, name: string): void {
+  if (dtype !== 'float32') {
+    // NaN is a floating point concept.
+    return;
+  }
   for (let i = 0; i < vals.length; i++) {
-    if (isValNaN(vals[i], dtype)) {
+    if (isNaN(vals[i])) {
       throw Error(`The result of the '${name}' has NaNs.`);
     }
   }
@@ -411,23 +384,11 @@ export function copyTypedArray<D extends DataType>(
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {
-    const vals = new Int32Array(array.length);
-    for (let i = 0; i < vals.length; ++i) {
-      const val = array[i] as number;
-      if (isValNaN(val, 'int32')) {
-        vals[i] = getNaN('int32');
-      } else {
-        vals[i] = val;
-      }
-    }
-    return vals;
+    return new Int32Array(array as number[]);
   } else if (dtype === 'bool') {
     const bool = new Uint8Array(array.length);
     for (let i = 0; i < bool.length; ++i) {
-      const val = array[i] as number;
-      if (isValNaN(val as number, 'bool')) {
-        bool[i] = getNaN('bool');
-      } else if (Math.round(val) !== 0) {
+      if (Math.round(array[i] as number) !== 0) {
         bool[i] = 1;
       }
     }

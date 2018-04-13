@@ -93,7 +93,8 @@ export class ReductionOps {
    * x.sum(axis).print();  // or tf.sum(x, axis)
    * ```
    *
-   * @param x The input tensor to compute the sum over.
+   * @param x The input tensor to compute the sum over. If the dtype is `bool`
+   *   it will be converted to `int32` and the output dtype will be `int32`.
    * @param axis The dimension(s) to reduce. By default it reduces
    *     all dimensions.
    * @param keepDims If true, retains reduced dimensions with size 1.
@@ -102,6 +103,9 @@ export class ReductionOps {
   @operation
   static sum<T extends Tensor>(
       x: Tensor, axis: number|number[] = null, keepDims = false): T {
+    if (x.dtype === 'bool') {
+      x = x.toInt();
+    }
     const axes = axis_util.parseAxisParam(axis, x.shape);
 
     // Use a custom gradient to bypass 2 gradient backprops since sum is used

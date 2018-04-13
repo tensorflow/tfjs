@@ -454,6 +454,12 @@ export class BinaryOps {
   @operation
   static minimum<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
+    if (a.dtype === 'bool') {
+      a = a.toInt();
+    }
+    if (b.dtype === 'bool') {
+      b = b.toInt();
+    }
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const der = (dy: Tensor) => {
       const derA = () => dy.mul(a.lessEqual(b).toFloat());
@@ -506,6 +512,12 @@ export class BinaryOps {
   @operation
   static maximum<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertTypesMatch(a, b);
+    if (a.dtype === 'bool') {
+      a = a.toInt();
+    }
+    if (b.dtype === 'bool') {
+      b = b.toInt();
+    }
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const der = (dy: Tensor) => {
       const derA = () => dy.mul(a.greaterEqual(b).toFloat());

@@ -170,64 +170,6 @@ describe('util.inferFromImplicitShape', () => {
   });
 });
 
-describe('util.getNaN', () => {
-  it('float32', () => {
-    expect(isNaN(util.getNaN('float32'))).toBe(true);
-  });
-
-  it('int32', () => {
-    expect(util.getNaN('int32')).toBe(util.NAN_INT32);
-  });
-
-  it('bool', () => {
-    expect(util.getNaN('bool')).toBe(util.NAN_BOOL);
-  });
-
-  it('unknown type throws error', () => {
-    // tslint:disable-next-line:no-any
-    expect(() => util.getNaN('hello' as any)).toThrowError();
-  });
-});
-
-describe('util.isValNaN', () => {
-  it('NaN for float32', () => {
-    expect(util.isValNaN(NaN, 'float32')).toBe(true);
-  });
-
-  it('2 for float32', () => {
-    expect(util.isValNaN(3, 'float32')).toBe(false);
-  });
-
-  it('255 for float32', () => {
-    expect(util.isValNaN(255, 'float32')).toBe(false);
-  });
-
-  it('255 for int32', () => {
-    expect(util.isValNaN(255, 'int32')).toBe(false);
-  });
-
-  it('NAN_INT32 for int32', () => {
-    expect(util.isValNaN(util.NAN_INT32, 'int32')).toBe(true);
-  });
-
-  it('NAN_INT32 for bool', () => {
-    expect(util.isValNaN(util.NAN_INT32, 'bool')).toBe(false);
-  });
-
-  it('NAN_BOOL for bool', () => {
-    expect(util.isValNaN(util.NAN_BOOL, 'bool')).toBe(true);
-  });
-
-  it('2 for bool', () => {
-    expect(util.isValNaN(2, 'bool')).toBe(false);
-  });
-
-  it('throws error for unknown dtype', () => {
-    // tslint:disable-next-line:no-any
-    expect(() => util.isValNaN(0, 'hello' as any)).toThrowError();
-  });
-});
-
 describe('util.squeezeShape', () => {
   it('scalar', () => {
     const {newShape, keptDims} = util.squeezeShape([]);
@@ -299,37 +241,7 @@ describe('util.checkForNaN', () => {
     // Int32 and Bool NaNs should not trigger an error.
     expect(
         () => util.checkForNaN(
-            new Float32Array(
-                [1, 2, 3, 4, -1, 255, util.NAN_INT32, util.NAN_BOOL]),
-            'float32', ''))
-        .not.toThrowError();
-  });
-
-  it('Int32Array has NaN', () => {
-    expect(
-        () => util.checkForNaN(
-            new Int32Array([1, 2, 3, util.NAN_INT32, 4, 255]), 'int32', ''))
-        .toThrowError();
-  });
-
-  it('Int32Array no NaN', () => {
-    expect(
-        () => util.checkForNaN(
-            new Int32Array([1, 2, 3, 4, -1, 255, util.NAN_BOOL]), 'int32', ''))
-        .not.toThrowError();
-  });
-
-  it('Bool has NaN', () => {
-    expect(
-        () => util.checkForNaN(
-            new Uint8Array([1, 2, 3, util.NAN_BOOL, 4, 10]), 'bool', ''))
-        .toThrowError();
-  });
-
-  it('Bool no NaN', () => {
-    expect(
-        () => util.checkForNaN(
-            new Uint8Array([1, 2, 3, 4, 1, util.NAN_INT32]), 'bool', ''))
+            new Float32Array([1, 2, 3, 4, -1, 255]), 'float32', ''))
         .not.toThrowError();
   });
 });

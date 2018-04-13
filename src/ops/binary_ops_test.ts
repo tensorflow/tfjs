@@ -89,8 +89,8 @@ describeWithFlags('maximum', ALL_ENVS, () => {
     const result = tf.maximum(a, b);
 
     expect(result.shape).toEqual(a.shape);
-    expect(result.dtype).toBe('bool');
-    expectArraysEqual(result, [true, false, true, true]);
+    expect(result.dtype).toBe('int32');
+    expectArraysEqual(result, [1, 0, 1, 1]);
   });
 
   it('different dtypes throws error', () => {
@@ -378,8 +378,8 @@ describeWithFlags('minimum', ALL_ENVS, () => {
     const result = tf.minimum(a, b);
 
     expect(result.shape).toEqual(a.shape);
-    expect(result.dtype).toBe('bool');
-    expectArraysEqual(result, [false, false, false, true]);
+    expect(result.dtype).toBe('int32');
+    expectArraysEqual(result, [0, 0, 0, 1]);
   });
 
   it('different dtypes throws error', () => {
