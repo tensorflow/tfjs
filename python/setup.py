@@ -14,16 +14,16 @@
 # ==============================================================================
 """Build pip wheel for model_converter."""
 
+import os
 import setuptools
 from tensorflowjs import version
 
-REQUIRED_PACKAGES = [
-    'h5py >= 2.7.1',
-    'keras >= 2.1.4',
-    'numpy >= 1.14.1',
-    'six >= 1.11.0',
-    'tensorflow >= 1.6.0'
-]
+DIR_NAME = os.path.dirname(__file__)
+
+def _get_requirements(file):
+    "Reads the requirements file and returns the packages"
+    with open(os.path.join(DIR_NAME, file), 'r') as requirements:
+        return requirements.readlines()
 
 CONSOLE_SCRIPTS = [
     'tensorflowjs_converter = tensorflowjs.converters.converter:main',
@@ -66,7 +66,7 @@ setuptools.setup(
     package_data={
         'tensorflowjs/op_list': ['*.json']
     },
-    install_requires=REQUIRED_PACKAGES,
+    install_requires=_get_requirements('requirements.txt'),
     entry_points={
         'console_scripts': CONSOLE_SCRIPTS,
     },

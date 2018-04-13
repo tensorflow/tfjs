@@ -10,8 +10,8 @@ matrix:
     - language: python
       python: 2.7
       before_script:
-        - pip install -r python/requirements.txt
         - cd python
+        - pip install -r requirements-dev.txt
       script:
         - pylint --rcfile=.pylintrc tensorflowjs
         - ./run-python-tests.sh
@@ -20,8 +20,8 @@ matrix:
     - language: python
       python: 3.6
       before_script:
-        - pip install -r python/requirements.txt
         - cd python
+        - pip install -r requirements-dev.txt
       script:
         - pylint --rcfile=.pylintrc tensorflowjs
         - ./run-python-tests.sh
