@@ -175,7 +175,7 @@ function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
 
 function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
   // TODO(nsthorat): Remove this once we fix
-  // https://github.com/PAIR-code/deeplearnjs/issues/848
+  // https://github.com/tensorflow/tfjs/issues/137
   if (webGLVersion > 0) {
     return false;
   }
@@ -395,8 +395,8 @@ export class Environment {
   }
 }
 
-// Expects flags from URL in the format ?dljsflags=FLAG1:1,FLAG2:true.
-const DEEPLEARNJS_FLAGS_PREFIX = 'dljsflags';
+// Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.
+const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
 function getFeaturesFromURL(): Features {
   const features: Features = {};
 
@@ -405,10 +405,10 @@ function getFeaturesFromURL(): Features {
   }
 
   const urlParams = util.getQueryParams(window.location.search);
-  if (DEEPLEARNJS_FLAGS_PREFIX in urlParams) {
+  if (TENSORFLOWJS_FLAGS_PREFIX in urlParams) {
     const urlFlags: {[key: string]: string} = {};
 
-    const keyValues = urlParams[DEEPLEARNJS_FLAGS_PREFIX].split(',');
+    const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
     keyValues.forEach(keyValue => {
       const [key, value] = keyValue.split(':') as [string, string];
       urlFlags[key] = value;
