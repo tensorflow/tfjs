@@ -155,7 +155,7 @@ describeWithFlags(
         const env = new Environment(features);
 
         // TODO(nsthorat): Expect true when we fix
-        // https://github.com/PAIR-code/deeplearnjs/issues/848
+        // https://github.com/tensorflow/tfjs/issues/137
         expect(env.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'))
             .toBe(false);
       });
