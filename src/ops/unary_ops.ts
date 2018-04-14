@@ -485,6 +485,46 @@ export class UnaryOps {
   }
 
   /**
+   * Computes log sigmoid of the input `Tensor` element-wise:
+   * `logSigmoid(x)`. For numerical stability, we use `-tf.softplus(-x)`.
+   *
+   * ```js
+   * const x = tf.tensor1d([0, 1, -1, .7]);
+   *
+   * x.logSigmoid().print();  // or tf.logSigmoid(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static logSigmoid<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(x.neg().sigmoid())};
+    };
+    return ENV.engine.runKernel(
+        backend => backend.softplus(x.neg()).neg(), {x}, grad);
+  }
+
+  /**
+   * Computes softplus of the input `Tensor` element-wise: `log(exp(x) + 1)`
+   *
+   * ```js
+   * const x = tf.tensor1d([0, 1, -1, .7]);
+   *
+   * x.softplus().print();  // or tf.softplus(x)
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static softplus<T extends Tensor>(x: T): T {
+    const grad = (dy: T) => {
+      return {x: () => dy.mulStrict(x.sigmoid())};
+    };
+    return ENV.engine.runKernel(backend => backend.softplus(x), {x}, grad);
+  }
+
+  /**
    * Computes sin of the input Tensor element-wise: `sin(x)`
    *
    * ```js
