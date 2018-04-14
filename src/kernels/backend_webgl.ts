@@ -736,6 +736,11 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
+  softplus<T extends Tensor>(x: T): T {
+    const program = new UnaryOpProgram(x.shape, unary_op.SOFTPLUS);
+    return this.compileAndRun(program, [x]) as T;
+  }
+
   sin<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SIN);
     return this.compileAndRun(program, [x]) as T;

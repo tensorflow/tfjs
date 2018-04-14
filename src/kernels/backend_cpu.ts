@@ -787,6 +787,42 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 
+  softplus<T extends Tensor>(x: T): T {
+    // mirrors the implementation of tf.nn.softplus: https://goo.gl/vkcvwX
+
+    // epsilon is the difference between 1.0 and the next representable float.
+    // For a single precision 32 bit float this should be 2^-23, see:
+    // https://math.byu.edu/~schow/work/IEEEFloatingPoint.htm
+    const epsilon = 1.1920928955078125e-7;
+    const threshold = Math.log(epsilon) + 2.0;
+
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+
+    for (let i = 0; i < values.length; ++i) {
+      // Value above which exp(x) may overflow, but softplus(x) == x
+      // is within machine epsilon.
+      const tooLarge = values[i] > -threshold;
+
+      // Value below which exp(x) may underflow, but softplus(x) == exp(x)
+      // is within machine epsilon.
+      const tooSmall = values[i] < threshold;
+
+      const expX = Math.exp(values[i]);
+      let result;
+
+      if (tooSmall) {
+        result = expX;
+      } else if (tooLarge) {
+        result = values[i];
+      } else {
+        result = Math.log(1.0 + expX);
+      }
+      resultValues[i] = result;
+    }
+    return Tensor.make(x.shape, {values: resultValues}) as T;
+  }
+
   sin<T extends Tensor>(x: T): T {
     const resultValues = new Float32Array(x.size);
     const values = x.dataSync();
