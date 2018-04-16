@@ -399,6 +399,13 @@ describeMathCPUAndGPU('Sequential', () => {
     const losses = model.evaluate(xs, ys, {batchSize}) as Scalar;
     expectTensorsClose(losses, scalar(121));
   });
+
+  it('getConfig returns an Array', () => {
+    const model = tfl.sequential({layers});
+    const config = model.getConfig();
+    expect(Array.isArray(config)).toEqual(true);
+    expect(config.length).toEqual(layers.length);
+  });
 });
 
 // Fake models.
