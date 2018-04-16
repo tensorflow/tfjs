@@ -376,10 +376,15 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static elu<T extends Tensor>(x: T): T {
-    const grad = (dy: T) => {
-      return {x: () => dy.mulStrict(eluDer(x))};
+    const grad = (dy: T, saved: Tensor[]) => {
+      const [y] = saved;
+      return {
+        x: () =>
+            ENV.engine.runKernel(backend => backend.eluDer(dy, y), {dy, y}) as T
+      };
     };
-    return ENV.engine.runKernel(backend => backend.elu(x), {x}, grad);
+    return ENV.engine.runKernel(
+        (backend, save) => save(backend.elu(x)), {x}, grad);
   }
 
   /**
@@ -433,11 +438,7 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static leakyRelu<T extends Tensor>(x: T, alpha = 0.2): T {
-    const grad = (dy: T) => {
-      return {x: () => dy.mulStrict(x.step(alpha))};
-    };
-    return ENV.engine.runKernel(
-        backend => backend.leakyRelu(x, alpha), {x}, grad);
+    return ops.maximum(ops.scalar(alpha).mul(x), x);
   }
 
   /**
@@ -457,10 +458,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static prelu<T extends Tensor>(x: T, alpha: T): T {
-    const grad = (dy: T) => {
-      return {x: () => dy.mulStrict(preluDer(x, alpha))};
-    };
-    return ENV.engine.runKernel(backend => backend.prelu(x, alpha), {x}, grad);
+    const zero = ops.scalar(0);
+    return ops.maximum(zero, x).add(alpha.mul(ops.minimum(zero, x)));
   }
 
   /**
@@ -790,13 +789,4 @@ export class UnaryOps {
     };
     return ENV.engine.runKernel(backend => backend.step(x, alpha), {x}, grad);
   }
-}
-
-function preluDer<T extends Tensor>(x: T, alpha: T): T {
-  return ENV.engine.runKernel(
-      backend => backend.preluDer(x, alpha), {x, alpha});
-}
-
-function eluDer<T extends Tensor>(x: T): T {
-  return ENV.engine.runKernel(backend => backend.eluDer(x), {x});
 }

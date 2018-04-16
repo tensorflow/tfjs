@@ -174,7 +174,7 @@ describeWithFlags('argmax', ALL_ENVS, () => {
 
   it('2D, no axis specified', () => {
     const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-    expect(tf.argMax(a).get()).toBe(3);
+    expectArraysEqual(tf.argMax(a), [1, 0, 1]);
   });
 
   it('2D, axis=0', () => {
@@ -234,7 +234,7 @@ describeWithFlags('argmin', ALL_ENVS, () => {
 
   it('2D, no axis specified', () => {
     const a = tf.tensor2d([3, -1, 0, 100, -7, 2], [2, 3]);
-    expect(tf.argMin(a).get()).toBe(4);
+    expectArraysEqual(tf.argMin(a), [0, 1, 0]);
   });
 
   it('2D, axis=0', () => {

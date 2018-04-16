@@ -24,8 +24,7 @@ export class Pool2DProgram implements GPGPUProgram {
   userCode: string;
 
   constructor(
-      convInfo: Conv2DInfo, poolType: 'max'|'min'|'avg',
-      computePositions: boolean) {
+      convInfo: Conv2DInfo, poolType: 'max'|'avg', computePositions: boolean) {
     if (poolType === 'avg' && computePositions) {
       throw new Error('Cannot compute positions for average pool.');
     }
@@ -42,15 +41,11 @@ export class Pool2DProgram implements GPGPUProgram {
 
     let initializationValue = '0.0';
     if (!isAvgPool) {
-      if (poolType === 'min') {
-        initializationValue = '1.0 / 0.0';
-      } else {
-        initializationValue = '-1.0 / 0.0';
-      }
+      initializationValue = '-1.0 / 0.0';
     }
 
     if (computePositions) {
-      const compareOp = poolType === 'min' ? '<=' : '>=';
+      const compareOp = '>=';
 
       this.userCode = `
         const ivec2 strides = ivec2(${strideHeight}, ${strideWidth});
@@ -88,11 +83,6 @@ export class Pool2DProgram implements GPGPUProgram {
 
               float value = getX(batch, xR, xC, d);
 
-              if (isNaN(value)) {
-                setOutput(value);
-                return;
-              }
-
               // If a min / max value has already been found, use it. If not,
               // use the current value.
               float currMinMaxValue = mix(
@@ -110,22 +100,18 @@ export class Pool2DProgram implements GPGPUProgram {
       return;
     }
 
-    const compareOp = poolType === 'min' ? 'min' : 'max';
+    const compareOp = 'max';
 
     let returnValue = `${poolType}(${poolType}(${poolType}(` +
         'minMaxValue[0], minMaxValue[1]), minMaxValue[2]), minMaxValue[3])';
     if (poolType === 'avg') {
-      returnValue = `avgValue / ${filterHeight * filterWidth}.0`;
+      returnValue = `avgValue / count`;
     }
 
     const filterWidthNearestVec4 = Math.floor(filterWidth / 4) * 4;
     const filterWidthVec4Remainder = filterWidth % 4;
 
     const updateSnippet = `
-      if (hasNaN(values)) {
-        setOutput(getNaN(values));
-        return;
-      }
       if (${isAvgPool}) {
         avgValue += dot(values, ones);
       } else {
@@ -139,10 +125,13 @@ export class Pool2DProgram implements GPGPUProgram {
       const float initializationValue = ${initializationValue};
       const vec4 ones = vec4(1.0, 1.0, 1.0, 1.0);
 
+      float count = 0.0;
+
       float getValue(int batch, int xR, int xC, int d) {
         if (xC < 0 || xC >= ${convInfo.inWidth}) {
           return initializationValue;
         }
+        count += 1.0;
         return getX(batch, xR, xC, d);
       }
 
@@ -159,6 +148,7 @@ export class Pool2DProgram implements GPGPUProgram {
         // ? = to be determined
         vec4 minMaxValue = vec4(${initializationValue});
         float avgValue = 0.0;
+        count = 0.0;
 
         for (int wR = 0; wR < ${filterHeight}; wR++) {
           int xR = xRCorner + wR;
@@ -188,6 +178,7 @@ export class Pool2DProgram implements GPGPUProgram {
               initializationValue,
               initializationValue
             );
+
             ${updateSnippet}
           } else if (${filterWidthVec4Remainder === 2}) {
             vec4 values = vec4(

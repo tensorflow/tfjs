@@ -888,18 +888,9 @@ export class Tensor<R extends Rank = Rank> {
     (this as Tensor).throwIfDisposed();
     return ops.maxPool(this, filterSize, strides, pad, dimRoundingMode);
   }
-  minPool<T extends Tensor3D|Tensor4D>(
-      this: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    (this as Tensor).throwIfDisposed();
-    return ops.minPool(this, filterSize, strides, pad, dimRoundingMode);
-  }
   localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      this: T, radius = 5, bias = 1, alpha = 1, beta = 0.5,
-      normRegion: 'acrossChannels'|'withinChannel' = 'acrossChannels'): T {
-    return ops.localResponseNormalization(
-        this, radius, bias, alpha, beta, normRegion);
+      this: T, radius = 5, bias = 1, alpha = 1, beta = 0.5): T {
+    return ops.localResponseNormalization(this, radius, bias, alpha, beta);
   }
 
   variable(trainable = true, name?: string, dtype?: DataType): Variable<R> {

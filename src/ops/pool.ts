@@ -17,7 +17,7 @@
 
 import {doc} from '../doc';
 import {ENV} from '../environment';
-import {Tensor3D, Tensor4D} from '../tensor';
+import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './operation';
@@ -66,13 +66,17 @@ export class PoolOps {
     const convInfo = conv_util.computePool2DInfo(
         x4D.shape, filterSize, strides, pad, dimRoundingMode);
 
-    const grad = (dy: Tensor4D) => {
+    const grad = (dy: Tensor4D, saved: Tensor[]) => {
+      const [y4D] = saved;
       return {
-        x: () => PoolOps.maxPoolBackprop(dy, x4D, filterSize, strides, pad)
+        x: () => PoolOps.maxPoolBackprop(
+            dy, x4D, y4D as Tensor4D, filterSize, strides, pad)
       };
     };
+
     const res = ENV.engine.runKernel(
-        backend => backend.maxPool(x4D, convInfo), {x: x4D}, grad);
+        (backend, save) => save(backend.maxPool(x4D, convInfo)), {x: x4D},
+        grad);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -85,9 +89,10 @@ export class PoolOps {
    * @param dy The dy error, of rank 4 or rank 3 of shape
    *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
    * assumed.
-   * @param input The input image, of rank 4 or rank 3 of shape
-   *     [batchSize, height, width, channels]. If rank 3, batch of 1 is
-   * assumed.
+   * @param input The original input image, of rank 4, of shape
+   *     [batchSize, height, width, channels].
+   * @param output The original output image, of rank 4, of shape
+   *     [batchSize, outHeight, outWidth, channels].
    * @param filterSize The filter size, a tuple [filterHeight, filterWidth].
    * @param strides The strides of the pooling: [strideHeight, strideWidth].
    * @param pad A string from: 'same', 'valid'. The type of padding algorithm
@@ -98,31 +103,23 @@ export class PoolOps {
    *     is of fractional size.
    */
   @operation
-  static maxPoolBackprop<T extends Tensor3D|Tensor4D>(
-      dy: T, input: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+  static maxPoolBackprop(
+      dy: Tensor4D, input: Tensor4D, output: Tensor4D,
+      filterSize: [number, number]|number, strides: [number, number]|number,
+      pad: 'valid'|'same'|number,
+      dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
     util.assert(
         input.rank === dy.rank,
         `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
 
-    let input4D = input as Tensor4D;
-    let dy4D = dy as Tensor4D;
-    let reshapedTo4D = false;
-    if (input.rank === 3) {
-      reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
-    }
-
     util.assert(
-        dy4D.rank === 4,
+        dy.rank === 4,
         `Error in maxPoolBackprop: dy must be rank 4 but got rank ` +
-            `${dy4D.rank}.`);
+            `${dy.rank}.`);
     util.assert(
-        input4D.rank === 4,
+        input.rank === 4,
         `Error in maxPoolBackprop: input must be rank 4 but got rank ` +
-            `${input4D.rank}.`);
+            `${input.rank}.`);
     if (dimRoundingMode != null) {
       util.assert(
           util.isInt(pad as number),
@@ -131,64 +128,11 @@ export class PoolOps {
     }
 
     const convInfo = conv_util.computePool2DInfo(
-        input4D.shape, filterSize, strides, pad, dimRoundingMode);
+        input.shape, filterSize, strides, pad, dimRoundingMode);
     const res = ENV.engine.runKernel(
-        backend => backend.maxPoolBackprop(dy4D, input4D, convInfo),
-        {dy4D, input4D});
-    if (reshapedTo4D) {
-      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-    }
-    return res as T;
-  }
-
-  /**
-   * Computes the 2D min pooling of an image.
-   *
-   * @param input The input tensor, of rank 4 or rank 3 of shape
-   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
-   * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
-   * @param pad The type of padding algorithm.
-   *    - `same` and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - `valid`: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *    - For more info, see this guide:
-   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
-   *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
-   * @param dimRoundingMode The rounding mode used when computing output
-   *     dimensions if pad is a number. If none is provided, it will not round
-   *     and error if the output is of fractional size.
-   */
-  @doc({heading: 'Operations', subheading: 'Convolution'})
-  @operation
-  static minPool<T extends Tensor3D|Tensor4D>(
-      input: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input4D = input as Tensor4D;
-    let reshapedTo4D = false;
-    if (input.rank === 3) {
-      reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
-    }
-    util.assert(
-        input4D.rank === 4,
-        `Error in minPool: x must be rank 4 but got rank ${input4D.rank}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in minPool: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-    const convInfo = conv_util.computePool2DInfo(
-        input4D.shape, filterSize, strides, pad, dimRoundingMode);
-    const res = ENV.engine.runKernel(
-        backend => backend.minPool(input4D, convInfo), {input4D});
-    if (reshapedTo4D) {
-      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-    }
-    return res as T;
+        backend => backend.maxPoolBackprop(dy, input, output, convInfo),
+        {dy, input});
+    return res;
   }
 
   /**
@@ -216,6 +160,8 @@ export class PoolOps {
       x: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    util.assert(
+        x.dtype === 'float32', 'The input dtype to avgPool must be float32');
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
@@ -240,8 +186,9 @@ export class PoolOps {
         x: () => PoolOps.avgPoolBackprop(dy, x4D, filterSize, strides, pad)
       };
     };
-    const res = ENV.engine.runKernel(
+    let res = ENV.engine.runKernel(
         backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
+    res = res.cast(x.dtype);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }

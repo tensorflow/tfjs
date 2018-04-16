@@ -194,7 +194,7 @@ export class BatchNormOps {
     }
 
     const res = ENV.engine.runKernel(
-        backend => backend.batchNormalization4D(
+        backend => backend.batchNormalization(
             x4D, batchnormReshape4D(mean), batchnormReshape4D(variance),
             varianceEpsilon, batchnormReshape4D(scale),
             batchnormReshape4D(offset)),

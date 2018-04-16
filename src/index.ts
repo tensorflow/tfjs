@@ -35,7 +35,7 @@ export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
 // tslint:disable-next-line:max-line-length
 export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, variable, Variable} from './tensor';
-export {Rank} from './types';
+export {DataType, Rank, ShapeMap} from './types';
 // Serialization.
 export {WeightsManifestConfig} from './weights_loader';
 export {loadWeights} from './weights_loader';
@@ -52,7 +52,6 @@ export const setBackend = Environment.setBackend;
 export const getBackend = Environment.getBackend;
 export const memory = Environment.memory;
 export {TimingInfo} from './engine';
-export {WebGLTimingInfo} from './kernels/backend_webgl';
 export {version as version_core};
 export {doc} from './doc';
 
@@ -66,3 +65,7 @@ export const webgl = {
   webgl_util,
   gpgpu_util
 };
+export {WebGLTimingInfo} from './kernels/backend_webgl';
+
+// Backend specific.
+export {KernelBackend, BackendTimingInfo} from './kernels/backend';
