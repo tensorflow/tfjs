@@ -142,6 +142,58 @@ def extract_weights(graph_def, output_graph):
       os.path.abspath(output_graph), graph_def.SerializeToString())
 
 
+def convert_tf_session_bundle(session_bundle_dir,
+                              output_node_names,
+                              output_dir):
+  """Freeze the Session Bundle model and check the model compatibility with
+  Tensorflow.js.
+
+  Optimize and convert the model to Tensorflow.js format, when the model passes
+  the compatiblity check.
+
+  Args:
+    session_bundle_dir: string The session bundle model directory.
+    output_node_names: string The names of the output nodes, comma separated.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
+      - possibly sharded binary weight files.
+  """
+
+  print("Tensorflow has deprecated the Session Bundle format, ",
+        "please migrate to SavedModel.")
+  if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
+
+  checkpoint = tf.train.get_checkpoint_state(session_bundle_dir)
+  input_checkpoint = checkpoint.model_checkpoint_path
+  frozen_file = output_graph + '.frozen'
+  freeze_graph.freeze_graph(
+      '',
+      '',
+      True,
+      input_checkpoint,
+      output_node_names,
+      '',
+      '',
+      frozen_file,
+      True,
+      '',
+      input_meta_graph=input_checkpoint + '.meta')
+  graph = load_graph(output_graph + '.frozen', output_node_names)
+  unsupported = validate(graph.as_graph_def().node)
+  if unsupported:
+    print('Unsupported Ops in the model\n' + ', '.join(unsupported))
+  else:
+    optimize_graph(graph, output_graph)
+
+  # Clean up the temp files.
+  if os.path.exists(frozen_file):
+    os.remove(frozen_file)
+
+
 def convert_tf_saved_model(saved_model_dir, output_node_names,
                            output_dir, saved_model_tags='serve'):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.

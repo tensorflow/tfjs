@@ -78,25 +78,25 @@ def main():
       type=str,
       help='Path to the input file or directory. For input format "keras", '
       'an HDF5 (.h5) file is expected. For input format "tensorflow", '
-      'a SavedModel directory is expected.')
+      'a SavedModel or session bundle directory is expected.')
   parser.add_argument(
       '--input_format',
       type=str,
       required=True,
-      choices=set(['keras', 'tf_saved_model']),
+      choices=set(['keras', 'tf_saved_model', 'tf_session_bundle']),
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
       '    `keras.model.save_model()` method).\n'
       '  - A weights-only HDF5 (e.g., generated with Keras Model\'s '
       '    `save_weights()` method). \n'
-      'For "tensorflow", a SavedModel is expected.')
+      'For "tensorflow", a SavedModel or session bundle model is expected.')
   parser.add_argument(
       '--output_node_names',
       type=str,
       help='The names of the output nodes, separated by commas. E.g., '
       '"logits,activations". Applicable only if input format is '
-      '"tf_saved_model".')
+      '"tf_saved_model" or "tf_session_bundle".')
   parser.add_argument(
       '--saved_model_tags',
       type=str,
@@ -123,6 +123,10 @@ def main():
     tf_saved_model_conversion.convert_tf_saved_model(
         FLAGS.input_path, FLAGS.output_node_names,
         FLAGS.output_dir, saved_model_tags=FLAGS.saved_model_tags)
+  elif FLAGS.input_format == 'tf_session_bundle':
+    tf_saved_model_conversion.convert_tf_session_bundle(
+        FLAGS.input_path, FLAGS.output_node_names,
+        FLAGS.output_dir)
   else:
     raise ValueError('Invalid input format: \'%s\'' % FLAGS.input_format)
 

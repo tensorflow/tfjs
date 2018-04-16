@@ -4,15 +4,17 @@
 
 **TensorFlow.js converter** is an open source library to load a pretrained
 TensorFlow [SavedModel](https://www.tensorflow.org/programmers_guide/saved_model#overview_of_saving_and_restoring_models)
+or [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md)
 into the browser and run inference through [TensorFlow.js](https://js.tensorflow.org).
 
+(Note: TensorFlow has deprecated session bundle format, please switch to SavedModel.)
 
 A 2-step process to import your model:
 
-1. A python pip package to convert a TensorFlow SavedModel to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
+1. A python pip package to convert a TensorFlow SavedModel/Session Bundle to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
 2. [Javascript API](./src/executor/tf_model.ts), for loading and running inference.
 
-## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) to a web-friendly format
+## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) or [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md) to a web-friendly format
 
 1. Install the TensorFlow.js pip package:
 
@@ -24,6 +26,8 @@ A 2-step process to import your model:
 
 Usage:
 
+SavedModel example:
+
 ```bash
 $ tensorflowjs_converter \
     --input_format=tf_saved_model \
@@ -33,17 +37,27 @@ $ tensorflowjs_converter \
     /mobilenet/web_model
 ```
 
+Session bundle model example:
+
+```bash
+$ tensorflowjs_converter \
+    --input_format=tf_session_bundle \
+    --output_node_names='MobilenetV1/Predictions/Reshape_1' \
+    /mobilenet/session_bundle \
+    /mobilenet/web_model
+```
+
 |Positional Arguments | Description |
 |---|---|
-|`input_path`  | Full path of the saved model directory.|
+|`input_path`  | Full path of the saved model or session bundle directory.|
 |`output_dir`  | Path for all output artifacts.|
 
 
 | Options | Description
 |---|---|
-|`--input_format`     | The format of input model, use tf_saved_model for SavedModel. |
+|`--input_format`     | The format of input model, use tf_saved_model for SavedModel and tf_session_bundle for session bundle. |
 |`--output_node_names`| The names of the output nodes, separated by commas.|
-|`--saved_model_tags` | Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
+|`--saved_model_tags` | Only applicable to SavedModel conversion, Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
 
 
 ### Web-friendly format
@@ -74,7 +88,7 @@ following location:
 2. Instantiate the [FrozenModel class](./src/executor/frozen_model.ts) and run inference.
 
 ```typescript
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
 import {loadFrozenModel} from '@tensorflow/tfjs-converter';
 
 const MODEL_URL = 'https://.../mobilenet/web_model.pb';
@@ -82,7 +96,7 @@ const WEIGHTS_URL = 'https://.../mobilenet/weights_manifest.json';
 
 const model = await loadFrozenModel(MODEL_URL, WEIGHTS_URL);
 const cat = document.getElementById('cat');
-model.execute({input: tfc.fromPixels(cat)});
+model.execute({input: tf.fromPixels(cat)});
 ```
 
 Check out our working [MobileNet demo](./demo/README.md).
@@ -104,6 +118,20 @@ If your model uses an unsupported ops, the `tensorflowjs_converter` script will 
 produce a list of the unsupported ops in your model. Please file issues to let us
 know what ops you need support with.
 
+## Loading the weights only
+
+If you prefer to load the weights only, you can use follow code snippet.
+
+```typescript
+import * as tf from '@tensorflow/tfjs';
+
+const weightManifestUrl = "https://example.org/model/weights_manifest.json";
+
+const manifest = await fetch(weightManifestUrl);
+this.weightManifest = await manifest.json();
+const weightMap = await tf.loadWeights(
+        this.weightManifest, "https://example.org/model");
+```
 
 ## FAQ
 
