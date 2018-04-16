@@ -14,7 +14,6 @@
  * Original source: keras/constraints.py
  */
 import {Tensor} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 // tslint:disable:max-line-length
 import * as K from '../backend/tfjs_backend';
@@ -157,7 +156,9 @@ export class Embedding extends Layer {
           `input shape has shape ${inputShape}`);
     } else {
       let i = 0;
-      for (const [s1, s2] of _.zip(inLens, inputShape.slice(1))) {
+      for (let k = 0; k < inLens.length; ++k) {
+        const s1 = inLens[k];
+        const s2 = inputShape[k + 1];
         if ((s1 != null) && (s2 != null) && (s1 !== s2)) {
           throw new ValueError(
               `"inputLength" is ${this.inputLength}, but received ` +

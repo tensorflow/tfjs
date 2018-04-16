@@ -213,28 +213,6 @@ describe('normalizeShapeList', () => {
   });
 });
 
-describe('isAllNull', () => {
-  it('is true for empty lists.', () => {
-    expect(utils.isAllNullOrUndefined([])).toEqual(true);
-  });
-
-  it('is true for lists with null.', () => {
-    expect(utils.isAllNullOrUndefined([null])).toEqual(true);
-  });
-
-  it('is true for lists with undefined.', () => {
-    expect(utils.isAllNullOrUndefined([undefined])).toEqual(true);
-  });
-
-  it('is false for lists with non-null.', () => {
-    expect(utils.isAllNullOrUndefined([1])).toEqual(false);
-  });
-
-  it('is false for lists with non-null and null.', () => {
-    expect(utils.isAllNullOrUndefined([null, 1])).toEqual(false);
-  });
-});
-
 describe('toSnakeCase', () => {
   for (const [inputString, expectedOutput] of [
            ['', ''], ['A', 'a'], ['AA', 'aa'], ['AAA', 'aaa'], ['AAa', 'a_aa'],
@@ -295,5 +273,69 @@ describe('getExactlyOneShape', () => {
     expect(() => utils.getExactlyOneShape([
       [1], [2]
     ])).toThrowError(/Expected exactly 1 Shape; got 2/);
+  });
+});
+
+describe('stringsEqual', () => {
+  it('null and undefined', () => {
+    expect(utils.stringsEqual(null, null)).toEqual(true);
+    expect(utils.stringsEqual(undefined, undefined)).toEqual(true);
+    expect(utils.stringsEqual(undefined, null)).toEqual(false);
+    expect(utils.stringsEqual(undefined, [])).toEqual(false);
+    expect(utils.stringsEqual(null, [])).toEqual(false);
+    expect(utils.stringsEqual(null, ['a'])).toEqual(false);
+  });
+  it('Empty arrays', () => {
+    expect(utils.stringsEqual([], [])).toEqual(true);
+    expect(utils.stringsEqual([], ['a'])).toEqual(false);
+  });
+  it('Non-empty arrays', () => {
+    expect(utils.stringsEqual(['a', 'b', 'c', null], [
+      'a', 'b', 'c', null
+    ])).toEqual(true);
+    expect(utils.stringsEqual(['a', 'b', 'c', ''], [
+      'a', 'b', 'c', ''
+    ])).toEqual(true);
+    expect(utils.stringsEqual(['a', 'b', 'c', null], [
+      'a', 'b', 'c', undefined
+    ])).toEqual(false);
+    expect(utils.stringsEqual(['a', 'b', 'c', ''], [
+      'a', 'c', 'b', ''
+    ])).toEqual(false);
+  });
+});
+
+describe('unique', () => {
+  it('null or undefined', () => {
+    expect(utils.unique(null)).toEqual(null);
+    expect(utils.unique(undefined)).toEqual(undefined);
+  });
+  it('empty array', () => {
+    expect(utils.unique([])).toEqual([]);
+  });
+  it('Non-empty array: string', () => {
+    expect(utils.unique(['foo', 'bar', 'foo'])).toEqual(['foo', 'bar']);
+    expect(utils.unique(['foo', 'bar', ''])).toEqual(['foo', 'bar', '']);
+    expect(utils.unique(['foo', 'bar', null, ''])).toEqual([
+      'foo', 'bar', null, ''
+    ]);
+  });
+  it('Non-empty array: number', () => {
+    expect(utils.unique([1, 2, -1, 2])).toEqual([1, 2, -1]);
+    expect(utils.unique([2, 3, 2, null])).toEqual([2, 3, null]);
+  });
+});
+
+describe('isObjectEmpty', () => {
+  it('null or undefined', () => {
+    expect(() => utils.isObjectEmpty(null)).toThrowError();
+    expect(() => utils.isObjectEmpty(undefined)).toThrowError();
+  });
+  it('empty object', () => {
+    expect(utils.isObjectEmpty({})).toEqual(true);
+  });
+  it('Non-empty object', () => {
+    expect(utils.isObjectEmpty({'a': 12})).toEqual(false);
+    expect(utils.isObjectEmpty({'a': 12, 'b': 34})).toEqual(false);
   });
 });

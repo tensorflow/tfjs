@@ -12,8 +12,7 @@
  * TensorFlow.js Layers: Basic Layers.
  */
 
-import {Scalar, Tensor} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
+import {Scalar, Tensor, util} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import {ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
@@ -94,7 +93,8 @@ export class Dropout extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
     this.invokeCallHook(inputs, kwargs);
     const input = generic_utils.getExactlyOneTensor(inputs);
-    if (this.noiseShape != null && !_.isEqual(input.shape, this.noiseShape)) {
+    if (this.noiseShape != null &&
+        !util.arraysEqual(input.shape, this.noiseShape)) {
       throw new NotImplementedError(
           'Non-default noise shape is not implemented in Dropout layer yet: ' +
           JSON.stringify(this.noiseShape));

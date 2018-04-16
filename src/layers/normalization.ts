@@ -12,8 +12,7 @@
  * Normalization layers.
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
+import {Tensor, util} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import * as K from '../backend/tfjs_backend';
@@ -25,6 +24,7 @@ import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer
 import {Shape} from '../types';
 import {ConfigDict, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
+import {range} from '../utils/math_utils';
 // tslint:enable:max-line-length
 
 export interface BatchNormalizationLayerConfig extends LayerConfig {
@@ -205,7 +205,7 @@ export class BatchNormalization extends Layer {
     const input = generic_utils.getExactlyOneTensor(inputs);
     const inputShape = K.shape(input);
     const ndim = inputShape.length;
-    const reductionAxes = _.range(ndim);
+    const reductionAxes = range(0, ndim);
     const axis = this.axis >= 0 ? this.axis : (this.axis + ndim);
     reductionAxes.splice(axis, 1);
     const broadcastShape = generic_utils.pyListRepeat(1, ndim);
@@ -213,8 +213,8 @@ export class BatchNormalization extends Layer {
 
     const sortedReductionAxes = reductionAxes.slice();
     sortedReductionAxes.sort();
-    const needsBroadcasting =
-        !_.isEqual(sortedReductionAxes, _.range(ndim).slice(0, ndim - 1));
+    const needsBroadcasting = !util.arraysEqual(
+        sortedReductionAxes, range(0, ndim).slice(0, ndim - 1));
 
     const normalizeInference: () => Tensor = () => {
       if (needsBroadcasting) {

@@ -12,8 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {doc, Optimizer, Scalar, Tensor, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
+import {doc, Optimizer, Scalar, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, disposeTensorsInLogs, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
@@ -22,7 +21,8 @@ import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
 import {LayerVariable, LossOrMetricFn, Shape} from '../types';
-import {ClassNameMap, count, singletonOrArray} from '../utils/generic_utils';
+import {ClassNameMap, count, singletonOrArray, unique} from '../utils/generic_utils';
+import {range} from '../utils/math_utils';
 
 import {execute, FeedDict} from './executor';
 import {Container, ContainerConfig} from './topology';
@@ -178,9 +178,9 @@ export function standardizeInputData(
  */
 export function checkArrayLengths(
     inputs: Tensor[], targets: Tensor[], weights?: Tensor[]) {
-  const setX = _.unique(inputs.map(input => input.shape[0]));
+  const setX = unique(inputs.map(input => input.shape[0]));
   setX.sort();
-  const setY = _.unique(targets.map(target => target.shape[0]));
+  const setY = unique(targets.map(target => target.shape[0]));
   setY.sort();
   // TODO(cais): Check `weights` as well.
   if (setX.length > 1) {
@@ -195,7 +195,7 @@ export function checkArrayLengths(
         `Got array shapes: ` +
         `${JSON.stringify(targets.map(target => target.shape))}`);
   }
-  if (setX.length > 0 && setY.length > 0 && !_.isEqual(setX, setY)) {
+  if (setX.length > 0 && setY.length > 0 && !util.arraysEqual(setX, setY)) {
     throw new ValueError(
         `Input Tensors should have the same number of samples as target ` +
         `Tensors. Found ${setX[0]} input sample(s) and ${setY[0]} target ` +
@@ -236,7 +236,7 @@ function checkLossAndTargetCompatibility(
         // TODO(cais): Example code in error message.
       }
     }
-    if (_.contains(keyLosses, loss)) {
+    if (keyLosses.indexOf(loss) !== -1) {
       const slicedYShape = y.shape.slice(1);
       const slicedShape = shape.slice(1);
       for (let j = 0; j < slicedYShape.length; ++j) {
@@ -683,7 +683,7 @@ export class Model extends Container {
     if (!Array.isArray(config.loss) && typeof config.loss !== 'string') {
       config.loss = config.loss as {[outputName: string]: string};
       for (const name in config.loss) {
-        if (!_.contains(this.outputNames, name)) {
+        if (this.outputNames.indexOf(name) === -1) {
           throw new ValueError(
               `Unknown entry in loss dictionary: "${name}". Only expect the ` +
               `following keys: ${this.outputNames}`);
@@ -911,8 +911,8 @@ export class Model extends Container {
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
   evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[],
-      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
+      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
+      Scalar|Scalar[] {
     const batchSize = config.batchSize == null ? 32 : config.batchSize;
 
     // TODO(cais): Standardize `config.sampleWeights` as well.
@@ -1191,7 +1191,7 @@ export class Model extends Container {
         this.checkNumSamples(ins, batchSize, stepsPerEpoch, 'steps_per_epoch');
     let indexArray: number[];
     if (numTrainSamples != null) {
-      indexArray = _.range(numTrainSamples);
+      indexArray = range(0, numTrainSamples);
     }
 
     this.history = new History();
@@ -1226,7 +1226,6 @@ export class Model extends Container {
     for (let epoch = initialEpoch; epoch < epochs; ++epoch) {
       await callbackList.onEpochBegin(epoch);
       const epochLogs: UnresolvedLogs = {};
-      let epochIndexArray = indexArray;
       if (stepsPerEpoch != null) {
         throw new NotImplementedError(
             'stepsPerEpoch mode is not implemented yet.');
@@ -1235,11 +1234,11 @@ export class Model extends Container {
           throw new NotImplementedError(
               'batch shuffling is not implemneted yet');
         } else if (shuffle) {
-          epochIndexArray = _.shuffle(indexArray);
+          util.shuffle(indexArray);
         }
         // Convert the potentially shuffled indices to Tensor1D, to avoid the
         // cost of repeated creation of Array1Ds later on.
-        const epochIndexArray1D = tensor1d(epochIndexArray);
+        const epochIndexArray1D = tensor1d(indexArray);
 
         const batches = makeBatches(numTrainSamples, batchSize);
         for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
@@ -1328,7 +1327,7 @@ export class Model extends Container {
           'steps mode in testLoop() is not implemented yet');
     } else {
       const batches = makeBatches(numSamples, batchSize);
-      const indexArray = tensor1d(_.range(numSamples));
+      const indexArray = tensor1d(range(0, numSamples));
       for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
         const batchStart = batches[batchIndex][0];
         const batchEnd = batches[batchIndex][1];

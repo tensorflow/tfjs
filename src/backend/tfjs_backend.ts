@@ -14,8 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
+import {onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, util, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
 
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
 import {Constraint} from '../constraints';
@@ -1485,7 +1484,7 @@ export function dropout(
     x: Tensor, level: Scalar, noiseShape?: number[], seed?: number): Tensor {
   // TODO(cais): Switch to deeplearn.js implementation of dropout when it
   //   becomes avaialable.
-  if (noiseShape != null && !_.isEqual(x.shape, noiseShape)) {
+  if (noiseShape != null && !util.arraysEqual(x.shape, noiseShape)) {
     throw new NotImplementedError(
         'Non-default noise shape is not implemented yet: ' +
         JSON.stringify(noiseShape));
@@ -1990,7 +1989,7 @@ export function rnn(
 
   // Transpose to time-major, i.e., from [batch, time, ...] to [time, batch,
   // ...].
-  const axes = [1, 0].concat(_.range(2, ndim));
+  const axes = [1, 0].concat(math_utils.range(2, ndim));
   inputs = transpose(inputs, axes);
 
   if (mask != null) {
@@ -2049,7 +2048,9 @@ export function rnn(
 
   return [
     lastOutput,
-    transpose(outputs, [1, 0].concat(_.range(2, outputs.shape.length))), states
+    transpose(
+        outputs, [1, 0].concat(math_utils.range(2, outputs.shape.length))),
+    states
   ];
 }
 

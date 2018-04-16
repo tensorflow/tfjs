@@ -105,3 +105,19 @@ describeMathCPU('variance', () => {
         .toEqual(18125);
   });
 });
+
+describe('range', () => {
+  it('end > begin', () => {
+    expect(math_utils.range(0, 1)).toEqual([0]);
+    expect(math_utils.range(0, 5)).toEqual([0, 1, 2, 3, 4]);
+    expect(math_utils.range(-10, -5)).toEqual([-10, -9, -8, -7, -6]);
+    expect(math_utils.range(-3, 3)).toEqual([-3, -2, -1, 0, 1, 2]);
+  });
+  it('end === begin', () => {
+    expect(math_utils.range(0, 0)).toEqual([]);
+    expect(math_utils.range(-2, -2)).toEqual([]);
+  });
+  it('end < begin throws error', () => {
+    expect(() => math_utils.range(0, -2)).toThrowError(/.*-2.*0.*forbidden/);
+  });
+});

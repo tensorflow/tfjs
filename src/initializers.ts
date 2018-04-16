@@ -10,7 +10,6 @@
 
 // tslint:disable:max-line-length
 import {doc, scalar, Scalar, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
@@ -294,7 +293,7 @@ function computeFans(
   if (shape.length === 2) {
     fanIn = shape[0];
     fanOut = shape[1];
-  } else if (_.contains([3, 4, 5], shape.length)) {
+  } else if ([3, 4, 5].indexOf(shape.length) !== -1) {
     if (dataFormat === 'channelsFirst') {
       const receptiveFieldSize = arrayProd(shape, 2);
       fanIn = shape[1] * receptiveFieldSize;

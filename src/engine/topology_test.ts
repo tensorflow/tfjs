@@ -10,7 +10,6 @@
 
 // tslint:disable:max-line-length
 import {scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
@@ -1173,9 +1172,21 @@ describeMathCPUAndGPU('Container', () => {
 
     const container =
         new Container({inputs: [inputTensor], outputs: [output1, output2]});
-    const sortedLayers = _.sortBy(container.layers, x => x.name);
-    const expectedSortedLayers = _.sortBy(
-        [inputTensor.sourceLayer, layerA, layerB, layerC, layerX], x => x.name);
+
+    const compareFunction = (a: Layer, b: Layer) => {
+      if (a.name < b.name) {
+        return -1;
+      } else if (a.name > b.name) {
+        return 1;
+      } else {
+        return 0;
+      }
+    };
+    const sortedLayers = container.layers.slice().sort(compareFunction);
+    const expectedSortedLayers = [
+      inputTensor.sourceLayer, layerA, layerB, layerC, layerX
+    ].sort(compareFunction);
+
     expect(sortedLayers).toEqual(expectedSortedLayers);
   });
 
