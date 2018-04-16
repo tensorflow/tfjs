@@ -36,7 +36,7 @@ export type NamedGradientMap = {
  * Computes a list of TapeNodes that connect x to y, filtering everything else
  * out and preserving the order of the original tape elements.
  * @param tape The tape elements to filter.
- * @param xx The input Tensors.
+ * @param xs The input Tensors.
  * @param y The output Tensor.
  */
 export function getFilteredNodesXToY(
