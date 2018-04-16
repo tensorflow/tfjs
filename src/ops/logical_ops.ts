@@ -83,8 +83,9 @@ export class LogicalOps {
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-    return ENV.engine.runKernel(backend => backend.logicalXor(a, b), {a, b}) as
-        T;
+    // x ^ y = (x | y) & ~(x & y)
+    return LogicalOps.logicalOr(a, b).logicalAnd(
+               LogicalOps.logicalAnd(a, b).logicalNot()) as T;
   }
 
   /**

@@ -18,6 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
+import {upcastType} from '../types';
 import * as util from '../util';
 
 import * as broadcast_util from './broadcast_util';
@@ -164,7 +165,8 @@ export class BinaryOps {
    * Computes the power of one `Tensor` to another. Supports broadcasting.
    *
    * Given a `Tensor` x and a `Tensor` y, this operation computes x^y for
-   * corresponding elements in x and y.
+   * corresponding elements in x and y. The result's dtype will be the upcasted
+   * type of the `base` and `exp` dtypes.
    *
    * ```js
    * const a = tf.tensor([[2, 3], [4, 5]])
@@ -189,6 +191,8 @@ export class BinaryOps {
   @operation
   static pow<T extends Tensor>(base: T, exp: Tensor): T {
     broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
+    base = base.cast(upcastType(base.dtype, exp.dtype));
+    exp = exp.cast(upcastType(base.dtype, exp.dtype));
 
     const grad = (dy: Tensor) => {
       if (!util.arraysEqual(base.shape, exp.shape) &&

@@ -276,7 +276,8 @@ export class MathBackendCPU implements KernelBackend {
     return result;
   }
 
-  argMin(x: Tensor, axes: number[]): Tensor {
+  argMin(x: Tensor, axis: number): Tensor {
+    const axes = [axis];
     axis_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -301,7 +302,8 @@ export class MathBackendCPU implements KernelBackend {
     return result;
   }
 
-  argMax(x: Tensor, axes: number[]): Tensor {
+  argMax(x: Tensor, axis: number): Tensor {
+    const axes = [axis];
     axis_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -380,12 +382,6 @@ export class MathBackendCPU implements KernelBackend {
   logicalOr(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return aVal || bVal;
-    });
-  }
-
-  logicalXor(a: Tensor, b: Tensor): Tensor {
-    return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
-      return aVal ^ bVal;
     });
   }
 
@@ -672,18 +668,19 @@ export class MathBackendCPU implements KernelBackend {
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
 
-  eluDer<T extends Tensor>(x: T): T {
-    const resultValues = new Float32Array(x.size);
-    const values = x.dataSync();
+  eluDer<T extends Tensor>(dy: T, y: T): T {
+    const resultValues = new Float32Array(y.size);
+    const values = y.dataSync();
+    const dyValues = dy.dataSync();
     for (let i = 0; i < values.length; ++i) {
       const v = values[i];
-      if (v >= 0) {
-        resultValues[i] = 1;
+      if (v >= 1) {
+        resultValues[i] = dyValues[i];
       } else {
-        resultValues[i] = Math.exp(v);
+        resultValues[i] = dyValues[i] * (v + 1);
       }
     }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
+    return Tensor.make(y.shape, {values: resultValues}) as T;
   }
 
   selu<T extends Tensor>(x: T): T {
@@ -700,52 +697,6 @@ export class MathBackendCPU implements KernelBackend {
         resultValues[i] = scale * v;
       } else {
         resultValues[i] = scaleAlpha * (Math.exp(v) - 1);
-      }
-    }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
-  }
-
-  leakyRelu<T extends Tensor>(x: T, alpha: number) {
-    const resultValues = new Float32Array(x.size);
-    const values = x.dataSync();
-    for (let i = 0; i < values.length; i++) {
-      const v = values[i];
-      if (v >= 0) {
-        resultValues[i] = v;
-      } else {
-        resultValues[i] = alpha * v;
-      }
-    }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
-  }
-
-  prelu<T extends Tensor>(x: T, alpha: T) {
-    const resultValues = new Float32Array(x.size);
-    const values = x.dataSync();
-    const alphas = alpha.dataSync();
-    for (let i = 0; i < values.length; i++) {
-      const v = values[i];
-      if (v >= 0) {
-        resultValues[i] = v;
-      } else {
-        resultValues[i] = alphas[i] * v;
-      }
-    }
-    return Tensor.make(x.shape, {values: resultValues}) as T;
-  }
-
-  preluDer<T extends Tensor>(x: T, alpha: T) {
-    const resultValues = new Float32Array(x.size);
-    const values = x.dataSync();
-    const alphas = alpha.dataSync();
-    for (let i = 0; i < values.length; i++) {
-      const v = values[i];
-      if (v > 0) {
-        resultValues[i] = 1;
-      } else if (v < 0) {
-        resultValues[i] = alphas[i];
-      } else {
-        resultValues[i] = v;
       }
     }
     return Tensor.make(x.shape, {values: resultValues}) as T;
@@ -1217,7 +1168,7 @@ export class MathBackendCPU implements KernelBackend {
     return result.toTensor() as T;
   }
 
-  private pool(x: Tensor4D, convInfo: Conv2DInfo, poolType: 'max'|'min'|'avg'):
+  private pool(x: Tensor4D, convInfo: Conv2DInfo, poolType: 'max'|'avg'):
       Tensor4D {
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -1241,26 +1192,24 @@ export class MathBackendCPU implements KernelBackend {
                 (poolType === 'max' ? Number.NEGATIVE_INFINITY :
                                       Number.POSITIVE_INFINITY);
             let avgValue = 0;
+            let count = 0;
             for (let xR = xRMin; xR < xRMax; ++xR) {
               for (let xC = xCMin; xC < xCMax; ++xC) {
                 const pixel = x.get(b, xR, xC, d);
-                if (isNaN(pixel)) {
-                  minMaxValue = NaN;
-                  avgValue = NaN;
-                  break;
-                }
-                if ((poolType === 'max' && pixel > minMaxValue) ||
-                    (poolType === 'min' && pixel < minMaxValue)) {
+                if ((poolType === 'max' && pixel > minMaxValue)) {
                   minMaxValue = pixel;
                 } else if (poolType === 'avg') {
-                  avgValue += pixel / (filterHeight * filterWidth);
+                  avgValue += pixel;
+                  count++;
                 }
               }
               if (isNaN(minMaxValue)) {
                 break;
               }
             }
-            y.set(poolType === 'avg' ? avgValue : minMaxValue, b, yR, yC, d);
+            y.set(
+                poolType === 'avg' ? avgValue / count : minMaxValue, b, yR, yC,
+                d);
           }
         }
       }
@@ -1312,7 +1261,8 @@ export class MathBackendCPU implements KernelBackend {
     return maxPositions.toTensor();
   }
 
-  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     const maxPositions = this.maxPoolPositions(x, convInfo);
     const strideHeight = convInfo.strideHeight;
     const strideWidth = convInfo.strideWidth;
@@ -1416,10 +1366,6 @@ export class MathBackendCPU implements KernelBackend {
     return backend_util.reshapeTensor(x, shape);
   }
 
-  minPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    return this.pool(x, convInfo, 'min');
-  }
-
   avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     return this.pool(x, convInfo, 'avg').toFloat();
   }
@@ -1475,7 +1421,7 @@ export class MathBackendCPU implements KernelBackend {
     return output.toTensor();
   }
 
-  batchNormalization4D(
+  batchNormalization(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D): Tensor4D {
@@ -1497,45 +1443,27 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   localResponseNormalization4D(
-      x: Tensor4D, radius: number, bias: number, alpha: number, beta: number,
-      normRegion: 'acrossChannels'|'withinChannel'): Tensor4D {
+      x: Tensor4D, radius: number, bias: number, alpha: number,
+      beta: number): Tensor4D {
     const output = ops.buffer<Rank.R4>(x.shape, 'float32');
     const rad = radius;
-    const maxW = output.shape[1] - 1;
-    const maxH = output.shape[2] - 1;
     const maxD = output.shape[3] - 1;
 
-    const sumAcrossChannels =
-        (b: number, r: number, c: number, d: number): number => {
-          let sum = 0.0;
-          for (let j = Math.max(0, d - rad); j <= Math.min(d + rad, maxD);
-               j++) {
-            const z = x.get(b, r, c, j);
-            sum += z * z;
-          }
-          return sum;
-        };
-
-    const sumWithinChannel =
-        (b: number, r: number, c: number, d: number): number => {
-          let sum = 0.0;
-          for (let u = Math.max(0, r - rad); u <= Math.min(r + rad, maxW);
-               u++) {
-            for (let v = Math.max(0, c - rad); v <= Math.min(c + rad, maxH);
-                 v++) {
-              sum += Math.pow(x.get(b, u, v, d), 2);
-            }
-          }
-          return sum;
-        };
+    function sumAcrossChannels(
+        b: number, r: number, c: number, d: number): number {
+      let sum = 0.0;
+      for (let j = Math.max(0, d - rad); j <= Math.min(d + rad, maxD); j++) {
+        const z = x.get(b, r, c, j);
+        sum += z * z;
+      }
+      return sum;
+    }
 
     for (let b = 0; b < output.shape[0]; b++) {
       for (let r = 0; r <= output.shape[1]; r++) {
         for (let c = 0; c < output.shape[2]; c++) {
           for (let d = 0; d < output.shape[3]; d++) {
-            const sum = normRegion === 'withinChannel' ?
-                sumWithinChannel(b, r, c, d) :
-                sumAcrossChannels(b, r, c, d);
+            const sum = sumAcrossChannels(b, r, c, d);
             const val = x.get(b, r, c, d) * Math.pow(bias + alpha * sum, -beta);
             output.set(val, b, r, c, d);
           }
@@ -1546,8 +1474,10 @@ export class MathBackendCPU implements KernelBackend {
     return output.toTensor();
   }
 
-  multinomial(probabilities: Tensor2D, numSamples: number, seed: number):
-      Tensor2D {
+  multinomial(
+      logits: Tensor2D, normalized: boolean, numSamples: number,
+      seed: number): Tensor2D {
+    const probabilities = normalized ? logits : ops.softmax(logits);
     const batchSize = probabilities.shape[0];
     const numEvents = probabilities.shape[1];
     const res = ops.zeros<Rank.R2>([batchSize, numSamples], 'int32');

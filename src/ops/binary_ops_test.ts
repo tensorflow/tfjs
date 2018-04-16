@@ -29,15 +29,6 @@ describeWithFlags('prelu', ALL_ENVS, () => {
     expectArraysClose(result, [0, 1, -0.5, -0.6]);
   });
 
-  it('propagates NaN', () => {
-    const x = tf.tensor1d([0, 1, NaN]);
-    const a = tf.tensor1d([0.15, 0.2, 0.25]);
-    const result = tf.prelu(x, a);
-
-    expect(result.shape).toEqual(x.shape);
-    expectArraysClose(result, [0, 1, NaN]);
-  });
-
   it('derivative', () => {
     const x = tf.tensor1d([0.5, 3, -0.1, -4]);
     const a = tf.tensor1d([0.2, 0.4, 0.25, 0.15]);
@@ -48,18 +39,6 @@ describeWithFlags('prelu', ALL_ENVS, () => {
     expect(dx.shape).toEqual(x.shape);
     expect(dx.dtype).toEqual('float32');
     expectArraysClose(dx, [1, 1, 0.25, 0.15]);
-  });
-
-  it('derivative propagates NaN', () => {
-    const x = tf.tensor1d([0.5, -0.1, NaN]);
-    const a = tf.tensor1d([0.2, 0.3, 0.25]);
-    const dy = tf.tensor1d([5, 50, 500]);
-
-    const dx = tf.grad(x => tf.prelu(x, a))(x, dy);
-
-    expect(dx.shape).toEqual(x.shape);
-    expect(dx.dtype).toEqual('float32');
-    expectArraysClose(dx, [5, 50 * 0.3, NaN]);
   });
 });
 

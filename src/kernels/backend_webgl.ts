@@ -19,13 +19,13 @@ import {TimingInfo} from '../engine';
 import {ENV} from '../environment';
 import * as axis_util from '../ops/axis_util';
 import {Conv2DInfo} from '../ops/conv_util';
+import * as ops from '../ops/ops';
 import * as reduce_util from '../ops/reduce_util';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
 import {DataType, DataTypeMap, RecursiveArray, TypedArray} from '../types';
 import * as util from '../util';
-
 import {KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
@@ -346,7 +346,7 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [a, b], output) as Tensor;
   }
 
-  batchNormalization4D(
+  batchNormalization(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
       offset?: Tensor4D|Tensor1D): Tensor4D {
@@ -371,10 +371,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   localResponseNormalization4D(
-      x: Tensor4D, radius: number, bias: number, alpha: number, beta: number,
-      normRegion: 'acrossChannels'|'withinChannel'): Tensor4D {
-    const program =
-        new LRNProgram(x.shape, radius, bias, alpha, beta, normRegion);
+      x: Tensor4D, radius: number, bias: number, alpha: number,
+      beta: number): Tensor4D {
+    const program = new LRNProgram(x.shape, radius, bias, alpha, beta);
     return this.compileAndRun(program, [x]);
   }
 
@@ -453,7 +452,8 @@ export class MathBackendWebGL implements KernelBackend {
     return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
   }
 
-  argMin(x: Tensor, axes: number[]): Tensor {
+  argMin(x: Tensor, axis: number): Tensor {
+    const axes = [axis];
     axis_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -462,7 +462,8 @@ export class MathBackendWebGL implements KernelBackend {
     return this.argReduce(a2D, 'min').reshape(outShape);
   }
 
-  argMax(x: Tensor, axes: number[]): Tensor {
+  argMax(x: Tensor, axis: number): Tensor {
+    const axes = [axis];
     axis_util.assertAxesAreInnerMostDims('argMax', axes, x.rank);
     const [outShape, reduceShape] =
         axis_util.computeOutAndReduceShapes(x.shape, axes);
@@ -525,13 +526,6 @@ export class MathBackendWebGL implements KernelBackend {
   logicalOr(a: Tensor, b: Tensor): Tensor {
     const program =
         new BinaryOpProgram(binaryop_gpu.LOGICAL_OR, a.shape, b.shape);
-    const output = this.makeOutputArray(program.outputShape, 'bool');
-    return this.compileAndRun(program, [a, b], output);
-  }
-
-  logicalXor(a: Tensor, b: Tensor): Tensor {
-    const program =
-        new BinaryOpProgram(binaryop_gpu.LOGICAL_XOR, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, 'bool');
     return this.compileAndRun(program, [a, b], output);
   }
@@ -689,30 +683,15 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]) as T;
   }
 
-  eluDer<T extends Tensor>(x: T): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.ELU_DER);
-    return this.compileAndRun(program, [x]) as T;
+  eluDer<T extends Tensor>(dy: T, y: T): T {
+    const program =
+        new BinaryOpProgram(binaryop_gpu.ELU_DER, dy.shape, y.shape);
+    return this.compileAndRun(program, [dy, y]) as T;
   }
 
   selu<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.SELU);
     return this.compileAndRun(program, [x]) as T;
-  }
-
-  leakyRelu<T extends Tensor>(x: T, alpha: number): T {
-    const program = new UnaryOpProgram(x.shape, unary_op.LEAKY_RELU(alpha));
-    return this.compileAndRun(program, [x]) as T;
-  }
-
-  prelu<T extends Tensor>(a: T, b: T): T {
-    const program = new BinaryOpProgram(binaryop_gpu.PRELU, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]) as T;
-  }
-
-  preluDer<T extends Tensor>(a: T, b: T): T {
-    const program =
-        new BinaryOpProgram(binaryop_gpu.PRELU_DER, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]) as T;
   }
 
   int<T extends Tensor>(x: T): T {
@@ -840,20 +819,14 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x], output);
   }
 
-  minPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
-    const program = new Pool2DProgram(convInfo, 'min', false);
-    const output =
-        this.makeOutputArray(program.outputShape, x.dtype) as Tensor4D;
-    return this.compileAndRun(program, [x], output);
-  }
-
   avgPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     const program = new Pool2DProgram(convInfo, 'avg', false);
     const output = this.makeOutputArray(program.outputShape, 'float32');
     return this.compileAndRun(program, [x], output) as Tensor4D;
   }
 
-  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
+  maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     const getPositions = true;
     const maxPoolPositionsProgram =
         new Pool2DProgram(convInfo, 'max', getPositions);
@@ -893,7 +866,10 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x]);
   }
 
-  multinomial(probs: Tensor2D, numSamples: number, seed: number): Tensor2D {
+  multinomial(
+      logits: Tensor2D, normalized: boolean, numSamples: number,
+      seed: number): Tensor2D {
+    const probs = normalized ? logits : ops.softmax(logits);
     const batchSize = probs.shape[0];
     const numOutcomes = probs.shape[1];
     const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);

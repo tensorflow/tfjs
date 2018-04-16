@@ -21,7 +21,8 @@ export type PadInfo = {
   top: number,
   left: number,
   right: number,
-  bottom: number
+  bottom: number,
+  type: string
 };
 
 /**
@@ -100,7 +101,6 @@ export function computeConv2DInfo(
       getEffectiveFilterSize(filterHeight, dilationHeight);
   const effectiveFilterWidth =
       getEffectiveFilterSize(filterWidth, dilationWidth);
-
   const {padInfo, outHeight, outWidth} = getPadAndOutInfo(
       pad, inHeight, inWidth, strideHeight, strideWidth, effectiveFilterHeight,
       effectiveFilterWidth, roundingMode);
@@ -164,11 +164,11 @@ function computeOutputShape3D(
 }
 
 export function computeDefaultPad(
-    inputShape: [number, number, number], fieldSize: number,
-    stride: number, dilation = 1): number {
+    inputShape: [number, number, number], fieldSize: number, stride: number,
+    dilation = 1): number {
   const effectiveFieldSize = getEffectiveFilterSize(fieldSize, dilation);
   return Math.floor(
-    (inputShape[0] * (stride - 1) - stride + effectiveFieldSize) / 2);
+      (inputShape[0] * (stride - 1) - stride + effectiveFieldSize) / 2);
 }
 
 function parseTupleParam(param: number|[number, number]): [number, number] {
@@ -204,7 +204,8 @@ function getPadAndOutInfo(
   let outWidth: number;
 
   if (typeof pad === 'number') {
-    padInfo = {top: pad, bottom: pad, left: pad, right: pad};
+    const padType = (pad === 0) ? 'VALID' : 'NUMBER';
+    padInfo = {top: pad, bottom: pad, left: pad, right: pad, type: padType};
     const outShape = computeOutputShape3D(
         [inHeight, inWidth, 1], filterHeight, 1, strideHeight, pad,
         roundingMode);
@@ -220,9 +221,9 @@ function getPadAndOutInfo(
     const bottom = padAlongHeight - top;
     const left = Math.floor(padAlongWidth / 2);
     const right = padAlongWidth - left;
-    padInfo = {top, bottom, left, right};
+    padInfo = {top, bottom, left, right, type: 'SAME'};
   } else if (pad === 'valid') {
-    padInfo = {top: 0, bottom: 0, left: 0, right: 0};
+    padInfo = {top: 0, bottom: 0, left: 0, right: 0, type: 'VALID'};
     outHeight = Math.ceil((inHeight - filterHeight + 1) / strideHeight);
     outWidth = Math.ceil((inWidth - filterWidth + 1) / strideWidth);
   } else {

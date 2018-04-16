@@ -24,10 +24,8 @@ export class LRNProgram implements GPGPUProgram {
 
   constructor(
       xShape: number[], radius: number, bias: number, alpha: number,
-      beta: number, normRegion: 'acrossChannels'|'withinChannel') {
+      beta: number) {
     const rad = radius;
-    const maxW = xShape[1] - 1;
-    const maxH = xShape[2] - 1;
     const maxD = xShape[3] - 1;
     this.outputShape = xShape;
 
@@ -45,51 +43,25 @@ export class LRNProgram implements GPGPUProgram {
       powOperator = `exp(log(${basis}) * float(-${beta}));`;
     }
 
-    if (normRegion === 'withinChannel') {
-      this.userCode = `
-        void main() {
-          ivec4 coords = getOutputCoords();
-          int b = coords[0];
-          int r = coords[1];
-          int c = coords[2];
-          int d = coords[3];
-          float x = getX(b, r, c, d);
-          float sum = 0.0;
-          for (int u = -${rad}; u <= ${rad}; u++) {
-            for (int v = -${rad}; v <= ${rad}; v++) {
-              int idx = r + u;
-              int idy = c + v;
-              if (idx >= 0 && idx <= ${maxW} && idy >= 0 && idy <= ${maxH}) {
-                float z = getX(b, idx, idy, d);
-                sum += z * z;
-              }
-            }
+    this.userCode = `
+      void main() {
+        ivec4 coords = getOutputCoords();
+        int b = coords[0];
+        int r = coords[1];
+        int c = coords[2];
+        int d = coords[3];
+        float x = getX(b, r, c, d);
+        float sum = 0.0;
+        for (int j = -${rad}; j <= ${rad}; j++) {
+          int idx = d + j;
+          if (idx >= 0 && idx <=  ${maxD}) {
+            float z = getX(b, r, c, idx);
+            sum += z * z;
           }
-          float val = x * ${powOperator};
-          setOutput(val);
         }
-      `;
-    } else {
-      this.userCode = `
-        void main() {
-          ivec4 coords = getOutputCoords();
-          int b = coords[0];
-          int r = coords[1];
-          int c = coords[2];
-          int d = coords[3];
-          float x = getX(b, r, c, d);
-          float sum = 0.0;
-          for (int j = -${rad}; j <= ${rad}; j++) {
-            int idx = d + j;
-            if (idx >= 0 && idx <=  ${maxD}) {
-              float z = getX(b, r, c, idx);
-              sum += z * z;
-            }
-          }
-          float val = x * ${powOperator};
-          setOutput(val);
-        }
-      `;
-    }
+        float val = x * ${powOperator};
+        setOutput(val);
+      }
+    `;
   }
 }

@@ -60,7 +60,6 @@ export const vectorTimesMatrix = MatmulOps.vectorTimesMatrix;
 
 export const avgPool = PoolOps.avgPool;
 export const maxPool = PoolOps.maxPool;
-export const minPool = PoolOps.minPool;
 
 export const transpose = TransposeOps.transpose;
 

@@ -49,8 +49,6 @@ export const RELU = `return (x < 0.0) ? 0.0 : x;`;
 
 export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
-export const ELU_DER = `return (x >= 0.0) ? 1.0 : exp(x);`;
-
 export const SELU = `
   // Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
   // see: https://arxiv.org/abs/1706.02515
@@ -58,10 +56,6 @@ export const SELU = `
   float scale = ${selu_util.SELU_SCALE};
   return (x >= 0.0) ? scale * x : scaleAlpha * (exp(x) - 1.0);
 `;
-
-export function LEAKY_RELU(alpha: number) {
-  return `return (x >= 0.0) ? x : ${alpha} * x;`;
-}
 
 export function STEP(alpha = 0.0) {
   return CHECK_NAN_SNIPPET + `

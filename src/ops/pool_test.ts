@@ -49,13 +49,13 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     expectArraysClose(result, [5, 6, 9, 9, 5, 6, 8, 9]);
   });
 
-  it('[x=[3,3,1] f=[2,2] s=1 propagates NaNs', () => {
+  it('[x=[3,3,1] f=[2,2] s=1 ignores NaNs', () => {
     const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, NaN, 9], [3, 3, 1]);
 
     const result = tf.maxPool(x, 2, 1, 0);
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [5, 6, NaN, NaN]);
+    expectArraysClose(result, [5, 6, 7, 9]);
   });
 
   it('x=[3,3,2] f=[2,2] s=1', () => {
@@ -81,14 +81,14 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
     expectArraysClose(result, [5, 7, 13, 15]);
   });
 
-  it('x=[2,2,1] f=[2,2] s=2 p=1', () => {
+  it('x=[2,2,1] f=[2,2] s=1 p=same', () => {
     // Feed forward.
     const x = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
-
-    const result = tf.maxPool(x, 2, 2, 1);
-
+    const fSize = 2;
+    const strides = 1;
+    const result = tf.maxPool(x, fSize, strides, 'same');
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [1, 2, 3, 4]);
+    expectArraysClose(result, [4, 4, 4, 4]);
   });
 
   it('throws when x is not rank 3', () => {
@@ -106,7 +106,9 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
 
     expect(() => tf.maxPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
   });
+});
 
+describeWithFlags('maxPoolBackprop', ALL_ENVS, () => {
   it('gradients x=[3,3,1] f=[2,2] s=1 no dup max value, test #1', () => {
     const dy = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
     const x = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9], [3, 3, 1]);
@@ -319,80 +321,6 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('minPool', ALL_ENVS, () => {
-  it('1x1x1 in, 1x1 filter, 1 stride: [0] => [0]', () => {
-    const a = tf.tensor3d([0], [1, 1, 1]);
-    const result = tf.minPool(a, 1, 1, 0);
-    expectArraysClose(result, [0]);
-  });
-
-  it('3x3x1 in, 2x2 filter, 1 stride', () => {
-    // Feed forward.
-    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 9, 8], [3, 3, 1]);
-    const result = tf.minPool(a, 2, 1, 0);
-
-    expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [1, 2, 4, 5]);
-  });
-
-  it('3x3x1 in, 2x2 filter, 1 stride, batch=2', () => {
-    // Feed forward.
-    const a = tf.tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 9, 8, 1, 2, 3, 5, 4, 6, 7, 9, 8], [2, 3, 3, 1]);
-    const result = tf.minPool(a, 2, 1, 0);
-
-    expect(result.shape).toEqual([2, 2, 2, 1]);
-    expectArraysClose(result, [1, 2, 4, 5, 1, 2, 4, 4]);
-  });
-
-  it('3x3x1 in, 2x2 filter, 1 stride, propagates NaNs', () => {
-    const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, NaN, 8], [3, 3, 1]);
-    const result = tf.minPool(a, 2, 1, 0);
-
-    expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [1, 2, NaN, NaN]);
-  });
-
-  it('3x3x2 in, 2x2 filter, 1 stride', () => {
-    // Feed forward.
-    const a = tf.tensor3d(
-        [1, 99, 2, 88, 3, 77, 4, 66, 5, 55, 6, 44, 7, 33, 9, 22, 8, 11],
-        [3, 3, 2]);
-    const result = tf.minPool(a, 2, 1, 0);
-
-    expect(result.shape).toEqual([2, 2, 2]);
-    expectArraysClose(result, [1, 55, 2, 44, 4, 22, 5, 11]);
-  });
-
-  it('4x4x1 in, 2x2 filter, 2 stride', () => {
-    // Feed forward.
-    const a = tf.tensor3d(
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], [4, 4, 1]);
-    const result = tf.minPool(a, 2, 2, 0);
-
-    expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [0, 2, 8, 10]);
-  });
-
-  it('2x2x1 in, 2x2 filter, 2 stride, pad=1', () => {
-    // Feed forward.
-    const a = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
-    const result = tf.minPool(a, 2, 2, 1);
-
-    expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [1, 2, 3, 4]);
-  });
-
-  it('throws when dimRoundingMode is set and pad is not a number', () => {
-    const a = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
-
-    const pad = 'valid';
-    const dimRoundingMode = 'round';
-
-    expect(() => tf.minPool(a, 2, 1, pad, dimRoundingMode)).toThrowError();
-  });
-});
-
 describeWithFlags('avgPool', ALL_ENVS, () => {
   it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {
     const a = tf.tensor3d([0], [1, 1, 1]);
@@ -410,14 +338,10 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     expectArraysClose(result, [3, 4, 6.25, 7]);
   });
 
-  it('x=[3,3,1] f=[2,2] s=1 input int32, output float32', () => {
+  it('input int32 throws error', () => {
     // Feed forward.
     const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 9, 8], [3, 3, 1], 'int32');
-    const result = tf.avgPool(a, 2, 1, 0);
-
-    expect(result.shape).toEqual([2, 2, 1]);
-    expect(result.dtype).toBe('float32');
-    expectArraysClose(result, [3, 4, 6.25, 7]);
+    expect(() => tf.avgPool(a, 2, 1, 0)).toThrowError();
   });
 
   it('x=[2,3,3,1] f=[2,2], s=1', () => {
@@ -460,13 +384,15 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     expectArraysClose(result, [2.5, 4.5, 10.5, 12.5]);
   });
 
-  it('x=[2,2,1] f=[2,2] s=2 p=1', () => {
+  it('x=[2,2,1] f=[2,2] s=1 p=same', () => {
     // Feed forward.
     const a = tf.tensor3d([1, 2, 3, 4], [2, 2, 1]);
-    const result = tf.avgPool(a, 2, 2, 1);
+    const fSize = 2;
+    const strides = 1;
+    const result = tf.avgPool(a, fSize, strides, 'same');
 
     expect(result.shape).toEqual([2, 2, 1]);
-    expectArraysClose(result, [0.25, 0.5, 0.75, 1]);
+    expectArraysClose(result, [2.5, 3, 3.5, 4]);
   });
 
   it('gradient x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {

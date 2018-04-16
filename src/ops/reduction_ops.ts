@@ -316,20 +316,23 @@ export class ReductionOps {
    * ```
    *
    * @param x The input tensor.
-   * @param axis The dimension to reduce. By default it reduces
-   * across all axes and returns the flat index.
+   * @param axis The dimension to reduce. Defaults to 0 (outer-most dimension).
    *
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static argMin<T extends Tensor>(x: Tensor, axis: number = null): T {
+  static argMin<T extends Tensor>(x: Tensor, axis = 0): T {
+    if (axis == null) {
+      axis = 0;
+    }
     let axes = axis_util.parseAxisParam(axis, x.shape);
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
     if (permutedAxes != null) {
       x = x.transpose(permutedAxes);
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
-    return ENV.engine.runKernel(backend => backend.argMin(x, axes), {x}) as T;
+    return ENV.engine.runKernel(backend => backend.argMin(x, axes[0]), {x}) as
+        T;
   }
 
   /**
@@ -352,12 +355,14 @@ export class ReductionOps {
    * ```
    *
    * @param x The input tensor.
-   * @param axis The dimension to reduce. By default it reduces
-   *     across all axes and returns the flat index
+   * @param axis The dimension to reduce. Defaults to 0 (outer-most dimension).
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
-  static argMax<T extends Tensor>(x: Tensor, axis: number = null): T {
+  static argMax<T extends Tensor>(x: Tensor, axis = 0): T {
+    if (axis == null) {
+      axis = 0;
+    }
     let axes = axis_util.parseAxisParam(axis, x.shape);
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
     if (permutedAxes != null) {
@@ -365,7 +370,8 @@ export class ReductionOps {
       axes = axis_util.getInnerMostAxes(axes.length, x.rank);
     }
 
-    return ENV.engine.runKernel(backend => backend.argMax(x, axes), {x}) as T;
+    return ENV.engine.runKernel(backend => backend.argMax(x, axes[0]), {x}) as
+        T;
   }
 
   /**

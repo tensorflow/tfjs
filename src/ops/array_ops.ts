@@ -27,7 +27,6 @@ import * as util from '../util';
 import {parseAxisParam} from './axis_util';
 import {ConcatOps} from './concat';
 import {operation} from './operation';
-import * as ops from './ops';
 import {MPRandGauss} from './rand';
 
 export class ArrayOps {
@@ -508,14 +507,11 @@ export class ArrayOps {
       throw new Error(
           `Rank of probabilities must be 1 or 2, but is ${origRank}`);
     }
-    if (!normalized) {
-      logits = ops.softmax(logits);
-    }
     seed = seed || Math.random();
-
-    const prob2D = origRank === 1 ? logits.as2D(1, -1) : logits as Tensor2D;
+    const logits2D = origRank === 1 ? logits.as2D(1, -1) : logits as Tensor2D;
     const res = ENV.engine.runKernel(
-        backend => backend.multinomial(prob2D, numSamples, seed), {prob2D});
+        backend => backend.multinomial(logits2D, normalized, numSamples, seed),
+        {logits2D});
 
     return origRank === 1 ? res.as1D() : res;
   }
@@ -529,7 +525,7 @@ export class ArrayOps {
    * tf.oneHot(tf.tensor1d([0, 1]), 3).print();
    * ```
    *
-   * @param indices 1D Array of indices.
+   * @param indices `Tensor1D` of indices with dtype `int32`.
    * @param depth The depth of the one hot dimension.
    * @param onValue A number used to fill in output when the index matches
    * the location.
@@ -540,6 +536,7 @@ export class ArrayOps {
   @operation
   static oneHot(indices: Tensor1D, depth: number, onValue = 1, offValue = 0):
       Tensor2D {
+    util.assert(indices.dtype === 'int32', 'Indices must be of dtype `int32`');
     if (depth < 2) {
       throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
     }
@@ -855,6 +852,7 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static gather<T extends Tensor>(x: T, indices: Tensor1D, axis = 0): T {
+    util.assert(indices.dtype === 'int32', 'Indices must be of dtype `int32`');
     const axes = parseAxisParam(axis, x.shape);
     return ENV.engine.runKernel(
         backend => backend.gather(x, indices, axes[0]), {x, indices});

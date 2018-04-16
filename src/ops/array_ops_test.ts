@@ -1723,20 +1723,28 @@ describeWithFlags('gather', ALL_ENVS, () => {
   it('chaining, axis=1', () => {
     const x = tf.zeros([2, 4, 6]);
     // [0, 2, 4]
-    const indices = tf.range(0, 6, 2);
+    const indices = tf.range(0, 6, 2, 'int32');
     const axis = 2;
     expect(x.gather(indices, axis).shape).toEqual([2, 4, 3]);
+  });
+
+  it('indices not int32 throws error', () => {
+    const x = tf.zeros([2, 4, 6]);
+    // [0, 2, 4]
+    const indices = tf.range(0, 6, 2);
+    const axis = 2;
+    expect(() => x.gather(indices, axis)).toThrowError();
   });
 });
 
 describeWithFlags('oneHot', ALL_ENVS, () => {
   it('Depth 1 throws error', () => {
-    const indices = tf.tensor1d([0, 0, 0]);
+    const indices = tf.tensor1d([0, 0, 0], 'int32');
     expect(() => tf.oneHot(indices, 1)).toThrowError();
   });
 
   it('Depth 2, diagonal', () => {
-    const indices = tf.tensor1d([0, 1]);
+    const indices = tf.tensor1d([0, 1], 'int32');
     const res = tf.oneHot(indices, 2);
 
     expect(res.shape).toEqual([2, 2]);
@@ -1744,7 +1752,7 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
   });
 
   it('Depth 2, transposed diagonal', () => {
-    const indices = tf.tensor1d([1, 0]);
+    const indices = tf.tensor1d([1, 0], 'int32');
     const res = tf.oneHot(indices, 2);
 
     expect(res.shape).toEqual([2, 2]);
@@ -1752,7 +1760,7 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
   });
 
   it('Depth 3, 4 events', () => {
-    const indices = tf.tensor1d([2, 1, 2, 0]);
+    const indices = tf.tensor1d([2, 1, 2, 0], 'int32');
     const res = tf.oneHot(indices, 3);
 
     expect(res.shape).toEqual([4, 3]);
@@ -1760,11 +1768,16 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
   });
 
   it('Depth 2 onValue=3, offValue=-2', () => {
-    const indices = tf.tensor1d([0, 1]);
+    const indices = tf.tensor1d([0, 1], 'int32');
     const res = tf.oneHot(indices, 2, 3, -2);
 
     expect(res.shape).toEqual([2, 2]);
     expectArraysClose(res, [3, -2, -2, 3]);
+  });
+
+  it('indices not int32 throws error', () => {
+    const indices = tf.tensor1d([0, 1], 'float32');
+    expect(() => tf.oneHot(indices, 2)).toThrowError();
   });
 });
 
