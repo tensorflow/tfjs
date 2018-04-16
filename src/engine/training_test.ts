@@ -169,6 +169,12 @@ describeMathCPUAndGPU('sliceArraysByIndices', () => {
   it('null array input', () => {
     expect(sliceArraysByIndices(null, tensor1d([0, 2]))).toBeNull();
   });
+  it('casts indices automatically', () => {
+    const x = tensor2d([[1, 2], [3, 4], [5, 6]], [3, 2]);
+    const y =
+        sliceArraysByIndices(x, tensor1d([0.1, 2.0], 'float32')) as Tensor;
+    expectTensorsClose(y, tensor2d([[1, 2], [5, 6]], [2, 2]));
+  });
 });
 
 describe('makeBatches', () => {
