@@ -22,6 +22,7 @@
 #include <iostream>
 #include <set>
 #include <string>
+#include <memory>
 #include <vector>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 #include "tf_auto_status.h"
@@ -238,6 +239,13 @@ void GetTFE_TensorHandleShape(napi_env env, TFE_TensorHandle* handle,
   }
 }
 
+inline bool IsArray(napi_env env, napi_status& nstatus, napi_value* val) {
+  bool is_array;
+  nstatus = napi_is_array(env, *val, &is_array);
+  ENSURE_NAPI_OK_RETVAL(env, nstatus, false);
+  return is_array;
+}
+
 void GetTFE_TensorHandleType(napi_env env, TFE_TensorHandle* handle,
                              napi_value* result) {
   napi_status nstatus;
@@ -272,9 +280,8 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
                                  reinterpret_cast<int32_t*>(&tf_attr_type));
   ENSURE_NAPI_OK(env, nstatus);
 
-  napi_value type_input_value;
-  nstatus =
-      napi_get_named_property(env, attr_value, "value", &type_input_value);
+  napi_value js_value;
+  nstatus = napi_get_named_property(env, attr_value, "value", &js_value);
   ENSURE_NAPI_OK(env, nstatus);
 
   switch (tf_attr_type) {
@@ -282,7 +289,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
       // NOTE: String attribute values do not have to be utf8 encoded strings
       // (could be arbitrary byte sequences).
       char value[NAPI_STRING_SIZE];
-      nstatus = napi_get_value_string_utf8(env, type_input_value, value,
+      nstatus = napi_get_value_string_utf8(env, js_value, value,
                                            NAPI_STRING_SIZE, nullptr);
       ENSURE_NAPI_OK(env, nstatus);
 
@@ -291,26 +298,87 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
     }
 
     case TF_ATTR_INT: {
-      int64_t value;
-      nstatus = napi_get_value_int64(env, type_input_value, &value);
-      ENSURE_NAPI_OK(env, nstatus);
+      if (IsArray(env, nstatus, &js_value)) {
+        uint32_t length;
+        nstatus = napi_get_array_length(env, js_value, &length);
+        ENSURE_NAPI_OK(env, nstatus);
+        std::unique_ptr<int64_t[]> data(new int64_t[length]);
+        for (uint32_t i = 0; i < length; ++i) {
+          napi_value element;
+          nstatus = napi_get_element(env, js_value, i, &element);
+          ENSURE_NAPI_OK(env, nstatus);
+          int32_t value;
+          nstatus = napi_get_value_int32(env, element, &value);
+          ENSURE_NAPI_OK(env, nstatus);
+          data[i] = value;
+        }
+        TFE_OpSetAttrIntList(
+            tfe_op, attr_name, data.get(), static_cast<int>(length));
+      } else {
+        int64_t value;
+        nstatus = napi_get_value_int64(env, js_value, &value);
+        ENSURE_NAPI_OK(env, nstatus);
 
-      TFE_OpSetAttrInt(tfe_op, attr_name, value);
+        TFE_OpSetAttrInt(tfe_op, attr_name, value);
+      }
+      break;
+    }
+
+    case TF_ATTR_FLOAT: {
+      if (IsArray(env, nstatus, &js_value)) {
+        uint32_t length;
+        nstatus = napi_get_array_length(env, js_value, &length);
+        ENSURE_NAPI_OK(env, nstatus);
+        std::unique_ptr<float[]> data(new float[length]);
+        for (uint32_t i = 0; i < length; ++i) {
+          napi_value element;
+          nstatus = napi_get_element(env, js_value, i, &element);
+          ENSURE_NAPI_OK(env, nstatus);
+          double value;
+          nstatus = napi_get_value_double(env, element, &value);
+          ENSURE_NAPI_OK(env, nstatus);
+          data[i] = static_cast<float>(value);
+        }
+        TFE_OpSetAttrFloatList(
+            tfe_op, attr_name, data.get(), static_cast<int>(length));
+      } else {
+        double value;
+        nstatus = napi_get_value_double(env, js_value, &value);
+        ENSURE_NAPI_OK(env, nstatus);
+        TFE_OpSetAttrFloat(tfe_op, attr_name, static_cast<float>(value));
+      }
       break;
     }
 
     case TF_ATTR_BOOL: {
-      bool value;
-      nstatus = napi_get_value_bool(env, type_input_value, &value);
-      ENSURE_NAPI_OK(env, nstatus);
-
-      TFE_OpSetAttrBool(tfe_op, attr_name, value ? 1 : 0);
+      if (IsArray(env, nstatus, &js_value)) {
+        uint32_t length;
+        nstatus = napi_get_array_length(env, js_value, &length);
+        ENSURE_NAPI_OK(env, nstatus);
+        std::unique_ptr<unsigned char[]> data(new unsigned char[length]);
+        for (uint32_t i = 0; i < length; ++i) {
+          napi_value element;
+          nstatus = napi_get_element(env, js_value, i, &element);
+          ENSURE_NAPI_OK(env, nstatus);
+          bool value;
+          nstatus = napi_get_value_bool(env, element, &value);
+          ENSURE_NAPI_OK(env, nstatus);
+          data[i] = value ? 1 : 0;
+        }
+        TFE_OpSetAttrBoolList(
+            tfe_op, attr_name, data.get(), static_cast<int>(length));
+      } else {
+        bool value;
+        nstatus = napi_get_value_bool(env, js_value, &value);
+        ENSURE_NAPI_OK(env, nstatus);
+        TFE_OpSetAttrBool(tfe_op, attr_name, value ? 1 : 0);
+      }
       break;
     }
 
     case TF_ATTR_TYPE: {
       TF_DataType tf_data_type;
-      nstatus = napi_get_value_int32(env, type_input_value,
+      nstatus = napi_get_value_int32(env, js_value,
                                      reinterpret_cast<int32_t*>(&tf_data_type));
       ENSURE_NAPI_OK(env, nstatus);
 
@@ -320,7 +388,7 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
 
     case TF_ATTR_SHAPE: {
       std::vector<int64_t> shape_vector;
-      ExtractArrayShape(env, type_input_value, &shape_vector);
+      ExtractArrayShape(env, js_value, &shape_vector);
 
       TF_AutoStatus tf_status;
       TFE_OpSetAttrShape(tfe_op, attr_name, shape_vector.data(),
@@ -328,8 +396,6 @@ void AssignOpAttr(napi_env env, TFE_Op* tfe_op, napi_value attr_value) {
       ENSURE_TF_OK(env, tf_status);
       break;
     }
-
-      // TODO(kreeger): Add support for list-value attributes.
 
     default:
       REPORT_UNKNOWN_TF_ATTR_TYPE(env, tf_attr_type);

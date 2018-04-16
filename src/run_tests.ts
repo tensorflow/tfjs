@@ -29,69 +29,9 @@ tfc.test_util.setAfterEach(() => {});
 tfc.test_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
-  // Backend methods.
-  'memory',
-  'variable',  // Depends on backend.memory
-  'debug',     // Depends on backend.time
-  'tidy',      // Depeonds on backend.memory
-
-  // Optimizers.
-  'RMSPropOptimizer',
-  'MomentumOptimizer',
-  'AdagradOptimizer',
-  'AdamaxOptimizer',
-  'AdamOptimizer',
-  'SGDOptimizer',
-  'AdadeltaOptimizer',
-  'optimizer',
-
-  // Unimplemented ops.
-  'clip',
-  'leakyRelu',
-  'elu',
-  'expm1',
-  'log1p',
-  'resizeBilinear',
-  'argmin',
-  'argmax',
-  'avgPool',
-  'multinomial',
-  'localResponseNormalization',
-  'logicalXor',
-  'depthwiseConv2D',
-  'conv1d',
-  'conv2dTranspose',
-  'conv2d',
-  'atan2',
-  'squaredDifference',
-  'prelu',
-  'batchNormalization2D',
-  'batchNormalization3D',
-  'batchNormalization4D',
-  'tile',
-  'rsqrt',
-  'sign',
-  'acosh',
-  'asinh',
-  'atanh',
-  'reciprocal',
-  'round',
-  'separableConv2d',
-  'mod',
-  'maxPool',
-  'minPool',
-
-  // Ops with bugs. Some are higher-level ops.
-  'norm',  // Depends on tf.pow being fixed.
-  'oneHot',
-  'gather',
-  'pow',
-  'absoluteDifference',
-  'computeWeightedLoss',
-
-  // Depends on ops being fixed first.
-  'gradients',
-  'customGradient',
+  // See https://github.com/tensorflow/tfjs/issues/161
+  'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
+  'separableConv2d',  // Requires space_to_batch() for dilation > 1.
 ];
 
 const runner = new jasmineCtor();
