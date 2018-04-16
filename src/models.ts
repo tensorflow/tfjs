@@ -397,8 +397,8 @@ export class Sequential extends Model {
    */
   @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
   evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[],
-      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
+      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
+      Scalar|Scalar[] {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -536,5 +536,24 @@ export class Sequential extends Model {
   }
 
   // TODO(cais): Override get trainableWeights() here
+
+  // tslint:disable-next-line:no-any
+  getConfig(): any {
+    // NOTE(cais): We override the return type of getConfig() to `any` here,
+    //   because the `Sequential` class is a special case among `Container`
+    //   subtypes in that its getConfig() method returns an Array (not a dict).
+    const config: ConfigDict[] = [];
+    for (const layer of this.layers) {
+      config.push({
+        // TODO(cais): the `constructor.name` call here, along with the same
+        //   call in other places, needs to be replaced with something more
+        //   robust against uglification.
+        //   See: https://github.com/tensorflow/tfjs/issues/191
+        className: layer.constructor.name,
+        config: layer.getConfig(),
+      });
+    }
+    return config;
+  }
 }
 generic_utils.ClassNameMap.register('Sequential', Sequential);
