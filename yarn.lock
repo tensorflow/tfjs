@@ -4,7 +4,7 @@
 
 "@tensorflow/tfjs-core@tensorflow/tfjs-core#master":
   version "0.7.1"
-  resolved "https://codeload.github.com/tensorflow/tfjs-core/tar.gz/7438d97da48c880c88f30890f0a8b30232d30d3f"
+  resolved "https://codeload.github.com/tensorflow/tfjs-core/tar.gz/7f637571491097d2ea1d07ad233ef75ccb0e4f47"
   dependencies:
     seedrandom "~2.4.3"
 
