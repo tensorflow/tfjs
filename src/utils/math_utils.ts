@@ -21,6 +21,7 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
+import {ValueError} from '../errors';
 
 export type ArrayTypes = Uint8Array|Int32Array|Float32Array;
 
@@ -109,4 +110,22 @@ export function variance(array: number[]|Float32Array): number {
   const demeaned = tfc.sub(toArray1D(array), scalar(mean(array)));
   const sumSquare = tfc.sum(tfc.mulStrict(demeaned, demeaned)).dataSync()[0];
   return sumSquare / array.length;
+}
+
+/**
+ * Generate an array of integers in [begin, end).
+ * @param begin Beginning integer, inclusive.
+ * @param end Ending integer, inclusive.
+ * @returns Range array.
+ * @throws ValueError, iff `end` < `begin`.
+ */
+export function range(begin: number, end: number): number[] {
+  if (end < begin) {
+    throw new ValueError(`end (${end}) < begin (${begin}) is forbidden.`);
+  }
+  const out: number[] = [];
+  for (let i = begin; i < end; ++i) {
+    out.push(i);
+  }
+  return out;
 }

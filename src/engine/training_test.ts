@@ -14,7 +14,6 @@
 
 // tslint:disable:max-line-length
 import {Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, zeros} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
@@ -24,7 +23,7 @@ import {SimpleRNN} from '../layers/recurrent';
 import {TimeDistributed} from '../layers/wrappers';
 import {Regularizer} from '../regularizers';
 import {DType, SymbolicTensor} from '../types';
-import {pyListRepeat} from '../utils/generic_utils';
+import {pyListRepeat, stringsEqual} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Input, Layer} from './topology';
@@ -653,9 +652,10 @@ describeMathCPUAndGPU('Model.fit', () => {
       createDenseCategoricalModelAndData();
       model.compile(
           {optimizer: 'SGD', loss: 'categoricalCrossentropy', metrics});
-      if (_.isEqual(metrics, ['acc']) || _.isEqual(metrics, ['accuracy'])) {
+      if (stringsEqual(metrics, ['acc']) ||
+          stringsEqual(metrics, ['accuracy'])) {
         expect(model.metricsNames).toEqual(['loss', 'acc']);
-      } else if (_.isEqual(metrics, ['acc', 'accuracy'])) {
+      } else if (stringsEqual(metrics, ['acc', 'accuracy'])) {
         expect(model.metricsNames).toEqual(['loss', 'acc', 'acc']);
       }
       model

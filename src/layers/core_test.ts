@@ -14,13 +14,13 @@
 
 // tslint:disable:max-line-length
 import {scalar, Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 import {ActivationIdentifier} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {InitializerIdentifier} from '../initializers';
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
+import {pyListRepeat} from '../utils/generic_utils';
 import {arrayProd} from '../utils/math_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
@@ -234,8 +234,8 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
                let expectedOutput;
                if (K.ndim(input) === 2) {
                  expectedOutput = tensor2d(
-                     _.times(
-                         arrayProd(expectedShape), () => expectedElementValue),
+                     pyListRepeat(
+                         expectedElementValue, arrayProd(expectedShape)),
                      [expectedShape[0], expectedShape[1]]);
                }
                expectTensorsClose(

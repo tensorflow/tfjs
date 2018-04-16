@@ -12,8 +12,7 @@
  * TensorFlow.js Layers: Merge Layers.
  */
 
-import {Tensor} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
+import {Tensor, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -104,7 +103,7 @@ export class Merge extends Layer {
         batchSizes.push(shape[0]);
       }
     }
-    batchSizes = _.uniq(batchSizes);
+    batchSizes = generic_utils.unique(batchSizes);
     if (batchSizes.length > 1) {
       throw new ValueError(
           `Can not merge tensors with different batch sizes. ` +
@@ -120,7 +119,8 @@ export class Merge extends Layer {
     // If the inputs have different ranks, we have to reshape them to make them
     // broadcastable.
     const allRanks = inputShape.map(shape => shape.length);
-    if (!_.contains(inputShape, null) && _.uniq(allRanks).length === 1) {
+    if (inputShape.indexOf(null) === -1 &&
+        generic_utils.unique(allRanks).length === 1) {
       this.reshapeRequired = false;
     } else {
       this.reshapeRequired = true;
@@ -133,10 +133,10 @@ export class Merge extends Layer {
     if (this.reshapeRequired) {
       const reshapedInputs: Tensor[] = [];
       const inputDims = inputs.map(input => K.ndim(input));
-      if (!_.contains(inputDims, null)) {
+      if (inputDims.indexOf(null) === -1) {
         // If ranks of all inputs are available, we simply expand each of them
         // at axis=1 until all of them have the same rank.
-        const maxNDim = _.max(inputDims);
+        const maxNDim = mathUtils.max(inputDims);
         for (let x of inputs) {
           const xNDim = K.ndim(x);
           for (let k = 0; k < maxNDim - xNDim; ++k) {
@@ -162,7 +162,7 @@ export class Merge extends Layer {
             reshapedInputs.push(xTransposed);
             transposed = true;
           } else if (xNDim > 1) {
-            const dims = _.range(1, xNDim).concat([0]);
+            const dims = mathUtils.range(1, xNDim).concat([0]);
             reshapedInputs.push(K.permuteDimensions(x, dims));
             transposed = true;
           } else {
@@ -185,7 +185,7 @@ export class Merge extends Layer {
                 K.permuteDimensions(K.reshape(y, [-1, batchSize]), [1, 0]),
                 newShape);
           } else if (yNDim > 1) {
-            const dims = [yNDim - 1].concat(_.range(0, yNDim - 1));
+            const dims = [yNDim - 1].concat(mathUtils.range(0, yNDim - 1));
             y = K.permuteDimensions(y, dims);
           }
         }
@@ -215,7 +215,7 @@ export class Merge extends Layer {
         batchSizes.push(shape[0]);
       }
     }
-    batchSizes = _.uniq(batchSizes);
+    batchSizes = generic_utils.unique(batchSizes);
     if (batchSizes.length === 1) {
       outputShape = batchSizes.concat(outputShape);
     } else {
@@ -737,7 +737,7 @@ export class Concatenate extends Merge {
       shapeWithoutConcatAxis.splice(this.axis, 1);
       let exists = false;
       for (const shape of shapeSet) {
-        if (_.isEqual(shape, shapeWithoutConcatAxis)) {
+        if (util.arraysEqual(shape, shapeWithoutConcatAxis)) {
           exists = true;
           break;
         }

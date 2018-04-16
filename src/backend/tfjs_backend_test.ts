@@ -14,13 +14,15 @@
 
 // tslint:disable:max-line-length
 import {Scalar, scalar, slice, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
 import {ConcreteTensor, DType, LayerVariable, SymbolicTensor} from '../types';
+import {unique} from '../utils/generic_utils';
+import {range} from '../utils/math_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import * as K from './tfjs_backend';
+
 // tslint:enable:max-line-length
 
 const CT = ConcreteTensor;
@@ -1061,7 +1063,7 @@ describeMathCPUAndGPU('scalarTimesArray', () => {
     const y = K.scalarTimesArray(scalar(-2), K.ones([2, 2, 2, 2]));
     expect(y.shape).toEqual([2, 2, 2, 2]);
     const yValues = Array.from(y.dataSync());
-    expect(_.uniq(yValues)).toEqual([-2]);
+    expect(unique(yValues)).toEqual([-2]);
   });
 });
 
@@ -1866,7 +1868,7 @@ describeMathCPUAndGPU('dropout', () => {
   const dropoutLevels = [0, 0.75];
   for (const dropoutLevel of dropoutLevels) {
     it(`Level = ${dropoutLevel}`, () => {
-      const x = tensor2d(_.range(1, 21), [10, 2]);
+      const x = tensor2d(range(1, 21), [10, 2]);
       const y = K.dropout(x, scalar(dropoutLevel));
       expect(y.dtype).toEqual(x.dtype);
       expect(y.shape).toEqual(x.shape);

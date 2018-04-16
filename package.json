@@ -8,7 +8,6 @@
   "devDependencies": {
     "@tensorflow/tfjs-core": "0.7.1",
     "@types/jasmine": "~2.5.53",
-    "@types/underscore": "^1.8.7",
     "browserify": "~16.1.0",
     "clang-format": "~1.2.2",
     "cross-spawn": "~5.1.0",
@@ -37,9 +36,6 @@
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . --type-check -t verbose"
-  },
-  "dependencies": {
-    "underscore": "~1.8.3"
   },
   "peerDependencies": {
     "@tensorflow/tfjs-core": "0.7.1"

@@ -12,14 +12,16 @@
 
 // tslint:disable:max-line-length
 import {Tensor} from '@tensorflow/tfjs-core';
-import * as _ from 'underscore';
 
 import {AssertionError, AttributeError, IndexError, ValueError} from '../errors';
 import {ConfigDict, ConfigDictValue, DType, Shape} from '../types';
 
 // tslint:enable
 
-/** Equivalent to Python's [value] * numValues */
+/**
+ * If `value` is an Array, equivalent to Python's `value * numValues`.
+ * If `value` is not an Array, equivalent to Python's `[value] * numValues`
+ */
 // tslint:disable-next-line:no-any
 export function pyListRepeat(value: any, numValues: number): any[] {
   if (Array.isArray(value)) {
@@ -48,7 +50,7 @@ export function pyGetAttr<T>(obj: any, attrName: string, defaultValue?: T): T {
   if (attrName in obj) {
     return obj[attrName];
   }
-  if (_.isUndefined(defaultValue)) {
+  if (defaultValue === undefined) {
     throw new AttributeError(
         'pyGetAttr: Attempting to get attribute ' + attrName +
         'with no default value defined');
@@ -253,14 +255,6 @@ export function normalizeShapeList(x: Shape|Shape[]): Shape[] {
 }
 
 /**
- * Checks whether an element or every element in a list is null or undefined.
- */
-export function isAllNullOrUndefined(iterableOrElement: {}): boolean {
-  return _.every(
-      toList(iterableOrElement), x => (_.isNull(x) || _.isUndefined(x)));
-}
-
-/**
  * Converts string to snake-case.
  * @param name
  */
@@ -347,11 +341,11 @@ export function deserializeKerasObject(
     }
     const className = config.className as string;
     let cls, fromConfig;
-    if (_.has(customObjects, className)) {
+    if (className in customObjects) {
       [cls, fromConfig] = customObjects.get(className);
-    } else if (_.has(_GLOBAL_CUSTOM_OBJECTS, className)) {
+    } else if (className in _GLOBAL_CUSTOM_OBJECTS) {
       [cls, fromConfig] = _GLOBAL_CUSTOM_OBJECTS.className;
-    } else if (_.has(moduleObjects, className)) {
+    } else if (className in moduleObjects) {
       [cls, fromConfig] = moduleObjects[className];
     }
     if (cls == null) {
@@ -473,4 +467,62 @@ export function stringToDType(dtype: string): DType {
     default:
       throw new ValueError(`Invalid dtype: ${dtype}`);
   }
+}
+
+/**
+ * Test the element-by-element equality of two Arrays of strings.
+ * @param xs First array of strings.
+ * @param ys Second array of strings.
+ * @returns Wether the two arrays are all equal, element by element.
+ */
+export function stringsEqual(xs: string[], ys: string[]): boolean {
+  if (xs == null || ys == null) {
+    return xs === ys;
+  }
+  if (xs.length !== ys.length) {
+    return false;
+  }
+  for (let i = 0; i < xs.length; ++i) {
+    if (xs[i] !== ys[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Get the unique elements of an array.
+ * @param xs Array.
+ * @returns An Array consisting of the unique elements in `xs`.
+ */
+export function unique<T>(xs: T[]): T[] {
+  if (xs == null) {
+    return xs;
+  }
+  const out: T[] = [];
+  // TODO(cais): Maybe improve performance by sorting.
+  for (const x of xs) {
+    if (out.indexOf(x) === -1) {
+      out.push(x);
+    }
+  }
+  return out;
+}
+
+/**
+ * Determine if an Object is empty (i.e., does not have own properties).
+ * @param obj Object
+ * @returns Whether the Object is empty.
+ * @throws ValueError: If object is `null` or `undefined`.
+ */
+export function isObjectEmpty(obj: {}): boolean {
+  if (obj == null) {
+    throw new ValueError(`Invalid value in obj: ${JSON.stringify(obj)}`);
+  }
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      return false;
+    }
+  }
+  return true;
 }
