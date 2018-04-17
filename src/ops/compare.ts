@@ -29,6 +29,12 @@ export class CompareOps {
    * We also expose `notEqualStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = tf.tensor1d([1, 2, 3]);
+   * const b = tf.tensor1d([0, 2, 3]);
+   *
+   * a.notEqual(b).print();
+   * ```
    * @param a The first input tensor.
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
@@ -60,6 +66,12 @@ export class CompareOps {
    * We also expose `lessStrict` which has the same signature as this op and
    * asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = tf.tensor1d([1, 2, 3]);
+   * const b = tf.tensor1d([2, 2, 2]);
+   *
+   * a.less(b).print();
+   * ```
    * @param a The first input tensor.
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
@@ -91,6 +103,13 @@ export class CompareOps {
    * We also expose `equalStrict` which has the same signature as this op
    * and asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = tf.tensor1d([1, 2, 3]);
+   * const b = tf.tensor1d([2, 2, 2]);
+   *
+   * a.equal(b).print();
+   * ```
+   *
    * @param a The first input tensor.
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
@@ -113,6 +132,13 @@ export class CompareOps {
    *
    * We also expose `lessEqualStrict` which has the same signature as this op
    * and asserts that `a` and `b` are the same shape (does not broadcast).
+   *
+   * ```js
+   * const a = tf.tensor1d([1, 2, 3]);
+   * const b = tf.tensor1d([2, 2, 2]);
+   *
+   * a.lessEqual(b).print();
+   * ```
    *
    * @param a The first input tensor.
    * @param b The second input tensor. Must have the same dtype as `a`.
@@ -138,6 +164,13 @@ export class CompareOps {
    * We also expose `greaterStrict` which has the same signature as this
    * op and asserts that `a` and `b` are the same shape (does not broadcast).
    *
+   * ```js
+   * const a = tf.tensor1d([1, 2, 3]);
+   * const b = tf.tensor1d([2, 2, 2]);
+   *
+   * a.greater(b).print();
+   * ```
+   *
    * @param a The first input tensor.
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
@@ -160,6 +193,13 @@ export class CompareOps {
    *
    * We also expose `greaterEqualStrict` which has the same signature as this
    * op and asserts that `a` and `b` are the same shape (does not broadcast).
+   *
+   * ```js
+   * const a = tf.tensor1d([1, 2, 3]);
+   * const b = tf.tensor1d([2, 2, 2]);
+   *
+   * a.greaterEqual(b).print();
+   * ```
    *
    * @param a The first input tensor.
    * @param b The second input tensor. Must have the same dtype as `a`.
