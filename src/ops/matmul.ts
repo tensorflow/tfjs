@@ -57,13 +57,27 @@ export class MatmulOps {
             ` and transposeB=${transposeB} must match.`);
 
     const grad = (dy: Tensor2D) => {
-      if (transposeA || transposeB) {
-        throw new Error(`Backprop for transposed MatMul not yet implemented.`);
+      if (!transposeA && !transposeB) {
+        return {
+          a: () => dy.matMul(b.toFloat(), false, true),
+          b: () => a.toFloat().matMul(dy, true, false)
+        };
+      } else if (!transposeA && transposeB) {
+        return {
+          a: () => dy.matMul(b.toFloat(), false, false),
+          b: () => dy.matMul(a.toFloat(), true, false)
+        };
+      } else if (transposeA && !transposeB) {
+        return {
+          a: () => b.toFloat().matMul(dy, false, true),
+          b: () => a.toFloat().matMul(dy, false, false)
+        };
+      } else {
+        return {
+          a: () => b.toFloat().matMul(dy, true, true),
+          b: () => dy.matMul(a.toFloat(), true, true)
+        };
       }
-      return {
-        a: () => dy.matMul(b.toFloat(), false, true),
-        b: () => a.toFloat().matMul(dy, true, false)
-      };
     };
     return ENV.engine.runKernel(
         backend => backend.matMul(a, b, transposeA, transposeB), {a, b}, grad);
