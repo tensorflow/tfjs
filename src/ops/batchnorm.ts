@@ -21,7 +21,9 @@ import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {Rank} from '../types';
 import * as util from '../util';
 
+import {ArrayOps} from './array_ops';
 import {operation} from './operation';
+import {rsqrt} from './ops';
 
 export class BatchNormOps {
   /**
@@ -182,6 +184,19 @@ export class BatchNormOps {
       x: Tensor<R>, mean: Tensor<R>|Tensor1D, variance: Tensor<R>|Tensor1D,
       varianceEpsilon = .001, scale?: Tensor<R>|Tensor1D,
       offset?: Tensor<R>|Tensor1D): Tensor<R> {
+    util.assert(
+        mean.rank === variance.rank,
+        'Batch normalization gradient requires mean and variance to have ' +
+            'equal ranks.');
+    util.assert(
+        offset == null || mean.rank === offset.rank,
+        'Batch normalization gradient requires mean and offset to have ' +
+            'equal ranks.');
+    util.assert(
+        scale == null || mean.rank === scale.rank,
+        'Batch normalization gradient requires mean and scale to have ' +
+            'equal ranks.');
+
     let x4D: Tensor4D;
     if (x.rank === 0 || x.rank === 1) {
       x4D = x.as4D(1, 1, 1, x.size);
@@ -193,12 +208,76 @@ export class BatchNormOps {
       x4D = x as Tensor4D;
     }
 
+    const der = (dy: Tensor) => {
+      const scaleValue = scale == null ? ArrayOps.scalar(1) : scale;
+
+      let nonDepthMultiplier = 1;
+      let xMinusMean: Tensor;
+      const tileShape: number[] = [];
+
+      if (mean.rank === 1) {
+        for (let i = 0; i < x4D.shape.length - 1; ++i) {
+          nonDepthMultiplier *= x4D.shape[i];
+          tileShape.push(x4D.shape[i]);
+        }
+        tileShape.push(1);
+        xMinusMean = x.sub(mean).sum(0).reshape(mean.shape);
+      } else {
+        xMinusMean = x.sub(mean);
+      }
+
+      const oneOverSqrtVariance =
+          rsqrt(variance.add(ArrayOps.scalar(varianceEpsilon)));
+      const minusHalfRCube = oneOverSqrtVariance.mul(oneOverSqrtVariance)
+                                 .mul(oneOverSqrtVariance)
+                                 .mul(ArrayOps.scalar(-0.5));
+      const derX = () => {
+        if (mean.rank === 1) {
+          return ArrayOps
+              .tile(oneOverSqrtVariance.as4D(1, 1, 1, mean.shape[0]), tileShape)
+              .mul(scaleValue)
+              .reshape(x.shape);
+        } else {
+          return oneOverSqrtVariance.mul(scaleValue).reshape(x.shape);
+        }
+      };
+      const derMean = () => {
+        return oneOverSqrtVariance.mul(ArrayOps.scalar(-1 * nonDepthMultiplier))
+            .mul(scaleValue)
+            .reshape(mean.shape);
+      };
+      const derVariance = () => {
+        return minusHalfRCube.mul(xMinusMean)
+            .mul(scaleValue)
+            .reshape(variance.shape);
+      };
+      const derScale = () => {
+        return xMinusMean.mul(oneOverSqrtVariance).reshape(mean.shape);
+      };
+      const derOffset = () => {
+        if (mean.rank === 1) {
+          return ArrayOps.onesLike(mean)
+              .mul(ArrayOps.scalar(nonDepthMultiplier))
+              .reshape(mean.shape);
+        } else {
+          return ArrayOps.onesLike(mean);
+        }
+      };
+      return {
+        x: derX,
+        mean: derMean,
+        variance: derVariance,
+        scale: derScale,
+        offset: derOffset
+      };
+    };
+
     const res = ENV.engine.runKernel(
         backend => backend.batchNormalization(
             x4D, batchnormReshape4D(mean), batchnormReshape4D(variance),
             varianceEpsilon, batchnormReshape4D(scale),
             batchnormReshape4D(offset)),
-        {x, mean, variance});
+        {x, mean, variance, scale, offset}, der);
     return res.reshape(x.shape);
   }
 }
