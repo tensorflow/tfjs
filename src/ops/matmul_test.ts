@@ -271,6 +271,126 @@ describeWithFlags('matmul', ALL_ENVS, () => {
       a.get(0, 2) * dy.get(0, 1) + a.get(1, 2) * dy.get(1, 1)
     ]);
   });
+
+  it('gradients: a * bT', () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
+    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30, 40, 50, 60, 70, 80], [3, 3]);
+
+    const transposeA = false;
+    const transposeB = true;
+    const grads = tf.grads(
+
+        (a: tf.Tensor2D, b: tf.Tensor2D) =>
+            tf.matMul(a, b, transposeA, transposeB));
+    const [da, db] = grads([a, b], dy);
+
+    // da = dy * b
+    expect(da.shape).toEqual(a.shape);
+    expectArraysClose(da, [
+      dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(1, 0) +
+          dy.get(0, 2) * b.get(2, 0),
+      dy.get(0, 0) * b.get(0, 1) + dy.get(0, 1) * b.get(1, 1) +
+          dy.get(0, 2) * b.get(2, 1),
+      dy.get(1, 0) * b.get(0, 0) + dy.get(1, 1) * b.get(1, 0) +
+          dy.get(1, 2) * b.get(2, 0),
+      dy.get(1, 0) * b.get(0, 1) + dy.get(1, 1) * b.get(1, 1) +
+          dy.get(1, 2) * b.get(2, 1),
+      dy.get(2, 0) * b.get(0, 0) + dy.get(2, 1) * b.get(1, 0) +
+          dy.get(2, 2) * b.get(2, 0),
+      dy.get(2, 0) * b.get(0, 1) + dy.get(2, 1) * b.get(1, 1) +
+          dy.get(2, 2) * b.get(2, 1)
+    ]);
+
+    // db = dyT * a
+    expect(db.shape).toEqual(b.shape);
+    expectArraysClose(db, [
+      dy.get(0, 0) * a.get(0, 0) + dy.get(1, 0) * a.get(1, 0) +
+          dy.get(2, 0) * a.get(2, 0),
+      dy.get(0, 0) * a.get(0, 1) + dy.get(1, 0) * a.get(1, 1) +
+          dy.get(2, 0) * a.get(2, 1),
+      dy.get(0, 1) * a.get(0, 0) + dy.get(1, 1) * a.get(1, 0) +
+          dy.get(2, 1) * a.get(2, 0),
+      dy.get(0, 1) * a.get(0, 1) + dy.get(1, 1) * a.get(1, 1) +
+          dy.get(2, 1) * a.get(2, 1),
+      dy.get(0, 2) * a.get(0, 0) + dy.get(1, 2) * a.get(1, 0) +
+          dy.get(2, 2) * a.get(2, 0),
+      dy.get(0, 2) * a.get(0, 1) + dy.get(1, 2) * a.get(1, 1) +
+          dy.get(2, 2) * a.get(2, 1)
+    ]);
+  });
+
+  it('gradients: aT * b', () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
+    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+
+    const transposeA = true;
+    const transposeB = false;
+    const grads = tf.grads(
+
+        (a: tf.Tensor2D, b: tf.Tensor2D) =>
+            tf.matMul(a, b, transposeA, transposeB));
+    const [da, db] = grads([a, b], dy);
+
+    // da = b * dyT
+    expect(da.shape).toEqual(a.shape);
+    expectArraysClose(da, [
+      dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(0, 1),
+      dy.get(1, 0) * b.get(0, 0) + dy.get(1, 1) * b.get(0, 1),
+      dy.get(0, 0) * b.get(1, 0) + dy.get(0, 1) * b.get(1, 1),
+      dy.get(1, 0) * b.get(1, 0) + dy.get(1, 1) * b.get(1, 1),
+      dy.get(0, 0) * b.get(2, 0) + dy.get(0, 1) * b.get(2, 1),
+      dy.get(1, 0) * b.get(2, 0) + dy.get(1, 1) * b.get(2, 1)
+    ]);
+
+    // db = a * dy
+    expect(db.shape).toEqual(b.shape);
+    expectArraysClose(db, [
+      dy.get(0, 0) * a.get(0, 0) + dy.get(1, 0) * a.get(0, 1),
+      dy.get(0, 1) * a.get(0, 0) + dy.get(1, 1) * a.get(0, 1),
+      dy.get(0, 0) * a.get(1, 0) + dy.get(1, 0) * a.get(1, 1),
+      dy.get(0, 1) * a.get(1, 0) + dy.get(1, 1) * a.get(1, 1),
+      dy.get(0, 0) * a.get(2, 0) + dy.get(1, 0) * a.get(2, 1),
+      dy.get(0, 1) * a.get(2, 0) + dy.get(1, 1) * a.get(2, 1)
+    ]);
+  });
+
+  it('gradients: aT * bT', () => {
+    const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [3, 2]);
+    const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [2, 3]);
+    const dy = tf.tensor2d([1, 10, 20, 30], [2, 2]);
+
+    const transposeA = true;
+    const transposeB = true;
+    const grads = tf.grads(
+
+        (a: tf.Tensor2D, b: tf.Tensor2D) =>
+            tf.matMul(a, b, transposeA, transposeB));
+    const [da, db] = grads([a, b], dy);
+
+    // da = bT * dyT
+    expect(da.shape).toEqual(a.shape);
+    expectArraysClose(da, [
+      dy.get(0, 0) * b.get(0, 0) + dy.get(0, 1) * b.get(1, 0),
+      dy.get(1, 0) * b.get(0, 0) + dy.get(1, 1) * b.get(1, 0),
+      dy.get(0, 0) * b.get(0, 1) + dy.get(0, 1) * b.get(1, 1),
+      dy.get(1, 0) * b.get(0, 1) + dy.get(1, 1) * b.get(1, 1),
+      dy.get(0, 0) * b.get(0, 2) + dy.get(0, 1) * b.get(1, 2),
+      dy.get(1, 0) * b.get(0, 2) + dy.get(1, 1) * b.get(1, 2)
+    ]);
+
+    // db = dyT * aT
+    expect(db.shape).toEqual(b.shape);
+    expectArraysClose(db, [
+      dy.get(0, 0) * a.get(0, 0) + dy.get(1, 0) * a.get(0, 1),
+      dy.get(0, 0) * a.get(1, 0) + dy.get(1, 0) * a.get(1, 1),
+      dy.get(0, 0) * a.get(2, 0) + dy.get(1, 0) * a.get(2, 1),
+      dy.get(0, 1) * a.get(0, 0) + dy.get(1, 1) * a.get(0, 1),
+      dy.get(0, 1) * a.get(1, 0) + dy.get(1, 1) * a.get(1, 1),
+      dy.get(0, 1) * a.get(2, 0) + dy.get(1, 1) * a.get(2, 1)
+    ]);
+  });
 });
 
 describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
