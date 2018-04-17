@@ -221,27 +221,34 @@ export class MathBackendCPU implements KernelBackend {
     const leftDim = transposeA ? a.shape[1] : a.shape[0];
     const rightDim = transposeB ? b.shape[0] : b.shape[1];
 
-    const normalGetter = (matrix: Tensor2D, i: number, j: number) =>
-        matrix.get(i, j);
-    const transposedGetter = (matrix: Tensor2D, i: number, j: number) =>
-        matrix.get(j, i);
+    const aValues = a.dataSync();
+    const bValues = b.dataSync();
 
-    const aGetter = transposeA ? transposedGetter : normalGetter;
-    const bGetter = transposeB ? transposedGetter : normalGetter;
+    const [aOuterStep, aInnerStep] =
+      transposeA ? [1, a.strides[0]] : [a.strides[0], 1];
+    const [bOuterStep, bInnerStep] =
+      transposeB ? [b.strides[0], 1] : [1, b.strides[0]];
 
-    const values = new Float32Array(leftDim * rightDim);
-    let index = 0;
-    for (let i = 0; i < leftDim; ++i) {
-      for (let j = 0; j < rightDim; ++j) {
+    const aOuterEnd = leftDim * aOuterStep;
+    const bOuterEnd = rightDim * bOuterStep;
+
+    const result = new Float32Array(leftDim * rightDim);
+    let resultIndex = 0;
+
+    for (let aOuter = 0; aOuter < aOuterEnd; aOuter += aOuterStep) {
+      for (let bOuter = 0; bOuter < bOuterEnd; bOuter += bOuterStep) {
+        let aInner = aOuter;
+        let bInner = bOuter;
         let sum = 0;
         for (let k = 0; k < sharedDim; ++k) {
-          // TODO: optimize CPU matmul.
-          sum += aGetter(a, i, k) * bGetter(b, k, j);
+          sum += aValues[aInner] * bValues[bInner];
+          aInner += aInnerStep;
+          bInner += bInnerStep;
         }
-        values[index++] = sum;
+        result[resultIndex++] = sum;
       }
     }
-    return ops.tensor2d(values, [leftDim, rightDim]);
+    return ops.tensor2d(result, [leftDim, rightDim]);
   }
 
   multiply(a: Tensor, b: Tensor): Tensor {
