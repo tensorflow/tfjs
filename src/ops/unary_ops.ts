@@ -323,7 +323,7 @@ export class UnaryOps {
       x: T, clipValueMin: number, clipValueMax: number): T {
     util.assert(
         (clipValueMin <= clipValueMax),
-        `Error in clip: min (${clipValueMin}) must be` +
+        `Error in clip: min (${clipValueMin}) must be ` +
             `less than or equal to max (${clipValueMax}).`);
     const grad = (dy: T) => {
       return {
