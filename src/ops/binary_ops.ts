@@ -190,26 +190,34 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static pow<T extends Tensor>(base: T, exp: Tensor): T {
-    broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
+    const outShape =
+        broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
     base = base.cast(upcastType(base.dtype, exp.dtype));
     exp = exp.cast(upcastType(base.dtype, exp.dtype));
-
-    const grad = (dy: Tensor) => {
-      if (!util.arraysEqual(base.shape, exp.shape) &&
-          !util.isScalarShape(exp.shape)) {
-        throw new Error(
-            `Gradient of pow not yet supported for broadcasted shapes.`);
-      }
+    const grad = (dy: Tensor, saved: Tensor[]) => {
+      const [y] = saved;
       const derBase = () => {
-        const expFloat = exp.toFloat();
-        const dx =
-            expFloat.mul(base.toFloat().pow(expFloat.sub(scalar(1)))) as T;
-        return dy.mulStrict(dx) as T;
+        let res = dy.mul(exp.toFloat().mul(y.div(base)));
+        const reduceAxes =
+            broadcast_util.getReductionAxes(base.shape, outShape);
+        if (reduceAxes.length > 0) {
+          res = res.sum(reduceAxes);
+        }
+        return res.reshape(base.shape) as T;
       };
-      return {base: derBase};
+      const derExp = () => {
+        let res = dy.mul(y.mul(base.log()).toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes(exp.shape, outShape);
+        if (reduceAxes.length > 0) {
+          res = res.sum(reduceAxes);
+        }
+        return res.reshape(exp.shape);
+      };
+      return {base: derBase, exp: derExp};
     };
     return ENV.engine.runKernel(
-               backend => backend.pow(base, exp), {base}, grad) as T;
+               (backend, save) => save(backend.pow(base, exp)), {base, exp},
+               grad) as T;
   }
 
   /**

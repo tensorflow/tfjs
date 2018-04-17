@@ -566,12 +566,16 @@ describeWithFlags('pow', ALL_ENVS, () => {
     const b = tf.scalar(2, 'int32');
     const dy = tf.scalar(3);
 
-    const grad = tf.grad(a => tf.pow(a, b));
-    const da = grad(a, dy);
+    const grads = tf.grads((a, b) => tf.pow(a, b));
+    const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
     expectArraysClose(da, [2 * 5 * 3]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [3 * Math.pow(5, 2) * Math.log(5)]);
   });
 
   it('gradients: Scalar ^ Scalar fractional exponent', () => {
@@ -579,12 +583,16 @@ describeWithFlags('pow', ALL_ENVS, () => {
     const b = tf.scalar(1.5);
     const dy = tf.scalar(3.0);
 
-    const grad = tf.grad(a => tf.pow(a, b));
-    const da = grad(a, dy);
+    const grads = tf.grads((a, b) => tf.pow(a, b));
+    const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
     expectArraysClose(da, [1.5 * Math.pow(4, 0.5) * 3]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [3.0 * Math.pow(4, 1.5) * Math.log(4.0)]);
   });
 
   it('gradients: Tensor ^ Tensor', () => {
@@ -592,8 +600,8 @@ describeWithFlags('pow', ALL_ENVS, () => {
     const b = tf.tensor1d([3, 2, -1], 'int32');
     const dy = tf.tensor1d([1, 5, 10]);
 
-    const grad = tf.grad(a => tf.pow(a, b));
-    const da = grad(a, dy);
+    const grads = tf.grads((a, b) => tf.pow(a, b));
+    const [da, db] = grads([a, b], dy);
 
     expect(da.shape).toEqual(a.shape);
     expect(da.dtype).toEqual('float32');
@@ -604,6 +612,81 @@ describeWithFlags('pow', ALL_ENVS, () => {
           -1 * Math.pow(2, -2) * 10
         ],
         1e-1);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [
+      NaN, 5 * Math.pow(.5, 2) * Math.log(.5),
+      10 * Math.pow(2, -1) * Math.log(2)
+    ]);
+  });
+
+  it('gradient: scalar / Tensor1D', () => {
+    const a = tf.scalar(2);
+    const b = tf.tensor1d([3, 4, 5]);
+    const dy = tf.tensor1d([6, 7, 8]);
+
+    const grads = tf.grads((a, b) => tf.pow(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [
+      6 * 3 * Math.pow(2, 2) + 7 * 4 * Math.pow(2, 3) + 8 * 5 * Math.pow(2, 4)
+    ]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [
+      6 * Math.pow(2, 3) * Math.log(2), 7 * Math.pow(2, 4) * Math.log(2),
+      8 * Math.pow(2, 5) * Math.log(2)
+    ]);
+  });
+
+  it('gradient: Tensor2D / scalar', () => {
+    const a = tf.tensor2d([[2, 3], [4, 5]], [2, 2]);
+    const b = tf.scalar(2);
+    const dy = tf.tensor2d([[6, 7], [8, 9]], [2, 2]);
+
+    const grads = tf.grads((a, b) => tf.pow(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [
+      6 * 2 * Math.pow(2, 1), 7 * 2 * Math.pow(3, 1), 8 * 2 * Math.pow(4, 1),
+      9 * 2 * Math.pow(5, 1)
+    ]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(
+        db,
+        [6 * Math.pow(2, 2) * Math.log(2) + 7 * Math.pow(3, 2) * Math.log(3) +
+         8 * Math.pow(4, 2) * Math.log(4) + 9 * Math.pow(5, 2) * Math.log(5)]);
+  });
+
+  it('gradient: Tensor2D / Tensor2D w/ broadcast', () => {
+    const a = tf.tensor2d([3, 4], [2, 1]);
+    const b = tf.tensor2d([[2, 3], [4, 5]], [2, 2]);
+    const dy = tf.tensor2d([[6, 7], [8, 9]], [2, 2]);
+
+    const grads = tf.grads((a, b) => tf.pow(a, b));
+    const [da, db] = grads([a, b], dy);
+
+    expect(da.shape).toEqual(a.shape);
+    expect(da.dtype).toEqual('float32');
+    expectArraysClose(da, [
+      6 * 2 * Math.pow(3, 1) + 7 * 3 * Math.pow(3, 2),
+      8 * 4 * Math.pow(4, 3) + 9 * 5 * Math.pow(4, 4)
+    ]);
+
+    expect(db.shape).toEqual(b.shape);
+    expect(db.dtype).toEqual('float32');
+    expectArraysClose(db, [
+      6 * Math.pow(3, 2) * Math.log(3), 7 * Math.pow(3, 3) * Math.log(3),
+      8 * Math.pow(4, 4) * Math.log(4), 9 * Math.pow(4, 5) * Math.log(4)
+    ]);
   });
 });
 
