@@ -258,8 +258,16 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   divide(a: Tensor, b: Tensor): Tensor {
-    return this.broadcastedBinaryOp(
-               a, b, 'float32', (aValue, bValue) => aValue / bValue) as Tensor;
+    let op: (a: number, b: number) => number;
+    let outputDtype: 'float32'|'int32';
+    if (a.dtype === 'int32' && b.dtype === 'int32') {
+      outputDtype = 'int32';
+      op = (a: number, b: number) => Math.floor(a / b);
+    } else {
+      outputDtype = 'float32';
+      op = (a: number, b: number) => a / b;
+    }
+    return this.broadcastedBinaryOp(a, b, outputDtype, op) as Tensor;
   }
 
   sum(x: Tensor, axes: number[]): Tensor {
