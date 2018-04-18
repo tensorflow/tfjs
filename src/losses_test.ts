@@ -12,7 +12,7 @@
  * Unit tests for activations.ts.
  */
 
-import {scalar, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import * as losses from './losses';
@@ -247,4 +247,9 @@ describe('losses get', () => {
       losses.get(lossName);
     });
   }
+
+  it(`get custom loss works`, () => {
+    const customLoss = (x: Tensor, y: Tensor) => scalar(42.0);
+    expect(losses.get(customLoss)).toEqual(customLoss);
+  });
 });

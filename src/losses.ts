@@ -137,7 +137,7 @@ export const cosine = cosineProximity;
 
 // Porting note: This diverges from the PyKeras implementation and may need to
 // change based on (de)serialization requirements.
-export function get(identifier: string): LossOrMetricFn {
+export function get(identifierOrFn: string|LossOrMetricFn): LossOrMetricFn {
   const lossesMap: {[functionName: string]: LossOrMetricFn} = {
     meanSquaredError,
     meanAbsoluteError,
@@ -154,8 +154,12 @@ export function get(identifier: string): LossOrMetricFn {
     poisson,
     cosineProximity
   };
-  if (identifier in lossesMap) {
-    return lossesMap[identifier];
+  if (typeof identifierOrFn === 'string') {
+    if (identifierOrFn in lossesMap) {
+      return lossesMap[identifierOrFn];
+    }
+    throw new ValueError(`Unknown loss ${identifierOrFn}`);
+  } else {
+    return identifierOrFn;
   }
-  throw new ValueError(`Unknown loss ${identifier}`);
 }
