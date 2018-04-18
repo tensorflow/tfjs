@@ -35,7 +35,7 @@ let backend: 'cpu'|'webgl' = 'webgl';
 
 const DEFAULT_DTYPE = DType.float32;
 
-function disposeScalarCache() {
+export function disposeScalarCache() {
   for (const typeKey in scalarCache) {
     for (const key in scalarCache[typeKey]) {
       scalarCache[typeKey][key].dispose();
@@ -1033,7 +1033,8 @@ export function oneHot(indices: Tensor, numClasses: number): Tensor {
         'Only 1D one-hot tensors are supported in the ' +
         'deeplearn backend, at present.');
   }
-  return tfc.oneHot(indices as Tensor1D, numClasses);
+  indices = indices.toInt();
+  return tfc.oneHot(indices as Tensor1D, numClasses).toFloat();
 }
 
 /* Elementary math functions. */
@@ -1074,7 +1075,9 @@ export function argmax(x: Tensor, axis = -1): Tensor {
 export function gather(
     reference: Tensor, indices: number[]|Tensor1D, axis?: number): Tensor {
   if (Array.isArray(indices)) {
-    indices = tensor1d(indices);
+    indices = tensor1d(indices, 'int32');
+  } else {
+    indices = indices.toInt();
   }
   return tfc.gather(reference, indices, axis);
 }
@@ -1828,8 +1831,8 @@ export function categoricalCrossentropy(
     output = divide(output, outputSum);
   }
   output = clip(output, epsilon(), 1 - epsilon());
-  return tfc.neg(
-      tfc.sum(tfc.mul(target, tfc.log(output)), shape(output).length - 1));
+  return tfc.neg(tfc.sum(
+      tfc.mul(target.toFloat(), tfc.log(output)), shape(output).length - 1));
 }
 
 /**
@@ -1843,7 +1846,7 @@ export function categoricalCrossentropy(
  */
 export function sparseCategoricalCrossentropy(
     target: Tensor, output: Tensor, fromLogits = false): Tensor {
-  const flatTarget = tfc.floor(flatten(target)) as Tensor1D;
+  const flatTarget = tfc.floor(flatten(target)).toInt() as Tensor1D;
   const outputShape = shape(output);
   const oneHotTarget = reshape(
       tfc.oneHot(flatTarget, outputShape[outputShape.length - 1]), outputShape);

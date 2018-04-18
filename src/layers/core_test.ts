@@ -52,47 +52,49 @@ describe('Dropout Layer: Symbolic', () => {
   }
 });
 
-describeMathCPUAndGPU('Dropout Layer: Tensor', () => {
-  const inputShape = [2, 3, 4];
-  const trainingValues = [false, true];
-  const dropoutRates = [0, 0.5];
-  const noiseShapes = [null, inputShape];
-  // TODO(cais): test non-default noiseShapes once they are supported.
+describeMathCPUAndGPU('Dropout Layer', () => {
+  it('tensor', () => {
+    const inputShape = [2, 3, 4];
+    const trainingValues = [false, true];
+    const dropoutRates = [0, 0.5];
+    const noiseShapes = [null, inputShape];
+    // TODO(cais): test non-default noiseShapes once they are supported.
 
-  for (const training of trainingValues) {
-    for (const rate of dropoutRates) {
-      for (const noiseShape of noiseShapes) {
-        const testTitle = `training=${training}, dropoutRate=${rate}, ` +
-            `noiseShape=${JSON.stringify(noiseShape)}`;
-        it(testTitle, () => {
-          const x = K.ones(inputShape);
-          const dropoutLayer = new Dropout({rate, noiseShape});
-          const y = dropoutLayer.apply(x, {training}) as Tensor;
-          expect(x.dtype).toEqual(y.dtype);
-          expect(x.shape).toEqual(y.shape);
-          const xValue = x.dataSync();
-          const yValue = y.dataSync();
-          let nKept = 0;
-          for (let i = 0; i < xValue.length; ++i) {
-            if (yValue[i] !== 0) {
-              nKept++;
-              if (training) {
-                expect(yValue[i]).toBeCloseTo(1 / (1 - rate));
-              } else {
-                expect(yValue[i]).toBeCloseTo(1);
+    for (const training of trainingValues) {
+      for (const rate of dropoutRates) {
+        for (const noiseShape of noiseShapes) {
+          const testTitle = `training=${training}, dropoutRate=${rate}, ` +
+              `noiseShape=${JSON.stringify(noiseShape)}`;
+          it(testTitle, () => {
+            const x = K.ones(inputShape);
+            const dropoutLayer = new Dropout({rate, noiseShape});
+            const y = dropoutLayer.apply(x, {training}) as Tensor;
+            expect(x.dtype).toEqual(y.dtype);
+            expect(x.shape).toEqual(y.shape);
+            const xValue = x.dataSync();
+            const yValue = y.dataSync();
+            let nKept = 0;
+            for (let i = 0; i < xValue.length; ++i) {
+              if (yValue[i] !== 0) {
+                nKept++;
+                if (training) {
+                  expect(yValue[i]).toBeCloseTo(1 / (1 - rate));
+                } else {
+                  expect(yValue[i]).toBeCloseTo(1);
+                }
               }
             }
-          }
-          const numel = K.countParams(x);
-          if (rate === 0 || !training) {
-            expect(nKept).toEqual(numel);
-          } else {
-            expect(nKept).toBeLessThan(numel);
-          }
-        });
+            const numel = K.countParams(x);
+            if (rate === 0 || !training) {
+              expect(nKept).toEqual(numel);
+            } else {
+              expect(nKept).toBeLessThan(numel);
+            }
+          });
+        }
       }
     }
-  }
+  });
 });
 
 describeMathCPU('Dense Layer: Symbolic', () => {

@@ -10,7 +10,6 @@
 
 // tslint:disable:max-line-length
 import {scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
-
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import * as initializers from '../initializers';
@@ -370,7 +369,7 @@ describeMathCPU('Layer', () => {
        });
   }
 
-  describeMathCPU('assertInputCompatibility()', () => {
+  describe('assertInputCompatibility()', () => {
     function runAssert(
         layer: Layer, inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[]) {
       // tslint:disable-next-line:no-any
@@ -588,7 +587,7 @@ describeMathCPU('Layer', () => {
        expect(results.map(x => x.outputTensorIndex)).toEqual([0, 1]);
      });
 
-  describeMathCPUAndGPU('apply() passed 1+ Tensors', () => {
+  describe('apply() passed 1+ Tensors', () => {
     it('returns new values for output if the same as the input.', () => {
       const anArray = K.ones([1]);
       // Test with both an Tensor and an array of Tensors.
@@ -614,7 +613,7 @@ describeMathCPU('Layer', () => {
     });
   });
 
-  describeMathCPUAndGPU('initialized with weights at construction time', () => {
+  describe('initialized with weights at construction time', () => {
     it('sets those weights after calling apply().', () => {
       const initialWeights = K.eye(2);
       const arrayInput = K.zeros([1]);
