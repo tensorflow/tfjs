@@ -27,10 +27,22 @@ export const ADD = 'return a + b;';
 export const SUB = 'return a - b;';
 export const MUL = 'return a * b;';
 export const DIV = 'return a / b;';
-// Round and cast to float to deal with imprecision and then floor to implement
-// floordiv.
+
+// We use native integer division to deal with floating point imprecision. Since
+// we implement floor division and glsl implements truncated division, we
+// correct for this by subtracting 1 from result when the result is negative and
+// there is a remainder.
 export const INT_DIV = `
-  return floor(float(round(a)) / float(round(b)));
+  float resultSign = sign(a) * sign(b);
+  int ia = round(a);
+  int ib = round(b);
+  int result = ia / ib;
+  int amodb = ia - ib * result;
+
+  if (resultSign < 0.0 && amodb != 0) {
+    result -= 1;
+  }
+  return float(result);
 `;
 
 export const POW = `
