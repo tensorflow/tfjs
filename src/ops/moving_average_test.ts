@@ -1,0 +1,145 @@
+/**
+ * @license
+ * Copyright 2017 Google Inc. All Rights Reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+
+// tslint:disable:max-line-length
+import * as tf from '../index';
+
+import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {MovingAverageOps} from './moving_average';
+// tslint:enable:max-line-length
+
+describeWithFlags('movingAverage', ALL_ENVS, () => {
+  // Use the following tensorflow to generate reference values for
+  // `zeroDebias` = `true`;
+  //
+  // ```python
+  // import tensorflow as tf
+  // from tensorflow.python.training.moving_averages import
+  // assign_moving_average
+  //
+  // with tf.Session() as sess:
+  //   v = tf.get_variable("v1", shape=[2, 2], dtype=tf.float32,
+  //                       initializer=tf.zeros_initializer)
+  //   x = tf.Variable([[1.0, 2.0], [3.0, 4.0]])
+  //   inc_x = x.assign_add([[10.0, 10.0], [10.0, 10.0]])
+  //   update = assign_moving_average(v, x, 0.6)
+  //
+  //   sess.run(tf.global_variables_initializer())
+  //
+  //   sess.run(update)
+  //   print(sess.run(v))
+  //
+  //   sess.run(inc_x)
+  //   sess.run(update)
+  //   print(sess.run(v))
+  // ```
+
+  it('zeroDebias=true, decay and step are numbers', () => {
+    const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const decay = 0.6;
+
+    const v1 = MovingAverageOps.movingAverage(v0, x, decay, 1);
+    expectArraysClose(v1, tf.tensor2d([[1, 2], [3, 4]], [2, 2]));
+
+    const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
+    const v2 = MovingAverageOps.movingAverage(v1, y, decay, 2);
+    expectArraysClose(v2, tf.tensor2d([[7.25, 8.25], [9.25, 10.25]], [2, 2]));
+  });
+
+  it('zeroDebias=true, decay and step are scalars', () => {
+    const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const decay = tf.scalar(0.6);
+
+    const v1 = MovingAverageOps.movingAverage(v0, x, decay, tf.scalar(1));
+    expectArraysClose(v1, tf.tensor2d([[1, 2], [3, 4]], [2, 2]));
+
+    const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
+    const v2 = MovingAverageOps.movingAverage(v1, y, decay, tf.scalar(2));
+    expectArraysClose(v2, tf.tensor2d([[7.25, 8.25], [9.25, 10.25]], [2, 2]));
+  });
+
+  // Use the following tensorflow to generate reference values for
+  // `zeroDebias` = `false`;
+  //
+  // ```python
+  // import tensorflow as tf
+  // from tensorflow.python.training.moving_averages import
+  // assign_moving_average
+  //
+  // with tf.Session() as sess:
+  //   v = tf.get_variable("v1", shape=[2, 2], dtype=tf.float32,
+  //                       initializer=tf.zeros_initializer)
+  //   x = tf.Variable([[1.0, 2.0], [3.0, 4.0]])
+  //   inc_x = x.assign_add([[10.0, 10.0], [10.0, 10.0]])
+  //   update = assign_moving_average(v, x, 0.6, zero_debias=False)
+  //
+  //   sess.run(tf.global_variables_initializer())
+  //
+  //   sess.run(update)
+  //   print(sess.run(v))
+  //
+  //   sess.run(inc_x)
+  //   sess.run(update)
+  //   print(sess.run(v))
+  // ```
+
+  it('zeroDebias=false, decay and step are numbers', () => {
+    const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const decay = 0.6;
+
+    const v1 = MovingAverageOps.movingAverage(v0, x, decay, null, false);
+    expectArraysClose(v1, tf.tensor2d([[0.4, 0.8], [1.2, 1.6]], [2, 2]));
+
+    const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
+    const v2 = MovingAverageOps.movingAverage(v1, y, decay, null, false);
+    expectArraysClose(v2, tf.tensor2d([[4.64, 5.28], [5.92, 6.56]], [2, 2]));
+  });
+
+  it('zeroDebias=false, decay is scalar', () => {
+    const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const decay = tf.scalar(0.6);
+
+    const v1 = MovingAverageOps.movingAverage(v0, x, decay, null, false);
+    expectArraysClose(v1, tf.tensor2d([[0.4, 0.8], [1.2, 1.6]], [2, 2]));
+
+    const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
+    const v2 = MovingAverageOps.movingAverage(v1, y, decay, null, false);
+    expectArraysClose(v2, tf.tensor2d([[4.64, 5.28], [5.92, 6.56]], [2, 2]));
+  });
+
+  it('zeroDebias=true, no step throws error', () => {
+    const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const decay = tf.scalar(0.6);
+
+    expect(() => MovingAverageOps.movingAverage(v0, x, decay, null))
+        .toThrowError();
+  });
+
+  it('shape mismatch in v and x throws error', () => {
+    const v0 = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const x = tf.tensor2d([[1, 2]], [1, 2]);
+    const decay = tf.scalar(0.6);
+
+    expect(() => MovingAverageOps.movingAverage(v0, x, decay, null))
+        .toThrowError();
+  });
+});
