@@ -18,7 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {Rank, ShapeMap} from '../types';
+import {Rank} from '../types';
 import * as util from '../util';
 import {operation} from './operation';
 import * as slice_util from './slice_util';
@@ -96,19 +96,50 @@ export class SliceOps {
    * x.slice([1, 0], [1, 2]).print();
    * ```
    * @param x The input `Tensor` to slice from.
-   * @param begin The coordinates to start the slice from. The length of this
-   *     array should match the rank of `x`.
-   * @param size The size of the slice. The length of this array should match
-   *     the rank of `x`.
+   * @param begin The coordinates to start the slice from. The length can be
+   *     less than the rank of x - the rest of the axes will have implicit 0 as
+   *     start. Can also be a single number, in which case it specifies the
+   *     first axis.
+   * @param size The size of the slice. The length can be less than the rank of
+   *     x - the rest of the axes will have implicit -1. A value of -1 requests
+   *     the rest of the dimensions in the axis. Can also be a single number,
+   *     in which case it specifies the size of the first axis.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice<R extends Rank, T extends Tensor<R>>(
-      x: T, begin: ShapeMap[R], size: ShapeMap[R]): T {
-    slice_util.assertParamsValid(x, begin, size);
+      x: T, begin: number | number[], size?: number | number[]): T {
     if (x.rank === 0) {
       throw new Error('Slicing scalar is not possible');
     }
+    // The following logic allows for more ergonomic calls.
+    let begin_: number[];
+    if (typeof begin === 'number') {
+      begin_ = [begin, ...new Array(x.rank - 1).fill(0)];
+    } else if (begin.length < x.rank) {
+      begin_ = begin.concat(new Array(x.rank - begin.length).fill(0));
+    } else {
+      begin_ = begin;
+    }
+    let size_: number[];
+    if (size == null) {
+      size_ = new Array(x.rank).fill(-1);
+    } else if (typeof size === 'number') {
+      size_ = [size, ...new Array(x.rank - 1).fill(-1)];
+    } else if (size.length < x.rank) {
+      size_ = size.concat(new Array(x.rank - size.length).fill(-1));
+    } else {
+      size_ = size;
+    }
+    size_ = size_.map((d, i) => {
+      if (d >= 0) {
+        return d;
+      } else {
+        util.assert(d === -1, 'Bad value in size');
+        return x.shape[i] - begin_[i];
+      }
+    });
+    slice_util.assertParamsValid(x, begin_, size_);
     const inputShape = x.shape;
     const grad = (dy: T) => {
       // Create an Nx2 padding where the first column represents how many
@@ -119,11 +150,11 @@ export class SliceOps {
       // elementwise-subtracted by both the begin vector and sizes vector.
       const paddings: Array<[number, number]> = [];
       for (let i = 0; i < dy.rank; i++) {
-        paddings.push([begin[i], inputShape[i] - begin[i] - size[i]]);
+        paddings.push([begin_[i], inputShape[i] - begin_[i] - size_[i]]);
       }
       return {x: () => dy.pad(paddings)};
     };
     return ENV.engine.runKernel(
-               backend => backend.slice(x, begin, size), {x}, grad) as T;
+               backend => backend.slice(x, begin_, size_), {x}, grad) as T;
   }
 }
