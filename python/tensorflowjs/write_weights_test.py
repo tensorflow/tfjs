@@ -370,5 +370,6 @@ class TestWriteWeights(unittest.TestCase):
     with self.assertRaises(Exception):
       write_weights.write_weights(groups, TMP_DIR)
 
+
 if __name__ == '__main__':
   unittest.main()

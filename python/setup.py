@@ -55,10 +55,12 @@ setuptools.setup(
     py_modules=[
         'tensorflowjs',
         'tensorflowjs.version',
+        'tensorflowjs.read_weights',
         'tensorflowjs.write_weights',
         'tensorflowjs.converters',
         'tensorflowjs.converters.converter',
         'tensorflowjs.converters.keras_h5_conversion',
+        'tensorflowjs.converters.keras_tfjs_loader',
         'tensorflowjs.converters.tf_saved_model_conversion',
     ],
     include_package_data=True,

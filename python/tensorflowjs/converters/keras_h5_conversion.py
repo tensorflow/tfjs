@@ -41,6 +41,16 @@ ARTIFACT_MODEL_TOPOLOGY_KEY = 'modelTopology'
 ARTIFACT_WEIGHTS_MANIFEST_KEY = 'weightsManifest'
 
 
+def normalize_weight_name(weight_name):
+  """Remove suffix ":0" (if present) from weight name."""
+  name = as_text(weight_name)
+  if name.endswith(':0'):
+    # Python TensorFlow weight names ends with the output slot, which is
+    # not applicable to TensorFlow.js.
+    name = name[:-2]
+  return name
+
+
 def as_text(bytes_or_text, encoding='utf-8'):
   if isinstance(bytes_or_text, six.text_type):
     return bytes_or_text
@@ -57,14 +67,6 @@ class HDF5Converter(object):
   Used primarily to allow easy migration of a Python Keras trained
   and saved model to a JSON format for use in js based implementations.
   """
-
-  def _normalize_weight_name(self, weight_name):
-    name = as_text(weight_name)
-    if name.endswith(':0'):
-      # Python TensorFlow weight names ends with the output slot, which is
-      # not applicable to TensorFlow.js.
-      name = name[:-2]
-    return name
 
   def _convert_h5_group(self, group):
     """Construct a weights group entry.
@@ -86,7 +88,7 @@ class HDF5Converter(object):
       weight_values = [
           np.array(group[weight_name]) for weight_name in names]
       group_out += [{
-          'name': self._normalize_weight_name(weight_name),
+          'name': normalize_weight_name(weight_name),
           'data': weight_value
       } for (weight_name, weight_value) in zip(names, weight_values)]
     else:
