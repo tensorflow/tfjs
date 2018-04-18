@@ -285,6 +285,10 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(() => tf.tensor2d([[1, 2, 3], [4, 5, 6]], [3, 2])).toThrowError();
   });
 
+  it('tf.tensor2d() from number[], but no shape throws error', () => {
+    expect(() => tf.tensor2d([1, 2, 3, 4])).toThrowError();
+  });
+
   it('tensor3d() from number[][][]', () => {
     const a = tf.tensor3d([[[1], [2], [3]], [[4], [5], [6]]], [2, 3, 1]);
     expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
@@ -294,6 +298,10 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     const values = [[[1], [2], [3]], [[4], [5], [6]]];
     // Actual shape is [2, 3, 1].
     expect(() => tf.tensor3d(values, [3, 2, 1])).toThrowError();
+  });
+
+  it('tf.tensor3d() from number[], but no shape throws error', () => {
+    expect(() => tf.tensor3d([1, 2, 3, 4])).toThrowError();
   });
 
   it('tensor4d() from number[][][][]', () => {
@@ -307,6 +315,10 @@ describeWithFlags('tensor', ALL_ENVS, () => {
       tf.tensor4d([[[[1]], [[2]]], [[[4]], [[5]]]], [2, 1, 2, 1]);
     };
     expect(f).toThrowError();
+  });
+
+  it('tf.tensor4d() from number[], but no shape throws error', () => {
+    expect(() => tf.tensor4d([1, 2, 3, 4])).toThrowError();
   });
 
   it('default dtype', () => {
