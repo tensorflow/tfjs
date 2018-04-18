@@ -117,8 +117,7 @@ export class ArrayOps {
   static tensor1d(values: TensorLike1D, dtype: DataType = 'float32'): Tensor1D {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 1) {
-      throw new Error(
-          'Error creating a new Tensor1D: values must be a flat/TypedArray');
+      throw new Error('tensor1d() requires values to be a flat/TypedArray');
     }
     return ArrayOps.tensor(values, inferredShape as [number], dtype);
   }
@@ -151,8 +150,12 @@ export class ArrayOps {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 2 && inferredShape.length !== 1) {
       throw new Error(
-          'Error creating a new Tensor2D: values must be number[][] ' +
-          'or flat/TypedArray');
+          'tensor2d() requires values to be number[][] or flat/TypedArray');
+    }
+    if (inferredShape.length === 1 && shape == null) {
+      throw new Error(
+          'tensor2d() requires shape to be provided when `values` ' +
+          'are a flat/TypedArray');
     }
     shape = shape || inferredShape as [number, number];
     return ArrayOps.tensor(values, shape, dtype);
@@ -186,8 +189,12 @@ export class ArrayOps {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 3 && inferredShape.length !== 1) {
       throw new Error(
-          'Error creating a new Tensor3D: values must be number[][][]' +
-          'or flat/TypedArray');
+          'tensor3d() requires values to be number[][][] or flat/TypedArray');
+    }
+    if (inferredShape.length === 1 && shape == null) {
+      throw new Error(
+          'tensor3d() requires shape to be provided when `values` ' +
+          'are a flat array');
     }
     shape = shape || inferredShape as [number, number, number];
     return ArrayOps.tensor(values, shape, dtype);
@@ -221,8 +228,12 @@ export class ArrayOps {
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 4 && inferredShape.length !== 1) {
       throw new Error(
-          'Error creating a new Tensor4D: values must be number[][][][]' +
-          'or flat/TypedArray');
+          'tensor4d() requires values to be number[][][][] or flat/TypedArray');
+    }
+    if (inferredShape.length === 1 && shape == null) {
+      throw new Error(
+          'tensor4d() requires shape to be provided when `values` ' +
+          'are a flat array');
     }
     shape = shape || inferredShape as [number, number, number, number];
     return ArrayOps.tensor(values, shape, dtype);
