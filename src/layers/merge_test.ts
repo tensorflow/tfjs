@@ -16,8 +16,11 @@
 import {Tensor, Tensor2D, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Input, Layer} from '../engine/topology';
+import {Model} from '../engine/training';
+import {deserialize} from '../layers/serialization';
 import {DType, Shape} from '../types';
-import {SymbolicTensor} from '../types';
+import {ConfigDict, SymbolicTensor} from '../types';
+import {convertPythonicToTs} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Add, add, Average, average, Concatenate, concatenate, Maximum, maximum, Minimum, minimum, Multiply, multiply} from './merge';
@@ -375,4 +378,138 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
       expectTensorsClose(layer.apply([x1, x2]) as Tensor, expected);
     });
   }
+});
+
+describeMathCPU('Deserialize Merge Layers', () => {
+  it('Model with Add Layer', () => {
+    // The following model config JSON can be obtained with Python code:
+    // ```python
+    // import keras
+    //
+    // input1 = keras.Input(shape=[4])
+    // input2 = keras.Input(shape=[4])
+    //
+    // output = keras.layers.add([input1, input2])
+    // model = keras.Model([input1, input2], output)
+    //
+    // model_json = model.to_json()
+    // print(model_json)
+
+    const modelWithMergeJSON: {} = {
+      'class_name': 'Model',
+      'keras_version': '2.1.5',
+      'config': {
+        'layers': [
+          {
+            'class_name': 'InputLayer',
+            'config': {
+              'dtype': 'float32',
+              'batch_input_shape': [null, 4],
+              'name': 'input_1',
+              'sparse': false
+            },
+            'inbound_nodes': [],
+            'name': 'input_1'
+          },
+          {
+            'class_name': 'InputLayer',
+            'config': {
+              'dtype': 'float32',
+              'batch_input_shape': [null, 4],
+              'name': 'input_2',
+              'sparse': false
+            },
+            'inbound_nodes': [],
+            'name': 'input_2'
+          },
+          {
+            'class_name': 'Add',
+            'config': {'trainable': true, 'name': 'add_1'},
+            'inbound_nodes': [[['input_1', 0, 0, {}], ['input_2', 0, 0, {}]]],
+            'name': 'add_1'
+          }
+        ],
+        'input_layers': [['input_1', 0, 0], ['input_2', 0, 0]],
+        'output_layers': [['add_1', 0, 0]],
+        'name': 'model_1'
+      },
+      'backend': 'tensorflow'
+    };
+
+    const tsConfig = convertPythonicToTs(modelWithMergeJSON) as ConfigDict;
+    const model = deserialize(tsConfig) as Model;
+    expect(model.inputs.length).toEqual(2);
+    expect(model.inputs[0].shape).toEqual([null, 4]);
+    expect(model.inputs[1].shape).toEqual([null, 4]);
+    expect(model.layers.length).toEqual(3);
+    expect(model.layers[2] instanceof Add);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 4]);
+  });
+
+  it('Model with Concatenate Layer', () => {
+    // The following model config JSON can be obtained with Python code:
+    // ```python
+    // import keras
+    //
+    // input1 = keras.Input(shape=[4])
+    // input2 = keras.Input(shape=[4])
+    //
+    // output = keras.layers.concatenate([input1, input2])
+    // model = keras.Model([input1, input2], output)
+    //
+    // model_json = model.to_json()
+    // print(model_json)
+
+    const modelWithMergeJSON: {} = {
+      'class_name': 'Model',
+      'keras_version': '2.1.5',
+      'config': {
+        'layers': [
+          {
+            'class_name': 'InputLayer',
+            'config': {
+              'dtype': 'float32',
+              'batch_input_shape': [null, 4],
+              'name': 'input_1',
+              'sparse': false
+            },
+            'inbound_nodes': [],
+            'name': 'input_1'
+          },
+          {
+            'class_name': 'InputLayer',
+            'config': {
+              'dtype': 'float32',
+              'batch_input_shape': [null, 4],
+              'name': 'input_2',
+              'sparse': false
+            },
+            'inbound_nodes': [],
+            'name': 'input_2'
+          },
+          {
+            'class_name': 'Concatenate',
+            'config': {'trainable': true, 'name': 'concatenate_1', 'axis': -1},
+            'inbound_nodes': [[['input_1', 0, 0, {}], ['input_2', 0, 0, {}]]],
+            'name': 'concatenate_1'
+          }
+        ],
+        'input_layers': [['input_1', 0, 0], ['input_2', 0, 0]],
+        'output_layers': [['concatenate_1', 0, 0]],
+        'name': 'model_1'
+      },
+      'backend': 'tensorflow'
+    };
+
+    const tsConfig = convertPythonicToTs(modelWithMergeJSON) as ConfigDict;
+    const model = deserialize(tsConfig) as Model;
+    expect(model.inputs.length).toEqual(2);
+    expect(model.inputs[0].shape).toEqual([null, 4]);
+    expect(model.inputs[1].shape).toEqual([null, 4]);
+    expect(model.layers.length).toEqual(3);
+    expect(model.layers[2] instanceof Concatenate);
+    expect(model.outputs.length).toEqual(1);
+    expect(model.outputs[0].shape).toEqual([null, 8]);
+  });
 });
