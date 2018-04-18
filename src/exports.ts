@@ -22,7 +22,7 @@ import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identit
 import {ELU, ELULayerConfig, LeakyReLU, LeakyReLULayerConfig, Softmax, SoftmaxLayerConfig, ThresholdedReLU, ThresholdedReLULayerConfig} from './layers/advanced_activations';
 import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerConfig, SeparableConv2D, SeparableConvLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
-import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig} from './layers/core';
+import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig, Reshape, ReshapeLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
 import {Add, Average, Concatenate, ConcatenateLayerConfig, Maximum, Minimum, Multiply} from './layers/merge';
 import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normalization';
@@ -350,6 +350,17 @@ export class LayerExports {
   })
   static repeatVector(config: RepeatVectorLayerConfig): Layer {
     return new RepeatVector(config);
+  }
+
+  @doc({
+    heading: 'Layers',
+    subheading: 'Basic',
+    namespace: 'layers',
+    useDocsFrom: 'Reshape',
+    configParamIndices: [0]
+  })
+  static reshape(config: ReshapeLayerConfig): Layer {
+    return new Reshape(config);
   }
 
   @doc({
