@@ -54,6 +54,8 @@ import {PadProgram} from './webgl/pad_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceProgram} from './webgl/reduce_gpu';
 import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
+// tslint:disable-next-line:max-line-length
+import {ResizeNearestNeighborProgram} from "./webgl/resize_nearest_neighbor_gpu";
 import {ReverseProgram} from './webgl/reverse_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
 import {TextureData, TextureType} from './webgl/tex_util';
@@ -874,6 +876,15 @@ export class MathBackendWebGL implements KernelBackend {
     const program =
         new ResizeBilinearProgram(x.shape, newHeight, newWidth, alignCorners);
     return this.compileAndRun(program, [x]);
+  }
+
+  resizeNearestNeighbor(
+      x: Tensor4D, newHeight: number, newWidth: number,
+      alignCorners: boolean): Tensor4D {
+      const program =
+          new ResizeNearestNeighborProgram(x.shape, newHeight,
+              newWidth, alignCorners);
+      return this.compileAndRun(program, [x]);
   }
 
   multinomial(

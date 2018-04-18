@@ -186,6 +186,10 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D;
 
+  resizeNearestNeighbor(
+      x: Tensor4D, newHEight: number, newWidth: number,
+      alignCorners: boolean): Tensor4D;
+
   batchNormalization(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
