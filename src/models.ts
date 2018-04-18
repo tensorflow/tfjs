@@ -484,6 +484,7 @@ export class Sequential extends Model {
    *   batchSize: 4,
    *   epochs: 3
    * });
+   * console.log(history.history.loss);
    * ```
    *
    * @param x `Tensor` of training data, or an array of `Tensor`s if the model
