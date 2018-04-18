@@ -42,6 +42,15 @@ py_library(
 )
 
 py_library(
+    name = "read_weights",
+    srcs = ["read_weights.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":expect_numpy_installed",
+    ],
+)
+
+py_library(
     name = "version",
     srcs = ["version.py"],
     srcs_version = "PY2AND3",
@@ -54,6 +63,17 @@ py_test(
     srcs_version = "PY2AND3",
     deps = [
         ":expect_numpy_installed",
+        ":write_weights",
+    ],
+)
+
+py_test(
+    name = "read_weights_test",
+    srcs = ["read_weights_test.py"],
+    srcs_version = "PY2AND3",
+    deps = [
+        ":expect_numpy_installed",
+        ":read_weights",
         ":write_weights",
     ],
 )

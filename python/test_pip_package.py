@@ -93,7 +93,7 @@ def _createTensorFlowSavedModel(name_scope, save_path):
     builder.save()
 
 
-class APIAndShellTest(unittest.TestCase):
+class APIAndShellTest(tf.test.TestCase):
   """Tests for the Python API of the pip package."""
 
   @classmethod
@@ -111,7 +111,7 @@ class APIAndShellTest(unittest.TestCase):
     # Make sure this file is not being run from the source directory, to
     # avoid picking up source files.
     if os.path.isdir(
-            os.path.join(os.path.dirname(__file__), 'tensorflowjs')):
+        os.path.join(os.path.dirname(__file__), 'tensorflowjs')):
       self.fail('Do not run this test from the Python source directory. '
                 'This file is intended to be run on pip install.')
 
@@ -127,43 +127,64 @@ class APIAndShellTest(unittest.TestCase):
     self.assertEqual(2, tfjs.__version__.count('.'))
 
   def testSaveKerasModel(self):
-    # First create a toy keras model.
-    model = _createKerasModel('MergedDense')
+    with self.test_session():
+      # First create a toy keras model.
+      model = _createKerasModel('MergedDense')
 
-    tfjs.converters.save_keras_model(model, self._tmp_dir)
+      tfjs.converters.save_keras_model(model, self._tmp_dir)
 
-    # Briefly check the model topology.
-    json_content = json.load(
-        open(os.path.join(self._tmp_dir, 'model.json')))
-    model_json = json_content['modelTopology']
-    self.assertIsInstance(model_json['model_config'], dict)
-    self.assertIsInstance(model_json['model_config']['config'], dict)
-    self.assertIn('layers', model_json['model_config']['config'])
+      # Briefly check the model topology.
+      json_content = json.load(
+          open(os.path.join(self._tmp_dir, 'model.json')))
+      model_json = json_content['modelTopology']
+      self.assertIsInstance(model_json['model_config'], dict)
+      self.assertIsInstance(model_json['model_config']['config'], dict)
+      self.assertIn('layers', model_json['model_config']['config'])
 
-    weights_manifest = json_content['weightsManifest']
-    self.assertIsInstance(weights_manifest, list)
+      weights_manifest = json_content['weightsManifest']
+      self.assertIsInstance(weights_manifest, list)
 
-    # Briefly check the weights manifest.
-    weight_shapes = dict()
-    weight_dtypes = dict()
-    for manifest_item in weights_manifest:
-      for weight in manifest_item['weights']:
-        weight_name = weight['name']
-        weight_shapes[weight_name] = weight['shape']
-        weight_dtypes[weight_name] = weight['dtype']
+      # Briefly check the weights manifest.
+      weight_shapes = dict()
+      weight_dtypes = dict()
+      for manifest_item in weights_manifest:
+        for weight in manifest_item['weights']:
+          weight_name = weight['name']
+          weight_shapes[weight_name] = weight['shape']
+          weight_dtypes[weight_name] = weight['dtype']
 
-    self.assertEqual(
-        sorted(list(weight_shapes.keys())),
-        sorted([
-            'MergedDense1/kernel', 'MergedDense1/bias',
-            'MergedDense2/kernel'
-        ]))
-    self.assertEqual(weight_shapes['MergedDense1/kernel'], [3, 4])
-    self.assertEqual(weight_shapes['MergedDense1/bias'], [4])
-    self.assertEqual(weight_shapes['MergedDense2/kernel'], [4, 2])
-    self.assertEqual(weight_dtypes['MergedDense1/kernel'], 'float32')
-    self.assertEqual(weight_dtypes['MergedDense1/bias'], 'float32')
-    self.assertEqual(weight_dtypes['MergedDense2/kernel'], 'float32')
+      self.assertEqual(
+          sorted(list(weight_shapes.keys())),
+          sorted([
+              'MergedDense1/kernel', 'MergedDense1/bias',
+              'MergedDense2/kernel'
+          ]))
+      self.assertEqual(weight_shapes['MergedDense1/kernel'], [3, 4])
+      self.assertEqual(weight_shapes['MergedDense1/bias'], [4])
+      self.assertEqual(weight_shapes['MergedDense2/kernel'], [4, 2])
+      self.assertEqual(weight_dtypes['MergedDense1/kernel'], 'float32')
+      self.assertEqual(weight_dtypes['MergedDense1/bias'], 'float32')
+      self.assertEqual(weight_dtypes['MergedDense2/kernel'], 'float32')
+
+  def testLoadKerasModel(self):
+    # Use separate tf.Graph and tf.Session contexts to prevent name collision.
+    with tf.Graph().as_default(), tf.Session():
+      # First create a toy keras model.
+      model1 = _createKerasModel('MergedDense')
+      tfjs.converters.save_keras_model(model1, self._tmp_dir)
+      model1_weight_values = model1.get_weights()
+
+    with tf.Graph().as_default(), tf.Session():
+      # Load the model from saved artifacts.
+      model2 = tfjs.converters.load_keras_model(
+          os.path.join(self._tmp_dir, 'model.json'))
+
+      # Compare the loaded model with the original one.
+      model2_weight_values = model2.get_weights()
+      self.assertEqual(len(model1_weight_values), len(model2_weight_values))
+      for model1_weight_value, model2_weight_value in zip(
+          model1_weight_values, model2_weight_values):
+        self.assertAllClose(model1_weight_value, model2_weight_value)
 
   def testConvertTensorFlowSavedModel(self):
     output_dir = os.path.join(self._tmp_dir, 'tensorflowjs_model')
