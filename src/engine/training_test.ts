@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, zeros} from '@tensorflow/tfjs-core';
+import {abs, mean, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
@@ -411,6 +411,54 @@ describeMathCPUAndGPU('Model.fit', () => {
              done.fail(err.stack);
            });
      });
+
+  it('training with custom loss', async done => {
+    // Use the following Python code snippet to get reference values
+    // for assertion:
+    //
+    // ```python
+    // import keras
+    // import keras.backend as K;
+    // import numpy as np
+    //
+    // def abs_diff_loss(x, y):
+    //   return K.mean(K.abs(x - y))
+    //
+    // input1 = keras.Input(shape=[4])
+    // layer = keras.layers.Dense(
+    //     units=1, use_bias=False, kernel_initializer='ones')
+    // output = layer(input1)
+    // model = keras.Model(input1, output)
+    // model.compile(optimizer='SGD', loss=abs_diff_loss)
+    // inputs = np.ones([5, 4])
+    // targets = np.ones([5])
+    // history = model.fit(
+    //     inputs, targets, batch_size=5, epochs=2,
+    //     validation_split=0.2)
+    // print(history.history)
+    // ```
+
+    createDenseModelAndData();
+
+    const absDiffLoss = (x: Tensor, y: Tensor) => mean(abs(x.sub(y)));
+
+    model.compile({optimizer: 'SGD', loss: absDiffLoss});
+    // Use batchSize === numSamples to get exactly one batch.
+    model
+        .fit(
+            inputs, targets,
+            {batchSize: numSamples, epochs: 2, validationSplit: 0.2})
+        .then(history => {
+          test_util.expectArraysClose(
+              history.history['loss'] as number[], [3, 2.96]);
+          test_util.expectArraysClose(
+              history.history['val_loss'] as number[], [2.96, 2.92]);
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
 
   it('Using only x and y input arguments', async done => {
     createDenseModelAndData();

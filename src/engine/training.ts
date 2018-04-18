@@ -325,8 +325,8 @@ export function sliceArraysByIndices(
   } else {
     // TODO(cais): indices should be oa pre-constructed Tensor1D to avoid
     //   tensor1d() calls.
-    return K.gather(arrays,
-        indices.dtype === 'int32' ? indices : indices.toInt());
+    return K.gather(
+        arrays, indices.dtype === 'int32' ? indices : indices.toInt());
   }
 }
 
@@ -589,13 +589,14 @@ export interface ModelCompileConfig {
   optimizer: string|Optimizer;
 
   /**
-   * String (name of objective function) or objective function.
+   * Object function(s) or name(s) of object function(s).
    * If the model has multiple outputs, you can use a different loss
    * on each output by passing a dictionary or an Array of losses.
    * The loss value that will be minimized by the model will then be the sum
    * of all individual losses.
    */
-  loss: string|string[]|{[outputName: string]: string};
+  loss: string|string[]|{[outputName: string]: string}|LossOrMetricFn|
+      LossOrMetricFn[]|{[outputName: string]: LossOrMetricFn};
 
   /**
    * List of metrics to be evaluated by the model during training and testing.
@@ -622,7 +623,8 @@ export interface ModelCompileConfig {
 @doc({heading: 'Models', subheading: 'Classes'})
 export class Model extends Container {
   optimizer: Optimizer;
-  loss: string|string[]|{[outputName: string]: string};
+  loss: string|string[]|{[outputName: string]: string}|LossOrMetricFn|
+      LossOrMetricFn[]|{[outputName: string]: LossOrMetricFn};
   lossFunctions: LossOrMetricFn[];
 
   // TODO(cais): These private variables should probably not have the string
@@ -680,7 +682,8 @@ export class Model extends Container {
 
     // Prepare loss functions.
     let lossFunctions: LossOrMetricFn[] = [];
-    if (!Array.isArray(config.loss) && typeof config.loss !== 'string') {
+    if (!Array.isArray(config.loss) && typeof config.loss !== 'string' &&
+        typeof config.loss !== 'function') {
       config.loss = config.loss as {[outputName: string]: string};
       for (const name in config.loss) {
         if (this.outputNames.indexOf(name) === -1) {
@@ -705,7 +708,8 @@ export class Model extends Container {
             `model output. The model has ${this.outputs.length} output(s), ` +
             `but you passed loss=${config.loss}.`);
       }
-      lossFunctions = config.loss.map(l => losses.get(l));
+      const theLosses = config.loss as Array<string|LossOrMetricFn>;
+      lossFunctions = theLosses.map(l => losses.get(l));
     } else {
       const lossFunction = losses.get(config.loss);
       this.outputs.map(layer => {
