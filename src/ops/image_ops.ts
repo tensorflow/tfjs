@@ -63,4 +63,49 @@ export class ImageOps {
     }
     return res as T;
   }
+
+  /**
+   * NearestNeighbor resize a batch of 3D images to a new shape.
+   *
+   * @param images The images, of rank 4 or rank 3, of shape
+   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+   * @param size The new shape `[newHeight, newWidth]` to resize the
+   *     images to. Each channel is resized individually.
+   * @param alignCorners Defaults to False. If true, rescale
+   *     input by `(new_height - 1) / (height - 1)`, which exactly aligns the 4
+   *     corners of images and resized images. If false, rescale by
+   *     `new_height / height`. Treat similarly the width dimension.
+   */
+  @doc({heading: 'Operations', subheading: 'Images', namespace: 'image'})
+  @operation
+  static resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
+      images: T, size: [number, number], alignCorners = false): T {
+    util.assert(
+        images.rank === 3 || images.rank === 4,
+        `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
+        `rank ${images.rank}.`);
+    util.assert(
+        size.length === 2,
+        `Error in resizeNearestNeighbor: new shape must 2D, but got shape ` +
+        `${size}.`);
+    util.assert(images.dtype === 'float32' || images.dtype === 'int32',
+        '`images` must have `int32` or `float32` as dtype');
+    let batchImages = images as Tensor4D;
+    let reshapedTo4D = false;
+    if (images.rank === 3) {
+      reshapedTo4D = true;
+      batchImages =
+          images.as4D(1, images.shape[0], images.shape[1], images.shape[2]);
+    }
+    const [newHeight, newWidth] = size;
+    const res = ENV.engine.runKernel(
+        backend => backend.resizeNearestNeighbor(
+            batchImages, newHeight, newWidth, alignCorners),
+        {batchImages});
+    if (reshapedTo4D) {
+      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+    }
+    return res as T;
+  }
+
 }

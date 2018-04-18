@@ -836,6 +836,12 @@ export class Tensor<R extends Rank = Rank> {
     return ops.image.resizeBilinear(this, newShape2D, alignCorners);
   }
 
+  resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
+      this: T, newShape2D: [number, number], alignCorners = false): T {
+    (this as Tensor).throwIfDisposed();
+    return ops.image.resizeNearestNeighbor(this, newShape2D, alignCorners);
+  }
+
   // Convolutions.
   conv1d<T extends Tensor2D|Tensor3D>(
       this: T, filter: Tensor3D, stride: number, pad: 'valid'|'same'|number,

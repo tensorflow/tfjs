@@ -1436,6 +1436,40 @@ export class MathBackendCPU implements KernelBackend {
     return output.toTensor();
   }
 
+  resizeNearestNeighbor(
+    x: Tensor4D, newHeight: number, newWidth: number,
+    alignCorners: boolean): Tensor4D {
+    const [batch, oldHeight, oldWidth, numChannels] = x.shape;
+    const output =
+        ops.buffer<Rank.R4>([batch, newHeight, newWidth, numChannels], x.dtype);
+    const effectiveInputSize: [number, number] =
+        alignCorners ? [oldHeight - 1, oldWidth - 1] : [oldHeight, oldWidth];
+    const effectiveOutputSize: [number, number] =
+        alignCorners ? [newHeight - 1, newWidth - 1] : [newHeight, newWidth];
+    for (let b = 0; b < batch; b++) {
+      for (let r = 0; r < newHeight; r++) {
+        for (let c = 0; c < newWidth; c++) {
+          for (let d = 0; d < numChannels; d++) {
+            // Begin shader.
+            // Compute the fractional index of the source.
+            const sourceFracRow =
+                (effectiveInputSize[0]) * r / (effectiveOutputSize[0]);
+            const sourceFracCol =
+                (effectiveInputSize[1]) * c / (effectiveOutputSize[1]);
+            const sourceNearestRow =
+                Math.min(oldHeight - 1, Math.round(sourceFracRow));
+            const sourceNearestCol =
+                Math.min(oldWidth - 1, Math.round(sourceFracCol));
+            const newValue = x.get(b, sourceNearestRow, sourceNearestCol, d);
+            output.set(newValue, b, r, c, d);
+          }
+        }
+      }
+    }
+
+    return output.toTensor();
+  }
+
   batchNormalization(
       x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
       varianceEpsilon: number, scale?: Tensor4D|Tensor1D,
