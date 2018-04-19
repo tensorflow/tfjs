@@ -21,7 +21,7 @@ import {NamedTensorsMap} from '../../data/index';
 import {Node} from '../index';
 
 import {OpExecutor} from './types';
-import {getParamValue} from './utils';
+import {getParamValue, split} from './utils';
 
 export let executeOp: OpExecutor =
     (node: Node, tensorMap: NamedTensorsMap): tfc.Tensor[] => {
@@ -51,8 +51,8 @@ export let executeOp: OpExecutor =
         case 'pad': {
           return [tfc.pad(
               getParamValue('x', node, tensorMap) as tfc.Tensor,
-              // tslint:disable-next-line:no-any
-              getParamValue('padding', node, tensorMap) as any,
+              split(getParamValue('padding', node, tensorMap) as number[], 2) as
+                  Array<[number, number]>,
               getParamValue('constantValue', node, tensorMap) as number)];
         }
         default:
