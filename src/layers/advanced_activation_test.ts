@@ -66,7 +66,7 @@ describeMathCPUAndGPU('elu: Tensor', () => {
 
 describeMathCPU('thresholdedReLU: Symbolic', () => {
   it('Correct output shape', () => {
-    const layer = tfl.layers.thresohldedReLU();
+    const layer = tfl.layers.thresholdedReLU();
     const x = new SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
     const y = layer.apply(x) as SymbolicTensor;
     expect(y.shape).toEqual(x.shape);
@@ -75,7 +75,7 @@ describeMathCPU('thresholdedReLU: Symbolic', () => {
 
 describeMathCPUAndGPU('thresholdedReLU: Tensor', () => {
   it('theta = default 1.0', () => {
-    const layer = tfl.layers.thresohldedReLU({});
+    const layer = tfl.layers.thresholdedReLU({});
     const x = tensor2d([[-1, 0], [1, 3]], [2, 2]);
     const y = layer.apply(x) as Tensor;
     expectTensorsClose(y, tensor2d([[0, 0], [0, 3]], [2, 2]));

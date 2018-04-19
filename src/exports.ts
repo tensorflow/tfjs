@@ -233,7 +233,7 @@ export class LayerExports {
     useDocsFrom: 'ThresholdedReLU',
     configParamIndices: [0]
   })
-  static thresohldedReLU(config?: ThresholdedReLULayerConfig): Layer {
+  static thresholdedReLU(config?: ThresholdedReLULayerConfig): Layer {
     return new ThresholdedReLU(config);
   }
 
