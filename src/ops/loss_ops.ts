@@ -44,6 +44,11 @@ export class LossOps {
   static computeWeightedLoss<T extends Tensor, O extends Tensor>(
       losses: T, weights?: Tensor,
       reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+    util.assertArgumentsAreTensors({losses}, 'computeWeightedLoss');
+    if (weights != null) {
+      util.assertArgumentsAreTensors({weights}, 'computeWeightedLoss');
+    }
+
     const weightedLoss = (weights == null) ? losses : losses.mul(weights);
 
     if (reduction === Reduction.NONE) {
@@ -86,8 +91,13 @@ export class LossOps {
   static absoluteDifference<T extends Tensor, O extends Tensor>(
       labels: T, predictions: T, weights?: Tensor,
       reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+    util.assertArgumentsAreTensors({labels, predictions}, 'absoluteDifference');
+    if (weights != null) {
+      util.assertArgumentsAreTensors({weights}, 'absoluteDifference');
+    }
     util.assertShapesMatch(
         labels.shape, predictions.shape, 'Error in absoluteDifference: ');
+
     const losses = labels.sub(predictions).abs();
     return LossOps.computeWeightedLoss(losses, weights, reduction);
   }

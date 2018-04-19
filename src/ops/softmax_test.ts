@@ -111,6 +111,11 @@ describeWithFlags('softmax', ALL_ENVS, () => {
       (dy.get(1, 2) - totalSum.get(1)) * y.get(1, 2)
     ]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.softmax({} as tf.Tensor))
+        .toThrowError(/Argument 'logits' passed to 'softmax' must be a Tensor/);
+  });
 });
 
 describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
@@ -229,5 +234,21 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
       dy.get(1) * (softmaxLogits.get(1, 1) - labels.get(1, 1)),
       dy.get(1) * (softmaxLogits.get(1, 2) - labels.get(1, 2))
     ]);
+  });
+
+  it('throws when passed labels as a non-tensor', () => {
+    const e =
+        /Argument 'labels' passed to 'softmaxCrossEntropy' must be a Tensor/;
+    expect(() => tf.losses.softmaxCrossEntropy({} as tf.Tensor, tf.tensor1d([
+      1
+    ]))).toThrowError(e);
+  });
+
+  it('throws when passed logits as a non-tensor', () => {
+    const e =
+        /Argument 'logits' passed to 'softmaxCrossEntropy' must be a Tensor/;
+    expect(
+        () => tf.losses.softmaxCrossEntropy(tf.tensor1d([1]), {} as tf.Tensor))
+        .toThrowError(e);
   });
 });

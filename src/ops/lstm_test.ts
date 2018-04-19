@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {Tensor2D} from '../tensor';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {ALL_ENVS, CPU_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('lstm', ALL_ENVS, () => {
@@ -83,5 +83,179 @@ describeWithFlags('lstm', ALL_ENVS, () => {
         forgetBias, lstmKernel, lstmBias, batchedData, batchedC, batchedH);
     expect(newC.get(0, 0)).toEqual(newC.get(1, 0));
     expect(newH.get(0, 0)).toEqual(newH.get(1, 0));
+  });
+});
+
+describeWithFlags('multiRNN throws when passed non-tensor', CPU_ENVS, () => {
+  it('input: data', () => {
+    const lstmKernel1: tf.Tensor2D = tf.zeros([3, 4]);
+    const lstmBias1: tf.Tensor1D = tf.zeros([4]);
+    const lstmKernel2: tf.Tensor2D = tf.zeros([2, 4]);
+    const lstmBias2: tf.Tensor1D = tf.zeros([4]);
+
+    const forgetBias = tf.scalar(1.0);
+    const lstm1 = (data: Tensor2D, c: Tensor2D, h: Tensor2D) =>
+        tf.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
+    const lstm2 = (data: Tensor2D, c: Tensor2D, h: Tensor2D) =>
+        tf.basicLSTMCell(forgetBias, lstmKernel2, lstmBias2, data, c, h);
+    const c = [
+      tf.zeros<Rank.R2>([1, lstmBias1.shape[0] / 4]),
+      tf.zeros<Rank.R2>([1, lstmBias2.shape[0] / 4])
+    ];
+    const h = [
+      tf.zeros<Rank.R2>([1, lstmBias1.shape[0] / 4]),
+      tf.zeros<Rank.R2>([1, lstmBias2.shape[0] / 4])
+    ];
+
+    expect(() => tf.multiRNNCell([lstm1, lstm2], {} as tf.Tensor2D, c, h))
+        .toThrowError(
+            /Argument 'data' passed to 'multiRNNCell' must be a Tensor/);
+  });
+
+  it('input: c', () => {
+    const lstmKernel1: tf.Tensor2D = tf.zeros([3, 4]);
+    const lstmBias1: tf.Tensor1D = tf.zeros([4]);
+    const lstmKernel2: tf.Tensor2D = tf.zeros([2, 4]);
+    const lstmBias2: tf.Tensor1D = tf.zeros([4]);
+
+    const forgetBias = tf.scalar(1.0);
+    const lstm1 = (data: Tensor2D, c: Tensor2D, h: Tensor2D) =>
+        tf.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
+    const lstm2 = (data: Tensor2D, c: Tensor2D, h: Tensor2D) =>
+        tf.basicLSTMCell(forgetBias, lstmKernel2, lstmBias2, data, c, h);
+
+    const h = [
+      tf.zeros<Rank.R2>([1, lstmBias1.shape[0] / 4]),
+      tf.zeros<Rank.R2>([1, lstmBias2.shape[0] / 4])
+    ];
+    const data: tf.Tensor2D = tf.zeros([1, 2]);
+
+    expect(() => tf.multiRNNCell([lstm1, lstm2], data, [{} as tf.Tensor2D], h))
+        .toThrowError(
+            /Argument 'c\[0\]' passed to 'multiRNNCell' must be a Tensor/);
+  });
+
+  it('input: h', () => {
+    const lstmKernel1: tf.Tensor2D = tf.zeros([3, 4]);
+    const lstmBias1: tf.Tensor1D = tf.zeros([4]);
+    const lstmKernel2: tf.Tensor2D = tf.zeros([2, 4]);
+    const lstmBias2: tf.Tensor1D = tf.zeros([4]);
+
+    const forgetBias = tf.scalar(1.0);
+    const lstm1 = (data: Tensor2D, c: Tensor2D, h: Tensor2D) =>
+        tf.basicLSTMCell(forgetBias, lstmKernel1, lstmBias1, data, c, h);
+    const lstm2 = (data: Tensor2D, c: Tensor2D, h: Tensor2D) =>
+        tf.basicLSTMCell(forgetBias, lstmKernel2, lstmBias2, data, c, h);
+    const c = [
+      tf.zeros<Rank.R2>([1, lstmBias1.shape[0] / 4]),
+      tf.zeros<Rank.R2>([1, lstmBias2.shape[0] / 4])
+    ];
+    const data: tf.Tensor2D = tf.zeros([1, 2]);
+
+    expect(() => tf.multiRNNCell([lstm1, lstm2], data, c, [{} as tf.Tensor2D]))
+        .toThrowError(
+            /Argument 'h\[0\]' passed to 'multiRNNCell' must be a Tensor/);
+  });
+});
+
+describeWithFlags('basicLSTMCell throws with non-tensor', CPU_ENVS, () => {
+  it('input: forgetBias', () => {
+    const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
+    const lstmBias = tf.randomNormal<Rank.R1>([4]);
+
+    const data = tf.randomNormal<Rank.R2>([1, 2]);
+    const batchedData = tf.concat2d([data, data], 0);  // 2x2
+    const c = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedC = tf.concat2d([c, c], 0);  // 2x1
+    const h = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedH = tf.concat2d([h, h], 0);  // 2x1
+    expect(
+        () => tf.basicLSTMCell(
+            {} as tf.Scalar, lstmKernel, lstmBias, batchedData, batchedC,
+            batchedH))
+        .toThrowError(
+            /Argument 'forgetBias' passed to 'basicLSTMCell' must be a Tensor/);
+  });
+  it('input: lstmKernel', () => {
+    const lstmBias = tf.randomNormal<Rank.R1>([4]);
+    const forgetBias = tf.scalar(1.0);
+
+    const data = tf.randomNormal<Rank.R2>([1, 2]);
+    const batchedData = tf.concat2d([data, data], 0);  // 2x2
+    const c = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedC = tf.concat2d([c, c], 0);  // 2x1
+    const h = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedH = tf.concat2d([h, h], 0);  // 2x1
+    expect(
+        () => tf.basicLSTMCell(
+            forgetBias, {} as tf.Tensor2D, lstmBias, batchedData, batchedC,
+            batchedH))
+        .toThrowError(
+            /Argument 'lstmKernel' passed to 'basicLSTMCell' must be a Tensor/);
+  });
+  it('input: lstmBias', () => {
+    const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
+    const forgetBias = tf.scalar(1.0);
+
+    const data = tf.randomNormal<Rank.R2>([1, 2]);
+    const batchedData = tf.concat2d([data, data], 0);  // 2x2
+    const c = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedC = tf.concat2d([c, c], 0);  // 2x1
+    const h = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedH = tf.concat2d([h, h], 0);  // 2x1
+    expect(
+        () => tf.basicLSTMCell(
+            forgetBias, lstmKernel, {} as tf.Tensor1D, batchedData, batchedC,
+            batchedH))
+        .toThrowError(
+            /Argument 'lstmBias' passed to 'basicLSTMCell' must be a Tensor/);
+  });
+  it('input: data', () => {
+    const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
+    const lstmBias = tf.randomNormal<Rank.R1>([4]);
+    const forgetBias = tf.scalar(1.0);
+
+    const c = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedC = tf.concat2d([c, c], 0);  // 2x1
+    const h = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedH = tf.concat2d([h, h], 0);  // 2x1
+    expect(
+        () => tf.basicLSTMCell(
+            forgetBias, lstmKernel, lstmBias, {} as tf.Tensor2D, batchedC,
+            batchedH))
+        .toThrowError(
+            /Argument 'data' passed to 'basicLSTMCell' must be a Tensor/);
+  });
+  it('input: c', () => {
+    const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
+    const lstmBias = tf.randomNormal<Rank.R1>([4]);
+    const forgetBias = tf.scalar(1.0);
+
+    const data = tf.randomNormal<Rank.R2>([1, 2]);
+    const batchedData = tf.concat2d([data, data], 0);  // 2x2
+    const h = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedH = tf.concat2d([h, h], 0);  // 2x1
+    expect(
+        () => tf.basicLSTMCell(
+            forgetBias, lstmKernel, lstmBias, batchedData, {} as tf.Tensor2D,
+            batchedH))
+        .toThrowError(
+            /Argument 'c' passed to 'basicLSTMCell' must be a Tensor/);
+  });
+  it('input: h', () => {
+    const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
+    const lstmBias = tf.randomNormal<Rank.R1>([4]);
+    const forgetBias = tf.scalar(1.0);
+
+    const data = tf.randomNormal<Rank.R2>([1, 2]);
+    const batchedData = tf.concat2d([data, data], 0);  // 2x2
+    const c = tf.randomNormal<Rank.R2>([1, 1]);
+    const batchedC = tf.concat2d([c, c], 0);  // 2x1
+    expect(
+        () => tf.basicLSTMCell(
+            forgetBias, lstmKernel, lstmBias, batchedData, batchedC,
+            {} as tf.Tensor2D))
+        .toThrowError(
+            /Argument 'h' passed to 'basicLSTMCell' must be a Tensor/);
   });
 });

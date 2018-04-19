@@ -41,6 +41,8 @@ export class MatmulOps {
   static matMul(
       a: Tensor2D, b: Tensor2D, transposeA = false, transposeB = false):
       Tensor2D {
+    util.assertArgumentsAreTensors({a, b}, 'matMul');
+
     const innerShapeA = transposeA ? a.shape[0] : a.shape[1];
     const innerShapeB = transposeB ? b.shape[1] : b.shape[0];
 

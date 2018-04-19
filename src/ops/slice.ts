@@ -108,7 +108,9 @@ export class SliceOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice<R extends Rank, T extends Tensor<R>>(
-      x: T, begin: number | number[], size?: number | number[]): T {
+      x: T, begin: number|number[], size?: number|number[]): T {
+    util.assertArgumentsAreTensors({x}, 'slice');
+
     if (x.rank === 0) {
       throw new Error('Slicing scalar is not possible');
     }

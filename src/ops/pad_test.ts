@@ -170,4 +170,9 @@ describeWithFlags('pad', ALL_ENVS, () => {
       0, 4, 5, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     ]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.pad({} as tf.Tensor, [[0, 0]]))
+        .toThrowError(/Argument 'x' passed to 'pad' must be a Tensor/);
+  });
 });

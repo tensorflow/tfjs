@@ -569,4 +569,56 @@ describeWithFlags('batchNormalization2D', ALL_ENVS, () => {
       0.35007446, 1.01304821, 0.60119441
     ]);
   });
+
+  it('throws when passed x as a non-tensor', () => {
+    const mean = tf.tensor1d([1, 2]);
+    const variance = tf.tensor1d([2, 3]);
+
+    expect(() => tf.batchNormalization({} as tf.Tensor, mean, variance))
+        .toThrowError(
+            /Argument 'x' passed to 'batchNormalization' must be a Tensor/);
+  });
+  it('throws when passed mean as a non-tensor', () => {
+    const x = tf.tensor4d([2, 100, 4, 400], [2, 1, 1, 2]);
+    const variance = tf.tensor1d([2, 3]);
+
+    expect(() => tf.batchNormalization(x, {} as tf.Tensor, variance))
+        .toThrowError(
+            /Argument 'mean' passed to 'batchNormalization' must be a Tensor/);
+  });
+  it('throws when passed variance as a non-tensor', () => {
+    const x = tf.tensor4d([2, 100, 4, 400], [2, 1, 1, 2]);
+    const mean = tf.tensor1d([1, 2]);
+
+    const e =
+        /Argument 'variance' passed to 'batchNormalization' must be a Tensor/;
+    expect(() => tf.batchNormalization(x, mean, {} as tf.Tensor))
+        .toThrowError(e);
+  });
+  it('throws when passed scale as a non-tensor', () => {
+    const x = tf.tensor4d([2, 100, 4, 400], [2, 1, 1, 2]);
+    const mean = tf.tensor1d([1, 2]);
+    const variance = tf.tensor1d([2, 3]);
+    const epsilon = .001;
+
+    expect(
+        () =>
+            tf.batchNormalization(x, mean, variance, epsilon, {} as tf.Tensor))
+        .toThrowError(
+            /Argument 'scale' passed to 'batchNormalization' must be a Tensor/);
+  });
+  it('throws when passed offset as a non-tensor', () => {
+    const x = tf.tensor4d([2, 100, 4, 400], [2, 1, 1, 2]);
+    const mean = tf.tensor1d([1, 2]);
+    const variance = tf.tensor1d([2, 3]);
+    const epsilon = .001;
+    const scale = tf.tensor1d([0.62186907, 0.85673736, 0.19201061]);
+
+    const e =
+        /Argument 'offset' passed to 'batchNormalization' must be a Tensor/;
+    expect(
+        () => tf.batchNormalization(
+            x, mean, variance, epsilon, scale, {} as tf.Tensor))
+        .toThrowError(e);
+  });
 });

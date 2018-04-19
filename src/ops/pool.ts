@@ -48,6 +48,8 @@ export class PoolOps {
       x: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    util.assertArgumentsAreTensors({x}, 'maxPool');
+
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {
@@ -108,6 +110,7 @@ export class PoolOps {
       filterSize: [number, number]|number, strides: [number, number]|number,
       pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
+    util.assertArgumentsAreTensors({dy, input, output}, 'maxPoolBackprop');
     util.assert(
         input.rank === dy.rank,
         `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
@@ -160,6 +163,7 @@ export class PoolOps {
       x: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    util.assertArgumentsAreTensors({x}, 'avgPool');
     util.assert(
         x.dtype === 'float32', 'The input dtype to avgPool must be float32');
     let x4D = x as Tensor4D;
@@ -213,6 +217,7 @@ export class PoolOps {
   static avgPoolBackprop<T extends Tensor3D|Tensor4D>(
       dy: T, input: T, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number): T {
+    util.assertArgumentsAreTensors({dy, input}, 'avgPoolBackprop');
     util.assert(
         input.rank === dy.rank,
         `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);

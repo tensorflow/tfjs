@@ -104,6 +104,14 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
         .toThrowError();
   });
 
+  it('throws when passed a non-tensor', () => {
+    const seed: number = null;
+    // tslint:disable-next-line:no-any
+    expect(() => tf.multinomial({} as any, NUM_SAMPLES, seed))
+        .toThrowError(
+            /Argument 'logits' passed to 'multinomial' must be a Tensor/);
+  });
+
   function computeProbs(
       events: Float32Array|Uint8Array|Int32Array, numOutcomes: number) {
     const counts = [];

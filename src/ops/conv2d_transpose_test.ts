@@ -107,4 +107,36 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
     expect(() => tf.conv2dTranspose(x, w, [2, 2, 2], origStride, origPad))
         .toThrowError();
   });
+
+  it('throws when passed x as a non-tensor', () => {
+    const origInputDepth = 1;
+    const origOutputDepth = 1;
+    const fSize = 2;
+    const origPad = 0;
+    const origStride = 1;
+
+    const w = tf.tensor4d(
+        [3, 1, 5, 0], [fSize, fSize, origInputDepth, origOutputDepth]);
+
+    expect(
+        () => tf.conv2dTranspose(
+            {} as tf.Tensor3D, w, [2, 2, 1], origStride, origPad))
+        .toThrowError(
+            /Argument 'x' passed to 'conv2dTranspose' must be a Tensor/);
+  });
+
+  it('throws when passed filter as a non-tensor', () => {
+    const origOutputDepth = 1;
+    const inputShape: [number, number, number] = [1, 1, origOutputDepth];
+    const origPad = 0;
+    const origStride = 1;
+
+    const x = tf.tensor3d([2], inputShape);
+
+    expect(
+        () => tf.conv2dTranspose(
+            x, {} as tf.Tensor4D, [2, 2, 1], origStride, origPad))
+        .toThrowError(
+            /Argument 'filter' passed to 'conv2dTranspose' must be a Tensor/);
+  });
 });

@@ -377,6 +377,11 @@ describeWithFlags('zerosLike', ALL_ENVS, () => {
     expect(b.shape).toEqual([2, 2, 1, 1]);
     expectArraysEqual(b, [0, 0, 0, 0]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.zerosLike({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'zerosLike' must be a Tensor/);
+  });
 });
 
 describeWithFlags('onesLike', ALL_ENVS, () => {
@@ -506,6 +511,11 @@ describeWithFlags('onesLike', ALL_ENVS, () => {
     expect(b.dtype).toBe('bool');
     expect(b.shape).toEqual([2, 2, 1, 1]);
     expectArraysEqual(b, [1, 1, 1, 1]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.onesLike({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'onesLike' must be a Tensor/);
   });
 });
 
@@ -1189,6 +1199,10 @@ describeWithFlags('toPixels no canvas', ALL_ENVS, () => {
     expectPromiseToFail(
         () => tf.toPixels(tf.tensor2d([-1, 100], [1, 2], 'int32')), done);
   });
+  it('throws when passed a non-tensor', done => {
+    // tslint:disable-next-line:no-any
+    expectPromiseToFail(() => tf.toPixels({} as any), done);
+  });
 });
 
 describeWithFlags('toPixels', WEBGL_ENVS, () => {
@@ -1502,6 +1516,11 @@ describeWithFlags('clone', ALL_ENVS, () => {
     expect(da.shape).toEqual([2, 2, 1, 1]);
     expectArraysEqual(da, [5, 6, 7, 8]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.clone({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'clone' must be a Tensor/);
+  });
 });
 
 describeWithFlags('tile', ALL_ENVS, () => {
@@ -1659,6 +1678,11 @@ describeWithFlags('tile', ALL_ENVS, () => {
         tf.tensor4d(
             [[[[1111]], [[2222]]], [[[3333]], [[4444]]]], [2, 2, 1, 1]));
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.tile({} as tf.Tensor, [1]))
+        .toThrowError(/Argument 'x' passed to 'tile' must be a Tensor/);
+  });
 });
 
 describeWithFlags('gather', ALL_ENVS, () => {
@@ -1734,6 +1758,17 @@ describeWithFlags('gather', ALL_ENVS, () => {
     const indices = tf.range(0, 6, 2);
     const axis = 2;
     expect(() => x.gather(indices, axis)).toThrowError();
+  });
+
+  it('throws when passed x as a non-tensor', () => {
+    expect(() => tf.gather({} as tf.Tensor, tf.tensor1d([1])))
+        .toThrowError(/Argument 'x' passed to 'gather' must be a Tensor/);
+  });
+
+  it('throws when passed indices as a non-tensor', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tf.gather(tf.tensor1d([1]), {} as any))
+        .toThrowError(/Argument 'indices' passed to 'gather' must be a Tensor/);
   });
 });
 
@@ -2067,6 +2102,12 @@ describeWithFlags('stack', ALL_ENVS, () => {
     expect(res.shape).toEqual([2, 2, 1]);
     expectArraysClose(res, [1, 2, 3, 4]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.stack([{} as tf.Tensor]))
+        .toThrowError(
+            /Argument 'tensors\[0\]' passed to 'stack' must be a Tensor/);
+  });
 });
 
 describeWithFlags('split', ALL_ENVS, () => {
@@ -2102,6 +2143,11 @@ describeWithFlags('split', ALL_ENVS, () => {
     const x = tf.tensor2d([1, 2, 3, 4, 5, 6, 7, 8], [2, 4]);
     const f = () => tf.split(x, 3, 1);
     expect(f).toThrowError();
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.split({} as tf.Tensor, 1))
+        .toThrowError(/Argument 'x' passed to 'split' must be a Tensor/);
   });
 });
 
@@ -2145,5 +2191,10 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
     const res = tf.tensor2d([[1, 2], [3, 4], [5, 6]]).expandDims(2 /* axis */);
     expect(res.shape).toEqual([3, 2, 1]);
     expectArraysClose(res, [1, 2, 3, 4, 5, 6]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.expandDims({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'expandDims' must be a Tensor/);
   });
 });

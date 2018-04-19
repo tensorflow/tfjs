@@ -74,6 +74,11 @@ describeWithFlags('min', ALL_ENVS, () => {
     const r = tf.min(a, [1]);
     expectArraysClose(r, [2, -7]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.min({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'min' must be a Tensor/);
+  });
 });
 
 describeWithFlags('max', ALL_ENVS, () => {
@@ -135,6 +140,11 @@ describeWithFlags('max', ALL_ENVS, () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, 2], [2, 3]);
     const r = tf.max(a, [1]);
     expectArraysClose(r, [5, 100]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.max({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'max' must be a Tensor/);
   });
 });
 
@@ -199,6 +209,11 @@ describeWithFlags('argmax', ALL_ENVS, () => {
     expect(r.dtype).toBe('int32');
     expectArraysEqual(r, [2, 0]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.argMax({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'argMax' must be a Tensor/);
+  });
 });
 
 describeWithFlags('argmin', ALL_ENVS, () => {
@@ -256,6 +271,11 @@ describeWithFlags('argmin', ALL_ENVS, () => {
     const a = tf.tensor2d([3, 2, 5, 100, -7, -8], [2, 3]);
     const r = tf.argMin(a, -1);
     expectArraysEqual(r, [1, 2]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.argMin({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'argMin' must be a Tensor/);
   });
 });
 
@@ -351,6 +371,11 @@ describeWithFlags('logSumExp', ALL_ENVS, () => {
         Math.exp(1) + Math.exp(2) + Math.exp(3) + Math.exp(0) + Math.exp(0) +
         Math.exp(1))];
     expectArraysClose(res, expected);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.logSumExp({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'logSumExp' must be a Tensor/);
   });
 });
 
@@ -476,6 +501,11 @@ describeWithFlags('sum', ALL_ENVS, () => {
     expect(gradients.dtype).toEqual('float32');
     expectArraysClose(gradients, [10, 10, 20, 20, 30, 30]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.sum({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'sum' must be a Tensor/);
+  });
 });
 
 describeWithFlags('mean', ALL_ENVS, () => {
@@ -593,6 +623,11 @@ describeWithFlags('mean', ALL_ENVS, () => {
 
     expect(() => tf.grad(a => a.mean(1))(a, dy)).toThrowError();
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.mean({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'mean' must be a Tensor/);
+  });
 });
 
 describeWithFlags('moments', ALL_ENVS, () => {
@@ -706,6 +741,11 @@ describeWithFlags('moments', ALL_ENVS, () => {
     expect(variance.dtype).toBe('float32');
     expectArraysClose(mean, [7 / 6]);
     expectArraysClose(variance, [1.1389]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.moments({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'moments' must be a Tensor/);
   });
 });
 
@@ -959,5 +999,10 @@ describeWithFlags('norm', ALL_ENVS, () => {
     expect(norm.shape).toEqual([1, 1, 2, 2]);
     expect(norm.dtype).toBe('float32');
     expectArraysClose(norm, [4, 3, 4, 3]);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.norm({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'norm' must be a Tensor/);
   });
 });

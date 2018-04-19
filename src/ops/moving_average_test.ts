@@ -19,7 +19,6 @@
 import * as tf from '../index';
 
 import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
-import {MovingAverageOps} from './moving_average';
 // tslint:enable:max-line-length
 
 describeWithFlags('movingAverage', ALL_ENVS, () => {
@@ -53,11 +52,11 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = 0.6;
 
-    const v1 = MovingAverageOps.movingAverage(v0, x, decay, 1);
+    const v1 = tf.movingAverage(v0, x, decay, 1);
     expectArraysClose(v1, tf.tensor2d([[1, 2], [3, 4]], [2, 2]));
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
-    const v2 = MovingAverageOps.movingAverage(v1, y, decay, 2);
+    const v2 = tf.movingAverage(v1, y, decay, 2);
     expectArraysClose(v2, tf.tensor2d([[7.25, 8.25], [9.25, 10.25]], [2, 2]));
   });
 
@@ -66,11 +65,11 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = tf.scalar(0.6);
 
-    const v1 = MovingAverageOps.movingAverage(v0, x, decay, tf.scalar(1));
+    const v1 = tf.movingAverage(v0, x, decay, tf.scalar(1));
     expectArraysClose(v1, tf.tensor2d([[1, 2], [3, 4]], [2, 2]));
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
-    const v2 = MovingAverageOps.movingAverage(v1, y, decay, tf.scalar(2));
+    const v2 = tf.movingAverage(v1, y, decay, tf.scalar(2));
     expectArraysClose(v2, tf.tensor2d([[7.25, 8.25], [9.25, 10.25]], [2, 2]));
   });
 
@@ -104,11 +103,11 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = 0.6;
 
-    const v1 = MovingAverageOps.movingAverage(v0, x, decay, null, false);
+    const v1 = tf.movingAverage(v0, x, decay, null, false);
     expectArraysClose(v1, tf.tensor2d([[0.4, 0.8], [1.2, 1.6]], [2, 2]));
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
-    const v2 = MovingAverageOps.movingAverage(v1, y, decay, null, false);
+    const v2 = tf.movingAverage(v1, y, decay, null, false);
     expectArraysClose(v2, tf.tensor2d([[4.64, 5.28], [5.92, 6.56]], [2, 2]));
   });
 
@@ -117,11 +116,11 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = tf.scalar(0.6);
 
-    const v1 = MovingAverageOps.movingAverage(v0, x, decay, null, false);
+    const v1 = tf.movingAverage(v0, x, decay, null, false);
     expectArraysClose(v1, tf.tensor2d([[0.4, 0.8], [1.2, 1.6]], [2, 2]));
 
     const y = tf.tensor2d([[11, 12], [13, 14]], [2, 2]);
-    const v2 = MovingAverageOps.movingAverage(v1, y, decay, null, false);
+    const v2 = tf.movingAverage(v1, y, decay, null, false);
     expectArraysClose(v2, tf.tensor2d([[4.64, 5.28], [5.92, 6.56]], [2, 2]));
   });
 
@@ -130,8 +129,7 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
     const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
     const decay = tf.scalar(0.6);
 
-    expect(() => MovingAverageOps.movingAverage(v0, x, decay, null))
-        .toThrowError();
+    expect(() => tf.movingAverage(v0, x, decay, null)).toThrowError();
   });
 
   it('shape mismatch in v and x throws error', () => {
@@ -139,7 +137,21 @@ describeWithFlags('movingAverage', ALL_ENVS, () => {
     const x = tf.tensor2d([[1, 2]], [1, 2]);
     const decay = tf.scalar(0.6);
 
-    expect(() => MovingAverageOps.movingAverage(v0, x, decay, null))
-        .toThrowError();
+    expect(() => tf.movingAverage(v0, x, decay, null)).toThrowError();
+  });
+
+  it('throws when passed v as a non-tensor', () => {
+    const x = tf.tensor2d([[1, 2], [3, 4]], [2, 2]);
+
+    expect(() => tf.movingAverage({} as tf.Tensor, x, 1))
+        .toThrowError(
+            /Argument 'v' passed to 'movingAverage' must be a Tensor/);
+  });
+  it('throws when passed v as a non-tensor', () => {
+    const v = tf.tensor2d([[0, 0], [0, 0]], [2, 2]);
+
+    expect(() => tf.movingAverage(v, {} as tf.Tensor, 1))
+        .toThrowError(
+            /Argument 'x' passed to 'movingAverage' must be a Tensor/);
   });
 });

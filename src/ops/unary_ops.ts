@@ -39,6 +39,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static neg<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'neg');
+
     const grad = (dy: T) => {
       return {x: () => dy.neg()};
     };
@@ -58,6 +60,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static ceil<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'ceil');
+
     // TODO(manrajgrover): Return null for gradients when backprop supports it.
     const grad = (dy: T) => {
       return {x: () => ops.zerosLike(dy)};
@@ -78,6 +82,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static floor<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'floor');
+
     // TODO(nsthorat): Let gradients be null for cases where we want to stop
     // backpropgation.
     const grad = (dy: T) => {
@@ -99,6 +105,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sign<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'sign');
+
     const grad = (dy: T) => {
       return {x: () => ops.zerosLike(dy)};
     };
@@ -119,6 +127,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static round<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'round');
+
     // TODO(nsthorat): Let gradients be null for cases where we want to stop
     // backpropgation.
     const grad = (dy: T) => {
@@ -140,6 +150,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static exp<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'exp');
+
     const bck = (dy: T, saved: Tensor[]) => {
       const [y] = saved;
       return {x: () => dy.mulStrict(y as T)};
@@ -162,6 +174,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static expm1<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'expm1');
+
     const grad = (dy: T) => {
       return {x: () => dy.mulStrict(x.exp())};
     };
@@ -181,6 +195,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static log<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'log');
+
     const grad = (dy: T) => {
       return {x: () => dy.divStrict(x.toFloat())};
     };
@@ -201,6 +217,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static log1p<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'log1p');
+
     const grad = (dy: T) => {
       return {x: () => dy.divStrict(x.add(ops.scalar(1)))};
     };
@@ -220,6 +238,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sqrt<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'sqrt');
+
     const grad = (dy: T) => {
       return {x: () => dy.divStrict(x.toFloat().sqrt().mul(ops.scalar(2)))};
     };
@@ -240,6 +260,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static rsqrt<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'rsqrt');
+
     const grad = (dy: T) => {
       return {
         x: () => dy.divStrict(x.pow(ops.scalar(1.5)).mul(ops.scalar(2))).neg()
@@ -261,6 +283,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static square<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'square');
+
     const grad = (dy: T) => {
       return {x: () => dy.mulStrict(x.toFloat().mul(ops.scalar(2)))};
     };
@@ -280,6 +304,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static reciprocal<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'reciprocal');
+
     const grad = (dy: T) => {
       return {x: () => dy.divStrict(x.square().neg())};
     };
@@ -299,6 +325,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static abs<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'abs');
+
     const grad = (dy: T) => {
       return {x: () => dy.mulStrict(x.toFloat().step(-1))};
     };
@@ -321,10 +349,12 @@ export class UnaryOps {
   @operation
   static clipByValue<T extends Tensor>(
       x: T, clipValueMin: number, clipValueMax: number): T {
+    util.assertArgumentsAreTensors({x}, 'clipByValue');
     util.assert(
         (clipValueMin <= clipValueMax),
         `Error in clip: min (${clipValueMin}) must be ` +
             `less than or equal to max (${clipValueMax}).`);
+
     const grad = (dy: T) => {
       return {
         // TODO(cais): Fix gradients for the case where x = min or x
@@ -353,6 +383,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static relu<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'relu');
+
     if (x.dtype === 'bool') {
       return x.toInt();
     }
@@ -376,6 +408,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static elu<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'elu');
+
     const grad = (dy: T, saved: Tensor[]) => {
       const [y] = saved;
       return {
@@ -402,6 +436,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static selu<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'selu');
+
     const grad = (dy: T) => {
       return {
         x: () => {
@@ -438,6 +474,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static leakyRelu<T extends Tensor>(x: T, alpha = 0.2): T {
+    util.assertArgumentsAreTensors({x}, 'leakyRelu');
+
     return ops.maximum(ops.scalar(alpha).mul(x), x);
   }
 
@@ -458,6 +496,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static prelu<T extends Tensor>(x: T, alpha: T): T {
+    util.assertArgumentsAreTensors({x, alpha}, 'prelu');
+
     const zero = ops.scalar(0);
     return ops.maximum(zero, x).add(alpha.mul(ops.minimum(zero, x)));
   }
@@ -475,6 +515,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sigmoid<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'sigmoid');
+
     const grad = (dy: T, saved: Tensor[]) => {
       const [y] = saved;
       return {x: () => dy.mulStrict(y.mul(ops.scalar(1).sub(y)))};
@@ -497,6 +539,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static logSigmoid<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'logSigmoid');
+
     const grad = (dy: T) => {
       return {x: () => dy.mulStrict(x.neg().sigmoid())};
     };
@@ -517,6 +561,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static softplus<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'softplus');
+
     const grad = (dy: T) => {
       return {x: () => dy.mulStrict(x.sigmoid())};
     };
@@ -536,6 +582,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sin<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'sin');
+
     const grad = (dy: T) => {
       return {x: () => x.toFloat().cos().mulStrict(dy)};
     };
@@ -555,6 +603,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static cos<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'cos');
+
     const grad = (dy: T) => {
       return {x: () => x.toFloat().sin().neg().mulStrict(dy)};
     };
@@ -574,6 +624,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static tan<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'tan');
+
     const grad = (dy: T) => {
       return {x: () => dy.divStrict(x.cos().square())};
     };
@@ -593,6 +645,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static asin<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'asin');
+
     const grad = (dy: T) => {
       return {
         x: () =>
@@ -615,6 +669,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static acos<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'acos');
+
     const grad = (dy: T) => {
       return {
         x: () =>
@@ -638,6 +694,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static atan<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'atan');
+
     const grad = (dy: T) => {
       return {x: () => dy.divStrict(ops.scalar(1).add(x.toFloat().square()))};
     };
@@ -657,6 +715,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static sinh<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'sinh');
+
     const grad = (dy: T) => {
       return {x: () => x.toFloat().cosh().mulStrict(dy)};
     };
@@ -676,6 +736,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static cosh<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'cosh');
+
     const grad = (dy: T) => {
       return {x: () => x.toFloat().sinh().mulStrict(dy)};
     };
@@ -695,6 +757,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static tanh<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'tanh');
+
     const grad = (dy: T, saved: Tensor[]) => {
       const [y] = saved;
       return {x: () => ops.scalar(1).sub(y.square()).mulStrict(dy) as T};
@@ -717,6 +781,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static asinh<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'asinh');
+
     const grad = (dy: T) => {
       return {
         x: () =>
@@ -740,6 +806,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static acosh<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'acosh');
+
     const grad = (dy: T) => {
       return {
         x: () =>
@@ -763,6 +831,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static atanh<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'atanh');
+
     const grad = (dy: T) => {
       return {x: () => dy.divStrict(ops.scalar(1).sub(x.toFloat().square()))};
     };
@@ -783,6 +853,8 @@ export class UnaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static step<T extends Tensor>(x: T, alpha = 0.0): T {
+    util.assertArgumentsAreTensors({x}, 'step');
+
     // TODO(manrajgrover): Return null for gradients when backprop supports it.
     const grad = (dy: T) => {
       return {x: () => ops.zerosLike(dy)};

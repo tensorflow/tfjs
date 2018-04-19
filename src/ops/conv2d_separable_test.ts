@@ -379,4 +379,64 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
             tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, 1, 'valid'))
         .toThrowError(/must be 3, but got 4/);
   });
+
+  it('throws when passed x as a non-tensor', () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+    const outDepth = 2;
+
+    const depthwiseFilter: tf.Tensor4D =
+        tf.zeros([fSize, fSize, inDepth, chMul]);
+    const pointwiseFilter: tf.Tensor4D =
+        tf.zeros([1, 1, inDepth * chMul, outDepth]);
+
+    const e = /Argument 'x' passed to 'separableConv2d' must be a Tensor/;
+    expect(
+        () => tf.separableConv2d(
+            {} as tf.Tensor3D, depthwiseFilter, pointwiseFilter, stride, pad))
+        .toThrowError(e);
+  });
+
+  it('throws when passed depthwiseFilter as a non-tensor', () => {
+    const pad = 'valid';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+    const outDepth = 2;
+
+    const x: tf.Tensor4D = tf.zeros([1, 3, 3, inDepth]);
+    const pointwiseFilter: tf.Tensor4D =
+        tf.zeros([1, 1, inDepth * chMul, outDepth]);
+
+    const e = new RegExp(
+        'Argument \'depthwiseFilter\' passed to \'separableConv2d\'' +
+        ' must be a Tensor');
+    expect(
+        () => tf.separableConv2d(
+            x, {} as tf.Tensor4D, pointwiseFilter, stride, pad))
+        .toThrowError(e);
+  });
+
+  it('throws when passed pointwiseFilter as a non-tensor', () => {
+    const fSize = 2;
+    const pad = 'valid';
+    const stride = 1;
+    const chMul = 1;
+    const inDepth = 1;
+
+    const x: tf.Tensor4D = tf.zeros([1, 3, 3, inDepth]);
+    const depthwiseFilter: tf.Tensor4D =
+        tf.zeros([fSize, fSize, inDepth, chMul]);
+
+    const e = new RegExp(
+        'Argument \'pointwiseFilter\' passed to \'separableConv2d\'' +
+        ' must be a Tensor');
+    expect(
+        () => tf.separableConv2d(
+            x, depthwiseFilter, {} as tf.Tensor4D, stride, pad))
+        .toThrowError(e);
+  });
 });

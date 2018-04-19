@@ -66,6 +66,11 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
     a = tf.tensor4d([1, 1, 1, 1], [2, 2, 1, 1], 'bool');
     expectArraysClose(tf.logicalNot(a), [0, 0, 0, 0]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.logicalNot({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'logicalNot' must be a Tensor/);
+  });
 });
 
 describeWithFlags('logicalAnd', ALL_ENVS, () => {
@@ -144,6 +149,15 @@ describeWithFlags('logicalAnd', ALL_ENVS, () => {
         [[[[1, 0]], [[0, 0]]], [[[0, 0]], [[1, 1]]]], [2, 2, 1, 2], 'bool');
     expectArraysClose(tf.logicalAnd(a, b), [1, 0, 0, 0, 0, 0, 0, 0]);
   });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.logicalAnd({} as tf.Tensor, tf.scalar(1, 'bool')))
+        .toThrowError(/Argument 'a' passed to 'logicalAnd' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.logicalAnd(tf.scalar(1, 'bool'), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'logicalAnd' must be a Tensor/);
+  });
 });
 
 describeWithFlags('logicalOr', ALL_ENVS, () => {
@@ -220,6 +234,15 @@ describeWithFlags('logicalOr', ALL_ENVS, () => {
     const b = tf.tensor4d(
         [[[[1, 0]], [[0, 0]]], [[[0, 0]], [[1, 1]]]], [2, 2, 1, 2], 'bool');
     expectArraysClose(tf.logicalOr(a, b), [1, 1, 0, 0, 1, 1, 1, 1]);
+  });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.logicalOr({} as tf.Tensor, tf.scalar(1, 'bool')))
+        .toThrowError(/Argument 'a' passed to 'logicalOr' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.logicalOr(tf.scalar(1, 'bool'), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'logicalOr' must be a Tensor/);
   });
 });
 
@@ -301,6 +324,15 @@ describeWithFlags('logicalXor', ALL_ENVS, () => {
     const b = tf.tensor4d(
         [[[[1, 0]], [[0, 0]]], [[[0, 0]], [[1, 1]]]], [2, 2, 1, 2], 'bool');
     expectArraysClose(tf.logicalXor(a, b), [0, 1, 0, 0, 1, 1, 1, 1]);
+  });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.logicalXor({} as tf.Tensor, tf.scalar(1, 'bool')))
+        .toThrowError(/Argument 'a' passed to 'logicalXor' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.logicalXor(tf.scalar(1, 'bool'), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'logicalXor' must be a Tensor/);
   });
 });
 
@@ -505,5 +537,25 @@ describeWithFlags('where', ALL_ENVS, () => {
     a = tf.tensor4d([7, 7, 7, 7, 7, 7, 7, 7], [4, 2, 1, 1]);
     b = tf.tensor4d([3, 3, 3, 3, 3, 3, 3, 3], [4, 2, 1, 1]);
     expectArraysClose(tf.where(c, a, b), [7, 7, 3, 3, 7, 7, 3, 3]);
+  });
+
+  it('throws when passed condition as a non-tensor', () => {
+    expect(
+        () => tf.where(
+            {} as tf.Tensor, tf.scalar(1, 'bool'), tf.scalar(1, 'bool')))
+        .toThrowError(
+            /Argument 'condition' passed to 'where' must be a Tensor/);
+  });
+  it('throws when passed a as a non-tensor', () => {
+    expect(
+        () => tf.where(
+            tf.scalar(1, 'bool'), {} as tf.Tensor, tf.scalar(1, 'bool')))
+        .toThrowError(/Argument 'a' passed to 'where' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(
+        () => tf.where(
+            tf.scalar(1, 'bool'), tf.scalar(1, 'bool'), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'where' must be a Tensor/);
   });
 });

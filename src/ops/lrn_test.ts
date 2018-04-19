@@ -514,4 +514,11 @@ describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {
 
     expectArraysClose(result, flatten(expected));
   });
+
+  it('throws when passed a non-tensor', () => {
+    const e =
+        /Argument 'x' passed to 'localResponseNormalization' must be a Tensor/;
+    expect(() => tf.localResponseNormalization({} as tf.Tensor3D))
+        .toThrowError(e);
+  });
 });

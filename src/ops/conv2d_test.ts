@@ -238,4 +238,29 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
     expect(dfilter.shape).toEqual(filterShape);
     expectArraysClose(dfilter, [13 * 2, 19 * 2, 31 * 2, 37 * 2]);
   });
+
+  it('throws when passed x as a non-tensor', () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 0;
+    const stride = 1;
+
+    const w = tf.tensor4d([2], [fSize, fSize, inputDepth, outputDepth]);
+
+    expect(() => tf.conv2d({} as tf.Tensor3D, w, stride, pad))
+        .toThrowError(/Argument 'x' passed to 'conv2d' must be a Tensor/);
+  });
+
+  it('throws when passed filter as a non-tensor', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const pad = 0;
+    const stride = 1;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+
+    expect(() => tf.conv2d(x, {} as tf.Tensor4D, stride, pad))
+        .toThrowError(/Argument 'filter' passed to 'conv2d' must be a Tensor/);
+  });
 });

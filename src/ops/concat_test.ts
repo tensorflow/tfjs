@@ -285,3 +285,11 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expectArraysClose(dx2, [40, 400, 30, 300, 20, 200, 10, 100]);
   });
 });
+
+describeWithFlags('concat throws for non-tensors', ALL_ENVS, () => {
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.concat([{} as tf.Tensor1D]))
+        .toThrowError(
+            /Argument 'tensors\[0\]' passed to 'concat' must be a Tensor/);
+  });
+});

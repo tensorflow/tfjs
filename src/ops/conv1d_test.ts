@@ -181,4 +181,37 @@ describeWithFlags('conv1d', ALL_ENVS, () => {
     expect(() => tf.conv1d(x, w, stride, pad, dataFormat, dilation))
         .toThrowError();
   });
+
+  it('throws when passed x as a non-tensor', () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 'same';
+    const stride = 2;
+    const dataFormat = 'NWC';
+    const dilation = 2;
+
+    const w = tf.tensor3d([3], [fSize, inputDepth, outputDepth]);
+
+    expect(
+        () =>
+            tf.conv1d({} as tf.Tensor3D, w, stride, pad, dataFormat, dilation))
+        .toThrowError(/Argument 'x' passed to 'conv1d' must be a Tensor/);
+  });
+
+  it('throws when passed filter as a non-tensor', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const pad = 'same';
+    const stride = 2;
+    const dataFormat = 'NWC';
+    const dilation = 2;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+
+    expect(
+        () =>
+            tf.conv1d(x, {} as tf.Tensor3D, stride, pad, dataFormat, dilation))
+        .toThrowError(/Argument 'filter' passed to 'conv1d' must be a Tensor/);
+  });
 });

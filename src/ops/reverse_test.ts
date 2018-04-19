@@ -17,7 +17,7 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {ALL_ENVS, CPU_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
 
 describeWithFlags('reverse1d', ALL_ENVS, () => {
   it('reverse a 1D array', () => {
@@ -328,5 +328,12 @@ describeWithFlags('reverse4d', ALL_ENVS, () => {
   it('throws error with non integer axis param', () => {
     const x = tf.tensor4d([1, 20, 300, 4], [1, 1, 1, 4]);
     expect(() => tf.reverse4d(x, [0.5])).toThrowError();
+  });
+});
+
+describeWithFlags('reverse', CPU_ENVS, () => {
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.reverse({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'reverse' must be a Tensor/);
   });
 });

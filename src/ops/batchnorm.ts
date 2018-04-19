@@ -184,6 +184,14 @@ export class BatchNormOps {
       x: Tensor<R>, mean: Tensor<R>|Tensor1D, variance: Tensor<R>|Tensor1D,
       varianceEpsilon = .001, scale?: Tensor<R>|Tensor1D,
       offset?: Tensor<R>|Tensor1D): Tensor<R> {
+    util.assertArgumentsAreTensors({x, mean, variance}, 'batchNormalization');
+    if (scale != null) {
+      util.assertArgumentsAreTensors({scale}, 'batchNormalization');
+    }
+    if (offset != null) {
+      util.assertArgumentsAreTensors({offset}, 'batchNormalization');
+    }
+
     util.assert(
         mean.rank === variance.rank,
         'Batch normalization gradient requires mean and variance to have ' +

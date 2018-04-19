@@ -391,6 +391,15 @@ describeWithFlags('matmul', ALL_ENVS, () => {
       dy.get(0, 1) * a.get(2, 0) + dy.get(1, 1) * a.get(2, 1)
     ]);
   });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.matMul({} as tf.Tensor2D, tf.tensor2d([2], [1, 1])))
+        .toThrowError(/Argument 'a' passed to 'matMul' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.matMul(tf.tensor2d([2], [1, 1]), {} as tf.Tensor2D))
+        .toThrowError(/Argument 'b' passed to 'matMul' must be a Tensor/);
+  });
 });
 
 describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
