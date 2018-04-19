@@ -54,6 +54,7 @@ export class MovingAverageOps {
   static movingAverage<T extends Tensor>(
       v: T, x: T, decay: number|Scalar, step?: number|Scalar,
       zeroDebias = true): T {
+    util.assertArgumentsAreTensors({v, x}, 'movingAverage');
     util.assertTypesMatch(v, x);
     util.assert(
         util.arraysEqual(v.shape, x.shape), 'Shape mismatch in v and x');

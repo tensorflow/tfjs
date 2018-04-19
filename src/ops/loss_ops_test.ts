@@ -180,6 +180,28 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     expect(y.shape).toEqual([2, 3]);
     expectArraysClose(y, [4 * 1, 8 * 0, 12 * 2, (8 * -5), 1 * 0, 3 * 6]);
   });
+
+  it('throws when passed losses as a non-tensor', () => {
+    const weights = tf.tensor2d([1, 0, 2, -5, 0, 6], [2, 3]);
+
+    const e =
+        /Argument 'losses' passed to 'computeWeightedLoss' must be a Tensor/;
+    expect(
+        () => tf.losses.computeWeightedLoss(
+            {} as tf.Tensor, weights, tf.Reduction.NONE))
+        .toThrowError(e);
+  });
+
+  it('throws when passed weights as a non-tensor', () => {
+    const losses = tf.tensor2d([4, 8, 12, 8, 1, 3], [2, 3]);
+
+    const e =
+        /Argument 'weights' passed to 'computeWeightedLoss' must be a Tensor/;
+    expect(
+        () => tf.losses.computeWeightedLoss(
+            losses, {} as tf.Tensor, tf.Reduction.NONE))
+        .toThrowError(e);
+  });
 });
 
 describeWithFlags('absoluteDifference', ALL_ENVS, () => {
@@ -329,5 +351,42 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
          Math.abs(8 - (-5)) * 0 + Math.abs(1 - (-2)) * 4 +
          Math.abs(3 - 6) * 2) /
             20);
+  });
+
+  it('throws when passed label as a non-tensor', () => {
+    const predictions = tf.tensor2d([4, 8, 12, 8, 1, 3], [2, 3]);
+    const weights = tf.tensor2d([3, 6, 5, 0, 4, 2], [2, 3]);
+
+    const e =
+        /Argument 'labels' passed to 'absoluteDifference' must be a Tensor/;
+    expect(
+        () => tf.losses.absoluteDifference(
+            {} as tf.Tensor, predictions, weights, tf.Reduction.MEAN))
+        .toThrowError(e);
+  });
+
+  it('throws when passed label as a non-tensor', () => {
+    const label = tf.tensor2d([1, 9, 2, -5, -2, 6], [2, 3]);
+    const weights = tf.tensor2d([3, 6, 5, 0, 4, 2], [2, 3]);
+
+    const e = new RegExp(
+        'Argument \'predictions\' passed to \'absoluteDifference\' ' +
+        'must be a Tensor');
+    expect(
+        () => tf.losses.absoluteDifference(
+            label, {} as tf.Tensor, weights, tf.Reduction.MEAN))
+        .toThrowError(e);
+  });
+
+  it('throws when passed weights as a non-tensor', () => {
+    const predictions = tf.tensor2d([4, 8, 12, 8, 1, 3], [2, 3]);
+    const label = tf.tensor2d([1, 9, 2, -5, -2, 6], [2, 3]);
+
+    const e =
+        /Argument 'weights' passed to 'absoluteDifference' must be a Tensor/;
+    expect(
+        () => tf.losses.absoluteDifference(
+            label, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
+        .toThrowError(e);
   });
 });

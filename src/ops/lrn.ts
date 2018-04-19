@@ -40,6 +40,7 @@ export class LRNOps {
   @operation
   static localResponseNormalization<T extends Tensor3D|Tensor4D>(
       x: T, radius = 5, bias = 1, alpha = 1, beta = 0.5): T {
+    util.assertArgumentsAreTensors({x}, 'localResponseNormalization');
     util.assert(
         x.rank === 4 || x.rank === 3,
         `Error in localResponseNormalization: x must be rank 3 or 4 but got
@@ -48,6 +49,7 @@ export class LRNOps {
         util.isInt(radius),
         `Error in localResponseNormalization3D: radius must be an integer
                      but got radius ${radius}.`);
+
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
     if (x.rank === 3) {

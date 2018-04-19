@@ -93,6 +93,8 @@ export class ReverseOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static reverse<T extends Tensor>(x: T, axis?: number|number[]): T {
+    util.assertArgumentsAreTensors({x}, 'reverse');
+
     if (x.rank === 0) {
       return x.clone();
     }

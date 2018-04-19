@@ -46,7 +46,7 @@ export class ReductionOps {
    * const axis = 1;
    * x.logSumExp(axis).print();  // or tf.logSumExp(a, axis)
    * ```
-   * @param input The input tensor.
+   * @param x The input tensor.
    * @param axis The dimension(s) to reduce. If null (the default),
    *     reduces all dimensions.
    * @param keepDims If true, retains reduced dimensions with length
@@ -55,10 +55,12 @@ export class ReductionOps {
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
   static logSumExp<T extends Tensor>(
-      input: Tensor, axis: number|number[] = null, keepDims = false): T {
-    const axes = axis_util.parseAxisParam(axis, input.shape);
-    const xMax = input.max(axes, true /* keepDims */);
-    const a = input.sub(xMax);
+      x: Tensor, axis: number|number[] = null, keepDims = false): T {
+    util.assertArgumentsAreTensors({x}, 'logSumExp');
+
+    const axes = axis_util.parseAxisParam(axis, x.shape);
+    const xMax = x.max(axes, true /* keepDims */);
+    const a = x.sub(xMax);
     const b = a.exp();
     const c = b.sum(axes);
     const d = c.log();
@@ -103,6 +105,8 @@ export class ReductionOps {
   @operation
   static sum<T extends Tensor>(
       x: Tensor, axis: number|number[] = null, keepDims = false): T {
+    util.assertArgumentsAreTensors({x}, 'sum');
+
     if (x.dtype === 'bool') {
       x = x.toInt();
     }
@@ -172,6 +176,8 @@ export class ReductionOps {
   @operation
   static mean<T extends Tensor>(
       x: Tensor, axis: number|number[] = null, keepDims = false): T {
+    util.assertArgumentsAreTensors({x}, 'mean');
+
     const axes = axis_util.parseAxisParam(axis, x.shape);
     const shapes = axis_util.computeOutAndReduceShapes(x.shape, axes);
     const reduceShape = shapes[1];
@@ -235,6 +241,8 @@ export class ReductionOps {
   @operation
   static min<T extends Tensor>(
       x: Tensor, axis: number|number[] = null, keepDims = false): T {
+    util.assertArgumentsAreTensors({x}, 'min');
+
     const origAxes = axis_util.parseAxisParam(axis, x.shape);
     let axes = origAxes;
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
@@ -281,6 +289,8 @@ export class ReductionOps {
   @operation
   static max<T extends Tensor>(
       x: Tensor, axis: number|number[] = null, keepDims = false): T {
+    util.assertArgumentsAreTensors({x}, 'max');
+
     const origAxes = axis_util.parseAxisParam(axis, x.shape);
     let axes = origAxes;
     const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
@@ -322,6 +332,8 @@ export class ReductionOps {
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
   static argMin<T extends Tensor>(x: Tensor, axis = 0): T {
+    util.assertArgumentsAreTensors({x}, 'argMin');
+
     if (axis == null) {
       axis = 0;
     }
@@ -360,6 +372,8 @@ export class ReductionOps {
   @doc({heading: 'Operations', subheading: 'Reduction'})
   @operation
   static argMax<T extends Tensor>(x: Tensor, axis = 0): T {
+    util.assertArgumentsAreTensors({x}, 'argMax');
+
     if (axis == null) {
       axis = 0;
     }
@@ -390,6 +404,8 @@ export class ReductionOps {
   @operation
   static moments(x: Tensor, axis: number|number[] = null, keepDims = false):
       {mean: Tensor, variance: Tensor} {
+    util.assertArgumentsAreTensors({x}, 'moments');
+
     const axes = axis_util.parseAxisParam(axis, x.shape);
     const mean = x.mean(axes, keepDims);
     let keepDimsShape = mean.shape;

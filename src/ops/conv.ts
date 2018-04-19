@@ -26,7 +26,7 @@ export class ConvOps {
   /**
    * Computes a 1D convolution over the input x.
    *
-   * @param input The input tensor, of rank 3 or rank 2, of shape
+   * @param x The input tensor, of rank 3 or rank 2, of shape
    *     `[batch, width, inChannels]`. If rank 2, batch of 1 is assumed.
    * @param filter The filter, rank 3, of shape
    *     `[filterWidth, inDepth, outDepth]`.
@@ -53,19 +53,21 @@ export class ConvOps {
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static conv1d<T extends Tensor2D|Tensor3D>(
-      input: T, filter: Tensor3D, stride: number, pad: 'valid'|'same'|number,
+      x: T, filter: Tensor3D, stride: number, pad: 'valid'|'same'|number,
       dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input3D = input as Tensor3D;
+    util.assertArgumentsAreTensors({x, filter}, 'conv1d');
+
+    let x3D = x as Tensor3D;
     let reshapedTo3D = false;
-    if (input.rank === 2) {
+    if (x.rank === 2) {
       reshapedTo3D = true;
-      input3D = input.as3D(1, input.shape[0], input.shape[1]);
+      x3D = x.as3D(1, x.shape[0], x.shape[1]);
     }
 
     util.assert(
-        input3D.rank === 3,
-        `Error in conv1d: input must be rank 3, but got rank ${input3D.rank}.`);
+        x3D.rank === 3,
+        `Error in conv1d: input must be rank 3, but got rank ${x3D.rank}.`);
     util.assert(
         filter.rank === 3,
         `Error in conv1d: filter must be rank 3, but got rank ` +
@@ -78,8 +80,8 @@ export class ConvOps {
     }
 
     util.assert(
-        input3D.shape[2] === filter.shape[1],
-        `Error in conv1d: depth of input (${input3D.shape[2]}) must match  ` +
+        x3D.shape[2] === filter.shape[1],
+        `Error in conv1d: depth of input (${x3D.shape[2]}) must match  ` +
             `input depth for filter ${filter.shape[1]}.`);
     util.assert(
         eitherStridesOrDilationsAreOne(stride, dilation),
@@ -92,8 +94,7 @@ export class ConvOps {
 
     const filter4D =
         filter.as4D(1, filter.shape[0], filter.shape[1], filter.shape[2]);
-    const input4D =
-        input3D.as4D(input3D.shape[0], 1, input3D.shape[1], input3D.shape[2]);
+    const input4D = x3D.as4D(x3D.shape[0], 1, x3D.shape[1], x3D.shape[2]);
     const strides: [number, number] = [1, stride];
     const dilations: [number, number] = [1, dilation];
 
@@ -147,6 +148,8 @@ export class ConvOps {
       pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
       dilations: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    util.assertArgumentsAreTensors({x, filter}, 'conv2d');
+
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
 
@@ -232,6 +235,8 @@ export class ConvOps {
       xShape: [number, number, number, number]|[number, number, number], dy: T,
       filter: Tensor4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    util.assertArgumentsAreTensors({dy, filter}, 'conv2dDerInput');
+
     util.assert(
         xShape.length === dy.rank,
         `Length of inShape ` +
@@ -310,6 +315,8 @@ export class ConvOps {
       x: T, dy: T, filterShape: [number, number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
+    util.assertArgumentsAreTensors({x, dy}, 'conv2dDerFilter');
+
     let x4D = x as Tensor4D;
     if (x.rank === 3) {
       x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
@@ -379,6 +386,8 @@ export class ConvOps {
       outputShape: [number, number, number, number]|[number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+    util.assertArgumentsAreTensors({x, filter}, 'conv2dTranspose');
+
     return ConvOps.conv2dDerInput(
         outputShape, x, filter, strides, pad, dimRoundingMode);
   }
@@ -398,7 +407,7 @@ export class ConvOps {
    *     https://www.tensorflow.org/api_docs/python/tf/nn/depthwise_conv2d)
    * for more details.
    *
-   * @param input The input tensor, of rank 4 or rank 3, of shape
+   * @param x The input tensor, of rank 4 or rank 3, of shape
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
    * assumed.
    * @param filter The filter tensor, rank 4, of shape
@@ -430,28 +439,30 @@ export class ConvOps {
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static depthwiseConv2d<T extends Tensor3D|Tensor4D>(
-      input: T, filter: Tensor4D, strides: [number, number]|number,
+      x: T, filter: Tensor4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
       dilations: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    let input4D = input as Tensor4D;
+    util.assertArgumentsAreTensors({x, filter}, 'depthwiseConv2d');
+
+    let x4D = x as Tensor4D;
     let reshapedTo4D = false;
-    if (input.rank === 3) {
+    if (x.rank === 3) {
       reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
     }
     util.assert(
-        input4D.rank === 4,
+        x4D.rank === 4,
         `Error in depthwiseConv2D: input must be rank 4, but got ` +
-            `rank ${input4D.rank}.`);
+            `rank ${x4D.rank}.`);
     util.assert(
         filter.rank === 4,
         `Error in depthwiseConv2D: filter must be rank 4, but got rank ` +
             `${filter.rank}.`);
     util.assert(
-        input4D.shape[3] === filter.shape[2],
+        x4D.shape[3] === filter.shape[2],
         `Error in depthwiseConv2D: number of input channels ` +
-            `(${input4D.shape[3]}) must match the inChannels dimension in ` +
+            `(${x4D.shape[3]}) must match the inChannels dimension in ` +
             `filter ${filter.shape[2]}.`);
     if (dilations == null) {
       dilations = [1, 1];
@@ -469,11 +480,11 @@ export class ConvOps {
     }
 
     const convInfo = conv_util.computeConv2DInfo(
-        input4D.shape, filter.shape, strides, dilations, pad, dimRoundingMode,
+        x4D.shape, filter.shape, strides, dilations, pad, dimRoundingMode,
         true /* depthwise */);
     const res = ENV.engine.runKernel(
-        backend => backend.depthwiseConv2D(input4D, filter, convInfo),
-        {input4D, filter});
+        backend => backend.depthwiseConv2D(x4D, filter, convInfo),
+        {x4D, filter});
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -493,7 +504,7 @@ export class ConvOps {
    *     https://www.tensorflow.org/api_docs/python/tf/nn/separable_conv2d)
    * for more details.
    *
-   * @param input The input tensor, of rank 4 or rank 3, of shape
+   * @param x The input tensor, of rank 4 or rank 3, of shape
    *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is
    * assumed.
    * @param depthwiseFilter The depthwise filter tensor, rank 4, of shape
@@ -526,15 +537,18 @@ export class ConvOps {
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static separableConv2d<T extends Tensor3D|Tensor4D>(
-      input: T, depthwiseFilter: Tensor4D, pointwiseFilter: Tensor4D,
+      x: T, depthwiseFilter: Tensor4D, pointwiseFilter: Tensor4D,
       strides: [number, number]|number, pad: 'valid'|'same',
       dilation: [number, number]|number = [1, 1],
       dataFormat: 'NHWC'|'NCHW' = 'NHWC'): T {
-    let input4D = input as Tensor4D;
+    util.assertArgumentsAreTensors(
+        {x, depthwiseFilter, pointwiseFilter}, 'separableConv2d');
+
+    let x4D = x as Tensor4D;
     let reshapedTo4D = false;
-    if (input.rank === 3) {
+    if (x.rank === 3) {
       reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
+      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
     }
 
     if (dataFormat === 'NCHW') {
@@ -544,9 +558,9 @@ export class ConvOps {
     }
 
     util.assert(
-        input4D.rank === 4,
+        x4D.rank === 4,
         `Error in separableConv2d: input must be rank 4, but got ` +
-            `rank ${input4D.rank}.`);
+            `rank ${x4D.rank}.`);
     util.assert(
         depthwiseFilter.rank === 4,
         `Error in separableConv2d: depthwise filter must be rank 4, but got ` +
@@ -573,7 +587,7 @@ export class ConvOps {
             `but got ${pointwiseFilter.shape[2]}.`);
 
     const depthwise = ConvOps.depthwiseConv2d(
-        input4D, depthwiseFilter, strides, pad, dataFormat, dilation);
+        x4D, depthwiseFilter, strides, pad, dataFormat, dilation);
     const pointwiseStride = 1;
     const res = ConvOps.conv2d(
         depthwise, pointwiseFilter, pointwiseStride, 'valid', dataFormat);

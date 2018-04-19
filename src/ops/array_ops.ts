@@ -313,6 +313,7 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static onesLike<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'onesLike');
     return ArrayOps.ones(x.shape, x.dtype) as T;
   }
 
@@ -330,6 +331,7 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static zerosLike<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'zerosLike');
     return ArrayOps.zeros(x.shape, x.dtype) as T;
   }
 
@@ -348,6 +350,7 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
   static clone<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'clone');
     const der = (dy: T) => {
       return {x: () => dy.toFloat()};
     };
@@ -507,6 +510,7 @@ export class ArrayOps {
   static multinomial(
       logits: Tensor1D|Tensor2D, numSamples: number, seed?: number,
       normalized = false): Tensor1D|Tensor2D {
+    util.assertArgumentsAreTensors({logits}, 'multinomial');
     const numOutcomes = logits.size;
     const origRank = logits.rank;
     if (numOutcomes < 2) {
@@ -606,6 +610,8 @@ export class ArrayOps {
   @doc({heading: 'Visualization'})
   static async toPixels(img: Tensor2D|Tensor3D, canvas?: HTMLCanvasElement):
       Promise<Uint8ClampedArray> {
+    util.assertArgumentsAreTensors({img}, 'toPixels');
+
     if (img.rank !== 2 && img.rank !== 3) {
       throw new Error(
           `toPixels only supports rank 2 or 3 tensors, got rank ${img.rank}.`);
@@ -707,6 +713,8 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
   static reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2> {
+    util.assertArgumentsAreTensors({x}, 'reshape');
+
     shape = util.inferFromImplicitShape(shape, x.size);
     util.assert(
         x.size === util.sizeFromShape(shape),
@@ -734,6 +742,7 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   static squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T {
+    util.assertArgumentsAreTensors({x}, 'squeeze');
     return ArrayOps.reshape(x, util.squeezeShape(x.shape, axis).newShape) as T;
   }
 
@@ -750,6 +759,8 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
   static cast<T extends Tensor>(x: T, dtype: DataType): T {
+    util.assertArgumentsAreTensors({x}, 'cast');
+
     const grad = (dy: T) => {
       return {x: () => dy.clone()};
     };
@@ -783,6 +794,8 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static tile<T extends Tensor>(x: T, reps: number[]): T {
+    util.assertArgumentsAreTensors({x}, 'tile');
+
     util.assert(
         x.rank === reps.length,
         `Error in transpose: rank of input ${x.rank} ` +
@@ -863,6 +876,8 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static gather<T extends Tensor>(x: T, indices: Tensor1D, axis = 0): T {
+    util.assertArgumentsAreTensors({x, indices}, 'gather');
+
     util.assert(indices.dtype === 'int32', 'Indices must be of dtype `int32`');
     const axes = parseAxisParam(axis, x.shape);
     return ENV.engine.runKernel(
@@ -945,6 +960,8 @@ export class ArrayOps {
   @operation
   static pad<T extends Tensor>(
       x: T, paddings: Array<[number, number]>, constantValue = 0): T {
+    util.assertArgumentsAreTensors({x}, 'pad');
+
     if (x.rank === 0) {
       throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
     }
@@ -975,6 +992,8 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static stack<T extends Tensor>(tensors: T[], axis = 0): Tensor {
+    util.assertArgumentsAreTensors({tensors}, 'stack');
+
     util.assert(tensors.length >= 1, 'Pass at least one tensor to tf.stack');
     if (tensors.length === 1) {
       return tensors[0].expandDims(axis);
@@ -1035,6 +1054,8 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static split(x: Tensor, numOrSizeSplits: number[]|number, axis = 0) {
+    util.assertArgumentsAreTensors({x}, 'split');
+
     axis = parseAxisParam(axis, x.shape)[0];
     let splitSizes: number[];
     if (typeof (numOrSizeSplits) === 'number') {
@@ -1075,6 +1096,8 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
   static expandDims<R2 extends Rank>(x: Tensor, axis = 0): Tensor<R2> {
+    util.assertArgumentsAreTensors({x}, 'expandDims');
+
     util.assert(axis <= x.rank, 'Axis must be <= rank of the tensor');
     const newShape = x.shape.slice();
     newShape.splice(axis, 0, 1);

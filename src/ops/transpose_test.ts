@@ -61,4 +61,9 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expect(dt.dtype).toEqual('float32');
     expectArraysClose(dt, [111, 112, 121, 122, 211, 212, 221, 222]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.transpose({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'transpose' must be a Tensor/);
+  });
 });

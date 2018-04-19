@@ -47,6 +47,8 @@ export class SoftmaxOps {
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
   static softmax<T extends Tensor>(logits: T, dim = -1): T {
+    util.assertArgumentsAreTensors({logits}, 'softmax');
+
     if (dim === -1) {
       dim = logits.rank - 1;
     }
@@ -104,8 +106,10 @@ export class SoftmaxOps {
   @operation
   static softmaxCrossEntropy<T extends Tensor, O extends Tensor>(
       labels: T, logits: T, dim = -1): O {
+    util.assertArgumentsAreTensors({labels, logits}, 'softmaxCrossEntropy');
     util.assertShapesMatch(
         labels.shape, logits.shape, 'Error in softmaxCrossEntropy: ');
+
     if (dim === -1) {
       dim = logits.rank - 1;
     }

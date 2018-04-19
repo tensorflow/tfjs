@@ -106,6 +106,11 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
 
     expect(() => tf.maxPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
   });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.maxPool({} as tf.Tensor3D, 2, 1, 'valid'))
+        .toThrowError(/Argument 'x' passed to 'maxPool' must be a Tensor/);
+  });
 });
 
 describeWithFlags('maxPoolBackprop', ALL_ENVS, () => {
@@ -447,5 +452,10 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
     const dimRoundingMode = 'round';
 
     expect(() => tf.avgPool(x, 2, 1, pad, dimRoundingMode)).toThrowError();
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.avgPool({} as tf.Tensor3D, 2, 1, 'valid'))
+        .toThrowError(/Argument 'x' passed to 'avgPool' must be a Tensor/);
   });
 });

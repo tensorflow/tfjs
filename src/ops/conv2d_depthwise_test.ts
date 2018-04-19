@@ -335,4 +335,39 @@ describeWithFlags('depthwiseConv2D', ALL_ENVS, () => {
     const result = tf.depthwiseConv2d(x, w, stride, pad, 'NHWC', dilations);
     expect(result.shape).toEqual([3, 3, inDepth * chMul]);
   });
+
+  it('throws when passed x as a non-tensor', () => {
+    const inputDepth = 1;
+    const outputDepth = 1;
+    const fSize = 1;
+    const pad = 'same';
+    const stride = 2;
+    const dataFormat = 'NHWC';
+    const dilation = 2;
+
+    const w = tf.tensor4d([3], [fSize, fSize, inputDepth, outputDepth]);
+
+    const e = /Argument 'x' passed to 'depthwiseConv2d' must be a Tensor/;
+    expect(
+        () => tf.depthwiseConv2d(
+              {} as tf.Tensor3D, w, stride, pad, dataFormat, dilation))
+        .toThrowError(e);
+  });
+
+  it('throws when passed filter as a non-tensor', () => {
+    const inputDepth = 1;
+    const inputShape: [number, number, number] = [2, 2, inputDepth];
+    const pad = 'same';
+    const stride = 2;
+    const dataFormat = 'NHWC';
+    const dilation = 2;
+
+    const x = tf.tensor3d([1, 2, 3, 4], inputShape);
+
+    const e = /Argument 'filter' passed to 'depthwiseConv2d' must be a Tensor/;
+    expect(
+        () => tf.depthwiseConv2d(
+            x, {} as tf.Tensor4D, stride, pad, dataFormat, dilation))
+        .toThrowError(e);
+  });
 });

@@ -38,6 +38,7 @@ export class ImageOps {
   @operation
   static resizeBilinear<T extends Tensor3D|Tensor4D>(
       images: T, size: [number, number], alignCorners = false): T {
+    util.assertArgumentsAreTensors({images}, 'resizeBilinear');
     util.assert(
         images.rank === 3 || images.rank === 4,
         `Error in resizeBilinear: x must be rank 3 or 4, but got ` +
@@ -46,6 +47,7 @@ export class ImageOps {
         size.length === 2,
         `Error in resizeBilinear: new shape must 2D, but got shape ` +
             `${size}.`);
+
     let batchImages = images as Tensor4D;
     let reshapedTo4D = false;
     if (images.rank === 3) {
@@ -80,16 +82,19 @@ export class ImageOps {
   @operation
   static resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
       images: T, size: [number, number], alignCorners = false): T {
+    util.assertArgumentsAreTensors({images}, 'resizeNearestNeighbor');
     util.assert(
         images.rank === 3 || images.rank === 4,
         `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
-        `rank ${images.rank}.`);
+            `rank ${images.rank}.`);
     util.assert(
         size.length === 2,
         `Error in resizeNearestNeighbor: new shape must 2D, but got shape ` +
-        `${size}.`);
-    util.assert(images.dtype === 'float32' || images.dtype === 'int32',
+            `${size}.`);
+    util.assert(
+        images.dtype === 'float32' || images.dtype === 'int32',
         '`images` must have `int32` or `float32` as dtype');
+
     let batchImages = images as Tensor4D;
     let reshapedTo4D = false;
     if (images.rank === 3) {
@@ -107,5 +112,4 @@ export class ImageOps {
     }
     return res as T;
   }
-
 }

@@ -17,6 +17,7 @@
 
 import {doc} from '../doc';
 import {Tensor} from '../tensor';
+import * as util from '../util';
 
 import * as axis_util from './axis_util';
 import {operation} from './operation';
@@ -64,6 +65,8 @@ export class NormOps {
   static norm(
       x: Tensor, ord: number|'euclidean'|'fro' = 'euclidean',
       axis: number|number[] = null, keepDims = false): Tensor {
+    util.assertArgumentsAreTensors({x}, 'norm');
+
     const norm = normImpl(x, ord, axis);
     let keepDimsShape = norm.shape;
     if (keepDims) {

@@ -247,6 +247,15 @@ describeWithFlags('equal', ALL_ENVS, () => {
       const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
       expectArraysClose(tf.equal(a, b), [0, 0, 1, 0]);
   });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.equal({} as tf.Tensor, tf.scalar(1)))
+        .toThrowError(/Argument 'a' passed to 'equal' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.equal(tf.scalar(1), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'equal' must be a Tensor/);
+  });
 });
 
 describeWithFlags('equalStrict', ALL_ENVS, () => {
@@ -715,6 +724,15 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     expectArraysClose(
         tf.notEqual(a, b), [1, 1, 0, 1]);
+  });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.notEqual({} as tf.Tensor, tf.scalar(1)))
+        .toThrowError(/Argument 'a' passed to 'notEqual' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.notEqual(tf.scalar(1), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'notEqual' must be a Tensor/);
   });
 });
 
@@ -1236,6 +1254,15 @@ describeWithFlags('less', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 0, 1, 0]);
   });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.less({} as tf.Tensor, tf.scalar(1)))
+        .toThrowError(/Argument 'a' passed to 'less' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.less(tf.scalar(1), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'less' must be a Tensor/);
+  });
 });
 
 describeWithFlags('lessStrict', ALL_ENVS, () => {
@@ -1576,6 +1603,15 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [0, 0, 1, 0]);
   });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.lessEqual({} as tf.Tensor, tf.scalar(1)))
+        .toThrowError(/Argument 'a' passed to 'lessEqual' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.lessEqual(tf.scalar(1), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'lessEqual' must be a Tensor/);
+  });
 });
 
 describeWithFlags('lessEqualStrict', ALL_ENVS, () => {
@@ -1914,6 +1950,15 @@ describeWithFlags('greater', ALL_ENVS, () => {
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 0, 0, 0]);
+  });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.greater({} as tf.Tensor, tf.scalar(1)))
+        .toThrowError(/Argument 'a' passed to 'greater' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.greater(tf.scalar(1), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'greater' must be a Tensor/);
   });
 });
 
@@ -2254,6 +2299,15 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
 
     expect(res.dtype).toBe('bool');
     expectArraysClose(res, [1, 0, 0, 0]);
+  });
+
+  it('throws when passed a as a non-tensor', () => {
+    expect(() => tf.greaterEqual({} as tf.Tensor, tf.scalar(1)))
+        .toThrowError(/Argument 'a' passed to 'greaterEqual' must be a Tensor/);
+  });
+  it('throws when passed b as a non-tensor', () => {
+    expect(() => tf.greaterEqual(tf.scalar(1), {} as tf.Tensor))
+        .toThrowError(/Argument 'b' passed to 'greaterEqual' must be a Tensor/);
   });
 });
 

@@ -83,4 +83,11 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
     expectArraysClose(
         output, [2, 2, 2, 3, 3, 3, 4, 4, 4, 3, 3, 3, 4, 4, 4, 5, 5, 5]);
   });
+
+  it('throws when passed a non-tensor', () => {
+    const e = /Argument 'images' passed to 'resizeBilinear' must be a Tensor/;
+    expect(() => tf.image.resizeBilinear({} as tf.Tensor3D, [
+      1, 1
+    ])).toThrowError(e);
+  });
 });

@@ -32,7 +32,9 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalNot<T extends Tensor>(x: T): T {
+    util.assertArgumentsAreTensors({x}, 'logicalNot');
     util.assert(x.dtype === 'bool', 'Error Array must be of type bool.');
+
     return ENV.engine.runKernel(backend => backend.logicalNot(x), {x});
   }
 
@@ -45,10 +47,12 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalAnd<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertArgumentsAreTensors({a, b}, 'logicalAnd');
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+
     return ENV.engine.runKernel(backend => backend.logicalAnd(a, b), {a, b}) as
         T;
   }
@@ -62,10 +66,12 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalOr<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertArgumentsAreTensors({a, b}, 'logicalOr');
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+
     return ENV.engine.runKernel(backend => backend.logicalOr(a, b), {a, b}) as
         T;
   }
@@ -79,10 +85,12 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalXor<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertArgumentsAreTensors({a, b}, 'logicalXor');
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+
     // x ^ y = (x | y) & ~(x & y)
     return LogicalOps.logicalOr(a, b).logicalAnd(
                LogicalOps.logicalAnd(a, b).logicalNot()) as T;
@@ -101,10 +109,10 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static where<T extends Tensor>(condition: Tensor, a: T, b: T): T {
+    util.assertArgumentsAreTensors({condition, a, b}, 'where');
     util.assert(
         condition.dtype === 'bool' || a.dtype === 'bool' || b.dtype === 'bool',
         'Error Array must be of type bool.');
-
     util.assertShapesMatch(a.shape, b.shape, 'Error in where: ');
 
     if (condition.rank === 1) {

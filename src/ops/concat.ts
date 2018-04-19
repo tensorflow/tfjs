@@ -147,6 +147,8 @@ export class ConcatOps {
   @operation
   static concat<T extends Tensor>(tensors: T[], axis = 0): T {
     util.assert(tensors.length >= 1, 'Pass at least one tensor to concat');
+    util.assertArgumentsAreTensors({tensors}, 'concat');
+
     let result = tensors[0];
     if (tensors.length === 1) {
       return result;

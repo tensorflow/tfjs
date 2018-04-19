@@ -43,6 +43,8 @@ export class TransposeOps {
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static transpose<T extends Tensor>(x: T, perm?: number[]): T {
+    util.assertArgumentsAreTensors({x}, 'transpose');
+
     if (perm == null) {
       perm = x.shape.map((s, i) => i).reverse();
     }
