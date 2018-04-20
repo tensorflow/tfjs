@@ -127,28 +127,28 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
 
     const varianceEpsilon = .001;
 
-    const dy = tf.tensor4d([1, 1, 1, 1], [2, 1, 1, 2]);
+    const dy = tf.tensor4d([-1, -1, -1, -1], [2, 1, 1, 2]);
     const gradX = tf.grad(
         (x: tf.Tensor4D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(x, dy);
     expectArraysClose(
-        gradX, tf.tensor4d([1.414, 2.887, 1.414, 2.887], [2, 1, 1, 2]));
+        gradX, tf.tensor4d([-1.414, -2.887, -1.414, -2.887], [2, 1, 1, 2]));
     const gradMean = tf.grad(
         (mean: tf.Tensor1D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(mean, dy);
-    expectArraysClose(gradMean, tf.tensor1d([-2.828, -5.773]));
+    expectArraysClose(gradMean, tf.tensor1d([2.828, 5.773]));
     const gradVariance = tf.grad(
         (variance: tf.Tensor1D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(variance, dy);
-    expectArraysClose(gradVariance, tf.tensor1d([-1.413, -238.519]));
+    expectArraysClose(gradVariance, tf.tensor1d([1.413, 238.519]));
     const gradOffset = tf.grad(
         (offset: tf.Tensor1D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(offset, dy);
-    expectArraysClose(gradOffset, tf.onesLike(offset).mul(tf.scalar(2)));
+    expectArraysClose(gradOffset, dy.sum([0, 1, 2]));
     const gradScale = tf.grad(
         (scale: tf.Tensor1D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(scale, dy);
-    expectArraysClose(gradScale, tf.tensor1d([2.828, 286.318]));
+    expectArraysClose(gradScale, tf.tensor1d([-2.828, -286.318]));
   });
 
   it('batchnorm4D gradients, same shapes in x, mean and variance', () => {
@@ -160,32 +160,31 @@ describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
 
     const varianceEpsilon = .001;
 
-    const dy = tf.tensor4d([1, 1, 1, 1], [2, 1, 1, 2]);
+    const dy = tf.tensor4d([-1, -1, -1, -1], [2, 1, 1, 2]);
     const gradX = tf.grad(
         (x: tf.Tensor4D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(x, dy);
     expectArraysClose(
-        gradX, tf.tensor4d([1.414, 2.500, 0.816, 1.768], [2, 1, 1, 2]));
+        gradX, tf.tensor4d([-1.414, -2.500, -0.816, -1.768], [2, 1, 1, 2]));
     const gradMean = tf.grad(
         (mean: tf.Tensor4D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(mean, dy);
     expectArraysClose(
-        gradMean, tf.tensor4d([-1.414, -2.500, -0.816, -1.768], [2, 1, 1, 2]));
+        gradMean, tf.tensor4d([1.414, 2.500, 0.816, 1.768], [2, 1, 1, 2]));
     const gradVariance = tf.grad(
         (variance: tf.Tensor4D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(variance, dy);
     expectArraysClose(
-        gradVariance,
-        tf.tensor4d([-3.533, -4.686, -1.360, -2.762], [2, 1, 1, 2]));
+        gradVariance, tf.tensor4d([3.533, 4.686, 1.360, 2.762], [2, 1, 1, 2]));
     const gradOffset = tf.grad(
         (offset: tf.Tensor4D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(offset, dy);
-    expectArraysClose(gradOffset, tf.onesLike(offset));
+    expectArraysClose(gradOffset, dy);
     const gradScale = tf.grad(
         (scale: tf.Tensor4D) => tf.batchNormalization4d(
             x, mean, variance, varianceEpsilon, scale, offset))(scale, dy);
     expectArraysClose(
-        gradScale, tf.tensor4d([7.069, 7.499, 8.164, 8.838], [2, 1, 1, 2]));
+        gradScale, tf.tensor4d([-7.069, -7.499, -8.164, -8.838], [2, 1, 1, 2]));
   });
 });
 
