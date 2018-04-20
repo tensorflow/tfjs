@@ -1,0 +1,108 @@
+[
+  {
+    "tfOpName": "LoopCond",
+    "dlOpName": "loopCond",
+    "category": "control",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "pred",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Switch",
+    "dlOpName": "switch",
+    "category": "control",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "data",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "pred",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Merge",
+    "dlOpName": "merge",
+    "category": "control",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "tfInputParamLength": 0,
+        "dlParamName": "tensors",
+        "type": "tensors"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Enter",
+    "dlOpName": "enter",
+    "category": "control",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "tensor",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      },
+      {
+        "tfParamName": "frame_name",
+        "dlParamName": "frameName",
+        "type": "string"
+      },
+      {
+        "tfParamName": "is_constant",
+        "dlParamName": "isConstant",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Exit",
+    "dlOpName": "exit",
+    "category": "control",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "tensor",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
+    "tfOpName": "NextIteration",
+    "dlOpName": "nextIteration",
+    "category": "control",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "tensor",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  }
+]

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -119,7 +119,39 @@ export class FrozenModel {
    */
   execute(inputs: NamedTensorMap, outputs?: string|string[]): tfc.Tensor
       |NamedTensorMap {
+    if (this.executor.isControlFlowModel) {
+      throw new Error(
+          'The model contains control flow ops, ' +
+          'please use executeAsync method');
+    }
     const result = this.executor.execute(
+        this.convertTensorMapToTensorsMap(inputs), outputs);
+    const keys = Object.keys(result);
+    return (keys.length === 1) ? result[keys[0]] : result;
+  }
+
+  /**
+   * Executes inference for the model for given input tensors in async fashion,
+   * use this method when your model contains control flow ops.
+   * @param inputs tensor map of the inputs for the model, keyed by the input
+   * node names.
+   * @param outputs output node name from the Tensorflow model, if no outputs
+   * are specified, the default outputs of the model would be used. You can
+   * inspect intermediate nodes of the model by adding them to the outputs
+   * array.
+   *
+   * @returns A Promise of single tensor if provided with a single output or no
+   * outputs are provided and there is only one default output, otherwise return
+   * a tensor map.
+   */
+  async executeAsync(inputs: NamedTensorMap, outputs?: string|string[]):
+      Promise<tfc.Tensor|NamedTensorMap> {
+    if (!this.executor.isControlFlowModel) {
+      throw new Error(
+          'The model does not contain control flow ops, ' +
+          'please use execute method for better performance.');
+    }
+    const result = await this.executor.executeAsync(
         this.convertTensorMapToTensorsMap(inputs), outputs);
     const keys = Object.keys(result);
     return (keys.length === 1) ? result[keys[0]] : result;

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
 
 import {executeOp} from './reduction_executor';
@@ -25,6 +26,7 @@ import {createBoolAttr, createNumberAttr, createTensorAttr} from './test_helper'
 describe('reduction', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
+  const context = new ExecutionContext({});
 
   beforeEach(() => {
     node = {
@@ -47,7 +49,7 @@ describe('reduction', () => {
       it('should call tfc.' + op, () => {
         const spy = spyOn(tfc, op as 'max');
         node.op = op;
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(spy).toHaveBeenCalledWith(input1[0], 1, true);
       });
@@ -56,7 +58,7 @@ describe('reduction', () => {
       it('should call tfc.argMax', () => {
         spyOn(tfc, 'argMax');
         node.op = 'argMax';
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.argMax).toHaveBeenCalledWith(input1[0], 1);
       });
@@ -65,7 +67,7 @@ describe('reduction', () => {
       it('should call tfc.argMin', () => {
         spyOn(tfc, 'argMin');
         node.op = 'argMin';
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.argMin).toHaveBeenCalledWith(input1[0], 1);
       });

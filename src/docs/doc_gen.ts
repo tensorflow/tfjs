@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,6 +18,7 @@ import * as fs from 'fs';
 
 import * as arithmetic from '../operations/op_list/arithmetic.json';
 import * as basicMath from '../operations/op_list/basic_math.json';
+import * as control from '../operations/op_list/control.json';
 import * as convolution from '../operations/op_list/convolution.json';
 import * as creation from '../operations/op_list/creation.json';
 import * as graph from '../operations/op_list/graph.json';
@@ -35,11 +36,12 @@ const DOC_DIR = './docs/';
 
 const opMappers = [
   ...(arithmetic as {}) as OpMapper[], ...(basicMath as {}) as OpMapper[],
-  ...(convolution as {}) as OpMapper[], ...(creation as {}) as OpMapper[],
-  ...(logical as {}) as OpMapper[], ...(image as {}) as OpMapper[],
-  ...(graph as {}) as OpMapper[], ...(matrices as {}) as OpMapper[],
-  ...(normalization as {}) as OpMapper[], ...(reduction as {}) as OpMapper[],
-  ...(sliceJoin as {}) as OpMapper[], ...(transformation as {}) as OpMapper[]
+  ...(control as {}) as OpMapper[], ...(convolution as {}) as OpMapper[],
+  ...(creation as {}) as OpMapper[], ...(logical as {}) as OpMapper[],
+  ...(image as {}) as OpMapper[], ...(graph as {}) as OpMapper[],
+  ...(matrices as {}) as OpMapper[], ...(normalization as {}) as OpMapper[],
+  ...(reduction as {}) as OpMapper[], ...(sliceJoin as {}) as OpMapper[],
+  ...(transformation as {}) as OpMapper[]
 ];
 
 const output: string[] = [];
@@ -48,6 +50,7 @@ output.push('# Supported Tensorflow Ops\n\n');
 
 generateTable('Arithmetic', (arithmetic as {}) as OpMapper[], output);
 generateTable('Basic Math', (basicMath as {}) as OpMapper[], output);
+generateTable('Control Flow', (control as {}) as OpMapper[], output);
 generateTable('Convolution', (convolution as {}) as OpMapper[], output);
 generateTable('Tensor Creation', (creation as {}) as OpMapper[], output);
 generateTable('Tensorflow Graph', (graph as {}) as OpMapper[], output);

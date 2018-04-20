@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,32 +18,39 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../../data/index';
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
 
 import {OpExecutor} from './types';
 import {getParamValue, getTensor} from './utils';
 
-export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
+export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
+                                    context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
     case 'const': {
       return tensorMap[node.name];
     }
     case 'placeholder':
-      const def = getParamValue('default', node, tensorMap) as tfc.Tensor;
-      return [getTensor(node.name, tensorMap) || def];
+      const def =
+          getParamValue('default', node, tensorMap, context) as tfc.Tensor;
+      return [getTensor(node.name, tensorMap, context) || def];
     case 'identity':
-      return [getParamValue('x', node, tensorMap) as tfc.Tensor];
+      return [getParamValue('x', node, tensorMap, context) as tfc.Tensor];
     case 'shape':
       return [tfc.tensor1d(
-          (getParamValue('x', node, tensorMap) as tfc.Tensor).shape, 'int32')];
+          (getParamValue('x', node, tensorMap, context) as tfc.Tensor).shape,
+          'int32')];
     case 'noop':
       return [];
     case 'print':
-      const input = getParamValue('x', node, tensorMap) as tfc.Tensor;
-      const data = getParamValue('data', node, tensorMap) as tfc.Tensor[];
-      const message = getParamValue('message', node, tensorMap) as string;
-      const summarize = getParamValue('summarize', node, tensorMap) as number;
+      const input = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
+      const data =
+          getParamValue('data', node, tensorMap, context) as tfc.Tensor[];
+      const message =
+          getParamValue('message', node, tensorMap, context) as string;
+      const summarize =
+          getParamValue('summarize', node, tensorMap, context) as number;
       console.warn(
           'The graph has a tf.print() operation,' +
           'usually used for debugging, which slows down performance.');

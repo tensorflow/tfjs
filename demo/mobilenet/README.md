@@ -12,5 +12,5 @@ a browser page with the demo.
 ```bash
 cd demo # If not already in the demo directory.
 yarn # Installs dependencies.
-yarn watch # Starts a web server and opens a page. Also watches for changes.
+yarn mobilenet # Starts a web server and opens a page. Also watches for changes.
 ```

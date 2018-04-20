@@ -114,8 +114,10 @@ def extract_weights(graph_def, output_graph):
       the model topology
   """
   constants = [node for node in graph_def.node if node.op == 'Const']
+  constInputs = {}
   # removed the conditional inputs for constants
   for const in constants:
+    constInputs[const.name] = const.input[:]
     del const.input[:]
 
   print('Writing weight file ' + output_graph + '...')
@@ -131,7 +133,9 @@ def extract_weights(graph_def, output_graph):
       if not isinstance(value, np.ndarray):
         value = np.array(value)
 
+      # Restore the conditional inputs
       const_manifest.append({'name': const.name, 'data': value})
+      const.input[:] = constInputs[const.name]
 
       # Remove the binary array from tensor and save it to the external file.
       const.attr["value"].tensor.ClearField('tensor_content')

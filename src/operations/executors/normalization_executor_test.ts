@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
 
 import {executeOp} from './normalization_executor';
@@ -24,6 +25,7 @@ import {createNumberAttr, createTensorAttr} from './test_helper';
 describe('normalization', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
+  const context = new ExecutionContext({});
 
   beforeEach(() => {
     node = {
@@ -52,7 +54,7 @@ describe('normalization', () => {
         const input3 = [tfc.scalar(2)];
         const input4 = [tfc.scalar(3)];
         const input5 = [tfc.scalar(4)];
-        executeOp(node, {input1, input2, input3, input4, input5});
+        executeOp(node, {input1, input2, input3, input4, input5}, context);
 
         expect(tfc.batchNormalization)
             .toHaveBeenCalledWith(
@@ -69,7 +71,7 @@ describe('normalization', () => {
         node.params.alpha = createNumberAttr(3);
         node.params.beta = createNumberAttr(4);
 
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.localResponseNormalization)
             .toHaveBeenCalledWith(input1[0], 1, 2, 3, 4);
@@ -81,7 +83,7 @@ describe('normalization', () => {
         spyOn(tfc, 'softmax');
         node.op = 'softmax';
 
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.softmax).toHaveBeenCalledWith(input1[0]);
       });

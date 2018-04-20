@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
 
 import {executeOp} from './basic_math_executor';
@@ -24,6 +25,7 @@ import {createNumberAttr, createTensorAttr} from './test_helper';
 describe('basic math', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
+  const context = new ExecutionContext({});
 
   beforeEach(() => {
     node = {
@@ -45,7 +47,7 @@ describe('basic math', () => {
           it('should call tfc.' + op, () => {
             const spy = spyOn(tfc, op as 'abs');
             node.op = op;
-            executeOp(node, {input1});
+            executeOp(node, {input1}, context);
 
             expect(spy).toHaveBeenCalledWith(input1[0]);
           });
@@ -57,7 +59,7 @@ describe('basic math', () => {
         node.params['clipValueMax'] = createNumberAttr(6);
         node.params['clipValueMin'] = createNumberAttr(0);
 
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.clipByValue).toHaveBeenCalledWith(input1[0], 0, 6);
       });
@@ -69,7 +71,7 @@ describe('basic math', () => {
         spyOn(tfc, 'div');
         spyOn(tfc, 'sqrt').and.returnValue(input1);
 
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.sqrt).toHaveBeenCalledWith(input1[0]);
         expect(tfc.div).toHaveBeenCalledWith(jasmine.any(tfc.Tensor), input1);

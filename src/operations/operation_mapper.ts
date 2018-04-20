@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,9 +18,11 @@ import {DataType} from '@tensorflow/tfjs-core/dist/types';
 
 import {tensorflow} from '../data/index';
 
+import {getNodeNameAndIndex} from './executors/utils';
 import {ParamValue} from './index';
 import * as arithmetic from './op_list/arithmetic.json';
 import * as basicMath from './op_list/basic_math.json';
+import * as control from './op_list/control.json';
 import * as convolution from './op_list/convolution.json';
 import * as creation from './op_list/creation.json';
 import * as graph from './op_list/graph.json';
@@ -32,7 +34,7 @@ import * as sliceJoin from './op_list/slice_join.json';
 import * as transformation from './op_list/transformation.json';
 import {Graph, Node, OpMapper} from './types';
 
-const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'Next'];
+const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
 export class OperationMapper {
   private static _instance: OperationMapper;
 
@@ -47,9 +49,10 @@ export class OperationMapper {
   private constructor() {
     const mappersJson = [
       ...(arithmetic as {}) as OpMapper[], ...(basicMath as {}) as OpMapper[],
-      ...(convolution as {}) as OpMapper[], ...(creation as {}) as OpMapper[],
-      ...(logical as {}) as OpMapper[], ...(graph as {}) as OpMapper[],
-      ...(matrices as {}) as OpMapper[], ...(normalization as {}) as OpMapper[],
+      ...(control as {}) as OpMapper[], ...(convolution as {}) as OpMapper[],
+      ...(creation as {}) as OpMapper[], ...(logical as {}) as OpMapper[],
+      ...(graph as {}) as OpMapper[], ...(matrices as {}) as OpMapper[],
+      ...(normalization as {}) as OpMapper[],
       ...(reduction as {}) as OpMapper[], ...(sliceJoin as {}) as OpMapper[],
       ...(transformation as {}) as OpMapper[]
     ];
@@ -83,8 +86,9 @@ export class OperationMapper {
     Object.keys(nodes).forEach(key => {
       const node = nodes[key];
       node.inputNames.forEach(name => {
-        node.inputs.push(nodes[name]);
-        nodes[name].children.push(node);
+        const [nodeName, ] = getNodeNameAndIndex(name);
+        node.inputs.push(nodes[nodeName]);
+        nodes[nodeName].children.push(node);
       });
       if (node.inputs.length === 0) inputs.push(node);
     });
@@ -105,7 +109,9 @@ export class OperationMapper {
       name: node.name,
       op: mapper.dlOpName,
       category: mapper.category,
-      inputNames: node.input || [],
+      inputNames:
+          (node.input ||
+           []).map(input => input.startsWith('^') ? input.substr(1) : input),
       inputs: [],
       children: [],
       params: {}
