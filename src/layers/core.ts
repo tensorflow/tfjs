@@ -111,6 +111,10 @@ export class Dropout extends Layer {
     return inputs;
   }
 
+  getClassName(): string {
+    return 'Dropout';
+  }
+
   getConfig(): ConfigDict {
     const config = {
       rate: this.rate,
@@ -293,6 +297,10 @@ export class Dense extends Layer {
     return output;
   }
 
+  getClassName(): string {
+    return 'Dense';
+  }
+
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
@@ -350,6 +358,10 @@ export class Flatten extends Layer {
     return [inputShape[0], math_utils.arrayProd(inputShape, 1)];
   }
 
+  getClassName(): string {
+    return 'Flatten';
+  }
+
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
     this.invokeCallHook(inputs, kwargs);
@@ -375,6 +387,10 @@ export class Activation extends Layer {
     super(config);
     this.supportsMasking = true;
     this.activation = getActivation(config.activation);
+  }
+
+  getClassName(): string {
+    return 'Activation';
   }
 
   // tslint:disable-next-line:no-any
@@ -419,6 +435,10 @@ export class RepeatVector extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
     inputs = getExactlyOneTensor(inputs);
     return K.repeat(inputs, this.n);
+  }
+
+  getClassName(): string {
+    return 'RepeatVector';
   }
 
   getConfig(): ConfigDict {
@@ -526,6 +546,11 @@ export class Reshape extends Layer {
           this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
     }
   }
+
+  getClassName(): string {
+    return 'Reshape';
+  }
+
 
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {

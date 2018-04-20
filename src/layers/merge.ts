@@ -34,6 +34,10 @@ export class Merge extends Layer {
     this.supportsMasking = true;
   }
 
+  getClassName(): string {
+    return 'Merge';
+  }
+
   /**
    * Logic for merging multiple tensors, to be overridden by subclasses.
    * @param inputs
@@ -250,6 +254,10 @@ export class Add extends Merge {
     super(config as LayerConfig);
   }
 
+  getClassName(): string {
+    return 'Add';
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
@@ -339,6 +347,10 @@ export class Multiply extends Merge {
     super(config);
   }
 
+  getClassName(): string {
+    return 'Multiply';
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.ones(inputs[0].shape);
     for (const input of inputs) {
@@ -425,6 +437,10 @@ export function multiply(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
 export class Average extends Merge {
   constructor(config?: LayerConfig) {
     super(config);
+  }
+
+  getClassName(): string {
+    return 'Average';
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -516,6 +532,10 @@ export class Maximum extends Merge {
     super(config);
   }
 
+  getClassName(): string {
+    return 'Maximum';
+  }
+
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = inputs[0];
     for (let i = 1; i < inputs.length; ++i) {
@@ -602,6 +622,10 @@ export function maximum(config?: SymbolicTensor[]|Tensor[]|LayerConfig): Layer|
 export class Minimum extends Merge {
   constructor(config?: LayerConfig) {
     super(config);
+  }
+
+  getClassName(): string {
+    return 'Minimum';
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -708,6 +732,10 @@ export class Concatenate extends Merge {
     this.axis = config.axis == null ? this.DEFAULT_AXIS : config.axis;
     this.supportsMasking = true;
     this.reshapeRequired = false;
+  }
+
+  getClassName(): string {
+    return 'Concatenate';
   }
 
   build(inputShape: Shape|Shape[]): void {

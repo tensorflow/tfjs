@@ -50,6 +50,9 @@ class RNNCellForTest extends RNNCell {
     const output = K.neg(newStates[0]);
     return [output].concat(newStates);
   }
+  getClassName(): string {
+    return 'RNNCellForTest';
+  }
 }
 
 describeMathCPU('RNN-Layer', () => {
