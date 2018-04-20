@@ -16,15 +16,16 @@
 import {Tensor, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
-import {DType, SymbolicTensor} from '../types';
+import {DType} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 // tslint:enable:max-line-length
 
 describeMathCPU('leakyReLU: Symbolic', () => {
   it('Correct output shape', () => {
     const layer = tfl.layers.leakyReLU({alpha: 0.1});
-    const x = new SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
-    const y = layer.apply(x) as SymbolicTensor;
+    const x =
+        new tfl.SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
+    const y = layer.apply(x) as tfl.SymbolicTensor;
     expect(y.shape).toEqual(x.shape);
   });
 });
@@ -48,8 +49,9 @@ describeMathCPUAndGPU('leakyReLU: Tensor', () => {
 describeMathCPU('elu: Symbolic', () => {
   it('Correct output shape', () => {
     const layer = tfl.layers.elu();
-    const x = new SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
-    const y = layer.apply(x) as SymbolicTensor;
+    const x =
+        new tfl.SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
+    const y = layer.apply(x) as tfl.SymbolicTensor;
     expect(y.shape).toEqual(x.shape);
   });
 });
@@ -67,8 +69,9 @@ describeMathCPUAndGPU('elu: Tensor', () => {
 describeMathCPU('thresholdedReLU: Symbolic', () => {
   it('Correct output shape', () => {
     const layer = tfl.layers.thresholdedReLU();
-    const x = new SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
-    const y = layer.apply(x) as SymbolicTensor;
+    const x =
+        new tfl.SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
+    const y = layer.apply(x) as tfl.SymbolicTensor;
     expect(y.shape).toEqual(x.shape);
   });
 });
@@ -87,8 +90,9 @@ describeMathCPU('softmax: Symbolic', () => {
   for (const axis of axisValues) {
     it(`Correct output shape, axis=${axis}`, () => {
       const layer = tfl.layers.softmax({axis});
-      const x = new SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
-      const y = layer.apply(x) as SymbolicTensor;
+      const x =
+          new tfl.SymbolicTensor(DType.float32, [2, 3, 4], null, null, null);
+      const y = layer.apply(x) as tfl.SymbolicTensor;
       expect(y.shape).toEqual(x.shape);
     });
   }

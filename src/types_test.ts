@@ -16,7 +16,7 @@
 import {scalar, tensor1d, zeros} from '@tensorflow/tfjs-core';
 
 import {nameScope} from './backend/tfjs_backend';
-import {NonNeg} from './constraints';
+import * as tfl from './index';
 import {DType} from './types';
 import {ConcreteTensor, LayerVariable, SymbolicTensor} from './types';
 import {describeMathCPU} from './utils/test_utils';
@@ -196,8 +196,8 @@ describeMathCPU('Variable', () => {
   });
 
   it('Update value: w/ constraint', () => {
-    const v =
-        new LayerVariable(tensor1d([10, -10]), null, 'bar', true, new NonNeg());
+    const v = new LayerVariable(
+        tensor1d([10, -10]), null, 'bar', true, tfl.constraints.nonNeg());
 
     v.write(tensor1d([-10, 10]));
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 10]));

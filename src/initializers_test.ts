@@ -17,7 +17,7 @@ import {Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import * as tfl from './index';
-import {checkDistribution, checkFanMode, getInitializer, Orthogonal, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, Zeros} from './initializers';
+import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES} from './initializers';
 import {DType} from './types';
 import {ConfigDict} from './types';
 import * as math_utils from './utils/math_utils';
@@ -353,7 +353,7 @@ describeMathCPU('initializers.get', () => {
     expect(nestedConfig.distribution).toEqual('normal');
   });
   it('by existing object', () => {
-    const origInit = new Zeros();
+    const origInit = tfl.initializers.zeros();
     const initializer = getInitializer(origInit);
     expect(initializer).toEqual(origInit);
   });
@@ -434,7 +434,7 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
   });
 
   it('1x1 with gain', () => {
-    const init = new Orthogonal({gain: 3});
+    const init = tfl.initializers.orthogonal({gain: 3});
     const w = init.apply([1, 1], DType.float32) as Tensor2D;
     expect(w.shape).toEqual([1, 1]);
     expect(w.dtype).toEqual(DType.float32);

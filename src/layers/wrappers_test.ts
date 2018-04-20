@@ -15,20 +15,23 @@
 // tslint:disable:max-line-length
 import {Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
 
-import {DType, SymbolicTensor} from '../types';
+import {Layer} from '../engine/topology';
+import * as tfl from '../index';
+import {DType} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense, Reshape} from './core';
 import {SimpleRNN} from './recurrent';
-import {Bidirectional, BidirectionalMergeMode, TimeDistributed} from './wrappers';
+import {BidirectionalMergeMode, TimeDistributed} from './wrappers';
 
 // tslint:enable:max-line-length
 
 describeMathCPU('TimeDistributed Layer: Symbolic', () => {
   it('3D input: Dense', () => {
-    const input = new SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
-    const wrapper = new TimeDistributed({layer: new Dense({units: 3})});
-    const output = wrapper.apply(input) as SymbolicTensor;
+    const input =
+        new tfl.SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
+    const wrapper = tfl.layers.timeDistributed({layer: new Dense({units: 3})});
+    const output = wrapper.apply(input) as tfl.SymbolicTensor;
     expect(wrapper.trainable).toEqual(true);
     expect(wrapper.getWeights().length).toEqual(2);  // kernel and bias.
     expect(output.dtype).toEqual(input.dtype);
@@ -36,22 +39,23 @@ describeMathCPU('TimeDistributed Layer: Symbolic', () => {
   });
   it('4D input: Reshape', () => {
     const input =
-        new SymbolicTensor(DType.float32, [10, 8, 2, 3], null, [], null);
+        new tfl.SymbolicTensor(DType.float32, [10, 8, 2, 3], null, [], null);
     const wrapper =
-        new TimeDistributed({layer: new Reshape({targetShape: [6]})});
-    const output = wrapper.apply(input) as SymbolicTensor;
+        tfl.layers.timeDistributed({layer: new Reshape({targetShape: [6]})});
+    const output = wrapper.apply(input) as tfl.SymbolicTensor;
     expect(output.dtype).toEqual(input.dtype);
     expect(output.shape).toEqual([10, 8, 6]);
   });
   it('2D input leads to exception', () => {
-    const input = new SymbolicTensor(DType.float32, [10, 2], null, [], null);
-    const wrapper = new TimeDistributed({layer: new Dense({units: 3})});
+    const input =
+        new tfl.SymbolicTensor(DType.float32, [10, 2], null, [], null);
+    const wrapper = tfl.layers.timeDistributed({layer: new Dense({units: 3})});
     expect(() => wrapper.apply(input))
         .toThrowError(
             /TimeDistributed .*expects an input shape >= 3D, .* \[10,.*2\]/);
   });
   it('getConfig and fromConfig: round trip', () => {
-    const wrapper = new TimeDistributed({layer: new Dense({units: 3})});
+    const wrapper = tfl.layers.timeDistributed({layer: new Dense({units: 3})});
     const config = wrapper.getConfig();
     const wrapperPrime = TimeDistributed.fromConfig(TimeDistributed, config);
     expect(wrapperPrime.getConfig()).toEqual(wrapper.getConfig());
@@ -68,7 +72,7 @@ describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
         [2, 4, 2]);
     // Given an all-ones Dense kernel and no bias, the output at each timestep
     // is expected to be [3, 7, 11, 15], give or take a minus sign.
-    const wrapper = new TimeDistributed({
+    const wrapper = tfl.layers.timeDistributed({
       layer: new Dense({units: 1, kernelInitializer: 'ones', useBias: false})
     });
     const output = wrapper.apply(input) as Tensor;
@@ -95,8 +99,8 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
           `mergeMode=${mergeMode}; returnState=${returnState}`;
       it(testTitle, () => {
         const input =
-            new SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
-        const bidi = new Bidirectional({
+            new tfl.SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
+        const bidi = tfl.layers.bidirectional({
           layer: new SimpleRNN(
               {units: 3, recurrentInitializer: 'glorotNormal', returnState}),
           mergeMode,
@@ -109,33 +113,33 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
         expect(bidi.getWeights().length).toEqual(6);
         if (!returnState) {
           if (mergeMode === null) {
-            outputs = outputs as SymbolicTensor[];
+            outputs = outputs as tfl.SymbolicTensor[];
             expect(outputs.length).toEqual(2);
             expect(outputs[0].shape).toEqual([10, 3]);
             expect(outputs[1].shape).toEqual([10, 3]);
           } else if (mergeMode === BidirectionalMergeMode.CONCAT) {
-            outputs = outputs as SymbolicTensor;
+            outputs = outputs as tfl.SymbolicTensor;
             expect(outputs.shape).toEqual([10, 6]);
           } else {
-            outputs = outputs as SymbolicTensor;
+            outputs = outputs as tfl.SymbolicTensor;
             expect(outputs.shape).toEqual([10, 3]);
           }
         } else {
           if (mergeMode === null) {
-            outputs = outputs as SymbolicTensor[];
+            outputs = outputs as tfl.SymbolicTensor[];
             expect(outputs.length).toEqual(4);
             expect(outputs[0].shape).toEqual([10, 3]);
             expect(outputs[1].shape).toEqual([10, 3]);
             expect(outputs[2].shape).toEqual([10, 3]);
             expect(outputs[3].shape).toEqual([10, 3]);
           } else if (mergeMode === BidirectionalMergeMode.CONCAT) {
-            outputs = outputs as SymbolicTensor[];
+            outputs = outputs as tfl.SymbolicTensor[];
             expect(outputs.length).toEqual(3);
             expect(outputs[0].shape).toEqual([10, 6]);
             expect(outputs[1].shape).toEqual([10, 3]);
             expect(outputs[2].shape).toEqual([10, 3]);
           } else {
-            outputs = outputs as SymbolicTensor[];
+            outputs = outputs as tfl.SymbolicTensor[];
             expect(outputs.length).toEqual(3);
             expect(outputs[0].shape).toEqual([10, 3]);
             expect(outputs[1].shape).toEqual([10, 3]);
@@ -146,8 +150,9 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
     }
   }
   it('returnSequence=true', () => {
-    const input = new SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
-    const bidi = new Bidirectional({
+    const input =
+        new tfl.SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
+    const bidi = tfl.layers.bidirectional({
       layer: new SimpleRNN({
         units: 3,
         recurrentInitializer: 'glorotNormal',
@@ -156,7 +161,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
       }),
       mergeMode: BidirectionalMergeMode.AVE
     });
-    const outputs = bidi.apply(input) as SymbolicTensor[];
+    const outputs = bidi.apply(input) as tfl.SymbolicTensor[];
     expect(outputs.length).toEqual(3);
     expect(outputs[0].shape).toEqual([10, 8, 3]);
     expect(outputs[1].shape).toEqual([10, 3]);
@@ -193,12 +198,13 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
   // print(model.predict(x))
   // ```
 
-  let bidi: Bidirectional;
+  // TODO(bileschi): This should be tfl.layers.Layer.
+  let bidi: Layer;
   let x: Tensor3D;
   function createLayerAndData(
       mergeMode: BidirectionalMergeMode, returnState: boolean) {
     const units = 3;
-    bidi = new Bidirectional({
+    bidi = tfl.layers.bidirectional({
       layer: new SimpleRNN({
         units,
         kernelInitializer: 'ones',

@@ -14,12 +14,10 @@
 
 // tslint:disable:max-line-length
 import {onesLike, Tensor, tensor2d, tensor3d, tensor4d, zerosLike} from '@tensorflow/tfjs-core';
-
+import * as tfl from '../index';
 import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
-
-import {BatchNormalization} from './normalization';
 
 // tslint:enable
 
@@ -29,7 +27,7 @@ describeMathCPU('BatchNormalization Layers: Symbolic', () => {
     const testTitle = `shape=${JSON.stringify(inputShape)}`;
     it(testTitle, () => {
       const x = new SymbolicTensor(DType.float32, inputShape, null, [], null);
-      const layer = new BatchNormalization({});
+      const layer = tfl.layers.batchNormalization({});
       const y = layer.apply(x) as SymbolicTensor;
       expect(y.dtype).toEqual(x.dtype);
       expect(y.shape).toEqual(x.shape);
@@ -38,7 +36,7 @@ describeMathCPU('BatchNormalization Layers: Symbolic', () => {
 
   it('Undetermined dim axis leads to ValueError', () => {
     const x = new SymbolicTensor(DType.float32, [null, 2, 3], null, [], null);
-    const layer = new BatchNormalization({axis: 0});
+    const layer = tfl.layers.batchNormalization({axis: 0});
     expect(() => layer.apply(x))
         .toThrowError(
             /Axis 0 of input tensor should have a defined dimension.*/);
@@ -53,7 +51,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
     for (const axis of axisValues) {
       const testTitle = `Inference, ${dim}D, axis=${axis}`;
       it(testTitle, () => {
-        const layer = new BatchNormalization({axis});
+        const layer = tfl.layers.batchNormalization({axis});
         let x: Tensor;
         if (dim === 2) {
           x = tensor2d([[1, 2], [3, 4]], [2, 2]);
@@ -74,7 +72,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
   }
 
   it('no center', () => {
-    const layer = new BatchNormalization({center: false, axis: 0});
+    const layer = tfl.layers.batchNormalization({center: false, axis: 0});
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
     expect(layer.getWeights().length).toEqual(3);
@@ -87,7 +85,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
   });
 
   it('no scale', () => {
-    const layer = new BatchNormalization({scale: false, axis: 0});
+    const layer = tfl.layers.batchNormalization({scale: false, axis: 0});
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
     expect(layer.getWeights().length).toEqual(3);
@@ -100,7 +98,7 @@ describeMathCPUAndGPU('BatchNormalization Layers: Tensor', () => {
   });
 
   it('no center, no scale', () => {
-    const layer = new BatchNormalization({scale: false, center: false});
+    const layer = tfl.layers.batchNormalization({scale: false, center: false});
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     expectTensorsClose(layer.apply(x) as Tensor, x, 0.01);
     expect(layer.getWeights().length).toEqual(2);

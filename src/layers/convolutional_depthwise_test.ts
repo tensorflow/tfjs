@@ -17,12 +17,10 @@ import {Tensor, tensor4d} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {DataFormat, PaddingMode} from '../common';
+import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
 import {DType} from '../types';
-import {SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
-
-import {DepthwiseConv2D} from './convolutional_depthwise';
 
 // tslint:enable:max-line-length
 
@@ -41,14 +39,14 @@ describeMathCPU('DepthwiseConv2D-Symbolic', () => {
               `depthMultiplier=${depthMultiplier}, ` +
               `paddingMode=${padding}`;
           it(testTitle, () => {
-            const depthwiseConvLayer = new DepthwiseConv2D(
+            const depthwiseConvLayer = tfl.layers.depthwiseConv2d(
                 {dataFormat, kernelSize, depthMultiplier, padding});
             const inputShape = dataFormat === 'channelsFirst' ? [1, 8, 10, 10] :
                                                                 [1, 10, 10, 8];
-            const symbolicInput =
-                new SymbolicTensor(DType.float32, inputShape, null, [], null);
+            const symbolicInput = new tfl.SymbolicTensor(
+                DType.float32, inputShape, null, [], null);
             const symbolicOutput =
-                depthwiseConvLayer.apply(symbolicInput) as SymbolicTensor;
+                depthwiseConvLayer.apply(symbolicInput) as tfl.SymbolicTensor;
 
             const outputImageSize = padding === 'valid' ? 9 : 10;
             let expectedShape: [number, number, number, number];
@@ -67,9 +65,9 @@ describeMathCPU('DepthwiseConv2D-Symbolic', () => {
   }
 
   it('Non-4D Array Input leads to exception', () => {
-    const depthwiseConvLayer = new DepthwiseConv2D({kernelSize: 2});
+    const depthwiseConvLayer = tfl.layers.depthwiseConv2d({kernelSize: 2});
     const symbolicInput =
-        new SymbolicTensor(DType.float32, [1, 10, 10], null, [], null);
+        new tfl.SymbolicTensor(DType.float32, [1, 10, 10], null, [], null);
     expect(() => depthwiseConvLayer.apply(symbolicInput))
         .toThrowError(
             /Inputs to DepthwiseConv2D should have rank 4\. Received .*/);
@@ -95,7 +93,7 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
             `activation=relu`;
         it(testTitle, () => {
           const x = tensor4d(x4by4Data, [1, 1, 4, 4]);
-          const conv2dLayer = new DepthwiseConv2D({
+          const conv2dLayer = tfl.layers.depthwiseConv2d({
             kernelSize: [2, 2],
             depthMultiplier,
             strides: [2, 2],
@@ -132,7 +130,7 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
   it('channelsLast', () => {
     // Convert input to channelsLast.
     const x = K.transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
-    const conv2dLayer = new DepthwiseConv2D({
+    const conv2dLayer = tfl.layers.depthwiseConv2d({
       depthMultiplier: 2,
       kernelSize: [2, 2],
       strides: [2, 2],
