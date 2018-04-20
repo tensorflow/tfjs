@@ -2429,3 +2429,83 @@ describeWithFlags('atanh', ALL_ENVS, () => {
         .toThrowError(/Argument 'x' passed to 'atanh' must be a Tensor/);
   });
 });
+
+describeWithFlags('erf', ALL_ENVS, () => {
+  it('basic', () => {
+    const values = [-0.25, 0.25, 0.5, .75, -0.4];
+    const a = tf.tensor1d(values);
+    const result = tf.erf(a);
+    const expected = [-0.2763264, 0.2763264, 0.5204999, 0.7111556, -0.4283924];
+    expectArraysClose(result, expected);
+  });
+
+  it('scalar', () => {
+    const a = tf.scalar(1);
+    const result = tf.erf(a);
+    const expected = [0.8427008];
+    expectArraysClose(result, expected);
+  });
+
+  it('scalar in int32', () => {
+    const a = tf.scalar(1, "int32");
+    const result = tf.erf(a);
+      const expected = [0.8427008];
+      expectArraysClose(result, expected);
+  });
+
+  it('tensor2d', () => {
+    const values = [0.2, 0.3, 0.4, 0.5];
+    const a = tf.tensor2d(values, [2, 2]);
+    const result = tf.erf(a);
+    const expected = [0.2227026 , 0.32862678, 0.42839235, 0.5204999];
+    expectArraysClose(result, expected);
+  });
+
+  it('propagates NaNs', () => {
+    const a = tf.tensor1d([0.5, NaN, 0]);
+    const res = tf.erf(a);
+    expectArraysClose(res, [0.5204999, NaN, 0.0]);
+  });
+
+  it('gradients: Scalar', () => {
+    const a = tf.scalar(0.5);
+    const dy = tf.scalar(8);
+    const gradients = tf.grad(a => tf.erf(a))(a, dy);
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients,
+        [8 * 2 * Math.exp(-0.5 * 0.5) / Math.sqrt(Math.PI)]);
+  });
+
+  it('gradients: Tensor1D', () => {
+    const aValues = [-0.1, 0.2, 0.3, -0.5];
+    const dyValues = [1, 2, 3, 4];
+    const a = tf.tensor1d(aValues);
+    const dy = tf.tensor1d(dyValues);
+    const gradients = tf.grad(a => tf.erf(a))(a, dy);
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+        expected[i] = dyValues[i] * 2 *
+            Math.exp(-aValues[i] * aValues[i]) / Math.sqrt(Math.PI);
+    }
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+
+  it('gradients: Tensor2D', () => {
+    const aValues = [-0.3, 0.1, 0.2, 0.3];
+    const dyValues = [1, 2, 3, 4];
+    const a = tf.tensor2d(aValues, [2, 2]);
+    const dy = tf.tensor2d(dyValues, [2, 2]);
+    const gradients = tf.grad(a => tf.erf(a))(a, dy);
+    const expected = [];
+    for (let i = 0; i < a.size; i++) {
+        expected[i] = dyValues[i] * 2 *
+            Math.exp(-aValues[i] * aValues[i]) / Math.sqrt(Math.PI);
+    }
+    expect(gradients.shape).toEqual(a.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, expected);
+  });
+});

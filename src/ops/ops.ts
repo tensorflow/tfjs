@@ -140,6 +140,7 @@ export const square = UnaryOps.square;
 export const step = UnaryOps.step;
 export const tan = UnaryOps.tan;
 export const tanh = UnaryOps.tanh;
+export const erf = UnaryOps.erf;
 
 export const add = BinaryOps.add;
 export const addStrict = BinaryOps.addStrict;

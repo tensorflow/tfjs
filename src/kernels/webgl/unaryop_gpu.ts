@@ -16,6 +16,7 @@
  */
 
 import * as selu_util from '../../ops/selu_util';
+import * as erf_util from '../../ops/erf_util';
 
 import {GPGPUProgram} from './gpgpu_math';
 
@@ -171,6 +172,21 @@ export const ASINH = `return log(x + sqrt(x * x + 1.0));`;
 export const ACOSH = `return log(x + sqrt(x * x - 1.0));`;
 
 export const ATANH = `return (log(1.0 + x) - log(1.0 - x)) / 2.0;`;
+
+export const ERF = `
+  // Error function is calculated approximately with elementary function.
+  // See "Handbook of Mathematical Functions with Formulas, 
+  // Graphs, and Mathematical Tables", Abramowitz and Stegun.
+  float p = ${erf_util.ERF_P};
+  float a1 = ${erf_util.ERF_A1};
+  float a2 = ${erf_util.ERF_A2};
+  float a3 = ${erf_util.ERF_A3};
+  float a4 = ${erf_util.ERF_A4};
+  float a5 = ${erf_util.ERF_A5};
+  
+  float t = 1.0 / (1.0 + p * x);
+  return 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*exp(-x*x);
+`;
 
 export const SQUARE = `return x * x;`;
 
