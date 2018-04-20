@@ -840,6 +840,37 @@ export class UnaryOps {
   }
 
   /**
+   * Computes gause error function of the input `Tensor` element-wise:
+   * `erf(x)`
+   *
+   * ```js
+   * const x = tf.tensor1d([0, .1, -.1, .7]);
+   *
+   * x.erf().print(); // or tf.erf(x);
+   * ```
+   * @param x The input tensor.
+   */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
+  @operation
+  static erf<T extends Tensor>(x: T): T {
+    util.assert(x.dtype === 'int32' || x.dtype === 'float32',
+        'Input dtype must be `int32` or `float32`.');
+
+    if (x.dtype === 'int32') {
+      x = x.toFloat();
+    }
+
+    const grad = (dy: T) => {
+      return {
+        x: () =>
+            dy.mulStrict(ops.scalar(2/Math.sqrt(Math.PI))
+                .mul(x.square().neg().exp()))
+      };
+    };
+    return ENV.engine.runKernel(backend => backend.erf(x), {x}, grad);
+  }
+
+  /**
    * Computes step of the input `Tensor` element-wise: `x > 0 ? 1 : alpha * x`
    *
    * ```js

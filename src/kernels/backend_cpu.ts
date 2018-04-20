@@ -25,6 +25,7 @@ import {Conv2DInfo} from '../ops/conv_util';
 import * as ops from '../ops/ops';
 import {buffer, tensor3d, tensor4d} from '../ops/ops';
 import * as selu_util from '../ops/selu_util';
+import * as erf_util from '../ops/erf_util';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
@@ -899,6 +900,24 @@ export class MathBackendCPU implements KernelBackend {
     const values = x.dataSync();
     for (let i = 0; i < values.length; ++i) {
       resultValues[i] = Math.atanh(values[i]);
+    }
+    return Tensor.make(x.shape, {values: resultValues}) as T;
+  }
+
+  erf<T extends Tensor>(x: T): T {
+    const resultValues = new Float32Array(x.size);
+    const values = x.dataSync();
+    const p = erf_util.ERF_P;
+    const a1 = erf_util.ERF_A1;
+    const a2 = erf_util.ERF_A2;
+    const a3 = erf_util.ERF_A3;
+    const a4 = erf_util.ERF_A4;
+    const a5 = erf_util.ERF_A5;
+    for (let i = 0; i < values.length; ++i) {
+      const v = values[i];
+      const t = 1.0 / (1.0 + p * v);
+      resultValues[i]
+          = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-v*v);
     }
     return Tensor.make(x.shape, {values: resultValues}) as T;
   }
