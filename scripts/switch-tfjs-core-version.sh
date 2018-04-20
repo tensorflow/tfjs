@@ -7,23 +7,20 @@
 # https://opensource.org/licenses/MIT.
 # =============================================================================
 
-
-# Switch between different versions of deeplearn.js dependency.
-#
-# The script automatically modifies ./package.json
+# Switch between different versions of tfjs-core dependency.
 #
 # Usage examples:
 #
-# 1. To depend on the HEAD of the public GitHub repo of deeplearn.js:
-#   ./scripts/switch-deeplearn-version.sh --github
+# 1. To depend on the HEAD of the public GitHub repo of tfjs-core
+#   ./scripts/switch-tfjs-core-version.sh --github
 #
 # 2. To depend on a given branch or tags  of the public GitHub repo of
-#    deeplearn.js:
-#   ./scripts/switch-deeplearn-version.sh --github --branch tags/v0.5.0
+#    tfjs-core:
+#   ./scripts/switch-tfjs-core-version.sh --github --branch tags/v0.5.0
 #
-# 3. To depend on deeplearn.js built from a local repo, with any local
+# 3. To depend on tfjs-core built from a local repo, with any local
 #    edits incorporated:
-#   ./scripts/switch-deeplearn-version.sh --local_path "${HOME}/my-dljs"
+#   ./scripts/switch-tfjs-core-version.sh --local_path "${HOME}/my-dljs"
 
 set -e
 
@@ -68,7 +65,7 @@ fi
 
 # Check yarn is on path.
 if [[ -z "$(which yarn)" ]]; then
-  echo "ERROR: switch-deeplearn-version.sh relies on yarn." \
+  echo "ERROR: switch-tfjs-core-version.sh relies on yarn." \
     "But yarn is not found on path." \
     "See https://yarnpkg.com/lang/en/docs/install/"
   exit 1
@@ -77,14 +74,14 @@ fi
 if [[ ${GITHUB} == 1 ]]; then
   REPO_DIR="${DEFAULT_TMP_REPO_DIR}"
 
-  if [[ ! -d "${REPO_DIR}/deeplearnjs" ]]; then
-    echo "Cloning deeplearn.js git repo to: ${REPO_DIR}"
+  if [[ ! -d "${REPO_DIR}/tfjs-core" ]]; then
+    echo "Cloning tfjs-core git repo to: ${REPO_DIR}"
     echo
     mkdir -p "${REPO_DIR}"
     cd "${REPO_DIR}"
-    git clone https://github.com/PAIR-code/deeplearnjs.git
+    git clone https://github.com/tensorflow/tfjs-core.git
   fi
-  cd "${REPO_DIR}/deeplearnjs"
+  cd "${REPO_DIR}/tfjs-core"
 
   if [[ ! -z "${GIT_BRANCH}" ]]; then
     git checkout "${GIT_BRANCH}"
@@ -97,24 +94,24 @@ else
   exit 1
 fi
 
-# Call yarn link / build in the deeplearn source folder.
-# In case another deeplearn repo has been registered.
-yarn unlink || echo "No deeplearn is registered with yarn link."
+# Call yarn link / build in the tfjs-core source folder.
+# In case another tfjs-core repo has been registered.
+yarn unlink || echo "No tfjs-core is registered with yarn link."
 yarn link
 yarn
 yarn build
 
-# cd back to where we started and call yarn link deeplearn.
+# cd back to where we started and call yarn link tfjs-core.
 cd "${ORIGIN_DIR}"
-rm -rf node_modules/deeplearn
-yarn link deeplearn
+rm -rf node_modules/@tensorflow/tfjs-core
+yarn link
 
-# Call yarn link deeplearn for the demos/ directory.
+# Call yarn link tfjs-core for the demos/ directory.
 cd "${ORIGIN_DIR}/demos"
-rm -rf node_modules/deeplearn
-yarn link deeplearn
+rm -rf node_modules/@tensorflow/tfjs-core
+yarn link @tensorflow/tfjs-core
 
-echo "Linking to custom deeplearn source is done."
+echo "Linking to custom tfjs-core source is done."
 echo
-echo "To switch back to the default deeplearn version, do:"
-echo "  yarn unlink deeplearn && yarn"
+echo "To switch back to the default tfjs-core version, do:"
+echo "  yarn unlink @tensorflow/tfjs-core && yarn"
