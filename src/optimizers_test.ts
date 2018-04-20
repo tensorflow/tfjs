@@ -18,7 +18,7 @@ import {AdagradOptimizer, AdamOptimizer, RMSPropOptimizer, SGDOptimizer} from '@
 import {getOptimizer} from './optimizers';
 import {describeMathCPU} from './utils/test_utils';
 
-// tslint:enable
+// tslint:enable:max-line-length
 
 describeMathCPU('getOptimizer', () => {
   // TODO(nsthorat): Assert defaults by getting config from the optimizer.

@@ -17,12 +17,10 @@ import {ones, scalar, Tensor, tensor3d, Tensor4D, tensor4d, util} from '@tensorf
 
 import * as K from '../backend/tfjs_backend';
 import {DataFormat, PaddingMode} from '../common';
+import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
-import {DType, SymbolicTensor} from '../types';
+import {DType} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
-
-import {Conv1D, Conv2D, Conv2DTranspose, SeparableConv2D} from './convolutional';
-
 // tslint:enable:max-line-length
 
 describeMathCPU('Conv2D Layers: Symbolic', () => {
@@ -47,10 +45,10 @@ describeMathCPU('Conv2D Layers: Symbolic', () => {
               const inputShape = dataFormat === 'channelsFirst' ?
                   [2, 16, 11, 9] :
                   [2, 11, 9, 16];
-              const symbolicInput =
-                  new SymbolicTensor(DType.float32, inputShape, null, [], null);
+              const symbolicInput = new tfl.SymbolicTensor(
+                  DType.float32, inputShape, null, [], null);
 
-              const conv2dLayer = new Conv2D({
+              const conv2dLayer = tfl.layers.conv2d({
                 filters,
                 kernelSize,
                 strides,
@@ -58,7 +56,8 @@ describeMathCPU('Conv2D Layers: Symbolic', () => {
                 dataFormat,
               });
 
-              const output = conv2dLayer.apply(symbolicInput) as SymbolicTensor;
+              const output =
+                  conv2dLayer.apply(symbolicInput) as tfl.SymbolicTensor;
 
               let outputRows: number;
               let outputCols: number;
@@ -116,7 +115,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
             `activation=${activation}`;
         it(testTitle, () => {
           const x = tensor4d(x4by4Data, [1, 1, 4, 4]);
-          const conv2dLayer = new Conv2D({
+          const conv2dLayer = tfl.layers.conv2d({
             filters: 1,
             kernelSize: [2, 2],
             strides: [2, 2],
@@ -146,7 +145,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
   it('CHANNEL_LAST', () => {
     // Convert input to CHANNEL_LAST.
     const x = K.transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
-    const conv2dLayer = new Conv2D({
+    const conv2dLayer = tfl.layers.conv2d({
       filters: 1,
       kernelSize: [2, 2],
       strides: [2, 2],
@@ -191,7 +190,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
             ]
           ]],
           [1, 5, 5, 1]);
-      const conv2dLayer = new Conv2D({
+      const conv2dLayer = tfl.layers.conv2d({
         filters: 1,
         kernelSize: [2, 2],
         strides: 1,
@@ -220,7 +219,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
     const testTitle = 'Explicit default dilation rate: ' +
         JSON.stringify(explicitDefaultDilation);
     it(testTitle, () => {
-      const conv2dLayer = new Conv2D({
+      const conv2dLayer = tfl.layers.conv2d({
         filters: 1,
         kernelSize: [2, 2],
         strides: [2, 2],
@@ -251,12 +250,12 @@ describeMathCPU('Conv2DTranspose: Symbolic', () => {
               `kernelSize=${JSON.stringify(kernelSize)}, strides=${strides}`;
           it(testTitle, () => {
             const inputShape = [2, 11, 9, 16];
-            const x =
-                new SymbolicTensor(DType.float32, inputShape, null, [], null);
+            const x = new tfl.SymbolicTensor(
+                DType.float32, inputShape, null, [], null);
 
-            const layer =
-                new Conv2DTranspose({filters, kernelSize, padding, strides});
-            const y = layer.apply(x) as SymbolicTensor;
+            const layer = tfl.layers.conv2dTranspose(
+                {filters, kernelSize, padding, strides});
+            const y = layer.apply(x) as tfl.SymbolicTensor;
 
             let expectedShape: [number, number, number, number];
             if (strides === undefined) {
@@ -290,8 +289,9 @@ describeMathCPU('Conv2DTranspose: Symbolic', () => {
   }
 
   it('Correct weight names', () => {
-    const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
-    const layer = new Conv2DTranspose({filters: 2, kernelSize: [3, 3]});
+    const x =
+        new tfl.SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
+    const layer = tfl.layers.conv2dTranspose({filters: 2, kernelSize: [3, 3]});
     layer.apply(x);  // Let the layer build first.
 
     expect(layer.weights.length).toEqual(2);
@@ -313,7 +313,7 @@ describeMathCPUAndGPU('Conv2DTranspose: Tensor', () => {
         const kernelSize = [2, 2];
         const padding = 'valid';
         const strides = 2;
-        const layer = new Conv2DTranspose({
+        const layer = tfl.layers.conv2dTranspose({
           filters,
           kernelSize,
           padding,
@@ -348,9 +348,9 @@ describeMathCPU('Conv1D Layers: Symbolic', () => {
         it(testTitle, () => {
           const inputShape = [2, 8, 3];
           const symbolicInput =
-              new SymbolicTensor(DType.float32, inputShape, null, [], null);
+              new tfl.SymbolicTensor(DType.float32, inputShape, null, [], null);
 
-          const conv1dLayer = new Conv1D({
+          const conv1dLayer = tfl.layers.conv1d({
             filters,
             kernelSize: 2,
             strides,
@@ -358,7 +358,7 @@ describeMathCPU('Conv1D Layers: Symbolic', () => {
             dataFormat: 'channelsLast',
           });
 
-          const output = conv1dLayer.apply(symbolicInput) as SymbolicTensor;
+          const output = conv1dLayer.apply(symbolicInput) as tfl.SymbolicTensor;
 
           const expectedShape = [2, 7, filters];
           if (padding === 'same') {
@@ -386,7 +386,7 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
           `activation=${activation}; strides=${strides}`;
       it(testTitle, () => {
         const x = tensor3d(xLength4Data, [1, 4, 1]);
-        const conv1dLayer = new Conv1D({
+        const conv1dLayer = tfl.layers.conv1d({
           filters: 1,
           kernelSize: 2,
           strides,
@@ -425,7 +425,7 @@ describeMathCPUAndGPU('Conv1D Layer: Tensor', () => {
             0.53109141, 0.85882819
           ],
           [1, 8, 1]);
-      const conv1dLayer = new Conv1D({
+      const conv1dLayer = tfl.layers.conv1d({
         filters: 1,
         kernelSize: 2,
         strides: 1,
@@ -468,10 +468,10 @@ describeMathCPU('SeparableConv2D Layers: Symbolic', () => {
                 const inputShape = dataFormat === 'channelsFirst' ?
                     [2, 16, 11, 9] :
                     [2, 11, 9, 16];
-                const symbolicInput = new SymbolicTensor(
+                const symbolicInput = new tfl.SymbolicTensor(
                     DType.float32, inputShape, null, [], null);
 
-                const layer = new SeparableConv2D({
+                const layer = tfl.layers.separableConv2d({
                   filters,
                   kernelSize,
                   strides,
@@ -480,7 +480,7 @@ describeMathCPU('SeparableConv2D Layers: Symbolic', () => {
                   dilationRate,
                 });
 
-                const output = layer.apply(symbolicInput) as SymbolicTensor;
+                const output = layer.apply(symbolicInput) as tfl.SymbolicTensor;
 
                 let outputRows: number;
                 let outputCols: number;
@@ -541,24 +541,24 @@ describeMathCPU('SeparableConv2D Layers: Symbolic', () => {
   }
 
   it('Incorrect input rank throws error', () => {
-    const layer = new SeparableConv2D({
+    const layer = tfl.layers.separableConv2d({
       filters: 1,
       kernelSize: [2, 2],
       strides: 1,
     });
     const symbolicInput =
-        new SymbolicTensor(DType.float32, [2, 3, 4], null, [], null);
+        new tfl.SymbolicTensor(DType.float32, [2, 3, 4], null, [], null);
     expect(() => layer.apply(symbolicInput)).toThrowError(/rank 4/);
   });
 
   it('Undefined channel axis throws error', () => {
-    const layer = new SeparableConv2D({
+    const layer = tfl.layers.separableConv2d({
       filters: 1,
       kernelSize: [2, 2],
       strides: 1,
     });
-    const symbolicInput =
-        new SymbolicTensor(DType.float32, [1, , 2, 3, null], null, [], null);
+    const symbolicInput = new tfl.SymbolicTensor(
+        DType.float32, [1, , 2, 3, null], null, [], null);
     expect(() => layer.apply(symbolicInput))
         .toThrowError(/channel dimension .* should be defined/);
   });
@@ -591,7 +591,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
                 x = K.transpose(x, [0, 3, 1, 2]) as Tensor4D;  // NHWC -> NCHW.
               }
 
-              const conv2dLayer = new SeparableConv2D({
+              const conv2dLayer = tfl.layers.separableConv2d({
                 depthMultiplier: 1,
                 filters: 1,
                 kernelSize: [2, 2],

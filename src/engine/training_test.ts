@@ -18,16 +18,13 @@ import {abs, mean, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, ten
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
 import * as tfl from '../index';
-import {Dropout, Flatten, Reshape} from '../layers/core';
-import {SimpleRNN} from '../layers/recurrent';
-import {TimeDistributed} from '../layers/wrappers';
 import {Regularizer} from '../regularizers';
-import {DType, SymbolicTensor} from '../types';
+import {DType} from '../types';
 import {pyListRepeat, stringsEqual} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
-
-import {Input, Layer} from './topology';
-import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, makeBatches, Model, sliceArraysByIndices, standardizeInputData} from './training';
+// TODO(bileschi): Use external version of Layer.
+import {Layer} from './topology';
+import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, makeBatches, sliceArraysByIndices, standardizeInputData} from './training';
 
 // tslint:enable:max-line-length
 
@@ -193,49 +190,49 @@ describe('makeBatches', () => {
 
 describeMathCPUAndGPU('Model.predict', () => {
   it('1 input, 1 output', () => {
-    const inputTensor =
-        Input({shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
-    const layer = new Reshape({targetShape: [2, 6]});
-    const output = layer.apply(inputTensor) as SymbolicTensor;
-    const model =
-        new Model({inputs: [inputTensor], outputs: [output], name: 'model1x1'});
+    const inputTensor = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
+    const layer = tfl.layers.reshape({targetShape: [2, 6]});
+    const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+    const model = new tfl.Model(
+        {inputs: [inputTensor], outputs: [output], name: 'model1x1'});
     const xs = K.ones([10, 3, 4]);
     const ys = model.predict(xs, {batchSize: 4}) as Tensor;
     expectTensorsClose(ys, K.ones([10, 2, 6]));
   });
 
   it('1 input, 1 output, tensor as input argument', () => {
-    const inputTensor =
-        Input({shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
-    const layer = new Reshape({targetShape: [2, 6]});
-    const output = layer.apply(inputTensor) as SymbolicTensor;
-    const model =
-        new Model({inputs: [inputTensor], outputs: [output], name: 'model1x1'});
+    const inputTensor = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
+    const layer = tfl.layers.reshape({targetShape: [2, 6]});
+    const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+    const model = new tfl.Model(
+        {inputs: [inputTensor], outputs: [output], name: 'model1x1'});
     const xs = K.ones([10, 3, 4]);
     const ys = model.predict(xs) as Tensor;
     expectTensorsClose(ys, K.ones([10, 2, 6]));
   });
 
   it('1 input as Array, 1 output', () => {
-    const inputTensor =
-        Input({shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
-    const layer = new Reshape({targetShape: [2, 6]});
-    const output = layer.apply(inputTensor) as SymbolicTensor;
-    const model =
-        new Model({inputs: [inputTensor], outputs: [output], name: 'model1x1'});
+    const inputTensor = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
+    const layer = tfl.layers.reshape({targetShape: [2, 6]});
+    const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+    const model = new tfl.Model(
+        {inputs: [inputTensor], outputs: [output], name: 'model1x1'});
     const xs = K.ones([10, 3, 4]);
     const ys = model.predict([xs], {batchSize: 4}) as Tensor;
     expectTensorsClose(ys, K.ones([10, 2, 6]));
   });
 
   it('1 input, 2 outputs', () => {
-    const inputTensor =
-        Input({shape: [3, 4], name: 'inputLayer2', dtype: DType.float32});
-    const layer1 = new Reshape({targetShape: [2, 6]});
-    const layer2 = new Flatten();
-    const output1 = layer1.apply(inputTensor) as SymbolicTensor;
-    const output2 = layer2.apply(output1) as SymbolicTensor;
-    const model = new Model(
+    const inputTensor = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer2', dtype: DType.float32});
+    const layer1 = tfl.layers.reshape({targetShape: [2, 6]});
+    const layer2 = tfl.layers.flatten();
+    const output1 = layer1.apply(inputTensor) as tfl.SymbolicTensor;
+    const output2 = layer2.apply(output1) as tfl.SymbolicTensor;
+    const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output1, output2], name: 'model1x2'});
     const xs = K.ones([10, 3, 4]);
     const ys = model.predict(xs, {batchSize: 4}) as Tensor[];
@@ -245,15 +242,15 @@ describeMathCPUAndGPU('Model.predict', () => {
   });
 
   it('2 inputs, 2 outputs', () => {
-    const inputTensor1 =
-        Input({shape: [3, 4], name: 'inputLayer3', dtype: DType.float32});
-    const inputTensor2 =
-        Input({shape: [3, 3], name: 'inputLayer4', dtype: DType.float32});
-    const layer1 = new Reshape({targetShape: [2, 6]});
-    const layer2 = new Flatten();
-    const output1 = layer1.apply(inputTensor1) as SymbolicTensor;
-    const output2 = layer2.apply(inputTensor2) as SymbolicTensor;
-    const model = new Model({
+    const inputTensor1 = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer3', dtype: DType.float32});
+    const inputTensor2 = tfl.layers.input(
+        {shape: [3, 3], name: 'inputLayer4', dtype: DType.float32});
+    const layer1 = tfl.layers.reshape({targetShape: [2, 6]});
+    const layer2 = tfl.layers.flatten();
+    const output1 = layer1.apply(inputTensor1) as tfl.SymbolicTensor;
+    const output2 = layer2.apply(inputTensor2) as tfl.SymbolicTensor;
+    const model = new tfl.Model({
       inputs: [inputTensor1, inputTensor2],
       outputs: [output1, output2],
       name: 'model2x2'
@@ -267,11 +264,11 @@ describeMathCPUAndGPU('Model.predict', () => {
   });
 
   it('Incorrect number of inputs leads to exception: 1 vs 2', () => {
-    const inputTensor =
-        Input({shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
-    const layer = new Reshape({targetShape: [2, 6]});
-    const output = layer.apply(inputTensor) as SymbolicTensor;
-    const model = new Model(
+    const inputTensor = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
+    const layer = tfl.layers.reshape({targetShape: [2, 6]});
+    const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+    const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output], name: 'model_inc_1x1'});
     const xs1 = K.ones([10, 3, 4]);
 
@@ -281,15 +278,15 @@ describeMathCPUAndGPU('Model.predict', () => {
   });
 
   it('Incorrect number of inputs leads to exception: 2 vs 3', () => {
-    const inputTensor1 =
-        Input({shape: [3, 4], name: 'inputLayer_inc_3', dtype: DType.float32});
-    const inputTensor2 =
-        Input({shape: [3, 3], name: 'inputLayer_inc_4', dtype: DType.float32});
-    const layer1 = new Reshape({targetShape: [2, 6]});
-    const layer2 = new Flatten();
-    const output1 = layer1.apply(inputTensor1) as SymbolicTensor;
-    const output2 = layer2.apply(inputTensor2) as SymbolicTensor;
-    const model = new Model({
+    const inputTensor1 = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer_inc_3', dtype: DType.float32});
+    const inputTensor2 = tfl.layers.input(
+        {shape: [3, 3], name: 'inputLayer_inc_4', dtype: DType.float32});
+    const layer1 = tfl.layers.reshape({targetShape: [2, 6]});
+    const layer2 = tfl.layers.flatten();
+    const output1 = layer1.apply(inputTensor1) as tfl.SymbolicTensor;
+    const output2 = layer2.apply(inputTensor2) as tfl.SymbolicTensor;
+    const model = new tfl.Model({
       inputs: [inputTensor1, inputTensor2],
       outputs: [output1, output2],
       name: 'model_inc_2x2'
@@ -302,11 +299,11 @@ describeMathCPUAndGPU('Model.predict', () => {
   });
 
   it('Incorrect input shape leads to exception', () => {
-    const inputTensor =
-        Input({shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
-    const layer = new Reshape({targetShape: [2, 6]});
-    const output = layer.apply(inputTensor) as SymbolicTensor;
-    const model = new Model(
+    const inputTensor = tfl.layers.input(
+        {shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
+    const layer = tfl.layers.reshape({targetShape: [2, 6]});
+    const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+    const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output], name: 'model_inc_1x1'});
     const xs1 = K.ones([2, 4, 3]);
 
@@ -321,20 +318,20 @@ describeMathCPUAndGPU('Model.fit', () => {
   const inputSize2 = 4;  // 2nd input vector size for model with two inputs.
   const numSamples = 5;  // Number of samples in a batch.
 
-  const inputTensor =
-      Input({shape: [inputSize], name: 'inputLayer1', dtype: DType.float32});
-  const inputTensor1 = Input(
+  const inputTensor = tfl.layers.input(
+      {shape: [inputSize], name: 'inputLayer1', dtype: DType.float32});
+  const inputTensor1 = tfl.layers.input(
       {shape: [inputSize1], name: 'inputLayer1of2', dtype: DType.float32});
-  const inputTensor2 = Input(
+  const inputTensor2 = tfl.layers.input(
       {shape: [inputSize2], name: 'inputLayer2of2', dtype: DType.float32});
 
   // For model with one input.
-  let model: Model;
+  let model: tfl.Model;
   let inputs: Tensor;
   let targets: Tensor;
 
   // For model with two inputs (and two outputs).
-  let twoOutputModel: Model;
+  let twoOutputModel: tfl.Model;
   let inputs1: Tensor;
   let inputs2: Tensor;
   let targets1: Tensor;
@@ -347,8 +344,8 @@ describeMathCPUAndGPU('Model.fit', () => {
       ): void {
     const layer = tfl.layers.dense(
         {units: 1, useBias, kernelInitializer: 'ones', kernelRegularizer});
-    const output = layer.apply(inputTensor) as SymbolicTensor;
-    model = new Model({inputs: [inputTensor], outputs: [output]});
+    const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+    model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
     inputs = K.ones([numSamples, inputSize]);
     targets = K.ones([numSamples, 1]);
   }
@@ -356,8 +353,8 @@ describeMathCPUAndGPU('Model.fit', () => {
   function createDenseCategoricalModelAndData(useBias = false): void {
     const layer =
         tfl.layers.dense({units: 2, useBias, kernelInitializer: 'ones'});
-    const output = layer.apply(inputTensor) as SymbolicTensor;
-    model = new Model({inputs: [inputTensor], outputs: [output]});
+    const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+    model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
     inputs = K.ones([numSamples, inputSize]);
     targets = K.oneHot(K.ones([numSamples]), 2);
   }
@@ -367,8 +364,9 @@ describeMathCPUAndGPU('Model.fit', () => {
         tfl.layers.dense({units: 10, useBias, kernelInitializer: 'ones'});
     const layer2 =
         tfl.layers.dense({units: 1, useBias, kernelInitializer: 'ones'});
-    const output = layer2.apply(layer1.apply(inputTensor)) as SymbolicTensor;
-    model = new Model({inputs: [inputTensor], outputs: [output]});
+    const output =
+        layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
+    model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
     inputs = K.ones([numSamples, inputSize]);
     targets = K.ones([numSamples, 1]);
     return [layer1, layer2];
@@ -379,9 +377,9 @@ describeMathCPUAndGPU('Model.fit', () => {
         tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'ones'});
     const layer2 =
         tfl.layers.dense({units: 1, useBias: false, kernelInitializer: 'ones'});
-    const output1 = layer1.apply(inputTensor1) as SymbolicTensor;
-    const output2 = layer2.apply(inputTensor2) as SymbolicTensor;
-    twoOutputModel = new Model(
+    const output1 = layer1.apply(inputTensor1) as tfl.SymbolicTensor;
+    const output2 = layer2.apply(inputTensor2) as tfl.SymbolicTensor;
+    twoOutputModel = new tfl.Model(
         {inputs: [inputTensor1, inputTensor2], outputs: [output1, output2]});
     inputs1 = K.ones([numSamples, inputSize1]);
     inputs2 = K.ones([numSamples, inputSize2]);
@@ -493,15 +491,15 @@ describeMathCPUAndGPU('Model.fit', () => {
   it('Training with Dropout layer', async done => {
     const inputSize = 2;
     const batchSize = 4;
-    const input = Input({shape: [inputSize]});
+    const input = tfl.layers.input({shape: [inputSize]});
     const dense1 =
         tfl.layers.dense({units: 2, kernelInitializer: 'ones', useBias: false});
-    const dropout = new Dropout({rate: 0.5});
+    const dropout = tfl.layers.dropout({rate: 0.5});
     const dense2 =
         tfl.layers.dense({units: 1, kernelInitializer: 'ones', useBias: false});
     const output =
-        dense2.apply(dropout.apply(dense1.apply(input))) as SymbolicTensor;
-    const model = new Model({inputs: input, outputs: output});
+        dense2.apply(dropout.apply(dense1.apply(input))) as tfl.SymbolicTensor;
+    const model = new tfl.Model({inputs: input, outputs: output});
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
     const x = K.ones([batchSize, inputSize]);
     const y = K.ones([batchSize, 1]);
@@ -653,21 +651,21 @@ describeMathCPUAndGPU('Model.fit', () => {
     // batches during training and validation will be 3, 3 and 2. This tests the
     // correct averaging of the loss values happens without broadcasting.
     const outputSize = 2;
-    const simpleRNN = new SimpleRNN({
+    const simpleRNN = tfl.layers.simpleRNN({
       units: outputSize,
       kernelInitializer: 'ones',
       recurrentInitializer: 'ones',
       useBias: false,
       returnSequences: true,
     });
-    const timeDistributed = new TimeDistributed({
+    const timeDistributed = tfl.layers.timeDistributed({
       layer: tfl.layers.dense(
           {units: outputSize, kernelInitializer: 'ones', useBias: false})
     });
-    const input = Input({shape: [sequenceLength, inputSize]});
+    const input = tfl.layers.input({shape: [sequenceLength, inputSize]});
     const output =
-        timeDistributed.apply(simpleRNN.apply(input)) as SymbolicTensor;
-    const model = new Model({inputs: input, outputs: output});
+        timeDistributed.apply(simpleRNN.apply(input)) as tfl.SymbolicTensor;
+    const model = new tfl.Model({inputs: input, outputs: output});
     model.compile({
       optimizer: 'sgd',
       loss: 'categoricalCrossentropy',
@@ -1109,8 +1107,8 @@ describeMathCPUAndGPU('Model.fit', () => {
 
 describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
   it('Correct training arg during fit/evaluate/predict', async done => {
-    const inputTensor =
-        Input({shape: [1], name: 'inputLayer1', dtype: DType.float32});
+    const inputTensor = tfl.layers.input(
+        {shape: [1], name: 'inputLayer1', dtype: DType.float32});
     const layer1 = tfl.layers.dense({units: 1});
     const layer2 = tfl.layers.dropout({rate: 0.5});
 
@@ -1125,8 +1123,9 @@ describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
     // tslint:enable:no-any
     layer2.setCallHook(recordDropoutTrainingArgHook);
 
-    const output = layer2.apply(layer1.apply(inputTensor)) as SymbolicTensor;
-    const model = new Model({inputs: [inputTensor], outputs: [output]});
+    const output =
+        layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
+    const model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const xs = K.ones([4, 1]);
     const ys = K.ones([4, 1]);
@@ -1160,15 +1159,15 @@ describeMathCPUAndGPU('Model.evaluate', () => {
   const numExamples = 8;
   const inputSize = 2;
   const outputSize = 1;
-  let model: Model;
+  let model: tfl.Model;
   let x: Tensor;
   let y: Tensor;
   function prepModel() {
-    const input = Input({shape: [inputSize]});
+    const input = tfl.layers.input({shape: [inputSize]});
     const dense = tfl.layers.dense(
         {units: outputSize, kernelInitializer: 'ones', useBias: false});
-    const output = dense.apply(input) as SymbolicTensor;
-    model = new Model({inputs: input, outputs: output});
+    const output = dense.apply(input) as tfl.SymbolicTensor;
+    model = new tfl.Model({inputs: input, outputs: output});
   }
   function prepData() {
     x = K.ones([numExamples, inputSize]);
@@ -1209,12 +1208,12 @@ describeMathCPUAndGPU('Model.evaluate', () => {
 
 describeMathCPUAndGPU('Load weights', () => {
   it('Simple functional model', () => {
-    const inputTensor =
-        Input({shape: [3], name: 'inputLayer', dtype: DType.float32});
+    const inputTensor = tfl.layers.input(
+        {shape: [3], name: 'inputLayer', dtype: DType.float32});
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
-    const output = denseLayer.apply(inputTensor) as SymbolicTensor;
-    const model = new Model({
+    const output = denseLayer.apply(inputTensor) as tfl.SymbolicTensor;
+    const model = new tfl.Model({
       inputs: [inputTensor],
       outputs: [output],
       name: 'modelWithWeightsToLoad',

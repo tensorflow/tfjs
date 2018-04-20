@@ -16,11 +16,13 @@
 import {ones, slice, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat} from '../common';
+import * as tfl from '../index';
 import {DType, SymbolicTensor} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './padding';
+
 // tslint:enable:max-line-length
 
 describeMathCPU('ZeroPadding2D: Symbolic', () => {
@@ -30,7 +32,7 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
   for (const dataFormat in dataFormats) {
     it('Default padding 1-1-1-1, dataFormat=' + dataFormat, () => {
       const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
-      const layer = new ZeroPadding2D();
+      const layer = tfl.layers.zeroPadding2d();
       const y = layer.apply(x) as SymbolicTensor;
       expect(y.dtype).toEqual(DType.float32);
       if (dataFormat === 'channelsFirst') {
@@ -42,7 +44,7 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
 
     it('All symmetric padding 2, dataFormat=' + dataFormat, () => {
       const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
-      const layer = new ZeroPadding2D({padding: 2});
+      const layer = tfl.layers.zeroPadding2d({padding: 2});
       const y = layer.apply(x) as SymbolicTensor;
       expect(y.dtype).toEqual(DType.float32);
       if (dataFormat === 'channelsFirst') {
@@ -54,7 +56,7 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
 
     it('Symmetric padding 2-3, dataFormat=' + dataFormat, () => {
       const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
-      const layer = new ZeroPadding2D({padding: [2, 3]});
+      const layer = tfl.layers.zeroPadding2d({padding: [2, 3]});
       const y = layer.apply(x) as SymbolicTensor;
       expect(y.dtype).toEqual(DType.float32);
       if (dataFormat === 'channelsFirst') {
@@ -66,7 +68,7 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
 
     it('Asymmetric padding 2-3-4-5, dataFormat=' + dataFormat, () => {
       const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
-      const layer = new ZeroPadding2D({padding: [[2, 3], [4, 5]]});
+      const layer = tfl.layers.zeroPadding2d({padding: [[2, 3], [4, 5]]});
       const y = layer.apply(x) as SymbolicTensor;
       expect(y.dtype).toEqual(DType.float32);
       if (dataFormat === 'channelsFirst') {
@@ -79,27 +81,33 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
 
   it('Incorrect array length leads to error', () => {
     // tslint:disable-next-line:no-any
-    expect(() => new ZeroPadding2D({padding: [2, 3, 4]} as any))
+    expect(() => tfl.layers.zeroPadding2d({padding: [2, 3, 4]} as any))
         .toThrowError(/length-2 array/);
   });
 
   it('Incorrect height array length leads to error', () => {
-    // tslint:disable-next-line:no-any
-    expect(() => new ZeroPadding2D({padding: [[2, 3, 4], [5, 6]]} as any))
+    // tslint:disable:no-any
+    expect(
+        () => tfl.layers.zeroPadding2d({padding: [[2, 3, 4], [5, 6]]} as any))
         .toThrowError(/height.*length-2 array/);
+    // tslint:enable:no-any
   });
 
   it('Incorrect height array length leads to error', () => {
-    // tslint:disable-next-line:no-any
-    expect(() => new ZeroPadding2D({padding: [[1, 1], [2, 3, 4]]} as any))
+    // tslint:disable:no-any
+    expect(
+        () => tfl.layers.zeroPadding2d({padding: [[1, 1], [2, 3, 4]]} as any))
         .toThrowError(/width.*length-2 array/);
+    // tslint:enable:no-any
   });
 
   it('Serialization round trip', () => {
-    const layer = new ZeroPadding2D({padding: [2, 4]});
+    const layer = tfl.layers.zeroPadding2d({padding: [2, 4]}) as ZeroPadding2D;
     const pythonicConfig = convertTsToPythonic(layer.getConfig());
     const tsConfig = convertPythonicToTs(pythonicConfig);
-    const layerPrime = new ZeroPadding2D(tsConfig as ZeroPadding2DLayerConfig);
+    const layerPrime =
+        tfl.layers.zeroPadding2d(tsConfig as ZeroPadding2DLayerConfig) as
+        ZeroPadding2D;
     expect(layerPrime.padding).toEqual(layer.padding);
     expect(layerPrime.dataFormat).toEqual(layer.dataFormat);
   });
@@ -108,7 +116,7 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
 describeMathCPUAndGPU('ZeroPadding2D: Tensor', () => {
   it('Default padding 1-1-1-1, channelsLast', () => {
     const x = ones([2, 2, 2, 3]);
-    const layer = new ZeroPadding2D();
+    const layer = tfl.layers.zeroPadding2d();
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 4, 4, 3]);
 
@@ -125,7 +133,7 @@ describeMathCPUAndGPU('ZeroPadding2D: Tensor', () => {
 
   it('Default padding 1-1-1-1, channelFirst', () => {
     const x = ones([2, 3, 2, 2]);
-    const layer = new ZeroPadding2D({dataFormat: 'channelsFirst'});
+    const layer = tfl.layers.zeroPadding2d({dataFormat: 'channelsFirst'});
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 3, 4, 4]);
 
@@ -142,7 +150,7 @@ describeMathCPUAndGPU('ZeroPadding2D: Tensor', () => {
 
   it('Symmetric padding 2-2, channelsLast', () => {
     const x = ones([2, 2, 2, 3]);
-    const layer = new ZeroPadding2D({padding: [2, 2]});
+    const layer = tfl.layers.zeroPadding2d({padding: [2, 2]});
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 6, 6, 3]);
 
@@ -159,7 +167,7 @@ describeMathCPUAndGPU('ZeroPadding2D: Tensor', () => {
 
   it('Asymmetric padding 2-1-2-1, channelsLast', () => {
     const x = ones([2, 2, 2, 3]);
-    const layer = new ZeroPadding2D({padding: [[2, 1], [2, 1]]});
+    const layer = tfl.layers.zeroPadding2d({padding: [[2, 1], [2, 1]]});
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 5, 5, 3]);
 

@@ -29,7 +29,7 @@ import {BatchNormalization, BatchNormalizationLayerConfig} from './layers/normal
 import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
-import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, WrapperLayerConfig} from './layers/wrappers';
+import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, Wrapper, WrapperLayerConfig} from './layers/wrappers';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
 import {l1, L1Config, L1L2, L1L2Config, l2, L2Config, Regularizer} from './regularizers';
 import {SymbolicTensor} from './types';
@@ -405,7 +405,7 @@ export class LayerExports {
     useDocsFrom: 'Concatenate',
     configParamIndices: [0]
   })
-  static concatenate(config: ConcatenateLayerConfig): Layer {
+  static concatenate(config?: ConcatenateLayerConfig): Layer {
     return new Concatenate(config);
   }
 
@@ -464,7 +464,7 @@ export class LayerExports {
     useDocsFrom: 'ZeroPadding2D',
     configParamIndices: [0]
   })
-  static zeroPadding2d(config: ZeroPadding2DLayerConfig): Layer {
+  static zeroPadding2d(config?: ZeroPadding2DLayerConfig): Layer {
     return new ZeroPadding2D(config);
   }
 
@@ -672,7 +672,7 @@ export class LayerExports {
     useDocsFrom: 'Bidirectional',
     configParamIndices: [0]
   })
-  static bidirectional(config: BidirectionalLayerConfig): Layer {
+  static bidirectional(config: BidirectionalLayerConfig): Wrapper {
     return new Bidirectional(config);
   }
 
