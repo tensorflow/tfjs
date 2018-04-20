@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,6 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
+import {ExecutionContext} from '../executor';
+
 import * as arithmetic from './executors/arithmetic_executor';
 import * as basic_math from './executors/basic_math_executor';
 import * as convolution from './executors/convolution_executor';
@@ -31,6 +33,8 @@ import {Node} from './types';
 
 describe('OperationExecutor', () => {
   let node: Node;
+  const context = new ExecutionContext({});
+
   beforeEach(() => {
     node = {
       name: 'test',
@@ -50,8 +54,8 @@ describe('OperationExecutor', () => {
           it('should call ' + category.CATEGORY + ' executor', () => {
             spyOn(category, 'executeOp');
             node.category = category.CATEGORY;
-            executeOp(node, {});
-            expect(category.executeOp).toHaveBeenCalledWith(node, {});
+            executeOp(node, {}, context);
+            expect(category.executeOp).toHaveBeenCalledWith(node, {}, context);
           });
         });
   });

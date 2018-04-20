@@ -45,6 +45,18 @@
 |Tanh|tanh|
 
 
+## Control Flow Ops
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|LoopCond|loopCond|
+|Switch|switch|
+|Merge|merge|
+|Enter|enter|
+|Exit|exit|
+|NextIteration|nextIteration|
+
+
 ## Convolution Ops
 
 |Tensorflow Op Name|Tensorflow.js Op Name|

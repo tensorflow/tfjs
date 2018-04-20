@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright 2017 Google Inc. All Rights Reserved.
+# Copyright 2018 Google LLC. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 # limitations under the License.
 # =============================================================================
 
-yarn prep
+yarn
 
 # Gen the doc
 ./node_modules/.bin/ts-node ./src/docs/doc_gen.ts

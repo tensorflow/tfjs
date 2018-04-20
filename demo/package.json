@@ -10,8 +10,8 @@
     "@tensorflow/tfjs-core": "0.6.1"
   },
   "scripts": {
-    "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
-    "build": "NODE_ENV=production parcel build index.html  --no-minify --public-url /"
+    "mobilenet": "NODE_ENV=development parcel --no-hmr --open mobilenet/index.html ",
+    "control_flow": "NODE_ENV=development parcel --no-hmr --open control_flow/index.html ",
   },
   "devDependencies": {
     "babel-plugin-transform-runtime": "~6.23.0",

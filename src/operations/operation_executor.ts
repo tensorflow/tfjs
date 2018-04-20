@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,9 +18,11 @@
 import * as tfc from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../data/index';
+import {ExecutionContext} from '../executor/execution_context';
 
 import * as arithmetic from './executors/arithmetic_executor';
 import * as basicMath from './executors/basic_math_executor';
+import * as control from './executors/control_executor';
 import * as convolution from './executors/convolution_executor';
 import * as creation from './executors/creation_executor';
 import * as graph from './executors/graph_executor';
@@ -39,32 +41,35 @@ import {Node} from './index';
  * @param tensorMap contains tensors for executed nodes and weights
  */
 export function executeOp(
-    node: Node, tensorMap: NamedTensorsMap): tfc.Tensor[] {
+    node: Node, tensorMap: NamedTensorsMap,
+    context: ExecutionContext): tfc.Tensor[]|Promise<tfc.Tensor[]> {
   switch (node.category) {
     case 'arithmetic':
-      return arithmetic.executeOp(node, tensorMap);
+      return arithmetic.executeOp(node, tensorMap, context);
     case 'basic_math':
-      return basicMath.executeOp(node, tensorMap);
+      return basicMath.executeOp(node, tensorMap, context);
+    case 'control':
+      return control.executeOp(node, tensorMap, context);
     case 'convolution':
-      return convolution.executeOp(node, tensorMap);
+      return convolution.executeOp(node, tensorMap, context);
     case 'creation':
-      return creation.executeOp(node, tensorMap);
+      return creation.executeOp(node, tensorMap, context);
     case 'image':
-      return image.executeOp(node, tensorMap);
+      return image.executeOp(node, tensorMap, context);
     case 'graph':
-      return graph.executeOp(node, tensorMap);
+      return graph.executeOp(node, tensorMap, context);
     case 'logical':
-      return logical.executeOp(node, tensorMap);
+      return logical.executeOp(node, tensorMap, context);
     case 'matrices':
-      return matrices.executeOp(node, tensorMap);
+      return matrices.executeOp(node, tensorMap, context);
     case 'normalization':
-      return normalization.executeOp(node, tensorMap);
+      return normalization.executeOp(node, tensorMap, context);
     case 'reduction':
-      return reduction.executeOp(node, tensorMap);
+      return reduction.executeOp(node, tensorMap, context);
     case 'slice_join':
-      return sliceJoin.executeOp(node, tensorMap);
+      return sliceJoin.executeOp(node, tensorMap, context);
     case 'transformation':
-      return transformation.executeOp(node, tensorMap);
+      return transformation.executeOp(node, tensorMap, context);
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

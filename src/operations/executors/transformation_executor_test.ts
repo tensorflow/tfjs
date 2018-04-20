@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,7 +16,9 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
+
 // tslint:disable-next-line:max-line-length
 import {createDtypeAttr, createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr} from './test_helper';
 import {executeOp} from './transformation_executor';
@@ -25,6 +27,7 @@ describe('transformation', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.tensor1d([1, 1])];
+  const context = new ExecutionContext({});
 
   beforeEach(() => {
     node = {
@@ -44,7 +47,7 @@ describe('transformation', () => {
         spyOn(tfc, 'cast');
         node.op = 'cast';
         node.params.dtype = createDtypeAttr('float32');
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.cast).toHaveBeenCalledWith(input1[0], 'float32');
       });
@@ -54,7 +57,7 @@ describe('transformation', () => {
         spyOn(tfc, 'expandDims');
         node.op = 'expandDims';
         node.params.axis = createNumberAttr(1);
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.expandDims).toHaveBeenCalledWith(input1[0], 1);
       });
@@ -67,7 +70,7 @@ describe('transformation', () => {
         node.params.constantValue = createNumberAttr(1);
         node.inputNames = ['input1', 'input3'];
         const input3 = [tfc.tensor2d([1, 1, 2, 2], [2, 2])];
-        executeOp(node, {input1, input3});
+        executeOp(node, {input1, input3}, context);
 
         expect(tfc.pad).toHaveBeenCalledWith(input1[0], [[1, 1], [2, 2]], 1);
       });
@@ -79,7 +82,7 @@ describe('transformation', () => {
         node.params.shape = createNumericArrayAttrFromIndex(1);
         node.inputNames = ['input1', 'input2'];
 
-        executeOp(node, {input1, input2});
+        executeOp(node, {input1, input2}, context);
 
         expect(tfc.reshape).toHaveBeenCalledWith(input1[0], [1, 1]);
       });
@@ -89,7 +92,7 @@ describe('transformation', () => {
         spyOn(tfc, 'squeeze');
         node.op = 'squeeze';
         node.params.axis = createNumberAttr(1);
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.squeeze).toHaveBeenCalledWith(input1[0], 1);
       });

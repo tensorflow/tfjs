@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,73 +19,85 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {DataType} from '@tensorflow/tfjs-core/dist/types';
 
 import {NamedTensorsMap} from '../../data/index';
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
 
 import {OpExecutor} from './types';
 import {getParamValue} from './utils';
 
-export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap):
+export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
+                                    context: ExecutionContext):
                                        tfc.Tensor[] => {
   switch (node.op) {
     case 'fill': {
-      const shape = getParamValue('shape', node, tensorMap) as number[];
-      const value = getParamValue('value', node, tensorMap) as number;
+      const shape =
+          getParamValue('shape', node, tensorMap, context) as number[];
+      const value = getParamValue('value', node, tensorMap, context) as number;
       return [tfc.fill(shape, value)];
     }
     case 'linspace': {
-      const start = getParamValue('start', node, tensorMap) as number;
-      const stop = getParamValue('stop', node, tensorMap) as number;
-      const num = getParamValue('num', node, tensorMap) as number;
+      const start = getParamValue('start', node, tensorMap, context) as number;
+      const stop = getParamValue('stop', node, tensorMap, context) as number;
+      const num = getParamValue('num', node, tensorMap, context) as number;
       return [tfc.linspace(start, stop, num)];
     }
     case 'oneHot': {
-      const indices = getParamValue('indices', node, tensorMap) as tfc.Tensor1D;
-      const depth = getParamValue('depth', node, tensorMap) as number;
-      const onValue = getParamValue('onValue', node, tensorMap) as number;
-      const offValue = getParamValue('offValue', node, tensorMap) as number;
+      const indices =
+          getParamValue('indices', node, tensorMap, context) as tfc.Tensor1D;
+      const depth = getParamValue('depth', node, tensorMap, context) as number;
+      const onValue =
+          getParamValue('onValue', node, tensorMap, context) as number;
+      const offValue =
+          getParamValue('offValue', node, tensorMap, context) as number;
       return [tfc.oneHot(indices, depth, onValue, offValue)];
     }
     case 'ones': {
       return [tfc.ones(
-          getParamValue('shape', node, tensorMap) as number[],
-          getParamValue('dtype', node, tensorMap) as DataType)];
+          getParamValue('shape', node, tensorMap, context) as number[],
+          getParamValue('dtype', node, tensorMap, context) as DataType)];
     }
     case 'onesLike': {
-      return [tfc.onesLike(getParamValue('x', node, tensorMap) as tfc.Tensor)];
+      return [tfc.onesLike(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }
     case 'randomUniform': {
       return [tfc.randomUniform(
           // tslint:disable-next-line:no-any
-          getParamValue('shape', node, tensorMap) as any,
-          getParamValue('minval', node, tensorMap) as number,
-          getParamValue('maxval', node, tensorMap) as number,
-          getParamValue('dtype', node, tensorMap) as DataType)];
+          getParamValue('shape', node, tensorMap, context) as any,
+          getParamValue('minval', node, tensorMap, context) as number,
+          getParamValue('maxval', node, tensorMap, context) as number,
+          getParamValue('dtype', node, tensorMap, context) as DataType)];
     }
     case 'range': {
-      const start = getParamValue('start', node, tensorMap) as number;
-      const stop = getParamValue('stop', node, tensorMap) as number;
-      const step = getParamValue('step', node, tensorMap) as number;
+      const start = getParamValue('start', node, tensorMap, context) as number;
+      const stop = getParamValue('stop', node, tensorMap, context) as number;
+      const step = getParamValue('step', node, tensorMap, context) as number;
       return [tfc.range(
           start, stop, step,
-          getParamValue('dtype', node, tensorMap) as 'float32' | 'int32')];
+          getParamValue('dtype', node, tensorMap, context) as 'float32' |
+              'int32')];
     }
     case 'truncatedNormal': {
-      const shape = getParamValue('shape', node, tensorMap) as number[];
-      const mean = getParamValue('mean', node, tensorMap) as number;
-      const stdDev = getParamValue('stdDev', node, tensorMap) as number;
-      const seed = getParamValue('seed', node, tensorMap) as number;
+      const shape =
+          getParamValue('shape', node, tensorMap, context) as number[];
+      const mean = getParamValue('mean', node, tensorMap, context) as number;
+      const stdDev =
+          getParamValue('stdDev', node, tensorMap, context) as number;
+      const seed = getParamValue('seed', node, tensorMap, context) as number;
       return [tfc.truncatedNormal(
           shape, mean, stdDev,
-          getParamValue('dtype', node, tensorMap) as 'float32' | 'int32',
+          getParamValue('dtype', node, tensorMap, context) as 'float32' |
+              'int32',
           seed)];
     }
     case 'zeros': {
       return [tfc.zeros(
-          getParamValue('shape', node, tensorMap) as number[],
-          getParamValue('dtype', node, tensorMap) as DataType)];
+          getParamValue('shape', node, tensorMap, context) as number[],
+          getParamValue('dtype', node, tensorMap, context) as DataType)];
     }
     case 'zerosLike': {
-      return [tfc.zerosLike(getParamValue('x', node, tensorMap) as tfc.Tensor)];
+      return [tfc.zerosLike(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);

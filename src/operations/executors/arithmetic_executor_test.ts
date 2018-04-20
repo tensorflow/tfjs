@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
 
 import {executeOp} from './arithmetic_executor';
@@ -25,6 +26,7 @@ describe('arithmetic', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.scalar(1)];
+  const context = new ExecutionContext({});
 
   beforeEach(() => {
     node = {
@@ -43,7 +45,7 @@ describe('arithmetic', () => {
       it('should call tfc.' + op, () => {
         const spy = spyOn(tfc, op as 'add');
         node.op = op;
-        executeOp(node, {input1, input2});
+        executeOp(node, {input1, input2}, context);
 
         expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
       });

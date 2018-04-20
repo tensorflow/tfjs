@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import * as tfc from '@tensorflow/tfjs-core';
+import {ExecutionContext} from '../../executor';
 
 import {Node} from '../index';
 
@@ -25,6 +26,8 @@ import {createBoolAttr, createNumericArrayAttr, createTensorAttr} from './test_h
 describe('image', () => {
   let node: Node;
   const input1 = [tfc.tensor1d([1])];
+  const context = new ExecutionContext({});
+
   beforeEach(() => {
     node = {
       name: 'input1',
@@ -45,7 +48,7 @@ describe('image', () => {
         node.params['size'] = createNumericArrayAttr([1, 2]);
         node.params['alignCorners'] = createBoolAttr(true);
         spyOn(tfc.image, 'resizeBilinear');
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
         expect(tfc.image.resizeBilinear)
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
       });

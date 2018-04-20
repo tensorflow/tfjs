@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {ExecutionContext} from '../../executor';
 import {Node} from '../index';
 
 import {executeOp} from './logical_executor';
@@ -25,6 +26,7 @@ describe('logical', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.scalar(2)];
+  const context = new ExecutionContext({});
 
   beforeEach(() => {
     node = {
@@ -45,7 +47,7 @@ describe('logical', () => {
           it('should call tfc.' + op, () => {
             const spy = spyOn(tfc, op as 'equal');
             node.op = op;
-            executeOp(node, {input1, input2});
+            executeOp(node, {input1, input2}, context);
 
             expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
           });
@@ -54,7 +56,7 @@ describe('logical', () => {
       it('should call tfc.logicalNot', () => {
         spyOn(tfc, 'logicalNot');
         node.op = 'logicalNot';
-        executeOp(node, {input1});
+        executeOp(node, {input1}, context);
 
         expect(tfc.logicalNot).toHaveBeenCalledWith(input1[0]);
       });
@@ -67,7 +69,7 @@ describe('logical', () => {
         node.inputNames = ['input1', 'input2', 'input3'];
         node.params.condition = createTensorAttr(2);
         const input3 = [tfc.scalar(1)];
-        executeOp(node, {input1, input2, input3});
+        executeOp(node, {input1, input2, input3}, context);
 
         expect(tfc.where).toHaveBeenCalledWith(input3[0], input1[0], input2[0]);
       });
