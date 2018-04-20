@@ -396,8 +396,8 @@ export function sliceAlongFirstAxis(
           [size, array.shape[1], array.shape[2], array.shape[3]]);
     default:
       throw new ValueError(
-          `sliceAlongFirstAxis() received an unsupported subtype of Tensor: ` +
-          `${array.constructor.name}`);
+          `sliceAlongFirstAxis() received an unsupported tensor rank: ` +
+          `${array.rank}`);
   }
 }
 
@@ -426,8 +426,8 @@ export function sliceAlongLastAxis(
           [array.shape[0], array.shape[1], array.shape[2], size]);
     default:
       throw new ValueError(
-          `sliceAlongLastAxis() received an unsupported subtype of Tensor: ` +
-          `${array.constructor.name}`);
+          `sliceAlongLastAxis() received an unsupported tensor rank: ` +
+          `${array.rank}`);
   }
 }
 
@@ -475,8 +475,8 @@ export function concatAlongFirstAxis(a: Tensor, b: Tensor): Tensor {
       return tfc.concat4d([a as Tensor4D, b as Tensor4D], 0);
     default:
       throw new ValueError(
-          'concatAlongFirstAxis() received an unsupported subtype of ' +
-          'Tensor: ' + a.constructor.name);
+          'concatAlongFirstAxis() received an unsupported tensor rank: ' +
+          a.rank);
   }
 }
 

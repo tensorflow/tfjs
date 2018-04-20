@@ -14,7 +14,7 @@
 import {doc, Scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
-import {ConfigDict, ConfigDictValue} from './types';
+import {ConfigDict, ConfigDictValue, Serializable} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 // tslint:enable:max-line-length
@@ -22,7 +22,7 @@ import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './util
 /**
  * Regularizer base class.
  */
-export abstract class Regularizer {
+export abstract class Regularizer extends Serializable {
   abstract apply(x: Tensor): Scalar;
 }
 
@@ -81,6 +81,9 @@ export class L1L2 extends Regularizer {
           regularization, K.sum(K.scalarTimesArray(this.l2, K.square(x))));
     }
     return regularization.asScalar();
+  }
+  getClassName(): string {
+    return 'L1L2';
   }
   getConfig(): ConfigDict {
     return {'l1': this.l1.dataSync()[0], 'l2': this.l2.dataSync()[0]};

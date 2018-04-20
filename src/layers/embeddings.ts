@@ -185,6 +185,10 @@ export class Embedding extends Layer {
         output, getExactlyOneShape(this.computeOutputShape(input.shape)));
   }
 
+  getClassName(): string {
+    return 'Embedding';
+  }
+
   getConfig(): ConfigDict {
     const config = {
       inputDim: this.inputDim,

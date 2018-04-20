@@ -14,7 +14,7 @@
 import {doc, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
-import {ConfigDict, ConfigDictValue} from './types';
+import {ConfigDict, ConfigDictValue, Serializable} from './types';
 import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 // tslint:enable:max-line-length
 
@@ -29,7 +29,7 @@ function calcL2Norms(w: Tensor, axis: number): Tensor {
  * Base class for functions that impose constraints on weight values
  */
 @doc({heading: 'Constraints', subheading: 'Classes', namespace: 'constraints'})
-export abstract class Constraint {
+export abstract class Constraint extends Serializable {
   /* Porting note: was __call__, apply chosen to match other similar choices */
   abstract apply(w: Tensor): Tensor;
   getConfig(): ConfigDict {
@@ -91,6 +91,10 @@ export class MaxNorm extends Constraint {
         K.divide(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
   }
 
+  getClassName(): string {
+    return 'MaxNorm';
+  }
+
   getConfig(): ConfigDict {
     return {maxValue: this.maxValue, axis: this.axis};
   }
@@ -133,6 +137,10 @@ export class UnitNorm extends Constraint {
         K.scalarPlusArray(K.getScalar(K.epsilon()), calcL2Norms(w, this.axis)));
   }
 
+  getClassName(): string {
+    return 'UnitNorm';
+  }
+
   getConfig(): ConfigDict {
     return {axis: this.axis};
   }
@@ -145,6 +153,9 @@ ClassNameMap.register('UnitNorm', UnitNorm);
 export class NonNeg extends Constraint {
   apply(w: Tensor): Tensor {
     return K.relu(w);
+  }
+  getClassName(): string {
+    return 'NonNeg';
   }
 }
 ClassNameMap.register('NonNeg', NonNeg);
@@ -213,6 +224,10 @@ export class MinMaxNorm extends Constraint {
     return K.multiply(
         w,
         K.divide(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
+  }
+
+  getClassName(): string {
+    return 'MinMaxNorm';
   }
 
   getConfig(): ConfigDict {

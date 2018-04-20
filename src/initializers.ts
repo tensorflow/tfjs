@@ -14,7 +14,7 @@ import {doc, scalar, Scalar, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
 import {NotImplementedError, ValueError} from './errors';
-import {DType, Shape} from './types';
+import {DType, Serializable, Shape} from './types';
 import {ConfigDict, ConfigDictValue} from './types';
 import {ClassNameMap, Constructor, deserializeKerasObject, SerializableEnumRegistry, serializeKerasObject} from './utils/generic_utils';
 import {arrayProd} from './utils/math_utils';
@@ -58,7 +58,7 @@ export function checkDistribution(value?: string): void {
  */
 @doc(
     {heading: 'Initializers', subheading: 'Classes', namespace: 'initializers'})
-export abstract class Initializer {
+export abstract class Initializer extends Serializable {
   static fromConfig<T>(cls: Constructor<T>, config: ConfigDict): T {
     return new cls(config);
   }
@@ -83,6 +83,9 @@ export abstract class Initializer {
  * Initializer that generates tensors initialized to 0.
  */
 export class Zeros extends Initializer {
+  getClassName(): string {
+    return 'Zeros';
+  }
   apply(shape: Shape, dtype?: DType): Tensor {
     return K.zeros(shape, dtype);
   }
@@ -93,6 +96,9 @@ ClassNameMap.register('Zeros', Zeros);
  * Initializer that generates tensors initialized to 1.
  */
 export class Ones extends Initializer {
+  getClassName(): string {
+    return 'Ones';
+  }
   apply(shape: Shape, dtype?: DType): Tensor {
     return K.ones(shape, dtype);
   }
@@ -117,6 +123,10 @@ export class Constant extends Initializer {
 
   apply(shape: Shape, dtype?: DType): Tensor {
     return K.scalarTimesArray(scalar(this.value), K.ones(shape, dtype));
+  }
+
+  getClassName(): string {
+    return 'Constant';
   }
 
   getConfig(): ConfigDict {
@@ -161,6 +171,10 @@ export class RandomUniform extends Initializer {
     return K.randomUniform(shape, this.minval, this.maxval, dtype, this.seed);
   }
 
+  getClassName(): string {
+    return 'RandomUniform';
+  }
+
   getConfig(): ConfigDict {
     return {minval: this.minval, maxval: this.maxval, seed: this.seed};
   }
@@ -198,6 +212,9 @@ export class RandomNormal extends Initializer {
     return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
+  getClassName(): string {
+    return 'RandomNormal';
+  }
   getConfig(): ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
@@ -239,6 +256,10 @@ export class TruncatedNormal extends Initializer {
     return K.truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
+  getClassName(): string {
+    return 'TruncatedNormal';
+  }
+
   getConfig(): ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
@@ -270,6 +291,9 @@ export class Identity extends Initializer {
     } else {
       return K.scalarTimesArray(this.gain, K.eye(shape[0]));
     }
+  }
+  getClassName(): string {
+    return 'Identity';
   }
   getConfig(): ConfigDict {
     return {gain: this.gain.get()};
@@ -383,6 +407,9 @@ export class VarianceScaling extends Initializer {
       const limit = Math.sqrt(3 * scale);
       return K.randomUniform(shape, -limit, limit, dtype, this.seed);
     }
+  }
+  getClassName(): string {
+    return 'VarianceScaling';
   }
 
   getConfig(): ConfigDict {
@@ -543,6 +570,10 @@ export class Orthogonal extends Initializer {
       q = q.transpose();
     }
     return K.scalarTimesArray(K.getScalar(this.gain), q);
+  }
+
+  getClassName(): string {
+    return 'Orthogonal';
   }
 
   getConfig(): ConfigDict {

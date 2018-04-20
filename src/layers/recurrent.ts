@@ -620,6 +620,10 @@ export class RNN extends Layer {
     return this.cell.nonTrainableWeights;
   }
 
+  getClassName(): string {
+    return 'RNN';
+  }
+
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       returnSequences: this.returnSequences,
@@ -633,7 +637,7 @@ export class RNN extends Layer {
     }
     const cellConfig = this.cell.getConfig();
     config.cell = {
-      className: this.cell.constructor.name,
+      className: this.cell.getClassName(),
       config: cellConfig,
     };
     const baseConfig = super.getConfig();
@@ -902,6 +906,10 @@ export class SimpleRNNCell extends RNNCell {
     return [output, output];
   }
 
+  getClassName(): string {
+    return 'SimpleRNNCell';
+  }
+
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
@@ -1102,6 +1110,10 @@ export class SimpleRNN extends RNN {
 
   get recurrentDropout(): number {
     return (this.cell as SimpleRNNCell).recurrentDropout;
+  }
+
+  getClassName(): string {
+    return 'SimpleRNN';
   }
 
   getConfig(): ConfigDict {
@@ -1390,6 +1402,10 @@ export class GRUCell extends RNNCell {
     return [h, h];
   }
 
+  getClassName(): string {
+    return 'GRUCell';
+  }
+
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
@@ -1533,6 +1549,10 @@ export class GRU extends RNN {
 
   get implementation(): number {
     return (this.cell as GRUCell).implementation;
+  }
+
+  getClassName(): string {
+    return 'GRU';
   }
 
   getConfig(): ConfigDict {
@@ -1746,6 +1766,9 @@ export class LSTMCell extends RNNCell {
             return K.concatAlongFirstAxis(
                 K.concatAlongFirstAxis(bI, bF), bCAndH);
           }
+          getClassName(): string {
+            return 'CustomInit';
+          }
         })();
       } else {
         biasInitializer = this.biasInitializer;
@@ -1863,6 +1886,10 @@ export class LSTMCell extends RNNCell {
     const h = K.multiply(o, this.activation(c));
     // TODO(cais): Add use_learning_phase flag properly.
     return [h, h, c];
+  }
+
+  getClassName(): string {
+    return 'LSTMCell';
   }
 
   getConfig(): ConfigDict {
@@ -2022,6 +2049,10 @@ export class LSTM extends RNN {
     return (this.cell as LSTMCell).implementation;
   }
 
+  getClassName(): string {
+    return 'LSTM';
+  }
+
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
@@ -2154,11 +2185,15 @@ export class StackedRNNCells extends RNNCell {
     this.built = true;
   }
 
+  getClassName(): string {
+    return 'StackedRNNCells';
+  }
+
   getConfig(): ConfigDict {
     const cellConfigs: ConfigDict[] = [];
     for (const cell of this.cells) {
       cellConfigs.push({
-        'className': this.constructor.name,
+        'className': this.getClassName(),
         'config': cell.getConfig(),
       });
     }
@@ -2173,7 +2208,7 @@ export class StackedRNNCells extends RNNCell {
       customObjects = {} as ConfigDict): T {
     const cells: RNNCell[] = [];
     for (const cellConfig of (config['cells'] as ConfigDict[])) {
-      cells.push(deserialize(cellConfig, customObjects));
+      cells.push(deserialize(cellConfig, customObjects) as RNNCell);
     }
     return new cls({cells});
   }

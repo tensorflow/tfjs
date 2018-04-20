@@ -186,7 +186,9 @@ export class Sequential extends Model {
       }
     }
   }
-
+  getClassName(): string {
+    return 'Sequential';
+  }
   /**
    * Adds a layer instance on top of the layer stack.
    *
@@ -546,11 +548,7 @@ export class Sequential extends Model {
     const config: ConfigDict[] = [];
     for (const layer of this.layers) {
       config.push({
-        // TODO(cais): the `constructor.name` call here, along with the same
-        //   call in other places, needs to be replaced with something more
-        //   robust against uglification.
-        //   See: https://github.com/tensorflow/tfjs/issues/191
-        className: layer.constructor.name,
+        className: layer.getClassName(),
         config: layer.getConfig(),
       });
     }

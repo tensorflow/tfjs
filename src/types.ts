@@ -289,7 +289,9 @@ export type RnnStepFunction =
  * and support for Enums.
  */
 export type JsonValue = boolean|number|string|null|JsonArray|JsonDict;
-export interface JsonDict { [key: string]: JsonValue; }
+export interface JsonDict {
+  [key: string]: JsonValue;
+}
 export interface JsonArray extends Array<JsonValue> {}
 
 /**
@@ -309,9 +311,37 @@ export interface JsonArray extends Array<JsonValue> {}
  */
 export type ConfigDictValue =
     boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict { [key: string]: ConfigDictValue; }
+export interface ConfigDict {
+  [key: string]: ConfigDictValue;
+}
 export interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 export type NamedTensorMap = {
   [name: string]: Tensor;
 };
+
+/**
+ * Serializable defines the serialization contract.
+ *
+ * TFJS requires serializable classes to return their className when asked
+ * to avoid issues with minification.
+ */
+export abstract class Serializable {
+  /**
+   * Return the class name for this class ot use in serialization contexts.
+   *
+   * Generally speaking this will be the same thing that constructor.name
+   * would have returned.  However, the class name needs to be robust
+   * against minification for serialization/deserialazation to work properly.
+   *
+   * There's also places such as initializers.VarianceScaling, where
+   * implementation details between different languages led to different
+   * class hierarchies and a non-leaf node is used for serialization purposes.
+   */
+  abstract getClassName(): string;
+
+  /**
+   * Return all the non-weight state needed to serialize this object.
+   */
+  abstract getConfig(): ConfigDict;
+}

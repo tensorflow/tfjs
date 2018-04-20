@@ -88,6 +88,9 @@ export class DepthwiseConv2D extends Conv2D {
     this.depthwiseConstraint = getConstraint(config.depthwiseConstraint);
     this.depthwiseRegularizer = getRegularizer(config.depthwiseRegularizer);
   }
+  getClassName(): string {
+    return 'DepthwiseConv2D';
+  }
 
   build(inputShape: Shape|Shape[]): void {
     inputShape = getExactlyOneShape(inputShape);

@@ -14,7 +14,8 @@
 import {Tensor} from '@tensorflow/tfjs-core';
 
 import {AssertionError, AttributeError, IndexError, ValueError} from '../errors';
-import {ConfigDict, ConfigDictValue, DType, Shape} from '../types';
+import {ConfigDict, ConfigDictValue, DType, Serializable, Shape} from '../types';
+
 
 // tslint:enable
 
@@ -287,18 +288,11 @@ export function toCamelCase(identifier: string): string {
 // tslint:disable-next-line:no-any
 let _GLOBAL_CUSTOM_OBJECTS = {} as {[objName: string]: any};
 
-// tslint:disable-next-line:no-any
-export function serializeKerasObject(instance: any): ConfigDictValue {
+export function serializeKerasObject(instance: Serializable): ConfigDictValue {
   if (instance === null || instance === undefined) {
     return null;
   }
-  if (instance.getConfig != null) {
-    return {className: instance.constructor.name, config: instance.getConfig()};
-  }
-  if (instance.name != null) {
-    return instance.name;
-  }
-  throw new ValueError(`Cannot serialize ${instance}`);
+  return {className: instance.getClassName(), config: instance.getConfig()};
 }
 
 /**

@@ -19,7 +19,7 @@ import {AttributeError, NotImplementedError, RuntimeError, ValueError} from '../
 import {Initializer} from '../initializers';
 import {deserialize as deserializeLayer} from '../layers/serialization';
 import {Regularizer} from '../regularizers';
-import {ConfigDict, DType, JsonDict, LayerVariable, NamedTensorMap, RegularizerFn, Shape, SymbolicTensor, TensorInterface} from '../types';
+import {ConfigDict, DType, JsonDict, LayerVariable, NamedTensorMap, RegularizerFn, Serializable, Shape, SymbolicTensor, TensorInterface} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {convertTsToPythonic} from '../utils/serialization_utils';
 // tslint:enable:max-line-length
@@ -330,7 +330,7 @@ let _nextLayerID = 0;
  * [tf.layers](#Layers-Basic) namespace.
  */
 @doc({heading: 'Layers', subheading: 'Classes', namespace: 'layers'})
-export class Layer {
+export abstract class Layer extends Serializable {
   /** Name for this layer. Must be unique within a model. */
   name: string;
   /**
@@ -373,6 +373,7 @@ export class Layer {
   protected _stateful = false;
 
   constructor(config: LayerConfig) {
+    super();
     this.id = _nextLayerID++;
 
     this.activityRegularizer = null;
@@ -396,7 +397,7 @@ export class Layer {
 
     let name = config.name;
     if (!name) {
-      const prefix = this.constructor.name;
+      const prefix = this.getClassName();
       name = generic_utils.toSnakeCase(prefix) + '_' + K.getUid(prefix);
     }
     this.name = name;
@@ -1399,6 +1400,9 @@ export class InputLayer extends Layer {
         `InputLayer's apply() method. InputLayer name: ${this.name}`);
   }
 
+  getClassName(): string {
+    return 'InputLayer';
+  }
   getConfig(): ConfigDict {
     return {
       batchInputShape: this.batchInputShape,
@@ -1513,7 +1517,7 @@ export interface ContainerConfig {
  * is simply a Container with added training routines.
  *
  */
-export class Container extends Layer {
+export abstract class Container extends Layer {
   inputs: SymbolicTensor[];
   outputs: SymbolicTensor[];
 
@@ -1552,7 +1556,7 @@ export class Container extends Layer {
     super({});
     this.name = config.name;
     if (this.name == null) {
-      const prefix = this.constructor.name.toLowerCase();
+      const prefix = this.getClassName().toLowerCase();
       this.name = K.getUid(prefix);
     }
 
@@ -1664,7 +1668,7 @@ export class Container extends Layer {
             'Input layers to a Model must be InputLayer objects. ' +
             `Received inputs: ${config.inputs}. ` +
             `Input ${i} (0-based) originates ` +
-            `from layer type ${layer.constructor.name}.`);
+            `from layer type ${layer.getClassName()}.`);
       }
       this.inputNames.push(layer.name);
       this.feedInputShapes.push(layer.batchInputShape);
@@ -2010,7 +2014,7 @@ export class Container extends Layer {
   private updatedConfig(): ConfigDict {
     const theConfig = this.getConfig();
     const modelConfig: ConfigDict = {
-      className: this.constructor.name,
+      className: this.getClassName(),
       config: theConfig,
       // TODO(nielsene): Replace with Version constant once a
       // release workflow and versioning approach are selected.
@@ -2389,7 +2393,7 @@ export class Container extends Layer {
     // Serialize and save the layers in layerConfigs
     const layerConfigs = [];
     for (const layer of this.layers) {
-      const layerClassName = layer.constructor.name;
+      const layerClassName = layer.getClassName();
       const layerConfig = layer.getConfig();
       const filteredInboundNodes = [];
       for (let originalNodeIndex = 0;
@@ -2553,9 +2557,10 @@ export class Container extends Layer {
       const layerName = layerData.name as string;
       // Instantiate layer.
       const layer = deserializeLayer(
-          layerData,
-          config.customObjects != null ? config.customObjects as ConfigDict :
-                                         {});
+                        layerData,
+                        config.customObjects != null ?
+                            config.customObjects as ConfigDict :
+                            {}) as Layer;
       createdLayers[layerName] = layer;
       // Gather layer inputs.
       const inboundNodesData = layerData.inboundNodes as ConfigDict[];

@@ -8,19 +8,20 @@
  * =============================================================================
  */
 
-import {Ones, Zeros} from '../initializers';
+import {Initializer, Ones, Zeros} from '../initializers';
 import {ConfigDict} from '../types';
+
 import {deserialize} from './serialization';
 
 describe('Deserialization', () => {
   it('Zeros Initialzer', () => {
     const config: ConfigDict = {className: 'Zeros', config: {}};
-    const initializer: Zeros = deserialize(config);
+    const initializer: Zeros = deserialize(config) as Initializer;
     expect(initializer instanceof (Zeros)).toEqual(true);
   });
   it('Ones Initialzer', () => {
     const config: ConfigDict = {className: 'Ones', config: {}};
-    const initializer: Ones = deserialize(config);
+    const initializer: Ones = deserialize(config) as Initializer;
     expect(initializer instanceof (Ones)).toEqual(true);
   });
 });
