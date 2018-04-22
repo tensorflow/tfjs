@@ -1053,7 +1053,8 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static split(x: Tensor, numOrSizeSplits: number[]|number, axis = 0) {
+  static split<T extends Tensor>(
+      x: T, numOrSizeSplits: number[]|number, axis = 0): T[] {
     util.assertArgumentsAreTensors({x}, 'split');
 
     axis = parseAxisParam(axis, x.shape)[0];
