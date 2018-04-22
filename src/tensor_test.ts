@@ -16,10 +16,10 @@
  */
 
 import * as tf from './index';
+import {describeWithFlags} from './jasmine_util';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from './tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectNumbersClose} from './test_util';
-import {describeWithFlags} from './jasmine_util';
 import {DType, Rank} from './types';
 
 describeWithFlags('tensor', ALL_ENVS, () => {
@@ -38,7 +38,7 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(t.size).toBe(3);
     expectArraysClose(t, [1, 2, 3]);
     // Out of bounds indexing.
-    expect(t.get(4)).toBeUndefined();
+    expect(t.get(0, 4)).toBeUndefined();
 
     // [[1, 2, 3],
     //  [4, 5, 6]]

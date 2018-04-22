@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
   it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {
@@ -285,6 +285,35 @@ describeWithFlags('batchNormalization3D', ALL_ENVS, () => {
       offset.get(1) +
           (x.get(1, 0, 1) - mean.get(1)) * scale.get(1) /
               Math.sqrt(variance.get(1) + varianceEpsilon)
+    ]);
+  });
+
+  it('batchnorm3D, x,mean,var,offset,scale are all 3D', () => {
+    const shape: [number, number, number] = [2, 1, 2];
+    const x = tf.tensor3d([2, 100, 4, 400], shape);
+    const mean = tf.tensor3d([1, 2, 3, 4], shape);
+    const variance = tf.tensor3d([2, 3, 4, 5], shape);
+    const offset = tf.tensor3d([3, 4, 5, 6], shape);
+    const scale = tf.tensor3d([4, 5, 6, 7], shape);
+
+    const varianceEpsilon = .001;
+
+    const result = tf.batchNormalization3d(
+        x, mean, variance, varianceEpsilon, scale, offset);
+
+    expectArraysClose(result, [
+      offset.get(0, 0, 0) +
+          (x.get(0, 0, 0) - mean.get(0, 0, 0)) * scale.get(0, 0, 0) /
+              Math.sqrt(variance.get(0, 0, 0) + varianceEpsilon),
+      offset.get(0, 0, 1) +
+          (x.get(0, 0, 1) - mean.get(0, 0, 1)) * scale.get(0, 0, 1) /
+              Math.sqrt(variance.get(0, 0, 1) + varianceEpsilon),
+      offset.get(1, 0, 0) +
+          (x.get(1, 0, 0) - mean.get(1, 0, 0)) * scale.get(1, 0, 0) /
+              Math.sqrt(variance.get(1, 0, 0) + varianceEpsilon),
+      offset.get(1, 0, 1) +
+          (x.get(1, 0, 1) - mean.get(1, 0, 1)) * scale.get(1, 0, 1) /
+              Math.sqrt(variance.get(1, 0, 1) + varianceEpsilon)
     ]);
   });
 
