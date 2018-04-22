@@ -2448,7 +2448,7 @@ describeWithFlags('erf', ALL_ENVS, () => {
   });
 
   it('scalar in int32', () => {
-    const a = tf.scalar(1, "int32");
+    const a = tf.scalar(1, 'int32');
     const result = tf.erf(a);
       const expected = [0.8427008];
       expectArraysClose(result, expected);
