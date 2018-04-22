@@ -43,6 +43,7 @@
     "object-literal-shorthand": true,
     "only-arrow-functions": [true, "allow-declarations", "allow-named-functions"],
     "prefer-const": true,
+    "quotemark": [true, "single"],
     "radix": true,
     "restrict-plus-operands": true,
     "semicolon": [true, "always", "ignore-bound-class-methods"],
