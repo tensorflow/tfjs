@@ -17,7 +17,8 @@
 
 import * as tf from './index';
 import {Tensor} from './tensor';
-import {CPU_ENVS, describeWithFlags} from './test_util';
+import {CPU_ENVS} from './test_util';
+import {describeWithFlags} from './jasmine_util';
 import {NamedTensorMap} from './types';
 import * as util from './util';
 

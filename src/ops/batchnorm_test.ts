@@ -17,7 +17,8 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('batchNormalization4D', ALL_ENVS, () => {
   it('simple batchnorm4D, no offset or scale, 2x1x1x2', () => {

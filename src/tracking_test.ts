@@ -16,7 +16,8 @@
  */
 
 import * as tf from './index';
-import {CPU_ENVS, describeWithFlags, WEBGL_ENVS} from './test_util';
+import {CPU_ENVS, WEBGL_ENVS} from './test_util';
+import {describeWithFlags} from './jasmine_util';
 
 describeWithFlags('time webgl', WEBGL_ENVS, () => {
   it('upload + compute', async () => {

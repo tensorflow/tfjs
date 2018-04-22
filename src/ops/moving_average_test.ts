@@ -18,7 +18,8 @@
 // tslint:disable:max-line-length
 import * as tf from '../index';
 
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:enable:max-line-length
 
 describeWithFlags('movingAverage', ALL_ENVS, () => {

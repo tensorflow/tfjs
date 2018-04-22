@@ -16,7 +16,8 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {describeWithFlags, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../../test_util';
+import {expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../../test_util';
+import {describeWithFlags} from '../../jasmine_util';
 import {GPGPUContext} from './gpgpu_context';
 import * as tex_util from './tex_util';
 

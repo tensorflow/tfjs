@@ -17,7 +17,8 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 import {Rank} from '../types';
 import {MatmulOps} from './matmul';
 

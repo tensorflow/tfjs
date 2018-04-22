@@ -20,7 +20,8 @@ import {ENV, Environment, Features} from './environment';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
-import {describeWithFlags, WEBGL_ENVS} from './test_util';
+import {WEBGL_ENVS} from './test_util';
+import {describeWithFlags} from './jasmine_util';
 
 describeWithFlags('disjoint query timer enabled', WEBGL_ENVS, () => {
   afterEach(() => {

@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {describeWithFlags, WEBGL_ENVS} from '../../test_util';
+import {WEBGL_ENVS} from '../../test_util';
+import {describeWithFlags} from '../../jasmine_util';
 import * as gpgpu_util from './gpgpu_util';
 import * as webgl_util from './webgl_util';
 
