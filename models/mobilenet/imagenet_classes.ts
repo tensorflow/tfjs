@@ -19,8 +19,8 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   0: 'background',
   1: 'tench, Tinca tinca',
   2: 'goldfish, Carassius auratus',
-  3: 'great white shark, white shark, man-eater,' + 
-          ' man-eating shark, Carcharodon carcharias',
+  3: 'great white shark, white shark, man-eater,' +
+      ' man-eating shark, Carcharodon carcharias',
   4: 'tiger shark, Galeocerdo cuvieri',
   5: 'hammerhead, hammerhead shark',
   6: 'electric ray, crampfish, numbfish, torpedo',
@@ -67,7 +67,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   47: 'green lizard, Lacerta viridis',
   48: 'African chameleon, Chamaeleo chamaeleon',
   49: 'Komodo dragon, Komodo lizard, dragon lizard,' +
-          ' giant lizard, Varanus komodoensis',
+      ' giant lizard, Varanus komodoensis',
   50: 'African crocodile, Nile crocodile, Crocodylus niloticus',
   51: 'American alligator, Alligator mississipiensis',
   52: 'triceratops',
@@ -123,7 +123,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   102: 'tusker',
   103: 'echidna, spiny anteater, anteater',
   104: 'platypus, duckbill, duckbilled platypus, duck-billed platypus,' +
-          ' Ornithorhynchus anatinus',
+      ' Ornithorhynchus anatinus',
   105: 'wallaby, brush kangaroo',
   106: 'koala, koala bear, kangaroo bear, native bear, Phascolarctos cinereus',
   107: 'wombat',
@@ -141,11 +141,11 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   119: 'Dungeness crab, Cancer magister',
   120: 'rock crab, Cancer irroratus',
   121: 'fiddler crab',
-  122: 'king crab, Alaska crab, Alaskan king crab, Alaska king crab,' + 
-          ' Paralithodes camtschatica',
+  122: 'king crab, Alaska crab, Alaskan king crab, Alaska king crab,' +
+      ' Paralithodes camtschatica',
   123: 'American lobster, Northern lobster, Maine lobster, Homarus americanus',
   124: 'spiny lobster, langouste, rock lobster, crawfish, crayfish,' +
-          ' sea crawfish',
+      ' sea crawfish',
   125: 'crayfish, crawfish, crawdad, crawdaddy',
   126: 'hermit crab',
   127: 'isopod',
@@ -170,7 +170,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   146: 'king penguin, Aptenodytes patagonica',
   147: 'albatross, mollymawk',
   148: 'grey whale, gray whale, devilfish, Eschrichtius gibbosus,' +
-          ' Eschrichtius robustus',
+      ' Eschrichtius robustus',
   149: 'killer whale, killer, orca, grampus, sea wolf, Orcinus orca',
   150: 'dugong, Dugong dugon',
   151: 'sea lion',
@@ -204,7 +204,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   179: 'Weimaraner',
   180: 'Staffordshire bullterrier, Staffordshire bull terrier',
   181: 'American Staffordshire terrier, Staffordshire terrier,' +
-          ' American pit bull terrier, pit bull terrier',
+      ' American pit bull terrier, pit bull terrier',
   182: 'Bedlington terrier',
   183: 'Border terrier',
   184: 'Kerry blue terrier',
@@ -311,7 +311,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   285: 'Siamese cat, Siamese',
   286: 'Egyptian cat',
   287: 'cougar, puma, catamount, mountain lion, painter, panther,' +
-          ' Felis concolor',
+      ' Felis concolor',
   288: 'lynx, catamount',
   289: 'leopard, Panthera pardus',
   290: 'snow leopard, ounce, Panthera uncia',
@@ -321,7 +321,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   294: 'cheetah, chetah, Acinonyx jubatus',
   295: 'brown bear, bruin, Ursus arctos',
   296: 'American black bear, black bear, Ursus americanus,' +
-          ' Euarctos americanus',
+      ' Euarctos americanus',
   297: 'ice bear, polar bear, Ursus Maritimus, Thalarctos maritimus',
   298: 'sloth bear, Melursus ursinus, Ursus ursinus',
   299: 'mongoose',
@@ -345,8 +345,8 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   317: 'cicada, cicala',
   318: 'leafhopper',
   319: 'lacewing, lacewing fly',
-  320: "dragonfly, darning needle, devil's darning needle, sewing" + 
-          "needle, snake feeder, snake doctor, mosquito hawk, skeeter hawk",
+  320: 'dragonfly, darning needle, devil\'s darning needle, sewing' +
+      'needle, snake feeder, snake doctor, mosquito hawk, skeeter hawk',
   321: 'damselfly',
   322: 'admiral',
   323: 'ringlet, ringlet butterfly',
@@ -377,7 +377,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   348: 'bison',
   349: 'ram, tup',
   350: 'bighorn, bighorn sheep, cimarron, Rocky Mountain bighorn, Rocky ' +
-          'Mountain sheep, Ovis canadensis',
+      'Mountain sheep, Ovis canadensis',
   351: 'ibex, Capra ibex',
   352: 'hartebeest',
   353: 'impala, Aepyceros melampus',
@@ -420,7 +420,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   390: 'barracouta, snoek',
   391: 'eel',
   392: 'coho, cohoe, coho salmon, blue jack, silver salmon, ' +
-          'Oncorhynchus kisutch',
+      'Oncorhynchus kisutch',
   393: 'rock beauty, Holocanthus tricolor',
   394: 'anemone fish',
   395: 'sturgeon',
@@ -429,7 +429,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   398: 'puffer, pufferfish, blowfish, globefish',
   399: 'abacus',
   400: 'abaya',
-  401: "academic gown, academic robe, judge's robe",
+  401: 'academic gown, academic robe, judge\'s robe',
   402: 'accordion, piano accordion, squeeze box',
   403: 'acoustic guitar',
   404: 'aircraft carrier, carrier, flattop, attack aircraft carrier',
@@ -442,7 +442,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   411: 'apiary, bee house',
   412: 'apron',
   413: 'ashcan, trash can, garbage can, wastebin, ash bin, ash-bin,' +
-          ' ashbin, dustbin, trash barrel, trash bin',
+      ' ashbin, dustbin, trash barrel, trash bin',
   414: 'assault rifle, assault gun',
   415: 'backpack, back pack, knapsack, packsack, rucksack, haversack',
   416: 'bakery, bakeshop, bakehouse',
@@ -467,7 +467,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   435: 'bath towel',
   436: 'bathtub, bathing tub, bath, tub',
   437: 'beach wagon, station wagon, wagon, estate car, beach waggon,' +
-          ' station waggon, waggon',
+      ' station waggon, waggon',
   438: 'beacon, lighthouse, beacon light, pharos',
   439: 'beaker',
   440: 'bearskin, busby, shako',
@@ -508,11 +508,11 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   475: 'cardigan',
   476: 'car mirror',
   477: 'carousel, carrousel, merry-go-round, roundabout, whirligig',
-  478: "carpenter's kit, tool kit",
+  478: 'carpenter\'s kit, tool kit',
   479: 'carton',
   480: 'car wheel',
-  481: 'cash machine, cash dispenser, automated teller machine, automatic' + 
-          ' teller machine, automated teller, automatic teller, ATM',
+  481: 'cash machine, cash dispenser, automated teller machine, automatic' +
+      ' teller machine, automated teller, automatic teller, ATM',
   482: 'cassette',
   483: 'cassette player',
   484: 'castle',
@@ -523,7 +523,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   489: 'chain',
   490: 'chainlink fence',
   491: 'chain mail, ring mail, mail, chain armor, chain armour,' +
-          ' ring armor, ring armour',
+      ' ring armor, ring armour',
   492: 'chain saw, chainsaw',
   493: 'chest',
   494: 'chiffonier, commode',
@@ -640,7 +640,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   605: 'hourglass',
   606: 'iPod',
   607: 'iron, smoothing iron',
-  608: "jack-o'-lantern",
+  608: 'jack-o\'-lantern',
   609: 'jean, blue jean, denim',
   610: 'jeep, landrover',
   611: 'jersey, T-shirt, tee shirt',
@@ -666,8 +666,8 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   631: 'Loafer',
   632: 'lotion',
   633: 'loudspeaker, speaker, speaker unit, loudspeaker system, ' +
-          'speaker system',
-  634: "loupe, jeweler's loupe",
+      'speaker system',
+  634: 'loupe, jeweler\'s loupe',
   635: 'lumbermill, sawmill',
   636: 'magnetic compass',
   637: 'mailbag, postbag',
@@ -731,7 +731,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   695: 'paddlewheel, paddle wheel',
   696: 'padlock',
   697: 'paintbrush',
-  698: "pajama, pyjama, pj's, jammies",
+  698: 'pajama, pyjama, pj\'s, jammies',
   699: 'palace',
   700: 'panpipe, pandean pipe, syrinx',
   701: 'paper towel',
@@ -760,21 +760,21 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   724: 'pinwheel',
   725: 'pirate, pirate ship',
   726: 'pitcher, ewer',
-  727: "plane, carpenter's plane, woodworking plane",
+  727: 'plane, carpenter\'s plane, woodworking plane',
   728: 'planetarium',
   729: 'plastic bag',
   730: 'plate rack',
   731: 'plow, plough',
-  732: "plunger, plumber's helper",
+  732: 'plunger, plumber\'s helper',
   733: 'Polaroid camera, Polaroid Land camera',
   734: 'pole',
   735: 'police van, police wagon, paddy wagon, patrol wagon, wagon,' +
-          ' black Maria',
+      ' black Maria',
   736: 'poncho',
   737: 'pool table, billiard table, snooker table',
   738: 'pop bottle, soda bottle',
   739: 'pot, flowerpot',
-  740: "potter's wheel",
+  740: 'potter\'s wheel',
   741: 'power drill',
   742: 'prayer rug, prayer mat',
   743: 'printer',
@@ -850,7 +850,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   813: 'space shuttle',
   814: 'spatula',
   815: 'speedboat',
-  816: "spider web, spider's web",
+  816: 'spider web, spider\'s web',
   817: 'spindle',
   818: 'sports car, sport car',
   819: 'spotlight, spot',
@@ -903,7 +903,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   866: 'toyshop',
   867: 'tractor',
   868: 'trailer truck, tractor trailer, trucking rig, rig,' +
-          ' articulated lorry, semi',
+      ' articulated lorry, semi',
   869: 'tray',
   870: 'trench coat',
   871: 'tricycle, trike, velocipede',
@@ -1022,8 +1022,8 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   984: 'scuba diver',
   985: 'rapeseed',
   986: 'daisy',
-  987: "yellow lady's slipper, yellow lady-slipper, Cypripedium" +
-          " calceolus, Cypripedium parviflorum",
+  987: 'yellow lady\'s slipper, yellow lady-slipper, Cypripedium' +
+      ' calceolus, Cypripedium parviflorum',
   988: 'corn',
   989: 'acorn',
   990: 'hip, rose hip, rosehip',
@@ -1034,7 +1034,7 @@ export const IMAGENET_CLASSES: {[key: number]: string} = {
   995: 'stinkhorn, carrion fungus',
   996: 'earthstar',
   997: 'hen-of-the-woods, hen of the woods, Polyporus' +
-          ' frondosus, Grifola frondosa',
+      ' frondosus, Grifola frondosa',
   998: 'bolete',
   999: 'ear, spike, capitulum',
   1000: 'toilet tissue, toilet paper, bathroom tissue'
