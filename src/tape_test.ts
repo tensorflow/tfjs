@@ -18,7 +18,8 @@
 import * as tf from './index';
 import * as tape_util from './tape';
 import {TapeNode} from './tape';
-import {CPU_ENVS, describeWithFlags, expectArraysClose} from './test_util';
+import {CPU_ENVS, expectArraysClose} from './test_util';
+import {describeWithFlags} from './jasmine_util';
 
 describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
   it('getFilteredNodesXToY no paths from x to y', () => {

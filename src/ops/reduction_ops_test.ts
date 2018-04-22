@@ -17,7 +17,8 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose, expectArraysEqual, expectNumbersClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectNumbersClose} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 import * as reduce_util from './reduce_util';
 
 describeWithFlags('min', ALL_ENVS, () => {

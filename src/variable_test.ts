@@ -18,7 +18,8 @@
 import * as tf from './index';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from './test_util';
+import {ALL_ENVS, expectArraysClose} from './test_util';
+import {describeWithFlags} from './jasmine_util';
 import {Rank} from './types';
 
 describeWithFlags('variable', ALL_ENVS, () => {

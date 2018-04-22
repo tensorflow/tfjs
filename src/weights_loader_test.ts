@@ -15,7 +15,8 @@
  * =============================================================================
  */
 import * as tf from './index';
-import {CPU_ENVS, describeWithFlags, expectArraysClose} from './test_util';
+import {CPU_ENVS, expectArraysClose} from './test_util';
+import {describeWithFlags} from './jasmine_util';
 import {WeightsManifestConfig} from './weights_loader';
 
 describeWithFlags('loadWeights', CPU_ENVS, () => {

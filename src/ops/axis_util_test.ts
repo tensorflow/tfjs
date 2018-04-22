@@ -16,7 +16,8 @@
  */
 
 import * as tf from '../index';
-import {CPU_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {CPU_ENVS, expectArraysClose} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 import * as axis_util from './axis_util';
 
 describe('axis_util combineLocations', () => {

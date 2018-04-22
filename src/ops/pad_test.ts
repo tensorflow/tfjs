@@ -17,7 +17,8 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('pad1d', ALL_ENVS, () => {
   it('Should pad 1D arrays', () => {

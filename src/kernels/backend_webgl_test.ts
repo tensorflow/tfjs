@@ -16,7 +16,8 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {describeWithFlags, expectArraysClose, WEBGL_ENVS} from '../test_util';
+import {expectArraysClose, WEBGL_ENVS} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 import {MathBackendWebGL} from './backend_webgl';
 
 describeWithFlags('backendWebGL', WEBGL_ENVS, () => {

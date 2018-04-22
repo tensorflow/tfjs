@@ -17,7 +17,8 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('maxPool', ALL_ENVS, () => {
   it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {

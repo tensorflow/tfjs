@@ -17,7 +17,8 @@
 
 import * as tf from '../index';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, describeWithFlags, expectArraysClose, expectNumbersClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
+import {describeWithFlags} from '../jasmine_util';
 import * as util from '../util';
 
 import * as selu_util from './selu_util';
