@@ -103,16 +103,18 @@ export class Engine implements TensorManager {
     };
     const scopeName = this.activeScope.name;
 
+    // Stop recording to a tape when running a kernel.
+    this.customGradientDepth++;
     if (!ENV.get('DEBUG')) {
       result = forwardFunc(this.backend, saveFunc);
     } else {
       result = this.profiler.profileKernel(
           scopeName, () => forwardFunc(this.backend, saveFunc));
     }
+    // Continue recording after the kernel is done.
+    this.customGradientDepth--;
 
-    const recordKernel =
-        this.activeTape != null && this.customGradientDepth === 0;
-    if (recordKernel) {
+    if (this.shouldRecord()) {
       const tapeNode: TapeNode = {
         id: this.nextTapeNodeId++,
         name: scopeName,
