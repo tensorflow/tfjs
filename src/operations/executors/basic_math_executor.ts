@@ -61,6 +61,9 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'log':
       return [tfc.log(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
+    case 'neg':
+      return [tfc.neg(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'relu':
       return [tfc.relu(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
