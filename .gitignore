@@ -5,3 +5,5 @@ npm-debug.log
 dist/
 tensorflow-tfjs-*.tgz
 yarn-error.log
+.yalc/
+yalc.lock
