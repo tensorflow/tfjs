@@ -3,3 +3,6 @@ dist/
 deps/
 node_modules/
 yarn-error.log
+yalc.lock
+.yalc/
+demo/train-*

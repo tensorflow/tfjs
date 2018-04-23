@@ -1,0 +1,13 @@
+.vscode/
+demo/
+scripts/
+src/
+node_modules/
+*.tgz
+.travis.yml
+.npmignore
+CONTRIBUTING.md
+tslint.json
+yarn.lock
+yalc.lock
+.yalc/
