@@ -1,11 +1,10 @@
 #!/bin/sh
 
-# TODO(kreeger): Use TF 1.8 builds.
-CPU_DARWIN="http://ci.tensorflow.org/view/Nightly/job/nightly-libtensorflow/TYPE=mac-slave/lastSuccessfulBuild/artifact/lib_package/libtensorflow-cpu-darwin-x86_64.tar.gz"
-
 # Build new package:
 # `bazel build //tensorflow/tools/lib_package:libtensorflow`
-CPU_LINUX="https://storage.googleapis.com/tf-buiilds/libtensorflow_r1_8.tar.gz"
+
+CPU_DARWIN="https://storage.googleapis.com/tf-buiilds/libtensorflow_r1_8_darwin.tar.gz"
+CPU_LINUX="https://storage.googleapis.com/tf-buiilds/libtensorflow_r1_8_linux_cpu.tar.gz"
 
 target=""
 platform=$1
