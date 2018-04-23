@@ -16,11 +16,37 @@
 import {onesLike, Tensor} from '@tensorflow/tfjs-core';
 import * as K from './backend/tfjs_backend';
 import {NotImplementedError, ValueError} from './errors';
-import {cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError} from './losses';
+import {categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
 import {LossOrMetricFn} from './types';
-
 // tslint:enable:max-line-length
 
+/**
+ * Binary accuracy metric function.
+ *
+ * `yTrue` and `yPred` can have 0-1 values. Example:
+ * ```js
+ * const x = tensor2d([[1, 1, 1, 1], [0, 0, 0, 0]], [2, 4]);
+ * const y = tensor2d([[1, 0, 1, 0], [0, 0, 0, 1]], [2, 4]);
+ * const accuracy = tfl.metrics.binaryAccuracy(x, y);
+ * accuracy.print();
+ * ```
+ *
+ * `yTrue` and `yPred` can also have floating-number values between 0 and 1, in
+ * which case the values will be thresholded at 0.5 to yield 0-1 values (i.e.,
+ * a value >= 0.5 and <= 1.0 is interpreted as 1.
+ * )
+ * Example:
+ * ```js
+ * const x = tensor1d([1, 1, 1, 1, 0, 0, 0, 0]);
+ * const y = tensor1d([0.2, 0.4, 0.6, 0.8, 0.2, 0.3, 0.4, 0.7]);
+ * const accuracy = tf.metrics.binaryAccuracy(x, y);
+ * accuracy.print();
+ * ```
+ *
+ * @param yTrue Binary Tensor of truth.
+ * @param yPred Binary Tensor of prediction.
+ * @return Accuracy Tensor.
+ */
 export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   // TODO(cais): Maybe avoid creating a new Scalar on every invocation.
   const threshold = K.scalarTimesArray(K.getScalar(0.5), onesLike(yPred));
@@ -28,24 +54,46 @@ export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   return K.mean(K.equal(yTrue, yPredThresholded), -1);
 }
 
+/**
+ * Categorical accuracy metric function.
+ *
+ * Example:
+ * ```js
+ * const x = tensor2d([[0, 0, 0, 1], [0, 0, 0, 1]]);
+ * const y = tensor2d([[0.1, 0.8, 0.05, 0.05], [0.1, 0.05, 0.05, 0.8]]);
+ * const accuracy = tf.metrics.categoricalAccuracy(x, y);
+ * accuracy.print();
+ * ```
+ *
+ * @param yTrue Binary Tensor of truth: one-hot encoding of categories.
+ * @param yPred Binary Tensor of prediction: probabilities or logits for the
+ *   same categories as in `yTrue`.
+ * @return Accuracy Tensor.
+ */
 export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   return K.cast(K.equal(K.argmax(yTrue, -1), K.argmax(yPred, -1)), 'float32');
 }
 
+/**
+ * Binary crossentropy metric function.
+ *
+ * Example:
+ * ```js
+ * const x = tensor2d([[0], [1], [1], [1]]);
+ * const y = tensor2d([[0], [0], [0.5], [1]]);
+ * const crossentropy = tf.metrics.binaryCrossentropy(x, y);
+ * crossentropy.print();
+ * ```
+ *
+ * @param yTrue Binary Tensor of truth.
+ * @param yPred Binary Tensor of prediction, probabilities for the `1` case.
+ * @return Accuracy Tensor.
+ */
 export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
-  throw new NotImplementedError();
-}
-
-export function categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
-  throw new NotImplementedError();
+  return K.mean(K.binaryCrossentropy(yTrue, yPred), -1);
 }
 
 export function sparseCategoricalAccuracy(
-    yTrue: Tensor, yPred: Tensor): Tensor {
-  throw new NotImplementedError();
-}
-
-export function sparseCategoricalCrossentropy(
     yTrue: Tensor, yPred: Tensor): Tensor {
   throw new NotImplementedError();
 }
@@ -66,7 +114,9 @@ export const mae = meanAbsoluteError;
 export const MAE = meanAbsoluteError;
 export const mape = meanAbsolutePercentageError;
 export const MAPE = meanAbsolutePercentageError;
+export const categoricalCrossentropy = categoricalCrossentropyLoss;
 export const cosine = cosineProximity;
+export const sparseCategoricalCrossentropy = sparseCategoricalCrossentropyLoss;
 
 // TODO(cais, nielsene): Add serialize().
 
@@ -74,6 +124,8 @@ export function get(identifier: string|LossOrMetricFn): LossOrMetricFn {
   const metricsMap: {[functionName: string]: LossOrMetricFn} = {
     binaryAccuracy,
     categoricalAccuracy,
+    categoricalCrossentropy,
+    sparseCategoricalCrossentropy,
     mse,
     MSE,
     mae,

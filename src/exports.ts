@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {doc} from '@tensorflow/tfjs-core';
+import {doc, Tensor} from '@tensorflow/tfjs-core';
 
 import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';
@@ -30,6 +30,8 @@ import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './layers/padding';
 import {AveragePooling1D, AveragePooling2D, GlobalAveragePooling1D, GlobalAveragePooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D, GlobalPooling2DLayerConfig, MaxPooling1D, MaxPooling2D, Pooling1DLayerConfig, Pooling2DLayerConfig} from './layers/pooling';
 import {GRU, GRUCell, GRUCellLayerConfig, GRULayerConfig, LSTM, LSTMCell, LSTMCellLayerConfig, LSTMLayerConfig, RNN, RNNCell, RNNLayerConfig, SimpleRNN, SimpleRNNCell, SimpleRNNCellLayerConfig, SimpleRNNLayerConfig, StackedRNNCells, StackedRNNCellsConfig} from './layers/recurrent';
 import {Bidirectional, BidirectionalLayerConfig, TimeDistributed, Wrapper, WrapperLayerConfig} from './layers/wrappers';
+import {categoricalCrossentropy, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError} from './losses';
+import {binaryAccuracy, binaryCrossentropy, categoricalAccuracy} from './metrics';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
 import {l1, L1Config, L1L2, L1L2Config, l2, L2Config, Regularizer} from './regularizers';
 import {SymbolicTensor} from './types';
@@ -860,6 +862,93 @@ export class InitializerExports {
   })
   static orthogonal(config: OrthogonalConfig): Initializer {
     return new Orthogonal(config);
+  }
+}
+
+export class MetricExports {
+  @doc(
+      {heading: 'Metrics', namespace: 'metrics', useDocsFrom: 'binaryAccuracy'})
+  static binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
+    return binaryAccuracy(yTrue, yPred);
+  }
+
+  @doc({
+    heading: 'Metrics',
+    namespace: 'metrics',
+    useDocsFrom: 'binaryCrossentropy'
+  })
+  static binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
+    return binaryCrossentropy(yTrue, yPred);
+  }
+
+  @doc({
+    heading: 'Metrics',
+    namespace: 'metrics',
+    useDocsFrom: 'categoricalAccuracy'
+  })
+  static categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
+    return categoricalAccuracy(yTrue, yPred);
+  }
+
+  @doc({
+    heading: 'Metrics',
+    namespace: 'metrics',
+    useDocsFrom: 'categoricalCrossentropy'
+  })
+  static categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
+    return categoricalCrossentropy(yTrue, yPred);
+  }
+
+  @doc({
+    heading: 'Metrics',
+    namespace: 'metrics',
+    useDocsFrom: 'cosineProximity'
+  })
+  static cosineProximity(yTrue: Tensor, yPred: Tensor): Tensor {
+    return cosineProximity(yTrue, yPred);
+  }
+
+  @doc({
+    heading: 'Metrics',
+    namespace: 'metrics',
+    useDocsFrom: 'meanAbsoluteError'
+  })
+  meanAbsoluteError(yTrue: Tensor, yPred: Tensor): Tensor {
+    return meanAbsoluteError(yTrue, yPred);
+  }
+
+  @doc({
+    heading: 'Metrics',
+    namespace: 'metrics',
+    useDocsFrom: 'meanAbsolutePercentageError'
+  })
+  meanAbsolutePercentageError(yTrue: Tensor, yPred: Tensor): Tensor {
+    return meanAbsolutePercentageError(yTrue, yPred);
+  }
+
+  MAPE(yTrue: Tensor, yPred: Tensor): Tensor {
+    return meanAbsolutePercentageError(yTrue, yPred);
+  }
+
+  mape(yTrue: Tensor, yPred: Tensor): Tensor {
+    return meanAbsolutePercentageError(yTrue, yPred);
+  }
+
+  @doc({
+    heading: 'Metrics',
+    namespace: 'metrics',
+    useDocsFrom: 'meanSquaredError'
+  })
+  static meanSquaredError(yTrue: Tensor, yPred: Tensor): Tensor {
+    return meanSquaredError(yTrue, yPred);
+  }
+
+  static MSE(yTrue: Tensor, yPred: Tensor): Tensor {
+    return meanSquaredError(yTrue, yPred);
+  }
+
+  static mse(yTrue: Tensor, yPred: Tensor): Tensor {
+    return meanSquaredError(yTrue, yPred);
   }
 }
 
