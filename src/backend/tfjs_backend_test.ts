@@ -611,6 +611,119 @@ describeMathCPUAndGPU('sliceAlongLastAxis', () => {
   });
 });
 
+describeMathCPUAndGPU('normalizeBatchInTraining', () => {
+  // The reference values for assertion below can be obtained with Python code
+  // as the following:
+  // ```python
+  // import keras
+  // import numpy as np
+  // import tensorflow as tf
+  //
+  // with tf.Session() as sess:
+  //   x = tf.Variable(np.array(
+  //       [[1, 2, 3, 4], [2, 4, 6, 8], [12, 11, 10, 9]], dtype=np.float32))
+  //   gamma = tf.Variable(np.array([1, 1, 1, 1], dtype=np.float32))
+  //   beta = tf.Variable(np.array([0, 0, 0, 0], dtype=np.float32))
+  //   reduction_axes = [0]
+  //   normed, mean, variance = keras.backend.normalize_batch_in_training(
+  //       x, gamma, beta, reduction_axes)
+  //   print(normed)
+  //   print(mean)
+  //   print(variance)
+  // ```
+
+  it('2D, no broadcasting', () => {
+    const x = tensor2d([[1, 2, 3, 4], [2, 4, 6, 8], [12, 11, 10, 9]], [3, 4]);
+    const gamma = tensor1d([1, 1, 1, 1]);
+    const beta = tensor1d([0, 0, 0, 0]);
+    const reductionAxes = [0];
+    const [normed, mean, variance] =
+        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+    expectTensorsClose(
+        normed,
+        tensor2d(
+            [
+              [-0.805371, -0.9502233, -1.1624058, -1.3885813],
+              [-0.6040282, -0.4319197, -0.11624074, 0.46286058],
+              [1.4093992, 1.3821429, 1.2786462, 0.92572117]
+            ],
+            [3, 4]));
+    expectTensorsClose(mean, tensor1d([5.0, 5.6666665, 6.3333335, 7.0]));
+    expectTensorsClose(
+        variance, tensor1d([24.666666, 14.888889, 8.222222, 4.6666665]));
+  });
+
+  it('3D, no broadcasting', () => {
+    const x = tensor3d(
+        [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]], [3, 2, 2]);
+    const gamma = tensor1d([1, 1]);
+    const beta = tensor1d([0, 0]);
+    const reductionAxes = [0, 1];
+    const [normed, mean, variance] =
+        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+    expectTensorsClose(
+        normed,
+        tensor3d(
+            [
+              [[-1.1355163, -1.3552775], [-0.6488664, -0.7297648]],
+              [[-0.8921913, -0.7297648], [0.08110833, 0.5212605]],
+              [[1.5410578, 1.4595294], [1.0544081, 0.8340168]]
+            ],
+            [3, 2, 2]));
+    expectTensorsClose(mean, tensor1d([5.6666665, 6.3333335]));
+    expectTensorsClose(variance, tensor1d([16.88889, 10.222222]));
+  });
+
+  it('3D, broadcasting', () => {
+    const x = tensor3d(
+        [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]], [3, 2, 2]);
+    const gamma = tensor2d([[1, 1], [1, 1]], [2, 2]);
+    const beta = tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const reductionAxes = [0];
+    const [normed, mean, variance] =
+        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+    expectTensorsClose(
+        normed,
+        tensor3d(
+            [
+              [[-0.805371, -0.9502233], [-1.1624058, -1.3885813]],
+              [[-0.6040282, -0.4319197], [-0.11624074, 0.46286058]],
+              [[1.4093992, 1.3821429], [1.2786462, 0.92572117]]
+            ],
+            [3, 2, 2]));
+    expectTensorsClose(
+        mean, tensor2d([[5, 5.6666665], [6.3333335, 7]], [2, 2]));
+    expectTensorsClose(
+        variance,
+        tensor2d([[24.666666, 14.888889], [8.222222, 4.6666665]], [2, 2]));
+  });
+
+  it('4D, broadcasting', () => {
+    const x = tensor4d(
+        [[[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]]],
+        [1, 3, 2, 2]);
+    const gamma = tensor2d([[1, 1], [1, 1]], [2, 2]);
+    const beta = tensor2d([[0, 0], [0, 0]], [2, 2]);
+    const reductionAxes = [0, 1];
+    const [normed, mean, variance] =
+        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+    expectTensorsClose(
+        normed,
+        tensor4d(
+            [[
+              [[-0.805371, -0.9502233], [-1.1624058, -1.3885813]],
+              [[-0.6040282, -0.4319197], [-0.11624074, 0.46286058]],
+              [[1.4093992, 1.3821429], [1.2786462, 0.92572117]]
+            ]],
+            [1, 3, 2, 2]));
+    expectTensorsClose(
+        mean, tensor2d([[5, 5.6666665], [6.3333335, 7]], [2, 2]));
+    expectTensorsClose(
+        variance,
+        tensor2d([[24.666666, 14.888889], [8.222222, 4.6666665]], [2, 2]));
+  });
+});
+
 describeMathCPUAndGPU('concatenate', () => {
   it('1D', () => {
     const x = tensor1d([1, 2, 3, 4]);
