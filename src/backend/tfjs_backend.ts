@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, util, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
+import {onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, tidy, util, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
 
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
 import {Constraint} from '../constraints';
@@ -428,6 +428,105 @@ export function sliceAlongLastAxis(
       throw new ValueError(
           `sliceAlongLastAxis() received an unsupported tensor rank: ` +
           `${array.rank}`);
+  }
+}
+
+/**
+ * Non-broadcasting batch normalization for use in training (not inference).
+ *
+ * The input is normalized to zero mean and unit variance along the
+ * `reductionAxes`, followed by scaling with `gamma` and shifted by `beta`.
+ * The result of that is returned as the first element
+ * of the returned `Array`. The other two elements are the mean and variance,
+ * respectively.
+ *
+ * @param x Input tensor to be normalized.
+ * @param gamma Tensor by which to scale the input.
+ * @param beta Tensor by which to center the input.
+ * @param reductionAxes Axes over which to normalize.
+ * @param epsilon Fuzz factor.
+ * @returns An `Array` of three `Tensors`:
+ *   [normalized tensor, mean of input, variance of input].
+ */
+function regularNormalizeBatchInTraining(
+    x: Tensor, gamma: Tensor, beta: Tensor, reductionAxes: number[],
+    epsilon = 1e-3): [Tensor, Tensor, Tensor] {
+  return tidy(() => {
+           const meanAndVariance = tfc.moments(x, reductionAxes);
+           const mean = meanAndVariance.mean;
+           const variance = meanAndVariance.variance;
+           const normed =
+               batchNormalization(x, mean, variance, beta, gamma, epsilon);
+           return [normed, mean, variance];
+         }) as [Tensor, Tensor, Tensor];
+}
+
+/**
+ * Broadcasting batch normalization for use in training (not inference).
+ *
+ * The input is normalized to zero mean and unit variance along the
+ * `reductionAxes`, followed by scaling with `gamma` and shifted by `beta`.
+ * The result of that is returned as the first element
+ * of the returned `Array`. The other two elements are the mean and variance,
+ * respectively.
+ *
+ * @param x Input tensor to be normalized.
+ * @param gamma Tensor by which to scale the input.
+ * @param beta Tensor by which to center the input.
+ * @param reductionAxes Axes over which to normalize.
+ * @param epsilon Fuzz factor.
+ * @returns An `Array` of three `Tensors`:
+ *   [normalized tensor, mean of input, variance of input].
+ */
+function broadcastNormalizeBatchInTraining(
+    x: Tensor, gamma: Tensor, beta: Tensor, reductionAxes: number[],
+    epsilon = 1e-3): [Tensor, Tensor, Tensor] {
+  return tidy(() => {
+           const meanAndVariance = tfc.moments(x, reductionAxes);
+           const mean = meanAndVariance.mean;
+           const variance = meanAndVariance.variance;
+           const targetShape: number[] = [];
+           for (const axis of math_utils.range(0, ndim(x))) {
+             if (reductionAxes.indexOf(axis) !== -1) {
+               targetShape.push(1);
+             } else {
+               targetShape.push(x.shape[axis]);
+             }
+           }
+           const broadcastMean = reshape(mean, targetShape);
+           const broadcastVariance = reshape(variance, targetShape);
+           const broadcastGamma =
+               gamma == null ? null : reshape(gamma, targetShape);
+           const broadcastBeta =
+               beta == null ? null : reshape(beta, targetShape);
+           const normed = batchNormalization(
+               x, broadcastMean, broadcastVariance, broadcastBeta,
+               broadcastGamma, epsilon);
+           return [normed, mean, variance];
+         }) as [Tensor, Tensor, Tensor];
+}
+
+/**
+ * Batch normalization for use in training (not inference).
+ *
+ * @param x Input tensor to be normalized.
+ * @param gamma Tensor by which to scale the input.
+ * @param beta Tensor by which to center the input.
+ * @param reductionAxes Axes over which to normalize.
+ * @param epsilon Fuzz factor.
+ * @returns An `Array` of three `Tensors`:
+ *   [normalized tensor, mean of input, variance of input].
+ */
+export function normalizeBatchInTraining(
+    x: Tensor, gamma: Tensor, beta: Tensor, reductionAxes: number[],
+    epsilon = 1e-3): [Tensor, Tensor, Tensor] {
+  if (util.arraysEqual(
+          reductionAxes.slice().sort(), math_utils.range(0, ndim(x) - 1))) {
+    return regularNormalizeBatchInTraining(
+        x, gamma, beta, reductionAxes, epsilon);
+  } else {
+    return broadcastNormalizeBatchInTraining(
+        x, gamma, beta, reductionAxes, epsilon);
   }
 }
 
@@ -1301,26 +1400,23 @@ export function batchNormalization(
   if (ndim(x) === 2) {
     out = tfc.batchNormalization2d(
         x as Tensor2D, mean as Tensor2D | Tensor1D,
-        variance as Tensor2D | Tensor1D, epsilon);
+        variance as Tensor2D | Tensor1D, epsilon, gamma as Tensor2D | Tensor1D,
+        beta as Tensor2D | Tensor1D);
   } else if (ndim(x) === 3) {
     // TODO(cais): Check rank; give proper error message.
     out = tfc.batchNormalization3d(
         x as Tensor3D, mean as Tensor3D | Tensor1D,
-        variance as Tensor3D | Tensor1D, epsilon);
+        variance as Tensor3D | Tensor1D, epsilon, gamma as Tensor3D | Tensor1D,
+        beta as Tensor3D | Tensor1D);
   } else if (ndim(x) === 4) {
     out = tfc.batchNormalization4d(
         x as Tensor4D, mean as Tensor4D | Tensor1D,
-        variance as Tensor4D | Tensor1D, epsilon);
+        variance as Tensor4D | Tensor1D, epsilon, gamma as Tensor4D | Tensor1D,
+        beta as Tensor4D | Tensor1D);
   } else {
     throw new NotImplementedError(
         `batchNormalization is not implememnted for array of rank ${ndim(x)} ` +
         `yet`);
-  }
-  if (gamma != null) {
-    out = multiply(out, gamma);
-  }
-  if (beta != null) {
-    out = add(out, beta);
   }
   return out;
 }
