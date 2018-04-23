@@ -16,7 +16,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
@@ -484,6 +484,10 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleInput('Atanh', x) as T;
   }
 
+  erf<T extends Tensor>(x: T): T {
+    return this.executeSingleInput('Erf', x) as T;
+  }
+
   squaredDifference(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [this.createTypeOpAttr('T', a.dtype)];
     return this.executeSingleOutput('SquaredDifference', opAttrs, [a, b]);
@@ -787,10 +791,36 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('ResizeBilinear', opAttrs, [x, size]) as
         Tensor4D;
   }
+
+  resizeNearestNeighbor(
+      x: Tensor4D, newHeight: number, newWidth: number,
+      alignCorners: boolean): Tensor4D {
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      {
+        name: 'align_corners',
+        type: this.binding.TF_ATTR_BOOL,
+        value: alignCorners
+      },
+    ];
+    const size = tensor1d([newHeight, newWidth], 'int32');
+    return this.executeSingleOutput(
+               'ResizeNearestNeighbor', opAttrs, [x, size]) as Tensor4D;
+  }
+
   batchNormalization(
       x: Tensor4D, mean: Tensor1D|Tensor4D, variance: Tensor1D|Tensor4D,
       varianceEpsilon: number, scale?: Tensor1D|Tensor4D,
       offset?: Tensor1D|Tensor4D): Tensor4D {
+    if (mean.rank > 1) {
+      // Fused batch norm doesn't work with high-dim mean/var/scale/offset.
+      let inv = rsqrt(variance.add(scalar(varianceEpsilon)));
+      if (scale != null) {
+        inv = inv.mul(scale);
+      }
+      const xNorm = x.sub(mean).mul(inv) as Tensor4D;
+      return offset != null ? xNorm.add(offset) : xNorm;
+    }
     const dataFormat = 'NHWC';
     const depth = x.shape[3];
     const opAttrs = [
