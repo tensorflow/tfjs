@@ -27,12 +27,16 @@
     "typedoc": "~0.8.0",
     "typescript": "2.7.2",
     "uglify-js": "~3.0.28",
-    "watchify": "~3.9.0"
+    "watchify": "~3.9.0",
+    "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
+    "format": "./tools/clang_format_ts.sh",
     "publish-npm": "./scripts/publish-npm.sh",
+    "link-local": "yalc link",
+    "publish-local": "yarn build-npm && yalc push",
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
     "lint": "tslint -p . --type-check -t verbose"

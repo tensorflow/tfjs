@@ -8,6 +8,8 @@ yarn-error.log
 .DS_Store
 dist/
 .idea/
+.yalc/
+yalc.lock
 
 bazel-*
 

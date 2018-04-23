@@ -52,7 +52,7 @@ else
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLANG_FORMAT_PREFIX="clang-format -i --verbose --style=google"
+CLANG_FORMAT_PREFIX="${SCRIPT_DIR}/../node_modules/.bin/clang-format -i --verbose --style=google"
 if [[ "${FILE_SCOPE}" == "__touched__" ]]; then
   TOUCHED_TS_FILES="$(git status --porcelain | grep '.*\.ts$' | sed s/^...//)"
 

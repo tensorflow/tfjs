@@ -1,50 +1,33 @@
-# Notes for TensorFlow.js Layers Developers
+## Development process
 
-## Build and Test
+As a preparatory step, run `yarn` which installs all dev dependencies.
 
-* As a preparatory step, run:
-  ```bash
-  yarn
-  ```
-* Our TypeScript source code follows the Google
-  [clang format](https://clang.llvm.org/docs/ClangFormatStyleOptions.html).
-  A script is available to automatically format .ts files:
-  `tools/clang_format_ts.sh`.
-  Be sure to run the script before you proceed to the next step.
-  To use this script on all .ts files under `src/`, do:
-  ```bash
-  tools/clang_format_ts.sh -a
-  ```
-  To use this script on .ts files touched in the current git workspace, simply
-  do:
-  ```bash
-  tools/clang_format_ts.sh
-  ```
-  See the doc string of the script for other modes of usage. If necessary,
-  clang-format can be installed with:
-  ```bash
-  apt-get install clang-format
-  ```
-  Note that it is not sufficient to use the clang format in Visual Studio Code,
-  because its results differ from those of the `clang-format` command and
-  `tools/clang_format_ts.sh`.
-* As a required step for code review and submission, run and pass the TypeScript
-  linter (`tslint`):
-  ```bash
-  yarn lint
-  ```
-* As a required step for code review and submission, run and pass all unit
-  tests:
-  ```bash
-  yarn test
-  ```
-  The above command opens Chrome and Firefox and uses them to run all TypeScript
-  unit tests.
+Before submitting a PR with a change, make sure the following
+commands succeed:
+* `yarn build` which compiles the project to ES5 Javascript.
+* `yarn format` to format your code.
+* `yarn lint` to check for linter errors.
+* `yarn test` to run unit tests in Chrome and Firefox. Make sure all unit tests pass.
 
-## Code Structure
+When you send a PR, the above commands will also run on [travis](https://travis-ci.org/tensorflow/tfjs-layers)
+and show up as Github checks. If you see travis failing, click on the `Details`
+link next to the check to open the travis log.
 
-## Types
+## Changing @tensorflow/tfjs-layers and testing @tensorflow/tfjs
 
-* Tensors are represented as `Tensor` from TensorFlow.js Core.
-* Tensor shape is represented as an array of number (`number[]`), in a way
-  consistent with TensorFlow.js Core.
+Often we want to make a change in `tfjs-layers/core` and create a new
+`tfjs` package that reflects that change. There is a 3-step initial process to
+set this up. The instructions below are for `tfjs-layers`, but they should work
+for developing `tfjs-core` if you replace `tfjs-layers` with `tfjs-core`.
+
+1. In the `tfjs-layers` repo, run `yarn publish-local`. This builds the
+project and publishes a new package in a local registry.
+
+2. In the `tfjs` repo, run `yarn link-local @tensorflow/tfjs-layers`. This makes
+`tfjs` depend on the locally published `tfjs-layers` package.
+
+3. In the `tfjs` repo, run `yarn build-npm` to build a new npm package.
+
+Every time you make a change in `tfjs-layers`, re-run:
+- `yarn publish-local` in the `tfjs-layers` repo
+- `yarn build-npm` in the `tfjs` repo to make a new package.
