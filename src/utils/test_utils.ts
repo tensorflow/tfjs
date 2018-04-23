@@ -14,6 +14,7 @@
 
 // tslint:disable:max-line-length
 import {Tensor, test_util} from '@tensorflow/tfjs-core';
+import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {disposeScalarCache} from '../backend/tfjs_backend';
 import {ValueError} from '../errors';
 
@@ -68,7 +69,7 @@ export function describeMathCPUAndGPU(testName: string, tests: () => void) {
  * @param tests
  */
 export function describeMathCPU(testName: string, tests: () => void) {
-  test_util.describeWithFlags(testName, test_util.CPU_ENVS, () => {
+  jasmine_util.describeWithFlags(testName, test_util.CPU_ENVS, () => {
     beforeEach(() => {
       disposeScalarCache();
     });
@@ -82,7 +83,7 @@ export function describeMathCPU(testName: string, tests: () => void) {
  * @param tests
  */
 export function describeMathGPU(testName: string, tests: () => void) {
-  test_util.describeWithFlags(testName, test_util.WEBGL_ENVS, () => {
+  jasmine_util.describeWithFlags(testName, test_util.WEBGL_ENVS, () => {
     beforeEach(() => {
       disposeScalarCache();
     });
