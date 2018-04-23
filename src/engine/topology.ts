@@ -2332,6 +2332,12 @@ export abstract class Container extends Layer {
    * @returns A Layer instance.
    * @throws ValueError: In case of invalid layer name or index.
    */
+  @doc({
+    heading: 'Layers',
+    subheading: 'Classes',
+    namespace: 'layers',
+    subclasses: ['Model']
+  })
   getLayer(name?: string, index?: number): Layer {
     if (index != null) {
       if (this.layers.length <= index) {
