@@ -18,7 +18,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "0.6.0",
+    "@tensorflow/tfjs-core": "0.8.1",
     "tfjs-node": "link:.yalc/tfjs-node"
   }
 }
