@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.6.0.tgz#e33d9889472b0599291ecdb7fa83579586b21e66"
+"@tensorflow/tfjs-core@0.8.1":
+  version "0.8.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.8.1.tgz#d93e87302e29620906003b697d2d8596410ad712"
   dependencies:
     seedrandom "~2.4.3"
 
@@ -572,7 +572,7 @@ supports-color@^5.3.0:
   dependencies:
     has-flag "^3.0.0"
 
-"tfjs-node@link:..":
+"tfjs-node@link:.yalc/tfjs-node":
   version "0.0.0"
   uid ""
 
