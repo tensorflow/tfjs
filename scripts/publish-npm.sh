@@ -34,7 +34,7 @@ if [ "$BRANCH" != "master" ]; then
   exit 1
 fi
 
-if [ "$ORIGIN" != "https://github.com/tensorflow/tfjs.git" ]; then
+if ! [[ "$ORIGIN" =~ ^https://github.com/tensorflow/tfjs ]]; then
   echo "Error: Switch to the main repo (tensorflow/tfjs) before publishing."
   exit 1
 fi
