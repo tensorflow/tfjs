@@ -10,6 +10,7 @@
 
 // tslint:disable-next-line:no-require-imports
 const packageJSON = require('../package.json');
+import {version_layers} from './index';
 
 describe('tfjs-core version consistency', () => {
   it('dev-peer match', () => {
@@ -18,5 +19,11 @@ describe('tfjs-core version consistency', () => {
     const tfjsCorePeerDepVersion =
         packageJSON.peerDependencies['@tensorflow/tfjs-core'];
     expect(tfjsCoreDevDepVersion).toEqual(tfjsCorePeerDepVersion);
+  });
+
+  it('version.ts matches package version', () => {
+    // tslint:disable-next-line:no-require-imports
+    const expected = require('../package.json').version;
+    expect(version_layers).toBe(expected);
   });
 });
