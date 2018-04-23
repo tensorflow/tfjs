@@ -3,8 +3,8 @@
 
 
 "@tensorflow/tfjs-core@tensorflow/tfjs-core#master":
-  version "0.7.1"
-  resolved "https://codeload.github.com/tensorflow/tfjs-core/tar.gz/7f637571491097d2ea1d07ad233ef75ccb0e4f47"
+  version "0.8.1"
+  resolved "https://codeload.github.com/tensorflow/tfjs-core/tar.gz/2a7560b02117088f79ad0ca79b755b297fd17628"
   dependencies:
     seedrandom "~2.4.3"
 
@@ -17,8 +17,8 @@
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.8.6.tgz#14445b6a1613cf4e05dd61c3c3256d0e95c0421e"
 
 "@types/node@~9.6.2":
-  version "9.6.5"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.5.tgz#ee700810fdf49ac1c399fc5980b7559b3e5a381d"
+  version "9.6.6"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-9.6.6.tgz#439b91f9caf3983cad2eef1e11f6bedcbf9431d2"
 
 ansi-regex@^2.0.0:
   version "2.1.1"
@@ -86,8 +86,8 @@ chalk@^1.1.3:
     supports-color "^2.0.0"
 
 chalk@^2.3.0:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.3.2.tgz#250dc96b07491bfd601e648d66ddf5f60c7a5c65"
+  version "2.4.0"
+  resolved "https://registry.yarnpkg.com/chalk/-/chalk-2.4.0.tgz#a060a297a6b57e15b61ca63ce84995daa0fe6e52"
   dependencies:
     ansi-styles "^3.2.1"
     escape-string-regexp "^1.0.5"
@@ -270,8 +270,8 @@ supports-color@^2.0.0:
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7"
 
 supports-color@^5.3.0:
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.3.0.tgz#5b24ac15db80fa927cf5227a4a33fd3c4c7676c0"
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.4.0.tgz#1c6b337402c2137605efe19f10fec390f6faab54"
   dependencies:
     has-flag "^3.0.0"
 
