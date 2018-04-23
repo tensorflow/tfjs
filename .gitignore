@@ -12,3 +12,5 @@ dist/
 .idea/
 *.tgz
 **/*.pyc
+.yalc/
+yalc.lock
