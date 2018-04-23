@@ -90,6 +90,11 @@ export function expectArraysClose(
   }
 }
 
+export interface DoneFn {
+  (): void;
+  fail: (message?: Error|string) => void;
+}
+
 export function expectPromiseToFail(fn: () => Promise<{}>, done: DoneFn): void {
   fn().then(() => done.fail(), () => done());
 }
