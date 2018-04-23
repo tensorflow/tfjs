@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-layers",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "TensorFlow layers API in JavaScript",
   "private": false,
   "main": "dist/index.js",
