@@ -24,7 +24,7 @@ cd demo/
 yarn
 
 # Link the tfjs-node NPM we published above.
-yarn link-local tfjs-node
+yarn link-local @tensorflow/tfjs-node
 
 # Run the training script. See demo/package.json for this script.
 yarn mnist
