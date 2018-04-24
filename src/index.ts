@@ -15,6 +15,12 @@
  * =============================================================================
  */
 
+// backend_cpu.ts and backend_webgl.ts are standalone files and should be
+// explicily included here. Below, there is an export from backend_webgl, but
+// that doesn't count since it's exporting a Typescript interface.
+import './kernels/backend_webgl';
+import './kernels/backend_cpu';
+
 import {BrowserUtil} from './browser_util';
 import * as environment from './environment';
 import {Environment} from './environment';
