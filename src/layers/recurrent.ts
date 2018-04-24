@@ -23,8 +23,8 @@ import {Layer, LayerConfig} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
-import {DType, Shape, SymbolicTensor} from '../types';
-import {ConfigDict, LayerVariable} from '../types';
+import {DType, Serializable, Shape, SymbolicTensor} from '../types';
+import {ConfigDict, Constructor, LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 
@@ -178,6 +178,7 @@ export interface RNNLayerConfig extends BaseRNNLayerConfig {
  *   (not changing over time), a.k.a an attention mechanism.
  */
 export class RNN extends Layer {
+  static className = 'RNN';
   public readonly cell: RNNCell;
   public readonly returnSequences: boolean;
   public readonly returnState: boolean;
@@ -621,7 +622,7 @@ export class RNN extends Layer {
   }
 
   getClassName(): string {
-    return 'RNN';
+    return RNN.className;
   }
 
   getConfig(): ConfigDict {
@@ -645,7 +646,7 @@ export class RNN extends Layer {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('RNN', RNN);
+generic_utils.ClassNameMap.register(RNN);
 
 /**
  * An RNNCell layer.
@@ -784,6 +785,7 @@ export interface SimpleRNNCellLayerConfig extends LayerConfig {
  * `tf.layers.simpleRNN`.
  */
 export class SimpleRNNCell extends RNNCell {
+  static className = 'SimpleRNNCell';
   readonly units: number;
   readonly activation: ActivationFn;
   readonly useBias: boolean;
@@ -907,7 +909,7 @@ export class SimpleRNNCell extends RNNCell {
   }
 
   getClassName(): string {
-    return 'SimpleRNNCell';
+    return SimpleRNNCell.className;
   }
 
   getConfig(): ConfigDict {
@@ -933,7 +935,7 @@ export class SimpleRNNCell extends RNNCell {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('SimpleRNNCell', SimpleRNNCell);
+generic_utils.ClassNameMap.register(SimpleRNNCell);
 
 export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
   /**
@@ -1038,6 +1040,7 @@ export interface SimpleRNNLayerConfig extends BaseRNNLayerConfig {
  * ```
  */
 export class SimpleRNN extends RNN {
+  static className = 'SimpleRNN';
   constructor(config: SimpleRNNLayerConfig) {
     config.cell = new SimpleRNNCell(config);
     super(config as RNNLayerConfig);
@@ -1113,7 +1116,7 @@ export class SimpleRNN extends RNN {
   }
 
   getClassName(): string {
-    return 'SimpleRNN';
+    return SimpleRNN.className;
   }
 
   getConfig(): ConfigDict {
@@ -1139,7 +1142,7 @@ export class SimpleRNN extends RNN {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('SimpleRNN', SimpleRNN);
+generic_utils.ClassNameMap.register(SimpleRNN);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
@@ -1210,6 +1213,7 @@ export interface GRUCellLayerConfig extends SimpleRNNCellLayerConfig {
  * `tf.layers.gru`.
  */
 export class GRUCell extends RNNCell {
+  static className = 'GRUCell';
   readonly units: number;
   readonly activation: ActivationFn;
   readonly recurrentActivation: ActivationFn;
@@ -1403,7 +1407,7 @@ export class GRUCell extends RNNCell {
   }
 
   getClassName(): string {
-    return 'GRUCell';
+    return GRUCell.className;
   }
 
   getConfig(): ConfigDict {
@@ -1430,7 +1434,7 @@ export class GRUCell extends RNNCell {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('GRUCell', GRUCell);
+generic_utils.ClassNameMap.register(GRUCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
@@ -1470,6 +1474,7 @@ export interface GRULayerConfig extends SimpleRNNLayerConfig {
  * // 3rd dimension is the `GRUCell`'s number of units.
  */
 export class GRU extends RNN {
+  static className = 'GRU';
   constructor(config: GRULayerConfig) {
     if (config.implementation === 0) {
       console.warn(
@@ -1552,7 +1557,7 @@ export class GRU extends RNN {
   }
 
   getClassName(): string {
-    return 'GRU';
+    return GRU.className;
   }
 
   getConfig(): ConfigDict {
@@ -1579,15 +1584,15 @@ export class GRU extends RNN {
     return config;
   }
 
-  static fromConfig<T>(cls: generic_utils.Constructor<T>, config: ConfigDict):
-      T {
+  static fromConfig<T extends Serializable>(
+      cls: Constructor<T>, config: ConfigDict): T {
     if (config['implmentation'] === 0) {
       config['implementation'] = 1;
     }
     return new cls(config);
   }
 }
-generic_utils.ClassNameMap.register('GRU', GRU);
+generic_utils.ClassNameMap.register(GRU);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we extend
 //   that interface instead of repeating the fields.
@@ -1667,6 +1672,7 @@ export interface LSTMCellLayerConfig extends SimpleRNNCellLayerConfig {
  * `tf.layers.lstm`.
  */
 export class LSTMCell extends RNNCell {
+  static className = 'LSTMCell';
   readonly units: number;
   readonly activation: ActivationFn;
   readonly recurrentActivation: ActivationFn;
@@ -1889,7 +1895,7 @@ export class LSTMCell extends RNNCell {
   }
 
   getClassName(): string {
-    return 'LSTMCell';
+    return LSTMCell.className;
   }
 
   getConfig(): ConfigDict {
@@ -1917,7 +1923,7 @@ export class LSTMCell extends RNNCell {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('LSTMCell', LSTMCell);
+generic_utils.ClassNameMap.register(LSTMCell);
 
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
@@ -1964,6 +1970,7 @@ export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
  * // 3rd dimension is the `LSTMCell`'s number of units.
  */
 export class LSTM extends RNN {
+  static className = 'LSTM';
   constructor(config: LSTMLayerConfig) {
     if (config.implementation as number === 0) {
       console.warn(
@@ -2050,7 +2057,7 @@ export class LSTM extends RNN {
   }
 
   getClassName(): string {
-    return 'LSTM';
+    return LSTM.className;
   }
 
   getConfig(): ConfigDict {
@@ -2078,15 +2085,15 @@ export class LSTM extends RNN {
     return config;
   }
 
-  static fromConfig<T>(cls: generic_utils.Constructor<T>, config: ConfigDict):
-      T {
+  static fromConfig<T extends Serializable>(
+      cls: Constructor<T>, config: ConfigDict): T {
     if (config['implmentation'] === 0) {
       config['implementation'] = 1;
     }
     return new cls(config);
   }
 }
-generic_utils.ClassNameMap.register('LSTM', LSTM);
+generic_utils.ClassNameMap.register(LSTM);
 
 export interface StackedRNNCellsConfig extends LayerConfig {
   /**
@@ -2101,6 +2108,7 @@ export interface StackedRNNCellsConfig extends LayerConfig {
  * Used to implement efficient stacked RNNs.
  */
 export class StackedRNNCells extends RNNCell {
+  static className = 'StackedRNNCells';
   protected cells: RNNCell[];
 
   constructor(config: StackedRNNCellsConfig) {
@@ -2186,7 +2194,7 @@ export class StackedRNNCells extends RNNCell {
   }
 
   getClassName(): string {
-    return 'StackedRNNCells';
+    return StackedRNNCells.className;
   }
 
   getConfig(): ConfigDict {
@@ -2203,8 +2211,8 @@ export class StackedRNNCells extends RNNCell {
     return config;
   }
 
-  static fromConfig<T>(
-      cls: generic_utils.Constructor<T>, config: ConfigDict,
+  static fromConfig<T extends Serializable>(
+      cls: Constructor<T>, config: ConfigDict,
       customObjects = {} as ConfigDict): T {
     const cells: RNNCell[] = [];
     for (const cellConfig of (config['cells'] as ConfigDict[])) {
@@ -2272,4 +2280,4 @@ export class StackedRNNCells extends RNNCell {
 
   // TODO(cais): Maybe implemnt `losses` and `getLossesFor`.
 }
-generic_utils.ClassNameMap.register('StackedRNNCells', StackedRNNCells);
+generic_utils.ClassNameMap.register(StackedRNNCells);

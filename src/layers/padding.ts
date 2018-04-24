@@ -73,6 +73,7 @@ export interface ZeroPadding2DLayerConfig extends LayerConfig {
  *     `[batch, channels, paddedRows, paddedCols]`.
  */
 export class ZeroPadding2D extends Layer {
+  static className = 'ZeroPadding2D';
   readonly dataFormat: DataFormat;
   readonly padding: [[number, number], [number, number]];
 
@@ -168,7 +169,7 @@ export class ZeroPadding2D extends Layer {
   }
 
   getClassName(): string {
-    return 'ZeroPadding2D';
+    return ZeroPadding2D.className;
   }
 
   getConfig(): ConfigDict {
@@ -181,4 +182,4 @@ export class ZeroPadding2D extends Layer {
     return config;
   }
 }
-ClassNameMap.register('ZeroPadding2D', ZeroPadding2D);
+ClassNameMap.register(ZeroPadding2D);

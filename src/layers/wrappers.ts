@@ -18,8 +18,8 @@ import {Tensor} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape, TensorInterface} from '../types';
-import {ConfigDict, LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
+import {Serializable, Shape, TensorInterface} from '../types';
+import {ConfigDict, Constructor, LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
 import {RNN} from './recurrent';
@@ -125,8 +125,8 @@ export abstract class Wrapper extends Layer {
     return config;
   }
 
-  static fromConfig<T>(
-      cls: generic_utils.Constructor<T>, config: ConfigDict,
+  static fromConfig<T extends Serializable>(
+      cls: Constructor<T>, config: ConfigDict,
       customObjects = {} as ConfigDict): T {
     const layerConfig = config['layer'] as ConfigDict;
     const layer = deserialize(layerConfig, customObjects) as Layer;
@@ -182,6 +182,7 @@ export abstract class Wrapper extends Layer {
  * ```
  */
 export class TimeDistributed extends Wrapper {
+  static className = 'TimeDistributed';
   constructor(config: WrapperLayerConfig) {
     super(config);
     this.supportsMasking = true;
@@ -232,10 +233,10 @@ export class TimeDistributed extends Wrapper {
     return y;
   }
   getClassName(): string {
-    return 'TimeDistributed';
+    return TimeDistributed.className;
   }
 }
-generic_utils.ClassNameMap.register('TimeDistributed', TimeDistributed);
+generic_utils.ClassNameMap.register(TimeDistributed);
 
 export enum BidirectionalMergeMode {
   SUM,
@@ -265,6 +266,7 @@ export interface BidirectionalLayerConfig extends WrapperLayerConfig {
 }
 
 export class Bidirectional extends Wrapper {
+  static className = 'Bidirectional';
   private forwardLayer: RNN;
   private backwardLayer: RNN;
   private mergeMode: BidirectionalMergeMode;
@@ -468,10 +470,10 @@ export class Bidirectional extends Wrapper {
         this.backwardLayer.nonTrainableWeights);
   }
   getClassName(): string {
-    return 'Bidirectional';
+    return Bidirectional.className;
   }
 
   // TODO(cais): Implement constraints().
   // TODO(cais): Implement getConfig().
 }
-generic_utils.ClassNameMap.register('Bidirectional', Bidirectional);
+generic_utils.ClassNameMap.register(Bidirectional);

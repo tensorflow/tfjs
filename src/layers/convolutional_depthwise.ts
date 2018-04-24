@@ -72,6 +72,7 @@ export interface DepthwiseConv2DLayerConfig extends ConvLayerConfig {
  * are generated per input channel in the depthwise step.
  */
 export class DepthwiseConv2D extends Conv2D {
+  static className = 'DepthwiseConv2D';
   private readonly depthMultiplier: number;
   private readonly depthwiseInitializer: Initializer;
   private readonly depthwiseConstraint: Constraint;
@@ -89,7 +90,7 @@ export class DepthwiseConv2D extends Conv2D {
     this.depthwiseRegularizer = getRegularizer(config.depthwiseRegularizer);
   }
   getClassName(): string {
-    return 'DepthwiseConv2D';
+    return DepthwiseConv2D.className;
   }
 
   build(inputShape: Shape|Shape[]): void {
@@ -161,4 +162,4 @@ export class DepthwiseConv2D extends Conv2D {
     }
   }
 }
-generic_utils.ClassNameMap.register('DepthwiseConv2D', DepthwiseConv2D);
+generic_utils.ClassNameMap.register(DepthwiseConv2D);
