@@ -19,6 +19,6 @@
   },
   "dependencies": {
     "@tensorflow/tfjs-core": "0.8.1",
-    "tfjs-node": "link:.yalc/tfjs-node"
+    "@tensorflow/tfjs-node": "link:.yalc/@tensorflow/tfjs-node"
   }
 }

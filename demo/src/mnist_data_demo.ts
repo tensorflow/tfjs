@@ -16,7 +16,7 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {bindTensorFlowBackend} from 'tfjs-node';
+import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
 
 import {MnistDataset} from './mnist_data';
 import {Timer} from './timer';
