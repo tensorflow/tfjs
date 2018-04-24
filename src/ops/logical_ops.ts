@@ -27,6 +27,12 @@ export class LogicalOps {
   /**
    * Returns the truth value of `NOT x` element-wise.
    *
+   * ```js
+   * const a = tf.tensor1d([false, true], 'bool');
+   *
+   * a.logicalNot().print();
+   * ```
+   *
    * @param x The input tensor. Must be of dtype 'bool'.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
@@ -40,6 +46,13 @@ export class LogicalOps {
 
   /**
    * Returns the truth value of a AND b element-wise. Supports broadcasting.
+   *
+   * ```js
+   * const a = tf.tensor1d([false, false, true, true], 'bool');
+   * const b = tf.tensor1d([false, true, false, true], 'bool');
+   *
+   * a.logicalAnd(b).print();
+   * ```
    *
    * @param a The first input tensor. Must be of dtype bool.
    * @param b The second input tensor. Must be of dtype bool.
@@ -60,6 +73,12 @@ export class LogicalOps {
   /**
    * Returns the truth value of `a OR b` element-wise. Supports broadcasting.
    *
+   * ```js
+   * const a = tf.tensor1d([false, false, true, true], 'bool');
+   * const b = tf.tensor1d([false, true, false, true], 'bool');
+   *
+   * a.logicalOr(b).print();
+   * ```
    * @param a The first input tensor. Must be of dtype bool.
    * @param b The second input tensor. Must be of dtype bool.
    */
@@ -78,6 +97,13 @@ export class LogicalOps {
 
   /**
    * Returns the truth value of `a XOR b` element-wise. Supports broadcasting.
+   *
+   * ```js
+   * const a = tf.tensor1d([false, false, true, true], 'bool');
+   * const b = tf.tensor1d([false, true, false, true], 'bool');
+   *
+   * a.logicalXor(b).print();
+   * ```
    *
    * @param a The first input tensor. Must be of dtype bool.
    * @param b The second input tensor. Must be of dtype bool.
@@ -100,6 +126,14 @@ export class LogicalOps {
    * Returns the elements, either `a` or `b` depending on the `condition`.
    *
    * If the condition is true, select from `a`, otherwise select from `b`.
+   *
+   * ```js
+   * const cond = tf.tensor1d([false, false, true], 'bool');
+   * const a = tf.tensor1d([1 , 2, 3]);
+   * const b = tf.tensor1d([-1, -2, -3]);
+   *
+   * a.where(cond, b).print();
+   * ```
    *
    * @param condition The input condition. Must be of dtype bool.
    * @param a If `condition` is rank 1, `a` may have a higher rank but
