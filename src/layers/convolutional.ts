@@ -327,12 +327,13 @@ export abstract class Conv extends Layer {
  * in `dataFormat='channelsLast'`.
  */
 export class Conv2D extends Conv {
+  static className = 'Conv2D';
   constructor(config: ConvLayerConfig) {
     super(2, config);
   }
 
   getClassName(): string {
-    return 'Conv2D';
+    return Conv2D.className;
   }
 
   getConfig(): ConfigDict {
@@ -341,7 +342,7 @@ export class Conv2D extends Conv {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('Conv2D', Conv2D);
+generic_utils.ClassNameMap.register(Conv2D);
 
 /**
  * Transposed convolutional layer (sometimes called Deconvolution).
@@ -376,6 +377,7 @@ generic_utils.ClassNameMap.register('Conv2D', Conv2D);
  * Networks](http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf)
  */
 export class Conv2DTranspose extends Conv2D {
+  static className = 'Conv2DTranspose';
   inputSpec: InputSpec[];
 
   constructor(config: ConvLayerConfig) {
@@ -390,7 +392,7 @@ export class Conv2DTranspose extends Conv2D {
   }
 
   getClassName(): string {
-    return 'Conv2DTranspose';
+    return Conv2DTranspose.className;
   }
 
 
@@ -525,7 +527,7 @@ export class Conv2DTranspose extends Conv2D {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('Conv2DTranspose', Conv2DTranspose);
+generic_utils.ClassNameMap.register(Conv2DTranspose);
 
 
 export interface SeparableConvLayerConfig extends ConvLayerConfig {
@@ -757,14 +759,15 @@ export class SeparableConv extends Conv {
  *     `rows` and `cols` values might have changed due to padding.
  */
 export class SeparableConv2D extends SeparableConv {
+  static className = 'SeparableConv2D';
   constructor(config?: SeparableConvLayerConfig) {
     super(2, config);
   }
   getClassName(): string {
-    return 'SeparableConv2D';
+    return SeparableConv2D.className;
   }
 }
-generic_utils.ClassNameMap.register('SeparableConv2D', SeparableConv2D);
+generic_utils.ClassNameMap.register(SeparableConv2D);
 
 /**
  * 1D convolution layer (e.g., temporal convolution).
@@ -785,13 +788,14 @@ generic_utils.ClassNameMap.register('SeparableConv2D', SeparableConv2D);
  * - `[null, 128]` for variable-length sequences of 128-dimensional vectors.
  */
 export class Conv1D extends Conv {
+  static className = 'Conv1D';
   constructor(config: ConvLayerConfig) {
     super(1, config);
     this.inputSpec = [{ndim: 3}];
   }
 
   getClassName(): string {
-    return 'Conv1D';
+    return Conv1D.className;
   }
 
   getConfig(): ConfigDict {
@@ -801,4 +805,4 @@ export class Conv1D extends Conv {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('Conv1D', Conv1D);
+generic_utils.ClassNameMap.register(Conv1D);

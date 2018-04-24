@@ -131,6 +131,7 @@ export interface BatchNormalizationLayerConfig extends LayerConfig {
  * Internal Covariate Shift](https://arxiv.org/abs/1502.03167)
  */
 export class BatchNormalization extends Layer {
+  static className = 'BatchNormalization';
   private readonly axis: number;
   private readonly momentum: number;
   private readonly epsilon: number;
@@ -278,7 +279,7 @@ export class BatchNormalization extends Layer {
   }
 
   getClassName(): string {
-    return 'BatchNormalization';
+    return BatchNormalization.className;
   }
 
   getConfig(): ConfigDict {
@@ -303,4 +304,4 @@ export class BatchNormalization extends Layer {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('BatchNormalization', BatchNormalization);
+generic_utils.ClassNameMap.register(BatchNormalization);

@@ -44,6 +44,7 @@ export interface LeakyReLULayerConfig extends LayerConfig {
  *   Same shape as the input.
  */
 export class LeakyReLU extends Layer {
+  static className = 'LeakyReLU';
   readonly alpha: number;
 
   readonly DEFAULT_ALPHA = 0.3;
@@ -68,7 +69,7 @@ export class LeakyReLU extends Layer {
   }
 
   getClassName(): string {
-    return 'LeakyReLU';
+    return LeakyReLU.className;
   }
 
   getConfig(): ConfigDict {
@@ -78,7 +79,7 @@ export class LeakyReLU extends Layer {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('LeakyReLU', LeakyReLU);
+generic_utils.ClassNameMap.register(LeakyReLU);
 
 // TODO(cais): Implement PReLU
 
@@ -108,6 +109,7 @@ export interface ELULayerConfig extends LayerConfig {
  * (ELUs)](https://arxiv.org/abs/1511.07289v1)
  */
 export class ELU extends Layer {
+  static className = 'ELU';
   readonly alpha: number;
 
   readonly DEFAULT_ALPHA = 1.0;
@@ -138,7 +140,7 @@ export class ELU extends Layer {
   }
 
   getClassName(): string {
-    return 'ELU';
+    return ELU.className;
   }
 
   getConfig(): ConfigDict {
@@ -148,7 +150,7 @@ export class ELU extends Layer {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('ELU', ELU);
+generic_utils.ClassNameMap.register(ELU);
 
 export interface ThresholdedReLULayerConfig extends LayerConfig {
   /**
@@ -176,6 +178,7 @@ export interface ThresholdedReLULayerConfig extends LayerConfig {
  * Features](http://arxiv.org/abs/1402.3337)
  */
 export class ThresholdedReLU extends Layer {
+  static className = 'ThresholdedReLU';
   readonly theta: number;
   private readonly thetaTensor: Tensor;
 
@@ -202,7 +205,7 @@ export class ThresholdedReLU extends Layer {
   }
 
   getClassName(): string {
-    return 'ThresholdedReLU';
+    return ThresholdedReLU.className;
   }
 
   getConfig(): ConfigDict {
@@ -212,7 +215,7 @@ export class ThresholdedReLU extends Layer {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('ThresholdedReLU', ThresholdedReLU);
+generic_utils.ClassNameMap.register(ThresholdedReLU);
 
 export interface SoftmaxLayerConfig extends LayerConfig {
   /**
@@ -233,6 +236,7 @@ export interface SoftmaxLayerConfig extends LayerConfig {
  *   Same shape as the input.
  */
 export class Softmax extends Layer {
+  static className = 'Softmax';
   readonly axis: number;
 
   readonly DEFAULT_AXIS = 1.0;
@@ -257,7 +261,7 @@ export class Softmax extends Layer {
   }
 
   getClassName(): string {
-    return 'Softmax';
+    return Softmax.className;
   }
 
   getConfig(): ConfigDict {
@@ -267,4 +271,4 @@ export class Softmax extends Layer {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('Softmax', Softmax);
+generic_utils.ClassNameMap.register(Softmax);

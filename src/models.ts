@@ -19,8 +19,8 @@ import {getSourceInputs, Input, Layer, Node} from './engine/topology';
 import {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig, ModelPredictConfig} from './engine/training';
 import {RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
-import {NamedTensorMap, Shape} from './types';
-import {ConfigDict, ConfigDictArray, JsonDict, SymbolicTensor} from './types';
+import {NamedTensorMap, Serializable, Shape} from './types';
+import {ConfigDict, ConfigDictArray, Constructor, JsonDict, SymbolicTensor} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
 // tslint:enable:max-line-length
@@ -166,6 +166,7 @@ export interface SequentialConfig {
  */
 @doc({heading: 'Models', subheading: 'Classes'})
 export class Sequential extends Model {
+  static className = 'Sequential';
   private model: Model;
   private _updatable: boolean;
   constructor(config?: SequentialConfig) {
@@ -187,7 +188,7 @@ export class Sequential extends Model {
     }
   }
   getClassName(): string {
-    return 'Sequential';
+    return Sequential.className;
   }
   /**
    * Adds a layer instance on top of the layer stack.
@@ -517,8 +518,8 @@ export class Sequential extends Model {
   }
 
   /* See parent class for JsDoc */
-  static fromConfig<T>(cls: generic_utils.Constructor<T>, config: ConfigDict):
-      T {
+  static fromConfig<T extends Serializable>(
+      cls: Constructor<T>, config: ConfigDict): T {
     const model = new cls({});
     if (!(model instanceof Sequential)) {
       throw new ValueError(
@@ -555,4 +556,4 @@ export class Sequential extends Model {
     return config;
   }
 }
-generic_utils.ClassNameMap.register('Sequential', Sequential);
+generic_utils.ClassNameMap.register(Sequential);

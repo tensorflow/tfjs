@@ -17,7 +17,7 @@ import {Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import * as tfl from './index';
-import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES} from './initializers';
+import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, VarianceScaling} from './initializers';
 import {DType} from './types';
 import {ConfigDict} from './types';
 import * as math_utils from './utils/math_utils';
@@ -197,6 +197,7 @@ describeMathCPU('HeNormal initializer', () => {
     expect(weights.shape).toEqual(shape);
     expect(weights.dtype).toEqual(DType.float32);
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
+    expect(init.getClassName()).toEqual(VarianceScaling.className);
   });
 
   it('default, upper case', () => {
@@ -217,6 +218,7 @@ describeMathCPU('LecunNormal initializer', () => {
     expect(weights.shape).toEqual(shape);
     expect(weights.dtype).toEqual(DType.float32);
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
+    expect(init.getClassName()).toEqual(VarianceScaling.className);
   });
 
   it('default, upper case', () => {
@@ -282,6 +284,7 @@ describeMathCPU('Glorot uniform initializer', () => {
           .toBeLessThan(limit);
       expect(math_utils.min(weights.dataSync() as Float32Array))
           .toBeGreaterThan(-limit);
+      expect(init.getClassName()).toEqual(VarianceScaling.className);
     });
 
     it('2D ' + initializer, () => {
@@ -324,6 +327,7 @@ describeMathCPU('Glorot normal initializer', () => {
       const variance2 = math_utils.variance(weights.dataSync() as Float32Array);
 
       expect(variance2).toBeLessThan(variance1);
+      expect(init.getClassName()).toEqual(VarianceScaling.className);
     });
 
     it('2D ' + initializer, () => {

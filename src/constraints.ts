@@ -71,6 +71,7 @@ export interface MaxNormConfig {
  * 2014](http://www.cs.toronto.edu/~rsalakhu/papers/srivastava14a.pdf)
  */
 export class MaxNorm extends Constraint {
+  static readonly className = 'MaxNorm';
   private maxValue: number;
   private axis: number;
   private readonly defaultMaxValue = 2;
@@ -92,14 +93,14 @@ export class MaxNorm extends Constraint {
   }
 
   getClassName(): string {
-    return 'MaxNorm';
+    return MaxNorm.className;
   }
 
   getConfig(): ConfigDict {
     return {maxValue: this.maxValue, axis: this.axis};
   }
 }
-ClassNameMap.register('MaxNorm', MaxNorm);
+ClassNameMap.register(MaxNorm);
 
 export interface UnitNormConfig {
   /**
@@ -123,9 +124,9 @@ export interface UnitNormConfig {
  * Constrains the weights incident to each hidden unit to have unit norm.
  */
 export class UnitNorm extends Constraint {
+  static readonly className = 'UnitNorm';
   private axis: number;
   private readonly defaultAxis = 0;
-
   constructor(config: UnitNormConfig) {
     super();
     this.axis = config.axis != null ? config.axis : this.defaultAxis;
@@ -138,27 +139,28 @@ export class UnitNorm extends Constraint {
   }
 
   getClassName(): string {
-    return 'UnitNorm';
+    return UnitNorm.className;
   }
 
   getConfig(): ConfigDict {
     return {axis: this.axis};
   }
 }
-ClassNameMap.register('UnitNorm', UnitNorm);
+ClassNameMap.register(UnitNorm);
 
 /**
  * Constains the weight to be non-negative.
  */
 export class NonNeg extends Constraint {
+  static readonly className = 'NonNeg';
   apply(w: Tensor): Tensor {
     return K.relu(w);
   }
   getClassName(): string {
-    return 'NonNeg';
+    return NonNeg.className;
   }
 }
-ClassNameMap.register('NonNeg', NonNeg);
+ClassNameMap.register(NonNeg);
 
 export interface MinMaxNormConfig {
   /**
@@ -195,6 +197,7 @@ export interface MinMaxNormConfig {
 }
 
 export class MinMaxNorm extends Constraint {
+  static readonly className = 'MinMaxNorm';
   private minValue: number;
   private maxValue: number;
   private rate: number;
@@ -227,7 +230,7 @@ export class MinMaxNorm extends Constraint {
   }
 
   getClassName(): string {
-    return 'MinMaxNorm';
+    return MinMaxNorm.className;
   }
 
   getConfig(): ConfigDict {
@@ -239,7 +242,7 @@ export class MinMaxNorm extends Constraint {
     };
   }
 }
-ClassNameMap.register('MinMaxNorm', MinMaxNorm);
+ClassNameMap.register(MinMaxNorm);
 
 /** @docinline */
 export type ConstraintIdentifier =
