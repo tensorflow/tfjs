@@ -23,6 +23,8 @@ import * as mkdirp from 'mkdirp';
 const octokit = require('@octokit/rest')();
 import * as readline from 'readline';
 import * as fs from 'fs';
+import * as util from './util';
+import {$, Repo, RepoCommits, Commit} from './util';
 
 const TMP_DIR = '/tmp/tfjs-release-notes';
 
@@ -41,37 +43,7 @@ if (commander.out == null) {
   process.exit(1);
 }
 
-const $ = cmd => {
-  const result = shell.exec(cmd, {silent: true});
-  if (result.code > 0) {
-    console.log('$', cmd);
-    console.log(result.stderr);
-    process.exit(1);
-  }
-  return result.stdout.trim();
-};
-
-interface Dependency {
-  name: string;
-  identifier: string;
-}
-
-interface DependencyCommits {
-  dependency: Dependency;
-  startVersion: string;
-  endVersion: string;
-  startCommit: string;
-  commits: Commit[];
-}
-
-interface Commit {
-  subject: string;
-  body: string;
-  authorEmail: string;
-  sha: string;
-}
-
-const UNION_DEPENDENCIES: Dependency[] = [
+const UNION_DEPENDENCIES: Repo[] = [
   {name: 'Core', identifier: 'tfjs-core'},
   {name: 'Layers', identifier: 'tfjs-layers'}
 ];
@@ -105,37 +77,29 @@ const latestCommit = commitLines[0];
 const latestUnionPackageJson =
     JSON.parse($(`git show ${latestCommit}:package.json`));
 
-const dependencyCommits: DependencyCommits[] = [];
+const repoCommits: RepoCommits[] = [];
 
 // Clone all of the dependencies into the tmp directory.
-UNION_DEPENDENCIES.forEach(dependency => {
+UNION_DEPENDENCIES.forEach(repo => {
   // Find the version of the dependency from the package.json from the
   // earliest union tag.
-  const npm = '@tensorflow/' + dependency.identifier;
-  const dependencyStartVersion = earliestUnionPackageJson.dependencies[npm];
-  const dependencyEndVersion = latestUnionPackageJson.dependencies[npm];
+  const npm = '@tensorflow/' + repo.identifier;
+  const repoStartVersion = earliestUnionPackageJson.dependencies[npm];
+  const repoEndVersion = latestUnionPackageJson.dependencies[npm];
 
   console.log(
-      `${dependency.name}: ${dependencyStartVersion}` +
-      ` =====> ${dependencyEndVersion}`);
+      `${repo.name}: ${repoStartVersion}` +
+      ` =====> ${repoEndVersion}`);
 
-  const dir = `${TMP_DIR}/${dependency.name}`;
+  const dir = `${TMP_DIR}/${repo.name}`;
 
-  // Clone the dependency and find the commit from the tagged start version.
-  console.log(`Cloning ${dependency.identifier}...`);
+  // Clone the repo and find the commit from the tagged start version.
+  console.log(`Cloning ${repo.identifier}...`);
 
   $(`mkdir ${dir}`);
-  $(`git clone https://github.com/tensorflow/${dependency.identifier} ${dir}`);
+  $(`git clone https://github.com/tensorflow/${repo.identifier} ${dir}`);
 
-  const startCommit =
-      $(`git -C ${dir} rev-list -n 1 v${dependencyStartVersion}`);
-  const firstCommitTime =
-      $(`git -C ${dir} log --pretty=format:"%ai" ` +
-        `-n 1 v${dependencyStartVersion}`);
-  const lastCommitTime =
-      $(`git -C ${dir} log --pretty=format:"%ai" ` +
-        `-n 1 v${dependencyEndVersion}`);
-  console.log(firstCommitTime, lastCommitTime);
+  const startCommit = $(`git -C ${dir} rev-list -n 1 v${repoStartVersion}`);
 
   // Get subjects, bodies, emails, etc from commit metadata.
   const commitFieldQueries = ['%s', '%b', '%aE', '%H'];
@@ -143,7 +107,7 @@ UNION_DEPENDENCIES.forEach(dependency => {
     // Use a unique delimiter so we can split the log.
     const uniqueDelimiter = '--^^&&';
     return $(`git -C ${dir} log --pretty=format:"${query}${uniqueDelimiter}" ` +
-             `v${dependencyStartVersion}..v${dependencyEndVersion}`)
+             `v${repoStartVersion}..v${repoEndVersion}`)
         .trim()
         .split(uniqueDelimiter)
         .slice(0, -1)
@@ -160,10 +124,10 @@ UNION_DEPENDENCIES.forEach(dependency => {
     });
   }
 
-  dependencyCommits.push({
-    dependency,
-    startVersion: dependencyStartVersion,
-    endVersion: dependencyEndVersion,
+  repoCommits.push({
+    repo,
+    startVersion: repoStartVersion,
+    endVersion: repoEndVersion,
     startCommit,
     commits
   });
@@ -176,62 +140,11 @@ rl.question(
     'Enter GitHub token (https://github.com/settings/tokens): ',
     token => writeReleaseNotesDraft(token));
 
-async function writeReleaseNotesDraft(token) {
+export async function writeReleaseNotesDraft(token: string) {
   octokit.authenticate({type: 'token', token});
 
-  const dependencyNotes = [];
-  for (let i = 0; i < dependencyCommits.length; i++) {
-    const dependencyCommit = dependencyCommits[i];
+  const notes = util.getReleaseNotesDraft(octokit, repoCommits);
 
-    const githubCommitMetadata = await octokit.repos.getCommits({
-      owner: 'tensorflow',
-      repo: dependencyCommit.dependency.identifier,
-      sha: dependencyCommit.startCommit
-    });
-
-    const getUsernameForCommit = async sha => {
-      const result = await octokit.repos.getCommit({
-        owner: 'tensorflow',
-        repo: dependencyCommit.dependency.identifier,
-        sha
-      });
-      return result.data.author.login;
-    };
-
-    const notes = [];
-    for (let j = 0; j < dependencyCommit.commits.length; j++) {
-      const commit = dependencyCommit.commits[j];
-
-      const isExternalContributor = !commit.authorEmail.endsWith('@google.com');
-
-      // Replace pull numbers will fully qualified path.
-      const subject = commit.subject.replace(
-          /\(#([0-9]+)\)/,
-          `([#$1](https://github.com/tensorflow/` +
-              `${dependencyCommit.dependency.identifier}/pull/$1))`);
-      let entry = '- ' + subject;
-
-      if (isExternalContributor) {
-        const username = await getUsernameForCommit(commit.sha);
-
-        entry += (!entry.endsWith('.') ? '.' : '') + ` Thanks @${username}.`;
-      }
-
-      const trimmedBody = commit.body.trim();
-      if (trimmedBody !== '') {
-        entry += '\n\n' +
-            trimmedBody.split('\n').map(line => '> ' + line).join('\n');
-      }
-
-      notes.push(entry);
-    }
-
-    const dependencySection = `## ${dependencyCommit.dependency.name} ` +
-        `(${dependencyCommit.startVersion} ==> ` +
-        `${dependencyCommit.endVersion})\n` + notes.join('\n');
-    dependencyNotes.push(dependencySection);
-  }
-  const notes = dependencyNotes.join('\n\n');
   fs.writeFileSync(commander.out, notes);
 
   console.log('Done writing notes to', commander.out);

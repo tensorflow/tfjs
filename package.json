@@ -19,6 +19,7 @@
     "browserify": "~16.1.1",
     "commander": "~2.14.1",
     "clang-format": "~1.2.2",
+    "jasmine": "3.1.0",
     "jasmine-core": "~3.1.0",
     "karma": "~2.0.0",
     "karma-browserstack-launcher": "~1.3.0",
@@ -26,8 +27,8 @@
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~3.0.12",
-
     "mkdirp": "~0.5.1",
+    "nodemon": "1.17.3",
     "rimraf": "~2.6.2",
     "shelljs": "~0.8.1",
     "ts-node": "~4.1.0",
@@ -40,9 +41,9 @@
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
-    "test": "karma start",
+    "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
-    "release-notes": "ts-node ./scripts/release-notes.ts"
+    "release-notes": "ts-node ./scripts/release-notes/release-notes.ts"
   },
   "dependencies": {
     "@tensorflow/tfjs-core": "0.8.3",
