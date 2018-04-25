@@ -1668,14 +1668,14 @@ export function conv1dWithBias(
         `${kernel.shape.length} instead`);
   }
 
-  // TODO(cais): Support CASUAL padding mode.
+  // TODO(cais): Support CAUSAL padding mode.
 
   if (dataFormat === 'channelsFirst') {
     x = transpose(x, [0, 2, 1]);  // NCW -> NWC.
   }
-  if (padding === 'casual') {
+  if (padding === 'causal') {
     throw new NotImplementedError(
-        'The support for CASUAL padding mode in conv1dWithBias is not ' +
+        'The support for CAUSAL padding mode in conv1dWithBias is not ' +
         'implemented yet.');
   }
   let y: Tensor = tfc.conv1d(
@@ -1749,9 +1749,9 @@ export function conv2dWithBias(
         `${ndim(x)}.`);
   }
   let y = preprocessConv2DInput(x, dataFormat);
-  if (padding === 'casual') {
+  if (padding === 'causal') {
     throw new NotImplementedError(
-        'The support for CASUAL padding mode in conv1dWithBias is not ' +
+        'The support for CAUSAL padding mode in conv1dWithBias is not ' +
         'implemented yet.');
   }
   y = tfc.conv2d(
