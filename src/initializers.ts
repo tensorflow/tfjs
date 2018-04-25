@@ -80,9 +80,7 @@ export abstract class Initializer extends Serializable {
  */
 export class Zeros extends Initializer {
   static className = 'Zeros';
-  getClassName(): string {
-    return Zeros.className;
-  }
+
   apply(shape: Shape, dtype?: DType): Tensor {
     return K.zeros(shape, dtype);
   }
@@ -94,9 +92,7 @@ ClassNameMap.register(Zeros);
  */
 export class Ones extends Initializer {
   static className = 'Ones';
-  getClassName(): string {
-    return Ones.className;
-  }
+
   apply(shape: Shape, dtype?: DType): Tensor {
     return K.ones(shape, dtype);
   }
@@ -121,10 +117,6 @@ export class Constant extends Initializer {
 
   apply(shape: Shape, dtype?: DType): Tensor {
     return K.scalarTimesArray(scalar(this.value), K.ones(shape, dtype));
-  }
-
-  getClassName(): string {
-    return Constant.className;
   }
 
   getConfig(): ConfigDict {
@@ -170,10 +162,6 @@ export class RandomUniform extends Initializer {
     return K.randomUniform(shape, this.minval, this.maxval, dtype, this.seed);
   }
 
-  getClassName(): string {
-    return RandomUniform.className;
-  }
-
   getConfig(): ConfigDict {
     return {minval: this.minval, maxval: this.maxval, seed: this.seed};
   }
@@ -212,9 +200,6 @@ export class RandomNormal extends Initializer {
     return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getClassName(): string {
-    return RandomNormal.className;
-  }
   getConfig(): ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
@@ -258,10 +243,6 @@ export class TruncatedNormal extends Initializer {
     return K.truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getClassName(): string {
-    return TruncatedNormal.className;
-  }
-
   getConfig(): ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
@@ -295,9 +276,7 @@ export class Identity extends Initializer {
       return K.scalarTimesArray(this.gain, K.eye(shape[0]));
     }
   }
-  getClassName(): string {
-    return Identity.className;
-  }
+
   getConfig(): ConfigDict {
     return {gain: this.gain.get()};
   }
@@ -412,9 +391,6 @@ export class VarianceScaling extends Initializer {
       return K.randomUniform(shape, -limit, limit, dtype, this.seed);
     }
   }
-  getClassName(): string {
-    return VarianceScaling.className;
-  }
 
   getConfig(): ConfigDict {
     return {
@@ -459,6 +435,13 @@ export class GlorotUniform extends VarianceScaling {
       seed: config == null ? null : config.seed
     });
   }
+
+  getClassName(): string {
+    // In Python Keras, GlorotUniform is not a class, but a helper method
+    // that creates a VarianceScaling object. Use 'VarianceScaling' as
+    // class name to be compatible with that.
+    return VarianceScaling.className;
+  }
 }
 
 /**
@@ -488,6 +471,13 @@ export class GlorotNormal extends VarianceScaling {
       seed: config == null ? null : config.seed
     });
   }
+
+  getClassName(): string {
+    // In Python Keras, GlorotNormal is not a class, but a helper method
+    // that creates a VarianceScaling object. Use 'VarianceScaling' as
+    // class name to be compatible with that.
+    return VarianceScaling.className;
+  }
 }
 
 /**
@@ -508,6 +498,13 @@ export class HeNormal extends VarianceScaling {
       distribution: 'normal',
       seed: config == null ? null : config.seed
     });
+  }
+
+  getClassName(): string {
+    // In Python Keras, HeNormal is not a class, but a helper method
+    // that creates a VarianceScaling object. Use 'VarianceScaling' as
+    // class name to be compatible with that.
+    return VarianceScaling.className;
   }
 }
 
@@ -530,6 +527,13 @@ export class LeCunNormal extends VarianceScaling {
       distribution: 'normal',
       seed: config == null ? null : config.seed
     });
+  }
+
+  getClassName(): string {
+    // In Python Keras, LeCunNormal is not a class, but a helper method
+    // that creates a VarianceScaling object. Use 'VarianceScaling' as
+    // class name to be compatible with that.
+    return VarianceScaling.className;
   }
 }
 
@@ -579,10 +583,6 @@ export class Orthogonal extends Initializer {
       q = q.transpose();
     }
     return K.scalarTimesArray(K.getScalar(this.gain), q);
-  }
-
-  getClassName(): string {
-    return Orthogonal.className;
   }
 
   getConfig(): ConfigDict {

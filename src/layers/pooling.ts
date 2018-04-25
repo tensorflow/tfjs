@@ -114,10 +114,6 @@ export class MaxPooling1D extends Pooling1D {
     super(config);
   }
 
-  getClassName(): string {
-    return MaxPooling1D.className;
-  }
-
   protected poolingFunction(
       inputs: Tensor, poolSize: [number, number], strides: [number, number],
       padding: PaddingMode, dataFormat: DataFormat): Tensor {
@@ -141,10 +137,6 @@ export class AveragePooling1D extends Pooling1D {
   static className = 'AveragePooling1D';
   constructor(config: Pooling1DLayerConfig) {
     super(config);
-  }
-
-  getClassName(): string {
-    return AveragePooling1D.className;
   }
 
   protected poolingFunction(
@@ -276,10 +268,6 @@ export class MaxPooling2D extends Pooling2D {
     super(config);
   }
 
-  getClassName(): string {
-    return MaxPooling2D.className;
-  }
-
   protected poolingFunction(
       inputs: Tensor, poolSize: [number, number], strides: [number, number],
       padding: PaddingMode, dataFormat: DataFormat): Tensor {
@@ -315,10 +303,6 @@ export class AveragePooling2D extends Pooling2D {
   static className = 'AveragePooing2D';
   constructor(config: Pooling2DLayerConfig) {
     super(config);
-  }
-
-  getClassName(): string {
-    return AveragePooling2D.className;
   }
 
   protected poolingFunction(
@@ -363,10 +347,6 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
     super(config);
   }
 
-  getClassName(): string {
-    return GlobalAveragePooling1D.className;
-  }
-
   // tslint:disable-next-line:no-any
   call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
@@ -386,10 +366,6 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
   static className = 'GlobalMaxPooling1D';
   constructor(config: LayerConfig) {
     super(config);
-  }
-
-  getClassName(): string {
-    return GlobalMaxPooling1D.className;
   }
 
   // tslint:disable-next-line:no-any
@@ -470,9 +446,6 @@ export class GlobalAveragePooling2D extends GlobalPooling2D {
       return K.mean(input, [2, 3]);
     }
   }
-  getClassName(): string {
-    return GlobalAveragePooling2D.className;
-  }
 }
 generic_utils.ClassNameMap.register(GlobalAveragePooling2D);
 
@@ -498,9 +471,6 @@ export class GlobalMaxPooling2D extends GlobalPooling2D {
     } else {
       return K.max(input, [2, 3]);
     }
-  }
-  getClassName(): string {
-    return GlobalMaxPooling2D.className;
   }
 }
 generic_utils.ClassNameMap.register(GlobalMaxPooling2D);

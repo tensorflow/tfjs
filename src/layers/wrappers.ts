@@ -232,9 +232,6 @@ export class TimeDistributed extends Wrapper {
     // TODO(cais): Add useLearningPhase.
     return y;
   }
-  getClassName(): string {
-    return TimeDistributed.className;
-  }
 }
 generic_utils.ClassNameMap.register(TimeDistributed);
 
@@ -468,9 +465,6 @@ export class Bidirectional extends Wrapper {
   get nonTrainableWeights(): LayerVariable[] {
     return this.forwardLayer.nonTrainableWeights.concat(
         this.backwardLayer.nonTrainableWeights);
-  }
-  getClassName(): string {
-    return Bidirectional.className;
   }
 
   // TODO(cais): Implement constraints().

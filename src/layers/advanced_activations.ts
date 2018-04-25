@@ -68,10 +68,6 @@ export class LeakyReLU extends Layer {
     return inputShape;
   }
 
-  getClassName(): string {
-    return LeakyReLU.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {alpha: this.alpha};
     const baseConfig = super.getConfig();
@@ -139,10 +135,6 @@ export class ELU extends Layer {
     return inputShape;
   }
 
-  getClassName(): string {
-    return ELU.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {alpha: this.alpha};
     const baseConfig = super.getConfig();
@@ -204,10 +196,6 @@ export class ThresholdedReLU extends Layer {
     return inputShape;
   }
 
-  getClassName(): string {
-    return ThresholdedReLU.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {theta: this.theta};
     const baseConfig = super.getConfig();
@@ -258,10 +246,6 @@ export class Softmax extends Layer {
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     return inputShape;
-  }
-
-  getClassName(): string {
-    return Softmax.className;
   }
 
   getConfig(): ConfigDict {

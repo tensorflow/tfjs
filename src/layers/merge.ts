@@ -251,10 +251,6 @@ export class Add extends Merge {
     super(config as LayerConfig);
   }
 
-  getClassName(): string {
-    return Add.className;
-  }
-
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
@@ -345,10 +341,6 @@ export class Multiply extends Merge {
     super(config);
   }
 
-  getClassName(): string {
-    return Multiply.className;
-  }
-
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.ones(inputs[0].shape);
     for (const input of inputs) {
@@ -436,10 +428,6 @@ export class Average extends Merge {
   static className = 'Average';
   constructor(config?: LayerConfig) {
     super(config);
-  }
-
-  getClassName(): string {
-    return Average.className;
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -532,10 +520,6 @@ export class Maximum extends Merge {
     super(config);
   }
 
-  getClassName(): string {
-    return Maximum.className;
-  }
-
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = inputs[0];
     for (let i = 1; i < inputs.length; ++i) {
@@ -623,10 +607,6 @@ export class Minimum extends Merge {
   static className = 'Minimum';
   constructor(config?: LayerConfig) {
     super(config);
-  }
-
-  getClassName(): string {
-    return Minimum.className;
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
@@ -734,10 +714,6 @@ export class Concatenate extends Merge {
     this.axis = config.axis == null ? this.DEFAULT_AXIS : config.axis;
     this.supportsMasking = true;
     this.reshapeRequired = false;
-  }
-
-  getClassName(): string {
-    return Concatenate.className;
   }
 
   build(inputShape: Shape|Shape[]): void {

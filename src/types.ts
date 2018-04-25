@@ -353,7 +353,9 @@ export abstract class Serializable {
    * implementation details between different languages led to different
    * class hierarchies and a non-leaf node is used for serialization purposes.
    */
-  abstract getClassName(): string;
+  getClassName(): string {
+    return (this.constructor as Constructor<Serializable>).className;
+  }
 
   /**
    * Return all the non-weight state needed to serialize this object.

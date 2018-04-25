@@ -26,18 +26,12 @@ class LayerForTest extends tfl.layers.Layer {
   constructor(config: LayerConfig) {
     super(config);
   }
-  getClassName(): string {
-    return LayerForTest.className;
-  }
 }
 
 class ContainerForTest extends Container {
   static className = 'ContainerForTest';
   constructor(config: ContainerConfig) {
     super(config);
-  }
-  getClassName(): string {
-    return ContainerForTest.className;
   }
 }
 
@@ -315,6 +309,7 @@ describeMathCPU('Layer', () => {
 
     it('Layer with duplicate weight names throws error', () => {
       class LayerForTest extends tfl.layers.Layer {
+        static className = 'LayerForTest';
         constructor(config: LayerConfig) {
           super(config);
           this.addWeight(
@@ -323,9 +318,6 @@ describeMathCPU('Layer', () => {
           this.addWeight(
               'foo', [2, 3], DType.float32,
               initializers.getInitializer('zeros'));
-        }
-        getClassName(): string {
-          return 'Layer';
         }
       }
       expect(() => new LayerForTest({}))

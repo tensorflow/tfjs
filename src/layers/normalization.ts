@@ -278,10 +278,6 @@ export class BatchNormalization extends Layer {
     });
   }
 
-  getClassName(): string {
-    return BatchNormalization.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       axis: this.axis,

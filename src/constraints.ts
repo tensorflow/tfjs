@@ -92,10 +92,6 @@ export class MaxNorm extends Constraint {
         K.divide(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
   }
 
-  getClassName(): string {
-    return MaxNorm.className;
-  }
-
   getConfig(): ConfigDict {
     return {maxValue: this.maxValue, axis: this.axis};
   }
@@ -138,10 +134,6 @@ export class UnitNorm extends Constraint {
         K.scalarPlusArray(K.getScalar(K.epsilon()), calcL2Norms(w, this.axis)));
   }
 
-  getClassName(): string {
-    return UnitNorm.className;
-  }
-
   getConfig(): ConfigDict {
     return {axis: this.axis};
   }
@@ -155,9 +147,6 @@ export class NonNeg extends Constraint {
   static readonly className = 'NonNeg';
   apply(w: Tensor): Tensor {
     return K.relu(w);
-  }
-  getClassName(): string {
-    return NonNeg.className;
   }
 }
 ClassNameMap.register(NonNeg);
@@ -227,10 +216,6 @@ export class MinMaxNorm extends Constraint {
     return K.multiply(
         w,
         K.divide(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
-  }
-
-  getClassName(): string {
-    return MinMaxNorm.className;
   }
 
   getConfig(): ConfigDict {
