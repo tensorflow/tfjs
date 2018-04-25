@@ -26,6 +26,7 @@ import * as control from './op_list/control.json';
 import * as convolution from './op_list/convolution.json';
 import * as creation from './op_list/creation.json';
 import * as graph from './op_list/graph.json';
+import * as image from './op_list/image.json';
 import * as logical from './op_list/logical.json';
 import * as matrices from './op_list/matrices.json';
 import * as normalization from './op_list/normalization.json';
@@ -51,8 +52,8 @@ export class OperationMapper {
       ...(arithmetic as {}) as OpMapper[], ...(basicMath as {}) as OpMapper[],
       ...(control as {}) as OpMapper[], ...(convolution as {}) as OpMapper[],
       ...(creation as {}) as OpMapper[], ...(logical as {}) as OpMapper[],
-      ...(graph as {}) as OpMapper[], ...(matrices as {}) as OpMapper[],
-      ...(normalization as {}) as OpMapper[],
+      ...(image as {}) as OpMapper[], ...(graph as {}) as OpMapper[],
+      ...(matrices as {}) as OpMapper[], ...(normalization as {}) as OpMapper[],
       ...(reduction as {}) as OpMapper[], ...(sliceJoin as {}) as OpMapper[],
       ...(transformation as {}) as OpMapper[]
     ];
