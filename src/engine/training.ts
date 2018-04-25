@@ -653,10 +653,6 @@ export class Model extends Container {
     super(config);
   }
 
-  getClassName(): string {
-    return Model.className;
-  }
-
   /**
    * Configures and prepares the model for training and evaluation.  Compiling
    * outfits the model with an optimizer, loss, and/or metrics.  Calling `fit`

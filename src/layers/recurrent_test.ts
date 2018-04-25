@@ -35,6 +35,7 @@ import {RNN, RNNCell} from './recurrent';
  *   output.
  */
 class RNNCellForTest extends RNNCell {
+  static className = 'RNNCellForTest';
   constructor(stateSizes: number|number[]) {
     super({});
     this.stateSize = stateSizes;
@@ -49,9 +50,6 @@ class RNNCellForTest extends RNNCell {
     const newStates = states.map(state => K.scalarPlusArray(mean, state));
     const output = K.neg(newStates[0]);
     return [output].concat(newStates);
-  }
-  getClassName(): string {
-    return 'RNNCellForTest';
   }
 }
 

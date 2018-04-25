@@ -168,10 +168,6 @@ export class ZeroPadding2D extends Layer {
         getExactlyOneTensor(inputs), this.padding, this.dataFormat);
   }
 
-  getClassName(): string {
-    return ZeroPadding2D.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       padding: this.padding,

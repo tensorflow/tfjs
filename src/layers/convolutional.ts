@@ -332,10 +332,6 @@ export class Conv2D extends Conv {
     super(2, config);
   }
 
-  getClassName(): string {
-    return Conv2D.className;
-  }
-
   getConfig(): ConfigDict {
     const config = super.getConfig();
     delete config['rank'];
@@ -390,11 +386,6 @@ export class Conv2DTranspose extends Conv2D {
           `and 'valid', but received padding mode ${this.padding}`);
     }
   }
-
-  getClassName(): string {
-    return Conv2DTranspose.className;
-  }
-
 
   build(inputShape: Shape|Shape[]): void {
     inputShape = generic_utils.getExactlyOneShape(inputShape);
@@ -573,6 +564,8 @@ export interface SeparableConvLayerConfig extends ConvLayerConfig {
 
 
 export class SeparableConv extends Conv {
+  static className = 'SeparableConv';
+
   readonly depthMultiplier: number;
 
   protected readonly depthwiseInitializer?: Initializer;
@@ -705,10 +698,6 @@ export class SeparableConv extends Conv {
     return output;
   }
 
-  getClassName(): string {
-    return 'SeparableConv';
-  }
-
   getConfig(): ConfigDict {
     const config = super.getConfig();
     delete config['rank'];
@@ -763,9 +752,6 @@ export class SeparableConv2D extends SeparableConv {
   constructor(config?: SeparableConvLayerConfig) {
     super(2, config);
   }
-  getClassName(): string {
-    return SeparableConv2D.className;
-  }
 }
 generic_utils.ClassNameMap.register(SeparableConv2D);
 
@@ -792,10 +778,6 @@ export class Conv1D extends Conv {
   constructor(config: ConvLayerConfig) {
     super(1, config);
     this.inputSpec = [{ndim: 3}];
-  }
-
-  getClassName(): string {
-    return Conv1D.className;
   }
 
   getConfig(): ConfigDict {

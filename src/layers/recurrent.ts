@@ -621,10 +621,6 @@ export class RNN extends Layer {
     return this.cell.nonTrainableWeights;
   }
 
-  getClassName(): string {
-    return RNN.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       returnSequences: this.returnSequences,
@@ -908,10 +904,6 @@ export class SimpleRNNCell extends RNNCell {
     return [output, output];
   }
 
-  getClassName(): string {
-    return SimpleRNNCell.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
@@ -1113,10 +1105,6 @@ export class SimpleRNN extends RNN {
 
   get recurrentDropout(): number {
     return (this.cell as SimpleRNNCell).recurrentDropout;
-  }
-
-  getClassName(): string {
-    return SimpleRNN.className;
   }
 
   getConfig(): ConfigDict {
@@ -1406,10 +1394,6 @@ export class GRUCell extends RNNCell {
     return [h, h];
   }
 
-  getClassName(): string {
-    return GRUCell.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
@@ -1554,10 +1538,6 @@ export class GRU extends RNN {
 
   get implementation(): number {
     return (this.cell as GRUCell).implementation;
-  }
-
-  getClassName(): string {
-    return GRU.className;
   }
 
   getConfig(): ConfigDict {
@@ -1764,6 +1744,8 @@ export class LSTMCell extends RNNCell {
         const capturedBiasInit = this.biasInitializer;
         const capturedUnits = this.units;
         biasInitializer = new (class CustomInit extends Initializer {
+          static className = 'CustomInit';
+
           apply(shape: Shape, dtype?: DType): Tensor {
             // TODO(cais): More informative variable names?
             const bI = capturedBiasInit.apply([capturedUnits]);
@@ -1771,9 +1753,6 @@ export class LSTMCell extends RNNCell {
             const bCAndH = capturedBiasInit.apply([capturedUnits * 2]);
             return K.concatAlongFirstAxis(
                 K.concatAlongFirstAxis(bI, bF), bCAndH);
-          }
-          getClassName(): string {
-            return 'CustomInit';
           }
         })();
       } else {
@@ -1892,10 +1871,6 @@ export class LSTMCell extends RNNCell {
     const h = K.multiply(o, this.activation(c));
     // TODO(cais): Add use_learning_phase flag properly.
     return [h, h, c];
-  }
-
-  getClassName(): string {
-    return LSTMCell.className;
   }
 
   getConfig(): ConfigDict {
@@ -2056,10 +2031,6 @@ export class LSTM extends RNN {
     return (this.cell as LSTMCell).implementation;
   }
 
-  getClassName(): string {
-    return LSTM.className;
-  }
-
   getConfig(): ConfigDict {
     const config: ConfigDict = {
       units: this.units,
@@ -2191,10 +2162,6 @@ export class StackedRNNCells extends RNNCell {
       inputShape = [inputShape[0], outputDim];
     }
     this.built = true;
-  }
-
-  getClassName(): string {
-    return StackedRNNCells.className;
   }
 
   getConfig(): ConfigDict {

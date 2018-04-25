@@ -1396,9 +1396,6 @@ export class InputLayer extends Layer {
         `InputLayer's apply() method. InputLayer name: ${this.name}`);
   }
 
-  getClassName(): string {
-    return InputLayer.className;
-  }
   getConfig(): ConfigDict {
     return {
       batchInputShape: this.batchInputShape,
