@@ -13,6 +13,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@octokit/rest": "15.2.6",
     "@types/jasmine": "~2.8.6",
     "@types/node": "~9.6.1",
     "browserify": "~16.1.1",
@@ -25,6 +26,7 @@
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~3.0.12",
+
     "mkdirp": "~0.5.1",
     "rimraf": "~2.6.2",
     "shelljs": "~0.8.1",
@@ -39,7 +41,8 @@
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
-    "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun"
+    "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
+    "release-notes": "ts-node ./scripts/release-notes.ts"
   },
   "dependencies": {
     "@tensorflow/tfjs-core": "0.8.3",
