@@ -259,13 +259,14 @@ const SHADER_PREFIX = `
     return x - y * (x / y);
   }
 
-  const vec2 randomConst = vec2(
-    23.14069263277926, // e^pi (Gelfond's constant)
-     2.665144142690225 // 2^sqrt(2) (Gelfond–Schneider constant)
-  );
-
-  float random(float seed) {
-      return fract(cos(dot(resultUV * seed, randomConst)) * 12345.6789);
+  //Based on the work of Dave Hoskins
+  //https://www.shadertoy.com/view/4djSRW
+  #define HASHSCALE1 443.8975
+  float random(float seed){
+    vec2 p = resultUV * seed;
+    vec3 p3  = fract(vec3(p.xyx) * HASHSCALE1);
+    p3 += dot(p3, p3.yzx + 19.19);
+    return fract((p3.x + p3.y) * p3.z);
   }
 
   ${SAMPLE_1D_SNIPPET}
