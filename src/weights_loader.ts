@@ -27,12 +27,20 @@ export interface WeightsManifestGroupConfig {
 export interface WeightsManifestEntry {
   name: string;
   shape: number[];
-  dtype: 'float32'|'int32';
+  dtype: 'float32'|'int32';  // Dtype of the (unquantized) weights.
+  quantization?: {
+    // Information to dequantize the weights.
+    scale: number,           // The scaling constant to multiply by.
+    min: number,             // The (possibly nudged) minimum weight to add.
+    dtype: 'uint16'|'uint8'  // The dtype of the quantized weights.
+  };
 }
 
 const DTYPE_VALUE_SIZE_MAP: {[dtype: string]: number} = {
   'float32': 4,
-  'int32': 4
+  'int32': 4,
+  'uint16': 2,
+  'uint8': 1
 };
 
 /**
@@ -68,7 +76,11 @@ export async function loadWeights(
   manifest.forEach((manifestGroupConfig, groupIndex) => {
     let groupOffset = 0;
     manifestGroupConfig.weights.forEach(weightsEntry => {
-      const weightsBytes = DTYPE_VALUE_SIZE_MAP[weightsEntry.dtype] *
+      const rawDtype = ('quantization' in weightsEntry) ?
+          weightsEntry.quantization.dtype :
+          weightsEntry.dtype;
+
+      const weightsBytes = DTYPE_VALUE_SIZE_MAP[rawDtype] *
           util.sizeFromShape(weightsEntry.shape);
 
       const enqueueWeightsForFetchingFn = () => {
@@ -161,14 +173,41 @@ export async function loadWeights(
           weightsEntry.groupOffset + weightsEntry.sizeBytes);
 
       let typedArray: Float32Array|Int32Array;
-      if (weightsEntry.manifestEntry.dtype === 'float32') {
-        typedArray = new Float32Array(byteBuffer);
-      } else if (weightsEntry.manifestEntry.dtype === 'int32') {
-        typedArray = new Int32Array(byteBuffer);
+
+      const dtype = weightsEntry.manifestEntry.dtype;
+
+      if ('quantization' in weightsEntry.manifestEntry) {
+        const quantization = weightsEntry.manifestEntry.quantization;
+        if (quantization.dtype !== 'uint8' && quantization.dtype !== 'uint16') {
+          throw new Error(
+              `Weight ${weightsEntry.manifestEntry.name} has unknown ` +
+              `quantization dtype ${quantization.dtype}.`);
+        }
+        const quantizedArray = (quantization.dtype === 'uint8') ?
+            new Uint8Array(byteBuffer) :
+            new Uint16Array(byteBuffer);
+        if (dtype === 'float32') {
+          typedArray = Float32Array.from(
+              quantizedArray, v => v * quantization.scale + quantization.min);
+        } else if (dtype === 'int32') {
+          typedArray = Int32Array.from(
+              quantizedArray,
+              v => Math.round(v * quantization.scale + quantization.min));
+        } else {
+          throw new Error(
+              `Weight ${weightsEntry.manifestEntry.name} has a dtype not ` +
+              `supported by quantization: ${dtype}`);
+        }
       } else {
-        throw new Error(
-            `Weight ${weightsEntry.manifestEntry.name} has unknown dtype ` +
-            `${weightsEntry.manifestEntry.dtype}.`);
+        if (dtype === 'float32') {
+          typedArray = new Float32Array(byteBuffer);
+        } else if (dtype === 'int32') {
+          typedArray = new Int32Array(byteBuffer);
+        } else {
+          throw new Error(
+              `Weight ${weightsEntry.manifestEntry.name} has unknown dtype ` +
+              `${dtype}.`);
+        }
       }
 
       const weightName = weightsEntry.manifestEntry.name;
