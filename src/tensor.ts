@@ -826,6 +826,10 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.erf(this);
   }
+  round<T extends Tensor>(this: T): T {
+    this.throwIfDisposed();
+    return ops.round(this);
+  }
   step<T extends Tensor>(this: T, alpha = 0.0): T {
     this.throwIfDisposed();
     return ops.step(this, alpha);

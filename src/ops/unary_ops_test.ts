@@ -2081,7 +2081,7 @@ describeWithFlags('clip', ALL_ENVS, () => {
 describeWithFlags('round', ALL_ENVS, () => {
   it('basic', () => {
     const a = tf.tensor1d([0.9, 2.5, 2.3, 1.5, -4.5]);
-    const r = tf.round(a);
+    const r = a.round();
 
     expectNumbersClose(r.get(0), 1.0);
     expectNumbersClose(r.get(1), 2.0);
