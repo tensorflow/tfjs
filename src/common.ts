@@ -42,11 +42,11 @@ export function checkDataFormat(value?: string): void {
 }
 
 /** @docinline */
-export type PaddingMode = 'valid'|'same'|'casual';
+export type PaddingMode = 'valid'|'same'|'causal';
 SerializableEnumRegistry.register(
-    'padding', {'valid': 'valid', 'same': 'same', 'casual': 'casual'});
+    'padding', {'valid': 'valid', 'same': 'same', 'causal': 'causal'});
 export const VALID_PADDING_MODE_VALUES =
-    ['valid', 'same', 'casual', undefined, null];
+    ['valid', 'same', 'causal', undefined, null];
 export function checkPaddingMode(value?: string): void {
   if (value == null) {
     return;

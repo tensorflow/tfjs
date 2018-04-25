@@ -66,7 +66,7 @@ export function convOutputLength(
   } else {  // VALID
     outputLength = inputLength - dilatedFilterSize + 1;
   }
-  // TODO(cais): Implement logic for padding modes 'casual' and 'full'.
+  // TODO(cais): Implement logic for padding modes 'causal' and 'full'.
   return Math.floor((outputLength + stride - 1) / stride);
 }
 
