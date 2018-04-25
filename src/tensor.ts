@@ -38,9 +38,8 @@ export interface TensorData {
 export class TensorBuffer<R extends Rank> {
   size: number;
   shape: ShapeMap[R];
+  strides: number[];
   values: TypedArray;
-
-  private strides: number[];
 
   constructor(shape: ShapeMap[R], public dtype: DataType, values: TypedArray) {
     if (values != null) {
