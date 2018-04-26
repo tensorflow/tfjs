@@ -101,6 +101,7 @@ UNION_DEPENDENCIES.forEach(repo => {
 
   const startCommit = $(`git -C ${dir} rev-list -n 1 v${repoStartVersion}`);
 
+  console.log('Querying commits...');
   // Get subjects, bodies, emails, etc from commit metadata.
   const commitFieldQueries = ['%s', '%b', '%aE', '%H'];
   const commitFields = commitFieldQueries.map(query => {
