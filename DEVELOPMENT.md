@@ -68,12 +68,12 @@ You can add clarifying messages on the line of the tag if they
 Subject: Improvements to matMul. (#900)
 Body:
 
-FEATURE Adds transpose bits to matmul.
+FEATURE Add transpose bits to matmul.
 PERFORMANCE Improves matMul CPU speed by 100%.
 ```
 
 This will show up under "Features" as:
-- Adds transpose bits to matmul (Improvements to matMul.) (#900). Thanks, @externalcontributor.
+- Add transpose bits to matmul (Improvements to matMul.) (#900). Thanks, @externalcontributor.
 
 This will also show up under "Performance" as:
 - Improves matMul CPU speed by 100%. (Improvements to matMul.) (#900). Thanks, @externalcontributor.

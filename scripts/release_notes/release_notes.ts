@@ -26,6 +26,10 @@
  * tags which committers can use to organize commits into sections. See
  * DEVELOPMENT.md for more details on the available tags.
  *
+ * This script will ask for your github token which is used to make requests
+ * to the github API for usernames for commits as this is not stored in git
+ * logs. You can generate a token for your account here;
+ * https://github.com/settings/tokens
  *
  * Usage:
  *   # Release notes for all commits after tfjs union version 0.9.0.

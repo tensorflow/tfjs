@@ -21,6 +21,7 @@ import * as shell from 'shelljs';
 /**
  * A wrapper around shell.exec for readability.
  * @param cmd The bash command to execute.
+ * @returns stdout returned by the executed bash script.
  */
 export function $(cmd) {
   const result = shell.exec(cmd, {silent: true});
@@ -74,6 +75,16 @@ const SECTION_TAGS: SectionTag[] = [
   {section: 'Security', tag: 'SECURITY'}, {section: 'Misc', tag: 'MISC'}
 ];
 
+/**
+ * Assembles the release note drafts from a set of commits.
+ *
+ * @param octokit An authenticated octokit object (to make github API requests).
+ * It only needs to satisfy the OctokitGetCommit interface which gets commit
+ * metadata.
+ * @param repoCommits An object representing the metadata for commits to
+ * assmemble into release notes.
+ * @returns The release notes markdown draft as a string.
+ */
 export async function getReleaseNotesDraft(
     octokit: OctokitGetCommit, repoCommits: RepoCommits[]): Promise<string> {
   const repoNotes = [];
@@ -96,9 +107,11 @@ export async function getReleaseNotesDraft(
       const bodyLines = commit.body.split('\n').map(line => line.trim());
       // Get tags for the body by finding lines that start with tags. Do this
       // without a regex for readability.
-      bodyLines.forEach(line => {
-        SECTION_TAGS.forEach(({tag}) => {
-          if (line.startsWith(tag)) {
+      SECTION_TAGS.forEach(({tag}) => {
+        bodyLines.forEach(line => {
+          // Split by word boundaries, and make sure the first word is the tag.
+          const split = line.split(/\b/);
+          if (split[0] === tag) {
             const tagMessage = line.substring(tag.length).trim();
             tagsFound.push({tag, tagMessage});
           }
