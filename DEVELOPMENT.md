@@ -46,10 +46,10 @@ A typical commit may look something like:
 ```
 Subject: Add tf.toPixels. (#900)
 Body:
+FEATURE
 
 tf.toPixels is the inverse of tf.fromPixels, writing a tensor to a canvas.
 
-FEATURE
 ```
 
 This will show up under "Features" as:
@@ -59,21 +59,20 @@ This will show up under "Features" as:
 You can also use multiple tags for the same commit if you want it to show up in
 two sections. You can add clarifying text on the line of the tags.
 
+You can add clarifying messages on the line of the tag as well.
 
-You can add clarifying messages on the line of the tag if they
-
-. For examples:
+For example:
 
 ```
 Subject: Improvements to matMul. (#900)
 Body:
 
 FEATURE Add transpose bits to matmul.
-PERFORMANCE Improves matMul CPU speed by 100%.
+PERFORMANCE Improve matMul CPU speed by 100%.
 ```
 
 This will show up under "Features" as:
 - Add transpose bits to matmul (Improvements to matMul.) (#900). Thanks, @externalcontributor.
 
 This will also show up under "Performance" as:
-- Improves matMul CPU speed by 100%. (Improvements to matMul.) (#900). Thanks, @externalcontributor.
+- Improve matMul CPU speed by 100%. (Improvements to matMul.) (#900). Thanks, @externalcontributor.
