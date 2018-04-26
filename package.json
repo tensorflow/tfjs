@@ -30,6 +30,9 @@
     "uglify-js": "~3.0.28"
   },
   "scripts": {
+    "postinstall": "yarn build-core && yarn build-layers && yarn link-local",
+    "build-core": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build && yarn publish-local",
+    "build-layers": "cd node_modules/@tensorflow/tfjs-layers && yarn && yarn build && yarn publish-local",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "lint": "tslint -p . -t verbose",
@@ -37,7 +40,7 @@
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "0.8.4",
-    "@tensorflow/tfjs-layers": "0.5.3"
+    "@tensorflow/tfjs-core": "tensorflow/tfjs-core#master",
+    "@tensorflow/tfjs-layers": "tensorflow/tfjs-layers#master"
   }
 }

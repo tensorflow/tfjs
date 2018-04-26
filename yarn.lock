@@ -2,15 +2,15 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@0.8.4":
+"@tensorflow/tfjs-core@tensorflow/tfjs-core#master":
   version "0.8.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.8.4.tgz#20c5bf017cb57486ca77cc01a92d6df85c2e38ff"
+  resolved "https://codeload.github.com/tensorflow/tfjs-core/tar.gz/06fe3668161ec1a0039618fc80fff2ceb0445a00"
   dependencies:
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.5.3":
+"@tensorflow/tfjs-layers@tensorflow/tfjs-layers#master":
   version "0.5.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.5.3.tgz#0b45624ba8bcbd8e904f68344f16cf6358c695af"
+  resolved "https://codeload.github.com/tensorflow/tfjs-layers/tar.gz/482d9131dbabb3aa8a26fe20c60682d3a792b259"
 
 "@types/jasmine@~2.8.6":
   version "2.8.6"
