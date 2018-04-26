@@ -23,6 +23,7 @@
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~3.0.12",
+    "path-exists-cli": "~1.0.0",
     "rimraf": "~2.6.2",
     "tsify": "~3.0.4",
     "tslint": "~5.9.1",
@@ -31,9 +32,9 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "postinstall": "yarn build-core && yarn build-layers && yarn link-local",
-    "build-core": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build && yarn publish-local",
-    "build-layers": "cd node_modules/@tensorflow/tfjs-layers && yarn && yarn build && yarn publish-local",
+    "postinstall": "(path-exists node_modules/@tensorflow/tfjs-core/dist || yarn build-core) && (path-exists node_modules/@tensorflow/tfjs-layers/dist || yarn build-layers)",
+    "build-core": "cd node_modules/@tensorflow/tfjs-core && yarn && yarn build && rimraf node_modules",
+    "build-layers": "cd node_modules/@tensorflow/tfjs-layers && yarn && yarn build && rimraf node_modules",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
