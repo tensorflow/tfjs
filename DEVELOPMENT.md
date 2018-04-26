@@ -23,6 +23,7 @@ few tags which help sort commits into categories for release notes:
 - PERF (performance improvements)
 - DEV (development flow changes)
 - DOC (documentation changes)
+- SECURITY (security changes)
 
 If no tag is specified, it will be put under a "MISC" tag.
 

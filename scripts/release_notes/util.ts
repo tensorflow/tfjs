@@ -71,7 +71,7 @@ const SECTION_TAGS: SectionTag[] = [
   {section: 'Breaking changes', tag: 'BREAKING'},
   {section: 'Bug fixes', tag: 'BUG'}, {section: 'Performance', tag: 'PERF'},
   {section: 'Development', tag: 'DEV'}, {section: 'Documentation', tag: 'DOC'},
-  {section: 'Misc', tag: 'MISC'}
+  {section: 'Security', tag: 'SECURITY'}, {section: 'Misc', tag: 'MISC'}
 ];
 
 export async function getReleaseNotesDraft(
