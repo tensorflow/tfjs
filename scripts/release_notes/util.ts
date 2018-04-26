@@ -118,6 +118,7 @@ export async function getReleaseNotesDraft(
       for (let k = 0; k < tagsFound.length; k++) {
         const {tag, tagMessage} = tagsFound[k];
 
+        // When the tag has no message, use the subject.
         let entry;
         if (tagMessage === '') {
           entry = '- ' + subject;
@@ -125,10 +126,13 @@ export async function getReleaseNotesDraft(
           entry = '- ' + tagMessage + ' [' + subject + ']';
         }
 
+        // Attach the link to the pull request.
         entry = entry.trim() +
             ` ([#${pullRequestNumber}](https://github.com/tensorflow/` +
             `${repoCommit.repo.identifier}/pull/${pullRequestNumber})).`;
 
+        // For external contributors, we need to query github because git does
+        // not contain github username metadatea.
         if (isExternalContributor) {
           const username = await getUsernameForCommit(commit.sha);
           entry += (!entry.endsWith('.') ? '.' : '') + ` Thanks, @${username}.`;
@@ -139,7 +143,6 @@ export async function getReleaseNotesDraft(
     }
 
     const repoLines = [];
-    // Create the sections.
     SECTION_TAGS.forEach(({tag, section}) => {
       if (tagEntries[tag].length !== 0) {
         const sectionNotes = tagEntries[tag].join('\n');
