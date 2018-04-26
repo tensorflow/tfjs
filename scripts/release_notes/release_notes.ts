@@ -16,6 +16,27 @@
  * =============================================================================
  */
 
+/**
+ * Generates a draft release notes markdown file for a release. This script
+ * takes a start version of the union package, and optionally an end version.
+ * It then finds the matching versions for all the dependency packages, and
+ * finds all commit messages between those versions.
+ *
+ * The release notes are grouped by repository, and then bucketed by a set of
+ * tags which committers can use to organize commits into sections. See
+ * DEVELOPMENT.md for more details on the available tags.
+ *
+ *
+ * Usage:
+ *   # Release notes for all commits after tfjs union version 0.9.0.
+ *   yarn release-notes --startVersion 0.9.0 --out ./draft_notes.md
+ *
+ *   # Release notes for all commits after version 0.9.0 up to and including
+ *   # version 0.10.0.
+ *   yarn release-notes --startVersion 0.9.0 --endVersion 0.10.0 \
+ *       --out ./draft_notes.md
+ */
+
 import * as commander from 'commander';
 import * as shell from 'shelljs';
 import * as mkdirp from 'mkdirp';
