@@ -45,9 +45,9 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@tensorflow/tfjs-core@0.6.1":
-  version "0.6.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.6.1.tgz#9358ecbc04279e617e4f37448223eb065ee18d9b"
+"@tensorflow/tfjs-core@0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.8.0.tgz#a525b8f6a57e145c00bf4d33bfdf9282c54a10b1"
   dependencies:
     seedrandom "~2.4.3"
 
