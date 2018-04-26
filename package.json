@@ -43,7 +43,7 @@
     "lint": "tslint -p . -t verbose",
     "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
-    "release-notes": "ts-node ./scripts/release-notes/release-notes.ts"
+    "release-notes": "ts-node ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
     "@tensorflow/tfjs-core": "0.8.3",

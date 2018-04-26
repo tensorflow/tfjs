@@ -143,7 +143,7 @@ rl.question(
 export async function writeReleaseNotesDraft(token: string) {
   octokit.authenticate({type: 'token', token});
 
-  const notes = util.getReleaseNotesDraft(octokit, repoCommits);
+  const notes = await util.getReleaseNotesDraft(octokit, repoCommits);
 
   fs.writeFileSync(commander.out, notes);
 
