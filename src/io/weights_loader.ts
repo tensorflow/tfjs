@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc. All Rights Reserved.
+ * Copyright 2018 Google LLC. All Rights Reserved.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,33 +15,12 @@
  * =============================================================================
  */
 
-import {tensor} from './ops/ops';
-import {NamedTensorMap} from './types';
-import * as util from './util';
-
-export type WeightsManifestConfig = WeightsManifestGroupConfig[];
-export interface WeightsManifestGroupConfig {
-  paths: string[];
-  weights: WeightsManifestEntry[];
-}
-export interface WeightsManifestEntry {
-  name: string;
-  shape: number[];
-  dtype: 'float32'|'int32';  // Dtype of the (unquantized) weights.
-  quantization?: {
-    // Information to dequantize the weights.
-    scale: number,           // The scaling constant to multiply by.
-    min: number,             // The (possibly nudged) minimum weight to add.
-    dtype: 'uint16'|'uint8'  // The dtype of the quantized weights.
-  };
-}
-
-const DTYPE_VALUE_SIZE_MAP: {[dtype: string]: number} = {
-  'float32': 4,
-  'int32': 4,
-  'uint16': 2,
-  'uint8': 1
-};
+// tslint:disable:max-line-length
+import {tensor} from '../ops/ops';
+import {NamedTensorMap} from '../types';
+import * as util from '../util';
+import {DTYPE_VALUE_SIZE_MAP, WeightsManifestConfig, WeightsManifestEntry} from './types';
+// tslint:enable:max-line-length
 
 /**
  * Reads a weights manifest JSON configuration, fetches the weights and
@@ -60,14 +39,14 @@ export async function loadWeights(
   // single weight from a group, the whole group will be fetched. At a future
   // date, we should support fetching only the individual shards within a
   // group that are needed to reconstruct the requested weight.
+  // TODO(cais): Use `decodeWeights` for implementation.
 
   // Collect all the groups, weights, and their relative offsets to be
   // fetched.
   const groupIndicesToFetchMap = manifest.map(() => false);
   const groupWeightsToFetch: {
     [group: number]: Array<{
-      manifestEntry: WeightsManifestEntry;
-      groupOffset: number;
+      manifestEntry: WeightsManifestEntry; groupOffset: number;
       sizeBytes: number;
     }>
   } = {};
