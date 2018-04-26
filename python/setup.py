@@ -55,6 +55,7 @@ setuptools.setup(
     py_modules=[
         'tensorflowjs',
         'tensorflowjs.version',
+        'tensorflowjs.quantization',
         'tensorflowjs.read_weights',
         'tensorflowjs.write_weights',
         'tensorflowjs.converters',
