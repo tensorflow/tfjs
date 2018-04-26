@@ -33,7 +33,7 @@
  *
  *   # Release notes for all commits after version 0.9.0 up to and including
  *   # version 0.10.0.
- *   yarn release-notes --startVersion 0.9.0 --endVersion 0.10.0 \
+ *   yarn release-notes --startVersion 0.9.0 --endVersion 0.10.3 \
  *       --out ./draft_notes.md
  */
 
