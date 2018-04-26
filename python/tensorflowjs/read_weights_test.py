@@ -157,5 +157,26 @@ class ReadWeightsTest(unittest.TestCase):
       read_weights.read_weights(groups[0][0], self._tmp_dir)
 
 
+  def testReadQuantizedWeights(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([0, 1, 2, 3], 'float32')
+        }]
+    ]
+
+    manifest_json = write_weights.write_weights(
+        groups, self._tmp_dir, quantization_dtype=np.uint8)
+    manifest = json.loads(manifest_json)
+
+    # Read the weights using `read_weights`.
+    read_output = read_weights.read_weights(manifest, self._tmp_dir)
+    self.assertEqual(1, len(read_output))
+    self.assertEqual(1, len(read_output[0]))
+    self.assertEqual('weight1', read_output[0][0]['name'])
+    self.assertTrue(
+        np.allclose(groups[0][0]['data'], read_output[0][0]['data']))
+
+
 if __name__ == '__main__':
   unittest.main()

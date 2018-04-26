@@ -213,7 +213,8 @@ class HDF5Converter(object):
   def write_artifacts(self,
                       topology,
                       weights,
-                      output_dir):
+                      output_dir,
+                      quantization_dtype=None):
     """Writes weights and topology to the output_dir.
 
     If `topology` is Falsy (e.g., `None`), only emit weights to output_dir.
@@ -222,6 +223,8 @@ class HDF5Converter(object):
       topology: a JSON dictionary, representing the Keras config.
       weights: an array of weight groups (as defined in tfjs write_weights).
       output_dir: the directory to hold all the contents.
+      quantization_dtype: An optional numpy dtype to quantize weights to for
+        compression. Only np.uint8 and np.uint16 are supported.
     """
     # TODO(cais, nielsene): This method should allow optional arguments of
     #   `write_weights.write_weights` (e.g., shard size) and forward them.
@@ -235,7 +238,8 @@ class HDF5Converter(object):
 
     model_json[ARTIFACT_MODEL_TOPOLOGY_KEY] = topology or None
     weights_manifest = write_weights.write_weights(
-        weights, output_dir, write_manifest=False)
+        weights, output_dir, write_manifest=False,
+        quantization_dtype=quantization_dtype)
     if not isinstance(weights_manifest, list):
       weights_manifest = json.loads(weights_manifest)
     assert isinstance(weights_manifest, list)
@@ -246,7 +250,7 @@ class HDF5Converter(object):
       json.dump(model_json, f)
 
 
-def save_keras_model(model, artifacts_dir):
+def save_keras_model(model, artifacts_dir, quantization_dtype=None):
   r"""Save a Keras model and its weights in TensorFlow.js format.
 
   Args:
@@ -263,6 +267,8 @@ def save_keras_model(model, artifacts_dir):
         - files containing weight values in groups, with the file name pattern
           group(\d+)-shard(\d+)of(\d+).
       If the directory does not exist, this function will attempt to create it.
+    quantization_dtype: An optional numpy dtype to quantize weights to for
+        compression. Only np.uint8 and np.uint16 are supported.
 
   Raises:
     ValueError: If `artifacts_dir` already exists as a file (not a directory).
@@ -277,5 +283,7 @@ def save_keras_model(model, artifacts_dir):
     raise ValueError('Path "%s" already exists as a file.' % artifacts_dir)
   elif not os.path.isdir(artifacts_dir):
     os.makedirs(artifacts_dir)
-  converter.write_artifacts(topology_json, weights_group, artifacts_dir)
+  converter.write_artifacts(
+      topology_json, weights_group, artifacts_dir,
+      quantization_dtype=quantization_dtype)
   os.remove(temp_h5_path)

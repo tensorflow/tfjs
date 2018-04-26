@@ -29,6 +29,8 @@ import keras
 
 from tensorflowjs.converters import converter
 
+# TODO(adarob): Add tests for quantization option.
+
 
 class ConvertH5WeightsTest(unittest.TestCase):
 

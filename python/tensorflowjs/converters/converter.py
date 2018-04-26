@@ -23,11 +23,13 @@ import os
 
 import h5py
 
+from tensorflowjs import quantization
 from tensorflowjs.converters import keras_h5_conversion
 from tensorflowjs.converters import tf_saved_model_conversion
 
 
-def dispatch_pykeras_conversion(h5_path, output_dir=None):
+def dispatch_pykeras_conversion(
+    h5_path, output_dir=None, quantization_dtype=None):
   """Converts a Keras HDF5 saved-model file to TensorFlow.js format.
 
   Auto-detects saved_model versus weights-only and generates the correct
@@ -66,7 +68,8 @@ def dispatch_pykeras_conversion(h5_path, output_dir=None):
           'Output path "%s" already exists as a file' % output_dir)
     elif not os.path.isdir(output_dir):
       os.makedirs(output_dir)
-    converter.write_artifacts(model_json, groups, output_dir)
+    converter.write_artifacts(
+        model_json, groups, output_dir, quantization_dtype)
 
   return model_json, groups
 
@@ -106,8 +109,19 @@ def main():
       '"tf_saved_model".')
   parser.add_argument(
       'output_dir', type=str, help='Path for all output artifacts.')
+  parser.add_argument(
+      '--quantization_bytes',
+      type=int,
+      choices=set(quantization.QUANTIZATION_BYTES_TO_DTYPES.keys()),
+      help='How many bytes to optionally quantize/compress the weights to. 1- '
+      'and 2-byte quantizaton is supported. The default (unquantized) size is '
+      '4 bytes.')
 
   FLAGS = parser.parse_args()
+
+  quantization_dtype = (
+      quantization.QUANTIZATION_BYTES_TO_DTYPES[FLAGS.quantization_bytes]
+      if FLAGS.quantization_bytes else None)
 
   # TODO(cais, piyu): More conversion logics can be added as additional
   #   branches below.
@@ -118,15 +132,17 @@ def main():
           '"tensorflow", but the current input format is "keras".')
 
     dispatch_pykeras_conversion(
-        FLAGS.input_path, output_dir=FLAGS.output_dir)
+        FLAGS.input_path, output_dir=FLAGS.output_dir,
+        quantization_dtype=quantization_dtype)
   elif FLAGS.input_format == 'tf_saved_model':
     tf_saved_model_conversion.convert_tf_saved_model(
         FLAGS.input_path, FLAGS.output_node_names,
-        FLAGS.output_dir, saved_model_tags=FLAGS.saved_model_tags)
+        FLAGS.output_dir, saved_model_tags=FLAGS.saved_model_tags,
+        quantization_dtype=quantization_dtype)
   elif FLAGS.input_format == 'tf_session_bundle':
     tf_saved_model_conversion.convert_tf_session_bundle(
         FLAGS.input_path, FLAGS.output_node_names,
-        FLAGS.output_dir)
+        FLAGS.output_dir, quantization_dtype=quantization_dtype)
   else:
     raise ValueError('Invalid input format: \'%s\'' % FLAGS.input_format)
 
