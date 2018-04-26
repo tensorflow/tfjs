@@ -16,7 +16,7 @@ linear algebra operations and an eager API for automatic differentiation.
 Check out [js.tensorflow.org](https://js.tensorflow.org) for more
 information about the library, tutorials and API docs.
 
-To keep track of issues, we use the [tensorflow/tfjs](https://github.com/tensorflow/tfjs) Github repo.
+To keep track of issues we use the [tensorflow/tfjs](https://github.com/tensorflow/tfjs) Github repo.
 
 ## Importing
 
