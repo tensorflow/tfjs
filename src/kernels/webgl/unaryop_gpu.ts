@@ -46,7 +46,9 @@ const CHECK_NAN_SNIPPET = `if (isNaN(x)) return x;`;
 
 export const ABS = `return abs(x);`;
 
-export const RELU = `return (x < 0.0) ? 0.0 : x;`;
+export const RELU = CHECK_NAN_SNIPPET + `
+  return (x < 0.0) ? 0.0 : x;
+`;
 
 export const ELU = `return (x >= 0.0) ? x : (exp(x) - 1.0);`;
 
