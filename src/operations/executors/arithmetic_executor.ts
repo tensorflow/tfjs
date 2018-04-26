@@ -62,6 +62,11 @@ export let executeOp: OpExecutor =
               getParamValue('a', node, tensorMap, context) as tfc.Tensor,
               getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
         }
+        case 'squaredDifference': {
+          return [tfc.squaredDifference(
+              getParamValue('a', node, tensorMap, context) as tfc.Tensor,
+              getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
+        }
         default:
           throw TypeError(`Node type ${node.op} is not implemented`);
       }

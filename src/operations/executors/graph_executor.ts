@@ -36,6 +36,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('default', node, tensorMap, context) as tfc.Tensor;
       return [getTensor(node.name, tensorMap, context) || def];
     case 'identity':
+    case 'stopGradient':
       return [getParamValue('x', node, tensorMap, context) as tfc.Tensor];
     case 'shape':
       return [tfc.tensor1d(
