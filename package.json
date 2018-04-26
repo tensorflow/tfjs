@@ -27,7 +27,8 @@
     "tsify": "~3.0.4",
     "tslint": "~5.9.1",
     "typescript": "2.7.2",
-    "uglify-js": "~3.0.28"
+    "uglify-js": "~3.0.28",
+    "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
     "postinstall": "yarn build-core && yarn build-layers && yarn link-local",
@@ -35,6 +36,8 @@
     "build-layers": "cd node_modules/@tensorflow/tfjs-layers && yarn && yarn build && yarn publish-local",
     "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
+    "link-local": "yalc link",
+    "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
     "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun"
