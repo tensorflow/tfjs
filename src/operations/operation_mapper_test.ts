@@ -86,6 +86,12 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
         T: {type: tensorflow.DataType.DT_FLOAT},
         dataFormat: {s: Uint8Array.from([1, 2, 34])}
       }
+    },
+    {
+      name: 'Squeeze',
+      op: 'Squeeze',
+      input: ['BiasAdd'],
+      attr: {squeeze_dims: {list: {i: [1, 2]}}}
     }
   ],
   versions: {producer: 1.0}
@@ -107,14 +113,14 @@ describe('operationMapper', () => {
 
       it('should find the graph output nodes', () => {
         expect(graph.outputs.map(node => node.name)).toEqual([
-          'Fill', 'BiasAdd'
+          'Fill', 'Squeeze'
         ]);
       });
 
       it('should convert nodes', () => {
         expect(Object.keys(graph.nodes)).toEqual([
           'image_placeholder', 'Const', 'Shape', 'Value', 'Fill', 'Conv2D',
-          'BiasAdd'
+          'BiasAdd', 'Squeeze'
         ]);
       });
     });
@@ -142,6 +148,10 @@ describe('operationMapper', () => {
         expect(graph.nodes['Conv2D'].params['pad'].value).toEqual('valid');
         expect(graph.nodes['Conv2D'].params['useCudnnOnGpu'].value)
             .toEqual(true);
+      });
+
+      it('should map params with deprecated name', () => {
+        expect(graph.nodes['Squeeze'].params['axis'].value).toEqual([1, 2]);
       });
     });
   });

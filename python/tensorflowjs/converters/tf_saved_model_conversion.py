@@ -86,7 +86,7 @@ def validate(nodes):
   return not_supported
 
 
-def optimize_graph(graph, output_graph):
+def optimize_graph(graph, output_graph, quantization_dtype=None):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
@@ -102,16 +102,20 @@ def optimize_graph(graph, output_graph):
   optimized_graph = tf_optimizer.OptimizeGraph(
       rewriter_config, meta_graph, cluster=get_cluster())
 
-  extract_weights(optimized_graph, output_graph)
+  extract_weights(optimized_graph, output_graph, quantization_dtype)
   return optimize_graph
 
 
-def extract_weights(graph_def, output_graph):
+def extract_weights(graph_def,
+                    output_graph,
+                    quantization_dtype=None):
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
     graph_def: tf.GraphDef tensorflow GraphDef proto object, which represents
       the model topology
+    quantization_dtype: An optional numpy dtype to quantize weights to for
+        compression. Only np.uint8 and np.uint16 are supported.
   """
   constants = [node for node in graph_def.node if node.op == 'Const']
   constInputs = {}
@@ -140,7 +144,8 @@ def extract_weights(graph_def, output_graph):
       # Remove the binary array from tensor and save it to the external file.
       const.attr["value"].tensor.ClearField('tensor_content')
 
-  write_weights.write_weights([const_manifest], path)
+  write_weights.write_weights(
+      [const_manifest], path, quantization_dtype=quantization_dtype)
 
   file_io.atomic_write_string_to_file(
       os.path.abspath(output_graph), graph_def.SerializeToString())
@@ -148,7 +153,8 @@ def extract_weights(graph_def, output_graph):
 
 def convert_tf_session_bundle(session_bundle_dir,
                               output_node_names,
-                              output_dir):
+                              output_dir,
+                              quantization_dtype=None):
   """Freeze the Session Bundle model and check the model compatibility with
   Tensorflow.js.
 
@@ -163,6 +169,8 @@ def convert_tf_session_bundle(session_bundle_dir,
       - a file named 'tensorflowjs_model.pb'
       - a JSON weights manifest file named 'weights_manifest.json'
       - possibly sharded binary weight files.
+    quantization_dtype: An optional numpy dtype to quantize weights to for
+      compression. Only np.uint8 and np.uint16 are supported.
   """
 
   print("Tensorflow has deprecated the Session Bundle format, ",
@@ -191,7 +199,7 @@ def convert_tf_session_bundle(session_bundle_dir,
   if unsupported:
     print('Unsupported Ops in the model\n' + ', '.join(unsupported))
   else:
-    optimize_graph(graph, output_graph)
+    optimize_graph(graph, output_graph, quantization_dtype)
 
   # Clean up the temp files.
   if os.path.exists(frozen_file):
@@ -199,7 +207,8 @@ def convert_tf_session_bundle(session_bundle_dir,
 
 
 def convert_tf_saved_model(saved_model_dir, output_node_names,
-                           output_dir, saved_model_tags='serve'):
+                           output_dir, saved_model_tags='serve',
+                           quantization_dtype=None):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -215,6 +224,8 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
       - possibly sharded binary weight files.
     saved_model_tags: string Tagset of the MetaGraphDef to load, in comma
       separated string format. Defaulted to 'serve'
+    quantization_dtype: An optional numpy dtype to quantize weights to for
+      compression. Only np.uint8 and np.uint16 are supported.
   """
 
   if not os.path.exists(output_dir):
@@ -240,7 +251,7 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
   if unsupported:
     print('Unsupported Ops in the model\n' + ', '.join(unsupported))
   else:
-    optimize_graph(graph, output_graph)
+    optimize_graph(graph, output_graph, quantization_dtype)
 
   # Clean up the temp files.
   if os.path.exists(frozen_file):
