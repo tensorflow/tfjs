@@ -17,18 +17,15 @@ import io
 import json
 import math
 import os
-import string
 
 import numpy as np
+from tensorflowjs import quantization
 
-FILENAME_CHARS = string.ascii_letters + string.digits + '_'
-# TODO(nsthorat): Support more than just float32 and int32 for weight dumping.
-DTYPE_BYTES = {'float32': 4, 'int32': 4}
-
+_OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16]
 
 def write_weights(
     weight_groups, write_dir, shard_size_bytes=1024 * 1024 * 4,
-    write_manifest=True):
+    write_manifest=True, quantization_dtype=None):
   """Writes weights to a binary format on disk for ingestion by JavaScript.
 
     Weights are organized into groups. When writing to disk, the bytes from all
@@ -37,6 +34,9 @@ def write_weights(
     and small weights (< shard_size) will be packed. If the bytes can't be split
     evenly into shards, there will be a leftover shard that is smaller than the
     shard size.
+
+    Weights are optionally quantized to either 8 or 16 bits for compression,
+    which is enabled via the `quantization_dtype` argument.
 
     Args:
       weight_groups: An list of groups. Each group is an array of weight
@@ -60,6 +60,8 @@ def write_weights(
         the max file size for caching for all major browsers.
       write_manifest: Whether to write the manifest JSON to disk. Defaults to
         True.
+      quantization_dtype: An optional numpy dtype to quantize weights to for
+        compression. Only np.uint8 and np.uint16 are supported.
     Returns:
       The weights manifest JSON string.
 
@@ -82,6 +84,24 @@ def write_weights(
           'dtype': 'float32'
         }]
       }]
+      or, if quantization is used:
+      [{
+        'paths': ['group1-shard1of2', 'group1-shard2of2'],
+        'weights': [{
+          'name': 'weight1',
+          'shape': [1000, 1000],
+          'dtype': 'float32'
+          'quantization': {'min': -0.1, 'scale': 0.01, 'dtype': 'uint8'}
+        }]
+      }, {
+        'paths': ['group2-shard1of2', 'group2-shard2of2'],
+        'weights': [{
+          'name': 'weight2',
+          'shape': [2000, 2000],
+          'dtype': 'float32',
+          'quantization': {'min': -2.4, 'scale': 0.08, 'dtype': 'uint8'}
+        }]
+      }]
   """
   _assert_weight_groups_valid(weight_groups)
   _assert_shard_size_bytes_valid(shard_size_bytes)
@@ -90,6 +110,8 @@ def write_weights(
   manifest = []
 
   for group_index, group in enumerate(weight_groups):
+    if quantization_dtype:
+      group = [_quantize_entry(e, quantization_dtype) for e in group]
     group_bytes, total_bytes, _ = _stack_group_bytes(group)
 
     shard_filenames = _shard_group_bytes_to_disk(
@@ -111,6 +133,43 @@ def write_weights(
 
   return manifest_json
 
+def _quantize_entry(entry, quantization_dtype):
+  """Quantizes the weights in the entry, returning a new entry.
+
+  The weights are quantized by linearly re-scaling the values between the
+  minimum and maximum value, and representing them with the number of bits
+  provided by the `quantization_dtype`.
+
+  In order to guarantee that 0 is perfectly represented by one of the quanzitzed
+  values, the range is "nudged" in the same manner as in TF-Lite.
+
+  Args:
+    entry: A weight entries to quantize.
+    quantization_dtype: An numpy dtype to quantize weights to. Only np.uint8 and
+      np.uint16 are supported.
+
+  Returns:
+    A new entry containing the quantized data and additional quantization info,
+    for example:
+        original_entry = {
+          'name': 'weight1',
+          'data': np.array([0, -0.1, 1.2], 'float32')
+        }
+        quantized_entry = {
+          'name': 'weight1',
+          'data': np.array([20, 0, 255], 'uint8')
+          'quantization': {'min': -0.10196078817, 'scale': 0.00509803940852,
+                           'original_dtype': 'float32'}
+        }
+  """
+  data = entry['data']
+  quantized_data, scale, min_val = quantization.quantize_weights(
+      data, quantization_dtype)
+  quantized_entry = entry.copy()
+  quantized_entry['data'] = quantized_data
+  quantized_entry['quantization'] = {
+      'min': min_val, 'scale': scale, 'original_dtype': data.dtype.name}
+  return quantized_entry
 
 def _stack_group_bytes(group):
   """Stacks the bytes for a weight group into a flat byte array.
@@ -190,11 +249,20 @@ def _get_weights_manifest_for_group(group):
   """
   weights_entries = []
   for entry in group:
+    is_quantized = 'quantization' in entry
+    dtype = (entry['quantization']['original_dtype']
+             if is_quantized else entry['data'].dtype.name)
     var_manifest = {
         'name': entry['name'],
         'shape': list(entry['data'].shape),
-        'dtype': entry['data'].dtype.name
+        'dtype': dtype
     }
+    if is_quantized:
+      var_manifest['quantization'] = {
+          'min': entry['quantization']['min'],
+          'scale': entry['quantization']['scale'],
+          'dtype': entry['data'].dtype.name
+      }
     weights_entries.append(var_manifest)
   return weights_entries
 
@@ -219,9 +287,9 @@ def _assert_valid_weight_entry(entry):
   name = entry['name']
   data = entry['data']
 
-  if not data.dtype.name in DTYPE_BYTES:
-    raise ValueError('Error dumping weight ' + name + ' dtype ' +
-                     data.dtype.name + ' from not supported.')
+  if not data.dtype in _OUTPUT_DTYPES:
+    raise ValueError('Error dumping weight ' + name + ', dtype ' +
+                     data.dtype.name + ' not supported.')
 
   if not isinstance(data, np.ndarray):
     raise ValueError('Error dumping weight ' + name + ', data ' +

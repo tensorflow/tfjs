@@ -19,6 +19,7 @@ from __future__ import print_function
 
 # pylint: disable=unused-imports
 from tensorflowjs import converters
+from tensorflowjs import quantization
 from tensorflowjs import version
 
 __version__ = version.version
