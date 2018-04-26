@@ -85,5 +85,17 @@
     "dlOpName": "noop",
     "category": "graph",
     "params": []
+  },
+  {
+    "tfOpName": "StopGradient",
+    "dlOpName": "stopGradient",
+    "category": "graph",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      }
+    ]
   }
 ]

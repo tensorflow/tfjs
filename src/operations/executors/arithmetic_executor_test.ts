@@ -41,14 +41,16 @@ describe('arithmetic', () => {
   });
 
   describe('executeOp', () => {
-    ['add', 'mul', 'div', 'sub', 'maximum', 'minimum', 'pow'].forEach((op => {
-      it('should call tfc.' + op, () => {
-        const spy = spyOn(tfc, op as 'add');
-        node.op = op;
-        executeOp(node, {input1, input2}, context);
+    ['add', 'mul', 'div', 'sub', 'maximum', 'minimum', 'pow',
+     'squaredDifference']
+        .forEach((op => {
+          it('should call tfc.' + op, () => {
+            const spy = spyOn(tfc, op as 'add');
+            node.op = op;
+            executeOp(node, {input1, input2}, context);
 
-        expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
-      });
-    }));
+            expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
+          });
+        }));
   });
 });
