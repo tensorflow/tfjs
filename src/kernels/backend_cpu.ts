@@ -1485,9 +1485,13 @@ export class MathBackendCPU implements KernelBackend {
             const sourceFracCol =
                 (effectiveInputSize[1]) * c / (effectiveOutputSize[1]);
             const sourceNearestRow =
-                Math.min(oldHeight - 1, Math.round(sourceFracRow));
+              Math.min(oldHeight - 1,
+                alignCorners
+                    ? Math.round(sourceFracRow) : Math.floor(sourceFracRow));
             const sourceNearestCol =
-                Math.min(oldWidth - 1, Math.round(sourceFracCol));
+              Math.min(oldWidth - 1,
+                alignCorners
+                    ? Math.round(sourceFracCol) : Math.floor(sourceFracCol));
             const newValue = x.get(b, sourceNearestRow, sourceNearestCol, d);
             output.set(newValue, b, r, c, d);
           }

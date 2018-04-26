@@ -33,6 +33,10 @@ export class ResizeNearestNeighborProgram implements GPGPUProgram {
 
     const effectiveOutSize: [number, number] =
         alignCorners ? [newHeight - 1, newWidth - 1] : [newHeight, newWidth];
+
+    // When align corners is false, we rounds the value with floor.
+    const roundBase = alignCorners ? '0.5' : '0.0';
+
     this.userCode = `
       const vec2 effectiveInputOverOutputRatioRC = vec2(
           ${effectiveInSize[0] / effectiveOutSize[0]},
@@ -50,7 +54,7 @@ export class ResizeNearestNeighborProgram implements GPGPUProgram {
 
         // Compute the coordinators of nearest neighbor point.
         ivec2 sourceNearestRC = ivec2(
-          min(inputShapeRC - 1.0, floor(sourceFracIndexRC + 0.5)));
+          min(inputShapeRC - 1.0, floor(sourceFracIndexRC + ${roundBase})));
 
         float newValue = getA(b, sourceNearestRC.x, sourceNearestRC.y, d);
 
