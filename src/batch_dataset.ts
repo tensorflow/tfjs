@@ -16,9 +16,7 @@
  * =============================================================================
  */
 
-
 import * as tf from '@tensorflow/tfjs-core';
-
 import {Dataset} from './dataset';
 import {DataStream} from './streams/data_stream';
 import {BatchArray, DatasetBatch, DatasetElement, ElementArray} from './types';
