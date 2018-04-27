@@ -16,8 +16,8 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {ChainedStream, repeatStreamFromFunction, streamFromItems} from './data_stream';
+import {ChainedStream, streamFromItems} from './data_stream';
+import {streamFromConcatenatedFunction} from './data_stream';
 import {ShuffleStream} from './data_stream';
 import {TestIntegerStream} from './data_stream_test';
 
@@ -77,8 +77,10 @@ describe('ShuffleStream', () => {
   });
 
   it('shuffles multiple chained streams without replacement', done => {
-    const baseStream = repeatStreamFromFunction(
-        () => new TestIntegerStream(SHORT_STREAM_LENGTH), 3);
+    const baseStream = streamFromConcatenatedFunction(
+        () =>
+            ({value: new TestIntegerStream(SHORT_STREAM_LENGTH), done: false}),
+        3);
     const shuffleStream = new ShuffleStream(baseStream, 1000);
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 3; i++) {

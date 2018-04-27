@@ -18,6 +18,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
+
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
 
@@ -50,22 +51,37 @@ export function streamFromFunction<T>(
   return new FunctionCallStream(func);
 }
 
-export function repeatStreamFromFunction<T>(
-    getStream: () => DataStream<T>, count?: number) {
-  let epoch = 1;
-  let stream = getStream();
-  return streamFromFunction(async () => {
-    while (true) {
-      const {value, done} = await stream.next();
-      if (done && (count == null || epoch < count)) {
-        epoch++;
-        stream = getStream();
-      } else {
-        return {value, done};
-      }
-    }
-  });
+/**
+ * Create a `DataStream` by concatenating underlying streams, which are
+ * themselves provided as a stream.
+ *
+ * This can also be thought of as a "stream flatten" operation.
+ *
+ * @param baseStreams A stream of streams to be concatenated.
+ */
+export function streamFromConcatenated<T>(
+    baseStreams: DataStream<DataStream<T>>): DataStream<T> {
+  return ChainedStream.create(baseStreams);
 }
+
+/**
+ * Create a `DataStream` by concatenating streams produced by calling a
+ * stream-generating function a given number of times.
+ *
+ * Since a `DataStream` is read-once, it cannot be repeated, but this
+ * function can be used to achieve a similar effect:
+ *
+ *   DataStream.ofConcatenatedFunction(() => new MyStream(), 6);
+ *
+ * @param streamFunc: A function that produces a new stream on each call.
+ * @param count: The number of times to call the function.
+ */
+export function streamFromConcatenatedFunction<T>(
+    streamFunc: () => IteratorResult<DataStream<T>>,
+    count: number): DataStream<T> {
+  return streamFromConcatenated(streamFromFunction(streamFunc).take(count));
+}
+
 /**
  * An asynchronous iterator, providing lazy access to a potentially unbounded
  * stream of elements.
@@ -167,23 +183,11 @@ export abstract class DataStream<T> {
   /**
    * Concatenate this `DataStream` with another.
    *
-   * @param secondStream A `DataStream` to be concatenated onto this one.
+   * @param stream A `DataStream` to be concatenated onto this one.
    * @returns A `DataStream`.
    */
-  concatenate(secondStream: DataStream<T>): DataStream<T> {
-    let firstStream = true;
-    let currStream: DataStream<T> = this;
-    return streamFromFunction(async () => {
-      while (true) {
-        const {value, done} = await currStream.next();
-        if (done && firstStream) {
-          firstStream = false;
-          currStream = secondStream;
-        } else {
-          return {value, done};
-        }
-      }
-    });
+  concatenate(stream: DataStream<T>): DataStream<T> {
+    return ChainedStream.create(streamFromItems([this, stream]));
   }
 
   /**

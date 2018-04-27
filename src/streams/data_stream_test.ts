@@ -16,8 +16,9 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
-import {DataStream, repeatStreamFromFunction, streamFromIncrementing} from './data_stream';
+import {DataStream, streamFromIncrementing} from './data_stream';
+import {streamFromConcatenated} from './data_stream';
+import {streamFromConcatenatedFunction} from './data_stream';
 import {streamFromFunction, streamFromItems} from './data_stream';
 
 export class TestIntegerStream extends DataStream<number> {
@@ -215,9 +216,21 @@ describe('DataStream', () => {
         .catch(done.fail);
   });
 
+  it('can be created by concatenating streams', done => {
+    const a = new TestIntegerStream();
+    const b = new TestIntegerStream();
+    const readStream = streamFromConcatenated(streamFromItems([a, b]));
+    readStream.collectRemaining()
+        .then(result => {
+          expect(result.length).toEqual(200);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
   it('can be created by concatenating streams from a function', done => {
-    const readStream =
-        repeatStreamFromFunction(() => new TestIntegerStream(), 3);
+    const readStream = streamFromConcatenatedFunction(
+        () => ({value: new TestIntegerStream(), done: false}), 3);
     const expectedResult: number[] = [];
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 100; j++) {

@@ -21,7 +21,8 @@ import * as seedrandom from 'seedrandom';
 
 import {BatchDataset} from './batch_dataset';
 import {computeDatasetStatistics, DatasetStatistics} from './statistics';
-import {DataStream, repeatStreamFromFunction} from './streams/data_stream';
+import {DataStream, streamFromFunction} from './streams/data_stream';
+import {streamFromConcatenated} from './streams/data_stream';
 import {streamFromItems} from './streams/data_stream';
 import {DatasetElement} from './types';
 
@@ -161,8 +162,12 @@ export abstract class Dataset {
    * @returns A `Dataset`.
    */
   repeat(count?: number): Dataset {
-    return datasetFromStreamFn(
-        () => repeatStreamFromFunction(() => this.getStream(), count));
+    const base = this;
+    return datasetFromStreamFn(() => {
+      const streamStream =
+          streamFromFunction(() => ({value: base.getStream(), done: false}));
+      return streamFromConcatenated(streamStream.take(count));
+    });
   }
 
   /**
