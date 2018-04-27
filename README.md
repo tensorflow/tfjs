@@ -129,7 +129,7 @@ const weightManifestUrl = "https://example.org/model/weights_manifest.json";
 
 const manifest = await fetch(weightManifestUrl);
 this.weightManifest = await manifest.json();
-const weightMap = await tf.loadWeights(
+const weightMap = await tf.io.loadWeights(
         this.weightManifest, "https://example.org/model");
 ```
 
