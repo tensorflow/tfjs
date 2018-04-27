@@ -18,9 +18,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new Any.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IAny);
+        constructor(p?: tensorflow.IAny);
 
         /** Any typeUrl. */
         public typeUrl: string;
@@ -29,74 +29,14 @@ export namespace tensorflow {
         public value: Uint8Array;
 
         /**
-         * Creates a new Any instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns Any instance
-         */
-        public static create(properties?: tensorflow.IAny): tensorflow.Any;
-
-        /**
-         * Encodes the specified Any message. Does not implicitly {@link tensorflow.Any.verify|verify} messages.
-         * @param message Any message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IAny, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified Any message, length delimited. Does not implicitly {@link tensorflow.Any.verify|verify} messages.
-         * @param message Any message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IAny, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes an Any message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns Any
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.Any;
-
-        /**
-         * Decodes an Any message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns Any
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.Any;
-
-        /**
-         * Verifies an Any message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates an Any message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns Any
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.Any;
-
-        /**
-         * Creates a plain object from an Any message. Also converts values to other types if specified.
-         * @param message Any
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.Any, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this Any to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.Any;
     }
 
     /** DataType enum. */
@@ -147,9 +87,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new TensorShape.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.ITensorShape);
+        constructor(p?: tensorflow.ITensorShape);
 
         /** TensorShape dim. */
         public dim: tensorflow.TensorShape.IDim[];
@@ -158,74 +98,14 @@ export namespace tensorflow {
         public unknownRank: boolean;
 
         /**
-         * Creates a new TensorShape instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns TensorShape instance
-         */
-        public static create(properties?: tensorflow.ITensorShape): tensorflow.TensorShape;
-
-        /**
-         * Encodes the specified TensorShape message. Does not implicitly {@link tensorflow.TensorShape.verify|verify} messages.
-         * @param message TensorShape message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.ITensorShape, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified TensorShape message, length delimited. Does not implicitly {@link tensorflow.TensorShape.verify|verify} messages.
-         * @param message TensorShape message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.ITensorShape, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a TensorShape message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns TensorShape
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.TensorShape;
-
-        /**
-         * Decodes a TensorShape message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns TensorShape
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.TensorShape;
-
-        /**
-         * Verifies a TensorShape message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a TensorShape message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns TensorShape
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.TensorShape;
-
-        /**
-         * Creates a plain object from a TensorShape message. Also converts values to other types if specified.
-         * @param message TensorShape
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.TensorShape, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this TensorShape to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.TensorShape;
     }
 
     namespace TensorShape {
@@ -245,9 +125,9 @@ export namespace tensorflow {
 
             /**
              * Constructs a new Dim.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.TensorShape.IDim);
+            constructor(p?: tensorflow.TensorShape.IDim);
 
             /** Dim size. */
             public size: (number|Long);
@@ -256,74 +136,14 @@ export namespace tensorflow {
             public name: string;
 
             /**
-             * Creates a new Dim instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns Dim instance
-             */
-            public static create(properties?: tensorflow.TensorShape.IDim): tensorflow.TensorShape.Dim;
-
-            /**
-             * Encodes the specified Dim message. Does not implicitly {@link tensorflow.TensorShape.Dim.verify|verify} messages.
-             * @param message Dim message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.TensorShape.IDim, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified Dim message, length delimited. Does not implicitly {@link tensorflow.TensorShape.Dim.verify|verify} messages.
-             * @param message Dim message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.TensorShape.IDim, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes a Dim message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns Dim
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.TensorShape.Dim;
-
-            /**
-             * Decodes a Dim message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns Dim
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.TensorShape.Dim;
-
-            /**
-             * Verifies a Dim message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates a Dim message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns Dim
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.TensorShape.Dim;
-
-            /**
-             * Creates a plain object from a Dim message. Also converts values to other types if specified.
-             * @param message Dim
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.TensorShape.Dim, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this Dim to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.TensorShape.Dim;
         }
     }
 
@@ -375,9 +195,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new Tensor.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.ITensor);
+        constructor(p?: tensorflow.ITensor);
 
         /** Tensor dtype. */
         public dtype: tensorflow.DataType;
@@ -419,74 +239,14 @@ export namespace tensorflow {
         public uint64Val: (number|Long)[];
 
         /**
-         * Creates a new Tensor instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns Tensor instance
-         */
-        public static create(properties?: tensorflow.ITensor): tensorflow.Tensor;
-
-        /**
-         * Encodes the specified Tensor message. Does not implicitly {@link tensorflow.Tensor.verify|verify} messages.
-         * @param message Tensor message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.ITensor, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified Tensor message, length delimited. Does not implicitly {@link tensorflow.Tensor.verify|verify} messages.
-         * @param message Tensor message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.ITensor, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a Tensor message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns Tensor
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.Tensor;
-
-        /**
-         * Decodes a Tensor message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns Tensor
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.Tensor;
-
-        /**
-         * Verifies a Tensor message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a Tensor message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns Tensor
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.Tensor;
-
-        /**
-         * Creates a plain object from a Tensor message. Also converts values to other types if specified.
-         * @param message Tensor
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.Tensor, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this Tensor to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.Tensor;
     }
 
     /** Properties of an AttrValue. */
@@ -528,9 +288,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new AttrValue.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IAttrValue);
+        constructor(p?: tensorflow.IAttrValue);
 
         /** AttrValue list. */
         public list?: (tensorflow.AttrValue.IListValue|null);
@@ -566,74 +326,14 @@ export namespace tensorflow {
         public value?: ("list"|"s"|"i"|"f"|"b"|"type"|"shape"|"tensor"|"placeholder"|"func");
 
         /**
-         * Creates a new AttrValue instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns AttrValue instance
-         */
-        public static create(properties?: tensorflow.IAttrValue): tensorflow.AttrValue;
-
-        /**
-         * Encodes the specified AttrValue message. Does not implicitly {@link tensorflow.AttrValue.verify|verify} messages.
-         * @param message AttrValue message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IAttrValue, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified AttrValue message, length delimited. Does not implicitly {@link tensorflow.AttrValue.verify|verify} messages.
-         * @param message AttrValue message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IAttrValue, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes an AttrValue message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns AttrValue
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.AttrValue;
-
-        /**
-         * Decodes an AttrValue message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns AttrValue
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.AttrValue;
-
-        /**
-         * Verifies an AttrValue message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates an AttrValue message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns AttrValue
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.AttrValue;
-
-        /**
-         * Creates a plain object from an AttrValue message. Also converts values to other types if specified.
-         * @param message AttrValue
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.AttrValue, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this AttrValue to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.AttrValue;
     }
 
     namespace AttrValue {
@@ -671,9 +371,9 @@ export namespace tensorflow {
 
             /**
              * Constructs a new ListValue.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.AttrValue.IListValue);
+            constructor(p?: tensorflow.AttrValue.IListValue);
 
             /** ListValue s. */
             public s: Uint8Array[];
@@ -700,74 +400,14 @@ export namespace tensorflow {
             public func: tensorflow.INameAttrList[];
 
             /**
-             * Creates a new ListValue instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns ListValue instance
-             */
-            public static create(properties?: tensorflow.AttrValue.IListValue): tensorflow.AttrValue.ListValue;
-
-            /**
-             * Encodes the specified ListValue message. Does not implicitly {@link tensorflow.AttrValue.ListValue.verify|verify} messages.
-             * @param message ListValue message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.AttrValue.IListValue, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified ListValue message, length delimited. Does not implicitly {@link tensorflow.AttrValue.ListValue.verify|verify} messages.
-             * @param message ListValue message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.AttrValue.IListValue, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes a ListValue message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns ListValue
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.AttrValue.ListValue;
-
-            /**
-             * Decodes a ListValue message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns ListValue
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.AttrValue.ListValue;
-
-            /**
-             * Verifies a ListValue message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates a ListValue message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns ListValue
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.AttrValue.ListValue;
-
-            /**
-             * Creates a plain object from a ListValue message. Also converts values to other types if specified.
-             * @param message ListValue
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.AttrValue.ListValue, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this ListValue to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.AttrValue.ListValue;
         }
     }
 
@@ -786,9 +426,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new NameAttrList.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.INameAttrList);
+        constructor(p?: tensorflow.INameAttrList);
 
         /** NameAttrList name. */
         public name: string;
@@ -797,74 +437,14 @@ export namespace tensorflow {
         public attr: { [k: string]: tensorflow.IAttrValue };
 
         /**
-         * Creates a new NameAttrList instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns NameAttrList instance
-         */
-        public static create(properties?: tensorflow.INameAttrList): tensorflow.NameAttrList;
-
-        /**
-         * Encodes the specified NameAttrList message. Does not implicitly {@link tensorflow.NameAttrList.verify|verify} messages.
-         * @param message NameAttrList message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.INameAttrList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified NameAttrList message, length delimited. Does not implicitly {@link tensorflow.NameAttrList.verify|verify} messages.
-         * @param message NameAttrList message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.INameAttrList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a NameAttrList message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns NameAttrList
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.NameAttrList;
-
-        /**
-         * Decodes a NameAttrList message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns NameAttrList
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.NameAttrList;
-
-        /**
-         * Verifies a NameAttrList message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a NameAttrList message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns NameAttrList
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.NameAttrList;
-
-        /**
-         * Creates a plain object from a NameAttrList message. Also converts values to other types if specified.
-         * @param message NameAttrList
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.NameAttrList, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this NameAttrList to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.NameAttrList;
     }
 
     /** Properties of a NodeDef. */
@@ -891,9 +471,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new NodeDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.INodeDef);
+        constructor(p?: tensorflow.INodeDef);
 
         /** NodeDef name. */
         public name: string;
@@ -911,74 +491,14 @@ export namespace tensorflow {
         public attr: { [k: string]: tensorflow.IAttrValue };
 
         /**
-         * Creates a new NodeDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns NodeDef instance
-         */
-        public static create(properties?: tensorflow.INodeDef): tensorflow.NodeDef;
-
-        /**
-         * Encodes the specified NodeDef message. Does not implicitly {@link tensorflow.NodeDef.verify|verify} messages.
-         * @param message NodeDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.INodeDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified NodeDef message, length delimited. Does not implicitly {@link tensorflow.NodeDef.verify|verify} messages.
-         * @param message NodeDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.INodeDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a NodeDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns NodeDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.NodeDef;
-
-        /**
-         * Decodes a NodeDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns NodeDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.NodeDef;
-
-        /**
-         * Verifies a NodeDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a NodeDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns NodeDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.NodeDef;
-
-        /**
-         * Creates a plain object from a NodeDef message. Also converts values to other types if specified.
-         * @param message NodeDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.NodeDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this NodeDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.NodeDef;
     }
 
     /** Properties of a VersionDef. */
@@ -999,9 +519,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new VersionDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IVersionDef);
+        constructor(p?: tensorflow.IVersionDef);
 
         /** VersionDef producer. */
         public producer: number;
@@ -1013,74 +533,14 @@ export namespace tensorflow {
         public badConsumers: number[];
 
         /**
-         * Creates a new VersionDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns VersionDef instance
-         */
-        public static create(properties?: tensorflow.IVersionDef): tensorflow.VersionDef;
-
-        /**
-         * Encodes the specified VersionDef message. Does not implicitly {@link tensorflow.VersionDef.verify|verify} messages.
-         * @param message VersionDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IVersionDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified VersionDef message, length delimited. Does not implicitly {@link tensorflow.VersionDef.verify|verify} messages.
-         * @param message VersionDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IVersionDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a VersionDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns VersionDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.VersionDef;
-
-        /**
-         * Decodes a VersionDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns VersionDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.VersionDef;
-
-        /**
-         * Verifies a VersionDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a VersionDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns VersionDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.VersionDef;
-
-        /**
-         * Creates a plain object from a VersionDef message. Also converts values to other types if specified.
-         * @param message VersionDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.VersionDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this VersionDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.VersionDef;
     }
 
     /** Properties of a GraphDef. */
@@ -1101,9 +561,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new GraphDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IGraphDef);
+        constructor(p?: tensorflow.IGraphDef);
 
         /** GraphDef node. */
         public node: tensorflow.INodeDef[];
@@ -1115,74 +575,14 @@ export namespace tensorflow {
         public library?: (tensorflow.IFunctionDefLibrary|null);
 
         /**
-         * Creates a new GraphDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns GraphDef instance
-         */
-        public static create(properties?: tensorflow.IGraphDef): tensorflow.GraphDef;
-
-        /**
-         * Encodes the specified GraphDef message. Does not implicitly {@link tensorflow.GraphDef.verify|verify} messages.
-         * @param message GraphDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IGraphDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified GraphDef message, length delimited. Does not implicitly {@link tensorflow.GraphDef.verify|verify} messages.
-         * @param message GraphDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IGraphDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a GraphDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns GraphDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.GraphDef;
-
-        /**
-         * Decodes a GraphDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns GraphDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.GraphDef;
-
-        /**
-         * Verifies a GraphDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a GraphDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns GraphDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.GraphDef;
-
-        /**
-         * Creates a plain object from a GraphDef message. Also converts values to other types if specified.
-         * @param message GraphDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.GraphDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this GraphDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.GraphDef;
     }
 
     /** Properties of a CollectionDef. */
@@ -1209,9 +609,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new CollectionDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.ICollectionDef);
+        constructor(p?: tensorflow.ICollectionDef);
 
         /** CollectionDef nodeList. */
         public nodeList?: (tensorflow.CollectionDef.INodeList|null);
@@ -1232,74 +632,14 @@ export namespace tensorflow {
         public kind?: ("nodeList"|"bytesList"|"int64List"|"floatList"|"anyList");
 
         /**
-         * Creates a new CollectionDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns CollectionDef instance
-         */
-        public static create(properties?: tensorflow.ICollectionDef): tensorflow.CollectionDef;
-
-        /**
-         * Encodes the specified CollectionDef message. Does not implicitly {@link tensorflow.CollectionDef.verify|verify} messages.
-         * @param message CollectionDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.ICollectionDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified CollectionDef message, length delimited. Does not implicitly {@link tensorflow.CollectionDef.verify|verify} messages.
-         * @param message CollectionDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.ICollectionDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a CollectionDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns CollectionDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.CollectionDef;
-
-        /**
-         * Decodes a CollectionDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns CollectionDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.CollectionDef;
-
-        /**
-         * Verifies a CollectionDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a CollectionDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns CollectionDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.CollectionDef;
-
-        /**
-         * Creates a plain object from a CollectionDef message. Also converts values to other types if specified.
-         * @param message CollectionDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.CollectionDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this CollectionDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.CollectionDef;
     }
 
     namespace CollectionDef {
@@ -1316,82 +656,22 @@ export namespace tensorflow {
 
             /**
              * Constructs a new NodeList.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.CollectionDef.INodeList);
+            constructor(p?: tensorflow.CollectionDef.INodeList);
 
             /** NodeList value. */
             public value: string[];
 
             /**
-             * Creates a new NodeList instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns NodeList instance
-             */
-            public static create(properties?: tensorflow.CollectionDef.INodeList): tensorflow.CollectionDef.NodeList;
-
-            /**
-             * Encodes the specified NodeList message. Does not implicitly {@link tensorflow.CollectionDef.NodeList.verify|verify} messages.
-             * @param message NodeList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.CollectionDef.INodeList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified NodeList message, length delimited. Does not implicitly {@link tensorflow.CollectionDef.NodeList.verify|verify} messages.
-             * @param message NodeList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.CollectionDef.INodeList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes a NodeList message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns NodeList
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.CollectionDef.NodeList;
-
-            /**
-             * Decodes a NodeList message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns NodeList
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.CollectionDef.NodeList;
-
-            /**
-             * Verifies a NodeList message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates a NodeList message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns NodeList
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.CollectionDef.NodeList;
-
-            /**
-             * Creates a plain object from a NodeList message. Also converts values to other types if specified.
-             * @param message NodeList
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.CollectionDef.NodeList, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this NodeList to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.CollectionDef.NodeList;
         }
 
         /** Properties of a BytesList. */
@@ -1406,82 +686,22 @@ export namespace tensorflow {
 
             /**
              * Constructs a new BytesList.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.CollectionDef.IBytesList);
+            constructor(p?: tensorflow.CollectionDef.IBytesList);
 
             /** BytesList value. */
             public value: Uint8Array[];
 
             /**
-             * Creates a new BytesList instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns BytesList instance
-             */
-            public static create(properties?: tensorflow.CollectionDef.IBytesList): tensorflow.CollectionDef.BytesList;
-
-            /**
-             * Encodes the specified BytesList message. Does not implicitly {@link tensorflow.CollectionDef.BytesList.verify|verify} messages.
-             * @param message BytesList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.CollectionDef.IBytesList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified BytesList message, length delimited. Does not implicitly {@link tensorflow.CollectionDef.BytesList.verify|verify} messages.
-             * @param message BytesList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.CollectionDef.IBytesList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes a BytesList message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns BytesList
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.CollectionDef.BytesList;
-
-            /**
-             * Decodes a BytesList message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns BytesList
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.CollectionDef.BytesList;
-
-            /**
-             * Verifies a BytesList message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates a BytesList message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns BytesList
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.CollectionDef.BytesList;
-
-            /**
-             * Creates a plain object from a BytesList message. Also converts values to other types if specified.
-             * @param message BytesList
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.CollectionDef.BytesList, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this BytesList to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.CollectionDef.BytesList;
         }
 
         /** Properties of an Int64List. */
@@ -1496,82 +716,22 @@ export namespace tensorflow {
 
             /**
              * Constructs a new Int64List.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.CollectionDef.IInt64List);
+            constructor(p?: tensorflow.CollectionDef.IInt64List);
 
             /** Int64List value. */
             public value: (number|Long)[];
 
             /**
-             * Creates a new Int64List instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns Int64List instance
-             */
-            public static create(properties?: tensorflow.CollectionDef.IInt64List): tensorflow.CollectionDef.Int64List;
-
-            /**
-             * Encodes the specified Int64List message. Does not implicitly {@link tensorflow.CollectionDef.Int64List.verify|verify} messages.
-             * @param message Int64List message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.CollectionDef.IInt64List, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified Int64List message, length delimited. Does not implicitly {@link tensorflow.CollectionDef.Int64List.verify|verify} messages.
-             * @param message Int64List message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.CollectionDef.IInt64List, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes an Int64List message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns Int64List
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.CollectionDef.Int64List;
-
-            /**
-             * Decodes an Int64List message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns Int64List
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.CollectionDef.Int64List;
-
-            /**
-             * Verifies an Int64List message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates an Int64List message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns Int64List
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.CollectionDef.Int64List;
-
-            /**
-             * Creates a plain object from an Int64List message. Also converts values to other types if specified.
-             * @param message Int64List
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.CollectionDef.Int64List, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this Int64List to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.CollectionDef.Int64List;
         }
 
         /** Properties of a FloatList. */
@@ -1586,82 +746,22 @@ export namespace tensorflow {
 
             /**
              * Constructs a new FloatList.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.CollectionDef.IFloatList);
+            constructor(p?: tensorflow.CollectionDef.IFloatList);
 
             /** FloatList value. */
             public value: number[];
 
             /**
-             * Creates a new FloatList instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns FloatList instance
-             */
-            public static create(properties?: tensorflow.CollectionDef.IFloatList): tensorflow.CollectionDef.FloatList;
-
-            /**
-             * Encodes the specified FloatList message. Does not implicitly {@link tensorflow.CollectionDef.FloatList.verify|verify} messages.
-             * @param message FloatList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.CollectionDef.IFloatList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified FloatList message, length delimited. Does not implicitly {@link tensorflow.CollectionDef.FloatList.verify|verify} messages.
-             * @param message FloatList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.CollectionDef.IFloatList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes a FloatList message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns FloatList
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.CollectionDef.FloatList;
-
-            /**
-             * Decodes a FloatList message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns FloatList
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.CollectionDef.FloatList;
-
-            /**
-             * Verifies a FloatList message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates a FloatList message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns FloatList
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.CollectionDef.FloatList;
-
-            /**
-             * Creates a plain object from a FloatList message. Also converts values to other types if specified.
-             * @param message FloatList
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.CollectionDef.FloatList, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this FloatList to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.CollectionDef.FloatList;
         }
 
         /** Properties of an AnyList. */
@@ -1676,82 +776,22 @@ export namespace tensorflow {
 
             /**
              * Constructs a new AnyList.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.CollectionDef.IAnyList);
+            constructor(p?: tensorflow.CollectionDef.IAnyList);
 
             /** AnyList value. */
             public value: tensorflow.IAny[];
 
             /**
-             * Creates a new AnyList instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns AnyList instance
-             */
-            public static create(properties?: tensorflow.CollectionDef.IAnyList): tensorflow.CollectionDef.AnyList;
-
-            /**
-             * Encodes the specified AnyList message. Does not implicitly {@link tensorflow.CollectionDef.AnyList.verify|verify} messages.
-             * @param message AnyList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.CollectionDef.IAnyList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified AnyList message, length delimited. Does not implicitly {@link tensorflow.CollectionDef.AnyList.verify|verify} messages.
-             * @param message AnyList message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.CollectionDef.IAnyList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes an AnyList message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns AnyList
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.CollectionDef.AnyList;
-
-            /**
-             * Decodes an AnyList message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns AnyList
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.CollectionDef.AnyList;
-
-            /**
-             * Verifies an AnyList message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates an AnyList message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns AnyList
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.CollectionDef.AnyList;
-
-            /**
-             * Creates a plain object from an AnyList message. Also converts values to other types if specified.
-             * @param message AnyList
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.CollectionDef.AnyList, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this AnyList to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.CollectionDef.AnyList;
         }
     }
 
@@ -1785,9 +825,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new SaverDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.ISaverDef);
+        constructor(p?: tensorflow.ISaverDef);
 
         /** SaverDef filenameTensorName. */
         public filenameTensorName: string;
@@ -1811,74 +851,14 @@ export namespace tensorflow {
         public version: tensorflow.SaverDef.CheckpointFormatVersion;
 
         /**
-         * Creates a new SaverDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns SaverDef instance
-         */
-        public static create(properties?: tensorflow.ISaverDef): tensorflow.SaverDef;
-
-        /**
-         * Encodes the specified SaverDef message. Does not implicitly {@link tensorflow.SaverDef.verify|verify} messages.
-         * @param message SaverDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.ISaverDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified SaverDef message, length delimited. Does not implicitly {@link tensorflow.SaverDef.verify|verify} messages.
-         * @param message SaverDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.ISaverDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a SaverDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns SaverDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.SaverDef;
-
-        /**
-         * Decodes a SaverDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns SaverDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.SaverDef;
-
-        /**
-         * Verifies a SaverDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a SaverDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns SaverDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.SaverDef;
-
-        /**
-         * Creates a plain object from a SaverDef message. Also converts values to other types if specified.
-         * @param message SaverDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.SaverDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this SaverDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.SaverDef;
     }
 
     namespace SaverDef {
@@ -1912,9 +892,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new TensorInfo.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.ITensorInfo);
+        constructor(p?: tensorflow.ITensorInfo);
 
         /** TensorInfo name. */
         public name: string;
@@ -1932,74 +912,14 @@ export namespace tensorflow {
         public encoding?: ("name"|"cooSparse");
 
         /**
-         * Creates a new TensorInfo instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns TensorInfo instance
-         */
-        public static create(properties?: tensorflow.ITensorInfo): tensorflow.TensorInfo;
-
-        /**
-         * Encodes the specified TensorInfo message. Does not implicitly {@link tensorflow.TensorInfo.verify|verify} messages.
-         * @param message TensorInfo message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.ITensorInfo, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified TensorInfo message, length delimited. Does not implicitly {@link tensorflow.TensorInfo.verify|verify} messages.
-         * @param message TensorInfo message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.ITensorInfo, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a TensorInfo message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns TensorInfo
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.TensorInfo;
-
-        /**
-         * Decodes a TensorInfo message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns TensorInfo
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.TensorInfo;
-
-        /**
-         * Verifies a TensorInfo message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a TensorInfo message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns TensorInfo
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.TensorInfo;
-
-        /**
-         * Creates a plain object from a TensorInfo message. Also converts values to other types if specified.
-         * @param message TensorInfo
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.TensorInfo, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this TensorInfo to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.TensorInfo;
     }
 
     namespace TensorInfo {
@@ -2022,9 +942,9 @@ export namespace tensorflow {
 
             /**
              * Constructs a new CooSparse.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.TensorInfo.ICooSparse);
+            constructor(p?: tensorflow.TensorInfo.ICooSparse);
 
             /** CooSparse valuesTensorName. */
             public valuesTensorName: string;
@@ -2036,74 +956,14 @@ export namespace tensorflow {
             public denseShapeTensorName: string;
 
             /**
-             * Creates a new CooSparse instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns CooSparse instance
-             */
-            public static create(properties?: tensorflow.TensorInfo.ICooSparse): tensorflow.TensorInfo.CooSparse;
-
-            /**
-             * Encodes the specified CooSparse message. Does not implicitly {@link tensorflow.TensorInfo.CooSparse.verify|verify} messages.
-             * @param message CooSparse message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.TensorInfo.ICooSparse, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified CooSparse message, length delimited. Does not implicitly {@link tensorflow.TensorInfo.CooSparse.verify|verify} messages.
-             * @param message CooSparse message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.TensorInfo.ICooSparse, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes a CooSparse message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns CooSparse
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.TensorInfo.CooSparse;
-
-            /**
-             * Decodes a CooSparse message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns CooSparse
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.TensorInfo.CooSparse;
-
-            /**
-             * Verifies a CooSparse message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates a CooSparse message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns CooSparse
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.TensorInfo.CooSparse;
-
-            /**
-             * Creates a plain object from a CooSparse message. Also converts values to other types if specified.
-             * @param message CooSparse
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.TensorInfo.CooSparse, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this CooSparse to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.TensorInfo.CooSparse;
         }
     }
 
@@ -2125,9 +985,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new SignatureDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.ISignatureDef);
+        constructor(p?: tensorflow.ISignatureDef);
 
         /** SignatureDef inputs. */
         public inputs: { [k: string]: tensorflow.ITensorInfo };
@@ -2139,74 +999,14 @@ export namespace tensorflow {
         public methodName: string;
 
         /**
-         * Creates a new SignatureDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns SignatureDef instance
-         */
-        public static create(properties?: tensorflow.ISignatureDef): tensorflow.SignatureDef;
-
-        /**
-         * Encodes the specified SignatureDef message. Does not implicitly {@link tensorflow.SignatureDef.verify|verify} messages.
-         * @param message SignatureDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.ISignatureDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified SignatureDef message, length delimited. Does not implicitly {@link tensorflow.SignatureDef.verify|verify} messages.
-         * @param message SignatureDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.ISignatureDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a SignatureDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns SignatureDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.SignatureDef;
-
-        /**
-         * Decodes a SignatureDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns SignatureDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.SignatureDef;
-
-        /**
-         * Verifies a SignatureDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a SignatureDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns SignatureDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.SignatureDef;
-
-        /**
-         * Creates a plain object from a SignatureDef message. Also converts values to other types if specified.
-         * @param message SignatureDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.SignatureDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this SignatureDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.SignatureDef;
     }
 
     /** Properties of an AssetFileDef. */
@@ -2224,9 +1024,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new AssetFileDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IAssetFileDef);
+        constructor(p?: tensorflow.IAssetFileDef);
 
         /** AssetFileDef tensorInfo. */
         public tensorInfo?: (tensorflow.ITensorInfo|null);
@@ -2235,74 +1035,14 @@ export namespace tensorflow {
         public filename: string;
 
         /**
-         * Creates a new AssetFileDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns AssetFileDef instance
-         */
-        public static create(properties?: tensorflow.IAssetFileDef): tensorflow.AssetFileDef;
-
-        /**
-         * Encodes the specified AssetFileDef message. Does not implicitly {@link tensorflow.AssetFileDef.verify|verify} messages.
-         * @param message AssetFileDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IAssetFileDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified AssetFileDef message, length delimited. Does not implicitly {@link tensorflow.AssetFileDef.verify|verify} messages.
-         * @param message AssetFileDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IAssetFileDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes an AssetFileDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns AssetFileDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.AssetFileDef;
-
-        /**
-         * Decodes an AssetFileDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns AssetFileDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.AssetFileDef;
-
-        /**
-         * Verifies an AssetFileDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates an AssetFileDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns AssetFileDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.AssetFileDef;
-
-        /**
-         * Creates a plain object from an AssetFileDef message. Also converts values to other types if specified.
-         * @param message AssetFileDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.AssetFileDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this AssetFileDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.AssetFileDef;
     }
 
     /** Properties of an OpDef. */
@@ -2347,9 +1087,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new OpDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IOpDef);
+        constructor(p?: tensorflow.IOpDef);
 
         /** OpDef name. */
         public name: string;
@@ -2385,74 +1125,14 @@ export namespace tensorflow {
         public allowsUninitializedInput: boolean;
 
         /**
-         * Creates a new OpDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns OpDef instance
-         */
-        public static create(properties?: tensorflow.IOpDef): tensorflow.OpDef;
-
-        /**
-         * Encodes the specified OpDef message. Does not implicitly {@link tensorflow.OpDef.verify|verify} messages.
-         * @param message OpDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IOpDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified OpDef message, length delimited. Does not implicitly {@link tensorflow.OpDef.verify|verify} messages.
-         * @param message OpDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IOpDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes an OpDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns OpDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.OpDef;
-
-        /**
-         * Decodes an OpDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns OpDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.OpDef;
-
-        /**
-         * Verifies an OpDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates an OpDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns OpDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.OpDef;
-
-        /**
-         * Creates a plain object from an OpDef message. Also converts values to other types if specified.
-         * @param message OpDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.OpDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this OpDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.OpDef;
     }
 
     namespace OpDef {
@@ -2487,9 +1167,9 @@ export namespace tensorflow {
 
             /**
              * Constructs a new ArgDef.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.OpDef.IArgDef);
+            constructor(p?: tensorflow.OpDef.IArgDef);
 
             /** ArgDef name. */
             public name: string;
@@ -2513,74 +1193,14 @@ export namespace tensorflow {
             public isRef: boolean;
 
             /**
-             * Creates a new ArgDef instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns ArgDef instance
-             */
-            public static create(properties?: tensorflow.OpDef.IArgDef): tensorflow.OpDef.ArgDef;
-
-            /**
-             * Encodes the specified ArgDef message. Does not implicitly {@link tensorflow.OpDef.ArgDef.verify|verify} messages.
-             * @param message ArgDef message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.OpDef.IArgDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified ArgDef message, length delimited. Does not implicitly {@link tensorflow.OpDef.ArgDef.verify|verify} messages.
-             * @param message ArgDef message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.OpDef.IArgDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes an ArgDef message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns ArgDef
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.OpDef.ArgDef;
-
-            /**
-             * Decodes an ArgDef message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns ArgDef
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.OpDef.ArgDef;
-
-            /**
-             * Verifies an ArgDef message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates an ArgDef message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns ArgDef
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.OpDef.ArgDef;
-
-            /**
-             * Creates a plain object from an ArgDef message. Also converts values to other types if specified.
-             * @param message ArgDef
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.OpDef.ArgDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this ArgDef to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.OpDef.ArgDef;
         }
 
         /** Properties of an AttrDef. */
@@ -2613,9 +1233,9 @@ export namespace tensorflow {
 
             /**
              * Constructs a new AttrDef.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.OpDef.IAttrDef);
+            constructor(p?: tensorflow.OpDef.IAttrDef);
 
             /** AttrDef name. */
             public name: string;
@@ -2639,74 +1259,14 @@ export namespace tensorflow {
             public allowedValues?: (tensorflow.IAttrValue|null);
 
             /**
-             * Creates a new AttrDef instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns AttrDef instance
-             */
-            public static create(properties?: tensorflow.OpDef.IAttrDef): tensorflow.OpDef.AttrDef;
-
-            /**
-             * Encodes the specified AttrDef message. Does not implicitly {@link tensorflow.OpDef.AttrDef.verify|verify} messages.
-             * @param message AttrDef message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.OpDef.IAttrDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified AttrDef message, length delimited. Does not implicitly {@link tensorflow.OpDef.AttrDef.verify|verify} messages.
-             * @param message AttrDef message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.OpDef.IAttrDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes an AttrDef message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns AttrDef
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.OpDef.AttrDef;
-
-            /**
-             * Decodes an AttrDef message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns AttrDef
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.OpDef.AttrDef;
-
-            /**
-             * Verifies an AttrDef message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates an AttrDef message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns AttrDef
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.OpDef.AttrDef;
-
-            /**
-             * Creates a plain object from an AttrDef message. Also converts values to other types if specified.
-             * @param message AttrDef
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.OpDef.AttrDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this AttrDef to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.OpDef.AttrDef;
         }
 
         /** Properties of an OpDeprecation. */
@@ -2724,9 +1284,9 @@ export namespace tensorflow {
 
             /**
              * Constructs a new OpDeprecation.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.OpDef.IOpDeprecation);
+            constructor(p?: tensorflow.OpDef.IOpDeprecation);
 
             /** OpDeprecation version. */
             public version: number;
@@ -2735,74 +1295,14 @@ export namespace tensorflow {
             public explanation: string;
 
             /**
-             * Creates a new OpDeprecation instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns OpDeprecation instance
-             */
-            public static create(properties?: tensorflow.OpDef.IOpDeprecation): tensorflow.OpDef.OpDeprecation;
-
-            /**
-             * Encodes the specified OpDeprecation message. Does not implicitly {@link tensorflow.OpDef.OpDeprecation.verify|verify} messages.
-             * @param message OpDeprecation message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.OpDef.IOpDeprecation, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified OpDeprecation message, length delimited. Does not implicitly {@link tensorflow.OpDef.OpDeprecation.verify|verify} messages.
-             * @param message OpDeprecation message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.OpDef.IOpDeprecation, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes an OpDeprecation message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns OpDeprecation
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.OpDef.OpDeprecation;
-
-            /**
-             * Decodes an OpDeprecation message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns OpDeprecation
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.OpDef.OpDeprecation;
-
-            /**
-             * Verifies an OpDeprecation message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates an OpDeprecation message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns OpDeprecation
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.OpDef.OpDeprecation;
-
-            /**
-             * Creates a plain object from an OpDeprecation message. Also converts values to other types if specified.
-             * @param message OpDeprecation
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.OpDef.OpDeprecation, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this OpDeprecation to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.OpDef.OpDeprecation;
         }
     }
 
@@ -2818,82 +1318,22 @@ export namespace tensorflow {
 
         /**
          * Constructs a new OpList.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IOpList);
+        constructor(p?: tensorflow.IOpList);
 
         /** OpList op. */
         public op: tensorflow.IOpDef[];
 
         /**
-         * Creates a new OpList instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns OpList instance
-         */
-        public static create(properties?: tensorflow.IOpList): tensorflow.OpList;
-
-        /**
-         * Encodes the specified OpList message. Does not implicitly {@link tensorflow.OpList.verify|verify} messages.
-         * @param message OpList message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IOpList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified OpList message, length delimited. Does not implicitly {@link tensorflow.OpList.verify|verify} messages.
-         * @param message OpList message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IOpList, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes an OpList message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns OpList
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.OpList;
-
-        /**
-         * Decodes an OpList message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns OpList
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.OpList;
-
-        /**
-         * Verifies an OpList message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates an OpList message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns OpList
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.OpList;
-
-        /**
-         * Creates a plain object from an OpList message. Also converts values to other types if specified.
-         * @param message OpList
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.OpList, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this OpList to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.OpList;
     }
 
     /** Properties of a MetaGraphDef. */
@@ -2923,9 +1363,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new MetaGraphDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IMetaGraphDef);
+        constructor(p?: tensorflow.IMetaGraphDef);
 
         /** MetaGraphDef metaInfoDef. */
         public metaInfoDef?: (tensorflow.MetaGraphDef.IMetaInfoDef|null);
@@ -2946,74 +1386,14 @@ export namespace tensorflow {
         public assetFileDef: tensorflow.IAssetFileDef[];
 
         /**
-         * Creates a new MetaGraphDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns MetaGraphDef instance
-         */
-        public static create(properties?: tensorflow.IMetaGraphDef): tensorflow.MetaGraphDef;
-
-        /**
-         * Encodes the specified MetaGraphDef message. Does not implicitly {@link tensorflow.MetaGraphDef.verify|verify} messages.
-         * @param message MetaGraphDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IMetaGraphDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified MetaGraphDef message, length delimited. Does not implicitly {@link tensorflow.MetaGraphDef.verify|verify} messages.
-         * @param message MetaGraphDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IMetaGraphDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a MetaGraphDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns MetaGraphDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.MetaGraphDef;
-
-        /**
-         * Decodes a MetaGraphDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns MetaGraphDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.MetaGraphDef;
-
-        /**
-         * Verifies a MetaGraphDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a MetaGraphDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns MetaGraphDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.MetaGraphDef;
-
-        /**
-         * Creates a plain object from a MetaGraphDef message. Also converts values to other types if specified.
-         * @param message MetaGraphDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.MetaGraphDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this MetaGraphDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.MetaGraphDef;
     }
 
     namespace MetaGraphDef {
@@ -3045,9 +1425,9 @@ export namespace tensorflow {
 
             /**
              * Constructs a new MetaInfoDef.
-             * @param [properties] Properties to set
+             * @param [p] Properties to set
              */
-            constructor(properties?: tensorflow.MetaGraphDef.IMetaInfoDef);
+            constructor(p?: tensorflow.MetaGraphDef.IMetaInfoDef);
 
             /** MetaInfoDef metaGraphVersion. */
             public metaGraphVersion: string;
@@ -3068,74 +1448,14 @@ export namespace tensorflow {
             public tensorflowGitVersion: string;
 
             /**
-             * Creates a new MetaInfoDef instance using the specified properties.
-             * @param [properties] Properties to set
-             * @returns MetaInfoDef instance
-             */
-            public static create(properties?: tensorflow.MetaGraphDef.IMetaInfoDef): tensorflow.MetaGraphDef.MetaInfoDef;
-
-            /**
-             * Encodes the specified MetaInfoDef message. Does not implicitly {@link tensorflow.MetaGraphDef.MetaInfoDef.verify|verify} messages.
-             * @param message MetaInfoDef message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: tensorflow.MetaGraphDef.IMetaInfoDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
-             * Encodes the specified MetaInfoDef message, length delimited. Does not implicitly {@link tensorflow.MetaGraphDef.MetaInfoDef.verify|verify} messages.
-             * @param message MetaInfoDef message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encodeDelimited(message: tensorflow.MetaGraphDef.IMetaInfoDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-            /**
              * Decodes a MetaInfoDef message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
+             * @param r Reader or buffer to decode from
+             * @param [l] Message length if known beforehand
              * @returns MetaInfoDef
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.MetaGraphDef.MetaInfoDef;
-
-            /**
-             * Decodes a MetaInfoDef message from the specified reader or buffer, length delimited.
-             * @param reader Reader or buffer to decode from
-             * @returns MetaInfoDef
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.MetaGraphDef.MetaInfoDef;
-
-            /**
-             * Verifies a MetaInfoDef message.
-             * @param message Plain object to verify
-             * @returns `null` if valid, otherwise the reason why it is not
-             */
-            public static verify(message: { [k: string]: any }): (string|null);
-
-            /**
-             * Creates a MetaInfoDef message from a plain object. Also converts values to their respective internal types.
-             * @param object Plain object
-             * @returns MetaInfoDef
-             */
-            public static fromObject(object: { [k: string]: any }): tensorflow.MetaGraphDef.MetaInfoDef;
-
-            /**
-             * Creates a plain object from a MetaInfoDef message. Also converts values to other types if specified.
-             * @param message MetaInfoDef
-             * @param [options] Conversion options
-             * @returns Plain object
-             */
-            public static toObject(message: tensorflow.MetaGraphDef.MetaInfoDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-            /**
-             * Converts this MetaInfoDef to JSON.
-             * @returns JSON object
-             */
-            public toJSON(): { [k: string]: any };
+            public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.MetaGraphDef.MetaInfoDef;
         }
     }
 
@@ -3154,9 +1474,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new SavedModel.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.ISavedModel);
+        constructor(p?: tensorflow.ISavedModel);
 
         /** SavedModel savedModelSchemaVersion. */
         public savedModelSchemaVersion: (number|Long);
@@ -3165,74 +1485,14 @@ export namespace tensorflow {
         public metaGraphs: tensorflow.IMetaGraphDef[];
 
         /**
-         * Creates a new SavedModel instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns SavedModel instance
-         */
-        public static create(properties?: tensorflow.ISavedModel): tensorflow.SavedModel;
-
-        /**
-         * Encodes the specified SavedModel message. Does not implicitly {@link tensorflow.SavedModel.verify|verify} messages.
-         * @param message SavedModel message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.ISavedModel, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified SavedModel message, length delimited. Does not implicitly {@link tensorflow.SavedModel.verify|verify} messages.
-         * @param message SavedModel message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.ISavedModel, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a SavedModel message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns SavedModel
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.SavedModel;
-
-        /**
-         * Decodes a SavedModel message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns SavedModel
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.SavedModel;
-
-        /**
-         * Verifies a SavedModel message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a SavedModel message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns SavedModel
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.SavedModel;
-
-        /**
-         * Creates a plain object from a SavedModel message. Also converts values to other types if specified.
-         * @param message SavedModel
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.SavedModel, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this SavedModel to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.SavedModel;
     }
 
     /** Properties of a FunctionDefLibrary. */
@@ -3250,9 +1510,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new FunctionDefLibrary.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IFunctionDefLibrary);
+        constructor(p?: tensorflow.IFunctionDefLibrary);
 
         /** FunctionDefLibrary function. */
         public function: tensorflow.IFunctionDef[];
@@ -3261,74 +1521,14 @@ export namespace tensorflow {
         public gradient: tensorflow.IGradientDef[];
 
         /**
-         * Creates a new FunctionDefLibrary instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns FunctionDefLibrary instance
-         */
-        public static create(properties?: tensorflow.IFunctionDefLibrary): tensorflow.FunctionDefLibrary;
-
-        /**
-         * Encodes the specified FunctionDefLibrary message. Does not implicitly {@link tensorflow.FunctionDefLibrary.verify|verify} messages.
-         * @param message FunctionDefLibrary message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IFunctionDefLibrary, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified FunctionDefLibrary message, length delimited. Does not implicitly {@link tensorflow.FunctionDefLibrary.verify|verify} messages.
-         * @param message FunctionDefLibrary message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IFunctionDefLibrary, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a FunctionDefLibrary message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns FunctionDefLibrary
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.FunctionDefLibrary;
-
-        /**
-         * Decodes a FunctionDefLibrary message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns FunctionDefLibrary
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.FunctionDefLibrary;
-
-        /**
-         * Verifies a FunctionDefLibrary message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a FunctionDefLibrary message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns FunctionDefLibrary
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.FunctionDefLibrary;
-
-        /**
-         * Creates a plain object from a FunctionDefLibrary message. Also converts values to other types if specified.
-         * @param message FunctionDefLibrary
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.FunctionDefLibrary, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this FunctionDefLibrary to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.FunctionDefLibrary;
     }
 
     /** Properties of a FunctionDef. */
@@ -3352,9 +1552,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new FunctionDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IFunctionDef);
+        constructor(p?: tensorflow.IFunctionDef);
 
         /** FunctionDef signature. */
         public signature?: (tensorflow.IOpDef|null);
@@ -3369,74 +1569,14 @@ export namespace tensorflow {
         public ret: { [k: string]: string };
 
         /**
-         * Creates a new FunctionDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns FunctionDef instance
-         */
-        public static create(properties?: tensorflow.IFunctionDef): tensorflow.FunctionDef;
-
-        /**
-         * Encodes the specified FunctionDef message. Does not implicitly {@link tensorflow.FunctionDef.verify|verify} messages.
-         * @param message FunctionDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IFunctionDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified FunctionDef message, length delimited. Does not implicitly {@link tensorflow.FunctionDef.verify|verify} messages.
-         * @param message FunctionDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IFunctionDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a FunctionDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns FunctionDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.FunctionDef;
-
-        /**
-         * Decodes a FunctionDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns FunctionDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.FunctionDef;
-
-        /**
-         * Verifies a FunctionDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a FunctionDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns FunctionDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.FunctionDef;
-
-        /**
-         * Creates a plain object from a FunctionDef message. Also converts values to other types if specified.
-         * @param message FunctionDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.FunctionDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this FunctionDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.FunctionDef;
     }
 
     /** Properties of a GradientDef. */
@@ -3454,9 +1594,9 @@ export namespace tensorflow {
 
         /**
          * Constructs a new GradientDef.
-         * @param [properties] Properties to set
+         * @param [p] Properties to set
          */
-        constructor(properties?: tensorflow.IGradientDef);
+        constructor(p?: tensorflow.IGradientDef);
 
         /** GradientDef functionName. */
         public functionName: string;
@@ -3465,73 +1605,13 @@ export namespace tensorflow {
         public gradientFunc: string;
 
         /**
-         * Creates a new GradientDef instance using the specified properties.
-         * @param [properties] Properties to set
-         * @returns GradientDef instance
-         */
-        public static create(properties?: tensorflow.IGradientDef): tensorflow.GradientDef;
-
-        /**
-         * Encodes the specified GradientDef message. Does not implicitly {@link tensorflow.GradientDef.verify|verify} messages.
-         * @param message GradientDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: tensorflow.IGradientDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
-         * Encodes the specified GradientDef message, length delimited. Does not implicitly {@link tensorflow.GradientDef.verify|verify} messages.
-         * @param message GradientDef message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encodeDelimited(message: tensorflow.IGradientDef, writer?: $protobuf.Writer): $protobuf.Writer;
-
-        /**
          * Decodes a GradientDef message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
+         * @param r Reader or buffer to decode from
+         * @param [l] Message length if known beforehand
          * @returns GradientDef
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader|Uint8Array), length?: number): tensorflow.GradientDef;
-
-        /**
-         * Decodes a GradientDef message from the specified reader or buffer, length delimited.
-         * @param reader Reader or buffer to decode from
-         * @returns GradientDef
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decodeDelimited(reader: ($protobuf.Reader|Uint8Array)): tensorflow.GradientDef;
-
-        /**
-         * Verifies a GradientDef message.
-         * @param message Plain object to verify
-         * @returns `null` if valid, otherwise the reason why it is not
-         */
-        public static verify(message: { [k: string]: any }): (string|null);
-
-        /**
-         * Creates a GradientDef message from a plain object. Also converts values to their respective internal types.
-         * @param object Plain object
-         * @returns GradientDef
-         */
-        public static fromObject(object: { [k: string]: any }): tensorflow.GradientDef;
-
-        /**
-         * Creates a plain object from a GradientDef message. Also converts values to other types if specified.
-         * @param message GradientDef
-         * @param [options] Conversion options
-         * @returns Plain object
-         */
-        public static toObject(message: tensorflow.GradientDef, options?: $protobuf.IConversionOptions): { [k: string]: any };
-
-        /**
-         * Converts this GradientDef to JSON.
-         * @returns JSON object
-         */
-        public toJSON(): { [k: string]: any };
+        public static decode(r: ($protobuf.Reader|Uint8Array), l?: number): tensorflow.GradientDef;
     }
 }
