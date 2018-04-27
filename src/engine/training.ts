@@ -1172,7 +1172,7 @@ export class Model extends Container {
       batchSize = 32;
     }
     if (epochs == null) {
-      epochs = 100;
+      epochs = 1;
     }
     if (shuffle == null) {
       shuffle = true;
