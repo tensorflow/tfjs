@@ -54,7 +54,7 @@
     "make-version": "sh -c ./scripts/make-version"
   },
   "browserify-shim": {
-    "deeplearn": "global:dl"
+    "@tensorflow/tfjs-core": "global:tfc"
   },
   "dependencies": {
     "@types/long": "~3.0.32",
