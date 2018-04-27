@@ -281,6 +281,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
   });
 
+  it('tf.tensor2d() requires shape to be of length 2', () => {
+    // tslint:disable-next-line:no-any
+    const shape: any = [4];
+    expect(() => tf.tensor2d([1, 2, 3, 4], shape)).toThrowError();
+  });
+
   it('tf.tensor2d() from number[][], but shape does not match', () => {
     // Actual shape is [2, 3].
     expect(() => tf.tensor2d([[1, 2, 3], [4, 5, 6]], [3, 2])).toThrowError();
@@ -305,6 +311,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(() => tf.tensor3d([1, 2, 3, 4])).toThrowError();
   });
 
+  it('tf.tensor3d() requires shape to be of length 3', () => {
+    // tslint:disable-next-line:no-any
+    const shape: any = [4, 1];
+    expect(() => tf.tensor3d([1, 2, 3, 4], shape)).toThrowError();
+  });
+
   it('tensor4d() from number[][][][]', () => {
     const a = tf.tensor4d([[[[1]], [[2]]], [[[4]], [[5]]]], [2, 2, 1, 1]);
     expectArraysClose(a, [1, 2, 4, 5]);
@@ -320,6 +332,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('tf.tensor4d() from number[], but no shape throws error', () => {
     expect(() => tf.tensor4d([1, 2, 3, 4])).toThrowError();
+  });
+
+  it('tf.tensor4d() requires shape to be of length 4', () => {
+    // tslint:disable-next-line:no-any
+    const shape: any = [4, 1];
+    expect(() => tf.tensor4d([1, 2, 3, 4], shape)).toThrowError();
   });
 
   it('default dtype', () => {
