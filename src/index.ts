@@ -26,11 +26,10 @@ import * as environment from './environment';
 import {Environment} from './environment';
 // Serialization.
 import * as io from './io/io';
-import * as gpgpu_util from './kernels/webgl/gpgpu_util';
-import * as webgl_util from './kernels/webgl/webgl_util';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
+import * as webgl from './webgl';
 
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
@@ -64,14 +63,7 @@ export {doc} from './doc';
 export const nextFrame = BrowserUtil.nextFrame;
 
 // Second level exports.
-export {environment, io, test_util, util};
-
-// WebGL specific utils.
-export const webgl = {
-  webgl_util,
-  gpgpu_util
-};
-export {WebGLTimingInfo} from './kernels/backend_webgl';
+export {environment, io, test_util, util, webgl};
 
 // Backend specific.
 export {KernelBackend, BackendTimingInfo} from './kernels/backend';

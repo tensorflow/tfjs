@@ -16,13 +16,13 @@
  */
 
 import * as tf from './index';
-import {CPU_ENVS, WEBGL_ENVS} from './test_util';
 import {describeWithFlags} from './jasmine_util';
+import {CPU_ENVS, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('time webgl', WEBGL_ENVS, () => {
   it('upload + compute', async () => {
     const a = tf.zeros([10, 10]);
-    const time = await tf.time(() => a.square()) as tf.WebGLTimingInfo;
+    const time = await tf.time(() => a.square()) as tf.webgl.WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs === 0);
     expect(time.kernelMs > 0);
@@ -32,7 +32,7 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
   it('upload + compute + dataSync', async () => {
     const a = tf.zeros([10, 10]);
     const time =
-        await tf.time(() => a.square().dataSync()) as tf.WebGLTimingInfo;
+        await tf.time(() => a.square().dataSync()) as tf.webgl.WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
     expect(time.kernelMs > 0);
@@ -42,7 +42,7 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
   it('upload + compute + data', async () => {
     const a = tf.zeros([10, 10]);
     const time = await tf.time(async () => await a.square().data()) as
-        tf.WebGLTimingInfo;
+        tf.webgl.WebGLTimingInfo;
     expect(time.uploadWaitMs > 0);
     expect(time.downloadWaitMs > 0);
     expect(time.kernelMs > 0);
@@ -53,7 +53,7 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
     const a = tf.zeros([10, 10]);
     // Pre-upload a on gpu.
     a.square();
-    const time = await tf.time(() => a.sqrt()) as tf.WebGLTimingInfo;
+    const time = await tf.time(() => a.sqrt()) as tf.webgl.WebGLTimingInfo;
     // The tensor was already on gpu.
     expect(time.uploadWaitMs === 0);
     expect(time.downloadWaitMs === 0);
