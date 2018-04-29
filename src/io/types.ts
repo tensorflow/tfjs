@@ -81,7 +81,7 @@ export interface WeightsManifestEntry {
   dtype: 'float32'|'int32'|'bool';
 
   /**
-   * Information for dequantizatio of the weight.
+   * Information for dequantization of the weight.
    */
   quantization?: {
     scale: number,           // The scaling constant to multiply by.
@@ -154,12 +154,12 @@ export interface ModelArtifacts {
 }
 
 /**
- * Type definition for handlers of loading opertaions.
+ * Type definition for handlers of loading operations.
  */
 export type LoadHandler = () => Promise<ModelArtifacts>;
 
 /**
- * Type definition for handlers of saving opertaions.
+ * Type definition for handlers of saving operations.
  */
 export type SaveHandler = (modelArtifact: ModelArtifacts) =>
     Promise<SaveResult>;
