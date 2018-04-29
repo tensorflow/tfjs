@@ -175,6 +175,14 @@ export class Engine implements TensorManager {
     // to do unconditionally.
   }
 
+  disposeVariables(): void {
+    for (const varName in this.registeredVariables) {
+      const v = this.registeredVariables[varName];
+      this.disposeTensor(v);
+      delete this.registeredVariables[varName];
+    }
+  }
+
   memory(): MemoryInfo {
     const info = this.backend.memory() as MemoryInfo;
     info.numTensors = this.numTensors;

@@ -238,6 +238,14 @@ export class Environment {
   }
 
   /**
+   * Dispose all variables kept in backend engine.
+   */
+  @doc({heading: 'Environment'})
+  static disposeVariables(): void {
+    ENV.engine.disposeVariables();
+  }
+
+  /**
    * Returns memory info at the current time in the program. The result is an
    * object with the following properties:
    *
