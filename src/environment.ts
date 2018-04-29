@@ -351,7 +351,7 @@ export class Environment {
   /**
    * Registers a global backend. The registration should happen when importing
    * a module file (e.g. when importing `backend_webgl.ts`), and is used for
-   * modular builds (e.g. custom deeplearn.js bundle with only webgl support).
+   * modular builds (e.g. custom tfjs bundle with only webgl support).
    *
    * @param factory: The backend factory function. When called, it should
    * return an instance of the backend.
