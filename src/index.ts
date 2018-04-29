@@ -55,6 +55,7 @@ export * from './globals';
 export {ENV, Environment, Features} from './environment';
 export const setBackend = Environment.setBackend;
 export const getBackend = Environment.getBackend;
+export const disposeVariables = Environment.disposeVariables;
 export const memory = Environment.memory;
 export {TimingInfo} from './engine';
 export {version as version_core};
