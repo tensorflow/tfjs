@@ -16,11 +16,13 @@
  */
 
 import {decodeWeights, encodeWeights} from './io_utils';
+import {browserLocalStorage} from './local_storage';
 // tslint:disable-next-line:max-line-length
 import {IOHandler, LoadHandler, ModelArtifacts, SaveConfig, SaveHandler, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeights} from './weights_loader';
 
 export {
+  browserLocalStorage,
   decodeWeights,
   encodeWeights,
   IOHandler,

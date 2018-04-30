@@ -106,9 +106,9 @@ export interface SaveConfig {
  */
 export interface SaveResult {
   /**
-   * Whether the saving succeeded.
+   * Information about the model artifacts saved.
    */
-  success: boolean;
+  modelArtifactsInfo: ModelArtifactsInfo;
 
   /**
    * HTTP responses from the server that handled the model-saving request (if
@@ -120,6 +120,39 @@ export interface SaveResult {
    * Error messages and related data (if any).
    */
   errors?: Array<{}|string>;
+}
+
+export interface ModelArtifactsInfo {
+  /**
+   * Timestamp for when the model is saved.
+   */
+  dateSaved: Date;
+
+  /**
+   * Type of the model topology
+   *
+   * Possible values:
+   *   - KerasJSON: Keras-style JSON config (human-readable string).
+   *   - GraphDef: TensorFlow
+   *     [GraphDef](https://www.tensorflow.org/extend/tool_developers/#graphdef)
+   *     protocal buffer (binary).
+   */
+  modelTopologyType: 'KerasJSON'|'GraphDef';
+
+  /**
+   * Size of model topology (Keras JSON or GraphDef), in bytes.
+   */
+  modelTopologyBytes?: number;
+
+  /**
+   * Size of weight specification or manifest, in bytes.
+   */
+  weightSpecsBytes?: number;
+
+  /**
+   * Size of weight value data, in bytes.
+   */
+  weightDataBytes?: number;
 }
 
 /**

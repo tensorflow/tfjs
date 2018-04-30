@@ -16,12 +16,12 @@
  */
 
 import * as tf from '../index';
-
 import {scalar, tensor1d, tensor2d} from '../ops/ops';
 import {expectArraysEqual} from '../test_util';
 import {NamedTensorMap} from '../types';
 
-import {concatenateTypedArrays} from './io_utils';
+// tslint:disable-next-line:max-line-length
+import {arrayBufferToBase64String, base64StringToArrayBuffer, concatenateTypedArrays, stringByteLength} from './io_utils';
 
 describe('concatenateTypedArrays', () => {
   it('Single float arrays', () => {
@@ -309,5 +309,40 @@ describe('decodeWeights', () => {
     ];
     expect(() => tf.io.decodeWeights(buffer, specs))
         .toThrowError(/Unsupported dtype in weight \'x\': int16/);
+  });
+});
+
+describe('stringByteLength', () => {
+  it('ASCII only', () => {
+    const str = '_Lorem ipsum 1337!';
+    expect(stringByteLength(str)).toEqual(str.length);
+  });
+
+  it('Mixed narrow and wide chars', () => {
+    const str = 'aЖ文1';
+    expect(stringByteLength(str.slice(0, 1))).toEqual(1);
+    expect(stringByteLength(str.slice(0, 2))).toEqual(3);
+    expect(stringByteLength(str.slice(0, 3))).toEqual(6);
+    expect(stringByteLength(str.slice(0, 4))).toEqual(7);
+  });
+});
+
+describe('arrayBufferToBase64String-base64StringToArrayBuffer', () => {
+  it('Round trip', () => {
+    // Generate some semi-random binary data.
+    const x = [];
+    for (let k = 0; k < 2; ++k) {
+      for (let i = 0; i < 254; ++i) {
+        x.push(i + k);
+      }
+      for (let i = 254; i >= 0; --i) {
+        x.push(i + k);
+      }
+    }
+    const buffer = Uint8Array.from(x).buffer;
+    const base64Str = arrayBufferToBase64String(buffer);
+    const decoded =
+        Array.from(new Uint8Array(base64StringToArrayBuffer(base64Str)));
+    expect(decoded).toEqual(x);
   });
 });
