@@ -1647,9 +1647,9 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
     denseLayer.apply(inputTensor);
     const namedWeightsMap: NamedTensorMap = {};
-    namedWeightsMap[denseLayer.weights[0].name] =
+    namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
-    namedWeightsMap[denseLayer.weights[1].name] = tensor1d([10, 20]);
+    namedWeightsMap[denseLayer.weights[1].originalName] = tensor1d([10, 20]);
     loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer]);
     expectTensorsClose(
         denseLayer.weights[0].read(), tensor2d([1, 2, 3, 4, 5, 6], [3, 2]));
@@ -1661,7 +1661,7 @@ describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
         tfl.layers.dense({units: 2, useBias: true, name: 'dense_layer'});
     denseLayer.apply(inputTensor);
     const namedWeightsMap: NamedTensorMap = {};
-    namedWeightsMap[denseLayer.weights[0].name] =
+    namedWeightsMap[denseLayer.weights[0].originalName] =
         tensor2d([1, 2, 3, 4, 5, 6], [3, 2]);
     expect(() => loadWeightsFromNamedTensorMap(namedWeightsMap, [denseLayer]))
         .toThrowError(/1 of 2 weights are not set: .*bias.*/);

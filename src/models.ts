@@ -11,7 +11,7 @@
 /* Original source keras/models.py */
 
 // tslint:disable:max-line-length
-import {doc, loadWeights, Scalar, Tensor, WeightsManifestConfig} from '@tensorflow/tfjs-core';
+import {doc, io, Scalar, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {History} from './callbacks';
@@ -54,7 +54,7 @@ export async function modelFromJSON(
     // file that was loaded.  These should match the keys of the weight
     // manifest.
     const weightValues =
-        await loadWeights(
+        await io.loadWeights(
             modelAndWeightsConfig.weightsManifest,
             modelAndWeightsConfig.pathPrefix,
             model.weights.map(weight => weight.originalName)) as NamedTensorMap;
@@ -62,7 +62,8 @@ export async function modelFromJSON(
     // Map the weights to the unique tensor names generated during model loading
     const uniqueWeightValues: NamedTensorMap = {};
     for (const weight of model.weights) {
-      uniqueWeightValues[weight.name] = weightValues[weight.originalName];
+      uniqueWeightValues[weight.originalName] =
+          weightValues[weight.originalName];
     }
 
     const skipMismatches: boolean = null;
@@ -91,7 +92,7 @@ export interface ModelAndWeightsConfig {
   /**
    * A weights manifest in TensorFlow.js format.
    */
-  weightsManifest?: WeightsManifestConfig;
+  weightsManifest?: io.WeightsManifestConfig;
 
   /**
    * Path to prepend to the paths in `weightManifest` before fetching.

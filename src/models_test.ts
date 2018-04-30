@@ -9,13 +9,20 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, Scalar, scalar, Tensor, WeightsManifestConfig, zeros} from '@tensorflow/tfjs-core';
+import {io, ones, Scalar, scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
+import {Model} from './engine/training';
 import * as tfl from './index';
 import {Reshape} from './layers/core';
+import {deserialize} from './layers/serialization';
 import {ModelAndWeightsConfig, modelFromJSON} from './models';
+import {ConfigDict, JsonDict} from './types';
+import {convertPythonicToTs} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {version as layersVersion} from './version';
+
+// tslint:enable:max-line-length
 
 describeMathCPU('model_from_json', () => {
   it('reconstitutes pythonic json string', done => {
@@ -105,13 +112,39 @@ describeMathCPU('model_from_json', () => {
   it('Serialization round-tripping', done => {
     modelFromJSON(fakeRoundtripModel)
         .then(model => {
-          const serializedModel = model.toJSON();
+          const serializedModel = model.toJSON() as string;
+          // toJSON() returns a string by default.
+          expect(typeof serializedModel).toEqual('string');
           const reparsedJson = JSON.parse(serializedModel);
           expect(reparsedJson['class_name'])
               .toEqual(fakeRoundtripModel.modelTopology['class_name']);
           // Intentionally skipping backend and keras_version fields.
           expect(reparsedJson['config'])
               .toEqual(fakeRoundtripModel.modelTopology['config']);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
+  it('toJSON with returnString = false', done => {
+    modelFromJSON(fakeRoundtripModel)
+        .then(model => {
+          const serializedModel = model.toJSON(null, false) as JsonDict;
+          expect(serializedModel['class_name'])
+              .toEqual(fakeRoundtripModel.modelTopology['class_name']);
+          expect(serializedModel['config'])
+              .toEqual(fakeRoundtripModel.modelTopology['config']);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
+  it('toJSON return value includes correct versions', done => {
+    modelFromJSON(fakeRoundtripModel)
+        .then(model => {
+          const serializedModel = model.toJSON(null, false) as JsonDict;
+          expect(serializedModel['keras_version'])
+              .toEqual(`tfjs-layers ${layersVersion}`);
         })
         .then(done)
         .catch(done.fail);
@@ -145,7 +178,7 @@ describeMathCPU('loadModel', () => {
         // Use a randomly generated layer name to prevent interaction with
         // other unit tests that load the same sample JSON.
         const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
-        const weightsManifest: WeightsManifestConfig = [
+        const weightsManifest: io.WeightsManifestConfig = [
           {
             'paths': ['weight_0'],
             'weights': [{
@@ -193,7 +226,7 @@ describeMathCPU('loadModel', () => {
     // Use a randomly generated layer name to prevent interaction with other
     // unit tests that load the same sample JSON.
     const denseLayerName = 'dense_' + Math.floor(Math.random() * 1e9);
-    const weightsManifest: WeightsManifestConfig = [
+    const weightsManifest: io.WeightsManifestConfig = [
       {
         'paths': ['weight_0'],
         'weights': [{
@@ -219,7 +252,7 @@ describeMathCPU('loadModel', () => {
         './weight_1': ones([32], 'float32').dataSync() as Float32Array,
       });
       const denseLayerName = 'dense_uniqueify';
-      const weightsManifest: WeightsManifestConfig = [
+      const weightsManifest: io.WeightsManifestConfig = [
         {
           'paths': ['weight_0'],
           'weights': [{
@@ -268,6 +301,19 @@ describeMathCPU('loadModel', () => {
     } catch (e) {
       done.fail(e.stack);
     }
+  });
+
+  it('Repeated saving and loading of Model works', () => {
+    const model1 = tfl.sequential();
+    model1.add(
+        tfl.layers.dense({units: 3, inputShape: [4], activation: 'relu'}));
+    model1.add(
+        tfl.layers.dense({units: 1, inputShape: [4], activation: 'sigmoid'}));
+    const json1 = model1.toJSON(null, false);
+    const model2 =
+        deserialize(convertPythonicToTs(json1) as ConfigDict) as Model;
+    const json2 = model2.toJSON(null, false);
+    expect(json2).toEqual(json1);
   });
 });
 
