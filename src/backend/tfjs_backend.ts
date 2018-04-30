@@ -432,6 +432,73 @@ export function sliceAlongLastAxis(
 }
 
 /**
+ * Do slicing along the sepcified axis.
+ * @param array input `Tensor`.
+ * @param start starting index, inclusive.
+ * @param size of the slice along the chosen axis.
+ * @param choose an axis.
+ * @returns result of the slicing.
+ * @throws ValueError: If `array` is of an unsupported subtype of `Tensor`.
+ */
+export function sliceAlongAxis(
+    array: Tensor, start: number, size: number, axis: number): Tensor {
+  switch (array.rank) {
+    case 1:
+      return tfc.slice1d(array as Tensor1D, start, size);
+    case 2:
+      switch (axis) {
+        case 1:
+          return sliceAlongFirstAxis(array, start, size);
+        case 2:
+          return sliceAlongLastAxis(array, start, size);
+        default:
+          throw new ValueError(
+              `The axis is not within the rank of the tensor ` +
+              `${axis}`);
+      }
+    case 3:
+      switch (axis) {
+        case 1:
+          return sliceAlongFirstAxis(array, start, size);
+        case 2:
+          return tfc.slice3d(
+              array as Tensor3D, [0, start, 0],
+              [array.shape[0], size, array.shape[2]]);
+        case 3:
+          return sliceAlongLastAxis(array, start, size);
+        default:
+          throw new ValueError(
+              `The axis is not within the rank of the tensor ` +
+              `${axis}`);
+      }
+    case 4:
+      switch (axis) {
+        case 1:
+          return sliceAlongFirstAxis(array, start, size);
+        case 2:
+          return tfc.slice4d(
+              array as Tensor4D, [0, start, 0, 0],
+              [array.shape[0], size, array.shape[2], array.shape[3]]);
+        case 3:
+          return tfc.slice4d(
+              array as Tensor4D, [0, 0, start, 0],
+              [array.shape[0], array.shape[1], size, array.shape[3]]);
+        case 4:
+          return sliceAlongLastAxis(array, start, size);
+        default:
+          throw new ValueError(
+              `The axis is not within the rank of the tensor ` +
+              `${axis}`);
+      }
+    default:
+      throw new ValueError(
+          `sliceAlongLastAxis() received an unsupported tensor rank: ` +
+          `${array.rank}`);
+  }
+}
+
+
+/**
  * Non-broadcasting batch normalization for use in training (not inference).
  *
  * The input is normalized to zero mean and unit variance along the
