@@ -788,3 +788,130 @@ export class Conv1D extends Conv {
   }
 }
 generic_utils.ClassNameMap.register(Conv1D);
+
+export interface Cropping2DLayerConfig extends LayerConfig {
+  /**
+   * Dimension of the corpping along the width and the height.
+   * - If integer: the same symmetric cropping
+   *  is applied to width and height.
+   * - If list of 2 integers:
+   *   interpreted as two different
+   *   symmetric cropping values for height and width:
+   *   `[symmetric_height_crop, symmetric_width_crop]`.
+   * - If a list of 2 list of 2 integers:
+   *   interpreted as
+   *   `[[top_crop, bottom_crop], [left_crop, right_crop]]`
+   */
+  cropping: number|[number, number]|[[number, number], [number, number]];
+
+  /**
+   * Format of the data, which determines the ordering of the dimensions in
+   * the inputs.
+   *
+   * `channels_last` corresponds to inputs with shape
+   *   `(batch, ..., channels)`
+   *
+   *  `channels_first` corresponds to inputs with shape `(batch, channels,
+   * ...)`.
+   *
+   * Defaults to `channels_last`.
+   */
+  dataFormat?: DataFormat;
+}
+
+/**
+ * Cropping layer for 2D input (e.g., image).
+ *
+ * This layer can crop an input
+ * at the top, bottom, left and right side of an image tensor.
+ *
+ * Input shape:
+ *   4D tensor with shape:
+ *   - If `dataFormat` is `"channelsLast"`:
+ *     `[batch, rows, cols, channels]`
+ *   - If `data_format` is `"channels_first"`:
+ *     `[batch, channels, rows, cols]`.
+ *
+ * Output shape:
+ *   4D with shape:
+ *   - If `dataFormat` is `"channelsLast"`:
+ *     `[batch, croppedRows, croppedCols, channels]`
+ *    - If `dataFormat` is `"channelsFirst"`:
+ *     `[batch, channels, croppedRows, croppedCols]`.
+ *
+ * Examples
+ * ```js
+ *
+ * const model = tf.sequential();
+ * model.add(tf.layers.cropping2D({cropping:[[2, 2], [2, 2]],
+ *                                inputShape: [128, 128, 3]}));
+ * //now output shape is [batch, 124, 124, 3]
+ * ```
+ */
+export class Cropping2D extends Layer {
+  static className = 'Cropping2D';
+  protected readonly cropping: [[number, number], [number, number]];
+  protected readonly dataFormat: DataFormat;
+
+  constructor(config: Cropping2DLayerConfig) {
+    super(config);
+    if (typeof config.cropping === 'number')
+      this.cropping = [
+        [config.cropping, config.cropping], [config.cropping, config.cropping]
+      ];
+    else if (typeof config.cropping[0] === 'number')
+      this.cropping = [
+        [config.cropping[0] as number, config.cropping[0] as number],
+        [config.cropping[1] as number, config.cropping[1] as number]
+      ];
+    else
+      this.cropping = config.cropping as [[number, number], [number, number]];
+    this.dataFormat =
+        config.dataFormat === undefined ? 'channelsLast' : config.dataFormat;
+    this.inputSpec = [{ndim: 4}];
+  }
+
+  computeOutputShape(inputShape: Shape): Shape {
+    if (this.dataFormat === 'channelsFirst')
+      return [
+        inputShape[0], inputShape[1],
+        inputShape[2] - this.cropping[0][0] - this.cropping[0][1],
+        inputShape[2] - this.cropping[1][0] - this.cropping[1][1]
+      ];
+    else
+      return [
+        inputShape[0],
+        inputShape[1] - this.cropping[0][0] - this.cropping[0][1],
+        inputShape[2] - this.cropping[1][0] - this.cropping[1][1], inputShape[3]
+      ];
+  }
+
+  // tslint:disable-next-line:no-any
+  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+    inputs = generic_utils.getExactlyOneTensor(inputs);
+
+    if (this.dataFormat === 'channelsLast') {
+      const hSliced = K.sliceAlongAxis(
+          inputs, this.cropping[0][0],
+          inputs.shape[1] - this.cropping[0][0] - this.cropping[0][1], 2);
+      return K.sliceAlongAxis(
+          hSliced, this.cropping[1][0],
+          inputs.shape[2] - this.cropping[1][1] - this.cropping[1][0], 3);
+    } else {
+      const hSliced = K.sliceAlongAxis(
+          inputs, this.cropping[0][0],
+          inputs.shape[2] - this.cropping[0][0] - this.cropping[0][1], 3);
+      return K.sliceAlongAxis(
+          hSliced, this.cropping[1][0],
+          inputs.shape[3] - this.cropping[1][1] - this.cropping[1][0], 4);
+    }
+  }
+
+  getConfig(): ConfigDict {
+    const config = {cropping: this.cropping, dataFormat: this.dataFormat};
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+}
+generic_utils.ClassNameMap.register(Cropping2D);
