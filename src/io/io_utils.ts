@@ -143,3 +143,41 @@ export function concatenateTypedArrays(xs: TypedArray[]): ArrayBuffer {
 
   return y.buffer;
 }
+
+/**
+ * Calculate the byte length of a JavaScript string.
+ *
+ * Note that a JavaScript string can contain wide characters, therefore the
+ * length of the string is not necessarily equal to the byte length.
+ *
+ * @param str Input string.
+ * @returns Byte length.
+ */
+export function stringByteLength(str: string): number {
+  return new Blob([str]).size;
+}
+
+/**
+ * Encode an ArrayBuffer as a base64 encoded string.
+ *
+ * @param buffer `ArrayBuffer` to be converted.
+ * @returns A string that base64-encodes `buffer`.
+ */
+export function arrayBufferToBase64String(buffer: ArrayBuffer): string {
+  return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+}
+
+/**
+ * Decode a base64 string as an ArrayBuffer.
+ *
+ * @param str Base64 string.
+ * @returns Decoded `ArrayBuffer`.
+ */
+export function base64StringToArrayBuffer(str: string): ArrayBuffer {
+  const s = atob(str);
+  const buffer = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; ++i) {
+    buffer.set([s.charCodeAt(i)], i);
+  }
+  return buffer.buffer;
+}
