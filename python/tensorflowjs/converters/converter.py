@@ -81,19 +81,22 @@ def main():
       type=str,
       help='Path to the input file or directory. For input format "keras", '
       'an HDF5 (.h5) file is expected. For input format "tensorflow", '
-      'a SavedModel or session bundle directory is expected.')
+      'a SavedModel directory, session bundle directory '
+      'or frozen model file is expected.')
   parser.add_argument(
       '--input_format',
       type=str,
       required=True,
-      choices=set(['keras', 'tf_saved_model', 'tf_session_bundle']),
+      choices=set(['keras', 'tf_saved_model', 'tf_session_bundle',
+                   'tf_frozen_model']),
       help='Input format. '
       'For "keras", the input path can be one of the two following formats:\n'
       '  - A topology+weights combined HDF5 (e.g., generated with'
       '    `keras.model.save_model()` method).\n'
       '  - A weights-only HDF5 (e.g., generated with Keras Model\'s '
       '    `save_weights()` method). \n'
-      'For "tensorflow", a SavedModel or session bundle model is expected.')
+      'For "tensorflow", a SavedModel, frozen model '
+      ' or session bundle model is expected.')
   parser.add_argument(
       '--output_node_names',
       type=str,
@@ -141,6 +144,10 @@ def main():
         quantization_dtype=quantization_dtype)
   elif FLAGS.input_format == 'tf_session_bundle':
     tf_saved_model_conversion.convert_tf_session_bundle(
+        FLAGS.input_path, FLAGS.output_node_names,
+        FLAGS.output_dir, quantization_dtype=quantization_dtype)
+  elif FLAGS.input_format == "tf_frozen_model":
+    tf_saved_model_conversion.convert_tf_frozen_model(
         FLAGS.input_path, FLAGS.output_node_names,
         FLAGS.output_dir, quantization_dtype=quantization_dtype)
   else:
