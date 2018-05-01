@@ -32,7 +32,7 @@ SavedModel example:
 $ tensorflowjs_converter \
     --input_format=tf_saved_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    --saved_model_tags=serve
+    --saved_model_tags=serve \
     /mobilenet/saved_model \
     /mobilenet/web_model
 ```
