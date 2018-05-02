@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, slice, Tensor, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
+import {Scalar, scalar, slice, Tensor,memory, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
 import {ConcreteTensor, DType, LayerVariable, SymbolicTensor} from '../types';
@@ -1418,6 +1418,7 @@ describeMathCPUAndGPU('sign', () => {
   });
 });
 
+
 describeMathCPUAndGPU('qr', () => {
   it('1x1', () => {
     const x = tensor2d([[10]], [1, 1]);
@@ -1465,6 +1466,17 @@ describeMathCPUAndGPU('qr', () => {
             [3, 3]));
     expectTensorsClose(
         r, tensor2d([[-3.7417, 2.4054], [0, 2.8661], [0, 0]], [3, 2]));
+  });
+
+  it('does not leak memory', () => {
+    const x = tensor2d([[1, 3], [-2, -4]], [2, 2]);
+    // The first call to qr creates and keeps internal singleton tensors.
+    // Subsequent calls should always create exactly two tensors.
+    K.qr(x);
+    // Count before real call.
+    const numTensors = memory().numTensors;
+    K.qr(x);
+    expect(memory().numTensors).toEqual(numTensors + 2);
   });
 
   it('Incorrect shape leads to error', () => {

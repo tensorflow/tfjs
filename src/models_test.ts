@@ -41,6 +41,16 @@ describeMathCPU('model_from_json', () => {
         })
         .catch(done.fail);
   });
+  // TODO(bileschi): Uncomment once we are able to load the full RNN model.
+  /*
+  it('reconstitutes rnn model', done => {
+    modelFromJSON(fakeRNNModel)
+        .then(model => {
+          console.log(model);
+          done();
+        })
+        .catch(done.fail);
+  });*/
 
   it('reconstitutes mnist non-sequential mode.', async done => {
     /*
@@ -508,6 +518,123 @@ const fakeSequentialModel: ModelAndWeightsConfig = {
     'backend': 'tensorflow'
   }
 };
+
+// TODO(bileschi): Uncomment once we are able to load a model of this size.
+/*
+const fakeRNNModel: ModelAndWeightsConfig = {
+  modelTopology: {
+    'keras_version': '2.1.5',
+    'training_config': {
+      'optimizer_config': {
+        'config': {
+          'rho': 0.8999999761581421,
+          'epsilon': 1e-07,
+          'lr': 0.009999999776482582,
+          'decay': 0.0
+        },
+        'class_name': 'RMSprop'
+      },
+      'loss': 'categorical_crossentropy',
+      'metrics': ['acc'],
+      'sample_weight_mode': null,
+      'loss_weights': null
+    },
+    'backend': 'tensorflow',
+    'model_config': {
+      'config': [
+        {
+          'config': {
+            'unroll': false,
+            'name': 'lstm_9',
+            'trainable': true,
+            'implementation': 1,
+            'recurrent_constraint': null,
+            'stateful': false,
+            'return_sequences': false,
+            'recurrent_initializer': {
+              'config': {'gain': 1.0, 'seed': null},
+              'class_name': 'Orthogonal'
+            },
+            'bias_regularizer': null,
+            'kernel_constraint': null,
+            'dtype': 'float32',
+            'bias_initializer': {'config': {}, 'class_name': 'Zeros'},
+            'kernel_regularizer': null,
+            'go_backwards': false,
+            'units': 256,
+            'recurrent_regularizer': null,
+            'kernel_initializer': {
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'mode': 'fan_avg',
+                'seed': null
+              },
+              'class_name': 'VarianceScaling'
+            },
+            'use_bias': true,
+            'bias_constraint': null,
+            'activation': 'tanh',
+            'recurrent_activation': 'hard_sigmoid',
+            'recurrent_dropout': 0.0,
+            'return_state': false,
+            'dropout': 0.0,
+            'batch_input_shape': [null, 10, 393],
+            'activity_regularizer': null,
+            'unit_forget_bias': true
+          },
+          'class_name': 'LSTM'
+        },
+        {
+          'config': {
+            'rate': 0.2,
+            'name': 'dropout_4',
+            'noise_shape': null,
+            'seed': null,
+            'trainable': true
+          },
+          'class_name': 'Dropout'
+        },
+        {
+          'config': {
+            'name': 'dense_4',
+            'trainable': true,
+            'use_bias': true,
+            'bias_constraint': null,
+            'units': 393,
+            'kernel_initializer': {
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'mode': 'fan_avg',
+                'seed': null
+              },
+              'class_name': 'VarianceScaling'
+            },
+            'activation': 'linear',
+            'bias_regularizer': null,
+            'kernel_constraint': null,
+            'bias_initializer': {'config': {}, 'class_name': 'Zeros'},
+            'activity_regularizer': null,
+            'kernel_regularizer': null
+          },
+          'class_name': 'Dense'
+        },
+        {
+          'config': {
+            'name': 'activation_4',
+            'trainable': true,
+            'activation': 'softmax'
+          },
+          'class_name': 'Activation'
+        }
+      ],
+      'class_name': 'Sequential'
+    }
+  }
+} */
+
+
 const fakeNonSequentialModel: ModelAndWeightsConfig = {
   modelTopology: {
     'backend': 'tensorflow',
