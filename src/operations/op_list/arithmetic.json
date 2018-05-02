@@ -193,5 +193,22 @@
         "notSupported": true
       }
     ]
+  },
+  {
+    "tfOpName": "SquaredDifference",
+    "dlOpName": "squaredDifference",
+    "category": "arithmetic",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "a",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "b",
+        "type": "tensor"
+      }
+    ]
   }
 ]

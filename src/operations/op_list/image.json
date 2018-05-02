@@ -6,7 +6,7 @@
     "params": [
       {
         "tfInputIndex": 0,
-        "dlParamName": "image",
+        "dlParamName": "images",
         "type": "tensor"
       },
       {

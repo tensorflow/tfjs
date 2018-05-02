@@ -22,11 +22,13 @@ import tempfile
 import unittest
 
 import tensorflow as tf
+from tensorflow.python.tools import freeze_graph
 
 from tensorflowjs.converters import tf_saved_model_conversion
 
 SAVED_MODEL_DIR = 'saved_model'
 SESSION_BUNDLE_MODEL_DIR = 'session_bundle'
+FROZEN_MODEL_DIR = 'frozen_model'
 
 
 class ConvertTest(unittest.TestCase):
@@ -81,6 +83,45 @@ class ConvertTest(unittest.TestCase):
             assets_collection=None)
 
       builder.save()
+
+  def create_frozen_model(self):
+    graph = tf.Graph()
+    saved_model_dir = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR)
+    with graph.as_default():
+      x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
+      w = tf.Variable(tf.random_uniform([2, 2]))
+      y = tf.matmul(x, w)
+      tf.nn.softmax(y)
+      init_op = w.initializer
+
+      # Create a builder
+      builder = tf.saved_model.builder.SavedModelBuilder(saved_model_dir)
+
+      with tf.Session() as sess:
+        # Run the initializer on `w`.
+        sess.run(init_op)
+
+        builder.add_meta_graph_and_variables(
+            sess, [tf.saved_model.tag_constants.SERVING],
+            signature_def_map=None,
+            assets_collection=None)
+
+      builder.save()
+
+    frozen_file = os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen')
+    freeze_graph.freeze_graph(
+        '',
+        '',
+        True,
+        '',
+        "Softmax",
+        '',
+        '',
+        frozen_file,
+        True,
+        '',
+        saved_model_tags=tf.saved_model.tag_constants.SERVING,
+        input_saved_model_dir=saved_model_dir)
 
   def test_convert_saved_model(self):
     self.create_saved_model()
@@ -150,6 +191,41 @@ class ConvertTest(unittest.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR, 'group*-*')))
+
+  def test_convert_frozen_model(self):
+    self.create_frozen_model()
+    print(glob.glob(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, '*')))
+
+    tf_saved_model_conversion.convert_tf_frozen_model(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'model.frozen'),
+        'Softmax',
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR))
+
+    weights = [{
+        'paths': ['group1-shard1of1'],
+        'weights': [{
+            'shape': [2, 2],
+            'name': 'Softmax',
+            'dtype': 'float32'
+        }]
+    }]
+    # Load the saved weights as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, FROZEN_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, FROZEN_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'group*-*')))
 
 
 if __name__ == '__main__':
