@@ -2026,7 +2026,7 @@ export abstract class Container extends Layer {
    * @param extraJsonArgs Unused in tfjs-layers, maintained for PyKeras
    * @param returnString Whether the return value should be stringified
    *    (default: `true`).
-   * @returns a JSON string if `returnString` (default), or a JSON boject if
+   * @returns a JSON string if `returnString` (default), or a JSON object if
    *   `!returnString`.
    */
   // tslint:disable-next-line:no-any
