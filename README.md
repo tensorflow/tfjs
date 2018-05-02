@@ -3,18 +3,17 @@
 # Getting started
 
 **TensorFlow.js converter** is an open source library to load a pretrained
-TensorFlow [SavedModel](https://www.tensorflow.org/programmers_guide/saved_model#overview_of_saving_and_restoring_models)
-or [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md)
+TensorFlow [SavedModel](https://www.tensorflow.org/programmers_guide/saved_model#overview_of_saving_and_restoring_models), [Frozen Model](https://www.tensorflow.org/mobile/prepare_models#how_do_you_get_a_model_you_can_use_on_mobile) or [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md)
 into the browser and run inference through [TensorFlow.js](https://js.tensorflow.org).
 
 (Note: TensorFlow has deprecated session bundle format, please switch to SavedModel.)
 
 A 2-step process to import your model:
 
-1. A python pip package to convert a TensorFlow SavedModel/Session Bundle to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
+1. A python pip package to convert a TensorFlow SavedModel/Frozen Model/Session Bundle to a web friendly format. If you already have a converted model, or are using an already hosted model (e.g. MobileNet), skip this step.
 2. [Javascript API](./src/executor/tf_model.ts), for loading and running inference.
 
-## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md) or [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md) to a web-friendly format
+## Step 1: Converting a [SavedModel](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/saved_model/README.md), [Session Bundle](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/contrib/session_bundle/README.md) or [Frozen Model](https://www.tensorflow.org/mobile/prepare_models#how_do_you_get_a_model_you_can_use_on_mobile) to a web-friendly format
 
 1. Install the TensorFlow.js pip package:
 
@@ -32,8 +31,19 @@ SavedModel example:
 $ tensorflowjs_converter \
     --input_format=tf_saved_model \
     --output_node_names='MobilenetV1/Predictions/Reshape_1' \
-    --saved_model_tags=serve
+    --saved_model_tags=serve \
     /mobilenet/saved_model \
+    /mobilenet/web_model
+```
+
+Frozen model example:
+
+```bash
+$ tensorflowjs_converter \
+    --input_format=tf_frozen_model \
+    --output_node_names='MobilenetV1/Predictions/Reshape_1' \
+    --saved_model_tags=serve \
+    /mobilenet/frozen_model.pb \
     /mobilenet/web_model
 ```
 
@@ -49,13 +59,13 @@ $ tensorflowjs_converter \
 
 |Positional Arguments | Description |
 |---|---|
-|`input_path`  | Full path of the saved model or session bundle directory.|
+|`input_path`  | Full path of the saved model directory, session bundle directory or frozen model file.|
 |`output_dir`  | Path for all output artifacts.|
 
 
 | Options | Description
 |---|---|
-|`--input_format`     | The format of input model, use tf_saved_model for SavedModel and tf_session_bundle for session bundle. |
+|`--input_format`     | The format of input model, use tf_saved_model for SavedModel, tf_frozen_model for frozen model and tf_session_bundle for session bundle. |
 |`--output_node_names`| The names of the output nodes, separated by commas.|
 |`--saved_model_tags` | Only applicable to SavedModel conversion, Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
 
@@ -129,7 +139,7 @@ const weightManifestUrl = "https://example.org/model/weights_manifest.json";
 
 const manifest = await fetch(weightManifestUrl);
 this.weightManifest = await manifest.json();
-const weightMap = await tf.loadWeights(
+const weightMap = await tf.io.loadWeights(
         this.weightManifest, "https://example.org/model");
 ```
 
@@ -194,4 +204,18 @@ To run the tests once and exit the karma process (helpful on Windows):
 
 ```bash
 $ yarn test --single-run
+```
+
+To generate the static js file for GraphDef proto, run following steps:
+
+1. Generate static js file with comment first, in order to generate typescript definition.
+```bash
+$ node_modules/protobufjs/bin/pbjs -t static-module -w commonjs -o src/data/compiled_api.js --no-create --no-encode --no-verify --no-convert --no-delimited --no-beautify src/data/api.proto
+
+$ node_modules/protobufjs/bin/pbts -o src/data/compiled_api.d.ts src/data/compiled_api.js
+```
+
+2. Replace the static js file with the version without comments.
+```bash
+$ node_modules/protobufjs/bin/pbjs -t static-module -w commonjs -o src/data/compiled_api.js --no-create --no-encode --no-verify --no-convert --no-delimited --no-beautify --no-comments src/data/api.proto
 ```

@@ -256,3 +256,35 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
   # Clean up the temp files.
   if os.path.exists(frozen_file):
     os.remove(frozen_file)
+
+
+def convert_tf_frozen_model(frozen_model_path, output_node_names,
+                            output_dir, quantization_dtype=None):
+  """Convert frozen model and check the model compatibility with Tensorflow.js.
+
+  Optimize and convert the model to Tensorflow.js format, when the model passes
+  the compatiblity check.
+
+  Args:
+    frozen_model_path: string The path to frozen model.
+    output_node_names: string The names of the output nodes, comma separated.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
+      - possibly sharded binary weight files.
+    quantization_dtype: An optional numpy dtype to quantize weights to for
+      compression. Only np.uint8 and np.uint16 are supported.
+  """
+
+  if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
+
+  graph = load_graph(frozen_model_path, output_node_names)
+  unsupported = validate(graph.as_graph_def().node)
+
+  if unsupported:
+    print('Unsupported Ops in the model\n' + ', '.join(unsupported))
+  else:
+    optimize_graph(graph, output_graph, quantization_dtype)

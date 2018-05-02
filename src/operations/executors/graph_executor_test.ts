@@ -104,4 +104,12 @@ describe('graph', () => {
       expect(console.log).toHaveBeenCalledWith([1]);
     });
   });
+  describe('stopGradient', () => {
+    it('should return input', () => {
+      node.inputNames = ['input'];
+      node.params.x = createTensorAttr(0);
+      node.op = 'stopGradient';
+      expect(executeOp(node, {input: input1}, context)).toEqual(input1);
+    });
+  });
 });

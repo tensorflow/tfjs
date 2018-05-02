@@ -25,7 +25,7 @@ import {GraphExecutor} from './graph_executor';
 export class FrozenModel {
   private executor: GraphExecutor;
   private version = 'n/a';
-  private weightManifest: tfc.WeightsManifestConfig;
+  private weightManifest: tfc.io.WeightsManifestConfig;
   private pathPrefix: string;
   // Returns the version information for the tensorflow model GraphDef.
   get modelVersion(): string {
@@ -96,7 +96,7 @@ export class FrozenModel {
     const [graph, ] = await Promise.all([graphPromise, manifestPromise]);
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
-    const weightMap = await tfc.loadWeights(
+    const weightMap = await tfc.io.loadWeights(
         this.weightManifest, this.pathPrefix, undefined, this.requestOption);
     this.executor =
         new GraphExecutor(OperationMapper.Instance.transformGraph(graph));

@@ -66,7 +66,7 @@ describe('Model', () => {
   beforeEach(() => {
     spyOn(data.tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
     const weightPromise = new Promise((resolve => resolve(WEIGHT_MAP)));
-    spyOn(tfc, 'loadWeights').and.returnValue(weightPromise);
+    spyOn(tfc.io, 'loadWeights').and.returnValue(weightPromise);
     model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
     spyOn(window, 'fetch')
         .and.callFake(
