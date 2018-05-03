@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
   it('basic', () => {
@@ -53,5 +53,12 @@ describeWithFlags('SGDOptimizer', ALL_ENVS, () => {
     x.dispose();
     // The only tensor remaining is the argument to variable().
     expect(tf.memory().numTensors).toBe(1);
+  });
+  it('serialization round-trip', () => {
+    const learningRate = .1;
+    const originalOpt = tf.train.sgd(learningRate);
+    const reserialized =
+        tf.SGDOptimizer.fromConfig(tf.SGDOptimizer, originalOpt.getConfig());
+    expect(reserialized.getConfig()).toEqual(originalOpt.getConfig());
   });
 });

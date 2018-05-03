@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
   it('basic', () => {
@@ -116,5 +116,11 @@ describeWithFlags('MomentumOptimizer', ALL_ENVS, () => {
 
     // The only tensor remaining is the argument to variable().
     expect(tf.memory().numTensors).toBe(1);
+  });
+  it('serialization round-trip', () => {
+    const originalOpt = tf.train.momentum(0.1, 0.2, true);
+    const reserialized = tf.MomentumOptimizer.fromConfig(
+        tf.MomentumOptimizer, originalOpt.getConfig());
+    expect(reserialized.getConfig()).toEqual(originalOpt.getConfig());
   });
 });
