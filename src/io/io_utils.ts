@@ -181,3 +181,41 @@ export function base64StringToArrayBuffer(str: string): ArrayBuffer {
   }
   return buffer.buffer;
 }
+
+/**
+ * Concatenate a number of ArrayBuffers into one.
+ *
+ * @param buffers A number of array buffers to concatenate.
+ * @returns Result of concatenating `buffers` in order.
+ */
+export function concatenateArrayBuffers(buffers: ArrayBuffer[]): ArrayBuffer {
+  let totalByteLength = 0;
+  buffers.forEach(buffer => {
+    totalByteLength += buffer.byteLength;
+  });
+
+  const temp = new Uint8Array(totalByteLength);
+  let offset = 0;
+  buffers.forEach(buffer => {
+    temp.set(new Uint8Array(buffer), offset);
+    offset += buffer.byteLength;
+  });
+  return temp.buffer;
+}
+
+/**
+ * Get the basename of a path.
+ *
+ * Behaves in a way analogous to Linux's basename command.
+ *
+ * @param path
+ */
+export function basename(path: string): string {
+  const SEPARATOR = '/';
+  path = path.trim();
+  while (path.endsWith(SEPARATOR)) {
+    path = path.slice(0, path.length - 1);
+  }
+  const items = path.split(SEPARATOR);
+  return items[items.length - 1];
+}

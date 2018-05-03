@@ -21,7 +21,7 @@ import {expectArraysEqual} from '../test_util';
 import {NamedTensorMap} from '../types';
 
 // tslint:disable-next-line:max-line-length
-import {arrayBufferToBase64String, base64StringToArrayBuffer, concatenateTypedArrays, stringByteLength} from './io_utils';
+import {arrayBufferToBase64String, base64StringToArrayBuffer, basename, concatenateArrayBuffers, concatenateTypedArrays, stringByteLength} from './io_utils';
 
 describe('concatenateTypedArrays', () => {
   it('Single float arrays', () => {
@@ -344,5 +344,57 @@ describe('arrayBufferToBase64String-base64StringToArrayBuffer', () => {
     const decoded =
         Array.from(new Uint8Array(base64StringToArrayBuffer(base64Str)));
     expect(decoded).toEqual(x);
+  });
+});
+
+describe('concatenateArrayBuffers', () => {
+  it('Concatenate 3 non-empty ArrayBuffers', () => {
+    const buffer1 = new Uint8Array([1, 2, 3]);
+    const buffer2 = new Uint8Array([11, 22, 33, 44]);
+    const buffer3 = new Uint8Array([111, 222, 100]);
+    const out = concatenateArrayBuffers(
+        [buffer1.buffer, buffer2.buffer, buffer3.buffer]);
+    expect(new Uint8Array(out)).toEqual(new Uint8Array([
+      1, 2, 3, 11, 22, 33, 44, 111, 222, 100
+    ]));
+  });
+
+  it('Concatenate non-empty and empty ArrayBuffers', () => {
+    const buffer1 = new Uint8Array([1, 2, 3]);
+    const buffer2 = new Uint8Array([11, 22, 33, 44]);
+    const buffer3 = new Uint8Array([]);
+    const buffer4 = new Uint8Array([150, 100, 50]);
+    const out = concatenateArrayBuffers(
+        [buffer1.buffer, buffer2.buffer, buffer3.buffer, buffer4.buffer]);
+    expect(new Uint8Array(out)).toEqual(new Uint8Array([
+      1, 2, 3, 11, 22, 33, 44, 150, 100, 50
+    ]));
+  });
+
+  it('A single ArrayBuffer', () => {
+    const buffer1 = new Uint8Array([1, 3, 3, 7]);
+    const out = concatenateArrayBuffers([buffer1.buffer]);
+    expect(new Uint8Array(out)).toEqual(buffer1);
+  });
+
+  it('Zero ArrayBuffers', () => {
+    expect(new Uint8Array(concatenateArrayBuffers([])))
+        .toEqual(new Uint8Array([]));
+  });
+});
+
+describe('basename', () => {
+  it('Paths without slashes', () => {
+    expect(basename('foo.txt')).toEqual('foo.txt');
+    expect(basename('bar')).toEqual('bar');
+  });
+
+  it('Paths with slashes', () => {
+    expect(basename('qux/foo.txt')).toEqual('foo.txt');
+    expect(basename('qux/My Model.json')).toEqual('My Model.json');
+    expect(basename('foo/bar/baz')).toEqual('baz');
+    expect(basename('/foo/bar/baz')).toEqual('baz');
+    expect(basename('foo/bar/baz/')).toEqual('baz');
+    expect(basename('foo/bar/baz//')).toEqual('baz');
   });
 });
