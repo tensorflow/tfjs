@@ -546,7 +546,7 @@ export class ArrayOps {
    * `offValue` (defaults to 0).
    *
    * ```js
-   * tf.oneHot(tf.tensor1d([0, 1]), 3).print();
+   * tf.oneHot(tf.tensor1d([0, 1], 'int32'), 3).print();
    * ```
    *
    * @param indices `Tensor1D` of indices with dtype `int32`.
