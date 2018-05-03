@@ -225,6 +225,7 @@ import {Rank} from '../types';
 export const losses = {
   softmaxCrossEntropy: SoftmaxOps.softmaxCrossEntropy,
   absoluteDifference: LossOps.absoluteDifference,
+  meanSquaredError: LossOps.meanSquaredError,
   computeWeightedLoss: LossOps.computeWeightedLoss
 };
 
