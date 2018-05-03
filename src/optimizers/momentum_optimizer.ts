@@ -18,12 +18,16 @@
 import {ENV} from '../environment';
 import {tidy} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
+// tslint:disable-next-line:max-line-length
+import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
 import {Scalar, Tensor} from '../tensor';
 import {NamedVariableMap} from '../types';
+
 import {SGDOptimizer} from './sgd_optimizer';
 
 /** @doclink Optimizer */
 export class MomentumOptimizer extends SGDOptimizer {
+  static className = 'MomentumOptimizer';
   private m: Scalar;
   private accumulations: NamedVariableMap;
 
@@ -82,4 +86,17 @@ export class MomentumOptimizer extends SGDOptimizer {
   setMomentum(momentum: number) {
     this.momentum = momentum;
   }
+
+  getConfig(): ConfigDict {
+    return {
+      learningRate: this.learningRate,
+      momentum: this.momentum,
+      useNesterov: this.useNesterov
+    };
+  }
+  static fromConfig<T extends Serializable>(
+      cls: SerializableConstructor<T>, config: ConfigDict): T {
+    return new cls(config.learningRate, config.momentum, config.useNesterov);
+  }
 }
+SerializationMap.register(MomentumOptimizer);

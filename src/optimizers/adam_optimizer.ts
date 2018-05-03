@@ -18,15 +18,19 @@
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
+// tslint:disable-next-line:max-line-length
+import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
 import {Scalar, Variable} from '../tensor';
 import {NamedVariableMap} from '../types';
+
 import {Optimizer} from './optimizer';
 
 export class AdamOptimizer extends Optimizer {
+  static className = 'AdamOptimizer';
   private c: Scalar;
-  private eps: Scalar;
-  private beta1: Scalar;
-  private beta2: Scalar;
+  private epsScalar: Scalar;
+  private beta1Scalar: Scalar;
+  private beta2Scalar: Scalar;
   private accBeta1: Variable;
   private accBeta2: Variable;
   private oneMinusBeta1: Scalar;
@@ -37,14 +41,14 @@ export class AdamOptimizer extends Optimizer {
   private accumulatedSecondMoment: NamedVariableMap = {};
 
   constructor(
-      protected learningRate: number, beta1: number, beta2: number,
-      epsilon = 1e-8) {
+      protected learningRate: number, protected beta1: number,
+      protected beta2: number, protected epsilon = 1e-8) {
     super();
     this.c = keep(scalar(-learningRate));
-    this.eps = keep(scalar(epsilon));
+    this.epsScalar = keep(scalar(epsilon));
     // b1, b2 keep initial value of beta* hyperparameters.
-    this.beta1 = keep(scalar(beta1));
-    this.beta2 = keep(scalar(beta2));
+    this.beta1Scalar = keep(scalar(beta1));
+    this.beta2Scalar = keep(scalar(beta2));
     tidy(() => {
       // accB* will be updated by batch.
       this.accBeta1 = scalar(beta1).variable();
@@ -77,10 +81,10 @@ export class AdamOptimizer extends Optimizer {
         const firstMoment = this.accumulatedFirstMoment[variableName];
         const secondMoment = this.accumulatedSecondMoment[variableName];
 
-        const newFirstMoment =
-            this.beta1.mul(firstMoment).add(this.oneMinusBeta1.mul(gradient));
+        const newFirstMoment = this.beta1Scalar.mul(firstMoment)
+                                   .add(this.oneMinusBeta1.mul(gradient));
         const newSecondMoment =
-            this.beta2.mul(secondMoment)
+            this.beta2Scalar.mul(secondMoment)
                 .add(this.oneMinusBeta2.mul(gradient.square()));
 
         const biasCorrectedFirstMoment = newFirstMoment.div(oneMinusAccBeta1);
@@ -89,23 +93,24 @@ export class AdamOptimizer extends Optimizer {
         this.accumulatedFirstMoment[variableName].assign(newFirstMoment);
         this.accumulatedSecondMoment[variableName].assign(newSecondMoment);
 
-        const newValue = this.c
-                             .mul(biasCorrectedFirstMoment.div(this.eps.add(
-                                 biasCorrectedSecondMoment.sqrt())))
-                             .add(value);
+        const newValue =
+            this.c
+                .mul(biasCorrectedFirstMoment.div(
+                    this.epsScalar.add(biasCorrectedSecondMoment.sqrt())))
+                .add(value);
         value.assign(newValue);
       }
 
-      this.accBeta1.assign(this.accBeta1.mul(this.beta1));
-      this.accBeta2.assign(this.accBeta2.mul(this.beta2));
+      this.accBeta1.assign(this.accBeta1.mul(this.beta1Scalar));
+      this.accBeta2.assign(this.accBeta2.mul(this.beta2Scalar));
     });
   }
 
   dispose() {
     this.c.dispose();
-    this.eps.dispose();
-    this.beta1.dispose();
-    this.beta2.dispose();
+    this.epsScalar.dispose();
+    this.beta1Scalar.dispose();
+    this.beta2Scalar.dispose();
     this.accBeta1.dispose();
     this.accBeta2.dispose();
     this.oneMinusBeta1.dispose();
@@ -122,4 +127,18 @@ export class AdamOptimizer extends Optimizer {
           .forEach(name => this.accumulatedSecondMoment[name].dispose());
     }
   }
+  getConfig(): ConfigDict {
+    return {
+      learningRate: this.learningRate,
+      beta1: this.beta1,
+      beta2: this.beta2,
+      epsilon: this.epsilon,
+    };
+  }
+  static fromConfig<T extends Serializable>(
+      cls: SerializableConstructor<T>, config: ConfigDict): T {
+    return new cls(
+        config.learningRate, config.beta1, config.beta2, config.epsilon);
+  }
 }
+SerializationMap.register(AdamOptimizer);

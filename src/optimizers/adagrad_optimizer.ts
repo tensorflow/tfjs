@@ -18,6 +18,8 @@
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {fill, scalar} from '../ops/ops';
+// tslint:disable-next-line:max-line-length
+import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
 import {Scalar} from '../tensor';
 import {NamedVariableMap} from '../types';
 
@@ -25,6 +27,7 @@ import {Optimizer} from './optimizer';
 
 /** @doclink Optimizer */
 export class AdagradOptimizer extends Optimizer {
+  static className = 'AdagradOptimizer';
   private c: Scalar;
   private epsilon: Scalar;
 
@@ -73,4 +76,15 @@ export class AdagradOptimizer extends Optimizer {
           .forEach(name => this.accumulatedGrads[name].dispose());
     }
   }
+  getConfig(): ConfigDict {
+    return {
+      learningRate: this.learningRate,
+      initialAccumulatorValue: this.initialAccumulatorValue,
+    };
+  }
+  static fromConfig<T extends Serializable>(
+      cls: SerializableConstructor<T>, config: ConfigDict): T {
+    return new cls(config.learningRate, config.initialAccumulatorValue);
+  }
 }
+SerializationMap.register(AdagradOptimizer);

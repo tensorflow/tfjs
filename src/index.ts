@@ -26,6 +26,7 @@ import * as environment from './environment';
 import {Environment} from './environment';
 // Serialization.
 import * as io from './io/io';
+import * as serialization from './serialization';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
@@ -63,7 +64,7 @@ export {doc} from './doc';
 export const nextFrame = BrowserUtil.nextFrame;
 
 // Second level exports.
-export {environment, io, test_util, util, webgl};
+export {environment, io, serialization, test_util, util, webgl};
 
 // Backend specific.
 export {KernelBackend, BackendTimingInfo} from './kernels/backend';

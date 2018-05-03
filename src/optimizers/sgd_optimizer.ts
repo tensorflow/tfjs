@@ -18,6 +18,8 @@
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {scalar} from '../ops/ops';
+// tslint:disable-next-line:max-line-length
+import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
 import {Scalar} from '../tensor';
 import {NamedTensorMap} from '../types';
 
@@ -25,6 +27,7 @@ import {Optimizer} from './optimizer';
 
 /** @doclink Optimizer */
 export class SGDOptimizer extends Optimizer {
+  static className = 'SGDOptimizer';
   protected c: Scalar;
 
   constructor(protected learningRate: number) {
@@ -59,4 +62,13 @@ export class SGDOptimizer extends Optimizer {
   dispose() {
     this.c.dispose();
   }
+
+  getConfig(): ConfigDict {
+    return {learningRate: this.learningRate};
+  }
+  static fromConfig<T extends Serializable>(
+      cls: SerializableConstructor<T>, config: ConfigDict): T {
+    return new cls(config.learningRate);
+  }
 }
+SerializationMap.register(SGDOptimizer);

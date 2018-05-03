@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
   it('basic', () => {
@@ -78,5 +78,11 @@ describeWithFlags('AdamOptimizer', ALL_ENVS, () => {
 
     // The only tensor remaining should be the argument to variable().
     expect(tf.memory().numTensors).toBe(1);
+  });
+  it('serialization round-trip', () => {
+    const originalOpt = tf.train.adam(0.1, 0.2, 0.3, 2e-8);
+    const reserialized =
+        tf.AdamOptimizer.fromConfig(tf.AdamOptimizer, originalOpt.getConfig());
+    expect(reserialized.getConfig()).toEqual(originalOpt.getConfig());
   });
 });

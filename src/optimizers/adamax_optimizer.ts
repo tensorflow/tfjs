@@ -18,17 +18,21 @@
 import {ENV} from '../environment';
 import {keep, tidy} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
+// tslint:disable-next-line:max-line-length
+import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
 import {Scalar, Variable} from '../tensor';
 import {NamedVariableMap} from '../types';
+
 import {Optimizer} from './optimizer';
 
 export class AdamaxOptimizer extends Optimizer {
+  static className = 'AdamaxOptimizer';
   private c: Scalar;
-  private eps: Scalar;
+  private epsScalar: Scalar;
   private accBeta1: Variable;
-  private beta1: Scalar;
-  private beta2: Scalar;
-  private decay: Scalar;
+  private beta1Scalar: Scalar;
+  private beta2Scalar: Scalar;
+  private decayScalar: Scalar;
   private oneMinusBeta1: Scalar;
   private one: Scalar;
   private iteration: Variable;
@@ -37,16 +41,17 @@ export class AdamaxOptimizer extends Optimizer {
   private accumulatedWeightedInfNorm: NamedVariableMap = {};
 
   constructor(
-      protected learningRate: number, beta1: number, beta2: number,
-      epsilon = 1e-8, decay = 0.0) {
+      protected learningRate: number, protected beta1: number,
+      protected beta2: number, protected epsilon = 1e-8,
+      protected decay = 0.0) {
     super();
     this.c = keep(scalar(-learningRate));
-    this.eps = keep(scalar(epsilon));
+    this.epsScalar = keep(scalar(epsilon));
     // b1, b2 keep initial value of beta* hyperparameters.
-    this.beta1 = keep(scalar(beta1));
-    this.beta2 = keep(scalar(beta2));
+    this.beta1Scalar = keep(scalar(beta1));
+    this.beta2Scalar = keep(scalar(beta2));
 
-    this.decay = keep(scalar(decay));
+    this.decayScalar = keep(scalar(decay));
 
     tidy(() => {
       this.iteration = scalar(0).variable();
@@ -60,7 +65,7 @@ export class AdamaxOptimizer extends Optimizer {
   applyGradients(variableGradients: NamedVariableMap) {
     tidy(() => {
       const oneMinusAccBeta1 = this.one.sub(this.accBeta1);
-      const lr = this.c.div(this.one.add(this.decay.mul(this.iteration)));
+      const lr = this.c.div(this.one.add(this.decayScalar.mul(this.iteration)));
 
       for (const variableName in variableGradients) {
         const value = ENV.engine.registeredVariables[variableName];
@@ -79,10 +84,10 @@ export class AdamaxOptimizer extends Optimizer {
         const firstMoment = this.accumulatedFirstMoment[variableName];
         const weightedInfNorm = this.accumulatedWeightedInfNorm[variableName];
 
-        const newFirstMoment =
-            this.beta1.mul(firstMoment).add(this.oneMinusBeta1.mul(gradient));
+        const newFirstMoment = this.beta1Scalar.mul(firstMoment)
+                                   .add(this.oneMinusBeta1.mul(gradient));
 
-        const ut0 = this.beta2.mul(weightedInfNorm);
+        const ut0 = this.beta2Scalar.mul(weightedInfNorm);
         const ut1 = gradient.abs();
 
         const newWeightedInfNorm = ut0.maximum(ut1);
@@ -93,26 +98,26 @@ export class AdamaxOptimizer extends Optimizer {
 
         const newValue =
             lr.div(oneMinusAccBeta1)
-                .mul(newFirstMoment.div(this.eps.add(newWeightedInfNorm)))
+                .mul(newFirstMoment.div(this.epsScalar.add(newWeightedInfNorm)))
                 .add(value);
 
         value.assign(newValue);
       }
 
       this.iteration.assign(this.iteration.add(this.one));
-      this.accBeta1.assign(this.accBeta1.mul(this.beta1));
+      this.accBeta1.assign(this.accBeta1.mul(this.beta1Scalar));
     });
   }
 
   dispose() {
     this.c.dispose();
-    this.eps.dispose();
+    this.epsScalar.dispose();
     this.accBeta1.dispose();
-    this.beta1.dispose();
-    this.beta2.dispose();
+    this.beta1Scalar.dispose();
+    this.beta2Scalar.dispose();
     this.oneMinusBeta1.dispose();
 
-    this.decay.dispose();
+    this.decayScalar.dispose();
     this.iteration.dispose();
 
     this.one.dispose();
@@ -127,4 +132,20 @@ export class AdamaxOptimizer extends Optimizer {
           .forEach(name => this.accumulatedWeightedInfNorm[name].dispose());
     }
   }
+  getConfig(): ConfigDict {
+    return {
+      learningRate: this.learningRate,
+      beta1: this.beta1,
+      beta2: this.beta2,
+      epsilon: this.epsilon,
+      decay: this.decay
+    };
+  }
+  static fromConfig<T extends Serializable>(
+      cls: SerializableConstructor<T>, config: ConfigDict): T {
+    return new cls(
+        config.learningRate, config.beta1, config.beta2, config.epsilon,
+        config.decay);
+  }
 }
+SerializationMap.register(AdamaxOptimizer);

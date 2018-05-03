@@ -17,11 +17,12 @@
 
 import {doc} from '../doc';
 import {variableGrads} from '../globals';
+import {Serializable} from '../serialization';
 import {Scalar, Variable} from '../tensor';
 import {NamedTensorMap} from '../types';
 
 @doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
-export abstract class Optimizer {
+export abstract class Optimizer extends Serializable {
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
    * gradients of y with respect to the list of trainable variables provided by

@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
   it('basic', () => {
@@ -146,5 +146,11 @@ describeWithFlags('RMSPropOptimizer', ALL_ENVS, () => {
     optimizer.dispose();
     // The only tensor remaining is the argument to variable().
     expect(tf.memory().numTensors).toBe(1);
+  });
+  it('serialization round-trip', () => {
+    const originalOpt = tf.train.rmsprop(0.1, 0.5, 0.1, 1e-7, true);
+    const reserialized = tf.RMSPropOptimizer.fromConfig(
+        tf.RMSPropOptimizer, originalOpt.getConfig());
+    expect(reserialized.getConfig()).toEqual(originalOpt.getConfig());
   });
 });
