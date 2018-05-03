@@ -119,8 +119,8 @@ model.fit(xs, ys).then(() => {
 });
 ```
 
-See our <a href='./tutorials'>tutorials</a>, <a href='https://github.com/tensorflow/tfjs-examples' target="_blank">examples</a>
-and <a href="./api/{{latestVersion}}/">documentation</a> for more details.
+See our <a href="https://js.tensorflow.org/tutorials/" target="_blank">tutorials</a>, <a href="https://github.com/tensorflow/tfjs-examples" target="_blank">examples</a>
+and <a href="https://js.tensorflow.org/api/latest/">documentation</a> for more details.
 
 ## Importing pre-trained models
 
