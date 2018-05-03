@@ -101,4 +101,33 @@ export class LossOps {
     const losses = labels.sub(predictions).abs();
     return LossOps.computeWeightedLoss(losses, weights, reduction);
   }
+
+  /**
+   * Computes the mean squared error between two tensors.
+   *
+   * @param labels The ground truth output tensor, same dimensions as
+   *    'predictions'.
+   * @param predictions The predicted outputs.
+   * @param weights Tensor whose rank is either 0, or the same rank as
+   *    `labels`, and must be broadcastable to `labels` (i.e., all dimensions
+   *    must be either `1`, or the same as the corresponding `losses`
+   *    dimension).
+   * @param reduction Type of reduction to apply to loss. Should be of type
+   *    `Reduction`
+   */
+  @doc({heading: 'Training', subheading: 'Losses', namespace: 'losses'})
+  @operation
+  static meanSquaredError<T extends Tensor, O extends Tensor>(
+      labels: T, predictions: T, weights?: Tensor,
+      reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+    util.assertArgumentsAreTensors({labels, predictions}, 'meanSquaredError');
+    if (weights != null) {
+      util.assertArgumentsAreTensors({weights}, 'meanSquaredError');
+    }
+    util.assertShapesMatch(
+        labels.shape, predictions.shape, 'Error in meanSquaredError: ');
+
+    const losses = labels.squaredDifference(predictions);
+    return LossOps.computeWeightedLoss(losses, weights, reduction);
+  }
 }
