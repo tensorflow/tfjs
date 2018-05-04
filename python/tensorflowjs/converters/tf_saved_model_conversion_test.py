@@ -24,11 +24,13 @@ import unittest
 import tensorflow as tf
 from tensorflow.python.tools import freeze_graph
 
+import tensorflow_hub as hub
 from tensorflowjs.converters import tf_saved_model_conversion
 
 SAVED_MODEL_DIR = 'saved_model'
 SESSION_BUNDLE_MODEL_DIR = 'session_bundle'
 FROZEN_MODEL_DIR = 'frozen_model'
+HUB_MODULE_DIR = 'hub_module'
 
 
 class ConvertTest(unittest.TestCase):
@@ -83,6 +85,21 @@ class ConvertTest(unittest.TestCase):
             assets_collection=None)
 
       builder.save()
+
+  def create_hub_module(self):
+    # Module function that doubles its input.
+    def double_module_fn():
+      w = tf.Variable([2.0, 4.0])
+      x = tf.placeholder(dtype=tf.float32)
+      hub.add_signature(inputs=x, outputs=x*w)
+    graph = tf.Graph()
+    with graph.as_default():
+      spec = hub.create_module_spec(double_module_fn)
+      m = hub.Module(spec)
+    # Export the module.
+    with tf.Session(graph=graph) as sess:
+      sess.run(tf.global_variables_initializer())
+      m.export(os.path.join(self._tmp_dir, HUB_MODULE_DIR), sess)
 
   def create_frozen_model(self):
     graph = tf.Graph()
@@ -226,6 +243,41 @@ class ConvertTest(unittest.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, FROZEN_MODEL_DIR, 'group*-*')))
+
+  def test_convert_hub_module(self):
+    self.create_hub_module()
+    print(glob.glob(
+        os.path.join(self._tmp_dir, HUB_MODULE_DIR, '*')))
+
+    tf_saved_model_conversion.convert_tf_hub_module(
+        os.path.join(self._tmp_dir, HUB_MODULE_DIR),
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+    )
+
+    weights = [{
+        'paths': ['group1-shard1of1'],
+        'weights': [{
+            'shape': [2],
+            'name': 'module/Variable',
+            'dtype': 'float32'
+        }]
+    }]
+    # Load the saved weights as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
 
 
 if __name__ == '__main__':

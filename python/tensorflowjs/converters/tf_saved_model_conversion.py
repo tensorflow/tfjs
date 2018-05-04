@@ -25,10 +25,13 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.core.protobuf import device_properties_pb2
 from tensorflow.core.protobuf import rewriter_config_pb2
+from tensorflow.python.framework import graph_util
 from tensorflow.python.grappler import cluster as gcluster
 from tensorflow.python.grappler import tf_optimizer
 from tensorflow.python.lib.io import file_io
 from tensorflow.python.tools import freeze_graph
+
+import tensorflow_hub as hub
 
 from tensorflowjs import write_weights
 
@@ -36,7 +39,7 @@ DEFAULT_MODEL_PB_FILENAME = 'tensorflowjs_model.pb'
 
 
 def get_cluster():
-  """ Grappler optimization configuration for GPU."""
+  """Grappler optimization configuration for GPU."""
   named_device = device_properties_pb2.NamedDevice()
   named_device.name = '/GPU:0'
   named_device.properties.type = 'GPU'
@@ -246,6 +249,7 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
       '',
       saved_model_tags=saved_model_tags,
       input_saved_model_dir=saved_model_dir)
+
   graph = load_graph(output_graph + '.frozen', output_node_names)
   unsupported = validate(graph.as_graph_def().node)
   if unsupported:
@@ -288,3 +292,81 @@ def convert_tf_frozen_model(frozen_model_path, output_node_names,
     print('Unsupported Ops in the model\n' + ', '.join(unsupported))
   else:
     optimize_graph(graph, output_graph, quantization_dtype)
+
+
+def load_and_initialize_hub_module(module_path):
+  """Loads graph of a TF-Hub module and initializes it into a session.
+
+  Args:
+    module_path: string Path to TF-Hub module.
+
+  Return:
+    graph: tf.Graph graph of the module.
+    session: tf.Session session with initialized variables and tables.
+  """
+  graph = tf.Graph()
+  with graph.as_default():
+    tf.logging.info('Importing %s', module_path)
+    hub.Module(module_path)
+
+    session = tf.Session(graph=graph)
+    session.run(tf.global_variables_initializer())
+    session.run(tf.tables_initializer())
+
+  return graph, session
+
+
+def convert_tf_hub_module(module_path, output_dir):
+  """Freeze the TF-Hub module and check compatibility with Tensorflow.js.
+
+  Optimize and convert the TF-Hub module to Tensorflow.js format, if it passes
+  the compatiblity check.
+
+  Args:
+    module_path: string Path to the module.
+    output_dir: string The name of the output directory. The directory
+      will consist of
+      - a file named 'tensorflowjs_model.pb'
+      - a JSON weights manifest file named 'weights_manifest.json'
+      - possibly sharded binary weight files.
+  """
+
+  if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+  graph, sess = load_and_initialize_hub_module(module_path)
+
+  local_module_path = hub.compressed_module_resolver.get_default(
+  ).get_module_path(module_path)
+  meta_graph = hub.saved_model_lib.load(local_module_path).get_meta_graph_copy()
+
+  input_node_names = []
+  output_node_names = []
+  # Take all inputs and outputs of the default signature.
+  for _, input_node in meta_graph.signature_def['default'].inputs.items():
+    input_node_names.append('module/' + input_node.name.split(':')[0])
+  for _, output_node in meta_graph.signature_def['default'].outputs.items():
+    output_node_names.append('module/' + output_node.name.split(':')[0])
+
+  frozen_graph_def = graph_util.convert_variables_to_constants(
+      sess, graph.as_graph_def(), output_node_names)
+
+  unsupported = validate(frozen_graph_def.node)
+
+  if unsupported:
+    print('Unsupported Ops in the module\n' + ', '.join(unsupported))
+  else:
+    output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
+    frozen_file = output_graph + '.frozen'
+    with tf.gfile.GFile(frozen_file, 'wb') as f:
+      f.write(frozen_graph_def.SerializeToString())
+
+    graph = load_graph(frozen_file, ','.join(output_node_names))
+    optimize_graph(graph, output_graph)
+
+    print('Created a model with inputs %s and outputs %s.' %
+          (input_node_names, output_node_names))
+
+  # Clean up the temp files.
+  if os.path.exists(frozen_file):
+    os.remove(frozen_file)
