@@ -107,15 +107,6 @@ if [[ -z "${DEST_DIR}" ]]; then
   exit 1
 fi
 
-# Test if we are currently in a virtualenv.
-echo 1
-REAL_PREFIX_OUT="$(python -c "import sys; print(hasattr(sys, 'real_prefix'))")"
-if [[ "${REAL_PREFIX_OUT}" == "True" ]]; then
-  echo "ERROR: Do not run this script in a virtualenv."
-  echo
-  exit 1
-fi
-
 if [[ -f "${DEST_DIR}" || -d "${DEST_DIR}" ]]; then
   echo "ERROR: ${DEST_DIR} already exists. Please specify a new DEST_DIR."
   exit 1

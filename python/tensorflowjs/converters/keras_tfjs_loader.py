@@ -28,16 +28,17 @@ import tensorflow as tf
 from tensorflowjs import read_weights
 from tensorflowjs.converters import keras_h5_conversion
 
+
 def load_keras_model(config_json_path,
                      weights_path_prefix=None,
                      weights_data_buffers=None,
                      load_weights=True,
                      use_unique_name_scope=False):
-  """Load a model and optionally its weights as a Keras Model.
+  """Load a Keras Model from TensorFlow.js-format artifacts.
 
   Args:
-    config_json_path: Path to the JSON file that includes the model
-      topology and weights manifest.
+    config_json_path: Path to the TensorFlow.js-format JSON file that includes
+      the model topology and weights manifest.
     weights_path_prefix: Optional path prefix for the weights files.
       If not specified (`None`), will assume the prefix is the same directory
       as the dirname of `config_json_path`.
