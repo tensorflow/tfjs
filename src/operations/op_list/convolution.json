@@ -172,7 +172,7 @@
     ]
   },
   {
-    "tfOpName": "Conv2DTranspose",
+    "tfOpName": "Conv2DBackpropInput",
     "dlOpName": "conv2dTranspose",
     "category": "convolution",
     "params": [
@@ -187,7 +187,7 @@
         "type": "tensor"
       },
       {
-        "tfParamName": "output_shape",
+        "tfInputIndex": 2,
         "dlParamName": "outputShape",
         "type": "number[]"
       },
