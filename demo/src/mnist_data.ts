@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {equal} from 'assert';
 import * as tf from '@tensorflow/tfjs-core';
 import {TypedArray} from '@tensorflow/tfjs-core/dist/types';
 import {sizeFromShape} from '@tensorflow/tfjs-core/dist/util';
+import {equal} from 'assert';
 import {createWriteStream, existsSync, readFileSync} from 'fs';
 import {get} from 'https';
 import {createGunzip} from 'zlib';
@@ -143,29 +143,23 @@ export class MnistDataset {
     const imagesShape = [size, IMAGE_FLAT_SIZE];
     const images = new Float32Array(sizeFromShape(imagesShape));
 
-    // Labels must be converted to one-hot, do so through each iteration
-    let label: tf.Tensor2D;
+    const labelsShape = [size, 1];
+    const labels = new Int32Array(sizeFromShape(labelsShape));
 
     let imageOffset = 0;
+    let labelOffset = 0;
     while (this.batchIndex < batchIndexMax) {
       images.set(this.dataset[0][this.batchIndex], imageOffset);
-
-      const labelFlat = tf.oneHot(
-          tf.tensor1d(this.dataset[1][this.batchIndex], 'int32'),
-          LABEL_FLAT_SIZE);
-      if (label == null) {
-        label = labelFlat;
-      } else {
-        label = label.concat(labelFlat);
-      }
+      labels.set(this.dataset[1][this.batchIndex], labelOffset);
 
       imageOffset += IMAGE_FLAT_SIZE;
+      labelOffset += 1;
       this.batchIndex++;
     }
 
     return {
       image: tf.tensor2d(images, [size, IMAGE_FLAT_SIZE]),
-      label: label.toFloat()
+      label: tf.oneHot(tf.tensor1d(labels, 'int32'), LABEL_FLAT_SIZE).toFloat()
     };
   }
 }
