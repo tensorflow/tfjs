@@ -294,8 +294,8 @@ class APIAndShellTest(tf.test.TestCase):
     _, stderr = process.communicate()
     self.assertGreater(process.returncode, 0)
     self.assertIn(
-        b'The --output_node_names flag is applicable only to input format '
-        b'"tensorflow"', tf.compat.as_bytes(stderr))
+        b'The --output_node_names flag is applicable only to',
+        tf.compat.as_bytes(stderr))
 
   def testConvertTFSavedModelWithCommandLineWorks(self):
     output_dir = os.path.join(self._tmp_dir)
@@ -324,6 +324,61 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertTrue(
         glob.glob(os.path.join(output_dir, 'tensorflowjs_model.pb')))
     self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def testConvertTensorflowjsArtifactsToKerasH5(self):
+    # 1. Create a toy keras model and save it as an HDF5 file.
+    os.makedirs(os.path.join(self._tmp_dir, 'keras_h5'))
+    h5_path = os.path.join(self._tmp_dir, 'keras_h5', 'model.h5')
+    with tf.Graph().as_default(), tf.Session():
+      model = _createKerasModel('MergedDenseForCLI', h5_path)
+      model_json = model.to_json()
+
+    # 2. Convert the HDF5 file to tensorflowjs format.
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'keras', h5_path,
+        self._tmp_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    # 3. Convert the tensorflowjs artifacts back to HDF5.
+    new_h5_path = os.path.join(self._tmp_dir, 'model_2.h5')
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tensorflowjs',
+        '--output_format', 'keras',
+        os.path.join(self._tmp_dir, 'model.json'), new_h5_path])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    # 4. Load the model back from the new HDF5 file and compare with the
+    #    original model.
+    with tf.Graph().as_default(), tf.Session():
+      model_2 = keras.models.load_model(new_h5_path)
+      model_2_json = model_2.to_json()
+      self.assertEqual(model_json, model_2_json)
+
+  def testLoadTensorflowjsArtifactsAsKerasModel(self):
+    # 1. Create a toy keras model and save it as an HDF5 file.
+    os.makedirs(os.path.join(self._tmp_dir, 'keras_h5'))
+    h5_path = os.path.join(self._tmp_dir, 'keras_h5', 'model.h5')
+    with tf.Graph().as_default(), tf.Session():
+      model = _createKerasModel('MergedDenseForCLI', h5_path)
+      model_json = model.to_json()
+
+    # 2. Convert the HDF5 file to tensorflowjs format.
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'keras', h5_path,
+        self._tmp_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    # 3. Load the tensorflowjs artifacts as a keras.Model instance.
+    with tf.Graph().as_default(), tf.Session():
+      model_2 = tfjs.converters.load_keras_model(
+          os.path.join(self._tmp_dir, 'model.json'))
+      model_2_json = model_2.to_json()
+      self.assertEqual(model_json, model_2_json)
 
 
 if __name__ == '__main__':
