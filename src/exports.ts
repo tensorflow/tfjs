@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {doc, Tensor} from '@tensorflow/tfjs-core';
+import {doc, io, Tensor} from '@tensorflow/tfjs-core';
 
 import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
 import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';
@@ -155,8 +155,8 @@ export class ModelExports {
     subheading: 'Loading',
     useDocsFrom: 'loadModelInternal'
   })
-  static loadModel(modelConfigPath: string): Promise<Model> {
-    return loadModelInternal(modelConfigPath);
+  static loadModel(pathOrIOHandler: string|io.IOHandler): Promise<Model> {
+    return loadModelInternal(pathOrIOHandler);
   }
 
   @doc({

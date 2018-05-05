@@ -985,9 +985,13 @@ export abstract class Layer extends Serializable {
 
   /**
    * Returns the current values of the weights of the layer.
+   *
+   * @param trainableOnly Whether to get the values of only trainable weights.
+   * @returns Weight values as an `Array` of `Tensor`s.
    */
-  getWeights(): Tensor[] {
-    return K.batchGetValue(this.weights);
+  getWeights(trainableOnly = false): Tensor[] {
+    return K.batchGetValue(
+        trainableOnly ? this.trainableWeights : this.weights);
   }
 
   /**
