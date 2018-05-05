@@ -9,14 +9,14 @@
  */
 
 // tslint:disable:max-line-length
-import {io, ones, Scalar, scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
+import {io, ones, Scalar, scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {Model} from './engine/training';
 import * as tfl from './index';
 import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
-import {ModelAndWeightsConfig, modelFromJSON} from './models';
+import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {ConfigDict, JsonDict} from './types';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
@@ -161,7 +161,7 @@ describeMathCPU('model_from_json', () => {
   });
 });
 
-describeMathCPU('loadModel', () => {
+describeMathCPU('loadModel from URL', () => {
   const setupFakeWeightFiles =
       (fileBufferMap:
            {[filename: string]: Float32Array|Int32Array|ArrayBuffer}) => {
@@ -324,6 +324,133 @@ describeMathCPU('loadModel', () => {
         deserialize(convertPythonicToTs(json1) as ConfigDict) as Model;
     const json2 = model2.toJSON(null, false);
     expect(json2).toEqual(json1);
+  });
+});
+
+describeMathCPU('loadModel from IOHandler', () => {
+  // The model topology JSON can be obtained with the following Python Keras
+  // code:
+  //
+  // ```python
+  // import keras
+  // model = keras.Sequential([
+  //     keras.layers.Dense(1, input_shape=[4], activation='sigmoid')
+  // ])
+  // print(model.to_json())
+  // ```
+  const modelTopology: {} = {
+    'class_name': 'Sequential',
+    'keras_version': '2.1.4',
+    'config': [{
+      'class_name': 'Dense',
+      'config': {
+        'kernel_initializer': {
+          'class_name': 'VarianceScaling',
+          'config': {
+            'distribution': 'uniform',
+            'scale': 1.0,
+            'seed': null,
+            'mode': 'fan_avg'
+          }
+        },
+        'name': 'dense_1',
+        'kernel_constraint': null,
+        'bias_regularizer': null,
+        'bias_constraint': null,
+        'dtype': 'float32',
+        'activation': 'sigmoid',
+        'trainable': true,
+        'kernel_regularizer': null,
+        'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+        'units': 1,
+        'batch_input_shape': [null, 4],
+        'use_bias': true,
+        'activity_regularizer': null
+      }
+    }],
+    'backend': 'tensorflow'
+  };
+  const weightSpecs: io.WeightsManifestEntry[] = [
+    {
+      name: 'dense_1/kernel',
+      shape: [4, 1],
+      dtype: 'float32',
+    },
+    {
+      name: 'dense_1/bias',
+      shape: [1],
+      dtype: 'float32',
+    }
+  ];
+  const weightData = new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5]).buffer;
+
+  // A dummy IOHandler that returns hard-coded model artifacts when its `load`
+  // method is called.
+  class IOHandlerForTest implements io.IOHandler {
+    private readonly includeWeights: boolean;
+
+    constructor(includeWeights = true) {
+      this.includeWeights = includeWeights;
+    }
+
+    async load(): Promise<io.ModelArtifacts> {
+      return this.includeWeights ? {modelTopology, weightSpecs, weightData} :
+                                   {modelTopology};
+    }
+  }
+
+  // A dummy IOHandler that doesn't have the `load` method implemented and is
+  // expected to cause `loadModel` or `loadModelInternal` to fail.
+  class IOHandlerWithoutLoad implements io.IOHandler {
+    constructor() {}
+  }
+
+  it('load topology and weights', async done => {
+    loadModelInternal(new IOHandlerForTest(true))
+        .then(model => {
+          expect(model.layers.length).toEqual(1);
+          expect(model.inputs.length).toEqual(1);
+          expect(model.inputs[0].shape).toEqual([null, 4]);
+          expect(model.outputs.length).toEqual(1);
+          expect(model.outputs[0].shape).toEqual([null, 1]);
+          const weightValues = model.getWeights();
+          expect(weightValues.length).toEqual(2);
+          expectTensorsClose(
+              weightValues[0], tensor2d([1.1, 2.2, 3.3, 4.4], [4, 1]));
+          expectTensorsClose(weightValues[1], tensor1d([5.5]));
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
+
+  it('load topology only', async done => {
+    loadModelInternal(new IOHandlerForTest(false))
+        .then(model => {
+          expect(model.layers.length).toEqual(1);
+          expect(model.inputs.length).toEqual(1);
+          expect(model.inputs[0].shape).toEqual([null, 4]);
+          expect(model.outputs.length).toEqual(1);
+          expect(model.outputs[0].shape).toEqual([null, 1]);
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
+
+  it('IOHandler without load method causes error', async done => {
+    loadModelInternal(new IOHandlerWithoutLoad())
+        .then(model => {
+          done.fail(
+              'Loading with an IOHandler without load method succeeded ' +
+              'unexpectedly.');
+        })
+        .catch(err => {
+          expect(err.message).toMatch(/does not have .*load.* method/);
+          done();
+        });
   });
 });
 
