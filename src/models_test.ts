@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {io, ones, Scalar, scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {io, ones, Scalar, scalar, serialization, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {Model} from './engine/training';
@@ -17,7 +17,7 @@ import * as tfl from './index';
 import {Reshape} from './layers/core';
 import {deserialize} from './layers/serialization';
 import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
-import {ConfigDict, JsonDict} from './types';
+import {JsonDict} from './types';
 import {convertPythonicToTs} from './utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import {version as layersVersion} from './version';
@@ -321,7 +321,8 @@ describeMathCPU('loadModel from URL', () => {
         tfl.layers.dense({units: 1, inputShape: [4], activation: 'sigmoid'}));
     const json1 = model1.toJSON(null, false);
     const model2 =
-        deserialize(convertPythonicToTs(json1) as ConfigDict) as Model;
+        deserialize(convertPythonicToTs(json1) as serialization.ConfigDict) as
+        Model;
     const json2 = model2.toJSON(null, false);
     expect(json2).toEqual(json1);
   });

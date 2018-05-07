@@ -12,14 +12,14 @@
  *  Advanced activation layers.
  */
 
-import {elu, leakyRelu, Tensor} from '@tensorflow/tfjs-core';
+import {elu, leakyRelu, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {softmax} from '../activations';
 import {cast} from '../backend/tfjs_backend';
 import {getScalar} from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError} from '../errors';
-import {ConfigDict, DType, Shape} from '../types';
+import {DType, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
 export interface LeakyReLULayerConfig extends LayerConfig {
@@ -68,14 +68,14 @@ export class LeakyReLU extends Layer {
     return inputShape;
   }
 
-  getConfig(): ConfigDict {
-    const config: ConfigDict = {alpha: this.alpha};
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {alpha: this.alpha};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;
   }
 }
-generic_utils.ClassNameMap.register(LeakyReLU);
+serialization.SerializationMap.register(LeakyReLU);
 
 // TODO(cais): Implement PReLU
 
@@ -135,14 +135,14 @@ export class ELU extends Layer {
     return inputShape;
   }
 
-  getConfig(): ConfigDict {
-    const config: ConfigDict = {alpha: this.alpha};
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {alpha: this.alpha};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;
   }
 }
-generic_utils.ClassNameMap.register(ELU);
+serialization.SerializationMap.register(ELU);
 
 export interface ThresholdedReLULayerConfig extends LayerConfig {
   /**
@@ -196,14 +196,14 @@ export class ThresholdedReLU extends Layer {
     return inputShape;
   }
 
-  getConfig(): ConfigDict {
-    const config: ConfigDict = {theta: this.theta};
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {theta: this.theta};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;
   }
 }
-generic_utils.ClassNameMap.register(ThresholdedReLU);
+serialization.SerializationMap.register(ThresholdedReLU);
 
 export interface SoftmaxLayerConfig extends LayerConfig {
   /**
@@ -248,11 +248,11 @@ export class Softmax extends Layer {
     return inputShape;
   }
 
-  getConfig(): ConfigDict {
-    const config: ConfigDict = {axis: this.axis};
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {axis: this.axis};
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);
     return config;
   }
 }
-generic_utils.ClassNameMap.register(Softmax);
+serialization.SerializationMap.register(Softmax);

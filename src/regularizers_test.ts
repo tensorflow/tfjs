@@ -10,13 +10,13 @@
 
 /* Unit tests for constraints */
 
-import {scalar, Tensor, tensor1d} from '@tensorflow/tfjs-core';
-import * as tfl from './index';
+import {scalar, serialization, Tensor, tensor1d} from '@tensorflow/tfjs-core';
 
+import * as tfl from './index';
 // tslint:disable:max-line-length
 import {deserializeRegularizer, getRegularizer, serializeRegularizer} from './regularizers';
-import {ConfigDict} from './types';
 import {describeMathCPU, expectTensorsClose} from './utils/test_utils';
+
 // tslint:enable:max-line-length
 
 describeMathCPU('Built-in Regularizers', () => {
@@ -70,8 +70,8 @@ describeMathCPU('regularizers.get', () => {
   });
   it('by config dict', () => {
     const origReg = tfl.regularizers.l1l2({l1: 1, l2: 2});
-    const regularizer =
-        getRegularizer(serializeRegularizer(origReg) as ConfigDict);
+    const regularizer = getRegularizer(
+        serializeRegularizer(origReg) as serialization.ConfigDict);
     expectTensorsClose(regularizer.apply(x), origReg.apply(x));
   });
 });
@@ -79,11 +79,13 @@ describeMathCPU('regularizers.get', () => {
 describeMathCPU('Regularizer Serialization', () => {
   it('Built-ins', () => {
     const regularizer = tfl.regularizers.l1l2({l1: 1, l2: 2});
-    const config = serializeRegularizer(regularizer) as ConfigDict;
+    const config =
+        serializeRegularizer(regularizer) as serialization.ConfigDict;
     const reconstituted = deserializeRegularizer(config);
-    const roundTripConfig = serializeRegularizer(reconstituted) as ConfigDict;
+    const roundTripConfig =
+        serializeRegularizer(reconstituted) as serialization.ConfigDict;
     expect(roundTripConfig.className).toEqual('L1L2');
-    const nestedConfig = roundTripConfig.config as ConfigDict;
+    const nestedConfig = roundTripConfig.config as serialization.ConfigDict;
     expect(nestedConfig.l1).toEqual(1);
     expect(nestedConfig.l2).toEqual(2);
   });

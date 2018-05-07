@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor} from '@tensorflow/tfjs-core';
+import {serialization, Tensor} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import * as K from '../backend/tfjs_backend';
@@ -23,7 +23,6 @@ import {getInitializer, Initializer, InitializerIdentifier} from '../initializer
 import {getRegularizer, Regularizer, RegularizerIdentifier} from '../regularizers';
 import {LayerVariable, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
-import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
 
 import {Conv2D, ConvLayerConfig} from './convolutional';
@@ -159,4 +158,4 @@ export class DepthwiseConv2D extends Conv2D {
     }
   }
 }
-generic_utils.ClassNameMap.register(DepthwiseConv2D);
+serialization.SerializationMap.register(DepthwiseConv2D);
