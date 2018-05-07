@@ -373,7 +373,6 @@ export class VarianceScaling extends Initializer {
     const fans = computeFans(shape);
     const fanIn = fans[0];
     const fanOut = fans[1];
-
     let scale = this.scale;
     if (this.mode === 'fanIn') {
       scale /= Math.max(1, fanIn);
