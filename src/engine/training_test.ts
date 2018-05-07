@@ -19,7 +19,7 @@ import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
 import * as tfl from '../index';
 import {Regularizer} from '../regularizers';
-import {DType} from '../types';
+import {DType, Kwargs} from '../types';
 import {pyListRepeat, stringsEqual} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 // TODO(bileschi): Use external version of Layer.
@@ -1130,12 +1130,10 @@ describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
     // Hook the dropout layer to observe the training arg values during the
     // fit(), evaluate() and predict() calls.
     const dropoutLayerTrainingFlags: boolean[] = [];
-    // tslint:disable:no-any
     const recordDropoutTrainingArgHook =
-        (inputs: Tensor|Tensor[], kwargs: any) => {
+        (inputs: Tensor|Tensor[], kwargs: Kwargs) => {
           dropoutLayerTrainingFlags.push(kwargs.training as boolean);
         };
-    // tslint:enable:no-any
     layer2.setCallHook(recordDropoutTrainingArgHook);
 
     const output =

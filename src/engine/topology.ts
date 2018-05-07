@@ -19,7 +19,7 @@ import {AttributeError, NotImplementedError, RuntimeError, ValueError} from '../
 import {Initializer} from '../initializers';
 import {deserialize as deserializeLayer} from '../layers/serialization';
 import {Regularizer} from '../regularizers';
-import {DType, JsonDict, LayerVariable, NamedTensorMap, RegularizerFn, Shape, SymbolicTensor, TensorInterface} from '../types';
+import {DType, JsonDict, Kwargs, LayerVariable, NamedTensorMap, RegularizerFn, Shape, SymbolicTensor, TensorInterface} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {convertTsToPythonic} from '../utils/serialization_utils';
 import {version as layersVersion} from '../version';
@@ -194,8 +194,7 @@ export class Node {
   constructor(
       config: NodeConfig,
       // TODO(michaelterry): Define actual type for this.
-      // tslint:disable-next-line:no-any
-      public callArgs?: any) {
+      public callArgs?: Kwargs) {
     this.id = _nextNodeID++;
     /*
       Layer instance (NOT a list).
@@ -318,8 +317,7 @@ export interface LayerConfig {
 // If necessary, add `output` arguments to the CallHook function.
 // This is currently used for testing only, but may be used for debugger-related
 // purposes in the future.
-// tslint:disable-next-line:no-any
-export type CallHook = (inputs: Tensor|Tensor[], kwargs: any) => void;
+export type CallHook = (inputs: Tensor|Tensor[], kwargs: Kwargs) => void;
 
 let _nextLayerID = 0;
 
@@ -740,13 +738,11 @@ export abstract class Layer extends serialization.Serializable {
    *
    * @return A tensor or list/tuple of tensors.
    */
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return inputs;
   }
 
-  // tslint:disable-next-line:no-any
-  protected invokeCallHook(inputs: Tensor|Tensor[], kwargs: any) {
+  protected invokeCallHook(inputs: Tensor|Tensor[], kwargs: Kwargs) {
     if (this._callHook != null) {
       this._callHook(inputs, kwargs);
     }
@@ -838,9 +834,8 @@ export abstract class Layer extends serialization.Serializable {
   // Porting Note: This is a replacement for __call__() in Python.
   @doc({heading: 'Models', 'subheading': 'Classes'})
   apply(
-      inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
-      // tslint:disable-next-line:no-any
-      kwargs?: any): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
+      inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[], kwargs?: Kwargs):
+      Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
     kwargs = kwargs || {};
 
     // Ensure inputs are all the same type.
@@ -1395,8 +1390,7 @@ export class InputLayer extends Layer {
 
   apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
-      // tslint:disable-next-line:no-any
-      kwargs?: any): Tensor|Tensor[]|SymbolicTensor {
+      kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor {
     throw new ValueError(
         'Cannot pass any input to an ' +
         `InputLayer's apply() method. InputLayer name: ${this.name}`);
@@ -2053,8 +2047,7 @@ export abstract class Container extends Layer {
    * @return A tensor if there is a single output, or a list of tensors if there
    *   are more than one outputs.
    */
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = generic_utils.toList(inputs);
     let masks: Tensor[];
 
@@ -2227,8 +2220,7 @@ export abstract class Container extends Layer {
         }
         if (computedData.length === referenceInputTensors.length) {
           // TODO(michaelterry): Add K.name_scope here, if we need it.
-          // tslint:disable-next-line:no-any
-          let kwargs: any = {};
+          let kwargs: Kwargs = {};
           let computedTensors: Tensor[];
           let computedMasks: Tensor[];
           let outputTensors: Tensor[];

@@ -17,7 +17,7 @@ import {serialization, Tensor, util} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape, SymbolicTensor} from '../types';
+import {Kwargs, Shape, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as mathUtils from '../utils/math_utils';
 
@@ -127,8 +127,7 @@ export abstract class Merge extends Layer {
     }
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = inputs as Tensor[];
     if (this.reshapeRequired) {
       const reshapedInputs: Tensor[] = [];

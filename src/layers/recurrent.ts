@@ -23,7 +23,7 @@ import {Layer, LayerConfig} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
-import {DType, Shape, SymbolicTensor} from '../types';
+import {DType, Kwargs, Shape, SymbolicTensor} from '../types';
 import {LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
@@ -453,8 +453,7 @@ export class RNN extends Layer {
 
   apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
-      // tslint:disable-next-line:no-any
-      kwargs?: any): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
+      kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
     // TODO(cais): Figure out whether initialState is in kwargs or inputs.
     let initialState: Tensor[]|SymbolicTensor[] =
         kwargs == null ? null : kwargs['initialState'];
@@ -512,7 +511,7 @@ export class RNN extends Layer {
   }
 
   // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // Input shape: `[samples, time (padded with zeros), input_dim]`.
     // Note that the .build() method of subclasses **must** define
     // this.inputSpec and this.stateSpec owith complete input shapes.
@@ -548,8 +547,7 @@ export class RNN extends Layer {
           'Ignoring unroll = true for RNN layer, due to imperative backend.');
     }
 
-    // tslint:disable-next-line:no-any
-    const cellCallKwargs: {[key: string]: any} = {training};
+    const cellCallKwargs: Kwargs = {training};
 
     // TODO(cais): Add support for constants.
     const step = (inputs: Tensor, states: Tensor[]) => {
@@ -873,8 +871,7 @@ export class SimpleRNNCell extends RNNCell {
   //   Similarly, PyKeras' equivalent of this method returns two values:
   //    `output` and `[output]`. Here the two are combined into one length-2
   //    `Tensor[]`, consisting of `output` repeated.
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = inputs as Tensor[];
     if (inputs.length !== 2) {
       throw new ValueError(
@@ -1039,8 +1036,7 @@ export class SimpleRNN extends RNN {
     // TODO(cais): Add activityRegularizer.
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // TODO(cais): Add dropoutMask and recurrentDropoutMask.
     const mask = kwargs == null ? null : kwargs['mask'];
     const training = kwargs == null ? null : kwargs['training'];
@@ -1297,8 +1293,7 @@ export class GRUCell extends RNNCell {
     this.built = true;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // TODO(cais): Implement dropout.
     if (this.dropout !== 0 || this.recurrentDropout !== 0) {
       throw new NotImplementedError(
@@ -1470,8 +1465,7 @@ export class GRU extends RNN {
     // TODO(cais): Add activityRegularizer.
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // TODO(cais): Add dropoutMask and recurrentDropoutMask.
     const mask = kwargs == null ? null : kwargs['mask'];
     const training = kwargs == null ? null : kwargs['training'];
@@ -1770,8 +1764,7 @@ export class LSTMCell extends RNNCell {
     this.built = true;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // TODO(cais): Implement dropout.
     if (this.dropout !== 0 || this.recurrentDropout !== 0) {
       throw new NotImplementedError(
@@ -1958,8 +1951,7 @@ export class LSTM extends RNN {
     // TODO(cais): Add activityRegularizer.
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // TODO(cais): Add dropoutMask and recurrentDropoutMask.
     const mask = kwargs == null ? null : kwargs['mask'];
     const training = kwargs == null ? null : kwargs['training'];
@@ -2105,8 +2097,7 @@ export class StackedRNNCells extends RNNCell {
     return stateSize;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = inputs as Tensor[];
     let states = inputs.slice(1);
 

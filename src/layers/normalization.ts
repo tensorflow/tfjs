@@ -21,7 +21,7 @@ import {InputSpec, Layer, LayerConfig} from '../engine/topology';
 import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
-import {Shape} from '../types';
+import {Kwargs, Shape} from '../types';
 import {LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {arrayProd, range} from '../utils/math_utils';
@@ -203,8 +203,7 @@ export class BatchNormalization extends Layer {
     this.built = true;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const training = kwargs['training'] == null ? false : kwargs['training'];
       const input = generic_utils.getExactlyOneTensor(inputs);

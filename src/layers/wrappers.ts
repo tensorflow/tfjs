@@ -18,7 +18,7 @@ import {serialization, Tensor} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape, TensorInterface} from '../types';
+import {Kwargs, Shape, TensorInterface} from '../types';
 import {LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
@@ -214,8 +214,7 @@ export class TimeDistributed extends Wrapper {
     return [childOutputShape[0], timesteps].concat(childOutputShape.slice(1));
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     // TODO(cais): Add 'training' and 'useLearningPhase' to kwargs.
     inputs = generic_utils.getExactlyOneTensor(inputs);
     // Porting Note: In tfjs-layers, `inputs` are always concrete tensor values.
@@ -365,8 +364,7 @@ export class Bidirectional extends Wrapper {
 
   apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
-      // tslint:disable-next-line:no-any
-      kwargs?: any): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
+      kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
     let initialState: Tensor[]|SymbolicTensor[] = null;
     if (kwargs != null) {
       initialState = kwargs['initialState'];
@@ -386,8 +384,7 @@ export class Bidirectional extends Wrapper {
     }
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     if (kwargs['mask'] != null) {
       throw new NotImplementedError(
           'The support for masking is not implemented for ' +

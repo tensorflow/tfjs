@@ -19,7 +19,7 @@ import {cast} from '../backend/tfjs_backend';
 import {getScalar} from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError} from '../errors';
-import {DType, Shape} from '../types';
+import {DType, Kwargs, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
 export interface LeakyReLULayerConfig extends LayerConfig {
@@ -58,8 +58,7 @@ export class LeakyReLU extends Layer {
     this.alpha = config.alpha == null ? this.DEFAULT_ALPHA : config.alpha;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = generic_utils.getExactlyOneTensor(inputs);
     return leakyRelu(x, this.alpha);
   }
@@ -125,8 +124,7 @@ export class ELU extends Layer {
     this.alpha = config.alpha == null ? this.DEFAULT_ALPHA : config.alpha;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = generic_utils.getExactlyOneTensor(inputs);
     return elu(x);
   }
@@ -186,8 +184,7 @@ export class ThresholdedReLU extends Layer {
     this.thetaTensor = getScalar(this.theta);
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = generic_utils.getExactlyOneTensor(inputs);
     return x.mul(cast(x.greater(this.thetaTensor), DType.float32));
   }
@@ -238,8 +235,7 @@ export class Softmax extends Layer {
     this.axis = config.theta == null ? this.DEFAULT_AXIS : config.theta;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = generic_utils.getExactlyOneTensor(inputs);
     return softmax(x, this.axis);
   }

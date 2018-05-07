@@ -20,9 +20,10 @@ import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../com
 import {InputSpec} from '../engine/topology';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError} from '../errors';
-import {Shape} from '../types';
+import {Kwargs, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
+
 // tslint:enable:max-line-length
 
 export interface Pooling1DLayerConfig extends LayerConfig {
@@ -77,8 +78,7 @@ export abstract class Pooling1D extends Layer {
       inputs: Tensor, poolSize: [number, number], strides: [number, number],
       padding: PaddingMode, dataFormat: DataFormat): Tensor;
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     this.invokeCallHook(inputs, kwargs);
     // Add dummy last dimension.
     inputs = K.expandDims(generic_utils.getExactlyOneTensor(inputs), 2);
@@ -222,8 +222,7 @@ export abstract class Pooling2D extends Layer {
       inputs: Tensor, poolSize: [number, number], strides: [number, number],
       padding: PaddingMode, dataFormat: DataFormat): Tensor;
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     this.invokeCallHook(inputs, kwargs);
     return this.poolingFunction(
         generic_utils.getExactlyOneTensor(inputs), this.poolSize, this.strides,
@@ -328,8 +327,7 @@ export abstract class GlobalPooling1D extends Layer {
     return [inputShape[0], inputShape[2]];
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     throw new NotImplementedError();
   }
 }
@@ -347,8 +345,7 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
     super(config);
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
     return K.mean(input, 1);
   }
@@ -368,8 +365,7 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
     super(config);
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
     return K.max(input, 1);
   }
@@ -410,8 +406,7 @@ export abstract class GlobalPooling2D extends Layer {
     }
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     throw new NotImplementedError();
   }
 
@@ -437,8 +432,7 @@ export abstract class GlobalPooling2D extends Layer {
  */
 export class GlobalAveragePooling2D extends GlobalPooling2D {
   static className = 'GlobalAveragePooling2D';
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
     if (this.dataFormat === 'channelsLast') {
       return K.mean(input, [1, 2]);
@@ -463,8 +457,7 @@ serialization.SerializationMap.register(GlobalAveragePooling2D);
  */
 export class GlobalMaxPooling2D extends GlobalPooling2D {
   static className = 'GlobalMaxPooling2D';
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
     if (this.dataFormat === 'channelsLast') {
       return K.max(input, [1, 2]);

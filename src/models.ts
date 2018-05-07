@@ -19,7 +19,7 @@ import {getSourceInputs, Input, Layer, Node} from './engine/topology';
 import {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig, ModelPredictConfig} from './engine/training';
 import {NotImplementedError, RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
-import {NamedTensorMap, Shape} from './types';
+import {Kwargs, NamedTensorMap, Shape} from './types';
 import {JsonDict, SymbolicTensor} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
@@ -374,8 +374,7 @@ export class Sequential extends Model {
     }
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     if (this.model == null) {
       this.build();
     }
