@@ -19,7 +19,7 @@ import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import * as metrics from '../metrics';
 import {ModelAndWeightsConfig, modelFromJSON} from '../models';
-import {DType} from '../types';
+import {DType, Kwargs} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {RNN, RNNCell} from './recurrent';
@@ -41,8 +41,7 @@ class RNNCellForTest extends RNNCell {
     this.stateSize = stateSizes;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = inputs as Tensor[];
     const dataInputs = inputs[0];
     const states = inputs.slice(1);

@@ -23,8 +23,9 @@ import * as K from '../backend/tfjs_backend';
 import {DataFormat} from '../common';
 import {InputSpec, Layer, LayerConfig} from '../engine/topology';
 import {ValueError} from '../errors';
-import {Shape} from '../types';
+import {Kwargs, Shape} from '../types';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
+
 // tslint:enable:max-line-length
 
 export interface ZeroPadding2DLayerConfig extends LayerConfig {
@@ -162,8 +163,7 @@ export class ZeroPadding2D extends Layer {
     }
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return K.spatial2dPadding(
         getExactlyOneTensor(inputs), this.padding, this.dataFormat);
   }

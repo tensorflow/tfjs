@@ -23,7 +23,7 @@ import {InputSpec, Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
-import {Shape} from '../types';
+import {Kwargs, Shape} from '../types';
 import {DType, LayerVariable} from '../types';
 import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
@@ -234,8 +234,7 @@ export abstract class Conv extends Layer {
     this.built = true;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = generic_utils.getExactlyOneTensor(inputs);
     let outputs: Tensor;
     const biasValue = this.bias == null ? null : this.bias.read();
@@ -421,8 +420,7 @@ export class Conv2DTranspose extends Conv2D {
     this.built = true;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       let input = generic_utils.getExactlyOneTensor(inputs);
       if (input.shape.length !== 4) {
@@ -665,8 +663,7 @@ export class SeparableConv extends Conv {
     this.built = true;
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = generic_utils.getExactlyOneTensor(inputs);
 
     let output: Tensor;
@@ -886,8 +883,7 @@ export class Cropping2D extends Layer {
       ];
   }
 
-  // tslint:disable-next-line:no-any
-  call(inputs: Tensor|Tensor[], kwargs: any): Tensor|Tensor[] {
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = generic_utils.getExactlyOneTensor(inputs);
 
     if (this.dataFormat === 'channelsLast') {

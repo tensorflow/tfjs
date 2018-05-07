@@ -14,7 +14,7 @@
 
 import {Tensor} from '@tensorflow/tfjs-core';
 import {ValueError} from '../errors';
-import {SymbolicTensor} from '../types';
+import {Kwargs, SymbolicTensor} from '../types';
 import {InputLayer} from './topology';
 
 /**
@@ -150,8 +150,7 @@ export class FeedDict {
  */
 export function execute(
     fetches: SymbolicTensor|SymbolicTensor[], feedDict: FeedDict,
-    // tslint:disable-next-line:no-any
-    kwargs?: any): Tensor|Tensor[]|[Tensor | Tensor[]] {
+    kwargs?: Kwargs): Tensor|Tensor[]|[Tensor | Tensor[]] {
   const arrayFetches = Array.isArray(fetches);
   const fetchArray: SymbolicTensor[] =
       arrayFetches ? fetches as SymbolicTensor[] : [fetches as SymbolicTensor];
@@ -167,8 +166,7 @@ export function execute(
 
 function executeInternal(
     fetch: SymbolicTensor, internalFeedDict: FeedDict,
-    // tslint:disable-next-line:no-any
-    kwargs?: any): Tensor {
+    kwargs?: Kwargs): Tensor {
   if (internalFeedDict.hasKey(fetch)) {
     return internalFeedDict.getValue(fetch);
   }
