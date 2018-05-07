@@ -315,33 +315,53 @@ describeMathCPU('Glorot uniform initializer', () => {
 describeMathCPU('Glorot normal initializer', () => {
   ['glorotNormal', 'GlorotNormal'].forEach(initializer => {
     it('1D ' + initializer, () => {
-      const init = getInitializer('glorotNormal');
-      let weights = init.apply([30], DType.float32);
-      expect(weights.shape).toEqual([30]);
-      expect(weights.dtype).toEqual(DType.float32);
-      const variance1 = math_utils.variance(weights.dataSync() as Float32Array);
+      const init = getInitializer(initializer);
+      const NUM_TRIALS = 4;
+      const varianceArr1: number[] = [];
+      const varianceArr2: number[] = [];
 
-      weights = init.apply([120], DType.float32);
-      expect(weights.shape).toEqual([120]);
-      expect(weights.dtype).toEqual(DType.float32);
-      const variance2 = math_utils.variance(weights.dataSync() as Float32Array);
+      for (let i = 0; i < NUM_TRIALS; ++i) {
+        let weights = init.apply([30], DType.float32);
+        expect(weights.shape).toEqual([30]);
+        expect(weights.dtype).toEqual(DType.float32);
+        varianceArr1.push(
+            math_utils.variance(weights.dataSync() as Float32Array));
 
+        weights = init.apply([1200], DType.float32);
+        expect(weights.shape).toEqual([1200]);
+        expect(weights.dtype).toEqual(DType.float32);
+        varianceArr2.push(
+            math_utils.variance(weights.dataSync() as Float32Array));
+        expect(init.getClassName()).toEqual(VarianceScaling.className);
+      }
+
+      const variance1 = math_utils.median(varianceArr1);
+      const variance2 = math_utils.median(varianceArr2);
       expect(variance2).toBeLessThan(variance1);
-      expect(init.getClassName()).toEqual(VarianceScaling.className);
     });
 
     it('2D ' + initializer, () => {
-      const init = getInitializer('glorotNormal');
-      let weights = init.apply([5, 6], DType.float32);
-      expect(weights.shape).toEqual([5, 6]);
-      expect(weights.dtype).toEqual(DType.float32);
-      const variance1 = math_utils.variance(weights.dataSync() as Float32Array);
+      const init = getInitializer(initializer);
+      const NUM_TRIALS = 4;
+      const varianceArr1: number[] = [];
+      const varianceArr2: number[] = [];
 
-      weights = init.apply([10, 12], DType.float32);
-      expect(weights.shape).toEqual([10, 12]);
-      expect(weights.dtype).toEqual(DType.float32);
-      const variance2 = math_utils.variance(weights.dataSync() as Float32Array);
+      for (let i = 0; i < NUM_TRIALS; ++i) {
+        let weights = init.apply([5, 6], DType.float32);
+        expect(weights.shape).toEqual([5, 6]);
+        expect(weights.dtype).toEqual(DType.float32);
+        varianceArr1.push(
+            math_utils.variance(weights.dataSync() as Float32Array));
 
+        weights = init.apply([30, 50], DType.float32);
+        expect(weights.shape).toEqual([30, 50]);
+        expect(weights.dtype).toEqual(DType.float32);
+        varianceArr2.push(
+            math_utils.variance(weights.dataSync() as Float32Array));
+      }
+
+      const variance1 = math_utils.median(varianceArr1);
+      const variance2 = math_utils.median(varianceArr2);
       expect(variance2).toBeLessThan(variance1);
     });
   });

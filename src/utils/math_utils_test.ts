@@ -12,6 +12,8 @@
  * Unit tests for math_utils.
  */
 
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
+
 import * as math_utils from './math_utils';
 import {describeMathCPU} from './test_utils';
 
@@ -103,6 +105,23 @@ describeMathCPU('variance', () => {
   it('Float32Array', () => {
     expect(math_utils.variance(new Float32Array([-100, -200, 150, 50])))
         .toEqual(18125);
+  });
+});
+
+describeMathCPU('median', () => {
+  it('Number array', () => {
+    expect(math_utils.median([-100, -200, 150, 50])).toEqual(-25);
+  });
+
+  it('Float32Array', () => {
+    expect(math_utils.median(new Float32Array([-100, -200, 150, 50])))
+        .toEqual(-25);
+  });
+
+  it('does not mutate input array', () => {
+    const numbers = [-100, -200, 150, 50];
+    math_utils.median(numbers);
+    expectArraysClose(numbers, [-100, -200, 150, 50]);
   });
 });
 
