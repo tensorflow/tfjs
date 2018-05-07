@@ -13,13 +13,12 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
+import {serialization, Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import * as tfl from './index';
 import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, VarianceScaling} from './initializers';
 import {DType} from './types';
-import {ConfigDict} from './types';
 import * as math_utils from './utils/math_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
@@ -80,7 +79,7 @@ describeMathCPU('Ones initializer', () => {
 describeMathCPU('Constant initializer', () => {
   it('1D, from config dict', () => {
     const initializerConfig:
-        ConfigDict = {className: 'Constant', config: {value: 5}};
+        serialization.ConfigDict = {className: 'Constant', config: {value: 5}};
     const init = getInitializer(initializerConfig);
     const weights = init.apply([3], DType.float32);
     expect(weights.shape).toEqual([3]);
@@ -90,7 +89,7 @@ describeMathCPU('Constant initializer', () => {
 
   it('2D, from config dict', () => {
     const initializerConfig:
-        ConfigDict = {className: 'Constant', config: {value: 5}};
+        serialization.ConfigDict = {className: 'Constant', config: {value: 5}};
     const init = getInitializer(initializerConfig);
     const weights = init.apply([2, 2], DType.float32);
     expect(weights.shape).toEqual([2, 2]);
@@ -102,21 +101,21 @@ describeMathCPU('Constant initializer', () => {
 describeMathCPU('Identity initializer', () => {
   it('1D', () => {
     const initializerConfig:
-        ConfigDict = {className: 'Identity', config: {gain: 5}};
+        serialization.ConfigDict = {className: 'Identity', config: {gain: 5}};
     const init = getInitializer(initializerConfig);
     expect(() => init.apply([4])).toThrowError(/2D square/);
   });
 
   it('1D, from config', () => {
     const initializerConfig:
-        ConfigDict = {className: 'Identity', config: {gain: 5}};
+        serialization.ConfigDict = {className: 'Identity', config: {gain: 5}};
     const init = getInitializer(initializerConfig);
     expect(() => init.apply([4])).toThrowError(/2D square/);
   });
 
   it('2D', () => {
     const initializerConfig:
-        ConfigDict = {className: 'Identity', config: {gain: 5}};
+        serialization.ConfigDict = {className: 'Identity', config: {gain: 5}};
     const init = getInitializer(initializerConfig);
     const weights = init.apply([2, 2], DType.float32);
     expect(weights.shape).toEqual([2, 2]);
@@ -145,7 +144,7 @@ describeMathCPU('RandomUniform initializer', () => {
   });
 
   it('with configured min max val', () => {
-    const initializerConfig: ConfigDict = {
+    const initializerConfig: serialization.ConfigDict = {
       className: 'RandomUniform',
       config: {minval: 17, maxval: 47}
     };
@@ -176,7 +175,7 @@ describeMathCPU('RandomNormal initializer', () => {
   });
 
   it('with configured min max val', () => {
-    const initializerConfig: ConfigDict = {
+    const initializerConfig: serialization.ConfigDict = {
       className: 'RandomNormal',
       config: {mean: 1.0, stddev: 0.001}
     };
@@ -249,7 +248,7 @@ describeMathCPU('TruncatedNormal initializer', () => {
   });
 
   it('with configured min max val', () => {
-    const initializerConfig: ConfigDict = {
+    const initializerConfig: serialization.ConfigDict = {
       className: 'TruncatedNormal',
       config: {mean: 1.0, stddev: 0.5}
     };
@@ -370,8 +369,9 @@ describeMathCPU('Glorot normal initializer', () => {
 describeMathCPU('initializers.get', () => {
   it('by string', () => {
     const initializer = getInitializer('glorotNormal');
-    const config = serializeInitializer(initializer) as ConfigDict;
-    const nestedConfig = config.config as ConfigDict;
+    const config =
+        serializeInitializer(initializer) as serialization.ConfigDict;
+    const nestedConfig = config.config as serialization.ConfigDict;
     expect(nestedConfig.scale).toEqual(1.0);
     expect(nestedConfig.mode).toEqual('fanAvg');
     expect(nestedConfig.distribution).toEqual('normal');
@@ -383,8 +383,8 @@ describeMathCPU('initializers.get', () => {
   });
   it('by config dict', () => {
     const origInit = tfl.initializers.glorotUniform({seed: 10});
-    const initializer =
-        getInitializer(serializeInitializer(origInit) as ConfigDict);
+    const initializer = getInitializer(
+        serializeInitializer(origInit) as serialization.ConfigDict);
     expect(serializeInitializer(initializer))
         .toEqual(serializeInitializer(origInit));
   });

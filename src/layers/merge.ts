@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Merge Layers.
  */
 
-import {Tensor, util} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -259,7 +259,7 @@ export class Add extends Merge {
     return output;
   }
 }
-generic_utils.ClassNameMap.register(Add);
+serialization.SerializationMap.register(Add);
 
 /**
  * Calculate the element-wise sum of inputs, which all have the same shape.
@@ -349,7 +349,7 @@ export class Multiply extends Merge {
     return output;
   }
 }
-generic_utils.ClassNameMap.register(Multiply);
+serialization.SerializationMap.register(Multiply);
 
 /**
  * Calculate the element-wise product of inputs, which all have the same shape.
@@ -438,7 +438,7 @@ export class Average extends Merge {
     return K.scalarTimesArray(K.getScalar(1 / inputs.length), output);
   }
 }
-generic_utils.ClassNameMap.register(Average);
+serialization.SerializationMap.register(Average);
 
 /**
  * Calculate the element-wise arithmetic mean of inputs, which all have the same
@@ -528,7 +528,7 @@ export class Maximum extends Merge {
     return output;
   }
 }
-generic_utils.ClassNameMap.register(Maximum);
+serialization.SerializationMap.register(Maximum);
 
 /**
  * Calculate the element-wise maximum of inputs, which all have the same shape.
@@ -617,7 +617,7 @@ export class Minimum extends Merge {
     return output;
   }
 }
-generic_utils.ClassNameMap.register(Minimum);
+serialization.SerializationMap.register(Minimum);
 
 /**
  * Calculate the element-wise minimum of inputs, which all have the same shape.
@@ -787,7 +787,7 @@ export class Concatenate extends Merge {
   // TODO(cais): Implement computeMask();
   // TODO(cais): Add getConfig();
 }
-generic_utils.ClassNameMap.register(Concatenate);
+serialization.SerializationMap.register(Concatenate);
 
 /**
  * Concatenate an `Array` of inputs.

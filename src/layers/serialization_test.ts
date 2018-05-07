@@ -8,19 +8,19 @@
  * =============================================================================
  */
 
-import {Initializer, Ones, Zeros} from '../initializers';
-import {ConfigDict} from '../types';
+import {serialization} from '@tensorflow/tfjs-core';
 
+import {Initializer, Ones, Zeros} from '../initializers';
 import {deserialize} from './serialization';
 
 describe('Deserialization', () => {
   it('Zeros Initialzer', () => {
-    const config: ConfigDict = {className: 'Zeros', config: {}};
+    const config: serialization.ConfigDict = {className: 'Zeros', config: {}};
     const initializer: Zeros = deserialize(config) as Initializer;
     expect(initializer instanceof (Zeros)).toEqual(true);
   });
   it('Ones Initialzer', () => {
-    const config: ConfigDict = {className: 'Ones', config: {}};
+    const config: serialization.ConfigDict = {className: 'Ones', config: {}};
     const initializer: Ones = deserialize(config) as Initializer;
     expect(initializer instanceof (Ones)).toEqual(true);
   });

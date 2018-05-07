@@ -11,17 +11,16 @@
 /* original source: keras/regularizers.py */
 
 // tslint:disable:max-line-length
-import {doc, Scalar, Tensor, zeros} from '@tensorflow/tfjs-core';
+import {doc, Scalar, serialization, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
-import {ConfigDict, ConfigDictValue, Constructor, Serializable} from './types';
-import {ClassNameMap, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
+import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 // tslint:enable:max-line-length
 
 /**
  * Regularizer base class.
  */
-export abstract class Regularizer extends Serializable {
+export abstract class Regularizer extends serialization.Serializable {
   abstract apply(x: Tensor): Scalar;
 }
 
@@ -85,16 +84,17 @@ export class L1L2 extends Regularizer {
     return regularization.asScalar();
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {'l1': this.l1.dataSync()[0], 'l2': this.l2.dataSync()[0]};
   }
 
-  static fromConfig<T extends Serializable>(
-      cls: Constructor<T>, config: ConfigDict): T {
+  static fromConfig<T extends serialization.Serializable>(
+      cls: serialization.SerializableConstructor<T>,
+      config: serialization.ConfigDict): T {
     return new cls({l1: config.l1 as number, l2: config.l2 as number});
   }
 }
-ClassNameMap.register(L1L2);
+serialization.SerializationMap.register(L1L2);
 
 /**
  * Regularizer for L1 regularization.
@@ -127,18 +127,21 @@ export const REGULARIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP:
       'l1l2': 'L1L2'
     };
 
-export function serializeRegularizer(constraint: Regularizer): ConfigDictValue {
+export function serializeRegularizer(constraint: Regularizer):
+    serialization.ConfigDictValue {
   return serializeKerasObject(constraint);
 }
 
 export function deserializeRegularizer(
-    config: ConfigDict, customObjects: ConfigDict = {}): Regularizer {
+    config: serialization.ConfigDict,
+    customObjects: serialization.ConfigDict = {}): Regularizer {
   return deserializeKerasObject(
-      config, ClassNameMap.getMap().pythonClassNameMap, customObjects,
-      'regularizer');
+      config, serialization.SerializationMap.getMap().classNameMap,
+      customObjects, 'regularizer');
 }
 
-export function getRegularizer(identifier: RegularizerIdentifier|ConfigDict|
+export function getRegularizer(identifier: RegularizerIdentifier|
+                               serialization.ConfigDict|
                                Regularizer): Regularizer {
   if (identifier == null) {
     return null;

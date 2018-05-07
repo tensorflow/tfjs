@@ -13,13 +13,13 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor} from '@tensorflow/tfjs-core';
+import {serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Serializable, Shape, TensorInterface} from '../types';
-import {ConfigDict, Constructor, LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
+import {Shape, TensorInterface} from '../types';
+import {LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
 import {RNN} from './recurrent';
@@ -113,8 +113,8 @@ export abstract class Wrapper extends Layer {
     this.layer.setWeights(weights);
   }
 
-  getConfig(): ConfigDict {
-    const config: ConfigDict = {
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
       'layer': {
         'className': this.layer.getClassName(),
         'config': this.layer.getConfig(),
@@ -125,10 +125,11 @@ export abstract class Wrapper extends Layer {
     return config;
   }
 
-  static fromConfig<T extends Serializable>(
-      cls: Constructor<T>, config: ConfigDict,
-      customObjects = {} as ConfigDict): T {
-    const layerConfig = config['layer'] as ConfigDict;
+  static fromConfig<T extends serialization.Serializable>(
+      cls: serialization.SerializableConstructor<T>,
+      config: serialization.ConfigDict,
+      customObjects = {} as serialization.ConfigDict): T {
+    const layerConfig = config['layer'] as serialization.ConfigDict;
     const layer = deserialize(layerConfig, customObjects) as Layer;
     delete config['layer'];
     const newConfig = {layer};
@@ -233,7 +234,7 @@ export class TimeDistributed extends Wrapper {
     return y;
   }
 }
-generic_utils.ClassNameMap.register(TimeDistributed);
+serialization.SerializationMap.register(TimeDistributed);
 
 export enum BidirectionalMergeMode {
   SUM,
@@ -470,4 +471,4 @@ export class Bidirectional extends Wrapper {
   // TODO(cais): Implement constraints().
   // TODO(cais): Implement getConfig().
 }
-generic_utils.ClassNameMap.register(Bidirectional);
+serialization.SerializationMap.register(Bidirectional);

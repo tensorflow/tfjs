@@ -9,14 +9,13 @@
  */
 
 // tslint:disable:max-line-length
-import {doc, scalar, Scalar, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
+import {doc, scalar, Scalar, serialization, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
 import {NotImplementedError, ValueError} from './errors';
-import {DType, Serializable, Shape} from './types';
-import {ConfigDict, ConfigDictValue} from './types';
-import {ClassNameMap, deserializeKerasObject, SerializableEnumRegistry, serializeKerasObject} from './utils/generic_utils';
+import {DType, Shape} from './types';
+import {deserializeKerasObject, SerializableEnumRegistry, serializeKerasObject} from './utils/generic_utils';
 import {arrayProd} from './utils/math_utils';
 
 // tslint:enable:max-line-length
@@ -58,7 +57,7 @@ export function checkDistribution(value?: string): void {
  */
 @doc(
     {heading: 'Initializers', subheading: 'Classes', namespace: 'initializers'})
-export abstract class Initializer extends Serializable {
+export abstract class Initializer extends serialization.Serializable {
   public fromConfigUsesCustomObjects(): boolean {
     return false;
   }
@@ -70,7 +69,7 @@ export abstract class Initializer extends Serializable {
    */
   abstract apply(shape: Shape, dtype?: DType): Tensor;
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {};
   }
 }
@@ -85,7 +84,7 @@ export class Zeros extends Initializer {
     return K.zeros(shape, dtype);
   }
 }
-ClassNameMap.register(Zeros);
+serialization.SerializationMap.register(Zeros);
 
 /**
  * Initializer that generates tensors initialized to 1.
@@ -97,7 +96,7 @@ export class Ones extends Initializer {
     return K.ones(shape, dtype);
   }
 }
-ClassNameMap.register(Ones);
+serialization.SerializationMap.register(Ones);
 
 export interface ConstantConfig {
   /** The value for each element in the variable. */
@@ -119,13 +118,13 @@ export class Constant extends Initializer {
     return K.scalarTimesArray(scalar(this.value), K.ones(shape, dtype));
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {
       value: this.value,
     };
   }
 }
-ClassNameMap.register(Constant);
+serialization.SerializationMap.register(Constant);
 
 export interface RandomUniformConfig {
   /** Lower bound of the range of random values to generate. */
@@ -162,11 +161,11 @@ export class RandomUniform extends Initializer {
     return K.randomUniform(shape, this.minval, this.maxval, dtype, this.seed);
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {minval: this.minval, maxval: this.maxval, seed: this.seed};
   }
 }
-ClassNameMap.register(RandomUniform);
+serialization.SerializationMap.register(RandomUniform);
 
 export interface RandomNormalConfig {
   /** Mean of the random values to generate. */
@@ -200,11 +199,11 @@ export class RandomNormal extends Initializer {
     return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
-ClassNameMap.register(RandomNormal);
+serialization.SerializationMap.register(RandomNormal);
 
 export interface TruncatedNormalConfig {
   /** Mean of the random values to generate. */
@@ -243,11 +242,11 @@ export class TruncatedNormal extends Initializer {
     return K.truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {mean: this.mean, stddev: this.stddev, seed: this.seed};
   }
 }
-ClassNameMap.register(TruncatedNormal);
+serialization.SerializationMap.register(TruncatedNormal);
 
 export interface IdentityConfig {
   /**
@@ -277,11 +276,11 @@ export class Identity extends Initializer {
     }
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {gain: this.gain.get()};
   }
 }
-ClassNameMap.register(Identity);
+serialization.SerializationMap.register(Identity);
 
 /**
  * Computes the number of input and output units for a weight shape.
@@ -391,7 +390,7 @@ export class VarianceScaling extends Initializer {
     }
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {
       scale: this.scale,
       mode: this.mode,
@@ -400,7 +399,7 @@ export class VarianceScaling extends Initializer {
     };
   }
 }
-ClassNameMap.register(VarianceScaling);
+serialization.SerializationMap.register(VarianceScaling);
 
 export interface SeedOnlyInitializerConfig {
   /** Random number generator seed. */
@@ -584,14 +583,14 @@ export class Orthogonal extends Initializer {
     return K.scalarTimesArray(K.getScalar(this.gain), q);
   }
 
-  getConfig(): ConfigDict {
+  getConfig(): serialization.ConfigDict {
     return {
       gain: this.gain,
       seed: this.seed,
     };
   }
 }
-ClassNameMap.register(Orthogonal);
+serialization.SerializationMap.register(Orthogonal);
 
 /** @docinline */
 export type InitializerIdentifier = 'constant'|'glorotNormal'|'glorotUniform'|
@@ -618,19 +617,20 @@ export const INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP:
     };
 
 function deserializeInitializer(
-    config: ConfigDict, customObjects: ConfigDict = {}): Initializer {
+    config: serialization.ConfigDict,
+    customObjects: serialization.ConfigDict = {}): Initializer {
   return deserializeKerasObject(
-      config, ClassNameMap.getMap().pythonClassNameMap, customObjects,
-      'initializer');
+      config, serialization.SerializationMap.getMap().classNameMap,
+      customObjects, 'initializer');
 }
 
 export function serializeInitializer(initializer: Initializer):
-    ConfigDictValue {
+    serialization.ConfigDictValue {
   return serializeKerasObject(initializer);
 }
 
 export function getInitializer(identifier: InitializerIdentifier|Initializer|
-                               ConfigDict): Initializer {
+                               serialization.ConfigDict): Initializer {
   if (typeof identifier === 'string') {
     const className = identifier in INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP ?
         INITIALIZER_IDENTIFIER_REGISTRY_SYMBOL_MAP[identifier] :

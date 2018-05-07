@@ -279,6 +279,10 @@ export type RegularizerFn = () => Scalar;
 export type RnnStepFunction =
     (inputs: Tensor, states: Tensor[]) => [Tensor, Tensor[]];
 
+export type NamedTensorMap = {
+  [name: string]: Tensor;
+};
+
 /**
  * Types to support JSON.
  *
@@ -293,85 +297,3 @@ export interface JsonDict {
   [key: string]: JsonValue;
 }
 export interface JsonArray extends Array<JsonValue> {}
-
-/**
- * Types to support JSON-esque data structures internally.
- *
- * Internally ConfigDict's use camelCase keys and values where the
- * values are class names to be instantiated.  On the python side, these
- * will be snake_case.  Internally we allow Enums into the values for better
- * type safety, but these need to be converted to raw primitives (usually
- * strings) for round-tripping with python.
- *
- * toConfig returns the TS-friendly representation. model.toJSON() returns
- * the pythonic version as that's the portable format.  If you need to
- * python-ify a non-model level toConfig output, you'll need to use a
- * to-be-written-helper doing the inverse of models::convertPythonicToTs.
- *
- */
-export type ConfigDictValue =
-    boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict {
-  [key: string]: ConfigDictValue;
-}
-export interface ConfigDictArray extends Array<ConfigDictValue> {}
-
-export type NamedTensorMap = {
-  [name: string]: Tensor;
-};
-
-/**
- * Type to represent the class-type of Serializable objects.
- *
- * Ie the class prototype with access to the constructor and any
- * static members/methods.  Instance methods are not listed here.
- *
- * Source for this idea: https://stackoverflow.com/a/43607255
- */
-export type Constructor<T extends Serializable> = {
-  // tslint:disable-next-line:no-any
-  new (...args: any[]): T; className: string; fromConfig: FromConfigMethod<T>;
-};
-export type FromConfigMethod<T extends Serializable> =
-    (cls: Constructor<T>, config: JsonDict) => T;
-
-/**
- * Serializable defines the serialization contract.
- *
- * TFJS requires serializable classes to return their className when asked
- * to avoid issues with minification.
- */
-export abstract class Serializable {
-  /**
-   * Return the class name for this class ot use in serialization contexts.
-   *
-   * Generally speaking this will be the same thing that constructor.name
-   * would have returned.  However, the class name needs to be robust
-   * against minification for serialization/deserialazation to work properly.
-   *
-   * There's also places such as initializers.VarianceScaling, where
-   * implementation details between different languages led to different
-   * class hierarchies and a non-leaf node is used for serialization purposes.
-   */
-  getClassName(): string {
-    return (this.constructor as Constructor<Serializable>).className;
-  }
-
-  /**
-   * Return all the non-weight state needed to serialize this object.
-   */
-  abstract getConfig(): ConfigDict;
-
-  /**
-   * Creates an instance of T from a ConfigDict.
-   *
-   * This works for most descendants of serializable.  A few need to
-   * provide special handling.
-   * @param cls A Constructor for the class to instantiate.
-   * @param config The Configuration for the object.
-   */
-  static fromConfig<T extends Serializable>(
-      cls: Constructor<T>, config: ConfigDict): T {
-    return new cls(config);
-  }
-}
