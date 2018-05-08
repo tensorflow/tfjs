@@ -25,11 +25,11 @@ import {Kwargs, LayerVariable, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
 
-import {Conv2D, ConvLayerConfig} from './convolutional';
+import {BaseConvLayerConfig, Conv2D, ConvLayerConfig} from './convolutional';
 
 // tslint:enable:max-line-length
 
-export interface DepthwiseConv2DLayerConfig extends ConvLayerConfig {
+export interface DepthwiseConv2DLayerConfig extends BaseConvLayerConfig {
   /**
    * An integer or Array of 2 integers, specifying the width and height of the
    * 2D convolution window. Can be a single integer to specify the same value
@@ -81,7 +81,7 @@ export class DepthwiseConv2D extends Conv2D {
   private depthwiseKernel: LayerVariable = null;
 
   constructor(config: DepthwiseConv2DLayerConfig) {
-    super(config);
+    super(config as ConvLayerConfig);
     this.depthMultiplier =
         config.depthMultiplier == null ? 1 : config.depthMultiplier;
     this.depthwiseInitializer = getInitializer(
