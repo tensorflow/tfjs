@@ -108,53 +108,6 @@ export class SymbolicTensor implements TensorInterface {
   }
 }
 
-/**
- * A thin wrapper around a Tensor, with an optional name. The value is set once
- * during construction, and cannot be mutated afterwards.
- */
-export class ConcreteTensor implements TensorInterface {
-  readonly dtype: DType;
-  readonly shape: Shape;
-
-  readonly id: number;
-  // The fully scoped name of this Variable, including a unique suffix if needed
-  readonly name?: string;
-  // The originally requested fully scoped name of this Variable, not including
-  // any unique suffix.  This may be needed when restoring weights because this
-  // original name is used as a key.
-  readonly originalName?: string;
-
-  protected val: Tensor;
-
-  /**
-   * Construct a ConcreteTensor from an Tensor.
-   * @param val: The value of the ConcreteTensor.
-   * @param name: Optional name. If Truthy, Tensor names are unique. Name
-   *   collisions will be resolved by appending suffix '_<num>'.
-   */
-  constructor(val: Tensor, name?: string) {
-    // TODO(cais): This is faked to always give float32 for now. Implement real
-    // logic once TensorFlow.js Core supports DTypes.
-    this.dtype = DType.float32;
-    this.shape = val.shape;
-    this.val = val;
-    this.id = _nextUniqueTensorId++;
-
-    if (name != null) {
-      this.originalName = getScopedTensorName(name);
-      this.name = getUniqueTensorName(this.originalName);
-    }
-  }
-
-  /**
-   * Read the value of the tensor.
-   * @return Tensor value of the tensor.
-   */
-  public value(): Tensor {
-    return this.val;
-  }
-}
-
 function checkShapesMatch(
     x: Tensor|TensorInterface, y: Tensor|TensorInterface): void {
   if (x.shape.toString() !== y.shape.toString()) {
@@ -162,10 +115,6 @@ function checkShapesMatch(
         'Shape mismatch: ' + JSON.stringify(x.shape) + ' vs. ' +
         JSON.stringify(y.shape));
   }
-}
-
-function getValueTensor(val: Tensor|ConcreteTensor): Tensor {
-  return val instanceof ConcreteTensor ? val.value() : val;
 }
 
 const DEFAULT_VARIABLE_NAME_PREFIX = 'Variable';
@@ -191,7 +140,7 @@ export class LayerVariable {
   protected readonly val: tfc.Variable;
   readonly constraint: Constraint;
   /**
-   * Construct Variable from a Tensor or a ConcreteTensor.
+   * Construct Variable from a Tensor.
    *
    * If not explicitly named, the Variable will be given a name with the
    * prefix 'Variable'. Variable names are unique. In the case of name
@@ -205,7 +154,7 @@ export class LayerVariable {
    * @throws ValueError if `name` is `null` or `undefined`.
    */
   constructor(
-      val: Tensor|ConcreteTensor, dtype: DType = DType.float32,
+      val: Tensor, dtype: DType = DType.float32,
       name = DEFAULT_VARIABLE_NAME_PREFIX, trainable = true,
       constraint: Constraint = null) {
     this.dtype = dtype == null ? DType.float32 : dtype;
@@ -219,8 +168,7 @@ export class LayerVariable {
     this.trainable = trainable;
     this.constraint = constraint;
 
-    this.val =
-        variable(getValueTensor(val), this.trainable, this.name, this.dtype);
+    this.val = variable(val, this.trainable, this.name, this.dtype);
   }
 
   /**
@@ -241,10 +189,10 @@ export class LayerVariable {
    *   dtype and shape of the Variable.
    * @return This Variable.
    */
-  write(newVal: Tensor|ConcreteTensor) {
+  write(newVal: Tensor) {
     // TODO(cais): Once  TF.js Core supports Tensor.dtype, check dtype match.
     checkShapesMatch(this.val, newVal);
-    this.val.assign(getValueTensor(newVal));
+    this.val.assign(newVal);
     if (this.constraint != null) {
       this.val.assign(this.constraint.apply(this.val));
     }

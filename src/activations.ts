@@ -146,7 +146,6 @@ export function tanh(x: Tensor): Tensor {
  * @returns a Tensor of the same shape as x
  *
  * @throws ValueError: In case `dim(x) < 2`.
- *         NotImplementedError if input x is not ConcreteTensor.
  */
 export function softmax(x: Tensor, axis: number = (-1)): Tensor {
   return K.softmax(x, axis);

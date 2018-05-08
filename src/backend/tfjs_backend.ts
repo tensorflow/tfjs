@@ -19,7 +19,7 @@ import {dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, ten
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
 import {Constraint} from '../constraints';
 import {NotImplementedError, ValueError} from '../errors';
-import {ConcreteTensor, DType, LayerVariable, RnnStepFunction, Shape, SymbolicTensor, TensorInterface} from '../types';
+import {DType, LayerVariable, RnnStepFunction, Shape, SymbolicTensor, TensorInterface} from '../types';
 import {pyNormalizeArrayIndex} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 
@@ -792,10 +792,10 @@ export function onesLike(
 
 
 /**
- * Create a ConcreteTensor with the same content as the input.
+ * Create a Tensor with the same content as the input.
  *
  * @param x Input.
- * @return Identity output ConcreteTensor.
+ * @return Identity output Tensor.
  */
 export function identity(x: Tensor): Tensor {
   return x.clone();
@@ -1264,7 +1264,7 @@ export function gather(
 
 /**
  * Maximum value in a tensor.
- * @param x Input ConcreteTensor
+ * @param x Input Tensor
  * @param axis The axis or a set of axes to find maximum values.
  *  *  If axis is undefined, return the maximum value across all axes.
  * @param keepDims Whether to keep the dimensions or not.
@@ -1281,7 +1281,7 @@ export function max(
 
 /**
  * Minimum value in a tensor.
- * @param x Input ConcreteTensor
+ * @param x Input Tensor
  * @param axis The axis or the `Array` of axes to find minimum values over.
  *  If axis is undefined, return the minimum value across all axes.
  * @param keepDims Whether to keep the dimensions or not.
@@ -1297,8 +1297,8 @@ export function min(
 
 /**
  * Element-wise minimum of two tensors.
- * @param x Input ConcreteTensor
- * @param y Input ConcreteTensor with shape and type compatible with `x`.
+ * @param x Input Tensor
+ * @param y Input Tensor with shape and type compatible with `x`.
  * @return: Tensor with the minimum values between `x` and `y`.
  */
 export function minimum(x: Tensor, y: Tensor): Tensor {
@@ -1306,7 +1306,7 @@ export function minimum(x: Tensor, y: Tensor): Tensor {
 }
 /**
  * Sum value in a tensor.
- * @param x Input ConcreteTensor
+ * @param x Input Tensor
  * @param axis The axis or the `Array` of axes to sum over.
  *  If axis is undefined, return the sum of all values across all axes.
  * @param keepDims Whether to keep the dimensions or not.
@@ -1444,8 +1444,8 @@ export function maximum(x: Tensor, y: Tensor): Tensor {
  * @param x Input Tensor or Variable.
  * @returns Element-wise sin(x).
  */
-export function sin(x: ConcreteTensor): Tensor {
-  return tfc.sin(x.value());
+export function sin(x: Tensor): Tensor {
+  return tfc.sin(x);
 }
 
 /**
@@ -1454,8 +1454,8 @@ export function sin(x: ConcreteTensor): Tensor {
  * @param x Input Tensor or Variable.
  * @returns Element-wise cos(x).
  */
-export function cos(x: ConcreteTensor): Tensor {
-  return tfc.cos(x.value());
+export function cos(x: Tensor): Tensor {
+  return tfc.cos(x);
 }
 
 /* Normalization operations. */

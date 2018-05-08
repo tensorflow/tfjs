@@ -16,7 +16,7 @@
 import {Scalar, scalar, slice, Tensor,memory, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
-import {ConcreteTensor, DType, LayerVariable, SymbolicTensor} from '../types';
+import {DType, LayerVariable, SymbolicTensor} from '../types';
 import {unique} from '../utils/generic_utils';
 import {range} from '../utils/math_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
@@ -24,8 +24,6 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 import * as K from './tfjs_backend';
 
 // tslint:enable:max-line-length
-
-const CT = ConcreteTensor;
 
 describe('TensorMath', () => {
   it('Setting and getting backend', () => {
@@ -42,31 +40,26 @@ describe('shape', () => {
   it('Scalar', () => {
     const x = zeros([]);
     expect(K.shape(x)).toEqual([]);
-    expect(K.shape(new CT(x))).toEqual([]);
   });
 
   it('Tensor1D', () => {
     const x = zeros([3]);
     expect(K.shape(x)).toEqual([3]);
-    expect(K.shape(new CT(x))).toEqual([3]);
   });
 
   it('Tensor2D', () => {
     const x = zeros([3, 2]);
     expect(K.shape(x)).toEqual([3, 2]);
-    expect(K.shape(new CT(x))).toEqual([3, 2]);
   });
 
   it('Tensor3D', () => {
     const x = zeros([4, 3, 2]);
     expect(K.shape(x)).toEqual([4, 3, 2]);
-    expect(K.shape(new CT(x))).toEqual([4, 3, 2]);
   });
 
   it('Tensor4D', () => {
     const x = zeros([4, 3, 2, 1]);
     expect(K.shape(x)).toEqual([4, 3, 2, 1]);
-    expect(K.shape(new CT(x))).toEqual([4, 3, 2, 1]);
   });
 });
 
@@ -74,31 +67,26 @@ describe('intShape', () => {
   it('Scalar', () => {
     const x = zeros([]);
     expect(K.intShape(x)).toEqual([]);
-    expect(K.intShape(new CT(x))).toEqual([]);
   });
 
   it('Tensor1D', () => {
     const x = zeros([3]);
     expect(K.intShape(x)).toEqual([3]);
-    expect(K.intShape(new CT(x))).toEqual([3]);
   });
 
   it('Tensor2D', () => {
     const x = zeros([3, 2]);
     expect(K.intShape(x)).toEqual([3, 2]);
-    expect(K.intShape(new CT(x))).toEqual([3, 2]);
   });
 
   it('Tensor3D', () => {
     const x = zeros([4, 3, 2]);
     expect(K.intShape(x)).toEqual([4, 3, 2]);
-    expect(K.intShape(new CT(x))).toEqual([4, 3, 2]);
   });
 
   it('Tensor4D', () => {
     const x = zeros([4, 3, 2, 1]);
     expect(K.intShape(x)).toEqual([4, 3, 2, 1]);
-    expect(K.intShape(new CT(x))).toEqual([4, 3, 2, 1]);
   });
 });
 
@@ -106,31 +94,26 @@ describe('ndim', () => {
   it('Scalar', () => {
     const x = zeros([]);
     expect(K.ndim(x)).toEqual(0);
-    expect(K.ndim(new CT(x))).toEqual(0);
   });
 
   it('Tensor1D', () => {
     const x = zeros([3]);
     expect(K.ndim(x)).toEqual(1);
-    expect(K.ndim(new CT(x))).toEqual(1);
   });
 
   it('Tensor2D', () => {
     const x = zeros([3, 2]);
     expect(K.ndim(x)).toEqual(2);
-    expect(K.ndim(new CT(x))).toEqual(2);
   });
 
   it('Tensor3D', () => {
     const x = zeros([4, 3, 2]);
     expect(K.ndim(x)).toEqual(3);
-    expect(K.ndim(new CT(x))).toEqual(3);
   });
 
   it('Tensor4D', () => {
     const x = zeros([4, 3, 2, 1]);
     expect(K.ndim(x)).toEqual(4);
-    expect(K.ndim(new CT(x))).toEqual(4);
   });
 });
 
@@ -179,31 +162,31 @@ describe('normalizeAxis', () => {
 
 describeMathCPU('countParams', () => {
   it('Scalar', () => {
-    const x = new CT(zeros([]));
+    const x = zeros([]);
     expect(K.countParams(x)).toEqual(1);
     expect(K.countParams(new LayerVariable(x))).toEqual(1);
   });
 
   it('Tensor1D', () => {
-    const x = new CT(zeros([3]));
+    const x = zeros([3]);
     expect(K.countParams(x)).toEqual(3);
     expect(K.countParams(new LayerVariable(x))).toEqual(3);
   });
 
   it('Tensor2D', () => {
-    const x = new CT(zeros([3, 2]));
+    const x = zeros([3, 2]);
     expect(K.countParams(x)).toEqual(6);
     expect(K.countParams(new LayerVariable(x))).toEqual(6);
   });
 
   it('Tensor3D', () => {
-    const x = new CT(zeros([4, 3, 2]));
+    const x = zeros([4, 3, 2]);
     expect(K.countParams(x)).toEqual(24);
     expect(K.countParams(new LayerVariable(x))).toEqual(24);
   });
 
   it('Tensor4D', () => {
-    const x = new CT(zeros([4, 3, 2, 1]));
+    const x = zeros([4, 3, 2, 1]);
     expect(K.countParams(x)).toEqual(24);
     expect(K.countParams(new LayerVariable(x))).toEqual(24);
   });
@@ -466,7 +449,7 @@ describeMathCPUAndGPU('Repeat', () => {
 });
 
 describeMathCPUAndGPU('Flatten', () => {
-  it('1D ConcreteTensor', () => {
+  it('1D Tensor', () => {
     const x = tensor1d([1, 3, 3, 7]);
     const flattend = K.flatten(x);
     expect(flattend.shape).toEqual([4]);
@@ -480,7 +463,7 @@ describeMathCPUAndGPU('Flatten', () => {
     expect(flattend.dataSync()).toEqual(new Float32Array([1, 3, 3, 7]));
   });
 
-  it('3D ConcreteTensor', () => {
+  it('3D Tensor', () => {
     const x = tensor3d(
         [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
         [2, 2, 3]);
@@ -510,7 +493,7 @@ describeMathCPUAndGPU('batchFlatten', () => {
             /batchFlatten requires a minimum rank of 2\. Got rank: 0/);
   });
 
-  it('1D ConcreteTensor leads to error', () => {
+  it('1D Tensor leads to error', () => {
     const x = tensor1d([1, 3, 3, 7]);
     expect(() => K.batchFlatten(x))
         .toThrowError(
@@ -524,7 +507,7 @@ describeMathCPUAndGPU('batchFlatten', () => {
     expect(batchFlattened.dataSync()).toEqual(new Float32Array([1, 3, 3, 7]));
   });
 
-  it('3D ConcreteTensor', () => {
+  it('3D Tensor', () => {
     const x = tensor3d(
         [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
         [2, 2, 3]);
@@ -919,14 +902,14 @@ describeMathCPUAndGPU('Create Variable', () => {
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
-  it('From ConcreteTensor, no explicit name', () => {
+  it('From Tensor, no explicit name', () => {
     const v = K.variable(zeros([3]));
     expect(v.name.indexOf('Variable')).toEqual(0);
     expect(v.shape).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
-  it('From ConcreteTensor, explicit name', () => {
+  it('From Tensor, explicit name', () => {
     const v = K.variable(zeros([3]), undefined, 'Var1');
     expect(v.name.indexOf('Var1')).toEqual(0);
     expect(v.shape).toEqual([3]);
@@ -935,7 +918,7 @@ describeMathCPUAndGPU('Create Variable', () => {
 });
 
 describeMathCPUAndGPU('batchGetValue', () => {
-  it('Legnth-3 Array, Mixed ConcreteTensor and Variable', () => {
+  it('Legnth-3 Array, Mixed Tensor and Variable', () => {
     const v1 = K.variable(zeros([]));
     const v2 = K.variable(zeros([2]));
     const v3 = K.variable(zeros([2, 2]));
@@ -961,7 +944,7 @@ describeMathCPUAndGPU('batchSetValue', () => {
     expect(v2.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
-  it('Update using ConcreteTensor values', () => {
+  it('Update using Tensor values', () => {
     const v1 = K.randomUniformVariable([], 0, 1);
     const v2 = K.randomUniformVariable([2, 2, 1], 0, 1);
     K.batchSetValue([[v1, zeros([])], [v2, zeros([2, 2, 1])]]);
@@ -1835,19 +1818,19 @@ describeMathCPUAndGPU('minimum', () => {
         K.minimum(
             tensor2d([[0, 1], [1, -1]], [2, 2]),
             tensor2d([[1, 0], [1, 1]], [2, 2])),
-        new CT(tensor2d([[0, 0], [1, -1]], [2, 2])).value());
+        tensor2d([[0, 0], [1, -1]], [2, 2]));
   });
   it('Broadcast element-wise minimum', () => {
     expectTensorsClose(
         K.minimum(tensor2d([[0, 1], [1, -1]], [2, 2]), tensor1d([0.0])),
-        new CT(tensor2d([[0, 0], [0, -1]], [2, 2])).value());
+        tensor2d([[0, 0], [0, -1]], [2, 2]));
   });
 });
 
 describeMathCPUAndGPU('Sin', () => {
   it('Element-wise sin', () => {
     expectTensorsClose(
-        K.sin(new CT(tensor2d([[1, 2], [3, 4]], [2, 2]))),
+        K.sin(tensor2d([[1, 2], [3, 4]], [2, 2])),
         tensor2d([Math.sin(1), Math.sin(2), Math.sin(3), Math.sin(4)], [2, 2]));
   });
 });
@@ -1855,7 +1838,7 @@ describeMathCPUAndGPU('Sin', () => {
 describeMathCPUAndGPU('Cos', () => {
   it('Element-wise cos', () => {
     expectTensorsClose(
-        K.cos(new CT(tensor2d([[1, 2], [3, 4]], [2, 2]))),
+        K.cos(tensor2d([[1, 2], [3, 4]], [2, 2])),
         tensor2d([Math.cos(1), Math.cos(2), Math.cos(3), Math.cos(4)], [2, 2]));
   });
 });

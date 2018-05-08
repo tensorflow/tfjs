@@ -18,9 +18,6 @@ import {elu, hardSigmoid, linear, relu, relu6, selu, sigmoid, softmax, softplus,
 import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 // tslint:enable
 
-// TODO(bileschi): Here and below, these tests only check ConcreteTensor
-// type.  They should be adapted to also test Symbolic Type, once it is
-// available.
 describeMathCPUAndGPU('linear activation', () => {
   const initVals = new Float32Array([-1, 2, 0, 4, -5, 6]);
   const expectedVals = new Float32Array([-1, 2, 0, 4, -5, 6]);

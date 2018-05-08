@@ -21,7 +21,7 @@ import {ValueError} from '../errors';
 // tslint:enable:max-line-length
 
 /**
- * Expect values are close between an Tensor or ConcreteTensor.
+ * Expect values are close between an Tensor or number array.
  * @param actual
  * @param expected
  */

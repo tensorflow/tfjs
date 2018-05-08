@@ -18,12 +18,10 @@ import {scalar, tensor1d, zeros} from '@tensorflow/tfjs-core';
 import {nameScope} from './backend/tfjs_backend';
 import * as tfl from './index';
 import {DType} from './types';
-import {ConcreteTensor, LayerVariable, SymbolicTensor} from './types';
+import {LayerVariable, SymbolicTensor} from './types';
 import {describeMathCPU} from './utils/test_utils';
 
 // tslint:enable:max-line-length
-
-const CT = ConcreteTensor;
 
 /**
  * Unit tests for SymbolicTensor.
@@ -55,54 +53,6 @@ describe('SymbolicTensor Test', () => {
         .toThrowError();
   });
 });
-
-
-/**
- * Unit tests for ConcreteTensor.
- */
-describeMathCPU('ConcreteTensor Test', () => {
-  it('Constructor: no explicit name', () => {
-    const v1 = new CT(zeros([2]));
-    expect(v1.name).toBeFalsy();
-    expect(v1.dtype).toEqual(DType.float32);
-    expect(v1.shape).toEqual([2]);
-    expect(v1.value().dataSync()).toEqual(new Float32Array([0, 0]));
-
-    const v2 = new CT(zeros([2, 2]));
-    expect(v2.name).toBeFalsy();
-    expect(v2.dtype).toEqual(DType.float32);
-    expect(v2.shape).toEqual([2, 2]);
-    expect(v2.value().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
-  });
-
-  it('Constructor: explicit name', () => {
-    const v1 = new CT(zeros([]), 'foo');
-    expect(v1.name.indexOf('foo')).toEqual(0);
-    expect(v1.dtype).toEqual(DType.float32);
-    expect(v1.shape).toEqual([]);
-    expect(v1.value().dataSync()).toEqual(new Float32Array([0]));
-
-    const v2 = new CT(zeros([2, 2, 1]));
-    expect(v1.name.indexOf('foo')).toEqual(0);
-    expect(v2.dtype).toEqual(DType.float32);
-    expect(v2.shape).toEqual([2, 2, 1]);
-    expect(v2.value().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
-
-    expect(v2.name === v1.name).toBe(false);
-  });
-
-  it('Read value', () => {
-    const v1 = new CT(scalar(10), 'foo');
-    expect(v1.value().dataSync()).toEqual(new Float32Array([10]));
-  });
-
-  it('Generates unique ID', () => {
-    const v1 = new CT(scalar(1), 'foo');
-    const v2 = new CT(scalar(1), 'foo');
-    expect(v1.id).not.toEqual(v2.id);
-  });
-});
-
 
 /**
  * Unit tests for Variable.
@@ -218,7 +168,7 @@ describeMathCPU('Variable', () => {
   });
 
   it('Generates unique IDs for Tensors and Variables', () => {
-    const v1 = new CT(scalar(1), 'foo');
+    const v1 = scalar(1);
     const v2 = new LayerVariable(scalar(1), null, 'foo');
     expect(v1.id).not.toEqual(v2.id);
   });
