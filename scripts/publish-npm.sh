@@ -34,7 +34,7 @@ if [ "$BRANCH" != "master" ]; then
   exit
 fi
 
-if ! [[ "$ORIGIN" =~ ^https://github.com/tensorflow/tfjs-node ]]; then
+if ! [[ "$ORIGIN" =~ tensorflow/tfjs-node ]]; then
   echo "Error: Switch to the main repo (tensorflow/tfjs-node) before publishing."
   exit
 fi
