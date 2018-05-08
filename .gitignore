@@ -6,3 +6,4 @@ yarn-error.log
 yalc.lock
 .yalc/
 demo/train-*
+*.log

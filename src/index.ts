@@ -31,3 +31,5 @@ export function bindTensorFlowBackend() {
       'tensorflow', () => new NodeJSKernelBackend(nodeBinding));
   tfc.setBackend('tensorflow');
 }
+
+export {version} from './version';
