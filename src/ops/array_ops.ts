@@ -1123,8 +1123,6 @@ export class ArrayOps {
    * @param start The start value of the sequence.
    * @param stop The end value of the sequence.
    * @param num The number of values to generate.
-   * @param endpoint Determines whether stop is included in the
-   * sequence. Defaults to true.
    */
   @operation
   @doc({heading: 'Tensors', subheading: 'Creation'})
