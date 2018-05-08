@@ -1199,8 +1199,7 @@ export class ArrayOps {
    * Creates an empty `TensorBuffer` with the specified `shape` and `dtype`.
    *
    * The values are stored in cpu as `TypedArray`. Fill the buffer using
-   * `buffer.set()`, or by modifying directly `buffer.values`. When done,
-   * call `buffer.toTensor()` to get an immutable `Tensor` with those values.
+   * `buffer.set()`, or by modifying directly `buffer.values`.
    *
    * When done, call `buffer.toTensor()` to get an immutable `Tensor` with
    * those values.
