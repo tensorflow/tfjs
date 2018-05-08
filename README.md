@@ -26,8 +26,8 @@ tf.setBackend('tensorflow');
 # Download and install JS dependencies, including libtensorflow 1.8.
 yarn
 
-# Publish the NPM locally for usage with other packages.
-yarn publish-local
+# Run TFJS tests against Node.js backend:
+yarn test
 ```
 
 See the `demo` directory that trains MNIST using TensorFlow.js with the
