@@ -31,27 +31,6 @@ export enum DType {
 export type Shape = number[];
 
 /**
- * Tensor interface.
- *
- * A tensor has a dtype and a shape.
- */
-export interface TensorInterface {
-  /**
-   * Data type of the Tensor.
-   *
-   * E.g., float32, int32.
-   */
-  readonly dtype: DType;
-
-  /**
-   * Shape of the Tensor.
-   *
-   * E.g., [], [2, 2], [6, 28, 28].
-   */
-  readonly shape: Shape;
-}
-
-/**
  * An ID to track `SymbolicTensor`s and derived classes.
  * Required in different places in engine/topology.ts to identify unique
  * tensors.
@@ -65,7 +44,7 @@ let _nextUniqueTensorId = 0;
  * a `Model` and the input data's shape, but not values are known.
  */
 @doc({heading: 'Models', 'subheading': 'Classes'})
-export class SymbolicTensor implements TensorInterface {
+export class SymbolicTensor {
   /* A unique ID for the tensor to be able to differentiate tensors. */
   readonly id: number;
   // The fully scoped name of this Variable, including a unique suffix if needed
@@ -109,7 +88,7 @@ export class SymbolicTensor implements TensorInterface {
 }
 
 function checkShapesMatch(
-    x: Tensor|TensorInterface, y: Tensor|TensorInterface): void {
+    x: Tensor|SymbolicTensor, y: Tensor|SymbolicTensor): void {
   if (x.shape.toString() !== y.shape.toString()) {
     throw new Error(
         'Shape mismatch: ' + JSON.stringify(x.shape) + ' vs. ' +

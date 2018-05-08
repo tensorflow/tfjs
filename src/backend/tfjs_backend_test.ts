@@ -164,31 +164,31 @@ describeMathCPU('countParams', () => {
   it('Scalar', () => {
     const x = zeros([]);
     expect(K.countParams(x)).toEqual(1);
-    expect(K.countParams(new LayerVariable(x))).toEqual(1);
+    expect(K.countParams(new LayerVariable(x).read())).toEqual(1);
   });
 
   it('Tensor1D', () => {
     const x = zeros([3]);
     expect(K.countParams(x)).toEqual(3);
-    expect(K.countParams(new LayerVariable(x))).toEqual(3);
+    expect(K.countParams(new LayerVariable(x).read())).toEqual(3);
   });
 
   it('Tensor2D', () => {
     const x = zeros([3, 2]);
     expect(K.countParams(x)).toEqual(6);
-    expect(K.countParams(new LayerVariable(x))).toEqual(6);
+    expect(K.countParams(new LayerVariable(x).read())).toEqual(6);
   });
 
   it('Tensor3D', () => {
     const x = zeros([4, 3, 2]);
     expect(K.countParams(x)).toEqual(24);
-    expect(K.countParams(new LayerVariable(x))).toEqual(24);
+    expect(K.countParams(new LayerVariable(x).read())).toEqual(24);
   });
 
   it('Tensor4D', () => {
     const x = zeros([4, 3, 2, 1]);
     expect(K.countParams(x)).toEqual(24);
-    expect(K.countParams(new LayerVariable(x))).toEqual(24);
+    expect(K.countParams(new LayerVariable(x).read())).toEqual(24);
   });
 });
 
@@ -963,28 +963,28 @@ describeMathCPUAndGPU('ZerosVariable', () => {
   it('Scalar', () => {
     const s = K.zerosVariable([], DType.float32, 'Scalar');
     expect(s.name.indexOf('Scalar')).toEqual(0);
-    expect(K.shape(s)).toEqual([]);
+    expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([0]));
   });
 
   it('Vector', () => {
     const v = K.zerosVariable([3], DType.float32, 'Vector');
     expect(v.name.indexOf('Vector')).toEqual(0);
-    expect(K.shape(v)).toEqual([3]);
+    expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('Matrix', () => {
     const m = K.zerosVariable([2, 2], DType.float32, 'Matrix');
     expect(m.name.indexOf('Matrix')).toEqual(0);
-    expect(K.shape(m)).toEqual([2, 2]);
+    expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
   it('3D', () => {
     const t = K.zerosVariable([2, 2, 2], DType.float32, 'Tertiary');
     expect(t.name.indexOf('Tertiary')).toEqual(0);
-    expect(K.shape(t)).toEqual([2, 2, 2]);
+    expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       0, 0, 0, 0, 0, 0, 0, 0
     ]));
@@ -993,7 +993,7 @@ describeMathCPUAndGPU('ZerosVariable', () => {
   it('4D', () => {
     const q = K.zerosVariable([1, 2, 1, 3], DType.float32, 'Quaternary');
     expect(q.name.indexOf('Quaternary')).toEqual(0);
-    expect(K.shape(q)).toEqual([1, 2, 1, 3]);
+    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0, 0, 0]));
   });
 });
@@ -1002,25 +1002,25 @@ describeMathCPUAndGPU('OnesVariable', () => {
   it('Scalar', () => {
     const s = K.onesVariable([], DType.float32, 'Scalar');
     expect(s.name.indexOf('Scalar')).toEqual(0);
-    expect(K.shape(s)).toEqual([]);
+    expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([1]));
   });
   it('Vector', () => {
     const v = K.onesVariable([3], DType.float32, 'Vector');
     expect(v.name.indexOf('Vector')).toEqual(0);
-    expect(K.shape(v)).toEqual([3]);
+    expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
   it('Matrix', () => {
     const m = K.onesVariable([2, 2], DType.float32, 'Matrix');
     expect(m.name.indexOf('Matrix')).toEqual(0);
-    expect(K.shape(m)).toEqual([2, 2]);
+    expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
   it('3D', () => {
     const t = K.onesVariable([2, 2, 2], DType.float32, 'Tertiary');
     expect(t.name.indexOf('Tertiary')).toEqual(0);
-    expect(K.shape(t)).toEqual([2, 2, 2]);
+    expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       1, 1, 1, 1, 1, 1, 1, 1
     ]));
@@ -1028,7 +1028,7 @@ describeMathCPUAndGPU('OnesVariable', () => {
   it('4D', () => {
     const q = K.onesVariable([1, 2, 1, 3], DType.float32, 'Quaternary');
     expect(q.name.indexOf('Quaternary')).toEqual(0);
-    expect(K.shape(q)).toEqual([1, 2, 1, 3]);
+    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1, 1, 1]));
   });
 });
@@ -1036,25 +1036,25 @@ describeMathCPUAndGPU('OnesVariable', () => {
 describeMathCPUAndGPU('ZerosLike', () => {
   it('Scalar', () => {
     const s = K.zerosLike(K.randomUniform([], -10, 10));
-    expect(K.shape(s)).toEqual([]);
+    expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([0]));
   });
 
   it('Vector', () => {
     const v = K.zerosLike(K.randomUniform([3], -10, 10));
-    expect(K.shape(v)).toEqual([3]);
+    expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('Matrix', () => {
     const m = K.zerosLike(K.randomUniform([2, 2], -10, 10));
-    expect(K.shape(m)).toEqual([2, 2]);
+    expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
   it('3D', () => {
     const t = K.zerosLike(K.randomUniform([2, 2, 2], -10, 10));
-    expect(K.shape(t)).toEqual([2, 2, 2]);
+    expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       0, 0, 0, 0, 0, 0, 0, 0
     ]));
@@ -1062,7 +1062,7 @@ describeMathCPUAndGPU('ZerosLike', () => {
 
   it('4D', () => {
     const q = K.zerosLike(K.randomUniform([1, 2, 1, 3], -10, 10));
-    expect(K.shape(q)).toEqual([1, 2, 1, 3]);
+    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0, 0, 0]));
   });
 });
@@ -1070,25 +1070,25 @@ describeMathCPUAndGPU('ZerosLike', () => {
 describeMathCPUAndGPU('OnesLike', () => {
   it('Scalar', () => {
     const s = K.onesLike(K.randomUniform([], -10, 10));
-    expect(K.shape(s)).toEqual([]);
+    expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([1]));
   });
 
   it('Vector', () => {
     const v = K.onesLike(K.randomUniform([3], -10, 10));
-    expect(K.shape(v)).toEqual([3]);
+    expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
 
   it('Matrix', () => {
     const m = K.onesLike(K.randomUniform([2, 2], -10, 10));
-    expect(K.shape(m)).toEqual([2, 2]);
+    expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
 
   it('3D', () => {
     const t = K.onesLike(K.randomUniform([2, 2, 2], -10, 10));
-    expect(K.shape(t)).toEqual([2, 2, 2]);
+    expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       1, 1, 1, 1, 1, 1, 1, 1
     ]));
@@ -1096,7 +1096,7 @@ describeMathCPUAndGPU('OnesLike', () => {
 
   it('4D', () => {
     const q = K.onesLike(K.randomUniform([1, 2, 1, 3], -10, 10));
-    expect(K.shape(q)).toEqual([1, 2, 1, 3]);
+    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1, 1, 1]));
   });
 });
