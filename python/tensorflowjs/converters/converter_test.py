@@ -26,6 +26,7 @@ import tempfile
 import unittest
 
 import keras
+import tensorflow as tf
 
 from tensorflowjs.converters import converter
 
@@ -44,19 +45,21 @@ class ConvertH5WeightsTest(unittest.TestCase):
     super(ConvertH5WeightsTest, self).tearDown()
 
   def testWeightsOnly(self):
-    input_tensor = keras.layers.Input((3,))
-    dense1 = keras.layers.Dense(
-        4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
-        name='MyDense1')(input_tensor)
-    output = keras.layers.Dense(
-        2, use_bias=False, kernel_initializer='ones', name='MyDense2')(dense1)
-    model = keras.models.Model(inputs=[input_tensor], outputs=[output])
-    h5_path = os.path.join(self._tmp_dir, 'MyModel.h5')
-    model.save_weights(h5_path)
+    with tf.Graph().as_default(), tf.Session():
+      input_tensor = keras.layers.Input((3,))
+      dense1 = keras.layers.Dense(
+          4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
+          name='MyDense1')(input_tensor)
+      output = keras.layers.Dense(
+          2, use_bias=False, kernel_initializer='ones', name='MyDense2')(dense1)
+      model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+      h5_path = os.path.join(self._tmp_dir, 'MyModel.h5')
+      model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    model_json, groups = converter.dispatch_pykeras_conversion(
-        h5_path, output_dir=self._tmp_dir)
+    model_json, groups = (
+        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+            h5_path, output_dir=self._tmp_dir))
     self.assertIsNone(model_json)
 
     # Check the loaded weights.
@@ -72,20 +75,22 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertTrue(glob.glob(os.path.join(self._tmp_dir, 'group*-*')))
 
   def testConvertSavedModel(self):
-    input_tensor = keras.layers.Input((3,))
-    dense1 = keras.layers.Dense(
-        4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
-        name='MergedDense1')(input_tensor)
-    output = keras.layers.Dense(
-        2, use_bias=False,
-        kernel_initializer='ones', name='MergedDense2')(dense1)
-    model = keras.models.Model(inputs=[input_tensor], outputs=[output])
-    h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
-    model.save(h5_path)
+    with tf.Graph().as_default(), tf.Session():
+      input_tensor = keras.layers.Input((3,))
+      dense1 = keras.layers.Dense(
+          4, use_bias=True, kernel_initializer='ones', bias_initializer='zeros',
+          name='MergedDense1')(input_tensor)
+      output = keras.layers.Dense(
+          2, use_bias=False,
+          kernel_initializer='ones', name='MergedDense2')(dense1)
+      model = keras.models.Model(inputs=[input_tensor], outputs=[output])
+      h5_path = os.path.join(self._tmp_dir, 'MyModelMerged.h5')
+      model.save(h5_path)
 
     # Load the saved weights as a JSON string.
-    model_json, groups = converter.dispatch_pykeras_conversion(
-        h5_path, output_dir=self._tmp_dir)
+    model_json, groups = (
+        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+            h5_path, output_dir=self._tmp_dir))
     # check the model topology was stored
     self.assertIsInstance(model_json['model_config'], dict)
     self.assertIsInstance(model_json['model_config']['config'], dict)
@@ -106,18 +111,20 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertTrue(glob.glob(os.path.join(self._tmp_dir, 'group*-*')))
 
   def testConvertWeightsFromSequentialModel(self):
-    sequential_model = keras.models.Sequential([
-        keras.layers.Dense(
-            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
-            name='Dense1'),
-        keras.layers.Dense(
-            1, use_bias=False, kernel_initializer='ones', name='Dense2')])
-    h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
-    sequential_model.save_weights(h5_path)
+    with tf.Graph().as_default(), tf.Session():
+      sequential_model = keras.models.Sequential([
+          keras.layers.Dense(
+              3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+              name='Dense1'),
+          keras.layers.Dense(
+              1, use_bias=False, kernel_initializer='ones', name='Dense2')])
+      h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.save_weights(h5_path)
 
     # Load the saved weights as a JSON string.
-    model_json, groups = converter.dispatch_pykeras_conversion(
-        h5_path, output_dir=self._tmp_dir)
+    model_json, groups = (
+        converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+            h5_path, output_dir=self._tmp_dir))
     self.assertIsNone(model_json)
 
     # Check the loaded weights.
@@ -133,15 +140,16 @@ class ConvertH5WeightsTest(unittest.TestCase):
     self.assertTrue(glob.glob(os.path.join(self._tmp_dir, 'group*-*')))
 
   def testConvertModelForNonexistentDirCreatesDir(self):
-    output_dir = os.path.join(self._tmp_dir, 'foo_model')
-    sequential_model = keras.models.Sequential([
-        keras.layers.Dense(
-            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
-            name='Dense1')])
-    h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
-    sequential_model.save_weights(h5_path)
-    converter.dispatch_pykeras_conversion(
-        h5_path, output_dir=output_dir)
+    with tf.Graph().as_default(), tf.Session():
+      output_dir = os.path.join(self._tmp_dir, 'foo_model')
+      sequential_model = keras.models.Sequential([
+          keras.layers.Dense(
+              3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+              name='Dense1')])
+      h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.save_weights(h5_path)
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, output_dir=output_dir)
 
     # Check the content of the output directory.
     output_json = json.load(
@@ -155,17 +163,76 @@ class ConvertH5WeightsTest(unittest.TestCase):
     with open(output_path, 'wt') as f:
       f.write('\n')
 
-    sequential_model = keras.models.Sequential([
-        keras.layers.Dense(
-            3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
-            name='Dense1')])
-    h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
-    sequential_model.save_weights(h5_path)
+    with tf.Graph().as_default(), tf.Session():
+      sequential_model = keras.models.Sequential([
+          keras.layers.Dense(
+              3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+              name='Dense1')])
+      h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.save_weights(h5_path)
 
     with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
         ValueError, r'already exists as a file'):
-      converter.dispatch_pykeras_conversion(
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
           h5_path, output_dir=output_path)
+
+  def testTensorflowjsToKerasConversionSucceeds(self):
+    with tf.Graph().as_default(), tf.Session():
+      sequential_model = keras.models.Sequential([
+          keras.layers.Dense(
+              3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+              name='Dense1'),
+          keras.layers.Dense(
+              1, use_bias=False, kernel_initializer='ones', name='Dense2')])
+      h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.save(h5_path)
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, output_dir=self._tmp_dir)
+      old_model_json = sequential_model.to_json()
+
+    # Convert the tensorflowjs artifacts to a new H5 file.
+    new_h5_path = os.path.join(self._tmp_dir, 'new.h5')
+    converter.dispatch_tensorflowjs_to_keras_h5_conversion(
+        os.path.join(self._tmp_dir, 'model.json'), new_h5_path)
+
+    # Load the new H5 and compare the model JSONs.
+    with tf.Graph().as_default(), tf.Session():
+      new_model = keras.models.load_model(new_h5_path)
+      self.assertEqual(old_model_json, new_model.to_json())
+
+  def testTensorflowjsToKerasConversionFailsOnDirInputPath(self):
+    with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+        ValueError, r'input path should be a model\.json file'):
+      converter.dispatch_tensorflowjs_to_keras_h5_conversion(
+          self._tmp_dir, os.path.join(self._tmp_dir, 'new.h5'))
+
+  def testTensorflowjsToKerasConversionFailsOnExistingDirOutputPath(self):
+    with tf.Graph().as_default(), tf.Session():
+      sequential_model = keras.models.Sequential([
+          keras.layers.Dense(
+              3, input_shape=(2,), use_bias=True, kernel_initializer='ones',
+              name='Dense1'),
+          keras.layers.Dense(
+              1, use_bias=False, kernel_initializer='ones', name='Dense2')])
+      h5_path = os.path.join(self._tmp_dir, 'SequentialModel.h5')
+      sequential_model.save(h5_path)
+      converter.dispatch_keras_h5_to_tensorflowjs_conversion(
+          h5_path, output_dir=self._tmp_dir)
+
+    with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+        ValueError, r'but received an existing directory'):
+      converter.dispatch_tensorflowjs_to_keras_h5_conversion(
+          os.path.join(self._tmp_dir, 'model.json'), self._tmp_dir)
+
+  def testTensorflowjsToKerasConversionFailsOnInvalidJsonFile(self):
+    fake_json_path = os.path.join(self._tmp_dir, 'fake.json')
+    with open(fake_json_path, 'wt') as f:
+      f.write('__invalid_json_content__')
+
+    with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+        ValueError, r'cannot read valid JSON content from'):
+      converter.dispatch_tensorflowjs_to_keras_h5_conversion(
+          fake_json_path, os.path.join(self._tmp_dir, 'model.h5'))
 
 
 if __name__ == '__main__':

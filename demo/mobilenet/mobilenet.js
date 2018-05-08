@@ -56,9 +56,8 @@ export class MobileNet {
         PREPROCESS_DIVISOR);
     const reshapedInput =
         preprocessedInput.reshape([1, ...preprocessedInput.shape]);
-    const dict = {};
-    dict[INPUT_NODE_NAME] = reshapedInput;
-    return this.model.execute(dict, OUTPUT_NODE_NAME);
+    return this.model.execute(
+        {[INPUT_NODE_NAME]:reshapedInput}, OUTPUT_NODE_NAME);
   }
 
   getTopKClasses(predictions, topK) {
