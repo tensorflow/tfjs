@@ -15,41 +15,23 @@ import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
 import {NotImplementedError, ValueError} from './errors';
 import {DType, Shape} from './types';
-import {deserializeKerasObject, SerializableEnumRegistry, serializeKerasObject} from './utils/generic_utils';
+import {checkStringTypeUnionValue, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 import {arrayProd} from './utils/math_utils';
 
 // tslint:enable:max-line-length
 
 /** @docinline */
 export type FanMode = 'fanIn'|'fanOut'|'fanAvg';
-SerializableEnumRegistry.register(
-    'mode', {'fan_in': 'fanIn', 'fan_out': 'fanOut', 'fan_avg': 'fanAvg'});
-export const VALID_FAN_MODE_VALUES =
-    ['fanIn', 'fanOut', 'fanAvg', undefined, null];
+export const VALID_FAN_MODE_VALUES = ['fanIn', 'fanOut', 'fanAvg'];
 export function checkFanMode(value?: string): void {
-  if (value == null) {
-    return;
-  }
-  if (VALID_FAN_MODE_VALUES.indexOf(value) < 0) {
-    throw new ValueError(`${value} is not a valid FanMode.  Valid values as ${
-        VALID_FAN_MODE_VALUES}`);
-  }
+  checkStringTypeUnionValue(VALID_FAN_MODE_VALUES, 'FanMode', value);
 }
 
 /** @docinline */
 export type Distribution = 'normal'|'uniform';
-SerializableEnumRegistry.register(
-    'distribution', {'normal': 'normal', 'uniform': 'uniform'});
-export const VALID_DISTRIBUTION_VALUES = ['normal', 'uniform', undefined, null];
+export const VALID_DISTRIBUTION_VALUES = ['normal', 'uniform'];
 export function checkDistribution(value?: string): void {
-  if (value == null) {
-    return;
-  }
-  if (VALID_DISTRIBUTION_VALUES.indexOf(value) < 0) {
-    throw new ValueError(
-        `${value} is not a valid Distribution.  Valid values as ${
-            VALID_DISTRIBUTION_VALUES}`);
-  }
+  checkStringTypeUnionValue(VALID_DISTRIBUTION_VALUES, 'Distribution', value);
 }
 
 /**

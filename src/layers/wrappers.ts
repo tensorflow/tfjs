@@ -235,18 +235,12 @@ export class TimeDistributed extends Wrapper {
 }
 serialization.SerializationMap.register(TimeDistributed);
 
-export enum BidirectionalMergeMode {
-  SUM,
-  MUL,
-  CONCAT,
-  AVE,
+export type BidirectionalMergeMode = 'sum'|'mul'|'concat'|'ave';
+export const VALID_BIDIRECTIONAL_MERGE_MODES = ['sum', 'mul', 'concat', 'ave'];
+export function checkBidirectionalMergeMode(value?: string): void {
+  generic_utils.checkStringTypeUnionValue(
+      VALID_BIDIRECTIONAL_MERGE_MODES, 'BidirectionalMergeMode', value);
 }
-generic_utils.SerializableEnumRegistry.register('merge_mode', {
-  'sum': BidirectionalMergeMode.SUM,
-  'mul': BidirectionalMergeMode.MUL,
-  'concat': BidirectionalMergeMode.CONCAT,
-  'ave': BidirectionalMergeMode.AVE,
-});
 
 export interface BidirectionalLayerConfig extends WrapperLayerConfig {
   /**
@@ -284,6 +278,7 @@ export class Bidirectional extends Wrapper {
         RNN;
     this.forwardLayer.name = 'forward_' + this.forwardLayer.name;
     this.backwardLayer.name = 'backward_' + this.backwardLayer.name;
+    checkBidirectionalMergeMode(config.mergeMode);
     this.mergeMode = config.mergeMode;
     if (config.weights) {
       throw new NotImplementedError(
@@ -344,7 +339,7 @@ export class Bidirectional extends Wrapper {
       outputShape = layerShapes[0];
     }
     outputShape = outputShape as Shape;
-    if (this.mergeMode === BidirectionalMergeMode.CONCAT) {
+    if (this.mergeMode === 'concat') {
       outputShape[outputShape.length - 1] *= 2;
       outputShapes = [outputShape];
     } else if (this.mergeMode == null) {
@@ -415,14 +410,14 @@ export class Bidirectional extends Wrapper {
     }
 
     let output: Tensor|Tensor[];
-    if (this.mergeMode === BidirectionalMergeMode.CONCAT) {
+    if (this.mergeMode === 'concat') {
       output = K.concatenate([y as Tensor, yRev as Tensor]);
-    } else if (this.mergeMode === BidirectionalMergeMode.SUM) {
+    } else if (this.mergeMode === 'sum') {
       output = K.add(y as Tensor, yRev as Tensor);
-    } else if (this.mergeMode === BidirectionalMergeMode.AVE) {
+    } else if (this.mergeMode === 'ave') {
       output = K.scalarTimesArray(
           K.getScalar(0.5), K.add(y as Tensor, yRev as Tensor));
-    } else if (this.mergeMode === BidirectionalMergeMode.MUL) {
+    } else if (this.mergeMode === 'mul') {
       output = K.multiply(y as Tensor, yRev as Tensor);
     } else if (this.mergeMode == null) {
       output = [y as Tensor, yRev as Tensor];
