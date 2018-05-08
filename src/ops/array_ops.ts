@@ -24,6 +24,7 @@ import * as tensor_util from '../tensor_util';
 // tslint:disable-next-line:max-line-length
 import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from '../types';
 import * as util from '../util';
+
 import {parseAxisParam} from './axis_util';
 import {ConcatOps} from './concat';
 import {operation} from './operation';
@@ -371,6 +372,53 @@ export class ArrayOps {
   }
 
   /**
+   * Create an identity matrix.
+   *
+   * @param numRows Number of rows.
+   * @param numColumns Number of columns. Defaults to `numRows`.
+   * @param batchShape If provided, will add the batch shape to the beginning
+   *   of the shape of the returned `Tensor` by repeating the identity
+   *   matrix.
+   * @param dtype Data type.
+   * @returns Identity matrix of the specified size and data type, possibly
+   *   with batch repetition if `batchShape` is specified.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  @operation
+  static eye(
+      numRows: number, numColumns?: number,
+      batchShape?: [number]|[number, number],
+      dtype: DataType = 'float32'): Tensor2D {
+    if (numColumns == null) {
+      numColumns = numRows;
+    }
+    const buffer = ArrayOps.buffer([numRows, numColumns], dtype);
+    const n = numRows <= numColumns ? numRows : numColumns;
+    for (let i = 0; i < n; ++i) {
+      buffer.set(1, i, i);
+    }
+    const out = buffer.toTensor().as2D(numRows, numColumns);
+    if (batchShape == null) {
+      return out;
+    } else {
+      if (batchShape.length === 1) {
+        return ArrayOps.tile(
+            ArrayOps.expandDims(out, 0), [batchShape[0], 1, 1]);
+      } else if (batchShape.length === 2) {
+        return ArrayOps.tile(
+            ArrayOps.expandDims(ArrayOps.expandDims(out, 0), 0),
+            [batchShape[0], batchShape[1], 1, 1]);
+      } else {
+        // TODO(cais): Add support for length-3 once Tensor5D is available.
+        throw new Error(
+            `eye() currently supports only 1D and 2D ` +
+            // tslint:disable-next-line:no-any
+            `batchShapes, but received ${(batchShape as any).length}D.`);
+      }
+    }
+  }
+
+  /**
    * Creates a `Tensor` with values sampled from a normal distribution.
    *
    * ```js
@@ -470,8 +518,8 @@ export class ArrayOps {
    * function defined by the user.
    *
    * @param shape An array of integers defining the output tensor shape.
-   * @param randFunction A random number generator function which is called for
-   * each element in the output tensor.
+   * @param randFunction A random number generator function which is called
+   * for each element in the output tensor.
    * @param dtype The data type of the output tensor. Defaults to 'float32'.
    */
   @operation
@@ -610,10 +658,10 @@ export class ArrayOps {
    * Returns a promise that resolves when the canvas has been drawn to.
    *
    * @param img A rank-2 or rank-3 tensor. If rank-2, draws grayscale. If
-   *     rank-3, must have depth of 1, 3 or 4. When depth of 1, draws grayscale.
-   *     When depth of 3, we draw with the first three components of the depth
-   *     dimension corresponding to r, g, b and alpha = 1. When depth of 4,
-   *     all four components of the depth dimension correspond to r, g, b, a.
+   *     rank-3, must have depth of 1, 3 or 4. When depth of 1, draws
+   * grayscale. When depth of 3, we draw with the first three components of
+   * the depth dimension corresponding to r, g, b and alpha = 1. When depth of
+   * 4, all four components of the depth dimension correspond to r, g, b, a.
    * @param canvas The canvas to draw to.
    */
   @doc({heading: 'Visualization'})
@@ -746,8 +794,8 @@ export class ArrayOps {
    *
    * @param x The input tensor to be squeezed.
    * @param axis An optional list of numbers. If specified, only
-   *     squeezes the dimensions listed. The dimension index starts at 0. It is
-   *     an error to squeeze a dimension that is not 1.
+   *     squeezes the dimensions listed. The dimension index starts at 0. It
+   * is an error to squeeze a dimension that is not 1.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   static squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T {
@@ -960,9 +1008,9 @@ export class ArrayOps {
    * x.pad([[1, 2]]).print();
    * ```
    * @param x The tensor to pad.
-   * @param paddings An array of length `R` (the rank of the tensor), where each
-   *     element is a length-2 tuple of ints `[padBefore, padAfter]`, specifying
-   *     how much to pad along each dimension of the tensor.
+   * @param paddings An array of length `R` (the rank of the tensor), where
+   * each element is a length-2 tuple of ints `[padBefore, padAfter]`,
+   * specifying how much to pad along each dimension of the tensor.
    * @param constantValue The pad value to use. Defaults to 0.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
@@ -974,8 +1022,8 @@ export class ArrayOps {
     if (x.rank === 0) {
       throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
     }
-    // Pad introduces values around the original tensor, so the gradient slices
-    // the original shape out of the gradient.
+    // Pad introduces values around the original tensor, so the gradient
+    // slices the original shape out of the gradient.
     const begin = paddings.map(p => p[0]);
     const grad = (dy: T) => {
       return {x: () => dy.slice(begin, x.shape)};
@@ -1054,8 +1102,8 @@ export class ArrayOps {
    *
    * @param x The input tensor to split.
    * @param numOrSizeSplits Either an integer indicating the number of
-   * splits along the axis or an array of integers containing the sizes of each
-   * output tensor along the axis. If a number then it must evenly divide
+   * splits along the axis or an array of integers containing the sizes of
+   * each output tensor along the axis. If a number then it must evenly divide
    * `x.shape[axis]`; otherwise the sum of sizes must match `x.shape[axis]`.
    * @param axis The dimension along which to split. Defaults to 0 (the first
    * dim).
