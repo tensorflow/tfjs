@@ -22,7 +22,7 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../uti
 
 import {Dense, Reshape} from './core';
 import {SimpleRNN} from './recurrent';
-import {BidirectionalMergeMode, TimeDistributed} from './wrappers';
+import {BidirectionalMergeMode, checkBidirectionalMergeMode, TimeDistributed, VALID_BIDIRECTIONAL_MERGE_MODES} from './wrappers';
 
 // tslint:enable:max-line-length
 
@@ -86,10 +86,10 @@ describeMathCPUAndGPU('TimeDistributed Layer: Tensor', () => {
 describeMathCPU('Bidirectional Layer: Symbolic', () => {
   const mergeModes: BidirectionalMergeMode[] = [
     null,
-    BidirectionalMergeMode.CONCAT,
-    BidirectionalMergeMode.AVE,
-    BidirectionalMergeMode.MUL,
-    BidirectionalMergeMode.SUM,
+    'concat',
+    'ave',
+    'mul',
+    'sum',
   ];
   const returnStateValues: boolean[] = [false, true];
 
@@ -117,7 +117,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
             expect(outputs.length).toEqual(2);
             expect(outputs[0].shape).toEqual([10, 3]);
             expect(outputs[1].shape).toEqual([10, 3]);
-          } else if (mergeMode === BidirectionalMergeMode.CONCAT) {
+          } else if (mergeMode === 'concat') {
             outputs = outputs as tfl.SymbolicTensor;
             expect(outputs.shape).toEqual([10, 6]);
           } else {
@@ -132,7 +132,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
             expect(outputs[1].shape).toEqual([10, 3]);
             expect(outputs[2].shape).toEqual([10, 3]);
             expect(outputs[3].shape).toEqual([10, 3]);
-          } else if (mergeMode === BidirectionalMergeMode.CONCAT) {
+          } else if (mergeMode === 'concat') {
             outputs = outputs as tfl.SymbolicTensor[];
             expect(outputs.length).toEqual(3);
             expect(outputs[0].shape).toEqual([10, 6]);
@@ -159,13 +159,37 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
         returnSequences: true,
         returnState: true
       }),
-      mergeMode: BidirectionalMergeMode.AVE
+      mergeMode: 'ave'
     });
     const outputs = bidi.apply(input) as tfl.SymbolicTensor[];
     expect(outputs.length).toEqual(3);
     expect(outputs[0].shape).toEqual([10, 8, 3]);
     expect(outputs[1].shape).toEqual([10, 3]);
     expect(outputs[2].shape).toEqual([10, 3]);
+  });
+});
+
+describe('checkBidirectionalMergeMode', () => {
+  it('Valid values', () => {
+    const extendedValues =
+        VALID_BIDIRECTIONAL_MERGE_MODES.concat([undefined, null]);
+    for (const validValue of extendedValues) {
+      // Using implicit "expect().toNotThrow()" for valid values
+      checkBidirectionalMergeMode(validValue);
+    }
+  });
+  it('Invalid values', () => {
+    // Test invalid values are rejected, and reported in the error.
+    expect(() => checkBidirectionalMergeMode('foo')).toThrowError(/foo/);
+    try {
+      checkBidirectionalMergeMode('bad');
+    } catch (e) {
+      expect(e).toMatch('BidirectionalMergeMode');
+      // Test that the error message contains the list of valid values.
+      for (const validValue of VALID_BIDIRECTIONAL_MERGE_MODES) {
+        expect(e).toMatch(validValue);
+      }
+    }
   });
 });
 
@@ -221,13 +245,9 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
         [1, timeSteps, inputSize]);
   }
 
-  const mergeModes: BidirectionalMergeMode[] = [
-    null,
-    BidirectionalMergeMode.CONCAT,
-    BidirectionalMergeMode.MUL,
-  ];
+  const mergeModes: BidirectionalMergeMode[] = [null, 'concat', 'mul'];
   for (const mergeMode of mergeModes) {
-    it(`No returnState, mergeMode=${BidirectionalMergeMode[mergeMode]}`, () => {
+    it(`No returnState, mergeMode=${mergeMode}`, () => {
       createLayerAndData(mergeMode, false);
       let y = bidi.apply(x);
       if (mergeMode === null) {
@@ -237,7 +257,7 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
             y[0], tensor2d([[0.9440416, 0.9440416, 0.9440416]], [1, 3]));
         expectTensorsClose(
             y[1], tensor2d([[-0.9842659, -0.9842659, -0.9842659]], [1, 3]));
-      } else if (mergeMode === BidirectionalMergeMode.CONCAT) {
+      } else if (mergeMode === 'concat') {
         y = y as Tensor;
         expectTensorsClose(
             y,
@@ -247,7 +267,7 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
                   -0.9842659
                 ]],
                 [1, 6]));
-      } else if (mergeMode === BidirectionalMergeMode.MUL) {
+      } else if (mergeMode === 'mul') {
         y = y as Tensor;
         expectTensorsClose(
             y, tensor2d([[-0.929188, -0.929188, -0.929188]], [1, 3]));
@@ -255,7 +275,7 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
     });
   }
   it('returnState', () => {
-    createLayerAndData(BidirectionalMergeMode.AVE, true);
+    createLayerAndData('ave', true);
     const y = bidi.apply(x) as Tensor[];
     expect(y.length).toEqual(3);
     expectTensorsClose(

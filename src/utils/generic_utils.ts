@@ -109,52 +109,6 @@ export function count<T>(array: T[], refernce: T) {
   return counter;
 }
 
-export class SerializableEnumRegistry {
-  private static instance: SerializableEnumRegistry;
-  // tslint:disable-next-line:no-any
-  enumRegistry: {[fieldName: string]: any};
-
-  private constructor() {
-    this.enumRegistry = {};
-  }
-
-  static getMap() {
-    if (SerializableEnumRegistry.instance == null) {
-      SerializableEnumRegistry.instance = new SerializableEnumRegistry();
-    }
-    return SerializableEnumRegistry.instance;
-  }
-
-  // tslint:disable-next-line:no-any
-  static register(fieldName: string, enumCls: any) {
-    if (SerializableEnumRegistry.contains(fieldName)) {
-      throw new ValueError(
-          `Attempting to register a repeated enum: ${fieldName}`);
-    }
-    this.getMap().enumRegistry[fieldName] = enumCls;
-  }
-
-  static contains(fieldName: string): boolean {
-    return fieldName in this.getMap().enumRegistry;
-  }
-
-  // tslint:disable-next-line:no-any
-  static lookup(fieldName: string, value: string): any {
-    return this.getMap().enumRegistry[fieldName][value];
-  }
-
-  // tslint:disable-next-line:no-any
-  static reverseLookup(fieldName: string, value: any): string {
-    const enumMap = this.getMap().enumRegistry[fieldName];
-    for (const candidateString in enumMap) {
-      if (enumMap[candidateString] === value) {
-        return candidateString;
-      }
-    }
-    throw new ValueError(`Could not find serialization string for ${value}`);
-  }
-}
-
 /**
  * If an array is of length 1, just return the first element. Otherwise, return
  * the full array.
@@ -490,4 +444,22 @@ export function isObjectEmpty(obj: {}): boolean {
     }
   }
   return true;
+}
+
+/**
+ * Helper function used to build type union/enum run-time checkers.
+ * @param values The list of allowed values.
+ * @param label A string name for the type
+ * @param value The value to test.
+ * @throws ValueError: If the value is not in values nor `undefined`/`null`.
+ */
+export function checkStringTypeUnionValue(
+    values: string[], label: string, value: string): void {
+  if (value == null) {
+    return;
+  }
+  if (values.indexOf(value) < 0) {
+    throw new ValueError(`${value} is not a valid ${label}.  Valid values are ${
+        values} or null/undefined.`);
+  }
 }

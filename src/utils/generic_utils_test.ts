@@ -234,31 +234,6 @@ describe('toCamelCase', () => {
   }
 });
 
-describe('SerializableEnumRegistry', () => {
-  it('contains false if no registered converter for field name?', () => {
-    expect(utils.SerializableEnumRegistry.contains('foo')).toEqual(false);
-  });
-  // Note: Somewhat unexpectedily? all the converters are regsitered already
-  it('contains true if no registered converter for field name?', () => {
-    expect(utils.SerializableEnumRegistry.contains('data_format'))
-        .toEqual(true);
-  });
-  it('throws if you try to register a duplicate key?', () => {
-    expect(() => {
-      utils.SerializableEnumRegistry.register('data_format', {});
-    }).toThrowError(/Attempting to register/);
-  });
-  it('returns null if no such value', () => {
-    expect(utils.SerializableEnumRegistry.lookup('data_format', 'xxxx'))
-        .toEqual(undefined);
-  });
-  it('correctly maps', () => {
-    expect(
-        utils.SerializableEnumRegistry.lookup('data_format', 'channels_first'))
-        .toEqual('channelsFirst');
-  });
-});
-
 describe('getExactlyOneShape', () => {
   it('single instance', () => {
     expect(utils.getExactlyOneShape([1, 2, 3])).toEqual([1, 2, 3]);

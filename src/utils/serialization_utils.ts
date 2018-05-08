@@ -16,7 +16,6 @@
 // tslint:disable:max-line-length
 import {serialization} from '@tensorflow/tfjs-core';
 
-import {ValueError} from '../errors';
 import {JsonValue} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 // tslint:enable
@@ -76,19 +75,7 @@ export function convertPythonicToTs(
         tsDict[pythonicKey] = pythonicValue;
       } else {
         const tsKey = generic_utils.toCamelCase(pythonicKey);
-        if (generic_utils.SerializableEnumRegistry.contains(pythonicKey) &&
-            (typeof pythonicValue === 'string' || pythonicValue == null)) {
-          const enumValue = generic_utils.SerializableEnumRegistry.lookup(
-              pythonicKey, pythonicValue as string);
-          if (enumValue != null) {
-            tsDict[tsKey] = enumValue;
-          } else {
-            throw new ValueError(
-                `Unkown value ${pythonicValue} for ${pythonicKey} Enum`);
-          }
-        } else {
-          tsDict[tsKey] = convertPythonicToTs(pythonicValue, tsKey);
-        }
+        tsDict[tsKey] = convertPythonicToTs(pythonicValue, tsKey);
       }
     }
     return tsDict;
@@ -134,16 +121,7 @@ export function convertTsToPythonic(
         // snake-case conversion.
         pyDict[pyKey] = tsValue;
       } else {
-        if (generic_utils.SerializableEnumRegistry.contains(pyKey) &&
-            (typeof tsValue === 'string' || tsValue == null)) {
-          const enumString =
-              generic_utils.SerializableEnumRegistry.reverseLookup(
-                  pyKey, tsValue);
-          pyDict[pyKey] = enumString;
-
-        } else {
-          pyDict[pyKey] = convertTsToPythonic(tsValue, tsKey);
-        }
+        pyDict[pyKey] = convertTsToPythonic(tsValue, tsKey);
       }
     }
     return pyDict;

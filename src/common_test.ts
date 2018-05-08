@@ -19,7 +19,8 @@ import {checkDataFormat, checkPaddingMode, checkPoolMode, getUniqueTensorName, i
 
 describe('checkDataFormat', () => {
   it('Valid values', () => {
-    for (const validValue of VALID_DATA_FORMAT_VALUES) {
+    const extendedValues = VALID_DATA_FORMAT_VALUES.concat([undefined, null]);
+    for (const validValue of extendedValues) {
       // Using implicit "expect().toNotThrow()" for valid values
       checkDataFormat(validValue);
     }
@@ -30,11 +31,9 @@ describe('checkDataFormat', () => {
     try {
       checkDataFormat('bad');
     } catch (e) {
+      expect(e).toMatch('DataFormat');
       // Test that the error message contains the list of valid values.
       for (const validValue of VALID_DATA_FORMAT_VALUES) {
-        if (validValue == null) {
-          continue;
-        }
         expect(e).toMatch(validValue);
       }
     }
@@ -43,7 +42,8 @@ describe('checkDataFormat', () => {
 
 describe('checkPaddingMode', () => {
   it('Valid values', () => {
-    for (const validValue of VALID_PADDING_MODE_VALUES) {
+    const extendedValues = VALID_PADDING_MODE_VALUES.concat([undefined, null]);
+    for (const validValue of extendedValues) {
       // Using implicit "expect().toNotThrow()" for valid values
       checkPaddingMode(validValue);
     }
@@ -54,11 +54,9 @@ describe('checkPaddingMode', () => {
     try {
       checkPaddingMode('bad');
     } catch (e) {
+      expect(e).toMatch('PaddingMode');
       // Test that the error message contains the list of valid values.
       for (const validValue of VALID_PADDING_MODE_VALUES) {
-        if (validValue == null) {
-          continue;
-        }
         expect(e).toMatch(validValue);
       }
     }
@@ -67,7 +65,8 @@ describe('checkPaddingMode', () => {
 
 describe('checkPoolMode', () => {
   it('Valid values', () => {
-    for (const validValue of VALID_POOL_MODE_VALUES) {
+    const extendedValues = VALID_POOL_MODE_VALUES.concat([undefined, null]);
+    for (const validValue of extendedValues) {
       // Using implicit "expect().toNotThrow()" for valid values
       checkPoolMode(validValue);
     }
@@ -78,11 +77,9 @@ describe('checkPoolMode', () => {
     try {
       checkPoolMode('bad');
     } catch (e) {
+      expect(e).toMatch('PoolMode');
       // Test that the error message contains the list of valid values.
       for (const validValue of VALID_POOL_MODE_VALUES) {
-        if (validValue == null) {
-          continue;
-        }
         expect(e).toMatch(validValue);
       }
     }

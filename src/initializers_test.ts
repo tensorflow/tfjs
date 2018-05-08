@@ -401,7 +401,8 @@ describe('Invalid intializer identifier', () => {
 
 describe('checkFanMode', () => {
   it('Valid values', () => {
-    for (const validValue of VALID_FAN_MODE_VALUES) {
+    const extendedValues = VALID_FAN_MODE_VALUES.concat([undefined, null]);
+    for (const validValue of extendedValues) {
       // Using implicit "expect().toNotThrow()" for valid values
       checkFanMode(validValue);
     }
@@ -412,11 +413,9 @@ describe('checkFanMode', () => {
     try {
       checkFanMode('bad');
     } catch (e) {
+      expect(e).toMatch('FanMode');
       // Test that the error message contains the list of valid values.
       for (const validValue of VALID_FAN_MODE_VALUES) {
-        if (validValue == null) {
-          continue;
-        }
         expect(e).toMatch(validValue);
       }
     }
@@ -425,7 +424,8 @@ describe('checkFanMode', () => {
 
 describe('checkDistribution', () => {
   it('Valid values', () => {
-    for (const validValue of VALID_DISTRIBUTION_VALUES) {
+    const extendedValues = VALID_DISTRIBUTION_VALUES.concat([undefined, null]);
+    for (const validValue of extendedValues) {
       // Using implicit "expect().toNotThrow()" for valid values
       checkDistribution(validValue);
     }
@@ -436,11 +436,9 @@ describe('checkDistribution', () => {
     try {
       checkDistribution('bad');
     } catch (e) {
+      expect(e).toMatch('Distribution');
       // Test that the error message contains the list of valid values.
       for (const validValue of VALID_DISTRIBUTION_VALUES) {
-        if (validValue == null) {
-          continue;
-        }
         expect(e).toMatch(validValue);
       }
     }
