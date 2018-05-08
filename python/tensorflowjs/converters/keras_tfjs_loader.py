@@ -106,7 +106,8 @@ def load_keras_model(config_json_path,
           for w in model.weights]
 
       if not weights_path_prefix:
-        weights_path_prefix = os.path.dirname(config_json_path)
+        weights_path_prefix = os.path.dirname(
+            os.path.realpath(config_json_path))
       if not os.path.isdir(weights_path_prefix):
         raise ValueError(
             'Weights path prefix is not an existing directory: %s' %
