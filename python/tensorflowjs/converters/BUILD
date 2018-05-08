@@ -72,8 +72,12 @@ py_binary(
     srcs_version = "PY2AND3",
     deps = [
         ":keras_h5_conversion",
+        ":keras_tfjs_loader",
         ":tf_saved_model_conversion",
         "//tensorflowjs:expect_h5py_installed",
+        "//tensorflowjs:expect_keras_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
+        "//tensorflowjs:version",
     ],
 )
 
@@ -84,5 +88,6 @@ py_test(
     deps = [
         ":converter",
         "//tensorflowjs:expect_keras_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )

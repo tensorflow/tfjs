@@ -76,6 +76,27 @@ class LoadKerasModelTest(tf.test.TestCase):
       # The two model JSONs should match exactly.
       self.assertEqual(model1.to_json(), model2.to_json())
 
+  def testLoadKerasModelWithCurrentWorkingDirectoryRelativePath(self):
+    with tf.Graph().as_default(), tf.Session():
+      tfjs_path = os.path.join(self._tmp_dir, 'model_for_test')
+      model1 = self._saveKerasModelForTest(tfjs_path)
+      model1_weight_values = model1.get_weights()
+
+    os.chdir(tfjs_path)
+    with tf.Graph().as_default(), tf.Session():
+      # Use a relative path under the current working directory.
+      model2 = keras_tfjs_loader.load_keras_model('model.json')
+
+      # Verify the equality of all the weight values.
+      model2_weight_values = model2.get_weights()
+      self.assertEqual(len(model1_weight_values), len(model2_weight_values))
+      for model1_weight_value, model2_weight_value in zip(
+          model1_weight_values, model2_weight_values):
+        self.assertAllClose(model1_weight_value, model2_weight_value)
+
+      # The two model JSONs should match exactly.
+      self.assertEqual(model1.to_json(), model2.to_json())
+
   def testLoadKerasModelWithoutWeights(self):
     """Test loading of model topology only, without loading weight values."""
     with tf.Graph().as_default(), tf.Session():
@@ -214,6 +235,7 @@ class LoadKerasModelTest(tf.test.TestCase):
         keras_tfjs_loader.load_keras_model(
             model_json_path,
             weights_data_buffers=[b'foo'], weights_path_prefix='bar')
+
 
 
 if __name__ == '__main__':
