@@ -368,6 +368,33 @@ export interface ActivationLayerConfig extends LayerConfig {
 
 /**
  * Applies an activation function to an output.
+ *
+ * This layer applies element-wise activation function.  Other layers, notably
+ * `dense` can also apply activation functions.  Use this isolated activation
+ * function to extract the values before and after the
+ * activation. For instance:
+ *
+ * ```js
+ * const input = tf.input({shape: [5]});
+ * const denseLayer = tf.layers.dense({units: 1});
+ * const activationLayer = tf.layers.activation({activation: 'relu6'});
+ *
+ * // Obtain the output symbolic tensors by applying the layers in order.
+ * const denseOutput = denseLayer.apply(input);
+ * const activationOutput = activationLayer.apply(denseOutput);
+ *
+ * // Create the model based on the inputs.
+ * const model = tf.model({
+ *     inputs: input,
+ *     outputs: [denseOutput, activationOutput]
+ * });
+ *
+ * // Collect both outputs and print separately.
+ * const [denseOut, activationOut] = model.predict(tf.randomNormal([6, 5]));
+ * denseOut.print();
+ * activationOut.print();
+ * ```
+ *
  */
 export class Activation extends Layer {
   static className = 'Activation';
@@ -400,9 +427,17 @@ export interface RepeatVectorLayerConfig extends LayerConfig {
 }
 
 /**
- * Repeat the input n times.
+ * Repeats the input n times in a new dimension.
+ *
+ * ```js
+ *  const model = tf.sequential();
+ *  model.add(tf.layers.repeatVector({n: 4, inputShape: [2]}));
+ *  const x = tf.tensor2d([[10, 20]]);
+ *  // Use the model to do inference on a data point the model hasn't see
+ *  model.predict(x).print();
+ *  // output shape is now [batch, 2, 4]
+ * ```
  */
-// TODO(cais): Add example.
 export class RepeatVector extends Layer {
   static className = 'RepeatVector';
   readonly n: number;

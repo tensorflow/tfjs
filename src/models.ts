@@ -236,6 +236,24 @@ export interface SequentialConfig {
  *
  * `sequential` is a factory function that creates an instance of
  * `Sequential`.
+ *
+ * ```js
+ *  // Define a model for linear regression.
+ *  const model = tf.sequential();
+ *  model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+ *
+ *  // Prepare the model for training: Specify the loss and the optimizer.
+ *  model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+ *
+ *  // Generate some synthetic data for training.
+ *  const xs = tf.tensor2d([1, 2, 3, 4], [4, 1]);
+ *  const ys = tf.tensor2d([1, 3, 5, 7], [4, 1]);
+ *
+ *  // Train the model using the data then do inference on a data point the
+ *  // model hasn't seen:
+ *  await model.fit(xs, ys);
+ *  model.predict(tf.tensor2d([5], [1, 1])).print();
+ * ```
  */
 @doc({heading: 'Models', subheading: 'Classes'})
 export class Sequential extends Model {
@@ -264,6 +282,14 @@ export class Sequential extends Model {
   /**
    * Adds a layer instance on top of the layer stack.
    *
+   * ```js
+   *  const model = tf.sequential();
+   *  model.add(tf.layers.dense({units: 8, inputShape: [1]}));
+   *  model.add(tf.layers.dense({units: 4, activation: 'relu6'}));
+   *  model.add(tf.layers.dense({units: 1, activation: 'relu6'}));
+   *  // Note that the untrained model is random at this point.
+   *  model.predict(tf.randomNormal([10, 1])).print();
+   * ```
    * @param layer Layer instance.
    *
    * @exception ValueError In case the `layer` argument does not know its input
@@ -557,7 +583,7 @@ export class Sequential extends Model {
    *   batchSize: 4,
    *   epochs: 3
    * });
-   * console.log(history.history.loss);
+   * console.log(history.history.loss[0]);
    * ```
    *
    * @param x `Tensor` of training data, or an array of `Tensor`s if the model
