@@ -1,15 +1,29 @@
 # TensorFlow backend for TensorFlow.js via Node.js
 
-**This repo is under active development and is not production-ready. We will be
-actively developing this in open source. Stay tuned for an official release.**
+**This repo is under active development and is not production-ready. We are
+actively developing as an open source project.**
 
-Currently, we only support developing TensorFlow.js code directly inside of this
-repository, however we plan on publishing on NPM soon.
-
-## Trying it out
+## Installing 
 
 ```sh
-# Download and install JS depencies, including libtensorflow 1.8.
+npm install @tensorflow/tfjs-node
+(or)
+yarn add @tensorflow/tfjs-node
+```
+
+Before executing any TensorFlow.js code, load and set the backend to 'tensorflow'.
+
+```js
+import * as tf from '@tensorflow/tfjs';
+import '@tensorflow/tfjs-node';
+
+tf.setBackend('tensorflow');
+```
+
+## Development
+
+```sh
+# Download and install JS dependencies, including libtensorflow 1.8.
 yarn
 
 # Publish the NPM locally for usage with other packages.
