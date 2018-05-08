@@ -30,21 +30,14 @@ import * as generic_utils from '../utils/generic_utils';
 // tslint:enable:max-line-length
 
 /**
- * LayerConfig for convolutional layers.
- * Applies to convolution of all ranks (e.g, Conv1D, Conv2D).
+ * Base LayerConfig for depthwise and non-depthwise convolutional layers.
  */
-export interface ConvLayerConfig extends LayerConfig {
+export interface BaseConvLayerConfig extends LayerConfig {
   /**
    * The dimensions of the convolution window. If kernelSize is a number, the
    * convolutional window will be square.
    */
   kernelSize: number|number[];
-
-  /**
-   * The dimensionality of the output space (i.e. the number of filters in the
-   * convolution).
-   */
-  filters?: number;
 
   /**
    * The strides of the convolution in each dimension. If strides is a number,
@@ -91,7 +84,7 @@ export interface ConvLayerConfig extends LayerConfig {
   activation?: string;
 
   /**
-   * Whether the layer uses a bias vector. Defaults to false.
+   * Whether the layer uses a bias vector. Defaults to `true`.
    */
   useBias?: boolean;
 
@@ -129,6 +122,18 @@ export interface ConvLayerConfig extends LayerConfig {
    * Regularizer function applied to the activation.
    */
   activityRegularizer?: RegularizerIdentifier|Regularizer;
+}
+
+/**
+ * LayerConfig for non-depthwise convolutional layers.
+ * Applies to non-depthwise convolution of all ranks (e.g, Conv1D, Conv2D).
+ */
+export interface ConvLayerConfig extends BaseConvLayerConfig {
+  /**
+   * The dimensionality of the output space (i.e. the number of filters in the
+   * convolution).
+   */
+  filters: number;
 }
 
 /**
