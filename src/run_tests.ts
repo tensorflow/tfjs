@@ -15,12 +15,14 @@
  * =============================================================================
  */
 
+import './index';
+import * as tfc from '@tensorflow/tfjs-core';
+tfc.setBackend('tensorflow');
+
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
-import {bindTensorFlowBackend} from './index';
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
-bindTensorFlowBackend();
 
 jasmine_util.setBeforeAll(() => {});
 jasmine_util.setAfterAll(() => {});
