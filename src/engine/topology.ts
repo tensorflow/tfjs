@@ -19,7 +19,7 @@ import {AttributeError, NotImplementedError, RuntimeError, ValueError} from '../
 import {Initializer} from '../initializers';
 import {deserialize as deserializeLayer} from '../layers/serialization';
 import {Regularizer} from '../regularizers';
-import {DType, JsonDict, Kwargs, LayerVariable, NamedTensorMap, RegularizerFn, Shape, SymbolicTensor, TensorInterface} from '../types';
+import {DType, JsonDict, Kwargs, LayerVariable, NamedTensorMap, RegularizerFn, Shape, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {convertTsToPythonic} from '../utils/serialization_utils';
 import {version as layersVersion} from '../version';
@@ -357,7 +357,8 @@ export abstract class Layer extends serialization.Serializable {
   protected _trainableWeights: LayerVariable[];
   private _nonTrainableWeights: LayerVariable[];
   private _losses: RegularizerFn[];
-  private _updates: TensorInterface[];
+  // TODO(cais): _updates is currently unused.
+  private _updates: Tensor[];
   private _built: boolean;
   private _callHook: CallHook = null;
 
@@ -577,7 +578,7 @@ export abstract class Layer extends serialization.Serializable {
     return this.losses.map(lossFn => lossFn());
   }
 
-  get updates(): TensorInterface[] {
+  get updates(): Tensor[] {
     return this._updates;
   }
 

@@ -18,7 +18,7 @@ import {serialization, Tensor} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
-import {Kwargs, Shape, TensorInterface} from '../types';
+import {Kwargs, Shape} from '../types';
 import {LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
@@ -92,7 +92,7 @@ export abstract class Wrapper extends Layer {
   }
   // TODO(cais): Implement setter for nonTrainableWeights.
 
-  get updates(): TensorInterface[] {
+  get updates(): Tensor[] {
     // tslint:disable-next-line:no-any
     return (this.layer as any)._updates;
   }

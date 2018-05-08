@@ -19,7 +19,7 @@ import {dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, ten
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
 import {Constraint} from '../constraints';
 import {NotImplementedError, ValueError} from '../errors';
-import {DType, LayerVariable, RnnStepFunction, Shape, SymbolicTensor, TensorInterface} from '../types';
+import {DType, LayerVariable, RnnStepFunction, Shape, SymbolicTensor} from '../types';
 import {pyNormalizeArrayIndex} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 
@@ -103,7 +103,7 @@ export function isBackendSymbolic(): boolean {
  * @param x The tensor.
  * @return Shape of the tensor.
  */
-export function shape(x: Tensor|TensorInterface): Shape {
+export function shape(x: Tensor|SymbolicTensor): Shape {
   return x.shape;
 }
 
@@ -113,7 +113,7 @@ export function shape(x: Tensor|TensorInterface): Shape {
  * @param x The tensor.
  * @return Shape of the tensor as number[].
  */
-export function intShape(x: Tensor|TensorInterface): number[] {
+export function intShape(x: Tensor|SymbolicTensor): number[] {
   return x.shape;
 }
 
@@ -123,7 +123,7 @@ export function intShape(x: Tensor|TensorInterface): number[] {
  * @param x The tensor.
  * @return Number of dimensions of `x`.
  */
-export function ndim(x: Tensor|TensorInterface): number {
+export function ndim(x: Tensor|SymbolicTensor): number {
   return x.shape.length;
 }
 
@@ -152,7 +152,7 @@ export function dtype(x: Tensor|SymbolicTensor): DType {
  *   all values must be non-null/defined.
  */
 export function normalizeAxis(
-    x: Tensor|TensorInterface, axis: number|number[]): number|number[] {
+    x: Tensor|SymbolicTensor, axis: number|number[]): number|number[] {
   if (axis == null) {
     return axis;
   }
@@ -168,7 +168,7 @@ export function normalizeAxis(
  * @param x The Tensor.
  * @return Number of elements in `x`.
  */
-export function countParams(x: Tensor|TensorInterface): number {
+export function countParams(x: Tensor|SymbolicTensor): number {
   const shape = x.shape;
   if (shape.length > 0) {
     return shape.reduce((a: number, b: number) => a * b);
