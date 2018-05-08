@@ -22,14 +22,8 @@ import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 
-export function bindTensorFlowBackend() {
-  // TODO(kreeger): This anonymous function should throw an exception if the
-  // binding is not installed.
-  const nodeBinding = bindings('tfjs_binding.node') as TFJSBinding;
-
-  tfc.ENV.registerBackend(
-      'tensorflow', () => new NodeJSKernelBackend(nodeBinding));
-  tfc.setBackend('tensorflow');
-}
+tfc.ENV.registerBackend('tensorflow', () => {
+  return new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
+});
 
 export {version} from './version';
