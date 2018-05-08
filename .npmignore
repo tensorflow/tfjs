@@ -1,6 +1,7 @@
 .vscode/
 demo/
-scripts/
+deps/tensorflow/*
+scripts/build-npm.sh
 src/
 node_modules/
 *.tgz
