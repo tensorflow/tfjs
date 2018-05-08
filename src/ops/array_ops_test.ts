@@ -16,10 +16,11 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, WEBGL_ENVS} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 import * as util from '../util';
+
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
 describeWithFlags('zeros', ALL_ENVS, () => {
@@ -627,6 +628,57 @@ describeWithFlags('rand', ALL_ENVS, () => {
     const result = tf.rand(shape, () => util.randUniform(0, 1), 'bool');
     expect(result.dtype).toBe('bool');
     expectValuesInRange(result, 0, 1);
+  });
+});
+
+describeWithFlags('eye', ALL_ENVS, () => {
+  it('1x1', () => {
+    expectArraysClose(tf.eye(1), tf.tensor2d([[1]]));
+  });
+
+  it('2x2', () => {
+    expectArraysClose(tf.eye(2), tf.tensor2d([[1, 0], [0, 1]]));
+  });
+
+  it('3x3', () => {
+    expectArraysClose(
+        tf.eye(3), tf.tensor2d([[1, 0, 0], [0, 1, 0], [0, 0, 1]]));
+  });
+
+  it('3x4', () => {
+    expectArraysClose(
+        tf.eye(3, 4), tf.tensor2d([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]]));
+  });
+
+  it('4x3', () => {
+    expectArraysClose(
+        tf.eye(4, 3),
+        tf.tensor2d([[1, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]]));
+  });
+
+  it('with 1D batchShape', () => {
+    expectArraysClose(
+        tf.eye(2, 2, [3]),
+        tf.tensor3d([[[1, 0], [0, 1]], [[1, 0], [0, 1]], [[1, 0], [0, 1]]]));
+  });
+
+  it('with 2D batchShape', () => {
+    expectArraysClose(tf.eye(2, 2, [2, 3]), tf.tensor4d([
+      [[[1, 0], [0, 1]], [[1, 0], [0, 1]], [[1, 0], [0, 1]]],
+      [[[1, 0], [0, 1]], [[1, 0], [0, 1]], [[1, 0], [0, 1]]]
+    ]));
+  });
+
+  it('3x3, int32', () => {
+    expectArraysClose(
+        tf.eye(3, 3, null, 'int32'),
+        tf.tensor2d([[1, 0, 0], [0, 1, 0], [0, 0, 1]], [3, 3], 'int32'));
+  });
+
+  it('3x3, bool', () => {
+    expectArraysClose(
+        tf.eye(3, 3, null, 'bool'),
+        tf.tensor2d([[1, 0, 0], [0, 1, 0], [0, 0, 1]], [3, 3], 'bool'));
   });
 });
 

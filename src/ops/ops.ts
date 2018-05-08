@@ -22,6 +22,7 @@ import {CompareOps} from './compare';
 import {ConcatOps} from './concat';
 import {ConvOps} from './conv';
 import {ImageOps} from './image_ops';
+import {LinalgOps} from './linalg_ops';
 import {LogicalOps} from './logical_ops';
 import {LossOps, Reduction} from './loss_ops';
 import {LRNOps} from './lrn';
@@ -173,6 +174,7 @@ export const ones = ArrayOps.ones;
 export const onesLike = ArrayOps.onesLike;
 export const zeros = ArrayOps.zeros;
 export const zerosLike = ArrayOps.zerosLike;
+export const eye = ArrayOps.eye;
 export const rand = ArrayOps.rand;
 export const randomNormal = ArrayOps.randomNormal;
 export const truncatedNormal = ArrayOps.truncatedNormal;
@@ -212,6 +214,8 @@ export const multiRNNCell = LSTMOps.multiRNNCell;
 export const softmax = SoftmaxOps.softmax;
 
 export const localResponseNormalization = LRNOps.localResponseNormalization;
+
+export const linalg = LinalgOps;
 
 // So typings can propagate.
 import {Tensor} from '../tensor';
