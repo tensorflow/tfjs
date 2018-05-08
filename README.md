@@ -37,20 +37,12 @@ TensorFlow C backend.
 cd demo/
 yarn
 
-# Link the tfjs-node NPM we published above.
-yarn link-local @tensorflow/tfjs-node
-
 # Run the training script. See demo/package.json for this script.
 yarn mnist
 ```
 
 The important line to note is at the top of `mnist.ts`, which sets the backend to
 TensorFlow.
-
-```js
-bindTensorFlowBackend();
-```
-
 
 ### Optional: Build libtensorflow From TensorFlow source
 
