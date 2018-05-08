@@ -1429,10 +1429,16 @@ export class MathBackendCPU implements KernelBackend {
     const output =
         ops.buffer<Rank.R4>([batch, newHeight, newWidth, numChannels], x.dtype);
 
-    const effectiveInputSize: [number, number] =
-        alignCorners ? [oldHeight - 1, oldWidth - 1] : [oldHeight, oldWidth];
-    const effectiveOutputSize: [number, number] =
-        alignCorners ? [newHeight - 1, newWidth - 1] : [newHeight, newWidth];
+    const effectiveInputSize: [number, number] = [
+      (alignCorners && newHeight > 1) ? oldHeight - 1 : oldHeight,
+      (alignCorners && newWidth > 1) ? oldWidth - 1 : oldWidth
+    ];
+
+    const effectiveOutputSize: [number, number] = [
+      (alignCorners && newHeight > 1) ? newHeight - 1 : newHeight,
+      (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
+    ];
+
     for (let b = 0; b < batch; b++) {
       for (let r = 0; r < newHeight; r++) {
         for (let c = 0; c < newWidth; c++) {
@@ -1465,6 +1471,74 @@ export class MathBackendCPU implements KernelBackend {
             const newValue = top + (bottom - top) * rowFrac;
 
             output.set(newValue, b, r, c, d);
+          }
+        }
+      }
+    }
+    return output.toTensor();
+  }
+
+  resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean) {
+    const [batch, xHeight, xWidth, depth] = x.shape;
+    const [, yHeight, yWidth] = dy.shape;
+
+    const output =
+        ops.buffer<Rank.R4>([batch, xHeight, xWidth, depth], x.dtype);
+
+    // In the backwards pass, we want to find the pixels that were generated for
+    // each pixel in the input image the forward pass and add the corresponding
+    // coefficient from dy to the gradient (with some interpolation).
+
+    const effectiveXSize: [number, number] = [
+      (alignCorners && yHeight > 1) ? xHeight - 1 : xHeight,
+      (alignCorners && yWidth > 1) ? xWidth - 1 : xWidth
+    ];
+
+    const effectiveYSize: [number, number] = [
+      (alignCorners && yHeight > 1) ? yHeight - 1 : yHeight,
+      (alignCorners && yWidth > 1) ? yWidth - 1 : yWidth
+    ];
+
+    const heightScale = effectiveXSize[0] / effectiveYSize[0];
+    const widthScale = effectiveXSize[1] / effectiveYSize[1];
+
+    // Reference implementation
+    // tslint:disable-next-line:max-line-length
+    // https://github.com/tensorflow/tensorflow/blob/3039375c86a5bbc9610c7725dcaa95d635f87ba2/tensorflow/core/kernels/resize_bilinear_op.cc#L275
+
+    for (let b = 0; b < batch; b++) {
+      for (let r = 0; r < yHeight; r++) {
+        const dxR = r * heightScale;
+        const topDxRIndex = Math.floor(dxR);
+        const bottomDxRIndex = Math.min(Math.ceil(dxR), xHeight - 1);
+        const dxRLerp = dxR - topDxRIndex;
+        const inverseDxRLerp = 1.0 - dxRLerp;
+
+        for (let c = 0; c < yWidth; c++) {
+          const dxC = c * widthScale;
+          const leftDxCIndex = Math.floor(dxC);
+          const rightDxCIndex = Math.min(Math.ceil(dxC), xWidth - 1);
+          const dxCLerp = dxC - leftDxCIndex;
+          const inverseDxCLerp = 1.0 - dxCLerp;
+
+          for (let d = 0; d < depth; d++) {
+            const dyVal = dy.get(b, r, c, d);
+
+            let topLeft = output.get(b, topDxRIndex, leftDxCIndex, d);
+            topLeft += dyVal * inverseDxRLerp * inverseDxCLerp;
+            output.set(topLeft, b, topDxRIndex, leftDxCIndex, d);
+
+            let topRight = output.get(b, topDxRIndex, rightDxCIndex, d);
+            topRight += dyVal * inverseDxRLerp * dxCLerp;
+            output.set(topRight, b, topDxRIndex, rightDxCIndex, d);
+
+            let bottomLeft = output.get(b, bottomDxRIndex, leftDxCIndex, d);
+            bottomLeft += dyVal * dxRLerp * inverseDxCLerp;
+            output.set(bottomLeft, b, bottomDxRIndex, leftDxCIndex, d);
+
+            let bottomRight = output.get(b, bottomDxRIndex, rightDxCIndex, d);
+            bottomRight += dyVal * dxRLerp * dxCLerp;
+            output.set(bottomRight, b, bottomDxRIndex, rightDxCIndex, d);
           }
         }
       }

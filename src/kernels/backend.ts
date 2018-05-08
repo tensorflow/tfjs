@@ -188,6 +188,9 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D;
 
+  resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
+      Tensor4D;
+
   resizeNearestNeighbor(
       x: Tensor4D, newHEight: number, newWidth: number,
       alignCorners: boolean): Tensor4D;

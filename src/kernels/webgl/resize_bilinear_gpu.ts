@@ -28,11 +28,16 @@ export class ResizeBilinearProgram implements GPGPUProgram {
     const [batch, oldHeight, oldWidth, depth] = inputShape;
     this.outputShape = [batch, newHeight, newWidth, depth];
 
-    const effectiveInSize: [number, number] =
-        alignCorners ? [oldHeight - 1, oldWidth - 1] : [oldHeight, oldWidth];
+    const effectiveInSize: [number, number] = [
+      (alignCorners && newHeight > 1) ? oldHeight - 1 : oldHeight,
+      (alignCorners && newWidth > 1) ? oldWidth - 1 : oldWidth
+    ];
 
-    const effectiveOutSize: [number, number] =
-        alignCorners ? [newHeight - 1, newWidth - 1] : [newHeight, newWidth];
+    const effectiveOutSize: [number, number] = [
+      (alignCorners && newHeight > 1) ? newHeight - 1 : newHeight,
+      (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
+    ];
+
     this.userCode = `
       const vec2 effectiveInputOverOutputRatioRC = vec2(
           ${effectiveInSize[0] / effectiveOutSize[0]},
