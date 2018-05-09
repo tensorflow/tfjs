@@ -214,6 +214,10 @@ export class Environment {
    * Sets the backend (cpu, webgl, etc) responsible for creating tensors and
    * executing operations on those tensors.
    *
+   * Note this disposes the current backend, if any, as well as any tensors
+   * associated with it.  A new backend is initialized, even if it is of the
+   * same type as the previous one.
+   *
    * @param backendType The backend type. Currently supports `'webgl'|'cpu'`.
    * @param safeMode Defaults to false. In safe mode, you are forced to
    *     construct tensors and call math operations inside a `tidy()` which
