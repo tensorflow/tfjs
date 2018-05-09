@@ -30,8 +30,8 @@
         "type": "tensor"
       },
       {
-        "tfParamName": "epislon",
-        "dlParamName": "epislon",
+        "tfParamName": "epsilon",
+        "dlParamName": "epsilon",
         "type": "number",
         "defaultValue": 0.001
       },
@@ -74,8 +74,8 @@
         "type": "tensor"
       },
       {
-        "tfParamName": "epislon",
-        "dlParamName": "epislon",
+        "tfParamName": "epsilon",
+        "dlParamName": "epsilon",
         "type": "number",
         "defaultValue": 0.001
       },
