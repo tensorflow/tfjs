@@ -20,7 +20,8 @@ import {Tensor} from '../tensor';
 import {NamedTensorMap, TypedArray} from '../types';
 import {sizeFromShape} from '../util';
 
-import {DTYPE_VALUE_SIZE_MAP, WeightsManifestEntry} from './types';
+// tslint:disable-next-line:max-line-length
+import {DTYPE_VALUE_SIZE_MAP, ModelArtifacts, ModelArtifactsInfo, WeightsManifestEntry} from './types';
 
 /**
  * Encode a map from names to weight values as an ArrayBuffer, along with an
@@ -218,4 +219,30 @@ export function basename(path: string): string {
   }
   const items = path.split(SEPARATOR);
   return items[items.length - 1];
+}
+
+/**
+ * Populate ModelArtifactsInfo fields for a model with JSON topology.
+ * @param modelArtifacts
+ * @returns A ModelArtifactsInfo object.
+ */
+export function getModelArtifactsInfoForKerasJSON(
+    modelArtifacts: ModelArtifacts): ModelArtifactsInfo {
+  if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
+    throw new Error('Expected JSON model topology, received ArrayBuffer.');
+  }
+
+  return {
+    dateSaved: new Date(),
+    modelTopologyType: 'KerasJSON',
+    modelTopologyBytes: modelArtifacts.modelTopology == null ?
+        0 :
+        stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),
+    weightSpecsBytes: modelArtifacts.weightSpecs == null ?
+        0 :
+        stringByteLength(JSON.stringify(modelArtifacts.weightSpecs)),
+    weightDataBytes: modelArtifacts.weightData == null ?
+        0 :
+        modelArtifacts.weightData.byteLength,
+  };
 }

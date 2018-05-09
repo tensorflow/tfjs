@@ -16,11 +16,13 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
+import {CPU_ENVS} from '../test_util';
 
 import {arrayBufferToBase64String, base64StringToArrayBuffer} from './io_utils';
 import {purgeLocalStorageArtifacts} from './local_storage';
 
-describe('LocalStorage', () => {
+describeWithFlags('LocalStorage', CPU_ENVS, () => {
   // Test data.
   const modelTopology1: {} = {
     'class_name': 'Sequential',
