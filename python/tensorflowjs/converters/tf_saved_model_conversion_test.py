@@ -251,7 +251,8 @@ class ConvertTest(unittest.TestCase):
 
     tf_saved_model_conversion.convert_tf_hub_module(
         os.path.join(self._tmp_dir, HUB_MODULE_DIR),
-        os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        'default'
     )
 
     weights = [{
