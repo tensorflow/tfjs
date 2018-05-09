@@ -13,9 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
+import {ones, Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
-import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import {DType} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
@@ -110,28 +109,28 @@ describeMathCPUAndGPU('Executor', () => {
     const w = denseLayer3.apply(v);
 
     it('Execute Input directly', () => {
-      const xValue = K.ones([2, 2]);
+      const xValue = ones([2, 2]);
       const feedDict = new FeedDict().add(x, xValue);
       expectTensorsClose(
           execute(x as tfl.SymbolicTensor, feedDict) as Tensor,
           tensor2d([1, 1, 1, 1], [2, 2]));
     });
     it('Input to Dense', () => {
-      const xValue = K.ones([2, 2]);
+      const xValue = ones([2, 2]);
       const feedDict = new FeedDict([{key: x, value: xValue}]);
       expectTensorsClose(
           execute(y as tfl.SymbolicTensor, feedDict) as Tensor,
           tensor2d([2, 2, 2, 2, 2, 2, 2, 2, 2, 2], [2, 5]));
     });
     it('Input to Dense1 to Dense2', () => {
-      const uValue = K.ones([2, 2]);
+      const uValue = ones([2, 2]);
       const feedDict = new FeedDict([{key: u, value: uValue}]);
       expectTensorsClose(
           execute(w as tfl.SymbolicTensor, feedDict) as Tensor,
           tensor2d([10, 10, 10, 10, 10, 10], [2, 3]));
     });
     it('Feed value to intermediate layers is supported', () => {
-      const vValue = K.ones([3, 5]);
+      const vValue = ones([3, 5]);
       const feedDict =
           new FeedDict([{key: v as tfl.SymbolicTensor, value: vValue}]);
       expectTensorsClose(
@@ -171,7 +170,7 @@ describeMathCPUAndGPU('Executor', () => {
     const z2 = denseLayer3.apply(y) as tfl.SymbolicTensor;
 
     it('Calling execute with two fetches and diamond graph works', () => {
-      const xValue = K.ones([2, 2]);
+      const xValue = ones([2, 2]);
       const feedDict = new FeedDict([{key: x, value: xValue}]);
       let callCounter = 0;
       denseLayer1.setCallHook(() => {

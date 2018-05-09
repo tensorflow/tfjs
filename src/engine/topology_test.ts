@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {ones, scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import * as initializers from '../initializers';
@@ -72,11 +72,11 @@ describe('Node', () => {
       [new tfl.SymbolicTensor(DType.float32, [1], null, [], {})];
   const outputTensors =
       [new tfl.SymbolicTensor(DType.float32, [2, 2], null, [], {})];
-  const inputMasks = [K.zeros([1])];
-  const outputMasks = [K.zeros([1])];
+  const inputMasks = [zeros([1])];
+  const outputMasks = [zeros([1])];
   const inputShapes = [[1]];
   const outputShapes = [[1], [1]];
-  const callArgs = {mask: K.zeros([1])};
+  const callArgs = {mask: zeros([1])};
   const node = new Node(
       {
         outboundLayer,
@@ -223,13 +223,13 @@ describeMathCPU('Layer', () => {
     it('throws exception if it doesn`t support masking and a ' +
            'mask is passed in.',
        () => {
-         const mask = K.ones([1]);
+         const mask = ones([1]);
          expect(() => defaultLayer.computeMask([], mask))
              .toThrowError(/does not support masking/);
        });
 
     it('returns the same mask passed in if it supports masking', () => {
-      const mask = K.ones([1]);
+      const mask = ones([1]);
       defaultLayer.supportsMasking = true;
       expect(defaultLayer.computeMask([], mask)).toEqual(mask);
     });
@@ -302,7 +302,7 @@ describeMathCPU('Layer', () => {
        });
 
     it('initializes initialWeights if present.', () => {
-      const weights = [K.zeros([1])];
+      const weights = [zeros([1])];
       const layer = new LayerForTest({weights});
       expect(layer.initialWeights).toEqual(weights);
     });
@@ -394,7 +394,7 @@ describeMathCPU('Layer', () => {
       (layer as any).assertInputCompatibility(inputs);
     }
     const testInputs = [
-      () => K.ones([1]), () => [K.ones([1])],
+      () => ones([1]), () => [ones([1])],
       () => new tfl.SymbolicTensor(DType.float32, [1], null, [], {}),
       () => [new tfl.SymbolicTensor(DType.float32, [1], null, [], {})]
     ];
@@ -582,7 +582,7 @@ describeMathCPU('Layer', () => {
       const inputs = [
         new tfl.SymbolicTensor(
             DType.float32, [1], null, [], {}, 'first_symbolic_tensor'),
-        K.ones([1])
+        ones([1])
       ];
       expect(() => layer.apply(inputs as Tensor[]))
           .toThrowError(/must be all SymbolicTensors or all Tensors/);
@@ -607,7 +607,7 @@ describeMathCPU('Layer', () => {
 
   describe('apply() passed 1+ Tensors', () => {
     it('returns new values for output if the same as the input.', () => {
-      const anArray = K.ones([1]);
+      const anArray = ones([1]);
       // Test with both an Tensor and an array of Tensors.
       for (const inputs of [anArray, [anArray, anArray]]) {
         const layer = new LayerForTest({});
@@ -634,7 +634,7 @@ describeMathCPU('Layer', () => {
   describe('initialized with weights at construction time', () => {
     it('sets those weights after calling apply().', () => {
       const initialWeights = K.eye(2);
-      const arrayInput = K.zeros([1]);
+      const arrayInput = zeros([1]);
       const symbolicInput =
           new tfl.SymbolicTensor(DType.float32, [1], null, [], {});
       // Test with symbolic and concrete input.
@@ -644,7 +644,7 @@ describeMathCPU('Layer', () => {
         // tslint:disable-next-line:no-any
         spyOn((layer as any), 'build').and.callFake(() => {
           layer.built = true;
-          layer.trainableWeights = [new LayerVariable(K.zeros([2, 2]))];
+          layer.trainableWeights = [new LayerVariable(zeros([2, 2]))];
         });
         expect(layer.weights.length).toEqual(0);
         layer.apply(inputs);
@@ -701,10 +701,10 @@ describeMathCPU('Layer', () => {
            'as existing weights',
        () => {
          const layer = new LayerForTest({});
-         layer.trainableWeights = [new LayerVariable(K.zeros([2, 2]))];
-         const ones = K.ones([1]);
+         layer.trainableWeights = [new LayerVariable(zeros([2, 2]))];
+         const onesTensor = ones([1]);
          expect(() => layer.setWeights([
-           ones, ones
+           onesTensor, onesTensor
          ])).toThrowError(/with a weight list of length/);
        });
 
@@ -712,18 +712,18 @@ describeMathCPU('Layer', () => {
            'as existing weights',
        () => {
          const layer = new LayerForTest({});
-         const ones = K.ones([1]);
-         layer.trainableWeights = [new LayerVariable(K.zeros([2, 2]))];
-         expect(() => layer.setWeights([ones]))
+         const onesTensor = ones([1]);
+         layer.trainableWeights = [new LayerVariable(zeros([2, 2]))];
+         expect(() => layer.setWeights([onesTensor]))
              .toThrowError(/not compatible with provided weight shape/);
        });
 
     it('updates weights.', () => {
       const layer = new LayerForTest({});
-      const ones = K.ones([1]);
-      layer.trainableWeights = [new LayerVariable(K.zeros([1]))];
-      layer.setWeights([ones]);
-      expectTensorsClose(layer.trainableWeights[0].read(), ones);
+      const onesTensor = ones([1]);
+      layer.trainableWeights = [new LayerVariable(zeros([1]))];
+      layer.setWeights([onesTensor]);
+      expectTensorsClose(layer.trainableWeights[0].read(), onesTensor);
     });
   });
 
@@ -962,7 +962,7 @@ describeMathCPU('InputLayer', () => {
          'was initialized to.',
      () => {
        const inputLayer = tfl.layers.inputLayer({inputShape: [1]});
-       const inputs = K.ones([2, 2]);
+       const inputs = ones([2, 2]);
        expect(() => inputLayer.apply(inputs)).toThrowError();
      });
 
@@ -1271,9 +1271,9 @@ describeMathCPUAndGPU('Container', () => {
 
     const container =
         new ContainerForTest({inputs: [inputLayer], outputs: [output]});
-    const result = container.call(K.ones([1, 1, 6]), {}) as Tensor[];
+    const result = container.call(ones([1, 1, 6]), {}) as Tensor[];
     const resultShape = [1].concat(finalShape);
-    expectTensorsClose(result[0], K.ones(resultShape));
+    expectTensorsClose(result[0], ones(resultShape));
   });
 
   it('apply() executes all layers with concrete tensors.', () => {
@@ -1287,9 +1287,9 @@ describeMathCPUAndGPU('Container', () => {
 
     const container =
         new ContainerForTest({inputs: [inputLayer], outputs: [output]});
-    const result = container.apply(K.ones([1, 1, 6])) as Tensor;
+    const result = container.apply(ones([1, 1, 6])) as Tensor;
     const resultShape = [1].concat(finalShape);
-    expectTensorsClose(result, K.ones(resultShape));
+    expectTensorsClose(result, ones(resultShape));
   });
 
   it('apply() executes all layers with symbolic tensors.', () => {
@@ -1309,9 +1309,9 @@ describeMathCPUAndGPU('Container', () => {
     expect(symbolicResult instanceof tfl.SymbolicTensor).toEqual(true);
     const concreteResult = execute(
         symbolicResult as tfl.SymbolicTensor,
-        new FeedDict([{key: newInput, value: K.ones([1, 1, 6])}]));
+        new FeedDict([{key: newInput, value: ones([1, 1, 6])}]));
     const resultShape = [1].concat(finalShape);
-    expectTensorsClose(concreteResult as Tensor, K.ones(resultShape));
+    expectTensorsClose(concreteResult as Tensor, ones(resultShape));
   });
 
   it('computeOutputShape() computes the correct outputShape', () => {

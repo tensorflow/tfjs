@@ -11,7 +11,6 @@
 // tslint:disable:max-line-length
 import {io, ones, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
 import {Model} from './engine/training';
 import * as tfl from './index';
 import {Reshape} from './layers/core';
@@ -83,7 +82,7 @@ describeMathCPU('model_from_json', () => {
         .then(model => {
           expect(model.name).toEqual('mnist');
           expect(model.layers.length).toEqual(9);
-          const prediction = model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
+          const prediction = model.predict(zeros([1, 28, 28, 1])) as Tensor;
           expect(prediction.shape).toEqual([1, 10]);
           expect(sum(prediction).dataSync()).toBeCloseTo(1);
           done();
@@ -112,7 +111,7 @@ describeMathCPU('model_from_json', () => {
 
     modelFromJSON(fakeMnistModel).then(async model => {
       expect(model.layers.length).toEqual(8);
-      const prediction = model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
+      const prediction = model.predict(zeros([1, 28, 28, 1])) as Tensor;
       expect(prediction.shape).toEqual([1, 10]);
       expect(sum(prediction).dataSync()).toBeCloseTo(1);
       done();
@@ -466,11 +465,11 @@ describeMathCPUAndGPU('Sequential', () => {
   ];
 
   function getInputs(): Tensor {
-    return K.ones(batchInputShape);
+    return ones(batchInputShape);
   }
 
   function getExpectedOutputs(): Tensor {
-    return K.ones([1].concat(secondReshape));
+    return ones([1].concat(secondReshape));
   }
 
   it('throws an exception if the first layer is not an input layer', () => {
@@ -526,8 +525,8 @@ describeMathCPUAndGPU('Sequential', () => {
       new Reshape({targetShape: firstReshape, batchInputShape, name: 'layer1'}),
       new Reshape({targetShape: secondReshape, name: 'layer2'})
     ];
-    const inputBatch = K.ones([batchSize].concat(inputShape));
-    const expectedOutput = K.ones([batchSize].concat(secondReshape));
+    const inputBatch = ones([batchSize].concat(inputShape));
+    const expectedOutput = ones([batchSize].concat(secondReshape));
     const model = tfl.sequential({layers});
     expectTensorsClose(
         model.predictOnBatch(inputBatch) as Tensor, expectedOutput);
@@ -536,8 +535,8 @@ describeMathCPUAndGPU('Sequential', () => {
   it('compile() and fit()', async () => {
     const batchSize = 5;
     const inputSize = 4;
-    const xs = K.ones([batchSize, inputSize]);
-    const ys = K.ones([batchSize, 1]);
+    const xs = ones([batchSize, inputSize]);
+    const ys = ones([batchSize, 1]);
     const denseLayer1 = tfl.layers.dense({
       units: 3,
       useBias: false,
@@ -559,8 +558,8 @@ describeMathCPUAndGPU('Sequential', () => {
     const inputSize = 4;
     const denseLayer1 = tfl.layers.dense({units: 3, inputShape: [inputSize]});
     const model = tfl.sequential({layers: [denseLayer1]});
-    const xs = K.ones([batchSize, inputSize]);
-    const ys = K.ones([batchSize, 1]);
+    const xs = ones([batchSize, inputSize]);
+    const ys = ones([batchSize, 1]);
     expect(() => model.evaluate(xs, ys))
         .toThrowError(/needs to be compiled before/);
   });
@@ -568,8 +567,8 @@ describeMathCPUAndGPU('Sequential', () => {
   it('compile() and evaluate()', () => {
     const batchSize = 5;
     const inputSize = 4;
-    const xs = K.ones([batchSize, inputSize]);
-    const ys = K.ones([batchSize, 1]);
+    const xs = ones([batchSize, inputSize]);
+    const ys = ones([batchSize, 1]);
     const denseLayer1 = tfl.layers.dense({
       units: 3,
       useBias: false,

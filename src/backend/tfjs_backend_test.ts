@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {Scalar, scalar, slice, Tensor,memory, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
+import {Scalar, scalar, slice, Tensor, memory, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
 import {DType, LayerVariable, SymbolicTensor} from '../types';
@@ -196,7 +196,7 @@ describeMathCPU('countParams', () => {
 describeMathCPUAndGPU('cast', () => {
   it('float32 to int32', () => {
     const x =
-        tensor2d([[-1.1, -1.6], [1.1, 2.2], [3.6, 4.7]], [3, 2], 'float32');
+      tensor2d([[-1.1, -1.6], [1.1, 2.2], [3.6, 4.7]], [3, 2], 'float32');
     const y = K.cast(x, 'int32');
     expect(y.dtype).toEqual('int32');
     expect(y.shape).toEqual([3, 2]);
@@ -211,7 +211,7 @@ describeMathCPUAndGPU('cast', () => {
   });
   it('float32 to bool', () => {
     const x =
-        tensor2d([[-1.1, -1.6], [0.0, 2.2], [3.6, 4.7]], [3, 2], 'float32');
+      tensor2d([[-1.1, -1.6], [0.0, 2.2], [3.6, 4.7]], [3, 2], 'float32');
     const y = K.cast(x, 'bool');
     expect(y.dtype).toEqual('bool');
     expect(y.shape).toEqual([3, 2]);
@@ -272,8 +272,8 @@ describeMathCPUAndGPU('Reshape', () => {
 
   it('3D to 2D', () => {
     const x = tensor3d(
-        [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
-        [2, 2, 3]);
+      [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
+      [2, 2, 3]);
     const reshaped = K.reshape(x, [2, 6]);
     expect(reshaped.shape).toEqual([2, 6]);
     expect(reshaped.dataSync()).toEqual(new Float32Array([
@@ -298,35 +298,17 @@ describeMathCPUAndGPU('expandDims', () => {
   it('2D to 3D: Last dimension', () => {
     const x = tensor2d([[10, 20], [30, 40]], [2, 2]);
     expectTensorsClose(
-        K.expandDims(x), tensor3d([[[10], [20]], [[30], [40]]], [2, 2, 1]));
+      K.expandDims(x), tensor3d([[[10], [20]], [[30], [40]]], [2, 2, 1]));
   });
   it('2D to 3D: Second dimension', () => {
     const x = tensor2d([[10, 20], [30, 40]], [2, 2]);
     expectTensorsClose(
-        K.expandDims(x, 1), tensor3d([[[10, 20]], [[30, 40]]], [2, 1, 2]));
+      K.expandDims(x, 1), tensor3d([[[10, 20]], [[30, 40]]], [2, 1, 2]));
   });
   it('2D to 3D: First dimension', () => {
     const x = tensor2d([[10, 20], [30, 40]], [2, 2]);
     expectTensorsClose(
-        K.expandDims(x, 0), tensor3d([[[10, 20], [30, 40]]], [1, 2, 2]));
-  });
-});
-
-describeMathCPUAndGPU('squeeze', () => {
-  it('1D to Scalar', () => {
-    const value = 10;
-    const xTensor = tensor1d([value]);
-    expectTensorsClose(K.squeeze(xTensor, 0), scalar(value));
-  });
-  it('2D to 1D: Last dimension', () => {
-    const x = tensor2d([[10], [20], [30]]);
-    const y = tensor1d([10, 20, 30]);
-    expectTensorsClose(K.squeeze(x, 1), y);
-  });
-  it('2D to 1D: First dimension', () => {
-    const x = tensor2d([[10, 20, 30]]);
-    const y = tensor1d([10, 20, 30]);
-    expectTensorsClose(K.squeeze(x, 0), y);
+      K.expandDims(x, 0), tensor3d([[[10, 20], [30, 40]]], [1, 2, 2]));
   });
 });
 
@@ -335,50 +317,50 @@ describeMathCPUAndGPU('temporalPadding', () => {
     const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
     const y = K.temporalPadding(x);
     expectTensorsClose(y, tensor3d([
-                         [[0, 0], [1, 2], [3, 4], [0, 0]],
-                         [[0, 0], [-1, -2], [-3, -4], [0, 0]]
-                       ]));
+      [[0, 0], [1, 2], [3, 4], [0, 0]],
+      [[0, 0], [-1, -2], [-3, -4], [0, 0]]
+    ]));
   });
   it('custom padding 2-2', () => {
     const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
     const y = K.temporalPadding(x, [2, 2]);
     expectTensorsClose(
-        y, tensor3d([
-          [[0, 0], [0, 0], [1, 2], [3, 4], [0, 0], [0, 0]],
-          [[0, 0], [0, 0], [-1, -2], [-3, -4], [0, 0], [0, 0]]
-        ]));
+      y, tensor3d([
+        [[0, 0], [0, 0], [1, 2], [3, 4], [0, 0], [0, 0]],
+        [[0, 0], [0, 0], [-1, -2], [-3, -4], [0, 0], [0, 0]]
+      ]));
   });
 });
 
 describeMathCPUAndGPU('spatial2dPadding', () => {
   it('default padding 1-1-1-1', () => {
-    const x = K.ones([2, 3, 4, 3]);
+    const x = tfc.ones([2, 3, 4, 3]);
     const y = K.spatial2dPadding(x);
 
     expect(y.shape).toEqual([2, 5, 6, 3]);
     expectTensorsClose(slice(y, [0, 1, 1, 0], [2, 3, 4, 3]), x);
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 1, 6, 3]), K.zeros([2, 1, 6, 3]));
+      slice(y, [0, 0, 0, 0], [2, 1, 6, 3]), tfc.zeros([2, 1, 6, 3]));
     expectTensorsClose(
-        slice(y, [0, 4, 0, 0], [2, 1, 6, 3]), K.zeros([2, 1, 6, 3]));
+      slice(y, [0, 4, 0, 0], [2, 1, 6, 3]), tfc.zeros([2, 1, 6, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 5, 1, 3]), K.zeros([2, 5, 1, 3]));
+      slice(y, [0, 0, 0, 0], [2, 5, 1, 3]), tfc.zeros([2, 5, 1, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 5, 0], [2, 5, 1, 3]), K.zeros([2, 5, 1, 3]));
+      slice(y, [0, 0, 5, 0], [2, 5, 1, 3]), tfc.zeros([2, 5, 1, 3]));
   });
 
   it('custom padding 2-2-3-0', () => {
-    const x = K.ones([2, 3, 4, 3]);
+    const x = tfc.ones([2, 3, 4, 3]);
     const y = K.spatial2dPadding(x, [[2, 2], [3, 0]]);
     expect(y.shape).toEqual([2, 7, 7, 3]);
 
     expectTensorsClose(slice(y, [0, 2, 3, 0], [2, 3, 4, 3]), x);
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 2, 7, 3]), K.zeros([2, 2, 7, 3]));
+      slice(y, [0, 0, 0, 0], [2, 2, 7, 3]), tfc.zeros([2, 2, 7, 3]));
     expectTensorsClose(
-        slice(y, [0, 5, 0, 0], [2, 2, 7, 3]), K.zeros([2, 2, 7, 3]));
+      slice(y, [0, 5, 0, 0], [2, 2, 7, 3]), tfc.zeros([2, 2, 7, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 7, 3, 3]), K.zeros([2, 7, 3, 3]));
+      slice(y, [0, 0, 0, 0], [2, 7, 3, 3]), tfc.zeros([2, 7, 3, 3]));
   });
 });
 
@@ -387,15 +369,15 @@ describeMathCPUAndGPU('Repeat', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const y = K.repeat(x, 3);
     expectTensorsClose(
-        y,
-        tensor3d(
-            [[[1, 2], [1, 2], [1, 2]], [[3, 4], [3, 4], [3, 4]]], [2, 3, 2]));
+      y,
+      tensor3d(
+        [[[1, 2], [1, 2], [1, 2]], [[3, 4], [3, 4], [3, 4]]], [2, 3, 2]));
   });
   it('Non-2D array leads to AssertionError', () => {
     const x = tensor1d([1, 2, 3]);
     expect(() => K.repeat(x, 2))
-        .toThrowError(
-            /repeat\(\) expects a rank-2 tensor, but received a rank-1 tensor/);
+      .toThrowError(
+        /repeat\(\) expects a rank-2 tensor, but received a rank-1 tensor/);
   });
 });
 
@@ -416,8 +398,8 @@ describeMathCPUAndGPU('Flatten', () => {
 
   it('3D Tensor', () => {
     const x = tensor3d(
-        [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
-        [2, 2, 3]);
+      [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
+      [2, 2, 3]);
     const flattend = K.flatten(x);
     expect(flattend.shape).toEqual([12]);
     expect(flattend.dataSync()).toEqual(new Float32Array([
@@ -427,7 +409,7 @@ describeMathCPUAndGPU('Flatten', () => {
 
   it('4D Tensor', () => {
     const x = tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 8, -8, -7, -6, -5, -4, -3, -2, -1], [2, 2, 2, 2]);
+      [1, 2, 3, 4, 5, 6, 7, 8, -8, -7, -6, -5, -4, -3, -2, -1], [2, 2, 2, 2]);
     const flattend = K.flatten(x);
     expect(flattend.shape).toEqual([16]);
     expect(flattend.dataSync()).toEqual(new Float32Array([
@@ -440,15 +422,15 @@ describeMathCPUAndGPU('batchFlatten', () => {
   it('Scalar Tensor leads to error', () => {
     const x = scalar(1337);
     expect(() => K.batchFlatten(x))
-        .toThrowError(
-            /batchFlatten requires a minimum rank of 2\. Got rank: 0/);
+      .toThrowError(
+        /batchFlatten requires a minimum rank of 2\. Got rank: 0/);
   });
 
   it('1D Tensor leads to error', () => {
     const x = tensor1d([1, 3, 3, 7]);
     expect(() => K.batchFlatten(x))
-        .toThrowError(
-            /batchFlatten requires a minimum rank of 2\. Got rank: 1/);
+      .toThrowError(
+        /batchFlatten requires a minimum rank of 2\. Got rank: 1/);
   });
 
   it('2D Tensor', () => {
@@ -460,8 +442,8 @@ describeMathCPUAndGPU('batchFlatten', () => {
 
   it('3D Tensor', () => {
     const x = tensor3d(
-        [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
-        [2, 2, 3]);
+      [[[10, 20, 30], [40, 50, 60]], [[-10, -20, -30], [-40, -50, -60]]],
+      [2, 2, 3]);
     const batchFlattened = K.batchFlatten(x);
     expect(batchFlattened.shape).toEqual([2, 6]);
     expect(batchFlattened.dataSync()).toEqual(new Float32Array([
@@ -471,7 +453,7 @@ describeMathCPUAndGPU('batchFlatten', () => {
 
   it('4D Tensor', () => {
     const x = tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 8, -8, -7, -6, -5, -4, -3, -2, -1], [2, 2, 2, 2]);
+      [1, 2, 3, 4, 5, 6, 7, 8, -8, -7, -6, -5, -4, -3, -2, -1], [2, 2, 2, 2]);
     const batchFlattened = K.batchFlatten(x);
     expect(batchFlattened.shape).toEqual([2, 8]);
     expect(batchFlattened.dataSync()).toEqual(new Float32Array([
@@ -491,22 +473,22 @@ describeMathCPUAndGPU('sliceAlongFirstAxis', () => {
   it('2D', () => {
     const x = tensor2d(array2DData, [4, 2]);
     expectTensorsClose(
-        K.sliceAlongFirstAxis(x, 1, 2), tensor2d([[20, 21], [30, 31]], [2, 2]));
+      K.sliceAlongFirstAxis(x, 1, 2), tensor2d([[20, 21], [30, 31]], [2, 2]));
   });
 
   const array3DData = [[[10]], [[20]], [[30]], [[40]]];
   it('3D', () => {
     const x = tensor3d(array3DData, [4, 1, 1]);
     expectTensorsClose(
-        K.sliceAlongFirstAxis(x, 1, 2), tensor3d([[[20]], [[30]]], [2, 1, 1]));
+      K.sliceAlongFirstAxis(x, 1, 2), tensor3d([[[20]], [[30]]], [2, 1, 1]));
   });
 
   const array4DData = [[[[10]]], [[[20]]], [[[30]]], [[[40]]]];
   it('4D', () => {
     const x = tensor4d(array4DData, [4, 1, 1, 1]);
     expectTensorsClose(
-        K.sliceAlongFirstAxis(x, 1, 2),
-        tensor4d([[[[20]]], [[[30]]]], [2, 1, 1, 1]));
+      K.sliceAlongFirstAxis(x, 1, 2),
+      tensor4d([[[[20]]], [[[30]]]], [2, 1, 1, 1]));
   });
 
   it('Scalar leads to error', () => {
@@ -527,21 +509,21 @@ describeMathCPUAndGPU('sliceAlongLastAxis', () => {
   it('2D', () => {
     const x = tensor2d(array2DData, [2, 4]);
     expectTensorsClose(
-        K.sliceAlongLastAxis(x, 1, 2), tensor2d([[11, 12], [21, 22]], [2, 2]));
+      K.sliceAlongLastAxis(x, 1, 2), tensor2d([[11, 12], [21, 22]], [2, 2]));
   });
 
   const array3DData = [[[10, 20, 30, 40]]];
   it('3D', () => {
     const x = tensor3d(array3DData, [1, 1, 4]);
     expectTensorsClose(
-        K.sliceAlongLastAxis(x, 1, 2), tensor3d([[[20, 30]]], [1, 1, 2]));
+      K.sliceAlongLastAxis(x, 1, 2), tensor3d([[[20, 30]]], [1, 1, 2]));
   });
 
   const array4DData = [[[[10, 20, 30, 40]]]];
   it('3D', () => {
     const x = tensor4d(array4DData, [1, 1, 1, 4]);
     expectTensorsClose(
-        K.sliceAlongLastAxis(x, 1, 2), tensor4d([[[[20, 30]]]], [1, 1, 1, 2]));
+      K.sliceAlongLastAxis(x, 1, 2), tensor4d([[[[20, 30]]]], [1, 1, 1, 2]));
   });
 });
 
@@ -557,33 +539,33 @@ describeMathCPUAndGPU('sliceAlongAxis', () => {
   it('2D-1', () => {
     const x = tensor2d(array2DData, [4, 2]);
     expectTensorsClose(
-        K.sliceAlongAxis(x, 1, 2, 1), tensor2d([[20, 21], [30, 31]], [2, 2]));
+      K.sliceAlongAxis(x, 1, 2, 1), tensor2d([[20, 21], [30, 31]], [2, 2]));
   });
 
   it('2D-2', () => {
     const x = tensor2d(array2DData, [4, 2]);
     expectTensorsClose(
-        K.sliceAlongAxis(x, 0, 1, 2),
-        tensor2d([[10], [20], [30], [40]], [4, 1]));
+      K.sliceAlongAxis(x, 0, 1, 2),
+      tensor2d([[10], [20], [30], [40]], [4, 1]));
   });
 
   const array3DData = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];
   it('3D-1', () => {
     const x = tensor3d(array3DData, [2, 2, 2]);
     expectTensorsClose(
-        K.sliceAlongAxis(x, 0, 1, 1), tensor3d([[[1, 2], [3, 4]]], [1, 2, 2]));
+      K.sliceAlongAxis(x, 0, 1, 1), tensor3d([[[1, 2], [3, 4]]], [1, 2, 2]));
   });
   it('3D-2', () => {
     const x = tensor3d(array3DData, [2, 2, 2]);
     expectTensorsClose(
-        K.sliceAlongAxis(x, 0, 1, 2),
-        tensor3d([[[1, 2]], [[5, 6]]], [2, 1, 2]));
+      K.sliceAlongAxis(x, 0, 1, 2),
+      tensor3d([[[1, 2]], [[5, 6]]], [2, 1, 2]));
   });
   it('3D-3', () => {
     const x = tensor3d(array3DData, [2, 2, 2]);
     expectTensorsClose(
-        K.sliceAlongAxis(x, 0, 1, 3),
-        tensor3d([[[1], [3]], [[5], [7]]], [2, 2, 1]));
+      K.sliceAlongAxis(x, 0, 1, 3),
+      tensor3d([[[1], [3]], [[5], [7]]], [2, 2, 1]));
   });
 
 
@@ -591,8 +573,8 @@ describeMathCPUAndGPU('sliceAlongAxis', () => {
     const array4DData = [[[[10, 1]]], [[[20, 2]]], [[[30, 3]]], [[[40, 4]]]];
     const x = tensor4d(array4DData, [4, 1, 1, 2]);
     expectTensorsClose(
-        K.sliceAlongAxis(x, 0, 1, 4),
-        tensor4d([[[[10]]], [[[20]]], [[[30]]], [[[40]]]], [4, 1, 1, 1]));
+      K.sliceAlongAxis(x, 0, 1, 4),
+      tensor4d([[[[10]]], [[[20]]], [[[30]]], [[[40]]]], [4, 1, 1, 1]));
   });
 });
 describeMathCPUAndGPU('normalizeBatchInTraining', () => {
@@ -622,89 +604,89 @@ describeMathCPUAndGPU('normalizeBatchInTraining', () => {
     const beta = tensor1d([0, 0, 0, 0]);
     const reductionAxes = [0];
     const [normed, mean, variance] =
-        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+      K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
     expectTensorsClose(
-        normed,
-        tensor2d(
-            [
-              [-0.805371, -0.9502233, -1.1624058, -1.3885813],
-              [-0.6040282, -0.4319197, -0.11624074, 0.46286058],
-              [1.4093992, 1.3821429, 1.2786462, 0.92572117]
-            ],
-            [3, 4]));
+      normed,
+      tensor2d(
+        [
+          [-0.805371, -0.9502233, -1.1624058, -1.3885813],
+          [-0.6040282, -0.4319197, -0.11624074, 0.46286058],
+          [1.4093992, 1.3821429, 1.2786462, 0.92572117]
+        ],
+        [3, 4]));
     expectTensorsClose(mean, tensor1d([5.0, 5.6666665, 6.3333335, 7.0]));
     expectTensorsClose(
-        variance, tensor1d([24.666666, 14.888889, 8.222222, 4.6666665]));
+      variance, tensor1d([24.666666, 14.888889, 8.222222, 4.6666665]));
   });
 
   it('3D, no broadcasting', () => {
     const x = tensor3d(
-        [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]], [3, 2, 2]);
+      [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]], [3, 2, 2]);
     const gamma = tensor1d([1, 1]);
     const beta = tensor1d([0, 0]);
     const reductionAxes = [0, 1];
     const [normed, mean, variance] =
-        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+      K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
     expectTensorsClose(
-        normed,
-        tensor3d(
-            [
-              [[-1.1355163, -1.3552775], [-0.6488664, -0.7297648]],
-              [[-0.8921913, -0.7297648], [0.08110833, 0.5212605]],
-              [[1.5410578, 1.4595294], [1.0544081, 0.8340168]]
-            ],
-            [3, 2, 2]));
+      normed,
+      tensor3d(
+        [
+          [[-1.1355163, -1.3552775], [-0.6488664, -0.7297648]],
+          [[-0.8921913, -0.7297648], [0.08110833, 0.5212605]],
+          [[1.5410578, 1.4595294], [1.0544081, 0.8340168]]
+        ],
+        [3, 2, 2]));
     expectTensorsClose(mean, tensor1d([5.6666665, 6.3333335]));
     expectTensorsClose(variance, tensor1d([16.88889, 10.222222]));
   });
 
   it('3D, broadcasting', () => {
     const x = tensor3d(
-        [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]], [3, 2, 2]);
+      [[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]], [3, 2, 2]);
     const gamma = tensor2d([[1, 1], [1, 1]], [2, 2]);
     const beta = tensor2d([[0, 0], [0, 0]], [2, 2]);
     const reductionAxes = [0];
     const [normed, mean, variance] =
-        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+      K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
     expectTensorsClose(
-        normed,
-        tensor3d(
-            [
-              [[-0.805371, -0.9502233], [-1.1624058, -1.3885813]],
-              [[-0.6040282, -0.4319197], [-0.11624074, 0.46286058]],
-              [[1.4093992, 1.3821429], [1.2786462, 0.92572117]]
-            ],
-            [3, 2, 2]));
+      normed,
+      tensor3d(
+        [
+          [[-0.805371, -0.9502233], [-1.1624058, -1.3885813]],
+          [[-0.6040282, -0.4319197], [-0.11624074, 0.46286058]],
+          [[1.4093992, 1.3821429], [1.2786462, 0.92572117]]
+        ],
+        [3, 2, 2]));
     expectTensorsClose(
-        mean, tensor2d([[5, 5.6666665], [6.3333335, 7]], [2, 2]));
+      mean, tensor2d([[5, 5.6666665], [6.3333335, 7]], [2, 2]));
     expectTensorsClose(
-        variance,
-        tensor2d([[24.666666, 14.888889], [8.222222, 4.6666665]], [2, 2]));
+      variance,
+      tensor2d([[24.666666, 14.888889], [8.222222, 4.6666665]], [2, 2]));
   });
 
   it('4D, broadcasting', () => {
     const x = tensor4d(
-        [[[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]]],
-        [1, 3, 2, 2]);
+      [[[[1, 2], [3, 4]], [[2, 4], [6, 8]], [[12, 11], [10, 9]]]],
+      [1, 3, 2, 2]);
     const gamma = tensor2d([[1, 1], [1, 1]], [2, 2]);
     const beta = tensor2d([[0, 0], [0, 0]], [2, 2]);
     const reductionAxes = [0, 1];
     const [normed, mean, variance] =
-        K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
+      K.normalizeBatchInTraining(x, gamma, beta, reductionAxes);
     expectTensorsClose(
-        normed,
-        tensor4d(
-            [[
-              [[-0.805371, -0.9502233], [-1.1624058, -1.3885813]],
-              [[-0.6040282, -0.4319197], [-0.11624074, 0.46286058]],
-              [[1.4093992, 1.3821429], [1.2786462, 0.92572117]]
-            ]],
-            [1, 3, 2, 2]));
+      normed,
+      tensor4d(
+        [[
+          [[-0.805371, -0.9502233], [-1.1624058, -1.3885813]],
+          [[-0.6040282, -0.4319197], [-0.11624074, 0.46286058]],
+          [[1.4093992, 1.3821429], [1.2786462, 0.92572117]]
+        ]],
+        [1, 3, 2, 2]));
     expectTensorsClose(
-        mean, tensor2d([[5, 5.6666665], [6.3333335, 7]], [2, 2]));
+      mean, tensor2d([[5, 5.6666665], [6.3333335, 7]], [2, 2]));
     expectTensorsClose(
-        variance,
-        tensor2d([[24.666666, 14.888889], [8.222222, 4.6666665]], [2, 2]));
+      variance,
+      tensor2d([[24.666666, 14.888889], [8.222222, 4.6666665]], [2, 2]));
   });
 });
 
@@ -743,18 +725,18 @@ describeMathCPUAndGPU('concatenate', () => {
     const x = tensor4d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2, 1]);
     const y = tensor4d([-1, -2, -3, -4, -5, -6, -7, -8], [2, 2, 2, 1]);
     let expected = tensor4d(
-        [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8], [2, 2, 2, 2]);
+      [1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6, -6, 7, -7, 8, -8], [2, 2, 2, 2]);
     expectTensorsClose(K.concatenate([x, y]), expected);
     expectTensorsClose(K.concatenate([x, y], -1), expected);
     expectTensorsClose(K.concatenate([x, y], 3), expected);
     expected = tensor4d(
-        [1, 2, -1, -2, 3, 4, -3, -4, 5, 6, -5, -6, 7, 8, -7, -8], [2, 2, 4, 1]);
+      [1, 2, -1, -2, 3, 4, -3, -4, 5, 6, -5, -6, 7, 8, -7, -8], [2, 2, 4, 1]);
     expectTensorsClose(K.concatenate([x, y], 2), expected);
     expected = tensor4d(
-        [1, 2, 3, 4, -1, -2, -3, -4, 5, 6, 7, 8, -5, -6, -7, -8], [2, 4, 2, 1]);
+      [1, 2, 3, 4, -1, -2, -3, -4, 5, 6, 7, 8, -5, -6, -7, -8], [2, 4, 2, 1]);
     expectTensorsClose(K.concatenate([x, y], 1), expected);
     expected = tensor4d(
-        [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8], [4, 2, 2, 1]);
+      [1, 2, 3, 4, 5, 6, 7, 8, -1, -2, -3, -4, -5, -6, -7, -8], [4, 2, 2, 1]);
     expectTensorsClose(K.concatenate([x, y], 0), expected);
   });
 });
@@ -766,8 +748,8 @@ describeMathCPUAndGPU('concatAlongFirstAxis', () => {
     const a = tensor1d(array1DData1);
     const b = tensor1d(array1DData2);
     expectTensorsClose(
-        K.concatAlongFirstAxis(a, b),
-        tensor1d([10, 20, 30, 40, -10, -20, -30, -40]));
+      K.concatAlongFirstAxis(a, b),
+      tensor1d([10, 20, 30, 40, -10, -20, -30, -40]));
   });
 
   const array2DData1 = [[10, 11], [20, 21]];
@@ -776,8 +758,8 @@ describeMathCPUAndGPU('concatAlongFirstAxis', () => {
     const a = tensor2d(array2DData1, [2, 2]);
     const b = tensor2d(array2DData2, [2, 2]);
     expectTensorsClose(
-        K.concatAlongFirstAxis(a, b),
-        tensor2d([[10, 11], [20, 21], [30, 31], [40, 41]], [4, 2]));
+      K.concatAlongFirstAxis(a, b),
+      tensor2d([[10, 11], [20, 21], [30, 31], [40, 41]], [4, 2]));
   });
 
   const array3DData1 = [[[10]], [[20]]];
@@ -786,8 +768,8 @@ describeMathCPUAndGPU('concatAlongFirstAxis', () => {
     const a = tensor3d(array3DData1, [2, 1, 1]);
     const b = tensor3d(array3DData2, [2, 1, 1]);
     expectTensorsClose(
-        K.concatAlongFirstAxis(a, b),
-        tensor3d([[[10]], [[20]], [[30]], [[40]]], [4, 1, 1]));
+      K.concatAlongFirstAxis(a, b),
+      tensor3d([[[10]], [[20]], [[30]], [[40]]], [4, 1, 1]));
   });
 
   const array4DData1 = [[[[10]]], [[[20]]]];
@@ -796,8 +778,8 @@ describeMathCPUAndGPU('concatAlongFirstAxis', () => {
     const a = tensor4d(array4DData1, [2, 1, 1, 1]);
     const b = tensor4d(array4DData2, [2, 1, 1, 1]);
     expectTensorsClose(
-        K.concatAlongFirstAxis(a, b),
-        tensor4d([[[[10]]], [[[20]]], [[[30]]], [[[40]]]], [4, 1, 1, 1]));
+      K.concatAlongFirstAxis(a, b),
+      tensor4d([[[[10]]], [[[20]]], [[[30]]], [[[40]]]], [4, 1, 1, 1]));
   });
 
   it('Scalar leads to error', () => {
@@ -825,23 +807,23 @@ describeMathCPUAndGPU('tile', () => {
     const n = [2, 3];
     const y = K.tile(x, n);
     expectTensorsClose(
-        y,
-        tensor2d(
-            [
-              [1, 3, 1, 3, 1, 3], [3, 7, 3, 7, 3, 7], [1, 3, 1, 3, 1, 3],
-              [3, 7, 3, 7, 3, 7]
-            ],
-            [4, 6]));
+      y,
+      tensor2d(
+        [
+          [1, 3, 1, 3, 1, 3], [3, 7, 3, 7, 3, 7], [1, 3, 1, 3, 1, 3],
+          [3, 7, 3, 7, 3, 7]
+        ],
+        [4, 6]));
   });
   it('3D', () => {
     const x = tensor3d([[[1]]], [1, 1, 1]);
     const n = [2, 3, 4];
     const y = K.tile(x, n);
-    expectTensorsClose(y, K.ones([2, 3, 4]));
+    expectTensorsClose(y, tfc.ones([2, 3, 4]));
   });
   it('Mismatch in x dimensions and n length leads to exception', () => {
-    expect(() => K.tile(K.zeros([2, 2]), 1))
-        .toThrowError(/The length of input n \(1\) does not match .*2/);
+    expect(() => K.tile(tfc.zeros([2, 2]), 1))
+      .toThrowError(/The length of input n \(1\) does not match .*2/);
   });
 });
 
@@ -986,25 +968,25 @@ describeMathCPUAndGPU('OnesVariable', () => {
 
 describeMathCPUAndGPU('ZerosLike', () => {
   it('Scalar', () => {
-    const s = K.zerosLike(K.randomUniform([], -10, 10));
+    const s = K.zerosLike(tfc.randomUniform([], -10, 10));
     expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([0]));
   });
 
   it('Vector', () => {
-    const v = K.zerosLike(K.randomUniform([3], -10, 10));
+    const v = K.zerosLike(tfc.randomUniform([3], -10, 10));
     expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('Matrix', () => {
-    const m = K.zerosLike(K.randomUniform([2, 2], -10, 10));
+    const m = K.zerosLike(tfc.randomUniform([2, 2], -10, 10));
     expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
   it('3D', () => {
-    const t = K.zerosLike(K.randomUniform([2, 2, 2], -10, 10));
+    const t = K.zerosLike(tfc.randomUniform([2, 2, 2], -10, 10));
     expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       0, 0, 0, 0, 0, 0, 0, 0
@@ -1012,7 +994,7 @@ describeMathCPUAndGPU('ZerosLike', () => {
   });
 
   it('4D', () => {
-    const q = K.zerosLike(K.randomUniform([1, 2, 1, 3], -10, 10));
+    const q = K.zerosLike(tfc.randomUniform([1, 2, 1, 3], -10, 10));
     expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0, 0, 0]));
   });
@@ -1020,25 +1002,25 @@ describeMathCPUAndGPU('ZerosLike', () => {
 
 describeMathCPUAndGPU('OnesLike', () => {
   it('Scalar', () => {
-    const s = K.onesLike(K.randomUniform([], -10, 10));
+    const s = K.onesLike(tfc.randomUniform([], -10, 10));
     expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([1]));
   });
 
   it('Vector', () => {
-    const v = K.onesLike(K.randomUniform([3], -10, 10));
+    const v = K.onesLike(tfc.randomUniform([3], -10, 10));
     expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
 
   it('Matrix', () => {
-    const m = K.onesLike(K.randomUniform([2, 2], -10, 10));
+    const m = K.onesLike(tfc.randomUniform([2, 2], -10, 10));
     expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
 
   it('3D', () => {
-    const t = K.onesLike(K.randomUniform([2, 2, 2], -10, 10));
+    const t = K.onesLike(tfc.randomUniform([2, 2, 2], -10, 10));
     expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       1, 1, 1, 1, 1, 1, 1, 1
@@ -1046,7 +1028,7 @@ describeMathCPUAndGPU('OnesLike', () => {
   });
 
   it('4D', () => {
-    const q = K.onesLike(K.randomUniform([1, 2, 1, 3], -10, 10));
+    const q = K.onesLike(tfc.randomUniform([1, 2, 1, 3], -10, 10));
     expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1, 1, 1]));
   });
@@ -1106,41 +1088,12 @@ describeMathCPUAndGPU('eye (I-matrix builder)', () => {
   });
 });
 
-
-describeMathCPUAndGPU('subtract', () => {
-  it('3D', () => {
-    const shape = [2, 3, 4];
-    const x = K.ones(shape);
-    const y = K.ones(shape);
-    expectTensorsClose(K.subtract(x, y), K.zeros(shape));
-  });
-});
-
-describeMathCPUAndGPU('Multiply', () => {
-  it('3D', () => {
-    const shape = [2, 3, 4];
-    const x = K.scalarTimesArray(scalar(4), K.ones(shape));
-    const y = K.scalarTimesArray(scalar(5), K.ones(shape));
-    expectTensorsClose(
-        K.multiply(x, y), K.scalarTimesArray(scalar(20), K.ones(shape)));
-  });
-});
-
-describeMathCPUAndGPU('divide', () => {
-  it('3D', () => {
-    const shape = [2, 3, 4];
-    const x = K.scalarTimesArray(scalar(4), K.ones(shape));
-    const y = K.scalarTimesArray(scalar(4), K.ones(shape));
-    expectTensorsClose(K.divide(x, y), K.ones(shape));
-  });
-});
-
 describeMathCPUAndGPU('scalarTimesArray', () => {
   it('Scalar x Scalar', () => {
     expectTensorsClose(K.scalarTimesArray(scalar(-2), scalar(-3)), scalar(6));
   });
   it('Scalar x 4D', () => {
-    const y = K.scalarTimesArray(scalar(-2), K.ones([2, 2, 2, 2]));
+    const y = K.scalarTimesArray(scalar(-2), tfc.ones([2, 2, 2, 2]));
     expect(y.shape).toEqual([2, 2, 2, 2]);
     const yValues = Array.from(y.dataSync());
     expect(unique(yValues)).toEqual([-2]);
@@ -1153,76 +1106,11 @@ describeMathCPUAndGPU('scalarPlusArray', () => {
   });
   it('Scalar + 4D', () => {
     const shape = [2, 2, 2, 2];
-    const y = K.scalarPlusArray(scalar(-1), K.ones(shape));
-    expectTensorsClose(y, K.zeros(shape));
+    const y = K.scalarPlusArray(scalar(-1), tfc.ones(shape));
+    expectTensorsClose(y, tfc.zeros(shape));
   });
 });
 
-describeMathCPUAndGPU('randomUniform', () => {
-  it('Scalar', () => {
-    const s = K.randomUniform([], -10, 10);
-    expect(K.shape(s)).toEqual([]);
-    expect(s.dataSync()[0]).toBeGreaterThanOrEqual(-10);
-    expect(s.dataSync()[0]).toBeLessThanOrEqual(10);
-  });
-
-  it('1D', () => {
-    const v = K.randomUniform([20], -10, 10);
-    expect(K.shape(v)).toEqual([20]);
-    const vValuesSorted = v.dataSync().sort();
-    expect(vValuesSorted[0]).toBeGreaterThanOrEqual(-10);
-    expect(vValuesSorted[vValuesSorted.length - 1]).toBeLessThanOrEqual(10);
-  });
-
-  it('2D', () => {
-    const x = K.randomUniform([3, 20], 100, 200);
-    expect(K.shape(x)).toEqual([3, 20]);
-    const xValuesSorted = x.dataSync().sort();
-    expect(xValuesSorted[0]).toBeGreaterThanOrEqual(100);
-    expect(xValuesSorted[xValuesSorted.length - 1]).toBeLessThanOrEqual(200);
-  });
-
-  it('3D', () => {
-    const y = K.randomUniform([2, 3, 4], -100, -50);
-    expect(K.shape(y)).toEqual([2, 3, 4]);
-    const yValuesSorted = y.dataSync().sort();
-    expect(yValuesSorted[0]).toBeGreaterThanOrEqual(-100);
-    expect(yValuesSorted[yValuesSorted.length - 1]).toBeLessThanOrEqual(-50);
-  });
-});
-
-describeMathCPUAndGPU('truncatedNormal', () => {
-  it('Scalar', () => {
-    const s = K.truncatedNormal([], 0, 10);
-    expect(K.shape(s)).toEqual([]);
-    expect(s.dataSync()[0]).toBeGreaterThan(-20);
-    expect(s.dataSync()[0]).toBeLessThan(20);
-  });
-
-  it('1D', () => {
-    const v = K.truncatedNormal([20], 0, 2);
-    expect(K.shape(v)).toEqual([20]);
-    const vValuesSorted = v.dataSync().sort();
-    expect(vValuesSorted[0]).toBeGreaterThan(-4);
-    expect(vValuesSorted[vValuesSorted.length - 1]).toBeLessThan(4);
-  });
-
-  it('2D', () => {
-    const x = K.truncatedNormal([3, 20], -10, 20);
-    expect(K.shape(x)).toEqual([3, 20]);
-    const xValuesSorted = x.dataSync().sort();
-    expect(xValuesSorted[0]).toBeGreaterThan(-50);
-    expect(xValuesSorted[xValuesSorted.length - 1]).toBeLessThan(30);
-  });
-
-  it('3D', () => {
-    const y = K.truncatedNormal([2, 3, 4], 100, 10);
-    expect(K.shape(y)).toEqual([2, 3, 4]);
-    const yValuesSorted = y.dataSync().sort();
-    expect(yValuesSorted[0]).toBeGreaterThan(80);
-    expect(yValuesSorted[yValuesSorted.length - 1]).toBeLessThan(120);
-  });
-});
 
 describeMathCPUAndGPU('randomNormal', () => {
   const dtypes = [DType.float32, DType.int32];
@@ -1300,7 +1188,7 @@ describeMathCPUAndGPU('dot', () => {
     const x = tensor3d([[[1, 0], [0, -1]], [[-2, 0], [0, -2]]], [2, 2, 2]);
     const y = tensor2d([[-1], [1]], [2, 1]);
     expectTensorsClose(
-        K.dot(x, y), tensor3d([[[-1], [-1]], [[2], [-2]]], [2, 2, 1]));
+      K.dot(x, y), tensor3d([[[-1], [-1]], [[2], [-2]]], [2, 2, 1]));
   });
   it('2D x 1D leads to error', () => {
     const x = tensor2d([[1, 0], [0, -1]], [2, 2]);
@@ -1348,7 +1236,7 @@ describeMathCPUAndGPU('qr', () => {
     const x = tensor2d([[1, 3], [-2, -4]], [2, 2]);
     const [q, r] = K.qr(x);
     expectTensorsClose(
-        q, tensor2d([[-0.4472, -0.8944], [0.8944, -0.4472]], [2, 2]));
+      q, tensor2d([[-0.4472, -0.8944], [0.8944, -0.4472]], [2, 2]));
     expectTensorsClose(r, tensor2d([[-2.2361, -4.9193], [0, -0.8944]], [2, 2]));
   });
 
@@ -1356,33 +1244,33 @@ describeMathCPUAndGPU('qr', () => {
     const x = tensor2d([[1, 3, 2], [-2, 0, 7], [8, -9, 4]], [3, 3]);
     const [q, r] = K.qr(x);
     expectTensorsClose(
-        q,
-        tensor2d(
-            [
-              [-0.1204, 0.8729, 0.4729], [0.2408, -0.4364, 0.8669],
-              [-0.9631, -0.2182, 0.1576]
-            ],
-            [3, 3]));
+      q,
+      tensor2d(
+        [
+          [-0.1204, 0.8729, 0.4729], [0.2408, -0.4364, 0.8669],
+          [-0.9631, -0.2182, 0.1576]
+        ],
+        [3, 3]));
     expectTensorsClose(
-        r,
-        tensor2d(
-            [[-8.3066, 8.3066, -2.4077], [0, 4.5826, -2.1822], [0, 0, 7.6447]],
-            [3, 3]));
+      r,
+      tensor2d(
+        [[-8.3066, 8.3066, -2.4077], [0, 4.5826, -2.1822], [0, 0, 7.6447]],
+        [3, 3]));
   });
 
   it('3x2', () => {
     const x = tensor2d([[1, 2], [3, -3], [-2, 1]], [3, 2]);
     const [q, r] = K.qr(x);
     expectTensorsClose(
-        q,
-        tensor2d(
-            [
-              [-0.2673, 0.9221, 0.2798], [-0.8018, -0.3738, 0.4663],
-              [0.5345, -0.0997, 0.8393]
-            ],
-            [3, 3]));
+      q,
+      tensor2d(
+        [
+          [-0.2673, 0.9221, 0.2798], [-0.8018, -0.3738, 0.4663],
+          [0.5345, -0.0997, 0.8393]
+        ],
+        [3, 3]));
     expectTensorsClose(
-        r, tensor2d([[-3.7417, 2.4054], [0, 2.8661], [0, 0]], [3, 2]));
+      r, tensor2d([[-3.7417, 2.4054], [0, 2.8661], [0, 0]], [3, 2]));
   });
 
   it('does not leak memory', () => {
@@ -1421,92 +1309,92 @@ describeMathCPUAndGPU('OneHot', () => {
     const numClasses = 5;
     const indices = tensor1d([1, 3]);
     expectTensorsClose(
-        K.oneHot(indices, numClasses),
-        tensor2d([[0, 1, 0, 0, 0], [0, 0, 0, 1, 0]], [2, 5]));
+      K.oneHot(indices, numClasses),
+      tensor2d([[0, 1, 0, 0, 0], [0, 0, 0, 1, 0]], [2, 5]));
   });
 });
 
 describeMathCPUAndGPU('Mean', () => {
   it('reduce_mean', () => {
     expectTensorsClose(
-        K.mean(tensor2d([[4, -1], [0, -2]], [2, 2])), scalar(0.25));
+      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2])), scalar(0.25));
   });
   it('mean 2D, axis=1, keepdims=false', () => {
     expectTensorsClose(
-        K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), 1), tensor1d([1.5, -1]));
+      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), 1), tensor1d([1.5, -1]));
   });
   it('mean 2D, axis=1, keepdims=true', () => {
     expectTensorsClose(
-        K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), 1, true),
-        tensor2d([[1.5], [-1]], [2, 1]));
+      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), 1, true),
+      tensor2d([[1.5], [-1]], [2, 1]));
   });
   it('mean 3D, axis=[1,2], keepdims=false', () => {
     expectTensorsClose(
-        K.mean(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2]),
-        tensor1d([0.25, 2.5]));
+      K.mean(
+        tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
+        [1, 2]),
+      tensor1d([0.25, 2.5]));
   });
   it('mean 3D, axis=[1,2], keepdims=true', () => {
     expectTensorsClose(
-        K.mean(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2], true),
-        tensor3d([[[0.25]], [[2.5]]], [2, 1, 1]));
+      K.mean(
+        tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
+        [1, 2], true),
+      tensor3d([[[0.25]], [[2.5]]], [2, 1, 1]));
   });
   it('reduce_mean keepdims=true', () => {
     expectTensorsClose(
-        K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), undefined, true),
-        tensor2d([[0.25]], [1, 1]));
+      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), undefined, true),
+      tensor2d([[0.25]], [1, 1]));
   });
 });
 
 describeMathCPUAndGPU('Argmax', () => {
   it('2D, default axis', () => {
     expectTensorsClose(
-        K.argmax(tensor2d([[4, -1], [-2, 0]], [2, 2])),
-        tensor1d([0, 1], 'int32'));
+      K.argmax(tensor2d([[4, -1], [-2, 0]], [2, 2])),
+      tensor1d([0, 1], 'int32'));
   });
   it('2D, axis=-1', () => {
     expectTensorsClose(
-        K.argmax(tensor2d([[4, -1], [-2, 0]], [2, 2]), -1),
-        tensor1d([0, 1], 'int32'));
+      K.argmax(tensor2d([[4, -1], [-2, 0]], [2, 2]), -1),
+      tensor1d([0, 1], 'int32'));
   });
   it('2D, axis=0', () => {
     expectTensorsClose(
-        K.argmax(tensor2d([[4, -1], [3, 2]], [2, 2]), 0),
-        tensor1d([0, 1], 'int32'));
+      K.argmax(tensor2d([[4, -1], [3, 2]], [2, 2]), 0),
+      tensor1d([0, 1], 'int32'));
   });
 });
 
 describeMathCPUAndGPU('Gather', () => {
   it('1D, Array of numbers with repeats', () => {
     expectTensorsClose(
-        K.gather(tensor1d([0, 10, 20, 30]), [2, 2, 3, 1]),
-        tensor1d([20, 20, 30, 10]));
+      K.gather(tensor1d([0, 10, 20, 30]), [2, 2, 3, 1]),
+      tensor1d([20, 20, 30, 10]));
   });
   it('2D, Array of numbers', () => {
     expectTensorsClose(
-        K.gather(tensor2d([[10, 20], [30, 40], [50, 60]], [3, 2]), [2, 0]),
-        tensor2d([[50, 60], [10, 20]], [2, 2]));
+      K.gather(tensor2d([[10, 20], [30, 40], [50, 60]], [3, 2]), [2, 0]),
+      tensor2d([[50, 60], [10, 20]], [2, 2]));
   });
   it('2D, Tensor1D', () => {
     expectTensorsClose(
-        K.gather(
-            tensor2d([[10, 20], [30, 40], [50, 60]], [3, 2]), tensor1d([2, 1])),
-        tensor2d([[50, 60], [30, 40]], [2, 2]));
+      K.gather(
+        tensor2d([[10, 20], [30, 40], [50, 60]], [3, 2]), tensor1d([2, 1])),
+      tensor2d([[50, 60], [30, 40]], [2, 2]));
   });
   it('3D, Tensor1D', () => {
     expectTensorsClose(
-        K.gather(
-            tensor3d([[[10, 20], [30, 40]], [[50, 60], [70, 80]]], [2, 2, 2]),
-            tensor1d([1, 0])),
-        tensor3d([[[50, 60], [70, 80]], [[10, 20], [30, 40]]], [2, 2, 2]));
+      K.gather(
+        tensor3d([[[10, 20], [30, 40]], [[50, 60], [70, 80]]], [2, 2, 2]),
+        tensor1d([1, 0])),
+      tensor3d([[[50, 60], [70, 80]], [[10, 20], [30, 40]]], [2, 2, 2]));
   });
   it('2D, Non-default axis', () => {
     expectTensorsClose(
-        K.gather(tensor2d([[10, 20], [30, 40], [50, 60]], [3, 2]), [1], 1),
-        tensor2d([[20], [40], [60]], [3, 1]));
+      K.gather(tensor2d([[10, 20], [30, 40], [50, 60]], [3, 2]), [1], 1),
+      tensor2d([[20], [40], [60]], [3, 1]));
   });
 });
 
@@ -1514,51 +1402,42 @@ describeMathCPUAndGPU('Gather', () => {
 describeMathCPUAndGPU('Square', () => {
   it('Element-wise square', () => {
     expectTensorsClose(
-        K.square(tensor2d([[1, -2], [-3, 4]], [2, 2])),
-        tensor2d([1, 4, 9, 16], [2, 2]));
+      K.square(tensor2d([[1, -2], [-3, 4]], [2, 2])),
+      tensor2d([1, 4, 9, 16], [2, 2]));
   });
 });
 
 describeMathCPUAndGPU('Pow', () => {
   it('Element-wise Pow: Positive Scalar', () => {
     expectTensorsClose(
-        K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), scalar(2, 'int32')),
-        tensor2d([[1, 2.25], [4, 6.25]], [2, 2]));
+      K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), scalar(2, 'int32')),
+      tensor2d([[1, 2.25], [4, 6.25]], [2, 2]));
   });
   it('Element-wise Pow: Negative Scalar', () => {
     expectTensorsClose(
-        K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), scalar(-2, 'int32')),
-        tensor2d(
-            [[1, 1 / (1.5 * 1.5)], [1 / (2 * 2), 1 / (2.5 * 2.5)]], [2, 2]));
+      K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), scalar(-2, 'int32')),
+      tensor2d(
+        [[1, 1 / (1.5 * 1.5)], [1 / (2 * 2), 1 / (2.5 * 2.5)]], [2, 2]));
   });
   it('Element-wise Pow: Zero Scalar', () => {
     expectTensorsClose(
-        K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), scalar(0, 'int32')),
-        tensor2d([[1, 1], [1, 1]], [2, 2]));
+      K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), scalar(0, 'int32')),
+      tensor2d([[1, 1], [1, 1]], [2, 2]));
   });
   it('Element-wise Pow: number', () => {
     expectTensorsClose(
-        K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), 2),
-        tensor2d([[1, 2.25], [4, 6.25]], [2, 2]));
+      K.pow(tensor2d([[1, 1.5], [2, 2.5]], [2, 2]), 2),
+      tensor2d([[1, 2.25], [4, 6.25]], [2, 2]));
   });
 });
-
-describeMathCPUAndGPU('Clip', () => {
-  it('Element-wise Clip', () => {
-    expectTensorsClose(
-        K.clip(tensor2d([[-5, -2], [2, 5]], [2, 2]), -3, 3),
-        tensor2d([-3, -2, 2, 3], [2, 2]));
-  });
-});
-
 
 describeMathCPUAndGPU('softsign', () => {
   it('Element-wise softsign', () => {
     expectTensorsClose(
-        tfc.tanh(tensor2d([[-2, -1], [1, 2]], [2, 2])),
-        tensor2d(
-            [Math.tanh(-2), Math.tanh(-1), Math.tanh(1), Math.tanh(2)],
-            [2, 2]));
+      tfc.tanh(tensor2d([[-2, -1], [1, 2]], [2, 2])),
+      tensor2d(
+        [Math.tanh(-2), Math.tanh(-1), Math.tanh(1), Math.tanh(2)],
+        [2, 2]));
   });
 });
 
@@ -1569,16 +1448,16 @@ describeMathCPUAndGPU('batchNormalization', () => {
     const mean = tensor2d([[5, 5], [5, 5]], [2, 2]);
     const variance = tensor2d([[4, 16], [4, 16]], [2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, null, null, 0),
-        tensor2d([[2.5, 3.75], [12.5, 8.75]], [2, 2]));
+      K.batchNormalization(x, mean, variance, null, null, 0),
+      tensor2d([[2.5, 3.75], [12.5, 8.75]], [2, 2]));
   });
   it('2D, no broadcast, no gamma, no beta, custom epsilon', () => {
     const x = tensor2d([[30, 30], [60, 60]], [2, 2]);
     const mean = tensor2d([[0, 0], [0, 0]], [2, 2]);
     const variance = tensor2d([[7, 7], [7, 7]], [2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, null, null, 2),
-        tensor2d([[10, 10], [20, 20]], [2, 2]));
+      K.batchNormalization(x, mean, variance, null, null, 2),
+      tensor2d([[10, 10], [20, 20]], [2, 2]));
   });
   it('2D, no broadcast, gamma, no beta', () => {
     const x = tensor2d([[10, 20], [30, 40]], [2, 2]);
@@ -1586,8 +1465,8 @@ describeMathCPUAndGPU('batchNormalization', () => {
     const variance = tensor2d([[4, 16], [4, 16]], [2, 2]);
     const gamma = tensor2d([[1, 2], [3, 4]], [2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, null, gamma, 0),
-        tensor2d([[2.5, 7.5], [37.5, 35]], [2, 2]));
+      K.batchNormalization(x, mean, variance, null, gamma, 0),
+      tensor2d([[2.5, 7.5], [37.5, 35]], [2, 2]));
   });
   it('2D, no broadcast, gamma, beta', () => {
     const x = tensor2d([[10, 20], [30, 40]], [2, 2]);
@@ -1596,8 +1475,8 @@ describeMathCPUAndGPU('batchNormalization', () => {
     const gamma = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const beta = tensor2d([[-1, -1], [-2, -2]], [2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, beta, gamma, 0),
-        tensor2d([[1.5, 6.5], [35.5, 33]], [2, 2]));
+      K.batchNormalization(x, mean, variance, beta, gamma, 0),
+      tensor2d([[1.5, 6.5], [35.5, 33]], [2, 2]));
   });
   it('2D, broadcast, gamma, beta', () => {
     const x = tensor2d([[10, 20], [30, 40]], [2, 2]);
@@ -1606,30 +1485,30 @@ describeMathCPUAndGPU('batchNormalization', () => {
     const gamma = tensor1d([3, 4]);
     const beta = tensor1d([-1, -2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, beta, gamma, 0),
-        tensor2d([[23, 28], [83, 68]], [2, 2]));
+      K.batchNormalization(x, mean, variance, beta, gamma, 0),
+      tensor2d([[23, 28], [83, 68]], [2, 2]));
   });
   it('3D, no broadcast, no gamma, no beta', () => {
     const x = tensor3d([[[10, 20], [30, 40]], [[10, 20], [30, 40]]], [2, 2, 2]);
     const mean = tensor3d([[[5, 5], [5, 5]], [[5, 5], [5, 5]]], [2, 2, 2]);
     const variance =
-        tensor3d([[[4, 16], [4, 16]], [[16, 25], [16, 25]]], [2, 2, 2]);
+      tensor3d([[[4, 16], [4, 16]], [[16, 25], [16, 25]]], [2, 2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, null, null, 0),
-        tensor3d(
-            [[[2.5, 3.75], [12.5, 8.75]], [[1.25, 3], [6.25, 7]]], [2, 2, 2]));
+      K.batchNormalization(x, mean, variance, null, null, 0),
+      tensor3d(
+        [[[2.5, 3.75], [12.5, 8.75]], [[1.25, 3], [6.25, 7]]], [2, 2, 2]));
   });
   it('3D, no broadcast, gamma, beta', () => {
     const x = tensor3d([[[10, 20], [30, 40]], [[10, 20], [30, 40]]], [2, 2, 2]);
     const mean = tensor3d([[[5, 5], [5, 5]], [[5, 5], [5, 5]]], [2, 2, 2]);
     const variance =
-        tensor3d([[[4, 16], [4, 16]], [[16, 25], [16, 25]]], [2, 2, 2]);
+      tensor3d([[[4, 16], [4, 16]], [[16, 25], [16, 25]]], [2, 2, 2]);
     const gamma = tensor3d([[[2, 2], [2, 2]], [[4, 4], [4, 4]]], [2, 2, 2]);
     const beta =
-        tensor3d([[[-1, -1], [-2, -2]], [[-1, -1], [-2, -2]]], [2, 2, 2]);
+      tensor3d([[[-1, -1], [-2, -2]], [[-1, -1], [-2, -2]]], [2, 2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, beta, gamma, 0),
-        tensor3d([[[4, 6.5], [23, 15.5]], [[4, 11], [23, 26]]], [2, 2, 2]));
+      K.batchNormalization(x, mean, variance, beta, gamma, 0),
+      tensor3d([[[4, 6.5], [23, 15.5]], [[4, 11], [23, 26]]], [2, 2, 2]));
   });
   it('3D, broadcast, gamma, beta', () => {
     const x = tensor3d([[[10, 20], [30, 40]], [[10, 20], [30, 40]]], [2, 2, 2]);
@@ -1638,87 +1517,87 @@ describeMathCPUAndGPU('batchNormalization', () => {
     const gamma = tensor1d([2, 4]);
     const beta = tensor1d([-1, -2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, beta, gamma, 0),
-        tensor3d([[[4, 13], [24, 33]], [[4, 13], [24, 33]]], [2, 2, 2]));
+      K.batchNormalization(x, mean, variance, beta, gamma, 0),
+      tensor3d([[[4, 13], [24, 33]], [[4, 13], [24, 33]]], [2, 2, 2]));
   });
   it('4D, no broadcast, no gamma, no beta', () => {
     const x = tensor4d(
-        [
-          [[[10, 20], [30, 40]], [[10, 20], [30, 40]]],
-          [[[-10, -20], [-30, -40]], [[-10, -20], [-30, -40]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[10, 20], [30, 40]], [[10, 20], [30, 40]]],
+        [[[-10, -20], [-30, -40]], [[-10, -20], [-30, -40]]]
+      ],
+      [2, 2, 2, 2]);
     const mean = tensor4d(
-        [
-          [[[5, 5], [5, 5]], [[5, 5], [5, 5]]],
-          [[[-5, -5], [-5, -5]], [[-5, -5], [-5, -5]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[5, 5], [5, 5]], [[5, 5], [5, 5]]],
+        [[[-5, -5], [-5, -5]], [[-5, -5], [-5, -5]]]
+      ],
+      [2, 2, 2, 2]);
     const variance = tensor4d(
-        [
-          [[[4, 16], [4, 16]], [[16, 25], [16, 25]]],
-          [[[4, 16], [4, 16]], [[16, 25], [16, 25]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[4, 16], [4, 16]], [[16, 25], [16, 25]]],
+        [[[4, 16], [4, 16]], [[16, 25], [16, 25]]]
+      ],
+      [2, 2, 2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, null, null, 0),
-        tensor4d(
-            [
-              [[[2.5, 3.75], [12.5, 8.75]], [[1.25, 3], [6.25, 7]]],
-              [[[-2.5, -3.75], [-12.5, -8.75]], [[-1.25, -3], [-6.25, -7]]]
-            ],
-            [2, 2, 2, 2]));
+      K.batchNormalization(x, mean, variance, null, null, 0),
+      tensor4d(
+        [
+          [[[2.5, 3.75], [12.5, 8.75]], [[1.25, 3], [6.25, 7]]],
+          [[[-2.5, -3.75], [-12.5, -8.75]], [[-1.25, -3], [-6.25, -7]]]
+        ],
+        [2, 2, 2, 2]));
   });
   it('4D, no broadcast, gamma, beta', () => {
     const x = tensor4d(
-        [
-          [[[10, 20], [30, 40]], [[10, 20], [30, 40]]],
-          [[[-10, -20], [-30, -40]], [[-10, -20], [-30, -40]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[10, 20], [30, 40]], [[10, 20], [30, 40]]],
+        [[[-10, -20], [-30, -40]], [[-10, -20], [-30, -40]]]
+      ],
+      [2, 2, 2, 2]);
     const mean = tensor4d(
-        [
-          [[[5, 5], [5, 5]], [[5, 5], [5, 5]]],
-          [[[-5, -5], [-5, -5]], [[-5, -5], [-5, -5]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[5, 5], [5, 5]], [[5, 5], [5, 5]]],
+        [[[-5, -5], [-5, -5]], [[-5, -5], [-5, -5]]]
+      ],
+      [2, 2, 2, 2]);
     const variance = tensor4d(
-        [
-          [[[4, 16], [4, 16]], [[16, 25], [16, 25]]],
-          [[[4, 16], [4, 16]], [[16, 25], [16, 25]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[4, 16], [4, 16]], [[16, 25], [16, 25]]],
+        [[[4, 16], [4, 16]], [[16, 25], [16, 25]]]
+      ],
+      [2, 2, 2, 2]);
     const gamma = tensor4d(
-        [
-          [[[2, 2], [2, 2]], [[4, 4], [4, 4]]],
-          [[[2, 2], [2, 2]], [[4, 4], [4, 4]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[2, 2], [2, 2]], [[4, 4], [4, 4]]],
+        [[[2, 2], [2, 2]], [[4, 4], [4, 4]]]
+      ],
+      [2, 2, 2, 2]);
     const beta = tensor4d(
-        [
-          [[[-1, -1], [-2, -2]], [[-1, -1], [-2, -2]]],
-          [[[1, 1], [2, 2]], [[1, 1], [2, 2]]]
-        ],
-        [2, 2, 2, 2]);
+      [
+        [[[-1, -1], [-2, -2]], [[-1, -1], [-2, -2]]],
+        [[[1, 1], [2, 2]], [[1, 1], [2, 2]]]
+      ],
+      [2, 2, 2, 2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, beta, gamma, 0),
-        tensor4d(
-            [
-              [[[4, 6.5], [23, 15.5]], [[4, 11], [23, 26]]],
-              [[[-4, -6.5], [-23, -15.5]], [[-4, -11], [-23, -26]]]
-            ],
-            [2, 2, 2, 2]));
+      K.batchNormalization(x, mean, variance, beta, gamma, 0),
+      tensor4d(
+        [
+          [[[4, 6.5], [23, 15.5]], [[4, 11], [23, 26]]],
+          [[[-4, -6.5], [-23, -15.5]], [[-4, -11], [-23, -26]]]
+        ],
+        [2, 2, 2, 2]));
   });
   it('4D, broadcast, gamma, beta', () => {
     const x = tensor4d(
-        [[[[10, 20], [30, 40]]], [[[10, 20], [30, 40]]]], [2, 1, 2, 2]);
+      [[[[10, 20], [30, 40]]], [[[10, 20], [30, 40]]]], [2, 1, 2, 2]);
     const mean = tensor1d([5, 5]);
     const variance = tensor1d([4, 16]);
     const gamma = tensor1d([2, 4]);
     const beta = tensor1d([-1, -2]);
     expectTensorsClose(
-        K.batchNormalization(x, mean, variance, beta, gamma, 0),
-        tensor4d([[[[4, 13], [24, 33]]], [[[4, 13], [24, 33]]]], [2, 1, 2, 2]));
+      K.batchNormalization(x, mean, variance, beta, gamma, 0),
+      tensor4d([[[[4, 13], [24, 33]]], [[[4, 13], [24, 33]]]], [2, 1, 2, 2]));
   });
 });
 
@@ -1754,7 +1633,7 @@ describeMathCPUAndGPU('l2Normalize', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const norm = Math.sqrt(1 * 1 + 2 * 2 + 3 * 3 + 4 * 4);
     const expected =
-        tensor2d([[1 / norm, 2 / norm], [3 / norm, 4 / norm]], [2, 2]);
+      tensor2d([[1 / norm, 2 / norm], [3 / norm, 4 / norm]], [2, 2]);
     const result = K.l2Normalize(x);
     expectTensorsClose(result, expected);
   });
@@ -1764,8 +1643,8 @@ describeMathCPUAndGPU('l2Normalize', () => {
     const firstNorm = Math.sqrt(1 * 1 + 2 * 2);
     const secondNorm = Math.sqrt(3 * 3 + 4 * 4);
     const expected = tensor2d(
-        [[1 / firstNorm, 2 / firstNorm], [3 / secondNorm, 4 / secondNorm]],
-        [2, 2]);
+      [[1 / firstNorm, 2 / firstNorm], [3 / secondNorm, 4 / secondNorm]],
+      [2, 2]);
     const result = K.l2Normalize(x, -1);
     expectTensorsClose(result, expected);
   });
@@ -1780,37 +1659,37 @@ describeMathCPUAndGPU('l2Normalize', () => {
 
 describeMathCPUAndGPU('biasAdd', () => {
   it('1D + 1D', () => {
-    const x = K.ones([2]);
+    const x = tfc.ones([2]);
     const y = tensor1d([-1, 1]);
     expectTensorsClose(K.biasAdd(x, y), tensor1d([0, 2]));
   });
   it('2D + 1D', () => {
-    const x = K.ones([2, 2]);
+    const x = tfc.ones([2, 2]);
     const y = tensor1d([-1, 1]);
     expectTensorsClose(K.biasAdd(x, y), tensor2d([[0, 2], [0, 2]], [2, 2]));
   });
   it('3D + 1D', () => {
-    const x = K.ones([2, 2, 2]);
+    const x = tfc.ones([2, 2, 2]);
     const y = tensor1d([-1, 1]);
     expectTensorsClose(
-        K.biasAdd(x, y),
-        tensor3d([[[0, 2], [0, 2]], [[0, 2], [0, 2]]], [2, 2, 2]));
+      K.biasAdd(x, y),
+      tensor3d([[[0, 2], [0, 2]], [[0, 2], [0, 2]]], [2, 2, 2]));
   });
   it('4D + 1D', () => {
-    const x = K.ones([1, 2, 2, 2]);
+    const x = tfc.ones([1, 2, 2, 2]);
     const y = tensor1d([-1, 1]);
     expectTensorsClose(
-        K.biasAdd(x, y),
-        tensor4d([[[[0, 2], [0, 2]], [[0, 2], [0, 2]]]], [1, 2, 2, 2]));
+      K.biasAdd(x, y),
+      tensor4d([[[[0, 2], [0, 2]], [[0, 2], [0, 2]]]], [1, 2, 2, 2]));
   });
   it('2D + 1D: Incompatible size', () => {
-    const x = K.ones([2, 2]);
+    const x = tfc.ones([2, 2]);
     const y = tensor1d([-1, 0, 1]);
     expect(() => K.biasAdd(x, y)).toThrowError();
   });
   it('3D + 2D leads to error', () => {
-    const x = K.ones([2, 2, 2]);
-    const y = K.ones([2, 2]);
+    const x = tfc.ones([2, 2, 2]);
+    const y = tfc.ones([2, 2]);
     expect(() => K.biasAdd(x, y)).toThrowError();
   });
 });
@@ -1819,8 +1698,8 @@ describeMathCPUAndGPU('elu', () => {
   it('elu', () => {
     const xData = [-1, 0, 1, -1];
     expectTensorsClose(
-        K.elu(tensor2d(xData, [2, 2])),
-        tensor2d(xData.map(x => x < 0 ? Math.exp(x) - 1 : x), [2, 2]));
+      K.elu(tensor2d(xData, [2, 2])),
+      tensor2d(xData.map(x => x < 0 ? Math.exp(x) - 1 : x), [2, 2]));
   });
 });
 
@@ -1828,8 +1707,8 @@ describeMathCPUAndGPU('softplus', () => {
   it('softplus', () => {
     const xData = [-1, 0, 1, -1];
     expectTensorsClose(
-        K.softplus(tensor2d(xData, [2, 2])),
-        tensor2d(xData.map(x => Math.log(Math.exp(x) + 1)), [2, 2]));
+      K.softplus(tensor2d(xData, [2, 2])),
+      tensor2d(xData.map(x => Math.log(Math.exp(x) + 1)), [2, 2]));
   });
 });
 
@@ -1837,8 +1716,8 @@ describeMathCPUAndGPU('softsign', () => {
   it('softsign', () => {
     const xData = [-1, 0, 1, -1];
     expectTensorsClose(
-        K.softsign(tensor2d(xData, [2, 2])),
-        tensor2d(xData.map(x => x / (Math.abs(x) + 1)), [2, 2]));
+      K.softsign(tensor2d(xData, [2, 2])),
+      tensor2d(xData.map(x => x / (Math.abs(x) + 1)), [2, 2]));
   });
 });
 
@@ -1853,7 +1732,7 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
 
   const outChannelsArray = [1, 2];
   const dataFormats: DataFormat[] =
-      [undefined, 'channelsFirst', 'channelsLast'];
+    [undefined, 'channelsFirst', 'channelsLast'];
   const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
   const stride = 1;
 
@@ -1861,7 +1740,7 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
     for (const dataFormat of dataFormats) {
       for (const paddingMode of paddingModes) {
         const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
-            `${paddingMode}, ${dataFormat}`;
+          `${paddingMode}, ${dataFormat}`;
         it(testTitle, () => {
           let x: Tensor = tensor3d(xLength4Data, [1, 4, 1]);
           if (dataFormat === 'channelsFirst') {
@@ -1875,11 +1754,11 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
             biasData = biasData.concat([biasScalarData + i]);
           }
           const kernel =
-          tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
+            tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
           const bias = tensor1d(biasData);
 
           const y = K.conv1dWithBias(
-              x, kernel, bias, stride, paddingMode, dataFormat);
+            x, kernel, bias, stride, paddingMode, dataFormat);
 
           let yExpectedShape: [number, number, number];
           let yExpectedData: number[];
@@ -1898,7 +1777,7 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
             } else if (outChannels === 2) {
               yExpectedShape = [1, 4, 2];
               yExpectedData =
-                  [-7.8, -6.8, -17.8, -16.8, -37.8, -36.8, 82.2, 83.2];
+                [-7.8, -6.8, -17.8, -16.8, -37.8, -36.8, 82.2, 83.2];
             }
           }
           expectTensorsClose(y, tensor3d(yExpectedData, yExpectedShape));
@@ -1917,7 +1796,7 @@ describeMathCPUAndGPU('conv1d', () => {
   const dataFormat = 'channelsLast';
   const paddingMode = 'valid';
   const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
-      `${paddingMode}, ${dataFormat}`;
+    `${paddingMode}, ${dataFormat}`;
   it(testTitle, () => {
     const x = tensor3d(xLength4Data, [1, 4, 1]);
     let kernelData: number[] = [];
@@ -1925,7 +1804,7 @@ describeMathCPUAndGPU('conv1d', () => {
       kernelData = kernelData.concat(kernelLength2Data);
     }
     const kernel =
-    tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
+      tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
     const y = K.conv1d(x, kernel, stride, paddingMode, dataFormat);
     expectTensorsClose(y, tensor3d([-10, -10, -40, -40], [1, 2, 2]));
   });
@@ -1939,7 +1818,7 @@ describeMathCPUAndGPU('conv2d', () => {
   const kernel2by2Data = [1, 0, 0, -1];
 
   const dataFormats: DataFormat[] =
-      [undefined, 'channelsFirst', 'channelsLast'];
+    [undefined, 'channelsFirst', 'channelsLast'];
   const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
   const stridesArray = [1, 2];
 
@@ -1947,7 +1826,7 @@ describeMathCPUAndGPU('conv2d', () => {
     for (const paddingMode of paddingModes) {
       for (const stride of stridesArray) {
         const testTitle = `stride=${stride}, ${paddingMode}, ` +
-            `${dataFormat}`;
+          `${dataFormat}`;
         it(testTitle, () => {
           let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
           if (dataFormat !== 'channelsFirst') {
@@ -1959,8 +1838,8 @@ describeMathCPUAndGPU('conv2d', () => {
           let yExpected: Tensor;
           if (stride === 1) {
             yExpected = tensor4d(
-                [[[[-30, -30, -30], [50, 90, 130], [30, 30, 30]]]],
-                [1, 1, 3, 3]);
+              [[[[-30, -30, -30], [50, 90, 130], [30, 30, 30]]]],
+              [1, 1, 3, 3]);
           } else if (stride === 2) {
             yExpected = tensor4d([[[[-30, -30], [30, 30]]]], [1, 1, 2, 2]);
           }
@@ -1984,7 +1863,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
 
   const outChannelsArray = [2, 3];
   const dataFormats: DataFormat[] =
-      [undefined, 'channelsFirst', 'channelsLast'];
+    [undefined, 'channelsFirst', 'channelsLast'];
   const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
   const stridesArray = [1, 2];
 
@@ -1993,7 +1872,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
       for (const paddingMode of paddingModes) {
         for (const stride of stridesArray) {
           const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
-              `${paddingMode}, ${dataFormat}`;
+            `${paddingMode}, ${dataFormat}`;
           it(testTitle, () => {
             let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
             if (dataFormat !== 'channelsFirst') {
@@ -2007,18 +1886,18 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
               biasData = biasData.concat(biasScalarData);
             }
             const kernel = tfc.transpose(
-                tensor4d(kernelData, [outChannels, 2, 2, 1]), [1, 2, 3, 0]);
+              tensor4d(kernelData, [outChannels, 2, 2, 1]), [1, 2, 3, 0]);
             const bias = tensor1d(biasData);
 
             const y = K.conv2dWithBias(
-                x, kernel, bias, [stride, stride], 'valid', dataFormat);
+              x, kernel, bias, [stride, stride], 'valid', dataFormat);
 
             let yExpectedShape: [number, number, number, number];
             let yExpectedDataPerChannel: number[];
             if (stride === 1) {
               yExpectedShape = [1, outChannels, 3, 3];
               yExpectedDataPerChannel =
-                  [-30, -30, -30, 50, 90, 130, 30, 30, 30];
+                [-30, -30, -30, 50, 90, 130, 30, 30, 30];
             } else if (stride === 2) {
               yExpectedShape = [1, outChannels, 2, 2];
               yExpectedDataPerChannel = [-30, -30, 30, 30];
@@ -2049,7 +1928,7 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
   ]]];
 
   const dataFormats: DataFormat[] =
-      [undefined, 'channelsFirst', 'channelsLast'];
+    [undefined, 'channelsFirst', 'channelsLast'];
   const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
   const stridesArray = [1, 2];
   const depthMultipliers = [1, 2];
@@ -2059,7 +1938,7 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
       for (const stride of stridesArray) {
         for (const depthMultiplier of depthMultipliers) {
           const testTitle = `stride=${stride}, ${paddingMode}, ` +
-              `${dataFormat}, depthMultiplier=${depthMultiplier}`;
+            `${dataFormat}, depthMultiplier=${depthMultiplier}`;
           it(testTitle, () => {
             let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
             if (dataFormat !== 'channelsFirst') {
@@ -2075,29 +1954,29 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
               kernel = tensor4d([1, -1, 0, 0, 0, 0, -1, 1], [2, 2, 1, 2]);
             }
             const y = K.depthwiseConv2d(
-                x, kernel, [stride, stride], 'valid', dataFormat);
+              x, kernel, [stride, stride], 'valid', dataFormat);
 
             let yExpected: Tensor;
             if (stride === 1) {
               if (depthMultiplier === 1) {
                 yExpected = tensor4d(
-                    [[[[-30, -30, -30], [50, 90, 130], [30, 30, 30]]]],
-                    [1, 1, 3, 3]);
+                  [[[[-30, -30, -30], [50, 90, 130], [30, 30, 30]]]],
+                  [1, 1, 3, 3]);
               } else if (depthMultiplier === 2) {
                 yExpected = tensor4d(
-                    [[
-                      [[-30, -30, -30], [50, 90, 130], [30, 30, 30]],
-                      [[30, 30, 30], [-50, -90, -130], [-30, -30, -30]]
-                    ]],
-                    [1, 2, 3, 3]);
+                  [[
+                    [[-30, -30, -30], [50, 90, 130], [30, 30, 30]],
+                    [[30, 30, 30], [-50, -90, -130], [-30, -30, -30]]
+                  ]],
+                  [1, 2, 3, 3]);
               }
             } else if (stride === 2) {
               if (depthMultiplier === 1) {
                 yExpected = tensor4d([[[[-30, -30], [30, 30]]]], [1, 1, 2, 2]);
               } else if (depthMultiplier === 2) {
                 yExpected = tensor4d(
-                    [[[[-30, -30], [30, 30]], [[30, 30], [-30, -30]]]],
-                    [1, 2, 2, 2]);
+                  [[[[-30, -30], [30, 30]], [[30, 30], [-30, -30]]]],
+                  [1, 2, 2, 2]);
               }
             }
             if (dataFormat !== 'channelsFirst') {
@@ -2111,8 +1990,8 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
   }
 
   it('Non-4D kernel leads to exception', () => {
-    const x = K.zeros([1, 1, 4, 4]);
-    expect(() => K.depthwiseConv2d(x, K.zeros([1, 2, 2]), [
+    const x = tfc.zeros([1, 1, 4, 4]);
+    expect(() => K.depthwiseConv2d(x, tfc.zeros([1, 2, 2]), [
       1, 1
     ])).toThrowError(/.* is required to be 4-D, but is instead 3-D/);
   });
@@ -2130,13 +2009,13 @@ describeMathCPUAndGPU('pool2d', () => {
 
   const poolModes: PoolMode[] = [undefined, 'max', 'avg'];
   const dataFormats: DataFormat[] =
-      [undefined, 'channelsFirst', 'channelsLast'];
+    [undefined, 'channelsFirst', 'channelsLast'];
   const stridesArray = [1, 2];
   for (const poolMode of poolModes) {
     for (const dataFormat of dataFormats) {
       for (const stride of stridesArray) {
         const testTitle = `4x4, ${stride}, same, ${dataFormat}, ` +
-            `${poolMode}`;
+          `${poolMode}`;
         it(testTitle, () => {
           let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
           if (dataFormat !== 'channelsFirst') {
@@ -2146,22 +2025,22 @@ describeMathCPUAndGPU('pool2d', () => {
           if (poolMode === 'avg') {
             if (stride === 1) {
               yExpected = tensor4d(
-                  [[[
-                    [25, 45, 65, 75], [5, 5, 5, 5], [-25, -45, -65, -75],
-                    [-30, -50, -70, -80]
-                  ]]],
-                  [1, 1, 4, 4]);
+                [[[
+                  [25, 45, 65, 75], [5, 5, 5, 5], [-25, -45, -65, -75],
+                  [-30, -50, -70, -80]
+                ]]],
+                [1, 1, 4, 4]);
             } else {
               yExpected = tensor4d([[[[25, 65], [-25, -65]]]], [1, 1, 2, 2]);
             }
           } else {
             if (stride === 1) {
               yExpected = tensor4d(
-                  [[[
-                    [40, 60, 80, 80], [40, 60, 80, 80], [-10, -30, -50, -70],
-                    [-20, -40, -60, -80]
-                  ]]],
-                  [1, 1, 4, 4]);
+                [[[
+                  [40, 60, 80, 80], [40, 60, 80, 80], [-10, -30, -50, -70],
+                  [-20, -40, -60, -80]
+                ]]],
+                [1, 1, 4, 4]);
             } else if (stride === 2) {
               yExpected = tensor4d([[[[40, 80], [-10, -50]]]], [1, 1, 2, 2]);
             }
@@ -2170,7 +2049,7 @@ describeMathCPUAndGPU('pool2d', () => {
             yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
           }
           const y = K.pool2d(
-              x, [2, 2], [stride, stride], 'same', dataFormat, poolMode);
+            x, [2, 2], [stride, stride], 'same', dataFormat, poolMode);
           expectTensorsClose(y, yExpected);
         });
       }
@@ -2183,14 +2062,14 @@ describeMathCPUAndGPU('pool2d', () => {
       let yExpected = tensor4d(x4by4Data, [1, 1, 4, 4]);
       if (poolMode === 'avg') {
         yExpected = tensor4d(
-            [[[[0.75, 4.5, 7.5], [-0.25, -2, -3.5], [-1, -5, -8]]]],
-            [1, 1, 3, 3]);
+          [[[[0.75, 4.5, 7.5], [-0.25, -2, -3.5], [-1, -5, -8]]]],
+          [1, 1, 3, 3]);
       } else {
         yExpected =
-            tensor4d([[[[2, 6, 8], [0, 0, 0], [0, -4, -8]]]], [1, 1, 3, 3]);
+          tensor4d([[[[2, 6, 8], [0, 0, 0], [0, -4, -8]]]], [1, 1, 3, 3]);
       }
       const y =
-          K.pool2d(x5by5, [2, 2], [2, 2], 'same', 'channelsFirst', poolMode);
+        K.pool2d(x5by5, [2, 2], [2, 2], 'same', 'channelsFirst', poolMode);
       expectTensorsClose(y, yExpected);
     });
   }
@@ -2198,7 +2077,7 @@ describeMathCPUAndGPU('pool2d', () => {
   for (const poolMode of poolModes) {
     it(`5x5, 2, valid, CHANNEL_LAST, ${poolMode}`, () => {
       const x5by5 =
-      tfc.transpose(tensor4d(x5by5Data, [1, 1, 5, 5]), [0, 2, 3, 1]);
+        tfc.transpose(tensor4d(x5by5Data, [1, 1, 5, 5]), [0, 2, 3, 1]);
       let yExpected: Tensor4D;
       if (poolMode === 'avg') {
         yExpected = tensor4d([[[[0.75, 4.5], [-0.25, -2]]]], [1, 1, 2, 2]);
@@ -2206,7 +2085,7 @@ describeMathCPUAndGPU('pool2d', () => {
         yExpected = tensor4d([[[[2, 6], [0, 0]]]], [1, 1, 2, 2]);
       }
       const y =
-          K.pool2d(x5by5, [2, 2], [2, 2], 'valid', 'channelsLast', poolMode);
+        K.pool2d(x5by5, [2, 2], [2, 2], 'valid', 'channelsLast', poolMode);
       expectTensorsClose(y, tfc.transpose(yExpected, [0, 2, 3, 1]));
     });
   }
@@ -2253,49 +2132,17 @@ describe('getUID ', () => {
   });
 });
 
-describeMathCPUAndGPU('Softmax ', () => {
-  it('1D', () => {
-    const initVals = new Float32Array([0, 1, 3, 9]);
-    const initX = tensor1d(initVals);
-    expectTensorsClose(
-        K.softmax(initX), tensor1d([0.000, 0.000, 0.002, 0.997]));
-  });
-  it('all equal', () => {
-    const initVals = new Float32Array([-1, -1, -1, -1]);
-    const initX = tensor1d(initVals);
-    expectTensorsClose(K.softmax(initX), tensor1d([0.25, 0.25, 0.25, 0.25]));
-  });
-  it('2D', () => {
-    const initVals = new Float32Array([0, 1, 3, 9, 0, 1, 3, 9]);
-    const initX = tensor2d(initVals, [2, 4]);
-    expectTensorsClose(
-        K.softmax(initX),
-        tensor2d(
-            [[0.000, 0.000, 0.002, 0.997], [0.000, 0.000, 0.002, 0.997]],
-            [2, 4]));
-  });
-  it('3D', () => {
-    const initVals = new Float32Array([0, 1, 3, 9, 0, 1, 3, 9]);
-    const initX = tensor3d(initVals, [1, 2, 4]);
-    expectTensorsClose(
-        K.softmax(initX),
-        tensor3d(
-            [[[0.000, 0.000, 0.002, 0.997], [0.000, 0.000, 0.002, 0.997]]],
-            [1, 2, 4]));
-  });
-});
-
 describeMathCPUAndGPU('categoricalCrossentropy ', () => {
   it('from logits', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
     const expected = tensor1d([
       -1 *
-          (Math.log(Math.exp(1) / (Math.exp(1) + Math.exp(2))) * 0.25 +
-           Math.log(Math.exp(2) / (Math.exp(1) + Math.exp(2))) * 0.75),
+      (Math.log(Math.exp(1) / (Math.exp(1) + Math.exp(2))) * 0.25 +
+        Math.log(Math.exp(2) / (Math.exp(1) + Math.exp(2))) * 0.75),
       -1 *
-          (Math.log(Math.exp(3) / (Math.exp(3) + Math.exp(4))) * 0.1 +
-           Math.log(Math.exp(4) / (Math.exp(3) + Math.exp(4))) * 0.9)
+      (Math.log(Math.exp(3) / (Math.exp(3) + Math.exp(4))) * 0.1 +
+        Math.log(Math.exp(4) / (Math.exp(3) + Math.exp(4))) * 0.9)
     ]);
     const result = K.categoricalCrossentropy(target, x, true);
     expectTensorsClose(result, expected);
@@ -2339,8 +2186,8 @@ describeMathCPUAndGPU('binaryCrossentropy', () => {
     const targetComplement = K.scalarPlusArray(scalar(1), tfc.neg(target));
     const outputComplement = K.scalarPlusArray(scalar(1), tfc.neg(output));
     return tfc.neg(tfc.add(
-        K.multiply(target, tfc.log(output)),
-        K.multiply(targetComplement, tfc.log(outputComplement))));
+      tfc.mul(target, tfc.log(output)),
+      tfc.mul(targetComplement, tfc.log(outputComplement))));
   }
 
   it('from logits', () => {
@@ -2369,8 +2216,8 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
     const sigmoidX = tfc.sigmoid(x);
     const sigmoidXComplement = K.scalarPlusArray(scalar(1), tfc.neg(sigmoidX));
     const expected = tfc.add(
-        K.multiply(target, tfc.neg(tfc.log(sigmoidX))),
-        K.multiply(targetComplement, tfc.neg(tfc.log(sigmoidXComplement))));
+      tfc.mul(target, tfc.neg(tfc.log(sigmoidX))),
+      tfc.mul(targetComplement, tfc.neg(tfc.log(sigmoidXComplement))));
     const result = K.sigmoidCrossEntropyWithLogits(target, x);
     expectTensorsClose(result, expected);
   });
@@ -2437,133 +2284,133 @@ function rnnStepForTest(inputs: Tensor, states: Tensor[]): [Tensor, Tensor[]] {
 describeMathCPUAndGPU('rnn', () => {
   it('Simple step function: 3D inputs, 1 state', () => {
     const inputs = tensor3d(
-        [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
-    const initialStates = [K.zeros([2, 4])];
+      [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
+    const initialStates = [tfc.zeros([2, 4])];
     const rnnOutputs = K.rnn(rnnStepForTest, inputs, initialStates);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
     expectTensorsClose(
-        lastOutput,
-        tensor2d(
-            [
-              [-57.75, -57.75, -57.75, -57.75],
-              [-57.75, -57.75, -57.75, -57.75]
-            ],
-            [2, 4]));
+      lastOutput,
+      tensor2d(
+        [
+          [-57.75, -57.75, -57.75, -57.75],
+          [-57.75, -57.75, -57.75, -57.75]
+        ],
+        [2, 4]));
     expectTensorsClose(
-        outputs,
-        tensor3d(
-            [
-              [
-                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-                [-57.75, -57.75, -57.75, -57.75]
-              ],
-              [
-                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-                [-57.75, -57.75, -57.75, -57.75]
-              ]
-            ],
-            [2, 3, 4]));
+      outputs,
+      tensor3d(
+        [
+          [
+            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+            [-57.75, -57.75, -57.75, -57.75]
+          ],
+          [
+            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+            [-57.75, -57.75, -57.75, -57.75]
+          ]
+        ],
+        [2, 3, 4]));
     expect(newStates.length).toEqual(1);
     expectTensorsClose(
-        newStates[0],
-        tensor2d(
-            [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
-            [2, 4]));
+      newStates[0],
+      tensor2d(
+        [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
+        [2, 4]));
   });
 
   it('Simple step function: 3D inputs, 2 states', () => {
     const inputs = tensor3d(
-        [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
+      [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     // The two state tensors have different shapes.
-    const initialStates = [K.zeros([2, 4]), K.ones([2, 3])];
+    const initialStates = [tfc.zeros([2, 4]), tfc.ones([2, 3])];
     const rnnOutputs = K.rnn(rnnStepForTest, inputs, initialStates);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
     expectTensorsClose(
-        lastOutput,
-        tensor2d(
-            [
-              [-57.75, -57.75, -57.75, -57.75],
-              [-57.75, -57.75, -57.75, -57.75]
-            ],
-            [2, 4]));
+      lastOutput,
+      tensor2d(
+        [
+          [-57.75, -57.75, -57.75, -57.75],
+          [-57.75, -57.75, -57.75, -57.75]
+        ],
+        [2, 4]));
     expectTensorsClose(
-        outputs,
-        tensor3d(
-            [
-              [
-                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-                [-57.75, -57.75, -57.75, -57.75]
-              ],
-              [
-                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-                [-57.75, -57.75, -57.75, -57.75]
-              ]
-            ],
-            [2, 3, 4]));
+      outputs,
+      tensor3d(
+        [
+          [
+            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+            [-57.75, -57.75, -57.75, -57.75]
+          ],
+          [
+            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+            [-57.75, -57.75, -57.75, -57.75]
+          ]
+        ],
+        [2, 3, 4]));
     expect(newStates.length).toEqual(2);
     expectTensorsClose(
-        newStates[0],
-        tensor2d(
-            [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
-            [2, 4]));
+      newStates[0],
+      tensor2d(
+        [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
+        [2, 4]));
     expectTensorsClose(
-        newStates[1],
-        tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
+      newStates[1],
+      tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
   });
 
   it('Simple step function: 4D inputs, 2 states', () => {
     const inputs = tensor4d(
-        [
-          [[[1], [2]], [[3], [4]], [[5], [6]]],
-          [[[10], [20]], [[30], [40]], [[50], [60]]]
-        ],
-        [2, 3, 2, 1]);
+      [
+        [[[1], [2]], [[3], [4]], [[5], [6]]],
+        [[[10], [20]], [[30], [40]], [[50], [60]]]
+      ],
+      [2, 3, 2, 1]);
     // The two state tensors have different shapes.
-    const initialStates = [K.zeros([2, 4]), K.ones([2, 3])];
+    const initialStates = [tfc.zeros([2, 4]), tfc.ones([2, 3])];
     const rnnOutputs = K.rnn(rnnStepForTest, inputs, initialStates);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
     expectTensorsClose(
-        lastOutput,
-        tensor2d(
-            [
-              [-57.75, -57.75, -57.75, -57.75],
-              [-57.75, -57.75, -57.75, -57.75]
-            ],
-            [2, 4]));
+      lastOutput,
+      tensor2d(
+        [
+          [-57.75, -57.75, -57.75, -57.75],
+          [-57.75, -57.75, -57.75, -57.75]
+        ],
+        [2, 4]));
     expectTensorsClose(
-        outputs,
-        tensor3d(
-            [
-              [
-                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-                [-57.75, -57.75, -57.75, -57.75]
-              ],
-              [
-                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-                [-57.75, -57.75, -57.75, -57.75]
-              ]
-            ],
-            [2, 3, 4]));
+      outputs,
+      tensor3d(
+        [
+          [
+            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+            [-57.75, -57.75, -57.75, -57.75]
+          ],
+          [
+            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+            [-57.75, -57.75, -57.75, -57.75]
+          ]
+        ],
+        [2, 3, 4]));
     expect(newStates.length).toEqual(2);
     expectTensorsClose(
-        newStates[0],
-        tensor2d(
-            [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
-            [2, 4]));
+      newStates[0],
+      tensor2d(
+        [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
+        [2, 4]));
     expectTensorsClose(
-        newStates[1],
-        tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
+      newStates[1],
+      tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
   });
 
   it('Using inputs <3D leads to ValueError', () => {
     const inputs = tensor2d([[1, 2], [3, 4]], [2, 2]);
-    const initialStates = [K.zeros([4]), K.ones([3])];
+    const initialStates = [tfc.zeros([4]), tfc.ones([3])];
     expect(() => K.rnn(rnnStepForTest, inputs, initialStates)).toThrowError();
   });
 });
@@ -2571,21 +2418,21 @@ describeMathCPUAndGPU('rnn', () => {
 describeMathCPUAndGPU('gradients', () => {
   it('Simple mean: 1 variable', () => {
     const var1 =
-        new LayerVariable(K.scalarTimesArray(scalar(2.0), K.ones([2, 2])));
+      new LayerVariable(K.scalarTimesArray(scalar(2.0), tfc.ones([2, 2])));
     const gradients = K.gradients(() => K.mean(var1.read()) as Scalar, [var1]);
     expect(gradients.length).toEqual(1);
     expectTensorsClose(
-        tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
+      tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
   });
   it('Simple matmul and mean: 2 variables', () => {
     const var1 = new LayerVariable(tensor2d([[1, 0], [0, 0]], [2, 2]));
     const var2 = new LayerVariable(tensor2d([[1, 0], [0, 1]], [2, 2]));
     const gradients = K.gradients(
-        () => K.mean(K.dot(var1.read(), var2.read())) as Scalar, [var1, var2]);
+      () => K.mean(K.dot(var1.read(), var2.read())) as Scalar, [var1, var2]);
     expect(gradients.length).toEqual(2);
     // d(loss) / d(var1).
     expectTensorsClose(
-        tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
+      tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
     // d(loss) / d(var2).
     expectTensorsClose(tensor2d([[0.25, 0.25], [0, 0]], [2, 2]), gradients[1]);
   });

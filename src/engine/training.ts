@@ -1362,7 +1362,7 @@ export class Model extends Container {
         }
       }
       for (let i = 0; i < outs.length; ++i) {
-        outs[i] = K.divide(outs[i], K.getScalar(numSamples)) as Scalar;
+        outs[i] = tfc.div(outs[i], K.getScalar(numSamples)) as Scalar;
       }
     }
     return outs;

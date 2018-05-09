@@ -149,7 +149,7 @@ export function tanh(x: Tensor): Tensor {
  * @throws ValueError: In case `dim(x) < 2`.
  */
 export function softmax(x: Tensor, axis: number = (-1)): Tensor {
-  return K.softmax(x, axis);
+  return tfc.softmax(x, axis);
 }
 
 export function serializeActivation(activation: ActivationFn):

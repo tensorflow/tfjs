@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {abs, mean, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
+import {abs, mean, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
@@ -116,20 +116,20 @@ describeMathCPU('standardizeInputData', () => {
 
 describeMathCPU('checkArrayLengths', () => {
   it('Batch mismatch in inputs', () => {
-    const inputs = [K.zeros([2, 1]), K.zeros([3, 1])];
-    const targets = [K.zeros([2, 1]), K.zeros([2, 1])];
+    const inputs = [zeros([2, 1]), zeros([3, 1])];
+    const targets = [zeros([2, 1]), zeros([2, 1])];
     expect(() => checkArrayLengths(inputs, targets))
         .toThrowError(/All input .* should have the same number of samples/);
   });
   it('Batch mismatch in targets', () => {
-    const inputs = [K.zeros([2, 1]), K.zeros([2, 1])];
-    const targets = [K.zeros([2, 1]), K.zeros([3, 1])];
+    const inputs = [zeros([2, 1]), zeros([2, 1])];
+    const targets = [zeros([2, 1]), zeros([3, 1])];
     expect(() => checkArrayLengths(inputs, targets))
         .toThrowError(/All target .* should have the same number of samples/);
   });
   it('Batch mismatch between inputs and targets', () => {
-    const inputs = [K.zeros([2, 1]), K.zeros([2, 1])];
-    const targets = [K.zeros([3, 1]), K.zeros([3, 1])];
+    const inputs = [zeros([2, 1]), zeros([2, 1])];
+    const targets = [zeros([3, 1]), zeros([3, 1])];
     expect(() => checkArrayLengths(inputs, targets))
         .toThrowError(
             /Input Tensors should have the same number of samples as target/);
@@ -196,9 +196,9 @@ describeMathCPUAndGPU('Model.predict', () => {
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output], name: 'model1x1'});
-    const xs = K.ones([10, 3, 4]);
+    const xs = ones([10, 3, 4]);
     const ys = model.predict(xs, {batchSize: 4}) as Tensor;
-    expectTensorsClose(ys, K.ones([10, 2, 6]));
+    expectTensorsClose(ys, ones([10, 2, 6]));
   });
 
   it('1 input, 1 output, tensor as input argument', () => {
@@ -208,9 +208,9 @@ describeMathCPUAndGPU('Model.predict', () => {
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output], name: 'model1x1'});
-    const xs = K.ones([10, 3, 4]);
+    const xs = ones([10, 3, 4]);
     const ys = model.predict(xs) as Tensor;
-    expectTensorsClose(ys, K.ones([10, 2, 6]));
+    expectTensorsClose(ys, ones([10, 2, 6]));
   });
 
   it('1 input as Array, 1 output', () => {
@@ -220,9 +220,9 @@ describeMathCPUAndGPU('Model.predict', () => {
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output], name: 'model1x1'});
-    const xs = K.ones([10, 3, 4]);
+    const xs = ones([10, 3, 4]);
     const ys = model.predict([xs], {batchSize: 4}) as Tensor;
-    expectTensorsClose(ys, K.ones([10, 2, 6]));
+    expectTensorsClose(ys, ones([10, 2, 6]));
   });
 
   it('1 input, 2 outputs', () => {
@@ -234,11 +234,11 @@ describeMathCPUAndGPU('Model.predict', () => {
     const output2 = layer2.apply(output1) as tfl.SymbolicTensor;
     const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output1, output2], name: 'model1x2'});
-    const xs = K.ones([10, 3, 4]);
+    const xs = ones([10, 3, 4]);
     const ys = model.predict(xs, {batchSize: 4}) as Tensor[];
     expect(ys.length).toEqual(2);
-    expectTensorsClose(ys[0], K.ones([10, 2, 6]));
-    expectTensorsClose(ys[1], K.ones([10, 12]));
+    expectTensorsClose(ys[0], ones([10, 2, 6]));
+    expectTensorsClose(ys[1], ones([10, 12]));
   });
 
   it('2 inputs, 2 outputs', () => {
@@ -255,12 +255,12 @@ describeMathCPUAndGPU('Model.predict', () => {
       outputs: [output1, output2],
       name: 'model2x2'
     });
-    const xs1 = K.ones([10, 3, 4]);
-    const xs2 = K.ones([10, 3, 3]);
+    const xs1 = ones([10, 3, 4]);
+    const xs2 = ones([10, 3, 3]);
     const ys = model.predict([xs1, xs2], {batchSize: 4}) as Tensor[];
     expect(ys.length).toEqual(2);
-    expectTensorsClose(ys[0], K.ones([10, 2, 6]));
-    expectTensorsClose(ys[1], K.ones([10, 9]));
+    expectTensorsClose(ys[0], ones([10, 2, 6]));
+    expectTensorsClose(ys[1], ones([10, 9]));
   });
 
   it('Incorrect number of inputs leads to exception: 1 vs 2', () => {
@@ -270,7 +270,7 @@ describeMathCPUAndGPU('Model.predict', () => {
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output], name: 'model_inc_1x1'});
-    const xs1 = K.ones([10, 3, 4]);
+    const xs1 = ones([10, 3, 4]);
 
     expect(() => model.predict([
       xs1, xs1
@@ -291,7 +291,7 @@ describeMathCPUAndGPU('Model.predict', () => {
       outputs: [output1, output2],
       name: 'model_inc_2x2'
     });
-    const xs1 = K.ones([10, 3, 4]);
+    const xs1 = ones([10, 3, 4]);
 
     expect(() => model.predict([
       xs1, xs1, xs1
@@ -305,7 +305,7 @@ describeMathCPUAndGPU('Model.predict', () => {
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
         {inputs: [inputTensor], outputs: [output], name: 'model_inc_1x1'});
-    const xs1 = K.ones([2, 4, 3]);
+    const xs1 = ones([2, 4, 3]);
 
     expect(() => model.predict(xs1))
         .toThrowError(/.*expected.* shape \[null,3,4\].*but got.*\[2,4,3\]/);
@@ -346,8 +346,8 @@ describeMathCPUAndGPU('Model.fit', () => {
         {units: 1, useBias, kernelInitializer: 'ones', kernelRegularizer});
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
-    inputs = K.ones([numSamples, inputSize]);
-    targets = K.ones([numSamples, 1]);
+    inputs = ones([numSamples, inputSize]);
+    targets = ones([numSamples, 1]);
   }
 
   function createDenseCategoricalModelAndData(useBias = false): void {
@@ -355,8 +355,8 @@ describeMathCPUAndGPU('Model.fit', () => {
         tfl.layers.dense({units: 2, useBias, kernelInitializer: 'ones'});
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
-    inputs = K.ones([numSamples, inputSize]);
-    targets = K.oneHot(K.ones([numSamples]), 2);
+    inputs = ones([numSamples, inputSize]);
+    targets = K.oneHot(ones([numSamples]), 2);
   }
 
   function createTwoLayerDenseModelAndData(useBias = false): [Layer, Layer] {
@@ -367,8 +367,8 @@ describeMathCPUAndGPU('Model.fit', () => {
     const output =
         layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
     model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
-    inputs = K.ones([numSamples, inputSize]);
-    targets = K.ones([numSamples, 1]);
+    inputs = ones([numSamples, inputSize]);
+    targets = ones([numSamples, 1]);
     return [layer1, layer2];
   }
 
@@ -381,10 +381,10 @@ describeMathCPUAndGPU('Model.fit', () => {
     const output2 = layer2.apply(inputTensor2) as tfl.SymbolicTensor;
     twoOutputModel = new tfl.Model(
         {inputs: [inputTensor1, inputTensor2], outputs: [output1, output2]});
-    inputs1 = K.ones([numSamples, inputSize1]);
-    inputs2 = K.ones([numSamples, inputSize2]);
-    targets1 = K.ones([numSamples, 1]);
-    targets2 = K.ones([numSamples, 1]);
+    inputs1 = ones([numSamples, inputSize1]);
+    inputs2 = ones([numSamples, inputSize2]);
+    targets1 = ones([numSamples, 1]);
+    targets2 = ones([numSamples, 1]);
   }
 
   it('1 input, 1 output, dense, 1 weight, string optimizer, 1 batch',
@@ -516,8 +516,8 @@ describeMathCPUAndGPU('Model.fit', () => {
         dense2.apply(dropout.apply(dense1.apply(input))) as tfl.SymbolicTensor;
     const model = new tfl.Model({inputs: input, outputs: output});
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-    const x = K.ones([batchSize, inputSize]);
-    const y = K.ones([batchSize, 1]);
+    const x = ones([batchSize, inputSize]);
+    const y = ones([batchSize, 1]);
     model.fit(x, y, {batchSize, epochs: 1}).then(history => {
       done();
     });
@@ -687,8 +687,8 @@ describeMathCPUAndGPU('Model.fit', () => {
       metrics: ['accuracy'],
     });
     const history = await model.fit(
-        K.ones([dataSize, sequenceLength, inputSize]),
-        K.ones([dataSize, sequenceLength, outputSize]), {
+        ones([dataSize, sequenceLength, inputSize]),
+        ones([dataSize, sequenceLength, outputSize]), {
           batchSize,
           epochs: 1,
           validationSplit,
@@ -801,10 +801,10 @@ describeMathCPUAndGPU('Model.fit', () => {
         valLosses as number[], [386.35848999023438, 1808.7342529296875]);
     expectTensorsClose(
         layer1.getWeights()[0],
-        K.scalarTimesArray(scalar(-0.61341441), K.ones([4, 10])));
+        K.scalarTimesArray(scalar(-0.61341441), ones([4, 10])));
     expectTensorsClose(
         layer2.getWeights()[0],
-        K.scalarTimesArray(scalar(-1.77405429), K.ones([10, 1])));
+        K.scalarTimesArray(scalar(-1.77405429), ones([10, 1])));
 
     // Freeze the 1st layer and compile the model again.
     layer1.trainable = false;
@@ -822,11 +822,11 @@ describeMathCPUAndGPU('Model.fit', () => {
     // Expect no change in the value of layer1's kernel, due to the freezing.
     expectTensorsClose(
         layer1.getWeights()[0],
-        K.scalarTimesArray(scalar(-0.61341441), K.ones([4, 10])));
+        K.scalarTimesArray(scalar(-0.61341441), ones([4, 10])));
     // Expect change in the value of layer2's kernel.
     expectTensorsClose(
         layer2.getWeights()[0],
-        K.scalarTimesArray(scalar(-0.11295), K.ones([10, 1])));
+        K.scalarTimesArray(scalar(-0.11295), ones([10, 1])));
     done();
   });
 
@@ -1140,8 +1140,8 @@ describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
         layer2.apply(layer1.apply(inputTensor)) as tfl.SymbolicTensor;
     const model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
-    const xs = K.ones([4, 1]);
-    const ys = K.ones([4, 1]);
+    const xs = ones([4, 1]);
+    const ys = ones([4, 1]);
 
     // 1. Call fit: Dropout layer should be called twice, with training as
     // true.
@@ -1183,8 +1183,8 @@ describeMathCPUAndGPU('Model.evaluate', () => {
     model = new tfl.Model({inputs: input, outputs: output});
   }
   function prepData() {
-    x = K.ones([numExamples, inputSize]);
-    y = K.ones([numExamples, outputSize]);
+    x = ones([numExamples, inputSize]);
+    y = ones([numExamples, outputSize]);
   }
 
   it('Calling evaluate before compile leads to error', () => {

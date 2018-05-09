@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {scalar, Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import {ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
 import {ActivationIdentifier} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -66,7 +66,7 @@ describeMathCPUAndGPU('Dropout Layer', () => {
           const testTitle = `training=${training}, dropoutRate=${rate}, ` +
               `noiseShape=${JSON.stringify(noiseShape)}`;
           it(testTitle, () => {
-            const x = K.ones(inputShape);
+            const x = ones(inputShape);
             const dropoutLayer = tfl.layers.dropout({rate, noiseShape});
             const y = dropoutLayer.apply(x, {training}) as Tensor;
             expect(x.dtype).toEqual(y.dtype);
@@ -218,7 +218,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
                  `activation=${activation}, ` +
                  `inputLastDim=${JSON.stringify(inputLastDim)}`,
              () => {
-               const input = K.ones([2, inputLastDim]);
+               const input = ones([2, inputLastDim]);
                const denseLayer = tfl.layers.dense({
                  units,
                  useBias,
@@ -253,9 +253,9 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
   }
 
   it('Calling apply again with incompatible shape leads to error', () => {
-    const input1 = K.ones([2, 2]);  // First call.
-    const input2 = K.ones([3, 2]);  // Okay.
-    const input3 = K.ones([3, 3]);  // Leads to error.
+    const input1 = ones([2, 2]);  // First call.
+    const input2 = ones([3, 2]);  // Okay.
+    const input3 = ones([3, 3]);  // Leads to error.
 
     const denseLayer = tfl.layers.dense({units: 4, kernelInitializer: 'ones'});
     expectTensorsClose(
@@ -268,7 +268,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
   });
   it('Calling apply with compatible symbolic input after Tensor input works',
      () => {
-       const concreteInput = K.ones([2, 2]);
+       const concreteInput = ones([2, 2]);
        const symbolicInput =
            new tfl.SymbolicTensor(DType.float32, [2, 2], null, [], null);
        const denseLayer =
@@ -285,7 +285,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
        expect(symbolicOuptut.inputs).toEqual([symbolicInput]);
      });
   it('Calling apply with incompatible symbolic input after Tensor', () => {
-    const concreteInput = K.ones([2, 2]);
+    const concreteInput = ones([2, 2]);
     const symbolicInput =
         new tfl.SymbolicTensor(DType.float32, [2, 3], null, [], null);
     const denseLayer = tfl.layers.dense({units: 4, kernelInitializer: 'ones'});
@@ -382,15 +382,15 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
   const inputShape = [1];
 
   it('linear', () => {
-    const x = K.scalarTimesArray(scalar(10), K.ones(inputShape));
+    const x = K.scalarTimesArray(scalar(10), ones(inputShape));
     const layer = new Activation({activation: 'linear'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, x);
   });
 
   it('relu', () => {
-    const x = K.scalarTimesArray(scalar(-5), K.ones(inputShape));
-    const expectedValue = K.zeros(inputShape);
+    const x = K.scalarTimesArray(scalar(-5), ones(inputShape));
+    const expectedValue = zeros(inputShape);
     const layer = new Activation({activation: 'relu'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, expectedValue);
@@ -398,17 +398,17 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
 
   it('sigmoid', () => {
     const val = 10;
-    const x = K.scalarTimesArray(scalar(val), K.ones(inputShape));
+    const x = K.scalarTimesArray(scalar(val), ones(inputShape));
     const expectedValue = K.scalarTimesArray(
-        scalar(1 / (1 + Math.exp(-1 * val))), K.ones(inputShape));
+        scalar(1 / (1 + Math.exp(-1 * val))), ones(inputShape));
     const layer = new Activation({activation: 'sigmoid'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, expectedValue);
   });
 
   it('softmax', () => {
-    const x = K.scalarTimesArray(scalar(10), K.ones(inputShape));
-    const expectedValue = K.ones(inputShape);
+    const x = K.scalarTimesArray(scalar(10), ones(inputShape));
+    const expectedValue = ones(inputShape);
     const layer = new Activation({activation: 'softmax'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, expectedValue);

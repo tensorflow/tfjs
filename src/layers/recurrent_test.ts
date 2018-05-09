@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {neg, Scalar, scalar, Tensor, tensor2d, tensor3d, train, transpose} from '@tensorflow/tfjs-core';
+import {neg, ones, Scalar, scalar, Tensor, tensor2d, tensor3d, train, transpose, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
@@ -179,21 +179,21 @@ describeMathCPU('RNN-Layer', () => {
 describeMathCPUAndGPU('RNN-Layer-Math', () => {
   it('getInitialState: 1 state', () => {
     const cell = new RNNCellForTest(5);
-    const inputs = K.zeros([4, 3, 2]);
+    const inputs = zeros([4, 3, 2]);
     const rnn = tfl.layers.rnn({cell}) as RNN;
     const initialStates = rnn.getInitialState(inputs);
     expect(initialStates.length).toEqual(1);
-    expectTensorsClose(initialStates[0], K.zeros([4, 5]));
+    expectTensorsClose(initialStates[0], zeros([4, 5]));
   });
 
   it('getInitialState: 2 states', () => {
     const cell = new RNNCellForTest([5, 6]);
-    const inputs = K.zeros([4, 3, 2]);
+    const inputs = zeros([4, 3, 2]);
     const rnn = tfl.layers.rnn({cell}) as RNN;
     const initialStates = rnn.getInitialState(inputs);
     expect(initialStates.length).toEqual(2);
-    expectTensorsClose(initialStates[0], K.zeros([4, 5]));
-    expectTensorsClose(initialStates[1], K.zeros([4, 6]));
+    expectTensorsClose(initialStates[0], zeros([4, 5]));
+    expectTensorsClose(initialStates[1], zeros([4, 6]));
   });
 
   it('call: 1 state: returnSequences=false, returnState=false', () => {
@@ -203,7 +203,7 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
         [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     const outputs = rnn.apply(inputs) as Tensor;
     expectTensorsClose(
-        outputs, K.scalarTimesArray(scalar(-57.75), K.ones([2, 4])));
+        outputs, K.scalarTimesArray(scalar(-57.75), ones([2, 4])));
   });
 
   it('apply: 1 state: returnSequences=true, returnState=false', () => {
@@ -293,9 +293,9 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
     const inputs = tensor3d(
         [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     const outputs =
-        rnn.apply(inputs, {'initialState': [K.ones([2, 4])]}) as Tensor;
+        rnn.apply(inputs, {'initialState': [ones([2, 4])]}) as Tensor;
     expectTensorsClose(
-        outputs, K.scalarTimesArray(scalar(-58.75), K.ones([2, 4])));
+        outputs, K.scalarTimesArray(scalar(-58.75), ones([2, 4])));
   });
 
   it('call: with 2 initialStates', () => {
@@ -305,15 +305,15 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
         [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     const outputs = rnn.apply(inputs, {
       'initialState':
-          [K.ones([2, 4]), K.scalarTimesArray(scalar(2), K.ones([2, 5]))]
+          [ones([2, 4]), K.scalarTimesArray(scalar(2), ones([2, 5]))]
     }) as Tensor[];
     expect(outputs.length).toEqual(3);
     expectTensorsClose(
-        outputs[0], K.scalarTimesArray(scalar(-58.75), K.ones([2, 4])));
+        outputs[0], K.scalarTimesArray(scalar(-58.75), ones([2, 4])));
     expectTensorsClose(
-        outputs[1], K.scalarTimesArray(scalar(58.75), K.ones([2, 4])));
+        outputs[1], K.scalarTimesArray(scalar(58.75), ones([2, 4])));
     expectTensorsClose(
-        outputs[2], K.scalarTimesArray(scalar(59.75), K.ones([2, 5])));
+        outputs[2], K.scalarTimesArray(scalar(59.75), ones([2, 5])));
   });
 
   it('call with incorrect number of initialStates leads to ValueError', () => {
@@ -322,7 +322,7 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
     const inputs = tensor3d(
         [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     expect(() => rnn.apply(inputs, {
-      'initialState': [K.ones([2, 4])]
+      'initialState': [ones([2, 4])]
     })).toThrowError(/An initialState was passed that is not compatible with/);
   });
 });
@@ -391,7 +391,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
         biasInitializer: 'ones',
         activation
       });
-      const input = K.ones([batchSize, timeSteps, inputSize]);
+      const input = ones([batchSize, timeSteps, inputSize]);
       const output = simpleRNN.apply(input) as Tensor;
       let expectedElementValue = inputSize + 1;
       if (activation === 'tanh') {
@@ -400,7 +400,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
       expectTensorsClose(
           output,
           K.scalarTimesArray(
-              scalar(expectedElementValue), K.ones([batchSize, units])));
+              scalar(expectedElementValue), ones([batchSize, units])));
     });
   }
 
@@ -419,7 +419,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
         biasInitializer: 'ones',
         activation: 'linear'
       });
-      const input = K.ones([batchSize, timeSteps, inputSize]);
+      const input = ones([batchSize, timeSteps, inputSize]);
       let output = simpleRNN.apply(input);
       let finalState: Tensor;
       if (returnState) {
@@ -438,12 +438,12 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
       expectTensorsClose(
           outputT0,
           K.scalarTimesArray(
-              scalar(inputSize + 1), K.ones([1, batchSize, units])));
+              scalar(inputSize + 1), ones([1, batchSize, units])));
       expectTensorsClose(
           outputT1,
           K.scalarTimesArray(
               scalar((inputSize + 1) * (units + 1)),
-              K.ones([1, batchSize, units])));
+              ones([1, batchSize, units])));
       if (returnState) {
         expectTensorsClose(finalState, outputT1.reshape([batchSize, units]));
       }
@@ -497,8 +497,8 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     });
 
     const sgd = train.sgd(5);
-    const x = K.ones([batchSize, sequenceLength, inputSize]);
-    const y = K.zeros([batchSize, 1]);
+    const x = ones([batchSize, sequenceLength, inputSize]);
+    const y = zeros([batchSize, 1]);
     dense.apply(simpleRNN.apply(x));
     const lossFn = () => {
       return K.mean(metrics.mse(y, dense.apply(simpleRNN.apply(x)) as Tensor))
@@ -509,13 +509,13 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     }
     expectTensorsClose(
         simpleRNN.getWeights()[0],
-        K.scalarTimesArray(scalar(0.8484658), K.ones([4, 1])));
+        K.scalarTimesArray(scalar(0.8484658), ones([4, 1])));
     expectTensorsClose(
         simpleRNN.getWeights()[1],
-        K.scalarTimesArray(scalar(0.8484799), K.ones([1, 1])));
+        K.scalarTimesArray(scalar(0.8484799), ones([1, 1])));
     expectTensorsClose(
         dense.getWeights()[0],
-        K.scalarTimesArray(scalar(80.967026), K.ones([1, 1])));
+        K.scalarTimesArray(scalar(80.967026), ones([1, 1])));
   });
 });
 
@@ -633,7 +633,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
             returnSequences,
             implementation
           });
-          const input = K.zeros([batchSize, timeSteps, inputSize]);
+          const input = zeros([batchSize, timeSteps, inputSize]);
           let output = gru.apply(input);
 
           const goldenOutputElementValueFinal =
@@ -643,7 +643,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
           if (returnSequences) {
             const outputs = goldenOutputElementValues.map(
                 value => K.scalarTimesArray(
-                    scalar(value), K.ones([1, batchSize, units])));
+                    scalar(value), ones([1, batchSize, units])));
             expectedOutput = transpose(
                 K.concatAlongFirstAxis(
                     K.concatAlongFirstAxis(outputs[0], outputs[1]), outputs[2]),
@@ -651,7 +651,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
           } else {
             expectedOutput = K.scalarTimesArray(
                 scalar(goldenOutputElementValueFinal),
-                K.ones([batchSize, units]));
+                ones([batchSize, units]));
           }
           if (returnState) {
             output = output as Tensor[];
@@ -661,7 +661,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
                 output[1],
                 K.scalarTimesArray(
                     scalar(goldenOutputElementValueFinal),
-                    K.ones([batchSize, units])));
+                    ones([batchSize, units])));
           } else {
             output = output as Tensor;
             expectTensorsClose(output, expectedOutput);
@@ -715,8 +715,8 @@ describeMathCPUAndGPU('GRU Tensor', () => {
         tfl.layers.dense({units: 1, kernelInitializer: 'ones', useBias: false});
 
     const sgd = train.sgd(1);
-    const x = K.ones([batchSize, sequenceLength, inputSize]);
-    const y = K.ones([batchSize, 1]);
+    const x = ones([batchSize, sequenceLength, inputSize]);
+    const y = ones([batchSize, 1]);
     dense.apply(gru.apply(x));
     const lossFn = () => {
       return K.mean(metrics.mse(y, dense.apply(gru.apply(x)) as Tensor))
@@ -851,7 +851,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
             returnSequences,
             implementation
           });
-          const input = K.ones([batchSize, timeSteps, inputSize]);
+          const input = ones([batchSize, timeSteps, inputSize]);
           let output = lstm.apply(input);
 
           // See comments at the beginning of this describe() block on how these
@@ -865,16 +865,15 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
           if (returnSequences) {
             const outputAtT0 = K.scalarTimesArray(
                 scalar(goldenOutputElementValueAtT0),
-                K.ones([1, batchSize, units]));
+                ones([1, batchSize, units]));
             const outputAtT1 = K.scalarTimesArray(
                 scalar(goldenOutputElementValueAtT1),
-                K.ones([1, batchSize, units]));
+                ones([1, batchSize, units]));
             expectedOutput = transpose(
                 K.concatAlongFirstAxis(outputAtT0, outputAtT1), [1, 0, 2]);
           } else {
             expectedOutput = K.scalarTimesArray(
-                scalar(goldenOutputElementValueAtT1),
-                K.ones([batchSize, units]));
+                scalar(goldenOutputElementValueAtT1), ones([batchSize, units]));
           }
           if (returnState) {
             output = output as Tensor[];
@@ -884,12 +883,12 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
                 output[1],
                 K.scalarTimesArray(
                     scalar(goldenHStateElementValue),
-                    K.ones([batchSize, units])));
+                    ones([batchSize, units])));
             expectTensorsClose(
                 output[2],
                 K.scalarTimesArray(
                     scalar(goldenCStateElementValue),
-                    K.ones([batchSize, units])));
+                    ones([batchSize, units])));
           } else {
             output = output as Tensor;
             expectTensorsClose(output, expectedOutput);
@@ -945,8 +944,8 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
       });
 
       const sgd = train.sgd(1);
-      const x = K.ones([batchSize, sequenceLength, inputSize]);
-      const y = K.ones([batchSize, 1]);
+      const x = ones([batchSize, sequenceLength, inputSize]);
+      const y = ones([batchSize, 1]);
       dense.apply(lstm.apply(x));
       const lossFn = () => {
         return K.mean(metrics.mse(y, dense.apply(lstm.apply(x)) as Tensor))
@@ -974,8 +973,8 @@ describeMathCPU('LSTM-deserialization', () => {
   it('modelFromConfig', async done => {
     modelFromJSON(fakeLSTMModel)
         .then(model => {
-          const encoderInputs = K.zeros([1, 3, 71], DType.float32);
-          const decoderInputs = K.zeros([1, 3, 94], DType.float32);
+          const encoderInputs = zeros([1, 3, 71], DType.float32);
+          const decoderInputs = zeros([1, 3, 94], DType.float32);
           const outputs =
               model.predict([encoderInputs, decoderInputs]) as Tensor;
           expect(outputs.shape).toEqual([1, 3, 94]);
@@ -1153,9 +1152,9 @@ describeMathCPU('StackedRNNCells Symbolic', () => {
       cell: tfl.layers.stackedRNNCells({
         cells: [
           tfl.layers.simpleRNNCell(
-            { units: 3, recurrentInitializer: 'glorotNormal' }),
+              {units: 3, recurrentInitializer: 'glorotNormal'}),
           tfl.layers.simpleRNNCell(
-            { units: 2, recurrentInitializer: 'glorotNormal' })
+              {units: 2, recurrentInitializer: 'glorotNormal'})
         ],
       })
     });
@@ -1182,7 +1181,8 @@ describeMathCPU('StackedRNNCells Symbolic', () => {
       cell: tfl.layers.stackedRNNCells({
         cells: [
           tfl.layers.lstmCell({units: 3, recurrentInitializer: 'glorotNormal'}),
-          tfl.layers.lstmCell({units: 2, recurrentInitializer: 'glorotNormal'})
+          tfl.layers.lstmCell(
+              {units: 2, recurrentInitializer: 'glorotNormal'})
         ],
       })
     });

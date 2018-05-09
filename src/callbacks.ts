@@ -10,7 +10,7 @@
 
 /* Original source: keras/callbacks.py */
 
-import {keep, Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {div, keep, mul, Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {Model} from './engine/training';
@@ -253,10 +253,9 @@ export class BaseLogger extends Callback {
         }
         // TODO(cais): Do not leak tidy from TensorFlow.js Core.
         tidy(() => {
-          this.totals[key] =
-              K.scalarPlusArray(
-                  this.totals[key] as Scalar,
-                  K.multiply(value, K.getScalar(batchSize))) as Scalar;
+          this.totals[key] = K.scalarPlusArray(
+                                 this.totals[key] as Scalar,
+                                 mul(value, K.getScalar(batchSize))) as Scalar;
           keep(this.totals[key] as Scalar);
         });
       }
@@ -275,7 +274,7 @@ export class BaseLogger extends Callback {
           tidy(() => {
             logs[key] =
                 K.scalarTimesArray(
-                    K.divide(K.getScalar(1), K.getScalar(this.seen)) as Scalar,
+                    div(K.getScalar(1), K.getScalar(this.seen)) as Scalar,
                     this.totals[key] as Scalar) as Scalar;
             keep(logs[key] as Scalar);
           });

@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {max, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {max, serialization, squeeze, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
@@ -86,7 +86,7 @@ export abstract class Pooling1D extends Layer {
         generic_utils.getExactlyOneTensor(inputs), [this.poolSize[0], 1],
         [this.strides[0], 1], this.padding, 'channelsLast');
     // Remove dummy last dimension.
-    return K.squeeze(output, 2);
+    return squeeze(output, [2]);
   }
 
   getConfig(): serialization.ConfigDict {
