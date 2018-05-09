@@ -54,14 +54,6 @@ export function getBackend(): 'cpu'|'webgl' {
   return backend;
 }
 
-/**
- * Alias for deeplearn math keep: do not dispose a tensor's value.
- * @param x
- */
-export function keep(x: Tensor): Tensor {
-  return tfc.keep(x);
-}
-
 const scalarCache: {[typeKey: string]: {[key: number]: Scalar}} = {
   float32: {},
   int32: {}
@@ -199,29 +191,7 @@ export function reshape(x: Tensor, shape: Shape): Tensor {
   return x.reshape(shape);
 }
 
-/**
- * Generalized transpose of a tensor.
- * @param x The input tensor to tranpose.
- * @param perm Optional permutation array. If == null, will be set to
- *   `[n - 1, n - 2, ..., 0]`, n being `ndim(x)`, hence reducing to the usual
- *   transpose for matricies (`Tensor2D`s).
- * @returns The resultant tensor of the tranpose.
- */
-export function transpose(x: Tensor, perm?: number[]): Tensor {
-  return tfc.transpose(x, perm);
-}
-
-export const permuteDimensions = transpose;
-
-/**
- * Reverse a tensor along the specified axis or axes.
- * @param x Tensor to reverse.
- * @param axes Integer or an `Array` of integers. Axis or axes to reverse.
- * @returns The result of the reverse operation.
- */
-export function reverse(x: Tensor, axes: number|number[]): Tensor {
-  return tfc.reverse(x, axes);
-}
+export const permuteDimensions = tfc.transpose;
 
 /**
  * Adds a 1-sized dimension at index "axis".
@@ -833,24 +803,6 @@ export function eyeVariable(
 }
 
 /**
- * Negates a tensor.
- * @param x Tensor to negate.
- */
-export function neg(x: Tensor): Tensor {
-  return tfc.neg(x);
-}
-
-/**
- * Add two tensors, element-wise, with support for broadcasting.
- * @param x First tensor to add.
- * @param y Second tensor to add.
- * @returns Result of the addition.
- */
-export function add(x: Tensor, y: Tensor): Tensor {
-  return tfc.add(x, y);
-}
-
-/**
  * Subtract two tensors, element-wise, with support for broadcasting.
  * @param x First tensor to subtract element-wise.
  * @param y Second tensor to subtract element-wise.
@@ -1099,9 +1051,9 @@ export function sign(x: Tensor): Tensor {
   const zerosLikeX = coreZerosLike(x);
   const onesLikeX = coreOnesLike(x);
   return where(
-      equal(x, zerosLikeX), zerosLikeX,
+      tfc.equal(x, zerosLikeX), zerosLikeX,
       where(
-          greater(x, coreZerosLike(x)), onesLikeX,
+          tfc.greater(x, coreZerosLike(x)), onesLikeX,
           scalarTimesArray(getScalar(-1), onesLikeX)));
 }
 
@@ -1263,107 +1215,12 @@ export function gather(
 }
 
 /**
- * Maximum value in a tensor.
- * @param x Input Tensor
- * @param axis The axis or a set of axes to find maximum values.
- *  *  If axis is undefined, return the maximum value across all axes.
- * @param keepDims Whether to keep the dimensions or not.
- *   If `keepDims` is `false`, the rank of the tensor is reduced
- *   by 1 for each entry in `axis`. If `keepDims` is `True`,
- *   the reduced dimensions are retained with length 1.
- *
- * @return: A tensor with maximum values of `x`.
- */
-export function max(
-    x: Tensor, axis?: number|number[], keepDims?: boolean): Scalar|Tensor {
-  return tfc.max(x, axis, keepDims);
-}
-
-/**
- * Minimum value in a tensor.
- * @param x Input Tensor
- * @param axis The axis or the `Array` of axes to find minimum values over.
- *  If axis is undefined, return the minimum value across all axes.
- * @param keepDims Whether to keep the dimensions or not.
- *   If `keepDims` is `false`, the rank of the tensor is reduced
- *   by 1 for each entry in `axis`. If `keepDims` is `True`,
- *   the reduced dimensions are retained with length 1.
- * @return: A tensor with minimum values of `x`.
- */
-export function min(
-    x: Tensor, axis?: number|number[], keepDims?: boolean): Scalar|Tensor {
-  return tfc.min(x, axis, keepDims);
-}
-
-/**
- * Element-wise minimum of two tensors.
- * @param x Input Tensor
- * @param y Input Tensor with shape and type compatible with `x`.
- * @return: Tensor with the minimum values between `x` and `y`.
- */
-export function minimum(x: Tensor, y: Tensor): Tensor {
-  return tfc.minimum(x, y);
-}
-/**
- * Sum value in a tensor.
- * @param x Input Tensor
- * @param axis The axis or the `Array` of axes to sum over.
- *  If axis is undefined, return the sum of all values across all axes.
- * @param keepDims Whether to keep the dimensions or not.
- *   If `keepDims` is `false`, the rank of the tensor is reduced
- *   by 1 for each entry in `axis`. If `keepDims` is `True`,
- *   the reduced dimensions are retained with length 1.
- * @return: A tensor with the sum values of `x`.
- */
-export function sum(
-    x: Tensor, axis?: number|number[], keepDims?: boolean): Tensor {
-  return tfc.sum(x, axis, keepDims);
-}
-
-/**
- * Element-wise absolute value.
- * @param x Input tensor.
- * @return element-wise |x|.
- */
-export function abs(x: Tensor): Tensor {
-  return tfc.abs(x);
-}
-
-/**
  * Element-wise square.
  * @param x Input tensor.
  * @return element-wise x^2
  */
 export function square(x: Tensor): Tensor {
   return tfc.mulStrict(x, x);
-}
-
-/**
- * Element-wise sqrt.
- * @param x Input tensor.
- * @return element-wise sqrt(x)
- */
-export function sqrt(x: Tensor): Tensor {
-  return tfc.sqrt(x);
-}
-
-/**
- * Element-wise exp.
- * @param x Input tensor.
- * @return element-wise exp(x)
- */
-export function exp(x: Tensor): Tensor {
-  return tfc.exp(x);
-}
-
-/**
- * Element-wise logarithm.
- *
- * @param x Input tensor.
- * @returns Element-wise log(x).
- */
-export function log(x: Tensor): Tensor {
-  return tfc.log(x);
 }
 
 /**
@@ -1399,63 +1256,6 @@ export function pow(x: Tensor, a: Tensor|number): Tensor {
  */
 export function clip(x: Tensor, minValue: number, maxValue: number): Tensor {
   return tfc.clipByValue(x, minValue, maxValue);
-}
-
-/**
- * Element-wise equality between two tensors.
- * @param x
- * @param y
- * @returns A tensor of the same shape as `x`, consisting of `0`(s) and `1`(s).
- */
-export function equal(x: Tensor, y: Tensor): Tensor {
-  return tfc.equal(x, y);
-}
-
-/**
- * Element-wise truth value of (x > y).
- * @param x
- * @param y
- * @returns A tensor of the same shape as `x`, consisting of `0`(s) and `1`(s).
- */
-export function greater(x: Tensor, y: Tensor): Tensor {
-  return tfc.greater(x, y);
-}
-
-/**
- * Element-wise truth value of (x >= y).
- * @param x
- * @param y
- * @returns A tensor of the same shape as `x`, consisting of `0`(s) and `1`(s).
- */
-export function greaterEqual(x: Tensor, y: Tensor): Tensor {
-  return tfc.greaterEqual(x, y);
-}
-
-/**
- * Element-wise maximum of two tensors.
- */
-export function maximum(x: Tensor, y: Tensor): Tensor {
-  return tfc.maximum(x, y);
-}
-
-/**
- * Element-wise sin.
- *
- * @param x Input Tensor or Variable.
- * @returns Element-wise sin(x).
- */
-export function sin(x: Tensor): Tensor {
-  return tfc.sin(x);
-}
-
-/**
- * Element-wise cos.
- *
- * @param x Input Tensor or Variable.
- * @returns Element-wise cos(x).
- */
-export function cos(x: Tensor): Tensor {
-  return tfc.cos(x);
 }
 
 /* Normalization operations. */
@@ -1595,28 +1395,6 @@ export function elu(x: Tensor, alpha = 1): Tensor {
 }
 
 /**
- * Scaled Exponential linear unit (SELU).
- * Stable and Attracting Fixed Point (0, 1) for Normalized Weights.
- * see: https://arxiv.org/abs/1706.02515
- *
- * @param x A tensor or variable to compute the activation function for.
- * @return Output of the SELU operation.
- */
-export function selu(x: Tensor): Tensor {
-  return tfc.selu(x);
-}
-
-/**
- * Rectified linear unit (ReLU).
- * @param x Input Tensor.
- * @return ReLU output.
- */
-export function relu(x: Tensor): Tensor {
-  // TODO(cais): Add params alpha and max_value.
-  return tfc.relu(x);
-}
-
-/**
  * Softplus of a tensor.
  *
  * Defined as log(exp(x) + 1), element-wise.
@@ -1638,16 +1416,6 @@ export function softplus(x: Tensor): Tensor {
  */
 export function softsign(x: Tensor): Tensor {
   return tfc.div(x, tfc.add(getScalar(1), tfc.abs(x)));
-}
-
-/**
- * Element-wise hyperbolic tan.
- *
- * @param x Input Tensor or Variable.
- * @returns Element-wise tanh(x).
- */
-export function tanh(x: Tensor): Tensor {
-  return tfc.tanh(x);
 }
 
 /**
@@ -1673,7 +1441,7 @@ export function dropout(
     throw new NotImplementedError('seed is not implemented for dropout yet.');
   }
   let multiplier = tfc.step(tfc.add(
-      neg(level) as Scalar, randomUniform(x.shape, 0, 1, DType.float32)));
+      tfc.neg(level) as Scalar, randomUniform(x.shape, 0, 1, DType.float32)));
   // Scale the kept elements, so the expected sum is unchanged.
   multiplier = tfc.mul(
       divide(getScalar(1), subtract(getScalar(1), level)) as Scalar,
@@ -1687,9 +1455,9 @@ export function dropout(
  * @param axis Axis along which to perform normalization.
  */
 export function l2Normalize(x: Tensor, axis?: number): Tensor {
-  const squareSum = sum(square(x), axis, true);
+  const squareSum = tfc.sum(square(x), axis, true);
   const epsilonTensor = scalarTimesArray(scalar(epsilon()), tfc.onesLike(x));
-  const norm = sqrt(maximum(squareSum, epsilonTensor));
+  const norm = tfc.sqrt(tfc.maximum(squareSum, epsilonTensor));
   return divide(x, norm);
 }
 
@@ -1752,7 +1520,7 @@ export function conv1dWithBias(
   // TODO(cais): Support CAUSAL padding mode.
 
   if (dataFormat === 'channelsFirst') {
-    x = transpose(x, [0, 2, 1]);  // NCW -> NWC.
+    x = tfc.transpose(x, [0, 2, 1]);  // NCW -> NWC.
   }
   if (padding === 'causal') {
     throw new NotImplementedError(
@@ -2004,7 +1772,7 @@ export function categoricalCrossentropy(
     output = softmax(output);
   } else {
     // scale preds so that the class probabilities of each sample sum to 1.
-    const outputSum = sum(output, shape(output).length - 1, true);
+    const outputSum = tfc.sum(output, shape(output).length - 1, true);
     output = divide(output, outputSum);
   }
   output = clip(output, epsilon(), 1 - epsilon());
@@ -2043,7 +1811,7 @@ export function binaryCrossentropy(
   let y: Tensor;
   if (!fromLogits) {
     y = clip(output, epsilon(), 1 - epsilon());
-    y = log(divide(y, subtract(tfc.onesLike(y), y)));
+    y = tfc.log(divide(y, subtract(tfc.onesLike(y), y)));
   } else {
     y = output;
   }
@@ -2079,13 +1847,6 @@ export function sigmoidCrossEntropyWithLogits(
       tfc.log(tfc.add(getScalar(1), tfc.exp(tfc.neg(tfc.abs(output)))));
   const result = tfc.add(tfc.sub(maxOutput, outputXTarget), sigmoidOutput);
   return result;
-}
-
-/**
- * Element-wise sigmoid.
- */
-export function sigmoid(x: Tensor): Tensor {
-  return tfc.sigmoid(x);
 }
 
 /**
@@ -2170,7 +1931,7 @@ export function rnn(
   // Transpose to time-major, i.e., from [batch, time, ...] to [time, batch,
   // ...].
   const axes = [1, 0].concat(math_utils.range(2, ndim));
-  inputs = transpose(inputs, axes);
+  inputs = tfc.transpose(inputs, axes);
 
   if (mask != null) {
     throw new NotImplementedError(
@@ -2192,7 +1953,7 @@ export function rnn(
   }
 
   if (goBackwards) {
-    inputs = reverse(inputs, 0);
+    inputs = tfc.reverse(inputs, 0);
   }
 
   // Porting Note: PyKeras with TensorFlow backend uses a symbolic loop
@@ -2228,7 +1989,7 @@ export function rnn(
 
   return [
     lastOutput,
-    transpose(
+    tfc.transpose(
         outputs, [1, 0].concat(math_utils.range(2, outputs.shape.length))),
     states
   ];

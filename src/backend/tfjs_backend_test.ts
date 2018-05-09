@@ -13,6 +13,7 @@
  */
 
 // tslint:disable:max-line-length
+import * as tfc from '@tensorflow/tfjs-core';
 import {Scalar, scalar, slice, Tensor,memory, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
@@ -278,56 +279,6 @@ describeMathCPUAndGPU('Reshape', () => {
     expect(reshaped.dataSync()).toEqual(new Float32Array([
       10, 20, 30, 40, 50, 60, -10, -20, -30, -40, -50, -60
     ]));
-  });
-});
-
-describeMathCPUAndGPU('Transpose', () => {
-  it('2D 2x2 implicit perm', () => {
-    const x = tensor2d([[1, 3], [-3, 7]], [2, 2]);
-    expectTensorsClose(K.transpose(x), tensor2d([[1, -3], [3, 7]], [2, 2]));
-  });
-
-  it('2D 3x2 explicit perm', () => {
-    const x = tensor2d([[1, 3], [-3, 7], [4, 2]], [3, 2]);
-    expectTensorsClose(
-        K.transpose(x, [1, 0]), tensor2d([[1, -3, 4], [3, 7, 2]], [2, 3]));
-  });
-
-  it('3D 2x2x2 explicit perm', () => {
-    const x = tensor3d([[[1, 3], [-3, 7]], [[10, 11], [12, 13]]], [2, 2, 2]);
-    expectTensorsClose(
-        K.transpose(x, [1, 2, 0]),
-        tensor3d([[[1, 10], [3, 11]], [[-3, 12], [7, 13]]], [2, 2, 2]));
-  });
-});
-
-describeMathCPUAndGPU('Reverse', () => {
-  it('1D, along first axis', () => {
-    const x = tensor1d([1, 3, -3, 7]);
-    expectTensorsClose(K.reverse(x, 0), tensor1d([7, -3, 3, 1]));
-  });
-  it('2D, along first axis', () => {
-    const x = tensor2d([[1, 3], [-3, 7]], [2, 2]);
-    expectTensorsClose(K.reverse(x, 0), tensor2d([[-3, 7], [1, 3]], [2, 2]));
-  });
-  it('2D, along second axis', () => {
-    const x = tensor2d([[1, 3], [-3, 7]], [2, 2]);
-    expectTensorsClose(K.reverse(x, 1), tensor2d([[3, 1], [7, -3]], [2, 2]));
-    expectTensorsClose(K.reverse(x, -1), tensor2d([[3, 1], [7, -3]], [2, 2]));
-  });
-  it('2D, along both axes', () => {
-    const x = tensor2d([[1, 3], [-3, 7]], [2, 2]);
-    expectTensorsClose(
-        K.reverse(x, [0, 1]), tensor2d([[7, -3], [3, 1]], [2, 2]));
-    expectTensorsClose(
-        K.reverse(x, [0, -1]), tensor2d([[7, -3], [3, 1]], [2, 2]));
-  });
-  it('3D', () => {
-    const x = tensor3d([3, 7], [1, 2, 1]);
-    expectTensorsClose(K.reverse(x, 0), tensor3d([3, 7], [1, 2, 1]));
-    expectTensorsClose(K.reverse(x, 1), tensor3d([7, 3], [1, 2, 1]));
-    expectTensorsClose(K.reverse(x, 2), tensor3d([3, 7], [1, 2, 1]));
-    expectTensorsClose(K.reverse(x, -1), tensor3d([3, 7], [1, 2, 1]));
   });
 });
 
@@ -1155,23 +1106,6 @@ describeMathCPUAndGPU('eye (I-matrix builder)', () => {
   });
 });
 
-describeMathCPUAndGPU('neg', () => {
-  it('negates its tensor', () => {
-    const x = tensor1d([-1, 0, 1]);
-    const expected = tensor1d([1, 0, -1]);
-    expectTensorsClose(K.neg(x), expected);
-  });
-});
-
-describeMathCPUAndGPU('Add', () => {
-  it('3D', () => {
-    const shape = [2, 3, 4];
-    const x = K.ones(shape);
-    const y = K.ones(shape);
-    expectTensorsClose(
-        K.add(x, y), K.scalarTimesArray(scalar(2), K.ones(shape)));
-  });
-});
 
 describeMathCPUAndGPU('subtract', () => {
   it('3D', () => {
@@ -1576,146 +1510,12 @@ describeMathCPUAndGPU('Gather', () => {
   });
 });
 
-describeMathCPUAndGPU('Max', () => {
-  it('reduce_max', () => {
-    expectTensorsClose(K.max(tensor2d([[4, -1], [0, -2]], [2, 2])), scalar(4));
-  });
-  it('max 2D, axis=1, keepdims=false', () => {
-    expectTensorsClose(
-        K.max(tensor2d([[4, -1], [0, -2]], [2, 2]), 1), tensor1d([4, 0]));
-  });
-  it('max 2D, axis=1, keepdims=true', () => {
-    expectTensorsClose(
-        K.max(tensor2d([[4, -1], [0, -2]], [2, 2]), 1, true),
-        tensor2d([[4], [0]], [2, 1]));
-  });
-  it('max 3D, axis=[1,2], keepdims=false', () => {
-    expectTensorsClose(
-        K.max(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2]),
-        tensor1d([4, 40]));
-  });
-  it('max 3D, axis=[1,2], keepdims=true', () => {
-    expectTensorsClose(
-        K.max(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2], true),
-        tensor3d([[[4]], [[40]]], [2, 1, 1]));
-  });
-  it('reduce_max keepdims=true', () => {
-    expectTensorsClose(
-        K.max(tensor2d([[4, -1], [0, -2]], [2, 2]), undefined, true),
-        tensor2d([[4]], [1, 1]));
-  });
-});
-
-describeMathCPUAndGPU('Min', () => {
-  it('reduce_min', () => {
-    expectTensorsClose(K.min(tensor2d([[4, -1], [0, -2]], [2, 2])), scalar(-2));
-  });
-  it('min 2D, axis=1, keepdims=false', () => {
-    expectTensorsClose(
-        K.min(tensor2d([[4, -1], [0, -2]], [2, 2]), 1), tensor1d([-1, -2]));
-  });
-  it('min 2D, axis=1, keepdims=true', () => {
-    expectTensorsClose(
-        K.min(tensor2d([[4, -1], [0, -2]], [2, 2]), 1, true),
-        tensor2d([[-1], [-2]], [2, 1]));
-  });
-  it('min 3D, axis=[1,2], keepdims=false', () => {
-    expectTensorsClose(
-        K.min(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2]),
-        tensor1d([-2, -20]));
-  });
-  it('min 3D, axis=[1,2], keepdims=true', () => {
-    expectTensorsClose(
-        K.min(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2], true),
-        tensor3d([[[-2]], [[-20]]], [2, 1, 1]));
-  });
-  it('reduce_min keepdims=true', () => {
-    expectTensorsClose(
-        K.min(tensor2d([[4, -1], [0, -2]], [2, 2]), undefined, true),
-        tensor2d([[-2]], [1, 1]));
-  });
-});
-
-describeMathCPUAndGPU('Sum', () => {
-  it('reduce_sum', () => {
-    expectTensorsClose(K.sum(tensor2d([[4, -1], [0, -2]], [2, 2])), scalar(1));
-  });
-  it('sum 2D, axis=1, keepdims=false', () => {
-    expectTensorsClose(
-        K.sum(tensor2d([[4, -1], [0, -2]], [2, 2]), 1), tensor1d([3, -2]));
-  });
-  it('sum 2D, axis=1, keepdims=true', () => {
-    expectTensorsClose(
-        K.sum(tensor2d([[4, -1], [0, -2]], [2, 2]), 1, true),
-        tensor2d([[3], [-2]], [2, 1]));
-  });
-  it('sum 3D, axis=[1,2], keepdims=false', () => {
-    expectTensorsClose(
-        K.sum(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2]),
-        tensor1d([1, 10]));
-  });
-  it('sum 3D, axis=[1,2], keepdims=true', () => {
-    expectTensorsClose(
-        K.sum(
-            tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-            [1, 2], true),
-        tensor3d([[[1]], [[10]]], [2, 1, 1]));
-  });
-  it('reduce_sum keepdims=true', () => {
-    expectTensorsClose(
-        K.sum(tensor2d([[4, -1], [0, -2]], [2, 2]), undefined, true),
-        tensor2d([[1]], [1, 1]));
-  });
-});
-
-describeMathCPUAndGPU('Abs', () => {
-  it('Element-wise abs', () => {
-    expectTensorsClose(
-        K.abs(tensor2d([[1, -1], [0, -2]], [2, 2])),
-        tensor2d([1, 1, 0, 2], [2, 2]));
-  });
-});
 
 describeMathCPUAndGPU('Square', () => {
   it('Element-wise square', () => {
     expectTensorsClose(
         K.square(tensor2d([[1, -2], [-3, 4]], [2, 2])),
         tensor2d([1, 4, 9, 16], [2, 2]));
-  });
-});
-
-describeMathCPUAndGPU('Sqrt', () => {
-  it('Element-wise sqrt', () => {
-    expectTensorsClose(
-        K.sqrt(tensor2d([[1, 4], [9, 16]], [2, 2])),
-        tensor2d([1, 2, 3, 4], [2, 2]));
-  });
-});
-
-
-describeMathCPUAndGPU('Exp', () => {
-  it('Element-wise Exp', () => {
-    expectTensorsClose(
-        K.exp(tensor2d([[0, 1], [3, 2]], [2, 2])),
-        tensor2d([Math.exp(0), Math.exp(1), Math.exp(3), Math.exp(2)], [2, 2]));
-  });
-});
-
-describeMathCPUAndGPU('Log', () => {
-  it('Element-wise log', () => {
-    expectTensorsClose(
-        K.log(tensor2d([[1, 1], [1, 1]], [2, 2])),
-        tensor2d([0, 0, 0, 0], [2, 2]));
   });
 });
 
@@ -1751,117 +1551,17 @@ describeMathCPUAndGPU('Clip', () => {
   });
 });
 
-describeMathCPUAndGPU('Equal', () => {
-  it('Element-wise 1D float32', () => {
-    const x = tensor1d([1, 3, 3, 7]);
-    const y = tensor1d([-1, -3, -3, 7]);
-    const output = K.equal(x, y);
-    expect(output.shape).toEqual([4]);
-    expect(Array.from(output.dataSync())).toEqual([0, 0, 0, 1]);
-  });
-  it('Element-wise 2D int32', () => {
-    const x = tensor2d([[0, 10], [20, 30]], [2, 2], 'int32');
-    const y = tensor2d([[0, 11], [22, 30]], [2, 2], 'int32');
-    const output = K.equal(x, y);
-    expect(output.shape).toEqual([2, 2]);
-    expect(Array.from(output.dataSync())).toEqual([1, 0, 0, 1]);
-  });
-});
-
-describeMathCPUAndGPU('Greater', () => {
-  it('Element-wise 1D float32', () => {
-    const x = tensor1d([1, 3, 3, 7]);
-    const y = tensor1d([0.9, 3, -3, 7.1]);
-    const output = K.greater(x, y);
-    expect(output.shape).toEqual([4]);
-    expect(Array.from(output.dataSync())).toEqual([1, 0, 1, 0]);
-  });
-  it('Element-wise 2D int32', () => {
-    const x = tensor2d([[0, 10], [20, 30]], [2, 2], 'int32');
-    const y = tensor2d([[0, 11], [19, 30]], [2, 2], 'int32');
-    const output = K.greater(x, y);
-    expect(output.shape).toEqual([2, 2]);
-    expect(Array.from(output.dataSync())).toEqual([0, 0, 1, 0]);
-  });
-});
-
-describeMathCPUAndGPU('GreaterEqual', () => {
-  it('Element-wise 1D float32', () => {
-    const x = tensor1d([1, 3, 3, 7]);
-    const y = tensor1d([0.9, 3, -3, 7.1]);
-    const output = K.greaterEqual(x, y);
-    expect(output.shape).toEqual([4]);
-    expect(Array.from(output.dataSync())).toEqual([1, 1, 1, 0]);
-  });
-  it('Element-wise 2D int32', () => {
-    const x = tensor2d([[0, 10], [20, 30]], [2, 2], 'int32');
-    const y = tensor2d([[0, 11], [19, 30]], [2, 2], 'int32');
-    const output = K.greaterEqual(x, y);
-    expect(output.shape).toEqual([2, 2]);
-    expect(Array.from(output.dataSync())).toEqual([1, 0, 1, 1]);
-  });
-});
-
-describeMathCPUAndGPU('maximum', () => {
-  it('Element-wise maximum', () => {
-    expectTensorsClose(
-        K.maximum(
-            tensor2d([[0, 1], [1, -1]], [2, 2]),
-            tensor2d([[1, 0], [1, 1]], [2, 2])),
-        K.ones([2, 2]));
-  });
-});
-
-describeMathCPUAndGPU('minimum', () => {
-  it('Element-wise minimum', () => {
-    expectTensorsClose(
-        K.minimum(
-            tensor2d([[0, 1], [1, -1]], [2, 2]),
-            tensor2d([[1, 0], [1, 1]], [2, 2])),
-        tensor2d([[0, 0], [1, -1]], [2, 2]));
-  });
-  it('Broadcast element-wise minimum', () => {
-    expectTensorsClose(
-        K.minimum(tensor2d([[0, 1], [1, -1]], [2, 2]), tensor1d([0.0])),
-        tensor2d([[0, 0], [0, -1]], [2, 2]));
-  });
-});
-
-describeMathCPUAndGPU('Sin', () => {
-  it('Element-wise sin', () => {
-    expectTensorsClose(
-        K.sin(tensor2d([[1, 2], [3, 4]], [2, 2])),
-        tensor2d([Math.sin(1), Math.sin(2), Math.sin(3), Math.sin(4)], [2, 2]));
-  });
-});
-
-describeMathCPUAndGPU('Cos', () => {
-  it('Element-wise cos', () => {
-    expectTensorsClose(
-        K.cos(tensor2d([[1, 2], [3, 4]], [2, 2])),
-        tensor2d([Math.cos(1), Math.cos(2), Math.cos(3), Math.cos(4)], [2, 2]));
-  });
-});
 
 describeMathCPUAndGPU('softsign', () => {
   it('Element-wise softsign', () => {
     expectTensorsClose(
-        K.tanh(tensor2d([[-2, -1], [1, 2]], [2, 2])),
+        tfc.tanh(tensor2d([[-2, -1], [1, 2]], [2, 2])),
         tensor2d(
             [Math.tanh(-2), Math.tanh(-1), Math.tanh(1), Math.tanh(2)],
             [2, 2]));
   });
 });
 
-describeMathCPUAndGPU('Hyperbolic tan', () => {
-  it('Element-wise tanh', () => {
-    expectTensorsClose(
-        K.tanh(tensor2d([[-2, -1], [1, 2]], [2, 2])),
-        tensor2d(
-            [Math.tanh(-2), Math.tanh(-1), Math.tanh(1), Math.tanh(2)],
-            [2, 2]));
-  });
-});
 
 describeMathCPUAndGPU('batchNormalization', () => {
   it('2D, no broadcast, no gamma, no beta', () => {
@@ -2124,31 +1824,6 @@ describeMathCPUAndGPU('elu', () => {
   });
 });
 
-describeMathCPUAndGPU('selu', () => {
-  it('selu', () => {
-    const alpha = 1.6732632423543772848170429916717;
-    const scale = 1.0507009873554804934193349852946;
-    const xData = [-1, 0, 1, -1];
-    expectTensorsClose(
-        K.selu(tensor2d(xData, [2, 2])),
-        tensor2d(
-            xData.map(x => scale * (x < 0 ? (alpha * (Math.exp(x) - 1)) : x)),
-            [2, 2]));
-  });
-});
-
-
-describeMathCPUAndGPU('ReLU', () => {
-  it('ReLU', () => {
-    expectTensorsClose(
-        K.relu(tensor2d([[-1, 1], [1, -1]], [2, 2])),
-        tensor2d([0, 1, 1, 0], [2, 2]));
-    expectTensorsClose(
-        K.relu(tensor2d([[1, -1], [-1, 1]], [2, 2])),
-        tensor2d([1, 0, 0, 1], [2, 2]));
-  });
-});
-
 describeMathCPUAndGPU('softplus', () => {
   it('softplus', () => {
     const xData = [-1, 0, 1, -1];
@@ -2190,7 +1865,7 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
         it(testTitle, () => {
           let x: Tensor = tensor3d(xLength4Data, [1, 4, 1]);
           if (dataFormat === 'channelsFirst') {
-            x = K.transpose(x, [0, 2, 1]);  // NWC -> NCW.
+            x = tfc.transpose(x, [0, 2, 1]);  // NWC -> NCW.
           }
 
           let kernelData: number[] = [];
@@ -2200,7 +1875,7 @@ describeMathCPUAndGPU('conv1dWithBias', () => {
             biasData = biasData.concat([biasScalarData + i]);
           }
           const kernel =
-              K.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
+          tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
           const bias = tensor1d(biasData);
 
           const y = K.conv1dWithBias(
@@ -2250,7 +1925,7 @@ describeMathCPUAndGPU('conv1d', () => {
       kernelData = kernelData.concat(kernelLength2Data);
     }
     const kernel =
-        K.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
+    tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
     const y = K.conv1d(x, kernel, stride, paddingMode, dataFormat);
     expectTensorsClose(y, tensor3d([-10, -10, -40, -40], [1, 2, 2]));
   });
@@ -2276,7 +1951,7 @@ describeMathCPUAndGPU('conv2d', () => {
         it(testTitle, () => {
           let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
           if (dataFormat !== 'channelsFirst') {
-            x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+            x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
           }
           const kernel = tensor4d(kernel2by2Data, [2, 2, 1, 1]);
           const y = K.conv2d(x, kernel, [stride, stride], 'valid', dataFormat);
@@ -2290,7 +1965,7 @@ describeMathCPUAndGPU('conv2d', () => {
             yExpected = tensor4d([[[[-30, -30], [30, 30]]]], [1, 1, 2, 2]);
           }
           if (dataFormat !== 'channelsFirst') {
-            yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
+            yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
           }
           expectTensorsClose(y, yExpected);
         });
@@ -2322,7 +1997,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
           it(testTitle, () => {
             let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
             if (dataFormat !== 'channelsFirst') {
-              x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+              x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
             }
 
             let kernelData: number[] = [];
@@ -2331,7 +2006,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
               kernelData = kernelData.concat(kernel2by2Data);
               biasData = biasData.concat(biasScalarData);
             }
-            const kernel = K.transpose(
+            const kernel = tfc.transpose(
                 tensor4d(kernelData, [outChannels, 2, 2, 1]), [1, 2, 3, 0]);
             const bias = tensor1d(biasData);
 
@@ -2357,7 +2032,7 @@ describeMathCPUAndGPU('conv2dWithBias', () => {
             }
             let yExpected: Tensor = tensor4d(yExpectedData, yExpectedShape);
             if (dataFormat !== 'channelsFirst') {
-              yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
+              yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
             }
             expectTensorsClose(y, yExpected);
           });
@@ -2388,7 +2063,7 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
           it(testTitle, () => {
             let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
             if (dataFormat !== 'channelsFirst') {
-              x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+              x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
             }
 
             let kernel: Tensor4D;
@@ -2426,7 +2101,7 @@ describeMathCPUAndGPU('depthwiseConv2d', () => {
               }
             }
             if (dataFormat !== 'channelsFirst') {
-              yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
+              yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
             }
             expectTensorsClose(y, yExpected);
           });
@@ -2465,7 +2140,7 @@ describeMathCPUAndGPU('pool2d', () => {
         it(testTitle, () => {
           let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
           if (dataFormat !== 'channelsFirst') {
-            x = K.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+            x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
           }
           let yExpected: Tensor;
           if (poolMode === 'avg') {
@@ -2492,7 +2167,7 @@ describeMathCPUAndGPU('pool2d', () => {
             }
           }
           if (dataFormat !== 'channelsFirst') {
-            yExpected = K.transpose(yExpected, [0, 2, 3, 1]);
+            yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
           }
           const y = K.pool2d(
               x, [2, 2], [stride, stride], 'same', dataFormat, poolMode);
@@ -2523,7 +2198,7 @@ describeMathCPUAndGPU('pool2d', () => {
   for (const poolMode of poolModes) {
     it(`5x5, 2, valid, CHANNEL_LAST, ${poolMode}`, () => {
       const x5by5 =
-          K.transpose(tensor4d(x5by5Data, [1, 1, 5, 5]), [0, 2, 3, 1]);
+      tfc.transpose(tensor4d(x5by5Data, [1, 1, 5, 5]), [0, 2, 3, 1]);
       let yExpected: Tensor4D;
       if (poolMode === 'avg') {
         yExpected = tensor4d([[[[0.75, 4.5], [-0.25, -2]]]], [1, 1, 2, 2]);
@@ -2532,7 +2207,7 @@ describeMathCPUAndGPU('pool2d', () => {
       }
       const y =
           K.pool2d(x5by5, [2, 2], [2, 2], 'valid', 'channelsLast', poolMode);
-      expectTensorsClose(y, K.transpose(yExpected, [0, 2, 3, 1]));
+      expectTensorsClose(y, tfc.transpose(yExpected, [0, 2, 3, 1]));
     });
   }
 });
@@ -2661,17 +2336,17 @@ describeMathCPUAndGPU('sparseCategoricalCrossentropy ', () => {
 
 describeMathCPUAndGPU('binaryCrossentropy', () => {
   function _binaryCrossentropy(target: Tensor, output: Tensor): Tensor {
-    const targetComplement = K.scalarPlusArray(scalar(1), K.neg(target));
-    const outputComplement = K.scalarPlusArray(scalar(1), K.neg(output));
-    return K.neg(K.add(
-        K.multiply(target, K.log(output)),
-        K.multiply(targetComplement, K.log(outputComplement))));
+    const targetComplement = K.scalarPlusArray(scalar(1), tfc.neg(target));
+    const outputComplement = K.scalarPlusArray(scalar(1), tfc.neg(output));
+    return tfc.neg(tfc.add(
+        K.multiply(target, tfc.log(output)),
+        K.multiply(targetComplement, tfc.log(outputComplement))));
   }
 
   it('from logits', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
-    const sigmoidX = K.sigmoid(x);
+    const sigmoidX = tfc.sigmoid(x);
     const expected = _binaryCrossentropy(target, sigmoidX);
     const result = K.binaryCrossentropy(target, x, true);
     expectTensorsClose(result, expected);
@@ -2690,12 +2365,12 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
   it('outputs sigmoid cross-entropy', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
-    const targetComplement = K.scalarPlusArray(scalar(1), K.neg(target));
-    const sigmoidX = K.sigmoid(x);
-    const sigmoidXComplement = K.scalarPlusArray(scalar(1), K.neg(sigmoidX));
-    const expected = K.add(
-        K.multiply(target, K.neg(K.log(sigmoidX))),
-        K.multiply(targetComplement, K.neg(K.log(sigmoidXComplement))));
+    const targetComplement = K.scalarPlusArray(scalar(1), tfc.neg(target));
+    const sigmoidX = tfc.sigmoid(x);
+    const sigmoidXComplement = K.scalarPlusArray(scalar(1), tfc.neg(sigmoidX));
+    const expected = tfc.add(
+        K.multiply(target, tfc.neg(tfc.log(sigmoidX))),
+        K.multiply(targetComplement, tfc.neg(tfc.log(sigmoidXComplement))));
     const result = K.sigmoidCrossEntropyWithLogits(target, x);
     expectTensorsClose(result, expected);
   });
@@ -2705,7 +2380,7 @@ describeMathCPUAndGPU('Sigmoid', () => {
   it('2D', () => {
     const xValues = [-5, -2, 0, 1, 2, 5];
     const x = tensor2d(xValues, [2, 3]);
-    const y = K.sigmoid(x);
+    const y = tfc.sigmoid(x);
     const yValuesExpected = xValues.map(v => 1 / (1 + Math.exp(-v)));
     expectTensorsClose(y, tensor2d(yValuesExpected, [2, 3]));
   });
@@ -2755,7 +2430,7 @@ describe('inTrainPhase', () => {
 function rnnStepForTest(inputs: Tensor, states: Tensor[]): [Tensor, Tensor[]] {
   const mean = K.mean(inputs) as Scalar;
   const newStates = states.map(state => K.scalarPlusArray(mean, state));
-  const output = K.neg(newStates[0]);
+  const output = tfc.neg(newStates[0]);
   return [output, newStates];
 }
 

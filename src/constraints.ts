@@ -11,6 +11,7 @@
 /* Original source: keras/contraints.py */
 
 // tslint:disable:max-line-length
+import * as tfc from '@tensorflow/tfjs-core';
 import {doc, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
@@ -21,7 +22,7 @@ import {deserializeKerasObject, serializeKerasObject} from './utils/generic_util
  * Helper function used by many of the Constraints to find the L2Norms.
  */
 function calcL2Norms(w: Tensor, axis: number): Tensor {
-  return K.sqrt(K.sum(K.square(w), axis, true));
+  return tfc.sqrt(tfc.sum(K.square(w), axis, true));
 }
 
 /**
@@ -145,7 +146,7 @@ serialization.SerializationMap.register(UnitNorm);
 export class NonNeg extends Constraint {
   static readonly className = 'NonNeg';
   apply(w: Tensor): Tensor {
-    return K.relu(w);
+    return tfc.relu(w);
   }
 }
 serialization.SerializationMap.register(NonNeg);
@@ -207,7 +208,7 @@ export class MinMaxNorm extends Constraint {
 
   apply(w: Tensor): Tensor {
     const norms = calcL2Norms(w, this.axis);
-    const desired = K.add(
+    const desired = tfc.add(
         K.scalarTimesArray(
             K.getScalar(this.rate),
             K.clip(norms, this.minValue, this.maxValue)),

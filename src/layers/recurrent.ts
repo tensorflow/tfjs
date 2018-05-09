@@ -12,9 +12,9 @@
  * TensorFlow.js Layers: Recurrent Neural Network Layers.
  */
 
-import {doc, serialization, Tensor, util} from '@tensorflow/tfjs-core';
-
 // tslint:disable:max-line-length
+import {add, doc, neg, serialization, sum, Tensor, util} from '@tensorflow/tfjs-core';
+
 import {ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
@@ -590,7 +590,7 @@ export class RNN extends Layer {
     // [Samples, timeSteps, inputDim].
     let initialState = K.zeros(inputs.shape);
     // [Samples].
-    initialState = K.sum(initialState, [1, 2]);
+    initialState = sum(initialState, [1, 2]);
     initialState = K.expandDims(initialState);  // [Samples, 1].
 
     if (Array.isArray(this.cell.stateSize)) {
@@ -892,7 +892,7 @@ export class SimpleRNNCell extends RNNCell {
     if (this.bias != null) {
       h = K.biasAdd(h, this.bias.read());
     }
-    let output = K.add(h, K.dot(prevOutput, this.recurrentKernel.read()));
+    let output = add(h, K.dot(prevOutput, this.recurrentKernel.read()));
     if (this.activation != null) {
       output = this.activation(output);
     }
@@ -1348,12 +1348,10 @@ export class GRUCell extends RNNCell {
       const hTMinus1Z = hTMinus1;
       const hTMinus1R = hTMinus1;
       const hTMinus1H = hTMinus1;
-      z = this.recurrentActivation(
-          K.add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
-      r = this.recurrentActivation(
-          K.add(xR, K.dot(hTMinus1R, recurrentKernelR)));
+      z = this.recurrentActivation(add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
+      r = this.recurrentActivation(add(xR, K.dot(hTMinus1R, recurrentKernelR)));
       hh = this.activation(
-          K.add(xH, K.dot(K.multiply(r, hTMinus1H), recurrentKernelH)));
+          add(xH, K.dot(K.multiply(r, hTMinus1H), recurrentKernelH)));
     } else {
       // TODO(cais): Add input dropout.
       let matrixX = K.dot(inputs, this.kernel.read());
@@ -1371,20 +1369,20 @@ export class GRUCell extends RNNCell {
       const recurrentR =
           K.sliceAlongLastAxis(matrixInner, this.units, this.units);
 
-      z = this.recurrentActivation(K.add(xZ, recurrentZ));
-      r = this.recurrentActivation(K.add(xR, recurrentR));
+      z = this.recurrentActivation(add(xZ, recurrentZ));
+      r = this.recurrentActivation(add(xR, recurrentR));
 
       const xH = K.sliceAlongLastAxis(matrixX, 2 * this.units, this.units);
       const recurrentH = K.dot(
           K.multiply(r, hTMinus1),
           K.sliceAlongLastAxis(
               this.recurrentKernel.read(), 2 * this.units, this.units));
-      hh = this.activation(K.add(xH, recurrentH));
+      hh = this.activation(add(xH, recurrentH));
     }
 
-    const h = K.add(
-        K.multiply(z, hTMinus1),
-        K.multiply(K.scalarPlusArray(K.getScalar(1), K.neg(z)), hh));
+    const h =
+        add(K.multiply(z, hTMinus1),
+            K.multiply(K.scalarPlusArray(K.getScalar(1), neg(z)), hh));
     // TODO(cais): Add use_learning_phase flag properly.
     return [h, h];
   }
@@ -1831,22 +1829,18 @@ export class LSTMCell extends RNNCell {
       const hTMinus1F = hTMinus1;
       const hTMinus1C = hTMinus1;
       const hTMinus1O = hTMinus1;
-      i = this.recurrentActivation(
-          K.add(xI, K.dot(hTMinus1I, recurrentKernelI)));
-      f = this.recurrentActivation(
-          K.add(xF, K.dot(hTMinus1F, recurrentKernelF)));
-      c = K.add(
+      i = this.recurrentActivation(add(xI, K.dot(hTMinus1I, recurrentKernelI)));
+      f = this.recurrentActivation(add(xF, K.dot(hTMinus1F, recurrentKernelF)));
+      c = add(
           K.multiply(f, cTMinus1),
           K.multiply(
-              i,
-              this.activation(K.add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
-      o = this.recurrentActivation(
-          K.add(xO, K.dot(hTMinus1O, recurrentKernelO)));
+              i, this.activation(add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
+      o = this.recurrentActivation(add(xO, K.dot(hTMinus1O, recurrentKernelO)));
     } else {
       // TODO(cais): Add input dropout.
       let z = K.dot(inputs, this.kernel.read());
       // TODO(cais): Add recurrent dropout.
-      z = K.add(z, K.dot(hTMinus1, this.recurrentKernel.read()));
+      z = add(z, K.dot(hTMinus1, this.recurrentKernel.read()));
       if (this.useBias) {
         z = K.biasAdd(z, this.bias.read());
       }
@@ -1858,7 +1852,7 @@ export class LSTMCell extends RNNCell {
 
       i = this.recurrentActivation(z0);
       f = this.recurrentActivation(z1);
-      c = K.add(K.multiply(f, cTMinus1), K.multiply(i, this.activation(z2)));
+      c = add(K.multiply(f, cTMinus1), K.multiply(i, this.activation(z2)));
       o = this.recurrentActivation(z3);
     }
 

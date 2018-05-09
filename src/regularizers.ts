@@ -11,7 +11,7 @@
 /* original source: keras/regularizers.py */
 
 // tslint:disable:max-line-length
-import {doc, Scalar, serialization, Tensor, zeros} from '@tensorflow/tfjs-core';
+import {abs, add, doc, Scalar, serialization, sum, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
@@ -75,11 +75,11 @@ export class L1L2 extends Regularizer {
     let regularization: Tensor = zeros([1]);
     if (this.hasL1) {
       regularization =
-          K.add(regularization, K.sum(K.scalarTimesArray(this.l1, K.abs(x))));
+          add(regularization, sum(K.scalarTimesArray(this.l1, abs(x))));
     }
     if (this.hasL2) {
-      regularization = K.add(
-          regularization, K.sum(K.scalarTimesArray(this.l2, K.square(x))));
+      regularization =
+          add(regularization, sum(K.scalarTimesArray(this.l2, K.square(x))));
     }
     return regularization.asScalar();
   }

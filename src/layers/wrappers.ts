@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {serialization, Tensor} from '@tensorflow/tfjs-core';
+import {add, reverse, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -406,17 +406,17 @@ export class Bidirectional extends Wrapper {
     }
 
     if (this.returnSequences) {
-      yRev = K.reverse(yRev as Tensor, 1);
+      yRev = reverse(yRev as Tensor, 1);
     }
 
     let output: Tensor|Tensor[];
     if (this.mergeMode === 'concat') {
       output = K.concatenate([y as Tensor, yRev as Tensor]);
     } else if (this.mergeMode === 'sum') {
-      output = K.add(y as Tensor, yRev as Tensor);
+      output = add(y as Tensor, yRev as Tensor);
     } else if (this.mergeMode === 'ave') {
       output = K.scalarTimesArray(
-          K.getScalar(0.5), K.add(y as Tensor, yRev as Tensor));
+          K.getScalar(0.5), add(y as Tensor, yRev as Tensor));
     } else if (this.mergeMode === 'mul') {
       output = K.multiply(y as Tensor, yRev as Tensor);
     } else if (this.mergeMode == null) {
