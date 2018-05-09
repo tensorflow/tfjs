@@ -28,6 +28,7 @@ import unittest
 
 import keras
 import tensorflow as tf
+import tensorflow_hub as hub
 
 import tensorflowjs as tfjs
 
@@ -92,6 +93,26 @@ def _createTensorFlowSavedModel(name_scope, save_path):
 
     builder.save()
 
+def _create_hub_module(save_path):
+  """Create a TensorFlow Hub module for testing.
+
+  Args:
+    save_path: The directory path in which to save the model.
+  """
+  # Module function that doubles its input.
+  def double_module_fn():
+    w = tf.Variable([2.0, 4.0])
+    x = tf.placeholder(dtype=tf.float32)
+    hub.add_signature(inputs=x, outputs=x*w)
+  graph = tf.Graph()
+  with graph.as_default():
+    spec = hub.create_module_spec(double_module_fn)
+    m = hub.Module(spec)
+  # Export the module.
+  with tf.Session(graph=graph) as sess:
+    sess.run(tf.global_variables_initializer())
+    m.export(save_path, sess)
+
 
 class APIAndShellTest(tf.test.TestCase):
   """Tests for the Python API of the pip package."""
@@ -99,9 +120,10 @@ class APIAndShellTest(tf.test.TestCase):
   @classmethod
   def setUpClass(cls):
     cls.class_tmp_dir = tempfile.mkdtemp()
-    cls.tf_saved_model_dir = os.path.join(cls.class_tmp_dir,
-                                          'tf_saved_model')
+    cls.tf_saved_model_dir = os.path.join(cls.class_tmp_dir, 'tf_saved_model')
     _createTensorFlowSavedModel('a', cls.tf_saved_model_dir)
+    cls.tf_hub_module_dir = os.path.join(cls.class_tmp_dir, 'tf_hub_module')
+    _create_hub_module(cls.tf_hub_module_dir)
 
   @classmethod
   def tearDownClass(cls):
@@ -303,6 +325,33 @@ class APIAndShellTest(tf.test.TestCase):
         'weights': [{
             'shape': [2, 2],
             'name': 'a/Softmax',
+            'dtype': 'float32'
+        }]
+    }]
+    # Load the saved weights as a JSON string.
+    output_json = json.load(
+        open(os.path.join(output_dir, 'weights_manifest.json'), 'rt'))
+    self.assertEqual(output_json, weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(os.path.join(output_dir, 'tensorflowjs_model.pb')))
+    self.assertTrue(glob.glob(os.path.join(output_dir, 'group*-*')))
+
+  def testConvertTFHubModuleWithCommandLineWorks(self):
+    output_dir = os.path.join(self._tmp_dir)
+    process = subprocess.Popen([
+        'tensorflowjs_converter', '--input_format', 'tf_hub',
+        self.tf_hub_module_dir, output_dir
+    ])
+    process.communicate()
+    self.assertEqual(0, process.returncode)
+
+    weights = [{
+        'paths': ['group1-shard1of1'],
+        'weights': [{
+            'shape': [2],
+            'name': 'module/Variable',
             'dtype': 'float32'
         }]
     }]

@@ -159,6 +159,11 @@ def main():
       '"logits,activations". Applicable only if input format is '
       '"tf_saved_model" or "tf_session_bundle".')
   parser.add_argument(
+      '--signature_name',
+      type=str,
+      help='Signature of the TF-Hub module to load. Applicable only if input'
+      ' format is "tf_hub".')
+  parser.add_argument(
       '--saved_model_tags',
       type=str,
       default='serve',
@@ -200,6 +205,11 @@ def main():
         '"tf_saved_model", "tf_session_bundle" and "tf_frozen_model", '
         'but the current input format is "%s".' % FLAGS.input_format)
 
+  if FLAGS.signature_name and FLAGS.input_format != 'tf_hub':
+    raise ValueError(
+        'The --signature_name is applicable only to "tf_hub" input format, '
+        'but the current input format is "%s".' % FLAGS.input_format)
+
   # TODO(cais, piyu): More conversion logics can be added as additional
   #   branches below.
   if FLAGS.input_format == 'keras' and FLAGS.output_format == 'tensorflowjs':
@@ -228,8 +238,12 @@ def main():
 
   elif (FLAGS.input_format == 'tf_hub' and
         FLAGS.output_format == 'tensorflowjs'):
-    tf_saved_model_conversion.convert_tf_hub_module(FLAGS.input_path,
-                                                    FLAGS.output_path)
+    if FLAGS.signature_name:
+      tf_saved_model_conversion.convert_tf_hub_module(
+          FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name)
+    else:
+      tf_saved_model_conversion.convert_tf_hub_module(FLAGS.input_path,
+                                                      FLAGS.output_path)
 
   elif (FLAGS.input_format == 'tensorflowjs' and
         FLAGS.output_format == 'keras'):
