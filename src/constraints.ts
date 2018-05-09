@@ -86,10 +86,10 @@ export class MaxNorm extends Constraint {
 
   apply(w: Tensor): Tensor {
     const norms = calcL2Norms(w, this.axis);
-    const desired = K.clip(norms, 0, this.maxValue);
-    return K.multiply(
+    const desired = tfc.clipByValue(norms, 0, this.maxValue);
+    return tfc.mul(
         w,
-        K.divide(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
+        tfc.div(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
   }
 
   getConfig(): serialization.ConfigDict {
@@ -129,7 +129,7 @@ export class UnitNorm extends Constraint {
   }
 
   apply(w: Tensor): Tensor {
-    return K.divide(
+    return tfc.div(
         w,
         K.scalarPlusArray(K.getScalar(K.epsilon()), calcL2Norms(w, this.axis)));
   }
@@ -211,11 +211,11 @@ export class MinMaxNorm extends Constraint {
     const desired = tfc.add(
         K.scalarTimesArray(
             K.getScalar(this.rate),
-            K.clip(norms, this.minValue, this.maxValue)),
+            tfc.clipByValue(norms, this.minValue, this.maxValue)),
         K.scalarTimesArray(K.getScalar(1.0 - this.rate), norms));
-    return K.multiply(
+    return tfc.mul(
         w,
-        K.divide(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
+        tfc.div(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
   }
 
   getConfig(): serialization.ConfigDict {

@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {doc, scalar, Scalar, serialization, Tensor, Tensor2D} from '@tensorflow/tfjs-core';
+import {doc, ones, randomUniform, scalar, Scalar, serialization, Tensor, Tensor2D, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
@@ -63,7 +63,7 @@ export class Zeros extends Initializer {
   static className = 'Zeros';
 
   apply(shape: Shape, dtype?: DType): Tensor {
-    return K.zeros(shape, dtype);
+    return zeros(shape, dtype);
   }
 }
 serialization.SerializationMap.register(Zeros);
@@ -75,7 +75,7 @@ export class Ones extends Initializer {
   static className = 'Ones';
 
   apply(shape: Shape, dtype?: DType): Tensor {
-    return K.ones(shape, dtype);
+    return ones(shape, dtype);
   }
 }
 serialization.SerializationMap.register(Ones);
@@ -97,7 +97,7 @@ export class Constant extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DType): Tensor {
-    return K.scalarTimesArray(scalar(this.value), K.ones(shape, dtype));
+    return K.scalarTimesArray(scalar(this.value), ones(shape, dtype));
   }
 
   getConfig(): serialization.ConfigDict {
@@ -140,7 +140,7 @@ export class RandomUniform extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DType): Tensor {
-    return K.randomUniform(shape, this.minval, this.maxval, dtype, this.seed);
+    return randomUniform(shape, this.minval, this.maxval, dtype);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -221,7 +221,11 @@ export class TruncatedNormal extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DType): Tensor {
-    return K.truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
+    if (dtype === DType.bool) {
+      throw new NotImplementedError(
+          `truncatedNormal does not support dType bool.`);
+    }
+    return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -365,10 +369,14 @@ export class VarianceScaling extends Initializer {
 
     if (this.distribution === 'normal') {
       const stddev = Math.sqrt(scale);
-      return K.truncatedNormal(shape, 0, stddev, dtype, this.seed);
+      if (dtype === DType.bool) {
+        throw new NotImplementedError(
+            `${this.getClassName()} does not support dType bool.`);
+      }
+      return truncatedNormal(shape, 0, stddev, dtype, this.seed);
     } else {
       const limit = Math.sqrt(3 * scale);
-      return K.randomUniform(shape, -limit, limit, dtype, this.seed);
+      return randomUniform(shape, -limit, limit, dtype);
     }
   }
 

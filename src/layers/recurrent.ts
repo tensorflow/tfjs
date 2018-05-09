@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {add, doc, neg, serialization, sum, Tensor, util} from '@tensorflow/tfjs-core';
+import {add, doc, mul, neg, serialization, sum, Tensor, util, zeros} from '@tensorflow/tfjs-core';
 
 import {ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -353,15 +353,15 @@ export class RNN extends Layer {
     // Initialize state if null.
     if (this.states == null) {
       if (Array.isArray(this.cell.stateSize)) {
-        this.states = this.cell.stateSize.map(dim => K.zeros([batchSize, dim]));
+        this.states = this.cell.stateSize.map(dim => zeros([batchSize, dim]));
       } else {
-        this.states = [K.zeros([batchSize, this.cell.stateSize])];
+        this.states = [zeros([batchSize, this.cell.stateSize])];
       }
     } else if (states == null) {
       if (Array.isArray(this.cell.stateSize)) {
-        this.states = this.cell.stateSize.map(dim => K.zeros([batchSize, dim]));
+        this.states = this.cell.stateSize.map(dim => zeros([batchSize, dim]));
       } else {
-        this.states[0] = K.zeros([batchSize, this.cell.stateSize]);
+        this.states[0] = zeros([batchSize, this.cell.stateSize]);
       }
     } else {
       if (!Array.isArray(states)) {
@@ -588,7 +588,7 @@ export class RNN extends Layer {
   getInitialState(inputs: Tensor): Tensor[] {
     // Build an all-zero tensor of shape [samples, outputDim].
     // [Samples, timeSteps, inputDim].
-    let initialState = K.zeros(inputs.shape);
+    let initialState = zeros(inputs.shape);
     // [Samples].
     initialState = sum(initialState, [1, 2]);
     initialState = K.expandDims(initialState);  // [Samples, 1].
@@ -1350,8 +1350,7 @@ export class GRUCell extends RNNCell {
       const hTMinus1H = hTMinus1;
       z = this.recurrentActivation(add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
       r = this.recurrentActivation(add(xR, K.dot(hTMinus1R, recurrentKernelR)));
-      hh = this.activation(
-          add(xH, K.dot(K.multiply(r, hTMinus1H), recurrentKernelH)));
+      hh = this.activation(add(xH, K.dot(mul(r, hTMinus1H), recurrentKernelH)));
     } else {
       // TODO(cais): Add input dropout.
       let matrixX = K.dot(inputs, this.kernel.read());
@@ -1374,15 +1373,14 @@ export class GRUCell extends RNNCell {
 
       const xH = K.sliceAlongLastAxis(matrixX, 2 * this.units, this.units);
       const recurrentH = K.dot(
-          K.multiply(r, hTMinus1),
+          mul(r, hTMinus1),
           K.sliceAlongLastAxis(
               this.recurrentKernel.read(), 2 * this.units, this.units));
       hh = this.activation(add(xH, recurrentH));
     }
 
-    const h =
-        add(K.multiply(z, hTMinus1),
-            K.multiply(K.scalarPlusArray(K.getScalar(1), neg(z)), hh));
+    const h = add(
+        mul(z, hTMinus1), mul(K.scalarPlusArray(K.getScalar(1), neg(z)), hh));
     // TODO(cais): Add use_learning_phase flag properly.
     return [h, h];
   }
@@ -1832,9 +1830,8 @@ export class LSTMCell extends RNNCell {
       i = this.recurrentActivation(add(xI, K.dot(hTMinus1I, recurrentKernelI)));
       f = this.recurrentActivation(add(xF, K.dot(hTMinus1F, recurrentKernelF)));
       c = add(
-          K.multiply(f, cTMinus1),
-          K.multiply(
-              i, this.activation(add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
+          mul(f, cTMinus1),
+          mul(i, this.activation(add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
       o = this.recurrentActivation(add(xO, K.dot(hTMinus1O, recurrentKernelO)));
     } else {
       // TODO(cais): Add input dropout.
@@ -1852,11 +1849,11 @@ export class LSTMCell extends RNNCell {
 
       i = this.recurrentActivation(z0);
       f = this.recurrentActivation(z1);
-      c = add(K.multiply(f, cTMinus1), K.multiply(i, this.activation(z2)));
+      c = add(mul(f, cTMinus1), mul(i, this.activation(z2)));
       o = this.recurrentActivation(z3);
     }
 
-    const h = K.multiply(o, this.activation(c));
+    const h = mul(o, this.activation(c));
     // TODO(cais): Add use_learning_phase flag properly.
     return [h, h, c];
   }

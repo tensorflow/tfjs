@@ -191,8 +191,6 @@ export function reshape(x: Tensor, shape: Shape): Tensor {
   return x.reshape(shape);
 }
 
-export const permuteDimensions = tfc.transpose;
-
 /**
  * Adds a 1-sized dimension at index "axis".
  * @param x Input tensor.
@@ -208,14 +206,6 @@ export function expandDims(x: Tensor, axis = -1): Tensor {
   return reshape(x, outShape);
 }
 
-/**
- * Removes a 1-dimension from the tensor at index "axis".
- * @param x Input tensor
- * @param axis which axes to remove.
- */
-export function squeeze(x: Tensor, axis: number): Tensor {
-  return tfc.squeeze(x, [axis]);
-}
 
 /**
  * Pads the middle dimension of a 3D tensor.
@@ -679,19 +669,6 @@ export function batchSetValue(
 }
 
 /**
- * Instantiates an all-zeros tensor and returns it.
- *
- * @param shape Shape of the tensor.
- * @param dtype DType of the tensor.
- * @param name Name of the tensor.
- * @return An all-zero Tensor.
- */
-export function zeros(shape: Shape, dtype?: DType): Tensor {
-  // TODO(cais): Implement logic for dtype.
-  return tfc.zeros(shape);
-}
-
-/**
  * Instantiates an all-zeros Variable and returns it.
  *
  * @param shape Shape of the tensor.
@@ -702,7 +679,7 @@ export function zeros(shape: Shape, dtype?: DType): Tensor {
 export function zerosVariable(
     shape: Shape, dtype?: DType, name?: string): LayerVariable {
   // TODO(cais): Implement logic for dtype.
-  return new LayerVariable(zeros(shape), dtype, name);
+  return new LayerVariable(tfc.zeros(shape), dtype, name);
 }
 
 /**
@@ -716,19 +693,6 @@ export function zerosVariable(
 export function zerosLike(
     x: Tensor, dtype?: DType, name?: string): LayerVariable {
   return new LayerVariable(tfc.zerosLike(x), dtype, name);
-}
-
-/**
- * Instantiates an all-ones tensor and returns it.
- *
- * @param shape Shape of the tensor.
- * @param dtype DType of the tensor.
- * @param name Name of the tensor.
- * @return An all-ones tensor.
- */
-export function ones(shape: Shape, dtype?: DType): Tensor {
-  // TODO(cais): Implement logic for dtype.
-  return tfc.ones(shape);
 }
 
 /**
@@ -803,36 +767,6 @@ export function eyeVariable(
 }
 
 /**
- * Subtract two tensors, element-wise, with support for broadcasting.
- * @param x First tensor to subtract element-wise.
- * @param y Second tensor to subtract element-wise.
- * @returns Result of the subtraction.
- */
-export function subtract(x: Tensor, y: Tensor): Tensor {
-  return tfc.sub(x, y);
-}
-
-/**
- * Multiply two tensors, element-wise, with support for broadcasting.
- * @param x First tensor to multiply.
- * @param y Second tensor to multiply.
- * @returns Result of the multiplication.
- */
-export function multiply(x: Tensor, y: Tensor): Tensor {
-  return tfc.mul(x, y);
-}
-
-/**
- * Divide two tensors element-wise, with support for broadcasting.
- * @param x First tensor to divide element-wise.
- * @param y Second tensor to divide element-wise.
- * @returns Result of the division.
- */
-export function divide(x: Tensor, y: Tensor): Tensor {
-  return tfc.div(x, y);
-}
-
-/**
  * Multiply a scalar with an Tensor.
  * @param c The Scalar.
  * @param x The Tensor.
@@ -855,21 +789,6 @@ export function scalarPlusArray(c: Scalar, x: Tensor): Tensor {
 /* Creation of random tensors. */
 
 /**
- * Get a tensor with uniform distribution of values.
- * @param shape Shape of the tensor.
- * @param minval Lower bound of the uniform distribution.
- * @param maxval Upper bound of the uniform distribution.
- * @return The uniform-random tensor.
- */
-export function randomUniform(
-    shape: Shape, minval: number, maxval: number, dtype?: DType,
-    seed?: number): Tensor {
-  // TODO(cais): Implement logic for dtype and seed once they are supported
-  // by deeplearn.js.
-  return tfc.randomUniform(shape, minval, maxval);
-}
-
-/**
  * Get a Variable with uniform distribution of values.
  * @param shape Shape of the tensor.
  * @param minval Lower bound of the uniform distribution.
@@ -883,32 +802,7 @@ export function randomUniformVariable(
     shape: Shape, minval: number, maxval: number, dtype?: DType, seed?: number,
     name = 'randomUniform'): LayerVariable {
   return new LayerVariable(
-      randomUniform(shape, minval, maxval, dtype, seed), dtype, name);
-}
-
-/**
- * Get a tensor with truncated normal distribution of values.
- *
- * The truncated normal distribution is the same as a normal distribution,
- * except the values that are more than two stddev from the mean are dropped
- * and re-picked.
- * TODO(cais): The above specification regarding range truncation is not
- * true yet, due to the underlying Tensor.randTruncatedNormal from
- * deeplearn.js. Get it fixed.
- *
- * @param shape Shape of the tensor.
- * @param mean mean value of the normal distribution.
- * @param stddev standard deviation of the normal distribution.
- * @param dtype
- * @param seed
- * @return The truncated-normal tensor.
- */
-export function truncatedNormal(
-    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType,
-    seed?: number): Tensor {
-  // TODO(cais): Implement logic for dtype and seed once they are supported
-  // by deeplearn.js.
-  return tfc.truncatedNormal(shape, mean, stddev);
+      tfc.randomUniform(shape, minval, maxval, dtype), dtype, name);
 }
 
 /**
@@ -926,8 +820,11 @@ export function truncatedNormalVariable(
     name = 'truncatedNormal'): LayerVariable {
   // TODO(cais): Implement logic for dtype and seed once they are supported
   // by deeplearn.js.
+  if (dtype === DType.bool) {
+    throw new NotImplementedError(`randomNormal does not support dType bool.`);
+  }
   return new LayerVariable(
-      truncatedNormal(shape, mean, stddev, dtype, seed), dtype, name);
+      tfc.truncatedNormal(shape, mean, stddev, dtype, seed), dtype, name);
 }
 
 /**
@@ -1108,8 +1005,8 @@ export function qr(x: Tensor2D): [Tensor, Tensor] {
         const normX = tfc.norm(rjEnd1);
         const rjj = r.slice([j, j], [1, 1]);
         const s = tfc.neg(sign(rjj)) as Tensor2D;
-        const u1 = rjj.sub(multiply(s, normX)) as Tensor2D;
-        const wPre = divide(rjEnd1, u1);
+        const u1 = rjj.sub(tfc.mul(s, normX)) as Tensor2D;
+        const wPre = tfc.div(rjEnd1, u1);
         if (wPre.shape[0] === 1) {
           w = one2D.clone();
         } else {
@@ -1117,7 +1014,7 @@ export function qr(x: Tensor2D): [Tensor, Tensor] {
                   wPre.slice([1, 0], [wPre.shape[0] - 1, wPre.shape[1]]), 0) as
               Tensor2D;
         }
-        const tau = tfc.neg(divide(tfc.matMul(s, u1), normX)) as Tensor2D;
+        const tau = tfc.neg(tfc.div(tfc.matMul(s, u1), normX)) as Tensor2D;
 
         // -- R := HR, Q := QH.
         const rjEndAll = r.slice([j, 0], [m - j, n]);
@@ -1244,18 +1141,6 @@ export function pow(x: Tensor, a: Tensor|number): Tensor {
         `Non-int32 dtype (${a.dtype}) is not supported by pow() yet`);
   }
   return tfc.pow(x, a as Tensor);
-}
-
-/**
- * Clips values element-wise.
- *
- * @param x Input Tensor or Variable.
- * @param minValue The lowest allowed value in the output
- * @param maxValue The highest allowed value in the output
- * @returns Tensor with values limited to be between min_value and max_value
- */
-export function clip(x: Tensor, minValue: number, maxValue: number): Tensor {
-  return tfc.clipByValue(x, minValue, maxValue);
 }
 
 /* Normalization operations. */
@@ -1441,10 +1326,11 @@ export function dropout(
     throw new NotImplementedError('seed is not implemented for dropout yet.');
   }
   let multiplier = tfc.step(tfc.add(
-      tfc.neg(level) as Scalar, randomUniform(x.shape, 0, 1, DType.float32)));
+      tfc.neg(level) as Scalar,
+      tfc.randomUniform(x.shape, 0, 1, DType.float32)));
   // Scale the kept elements, so the expected sum is unchanged.
   multiplier = tfc.mul(
-      divide(getScalar(1), subtract(getScalar(1), level)) as Scalar,
+      tfc.div(getScalar(1), tfc.sub(getScalar(1), level)) as Scalar,
       multiplier);
   return tfc.mul(x, multiplier);
 }
@@ -1458,7 +1344,7 @@ export function l2Normalize(x: Tensor, axis?: number): Tensor {
   const squareSum = tfc.sum(square(x), axis, true);
   const epsilonTensor = scalarTimesArray(scalar(epsilon()), tfc.onesLike(x));
   const norm = tfc.sqrt(tfc.maximum(squareSum, epsilonTensor));
-  return divide(x, norm);
+  return tfc.div(x, norm);
 }
 
 /**
@@ -1740,24 +1626,6 @@ export function getUid(prefix = ''): string {
 }
 
 /**
- * Computes the softmax function on an input tensor across the last dimension.
- *
- * Implemented by:
- *  shuffling the dimensions in x to put the axis last
- *  reshaping into a 2D tensor
- *  taking the softmax over the last dimension, and then reshaping back.
- *  undoing the dimension shuffle
- *
- * @param xNDA numeric tensor with 1 or more dimensions.
- *
- * @return A Tensor the same shape as x, but with softmax calculated
- * across the last dimension.
- */
-export function softmax(x: Tensor, axis = -1): Tensor {
-  return tfc.softmax(x, axis);
-}
-
-/**
  * Categorical crossentropy between an output tensor and a target tensor.
  *
  * @param target A tensor of the same shape as `output`.
@@ -1769,13 +1637,13 @@ export function softmax(x: Tensor, axis = -1): Tensor {
 export function categoricalCrossentropy(
     target: Tensor, output: Tensor, fromLogits = false): Tensor {
   if (fromLogits) {
-    output = softmax(output);
+    output = tfc.softmax(output);
   } else {
     // scale preds so that the class probabilities of each sample sum to 1.
     const outputSum = tfc.sum(output, shape(output).length - 1, true);
-    output = divide(output, outputSum);
+    output = tfc.div(output, outputSum);
   }
-  output = clip(output, epsilon(), 1 - epsilon());
+  output = tfc.clipByValue(output, epsilon(), 1 - epsilon());
   return tfc.neg(tfc.sum(
       tfc.mul(target.toFloat(), tfc.log(output)), shape(output).length - 1));
 }
@@ -1810,8 +1678,8 @@ export function binaryCrossentropy(
     target: Tensor, output: Tensor, fromLogits = false): Tensor {
   let y: Tensor;
   if (!fromLogits) {
-    y = clip(output, epsilon(), 1 - epsilon());
-    y = tfc.log(divide(y, subtract(tfc.onesLike(y), y)));
+    y = tfc.clipByValue(output, epsilon(), 1 - epsilon());
+    y = tfc.log(tfc.div(y, tfc.sub(tfc.onesLike(y), y)));
   } else {
     y = output;
   }
@@ -1862,7 +1730,7 @@ export function hardSigmoid(x: Tensor): Tensor {
   // TODO(cais): Maybe avoid creating scalar constants on each invocation by
   //   turning them into module-level constants.
   const y = scalarPlusArray(scalar(0.5), scalarTimesArray(scalar(0.2), x));
-  return clip(y, 0, 1);
+  return tfc.clipByValue(y, 0, 1);
 }
 
 /**

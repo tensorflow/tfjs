@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {add, reverse, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {add, mul, reverse, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -418,7 +418,7 @@ export class Bidirectional extends Wrapper {
       output = K.scalarTimesArray(
           K.getScalar(0.5), add(y as Tensor, yRev as Tensor));
     } else if (this.mergeMode === 'mul') {
-      output = K.multiply(y as Tensor, yRev as Tensor);
+      output = mul(y as Tensor, yRev as Tensor);
     } else if (this.mergeMode == null) {
       output = [y as Tensor, yRev as Tensor];
     }

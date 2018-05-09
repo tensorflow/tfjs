@@ -157,13 +157,13 @@ export abstract class Merge extends Layer {
             const newShape = xShape.slice(1).concat([batchSize]);
             let xTransposed = K.reshape(
                 x, [batchSize].concat(mathUtils.arrayProd(xShape.slice(1))));
-            xTransposed = K.permuteDimensions(xTransposed, [1, 0]);
+            xTransposed = tfc.transpose(xTransposed, [1, 0]);
             xTransposed = K.reshape(xTransposed, newShape);
             reshapedInputs.push(xTransposed);
             transposed = true;
           } else if (xNDim > 1) {
             const dims = mathUtils.range(1, xNDim).concat([0]);
-            reshapedInputs.push(K.permuteDimensions(x, dims));
+            reshapedInputs.push(tfc.transpose(x, dims));
             transposed = true;
           } else {
             // We don't transpose inputs if they are 1D vectors or scalars.
@@ -182,11 +182,10 @@ export abstract class Merge extends Layer {
             const newShape =
                 [batchSize].concat(yShape.slice(0, yShape.length - 1));
             y = K.reshape(
-                K.permuteDimensions(K.reshape(y, [-1, batchSize]), [1, 0]),
-                newShape);
+                tfc.transpose(K.reshape(y, [-1, batchSize]), [1, 0]), newShape);
           } else if (yNDim > 1) {
             const dims = [yNDim - 1].concat(mathUtils.range(0, yNDim - 1));
-            y = K.permuteDimensions(y, dims);
+            y = tfc.transpose(y, dims);
           }
         }
         return y;
@@ -252,7 +251,7 @@ export class Add extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = K.zeros(inputs[0].shape);
+    let output = tfc.zeros(inputs[0].shape);
     for (const input of inputs) {
       output = tfc.add(output, input);
     }
@@ -342,9 +341,9 @@ export class Multiply extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = K.ones(inputs[0].shape);
+    let output = tfc.ones(inputs[0].shape);
     for (const input of inputs) {
-      output = K.multiply(output, input);
+      output = tfc.mul(output, input);
     }
     return output;
   }
@@ -431,7 +430,7 @@ export class Average extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = K.zeros(inputs[0].shape);
+    let output = tfc.zeros(inputs[0].shape);
     for (const input of inputs) {
       output = tfc.add(output, input);
     }
