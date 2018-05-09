@@ -217,6 +217,8 @@ export const localResponseNormalization = LRNOps.localResponseNormalization;
 
 export const linalg = LinalgOps;
 
+export {operation} from './operation';
+
 // So typings can propagate.
 import {Tensor} from '../tensor';
 import {Rank} from '../types';
