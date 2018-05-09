@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Scalar, scalar, Tensor, tensor2d, tensor3d, train} from '@tensorflow/tfjs-core';
+import {neg, Scalar, scalar, Tensor, tensor2d, tensor3d, train, transpose} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
@@ -47,7 +47,7 @@ class RNNCellForTest extends RNNCell {
     const states = inputs.slice(1);
     const mean = K.mean(dataInputs) as Scalar;
     const newStates = states.map(state => K.scalarPlusArray(mean, state));
-    const output = K.neg(newStates[0]);
+    const output = neg(newStates[0]);
     return [output].concat(newStates);
   }
 }
@@ -432,7 +432,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
       }
 
       expect(output.shape).toEqual([batchSize, timeSteps, units]);
-      const timeMajorOutput = K.transpose(output, [1, 0, 2]);
+      const timeMajorOutput = transpose(output, [1, 0, 2]);
       const outputT0 = K.sliceAlongFirstAxis(timeMajorOutput, 0, 1);
       const outputT1 = K.sliceAlongFirstAxis(timeMajorOutput, 1, 1);
       expectTensorsClose(
@@ -644,7 +644,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
             const outputs = goldenOutputElementValues.map(
                 value => K.scalarTimesArray(
                     scalar(value), K.ones([1, batchSize, units])));
-            expectedOutput = K.transpose(
+            expectedOutput = transpose(
                 K.concatAlongFirstAxis(
                     K.concatAlongFirstAxis(outputs[0], outputs[1]), outputs[2]),
                 [1, 0, 2]);
@@ -869,7 +869,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
             const outputAtT1 = K.scalarTimesArray(
                 scalar(goldenOutputElementValueAtT1),
                 K.ones([1, batchSize, units]));
-            expectedOutput = K.transpose(
+            expectedOutput = transpose(
                 K.concatAlongFirstAxis(outputAtT0, outputAtT1), [1, 0, 2]);
           } else {
             expectedOutput = K.scalarTimesArray(

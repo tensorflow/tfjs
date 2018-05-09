@@ -13,9 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor4d} from '@tensorflow/tfjs-core';
+import {Tensor, tensor4d, transpose} from '@tensorflow/tfjs-core';
 
-import * as K from '../backend/tfjs_backend';
 import {DataFormat, PaddingMode} from '../common';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
@@ -129,7 +128,7 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
 
   it('channelsLast', () => {
     // Convert input to channelsLast.
-    const x = K.transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
+    const x = transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
     const conv2dLayer = tfl.layers.depthwiseConv2d({
       depthMultiplier: 2,
       kernelSize: [2, 2],

@@ -12,6 +12,7 @@
  * TensorFlow.js Layers: Merge Layers.
  */
 
+import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
@@ -253,7 +254,7 @@ export class Add extends Merge {
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
-      output = K.add(output, input);
+      output = tfc.add(output, input);
     }
     return output;
   }
@@ -432,7 +433,7 @@ export class Average extends Merge {
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = K.zeros(inputs[0].shape);
     for (const input of inputs) {
-      output = K.add(output, input);
+      output = tfc.add(output, input);
     }
     return K.scalarTimesArray(K.getScalar(1 / inputs.length), output);
   }
@@ -522,7 +523,7 @@ export class Maximum extends Merge {
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = inputs[0];
     for (let i = 1; i < inputs.length; ++i) {
-      output = K.maximum(output, inputs[i]);
+      output = tfc.maximum(output, inputs[i]);
     }
     return output;
   }
@@ -611,7 +612,7 @@ export class Minimum extends Merge {
   protected mergeFunction(inputs: Tensor[]): Tensor {
     let output = inputs[0];
     for (let i = 1; i < inputs.length; ++i) {
-      output = K.minimum(output, inputs[i]);
+      output = tfc.minimum(output, inputs[i]);
     }
     return output;
   }

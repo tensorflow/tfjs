@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {conv2dTranspose, separableConv2d, serialization, Tensor, Tensor4D, tidy} from '@tensorflow/tfjs-core';
+import {conv2dTranspose, separableConv2d, serialization, Tensor, Tensor4D, tidy, transpose} from '@tensorflow/tfjs-core';
 
 import {ActivationFn, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -465,13 +465,13 @@ export class Conv2DTranspose extends Conv2D {
           [batchSize, outHeight, outWidth, this.filters];
 
       if (this.dataFormat !== 'channelsLast') {
-        input = K.transpose(input, [0, 2, 3, 1]);
+        input = transpose(input, [0, 2, 3, 1]);
       }
       let outputs = conv2dTranspose(
           input as Tensor4D, this.kernel.read() as Tensor4D, outputShape,
           this.strides as [number, number], this.padding as 'same' | 'valid');
       if (this.dataFormat !== 'channelsLast') {
-        outputs = K.transpose(outputs, [0, 3, 1, 2]) as Tensor4D;
+        outputs = transpose(outputs, [0, 3, 1, 2]) as Tensor4D;
       }
 
       if (this.bias != null) {
@@ -677,7 +677,7 @@ export class SeparableConv extends Conv {
           '1D separable convolution is not implemented yet.');
     } else if (this.rank === 2) {
       if (this.dataFormat === 'channelsFirst') {
-        inputs = K.transpose(inputs, [0, 2, 3, 1]);  // NCHW -> NHWC.
+        inputs = transpose(inputs, [0, 2, 3, 1]);  // NCHW -> NHWC.
       }
 
       output = separableConv2d(
@@ -695,7 +695,7 @@ export class SeparableConv extends Conv {
     }
 
     if (this.dataFormat === 'channelsFirst') {
-      output = K.transpose(output, [0, 3, 1, 2]);  // NHWC -> NCHW.
+      output = transpose(output, [0, 3, 1, 2]);  // NHWC -> NCHW.
     }
     return output;
   }

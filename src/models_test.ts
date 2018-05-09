@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {io, ones, Scalar, scalar, serialization, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {io, ones, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {Model} from './engine/training';
@@ -85,7 +85,7 @@ describeMathCPU('model_from_json', () => {
           expect(model.layers.length).toEqual(9);
           const prediction = model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
           expect(prediction.shape).toEqual([1, 10]);
-          expect(K.sum(prediction).dataSync()).toBeCloseTo(1);
+          expect(sum(prediction).dataSync()).toBeCloseTo(1);
           done();
         })
         .catch(done.fail);
@@ -114,7 +114,7 @@ describeMathCPU('model_from_json', () => {
       expect(model.layers.length).toEqual(8);
       const prediction = model.predict(K.zeros([1, 28, 28, 1])) as Tensor;
       expect(prediction.shape).toEqual([1, 10]);
-      expect(K.sum(prediction).dataSync()).toBeCloseTo(1);
+      expect(sum(prediction).dataSync()).toBeCloseTo(1);
       done();
     });
   });

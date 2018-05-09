@@ -9,6 +9,7 @@
  */
 
 // Layer activation functions
+import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
@@ -74,13 +75,13 @@ export function elu(x: Tensor, alpha = 1): Tensor {
  * @returns Tensor with the same shape and dtype as `x`.
  */
 export function selu(x: Tensor): Tensor {
-  return K.selu(x);
+  return tfc.selu(x);
 }
 
 
 // Rectified linear unit
 export function relu(x: Tensor): Tensor {
-  return K.relu(x);
+  return tfc.relu(x);
 }
 
 /**
@@ -90,7 +91,7 @@ export function relu(x: Tensor): Tensor {
 // A better pattern would be to reuse a single constant 6, created after the
 // backend math has been instantiated.
 export function relu6(x: Tensor): Tensor {
-  return K.minimum(scalar(6.0), K.relu(x));
+  return tfc.minimum(scalar(6.0), tfc.relu(x));
 }
 
 //* Linear activation (no-op) */
@@ -102,7 +103,7 @@ export function linear(x: Tensor): Tensor {
  * Sigmoid activation function.
  */
 export function sigmoid(x: Tensor): Tensor {
-  return K.sigmoid(x);
+  return tfc.sigmoid(x);
 }
 
 /**
@@ -132,7 +133,7 @@ export function softsign(x: Tensor): Tensor {
  * @returns Output of the hyperbolic tangent function.
  */
 export function tanh(x: Tensor): Tensor {
-  return K.tanh(x);
+  return tfc.tanh(x);
 }
 
 /**

@@ -1272,7 +1272,7 @@ export class Model extends Container {
               const label = outLabels[i];
               const out = outs[i];
               batchLogs[label] = out;
-              K.keep(out);
+              tfc.keep(out);
               // TODO(cais): Use scope() to avoid ownership.
             }
 
@@ -1286,7 +1286,7 @@ export class Model extends Container {
                 for (let i = 0; i < outLabels.length; ++i) {
                   const label = outLabels[i];
                   const out = valOuts[i];
-                  K.keep(out);
+                  tfc.keep(out);
                   // TODO(cais): Use scope() to avoid ownership.
                   epochLogs['val_' + label] = out;
                 }
@@ -1355,7 +1355,7 @@ export class Model extends Container {
         for (let i = 0; i < batchOuts.length; ++i) {
           const batchOut = batchOuts[i];
           outs[i] =
-              K.add(
+              tfc.add(
                   outs[i],
                   K.scalarTimesArray(
                       K.getScalar(batchEnd - batchStart), batchOut)) as Scalar;
@@ -1407,7 +1407,7 @@ export class Model extends Container {
           if (i === 0) {
             totalLoss = loss;
           } else {
-            totalLoss = K.add(totalLoss, loss) as Scalar;
+            totalLoss = tfc.add(totalLoss, loss) as Scalar;
           }
           valOutputs.push(totalLoss);
         }
@@ -1579,7 +1579,7 @@ export class Model extends Container {
           if (i === 0) {
             totalLoss = loss;
           } else {
-            totalLoss = K.add(totalLoss, loss);
+            totalLoss = tfc.add(totalLoss, loss);
           }
         }
 
@@ -1593,7 +1593,7 @@ export class Model extends Container {
           const meanMetric =
               K.mean(metric(targets[outputIndex], outputs[outputIndex])) as
               Scalar;
-          K.keep(meanMetric);
+          tfc.keep(meanMetric);
           // TODO(cais): Use a scope() instead, to avoid ownership.
           metricsValues.push(meanMetric);
         }
@@ -1602,7 +1602,7 @@ export class Model extends Container {
 
         // Add regularizer penalties.
         this.calculateLosses().forEach(regularizerLoss => {
-          totalLoss = K.add(totalLoss, regularizerLoss);
+          totalLoss = tfc.add(totalLoss, regularizerLoss);
         });
 
         return totalLoss as Scalar;

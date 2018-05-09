@@ -13,9 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, scalar, Tensor, tensor3d, Tensor4D, tensor4d, util} from '@tensorflow/tfjs-core';
+import {ones, scalar, Tensor, tensor3d, Tensor4D, tensor4d, transpose, util} from '@tensorflow/tfjs-core';
 
-import * as K from '../backend/tfjs_backend';
 import {DataFormat, PaddingMode} from '../common';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
@@ -144,7 +143,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
 
   it('CHANNEL_LAST', () => {
     // Convert input to CHANNEL_LAST.
-    const x = K.transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
+    const x = transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
     const conv2dLayer = tfl.layers.conv2d({
       filters: 1,
       kernelSize: [2, 2],
@@ -588,7 +587,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
             it(testTitle, () => {
               let x = tensor4d(x5by5Data, [1, 5, 5, 1]);
               if (dataFormat === 'channelsFirst') {
-                x = K.transpose(x, [0, 3, 1, 2]) as Tensor4D;  // NHWC -> NCHW.
+                x = transpose(x, [0, 3, 1, 2]) as Tensor4D;  // NHWC -> NCHW.
               }
 
               const conv2dLayer = tfl.layers.separableConv2d({
@@ -627,7 +626,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
                   tensor4d(yExpectedData, [1, 3, 3, 1]) :
                   tensor4d(yExpectedData, [1, 4, 4, 1]);
               if (dataFormat === 'channelsFirst') {
-                yExpected = K.transpose(yExpected, [0, 3, 1, 2]) as
+                yExpected = transpose(yExpected, [0, 3, 1, 2]) as
                     Tensor4D;  // NHWC -> NCHW.
               }
               expectTensorsClose(y, yExpected);

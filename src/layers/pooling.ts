@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {serialization, Tensor} from '@tensorflow/tfjs-core';
+import {max, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
@@ -367,7 +367,7 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
-    return K.max(input, 1);
+    return max(input, 1);
   }
 }
 serialization.SerializationMap.register(GlobalMaxPooling1D);
@@ -460,9 +460,9 @@ export class GlobalMaxPooling2D extends GlobalPooling2D {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
     if (this.dataFormat === 'channelsLast') {
-      return K.max(input, [1, 2]);
+      return max(input, [1, 2]);
     } else {
-      return K.max(input, [2, 3]);
+      return max(input, [2, 3]);
     }
   }
 }
