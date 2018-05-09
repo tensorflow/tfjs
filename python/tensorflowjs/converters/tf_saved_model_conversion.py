@@ -18,8 +18,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
 import json
+import os
 import numpy as np
 
 import tensorflow as tf
@@ -52,7 +52,7 @@ def load_graph(graph_filename, output_node_names):
   """Loads GraphDef. Returns Python Graph object.
 
   Args:
-    graph_filename: string file name for the frozen graph
+    graph_filename: string File name for the frozen graph.
   """
   with tf.gfile.Open(graph_filename, 'rb') as f:
     graph_def = tf.GraphDef()
@@ -73,7 +73,7 @@ def validate(nodes):
   """Validate if the node's op is compatible with TensorFlow.js.
 
   Args:
-    nodes: tf.NodeDef tensorflow NodeDef objects from GraphDef
+    nodes: tf.NodeDef TensorFlow NodeDef objects from GraphDef.
   """
   ops = []
   op_list_path = os.path.join(
@@ -93,7 +93,7 @@ def optimize_graph(graph, output_graph, quantization_dtype=None):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
-    graph: tf.Graph tensorflow dataflow graph
+    graph: tf.Graph TensorFlow dataflow graph.
   """
   rewriter_config = rewriter_config_pb2.RewriterConfig()
   rewriter_config.optimizers[:] = [
@@ -115,8 +115,8 @@ def extract_weights(graph_def,
   """Takes a Python GraphDef object and extract the weights.
 
   Args:
-    graph_def: tf.GraphDef tensorflow GraphDef proto object, which represents
-      the model topology
+    graph_def: tf.GraphDef TensorFlow GraphDef proto object, which represents
+      the model topology.
     quantization_dtype: An optional numpy dtype to quantize weights to for
         compression. Only np.uint8 and np.uint16 are supported.
   """
@@ -294,29 +294,53 @@ def convert_tf_frozen_model(frozen_model_path, output_node_names,
     optimize_graph(graph, output_graph, quantization_dtype)
 
 
-def load_and_initialize_hub_module(module_path):
+def load_and_initialize_hub_module(module_path, signature='default'):
   """Loads graph of a TF-Hub module and initializes it into a session.
 
   Args:
     module_path: string Path to TF-Hub module.
+    signature: string Signature to use when creating the apply graph.
 
   Return:
-    graph: tf.Graph graph of the module.
-    session: tf.Session session with initialized variables and tables.
+    graph: tf.Graph Graph of the module.
+    session: tf.Session Session with initialized variables and tables.
+    inputs: dict Dictionary of input tensors.
+    outputs: dict Dictionary of output tensors.
+
+  Raises:
+    ValueError: If signature contains a SparseTensor on input or output.
   """
   graph = tf.Graph()
   with graph.as_default():
     tf.logging.info('Importing %s', module_path)
-    hub.Module(module_path)
+    module = hub.Module(module_path)
+
+    signature_inputs = module.get_input_info_dict(signature)
+    signature_outputs = module.get_output_info_dict(signature)
+    # First check there are no SparseTensors in input or output.
+    for key, info in list(signature_inputs.items()) + list(
+        signature_outputs.items()):
+      if info.is_sparse:
+        raise ValueError(
+            'Signature "%s" has a SparseTensor on input/output "%s".'
+            ' SparseTensors are not supported.' % (signature, key))
+
+    # Create placeholders to represent the input of the provided signature.
+    inputs = {}
+    for input_key, input_info in signature_inputs.items():
+      inputs[input_key] = tf.placeholder(
+          shape=input_info.get_shape(), dtype=input_info.dtype, name=input_key)
+
+    outputs = module(inputs=inputs, signature=signature, as_dict=True)
 
     session = tf.Session(graph=graph)
     session.run(tf.global_variables_initializer())
     session.run(tf.tables_initializer())
 
-  return graph, session
+  return graph, session, inputs, outputs
 
 
-def convert_tf_hub_module(module_path, output_dir):
+def convert_tf_hub_module(module_path, output_dir, signature='default'):
   """Freeze the TF-Hub module and check compatibility with Tensorflow.js.
 
   Optimize and convert the TF-Hub module to Tensorflow.js format, if it passes
@@ -329,43 +353,41 @@ def convert_tf_hub_module(module_path, output_dir):
       - a file named 'tensorflowjs_model.pb'
       - a JSON weights manifest file named 'weights_manifest.json'
       - possibly sharded binary weight files.
+    signature: string Signature to load.
   """
 
   if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-  graph, sess = load_and_initialize_hub_module(module_path)
-
-  local_module_path = hub.compressed_module_resolver.get_default(
-  ).get_module_path(module_path)
-  meta_graph = hub.saved_model_lib.load(local_module_path).get_meta_graph_copy()
+  graph, sess, inputs, outputs = load_and_initialize_hub_module(
+      module_path, signature)
 
   input_node_names = []
   output_node_names = []
-  # Take all inputs and outputs of the default signature.
-  for _, input_node in meta_graph.signature_def['default'].inputs.items():
-    input_node_names.append('module/' + input_node.name.split(':')[0])
-  for _, output_node in meta_graph.signature_def['default'].outputs.items():
-    output_node_names.append('module/' + output_node.name.split(':')[0])
+
+  for _, input_tensor in inputs.items():
+    input_node_names.append(input_tensor.name.split(':')[0])
+  for _, output_tensor in outputs.items():
+    output_node_names.append(output_tensor.name.split(':')[0])
+
+  print('Creating a model with inputs %s and outputs %s.' % (input_node_names,
+                                                             output_node_names))
 
   frozen_graph_def = graph_util.convert_variables_to_constants(
       sess, graph.as_graph_def(), output_node_names)
 
   unsupported = validate(frozen_graph_def.node)
 
+  output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
+  frozen_file = output_graph + '.frozen'
   if unsupported:
     print('Unsupported Ops in the module\n' + ', '.join(unsupported))
   else:
-    output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
-    frozen_file = output_graph + '.frozen'
     with tf.gfile.GFile(frozen_file, 'wb') as f:
       f.write(frozen_graph_def.SerializeToString())
 
     graph = load_graph(frozen_file, ','.join(output_node_names))
     optimize_graph(graph, output_graph)
-
-    print('Created a model with inputs %s and outputs %s.' %
-          (input_node_names, output_node_names))
 
   # Clean up the temp files.
   if os.path.exists(frozen_file):

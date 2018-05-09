@@ -68,15 +68,16 @@ $ tensorflowjs_converter \
 
 |Positional Arguments | Description |
 |---|---|
-|`input_path`  | Full path of the saved model directory, session bundle directory, frozen model file or Tensorflow Hub module handle or path.|
-|`output_dir`  | Path for all output artifacts.|
+|`input_path`  | Full path of the saved model directory, session bundle directory, frozen model file or TensorFlow Hub module handle or path.|
+|`output_path` | Path for all output artifacts.|
 
 
 | Options | Description
 |---|---|
-|`--input_format`     | The format of input model, use tf_saved_model for SavedModel, tf_frozen_model for frozen model and tf_session_bundle for session bundle. |
+|`--input_format`     | The format of input model, use tf_saved_model for SavedModel, tf_frozen_model for frozen model, tf_session_bundle for session bundle, tf_hub for TensorFlow Hub module and keras for Keras HDF5. |
 |`--output_node_names`| The names of the output nodes, separated by commas.|
 |`--saved_model_tags` | Only applicable to SavedModel conversion, Tags of the MetaGraphDef to load, in comma separated format. Defaults to `serve`.|
+|`--signature_name`   | Only applicable to TensorFlow Hub module conversion, signature to load. Defaults to `default`. See https://www.tensorflow.org/hub/common_signatures/.|
 
 
 ### Web-friendly format
