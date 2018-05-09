@@ -16,7 +16,7 @@
  */
 
 // tslint:disable:max-line-length
-import {arrayBufferToBase64String, base64StringToArrayBuffer, stringByteLength} from './io_utils';
+import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForKerasJSON} from './io_utils';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, SaveResult} from './types';
 
 // tslint:enable:max-line-length
@@ -34,7 +34,9 @@ const WEIGHT_DATA_SUFFIX = 'weight_data';
  * @returns Paths of the models purged.
  */
 export function purgeLocalStorageArtifacts(): string[] {
-  if (!(window && window.localStorage)) {
+  // TODO(cais): Use central environment flag when it's available.
+  if (typeof window === 'undefined' ||
+      typeof window.localStorage === 'undefined') {
     throw new Error(
         'purgeLocalStorageModels() cannot proceed because local storage is ' +
         'unavailable in the current environment.');
@@ -111,13 +113,8 @@ export class BrowserLocalStorage implements IOHandler {
       const topology = JSON.stringify(modelArtifacts.modelTopology);
       const weightSpecs = JSON.stringify(modelArtifacts.weightSpecs);
 
-      const modelArtifactsInfo: ModelArtifactsInfo = {
-        dateSaved: new Date(),
-        modelTopologyType: 'KerasJSON',
-        modelTopologyBytes: stringByteLength(topology),
-        weightSpecsBytes: stringByteLength(weightSpecs),
-        weightDataBytes: modelArtifacts.weightData.byteLength,
-      };
+      const modelArtifactsInfo: ModelArtifactsInfo =
+          getModelArtifactsInfoForKerasJSON(modelArtifacts);
 
       try {
         this.LS.setItem(this.paths.info, JSON.stringify(modelArtifactsInfo));
@@ -223,6 +220,6 @@ export class BrowserLocalStorage implements IOHandler {
  * @returns An instance of `BrowserLocalStorage` (sublcass of `IOHandler`),
  *   which can be used with, e.g., `tf.Model.save`.
  */
-export function browserLocalStorage(modelPath: string) {
+export function browserLocalStorage(modelPath: string): IOHandler {
   return new BrowserLocalStorage(modelPath);
 }

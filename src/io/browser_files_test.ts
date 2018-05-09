@@ -20,6 +20,8 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
+import {CPU_ENVS} from '../test_util';
 
 import {WeightsManifestConfig, WeightsManifestEntry} from './types';
 
@@ -74,7 +76,7 @@ const artifacts1: tf.io.ModelArtifacts = {
   weightData: weightData1,
 };
 
-describe('browserDownloads', () => {
+describeWithFlags('browserDownloads', CPU_ENVS, () => {
   class FakeHTMLAnchorElement {
     download: string;
     href: string;
@@ -247,7 +249,7 @@ describe('browserDownloads', () => {
   });
 });
 
-describe('browserFiles', () => {
+describeWithFlags('browserFiles', CPU_ENVS, () => {
   const weightsBlob =
       new Blob([weightData1], {type: 'application/octet-stream'});
   const weightsFile = new File(
