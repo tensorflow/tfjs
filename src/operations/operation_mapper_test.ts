@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import * as Long from 'long';
+
 import {tensorflow} from '../data/index';
 
 import {Graph, OperationMapper} from './index';
@@ -91,7 +93,7 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
       name: 'Squeeze',
       op: 'Squeeze',
       input: ['BiasAdd'],
-      attr: {squeeze_dims: {list: {i: [1, 2]}}}
+      attr: {squeeze_dims: {list: {i: [Long.fromInt(1), Long.fromInt(2)]}}}
     }
   ],
   versions: {producer: 1.0}
