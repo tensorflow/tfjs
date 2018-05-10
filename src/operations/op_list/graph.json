@@ -34,6 +34,18 @@
     ]
   },
   {
+    "tfOpName": "Snapshot",
+    "dlOpName": "snapshot",
+    "category": "graph",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
     "tfOpName": "Shape",
     "dlOpName": "shape",
     "category": "graph",

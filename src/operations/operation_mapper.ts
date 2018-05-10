@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import {DataType} from '@tensorflow/tfjs-core/dist/types';
+import * as Long from 'long';
 
 import {tensorflow} from '../data/index';
 
@@ -219,8 +220,8 @@ export class OperationMapper {
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
       def: number): number {
     const param = attrs[name];
-    return (param ? ((param.f !== undefined) ? param.f : param.i) : def) as
-        number;
+    const value = (param ? ((param.f !== undefined) ? param.f : param.i) : def);
+    return value instanceof Long ? value.toInt() : value;
   }
   private getDtypeParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
@@ -255,8 +256,9 @@ export class OperationMapper {
       def: number[]): number[] {
     const param = attrs[name];
     if (param) {
-      return (param.list.f && param.list.f.length ? param.list.f :
-                                                    param.list.i) as number[];
+      return ((param.list.f && param.list.f.length ? param.list.f :
+                                                     param.list.i))
+                 .map(v => v instanceof Long ? v.toInt() : v) as number[];
     }
     return def;
   }
