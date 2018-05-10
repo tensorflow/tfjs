@@ -736,24 +736,6 @@ export function identity(x: Tensor): Tensor {
 }
 
 /**
- * Instantiate an identity matrix and returns it.
- *
- * @param size Number of rows/columns.
- * @param dtype Data type of returned Tensor.
- * @param name Name of returned Tensor.
- * @return An identity matrix.
- */
-export function eye(size: number, dtype?: DType, name?: string): Tensor {
-  const buffer: number[] = [];
-  for (let i = 0; i < size; ++i) {
-    for (let j = 0; j < size; ++j) {
-      buffer.push(i === j ? 1 : 0);
-    }
-  }
-  return tensor2d(buffer, [size, size]);
-}
-
-/**
  * Instantiate an identity matrix and returns it, as a Variable
  *
  * @param size Number of rows/columns.
@@ -763,7 +745,7 @@ export function eye(size: number, dtype?: DType, name?: string): Tensor {
  */
 export function eyeVariable(
     size: number, dtype?: DType, name?: string): LayerVariable {
-  return new LayerVariable(eye(size, dtype), dtype, name);
+  return new LayerVariable(tfc.eye(size, size, null, dtype), dtype, name);
 }
 
 /**
@@ -987,8 +969,8 @@ export function qr(x: Tensor2D): [Tensor, Tensor] {
     const m = x.shape[0];
     const n = x.shape[1];
 
-    let q = eye(m) as Tensor2D;  // Orthogonal transform so far.
-    let r = x.clone();           // Transformed matrix so far.
+    let q = tfc.eye(m) as Tensor2D;  // Orthogonal transform so far.
+    let r = x.clone();               // Transformed matrix so far.
 
     const one2D = tensor2d([[1]], [1, 1]);
     let w: Tensor2D = one2D.clone();
