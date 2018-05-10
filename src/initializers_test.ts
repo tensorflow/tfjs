@@ -13,9 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {serialization, Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
+import {eye, serialization, Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
 import * as tfl from './index';
 import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, VarianceScaling} from './initializers';
 import {DType} from './types';
@@ -452,7 +451,7 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     expect(w.shape).toEqual([2, 2]);
     expect(w.dtype).toEqual(DType.float32);
     // Assert that columns of w are orthogonal (w is a unitary matrix).
-    expectTensorsClose(w.transpose().matMul(w), K.eye(2));
+    expectTensorsClose(w.transpose().matMul(w), eye(2));
   });
 
   it('1x1 with gain', () => {
@@ -471,7 +470,7 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     expect(w.shape).toEqual([4, 2]);
     expect(w.dtype).toEqual(DType.float32);
     // Assert that columns of w are orthogonal.
-    expectTensorsClose(w.transpose().matMul(w), K.eye(2));
+    expectTensorsClose(w.transpose().matMul(w), eye(2));
   });
 
   it('2x4', () => {
@@ -480,6 +479,19 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     expect(w.shape).toEqual([2, 4]);
     expect(w.dtype).toEqual(DType.float32);
     // Assert that columns of w are orthogonal.
-    expectTensorsClose(w.matMul(w.transpose()), K.eye(2));
+    expectTensorsClose(w.matMul(w.transpose()), eye(2));
+  });
+
+  it('64x64', () => {
+    // Disable console warning during this test.
+    // Silence the large-size orthogonal matrix warnings.
+    spyOn(console, 'warn').and.callFake((message: string) => {});
+    const n = 64;
+    const init = getInitializer('Orthogonal');
+    const w = init.apply([n, n], DType.float32) as Tensor2D;
+    expect(w.shape).toEqual([n, n]);
+    expect(w.dtype).toEqual(DType.float32);
+    // Assert that columns of w are orthogonal.
+    expectTensorsClose(w.matMul(w.transpose()), eye(n));
   });
 });

@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {eye, ones, scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import * as initializers from '../initializers';
@@ -633,7 +633,7 @@ describeMathCPU('Layer', () => {
 
   describe('initialized with weights at construction time', () => {
     it('sets those weights after calling apply().', () => {
-      const initialWeights = K.eye(2);
+      const initialWeights = eye(2);
       const arrayInput = zeros([1]);
       const symbolicInput =
           new tfl.SymbolicTensor(DType.float32, [1], null, [], {});
@@ -661,7 +661,7 @@ describeMathCPU('Layer', () => {
          const layer = new LayerForTest({});
          expect(layer.inboundNodes.length).toEqual(0);
          expect(layer.outboundNodes.length).toEqual(0);
-         layer.apply(K.eye(1));
+         layer.apply(eye(1));
          expect(layer.inboundNodes.length).toEqual(0);
          expect(layer.outboundNodes.length).toEqual(0);
        });
