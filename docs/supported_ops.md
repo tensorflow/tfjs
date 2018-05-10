@@ -94,6 +94,7 @@
 |Placeholder|placeholder|
 |Const|const|
 |Identity|identity|
+|Snapshot|snapshot|
 |Shape|shape|
 |Print|print|
 |NoOp|noop|
