@@ -139,6 +139,7 @@ export class MobileNet {
     const predictions = logits.softmax().asType('float32');
     const topk =
         model_util.topK(await predictions.data() as Float32Array, topK);
+    predictions.dispose();
     const topkIndices = topk.indices;
     const topkValues = topk.values;
 
