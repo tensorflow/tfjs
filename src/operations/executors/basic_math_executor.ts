@@ -34,20 +34,11 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'acos':
       return [tfc.acos(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'acosh':
-      return [tfc.acosh(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'asin':
       return [tfc.asin(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'asinh':
-      return [tfc.asinh(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'atan':
       return [tfc.atan(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'atanh':
-      return [tfc.atanh(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'ceil':
       return [tfc.ceil(
@@ -61,40 +52,21 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'elu':
       return [tfc.elu(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'erf':
-      return [tfc.erf(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'exp':
       return [tfc.exp(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'expm1': {
-      return [tfc.expm1(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
     case 'floor':
       return [tfc.floor(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     case 'log':
       return [tfc.log(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'log1p': {
-      return [tfc.log1p(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
     case 'neg':
       return [tfc.neg(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'reciprocal': {
-      return [tfc.reciprocal(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
     case 'relu':
       return [tfc.relu(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'round': {
-      return [tfc.round(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
     case 'selu':
       return [tfc.selu(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
@@ -104,16 +76,8 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'sin':
       return [tfc.sin(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    case 'sign': {
-      return [tfc.sign(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
     case 'sinh': {
       return [tfc.sinh(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
-    }
-    case 'softplus': {
-      return [tfc.softplus(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor)];
     }
     case 'sqrt': {

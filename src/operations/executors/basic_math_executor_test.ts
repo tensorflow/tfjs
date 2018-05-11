@@ -41,9 +41,8 @@ describe('basic math', () => {
 
   describe('executeOp', () => {
     ['abs', 'acos', 'asin', 'atan', 'ceil', 'cos', 'cosh', 'elu', 'exp',
-     'floor', 'log', 'neg', 'relu', 'selu', 'sigmoid', 'sin', 'sinh', 'sqrt',
-     'square', 'tanh', 'tan', 'sign', 'round', 'expm1', 'log1p', 'reciprocal',
-     'softplus', 'asinh', 'acosh', 'atanh', 'erf']
+     'floor', 'log', 'neg', 'relu', 'selu', 'sigmoid', 'sin', 'sinh', 'sqrt', 
+     'square', 'tanh', 'tan']
         .forEach(op => {
           it('should call tfc.' + op, () => {
             const spy = spyOn(tfc, op as 'abs');
