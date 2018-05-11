@@ -14,7 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
+import * as tfc from '@tensorflow/tfjs-core';
 import * as fs from 'fs';
+import fetch from 'node-fetch';
 
 import * as arithmetic from '../operations/op_list/arithmetic.json';
 import * as basicMath from '../operations/op_list/basic_math.json';
@@ -29,7 +31,6 @@ import * as normalization from '../operations/op_list/normalization.json';
 import * as reduction from '../operations/op_list/reduction.json';
 import * as sliceJoin from '../operations/op_list/slice_join.json';
 import * as transformation from '../operations/op_list/transformation.json';
-
 import {OpMapper} from '../operations/types';
 
 const DOC_DIR = './docs/';
@@ -43,38 +44,100 @@ const opMappers = [
   ...(reduction as {}) as OpMapper[], ...(sliceJoin as {}) as OpMapper[],
   ...(transformation as {}) as OpMapper[]
 ];
+const GITHUB_URL_PREFIX =
+    'https://raw.githubusercontent.com/tensorflow/tfjs-website';
+const CORE_API_PREFIX =
+    `/master/source/_data/api/${tfc.version_core}/tfjs-core.json`;
 
-const output: string[] = [];
+async function genDoc() {
+  const response = await fetch(GITHUB_URL_PREFIX + CORE_API_PREFIX);
+  const json = await response.json();
+  // tslint:disable-next-line:no-any
+  const coreApis = json.docs.headings.reduce((list: Array<{}>, h: any) => {
+    return h.subheadings ? list.concat(h.subheadings.reduce(
+                               // tslint:disable-next-line:no-any
+                               (sublist: Array<{}>, sub: any) => {
+                                 return sublist.concat(sub.symbols);
+                               },
+                               [])) :
+                           list;
+  }, []);
+  const output: string[] = [];
 
-output.push('# Supported Tensorflow Ops\n\n');
+  output.push('# Supported Tensorflow Ops\n\n');
 
-generateTable('Arithmetic', (arithmetic as {}) as OpMapper[], output);
-generateTable('Basic Math', (basicMath as {}) as OpMapper[], output);
-generateTable('Control Flow', (control as {}) as OpMapper[], output);
-generateTable('Convolution', (convolution as {}) as OpMapper[], output);
-generateTable('Tensor Creation', (creation as {}) as OpMapper[], output);
-generateTable('Tensorflow Graph', (graph as {}) as OpMapper[], output);
-generateTable('Logical', (logical as {}) as OpMapper[], output);
-generateTable('Matrices', (matrices as {}) as OpMapper[], output);
-generateTable('Normalization', (normalization as {}) as OpMapper[], output);
-generateTable('Image', (image as {}) as OpMapper[], output);
-generateTable('Reduction', (reduction as {}) as OpMapper[], output);
-generateTable('Slice and Join', (sliceJoin as {}) as OpMapper[], output);
-generateTable('Transformation', (transformation as {}) as OpMapper[], output);
+  generateTable(
+      'Operations', 'Arithmetic', (arithmetic as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Operations', 'Basic math', (basicMath as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Operations', 'Control Flow', (control as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Operations', 'Convolution', (convolution as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Tensors', 'Creation', (creation as {}) as OpMapper[], output, coreApis);
+  generateTable(
+      'Tensorflow', 'Graph', (graph as {}) as OpMapper[], output, coreApis);
+  generateTable(
+      'Operations', 'Logical', (logical as {}) as OpMapper[], output, coreApis);
+  generateTable(
+      'Operations', 'Matrices', (matrices as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Operations', 'Normalization', (normalization as {}) as OpMapper[],
+      output, coreApis);
+  generateTable(
+      'Operations', 'Images', (image as {}) as OpMapper[], output, coreApis);
+  generateTable(
+      'Operations', 'Reduction', (reduction as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Tensors', 'Slicing and Joining', (sliceJoin as {}) as OpMapper[], output,
+      coreApis);
+  generateTable(
+      'Tensors', 'Transformations', (transformation as {}) as OpMapper[],
+      output, coreApis);
 
-console.log(process.cwd());
-fs.writeFileSync(DOC_DIR + 'supported_ops.md', output.join(''));
+  console.log(process.cwd());
+  fs.writeFileSync(DOC_DIR + 'supported_ops.md', output.join(''));
 
-console.log(
-    `Supported Ops written to ${DOC_DIR + 'supported_ops.md'}\n` +
-    `Found ${opMappers.length} ops\n`);
+  console.log(
+      `Supported Ops written to ${DOC_DIR + 'supported_ops.md'}\n` +
+      `Found ${opMappers.length} ops\n`);
+}
 
-function generateTable(category: string, ops: OpMapper[], output: string[]) {
-  output.push(`## ${category} Ops\n\n`);
+function findCoreOps(heading: string, subHeading: string, coreApis: Array<{}>) {
+  return coreApis.filter(
+      // tslint:disable-next-line:no-any
+      (op: any) => op.docInfo.heading === heading &&
+          op.docInfo.subheading === subHeading);
+}
+
+function generateTable(
+    heading: string, subHeading: string, ops: OpMapper[], output: string[],
+    coreApis: Array<{}>) {
+  const coreOps = findCoreOps(heading, subHeading, coreApis);
+  output.push(`## ${heading} - ${subHeading}\n\n`);
   output.push('|Tensorflow Op Name|Tensorflow.js Op Name|\n');
   output.push('|---|---|\n');
-  ops.forEach(element => {
+  ops.sort((a, b) => a.tfOpName.localeCompare(b.tfOpName)).forEach(element => {
     output.push(`|${element.tfOpName}|${element.dlOpName}|\n`);
   });
+
+  coreOps
+      // tslint:disable-next-line:no-any
+      .sort((a: any, b: any) => a.symbolName.localeCompare(b.symbolName))
+      // tslint:disable-next-line:no-any
+      .forEach((element: any) => {
+        if (!ops.find(op => op.dlOpName === element.symbolName)) {
+          output.push(`|Not mapped|${element.symbolName}|\n`);
+        }
+      });
   output.push('\n\n');
 }
+
+genDoc();
