@@ -161,4 +161,36 @@ export class LossOps {
     const losses = one.sub(labels.mul(predictions).sum(axis, true));
     return LossOps.computeWeightedLoss(losses, weights, reduction);
   }
+
+  /**
+   * Computes the Hinge loss between two tensors.
+   *
+   * @param labels The ground truth output tensor, same dimensions as
+   *    'predictions'.
+   * @param predictions The predicted outputs.
+   * @param weights Tensor whose rank is either 0, or the same rank as
+   *    `labels`, and must be broadcastable to `labels` (i.e., all dimensions
+   *    must be either `1`, or the same as the corresponding `losses`
+   *    dimension).
+   * @param reduction Type of reduction to apply to loss. Should be of type
+   *    `Reduction`
+   */
+  @doc({heading: 'Training', subheading: 'Losses', namespace: 'losses'})
+  @operation
+  static hingeLoss<T extends Tensor, O extends Tensor>(
+      labels: T, predictions: T, weights?: Tensor,
+      reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+    util.assertArgumentsAreTensors({labels, predictions}, 'hingeLoss');
+    if (weights != null) {
+      util.assertArgumentsAreTensors({weights}, 'hingeLoss');
+    }
+    util.assertShapesMatch(
+        labels.shape, predictions.shape, 'Error in hingeLoss: ');
+
+    const one = ops.scalar(1);
+    // Convert binary labels to (-1, 1)
+    labels = ops.scalar(2).mul(labels).sub(one);
+    const losses = one.sub(labels.mul(predictions)).relu();
+    return LossOps.computeWeightedLoss(losses, weights, reduction);
+  }
 }

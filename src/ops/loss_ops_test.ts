@@ -748,3 +748,152 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
         .toThrowError(e);
   });
 });
+
+describeWithFlags('hingeLoss', ALL_ENVS, () => {
+  it('1D', () => {
+    const predictions = tf.tensor1d([0, 0, 1, 1]);
+    const label = tf.tensor1d([0, 1, 0, 1]);
+
+    const y = tf.losses.hingeLoss(label, predictions);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 1.0);
+  });
+
+  it('1D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
+    const predictions = tf.tensor1d([0, 0, 1, 1]);
+    const label = tf.tensor1d([0, 1, 0, 1]);
+    const weights = tf.tensor1d([0.1, 0.2, 0.3, 0.4]);
+
+    const y = tf.losses.hingeLoss(label, predictions, weights);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 0.225);
+  });
+
+  it('1D - weighted - Reduction.NONE', () => {
+    const predictions = tf.tensor1d([0, 0, 1, 1]);
+    const label = tf.tensor1d([0, 1, 0, 1]);
+    const weights = tf.tensor1d([0.1, 0.2, 0.3, 0.4]);
+
+    const y =
+        tf.losses.hingeLoss(label, predictions, weights, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([4]);
+    expectArraysClose(y, [0.1, 0.2, 0.6, 0.0]);
+  });
+
+  it('1D - Reduction.MEAN', () => {
+    const predictions = tf.tensor1d([0, 0, 1, 1]);
+    const label = tf.tensor1d([0, 1, 0, 1]);
+
+    const y =
+        tf.losses.hingeLoss(label, predictions, undefined, tf.Reduction.MEAN);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 1.0);
+  });
+
+  it('1D - weighted - Reduction.MEAN', () => {
+    const predictions = tf.tensor1d([0, 0, 1, 1]);
+    const label = tf.tensor1d([0, 1, 0, 1]);
+    const weights = tf.tensor1d([0.1, 0.2, 0.3, 0.4]);
+
+    const y =
+        tf.losses.hingeLoss(label, predictions, weights, tf.Reduction.MEAN);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 0.9);
+  });
+
+  it('2D', () => {
+    const predictions = tf.tensor2d([0, 0, 0, 1, 1, 1], [2, 3]);
+    const label = tf.tensor2d([0, 1, 0, 1, 0, 1], [2, 3]);
+
+    const y = tf.losses.hingeLoss(label, predictions);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 0.8333333);
+  });
+
+  it('2D - weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
+    const predictions = tf.tensor2d([0, 0, 0, 1, 1, 1], [2, 3]);
+    const label = tf.tensor2d([0, 1, 0, 1, 0, 1], [2, 3]);
+    const weights = tf.tensor2d([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [2, 3]);
+
+    const y = tf.losses.hingeLoss(label, predictions, weights);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 0.26666668);
+  });
+
+  it('2D - weighted - Reduction.NONE', () => {
+    const predictions = tf.tensor2d([0, 0, 0, 1, 1, 1], [2, 3]);
+    const label = tf.tensor2d([0, 1, 0, 1, 0, 1], [2, 3]);
+    const weights = tf.tensor2d([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [2, 3]);
+
+    const y =
+        tf.losses.hingeLoss(label, predictions, weights, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([2, 3]);
+    expectArraysClose(y, [0.1, 0.2, 0.3, 0, 1, 0]);
+  });
+
+  it('2D - Reduction.MEAN', () => {
+    const predictions = tf.tensor2d([0, 0, 0, 1, 1, 1], [2, 3]);
+    const label = tf.tensor2d([0, 1, 0, 1, 0, 1], [2, 3]);
+
+    const y =
+        tf.losses.hingeLoss(label, predictions, undefined, tf.Reduction.MEAN);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 0.8333333);
+  });
+
+  it('2D - weighted - Reduction.MEAN', () => {
+    const predictions = tf.tensor2d([0, 0, 0, 1, 1, 1], [2, 3]);
+    const label = tf.tensor2d([0, 1, 0, 1, 0, 1], [2, 3]);
+    const weights = tf.tensor2d([0.1, 0.2, 0.3, 0.4, 0.5, 0.6], [2, 3]);
+
+    const y =
+        tf.losses.hingeLoss(label, predictions, weights, tf.Reduction.MEAN);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 0.76190484);
+  });
+
+  it('throws when passed label as a non-tensor', () => {
+    const predictions = tf.tensor2d([1, 0, 1, 0, 1, 0], [2, 3]);
+    const weights = tf.tensor2d([1, 0, 1, 0, 1, 0], [2, 3]);
+
+    const e = /Argument 'labels' passed to 'hingeLoss' must be a Tensor/;
+    expect(
+        () => tf.losses.hingeLoss(
+            {} as tf.Tensor, predictions, weights, tf.Reduction.MEAN))
+        .toThrowError(e);
+  });
+
+  it('throws when passed label as a non-tensor', () => {
+    const label = tf.tensor2d([1, 0, 1, 0, 1, 0], [2, 3]);
+    const weights = tf.tensor2d([1, 0, 1, 0, 1, 0], [2, 3]);
+
+    const e = new RegExp(
+        'Argument \'predictions\' passed to \'hingeLoss\' ' +
+        'must be a Tensor');
+    expect(
+        () => tf.losses.hingeLoss(
+            label, {} as tf.Tensor, weights, tf.Reduction.MEAN))
+        .toThrowError(e);
+  });
+
+  it('throws when passed weights as a non-tensor', () => {
+    const predictions = tf.tensor2d([1, 0, 1, 0, 1, 0], [2, 3]);
+    const label = tf.tensor2d([1, 0, 1, 0, 1, 0], [2, 3]);
+
+    const e = /Argument 'weights' passed to 'hingeLoss' must be a Tensor/;
+    expect(
+        () => tf.losses.hingeLoss(
+            label, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
+        .toThrowError(e);
+  });
+});
