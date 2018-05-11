@@ -15,10 +15,11 @@
  * =============================================================================
  */
 
+import {Environment} from '../environment';
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('pad1d', ALL_ENVS, () => {
   it('Should pad 1D arrays', () => {
@@ -145,6 +146,28 @@ describeWithFlags('pad2d', ALL_ENVS, () => {
         tf.grad((a: tf.Tensor2D) => tf.pad2d(a, [[1, 0], [0, 1]]))(a, dy);
     expect(da.shape).toEqual([2, 2]);
     expectArraysClose(da, [10, 20, 30, 40]);
+  });
+});
+
+describeWithFlags('pad4d', ALL_ENVS, () => {
+  it('Should pad 4D arrays', () => {
+    const a = tf.tensor4d([[[[9]]]], [1, 1, 1, 1], 'int32');
+    const b = tf.pad4d(a, [[0, 0], [1, 1], [1, 1], [0, 0]]);
+    const expected = tf.tensor4d(
+        [[[[0], [0], [0]], [[0], [9], [0]], [[0], [0], [0]]]], [1, 3, 3, 1],
+        'int32');
+    expectArraysClose(b, expected);
+  });
+
+  it('does not leak memory', () => {
+    const a = tf.tensor4d([[[[9]]]], [1, 1, 1, 1], 'int32');
+    // The first call to pad may create and keeps internal singleton tensors.
+    // Subsequent calls should always create exactly one new tensor.
+    tf.pad4d(a, [[0, 0], [1, 1], [1, 1], [0, 0]]);
+    // Count before real call.
+    const numTensors = Environment.memory().numTensors;
+    tf.pad4d(a, [[0, 0], [1, 1], [1, 1], [0, 0]]);
+    expect(Environment.memory().numTensors).toEqual(numTensors + 1);
   });
 });
 
