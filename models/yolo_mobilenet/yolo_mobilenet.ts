@@ -145,10 +145,13 @@ export class YoloMobileNetDetection implements dl.Model {
     let classes = netout.slice([0, 0, 0, 5], [GRID_H, GRID_W, BOX, CLASS])
                       .softmax()
                       .mul(confidence);
+
     const mask = classes.sub(this.THRESHOLD_SCALAR).relu().step();
     classes = classes.mul(mask);
+    mask.dispose();
 
     const objectLikelihood = classes.sum(3);
+
     const objectLikelihoodValues = await objectLikelihood.data();
 
     for (let i = 0; i < objectLikelihoodValues.length; i++) {
@@ -173,6 +176,10 @@ export class YoloMobileNetDetection implements dl.Model {
         boxes.push(new BoundingBox(x, y, w, h, conf, probs as Float32Array));
       }
     }
+
+    confidence.dispose();
+    classes.dispose();
+    objectLikelihood.dispose();
 
     // suppress nonmaximal boxes
     for (let cls = 0; cls < CLASS; cls++) {

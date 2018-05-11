@@ -683,8 +683,12 @@ export class ArrayOps {
           `1, 3 or 4 but got ${depth}`);
     }
 
-    const min = (await img.min().data())[0];
-    const max = (await img.max().data())[0];
+    const minTensor = img.min();
+    const maxTensor = img.max();
+    const min = (await minTensor.data())[0];
+    const max = (await maxTensor.data())[0];
+    minTensor.dispose();
+    maxTensor.dispose();
     if (img.dtype === 'float32') {
       if (min < 0 || max > 1) {
         throw new Error(
