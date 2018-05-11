@@ -33,6 +33,10 @@ export let executeOp: OpExecutor =
               (getParamValue('a', node, tensorMap, context) as tfc.Tensor),
               getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
         }
+        case 'mod':
+          return [tfc.mod(
+              getParamValue('a', node, tensorMap, context) as tfc.Tensor,
+              getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
         case 'mul':
           return [tfc.mul(
               getParamValue('a', node, tensorMap, context) as tfc.Tensor,
