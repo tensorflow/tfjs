@@ -10,11 +10,11 @@
 
 // tslint:disable:max-line-length
 import {eye, ones, scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
-import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import * as initializers from '../initializers';
-import {DType, LayerVariable, NamedTensorMap, Shape} from '../types';
+import {DType, NamedTensorMap, Shape} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {LayerVariable, onesVariable, zerosVariable} from '../variables';
 
 import {execute, FeedDict} from './executor';
 import {Container, ContainerConfig, getSourceInputs, Input, InputLayer, InputSpec, Layer, LayerConfig, loadWeightsFromJson, loadWeightsFromNamedTensorMap, Node} from './topology';
@@ -333,8 +333,8 @@ describeMathCPU('Layer', () => {
   });
 
   // Weights used for subsequent tests
-  const trainableWeights = [K.zerosVariable([1])];
-  const nonTrainableWeights = [K.onesVariable([1])];
+  const trainableWeights = [zerosVariable([1])];
+  const nonTrainableWeights = [onesVariable([1])];
   it('can set trainableWeights.', () => {
     const layer = new LayerForTest({});
     layer.trainableWeights = trainableWeights;

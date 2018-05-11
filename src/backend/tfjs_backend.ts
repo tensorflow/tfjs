@@ -17,12 +17,11 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, tidy, util, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
 
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
-import {Constraint} from '../constraints';
 import {NotImplementedError, ValueError} from '../errors';
-import {DType, LayerVariable, RnnStepFunction, Shape, SymbolicTensor} from '../types';
+import {DType, RnnStepFunction, Shape, SymbolicTensor} from '../types';
 import {pyNormalizeArrayIndex} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
-
+import {LayerVariable} from '../variables';
 import {epsilon as common_epsilon} from './common';
 import {imageDataFormat} from './common';
 
@@ -628,104 +627,6 @@ export function tile(x: Tensor, n: number|number[]): Tensor {
 /* Creation and manipulation of tensors and variables */
 
 /**
- * Create a Variable.
- * @param x The initial value of the `Variable`.
- * @param dtype optional, the type of the variable.
- * @param name optional, the name of the variable, default provided by
- * Variable.
- * @param constraint optional, a constraint to be applied after every update.
- * @return The newly instantiated `Variable`.
- */
-export function variable(
-    x: Tensor, dtype?: DType, name?: string,
-    constraint?: Constraint): LayerVariable {
-  return new LayerVariable(x, dtype, name, true, constraint);
-}
-
-/**
- * Get the values of an array of Variables.
- *
- * @param tensors An `Array` of `Variable`s to get the values of.
- * @return The values of the inputs, as an `Array` of `Tensor`s.
- */
-export function batchGetValue(xs: LayerVariable[]): Tensor[] {
-  return xs.map(x => x.read());
-}
-
-/**
- * Update the value of multiple Variables at once.
- *
- * @param variablesAndValues An `Array`, each element is of type
- *   [Variable, Tensor]. The first item is the
- *   `Variable` of which the value is to be updated. The second item
- *   carries the new value.
- */
-export function batchSetValue(
-    variablesAndValues: Array<[LayerVariable, Tensor]>): void {
-  variablesAndValues.map((variableAndValue) => {
-    const variable: LayerVariable = variableAndValue[0];
-    variable.write(variableAndValue[1]);
-  });
-}
-
-/**
- * Instantiates an all-zeros Variable and returns it.
- *
- * @param shape Shape of the tensor.
- * @param dtype DType of the tensor.
- * @param name Name of the tensor.
- * @return An all-zero Variable.
- */
-export function zerosVariable(
-    shape: Shape, dtype?: DType, name?: string): LayerVariable {
-  // TODO(cais): Implement logic for dtype.
-  return new LayerVariable(tfc.zeros(shape), dtype, name);
-}
-
-/**
- * Instantiates an all-zeros tensor of the same shape as another tensor.
- *
- * @param x The other tensor.
- * @param dtype DType of the tensor.
- * @param name Name of the tensor.
- * @return A newly instantiated Variable.
- */
-export function zerosLike(
-    x: Tensor, dtype?: DType, name?: string): LayerVariable {
-  return new LayerVariable(tfc.zerosLike(x), dtype, name);
-}
-
-/**
- * Instantiates an all-ones tensor and returns it.
- *
- * @param shape Shape of the tensor.
- * @param dtype DType of the tensor.
- * @param name Name of the tensor.
- * @return An all-ones Variable.
- */
-export function onesVariable(
-    shape: Shape, dtype?: DType, name?: string): LayerVariable {
-  // TODO(cais): Implement logic for dtype.
-  const allocated = tfc.ones(shape);
-  return new LayerVariable(allocated, dtype, name);
-}
-
-/**
- * Instantiates an all-ones tensor of the same shape as another tensor.
- *
- * @param x The other tensor.
- * @param dtype DType of the tensor.
- * @param name Name of the tensor.
- * @return A newly instantiated Variable.
- */
-export function onesLike(
-    x: Tensor, dtype?: DType, name?: string): LayerVariable {
-  const allocated = tfc.onesLike(x);
-  return new LayerVariable(allocated, dtype, name);
-}
-
-
-/**
  * Create a Tensor with the same content as the input.
  *
  * @param x Input.
@@ -770,44 +671,6 @@ export function scalarPlusArray(c: Scalar, x: Tensor): Tensor {
 
 /* Creation of random tensors. */
 
-/**
- * Get a Variable with uniform distribution of values.
- * @param shape Shape of the tensor.
- * @param minval Lower bound of the uniform distribution.
- * @param maxval Upper bound of the uniform distribution.
- * @param dtype
- * @param seed
- * @param name Optional name.
- * @return The uniform-random Variable.
- */
-export function randomUniformVariable(
-    shape: Shape, minval: number, maxval: number, dtype?: DType, seed?: number,
-    name = 'randomUniform'): LayerVariable {
-  return new LayerVariable(
-      tfc.randomUniform(shape, minval, maxval, dtype), dtype, name);
-}
-
-/**
- * Get a Variable with truncated-normal distribution of values.
- * @param shape Shape of the tensor.
- * @param mean mean value of the normal distribution.
- * @param stddev standard deviation of the normal distribution.
- * @param dtype
- * @param seed
- * @param name Optional name.
- * @return The truncated-normal-random Variable.
- */
-export function truncatedNormalVariable(
-    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType, seed?: number,
-    name = 'truncatedNormal'): LayerVariable {
-  // TODO(cais): Implement logic for dtype and seed once they are supported
-  // by deeplearn.js.
-  if (dtype === DType.bool) {
-    throw new NotImplementedError(`randomNormal does not support dType bool.`);
-  }
-  return new LayerVariable(
-      tfc.truncatedNormal(shape, mean, stddev, dtype, seed), dtype, name);
-}
 
 /**
  * Get a tensor with normal distribution of values.
@@ -827,55 +690,6 @@ export function randomNormal(
   }
   const dtypeString = (dtype === DType.float32) ? 'float32' : 'int32';
   return tfc.randomNormal(shape, mean, stddev, dtypeString, seed);
-}
-
-/**
- * Get a Variable with normal distribution of values.
- * @param shape Shape of the tensor.
- * @param mean mean value of the normal distribution.
- * @param stddev standard deviation of the normal distribution.
- * @param dtype
- * @param seed
- * @param name Optional name.
- * @return The truncated-normal-random Variable.
- */
-export function randomNormalVariable(
-    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType, seed?: number,
-    name = 'randomNormal'): LayerVariable {
-  return new LayerVariable(
-      randomNormal(shape, mean, stddev, dtype, seed), dtype, name);
-}
-
-/* Updating Variables */
-
-/**
- * Update the value of a Variable.
- * @param x The Variable to be updated.
- * @param xNew The new value to update to.
- * @return The Variable updated.
- */
-export function update(x: LayerVariable, xNew: Tensor): LayerVariable {
-  return x.write(xNew);
-}
-
-/**
- * Update the value of a Variable by adding an increment.
- * @param x The Variable to be updated.
- * @param increment The incrment to add to `x`.
- * @return The Variable updated.
- */
-export function updateAdd(x: LayerVariable, increment: Tensor): LayerVariable {
-  return x.write(tfc.add(x.read(), increment));
-}
-
-/**
- * Update the value of a Variable by subtracting a decrement.
- * @param x The Variable to be updated.
- * @param decrement The decrement to subtract from `x`.
- * @return The Variable updated.
- */
-export function updateSub(x: LayerVariable, decrement: Tensor): LayerVariable {
-  return x.write(tfc.sub(x.read(), decrement));
 }
 
 /* Linear Algebra */

@@ -21,9 +21,10 @@ import {Constraint, ConstraintIdentifier, getConstraint} from '../constraints';
 import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier} from '../regularizers';
-import {Kwargs, LayerVariable, Shape} from '../types';
+import {Kwargs, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
+import {LayerVariable} from '../variables';
 
 import {BaseConvLayerConfig, Conv2D, ConvLayerConfig} from './convolutional';
 
