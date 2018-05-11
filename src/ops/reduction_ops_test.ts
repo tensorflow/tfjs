@@ -16,9 +16,10 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectNumbersClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
+
 import * as reduce_util from './reduce_util';
 
 describeWithFlags('min', ALL_ENVS, () => {
@@ -1005,5 +1006,71 @@ describeWithFlags('norm', ALL_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.norm({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'norm' must be a Tensor/);
+  });
+});
+
+describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
+  it('tensor1D', () => {
+    const t = tf.tensor1d([1, 2, 3, 4]);
+    const segmentIds = tf.tensor1d([0, 2, 0, 1], 'int32');
+    const numSegments = 3;
+    const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
+
+    expect(res.shape).toEqual([3]);
+    expectArraysClose(res, [4, 4, 2]);
+  });
+
+  it('tensor2D axis=0', () => {
+    const t = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const segmentIds = tf.tensor1d([0, 0], 'int32');
+    const numSegments = 2;
+    const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
+
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [4, 6, 0, 0]);
+  });
+
+  it('tensor2D axis=11', () => {
+    const t = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const segmentIds = tf.tensor1d([0, 0], 'int32');
+    const numSegments = 2;
+    const axis = 1;
+    const res = tf.unsortedSegmentSum(t, segmentIds, numSegments, axis);
+
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [3, 0, 7, 0]);
+  });
+
+  it('tensor3D axis=0', () => {
+    const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [3, 2, 2]);
+    const segmentIds = tf.tensor1d([2, 1, 2], 'int32');
+    const numSegments = 3;
+    const axis = 0;
+    const res = tf.unsortedSegmentSum(t, segmentIds, numSegments, axis);
+
+    expect(res.shape).toEqual([3, 2, 2]);
+    expectArraysClose(res, [0, 0, 0, 0, 5, 6, 7, 8, 10, 12, 14, 16]);
+  });
+
+  it('tensor3D axis=1', () => {
+    const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 2]);
+    const segmentIds = tf.tensor1d([2, 2, 2], 'int32');
+    const numSegments = 3;
+    const axis = 1;
+    const res = tf.unsortedSegmentSum(t, segmentIds, numSegments, axis);
+
+    expect(res.shape).toEqual([2, 3, 2]);
+    expectArraysClose(res, [0, 0, 0, 0, 9, 12, 0, 0, 0, 0, 27, 30]);
+  });
+
+  it('tensor3D axis=2', () => {
+    const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [2, 3, 2]);
+    const segmentIds = tf.tensor1d([0, 0], 'int32');
+    const numSegments = 2;
+    const axis = 2;
+    const res = tf.unsortedSegmentSum(t, segmentIds, numSegments, axis);
+
+    expect(res.shape).toEqual([2, 3, 2]);
+    expectArraysClose(res, [3, 0, 7, 0, 11, 0, 15, 0, 19, 0, 23, 0]);
   });
 });

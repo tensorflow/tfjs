@@ -913,6 +913,12 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return Variable.variable(this, trainable, name, dtype);
   }
+
+  unsortedSegmentSum<T extends Tensor>(
+      this: T, segmentIds: Tensor1D, numSegments: number, axis = 0): T {
+    this.throwIfDisposed();
+    return ops.unsortedSegmentSum(this, segmentIds, numSegments, axis);
+  }
 }
 
 /** @doclink Tensor */
