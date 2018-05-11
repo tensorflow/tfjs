@@ -17,6 +17,7 @@
   "devDependencies": {
     "@tensorflow/tfjs-core": "0.10.0",
     "@types/jasmine": "~2.8.6",
+    "@types/node-fetch": "1.6.9",
     "@types/seedrandom": "~2.4.27",
     "ajv": "~6.3.0",
     "browserify": "~16.1.0",
@@ -24,6 +25,7 @@
     "clang-format": "~1.2.2",
     "copyfiles": "~1.2.0",
     "cross-spawn": "~6.0.4",
+    "node-fetch": "~2.1.2",
     "handlebars": "~4.0.11",
     "http-server": "~0.11.1",
     "jasmine-core": "~3.1.0",
