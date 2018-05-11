@@ -18,7 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {customGrad} from '../globals';
-import {Tensor} from '../tensor';
+import {Tensor, Tensor1D} from '../tensor';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {operation} from './operation';
@@ -415,5 +415,60 @@ export class ReductionOps {
     const devSquared = x.toFloat().sub(mean.reshape(keepDimsShape)).square();
     const variance = devSquared.mean(axes, keepDims);
     return {mean, variance};
+  }
+
+  /**
+   * Computes the sum along segments of a `Tensor`.
+   *
+   * ```js
+   * const x = tf.tensor1d([1, 2, 3, 4]);
+   * const segmentIds = tf.tensor1d([1, 2, 0, 1], 'int32');
+   * comst numSegments = 3;
+   * const axis = 0;
+   *
+   * x.unsortedSegmentSum(indices, numSegments, axis).print() //or
+   * tf.unsortedSegmentSum(x, indices, numSegments, axis)
+   * ```
+   * @param x The `Tensor` that will be summed along its segments
+   * @param segmentIds A `Tensor1D` whose rank is equal to the rank of `x`'s
+   * dimension along the `axis`.  Maps each element of `x` to a segment.
+   * @param numSegments The number of distinct `segmentIds`
+   * @param axis The dimension along which the sums will be
+   * calculated. Defaults to 0.
+   */
+  @doc({heading: 'Operations', subheading: 'Reduction'})
+  @operation
+  static unsortedSegmentSum<T extends Tensor>(
+      x: T, segmentIds: Tensor1D, numSegments: number, axis = 0): T {
+    util.assertArgumentsAreTensors({x, segmentIds}, 'unsortedSegmentSum');
+
+    util.assert(
+        segmentIds.dtype === 'int32', 'Segment Ids must be of dtype `int32`');
+
+    axis = axis_util.parseAxisParam(axis, x.shape)[0];
+    const res = [];
+    const [dim] = segmentIds.shape;
+
+    // Reshape the segment id's so that they can be broadcast with
+    // x. The new shape should be [1, 1, ... 1, dim, 1, ..., 1] where
+    // dim is at index = axis.
+    const newShape = [];
+    for (let i = 0; i < x.shape.length; i++) {
+      if (i === axis) {
+        newShape.push(dim);
+      } else {
+        newShape.push(1);
+      }
+    }
+
+    const reshapedSegmentIds = ops.reshape(segmentIds, newShape);
+    for (let i = 0; i < numSegments; i++) {
+      const segmentId = ops.scalar(i, 'int32');
+      const mask = ops.equal(segmentId, reshapedSegmentIds).asType('float32');
+      const sum = mask.mul(x).sum(axis);
+      res.push(sum);
+    }
+
+    return ops.stack(res, axis) as T;
   }
 }
