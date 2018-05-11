@@ -173,5 +173,28 @@
         "type": "number[]"
       }
     ]
+  },
+  {
+    "tfOpName": "Split",
+    "dlOpName": "split",
+    "category": "slice_join",
+    "params": [{
+        "tfInputIndex": 0,
+        "dlParamName": "axis",
+        "type": "number",
+        "defaultValue": 0
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "num_split",
+        "dlParamName": "numOrSizeSplits",
+        "type": "number",
+        "defaultValue": 1
+      }
+    ]
   }
 ]
