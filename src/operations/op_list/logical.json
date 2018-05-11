@@ -23,6 +23,29 @@
     ]
   },
   {
+    "tfOpName": "NotEqual",
+    "dlOpName": "notEqual",
+    "category": "logical",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "a",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "b",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
+  },
+  {
     "tfOpName": "Greater",
     "dlOpName": "greater",
     "category": "logical",

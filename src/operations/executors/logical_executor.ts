@@ -33,6 +33,11 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,
           getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
     }
+    case 'notEqual': {
+      return [tfc.notEqual(
+          getParamValue('a', node, tensorMap, context) as tfc.Tensor,
+          getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
+    }
     case 'greater': {
       return [tfc.greater(
           getParamValue('a', node, tensorMap, context) as tfc.Tensor,

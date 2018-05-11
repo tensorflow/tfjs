@@ -41,8 +41,8 @@ describe('logical', () => {
   });
 
   describe('executeOp', () => {
-    ['equal', 'greater', 'greaterEqual', 'less', 'lessEqual', 'logicalAnd',
-     'logicalOr']
+    ['equal', 'notEqual', 'greater', 'greaterEqual', 'less', 'lessEqual',
+     'logicalAnd', 'logicalOr']
         .forEach(op => {
           it('should call tfc.' + op, () => {
             const spy = spyOn(tfc, op as 'equal');
