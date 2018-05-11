@@ -18,6 +18,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import glob
+import io
 import json
 import os
 import shutil
@@ -75,6 +77,108 @@ class LoadKerasModelTest(tf.test.TestCase):
 
       # The two model JSONs should match exactly.
       self.assertEqual(model1.to_json(), model2.to_json())
+
+  def testDeserializeKerasModelTopologyOnlyFromBytesIO(self):
+    """Test loading of model (only topology) from a BytesIO object."""
+    # Use separate tf.Graph and tf.Session contexts to prevent name collision.
+    with tf.Graph().as_default(), tf.Session():
+      tfjs_path = os.path.join(self._tmp_dir, 'model_for_test')
+      model1 = self._saveKerasModelForTest(tfjs_path)
+
+    # Read the content of model.json into a BytesIO
+    buff = io.BytesIO()
+    buff_writer = io.BufferedWriter(buff)
+    with open(os.path.join(tfjs_path, 'model.json'), 'rb') as f:
+      buff_writer.write(f.read())
+    buff_writer.flush()
+    buff_writer.seek(0)
+
+    with tf.Graph().as_default(), tf.Session():
+      model2 = keras_tfjs_loader.deserialize_keras_model(buff)
+
+      # The two model JSONs should match exactly.
+      self.assertEqual(model1.to_json(), model2.to_json())
+
+  def testDeserializeKerasModelTopologyOnlyFromJSONDict(self):
+    """Test loading of model (only topology) from a JSON Dict."""
+    # Use separate tf.Graph and tf.Session contexts to prevent name collision.
+    with tf.Graph().as_default(), tf.Session():
+      tfjs_path = os.path.join(self._tmp_dir, 'model_for_test')
+      model1 = self._saveKerasModelForTest(tfjs_path)
+
+    # Read the content of model.json into a BytesIO
+    with open(os.path.join(tfjs_path, 'model.json'), 'rb') as f:
+      config_json = json.load(f)
+
+    with tf.Graph().as_default(), tf.Session():
+      model2 = keras_tfjs_loader.deserialize_keras_model(config_json)
+
+      # The two model JSONs should match exactly.
+      self.assertEqual(model1.to_json(), model2.to_json())
+
+  def testDeserializeKerasModelTopologyAndWeightsFromBuffers(self):
+    """Test loading of model and its weights from buffers."""
+    # Use separate tf.Graph and tf.Session contexts to prevent name collision.
+    with tf.Graph().as_default(), tf.Session():
+      tfjs_path = os.path.join(self._tmp_dir, 'model_for_test')
+      model1 = self._saveKerasModelForTest(tfjs_path)
+      model1_weight_values = model1.get_weights()
+
+    # Read the content of model.json into a BytesIO object.
+    with open(os.path.join(tfjs_path, 'model.json'), 'rb') as f:
+      json_buff = f.read()
+
+    weight_paths = sorted(glob.glob(os.path.join(tfjs_path, 'group*')))
+    weight_buffers = []
+    for path in weight_paths:
+      with open(path, 'rb') as f:
+        weight_buffers.append(f.read())
+
+    with tf.Graph().as_default(), tf.Session():
+      model2 = keras_tfjs_loader.deserialize_keras_model(
+          json_buff, weight_data=weight_buffers)
+
+      # Verify the equality of all the weight values.
+      model2_weight_values = model2.get_weights()
+      self.assertEqual(len(model1_weight_values), len(model2_weight_values))
+      for model1_weight_value, model2_weight_value in zip(
+          model1_weight_values, model2_weight_values):
+        self.assertAllClose(model1_weight_value, model2_weight_value)
+
+      # The two model JSONs should match exactly.
+      self.assertEqual(model1.to_json(), model2.to_json())
+
+  def testDeserializeKerasModelTopologyAndWeightsFromFileObjects(self):
+    """Test loading of model and its weights using file objects."""
+    # Use separate tf.Graph and tf.Session contexts to prevent name collision.
+    with tf.Graph().as_default(), tf.Session():
+      tfjs_path = os.path.join(self._tmp_dir, 'model_for_test')
+      model1 = self._saveKerasModelForTest(tfjs_path)
+      model1_weight_values = model1.get_weights()
+
+    # Read the content of model.json into a file object.
+    json_file = open(os.path.join(tfjs_path, 'model.json'), 'rb')
+
+    weight_paths = sorted(glob.glob(os.path.join(tfjs_path, 'group*')))
+    weight_files = [open(path, 'rb') for path in weight_paths]
+
+    with tf.Graph().as_default(), tf.Session():
+      model2 = keras_tfjs_loader.deserialize_keras_model(
+          json_file, weight_files)
+
+      # Verify the equality of all the weight values.
+      model2_weight_values = model2.get_weights()
+      self.assertEqual(len(model1_weight_values), len(model2_weight_values))
+      for model1_weight_value, model2_weight_value in zip(
+          model1_weight_values, model2_weight_values):
+        self.assertAllClose(model1_weight_value, model2_weight_value)
+
+      # The two model JSONs should match exactly.
+      self.assertEqual(model1.to_json(), model2.to_json())
+
+    json_file.close()
+    for f in weight_files:
+      f.close()
 
   def testLoadKerasModelWithCurrentWorkingDirectoryRelativePath(self):
     with tf.Graph().as_default(), tf.Session():
@@ -231,7 +335,7 @@ class LoadKerasModelTest(tf.test.TestCase):
       with open(model_json_path, 'wt') as f:
         f.write('[' + model_json_content + ']')
 
-      with self.assertRaises(TypeError):
+      with self.assertRaises(ValueError):
         keras_tfjs_loader.load_keras_model(
             model_json_path,
             weights_data_buffers=[b'foo'], weights_path_prefix='bar')
