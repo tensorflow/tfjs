@@ -233,6 +233,7 @@ export const losses = {
   absoluteDifference: LossOps.absoluteDifference,
   computeWeightedLoss: LossOps.computeWeightedLoss,
   cosineDistance: LossOps.cosineDistance,
+  hingeLoss: LossOps.hingeLoss,
   meanSquaredError: LossOps.meanSquaredError,
   softmaxCrossEntropy: SoftmaxOps.softmaxCrossEntropy
 };
