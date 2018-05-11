@@ -110,6 +110,18 @@ describe('slice join', () => {
 
         expect(tfc.gather).toHaveBeenCalledWith(input1[0], input2[0], 1);
       });
+
+      it('should call tfc.split', () => {
+        spyOn(tfc, 'split');
+        node.op = 'split';
+        node.params.axis = createNumberAttrFromIndex(0);
+        node.params.x = createTensorAttr(1);
+        node.params.numOrSizeSplits = createNumberAttr(2);
+        node.inputNames = ['input1', 'input2'];
+        executeOp(node, {input1, input2}, context);
+
+        expect(tfc.split).toHaveBeenCalledWith(input2[0], 2, 1);
+      });
     });
   });
 });

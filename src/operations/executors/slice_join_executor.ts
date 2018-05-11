@@ -66,6 +66,14 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
       return [tfc.tile(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, reps)];
     }
+    case 'split': {
+      const axis = getParamValue('axis', node, tensorMap, context) as number;
+      const numOrSizeSplits =
+          getParamValue('numOrSizeSplits', node, tensorMap, context) as number;
+      return tfc.split(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          numOrSizeSplits, axis);
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
