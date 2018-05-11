@@ -23,9 +23,9 @@ import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
-import {LayerVariable} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape} from '../utils/generic_utils';
+import {LayerVariable} from '../variables';
 
 // tslint:enable:max-line-length
 

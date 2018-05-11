@@ -19,8 +19,9 @@ import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
-import {LayerVariable, RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
+import {RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
+import {LayerVariable} from '../variables';
 
 import {RNN} from './recurrent';
 import {deserialize} from './serialization';
