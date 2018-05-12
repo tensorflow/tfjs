@@ -61,7 +61,7 @@ export function purgeLocalStorageArtifacts(): string[] {
  *
  * See the doc string to `browserLocalStorage` for more details.
  */
-export class BrowserLocalStorage implements IOHandler {
+class BrowserLocalStorage implements IOHandler {
   protected readonly LS: Storage;
   protected readonly modelPath: string;
   protected readonly paths: {[key: string]: string};
@@ -217,8 +217,8 @@ export class BrowserLocalStorage implements IOHandler {
  *
  * @param modelPath A unique identifier for the model to be saved. Must be a
  *   non-empty string.
- * @returns An instance of `BrowserLocalStorage` (sublcass of `IOHandler`),
- *   which can be used with, e.g., `tf.Model.save`.
+ * @returns An instance of `IOHandler`, which can be used with, e.g.,
+ *   `tf.Model.save`.
  */
 export function browserLocalStorage(modelPath: string): IOHandler {
   return new BrowserLocalStorage(modelPath);

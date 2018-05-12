@@ -65,7 +65,7 @@ function getIndexedDBFactory(): IDBFactory {
  *
  * See the doc string of `browserIndexedDB` for more details.
  */
-export class BrowserIndexedDB implements IOHandler {
+class BrowserIndexedDB implements IOHandler {
   protected readonly indexedDB: IDBFactory;
   protected readonly modelPath: string;
 
