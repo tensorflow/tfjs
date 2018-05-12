@@ -69,7 +69,7 @@ export abstract class Pooling1D extends Layer {
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
     inputShape = generic_utils.getExactlyOneShape(inputShape);
-    length = convOutputLength(
+    const length = convOutputLength(
         inputShape[1], this.poolSize[0], this.padding, this.strides[0]);
     return [inputShape[0], length, inputShape[2]];
   }
@@ -299,7 +299,7 @@ serialization.SerializationMap.register(MaxPooling2D);
  * `tf.avgPool2d` is an alias.
  */
 export class AveragePooling2D extends Pooling2D {
-  static className = 'AveragePooing2D';
+  static className = 'AveragePooling2D';
   constructor(config: Pooling2DLayerConfig) {
     super(config);
   }

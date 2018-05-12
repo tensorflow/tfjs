@@ -31,3 +31,10 @@ fs.writeFile('src/version.ts', versionCode, err => {
   }
   console.log(`Version file for version ${version} saved sucessfully.`);
 });
+
+// Update package.json files in integration tests.
+const integPackageJSONPath = 'integration_tests/tfjs2keras/package.json';
+const integPackageJSON = JSON.parse(fs.readFileSync(integPackageJSONPath));
+integPackageJSON.dependencies['@tensorflow/tfjs-layers'] = version;
+fs.writeFileSync(
+    integPackageJSONPath, JSON.stringify(integPackageJSON, null, '  '));
