@@ -20,6 +20,7 @@ import * as tfl from '../index';
 import * as metrics from '../metrics';
 import {ModelAndWeightsConfig, modelFromJSON} from '../models';
 import {DType, Kwargs} from '../types';
+import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {RNN, RNNCell} from './recurrent';
@@ -367,6 +368,15 @@ describeMathCPU('SimpleRNN Symbolic', () => {
     expect(output[0].shape).toEqual([9, 10, 5]);
     expect(output[1].shape).toEqual([9, 5]);
   });
+
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.simpleRNN({units: 4});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.simpleRNN(tsConfig);
+    expect(layerPrime.getConfig().units).toEqual(4);
+  });
 });
 
 describeMathCPUAndGPU('SimpleRNN Tensor', () => {
@@ -572,6 +582,16 @@ describeMathCPU('GRU Symbolic', () => {
        expect(gru.nonTrainableWeights.length).toEqual(0);
        expect(gru.weights.length).toEqual(3);
      });
+
+
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.gru({units: 4});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.gru(tsConfig);
+    expect(layerPrime.getConfig().units).toEqual(4);
+  });
 });
 
 describeMathCPUAndGPU('GRU Tensor', () => {
@@ -790,6 +810,16 @@ describeMathCPU('LSTM Symbolic', () => {
        expect(lstm.nonTrainableWeights.length).toEqual(0);
        expect(lstm.weights.length).toEqual(3);
      });
+
+
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.lstm({units: 4});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.lstm(tsConfig);
+    expect(layerPrime.getConfig().units).toEqual(4);
+  });
 });
 
 describeMathCPUAndGPU('LSTM Tensor', () => {

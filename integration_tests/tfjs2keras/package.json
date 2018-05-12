@@ -1,0 +1,17 @@
+{
+  "name": "tfjs-layers-tfjs2keras-test",
+  "version": "0.0.1",
+  "description": "Testing sending models from tfjs-layers to Keras",
+  "private": false,
+  "dependencies": {
+    "@tensorflow/tfjs-layers": "0.5.3",
+    "clang-format": "~1.2.2",
+    "tsify": "~3.0.1",
+    "tslint": "~5.6.0",
+    "typescript": "2.8.3"
+  },
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint -p . --type-check -t verbose"
+  }
+}

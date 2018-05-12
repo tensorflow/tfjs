@@ -1,0 +1,3 @@
+keras==2.1.6
+tensorflow==1.8.0
+tensorflowjs==0.3.1

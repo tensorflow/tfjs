@@ -411,6 +411,13 @@ export class Activation extends Layer {
     const input = generic_utils.getExactlyOneTensor(inputs);
     return this.activation(input);
   }
+
+  getConfig(): serialization.ConfigDict {
+    const config = {activation: serializeActivation(this.activation)};
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
 }
 serialization.SerializationMap.register(Activation);
 

@@ -172,6 +172,7 @@ export class ModelExports {
 
 export class LayerExports {
   static Layer = Layer;
+  static RNN = RNN;
   static RNNCell = RNNCell;
 
   // TODO(cais): Add doc string to all the public static functions in this

@@ -1,7 +1,14 @@
-language: node_js
-node_js: "8"
-script:
-  - yarn build
-  - yarn lint
-  - yarn test-travis
+matrix:
+  include:
+    - language: node_js
+      node_js: "8"
+      script:
+        - yarn build
+        - yarn lint
+        - yarn test-travis
 
+    - language: node_js
+      node_js: "8"
+      stage: integ
+      script:
+        - yarn test-integ

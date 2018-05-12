@@ -22,11 +22,11 @@ import {InitializerIdentifier} from '../initializers';
 import {DType} from '../types';
 import {pyListRepeat} from '../utils/generic_utils';
 import {arrayProd} from '../utils/math_utils';
+import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Activation, RepeatVector, Reshape} from './core';
-
-// tslint:enable
+// tslint:enable:max-line-length
 
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];
@@ -412,6 +412,15 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
     const layer = new Activation({activation: 'softmax'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, expectedValue);
+  });
+
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.activation({activation: 'relu'});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.activation(tsConfig);
+    expect(layerPrime.getConfig().activation).toEqual('relu');
   });
 });
 

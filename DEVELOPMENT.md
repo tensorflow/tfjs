@@ -31,3 +31,14 @@ project and publishes a new package in a local registry.
 Every time you make a change in `tfjs-layers`, re-run:
 - `yarn publish-local` in the `tfjs-layers` repo
 - `yarn build-npm` in the `tfjs` repo to make a new package.
+
+## Running integration tests
+
+### tfjs2keras
+
+This is an integration test that checks the models exported by tfjs-layers
+can be loaded correctly by Keras in Python. To run this test, do:
+
+```sh
+yarn test-integ
+```

@@ -1122,6 +1122,7 @@ export class SimpleRNN extends RNN {
       recurrentDropout: this.recurrentDropout,
     };
     const baseConfig = super.getConfig();
+    delete baseConfig['cell'];
     Object.assign(config, baseConfig);
     return config;
   }
@@ -1550,6 +1551,7 @@ export class GRU extends RNN {
       implementation: this.implementation,
     };
     const baseConfig = super.getConfig();
+    delete baseConfig['cell'];
     Object.assign(config, baseConfig);
     return config;
   }
@@ -2036,6 +2038,7 @@ export class LSTM extends RNN {
       implementation: this.implementation,
     };
     const baseConfig = super.getConfig();
+    delete baseConfig['cell'];
     Object.assign(config, baseConfig);
     return config;
   }
