@@ -29,7 +29,7 @@ const DEFAULT_FILE_NAME_PREFIX = 'model';
 const DEFAULT_JSON_EXTENSION_NAME = '.json';
 const DEFAULT_WEIGHT_DATA_EXTENSION_NAME = '.weights.bin';
 
-export class BrowserDownloads implements IOHandler {
+class BrowserDownloads implements IOHandler {
   private readonly modelTopologyFileName: string;
   private readonly weightDataFileName: string;
   private readonly jsonAnchor: HTMLAnchorElement;
@@ -102,7 +102,7 @@ export class BrowserDownloads implements IOHandler {
   }
 }
 
-export class BrowserFiles implements IOHandler {
+class BrowserFiles implements IOHandler {
   private readonly files: File[];
 
   constructor(files: File[]) {
