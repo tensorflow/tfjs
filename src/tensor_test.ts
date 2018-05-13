@@ -1090,3 +1090,17 @@ describe('tensor.toString', () => {
         '     [1.9910001, 0.0640865, 0.2983858]]');
   });
 });
+
+describeWithFlags('tensor grad', ALL_ENVS, () => {
+  it('grad with second derivative', () => {
+    // f(x) = x ^ 3
+    const f = (x: Tensor) => x.pow(tf.scalar(3, 'int32'));
+    // f'(x) = 3x ^ 2
+    const g = tf.grad(f);
+    // f''(x) = 6x
+    const gg = tf.grad(g);
+    const x = tf.tensor1d([2, 3]);
+    const data = gg(x);
+    expectArraysClose(data, [12, 18]);
+  });
+});
