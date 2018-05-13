@@ -234,6 +234,7 @@ export const losses = {
   computeWeightedLoss: LossOps.computeWeightedLoss,
   cosineDistance: LossOps.cosineDistance,
   hingeLoss: LossOps.hingeLoss,
+  logLoss: LossOps.logLoss,
   meanSquaredError: LossOps.meanSquaredError,
   softmaxCrossEntropy: SoftmaxOps.softmaxCrossEntropy
 };

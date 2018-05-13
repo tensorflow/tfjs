@@ -193,4 +193,39 @@ export class LossOps {
     const losses = one.sub(labels.mul(predictions)).relu();
     return LossOps.computeWeightedLoss(losses, weights, reduction);
   }
+
+  /**
+   * Computes the log loss between two tensors.
+   *
+   * @param labels The ground truth output tensor, same dimensions as
+   *    'predictions'.
+   * @param predictions The predicted outputs.
+   * @param weights Tensor whose rank is either 0, or the same rank as
+   *    `labels`, and must be broadcastable to `labels` (i.e., all dimensions
+   *    must be either `1`, or the same as the corresponding `losses`
+   *    dimension).
+   * @param epsilon A small increment to avoid taking log of zero
+   * @param reduction Type of reduction to apply to loss. Should be of type
+   *    `Reduction`
+   */
+  @doc({heading: 'Training', subheading: 'Losses', namespace: 'losses'})
+  @operation
+  static logLoss<T extends Tensor, O extends Tensor>(
+      labels: T, predictions: T, weights?: Tensor, epsilon = 1e-7,
+      reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+    util.assertArgumentsAreTensors({labels, predictions}, 'logLoss');
+    if (weights != null) {
+      util.assertArgumentsAreTensors({weights}, 'logLoss');
+    }
+    util.assertShapesMatch(
+        labels.shape, predictions.shape, 'Error in logLoss: ');
+
+    const one = ops.scalar(1);
+    const epsilonScalar = ops.scalar(epsilon);
+    const losses = labels.mul(predictions.add(epsilonScalar).log())
+                       .neg()
+                       .sub(one.sub(labels).mul(
+                           one.sub(predictions).add(epsilonScalar).log()));
+    return LossOps.computeWeightedLoss(losses, weights, reduction);
+  }
 }
