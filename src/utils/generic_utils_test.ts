@@ -9,7 +9,6 @@
  */
 
 import * as utils from './generic_utils';
-import {pyNormalizeArrayIndex} from './generic_utils';
 
 describe('pyListRepeat() ', () => {
   it('creates an empty array for 0 numValues', () => {
@@ -75,39 +74,6 @@ describe('pyListRepeat() ', () => {
          expect(utils.pyGetAttr(obj, key, defaultValue)).toBeNull();
        });
   });
-});
-
-describe('pyNormalizeArrayIndex', () => {
-  const x = [2, 2, 2];
-
-  for (const index of [0, 1, 2]) {
-    it('returns index if index >= 0 and index < x.length', () => {
-      expect(pyNormalizeArrayIndex(x, index)).toEqual(index);
-    });
-  }
-
-  for (const [index, expected] of [[-1, 2], [-2, 1], [-3, 0]]) {
-    it('returns index if index < 0 and abs(index) <= x.length', () => {
-      expect(pyNormalizeArrayIndex(x, index)).toEqual(expected);
-    });
-  }
-
-  it('throws an exception if the array is null', () => {
-    expect(() => pyNormalizeArrayIndex(null, 0))
-        .toThrowError(/Must provide a valid array/);
-  });
-
-  it('throws an exception if the index is null', () => {
-    expect(() => pyNormalizeArrayIndex(x, null))
-        .toThrowError(/Must provide a valid array/);
-  });
-
-  for (const index of [3, -4]) {
-    it('throws an exception if the index is out of range', () => {
-      expect(() => pyNormalizeArrayIndex(x, index))
-          .toThrowError(/Index.*out of range/);
-    });
-  }
 });
 
 describe('assert', () => {

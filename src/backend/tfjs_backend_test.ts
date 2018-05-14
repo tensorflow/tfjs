@@ -131,36 +131,6 @@ describe('dtype', () => {
   });
 });
 
-describe('normalizeAxis', () => {
-  let x: Tensor;
-  beforeEach(() => {
-    x = zeros([2, 2, 2, 2]);
-  });
-
-  it('handles single-value axis.', () => {
-    expect(K.normalizeAxis(x, -1)).toEqual(3);
-  });
-
-  it('handles an array of axes.', () => {
-    expect(K.normalizeAxis(x, [-1, 1])).toEqual([3, 1]);
-  });
-
-  it('returns null if axis is null.', () => {
-    expect(K.normalizeAxis(x, null)).toBeNull();
-  });
-
-  it('throws exception if a single index is invalid.', () => {
-    expect(() => K.normalizeAxis(x, 4)).toThrowError();
-  });
-
-  it('throws exception if a single index in an array is invalid.', () => {
-    expect(() => K.normalizeAxis(x, [1, 4])).toThrowError();
-  });
-
-  it('throws exception if a single index in an array is null.', () => {
-    expect(() => K.normalizeAxis(x, [null])).toThrowError();
-  });
-});
 
 describeMathCPU('countParams', () => {
   it('Scalar', () => {
