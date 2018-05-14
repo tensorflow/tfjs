@@ -403,8 +403,8 @@ export abstract class Layer extends serialization.Serializable {
     }
     this.name = name;
 
-    this.trainable = generic_utils.pyGetAttr(config, 'trainable', true);
-    this.updatable = generic_utils.pyGetAttr(config, 'updatable', true);
+    this.trainable = config.trainable == null ? true : config.trainable;
+    this.updatable = config.updatable == null ? true : config.updatable;
 
     if (config.inputShape != null || config.batchInputShape != null) {
       /*

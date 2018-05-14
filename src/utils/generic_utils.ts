@@ -13,7 +13,7 @@
 // tslint:disable:max-line-length
 import {DataType, serialization, Tensor} from '@tensorflow/tfjs-core';
 
-import {AssertionError, AttributeError, ValueError} from '../errors';
+import {AssertionError, ValueError} from '../errors';
 import {Shape} from '../types';
 // tslint:enable
 
@@ -35,26 +35,6 @@ export function pyListRepeat(value: any, numValues: number): any[] {
     newArray.fill(value);
     return newArray;
   }
-}
-
-/**
- * Equivalent to Python's getattr() built-in function.
- * @param obj
- * @param attrName The name of the attribute to retrieve.
- * @param defaultValue Default value to use if attrName doesn't exist in the
- *   object.
- */
-// tslint:disable-next-line:no-any
-export function pyGetAttr<T>(obj: any, attrName: string, defaultValue?: T): T {
-  if (attrName in obj) {
-    return obj[attrName];
-  }
-  if (defaultValue === undefined) {
-    throw new AttributeError(
-        'pyGetAttr: Attempting to get attribute ' + attrName +
-        'with no default value defined');
-  }
-  return defaultValue;
 }
 
 export function assert(val: boolean, message?: string): void {

@@ -38,42 +38,6 @@ describe('pyListRepeat() ', () => {
     const expectedValue = [1, 2, 1, 2];
     expect(utils.pyListRepeat(value, numValues)).toEqual(expectedValue);
   });
-
-  describe('pyGetAttr', () => {
-    it('returns default value', () => {
-      const expectedValue = 'a';
-      const obj = {};
-      expect(utils.pyGetAttr(obj, 'key', expectedValue)).toEqual(expectedValue);
-    });
-
-    it('returns assigned value if it exists', () => {
-      const expectedValue = 'a';
-      const defaultValue = 'b';
-      const key = 'key';
-      const obj = {key: expectedValue};
-      expect(utils.pyGetAttr(obj, key, defaultValue)).toEqual(expectedValue);
-    });
-
-    it('throws AttributeError if attribute does not exist and no default ' +
-           'value is provided.',
-       () => {
-         const obj = {};
-         const key = 'key';
-         const accessFn = () => {
-           utils.pyGetAttr(obj, key);
-         };
-         expect(accessFn).toThrowError(/^pyGetAttr:/);
-       });
-
-    it('does not throw AttributeError if attribute does not exist and null ' +
-           'value is provided as the default.',
-       () => {
-         const obj = {};
-         const key = 'key';
-         const defaultValue: string = null;
-         expect(utils.pyGetAttr(obj, key, defaultValue)).toBeNull();
-       });
-  });
 });
 
 describe('assert', () => {
