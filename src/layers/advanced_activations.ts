@@ -226,13 +226,13 @@ export class Softmax extends Layer {
 
   readonly DEFAULT_AXIS = 1.0;
 
-  constructor(config?: ThresholdedReLULayerConfig) {
+  constructor(config?: SoftmaxLayerConfig) {
     super(config == null ? {} : config);
     if (config == null) {
       config = {};
     }
 
-    this.axis = config.theta == null ? this.DEFAULT_AXIS : config.theta;
+    this.axis = config.axis == null ? this.DEFAULT_AXIS : config.axis;
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
