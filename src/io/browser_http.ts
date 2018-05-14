@@ -21,19 +21,28 @@
  * Uses [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
  */
 
+import {ENV} from '../environment';
 import {assert} from '../util';
 
 import {getModelArtifactsInfoForKerasJSON} from './io_utils';
+import {IORouter, IORouterRegistry} from './router_registry';
 // tslint:disable-next-line:max-line-length
 import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig} from './types';
 
-class BrowserHTTPRequest implements IOHandler {
+export class BrowserHTTPRequest implements IOHandler {
   protected readonly path: string;
   protected readonly requestInit: RequestInit;
 
   readonly DEFAULT_METHOD = 'POST';
 
+  static readonly URL_SCHEMES = ['http://', 'https://'];
+
   constructor(path: string, requestInit?: RequestInit) {
+    if (!ENV.get('IS_BROWSER')) {
+      throw new Error(
+          'browserHTTPRequest is not supported outside the web browser.');
+    }
+
     assert(
         path != null && path.length > 0,
         'URL path for browserHTTPRequest must not be null, undefined or ' +
@@ -100,6 +109,24 @@ class BrowserHTTPRequest implements IOHandler {
   //   See: https://github.com/tensorflow/tfjs/issues/290
 }
 
+export const httpRequestRouter: IORouter = (url: string) => {
+  if (!ENV.get('IS_BROWSER')) {
+    // browserHTTPRequest uses `fetch`, which differs from HTTP requests in
+    // node.js, which use `node-fetch`.
+    return null;
+  } else {
+    for (const scheme of BrowserHTTPRequest.URL_SCHEMES) {
+      if (url.startsWith(scheme)) {
+        return browserHTTPRequest(url);
+      }
+    }
+    return null;
+  }
+};
+IORouterRegistry.registerSaveRouter(httpRequestRouter);
+// TODO(cais): Once `tf.loadModel` use `IOHandler`s, register a load router
+//   here as well.
+
 // tslint:disable:max-line-length
 /**
  * Creates an IOHandler subtype that sends model artifacts to HTTP server.
@@ -126,6 +153,13 @@ class BrowserHTTPRequest implements IOHandler {
  * console.log(saveResult);
  * ```
  *
+ * If the default `POST` method is to be used, without any custom parameters
+ * such as headers, you can simply pass an HTTP or HTTPS URL to `model.save`:
+ *
+ * ```js
+ * const saveResult = await model.save('http://model-server:5000/upload');
+ * ```
+ *
  * The following Python code snippet based on the
  * [flask](https://github.com/pallets/flask) server framework implements a
  * server that can receive the request. Upon receiving the model artifacts
@@ -133,7 +167,7 @@ class BrowserHTTPRequest implements IOHandler {
  * [Keras Models](https://keras.io/models/model/) in memory.
  *
  * ```python
- * # pip install -U flask flask-cors keras tensorflow tensorflowjs
+ * # pip install -U flask flask-cors tensorflow tensorflowjs
  *
  * from __future__ import absolute_import
  * from __future__ import division

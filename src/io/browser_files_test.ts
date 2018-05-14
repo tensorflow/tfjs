@@ -23,6 +23,8 @@ import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {CPU_ENVS} from '../test_util';
 
+// tslint:disable-next-line:max-line-length
+import {browserDownloads, BrowserDownloads, browserDownloadsRouter} from './browser_files';
 import {WeightsManifestConfig, WeightsManifestEntry} from './types';
 
 const modelTopology1: {} = {
@@ -102,9 +104,9 @@ describeWithFlags('browserDownloads', CPU_ENVS, () => {
     });
   });
 
-  it('Explicit file name prefix, with existing anchors', async done => {
+  it('Explicit file name prefix, with existing anchors', done => {
     const testStartDate = new Date();
-    const downloadTrigger = tf.io.browserDownloads('test-model');
+    const downloadTrigger = tf.io.getSaveHandlers('downloads://test-model')[0];
     downloadTrigger.save(artifacts1)
         .then(async saveResult => {
           expect(saveResult.errors).toEqual(undefined);
@@ -157,9 +159,64 @@ describeWithFlags('browserDownloads', CPU_ENVS, () => {
         });
   });
 
-  it('No file name provided, with existing anchors', async done => {
+  it('URL scheme in explicit name gets stripped', done => {
     const testStartDate = new Date();
-    const downloadTrigger = tf.io.browserDownloads();
+    const downloadTrigger = browserDownloads('downloads://test-model');
+    downloadTrigger.save(artifacts1)
+        .then(async saveResult => {
+          expect(saveResult.errors).toEqual(undefined);
+          const artifactsInfo = saveResult.modelArtifactsInfo;
+          expect(artifactsInfo.dateSaved.getTime())
+              .toBeGreaterThanOrEqual(testStartDate.getTime());
+          expect(saveResult.modelArtifactsInfo.modelTopologyBytes)
+              .toEqual(JSON.stringify(modelTopology1).length);
+          expect(saveResult.modelArtifactsInfo.weightSpecsBytes)
+              .toEqual(JSON.stringify(weightSpecs1).length);
+          expect(saveResult.modelArtifactsInfo.weightDataBytes).toEqual(16);
+
+          const jsonAnchor = fakeAnchors[0];
+          const weightDataAnchor = fakeAnchors[1];
+          expect(jsonAnchor.download).toEqual('test-model.json');
+          expect(weightDataAnchor.download).toEqual('test-model.weights.bin');
+
+          // Verify the content of the JSON file.
+          const jsonContent = await fetch(jsonAnchor.href);
+          const modelTopologyAndWeightsManifest =
+              JSON.parse(await jsonContent.text());
+          expect(modelTopologyAndWeightsManifest.modelTopology)
+              .toEqual(modelTopology1);
+          const weightsManifest =
+              modelTopologyAndWeightsManifest.weightsManifest as
+              WeightsManifestConfig;
+          expect(weightsManifest.length).toEqual(1);
+          expect(weightsManifest[0].paths).toEqual([
+            './test-model.weights.bin'
+          ]);
+          expect(weightsManifest[0].weights).toEqual(weightSpecs1);
+
+          // Verify the content of the binary weights file.
+          const weightsContent = await fetch(weightDataAnchor.href);
+          const fileReader = new FileReader();
+          // tslint:disable-next-line:no-any
+          fileReader.onload = (event: any) => {
+            const buffer = event.target.result as ArrayBuffer;
+            expect(buffer).toEqual(weightData1);
+            done();
+          };
+          fileReader.readAsArrayBuffer(await weightsContent.blob());
+
+          // Verify that the downloads are triggered through clicks.
+          expect(jsonAnchor.clicked).toEqual(1);
+          expect(weightDataAnchor.clicked).toEqual(1);
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
+
+  it('No file name provided, with existing anchors', done => {
+    const testStartDate = new Date();
+    const downloadTrigger = browserDownloads();
     downloadTrigger.save(artifacts1)
         .then(async saveResult => {
           expect(saveResult.errors).toEqual(undefined);
@@ -208,9 +265,9 @@ describeWithFlags('browserDownloads', CPU_ENVS, () => {
         });
   });
 
-  it('Download only model topology', async done => {
+  it('Download only model topology', done => {
     const testStartDate = new Date();
-    const downloadTrigger = tf.io.browserDownloads();
+    const downloadTrigger = browserDownloads();
     const modelTopologyOnlyArtifacts: tf.io.ModelArtifacts = {
       modelTopology: modelTopology1,
     };
@@ -247,6 +304,14 @@ describeWithFlags('browserDownloads', CPU_ENVS, () => {
           done.fail(err.stack);
         });
   });
+
+  it('browserDownloadsRouter', () => {
+    expect(
+        browserDownloadsRouter('downloads://foo') instanceof BrowserDownloads)
+        .toEqual(true);
+    expect(browserDownloadsRouter('invaliddownloads://foo')).toBeNull();
+    expect(browserDownloadsRouter('foo')).toBeNull();
+  });
 });
 
 describeWithFlags('browserFiles', CPU_ENVS, () => {
@@ -255,7 +320,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
   const weightsFile = new File(
       [weightsBlob], 'model.weights.bin', {type: 'application/octet-stream'});
 
-  it('One group, one path', async done => {
+  it('One group, one path', done => {
     const weightsManifest: WeightsManifestConfig = [{
       paths: ['./model.weights.bin'],
       weights: weightSpecs1,
@@ -284,7 +349,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it(`One group, two paths`, async done => {
+  it(`One group, two paths`, done => {
     const weightSpecs: WeightsManifestEntry[] = [
       {
         name: 'foo',
@@ -339,7 +404,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it(`Two groups, four paths, reverseOrder=false`, async done => {
+  it(`Two groups, four paths, reverseOrder=false`, done => {
     const weightSpecs1: WeightsManifestEntry[] = [
       {
         name: 'foo',
@@ -426,7 +491,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it(`Two groups, four paths, reverseOrder=true`, async done => {
+  it(`Two groups, four paths, reverseOrder=true`, done => {
     const weightSpecs1: WeightsManifestEntry[] = [
       {
         name: 'foo',
@@ -513,7 +578,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it('Upload model topology only', async done => {
+  it('Upload model topology only', done => {
     const weightsManifest: WeightsManifestConfig = [{
       paths: ['./model.weights.bin'],
       weights: weightSpecs1,
@@ -541,7 +606,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it('Mismatch in number of paths and number of files', async done => {
+  it('Mismatch in number of paths and number of files', done => {
     const weightsManifest: WeightsManifestConfig = [{
       paths: ['./model.weights.1.bin'],
       weights: weightSpecs1,
@@ -588,7 +653,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it('Mismatch in manifest paths and file names', async done => {
+  it('Mismatch in manifest paths and file names', done => {
     const weightSpecs: WeightsManifestEntry[] = [
       {
         name: 'foo',
@@ -646,7 +711,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it('Duplicate basenames in paths fails', async done => {
+  it('Duplicate basenames in paths fails', done => {
     const weightSpecs: WeightsManifestEntry[] = [
       {
         name: 'foo',
@@ -706,7 +771,7 @@ describeWithFlags('browserFiles', CPU_ENVS, () => {
         });
   });
 
-  it('Missing modelTopology from JSON leads to Error', async done => {
+  it('Missing modelTopology from JSON leads to Error', done => {
     const weightsManifest: WeightsManifestConfig = [{
       paths: ['./model.weights.bin'],
       weights: weightSpecs1,
