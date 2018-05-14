@@ -133,7 +133,7 @@ export class DepthwiseConv2D extends Conv2D {
       outputs = K.biasAdd(outputs, this.bias.read(), this.dataFormat);
     }
     if (this.activation != null) {
-      outputs = this.activation(outputs);
+      outputs = this.activation.apply(outputs);
     }
     return outputs;
   }

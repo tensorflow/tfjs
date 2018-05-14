@@ -15,7 +15,7 @@
 // tslint:disable:max-line-length
 import {conv2dTranspose, separableConv2d, serialization, Tensor, Tensor4D, tidy, transpose} from '@tensorflow/tfjs-core';
 
-import {ActivationFn, getActivation, serializeActivation} from '../activations';
+import {Activation, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
@@ -147,7 +147,7 @@ export abstract class Conv extends Layer {
   protected readonly padding: PaddingMode;
   protected readonly dataFormat: DataFormat;
   protected readonly dilationRate: number|[number]|[number, number];
-  protected readonly activation: ActivationFn;
+  protected readonly activation: Activation;
   protected readonly useBias: boolean;
   protected readonly kernelInitializer?: Initializer;
   protected readonly biasInitializer?: Initializer;
@@ -258,7 +258,7 @@ export abstract class Conv extends Layer {
     }
 
     if (this.activation != null) {
-      outputs = this.activation(outputs);
+      outputs = this.activation.apply(outputs);
     }
     return outputs;
   }
@@ -479,7 +479,7 @@ export class Conv2DTranspose extends Conv2D {
             K.biasAdd(outputs, this.bias.read(), this.dataFormat) as Tensor4D;
       }
       if (this.activation != null) {
-        outputs = this.activation(outputs) as Tensor4D;
+        outputs = this.activation.apply(outputs) as Tensor4D;
       }
       return outputs;
     });
@@ -691,7 +691,7 @@ export class SeparableConv extends Conv {
       output = K.biasAdd(output, this.bias.read(), this.dataFormat);
     }
     if (this.activation != null) {
-      output = this.activation(output);
+      output = this.activation.apply(output);
     }
 
     if (this.dataFormat === 'channelsFirst') {

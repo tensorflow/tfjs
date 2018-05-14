@@ -15,7 +15,7 @@
 import {Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
-import {ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
+import {Activation as ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -289,7 +289,7 @@ export class Dense extends Layer {
       output = K.biasAdd(output, this.bias.read());
     }
     if (this.activation != null) {
-      output = this.activation(output);
+      output = this.activation.apply(output);
     }
     return output;
   }
@@ -409,7 +409,7 @@ export class Activation extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     this.invokeCallHook(inputs, kwargs);
     const input = generic_utils.getExactlyOneTensor(inputs);
-    return this.activation(input);
+    return this.activation.apply(input);
   }
 
   getConfig(): serialization.ConfigDict {

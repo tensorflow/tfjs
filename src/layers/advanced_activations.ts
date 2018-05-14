@@ -14,7 +14,7 @@
 
 import {elu, leakyRelu, serialization, Tensor} from '@tensorflow/tfjs-core';
 
-import {softmax} from '../activations';
+import {Softmax as softmaxActivation} from '../activations';
 import {cast} from '../backend/tfjs_backend';
 import {getScalar} from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -223,7 +223,7 @@ export interface SoftmaxLayerConfig extends LayerConfig {
 export class Softmax extends Layer {
   static className = 'Softmax';
   readonly axis: number;
-
+  readonly softmax: (t: Tensor, a?: number) => Tensor;
   readonly DEFAULT_AXIS = 1.0;
 
   constructor(config?: SoftmaxLayerConfig) {
@@ -231,13 +231,13 @@ export class Softmax extends Layer {
     if (config == null) {
       config = {};
     }
-
+    this.softmax = new softmaxActivation().apply;
     this.axis = config.axis == null ? this.DEFAULT_AXIS : config.axis;
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = generic_utils.getExactlyOneTensor(inputs);
-    return softmax(x, this.axis);
+    return this.softmax(x, this.axis);
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {

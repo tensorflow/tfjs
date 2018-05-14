@@ -14,13 +14,14 @@
 // tslint:disable:max-line-length
 import {scalar, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
-import {elu, hardSigmoid, linear, relu, relu6, selu, sigmoid, softmax, softplus, softsign, tanh} from './activations';
+import {Elu, HardSigmoid, Linear, Relu, Relu6, Selu, Sigmoid, Softmax, Softplus, Softsign, Tanh} from './activations';
 import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 // tslint:enable
 
 describeMathCPUAndGPU('linear activation', () => {
   const initVals = new Float32Array([-1, 2, 0, 4, -5, 6]);
   const expectedVals = new Float32Array([-1, 2, 0, 4, -5, 6]);
+  const linear = new Linear().apply;
   it('1D', () => {
     const initX = tensor1d(initVals);
     expectTensorsClose(linear(initX), tensor1d(expectedVals));
@@ -38,6 +39,7 @@ describeMathCPUAndGPU('linear activation', () => {
 describeMathCPUAndGPU('elu activation', () => {
   const initVals = [-1, 2, 0, 4, -5, 6];
   const expectedVals = initVals.map(x => x < 0 ? Math.exp(x) - 1 : x);
+  const elu = new Elu().apply;
   it('1D', () => {
     const initX = tensor1d(initVals);
     expectTensorsClose(elu(initX), tensor1d(expectedVals));
@@ -59,6 +61,8 @@ describeMathCPUAndGPU('selu activation', () => {
 
   const expectedVals =
       initVals.map(x => scale * (x < 0 ? (alpha * (Math.exp(x) - 1)) : x));
+  const selu = new Selu().apply;
+
   it('1D', () => {
     const initX = tensor1d(initVals);
     expectTensorsClose(selu(initX), tensor1d(expectedVals));
@@ -77,6 +81,7 @@ describeMathCPUAndGPU('selu activation', () => {
 describeMathCPUAndGPU('relu activation', () => {
   const initVals = new Float32Array([-1, 2, 0, 4, -5, 6]);
   const expectedVals = new Float32Array([0, 2, 0, 4, 0, 6]);
+  const relu = new Relu().apply;
   it('1D', () => {
     const initX = tensor1d(initVals);
     expectTensorsClose(relu(initX), tensor1d(expectedVals));
@@ -94,6 +99,7 @@ describeMathCPUAndGPU('relu activation', () => {
 describeMathCPUAndGPU('relu6 activation', () => {
   const initVals = new Float32Array([-10, -5, 0, 1, 5, 15]);
   const expectedVals = new Float32Array([0, 0, 0, 1, 5, 6]);
+  const relu6 = new Relu6().apply;
   it('1D', () => {
     const initX = tensor1d(initVals);
     expectTensorsClose(relu6(initX), tensor1d(expectedVals));
@@ -109,6 +115,7 @@ describeMathCPUAndGPU('relu6 activation', () => {
 });
 
 describeMathCPUAndGPU('sigmoid activation', () => {
+  const sigmoid = new Sigmoid().apply;
   it('Scalar', () => {
     expectTensorsClose(sigmoid(scalar(0)), scalar(0.5));
   });
@@ -121,6 +128,7 @@ describeMathCPUAndGPU('sigmoid activation', () => {
 });
 
 describeMathCPUAndGPU('hardSigmoid activation', () => {
+  const hardSigmoid = new HardSigmoid().apply;
   it('Scalar', () => {
     expectTensorsClose(hardSigmoid(scalar(0)), scalar(0.5));
   });
@@ -142,6 +150,7 @@ describeMathCPUAndGPU('hardSigmoid activation', () => {
 });
 
 describeMathCPUAndGPU('softplus activation', () => {
+  const softplus = new Softplus().apply;
   it('Scalar', () => {
     expectTensorsClose(softplus(scalar(0)), scalar(Math.log(2)));
   });
@@ -154,6 +163,7 @@ describeMathCPUAndGPU('softplus activation', () => {
 });
 
 describeMathCPUAndGPU('softsign activation', () => {
+  const softsign = new Softsign().apply;
   it('Scalar', () => {
     expectTensorsClose(softsign(scalar(0)), scalar(0));
   });
@@ -166,6 +176,7 @@ describeMathCPUAndGPU('softsign activation', () => {
 });
 
 describeMathCPUAndGPU('tanh activation', () => {
+  const tanh = new Tanh().apply;
   const initVals = [-1, 2, 0, 4, -5, 6];
   const expectedVals = initVals.map(x => Math.tanh(x));
   it('1D', () => {
@@ -183,6 +194,7 @@ describeMathCPUAndGPU('tanh activation', () => {
 });
 
 describeMathCPUAndGPU('softmax activation', () => {
+  const softmax = new Softmax().apply;
   // Setup: Array with initial values.
   // Execute: Softmax on the last dimension.
   // Expect: Output array matches size and approximate expected values.
