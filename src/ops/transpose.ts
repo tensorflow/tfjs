@@ -48,14 +48,25 @@ export class TransposeOps {
     if (perm == null) {
       perm = x.shape.map((s, i) => i).reverse();
     }
-    const der = (dy: T) => {
-      const undoPerm = axis_util.getUndoAxesPermutation(perm);
-      return {x: () => dy.transpose(undoPerm)};
-    };
     util.assert(
         x.rank === perm.length,
         `Error in transpose: rank of input ${x.rank} ` +
             `must match length of perm ${perm}.`);
+    perm.forEach(axis => {
+      util.assert(
+          axis >= 0 && axis < x.rank,
+          `All entries in 'perm' must be between 0 and ${x.rank - 1}` +
+              ` but got ${perm}`);
+    });
+
+    if (x.rank <= 1) {
+      return x.clone();
+    }
+
+    const der = (dy: T) => {
+      const undoPerm = axis_util.getUndoAxesPermutation(perm);
+      return {x: () => dy.transpose(undoPerm)};
+    };
     return ENV.engine.runKernel(
         backend => backend.transpose(x, perm), {x}, der);
   }
