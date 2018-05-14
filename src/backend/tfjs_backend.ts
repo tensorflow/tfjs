@@ -19,7 +19,6 @@ import {DataType, dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Ten
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
 import {NotImplementedError, ValueError} from '../errors';
 import {RnnStepFunction, Shape, SymbolicTensor} from '../types';
-import {pyNormalizeArrayIndex} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 import {epsilon as common_epsilon} from './common';
@@ -126,32 +125,6 @@ export function ndim(x: Tensor|SymbolicTensor): number {
 export function dtype(x: Tensor|SymbolicTensor): DataType {
   // TODO(michaelterry): Update if additional data types are available.
   return (x instanceof Tensor) ? DEFAULT_DTYPE : (x as SymbolicTensor).dtype;
-}
-
-/**
- * Normalize an axis specification, allowing negative indices (to enable
- * counting from the end).
- *
- * For example, if axis = -1 for an Tensor x with shape of [2, 2], then
- * normalizeAxis(x, -1) = 1.
- *
- * TODO(michaelterry): Remove once the following issue is resolved:
- *   https://github.com/PAIR-code/deeplearnjs/issues/477
- *
- * @param x The Tensor to normalize against.
- * @param axis One or more axis indices to normalize. If an array is passed in,
- *   all values must be non-null/defined.
- */
-export function normalizeAxis(
-    x: Tensor|SymbolicTensor, axis: number|number[]): number|number[] {
-  if (axis == null) {
-    return axis;
-  }
-  const xShape = shape(x);
-  if (Array.isArray(axis)) {
-    return axis.map(thisAxis => pyNormalizeArrayIndex(xShape, thisAxis));
-  }
-  return pyNormalizeArrayIndex(xShape, axis);
 }
 
 /**
@@ -871,8 +844,6 @@ export function oneHot(indices: Tensor, numClasses: number): Tensor {
  */
 export function mean(
     x: Tensor, axis?: number|number[], keepDims?: boolean): Scalar|Tensor {
-  // TODO(michaelterry): Remove once negative supported axes in deeplearn.js
-  axis = normalizeAxis(x, axis);
   return tfc.mean(x, axis, keepDims);
 }
 
