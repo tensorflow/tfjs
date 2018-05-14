@@ -16,11 +16,39 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('transpose', ALL_ENVS, () => {
+  it('of scalar is no-op', () => {
+    const a = tf.scalar(3);
+    expectArraysClose(tf.transpose(a), [3]);
+  });
+
+  it('of 1D is no-op', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    expectArraysClose(tf.transpose(a), [1, 2, 3]);
+  });
+
+  it('of scalar with perm of incorrect rank throws error', () => {
+    const a = tf.scalar(3);
+    const perm = [0];  // Should be empty array.
+    expect(() => tf.transpose(a, perm)).toThrowError();
+  });
+
+  it('of 1d with perm out of bounds throws error', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const perm = [1];
+    expect(() => tf.transpose(a, perm)).toThrowError();
+  });
+
+  it('of 1d with perm incorrect rank throws error', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const perm = [0, 0];  // Should be of length 1.
+    expect(() => tf.transpose(a, perm)).toThrowError();
+  });
+
   it('2D (no change)', () => {
     const t = tf.tensor2d([1, 11, 2, 22, 3, 33, 4, 44], [2, 4]);
     const t2 = tf.transpose(t, [0, 1]);
