@@ -11,19 +11,11 @@
 /** Defines allowable data types for tensors. */
 
 // tslint:disable:max-line-length
-import {doc, Scalar, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, doc, Scalar, Tensor} from '@tensorflow/tfjs-core';
 
 import {getScopedTensorName, getUniqueTensorName} from './common';
 import {Layer} from './engine/topology';
 // tslint:enable:max-line-length
-
-
-/** @docalias 'float32'|'int32'|'bool' */
-export enum DType {
-  float32 = 'float32',
-  int32 = 'int32',
-  bool = 'bool',
-}
 
 /** @docalias number[] */
 export type Shape = number[];
@@ -78,9 +70,10 @@ export class SymbolicTensor {
    *   returned by apply().
    */
   constructor(
-      readonly dtype: DType, readonly shape: Shape, public sourceLayer: Layer,
-      readonly inputs: SymbolicTensor[], readonly callArgs: Kwargs,
-      name?: string, readonly outputTensorIndex?: number) {
+      readonly dtype: DataType, readonly shape: Shape,
+      public sourceLayer: Layer, readonly inputs: SymbolicTensor[],
+      readonly callArgs: Kwargs, name?: string,
+      readonly outputTensorIndex?: number) {
     this.id = getNextUniqueTensorId();
     if (name != null) {
       this.originalName = getScopedTensorName(name);

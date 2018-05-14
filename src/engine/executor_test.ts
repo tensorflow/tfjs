@@ -16,7 +16,6 @@
 import {ones, Tensor, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
-import {DType} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {execute, FeedDict} from './executor';
@@ -24,8 +23,8 @@ import {execute, FeedDict} from './executor';
 // tslint:enable
 
 describeMathCPU('FeedDict', () => {
-  const x = tfl.input({shape: [], name: 'x', dtype: DType.float32});
-  const y = tfl.input({shape: [], name: 'y', dtype: DType.float32});
+  const x = tfl.input({shape: [], name: 'x', dtype: 'float32'});
+  const y = tfl.input({shape: [], name: 'y', dtype: 'float32'});
   const xValue = tensor1d([42]);
   const yValue = tensor1d([21]);
 
@@ -75,19 +74,19 @@ describeMathCPU('FeedDict', () => {
     expect(() => feedDict.add(x, xValue)).toThrowError(/Duplicate key/);
   });
   it('Feeding compatible value with undetermined dimension works', () => {
-    const s = tfl.input({shape: [null, 4], name: 's', dtype: DType.float32});
+    const s = tfl.input({shape: [null, 4], name: 's', dtype: 'float32'});
     const sValue = tensor3d([1, 3, 3, 7], [1, 1, 4]);
     const feedDict = new FeedDict([{key: s, value: sValue}]);
     expect(feedDict.getValue(s)).toEqual(sValue);
   });
   it('Feeding incompatible rank leads to error', () => {
-    const s = tfl.input({shape: [null, 4], name: 's', dtype: DType.float32});
+    const s = tfl.input({shape: [null, 4], name: 's', dtype: 'float32'});
     const sValue = tensor2d([1, 3, 3, 7], [1, 4]);
     expect(() => new FeedDict([{key: s, value: sValue}]))
         .toThrowError(/rank of feed .* does not match/);
   });
   it('Feeding incompatible dimension leads to error', () => {
-    const s = tfl.input({shape: [null, 4], name: 's', dtype: DType.float32});
+    const s = tfl.input({shape: [null, 4], name: 's', dtype: 'float32'});
     const sValue = tensor3d([0, 0, 8], [1, 1, 3]);
     expect(() => new FeedDict([{key: s, value: sValue}]))
         .toThrowError(/The 2-th dimension of the feed .* is incompatible/);
@@ -96,11 +95,11 @@ describeMathCPU('FeedDict', () => {
 
 describeMathCPUAndGPU('Executor', () => {
   it('Linear Graph Topology', () => {
-    const x = tfl.input({shape: [2], name: 'fooInput', dtype: DType.float32});
+    const x = tfl.input({shape: [2], name: 'fooInput', dtype: 'float32'});
     const denseLayer1 = tfl.layers.dense(
         {units: 5, activation: 'linear', kernelInitializer: 'ones'});
     const y = denseLayer1.apply(x);
-    const u = tfl.input({shape: [2], name: 'footInput', dtype: DType.float32});
+    const u = tfl.input({shape: [2], name: 'footInput', dtype: 'float32'});
     const denseLayer2 = tfl.layers.dense(
         {units: 5, activation: 'linear', kernelInitializer: 'ones'});
     const denseLayer3 = tfl.layers.dense(
@@ -146,7 +145,7 @@ describeMathCPUAndGPU('Executor', () => {
   });
 
   it('Diamond Graph Topology', () => {
-    const x = tfl.input({shape: [2], name: 'fooInput', dtype: DType.float32});
+    const x = tfl.input({shape: [2], name: 'fooInput', dtype: 'float32'});
     const denseLayer1 = tfl.layers.dense({
       units: 5,
       activation: 'linear',

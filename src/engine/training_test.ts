@@ -19,7 +19,7 @@ import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
 import * as tfl from '../index';
 import {Regularizer} from '../regularizers';
-import {DType, Kwargs} from '../types';
+import {Kwargs} from '../types';
 import {pyListRepeat, stringsEqual} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 // TODO(bileschi): Use external version of Layer.
@@ -191,7 +191,7 @@ describe('makeBatches', () => {
 describeMathCPUAndGPU('Model.predict', () => {
   it('1 input, 1 output', () => {
     const inputTensor = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer1', dtype: 'float32'});
     const layer = tfl.layers.reshape({targetShape: [2, 6]});
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
@@ -203,7 +203,7 @@ describeMathCPUAndGPU('Model.predict', () => {
 
   it('1 input, 1 output, tensor as input argument', () => {
     const inputTensor = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer1', dtype: 'float32'});
     const layer = tfl.layers.reshape({targetShape: [2, 6]});
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
@@ -215,7 +215,7 @@ describeMathCPUAndGPU('Model.predict', () => {
 
   it('1 input as Array, 1 output', () => {
     const inputTensor = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer1', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer1', dtype: 'float32'});
     const layer = tfl.layers.reshape({targetShape: [2, 6]});
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
@@ -227,7 +227,7 @@ describeMathCPUAndGPU('Model.predict', () => {
 
   it('1 input, 2 outputs', () => {
     const inputTensor = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer2', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer2', dtype: 'float32'});
     const layer1 = tfl.layers.reshape({targetShape: [2, 6]});
     const layer2 = tfl.layers.flatten();
     const output1 = layer1.apply(inputTensor) as tfl.SymbolicTensor;
@@ -243,9 +243,9 @@ describeMathCPUAndGPU('Model.predict', () => {
 
   it('2 inputs, 2 outputs', () => {
     const inputTensor1 = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer3', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer3', dtype: 'float32'});
     const inputTensor2 = tfl.layers.input(
-        {shape: [3, 3], name: 'inputLayer4', dtype: DType.float32});
+        {shape: [3, 3], name: 'inputLayer4', dtype: 'float32'});
     const layer1 = tfl.layers.reshape({targetShape: [2, 6]});
     const layer2 = tfl.layers.flatten();
     const output1 = layer1.apply(inputTensor1) as tfl.SymbolicTensor;
@@ -265,7 +265,7 @@ describeMathCPUAndGPU('Model.predict', () => {
 
   it('Incorrect number of inputs leads to exception: 1 vs 2', () => {
     const inputTensor = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer_inc_1', dtype: 'float32'});
     const layer = tfl.layers.reshape({targetShape: [2, 6]});
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
@@ -279,9 +279,9 @@ describeMathCPUAndGPU('Model.predict', () => {
 
   it('Incorrect number of inputs leads to exception: 2 vs 3', () => {
     const inputTensor1 = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer_inc_3', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer_inc_3', dtype: 'float32'});
     const inputTensor2 = tfl.layers.input(
-        {shape: [3, 3], name: 'inputLayer_inc_4', dtype: DType.float32});
+        {shape: [3, 3], name: 'inputLayer_inc_4', dtype: 'float32'});
     const layer1 = tfl.layers.reshape({targetShape: [2, 6]});
     const layer2 = tfl.layers.flatten();
     const output1 = layer1.apply(inputTensor1) as tfl.SymbolicTensor;
@@ -300,7 +300,7 @@ describeMathCPUAndGPU('Model.predict', () => {
 
   it('Incorrect input shape leads to exception', () => {
     const inputTensor = tfl.layers.input(
-        {shape: [3, 4], name: 'inputLayer_inc_1', dtype: DType.float32});
+        {shape: [3, 4], name: 'inputLayer_inc_1', dtype: 'float32'});
     const layer = tfl.layers.reshape({targetShape: [2, 6]});
     const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     const model = new tfl.Model(
@@ -319,11 +319,11 @@ describeMathCPUAndGPU('Model.fit', () => {
   const numSamples = 5;  // Number of samples in a batch.
 
   const inputTensor = tfl.layers.input(
-      {shape: [inputSize], name: 'inputLayer1', dtype: DType.float32});
+      {shape: [inputSize], name: 'inputLayer1', dtype: 'float32'});
   const inputTensor1 = tfl.layers.input(
-      {shape: [inputSize1], name: 'inputLayer1of2', dtype: DType.float32});
+      {shape: [inputSize1], name: 'inputLayer1of2', dtype: 'float32'});
   const inputTensor2 = tfl.layers.input(
-      {shape: [inputSize2], name: 'inputLayer2of2', dtype: DType.float32});
+      {shape: [inputSize2], name: 'inputLayer2of2', dtype: 'float32'});
 
   // For model with one input.
   let model: tfl.Model;
@@ -1122,8 +1122,8 @@ describeMathCPUAndGPU('Model.fit', () => {
 
 describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
   it('Correct training arg during fit/evaluate/predict', async done => {
-    const inputTensor = tfl.layers.input(
-        {shape: [1], name: 'inputLayer1', dtype: DType.float32});
+    const inputTensor =
+        tfl.layers.input({shape: [1], name: 'inputLayer1', dtype: 'float32'});
     const layer1 = tfl.layers.dense({units: 1});
     const layer2 = tfl.layers.dropout({rate: 0.5});
 
@@ -1221,8 +1221,8 @@ describeMathCPUAndGPU('Model.evaluate', () => {
 
 describeMathCPUAndGPU('Load weights', () => {
   it('Simple functional model', () => {
-    const inputTensor = tfl.layers.input(
-        {shape: [3], name: 'inputLayer', dtype: DType.float32});
+    const inputTensor =
+        tfl.layers.input({shape: [3], name: 'inputLayer', dtype: 'float32'});
     const denseLayer =
         tfl.layers.dense({units: 2, useBias: true, name: 'denseLayer'});
     const output = denseLayer.apply(inputTensor) as tfl.SymbolicTensor;

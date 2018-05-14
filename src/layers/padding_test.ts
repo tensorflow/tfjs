@@ -17,7 +17,7 @@ import {ones, slice, Tensor, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat} from '../common';
 import * as tfl from '../index';
-import {DType, SymbolicTensor} from '../types';
+import {SymbolicTensor} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
@@ -31,10 +31,10 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
 
   for (const dataFormat in dataFormats) {
     it('Default padding 1-1-1-1, dataFormat=' + dataFormat, () => {
-      const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
+      const x = new SymbolicTensor('float32', [1, 2, 3, 4], null, [], null);
       const layer = tfl.layers.zeroPadding2d();
       const y = layer.apply(x) as SymbolicTensor;
-      expect(y.dtype).toEqual(DType.float32);
+      expect(y.dtype).toEqual('float32');
       if (dataFormat === 'channelsFirst') {
         expect(y.shape).toEqual([1, 2, 5, 6]);
       } else {
@@ -43,10 +43,10 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
     });
 
     it('All symmetric padding 2, dataFormat=' + dataFormat, () => {
-      const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
+      const x = new SymbolicTensor('float32', [1, 2, 3, 4], null, [], null);
       const layer = tfl.layers.zeroPadding2d({padding: 2});
       const y = layer.apply(x) as SymbolicTensor;
-      expect(y.dtype).toEqual(DType.float32);
+      expect(y.dtype).toEqual('float32');
       if (dataFormat === 'channelsFirst') {
         expect(y.shape).toEqual([1, 6, 7, 8]);
       } else {
@@ -55,10 +55,10 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
     });
 
     it('Symmetric padding 2-3, dataFormat=' + dataFormat, () => {
-      const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
+      const x = new SymbolicTensor('float32', [1, 2, 3, 4], null, [], null);
       const layer = tfl.layers.zeroPadding2d({padding: [2, 3]});
       const y = layer.apply(x) as SymbolicTensor;
-      expect(y.dtype).toEqual(DType.float32);
+      expect(y.dtype).toEqual('float32');
       if (dataFormat === 'channelsFirst') {
         expect(y.shape).toEqual([1, 2, 7, 10]);
       } else {
@@ -67,10 +67,10 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
     });
 
     it('Asymmetric padding 2-3-4-5, dataFormat=' + dataFormat, () => {
-      const x = new SymbolicTensor(DType.float32, [1, 2, 3, 4], null, [], null);
+      const x = new SymbolicTensor('float32', [1, 2, 3, 4], null, [], null);
       const layer = tfl.layers.zeroPadding2d({padding: [[2, 3], [4, 5]]});
       const y = layer.apply(x) as SymbolicTensor;
-      expect(y.dtype).toEqual(DType.float32);
+      expect(y.dtype).toEqual('float32');
       if (dataFormat === 'channelsFirst') {
         expect(y.shape).toEqual([1, 2, 7, 13]);
       } else {

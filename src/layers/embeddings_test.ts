@@ -15,7 +15,6 @@
 // tslint:disable:max-line-length
 import {Tensor, tensor3d, test_util} from '@tensorflow/tfjs-core';
 import * as tfl from '../index';
-import {DType} from '../types';
 import {describeMathCPU} from '../utils/test_utils';
 
 const expectArraysClose = test_util.expectArraysClose;
@@ -33,8 +32,8 @@ describeMathCPU('Embedding Layers: Symbolic 1D, 2D & 3D', () => {
       it(testTitle, () => {
         const embeddingLayer = tfl.layers.embedding({inputDim, outputDim});
         const fullInputShape = [batchDim].concat(inputShape);
-        const symbolicInput = new tfl.SymbolicTensor(
-            DType.float32, fullInputShape, null, [], null);
+        const symbolicInput =
+            new tfl.SymbolicTensor('float32', fullInputShape, null, [], null);
         const output =
             embeddingLayer.apply(symbolicInput) as tfl.SymbolicTensor;
         const expectedShape = [batchDim].concat(inputShape).concat([outputDim]);
@@ -57,7 +56,7 @@ describeMathCPU('Embedding Layers: With explicit inputLength', () => {
           tfl.layers.embedding({inputDim, outputDim, inputLength});
       const fullInputShape = [batchDim].concat(inputShape);
       const symbolicInput =
-          new tfl.SymbolicTensor(DType.float32, fullInputShape, null, [], null);
+          new tfl.SymbolicTensor('float32', fullInputShape, null, [], null);
       const output = embeddingLayer.apply(symbolicInput) as tfl.SymbolicTensor;
       const expectedShape = [batchDim].concat(inputShape).concat([outputDim]);
       expect(output.shape).toEqual(expectedShape);

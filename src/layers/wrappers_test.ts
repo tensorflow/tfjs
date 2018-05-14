@@ -17,7 +17,6 @@ import {Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Layer} from '../engine/topology';
 import * as tfl from '../index';
-import {DType} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense, Reshape} from './core';
@@ -28,8 +27,7 @@ import {BidirectionalMergeMode, checkBidirectionalMergeMode, TimeDistributed, VA
 
 describeMathCPU('TimeDistributed Layer: Symbolic', () => {
   it('3D input: Dense', () => {
-    const input =
-        new tfl.SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [10, 8, 2], null, [], null);
     const wrapper = tfl.layers.timeDistributed({layer: new Dense({units: 3})});
     const output = wrapper.apply(input) as tfl.SymbolicTensor;
     expect(wrapper.trainable).toEqual(true);
@@ -39,7 +37,7 @@ describeMathCPU('TimeDistributed Layer: Symbolic', () => {
   });
   it('4D input: Reshape', () => {
     const input =
-        new tfl.SymbolicTensor(DType.float32, [10, 8, 2, 3], null, [], null);
+        new tfl.SymbolicTensor('float32', [10, 8, 2, 3], null, [], null);
     const wrapper =
         tfl.layers.timeDistributed({layer: new Reshape({targetShape: [6]})});
     const output = wrapper.apply(input) as tfl.SymbolicTensor;
@@ -47,8 +45,7 @@ describeMathCPU('TimeDistributed Layer: Symbolic', () => {
     expect(output.shape).toEqual([10, 8, 6]);
   });
   it('2D input leads to exception', () => {
-    const input =
-        new tfl.SymbolicTensor(DType.float32, [10, 2], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [10, 2], null, [], null);
     const wrapper = tfl.layers.timeDistributed({layer: new Dense({units: 3})});
     expect(() => wrapper.apply(input))
         .toThrowError(
@@ -99,7 +96,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
           `mergeMode=${mergeMode}; returnState=${returnState}`;
       it(testTitle, () => {
         const input =
-            new tfl.SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
+            new tfl.SymbolicTensor('float32', [10, 8, 2], null, [], null);
         const bidi = tfl.layers.bidirectional({
           layer: new SimpleRNN(
               {units: 3, recurrentInitializer: 'glorotNormal', returnState}),
@@ -150,8 +147,7 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
     }
   }
   it('returnSequence=true', () => {
-    const input =
-        new tfl.SymbolicTensor(DType.float32, [10, 8, 2], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [10, 8, 2], null, [], null);
     const bidi = tfl.layers.bidirectional({
       layer: new SimpleRNN({
         units: 3,

@@ -19,7 +19,7 @@ import {cast} from '../backend/tfjs_backend';
 import {getScalar} from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError} from '../errors';
-import {DType, Kwargs, Shape} from '../types';
+import {Kwargs, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 
 export interface LeakyReLULayerConfig extends LayerConfig {
@@ -186,7 +186,7 @@ export class ThresholdedReLU extends Layer {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const x = generic_utils.getExactlyOneTensor(inputs);
-    return x.mul(cast(x.greater(this.thetaTensor), DType.float32));
+    return x.mul(cast(x.greater(this.thetaTensor), 'float32'));
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {

@@ -17,7 +17,6 @@ import {expandDims, Tensor, tensor2d, Tensor2D, tensor3d, tensor4d} from '@tenso
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
 import * as tfl from '../index';
-import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
@@ -43,7 +42,7 @@ describe('Pooling Layers 1D: Symbolic', () => {
             const inputBatchSize = 2;
             const inputShape = [inputBatchSize, inputLength, inputNumChannels];
             const symbolicInput =
-                new SymbolicTensor(DType.float32, inputShape, null, [], null);
+                new SymbolicTensor('float32', inputShape, null, [], null);
             const poolConstructor = poolMode === 'avg' ?
                 tfl.layers.averagePooling1d :
                 tfl.layers.maxPooling1d;
@@ -163,7 +162,7 @@ describe('Pooling Layers 2D: Symbolic', () => {
                   [2, 16, 11, 9] :
                   [2, 11, 9, 16];
               const symbolicInput =
-                  new SymbolicTensor(DType.float32, inputShape, null, [], null);
+                  new SymbolicTensor('float32', inputShape, null, [], null);
 
               const poolConstructor = poolMode === 'avg' ?
                   tfl.layers.averagePooling2d :
@@ -282,7 +281,7 @@ describe('1D Global pooling Layers: Symbolic', () => {
     it(testTitle, () => {
       const inputShape = [2, 11, 9];
       const symbolicInput =
-          new SymbolicTensor(DType.float32, inputShape, null, [], null);
+          new SymbolicTensor('float32', inputShape, null, [], null);
 
       const layer = globalPoolingLayer({});
       const output = layer.apply(symbolicInput) as SymbolicTensor;
@@ -331,7 +330,7 @@ describe('2D Global pooling Layers: Symbolic', () => {
       it(testTitle, () => {
         const inputShape = [2, 16, 11, 9];
         const symbolicInput =
-            new SymbolicTensor(DType.float32, inputShape, null, [], null);
+            new SymbolicTensor('float32', inputShape, null, [], null);
 
         const layer = globalPoolingLayer({dataFormat});
         const output = layer.apply(symbolicInput) as SymbolicTensor;

@@ -11,10 +11,10 @@
 /* Original source: utils/generic_utils.py */
 
 // tslint:disable:max-line-length
-import {serialization, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {AssertionError, AttributeError, IndexError, ValueError} from '../errors';
-import {DType, Shape} from '../types';
+import {Shape} from '../types';
 
 
 
@@ -379,10 +379,10 @@ export function reverseNumberCompare(a: number, b: number) {
  * @param dtype
  * @returns An instance of DType.
  */
-export function stringToDType(dtype: string): DType {
+export function stringToDType(dtype: string): DataType {
   switch (dtype) {
     case 'float32':
-      return DType.float32;
+      return 'float32';
     default:
       throw new ValueError(`Invalid dtype: ${dtype}`);
   }

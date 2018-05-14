@@ -16,7 +16,6 @@
 import {onesLike, Tensor, tensor2d, tensor3d, tensor4d, train, zeros, zerosLike} from '@tensorflow/tfjs-core';
 
 import * as tfl from '../index';
-import {DType} from '../types';
 import {SymbolicTensor} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 // tslint:enable:max-line-length
@@ -26,7 +25,7 @@ describeMathCPU('BatchNormalization Layers: Symbolic', () => {
   for (const inputShape of validInputShapes) {
     const testTitle = `shape=${JSON.stringify(inputShape)}`;
     it(testTitle, () => {
-      const x = new SymbolicTensor(DType.float32, inputShape, null, [], null);
+      const x = new SymbolicTensor('float32', inputShape, null, [], null);
       const layer = tfl.layers.batchNormalization({});
       const y = layer.apply(x) as SymbolicTensor;
       expect(y.dtype).toEqual(x.dtype);
@@ -35,7 +34,7 @@ describeMathCPU('BatchNormalization Layers: Symbolic', () => {
   }
 
   it('Undetermined dim axis leads to ValueError', () => {
-    const x = new SymbolicTensor(DType.float32, [null, 2, 3], null, [], null);
+    const x = new SymbolicTensor('float32', [null, 2, 3], null, [], null);
     const layer = tfl.layers.batchNormalization({axis: 0});
     expect(() => layer.apply(x))
         .toThrowError(
