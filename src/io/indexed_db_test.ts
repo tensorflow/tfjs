@@ -23,7 +23,8 @@ import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {CPU_ENVS} from '../test_util';
 
-import {deleteDatabase} from './indexed_db';
+// tslint:disable-next-line:max-line-length
+import {browserIndexedDB, BrowserIndexedDB, deleteDatabase, indexedDBRouter} from './indexed_db';
 
 describeWithFlags('IndexedDB', CPU_ENVS, () => {
   // Test data.
@@ -105,7 +106,7 @@ describeWithFlags('IndexedDB', CPU_ENVS, () => {
 
   it('Save-load round trip', done => {
     const testStartDate = new Date();
-    const handler = tf.io.browserIndexedDB('FooModel');
+    const handler = tf.io.getSaveHandlers('indexeddb://FooModel')[0];
     handler.save(artifacts1)
         .then(saveResult => {
           expect(saveResult.modelArtifactsInfo.dateSaved.getTime())
@@ -142,7 +143,7 @@ describeWithFlags('IndexedDB', CPU_ENVS, () => {
       weightSpecs: weightSpecs2,
       weightData: weightData2,
     };
-    const handler1 = tf.io.browserIndexedDB('Model/1');
+    const handler1 = tf.io.getSaveHandlers('indexeddb://Model/1')[0];
     handler1.save(artifacts1)
         .then(saveResult1 => {
           // Note: The following two assertions work only because there is no
@@ -154,7 +155,7 @@ describeWithFlags('IndexedDB', CPU_ENVS, () => {
           expect(saveResult1.modelArtifactsInfo.weightDataBytes)
               .toEqual(weightData1.byteLength);
 
-          const handler2 = tf.io.browserIndexedDB('Model/2');
+          const handler2 = tf.io.getSaveHandlers('indexeddb://Model/2')[0];
           handler2.save(artifacts2)
               .then(saveResult2 => {
                 expect(saveResult2.modelArtifactsInfo.dateSaved.getTime())
@@ -192,7 +193,7 @@ describeWithFlags('IndexedDB', CPU_ENVS, () => {
   });
 
   it('Loading nonexistent model fails', done => {
-    const handler = tf.io.browserIndexedDB('NonexistentModel');
+    const handler = tf.io.getSaveHandlers('indexeddb://NonexistentModel')[0];
     handler.load()
         .then(modelArtifacts => {
           done.fail(
@@ -208,14 +209,21 @@ describeWithFlags('IndexedDB', CPU_ENVS, () => {
   });
 
   it('Null, undefined or empty modelPath throws Error', () => {
-    expect(() => tf.io.browserIndexedDB(null))
+    expect(() => browserIndexedDB(null))
         .toThrowError(
             /IndexedDB, modelPath must not be null, undefined or empty/);
-    expect(() => tf.io.browserIndexedDB(undefined))
+    expect(() => browserIndexedDB(undefined))
         .toThrowError(
             /IndexedDB, modelPath must not be null, undefined or empty/);
-    expect(() => tf.io.browserIndexedDB(''))
+    expect(() => browserIndexedDB(''))
         .toThrowError(
             /IndexedDB, modelPath must not be null, undefined or empty./);
+  });
+
+  it('router', () => {
+    expect(indexedDBRouter('indexeddb://bar') instanceof BrowserIndexedDB)
+        .toEqual(true);
+    expect(indexedDBRouter('localstorage://bar')).toBeNull();
+    expect(indexedDBRouter('qux')).toBeNull();
   });
 });

@@ -22,6 +22,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {CPU_ENVS} from '../test_util';
+import {BrowserHTTPRequest, httpRequestRouter} from './browser_http';
 
 describeWithFlags('browserHTTPRequest', CPU_ENVS, () => {
   // Test data.
@@ -81,7 +82,7 @@ describeWithFlags('browserHTTPRequest', CPU_ENVS, () => {
   beforeEach(() => {
     requestInits = [];
     spyOn(window, 'fetch').and.callFake((path: string, init: RequestInit) => {
-      if (path === 'model-upload-test') {
+      if (path === 'model-upload-test' || path === 'http://model-upload-test') {
         requestInits.push(init);
         return new Response(null, {status: 200});
       } else {
@@ -92,7 +93,7 @@ describeWithFlags('browserHTTPRequest', CPU_ENVS, () => {
 
   it('Save topology and weights, default POST method', done => {
     const testStartDate = new Date();
-    const handler = tf.io.browserHTTPRequest('model-upload-test');
+    const handler = tf.io.getSaveHandlers('http://model-upload-test')[0];
     handler.save(artifacts1)
         .then(saveResult => {
           expect(saveResult.modelArtifactsInfo.dateSaved.getTime())
@@ -145,7 +146,7 @@ describeWithFlags('browserHTTPRequest', CPU_ENVS, () => {
 
   it('Save topology only, default POST method', done => {
     const testStartDate = new Date();
-    const handler = tf.io.browserHTTPRequest('model-upload-test');
+    const handler = tf.io.getSaveHandlers('http://model-upload-test')[0];
     const topologyOnlyArtifacts = {modelTopology: modelTopology1};
     handler.save(topologyOnlyArtifacts)
         .then(saveResult => {
@@ -249,7 +250,7 @@ describeWithFlags('browserHTTPRequest', CPU_ENVS, () => {
   });
 
   it('404 response causes Error', done => {
-    const handler = tf.io.browserHTTPRequest('invalid/path');
+    const handler = tf.io.getSaveHandlers('http://invalid/path')[0];
     handler.save(artifacts1)
         .then(saveResult => {
           done.fail(
@@ -279,5 +280,16 @@ describeWithFlags('browserHTTPRequest', CPU_ENVS, () => {
         .toThrowError(/must not be null, undefined or empty/);
     expect(() => tf.io.browserHTTPRequest(''))
         .toThrowError(/must not be null, undefined or empty/);
+  });
+
+  it('router', () => {
+    expect(httpRequestRouter('http://bar/foo') instanceof BrowserHTTPRequest)
+        .toEqual(true);
+    expect(
+        httpRequestRouter('https://localhost:5000/upload') instanceof
+        BrowserHTTPRequest)
+        .toEqual(true);
+    expect(httpRequestRouter('localhost://foo')).toBeNull();
+    expect(httpRequestRouter('foo:5000/bar')).toBeNull();
   });
 });

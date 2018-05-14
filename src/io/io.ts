@@ -15,27 +15,37 @@
  * =============================================================================
  */
 
-import {browserDownloads, browserFiles} from './browser_files';
+// Importing loca_storage and indexed_db is necessary for the routers to be
+// registered.
+import './indexed_db';
+import './local_storage';
+
+import {browserFiles} from './browser_files';
 import {browserHTTPRequest} from './browser_http';
-import {browserIndexedDB} from './indexed_db';
 import {decodeWeights, encodeWeights} from './io_utils';
-import {browserLocalStorage} from './local_storage';
+import {IORouterRegistry} from './router_registry';
 // tslint:disable-next-line:max-line-length
 import {IOHandler, LoadHandler, ModelArtifacts, SaveConfig, SaveHandler, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeights} from './weights_loader';
 
+const registerSaveRouter = IORouterRegistry.registerSaveRouter;
+const registerLoadRouter = IORouterRegistry.registerLoadRouter;
+const getSaveHandlers = IORouterRegistry.getSaveHandlers;
+const getLoadHandlers = IORouterRegistry.getLoadHandlers;
+
 export {
-  browserDownloads,
   browserFiles,
   browserHTTPRequest,
-  browserIndexedDB,
-  browserLocalStorage,
   decodeWeights,
   encodeWeights,
+  getLoadHandlers,
+  getSaveHandlers,
   IOHandler,
   LoadHandler,
   loadWeights,
   ModelArtifacts,
+  registerLoadRouter,
+  registerSaveRouter,
   SaveConfig,
   SaveHandler,
   SaveResult,
