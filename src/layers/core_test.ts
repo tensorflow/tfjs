@@ -190,7 +190,7 @@ describeMathCPU('Dense Layer: Symbolic', () => {
     expect(() => {
       // tslint:disable-next-line:no-unused-expression
       tfl.layers.dense({units: 4, activation: 'invalid_ativation!'});
-    }).toThrowError(/Unsupported activation/);
+    }).toThrowError(/Unknown activation/);
   });
 });
 
