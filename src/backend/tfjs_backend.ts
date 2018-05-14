@@ -14,11 +14,11 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, tidy, util, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
+import {DataType, dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, tidy, util, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
 
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, nameScope as commonNameScope, PaddingMode, PoolMode} from '../common';
 import {NotImplementedError, ValueError} from '../errors';
-import {DType, RnnStepFunction, Shape, SymbolicTensor} from '../types';
+import {RnnStepFunction, Shape, SymbolicTensor} from '../types';
 import {pyNormalizeArrayIndex} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {LayerVariable} from '../variables';
@@ -32,7 +32,7 @@ import {imageDataFormat} from './common';
 // Default deeplearn.js backend is WebGL (GPU).
 let backend: 'cpu'|'webgl' = 'webgl';
 
-const DEFAULT_DTYPE = DType.float32;
+const DEFAULT_DTYPE: DataType = 'float32';
 
 export function disposeScalarCache() {
   for (const typeKey in scalarCache) {
@@ -61,7 +61,7 @@ const scalarCache: {[typeKey: string]: {[key: number]: Scalar}} = {
 /**
  * Get scalar, with caching.
  */
-export function getScalar(value: number, dtype?: DType): Scalar {
+export function getScalar(value: number, dtype?: DataType): Scalar {
   if (dtype === undefined) {
     dtype = DEFAULT_DTYPE;
   }
@@ -123,7 +123,7 @@ export function ndim(x: Tensor|SymbolicTensor): number {
  *
  * @param x The tensor.
  */
-export function dtype(x: Tensor|SymbolicTensor): DType {
+export function dtype(x: Tensor|SymbolicTensor): DataType {
   // TODO(michaelterry): Update if additional data types are available.
   return (x instanceof Tensor) ? DEFAULT_DTYPE : (x as SymbolicTensor).dtype;
 }
@@ -645,7 +645,7 @@ export function identity(x: Tensor): Tensor {
  * @return A Variable, an identity matrix.
  */
 export function eyeVariable(
-    size: number, dtype?: DType, name?: string): LayerVariable {
+    size: number, dtype?: DataType, name?: string): LayerVariable {
   return new LayerVariable(tfc.eye(size, size, null, dtype), dtype, name);
 }
 
@@ -683,13 +683,9 @@ export function scalarPlusArray(c: Scalar, x: Tensor): Tensor {
  * @return The normal tensor.
  */
 export function randomNormal(
-    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType,
+    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: 'float32'|'int32',
     seed?: number): Tensor {
-  if (dtype === DType.bool) {
-    throw new NotImplementedError(`randomNormal does not support dType bool.`);
-  }
-  const dtypeString = (dtype === DType.float32) ? 'float32' : 'int32';
-  return tfc.randomNormal(shape, mean, stddev, dtypeString, seed);
+  return tfc.randomNormal(shape, mean, stddev, dtype, seed);
 }
 
 /* Linear Algebra */
@@ -1122,8 +1118,7 @@ export function dropout(
     throw new NotImplementedError('seed is not implemented for dropout yet.');
   }
   let multiplier = tfc.step(tfc.add(
-      tfc.neg(level) as Scalar,
-      tfc.randomUniform(x.shape, 0, 1, DType.float32)));
+      tfc.neg(level) as Scalar, tfc.randomUniform(x.shape, 0, 1, 'float32')));
   // Scale the kept elements, so the expected sum is unchanged.
   multiplier = tfc.mul(
       tfc.div(getScalar(1), tfc.sub(getScalar(1), level)) as Scalar,
@@ -1402,8 +1397,8 @@ export function nameScope<T>(name: string, fn: () => T): T {
 /**
  * Returns the default float type, as a DType.
  */
-export function floatx(): DType {
-  return DType.float32;
+export function floatx(): DataType {
+  return 'float32';
 }
 
 const _uidPrefixes: {[prefix: string]: number} = {};

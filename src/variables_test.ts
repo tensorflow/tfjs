@@ -18,7 +18,6 @@ import {randomUniform, scalar, tensor1d, zeros} from '@tensorflow/tfjs-core';
 import * as K from './backend/tfjs_backend';
 import {nameScope} from './backend/tfjs_backend';
 import * as tfl from './index';
-import {DType} from './types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import * as V from './variables';
 // tslint:enable:max-line-length
@@ -31,14 +30,14 @@ describeMathCPU('Variable', () => {
   it('Variable constructor: no explicit name', () => {
     const v1 = new V.LayerVariable(zeros([2]));
     expect(v1.name.indexOf('Variable')).toEqual(0);
-    expect(v1.dtype).toEqual(DType.float32);
+    expect(v1.dtype).toEqual('float32');
     expect(v1.shape).toEqual([2]);
     expect(v1.trainable).toEqual(true);
     expect(v1.read().dataSync()).toEqual(new Float32Array([0, 0]));
 
     const v2 = new V.LayerVariable(zeros([2, 2]));
     expect(v2.name.indexOf('Variable')).toEqual(0);
-    expect(v2.dtype).toEqual(DType.float32);
+    expect(v2.dtype).toEqual('float32');
     expect(v2.shape).toEqual([2, 2]);
     expect(v2.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
 
@@ -48,14 +47,14 @@ describeMathCPU('Variable', () => {
   it('Variable constructor: explicit name', () => {
     const v1 = new V.LayerVariable(zeros([]), undefined, 'foo');
     expect(v1.name.indexOf('foo')).toEqual(0);
-    expect(v1.dtype).toEqual(DType.float32);
+    expect(v1.dtype).toEqual('float32');
     expect(v1.shape).toEqual([]);
     expect(v1.trainable).toEqual(true);
     expect(v1.read().dataSync()).toEqual(new Float32Array([0]));
 
     const v2 = new V.LayerVariable(zeros([2, 2, 1]));
     expect(v1.name.indexOf('foo')).toEqual(0);
-    expect(v2.dtype).toEqual(DType.float32);
+    expect(v2.dtype).toEqual('float32');
     expect(v2.shape).toEqual([2, 2, 1]);
     expect(v2.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
     expect(v2.name.length).toBeGreaterThan(0);
@@ -71,7 +70,7 @@ describeMathCPU('Variable', () => {
       });
     });
     expect(v1.name.indexOf('barScope/bazScope/foo')).toEqual(0);
-    expect(v1.dtype).toEqual(DType.float32);
+    expect(v1.dtype).toEqual('float32');
     expect(v1.shape).toEqual([]);
     expect(v1.trainable).toEqual(true);
     expect(v1.read().dataSync()).toEqual(new Float32Array([0]));
@@ -90,13 +89,11 @@ describeMathCPU('Variable', () => {
   });
 
   it('int32 dtype', () => {
-    expect(new V.LayerVariable(zeros([]), DType.int32).dtype)
-        .toEqual(DType.int32);
+    expect(new V.LayerVariable(zeros([]), 'int32').dtype).toEqual('int32');
   });
 
   it('bool dtype', () => {
-    expect(new V.LayerVariable(zeros([]), DType.bool).dtype)
-        .toEqual(DType.bool);
+    expect(new V.LayerVariable(zeros([]), 'bool').dtype).toEqual('bool');
   });
 
   it('Read value', () => {
@@ -170,28 +167,28 @@ describeMathCPUAndGPU('Create Variable', () => {
 
 describeMathCPUAndGPU('ZerosVariable', () => {
   it('Scalar', () => {
-    const s = V.zerosVariable([], DType.float32, 'Scalar');
+    const s = V.zerosVariable([], 'float32', 'Scalar');
     expect(s.name.indexOf('Scalar')).toEqual(0);
     expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([0]));
   });
 
   it('Vector', () => {
-    const v = V.zerosVariable([3], DType.float32, 'Vector');
+    const v = V.zerosVariable([3], 'float32', 'Vector');
     expect(v.name.indexOf('Vector')).toEqual(0);
     expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('Matrix', () => {
-    const m = V.zerosVariable([2, 2], DType.float32, 'Matrix');
+    const m = V.zerosVariable([2, 2], 'float32', 'Matrix');
     expect(m.name.indexOf('Matrix')).toEqual(0);
     expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
   it('3D', () => {
-    const t = V.zerosVariable([2, 2, 2], DType.float32, 'Tertiary');
+    const t = V.zerosVariable([2, 2, 2], 'float32', 'Tertiary');
     expect(t.name.indexOf('Tertiary')).toEqual(0);
     expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
@@ -200,7 +197,7 @@ describeMathCPUAndGPU('ZerosVariable', () => {
   });
 
   it('4D', () => {
-    const q = V.zerosVariable([1, 2, 1, 3], DType.float32, 'Quaternary');
+    const q = V.zerosVariable([1, 2, 1, 3], 'float32', 'Quaternary');
     expect(q.name.indexOf('Quaternary')).toEqual(0);
     expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0, 0, 0]));
@@ -209,25 +206,25 @@ describeMathCPUAndGPU('ZerosVariable', () => {
 
 describeMathCPUAndGPU('OnesVariable', () => {
   it('Scalar', () => {
-    const s = V.onesVariable([], DType.float32, 'Scalar');
+    const s = V.onesVariable([], 'float32', 'Scalar');
     expect(s.name.indexOf('Scalar')).toEqual(0);
     expect(K.shape(s.read())).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([1]));
   });
   it('Vector', () => {
-    const v = V.onesVariable([3], DType.float32, 'Vector');
+    const v = V.onesVariable([3], 'float32', 'Vector');
     expect(v.name.indexOf('Vector')).toEqual(0);
     expect(K.shape(v.read())).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
   it('Matrix', () => {
-    const m = V.onesVariable([2, 2], DType.float32, 'Matrix');
+    const m = V.onesVariable([2, 2], 'float32', 'Matrix');
     expect(m.name.indexOf('Matrix')).toEqual(0);
     expect(K.shape(m.read())).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
   it('3D', () => {
-    const t = V.onesVariable([2, 2, 2], DType.float32, 'Tertiary');
+    const t = V.onesVariable([2, 2, 2], 'float32', 'Tertiary');
     expect(t.name.indexOf('Tertiary')).toEqual(0);
     expect(K.shape(t.read())).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
@@ -235,7 +232,7 @@ describeMathCPUAndGPU('OnesVariable', () => {
     ]));
   });
   it('4D', () => {
-    const q = V.onesVariable([1, 2, 1, 3], DType.float32, 'Quaternary');
+    const q = V.onesVariable([1, 2, 1, 3], 'float32', 'Quaternary');
     expect(q.name.indexOf('Quaternary')).toEqual(0);
     expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1, 1, 1]));

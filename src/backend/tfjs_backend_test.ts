@@ -14,10 +14,10 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {Scalar, scalar, slice, Tensor, memory, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
+import {DataType, Scalar, scalar, slice, Tensor, memory, tensor1d, tensor2d, tensor3d, tensor4d, Tensor4D, zeros} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
-import {DType, SymbolicTensor} from '../types';
+import {SymbolicTensor} from '../types';
 import {LayerVariable} from '../variables';
 import {unique} from '../utils/generic_utils';
 import {range} from '../utils/math_utils';
@@ -122,12 +122,12 @@ describe('ndim', () => {
 describe('dtype', () => {
   it('returns float32 for an Tensor', () => {
     const x = zeros([1]);
-    expect(K.dtype(x)).toEqual(DType.float32);
+    expect(K.dtype(x)).toEqual('float32');
   });
 
   it('returns float32 for a SymbolicTensor', () => {
-    const x = new SymbolicTensor(DType.float32, [1], null, [], {});
-    expect(K.dtype(x)).toEqual(DType.float32);
+    const x = new SymbolicTensor('float32', [1], null, [], {});
+    expect(K.dtype(x)).toEqual('float32');
   });
 });
 
@@ -876,26 +876,26 @@ describeMathCPUAndGPU('scalarPlusArray', () => {
 
 
 describeMathCPUAndGPU('randomNormal', () => {
-  const dtypes = [DType.float32, DType.int32];
-  for (const dtype of dtypes) {
+  const dtypes:DataType[] = ['float32', 'int32'];
+  for (const dtype  of dtypes) {
     // TODO(bileschi): Add probabilistic assertions on values here.
     it(`Scalar ${dtype}`, () => {
-      const s = K.randomNormal([], 0, 10, dtype);
+      const s = K.randomNormal([], 0, 10, dtype as 'float32'|'int32');
       expect(K.shape(s)).toEqual([]);
     });
 
     it(`1D ${dtype}`, () => {
-      const v = K.randomNormal([20], 0, 2, dtype);
+      const v = K.randomNormal([20], 0, 2, dtype as 'float32'|'int32');
       expect(K.shape(v)).toEqual([20]);
     });
 
     it(`2D ${dtype}`, () => {
-      const x = K.randomNormal([3, 20], -10, 20, dtype);
+      const x = K.randomNormal([3, 20], -10, 20, dtype as 'float32'|'int32');
       expect(K.shape(x)).toEqual([3, 20]);
     });
 
     it(`3D ${dtype}`, () => {
-      const y = K.randomNormal([2, 3, 4], 100, 10, dtype);
+      const y = K.randomNormal([2, 3, 4], 100, 10, dtype as 'float32'|'int32');
       expect(K.shape(y)).toEqual([2, 3, 4]);
     });
   }
@@ -1822,7 +1822,7 @@ describeMathCPUAndGPU('pool2d', () => {
 
 describe('floatx ', () => {
   it('returns "float32"', () => {
-    expect(K.floatx()).toEqual(DType.float32);
+    expect(K.floatx()).toEqual('float32');
   });
 });
 

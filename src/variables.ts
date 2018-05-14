@@ -9,13 +9,13 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Tensor} from '@tensorflow/tfjs-core';
 
 import {randomNormal} from './backend/tfjs_backend';
 import {getScopedTensorName, getUniqueTensorName} from './common';
 import {Constraint} from './constraints';
 import {NotImplementedError} from './errors';
-import {DType, getNextUniqueTensorId, Shape, SymbolicTensor} from './types';
+import {getNextUniqueTensorId, Shape, SymbolicTensor} from './types';
 
 const DEFAULT_VARIABLE_NAME_PREFIX = 'Variable';
 
@@ -25,7 +25,7 @@ const DEFAULT_VARIABLE_NAME_PREFIX = 'Variable';
  * can be read with the `read()` method and updated with the `write()` method.
  */
 export class LayerVariable {
-  readonly dtype: DType;
+  readonly dtype: DataType;
   readonly shape: Shape;
 
   readonly id: number;
@@ -54,10 +54,10 @@ export class LayerVariable {
    * @throws ValueError if `name` is `null` or `undefined`.
    */
   constructor(
-      val: Tensor, dtype: DType = DType.float32,
+      val: Tensor, dtype: DataType = 'float32',
       name = DEFAULT_VARIABLE_NAME_PREFIX, trainable = true,
       constraint: Constraint = null) {
-    this.dtype = dtype == null ? DType.float32 : dtype;
+    this.dtype = dtype == null ? 'float32' : dtype;
     this.shape = val.shape;
     this.id = getNextUniqueTensorId();
 
@@ -119,7 +119,7 @@ function checkShapesMatch(
  * @return The newly instantiated `Variable`.
  */
 export function variable(
-    x: Tensor, dtype?: DType, name?: string,
+    x: Tensor, dtype?: DataType, name?: string,
     constraint?: Constraint): LayerVariable {
   return new LayerVariable(x, dtype, name, true, constraint);
 }
@@ -133,7 +133,7 @@ export function variable(
  * @return An all-zero Variable.
  */
 export function zerosVariable(
-    shape: Shape, dtype?: DType, name?: string): LayerVariable {
+    shape: Shape, dtype?: DataType, name?: string): LayerVariable {
   // TODO(cais): Implement logic for dtype.
   return new LayerVariable(tfc.zeros(shape), dtype, name);
 }
@@ -147,7 +147,7 @@ export function zerosVariable(
  * @return A newly instantiated Variable.
  */
 export function zerosLike(
-    x: Tensor, dtype?: DType, name?: string): LayerVariable {
+    x: Tensor, dtype?: DataType, name?: string): LayerVariable {
   return new LayerVariable(tfc.zerosLike(x), dtype, name);
 }
 
@@ -160,7 +160,7 @@ export function zerosLike(
  * @return An all-ones Variable.
  */
 export function onesVariable(
-    shape: Shape, dtype?: DType, name?: string): LayerVariable {
+    shape: Shape, dtype?: DataType, name?: string): LayerVariable {
   // TODO(cais): Implement logic for dtype.
   const allocated = tfc.ones(shape);
   return new LayerVariable(allocated, dtype, name);
@@ -175,7 +175,7 @@ export function onesVariable(
  * @return A newly instantiated Variable.
  */
 export function onesLike(
-    x: Tensor, dtype?: DType, name?: string): LayerVariable {
+    x: Tensor, dtype?: DataType, name?: string): LayerVariable {
   const allocated = tfc.onesLike(x);
   return new LayerVariable(allocated, dtype, name);
 }
@@ -189,7 +189,7 @@ export function onesLike(
  * @return A Variable, an identity matrix.
  */
 export function eyeVariable(
-    size: number, dtype?: DType, name?: string): LayerVariable {
+    size: number, dtype?: DataType, name?: string): LayerVariable {
   return new LayerVariable(tfc.eye(size), dtype, name);
 }
 /**
@@ -203,8 +203,8 @@ export function eyeVariable(
  * @return The uniform-random Variable.
  */
 export function randomUniformVariable(
-    shape: Shape, minval: number, maxval: number, dtype?: DType, seed?: number,
-    name = 'randomUniform'): LayerVariable {
+    shape: Shape, minval: number, maxval: number, dtype?: DataType,
+    seed?: number, name = 'randomUniform'): LayerVariable {
   return new LayerVariable(
       tfc.randomUniform(shape, minval, maxval, dtype), dtype, name);
 }
@@ -220,11 +220,11 @@ export function randomUniformVariable(
  * @return The truncated-normal-random Variable.
  */
 export function truncatedNormalVariable(
-    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType, seed?: number,
+    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DataType, seed?: number,
     name = 'truncatedNormal'): LayerVariable {
   // TODO(cais): Implement logic for dtype and seed once they are supported
   // by deeplearn.js.
-  if (dtype === DType.bool) {
+  if (dtype === 'bool') {
     throw new NotImplementedError(`randomNormal does not support dType bool.`);
   }
   return new LayerVariable(
@@ -241,8 +241,12 @@ export function truncatedNormalVariable(
  * @return The truncated-normal-random Variable.
  */
 export function randomNormalVariable(
-    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DType, seed?: number,
+    shape: Shape, mean = 0.0, stddev = 1.0, dtype?: DataType, seed?: number,
     name = 'randomNormal'): LayerVariable {
+  if (dtype === 'bool') {
+    throw new NotImplementedError(
+        `randomNormalVariable does not support dType bool.`);
+  }
   return new LayerVariable(
       randomNormal(shape, mean, stddev, dtype, seed), dtype, name);
 }

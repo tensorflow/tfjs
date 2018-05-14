@@ -17,7 +17,6 @@ import {eye, serialization, Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as tfl from './index';
 import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, VarianceScaling} from './initializers';
-import {DType} from './types';
 import * as math_utils from './utils/math_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
@@ -26,25 +25,25 @@ import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose, expectTensor
 describeMathCPU('Zeros initializer', () => {
   it('1D', () => {
     const init = getInitializer('zeros');
-    const weights = init.apply([3], DType.float32);
+    const weights = init.apply([3], 'float32');
     expect(weights.shape).toEqual([3]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('1D, upper case', () => {
     const init = getInitializer('Zeros');
-    const weights = init.apply([3], DType.float32);
+    const weights = init.apply([3], 'float32');
     expect(weights.shape).toEqual([3]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('2D', () => {
     const init = getInitializer('zeros');
-    const weights = init.apply([2, 2], DType.float32);
+    const weights = init.apply([2, 2], 'float32');
     expect(weights.shape).toEqual([2, 2]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 });
@@ -52,25 +51,25 @@ describeMathCPU('Zeros initializer', () => {
 describeMathCPU('Ones initializer', () => {
   it('1D', () => {
     const init = getInitializer('ones');
-    const weights = init.apply([3], DType.float32);
+    const weights = init.apply([3], 'float32');
     expect(weights.shape).toEqual([3]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
 
   it('1D, upper case', () => {
     const init = getInitializer('Ones');
-    const weights = init.apply([3], DType.float32);
+    const weights = init.apply([3], 'float32');
     expect(weights.shape).toEqual([3]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
 
   it('2D', () => {
     const init = getInitializer('ones');
-    const weights = init.apply([2, 2], DType.float32);
+    const weights = init.apply([2, 2], 'float32');
     expect(weights.shape).toEqual([2, 2]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
 });
@@ -80,9 +79,9 @@ describeMathCPU('Constant initializer', () => {
     const initializerConfig:
         serialization.ConfigDict = {className: 'Constant', config: {value: 5}};
     const init = getInitializer(initializerConfig);
-    const weights = init.apply([3], DType.float32);
+    const weights = init.apply([3], 'float32');
     expect(weights.shape).toEqual([3]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([5, 5, 5]));
   });
 
@@ -90,9 +89,9 @@ describeMathCPU('Constant initializer', () => {
     const initializerConfig:
         serialization.ConfigDict = {className: 'Constant', config: {value: 5}};
     const init = getInitializer(initializerConfig);
-    const weights = init.apply([2, 2], DType.float32);
+    const weights = init.apply([2, 2], 'float32');
     expect(weights.shape).toEqual([2, 2]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([5, 5, 5, 5]));
   });
 });
@@ -116,9 +115,9 @@ describeMathCPU('Identity initializer', () => {
     const initializerConfig:
         serialization.ConfigDict = {className: 'Identity', config: {gain: 5}};
     const init = getInitializer(initializerConfig);
-    const weights = init.apply([2, 2], DType.float32);
+    const weights = init.apply([2, 2], 'float32');
     expect(weights.shape).toEqual([2, 2]);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsClose(weights, tensor2d([5, 0, 0, 5], [2, 2]));
   });
 });
@@ -128,17 +127,17 @@ describeMathCPU('RandomUniform initializer', () => {
   const shape = [7, 2];
   it('default', () => {
     const init = getInitializer('randomUniform');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -0.05, 0.05);
   });
 
   it('default, upper case', () => {
     const init = getInitializer('RandomUniform');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -0.05, 0.05);
   });
 
@@ -148,9 +147,9 @@ describeMathCPU('RandomUniform initializer', () => {
       config: {minval: 17, maxval: 47}
     };
     const init = getInitializer(initializerConfig);
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, 17, 47);
   });
 });
@@ -159,17 +158,17 @@ describeMathCPU('RandomNormal initializer', () => {
   const shape = [7, 2];
   it('default', () => {
     const init = getInitializer('randomNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     // TODO(bileschi): Add test to assert the values match expectations.
   });
 
   it('default, upper case', () => {
     const init = getInitializer('RandomNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     // TODO(bileschi): Add test to assert the values match expectations.
   });
 
@@ -179,9 +178,9 @@ describeMathCPU('RandomNormal initializer', () => {
       config: {mean: 1.0, stddev: 0.001}
     };
     const init = getInitializer(initializerConfig);
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     // TODO(bileschi): Add test to assert the values match expectations.
   });
 });
@@ -191,18 +190,18 @@ describeMathCPU('HeNormal initializer', () => {
   const stddev = Math.sqrt(2 / shape[0]);
   it('default', () => {
     const init = getInitializer('heNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
     expect(init.getClassName()).toEqual(VarianceScaling.className);
   });
 
   it('default, upper case', () => {
     const init = getInitializer('HeNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
   });
 });
@@ -212,18 +211,18 @@ describeMathCPU('LecunNormal initializer', () => {
   const stddev = Math.sqrt(1 / shape[0]);
   it('default', () => {
     const init = getInitializer('leCunNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
     expect(init.getClassName()).toEqual(VarianceScaling.className);
   });
 
   it('default, upper case', () => {
     const init = getInitializer('LeCunNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
   });
 });
@@ -232,17 +231,17 @@ describeMathCPU('TruncatedNormal initializer', () => {
   const shape = [7, 2];
   it('default', () => {
     const init = getInitializer('truncatedNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -0.1, 0.1);
   });
 
   it('default, upper case', () => {
     const init = getInitializer('TruncatedNormal');
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -0.1, 0.1);
   });
 
@@ -252,9 +251,9 @@ describeMathCPU('TruncatedNormal initializer', () => {
       config: {mean: 1.0, stddev: 0.5}
     };
     const init = getInitializer(initializerConfig);
-    const weights = init.apply(shape, DType.float32);
+    const weights = init.apply(shape, 'float32');
     expect(weights.shape).toEqual(shape);
-    expect(weights.dtype).toEqual(DType.float32);
+    expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, 0.0, 2.0);
   });
 });
@@ -263,9 +262,9 @@ describeMathCPU('Glorot uniform initializer', () => {
   ['glorotUniform', 'GlorotUniform'].forEach(initializer => {
     it('1D ' + initializer, () => {
       const init = getInitializer(initializer);
-      let weights = init.apply([3], DType.float32);
+      let weights = init.apply([3], 'float32');
       expect(weights.shape).toEqual([3]);
-      expect(weights.dtype).toEqual(DType.float32);
+      expect(weights.dtype).toEqual('float32');
       let scale = 1 / ((Math.sqrt(3) + Math.sqrt(3)) / 2);
       let limit = Math.sqrt(3 * scale);
       expect(math_utils.max(weights.dataSync() as Float32Array))
@@ -273,9 +272,9 @@ describeMathCPU('Glorot uniform initializer', () => {
       expect(math_utils.min(weights.dataSync() as Float32Array))
           .toBeGreaterThan(-limit);
 
-      weights = init.apply([30], DType.float32);
+      weights = init.apply([30], 'float32');
       expect(weights.shape).toEqual([30]);
-      expect(weights.dtype).toEqual(DType.float32);
+      expect(weights.dtype).toEqual('float32');
       scale = 1 / ((Math.sqrt(30) + Math.sqrt(30)) / 2);
       limit = Math.sqrt(3 * scale);
       expect(math_utils.max(weights.dataSync() as Float32Array))
@@ -287,9 +286,9 @@ describeMathCPU('Glorot uniform initializer', () => {
 
     it('2D ' + initializer, () => {
       const init = getInitializer(initializer);
-      let weights = init.apply([2, 2], DType.float32);
+      let weights = init.apply([2, 2], 'float32');
       expect(weights.shape).toEqual([2, 2]);
-      expect(weights.dtype).toEqual(DType.float32);
+      expect(weights.dtype).toEqual('float32');
       let scale = 1 / ((Math.sqrt(2) + Math.sqrt(2)) / 2);
       let limit = Math.sqrt(3 * scale);
       expect(math_utils.max(weights.dataSync() as Float32Array))
@@ -297,9 +296,9 @@ describeMathCPU('Glorot uniform initializer', () => {
       expect(math_utils.min(weights.dataSync() as Float32Array))
           .toBeGreaterThan(-limit);
 
-      weights = init.apply([20, 20], DType.float32);
+      weights = init.apply([20, 20], 'float32');
       expect(weights.shape).toEqual([20, 20]);
-      expect(weights.dtype).toEqual(DType.float32);
+      expect(weights.dtype).toEqual('float32');
       scale = 1 / ((Math.sqrt(20) + Math.sqrt(20)) / 2);
       limit = Math.sqrt(3 * scale);
       expect(math_utils.max(weights.dataSync() as Float32Array))
@@ -319,15 +318,15 @@ describeMathCPU('Glorot normal initializer', () => {
       const varianceArr2: number[] = [];
 
       for (let i = 0; i < NUM_TRIALS; ++i) {
-        let weights = init.apply([30], DType.float32);
+        let weights = init.apply([30], 'float32');
         expect(weights.shape).toEqual([30]);
-        expect(weights.dtype).toEqual(DType.float32);
+        expect(weights.dtype).toEqual('float32');
         varianceArr1.push(
             math_utils.variance(weights.dataSync() as Float32Array));
 
-        weights = init.apply([1200], DType.float32);
+        weights = init.apply([1200], 'float32');
         expect(weights.shape).toEqual([1200]);
-        expect(weights.dtype).toEqual(DType.float32);
+        expect(weights.dtype).toEqual('float32');
         varianceArr2.push(
             math_utils.variance(weights.dataSync() as Float32Array));
         expect(init.getClassName()).toEqual(VarianceScaling.className);
@@ -345,15 +344,15 @@ describeMathCPU('Glorot normal initializer', () => {
       const varianceArr2: number[] = [];
 
       for (let i = 0; i < NUM_TRIALS; ++i) {
-        let weights = init.apply([5, 6], DType.float32);
+        let weights = init.apply([5, 6], 'float32');
         expect(weights.shape).toEqual([5, 6]);
-        expect(weights.dtype).toEqual(DType.float32);
+        expect(weights.dtype).toEqual('float32');
         varianceArr1.push(
             math_utils.variance(weights.dataSync() as Float32Array));
 
-        weights = init.apply([30, 50], DType.float32);
+        weights = init.apply([30, 50], 'float32');
         expect(weights.shape).toEqual([30, 50]);
-        expect(weights.dtype).toEqual(DType.float32);
+        expect(weights.dtype).toEqual('float32');
         varianceArr2.push(
             math_utils.variance(weights.dataSync() as Float32Array));
       }
@@ -447,18 +446,18 @@ describe('checkDistribution', () => {
 describeMathCPUAndGPU('Orthogonal Initializer', () => {
   it('2x2', () => {
     const init = getInitializer('Orthogonal');
-    const w = init.apply([2, 2], DType.float32) as Tensor2D;
+    const w = init.apply([2, 2], 'float32') as Tensor2D;
     expect(w.shape).toEqual([2, 2]);
-    expect(w.dtype).toEqual(DType.float32);
+    expect(w.dtype).toEqual('float32');
     // Assert that columns of w are orthogonal (w is a unitary matrix).
     expectTensorsClose(w.transpose().matMul(w), eye(2));
   });
 
   it('1x1 with gain', () => {
     const init = tfl.initializers.orthogonal({gain: 3});
-    const w = init.apply([1, 1], DType.float32) as Tensor2D;
+    const w = init.apply([1, 1], 'float32') as Tensor2D;
     expect(w.shape).toEqual([1, 1]);
-    expect(w.dtype).toEqual(DType.float32);
+    expect(w.dtype).toEqual('float32');
     // Assert that columns of w are orthogonal (w is a unitary matrix) and the
     // gain has been reflected.
     expectTensorsClose(w.transpose().matMul(w), tensor2d([[9]], [1, 1]));
@@ -466,18 +465,18 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
 
   it('4x2', () => {
     const init = getInitializer('Orthogonal');
-    const w = init.apply([4, 2], DType.float32) as Tensor2D;
+    const w = init.apply([4, 2], 'float32') as Tensor2D;
     expect(w.shape).toEqual([4, 2]);
-    expect(w.dtype).toEqual(DType.float32);
+    expect(w.dtype).toEqual('float32');
     // Assert that columns of w are orthogonal.
     expectTensorsClose(w.transpose().matMul(w), eye(2));
   });
 
   it('2x4', () => {
     const init = getInitializer('Orthogonal');
-    const w = init.apply([2, 4], DType.float32) as Tensor2D;
+    const w = init.apply([2, 4], 'float32') as Tensor2D;
     expect(w.shape).toEqual([2, 4]);
-    expect(w.dtype).toEqual(DType.float32);
+    expect(w.dtype).toEqual('float32');
     // Assert that columns of w are orthogonal.
     expectTensorsClose(w.matMul(w.transpose()), eye(2));
   });
@@ -488,9 +487,9 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     spyOn(console, 'warn').and.callFake((message: string) => {});
     const n = 64;
     const init = getInitializer('Orthogonal');
-    const w = init.apply([n, n], DType.float32) as Tensor2D;
+    const w = init.apply([n, n], 'float32') as Tensor2D;
     expect(w.shape).toEqual([n, n]);
-    expect(w.dtype).toEqual(DType.float32);
+    expect(w.dtype).toEqual('float32');
     // Assert that columns of w are orthogonal.
     expectTensorsClose(w.matMul(w.transpose()), eye(n));
   });

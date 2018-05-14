@@ -18,7 +18,6 @@ import {Tensor, tensor4d, transpose} from '@tensorflow/tfjs-core';
 import {DataFormat, PaddingMode} from '../common';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
-import {DType} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 // tslint:enable:max-line-length
@@ -42,8 +41,8 @@ describeMathCPU('DepthwiseConv2D-Symbolic', () => {
                 {dataFormat, kernelSize, depthMultiplier, padding});
             const inputShape = dataFormat === 'channelsFirst' ? [1, 8, 10, 10] :
                                                                 [1, 10, 10, 8];
-            const symbolicInput = new tfl.SymbolicTensor(
-                DType.float32, inputShape, null, [], null);
+            const symbolicInput =
+                new tfl.SymbolicTensor('float32', inputShape, null, [], null);
             const symbolicOutput =
                 depthwiseConvLayer.apply(symbolicInput) as tfl.SymbolicTensor;
 
@@ -66,7 +65,7 @@ describeMathCPU('DepthwiseConv2D-Symbolic', () => {
   it('Non-4D Array Input leads to exception', () => {
     const depthwiseConvLayer = tfl.layers.depthwiseConv2d({kernelSize: 2});
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [1, 10, 10], null, [], null);
+        new tfl.SymbolicTensor('float32', [1, 10, 10], null, [], null);
     expect(() => depthwiseConvLayer.apply(symbolicInput))
         .toThrowError(
             /Inputs to DepthwiseConv2D should have rank 4\. Received .*/);

@@ -24,7 +24,6 @@ import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
-import {DType} from '../types';
 import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
 import {LayerVariable} from '../variables';
@@ -412,11 +411,11 @@ export class Conv2DTranspose extends Conv2D {
     const kernelShape = this.kernelSize.concat([this.filters, inputDim]);
 
     this.kernel = this.addWeight(
-        'kernel', kernelShape, DType.float32, this.kernelInitializer,
+        'kernel', kernelShape, 'float32', this.kernelInitializer,
         this.kernelRegularizer, true, this.kernelConstraint);
     if (this.useBias) {
       this.bias = this.addWeight(
-          'bias', [this.filters], DType.float32, this.biasInitializer,
+          'bias', [this.filters], 'float32', this.biasInitializer,
           this.biasRegularizer, true, this.biasConstraint);
     }
 
@@ -649,16 +648,16 @@ export class SeparableConv extends Conv {
 
     const trainable = true;
     this.depthwiseKernel = this.addWeight(
-        'depthwise_kernel', depthwiseKernelShape, DType.float32,
+        'depthwise_kernel', depthwiseKernelShape, 'float32',
         this.depthwiseInitializer, this.depthwiseRegularizer, trainable,
         this.depthwiseConstraint);
     this.pointwiseKernel = this.addWeight(
-        'pointwise_kernel', pointwiseKernelShape, DType.float32,
+        'pointwise_kernel', pointwiseKernelShape, 'float32',
         this.pointwiseInitializer, this.pointwiseRegularizer, trainable,
         this.pointwiseConstraint);
     if (this.useBias) {
       this.bias = this.addWeight(
-          'bias', [this.filters], DType.float32, this.biasInitializer,
+          'bias', [this.filters], 'float32', this.biasInitializer,
           this.biasRegularizer, trainable, this.biasConstraint);
     } else {
       this.bias = null;

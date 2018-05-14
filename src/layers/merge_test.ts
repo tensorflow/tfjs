@@ -18,7 +18,7 @@ import {serialization, Tensor, Tensor2D, tensor2d, tensor3d} from '@tensorflow/t
 import {Layer} from '../engine/topology';
 import * as tfl from '../index';
 import {deserialize} from '../layers/serialization';
-import {DType, Shape} from '../types';
+import {Shape} from '../types';
 import {convertPythonicToTs} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
@@ -44,8 +44,8 @@ describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
           const addLayer = new layer({name: layer.name});
           const symbolicInputs: tfl.SymbolicTensor[] = [];
           for (let i = 0; i < numInputs; ++i) {
-            symbolicInputs.push(new tfl.SymbolicTensor(
-                DType.float32, inputShape, null, [], null));
+            symbolicInputs.push(
+                new tfl.SymbolicTensor('float32', inputShape, null, [], null));
           }
           const output = addLayer.apply(symbolicInputs) as tfl.SymbolicTensor;
           expect(output.dtype).toEqual(symbolicInputs[0].dtype);
@@ -56,7 +56,7 @@ describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
   }
 
   it('Single input leads to exception', () => {
-    const x = new tfl.SymbolicTensor(DType.float32, [2, 2], null, [], null);
+    const x = new tfl.SymbolicTensor('float32', [2, 2], null, [], null);
     const addLayer = new Add({name: 'Add'});
     expect(() => {
       addLayer.apply([x]);
@@ -64,8 +64,8 @@ describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
   });
 
   it('Non-unique batch sizes to exception', () => {
-    const x1 = new tfl.SymbolicTensor(DType.float32, [1, 2], null, [], null);
-    const x2 = new tfl.SymbolicTensor(DType.float32, [2, 2], null, [], null);
+    const x1 = new tfl.SymbolicTensor('float32', [1, 2], null, [], null);
+    const x2 = new tfl.SymbolicTensor('float32', [2, 2], null, [], null);
     const addLayer = new Add({name: 'Add'});
     expect(() => {
       addLayer.apply([x1, x2]);
@@ -240,8 +240,8 @@ describeMathCPUAndGPU('Concatenate-Functional', () => {
 
 describeMathCPU('Concatenate Layer: Symbolic', () => {
   it('All known shapes', () => {
-    const x1 = new tfl.SymbolicTensor(DType.float32, [2, 3, 4], null, [], null);
-    const x2 = new tfl.SymbolicTensor(DType.float32, [2, 3, 4], null, [], null);
+    const x1 = new tfl.SymbolicTensor('float32', [2, 3, 4], null, [], null);
+    const x2 = new tfl.SymbolicTensor('float32', [2, 3, 4], null, [], null);
     const layer0 = new Concatenate({});
     expect((layer0.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       2, 3, 8
@@ -260,35 +260,31 @@ describeMathCPU('Concatenate Layer: Symbolic', () => {
     ]);
   });
   it('Concat axis has unknown shape', () => {
-    const x1 =
-        new tfl.SymbolicTensor(DType.float32, [2, null, 4], null, [], null);
-    const x2 =
-        new tfl.SymbolicTensor(DType.float32, [2, null, 4], null, [], null);
+    const x1 = new tfl.SymbolicTensor('float32', [2, null, 4], null, [], null);
+    const x2 = new tfl.SymbolicTensor('float32', [2, null, 4], null, [], null);
     const layer = new Concatenate({axis: 1});
     expect((layer.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       2, null, 4
     ]);
   });
   it('Non-concat axis has unknown shape', () => {
-    const x1 =
-        new tfl.SymbolicTensor(DType.float32, [null, 3, 4], null, [], null);
-    const x2 =
-        new tfl.SymbolicTensor(DType.float32, [null, 5, 4], null, [], null);
+    const x1 = new tfl.SymbolicTensor('float32', [null, 3, 4], null, [], null);
+    const x2 = new tfl.SymbolicTensor('float32', [null, 5, 4], null, [], null);
     const layer = new Concatenate({axis: 1});
     expect((layer.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       null, 8, 4
     ]);
   });
   it('Incompatible shape leads to error', () => {
-    const x1 = new tfl.SymbolicTensor(DType.float32, [2, 3, 5], null, [], null);
-    const x2 = new tfl.SymbolicTensor(DType.float32, [2, 4, 5], null, [], null);
+    const x1 = new tfl.SymbolicTensor('float32', [2, 3, 5], null, [], null);
+    const x2 = new tfl.SymbolicTensor('float32', [2, 4, 5], null, [], null);
     const layer = new Concatenate({});
     expect(() => layer.apply([
       x1, x2
     ])).toThrowError(/requires inputs with matching shapes except/);
   });
   it('Single shape leads to error', () => {
-    const x1 = new tfl.SymbolicTensor(DType.float32, [2, 3, 5], null, [], null);
+    const x1 = new tfl.SymbolicTensor('float32', [2, 3, 5], null, [], null);
     const layer = new Concatenate({});
     expect(() => layer.apply([x1]))
         .toThrowError(/should be called on a list of at least 2 inputs/);

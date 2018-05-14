@@ -12,7 +12,7 @@
 import {eye, ones, scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 import * as tfl from '../index';
 import * as initializers from '../initializers';
-import {DType, NamedTensorMap, Shape} from '../types';
+import {NamedTensorMap, Shape} from '../types';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 import {LayerVariable, onesVariable, zerosVariable} from '../variables';
 
@@ -68,10 +68,9 @@ describe('Node', () => {
   const inboundLayers = [new LayerForTest({name: inboundLayerName})];
   const nodeIndices = [0];
   const tensorIndices = [0];
-  const inputTensors =
-      [new tfl.SymbolicTensor(DType.float32, [1], null, [], {})];
+  const inputTensors = [new tfl.SymbolicTensor('float32', [1], null, [], {})];
   const outputTensors =
-      [new tfl.SymbolicTensor(DType.float32, [2, 2], null, [], {})];
+      [new tfl.SymbolicTensor('float32', [2, 2], null, [], {})];
   const inputMasks = [zeros([1])];
   const outputMasks = [zeros([1])];
   const inputShapes = [[1]];
@@ -290,7 +289,7 @@ describeMathCPU('Layer', () => {
 
     it('initializes dtype to float32 if layerConfig.inputShape is set.', () => {
       const layer = new LayerForTest({inputShape: []});
-      expect(layer.dtype).toEqual(DType.float32);
+      expect(layer.dtype).toEqual('float32');
       const config = layer.getConfig();
       expect(config.dtype).toEqual(layer.dtype);
     });
@@ -298,7 +297,7 @@ describeMathCPU('Layer', () => {
     it('initializes dtype to float32 if layerConfig.batchInputShape is set.',
        () => {
          const layer = new LayerForTest({batchInputShape: []});
-         expect(layer.dtype).toEqual(DType.float32);
+         expect(layer.dtype).toEqual('float32');
        });
 
     it('initializes initialWeights if present.', () => {
@@ -313,11 +312,9 @@ describeMathCPU('Layer', () => {
         constructor(config: LayerConfig) {
           super(config);
           this.addWeight(
-              'foo', [1, 2], DType.float32,
-              initializers.getInitializer('zeros'));
+              'foo', [1, 2], 'float32', initializers.getInitializer('zeros'));
           this.addWeight(
-              'foo', [2, 3], DType.float32,
-              initializers.getInitializer('zeros'));
+              'foo', [2, 3], 'float32', initializers.getInitializer('zeros'));
         }
       }
       expect(() => new LayerForTest({}))
@@ -395,8 +392,8 @@ describeMathCPU('Layer', () => {
     }
     const testInputs = [
       () => ones([1]), () => [ones([1])],
-      () => new tfl.SymbolicTensor(DType.float32, [1], null, [], {}),
-      () => [new tfl.SymbolicTensor(DType.float32, [1], null, [], {})]
+      () => new tfl.SymbolicTensor('float32', [1], null, [], {}),
+      () => [new tfl.SymbolicTensor('float32', [1], null, [], {})]
     ];
 
     for (const inputs of testInputs) {
@@ -472,7 +469,7 @@ describeMathCPU('Layer', () => {
 
       it('doesn\'t raise exception if inputs\' dtype == inputSpecs.dtype.',
          () => {
-           const inputSpecs = [new InputSpec({dtype: DType.float32})];
+           const inputSpecs = [new InputSpec({dtype: 'float32'})];
            const layer = new LayerForTest({});
            layer.inputSpec = inputSpecs;
            expect(() => runAssert(layer, inputs())).not.toThrowError();
@@ -527,7 +524,7 @@ describeMathCPU('Layer', () => {
     const secondLayer = new LayerForTest({name: 'secondLayer'});
     const callArgs = {a: 1};
     const singleSymbolicTensor =
-        new tfl.SymbolicTensor(DType.float32, [1], firstLayer, [], {});
+        new tfl.SymbolicTensor('float32', [1], firstLayer, [], {});
     const returnedTensor =
         secondLayer.apply(singleSymbolicTensor, callArgs) as tfl.SymbolicTensor;
 
@@ -566,9 +563,9 @@ describeMathCPU('Layer', () => {
       const secondLayer = new LayerForTest({name: 'second layer'});
       const symbolicTensorList = [
         new tfl.SymbolicTensor(
-            DType.float32, [1], firstLayer, [], {}, 'first_symbolic_tensor'),
+            'float32', [1], firstLayer, [], {}, 'first_symbolic_tensor'),
         new tfl.SymbolicTensor(
-            DType.float32, [1], firstLayer, [], {}, 'second_symbolic_tensor')
+            'float32', [1], firstLayer, [], {}, 'second_symbolic_tensor')
       ];
       // TODO(michaelterry): Update this once multiple symbolic tensors are
       // allowed.
@@ -581,7 +578,7 @@ describeMathCPU('Layer', () => {
       const layer = new LayerForTest({});
       const inputs = [
         new tfl.SymbolicTensor(
-            DType.float32, [1], null, [], {}, 'first_symbolic_tensor'),
+            'float32', [1], null, [], {}, 'first_symbolic_tensor'),
         ones([1])
       ];
       expect(() => layer.apply(inputs as Tensor[]))
@@ -594,7 +591,7 @@ describeMathCPU('Layer', () => {
      () => {
        const layer = new LayerForTest({});
        const outputShapes = [[1], [2, 3]];
-       const input = new tfl.SymbolicTensor(DType.float32, [1], null, [], {});
+       const input = new tfl.SymbolicTensor('float32', [1], null, [], {});
        // tslint:disable-next-line:no-any
        spyOn((layer as any), 'computeOutputShape').and.callFake(() => {
          return outputShapes;
@@ -636,7 +633,7 @@ describeMathCPU('Layer', () => {
       const initialWeights = eye(2);
       const arrayInput = zeros([1]);
       const symbolicInput =
-          new tfl.SymbolicTensor(DType.float32, [1], null, [], {});
+          new tfl.SymbolicTensor('float32', [1], null, [], {});
       // Test with symbolic and concrete input.
       for (const inputs of [arrayInput, symbolicInput]) {
         const layer = new LayerForTest({weights: [initialWeights]});
@@ -670,7 +667,7 @@ describeMathCPU('Layer', () => {
            'symbolic input',
        () => {
          const layer = new LayerForTest({});
-         const input = new tfl.SymbolicTensor(DType.float32, [1], null, [], {});
+         const input = new tfl.SymbolicTensor('float32', [1], null, [], {});
          expect(layer.inboundNodes.length).toEqual(0);
          expect(layer.outboundNodes.length).toEqual(0);
          layer.apply(input);
@@ -684,7 +681,7 @@ describeMathCPU('Layer', () => {
          const firstLayer = new LayerForTest({name: 'first_layer'});
          const secondLayer = new LayerForTest({name: 'second_layer'});
          const initialInput =
-             new tfl.SymbolicTensor(DType.float32, [1], null, [], {});
+             new tfl.SymbolicTensor('float32', [1], null, [], {});
          const firstOutput = firstLayer.apply(initialInput);
          secondLayer.apply(firstOutput);
 
@@ -741,8 +738,8 @@ describeMathCPU('Layer', () => {
     let output: tfl.SymbolicTensor;
 
     beforeEach(() => {
-      input = new tfl.SymbolicTensor(
-          DType.float32, [1], null, [], {}, 'firstInput');
+      input =
+          new tfl.SymbolicTensor('float32', [1], null, [], {}, 'firstInput');
       layer = new LayerForTest({});
       output = layer.apply(input) as tfl.SymbolicTensor;
     });
@@ -756,15 +753,15 @@ describeMathCPU('Layer', () => {
     });
 
     it('input throws exception if there is more than one input', () => {
-      const secondInput = new tfl.SymbolicTensor(
-          DType.float32, [1], null, [], {}, 'secondInput');
+      const secondInput =
+          new tfl.SymbolicTensor('float32', [1], null, [], {}, 'secondInput');
       layer.apply(secondInput);
       expect(() => layer.input).toThrowError(/"layer input" is ill-defined/);
     });
 
     it('output throws exception if there is more than one output', () => {
-      const secondInput = new tfl.SymbolicTensor(
-          DType.float32, [1], null, [], {}, 'secondInput');
+      const secondInput =
+          new tfl.SymbolicTensor('float32', [1], null, [], {}, 'secondInput');
       layer.apply(secondInput);
       expect(() => layer.output).toThrowError(/"layer output" is ill-defined/);
     });
@@ -776,8 +773,8 @@ describeMathCPU('Layer', () => {
     let output: tfl.SymbolicTensor;
 
     beforeEach(() => {
-      input = new tfl.SymbolicTensor(
-          DType.float32, [1], null, [], {}, 'firstInput');
+      input =
+          new tfl.SymbolicTensor('float32', [1], null, [], {}, 'firstInput');
       layer = new LayerForTest({});
       output = layer.apply(input) as tfl.SymbolicTensor;
     });
@@ -939,7 +936,7 @@ describeMathCPU('InputLayer', () => {
   }
 
   it('use config.dtype during initialization.', () => {
-    const dtype = DType.float32;
+    const dtype = 'float32';
     const inputLayer = tfl.layers.inputLayer({inputShape: [1], dtype});
     expect(inputLayer.dtype).toEqual(dtype);
   });
@@ -952,8 +949,7 @@ describeMathCPU('InputLayer', () => {
 
   it('throws an exception if apply() is called with any input.', () => {
     const inputLayer = tfl.layers.inputLayer({inputShape: [1]});
-    const symbolicTensor =
-        new tfl.SymbolicTensor(DType.float32, [2], null, [], {});
+    const symbolicTensor = new tfl.SymbolicTensor('float32', [2], null, [], {});
     expect(() => inputLayer.apply(symbolicTensor))
         .toThrowError(/Cannot pass any input to an InputLayer's apply/);
   });
@@ -968,7 +964,7 @@ describeMathCPU('InputLayer', () => {
 
   it('returns a serializable config.', () => {
     const batchInputShape = [1];
-    const dtype = DType.float32;
+    const dtype = 'float32';
     const sparse = true;
     const name = 'my_name';
     const inputLayer =
@@ -988,7 +984,7 @@ describe('Input()', () => {
   const shape = [1];
   const batchShape = [2, 2];
   const name = 'abc';
-  const dtype = DType.float32;
+  const dtype = 'float32';
 
   it('returns an initialized symbolicTensor given a shape.', () => {
     const symbolicTensor = tfl.layers.input({shape, name, dtype});
@@ -1102,8 +1098,7 @@ describeMathCPUAndGPU('Container', () => {
   let simpleContainer: Container;
 
   beforeEach(() => {
-    inputTensor =
-        Input({shape: [1], name: inputLayerName, dtype: DType.float32});
+    inputTensor = Input({shape: [1], name: inputLayerName, dtype: 'float32'});
     layer = new LayerForTest({name: layerName});
     output = layer.apply(inputTensor) as tfl.SymbolicTensor;
     simpleContainer = new ContainerForTest(
@@ -1458,7 +1453,7 @@ describe('getSourceInputs()', () => {
 //   (b/74015805).
 describeMathCPUAndGPU('loadWeightsFromJson', () => {
   const inputTensor =
-      tfl.layers.input({shape: [3], name: 'inputLayer', dtype: DType.float32});
+      tfl.layers.input({shape: [3], name: 'inputLayer', dtype: 'float32'});
 
   it('One layer', () => {
     const denseLayer =
@@ -1640,7 +1635,7 @@ describeMathCPUAndGPU('loadWeightsFromJson', () => {
 
 describeMathCPUAndGPU('loadWeightsFromNamedTensorMap', () => {
   const inputTensor =
-      tfl.layers.input({shape: [3], name: 'inputLayer', dtype: DType.float32});
+      tfl.layers.input({shape: [3], name: 'inputLayer', dtype: 'float32'});
 
   it('One layer', () => {
     const denseLayer =

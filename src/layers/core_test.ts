@@ -19,7 +19,6 @@ import {ActivationIdentifier} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
-import {DType} from '../types';
 import {pyListRepeat} from '../utils/generic_utils';
 import {arrayProd} from '../utils/math_utils';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
@@ -31,9 +30,9 @@ import {Activation, RepeatVector, Reshape} from './core';
 describe('Dropout Layer: Symbolic', () => {
   const dropoutRates = [0, 0.5];
   const symbolicInputs = [
-    new tfl.SymbolicTensor(DType.float32, [10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [null, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [null, 4], null, [], null),
   ];
 
   for (const rate of dropoutRates) {
@@ -101,12 +100,12 @@ describeMathCPU('Dense Layer: Symbolic', () => {
   const units = 3;
   const activations = [null, 'linear', 'relu', 'softmax'];
   const symbolicInputs = [
-    new tfl.SymbolicTensor(DType.float32, [10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [14, 12, 10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [null, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [null, 10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [null, 12, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [14, 12, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [null, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [null, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [null, 12, 10, 4], null, [], null),
   ];
 
   for (const activation of activations) {
@@ -128,8 +127,7 @@ describeMathCPU('Dense Layer: Symbolic', () => {
   }
 
   it('2D cascade: With undetermined dimension', () => {
-    const input1 =
-        new tfl.SymbolicTensor(DType.float32, [null, 4], null, [], null);
+    const input1 = new tfl.SymbolicTensor('float32', [null, 4], null, [], null);
     const denseLayer1 = tfl.layers.dense({units: 3});
     const output1 = denseLayer1.apply(input1) as tfl.SymbolicTensor;
 
@@ -145,17 +143,16 @@ describeMathCPU('Dense Layer: Symbolic', () => {
   });
 
   it('Using 1D input leads to error', () => {
-    const input = new tfl.SymbolicTensor(DType.float32, [4], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [4], null, [], null);
     const denseLayer = tfl.layers.dense({units: 3});
     expect(() => denseLayer.apply(input)).toThrowError();
   });
 
   it('Different rank but compatible shape works', () => {
     const denseLayer = tfl.layers.dense({units: 3});
-    const input1 =
-        new tfl.SymbolicTensor(DType.float32, [null, 4], null, [], null);
+    const input1 = new tfl.SymbolicTensor('float32', [null, 4], null, [], null);
     const input2 =
-        new tfl.SymbolicTensor(DType.float32, [null, 6, 4], null, [], null);
+        new tfl.SymbolicTensor('float32', [null, 6, 4], null, [], null);
     const output1 = denseLayer.apply(input1) as tfl.SymbolicTensor;
     expect(output1.shape).toEqual([null, 3]);
     expect(output1.sourceLayer).toEqual(denseLayer);
@@ -169,10 +166,8 @@ describeMathCPU('Dense Layer: Symbolic', () => {
 
   it('2D incompatible shape leads to error', () => {
     const denseLayer = tfl.layers.dense({units: 3});
-    const input1 =
-        new tfl.SymbolicTensor(DType.float32, [null, 4], null, [], null);
-    const input2 =
-        new tfl.SymbolicTensor(DType.float32, [null, 5], null, [], null);
+    const input1 = new tfl.SymbolicTensor('float32', [null, 4], null, [], null);
+    const input2 = new tfl.SymbolicTensor('float32', [null, 5], null, [], null);
     const output1 = denseLayer.apply(input1) as tfl.SymbolicTensor;
     expect(output1.shape).toEqual([null, 3]);
     expect(output1.sourceLayer).toEqual(denseLayer);
@@ -270,7 +265,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
      () => {
        const concreteInput = ones([2, 2]);
        const symbolicInput =
-           new tfl.SymbolicTensor(DType.float32, [2, 2], null, [], null);
+           new tfl.SymbolicTensor('float32', [2, 2], null, [], null);
        const denseLayer =
            tfl.layers.dense({units: 4, kernelInitializer: 'ones'});
 
@@ -287,7 +282,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
   it('Calling apply with incompatible symbolic input after Tensor', () => {
     const concreteInput = ones([2, 2]);
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [2, 3], null, [], null);
+        new tfl.SymbolicTensor('float32', [2, 3], null, [], null);
     const denseLayer = tfl.layers.dense({units: 4, kernelInitializer: 'ones'});
 
     expectTensorsClose(
@@ -303,10 +298,10 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
 
 describe('Flatten Layer: Symbolic', () => {
   const symbolicInputs = [
-    new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [14, 12, 10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [null, 10, 4], null, [], null),
-    new tfl.SymbolicTensor(DType.float32, [null, 12, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [14, 12, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [null, 10, 4], null, [], null),
+    new tfl.SymbolicTensor('float32', [null, 12, 10, 4], null, [], null),
   ];
 
   for (const symbolicInput of symbolicInputs) {
@@ -337,14 +332,13 @@ describe('Flatten Layer: Symbolic', () => {
 
   it('2D tfl.SymbolicTensor leads to error', () => {
     const flattenLayer = tfl.layers.flatten();
-    const x = new tfl.SymbolicTensor(DType.float32, [null, 4], null, [], null);
+    const x = new tfl.SymbolicTensor('float32', [null, 4], null, [], null);
     expect(() => flattenLayer.apply(x)).toThrowError();
   });
 
   it('3D with undetermined input size leads to error', () => {
     const flattenLayer = tfl.layers.flatten({});
-    const x =
-        new tfl.SymbolicTensor(DType.float32, [8, 4, null], null, [], null);
+    const x = new tfl.SymbolicTensor('float32', [8, 4, null], null, [], null);
     expect(() => flattenLayer.apply(x)).toThrowError(/not fully defined/);
   });
 });
@@ -427,7 +421,7 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
 describe('RepeatVector Layer: Symbolic', () => {
   it('All dimensions known.', () => {
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [3, 4], null, [], null);
+        new tfl.SymbolicTensor('float32', [3, 4], null, [], null);
     const repeatVectorLayer = new RepeatVector({n: 2});
     const output = repeatVectorLayer.apply(symbolicInput) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([3, 2, 4]);
@@ -451,7 +445,7 @@ describeMathCPUAndGPU('RepeatVector Layer: Tensor', () => {
 describe('Reshape Layer: Symbolic', () => {
   it('All dimensions known.', () => {
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null);
+        new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [5, 8];
     const flattenLayer = new Reshape({targetShape});
     const output = flattenLayer.apply(symbolicInput) as tfl.SymbolicTensor;
@@ -462,7 +456,7 @@ describe('Reshape Layer: Symbolic', () => {
 
   it('One unknown dimension.', () => {
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null);
+        new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [5, null];
     const flattenLayer = new Reshape({targetShape});
     const output = flattenLayer.apply(symbolicInput) as tfl.SymbolicTensor;
@@ -473,7 +467,7 @@ describe('Reshape Layer: Symbolic', () => {
 
   it('Incompatible size.', () => {
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null);
+        new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [8, 8];
     const flattenLayer = new Reshape({targetShape});
     expect(() => flattenLayer.apply(symbolicInput))
@@ -482,7 +476,7 @@ describe('Reshape Layer: Symbolic', () => {
 
   it('Two unknown dimensions.', () => {
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null);
+        new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape: number[] = [null, null];
     const flattenLayer = new Reshape({targetShape});
     expect(() => flattenLayer.apply(symbolicInput))
@@ -491,7 +485,7 @@ describe('Reshape Layer: Symbolic', () => {
 
   it('One unknown with indivisible size.', () => {
     const symbolicInput =
-        new tfl.SymbolicTensor(DType.float32, [12, 10, 4], null, [], null);
+        new tfl.SymbolicTensor('float32', [12, 10, 4], null, [], null);
     const targetShape = [7, null];
     const flattenLayer = new Reshape({targetShape});
     expect(() => flattenLayer.apply(symbolicInput))
