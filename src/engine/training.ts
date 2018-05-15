@@ -1404,7 +1404,7 @@ export class Model extends Container {
         for (let i = 0; i < this.lossFunctions.length; ++i) {
           const lossFunction = this.lossFunctions[i];
           // TODO(cais): Add sample weighting and replace the simple averaging.
-          const loss = K.mean(lossFunction(targets[i], outputs[i])) as Scalar;
+          const loss = tfc.mean(lossFunction(targets[i], outputs[i])) as Scalar;
           if (i === 0) {
             totalLoss = loss;
           } else {
@@ -1418,7 +1418,7 @@ export class Model extends Container {
           const outputIndex = this.metricsTensors[i][1];
           // TODO(cais): Replace K.mean() with a proper weighting function.
           const meanMetric =
-              K.mean(metric(targets[outputIndex], outputs[outputIndex]));
+              tfc.mean(metric(targets[outputIndex], outputs[outputIndex]));
           valOutputs.push(meanMetric as Scalar);
         }
         return valOutputs;
@@ -1574,7 +1574,7 @@ export class Model extends Container {
           const loss = lossFunction(targets[i], outputs[i]);
           losses.push(loss);
           // TODO(cais): push Scalar instead.
-          const meanLoss = K.mean(loss) as Scalar;
+          const meanLoss = tfc.mean(loss) as Scalar;
           // TODO(cais): Use a scope() instead, to avoid ownership.
           lossValues.push(meanLoss);
           if (i === 0) {
@@ -1592,14 +1592,14 @@ export class Model extends Container {
           const outputIndex = this.metricsTensors[i][1];
           // TODO(cais): Replace K.mean() with a proper weighting function.
           const meanMetric =
-              K.mean(metric(targets[outputIndex], outputs[outputIndex])) as
+              tfc.mean(metric(targets[outputIndex], outputs[outputIndex])) as
               Scalar;
           tfc.keep(meanMetric);
           // TODO(cais): Use a scope() instead, to avoid ownership.
           metricsValues.push(meanMetric);
         }
 
-        totalLoss = K.mean(totalLoss);
+        totalLoss = tfc.mean(totalLoss);
 
         // Add regularizer penalties.
         this.calculateLosses().forEach(regularizerLoss => {

@@ -13,6 +13,7 @@
  */
 
 // tslint:disable:max-line-length
+import * as tfc from '@tensorflow/tfjs-core';
 import {max, serialization, squeeze, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
@@ -347,7 +348,7 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
-    return K.mean(input, 1);
+    return tfc.mean(input, 1);
   }
 }
 serialization.SerializationMap.register(GlobalAveragePooling1D);
@@ -435,9 +436,9 @@ export class GlobalAveragePooling2D extends GlobalPooling2D {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
     if (this.dataFormat === 'channelsLast') {
-      return K.mean(input, [1, 2]);
+      return tfc.mean(input, [1, 2]);
     } else {
-      return K.mean(input, [2, 3]);
+      return tfc.mean(input, [2, 3]);
     }
   }
 }
