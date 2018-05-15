@@ -127,6 +127,8 @@ function exportFunctionalMergeModel(exportPath: string): void {
 //   topology. Then load the weights in Python Keras and compare predict()
 //   outputs.
 
+console.log(`Using tfjs-layers version: ${tfl.version_layers}`);
+
 if (process.argv.length < 3) {
   throw new Error('Usage: node tfjs_save.ts <test_data_dir>');
 }
