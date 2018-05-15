@@ -17,7 +17,7 @@ import * as K from './backend/tfjs_backend';
 import {History} from './callbacks';
 import {getSourceInputs, Input, Layer, Node} from './engine/topology';
 import {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig, ModelPredictConfig} from './engine/training';
-import {NotImplementedError, RuntimeError, ValueError} from './errors';
+import {RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
 import {Kwargs, NamedTensorMap, Shape} from './types';
 import {JsonDict, SymbolicTensor} from './types';
@@ -103,9 +103,65 @@ export interface ModelAndWeightsConfig {
   pathPrefix?: string;
 }
 
+// tslint:disable:max-line-length
 /**
  * Load a model, including its topology and optionally weights.  See the
  * Tutorial named "How to import a Keras Model" for usage examples.
+ *
+ * Example 1: Save `model`'s topology and weights to browser [local
+ * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
+ * then load it back.
+ *
+ * ```js
+ * const model = tf.sequential(
+ *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+ * console.log('Prediction from original model:');
+ * model.predict(tf.ones([1, 3])).print();
+ *
+ * const saveResults = await model.save('localstorage://my-model-1');
+ *
+ * const loadedModel = await tf.loadModel('localstorage://my-model-1');
+ * console.log('Prediction from loaded model:');
+ * loadedModel.predict(tf.ones([1, 3])).print();
+ * ```
+ *
+ * Example 2. Saving `model`'s topology and weights to browser
+ * [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API);
+ * then load it back.
+ *
+ * ```js
+ * const model = tf.sequential(
+ *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+ * console.log('Prediction from original model:');
+ * model.predict(tf.ones([1, 3])).print();
+ *
+ * const saveResults = await model.save('indexeddb://my-model-1');
+ *
+ * const loadedModel = await tf.loadModel('indexeddb://my-model-1');
+ * console.log('Prediction from loaded model:');
+ * loadedModel.predict(tf.ones([1, 3])).print();
+ * ```
+ *
+ * Example 3. Load a model from user-selected files from HTML
+ * [file input
+ * elements](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file).
+ *
+ * ```js
+ * // Note: this code snippet will not work without the HTML elements in the
+ * //   page
+ * const jsonUpload = document.getElementById('json-upload');
+ * const weightsUpload = document.getElementById('weights-upload');
+ *
+ * const model = await tf.loadModel(
+ *     tf.io.browserFiles([jsonUpload.files[0], weightsUpload.files[0]]));
+ * ```
+ *
+ * Example 4. Load a model from an HTTP server.
+ *
+ * ```js
+ * const model = await
+ *     tf.loadModel('https://storage.googleapis.com/tfjs-models/tfjs/iris_v1/model.json')
+ * ```
  *
  * @param pathOrIOHandler Can be either of the two formats
  *   1. A string path to the `ModelAndWeightsConfig` JSON describing
@@ -127,11 +183,23 @@ export interface ModelAndWeightsConfig {
  *
  * @returns A `Promise` of `Model`, with the topology and weights loaded.
  */
+// tslint:enable:max-line-length
 export async function loadModelInternal(pathOrIOHandler: string|
                                         io.IOHandler): Promise<Model> {
-  return (typeof pathOrIOHandler === 'string') ?
-      loadModelFromPath(pathOrIOHandler) :
-      loadModelFromIOHandler(pathOrIOHandler as io.IOHandler);
+  if (typeof pathOrIOHandler === 'string') {
+    const handlers = io.getLoadHandlers(pathOrIOHandler);
+    if (handlers.length === 0) {
+      // For backward compatibility: if no load handler can be found,
+      // assume it is a relative http path.
+      return loadModelFromPath(pathOrIOHandler);
+    } else if (handlers.length > 1) {
+      throw new ValueError(
+          `Found more than one (${handlers.length}) load handlers for ` +
+          `URL '${pathOrIOHandler}'`);
+    }
+    pathOrIOHandler = handlers[0];
+  }
+  return loadModelFromIOHandler(pathOrIOHandler as io.IOHandler);
 }
 
 /**
@@ -637,77 +705,6 @@ export class Sequential extends Model {
   }
 
   // TODO(cais): Override get trainableWeights() here
-
-  /**
-   * Extract weight values of the model.
-   *
-   * @param config: An instance of `io.SaveConfig`, which specifies model-saving
-   *   options such as whether only trainable weights are to be saved.
-   * @returns A `NamedTensorMap` mapping original weight names (i.e.,
-   *   non-uniqueified weight names) to their values.
-   */
-  protected getNamedWeights(config?: io.SaveConfig): NamedTensorMap {
-    const namedWeights: NamedTensorMap = {};
-
-    const trainableOnly = config != null && config.trainableOnly;
-    const weights = trainableOnly ? this.trainableWeights : this.weights;
-    const weightValues = this.getWeights(trainableOnly);
-    for (let i = 0; i < weights.length; ++i) {
-      if (trainableOnly && !weights[i].trainable) {
-        // Optionally skip non-trainable weights.
-        continue;
-      }
-      namedWeights[weights[i].originalName] = weightValues[i];
-    }
-    return namedWeights;
-  }
-
-  /**
-   * Save the configuration and/or weights of the Model.
-   *
-   * An `IOHandler` is an object that has a `save` method of the proper
-   * signature defined. The `save` method manages the storing or transmission of
-   * serialized data ("artifacts") that represent the model's topology and
-   * weights onto or via a specific medium, such as file downloads, local
-   * storage, IndexedDB in the web browser and HTTP requests to a server.
-   * TensorFlow.js provides `IOHandler` implementations for a number of
-   * frequently used saving mediums, such as `tf.io.browserDownloads` and
-   * `tf.io.browserLocalStorage`. See `tf.io` for more details.
-   *
-   * This method also allows you to refer to certain types of `IOHandler`s as
-   * URL-like string shortcuts, such as 'localstorage://' and 'indexeddb://'.
-   *
-   * @param handlerOrURL An instance of `IOHandler` or a URL-like, scheme-based
-   *   string shortcut for `IOHandler`.
-   * @param config Options for saving the model.
-   * @returns A `Promise` of `SaveResult`, which summarizes the result of the
-   *   saving, such as byte sizes of the saved artifacts for the model's
-   *   topology and weight values.
-   */
-  async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
-      Promise<io.SaveResult> {
-    if (typeof handlerOrURL === 'string') {
-      throw new NotImplementedError(
-          'String URLs support in Model.save() is not implemented yet.');
-    }
-    if (handlerOrURL.save == null) {
-      throw new ValueError(
-          'Model.save() cannot proceed because the IOHandler provided does ' +
-          'not have the `save` attribute defined.');
-    }
-
-    const weightDataAndSpecs =
-        await io.encodeWeights(this.getNamedWeights(config));
-
-    const returnString = false;
-    const modelConfig = this.toJSON(null, returnString);
-
-    return handlerOrURL.save({
-      modelTopology: modelConfig,
-      weightData: weightDataAndSpecs.data,
-      weightSpecs: weightDataAndSpecs.specs
-    });
-  }
 
   // tslint:disable-next-line:no-any
   getConfig(): any {

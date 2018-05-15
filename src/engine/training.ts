@@ -12,7 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {doc, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
+import {doc, io, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, disposeTensorsInLogs, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
@@ -20,7 +20,7 @@ import {NotImplementedError, RuntimeError, ValueError} from '../errors';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
-import {LossOrMetricFn, Shape} from '../types';
+import {LossOrMetricFn, NamedTensorMap, Shape} from '../types';
 import {count, singletonOrArray, unique} from '../utils/generic_utils';
 import {range} from '../utils/math_utils';
 import {LayerVariable} from '../variables';
@@ -1640,6 +1640,141 @@ export class Model extends Container {
         null, null);
     // TODO(cais): Add value to outLabels.
     // TODO(cais): Add initialEpoch.
+  }
+
+  /**
+   * Extract weight values of the model.
+   *
+   * @param config: An instance of `io.SaveConfig`, which specifies model-saving
+   *   options such as whether only trainable weights are to be saved.
+   * @returns A `NamedTensorMap` mapping original weight names (i.e.,
+   *   non-uniqueified weight names) to their values.
+   */
+  protected getNamedWeights(config?: io.SaveConfig): NamedTensorMap {
+    const namedWeights: NamedTensorMap = {};
+
+    const trainableOnly = config != null && config.trainableOnly;
+    const weights = trainableOnly ? this.trainableWeights : this.weights;
+    const weightValues = this.getWeights(trainableOnly);
+    for (let i = 0; i < weights.length; ++i) {
+      if (trainableOnly && !weights[i].trainable) {
+        // Optionally skip non-trainable weights.
+        continue;
+      }
+      namedWeights[weights[i].originalName] = weightValues[i];
+    }
+    return namedWeights;
+  }
+
+  // tslint:disable:max-line-length
+  /**
+   * Save the configuration and/or weights of the Model.
+   *
+   * An `IOHandler` is an object that has a `save` method of the proper
+   * signature defined. The `save` method manages the storing or transmission of
+   * serialized data ("artifacts") that represent the model's topology and
+   * weights onto or via a specific medium, such as file downloads, local
+   * storage, IndexedDB in the web browser and HTTP requests to a server.
+   * TensorFlow.js provides `IOHandler` implementations for a number of
+   * frequently used saving mediums, such as `tf.io.browserDownloads` and
+   * `tf.io.browserLocalStorage`. See `tf.io` for more details.
+   *
+   * This method also allows you to refer to certain types of `IOHandler`s as
+   * URL-like string shortcuts, such as 'localstorage://' and 'indexeddb://'.
+   *
+   * Example 1: Save `model`'s topology and weights to browser [local
+   * storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage);
+   * then load it back.
+   *
+   * ```js
+   * const model = tf.sequential(
+   *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+   * console.log('Prediction from original model:');
+   * model.predict(tf.ones([1, 3])).print();
+   *
+   * const saveResults = await model.save('localstorage://my-model-1');
+   *
+   * const loadedModel = await tf.loadModel('localstorage://my-model-1');
+   * console.log('Prediction from loaded model:');
+   * loadedModel.predict(tf.ones([1, 3])).print();
+   * ```
+   *
+   * Example 2. Saving `model`'s topology and weights to browser
+   * [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API);
+   * then load it back.
+   *
+   * ```js
+   * const model = tf.sequential(
+   *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+   * console.log('Prediction from original model:');
+   * model.predict(tf.ones([1, 3])).print();
+   *
+   * const saveResults = await model.save('indexeddb://my-model-1');
+   *
+   * const loadedModel = await tf.loadModel('indexeddb://my-model-1');
+   * console.log('Prediction from loaded model:');
+   * loadedModel.predict(tf.ones([1, 3])).print();
+   * ```
+   *
+   * Example 3. Saving `model`'s topology and weights as two files
+   * (`my-model-1.json` and `my-model-1.weights.bin`) downloaded from browser.
+   *
+   * ```js
+   * const model = tf.sequential(
+   *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+   * const saveResults = await model.save('downloads://my-model-1');
+   * ```
+   *
+   * Example 4. Send  `model`'s topology and weights to an HTTP server.
+   * See the documentation of `tf.io.browserHTTPRequests` for more details
+   * including specifying request parameters and implementation of the server.
+   *
+   * ```js
+   * const model = tf.sequential(
+   *     {layers: [tf.layers.dense({units: 1, inputShape: [3]})]});
+   * const saveResults = await model.save('http://my-server/model/upload');
+   * ```
+   *
+   * @param handlerOrURL An instance of `IOHandler` or a URL-like, scheme-based
+   *   string shortcut for `IOHandler`.
+   * @param config Options for saving the model.
+   * @returns A `Promise` of `SaveResult`, which summarizes the result of the
+   *   saving, such as byte sizes of the saved artifacts for the model's
+   *   topology and weight values.
+   */
+  // tslint:enable:max-line-length
+  async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
+      Promise<io.SaveResult> {
+    if (typeof handlerOrURL === 'string') {
+      const handlers = io.getSaveHandlers(handlerOrURL);
+      if (handlers.length === 0) {
+        throw new ValueError(
+            `Cannot find any save handlers for URL '${handlerOrURL}'`);
+      } else if (handlers.length > 1) {
+        throw new ValueError(
+            `Found more than one (${handlers.length}) save handlers for ` +
+            `URL '${handlerOrURL}'`);
+      }
+      handlerOrURL = handlers[0];
+    }
+    if (handlerOrURL.save == null) {
+      throw new ValueError(
+          'Model.save() cannot proceed because the IOHandler provided does ' +
+          'not have the `save` attribute defined.');
+    }
+
+    const weightDataAndSpecs =
+        await io.encodeWeights(this.getNamedWeights(config));
+
+    const returnString = false;
+    const unusedArg: {} = null;
+    const modelConfig = this.toJSON(unusedArg, returnString);
+
+    return handlerOrURL.save({
+      modelTopology: modelConfig,
+      weightData: weightDataAndSpecs.data,
+      weightSpecs: weightDataAndSpecs.specs
+    });
   }
 }
 

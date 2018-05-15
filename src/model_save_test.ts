@@ -10,9 +10,12 @@
 
 import {io} from '@tensorflow/tfjs-core';
 
+import * as tfl from './index';
+
 import {Dense} from './layers/core';
 import {Sequential} from './models';
-import {describeMathCPUAndGPU} from './utils/test_utils';
+// tslint:disable-next-line:max-line-length
+import {describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from './utils/test_utils';
 
 describeMathCPUAndGPU('Model.save', () => {
   class IOHandlerForTest implements io.IOHandler {
@@ -99,6 +102,86 @@ describeMathCPUAndGPU('Model.save', () => {
                   'Model.save() cannot proceed because the IOHandler ' +
                   'provided does not have the `save` attribute defined.');
           done();
+        });
+  });
+});
+
+describeMathGPU('Save-load round trips', () => {
+  it('Sequential model, Local storage', done => {
+    const model1 = tfl.sequential();
+    model1.add(
+        tfl.layers.dense({units: 2, inputShape: [2], activation: 'relu'}));
+    model1.add(tfl.layers.dense({units: 1, useBias: false}));
+
+    // Use a randomly generated model path to prevent collision.
+    const path = `testModel${new Date().getTime()}_${Math.random()}`;
+
+    // First save the model to local storage.
+    const modelURL = `localstorage://${path}`;
+    model1.save(modelURL)
+        .then(saveResult => {
+          // Once the saving succeeds, load the model back.
+          tfl.loadModel(modelURL)
+              .then(model2 => {
+                // Verify that the topology of the model is correct.
+                expect(model2.toJSON(null, false))
+                    .toEqual(model1.toJSON(null, false));
+
+                // Check the equality of the two models' weights.
+                const weights1 = model1.getWeights();
+                const weights2 = model2.getWeights();
+                expect(weights2.length).toEqual(weights1.length);
+                for (let i = 0; i < weights1.length; ++i) {
+                  expectTensorsClose(weights1[i], weights2[i]);
+                }
+
+                done();
+              })
+              .catch(err => {
+                done.fail(err.stack);
+              });
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
+  });
+
+  it('Functional model, IndexedDB', done => {
+    const input = tfl.input({shape: [2, 2]});
+    const layer1 = tfl.layers.flatten().apply(input);
+    const layer2 =
+        tfl.layers.dense({units: 2}).apply(layer1) as tfl.SymbolicTensor;
+    const model1 = tfl.model({inputs: input, outputs: layer2});
+    // Use a randomly generated model path to prevent collision.
+    const path = `testModel${new Date().getTime()}_${Math.random()}`;
+
+    // First save the model to local storage.
+    const modelURL = `indexeddb://${path}`;
+    model1.save(modelURL)
+        .then(saveResult => {
+          // Once the saving succeeds, load the model back.
+          tfl.loadModel(modelURL)
+              .then(model2 => {
+                // Verify that the topology of the model is correct.
+                expect(model2.toJSON(null, false))
+                    .toEqual(model1.toJSON(null, false));
+
+                // Check the equality of the two models' weights.
+                const weights1 = model1.getWeights();
+                const weights2 = model2.getWeights();
+                expect(weights2.length).toEqual(weights1.length);
+                for (let i = 0; i < weights1.length; ++i) {
+                  expectTensorsClose(weights1[i], weights2[i]);
+                }
+
+                done();
+              })
+              .catch(err => {
+                done.fail(err.stack);
+              });
+        })
+        .catch(err => {
+          done.fail(err.stack);
         });
   });
 });
