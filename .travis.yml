@@ -1,3 +1,4 @@
+cache: yarn
 matrix:
   include:
     - language: node_js
