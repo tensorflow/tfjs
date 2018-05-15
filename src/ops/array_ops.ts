@@ -25,7 +25,7 @@ import * as tensor_util from '../tensor_util';
 import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from '../types';
 import * as util from '../util';
 
-import {parseAxisParam} from './axis_util';
+import {getAxesPermutation, parseAxisParam} from './axis_util';
 import {ConcatOps} from './concat';
 import {operation} from './operation';
 import {MPRandGauss} from './rand';
@@ -1147,6 +1147,51 @@ export class ArrayOps {
       begin[axis] += s;
       return slice;
     });
+  }
+
+  /**
+   * Computes the cumulative sum of a `Tensor` along `axis`.
+   *
+   * ```js
+   * const x = tf.tensor([1, 2, 3, 4]);
+   * x.cumsum().print();
+   * ```
+   * ```js
+   * const x = tf.tensor([[1, 2], [3, 4]]);
+   * x.cumsum().print();
+   * ```
+   *
+   * @param x The input tensor to be summed.
+   * @param axis The axis along which to sum. Optional. Defaults to 0.
+   * @param exclusive Whether to perform exclusive cumulative sum. Optional.
+   *     Defaults to false. If set to true then the sum of each tensor entry
+   *     does not include its own value, but only the values previous to it
+   *     along the specified axis.
+   * @param reverse Whether to sum in the opposite direction. Optional.
+   *     Defaults to false.
+   */
+  @doc({heading: 'Operations', subheading: 'Scan'})
+  static cumsum<T extends Tensor>(
+      x: Tensor, axis = 0, exclusive = false, reverse = false): T {
+    util.assertArgumentsAreTensors({x}, 'cumsum');
+
+    const permutation = getAxesPermutation([axis], x.rank);
+    let permutedX = x;
+    if (permutation != null) {
+      permutedX = x.transpose(permutation);
+    }
+
+    const grad = (dy: T) => {
+      return {permutedX: () => dy.cumsum(axis, exclusive, !reverse)};
+    };
+    let value =  ENV.engine.runKernel(
+        backend => backend.cumsum(permutedX, axis, exclusive, reverse),
+        {permutedX}, grad) as T;
+
+    if (permutation != null) {
+      value = value.transpose(permutation);
+    }
+    return value;
   }
 
   /**

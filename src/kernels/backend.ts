@@ -211,5 +211,8 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   oneHot(indices: Tensor1D, depth: number, onValue: number, offValue: number):
       Tensor2D;
 
+  cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
+      Tensor;
+
   dispose(): void;
 }

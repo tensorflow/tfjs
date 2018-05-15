@@ -344,6 +344,32 @@ export class MathBackendCPU implements KernelBackend {
     return result;
   }
 
+  cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
+      Tensor {
+    const resultDtype = types.upcastType(x.dtype, 'int32');
+    const result = ops.zeros(x.shape, resultDtype);
+    const vals = result.dataSync();
+
+    const aVals = x.dataSync();
+    const finalDim = x.shape[x.rank - 1];
+    const indexAdjuster = reverse ?
+        (i: number, j: number) => i + finalDim - j - 1 :
+        (i: number, j: number) => i + j;
+    for (let i = 0; i < aVals.length; i += finalDim) {
+      for (let j = 0; j < finalDim; j++) {
+        const idx = indexAdjuster(i, j);
+        if (j === 0) {
+          vals[idx] = exclusive ? 0 : aVals[idx];
+        } else {
+          const prevIdx = indexAdjuster(i, j - 1);
+          vals[idx] = exclusive ? aVals[prevIdx] + vals[prevIdx] :
+                                  aVals[idx] + vals[prevIdx];
+        }
+      }
+    }
+    return result;
+  }
+
   equal(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, 'bool', (aVal, bVal) => {
       return (aVal === bVal) ? 1 : 0;
