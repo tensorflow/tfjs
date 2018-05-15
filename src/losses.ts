@@ -33,7 +33,7 @@ import {LossOrMetricFn} from './types';
  * @return Mean squared error Tensor.
  */
 export function meanSquaredError(yTrue: Tensor, yPred: Tensor): Tensor {
-  return K.mean(K.square(tfc.sub(yPred, yTrue)), -1);
+  return tfc.mean(K.square(tfc.sub(yPred, yTrue)), -1);
 }
 
 /**
@@ -55,7 +55,7 @@ export function meanSquaredError(yTrue: Tensor, yPred: Tensor): Tensor {
  * @return Mean absolute error Tensor.
  */
 export function meanAbsoluteError(yTrue: Tensor, yPred: Tensor): Tensor {
-  return K.mean(tfc.abs(tfc.sub(yPred, yTrue)), -1);
+  return tfc.mean(tfc.abs(tfc.sub(yPred, yTrue)), -1);
 }
 
 /**
@@ -80,7 +80,7 @@ export function meanAbsolutePercentageError(
   const clippedTrue =
       tfc.clipByValue(tfc.abs(yTrue), K.epsilon(), Number.MAX_VALUE);
   const absResult = tfc.abs(tfc.div(diff, clippedTrue));
-  return K.scalarTimesArray(K.getScalar(100.0), K.mean(absResult, -1));
+  return K.scalarTimesArray(K.getScalar(100.0), tfc.mean(absResult, -1));
 }
 
 export function meanSquaredLogarithmicError(
@@ -93,7 +93,7 @@ export function meanSquaredLogarithmicError(
   const clippedTrue = tfc.clipByValue(yTrue, K.epsilon(), Number.MAX_VALUE);
   const secondLog = tfc.log(K.scalarPlusArray(one, clippedTrue));
 
-  return K.mean(K.square(tfc.sub(firstLog, secondLog)), -1);
+  return tfc.mean(K.square(tfc.sub(firstLog, secondLog)), -1);
 }
 
 export function squaredHinge(yTrue: Tensor, yPred: Tensor): Tensor {
@@ -101,7 +101,7 @@ export function squaredHinge(yTrue: Tensor, yPred: Tensor): Tensor {
   const one = K.getScalar(1.0);
   const maxResult =
       tfc.maximum(zeroTensor, tfc.sub(one, tfc.mul(yTrue, yPred)));
-  return K.mean(K.square(maxResult), -1);
+  return tfc.mean(K.square(maxResult), -1);
 }
 
 export function hinge(yTrue: Tensor, yPred: Tensor): Tensor {
@@ -109,7 +109,7 @@ export function hinge(yTrue: Tensor, yPred: Tensor): Tensor {
   const one = K.getScalar(1.0);
   const maxResult =
       tfc.maximum(zeroTensor, tfc.sub(one, tfc.mul(yTrue, yPred)));
-  return K.mean(maxResult, -1);
+  return tfc.mean(maxResult, -1);
 }
 
 export function categoricalHinge(yTrue: Tensor, yPred: Tensor): Tensor {
@@ -136,7 +136,7 @@ export function logcosh(yTrue: Tensor, yPred: Tensor): Tensor {
           predictionDiff,
           K.softplus(K.scalarTimesArray(K.getScalar(-2.0), predictionDiff))),
       log2);
-  return K.mean(logcoshResult, -1);
+  return tfc.mean(logcoshResult, -1);
 }
 
 export function categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
@@ -149,7 +149,7 @@ export function sparseCategoricalCrossentropy(
 }
 
 export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
-  return K.mean(K.binaryCrossentropy(yTrue, yPred), -1);
+  return tfc.mean(K.binaryCrossentropy(yTrue, yPred), -1);
 }
 
 export function kullbackLeiblerDivergence(
@@ -162,7 +162,7 @@ export function kullbackLeiblerDivergence(
 
 export function poisson(yTrue: Tensor, yPred: Tensor): Tensor {
   const logPred = tfc.log(K.scalarPlusArray(K.getScalar(K.epsilon()), yPred));
-  return K.mean(tfc.sub(yPred, tfc.mul(yTrue, logPred)), -1);
+  return tfc.mean(tfc.sub(yPred, tfc.mul(yTrue, logPred)), -1);
 }
 
 /**

@@ -834,30 +834,6 @@ export function oneHot(indices: Tensor, numClasses: number): Tensor {
 /* Elementary math functions. */
 
 /**
- * Mean of a tensor, alongside the specified axis.
- * @param x: Input tensor.
- * @param axis: An integer or an Array of integers.
- * @param keepDims: A boolean, whether to keep the dimensions or not
- *   If `keepDims` is `false`, the rank of the tensor is reduced
- *   by `1 for each entry in `axis`. If `keepDims` is `true`,
- *   the reduced dimensions are retained with length 1.
- */
-export function mean(
-    x: Tensor, axis?: number|number[], keepDims?: boolean): Scalar|Tensor {
-  return tfc.mean(x, axis, keepDims);
-}
-
-/**
- * Returns the index of the maximum value along an axis.
- * @param x Input tensor.
- * @param axis Axis along which to perform the reduction.
- * @returns The argmax index tensor.
- */
-export function argmax(x: Tensor, axis = -1): Tensor {
-  return tfc.argMax(x, axis);
-}
-
-/**
  * Retrieves the elements of indices `indices` in the tensor `reference`.
  * @param reference A tensor.
  * @param indices An integer tensor of indices or an `Array` of integers.

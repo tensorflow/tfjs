@@ -13,6 +13,7 @@
  */
 
 // tslint:disable:max-line-length
+import * as tfc from '@tensorflow/tfjs-core';
 import {neg, ones, Scalar, scalar, Tensor, tensor2d, tensor3d, train, transpose, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
@@ -46,7 +47,7 @@ class RNNCellForTest extends RNNCell {
     inputs = inputs as Tensor[];
     const dataInputs = inputs[0];
     const states = inputs.slice(1);
-    const mean = K.mean(dataInputs) as Scalar;
+    const mean = tfc.mean(dataInputs) as Scalar;
     const newStates = states.map(state => K.scalarPlusArray(mean, state));
     const output = neg(newStates[0]);
     return [output].concat(newStates);
@@ -511,7 +512,7 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
     const y = zeros([batchSize, 1]);
     dense.apply(simpleRNN.apply(x));
     const lossFn = () => {
-      return K.mean(metrics.mse(y, dense.apply(simpleRNN.apply(x)) as Tensor))
+      return tfc.mean(metrics.mse(y, dense.apply(simpleRNN.apply(x)) as Tensor))
           .asScalar();
     };
     for (let i = 0; i < 2; ++i) {
@@ -739,7 +740,7 @@ describeMathCPUAndGPU('GRU Tensor', () => {
     const y = ones([batchSize, 1]);
     dense.apply(gru.apply(x));
     const lossFn = () => {
-      return K.mean(metrics.mse(y, dense.apply(gru.apply(x)) as Tensor))
+      return tfc.mean(metrics.mse(y, dense.apply(gru.apply(x)) as Tensor))
           .asScalar();
     };
     for (let i = 0; i < 2; ++i) {
@@ -978,7 +979,7 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
       const y = ones([batchSize, 1]);
       dense.apply(lstm.apply(x));
       const lossFn = () => {
-        return K.mean(metrics.mse(y, dense.apply(lstm.apply(x)) as Tensor))
+        return tfc.mean(metrics.mse(y, dense.apply(lstm.apply(x)) as Tensor))
             .asScalar();
       };
       for (let i = 0; i < 2; ++i) {

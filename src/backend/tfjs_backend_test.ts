@@ -1013,59 +1013,6 @@ describeMathCPUAndGPU('OneHot', () => {
   });
 });
 
-describeMathCPUAndGPU('Mean', () => {
-  it('reduce_mean', () => {
-    expectTensorsClose(
-      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2])), scalar(0.25));
-  });
-  it('mean 2D, axis=1, keepdims=false', () => {
-    expectTensorsClose(
-      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), 1), tensor1d([1.5, -1]));
-  });
-  it('mean 2D, axis=1, keepdims=true', () => {
-    expectTensorsClose(
-      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), 1, true),
-      tensor2d([[1.5], [-1]], [2, 1]));
-  });
-  it('mean 3D, axis=[1,2], keepdims=false', () => {
-    expectTensorsClose(
-      K.mean(
-        tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-        [1, 2]),
-      tensor1d([0.25, 2.5]));
-  });
-  it('mean 3D, axis=[1,2], keepdims=true', () => {
-    expectTensorsClose(
-      K.mean(
-        tensor3d([[[4, -1], [0, -2]], [[40, -10], [0, -20]]], [2, 2, 2]),
-        [1, 2], true),
-      tensor3d([[[0.25]], [[2.5]]], [2, 1, 1]));
-  });
-  it('reduce_mean keepdims=true', () => {
-    expectTensorsClose(
-      K.mean(tensor2d([[4, -1], [0, -2]], [2, 2]), undefined, true),
-      tensor2d([[0.25]], [1, 1]));
-  });
-});
-
-describeMathCPUAndGPU('Argmax', () => {
-  it('2D, default axis', () => {
-    expectTensorsClose(
-      K.argmax(tensor2d([[4, -1], [-2, 0]], [2, 2])),
-      tensor1d([0, 1], 'int32'));
-  });
-  it('2D, axis=-1', () => {
-    expectTensorsClose(
-      K.argmax(tensor2d([[4, -1], [-2, 0]], [2, 2]), -1),
-      tensor1d([0, 1], 'int32'));
-  });
-  it('2D, axis=0', () => {
-    expectTensorsClose(
-      K.argmax(tensor2d([[4, -1], [3, 2]], [2, 2]), 0),
-      tensor1d([0, 1], 'int32'));
-  });
-});
-
 describeMathCPUAndGPU('Gather', () => {
   it('1D, Array of numbers with repeats', () => {
     expectTensorsClose(
@@ -1974,7 +1921,7 @@ describe('inTrainPhase', () => {
  * @param states
  */
 function rnnStepForTest(inputs: Tensor, states: Tensor[]): [Tensor, Tensor[]] {
-  const mean = K.mean(inputs) as Scalar;
+  const mean = tfc.mean(inputs) as Scalar;
   const newStates = states.map(state => K.scalarPlusArray(mean, state));
   const output = tfc.neg(newStates[0]);
   return [output, newStates];
@@ -2118,7 +2065,8 @@ describeMathCPUAndGPU('gradients', () => {
   it('Simple mean: 1 variable', () => {
     const var1 =
       new LayerVariable(K.scalarTimesArray(scalar(2.0), tfc.ones([2, 2])));
-    const gradients = K.gradients(() => K.mean(var1.read()) as Scalar, [var1]);
+    const gradients = K.gradients(
+      () => tfc.mean(var1.read()) as Scalar, [var1]);
     expect(gradients.length).toEqual(1);
     expectTensorsClose(
       tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
@@ -2127,7 +2075,7 @@ describeMathCPUAndGPU('gradients', () => {
     const var1 = new LayerVariable(tensor2d([[1, 0], [0, 0]], [2, 2]));
     const var2 = new LayerVariable(tensor2d([[1, 0], [0, 1]], [2, 2]));
     const gradients = K.gradients(
-      () => K.mean(K.dot(var1.read(), var2.read())) as Scalar, [var1, var2]);
+      () => tfc.mean(K.dot(var1.read(), var2.read())) as Scalar, [var1, var2]);
     expect(gradients.length).toEqual(2);
     // d(loss) / d(var1).
     expectTensorsClose(
