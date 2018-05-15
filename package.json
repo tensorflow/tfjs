@@ -17,8 +17,8 @@
     "@types/jasmine": "~2.8.6",
     "@types/node": "~9.6.1",
     "browserify": "~16.1.1",
-    "commander": "~2.14.1",
     "clang-format": "~1.2.2",
+    "commander": "~2.14.1",
     "jasmine": "3.1.0",
     "jasmine-core": "~3.1.0",
     "karma": "~2.0.0",
@@ -54,7 +54,7 @@
     "release-notes": "ts-node -O '{\"module\": \"commonjs\"}' ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "0.8.3",
-    "@tensorflow/tfjs-layers": "0.5.2"
+    "@tensorflow/tfjs-core": "link:.yalc/@tensorflow/tfjs-core",
+    "@tensorflow/tfjs-layers": "link:.yalc/@tensorflow/tfjs-layers"
   }
 }

@@ -4,8 +4,6 @@ import typescript from "rollup-plugin-typescript2";
 import commonjs from "rollup-plugin-commonjs";
 import resolve from "rollup-plugin-node-resolve";
 
-const circularDepFilter = /Circular dependency/;
-
 export default {
   input: "src/index.ts",
   plugins: [
@@ -29,5 +27,14 @@ export default {
       'crypto': 'crypto'
     }
   },
-  external: ['crypto']
+  external: ['crypto'],
+  onwarn: warning => {
+    let {code} = warning;
+    if (code === 'CIRCULAR_DEPENDENCY' ||
+        code === 'CIRCULAR' ||
+        code === 'THIS_IS_UNDEFINED') {
+      return;
+    }
+    console.warn('WARNING: ', warning.toString());
+  }
 };
