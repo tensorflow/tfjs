@@ -1,7 +1,9 @@
 matrix:
   include:
     - language: node_js
-      node_js: "8"
+      node_js:
+        - "8"
+        - "10"
       script:
         - yarn build
         - yarn lint
