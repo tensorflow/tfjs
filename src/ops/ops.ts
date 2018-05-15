@@ -200,6 +200,7 @@ export const print = ArrayOps.print;
 export const expandDims = ArrayOps.expandDims;
 export const stack = ArrayOps.stack;
 export const split = ArrayOps.split;
+export const cumsum = ArrayOps.cumsum;
 
 export const pad = ArrayOps.pad;
 export const pad1d = ArrayOps.pad1d;

@@ -2337,3 +2337,69 @@ describeWithFlags('expandDims', ALL_ENVS, () => {
         .toThrowError(/Argument 'x' passed to 'expandDims' must be a Tensor/);
   });
 });
+
+describeWithFlags('cumsum', ALL_ENVS, () => {
+  it('1D standard', () => {
+    const res = tf.tensor1d([1, 2, 3, 4]).cumsum();
+    expect(res.shape).toEqual([4]);
+    expectArraysClose(res, [1, 3, 6, 10]);
+  });
+
+  it('1D reverse', () => {
+    const reverse = true;
+    const exclusive = false;
+    const res = tf.tensor1d([1, 2, 3, 4]).cumsum(0, exclusive, reverse);
+    expect(res.shape).toEqual([4]);
+    expectArraysClose(res, [10, 9, 7, 4]);
+  });
+
+  it('1D exclusive', () => {
+    const exclusive = true;
+    const res = tf.tensor1d([1, 2, 3, 4]).cumsum(0, exclusive);
+    expect(res.shape).toEqual([4]);
+    expectArraysClose(res, [0, 1, 3, 6]);
+  });
+
+  it('1D exclusive reverse', () => {
+    const reverse = true;
+    const exclusive = true;
+    const res = tf.tensor1d([1, 2, 3, 4]).cumsum(0, exclusive, reverse);
+    expect(res.shape).toEqual([4]);
+    expectArraysClose(res, [9, 7, 4, 0]);
+  });
+
+  it('gradient: 1D', () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const dy = tf.tensor1d([4, 5, 6]);
+    const da = tf.grad(x => tf.cumsum(x))(a, dy);
+
+    expect(da.shape).toEqual([3]);
+    expectArraysClose(da, [15, 11, 6]);
+  });
+
+  it('2D standard', () => {
+    const res = tf.tensor2d([[1, 2], [3, 4]]).cumsum(1);
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [1, 3, 3, 7]);
+  });
+
+  it('2D reverse exclusive', () => {
+    const reverse = true;
+    const exclusive = true;
+    const res = tf.tensor2d([[1, 2], [3, 4]]).cumsum(1, exclusive, reverse);
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [2, 0, 4, 0]);
+  });
+
+  it('2D axis=0', () => {
+    const res = tf.tensor2d([[1, 2], [3, 4]]).cumsum();
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [1, 2, 4, 6]);
+  });
+
+  it('3D standard', () => {
+    const res = tf.tensor3d([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]).cumsum(2);
+    expect(res.shape).toEqual([2, 2, 2]);
+    expectArraysClose(res, [0, 1, 2, 5, 4, 9, 6, 13]);
+  });
+});
