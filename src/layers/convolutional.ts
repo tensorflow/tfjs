@@ -13,9 +13,11 @@
  */
 
 // tslint:disable:max-line-length
-import {conv2dTranspose, separableConv2d, serialization, Tensor, Tensor4D, tidy, transpose} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {Activation, getActivation, serializeActivation} from '../activations';
+import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
@@ -28,6 +30,162 @@ import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_util
 import * as generic_utils from '../utils/generic_utils';
 import {LayerVariable} from '../variables';
 // tslint:enable:max-line-length
+
+/**
+ * Transpose and cast the input before the conv2d.
+ * @param x Input image tensor.
+ * @param dataFormat
+ */
+export function preprocessConv2DInput(
+    x: Tensor, dataFormat: DataFormat): Tensor {
+  // TODO(cais): Cast type to float32 if not.
+  checkDataFormat(dataFormat);
+  if (dataFormat === 'channelsFirst') {
+    return tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+  } else {
+    return x;
+  }
+}
+
+/**
+ * 1D-convolution with bias added.
+ *
+ * Porting Note: This function does not exist in the Python Keras backend.
+ *   It is exactly the same as `conv2d`, except the added `bias`.
+ *
+ * @param x Input tensor, rank-3, of shape `[batchSize, width, inChannels]`.
+ * @param kernel Kernel, rank-3, of shape `[filterWidth, inDepth, outDepth]`.
+ * @param bias Bias, rank-3, of shape `[outDepth]`.
+ * @param strides
+ * @param padding Padding mode.
+ * @param dataFormat Data format.
+ * @param dilationRate
+ * @returns The result of the 1D convolution.
+ * @throws ValueError, if `x`, `kernel` or `bias` is not of the correct rank.
+ */
+export function conv1dWithBias(
+    x: Tensor, kernel: Tensor, bias: Tensor, strides = 1, padding = 'valid',
+    dataFormat?: DataFormat, dilationRate = 1): Tensor {
+  if (dataFormat == null) {
+    dataFormat = imageDataFormat();
+  }
+  checkDataFormat(dataFormat);
+
+  // Check the ranks of x, kernel and bias.
+  if (x.shape.length !== 3) {
+    throw new ValueError(
+        `The input of a conv1dWithBias operation should be 3, but is ` +
+        `${x.shape.length} instead.`);
+  }
+  if (kernel.shape.length !== 3) {
+    throw new ValueError(
+        `The kernel for a conv1dWithBias operation should be 3, but is ` +
+        `${kernel.shape.length} instead`);
+  }
+  if (bias != null && bias.shape.length !== 1) {
+    throw new ValueError(
+        `The bias for a conv1dWithBias operation should be 1, but is ` +
+        `${kernel.shape.length} instead`);
+  }
+
+  // TODO(cais): Support CAUSAL padding mode.
+
+  if (dataFormat === 'channelsFirst') {
+    x = tfc.transpose(x, [0, 2, 1]);  // NCW -> NWC.
+  }
+  if (padding === 'causal') {
+    throw new NotImplementedError(
+        'The support for CAUSAL padding mode in conv1dWithBias is not ' +
+        'implemented yet.');
+  }
+  let y: Tensor = tfc.conv1d(
+      x as Tensor2D | Tensor3D, kernel as Tensor3D, strides,
+      padding === 'same' ? 'same' : 'valid', 'NWC', dilationRate);
+  if (bias != null) {
+    y = K.biasAdd(y, bias);
+  }
+  return y;
+}
+
+/**
+ * 1D-convolution.
+ *
+ * @param x Input tensor, rank-3, of shape `[batchSize, width, inChannels]`.
+ * @param kernel Kernel, rank-3, of shape `[filterWidth, inDepth, outDepth]`.s
+ * @param strides
+ * @param padding Padding mode.
+ * @param dataFormat Data format.
+ * @param dilationRate
+ * @returns The result of the 1D convolution.
+ * @throws ValueError, if `x`, `kernel` or `bias` is not of the correct rank.
+ */
+export function conv1d(
+    x: Tensor, kernel: Tensor, strides = 1, padding = 'valid',
+    dataFormat?: DataFormat, dilationRate = 1): Tensor {
+  checkDataFormat(dataFormat);
+  return conv1dWithBias(
+      x, kernel, null, strides, padding, dataFormat, dilationRate);
+}
+
+/**
+ * 2D Convolution
+ * @param x
+ * @param kernel kernel of the convolution.
+ * @param strides strides array.
+ * @param padding padding mode. Default to 'valid'.
+ * @param dataFormat data format. Defaults to 'channelsLast'.
+ * @param dilationRate dilation rate array.
+ * @returns Result of the 2D pooling.
+ */
+export function conv2d(
+    x: Tensor, kernel: Tensor, strides = [1, 1], padding = 'valid',
+    dataFormat?: DataFormat, dilationRate?: [number, number]): Tensor {
+  checkDataFormat(dataFormat);
+  return conv2dWithBias(
+      x, kernel, null, strides, padding, dataFormat, dilationRate);
+}
+
+/**
+ * 2D Convolution with an added bias.
+ * Note: This function does not exist in the Python Keras Backend. This function
+ * is exactly the same as `conv2d`, except the added `bias`.
+ */
+export function conv2dWithBias(
+    x: Tensor, kernel: Tensor, bias: Tensor, strides = [1, 1],
+    padding = 'valid', dataFormat?: DataFormat,
+    dilationRate?: [number, number]): Tensor {
+  if (dataFormat == null) {
+    dataFormat = imageDataFormat();
+  }
+  checkDataFormat(dataFormat);
+  if (K.ndim(x) !== 3 && K.ndim(x) !== 4) {
+    throw new ValueError(
+        `conv2dWithBias expects input to be of rank 3 or 4, but received ` +
+        `${K.ndim(x)}.`);
+  }
+  if (K.ndim(kernel) !== 3 && K.ndim(kernel) !== 4) {
+    throw new ValueError(
+        `conv2dWithBias expects kernel to be of rank 3 or 4, but received ` +
+        `${K.ndim(x)}.`);
+  }
+  let y = preprocessConv2DInput(x, dataFormat);
+  if (padding === 'causal') {
+    throw new NotImplementedError(
+        'The support for CAUSAL padding mode in conv1dWithBias is not ' +
+        'implemented yet.');
+  }
+  y = tfc.conv2d(
+      y as Tensor3D | Tensor4D, kernel as Tensor4D, strides as [number, number],
+      padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
+  if (bias != null) {
+    y = K.biasAdd(y, bias as Tensor1D);
+  }
+  if (dataFormat === 'channelsFirst') {
+    y = tfc.transpose(y, [0, 3, 1, 2]);
+  }
+  return y;
+}
+
 
 /**
  * Base LayerConfig for depthwise and non-depthwise convolutional layers.
@@ -245,12 +403,12 @@ export abstract class Conv extends Layer {
     const biasValue = this.bias == null ? null : this.bias.read();
 
     if (this.rank === 1) {
-      outputs = K.conv1dWithBias(
+      outputs = conv1dWithBias(
           inputs, this.kernel.read(), biasValue, this.strides[0], this.padding,
           this.dataFormat, this.dilationRate as number);
     } else if (this.rank === 2) {
       // TODO(cais): Move up to constructor.
-      outputs = K.conv2dWithBias(
+      outputs = conv2dWithBias(
           inputs, this.kernel.read(), biasValue, this.strides, this.padding,
           this.dataFormat, this.dilationRate as [number, number]);
     } else if (this.rank === 3) {
@@ -426,7 +584,7 @@ export class Conv2DTranspose extends Conv2D {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    return tidy(() => {
+    return tfc.tidy(() => {
       let input = generic_utils.getExactlyOneTensor(inputs);
       if (input.shape.length !== 4) {
         throw new ValueError(
@@ -465,13 +623,13 @@ export class Conv2DTranspose extends Conv2D {
           [batchSize, outHeight, outWidth, this.filters];
 
       if (this.dataFormat !== 'channelsLast') {
-        input = transpose(input, [0, 2, 3, 1]);
+        input = tfc.transpose(input, [0, 2, 3, 1]);
       }
-      let outputs = conv2dTranspose(
+      let outputs = tfc.conv2dTranspose(
           input as Tensor4D, this.kernel.read() as Tensor4D, outputShape,
           this.strides as [number, number], this.padding as 'same' | 'valid');
       if (this.dataFormat !== 'channelsLast') {
-        outputs = transpose(outputs, [0, 3, 1, 2]) as Tensor4D;
+        outputs = tfc.transpose(outputs, [0, 3, 1, 2]) as Tensor4D;
       }
 
       if (this.bias != null) {
@@ -677,10 +835,10 @@ export class SeparableConv extends Conv {
           '1D separable convolution is not implemented yet.');
     } else if (this.rank === 2) {
       if (this.dataFormat === 'channelsFirst') {
-        inputs = transpose(inputs, [0, 2, 3, 1]);  // NCHW -> NHWC.
+        inputs = tfc.transpose(inputs, [0, 2, 3, 1]);  // NCHW -> NHWC.
       }
 
-      output = separableConv2d(
+      output = tfc.separableConv2d(
           inputs as Tensor4D, this.depthwiseKernel.read() as Tensor4D,
           this.pointwiseKernel.read() as Tensor4D,
           this.strides as [number, number], this.padding as 'same' | 'valid',
@@ -695,7 +853,7 @@ export class SeparableConv extends Conv {
     }
 
     if (this.dataFormat === 'channelsFirst') {
-      output = transpose(output, [0, 3, 1, 2]);  // NHWC -> NCHW.
+      output = tfc.transpose(output, [0, 3, 1, 2]);  // NHWC -> NCHW.
     }
     return output;
   }

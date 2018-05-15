@@ -13,7 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {add, mul, reverse, serialization, Tensor} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -23,7 +24,7 @@ import {RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import {LayerVariable} from '../variables';
 
-import {RNN} from './recurrent';
+import {rnn, RNN} from './recurrent';
 import {deserialize} from './serialization';
 
 // tslint:enable:max-line-length
@@ -227,7 +228,7 @@ export class TimeDistributed extends Wrapper {
       return [output, []];
     };
     const rnnOutputs =
-        K.rnn(step, inputs, [], false, null, null, false, inputs.shape[1]);
+        rnn(step, inputs, [], false, null, null, false, inputs.shape[1]);
     const y = rnnOutputs[1];
     // TODO(cais): Add activity regularization.
     // TODO(cais): Add useLearningPhase.
@@ -407,19 +408,19 @@ export class Bidirectional extends Wrapper {
     }
 
     if (this.returnSequences) {
-      yRev = reverse(yRev as Tensor, 1);
+      yRev = tfc.reverse(yRev as Tensor, 1);
     }
 
     let output: Tensor|Tensor[];
     if (this.mergeMode === 'concat') {
       output = K.concatenate([y as Tensor, yRev as Tensor]);
     } else if (this.mergeMode === 'sum') {
-      output = add(y as Tensor, yRev as Tensor);
+      output = tfc.add(y as Tensor, yRev as Tensor);
     } else if (this.mergeMode === 'ave') {
       output = K.scalarTimesArray(
-          K.getScalar(0.5), add(y as Tensor, yRev as Tensor));
+          K.getScalar(0.5), tfc.add(y as Tensor, yRev as Tensor));
     } else if (this.mergeMode === 'mul') {
-      output = mul(y as Tensor, yRev as Tensor);
+      output = tfc.mul(y as Tensor, yRev as Tensor);
     } else if (this.mergeMode == null) {
       output = [y as Tensor, yRev as Tensor];
     }
