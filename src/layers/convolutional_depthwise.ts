@@ -13,10 +13,13 @@
  */
 
 // tslint:disable:max-line-length
-import {serialization, Tensor} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {serialization, Tensor, Tensor4D} from '@tensorflow/tfjs-core';
 
+import {imageDataFormat} from '../backend/common';
 // tslint:disable:max-line-length
 import * as K from '../backend/tfjs_backend';
+import {checkDataFormat, DataFormat} from '../common';
 import {Constraint, ConstraintIdentifier, getConstraint} from '../constraints';
 import {ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier} from '../initializers';
@@ -26,9 +29,49 @@ import {convOutputLength} from '../utils/conv_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
 import {LayerVariable} from '../variables';
 
-import {BaseConvLayerConfig, Conv2D, ConvLayerConfig} from './convolutional';
+import {BaseConvLayerConfig, Conv2D, ConvLayerConfig, preprocessConv2DInput} from './convolutional';
 
 // tslint:enable:max-line-length
+
+/**
+ * 2D convolution with separable filters.
+ * @param x Input tensor.
+ * @param depthwiseKernel Convolution kernel for depthwise convolution.
+ * @param strides Strides (Array of two integers).
+ * @param padding Padding model.
+ * @param dataFormat Data format.
+ * @param dilationRate Array of two integers, dilation rates for the separable
+ *   convolution.
+ * @returns Output tensor.
+ * @throws ValueError If depthwiseKernel is not a 4D array.
+ */
+export function depthwiseConv2d(
+    x: Tensor, depthwiseKernel: Tensor, strides: [number, number] = [1, 1],
+    padding = 'valid', dataFormat?: DataFormat,
+    dilationRate?: [number, number]): Tensor {
+  if (dataFormat == null) {
+    dataFormat = imageDataFormat();
+  }
+  checkDataFormat(dataFormat);
+  let y = preprocessConv2DInput(x, dataFormat);
+  if (K.ndim(x) !== 4) {
+    throw new ValueError(
+        `Input for depthwiseConv2d is required to be 4-D, but is instead ` +
+        `${K.ndim(x)}-D`);
+  }
+  if (K.ndim(depthwiseKernel) !== 4) {
+    throw new ValueError(
+        `depthwiseKernel is required to be 4-D, but is instead ` +
+        `${K.ndim(depthwiseKernel)}-D`);
+  }
+  y = tfc.depthwiseConv2d(
+      y as Tensor4D, depthwiseKernel as Tensor4D, strides,
+      padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
+  if (dataFormat === 'channelsFirst') {
+    y = tfc.transpose(y, [0, 3, 1, 2]);
+  }
+  return y;
+}
 
 export interface DepthwiseConv2DLayerConfig extends BaseConvLayerConfig {
   /**
@@ -125,7 +168,7 @@ export class DepthwiseConv2D extends Conv2D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     inputs = getExactlyOneTensor(inputs);
-    let outputs = K.depthwiseConv2d(
+    let outputs = depthwiseConv2d(
         inputs, this.depthwiseKernel.read(), this.strides as [number, number],
         this.padding, this.dataFormat, null);
     // TODO(cais): Add support for dilation.

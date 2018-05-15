@@ -13,7 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {add, DataType, doc, mul, neg, serialization, sum, Tensor, util, zeros} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {DataType, doc, serialization, Tensor, util} from '@tensorflow/tfjs-core';
 
 import {Activation, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -23,7 +24,7 @@ import {Layer, LayerConfig} from '../engine/topology';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
-import {Kwargs, Shape, SymbolicTensor} from '../types';
+import {Kwargs, RnnStepFunction, Shape, SymbolicTensor} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
@@ -31,6 +32,117 @@ import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
 import {deserialize} from './serialization';
 
 // tslint:enable:max-line-length
+
+/**
+ * Iterates over the time dimension of a tensor.
+ *
+ * @param stepFunction RNN step function.
+ *   Parameters:
+ *     inputs: tensor with shape `[samples, ...]` (no time dimension),
+ *       representing input for the batch of samples at a certain time step.
+ *     states: an Array of tensors.
+ *   Returns:
+ *     outputs: tensor with shape `[samples, outputDim]` (no time dimension).
+ *     newStates: list of tensors, same length and shapes as `states`. The first
+ *       state in the list must be the output tensor at the previous timestep.
+ * @param inputs Tensor of temporal data of shape `[samples, time, ...]` (at
+ *   least 3D).
+ * @param initialStates Tensor with shape `[samples, outputDim]` (no time
+ *   dimension), containing the initial values of the states used in the step
+ *   function.
+ * @param goBackwards If `true`, do the iteration over the time dimension in
+ *   reverse order and return the reversed sequence.
+ * @param mask Binary tensor with shape `[sample, time, 1]`, with a zero for
+ *   every element that is masked.
+ * @param constants An Array of constant values passed at each step.
+ * @param unroll Whether to unroll the RNN or to use a symbolic loop. *Not*
+ *   applicable to this imperative deeplearn.js backend. Its value is ignored.
+ * @param inputLength Not relevant in this deeplearn.js backend.
+ * @returns An Array: `[lastOutput, outputs, newStates]`.
+ *   lastOutput: the lastest output of the RNN, of shape `[samples, ...]`.
+ *   outputs: tensor with shape `[samples, time, ...]` where each entry
+ *     `output[s, t]` is the output of the step function at time `t` for sample
+ *     `s`.
+ *   newStates: Array of tensors, latest states returned by the step function,
+ *      of shape `(samples, ...)`.
+ * @throws ValueError If input dimension is less than 3.
+ */
+export function rnn(
+    stepFunction: RnnStepFunction, inputs: Tensor, initialStates: Tensor[],
+    goBackwards = false, mask?: Tensor, constants?: Tensor[], unroll = false,
+    inputLength?: number): [Tensor, Tensor, Tensor[]] {
+  const ndim = inputs.shape.length;
+  if (ndim < 3) {
+    throw new ValueError(`Input should be at least 3D, but is ${ndim}D.`);
+  }
+
+  // Transpose to time-major, i.e., from [batch, time, ...] to [time, batch,
+  // ...].
+  const axes = [1, 0].concat(math_utils.range(2, ndim));
+  inputs = tfc.transpose(inputs, axes);
+
+  if (mask != null) {
+    throw new NotImplementedError(
+        'The rnn() function of the deeplearn.js backend does not support ' +
+        'masking yet.');
+  }
+
+  if (constants != null) {
+    throw new NotImplementedError(
+        'The rnn() functoin of the deeplearn.js backend does not support ' +
+        'constants yet.');
+  }
+
+  // Porting Note: the unroll option is ignored by the imperative backend.
+  if (unroll) {
+    console.warn(
+        'Backend rnn(): the unroll = true option is not applicable to the ' +
+        'imperative deeplearn.js backend.');
+  }
+
+  if (goBackwards) {
+    inputs = tfc.reverse(inputs, 0);
+  }
+
+  // Porting Note: PyKeras with TensorFlow backend uses a symbolic loop
+  //   (tf.while_loop). But for the imperative deeplearn.js backend, we just use
+  //   the usual TypeScript control flow to iterate over the time steps in the
+  //   inputs.
+  // Porting Note: PyKeras patches a "_use_learning_phase" attribute to outputs.
+  //   This is not idiomatic in TypeScript. The info regarding whether we are
+  //   in a learning (i.e., training) phase for RNN is passed in a different
+  //   way.
+  //   TODO(cais): Determine in what exact way the learning phase information
+  //     will be passed.
+
+  let outputs: Tensor;
+  let lastOutput: Tensor;
+  let states = initialStates;
+  const timeSteps = inputs.shape[0];
+  for (let t = 0; t < timeSteps; ++t) {
+    let currentInput = K.sliceAlongFirstAxis(inputs, t, 1);
+    currentInput = K.reshape(currentInput, currentInput.shape.slice(1));
+    const stepOutputs = stepFunction(currentInput, states);
+    lastOutput = stepOutputs[0];
+    if (t === 0) {
+      outputs = lastOutput.reshape([1].concat(lastOutput.shape));
+    } else {
+      outputs = K.concatAlongFirstAxis(
+          outputs, lastOutput.reshape([1].concat(lastOutput.shape)));
+    }
+    // TODO(soergel): Call K.concatenate() to perform only one concatenation at
+    // the end, once the backend function is available.
+    states = stepOutputs[1];
+  }
+
+  return [
+    lastOutput,
+    tfc.transpose(
+        outputs, [1, 0].concat(math_utils.range(2, outputs.shape.length))),
+    states
+  ];
+}
+
 
 export interface BaseRNNLayerConfig extends LayerConfig {
   /**
@@ -353,15 +465,17 @@ export class RNN extends Layer {
     // Initialize state if null.
     if (this.states == null) {
       if (Array.isArray(this.cell.stateSize)) {
-        this.states = this.cell.stateSize.map(dim => zeros([batchSize, dim]));
+        this.states =
+            this.cell.stateSize.map(dim => tfc.zeros([batchSize, dim]));
       } else {
-        this.states = [zeros([batchSize, this.cell.stateSize])];
+        this.states = [tfc.zeros([batchSize, this.cell.stateSize])];
       }
     } else if (states == null) {
       if (Array.isArray(this.cell.stateSize)) {
-        this.states = this.cell.stateSize.map(dim => zeros([batchSize, dim]));
+        this.states =
+            this.cell.stateSize.map(dim => tfc.zeros([batchSize, dim]));
       } else {
-        this.states[0] = zeros([batchSize, this.cell.stateSize]);
+        this.states[0] = tfc.zeros([batchSize, this.cell.stateSize]);
       }
     } else {
       if (!Array.isArray(states)) {
@@ -562,9 +676,9 @@ export class RNN extends Layer {
     // TODO(cais): Add support for constants.
     // TODO(cais): Add support for masks.
 
-    const rnnOutputs = K.rnn(
-        step, inputs, initialState, this.goBackwards, null, null, this.unroll,
-        timesteps);
+    const rnnOutputs =
+        rnn(step, inputs, initialState, this.goBackwards, null, null,
+            this.unroll, timesteps);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const states = rnnOutputs[2];
@@ -588,9 +702,9 @@ export class RNN extends Layer {
   getInitialState(inputs: Tensor): Tensor[] {
     // Build an all-zero tensor of shape [samples, outputDim].
     // [Samples, timeSteps, inputDim].
-    let initialState = zeros(inputs.shape);
+    let initialState = tfc.zeros(inputs.shape);
     // [Samples].
-    initialState = sum(initialState, [1, 2]);
+    initialState = tfc.sum(initialState, [1, 2]);
     initialState = K.expandDims(initialState);  // [Samples, 1].
 
     if (Array.isArray(this.cell.stateSize)) {
@@ -892,7 +1006,7 @@ export class SimpleRNNCell extends RNNCell {
     if (this.bias != null) {
       h = K.biasAdd(h, this.bias.read());
     }
-    let output = add(h, K.dot(prevOutput, this.recurrentKernel.read()));
+    let output = tfc.add(h, K.dot(prevOutput, this.recurrentKernel.read()));
     if (this.activation != null) {
       output = this.activation.apply(output);
     }
@@ -1350,11 +1464,11 @@ export class GRUCell extends RNNCell {
       const hTMinus1R = hTMinus1;
       const hTMinus1H = hTMinus1;
       z = this.recurrentActivation.apply(
-          add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
+          tfc.add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
       r = this.recurrentActivation.apply(
-          add(xR, K.dot(hTMinus1R, recurrentKernelR)));
+          tfc.add(xR, K.dot(hTMinus1R, recurrentKernelR)));
       hh = this.activation.apply(
-          add(xH, K.dot(mul(r, hTMinus1H), recurrentKernelH)));
+          tfc.add(xH, K.dot(tfc.mul(r, hTMinus1H), recurrentKernelH)));
     } else {
       // TODO(cais): Add input dropout.
       let matrixX = K.dot(inputs, this.kernel.read());
@@ -1372,19 +1486,20 @@ export class GRUCell extends RNNCell {
       const recurrentR =
           K.sliceAlongLastAxis(matrixInner, this.units, this.units);
 
-      z = this.recurrentActivation.apply(add(xZ, recurrentZ));
-      r = this.recurrentActivation.apply(add(xR, recurrentR));
+      z = this.recurrentActivation.apply(tfc.add(xZ, recurrentZ));
+      r = this.recurrentActivation.apply(tfc.add(xR, recurrentR));
 
       const xH = K.sliceAlongLastAxis(matrixX, 2 * this.units, this.units);
       const recurrentH = K.dot(
-          mul(r, hTMinus1),
+          tfc.mul(r, hTMinus1),
           K.sliceAlongLastAxis(
               this.recurrentKernel.read(), 2 * this.units, this.units));
-      hh = this.activation.apply(add(xH, recurrentH));
+      hh = this.activation.apply(tfc.add(xH, recurrentH));
     }
 
-    const h = add(
-        mul(z, hTMinus1), mul(K.scalarPlusArray(K.getScalar(1), neg(z)), hh));
+    const h = tfc.add(
+        tfc.mul(z, hTMinus1),
+        tfc.mul(K.scalarPlusArray(K.getScalar(1), tfc.neg(z)), hh));
     // TODO(cais): Add use_learning_phase flag properly.
     return [h, h];
   }
@@ -1833,21 +1948,22 @@ export class LSTMCell extends RNNCell {
       const hTMinus1C = hTMinus1;
       const hTMinus1O = hTMinus1;
       i = this.recurrentActivation.apply(
-          add(xI, K.dot(hTMinus1I, recurrentKernelI)));
+          tfc.add(xI, K.dot(hTMinus1I, recurrentKernelI)));
       f = this.recurrentActivation.apply(
-          add(xF, K.dot(hTMinus1F, recurrentKernelF)));
-      c =
-          add(mul(f, cTMinus1),
-              mul(i,
-                  this.activation.apply(
-                      add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
+          tfc.add(xF, K.dot(hTMinus1F, recurrentKernelF)));
+      c = tfc.add(
+          tfc.mul(f, cTMinus1),
+          tfc.mul(
+              i,
+              this.activation.apply(
+                  tfc.add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
       o = this.recurrentActivation.apply(
-          add(xO, K.dot(hTMinus1O, recurrentKernelO)));
+          tfc.add(xO, K.dot(hTMinus1O, recurrentKernelO)));
     } else {
       // TODO(cais): Add input dropout.
       let z = K.dot(inputs, this.kernel.read());
       // TODO(cais): Add recurrent dropout.
-      z = add(z, K.dot(hTMinus1, this.recurrentKernel.read()));
+      z = tfc.add(z, K.dot(hTMinus1, this.recurrentKernel.read()));
       if (this.useBias) {
         z = K.biasAdd(z, this.bias.read());
       }
@@ -1859,11 +1975,11 @@ export class LSTMCell extends RNNCell {
 
       i = this.recurrentActivation.apply(z0);
       f = this.recurrentActivation.apply(z1);
-      c = add(mul(f, cTMinus1), mul(i, this.activation.apply(z2)));
+      c = tfc.add(tfc.mul(f, cTMinus1), tfc.mul(i, this.activation.apply(z2)));
       o = this.recurrentActivation.apply(z3);
     }
 
-    const h = mul(o, this.activation.apply(c));
+    const h = tfc.mul(o, this.activation.apply(c));
     // TODO(cais): Add use_learning_phase flag properly.
     return [h, h, c];
   }

@@ -14,10 +14,11 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {max, serialization, squeeze, Tensor} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 
+import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
-import {checkDataFormat, checkPaddingMode, DataFormat, PaddingMode} from '../common';
+import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, PaddingMode, PoolMode} from '../common';
 import {InputSpec} from '../engine/topology';
 import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError} from '../errors';
@@ -25,7 +26,61 @@ import {Kwargs, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
 
+import {preprocessConv2DInput} from './convolutional';
+
 // tslint:enable:max-line-length
+
+/**
+ * 2D pooling.
+ * @param x
+ * @param poolSize
+ * @param stridesdes strides. Defaults to [1, 1].
+ * @param padding padding. Defaults to 'valid'.
+ * @param dataFormat data format. Defaults to 'channelsLast'.
+ * @param poolMode Mode of pooling. Defaults to 'max'.
+ * @returns Result of the 2D pooling.
+ */
+export function pool2d(
+    x: Tensor, poolSize: [number, number], strides?: [number, number],
+    padding?: PaddingMode, dataFormat?: DataFormat,
+    poolMode?: PoolMode): Tensor {
+  checkDataFormat(dataFormat);
+  checkPoolMode(poolMode);
+  checkPaddingMode(padding);
+  if (strides == null) {
+    strides = [1, 1];
+  }
+  if (padding == null) {
+    padding = 'valid';
+  }
+  if (dataFormat == null) {
+    dataFormat = imageDataFormat();
+  }
+  if (poolMode == null) {
+    poolMode = 'max';
+  }
+
+  // TODO(cais): Remove the preprocessing step once deeplearn.js supports
+  // dataFormat as an input argument.
+  x = preprocessConv2DInput(x, dataFormat);  // x is NHWC after preprocessing.
+  let y: Tensor;
+  const paddingString = (padding === 'same') ? 'same' : 'valid';
+  if (poolMode === 'max') {
+    // TODO(cais): Rank check?
+    y = tfc.maxPool(x as Tensor4D, poolSize, strides, paddingString);
+  } else {  // 'avg'
+    // TODO(cais): Check the dtype and rank of x and give clear error message
+    //   if those are incorrect.
+    y = tfc.avgPool(
+        // TODO(cais): Rank check?
+        x as Tensor3D | Tensor4D, poolSize, strides, paddingString);
+  }
+  if (dataFormat === 'channelsFirst') {
+    y = tfc.transpose(y, [0, 3, 1, 2]);  // NHWC -> NCHW.
+  }
+  return y;
+}
+
 
 export interface Pooling1DLayerConfig extends LayerConfig {
   /**
@@ -87,7 +142,7 @@ export abstract class Pooling1D extends Layer {
         generic_utils.getExactlyOneTensor(inputs), [this.poolSize[0], 1],
         [this.strides[0], 1], this.padding, 'channelsLast');
     // Remove dummy last dimension.
-    return squeeze(output, [2]);
+    return tfc.squeeze(output, [2]);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -120,7 +175,7 @@ export class MaxPooling1D extends Pooling1D {
       padding: PaddingMode, dataFormat: DataFormat): Tensor {
     checkDataFormat(dataFormat);
     checkPaddingMode(padding);
-    return K.pool2d(inputs, poolSize, strides, padding, dataFormat, 'max');
+    return pool2d(inputs, poolSize, strides, padding, dataFormat, 'max');
   }
 }
 serialization.SerializationMap.register(MaxPooling1D);
@@ -145,7 +200,7 @@ export class AveragePooling1D extends Pooling1D {
       padding: PaddingMode, dataFormat: DataFormat): Tensor {
     checkDataFormat(dataFormat);
     checkPaddingMode(padding);
-    return K.pool2d(inputs, poolSize, strides, padding, dataFormat, 'avg');
+    return pool2d(inputs, poolSize, strides, padding, dataFormat, 'avg');
   }
 }
 serialization.SerializationMap.register(AveragePooling1D);
@@ -273,7 +328,7 @@ export class MaxPooling2D extends Pooling2D {
       padding: PaddingMode, dataFormat: DataFormat): Tensor {
     checkDataFormat(dataFormat);
     checkPaddingMode(padding);
-    return K.pool2d(inputs, poolSize, strides, padding, dataFormat, 'max');
+    return pool2d(inputs, poolSize, strides, padding, dataFormat, 'max');
   }
 }
 serialization.SerializationMap.register(MaxPooling2D);
@@ -310,7 +365,7 @@ export class AveragePooling2D extends Pooling2D {
       padding: PaddingMode, dataFormat: DataFormat): Tensor {
     checkDataFormat(dataFormat);
     checkPaddingMode(padding);
-    return K.pool2d(inputs, poolSize, strides, padding, dataFormat, 'avg');
+    return pool2d(inputs, poolSize, strides, padding, dataFormat, 'avg');
   }
 }
 serialization.SerializationMap.register(AveragePooling2D);
@@ -368,7 +423,7 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
-    return max(input, 1);
+    return tfc.max(input, 1);
   }
 }
 serialization.SerializationMap.register(GlobalMaxPooling1D);
@@ -461,9 +516,9 @@ export class GlobalMaxPooling2D extends GlobalPooling2D {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     const input = generic_utils.getExactlyOneTensor(inputs);
     if (this.dataFormat === 'channelsLast') {
-      return max(input, [1, 2]);
+      return tfc.max(input, [1, 2]);
     } else {
-      return max(input, [2, 3]);
+      return tfc.max(input, [2, 3]);
     }
   }
 }

@@ -13,13 +13,218 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, scalar, Tensor, tensor3d, Tensor4D, tensor4d, transpose, util} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor3d, Tensor4D, tensor4d, util} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode} from '../common';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
+
+import {conv1d, conv1dWithBias, conv2d, conv2dWithBias} from './convolutional';
+
 // tslint:enable:max-line-length
+
+describeMathCPUAndGPU('conv1dWithBias', () => {
+  const xLength4Data = [10, 20, 40, 80];
+  const kernelLength2Data = [1, -1];
+  const biasScalarData = 2.2;
+  // In the basic case, this convolves [10, 20, 40, 80] with the kernel [1, -1],
+  // producing [-10, -20, -40], and adds the bias 2.2, producing
+  // [-7.8, -17.8, -37.7].  The test is reproduced for either 1 or 2 output
+  // channels, and several reasonable data formats.
+
+  const outChannelsArray = [1, 2];
+  const dataFormats: DataFormat[] =
+      [undefined, 'channelsFirst', 'channelsLast'];
+  const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
+  const stride = 1;
+
+  for (const outChannels of outChannelsArray) {
+    for (const dataFormat of dataFormats) {
+      for (const paddingMode of paddingModes) {
+        const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
+            `${paddingMode}, ${dataFormat}`;
+        it(testTitle, () => {
+          let x: Tensor = tensor3d(xLength4Data, [1, 4, 1]);
+          if (dataFormat === 'channelsFirst') {
+            x = tfc.transpose(x, [0, 2, 1]);  // NWC -> NCW.
+          }
+
+          let kernelData: number[] = [];
+          let biasData: number[] = [];
+          for (let i = 0; i < outChannels; ++i) {
+            kernelData = kernelData.concat(kernelLength2Data);
+            biasData = biasData.concat([biasScalarData + i]);
+          }
+          const kernel = tfc.transpose(
+              tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
+          const bias = tensor1d(biasData);
+
+          const y =
+              conv1dWithBias(x, kernel, bias, stride, paddingMode, dataFormat);
+
+          let yExpectedShape: [number, number, number];
+          let yExpectedData: number[];
+          if (paddingMode === 'valid' || paddingMode === undefined) {
+            if (outChannels === 1) {
+              yExpectedShape = [1, 3, 1];
+              yExpectedData = [-7.8, -17.8, -37.8];
+            } else if (outChannels === 2) {
+              yExpectedShape = [1, 3, 2];
+              yExpectedData = [-7.8, -6.8, -17.8, -16.8, -37.8, -36.8];
+            }
+          } else if (paddingMode === 'same') {
+            if (outChannels === 1) {
+              yExpectedShape = [1, 4, 1];
+              yExpectedData = [-7.8, -17.8, -37.8, 82.2];
+            } else if (outChannels === 2) {
+              yExpectedShape = [1, 4, 2];
+              yExpectedData =
+                  [-7.8, -6.8, -17.8, -16.8, -37.8, -36.8, 82.2, 83.2];
+            }
+          }
+          expectTensorsClose(y, tensor3d(yExpectedData, yExpectedShape));
+        });
+      }
+    }
+  }
+});
+
+describeMathCPUAndGPU('conv1d', () => {
+  const xLength4Data = [10, 20, 40, 80];
+  const kernelLength2Data = [1, -1];
+
+  const stride = 2;
+  const outChannels = 2;
+  const dataFormat = 'channelsLast';
+  const paddingMode = 'valid';
+  const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
+      `${paddingMode}, ${dataFormat}`;
+  it(testTitle, () => {
+    const x = tensor3d(xLength4Data, [1, 4, 1]);
+    let kernelData: number[] = [];
+    for (let i = 0; i < outChannels; ++i) {
+      kernelData = kernelData.concat(kernelLength2Data);
+    }
+    const kernel =
+        tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
+    const y = conv1d(x, kernel, stride, paddingMode, dataFormat);
+    expectTensorsClose(y, tensor3d([-10, -10, -40, -40], [1, 2, 2]));
+  });
+});
+
+describeMathCPUAndGPU('conv2d', () => {
+  const x4by4Data = [[[
+    [10, 30, 50, 70], [20, 40, 60, 80], [-10, -30, -50, -70],
+    [-20, -40, -60, -80]
+  ]]];
+  const kernel2by2Data = [1, 0, 0, -1];
+
+  const dataFormats: DataFormat[] =
+      [undefined, 'channelsFirst', 'channelsLast'];
+  const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
+  const stridesArray = [1, 2];
+
+  for (const dataFormat of dataFormats) {
+    for (const paddingMode of paddingModes) {
+      for (const stride of stridesArray) {
+        const testTitle = `stride=${stride}, ${paddingMode}, ` +
+            `${dataFormat}`;
+        it(testTitle, () => {
+          let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
+          if (dataFormat !== 'channelsFirst') {
+            x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+          }
+          const kernel = tensor4d(kernel2by2Data, [2, 2, 1, 1]);
+          const y = conv2d(x, kernel, [stride, stride], 'valid', dataFormat);
+
+          let yExpected: Tensor;
+          if (stride === 1) {
+            yExpected = tensor4d(
+                [[[[-30, -30, -30], [50, 90, 130], [30, 30, 30]]]],
+                [1, 1, 3, 3]);
+          } else if (stride === 2) {
+            yExpected = tensor4d([[[[-30, -30], [30, 30]]]], [1, 1, 2, 2]);
+          }
+          if (dataFormat !== 'channelsFirst') {
+            yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
+          }
+          expectTensorsClose(y, yExpected);
+        });
+      }
+    }
+  }
+});
+
+describeMathCPUAndGPU('conv2dWithBias', () => {
+  const x4by4Data = [[[
+    [10, 30, 50, 70], [20, 40, 60, 80], [-10, -30, -50, -70],
+    [-20, -40, -60, -80]
+  ]]];
+  const kernel2by2Data = [1, 0, 0, -1];
+  const biasScalarData = [2.2];
+
+  const outChannelsArray = [2, 3];
+  const dataFormats: DataFormat[] =
+      [undefined, 'channelsFirst', 'channelsLast'];
+  const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
+  const stridesArray = [1, 2];
+
+  for (const outChannels of outChannelsArray) {
+    for (const dataFormat of dataFormats) {
+      for (const paddingMode of paddingModes) {
+        for (const stride of stridesArray) {
+          const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
+              `${paddingMode}, ${dataFormat}`;
+          it(testTitle, () => {
+            let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
+            if (dataFormat !== 'channelsFirst') {
+              x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+            }
+
+            let kernelData: number[] = [];
+            let biasData: number[] = [];
+            for (let i = 0; i < outChannels; ++i) {
+              kernelData = kernelData.concat(kernel2by2Data);
+              biasData = biasData.concat(biasScalarData);
+            }
+            const kernel = tfc.transpose(
+                tensor4d(kernelData, [outChannels, 2, 2, 1]), [1, 2, 3, 0]);
+            const bias = tensor1d(biasData);
+
+            const y = conv2dWithBias(
+                x, kernel, bias, [stride, stride], 'valid', dataFormat);
+
+            let yExpectedShape: [number, number, number, number];
+            let yExpectedDataPerChannel: number[];
+            if (stride === 1) {
+              yExpectedShape = [1, outChannels, 3, 3];
+              yExpectedDataPerChannel =
+                  [-30, -30, -30, 50, 90, 130, 30, 30, 30];
+            } else if (stride === 2) {
+              yExpectedShape = [1, outChannels, 2, 2];
+              yExpectedDataPerChannel = [-30, -30, 30, 30];
+            }
+            for (let i = 0; i < yExpectedDataPerChannel.length; ++i) {
+              yExpectedDataPerChannel[i] += biasScalarData[0];
+            }
+            let yExpectedData: number[] = [];
+            for (let i = 0; i < outChannels; ++i) {
+              yExpectedData = yExpectedData.concat(yExpectedDataPerChannel);
+            }
+            let yExpected: Tensor = tensor4d(yExpectedData, yExpectedShape);
+            if (dataFormat !== 'channelsFirst') {
+              yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
+            }
+            expectTensorsClose(y, yExpected);
+          });
+        }
+      }
+    }
+  }
+});
+
 
 describeMathCPU('Conv2D Layers: Symbolic', () => {
   const filtersArray = [1, 64];
@@ -142,7 +347,7 @@ describeMathCPUAndGPU('Conv2D Layer: Tensor', () => {
 
   it('CHANNEL_LAST', () => {
     // Convert input to CHANNEL_LAST.
-    const x = transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
+    const x = tfc.transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
     const conv2dLayer = tfl.layers.conv2d({
       filters: 1,
       kernelSize: [2, 2],
@@ -320,12 +525,12 @@ describeMathCPUAndGPU('Conv2DTranspose: Tensor', () => {
           biasInitializer: 'ones'
         });
 
-        const x = ones([2, 3, 4, 2]);
+        const x = tfc.ones([2, 3, 4, 2]);
         const y = layer.apply(x) as Tensor;
         if (dataFormat === 'channelsLast') {
-          expectTensorsClose(y, ones([2, 6, 8, 8]).mul(scalar(3)));
+          expectTensorsClose(y, tfc.ones([2, 6, 8, 8]).mul(scalar(3)));
         } else {
-          expectTensorsClose(y, ones([2, 8, 8, 4]).mul(scalar(4)));
+          expectTensorsClose(y, tfc.ones([2, 8, 8, 4]).mul(scalar(4)));
         }
       });
     }
@@ -585,7 +790,8 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
             it(testTitle, () => {
               let x = tensor4d(x5by5Data, [1, 5, 5, 1]);
               if (dataFormat === 'channelsFirst') {
-                x = transpose(x, [0, 3, 1, 2]) as Tensor4D;  // NHWC -> NCHW.
+                x = tfc.transpose(x, [0, 3, 1, 2]) as
+                    Tensor4D;  // NHWC -> NCHW.
               }
 
               const conv2dLayer = tfl.layers.separableConv2d({
@@ -624,7 +830,7 @@ describeMathGPU('SeparableConv2D Layer: Tensor', () => {
                   tensor4d(yExpectedData, [1, 3, 3, 1]) :
                   tensor4d(yExpectedData, [1, 4, 4, 1]);
               if (dataFormat === 'channelsFirst') {
-                yExpected = transpose(yExpected, [0, 3, 1, 2]) as
+                yExpected = tfc.transpose(yExpected, [0, 3, 1, 2]) as
                     Tensor4D;  // NHWC -> NCHW.
               }
               expectTensorsClose(y, yExpected);

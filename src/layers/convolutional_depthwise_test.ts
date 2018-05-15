@@ -13,14 +13,91 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor4d, transpose} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor, tensor4d, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode} from '../common';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
+import {depthwiseConv2d} from './convolutional_depthwise';
+
 // tslint:enable:max-line-length
+describeMathCPUAndGPU('depthwiseConv2d', () => {
+  const x4by4Data = [[[
+    [10, 30, 50, 70], [20, 40, 60, 80], [-10, -30, -50, -70],
+    [-20, -40, -60, -80]
+  ]]];
+
+  const dataFormats: DataFormat[] =
+      [undefined, 'channelsFirst', 'channelsLast'];
+  const paddingModes: PaddingMode[] = [undefined, 'same', 'valid'];
+  const stridesArray = [1, 2];
+  const depthMultipliers = [1, 2];
+
+  for (const dataFormat of dataFormats) {
+    for (const paddingMode of paddingModes) {
+      for (const stride of stridesArray) {
+        for (const depthMultiplier of depthMultipliers) {
+          const testTitle = `stride=${stride}, ${paddingMode}, ` +
+              `${dataFormat}, depthMultiplier=${depthMultiplier}`;
+          it(testTitle, () => {
+            let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
+            if (dataFormat !== 'channelsFirst') {
+              x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+            }
+
+            let kernel: Tensor4D;
+            if (depthMultiplier === 1) {
+              kernel = tensor4d([1, 0, 0, -1], [2, 2, 1, 1]);
+            } else if (depthMultiplier === 2) {
+              // Two kernels of the same absolute values but opposite signs:
+              //   [[1, 0], [0, -1]] and [[-1, 0], [0, 1]].
+              kernel = tensor4d([1, -1, 0, 0, 0, 0, -1, 1], [2, 2, 1, 2]);
+            }
+            const y = depthwiseConv2d(
+                x, kernel, [stride, stride], 'valid', dataFormat);
+
+            let yExpected: Tensor;
+            if (stride === 1) {
+              if (depthMultiplier === 1) {
+                yExpected = tensor4d(
+                    [[[[-30, -30, -30], [50, 90, 130], [30, 30, 30]]]],
+                    [1, 1, 3, 3]);
+              } else if (depthMultiplier === 2) {
+                yExpected = tensor4d(
+                    [[
+                      [[-30, -30, -30], [50, 90, 130], [30, 30, 30]],
+                      [[30, 30, 30], [-50, -90, -130], [-30, -30, -30]]
+                    ]],
+                    [1, 2, 3, 3]);
+              }
+            } else if (stride === 2) {
+              if (depthMultiplier === 1) {
+                yExpected = tensor4d([[[[-30, -30], [30, 30]]]], [1, 1, 2, 2]);
+              } else if (depthMultiplier === 2) {
+                yExpected = tensor4d(
+                    [[[[-30, -30], [30, 30]], [[30, 30], [-30, -30]]]],
+                    [1, 2, 2, 2]);
+              }
+            }
+            if (dataFormat !== 'channelsFirst') {
+              yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
+            }
+            expectTensorsClose(y, yExpected);
+          });
+        }
+      }
+    }
+  }
+
+  it('Non-4D kernel leads to exception', () => {
+    const x = tfc.zeros([1, 1, 4, 4]);
+    expect(() => depthwiseConv2d(x, tfc.zeros([1, 2, 2]), [1, 1]))
+        .toThrowError(/.* is required to be 4-D, but is instead 3-D/);
+  });
+});
 
 describeMathCPU('DepthwiseConv2D-Symbolic', () => {
   const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
@@ -127,7 +204,7 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
 
   it('channelsLast', () => {
     // Convert input to channelsLast.
-    const x = transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
+    const x = tfc.transpose(tensor4d(x4by4Data, [1, 1, 4, 4]), [0, 2, 3, 1]);
     const conv2dLayer = tfl.layers.depthwiseConv2d({
       depthMultiplier: 2,
       kernelSize: [2, 2],

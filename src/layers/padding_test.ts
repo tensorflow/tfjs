@@ -13,7 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, slice, Tensor, zeros} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor, tensor3d} from '@tensorflow/tfjs-core';
 
 import {DataFormat} from '../common';
 import * as tfl from '../index';
@@ -21,9 +22,62 @@ import {SymbolicTensor} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {ZeroPadding2D, ZeroPadding2DLayerConfig} from './padding';
+import {spatial2dPadding, temporalPadding, ZeroPadding2D, ZeroPadding2DLayerConfig} from './padding';
 
 // tslint:enable:max-line-length
+
+describeMathCPUAndGPU('temporalPadding', () => {
+  it('default padding 1-1', () => {
+    const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
+    const y = temporalPadding(x);
+    expectTensorsClose(y, tensor3d([
+                         [[0, 0], [1, 2], [3, 4], [0, 0]],
+                         [[0, 0], [-1, -2], [-3, -4], [0, 0]]
+                       ]));
+  });
+  it('custom padding 2-2', () => {
+    const x = tensor3d([[[1, 2], [3, 4]], [[-1, -2], [-3, -4]]]);
+    const y = temporalPadding(x, [2, 2]);
+    expectTensorsClose(
+        y, tensor3d([
+          [[0, 0], [0, 0], [1, 2], [3, 4], [0, 0], [0, 0]],
+          [[0, 0], [0, 0], [-1, -2], [-3, -4], [0, 0], [0, 0]]
+        ]));
+  });
+});
+
+describeMathCPUAndGPU('spatial2dPadding', () => {
+  it('default padding 1-1-1-1', () => {
+    const x = tfc.ones([2, 3, 4, 3]);
+    const y = spatial2dPadding(x);
+
+    expect(y.shape).toEqual([2, 5, 6, 3]);
+    expectTensorsClose(tfc.slice(y, [0, 1, 1, 0], [2, 3, 4, 3]), x);
+    expectTensorsClose(
+        tfc.slice(y, [0, 0, 0, 0], [2, 1, 6, 3]), tfc.zeros([2, 1, 6, 3]));
+    expectTensorsClose(
+        tfc.slice(y, [0, 4, 0, 0], [2, 1, 6, 3]), tfc.zeros([2, 1, 6, 3]));
+    expectTensorsClose(
+        tfc.slice(y, [0, 0, 0, 0], [2, 5, 1, 3]), tfc.zeros([2, 5, 1, 3]));
+    expectTensorsClose(
+        tfc.slice(y, [0, 0, 5, 0], [2, 5, 1, 3]), tfc.zeros([2, 5, 1, 3]));
+  });
+
+  it('custom padding 2-2-3-0', () => {
+    const x = tfc.ones([2, 3, 4, 3]);
+    const y = spatial2dPadding(x, [[2, 2], [3, 0]]);
+    expect(y.shape).toEqual([2, 7, 7, 3]);
+
+    expectTensorsClose(tfc.slice(y, [0, 2, 3, 0], [2, 3, 4, 3]), x);
+    expectTensorsClose(
+        tfc.slice(y, [0, 0, 0, 0], [2, 2, 7, 3]), tfc.zeros([2, 2, 7, 3]));
+    expectTensorsClose(
+        tfc.slice(y, [0, 5, 0, 0], [2, 2, 7, 3]), tfc.zeros([2, 2, 7, 3]));
+    expectTensorsClose(
+        tfc.slice(y, [0, 0, 0, 0], [2, 7, 3, 3]), tfc.zeros([2, 7, 3, 3]));
+  });
+});
+
 
 describeMathCPU('ZeroPadding2D: Symbolic', () => {
   const dataFormats: DataFormat[] =
@@ -115,70 +169,70 @@ describeMathCPU('ZeroPadding2D: Symbolic', () => {
 
 describeMathCPUAndGPU('ZeroPadding2D: Tensor', () => {
   it('Default padding 1-1-1-1, channelsLast', () => {
-    const x = ones([2, 2, 2, 3]);
+    const x = tfc.ones([2, 2, 2, 3]);
     const layer = tfl.layers.zeroPadding2d();
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 4, 4, 3]);
 
-    expectTensorsClose(slice(y, [0, 1, 1, 0], [2, 2, 2, 3]), x);
+    expectTensorsClose(tfc.slice(y, [0, 1, 1, 0], [2, 2, 2, 3]), x);
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 1, 4, 3]), zeros([2, 1, 4, 3]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 1, 4, 3]), tfc.zeros([2, 1, 4, 3]));
     expectTensorsClose(
-        slice(y, [0, 3, 0, 0], [2, 1, 4, 3]), zeros([2, 1, 4, 3]));
+        tfc.slice(y, [0, 3, 0, 0], [2, 1, 4, 3]), tfc.zeros([2, 1, 4, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 4, 1, 3]), zeros([2, 4, 1, 3]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 4, 1, 3]), tfc.zeros([2, 4, 1, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 3, 0], [2, 4, 1, 3]), zeros([2, 4, 1, 3]));
+        tfc.slice(y, [0, 0, 3, 0], [2, 4, 1, 3]), tfc.zeros([2, 4, 1, 3]));
   });
 
   it('Default padding 1-1-1-1, channelFirst', () => {
-    const x = ones([2, 3, 2, 2]);
+    const x = tfc.ones([2, 3, 2, 2]);
     const layer = tfl.layers.zeroPadding2d({dataFormat: 'channelsFirst'});
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 3, 4, 4]);
 
-    expectTensorsClose(slice(y, [0, 0, 1, 1], [2, 3, 2, 2]), x);
+    expectTensorsClose(tfc.slice(y, [0, 0, 1, 1], [2, 3, 2, 2]), x);
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 3, 1, 4]), zeros([2, 3, 1, 4]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 3, 1, 4]), tfc.zeros([2, 3, 1, 4]));
     expectTensorsClose(
-        slice(y, [0, 0, 3, 0], [2, 3, 1, 4]), zeros([2, 3, 1, 4]));
+        tfc.slice(y, [0, 0, 3, 0], [2, 3, 1, 4]), tfc.zeros([2, 3, 1, 4]));
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 3, 4, 1]), zeros([2, 3, 4, 1]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 3, 4, 1]), tfc.zeros([2, 3, 4, 1]));
     expectTensorsClose(
-        slice(y, [0, 0, 0, 3], [2, 3, 4, 1]), zeros([2, 3, 4, 1]));
+        tfc.slice(y, [0, 0, 0, 3], [2, 3, 4, 1]), tfc.zeros([2, 3, 4, 1]));
   });
 
   it('Symmetric padding 2-2, channelsLast', () => {
-    const x = ones([2, 2, 2, 3]);
+    const x = tfc.ones([2, 2, 2, 3]);
     const layer = tfl.layers.zeroPadding2d({padding: [2, 2]});
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 6, 6, 3]);
 
-    expectTensorsClose(slice(y, [0, 2, 2, 0], [2, 2, 2, 3]), x);
+    expectTensorsClose(tfc.slice(y, [0, 2, 2, 0], [2, 2, 2, 3]), x);
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 2, 6, 3]), zeros([2, 2, 6, 3]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 2, 6, 3]), tfc.zeros([2, 2, 6, 3]));
     expectTensorsClose(
-        slice(y, [0, 4, 0, 0], [2, 2, 6, 3]), zeros([2, 2, 6, 3]));
+        tfc.slice(y, [0, 4, 0, 0], [2, 2, 6, 3]), tfc.zeros([2, 2, 6, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 6, 2, 3]), zeros([2, 6, 2, 3]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 6, 2, 3]), tfc.zeros([2, 6, 2, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 4, 0], [2, 6, 2, 3]), zeros([2, 6, 2, 3]));
+        tfc.slice(y, [0, 0, 4, 0], [2, 6, 2, 3]), tfc.zeros([2, 6, 2, 3]));
   });
 
   it('Asymmetric padding 2-1-2-1, channelsLast', () => {
-    const x = ones([2, 2, 2, 3]);
+    const x = tfc.ones([2, 2, 2, 3]);
     const layer = tfl.layers.zeroPadding2d({padding: [[2, 1], [2, 1]]});
     const y = layer.apply(x) as Tensor;
     expect(y.shape).toEqual([2, 5, 5, 3]);
 
-    expectTensorsClose(slice(y, [0, 2, 2, 0], [2, 2, 2, 3]), x);
+    expectTensorsClose(tfc.slice(y, [0, 2, 2, 0], [2, 2, 2, 3]), x);
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 2, 5, 3]), zeros([2, 2, 5, 3]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 2, 5, 3]), tfc.zeros([2, 2, 5, 3]));
     expectTensorsClose(
-        slice(y, [0, 4, 0, 0], [2, 1, 5, 3]), zeros([2, 1, 5, 3]));
+        tfc.slice(y, [0, 4, 0, 0], [2, 1, 5, 3]), tfc.zeros([2, 1, 5, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 0, 0], [2, 5, 2, 3]), zeros([2, 5, 2, 3]));
+        tfc.slice(y, [0, 0, 0, 0], [2, 5, 2, 3]), tfc.zeros([2, 5, 2, 3]));
     expectTensorsClose(
-        slice(y, [0, 0, 4, 0], [2, 5, 1, 3]), zeros([2, 5, 1, 3]));
+        tfc.slice(y, [0, 0, 4, 0], [2, 5, 1, 3]), tfc.zeros([2, 5, 1, 3]));
   });
 });

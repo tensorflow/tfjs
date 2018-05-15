@@ -13,7 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {expandDims, Tensor, tensor2d, Tensor2D, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {Tensor, tensor2d, Tensor2D, tensor3d, tensor4d, Tensor4D} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
 import * as tfl from '../index';
@@ -21,8 +22,102 @@ import {SymbolicTensor} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
+import {pool2d} from './pooling';
 
 // tslint:enable:max-line-length
+describeMathCPUAndGPU('pool2d', () => {
+  const x4by4Data = [[[
+    [10, 30, 50, 70], [20, 40, 60, 80], [-10, -30, -50, -70],
+    [-20, -40, -60, -80]
+  ]]];
+  const x5by5Data = [[[
+    [0, 1, 3, 5, 7], [0, 2, 4, 6, 8], [0, 0, 0, 0, 0], [0, -1, -3, -5, -7],
+    [0, -2, -4, -6, -8]
+  ]]];
+
+  const poolModes: PoolMode[] = [undefined, 'max', 'avg'];
+  const dataFormats: DataFormat[] =
+      [undefined, 'channelsFirst', 'channelsLast'];
+  const stridesArray = [1, 2];
+  for (const poolMode of poolModes) {
+    for (const dataFormat of dataFormats) {
+      for (const stride of stridesArray) {
+        const testTitle = `4x4, ${stride}, same, ${dataFormat}, ` +
+            `${poolMode}`;
+        it(testTitle, () => {
+          let x: Tensor = tensor4d(x4by4Data, [1, 1, 4, 4]);
+          if (dataFormat !== 'channelsFirst') {
+            x = tfc.transpose(x, [0, 2, 3, 1]);  // NCHW -> NHWC.
+          }
+          let yExpected: Tensor;
+          if (poolMode === 'avg') {
+            if (stride === 1) {
+              yExpected = tensor4d(
+                  [[[
+                    [25, 45, 65, 75], [5, 5, 5, 5], [-25, -45, -65, -75],
+                    [-30, -50, -70, -80]
+                  ]]],
+                  [1, 1, 4, 4]);
+            } else {
+              yExpected = tensor4d([[[[25, 65], [-25, -65]]]], [1, 1, 2, 2]);
+            }
+          } else {
+            if (stride === 1) {
+              yExpected = tensor4d(
+                  [[[
+                    [40, 60, 80, 80], [40, 60, 80, 80], [-10, -30, -50, -70],
+                    [-20, -40, -60, -80]
+                  ]]],
+                  [1, 1, 4, 4]);
+            } else if (stride === 2) {
+              yExpected = tensor4d([[[[40, 80], [-10, -50]]]], [1, 1, 2, 2]);
+            }
+          }
+          if (dataFormat !== 'channelsFirst') {
+            yExpected = tfc.transpose(yExpected, [0, 2, 3, 1]);
+          }
+          const y =
+              pool2d(x, [2, 2], [stride, stride], 'same', dataFormat, poolMode);
+          expectTensorsClose(y, yExpected);
+        });
+      }
+    }
+  }
+
+  for (const poolMode of poolModes) {
+    it(`5x5, 2, same, CHANNEL_FIRST, ${poolMode}`, () => {
+      const x5by5 = tensor4d(x5by5Data, [1, 1, 5, 5]);
+      let yExpected = tensor4d(x4by4Data, [1, 1, 4, 4]);
+      if (poolMode === 'avg') {
+        yExpected = tensor4d(
+            [[[[0.75, 4.5, 7.5], [-0.25, -2, -3.5], [-1, -5, -8]]]],
+            [1, 1, 3, 3]);
+      } else {
+        yExpected =
+            tensor4d([[[[2, 6, 8], [0, 0, 0], [0, -4, -8]]]], [1, 1, 3, 3]);
+      }
+      const y =
+          pool2d(x5by5, [2, 2], [2, 2], 'same', 'channelsFirst', poolMode);
+      expectTensorsClose(y, yExpected);
+    });
+  }
+
+  for (const poolMode of poolModes) {
+    it(`5x5, 2, valid, CHANNEL_LAST, ${poolMode}`, () => {
+      const x5by5 =
+          tfc.transpose(tensor4d(x5by5Data, [1, 1, 5, 5]), [0, 2, 3, 1]);
+      let yExpected: Tensor4D;
+      if (poolMode === 'avg') {
+        yExpected = tensor4d([[[[0.75, 4.5], [-0.25, -2]]]], [1, 1, 2, 2]);
+      } else {
+        yExpected = tensor4d([[[[2, 6], [0, 0]]]], [1, 1, 2, 2]);
+      }
+      const y =
+          pool2d(x5by5, [2, 2], [2, 2], 'valid', 'channelsLast', poolMode);
+      expectTensorsClose(y, tfc.transpose(yExpected, [0, 2, 3, 1]));
+    });
+  }
+});
 
 describe('Pooling Layers 1D: Symbolic', () => {
   const poolSizes = [2, 3];
@@ -82,7 +177,7 @@ describeMathCPUAndGPU('Pooling Layers 1D: Tensor', () => {
             [10, 30, 50, 70, 20, 40, 60, 80],
             [-10, -30, -50, -70, -20, -40, -60, -80]
           ]);
-          const x2by8by1 = expandDims(x2by8, 2);
+          const x2by8by1 = tfc.expandDims(x2by8, 2);
           const poolConstructor = poolMode === 'avg' ?
               tfl.layers.averagePooling1d :
               tfl.layers.maxPooling1d;
