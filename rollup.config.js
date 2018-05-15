@@ -21,7 +21,7 @@ export default {
   ],
   output: {
     extend: true,
-    banner: `// @tensorflow/tfjs-layers Copyright ${(new Date).getFullYear()} Google`,
+    banner: `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`,
     file: "dist/bundle.js",
     format: "umd",
     name: "tf",
@@ -29,11 +29,5 @@ export default {
       'crypto': 'crypto'
     }
   },
-  external: ['crypto'],
-  // onwarn: warning => {
-  //   if (circularDepFilter.test(warning.toString())) {
-  //     return;
-  //   }
-  //   console.warn('WARNING: ', warning.toString());
-  // }
+  external: ['crypto']
 };
