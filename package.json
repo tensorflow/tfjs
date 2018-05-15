@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs",
-  "version": "0.10.3",
+  "version": "0.10.4",
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
