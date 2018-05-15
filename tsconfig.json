@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2015",
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": true,
     "removeComments": true,
