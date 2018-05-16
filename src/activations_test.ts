@@ -15,7 +15,8 @@
 import {scalar, tensor1d, tensor2d, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Elu, HardSigmoid, Linear, Relu, Relu6, Selu, Sigmoid, Softmax, Softplus, Softsign, Tanh} from './activations';
-import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose} from './utils/test_utils';
+
 // tslint:enable
 
 describeMathCPUAndGPU('linear activation', () => {
@@ -34,6 +35,10 @@ describeMathCPUAndGPU('linear activation', () => {
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(linear(initX), tensor3d(expectedVals, [1, 2, 3]));
   });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => linear(initX), 0);
+  });
 });
 
 describeMathCPUAndGPU('elu activation', () => {
@@ -51,6 +56,10 @@ describeMathCPUAndGPU('elu activation', () => {
   it('3D', () => {
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(elu(initX), tensor3d(expectedVals, [1, 2, 3]));
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => elu(initX), 1);
   });
 });
 
@@ -75,6 +84,10 @@ describeMathCPUAndGPU('selu activation', () => {
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(selu(initX), tensor3d(expectedVals, [1, 2, 3]));
   });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => selu(initX), 1);
+  });
 });
 
 
@@ -94,6 +107,10 @@ describeMathCPUAndGPU('relu activation', () => {
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(relu(initX), tensor3d(expectedVals, [1, 2, 3]));
   });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => relu(initX), 1);
+  });
 });
 
 describeMathCPUAndGPU('relu6 activation', () => {
@@ -112,28 +129,36 @@ describeMathCPUAndGPU('relu6 activation', () => {
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(relu6(initX), tensor3d(expectedVals, [1, 2, 3]));
   });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => relu6(initX), 1);
+  });
 });
 
 describeMathCPUAndGPU('sigmoid activation', () => {
   const sigmoid = new Sigmoid().apply;
+  const initVals = [-1, 2, 0, 4, -5, 6];
   it('Scalar', () => {
     expectTensorsClose(sigmoid(scalar(0)), scalar(0.5));
   });
   it('3D', () => {
-    const initVals = [-1, 2, 0, 4, -5, 6];
     const expectedVals = initVals.map(v => 1 / (1 + Math.exp(-v)));
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(sigmoid(initX), tensor3d(expectedVals, [1, 2, 3]));
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => sigmoid(initX), 1);
   });
 });
 
 describeMathCPUAndGPU('hardSigmoid activation', () => {
   const hardSigmoid = new HardSigmoid().apply;
+  const initVals = [-1, 2, 0, 4, -5, 6];
   it('Scalar', () => {
     expectTensorsClose(hardSigmoid(scalar(0)), scalar(0.5));
   });
   it('3D', () => {
-    const initVals = [-1, 2, 0, 4, -5, 6];
     const expectedVals = initVals.map(v => {
       const y = 0.2 * v + 0.5;
       if (y > 1) {
@@ -147,31 +172,43 @@ describeMathCPUAndGPU('hardSigmoid activation', () => {
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(hardSigmoid(initX), tensor3d(expectedVals, [1, 2, 3]));
   });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => hardSigmoid(initX), 1);
+  });
 });
 
 describeMathCPUAndGPU('softplus activation', () => {
   const softplus = new Softplus().apply;
+  const initVals = [-1, 2, 0, 4, -5, 6];
   it('Scalar', () => {
     expectTensorsClose(softplus(scalar(0)), scalar(Math.log(2)));
   });
   it('3D', () => {
-    const initVals = [-1, 2, 0, 4, -5, 6];
     const expectedVals = initVals.map(v => Math.log(Math.exp(v) + 1));
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(softplus(initX), tensor3d(expectedVals, [1, 2, 3]));
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => softplus(initX), 1);
   });
 });
 
 describeMathCPUAndGPU('softsign activation', () => {
   const softsign = new Softsign().apply;
+  const initVals = [-1, 2, 0, 4, -5, 6];
   it('Scalar', () => {
     expectTensorsClose(softsign(scalar(0)), scalar(0));
   });
   it('3D', () => {
-    const initVals = [-1, 2, 0, 4, -5, 6];
     const expectedVals = initVals.map(v => v / (Math.abs(v) + 1));
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(softsign(initX), tensor3d(expectedVals, [1, 2, 3]));
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => softsign(initX), 1);
   });
 });
 
@@ -190,6 +227,10 @@ describeMathCPUAndGPU('tanh activation', () => {
   it('3D', () => {
     const initX = tensor3d(initVals, [1, 2, 3]);
     expectTensorsClose(tanh(initX), tensor3d(expectedVals, [1, 2, 3]));
+  });
+  it('Does not leak', () => {
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => tanh(initX), 1);
   });
 });
 
@@ -223,5 +264,10 @@ describeMathCPUAndGPU('softmax activation', () => {
         [0.000, 0.000, 0.002, 0.997, 0.000, 0.000, 0.002, 0.997]);
     const initX = tensor3d(initVals, [1, 2, 4]);
     expectTensorsClose(softmax(initX), tensor3d(expectedVals, [1, 2, 4]));
+  });
+  it('Does not leak', () => {
+    const initVals = new Float32Array([0, 1, 3, 9]);
+    const initX = tensor1d(initVals);
+    expectNoLeakedTensors(() => softmax(initX), 1);
   });
 });

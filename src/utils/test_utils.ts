@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, test_util} from '@tensorflow/tfjs-core';
+import {memory, Tensor, test_util} from '@tensorflow/tfjs-core';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 import {disposeScalarCache} from '../backend/tfjs_backend';
 import {ValueError} from '../errors';
@@ -89,4 +89,30 @@ export function describeMathGPU(testName: string, tests: () => void) {
     });
     tests();
   });
+}
+
+/**
+ * Check that a function only generates the expected number of new Tensors.
+ *
+ * The test  function is called twice, once to prime any regular constants and
+ * once to ensure that additional copies aren't created/tensors aren't leaked.
+ *
+ * @param testFunc A fully curried (zero arg) version of the function to test.
+ * @param numNewTensors The expected number of new Tensors that should exist.
+ */
+export function expectNoLeakedTensors(
+    // tslint:disable-next-line:no-any
+    testFunc: () => any, numNewTensors: number) {
+  testFunc();
+  const numTensorsBefore = memory().numTensors;
+  testFunc();
+  const numTensorsAfter = memory().numTensors;
+  const actualNewTensors = numTensorsAfter - numTensorsBefore;
+  if (actualNewTensors !== numNewTensors) {
+    throw new ValueError(
+        `Created an unexpected number of new ` +
+        `Tensors.  Expected: ${numNewTensors}, created : ${
+            actualNewTensors}. ` +
+        `Please investigate the discrepency and/or use tidy.`);
+  }
 }

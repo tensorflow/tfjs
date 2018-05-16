@@ -18,7 +18,7 @@ import {eye, serialization, Tensor2D, tensor2d} from '@tensorflow/tfjs-core';
 import * as tfl from './index';
 import {checkDistribution, checkFanMode, getInitializer, serializeInitializer, VALID_DISTRIBUTION_VALUES, VALID_FAN_MODE_VALUES, VarianceScaling} from './initializers';
 import * as math_utils from './utils/math_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, expectNoLeakedTensors, expectTensorsClose, expectTensorsValuesInRange} from './utils/test_utils';
 
 // tslint:enable:max-line-length
 
@@ -46,6 +46,10 @@ describeMathCPU('Zeros initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
+
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('zeros').apply([3]), 1);
+  });
 });
 
 describeMathCPU('Ones initializer', () => {
@@ -72,6 +76,9 @@ describeMathCPU('Ones initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('ones').apply([3]), 1);
+  });
 });
 
 describeMathCPU('Constant initializer', () => {
@@ -93,6 +100,12 @@ describeMathCPU('Constant initializer', () => {
     expect(weights.shape).toEqual([2, 2]);
     expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([5, 5, 5, 5]));
+  });
+  it('Does not leak', () => {
+    const initializerConfig:
+        serialization.ConfigDict = {className: 'Constant', config: {value: 5}};
+    expectNoLeakedTensors(
+        () => getInitializer(initializerConfig).apply([3]), 1);
   });
 });
 
@@ -152,6 +165,9 @@ describeMathCPU('RandomUniform initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, 17, 47);
   });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('RandomUniform').apply([3]), 1);
+  });
 });
 
 describeMathCPU('RandomNormal initializer', () => {
@@ -183,6 +199,9 @@ describeMathCPU('RandomNormal initializer', () => {
     expect(weights.dtype).toEqual('float32');
     // TODO(bileschi): Add test to assert the values match expectations.
   });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('RandomNormal').apply([3]), 1);
+  });
 });
 
 describeMathCPU('HeNormal initializer', () => {
@@ -204,6 +223,9 @@ describeMathCPU('HeNormal initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
   });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('HeNormal').apply([3]), 1);
+  });
 });
 
 describeMathCPU('LecunNormal initializer', () => {
@@ -224,6 +246,9 @@ describeMathCPU('LecunNormal initializer', () => {
     expect(weights.shape).toEqual(shape);
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, -2 * stddev, 2 * stddev);
+  });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('LeCunNormal').apply([3]), 1);
   });
 });
 
@@ -255,6 +280,10 @@ describeMathCPU('TruncatedNormal initializer', () => {
     expect(weights.shape).toEqual(shape);
     expect(weights.dtype).toEqual('float32');
     expectTensorsValuesInRange(weights, 0.0, 2.0);
+  });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(
+        () => getInitializer('TruncatedNormal').apply([3]), 1);
   });
 });
 
@@ -306,6 +335,9 @@ describeMathCPU('Glorot uniform initializer', () => {
       expect(math_utils.min(weights.dataSync() as Float32Array))
           .toBeGreaterThan(-limit);
     });
+  });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('GlorotUniform').apply([3]), 1);
   });
 });
 
@@ -361,6 +393,9 @@ describeMathCPU('Glorot normal initializer', () => {
       const variance2 = math_utils.median(varianceArr2);
       expect(variance2).toBeLessThan(variance1);
     });
+  });
+  it('Does not leak', () => {
+    expectNoLeakedTensors(() => getInitializer('GlorotNormal').apply([3]), 1);
   });
 });
 
@@ -492,5 +527,9 @@ describeMathCPUAndGPU('Orthogonal Initializer', () => {
     expect(w.dtype).toEqual('float32');
     // Assert that columns of w are orthogonal.
     expectTensorsClose(w.matMul(w.transpose()), eye(n));
+  });
+  it('Does not leak', () => {
+    const init = getInitializer('Orthogonal');
+    expectNoLeakedTensors(() => init.apply([3, 3]), 1);
   });
 });

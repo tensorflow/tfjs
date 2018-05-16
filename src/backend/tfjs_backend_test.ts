@@ -20,7 +20,7 @@ import {SymbolicTensor} from '../types';
 import {LayerVariable} from '../variables';
 import {unique} from '../utils/generic_utils';
 import {range} from '../utils/math_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
+import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose, expectNoLeakedTensors} from '../utils/test_utils';
 
 import * as K from './tfjs_backend';
 
@@ -1296,21 +1296,16 @@ describeMathCPUAndGPU('elu', () => {
   });
 });
 
-describeMathCPUAndGPU('softplus', () => {
-  it('softplus', () => {
-    const xData = [-1, 0, 1, -1];
-    expectTensorsClose(
-      K.softplus(tensor2d(xData, [2, 2])),
-      tensor2d(xData.map(x => Math.log(Math.exp(x) + 1)), [2, 2]));
-  });
-});
-
 describeMathCPUAndGPU('softsign', () => {
   it('softsign', () => {
     const xData = [-1, 0, 1, -1];
     expectTensorsClose(
       K.softsign(tensor2d(xData, [2, 2])),
       tensor2d(xData.map(x => x / (Math.abs(x) + 1)), [2, 2]));
+  });
+  it ('Does not leak', () => {
+    const input = tensor2d([-1, 0, 1, -1], [2, 2]);
+    expectNoLeakedTensors(() => K.softsign(input), 1);
   });
 });
 

@@ -15,7 +15,7 @@ import {serialization, Tensor1D, tensor1d} from '@tensorflow/tfjs-core';
 
 import {ConstraintIdentifier, deserializeConstraint, getConstraint, serializeConstraint} from './constraints';
 import * as tfl from './index';
-import {describeMathCPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPU, expectNoLeakedTensors, expectTensorsClose} from './utils/test_utils';
 
 // tslint:enable:max-line-length
 
@@ -30,6 +30,7 @@ describeMathCPU('Built-in Constraints', () => {
     const postConstraint = constraint.apply(initVals);
     expectTensorsClose(
         postConstraint, tensor1d(new Float32Array([0, 2, 0, 4, 0, 6])));
+    expectNoLeakedTensors(() => constraint.apply(initVals), 1);
   });
 
   it('MaxNorm', () => {
@@ -39,6 +40,7 @@ describeMathCPU('Built-in Constraints', () => {
                          -0.2208630521, 0.4417261043, 0, 0.8834522086,
                          -1.104315261, 1.325178313
                        ])));
+    expectNoLeakedTensors(() => constraint.apply(initVals), 1);
   });
   it('UnitNorm', () => {
     const constraint = getConstraint('UnitNorm');
@@ -47,6 +49,7 @@ describeMathCPU('Built-in Constraints', () => {
                          -0.2208630521 / 2, 0.4417261043 / 2, 0,
                          0.8834522086 / 2, -1.104315261 / 2, 1.325178313 / 2
                        ])));
+    expectNoLeakedTensors(() => constraint.apply(initVals), 1);
   });
   it('MinMaxNorm', () => {
     const constraint = getConstraint('MinMaxNorm');
@@ -55,6 +58,7 @@ describeMathCPU('Built-in Constraints', () => {
                          -0.2208630521 / 2, 0.4417261043 / 2, 0,
                          0.8834522086 / 2, -1.104315261 / 2, 1.325178313 / 2
                        ])));
+    expectNoLeakedTensors(() => constraint.apply(initVals), 1);
   });
 
   // Lower camel case.

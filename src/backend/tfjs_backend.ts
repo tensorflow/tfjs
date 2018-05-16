@@ -963,18 +963,6 @@ export function elu(x: Tensor, alpha = 1): Tensor {
 }
 
 /**
- * Softplus of a tensor.
- *
- * Defined as log(exp(x) + 1), element-wise.
- *
- * @param x: Input.
- * @returns Output.
- */
-export function softplus(x: Tensor): Tensor {
-  return tfc.log(tfc.add(getScalar(1), tfc.exp(x)));
-}
-
-/**
  * Softsign of a tensor.
  *
  * Defined as x / (abs(x) + 1), element-wise.
@@ -983,7 +971,7 @@ export function softplus(x: Tensor): Tensor {
  * @returns Output.
  */
 export function softsign(x: Tensor): Tensor {
-  return tfc.div(x, tfc.add(getScalar(1), tfc.abs(x)));
+  return tidy(() => tfc.div(x, tfc.add(getScalar(1), tfc.abs(x))));
 }
 
 /**
