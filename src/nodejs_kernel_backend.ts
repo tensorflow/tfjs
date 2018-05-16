@@ -792,6 +792,13 @@ export class NodeJSKernelBackend implements KernelBackend {
         Tensor4D;
   }
 
+  resizeBilinearBackprop(
+      dy: Tensor<Rank.R4>, x: Tensor<Rank.R4>,
+      alignCorners: boolean): Tensor<Rank.R4> {
+    // https://github.com/tensorflow/tfjs/issues/304
+    throw new Error('Method not implemented.');
+  }
+
   resizeNearestNeighbor(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D {
