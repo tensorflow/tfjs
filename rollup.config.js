@@ -20,7 +20,7 @@ export default {
   output: {
     extend: true,
     banner: `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`,
-    file: "dist/bundle.js",
+    file: "dist/tf.js",
     format: "umd",
     name: "tf",
     globals: {
