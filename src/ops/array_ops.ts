@@ -1089,6 +1089,43 @@ export class ArrayOps {
   }
 
   /**
+   * Unstacks a `Tensor` of rank-`R` into a list of rank-`(R-1)` `Tensor`s.
+   *
+   * ```js
+   * const a = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+   * tf.unstack(a).print();
+   * ```
+   *
+   * @param value A tensor object.
+   * @param axis The axis to unstack along. Defaults to 0 (the first dim).
+   */
+  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
+  @operation
+  static unstack<T extends Tensor>(
+      value: T, axis = 0): Tensor[] {
+    const num = value.shape[axis];
+    const outputShape: number[] = Array(value.rank - 1).fill(0);
+    let outIndex = 0;
+    for (let i = 0; i < value.rank; i++) {
+      if (i !== axis) {
+        outputShape[outIndex] = value.shape[i];
+        outIndex++;
+      }
+    }
+
+    let splitSizes: number[];
+    splitSizes = Array(num).fill(1);
+    const begin = Array(value.rank).fill(0);
+    const size = value.shape.slice();
+    return splitSizes.map(s => {
+      size[axis] = s;
+      const slice = value.slice(begin, size);
+      begin[axis] += s;
+      return slice.reshape(outputShape);
+    });
+  }
+
+  /**
    * Splits a `Tensor` into sub tensors.
    *
    * If `numOrSizeSplits` is a number, splits `x` along dimension `axis`

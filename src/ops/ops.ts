@@ -202,6 +202,7 @@ export const tensor4d = ArrayOps.tensor4d;
 export const print = ArrayOps.print;
 export const expandDims = ArrayOps.expandDims;
 export const stack = ArrayOps.stack;
+export const unstack = ArrayOps.unstack;
 export const split = ArrayOps.split;
 export const cumsum = ArrayOps.cumsum;
 
