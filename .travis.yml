@@ -1,5 +1,7 @@
 language: node_js
-node_js: "8"
+node_js:
+  - "8"
+  - "10"
 script:
   - ./scripts/build_and_lint_all
   - if [ "$BROWSERSTACK_KEY" ]; then yarn test-travis; fi
