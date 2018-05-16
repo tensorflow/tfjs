@@ -11,7 +11,7 @@ It is recommended to do your Python development and testing in a
 As a prerequisite, install the following dependencies for python testing
 ```sh
 cd python
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 For Python linter, install `pylint`, e.g.,
