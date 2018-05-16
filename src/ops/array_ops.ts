@@ -850,7 +850,7 @@ export class ArrayOps {
    *
    * a.tile([1, 2]).print();  // or a.tile([1, 2])
    * ```
-   * @param x The tensor to transpose.
+   * @param x The tensor to tile.
    * @param reps Determines the number of replications per dimension.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
