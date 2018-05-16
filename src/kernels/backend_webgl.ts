@@ -21,6 +21,7 @@ import * as axis_util from '../ops/axis_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as ops from '../ops/ops';
 import * as reduce_util from '../ops/reduce_util';
+import {getStridedSlicedInfo} from '../ops/slice_util';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
@@ -63,6 +64,7 @@ import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
 import {ResizeNearestNeighborProgram} from './webgl/resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './webgl/reverse_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
+import {StridedSliceProgram} from './webgl/strided_slice_gpu';
 import {TextureData, TextureType} from './webgl/tex_util';
 import {TextureManager} from './webgl/texture_manager';
 import {TileProgram} from './webgl/tile_gpu';
@@ -325,6 +327,20 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new SliceProgram(size);
     const customSetup = program.getCustomSetupFunc(begin);
     return this.compileAndRun(program, [x], null, customSetup);
+  }
+
+  stridedSlice<T extends Tensor>(
+      x: T, begin: number[], end: number[], strides: number[],
+      beginMask: number, endMask: number): T {
+    const [beginIndex, size] =
+        getStridedSlicedInfo(x.shape, begin, end, strides, beginMask, endMask);
+
+    if (size.some(axis => axis === 0)) {
+      return ops.tensor([], size) as T;
+    }
+
+    const program = new StridedSliceProgram(beginIndex, strides, size);
+    return this.compileAndRun(program, [x]);
   }
 
   reverse<T extends Tensor>(x: T, axis: number[]): T {

@@ -26,6 +26,7 @@ import * as erf_util from '../ops/erf_util';
 import * as ops from '../ops/ops';
 import {buffer, tensor3d, tensor4d} from '../ops/ops';
 import * as selu_util from '../ops/selu_util';
+import {getStridedSlicedInfo} from '../ops/slice_util';
 // tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
@@ -150,6 +151,31 @@ export class MathBackendCPU implements KernelBackend {
       const xLoc = loc.map((idx, j) => idx + begin[j]);
       buffer.set(x.get(...xLoc), ...loc);
     }
+    return buffer.toTensor() as T;
+  }
+
+  stridedSlice<T extends Tensor>(
+      x: T, begin: number[], end: number[], strides: number[],
+      beginMask: number, endMask: number): T {
+    const [beginIndex, size] =
+        getStridedSlicedInfo(x.shape, begin, end, strides, beginMask, endMask);
+
+    if (size.some(axis => axis === 0)) {
+      return ops.tensor([], size) as T;
+    }
+
+    const buffer = ops.buffer(size, x.dtype);
+
+    for (let i = 0; i < buffer.size; i++) {
+      const loc = buffer.indexToLoc(i);
+
+      const newLoc: number[] = new Array(loc.length);
+      for (let j = 0; j < newLoc.length; j++) {
+        newLoc[j] = loc[j] * strides[j] + beginIndex[j];
+      }
+      buffer.set(x.get(...newLoc), ...loc);
+    }
+
     return buffer.toTensor() as T;
   }
 
