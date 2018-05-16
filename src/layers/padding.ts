@@ -17,7 +17,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
@@ -38,23 +38,25 @@ import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
  * @return A padded 3D `Tensor`.
  */
 export function temporalPadding(x: Tensor, padding?: [number, number]): Tensor {
-  if (K.ndim(x) !== 3) {
-    throw new ValueError(
-        `temporalPadding expects input tensor to be 3-D, but received a ` +
-        `${K.ndim(x)}-D tensor.`);
-  }
+  return tidy(() => {
+    if (K.ndim(x) !== 3) {
+      throw new ValueError(
+          `temporalPadding expects input tensor to be 3-D, but received a ` +
+          `${K.ndim(x)}-D tensor.`);
+    }
 
-  if (padding == null) {
-    padding = [1, 1];
-  }
-  if (padding.length !== 2) {
-    throw new ValueError(
-        `temporalPadding expects input padding pattern to be a length-2 ` +
-        `array, but received a length-${padding.length} array.`);
-  }
+    if (padding == null) {
+      padding = [1, 1];
+    }
+    if (padding.length !== 2) {
+      throw new ValueError(
+          `temporalPadding expects input padding pattern to be a length-2 ` +
+          `array, but received a length-${padding.length} array.`);
+    }
 
-  const pattern: Array<[number, number]> = [[0, 0], padding, [0, 0]];
-  return tfc.pad(x, pattern);
+    const pattern: Array<[number, number]> = [[0, 0], padding, [0, 0]];
+    return tfc.pad(x, pattern);
+  });
 }
 
 /**
@@ -70,39 +72,41 @@ export function temporalPadding(x: Tensor, padding?: [number, number]): Tensor {
 export function spatial2dPadding(
     x: Tensor, padding?: [[number, number], [number, number]],
     dataFormat?: DataFormat): Tensor {
-  if (K.ndim(x) !== 4) {
-    throw new ValueError(
-        `temporalPadding expects input tensor to be 4-D, but received a ` +
-        `${K.ndim(x)}-D tensor.`);
-  }
+  return tidy(() => {
+    if (K.ndim(x) !== 4) {
+      throw new ValueError(
+          `temporalPadding expects input tensor to be 4-D, but received a ` +
+          `${K.ndim(x)}-D tensor.`);
+    }
 
-  if (padding == null) {
-    padding = [[1, 1], [1, 1]];
-  }
-  if (padding.length !== 2 || padding[0].length !== 2 ||
-      padding[1].length !== 2) {
-    throw new ValueError(
-        'spatial2dPadding expects `padding` to be an Array of two Arrays, ' +
-        'each of which is an Array of two integers.');
-  }
+    if (padding == null) {
+      padding = [[1, 1], [1, 1]];
+    }
+    if (padding.length !== 2 || padding[0].length !== 2 ||
+        padding[1].length !== 2) {
+      throw new ValueError(
+          'spatial2dPadding expects `padding` to be an Array of two Arrays, ' +
+          'each of which is an Array of two integers.');
+    }
 
-  if (dataFormat == null) {
-    dataFormat = imageDataFormat();
-  }
-  if (dataFormat !== 'channelsLast' && dataFormat !== 'channelsFirst') {
-    throw new ValueError(
-        `Unknown data format: ${dataFormat}. ` +
-        `Supported data formats are 'channelsLast' and 'channelsFirst.`);
-  }
+    if (dataFormat == null) {
+      dataFormat = imageDataFormat();
+    }
+    if (dataFormat !== 'channelsLast' && dataFormat !== 'channelsFirst') {
+      throw new ValueError(
+          `Unknown data format: ${dataFormat}. ` +
+          `Supported data formats are 'channelsLast' and 'channelsFirst.`);
+    }
 
-  let pattern: Array<[number, number]>;
-  if (dataFormat === 'channelsFirst') {
-    pattern = [[0, 0], [0, 0], padding[0], padding[1]];
-  } else {
-    pattern = [[0, 0], padding[0], padding[1], [0, 0]];
-  }
+    let pattern: Array<[number, number]>;
+    if (dataFormat === 'channelsFirst') {
+      pattern = [[0, 0], [0, 0], padding[0], padding[1]];
+    } else {
+      pattern = [[0, 0], padding[0], padding[1], [0, 0]];
+    }
 
-  return tfc.pad(x, pattern);
+    return tfc.pad(x, pattern);
+  });
 }
 
 export interface ZeroPadding2DLayerConfig extends LayerConfig {
@@ -241,8 +245,9 @@ export class ZeroPadding2D extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    return spatial2dPadding(
-        getExactlyOneTensor(inputs), this.padding, this.dataFormat);
+    return tidy(
+        () => spatial2dPadding(
+            getExactlyOneTensor(inputs), this.padding, this.dataFormat));
   }
 
   getConfig(): serialization.ConfigDict {

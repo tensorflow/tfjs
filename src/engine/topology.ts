@@ -1001,35 +1001,37 @@ export abstract class Layer extends serialization.Serializable {
    *   layer's specifications.
    */
   setWeights(weights: Tensor[]): void {
-    const params = this.weights;
-    if (params.length !== weights.length) {
-      // TODO(cais): Restore the following and use `providedWeights`, instead of
-      // `weights` in the error message, once the deeplearn.js bug is fixed:
-      // https://github.com/PAIR-code/deeplearnjs/issues/498
-      // const providedWeights = JSON.stringify(weights).substr(0, 50);
-      throw new ValueError(
-          `You called setWeights(weights) on layer "${this.name}" ` +
-          `with a weight list of length ${weights.length}, ` +
-          `but the layer was expecting ${params.length} weights. ` +
-          `Provided weights: ${weights}...`);
-    }
-    if (params.length === 0) {
-      return;
-    }
-    const weightValueTuples: Array<[LayerVariable, Tensor]> = [];
-    const paramValues = batchGetValue(params);
-    for (let i = 0; i < paramValues.length; ++i) {
-      const pv = paramValues[i];
-      const p = params[i];
-      const w = weights[i];
-      if (!util.arraysEqual(pv.shape, w.shape)) {
+    tidy(() => {
+      const params = this.weights;
+      if (params.length !== weights.length) {
+        // TODO(cais): Restore the following and use `providedWeights`, instead
+        // of `weights` in the error message, once the deeplearn.js bug is
+        // fixed: https://github.com/PAIR-code/deeplearnjs/issues/498 const
+        // providedWeights = JSON.stringify(weights).substr(0, 50);
         throw new ValueError(
-            `Layer weight shape ${pv.shape} ` +
-            `not compatible with provided weight shape ${w.shape}`);
+            `You called setWeights(weights) on layer "${this.name}" ` +
+            `with a weight list of length ${weights.length}, ` +
+            `but the layer was expecting ${params.length} weights. ` +
+            `Provided weights: ${weights}...`);
       }
-      weightValueTuples.push([p, w]);
-    }
-    batchSetValue(weightValueTuples);
+      if (params.length === 0) {
+        return;
+      }
+      const weightValueTuples: Array<[LayerVariable, Tensor]> = [];
+      const paramValues = batchGetValue(params);
+      for (let i = 0; i < paramValues.length; ++i) {
+        const pv = paramValues[i];
+        const p = params[i];
+        const w = weights[i];
+        if (!util.arraysEqual(pv.shape, w.shape)) {
+          throw new ValueError(
+              `Layer weight shape ${pv.shape} ` +
+              `not compatible with provided weight shape ${w.shape}`);
+        }
+        weightValueTuples.push([p, w]);
+      }
+      batchSetValue(weightValueTuples);
+    });
   }
 
   /**
@@ -2049,16 +2051,18 @@ export abstract class Container extends Layer {
    *   are more than one outputs.
    */
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    inputs = generic_utils.toList(inputs);
-    let masks: Tensor[];
+    return tidy(() => {
+      inputs = generic_utils.toList(inputs);
+      let masks: Tensor[];
 
-    if ('mask' in kwargs) {
-      masks = generic_utils.toList(kwargs['mask']);
-    } else {
-      masks = generic_utils.pyListRepeat(null, inputs.length);
-    }
-    // TODO(michaelterry): Add support for caching.
-    return this.runInternalGraph(inputs, masks)[0];
+      if ('mask' in kwargs) {
+        masks = generic_utils.toList(kwargs['mask']);
+      } else {
+        masks = generic_utils.pyListRepeat(null, inputs.length);
+      }
+      // TODO(michaelterry): Add support for caching.
+      return this.runInternalGraph(inputs, masks)[0];
+    });
   }
 
   /**
@@ -2072,15 +2076,17 @@ export abstract class Container extends Layer {
    */
   computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor
       |Tensor[] {
-    inputs = generic_utils.toList(inputs);
-    let masks: Tensor[];
-    if (mask == null) {
-      masks = generic_utils.pyListRepeat(null, inputs.length);
-    } else {
-      masks = generic_utils.toList(mask);
-    }
-    // TODO(michaelterry): Add support for mask caching.
-    return this.runInternalGraph(inputs, masks)[1];
+    return tidy(() => {
+      inputs = generic_utils.toList(inputs);
+      let masks: Tensor[];
+      if (mask == null) {
+        masks = generic_utils.pyListRepeat(null, inputs.length);
+      } else {
+        masks = generic_utils.toList(mask);
+      }
+      // TODO(michaelterry): Add support for mask caching.
+      return this.runInternalGraph(inputs, masks)[1];
+    });
   }
 
   /**

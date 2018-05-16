@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {DataType, doc, serialization, Tensor, util} from '@tensorflow/tfjs-core';
+import {DataType, doc, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {Activation, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -66,6 +66,8 @@ import {deserialize} from './serialization';
  *   newStates: Array of tensors, latest states returned by the step function,
  *      of shape `(samples, ...)`.
  * @throws ValueError If input dimension is less than 3.
+ *
+ * TODO(nielsene): This needs to be tidy-ed.
  */
 export function rnn(
     stepFunction: RnnStepFunction, inputs: Tensor, initialStates: Tensor[],
@@ -105,10 +107,11 @@ export function rnn(
   }
 
   // Porting Note: PyKeras with TensorFlow backend uses a symbolic loop
-  //   (tf.while_loop). But for the imperative deeplearn.js backend, we just use
-  //   the usual TypeScript control flow to iterate over the time steps in the
-  //   inputs.
-  // Porting Note: PyKeras patches a "_use_learning_phase" attribute to outputs.
+  //   (tf.while_loop). But for the imperative deeplearn.js backend, we just
+  //   use the usual TypeScript control flow to iterate over the time steps in
+  //   the inputs.
+  // Porting Note: PyKeras patches a "_use_learning_phase" attribute to
+  // outputs.
   //   This is not idiomatic in TypeScript. The info regarding whether we are
   //   in a learning (i.e., training) phase for RNN is passed in a different
   //   way.
@@ -130,8 +133,8 @@ export function rnn(
       outputs = K.concatAlongFirstAxis(
           outputs, lastOutput.reshape([1].concat(lastOutput.shape)));
     }
-    // TODO(soergel): Call K.concatenate() to perform only one concatenation at
-    // the end, once the backend function is available.
+    // TODO(soergel): Call K.concatenate() to perform only one concatenation
+    // at the end, once the backend function is available.
     states = stepOutputs[1];
   }
 
@@ -448,59 +451,62 @@ export class RNN extends Layer {
   }
 
   resetStates(states?: Tensor|Tensor[]): void {
-    if (!this.stateful) {
-      throw new AttributeError(
-          'Cannot call resetState() on an RNN Layer that is not stateful.');
-    }
-    const batchSize = this.inputSpec[0].shape[0];
-    if (batchSize == null) {
-      throw new ValueError(
-          'If an RNN is stateful, it needs to know its batch size. Specify ' +
-          'the batch size of your input tensors: \n' +
-          '- If using a Sequential model, specify the batch size by passing ' +
-          'a `batchInputShape` option to your first layer.\n' +
-          '- If using the functional API, specify the batch size by ' +
-          'passing a `batchShape` option to your Input layer.');
-    }
-    // Initialize state if null.
-    if (this.states == null) {
-      if (Array.isArray(this.cell.stateSize)) {
-        this.states =
-            this.cell.stateSize.map(dim => tfc.zeros([batchSize, dim]));
-      } else {
-        this.states = [tfc.zeros([batchSize, this.cell.stateSize])];
+    tidy(() => {
+      if (!this.stateful) {
+        throw new AttributeError(
+            'Cannot call resetState() on an RNN Layer that is not stateful.');
       }
-    } else if (states == null) {
-      if (Array.isArray(this.cell.stateSize)) {
-        this.states =
-            this.cell.stateSize.map(dim => tfc.zeros([batchSize, dim]));
-      } else {
-        this.states[0] = tfc.zeros([batchSize, this.cell.stateSize]);
-      }
-    } else {
-      if (!Array.isArray(states)) {
-        states = [states];
-      }
-      if (states.length !== this.states.length) {
+      const batchSize = this.inputSpec[0].shape[0];
+      if (batchSize == null) {
         throw new ValueError(
-            `Layer ${this.name} expects ${this.states.length} state(s), ` +
-            `but it received ${states.length} state value(s). Input ` +
-            `received: ${states}`);
+            'If an RNN is stateful, it needs to know its batch size. Specify ' +
+            'the batch size of your input tensors: \n' +
+            '- If using a Sequential model, specify the batch size by ' +
+            'passing a `batchInputShape` option to your first layer.\n' +
+            '- If using the functional API, specify the batch size by ' +
+            'passing a `batchShape` option to your Input layer.');
       }
-      for (let index = 0; index < this.states.length; ++index) {
-        const value = states[index];
-        const dim = Array.isArray(this.cell.stateSize) ?
-            this.cell.stateSize[index] :
-            this.cell.stateSize;
-        const expectedShape = [batchSize, dim];
-        if (!util.arraysEqual(value.shape, expectedShape)) {
-          throw new ValueError(
-              `State ${index} is incompatible with layer ${this.name}: ` +
-              `expected shape=${expectedShape}, received shape=${value.shape}`);
+      // Initialize state if null.
+      if (this.states == null) {
+        if (Array.isArray(this.cell.stateSize)) {
+          this.states =
+              this.cell.stateSize.map(dim => tfc.zeros([batchSize, dim]));
+        } else {
+          this.states = [tfc.zeros([batchSize, this.cell.stateSize])];
         }
-        this.states[index] = value;
+      } else if (states == null) {
+        if (Array.isArray(this.cell.stateSize)) {
+          this.states =
+              this.cell.stateSize.map(dim => tfc.zeros([batchSize, dim]));
+        } else {
+          this.states[0] = tfc.zeros([batchSize, this.cell.stateSize]);
+        }
+      } else {
+        if (!Array.isArray(states)) {
+          states = [states];
+        }
+        if (states.length !== this.states.length) {
+          throw new ValueError(
+              `Layer ${this.name} expects ${this.states.length} state(s), ` +
+              `but it received ${states.length} state value(s). Input ` +
+              `received: ${states}`);
+        }
+        for (let index = 0; index < this.states.length; ++index) {
+          const value = states[index];
+          const dim = Array.isArray(this.cell.stateSize) ?
+              this.cell.stateSize[index] :
+              this.cell.stateSize;
+          const expectedShape = [batchSize, dim];
+          if (!util.arraysEqual(value.shape, expectedShape)) {
+            throw new ValueError(
+                `State ${index} is incompatible with layer ${this.name}: ` +
+                `expected shape=${expectedShape}, received shape=${
+                    value.shape}`);
+          }
+          this.states[index] = value;
+        }
       }
-    }
+    });
   }
 
   /**
@@ -629,92 +635,97 @@ export class RNN extends Layer {
     // Input shape: `[samples, time (padded with zeros), input_dim]`.
     // Note that the .build() method of subclasses **must** define
     // this.inputSpec and this.stateSpec owith complete input shapes.
-    const mask = kwargs == null ? null : kwargs['mask'];
-    const training = kwargs == null ? null : kwargs['training'];
-    let initialState: Tensor[] = kwargs == null ? null : kwargs['initialState'];
+    return tidy(() => {
+      const mask = kwargs == null ? null : kwargs['mask'];
+      const training = kwargs == null ? null : kwargs['training'];
+      let initialState: Tensor[] =
+          kwargs == null ? null : kwargs['initialState'];
 
-    inputs = generic_utils.getExactlyOneTensor(inputs);
-    if (initialState == null) {
+      inputs = generic_utils.getExactlyOneTensor(inputs);
+      if (initialState == null) {
+        if (this.stateful) {
+          throw new NotImplementedError(
+              'stateful RNN layer is not implemented yet.');
+        } else {
+          initialState = this.getInitialState(inputs);
+        }
+      }
+
+      if (mask != null) {
+        throw new NotImplementedError('Masking is not implemented for RNN yet');
+      }
+
+      const numStates =
+          Array.isArray(this.cell.stateSize) ? this.cell.stateSize.length : 1;
+      if (initialState.length !== numStates) {
+        throw new ValueError(
+            `RNN Layer has ${numStates} state(s) but was passed ` +
+            `${initialState.length} initial state(s).`);
+      }
+      const inputShape = inputs.shape;
+      const timesteps = inputShape[1];
+      if (this.unroll) {
+        console.warn(
+            'Ignoring unroll = true for RNN layer, due to imperative backend.');
+      }
+
+      const cellCallKwargs: Kwargs = {training};
+
+      // TODO(cais): Add support for constants.
+      const step = (inputs: Tensor, states: Tensor[]) => {
+        // `inputs` and `states` are concatenated to form a single `Array` of
+        // `Tensor`s as the input to `cell.call()`.
+        const outputs =
+            this.cell.call([inputs].concat(states), cellCallKwargs) as Tensor[];
+        // Marshall the return value into output and new states.
+        return [outputs[0], outputs.slice(1)] as [Tensor, Tensor[]];
+      };
+
+      // TODO(cais): Add support for constants.
+      // TODO(cais): Add support for masks.
+
+      const rnnOutputs =
+          rnn(step, inputs, initialState, this.goBackwards, null, null,
+              this.unroll, timesteps);
+      const lastOutput = rnnOutputs[0];
+      const outputs = rnnOutputs[1];
+      const states = rnnOutputs[2];
+
       if (this.stateful) {
         throw new NotImplementedError(
-            'stateful RNN layer is not implemented yet.');
-      } else {
-        initialState = this.getInitialState(inputs);
+            'stateful RNN layer is not implemented yet');
       }
-    }
 
-    if (mask != null) {
-      throw new NotImplementedError('Masking is not implemented for RNN yet');
-    }
+      const output = this.returnSequences ? outputs : lastOutput;
 
-    const numStates =
-        Array.isArray(this.cell.stateSize) ? this.cell.stateSize.length : 1;
-    if (initialState.length !== numStates) {
-      throw new ValueError(
-          `RNN Layer has ${numStates} state(s) but was passed ` +
-          `${initialState.length} initial state(s).`);
-    }
-    const inputShape = inputs.shape;
-    const timesteps = inputShape[1];
-    if (this.unroll) {
-      console.warn(
-          'Ignoring unroll = true for RNN layer, due to imperative backend.');
-    }
+      // TODO(cais): Porperty set learning phase flag.
 
-    const cellCallKwargs: Kwargs = {training};
-
-    // TODO(cais): Add support for constants.
-    const step = (inputs: Tensor, states: Tensor[]) => {
-      // `inputs` and `states` are concatenated to form a single `Array` of
-      // `Tensor`s as the input to `cell.call()`.
-      const outputs =
-          this.cell.call([inputs].concat(states), cellCallKwargs) as Tensor[];
-      // Marshall the return value into output and new states.
-      return [outputs[0], outputs.slice(1)] as [Tensor, Tensor[]];
-    };
-
-    // TODO(cais): Add support for constants.
-    // TODO(cais): Add support for masks.
-
-    const rnnOutputs =
-        rnn(step, inputs, initialState, this.goBackwards, null, null,
-            this.unroll, timesteps);
-    const lastOutput = rnnOutputs[0];
-    const outputs = rnnOutputs[1];
-    const states = rnnOutputs[2];
-
-    if (this.stateful) {
-      throw new NotImplementedError(
-          'stateful RNN layer is not implemented yet');
-    }
-
-    const output = this.returnSequences ? outputs : lastOutput;
-
-    // TODO(cais): Porperty set learning phase flag.
-
-    if (this.returnState) {
-      return [output].concat(states);
-    } else {
-      return output;
-    }
+      if (this.returnState) {
+        return [output].concat(states);
+      } else {
+        return output;
+      }
+    });
   }
 
   getInitialState(inputs: Tensor): Tensor[] {
-    // Build an all-zero tensor of shape [samples, outputDim].
-    // [Samples, timeSteps, inputDim].
-    let initialState = tfc.zeros(inputs.shape);
-    // [Samples].
-    initialState = tfc.sum(initialState, [1, 2]);
-    initialState = K.expandDims(initialState);  // [Samples, 1].
+    return tidy(() => {
+      // Build an all-zero tensor of shape [samples, outputDim].
+      // [Samples, timeSteps, inputDim].
+      let initialState = tfc.zeros(inputs.shape);
+      // [Samples].
+      initialState = tfc.sum(initialState, [1, 2]);
+      initialState = K.expandDims(initialState);  // [Samples, 1].
 
-    if (Array.isArray(this.cell.stateSize)) {
-      return this.cell.stateSize.map(
-          dim => dim > 1 ? K.tile(initialState, [1, dim]) : initialState);
-    } else {
-      return this.cell.stateSize > 1 ?
-          [K.tile(initialState, [1, this.cell.stateSize])] :
-          [initialState];
-    }
+      if (Array.isArray(this.cell.stateSize)) {
+        return this.cell.stateSize.map(
+            dim => dim > 1 ? K.tile(initialState, [1, dim]) : initialState);
+      } else {
+        return this.cell.stateSize > 1 ?
+            [K.tile(initialState, [1, this.cell.stateSize])] :
+            [initialState];
+      }
+    });
   }
 
   get trainableWeights(): LayerVariable[] {
@@ -986,33 +997,36 @@ export class SimpleRNNCell extends RNNCell {
   //    `output` and `[output]`. Here the two are combined into one length-2
   //    `Tensor[]`, consisting of `output` repeated.
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    inputs = inputs as Tensor[];
-    if (inputs.length !== 2) {
-      throw new ValueError(
-          `SimpleRNNCell expects 2 input Tensors, got ${inputs.length}.`);
-    }
-    const prevOutput = inputs[1];
-    inputs = inputs[0];
-    // TODO(cais): Uncomment the following when implementing the logic for
-    //   dropout and training.
-    // const training = kwargs['training'] == null ? false : kwargs['training'];
-    if (this.dropout !== 0 || this.recurrentDropout !== 0) {
-      throw new NotImplementedError(
-          'Dropout is not implemented for SimpleRNNCell yet');
-    }
+    return tidy(() => {
+      inputs = inputs as Tensor[];
+      if (inputs.length !== 2) {
+        throw new ValueError(
+            `SimpleRNNCell expects 2 input Tensors, got ${inputs.length}.`);
+      }
+      const prevOutput = inputs[1];
+      inputs = inputs[0];
+      // TODO(cais): Uncomment the following when implementing the logic for
+      //   dropout and training.
+      // const training = kwargs['training'] == null ? false :
+      // kwargs['training'];
+      if (this.dropout !== 0 || this.recurrentDropout !== 0) {
+        throw new NotImplementedError(
+            'Dropout is not implemented for SimpleRNNCell yet');
+      }
 
-    // TODO(cais): Handle dropout.
-    let h = K.dot(inputs, this.kernel.read());
-    if (this.bias != null) {
-      h = K.biasAdd(h, this.bias.read());
-    }
-    let output = tfc.add(h, K.dot(prevOutput, this.recurrentKernel.read()));
-    if (this.activation != null) {
-      output = this.activation.apply(output);
-    }
+      // TODO(cais): Handle dropout.
+      let h = K.dot(inputs, this.kernel.read());
+      if (this.bias != null) {
+        h = K.biasAdd(h, this.bias.read());
+      }
+      let output = tfc.add(h, K.dot(prevOutput, this.recurrentKernel.read()));
+      if (this.activation != null) {
+        output = this.activation.apply(output);
+      }
 
-    // TODO(cais): Properly set learning phase on output tensor?
-    return [output, output];
+      // TODO(cais): Properly set learning phase on output tensor?
+      return [output, output];
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -1151,12 +1165,14 @@ export class SimpleRNN extends RNN {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    // TODO(cais): Add dropoutMask and recurrentDropoutMask.
-    const mask = kwargs == null ? null : kwargs['mask'];
-    const training = kwargs == null ? null : kwargs['training'];
-    const initialState: Tensor[] =
-        kwargs == null ? null : kwargs['initialState'];
-    return super.call(inputs, {mask, training, initialState});
+    return tidy(() => {
+      // TODO(cais): Add dropoutMask and recurrentDropoutMask.
+      const mask = kwargs == null ? null : kwargs['mask'];
+      const training = kwargs == null ? null : kwargs['training'];
+      const initialState: Tensor[] =
+          kwargs == null ? null : kwargs['initialState'];
+      return super.call(inputs, {mask, training, initialState});
+    });
   }
 
   // TODO(cais): Research possibility of refactoring out the tedious all
@@ -1409,99 +1425,102 @@ export class GRUCell extends RNNCell {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    // TODO(cais): Implement dropout.
-    if (this.dropout !== 0 || this.recurrentDropout !== 0) {
-      throw new NotImplementedError(
-          'Dropout is not implemented for GRUCell yet');
-    }
-
-    inputs = inputs as Tensor[];
-    if (inputs.length !== 2) {
-      throw new ValueError(
-          `GRUCell expects 2 input Tensors (inputs, h, c), got ` +
-          `${inputs.length}.`);
-    }
-    const hTMinus1 = inputs[1];  // Previous memory state.
-    inputs = inputs[0];
-
-    let z: Tensor;
-    let r: Tensor;
-    let hh: Tensor;
-    if (this.implementation === 1) {
-      const kernelZ = K.sliceAlongLastAxis(this.kernel.read(), 0, this.units);
-      const kernelR =
-          K.sliceAlongLastAxis(this.kernel.read(), this.units, this.units);
-      const kernelH =
-          K.sliceAlongLastAxis(this.kernel.read(), this.units * 2, this.units);
-      const recurrentKernelZ =
-          K.sliceAlongLastAxis(this.recurrentKernel.read(), 0, this.units);
-      const recurrentKernelR = K.sliceAlongLastAxis(
-          this.recurrentKernel.read(), this.units, this.units);
-      const recurrentKernelH = K.sliceAlongLastAxis(
-          this.recurrentKernel.read(), this.units * 2, this.units);
-
-      // TODO(cais): Add input dropout.
-      const inputsZ = inputs;
-      const inputsR = inputs;
-      const inputsH = inputs;
-
-      let xZ = K.dot(inputsZ, kernelZ);
-      let xR = K.dot(inputsR, kernelR);
-      let xH = K.dot(inputsH, kernelH);
-      if (this.useBias) {
-        const biasZ = K.sliceAlongFirstAxis(this.bias.read(), 0, this.units);
-        const biasR =
-            K.sliceAlongFirstAxis(this.bias.read(), this.units, this.units);
-        const biasH =
-            K.sliceAlongFirstAxis(this.bias.read(), this.units * 2, this.units);
-        xZ = K.biasAdd(xZ, biasZ);
-        xR = K.biasAdd(xR, biasR);
-        xH = K.biasAdd(xH, biasH);
+    return tidy(() => {
+      // TODO(cais): Implement dropout.
+      if (this.dropout !== 0 || this.recurrentDropout !== 0) {
+        throw new NotImplementedError(
+            'Dropout is not implemented for GRUCell yet');
       }
 
-      // TODO(cais): Add recurrent dropout.
-      const hTMinus1Z = hTMinus1;
-      const hTMinus1R = hTMinus1;
-      const hTMinus1H = hTMinus1;
-      z = this.recurrentActivation.apply(
-          tfc.add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
-      r = this.recurrentActivation.apply(
-          tfc.add(xR, K.dot(hTMinus1R, recurrentKernelR)));
-      hh = this.activation.apply(
-          tfc.add(xH, K.dot(tfc.mul(r, hTMinus1H), recurrentKernelH)));
-    } else {
-      // TODO(cais): Add input dropout.
-      let matrixX = K.dot(inputs, this.kernel.read());
-      if (this.useBias) {
-        matrixX = K.biasAdd(matrixX, this.bias.read());
+      inputs = inputs as Tensor[];
+      if (inputs.length !== 2) {
+        throw new ValueError(
+            `GRUCell expects 2 input Tensors (inputs, h, c), got ` +
+            `${inputs.length}.`);
       }
-      // TODO(cais): Add recurrent dropout.
-      const matrixInner = K.dot(
-          hTMinus1,
-          K.sliceAlongLastAxis(this.recurrentKernel.read(), 0, 2 * this.units));
+      const hTMinus1 = inputs[1];  // Previous memory state.
+      inputs = inputs[0];
 
-      const xZ = K.sliceAlongLastAxis(matrixX, 0, this.units);
-      const xR = K.sliceAlongLastAxis(matrixX, this.units, this.units);
-      const recurrentZ = K.sliceAlongLastAxis(matrixInner, 0, this.units);
-      const recurrentR =
-          K.sliceAlongLastAxis(matrixInner, this.units, this.units);
+      let z: Tensor;
+      let r: Tensor;
+      let hh: Tensor;
+      if (this.implementation === 1) {
+        const kernelZ = K.sliceAlongLastAxis(this.kernel.read(), 0, this.units);
+        const kernelR =
+            K.sliceAlongLastAxis(this.kernel.read(), this.units, this.units);
+        const kernelH = K.sliceAlongLastAxis(
+            this.kernel.read(), this.units * 2, this.units);
+        const recurrentKernelZ =
+            K.sliceAlongLastAxis(this.recurrentKernel.read(), 0, this.units);
+        const recurrentKernelR = K.sliceAlongLastAxis(
+            this.recurrentKernel.read(), this.units, this.units);
+        const recurrentKernelH = K.sliceAlongLastAxis(
+            this.recurrentKernel.read(), this.units * 2, this.units);
 
-      z = this.recurrentActivation.apply(tfc.add(xZ, recurrentZ));
-      r = this.recurrentActivation.apply(tfc.add(xR, recurrentR));
+        // TODO(cais): Add input dropout.
+        const inputsZ = inputs;
+        const inputsR = inputs;
+        const inputsH = inputs;
 
-      const xH = K.sliceAlongLastAxis(matrixX, 2 * this.units, this.units);
-      const recurrentH = K.dot(
-          tfc.mul(r, hTMinus1),
-          K.sliceAlongLastAxis(
-              this.recurrentKernel.read(), 2 * this.units, this.units));
-      hh = this.activation.apply(tfc.add(xH, recurrentH));
-    }
+        let xZ = K.dot(inputsZ, kernelZ);
+        let xR = K.dot(inputsR, kernelR);
+        let xH = K.dot(inputsH, kernelH);
+        if (this.useBias) {
+          const biasZ = K.sliceAlongFirstAxis(this.bias.read(), 0, this.units);
+          const biasR =
+              K.sliceAlongFirstAxis(this.bias.read(), this.units, this.units);
+          const biasH = K.sliceAlongFirstAxis(
+              this.bias.read(), this.units * 2, this.units);
+          xZ = K.biasAdd(xZ, biasZ);
+          xR = K.biasAdd(xR, biasR);
+          xH = K.biasAdd(xH, biasH);
+        }
 
-    const h = tfc.add(
-        tfc.mul(z, hTMinus1),
-        tfc.mul(K.scalarPlusArray(K.getScalar(1), tfc.neg(z)), hh));
-    // TODO(cais): Add use_learning_phase flag properly.
-    return [h, h];
+        // TODO(cais): Add recurrent dropout.
+        const hTMinus1Z = hTMinus1;
+        const hTMinus1R = hTMinus1;
+        const hTMinus1H = hTMinus1;
+        z = this.recurrentActivation.apply(
+            tfc.add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
+        r = this.recurrentActivation.apply(
+            tfc.add(xR, K.dot(hTMinus1R, recurrentKernelR)));
+        hh = this.activation.apply(
+            tfc.add(xH, K.dot(tfc.mul(r, hTMinus1H), recurrentKernelH)));
+      } else {
+        // TODO(cais): Add input dropout.
+        let matrixX = K.dot(inputs, this.kernel.read());
+        if (this.useBias) {
+          matrixX = K.biasAdd(matrixX, this.bias.read());
+        }
+        // TODO(cais): Add recurrent dropout.
+        const matrixInner = K.dot(
+            hTMinus1,
+            K.sliceAlongLastAxis(
+                this.recurrentKernel.read(), 0, 2 * this.units));
+
+        const xZ = K.sliceAlongLastAxis(matrixX, 0, this.units);
+        const xR = K.sliceAlongLastAxis(matrixX, this.units, this.units);
+        const recurrentZ = K.sliceAlongLastAxis(matrixInner, 0, this.units);
+        const recurrentR =
+            K.sliceAlongLastAxis(matrixInner, this.units, this.units);
+
+        z = this.recurrentActivation.apply(tfc.add(xZ, recurrentZ));
+        r = this.recurrentActivation.apply(tfc.add(xR, recurrentR));
+
+        const xH = K.sliceAlongLastAxis(matrixX, 2 * this.units, this.units);
+        const recurrentH = K.dot(
+            tfc.mul(r, hTMinus1),
+            K.sliceAlongLastAxis(
+                this.recurrentKernel.read(), 2 * this.units, this.units));
+        hh = this.activation.apply(tfc.add(xH, recurrentH));
+      }
+
+      const h = tfc.add(
+          tfc.mul(z, hTMinus1),
+          tfc.mul(K.scalarPlusArray(K.getScalar(1), tfc.neg(z)), hh));
+      // TODO(cais): Add use_learning_phase flag properly.
+      return [h, h];
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -1581,12 +1600,14 @@ export class GRU extends RNN {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    // TODO(cais): Add dropoutMask and recurrentDropoutMask.
-    const mask = kwargs == null ? null : kwargs['mask'];
-    const training = kwargs == null ? null : kwargs['training'];
-    const initialState: Tensor[] =
-        kwargs == null ? null : kwargs['initialState'];
-    return super.call(inputs, {mask, training, initialState});
+    return tidy(() => {
+      // TODO(cais): Add dropoutMask and recurrentDropoutMask.
+      const mask = kwargs == null ? null : kwargs['mask'];
+      const training = kwargs == null ? null : kwargs['training'];
+      const initialState: Tensor[] =
+          kwargs == null ? null : kwargs['initialState'];
+      return super.call(inputs, {mask, training, initialState});
+    });
   }
 
   get units(): number {
@@ -1881,107 +1902,110 @@ export class LSTMCell extends RNNCell {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    // TODO(cais): Implement dropout.
-    if (this.dropout !== 0 || this.recurrentDropout !== 0) {
-      throw new NotImplementedError(
-          'Dropout is not implemented for LSTMCell yet');
-    }
-
-    inputs = inputs as Tensor[];
-    if (inputs.length !== 3) {
-      throw new ValueError(
-          `LSTMCell expects 3 input Tensors (inputs, h, c), got ` +
-          `${inputs.length}.`);
-    }
-    const hTMinus1 = inputs[1];  // Previous memory state.
-    const cTMinus1 = inputs[2];  // Previous carry state.
-    inputs = inputs[0];
-
-    let i: Tensor;
-    let f: Tensor;
-    let c: Tensor;
-    let o: Tensor;
-    if (this.implementation === 1) {
-      const kernelI = K.sliceAlongLastAxis(this.kernel.read(), 0, this.units);
-      const kernelF =
-          K.sliceAlongLastAxis(this.kernel.read(), this.units, this.units);
-      const kernelC =
-          K.sliceAlongLastAxis(this.kernel.read(), this.units * 2, this.units);
-      const kernelO =
-          K.sliceAlongLastAxis(this.kernel.read(), this.units * 3, this.units);
-      const recurrentKernelI =
-          K.sliceAlongLastAxis(this.recurrentKernel.read(), 0, this.units);
-      const recurrentKernelF = K.sliceAlongLastAxis(
-          this.recurrentKernel.read(), this.units, this.units);
-      const recurrentKernelC = K.sliceAlongLastAxis(
-          this.recurrentKernel.read(), this.units * 2, this.units);
-      const recurrentKernelO = K.sliceAlongLastAxis(
-          this.recurrentKernel.read(), this.units * 3, this.units);
-
-      // TODO(cais): Add input dropout.
-      const inputsI = inputs;
-      const inputsF = inputs;
-      const inputsC = inputs;
-      const inputsO = inputs;
-
-      let xI = K.dot(inputsI, kernelI);
-      let xF = K.dot(inputsF, kernelF);
-      let xC = K.dot(inputsC, kernelC);
-      let xO = K.dot(inputsO, kernelO);
-      if (this.useBias) {
-        const biasI = K.sliceAlongFirstAxis(this.bias.read(), 0, this.units);
-        const biasF =
-            K.sliceAlongFirstAxis(this.bias.read(), this.units, this.units);
-        const biasC =
-            K.sliceAlongFirstAxis(this.bias.read(), this.units * 2, this.units);
-        const biasO =
-            K.sliceAlongFirstAxis(this.bias.read(), this.units * 3, this.units);
-        xI = K.biasAdd(xI, biasI);
-        xF = K.biasAdd(xF, biasF);
-        xC = K.biasAdd(xC, biasC);
-        xO = K.biasAdd(xO, biasO);
+    return tidy(() => {
+      // TODO(cais): Implement dropout.
+      if (this.dropout !== 0 || this.recurrentDropout !== 0) {
+        throw new NotImplementedError(
+            'Dropout is not implemented for LSTMCell yet');
       }
 
-      // TODO(cais): Add recurrent dropout.
-      const hTMinus1I = hTMinus1;
-      const hTMinus1F = hTMinus1;
-      const hTMinus1C = hTMinus1;
-      const hTMinus1O = hTMinus1;
-      i = this.recurrentActivation.apply(
-          tfc.add(xI, K.dot(hTMinus1I, recurrentKernelI)));
-      f = this.recurrentActivation.apply(
-          tfc.add(xF, K.dot(hTMinus1F, recurrentKernelF)));
-      c = tfc.add(
-          tfc.mul(f, cTMinus1),
-          tfc.mul(
-              i,
-              this.activation.apply(
-                  tfc.add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
-      o = this.recurrentActivation.apply(
-          tfc.add(xO, K.dot(hTMinus1O, recurrentKernelO)));
-    } else {
-      // TODO(cais): Add input dropout.
-      let z = K.dot(inputs, this.kernel.read());
-      // TODO(cais): Add recurrent dropout.
-      z = tfc.add(z, K.dot(hTMinus1, this.recurrentKernel.read()));
-      if (this.useBias) {
-        z = K.biasAdd(z, this.bias.read());
+      inputs = inputs as Tensor[];
+      if (inputs.length !== 3) {
+        throw new ValueError(
+            `LSTMCell expects 3 input Tensors (inputs, h, c), got ` +
+            `${inputs.length}.`);
+      }
+      const hTMinus1 = inputs[1];  // Previous memory state.
+      const cTMinus1 = inputs[2];  // Previous carry state.
+      inputs = inputs[0];
+
+      let i: Tensor;
+      let f: Tensor;
+      let c: Tensor;
+      let o: Tensor;
+      if (this.implementation === 1) {
+        const kernelI = K.sliceAlongLastAxis(this.kernel.read(), 0, this.units);
+        const kernelF =
+            K.sliceAlongLastAxis(this.kernel.read(), this.units, this.units);
+        const kernelC = K.sliceAlongLastAxis(
+            this.kernel.read(), this.units * 2, this.units);
+        const kernelO = K.sliceAlongLastAxis(
+            this.kernel.read(), this.units * 3, this.units);
+        const recurrentKernelI =
+            K.sliceAlongLastAxis(this.recurrentKernel.read(), 0, this.units);
+        const recurrentKernelF = K.sliceAlongLastAxis(
+            this.recurrentKernel.read(), this.units, this.units);
+        const recurrentKernelC = K.sliceAlongLastAxis(
+            this.recurrentKernel.read(), this.units * 2, this.units);
+        const recurrentKernelO = K.sliceAlongLastAxis(
+            this.recurrentKernel.read(), this.units * 3, this.units);
+
+        // TODO(cais): Add input dropout.
+        const inputsI = inputs;
+        const inputsF = inputs;
+        const inputsC = inputs;
+        const inputsO = inputs;
+
+        let xI = K.dot(inputsI, kernelI);
+        let xF = K.dot(inputsF, kernelF);
+        let xC = K.dot(inputsC, kernelC);
+        let xO = K.dot(inputsO, kernelO);
+        if (this.useBias) {
+          const biasI = K.sliceAlongFirstAxis(this.bias.read(), 0, this.units);
+          const biasF =
+              K.sliceAlongFirstAxis(this.bias.read(), this.units, this.units);
+          const biasC = K.sliceAlongFirstAxis(
+              this.bias.read(), this.units * 2, this.units);
+          const biasO = K.sliceAlongFirstAxis(
+              this.bias.read(), this.units * 3, this.units);
+          xI = K.biasAdd(xI, biasI);
+          xF = K.biasAdd(xF, biasF);
+          xC = K.biasAdd(xC, biasC);
+          xO = K.biasAdd(xO, biasO);
+        }
+
+        // TODO(cais): Add recurrent dropout.
+        const hTMinus1I = hTMinus1;
+        const hTMinus1F = hTMinus1;
+        const hTMinus1C = hTMinus1;
+        const hTMinus1O = hTMinus1;
+        i = this.recurrentActivation.apply(
+            tfc.add(xI, K.dot(hTMinus1I, recurrentKernelI)));
+        f = this.recurrentActivation.apply(
+            tfc.add(xF, K.dot(hTMinus1F, recurrentKernelF)));
+        c = tfc.add(
+            tfc.mul(f, cTMinus1),
+            tfc.mul(
+                i,
+                this.activation.apply(
+                    tfc.add(xC, K.dot(hTMinus1C, recurrentKernelC)))));
+        o = this.recurrentActivation.apply(
+            tfc.add(xO, K.dot(hTMinus1O, recurrentKernelO)));
+      } else {
+        // TODO(cais): Add input dropout.
+        let z = K.dot(inputs, this.kernel.read());
+        // TODO(cais): Add recurrent dropout.
+        z = tfc.add(z, K.dot(hTMinus1, this.recurrentKernel.read()));
+        if (this.useBias) {
+          z = K.biasAdd(z, this.bias.read());
+        }
+
+        const z0 = K.sliceAlongLastAxis(z, 0, this.units);
+        const z1 = K.sliceAlongLastAxis(z, this.units, this.units);
+        const z2 = K.sliceAlongLastAxis(z, this.units * 2, this.units);
+        const z3 = K.sliceAlongLastAxis(z, this.units * 3, this.units);
+
+        i = this.recurrentActivation.apply(z0);
+        f = this.recurrentActivation.apply(z1);
+        c = tfc.add(
+            tfc.mul(f, cTMinus1), tfc.mul(i, this.activation.apply(z2)));
+        o = this.recurrentActivation.apply(z3);
       }
 
-      const z0 = K.sliceAlongLastAxis(z, 0, this.units);
-      const z1 = K.sliceAlongLastAxis(z, this.units, this.units);
-      const z2 = K.sliceAlongLastAxis(z, this.units * 2, this.units);
-      const z3 = K.sliceAlongLastAxis(z, this.units * 3, this.units);
-
-      i = this.recurrentActivation.apply(z0);
-      f = this.recurrentActivation.apply(z1);
-      c = tfc.add(tfc.mul(f, cTMinus1), tfc.mul(i, this.activation.apply(z2)));
-      o = this.recurrentActivation.apply(z3);
-    }
-
-    const h = tfc.mul(o, this.activation.apply(c));
-    // TODO(cais): Add use_learning_phase flag properly.
-    return [h, h, c];
+      const h = tfc.mul(o, this.activation.apply(c));
+      // TODO(cais): Add use_learning_phase flag properly.
+      return [h, h, c];
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -2069,12 +2093,14 @@ export class LSTM extends RNN {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    // TODO(cais): Add dropoutMask and recurrentDropoutMask.
-    const mask = kwargs == null ? null : kwargs['mask'];
-    const training = kwargs == null ? null : kwargs['training'];
-    const initialState: Tensor[] =
-        kwargs == null ? null : kwargs['initialState'];
-    return super.call(inputs, {mask, training, initialState});
+    return tidy(() => {
+      // TODO(cais): Add dropoutMask and recurrentDropoutMask.
+      const mask = kwargs == null ? null : kwargs['mask'];
+      const training = kwargs == null ? null : kwargs['training'];
+      const initialState: Tensor[] =
+          kwargs == null ? null : kwargs['initialState'];
+      return super.call(inputs, {mask, training, initialState});
+    });
   }
 
   get units(): number {
@@ -2216,42 +2242,44 @@ export class StackedRNNCells extends RNNCell {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    inputs = inputs as Tensor[];
-    let states = inputs.slice(1);
+    return tidy(() => {
+      inputs = inputs as Tensor[];
+      let states = inputs.slice(1);
 
-    // Recover per-cell states.
-    const nestedStates: Tensor[][] = [];
-    for (const cell of this.cells.slice().reverse()) {
-      if (Array.isArray(cell.stateSize)) {
-        nestedStates.push(states.splice(0, cell.stateSize.length));
-      } else {
-        nestedStates.push(states.splice(0, 1));
+      // Recover per-cell states.
+      const nestedStates: Tensor[][] = [];
+      for (const cell of this.cells.slice().reverse()) {
+        if (Array.isArray(cell.stateSize)) {
+          nestedStates.push(states.splice(0, cell.stateSize.length));
+        } else {
+          nestedStates.push(states.splice(0, 1));
+        }
       }
-    }
-    nestedStates.reverse();
+      nestedStates.reverse();
 
-    // Call the cells in order and store the returned states.
-    const newNestedStates: Tensor[][] = [];
-    let callInputs: Tensor[];
-    for (let i = 0; i < this.cells.length; ++i) {
-      const cell = this.cells[i];
-      states = nestedStates[i];
-      // TODO(cais): Take care of constants.
-      if (i === 0) {
-        callInputs = [inputs[0]].concat(states);
-      } else {
-        callInputs = [callInputs[0]].concat(states);
+      // Call the cells in order and store the returned states.
+      const newNestedStates: Tensor[][] = [];
+      let callInputs: Tensor[];
+      for (let i = 0; i < this.cells.length; ++i) {
+        const cell = this.cells[i];
+        states = nestedStates[i];
+        // TODO(cais): Take care of constants.
+        if (i === 0) {
+          callInputs = [inputs[0]].concat(states);
+        } else {
+          callInputs = [callInputs[0]].concat(states);
+        }
+        callInputs = cell.call(callInputs, kwargs) as Tensor[];
+        newNestedStates.push(callInputs.slice(1));
       }
-      callInputs = cell.call(callInputs, kwargs) as Tensor[];
-      newNestedStates.push(callInputs.slice(1));
-    }
 
-    // Format the new states as a flat list in reverse cell order.
-    states = [];
-    for (const cellStates of newNestedStates.slice().reverse()) {
-      states.push(...cellStates);
-    }
-    return [callInputs[0]].concat(states);
+      // Format the new states as a flat list in reverse cell order.
+      states = [];
+      for (const cellStates of newNestedStates.slice().reverse()) {
+        states.push(...cellStates);
+      }
+      return [callInputs[0]].concat(states);
+    });
   }
 
   public build(inputShape: Shape|Shape[]): void {

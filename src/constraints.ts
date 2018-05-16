@@ -12,7 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {doc, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {doc, serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
@@ -22,7 +22,7 @@ import {deserializeKerasObject, serializeKerasObject} from './utils/generic_util
  * Helper function used by many of the Constraints to find the L2Norms.
  */
 function calcL2Norms(w: Tensor, axis: number): Tensor {
-  return tfc.sqrt(tfc.sum(K.square(w), axis, true));
+  return tidy(() => tfc.sqrt(tfc.sum(K.square(w), axis, true)));
 }
 
 /**
@@ -85,11 +85,13 @@ export class MaxNorm extends Constraint {
   }
 
   apply(w: Tensor): Tensor {
-    const norms = calcL2Norms(w, this.axis);
-    const desired = tfc.clipByValue(norms, 0, this.maxValue);
-    return tfc.mul(
-        w,
-        tfc.div(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
+    return tidy(() => {
+      const norms = calcL2Norms(w, this.axis);
+      const desired = tfc.clipByValue(norms, 0, this.maxValue);
+      return tfc.mul(
+          w,
+          tfc.div(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -129,9 +131,11 @@ export class UnitNorm extends Constraint {
   }
 
   apply(w: Tensor): Tensor {
-    return tfc.div(
-        w,
-        K.scalarPlusArray(K.getScalar(K.epsilon()), calcL2Norms(w, this.axis)));
+    return tidy(
+        () => tfc.div(
+            w,
+            K.scalarPlusArray(
+                K.getScalar(K.epsilon()), calcL2Norms(w, this.axis))));
   }
 
   getConfig(): serialization.ConfigDict {
@@ -145,8 +149,9 @@ serialization.SerializationMap.register(UnitNorm);
  */
 export class NonNeg extends Constraint {
   static readonly className = 'NonNeg';
+
   apply(w: Tensor): Tensor {
-    return tfc.relu(w);
+    return tidy(() => tfc.relu(w));
   }
 }
 serialization.SerializationMap.register(NonNeg);
@@ -207,15 +212,17 @@ export class MinMaxNorm extends Constraint {
   }
 
   apply(w: Tensor): Tensor {
-    const norms = calcL2Norms(w, this.axis);
-    const desired = tfc.add(
-        K.scalarTimesArray(
-            K.getScalar(this.rate),
-            tfc.clipByValue(norms, this.minValue, this.maxValue)),
-        K.scalarTimesArray(K.getScalar(1.0 - this.rate), norms));
-    return tfc.mul(
-        w,
-        tfc.div(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
+    return tidy(() => {
+      const norms = calcL2Norms(w, this.axis);
+      const desired = tfc.add(
+          K.scalarTimesArray(
+              K.getScalar(this.rate),
+              tfc.clipByValue(norms, this.minValue, this.maxValue)),
+          K.scalarTimesArray(K.getScalar(1.0 - this.rate), norms));
+      return tfc.mul(
+          w,
+          tfc.div(desired, K.scalarPlusArray(K.getScalar(K.epsilon()), norms)));
+    });
   }
 
   getConfig(): serialization.ConfigDict {

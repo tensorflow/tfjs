@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, Tensor3D, Tensor4D, tidy} from '@tensorflow/tfjs-core';
 
 import {imageDataFormat} from '../backend/common';
 import * as K from '../backend/tfjs_backend';
@@ -44,41 +44,43 @@ export function pool2d(
     x: Tensor, poolSize: [number, number], strides?: [number, number],
     padding?: PaddingMode, dataFormat?: DataFormat,
     poolMode?: PoolMode): Tensor {
-  checkDataFormat(dataFormat);
-  checkPoolMode(poolMode);
-  checkPaddingMode(padding);
-  if (strides == null) {
-    strides = [1, 1];
-  }
-  if (padding == null) {
-    padding = 'valid';
-  }
-  if (dataFormat == null) {
-    dataFormat = imageDataFormat();
-  }
-  if (poolMode == null) {
-    poolMode = 'max';
-  }
+  return tidy(() => {
+    checkDataFormat(dataFormat);
+    checkPoolMode(poolMode);
+    checkPaddingMode(padding);
+    if (strides == null) {
+      strides = [1, 1];
+    }
+    if (padding == null) {
+      padding = 'valid';
+    }
+    if (dataFormat == null) {
+      dataFormat = imageDataFormat();
+    }
+    if (poolMode == null) {
+      poolMode = 'max';
+    }
 
-  // TODO(cais): Remove the preprocessing step once deeplearn.js supports
-  // dataFormat as an input argument.
-  x = preprocessConv2DInput(x, dataFormat);  // x is NHWC after preprocessing.
-  let y: Tensor;
-  const paddingString = (padding === 'same') ? 'same' : 'valid';
-  if (poolMode === 'max') {
-    // TODO(cais): Rank check?
-    y = tfc.maxPool(x as Tensor4D, poolSize, strides, paddingString);
-  } else {  // 'avg'
-    // TODO(cais): Check the dtype and rank of x and give clear error message
-    //   if those are incorrect.
-    y = tfc.avgPool(
-        // TODO(cais): Rank check?
-        x as Tensor3D | Tensor4D, poolSize, strides, paddingString);
-  }
-  if (dataFormat === 'channelsFirst') {
-    y = tfc.transpose(y, [0, 3, 1, 2]);  // NHWC -> NCHW.
-  }
-  return y;
+    // TODO(cais): Remove the preprocessing step once deeplearn.js supports
+    // dataFormat as an input argument.
+    x = preprocessConv2DInput(x, dataFormat);  // x is NHWC after preprocessing.
+    let y: Tensor;
+    const paddingString = (padding === 'same') ? 'same' : 'valid';
+    if (poolMode === 'max') {
+      // TODO(cais): Rank check?
+      y = tfc.maxPool(x as Tensor4D, poolSize, strides, paddingString);
+    } else {  // 'avg'
+      // TODO(cais): Check the dtype and rank of x and give clear error message
+      //   if those are incorrect.
+      y = tfc.avgPool(
+          // TODO(cais): Rank check?
+          x as Tensor3D | Tensor4D, poolSize, strides, paddingString);
+    }
+    if (dataFormat === 'channelsFirst') {
+      y = tfc.transpose(y, [0, 3, 1, 2]);  // NHWC -> NCHW.
+    }
+    return y;
+  });
 }
 
 
@@ -135,14 +137,16 @@ export abstract class Pooling1D extends Layer {
       padding: PaddingMode, dataFormat: DataFormat): Tensor;
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    // Add dummy last dimension.
-    inputs = K.expandDims(generic_utils.getExactlyOneTensor(inputs), 2);
-    const output = this.poolingFunction(
-        generic_utils.getExactlyOneTensor(inputs), [this.poolSize[0], 1],
-        [this.strides[0], 1], this.padding, 'channelsLast');
-    // Remove dummy last dimension.
-    return tfc.squeeze(output, [2]);
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      // Add dummy last dimension.
+      inputs = K.expandDims(generic_utils.getExactlyOneTensor(inputs), 2);
+      const output = this.poolingFunction(
+          generic_utils.getExactlyOneTensor(inputs), [this.poolSize[0], 1],
+          [this.strides[0], 1], this.padding, 'channelsLast');
+      // Remove dummy last dimension.
+      return tfc.squeeze(output, [2]);
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -279,10 +283,12 @@ export abstract class Pooling2D extends Layer {
       padding: PaddingMode, dataFormat: DataFormat): Tensor;
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    return this.poolingFunction(
-        generic_utils.getExactlyOneTensor(inputs), this.poolSize, this.strides,
-        this.padding, this.dataFormat);
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      return this.poolingFunction(
+          generic_utils.getExactlyOneTensor(inputs), this.poolSize,
+          this.strides, this.padding, this.dataFormat);
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -402,8 +408,10 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    return tfc.mean(input, 1);
+    return tidy(() => {
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      return tfc.mean(input, 1);
+    });
   }
 }
 serialization.SerializationMap.register(GlobalAveragePooling1D);
@@ -422,8 +430,10 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    return tfc.max(input, 1);
+    return tidy(() => {
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      return tfc.max(input, 1);
+    });
   }
 }
 serialization.SerializationMap.register(GlobalMaxPooling1D);
@@ -488,13 +498,16 @@ export abstract class GlobalPooling2D extends Layer {
  */
 export class GlobalAveragePooling2D extends GlobalPooling2D {
   static className = 'GlobalAveragePooling2D';
+
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    if (this.dataFormat === 'channelsLast') {
-      return tfc.mean(input, [1, 2]);
-    } else {
-      return tfc.mean(input, [2, 3]);
-    }
+    return tidy(() => {
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      if (this.dataFormat === 'channelsLast') {
+        return tfc.mean(input, [1, 2]);
+      } else {
+        return tfc.mean(input, [2, 3]);
+      }
+    });
   }
 }
 serialization.SerializationMap.register(GlobalAveragePooling2D);
@@ -513,13 +526,16 @@ serialization.SerializationMap.register(GlobalAveragePooling2D);
  */
 export class GlobalMaxPooling2D extends GlobalPooling2D {
   static className = 'GlobalMaxPooling2D';
+
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    if (this.dataFormat === 'channelsLast') {
-      return tfc.max(input, [1, 2]);
-    } else {
-      return tfc.max(input, [2, 3]);
-    }
+    return tidy(() => {
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      if (this.dataFormat === 'channelsLast') {
+        return tfc.max(input, [1, 2]);
+      } else {
+        return tfc.max(input, [2, 3]);
+      }
+    });
   }
 }
 serialization.SerializationMap.register(GlobalMaxPooling2D);

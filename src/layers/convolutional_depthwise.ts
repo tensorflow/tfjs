@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor, Tensor4D} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, Tensor4D, tidy} from '@tensorflow/tfjs-core';
 
 import {imageDataFormat} from '../backend/common';
 // tslint:disable:max-line-length
@@ -49,28 +49,30 @@ export function depthwiseConv2d(
     x: Tensor, depthwiseKernel: Tensor, strides: [number, number] = [1, 1],
     padding = 'valid', dataFormat?: DataFormat,
     dilationRate?: [number, number]): Tensor {
-  if (dataFormat == null) {
-    dataFormat = imageDataFormat();
-  }
-  checkDataFormat(dataFormat);
-  let y = preprocessConv2DInput(x, dataFormat);
-  if (K.ndim(x) !== 4) {
-    throw new ValueError(
-        `Input for depthwiseConv2d is required to be 4-D, but is instead ` +
-        `${K.ndim(x)}-D`);
-  }
-  if (K.ndim(depthwiseKernel) !== 4) {
-    throw new ValueError(
-        `depthwiseKernel is required to be 4-D, but is instead ` +
-        `${K.ndim(depthwiseKernel)}-D`);
-  }
-  y = tfc.depthwiseConv2d(
-      y as Tensor4D, depthwiseKernel as Tensor4D, strides,
-      padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
-  if (dataFormat === 'channelsFirst') {
-    y = tfc.transpose(y, [0, 3, 1, 2]);
-  }
-  return y;
+  return tidy(() => {
+    if (dataFormat == null) {
+      dataFormat = imageDataFormat();
+    }
+    checkDataFormat(dataFormat);
+    let y = preprocessConv2DInput(x, dataFormat);
+    if (K.ndim(x) !== 4) {
+      throw new ValueError(
+          `Input for depthwiseConv2d is required to be 4-D, but is instead ` +
+          `${K.ndim(x)}-D`);
+    }
+    if (K.ndim(depthwiseKernel) !== 4) {
+      throw new ValueError(
+          `depthwiseKernel is required to be 4-D, but is instead ` +
+          `${K.ndim(depthwiseKernel)}-D`);
+    }
+    y = tfc.depthwiseConv2d(
+        y as Tensor4D, depthwiseKernel as Tensor4D, strides,
+        padding === 'same' ? 'same' : 'valid', 'NHWC', dilationRate);
+    if (dataFormat === 'channelsFirst') {
+      y = tfc.transpose(y, [0, 3, 1, 2]);
+    }
+    return y;
+  });
 }
 
 export interface DepthwiseConv2DLayerConfig extends BaseConvLayerConfig {
@@ -167,18 +169,20 @@ export class DepthwiseConv2D extends Conv2D {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    inputs = getExactlyOneTensor(inputs);
-    let outputs = depthwiseConv2d(
-        inputs, this.depthwiseKernel.read(), this.strides as [number, number],
-        this.padding, this.dataFormat, null);
-    // TODO(cais): Add support for dilation.
-    if (this.useBias) {
-      outputs = K.biasAdd(outputs, this.bias.read(), this.dataFormat);
-    }
-    if (this.activation != null) {
-      outputs = this.activation.apply(outputs);
-    }
-    return outputs;
+    return tidy(() => {
+      inputs = getExactlyOneTensor(inputs);
+      let outputs = depthwiseConv2d(
+          inputs, this.depthwiseKernel.read(), this.strides as [number, number],
+          this.padding, this.dataFormat, null);
+      // TODO(cais): Add support for dilation.
+      if (this.useBias) {
+        outputs = K.biasAdd(outputs, this.bias.read(), this.dataFormat);
+      }
+      if (this.activation != null) {
+        outputs = this.activation.apply(outputs);
+      }
+      return outputs;
+    });
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {

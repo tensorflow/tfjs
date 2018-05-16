@@ -13,7 +13,7 @@
  *
  * Original source: keras/constraints.py
  */
-import {serialization, Tensor} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import * as K from '../backend/tfjs_backend';
@@ -175,15 +175,17 @@ export class Embedding extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    // Embedding layer accepts only a single input.
-    let input = generic_utils.getExactlyOneTensor(inputs);
-    if (K.dtype(input) !== 'int32') {
-      input = K.cast(input, 'int32');
-    }
-    const output = K.gather(this.embeddings.read(), input.as1D());
-    return K.reshape(
-        output, getExactlyOneShape(this.computeOutputShape(input.shape)));
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      // Embedding layer accepts only a single input.
+      let input = generic_utils.getExactlyOneTensor(inputs);
+      if (K.dtype(input) !== 'int32') {
+        input = K.cast(input, 'int32');
+      }
+      const output = K.gather(this.embeddings.read(), input.as1D());
+      return K.reshape(
+          output, getExactlyOneShape(this.computeOutputShape(input.shape)));
+    });
   }
 
   getConfig(): serialization.ConfigDict {
