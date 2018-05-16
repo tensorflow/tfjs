@@ -12,7 +12,7 @@
  * TensorFlow.js Layers: Basic Layers.
  */
 
-import {Scalar, serialization, Tensor, util} from '@tensorflow/tfjs-core';
+import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import {Activation as ActivationFn, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
@@ -92,24 +92,27 @@ export class Dropout extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    if (this.noiseShape != null &&
-        !util.arraysEqual(input.shape, this.noiseShape)) {
-      throw new NotImplementedError(
-          'Non-default noise shape is not implemented in Dropout layer yet: ' +
-          JSON.stringify(this.noiseShape));
-    }
-    if (0 < this.rate && this.rate < 1) {
-      const training = kwargs['training'] == null ? false : kwargs['training'];
-      const noiseShape = this.getNoiseShape(input);
-      const output =
-          K.inTrainPhase(
-              () => K.dropout(input, this.rateScalar, noiseShape, this.seed),
-              () => input, training) as Tensor;
-      return output;
-    }
-    return inputs;
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      if (this.noiseShape != null &&
+          !util.arraysEqual(input.shape, this.noiseShape)) {
+        throw new NotImplementedError(
+            'Non-default noise shape is not implemented in Dropout ' +
+            'layer yet: ' + JSON.stringify(this.noiseShape));
+      }
+      if (0 < this.rate && this.rate < 1) {
+        const training =
+            kwargs['training'] == null ? false : kwargs['training'];
+        const noiseShape = this.getNoiseShape(input);
+        const output =
+            K.inTrainPhase(
+                () => K.dropout(input, this.rateScalar, noiseShape, this.seed),
+                () => input, training) as Tensor;
+        return output;
+      }
+      return inputs;
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -281,17 +284,19 @@ export class Dense extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    // Dense layer accepts only a single input.
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    let output = K.dot(input, this.kernel.read());
-    if (this.bias != null) {
-      output = K.biasAdd(output, this.bias.read());
-    }
-    if (this.activation != null) {
-      output = this.activation.apply(output);
-    }
-    return output;
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      // Dense layer accepts only a single input.
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      let output = K.dot(input, this.kernel.read());
+      if (this.bias != null) {
+        output = K.biasAdd(output, this.bias.read());
+      }
+      if (this.activation != null) {
+        output = this.activation.apply(output);
+      }
+      return output;
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -353,8 +358,10 @@ export class Flatten extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    return K.batchFlatten(generic_utils.getExactlyOneTensor(inputs));
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      return K.batchFlatten(generic_utils.getExactlyOneTensor(inputs));
+    });
   }
 }
 serialization.SerializationMap.register(Flatten);
@@ -407,9 +414,11 @@ export class Activation extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    return this.activation.apply(input);
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      return this.activation.apply(input);
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -460,8 +469,10 @@ export class RepeatVector extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    inputs = getExactlyOneTensor(inputs);
-    return K.repeat(inputs, this.n);
+    return tidy(() => {
+      inputs = getExactlyOneTensor(inputs);
+      return K.repeat(inputs, this.n);
+    });
   }
 
   getConfig(): serialization.ConfigDict {
@@ -572,12 +583,14 @@ export class Reshape extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    this.invokeCallHook(inputs, kwargs);
-    const input = generic_utils.getExactlyOneTensor(inputs);
-    const inputShape = K.shape(input);
-    const outputShape = inputShape.slice(0, 1).concat(
-        this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
-    return K.reshape(input, outputShape);
+    return tidy(() => {
+      this.invokeCallHook(inputs, kwargs);
+      const input = generic_utils.getExactlyOneTensor(inputs);
+      const inputShape = K.shape(input);
+      const outputShape = inputShape.slice(0, 1).concat(
+          this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
+      return K.reshape(input, outputShape);
+    });
   }
 }
 serialization.SerializationMap.register(Reshape);

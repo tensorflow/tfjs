@@ -13,7 +13,7 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor, util} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -129,70 +129,73 @@ export abstract class Merge extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    inputs = inputs as Tensor[];
-    if (this.reshapeRequired) {
-      const reshapedInputs: Tensor[] = [];
-      const inputDims = inputs.map(input => K.ndim(input));
-      if (inputDims.indexOf(null) === -1) {
-        // If ranks of all inputs are available, we simply expand each of them
-        // at axis=1 until all of them have the same rank.
-        const maxNDim = mathUtils.max(inputDims);
-        for (let x of inputs) {
-          const xNDim = K.ndim(x);
-          for (let k = 0; k < maxNDim - xNDim; ++k) {
-            x = K.expandDims(x, 1);
-          }
-          reshapedInputs.push(x);
-        }
-        return this.mergeFunction(reshapedInputs);
-      } else {
-        // Transpose all inputs so that batch size is the last dimension.
-        // [batchSize, dim1, dim2, ...] -> [dim1, dim2, ..., batchSize]
-        let transposed = false;
-        for (const x of inputs) {
-          const xNDim = K.ndim(x);
-          if (xNDim == null) {
-            const xShape = K.shape(x);
-            const batchSize = xShape[0];
-            const newShape = xShape.slice(1).concat([batchSize]);
-            let xTransposed = K.reshape(
-                x, [batchSize].concat(mathUtils.arrayProd(xShape.slice(1))));
-            xTransposed = tfc.transpose(xTransposed, [1, 0]);
-            xTransposed = K.reshape(xTransposed, newShape);
-            reshapedInputs.push(xTransposed);
-            transposed = true;
-          } else if (xNDim > 1) {
-            const dims = mathUtils.range(1, xNDim).concat([0]);
-            reshapedInputs.push(tfc.transpose(x, dims));
-            transposed = true;
-          } else {
-            // We don't transpose inputs if they are 1D vectors or scalars.
+    return tidy(() => {
+      inputs = inputs as Tensor[];
+      if (this.reshapeRequired) {
+        const reshapedInputs: Tensor[] = [];
+        const inputDims = inputs.map(input => K.ndim(input));
+        if (inputDims.indexOf(null) === -1) {
+          // If ranks of all inputs are available, we simply expand each of them
+          // at axis=1 until all of them have the same rank.
+          const maxNDim = mathUtils.max(inputDims);
+          for (let x of inputs) {
+            const xNDim = K.ndim(x);
+            for (let k = 0; k < maxNDim - xNDim; ++k) {
+              x = K.expandDims(x, 1);
+            }
             reshapedInputs.push(x);
           }
-        }
-        let y = this.mergeFunction(reshapedInputs);
-        const yNDim = K.ndim(y);
-        if (transposed) {
-          // If inputs have been transposed, we have to transpose the output
-          // too.
-          if (yNDim == null) {
-            const yShape = K.shape(y);
-            const yNDim = yShape.length;
-            const batchSize = yShape[yNDim - 1];
-            const newShape =
-                [batchSize].concat(yShape.slice(0, yShape.length - 1));
-            y = K.reshape(
-                tfc.transpose(K.reshape(y, [-1, batchSize]), [1, 0]), newShape);
-          } else if (yNDim > 1) {
-            const dims = [yNDim - 1].concat(mathUtils.range(0, yNDim - 1));
-            y = tfc.transpose(y, dims);
+          return this.mergeFunction(reshapedInputs);
+        } else {
+          // Transpose all inputs so that batch size is the last dimension.
+          // [batchSize, dim1, dim2, ...] -> [dim1, dim2, ..., batchSize]
+          let transposed = false;
+          for (const x of inputs) {
+            const xNDim = K.ndim(x);
+            if (xNDim == null) {
+              const xShape = K.shape(x);
+              const batchSize = xShape[0];
+              const newShape = xShape.slice(1).concat([batchSize]);
+              let xTransposed = K.reshape(
+                  x, [batchSize].concat(mathUtils.arrayProd(xShape.slice(1))));
+              xTransposed = tfc.transpose(xTransposed, [1, 0]);
+              xTransposed = K.reshape(xTransposed, newShape);
+              reshapedInputs.push(xTransposed);
+              transposed = true;
+            } else if (xNDim > 1) {
+              const dims = mathUtils.range(1, xNDim).concat([0]);
+              reshapedInputs.push(tfc.transpose(x, dims));
+              transposed = true;
+            } else {
+              // We don't transpose inputs if they are 1D vectors or scalars.
+              reshapedInputs.push(x);
+            }
           }
+          let y = this.mergeFunction(reshapedInputs);
+          const yNDim = K.ndim(y);
+          if (transposed) {
+            // If inputs have been transposed, we have to transpose the output
+            // too.
+            if (yNDim == null) {
+              const yShape = K.shape(y);
+              const yNDim = yShape.length;
+              const batchSize = yShape[yNDim - 1];
+              const newShape =
+                  [batchSize].concat(yShape.slice(0, yShape.length - 1));
+              y = K.reshape(
+                  tfc.transpose(K.reshape(y, [-1, batchSize]), [1, 0]),
+                  newShape);
+            } else if (yNDim > 1) {
+              const dims = [yNDim - 1].concat(mathUtils.range(0, yNDim - 1));
+              y = tfc.transpose(y, dims);
+            }
+          }
+          return y;
         }
-        return y;
+      } else {
+        return this.mergeFunction(inputs);
       }
-    } else {
-      return this.mergeFunction(inputs);
-    }
+    });
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
@@ -251,11 +254,13 @@ export class Add extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = tfc.zeros(inputs[0].shape);
-    for (const input of inputs) {
-      output = tfc.add(output, input);
-    }
-    return output;
+    return tidy(() => {
+      let output = tfc.zeros(inputs[0].shape);
+      for (const input of inputs) {
+        output = tfc.add(output, input);
+      }
+      return output;
+    });
   }
 }
 serialization.SerializationMap.register(Add);
@@ -341,11 +346,13 @@ export class Multiply extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = tfc.ones(inputs[0].shape);
-    for (const input of inputs) {
-      output = tfc.mul(output, input);
-    }
-    return output;
+    return tidy(() => {
+      let output = tfc.ones(inputs[0].shape);
+      for (const input of inputs) {
+        output = tfc.mul(output, input);
+      }
+      return output;
+    });
   }
 }
 serialization.SerializationMap.register(Multiply);
@@ -430,11 +437,13 @@ export class Average extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = tfc.zeros(inputs[0].shape);
-    for (const input of inputs) {
-      output = tfc.add(output, input);
-    }
-    return K.scalarTimesArray(K.getScalar(1 / inputs.length), output);
+    return tidy(() => {
+      let output = tfc.zeros(inputs[0].shape);
+      for (const input of inputs) {
+        output = tfc.add(output, input);
+      }
+      return K.scalarTimesArray(K.getScalar(1 / inputs.length), output);
+    });
   }
 }
 serialization.SerializationMap.register(Average);
@@ -520,11 +529,13 @@ export class Maximum extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = inputs[0];
-    for (let i = 1; i < inputs.length; ++i) {
-      output = tfc.maximum(output, inputs[i]);
-    }
-    return output;
+    return tidy(() => {
+      let output = inputs[0];
+      for (let i = 1; i < inputs.length; ++i) {
+        output = tfc.maximum(output, inputs[i]);
+      }
+      return output;
+    });
   }
 }
 serialization.SerializationMap.register(Maximum);
@@ -609,11 +620,13 @@ export class Minimum extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    let output = inputs[0];
-    for (let i = 1; i < inputs.length; ++i) {
-      output = tfc.minimum(output, inputs[i]);
-    }
-    return output;
+    return tidy(() => {
+      let output = inputs[0];
+      for (let i = 1; i < inputs.length; ++i) {
+        output = tfc.minimum(output, inputs[i]);
+      }
+      return output;
+    });
   }
 }
 serialization.SerializationMap.register(Minimum);
@@ -760,7 +773,9 @@ export class Concatenate extends Merge {
   }
 
   protected mergeFunction(inputs: Tensor[]): Tensor {
-    return K.concatenate(inputs, this.axis);
+    return tidy(() => {
+      return K.concatenate(inputs, this.axis);
+    });
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {

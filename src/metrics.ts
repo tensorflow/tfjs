@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {Tensor} from '@tensorflow/tfjs-core';
+import {Tensor, tidy} from '@tensorflow/tfjs-core';
 import * as K from './backend/tfjs_backend';
 import {NotImplementedError, ValueError} from './errors';
 import {categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
@@ -50,9 +50,11 @@ import {LossOrMetricFn} from './types';
  */
 export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   // TODO(cais): Maybe avoid creating a new Scalar on every invocation.
-  const threshold = K.scalarTimesArray(K.getScalar(0.5), tfc.onesLike(yPred));
-  const yPredThresholded = K.cast(tfc.greater(yPred, threshold), yTrue.dtype);
-  return tfc.mean(tfc.equal(yTrue, yPredThresholded), -1);
+  return tidy(() => {
+    const threshold = K.scalarTimesArray(K.getScalar(0.5), tfc.onesLike(yPred));
+    const yPredThresholded = K.cast(tfc.greater(yPred, threshold), yTrue.dtype);
+    return tfc.mean(tfc.equal(yTrue, yPredThresholded), -1);
+  });
 }
 
 /**
@@ -72,8 +74,9 @@ export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
  * @return Accuracy Tensor.
  */
 export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
-  return K.cast(
-      tfc.equal(tfc.argMax(yTrue, -1), tfc.argMax(yPred, -1)), 'float32');
+  return tidy(
+      () => K.cast(
+          tfc.equal(tfc.argMax(yTrue, -1), tfc.argMax(yPred, -1)), 'float32'));
 }
 
 /**
@@ -92,7 +95,7 @@ export function categoricalAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
  * @return Accuracy Tensor.
  */
 export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
-  return tfc.mean(K.binaryCrossentropy(yTrue, yPred), -1);
+  return tidy(() => tfc.mean(K.binaryCrossentropy(yTrue, yPred), -1));
 }
 
 export function sparseCategoricalAccuracy(

@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {serialization, Tensor} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
@@ -217,22 +217,24 @@ export class TimeDistributed extends Wrapper {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    // TODO(cais): Add 'training' and 'useLearningPhase' to kwargs.
-    inputs = generic_utils.getExactlyOneTensor(inputs);
-    // Porting Note: In tfjs-layers, `inputs` are always concrete tensor values.
-    // Hence the inputs can't have an undetermined first (batch) dimension,
-    // which is why we always use the K.rnn approach here.
-    const step: RnnStepFunction = (inputs: Tensor, states: Tensor[]) => {
+    return tidy(() => {
+      // TODO(cais): Add 'training' and 'useLearningPhase' to kwargs.
+      inputs = generic_utils.getExactlyOneTensor(inputs);
+      // Porting Note: In tfjs-layers, `inputs` are always concrete tensor
+      // values. Hence the inputs can't have an undetermined first (batch)
+      // dimension, which is why we always use the K.rnn approach here.
+      const step: RnnStepFunction = (inputs: Tensor, states: Tensor[]) => {
+        // TODO(cais): Add useLearningPhase.
+        const output = this.layer.call(inputs, kwargs) as Tensor;
+        return [output, []];
+      };
+      const rnnOutputs =
+          rnn(step, inputs, [], false, null, null, false, inputs.shape[1]);
+      const y = rnnOutputs[1];
+      // TODO(cais): Add activity regularization.
       // TODO(cais): Add useLearningPhase.
-      const output = this.layer.call(inputs, kwargs) as Tensor;
-      return [output, []];
-    };
-    const rnnOutputs =
-        rnn(step, inputs, [], false, null, null, false, inputs.shape[1]);
-    const y = rnnOutputs[1];
-    // TODO(cais): Add activity regularization.
-    // TODO(cais): Add useLearningPhase.
-    return y;
+      return y;
+    });
   }
 }
 serialization.SerializationMap.register(TimeDistributed);
@@ -382,57 +384,59 @@ export class Bidirectional extends Wrapper {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    if (kwargs['mask'] != null) {
-      throw new NotImplementedError(
-          'The support for masking is not implemented for ' +
-          'Bidirectional layers yet.');
-    }
-    if (kwargs['initialState'] != null) {
-      throw new NotImplementedError(
-          'The support for initial states is not implemented for ' +
-          'Bidirectional layers yet.');
-    }
-
-    // TODO(cais): Implement support for initial state.
-    let y = this.forwardLayer.call(inputs, kwargs);
-    let yRev = this.backwardLayer.call(inputs, kwargs);
-
-    let states: Tensor[];
-    if (this.returnState) {
-      if (Array.isArray(y)) {
-        states = (y as Tensor[]).slice(1).concat((yRev as Tensor[]).slice(1));
-      } else {
+    return tidy(() => {
+      if (kwargs['mask'] != null) {
+        throw new NotImplementedError(
+            'The support for masking is not implemented for ' +
+            'Bidirectional layers yet.');
       }
-      y = (y as Tensor[])[0];
-      yRev = (yRev as Tensor[])[0];
-    }
-
-    if (this.returnSequences) {
-      yRev = tfc.reverse(yRev as Tensor, 1);
-    }
-
-    let output: Tensor|Tensor[];
-    if (this.mergeMode === 'concat') {
-      output = K.concatenate([y as Tensor, yRev as Tensor]);
-    } else if (this.mergeMode === 'sum') {
-      output = tfc.add(y as Tensor, yRev as Tensor);
-    } else if (this.mergeMode === 'ave') {
-      output = K.scalarTimesArray(
-          K.getScalar(0.5), tfc.add(y as Tensor, yRev as Tensor));
-    } else if (this.mergeMode === 'mul') {
-      output = tfc.mul(y as Tensor, yRev as Tensor);
-    } else if (this.mergeMode == null) {
-      output = [y as Tensor, yRev as Tensor];
-    }
-
-    // TODO(cais): Properly set learning phase.
-    if (this.returnState) {
-      if (this.mergeMode == null) {
-        return (output as Tensor[]).concat(states);
+      if (kwargs['initialState'] != null) {
+        throw new NotImplementedError(
+            'The support for initial states is not implemented for ' +
+            'Bidirectional layers yet.');
       }
-      return [output as Tensor].concat(states);
-    }
-    return output;
+
+      // TODO(cais): Implement support for initial state.
+      let y = this.forwardLayer.call(inputs, kwargs);
+      let yRev = this.backwardLayer.call(inputs, kwargs);
+
+      let states: Tensor[];
+      if (this.returnState) {
+        if (Array.isArray(y)) {
+          states = (y as Tensor[]).slice(1).concat((yRev as Tensor[]).slice(1));
+        } else {
+        }
+        y = (y as Tensor[])[0];
+        yRev = (yRev as Tensor[])[0];
+      }
+
+      if (this.returnSequences) {
+        yRev = tfc.reverse(yRev as Tensor, 1);
+      }
+
+      let output: Tensor|Tensor[];
+      if (this.mergeMode === 'concat') {
+        output = K.concatenate([y as Tensor, yRev as Tensor]);
+      } else if (this.mergeMode === 'sum') {
+        output = tfc.add(y as Tensor, yRev as Tensor);
+      } else if (this.mergeMode === 'ave') {
+        output = K.scalarTimesArray(
+            K.getScalar(0.5), tfc.add(y as Tensor, yRev as Tensor));
+      } else if (this.mergeMode === 'mul') {
+        output = tfc.mul(y as Tensor, yRev as Tensor);
+      } else if (this.mergeMode == null) {
+        output = [y as Tensor, yRev as Tensor];
+      }
+
+      // TODO(cais): Properly set learning phase.
+      if (this.returnState) {
+        if (this.mergeMode == null) {
+          return (output as Tensor[]).concat(states);
+        }
+        return [output as Tensor].concat(states);
+      }
+      return output;
+    });
   }
 
   resetStates(states?: Tensor|Tensor[]): void {
