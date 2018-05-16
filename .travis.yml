@@ -1,3 +1,5 @@
+git:
+  depth: 5
 cache: yarn
 matrix:
   include:
