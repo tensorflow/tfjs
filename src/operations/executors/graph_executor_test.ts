@@ -124,4 +124,12 @@ describe('graph', () => {
       expect(executeOp(node, {input: input1}, context)).toEqual(input1);
     });
   });
+  describe('fakeQuantWithMinMaxVars', () => {
+    it('should return input', () => {
+      node.inputNames = ['input'];
+      node.params.x = createTensorAttr(0);
+      node.op = 'fakeQuantWithMinMaxVars';
+      expect(executeOp(node, {input: input1}, context)).toEqual(input1);
+    });
+  });
 });
