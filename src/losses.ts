@@ -145,7 +145,8 @@ export function logcosh(yTrue: Tensor, yPred: Tensor): Tensor {
     const logcoshResult = tfc.sub(
         tfc.add(
             predictionDiff,
-            K.softplus(K.scalarTimesArray(K.getScalar(-2.0), predictionDiff))),
+            tfc.softplus(
+                K.scalarTimesArray(K.getScalar(-2.0), predictionDiff))),
         log2);
     return tfc.mean(logcoshResult, -1);
   });

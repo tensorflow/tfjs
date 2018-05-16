@@ -151,7 +151,7 @@ export class NonNeg extends Constraint {
   static readonly className = 'NonNeg';
 
   apply(w: Tensor): Tensor {
-    return tidy(() => tfc.relu(w));
+    return tfc.relu(w);
   }
 }
 serialization.SerializationMap.register(NonNeg);

@@ -63,7 +63,7 @@ export class Zeros extends Initializer {
   static className = 'Zeros';
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return tidy(() => zeros(shape, dtype));
+    return zeros(shape, dtype);
   }
 }
 serialization.SerializationMap.register(Zeros);
@@ -75,7 +75,7 @@ export class Ones extends Initializer {
   static className = 'Ones';
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return tidy(() => ones(shape, dtype));
+    return ones(shape, dtype);
   }
 }
 serialization.SerializationMap.register(Ones);
@@ -141,7 +141,7 @@ export class RandomUniform extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return tidy(() => randomUniform(shape, this.minval, this.maxval, dtype));
+    return randomUniform(shape, this.minval, this.maxval, dtype);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -179,13 +179,11 @@ export class RandomNormal extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return tidy(() => {
-      if (dtype === 'bool') {
-        throw new NotImplementedError(
-            `randomNormal does not support dType bool.`);
-      }
-      return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
-    });
+    if (dtype === 'bool') {
+      throw new NotImplementedError(
+          `randomNormal does not support dType bool.`);
+    }
+    return K.randomNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -228,13 +226,11 @@ export class TruncatedNormal extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return tidy(() => {
-      if (dtype === 'bool') {
-        throw new NotImplementedError(
-            `truncatedNormal does not support dType bool.`);
-      }
-      return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
-    });
+    if (dtype === 'bool') {
+      throw new NotImplementedError(
+          `truncatedNormal does not support dType bool.`);
+    }
+    return truncatedNormal(shape, this.mean, this.stddev, dtype, this.seed);
   }
 
   getConfig(): serialization.ConfigDict {
@@ -367,31 +363,29 @@ export class VarianceScaling extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return tidy(() => {
-      const fans = computeFans(shape);
-      const fanIn = fans[0];
-      const fanOut = fans[1];
-      let scale = this.scale;
-      if (this.mode === 'fanIn') {
-        scale /= Math.max(1, fanIn);
-      } else if (this.mode === 'fanOut') {
-        scale /= Math.max(1, fanOut);
-      } else {
-        scale /= Math.max(1, (fanIn + fanOut) / 2);
-      }
+    const fans = computeFans(shape);
+    const fanIn = fans[0];
+    const fanOut = fans[1];
+    let scale = this.scale;
+    if (this.mode === 'fanIn') {
+      scale /= Math.max(1, fanIn);
+    } else if (this.mode === 'fanOut') {
+      scale /= Math.max(1, fanOut);
+    } else {
+      scale /= Math.max(1, (fanIn + fanOut) / 2);
+    }
 
-      if (this.distribution === 'normal') {
-        const stddev = Math.sqrt(scale);
-        if (dtype === 'bool') {
-          throw new NotImplementedError(
-              `${this.getClassName()} does not support dType bool.`);
-        }
-        return truncatedNormal(shape, 0, stddev, dtype, this.seed);
-      } else {
-        const limit = Math.sqrt(3 * scale);
-        return randomUniform(shape, -limit, limit, dtype);
+    if (this.distribution === 'normal') {
+      const stddev = Math.sqrt(scale);
+      if (dtype === 'bool') {
+        throw new NotImplementedError(
+            `${this.getClassName()} does not support dType bool.`);
       }
-    });
+      return truncatedNormal(shape, 0, stddev, dtype, this.seed);
+    } else {
+      const limit = Math.sqrt(3 * scale);
+      return randomUniform(shape, -limit, limit, dtype);
+    }
   }
 
   getConfig(): serialization.ConfigDict {
