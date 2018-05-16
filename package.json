@@ -44,7 +44,7 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project tsconfig-es5.json",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
@@ -54,7 +54,7 @@
     "release-notes": "ts-node -O '{\"module\": \"commonjs\"}' ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "0.8.3",
-    "@tensorflow/tfjs-layers": "0.5.2"
+    "@tensorflow/tfjs-core": "0.10.1",
+    "@tensorflow/tfjs-layers": "0.5.4"
   }
 }
