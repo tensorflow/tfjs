@@ -54,7 +54,7 @@
     "release-notes": "ts-node -O '{\"module\": \"commonjs\"}' ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "link:.yalc/@tensorflow/tfjs-core",
-    "@tensorflow/tfjs-layers": "link:.yalc/@tensorflow/tfjs-layers"
+    "@tensorflow/tfjs-core": "0.8.3",
+    "@tensorflow/tfjs-layers": "0.5.2"
   }
 }
