@@ -226,15 +226,15 @@ export function basename(path: string): string {
  * @param modelArtifacts
  * @returns A ModelArtifactsInfo object.
  */
-export function getModelArtifactsInfoForKerasJSON(
-    modelArtifacts: ModelArtifacts): ModelArtifactsInfo {
+export function getModelArtifactsInfoForJSON(modelArtifacts: ModelArtifacts):
+    ModelArtifactsInfo {
   if (modelArtifacts.modelTopology instanceof ArrayBuffer) {
     throw new Error('Expected JSON model topology, received ArrayBuffer.');
   }
 
   return {
     dateSaved: new Date(),
-    modelTopologyType: 'KerasJSON',
+    modelTopologyType: 'JSON',
     modelTopologyBytes: modelArtifacts.modelTopology == null ?
         0 :
         stringByteLength(JSON.stringify(modelArtifacts.modelTopology)),

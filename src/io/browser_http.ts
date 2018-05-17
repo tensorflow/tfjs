@@ -24,7 +24,7 @@
 import {ENV} from '../environment';
 import {assert} from '../util';
 
-import {getModelArtifactsInfoForKerasJSON} from './io_utils';
+import {getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 // tslint:disable-next-line:max-line-length
 import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig} from './types';
@@ -94,7 +94,7 @@ export class BrowserHTTPRequest implements IOHandler {
 
     if (response.status === 200) {
       return {
-        modelArtifactsInfo: getModelArtifactsInfoForKerasJSON(modelArtifacts),
+        modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts),
         responses: [response],
       };
     } else {

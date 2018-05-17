@@ -132,12 +132,12 @@ export interface ModelArtifactsInfo {
    * Type of the model topology
    *
    * Possible values:
-   *   - KerasJSON: Keras-style JSON config (human-readable string).
+   *   - JSON: JSON config (human-readable, e.g., Keras JSON).
    *   - GraphDef: TensorFlow
    *     [GraphDef](https://www.tensorflow.org/extend/tool_developers/#graphdef)
    *     protocal buffer (binary).
    */
-  modelTopologyType: 'KerasJSON'|'GraphDef';
+  modelTopologyType: 'JSON'|'GraphDef';
 
   /**
    * Size of model topology (Keras JSON or GraphDef), in bytes.
@@ -207,4 +207,35 @@ export type SaveHandler = (modelArtifact: ModelArtifacts) =>
 export interface IOHandler {
   save?: SaveHandler;
   load?: LoadHandler;
+}
+
+/**
+ * An interface for the manager of a model store.
+ *
+ * A model store is defined as a storage medium on which multiple models can
+ * be stored. Each stored model has a unique `path` as its identifier.
+ * A `ModelStoreManager` for the store allows actions including
+ *
+ * - Listing the models stored in the store.
+ * - Deleting a model from the store.
+ */
+export interface ModelStoreManager {
+  /**
+   * List all models in the model store.
+   *
+   * @returns A dictionary mapping paths of existing models to their
+   *   model artifacts info. Model artifacts info include type of the model's
+   *   topology, byte sizes of the topology, weights, etc.
+   */
+  listModels(): Promise<{[path: string]: ModelArtifactsInfo}>;
+
+  /**
+   * Remove a model specified by `path`.
+   *
+   * @param path
+   * @returns ModelArtifactsInfo of the deleted model (if and only if deletion
+   *   is successful).
+   * @throws Error if deletion fails, e.g., if no model exists at `path`.
+   */
+  removeModel(path: string): Promise<ModelArtifactsInfo>;
 }
