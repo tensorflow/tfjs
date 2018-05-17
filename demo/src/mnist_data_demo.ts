@@ -16,12 +16,12 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {bindTensorFlowBackend} from '@tensorflow/tfjs-node';
+import '@tensorflow/tfjs-node';
 
 import {MnistDataset} from './mnist_data';
 import {Timer} from './timer';
 
-bindTensorFlowBackend();
+tf.setBackend('tensorflow');
 
 function testPrint(image: tf.Tensor, label: tf.Tensor) {
   const data = image.dataSync();
