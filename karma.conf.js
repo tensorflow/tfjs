@@ -25,7 +25,8 @@ module.exports = function(config) {
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.json',
       compilerOptions: {
-        module: 'commonjs'
+        module: 'commonjs',
+        sourceMap: true
       }
     },
     reporters: ['progress', 'karma-typescript'],

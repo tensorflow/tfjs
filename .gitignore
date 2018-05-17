@@ -9,8 +9,10 @@ npm-debug.log
 yarn-error.log
 .DS_Store
 dist/
+dist-es6/
 .idea/
 *.tgz
 **/*.pyc
 .yalc/
 yalc.lock
+.rpt2_cache/
