@@ -124,7 +124,7 @@ export function rnn(
   const timeSteps = inputs.shape[0];
   for (let t = 0; t < timeSteps; ++t) {
     let currentInput = K.sliceAlongFirstAxis(inputs, t, 1);
-    currentInput = K.reshape(currentInput, currentInput.shape.slice(1));
+    currentInput = currentInput.reshape(currentInput.shape.slice(1));
     const stepOutputs = stepFunction(currentInput, states);
     lastOutput = stepOutputs[0];
     if (t === 0) {
