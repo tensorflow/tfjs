@@ -119,7 +119,7 @@ const cat = document.getElementById('cat');
 model.execute({input: tf.fromPixels(cat)});
 ```
 
-Check out our working [MobileNet demo](./demo/README.md).
+Check out our working [MobileNet demo](./demo/mobilenet/README.md).
 
 If your server requests credentials for accessing the model files, you can provide the optional RequestOption param.
 
