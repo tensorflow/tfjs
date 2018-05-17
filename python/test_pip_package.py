@@ -248,6 +248,17 @@ class APIAndShellTest(tf.test.TestCase):
     self.assertGreater(process.returncode, 0)
     self.assertIn(b'--input_format', tf.compat.as_bytes(stderr))
 
+  def testMissingInputPathRaisesError(self):
+    process = subprocess.Popen(
+        [
+            'tensorflowjs_converter'
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
+    _, stderr = process.communicate()
+    self.assertGreater(process.returncode, 0)
+    self.assertIn(b'input_path', tf.compat.as_bytes(stderr))
+
   def testKerasH5ConversionWorksFromCLI(self):
     # First create a toy keras model.
     os.makedirs(os.path.join(self._tmp_dir, 'keras_h5'))
