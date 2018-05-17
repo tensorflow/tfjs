@@ -3,6 +3,7 @@ package-lock.json
 npm-debug.log
 .DS_Store
 dist/
+dist-es6/
 tensorflow-tfjs-*.tgz
 yarn-error.log
 .yalc/
