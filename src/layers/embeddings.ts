@@ -183,8 +183,8 @@ export class Embedding extends Layer {
         input = K.cast(input, 'int32');
       }
       const output = K.gather(this.embeddings.read(), input.as1D());
-      return K.reshape(
-          output, getExactlyOneShape(this.computeOutputShape(input.shape)));
+      return output.reshape(
+          getExactlyOneShape(this.computeOutputShape(input.shape)));
     });
   }
 

@@ -223,13 +223,13 @@ export class BatchNormalization extends Layer {
       const normalizeInference: () => Tensor = () => {
         if (needsBroadcasting) {
           const broadcastMovingMean =
-              K.reshape(this.movingMean.read(), broadcastShape);
+              this.movingMean.read().reshape(broadcastShape);
           const broadcastMovingVariance =
-              K.reshape(this.movingVariance.read(), broadcastShape);
+              this.movingVariance.read().reshape(broadcastShape);
           const broadcastBeta =
-              this.center ? K.reshape(this.beta.read(), broadcastShape) : null;
+              this.center ? this.beta.read().reshape(broadcastShape) : null;
           const broadcastGamma =
-              this.scale ? K.reshape(this.gamma.read(), broadcastShape) : null;
+              this.scale ? this.gamma.read().reshape(broadcastShape) : null;
           return K.batchNormalization(
               input, broadcastMovingMean, broadcastMovingVariance,
               broadcastBeta, broadcastGamma, this.epsilon);

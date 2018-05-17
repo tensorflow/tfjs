@@ -589,7 +589,7 @@ export class Reshape extends Layer {
       const inputShape = K.shape(input);
       const outputShape = inputShape.slice(0, 1).concat(
           this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
-      return K.reshape(input, outputShape);
+      return input.reshape(outputShape);
     });
   }
 }

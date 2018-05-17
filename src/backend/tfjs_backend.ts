@@ -153,17 +153,6 @@ export function cast(x: Tensor, dtype: 'float32'|'int32'|'bool'): Tensor {
 }
 
 /**
- * Reshape tensor to specified shape.
- * @param x Input tensor.
- * @param shape Target shape.
- * @return The resultant tensor of the reshaping.
- */
-export function reshape(x: Tensor, shape: Shape): Tensor {
-  // TODO(cais): Should this call TensorMath.reshape instead for backprop?
-  return x.reshape(shape);
-}
-
-/**
  * Adds a 1-sized dimension at index "axis".
  * @param x Input tensor.
  * @param axis Position where to add the new axis.
@@ -175,7 +164,7 @@ export function expandDims(x: Tensor, axis = -1): Tensor {
     axis = outShape.length + axis + 1;
   }
   outShape.splice(axis, 0, 1);
-  return reshape(x, outShape);
+  return x.reshape(outShape);
 }
 
 /**
@@ -208,7 +197,7 @@ export function repeat(x: Tensor, n: number): Tensor {
  */
 export function flatten(x: Tensor): Tensor {
   const newShape = [math_utils.arrayProd(x.shape)];
-  return reshape(x, newShape);
+  return x.reshape(newShape);
 }
 
 /**
@@ -225,7 +214,7 @@ export function batchFlatten(x: Tensor): Tensor {
         `batchFlatten requires a minimum rank of 2. Got rank: ${ndim(x)}.`);
   }
   const newShape = [x.shape[0], math_utils.arrayProd(x.shape, 1)];
-  return reshape(x, newShape);
+  return x.reshape(newShape);
 }
 
 /**
@@ -425,12 +414,12 @@ function broadcastNormalizeBatchInTraining(
                targetShape.push(x.shape[axis]);
              }
            }
-           const broadcastMean = reshape(mean, targetShape);
-           const broadcastVariance = reshape(variance, targetShape);
+           const broadcastMean = mean.reshape(targetShape);
+           const broadcastVariance = variance.reshape(targetShape);
            const broadcastGamma =
-               gamma == null ? null : reshape(gamma, targetShape);
+               gamma == null ? null : gamma.reshape(targetShape);
            const broadcastBeta =
-               beta == null ? null : reshape(beta, targetShape);
+               beta == null ? null : beta.reshape(targetShape);
            const normed = batchNormalization(
                x, broadcastMean, broadcastVariance, broadcastBeta,
                broadcastGamma, epsilon);
@@ -1093,9 +1082,9 @@ export function sparseCategoricalCrossentropy(
   return tidy(() => {
     const flatTarget = tfc.floor(flatten(target)).toInt() as Tensor1D;
     const outputShape = shape(output);
-    const oneHotTarget = reshape(
-        tfc.oneHot(flatTarget, outputShape[outputShape.length - 1]),
-        outputShape);
+    const oneHotTarget =
+        tfc.oneHot(flatTarget, outputShape[outputShape.length - 1])
+            .reshape(outputShape);
     return categoricalCrossentropy(oneHotTarget, output, fromLogits);
   });
 }
