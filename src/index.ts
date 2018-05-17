@@ -11,7 +11,6 @@
 // This file lists all exports of TensorFlow.js Layers
 
 // tslint:disable:max-line-length
-import * as backend from './backend/tfjs_backend';
 import {ConstraintExports, InitializerExports, LayerExports, MetricExports, ModelExports, RegularizerExports} from './exports';
 
 export {Callback, CallbackList, CustomCallback, CustomCallbackConfig, Logs} from './callbacks';
@@ -20,8 +19,6 @@ export {GRUCellLayerConfig, GRULayerConfig, LSTMCellLayerConfig, LSTMLayerConfig
 export {ModelAndWeightsConfig, Sequential, SequentialConfig} from './models';
 export {Shape, SymbolicTensor} from './types';
 export {version as version_layers} from './version';
-
-export {backend};
 
 // tslint:enable:max-line-length
 
