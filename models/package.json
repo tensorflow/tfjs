@@ -1,6 +1,0 @@
-{
-  "browserify-shim": {
-    "deeplearn": "global:dl"
-  },
-  "license": "Apache-2.0"
-}
