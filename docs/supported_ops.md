@@ -202,6 +202,7 @@
 |Reverse|reverse|
 |ReverseV2|reverse|
 |Slice|slice|
+|StridedSlice|stridedSlice|
 |Split|split|
 |Tile|tile|
 
