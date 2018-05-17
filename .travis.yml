@@ -5,7 +5,6 @@ node_js:
 git:
   depth: 5
 script:
-  - yarn
   - yarn build
   - yarn lint
   - yarn test-travis
