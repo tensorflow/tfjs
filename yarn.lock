@@ -15,15 +15,15 @@
     node-fetch "^2.1.1"
     url-template "^2.0.8"
 
-"@tensorflow/tfjs-core@0.10.1":
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.10.1.tgz#1764c8c122d5b8a86a8d23c8ffd58bef8e40eda9"
+"@tensorflow/tfjs-core@0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.0.tgz#d112ea43a31a639582c78e91a084b5494dec53f0"
   dependencies:
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.5.4":
-  version "0.5.4"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.5.4.tgz#58c9a1c601566f39682c2cc553a4d87086a8f245"
+"@tensorflow/tfjs-layers@0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.0.tgz#91a780c68459ff65d5e2b1b35f6650b34dcb4ece"
 
 "@types/estree@0.0.38":
   version "0.0.38"
