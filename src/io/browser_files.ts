@@ -23,7 +23,7 @@
 // tslint:disable:max-line-length
 import {ENV} from '../environment';
 
-import {basename, concatenateArrayBuffers, getModelArtifactsInfoForKerasJSON} from './io_utils';
+import {basename, concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 
@@ -103,9 +103,7 @@ export class BrowserDownloads implements IOHandler {
         weightDataAnchor.click();
       }
 
-      return {
-        modelArtifactsInfo: getModelArtifactsInfoForKerasJSON(modelArtifacts)
-      };
+      return {modelArtifactsInfo: getModelArtifactsInfoForJSON(modelArtifacts)};
     }
   }
 }
