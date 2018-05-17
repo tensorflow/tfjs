@@ -193,6 +193,11 @@ def main():
     print('  tensorflow %s' % tf.__version__)
     return
 
+  if FLAGS.input_path is None:
+    raise ValueError(
+        'Error: The input_path argument must be set. '
+        'Run with --help flag for usage information.')
+
   quantization_dtype = (
       quantization.QUANTIZATION_BYTES_TO_DTYPES[FLAGS.quantization_bytes]
       if FLAGS.quantization_bytes else None)
