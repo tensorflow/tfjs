@@ -29,7 +29,10 @@ module.exports = function(config) {
         sourceMap: true
       },
       bundlerOptions: {
-        sourceMap: true
+        sourceMap: true,
+        transforms: [
+          require("karma-typescript-es6-transform")()
+        ]
       }
     },
     reporters: ['progress', 'karma-typescript'],

@@ -7,6 +7,7 @@ npm-debug.log
 yarn-error.log
 .DS_Store
 dist/
+dist-es6/
 .idea/
 .yalc/
 yalc.lock
@@ -16,3 +17,4 @@ bazel-*
 *.pyc
 
 .cache
+.rpt2_cache/
