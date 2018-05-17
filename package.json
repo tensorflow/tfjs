@@ -51,9 +51,9 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
-    "test": "ts-node -O '{\"module\": \"commonjs\"}' ./scripts/release_notes/run_tests.ts && karma start",
+    "test": "ts-node --project tsconfig-es5.json ./scripts/release_notes/run_tests.ts && karma start",
     "test-travis": "yarn test && karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
-    "release-notes": "ts-node -O '{\"module\": \"commonjs\"}' ./scripts/release_notes/release_notes.ts"
+    "release-notes": "ts-node --project tsconfig-es5.json ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
     "@tensorflow/tfjs-core": "0.11.0",
