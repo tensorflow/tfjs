@@ -13,20 +13,163 @@
  */
 
 // tslint:disable:max-line-length
-import {movingAverage, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerConfig} from '../engine/topology';
-import {ValueError} from '../errors';
+import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
-import {arrayProd, range} from '../utils/math_utils';
+import * as math_utils from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 
 // tslint:enable:max-line-length
+
+/**
+ * Applies batch normalization on x given mean, var, beta and gamma.
+ *
+ * I.e. returns:
+ *   `output = (x - mean) / (sqrt(var) + epsilon) * gamma + beta`
+ *
+ * @param x Input tensor.
+ * @param mean Mean of batch.
+ * @param variance Variance of batch.
+ * @param beta Tensor with which to center the input.
+ * @param gamma Tensor by which to scale the input.
+ * @param epsilon Fuzz factor.
+ * @returns The result of the batch normalization.
+ */
+export function batchNormalization(
+    x: Tensor, mean: Tensor, variance: Tensor, beta?: Tensor, gamma?: Tensor,
+    epsilon = 1e-3): Tensor {
+  let out: Tensor;
+  if (K.ndim(x) === 2) {
+    out = tfc.batchNormalization2d(
+        x as Tensor2D, mean as Tensor2D | Tensor1D,
+        variance as Tensor2D | Tensor1D, epsilon, gamma as Tensor2D | Tensor1D,
+        beta as Tensor2D | Tensor1D);
+  } else if (K.ndim(x) === 3) {
+    // TODO(cais): Check rank; give proper error message.
+    out = tfc.batchNormalization3d(
+        x as Tensor3D, mean as Tensor3D | Tensor1D,
+        variance as Tensor3D | Tensor1D, epsilon, gamma as Tensor3D | Tensor1D,
+        beta as Tensor3D | Tensor1D);
+  } else if (K.ndim(x) === 4) {
+    out = tfc.batchNormalization4d(
+        x as Tensor4D, mean as Tensor4D | Tensor1D,
+        variance as Tensor4D | Tensor1D, epsilon, gamma as Tensor4D | Tensor1D,
+        beta as Tensor4D | Tensor1D);
+  } else {
+    throw new NotImplementedError(
+        `batchNormalization is not implememnted for array of rank ${
+            K.ndim(x)} ` +
+        `yet`);
+  }
+  return out;
+}
+
+/**
+ * Non-broadcasting batch normalization for use in training (not inference).
+ *
+ * The input is normalized to zero mean and unit variance along the
+ * `reductionAxes`, followed by scaling with `gamma` and shifted by `beta`.
+ * The result of that is returned as the first element
+ * of the returned `Array`. The other two elements are the mean and variance,
+ * respectively.
+ *
+ * @param x Input tensor to be normalized.
+ * @param gamma Tensor by which to scale the input.
+ * @param beta Tensor by which to center the input.
+ * @param reductionAxes Axes over which to normalize.
+ * @param epsilon Fuzz factor.
+ * @returns An `Array` of three `Tensors`:
+ *   [normalized tensor, mean of input, variance of input].
+ */
+function regularNormalizeBatchInTraining(
+    x: Tensor, gamma: Tensor, beta: Tensor, reductionAxes: number[],
+    epsilon = 1e-3): [Tensor, Tensor, Tensor] {
+  return tidy(() => {
+           const meanAndVariance = tfc.moments(x, reductionAxes);
+           const mean = meanAndVariance.mean;
+           const variance = meanAndVariance.variance;
+           const normed =
+               batchNormalization(x, mean, variance, beta, gamma, epsilon);
+           return [normed, mean, variance];
+         }) as [Tensor, Tensor, Tensor];
+}
+
+/**
+ * Broadcasting batch normalization for use in training (not inference).
+ *
+ * The input is normalized to zero mean and unit variance along the
+ * `reductionAxes`, followed by scaling with `gamma` and shifted by `beta`.
+ * The result of that is returned as the first element
+ * of the returned `Array`. The other two elements are the mean and variance,
+ * respectively.
+ *
+ * @param x Input tensor to be normalized.
+ * @param gamma Tensor by which to scale the input.
+ * @param beta Tensor by which to center the input.
+ * @param reductionAxes Axes over which to normalize.
+ * @param epsilon Fuzz factor.
+ * @returns An `Array` of three `Tensors`:
+ *   [normalized tensor, mean of input, variance of input].
+ */
+function broadcastNormalizeBatchInTraining(
+    x: Tensor, gamma: Tensor, beta: Tensor, reductionAxes: number[],
+    epsilon = 1e-3): [Tensor, Tensor, Tensor] {
+  return tidy(() => {
+           const meanAndVariance = tfc.moments(x, reductionAxes);
+           const mean = meanAndVariance.mean;
+           const variance = meanAndVariance.variance;
+           const targetShape: number[] = [];
+           for (const axis of math_utils.range(0, K.ndim(x))) {
+             if (reductionAxes.indexOf(axis) !== -1) {
+               targetShape.push(1);
+             } else {
+               targetShape.push(x.shape[axis]);
+             }
+           }
+           const broadcastMean = mean.reshape(targetShape);
+           const broadcastVariance = variance.reshape(targetShape);
+           const broadcastGamma =
+               gamma == null ? null : gamma.reshape(targetShape);
+           const broadcastBeta =
+               beta == null ? null : beta.reshape(targetShape);
+           const normed = batchNormalization(
+               x, broadcastMean, broadcastVariance, broadcastBeta,
+               broadcastGamma, epsilon);
+           return [normed, mean, variance];
+         }) as [Tensor, Tensor, Tensor];
+}
+
+/**
+ * Batch normalization for use in training (not inference).
+ *
+ * @param x Input tensor to be normalized.
+ * @param gamma Tensor by which to scale the input.
+ * @param beta Tensor by which to center the input.
+ * @param reductionAxes Axes over which to normalize.
+ * @param epsilon Fuzz factor.
+ * @returns An `Array` of three `Tensors`:
+ *   [normalized tensor, mean of input, variance of input].
+ */
+export function normalizeBatchInTraining(
+    x: Tensor, gamma: Tensor, beta: Tensor, reductionAxes: number[],
+    epsilon = 1e-3): [Tensor, Tensor, Tensor] {
+  if (util.arraysEqual(
+          reductionAxes.slice().sort(), math_utils.range(0, K.ndim(x) - 1))) {
+    return regularNormalizeBatchInTraining(
+        x, gamma, beta, reductionAxes, epsilon);
+  } else {
+    return broadcastNormalizeBatchInTraining(
+        x, gamma, beta, reductionAxes, epsilon);
+  }
+}
 
 export interface BatchNormalizationLayerConfig extends LayerConfig {
   /**
@@ -209,7 +352,7 @@ export class BatchNormalization extends Layer {
       const input = generic_utils.getExactlyOneTensor(inputs);
       const inputShape = K.shape(input);
       const ndim = inputShape.length;
-      const reductionAxes = range(0, ndim);
+      const reductionAxes = math_utils.range(0, ndim);
       const axis = this.axis >= 0 ? this.axis : (this.axis + ndim);
       reductionAxes.splice(axis, 1);
       const broadcastShape = generic_utils.pyListRepeat(1, ndim);
@@ -218,7 +361,7 @@ export class BatchNormalization extends Layer {
       const sortedReductionAxes = reductionAxes.slice();
       sortedReductionAxes.sort();
       const needsBroadcasting = !util.arraysEqual(
-          sortedReductionAxes, range(0, ndim).slice(0, ndim - 1));
+          sortedReductionAxes, math_utils.range(0, ndim).slice(0, ndim - 1));
 
       const normalizeInference: () => Tensor = () => {
         if (needsBroadcasting) {
@@ -230,11 +373,11 @@ export class BatchNormalization extends Layer {
               this.center ? this.beta.read().reshape(broadcastShape) : null;
           const broadcastGamma =
               this.scale ? this.gamma.read().reshape(broadcastShape) : null;
-          return K.batchNormalization(
+          return batchNormalization(
               input, broadcastMovingMean, broadcastMovingVariance,
               broadcastBeta, broadcastGamma, this.epsilon);
         } else {
-          return K.batchNormalization(
+          return batchNormalization(
               input, this.movingMean.read(), this.movingVariance.read(),
               this.beta == null ? null : this.beta.read(),
               this.gamma == null ? null : this.gamma.read(), this.epsilon);
@@ -245,13 +388,13 @@ export class BatchNormalization extends Layer {
         return normalizeInference();
       }
 
-      const [normedTraining, mean, variance] = K.normalizeBatchInTraining(
+      const [normedTraining, mean, variance] = normalizeBatchInTraining(
           input, this.gamma.read(), this.beta.read(), reductionAxes,
           this.epsilon);
 
       // Debias variance.
       const sampleSize =
-          arrayProd(reductionAxes.map(axis => input.shape[axis]));
+          math_utils.arrayProd(reductionAxes.map(axis => input.shape[axis]));
       const varianceDebiased = variance.mul(
           K.getScalar(sampleSize / (sampleSize - (1 + this.epsilon))));
 
@@ -263,10 +406,10 @@ export class BatchNormalization extends Layer {
       //   immediately.
       const updateMovingMeanAndVariance = () => {
         this.stepCount++;
-        const newMovingMean = movingAverage(
+        const newMovingMean = tfc.movingAverage(
             this.movingMean.read(), mean, this.momentum, this.stepCount);
         this.movingMean.write(newMovingMean);
-        const newMovingVariance = movingAverage(
+        const newMovingVariance = tfc.movingAverage(
             this.movingVariance.read(), varianceDebiased, this.momentum,
             this.stepCount);
         this.movingVariance.write(newMovingVariance);
