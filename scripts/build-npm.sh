@@ -19,8 +19,8 @@ set -e
 
 rimraf dist/
 yarn
-tsc --sourceMap false
-browserify --standalone tf src/index.ts -p [tsify] > dist/tf.js
+yarn build
+rollup -c
 uglifyjs dist/tf.js -c -m -o dist/tf.min.js
 echo "Stored standalone library at dist/tf(.min).js"
 npm pack

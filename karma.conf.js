@@ -27,6 +27,12 @@ module.exports = function(config) {
       compilerOptions: {
         module: 'commonjs'
       },
+      bundlerOptions: {
+        sourceMap: true,
+        transforms: [
+          require("karma-typescript-es6-transform")()
+        ]
+      },
       reports: {} // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],
