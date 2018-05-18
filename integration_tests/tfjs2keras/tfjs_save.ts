@@ -110,12 +110,16 @@ function exportOneDimensionalModel(exportPath: string): void {
 
 // Functioal model with a Merge layer.
 function exportFunctionalMergeModel(exportPath: string): void {
-  const input1 = tfl.input({shape: [10]});
-  const input2 = tfl.input({shape: [20]});
+  const input1 = tfl.input({shape: [2, 5]});
+  const input2 = tfl.input({shape: [4, 5]});
+  const reshaped1 = tfl.layers.reshape({targetShape: [10]}).apply(input1) as
+      tfl.SymbolicTensor;
+  const reshaped2 = tfl.layers.reshape({targetShape: [20]}).apply(input2) as
+      tfl.SymbolicTensor;
   const dense1 =
-      tfl.layers.dense({units: 5}).apply(input1) as tfl.SymbolicTensor;
+      tfl.layers.dense({units: 5}).apply(reshaped1) as tfl.SymbolicTensor;
   const dense2 =
-      tfl.layers.dense({units: 5}).apply(input2) as tfl.SymbolicTensor;
+      tfl.layers.dense({units: 5}).apply(reshaped2) as tfl.SymbolicTensor;
   const avg = tfl.layers.average().apply([dense1, dense2]);
   const output = tfl.layers.dense({units: 1}).apply(avg) as tfl.SymbolicTensor;
   const model = tfl.model({inputs: [input1, input2], outputs: output});
