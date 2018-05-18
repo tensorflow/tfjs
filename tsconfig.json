@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ES2015",
+    "moduleResolution": "node",
     "noImplicitAny": true,
     "sourceMap": true,
     "removeComments": true,
@@ -8,7 +9,7 @@
     "declaration": true,
     "target": "es5",
     "lib": ["es2015", "dom"],
-    "outDir": "./dist",
+    "outDir": "./dist-es6",
     "noUnusedLocals": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
