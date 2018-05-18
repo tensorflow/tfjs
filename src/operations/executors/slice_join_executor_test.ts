@@ -100,6 +100,20 @@ describe('slice join', () => {
         expect(tfc.slice).toHaveBeenCalledWith(input1[0], [1], [2]);
       });
 
+      it('should call tfc.stridedSlice', () => {
+        spyOn(tfc, 'stridedSlice');
+        node.op = 'stridedSlice';
+        node.params.begin = createNumericArrayAttr([1]);
+        node.params.end = createNumericArrayAttr([2]);
+        node.params.strides = createNumericArrayAttr([3]);
+        node.params.beginMask = createNumberAttr(4);
+        node.params.endMask = createNumberAttr(5);
+        executeOp(node, {input1}, context);
+
+        expect(tfc.stridedSlice).toHaveBeenCalledWith(
+          input1[0], [1], [2], [3], 4, 5);
+      });
+
       it('should call tfc.gather', () => {
         spyOn(tfc, 'gather');
         node.op = 'gather';
