@@ -997,20 +997,6 @@ export function dropout(
 }
 
 /**
- * Normalizes a tensor wrt the L2 norm alongside the specified axis.
- * @param x
- * @param axis Axis along which to perform normalization.
- */
-export function l2Normalize(x: Tensor, axis?: number): Tensor {
-  return tidy(() => {
-    const squareSum = tfc.sum(square(x), axis, true);
-    const epsilonTensor = scalarTimesArray(scalar(epsilon()), tfc.onesLike(x));
-    const norm = tfc.sqrt(tfc.maximum(squareSum, epsilonTensor));
-    return tfc.div(x, norm);
-  });
-}
-
-/**
  * Replacement for Keras's "with name_scope" construct.
  *
  * @param name The name to use for this name scope.
@@ -1041,107 +1027,6 @@ export function getUid(prefix = ''): string {
   }
   _uidPrefixes[prefix] += 1;
   return prefix + _uidPrefixes[prefix].toString();
-}
-
-/**
- * Categorical crossentropy between an output tensor and a target tensor.
- *
- * @param target A tensor of the same shape as `output`.
- * @param output A tensor resulting from a softmax (unless `fromLogits` is
- *  `true`, in which case `output` is expected to be the logits).
- * @param fromLogits Boolean, whether `output` is the result of a softmax, or is
- *   a tensor of logits.
- */
-export function categoricalCrossentropy(
-    target: Tensor, output: Tensor, fromLogits = false): Tensor {
-  return tidy(() => {
-    if (fromLogits) {
-      output = tfc.softmax(output);
-    } else {
-      // scale preds so that the class probabilities of each sample sum to 1.
-      const outputSum = tfc.sum(output, shape(output).length - 1, true);
-      output = tfc.div(output, outputSum);
-    }
-    output = tfc.clipByValue(output, epsilon(), 1 - epsilon());
-    return tfc.neg(tfc.sum(
-        tfc.mul(target.toFloat(), tfc.log(output)), shape(output).length - 1));
-  });
-}
-
-/**
- * Categorical crossentropy with integer targets.
- *
- * @param target An integer tensor.
- * @param output A tensor resulting from a softmax (unless `fromLogits` is
- *  `true`, in which case `output` is expected to be the logits).
- * @param fromLogits Boolean, whether `output` is the result of a softmax, or is
- *   a tensor of logits.
- */
-export function sparseCategoricalCrossentropy(
-    target: Tensor, output: Tensor, fromLogits = false): Tensor {
-  return tidy(() => {
-    const flatTarget = tfc.floor(flatten(target)).toInt() as Tensor1D;
-    const outputShape = shape(output);
-    const oneHotTarget =
-        tfc.oneHot(flatTarget, outputShape[outputShape.length - 1])
-            .reshape(outputShape);
-    return categoricalCrossentropy(oneHotTarget, output, fromLogits);
-  });
-}
-
-/**
- * Binary crossentropy between an output tensor and a target tensor.
- *
- * @param target A tensor with the same shape as `output`.
- * @param output
- * @param fromLogits Whether `output` is expected to be a logits tensor. By
- *   default, we consider that `output` encodes a probability distribution.
- */
-export function binaryCrossentropy(
-    target: Tensor, output: Tensor, fromLogits = false): Tensor {
-  return tidy(() => {
-    let y: Tensor;
-    if (!fromLogits) {
-      y = tfc.clipByValue(output, epsilon(), 1 - epsilon());
-      y = tfc.log(tfc.div(y, tfc.sub(tfc.onesLike(y), y)));
-    } else {
-      y = output;
-    }
-    return sigmoidCrossEntropyWithLogits(target, y);
-  });
-}
-
-/**
- * From TensorFlow's implementation in nn_impl.py:
- *
- * For brevity, let `x = logits`, `z = labels`.  The logistic loss is
- *      z * -log(sigmoid(x)) + (1 - z) * -log(1 - sigmoid(x))
- *    = z * -log(1 / (1 + exp(-x))) + (1 - z) * -log(exp(-x) / (1 + exp(-x)))
- *    = z * log(1 + exp(-x)) + (1 - z) * (-log(exp(-x)) + log(1 + exp(-x)))
- *    = z * log(1 + exp(-x)) + (1 - z) * (x + log(1 + exp(-x))
- *    = (1 - z) * x + log(1 + exp(-x))
- *    = x - x * z + log(1 + exp(-x))
- * For x < 0, to avoid overflow in exp(-x), we reformulate the above
- *      x - x * z + log(1 + exp(-x))
- *    = log(exp(x)) - x * z + log(1 + exp(-x))
- *    = - x * z + log(1 + exp(x))
- * Hence, to ensure stability and avoid overflow, the implementation uses this
- * equivalent formulation
- *    max(x, 0) - x * z + log(1 + exp(-abs(x)))
- *
- * @param target The labels.
- * @param output The logits.
- */
-export function sigmoidCrossEntropyWithLogits(
-    target: Tensor, output: Tensor): Tensor {
-  return tidy(() => {
-    const maxOutput = tfc.maximum(output, tfc.zerosLike(output));
-    const outputXTarget = tfc.mul(output, target);
-    const sigmoidOutput =
-        tfc.log(tfc.add(getScalar(1), tfc.exp(tfc.neg(tfc.abs(output)))));
-    const result = tfc.add(tfc.sub(maxOutput, outputXTarget), sigmoidOutput);
-    return result;
-  });
 }
 
 /**

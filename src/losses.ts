@@ -10,11 +10,27 @@
 
 /* Original Source: losses.py */
 import * as tfc from '@tensorflow/tfjs-core';
-import {Tensor, tidy} from '@tensorflow/tfjs-core';
+import {scalar, Tensor, Tensor1D, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {ValueError} from './errors';
 import {LossOrMetricFn} from './types';
+
+
+/**
+ * Normalizes a tensor wrt the L2 norm alongside the specified axis.
+ * @param x
+ * @param axis Axis along which to perform normalization.
+ */
+export function l2Normalize(x: Tensor, axis?: number): Tensor {
+  return tidy(() => {
+    const squareSum = tfc.sum(K.square(x), axis, true);
+    const epsilonTensor =
+        K.scalarTimesArray(scalar(K.epsilon()), tfc.onesLike(x));
+    const norm = tfc.sqrt(tfc.maximum(squareSum, epsilonTensor));
+    return tfc.div(x, norm);
+  });
+}
 
 /**
  * Loss or metric function: Mean squared error.
@@ -152,17 +168,93 @@ export function logcosh(yTrue: Tensor, yPred: Tensor): Tensor {
   });
 }
 
-export function categoricalCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
-  return tidy(() => K.categoricalCrossentropy(yTrue, yPred));
+/**
+ * Categorical crossentropy between an output tensor and a target tensor.
+ *
+ * @param target A tensor of the same shape as `output`.
+ * @param output A tensor resulting from a softmax (unless `fromLogits` is
+ *  `true`, in which case `output` is expected to be the logits).
+ * @param fromLogits Boolean, whether `output` is the result of a softmax, or is
+ *   a tensor of logits.
+ */
+export function categoricalCrossentropy(
+    target: Tensor, output: Tensor, fromLogits = false): Tensor {
+  return tidy(() => {
+    if (fromLogits) {
+      output = tfc.softmax(output);
+    } else {
+      // scale preds so that the class probabilities of each sample sum to 1.
+      const outputSum = tfc.sum(output, K.shape(output).length - 1, true);
+      output = tfc.div(output, outputSum);
+    }
+    output = tfc.clipByValue(output, K.epsilon(), 1 - K.epsilon());
+    return tfc.neg(tfc.sum(
+        tfc.mul(target.toFloat(), tfc.log(output)),
+        K.shape(output).length - 1));
+  });
 }
 
+/**
+ * Categorical crossentropy with integer targets.
+ *
+ * @param target An integer tensor.
+ * @param output A tensor resulting from a softmax (unless `fromLogits` is
+ *  `true`, in which case `output` is expected to be the logits).
+ * @param fromLogits Boolean, whether `output` is the result of a softmax, or is
+ *   a tensor of logits.
+ */
 export function sparseCategoricalCrossentropy(
-    yTrue: Tensor, yPred: Tensor): Tensor {
-  return tidy(() => K.sparseCategoricalCrossentropy(yTrue, yPred));
+    target: Tensor, output: Tensor, fromLogits = false): Tensor {
+  return tidy(() => {
+    const flatTarget = tfc.floor(K.flatten(target)).toInt() as Tensor1D;
+    const outputShape = K.shape(output);
+    const oneHotTarget =
+        tfc.oneHot(flatTarget, outputShape[outputShape.length - 1])
+            .reshape(outputShape);
+    return categoricalCrossentropy(oneHotTarget, output, fromLogits);
+  });
+}
+
+/**
+ * From TensorFlow's implementation in nn_impl.py:
+ *
+ * For brevity, let `x = logits`, `z = labels`.  The logistic loss is
+ *      z * -log(sigmoid(x)) + (1 - z) * -log(1 - sigmoid(x))
+ *    = z * -log(1 / (1 + exp(-x))) + (1 - z) * -log(exp(-x) / (1 + exp(-x)))
+ *    = z * log(1 + exp(-x)) + (1 - z) * (-log(exp(-x)) + log(1 + exp(-x)))
+ *    = z * log(1 + exp(-x)) + (1 - z) * (x + log(1 + exp(-x))
+ *    = (1 - z) * x + log(1 + exp(-x))
+ *    = x - x * z + log(1 + exp(-x))
+ * For x < 0, to avoid overflow in exp(-x), we reformulate the above
+ *      x - x * z + log(1 + exp(-x))
+ *    = log(exp(x)) - x * z + log(1 + exp(-x))
+ *    = - x * z + log(1 + exp(x))
+ * Hence, to ensure stability and avoid overflow, the implementation uses this
+ * equivalent formulation
+ *    max(x, 0) - x * z + log(1 + exp(-abs(x)))
+ *
+ * @param target The labels.
+ * @param output The logits.
+ */
+export function sigmoidCrossEntropyWithLogits(
+    target: Tensor, output: Tensor): Tensor {
+  return tidy(() => {
+    const maxOutput = tfc.maximum(output, tfc.zerosLike(output));
+    const outputXTarget = tfc.mul(output, target);
+    const sigmoidOutput =
+        tfc.log(tfc.add(K.getScalar(1), tfc.exp(tfc.neg(tfc.abs(output)))));
+    const result = tfc.add(tfc.sub(maxOutput, outputXTarget), sigmoidOutput);
+    return result;
+  });
 }
 
 export function binaryCrossentropy(yTrue: Tensor, yPred: Tensor): Tensor {
-  return tidy(() => tfc.mean(K.binaryCrossentropy(yTrue, yPred), -1));
+  return tidy(() => {
+    let y: Tensor;
+    y = tfc.clipByValue(yPred, K.epsilon(), 1 - K.epsilon());
+    y = tfc.log(tfc.div(y, tfc.sub(tfc.onesLike(y), y)));
+    return tfc.mean(sigmoidCrossEntropyWithLogits(yTrue, y), -1);
+  });
 }
 
 export function kullbackLeiblerDivergence(
@@ -203,8 +295,8 @@ export function poisson(yTrue: Tensor, yPred: Tensor): Tensor {
  */
 export function cosineProximity(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const trueNormalized = K.l2Normalize(yTrue, -1);
-    const predNormalized = K.l2Normalize(yPred, -1);
+    const trueNormalized = l2Normalize(yTrue, -1);
+    const predNormalized = l2Normalize(yPred, -1);
     const trueXPred = tfc.mul(trueNormalized, predNormalized);
     return tfc.neg(tfc.sum(trueXPred, -1));
   });

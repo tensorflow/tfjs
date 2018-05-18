@@ -12,7 +12,8 @@
  * Unit tests for activations.ts.
  */
 
-import {scalar, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {scalar, Tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import * as losses from './losses';
@@ -20,7 +21,7 @@ import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 
 describeMathCPUAndGPU('meanSquaredError', () => {
   it('1D', () => {
-    const yTrue = zeros([3]);
+    const yTrue = tfc.zeros([3]);
     const yPred = tensor1d([1, 2, 3]);
     const expectedVal = scalar((1 * 1 + 2 * 2 + 3 * 3) / 3);
     const result = losses.meanSquaredError(yTrue, yPred);
@@ -28,7 +29,7 @@ describeMathCPUAndGPU('meanSquaredError', () => {
   });
 
   it('2D', () => {
-    const yTrue = zeros([2, 2]);
+    const yTrue = tfc.zeros([2, 2]);
     const yPred = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const expectedVal = tensor1d([(1 * 1 + 2 * 2) / 2, (3 * 3 + 4 * 4) / 2]);
     const result = losses.meanSquaredError(yTrue, yPred);
@@ -38,7 +39,7 @@ describeMathCPUAndGPU('meanSquaredError', () => {
 
 describeMathCPUAndGPU('meanAbsoluteError', () => {
   it('1D', () => {
-    const yTrue = zeros([3]);
+    const yTrue = tfc.zeros([3]);
     const yPred = tensor1d([-1, -2, -3]);
     const expectedVal = scalar((1 + 2 + 3) / 3);
     const result = losses.meanAbsoluteError(yTrue, yPred);
@@ -46,7 +47,7 @@ describeMathCPUAndGPU('meanAbsoluteError', () => {
   });
 
   it('2D', () => {
-    const yTrue = zeros([2, 2]);
+    const yTrue = tfc.zeros([2, 2]);
     const yPred = tensor2d([[-1, -2], [-3, -4]], [2, 2]);
     const expectedVal = tensor1d([(1 + 2) / 2, (3 + 4) / 2]);
     const result = losses.meanAbsoluteError(yTrue, yPred);
@@ -57,7 +58,7 @@ describeMathCPUAndGPU('meanAbsoluteError', () => {
 describeMathCPUAndGPU('meanAbsolutePercentageError', () => {
   it('1D', () => {
     const yTrue = tensor1d([-1, -2, -3]);
-    const yPred = zeros([3]);
+    const yPred = tfc.zeros([3]);
     const expectedVal = scalar((1 + 2 + 3) / (1 + 2 + 3) * 100);
     const result = losses.meanAbsolutePercentageError(yTrue, yPred);
     expectTensorsClose(result, expectedVal);
@@ -65,7 +66,7 @@ describeMathCPUAndGPU('meanAbsolutePercentageError', () => {
 
   it('2D', () => {
     const yTrue = tensor2d([[-1, -2], [-3, -4]], [2, 2]);
-    const yPred = zeros([2, 2]);
+    const yPred = tfc.zeros([2, 2]);
     const expectedVal =
         tensor1d([(1 + 2) / (1 + 2) * 100, (3 + 4) / (3 + 4) * 100]);
     const result = losses.meanAbsolutePercentageError(yTrue, yPred);
@@ -87,7 +88,7 @@ describeMathCPUAndGPU('meanSquaredLogarithmicError', () => {
   }
 
   it('2D', () => {
-    const yTrue = zeros([2, 2]);
+    const yTrue = tfc.zeros([2, 2]);
     const yPred = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const expectedVal = tensor1d([
       meanSquaredLogErrorFor1DArray([1, 2], [0, 0]),
@@ -141,7 +142,7 @@ describeMathCPUAndGPU('logcosh', () => {
     return x + Math.log(Math.exp(-2 * x) + 1) - Math.log(2);
   }
   it('2D', () => {
-    const yTrue = zeros([2, 2]);
+    const yTrue = tfc.zeros([2, 2]);
     const yPred = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const firstRow = [1, 2].map(_logcosh);
     const secondRow = [3, 4].map(_logcosh);
@@ -153,11 +154,77 @@ describeMathCPUAndGPU('logcosh', () => {
   });
 });
 
+
+describeMathCPUAndGPU('categoricalCrossentropy ', () => {
+  it('from logits', () => {
+    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
+    const expected = tensor1d([
+      -1 *
+          (Math.log(Math.exp(1) / (Math.exp(1) + Math.exp(2))) * 0.25 +
+           Math.log(Math.exp(2) / (Math.exp(1) + Math.exp(2))) * 0.75),
+      -1 *
+          (Math.log(Math.exp(3) / (Math.exp(3) + Math.exp(4))) * 0.1 +
+           Math.log(Math.exp(4) / (Math.exp(3) + Math.exp(4))) * 0.9)
+    ]);
+    const result = losses.categoricalCrossentropy(target, x, true);
+    expectTensorsClose(result, expected);
+  });
+
+  it('from softmax', () => {
+    const x = tensor2d([[0.3, 0.7], [0.4, 0.6]], [2, 2]);
+    const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
+    const expected = tensor1d([
+      -1 * (Math.log(0.3) * 0.25 + Math.log(0.7) * 0.75),
+      -1 * (Math.log(0.4) * 0.1 + Math.log(0.6) * 0.9)
+    ]);
+    const result = losses.categoricalCrossentropy(target, x, false);
+    expectTensorsClose(result, expected);
+  });
+});
+
+describeMathCPUAndGPU('sparseCategoricalCrossentropy ', () => {
+  it('from logits', () => {
+    const x = tensor2d([[1, 2, 3], [4, 5, 6]], [2, 3]);
+    const target = tensor1d([0, 2]);
+    const expected = tensor1d([
+      -1 * Math.log(Math.exp(1) / (Math.exp(1) + Math.exp(2) + Math.exp(3))),
+      -1 * Math.log(Math.exp(6) / (Math.exp(4) + Math.exp(5) + Math.exp(6)))
+    ]);
+    const result = losses.sparseCategoricalCrossentropy(target, x, true);
+    expectTensorsClose(result, expected);
+  });
+
+  it('from softmax', () => {
+    const x = tensor2d([[0.1, 0.2, 0.7], [0.2, 0.3, 0.5]], [2, 3]);
+    const target = tensor1d([0, 2]);
+    const expected = tensor1d([-1 * Math.log(0.1), -1 * Math.log(0.5)]);
+    const result = losses.sparseCategoricalCrossentropy(target, x, false);
+    expectTensorsClose(result, expected);
+  });
+});
+
+describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
+  it('outputs sigmoid cross-entropy', () => {
+    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
+    const targetComplement = K.scalarPlusArray(scalar(1), tfc.neg(target));
+    const sigmoidX = tfc.sigmoid(x);
+    const sigmoidXComplement = K.scalarPlusArray(scalar(1), tfc.neg(sigmoidX));
+    const expected = tfc.add(
+        tfc.mul(target, tfc.neg(tfc.log(sigmoidX))),
+        tfc.mul(targetComplement, tfc.neg(tfc.log(sigmoidXComplement))));
+    const result = losses.sigmoidCrossEntropyWithLogits(target, x);
+    expectTensorsClose(result, expected);
+  });
+});
+
+
 describeMathCPUAndGPU('categoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor2d([[1, 0], [0, 1]], [2, 2]);
     const yPred = yTrue;
-    const expectedVal = zeros([2]);
+    const expectedVal = tfc.zeros([2]);
     const result = losses.categoricalCrossentropy(yTrue, yPred);
     expectTensorsClose(result, expectedVal);
   });
@@ -167,23 +234,29 @@ describeMathCPUAndGPU('sparseCategoricalCrossentropy', () => {
   it('2D', () => {
     const yTrue = tensor1d([0, 1]);
     const yPred = tensor2d([[1, 0], [0, 1]], [2, 2]);
-    const expectedVal = zeros([2]);
+    const expectedVal = tfc.zeros([2]);
     const result = losses.sparseCategoricalCrossentropy(yTrue, yPred);
     expectTensorsClose(result, expectedVal);
   });
 });
 
 describeMathCPUAndGPU('binaryCrossentropy', () => {
-  it('2D', () => {
-    const yTrue = tensor2d([[1, 0], [1, 0]], [2, 2]);
-    const yPred = tensor2d([[1, 2], [20, 10]], [2, 2]);
-    const crossEntropy = K.binaryCrossentropy(yTrue, yPred).dataSync();
-    const expectedVal = tensor1d([
-      (crossEntropy[0] + crossEntropy[1]) / 2,
-      (crossEntropy[2] + crossEntropy[3]) / 2
-    ]);
-    const result = losses.binaryCrossentropy(yTrue, yPred);
-    expectTensorsClose(result, expectedVal);
+  function _binaryCrossentropy(target: Tensor, output: Tensor): Tensor {
+    const targetComplement = K.scalarPlusArray(scalar(1), tfc.neg(target));
+    const outputComplement = K.scalarPlusArray(scalar(1), tfc.neg(output));
+    return tfc.mean(
+        tfc.neg(tfc.add(
+            tfc.mul(target, tfc.log(output)),
+            tfc.mul(targetComplement, tfc.log(outputComplement)))),
+        -1);
+  }
+
+  it('from sigmoid', () => {
+    const x = tensor2d([[0.3, 0.7], [0.4, 0.6]], [2, 2]);
+    const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
+    const expected = _binaryCrossentropy(target, x);
+    const result = losses.binaryCrossentropy(target, x);
+    expectTensorsClose(result, expected);
   });
 });
 
@@ -251,5 +324,33 @@ describe('losses get', () => {
   it(`get custom loss works`, () => {
     const customLoss = (x: Tensor, y: Tensor) => scalar(42.0);
     expect(losses.get(customLoss)).toEqual(customLoss);
+  });
+});
+
+describeMathCPUAndGPU('l2Normalize', () => {
+  it('normalizes with no axis defined.', () => {
+    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const norm = Math.sqrt(1 * 1 + 2 * 2 + 3 * 3 + 4 * 4);
+    const expected =
+        tensor2d([[1 / norm, 2 / norm], [3 / norm, 4 / norm]], [2, 2]);
+    const result = losses.l2Normalize(x);
+    expectTensorsClose(result, expected);
+  });
+
+  it('normalizes along axis = -1.', () => {
+    const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
+    const firstNorm = Math.sqrt(1 * 1 + 2 * 2);
+    const secondNorm = Math.sqrt(3 * 3 + 4 * 4);
+    const expected = tensor2d(
+        [[1 / firstNorm, 2 / firstNorm], [3 / secondNorm, 4 / secondNorm]],
+        [2, 2]);
+    const result = losses.l2Normalize(x, -1);
+    expectTensorsClose(result, expected);
+  });
+
+  it('normalizes with zeros.', () => {
+    const x = tfc.zeros([2, 2]);
+    const result = losses.l2Normalize(x);
+    expectTensorsClose(result, x);
   });
 });
