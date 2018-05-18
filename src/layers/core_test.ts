@@ -491,6 +491,15 @@ describe('Reshape Layer: Symbolic', () => {
     expect(() => flattenLayer.apply(symbolicInput))
         .toThrowError(/Total size of new array must be unchanged/);
   });
+
+  it('Serialization round-trip', () => {
+    const layer = tfl.layers.reshape({targetShape: [2, 3]});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.reshape(tsConfig);
+    expect(layerPrime.getConfig().targetShape).toEqual([2, 3]);
+  });
 });
 
 describeMathCPUAndGPU('Reshape Layer: Tensor', () => {

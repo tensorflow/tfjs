@@ -486,10 +486,16 @@ export class RepeatVector extends Layer {
 }
 serialization.SerializationMap.register(RepeatVector);
 
-
 /**
  * Reshapes an input to a certain shape.
- * TODO(cais): Code example.
+ *
+ * ```js
+ * const input = tf.input({shape: [4, 3]});
+ * const reshapeLayer = tf.layers.reshape({targetShape: [2, 6]});
+ * // Inspect the inferred output shape of the Reshape layer, which
+ * // equals `[null, 2, 6]`. (The 1st dimension is the undermined batch size.)
+ * console.log(JSON.stringify(reshapeLayer.apply(input).shape));
+ * ```
  *
  * Input shape:
  *   Arbitrary: although all dimensions in the input shape must be fixed.
@@ -591,6 +597,15 @@ export class Reshape extends Layer {
           this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
       return input.reshape(outputShape);
     });
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config = {
+      targetShape: this.targetShape,
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
   }
 }
 serialization.SerializationMap.register(Reshape);
