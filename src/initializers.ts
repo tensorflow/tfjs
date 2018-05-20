@@ -571,8 +571,8 @@ export class Orthogonal extends Initializer {
       }
       if (shape[0] * shape[1] > 2000) {
         console.warn(
-            `Orthgonal initializer is being called on a matrix with more ` +
-            ` than 2000 (${shape[0] * shape[1]}) elements: ` +
+            `Orthogonal initializer is being called on a matrix with more ` +
+            `than 2000 (${shape[0] * shape[1]}) elements: ` +
             `Slowness may result.`);
       }
 
