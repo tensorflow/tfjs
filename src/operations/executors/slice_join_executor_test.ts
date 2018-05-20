@@ -28,6 +28,8 @@ describe('slice join', () => {
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.scalar(2)];
   const input3 = [tfc.scalar(3)];
+  const input4 = [tfc.tensor1d([3])];
+  const input5 = [tfc.tensor1d([3, 4])];
   const context = new ExecutionContext({});
 
   describe('multi-tensor ops', () => {
@@ -46,15 +48,51 @@ describe('slice join', () => {
       };
     });
     describe('executeOp', () => {
-      ['concat', 'stack'].forEach(op => {
-        it('should call tfc.' + op, () => {
-          const spy = spyOn(tfc, op as 'concat');
-          node.op = op;
-          executeOp(node, {input1, input2, input3}, context);
+      it('should call tfc.concat', () => {
+        const spy = spyOn(tfc, 'concat');
+        node.op = 'concat';
+        executeOp(node, {input1, input2, input3}, context);
 
-          expect(spy).toHaveBeenCalledWith([input1[0], input2[0]], 3);
-        });
+        expect(spy).toHaveBeenCalledWith([input1[0], input2[0]], 3);
       });
+      it('should call tfc.stack', () => {
+        const spy = spyOn(tfc, 'stack');
+        node.op = 'stack';
+        node.params.tensors = createTensorsAttr(0, 0);
+        node.params.axis = createNumberAttr(4);
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(spy.calls.mostRecent().args[0][0]).toEqual(input1[0]);
+        expect(spy.calls.mostRecent().args[0][1]).toEqual(input2[0]);
+        expect(spy.calls.mostRecent().args[0][2]).toEqual(input3[0]);
+        expect(spy.calls.mostRecent().args[1]).toEqual(4);
+      });
+
+      it('should reshape tensors for tfc.stack', () => {
+        const spy = spyOn(tfc, 'stack');
+        node.op = 'stack';
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+        node.params.tensors = createTensorsAttr(0, 0);
+        node.params.axis = createNumberAttr(4);
+        executeOp(node, {input1, input2, input3, input4}, context);
+
+        expect(spy.calls.mostRecent().args[0][0]).toEqual(input1[0]);
+        expect(spy.calls.mostRecent().args[0][1]).toEqual(input2[0]);
+        expect(spy.calls.mostRecent().args[0][2]).toEqual(input3[0]);
+        expect(spy.calls.mostRecent().args[0][3].shape).toEqual([]);
+        expect(spy.calls.mostRecent().args[1]).toEqual(4);
+      });
+
+      it('should raise error if tensors shape does not match for tfc.stack',
+         () => {
+           node.op = 'stack';
+           node.inputNames = ['input1', 'input2', 'input3', 'input5'];
+           node.params.tensors = createTensorsAttr(0, 0);
+           node.params.axis = createNumberAttr(4);
+           expect(
+               () => executeOp(node, {input1, input2, input3, input5}, context))
+               .toThrow(new Error('the input tensors shape does not match'));
+         });
     });
   });
   describe('single-tensor ops', () => {
@@ -110,8 +148,8 @@ describe('slice join', () => {
         node.params.endMask = createNumberAttr(5);
         executeOp(node, {input1}, context);
 
-        expect(tfc.stridedSlice).toHaveBeenCalledWith(
-          input1[0], [1], [2], [3], 4, 5);
+        expect(tfc.stridedSlice)
+            .toHaveBeenCalledWith(input1[0], [1], [2], [3], 4, 5);
       });
 
       it('should call tfc.gather', () => {
