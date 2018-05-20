@@ -177,7 +177,7 @@
     "category": "convolution",
     "params": [
       {
-        "tfInputIndex": 2,
+        "tfInputIndex": 0,
         "dlParamName": "x",
         "type": "tensor"
       },
@@ -187,7 +187,7 @@
         "type": "tensor"
       },
       {
-        "tfInputIndex": 0,
+        "tfInputIndex": 2,
         "dlParamName": "outputShape",
         "type": "number[]"
       },
