@@ -56,14 +56,14 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           size)];
     }
     case 'stridedSlice': {
-      const begin =
+      const begin = 
           getParamValue('begin', node, tensorMap, context) as number[];
       const end = getParamValue('end', node, tensorMap, context) as number[];
-      const strides =
+      const strides = 
           getParamValue('strides', node, tensorMap, context) as number[];
-      const beginMask =
+      const beginMask = 
           getParamValue('beginMask', node, tensorMap, context) as number;
-      const endMask =
+      const endMask = 
           getParamValue('endMask', node, tensorMap, context) as number;
       return [tfc.stridedSlice(
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, begin,
@@ -71,20 +71,9 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     }
     case 'stack': {
       const axis = getParamValue('axis', node, tensorMap, context) as number;
-      const tensors =
-          getParamValue('tensors', node, tensorMap, context) as tfc.Tensor[];
-      // Reshape the tensors to the first tensor's shape if they don't match.
-      const shape = tensors[0].shape;
-      const squeezedShape = tensors[0].squeeze().shape;
-      const mapped = tensors.map(tensor => {
-        const sameShape = tfc.util.arraysEqual(tensor.shape, shape);
-        if (!sameShape &&
-            !tfc.util.arraysEqual(tensor.squeeze().shape, squeezedShape)) {
-          throw new Error('the input tensors shape does not match');
-        }
-        return sameShape ? tensor : tensor.reshape(shape);
-      });
-      return [tfc.stack(mapped, axis)];
+      return [tfc.stack(
+          getParamValue('tensors', node, tensorMap, context) as tfc.Tensor[],
+          axis)];
     }
     case 'tile': {
       const reps = getParamValue('reps', node, tensorMap, context) as number[];
