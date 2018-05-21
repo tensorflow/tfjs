@@ -10,7 +10,7 @@
 
 // Layer activation functions
 import * as tfc from '@tensorflow/tfjs-core';
-import {scalar, serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject} from './utils/generic_utils';
@@ -81,13 +81,10 @@ serialization.SerializationMap.register(Relu);
 /**
  * Rectified linear unit activation maxing out at 6.0.
  */
-// TODO(bileschi): A new constant 6 here is being created at each invocation.
-// A better pattern would be to reuse a single constant 6, created after the
-// backend math has been instantiated.
 export class Relu6 extends Activation {
   static readonly className = 'relu6';
   apply(x: Tensor): Tensor {
-    return tidy(() => tfc.minimum(scalar(6.0), tfc.relu(x)));
+    return tidy(() => tfc.minimum(K.getScalar(6.0), tfc.relu(x)));
   }
 }
 serialization.SerializationMap.register(Relu6);
