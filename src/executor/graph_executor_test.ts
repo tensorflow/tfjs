@@ -17,16 +17,18 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import * as operations from '../operations/index';
+import * as operations from '../operations/operation_executor';
+import {Graph, Node} from '../operations/types';
 
-import {ExecutionContext, GraphExecutor} from './index';
+import {ExecutionContext} from './execution_context';
+import {GraphExecutor} from './graph_executor';
 
 let executor: GraphExecutor;
-let inputNode: operations.Node;
-let constNode: operations.Node;
-let outputNode: operations.Node;
-let graph: operations.Graph;
-let graphWithControlFlow: operations.Graph;
+let inputNode: Node;
+let constNode: Node;
+let outputNode: Node;
+let graph: Graph;
+let graphWithControlFlow: Graph;
 
 describe('GraphExecutor', () => {
   beforeEach(() => {
@@ -87,10 +89,9 @@ describe('GraphExecutor', () => {
         const inputTensor = tfc.scalar(1);
         const constTensor = tfc.scalar(2);
         const spy =
-            spyOn(operations, 'executeOp')
-                .and.callFake((node: operations.Node) => {
-                  return node.op === 'const' ? [constTensor] : [inputTensor];
-                });
+            spyOn(operations, 'executeOp').and.callFake((node: Node) => {
+              return node.op === 'const' ? [constTensor] : [inputTensor];
+            });
 
         executor.execute({input: [inputTensor]});
 
@@ -144,10 +145,9 @@ describe('GraphExecutor', () => {
         const constTensor = tfc.scalar(2);
         executor.weightMap = {const : [constTensor]};
         const spy =
-            spyOn(operations, 'executeOp')
-                .and.callFake((node: operations.Node) => {
-                  return node.op === 'const' ? [constTensor] : [inputTensor];
-                });
+            spyOn(operations, 'executeOp').and.callFake((node: Node) => {
+              return node.op === 'const' ? [constTensor] : [inputTensor];
+            });
 
         await executor.executeAsync({input: [inputTensor]}).then(result => {
           expect(spy.calls.allArgs()).toEqual([

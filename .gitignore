@@ -12,3 +12,5 @@ dist/
 bazel-*
 
 *.pyc
+dist-es6/
+.rpt2_cache/

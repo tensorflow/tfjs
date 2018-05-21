@@ -17,16 +17,15 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {NamedTensorsMap} from '../../data/index';
-import {ExecutionContext} from '../../executor';
-import {Node} from '../index';
+import {NamedTensorsMap} from '../../data/types';
+import {ExecutionContext} from '../../executor/execution_context';
+import {Node} from '../types';
 
-import {OpExecutor} from './types';
 import {getParamValue, getTensor} from './utils';
 
-export let executeOp: OpExecutor = async(
+export async function executeOp(
     node: Node, tensorMap: NamedTensorsMap,
-    context: ExecutionContext): Promise<tfc.Tensor[]> => {
+    context: ExecutionContext): Promise<tfc.Tensor[]> {
   switch (node.op) {
     case 'loopCond':
       return [getParamValue('pred', node, tensorMap, context) as tfc.Tensor];
@@ -65,6 +64,6 @@ export let executeOp: OpExecutor = async(
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }
-};
+}
 
 export const CATEGORY = 'control';

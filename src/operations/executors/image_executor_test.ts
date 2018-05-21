@@ -15,9 +15,9 @@
  * =============================================================================
  */
 import * as tfc from '@tensorflow/tfjs-core';
-import {ExecutionContext} from '../../executor';
+import {ExecutionContext} from '../../executor/execution_context';
 
-import {Node} from '../index';
+import {Node} from '../types';
 
 import {executeOp} from './image_executor';
 // tslint:disable-next-line:max-line-length

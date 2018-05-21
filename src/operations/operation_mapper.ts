@@ -15,26 +15,24 @@
  * =============================================================================
  */
 import {DataType} from '@tensorflow/tfjs-core/dist/types';
-import * as Long from 'long';
-
-import {tensorflow} from '../data/index';
+import {tensorflow} from '../data/compiled_api';
 
 import {getNodeNameAndIndex} from './executors/utils';
-import {ParamValue} from './index';
-import * as arithmetic from './op_list/arithmetic.json';
-import * as basicMath from './op_list/basic_math.json';
-import * as control from './op_list/control.json';
-import * as convolution from './op_list/convolution.json';
-import * as creation from './op_list/creation.json';
-import * as graph from './op_list/graph.json';
-import * as image from './op_list/image.json';
-import * as logical from './op_list/logical.json';
-import * as matrices from './op_list/matrices.json';
-import * as normalization from './op_list/normalization.json';
-import * as reduction from './op_list/reduction.json';
-import * as sliceJoin from './op_list/slice_join.json';
-import * as transformation from './op_list/transformation.json';
-import {Graph, Node, OpMapper} from './types';
+
+import arithmetic from './op_list/arithmetic.json';
+import basicMath from './op_list/basic_math.json';
+import control from './op_list/control.json';
+import convolution from './op_list/convolution.json';
+import creation from './op_list/creation.json';
+import graph from './op_list/graph.json';
+import image from './op_list/image.json';
+import logical from './op_list/logical.json';
+import matrices from './op_list/matrices.json';
+import normalization from './op_list/normalization.json';
+import reduction from './op_list/reduction.json';
+import sliceJoin from './op_list/slice_join.json';
+import transformation from './op_list/transformation.json';
+import {Graph, Node, OpMapper, ParamValue} from './types';
 
 const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
 export class OperationMapper {
@@ -58,6 +56,7 @@ export class OperationMapper {
       ...(reduction as {}) as OpMapper[], ...(sliceJoin as {}) as OpMapper[],
       ...(transformation as {}) as OpMapper[]
     ];
+
     this.opMappers = mappersJson.reduce<{[key: string]: OpMapper}>(
         (map, mapper: OpMapper) => {
           map[mapper.tfOpName] = mapper;
@@ -221,7 +220,7 @@ export class OperationMapper {
       def: number): number {
     const param = attrs[name];
     const value = (param ? ((param.f !== undefined) ? param.f : param.i) : def);
-    return value instanceof Long ? value.toInt() : value;
+    return (typeof value === 'number') ? value : value['toInt']();
   }
   private getDtypeParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
@@ -258,7 +257,8 @@ export class OperationMapper {
     if (param) {
       return ((param.list.f && param.list.f.length ? param.list.f :
                                                      param.list.i))
-                 .map(v => v instanceof Long ? v.toInt() : v) as number[];
+                 .map(v => (typeof v === 'number') ? v : v['toInt']()) as
+          number[];
     }
     return def;
   }

@@ -17,9 +17,9 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {NamedTensorsMap} from '../../data/index';
-import {ExecutionContext} from '../../executor';
-import {Node, ValueType} from '../index';
+import {NamedTensorsMap} from '../../data/types';
+import {ExecutionContext} from '../../executor/execution_context';
+import {Node, ValueType} from '../types';
 
 export function getParamValue(
     paramName: string, node: Node, tensorMap: NamedTensorsMap,

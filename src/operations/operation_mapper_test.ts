@@ -17,9 +17,9 @@
 
 import * as Long from 'long';
 
-import {tensorflow} from '../data/index';
-
-import {Graph, OperationMapper} from './index';
+import {tensorflow} from '../data/compiled_api';
+import {OperationMapper} from './operation_mapper';
+import {Graph} from './types';
 
 const mapper: OperationMapper = OperationMapper.Instance;
 let graph: Graph;

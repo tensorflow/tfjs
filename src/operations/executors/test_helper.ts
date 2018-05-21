@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ParamValue} from '../index';
+import {ParamValue} from '../types';
 
 export function createNumberAttr(value: number): ParamValue {
   return {value, type: 'number'};
