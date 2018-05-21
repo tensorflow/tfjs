@@ -51,7 +51,6 @@ import {LossOrMetricFn} from './types';
  * @return Accuracy Tensor.
  */
 export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
-  // TODO(cais): Maybe avoid creating a new Scalar on every invocation.
   return tidy(() => {
     const threshold = K.scalarTimesArray(K.getScalar(0.5), tfc.onesLike(yPred));
     const yPredThresholded = K.cast(tfc.greater(yPred, threshold), yTrue.dtype);

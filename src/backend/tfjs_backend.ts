@@ -896,9 +896,8 @@ export function getUid(prefix = ''): string {
  */
 export function hardSigmoid(x: Tensor): Tensor {
   return tidy(() => {
-    // TODO(cais): Maybe avoid creating scalar constants on each invocation by
-    //   turning them into module-level constants.
-    const y = scalarPlusArray(scalar(0.5), scalarTimesArray(scalar(0.2), x));
+    const y =
+        scalarPlusArray(getScalar(0.5), scalarTimesArray(getScalar(0.2), x));
     return tfc.clipByValue(y, 0, 1);
   });
 }
