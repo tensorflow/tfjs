@@ -16,12 +16,13 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+import * as Url from 'url';
 
-import {NamedTensorMap, NamedTensorsMap, tensorflow} from '../data/index';
-import {OperationMapper} from '../operations/index';
+import {tensorflow} from '../data/compiled_api';
+import {NamedTensorMap, NamedTensorsMap} from '../data/types';
+import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';
-import * as Url from 'url';
 
 export class FrozenModel {
   private executor: GraphExecutor;

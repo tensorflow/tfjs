@@ -17,9 +17,9 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {NamedTensorsMap} from '../../data/index';
-import {ExecutionContext} from '../../executor';
-import {Node} from '../index';
+import {NamedTensorsMap} from '../../data/types';
+import {ExecutionContext} from '../../executor/execution_context';
+import {Node} from '../types';
 
 /**
  * Executes the op defined by the node object.

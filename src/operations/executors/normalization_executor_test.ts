@@ -16,8 +16,8 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {ExecutionContext} from '../../executor';
-import {Node} from '../index';
+import {ExecutionContext} from '../../executor/execution_context';
+import {Node} from '../types';
 
 import {executeOp} from './normalization_executor';
 import {createNumberAttr, createTensorAttr} from './test_helper';

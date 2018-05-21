@@ -17,10 +17,10 @@
 
 import {Tensor, tidy} from '@tensorflow/tfjs-core';
 
-import {NamedTensorMap, NamedTensorsMap} from '../data/index';
+import {NamedTensorMap, NamedTensorsMap} from '../data/types';
 import {getNodeNameAndIndex, getTensor} from '../operations/executors/utils';
-import * as operations from '../operations/index';
-import {Node} from '../operations/index';
+import {executeOp} from '../operations/operation_executor';
+import {Graph, Node} from '../operations/types';
 
 import {ExecutionContext, ExecutionContextInfo} from './execution_context';
 
@@ -30,7 +30,7 @@ interface NodeWithContexts {
 }
 
 export class GraphExecutor {
-  private compiledOrder: operations.Node[] = [];
+  private compiledOrder: Node[] = [];
   private _weightMap: NamedTensorsMap = {};
   private weightIds: number[];
   private placeholders: string[];
@@ -53,7 +53,7 @@ export class GraphExecutor {
     return this.outputs;
   }
 
-  constructor(private graph: operations.Graph) {
+  constructor(private graph: Graph) {
     this.placeholders = graph.placeholders.map(node => node.name);
     this.outputs = graph.outputs.map(node => node.name);
     this.compile();
@@ -106,8 +106,7 @@ export class GraphExecutor {
       const context = new ExecutionContext(this._weightMap);
       const tensors =
           this.compiledOrder.reduce<NamedTensorsMap>((map, node) => {
-            map[node.name] =
-                operations.executeOp(node, map, context) as Tensor[];
+            map[node.name] = executeOp(node, map, context) as Tensor[];
             return map;
           }, {...this.weightMap, ...inputs});
       return this.findOutputs(tensors, context, outputs);
@@ -170,7 +169,7 @@ export class GraphExecutor {
       const item = stack.pop();
       context.currentContext = item.contexts;
 
-      const tensors = operations.executeOp(item.node, tensorMap, context);
+      const tensors = executeOp(item.node, tensorMap, context);
 
       const [nodeName, ] = getNodeNameAndIndex(item.node.name, context);
       tensorMap[nodeName] = await tensors;

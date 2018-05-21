@@ -16,7 +16,7 @@
  */
 import {Tensor} from '@tensorflow/tfjs-core';
 
-import {NamedTensorsMap} from '../data';
+import {NamedTensorsMap} from '../data/types';
 
 export interface ExecutionContextInfo {
   id: number;           // the unique id of the context info

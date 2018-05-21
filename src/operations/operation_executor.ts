@@ -17,7 +17,7 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {NamedTensorsMap} from '../data/index';
+import {NamedTensorsMap} from '../data/types';
 import {ExecutionContext} from '../executor/execution_context';
 
 import * as arithmetic from './executors/arithmetic_executor';
@@ -33,7 +33,7 @@ import * as normalization from './executors/normalization_executor';
 import * as reduction from './executors/reduction_executor';
 import * as sliceJoin from './executors/slice_join_executor';
 import * as transformation from './executors/transformation_executor';
-import {Node} from './index';
+import {Node} from './types';
 
 /**
  * Executes the op defined by the node object.

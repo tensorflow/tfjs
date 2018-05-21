@@ -16,8 +16,8 @@
  */
 import * as tfc from '@tensorflow/tfjs-core';
 
-import {ExecutionContext} from '../../executor';
-import {Node} from '../index';
+import {ExecutionContext} from '../../executor/execution_context';
+import {Node} from '../types';
 
 // tslint:disable-next-line:max-line-length
 import {createDtypeAttr, createNumberAttr, createNumericArrayAttrFromIndex, createTensorAttr} from './test_helper';

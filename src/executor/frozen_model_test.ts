@@ -17,9 +17,9 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import * as data from '../data/index';
+import {tensorflow} from '../data/compiled_api';
 
-import {FrozenModel, loadFrozenModel} from './index';
+import {FrozenModel, loadFrozenModel} from './frozen_model';
 
 const MODEL_URL = 'http://example.org/model.pb';
 const WEIGHT_MANIFEST_URL = 'http://example.org/weights_manifest.json';
@@ -30,14 +30,14 @@ const bias = tfc.tensor1d([1], 'int32');
 const WEIGHT_MAP = {
   'Const': bias
 };
-const SIMPLE_MODEL: data.tensorflow.IGraphDef = {
+const SIMPLE_MODEL: tensorflow.IGraphDef = {
   node: [
     {
       name: 'Input',
       op: 'Placeholder',
       attr: {
         dtype: {
-          type: data.tensorflow.DataType.DT_INT32,
+          type: tensorflow.DataType.DT_INT32,
         },
         shape: {shape: {dim: [{size: 1}]}}
       }
@@ -46,10 +46,10 @@ const SIMPLE_MODEL: data.tensorflow.IGraphDef = {
       name: 'Const',
       op: 'Const',
       attr: {
-        dtype: {type: data.tensorflow.DataType.DT_INT32},
+        dtype: {type: tensorflow.DataType.DT_INT32},
         value: {
           tensor: {
-            dtype: data.tensorflow.DataType.DT_INT32,
+            dtype: tensorflow.DataType.DT_INT32,
             tensorShape: {dim: [{size: 1}]},
           }
         },
@@ -64,7 +64,7 @@ const SIMPLE_MODEL: data.tensorflow.IGraphDef = {
 
 describe('Model', () => {
   beforeEach(() => {
-    spyOn(data.tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
+    spyOn(tensorflow.GraphDef, 'decode').and.returnValue(SIMPLE_MODEL);
     const weightPromise = new Promise((resolve => resolve(WEIGHT_MAP)));
     spyOn(tfc.io, 'loadWeights').and.returnValue(weightPromise);
     model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
@@ -84,12 +84,12 @@ describe('Model', () => {
   describe('getPathPrefix', () => {
     it('should set pathPrefix (absolute path)', async () => {
       model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
-      expect(model.getPathPrefix()).toEqual("http://example.org/");
+      expect(model.getPathPrefix()).toEqual('http://example.org/');
     });
 
     it('should set pathPrefix (relative path)', async () => {
       model = new FrozenModel(RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
-      expect(model.getPathPrefix()).toEqual("/path/");
+      expect(model.getPathPrefix()).toEqual('/path/');
     });
   });
 
