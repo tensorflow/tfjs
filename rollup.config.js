@@ -14,11 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-
+import babel from 'rollup-plugin-babel';
 import node from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
 import resolve from 'rollup-plugin-node-resolve';
+import json from 'rollup-plugin-json';
 
 export default {
   input: 'src/index.ts',
@@ -29,9 +30,14 @@ export default {
     commonjs({
       include: 'node_modules/**',
       namedExports: {
-        './node_modules/seedrandom/index.js': ['alea']
+        './node_modules/seedrandom/index.js': ['alea'],
+        './src/data/compiled_api.js': ['tensorflow'],
+        './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
       },
-    })
+    }),
+    json(),
+    // We need babel to compile the compiled_api.js generated proto file from es6 to es5.
+    babel()
   ],
   output: {
     extend: true,
