@@ -235,11 +235,16 @@ export class GraphExecutor {
     });
 
     if (missing.length > 0) {
-      throw new Error(`Missing input placeholders: ${missing}`);
+      throw new Error(
+          `The dict provided in model.execute(dict) has the keys ` +
+          `[${inputKeys}], but is missing the required keys: [${missing}].`);
     }
 
     if (extra.length > 0) {
-      throw new Error(`Extra input tensors: ${extra}`);
+      throw new Error(
+          `The dict provided in model.execute(dict) has ` +
+          `unused keys: [${extra}]. Please provide only the following keys: ` +
+          `[${this.placeholders}].`);
     }
   }
 }
