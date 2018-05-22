@@ -22,7 +22,8 @@
     "*.ipp": "cpp",
     "array": "cpp",
     "initializer_list": "cpp",
-    "string_view": "cpp"
+    "string_view": "cpp",
+    "utility": "cpp"
   },
   "search.exclude": {
     "**/node_modules": true,
@@ -42,9 +43,11 @@
     "editor.formatOnSave": true
   },
   "clang-format.style": "Google",
+  "C_Cpp.clang_format_fallbackStyle": "Google",
   "files.insertFinalNewline": true,
   "editor.detectIndentation": false,
   "editor.wrappingIndent": "none",
   "typescript.tsdk": "node_modules/typescript/lib",
-  "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format"
+  "clang-format.executable": "${workspaceRoot}/node_modules/.bin/clang-format",
+  "C_Cpp.intelliSenseEngineFallback": "Enabled"
 }

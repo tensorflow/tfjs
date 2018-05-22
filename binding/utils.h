@@ -18,6 +18,7 @@
 #ifndef TF_NODEJS_UTILS_H_
 #define TF_NODEJS_UTILS_H_
 
+#include <node_api.h>
 #include <stdio.h>
 #include <cstdlib>
 #include <sstream>

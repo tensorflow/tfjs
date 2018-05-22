@@ -20,6 +20,7 @@
 
 #include <node_api.h>
 #include <map>
+#include <string>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 
 namespace tfnodejs {
@@ -63,6 +64,7 @@ class TFJSBackend {
   TFE_Context* tfe_context_;
   std::map<int32_t, TFE_TensorHandle*> tfe_handle_map_;
   int32_t next_tensor_id_;
+  std::string device_name;
 };
 
 }  // namespace tfnodejs
