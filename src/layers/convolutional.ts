@@ -164,15 +164,15 @@ export function conv2dWithBias(
       dataFormat = imageDataFormat();
     }
     checkDataFormat(dataFormat);
-    if (K.ndim(x) !== 3 && K.ndim(x) !== 4) {
+    if (x.rank !== 3 && x.rank !== 4) {
       throw new ValueError(
           `conv2dWithBias expects input to be of rank 3 or 4, but received ` +
-          `${K.ndim(x)}.`);
+          `${x.rank}.`);
     }
-    if (K.ndim(kernel) !== 3 && K.ndim(kernel) !== 4) {
+    if (kernel.rank !== 3 && kernel.rank !== 4) {
       throw new ValueError(
           `conv2dWithBias expects kernel to be of rank 3 or 4, but received ` +
-          `${K.ndim(x)}.`);
+          `${x.rank}.`);
     }
     let y = preprocessConv2DInput(x, dataFormat);
     if (padding === 'causal') {

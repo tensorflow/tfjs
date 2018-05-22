@@ -55,15 +55,15 @@ export function depthwiseConv2d(
     }
     checkDataFormat(dataFormat);
     let y = preprocessConv2DInput(x, dataFormat);
-    if (K.ndim(x) !== 4) {
+    if (x.rank !== 4) {
       throw new ValueError(
           `Input for depthwiseConv2d is required to be 4-D, but is instead ` +
-          `${K.ndim(x)}-D`);
+          `${x.rank}-D`);
     }
-    if (K.ndim(depthwiseKernel) !== 4) {
+    if (depthwiseKernel.rank !== 4) {
       throw new ValueError(
           `depthwiseKernel is required to be 4-D, but is instead ` +
-          `${K.ndim(depthwiseKernel)}-D`);
+          `${depthwiseKernel.rank}-D`);
     }
     y = tfc.depthwiseConv2d(
         y as Tensor4D, depthwiseKernel as Tensor4D, strides,
