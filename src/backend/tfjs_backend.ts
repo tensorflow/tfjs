@@ -108,16 +108,6 @@ export function intShape(x: Tensor|SymbolicTensor): number[] {
 }
 
 /**
- * Get the number of dimensions (axes).
- *
- * @param x The tensor.
- * @return Number of dimensions of `x`.
- */
-export function ndim(x: Tensor|SymbolicTensor): number {
-  return x.shape.length;
-}
-
-/**
  * Returns the dtype of a tensor or variable.
  *
  * @param x The tensor.
@@ -209,9 +199,9 @@ export function flatten(x: Tensor): Tensor {
  * @return The result of the flattening.
  */
 export function batchFlatten(x: Tensor): Tensor {
-  if (ndim(x) <= 1) {
+  if (x.rank <= 1) {
     throw new ValueError(
-        `batchFlatten requires a minimum rank of 2. Got rank: ${ndim(x)}.`);
+        `batchFlatten requires a minimum rank of 2. Got rank: ${x.rank}.`);
   }
   const newShape = [x.shape[0], math_utils.arrayProd(x.shape, 1)];
   return x.reshape(newShape);
@@ -360,14 +350,14 @@ export function sliceAlongAxis(
 export function concatenate(tensors: Tensor[], axis = -1): Tensor {
   let rank: number;
   if (axis < 0) {
-    rank = ndim(tensors[0]);
+    rank = tensors[0].rank;
     if (rank !== 0) {
       axis = rank;
     } else {
       axis = 0;
     }
   }
-  if (axis === ndim(tensors[0])) {
+  if (axis === tensors[0].rank) {
     // Porting Note: This is necessary because tfc.concat() requires axis to be
     //   in the interval [-rank, rank).
     axis = -1;
@@ -411,10 +401,10 @@ export function tile(x: Tensor, n: number|number[]): Tensor {
   if (!Array.isArray(n)) {
     n = [n];
   }
-  if (ndim(x) !== n.length) {
+  if (x.rank !== n.length) {
     throw new ValueError(
         `The length of input n (${n.length}) does not match ` +
-        `the number of dimensions in input x (${ndim(x)})`);
+        `the number of dimensions in input x (${x.rank})`);
   }
   return tfc.tile(x, n);
 }
@@ -497,14 +487,14 @@ export function randomNormal(
  * @return Result of the dot operation.
  */
 export function dot(x: Tensor, y: Tensor): Tensor {
-  if (ndim(y) !== 2) {
+  if (y.rank !== 2) {
     throw new NotImplementedError(
         `dot support for y other than rank 2 is not yet implemented: ` +
         `y shape = ${shape}`);
   } else {
-    if (ndim(x) === 2) {
+    if (x.rank === 2) {
       return tfc.matMul(x as Tensor2D, y as Tensor2D);
-    } else if (ndim(x) === 3) {
+    } else if (x.rank === 3) {
       const xShape0 = x.shape[0];
       const xShape1 = x.shape[1];
       const xShape2 = x.shape[2];
@@ -514,7 +504,7 @@ export function dot(x: Tensor, y: Tensor): Tensor {
       ]);
     } else {
       throw new NotImplementedError(
-          `dot support for x of rank ${ndim(x)} is not yet implemented: ` +
+          `dot support for x of rank ${x.rank} is not yet implemented: ` +
           `x shape = ${shape}`);
     }
   }
@@ -647,7 +637,7 @@ export function qr(x: Tensor2D): [Tensor, Tensor] {
  */
 export function oneHot(indices: Tensor, numClasses: number): Tensor {
   return tidy(() => {
-    if (ndim(indices) !== 1) {
+    if (indices.rank !== 1) {
       throw new Error(
           'Only 1D one-hot tensors are supported in the ' +
           'deeplearn backend, at present.');
@@ -730,15 +720,15 @@ export function biasAdd(
     }
     checkDataFormat(dataFormat);
 
-    if (ndim(bias) !== 1 && ndim(bias) !== ndim(x)) {
+    if (bias.rank !== 1 && bias.rank !== x.rank) {
       throw new ValueError(
-          'Unexpected bias dimensions: ' + ndim(bias) +
-          '; expected it to be 1 or ' + ndim(x));
+          'Unexpected bias dimensions: ' + bias.rank +
+          '; expected it to be 1 or ' + x.rank);
     }
     const biasShape = bias.shape;
 
     let y: Tensor;
-    if (ndim(x) === 5) {
+    if (x.rank === 5) {
       if (dataFormat === 'channelsFirst') {
         if (biasShape.length === 1) {
           y = x.add(bias.reshape([1, biasShape[0], 1, 1, 1]));
@@ -753,7 +743,7 @@ export function biasAdd(
           y = x.add(bias.reshape([1].concat(biasShape)));
         }
       }
-    } else if (ndim(x) === 4) {
+    } else if (x.rank === 4) {
       if (dataFormat === 'channelsFirst') {
         if (biasShape.length === 1) {
           y = x.add(bias.reshape([1, biasShape[0], 1, 1]));
@@ -768,7 +758,7 @@ export function biasAdd(
           y = x.add(bias.reshape([1].concat(biasShape)));
         }
       }
-    } else if (ndim(x) === 3) {
+    } else if (x.rank === 3) {
       if (dataFormat === 'channelsFirst') {
         if (biasShape.length === 1) {
           y = x.add(bias.reshape([1, biasShape[0], 1]));
@@ -782,10 +772,10 @@ export function biasAdd(
           y = x.add(bias.reshape([1].concat(biasShape)));
         }
       }
-    } else if (ndim(x) < 3) {
+    } else if (x.rank < 3) {
       y = x.add(bias);
     } else {
-      throw new ValueError(`Unsupported input rank by biasAdd: ${ndim(x)}`);
+      throw new ValueError(`Unsupported input rank by biasAdd: ${x.rank}`);
     }
     return y;
   });

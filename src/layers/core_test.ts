@@ -233,7 +233,7 @@ describeMathCPUAndGPU('Dense Layer: Tensor', () => {
                const expectedShape = input.shape.slice();
                expectedShape[expectedShape.length - 1] = units;
                let expectedOutput;
-               if (K.ndim(input) === 2) {
+               if (input.rank === 2) {
                  expectedOutput = tensor2d(
                      pyListRepeat(
                          expectedElementValue, arrayProd(expectedShape)),

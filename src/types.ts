@@ -48,6 +48,10 @@ export class SymbolicTensor {
   // original name is used as a key.
   readonly originalName?: string;
   /**
+   * Rank/dimensionality of the tensor.
+   */
+  readonly rank: number;
+  /**
    * Replacement for _keras_history.
    */
   nodeIndex: number;
@@ -79,6 +83,7 @@ export class SymbolicTensor {
       this.originalName = getScopedTensorName(name);
       this.name = getUniqueTensorName(this.originalName);
     }
+    this.rank = shape.length;
   }
 }
 

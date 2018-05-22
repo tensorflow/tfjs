@@ -47,26 +47,25 @@ export function batchNormalization(
     x: Tensor, mean: Tensor, variance: Tensor, beta?: Tensor, gamma?: Tensor,
     epsilon = 1e-3): Tensor {
   let out: Tensor;
-  if (K.ndim(x) === 2) {
+  if (x.rank === 2) {
     out = tfc.batchNormalization2d(
         x as Tensor2D, mean as Tensor2D | Tensor1D,
         variance as Tensor2D | Tensor1D, epsilon, gamma as Tensor2D | Tensor1D,
         beta as Tensor2D | Tensor1D);
-  } else if (K.ndim(x) === 3) {
+  } else if (x.rank === 3) {
     // TODO(cais): Check rank; give proper error message.
     out = tfc.batchNormalization3d(
         x as Tensor3D, mean as Tensor3D | Tensor1D,
         variance as Tensor3D | Tensor1D, epsilon, gamma as Tensor3D | Tensor1D,
         beta as Tensor3D | Tensor1D);
-  } else if (K.ndim(x) === 4) {
+  } else if (x.rank === 4) {
     out = tfc.batchNormalization4d(
         x as Tensor4D, mean as Tensor4D | Tensor1D,
         variance as Tensor4D | Tensor1D, epsilon, gamma as Tensor4D | Tensor1D,
         beta as Tensor4D | Tensor1D);
   } else {
     throw new NotImplementedError(
-        `batchNormalization is not implememnted for array of rank ${
-            K.ndim(x)} ` +
+        `batchNormalization is not implememnted for array of rank ${x.rank} ` +
         `yet`);
   }
   return out;
@@ -127,7 +126,7 @@ function broadcastNormalizeBatchInTraining(
            const mean = meanAndVariance.mean;
            const variance = meanAndVariance.variance;
            const targetShape: number[] = [];
-           for (const axis of math_utils.range(0, K.ndim(x))) {
+           for (const axis of math_utils.range(0, x.rank)) {
              if (reductionAxes.indexOf(axis) !== -1) {
                targetShape.push(1);
              } else {
@@ -162,7 +161,7 @@ export function normalizeBatchInTraining(
     x: Tensor, gamma: Tensor, beta: Tensor, reductionAxes: number[],
     epsilon = 1e-3): [Tensor, Tensor, Tensor] {
   if (util.arraysEqual(
-          reductionAxes.slice().sort(), math_utils.range(0, K.ndim(x) - 1))) {
+          reductionAxes.slice().sort(), math_utils.range(0, x.rank - 1))) {
     return regularNormalizeBatchInTraining(
         x, gamma, beta, reductionAxes, epsilon);
   } else {

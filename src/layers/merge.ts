@@ -133,13 +133,13 @@ export abstract class Merge extends Layer {
       inputs = inputs as Tensor[];
       if (this.reshapeRequired) {
         const reshapedInputs: Tensor[] = [];
-        const inputDims = inputs.map(input => K.ndim(input));
+        const inputDims = inputs.map(input => input.rank);
         if (inputDims.indexOf(null) === -1) {
           // If ranks of all inputs are available, we simply expand each of them
           // at axis=1 until all of them have the same rank.
           const maxNDim = mathUtils.max(inputDims);
           for (let x of inputs) {
-            const xNDim = K.ndim(x);
+            const xNDim = x.rank;
             for (let k = 0; k < maxNDim - xNDim; ++k) {
               x = K.expandDims(x, 1);
             }
@@ -151,7 +151,7 @@ export abstract class Merge extends Layer {
           // [batchSize, dim1, dim2, ...] -> [dim1, dim2, ..., batchSize]
           let transposed = false;
           for (const x of inputs) {
-            const xNDim = K.ndim(x);
+            const xNDim = x.rank;
             if (xNDim == null) {
               const xShape = K.shape(x);
               const batchSize = xShape[0];
@@ -172,7 +172,7 @@ export abstract class Merge extends Layer {
             }
           }
           let y = this.mergeFunction(reshapedInputs);
-          const yNDim = K.ndim(y);
+          const yNDim = y.rank;
           if (transposed) {
             // If inputs have been transposed, we have to transpose the output
             // too.

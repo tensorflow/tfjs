@@ -660,7 +660,7 @@ export abstract class Layer extends serialization.Serializable {
       }
 
       // Check ndim.
-      const ndim = K.ndim(x);
+      const ndim = x.rank;
       if (spec.ndim != null) {
         if (ndim !== spec.ndim) {
           throw new ValueError(

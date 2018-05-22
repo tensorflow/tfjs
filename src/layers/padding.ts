@@ -20,7 +20,6 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {imageDataFormat} from '../backend/common';
-import * as K from '../backend/tfjs_backend';
 import {DataFormat} from '../common';
 import {InputSpec, Layer, LayerConfig} from '../engine/topology';
 import {ValueError} from '../errors';
@@ -39,10 +38,10 @@ import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
  */
 export function temporalPadding(x: Tensor, padding?: [number, number]): Tensor {
   return tidy(() => {
-    if (K.ndim(x) !== 3) {
+    if (x.rank !== 3) {
       throw new ValueError(
           `temporalPadding expects input tensor to be 3-D, but received a ` +
-          `${K.ndim(x)}-D tensor.`);
+          `${x.rank}-D tensor.`);
     }
 
     if (padding == null) {
@@ -73,10 +72,10 @@ export function spatial2dPadding(
     x: Tensor, padding?: [[number, number], [number, number]],
     dataFormat?: DataFormat): Tensor {
   return tidy(() => {
-    if (K.ndim(x) !== 4) {
+    if (x.rank !== 4) {
       throw new ValueError(
           `temporalPadding expects input tensor to be 4-D, but received a ` +
-          `${K.ndim(x)}-D tensor.`);
+          `${x.rank}-D tensor.`);
     }
 
     if (padding == null) {
