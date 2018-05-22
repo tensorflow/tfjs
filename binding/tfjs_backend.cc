@@ -24,16 +24,33 @@ namespace tfnodejs {
 
 TFJSBackend::TFJSBackend(napi_env env) : next_tensor_id_(0) {
   TF_AutoStatus tf_status;
-  TFE_ContextOptions* tfe_options = TFE_NewContextOptions();
+  TFE_ContextOptions *tfe_options = TFE_NewContextOptions();
   tfe_context_ = TFE_NewContext(tfe_options, tf_status.status);
   if (TF_GetCode(tf_status.status) != TF_OK) {
     NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
   }
+
   TFE_DeleteContextOptions(tfe_options);
+
+  TF_DeviceList *device_list =
+      TFE_ContextListDevices(tfe_context_, tf_status.status);
+  if (TF_GetCode(tf_status.status) != TF_OK) {
+    NAPI_THROW_ERROR(env, "Exception creating TFE_Context");
+  }
+
+  const int num_devices = TF_DeviceListCount(device_list);
+  for (int i = 0; i < num_devices; i++) {
+    // Always use the last device (CPU is listed first).
+    // TODO(kreeger): Add better support for this in the future through the JS
+    // API. https://github.com/tensorflow/tfjs/issues/320
+    device_name =
+        std::string(TF_DeviceListName(device_list, i, tf_status.status));
+  }
+  TF_DeleteDeviceList(device_list);
 }
 
 TFJSBackend::~TFJSBackend() {
-  for (auto& kv : tfe_handle_map_) {
+  for (auto &kv : tfe_handle_map_) {
     TFE_DeleteTensorHandle(kv.second);
   }
   if (tfe_context_ != nullptr) {
@@ -42,7 +59,7 @@ TFJSBackend::~TFJSBackend() {
   }
 }
 
-int32_t TFJSBackend::InsertHandle(TFE_TensorHandle* tfe_handle) {
+int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
   return tfe_handle_map_.insert(std::make_pair(next_tensor_id_++, tfe_handle))
       .first->first;
 }
@@ -63,9 +80,26 @@ napi_value TFJSBackend::CreateTensor(napi_env env, napi_value shape_value,
   nstatus = napi_get_value_int32(env, dtype_value, &dtype_int32);
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-  TFE_TensorHandle* tfe_handle = CreateTFE_TensorHandleFromTypedArray(
+  TFE_TensorHandle *tfe_handle = CreateTFE_TensorHandleFromTypedArray(
       env, shape_vector.data(), shape_vector.size(),
       static_cast<TF_DataType>(dtype_int32), typed_array_value);
+
+  // Check to see if an exception exists, if so return a failure.
+  if (IsExceptionPending(env)) {
+    return nullptr;
+  }
+
+  // Copy non-int32 tensors to a device. Most GPU kernels expect to have int32
+  // tensors in host memory.
+  if (dtype_int32 != TF_INT32) {
+    // Note that this is a shallow copy and will share the underlying buffer
+    // if copying to the same device.
+    TFE_TensorHandle *new_handle = CopyTFE_TensorHandleToDevice(
+        env, device_name.c_str(), tfe_handle, tfe_context_);
+
+    TFE_DeleteTensorHandle(tfe_handle);
+    tfe_handle = new_handle;
+  }
 
   napi_value output_tensor_id;
   nstatus = napi_create_int32(env, InsertHandle(tfe_handle), &output_tensor_id);
@@ -79,7 +113,6 @@ void TFJSBackend::DeleteTensor(napi_env env, napi_value tensor_id_value) {
 
   auto tensor_entry = tfe_handle_map_.find(tensor_id);
   if (tensor_entry == tfe_handle_map_.end()) {
-    // TODO(kreeger): Print out the tensor ID?
     NAPI_THROW_ERROR(env, "Delete called on a Tensor not referenced");
     return;
   }
@@ -96,7 +129,6 @@ napi_value TFJSBackend::GetTensorData(napi_env env,
 
   auto tensor_entry = tfe_handle_map_.find(tensor_id);
   if (tensor_entry == tfe_handle_map_.end()) {
-    // TODO(kreeger): Print out the tensor ID?
     NAPI_THROW_ERROR(env, "Get data called on a Tensor not referenced");
     return nullptr;
   }
@@ -137,7 +169,6 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
 
     auto input_tensor_entry = tfe_handle_map_.find(cur_input_tensor_id);
     if (input_tensor_entry == tfe_handle_map_.end()) {
-      // TODO(kreeger): Print out the tensor ID?
       NAPI_THROW_ERROR(env, "Input Tensor ID not referenced");
       return nullptr;
     }
@@ -168,7 +199,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
   ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
   // Push `nullptr` to get a valid pointer in the call to `TFE_Execute()` below.
-  std::vector<TFE_TensorHandle*> result_handles(num_outputs, nullptr);
+  std::vector<TFE_TensorHandle *> result_handles(num_outputs, nullptr);
 
   int size = result_handles.size();
   TFE_Execute(tfe_op.op, result_handles.data(), &size, tf_status.status);
@@ -184,7 +215,7 @@ napi_value TFJSBackend::ExecuteOp(napi_env env, napi_value op_name_value,
     nstatus = napi_create_object(env, &tensor_info_value);
     ENSURE_NAPI_OK_RETVAL(env, nstatus, nullptr);
 
-    TFE_TensorHandle* handle = result_handles[i];
+    TFE_TensorHandle *handle = result_handles[i];
 
     // Output tensor ID:
     napi_value output_tensor_id_value;
