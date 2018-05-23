@@ -19,7 +19,7 @@ import {Layer} from '../engine/topology';
 import * as tfl from '../index';
 import {deserialize} from '../layers/serialization';
 import {Shape} from '../types';
-import {convertPythonicToTs} from '../utils/serialization_utils';
+import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Add, Average, Concatenate, Maximum, Minimum, Multiply} from './merge';
@@ -57,7 +57,7 @@ describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
 
   it('Single input leads to exception', () => {
     const x = new tfl.SymbolicTensor('float32', [2, 2], null, [], null);
-    const addLayer = new Add({name: 'Add'});
+    const addLayer = tfl.layers.add({name: 'Add'});
     expect(() => {
       addLayer.apply([x]);
     }).toThrowError(/.*at least 2 inputs\. Got 1 input.*/);
@@ -66,7 +66,7 @@ describeMathCPU('Merge Layers Except Concatenate: Symbolic', () => {
   it('Non-unique batch sizes to exception', () => {
     const x1 = new tfl.SymbolicTensor('float32', [1, 2], null, [], null);
     const x2 = new tfl.SymbolicTensor('float32', [2, 2], null, [], null);
-    const addLayer = new Add({name: 'Add'});
+    const addLayer = tfl.layers.add({name: 'Add'});
     expect(() => {
       addLayer.apply([x1, x2]);
     }).toThrowError(/Can not merge tensors with different batch sizes/);
@@ -242,19 +242,19 @@ describeMathCPU('Concatenate Layer: Symbolic', () => {
   it('All known shapes', () => {
     const x1 = new tfl.SymbolicTensor('float32', [2, 3, 4], null, [], null);
     const x2 = new tfl.SymbolicTensor('float32', [2, 3, 4], null, [], null);
-    const layer0 = new Concatenate({});
+    const layer0 = tfl.layers.concatenate({});
     expect((layer0.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       2, 3, 8
     ]);
-    const layer1 = new Concatenate({axis: -1});
+    const layer1 = tfl.layers.concatenate({axis: -1});
     expect((layer1.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       2, 3, 8
     ]);
-    const layer2 = new Concatenate({axis: 0});
+    const layer2 = tfl.layers.concatenate({axis: 0});
     expect((layer2.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       4, 3, 4
     ]);
-    const layer3 = new Concatenate({axis: 1});
+    const layer3 = tfl.layers.concatenate({axis: 1});
     expect((layer3.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       2, 6, 4
     ]);
@@ -262,7 +262,7 @@ describeMathCPU('Concatenate Layer: Symbolic', () => {
   it('Concat axis has unknown shape', () => {
     const x1 = new tfl.SymbolicTensor('float32', [2, null, 4], null, [], null);
     const x2 = new tfl.SymbolicTensor('float32', [2, null, 4], null, [], null);
-    const layer = new Concatenate({axis: 1});
+    const layer = tfl.layers.concatenate({axis: 1});
     expect((layer.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       2, null, 4
     ]);
@@ -270,7 +270,7 @@ describeMathCPU('Concatenate Layer: Symbolic', () => {
   it('Non-concat axis has unknown shape', () => {
     const x1 = new tfl.SymbolicTensor('float32', [null, 3, 4], null, [], null);
     const x2 = new tfl.SymbolicTensor('float32', [null, 5, 4], null, [], null);
-    const layer = new Concatenate({axis: 1});
+    const layer = tfl.layers.concatenate({axis: 1});
     expect((layer.apply([x1, x2]) as tfl.SymbolicTensor).shape).toEqual([
       null, 8, 4
     ]);
@@ -278,16 +278,24 @@ describeMathCPU('Concatenate Layer: Symbolic', () => {
   it('Incompatible shape leads to error', () => {
     const x1 = new tfl.SymbolicTensor('float32', [2, 3, 5], null, [], null);
     const x2 = new tfl.SymbolicTensor('float32', [2, 4, 5], null, [], null);
-    const layer = new Concatenate({});
+    const layer = tfl.layers.concatenate({});
     expect(() => layer.apply([
       x1, x2
     ])).toThrowError(/requires inputs with matching shapes except/);
   });
   it('Single shape leads to error', () => {
     const x1 = new tfl.SymbolicTensor('float32', [2, 3, 5], null, [], null);
-    const layer = new Concatenate({});
+    const layer = tfl.layers.concatenate({});
     expect(() => layer.apply([x1]))
         .toThrowError(/should be called on a list of at least 2 inputs/);
+  });
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.concatenate({axis: 2});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.concatenate(tsConfig);
+    expect(layerPrime.getConfig().axis).toEqual(2);
   });
 });
 
@@ -295,14 +303,14 @@ describeMathCPUAndGPU('Add Layer: Tensor', () => {
   it('2D plus 2D', () => {
     const x1 = tensor2d([[10, 20], [30, 40]], [2, 2]);
     const x2 = tensor2d([[-1, -2], [-3, -4]], [2, 2]);
-    const addLayer = new Add({});
+    const addLayer = tfl.layers.add({});
     const y = addLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(y, tensor2d([[9, 18], [27, 36]], [2, 2]));
   });
   it('2D plus 2D, with broadcast', () => {
     const x1 = tensor2d([[10, 20], [30, 40]], [2, 2]);
     const x2 = tensor2d([[-2], [-4]], [2, 1]);
-    const addLayer = new Add({});
+    const addLayer = tfl.layers.add({});
     const y = addLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(y, tensor2d([[8, 18], [26, 36]], [2, 2]));
   });
@@ -310,7 +318,7 @@ describeMathCPUAndGPU('Add Layer: Tensor', () => {
     const x1 =
         tensor3d([[[10, 20], [30, 40]], [[50, 60], [70, 80]]], [2, 2, 2]);
     const x2 = tensor2d([[-2], [-4]], [2, 1]);
-    const addLayer = new Add({});
+    const addLayer = tfl.layers.add({});
     const y = addLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(
         y, tensor3d([[[8, 18], [28, 38]], [[46, 56], [66, 76]]], [2, 2, 2]));
@@ -321,7 +329,7 @@ describeMathCPUAndGPU('Multiply Layer: Tensor', () => {
   it('2D times 2D', () => {
     const x1 = tensor2d([[10, 20], [30, 40]], [2, 2]);
     const x2 = tensor2d([[-1, -2], [-3, -4]], [2, 2]);
-    const multipyLayer = new Multiply({});
+    const multipyLayer = tfl.layers.multiply({});
     const y = multipyLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(y, tensor2d([[-10, -40], [-90, -160]], [2, 2]));
   });
@@ -340,14 +348,14 @@ describeMathCPUAndGPU('Average Layer: Tensor', () => {
   it('2D and 2D', () => {
     const x1 = tensor2d([[10, 20], [30, 40]], [2, 2]);
     const x2 = tensor2d([[-2, -4], [-6, -8]], [2, 2]);
-    const averageLayer = new Average({});
+    const averageLayer = tfl.layers.average({});
     const y = averageLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(y, tensor2d([[4, 8], [12, 16]], [2, 2]));
   });
   it('2D and 2D, with broadcast', () => {
     const x1 = tensor2d([[10, 20], [30, 40]], [2, 2]);
     const x2 = tensor2d([[-2], [-4]], [2, 1]);
-    const averageLayer = new Average({});
+    const averageLayer = tfl.layers.average({});
     const y = averageLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(y, tensor2d([[4, 9], [13, 18]], [2, 2]));
   });
@@ -357,7 +365,7 @@ describeMathCPUAndGPU('Maximum Layer: Tensor', () => {
   it('2D and 2D', () => {
     const x1 = tensor2d([[10, 20], [-6, -8]], [2, 2]);
     const x2 = tensor2d([[-2, -4], [30, 40]], [2, 2]);
-    const averageLayer = new Maximum({});
+    const averageLayer = tfl.layers.maximum({});
     const y = averageLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(y, tensor2d([[10, 20], [30, 40]], [2, 2]));
   });
@@ -367,7 +375,7 @@ describeMathCPUAndGPU('Minimum Layer: Tensor', () => {
   it('2D and 2D', () => {
     const x1 = tensor2d([[10, 20], [-6, -8]], [2, 2]);
     const x2 = tensor2d([[-2, -4], [30, 40]], [2, 2]);
-    const averageLayer = new Minimum({});
+    const averageLayer = tfl.layers.minimum({});
     const y = averageLayer.apply([x1, x2]) as Tensor;
     expectTensorsClose(y, tensor2d([[-2, -4], [-6, -8]], [2, 2]));
   });
@@ -386,7 +394,7 @@ describeMathCPUAndGPU('Concatenate Layer: Tensor', () => {
   for (const axis of axisValues) {
     it(`axis=${axis}`, () => {
       createData();
-      const layer = new Concatenate({axis});
+      const layer = tfl.layers.concatenate({axis});
       const expected = axis === 0 ?
           tensor2d([1, 2, 3, 4, -1, -2, -3, -4], [4, 2]) :
           tensor2d([1, 2, -1, -2, 3, 4, -3, -4], [2, 4]);

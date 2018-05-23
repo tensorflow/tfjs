@@ -467,6 +467,32 @@ export class Bidirectional extends Wrapper {
   }
 
   // TODO(cais): Implement constraints().
-  // TODO(cais): Implement getConfig().
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
+      'mergeMode': this.mergeMode,
+    };
+    // TODO(cais): Add logic for `numConstants` once the property is added.
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+
+  static fromConfig<T extends serialization.Serializable>(
+      cls: serialization.SerializableConstructor<T>,
+      config: serialization.ConfigDict): T {
+    const rnnLayer = deserialize(config['layer'] as serialization.ConfigDict);
+    delete config['layer'];
+    // TODO(cais): Add logic for `numConstants` once the property is added.
+    if (config['numConstants'] != null) {
+      throw new NotImplementedError(
+          `Deserialization of a Bidirectional layer with numConstants ` +
+          `present is not supported yet.`);
+    }
+    // tslint:disable-next-line:no-any
+    const newConfig: {[key: string]: any} = config;
+    newConfig['layer'] = rnnLayer;
+    return new cls(newConfig);
+  }
 }
 serialization.SerializationMap.register(Bidirectional);

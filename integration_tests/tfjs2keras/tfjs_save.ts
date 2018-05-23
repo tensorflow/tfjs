@@ -108,10 +108,11 @@ function exportOneDimensionalModel(exportPath: string): void {
   fs.writeFileSync(exportPath, model.toJSON());
 }
 
-// Functioal model with a Merge layer.
+// Functional model with two Merge layers.
 function exportFunctionalMergeModel(exportPath: string): void {
   const input1 = tfl.input({shape: [2, 5]});
   const input2 = tfl.input({shape: [4, 5]});
+  const input3 = tfl.input({shape: [30]});
   const reshaped1 = tfl.layers.reshape({targetShape: [10]}).apply(input1) as
       tfl.SymbolicTensor;
   const reshaped2 = tfl.layers.reshape({targetShape: [20]}).apply(input2) as
@@ -120,9 +121,15 @@ function exportFunctionalMergeModel(exportPath: string): void {
       tfl.layers.dense({units: 5}).apply(reshaped1) as tfl.SymbolicTensor;
   const dense2 =
       tfl.layers.dense({units: 5}).apply(reshaped2) as tfl.SymbolicTensor;
-  const avg = tfl.layers.average().apply([dense1, dense2]);
-  const output = tfl.layers.dense({units: 1}).apply(avg) as tfl.SymbolicTensor;
-  const model = tfl.model({inputs: [input1, input2], outputs: output});
+  const dense3 =
+      tfl.layers.dense({units: 5}).apply(input3) as tfl.SymbolicTensor;
+  const avg =
+      tfl.layers.average().apply([dense1, dense2]) as tfl.SymbolicTensor;
+  const concat = tfl.layers.concatenate({axis: -1}).apply([avg, dense3]) as
+      tfl.SymbolicTensor;
+  const output =
+      tfl.layers.dense({units: 1}).apply(concat) as tfl.SymbolicTensor;
+  const model = tfl.model({inputs: [input1, input2, input3], outputs: output});
   fs.writeFileSync(exportPath, model.toJSON());
 }
 
