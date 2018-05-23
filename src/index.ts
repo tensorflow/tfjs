@@ -22,4 +22,4 @@ export {CSVDataset} from './datasets/csv_dataset';
 export {TextLineDataset} from './datasets/text_line_dataset';
 export {FileDataSource} from './sources/file_data_source';
 export {URLDataSource} from './sources/url_data_source';
-export {DatasetBatch, DatasetElement, ElementArray} from './types';
+export {DatasetBatch} from './types';

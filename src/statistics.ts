@@ -17,8 +17,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+
 import {Dataset} from './dataset';
-import {ElementArray} from './types';
+import {ElementArray, TabularRecord} from './types';
 
 // TODO(soergel): Flesh out collected statistics.
 // For numeric columns we should provide mean, stddev, histogram, etc.
@@ -63,7 +64,7 @@ export function scaleTo01(min: number, max: number): (value: ElementArray) =>
 }
 
 export async function computeDatasetStatistics(
-    dataset: Dataset, sampleSize?: number,
+    dataset: Dataset<TabularRecord>, sampleSize?: number,
     shuffleWindowSize?: number): Promise<DatasetStatistics> {
   let sampleDataset = dataset;
   // TODO(soergel): allow for deep shuffle where possible.

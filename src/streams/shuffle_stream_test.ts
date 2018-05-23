@@ -16,10 +16,10 @@
  * =============================================================================
  */
 
-import {ChainedStream, streamFromItems} from './data_stream';
-import {streamFromConcatenatedFunction} from './data_stream';
-import {ShuffleStream} from './data_stream';
-import {TestIntegerStream} from './data_stream_test';
+import {ChainedStream, iteratorFromItems} from './lazy_iterator';
+import {iteratorFromConcatenatedFunction} from './lazy_iterator';
+import {ShuffleStream} from './lazy_iterator';
+import {TestIntegerStream} from './lazy_iterator_test';
 
 const LONG_STREAM_LENGTH = 100;
 const SHORT_STREAM_LENGTH = 15;
@@ -52,7 +52,7 @@ describe('ShuffleStream', () => {
 
   it('shuffles a single chained stream without replacement', done => {
     const baseStream = ChainedStream.create(
-        streamFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
+        iteratorFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
     const shuffleStream = new ShuffleStream(baseStream, 1000);
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
@@ -77,7 +77,7 @@ describe('ShuffleStream', () => {
   });
 
   it('shuffles multiple chained streams without replacement', done => {
-    const baseStream = streamFromConcatenatedFunction(
+    const baseStream = iteratorFromConcatenatedFunction(
         () =>
             ({value: new TestIntegerStream(SHORT_STREAM_LENGTH), done: false}),
         3);

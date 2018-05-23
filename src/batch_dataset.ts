@@ -16,12 +16,15 @@
  * =============================================================================
  */
 
-
 import * as tf from '@tensorflow/tfjs-core';
+import {TensorContainer} from '@tensorflow/tfjs-core/dist/types';
 
 import {Dataset} from './dataset';
-import {DataStream} from './streams/data_stream';
-import {BatchArray, DatasetBatch, DatasetElement, ElementArray} from './types';
+import {LazyIterator} from './streams/lazy_iterator';
+import {BatchArray, DatasetBatch, ElementArray, TabularRecord} from './types';
+
+// TODO(soergel): refactor to remove BatchDataset class, but retain columnar
+// batching functionality.
 
 /**
  * Represents a potentially large set of elements, grouped into batches.
@@ -38,24 +41,24 @@ import {BatchArray, DatasetBatch, DatasetElement, ElementArray} from './types';
  */
 export class BatchDataset {
   constructor(
-      protected base: Dataset, protected batchSize: number,
+      protected base: Dataset<TensorContainer>, protected batchSize: number,
       protected smallLastBatch = true) {}
 
   /*
    * Provide a new stream of batches.  Note this will also start new streams
    * from any underlying `Dataset`s or 'BatchDataset's.
    */
-  async getStream(): Promise<DataStream<DatasetBatch>> {
+  async iterator(): Promise<LazyIterator<DatasetBatch>> {
     const batchesAsArrays =
-        this.base.getStream().batch(this.batchSize, this.smallLastBatch);
+        this.base.iterator().batch(this.batchSize, this.smallLastBatch);
     return batchesAsArrays.map(makeDatasetBatch);
   }
 }
 
 /**
- * Constructs a DatasetBatch from a list of DatasetElements.
+ * Constructs a DatasetBatch from a list of TabularRecords.
  */
-function makeDatasetBatch(elements: DatasetElement[]): DatasetBatch {
+function makeDatasetBatch(elements: TabularRecord[]): DatasetBatch {
   const rotated: {[key: string]: (ElementArray[]|string[])} = {};
 
   // Assume that the first element is representative.
@@ -63,7 +66,7 @@ function makeDatasetBatch(elements: DatasetElement[]): DatasetBatch {
   // cleanly.
   // TODO(soergel) validate against a schema, allow missing keys, etc.
   // etc.
-  const firstElement: DatasetElement = elements[0];
+  const firstElement: TabularRecord = elements[0];
   const keys = Object.keys(firstElement);
   keys.forEach(key => {
     rotated[key] = [];

@@ -16,12 +16,12 @@
  * =============================================================================
  */
 
-import {DataStream, streamFromIncrementing} from './data_stream';
-import {streamFromConcatenated} from './data_stream';
-import {streamFromConcatenatedFunction} from './data_stream';
-import {streamFromFunction, streamFromItems} from './data_stream';
+import {iteratorFromIncrementing, LazyIterator} from './lazy_iterator';
+import {iteratorFromConcatenated} from './lazy_iterator';
+import {iteratorFromConcatenatedFunction} from './lazy_iterator';
+import {iteratorFromFunction, iteratorFromItems} from './lazy_iterator';
 
-export class TestIntegerStream extends DataStream<number> {
+export class TestIntegerStream extends LazyIterator<number> {
   currentIndex = 0;
   data: number[];
 
@@ -171,7 +171,7 @@ describe('DataStream', () => {
   });
 
   it('can be created from an array', done => {
-    const readStream = streamFromItems([1, 2, 3, 4, 5, 6]);
+    const readStream = iteratorFromItems([1, 2, 3, 4, 5, 6]);
     readStream.collectRemaining()
         .then(result => {
           expect(result).toEqual([1, 2, 3, 4, 5, 6]);
@@ -185,7 +185,7 @@ describe('DataStream', () => {
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
 
-    const readStream = streamFromFunction(func);
+    const readStream = iteratorFromFunction(func);
     readStream.collectRemaining()
         .then(result => {
           expect(result).toEqual([0, 1, 2, 3, 4, 5, 6]);
@@ -195,7 +195,7 @@ describe('DataStream', () => {
   });
 
   it('can be created with incrementing integers', done => {
-    const readStream = streamFromIncrementing(0).take(7);
+    const readStream = iteratorFromIncrementing(0).take(7);
     readStream.collectRemaining()
         .then(result => {
           expect(result).toEqual([0, 1, 2, 3, 4, 5, 6]);
@@ -205,8 +205,8 @@ describe('DataStream', () => {
   });
 
   it('can be concatenated', done => {
-    const a = streamFromItems([1, 2, 3]);
-    const b = streamFromItems([4, 5, 6]);
+    const a = iteratorFromItems([1, 2, 3]);
+    const b = iteratorFromItems([4, 5, 6]);
     const readStream = a.concatenate(b);
     readStream.collectRemaining()
         .then(result => {
@@ -219,7 +219,7 @@ describe('DataStream', () => {
   it('can be created by concatenating streams', done => {
     const a = new TestIntegerStream();
     const b = new TestIntegerStream();
-    const readStream = streamFromConcatenated(streamFromItems([a, b]));
+    const readStream = iteratorFromConcatenated(iteratorFromItems([a, b]));
     readStream.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(200);
@@ -229,7 +229,7 @@ describe('DataStream', () => {
   });
 
   it('can be created by concatenating streams from a function', done => {
-    const readStream = streamFromConcatenatedFunction(
+    const readStream = iteratorFromConcatenatedFunction(
         () => ({value: new TestIntegerStream(), done: false}), 3);
     const expectedResult: number[] = [];
     for (let i = 0; i < 3; i++) {

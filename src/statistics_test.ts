@@ -16,15 +16,19 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+
+import {Dataset} from '.';
 import {TestDataset} from './dataset_test';
-import {scaleTo01} from './statistics';
+import {computeDatasetStatistics, scaleTo01} from './statistics';
+import {TabularRecord} from './types';
 
 tf.test_util.describeWithFlags(
     'makeDatasetStatistics', tf.test_util.ALL_ENVS, () => {
       it('computes numeric min and max over numbers, arrays, and Tensors',
          done => {
-           const ds = new TestDataset().skip(55);
-           ds.computeStatistics()
+           const ds = new TestDataset().skip(55) as Dataset<TabularRecord>;
+           // ds.computeStatistics()
+           computeDatasetStatistics(ds)
                .then(stats => {
                  expect(stats['number'].min).toEqual(55);
                  expect(stats['number'].max).toEqual(99);
@@ -41,11 +45,12 @@ tf.test_util.describeWithFlags(
 
 tf.test_util.describeWithFlags('scaleTo01', tf.test_util.ALL_ENVS, () => {
   it('scales numeric data to the [0, 1] interval', done => {
-    const ds = new TestDataset().skip(55);
+    const ds = new TestDataset().skip(55) as Dataset<TabularRecord>;
     const scaleFn = scaleTo01(55, 99 * 99 * 99);
     const scaledDataset = ds.map(x => ({'Tensor': scaleFn(x['Tensor'])}));
 
-    scaledDataset.computeStatistics()
+    // scaledDataset.computeStatistics()
+    computeDatasetStatistics(scaledDataset)
         .then(stats => {
           expect(stats['Tensor'].min).toBeCloseTo(0);
           expect(stats['Tensor'].max).toBeCloseTo(1);

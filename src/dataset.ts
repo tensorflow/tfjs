@@ -17,14 +17,12 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {TensorContainer} from '@tensorflow/tfjs-core/dist/types';
 import * as seedrandom from 'seedrandom';
 
-import {BatchDataset} from './batch_dataset';
-import {computeDatasetStatistics, DatasetStatistics} from './statistics';
-import {DataStream, streamFromFunction} from './streams/data_stream';
-import {streamFromConcatenated} from './streams/data_stream';
-import {streamFromItems} from './streams/data_stream';
-import {DatasetElement} from './types';
+import {iteratorFromFunction, LazyIterator} from './streams/lazy_iterator';
+import {iteratorFromConcatenated} from './streams/lazy_iterator';
+import {iteratorFromItems} from './streams/lazy_iterator';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -40,16 +38,16 @@ import {DatasetElement} from './types';
  * must come last in the pipeline because there are (so far) no batch-enabled
  * transformations.
  */
-export abstract class Dataset {
+export abstract class Dataset<T> {
   /*
    * Provide a new stream of elements.  Note this will also start new streams
    * from any underlying `Dataset`s.
    *
-   * CAUTION: Any Tensors contained within the DatasetElements returned from
+   * CAUTION: Any Tensors contained within the elements returned from
    * this stream *must* be manually disposed to avoid a GPU memory leak.
    * The tf.tidy() approach cannot be used in a asynchronous context.
    */
-  abstract getStream(): DataStream<DatasetElement>;
+  abstract iterator(): LazyIterator<T>;
 
   // TODO(soergel): Make Datasets report whether repeated getStream() calls
   // produce the same result (e.g., reading from a file) or different results
@@ -83,60 +81,69 @@ export abstract class Dataset {
    * @param shuffleWindowSize The size of the shuffle window to use, if any.
    *   (Not recommended, as described above).
    */
+  /*
   async computeStatistics(sampleSize?: number, shuffleWindowSize?: number):
       Promise<DatasetStatistics> {
     return computeDatasetStatistics(this, sampleSize, shuffleWindowSize);
   }
+  */
 
   /**
    * Filters this dataset according to `predicate`.
    *
-   * @param predicate A function mapping a `DatasetElement` to a boolean or a
+   * @param predicate A function mapping a dataset element to a boolean or a
    * `Promise` for one.
    *
    * @returns A `Dataset` of elements for which the predicate was true.
    */
-  filter(filterer: (value: DatasetElement) => boolean): Dataset {
+  filter(filterer: (value: T) => boolean): Dataset<T> {
     const base = this;
     return datasetFromStreamFn(() => {
-      return base.getStream().filter(x => tf.tidy(() => filterer(x)));
+      return base.iterator().filter(x => tf.tidy(() => filterer(x)));
     });
   }
 
   /**
    * Maps this dataset through a 1-to-1 transform.
    *
-   * @param transform A function mapping a `DatasetElement` to a transformed
-   *   `DatasetElement`.
+   * @param transform A function mapping a dataset element to a transformed
+   *   dataset element.
    *
    * @returns A `Dataset` of transformed elements.
    */
-  map(transform: (value: DatasetElement) => DatasetElement): Dataset {
+  map<O extends TensorContainer>(transform: (value: T) => O): Dataset<O> {
     const base = this;
     return datasetFromStreamFn(() => {
-      return base.getStream().map(x => tf.tidy(() => transform(x)));
+      return base.iterator().map(x => tf.tidy(() => transform(x)));
     });
   }
 
   /**
    * Groups elements into batches and arranges their values in columnar form.
    *
-   * It is assumed that each of the incoming DatasetElements has the same set of
-   * keys.  For each key, the resulting BatchDataset provides a BatchElement
+   * It is assumed that each of the incoming dataset elements has the same set
+   * of keys.  For each key, the resulting BatchDataset provides a BatchElement
    * collecting all of the incoming values for that key.  Incoming strings are
    * grouped into a string[].  Incoming Tensors are grouped into a new Tensor
    * where the 0'th axis is the batch dimension.  These columnar representations
    * for each key can be zipped together to reconstruct the original
-   * DatasetElements.
+   * dataset elements.
    *
    * @param batchSize The number of elements desired per batch.
    * @param smallLastBatch Whether to emit the final batch when it has fewer
    *   than batchSize elements. Default true.
    * @returns A `BatchDataset`, from which a stream of batches can be obtained.
    */
+
+  // TODO(soergel) Reinstate batch() call.  This is tricky because we have to
+  // enforce that the generic element type T is an instance of TensorContainer,
+  // in order to apply the columnar-batches transformation.
+  // Maybe creating a a Batchable mixin would help?
+  /*
   batch(batchSize: number, smallLastBatch = true): BatchDataset {
     return new BatchDataset(this, batchSize, smallLastBatch);
   }
+  */
 
   /**
    * Concatenates this `Dataset` with another.
@@ -144,10 +151,10 @@ export abstract class Dataset {
    * @param dataset A `Dataset` to be concatenated onto this one.
    * @returns A `Dataset`.
    */
-  concatenate(dataset: Dataset): Dataset {
+  concatenate(dataset: Dataset<T>): Dataset<T> {
     const base = this;
     return datasetFromStreamFn(
-        () => base.getStream().concatenate(dataset.getStream()));
+        () => base.iterator().concatenate(dataset.iterator()));
   }
 
   /**
@@ -161,12 +168,12 @@ export abstract class Dataset {
    *   `undefined` or negative) is for the dataset be repeated indefinitely.
    * @returns A `Dataset`.
    */
-  repeat(count?: number): Dataset {
+  repeat(count?: number): Dataset<T> {
     const base = this;
     return datasetFromStreamFn(() => {
       const streamStream =
-          streamFromFunction(() => ({value: base.getStream(), done: false}));
-      return streamFromConcatenated(streamStream.take(count));
+          iteratorFromFunction(() => ({value: base.iterator(), done: false}));
+      return iteratorFromConcatenated(streamStream.take(count));
     });
   }
 
@@ -179,9 +186,9 @@ export abstract class Dataset {
    *   contain all elements of this dataset.
    * @returns A `Dataset`.
    */
-  take(count: number): Dataset {
+  take(count: number): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => base.getStream().take(count));
+    return datasetFromStreamFn(() => base.iterator().take(count));
   }
 
   /**
@@ -194,9 +201,9 @@ export abstract class Dataset {
    *
    * @returns A `Dataset`.
    */
-  skip(count: number): Dataset {
+  skip(count: number): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => base.getStream().skip(count));
+    return datasetFromStreamFn(() => base.iterator().skip(count));
   }
 
   // TODO(soergel): deep sharded shuffle, where supported
@@ -214,7 +221,7 @@ export abstract class Dataset {
    * @returns A `Dataset`.
    */
   shuffle(bufferSize: number, seed?: string, reshuffleEachIteration = true):
-      Dataset {
+      Dataset<T> {
     const base = this;
     const random = seedrandom.alea(seed || performance.now().toString());
     return datasetFromStreamFn(() => {
@@ -222,7 +229,7 @@ export abstract class Dataset {
       if (reshuffleEachIteration) {
         seed2 += random.int32();
       }
-      return base.getStream().shuffle(bufferSize, seed2.toString());
+      return base.iterator().shuffle(bufferSize, seed2.toString());
     });
   }
 
@@ -233,9 +240,9 @@ export abstract class Dataset {
    *   prefetched.
    * @returns A `Dataset`.
    */
-  prefetch(bufferSize: number): Dataset {
+  prefetch(bufferSize: number): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => base.getStream().prefetch(bufferSize));
+    return datasetFromStreamFn(() => base.iterator().prefetch(bufferSize));
   }
 
   /**
@@ -247,20 +254,20 @@ export abstract class Dataset {
    *   when a new stream has been obtained and fully consumed.
    */
   async collectAll() {
-    return this.getStream().collectRemaining();
+    return this.iterator().collectRemaining();
   }
 
   /**
    * Apply a function to every element of the dataset.
    *
-   * After the function is applied to a `DatasetElement`, any Tensors contained
+   * After the function is applied to a dataset element, any Tensors contained
    * within that element are disposed.
    *
    * @param f A function to apply to each dataset element.
    * @returns A `Promise` that resolves after all elements have been processed.
    */
-  async forEach(f: (input: DatasetElement) => void): Promise<void> {
-    return this.getStream().forEach(f);
+  async forEach(f: (input: T) => void): Promise<void> {
+    return this.iterator().forEach(f);
   }
 
   /* TODO(soergel): for parity with tf.data:
@@ -275,14 +282,14 @@ export abstract class Dataset {
 /**
  * Create a `Dataset` defined by a provided getStream() function.
  */
-export function datasetFromStreamFn(
-    getStreamFn: () => DataStream<DatasetElement>): Dataset {
-  return new class extends Dataset {
+export function datasetFromStreamFn<T>(getStreamFn: () => LazyIterator<T>):
+    Dataset<T> {
+  return new class extends Dataset<T> {
     /*
      * Provide a new stream of elements.  Note this will also start new streams
      * from any underlying `Dataset`s.
      */
-    getStream(): DataStream<DatasetElement> {
+    iterator(): LazyIterator<T> {
       return getStreamFn();
     }
   }
@@ -292,6 +299,6 @@ export function datasetFromStreamFn(
 /**
  * Create a `Dataset` from an array of elements.
  */
-export function datasetFromElements(items: DatasetElement[]): Dataset {
-  return datasetFromStreamFn(() => streamFromItems(items));
+export function datasetFromElements<T>(items: T[]): Dataset<T> {
+  return datasetFromStreamFn(() => iteratorFromItems(items));
 }

@@ -42,7 +42,9 @@ export type BatchArray = tf.Tensor|string[];
 /**
  * A map from string keys (aka column names) to values for a single element.
  */
-export type DatasetElement = {
+export type TabularRecord = {
+  // TODO(soergel): eliminate the need for TabularRecord.
+  // (It's still an issue for BatchDataset and Statistics.)
   [key: string]: ElementArray
 };
 

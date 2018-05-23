@@ -25,29 +25,28 @@ import {RingBuffer} from '../util/ring_buffer';
 // Here we implement a simple asynchronous iterator.
 // This lets us avoid using either third-party stream libraries or
 // recent TypeScript language support requiring polyfills.
-// Note we return Promise<T>, not Promise<IteratorResult<T>>, so this might
-// require slight retrofitting in the future if we want to use the ES6 features.
 
 /**
  * Create a `DataStream` from an array of items.
  */
-export function streamFromItems<T>(items: T[]): DataStream<T> {
+export function iteratorFromItems<T>(items: T[]): LazyIterator<T> {
   return new ArrayStream(items);
 }
 
 /**
  * Create a `DataStream` of incrementing integers.
  */
-export function streamFromIncrementing(start: number): DataStream<number> {
+export function iteratorFromIncrementing(start: number): LazyIterator<number> {
   let i = start;
-  return streamFromFunction(() => ({value: i++, done: false}));
+  return iteratorFromFunction(() => ({value: i++, done: false}));
 }
 
 /**
  * Create a `DataStream` from a function.
  */
-export function streamFromFunction<T>(
-    func: () => IteratorResult<T>| Promise<IteratorResult<T>>): DataStream<T> {
+export function iteratorFromFunction<T>(
+    func: () =>
+        IteratorResult<T>| Promise<IteratorResult<T>>): LazyIterator<T> {
   return new FunctionCallStream(func);
 }
 
@@ -59,8 +58,8 @@ export function streamFromFunction<T>(
  *
  * @param baseStreams A stream of streams to be concatenated.
  */
-export function streamFromConcatenated<T>(
-    baseStreams: DataStream<DataStream<T>>): DataStream<T> {
+export function iteratorFromConcatenated<T>(
+    baseStreams: LazyIterator<LazyIterator<T>>): LazyIterator<T> {
   return ChainedStream.create(baseStreams);
 }
 
@@ -76,19 +75,36 @@ export function streamFromConcatenated<T>(
  * @param streamFunc: A function that produces a new stream on each call.
  * @param count: The number of times to call the function.
  */
-export function streamFromConcatenatedFunction<T>(
-    streamFunc: () => IteratorResult<DataStream<T>>,
-    count: number): DataStream<T> {
-  return streamFromConcatenated(streamFromFunction(streamFunc).take(count));
+export function iteratorFromConcatenatedFunction<T>(
+    streamFunc: () => IteratorResult<LazyIterator<T>>,
+    count: number): LazyIterator<T> {
+  return iteratorFromConcatenated(iteratorFromFunction(streamFunc).take(count));
+}
+
+export class IteratorProperties {
+  // Is each returned item an independent unit (such as an example or a batch),
+  // as opposed to a stream segment (like a chunk of a file)?
+  independent: boolean;
+
+  // Is the iteration order meaningful?
+  ordered: boolean;
+
+  // How many initial dimensions of contained Tensors are batch dimensions.
+  // i.e. 0 means we have independent examples, 1 means we have normal batches,
+  // 2 means we have batches of batches.
+  batchDimensions: number;
+
+  columnarBatchDimensions: number;
 }
 
 /**
  * An asynchronous iterator, providing lazy access to a potentially unbounded
  * stream of elements.
  */
-export abstract class DataStream<T> {
+export abstract class LazyIterator<T> {
   // This class implements AsyncIterator<T>, but we have not yet set the
   // TypeScript --downlevelIteration flag to enable that.
+  properties: IteratorProperties;
 
   /**
    * Returns a `Promise` for the next element in the stream.
@@ -142,7 +158,7 @@ export abstract class DataStream<T> {
    *
    * @returns A `DataStream` of elements for which the predicate was true.
    */
-  filter(predicate: (value: T) => boolean): DataStream<T> {
+  filter(predicate: (value: T) => boolean): LazyIterator<T> {
     return new FilterStream(this, predicate);
   }
 
@@ -154,7 +170,7 @@ export abstract class DataStream<T> {
    *
    * @returns A `DataStream` of transformed elements.
    */
-  map<O>(transform: (value: T) => O): DataStream<O> {
+  map<O>(transform: (value: T) => O): LazyIterator<O> {
     return new MapStream(this, transform);
   }
 
@@ -176,7 +192,7 @@ export abstract class DataStream<T> {
    * @returns A `DataStream` of batches of elements, represented as arrays
    *   of the original element type.
    */
-  batch(batchSize: number, smallLastBatch = true): DataStream<T[]> {
+  batch(batchSize: number, smallLastBatch = true): LazyIterator<T[]> {
     return new BatchStream(this, batchSize, smallLastBatch);
   }
 
@@ -186,8 +202,8 @@ export abstract class DataStream<T> {
    * @param stream A `DataStream` to be concatenated onto this one.
    * @returns A `DataStream`.
    */
-  concatenate(stream: DataStream<T>): DataStream<T> {
-    return ChainedStream.create(streamFromItems([this, stream]));
+  concatenate(stream: LazyIterator<T>): LazyIterator<T> {
+    return ChainedStream.create(iteratorFromItems([this, stream]));
   }
 
   /**
@@ -197,7 +213,7 @@ export abstract class DataStream<T> {
    *   negative or undefined value is given, the entire stream is returned
    *   unaltered.
    */
-  take(count: number): DataStream<T> {
+  take(count: number): LazyIterator<T> {
     if (count < 0 || count == null) {
       return this;
     }
@@ -210,7 +226,7 @@ export abstract class DataStream<T> {
    * @param count The number of items to skip.  If a negative or undefined value
    *   is given, the entire stream is returned unaltered.
    */
-  skip(count: number): DataStream<T> {
+  skip(count: number): LazyIterator<T> {
     if (count < 0 || count == null) {
       return this;
     }
@@ -226,7 +242,7 @@ export abstract class DataStream<T> {
    * @param bufferSize: An integer specifying the number of elements to be
    *   prefetched.
    */
-  prefetch(bufferSize: number): DataStream<T> {
+  prefetch(bufferSize: number): LazyIterator<T> {
     return new PrefetchStream(this, bufferSize);
   }
 
@@ -240,7 +256,7 @@ export abstract class DataStream<T> {
    * @param seed: (Optional.) An integer specifying the random seed that will
    *   be used to create the distribution.
    */
-  shuffle(windowSize: number, seed?: string): DataStream<T> {
+  shuffle(windowSize: number, seed?: string): LazyIterator<T> {
     return new ShuffleStream(this, windowSize, seed);
   }
 }
@@ -254,7 +270,7 @@ export abstract class DataStream<T> {
 // Streams that just extend DataStream directly
 // ============================================================================
 
-class ArrayStream<T> extends DataStream<T> {
+class ArrayStream<T> extends LazyIterator<T> {
   private trav = 0;
   constructor(protected items: T[]) {
     super();
@@ -270,7 +286,7 @@ class ArrayStream<T> extends DataStream<T> {
   }
 }
 
-class FunctionCallStream<T> extends DataStream<T> {
+class FunctionCallStream<T> extends LazyIterator<T> {
   constructor(
       protected nextFn: () => IteratorResult<T>| Promise<IteratorResult<T>>) {
     super();
@@ -281,9 +297,9 @@ class FunctionCallStream<T> extends DataStream<T> {
   }
 }
 
-class SkipStream<T> extends DataStream<T> {
+class SkipStream<T> extends LazyIterator<T> {
   count = 0;
-  constructor(protected upstream: DataStream<T>, protected maxCount: number) {
+  constructor(protected upstream: LazyIterator<T>, protected maxCount: number) {
     super();
   }
 
@@ -303,9 +319,9 @@ class SkipStream<T> extends DataStream<T> {
   }
 }
 
-class TakeStream<T> extends DataStream<T> {
+class TakeStream<T> extends LazyIterator<T> {
   count = 0;
-  constructor(protected upstream: DataStream<T>, protected maxCount: number) {
+  constructor(protected upstream: LazyIterator<T>, protected maxCount: number) {
     super();
   }
 
@@ -327,7 +343,7 @@ class TakeStream<T> extends DataStream<T> {
  * of calls to the underlying stream may be needed to provide each element of
  * this stream.
  */
-export abstract class QueueStream<T> extends DataStream<T> {
+export abstract class QueueStream<T> extends LazyIterator<T> {
   protected outputQueue: RingBuffer<T>;
 
   constructor() {
@@ -364,7 +380,7 @@ export abstract class QueueStream<T> extends DataStream<T> {
 
 class BatchStream<T> extends QueueStream<T[]> {
   constructor(
-      protected upstream: DataStream<T>, protected batchSize: number,
+      protected upstream: LazyIterator<T>, protected batchSize: number,
       protected enableSmallLastBatch = true) {
     super();
   }
@@ -396,7 +412,7 @@ class BatchStream<T> extends QueueStream<T[]> {
 
 class FilterStream<T> extends QueueStream<T> {
   constructor(
-      protected upstream: DataStream<T>,
+      protected upstream: LazyIterator<T>,
       protected predicate: (value: T) => boolean) {
     super();
   }
@@ -417,7 +433,8 @@ class FilterStream<T> extends QueueStream<T> {
 
 class MapStream<I, O> extends QueueStream<O> {
   constructor(
-      protected upstream: DataStream<I>, protected transform: (value: I) => O) {
+      protected upstream: LazyIterator<I>,
+      protected transform: (value: I) => O) {
     super();
   }
 
@@ -457,12 +474,12 @@ class MapStream<I, O> extends QueueStream<O> {
  * the correct order according to when next() was called, even if the resulting
  * Promises resolve in a different order.
  */
-export class ChainedStream<T> extends DataStream<T> {
-  private stream: DataStream<T> = null;
-  private moreStreams: DataStream<DataStream<T>>;
+export class ChainedStream<T> extends LazyIterator<T> {
+  private stream: LazyIterator<T> = null;
+  private moreStreams: LazyIterator<LazyIterator<T>>;
   private lastRead: Promise<IteratorResult<T>> = null;
 
-  static create<T>(streams: DataStream<DataStream<T>>): ChainedStream<T> {
+  static create<T>(streams: LazyIterator<LazyIterator<T>>): ChainedStream<T> {
     const c = new ChainedStream<T>();
     c.moreStreams = streams;
     return c;
@@ -508,12 +525,13 @@ export class ChainedStream<T> extends DataStream<T> {
  * Note this prefetches Promises, but makes no guarantees about when those
  * Promises resolve.
  */
-export class PrefetchStream<T> extends DataStream<T> {
+export class PrefetchStream<T> extends LazyIterator<T> {
   protected buffer: RingBuffer<Promise<IteratorResult<T>>>;
 
   total = 0;
 
-  constructor(protected upstream: DataStream<T>, protected bufferSize: number) {
+  constructor(
+      protected upstream: LazyIterator<T>, protected bufferSize: number) {
     super();
     this.buffer = new RingBuffer<Promise<IteratorResult<T>>>(bufferSize);
   }
@@ -549,7 +567,7 @@ export class ShuffleStream<T> extends PrefetchStream<T> {
   private upstreamExhausted = false;
 
   constructor(
-      protected upstream: DataStream<T>, protected windowSize: number,
+      protected upstream: LazyIterator<T>, protected windowSize: number,
       seed?: string) {
     super(upstream, windowSize);
     this.random = seedrandom.alea(seed || performance.now().toString());

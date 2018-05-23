@@ -18,10 +18,10 @@
 
 import * as utf8 from 'utf8';
 
-import {DataStream, QueueStream} from './data_stream';
+import {LazyIterator, QueueStream} from './lazy_iterator';
 import {StringStream} from './string_stream';
 
-export abstract class ByteStream extends DataStream<Uint8Array> {
+export abstract class ByteStream extends LazyIterator<Uint8Array> {
   /**
    * Decode a stream of UTF8-encoded byte arrays to a stream of strings.
    *
@@ -50,7 +50,7 @@ export abstract class ByteStream extends DataStream<Uint8Array> {
 class Utf8Stream extends StringStream {
   private impl: Utf8StreamImpl;
 
-  constructor(upstream: DataStream<Uint8Array>) {
+  constructor(upstream: LazyIterator<Uint8Array>) {
     super();
     this.impl = new Utf8StreamImpl(upstream);
   }
@@ -87,7 +87,7 @@ class Utf8StreamImpl extends QueueStream<string> {
   // The number of bytes of that array that are populated so far.
   partialBytesValid = 0;
 
-  constructor(protected readonly upstream: DataStream<Uint8Array>) {
+  constructor(protected readonly upstream: LazyIterator<Uint8Array>) {
     super();
   }
 
