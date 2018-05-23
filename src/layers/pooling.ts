@@ -21,7 +21,7 @@ import * as K from '../backend/tfjs_backend';
 import {checkDataFormat, checkPaddingMode, checkPoolMode, DataFormat, PaddingMode, PoolMode} from '../common';
 import {InputSpec} from '../engine/topology';
 import {Layer, LayerConfig} from '../engine/topology';
-import {NotImplementedError} from '../errors';
+import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
@@ -118,8 +118,37 @@ export abstract class Pooling1D extends Layer {
       config.poolSize = 2;
     }
     super(config);
-    this.poolSize = [config.poolSize];
-    this.strides = config.strides == null ? this.poolSize : [config.strides];
+    if (typeof config.poolSize === 'number') {
+      this.poolSize = [config.poolSize];
+    } else if (
+        Array.isArray(config.poolSize) &&
+        (config.poolSize as number[]).length === 1 &&
+        typeof (config.poolSize as number[])[0] === 'number') {
+      this.poolSize = config.poolSize;
+    } else {
+      throw new ValueError(
+          `poolSize for 1D convolutional layer must be a number or an ` +
+          `Array of a single number, but received ` +
+          `${JSON.stringify(config.poolSize)}`);
+    }
+    if (config.strides == null) {
+      this.strides = this.poolSize;
+    } else {
+      if (typeof config.strides === 'number') {
+        this.strides = [config.strides];
+      } else if (
+          Array.isArray(config.strides) &&
+          (config.strides as number[]).length === 1 &&
+          typeof (config.strides as number[])[0] === 'number') {
+        this.strides = config.strides;
+      } else {
+        throw new ValueError(
+            `strides for 1D convolutional layer must be a number or an ` +
+            `Array of a single number, but received ` +
+            `${JSON.stringify(config.strides)}`);
+      }
+    }
+
     this.padding = config.padding == null ? 'valid' : config.padding;
     checkPaddingMode(this.padding);
     this.inputSpec = [new InputSpec({ndim: 3})];
@@ -221,8 +250,9 @@ export interface Pooling2DLayerConfig extends LayerConfig {
   poolSize?: number|[number, number];
 
   /**
-   * The size of the stride in each dimension of the pooling window. Expects an
-   * integer or an array of 2 integers. Integer, tuple of 2 integers, or None.
+   * The size of the stride in each dimension of the pooling window. Expects
+   * an integer or an array of 2 integers. Integer, tuple of 2 integers, or
+   * None.
    *
    * If `null`, defaults to `poolSize`.
    */

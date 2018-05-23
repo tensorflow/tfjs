@@ -48,25 +48,24 @@ export function normalizeArray(
 /**
  * Determines output length of a convolution given input length.
  * @param inputLength
- * @param fliterSize
+ * @param filterSize
  * @param padding
  * @param stride
  * @param dilation: dilation rate.
  */
 export function convOutputLength(
-    inputLength: number, fliterSize: number, padding: PaddingMode,
+    inputLength: number, filterSize: number, padding: PaddingMode,
     stride: number, dilation = 1): number {
   if (inputLength == null) {
     return inputLength;
   }
-  const dilatedFilterSize = fliterSize + (fliterSize - 1) * (dilation - 1);
+  const dilatedFilterSize = filterSize + (filterSize - 1) * (dilation - 1);
   let outputLength: number;
   if (padding === 'same') {
     outputLength = inputLength;
   } else {  // VALID
     outputLength = inputLength - dilatedFilterSize + 1;
   }
-  // TODO(cais): Implement logic for padding modes 'causal' and 'full'.
   return Math.floor((outputLength + stride - 1) / stride);
 }
 

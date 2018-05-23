@@ -8,7 +8,7 @@
  * =============================================================================
  */
 
-import {io} from '@tensorflow/tfjs-core';
+import {io, randomNormal, Tensor} from '@tensorflow/tfjs-core';
 
 import * as tfl from './index';
 
@@ -183,5 +183,103 @@ describeMathGPU('Save-load round trips', () => {
         .catch(err => {
           done.fail(err.stack);
         });
+  });
+
+  it('Call predict() and fit() after load: conv2d model', done => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.conv2d({
+      filters: 8,
+      kernelSize: 4,
+      inputShape: [28, 28, 1],
+      padding: 'same',
+      activation: 'relu'
+    }));
+    model.add(tfl.layers.maxPooling2d({
+      poolSize: 2,
+      padding: 'same',
+    }));
+    model.add(tfl.layers.flatten());
+    model.add(tfl.layers.dense({units: 1}));
+
+    const x = randomNormal([1, 28, 28, 1]);
+    const y = model.predict(x) as Tensor;
+
+    const path = `testModel${new Date().getTime()}_${Math.random()}`;
+    const url = `indexeddb://${path}`;
+    model.save(url)
+        .then(saveResult => {
+          // Load the model back.
+          tfl.loadModel(url)
+              .then(modelPrime => {
+                // Call predict() on the loaded model and assert the result
+                // equals the original predict() result.
+                const yPrime = modelPrime.predict(x) as Tensor;
+                expectTensorsClose(y, yPrime);
+
+                // Call compile and fit() on the loaded model.
+                modelPrime.compile(
+                    {optimizer: 'sgd', loss: 'meanSquaredError'});
+                const trainExamples = 10;
+                modelPrime
+                    .fit(
+                        randomNormal([trainExamples, 28, 28, 1]),
+                        randomNormal([trainExamples]), {epochs: 4})
+                    .then(history => {
+                      done();
+                    })
+                    .catch(err => done.fail(err.stack));
+              })
+              .catch(err => done.fail(err.stack));
+        })
+        .catch(err => done.fail(err.stack));
+  });
+
+  it('Call predict() and fit() after load: conv1d model', done => {
+    const model = tfl.sequential();
+    model.add(tfl.layers.conv1d({
+      filters: 8,
+      kernelSize: 4,
+      inputShape: [100, 1],
+      padding: 'same',
+      activation: 'relu'
+    }));
+    model.add(tfl.layers.maxPooling1d({
+      poolSize: 2,
+      padding: 'same',
+    }));
+    model.add(tfl.layers.flatten());
+    model.add(tfl.layers.dense({units: 1}));
+
+    const x = randomNormal([1, 100, 1]);
+    const y = model.predict(x) as Tensor;
+
+    const path = `testModel${new Date().getTime()}_${Math.random()}`;
+    const url = `indexeddb://${path}`;
+    model.save(url)
+        .then(saveResult => {
+          // Load the model back.
+          tfl.loadModel(url)
+              .then(modelPrime => {
+                // Call predict() on the loaded model and assert the
+                // result equals the original predict() result.
+                const yPrime = modelPrime.predict(x) as Tensor;
+                expectTensorsClose(y, yPrime);
+
+                // Call compile and fit() on the loaded model.
+                modelPrime.compile(
+                    {optimizer: 'sgd', loss: 'meanSquaredError'});
+                const trainExamples = 10;
+                modelPrime
+                    .fit(
+                        randomNormal([trainExamples, 100, 1]),
+                        randomNormal([trainExamples]), {epochs: 4})
+                    .then(history => {
+                      done();
+                    })
+                    .catch(err => done.fail(err.stack));
+              })
+              .catch(err => done.fail(err.stack));
+        })
+        .catch(err => done.fail(err.stack));
   });
 });
