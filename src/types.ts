@@ -123,5 +123,53 @@ export function sumOutType(type: DataType) {
  */
 export type TensorContainer = void|Tensor|string|number|boolean|
     TensorContainerObject|TensorContainerArray;
-export interface TensorContainerObject { [x: string]: TensorContainer; }
+export interface TensorContainerObject {
+  [x: string]: TensorContainer;
+}
 export interface TensorContainerArray extends Array<TensorContainer> {}
+
+export interface ModelPredictConfig {
+  /**
+   * Optional. Batch size (Integer). If unspecified, it will default to 32.
+   */
+  batchSize?: number;
+
+  /**
+   * Optional. Verbosity mode. Defaults to false.
+   */
+  verbose?: boolean;
+
+  /**
+   * Optional. List of output node names to evaluate when running predict().
+   * Defaults to the model's default output.
+   */
+  outputs?: string|string[];
+}
+
+/**
+ * Common interface for a machine learning model that can do inference.
+ */
+export interface InferenceModel {
+  /**
+   * Execute the inference for the input tensors.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a Tensor. For models with mutliple inputs, inputs
+   * params should be in either Tensor[] if the input order is fixed, or
+   * otherwise NamedTensorMap format.
+   * For batch inference execution, the tensors for each input need to be
+   * concatenated together. For example with mobilenet, the required input shape
+   * is [1, 244, 244, 3], which represents the [batch, height, width, channel].
+   * If we are provide a batched data of 100 images, the input tensor should be
+   * in the shape of [100, 244, 244, 3].
+   *
+   * @param config Prediction configuration for specifying the batch size and
+   * output node names.
+   *
+   * @returns Inference result tensors. The output would be single Tensor if
+   * model has single output node, otherwise Tensor[] or NamedTensorMap[] will
+   * be returned for model with multiple outputs.
+   */
+  predict(inputs: Tensor|Tensor[]|NamedTensorMap, config: ModelPredictConfig):
+      Tensor|Tensor[]|NamedTensorMap;
+}
