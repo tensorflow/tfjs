@@ -16,7 +16,7 @@
     "typescript": "^2.7.2"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "~0.9.1",
-    "@tensorflow/tfjs-node": "~0.1.2"
+    "@tensorflow/tfjs-core": "^0.11.1",
+    "@tensorflow/tfjs-node": "^0.1.4"
   }
 }
