@@ -19,6 +19,7 @@
 import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
+
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -188,6 +189,26 @@ export class NodeJSKernelBackend implements KernelBackend {
       this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))
     ];
     return this.executeSingleOutput('MatMul', opAttrs, [a, b]) as Tensor2D;
+  }
+
+  stridedSlice<T extends Tensor<Rank>>(
+      x: T, begin: number[], end: number[], strides: number[],
+      beginMask: number, endMask: number): T {
+    const beginTensor = tensor1d(begin, 'int32');
+    const endTensor = tensor1d(end, 'int32');
+    const stridesTensor = tensor1d(strides, 'int32');
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Index', 'int32'),
+      {name: 'begin_mask', type: this.binding.TF_ATTR_INT, value: beginMask},
+      {name: 'end_mask', type: this.binding.TF_ATTR_INT, value: endMask},
+      {name: 'ellipsis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'new_axis_mask', type: this.binding.TF_ATTR_INT, value: 0},
+      {name: 'shrink_axis_mask', type: this.binding.TF_ATTR_INT, value: 0}
+    ];
+    return this.executeSingleOutput(
+               'StridedSlice', opAttrs,
+               [x, beginTensor, endTensor, stridesTensor]) as T;
   }
 
   slice<T extends Tensor>(x: T, begin: number[], size: number[]): T {
@@ -899,6 +920,18 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('OneHot', opAttrs, [
       indices, depthTensor, onValueTensor, offValueTensor
     ]) as Tensor2D;
+  }
+
+  cumsum(x: Tensor<Rank>, axis: number, exclusive: boolean, reverse: boolean):
+      Tensor<Rank> {
+    const axisTensor = scalar(axis, 'int32');
+    const opAttrs = [
+      {name: 'exclusive', type: this.binding.TF_ATTR_BOOL, value: exclusive},
+      {name: 'reverse', type: this.binding.TF_ATTR_BOOL, value: reverse},
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+    return this.executeSingleOutput('Cumsum', opAttrs, [x, axisTensor]);
   }
 
   fromPixels(
