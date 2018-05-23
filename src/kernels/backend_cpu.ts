@@ -372,6 +372,11 @@ export class MathBackendCPU implements KernelBackend {
 
   cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
       Tensor {
+    if (axis !== x.rank - 1) {
+      throw new Error(
+          `backend.cumsum in CPU expects an inner-most axis=${x.rank - 1} ` +
+          `but got axis=${axis}`);
+    }
     const resultDtype = types.upcastType(x.dtype, 'int32');
     const result = ops.zeros(x.shape, resultDtype);
     const vals = result.dataSync();
