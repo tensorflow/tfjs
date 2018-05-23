@@ -81,11 +81,11 @@ export class ConvOps {
 
     util.assert(
         x3D.shape[2] === filter.shape[1],
-        `Error in conv1d: depth of input (${x3D.shape[2]}) must match  ` +
+        `Error in conv1d: depth of input (${x3D.shape[2]}) must match ` +
             `input depth for filter ${filter.shape[1]}.`);
     util.assert(
         eitherStridesOrDilationsAreOne(stride, dilation),
-        'Error in conv1D: Either stride or dilation must be 1.' +
+        'Error in conv1D: Either stride or dilation must be 1. ' +
             `Got stride ${stride} and dilation '${dilation}'`);
     util.assert(
         dataFormat === 'NWC',
@@ -173,11 +173,11 @@ export class ConvOps {
 
     util.assert(
         x4D.shape[3] === filter.shape[2],
-        `Error in conv2d: depth of input (${x4D.shape[3]}) must match  ` +
+        `Error in conv2d: depth of input (${x4D.shape[3]}) must match ` +
             `input depth for filter ${filter.shape[2]}.`);
     util.assert(
         eitherStridesOrDilationsAreOne(strides, dilations),
-        'Error in conv2D: Either strides or dilations must be 1.' +
+        'Error in conv2D: Either strides or dilations must be 1. ' +
             `Got strides ${strides} and dilations '${dilations}'`);
     util.assert(
         dataFormat === 'NHWC',
@@ -271,7 +271,7 @@ export class ConvOps {
             `match input depth for filter ${filter.shape[2]}.`);
     util.assert(
         outDepth === filter.shape[3],
-        `Error in conv2dDerInput: depth of output (${outDepth}) must` +
+        `Error in conv2dDerInput: depth of output (${outDepth}) must ` +
             `match output depth for filter ${filter.shape[3]}.`);
     if (dimRoundingMode != null) {
       util.assert(
@@ -469,7 +469,7 @@ export class ConvOps {
     }
     util.assert(
         eitherStridesOrDilationsAreOne(strides, dilations),
-        'Error in depthwiseConv2d: Either strides or dilations must be 1.' +
+        'Error in depthwiseConv2d: Either strides or dilations must be 1. ' +
             `Got strides ${strides} and dilations '${dilations}'`);
 
     if (dimRoundingMode != null) {
