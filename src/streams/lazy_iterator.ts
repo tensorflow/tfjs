@@ -27,14 +27,14 @@ import {RingBuffer} from '../util/ring_buffer';
 // recent TypeScript language support requiring polyfills.
 
 /**
- * Create a `DataStream` from an array of items.
+ * Create a `LazyIterator` from an array of items.
  */
 export function iteratorFromItems<T>(items: T[]): LazyIterator<T> {
   return new ArrayStream(items);
 }
 
 /**
- * Create a `DataStream` of incrementing integers.
+ * Create a `LazyIterator` of incrementing integers.
  */
 export function iteratorFromIncrementing(start: number): LazyIterator<number> {
   let i = start;
@@ -42,7 +42,7 @@ export function iteratorFromIncrementing(start: number): LazyIterator<number> {
 }
 
 /**
- * Create a `DataStream` from a function.
+ * Create a `LazyIterator` from a function.
  */
 export function iteratorFromFunction<T>(
     func: () =>
@@ -51,7 +51,7 @@ export function iteratorFromFunction<T>(
 }
 
 /**
- * Create a `DataStream` by concatenating underlying streams, which are
+ * Create a `LazyIterator` by concatenating underlying streams, which are
  * themselves provided as a stream.
  *
  * This can also be thought of as a "stream flatten" operation.
@@ -64,13 +64,13 @@ export function iteratorFromConcatenated<T>(
 }
 
 /**
- * Create a `DataStream` by concatenating streams produced by calling a
+ * Create a `LazyIterator` by concatenating streams produced by calling a
  * stream-generating function a given number of times.
  *
- * Since a `DataStream` is read-once, it cannot be repeated, but this
+ * Since a `LazyIterator` is read-once, it cannot be repeated, but this
  * function can be used to achieve a similar effect:
  *
- *   DataStream.ofConcatenatedFunction(() => new MyStream(), 6);
+ *   LazyIterator.ofConcatenatedFunction(() => new MyStream(), 6);
  *
  * @param streamFunc: A function that produces a new stream on each call.
  * @param count: The number of times to call the function.
@@ -156,7 +156,7 @@ export abstract class LazyIterator<T> {
    * @param predicate A function mapping a stream element to a boolean or a
    * `Promise` for one.
    *
-   * @returns A `DataStream` of elements for which the predicate was true.
+   * @returns A `LazyIterator` of elements for which the predicate was true.
    */
   filter(predicate: (value: T) => boolean): LazyIterator<T> {
     return new FilterStream(this, predicate);
@@ -168,7 +168,7 @@ export abstract class LazyIterator<T> {
    * @param predicate A function mapping a stream element to a transformed
    *   element.
    *
-   * @returns A `DataStream` of transformed elements.
+   * @returns A `LazyIterator` of transformed elements.
    */
   map<O>(transform: (value: T) => O): LazyIterator<O> {
     return new MapStream(this, transform);
@@ -189,7 +189,7 @@ export abstract class LazyIterator<T> {
    * @param batchSize The number of elements desired per batch.
    * @param smallLastBatch Whether to emit the final batch when it has fewer
    *   than batchSize elements. Default true.
-   * @returns A `DataStream` of batches of elements, represented as arrays
+   * @returns A `LazyIterator` of batches of elements, represented as arrays
    *   of the original element type.
    */
   batch(batchSize: number, smallLastBatch = true): LazyIterator<T[]> {
@@ -197,10 +197,10 @@ export abstract class LazyIterator<T> {
   }
 
   /**
-   * Concatenate this `DataStream` with another.
+   * Concatenate this `LazyIterator` with another.
    *
-   * @param stream A `DataStream` to be concatenated onto this one.
-   * @returns A `DataStream`.
+   * @param stream A `LazyIterator` to be concatenated onto this one.
+   * @returns A `LazyIterator`.
    */
   concatenate(stream: LazyIterator<T>): LazyIterator<T> {
     return ChainedStream.create(iteratorFromItems([this, stream]));
@@ -263,11 +263,11 @@ export abstract class LazyIterator<T> {
 
 // ============================================================================
 // The following private classes serve to implement the chainable methods
-// on DataStream.  Unfortunately they can't be placed in separate files, due to
-// resulting trouble with circular imports.
+// on LazyIterator.  Unfortunately they can't be placed in separate files, due
+// to resulting trouble with circular imports.
 // ============================================================================
 
-// Streams that just extend DataStream directly
+// Streams that just extend LazyIterator directly
 // ============================================================================
 
 class ArrayStream<T> extends LazyIterator<T> {
@@ -467,7 +467,7 @@ class MapStream<I, O> extends QueueStream<O> {
 }
 
 /**
- * Provides a `DataStream` that concatenates a stream of underlying streams.
+ * Provides a `LazyIterator` that concatenates a stream of underlying streams.
  *
  * Doing this in a concurrency-safe way requires some trickery.  In particular,
  * we want this stream to return the elements from the underlying streams in

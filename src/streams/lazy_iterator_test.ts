@@ -47,7 +47,7 @@ export class TestIntegerStream extends LazyIterator<number> {
   }
 }
 
-describe('DataStream', () => {
+describe('LazyIterator', () => {
   it('collects all stream elements into an array', done => {
     const readStream = new TestIntegerStream();
     readStream.collectRemaining()
