@@ -798,7 +798,15 @@ export class Concatenate extends Merge {
   }
 
   // TODO(cais): Implement computeMask();
-  // TODO(cais): Add getConfig();
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
+      'axis': this.axis,
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
 }
 serialization.SerializationMap.register(Concatenate);
 

@@ -13,15 +13,17 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
 
 import {Layer} from '../engine/topology';
 import * as tfl from '../index';
+import {convertPythonicToTs} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense, Reshape} from './core';
 import {SimpleRNN} from './recurrent';
-import {BidirectionalMergeMode, checkBidirectionalMergeMode, TimeDistributed, VALID_BIDIRECTIONAL_MERGE_MODES} from './wrappers';
+import {deserialize} from './serialization';
+import {Bidirectional, BidirectionalMergeMode, checkBidirectionalMergeMode, TimeDistributed, VALID_BIDIRECTIONAL_MERGE_MODES} from './wrappers';
 
 // tslint:enable:max-line-length
 
@@ -162,6 +164,21 @@ describeMathCPU('Bidirectional Layer: Symbolic', () => {
     expect(outputs[0].shape).toEqual([10, 8, 3]);
     expect(outputs[1].shape).toEqual([10, 3]);
     expect(outputs[2].shape).toEqual([10, 3]);
+  });
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.bidirectional({
+      layer: new SimpleRNN({units: 3}),
+      mergeMode: 'concat',
+      inputShape: [4, 4],
+    });
+    const model = tfl.sequential({layers: [layer]});
+    const unused: {} = null;
+    const modelJSON = model.toJSON(unused, false);
+    const modelPrime = deserialize(
+                           convertPythonicToTs(modelJSON) as
+                           serialization.ConfigDict) as tfl.Sequential;
+    expect((modelPrime.layers[0] as Bidirectional).getConfig().mergeMode)
+        .toEqual('concat');
   });
 });
 
