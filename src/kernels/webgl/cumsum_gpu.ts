@@ -27,36 +27,27 @@ export class CumSumProgram implements GPGPUProgram {
     this.outputShape = shape;
     const rank = shape.length;
     const finalDim = shape[shape.length - 1];
-    const dtype = getCoordsDataType(rank);
-    const outputCoords = getCoords(rank, 'coords');
-    const sourceCoords = getCoords(rank, 'adjustableCoords');
-    const finalCoord = getFinalCoord(rank, 'coords');
-    const finalAdjustableCoord =
-        getFinalCoord(rank, 'adjustableCoords');
-
-    const indexAdjuster = reverse ? `return ${finalDim} -i - 1;` : 'return i;';
     const comparator = reverse ? '<' : '>';
 
     this.userCode = `
       int getIndex(int i) {
-        ${indexAdjuster}
+        ${reverse ? `return ${finalDim} -i - 1;` : 'return i;'}
       }
 
       void main() {
-        ${dtype} coords = getOutputCoords();
-        ${dtype} adjustableCoords = ${dtype}(${outputCoords});
-        int finalCoord = int(${finalCoord});
+        ${getCoordsDataType(rank)} coords = getOutputCoords();
+        int end = ${getFinalCoord(rank, 'coords')};
         float val = 0.0;
         for (int i = ${finalDim} - 1; i >= 0; i -= 1) {
           int idx = getIndex(i);
-          if (idx ${comparator} finalCoord) {
+          if (idx ${comparator} end) {
             continue;
           }
-          if (idx == finalCoord && ${exclusive}) {
+          if (idx == end && ${exclusive}) {
             continue;
           }
-          ${finalAdjustableCoord} = idx;
-          val += getX(${sourceCoords});
+          ${getFinalCoord(rank, 'coords')} = idx;
+          val += getX(${getCoords(rank, 'coords')});
         }
         setOutput(val);
       }

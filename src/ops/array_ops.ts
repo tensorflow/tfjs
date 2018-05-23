@@ -24,8 +24,8 @@ import * as tensor_util from '../tensor_util';
 // tslint:disable-next-line:max-line-length
 import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from '../types';
 import * as util from '../util';
-
-import {getAxesPermutation, parseAxisParam} from './axis_util';
+// tslint:disable-next-line:max-line-length
+import {getAxesPermutation, getInnerMostAxes, parseAxisParam} from './axis_util';
 import {ConcatOps} from './concat';
 import {operation} from './operation';
 import {MPRandGauss} from './rand';
@@ -1101,8 +1101,7 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static unstack<T extends Tensor>(
-      value: T, axis = 0): Tensor[] {
+  static unstack<T extends Tensor>(value: T, axis = 0): Tensor[] {
     const num = value.shape[axis];
     const outputShape: number[] = Array(value.rank - 1).fill(0);
     let outIndex = 0;
@@ -1212,18 +1211,21 @@ export class ArrayOps {
       x: Tensor, axis = 0, exclusive = false, reverse = false): T {
     util.assertArgumentsAreTensors({x}, 'cumsum');
 
+    axis = axis | 0;
     const permutation = getAxesPermutation([axis], x.rank);
     let permutedX = x;
     if (permutation != null) {
       permutedX = x.transpose(permutation);
     }
+    const permutedAxis = getInnerMostAxes(1, x.rank)[0];
 
     const grad = (dy: T) => {
       return {permutedX: () => dy.cumsum(axis, exclusive, !reverse)};
     };
-    let value =  ENV.engine.runKernel(
-        backend => backend.cumsum(permutedX, axis, exclusive, reverse),
-        {permutedX}, grad) as T;
+    let value = ENV.engine.runKernel(
+                    backend => backend.cumsum(
+                        permutedX, permutedAxis, exclusive, reverse),
+                    {permutedX}, grad) as T;
 
     if (permutation != null) {
       value = value.transpose(permutation);
