@@ -53,5 +53,17 @@ describe('image', () => {
             .toHaveBeenCalledWith(input1[0], [1, 2], true);
       });
     });
+    describe('resizeNearestNeighbor', () => {
+      it('should return input', () => {
+        node.op = 'resizeNearestNeighbor';
+        node.params['images'] = createTensorAttr(0);
+        node.params['size'] = createNumericArrayAttr([1, 2]);
+        node.params['alignCorners'] = createBoolAttr(true);
+        spyOn(tfc.image, 'resizeNearestNeighbor');
+        executeOp(node, {input1}, context);
+        expect(tfc.image.resizeNearestNeighbor)
+            .toHaveBeenCalledWith(input1[0], [1, 2], true);
+      });
+    });
   });
 });
