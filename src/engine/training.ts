@@ -1256,6 +1256,7 @@ export class Model extends Container {
           //   Wrap it with a backend function called mathScope.
           const batchLogs: UnresolvedLogs = {};
           await callbackList.onBatchBegin(batchIndex, batchLogs);
+
           tfc.tidy(() => {
             const batchStart = batches[batchIndex][0];
             const batchEnd = batches[batchIndex][1];
@@ -1477,6 +1478,12 @@ export class Model extends Container {
     let valX: Tensor|Tensor[];
     let valY: Tensor|Tensor[];
     let valIns: Tensor[];
+    // A flag to keep track of whether `valIns`, `inputs` and `targets` need to
+    // be memory-disposed prior to returning from this method. This is the case
+    // if `config.validationSplit` is set to a number between 0 and 1, in which
+    // case the input `x` and `y` tensors will be sliced, leading to allocation
+    // of new tensor memory.
+    let needValidationDisposal = false;
     if (config.validationData != null && config.validationData.length > 0) {
       doValidation = true;
       if (config.validationData.length === 2) {
@@ -1513,9 +1520,11 @@ export class Model extends Container {
       inputs = sliceArrays(inputs, 0, splitAt) as Tensor[];
       valY = sliceArrays(targets, splitAt, originalBatchSize) as Tensor[];
       targets = sliceArrays(targets, 0, splitAt) as Tensor[];
+      needValidationDisposal = true;
       // TODO(cais): Once sampleWeights becomes available, slice it to get
       //   valSampleWeights.
       valIns = valX.concat(valY);
+
       // TODO(cais): Add useLearningPhase data properly.
     } else if (config.validationSteps != null) {
       doValidation = true;
@@ -1634,10 +1643,16 @@ export class Model extends Container {
     }
 
     const callbacks = standardizeCallbacks(config.callbacks);
-    return this.fitLoop(
+    const out = await this.fitLoop(
         trainFunction, ins, outLabels, batchSize, config.epochs, config.verbose,
         callbacks, valFunction, valIns, config.shuffle, callbackMetrics, null,
         null, null);
+    if (needValidationDisposal) {
+      valIns.forEach(tensor => tensor.dispose());
+      inputs.forEach(tensor => tensor.dispose());
+      targets.forEach(tensor => tensor.dispose());
+    }
+    return out;
     // TODO(cais): Add value to outLabels.
     // TODO(cais): Add initialEpoch.
   }
