@@ -475,7 +475,11 @@ export class Sequential extends Model {
     return this.model.call(inputs, kwargs);
   }
 
-  build(inputShape?: Shape) {
+  build(inputShape?: Shape|Shape[]) {
+    // Call `getExactlyOneShape` without using its return value,
+    // to verify that exactly one input shape is provided.
+    generic_utils.getExactlyOneShape(inputShape);
+
     if (this.inputs.length === 0 || this.outputs.length === 0) {
       throw new TypeError(
           'Sequential model cannot be built: model is empty.' +
