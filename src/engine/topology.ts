@@ -976,7 +976,7 @@ export abstract class Layer extends serialization.Serializable {
    *
    * @param inputShape A `Shape` or array of `Shape` (unused).
    */
-  public build(inputShape: Shape|Shape[]): void {
+  build(inputShape: Shape|Shape[]) {
     this.built = true;
   }
 
