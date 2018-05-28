@@ -1,5 +1,7 @@
 .vscode/
+.rpt2_cache/
 demos/
+integration_tests/
 docs/
 scripts/
 src/
