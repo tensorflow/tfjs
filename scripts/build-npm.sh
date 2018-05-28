@@ -21,7 +21,7 @@ yarn
 
 yarn build
 rollup -c
-uglifyjs dist/tf-core.js -c -m -o dist/tf-core.min.js
+uglifyjs dist/tf-core.js --comments -c -m -o dist/tf-core.min.js
 
 echo "Stored standalone library at dist/tf-core(.min).js"
 npm pack
