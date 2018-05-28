@@ -228,4 +228,40 @@ export class LossOps {
                            one.sub(predictions).add(epsilonScalar).log()));
     return LossOps.computeWeightedLoss(losses, weights, reduction);
   }
+
+  /**
+   * Computes the huber loss between two tensors.
+   *
+   * @param labels The ground truth output tensor, same dimensions as
+   *    'predictions'.
+   * @param predictions The predicted outputs.
+   * @param weights Tensor whose rank is either 0, or the same rank as
+   *    `labels`, and must be broadcastable to `labels` (i.e., all dimensions
+   *    must be either `1`, or the same as the corresponding `losses`
+   *    dimension).
+   * @param delta Point where huber loss changes from quadratic to linear.
+   * @param reduction Type of reduction to apply to loss. Should be of type
+   *    `Reduction`.
+   */
+  @doc({heading: 'Training', subheading: 'Losses', namespace: 'losses'})
+  @operation
+  static huberLoss<T extends Tensor, O extends Tensor>(
+      labels: T, predictions: T, weights?: Tensor, delta = 1.0,
+      reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+    util.assertArgumentsAreTensors({labels, predictions}, 'huberLoss');
+    if (weights != null) {
+      util.assertArgumentsAreTensors({weights}, 'huberLoss');
+    }
+    util.assertShapesMatch(
+        labels.shape, predictions.shape, 'Error in huberLoss: ');
+
+    const deltaScalar = ops.scalar(delta);
+    const error = predictions.sub(labels).abs();
+    const quadratic = ops.minimum(error, deltaScalar);
+    const linear = error.sub(quadratic);
+
+    const losses =
+        ops.scalar(0.5).mul(quadratic.square()).add(deltaScalar.mul(linear));
+    return LossOps.computeWeightedLoss(losses, weights, reduction);
+  }
 }
