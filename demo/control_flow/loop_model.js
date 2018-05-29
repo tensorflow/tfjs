@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import * as tfc from '@tensorflow/tfjs-core';
-import {NamedTensorMap, loadFrozenModel} from '@tensorflow/tfjs-converter';
+import * as tf from '@tensorflow/tfjs';
 const GOOGLE_CLOUD_STORAGE_DIR =
     'https://storage.googleapis.com/tfjs-models/savedmodel/';
 const MODEL_FILE_URL = 'nested_loop/tensorflowjs_model.pb';
@@ -27,7 +26,7 @@ export class LoopModel {
   constructor() {}
 
   async load() {
-    this.model = await loadFrozenModel(
+    this.model = await tf.loadFrozenModel(
       GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
       GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
   }
@@ -40,10 +39,10 @@ export class LoopModel {
 
   async predict(init, loop, loop2, inc) {
     const dict = {
-      'init': tfc.scalar(init, 'int32'),
-      'times': tfc.scalar(loop, 'int32'),
-      'times2': tfc.scalar(loop2, 'int32'),
-      'inc': tfc.scalar(inc, 'int32')
+      'init': tf.scalar(init, 'int32'),
+      'times': tf.scalar(loop, 'int32'),
+      'times2': tf.scalar(loop2, 'int32'),
+      'inc': tf.scalar(inc, 'int32')
     };
     return this.model.executeAsync(dict, OUTPUT_NODE_NAME);
   }
