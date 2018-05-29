@@ -14,16 +14,16 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.11.0"
+    "@tensorflow/tfjs-core": "0.11.2"
   },
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.11.0",
+    "@tensorflow/tfjs-core": "0.11.2",
     "@types/jasmine": "~2.8.6",
     "@types/node-fetch": "1.6.9",
+    "ajv": "~6.3.0",
     "babel-core": "~6.26.3",
     "babel-plugin-external-helpers": "~6.22.0",
     "babel-preset-env": "~1.7.0",
-    "ajv": "~6.3.0",
     "clang-format": "~1.2.2",
     "copyfiles": "~1.2.0",
     "jasmine-core": "~3.1.0",

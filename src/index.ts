@@ -14,7 +14,5 @@
  * limitations under the License.
  * =============================================================================
  */
-
-export {NamedTensorMap} from './data/types';
 export {FrozenModel, loadFrozenModel} from './executor/frozen_model';
 export {version as version_converter} from './version';

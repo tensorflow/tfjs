@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
-import {Tensor, tidy} from '@tensorflow/tfjs-core';
+import {NamedTensorMap, Tensor, tidy} from '@tensorflow/tfjs-core';
 
-import {NamedTensorMap, NamedTensorsMap} from '../data/types';
+import {NamedTensorsMap} from '../data/types';
 import {getNodeNameAndIndex, getTensor} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
