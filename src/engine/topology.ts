@@ -2789,7 +2789,6 @@ export function loadWeightsFromNamedTensorMap(
   batchSetValue(weightValueTuples);
 }
 
-
 // TODO(cais): Maybe remove the following (b/74015805).
 /**
  * Load weights from a weights JSON object to an array of layers.

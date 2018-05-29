@@ -282,4 +282,47 @@ describeMathGPU('Save-load round trips', () => {
         })
         .catch(err => done.fail(err.stack));
   });
+
+  it('Call predict() and fit() after load: Bidirectional LSTM', done => {
+    const model = tfl.sequential();
+    const lstmUnits = 3;
+    const sequenceLength = 4;
+    const inputDims = 5;
+    model.add(tfl.layers.bidirectional({
+      layer: tfl.layers.lstm({units: lstmUnits}) as tfl.RNN,
+      mergeMode: 'concat',
+      inputShape: [sequenceLength, inputDims]
+    }));
+
+    const x = randomNormal([2, 4, 5]);
+    const y = model.predict(x) as Tensor;
+
+    const path = `testModel${new Date().getTime()}_${Math.random()}`;
+    const url = `indexeddb://${path}`;
+    model.save(url)
+        .then(saveResult => {
+          tfl.loadModel(url)
+              .then(modelPrime => {
+                const yPrime = modelPrime.predict(x) as Tensor;
+                expectTensorsClose(y, yPrime);
+
+                // Call compile and fit() on the loaded model.
+                modelPrime.compile(
+                    {optimizer: 'sgd', loss: 'meanSquaredError'});
+                const trainExamples = 2;
+                modelPrime
+                    .fit(
+                        randomNormal(
+                            [trainExamples, sequenceLength, inputDims]),
+                        randomNormal([trainExamples, lstmUnits * 2]),
+                        {epochs: 2})
+                    .then(history => {
+                      done();
+                    })
+                    .catch(err => done.fail(err.stack));
+              })
+              .catch(err => done.fail(err.stack));
+        })
+        .catch(err => done.fail(err.stack));
+  });
 });
