@@ -1088,3 +1088,101 @@ export class Cropping2D extends Layer {
   }
 }
 serialization.SerializationMap.register(Cropping2D);
+
+export interface UpSampling2DLayerConfig extends LayerConfig {
+  /**
+   * The upsampling factors for rows and columns.
+   *
+   * Defaults to `[2, 2]`.
+   */
+  size?: number[];
+  /**
+   * Format of the data, which determines the ordering of the dimensions in
+   * the inputs.
+   *
+   * `"channelsLast"` corresponds to inputs with shape
+   *   `[batch, ..., channels]`
+   *
+   *  `"channelsFirst"` corresponds to inputs with shape `[batch, channels,
+   * ...]`.
+   *
+   * Defaults to `"channelsLast"`.
+   */
+  dataFormat?: DataFormat;
+}
+
+/**
+ * Upsampling layer for 2D inputs.
+ *
+ * Repeats the rows and columns of the data
+ * by size[0] and size[1] respectively.
+ *
+ *
+ * Input shape:
+ *    4D tensor with shape:
+ *     - If `dataFormat` is `"channelsLast"`:
+ *         `[batch, rows, cols, channels]`
+ *     - If `dataFormat` is `"channelsFirst"`:
+ *        `[batch, channels, rows, cols]`
+ *
+ * Output shape:
+ *     4D tensor with shape:
+ *     - If `dataFormat` is `"channelsLast"`:
+ *        `[batch, upsampledRows, upsampledCols, channels]`
+ *     - If `dataFormat` is `"channelsFirst"`:
+ *         `[batch, channels, upsampledRows, upsampledCols]`
+ *
+ */
+export class UpSampling2D extends Layer {
+  static className = 'UpSampling2D';
+  protected readonly DEFAULT_SIZE = [2, 2];
+  protected readonly size: number[];
+  protected readonly dataFormat: DataFormat;
+
+  constructor(config: UpSampling2DLayerConfig) {
+    super(config);
+    this.inputSpec = [{ndim: 4}];
+    this.size = config.size === undefined ? this.DEFAULT_SIZE : config.size;
+    this.dataFormat =
+        config.dataFormat === undefined ? 'channelsLast' : config.dataFormat;
+  }
+
+  computeOutputShape(inputShape: Shape): Shape {
+    if (this.dataFormat === 'channelsFirst') {
+      const height = this.size[0] * inputShape[2];
+      const width = this.size[1] * inputShape[3];
+      return [inputShape[0], inputShape[1], height, width];
+    } else {
+      const height = this.size[0] * inputShape[1];
+      const width = this.size[1] * inputShape[2];
+      return [inputShape[0], height, width, inputShape[3]];
+    }
+  }
+
+  call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
+    return tfc.tidy(() => {
+      let input = generic_utils.getExactlyOneTensor(inputs) as Tensor4D;
+      const inputShape = input.shape;
+
+      if (this.dataFormat === 'channelsFirst') {
+        input = tfc.transpose(input, [0, 2, 3, 1]);
+        const height = this.size[0] * inputShape[2];
+        const width = this.size[1] * inputShape[3];
+        const resized = input.resizeNearestNeighbor([height, width]);
+        return tfc.transpose(resized, [0, 3, 1, 2]);
+      } else {
+        const height = this.size[0] * inputShape[1];
+        const width = this.size[1] * inputShape[2];
+        return input.resizeNearestNeighbor([height, width]);
+      }
+    });
+  }
+
+  getConfig(): serialization.ConfigDict {
+    const config = {size: this.size, dataFormat: this.dataFormat};
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
+}
+serialization.SerializationMap.register(UpSampling2D);
