@@ -17,4 +17,4 @@
 yarn
 
 # Gen the doc
-./node_modules/.bin/ts-node ./src/docs/doc_gen.ts
+./node_modules/.bin/ts-node --project tsconfig-es5.json ./src/docs/doc_gen.ts
