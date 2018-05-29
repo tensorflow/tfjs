@@ -16,10 +16,6 @@
  */
 import {Tensor} from '@tensorflow/tfjs-core';
 
-export type NamedTensorMap = {
-  [key: string]: Tensor
-};
-
 export type NamedTensorsMap = {
   [key: string]: Tensor[]
 };
