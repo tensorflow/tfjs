@@ -895,3 +895,113 @@ describe('Cropping2D Layer', () => {
     expectTensorsClose(layer.apply(x, null) as Tensor, y);
   });
 });
+
+describeMathCPU('UpSampling2D Layer: Symbolic', () => {
+  const dataFormats: DataFormat[] = ['channelsFirst', 'channelsLast'];
+  const sizes = [undefined, [2, 2]];
+
+  for (const dataFormat of dataFormats) {
+    for (const size of sizes) {
+      const testTitle = `size=${size}, ${dataFormat}`;
+      it(testTitle, () => {
+        const inputShape =
+            dataFormat === 'channelsFirst' ? [2, 16, 11, 9] : [2, 11, 9, 16];
+        const symbolicInput =
+            new tfl.SymbolicTensor('float32', inputShape, null, [], null);
+
+        const upSampling2dLayer = tfl.layers.upSampling2d({
+          size,
+          dataFormat,
+        });
+
+        const output =
+            upSampling2dLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+
+        let outputRows: number;
+        let outputCols: number;
+        if (size === undefined) {
+          outputRows = 2;
+          outputCols = 2;
+        } else {
+          outputRows = size[0];
+          outputCols = size[1];
+        }
+        let expectedShape: [number, number, number, number];
+        if (dataFormat === 'channelsFirst') {
+          outputRows *= inputShape[2];
+          outputCols *= inputShape[3];
+          expectedShape = [2, 16, outputRows, outputCols];
+        } else {
+          outputRows *= inputShape[1];
+          outputCols *= inputShape[2];
+          expectedShape = [2, outputRows, outputCols, 16];
+        }
+
+        expect(output.shape).toEqual(expectedShape);
+      });
+    }
+  }
+});
+
+describe('UpSampling2D Layer', () => {
+  it('check with default values', () => {
+    const layer = tfl.layers.upSampling2d({});
+    const x = tensor4d(
+        [
+          [[[1], [2]], [[3], [4]]],
+        ],
+        [1, 2, 2, 1]);
+
+    const y = tensor4d(
+        [
+          [
+            [[1], [1], [2], [2]], [[1], [1], [2], [2]], [[3], [3], [4], [4]],
+            [[3], [3], [4], [4]]
+          ],
+        ],
+        [1, 4, 4, 1]);
+
+    expectTensorsClose(layer.apply(x, null) as Tensor, y);
+  });
+
+
+  it('check with channels last', () => {
+    const layer =
+        tfl.layers.upSampling2d({size: [2, 2], dataFormat: 'channelsLast'});
+    const x = tensor4d(
+        [
+          [[[1], [2]], [[3], [4]]],
+        ],
+        [1, 2, 2, 1]);
+
+    const y = tensor4d(
+        [
+          [
+            [[1], [1], [2], [2]], [[1], [1], [2], [2]], [[3], [3], [4], [4]],
+            [[3], [3], [4], [4]]
+          ],
+        ],
+        [1, 4, 4, 1]);
+
+    expectTensorsClose(layer.apply(x, null) as Tensor, y);
+  });
+
+
+  it('check with channels first', () => {
+    const layer =
+        tfl.layers.upSampling2d({size: [2, 2], dataFormat: 'channelsFirst'});
+    const x = tensor4d(
+        [
+          [[[1, 2], [3, 4]]],
+        ],
+        [1, 1, 2, 2]);
+
+    const y = tensor4d(
+        [
+          [[[1, 1, 2, 2], [1, 1, 2, 2], [3, 3, 4, 4], [3, 3, 4, 4]]],
+        ],
+        [1, 1, 4, 4]);
+
+    expectTensorsClose(layer.apply(x, null) as Tensor, y);
+  });
+});
