@@ -17,13 +17,12 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {BatchDataset} from './batch_dataset';
 import {TestDataset} from './dataset_test';
 
 tf.test_util.describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
   it('batches entries into column-oriented DatasetBatches', done => {
     const ds = new TestDataset();
-    const bds = new BatchDataset(ds, 8);  // ds.batch(8);
+    const bds = ds.batch(8);
     const batchStreamPromise = bds.iterator();
     batchStreamPromise
         .then(batchStream => batchStream.collectRemaining().then(result => {
@@ -45,7 +44,7 @@ tf.test_util.describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
   });
   it('creates a small last batch', done => {
     const ds = new TestDataset();
-    const bds = new BatchDataset(ds, 8);  // ds.batch(8);
+    const bds = ds.batch(8);
     const batchStreamPromise = bds.iterator();
     batchStreamPromise
         .then(batchStream => batchStream.collectRemaining().then(result => {

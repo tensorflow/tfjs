@@ -17,12 +17,13 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {TensorContainer} from '@tensorflow/tfjs-core/dist/types';
 import * as seedrandom from 'seedrandom';
 
+import {BatchDataset} from './batch_dataset';
 import {iteratorFromFunction, LazyIterator} from './streams/lazy_iterator';
 import {iteratorFromConcatenated} from './streams/lazy_iterator';
 import {iteratorFromItems} from './streams/lazy_iterator';
+import {DataElement} from './types';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -38,7 +39,7 @@ import {iteratorFromItems} from './streams/lazy_iterator';
  * must come last in the pipeline because there are (so far) no batch-enabled
  * transformations.
  */
-export abstract class Dataset<T> {
+export abstract class Dataset<T extends DataElement> {
   /*
    * Provide a new stream of elements.  Note this will also start new streams
    * from any underlying `Dataset`s.
@@ -111,7 +112,7 @@ export abstract class Dataset<T> {
    *
    * @returns A `Dataset` of transformed elements.
    */
-  map<O extends TensorContainer>(transform: (value: T) => O): Dataset<O> {
+  map<O extends DataElement>(transform: (value: T) => O): Dataset<O> {
     const base = this;
     return datasetFromStreamFn(() => {
       return base.iterator().map(x => tf.tidy(() => transform(x)));
@@ -134,16 +135,9 @@ export abstract class Dataset<T> {
    *   than batchSize elements. Default true.
    * @returns A `BatchDataset`, from which a stream of batches can be obtained.
    */
-
-  // TODO(soergel) Reinstate batch() call.  This is tricky because we have to
-  // enforce that the generic element type T is an instance of TensorContainer,
-  // in order to apply the columnar-batches transformation.
-  // Maybe creating a a Batchable mixin would help?
-  /*
   batch(batchSize: number, smallLastBatch = true): BatchDataset {
     return new BatchDataset(this, batchSize, smallLastBatch);
   }
-  */
 
   /**
    * Concatenates this `Dataset` with another.
@@ -282,8 +276,8 @@ export abstract class Dataset<T> {
 /**
  * Create a `Dataset` defined by a provided getStream() function.
  */
-export function datasetFromStreamFn<T>(getStreamFn: () => LazyIterator<T>):
-    Dataset<T> {
+export function datasetFromStreamFn<T extends DataElement>(
+    getStreamFn: () => LazyIterator<T>): Dataset<T> {
   return new class extends Dataset<T> {
     /*
      * Provide a new stream of elements.  Note this will also start new streams
@@ -299,6 +293,7 @@ export function datasetFromStreamFn<T>(getStreamFn: () => LazyIterator<T>):
 /**
  * Create a `Dataset` from an array of elements.
  */
-export function datasetFromElements<T>(items: T[]): Dataset<T> {
+export function datasetFromElements<T extends DataElement>(items: T[]):
+    Dataset<T> {
   return datasetFromStreamFn(() => iteratorFromItems(items));
 }

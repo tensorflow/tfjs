@@ -17,6 +17,9 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+// tslint:disable:max-line-length
+import {TensorContainer, TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
+// tslint:enable:max-line-length
 
 // TODO(soergel): clean up the |string union type throughout when Tensor
 // supports string.
@@ -47,6 +50,9 @@ export type TabularRecord = {
   // (It's still an issue for BatchDataset and Statistics.)
   [key: string]: ElementArray
 };
+
+export type DataElement = TensorContainer;
+export type DataElementObject = TensorContainerObject;
 
 /**
  * A map from string keys (aka column names) to values for a batch of elements.

@@ -17,11 +17,12 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {TensorContainer} from '@tensorflow/tfjs-core/dist/types';
 
+// tslint:disable:max-line-length
 import {Dataset} from './dataset';
 import {LazyIterator} from './streams/lazy_iterator';
-import {BatchArray, DatasetBatch, ElementArray, TabularRecord} from './types';
+import {BatchArray, DataElement, DatasetBatch, ElementArray, TabularRecord} from './types';
+// tslint:enable:max-line-length
 
 // TODO(soergel): refactor to remove BatchDataset class, but retain columnar
 // batching functionality.
@@ -41,7 +42,7 @@ import {BatchArray, DatasetBatch, ElementArray, TabularRecord} from './types';
  */
 export class BatchDataset {
   constructor(
-      protected base: Dataset<TensorContainer>, protected batchSize: number,
+      protected base: Dataset<DataElement>, protected batchSize: number,
       protected smallLastBatch = true) {}
 
   /*

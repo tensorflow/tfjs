@@ -16,11 +16,10 @@
  * =============================================================================
  */
 
-import {TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
 import {LazyIterator} from '../streams/lazy_iterator';
-import {ElementArray} from '../types';
+import {DataElement, ElementArray} from '../types';
 
 import {TextLineDataset} from './text_line_dataset';
 
@@ -33,14 +32,14 @@ export enum CsvHeaderConfig {
 /**
  * Represents a potentially large collection of delimited text records.
  *
- * The produced `TensorContainerObject`s each contain one key-value pair for
+ * The produced `DataElement`s each contain one key-value pair for
  * every column of the table.  When a field is empty in the incoming data, the
  * resulting value is `undefined`.  Values that can be parsed as numbers are
  * emitted as type `number`; otherwise they are left as `string`.
  *
  * The results are not batched.
  */
-export class CSVDataset extends Dataset<TensorContainerObject> {
+export class CSVDataset extends Dataset<DataElement> {
   base: TextLineDataset;
   private hasHeaderLine = false;
   private _csvColumnNames: string[];
@@ -104,17 +103,17 @@ export class CSVDataset extends Dataset<TensorContainerObject> {
     return result;
   }
 
-  iterator(): LazyIterator<TensorContainerObject> {
+  iterator(): LazyIterator<DataElement> {
     let lines = this.base.iterator();
     if (this.hasHeaderLine) {
       // We previously read the first line to get the headers.
       // Now that we're providing data, skip it.
       lines = lines.skip(1);
     }
-    return lines.map(x => this.makeTensorContainerObject(x));
+    return lines.map(x => this.makeDataElement(x));
   }
 
-  makeTensorContainerObject(line: string): TensorContainerObject {
+  makeDataElement(line: string): DataElement {
     // TODO(soergel): proper CSV parsing with escaping, quotes, etc.
     // TODO(soergel): alternate separators, e.g. for TSV
     const values = line.split(',');

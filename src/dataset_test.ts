@@ -17,11 +17,11 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
-import {TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
 
 import {Dataset, datasetFromElements} from './dataset';
 // import {CPU_ENVS, describeWithFlags} from '../../test_util';
 import {iteratorFromItems, LazyIterator} from './streams/lazy_iterator';
+import {DataElementObject} from './types';
 
 class TestObjectStream extends LazyIterator<{}> {
   data = Array.from({length: 100}, (v, k) => k);
@@ -50,7 +50,7 @@ class TestObjectStream extends LazyIterator<{}> {
   }
 }
 
-export class TestDataset extends Dataset<TensorContainerObject> {
+export class TestDataset extends Dataset<DataElementObject> {
   iterator(): LazyIterator<{}> {
     return new TestObjectStream();
   }
