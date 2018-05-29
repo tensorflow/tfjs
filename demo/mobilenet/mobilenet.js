@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {loadFrozenModel, NamedTensorMap} from '@tensorflow/tfjs-converter';
-import * as tfc from '@tensorflow/tfjs-core';
+import * as tf from '@tensorflow/tfjs';
 
 import {IMAGENET_CLASSES} from './imagenet_classes';
 
@@ -26,13 +25,13 @@ const MODEL_FILE_URL = 'mobilenet_v1_1.0_224/optimized_model.pb';
 const WEIGHT_MANIFEST_FILE_URL = 'mobilenet_v1_1.0_224/weights_manifest.json';
 const INPUT_NODE_NAME = 'input';
 const OUTPUT_NODE_NAME = 'MobilenetV1/Predictions/Reshape_1';
-const PREPROCESS_DIVISOR = tfc.scalar(255 / 2);
+const PREPROCESS_DIVISOR = tf.scalar(255 / 2);
 
 export class MobileNet {
   constructor() {}
 
   async load() {
-    this.model = await loadFrozenModel(
+    this.model = await tf.loadFrozenModel(
         GOOGLE_CLOUD_STORAGE_DIR + MODEL_FILE_URL,
         GOOGLE_CLOUD_STORAGE_DIR + WEIGHT_MANIFEST_FILE_URL);
   }
@@ -51,8 +50,8 @@ export class MobileNet {
    * @return The softmax logits.
    */
   predict(input) {
-    const preprocessedInput = tfc.div(
-        tfc.sub(input.asType('float32'), PREPROCESS_DIVISOR),
+    const preprocessedInput = tf.div(
+        tf.sub(input.asType('float32'), PREPROCESS_DIVISOR),
         PREPROCESS_DIVISOR);
     const reshapedInput =
         preprocessedInput.reshape([1, ...preprocessedInput.shape]);

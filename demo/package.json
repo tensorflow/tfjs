@@ -6,8 +6,7 @@
   "license": "Apache-2.0",
   "private": true,
   "dependencies": {
-    "@tensorflow/tfjs-converter": "0.3.1",
-    "@tensorflow/tfjs-core": "0.10.0"
+    "@tensorflow/tfjs": "0.11.2"
   },
   "scripts": {
     "mobilenet": "NODE_ENV=development parcel --no-hmr --open mobilenet/index.html ",
