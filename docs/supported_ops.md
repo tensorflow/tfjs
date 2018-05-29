@@ -104,6 +104,7 @@
 |ZerosLike|zerosLike|
 |Not mapped|buffer|
 |Not mapped|clone|
+|Not mapped|eye|
 |Not mapped|fromPixels|
 |Not mapped|print|
 |Not mapped|randomNormal|
@@ -121,6 +122,7 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |Const|const|
+|FakeQuantWithMinMaxVars|fakeQuantWithMinMaxVars|
 |Identity|identity|
 |NoOp|noop|
 |Placeholder|placeholder|
@@ -174,7 +176,7 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |ResizeBilinear|resizeBilinear|
-|Not mapped|resizeNearestNeighbor|
+|ResizeNearestNeighbor|resizeNearestNeighbor|
 
 
 ## Operations - Reduction
@@ -188,6 +190,7 @@
 |Min|min|
 |Sum|sum|
 |Not mapped|logSumExp|
+|Not mapped|unsortedSegmentSum|
 
 
 ## Tensors - Slicing and Joining
@@ -202,9 +205,10 @@
 |Reverse|reverse|
 |ReverseV2|reverse|
 |Slice|slice|
-|StridedSlice|stridedSlice|
 |Split|split|
+|StridedSlice|stridedSlice|
 |Tile|tile|
+|Not mapped|unstack|
 
 
 ## Tensors - Transformations
