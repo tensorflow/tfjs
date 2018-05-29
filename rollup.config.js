@@ -28,6 +28,7 @@ export default {
     node(),
     // Polyfill require() from dependencies.
     commonjs({
+      ignore: ["crypto"],
       include: 'node_modules/**',
       namedExports: {
         './node_modules/seedrandom/index.js': ['alea'],
