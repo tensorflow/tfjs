@@ -16,7 +16,7 @@
 import {abs, mean, memory, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
-import {CustomCallback, CustomCallbackConfig, Logs} from '../callbacks';
+import {CustomCallback, CustomCallbackConfig, Logs, UnresolvedLogs} from '../callbacks';
 import * as tfl from '../index';
 import {Regularizer} from '../regularizers';
 import {Kwargs} from '../types';
@@ -1071,6 +1071,75 @@ describeMathCPUAndGPU('Model.fit', () => {
         .catch(err => {
           done.fail(err.stack);
         });
+  });
+
+  class StopAfterNEpochs extends tfl.Callback {
+    private readonly epochsToTrain: number;
+    constructor(epochsToTrain: number) {
+      super();
+      this.epochsToTrain = epochsToTrain;
+    }
+
+    async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+      if (epoch === this.epochsToTrain - 1) {
+        this.model.stopTraining = true;
+      }
+    }
+  }
+
+  it('Stop training at the end of an epoch: Functional model', done => {
+    createDenseModelAndData(true);
+    model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    // Order 10 epochs of training, but the training should stop after two
+    // epochs due to the callback.
+    model
+        .fit(inputs, targets, {
+          batchSize: numSamples,
+          epochs: 10,
+          callbacks: [new StopAfterNEpochs(2)]
+        })
+        .then(history => {
+          expect(history.history.loss.length).toEqual(2);
+          done();
+        })
+        .catch(err => done.fail(err.stack));
+  });
+
+  class StopAfterNBatches extends tfl.Callback {
+    private readonly batchesToTrain: number;
+    constructor(epochsToTrain: number) {
+      super();
+      this.batchesToTrain = epochsToTrain;
+    }
+
+    async onBatchEnd(batch: number, logs?: Logs) {
+      if (batch === this.batchesToTrain - 1) {
+        this.model.stopTraining = true;
+      }
+    }
+  }
+
+  it('Stop training at the end of a batch: Sequential model', done => {
+    const sequentialModel = tfl.sequential();
+    sequentialModel.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'ones', inputShape: [inputSize]}));
+    // numSamples is 5.
+    inputs = ones([numSamples, inputSize]);
+    targets = ones([numSamples, 1]);
+    sequentialModel.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+    // Order 10 epochs of training, but the training should stop after only one
+    // epochs due to the callback that orders the training to stop after two
+    // batches. The first epoch should have five batches  due to a batchSize
+    // of 1.
+    sequentialModel
+        .fit(
+            inputs, targets,
+            {batchSize: 1, epochs: 10, callbacks: [new StopAfterNBatches(2)]})
+        .then(history => {
+          expect(history.history.loss.length).toEqual(1);
+          done();
+        })
+        .catch(err => done.fail(err.stack));
   });
 
   it('Invalid dict loss: nonexistent output name', () => {

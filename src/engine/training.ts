@@ -642,6 +642,10 @@ export class Model extends Container {
   private testFunction: (data: Tensor[]) => Scalar[];
   history: History;
 
+  // A public property that can be set by Callbacks to order early stopping
+  // during `fit()` calls.
+  stopTraining: boolean;
+
   metrics: string[]|{[outputName: string]: string};
   metricsNames: string[];
   // Porting Note: `metrics_tensors` in PyKeras is a symbolic tensor. But given
@@ -1227,8 +1231,8 @@ export class Model extends Container {
       doValidation,
       metrics: callbackMetrics,
     });
-    // TODO(cais): Take care of the PyKeras logic of stop_training.
     await callbackList.onTrainBegin();
+    this.stopTraining = false;
     // TODO(cais): Take care of callbacks.validation_data as in PyKeras.
 
     // TODO(cais): Pre-convert feeds for performance as in PyKeras.
@@ -1278,9 +1282,6 @@ export class Model extends Container {
               // TODO(cais): Use scope() to avoid ownership.
             }
 
-            // TODO(cais): Logic for early stopping using
-            //   callback_model.stop_training as in PyKeras.
-
             if (batchIndex === batches.length - 1) {  // Last batch.
               if (doValidation) {
                 const valOuts = this.testLoop(valF, valIns, batchSize);
@@ -1298,6 +1299,10 @@ export class Model extends Container {
 
           await callbackList.onBatchEnd(batchIndex, batchLogs);
           disposeTensorsInLogs(batchLogs);
+
+          if (this.stopTraining) {
+            break;
+          }
           // TODO(cais): return outs as list of Tensor.
         }
 
@@ -1305,8 +1310,9 @@ export class Model extends Container {
       }
       // TODO(cais): Run validation at the end of the epoch.
       await callbackList.onEpochEnd(epoch, epochLogs);
-      // TODO(cais): Logic for early stopping using
-      //   callback_model.stop_training as in PyKeras.
+      if (this.stopTraining) {
+        break;
+      }
     }
     await callbackList.onTrainEnd();
 
