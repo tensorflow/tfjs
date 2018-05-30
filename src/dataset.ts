@@ -20,9 +20,9 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 
 import {BatchDataset} from './batch_dataset';
-import {iteratorFromFunction, LazyIterator} from './streams/lazy_iterator';
-import {iteratorFromConcatenated} from './streams/lazy_iterator';
-import {iteratorFromItems} from './streams/lazy_iterator';
+import {iteratorFromFunction, LazyIterator} from './iterators/lazy_iterator';
+import {iteratorFromConcatenated} from './iterators/lazy_iterator';
+import {iteratorFromItems} from './iterators/lazy_iterator';
 import {DataElement} from './types';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
@@ -50,7 +50,7 @@ export abstract class Dataset<T extends DataElement> {
    */
   abstract iterator(): LazyIterator<T>;
 
-  // TODO(soergel): Make Datasets report whether repeated getStream() calls
+  // TODO(soergel): Make Datasets report whether repeated iterator() calls
   // produce the same result (e.g., reading from a file) or different results
   // (e.g., from the webcam).  Currently we don't make this distinction but it
   // could be important for the user to know.
@@ -66,7 +66,7 @@ export abstract class Dataset<T extends DataElement> {
    */
   filter(filterer: (value: T) => boolean): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => {
+    return datasetFromIteratorFn(() => {
       return base.iterator().filter(x => tf.tidy(() => filterer(x)));
     });
   }
@@ -81,7 +81,7 @@ export abstract class Dataset<T extends DataElement> {
    */
   map<O extends DataElement>(transform: (value: T) => O): Dataset<O> {
     const base = this;
-    return datasetFromStreamFn(() => {
+    return datasetFromIteratorFn(() => {
       return base.iterator().map(x => tf.tidy(() => transform(x)));
     });
   }
@@ -114,7 +114,7 @@ export abstract class Dataset<T extends DataElement> {
    */
   concatenate(dataset: Dataset<T>): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(
+    return datasetFromIteratorFn(
         () => base.iterator().concatenate(dataset.iterator()));
   }
 
@@ -131,10 +131,10 @@ export abstract class Dataset<T extends DataElement> {
    */
   repeat(count?: number): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => {
-      const streamStream =
+    return datasetFromIteratorFn(() => {
+      const iteratorIterator =
           iteratorFromFunction(() => ({value: base.iterator(), done: false}));
-      return iteratorFromConcatenated(streamStream.take(count));
+      return iteratorFromConcatenated(iteratorIterator.take(count));
     });
   }
 
@@ -149,7 +149,7 @@ export abstract class Dataset<T extends DataElement> {
    */
   take(count: number): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => base.iterator().take(count));
+    return datasetFromIteratorFn(() => base.iterator().take(count));
   }
 
   /**
@@ -164,7 +164,7 @@ export abstract class Dataset<T extends DataElement> {
    */
   skip(count: number): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => base.iterator().skip(count));
+    return datasetFromIteratorFn(() => base.iterator().skip(count));
   }
 
   // TODO(soergel): deep sharded shuffle, where supported
@@ -185,7 +185,7 @@ export abstract class Dataset<T extends DataElement> {
       Dataset<T> {
     const base = this;
     const random = seedrandom.alea(seed || performance.now().toString());
-    return datasetFromStreamFn(() => {
+    return datasetFromIteratorFn(() => {
       let seed2 = random.int32();
       if (reshuffleEachIteration) {
         seed2 += random.int32();
@@ -203,7 +203,7 @@ export abstract class Dataset<T extends DataElement> {
    */
   prefetch(bufferSize: number): Dataset<T> {
     const base = this;
-    return datasetFromStreamFn(() => base.iterator().prefetch(bufferSize));
+    return datasetFromIteratorFn(() => base.iterator().prefetch(bufferSize));
   }
 
   /**
@@ -241,17 +241,17 @@ export abstract class Dataset<T extends DataElement> {
 }
 
 /**
- * Create a `Dataset` defined by a provided getStream() function.
+ * Create a `Dataset` defined by a provided iterator() function.
  */
-export function datasetFromStreamFn<T extends DataElement>(
-    getStreamFn: () => LazyIterator<T>): Dataset<T> {
+export function datasetFromIteratorFn<T extends DataElement>(
+    iteratorFn: () => LazyIterator<T>): Dataset<T> {
   return new class extends Dataset<T> {
     /*
      * Provide a new stream of elements.  Note this will also start new streams
      * from any underlying `Dataset`s.
      */
     iterator(): LazyIterator<T> {
-      return getStreamFn();
+      return iteratorFn();
     }
   }
   ();
@@ -262,5 +262,5 @@ export function datasetFromStreamFn<T extends DataElement>(
  */
 export function datasetFromElements<T extends DataElement>(items: T[]):
     Dataset<T> {
-  return datasetFromStreamFn(() => iteratorFromItems(items));
+  return datasetFromIteratorFn(() => iteratorFromItems(items));
 }

@@ -23,9 +23,9 @@ tf.test_util.describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
   it('batches entries into column-oriented DatasetBatches', done => {
     const ds = new TestDataset();
     const bds = ds.batch(8);
-    const batchStreamPromise = bds.iterator();
-    batchStreamPromise
-        .then(batchStream => batchStream.collectRemaining().then(result => {
+    const batchIteratorPromise = bds.iterator();
+    batchIteratorPromise
+        .then(batchIterator => batchIterator.collectRemaining().then(result => {
           expect(result.length).toEqual(13);
           result.slice(0, 12).forEach(batch => {
             expect((batch['number'] as tf.Tensor).shape).toEqual([8]);
@@ -45,9 +45,9 @@ tf.test_util.describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
   it('creates a small last batch', done => {
     const ds = new TestDataset();
     const bds = ds.batch(8);
-    const batchStreamPromise = bds.iterator();
-    batchStreamPromise
-        .then(batchStream => batchStream.collectRemaining().then(result => {
+    const batchIteratorPromise = bds.iterator();
+    batchIteratorPromise
+        .then(batchIterator => batchIterator.collectRemaining().then(result => {
           const lastBatch = result[12];
           expect((lastBatch['number'] as tf.Tensor).shape).toEqual([4]);
           expect((lastBatch['numberArray'] as tf.Tensor).shape).toEqual([4, 3]);

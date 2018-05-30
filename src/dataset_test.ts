@@ -20,10 +20,10 @@ import * as tf from '@tensorflow/tfjs-core';
 
 import {Dataset, datasetFromElements} from './dataset';
 // import {CPU_ENVS, describeWithFlags} from '../../test_util';
-import {iteratorFromItems, LazyIterator} from './streams/lazy_iterator';
+import {iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
 import {DataElementObject} from './types';
 
-class TestObjectStream extends LazyIterator<{}> {
+class TestObjectIterator extends LazyIterator<{}> {
   data = Array.from({length: 100}, (v, k) => k);
   currentIndex = 0;
 
@@ -52,7 +52,7 @@ class TestObjectStream extends LazyIterator<{}> {
 
 export class TestDataset extends Dataset<DataElementObject> {
   iterator(): LazyIterator<{}> {
-    return new TestObjectStream();
+    return new TestObjectIterator();
   }
 }
 

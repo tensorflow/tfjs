@@ -18,7 +18,7 @@
 
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
-import {LazyIterator} from '../streams/lazy_iterator';
+import {LazyIterator} from '../iterators/lazy_iterator';
 import {DataElement, ElementArray} from '../types';
 
 import {TextLineDataset} from './text_line_dataset';
@@ -63,8 +63,8 @@ export class CSVDataset extends Dataset<DataElement> {
 
   private async setCsvColumnNames(csvColumnNames: CsvHeaderConfig|string[]) {
     if (csvColumnNames == null || csvColumnNames === CsvHeaderConfig.NUMBERED) {
-      const stream = this.base.iterator();
-      const firstElement = await stream.next();
+      const iter = this.base.iterator();
+      const firstElement = await iter.next();
       if (firstElement.done) {
         throw new Error('No data was found for CSV parsing.');
       }
@@ -72,8 +72,8 @@ export class CSVDataset extends Dataset<DataElement> {
       this._csvColumnNames =
           Array.from(firstLine.split(',').keys()).map(x => x.toString());
     } else if (csvColumnNames === CsvHeaderConfig.READ_FIRST_LINE) {
-      const stream = this.base.iterator();
-      const firstElement = await stream.next();
+      const iter = this.base.iterator();
+      const firstElement = await iter.next();
       if (firstElement.done) {
         throw new Error('No data was found for CSV parsing.');
       }

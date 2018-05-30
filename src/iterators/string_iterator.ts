@@ -16,9 +16,9 @@
  * =============================================================================
  */
 
-import {LazyIterator, QueueStream} from './lazy_iterator';
+import {LazyIterator, QueueIterator} from './lazy_iterator';
 
-export abstract class StringStream extends LazyIterator<string> {
+export abstract class StringIterator extends LazyIterator<string> {
   /**
    * Splits a string stream on a given separator.
    *
@@ -37,28 +37,28 @@ export abstract class StringStream extends LazyIterator<string> {
    *   concatenated.
    * @param separator A character to split on.
    */
-  split(separator: string): StringStream {
-    return new SplitStream(this, separator);
+  split(separator: string): StringIterator {
+    return new SplitIterator(this, separator);
   }
 }
 
 // ============================================================================
 // The following private classes serve to implement the chainable methods
-// on StringStream.  Unfortunately they can't be placed in separate files, due
+// on StringIterator.  Unfortunately they can't be placed in separate files, due
 // to resulting trouble with circular imports.
 // ============================================================================
 
 // We wanted multiple inheritance, e.g.
-//   class SplitStream extends QueueStream<string>, StringStream
+//   class SplitIterator extends QueueIterator<string>, StringIterator
 // but the TypeScript mixin approach is a bit hacky, so we take this adapter
 // approach instead.
 
-class SplitStream extends StringStream {
-  private impl: SplitStreamImpl;
+class SplitIterator extends StringIterator {
+  private impl: SplitIteratorImpl;
 
   constructor(upstream: LazyIterator<string>, separator: string) {
     super();
-    this.impl = new SplitStreamImpl(upstream, separator);
+    this.impl = new SplitIteratorImpl(upstream, separator);
   }
 
   async next() {
@@ -66,7 +66,7 @@ class SplitStream extends StringStream {
   }
 }
 
-class SplitStreamImpl extends QueueStream<string> {
+class SplitIteratorImpl extends QueueIterator<string> {
   // A partial string at the end of an upstream chunk
   carryover = '';
 

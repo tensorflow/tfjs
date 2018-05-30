@@ -21,7 +21,7 @@ import {iteratorFromConcatenated} from './lazy_iterator';
 import {iteratorFromConcatenatedFunction} from './lazy_iterator';
 import {iteratorFromFunction, iteratorFromItems} from './lazy_iterator';
 
-export class TestIntegerStream extends LazyIterator<number> {
+export class TestIntegerIterator extends LazyIterator<number> {
   currentIndex = 0;
   data: number[];
 
@@ -49,8 +49,8 @@ export class TestIntegerStream extends LazyIterator<number> {
 
 describe('LazyIterator', () => {
   it('collects all stream elements into an array', done => {
-    const readStream = new TestIntegerStream();
-    readStream.collectRemaining()
+    const readIterator = new TestIntegerIterator();
+    readIterator.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(100);
         })
@@ -59,8 +59,8 @@ describe('LazyIterator', () => {
   });
 
   it('reads chunks in order', done => {
-    const readStream = new TestIntegerStream();
-    readStream.collectRemaining()
+    const readIterator = new TestIntegerIterator();
+    readIterator.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(100);
           for (let i = 0; i < 100; i++) {
@@ -72,8 +72,8 @@ describe('LazyIterator', () => {
   });
 
   it('filters elements', done => {
-    const readStream = new TestIntegerStream().filter(x => x % 2 === 0);
-    readStream.collectRemaining()
+    const readIterator = new TestIntegerIterator().filter(x => x % 2 === 0);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(50);
           for (let i = 0; i < 50; i++) {
@@ -85,8 +85,8 @@ describe('LazyIterator', () => {
   });
 
   it('maps elements', done => {
-    const readStream = new TestIntegerStream().map(x => `item ${x}`);
-    readStream.collectRemaining()
+    const readIterator = new TestIntegerIterator().map(x => `item ${x}`);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(100);
           for (let i = 0; i < 100; i++) {
@@ -98,8 +98,8 @@ describe('LazyIterator', () => {
   });
 
   it('batches elements', done => {
-    const readStream = new TestIntegerStream().batch(8);
-    readStream.collectRemaining()
+    const readIterator = new TestIntegerIterator().batch(8);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(13);
           for (let i = 0; i < 12; i++) {
@@ -113,8 +113,8 @@ describe('LazyIterator', () => {
   });
 
   it('can be limited to a certain number of elements', done => {
-    const readStream = new TestIntegerStream().take(8);
-    readStream.collectRemaining()
+    const readIterator = new TestIntegerIterator().take(8);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
         })
@@ -123,27 +123,27 @@ describe('LazyIterator', () => {
   });
 
   it('is unaltered by a negative or undefined take() count.', done => {
-    const baseStream = new TestIntegerStream();
-    const readStream = baseStream.take(-1);
-    readStream.collectRemaining()
+    const baseIterator = new TestIntegerIterator();
+    const readIterator = baseIterator.take(-1);
+    readIterator.collectRemaining()
         .then(result => {
-          expect(result).toEqual(baseStream.data);
+          expect(result).toEqual(baseIterator.data);
         })
         .then(done)
         .catch(done.fail);
-    const baseStream2 = new TestIntegerStream();
-    const readStream2 = baseStream2.take(undefined);
-    readStream2.collectRemaining()
+    const baseIterator2 = new TestIntegerIterator();
+    const readIterator2 = baseIterator2.take(undefined);
+    readIterator2.collectRemaining()
         .then(result => {
-          expect(result).toEqual(baseStream2.data);
+          expect(result).toEqual(baseIterator2.data);
         })
         .then(done)
         .catch(done.fail);
   });
 
   it('can skip a certain number of elements', done => {
-    const readStream = new TestIntegerStream().skip(88).take(8);
-    readStream.collectRemaining()
+    const readIterator = new TestIntegerIterator().skip(88).take(8);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual([88, 89, 90, 91, 92, 93, 94, 95]);
         })
@@ -152,27 +152,27 @@ describe('LazyIterator', () => {
   });
 
   it('is unaltered by a negative or undefined skip() count.', done => {
-    const baseStream = new TestIntegerStream();
-    const readStream = baseStream.skip(-1);
-    readStream.collectRemaining()
+    const baseIterator = new TestIntegerIterator();
+    const readIterator = baseIterator.skip(-1);
+    readIterator.collectRemaining()
         .then(result => {
-          expect(result).toEqual(baseStream.data);
+          expect(result).toEqual(baseIterator.data);
         })
         .then(done)
         .catch(done.fail);
-    const baseStream2 = new TestIntegerStream();
-    const readStream2 = baseStream2.skip(undefined);
-    readStream2.collectRemaining()
+    const baseIterator2 = new TestIntegerIterator();
+    const readIterator2 = baseIterator2.skip(undefined);
+    readIterator2.collectRemaining()
         .then(result => {
-          expect(result).toEqual(baseStream2.data);
+          expect(result).toEqual(baseIterator2.data);
         })
         .then(done)
         .catch(done.fail);
   });
 
   it('can be created from an array', done => {
-    const readStream = iteratorFromItems([1, 2, 3, 4, 5, 6]);
-    readStream.collectRemaining()
+    const readIterator = iteratorFromItems([1, 2, 3, 4, 5, 6]);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual([1, 2, 3, 4, 5, 6]);
         })
@@ -185,8 +185,8 @@ describe('LazyIterator', () => {
     const func = () =>
         ++i < 7 ? {value: i, done: false} : {value: null, done: true};
 
-    const readStream = iteratorFromFunction(func);
-    readStream.collectRemaining()
+    const readIterator = iteratorFromFunction(func);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual([0, 1, 2, 3, 4, 5, 6]);
         })
@@ -195,8 +195,8 @@ describe('LazyIterator', () => {
   });
 
   it('can be created with incrementing integers', done => {
-    const readStream = iteratorFromIncrementing(0).take(7);
-    readStream.collectRemaining()
+    const readIterator = iteratorFromIncrementing(0).take(7);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual([0, 1, 2, 3, 4, 5, 6]);
         })
@@ -207,8 +207,8 @@ describe('LazyIterator', () => {
   it('can be concatenated', done => {
     const a = iteratorFromItems([1, 2, 3]);
     const b = iteratorFromItems([4, 5, 6]);
-    const readStream = a.concatenate(b);
-    readStream.collectRemaining()
+    const readIterator = a.concatenate(b);
+    readIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual([1, 2, 3, 4, 5, 6]);
         })
@@ -217,10 +217,10 @@ describe('LazyIterator', () => {
   });
 
   it('can be created by concatenating streams', done => {
-    const a = new TestIntegerStream();
-    const b = new TestIntegerStream();
-    const readStream = iteratorFromConcatenated(iteratorFromItems([a, b]));
-    readStream.collectRemaining()
+    const a = new TestIntegerIterator();
+    const b = new TestIntegerIterator();
+    const readIterator = iteratorFromConcatenated(iteratorFromItems([a, b]));
+    readIterator.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(200);
         })
@@ -229,8 +229,8 @@ describe('LazyIterator', () => {
   });
 
   it('can be created by concatenating streams from a function', done => {
-    const readStream = iteratorFromConcatenatedFunction(
-        () => ({value: new TestIntegerStream(), done: false}), 3);
+    const readIterator = iteratorFromConcatenatedFunction(
+        () => ({value: new TestIntegerIterator(), done: false}), 3);
     const expectedResult: number[] = [];
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 100; j++) {
@@ -238,7 +238,7 @@ describe('LazyIterator', () => {
       }
     }
 
-    readStream.collectRemaining()
+    readIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual(expectedResult);
         })

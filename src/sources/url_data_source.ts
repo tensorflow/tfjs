@@ -17,8 +17,8 @@
  */
 
 import {DataSource} from '../datasource';
-import {ByteStream} from '../streams/byte_stream';
-import {URLStream} from '../streams/url_stream';
+import {ByteChunkIterator} from '../iterators/byte_chunk_iterator';
+import {URLChunkIterator} from '../iterators/url_chunk_iterator';
 
 /*
  * Represents a URL readable as a stream of binary data chunks.
@@ -28,7 +28,7 @@ export class URLDataSource extends DataSource {
    * Create a `URLDataSource`.
    *
    * @param url A source URL string, or a `Request` object.
-   * @param options Options passed to the underlying `FileReaderStream`s,
+   * @param options Options passed to the underlying `FileChunkIterator`s,
    *   such as {chunksize: 1024}.
    */
   constructor(
@@ -38,10 +38,10 @@ export class URLDataSource extends DataSource {
   }
 
   // TODO(soergel): provide appropriate caching options.  Currently this
-  // will download the URL anew for each call to getStream().  Since we have
+  // will download the URL anew for each call to iterator().  Since we have
   // to treat the downloaded file as a blob anyway, we may as well retain it--
   // but that raises GC issues.  Also we may want a persistent disk cache.
-  getStream(): ByteStream {
-    return new URLStream(this.url, this.options);
+  iterator(): ByteChunkIterator {
+    return new URLChunkIterator(this.url, this.options);
   }
 }

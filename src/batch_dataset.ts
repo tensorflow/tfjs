@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs-core';
 
 // tslint:disable:max-line-length
 import {Dataset} from './dataset';
-import {LazyIterator} from './streams/lazy_iterator';
+import {LazyIterator} from './iterators/lazy_iterator';
 import {BatchArray, DataElement, DatasetBatch, ElementArray, TabularRecord} from './types';
 // tslint:enable:max-line-length
 
