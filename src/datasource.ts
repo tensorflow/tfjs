@@ -16,12 +16,12 @@
  * =============================================================================
  */
 
-import {ByteStream} from './streams/byte_stream';
+import {ByteChunkIterator} from './iterators/byte_chunk_iterator';
 
 /**
  * Represents a data source readable as a stream of binary data chunks.
  *
- * Because `Dataset`s can be read repeatedly (via `Dataset.getStream()`), this
+ * Because `Dataset`s can be read repeatedly (via `Dataset.iterator()`), this
  * provides a means to repeatedly create streams from the underlying data
  * sources.
  */
@@ -32,7 +32,7 @@ export abstract class DataSource {
    * Starts the new stream from the beginning of the data source, even if other
    * streams have been obtained previously.
    */
-  abstract getStream(): ByteStream;
+  abstract iterator(): ByteChunkIterator;
 
   // TODO(soergel): consider chainable Dataset construction here
 }

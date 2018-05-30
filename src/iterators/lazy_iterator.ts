@@ -30,7 +30,7 @@ import {RingBuffer} from '../util/ring_buffer';
  * Create a `LazyIterator` from an array of items.
  */
 export function iteratorFromItems<T>(items: T[]): LazyIterator<T> {
-  return new ArrayStream(items);
+  return new ArrayIterator(items);
 }
 
 /**
@@ -47,7 +47,7 @@ export function iteratorFromIncrementing(start: number): LazyIterator<number> {
 export function iteratorFromFunction<T>(
     func: () =>
         IteratorResult<T>| Promise<IteratorResult<T>>): LazyIterator<T> {
-  return new FunctionCallStream(func);
+  return new FunctionCallIterator(func);
 }
 
 /**
@@ -56,11 +56,11 @@ export function iteratorFromFunction<T>(
  *
  * This can also be thought of as a "stream flatten" operation.
  *
- * @param baseStreams A stream of streams to be concatenated.
+ * @param baseIterators A stream of streams to be concatenated.
  */
 export function iteratorFromConcatenated<T>(
-    baseStreams: LazyIterator<LazyIterator<T>>): LazyIterator<T> {
-  return ChainedStream.create(baseStreams);
+    baseIterators: LazyIterator<LazyIterator<T>>): LazyIterator<T> {
+  return ChainedIterator.create(baseIterators);
 }
 
 /**
@@ -70,15 +70,16 @@ export function iteratorFromConcatenated<T>(
  * Since a `LazyIterator` is read-once, it cannot be repeated, but this
  * function can be used to achieve a similar effect:
  *
- *   LazyIterator.ofConcatenatedFunction(() => new MyStream(), 6);
+ *   LazyIterator.ofConcatenatedFunction(() => new MyIterator(), 6);
  *
- * @param streamFunc: A function that produces a new stream on each call.
+ * @param iteratorFunc: A function that produces a new stream on each call.
  * @param count: The number of times to call the function.
  */
 export function iteratorFromConcatenatedFunction<T>(
-    streamFunc: () => IteratorResult<LazyIterator<T>>,
+    iteratorFunc: () => IteratorResult<LazyIterator<T>>,
     count: number): LazyIterator<T> {
-  return iteratorFromConcatenated(iteratorFromFunction(streamFunc).take(count));
+  return iteratorFromConcatenated(
+      iteratorFromFunction(iteratorFunc).take(count));
 }
 
 export class IteratorProperties {
@@ -159,7 +160,7 @@ export abstract class LazyIterator<T> {
    * @returns A `LazyIterator` of elements for which the predicate was true.
    */
   filter(predicate: (value: T) => boolean): LazyIterator<T> {
-    return new FilterStream(this, predicate);
+    return new FilterIterator(this, predicate);
   }
 
   /**
@@ -171,7 +172,7 @@ export abstract class LazyIterator<T> {
    * @returns A `LazyIterator` of transformed elements.
    */
   map<O>(transform: (value: T) => O): LazyIterator<O> {
-    return new MapStream(this, transform);
+    return new MapIterator(this, transform);
   }
 
   /**
@@ -193,17 +194,17 @@ export abstract class LazyIterator<T> {
    *   of the original element type.
    */
   batch(batchSize: number, smallLastBatch = true): LazyIterator<T[]> {
-    return new BatchStream(this, batchSize, smallLastBatch);
+    return new BatchIterator(this, batchSize, smallLastBatch);
   }
 
   /**
    * Concatenate this `LazyIterator` with another.
    *
-   * @param stream A `LazyIterator` to be concatenated onto this one.
+   * @param iterator A `LazyIterator` to be concatenated onto this one.
    * @returns A `LazyIterator`.
    */
-  concatenate(stream: LazyIterator<T>): LazyIterator<T> {
-    return ChainedStream.create(iteratorFromItems([this, stream]));
+  concatenate(iterator: LazyIterator<T>): LazyIterator<T> {
+    return ChainedIterator.create(iteratorFromItems([this, iterator]));
   }
 
   /**
@@ -217,7 +218,7 @@ export abstract class LazyIterator<T> {
     if (count < 0 || count == null) {
       return this;
     }
-    return new TakeStream(this, count);
+    return new TakeIterator(this, count);
   }
 
   /**
@@ -230,7 +231,7 @@ export abstract class LazyIterator<T> {
     if (count < 0 || count == null) {
       return this;
     }
-    return new SkipStream(this, count);
+    return new SkipIterator(this, count);
   }
 
   /**
@@ -243,7 +244,7 @@ export abstract class LazyIterator<T> {
    *   prefetched.
    */
   prefetch(bufferSize: number): LazyIterator<T> {
-    return new PrefetchStream(this, bufferSize);
+    return new PrefetchIterator(this, bufferSize);
   }
 
   // TODO(soergel): deep sharded shuffle, where supported
@@ -257,7 +258,7 @@ export abstract class LazyIterator<T> {
    *   be used to create the distribution.
    */
   shuffle(windowSize: number, seed?: string): LazyIterator<T> {
-    return new ShuffleStream(this, windowSize, seed);
+    return new ShuffleIterator(this, windowSize, seed);
   }
 }
 
@@ -267,10 +268,10 @@ export abstract class LazyIterator<T> {
 // to resulting trouble with circular imports.
 // ============================================================================
 
-// Streams that just extend LazyIterator directly
+// Iterators that just extend LazyIterator directly
 // ============================================================================
 
-class ArrayStream<T> extends LazyIterator<T> {
+class ArrayIterator<T> extends LazyIterator<T> {
   private trav = 0;
   constructor(protected items: T[]) {
     super();
@@ -286,7 +287,7 @@ class ArrayStream<T> extends LazyIterator<T> {
   }
 }
 
-class FunctionCallStream<T> extends LazyIterator<T> {
+class FunctionCallIterator<T> extends LazyIterator<T> {
   constructor(
       protected nextFn: () => IteratorResult<T>| Promise<IteratorResult<T>>) {
     super();
@@ -297,7 +298,7 @@ class FunctionCallStream<T> extends LazyIterator<T> {
   }
 }
 
-class SkipStream<T> extends LazyIterator<T> {
+class SkipIterator<T> extends LazyIterator<T> {
   count = 0;
   constructor(protected upstream: LazyIterator<T>, protected maxCount: number) {
     super();
@@ -319,7 +320,7 @@ class SkipStream<T> extends LazyIterator<T> {
   }
 }
 
-class TakeStream<T> extends LazyIterator<T> {
+class TakeIterator<T> extends LazyIterator<T> {
   count = 0;
   constructor(protected upstream: LazyIterator<T>, protected maxCount: number) {
     super();
@@ -333,7 +334,7 @@ class TakeStream<T> extends LazyIterator<T> {
   }
 }
 
-// Streams that maintain a queue of pending items
+// Iterators that maintain a queue of pending items
 // ============================================================================
 
 /**
@@ -343,7 +344,7 @@ class TakeStream<T> extends LazyIterator<T> {
  * of calls to the underlying stream may be needed to provide each element of
  * this stream.
  */
-export abstract class QueueStream<T> extends LazyIterator<T> {
+export abstract class QueueIterator<T> extends LazyIterator<T> {
   protected outputQueue: RingBuffer<T>;
 
   constructor() {
@@ -378,7 +379,7 @@ export abstract class QueueStream<T> extends LazyIterator<T> {
   }
 }
 
-class BatchStream<T> extends QueueStream<T[]> {
+class BatchIterator<T> extends QueueIterator<T[]> {
   constructor(
       protected upstream: LazyIterator<T>, protected batchSize: number,
       protected enableSmallLastBatch = true) {
@@ -410,7 +411,7 @@ class BatchStream<T> extends QueueStream<T[]> {
   }
 }
 
-class FilterStream<T> extends QueueStream<T> {
+class FilterIterator<T> extends QueueIterator<T> {
   constructor(
       protected upstream: LazyIterator<T>,
       protected predicate: (value: T) => boolean) {
@@ -431,7 +432,7 @@ class FilterStream<T> extends QueueStream<T> {
   }
 }
 
-class MapStream<I, O> extends QueueStream<O> {
+class MapIterator<I, O> extends QueueIterator<O> {
   constructor(
       protected upstream: LazyIterator<I>,
       protected transform: (value: I) => O) {
@@ -474,14 +475,15 @@ class MapStream<I, O> extends QueueStream<O> {
  * the correct order according to when next() was called, even if the resulting
  * Promises resolve in a different order.
  */
-export class ChainedStream<T> extends LazyIterator<T> {
-  private stream: LazyIterator<T> = null;
-  private moreStreams: LazyIterator<LazyIterator<T>>;
+export class ChainedIterator<T> extends LazyIterator<T> {
+  private iterator: LazyIterator<T> = null;
+  private moreIterators: LazyIterator<LazyIterator<T>>;
   private lastRead: Promise<IteratorResult<T>> = null;
 
-  static create<T>(streams: LazyIterator<LazyIterator<T>>): ChainedStream<T> {
-    const c = new ChainedStream<T>();
-    c.moreStreams = streams;
+  static create<T>(iterators: LazyIterator<LazyIterator<T>>):
+      ChainedIterator<T> {
+    const c = new ChainedIterator<T>();
+    c.moreIterators = iterators;
     return c;
   }
 
@@ -498,24 +500,24 @@ export class ChainedStream<T> extends LazyIterator<T> {
     // prefetching of chained streams is a no-op.
     // TODO(smilkov): Rework logic to allow parallel reads.
     await lastRead;
-    if (this.stream == null) {
-      const streamResult = await this.moreStreams.next();
-      if (streamResult.done) {
+    if (this.iterator == null) {
+      const iteratorResult = await this.moreIterators.next();
+      if (iteratorResult.done) {
         // No more streams to stream from.
         return {value: null, done: true};
       }
-      this.stream = streamResult.value;
+      this.iterator = iteratorResult.value;
     }
-    const itemResult = await this.stream.next();
+    const itemResult = await this.iterator.next();
     if (itemResult.done) {
-      this.stream = null;
+      this.iterator = null;
       return this.readFromChain(lastRead);
     }
     return itemResult;
   }
 }
 
-// Streams that maintain a ring buffer of pending promises
+// Iterators that maintain a ring buffer of pending promises
 // ============================================================================
 
 /**
@@ -525,7 +527,7 @@ export class ChainedStream<T> extends LazyIterator<T> {
  * Note this prefetches Promises, but makes no guarantees about when those
  * Promises resolve.
  */
-export class PrefetchStream<T> extends LazyIterator<T> {
+export class PrefetchIterator<T> extends LazyIterator<T> {
   protected buffer: RingBuffer<Promise<IteratorResult<T>>>;
 
   total = 0;
@@ -558,11 +560,11 @@ export class PrefetchStream<T> extends LazyIterator<T> {
 
 /**
  * A stream that performs a sliding-window random shuffle on an upstream
- * source. This is like a `PrefetchStream` except that the items are returned
+ * source. This is like a `PrefetchIterator` except that the items are returned
  * in randomized order.  Mixing naturally improves as the buffer size
  * increases.
  */
-export class ShuffleStream<T> extends PrefetchStream<T> {
+export class ShuffleIterator<T> extends PrefetchIterator<T> {
   private random: seedrandom.prng;
   private upstreamExhausted = false;
 

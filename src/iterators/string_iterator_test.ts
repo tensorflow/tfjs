@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {FileReaderStream} from './filereader_stream';
+import {FileChunkIterator} from './file_chunk_iterator';
 
 const lorem = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
 eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
@@ -27,14 +27,14 @@ sunt in culpa qui officia deserunt mollit anim id est laborum.`;
 
 const testBlob = new Blob([lorem]);
 
-describe('StringStream.split()', () => {
+describe('StringIterator.split()', () => {
   it('Correctly splits lines', done => {
-    const byteStream = new FileReaderStream(testBlob, {chunkSize: 50});
-    const utf8Stream = byteStream.decodeUTF8();
-    const lineStream = utf8Stream.split('\n');
+    const byteIterator = new FileChunkIterator(testBlob, {chunkSize: 50});
+    const utf8Iterator = byteIterator.decodeUTF8();
+    const lineIterator = utf8Iterator.split('\n');
     const expected = lorem.split('\n');
 
-    lineStream.collectRemaining()
+    lineIterator.collectRemaining()
         .then(result => {
           expect(result.length).toEqual(6);
           const totalCharacters =
@@ -48,7 +48,7 @@ describe('StringStream.split()', () => {
   });
   it('Correctly splits strings even when separators fall on chunk boundaries',
      done => {
-       const byteStream = new FileReaderStream(
+       const byteIterator = new FileChunkIterator(
            new Blob(['ab def hi      pq']), {chunkSize: 3});
        // Note the initial chunking will be
        //   ['ab ', 'def', ' hi', '   ', '   ', 'pq],
@@ -56,11 +56,11 @@ describe('StringStream.split()', () => {
        //   * a separator is the last character in a chunk (the first chunk),
        //   * it is the first character (the third chunk), and
        //   * when the entire chunk consists of separators (fourth and fifth).
-       const utf8Stream = byteStream.decodeUTF8();
-       const lineStream = utf8Stream.split(' ');
+       const utf8Iterator = byteIterator.decodeUTF8();
+       const lineIterator = utf8Iterator.split(' ');
        const expected = ['ab', 'def', 'hi', '', '', '', '', '', 'pq'];
 
-       lineStream.collectRemaining()
+       lineIterator.collectRemaining()
            .then(result => {
              expect(result.length).toEqual(9);
              const totalCharacters =

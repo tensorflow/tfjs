@@ -16,25 +16,25 @@
  * =============================================================================
  */
 
-import {ChainedStream, iteratorFromItems} from './lazy_iterator';
+import {ChainedIterator, iteratorFromItems} from './lazy_iterator';
 import {iteratorFromConcatenatedFunction} from './lazy_iterator';
-import {ShuffleStream} from './lazy_iterator';
-import {TestIntegerStream} from './lazy_iterator_test';
+import {ShuffleIterator} from './lazy_iterator';
+import {TestIntegerIterator} from './lazy_iterator_test';
 
 const LONG_STREAM_LENGTH = 100;
 const SHORT_STREAM_LENGTH = 15;
 
-describe('ShuffleStream', () => {
+describe('ShuffleIterator', () => {
   it('shuffles a stream without replacement', done => {
-    const baseStream = new TestIntegerStream(LONG_STREAM_LENGTH);
-    const shuffleStream = new ShuffleStream(baseStream, 1000);
+    const baseIterator = new TestIntegerIterator(LONG_STREAM_LENGTH);
+    const shuffleIterator = new ShuffleIterator(baseIterator, 1000);
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
       for (let j = 0; j < LONG_STREAM_LENGTH; j++) {
         notExpectedResult[i * LONG_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleStream.collectRemaining()
+    shuffleIterator.collectRemaining()
         .then(result => {
           expect(result).not.toEqual(notExpectedResult);
           expect(result.length).toEqual(LONG_STREAM_LENGTH);
@@ -51,16 +51,16 @@ describe('ShuffleStream', () => {
   });
 
   it('shuffles a single chained stream without replacement', done => {
-    const baseStream = ChainedStream.create(
-        iteratorFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
-    const shuffleStream = new ShuffleStream(baseStream, 1000);
+    const baseIterator = ChainedIterator.create(
+        iteratorFromItems([new TestIntegerIterator(SHORT_STREAM_LENGTH)]));
+    const shuffleIterator = new ShuffleIterator(baseIterator, 1000);
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
       for (let j = 0; j < SHORT_STREAM_LENGTH; j++) {
         notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleStream.collectRemaining()
+    shuffleIterator.collectRemaining()
         .then(result => {
           expect(result).not.toEqual(notExpectedResult);
           expect(result.length).toEqual(SHORT_STREAM_LENGTH);
@@ -77,18 +77,18 @@ describe('ShuffleStream', () => {
   });
 
   it('shuffles multiple chained streams without replacement', done => {
-    const baseStream = iteratorFromConcatenatedFunction(
-        () =>
-            ({value: new TestIntegerStream(SHORT_STREAM_LENGTH), done: false}),
+    const baseIterator = iteratorFromConcatenatedFunction(
+        () => (
+            {value: new TestIntegerIterator(SHORT_STREAM_LENGTH), done: false}),
         3);
-    const shuffleStream = new ShuffleStream(baseStream, 1000);
+    const shuffleIterator = new ShuffleIterator(baseIterator, 1000);
     const notExpectedResult: number[] = [];
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < SHORT_STREAM_LENGTH; j++) {
         notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleStream.collectRemaining()
+    shuffleIterator.collectRemaining()
         .then(result => {
           expect(result).not.toEqual(notExpectedResult);
           expect(result.length).toEqual(3 * SHORT_STREAM_LENGTH);

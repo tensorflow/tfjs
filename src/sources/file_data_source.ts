@@ -17,9 +17,9 @@
  */
 
 import {DataSource} from '../datasource';
-import {ByteStream} from '../streams/byte_stream';
-import {FileReaderStream} from '../streams/filereader_stream';
-import {FileReaderStreamOptions} from '../streams/filereader_stream';
+import {ByteChunkIterator} from '../iterators/byte_chunk_iterator';
+import {FileChunkIterator} from '../iterators/file_chunk_iterator';
+import {FileChunkIteratorOptions} from '../iterators/file_chunk_iterator';
 
 /**
  * Represents a file or blob readable as a stream of binary data chunks.
@@ -29,16 +29,16 @@ export class FileDataSource extends DataSource {
    * Create a `FileDataSource`.
    *
    * @param input A `File` or `Blob` object to read.
-   * @param options Options passed to the underlying `FileReaderStream`s,
+   * @param options Options passed to the underlying `FileChunkIterator`s,
    *   such as {chunksize: 1024}.
    */
   constructor(
       protected readonly input: File|Blob,
-      protected readonly options: FileReaderStreamOptions = {}) {
+      protected readonly options: FileChunkIteratorOptions = {}) {
     super();
   }
 
-  getStream(): ByteStream {
-    return new FileReaderStream(this.input, this.options);
+  iterator(): ByteChunkIterator {
+    return new FileChunkIterator(this.input, this.options);
   }
 }
