@@ -57,19 +57,10 @@ yarn test
 yarn enable-gpu
 ```
 
-See the `demo` directory that trains MNIST using TensorFlow.js with the
-TensorFlow C backend.
 
-```sh
-cd demo/
-yarn
+## MNIST demo for Node.js
 
-# Run the training script. See demo/package.json for this script.
-yarn mnist
-```
-
-The important line to note is at the top of `mnist.ts`, which sets the backend to
-TensorFlow.
+See the [tfjs-examples repository](https://github.com/tensorflow/tfjs-examples/tree/master/mnist-node) for training the MNIST dataset using the Node.js bindings.
 
 ### Optional: Build libtensorflow From TensorFlow source
 
