@@ -17,8 +17,8 @@
  */
 
 import {ByteStream} from './byte_stream';
-import {QueueStream} from './data_stream';
 import {FileReaderStream} from './filereader_stream';
+import {QueueStream} from './lazy_iterator';
 
 // We wanted multiple inheritance, e.g.
 //   class URLStream extends QueueStream<Uint8Array>, ByteStream

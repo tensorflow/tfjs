@@ -16,9 +16,9 @@
  * =============================================================================
  */
 
-import {streamFromConcatenatedFunction} from './data_stream';
-import {PrefetchStream} from './data_stream';
-import {TestIntegerStream} from './data_stream_test';
+import {iteratorFromConcatenatedFunction} from './lazy_iterator';
+import {PrefetchStream} from './lazy_iterator';
+import {TestIntegerStream} from './lazy_iterator_test';
 
 describe('PrefetchStream', () => {
   it('fetches a stream completely (stream size < buffer size)', done => {
@@ -38,7 +38,7 @@ describe('PrefetchStream', () => {
 
   it('fetches a chained stream completely (stream size < buffer size)',
      async done => {
-       const baseStream = streamFromConcatenatedFunction(
+       const baseStream = iteratorFromConcatenatedFunction(
            () => ({value: new TestIntegerStream(), done: false}), 3);
 
        const prefetchStream = new PrefetchStream(baseStream, 500);
@@ -60,7 +60,7 @@ describe('PrefetchStream', () => {
 
   it('fetches a chained stream completely (stream size > buffer size)',
      done => {
-       const baseStream = streamFromConcatenatedFunction(
+       const baseStream = iteratorFromConcatenatedFunction(
            () => ({value: new TestIntegerStream(), done: false}), 3);
 
        const prefetchStream = new PrefetchStream(baseStream, 122);

@@ -18,10 +18,10 @@
 
 import * as utf8 from 'utf8';
 
-import {DataStream, QueueStream} from './data_stream';
+import {LazyIterator, QueueStream} from './lazy_iterator';
 import {StringStream} from './string_stream';
 
-export abstract class ByteStream extends DataStream<Uint8Array> {
+export abstract class ByteStream extends LazyIterator<Uint8Array> {
   /**
    * Decode a stream of UTF8-encoded byte arrays to a stream of strings.
    *
@@ -50,7 +50,7 @@ export abstract class ByteStream extends DataStream<Uint8Array> {
 class Utf8Stream extends StringStream {
   private impl: Utf8StreamImpl;
 
-  constructor(upstream: DataStream<Uint8Array>) {
+  constructor(upstream: LazyIterator<Uint8Array>) {
     super();
     this.impl = new Utf8StreamImpl(upstream);
   }
@@ -74,12 +74,12 @@ class Utf8Stream extends StringStream {
  * decoding provided by FileReader.readAsText() because here we are in a
  * streaming context, which FileReader does not support.
  *
- * @param upstream A `DataStream` of `Uint8Arrays` containing UTF8-encoded
+ * @param upstream A `LazyIterator` of `Uint8Arrays` containing UTF8-encoded
  *   text, which should be interpreted as concatenated.  No assumptions are
- * made about the boundaries of the incoming chunks, so a multi-byte UTF8
- * encoding of a character may span the boundary between chunks.  This
- * naturally happens, for instance, when reading fixed-size byte arrays from a
- * file.
+ *   made about the boundaries of the incoming chunks, so a multi-byte UTF8
+ *   encoding of a character may span the boundary between chunks.  This
+ *   naturally happens, for instance, when reading fixed-size byte arrays from a
+ *   file.
  */
 class Utf8StreamImpl extends QueueStream<string> {
   // An array of the full required width of the split character, if any.
@@ -87,7 +87,7 @@ class Utf8StreamImpl extends QueueStream<string> {
   // The number of bytes of that array that are populated so far.
   partialBytesValid = 0;
 
-  constructor(protected readonly upstream: DataStream<Uint8Array>) {
+  constructor(protected readonly upstream: LazyIterator<Uint8Array>) {
     super();
   }
 

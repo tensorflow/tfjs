@@ -16,16 +16,16 @@
  * =============================================================================
  */
 
-import {ChainedStream} from './data_stream';
-import {streamFromItems} from './data_stream';
-import {TestIntegerStream} from './data_stream_test';
+import {ChainedStream} from './lazy_iterator';
+import {iteratorFromItems} from './lazy_iterator';
+import {TestIntegerStream} from './lazy_iterator_test';
 
 const SHORT_STREAM_LENGTH = 15;
 
 describe('ChainedStream', () => {
   it('produces a single underlying stream as expected', done => {
     const chainedStream = ChainedStream.create(
-        streamFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
+        iteratorFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
 
     const expectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
@@ -42,7 +42,7 @@ describe('ChainedStream', () => {
         .catch(done.fail);
   });
   it('produces multiple underlying streams as expected', done => {
-    const chainedStream = ChainedStream.create(streamFromItems([
+    const chainedStream = ChainedStream.create(iteratorFromItems([
       new TestIntegerStream(SHORT_STREAM_LENGTH),
       new TestIntegerStream(SHORT_STREAM_LENGTH),
       new TestIntegerStream(SHORT_STREAM_LENGTH)

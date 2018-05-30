@@ -18,35 +18,27 @@
 
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
-import {DataStream} from '../streams/data_stream';
-import {DatasetElement} from '../types';
+import {LazyIterator} from '../streams/lazy_iterator';
 
 /**
  * Represents a potentially large collection of text lines.
  *
- * The produced `DatasetElement`s each contain a single string value, with the
- * key given by the `columnName` argument (default 'line').
- *
  * The results are not batched.
  */
-export class TextLineDataset extends Dataset {
+export class TextLineDataset extends Dataset<string> {
   /**
    * Create a `TextLineDataset`.
    *
    * @param input A `DataSource` providing a chunked, UTF8-encoded byte stream.
-   * @param columnName The key to use in the resulting `DatasetElement`s
-   *   (default 'line').
    */
-  constructor(
-      protected readonly input: DataSource,
-      protected readonly columnName = 'line') {
+  constructor(protected readonly input: DataSource) {
     super();
   }
 
-  getStream(): DataStream<DatasetElement> {
+  iterator(): LazyIterator<string> {
     const readStream = this.input.getStream();
     const utf8Stream = readStream.decodeUTF8();
     const lineStream = utf8Stream.split('\n');
-    return lineStream.map(x => ({[this.columnName]: x}));
+    return lineStream;
   }
 }

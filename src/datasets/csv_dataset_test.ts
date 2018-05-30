@@ -36,36 +36,35 @@ const csvBlob = new Blob([csvData]);
 const csvBlobWithHeaders = new Blob([csvDataWithHeaders]);
 
 describe('CSVDataset', () => {
-  it('produces a stream of DatasetElements containing UTF8-decoded csv data',
-     done => {
-       const source = new FileDataSource(csvBlob, {chunkSize: 10});
-       const datasetPromise = CSVDataset.create(source, ['foo', 'bar', 'baz']);
-       datasetPromise.then(dataset => {
-         expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
-         dataset.getStream()
-             .collectRemaining()
-             .then(result => {
-               expect(result).toEqual([
-                 {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
-                 {'foo': 'ghi', 'bar': undefined, 'baz': 'jkl'},
-                 {'foo': undefined, 'bar': 'mn', 'baz': 'op'},
-                 {'foo': 1.4, 'bar': 7.8, 'baz': 12},
-                 {'foo': 'qrs', 'bar': 'tu', 'baz': undefined},
-                 {'foo': 'v', 'bar': 'w', 'baz': 'x'},
-                 {'foo': 'y', 'bar': 'z', 'baz': undefined},
-               ]);
-             })
-             .then(done)
-             .catch(done.fail);
-       });
-     });
+  it('produces a stream of dicts containing UTF8-decoded csv data', done => {
+    const source = new FileDataSource(csvBlob, {chunkSize: 10});
+    const datasetPromise = CSVDataset.create(source, ['foo', 'bar', 'baz']);
+    datasetPromise.then(dataset => {
+      expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
+      dataset.iterator()
+          .collectRemaining()
+          .then(result => {
+            expect(result).toEqual([
+              {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
+              {'foo': 'ghi', 'bar': undefined, 'baz': 'jkl'},
+              {'foo': undefined, 'bar': 'mn', 'baz': 'op'},
+              {'foo': 1.4, 'bar': 7.8, 'baz': 12},
+              {'foo': 'qrs', 'bar': 'tu', 'baz': undefined},
+              {'foo': 'v', 'bar': 'w', 'baz': 'x'},
+              {'foo': 'y', 'bar': 'z', 'baz': undefined},
+            ]);
+          })
+          .then(done)
+          .catch(done.fail);
+    });
+  });
   it('reads CSV column headers when requested', done => {
     const source = new FileDataSource(csvBlobWithHeaders, {chunkSize: 10});
     const datasetPromise =
         CSVDataset.create(source, CsvHeaderConfig.READ_FIRST_LINE);
     datasetPromise.then(dataset => {
       expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
-      dataset.getStream()
+      dataset.iterator()
           .collectRemaining()
           .then(result => {
             expect(result).toEqual([
@@ -87,7 +86,7 @@ describe('CSVDataset', () => {
     const datasetPromise = CSVDataset.create(source);
     datasetPromise.then(dataset => {
       expect(dataset.csvColumnNames).toEqual(['0', '1', '2']);
-      dataset.getStream()
+      dataset.iterator()
           .collectRemaining()
           .then(result => {
             expect(result).toEqual([

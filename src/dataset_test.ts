@@ -20,14 +20,14 @@ import * as tf from '@tensorflow/tfjs-core';
 
 import {Dataset, datasetFromElements} from './dataset';
 // import {CPU_ENVS, describeWithFlags} from '../../test_util';
-import {DataStream, streamFromItems} from './streams/data_stream';
-import {DatasetElement} from './types';
+import {iteratorFromItems, LazyIterator} from './streams/lazy_iterator';
+import {DataElementObject} from './types';
 
-class TestDatasetElementStream extends DataStream<DatasetElement> {
+class TestObjectStream extends LazyIterator<{}> {
   data = Array.from({length: 100}, (v, k) => k);
   currentIndex = 0;
 
-  async next(): Promise<IteratorResult<DatasetElement>> {
+  async next(): Promise<IteratorResult<{}>> {
     if (this.currentIndex >= 100) {
       return {value: null, done: true};
     }
@@ -50,9 +50,9 @@ class TestDatasetElementStream extends DataStream<DatasetElement> {
   }
 }
 
-export class TestDataset extends Dataset {
-  getStream(): DataStream<DatasetElement> {
-    return new TestDatasetElementStream();
+export class TestDataset extends Dataset<DataElementObject> {
+  iterator(): LazyIterator<{}> {
+    return new TestObjectStream();
   }
 }
 
@@ -123,10 +123,10 @@ tf.test_util.describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     // This tests a tricky bug having to do with 'this' being set properly.
     // See https://github.com/Microsoft/TypeScript/wiki/%27this%27-in-TypeScript
 
-    class CustomDataset extends Dataset {
+    class CustomDataset extends Dataset<{}> {
       state = {val: 1};
-      getStream() {
-        const result = streamFromItems([
+      iterator() {
+        const result = iteratorFromItems([
           {'item': this.state.val++}, {'item': this.state.val++},
           {'item': this.state.val++}
         ]);
