@@ -18,8 +18,8 @@
 
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
-import {DataStream} from '../streams/data_stream';
-import {DatasetElement, ElementArray} from '../types';
+import {LazyIterator} from '../streams/lazy_iterator';
+import {DataElement, ElementArray} from '../types';
 
 import {TextLineDataset} from './text_line_dataset';
 
@@ -32,16 +32,15 @@ export enum CsvHeaderConfig {
 /**
  * Represents a potentially large collection of delimited text records.
  *
- * The produced `DatasetElement`s each contain one key-value pair for every
- * column of the table.  When a field is empty in the incoming data, the
+ * The produced `DataElement`s each contain one key-value pair for
+ * every column of the table.  When a field is empty in the incoming data, the
  * resulting value is `undefined`.  Values that can be parsed as numbers are
  * emitted as type `number`; otherwise they are left as `string`.
  *
  * The results are not batched.
  */
-export class CSVDataset extends Dataset {
+export class CSVDataset extends Dataset<DataElement> {
   base: TextLineDataset;
-  static textColumnName = 'line';
   private hasHeaderLine = false;
   private _csvColumnNames: string[];
 
@@ -55,7 +54,7 @@ export class CSVDataset extends Dataset {
    */
   private constructor(protected readonly input: DataSource) {
     super();
-    this.base = new TextLineDataset(input, CSVDataset.textColumnName);
+    this.base = new TextLineDataset(input);
   }
 
   get csvColumnNames(): string[] {
@@ -64,23 +63,21 @@ export class CSVDataset extends Dataset {
 
   private async setCsvColumnNames(csvColumnNames: CsvHeaderConfig|string[]) {
     if (csvColumnNames == null || csvColumnNames === CsvHeaderConfig.NUMBERED) {
-      const stream = this.base.getStream();
+      const stream = this.base.iterator();
       const firstElement = await stream.next();
       if (firstElement.done) {
         throw new Error('No data was found for CSV parsing.');
       }
-      const firstLine: string =
-          firstElement.value[CSVDataset.textColumnName] as string;
+      const firstLine: string = firstElement.value;
       this._csvColumnNames =
           Array.from(firstLine.split(',').keys()).map(x => x.toString());
     } else if (csvColumnNames === CsvHeaderConfig.READ_FIRST_LINE) {
-      const stream = this.base.getStream();
+      const stream = this.base.iterator();
       const firstElement = await stream.next();
       if (firstElement.done) {
         throw new Error('No data was found for CSV parsing.');
       }
-      const firstLine: string =
-          firstElement.value[CSVDataset.textColumnName] as string;
+      const firstLine: string = firstElement.value;
       this._csvColumnNames = firstLine.split(',');
       this.hasHeaderLine = true;
     } else {
@@ -106,18 +103,17 @@ export class CSVDataset extends Dataset {
     return result;
   }
 
-  getStream(): DataStream<DatasetElement> {
-    let lines = this.base.getStream();
+  iterator(): LazyIterator<DataElement> {
+    let lines = this.base.iterator();
     if (this.hasHeaderLine) {
       // We previously read the first line to get the headers.
       // Now that we're providing data, skip it.
       lines = lines.skip(1);
     }
-    return lines.map((x: DatasetElement) => this.makeDatasetElement(x));
+    return lines.map(x => this.makeDataElement(x));
   }
 
-  makeDatasetElement(element: DatasetElement): DatasetElement {
-    const line = element[CSVDataset.textColumnName] as string;
+  makeDataElement(line: string): DataElement {
     // TODO(soergel): proper CSV parsing with escaping, quotes, etc.
     // TODO(soergel): alternate separators, e.g. for TSV
     const values = line.split(',');

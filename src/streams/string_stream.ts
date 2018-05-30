@@ -16,9 +16,9 @@
  * =============================================================================
  */
 
-import {DataStream, QueueStream} from './data_stream';
+import {LazyIterator, QueueStream} from './lazy_iterator';
 
-export abstract class StringStream extends DataStream<string> {
+export abstract class StringStream extends LazyIterator<string> {
   /**
    * Splits a string stream on a given separator.
    *
@@ -56,7 +56,7 @@ export abstract class StringStream extends DataStream<string> {
 class SplitStream extends StringStream {
   private impl: SplitStreamImpl;
 
-  constructor(upstream: DataStream<string>, separator: string) {
+  constructor(upstream: LazyIterator<string>, separator: string) {
     super();
     this.impl = new SplitStreamImpl(upstream, separator);
   }
@@ -71,7 +71,7 @@ class SplitStreamImpl extends QueueStream<string> {
   carryover = '';
 
   constructor(
-      protected upstream: DataStream<string>, protected separator: string) {
+      protected upstream: LazyIterator<string>, protected separator: string) {
     super();
   }
 
