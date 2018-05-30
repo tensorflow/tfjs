@@ -27,7 +27,6 @@ tf.test_util.describeWithFlags(
       it('computes numeric min and max over numbers, arrays, and Tensors',
          done => {
            const ds = new TestDataset().skip(55) as Dataset<TabularRecord>;
-           // ds.computeStatistics()
            computeDatasetStatistics(ds)
                .then(stats => {
                  expect(stats['number'].min).toEqual(55);
@@ -49,7 +48,6 @@ tf.test_util.describeWithFlags('scaleTo01', tf.test_util.ALL_ENVS, () => {
     const scaleFn = scaleTo01(55, 99 * 99 * 99);
     const scaledDataset = ds.map(x => ({'Tensor': scaleFn(x['Tensor'])}));
 
-    // scaledDataset.computeStatistics()
     computeDatasetStatistics(scaledDataset)
         .then(stats => {
           expect(stats['Tensor'].min).toBeCloseTo(0);
