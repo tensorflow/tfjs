@@ -19,19 +19,19 @@ import {tensorflow} from '../data/compiled_api';
 
 import {getNodeNameAndIndex} from './executors/utils';
 
-import arithmetic from './op_list/arithmetic.json';
-import basicMath from './op_list/basic_math.json';
-import control from './op_list/control.json';
-import convolution from './op_list/convolution.json';
-import creation from './op_list/creation.json';
-import graph from './op_list/graph.json';
-import image from './op_list/image.json';
-import logical from './op_list/logical.json';
-import matrices from './op_list/matrices.json';
-import normalization from './op_list/normalization.json';
-import reduction from './op_list/reduction.json';
-import sliceJoin from './op_list/slice_join.json';
-import transformation from './op_list/transformation.json';
+import * as arithmetic from './op_list/arithmetic.json';
+import * as basicMath from './op_list/basic_math.json';
+import * as control from './op_list/control.json';
+import * as convolution from './op_list/convolution.json';
+import * as creation from './op_list/creation.json';
+import * as graph from './op_list/graph.json';
+import * as image from './op_list/image.json';
+import * as logical from './op_list/logical.json';
+import * as matrices from './op_list/matrices.json';
+import * as normalization from './op_list/normalization.json';
+import * as reduction from './op_list/reduction.json';
+import * as sliceJoin from './op_list/slice_join.json';
+import * as transformation from './op_list/transformation.json';
 import {Graph, Node, OpMapper, ParamValue} from './types';
 
 const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
@@ -47,15 +47,12 @@ export class OperationMapper {
 
   // Loads the op mapping from the JSON file.
   private constructor() {
-    const mappersJson = [
-      ...(arithmetic as {}) as OpMapper[], ...(basicMath as {}) as OpMapper[],
-      ...(control as {}) as OpMapper[], ...(convolution as {}) as OpMapper[],
-      ...(creation as {}) as OpMapper[], ...(logical as {}) as OpMapper[],
-      ...(image as {}) as OpMapper[], ...(graph as {}) as OpMapper[],
-      ...(matrices as {}) as OpMapper[], ...(normalization as {}) as OpMapper[],
-      ...(reduction as {}) as OpMapper[], ...(sliceJoin as {}) as OpMapper[],
-      ...(transformation as {}) as OpMapper[]
+    const ops = [
+      arithmetic, basicMath, control, convolution, creation, logical, image,
+      graph, matrices, normalization, reduction, sliceJoin, transformation
     ];
+    const mappersJson: OpMapper[] =
+        [].concat.apply([], ops.map(op => op.default ? op.default : op));
 
     this.opMappers = mappersJson.reduce<{[key: string]: OpMapper}>(
         (map, mapper: OpMapper) => {
