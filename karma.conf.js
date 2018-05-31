@@ -36,7 +36,7 @@ module.exports = function(config) {
       accessKey: process.env.BROWSERSTACK_KEY
     },
     reportSlowerThan: 500,
-    browserNoActivityTimeout: 30000,
+    browserNoActivityTimeout: 60000,
     customLaunchers: {
       bs_chrome_mac: {
         base: 'BrowserStack',

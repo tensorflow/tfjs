@@ -17,7 +17,7 @@
 
 import {doc} from '../doc';
 import {ENV} from '../environment';
-import {Scalar, Tensor1D, Tensor2D} from '../tensor';
+import {Scalar, Tensor, Tensor1D, Tensor2D} from '../tensor';
 import * as util from '../util';
 import {operation} from './operation';
 
@@ -173,5 +173,47 @@ export class MatmulOps {
             `${v1.rank} and ${v2.rank}.`);
 
     return v1.as2D(-1, 1).matMul(v2.as2D(1, -1));
+  }
+
+  /**
+   * Computes the dot product of two matrices and/or vectors, t1 and t2.
+   *
+   * ```js
+   * const a = tf.tensor1d([1, 2]);
+   * const b = tf.tensor2d([[1, 2], [3, 4]]);
+   * const c = tf.tensor2d([[1, 2, 3], [4, 5, 6]]);
+   *
+   * a.dot(b).print();  // or tf.dot(a, b)
+   * b.dot(a).print();
+   * b.dot(c).print();
+   * ```
+   * @param t1 The first tensor in the dot operation.
+   * @param t2 The second tensor in the dot operation.
+   */
+  @doc({heading: 'Operations', subheading: 'Matrices'})
+  @operation
+  static dot(t1: Tensor, t2: Tensor): Tensor {
+    util.assert(
+        (t1.rank === 1 || t1.rank === 2) && (t2.rank === 1 || t2.rank === 2),
+        `Error in dot: inputs must all be rank 1 or 2, but got ranks ` +
+            `${t1.rank} and ${t2.rank}.`);
+
+    const t1Inner = (t1.rank === 1 ? t1.size : t1.shape[1]);
+    const t2Inner = (t2.rank === 1 ? t2.size : t2.shape[0]);
+
+    util.assert(
+        t1Inner === t2Inner,
+        `Error in dot: inner dimensions of inputs must match, but got ` +
+            `${t1Inner} and ${t2Inner}.`);
+
+    if (t1.rank === 1 && t2.rank === 1) {
+      return t1.as2D(1, -1).matMul(t2.as2D(-1, 1)).asScalar();
+    } else if (t1.rank === 1 && t2.rank === 2) {
+      return t1.as2D(1, -1).matMul(t2.as2D(t2.shape[0], t2.shape[1])).as1D();
+    } else if (t1.rank === 2 && t2.rank === 1) {
+      return t1.matMul(t2.as2D(-1, 1)).as1D();
+    } else {
+      return t1.matMul(t2.as2D(t2.shape[0], t2.shape[1]));
+    }
   }
 }
