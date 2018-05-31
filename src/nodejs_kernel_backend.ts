@@ -813,8 +813,15 @@ export class NodeJSKernelBackend implements KernelBackend {
   resizeBilinearBackprop(
       dy: Tensor<Rank.R4>, x: Tensor<Rank.R4>,
       alignCorners: boolean): Tensor<Rank.R4> {
-    // https://github.com/tensorflow/tfjs/issues/304
-    throw new Error('Method not implemented.');
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype), {
+        name: 'align_corners',
+        type: this.binding.TF_ATTR_BOOL,
+        value: alignCorners
+      }
+    ];
+    return this.executeSingleOutput('ResizeBilinearGrad', opAttrs, [dy, x]) as
+        Tensor4D;
   }
 
   resizeNearestNeighbor(

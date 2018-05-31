@@ -32,12 +32,10 @@ jasmine_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
-  'depthwiseConv2D',           // Requires space_to_batch() for dilation > 1.
-  'separableConv2d',           // Requires space_to_batch() for dilation > 1.
-  'div',                       // https://github.com/tensorflow/tfjs/issues/215
-  'resizeNearestNeighbor',     // https://github.com/tensorflow/tfjs/issues/221
-  'IORouterRegistry',          // https://github.com/tensorflow/tfjs/issues/303
-  'resizeBilinear gradients',  // https://github.com/tensorflow/tfjs/issues/304
+  'depthwiseConv2D',   // Requires space_to_batch() for dilation > 1.
+  'separableConv2d',   // Requires space_to_batch() for dilation > 1.
+  'div',               // https://github.com/tensorflow/tfjs/issues/215
+  'IORouterRegistry',  // https://github.com/tensorflow/tfjs/issues/303
   // https://github.com/tensorflow/tfjs/issues/279
   'browser', 'LocalStorage', 'arrayBufferToBase64String', 'stringByteLength'
 ];
