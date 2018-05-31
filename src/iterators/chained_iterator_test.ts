@@ -16,16 +16,16 @@
  * =============================================================================
  */
 
-import {ChainedStream} from './lazy_iterator';
+import {ChainedIterator} from './lazy_iterator';
 import {iteratorFromItems} from './lazy_iterator';
-import {TestIntegerStream} from './lazy_iterator_test';
+import {TestIntegerIterator} from './lazy_iterator_test';
 
 const SHORT_STREAM_LENGTH = 15;
 
-describe('ChainedStream', () => {
+describe('ChainedIterator', () => {
   it('produces a single underlying stream as expected', done => {
-    const chainedStream = ChainedStream.create(
-        iteratorFromItems([new TestIntegerStream(SHORT_STREAM_LENGTH)]));
+    const chainedIterator = ChainedIterator.create(
+        iteratorFromItems([new TestIntegerIterator(SHORT_STREAM_LENGTH)]));
 
     const expectedResult: number[] = [];
     for (let i = 0; i < 1; i++) {
@@ -34,7 +34,7 @@ describe('ChainedStream', () => {
       }
     }
 
-    chainedStream.collectRemaining()
+    chainedIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual(expectedResult);
         })
@@ -42,10 +42,10 @@ describe('ChainedStream', () => {
         .catch(done.fail);
   });
   it('produces multiple underlying streams as expected', done => {
-    const chainedStream = ChainedStream.create(iteratorFromItems([
-      new TestIntegerStream(SHORT_STREAM_LENGTH),
-      new TestIntegerStream(SHORT_STREAM_LENGTH),
-      new TestIntegerStream(SHORT_STREAM_LENGTH)
+    const chainedIterator = ChainedIterator.create(iteratorFromItems([
+      new TestIntegerIterator(SHORT_STREAM_LENGTH),
+      new TestIntegerIterator(SHORT_STREAM_LENGTH),
+      new TestIntegerIterator(SHORT_STREAM_LENGTH)
     ]));
 
     const expectedResult: number[] = [];
@@ -55,7 +55,7 @@ describe('ChainedStream', () => {
       }
     }
 
-    chainedStream.collectRemaining()
+    chainedIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual(expectedResult);
         })

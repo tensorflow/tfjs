@@ -17,18 +17,19 @@
  */
 
 import {iteratorFromConcatenatedFunction} from './lazy_iterator';
-import {PrefetchStream} from './lazy_iterator';
-import {TestIntegerStream} from './lazy_iterator_test';
+import {PrefetchIterator} from './lazy_iterator';
+import {TestIntegerIterator} from './lazy_iterator_test';
 
-describe('PrefetchStream', () => {
+describe('PrefetchIterator', () => {
   it('fetches a stream completely (stream size < buffer size)', done => {
-    const prefetchStream = new PrefetchStream(new TestIntegerStream(), 500);
+    const prefetchIterator =
+        new PrefetchIterator(new TestIntegerIterator(), 500);
     const expectedResult: number[] = [];
     for (let j = 0; j < 100; j++) {
       expectedResult[j] = j;
     }
 
-    prefetchStream.collectRemaining()
+    prefetchIterator.collectRemaining()
         .then(result => {
           expect(result).toEqual(expectedResult);
         })
@@ -38,10 +39,10 @@ describe('PrefetchStream', () => {
 
   it('fetches a chained stream completely (stream size < buffer size)',
      async done => {
-       const baseStream = iteratorFromConcatenatedFunction(
-           () => ({value: new TestIntegerStream(), done: false}), 3);
+       const baseIterator = iteratorFromConcatenatedFunction(
+           () => ({value: new TestIntegerIterator(), done: false}), 3);
 
-       const prefetchStream = new PrefetchStream(baseStream, 500);
+       const prefetchIterator = new PrefetchIterator(baseIterator, 500);
 
        const expectedResult: number[] = [];
        for (let i = 0; i < 3; i++) {
@@ -50,7 +51,7 @@ describe('PrefetchStream', () => {
          }
        }
 
-       prefetchStream.collectRemaining()
+       prefetchIterator.collectRemaining()
            .then(result => {
              expect(result).toEqual(expectedResult);
            })
@@ -60,10 +61,10 @@ describe('PrefetchStream', () => {
 
   it('fetches a chained stream completely (stream size > buffer size)',
      done => {
-       const baseStream = iteratorFromConcatenatedFunction(
-           () => ({value: new TestIntegerStream(), done: false}), 3);
+       const baseIterator = iteratorFromConcatenatedFunction(
+           () => ({value: new TestIntegerIterator(), done: false}), 3);
 
-       const prefetchStream = new PrefetchStream(baseStream, 122);
+       const prefetchIterator = new PrefetchIterator(baseIterator, 122);
        const expectedResult: number[] = [];
        for (let i = 0; i < 3; i++) {
          for (let j = 0; j < 100; j++) {
@@ -71,7 +72,7 @@ describe('PrefetchStream', () => {
          }
        }
 
-       prefetchStream.collectRemaining()
+       prefetchIterator.collectRemaining()
            .then(result => {
              expect(result).toEqual(expectedResult);
            })
