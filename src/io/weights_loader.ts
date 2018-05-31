@@ -23,6 +23,24 @@ import {DTYPE_VALUE_SIZE_MAP, WeightsManifestConfig, WeightsManifestEntry} from 
 // tslint:enable:max-line-length
 
 /**
+ * Reads binary weights data from a number of URLs.
+ *
+ * @param fetchURLs URLs to send the HTTP requests at, using `fetch` calls.
+ * @param requestOptions RequestInit (options) for the HTTP requests.
+ * @returns A `Promise` of an Array of `ArrayBuffer`. The Array has the same
+ *   length as `fetchURLs`.
+ */
+export async function loadWeightsAsArrayBuffer(
+    fetchURLs: string[], requestOptions?: RequestInit): Promise<ArrayBuffer[]> {
+  // Create the requests for all of the weights in parallel.
+  const requests = fetchURLs.map(fetchURL => fetch(fetchURL, requestOptions));
+  const responses = await Promise.all(requests);
+  const buffers =
+      await Promise.all(responses.map(response => response.arrayBuffer()));
+  return buffers;
+}
+
+/**
  * Reads a weights manifest JSON configuration, fetches the weights and
  * returns them as `Tensor`s.
  *
@@ -110,19 +128,15 @@ export async function loadWeights(
         return accumulator;
       }, []);
 
-  // Create the requests for all of the weights in parallel.
-  const requests: Array<Promise<Response>> = [];
+  const fetchUrls: string[] = [];
   groupIndicesToFetch.forEach(i => {
     manifest[i].paths.forEach(filepath => {
       const fetchUrl = filePathPrefix +
           (!filePathPrefix.endsWith('/') ? '/' : '') + filepath;
-      requests.push(fetch(fetchUrl, requestOptions));
+      fetchUrls.push(fetchUrl);
     });
   });
-
-  const responses = await Promise.all(requests);
-  const buffers =
-      await Promise.all(responses.map(response => response.arrayBuffer()));
+  const buffers = await loadWeightsAsArrayBuffer(fetchUrls, requestOptions);
 
   const weightsTensorMap: NamedTensorMap = {};
   let bufferIndexOffset = 0;
