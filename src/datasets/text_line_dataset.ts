@@ -18,7 +18,7 @@
 
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
-import {LazyIterator} from '../streams/lazy_iterator';
+import {LazyIterator} from '../iterators/lazy_iterator';
 
 /**
  * Represents a potentially large collection of text lines.
@@ -36,9 +36,9 @@ export class TextLineDataset extends Dataset<string> {
   }
 
   iterator(): LazyIterator<string> {
-    const readStream = this.input.getStream();
-    const utf8Stream = readStream.decodeUTF8();
-    const lineStream = utf8Stream.split('\n');
-    return lineStream;
+    const inputIterator = this.input.iterator();
+    const utf8Iterator = inputIterator.decodeUTF8();
+    const lineIterator = utf8Iterator.split('\n');
+    return lineIterator;
   }
 }

@@ -17,9 +17,9 @@
  */
 
 // inspired by https://github.com/maxogden/filereader-stream
-import {ByteStream} from './byte_stream';
+import {ByteChunkIterator} from './byte_chunk_iterator';
 
-export interface FileReaderStreamOptions {
+export interface FileChunkIteratorOptions {
   /** The byte offset at which to begin reading the File or Blob. Default 0. */
   offset?: number;
   /** The number of bytes to read at a time. Default 1MB. */
@@ -30,16 +30,16 @@ export interface FileReaderStreamOptions {
  * Provide a stream of chunks from a File or Blob.
  * @param file The source File or Blob.
  * @param options Optional settings controlling file reading.
- * @returns a lazy Stream of Uint8Arrays containing sequential chunks of the
+ * @returns a lazy Iterator of Uint8Arrays containing sequential chunks of the
  *   input file.
  */
-export class FileReaderStream extends ByteStream {
+export class FileChunkIterator extends ByteChunkIterator {
   offset: number;
   chunkSize: number;
 
   constructor(
       protected file: File|Blob,
-      protected options: FileReaderStreamOptions = {}) {
+      protected options: FileChunkIteratorOptions = {}) {
     super();
     this.offset = options.offset || 0;
     // default 1MB chunk has tolerable perf on large files

@@ -16,21 +16,21 @@
  * =============================================================================
  */
 
-import {ByteStream} from './byte_stream';
-import {FileReaderStream} from './filereader_stream';
-import {QueueStream} from './lazy_iterator';
+import {ByteChunkIterator} from './byte_chunk_iterator';
+import {FileChunkIterator} from './file_chunk_iterator';
+import {QueueIterator} from './lazy_iterator';
 
 // We wanted multiple inheritance, e.g.
-//   class URLStream extends QueueStream<Uint8Array>, ByteStream
+//   class URLIterator extends QueueIterator<Uint8Array>, ByteChunkIterator
 // but the TypeScript mixin approach is a bit hacky, so we take this adapter
 // approach instead.
 
-export class URLStream extends ByteStream {
-  private impl: URLStreamImpl;
+export class URLChunkIterator extends ByteChunkIterator {
+  private impl: URLChunkIteratorImpl;
 
   constructor(url: RequestInfo, options = {}) {
     super();
-    this.impl = new URLStreamImpl(url, options);
+    this.impl = new URLChunkIteratorImpl(url, options);
   }
 
   async next() {
@@ -45,17 +45,17 @@ export class URLStream extends ByteStream {
  * the first element from the stream.  This is because the Fetch API does not
  * yet reliably provide a reader stream for the response body.
  */
-class URLStreamImpl extends QueueStream<Uint8Array> {
+class URLChunkIteratorImpl extends QueueIterator<Uint8Array> {
   private blobPromise: Promise<Blob>;
-  private fileReaderStream: FileReaderStream;
+  private fileChunkIterator: FileChunkIterator;
 
   /**
-   * Create a `URLStream`.
+   * Create a `URLChunkIteratorImpl`.
    *
    * @param url A source URL string, or a `Request` object.
-   * @param options Options passed to the underlying `FileReaderStream`s,
+   * @param options Options passed to the underlying `FileChunkIterator`s,
    *   such as {chunksize: 1024}.
-   * @returns a Stream of Uint8Arrays containing sequential chunks of the
+   * @returns an Iterator of Uint8Arrays containing sequential chunks of the
    *   input file.
    */
   constructor(protected url: RequestInfo, protected options = {}) {
@@ -71,11 +71,11 @@ class URLStreamImpl extends QueueStream<Uint8Array> {
   }
 
   async pump(): Promise<boolean> {
-    if (this.fileReaderStream == null) {
+    if (this.fileChunkIterator == null) {
       const blob = await this.blobPromise;
-      this.fileReaderStream = new FileReaderStream(blob, this.options);
+      this.fileChunkIterator = new FileChunkIterator(blob, this.options);
     }
-    const chunkResult = await this.fileReaderStream.next();
+    const chunkResult = await this.fileChunkIterator.next();
     if (chunkResult.done) {
       return false;
     }

@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {FileReaderStream} from './filereader_stream';
+import {FileChunkIterator} from './file_chunk_iterator';
 
 const runes = `ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷᛖᚻᚹᛦᛚᚳᚢᛗ
 ᛋᚳᛖᚪᛚ᛫ᚦᛖᚪᚻ᛫ᛗᚪᚾᚾᚪ᛫ᚷᛖᚻᚹᛦᛚᚳ᛫ᛗᛁᚳᛚᚢᚾ᛫ᚻᛦᛏ᛫ᛞᚫᛚᚪᚾ
@@ -24,13 +24,13 @@ const runes = `ᚠᛇᚻ᛫ᛒᛦᚦ᛫ᚠᚱᚩᚠᚢᚱ᛫ᚠᛁᚱᚪ᛫ᚷ�
 
 const testBlob = new Blob([runes]);
 
-describe('ByteStream.decodeUTF8()', () => {
+describe('ByteChunkIterator.decodeUTF8()', () => {
   it('Correctly reassembles split characters', done => {
-    const byteStream = new FileReaderStream(testBlob, {chunkSize: 50});
-    const utf8Stream = byteStream.decodeUTF8();
+    const byteChunkIterator = new FileChunkIterator(testBlob, {chunkSize: 50});
+    const utf8Iterator = byteChunkIterator.decodeUTF8();
     expect(testBlob.size).toEqual(323);
 
-    utf8Stream.collectRemaining()
+    utf8Iterator.collectRemaining()
         .then((result: string[]) => {
           // The test string is 109 characters long; its UTF8 encoding is 323
           // bytes. We read it in chunks of 50 bytes, so there were 7 chunks of
