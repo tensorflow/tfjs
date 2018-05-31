@@ -138,12 +138,6 @@ export interface ModelPredictConfig {
    * Optional. Verbosity mode. Defaults to false.
    */
   verbose?: boolean;
-
-  /**
-   * Optional. List of output node names to evaluate when running predict().
-   * Defaults to the model's default output.
-   */
-  outputs?: string|string[];
 }
 
 /**
@@ -163,8 +157,7 @@ export interface InferenceModel {
    * If we are provide a batched data of 100 images, the input tensor should be
    * in the shape of [100, 244, 244, 3].
    *
-   * @param config Prediction configuration for specifying the batch size and
-   * output node names.
+   * @param config Prediction configuration for specifying the batch size.
    *
    * @returns Inference result tensors. The output would be single Tensor if
    * model has single output node, otherwise Tensor[] or NamedTensorMap[] will
@@ -172,4 +165,24 @@ export interface InferenceModel {
    */
   predict(inputs: Tensor|Tensor[]|NamedTensorMap, config: ModelPredictConfig):
       Tensor|Tensor[]|NamedTensorMap;
+
+  /**
+   * Single Execute the inference for the input tensors and return activation
+   * values for specified output node names without batching.
+   *
+   * @param input The input tensors, when there is single input for the model,
+   * inputs param should be a Tensor. For models with mutliple inputs, inputs
+   * params should be in either Tensor[] if the input order is fixed, or
+   * otherwise NamedTensorMap format.
+   *
+   * @param outputs string|string[]. List of output node names to retrieve
+   * activation from.
+   *
+   * @returns Activation values for the output nodes result tensors. The return
+   * type matches specified parameter outputs type. The output would be single
+   * Tensor if single output is specified, otherwise Tensor[] for multiple
+   * outputs.
+   */
+  execute(inputs: Tensor|Tensor[]|NamedTensorMap, outputs: string|string[]):
+      Tensor|Tensor[];
 }
