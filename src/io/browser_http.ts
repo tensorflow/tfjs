@@ -24,10 +24,12 @@
 import {ENV} from '../environment';
 import {assert} from '../util';
 
-import {getModelArtifactsInfoForJSON} from './io_utils';
+// tslint:disable:max-line-length
+import {concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
-// tslint:disable-next-line:max-line-length
-import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig} from './types';
+import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
+import {loadWeightsAsArrayBuffer} from './weights_loader';
+// tslint:enable:max-line-length
 
 export class BrowserHTTPRequest implements IOHandler {
   protected readonly path: string;
@@ -104,9 +106,54 @@ export class BrowserHTTPRequest implements IOHandler {
     }
   }
 
-  // TODO(cais): Add load to unify this IOHandler type and the mechanism
-  //   that currently underlies `tf.loadModel('path')` in tfjs-layers.
-  //   See: https://github.com/tensorflow/tfjs/issues/290
+  /**
+   * Load model artifacts via HTTP request(s).
+   *
+   * See the documentation to `browserHTTPRequest` for details on the saved
+   * artifacts.
+   *
+   * @returns The loaded model artifacts (if loading succeeds).
+   */
+  async load(): Promise<ModelArtifacts> {
+    const modelConfigRequest = await fetch(this.path, this.requestInit);
+    const modelConfig = await modelConfigRequest.json();
+    const modelTopology = modelConfig['modelTopology'];
+    const weightsManifest = modelConfig['weightsManifest'];
+
+    // We do not allow both modelTopology and weightsManifest to be missing.
+    if (modelTopology == null && weightsManifest == null) {
+      throw new Error(
+          `The JSON from HTTP path ${this.path} contains neither model ` +
+          `topology or manifest for weights.`);
+    }
+
+    let weightSpecs: WeightsManifestEntry[];
+    let weightData: ArrayBuffer;
+    if (weightsManifest != null) {
+      const weightsManifest =
+          modelConfig['weightsManifest'] as WeightsManifestConfig;
+      weightSpecs = [];
+      for (const entry of weightsManifest) {
+        weightSpecs.push(...entry.weights);
+      }
+
+      let pathPrefix = this.path.substring(0, this.path.lastIndexOf('/'));
+      if (!pathPrefix.endsWith('/')) {
+        pathPrefix = pathPrefix + '/';
+      }
+
+      const fetchURLs: string[] = [];
+      weightsManifest.forEach(weightsGroup => {
+        weightsGroup.paths.forEach(path => {
+          fetchURLs.push(pathPrefix + path);
+        });
+      });
+      weightData = concatenateArrayBuffers(
+          await loadWeightsAsArrayBuffer(fetchURLs, this.requestInit));
+    }
+
+    return {modelTopology, weightSpecs, weightData};
+  }
 }
 
 export const httpRequestRouter: IORouter = (url: string) => {

@@ -23,7 +23,7 @@ import './local_storage';
 
 import {browserFiles} from './browser_files';
 import {browserHTTPRequest} from './browser_http';
-import {decodeWeights, encodeWeights} from './io_utils';
+import {decodeWeights, encodeWeights, getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelManagement} from './model_management';
 import {IORouterRegistry} from './router_registry';
 
@@ -48,6 +48,7 @@ export {
   decodeWeights,
   encodeWeights,
   getLoadHandlers,
+  getModelArtifactsInfoForJSON,
   getSaveHandlers,
   IOHandler,
   listModels,
