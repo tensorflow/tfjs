@@ -427,9 +427,8 @@ export class Tensor<R extends Rank = Rank> {
    * @param reverse Whether to sum in the opposite direction. Defaults to
    *    false.
    */
-  @doc({ heading: 'Tensors', subheading: 'Classes' })
-  cumsum<T extends Tensor>(axis = 0, exclusive = false, reverse = false):
-    T {
+  @doc({heading: 'Tensors', subheading: 'Classes'})
+  cumsum<T extends Tensor>(axis = 0, exclusive = false, reverse = false): T {
     return ops.cumsum(this, axis, exclusive, reverse);
   }
 
@@ -476,6 +475,10 @@ export class Tensor<R extends Rank = Rank> {
   matMul(b: Tensor2D, transposeA = false, transposeB = false): Tensor2D {
     this.throwIfDisposed();
     return ops.matMul(this as Tensor2D, b, transposeA, transposeB);
+  }
+  dot(b: Tensor): Tensor {
+    this.throwIfDisposed();
+    return ops.dot(this, b);
   }
   norm(
       ord: number|'euclidean'|'fro' = 'euclidean', axis: number|number[] = null,

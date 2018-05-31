@@ -60,6 +60,7 @@ export const matMul = MatmulOps.matMul;
 export const matrixTimesVector = MatmulOps.matrixTimesVector;
 export const outerProduct = MatmulOps.outerProduct;
 export const vectorTimesMatrix = MatmulOps.vectorTimesMatrix;
+export const dot = MatmulOps.dot;
 
 export const avgPool = PoolOps.avgPool;
 export const maxPool = PoolOps.maxPool;

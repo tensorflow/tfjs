@@ -420,3 +420,59 @@ describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 });
+
+describeWithFlags('dot', ALL_ENVS, () => {
+  let a: tf.Tensor1D;
+  let b: tf.Tensor2D;
+  let c: tf.Tensor2D;
+  let d: tf.Tensor3D;
+  let e: tf.Scalar;
+
+  beforeEach(() => {
+    a = tf.tensor1d([1, 2]);
+    b = tf.tensor2d([[1, 2], [3, 4]]);
+    c = tf.tensor2d([[1, 2, 3], [4, 5, 6]]);
+    d = tf.tensor3d([1, 2], [1, 1, 2]);
+    e = tf.scalar(1);
+  });
+
+  it('vector-vector', () => {
+    const aa = tf.dot(a, a);
+    expectArraysClose(aa, [5]);
+    expect(aa.shape).toEqual([]);
+  });
+
+  it('vector-matrix', () => {
+    const ab = tf.dot(a, b);
+    const ac = tf.dot(a, c);
+    expect(ab.shape).toEqual([2]);
+    expect(ac.shape).toEqual([3]);
+    expectArraysClose(ab, [7, 10]);
+    expectArraysClose(ac, [9, 12, 15]);
+  });
+
+  it('matrix-vector', () => {
+    const ba = b.dot(a);
+    expect(ba.shape).toEqual([2]);
+    expectArraysClose(ba, [5, 11]);
+  });
+
+  it('matrix-matrix', () => {
+    const bb = tf.dot(b, b);
+    const bc = tf.dot(b, c);
+    expect(bb.shape).toEqual([2, 2]);
+    expect(bc.shape).toEqual([2, 3]);
+    expectArraysClose(bb, [7, 10, 15, 22]);
+    expectArraysClose(bc, [9, 12, 15, 19, 26, 33]);
+  });
+
+  it('throws error on incompatible dimensions', () => {
+    expect(() => tf.dot(c, a)).toThrowError();
+    expect(() => tf.dot(c, b)).toThrowError();
+  });
+
+  it('throws error when inputs are not rank 1 or 2', () => {
+    expect(() => tf.dot(a, d)).toThrowError();
+    expect(() => tf.dot(a, e)).toThrowError();
+  });
+});
