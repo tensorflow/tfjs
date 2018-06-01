@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-layers",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "description": "TensorFlow layers API in JavaScript",
   "private": false,
   "main": "dist/index.js",
@@ -8,7 +8,7 @@
   "jsnext:main": "dist-es6/index.js",
   "module": "dist-es6/index.js",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.11.1",
+    "@tensorflow/tfjs-core": "0.11.4",
     "@types/jasmine": "~2.5.53",
     "browserify": "~16.1.0",
     "clang-format": "~1.2.2",
@@ -50,6 +50,6 @@
     "lint": "tslint -p . --type-check -t verbose"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.11.1"
+    "@tensorflow/tfjs-core": "0.11.4"
   }
 }
