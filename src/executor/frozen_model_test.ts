@@ -96,37 +96,45 @@ describe('Model', () => {
     it('should generate the output for single tensor', async () => {
       await model.load();
       const input = tfc.tensor1d([1], 'int32');
-      const output = model.predict(input, {outputs: 'Add'});
+      const output = model.predict(input);
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
 
     it('should generate the output for tensor array', async () => {
       await model.load();
       const input = tfc.tensor1d([1], 'int32');
-      const output = model.predict([input], {outputs: 'Add'});
+      const output = model.predict([input]);
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
 
     it('should generate the output for tensor map', async () => {
       await model.load();
       const input = tfc.tensor1d([1], 'int32');
-      const output = model.predict({'Input': input}, {outputs: 'Add'});
+      const output = model.predict({'Input': input});
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
 
     it('should throw error if input size mismatch', async () => {
       await model.load();
       const input = tfc.tensor1d([1], 'int32');
-      expect(() => model.predict([input, input], {outputs: 'Add'})).toThrow();
+      expect(() => model.predict([input, input])).toThrow();
     });
   });
 
-  describe('eval', () => {
-    it('should generate the output', async () => {
+  describe('execute', () => {
+    it('should generate the default output', async () => {
       await model.load();
       const input = tfc.tensor1d([1], 'int32');
-      const output = model.execute({'Input': input}, 'Add');
+      const output = model.execute({'Input': input});
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
+    });
+    it('should generate the output array', async () => {
+      await model.load();
+      const input = tfc.tensor1d([1], 'int32');
+      const output = model.execute({'Input': input}, ['Add', 'Const']);
+      expect(Array.isArray(output)).toBeTruthy();
+      expect((output as tfc.Tensor[])[0].dataSync()[0]).toEqual(2);
+      expect((output as tfc.Tensor[])[1].dataSync()[0]).toEqual(1);
     });
   });
 
