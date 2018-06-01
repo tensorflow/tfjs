@@ -145,8 +145,8 @@ export class LogicalOps {
   static where<T extends Tensor>(condition: Tensor, a: T, b: T): T {
     util.assertArgumentsAreTensors({condition, a, b}, 'where');
     util.assert(
-        condition.dtype === 'bool' || a.dtype === 'bool' || b.dtype === 'bool',
-        'Error Array must be of type bool.');
+        condition.dtype === 'bool',
+        'Error Condition must be of type bool.');
     util.assertShapesMatch(a.shape, b.shape, 'Error in where: ');
 
     if (condition.rank === 1) {
