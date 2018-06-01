@@ -345,6 +345,17 @@ describeWithFlags('where', ALL_ENVS, () => {
 
     expectArraysClose(tf.where(c, a, b), [10]);
   });
+
+  it('Invalid condition type', () => {
+    const c = tf.tensor1d([1, 0, 1, 0], 'int32');
+    const a = tf.tensor1d([10, 10, 10, 10], 'bool');
+    const b = tf.tensor1d([20, 20, 20, 20], 'bool');
+    const f = () => {
+      tf.where(c, a, b);
+    };
+    expect(f).toThrowError();
+  });
+
   it('Tensor1D', () => {
     const c = tf.tensor1d([1, 0, 1, 0], 'bool');
     const a = tf.tensor1d([10, 10, 10, 10]);
