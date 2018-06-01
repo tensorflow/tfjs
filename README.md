@@ -1,3 +1,7 @@
+<a id="travis-badge" href="https://travis-ci.org/tensorflow/tfjs-node" alt="Build Status">
+  <img src="https://travis-ci.org/tensorflow/tfjs-node.svg?branch=master" />
+</a>
+
 # TensorFlow backend for TensorFlow.js via Node.js
 
 **This repo is under active development and is not production-ready. We are
