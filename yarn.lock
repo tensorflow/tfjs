@@ -66,9 +66,9 @@
     protobufjs "~6.8.0"
     url "^0.11.0"
 
-"@tensorflow/tfjs-core@0.11.3":
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.3.tgz#2010306597a4b83afc999e6e2137946a97412632"
+"@tensorflow/tfjs-core@0.11.4":
+  version "0.11.4"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.4.tgz#5f8eba5ce8c20ba4686a7a0910adf00044e166d5"
   dependencies:
     seedrandom "~2.4.3"
 
