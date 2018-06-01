@@ -24,10 +24,7 @@ module.exports = function(config) {
     },
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.json',
-      compilerOptions: {
-        module: 'commonjs',
-        sourceMap: true
-      }
+      compilerOptions: {module: 'commonjs', sourceMap: true}
     },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome', 'Firefox'],
@@ -57,8 +54,6 @@ module.exports = function(config) {
         flags: ['--blacklist-accelerated-compositing', '--blacklist-webgl']
       }
     },
-    client: {
-      args: ['--grep', config.grep || '']
-    }
+    client: {args: ['--grep', config.grep || '']}
   });
 };
