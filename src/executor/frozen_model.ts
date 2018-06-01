@@ -138,32 +138,28 @@ export class FrozenModel implements tfc.InferenceModel {
    */
   predict(
       inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
-      config: tfc.ModelPredictConfig): tfc.Tensor
+      config?: tfc.ModelPredictConfig): tfc.Tensor
       |tfc.Tensor[]|tfc.NamedTensorMap {
-    inputs = inputs instanceof tfc.Tensor ? [inputs] : inputs;
-    if (inputs instanceof Array) {
-      inputs = this.constructTensorMap(inputs as tfc.Tensor[]);
-    }
-
-    return this.execute(inputs, config.outputs);
+    return this.execute(inputs, this.outputNodes);
   }
 
-  private constructTensorMap(inputs: tfc.Tensor[]) {
-    if (inputs.length !== this.inputNodes.length) {
+  private constructTensorMap(inputs: tfc.Tensor|tfc.Tensor[]) {
+    const inputArray = inputs instanceof tfc.Tensor ? [inputs] : inputs;
+    if (inputArray.length !== this.inputNodes.length) {
       throw new Error(
           'Input tensor count mismatch,' +
           `the frozen model has ${this.inputNodes.length} placeholders, ` +
-          `while there are ${inputs.length} input tensors.`);
+          `while there are ${inputArray.length} input tensors.`);
     }
     return this.inputNodes.reduce((map, inputName, i) => {
-      map[inputName] = inputs[i];
+      map[inputName] = inputArray[i];
       return map;
     }, {} as tfc.NamedTensorMap);
   }
   /**
    * Executes infrerence for the model for given input tensors.
-   * @param inputs tensor map of the inputs for the model, keyed by the
-   * input node names.
+   * @param inputs tensor, tensor array or tensor map of the inputs for the
+   * model, keyed by the input node names.
    * @param outputs output node name from the Tensorflow model, if no
    * outputs are specified, the default outputs of the model would be used.
    * You can inspect intermediate nodes of the model by adding them to the
@@ -171,10 +167,16 @@ export class FrozenModel implements tfc.InferenceModel {
    *
    * @returns A single tensor if provided with a single output or no outputs
    * are provided and there is only one default output, otherwise return a
-   * tensor map.
+   * tensor array. The order of the tensor array is the same as the outputs
+   * if provided, otherwise the order of outputNodes attribute of the model.
    */
-  execute(inputs: tfc.NamedTensorMap, outputs?: string|string[]): tfc.Tensor
-      |tfc.NamedTensorMap {
+  execute(
+      inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
+      outputs?: string|string[]): tfc.Tensor|tfc.Tensor[] {
+    outputs = outputs || this.outputNodes;
+    if (inputs instanceof tfc.Tensor || Array.isArray(inputs)) {
+      inputs = this.constructTensorMap(inputs);
+    }
     if (this.executor.isControlFlowModel) {
       throw new Error(
           'The model contains control flow ops, ' +
@@ -183,14 +185,16 @@ export class FrozenModel implements tfc.InferenceModel {
     const result = this.executor.execute(
         this.convertTensorMapToTensorsMap(inputs), outputs);
     const keys = Object.keys(result);
-    return (keys.length === 1) ? result[keys[0]] : result;
+    return (Array.isArray(outputs) && outputs.length > 1) ?
+        outputs.map(node => result[node]) :
+        result[keys[0]];
   }
 
   /**
    * Executes inference for the model for given input tensors in async
    * fashion, use this method when your model contains control flow ops.
-   * @param inputs tensor map of the inputs for the model, keyed by the input
-   * node names.
+   * @param inputs tensor, tensor array or tensor map of the inputs for the
+   * model, keyed by the input node names.
    * @param outputs output node name from the Tensorflow model, if no outputs
    * are specified, the default outputs of the model would be used. You can
    * inspect intermediate nodes of the model by adding them to the outputs
@@ -200,17 +204,25 @@ export class FrozenModel implements tfc.InferenceModel {
    * no outputs are provided and there is only one default output, otherwise
    * return a tensor map.
    */
-  async executeAsync(inputs: tfc.NamedTensorMap, outputs?: string|string[]):
-      Promise<tfc.Tensor|tfc.NamedTensorMap> {
+  async executeAsync(
+      inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
+      outputs?: string|string[]): Promise<tfc.Tensor|tfc.Tensor[]> {
     if (!this.executor.isControlFlowModel) {
       throw new Error(
           'The model does not contain control flow ops, ' +
           'please use execute method for better performance.');
     }
+    outputs = outputs || this.outputNodes;
+    if (inputs instanceof tfc.Tensor || Array.isArray(inputs)) {
+      inputs = this.constructTensorMap(inputs);
+    }
+
     const result = await this.executor.executeAsync(
         this.convertTensorMapToTensorsMap(inputs), outputs);
     const keys = Object.keys(result);
-    return (keys.length === 1) ? result[keys[0]] : result;
+    return Array.isArray(outputs) && outputs.length > 1 ?
+        outputs.map(node => result[node]) :
+        result[keys[0]];
   }
 
   private convertTensorMapToTensorsMap(map: tfc.NamedTensorMap):
