@@ -1193,6 +1193,115 @@ export class MathBackendCPU implements KernelBackend {
     return y.toTensor();
   }
 
+  depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
+    const dx = ops.buffer<Rank.R4>(convInfo.inShape, 'float32');
+    const dxValues = dx.values;
+    const [dxS0, dxS1, dxS2] = dx.strides;
+    const dyValues = dy.dataSync();
+    const [dyS0, dyS1, dyS2] = dy.strides;
+    const fltValues = filter.dataSync();
+    const [fltS0, fltS1, fltS2] = filter.strides;
+    const {
+      batchSize,
+      filterHeight,
+      filterWidth,
+      inChannels,
+      inHeight,
+      inWidth,
+      outChannels,
+      outHeight,
+      outWidth,
+      strideHeight,
+      strideWidth
+    } = convInfo;
+    const topPad = filterHeight - 1 - convInfo.padInfo.top;
+    const leftPad = filterWidth - 1 - convInfo.padInfo.left;
+    const chMul = outChannels / inChannels;
+
+    for (let b = 0; b < batchSize; ++b) {
+      for (let d1 = 0; d1 < inChannels; ++d1) {
+        for (let xR = 0; xR < inHeight; ++xR) {
+          const xRCorner = xR - topPad;
+          const xRMin = Math.max(0, Math.ceil(xRCorner / strideHeight));
+          const yRMax =
+              Math.min(outHeight, (filterHeight + xRCorner) / strideHeight);
+
+          for (let xC = 0; xC < inWidth; ++xC) {
+            const xCCorner = xC - leftPad;
+            const xCMin = Math.max(0, Math.ceil(xCCorner / strideWidth));
+            const yCMax =
+                Math.min(outWidth, (filterWidth + xCCorner) / strideWidth);
+
+            let dotProd = 0;
+            for (let yR = xRMin; yR < yRMax; ++yR) {
+              const wR = yR * strideHeight - xRCorner;
+
+              for (let yC = xCMin; yC < yCMax; ++yC) {
+                const wC = yC * strideWidth - xCCorner;
+                const dyOffset = dyS0 * b + dyS1 * yR + dyS2 * yC;
+                const fltOffset = fltS0 * (filterHeight - 1 - wR) +
+                    fltS1 * (filterWidth - 1 - wC) + fltS2 * d1;
+
+                for (let dm = 0; dm < chMul; ++dm) {
+                  const d2 = d1 * chMul + dm;
+                  const pixel = dyValues[dyOffset + d2];
+                  const weight = fltValues[fltOffset + dm];
+                  dotProd += pixel * weight;
+                }
+              }
+            }
+            dxValues[dxS0 * b + dxS1 * xR + dxS2 * xC + d1] = dotProd;
+          }
+        }
+      }
+    }
+    return dx.toTensor();
+  }
+
+  depthwiseConv2DDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
+    const strideHeight = convInfo.strideHeight;
+    const strideWidth = convInfo.strideWidth;
+    const filterHeight = convInfo.filterHeight;
+    const filterWidth = convInfo.filterWidth;
+    const dW = ops.buffer<Rank.R4>(convInfo.filterShape, 'float32');
+
+    const leftPad = convInfo.padInfo.left;
+    const topPad = convInfo.padInfo.top;
+    const chMul = convInfo.outChannels / convInfo.inChannels;
+
+    for (let wR = 0; wR < filterHeight; ++wR) {
+      const yRMin = Math.max(0, Math.ceil((topPad - wR) / strideHeight));
+      const yRMax = Math.min(
+          convInfo.outHeight, (convInfo.inHeight + topPad - wR) / strideHeight);
+
+      for (let wC = 0; wC < filterWidth; ++wC) {
+        const yCMin = Math.max(0, Math.ceil((leftPad - wC) / strideWidth));
+        const yCMax = Math.min(
+            convInfo.outWidth, (convInfo.inWidth + leftPad - wC) / strideWidth);
+
+        for (let d2 = 0; d2 < convInfo.outChannels; ++d2) {
+          const d1 = Math.trunc(d2 / chMul);
+          const dm = d2 % chMul;
+
+          let dotProd = 0;
+          for (let b = 0; b < convInfo.batchSize; ++b) {
+            for (let yR = yRMin; yR < yRMax; ++yR) {
+              const xR = wR + yR * strideHeight - topPad;
+              for (let yC = yCMin; yC < yCMax; ++yC) {
+                const xC = wC + yC * strideWidth - leftPad;
+                dotProd += x.get(b, xR, xC, d1) * dy.get(b, yR, yC, d2);
+              }
+            }
+          }
+          dW.set(dotProd, wR, wC, d1, dm);
+        }
+      }
+    }
+    return dW.toTensor();
+  }
+
   tile<T extends Tensor>(x: T, reps: number[]): T {
     const newShape: number[] = new Array(x.rank);
     for (let i = 0; i < newShape.length; i++) {

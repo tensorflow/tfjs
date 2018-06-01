@@ -166,6 +166,10 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
 
   depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D;
+  depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D;
+  depthwiseConv2DDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D;
 
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D;
   maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):

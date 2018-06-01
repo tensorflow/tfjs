@@ -39,6 +39,8 @@ import {ClipProgram} from './webgl/clip_gpu';
 import {ConcatProgram} from './webgl/concat_gpu';
 // tslint:disable-next-line:max-line-length
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
+// tslint:disable-next-line:max-line-length
+import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './webgl/conv_backprop_gpu_depthwise';
 import {Conv2DProgram} from './webgl/conv_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
 import {CumSumProgram} from './webgl/cumsum_gpu';
@@ -872,6 +874,18 @@ export class MathBackendWebGL implements KernelBackend {
       Tensor4D {
     const program = new DepthwiseConv2DProgram(convInfo);
     return this.compileAndRun(program, [x, filter]);
+  }
+
+  depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
+    const program = new DepthwiseConv2DDerInputProgram(convInfo);
+    return this.compileAndRun(program, [dy, filter]);
+  }
+
+  depthwiseConv2DDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
+    const program = new DepthwiseConv2DDerFilterProgram(convInfo);
+    return this.compileAndRun(program, [x, dy]);
   }
 
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
