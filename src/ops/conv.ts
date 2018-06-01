@@ -453,15 +453,15 @@ export class ConvOps {
     }
     util.assert(
         x4D.rank === 4,
-        `Error in depthwiseConv2D: input must be rank 4, but got ` +
+        `Error in depthwiseConv2d: input must be rank 4, but got ` +
             `rank ${x4D.rank}.`);
     util.assert(
         filter.rank === 4,
-        `Error in depthwiseConv2D: filter must be rank 4, but got rank ` +
+        `Error in depthwiseConv2d: filter must be rank 4, but got rank ` +
             `${filter.rank}.`);
     util.assert(
         x4D.shape[3] === filter.shape[2],
-        `Error in depthwiseConv2D: number of input channels ` +
+        `Error in depthwiseConv2d: number of input channels ` +
             `(${x4D.shape[3]}) must match the inChannels dimension in ` +
             `filter ${filter.shape[2]}.`);
     if (dilations == null) {
@@ -475,16 +475,28 @@ export class ConvOps {
     if (dimRoundingMode != null) {
       util.assert(
           util.isInt(pad as number),
-          `Error in depthwiseConv2D: pad must be an integer when using, ` +
+          `Error in depthwiseConv2d: pad must be an integer when using, ` +
               `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
     }
 
     const convInfo = conv_util.computeConv2DInfo(
         x4D.shape, filter.shape, strides, dilations, pad, dimRoundingMode,
         true /* depthwise */);
+
+    const grad = (dy: Tensor4D) => {
+      util.assert(
+          tupleValuesAreOne(dilations),
+          'Error in gradient of depthwiseConv2d: dilation rates greater than ' +
+              `1 are not yet supported. Got dilations '${dilations}'`);
+      return {
+        x: () => depthwiseConv2dDerInput(x4D.shape, dy, filter, convInfo),
+        filter: () => depthwiseConv2dDerFilter(x4D, dy, filter.shape, convInfo),
+      };
+    };
+
     const res = ENV.engine.runKernel(
         backend => backend.depthwiseConv2D(x4D, filter, convInfo),
-        {x4D, filter});
+        {x: x4D, filter}, grad);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -611,4 +623,38 @@ function eitherStridesOrDilationsAreOne(
     strides: number|[number, number],
     dilations: number|[number, number]): boolean {
   return tupleValuesAreOne(strides) || tupleValuesAreOne(dilations);
+}
+
+function depthwiseConv2dDerInput<T extends Tensor3D|Tensor4D>(
+    xShape: [number, number, number, number]|[number, number, number], dy: T,
+    filter: Tensor4D, convInfo: conv_util.Conv2DInfo): T {
+  let dy4D = dy as Tensor4D;
+  let reshapedTo4D = false;
+  if (dy.rank === 3) {
+    reshapedTo4D = true;
+    dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+  }
+  const res = ENV.engine.runKernel(
+      backend => backend.depthwiseConv2DDerInput(dy4D, filter, convInfo),
+      {dy4D});
+  if (reshapedTo4D) {
+    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+  }
+  return res as T;
+}
+
+function depthwiseConv2dDerFilter<T extends Tensor3D|Tensor4D>(
+    x: T, dy: T, filterShape: [number, number, number, number],
+    convInfo: conv_util.Conv2DInfo): Tensor4D {
+  let x4D = x as Tensor4D;
+  if (x.rank === 3) {
+    x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+  }
+  let dy4D = dy as Tensor4D;
+  if (dy4D.rank === 3) {
+    dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+  }
+  return ENV.engine.runKernel(
+      backend => backend.depthwiseConv2DDerFilter(x4D, dy4D, convInfo),
+      {x4D, dy4D});
 }
