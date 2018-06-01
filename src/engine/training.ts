@@ -12,8 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {doc, io, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
-
+import {doc, io, ModelPredictConfig, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 import * as K from '../backend/tfjs_backend';
 import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, disposeTensorsInLogs, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
@@ -455,19 +454,6 @@ function collectMetrics(
 export enum ModelLoggingVerbosity {
   SILENT = 0,
   VERBOSE = 1
-}
-
-
-export interface ModelPredictConfig {
-  /**
-   * Batch size (Integer). If unspecified, it will default to 32.
-   */
-  batchSize?: number;
-
-  /**
-   * Verbosity mode. Defaults to false.
-   */
-  verbose?: boolean;
 }
 
 export interface ModelEvaluateConfig {
