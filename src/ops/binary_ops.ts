@@ -24,6 +24,7 @@ import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
 import {neg, scalar, square} from './ops';
+import {KernelBackend} from '../kernels/backend';
 
 export class BinaryOps {
   /**
@@ -342,6 +343,13 @@ export class BinaryOps {
     util.assertArgumentsAreTensors({a, b}, 'div');
     util.assertTypesMatch(a, b);
 
+    let forwardFunc: (backend: KernelBackend) => Tensor;
+    if (a.dtype === 'int32' && b.dtype === 'int32') {
+      return BinaryOps.floorDiv(a, b);
+    } else {
+      forwardFunc = (backend: KernelBackend) => backend.realDivide(a, b);
+    }
+
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const der = (dy: Tensor) => {
@@ -364,7 +372,64 @@ export class BinaryOps {
       };
       return {a: derA, b: derB};
     };
-    return ENV.engine.runKernel(backend => backend.divide(a, b), {a, b}, der) as
+    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as
+        T;
+  }
+
+  /**
+   * Divides two `Tensor`s element-wise, A / B. Supports broadcasting.
+   * The result is rounded with floor function.
+   *
+   *
+   * ```js
+   * const a = tf.tensor1d([1, 4, 9, 16]);
+   * const b = tf.tensor1d([1, 2, 3, 4]);
+   *
+   * a.floorDiv(b).print();  // or tf.div(a, b)
+   * ```
+   *
+   * ```js
+   * // Broadcast div a with b.
+   * const a = tf.tensor1d([2, 4, 6, 8]);
+   * const b = tf.scalar(2);
+   *
+   * a.floorDiv(b).print();  // or tf.floorDiv(a, b)
+   * ```
+   *
+   * @param a The first tensor as the numerator.
+   * @param b The second tensor as the denominator. Must have the same dtype as
+   * `a`.
+   */
+  @doc({heading: 'Operations', subheading: 'Arithmetic'})
+  @operation
+  static floorDiv<T extends Tensor>(a: Tensor, b: Tensor): T {
+    util.assertArgumentsAreTensors({a, b}, 'floorDiv');
+    util.assertTypesMatch(a, b);
+
+    const forwardFunc = (backend: KernelBackend) => backend.floorDiv(a, b);
+    const outShape =
+        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    const der = (dy: Tensor) => {
+      const derA = () => {
+        const res = dy.div(b.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        if (reduceAxes.length > 0) {
+          return res.sum(reduceAxes).reshape(a.shape);
+        }
+        return res;
+      };
+      const derB = () => {
+        let res = dy.mul(a.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        if (reduceAxes.length > 0) {
+          res = res.sum(reduceAxes).reshape(b.shape);
+        }
+        const tmp = b.square() as Tensor;
+        return res.div(tmp.toFloat()).neg() as Tensor;
+      };
+      return {a: derA, b: derB};
+    };
+    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as
         T;
   }
 

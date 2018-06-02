@@ -594,6 +594,10 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.div(this, x);
   }
+  floorDiv<T extends Tensor>(x: Tensor): T {
+    this.throwIfDisposed();
+    return ops.floorDiv(this, x);
+  }
   divStrict<T extends this>(this: T, x: T): T {
     this.throwIfDisposed();
     return ops.divStrict(this, x);
