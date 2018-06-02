@@ -152,6 +152,7 @@ export const add = BinaryOps.add;
 export const addStrict = BinaryOps.addStrict;
 export const atan2 = BinaryOps.atan2;
 export const div = BinaryOps.div;
+export const floorDiv = BinaryOps.floorDiv;
 export const divStrict = BinaryOps.divStrict;
 export const maximum = BinaryOps.maximum;
 export const maximumStrict = BinaryOps.maximumStrict;

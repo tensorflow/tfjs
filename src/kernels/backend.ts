@@ -72,7 +72,8 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   add(a: Tensor, b: Tensor): Tensor;
   subtract(a: Tensor, b: Tensor): Tensor;
   multiply(a: Tensor, b: Tensor): Tensor;
-  divide(a: Tensor, b: Tensor): Tensor;
+  realDivide(a: Tensor, b: Tensor): Tensor;
+  floorDiv(a: Tensor, b: Tensor): Tensor;
 
   sum(x: Tensor, axes: number[]): Tensor;
 

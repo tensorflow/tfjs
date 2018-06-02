@@ -632,17 +632,17 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [a, b]);
   }
 
-  divide(a: Tensor, b: Tensor): Tensor {
-    let op: string;
-    let outputDtype: 'float32'|'int32';
-    if (a.dtype === 'int32' && b.dtype === 'int32') {
-      op = binaryop_gpu.INT_DIV;
-      outputDtype = 'int32';
-    } else {
-      op = binaryop_gpu.DIV;
-      outputDtype = 'float32';
-    }
+  realDivide(a: Tensor, b: Tensor): Tensor {
+    const op = binaryop_gpu.DIV;
+    const outputDtype = 'float32';
+    const program = new BinaryOpProgram(op, a.shape, b.shape);
+    const output = this.makeOutputArray(program.outputShape, outputDtype);
+    return this.compileAndRun<Tensor, Tensor>(program, [a, b], output);
+  }
 
+  floorDiv(a: Tensor, b: Tensor): Tensor {
+    const op = binaryop_gpu.INT_DIV;
+    const outputDtype = 'int32';
     const program = new BinaryOpProgram(op, a.shape, b.shape);
     const output = this.makeOutputArray(program.outputShape, outputDtype);
     return this.compileAndRun<Tensor, Tensor>(program, [a, b], output);
