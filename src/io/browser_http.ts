@@ -171,8 +171,7 @@ export const httpRequestRouter: IORouter = (url: string) => {
   }
 };
 IORouterRegistry.registerSaveRouter(httpRequestRouter);
-// TODO(cais): Once `tf.loadModel` use `IOHandler`s, register a load router
-//   here as well.
+IORouterRegistry.registerLoadRouter(httpRequestRouter);
 
 // tslint:disable:max-line-length
 /**
