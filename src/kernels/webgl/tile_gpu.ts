@@ -45,14 +45,14 @@ export class TileProgram implements GPGPUProgram {
 
 function getSourceCoords(aShape: number[]): string {
   const rank = aShape.length;
-  if (rank > 4) {
+  if (rank > 5) {
     throw Error(`Tile for rank ${rank} is not yet supported`);
   }
   if (rank === 1) {
     return `imod(resRC, ${aShape[0]})`;
   }
 
-  const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
+  const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w', 'resRC.u'];
 
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {

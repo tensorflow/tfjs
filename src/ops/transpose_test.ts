@@ -81,6 +81,30 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
   });
 
+  it('5D [r, c, d, e, f] => [r, c, f, e, d]', () => {
+    const t = tf.tensor5d([1, 11, 2, 22, 3, 33, 4, 44], [1, 1, 2, 2, 2]);
+    const t2 = tf.transpose(t, [0, 1, 4, 3, 2]);
+
+    expect(t2.shape).toEqual([1, 1, 2, 2, 2]);
+    expectArraysClose(t2, [1, 3, 2, 4, 11, 33, 22, 44]);
+  });
+
+  it('5D [r, c, d, e, f] => [r, c, d, f, e]', () => {
+    const t = tf.tensor5d([1, 11, 2, 22, 3, 33, 4, 44], [1, 1, 2, 2, 2]);
+    const t2 = tf.transpose(t, [0, 1, 4, 2, 3]);
+
+    expect(t2.shape).toEqual([1, 1, 2, 2, 2]);
+    expectArraysClose(t2, [1, 2, 3, 4, 11, 22, 33, 44]);
+  });
+  
+  it('5D [r, c, d, e, f] => [c, r, d, e, f]', () => {
+    const t = tf.tensor5d([1, 11, 2, 22, 3, 33, 4, 44], [1, 1, 2, 2, 2]);
+    const t2 = tf.transpose(t, [1, 0, 2, 3, 4]);
+
+    expect(t2.shape).toEqual([1, 1, 2, 2, 2]);
+    expectArraysClose(t2, [1, 11, 2, 22, 3, 33, 4, 44]);
+  });
+
   it('gradient 3D [r, c, d] => [d, c, r]', () => {
     const t = tf.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
     const perm = [2, 1, 0];

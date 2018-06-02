@@ -34,7 +34,7 @@ export class PadProgram implements GPGPUProgram {
     const start = paddings.map(p => p[0]).join(',');
     const end = paddings.map((p, i) => p[0] + xShape[i]).join(',');
     const unpackedCoords =
-        ['coords[0]', 'coords[1]', 'coords[2]', 'coords[3]'].slice(0, rank);
+         ['coords[0]', 'coords[1]', 'coords[2]','coords[3]'].slice(0, rank);
 
     if (rank === 1) {
       this.userCode = `
