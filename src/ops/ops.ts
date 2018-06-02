@@ -200,6 +200,7 @@ export const tensor1d = ArrayOps.tensor1d;
 export const tensor2d = ArrayOps.tensor2d;
 export const tensor3d = ArrayOps.tensor3d;
 export const tensor4d = ArrayOps.tensor4d;
+export const tensor5d = ArrayOps.tensor5d;
 export const print = ArrayOps.print;
 export const expandDims = ArrayOps.expandDims;
 export const stack = ArrayOps.stack;

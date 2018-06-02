@@ -19,10 +19,10 @@ import {doc} from '../doc';
 // import {ForwardFunc} from '../engine';
 import {ENV} from '../environment';
 // tslint:disable-next-line:max-line-length
-import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
+import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, TensorBuffer} from '../tensor';
 import * as tensor_util from '../tensor_util';
 // tslint:disable-next-line:max-line-length
-import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TypedArray} from '../types';
+import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TypedArray} from '../types';
 import * as util from '../util';
 // tslint:disable-next-line:max-line-length
 import {getAxesPermutation, getInnerMostAxes, parseAxisParam} from './axis_util';
@@ -247,6 +247,49 @@ export class ArrayOps {
           'are a flat array');
     }
     shape = shape || inferredShape as [number, number, number, number];
+    return ArrayOps.tensor(values, shape, dtype);
+  }
+
+  /**
+   * Creates rank-5 `Tensor` with the provided values, shape and dtype.
+   *
+   * The same functionality can be achieved with `tensor`, but in general
+   * we recommend using `tensor5d` as it makes the code more readable.
+   *
+   *  ```js
+   * // Pass a nested array.
+   * tf.tensor5d([[[[[1], [2]], [[3], [4]]]]]).print();
+   * ```
+   * ```js
+   * // Pass a flat array and specify a shape.
+   * tf.tensor5d([1, 2, 3, 4, 5, 6], [1, 2, 2, 2, 1]).print();
+   * ```
+   *
+   * @param values The values of the tensor. Can be nested array of numbers,
+   *     or a flat array, or a `TypedArray`.
+   * @param shape The shape of the tensor. Optional. If not provided,
+   *   it is inferred from `values`.
+   * @param dtype The data type.
+   */
+  @doc({heading: 'Tensors', subheading: 'Creation'})
+  static tensor5d(
+      values: TensorLike5D, shape?: [number, number, number, number, number],
+      dtype: DataType = 'float32'): Tensor5D {
+    if (shape != null && shape.length !== 5) {
+      throw new Error('tensor5d() requires shape to have five numbers');
+    }
+    const inferredShape = util.inferShape(values);
+    if (inferredShape.length !== 5 && inferredShape.length !== 1) {
+      throw new Error(
+          'tensor5d() requires values to be \
+           number[][][][][] or flat/TypedArray');
+    }
+    if (inferredShape.length === 1 && shape == null) {
+      throw new Error(
+          'tensor5d() requires shape to be provided when `values` ' +
+          'are a flat array');
+    }
+    shape = shape || inferredShape as [number, number, number, number, number];
     return ArrayOps.tensor(values, shape, dtype);
   }
 

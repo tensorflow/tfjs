@@ -30,6 +30,7 @@ export interface ShapeMap {
   R2: [number, number];
   R3: [number, number, number];
   R4: [number, number, number, number];
+  R5: [number, number, number, number, number];
 }
 
 /** @hidden */
@@ -47,13 +48,15 @@ export enum Rank {
   R1 = 'R1',
   R2 = 'R2',
   R3 = 'R3',
-  R4 = 'R4'
+  R4 = 'R4',
+  R5 = 'R5'
 }
 
 /** @docalias TypedArray|Array */
 export type TensorLike =
     TypedArray|number|boolean|number[]|number[][]|number[][][]|number[][][][]|
-    boolean[]|boolean[][]|boolean[][][]|boolean[][][][];
+              number[][][][][]|boolean[]|boolean[][]|boolean[][][]|
+              boolean[][][][]|boolean[][][][][];
 /** @docalias TypedArray|Array */
 export type TensorLike1D = TypedArray|number[]|boolean[];
 /** @docalias TypedArray|Array */
@@ -64,9 +67,12 @@ export type TensorLike3D =
 /** @docalias TypedArray|Array */
 export type TensorLike4D =
     TypedArray|number[]|number[][][][]|boolean[]|boolean[][][][];
+/** @docalias TypedArray|Array */
+export type TensorLike5D =
+    TypedArray|number[]|number[][][][][]|boolean[]|boolean[][][][][];
 
 export type FlatVector = boolean[]|number[]|TypedArray;
-export type RegularArray<T> = T[]|T[][]|T[][][]|T[][][][];
+export type RegularArray<T> = T[]|T[][]|T[][][]|T[][][][]|T[][][][][];
 export type ArrayData<D extends DataType> =
     DataTypeMap[D]|RegularArray<number>|RegularArray<boolean>;
 
