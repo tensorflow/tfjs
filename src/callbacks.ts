@@ -248,15 +248,20 @@ export class BaseLogger extends Callback {
         }
         this.totals[key] = this.totals[key] as number + value * batchSize;
       } else {
-        if (!this.totals.hasOwnProperty(key)) {
+        let oldTotalsToDispose: Scalar;
+        if (key in this.totals) {
+          oldTotalsToDispose = this.totals[key] as Scalar;
+        } else {
           this.totals[key] = K.getScalar(0);
         }
-        tidy(() => {
-          this.totals[key] = K.scalarPlusArray(
-                                 this.totals[key] as Scalar,
-                                 mul(value, K.getScalar(batchSize))) as Scalar;
-          keep(this.totals[key] as Scalar);
-        });
+
+        this.totals[key] = tidy(
+            () => K.scalarPlusArray(
+                      (this.totals[key] as Scalar),
+                      mul(value, K.getScalar(batchSize))) as Scalar);
+        if (oldTotalsToDispose != null) {
+          oldTotalsToDispose.dispose();
+        }
       }
     }
   }
