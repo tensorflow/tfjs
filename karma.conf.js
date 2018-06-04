@@ -49,14 +49,14 @@ module.exports = function(config) {
         browser: 'chrome',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'Sierra'
+        os_version: 'High Sierra'
       },
       bs_firefox_mac: {
         base: 'BrowserStack',
         browser: 'firefox',
         browser_version: 'latest',
         os: 'OS X',
-        os_version: 'Sierra'
+        os_version: 'High Sierra'
       },
       chrome_with_swift_shader: {
         base: 'Chrome',
@@ -64,6 +64,9 @@ module.exports = function(config) {
       }
     },
     client: {
+      jasmine: {
+        random: false
+      },
       args: ['--grep', config.grep || '']
     }
   });

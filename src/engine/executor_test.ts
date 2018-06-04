@@ -94,18 +94,26 @@ describeMathCPU('FeedDict', () => {
 });
 
 describeMathCPUAndGPU('Executor', () => {
-  it('Linear Graph Topology', () => {
-    const x = tfl.input({shape: [2], name: 'fooInput', dtype: 'float32'});
-    const denseLayer1 = tfl.layers.dense(
-        {units: 5, activation: 'linear', kernelInitializer: 'ones'});
-    const y = denseLayer1.apply(x);
-    const u = tfl.input({shape: [2], name: 'footInput', dtype: 'float32'});
-    const denseLayer2 = tfl.layers.dense(
-        {units: 5, activation: 'linear', kernelInitializer: 'ones'});
-    const denseLayer3 = tfl.layers.dense(
-        {units: 3, activation: 'linear', kernelInitializer: 'ones'});
-    const v = denseLayer2.apply(u);
-    const w = denseLayer3.apply(v);
+  describe('Linear Graph Topology', () => {
+    let x: tfl.SymbolicTensor;
+    let y: {};
+    let u: tfl.SymbolicTensor;
+    let v: {};
+    let w: {};
+
+    beforeEach(() => {
+      x = tfl.input({shape: [2], name: 'fooInput', dtype: 'float32'});
+      const denseLayer1 = tfl.layers.dense(
+          {units: 5, activation: 'linear', kernelInitializer: 'ones'});
+      y = denseLayer1.apply(x);
+      u = tfl.input({shape: [2], name: 'footInput', dtype: 'float32'});
+      const denseLayer2 = tfl.layers.dense(
+          {units: 5, activation: 'linear', kernelInitializer: 'ones'});
+      const denseLayer3 = tfl.layers.dense(
+          {units: 3, activation: 'linear', kernelInitializer: 'ones'});
+      v = denseLayer2.apply(u);
+      w = denseLayer3.apply(v as tfl.SymbolicTensor);
+    });
 
     it('Execute Input directly', () => {
       const xValue = ones([2, 2]);
@@ -144,31 +152,31 @@ describeMathCPUAndGPU('Executor', () => {
        });
   });
 
-  it('Diamond Graph Topology', () => {
-    const x = tfl.input({shape: [2], name: 'fooInput', dtype: 'float32'});
-    const denseLayer1 = tfl.layers.dense({
-      units: 5,
-      activation: 'linear',
-      kernelInitializer: 'ones',
-      name: 'denseLayer1'
-    });
-    const y = denseLayer1.apply(x);
-    const denseLayer2 = tfl.layers.dense({
-      units: 4,
-      activation: 'linear',
-      kernelInitializer: 'ones',
-      name: 'denseLayer2'
-    });
-    const denseLayer3 = tfl.layers.dense({
-      units: 3,
-      activation: 'linear',
-      kernelInitializer: 'ones',
-      name: 'denseLayer3'
-    });
-    const z1 = denseLayer2.apply(y) as tfl.SymbolicTensor;
-    const z2 = denseLayer3.apply(y) as tfl.SymbolicTensor;
-
+  describe('Diamond Graph Topology', () => {
     it('Calling execute with two fetches and diamond graph works', () => {
+      const x = tfl.input({shape: [2], name: 'fooInput', dtype: 'float32'});
+      const denseLayer1 = tfl.layers.dense({
+        units: 5,
+        activation: 'linear',
+        kernelInitializer: 'ones',
+        name: 'denseLayer1'
+      });
+      const y = denseLayer1.apply(x);
+      const denseLayer2 = tfl.layers.dense({
+        units: 4,
+        activation: 'linear',
+        kernelInitializer: 'ones',
+        name: 'denseLayer2'
+      });
+      const denseLayer3 = tfl.layers.dense({
+        units: 3,
+        activation: 'linear',
+        kernelInitializer: 'ones',
+        name: 'denseLayer3'
+      });
+      const z1 = denseLayer2.apply(y) as tfl.SymbolicTensor;
+      const z2 = denseLayer3.apply(y) as tfl.SymbolicTensor;
+
       const xValue = ones([2, 2]);
       const feedDict = new FeedDict([{key: x, value: xValue}]);
       let callCounter = 0;
@@ -181,9 +189,7 @@ describeMathCPUAndGPU('Executor', () => {
           outputs[0], tensor2d([10, 10, 10, 10, 10, 10, 10, 10], [2, 4]));
       expectTensorsClose(
           outputs[1], tensor2d([10, 10, 10, 10, 10, 10], [2, 3]));
-      // The counter should have been incremented twice, because execute() is
-      // called twice, once on CPU and once on GPU.
-      expect(callCounter).toEqual(2);
+      expect(callCounter).toEqual(1);
     });
   });
 });

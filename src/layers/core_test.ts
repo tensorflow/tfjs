@@ -52,7 +52,7 @@ describe('Dropout Layer: Symbolic', () => {
 });
 
 describeMathCPUAndGPU('Dropout Layer', () => {
-  it('tensor', () => {
+  describe('tensor', () => {
     const inputShape = [2, 3, 4];
     const trainingValues = [false, true];
     const dropoutRates = [0, 0.5];
