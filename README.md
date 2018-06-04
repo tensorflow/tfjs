@@ -32,6 +32,18 @@ npm install @tensorflow/tfjs-node-gpu
 yarn add @tensorflow/tfjs-node-gpu
 ```
 
+#### Mac OS X Requires Xcode
+
+If you do not have Xcode setup on your machine, please run the following commands:
+
+```sh
+$ xcode-select --install
+```
+
+After that operation completes, re-run `yarn add` or `npm install` for the `@tensorflow/tfjs-node` package.
+
+## Using the binding
+
 Before executing any TensorFlow.js code, load and set the backend to 'tensorflow'.
 
 ```js
