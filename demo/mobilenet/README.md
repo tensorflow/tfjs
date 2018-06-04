@@ -1,7 +1,7 @@
 # TensorFlow SavedModel Import Demo
 
 This demo imports the
-[MobileNet v1.0](https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.md)
+[MobileNet v2.0](https://www.tensorflow.org/hub/modules/google/imagenet/mobilenet_v2_100_224/classification/1)
 model for inference in the browser. The model was pre-converted to TensorFlow.js
 format and hosted on Google Cloud, using the steps in
 the repo's [README.md](../../README.md).
