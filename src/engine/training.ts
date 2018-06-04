@@ -317,17 +317,19 @@ function sliceArrays(
  */
 export function sliceArraysByIndices(
     arrays: Tensor|Tensor[], indices: Tensor1D): Tensor|Tensor[] {
-  if (arrays == null) {
-    return null;
-  } else if (Array.isArray(arrays)) {
-    return arrays.map(
-        array => (sliceArraysByIndices(array, indices) as Tensor));
-  } else {
-    // TODO(cais): indices should be oa pre-constructed Tensor1D to avoid
-    //   tensor1d() calls.
-    return K.gather(
-        arrays, indices.dtype === 'int32' ? indices : indices.toInt());
-  }
+  return tfc.tidy(() => {
+    if (arrays == null) {
+      return null;
+    } else if (Array.isArray(arrays)) {
+      return arrays.map(
+          array => (sliceArraysByIndices(array, indices) as Tensor));
+    } else {
+      // TODO(cais): indices should be a pre-constructed Tensor1D to avoid
+      //   tensor1d() calls.
+      return K.gather(
+          arrays, indices.dtype === 'int32' ? indices : indices.toInt());
+    }
+  });
 }
 
 /**
@@ -1242,8 +1244,6 @@ export class Model extends Container {
 
         const batches = makeBatches(numTrainSamples, batchSize);
         for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
-          // TODO(cais): tfc.tidy() should not be leaked from the backend.
-          //   Wrap it with a backend function called mathScope.
           const batchLogs: UnresolvedLogs = {};
           await callbackList.onBatchBegin(batchIndex, batchLogs);
 

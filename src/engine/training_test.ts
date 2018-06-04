@@ -1265,6 +1265,29 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
        }
      });
 
+  it('Repeated fit calls leads to no memory leak: batchSize=1, ' +
+         'no validation or metrics',
+     async done => {
+       createDenseModelAndData();
+
+       model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+       const batchSize = 1;  // Use batchSize = 1.
+       await model.fit(inputs, targets, {batchSize, epochs: 1});
+       const numTensors0 = memory().numTensors;
+       for (let i = 0; i < 2; ++i) {
+         await model.fit(inputs, targets, {batchSize, epochs: 1});
+         const numTensorsNow = memory().numTensors;
+         if (numTensorsNow > numTensors0) {
+           done.fail(
+               `Memory leak detected during fit(): Leaked ` +
+               `${numTensorsNow - numTensors0} tensor(s) after the ` +
+               `${i + 1}-th fit() call.`);
+         } else {
+           done();
+         }
+       }
+     });
+
   it('Repeated fit calls leads to no memory leak: with metrics', async done => {
     createDenseModelAndData();
 
@@ -1356,6 +1379,39 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
          await model.fit(
              inputs, targets,
              {batchSize: numSamples, epochs: 1, validationSplit});
+         const numTensorsNow = memory().numTensors;
+         if (numTensorsNow > numTensors0) {
+           done.fail(
+               `Memory leak detected during fit(): Leaked ` +
+               `${numTensorsNow - numTensors0} tensor(s) after the ` +
+               `${i + 1}-th fit() call.`);
+         } else {
+           done();
+         }
+       }
+     });
+
+  it('Repeated fit calls leads to no memory leak: batchSize=2, ' +
+         'metrics & validationSplit',
+     async done => {
+       createDenseModelAndData();
+
+       const validationSplit = 0.4;
+       model.compile(
+           {optimizer: 'SGD', loss: 'meanSquaredError', metrics: ['mse']});
+       const batchSize = 2;  // Use batchSize < numSamples.
+       const epochsPerIter = 2;
+       await model.fit(
+           inputs, targets, {batchSize, epochs: 1, validationSplit});
+       const numTensors0 = memory().numTensors;
+       for (let i = 0; i < 2; ++i) {
+         const history = await model.fit(
+             inputs, targets,
+             {batchSize, epochs: epochsPerIter, validationSplit});
+         expect(history.history['loss'].length).toEqual(epochsPerIter);
+         expect(history.history['val_loss'].length).toEqual(epochsPerIter);
+         expect(history.history['mse'].length).toEqual(epochsPerIter);
+         expect(history.history['val_mse'].length).toEqual(epochsPerIter);
          const numTensorsNow = memory().numTensors;
          if (numTensorsNow > numTensors0) {
            done.fail(
