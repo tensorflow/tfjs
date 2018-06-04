@@ -16,6 +16,8 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
+
+import {nodeFileSystemRouter} from './io/file_system';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
@@ -25,5 +27,9 @@ import {TFJSBinding} from './tfjs_binding';
 tfc.ENV.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
 });
+
+// Register the model saving and loading handlers for the 'file://' URL scheme.
+tfc.io.registerSaveRouter(nodeFileSystemRouter);
+tfc.io.registerLoadRouter(nodeFileSystemRouter);
 
 export {version} from './version';
