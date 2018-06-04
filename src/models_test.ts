@@ -148,15 +148,11 @@ describeMathCPU('model_from_json', () => {
         .catch(done.fail);
   });
 
-  it('toJSON return value includes correct versions', done => {
-    modelFromJSON(fakeRoundtripModel)
-        .then(model => {
-          const serializedModel = model.toJSON(null, false) as JsonDict;
-          expect(serializedModel['keras_version'])
-              .toEqual(`tfjs-layers ${layersVersion}`);
-        })
-        .then(done)
-        .catch(done.fail);
+  it('toJSON return value includes correct versions', async () => {
+    const model = await modelFromJSON(fakeRoundtripModel);
+    const serializedModel = model.toJSON(null, false) as JsonDict;
+    expect(serializedModel['keras_version'])
+        .toEqual(`tfjs-layers ${layersVersion}`);
   });
 });
 
@@ -250,8 +246,8 @@ describeMathCPU('loadModel from URL', () => {
         JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
     configJson['config']['layers'][1]['config']['name'] = denseLayerName;
     modelFromJSON({modelTopology: configJson, weightsManifest, pathPrefix: '.'})
-        .then(() => done.fail)
-        .catch(done);
+      .then(() => done.fail())
+      .catch(() => done());
   });
 
   it('Loads weights despite uniqueified tensor names', async done => {
@@ -548,9 +544,8 @@ describeMathCPUAndGPU('Sequential', () => {
     const model = tfl.sequential({layers: [denseLayer1, denseLayer2]});
     model.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
     const history = await model.fit(xs, ys, {batchSize, epochs: 2});
-    expectTensorsClose(history.history['loss'][0] as Scalar, scalar(121));
-    expectTensorsClose(
-        history.history['loss'][1] as Scalar, scalar(0.015178224071860313));
+    expect(history.history['loss'][0]).toBe(121);
+    expect(history.history['loss'][1]).toBeCloseTo(0.015178224071860313);
   });
 
   it('Calling evaluate before compile leads to error', () => {

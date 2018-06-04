@@ -9,9 +9,14 @@ matrix:
         - yarn build
         - yarn lint
         - yarn test-travis
+      cache: yarn
+      git:
+        depth: 5
 
     - language: node_js
       node_js: "8"
       stage: integ
       script:
         - yarn test-integ
+      git:
+        depth: 5
