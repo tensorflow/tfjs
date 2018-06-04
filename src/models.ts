@@ -191,7 +191,7 @@ export async function loadModelInternal(pathOrIOHandler: string|
     if (handlers.length === 0) {
       // For backward compatibility: if no load handler can be found,
       // assume it is a relative http path.
-      return loadModelFromPath(pathOrIOHandler);
+      handlers.push(io.browserHTTPRequest(pathOrIOHandler));
     } else if (handlers.length > 1) {
       throw new ValueError(
           `Found more than one (${handlers.length}) load handlers for ` +
@@ -214,11 +214,14 @@ export async function loadModelFromIOHandler(
         'does not have the `load` method implemented.');
   }
   const artifacts = await handler.load();
-  const model = deserialize(
-                    convertPythonicToTs(
-                        artifacts.modelTopology as serialization.ConfigDict) as
-                        serialization.ConfigDict,
-                    customObjects) as Model;
+  let modelTopology = artifacts.modelTopology as JsonDict;
+  if (modelTopology['model_config'] != null) {
+    modelTopology = modelTopology['model_config'] as JsonDict;
+  }
+  const model =
+      deserialize(
+          convertPythonicToTs(modelTopology) as serialization.ConfigDict,
+          customObjects) as Model;
 
   // If weightData is present, load the weights into the model.
   if (artifacts.weightData != null) {
@@ -236,56 +239,6 @@ export async function loadModelFromIOHandler(
         skipMismatch, isNamedTensorMap);
   }
   return model;
-}
-
-// tslint:disable:max-line-length
-/**
- * Load a model, including its topology and optionally weights.  See the
- * Tutorial named "How to import a Keras Model" for usage examples.
- *
- * @param modelConfigPath A path to the `ModelAndWeightsConfig` JSON describing
- * the model in the canonical TensorFlow.js format.
- *
- *   The content of the JSON file is assumed to be a JSON object with the
- *   following fields and values:
- *   - 'modelTopology': A JSON object that can be either of:
- *     1. a model architecture JSON consistent with the format of the return
- *      value of `keras.Model.to_json()`
- *     2. a full model JSON in the format of
- *        [`keras.Model.save()`](https://keras.io/getting-started/faq/#how-can-i-save-a-keras-model).
- *   - 'weightsManifest': A TensorFlow.js weights manifest.
- *   See the Python converter function
- *   [`save_keras_model()`](https://js.tensorflow.org/tutorials/import-keras.html)
- * for more details.
- *
- *   It is also assumed that model weights can be accessed from relative paths
- *     described by the `paths` fields in weights manifest.
- *
- * @returns A `Promise` of `Model`, with the topology and weights loaded.
- */
-// tslint:enable:max-line-length
-// TODO(cais): Add link to the core's documentation of `WeightManifestConfig`.
-export async function loadModelFromPath(modelConfigPath: string):
-    Promise<Model> {
-  // TODO(soergel): accept a Request object too, not just a url string.
-  const modelConfigRequest = await fetch(modelConfigPath);
-  const modelConfig = await modelConfigRequest.json() as ModelAndWeightsConfig;
-  if (modelConfig['modelTopology'] == null) {
-    throw new ValueError(
-        'Missing field "modelTopology" from model JSON at path' +
-        modelConfigPath);
-  }
-  // TODO(cais): Remove this check as it's okay to load just the topology of a
-  // model.
-  if (modelConfig['weightsManifest'] == null) {
-    throw new ValueError(
-        'Missing field "weightsManifest" from model JSON at path' +
-        modelConfigPath);
-  }
-  modelConfig.pathPrefix =
-      modelConfigPath.substring(0, modelConfigPath.lastIndexOf('/'));
-
-  return modelFromJSON(modelConfig);
 }
 
 /**

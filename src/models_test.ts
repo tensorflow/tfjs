@@ -223,6 +223,262 @@ describeMathCPU('loadModel from URL', () => {
     }
   }
 
+  it('load topology and weights from implicit relative http path',
+     async done => {
+       const modelTopology =
+           JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
+       const weightsManifest: io.WeightsManifestConfig = [
+         {
+           'paths': ['weight_0'],
+           'weights': [
+             {'name': `dense_6/kernel`, 'dtype': 'float32', 'shape': [32, 32]}
+           ],
+         },
+         {
+           'paths': ['weight_1'],
+           'weights':
+               [{'name': `dense_6/bias`, 'dtype': 'float32', 'shape': [32]}],
+         }
+       ];
+       spyOn(window, 'fetch').and.callFake((path: string) => {
+         if (path === 'model/model.json') {
+           return new Response(JSON.stringify({
+             modelTopology,
+             weightsManifest,
+           }));
+         } else if (path === 'model/weight_0') {
+           return new Response(
+               ones([32, 32], 'float32').dataSync() as Float32Array);
+         } else if (path === 'model/weight_1') {
+           return new Response(
+               zeros([32], 'float32').dataSync() as Float32Array);
+         } else {
+           throw new Error(`Invalid path: ${path}`);
+         }
+       });
+
+       loadModelInternal('model/model.json')
+           .then(model => {
+             expect(model.layers.length).toEqual(2);
+             expect(model.inputs.length).toEqual(1);
+             expect(model.inputs[0].shape).toEqual([null, 32]);
+             expect(model.outputs.length).toEqual(1);
+             expect(model.outputs[0].shape).toEqual([null, 32]);
+             const weightValues = model.getWeights();
+             expect(weightValues.length).toEqual(2);
+             expectTensorsClose(weightValues[0], ones([32, 32]));
+             expectTensorsClose(weightValues[1], zeros([32]));
+             done();
+           })
+           .catch(err => {
+             done.fail(err.stack);
+           });
+     });
+
+  it('load topology and weights from implicit relative http path: HDF5 format',
+     async done => {
+       const modelTopology =
+           JSON.parse(JSON.stringify(fakeSequentialModelFromHDF5))
+               .modelTopology;
+       const weightsManifest: io.WeightsManifestConfig = [
+         {
+           'paths': ['weight_0'],
+           'weights': [
+             {'name': `dense_1/kernel`, 'dtype': 'float32', 'shape': [10, 2]}
+           ],
+         },
+         {
+           'paths': ['weight_1'],
+           'weights':
+               [{'name': `dense_1/bias`, 'dtype': 'float32', 'shape': [2]}],
+         },
+         {
+           'paths': ['weight_2'],
+           'weights': [
+             {'name': `dense_2/kernel`, 'dtype': 'float32', 'shape': [2, 1]}
+           ],
+         },
+         {
+           'paths': ['weight_3'],
+           'weights':
+               [{'name': `dense_2/bias`, 'dtype': 'float32', 'shape': [1]}],
+         }
+       ];
+       spyOn(window, 'fetch').and.callFake((path: string) => {
+         if (path === 'model/model.json') {
+           return new Response(JSON.stringify({
+             modelTopology,
+             weightsManifest,
+           }));
+         } else if (path === 'model/weight_0') {
+           return new Response(
+               ones([10, 2], 'float32').dataSync() as Float32Array);
+         } else if (path === 'model/weight_1') {
+           return new Response(
+               zeros([2], 'float32').dataSync() as Float32Array);
+         } else if (path === 'model/weight_2') {
+           return new Response(
+               zeros([2, 1], 'float32').dataSync() as Float32Array);
+         } else if (path === 'model/weight_3') {
+           return new Response(ones([1], 'float32').dataSync() as Float32Array);
+         } else {
+           throw new Error(`Invalid path: ${path}`);
+         }
+       });
+
+       loadModelInternal('model/model.json')
+           .then(model => {
+             expect(model.layers.length).toEqual(2);
+             expect(model.inputs.length).toEqual(1);
+             expect(model.inputs[0].shape).toEqual([null, 10]);
+             expect(model.outputs.length).toEqual(1);
+             expect(model.outputs[0].shape).toEqual([null, 1]);
+             const weightValues = model.getWeights();
+             expect(weightValues.length).toEqual(4);
+             expectTensorsClose(weightValues[0], ones([10, 2]));
+             expectTensorsClose(weightValues[1], zeros([2]));
+             expectTensorsClose(weightValues[2], zeros([2, 1]));
+             expectTensorsClose(weightValues[3], ones([1]));
+             done();
+           })
+           .catch(err => {
+             done.fail(err.stack);
+           });
+     });
+
+
+  it('load topology and weights with browserHTTPRequest with requestInit',
+     async done => {
+       const modelTopology =
+           JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
+       const weightsManifest: io.WeightsManifestConfig = [
+         {
+           'paths': ['weight_0'],
+           'weights': [
+             {'name': `dense_6/kernel`, 'dtype': 'float32', 'shape': [32, 32]}
+           ],
+         },
+         {
+           'paths': ['weight_1'],
+           'weights':
+               [{'name': `dense_6/bias`, 'dtype': 'float32', 'shape': [32]}],
+         }
+       ];
+
+       const requestHeaders: Array<{}> = [];
+       const requestCredentials: string[] = [];
+       spyOn(window, 'fetch')
+           .and.callFake((path: string, requestInit?: RequestInit) => {
+             if (requestInit != null) {
+               requestHeaders.push(requestInit.headers);
+               requestCredentials.push(requestInit.credentials);
+             }
+             if (path === 'model/model.json') {
+               return new Response(JSON.stringify({
+                 modelTopology,
+                 weightsManifest,
+               }));
+             } else if (path === 'model/weight_0') {
+               return new Response(
+                   ones([32, 32], 'float32').dataSync() as Float32Array);
+             } else if (path === 'model/weight_1') {
+               return new Response(
+                   zeros([32], 'float32').dataSync() as Float32Array);
+             } else {
+               throw new Error(`Invalid path: ${path}`);
+             }
+           });
+
+       loadModelInternal(io.browserHTTPRequest('model/model.json', {
+         headers: {'header_key_1': 'header_value_1'},
+         credentials: 'include',
+       }))
+           .then(model => {
+             expect(model.layers.length).toEqual(2);
+             expect(model.inputs.length).toEqual(1);
+             expect(model.inputs[0].shape).toEqual([null, 32]);
+             expect(model.outputs.length).toEqual(1);
+             expect(model.outputs[0].shape).toEqual([null, 32]);
+             const weightValues = model.getWeights();
+             expect(weightValues.length).toEqual(2);
+             expectTensorsClose(weightValues[0], ones([32, 32]));
+             expectTensorsClose(weightValues[1], zeros([32]));
+
+             // Verify that the headers and credentials are sent via
+             // `fetch` properly.
+             expect(requestHeaders).toEqual([
+               {'header_key_1': 'header_value_1'},
+               {'header_key_1': 'header_value_1'},
+               {'header_key_1': 'header_value_1'}
+             ]);
+             expect(requestCredentials).toEqual([
+               'include', 'include', 'include'
+             ]);
+
+             done();
+           })
+           .catch(err => {
+             done.fail(err.stack);
+           });
+     });
+
+  const httpProtocols = ['http://', 'https://'];
+  for (const protocol of httpProtocols) {
+    it(`load topology and weights: explicit relative ${protocol} path`,
+       async done => {
+         const modelTopology =
+             JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
+         const weightsManifest: io.WeightsManifestConfig = [
+           {
+             'paths': ['weight_0'],
+             'weights': [{
+               'name': `dense_6/kernel`,
+               'dtype': 'float32',
+               'shape': [32, 32]
+             }],
+           },
+           {
+             'paths': ['weight_1'],
+             'weights':
+                 [{'name': `dense_6/bias`, 'dtype': 'float32', 'shape': [32]}],
+           }
+         ];
+         spyOn(window, 'fetch').and.callFake((path: string) => {
+           if (path === `${protocol}localhost:8888/models/model.json`) {
+             return new Response(JSON.stringify({
+               modelTopology,
+               weightsManifest,
+             }));
+           } else if (path === `${protocol}localhost:8888/models/weight_0`) {
+             return new Response(
+                 ones([32, 32], 'float32').dataSync() as Float32Array);
+           } else if (path === `${protocol}localhost:8888/models/weight_1`) {
+             return new Response(
+                 zeros([32], 'float32').dataSync() as Float32Array);
+           } else {
+             throw new Error(`Invalid path: ${path}`);
+           }
+         });
+
+         loadModelInternal(`${protocol}localhost:8888/models/model.json`)
+             .then(model => {
+               expect(model.layers.length).toEqual(2);
+               expect(model.inputs.length).toEqual(1);
+               expect(model.inputs[0].shape).toEqual([null, 32]);
+               expect(model.outputs.length).toEqual(1);
+               expect(model.outputs[0].shape).toEqual([null, 32]);
+               const weightValues = model.getWeights();
+               expect(weightValues.length).toEqual(2);
+               expectTensorsClose(weightValues[0], ones([32, 32]));
+               expectTensorsClose(weightValues[1], zeros([32]));
+               done();
+             })
+             .catch(err => {
+               done.fail(err.stack);
+             });
+       });
+  }
+
   it('Missing weight in manifest leads to error', done => {
     setupFakeWeightFiles({
       './weight_0': ones([32, 32], 'float32').dataSync() as Float32Array,
@@ -246,8 +502,8 @@ describeMathCPU('loadModel from URL', () => {
         JSON.parse(JSON.stringify(fakeSequentialModel)).modelTopology;
     configJson['config']['layers'][1]['config']['name'] = denseLayerName;
     modelFromJSON({modelTopology: configJson, weightsManifest, pathPrefix: '.'})
-      .then(() => done.fail())
-      .catch(() => done());
+        .then(() => done.fail())
+        .catch(() => done());
   });
 
   it('Loads weights despite uniqueified tensor names', async done => {
@@ -288,10 +544,10 @@ describeMathCPU('loadModel from URL', () => {
       expectTensorsClose(model1.weights[0].read(), ones([32, 32], 'float32'));
       expectTensorsClose(model1.weights[1].read(), ones([32], 'float32'));
 
-      // On the second load, the variable names will be uniqueified.  This test
-      // succeeds only because we maintain the name mapping, so we can load
-      // weights--keyed by non-unique names in the weight manifest--into
-      // variables with newly uniqueified names.
+      // On the second load, the variable names will be uniqueified. This
+      // test succeeds only because we maintain the name mapping, so we
+      // can load weights--keyed by non-unique names in the weight
+      // manifest--into variables with newly uniqueified names.
       const model2 = await modelFromJSON(
           {modelTopology: configJson, weightsManifest, pathPrefix: '.'});
       // note unique suffix
@@ -380,8 +636,8 @@ describeMathCPU('loadModel from IOHandler', () => {
   ];
   const weightData = new Float32Array([1.1, 2.2, 3.3, 4.4, 5.5]).buffer;
 
-  // A dummy IOHandler that returns hard-coded model artifacts when its `load`
-  // method is called.
+  // A dummy IOHandler that returns hard-coded model artifacts when its
+  // `load` method is called.
   class IOHandlerForTest implements io.IOHandler {
     private readonly includeWeights: boolean;
 
@@ -395,8 +651,8 @@ describeMathCPU('loadModel from IOHandler', () => {
     }
   }
 
-  // A dummy IOHandler that doesn't have the `load` method implemented and is
-  // expected to cause `loadModel` or `loadModelInternal` to fail.
+  // A dummy IOHandler that doesn't have the `load` method implemented and
+  // is expected to cause `loadModel` or `loadModelInternal` to fail.
   class IOHandlerWithoutLoad implements io.IOHandler {
     constructor() {}
   }
@@ -638,6 +894,70 @@ const fakeSequentialModel: ModelAndWeightsConfig = {
       'name': 'test'
     },
     'backend': 'tensorflow'
+  }
+};
+
+const fakeSequentialModelFromHDF5: ModelAndWeightsConfig = {
+  modelTopology: {
+    'backend': 'tensorflow',
+    'keras_version': '2.1.4',
+    'model_config': {
+      'class_name': 'Sequential',
+      'config': [
+        {
+          'class_name': 'Dense',
+          'config': {
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'seed': null,
+                'mode': 'fan_avg'
+              }
+            },
+            'name': 'dense_1',
+            'kernel_constraint': null,
+            'bias_regularizer': null,
+            'bias_constraint': null,
+            'dtype': 'float32',
+            'activation': 'relu',
+            'trainable': true,
+            'kernel_regularizer': null,
+            'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+            'units': 2,
+            'batch_input_shape': [null, 10],
+            'use_bias': true,
+            'activity_regularizer': null
+          }
+        },
+        {
+          'class_name': 'Dense',
+          'config': {
+            'kernel_initializer': {
+              'class_name': 'VarianceScaling',
+              'config': {
+                'distribution': 'uniform',
+                'scale': 1.0,
+                'seed': null,
+                'mode': 'fan_avg'
+              }
+            },
+            'name': 'dense_2',
+            'kernel_constraint': null,
+            'bias_regularizer': null,
+            'bias_constraint': null,
+            'activation': 'sigmoid',
+            'trainable': true,
+            'kernel_regularizer': null,
+            'bias_initializer': {'class_name': 'Zeros', 'config': {}},
+            'units': 1,
+            'use_bias': true,
+            'activity_regularizer': null
+          }
+        }
+      ]
+    },
   }
 };
 
