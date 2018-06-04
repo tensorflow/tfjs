@@ -96,7 +96,11 @@ to convert your code to something the browser understands. See our
 to see how we use <a href="https://parceljs.org/" target="_blank">Parcel</a> to build
 our code. However you are free to use any build tool that you prefer.
 
+```yarn add @tensorflow/tfjs```
 
+```npm install @tensorflow/tfjs```
+
+In your main js file:
 
 ```js
 import * as tf from '@tensorflow/tfjs';
