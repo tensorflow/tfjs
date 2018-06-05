@@ -27,7 +27,6 @@ import os
 import tempfile
 
 import h5py
-import keras
 import numpy as np
 import six
 
@@ -261,7 +260,7 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
           fields:
           - 'modelTopology': A JSON object describing the topology of the model,
             along with additional information such as training. It is obtained
-            through calling `keras.models.save_model`.
+            through calling `model.save()`.
           - 'weightsManifest': A TensorFlow.js-format JSON manifest for the
             model's weights.
         - files containing weight values in groups, with the file name pattern
@@ -274,7 +273,7 @@ def save_keras_model(model, artifacts_dir, quantization_dtype=None):
     ValueError: If `artifacts_dir` already exists as a file (not a directory).
   """
   temp_h5_path = tempfile.mktemp() + '.h5'
-  keras.models.save_model(model, temp_h5_path)
+  model.save(temp_h5_path)
   # TODO(cais): Maybe get rid of the class HDF5Converter to simplify the code.
   converter = HDF5Converter()
   topology_json, weights_group = (

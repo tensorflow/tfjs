@@ -3,7 +3,6 @@ py_library(
     srcs = ["keras_h5_conversion.py"],
     deps = [
         "//tensorflowjs:expect_h5py_installed",
-        "//tensorflowjs:expect_keras_installed",
         "//tensorflowjs:expect_numpy_installed",
         "//tensorflowjs:write_weights",
     ],
@@ -18,6 +17,7 @@ py_test(
         "//tensorflowjs:expect_h5py_installed",
         "//tensorflowjs:expect_keras_installed",
         "//tensorflowjs:expect_numpy_installed",
+        "//tensorflowjs:expect_tensorflow_installed",
     ],
 )
 
