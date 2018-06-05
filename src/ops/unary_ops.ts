@@ -357,11 +357,9 @@ export class UnaryOps {
 
     const grad = (dy: T) => {
       return {
-        // TODO(cais): Fix gradients for the case where x = min or x
-        // = max.
         x: () => dy.where(
-                     x.greater(ops.scalar(clipValueMin))
-                         .logicalAnd(x.less(ops.scalar(clipValueMax))),
+                     x.greaterEqual(ops.scalar(clipValueMin))
+                         .logicalAnd(x.lessEqual(ops.scalar(clipValueMax))),
                      zerosLike(dy)) as T,
       };
     };

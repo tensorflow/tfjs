@@ -2090,6 +2090,18 @@ describeWithFlags('clip', ALL_ENVS, () => {
     expectArraysClose(gradients, [0, 0, 500]);
   });
 
+  it('derivative: 1D tensor with max or min value', () => {
+    const min = -1;
+    const max = 2;
+    const x = tf.tensor1d([-1, 1, 2, 3]);
+    const dy = tf.tensor1d([1, 10, 100, 1000]);
+    const gradients = tf.grad(x => x.clipByValue(min, max))(x, dy);
+
+    expect(gradients.shape).toEqual(x.shape);
+    expect(gradients.dtype).toEqual('float32');
+    expectArraysClose(gradients, [1, 10, 100, 0]);
+  });
+
   it('derivative: scalar', () => {
     const min = -1;
     const max = 2;
