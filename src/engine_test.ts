@@ -16,178 +16,9 @@
  */
 
 import * as tf from './index';
+import {describeWithFlags} from './jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectNumbersClose, WEBGL_ENVS} from './test_util';
-import {describeWithFlags} from './jasmine_util';
-
-describeWithFlags('tidy', ALL_ENVS, () => {
-  it('returns Tensor', () => {
-    tf.tidy(() => {
-      const a = tf.tensor1d([1, 2, 3]);
-      let b = tf.tensor1d([0, 0, 0]);
-
-      expect(tf.memory().numTensors).toBe(2);
-      tf.tidy(() => {
-        const result = tf.tidy(() => {
-          b = tf.addStrict(a, b);
-          b = tf.addStrict(a, b);
-          b = tf.addStrict(a, b);
-          return tf.add(a, b);
-        });
-
-        // result is new. All intermediates should be disposed.
-        expect(tf.memory().numTensors).toBe(2 + 1);
-        expectArraysClose(result, [4, 8, 12]);
-      });
-
-      // a, b are still here, result should be disposed.
-      expect(tf.memory().numTensors).toBe(2);
-    });
-
-    expect(tf.memory().numTensors).toBe(0);
-  });
-
-  it('multiple disposes does not affect num arrays', () => {
-    expect(tf.memory().numTensors).toBe(0);
-    const a = tf.tensor1d([1, 2, 3]);
-    const b = tf.tensor1d([1, 2, 3]);
-    expect(tf.memory().numTensors).toBe(2);
-    a.dispose();
-    a.dispose();
-    expect(tf.memory().numTensors).toBe(1);
-    b.dispose();
-    expect(tf.memory().numTensors).toBe(0);
-  });
-
-  it('allows primitive types', () => {
-    const a = tf.tidy(() => 5);
-    expect(a).toBe(5);
-
-    const b = tf.tidy(() => 'hello');
-    expect(b).toBe('hello');
-  });
-
-  it('allows complex types', () => {
-    const res = tf.tidy(() => {
-      return {a: tf.scalar(1), b: 'hello', c: [tf.scalar(2), 'world']};
-    });
-    expectArraysClose(res.a, [1]);
-    expectArraysClose(res.c[0] as tf.Scalar, [2]);
-  });
-
-  it('returns Tensor[]', () => {
-    const a = tf.tensor1d([1, 2, 3]);
-    const b = tf.tensor1d([0, -1, 1]);
-    expect(tf.memory().numTensors).toBe(2);
-
-    tf.tidy(() => {
-      const result = tf.tidy(() => {
-        tf.add(a, b);
-        return [tf.add(a, b), tf.sub(a, b)];
-      });
-
-      // the 2 results are new. All intermediates should be disposed.
-      expect(tf.memory().numTensors).toBe(4);
-      expectArraysClose(result[0], [1, 1, 4]);
-      expectArraysClose(result[1], [1, 3, 2]);
-      expect(tf.memory().numTensors).toBe(4);
-    });
-
-    // the 2 results should be disposed.
-    expect(tf.memory().numTensors).toBe(2);
-    a.dispose();
-    b.dispose();
-    expect(tf.memory().numTensors).toBe(0);
-  });
-
-  it('basic usage without return', () => {
-    const a = tf.tensor1d([1, 2, 3]);
-    let b = tf.tensor1d([0, 0, 0]);
-
-    expect(tf.memory().numTensors).toBe(2);
-
-    tf.tidy(() => {
-      b = tf.addStrict(a, b);
-      b = tf.addStrict(a, b);
-      b = tf.addStrict(a, b);
-      tf.add(a, b);
-    });
-
-    // all intermediates should be disposed.
-    expect(tf.memory().numTensors).toBe(2);
-  });
-
-  it('nested usage', () => {
-    const a = tf.tensor1d([1, 2, 3]);
-    let b = tf.tensor1d([0, 0, 0]);
-
-    expect(tf.memory().numTensors).toBe(2);
-
-    tf.tidy(() => {
-      const result = tf.tidy(() => {
-        b = tf.addStrict(a, b);
-        b = tf.tidy(() => {
-          b = tf.tidy(() => {
-            return tf.addStrict(a, b);
-          });
-          // original a, b, and two intermediates.
-          expect(tf.memory().numTensors).toBe(4);
-
-          tf.tidy(() => {
-            tf.addStrict(a, b);
-          });
-          // All the intermediates should be cleaned up.
-          expect(tf.memory().numTensors).toBe(4);
-
-          return tf.addStrict(a, b);
-        });
-        expect(tf.memory().numTensors).toBe(4);
-
-        return tf.addStrict(a, b);
-      });
-
-      expect(tf.memory().numTensors).toBe(3);
-      expectArraysClose(result, [4, 8, 12]);
-    });
-    expect(tf.memory().numTensors).toBe(2);
-  });
-
-  it('single argument', () => {
-    let hasRan = false;
-    tf.tidy(() => {
-      hasRan = true;
-    });
-    expect(hasRan).toBe(true);
-  });
-
-  it('single argument, but not a function throws error', () => {
-    expect(() => {
-      tf.tidy('asdf');
-    }).toThrowError();
-  });
-
-  it('2 arguments, first is string', () => {
-    let hasRan = false;
-    tf.tidy('name', () => {
-      hasRan = true;
-    });
-    expect(hasRan).toBe(true);
-  });
-
-  it('2 arguments, but first is not string throws error', () => {
-    expect(() => {
-      // tslint:disable-next-line:no-any
-      tf.tidy(4 as any, () => {});
-    }).toThrowError();
-  });
-
-  it('2 arguments, but second is not a function throws error', () => {
-    expect(() => {
-      // tslint:disable-next-line:no-any
-      tf.tidy('name', 'another name' as any);
-    }).toThrowError();
-  });
-});
 
 describeWithFlags('fromPixels + regular math op', WEBGL_ENVS, () => {
   it('debug mode does not error when no nans', () => {
@@ -532,13 +363,13 @@ describeWithFlags('memory', ALL_ENVS, () => {
 
 describeWithFlags('disposeVariables', ALL_ENVS, () => {
   it('reuse same name variable', () => {
-    tf.tensor1d([1,2,3]).variable(true, 'v1');
-    tf.tensor1d([1,2,3]).variable(true, 'v2');
+    tf.tensor1d([1, 2, 3]).variable(true, 'v1');
+    tf.tensor1d([1, 2, 3]).variable(true, 'v2');
     expect(() => {
       tf.tensor1d([1, 2, 3]).variable(true, 'v1');
     }).toThrowError();
     tf.disposeVariables();
-    tf.tensor1d([1,2,3]).variable(true, 'v1');
-    tf.tensor1d([1,2,3]).variable(true, 'v2');
+    tf.tensor1d([1, 2, 3]).variable(true, 'v1');
+    tf.tensor1d([1, 2, 3]).variable(true, 'v2');
   });
 });

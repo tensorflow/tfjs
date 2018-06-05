@@ -28,7 +28,6 @@ import {NamedTensorMap, NamedVariableMap, TensorContainer, TypedArray} from './t
 import * as util from './util';
 
 interface ScopeState {
-  keep: Tensor[];
   track: Tensor[];
   name?: string;
 }
@@ -62,7 +61,9 @@ export type MemoryInfo = {
   unreliable?: boolean;
 };
 
-export interface TimingInfo extends BackendTimingInfo { wallMs: number; }
+export interface TimingInfo extends BackendTimingInfo {
+  wallMs: number;
+}
 
 export class Engine implements TensorManager {
   // Public since optimizers will use it.
@@ -81,11 +82,12 @@ export class Engine implements TensorManager {
   // Keep Tensors that parallel the tapes.
   private activeScope: ScopeState;
   private scopeStack: ScopeState[];
+  private keepTensors: Set<number> = new Set();
   private profiler: Profiler;
 
   constructor(private backend: KernelBackend, public safeMode: boolean) {
     // Create a default outer scope.
-    this.activeScope = {keep: [], track: []};
+    this.activeScope = {track: []};
     this.scopeStack = [this.activeScope];
     this.profiler = new Profiler(backend);
   }
@@ -228,7 +230,7 @@ export class Engine implements TensorManager {
           'Safe mode is ON. Enclose all tensor operations inside tf.tidy(): ' +
           'tf.tidy(() => {...}) to avoid memory leaks.');
     }
-    this.activeScope.keep.push(result);
+    this.keepTensors.add(result.id);
     return result;
   }
 
@@ -244,7 +246,7 @@ export class Engine implements TensorManager {
       this.gradientScopeCount++;
     }
 
-    const scopeInfo: ScopeState = {keep: [], track: []};
+    const scopeInfo: ScopeState = {track: []};
     if (name) {
       scopeInfo.name = name;
     }
@@ -264,14 +266,15 @@ export class Engine implements TensorManager {
       }
     }
 
-    let tensorsToKeep = this.activeScope.keep;
+    const tensorsToKeep = new Set(this.keepTensors);
+
     const tensorsToTrackInParent = util.extractTensorsFromContainer(result);
-    tensorsToKeep = tensorsToKeep.concat(tensorsToTrackInParent);
+    tensorsToTrackInParent.forEach(tensor => tensorsToKeep.add(tensor.id));
 
     // Dispose the arrays tracked in this scope.
     for (let i = 0; i < this.activeScope.track.length; i++) {
       const tensor = this.activeScope.track[i];
-      if (util.isTensorInList(tensor, tensorsToKeep)) {
+      if (tensorsToKeep.has(tensor.id)) {
         continue;
       }
 
@@ -282,20 +285,21 @@ export class Engine implements TensorManager {
       }
     }
 
-    this.scopeStack.pop();
+    const oldScope = this.scopeStack.pop();
     this.activeScope = this.scopeStack.length === 0 ?
-        {keep: [], track: []} :
+        {track: []} :
         this.scopeStack[this.scopeStack.length - 1];
 
     // Track the current result in the parent scope.
     tensorsToTrackInParent.forEach(tensor => {
-      if (!util.isTensorInList(tensor, this.activeScope.keep)) {
+      // Only track the tensor if was allocated in the inner scope and is not
+      // globally kept.
+      if (!this.keepTensors.has(tensor.id) &&
+          util.isTensorInList(tensor, oldScope.track)) {
         this.track(tensor);
       }
     });
   }
-
-  dispose() {}
 
   /**
    * Returns gradients of `f` with respect to each of the `xs`. The gradients
