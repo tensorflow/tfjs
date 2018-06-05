@@ -265,6 +265,16 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('Mul', opAttrs, [a, b]);
   }
 
+  realDivide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.executeSingleOutput('RealDiv', opAttrs, [a, b]);
+  }
+
+  floorDiv(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
+    return this.executeSingleOutput('FloorDiv', opAttrs, [a, b]);
+  }
+
   divide(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Div', opAttrs, [a, b]);
@@ -347,6 +357,7 @@ export class NodeJSKernelBackend implements KernelBackend {
   topKValues<T extends Tensor>(x: T, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
+
   topKIndices(x: Tensor, k: number): Tensor1D {
     throw new Error('Method not implemented.');
   }
@@ -557,6 +568,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     return this.executeSingleOutput('Conv2D', opAttrs, [x, filter]) as Tensor4D;
   }
+
   conv2dDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
@@ -584,6 +596,7 @@ export class NodeJSKernelBackend implements KernelBackend {
                'Conv2DBackpropInput', opAttrs, [inputSizes, filter, dy]) as
         Tensor4D;
   }
+
   conv2dDerFilter(x: Tensor4D, dy: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -610,6 +623,54 @@ export class NodeJSKernelBackend implements KernelBackend {
                'Conv2DBackpropFilter', opAttrs, [x, filterSizes, dy]) as
         Tensor4D;
   }
+
+  depthwiseConv2DDerInput(
+      dy: Tensor<Rank.R4>, filter: Tensor<Rank.R4>,
+      convInfo: Conv2DInfo): Tensor4D {
+    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
+    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
+    const opAttrs = [
+      this.createTypeOpAttr('T', 'float32'),
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
+    ];
+
+    const inputSizes = tensor1d(convInfo.inShape, 'int32');
+    return this.executeSingleOutput(
+               'DepthwiseConv2dNativeBackpropInput', opAttrs,
+               [inputSizes, filter, dy]) as Tensor4D;
+  }
+
+  depthwiseConv2DDerFilter(
+      x: Tensor<Rank.R4>, dY: Tensor<Rank.R4>,
+      convInfo: Conv2DInfo): Tensor<Rank.R4> {
+    const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
+    const padding = convInfo.padInfo.type;
+    const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
+    const dilations = [1, convInfo.dilationHeight, convInfo.dilationWidth, 1];
+    const opAttrs = [
+      this.createTypeOpAttr('T', 'float32'),
+      {name: 'strides', type: this.binding.TF_ATTR_INT, value: strides},
+      {name: 'padding', type: this.binding.TF_ATTR_STRING, value: padding}, {
+        name: 'data_format',
+        type: this.binding.TF_ATTR_STRING,
+        value: dataFormat
+      },
+      {name: 'dilations', type: this.binding.TF_ATTR_INT, value: dilations}
+    ];
+    const filterSizes = tensor1d(convInfo.filterShape, 'int32');
+    return this.executeSingleOutput(
+               'DepthwiseConv2dNativeBackpropFilter', opAttrs,
+               [x, filterSizes, dY]) as Tensor4D;
+  }
+
   depthwiseConv2D(input: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
@@ -634,6 +695,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput(
                'DepthwiseConv2dNative', opAttrs, [input, filter]) as Tensor4D;
   }
+
   maxPool(x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -656,6 +718,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     return this.executeSingleOutput('MaxPool', opAttrs, [x]) as Tensor4D;
   }
+
   maxPoolBackprop(dy: Tensor4D, x: Tensor4D, y: Tensor4D, convInfo: Conv2DInfo):
       Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
@@ -705,6 +768,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     return this.executeSingleOutput('AvgPool', opAttrs, [x]) as Tensor4D;
   }
+
   avgPoolBackprop(dy: Tensor4D, x: Tensor4D, convInfo: Conv2DInfo): Tensor4D {
     if (convInfo.padInfo.type !== 'VALID' && convInfo.padInfo.type !== 'SAME') {
       throw new Error(
@@ -759,6 +823,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     const multiples = tensor1d(reps, 'int32');
     return this.executeSingleOutput('Tile', opAttrs, [x, multiples]) as T;
   }
+
   pad<T extends Tensor>(
       x: T, paddings: Array<[number, number]>, constantValue: number): T {
     // Bind tensor values
@@ -893,6 +958,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     ];
     return this.executeSingleOutput('LRN', opAttrs, [x]) as Tensor4D;
   }
+
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D {
