@@ -280,8 +280,7 @@ export class ArrayOps {
     }
     const inferredShape = util.inferShape(values);
     if (inferredShape.length !== 5 && inferredShape.length !== 1) {
-      throw new Error(
-          'tensor5d() requires values to be \
+      throw new Error('tensor5d() requires values to be \
            number[][][][][] or flat/TypedArray');
     }
     if (inferredShape.length === 1 && shape == null) {
@@ -674,10 +673,11 @@ export class ArrayOps {
    * tf.fromPixels(image).print();
    * ```
    *
-   * @param pixels The input image to construct the tensor from.
-   * @param numChannels The number of channels of the output tensor. The
-   * supported image types are all 4-channel by default, a numChannels value
-   * less than 4 allows you to ignore channels.
+   * @param pixels The input image to construct the tensor from. The
+   * supported image types are all 4-channel.
+   * @param numChannels The number of channels of the output tensor. A
+   * numChannels value less than 4 allows you to ignore channels. Defaults to
+   * 3 (ignores alpha channel of input image).
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
