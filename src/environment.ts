@@ -344,16 +344,12 @@ export class Environment {
   reset() {
     this.features = getFeaturesFromURL();
     if (this.globalEngine != null) {
-      this.globalEngine.dispose();
       this.globalEngine = null;
     }
   }
 
   private initBackend(backendType?: string, safeMode = false) {
     this.currentBackend = backendType;
-    if (this.globalEngine != null) {
-      this.globalEngine.dispose();
-    }
     const backend = ENV.findBackend(backendType);
     this.globalEngine = new Engine(backend, safeMode);
   }
