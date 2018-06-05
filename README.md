@@ -53,7 +53,7 @@ Add the following code to an HTML file:
 <html>
   <head>
     <!-- Load TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.8.0"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2"> </script>
 
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script>
