@@ -39,6 +39,7 @@ export class GPGPUContext {
   program: WebGLProgram|null = null;
   private disposed = false;
   private autoDebugValidate = false;
+  private disjoint: boolean;
 
   constructor(gl?: WebGLRenderingContext) {
     if (gl != null) {
@@ -348,11 +349,8 @@ export class GPGPUContext {
    */
   public runQuery(queryFn: () => void): Promise<number> {
     const query = this.beginQuery();
-
     queryFn();
-
     this.endQuery();
-
     return this.pollQueryTime(query);
   }
 
@@ -394,33 +392,58 @@ export class GPGPUContext {
 
       const available =
           gl2.getQueryParameter(query, gl2.QUERY_RESULT_AVAILABLE);
+      if (this.disjoint == null) {
+        this.disjoint = this.gl.getParameter(ext.GPU_DISJOINT_EXT);
+      }
 
-      const disjoint = this.gl.getParameter(ext.GPU_DISJOINT_EXT);
-      return available && !disjoint;
+      return available && !this.disjoint;
     } else {
       const ext = this.getQueryTimerExtensionWebGL1();
 
       const available =
           ext.getQueryObjectEXT(query, ext.QUERY_RESULT_AVAILABLE_EXT);
+      if (this.disjoint == null) {
+        this.disjoint = this.gl.getParameter(ext.GPU_DISJOINT_EXT);
+      }
 
-      const disjoint = this.gl.getParameter(ext.GPU_DISJOINT_EXT);
-
-      return available && !disjoint;
+      return available && !this.disjoint;
     }
   }
 
   pollQueryTime(query: WebGLQuery): Promise<number> {
-    return new Promise<number>((resolve, reject) => {
-      const resolveWithWarning = () => {
-        console.warn('Disjoint query timer never available.');
-        resolve(-1);
-      };
-
+    return new Promise<number>(resolve => {
       const queryTimerVersion =
           ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION');
-      util.repeatedTry(() => this.isQueryAvailable(query, queryTimerVersion))
-          .then(() => resolve(this.getQueryTime(query, queryTimerVersion)))
-          .catch(resolveWithWarning);
+      this.addItemToPoll(
+          () => this.isQueryAvailable(query, queryTimerVersion),
+          () => resolve(this.getQueryTime(query, queryTimerVersion)));
+    });
+  }
+
+  private itemsToPoll: PollItem[] = [];
+
+  pollItems(): void {
+    // Find the last query that has finished using binary search.
+    // All other queries before it are also done.
+    const index = binSearchLastTrue(this.itemsToPoll.map(x => x.isDoneFn));
+    for (let i = 0; i <= index; ++i) {
+      const {resolveFn} = this.itemsToPoll[i];
+      resolveFn();
+    }
+    this.itemsToPoll = this.itemsToPoll.slice(index + 1);
+  }
+
+  private addItemToPoll(isDoneFn: () => boolean, resolveFn: () => void) {
+    this.itemsToPoll.push({isDoneFn, resolveFn});
+    if (this.itemsToPoll.length > 1) {
+      // We already have a running loop that polls.
+      return;
+    }
+    // Start a new loop that polls.
+    util.repeatedTry(() => {
+      this.pollItems();
+      // End the loop if no more items to poll.
+      return this.itemsToPoll.length === 0;
     });
   }
 
@@ -519,4 +542,30 @@ export class GPGPUContext {
       throw new Error('No GPU program is currently set.');
     }
   }
+}
+
+type PollItem = {
+  isDoneFn: () => boolean,
+  resolveFn: () => void
+};
+
+/**
+ * Finds the index of the last true element using binary search where
+ * evaluation of an entry is expensive.
+ */
+export function binSearchLastTrue(arr: Array<() => boolean>): number {
+  let start = 0;
+  let end = arr.length - 1;
+  let best = -1;
+  while (start <= end) {
+    const mid = (start + end) >> 1;
+    const isDone = arr[mid]();
+    if (isDone) {
+      best = mid;
+      start = mid + 1;
+    } else {
+      end = mid - 1;
+    }
+  }
+  return best;
 }
