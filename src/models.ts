@@ -11,7 +11,7 @@
 /* Original source keras/models.py */
 
 // tslint:disable:max-line-length
-import {doc, io, ModelPredictConfig, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {doc, io, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {History} from './callbacks';
@@ -101,6 +101,19 @@ export interface ModelAndWeightsConfig {
    * The path may optionally end in a slash ('/').
    */
   pathPrefix?: string;
+}
+
+// TODO(nielsene): Remove after: https://github.com/tensorflow/tfjs/issues/400
+export interface ModelPredictConfig {
+  /**
+   * Optional. Batch size (Integer). If unspecified, it will default to 32.
+   */
+  batchSize?: number;
+
+  /**
+   * Optional. Verbosity mode. Defaults to false.
+   */
+  verbose?: boolean;
 }
 
 // tslint:disable:max-line-length
