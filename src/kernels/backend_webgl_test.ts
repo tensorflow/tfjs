@@ -16,8 +16,9 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {expectArraysClose, WEBGL_ENVS} from '../test_util';
+import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
+import {expectArraysClose, expectArraysEqual, WEBGL_ENVS} from '../test_util';
 import {MathBackendWebGL} from './backend_webgl';
 
 describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
@@ -101,5 +102,30 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
     expect(texManager.getNumUsedTextures()).toBe(2);
     backend.dispose();
     expect(texManager.getNumUsedTextures()).toBe(0);
+  });
+});
+
+describe('Custom window size', () => {
+  it('Set screen area to be 1x1', () => {
+    // This will set the screen size to 1x1 to make sure the page limit is
+    // very small.
+    spyOnProperty(window, 'screen', 'get')
+        .and.returnValue({height: 1, width: 1});
+    const oldBackend = tf.getBackend();
+
+    tf.ENV.registerBackend('custom-webgl', () => new MathBackendWebGL());
+    tf.setBackend('custom-webgl');
+
+    // Allocate a 100x100 tensor.
+    const a = tf.ones([100, 100]);
+    // No gpu memory used yet because of delayed storage.
+    expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU).toBe(0);
+
+    a.square();
+    // Everything got paged out of gpu after the run finished.
+    expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU).toBe(0);
+
+    expectArraysEqual(a, new Float32Array(100 * 100).fill(1));
+    tf.setBackend(oldBackend);
   });
 });

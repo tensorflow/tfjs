@@ -9,7 +9,6 @@ node_modules/
 karma.conf.js
 *.tgz
 *.log
-dist/**/*.js.map
 .travis.yml
 CONTRIBUTING.md
 tslint.json

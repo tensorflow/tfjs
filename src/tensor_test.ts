@@ -1104,3 +1104,44 @@ describeWithFlags('tensor grad', ALL_ENVS, () => {
     expectArraysClose(data, [12, 18]);
   });
 });
+
+describeWithFlags('tensor.data', ALL_ENVS, () => {
+  it('.data() postpones disposal of tensor', done => {
+    expect(tf.memory().numTensors).toBe(0);
+    tf.tidy(() => {
+      const a = tf.scalar(5);
+      expect(tf.memory().numTensors).toBe(1);
+      a.square();  // Uploads it on GPU.
+      a.data().then(vals => {
+        // The tidy above should not dispose the scalar since there is
+        // a pending data read.
+        expectNumbersClose(vals[0], 5);
+      });
+    });
+
+    // tidy ends immediately, but should not dispose the scalar.
+
+    setTimeout(() => {
+      // tidy should dispose the tensor.
+      expect(tf.memory().numTensors).toBe(0);
+      done();
+    });
+  });
+
+  it('calling .data() twice works (2 subscribers to a single read)', done => {
+    tf.tidy(() => {
+      const a = tf.scalar(5);
+      a.square();  // Uploads it on GPU.
+      a.data().then(vals => {
+        expectNumbersClose(vals[0], 5);
+      });
+      a.data()
+          .then(vals => {
+            expectNumbersClose(vals[0], 5);
+          })
+          .then(done);
+    });
+    // tidy ends immediately, but should not dispose the scalar since there is
+    // a pending data read.
+  });
+});

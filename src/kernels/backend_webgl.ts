@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {TimingInfo} from '../engine';
+import {MemoryInfo, TimingInfo} from '../engine';
 import {ENV} from '../environment';
 import * as axis_util from '../ops/axis_util';
 import {Conv2DInfo} from '../ops/conv_util';
@@ -82,13 +82,37 @@ export interface CPUTimerQuery {
   endMs?: number;
 }
 
+export interface WebGLMemoryInfo extends MemoryInfo {
+  numBytesInGPU: number;
+  unreliable: boolean;
+}
+
 export interface WebGLTimingInfo extends TimingInfo {
   uploadWaitMs: number;
   downloadWaitMs: number;
 }
 
+// Empirically determined constant used to decide the number of bytes on GPU
+// before we start paging. The bytes are this constant * screen area * dpi.
+const BEFORE_PAGING_CONSTANT = 300;
+
 export class MathBackendWebGL implements KernelBackend {
   private texData = new WeakMap<DataId, TextureData>();
+  // Maps data ids that have a pending read operation, to list of subscribers.
+  private pendingRead = new WeakMap<DataId, Array<(arr: TypedArray) => void>>();
+  // List of data ids that are scheduled for disposal, but are waiting on a
+  // pending read operation.
+  private pendingDisposal = new WeakSet<DataId>();
+  // List of data ids that are currently residing on gpu memory. Sorted with
+  // least recently used being first.
+  private lruDataGPU: DataId[] = [];
+  private numBytesInGPU = 0;
+  /**
+   * Number of bytes allocated on the GPU before we start moving data to cpu.
+   * Moving avoids gpu memory leaks and relies on JS's garbage collector.
+   */
+  private NUM_BYTES_BEFORE_PAGING: number;
+
   private canvas: HTMLCanvasElement;
   private fromPixelsCanvas: HTMLCanvasElement;
 
@@ -164,7 +188,7 @@ export class MathBackendWebGL implements KernelBackend {
     const {texture, texShape, texType} = texData;
     if (texture != null) {
       // Release the old texture.
-      this.textureManager.releaseTexture(texture, texShape, texType);
+      this.releaseTexture(dataId, texture, texShape, texType);
       texData.texture = null;
       texData.texShape = null;
     }
@@ -196,6 +220,10 @@ export class MathBackendWebGL implements KernelBackend {
     return texData.values;
   }
   async read(dataId: DataId): Promise<TypedArray> {
+    if (this.pendingRead.has(dataId)) {
+      const subscribers = this.pendingRead.get(dataId);
+      return new Promise<TypedArray>(resolve => subscribers.push(resolve));
+    }
     this.throwIfNoData(dataId);
     const texData = this.texData.get(dataId);
     const {texture, values, texShape} = texData;
@@ -214,10 +242,20 @@ export class MathBackendWebGL implements KernelBackend {
       return this.readSync(dataId);
     }
 
+    this.pendingRead.set(dataId, []);
     // Construct an empty query. We're just interested in getting a callback
     // when the GPU command queue has executed until this point in time.
     await this.gpgpu.runQuery(() => {});
-    return this.readSync(dataId);
+    const subscribers = this.pendingRead.get(dataId);
+    this.pendingRead.delete(dataId);
+    const vals = this.readSync(dataId);
+    // Notify all pending reads.
+    subscribers.forEach(resolve => resolve(vals));
+    if (this.pendingDisposal.has(dataId)) {
+      this.pendingDisposal.delete(dataId);
+      this.disposeData(dataId);
+    }
+    return vals;
   }
 
   async time(f: () => void): Promise<WebGLTimingInfo> {
@@ -257,8 +295,9 @@ export class MathBackendWebGL implements KernelBackend {
     this.downloadWaitMs = 0;
     return res;
   }
-  memory() {
-    return {unreliable: false};
+  memory(): WebGLMemoryInfo {
+    return {unreliable: false, numBytesInGPU: this.numBytesInGPU} as
+        WebGLMemoryInfo;
   }
 
   private startTimer(): WebGLQuery|CPUTimerQuery {
@@ -287,10 +326,17 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   disposeData(dataId: DataId): void {
+    if (this.pendingDisposal.has(dataId)) {
+      return;
+    }
+    if (this.pendingRead.has(dataId)) {
+      this.pendingDisposal.add(dataId);
+      return;
+    }
     if (this.texData.has(dataId)) {
       const {texture, texShape, texType} = this.texData.get(dataId);
       if (texture != null) {
-        this.textureManager.releaseTexture(texture, texShape, texType);
+        this.releaseTexture(dataId, texture, texShape, texType);
       }
       this.texData.delete(dataId);
     }
@@ -299,11 +345,6 @@ export class MathBackendWebGL implements KernelBackend {
   getTexture(dataId: DataId): WebGLTexture {
     this.uploadToGPU(dataId);
     return this.texData.get(dataId).texture;
-  }
-
-  getTextureData(dataId: DataId): TextureData {
-    this.uploadToGPU(dataId);
-    return this.texData.get(dataId);
   }
 
   private textureManager: TextureManager;
@@ -323,7 +364,11 @@ export class MathBackendWebGL implements KernelBackend {
     } else {
       this.gpgpuCreatedLocally = false;
     }
-
+    // Use the device screen's resolution as a heuristic to decide on the
+    // maximum memory allocated on the GPU before starting to page.
+    this.NUM_BYTES_BEFORE_PAGING =
+        (window.screen.height * window.screen.width * window.devicePixelRatio) *
+        BEFORE_PAGING_CONSTANT;
     this.textureManager = new TextureManager(this.gpgpu);
   }
 
@@ -1010,6 +1055,16 @@ export class MathBackendWebGL implements KernelBackend {
 
     gpgpu_math.runProgram(binary, inputsData, outputData, customSetup);
 
+    if (this.numBytesInGPU > this.NUM_BYTES_BEFORE_PAGING) {
+      let numBytesToPage = this.numBytesInGPU - this.NUM_BYTES_BEFORE_PAGING;
+      while (numBytesToPage > 0) {
+        const dataId = this.lruDataGPU.shift();
+        const {shape, dtype} = this.texData.get(dataId);
+        numBytesToPage -= this.computeBytes(shape, dtype);
+        this.read(dataId);
+      }
+    }
+
     if (shouldTimeProgram) {
       query = this.endTimer(query);
       this.activeTimers.push(this.getQueryTime(query));
@@ -1064,6 +1119,9 @@ export class MathBackendWebGL implements KernelBackend {
     const {shape, values, texture, dtype, texType} = texData;
     if (texture != null) {
       // Array is already on GPU. No-op.
+      // Touching the texture.
+      this.lruDataGPU.splice(this.lruDataGPU.indexOf(dataId), 1);
+      this.lruDataGPU.push(dataId);
       return;
     }
     const shouldTimeProgram = this.activeTimers != null;
@@ -1074,7 +1132,7 @@ export class MathBackendWebGL implements KernelBackend {
     const texShape =
         webgl_util.getTextureShapeFromLogicalShape(this.gpgpu.gl, shape);
     texData.texShape = texShape;
-    const newTexture = this.textureManager.acquireTexture(texShape, texType);
+    const newTexture = this.acquireTexture(dataId, texShape, texType);
     texData.texture = newTexture;
     if (values != null) {
       this.gpgpu.uploadMatrixToTexture(
@@ -1097,13 +1155,38 @@ export class MathBackendWebGL implements KernelBackend {
     const texData = this.texData.get(dataId);
     const {texture, texShape, dtype, texType} = texData;
     if (dontKeepCopyOnGPU && texture != null) {
-      this.textureManager.releaseTexture(texture, texShape, texType);
+      this.releaseTexture(dataId, texture, texShape, texType);
       texData.texture = null;
       texData.texShape = null;
     }
     if (float32Values != null) {
       texData.values = float32ToTypedArray(float32Values, dtype);
     }
+  }
+
+  private releaseTexture(
+      dataId: DataId, texture: WebGLTexture, texShape: [number, number],
+      texType: TextureType) {
+    const {shape, dtype} = this.texData.get(dataId);
+    const idx = this.lruDataGPU.indexOf(dataId);
+    if (idx >= 0) {
+      this.lruDataGPU.splice(idx, 1);
+    }
+    this.numBytesInGPU -= this.computeBytes(shape, dtype);
+    this.textureManager.releaseTexture(texture, texShape, texType);
+  }
+
+  private acquireTexture(
+      dataId: DataId, texShape: [number, number],
+      texType: TextureType): WebGLTexture {
+    const {shape, dtype} = this.texData.get(dataId);
+    this.lruDataGPU.push(dataId);
+    this.numBytesInGPU += this.computeBytes(shape, dtype);
+    return this.textureManager.acquireTexture(texShape, texType);
+  }
+
+  private computeBytes(shape: number[], dtype: DataType) {
+    return util.sizeFromShape(shape) * util.bytesPerElement(dtype);
   }
 }
 

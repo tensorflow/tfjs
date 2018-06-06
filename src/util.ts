@@ -227,7 +227,7 @@ export function repeatedTry(
       setTimeout(tryFn, nextBackoff);
     };
 
-    setTimeout(tryFn, 0);
+    tryFn();
   });
 }
 

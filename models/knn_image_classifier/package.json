@@ -26,7 +26,7 @@
     "watchify": "~3.9.0"
   },
   "scripts": {
-    "build": "tsc --sourceMap false && browserify -g browserify-shim --standalone knn_image_classifier index.ts -p [tsify] -o dist/bundle.js",
+    "build": "tsc && browserify -g browserify-shim --standalone knn_image_classifier index.ts -p [tsify] -o dist/bundle.js",
     "lint": "tslint -p . -t verbose",
     "publish-npm": "yarn build && yarn publish"
   },
