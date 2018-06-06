@@ -46,14 +46,14 @@ and using a build tool like <a href="https://parceljs.org/" target="_blank">Parc
 <a href="https://webpack.js.org/" target="_blank">WebPack</a>, or <a href="https://rollupjs.org/guide/en" target="_blank">Rollup</a>.
 
 ### via Script Tag
-      
+
 Add the following code to an HTML file:
 
 ```html
 <html>
   <head>
     <!-- Load TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.8.0"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
 
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script>
