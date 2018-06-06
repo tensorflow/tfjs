@@ -17,7 +17,8 @@
 
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
-import {ALL_ENVS, CPU_ENVS, expectArraysClose, WEBGL_ENVS} from './test_util';
+// tslint:disable-next-line:max-line-length
+import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('time webgl', WEBGL_ENVS, () => {
   it('upload + compute', async () => {
@@ -261,5 +262,22 @@ describeWithFlags('tidy', ALL_ENVS, () => {
       // tslint:disable-next-line:no-any
       tf.tidy('name', 'another name' as any);
     }).toThrowError();
+  });
+
+  it('works with arbitrary depth of result', () => {
+    tf.tidy(() => {
+      const res = tf.tidy(() => {
+        return [tf.scalar(1), [[tf.scalar(2)]], {list: [tf.scalar(3)]}];
+      });
+      expectArraysEqual(res[0] as tf.Tensor, [1]);
+      // tslint:disable-next-line:no-any
+      expectArraysEqual((res[1] as any)[0][0], [2]);
+      // tslint:disable-next-line:no-any
+      expectArraysEqual((res[2] as any).list[0], [3]);
+      expect(tf.memory().numTensors).toBe(3);
+      return res[0];
+    });
+    // Everything but scalar(1) got disposed.
+    expect(tf.memory().numTensors).toBe(1);
   });
 });

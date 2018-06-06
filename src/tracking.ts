@@ -20,7 +20,7 @@ import {ScopeFn, TimingInfo} from './engine';
 import {ENV} from './environment';
 import {Tensor} from './tensor';
 import {TensorContainer} from './types';
-import {extractTensorsFromAny} from './util';
+import {getTensorsInContainer} from './util';
 
 export class Tracking {
   /**
@@ -101,7 +101,7 @@ export class Tracking {
   }
 
   /**
-   * Disposes any `Tensor`s found within the provided object up to depth 1.
+   * Disposes any `Tensor`s found within the provided object.
    *
    * @param container an object that may be a `Tensor` or may directly contain
    *     `Tensor`s, such as a `Tensor[]` or `{key: Tensor, ...}`.  If the
@@ -109,9 +109,9 @@ export class Tracking {
    *     happens. In general it is safe to pass any object here, except that
    *     `Promise`s are not supported.
    */
-  // tslint:disable-next-line:no-any
-  static dispose(container: any) {
-    const tensors = extractTensorsFromAny(container);
+  @doc({heading: 'Performance', subheading: 'Memory'})
+  static dispose(container: TensorContainer) {
+    const tensors = getTensorsInContainer(container);
     tensors.forEach(tensor => tensor.dispose());
   }
 

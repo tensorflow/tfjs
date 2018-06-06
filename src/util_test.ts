@@ -16,9 +16,9 @@
  */
 
 import * as tf from './index';
+import {describeWithFlags} from './jasmine_util';
 import {Tensor} from './tensor';
 import {CPU_ENVS} from './test_util';
-import {describeWithFlags} from './jasmine_util';
 import {NamedTensorMap} from './types';
 import * as util from './util';
 
@@ -297,16 +297,16 @@ describe('util.hasEncodingLoss', () => {
   });
 });
 
-describeWithFlags('extractTensorsFromAny', CPU_ENVS, () => {
+describeWithFlags('getTensorsInContainer', CPU_ENVS, () => {
   it('null input returns empty tensor', () => {
-    const results = util.extractTensorsFromAny(null);
+    const results = util.getTensorsInContainer(null);
 
     expect(results).toEqual([]);
   });
 
   it('tensor input returns one element tensor', () => {
     const x = tf.scalar(1);
-    const results = util.extractTensorsFromAny(x);
+    const results = util.getTensorsInContainer(x);
 
     expect(results).toEqual([x]);
   });
@@ -315,8 +315,26 @@ describeWithFlags('extractTensorsFromAny', CPU_ENVS, () => {
     const x1 = tf.scalar(1);
     const x2 = tf.scalar(3);
     const x3 = tf.scalar(4);
-    const results = util.extractTensorsFromAny({x1, x2, x3});
+    const results = util.getTensorsInContainer({x1, x2, x3});
 
     expect(results).toEqual([x1, x2, x3]);
+  });
+
+  it('can extract from arbitrary depth', () => {
+    const container = [
+      {x: tf.scalar(1), y: tf.scalar(2)},
+      [[[tf.scalar(3)]], {z: tf.scalar(4)}]
+    ];
+    const results = util.getTensorsInContainer(container);
+    expect(results.length).toBe(4);
+  });
+
+  it('works with loops in container', () => {
+    const container = [tf.scalar(1), tf.scalar(2), [tf.scalar(3)]];
+    const innerContainer = [container];
+    // tslint:disable-next-line:no-any
+    container.push(innerContainer as any);
+    const results = util.getTensorsInContainer(container);
+    expect(results.length).toBe(3);
   });
 });

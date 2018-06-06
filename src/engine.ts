@@ -268,7 +268,7 @@ export class Engine implements TensorManager {
 
     const tensorsToKeep = new Set(this.keepTensors);
 
-    const tensorsToTrackInParent = util.extractTensorsFromContainer(result);
+    const tensorsToTrackInParent = util.getTensorsInContainer(result);
     tensorsToTrackInParent.forEach(tensor => tensorsToKeep.add(tensor.id));
 
     // Dispose the arrays tracked in this scope.
