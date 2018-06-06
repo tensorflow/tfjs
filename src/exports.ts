@@ -976,20 +976,32 @@ export class MetricExports {
 }
 
 export class RegularizerExports {
-  @doc(
-      {heading: 'Regularizers', namespace: 'regularizers', useDocsFrom: 'L1L2'})
+  @doc({
+    heading: 'Regularizers',
+    namespace: 'regularizers',
+    useDocsFrom: 'L1L2',
+    configParamIndices: [0]
+  })
   static l1l2(config?: L1L2Config): Regularizer {
     return new L1L2(config);
   }
 
-  @doc(
-      {heading: 'Regularizers', namespace: 'regularizers', useDocsFrom: 'L1L2'})
+  @doc({
+    heading: 'Regularizers',
+    namespace: 'regularizers',
+    useDocsFrom: 'L1L2',
+    configParamIndices: [0]
+  })
   static l1(config?: L1Config): Regularizer {
     return l1(config);
   }
 
-  @doc(
-      {heading: 'Regularizers', namespace: 'regularizers', useDocsFrom: 'L1L2'})
+  @doc({
+    heading: 'Regularizers',
+    namespace: 'regularizers',
+    useDocsFrom: 'L1L2',
+    configParamIndices: [0]
+  })
   static l2(config?: L2Config): Regularizer {
     return l2(config);
   }
