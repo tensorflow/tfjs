@@ -16,9 +16,6 @@
  */
 
 import './index';
-import * as tfc from '@tensorflow/tfjs-core';
-tfc.setBackend('tensorflow');
-
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable-next-line:no-require-imports
@@ -34,10 +31,9 @@ const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
   'depthwiseConv2D',   // Requires space_to_batch() for dilation > 1.
   'separableConv2d',   // Requires space_to_batch() for dilation > 1.
-  'div',               // https://github.com/tensorflow/tfjs/issues/215
   'IORouterRegistry',  // https://github.com/tensorflow/tfjs/issues/303
   // https://github.com/tensorflow/tfjs/issues/279
-  'browser', 'LocalStorage', 'arrayBufferToBase64String', 'stringByteLength'
+  'arrayBufferToBase64String', 'stringByteLength'
 ];
 
 const runner = new jasmineCtor();
