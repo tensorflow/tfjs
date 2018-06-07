@@ -39,14 +39,31 @@ import * as backend_util from './backend_util';
 export class MathBackendCPU implements KernelBackend {
   private data = new WeakMap<DataId, DataTypeMap[DataType]>();
   private canvas: HTMLCanvasElement;
+  private firstUse = true;
 
   constructor() {
-    if (typeof document !== 'undefined') {
+    if (ENV.get('IS_BROWSER')) {
       this.canvas = document.createElement('canvas');
     }
   }
 
   register(dataId: DataId, shape: number[], dtype: DataType): void {
+    if (this.firstUse) {
+      this.firstUse = false;
+      if (ENV.get('IS_NODE')) {
+        console.warn(
+            '\n============================\n' +
+            'Hi there 👋. Looks like you are running TensorFlow.js in ' +
+            'Node.js. To speed things up dramatically, install our node ' +
+            'backend, which binds to TensorFlow C++, by running ' +
+            'npm i @tensorflow/tfjs-node, ' +
+            'or npm i @tensorflow/tfjs-node-gpu if you have CUDA. ' +
+            'Then call require(\'tensorflow/tfjs-node\'); (-gpu ' +
+            'suffix for CUDA) at the start of your program. ' +
+            'Visit https://github.com/tensorflow/tfjs-node for more details.' +
+            '\n============================\n');
+      }
+    }
     if (this.data.has(dataId)) {
       throw new Error(`Data buffer is already registered`);
     }

@@ -32,6 +32,8 @@ export interface Features {
   'DEBUG'?: boolean;
   // Whether we are in a browser (as versus, say, node.js) environment.
   'IS_BROWSER'?: boolean;
+  // Whether we are in the Node.js environment.
+  'IS_NODE'?: boolean;
   // The disjoint_query_timer extension version.
   // 0: disabled, 1: EXT_disjoint_timer_query, 2:
   // EXT_disjoint_timer_query_webgl2.
@@ -75,7 +77,7 @@ function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
 }
 
 function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
-  if (webGLVersion === 0) {
+  if (webGLVersion === 0 || !ENV.get('IS_BROWSER')) {
     throw new Error('Cannot get WebGL rendering context, WebGL is disabled.');
   }
 
@@ -307,6 +309,9 @@ export class Environment {
       return false;
     } else if (feature === 'IS_BROWSER') {
       return typeof window !== 'undefined';
+    } else if (feature === 'IS_NODE') {
+      return (typeof process !== 'undefined') &&
+          (typeof process.versions.node !== 'undefined');
     } else if (feature === 'BACKEND') {
       return this.getBestBackendType();
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') {
@@ -383,7 +388,8 @@ export class Environment {
       this.registry[name] = {backend, priority};
       return true;
     } catch (err) {
-      console.warn(err.message);
+      console.warn(`Registration of backend ${name} failed`);
+      console.warn(err.stack || err.message);
       return false;
     }
   }

@@ -147,7 +147,7 @@ export class MathBackendWebGL implements KernelBackend {
 
     if (pixels instanceof HTMLVideoElement) {
       if (this.fromPixelsCanvas == null) {
-        if (typeof document === 'undefined') {
+        if (!ENV.get('IS_BROWSER')) {
           throw new Error(
               'Can\'t read pixels from HTMLImageElement outside the browser.');
         }
@@ -355,7 +355,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (ENV.get('WEBGL_VERSION') < 1) {
       throw new Error('WebGL is not supported on this device');
     }
-    if (typeof document !== 'undefined') {
+    if (ENV.get('IS_BROWSER')) {
       this.canvas = document.createElement('canvas');
     }
     if (gpgpu == null) {
@@ -1190,7 +1190,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 }
 
-ENV.registerBackend('webgl', () => new MathBackendWebGL(), 2 /* priority */);
+if (ENV.get('IS_BROWSER')) {
+  ENV.registerBackend('webgl', () => new MathBackendWebGL(), 2 /* priority */);
+}
 
 function float32ToTypedArray<D extends DataType>(
     a: Float32Array, dtype: D): DataTypeMap[D] {
