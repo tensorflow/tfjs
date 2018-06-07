@@ -334,6 +334,27 @@ export class Sequential extends Model {
    */
   @doc({heading: 'Models', subheading: 'Classes'})
   add(layer: Layer): void {
+    const isLayerModelInstance =
+        layer instanceof Sequential || layer instanceof Model;
+    let modelLayer: Model;
+    if (isLayerModelInstance) {
+      modelLayer = layer as Model;
+      if (modelLayer.outputs.length !== 1) {
+        throw new ValueError(
+            'All layers in a Sequential model ' +
+            'should have a single output tensor. ' +
+            'For multi-output layers, ' +
+            'use the functional API.');
+      }
+      if (modelLayer.inputs.length !== 1) {
+        throw new ValueError(
+            'All layers in a Sequential model ' +
+            'should have a single input tensor. ' +
+            'For multi-input layers, ' +
+            'use the functional API.');
+      }
+    }
+
     if (this.outputs.length === 0) {
       // first layer in model: check that it is an input layer
       if (layer.inboundNodes.length === 0) {
@@ -354,24 +375,28 @@ export class Sequential extends Model {
         layer.apply(x);
       }
 
-      if (layer.inboundNodes.length !== 1) {
-        throw new ValueError(
-            'A layer added to a Sequential model must not already be ' +
-            `connected somewhere else. Model received layer ${layer.name} ` +
-            `which has ${layer.inboundNodes.length} pre-existing inbound ` +
-            'connections.');
-      }
+      if (isLayerModelInstance) {
+        this.outputs = modelLayer.outputs;
+        this.inputs = modelLayer.inputs;
+      } else {
+        if (layer.inboundNodes.length !== 1) {
+          throw new ValueError(
+              'A layer added to a Sequential model must not already be ' +
+              `connected somewhere else. Model received layer ${layer.name} ` +
+              `which has ${layer.inboundNodes.length} pre-existing inbound ` +
+              'connections.');
+        }
 
-      if (layer.inboundNodes[0].outputTensors.length !== 1) {
-        throw new ValueError(
-            'All layers in a Sequential model ' +
-            'should have a single output tensor. ' +
-            'For multi-output layers, ' +
-            'use the functional API.');
+        if (layer.inboundNodes[0].outputTensors.length !== 1) {
+          throw new ValueError(
+              'All layers in a Sequential model ' +
+              'should have a single output tensor. ' +
+              'For multi-output layers, ' +
+              'use the functional API.');
+        }
+        this.outputs = [layer.inboundNodes[0].outputTensors[0]];
+        this.inputs = getSourceInputs(this.outputs[0]);
       }
-
-      this.outputs = [layer.inboundNodes[0].outputTensors[0]];
-      this.inputs = getSourceInputs(this.outputs[0]);
 
       // We create an input node, which we will keep updated
       // as we add more layers.
@@ -521,8 +546,8 @@ export class Sequential extends Model {
    * result.print();
    * ```
    *
-   * @param x `Tensor` of test data, or an `Array` of `Tensor`s if the model has
-   *   multiple inputs.
+   * @param x `Tensor` of test data, or an `Array` of `Tensor`s if the model
+   * has multiple inputs.
    * @param y `Tensor` of target data, or an `Array` of `Tensor`s if the model
    *   has multiple outputs.
    * @param config A `ModelEvaluateConfig`, containing optional fields.
@@ -680,7 +705,8 @@ export class Sequential extends Model {
   getConfig(): any {
     // NOTE(cais): We override the return type of getConfig() to `any` here,
     //   because the `Sequential` class is a special case among `Container`
-    //   subtypes in that its getConfig() method returns an Array (not a dict).
+    //   subtypes in that its getConfig() method returns an Array (not a
+    //   dict).
     const config: serialization.ConfigDict[] = [];
     for (const layer of this.layers) {
       config.push({
