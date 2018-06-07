@@ -44,7 +44,7 @@ After that operation completes, re-run `yarn add` or `npm install` for the `@ten
 
 ## Using the binding
 
-Before executing any TensorFlow.js code, load and set the backend to 'tensorflow'.
+Before executing any TensorFlow.js code, import the node package:
 
 ```js
 import * as tf from '@tensorflow/tfjs';
@@ -54,8 +54,6 @@ import '@tensorflow/tfjs-node';
 
 // Or if running with GPU:
 import '@tensorflow/tfjs-node-gpu';
-
-tf.setBackend('tensorflow');
 ```
 
 ## Development

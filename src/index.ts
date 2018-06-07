@@ -28,6 +28,11 @@ tfc.ENV.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
 });
 
+// If registration succeeded, set the backend.
+if (tfc.ENV.findBackend('tensorflow') != null) {
+  tfc.setBackend('tensorflow');
+}
+
 // Register the model saving and loading handlers for the 'file://' URL scheme.
 tfc.io.registerSaveRouter(nodeFileSystemRouter);
 tfc.io.registerLoadRouter(nodeFileSystemRouter);
