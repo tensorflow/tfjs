@@ -175,13 +175,13 @@ export class ModelManagement {
    * await model.save('localstorage://demo/management/model1');
    *
    * // Then list existing models.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    *
    * // Delete the model.
    * await tf.io.removeModel('localstorage://demo/management/model1');
    *
    * // List models again.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    * ```
    *
    * @returns A `Promise` of a dictionary mapping URLs of existing models to
@@ -215,13 +215,13 @@ export class ModelManagement {
    * await model.save('localstorage://demo/management/model1');
    *
    * // Then list existing models.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    *
    * // Delete the model.
    * await tf.io.removeModel('localstorage://demo/management/model1');
    *
    * // List models again.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    * ```
    *
    * @param url A URL to a stored model, with a scheme prefix, e.g.,
@@ -255,7 +255,7 @@ export class ModelManagement {
    * await model.save('localstorage://demo/management/model1');
    *
    * // Then list existing models.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    *
    * // Copy the model, from Local Storage to IndexedDB.
    * await tf.io.copyModel(
@@ -263,7 +263,7 @@ export class ModelManagement {
    *     'indexeddb://demo/management/model1');
    *
    * // List models again.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    *
    * // Remove both models.
    * await tf.io.removeModel('localstorage://demo/management/model1');
@@ -302,7 +302,7 @@ export class ModelManagement {
    * await model.save('localstorage://demo/management/model1');
    *
    * // Then list existing models.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    *
    * // Move the model, from Local Storage to IndexedDB.
    * await tf.io.moveModel(
@@ -310,7 +310,7 @@ export class ModelManagement {
    *     'indexeddb://demo/management/model1');
    *
    * // List models again.
-   * console.log(await tf.io.listModels());
+   * console.log(JSON.stringify(await tf.io.listModels()));
    *
    * // Remove the moved model.
    * await tf.io.removeModel('indexeddb://demo/management/model1');
