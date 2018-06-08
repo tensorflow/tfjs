@@ -66,15 +66,15 @@
     protobufjs "~6.8.0"
     url "^0.11.0"
 
-"@tensorflow/tfjs-core@0.11.5":
-  version "0.11.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.5.tgz#e8849f92a0def022d3b075dbc6133d94c60234f9"
+"@tensorflow/tfjs-core@0.11.6":
+  version "0.11.6"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.6.tgz#3ffeb48fc499de3dabd36d0939f241d39a84f4af"
   dependencies:
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.6.5":
-  version "0.6.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.5.tgz#61ba3061757e881a2a14c1c59d95ef1e4b785c30"
+"@tensorflow/tfjs-layers@0.6.6":
+  version "0.6.6"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.6.tgz#6869c86ed01905271ebe707d6324ba04119b73ab"
 
 "@types/estree@0.0.38":
   version "0.0.38"
