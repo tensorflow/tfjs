@@ -16,9 +16,9 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@tensorflow/tfjs-core@~0.11.5":
-  version "0.11.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.5.tgz#e8849f92a0def022d3b075dbc6133d94c60234f9"
+"@tensorflow/tfjs-core@~0.11.6":
+  version "0.11.6"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.6.tgz#3ffeb48fc499de3dabd36d0939f241d39a84f4af"
   dependencies:
     seedrandom "~2.4.3"
 
