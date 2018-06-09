@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {Tensor, tensor2d, Tensor2D, tensor3d, tensor4d, Tensor4D} from '@tensorflow/tfjs-core';
+import {Tensor, tensor2d, Tensor2D, tensor3d, tensor4d, Tensor4D, util} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
 import * as tfl from '../index';
@@ -295,6 +295,35 @@ describe('Pooling Layers 2D: Symbolic', () => {
       }
     }
   }
+
+  const stridesValues: Array<number|[number, number]> = [1, [1, 1], [2, 1]];
+  for (const strides of stridesValues) {
+    it(`custom strides: ${strides}`, () => {
+      const inputShape = [2, 16, 11, 3];
+      const symbolicInput =
+          new SymbolicTensor('float32', inputShape, null, [], null);
+      const poolingLayer = tfl.layers.maxPooling2d({poolSize: [2, 2], strides});
+      const output = poolingLayer.apply(symbolicInput) as tfl.SymbolicTensor;
+      if (Array.isArray(strides) && util.arraysEqual(strides, [1, 1])) {
+        expect(output.shape).toEqual([2, 15, 10, 3]);
+      } else if (Array.isArray(strides) && util.arraysEqual(strides, [2, 1])) {
+        expect(output.shape).toEqual([2, 8, 10, 3]);
+      } else {
+        // strides = 1
+        expect(output.shape).toEqual([2, 15, 10, 3]);
+      }
+    });
+  }
+
+  it('Incorrect strides array length leads to error', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.layers.maxPooling2d({poolSize: 2, strides: [2]} as any))
+        .toThrowError(/expected to have a length of 2/);
+    expect(
+        // tslint:disable-next-line:no-any
+        () => tfl.layers.maxPooling2d({poolSize: 2, strides: [2, 3, 3]} as any))
+        .toThrowError(/expected to have a length of 2/);
+  });
 });
 
 describeMathCPUAndGPU('Pooling Layers 2D: Tensor', () => {
