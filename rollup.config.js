@@ -32,7 +32,7 @@ function minify() {
   });
 }
 
-function config({plugins = [], output = {}}) {
+function config({plugins = [], output = {}, external = []}) {
   return {
     input: 'src/index.ts',
     plugins: [
@@ -57,7 +57,10 @@ function config({plugins = [], output = {}}) {
       banner: copyright,
       ...output
     },
-    external: ['crypto'],
+    external: [
+      'crypto',
+      ...external
+    ],
     onwarn: warning => {
       let {code} = warning;
       if (code === 'CIRCULAR_DEPENDENCY' ||
@@ -96,7 +99,17 @@ export default [
     ],
     output: {
       format: 'es',
-      file: 'dist/tf.esm.js'
-    }
+      file: 'dist/tf.esm.js',
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        '@tensorflow/tfjs-layers': 'tf',
+        '@tensorflow/tfjs-converter': 'tf'
+      }
+    },
+    external: [
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-layers',
+      '@tensorflow/tfjs-converter'
+    ]
   })
 ];
