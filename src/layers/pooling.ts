@@ -256,7 +256,7 @@ export interface Pooling2DLayerConfig extends LayerConfig {
    *
    * If `null`, defaults to `poolSize`.
    */
-  strides?: [number, number];
+  strides?: number|[number, number];
 
   /** The padding type to use for the pooling layer. */
   padding?: PaddingMode;
@@ -281,7 +281,20 @@ export abstract class Pooling2D extends Layer {
     this.poolSize = Array.isArray(config.poolSize) ?
         config.poolSize :
         [config.poolSize, config.poolSize];
-    this.strides = config.strides == null ? this.poolSize : config.strides;
+    if (config.strides == null) {
+      this.strides = this.poolSize;
+    } else if (Array.isArray(config.strides)) {
+      if (config.strides.length !== 2) {
+        throw new ValueError(
+            `If the strides property of a 2D pooling layer is an Array, ` +
+            `it is expected to have a length of 2, but received length ` +
+            `${config.strides.length}.`);
+      }
+      this.strides = config.strides;
+    } else {
+      // `config.strides` is a number.
+      this.strides = [config.strides, config.strides];
+    }
     this.padding = config.padding == null ? 'valid' : config.padding;
     this.dataFormat =
         config.dataFormat == null ? 'channelsLast' : config.dataFormat;
