@@ -44,6 +44,7 @@ export default {
     node(),
     // Polyfill require() from dependencies.
     commonjs({
+      ignore: ["crypto"],
       include: 'node_modules/**',
       namedExports: {
         './node_modules/seedrandom/index.js': ['alea']
@@ -55,8 +56,7 @@ export default {
     banner: PREAMBLE,
     file: 'dist/tf-core.js',
     format: 'umd',
-    name: 'tf',
-    globals: {'crypto': 'crypto'}
+    name: 'tf'
   },
   external: ['crypto'],
   onwarn: warning => {
