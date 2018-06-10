@@ -24,12 +24,13 @@ import * as tensor_util from '../tensor_util';
 // tslint:disable-next-line:max-line-length
 import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap, TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TypedArray} from '../types';
 import * as util from '../util';
+import * as axis_util from './axis_util';
 // tslint:disable-next-line:max-line-length
 import {getAxesPermutation, getInnerMostAxes, parseAxisParam} from './axis_util';
 import {ConcatOps} from './concat';
 import {operation} from './operation';
 import {MPRandGauss} from './rand';
-import {ReductionOps} from './reduction_ops';
+import {SegmentOps} from './segment_ops';
 
 export class ArrayOps {
   /**
@@ -987,8 +988,39 @@ export class ArrayOps {
     axis = parseAxisParam(axis, x.shape)[0];
     const grad = (dy: T) => {
       const derX = () => {
-        return ReductionOps.unsortedSegmentSum(
-            dy, indices, x.shape[axis], axis);
+        if (axis === 0) {
+          return SegmentOps.unsortedSegmentSum(dy, indices, x.shape[axis]);
+        }
+        const paramsShape = x.shape;
+        const indicesSize = indices.size;
+
+        const outerShape = paramsShape.slice(0, axis);
+        const outerDims = outerShape.length;
+        const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
+        const innerDims = innerShape.length;
+
+        const outerAxesIndices = arrayRange(0, outerDims);
+        const innerAxesIndices =
+            arrayRange(outerDims + 1, outerDims + 1 + innerDims);
+
+        const valuesShape =
+            arrayConcat([outerShape, [indicesSize], innerShape]);
+
+        const values = dy.reshape(valuesShape);
+        const reshapedIndices = indices.reshape([indicesSize]);
+
+        const transposeDims =
+            arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
+        const valuesTranspose = values.transpose(transposeDims);
+
+        let paramsGrad = SegmentOps.unsortedSegmentSum(
+            valuesTranspose, reshapedIndices as Tensor1D, x.shape[axis]);
+
+        const invertTransposeDims =
+            axis_util.getUndoAxesPermutation(transposeDims);
+        paramsGrad = paramsGrad.transpose(invertTransposeDims);
+
+        return paramsGrad as T;
       };
       return {x: derX};
     };
@@ -1467,4 +1499,22 @@ function noConversionNeeded<D extends DataType>(
   return (a instanceof Float32Array && dtype === 'float32') ||
       (a instanceof Int32Array && dtype === 'int32') ||
       (a instanceof Uint8Array && dtype === 'bool');
+}
+
+function arrayRange(start: number, stop: number): number[] {
+  const result = [];
+  for (let i = start; i < stop; ++i) {
+    result.push(i);
+  }
+  return result;
+}
+
+function arrayConcat(arrays: number[][]): number[] {
+  const result = [];
+  for (let i = 0; i < arrays.length; ++i) {
+    for (let j = 0; j < arrays[i].length; ++j) {
+      result.push(arrays[i][j]);
+    }
+  }
+  return result;
 }

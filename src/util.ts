@@ -482,6 +482,15 @@ function walkTensorContainer(
   }
 }
 
+export function nearestDivisor(size: number, start: number): number {
+  for (let i = start; i < size; ++i) {
+    if (size % i === 0) {
+      return i;
+    }
+  }
+  return size;
+}
+
 // tslint:disable-next-line:no-any
 function isIterable(obj: any): boolean {
   return Array.isArray(obj) || typeof obj === 'object';
