@@ -48,14 +48,14 @@
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
-    "build": "tsc --project tsconfig-es5.json && tsc",
+    "build": "tsc",
     "build-npm": "./scripts/build-npm.sh",
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
-    "test": "ts-node --project tsconfig-es5.json ./scripts/release_notes/run_tests.ts && karma start",
-    "test-travis": "ts-node --project tsconfig-es5.json ./scripts/release_notes/run_tests.ts && karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
-    "release-notes": "ts-node --project tsconfig-es5.json ./scripts/release_notes/release_notes.ts"
+    "test": "ts-node ./scripts/release_notes/run_tests.ts && karma start",
+    "test-travis": "ts-node ./scripts/release_notes/run_tests.ts && karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun",
+    "release-notes": "ts-node ./scripts/release_notes/release_notes.ts"
   },
   "dependencies": {
     "@tensorflow/tfjs-core": "0.11.6",
