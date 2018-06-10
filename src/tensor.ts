@@ -946,9 +946,9 @@ export class Tensor<R extends Rank = Rank> {
   }
 
   unsortedSegmentSum<T extends Tensor>(
-      this: T, segmentIds: Tensor1D, numSegments: number, axis = 0): T {
+      this: T, segmentIds: Tensor1D, numSegments: number): T {
     this.throwIfDisposed();
-    return ops.unsortedSegmentSum(this, segmentIds, numSegments, axis);
+    return ops.unsortedSegmentSum(this, segmentIds, numSegments);
   }
 }
 

@@ -334,6 +334,35 @@ export class MathBackendCPU implements KernelBackend {
     return result;
   }
 
+  unsortedSegmentSum<T extends Tensor>(
+      x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
+    const res = [];
+    const [dim] = segmentIds.shape;
+    const axis = axis_util.getInnerMostAxes(1, x.rank)[0];
+
+    // Reshape the segment id's so that they can be broadcast with
+    // x. The new shape should be [1, 1, ... 1, dim, 1, ..., 1] where
+    // dim is at index = axis.
+    const newShape = [];
+    for (let i = 0; i < x.shape.length; ++i) {
+      if (i === axis) {
+        newShape.push(dim);
+      } else {
+        newShape.push(1);
+      }
+    }
+
+    const reshapedSegmentIds = ops.reshape(segmentIds, newShape);
+    for (let i = 0; i < numSegments; ++i) {
+      const segmentId = ops.scalar(i, 'int32');
+      const mask = ops.equal(segmentId, reshapedSegmentIds).asType('float32');
+      const sum = mask.mul(x).sum(axis);
+      res.push(sum);
+    }
+
+    return ops.stack(res, axis) as T;
+  }
+
   argMin(x: Tensor, axis: number): Tensor {
     const axes = [axis];
     axis_util.assertAxesAreInnerMostDims('argMin', axes, x.rank);
