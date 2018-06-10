@@ -4,8 +4,8 @@
   "description": "An open-source machine learning framework.",
   "private": false,
   "main": "dist/index",
-  "jsnext:main": "dist-es6/index.js",
-  "module": "dist-es6/index.js",
+  "jsnext:main": "dist/tf.esm.js",
+  "module": "dist/tf.esm.js",
   "jsdelivr": "dist/tf.min.js",
   "unpkg": "dist/tf.min.js",
   "types": "dist/index.d.ts",
@@ -40,11 +40,11 @@
     "rollup-plugin-json": "~3.0.0",
     "rollup-plugin-node-resolve": "3.3.0",
     "rollup-plugin-typescript2": "0.13.0",
+    "rollup-plugin-uglify": "^3.0.0",
     "shelljs": "~0.8.1",
     "ts-node": "~4.1.0",
     "tslint": "~5.9.1",
     "typescript": "2.7.2",
-    "uglify-js": "~3.0.28",
     "yalc": "~1.0.0-pre.21"
   },
   "scripts": {
