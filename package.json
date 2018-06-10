@@ -30,7 +30,6 @@
     "karma-firefox-launcher": "~1.1.0",
     "karma-jasmine": "~1.1.1",
     "karma-typescript": "~3.0.12",
-    "karma-typescript-es6-transform": "1.0.4",
     "mkdirp": "~0.5.1",
     "nodemon": "1.17.3",
     "rimraf": "~2.6.2",
