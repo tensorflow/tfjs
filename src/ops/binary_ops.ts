@@ -701,13 +701,14 @@ export class BinaryOps {
    * const a = tf.tensor1d([1.0, 1.0, -1.0, .7]);
    * const b = tf.tensor1d([2.0, 13.0, 3.5, .21]);
    *
-   * tf.atan2(x, y).print()
+   * tf.atan2(a, b).print()
    *```
    *
    * @param a The first tensor.
    * @param b The second tensor. Must have the same dtype as `a`.
    *
    */
+  @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static atan2<T extends Tensor>(a: Tensor, b: Tensor): T {
     util.assertArgumentsAreTensors({a, b}, 'atan2');
