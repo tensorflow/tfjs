@@ -263,7 +263,7 @@ export class ArrayOps {
    * ```
    * ```js
    * // Pass a flat array and specify a shape.
-   * tf.tensor5d([1, 2, 3, 4, 5, 6], [1, 2, 2, 2, 1]).print();
+   * tf.tensor5d([1, 2, 3, 4, 5, 6, 7, 8], [1, 2, 2, 2, 1]).print();
    * ```
    *
    * @param values The values of the tensor. Can be nested array of numbers,
