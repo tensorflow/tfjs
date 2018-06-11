@@ -24,16 +24,7 @@ module.exports = function(config) {
     },
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.json',
-      compilerOptions: {
-        module: 'commonjs',
-        sourceMap: true
-      },
-      bundlerOptions: {
-        sourceMap: true,
-        transforms: [
-          require("karma-typescript-es6-transform")()
-        ]
-      }
+      reports: {} // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome', 'Firefox'],
