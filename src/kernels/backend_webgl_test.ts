@@ -19,7 +19,8 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {expectArraysClose, expectArraysEqual, WEBGL_ENVS} from '../test_util';
-import {MathBackendWebGL} from './backend_webgl';
+// tslint:disable-next-line:max-line-length
+import {MathBackendWebGL, SIZE_UPLOAD_UNIFORM, WebGLMemoryInfo} from './backend_webgl';
 
 describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
   it('delayed storage, reading', () => {
@@ -106,7 +107,7 @@ describeWithFlags('backendWebGL', WEBGL_ENVS, () => {
 });
 
 describe('Custom window size', () => {
-  it('Set screen area to be 1x1', () => {
+  it('Set screen area to be 1x1', async () => {
     // This will set the screen size to 1x1 to make sure the page limit is
     // very small.
     spyOnProperty(window, 'screen', 'get')
@@ -121,11 +122,37 @@ describe('Custom window size', () => {
     // No gpu memory used yet because of delayed storage.
     expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU).toBe(0);
 
-    a.square();
+    await a.square().data();
     // Everything got paged out of gpu after the run finished.
     expect((tf.memory() as tf.webgl.WebGLMemoryInfo).numBytesInGPU).toBe(0);
 
     expectArraysEqual(a, new Float32Array(100 * 100).fill(1));
     tf.setBackend(oldBackend);
+  });
+});
+
+describeWithFlags('upload tensors as uniforms', WEBGL_ENVS, () => {
+  it('small tensor gets uploaded as scalar', () => {
+    let m = tf.memory() as WebGLMemoryInfo;
+    expect(m.numBytesInGPU).toBe(0);
+
+    const a = tf.zeros([SIZE_UPLOAD_UNIFORM - 1]);
+    a.square();
+
+    // Only the result lives on the gpu, the input is gone.
+    m = tf.memory() as WebGLMemoryInfo;
+    expect(m.numBytesInGPU).toBe(a.size * 4);
+  });
+
+  it('large tensor gets uploaded to gpu', () => {
+    let m = tf.memory() as WebGLMemoryInfo;
+    expect(m.numBytesInGPU).toBe(0);
+
+    const a = tf.zeros([SIZE_UPLOAD_UNIFORM + 1]);
+    a.square();
+
+    // Both the result and the input live on the gpu.
+    m = tf.memory() as WebGLMemoryInfo;
+    expect(m.numBytesInGPU).toBe(a.size * 4 * 2);
   });
 });
