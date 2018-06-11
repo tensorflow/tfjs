@@ -24,7 +24,6 @@ module.exports = function(config) {
     },
     karmaTypescriptConfig: {
       tsconfig: 'tsconfig.json',
-      compilerOptions: {module: 'commonjs', sourceMap: true},
       reports: {} // Do not produce coverage html.
     },
     reporters: ['progress', 'karma-typescript'],

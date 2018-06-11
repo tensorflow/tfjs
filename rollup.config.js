@@ -18,7 +18,7 @@
 import node from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
+import uglify from 'rollup-plugin-uglify';
 
 const PREAMBLE = `/**
  * @license
@@ -37,34 +37,73 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-export default {
-  input: 'src/index.ts',
-  plugins: [
-    typescript(),
-    node(),
-    // Polyfill require() from dependencies.
-    commonjs({
-      ignore: ["crypto"],
-      include: 'node_modules/**',
-      namedExports: {
-        './node_modules/seedrandom/index.js': ['alea']
-      },
-    })
-  ],
-  output: {
-    extend: true,
-    banner: PREAMBLE,
-    file: 'dist/tf-core.js',
-    format: 'umd',
-    name: 'tf'
-  },
-  external: ['crypto'],
-  onwarn: warning => {
-    let {code} = warning;
-    if (code === 'CIRCULAR_DEPENDENCY' ||
-        code === 'CIRCULAR') {
-      return;
+function minify() {
+  return uglify({
+    output: {preamble: PREAMBLE}
+  });
+}
+
+function config({plugins = [], output = {}, external = []}) {
+  return {
+    input: 'src/index.ts',
+    plugins: [
+      typescript({
+        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
+      }),
+      node(),
+      // Polyfill require() from dependencies.
+      commonjs({
+        ignore: ["crypto"],
+        include: 'node_modules/**',
+        namedExports: {
+          './node_modules/seedrandom/index.js': ['alea'],
+        },
+      }),
+      ...plugins
+    ],
+    output: {
+      banner: PREAMBLE,
+      ...output
+    },
+    external: [
+      'crypto',
+      ...external
+    ],
+    onwarn: warning => {
+      let {code} = warning;
+      if (code === 'CIRCULAR_DEPENDENCY' ||
+          code === 'CIRCULAR' ||
+          code === 'THIS_IS_UNDEFINED') {
+        return;
+      }
+      console.warn('WARNING: ', warning.toString());
     }
-    console.warn('WARNING: ', warning.toString());
-  }
-};
+  };
+}
+
+export default [
+  config({
+    output: {
+      format: 'umd',
+      name: 'tf',
+      extend: true,
+      file: 'dist/tf-core.js'
+    }
+  }),
+  config({
+    plugins: [minify()],
+    output: {
+      format: 'umd',
+      name: 'tf',
+      extend: true,
+      file: 'dist/tf-core.min.js'
+    }
+  }),
+  config({
+    plugins: [minify()],
+    output: {
+      format: 'es',
+      file: 'dist/tf-core.esm.js'
+    }
+  })
+];
