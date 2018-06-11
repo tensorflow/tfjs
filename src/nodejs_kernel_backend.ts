@@ -136,9 +136,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     return outputMetadata.map(m => this.createOutputTensor(m));
   }
 
-  dispose(): void {
-    throw new Error('Method not implemented.');
-  }
+  dispose(): void {}
 
   async read(dataId: object): Promise<Float32Array|Int32Array|Uint8Array> {
     return this.readSync(dataId);
@@ -278,6 +276,18 @@ export class NodeJSKernelBackend implements KernelBackend {
   divide(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('Div', opAttrs, [a, b]);
+  }
+
+  unsortedSegmentSum<T extends Tensor>(
+      x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype),
+      this.createTypeOpAttr('Tindices', 'int32'),
+      this.createTypeOpAttr('Tnumsegments', 'int32')
+    ];
+    return this.executeSingleOutput(
+        'UnsortedSegmentSum', opAttrs,
+        [x, segmentIds, scalar(numSegments, 'int32')]);
   }
 
   sum(x: Tensor, axes: number[]): Tensor {
