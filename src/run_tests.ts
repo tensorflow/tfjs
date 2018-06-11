@@ -18,20 +18,30 @@
 import './index';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
+Error.stackTraceLimit = Infinity;
+
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
 
-jasmine_util.setBeforeAll(() => {});
-jasmine_util.setAfterAll(() => {});
-jasmine_util.setBeforeEach(() => {});
-jasmine_util.setAfterEach(() => {});
-jasmine_util.setTestEnvFeatures([{BACKEND: 'tensorflow'}]);
+// tslint:disable-next-line:no-require-imports
+import bindings = require('bindings');
+import {TFJSBinding} from './tfjs_binding';
+import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+
+jasmine_util.setTestBackends([{
+  name: 'test-tensorflow',
+  factory: () =>
+      new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding),
+  priority: 100
+}]);
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
   'depthwiseConv2D',   // Requires space_to_batch() for dilation > 1.
   'separableConv2d',   // Requires space_to_batch() for dilation > 1.
   'IORouterRegistry',  // https://github.com/tensorflow/tfjs/issues/303
+  // https://github.com/tensorflow/tfjs/issues/417
+  'unsortedSegmentSum', 'gather {} gradient',
   // https://github.com/tensorflow/tfjs/issues/279
   'arrayBufferToBase64String', 'stringByteLength'
 ];

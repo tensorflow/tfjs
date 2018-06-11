@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@~0.11.5":
-  version "0.11.5"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.5.tgz#e8849f92a0def022d3b075dbc6133d94c60234f9"
+"@tensorflow/tfjs-core@~0.11.7":
+  version "0.11.7"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.7.tgz#b12f074b534e57ebbfc4dbc9935083ddb6e195d8"
   dependencies:
     seedrandom "~2.4.3"
 
