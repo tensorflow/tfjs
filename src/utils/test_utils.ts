@@ -59,7 +59,7 @@ export function expectTensorsValuesInRange(
  * @param tests
  */
 export function describeMathCPUAndGPU(testName: string, tests: () => void) {
-  describeWithFlags(testName, {}, () => {
+  describeWithFlags(testName, test_util.ALL_ENVS, () => {
     beforeEach(() => {
       disposeScalarCache();
     });
