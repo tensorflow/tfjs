@@ -103,7 +103,13 @@ function loseContext(gl: WebGLRenderingContext) {
 }
 
 function isWebGLVersionEnabled(webGLVersion: 1|2) {
-  const gl = getWebGLRenderingContext(webGLVersion);
+  let gl;
+  try {
+    gl = getWebGLRenderingContext(webGLVersion);
+  } catch (e) {
+    return false;
+  }
+
   if (gl != null) {
     loseContext(gl);
     return true;
@@ -283,6 +289,10 @@ export class Environment {
     this.features[feature] = this.evaluateFeature(feature);
 
     return this.features[feature];
+  }
+
+  getFeatures(): Features {
+    return this.features;
   }
 
   set<K extends keyof Features>(feature: K, value: Features[K]): void {

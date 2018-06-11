@@ -16,8 +16,8 @@
  */
 
 import * as tf from './index';
-import {ALL_ENVS, expectArraysClose} from './test_util';
 import {describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, expectArraysClose} from './test_util';
 
 describeWithFlags('debug on', ALL_ENVS, () => {
   beforeAll(() => {

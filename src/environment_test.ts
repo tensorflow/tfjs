@@ -17,11 +17,11 @@
 
 import * as device_util from './device_util';
 import {ENV, Environment, Features} from './environment';
+import {describeWithFlags} from './jasmine_util';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';
 import {WEBGL_ENVS} from './test_util';
-import {describeWithFlags} from './jasmine_util';
 
 describeWithFlags('disjoint query timer enabled', WEBGL_ENVS, () => {
   afterEach(() => {
@@ -223,6 +223,11 @@ describeWithFlags('WebGL version', WEBGL_ENVS, () => {
 });
 
 describe('Backend', () => {
+  beforeAll(() => {
+    // Silences backend registration warnings.
+    spyOn(console, 'warn');
+  });
+
   afterEach(() => {
     ENV.reset();
   });
@@ -240,9 +245,9 @@ describe('Backend', () => {
 
   it('webgl not supported, falls back to cpu', () => {
     ENV.setFeatures({'WEBGL_VERSION': 0});
-    ENV.registerBackend('custom-cpu', () => new MathBackendCPU(), 3);
+    ENV.registerBackend('custom-cpu', () => new MathBackendCPU(), 103);
     const success =
-        ENV.registerBackend('custom-webgl', () => new MathBackendWebGL(), 4);
+        ENV.registerBackend('custom-webgl', () => new MathBackendWebGL(), 104);
     expect(success).toBe(false);
     expect(ENV.findBackend('custom-webgl') == null).toBe(true);
     expect(ENV.getBestBackendType()).toBe('custom-cpu');
