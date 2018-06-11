@@ -97,6 +97,8 @@ export interface WebGLTimingInfo extends TimingInfo {
 // Empirically determined constant used to decide the number of bytes on GPU
 // before we start paging. The bytes are this constant * screen area * dpi.
 const BEFORE_PAGING_CONSTANT = 300;
+// Tensors with size <= than this will be uploaded as uniforms, not textures.
+export const SIZE_UPLOAD_UNIFORM = 32;
 
 export class MathBackendWebGL implements KernelBackend {
   private texData = new WeakMap<DataId, TextureData>();
@@ -1068,14 +1070,20 @@ export class MathBackendWebGL implements KernelBackend {
     if (output == null) {
       output = this.makeOutputArray(program.outputShape, inputs[0].dtype);
     }
-    const inputsData: Array<TensorData<T>> = inputs.map(input => {
-      this.uploadToGPU(input.dataId);
-      return {tensor: input, texData: this.texData.get(input.dataId)};
+    const inputsData: Array<TensorData<T>> = inputs.map(tensor => {
+      const texData = this.texData.get(tensor.dataId);
+      // Upload small tensors that live on the CPU as uniforms, not as textures.
+      if (texData.texture == null && tensor.size <= SIZE_UPLOAD_UNIFORM) {
+        return {tensor, texData: null, isUniform: true};
+      }
+      this.uploadToGPU(tensor.dataId);
+      return {tensor, texData, isUniform: false};
     });
     this.uploadToGPU(output.dataId);
     const outputData = {
       tensor: output,
-      texData: this.texData.get(output.dataId)
+      texData: this.texData.get(output.dataId),
+      isUniform: false
     };
     const key = gpgpu_math.makeShaderKey(program, inputsData, outputData);
     const binary = this.getAndSaveBinary(key, () => {
