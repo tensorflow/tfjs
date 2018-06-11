@@ -18,8 +18,7 @@
 import node from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
-import {uglify} from 'rollup-plugin-uglify';
+import uglify from 'rollup-plugin-uglify';
 
 const PREAMBLE = `/**
  * @license
@@ -38,14 +37,23 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
+ function minify() {
+  return uglify({
+    output: {preamble: PREAMBLE}
+  });
+}
+
  function config({plugins = [], output = {}}) {
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript(),
+      typescript({
+        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
+      }),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
+        ignore: ["crypto"],
         include: 'node_modules/**',
         namedExports: {
           './node_modules/seedrandom/index.js': ['alea']
@@ -55,7 +63,7 @@ const PREAMBLE = `/**
     ],
     output: {
       banner: PREAMBLE,
-      globals: {'crypto': 'crypto', '@tensorflow/tfjs-core': 'tf'},
+      globals: {'@tensorflow/tfjs-core': 'tf'},
       ...output
     },
     external: ['crypto', '@tensorflow/tfjs-core'],
@@ -80,12 +88,19 @@ export default [
     }
   }),
   config({
-    plugins: [uglify({output: { preamble: PREAMBLE}})],
+    plugins: [minify()],
     output: {
       format: 'umd',
       name: 'tf',
       extend: true,
       file: 'dist/tf-layers.min.js'
+    }
+  }),
+  config({
+    plugins: [minify()],
+    output: {
+      format: 'es',
+      file: 'dist/tf-layers.esm.js'
     }
   })
 ];
