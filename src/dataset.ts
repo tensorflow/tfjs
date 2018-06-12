@@ -20,10 +20,12 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 
 import {BatchDataset} from './batch_dataset';
-import {iteratorFromFunction, LazyIterator} from './iterators/lazy_iterator';
+// tslint:disable:max-line-length
+import {iteratorFromFunction, iteratorFromZipped, LazyIterator} from './iterators/lazy_iterator';
 import {iteratorFromConcatenated} from './iterators/lazy_iterator';
 import {iteratorFromItems} from './iterators/lazy_iterator';
-import {DataElement} from './types';
+import {DataElement, DatasetContainer} from './types';
+import {deepMap} from './util/deep_map';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -263,4 +265,11 @@ export function datasetFromIteratorFn<T extends DataElement>(
 export function datasetFromElements<T extends DataElement>(items: T[]):
     Dataset<T> {
   return datasetFromIteratorFn(() => iteratorFromItems(items));
+}
+
+export function zip(datasets: DatasetContainer): DatasetContainer {
+  return datasetFromIteratorFn(() => {
+    const streams = deepMap(datasets, d => d.iterator());
+    return iteratorFromZipped(streams);
+  });
 }
