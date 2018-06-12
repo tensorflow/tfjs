@@ -80,8 +80,9 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
   const uniformLocations: {[name: string]: WebGLUniformLocation} = {};
   for (let i = 0; i < program.variableNames.length; i++) {
     const uniformName = program.variableNames[i];
+    const shouldThrow = false;
     uniformLocations[uniformName] =
-        gpgpu.getUniformLocation(webGLProgram, uniformName);
+        gpgpu.getUniformLocation(webGLProgram, uniformName, shouldThrow);
   }
 
   if (shouldUploadNaNUniform()) {
@@ -149,20 +150,23 @@ export function runProgram<T extends Tensor, K extends Tensor>(
   inputs.forEach((input, i) => {
     const variableName = binary.program.variableNames[i];
     const variableUniformLocation = binary.uniformLocations[variableName];
-    if (input.isUniform) {
-      if (input.tensor.size === 1) {
-        gpgpu.gl.uniform1f(variableUniformLocation, input.tensor.dataSync()[0]);
-      } else {
-        let vals = input.tensor.dataSync();
-        if (!(vals instanceof Float32Array)) {
-          vals = new Float32Array(vals);
+    if (variableUniformLocation != null) {
+      if (input.isUniform) {
+        if (input.tensor.size === 1) {
+          gpgpu.gl.uniform1f(
+              variableUniformLocation, input.tensor.dataSync()[0]);
+        } else {
+          let vals = input.tensor.dataSync();
+          if (!(vals instanceof Float32Array)) {
+            vals = new Float32Array(vals);
+          }
+          gpgpu.gl.uniform1fv(variableUniformLocation, vals);
         }
-        gpgpu.gl.uniform1fv(variableUniformLocation, vals);
+        return;
       }
-      return;
+      const tex = input.texData.texture;
+      gpgpu.setInputMatrixTexture(tex, variableUniformLocation, i);
     }
-    const tex = input.texData.texture;
-    gpgpu.setInputMatrixTexture(tex, variableUniformLocation, i);
   });
 
   if (shouldUploadNaNUniform()) {
