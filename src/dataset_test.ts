@@ -18,7 +18,7 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 
-import {Dataset, datasetFromElements} from './dataset';
+import {Dataset, datasetFromElements, zip} from './dataset';
 // import {CPU_ENVS, describeWithFlags} from '../../test_util';
 import {iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
 import {DataElementObject} from './types';
@@ -88,6 +88,19 @@ tf.test_util.describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
            .then(done)
            .catch(done.fail);
      });
+
+  it('can be zipped', done => {
+    const a = datasetFromElements([{a: 1}, {a: 2}, {a: 3}]);
+    const b = datasetFromElements([{b: 4}, {b: 5}, {b: 6}]);
+    zip([a, b])
+        .collectAll()
+        .then(result => {
+          expect(result).toEqual(
+              [[{a: 1}, {b: 4}], [{a: 2}, {b: 5}], [{a: 3}, {b: 6}]]);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
 
   it('can be repeated a fixed number of times', done => {
     const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);

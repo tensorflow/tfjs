@@ -267,7 +267,31 @@ export function datasetFromElements<T extends DataElement>(items: T[]):
   return datasetFromIteratorFn(() => iteratorFromItems(items));
 }
 
-export function zip(datasets: DatasetContainer): DatasetContainer {
+/**
+ * Create a `Dataset` by zipping together an array, dict, or nested
+ * structure of `Dataset`s (and perhaps additional constants).
+ * The underlying datasets must have the same number of elements,
+ * and obviously must provide them in a consistent order such that they
+ * correspond.
+ *
+ * The nested structure of the `datasets` argument determines the
+ * structure of elements in the resulting iterator.
+ *
+ * Note this means that, given an array of two datasets that produce dict
+ * elements, the result is a dataset that produces elements that are arrays
+ * of two dicts:
+ *
+ * const ds1 : Dataset = ...;  // produces elements like {a: ...}
+ * const ds1 : Dataset = ...;  // produces elements like {b: ...}
+ * const ds3 = zip([ds1, ds2]);  // produces elements like [{a: ...}, {b: ...}]
+ *
+ * This may seem unexpected, if the user wanted to merge the dicts in order to
+ * produce elements like {a: ..., b: ...}.  This merging can of course be
+ * achieved manually as a second step:
+ *
+ * const ds4 = ds3.map(x=>{a: x[0].a, b: x[1].b});
+ */
+export function zip(datasets: DatasetContainer): Dataset<DataElement> {
   return datasetFromIteratorFn(() => {
     const streams = deepMap(datasets, d => {
       if (d instanceof Dataset) {
