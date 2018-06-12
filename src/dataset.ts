@@ -269,7 +269,13 @@ export function datasetFromElements<T extends DataElement>(items: T[]):
 
 export function zip(datasets: DatasetContainer): DatasetContainer {
   return datasetFromIteratorFn(() => {
-    const streams = deepMap(datasets, d => d.iterator());
+    const streams = deepMap(datasets, d => {
+      if (d instanceof Dataset) {
+        return {value: d.iterator(), recurse: false};
+      } else {
+        return {value: null, recurse: true};
+      }
+    });
     return iteratorFromZipped(streams);
   });
 }
