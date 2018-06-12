@@ -19,6 +19,8 @@
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 
+import {DataElement, IteratorContainer} from '../types';
+import {asyncDeepMap, AsyncDeepMapResult} from '../util/deep_map';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
 
@@ -80,6 +82,21 @@ export function iteratorFromConcatenatedFunction<T>(
     count: number): LazyIterator<T> {
   return iteratorFromConcatenated(
       iteratorFromFunction(iteratorFunc).take(count));
+}
+
+/**
+ * Create a `LazyIterator` by zipping together an array, dict, or nested
+ * structure of `LazyIterator`s (and perhaps additional constants).
+ * The underlying streams must have the same number of elements,
+ * and obviously must provide them in a consistent order such that they
+ * correspond.
+ *
+ * The nested structure of the `iterators` argument determines the
+ * structure of elements in the resulting iterator.
+ */
+export function iteratorFromZipped(iterators: IteratorContainer):
+    LazyIterator<DataElement> {
+  return new ZipIterator(iterators);
 }
 
 export class IteratorProperties {
@@ -514,6 +531,79 @@ export class ChainedIterator<T> extends LazyIterator<T> {
       return this.readFromChain(lastRead);
     }
     return itemResult;
+  }
+}
+
+/**
+ * Provides a `LazyIterator` that zips together an array, dict, or nested
+ * structure of `LazyIterator`s (and perhaps additional constants).
+ * The underlying streams must have the same number of elements,
+ * and obviously must provide them in a consistent order such that they
+ * correspond.
+ *
+ * The nested structure of the `iterators` argument determines the
+ * structure of elements in the resulting iterator.
+ *
+ * Doing this in a concurrency-safe way requires some trickery.  In particular,
+ * we want this stream to return the elements from the underlying streams in
+ * the correct order according to when next() was called, even if the resulting
+ * Promises resolve in a different order.
+ */
+class ZipIterator extends LazyIterator<DataElement> {
+  private count = 0;
+  private currentPromise: Promise<IteratorResult<DataElement>> = null;
+
+  constructor(protected readonly iterators: IteratorContainer) {
+    super();
+  }
+
+  private async nextState(afterState: Promise<IteratorResult<DataElement>>):
+      Promise<IteratorResult<DataElement>> {
+    // This chaining ensures that the underlying next() are not even called
+    // before the previous ones have resolved.
+    await afterState;
+
+    // Collect underlying iterator "done" signals as a side effect in getNext()
+    let numIterators = 0;
+    let iteratorsDone = 0;
+
+    function getNext(container: IteratorContainer): AsyncDeepMapResult {
+      if (container instanceof LazyIterator) {
+        const result = container.next();
+        return {
+          value: result.then(x => {
+            numIterators++;
+            if (x.done) {
+              iteratorsDone++;
+            }
+            return x.value;
+          }),
+          recurse: false
+        };
+      } else {
+        return {value: null, recurse: true};
+      }
+    }
+
+    const mapped = await asyncDeepMap(this.iterators, getNext);
+
+    if (numIterators === iteratorsDone) {
+      // The streams ended simultaneously, as expected
+      return {value: null, done: true};
+    }
+    if (iteratorsDone > 0) {
+      throw new Error(
+          `Zipped streams should have the same length.  Mismatched at element ${
+              this.count}.`);
+    }
+
+    this.count++;
+    return {value: mapped, done: false};
+  }
+
+  async next(): Promise<IteratorResult<DataElement>> {
+    this.currentPromise = this.nextState(this.currentPromise);
+    return (await this.currentPromise);
   }
 }
 

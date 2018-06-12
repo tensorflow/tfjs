@@ -19,6 +19,8 @@
 import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable:max-line-length
 import {TensorContainer, TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
+import { Dataset } from '.';
+import { LazyIterator } from './iterators/lazy_iterator';
 // tslint:enable:max-line-length
 
 // TODO(soergel): clean up the |string union type throughout when Tensor
@@ -51,8 +53,31 @@ export type TabularRecord = {
   [key: string]: ElementArray
 };
 
+/**
+ * JSON-like type representing a nested structure of primitives or Tensors
+ */
 export type DataElement = TensorContainer;
 export type DataElementObject = TensorContainerObject;
+
+export type TOrPrimitive<T> = void | T | string | number | boolean;
+
+export type Container<T> = TOrPrimitive<T> | ContainerObject<T> |
+    ContainerArray<T>;
+export interface ContainerObject<T> {
+    [x: string]: Container<T>;
+}
+export interface ContainerArray<T> extends Array<Container<T>> {
+}
+
+/**
+ * A nested structure of Datasets, used as the input to zip().
+ */
+export type DatasetContainer = Container<Dataset<DataElement>>;
+
+/**
+ * A nested structure of LazyIterators, used as the input to zip().
+ */
+export type IteratorContainer = Container<LazyIterator<DataElement>>;
 
 /**
  * A map from string keys (aka column names) to values for a batch of elements.
