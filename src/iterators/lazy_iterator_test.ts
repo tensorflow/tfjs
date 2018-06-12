@@ -331,7 +331,7 @@ describe('LazyIterator', () => {
 
   /**
    * This test demonstrates behavior that is intrinsic to the tf.data zip() API,
-   * but that may not be what users expect.  This may merit a onvenience
+   * but that may not be what users expect.  This may merit a convenience
    * function (e.g., maybe flatZip()).
    */
   it('zipping DataElement streams requires manual merge', async done => {
