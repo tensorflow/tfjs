@@ -8,6 +8,9 @@
  * =============================================================================
  */
 
+import * as tfc from '@tensorflow/tfjs-core';
+import * as tfl from '@tensorflow/tfjs-layers';
+
 export function status(statusText) {
   document.getElementById('status').textContent = statusText;
 }
@@ -16,6 +19,8 @@ export function setMetadata(metadata) {
   document.getElementById('pyKerasVersion').textContent = metadata.keras_version;
   document.getElementById('tfVersion').textContent = metadata.tensorflow_version;
   document.getElementById('tfUsesGPU').textContent = metadata.tensorflow_uses_gpu;
+  document.getElementById('tfjs-core-version').textContent = tfc.version_core;
+  document.getElementById('tfjs-layers-version').textContent = tfl.version_layers;
 }
 
 export function setRunBenchmarksFunction(runAllBenchmarks) {
