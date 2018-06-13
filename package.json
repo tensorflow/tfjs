@@ -44,7 +44,7 @@
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
     "test": "karma start",
-    "test-travis": "karma start --browsers='bs_firefox_mac,bs_chrome_mac' --singleRun --reporters='dots,karma-typescript'"
+    "test-travis": "./scripts/test-travis.sh"
   },
   "dependencies": {
     "seedrandom": "~2.4.3"
