@@ -29,7 +29,7 @@ import {convOutputLength} from '../utils/conv_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
 import {LayerVariable} from '../variables';
 
-import {BaseConvLayerConfig, Conv2D, ConvLayerConfig, preprocessConv2DInput} from './convolutional';
+import {BaseConv, BaseConvLayerConfig, ConvLayerConfig, preprocessConv2DInput} from './convolutional';
 
 // tslint:enable:max-line-length
 
@@ -117,7 +117,7 @@ export interface DepthwiseConv2DLayerConfig extends BaseConvLayerConfig {
  * separately). The `depthMultplier` argument controls how many output channels
  * are generated per input channel in the depthwise step.
  */
-export class DepthwiseConv2D extends Conv2D {
+export class DepthwiseConv2D extends BaseConv {
   static className = 'DepthwiseConv2D';
   private readonly depthMultiplier: number;
   private readonly depthwiseInitializer: Initializer;
@@ -127,7 +127,7 @@ export class DepthwiseConv2D extends Conv2D {
   private depthwiseKernel: LayerVariable = null;
 
   constructor(config: DepthwiseConv2DLayerConfig) {
-    super(config as ConvLayerConfig);
+    super(2, config as ConvLayerConfig);
     this.depthMultiplier =
         config.depthMultiplier == null ? 1 : config.depthMultiplier;
     this.depthwiseInitializer = getInitializer(

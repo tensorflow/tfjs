@@ -219,4 +219,16 @@ describeMathCPUAndGPU('DepthwiseConv2D-Tensor:', () => {
         tensor4d([100, 100, 260, 260, -100, -100, -260, -260], [1, 2, 2, 2]);
     expectTensorsClose(y, yExpected);
   });
+
+  it('missing config.kernelSize throws exception', () => {
+    // tslint:disable-next-line:no-any
+    expect((filters: 1) => tfl.layers.depthwiseConv2d({} as any))
+        .toThrowError(/kernelSize/);
+  });
+  it('bad config.kernelSize throws exception', () => {
+    expect(
+        // tslint:disable-next-line:no-any
+        () => tfl.layers.depthwiseConv2d({kernelSize: [1]} as any))
+        .toThrowError(/kernelSize/);
+  });
 });
