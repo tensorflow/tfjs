@@ -121,6 +121,16 @@ export class ConcatOps {
    * The tensors ranks and types must match, and their sizes must match in all
    * dimensions except `axis`.
    *
+   * Also available are stricter rank-specific methods that assert that
+   * `tensors` are of the given rank:
+   *   - `tf.concat1d`
+   *   - `tf.concat2d`
+   *   - `tf.concat3d`
+   *   - `tf.concat4d`
+   *
+   * Except `tf.concat1d` (which does not have axis param), all methods have
+   * same signature as this method.
+   *
    * ```js
    * const a = tf.tensor1d([1, 2]);
    * const b = tf.tensor1d([3, 4]);

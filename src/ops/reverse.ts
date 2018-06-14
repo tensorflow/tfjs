@@ -49,6 +49,7 @@ export class ReverseOps {
 
   /**
    * Reverses a `Tensor3D` along a specified axis
+   *
    * @param x The input tensor.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)). Defaults to all axes.
@@ -61,6 +62,7 @@ export class ReverseOps {
 
   /**
    * Reverses a `Tensor4D` along a specified axis
+   *
    * @param x The input tensor.
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)). Defaults to all axes.
@@ -73,6 +75,16 @@ export class ReverseOps {
 
   /**
    * Reverses a `Tensor` along a specified axis.
+   *
+   * Also available are stricter rank-specific methods that assert that `x` is
+   * of the given rank:
+   *   - `tf.reverse1d`
+   *   - `tf.reverse2d`
+   *   - `tf.reverse3d`
+   *   - `tf.reverse4d`
+   *
+   * Except `tf.reverse1d` (which does not have axis param), all methods have
+   * same signature as this method.
    *
    * ```js
    * const x = tf.tensor1d([1, 2, 3, 4]);

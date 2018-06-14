@@ -1090,6 +1090,13 @@ export class ArrayOps {
    *
    * This operation currently only implements the `CONSTANT` mode.
    *
+   * Also available are stricter rank-specific methods with the same signature
+   * as this method that assert that `paddings` is of given length.
+   *   - `tf.pad1d`
+   *   - `tf.pad2d`
+   *   - `tf.pad3d`
+   *   - `tf.pad4d`
+   *
    * ```js
    * const x = tf.tensor1d([1, 2, 3, 4]);
    * x.pad([[1, 2]]).print();
