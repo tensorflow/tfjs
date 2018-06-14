@@ -17,12 +17,14 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {CPU_ENVS} from '../test_util';
+import {CHROME_CPU_ENVS} from '../test_util';
 
 import {deleteDatabase} from './indexed_db';
 import {purgeLocalStorageArtifacts} from './local_storage';
 
-describeWithFlags('ModelManagement', CPU_ENVS, () => {
+// Disabled for non-Chrome browsers due to:
+// https://github.com/tensorflow/tfjs/issues/427
+describeWithFlags('ModelManagement', CHROME_CPU_ENVS, () => {
   // Test data.
   const modelTopology1: {} = {
     'class_name': 'Sequential',

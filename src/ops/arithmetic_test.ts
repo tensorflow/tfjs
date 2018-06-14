@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('div', ALL_ENVS, () => {
   it('same shape', () => {
@@ -707,7 +707,7 @@ describeWithFlags('pow', ALL_ENVS, () => {
 
   it('gradient: Tensor2D / Tensor2D w/ broadcast', () => {
     const a = tf.tensor2d([3, 4], [2, 1]);
-    const b = tf.tensor2d([[2, 3], [4, 5]], [2, 2]);
+    const b = tf.tensor2d([[2, 3], [.4, .5]], [2, 2]);
     const dy = tf.tensor2d([[6, 7], [8, 9]], [2, 2]);
 
     const grads = tf.grads((a, b) => tf.pow(a, b));
@@ -717,14 +717,14 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expect(da.dtype).toEqual('float32');
     expectArraysClose(da, [
       6 * 2 * Math.pow(3, 1) + 7 * 3 * Math.pow(3, 2),
-      8 * 4 * Math.pow(4, 3) + 9 * 5 * Math.pow(4, 4)
+      8 * .4 * Math.pow(4, .4 - 1) + 9 * .5 * Math.pow(4, .5 - 1)
     ]);
 
     expect(db.shape).toEqual(b.shape);
     expect(db.dtype).toEqual('float32');
     expectArraysClose(db, [
       6 * Math.pow(3, 2) * Math.log(3), 7 * Math.pow(3, 3) * Math.log(3),
-      8 * Math.pow(4, 4) * Math.log(4), 9 * Math.pow(4, 5) * Math.log(4)
+      8 * Math.pow(4, .4) * Math.log(4), 9 * Math.pow(4, .5) * Math.log(4)
     ]);
   });
 

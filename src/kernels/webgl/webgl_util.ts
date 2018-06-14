@@ -211,11 +211,7 @@ export function queryMaxTextureSize(gl: WebGLRenderingContext): number {
   return MAX_TEXTURE_SIZE;
 }
 
-export function getChannelsPerTexture(): number {
-  if (!ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED')) {
-    return 4;
-  }
-
+export function getNumChannels(): number {
   if (ENV.get('WEBGL_VERSION') === 2) {
     return 1;
   }

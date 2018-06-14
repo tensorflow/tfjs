@@ -143,9 +143,13 @@ export const SOFTPLUS = `
   return result;
 `;
 
-export const SIN = `return sin(x);`;
+export const SIN = CHECK_NAN_SNIPPET + `
+  return sin(x);
+`;
 
-export const COS = `return cos(x);`;
+export const COS = CHECK_NAN_SNIPPET + `
+  return cos(x);
+`;
 
 export const TAN = `return tan(x);`;
 

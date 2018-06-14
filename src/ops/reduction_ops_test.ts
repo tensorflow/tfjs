@@ -97,7 +97,7 @@ describeWithFlags('max', ALL_ENVS, () => {
   });
 
   it('ignores NaNs', () => {
-    expect(tf.max(tf.tensor1d([3, NaN, 2])).get()).toEqual(3);
+    expectNumbersClose(tf.max(tf.tensor1d([3, NaN, 2])).get(), 3);
   });
 
   it('2D', () => {

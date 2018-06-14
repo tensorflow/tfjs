@@ -23,7 +23,6 @@
     "karma": "~2.0.2",
     "karma-browserstack-launcher": "~1.3.0",
     "karma-chrome-launcher": "~2.2.0",
-    "karma-firefox-launcher": "~1.0.1",
     "karma-jasmine": "~1.1.0",
     "karma-typescript": "~3.0.8",
     "rimraf": "~2.6.2",

@@ -21,7 +21,8 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {CPU_ENVS} from '../test_util';
+import {CHROME_CPU_ENVS, CPU_ENVS} from '../test_util';
+
 import {BrowserHTTPRequest, httpRequestRouter} from './browser_http';
 
 // Test data.
@@ -58,7 +59,9 @@ const modelTopology1: {} = {
   'backend': 'tensorflow'
 };
 
-describeWithFlags('browserHTTPRequest-save', CPU_ENVS, () => {
+// Turned off for other browsers due to:
+// https://github.com/tensorflow/tfjs/issues/426
+describeWithFlags('browserHTTPRequest-save', CHROME_CPU_ENVS, () => {
   // Test data.
   const weightSpecs1: tf.io.WeightsManifestEntry[] = [
     {
@@ -265,13 +268,8 @@ describeWithFlags('browserHTTPRequest-save', CPU_ENVS, () => {
   });
 
   it('Existing body leads to Error', () => {
-    const key1Data = '1337';
-    const key2Data = '42';
-    const extraFormData = new FormData();
-    extraFormData.set('key1', key1Data);
-    extraFormData.set('key2', key2Data);
     expect(() => tf.io.browserHTTPRequest('model-upload-test', {
-      body: extraFormData
+      body: 'existing body'
     })).toThrowError(/requestInit is expected to have no pre-existing body/);
   });
 
