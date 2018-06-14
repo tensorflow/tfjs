@@ -22,6 +22,7 @@ import * as types from '../types';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
+import {zerosLike} from '../ops/ops';
 
 export class LogicalOps {
   /**
@@ -160,10 +161,19 @@ export class LogicalOps {
       util.assertShapesMatch(condition.shape, b.shape, 'Error in where: ');
     }
 
-    // Default to highest percision of number:
+    // Default to highest precision:
     const dtype = types.upcastType(a.dtype, b.dtype);
+
+    // TODO(julianoks): Return null for condition gradient
+    // when backprop supports it.
+    const grad = (dy: T) => ({
+      condition: () => zerosLike(condition),
+      a: () => dy.mul(condition.cast(a.dtype)) as T,
+      b: () => dy.mul(condition.logicalNot().cast(b.dtype)) as T
+    });
+    
     return ENV.engine.runKernel(
-               backend => backend.where(condition, a, b, dtype),
-               {condition, a, b}) as T;
+    	backend => backend.where(condition, a, b, dtype), 
+    	{condition, a, b}, grad) as T;
   }
 }
