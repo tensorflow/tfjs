@@ -28,6 +28,7 @@ describe('graph', () => {
   let node: Node;
   const input1 = [tfc.tensor1d([1])];
   const input2 = [tfc.tensor1d([1])];
+  const input3 = [tfc.tensor3d([1, 1, 1, 2, 2, 2], [1, 2, 3])];
   const context = new ExecutionContext({});
 
   beforeEach(() => {
@@ -87,9 +88,33 @@ describe('graph', () => {
         node.op = 'shape';
         expect(
             Array.prototype.slice.call(
-                (executeOp(node, {input: input1}, context) as tfc.Tensor[])[0]
+                (executeOp(node, {input: input3}, context) as tfc.Tensor[])[0]
                     .dataSync()))
-            .toEqual([1]);
+            .toEqual([1, 2, 3]);
+      });
+    });
+    describe('size', () => {
+      it('should return size', () => {
+        node.inputNames = ['input'];
+        node.params.x = createTensorAttr(0);
+        node.op = 'size';
+        expect(
+            Array.prototype.slice.call(
+                (executeOp(node, {input: input3}, context) as tfc.Tensor[])[0]
+                    .dataSync()))
+            .toEqual([6]);
+      });
+    });
+    describe('rank', () => {
+      it('should return rank', () => {
+        node.inputNames = ['input'];
+        node.params.x = createTensorAttr(0);
+        node.op = 'rank';
+        expect(
+            Array.prototype.slice.call(
+                (executeOp(node, {input: input3}, context) as tfc.Tensor[])[0]
+                    .dataSync()))
+            .toEqual([3]);
       });
     });
     describe('noop', () => {

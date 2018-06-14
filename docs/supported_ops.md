@@ -15,6 +15,7 @@
 |RealDiv|div|
 |SquaredDifference|squaredDifference|
 |Sub|sub|
+|Not mapped|floorDiv|
 
 
 ## Operations - Basic math
@@ -114,6 +115,7 @@
 |Not mapped|tensor2d|
 |Not mapped|tensor3d|
 |Not mapped|tensor4d|
+|Not mapped|tensor5d|
 |Not mapped|variable|
 
 
@@ -128,7 +130,9 @@
 |Placeholder|placeholder|
 |PlaceholderWithDefault|placeholder|
 |Print|print|
+|Rank|rank|
 |Shape|shape|
+|Size|size|
 |Snapshot|snapshot|
 |StopGradient|stopGradient|
 
@@ -156,6 +160,7 @@
 |---|---|
 |MatMul|matMul|
 |Transpose|transpose|
+|Not mapped|dot|
 |Not mapped|norm|
 |Not mapped|outerProduct|
 
