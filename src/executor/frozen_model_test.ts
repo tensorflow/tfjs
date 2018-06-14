@@ -119,6 +119,16 @@ describe('Model', () => {
       const input = tfc.tensor1d([1], 'int32');
       expect(() => model.predict([input, input])).toThrow();
     });
+
+    it('should throw exception if inputs shapes do not match', () => {
+      const input = tfc.tensor2d([1, 1], [1, 2], 'int32');
+      expect(() => model.predict([input])).toThrow();
+    });
+
+    it('should throw exception if inputs dtype does not match graph', () => {
+      const input = tfc.tensor1d([1], 'float32');
+      expect(() => model.predict([input])).toThrow();
+    });
   });
 
   describe('execute', () => {
@@ -135,6 +145,21 @@ describe('Model', () => {
       expect(Array.isArray(output)).toBeTruthy();
       expect((output as tfc.Tensor[])[0].dataSync()[0]).toEqual(2);
       expect((output as tfc.Tensor[])[1].dataSync()[0]).toEqual(1);
+    });
+    it('should throw exception if inputs shapes do not match', () => {
+      const input = tfc.tensor2d([1, 1], [1, 2], 'int32');
+      expect(() => model.execute([input])).toThrow();
+    });
+
+    it('should throw exception if inputs dtype does not match graph', () => {
+      const input = tfc.tensor1d([1], 'float32');
+      expect(() => model.predict([input])).toThrow();
+    });
+
+    it('should throw error if input size mismatch', async () => {
+      await model.load();
+      const input = tfc.tensor1d([1], 'int32');
+      expect(() => model.execute([input, input])).toThrow();
     });
   });
 
