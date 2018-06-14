@@ -564,15 +564,27 @@ export class MathBackendWebGL implements KernelBackend {
 
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
-    const axis = axis_util.getInnerMostAxes(1, x.rank)[0];
-    const outShape = segment_util.computeOutShape(x.shape, axis, numSegments);
-    const inSize = util.sizeFromShape([x.shape[axis]]);
-    const a2D = x.as2D(-1, inSize);
+    let axis = 0;
+    const permutation = axis_util.getAxesPermutation([axis], x.rank);
+    let permutedX = x;
+    if (permutation != null) {
+      permutedX = x.transpose(permutation);
+      axis = axis_util.getInnerMostAxes(1, x.rank)[0];
+    }
+
+    const outShape =
+        segment_util.computeOutShape(permutedX.shape, axis, numSegments);
+    const inSize = util.sizeFromShape([permutedX.shape[axis]]);
+    const a2D = permutedX.as2D(-1, inSize);
     const outputDType = types.sumOutType(x.dtype);
-    return this
-        .segOpCompute(
-            a2D, 'unsortedSegmentSum', segmentIds, outputDType, numSegments)
-        .reshape(outShape);
+    let result =
+        this.segOpCompute(
+                a2D, 'unsortedSegmentSum', segmentIds, outputDType, numSegments)
+            .reshape(outShape);
+    if (permutation != null) {
+      result = result.transpose(axis_util.getUndoAxesPermutation(permutation));
+    }
+    return result;
   }
 
   private segOpCompute(
