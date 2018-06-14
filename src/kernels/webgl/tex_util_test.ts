@@ -296,25 +296,3 @@ describe('tex_util decodeMatrixFromPackedRGBA', () => {
     expectArraysClose(matrix, new Float32Array([1, 2, 3, 4, 5, 6, 7, 8, 9]));
   });
 });
-
-describe('tex_util_float_packing', () => {
-  it('packs a float32array as a uint8 array', () => {
-    const elements =
-        randomArrayInRange(1000, tex_util.FLOAT_MIN, tex_util.FLOAT_MAX);
-
-    const matrix = new Float32Array(elements);
-    const uintArray = tex_util.encodeFloatArray(matrix);
-    const floatArray = tex_util.decodeToFloatArray(uintArray);
-    expectArraysClose(matrix, floatArray);
-  });
-});
-
-function randomArrayInRange(
-    n: number, minValue: number, maxValue: number): Float32Array {
-  const v = new Float32Array(n);
-  const range = maxValue - minValue;
-  for (let i = 0; i < n; ++i) {
-    v[i] = (Math.random() * range) + minValue;
-  }
-  return v;
-}

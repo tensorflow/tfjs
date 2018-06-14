@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('softmax', ALL_ENVS, () => {
   it('regular test', () => {
@@ -29,13 +29,13 @@ describeWithFlags('softmax', ALL_ENVS, () => {
   });
 
   it('overflow', () => {
-    const y = tf.softmax(tf.tensor1d([1000, 1000]));
+    const y = tf.softmax(tf.tensor1d([100, 100]));
 
     expectArraysClose(y, [0.5, 0.5]);
   });
 
   it('underflow', () => {
-    const y = tf.softmax(tf.tensor1d([-1000, -1000]));
+    const y = tf.softmax(tf.tensor1d([-100, -100]));
 
     expectArraysClose(y, [0.5, 0.5]);
   });

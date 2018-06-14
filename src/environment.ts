@@ -46,12 +46,19 @@ export interface Features {
   'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'?: boolean;
   // 0: No WebGL, 1: WebGL 1.0, 2: WebGL 2.0.
   'WEBGL_VERSION'?: number;
-  // Whether writing & reading floating point textures is enabled. When
-  // false, fall back to using unsigned byte textures.
-  'WEBGL_FLOAT_TEXTURE_ENABLED'?: boolean;
+  // Whether rendering to float32 textures is enabled. If disabled, renders to
+  // float16 textures.
+  'WEBGL_RENDER_FLOAT32_ENABLED'?: boolean;
+  // Whether downloading float textures is enabled. If disabled, uses IEEE 754
+  // encoding of the float32 values to 4 uint8 when downloading.
+  'WEBGL_DOWNLOAD_FLOAT_ENABLED'?: boolean;
   // Whether WEBGL_get_buffer_sub_data_async is enabled.
   'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'?: boolean;
   'BACKEND'?: string;
+  // Test precision for unit tests. This is decreased when we can't render
+  // float32 textures.
+  'TEST_EPSILON'?: number;
+  'IS_CHROME'?: boolean;
 }
 
 export const URL_PROPERTIES: URLProperty[] = [
@@ -59,7 +66,8 @@ export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', type: Type.NUMBER},
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
   {name: 'WEBGL_VERSION', type: Type.NUMBER},
-  {name: 'WEBGL_FLOAT_TEXTURE_ENABLED', type: Type.BOOLEAN}, {
+  {name: 'WEBGL_RENDER_FLOAT32_ENABLED', type: Type.BOOLEAN},
+  {name: 'WEBGL_DOWNLOAD_FLOAT_ENABLED', type: Type.BOOLEAN}, {
     name: 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED',
     type: Type.BOOLEAN
   },
@@ -70,6 +78,9 @@ export interface URLProperty {
   name: keyof Features;
   type: Type;
 }
+
+const TEST_EPSILON_FLOAT32_ENABLED = 1e-3;
+const TEST_EPSILON_FLOAT32_DISABLED = 1e-1;
 
 function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
   const ext = gl.getExtension(extensionName);
@@ -140,7 +151,24 @@ function getWebGLDisjointQueryTimerVersion(webGLVersion: number): number {
   return queryTimerVersion;
 }
 
-function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
+function createFloatTextureAndBindToFramebuffer(
+    gl: WebGLRenderingContext, webGLVersion: number) {
+  const frameBuffer = gl.createFramebuffer();
+  const texture = gl.createTexture();
+
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // tslint:disable-next-line:no-any
+  const internalFormat = webGLVersion === 2 ? (gl as any).RGBA32F : gl.RGBA;
+  gl.texImage2D(
+      gl.TEXTURE_2D, 0, internalFormat, 1, 1, 0, gl.RGBA, gl.FLOAT, null);
+
+  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
+  gl.framebufferTexture2D(
+      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+}
+
+function isRenderToFloatTextureEnabled(webGLVersion: number): boolean {
   if (webGLVersion === 0) {
     return false;
   }
@@ -157,30 +185,40 @@ function isFloatTextureReadPixelsEnabled(webGLVersion: number): boolean {
     }
   }
 
-  const frameBuffer = gl.createFramebuffer();
-  const texture = gl.createTexture();
+  createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
 
-  gl.bindTexture(gl.TEXTURE_2D, texture);
+  const isFrameBufferComplete =
+      gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
 
-  // tslint:disable-next-line:no-any
-  const internalFormat = webGLVersion === 2 ? (gl as any).RGBA32F : gl.RGBA;
-  gl.texImage2D(
-      gl.TEXTURE_2D, 0, internalFormat, 1, 1, 0, gl.RGBA, gl.FLOAT, null);
+  loseContext(gl);
+  return isFrameBufferComplete;
+}
 
-  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-  gl.framebufferTexture2D(
-      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+function isDownloadFloatTextureEnabled(webGLVersion: number): boolean {
+  if (webGLVersion === 0) {
+    return false;
+  }
 
-  const frameBufferComplete =
-      (gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE);
+  const gl = getWebGLRenderingContext(webGLVersion);
 
+  if (webGLVersion === 1) {
+    if (!hasExtension(gl, 'OES_texture_float')) {
+      return false;
+    }
+  } else {
+    if (!hasExtension(gl, 'EXT_color_buffer_float')) {
+      return false;
+    }
+  }
+
+  createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
   gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, new Float32Array(4));
 
   const readPixelsNoError = gl.getError() === gl.NO_ERROR;
 
   loseContext(gl);
 
-  return frameBufferComplete && readPixelsNoError;
+  return readPixelsNoError;
 }
 
 function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
@@ -198,6 +236,11 @@ function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
   const isEnabled = hasExtension(gl, 'WEBGL_get_buffer_sub_data_async');
   loseContext(gl);
   return isEnabled;
+}
+
+function isChrome() {
+  return navigator != null && navigator.userAgent != null &&
+      /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
 }
 
 export class Environment {
@@ -322,6 +365,8 @@ export class Environment {
     } else if (feature === 'IS_NODE') {
       return (typeof process !== 'undefined') &&
           (typeof process.versions.node !== 'undefined');
+    } else if (feature === 'IS_CHROME') {
+      return isChrome();
     } else if (feature === 'BACKEND') {
       return this.getBestBackendType();
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') {
@@ -342,12 +387,19 @@ export class Environment {
         return 1;
       }
       return 0;
-    } else if (feature === 'WEBGL_FLOAT_TEXTURE_ENABLED') {
-      return isFloatTextureReadPixelsEnabled(this.get('WEBGL_VERSION'));
+    } else if (feature === 'WEBGL_RENDER_FLOAT32_ENABLED') {
+      return isRenderToFloatTextureEnabled(this.get('WEBGL_VERSION'));
+    } else if (feature === 'WEBGL_DOWNLOAD_FLOAT_ENABLED') {
+      return isDownloadFloatTextureEnabled(this.get('WEBGL_VERSION'));
     } else if (
         feature === 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED') {
       return isWebGLGetBufferSubDataAsyncExtensionEnabled(
           this.get('WEBGL_VERSION'));
+    } else if (feature === 'TEST_EPSILON') {
+      if (this.get('WEBGL_RENDER_FLOAT32_ENABLED')) {
+        return TEST_EPSILON_FLOAT32_ENABLED;
+      }
+      return TEST_EPSILON_FLOAT32_DISABLED;
     }
     throw new Error(`Unknown feature ${feature}.`);
   }

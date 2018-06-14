@@ -17,9 +17,11 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
+import {CPU_ENVS, expectArraysClose, WEBGL_ENVS} from '../test_util';
 
-describeWithFlags('AdadeltaOptimizer', ALL_ENVS, () => {
+// Disabled for default environments due to:
+// https://github.com/tensorflow/tfjs/issues/425
+describeWithFlags('AdadeltaOptimizer', CPU_ENVS.concat(WEBGL_ENVS), () => {
   it('basic', () => {
     const learningRate = .1;
     const rho = .95;

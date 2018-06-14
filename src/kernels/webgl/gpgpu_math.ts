@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {ENV} from '../../environment';
 import {Tensor} from '../../tensor';
 import * as util from '../../util';
 
@@ -39,12 +38,6 @@ export interface GPGPUBinary {
   source: string;
   inShapeInfos: ShapeInfo[];
   outShapeInfo: ShapeInfo;
-}
-
-const NAN_UNIFORM_NAME = 'NaN';
-
-function shouldUploadNaNUniform(): boolean {
-  return !ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED');
 }
 
 export interface TensorData<T extends Tensor> {
@@ -83,12 +76,6 @@ export function compileProgram<T extends Tensor, K extends Tensor>(
     const shouldThrow = false;
     uniformLocations[uniformName] =
         gpgpu.getUniformLocation(webGLProgram, uniformName, shouldThrow);
-  }
-
-  if (shouldUploadNaNUniform()) {
-    const throwIfNaNUniformIsNotUsed = false;
-    uniformLocations[NAN_UNIFORM_NAME] = gpgpu.getUniformLocation(
-        webGLProgram, NAN_UNIFORM_NAME, throwIfNaNUniformIsNotUsed);
   }
 
   return {
@@ -168,10 +155,6 @@ export function runProgram<T extends Tensor, K extends Tensor>(
       gpgpu.setInputMatrixTexture(tex, variableUniformLocation, i);
     }
   });
-
-  if (shouldUploadNaNUniform()) {
-    gpgpu.gl.uniform1f(binary.uniformLocations[NAN_UNIFORM_NAME], NaN);
-  }
 
   if (customSetup != null) {
     customSetup(gpgpu, binary.webGLProgram);

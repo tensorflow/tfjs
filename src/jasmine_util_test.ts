@@ -84,13 +84,13 @@ describe('canEmulateEnvironment', () => {
   it('webgl backend, webgl 1.0 no float emulation on webgl 2.0', () => {
     ENV.registerBackend('fake-webgl', () => new MathBackendCPU());
     ENV.set('WEBGL_VERSION', 2);
-    ENV.set('WEBGL_FLOAT_TEXTURE_ENABLED', true);
+    ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', true);
 
     // Emulates iOS.
     const fakeFeatures = {
       'BACKEND': 'fake-webgl',
       'WEBGL_VERSION': 1,
-      'WEBGL_FLOAT_TEXTURE_ENABLED': false
+      'WEBGL_RENDER_FLOAT32_ENABLED': false
     };
     expect(jasmine_util.canEmulateEnvironment(fakeFeatures)).toBe(true);
 
@@ -101,13 +101,15 @@ describe('canEmulateEnvironment', () => {
      () => {
        ENV.registerBackend('fake-webgl', () => new MathBackendCPU());
        ENV.set('WEBGL_VERSION', 1);
-       ENV.set('WEBGL_FLOAT_TEXTURE_ENABLED', false);
+       ENV.set('WEBGL_RENDER_FLOAT32_ENABLED', false);
+       ENV.set('WEBGL_DOWNLOAD_FLOAT_ENABLED', false);
 
        // Emulates iOS.
        const fakeFeatures = {
          'BACKEND': 'fake-webgl',
          'WEBGL_VERSION': 1,
-         'WEBGL_FLOAT_TEXTURE_ENABLED': false
+         'WEBGL_RENDER_FLOAT32_ENABLED': false,
+         'WEBGL_DOWNLOAD_FLOAT_ENABLED': false
        };
        expect(jasmine_util.canEmulateEnvironment(fakeFeatures)).toBe(true);
 

@@ -14,12 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-
-import {ENV} from '../../environment';
 import * as broadcast_util from '../../ops/broadcast_util';
 import * as util from '../../util';
-
-import * as tex_util from './tex_util';
 
 export type ShapeInfo = {
   logicalShape: number[],
@@ -35,8 +31,6 @@ export type InputInfo = {
 export function makeShader(
     inputsInfo: InputInfo[], outputShape: ShapeInfo, userCode: string,
     broadcast: boolean): string {
-  const sampleSnippet = getSampleSnippet();
-  const setOutputSnippet = getSetOutputSnippet();
   let inputPrefixSnippet: string[]|string = inputsInfo.map(x => {
     const size = util.sizeFromShape(x.shapeInfo.logicalShape);
     if (x.shapeInfo.isUniform) {
@@ -52,22 +46,11 @@ export function makeShader(
   const outputSamplingSnippet =
       getOutputSamplingSnippet(outputShape.logicalShape, outTexShape);
   const source = [
-    SHADER_PREFIX, sampleSnippet, setOutputSnippet, inputPrefixSnippet,
-    outputSamplingSnippet, inputSamplingSnippet, userCode
+    SHADER_PREFIX, FLOAT_TEXTURE_SAMPLE_SNIPPET,
+    FLOAT_TEXTURE_SETOUTPUT_SNIPPET, inputPrefixSnippet, outputSamplingSnippet,
+    inputSamplingSnippet, userCode
   ].join('\n');
   return source;
-}
-
-function getSampleSnippet() {
-  return ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED') ?
-      FLOAT_TEXTURE_SAMPLE_SNIPPET :
-      UNSIGNED_BYTE_TEXTURE_SAMPLE_SNIPPET;
-}
-
-function getSetOutputSnippet() {
-  return ENV.get('WEBGL_FLOAT_TEXTURE_ENABLED') ?
-      FLOAT_TEXTURE_SETOUTPUT_SNIPPET :
-      UNSIGNED_BYTE_TEXTURE_SETOUTPUT_SNIPPET;
 }
 
 function getSamplerFromInInfo(inInfo: InputInfo): string {
@@ -185,64 +168,6 @@ vec2 UVfrom5D(int texNumR, int texNumC, int stride0,
 }
 `;
 
-const UNSIGNED_BYTE_TEXTURE_SAMPLE_SNIPPET = `
-  uniform float NaN;
-
-  const vec4 floatDeltas = vec4(
-      1.0,
-      1.0 / 255.0,
-      1.0 / (255.0 * 255.0),
-      1.0 / (255.0 * 255.0 * 255.0)
-  );
-  const float minValue = ${tex_util.FLOAT_MIN}.0;
-  const float maxValue = ${tex_util.FLOAT_MAX}.0;
-  const float range = (maxValue - minValue) / 255.0;
-  const vec2 dotRange = vec2(1.0, range);
-
-  float sampleTexture(sampler2D textureSampler, vec2 uv) {
-    vec4 sampleValue = texture2D(textureSampler, uv);
-    if (all(equal(sampleValue, vec4(${tex_util.BYTE_NAN_VALUE})))) {
-      return NaN;
-    }
-
-    vec4 encValue = floor(sampleValue * 255.0 + 0.5);
-    float decodedValue = dot(encValue, floatDeltas);
-    return dot(vec2(minValue, decodedValue), dotRange);
-  }
-`;
-
-const UNSIGNED_BYTE_TEXTURE_SETOUTPUT_SNIPPET = `
-  const vec4 floatPowers = vec4(
-    1.0,
-    255.0,
-    255.0 * 255.0,
-    255.0 * 255.0 * 255.0
-  );
-  const vec2 recipRange = vec2(1.0/range);
-  const vec2 recipRange255 = vec2(1.0/(maxValue - minValue));
-
-  void setOutput(float decodedValue) {
-    if (isNaN(decodedValue)) {
-      gl_FragColor = vec4(${tex_util.BYTE_NAN_VALUE});
-      return;
-    }
-
-    float a = dot(vec2(decodedValue, -minValue), recipRange);
-    float b = fract(a) * 255.0;
-    float c = fract(b) * 255.0;
-    float d = fract(c) * 255.0;
-    gl_FragColor = floor(vec4(a, b, c, d)) / 255.0;
-
-    // TODO(dsmilkov): Version above gets better accuracy but probably slower
-    // than the version below. Benchmark to determine if the accuracy is worth
-    // the cost.
-
-    // float normValue = dot(vec2(decodedValue, -minValue), recipRange255);
-    // vec4 f = normValue * floatPowers;
-    // gl_FragColor = floor(fract(f) * 255.0) / 255.0;
-  }
-`;
-
 const FLOAT_TEXTURE_SAMPLE_SNIPPET = `
   float sampleTexture(sampler2D textureSampler, vec2 uv) {
     return texture2D(textureSampler, uv).r;
@@ -271,9 +196,7 @@ const SHADER_PREFIX = `
   };
 
   bool isNaN(float val) {
-    float v1 = val * val;
-    float v2 = val * val;
-    return v1 == v2 ? false : true;
+    return (val < 0.0 || 0.0 < val || val == 0.0) ? false : true;
   }
 
   bool hasNaN(vec4 values) {

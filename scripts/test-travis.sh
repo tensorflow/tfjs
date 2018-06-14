@@ -14,8 +14,9 @@
 # limitations under the License.
 # =============================================================================
 
-
 if [[ $(node -v) = *v10* ]]; then
-  karma start --browsers='bs_firefox_mac,bs_chrome_mac' \
-      --singleRun --reporters='dots,karma-typescript'
+  karma start \
+      --browsers='bs_firefox_mac,bs_chrome_mac,bs_safari_mac,bs_ios_11' \
+      --singleRun --reporters='dots,karma-typescript,BrowserStack' \
+      --hostname='bs-local.com'
 fi

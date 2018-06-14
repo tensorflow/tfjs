@@ -28,7 +28,9 @@ function canEmulateFeature<K extends keyof Features>(
     return ENV.findBackend(emulatedFeature as string) != null;
   } else if (feature === 'WEBGL_VERSION') {
     return ENV.get(feature) >= emulatedFeature;
-  } else if (feature === 'WEBGL_FLOAT_TEXTURE_ENABLED') {
+  } else if (
+      feature === 'WEBGL_RENDER_FLOAT32_ENABLED' ||
+      feature === 'WEBGL_DOWNLOAD_FLOAT_ENABLED' || feature === 'IS_CHROME') {
     if (ENV.get(feature) === false && emulatedFeature === true) {
       return false;
     }
