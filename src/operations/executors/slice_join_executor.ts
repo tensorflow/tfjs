@@ -88,6 +88,14 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
         return [tfc.stack(mapped, axis)];
       });
     }
+    case 'unstack': {
+      return tfc.tidy(() => {
+        const axis = getParamValue('axis', node, tensorMap, context) as number;
+        const tensor =
+            getParamValue('tensor', node, tensorMap, context) as tfc.Tensor;
+        return tfc.unstack(tensor, axis);
+      });
+    }
     case 'tile': {
       const reps = getParamValue('reps', node, tensorMap, context) as number[];
       return [tfc.tile(

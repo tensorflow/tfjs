@@ -213,7 +213,7 @@
 |Split|split|
 |StridedSlice|stridedSlice|
 |Tile|tile|
-|Not mapped|unstack|
+|Unpack|unstack|
 
 
 ## Tensors - Transformations
