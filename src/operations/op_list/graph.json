@@ -46,6 +46,30 @@
     ]
   },
   {
+    "tfOpName": "Rank",
+    "dlOpName": "rank",
+    "category": "graph",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Size",
+    "dlOpName": "size",
+    "category": "graph",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      }
+    ]
+  },
+  {
     "tfOpName": "Shape",
     "dlOpName": "shape",
     "category": "graph",
