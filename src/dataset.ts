@@ -18,14 +18,15 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
+import {isPrimitive} from 'util';
 
 import {BatchDataset} from './batch_dataset';
 // tslint:disable:max-line-length
-import {iteratorFromFunction, iteratorFromZipped, LazyIterator} from './iterators/lazy_iterator';
+import {iteratorFromFunction, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './iterators/lazy_iterator';
 import {iteratorFromConcatenated} from './iterators/lazy_iterator';
 import {iteratorFromItems} from './iterators/lazy_iterator';
 import {DataElement, DatasetContainer} from './types';
-import {deepMap} from './util/deep_map';
+import {deepMap, isIterable} from './util/deep_map';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -270,9 +271,11 @@ export function datasetFromElements<T extends DataElement>(items: T[]):
 /**
  * Create a `Dataset` by zipping together an array, dict, or nested
  * structure of `Dataset`s (and perhaps additional constants).
- * The underlying datasets must have the same number of elements,
- * and obviously must provide them in a consistent order such that they
- * correspond.
+ * The underlying datasets must provide elements in a consistent order such that
+ * they correspond.
+ *
+ * The number of elements in the resulting dataset is the same as the size of
+ * the smallest dataset in `datasets`.
  *
  * The nested structure of the `datasets` argument determines the
  * structure of elements in the resulting iterator.
@@ -285,21 +288,28 @@ export function datasetFromElements<T extends DataElement>(items: T[]):
  * const ds1 : Dataset = ...;  // produces elements like {b: ...}
  * const ds3 = zip([ds1, ds2]);  // produces elements like [{a: ...}, {b: ...}]
  *
- * This may seem unexpected, if the user wanted to merge the dicts in order to
- * produce elements like {a: ..., b: ...}.  This merging can of course be
- * achieved manually as a second step:
+ * If the goal is to merge the dicts in order to produce elements like
+ * {a: ..., b: ...}, this requires a second step such as:
  *
  * const ds4 = ds3.map(x=>{a: x[0].a, b: x[1].b});
  */
 export function zip(datasets: DatasetContainer): Dataset<DataElement> {
+  // manually type-check the argument for JS users
+  if (!isIterable(datasets)) {
+    throw new Error('The argument to zip() must be an object or array.');
+  }
   return datasetFromIteratorFn(() => {
     const streams = deepMap(datasets, d => {
       if (d instanceof Dataset) {
         return {value: d.iterator(), recurse: false};
+      } else if (isPrimitive(d)) {
+        throw new Error(
+            'Leaves of the structure passed to zip() must be Datasets, ' +
+            'not primitives.');
       } else {
         return {value: null, recurse: true};
       }
     });
-    return iteratorFromZipped(streams);
+    return iteratorFromZipped(streams, ZipMismatchMode.SHORTEST);
   });
 }

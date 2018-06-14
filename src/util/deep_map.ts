@@ -49,16 +49,17 @@ export function deepMap(input: any, mapFn: (x: any) => DeepMapResult): any|
 /**
  * @param seen: A Map of known object mappings (i.e., memoized results of
  *   `mapFn()`)
- * @param stack: An array describing the object reference path currently being
- *   processed (used to detect cycles).
+ * @param containedIn: An set containing objects on the reference path currently
+ *   being processed (used to detect cycles).
  */
 function deepMapInternal(
     input: any, mapFn: (x: any) => DeepMapResult,
-    seen: Map<any, any> = new Map(), stack: any[] = []): any|any[] {
+    seen: Map<any, any> = new Map(), containedIn: Set<{}> = new Set()): any|
+    any[] {
   if (input == null) {
     return null;
   }
-  if (stack.indexOf(input) > -1) {
+  if (containedIn.has(input)) {
     throw new Error('Circular references are not supported: ' + input);
   }
   if (seen.has(input)) {
@@ -77,13 +78,13 @@ function deepMapInternal(
   } else if (isIterable(input)) {
     // tslint:disable-next-line:no-any
     const mappedIterable: any|any[] = Array.isArray(input) ? [] : {};
-    stack.push(input);
+    containedIn.add(input);
     for (const k in input) {
       const child = input[k];
-      const childResult = deepMapInternal(child, mapFn, seen, stack);
+      const childResult = deepMapInternal(child, mapFn, seen, containedIn);
       mappedIterable[k] = childResult;
     }
-    stack.pop();
+    containedIn.delete(input);
     return mappedIterable;
   } else {
     throw new Error('Can\'t recurse into non-iterable type: ' + input);
