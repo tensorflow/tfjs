@@ -23,7 +23,7 @@ import './local_storage';
 
 import {browserFiles} from './browser_files';
 import {browserHTTPRequest} from './browser_http';
-import {decodeWeights, encodeWeights, getModelArtifactsInfoForJSON} from './io_utils';
+import {concatenateArrayBuffers, decodeWeights, encodeWeights, getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelManagement} from './model_management';
 import {IORouterRegistry} from './router_registry';
 
@@ -44,6 +44,7 @@ const removeModel = ModelManagement.removeModel;
 export {
   browserFiles,
   browserHTTPRequest,
+  concatenateArrayBuffers,
   copyModel,
   decodeWeights,
   encodeWeights,
