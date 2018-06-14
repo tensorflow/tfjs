@@ -89,14 +89,73 @@ tf.test_util.describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
            .catch(done.fail);
      });
 
-  it('can be zipped', done => {
+  it('can be created by zipping an array of datasets with primitive elements',
+     done => {
+       const a = datasetFromElements([1, 2, 3]);
+       const b = datasetFromElements([4, 5, 6]);
+       zip([a, b])
+           .collectAll()
+           .then(result => {
+             expect(result).toEqual([[1, 4], [2, 5], [3, 6]]);
+           })
+           .then(done)
+           .catch(done.fail);
+     });
+
+  it('can be created by zipping an array of datasets with object elements',
+     done => {
+       const a = datasetFromElements([{a: 1}, {a: 2}, {a: 3}]);
+       const b = datasetFromElements([{b: 4}, {b: 5}, {b: 6}]);
+       zip([a, b])
+           .collectAll()
+           .then(result => {
+             expect(result).toEqual(
+                 [[{a: 1}, {b: 4}], [{a: 2}, {b: 5}], [{a: 3}, {b: 6}]]);
+           })
+           .then(done)
+           .catch(done.fail);
+     });
+
+  it('can be created by zipping a dict of datasets', done => {
     const a = datasetFromElements([{a: 1}, {a: 2}, {a: 3}]);
     const b = datasetFromElements([{b: 4}, {b: 5}, {b: 6}]);
+    zip({c: a, d: b})
+        .collectAll()
+        .then(result => {
+          expect(result).toEqual([
+            {c: {a: 1}, d: {b: 4}}, {c: {a: 2}, d: {b: 5}},
+            {c: {a: 3}, d: {b: 6}}
+          ]);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
+  it('can be created by zipping a nested structure of datasets', done => {
+    const a = datasetFromElements([1, 2, 3]);
+    const b = datasetFromElements([4, 5, 6]);
+    const c = datasetFromElements([7, 8, 9]);
+    const d = datasetFromElements([10, 11, 12]);
+    zip({a, bcd: [b, {c, d}]})
+        .collectAll()
+        .then(result => {
+          expect(result).toEqual([
+            {a: 1, bcd: [4, {c: 7, d: 10}]},
+            {a: 2, bcd: [5, {c: 8, d: 11}]},
+            {a: 3, bcd: [6, {c: 9, d: 12}]},
+          ]);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
+  it('can be created by zipping datasets of different sizes', done => {
+    const a = datasetFromElements([1, 2]);
+    const b = datasetFromElements([3, 4, 5, 6]);
     zip([a, b])
         .collectAll()
         .then(result => {
-          expect(result).toEqual(
-              [[{a: 1}, {b: 4}], [{a: 2}, {b: 5}], [{a: 3}, {b: 6}]]);
+          expect(result).toEqual([[1, 3], [2, 4]]);
         })
         .then(done)
         .catch(done.fail);

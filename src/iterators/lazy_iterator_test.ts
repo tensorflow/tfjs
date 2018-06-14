@@ -19,7 +19,7 @@
 // tslint:disable:max-line-length
 import {TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
 import {DataElement} from '../types';
-import {iteratorFromIncrementing, iteratorFromZipped, LazyIterator} from './lazy_iterator';
+import {iteratorFromIncrementing, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './lazy_iterator';
 import {iteratorFromConcatenated} from './lazy_iterator';
 import {iteratorFromConcatenatedFunction} from './lazy_iterator';
 import {iteratorFromFunction, iteratorFromItems} from './lazy_iterator';
@@ -329,10 +329,54 @@ describe('LazyIterator', () => {
     }
   });
 
+  it('requires streams of the same length by default', async done => {
+    try {
+      const a = new TestIntegerIterator(10);
+      const b = new TestIntegerIterator(3);
+      const c = new TestIntegerIterator(2);
+      const readStream = iteratorFromZipped([a, b, c]);
+      await readStream.collectRemaining();
+      // expected error due to default ZipMismatchMode.FAIL
+      done.fail();
+    } catch (e) {
+      done();
+    }
+  });
+
+  it('can terminate when the shortest stream terminates', async done => {
+    try {
+      const a = new TestIntegerIterator(10);
+      const b = new TestIntegerIterator(3);
+      const c = new TestIntegerIterator(2);
+      const readStream =
+          iteratorFromZipped([a, b, c], ZipMismatchMode.SHORTEST);
+      const result = await readStream.collectRemaining();
+      expect(result.length).toEqual(2);
+      done();
+    } catch (e) {
+      done.fail();
+    }
+  });
+
+  it('can terminate when the longest stream terminates', async done => {
+    try {
+      const a = new TestIntegerIterator(10);
+      const b = new TestIntegerIterator(3);
+      const c = new TestIntegerIterator(2);
+      const readStream = iteratorFromZipped([a, b, c], ZipMismatchMode.LONGEST);
+      const result = await readStream.collectRemaining();
+      expect(result.length).toEqual(10);
+      expect(result[9]).toEqual([9, null, null]);
+      done();
+    } catch (e) {
+      done.fail();
+    }
+  });
+
   /**
    * This test demonstrates behavior that is intrinsic to the tf.data zip() API,
-   * but that may not be what users expect.  This may merit a convenience
-   * function (e.g., maybe flatZip()).
+   * but that may not be what users ultimately want when zipping dicts.
+   * This may merit a convenience function (e.g., maybe flatZip()).
    */
   it('zipping DataElement streams requires manual merge', async done => {
     function naiveMerge(xs: DataElement[]): DataElement {

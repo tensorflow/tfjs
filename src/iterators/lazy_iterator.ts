@@ -87,16 +87,30 @@ export function iteratorFromConcatenatedFunction<T>(
 /**
  * Create a `LazyIterator` by zipping together an array, dict, or nested
  * structure of `LazyIterator`s (and perhaps additional constants).
- * The underlying streams must have the same number of elements,
- * and obviously must provide them in a consistent order such that they
- * correspond.
+ *
+ * The underlying streams must provide elements in a consistent order such that
+ * they correspond.
+ *
+ * Typically, the underlying streams should have the same number of elements.
+ * If they do not, the behavior is determined by the `mismatchMode` argument.
  *
  * The nested structure of the `iterators` argument determines the
  * structure of elements in the resulting iterator.
+ *
+ * @param iterators: An array or object containing LazyIterators at the leaves.
+ * @param mismatchMode: Determines what to do when one underlying iterator is
+ *   exhausted before the others.  `ZipMismatchMode.FAIL` (the default) causes
+ *   an error to be thrown in this case.  `ZipMismatchMode.SHORTEST` causes the
+ *   zipped iterator to terminate with the furst underlying streams, so elements
+ *   remaining on the longer streams are ignored.  `ZipMismatchMode.LONGEST`
+ *   causes the zipped stream to continue, filling in nulls for the exhausted
+ *   streams, until all streams are exhausted.
  */
-export function iteratorFromZipped(iterators: IteratorContainer):
-    LazyIterator<DataElement> {
-  return new ZipIterator(iterators);
+export function iteratorFromZipped(
+    iterators: IteratorContainer,
+    mismatchMode: ZipMismatchMode =
+        ZipMismatchMode.FAIL): LazyIterator<DataElement> {
+  return new ZipIterator(iterators, mismatchMode);
 }
 
 export class IteratorProperties {
@@ -534,12 +548,21 @@ export class ChainedIterator<T> extends LazyIterator<T> {
   }
 }
 
+export enum ZipMismatchMode {
+  FAIL,      // require zipped streams to have the same length
+  SHORTEST,  // terminate zip when the first stream is exhausted
+  LONGEST    // use nulls for exhausted streams; use up the longest stream.
+}
+
 /**
  * Provides a `LazyIterator` that zips together an array, dict, or nested
  * structure of `LazyIterator`s (and perhaps additional constants).
- * The underlying streams must have the same number of elements,
- * and obviously must provide them in a consistent order such that they
- * correspond.
+ *
+ * The underlying streams must provide elements in a consistent order such that
+ * they correspond.
+ *
+ * Typically, the underlying streams should have the same number of elements.
+ * If they do not, the behavior is determined by the `mismatchMode` argument.
  *
  * The nested structure of the `iterators` argument determines the
  * structure of elements in the resulting iterator.
@@ -548,12 +571,23 @@ export class ChainedIterator<T> extends LazyIterator<T> {
  * we want this stream to return the elements from the underlying streams in
  * the correct order according to when next() was called, even if the resulting
  * Promises resolve in a different order.
+ *
+ * @param iterators: An array or object containing LazyIterators at the leaves.
+ * @param mismatchMode: Determines what to do when one underlying iterator is
+ *   exhausted before the others.  `ZipMismatchMode.FAIL` (the default) causes
+ *   an error to be thrown in this case.  `ZipMismatchMode.SHORTEST` causes the
+ *   zipped iterator to terminate with the furst underlying streams, so elements
+ *   remaining on the longer streams are ignored.  `ZipMismatchMode.LONGEST`
+ *   causes the zipped stream to continue, filling in nulls for the exhausted
+ *   streams, until all streams are exhausted.
  */
 class ZipIterator extends LazyIterator<DataElement> {
   private count = 0;
   private currentPromise: Promise<IteratorResult<DataElement>> = null;
 
-  constructor(protected readonly iterators: IteratorContainer) {
+  constructor(
+      protected readonly iterators: IteratorContainer,
+      protected readonly mismatchMode: ZipMismatchMode = ZipMismatchMode.FAIL) {
     super();
   }
 
@@ -588,13 +622,21 @@ class ZipIterator extends LazyIterator<DataElement> {
     const mapped = await asyncDeepMap(this.iterators, getNext);
 
     if (numIterators === iteratorsDone) {
-      // The streams ended simultaneously, as expected
+      // The streams have all ended.
       return {value: null, done: true};
     }
     if (iteratorsDone > 0) {
-      throw new Error(
-          `Zipped streams should have the same length.  Mismatched at element ${
-              this.count}.`);
+      switch (this.mismatchMode) {
+        case ZipMismatchMode.FAIL:
+          throw new Error(
+              'Zipped streams should have the same length. ' +
+              `Mismatched at element ${this.count}.`);
+        case ZipMismatchMode.SHORTEST:
+          return {value: null, done: true};
+        case ZipMismatchMode.LONGEST:
+        default:
+          // Continue.  The exhausted streams already produced value: null.
+      }
     }
 
     this.count++;

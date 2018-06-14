@@ -19,8 +19,8 @@
 import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable:max-line-length
 import {TensorContainer, TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
-import { Dataset } from '.';
-import { LazyIterator } from './iterators/lazy_iterator';
+import {Dataset} from '.';
+import {LazyIterator} from './iterators/lazy_iterator';
 // tslint:enable:max-line-length
 
 // TODO(soergel): clean up the |string union type throughout when Tensor
@@ -59,15 +59,17 @@ export type TabularRecord = {
 export type DataElement = TensorContainer;
 export type DataElementObject = TensorContainerObject;
 
-export type TOrPrimitive<T> = void | T | string | number | boolean;
+export type PrimitiveOrT<T> = void|string|number|boolean|T;
 
-export type Container<T> = TOrPrimitive<T> | ContainerObject<T> |
-    ContainerArray<T>;
+// Maybe this should be called 'NestedContainer'-- that's just a bit unwieldy.
+export type Container<T> = ContainerObject<T>|ContainerArray<T>;
+
+export type ContainerOrT<T> = Container<T>|T;
+
 export interface ContainerObject<T> {
-    [x: string]: Container<T>;
+  [x: string]: ContainerOrT<T>;
 }
-export interface ContainerArray<T> extends Array<Container<T>> {
-}
+export interface ContainerArray<T> extends Array<ContainerOrT<T>> {}
 
 /**
  * A nested structure of Datasets, used as the input to zip().
