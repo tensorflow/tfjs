@@ -5,7 +5,7 @@ const $Reader = $protobuf.Reader, $util = $protobuf.util;
 
 const $root = $protobuf.roots["default"] || ($protobuf.roots["default"] = {});
 
-export const tensorflow = $root.tensorflow = (() => {
+export const tensorflow = $root.tensorflow = (function() {
 
     const tensorflow = {};
 
