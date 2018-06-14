@@ -173,6 +173,12 @@ export class BatchNormOps {
    *   - In the common case, the depth dimension is the last dimension of x, so
    *     the values would be an `Tensor1D` of shape [depth].
    *
+   * Also available are stricter rank-specific methods with the same signature
+   * as this method that assert that parameters passed are of given rank
+   *   - `tf.batchNormalization2d`
+   *   - `tf.batchNormalization3d`
+   *   - `tf.batchNormalization4d`
+   *
    * @param x The input Tensor.
    * @param mean A mean Tensor.
    * @param variance A variance Tensor.
