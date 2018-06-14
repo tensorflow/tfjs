@@ -84,91 +84,118 @@ describe('GraphExecutor', () => {
     });
 
     describe('graph level', () => {
-      it('should execute the op', () => {
-        executor = new GraphExecutor(graph);
-        const inputTensor = tfc.scalar(1);
-        const constTensor = tfc.scalar(2);
-        const spy =
-            spyOn(operations, 'executeOp').and.callFake((node: Node) => {
-              return node.op === 'const' ? [constTensor] : [inputTensor];
-            });
-
-        executor.execute({input: [inputTensor]});
-
-        expect(spy.calls.allArgs()).toEqual([
-          [inputNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
-          [constNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
-          [outputNode, jasmine.any(Object), jasmine.any(ExecutionContext)]
-        ]);
-      });
-
-      it('should execute control flow graph', async (done) => {
-        inputNode = {
-          inputNames: [],
-          inputs: [],
-          children: [],
-          name: 'input',
-          op: 'placeholder',
-          category: 'graph',
-          params: {}
-        };
-        constNode = {
-          inputNames: [],
-          inputs: [],
-          children: [],
-          name: 'const',
-          op: 'const',
-          category: 'graph',
-          params: {}
-        };
-        outputNode = {
-          inputNames: ['input', 'const'],
-          inputs: [inputNode, constNode],
-          children: [],
-          name: 'output',
-          op: 'switch',
-          category: 'control',
-          params: {}
-        };
-        inputNode.children.push(outputNode);
-        constNode.children.push(outputNode);
-        graphWithControlFlow = {
-          inputs: [constNode, inputNode],
-          nodes: {'input': inputNode, 'const': constNode, 'output': outputNode},
-          outputs: [outputNode],
-          withControlFlow: true,
-          placeholders: [inputNode]
-        };
-
-        executor = new GraphExecutor(graphWithControlFlow);
-        const inputTensor = tfc.scalar(1);
-        const constTensor = tfc.scalar(2);
-        executor.weightMap = {const : [constTensor]};
-        const spy =
-            spyOn(operations, 'executeOp').and.callFake((node: Node) => {
-              return node.op === 'const' ? [constTensor] : [inputTensor];
-            });
-
-        await executor.executeAsync({input: [inputTensor]}).then(result => {
-          expect(spy.calls.allArgs()).toEqual([
-            [inputNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
-            [outputNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
-            [constNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
-          ]);
-          done();
-        });
-
+      describe('execute', () => {
         it('should throw exception if missing inputs', () => {
           expect(() => executor.execute({}))
-              .toThrow(new Error('Missing input placeholders: input'));
+              .toThrow(new Error(
+                  'The dict provided in model.execute(dict) has the keys [], ' +
+                  'but is missing the required keys: [input].'));
         });
 
         it('should throw exception if contains extra inputs', () => {
           const inputTensor = tfc.scalar(1);
-          expect(() => executor.execute({
-            test: [inputTensor],
-            input: [inputTensor]
-          })).toThrow(new Error('Extra input tensors: test'));
+          expect(
+              () =>
+                  executor.execute({test: [inputTensor], input: [inputTensor]}))
+              .toThrow(new Error(
+                  'The dict provided in model.execute(dict) has unused keys: ' +
+                  '[test]. Please provide only the following keys: [input].'));
+        });
+
+        it('should execute the op', () => {
+          executor = new GraphExecutor(graph);
+          const inputTensor = tfc.scalar(1);
+          const constTensor = tfc.scalar(2);
+          const spy =
+              spyOn(operations, 'executeOp').and.callFake((node: Node) => {
+                return node.op === 'const' ? [constTensor] : [inputTensor];
+              });
+
+          executor.execute({input: [inputTensor]});
+
+          expect(spy.calls.allArgs()).toEqual([
+            [inputNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
+            [constNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
+            [outputNode, jasmine.any(Object), jasmine.any(ExecutionContext)]
+          ]);
+        });
+
+        it('should throw exception if inputs shapes do not match graph', () => {
+          inputNode.params['shape'] = {value: [1, 1], type: 'shape'};
+          const inputTensor = tfc.tensor1d([1], 'float32');
+          expect(() => executor.execute({input: [inputTensor]}))
+              .toThrow(new Error(
+                  'The shape of dict[\'input\'] provided' +
+                  ' in model.execute(dict) must be [1,1], but was [1]'));
+        });
+
+        it('should throw exception if inputs dtype do not match graph', () => {
+          inputNode.params['dtype'] = {value: 'int32', type: 'dtype'};
+          const inputTensor = tfc.tensor1d([1], 'float32');
+          expect(() => executor.execute({input: [inputTensor]}))
+              .toThrow(new Error(
+                  'The dtype of dict[\'input\'] provided' +
+                  ' in model.execute(dict) must be int32, but was float32'));
+        });
+      });
+
+      describe('executeAsync', () => {
+        it('should execute control flow graph', async (done) => {
+          inputNode = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'input',
+            op: 'placeholder',
+            category: 'graph',
+            params: {}
+          };
+          constNode = {
+            inputNames: [],
+            inputs: [],
+            children: [],
+            name: 'const',
+            op: 'const',
+            category: 'graph',
+            params: {}
+          };
+          outputNode = {
+            inputNames: ['input', 'const'],
+            inputs: [inputNode, constNode],
+            children: [],
+            name: 'output',
+            op: 'switch',
+            category: 'control',
+            params: {}
+          };
+          inputNode.children.push(outputNode);
+          constNode.children.push(outputNode);
+          graphWithControlFlow = {
+            inputs: [constNode, inputNode],
+            nodes:
+                {'input': inputNode, 'const': constNode, 'output': outputNode},
+            outputs: [outputNode],
+            withControlFlow: true,
+            placeholders: [inputNode]
+          };
+
+          executor = new GraphExecutor(graphWithControlFlow);
+          const inputTensor = tfc.scalar(1);
+          const constTensor = tfc.scalar(2);
+          executor.weightMap = {const : [constTensor]};
+          const spy =
+              spyOn(operations, 'executeOp').and.callFake((node: Node) => {
+                return node.op === 'const' ? [constTensor] : [inputTensor];
+              });
+
+          await executor.executeAsync({input: [inputTensor]}).then(result => {
+            expect(spy.calls.allArgs()).toEqual([
+              [inputNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
+              [outputNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
+              [constNode, jasmine.any(Object), jasmine.any(ExecutionContext)],
+            ]);
+            done();
+          });
         });
       });
     });

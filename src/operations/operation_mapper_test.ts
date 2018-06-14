@@ -152,6 +152,13 @@ describe('operationMapper', () => {
             .toEqual(true);
       });
 
+      it('should map the placeholder attribute params', () => {
+        expect(graph.nodes['image_placeholder'].params['shape'].value).toEqual([
+          3, 3, 3, 1
+        ]);
+        expect(graph.nodes['image_placeholder'].params['dtype'].value)
+            .toEqual('float32');
+      });
       it('should map params with deprecated name', () => {
         expect(graph.nodes['Squeeze'].params['axis'].value).toEqual([1, 2]);
       });

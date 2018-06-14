@@ -8,13 +8,35 @@
         "tfInputIndex": 0,
         "dlParamName": "default",
         "type": "tensor"
+      },
+      {
+        "tfParamName": "shape",
+        "dlParamName": "shape",
+        "type": "shape"
+      },
+      {
+        "tfParamName": "dtype",
+        "dlParamName": "dtype",
+        "type": "dtype"
       }
     ]
   },
   {
     "tfOpName": "Placeholder",
     "dlOpName": "placeholder",
-    "category": "graph"
+    "category": "graph",
+    "params": [
+      {
+        "tfParamName": "shape",
+        "dlParamName": "shape",
+        "type": "shape"
+      },
+      {
+        "tfParamName": "dtype",
+        "dlParamName": "dtype",
+        "type": "dtype"
+      }
+    ]
   },
   {
     "tfOpName": "Const",

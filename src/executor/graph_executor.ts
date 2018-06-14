@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {NamedTensorMap, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {NamedTensorsMap} from '../data/types';
 import {getNodeNameAndIndex, getTensor} from '../operations/executors/utils';
@@ -33,8 +33,8 @@ export class GraphExecutor {
   private compiledOrder: Node[] = [];
   private _weightMap: NamedTensorsMap = {};
   private weightIds: number[];
-  private placeholders: string[];
-  private outputs: string[];
+  private placeholders: Node[];
+  private outputs: Node[];
   get weightMap(): NamedTensorsMap {
     return this._weightMap;
   }
@@ -46,16 +46,16 @@ export class GraphExecutor {
   }
 
   get inputNodes(): string[] {
-    return this.placeholders;
+    return this.placeholders.map(node => node.name);
   }
 
   get outputNodes(): string[] {
-    return this.outputs;
+    return this.outputs.map(node => node.name);
   }
 
   constructor(private graph: Graph) {
-    this.placeholders = graph.placeholders.map(node => node.name);
-    this.outputs = graph.outputs.map(node => node.name);
+    this.placeholders = graph.placeholders;
+    this.outputs = graph.outputs;
     this.compile();
   }
 
@@ -102,6 +102,7 @@ export class GraphExecutor {
    */
   execute(inputs: NamedTensorsMap, outputs?: string|string[]): NamedTensorMap {
     this.checkInput(inputs);
+    this.checkInputShapeAndType(inputs);
     const result = tidy(() => {
       const context = new ExecutionContext(this._weightMap);
       const tensors =
@@ -125,6 +126,8 @@ export class GraphExecutor {
    */
   async executeAsync(inputs: NamedTensorsMap, outputs?: string|string[]):
       Promise<NamedTensorMap> {
+    this.checkInput(inputs);
+    this.checkInputShapeAndType(inputs);
     const context = new ExecutionContext(this._weightMap);
     // Graph with control flow op requires runtime evaluation of the execution
     // order, while without control flow the execution order is pre-determined
@@ -221,17 +224,41 @@ export class GraphExecutor {
             key => this.weightMap[key].forEach(tensor => tensor.dispose()));
   }
 
+  private checkInputShapeAndType(inputs: NamedTensorsMap) {
+    this.placeholders.forEach(node => {
+      const input = inputs[node.name][0];
+      if (node.params['shape'] && node.params['shape'].value) {
+        const shape = node.params['shape'].value as number[];
+        const match = shape.length === input.shape.length &&
+            input.shape.every(
+                (dim, index) => shape[index] === -1 || shape[index] === dim);
+        util.assert(
+            match,
+            `The shape of dict['${
+                node.name}'] provided in model.execute(dict) must be [${
+                shape}], but was [${input.shape}]`);
+      }
+      if (node.params['dtype'] && node.params['dtype'].value) {
+        util.assert(
+            input.dtype === node.params['dtype'].value as string,
+            `The dtype of dict['${
+                node.name}'] provided in model.execute(dict) must be ${
+                node.params['dtype'].value}, but was ${input.dtype}`);
+      }
+    });
+  }
+
   private checkInput(inputs: NamedTensorsMap) {
     const inputKeys = Object.keys(inputs);
     const missing: string[] = [];
     const extra: string[] = [];
 
-    this.placeholders.forEach(name => {
+    this.inputNodes.forEach(name => {
       if (inputKeys.indexOf(name) === -1) missing.push(name);
     });
 
     inputKeys.forEach(name => {
-      if (this.placeholders.indexOf(name) === -1) extra.push(name);
+      if (this.inputNodes.indexOf(name) === -1) extra.push(name);
     });
 
     if (missing.length > 0) {
@@ -244,7 +271,7 @@ export class GraphExecutor {
       throw new Error(
           `The dict provided in model.execute(dict) has ` +
           `unused keys: [${extra}]. Please provide only the following keys: ` +
-          `[${this.placeholders}].`);
+          `[${this.inputNodes}].`);
     }
   }
 }
