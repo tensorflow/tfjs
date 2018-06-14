@@ -55,6 +55,16 @@ describe('slice join', () => {
 
         expect(spy).toHaveBeenCalledWith([input1[0], input2[0]], 3);
       });
+      it('should call tfc.unstack', () => {
+        const spy = spyOn(tfc, 'unstack');
+        node.op = 'unstack';
+        node.params.tensor = createTensorAttr(0);
+        node.params.axis = createNumberAttr(4);
+        executeOp(node, {input1}, context);
+
+        expect(spy).toHaveBeenCalledWith(input1[0], 4);
+      });
+
       it('should call tfc.stack', () => {
         const spy = spyOn(tfc, 'stack');
         node.op = 'stack';
