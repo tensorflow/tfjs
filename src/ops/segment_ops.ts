@@ -20,7 +20,6 @@ import {ENV} from '../environment';
 import {Tensor, Tensor1D} from '../tensor';
 import * as util from '../util';
 import {ArrayOps} from './array_ops';
-import * as axis_util from './axis_util';
 import {BinaryOps} from './binary_ops';
 import {CompareOps} from './compare';
 import {LogicalOps} from './logical_ops';
@@ -52,45 +51,34 @@ export class SegmentOps {
         segmentIds.dtype === 'int32', 'segmentIds must be of dtype `int32`');
     util.assert(util.isInt(numSegments), 'numSegments must be of dtype int');
 
-    let axis = 0;
-    const permutation = axis_util.getAxesPermutation([axis], x.rank);
-    let permutedX = x;
-    if (permutation != null) {
-      permutedX = x.transpose(permutation);
-      axis = axis_util.getInnerMostAxes(1, x.rank)[0];
-    }
     const gradFunc = (dy: T) => {
       const derX = () => {
-        return gatherDropNegatives(dy, segmentIds, axis);
+        return gatherDropNegatives(dy, segmentIds);
       };
-      return {permutedX: derX};
+      return {x: derX};
     };
-    let result = ENV.engine.runKernel(
-        backend =>
-            backend.unsortedSegmentSum(permutedX, segmentIds, numSegments) as T,
-        {permutedX}, gradFunc);
-    if (permutation != null) {
-      result = result.transpose(axis_util.getUndoAxesPermutation(permutation));
-    }
-    return result;
+    return ENV.engine.runKernel(
+               backend =>
+                   backend.unsortedSegmentSum(x, segmentIds, numSegments),
+               {x}, gradFunc) as T;
   }
 }
 
-function gatherDropNegatives<T extends Tensor>(
-    x: T, indices: Tensor1D, axis: number) {
+function gatherDropNegatives<T extends Tensor>(x: T, indices: Tensor1D) {
   // Helper function for unsorted segment ops. Gathers params for
   // positive segment ids and gathers 0 for inputs with negative segment id.
   // Mirrors _GatherDropNegatives from tensorflow/python/ops/math_grad.py
   const zeroClippedIndices =
       BinaryOps.maximum(indices, ArrayOps.zerosLike(indices));
-  const gathered = ArrayOps.gather(x, zeroClippedIndices as Tensor1D, axis);
+  const gathered = ArrayOps.gather(x, zeroClippedIndices as Tensor1D);
   let isPositive =
       CompareOps.greaterEqual(indices, ArrayOps.scalar(0, 'int32'));
-  for (let i = 0; i < gathered.rank - isPositive.rank; ++i) {
-    isPositive = ArrayOps.expandDims(isPositive, -1);
+  const numIters = gathered.rank - isPositive.rank;
+  for (let i = 0; i < numIters; ++i) {
+    isPositive = ArrayOps.expandDims(isPositive, i + 1);
   }
-  const bools = ArrayOps.onesLike(gathered).equal(ArrayOps.scalar(1));
-  isPositive = LogicalOps.logicalAnd(isPositive, bools);
+  isPositive =
+      LogicalOps.logicalAnd(isPositive, ArrayOps.ones(gathered.shape, 'bool'));
   const zeroSlice = ArrayOps.zerosLike(gathered);
   return LogicalOps.where(isPositive, gathered, zeroSlice);
 }

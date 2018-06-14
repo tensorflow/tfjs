@@ -337,30 +337,22 @@ export class MathBackendCPU implements KernelBackend {
   unsortedSegmentSum<T extends Tensor>(
       x: T, segmentIds: Tensor1D, numSegments: number): Tensor {
     const res = [];
-    const [dim] = segmentIds.shape;
-    const axis = axis_util.getInnerMostAxes(1, x.rank)[0];
 
     // Reshape the segment id's so that they can be broadcast with
-    // x. The new shape should be [1, 1, ... 1, dim, 1, ..., 1] where
-    // dim is at index = axis.
-    const newShape = [];
-    for (let i = 0; i < x.shape.length; ++i) {
-      if (i === axis) {
-        newShape.push(dim);
-      } else {
-        newShape.push(1);
-      }
+    // x. The new shape should be [segmentIds.shape, 1, ..., 1]
+    const numIters = x.rank - segmentIds.rank;
+    for (let i = 0; i < numIters; ++i) {
+      segmentIds = segmentIds.expandDims(i + 1);
     }
 
-    const reshapedSegmentIds = ops.reshape(segmentIds, newShape);
     for (let i = 0; i < numSegments; ++i) {
       const segmentId = ops.scalar(i, 'int32');
-      const mask = ops.equal(segmentId, reshapedSegmentIds).asType('float32');
-      const sum = mask.mul(x).sum(axis);
+      const mask = ops.equal(segmentId, segmentIds).asType('float32');
+      const sum = mask.mul(x).sum(0);
       res.push(sum);
     }
 
-    return ops.stack(res, axis) as T;
+    return ops.stack(res);
   }
 
   argMin(x: Tensor, axis: number): Tensor {

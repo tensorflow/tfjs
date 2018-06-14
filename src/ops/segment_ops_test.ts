@@ -45,7 +45,6 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
     const t = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [3, 2, 2]);
     const segmentIds = tf.tensor1d([2, 1, 2], 'int32');
     const numSegments = 3;
-    // const axis = 0;
     const res = tf.unsortedSegmentSum(t, segmentIds, numSegments);
 
     expect(res.shape).toEqual([numSegments, 2, 2]);
