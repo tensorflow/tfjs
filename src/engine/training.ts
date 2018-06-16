@@ -13,6 +13,7 @@
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
 import {doc, io, ModelPredictConfig, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
+
 import * as K from '../backend/tfjs_backend';
 import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, disposeTensorsInLogs, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
@@ -21,6 +22,7 @@ import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
 import {LossOrMetricFn, NamedTensorMap, Shape} from '../types';
 import {count, singletonOrArray, unique} from '../utils/generic_utils';
+import {printSummary} from '../utils/layer_utils';
 import {range} from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 
@@ -648,6 +650,54 @@ export class Model extends Container {
 
   constructor(config: ContainerConfig) {
     super(config);
+  }
+
+  /**
+   * Print a text summary of the model's layers.
+   *
+   * The summary includes
+   * - Name and type of all layers that comprise the model.
+   * - Output shape(s) of the layers
+   * - Number of weight parameters of each layer
+   * - If the model has non-sequential-like topology, the inputs each layer
+   *   receives
+   * - The total number of trainable and non-trainable parameters of the model.
+   *
+   * ```js
+   * const input1 = tf.input({shape: [10]});
+   * const input2 = tf.input({shape: [20]});
+   * const dense1 = tf.layers.dense({units: 4}).apply(input1);
+   * const dense2 = tf.layers.dense({units: 8}).apply(input2);
+   * const concat = tf.layers.concatenate().apply([dense1, dense2]);
+   * const output =
+   *     tf.layers.dense({units: 3, activation: 'softmax'}).apply(concat);
+   *
+   * const model = tf.model({inputs: [input1, input2], outputs: output});
+   * model.summary();
+   * ```
+   *
+   * @param lineLength Custom line length, in number of characters.
+   * @param positions Custom widths of each of the columns, as either
+   *   fractions of `lineLength` (e.g., `[0.5, 0.75, 1]`) or absolute number
+   *   of characters (e.g., `[30, 50, 65]`). Each number corresponds to
+   *   right-most (i.e., ending) position of a column.
+   * @param printFn Custom print function. Can be used to replace the default
+   *   `console.log`. For example, you can use `x => {}` to mute the printed
+   *   messages in the console.
+   */
+  @doc({heading: 'Models', subheading: 'Classes'})
+  summary(
+      lineLength?: number, positions?: number[],
+      printFn:
+          // tslint:disable-next-line:no-any
+      (message?: any, ...optionalParams: any[]) => void = console.log) {
+    if (!this.built) {
+      throw new ValueError(
+          `This model has never been called, thus its weights have not been ` +
+          `created yet. So no summary can be displayed. Build the model ` +
+          `first (e.g., by calling it on some test data).`);
+    }
+    printSummary(this, lineLength, positions, printFn);
   }
 
   /**

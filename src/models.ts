@@ -398,6 +398,7 @@ export class Sequential extends Model {
         this.inputs = getSourceInputs(this.outputs[0]);
       }
 
+      this.inboundNodes = [];
       // We create an input node, which we will keep updated
       // as we add more layers.
       // (This call has side effects.)
@@ -501,6 +502,52 @@ export class Sequential extends Model {
     // TODO(michaelterry): Add feedInputNames, feedInputs, if needed.
     // TODO(michaelterry): Add callbackModel if needed.
     this.built = true;
+  }
+
+  countParams(): number {
+    if (!this.built) {
+      this.build();
+    }
+    return super.countParams();
+  }
+
+  /**
+   * Print a text summary of the Sequential model's layers.
+   *
+   * The summary includes
+   * - Name and type of all layers that comprise the model.
+   * - Output shape(s) of the layers
+   * - Number of weight parameters of each layer
+   * - The total number of trainable and non-trainable parameters of the model.
+   *
+   * ```js
+   * const model = tf.sequential();
+   * model.add(
+   *     tf.layers.dense({units: 100, inputShape: [10], activation: 'relu'}));
+   * model.add(tf.layers.dense({units: 1, activation: 'sigmoid'}));
+   *
+   * model.summary();
+   * ```
+   *
+   * @param lineLength Custom line length, in number of characters.
+   * @param positions Custom widths of each of the columns, as either
+   *   fractions of `lineLength` (e.g., `[0.5, 0.75, 1]`) or absolute number
+   *   of characters (e.g., `[30, 50, 65]`). Each number corresponds to
+   *   right-most (i.e., ending) position of a column.
+   * @param printFn Custom print function. Can be used to replace the default
+   *   `console.log`. For example, you can use `x => {}` to mute the printed
+   *   messages in the console.
+   */
+  @doc({heading: 'Models', subheading: 'Classes'})
+  summary(
+      lineLength?: number, positions?: number[],
+      printFn:
+          // tslint:disable-next-line:no-any
+      (message?: any, ...optionalParams: any[]) => void = console.log) {
+    if (!this.built) {
+      this.build();
+    }
+    super.summary(lineLength, positions, printFn);
   }
 
   /**
