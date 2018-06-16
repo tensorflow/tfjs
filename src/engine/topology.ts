@@ -245,7 +245,6 @@ export class Node {
     // List of shape tuples, shapes of outputTensors.
     this.outputShapes = config.outputShapes;
 
-
     // Add nodes to all layers involved.
     for (const layer of config.inboundLayers) {
       if (layer != null) {
@@ -965,6 +964,65 @@ export abstract class Layer extends serialization.Serializable {
         return output;
       }
     });
+  }
+
+  /**
+   * Retrieves the output shape(s) of a layer.
+   *
+   * Only applicable if the layer has only one inbound node, or if all inbound
+   * nodes have the same output shape.
+   *
+   * @returns Output shape or shapes.
+   * @throws AttributeError: if the layer is connected to more than one incoming
+   *   nodes.
+   */
+  get outputShape(): Shape|Shape[] {
+    if (this.inboundNodes == null || this.inboundNodes.length === 0) {
+      throw new AttributeError(
+          `The layer ${this.name} has never been called and thus has no ` +
+          `defined output shape.`);
+    }
+    const allOutputShapes: string[] = [];
+    for (const node of this.inboundNodes) {
+      const shapeString = JSON.stringify(node.outputShapes);
+      if (allOutputShapes.indexOf(shapeString) === -1) {
+        allOutputShapes.push(shapeString);
+      }
+    }
+    if (allOutputShapes.length === 1) {
+      const outputShapes = this.inboundNodes[0].outputShapes;
+      if (Array.isArray(outputShapes) && Array.isArray(outputShapes[0]) &&
+          outputShapes.length === 1) {
+        return (outputShapes as Shape[])[0];
+      } else {
+        return outputShapes;
+      }
+
+    } else {
+      throw new AttributeError(
+          `The layer ${this.name} has multiple inbound nodes with different ` +
+          `output shapes. Hence the notion of "outut shape" is ill-defined ` +
+          `for the layer.`);
+      // TODO(cais): Implement getOutputShapeAt().
+    }
+  }
+
+  /**
+   * Counts the total number of numbers (e.g., float32, int32) in the
+   * weights.
+   *
+   * @returns An integer count.
+   * @throws RuntimeError: If the layer is not built yet (in which case its
+   *   weights are not defined yet.)
+   */
+  countParams(): number {
+    if (!this.built) {
+      throw new RuntimeError(
+          `You tried to call countParams() on ${this.name}, ` +
+          `but the layer is not built yet. Build it first by calling ` +
+          `build(batchInputShape).`);
+    }
+    return generic_utils.countParamsInWeights(this.weights);
   }
 
   /**

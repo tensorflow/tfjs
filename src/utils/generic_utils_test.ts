@@ -8,6 +8,10 @@
  * =============================================================================
  */
 
+import {scalar, zeros} from '@tensorflow/tfjs-core';
+
+import {LayerVariable} from '../variables';
+
 import * as utils from './generic_utils';
 
 describe('pyListRepeat() ', () => {
@@ -278,5 +282,33 @@ describe('checkArrayTypeAndLength', () => {
   it('rejects maxLength < minLength', () => {
     expect(() => utils.checkArrayTypeAndLength([1, 2, 3], 'number', 100, 2))
         .toThrowError();
+  });
+});
+
+describe('countParamsInWeights', () => {
+  it('Zero weights', () => {
+    expect(utils.countParamsInWeights([])).toEqual(0);
+  });
+
+  it('One float32 weight', () => {
+    const weight1 = new LayerVariable(zeros([2, 3]));
+    expect(utils.countParamsInWeights([weight1])).toEqual(6);
+  });
+
+  it('One float32 scalar weight', () => {
+    const weight1 = new LayerVariable(scalar(42));
+    expect(utils.countParamsInWeights([weight1])).toEqual(1);
+  });
+
+  it('One int32 weight', () => {
+    const weight1 = new LayerVariable(zeros([1, 3, 4], 'int32'), 'int32');
+    expect(utils.countParamsInWeights([weight1])).toEqual(12);
+  });
+
+  it('Two weights, mixed types and shapes', () => {
+    const weight1 = new LayerVariable(scalar(42));
+    const weight2 = new LayerVariable(zeros([2, 3]));
+    const weight3 = new LayerVariable(zeros([1, 3, 4], 'int32'), 'int32');
+    expect(utils.countParamsInWeights([weight1, weight2, weight3])).toEqual(19);
   });
 });
