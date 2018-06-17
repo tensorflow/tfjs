@@ -1888,7 +1888,7 @@ export class MathBackendCPU implements KernelBackend {
     for (let event = 0; event < indices.size; ++event) {
       res[event * depth + indices.get(event)] = onValue;
     }
-    return ops.tensor2d(res, [indices.size, depth]);
+    return ops.tensor2d(res, [indices.size, depth], 'int32');
   }
 
   private broadcastedBinaryOp(
