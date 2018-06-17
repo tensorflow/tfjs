@@ -2162,6 +2162,14 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
     const indices = tf.tensor1d([0, 1], 'float32');
     expect(() => tf.oneHot(indices, 2)).toThrowError();
   });
+
+  it('check output dtype', () => {
+    const expectedType = 'int32';
+    const indices = tf.tensor1d([0, 1], 'int32');
+    const res = tf.oneHot(indices, 2);
+
+    expect(res.dtype).toEqual(expectedType);
+  });
 });
 
 describeWithFlags('linspace', ALL_ENVS, () => {
