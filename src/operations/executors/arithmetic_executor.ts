@@ -46,6 +46,11 @@ export let executeOp: OpExecutor =
               getParamValue('a', node, tensorMap, context) as tfc.Tensor,
               getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
         }
+        case 'floorDiv': {
+          return [tfc.floorDiv(
+              getParamValue('a', node, tensorMap, context) as tfc.Tensor,
+              getParamValue('b', node, tensorMap, context) as tfc.Tensor)];
+        }
         case 'sub': {
           return [tfc.sub(
               getParamValue('a', node, tensorMap, context) as tfc.Tensor,

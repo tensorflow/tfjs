@@ -42,7 +42,7 @@ describe('arithmetic', () => {
 
   describe('executeOp', () => {
     ['add', 'mul', 'div', 'sub', 'maximum', 'minimum', 'pow',
-     'squaredDifference', 'mod']
+     'squaredDifference', 'mod', 'floorDiv']
         .forEach((op => {
           it('should call tfc.' + op, () => {
             const spy = spyOn(tfc, op as 'add');
