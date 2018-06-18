@@ -24,6 +24,7 @@ import {Scalar, Variable} from '../tensor';
 import {NamedVariableMap} from '../types';
 
 import {Optimizer} from './optimizer';
+import * as optimizer_utils from './optimizer_utils';
 
 export class AdamaxOptimizer extends Optimizer {
   static className = 'AdamaxOptimizer';
@@ -42,11 +43,11 @@ export class AdamaxOptimizer extends Optimizer {
 
   constructor(
       protected learningRate: number, protected beta1: number,
-      protected beta2: number, protected epsilon = 1e-8,
+      protected beta2: number, protected epsilon: number = null,
       protected decay = 0.0) {
     super();
     this.c = keep(scalar(-learningRate));
-    this.epsScalar = keep(scalar(epsilon));
+
     // b1, b2 keep initial value of beta* hyperparameters.
     this.beta1Scalar = keep(scalar(beta1));
     this.beta2Scalar = keep(scalar(beta2));
@@ -60,6 +61,12 @@ export class AdamaxOptimizer extends Optimizer {
 
     this.oneMinusBeta1 = keep(scalar(1 - beta1));
     this.one = keep(scalar(1));
+
+    if (epsilon === null) {
+      epsilon = optimizer_utils.getOptimizerDefaultEpsilonValue();
+    }
+
+    this.epsScalar = keep(scalar(epsilon));
   }
 
   applyGradients(variableGradients: NamedVariableMap) {

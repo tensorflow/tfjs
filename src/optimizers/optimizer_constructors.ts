@@ -105,11 +105,10 @@ export class OptimizerConstructors {
    */
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static rmsprop(
-      learningRate: number, decay = .9, momentum = 0.0, epsilon = 1e-8,
-      centered = false):
-      RMSPropOptimizer {
-    return new RMSPropOptimizer(learningRate, decay, momentum, epsilon,
-      centered);
+      learningRate: number, decay = .9, momentum = 0.0, epsilon: number = null,
+      centered = false): RMSPropOptimizer {
+    return new RMSPropOptimizer(
+        learningRate, decay, momentum, epsilon, centered);
   }
 
   /**
@@ -123,7 +122,8 @@ export class OptimizerConstructors {
    * @param epsilon A small constant for numerical stability.
    */
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
-  static adam(learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8):
+  static adam(
+      learningRate = 0.001, beta1 = 0.9, beta2 = 0.999, epsilon: number = null):
       AdamOptimizer {
     return new AdamOptimizer(learningRate, beta1, beta2, epsilon);
   }
@@ -139,7 +139,7 @@ export class OptimizerConstructors {
    * update.
    */
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
-  static adadelta(learningRate = .001, rho = .95, epsilon = 1e-8):
+  static adadelta(learningRate = .001, rho = .95, epsilon: number = null):
       AdadeltaOptimizer {
     return new AdadeltaOptimizer(learningRate, rho, epsilon);
   }
@@ -157,7 +157,7 @@ export class OptimizerConstructors {
    */
   @doc({heading: 'Training', subheading: 'Optimizers', namespace: 'train'})
   static adamax(
-      learningRate = 0.002, beta1 = 0.9, beta2 = 0.999, epsilon = 1e-8,
+      learningRate = 0.002, beta1 = 0.9, beta2 = 0.999, epsilon: number = null,
       decay = 0.0): AdamaxOptimizer {
     return new AdamaxOptimizer(learningRate, beta1, beta2, epsilon, decay);
   }
