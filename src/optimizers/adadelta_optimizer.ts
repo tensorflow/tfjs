@@ -24,6 +24,7 @@ import {Scalar} from '../tensor';
 import {NamedVariableMap} from '../types';
 
 import {Optimizer} from './optimizer';
+import * as optimizer_utils from './optimizer_utils';
 
 /** @doclink Optimizer */
 export class AdadeltaOptimizer extends Optimizer {
@@ -38,12 +39,18 @@ export class AdadeltaOptimizer extends Optimizer {
 
   constructor(
       protected learningRate: number, protected rho: number,
-      protected epsilon = 1e-8) {
+      protected epsilon: number = null) {
     super();
+
     this.c = keep(scalar(-learningRate));
-    this.epsilonScalar = keep(scalar(epsilon));
     this.rhoScalar = keep(scalar(rho));
     this.oneMinusRho = keep(scalar(1 - rho));
+
+    if (epsilon === null) {
+      epsilon = optimizer_utils.getOptimizerDefaultEpsilonValue();
+    }
+
+    this.epsilonScalar = keep(scalar(epsilon));
   }
 
   applyGradients(variableGradients: NamedVariableMap) {
