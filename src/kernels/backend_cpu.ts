@@ -1907,7 +1907,9 @@ export class MathBackendCPU implements KernelBackend {
     res.fill(offValue);
 
     for (let event = 0; event < indices.size; ++event) {
-      res[event * depth + indices.get(event)] = onValue;
+      if (indices.get(event) >= 0 && indices.get(event) < depth) {
+        res[event * depth + indices.get(event)] = onValue;
+      }
     }
     return ops.tensor2d(res, [indices.size, depth], 'int32');
   }
