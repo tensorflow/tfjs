@@ -389,6 +389,55 @@ export class ReductionOps {
   }
 
   /**
+   * Computes the logical and of elements across dimensions of a `Tensor`.
+   *
+   * Reduces the input along the dimensions given in `axes`. Unless `keepDims`
+   * is true, the rank of the `Tensor` is reduced by 1 for each entry in `axes`.
+   * If `keepDims` is true, the reduced dimensions are retained with length 1.
+   * If `axes` has no entries, all dimensions are reduced, and an `Tensor` with
+   * a single element is returned.
+   *
+   * ```js
+   * const x = tf.tensor1d([1, 1, 1]);
+   *
+   * x.all().print();  // or tf.all(x)
+   * ```
+   *
+   * ```js
+   * const x = tf.tensor2d([1, 1, 0, 0], [2, 2], 'bool');
+   *
+   * const axis = 1;
+   * x.all(axis).print();  // or tf.all(x, axis)
+   * ```
+   *
+   * @param x The input tensor. Must be of dtype bool.
+   * @param axis The dimension(s) to reduce. By default it reduces
+   *     all dimensions.
+   * @param keepDims If true, retains reduced dimensions with size 1.
+   */
+  @doc({heading: 'Operations', subheading: 'Reduction'})
+  @operation
+  static all<T extends Tensor>(
+      x: Tensor, axis: number|number[] = null, keepDims = false): T {
+    util.assertArgumentsAreTensors({x}, 'all');
+    util.assert(x.dtype === 'bool', 'Error Array must be of type bool.');
+
+    const origAxes = axis_util.parseAxisParam(axis, x.shape);
+    let axes = origAxes;
+    const permutedAxes = axis_util.getAxesPermutation(axes, x.rank);
+    if (permutedAxes != null) {
+      x = x.transpose(permutedAxes);
+      axes = axis_util.getInnerMostAxes(axes.length, x.rank);
+    }
+    const res = ENV.engine.runKernel(backend => backend.all(x, axes), {x});
+    if (keepDims) {
+      const newShape = axis_util.expandShapeToKeepDim(res.shape, origAxes);
+      return res.reshape(newShape) as T;
+    }
+    return res as T;
+  }
+
+  /**
    * Calculates the mean and variance of `x`. The mean and variance are
    * calculated by aggregating the contents of `x` across `axes`. If `x` is
    * 1-D and `axes = [0]` this is just the mean and variance of a vector.

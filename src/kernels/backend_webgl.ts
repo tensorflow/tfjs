@@ -508,8 +508,9 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [x, indices]);
   }
 
-  private reduce(x: Tensor2D, reduceType: 'max'|'min'|'sum', dtype: DataType):
-      Tensor2D {
+  private reduce(
+      x: Tensor2D, reduceType: 'all'|'max'|'min'|'sum',
+      dtype: DataType): Tensor2D {
     const batchSize = x.shape[0];
     const inSize = x.shape[1];
     const windowSize = reduce_util.computeOptimalWindowSize(inSize);
@@ -741,6 +742,15 @@ export class MathBackendWebGL implements KernelBackend {
   maximum(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.MAX, a.shape, b.shape);
     return this.compileAndRun(program, [a, b]);
+  }
+
+  all(x: Tensor, axes: number[]): Tensor {
+    axis_util.assertAxesAreInnerMostDims('all', axes, x.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, inSize);
+    return this.reduce(a2D, 'all', a2D.dtype).reshape(outShape);
   }
 
   squaredDifference(a: Tensor, b: Tensor): Tensor {
