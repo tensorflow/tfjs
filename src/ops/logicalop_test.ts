@@ -68,6 +68,20 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
     expectArraysClose(tf.logicalNot(a), [0, 0, 0, 0]);
   });
 
+  it('Tensor6D', () => {
+    let a = tf.tensor6d([1, 0, 1, 0], [2, 2, 1, 1, 1,1], 'bool');
+    expectArraysClose(tf.logicalNot(a), [0, 1, 0, 1]);
+
+    a = tf.zeros([2, 2, 2, 2, 2, 2]).cast('bool');
+    let expectedResult = new Int32Array(64);
+    expectedResult = expectedResult.fill(1);
+    expectArraysClose(tf.logicalNot(a), expectedResult);
+
+    a = tf.ones([2, 2, 2, 2, 2, 2]).cast('bool');
+    expectedResult = expectedResult.fill(0);
+    expectArraysClose(tf.logicalNot(a), expectedResult);
+  });
+
   it('throws when passed a non-tensor', () => {
     expect(() => tf.logicalNot({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'logicalNot' must be a Tensor/);

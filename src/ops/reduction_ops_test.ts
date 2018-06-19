@@ -144,6 +144,16 @@ describeWithFlags('max', ALL_ENVS, () => {
     expectArraysClose(r, [5, 100]);
   });
 
+  it('6D, axis=[5]', () => {
+    const a = tf.range(0, 64).reshape([2, 2, 2, 2, 2, 2]);
+    const r = tf.max(a, [5]);
+    const expectedResult = [
+      1,  3,  5,  7,  9,  11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31,
+      33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57, 59, 61, 63
+    ];
+    expectArraysClose(r, expectedResult);
+  });
+
   it('throws when passed a non-tensor', () => {
     expect(() => tf.max({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'max' must be a Tensor/);
