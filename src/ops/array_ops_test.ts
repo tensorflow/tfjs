@@ -2136,7 +2136,7 @@ describeWithFlags('gather', ALL_ENVS, () => {
 
   it('gradient 3D (gather) axis=1 shape=[1, 4, 4]', () => {
     const t = tf.tensor3d(
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [1, 4, 4]);
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [1, 4, 4]);
     const indices = tf.tensor1d([1, 2, 2, 1], 'int32');
     const dy = tf.tensor(
         [2, -3, 4, 15, 6, 0.7, 1, 18, 0.01, 0, 12, 13, 4, 15, 12, -7],
@@ -2147,7 +2147,7 @@ describeWithFlags('gather', ALL_ENVS, () => {
 
     expect(gradients.shape).toEqual(t.shape);
     expectArraysClose(
-        gradients,[0, 0, 0, 0, 6, 12, 16, 8, 6.01, .7,13, 31, 0, 0, 0, 0]);
+        gradients, [0, 0, 0, 0, 6, 12, 16, 8, 6.01, .7, 13, 31, 0, 0, 0, 0]);
   });
 
   it('gradient 3D (gather) axis=2 shape=[2, 3, 2]', () => {
@@ -2170,10 +2170,10 @@ describeWithFlags('gather', ALL_ENVS, () => {
 
   it('gradient 3D (gather) axis=2 shape=[4, 1, 4]', () => {
     const t = tf.tensor3d(
-      [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [4, 1, 4]);
+        [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16], [4, 1, 4]);
     const indices = tf.tensor1d([1, 3, 1], 'int32');
-    const dy = tf.tensor(
-        [2, -3, 4,  15, 6,  0.7, 1, 18, 0.01, 0, 4, 15],[4, 1, 3]);
+    const dy =
+        tf.tensor([2, -3, 4, 15, 6, 0.7, 1, 18, 0.01, 0, 4, 15], [4, 1, 3]);
     const axis = 2;
 
     const gradients = tf.grad(t => tf.gather(t, indices, axis))(t, dy);
@@ -2212,6 +2212,13 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
 
     expect(res.shape).toEqual([4, 3]);
     expectArraysClose(res, [0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0]);
+  });
+
+  it('Out of range events do not trigger onValue', () => {
+    const indices = tf.tensor1d([-1, 5, 12345], 'int32');
+    const res = tf.oneHot(indices, 5);
+    expect(res.shape).toEqual([3, 5]);
+    expectArraysClose(res, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
   });
 
   it('Depth 2 onValue=3, offValue=-2', () => {
