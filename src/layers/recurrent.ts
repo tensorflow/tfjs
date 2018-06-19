@@ -1371,8 +1371,9 @@ export class GRUCell extends RNNCell {
         config.activation === undefined ? this.DEFAULT_ACTIVATION :
                                           config.activation);
     this.recurrentActivation = getActivation(
-        config.activation === undefined ? this.DEFAULT_RECURRENT_ACTIVATION :
-                                          config.recurrentActivation);
+        config.recurrentActivation === undefined ?
+            this.DEFAULT_RECURRENT_ACTIVATION :
+            config.recurrentActivation);
     this.useBias = config.useBias == null ? true : config.useBias;
 
     this.kernelInitializer = getInitializer(
@@ -1527,6 +1528,7 @@ export class GRUCell extends RNNCell {
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
+      recurrentActivation: serializeActivation(this.recurrentActivation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -1552,6 +1554,15 @@ serialization.SerializationMap.register(GRUCell);
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
 export interface GRULayerConfig extends SimpleRNNLayerConfig {
+  /**
+   * Activation function to use for the recurrent step.
+   *
+   * Defaults to hard sigmoid (`hardSigomid`).
+   *
+   * If `null`, no activation is applied.
+   */
+  recurrentActivation?: string;
+
   /**
    * Implementation mode, either 1 or 2.
    *
@@ -1618,6 +1629,10 @@ export class GRU extends RNN {
     return (this.cell as GRUCell).activation;
   }
 
+  get recurrentActivation(): Activation {
+    return (this.cell as GRUCell).recurrentActivation;
+  }
+
   get useBias(): boolean {
     return (this.cell as GRUCell).useBias;
   }
@@ -1674,6 +1689,7 @@ export class GRU extends RNN {
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
+      recurrentActivation: serializeActivation(this.recurrentActivation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -1828,8 +1844,9 @@ export class LSTMCell extends RNNCell {
         config.activation === undefined ? this.DEFAULT_ACTIVATION :
                                           config.activation);
     this.recurrentActivation = getActivation(
-        config.activation === undefined ? this.DEFAULT_RECURRENT_ACTIVATION :
-                                          config.recurrentActivation);
+        config.recurrentActivation === undefined ?
+            this.DEFAULT_RECURRENT_ACTIVATION :
+            config.recurrentActivation);
     this.useBias = config.useBias == null ? true : config.useBias;
 
     this.kernelInitializer = getInitializer(
@@ -2012,6 +2029,7 @@ export class LSTMCell extends RNNCell {
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
+      recurrentActivation: serializeActivation(this.recurrentActivation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
@@ -2038,6 +2056,15 @@ serialization.SerializationMap.register(LSTMCell);
 // Porting Note: Since this is a superset of SimpleRNNLayerConfig, we inherit
 //   from that interface instead of repeating the fields here.
 export interface LSTMLayerConfig extends SimpleRNNLayerConfig {
+  /**
+   * Activation function to use for the recurrent step.
+   *
+   * Defaults to hard sigmoid (`hardSigomid`).
+   *
+   * If `null`, no activation is applied.
+   */
+  recurrentActivation?: string;
+
   /**
    * If `true`, add 1 to the bias of the forget gate at initialization.
    * Setting it to `true` will also force `biasInitializer = 'zeros'`.
@@ -2111,6 +2138,10 @@ export class LSTM extends RNN {
     return (this.cell as LSTMCell).activation;
   }
 
+  get recurrentActivation(): Activation {
+    return (this.cell as LSTMCell).recurrentActivation;
+  }
+
   get useBias(): boolean {
     return (this.cell as LSTMCell).useBias;
   }
@@ -2171,6 +2202,7 @@ export class LSTM extends RNN {
     const config: serialization.ConfigDict = {
       units: this.units,
       activation: serializeActivation(this.activation),
+      recurrentActivation: serializeActivation(this.recurrentActivation),
       useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
       recurrentInitializer: serializeInitializer(this.recurrentInitializer),
