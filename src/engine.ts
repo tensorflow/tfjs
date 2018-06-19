@@ -161,6 +161,9 @@ export class Engine implements TensorManager {
     if (!this.refCounter.has(a.dataId)) {
       return;
     }
+    if (this.keepTensors.has(a.id)) {
+      this.keepTensors.delete(a.id);
+    }
     this.numTensors--;
     const refCount = this.refCounter.get(a.dataId);
     if (refCount <= 1) {
