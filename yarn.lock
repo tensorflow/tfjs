@@ -3440,7 +3440,7 @@ promisify-call@^2.0.2:
   dependencies:
     with-callback "^1.0.2"
 
-protobufjs@~6.8.0:
+protobufjs@~6.8.6:
   version "6.8.6"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-6.8.6.tgz#ce3cf4fff9625b62966c455fc4c15e4331a11ca2"
   dependencies:

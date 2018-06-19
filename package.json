@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-converter",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Tensorflow model converter for javascript",
   "main": "dist/index.js",
   "jsnext:main": "dist-es6/index.js",
@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@types/long": "~3.0.32",
-    "protobufjs": "~6.8.0",
+    "protobufjs": "~6.8.6",
     "url": "^0.11.0"
   }
 }
