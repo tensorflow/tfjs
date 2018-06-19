@@ -560,7 +560,7 @@ export class MathBackendCPU implements KernelBackend {
     const aVals = x.dataSync();
     for (let i = 0; i < vals.length; ++i) {
       const offset = i * reduceSize;
-      let min = aVals[0];
+      let min = aVals[offset];
       for (let j = 0; j < reduceSize; ++j) {
         const value = aVals[offset + j];
         if (value < min) {
