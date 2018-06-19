@@ -16,6 +16,7 @@
  */
 
 import {NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {DataType, TensorInfo} from '@tensorflow/tfjs-core/dist/types';
 
 import {NamedTensorsMap} from '../data/types';
 import {getNodeNameAndIndex, getTensor} from '../operations/executors/utils';
@@ -34,7 +35,7 @@ export class GraphExecutor {
   private _weightMap: NamedTensorsMap = {};
   private weightIds: number[];
   private placeholders: Node[];
-  private outputs: Node[];
+  private _outputs: Node[];
   get weightMap(): NamedTensorsMap {
     return this._weightMap;
   }
@@ -43,6 +44,30 @@ export class GraphExecutor {
         key => weightMap[key].map(tensor => tensor.id));
     this.weightIds = [].concat.apply([], weightIds);
     this._weightMap = weightMap;
+  }
+
+  get inputs(): TensorInfo[] {
+    return this.placeholders.map(node => {
+      return {
+        name: node.name,
+        shape: node.params['shape'] ? node.params['shape'].value as number[] :
+                                      undefined,
+        dtype: node.params['dtype'] ? node.params['dtype'].value as DataType :
+                                      undefined
+      };
+    });
+  }
+
+  get outputs(): TensorInfo[] {
+    return this._outputs.map(node => {
+      return {
+        name: node.name,
+        shape: node.params['shape'] ? node.params['shape'].value as number[] :
+                                      undefined,
+        dtype: node.params['dtype'] ? node.params['dtype'].value as DataType :
+                                      undefined
+      };
+    });
   }
 
   get inputNodes(): string[] {
@@ -55,7 +80,7 @@ export class GraphExecutor {
 
   constructor(private graph: Graph) {
     this.placeholders = graph.placeholders;
-    this.outputs = graph.outputs;
+    this._outputs = graph.outputs;
     this.compile();
   }
 

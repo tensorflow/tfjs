@@ -74,12 +74,28 @@ describe('GraphExecutor', () => {
 
   describe('execute graph', () => {
     describe('initialization', () => {
-      it('should expose placehoder', () => {
+      it('should expose placehoder names', () => {
         expect(executor.inputNodes).toEqual(['input']);
       });
 
-      it('should expose output', () => {
+      it('should expose output names', () => {
         expect(executor.outputNodes).toEqual(['output']);
+      });
+
+      it('should expose placeholders', () => {
+        inputNode.params['shape'] = {value: [1], type: 'shape'};
+        inputNode.params['dtype'] = {value: 'float32', type: 'dtype'};
+        expect(executor.inputs).toEqual([
+          {name: 'input', shape: [1], dtype: 'float32'}
+        ]);
+      });
+
+      it('should expose outputs', () => {
+        outputNode.params['shape'] = {value: [1, 1], type: 'shape'};
+        outputNode.params['dtype'] = {value: 'int32', type: 'dtype'};
+        expect(executor.outputs).toEqual([
+          {name: 'output', shape: [1, 1], dtype: 'int32'}
+        ]);
       });
     });
 
