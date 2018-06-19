@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {Scalar, scalar, Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
+import {randomNormal, Scalar, scalar, Tensor, tensor2d, tensor3d, tensor4d} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import * as tfl from '../index';
@@ -24,7 +24,7 @@ import {Kwargs} from '../types';
 import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from '../utils/test_utils';
 
-import {rnn, RNN, RNNCell} from './recurrent';
+import {GRU, LSTM, rnn, RNN, RNNCell} from './recurrent';
 // tslint:enable:max-line-length
 
 /**
@@ -47,45 +47,45 @@ function rnnStepForTest(inputs: Tensor, states: Tensor[]): [Tensor, Tensor[]] {
 describeMathCPUAndGPU('rnn', () => {
   it('Simple step function: 3D inputs, 1 state', () => {
     const inputs = tensor3d(
-      [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
+        [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     const initialStates = [tfc.zeros([2, 4])];
     const rnnOutputs = rnn(rnnStepForTest, inputs, initialStates);
     const lastOutput = rnnOutputs[0];
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
     expectTensorsClose(
-      lastOutput,
-      tensor2d(
-        [
-          [-57.75, -57.75, -57.75, -57.75],
-          [-57.75, -57.75, -57.75, -57.75]
-        ],
-        [2, 4]));
+        lastOutput,
+        tensor2d(
+            [
+              [-57.75, -57.75, -57.75, -57.75],
+              [-57.75, -57.75, -57.75, -57.75]
+            ],
+            [2, 4]));
     expectTensorsClose(
-      outputs,
-      tensor3d(
-        [
-          [
-            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-            [-57.75, -57.75, -57.75, -57.75]
-          ],
-          [
-            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-            [-57.75, -57.75, -57.75, -57.75]
-          ]
-        ],
-        [2, 3, 4]));
+        outputs,
+        tensor3d(
+            [
+              [
+                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+                [-57.75, -57.75, -57.75, -57.75]
+              ],
+              [
+                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+                [-57.75, -57.75, -57.75, -57.75]
+              ]
+            ],
+            [2, 3, 4]));
     expect(newStates.length).toEqual(1);
     expectTensorsClose(
-      newStates[0],
-      tensor2d(
-        [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
-        [2, 4]));
+        newStates[0],
+        tensor2d(
+            [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
+            [2, 4]));
   });
 
   it('Simple step function: 3D inputs, 2 states', () => {
     const inputs = tensor3d(
-      [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
+        [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     // The two state tensors have different shapes.
     const initialStates = [tfc.zeros([2, 4]), tfc.ones([2, 3])];
     const rnnOutputs = rnn(rnnStepForTest, inputs, initialStates);
@@ -93,45 +93,45 @@ describeMathCPUAndGPU('rnn', () => {
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
     expectTensorsClose(
-      lastOutput,
-      tensor2d(
-        [
-          [-57.75, -57.75, -57.75, -57.75],
-          [-57.75, -57.75, -57.75, -57.75]
-        ],
-        [2, 4]));
+        lastOutput,
+        tensor2d(
+            [
+              [-57.75, -57.75, -57.75, -57.75],
+              [-57.75, -57.75, -57.75, -57.75]
+            ],
+            [2, 4]));
     expectTensorsClose(
-      outputs,
-      tensor3d(
-        [
-          [
-            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-            [-57.75, -57.75, -57.75, -57.75]
-          ],
-          [
-            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-            [-57.75, -57.75, -57.75, -57.75]
-          ]
-        ],
-        [2, 3, 4]));
+        outputs,
+        tensor3d(
+            [
+              [
+                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+                [-57.75, -57.75, -57.75, -57.75]
+              ],
+              [
+                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+                [-57.75, -57.75, -57.75, -57.75]
+              ]
+            ],
+            [2, 3, 4]));
     expect(newStates.length).toEqual(2);
     expectTensorsClose(
-      newStates[0],
-      tensor2d(
-        [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
-        [2, 4]));
+        newStates[0],
+        tensor2d(
+            [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
+            [2, 4]));
     expectTensorsClose(
-      newStates[1],
-      tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
+        newStates[1],
+        tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
   });
 
   it('Simple step function: 4D inputs, 2 states', () => {
     const inputs = tensor4d(
-      [
-        [[[1], [2]], [[3], [4]], [[5], [6]]],
-        [[[10], [20]], [[30], [40]], [[50], [60]]]
-      ],
-      [2, 3, 2, 1]);
+        [
+          [[[1], [2]], [[3], [4]], [[5], [6]]],
+          [[[10], [20]], [[30], [40]], [[50], [60]]]
+        ],
+        [2, 3, 2, 1]);
     // The two state tensors have different shapes.
     const initialStates = [tfc.zeros([2, 4]), tfc.ones([2, 3])];
     const rnnOutputs = rnn(rnnStepForTest, inputs, initialStates);
@@ -139,36 +139,36 @@ describeMathCPUAndGPU('rnn', () => {
     const outputs = rnnOutputs[1];
     const newStates = rnnOutputs[2];
     expectTensorsClose(
-      lastOutput,
-      tensor2d(
-        [
-          [-57.75, -57.75, -57.75, -57.75],
-          [-57.75, -57.75, -57.75, -57.75]
-        ],
-        [2, 4]));
+        lastOutput,
+        tensor2d(
+            [
+              [-57.75, -57.75, -57.75, -57.75],
+              [-57.75, -57.75, -57.75, -57.75]
+            ],
+            [2, 4]));
     expectTensorsClose(
-      outputs,
-      tensor3d(
-        [
-          [
-            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-            [-57.75, -57.75, -57.75, -57.75]
-          ],
-          [
-            [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
-            [-57.75, -57.75, -57.75, -57.75]
-          ]
-        ],
-        [2, 3, 4]));
+        outputs,
+        tensor3d(
+            [
+              [
+                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+                [-57.75, -57.75, -57.75, -57.75]
+              ],
+              [
+                [-8.25, -8.25, -8.25, -8.25], [-27.5, -27.5, -27.5, -27.5],
+                [-57.75, -57.75, -57.75, -57.75]
+              ]
+            ],
+            [2, 3, 4]));
     expect(newStates.length).toEqual(2);
     expectTensorsClose(
-      newStates[0],
-      tensor2d(
-        [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
-        [2, 4]));
+        newStates[0],
+        tensor2d(
+            [[57.75, 57.75, 57.75, 57.75], [57.75, 57.75, 57.75, 57.75]],
+            [2, 4]));
     expectTensorsClose(
-      newStates[1],
-      tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
+        newStates[1],
+        tensor2d([[58.75, 58.75, 58.75], [58.75, 58.75, 58.75]], [2, 3]));
   });
 
   it('Using inputs <3D leads to ValueError', () => {
@@ -458,8 +458,9 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
     const inputs = tensor3d(
         [[[1, 2], [3, 4], [5, 6]], [[10, 20], [30, 40], [50, 60]]], [2, 3, 2]);
     const outputs = rnn.apply(inputs, {
-      'initialState':
-          [tfc.ones([2, 4]), K.scalarTimesArray(scalar(2), tfc.ones([2, 5]))]
+      'initialState': [
+        tfc.ones([2, 4]), K.scalarTimesArray(scalar(2), tfc.ones([2, 5]))
+      ]
     }) as Tensor[];
     expect(outputs.length).toEqual(3);
     expectTensorsClose(
@@ -483,16 +484,14 @@ describeMathCPUAndGPU('RNN-Layer-Math', () => {
 
 describeMathCPU('SimpleRNN Symbolic', () => {
   it('returnSequences=false, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const simpleRNN = tfl.layers.simpleRNN({units: 5});
     const output = simpleRNN.apply(input) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([9, 5]);
   });
 
   it('returnSequences=false, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const simpleRNN = tfl.layers.simpleRNN({units: 5, returnState: true});
     const output = simpleRNN.apply(input) as tfl.SymbolicTensor[];
     expect(output.length).toEqual(2);
@@ -501,16 +500,14 @@ describeMathCPU('SimpleRNN Symbolic', () => {
   });
 
   it('returnSequences=true, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const simpleRNN = tfl.layers.simpleRNN({units: 5, returnSequences: true});
     const output = simpleRNN.apply(input) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([9, 10, 5]);
   });
 
   it('returnSequences=true, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const simpleRNN = tfl.layers.simpleRNN({
       units: 5,
       returnSequences: true,
@@ -684,16 +681,14 @@ describeMathCPUAndGPU('SimpleRNN Tensor', () => {
 
 describeMathCPU('GRU Symbolic', () => {
   it('returnSequences=false, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const gru = tfl.layers.gru({units: 5});
     const output = gru.apply(input) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([9, 5]);
   });
 
   it('returnSequences=false, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const gru = tfl.layers.gru({units: 5, returnState: true});
     const output = gru.apply(input) as tfl.SymbolicTensor[];
     expect(output.length).toEqual(2);
@@ -702,16 +697,14 @@ describeMathCPU('GRU Symbolic', () => {
   });
 
   it('returnSequences=true, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const gru = tfl.layers.gru({units: 5, returnSequences: true});
     const output = gru.apply(input) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([9, 10, 5]);
   });
 
   it('returnSequences=true, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const gru = tfl.layers.gru({
       units: 5,
       returnSequences: true,
@@ -908,18 +901,47 @@ describeMathCPUAndGPU('GRU Tensor', () => {
   });
 });
 
+describeMathCPU('GRU-deserialization', () => {
+  it('Default recurrentActivation round trip', () => {
+    const x = randomNormal([1, 2, 3]);
+    const layer = tfl.layers.gru({units: 4}) as GRU;
+    const y = layer.apply(x) as Tensor;
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.gru(tsConfig) as GRU;
+    const yPrime = layer.apply(x) as Tensor;
+    expectTensorsClose(yPrime, y);
+    expect(layerPrime.recurrentActivation.getClassName())
+        .toEqual(layer.recurrentActivation.getClassName());
+  });
+
+  it('Non-default recurrentActivation round trip', () => {
+    const x = randomNormal([1, 2, 3]);
+    const layer =
+        tfl.layers.gru({units: 4, recurrentActivation: 'tanh'}) as GRU;
+    const y = layer.apply(x) as Tensor;
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.gru(tsConfig) as GRU;
+    const yPrime = layer.apply(x) as Tensor;
+    expectTensorsClose(yPrime, y);
+    expect(layerPrime.recurrentActivation.getClassName())
+        .toEqual(layer.recurrentActivation.getClassName());
+  });
+});
+
 describeMathCPU('LSTM Symbolic', () => {
   it('returnSequences=false, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const lstm = tfl.layers.lstm({units: 5});
     const output = lstm.apply(input) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([9, 5]);
   });
 
   it('returnSequences=false, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const lstm = tfl.layers.lstm({units: 5, returnState: true});
     const output = lstm.apply(input) as tfl.SymbolicTensor[];
     expect(output.length).toEqual(3);
@@ -929,16 +951,14 @@ describeMathCPU('LSTM Symbolic', () => {
   });
 
   it('returnSequences=true, returnState=false', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const lstm = tfl.layers.lstm({units: 5, returnSequences: true});
     const output = lstm.apply(input) as tfl.SymbolicTensor;
     expect(output.shape).toEqual([9, 10, 5]);
   });
 
   it('returnSequences=true, returnState=true', () => {
-    const input =
-        new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
+    const input = new tfl.SymbolicTensor('float32', [9, 10, 8], null, [], null);
     const lstm = tfl.layers.lstm({
       units: 5,
       returnSequences: true,
@@ -978,8 +998,8 @@ describeMathCPU('LSTM Symbolic', () => {
 describeMathCPUAndGPU('LSTM Tensor', () => {
   // Note:
   // The golden expected values used for assertions in these unit tests can be
-  // obtained through running the Python code similar to the following example.
-  // TensorFlow 1.5 was used to obtain the values.
+  // obtained through running the Python code similar to the following
+  // example. TensorFlow 1.5 was used to obtain the values.
   //
   // ```python
   // import numpy as np
@@ -1037,8 +1057,8 @@ describeMathCPUAndGPU('LSTM Tensor', () => {
           const input = tfc.ones([batchSize, timeSteps, inputSize]);
           let output = lstm.apply(input);
 
-          // See comments at the beginning of this describe() block on how these
-          // golden expected values can be obtained.
+          // See comments at the beginning of this describe() block on how
+          // these golden expected values can be obtained.
           const goldenOutputElementValueAtT0 = 0.7595095;
           const goldenOutputElementValueAtT1 = 0.96367633;
           const goldenHStateElementValue = goldenOutputElementValueAtT1;
@@ -1165,6 +1185,35 @@ describeMathCPU('LSTM-deserialization', () => {
           done();
         })
         .catch(done.fail);
+  });
+
+  it('Default recurrentActivation round trip', () => {
+    const x = randomNormal([1, 2, 3]);
+    const layer = tfl.layers.lstm({units: 4}) as LSTM;
+    const y = layer.apply(x) as Tensor;
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.lstm(tsConfig) as LSTM;
+    const yPrime = layer.apply(x) as Tensor;
+    expectTensorsClose(yPrime, y);
+    expect(layerPrime.recurrentActivation.getClassName())
+        .toEqual(layer.recurrentActivation.getClassName());
+  });
+
+  it('Non-default recurrentActivation round trip', () => {
+    const x = randomNormal([1, 2, 3]);
+    const layer =
+        tfl.layers.lstm({units: 4, recurrentActivation: 'tanh'}) as LSTM;
+    const y = layer.apply(x) as Tensor;
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.lstm(tsConfig) as LSTM;
+    const yPrime = layer.apply(x) as Tensor;
+    expectTensorsClose(yPrime, y);
+    expect(layerPrime.recurrentActivation.getClassName())
+        .toEqual(layer.recurrentActivation.getClassName());
   });
 });
 
