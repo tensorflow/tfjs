@@ -209,4 +209,19 @@ describe('Model', () => {
     });
     expect(model).not.toBeUndefined();
   });
+
+  describe('InferenceModel interface', () => {
+    it('should expose inputs', async () => {
+      await model.load();
+      expect(model.inputs).toEqual([
+        {name: 'Input', shape: [1], dtype: 'int32'}
+      ]);
+    });
+    it('should expose outputs', async () => {
+      await model.load();
+      expect(model.outputs).toEqual([
+        {name: 'Add', shape: undefined, dtype: undefined}
+      ]);
+    });
+  });
 });
