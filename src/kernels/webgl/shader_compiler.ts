@@ -68,6 +68,8 @@ function getSamplerFromInInfo(inInfo: InputInfo): string {
       return getSampler4D(inInfo);
     case 5:
       return getSampler5D(inInfo);
+    case 6:
+      return getSampler6D(inInfo);
     default:
       throw new Error(
           `${shape.length}-D input sampling` +
@@ -109,6 +111,10 @@ function getOutputSamplingSnippet(
     case 5:
       return getOutput5DCoords(
           outShape as [number, number, number, number, number], outTexShape);
+    case 6:
+      return getOutput6DCoords(
+          outShape as [number, number, number, number, number, number],
+          outTexShape);
     default:
       throw new Error(
           `${outShape.length}-D output sampling is not yet supported`);
@@ -168,6 +174,19 @@ vec2 UVfrom5D(int texNumR, int texNumC, int stride0,
 }
 `;
 
+const SAMPLE_6D_SNIPPET = `
+vec2 UVfrom6D(int texNumR, int texNumC, int stride0,
+    int stride1, int stride2, int stride3, int stride4,
+    int row, int col, int depth, int depth2, int depth3, int depth4) {
+  // Explicitly use integer operations as dot() only works on floats.
+  int index = row * stride0 + col * stride1 + depth * stride2 + depth2 *
+    stride3 + depth3 * stride4 + depth4;
+  int texR = index / texNumC;
+  int texC = index - texR * texNumC;
+  return (vec2(texC, texR) + halfCR) / vec2(texNumC, texNumR);
+}
+`;
+
 const FLOAT_TEXTURE_SAMPLE_SNIPPET = `
   float sampleTexture(sampler2D textureSampler, vec2 uv) {
     return texture2D(textureSampler, uv).r;
@@ -193,6 +212,16 @@ const SHADER_PREFIX = `
     int z;
     int w;
     int u;
+  };
+
+  struct ivec6
+  {
+    int x;
+    int y;
+    int z;
+    int w;
+    int u;
+    int v;
   };
 
   bool isNaN(float val) {
@@ -232,6 +261,7 @@ const SHADER_PREFIX = `
   ${SAMPLE_3D_SNIPPET}
   ${SAMPLE_4D_SNIPPET}
   ${SAMPLE_5D_SNIPPET}
+  ${SAMPLE_6D_SNIPPET}
 `;
 
 function getOutputScalarCoords() {
@@ -339,6 +369,42 @@ function getOutput5DCoords(
 
       ivec5 outShape = ivec5(r, c, d, d2, d3);
       return outShape;
+    }
+  `;
+}
+
+function getOutput6DCoords(
+    shape: [number, number, number, number, number, number],
+    texShape: [number, number]): string {
+  const stride4 = shape[5];
+  const stride3 = shape[4] * stride4;
+  const stride2 = shape[3] * stride3;
+  const stride1 = shape[2] * stride2;
+  const stride0 = shape[1] * stride1;
+
+  return `
+    ivec6 getOutputCoords() {
+      ivec2 resTexRC = ivec2(resultUV.yx *
+        vec2(${texShape[0]}, ${texShape[1]}));
+      int index = resTexRC.x * ${texShape[1]} + resTexRC.y;
+
+      int r = index / ${stride0};
+      index -= r * ${stride0};
+
+      int c = index / ${stride1};
+      index -= c * ${stride1};
+
+      int d = index / ${stride2};
+      index -= d * ${stride2};
+
+      int d2 = index / ${stride3};
+      index -= d2 * ${stride3};
+
+      int d3 = index / ${stride4};
+      int d4 = index - d3 * ${stride4};
+
+      ivec6 result = ivec6(r, c, d, d2, d3, d4);
+      return result;
     }
   `;
 }
@@ -673,6 +739,78 @@ function getSampler5D(inputInfo: InputInfo): string {
   `;
 }
 
+function getSampler6D(inputInfo: InputInfo): string {
+  const shape = inputInfo.shapeInfo.logicalShape;
+  const texName = inputInfo.name;
+  const funcName = 'get' + texName.charAt(0).toUpperCase() + texName.slice(1);
+  const stride4 = shape[5];
+  const stride3 = shape[4] * stride4;
+  const stride2 = shape[3] * stride3;
+  const stride1 = shape[2] * stride2;
+  const stride0 = shape[1] * stride1;
+  const {newShape, keptDims} = util.squeezeShape(shape);
+  if (newShape.length < shape.length) {
+    const newInputInfo = squeezeInputInfo(inputInfo, newShape);
+    const params = ['row', 'col', 'depth', 'depth2', 'depth3', 'depth4'];
+    return `
+      ${getSamplerFromInInfo(newInputInfo)}
+      float ${funcName}(int row, int col, int depth,
+                    int depth2, int depth3, int depth4) {
+        return ${funcName}(${getSqueezedParams(params, keptDims)});
+      }
+    `;
+  }
+
+  if (inputInfo.shapeInfo.isUniform) {
+    return `
+      float ${funcName}(int row, int col, int depth,
+                  int depth2, int depth3, int depth4) {
+        int index = row * ${stride0} + col * ${stride1} +
+            depth * ${stride2} + depth2 * ${stride3} + depth3 * ${stride3}
+            + depth4
+        return ${funcName}Flat(index);
+      }
+    `;
+  }
+
+  const texShape = inputInfo.shapeInfo.texShape;
+  const texNumR = texShape[0];
+  const texNumC = texShape[1];
+  if (texNumC === stride0) {
+    return `
+      float ${funcName}(int row, int col, int depth,
+                    int depth2, int depth3, int depth4) {
+        int texR = row;
+        int texC = col * ${stride1} + depth * ${stride2} + depth2;
+        vec2 uv = (vec2(texC, texR) + halfCR) /
+                   vec2(${texNumC}.0, ${texNumR}.0);
+        return sampleTexture(${texName}, uv);
+      }
+    `;
+  }
+  if (texNumC === stride4) {
+    return `
+      float ${funcName}(int row, int col, int depth,
+                    int depth2, int depth3, int depth4) {
+        int texR = row * ${shape[1] * shape[2]} + col * ${shape[2]} + depth;
+        int texC = depth4;
+        vec2 uv = (vec2(texC, texR) + halfCR) /
+                  vec2(${texNumC}.0, ${texNumR}.0);
+        return sampleTexture(${texName}, uv);
+      }
+    `;
+  }
+  return `
+    float ${funcName}(int row, int col, int depth,
+                  int depth2, int depth3, int depth4) {
+      vec2 uv = UVfrom6D(${texNumR}, ${texNumC}, ${stride0}, ${stride1},
+          ${stride2}, ${stride3}, ${stride4}
+          ,row, col, depth, depth2, depth3, depth4);
+      return sampleTexture(${texName}, uv);
+    }
+  `;
+}
+
 function getSamplerFlat(inputInfo: InputInfo): string {
   const texName = inputInfo.name;
   const funcName =
@@ -855,6 +993,8 @@ export function getCoordsDataType(rank: number): string {
     return 'ivec4';
   } else if (rank === 5) {
     return 'ivec5';
+  } else if (rank === 6) {
+    return 'ivec6';
   } else {
     throw Error(`GPU for rank ${rank} is not yet supported`);
   }

@@ -105,6 +105,39 @@ describeWithFlags('transpose', ALL_ENVS, () => {
     expectArraysClose(t2, [1, 11, 2, 22, 3, 33, 4, 44]);
   });
 
+  it('6D [r, c, d, e, f, g] => [g, c, f, e, d, r]', () => {
+    const t = tf.tensor6d(
+        [1, 11, 2, 22, 3, 33, 4, 44, 1, 12, 3, 23, 4, 34, 5, 45],
+        [1, 1, 2, 2, 2, 2]);
+    const t2 = tf.transpose(t, [5, 1, 4, 3, 2, 0]);
+
+    expect(t2.shape).toEqual([2, 1, 2, 2, 2, 1]);
+    expectArraysClose(
+        t2, [1, 1, 3, 4, 2, 3, 4, 5, 11, 12, 33, 34, 22, 23, 44, 45]);
+  });
+
+  it('6D [r, c, d, e, f, g] => [r, c, d, f, g, e]', () => {
+    const t = tf.tensor6d(
+        [1, 11, 2, 22, 3, 33, 4, 44, 1, 12, 3, 23, 4, 34, 5, 45],
+        [1, 1, 2, 2, 2, 2]);
+    const t2 = tf.transpose(t, [0, 1, 5, 2, 3, 4]);
+
+    expect(t2.shape).toEqual([1, 1, 2, 2, 2, 2]);
+    expectArraysClose(
+        t2, [1, 2, 3, 4, 1, 3, 4, 5, 11, 22, 33, 44, 12, 23, 34, 45]);
+  });
+
+  it('6D [r, c, d, e, f, g] => [c, r, g, e, f, d]', () => {
+    const t = tf.tensor6d(
+        [1, 11, 2, 22, 3, 33, 4, 44, 1, 12, 3, 23, 4, 34, 5, 45],
+        [1, 1, 2, 2, 2, 2]);
+    const t2 = tf.transpose(t, [1, 0, 5, 3, 4, 2]);
+
+    expect(t2.shape).toEqual([1, 1, 2, 2, 2, 2]);
+    expectArraysClose(
+        t2, [1, 1, 2, 3, 3, 4, 4, 5, 11, 12, 22, 23, 33, 34, 44, 45]);
+  });
+
   it('gradient 3D [r, c, d] => [d, c, r]', () => {
     const t = tf.tensor3d([1, 11, 2, 22, 3, 33, 4, 44], [2, 2, 2]);
     const perm = [2, 1, 0];

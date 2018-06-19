@@ -847,6 +847,34 @@ describeWithFlags('add', ALL_ENVS, () => {
     expectArraysClose(res, [0, 1, 2, 3, 4, 5]);
   });
 
+  it('6D+scalar', () => {
+    const a = tf.range(0, 64).reshape([2, 2, 2, 2, 2, 2]);
+    const b = tf.scalar(-1);
+    const res = tf.add(a, b);
+    expect(res.shape).toEqual([2, 2, 2, 2, 2, 2]);
+    const expectedResult = [
+      -1, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14,
+      15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+      31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46,
+      47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62
+    ];
+    expectArraysClose(res, expectedResult);
+  });
+
+  it('6D+2D', () => {
+    const a = tf.range(0, 64).reshape([2, 2, 2, 2, 2, 2]);
+    const b = tf.tensor2d([11, 13, 17, 19], [2, 2]);
+    const res = tf.add(a, b);
+    expect(res.shape).toEqual([2, 2, 2, 2, 2, 2]);
+    const expectedResult = [
+      11, 14, 19, 22, 15, 18, 23, 26, 19, 22, 27, 30, 23, 26, 31, 34,
+      27, 30, 35, 38, 31, 34, 39, 42, 35, 38, 43, 46, 39, 42, 47, 50,
+      43, 46, 51, 54, 47, 50, 55, 58, 51, 54, 59, 62, 55, 58, 63, 66,
+      59, 62, 67, 70, 63, 66, 71, 74, 67, 70, 75, 78, 71, 74, 79, 82
+    ];
+    expectArraysClose(res, expectedResult);
+  });
+
   it('gradient: scalar + 1D broadcast', () => {
     const a = tf.scalar(2);
     const b = tf.tensor1d([3, 4, 5]);
