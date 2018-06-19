@@ -23,42 +23,55 @@ export class ReduceProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(reduceInfo: ReduceInfo, reduceType: 'max'|'min'|'sum') {
+  constructor(reduceInfo: ReduceInfo, reduceType: 'all'|'max'|'min'|'sum') {
     const windowSize = reduceInfo.windowSize;
     const batchSize = reduceInfo.batchSize;
     const inSize = reduceInfo.inSize;
     const outSize = Math.ceil(inSize / windowSize);
     this.outputShape = [batchSize, outSize];
 
-    const isReduceSum = reduceType === 'sum';
-
     let initializationValue = '0.0';
-    if (!isReduceSum) {
-      if (reduceType === 'min') {
-        initializationValue = '1.0 / 0.0';
-      } else {
-        initializationValue = '-1.0 / 0.0';
-      }
-    }
+    let compareOp = ``;
 
-    const compareOp = reduceType === 'min' ? 'min' : 'max';
+    if (reduceType === 'min') {
+      initializationValue = '1.0 / 0.0';
+      compareOp = `min`;
+    } else if (reduceType === 'max') {
+      initializationValue = '-1.0 / 0.0';
+      compareOp = `max`;
+    }
 
     let returnValue = `${reduceType}(${reduceType}(${reduceType}(` +
         'minMaxValue[0], minMaxValue[1]), minMaxValue[2]), minMaxValue[3])';
+
     if (reduceType === 'sum') {
       returnValue = `sumValue`;
+    } else if (reduceType === 'all') {
+      returnValue = `allValue`;
     }
 
     const windowSizeNearestVec4 = Math.floor(windowSize / 4) * 4;
     const windowSizeVec4Remainder = windowSize % 4;
 
-    const updateSnippet = `
-      if (${isReduceSum}) {
+    let updateSnippet = `
+      if (${reduceType === 'sum'}) {
         sumValue += dot(values, ones);
       } else {
         minMaxValue = ${compareOp}(values, minMaxValue);
       }
     `;
+
+    let vecType = `vec4`;
+
+    if (reduceType === 'all') {
+      initializationValue = '1.0';
+      updateSnippet = `
+        bool reducedAllValue = all(values);
+        float floatedReducedAllValue = float(reducedAllValue);
+        allValue = float(allValue >= 1.0 && floatedReducedAllValue >= 1.0);
+      `;
+      vecType = `bvec4`;
+    }
 
     let checkOutOfBounds = '';
     if (inSize % windowSize > 0) {
@@ -85,10 +98,11 @@ export class ReduceProgram implements GPGPUProgram {
 
         vec4 minMaxValue = vec4(${initializationValue});
         float sumValue = 0.0;
+        float allValue = 1.0;
 
         for (int i = 0; i < ${windowSizeNearestVec4}; i += 4) {
           int inIdx = inOffset + i;
-          vec4 values = vec4(
+          ${vecType} values = ${vecType}(
             getValue(batch, inIdx),
             getValue(batch, inIdx + 1),
             getValue(batch, inIdx + 2),
@@ -100,28 +114,31 @@ export class ReduceProgram implements GPGPUProgram {
 
         int inIdx = inOffset + ${windowSizeNearestVec4};
         if (${windowSizeVec4Remainder === 1}) {
-          vec4 values = vec4(
+          ${vecType} values = ${vecType}(
             getValue(batch, inIdx),
             initializationValue,
             initializationValue,
             initializationValue
           );
+
           ${updateSnippet}
         } else if (${windowSizeVec4Remainder === 2}) {
-          vec4 values = vec4(
+          ${vecType} values = ${vecType}(
             getValue(batch, inIdx),
             getValue(batch, inIdx + 1),
             initializationValue,
             initializationValue
           );
+
           ${updateSnippet}
         } else if (${windowSizeVec4Remainder === 3}) {
-          vec4 values = vec4(
+          ${vecType} values = ${vecType}(
             getValue(batch, inIdx),
             getValue(batch, inIdx + 1),
             getValue(batch, inIdx + 2),
             initializationValue
           );
+
           ${updateSnippet}
         }
         setOutput(${returnValue});

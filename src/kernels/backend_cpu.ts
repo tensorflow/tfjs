@@ -616,6 +616,27 @@ export class MathBackendCPU implements KernelBackend {
         a, b, a.dtype, (aVal, bVal) => Math.max(aVal, bVal));
   }
 
+  all(x: Tensor, axes: number[]): Tensor {
+    axis_util.assertAxesAreInnerMostDims('all', axes, x.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
+    const result = ops.zeros(outShape, x.dtype);
+    const reduceSize = util.sizeFromShape(reduceShape);
+    const vals = result.dataSync();
+
+    const aVals = x.dataSync();
+    for (let i = 0; i < vals.length; ++i) {
+      const offset = i * reduceSize;
+      let all = aVals[offset];
+      for (let j = 0; j < reduceSize; ++j) {
+        const value = aVals[offset + j];
+        all = all && value;
+      }
+      vals[i] = all;
+    }
+    return result;
+  }
+
   squaredDifference(a: Tensor, b: Tensor): Tensor {
     return this.broadcastedBinaryOp(a, b, a.dtype, (aVal, bVal) => {
       const diff = aVal - bVal;
