@@ -1894,6 +1894,7 @@ export class Model extends Container implements tfc.InferenceModel {
    *   saving, such as byte sizes of the saved artifacts for the model's
    *   topology and weight values.
    */
+  @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [1]})
   // tslint:enable:max-line-length
   async save(handlerOrURL: io.IOHandler|string, config?: io.SaveConfig):
       Promise<io.SaveResult> {
