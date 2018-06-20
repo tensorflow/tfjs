@@ -13,13 +13,13 @@
  */
 
 // tslint:disable:max-line-length
-import {abs, mean, memory, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
+import {abs, mean, memory, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
 import {CustomCallback, CustomCallbackConfig, Logs, UnresolvedLogs} from '../callbacks';
 import * as tfl from '../index';
 import {Regularizer} from '../regularizers';
-import {Kwargs} from '../types';
+import {Kwargs, SymbolicTensor} from '../types';
 import {pyListRepeat, stringsEqual} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
@@ -1515,5 +1515,137 @@ describeMathCPUAndGPU('Load weights', () => {
     expectTensorsClose(
         model.apply(tensor2d([[1, 1, 1]], [1, 3])) as Tensor,
         tensor2d([[0.8, 1.0]], [1, 2]));
+  });
+});
+
+describeMathCPUAndGPU('Model.execute', () => {
+  function createFunctionalModel():
+      [tfl.Model, {[name: string]: tfl.SymbolicTensor}] {
+    const input1 = tfl.input({shape: [2, 3]});
+    const reshape1 = tfl.layers.reshape({targetShape: [3, 2]}).apply(input1) as
+        tfl.SymbolicTensor;
+    const input2 = tfl.input({shape: [3, 4]});
+    const concat =
+        tfl.layers.concatenate({axis: -1}).apply([reshape1, input2]) as
+        tfl.SymbolicTensor;
+    const model = tfl.model({inputs: [input1, input2], outputs: concat});
+
+    return [model, {input1, reshape1, input2, concat}];
+  }
+
+  function createSequentialModel(): tfl.Sequential {
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({
+      units: 6,
+      inputShape: [4],
+      kernelInitializer: 'zeros',
+      useBias: false
+    }));
+    model.add(tfl.layers.dense(
+        {units: 3, kernelInitializer: 'zeros', useBias: false}));
+    model.add(tfl.layers.dense(
+        {units: 1, kernelInitializer: 'zeros', useBias: false}));
+    return model;
+  }
+
+  it('Functional model: single output', () => {
+    const [model, layers] = createFunctionalModel();
+    const inputs = [zeros([1, 2, 3]), zeros([1, 3, 4])];
+    const outputs = model.execute(inputs, layers['reshape1'].name) as Tensor;
+    expectTensorsClose(outputs, zeros([1, 3, 2]));
+  });
+
+  it('Functional model: multiple outputs', () => {
+    const [model, layers] = createFunctionalModel();
+    const inputs = [zeros([1, 2, 3]), zeros([1, 3, 4])];
+    const outputs = model.execute(inputs, [
+      layers['reshape1'].name, layers['concat'].name, layers['input2'].name
+    ]) as Tensor[];
+    expectTensorsClose(outputs[0], zeros([1, 3, 2]));
+    expectTensorsClose(outputs[1], zeros([1, 3, 6]));
+    expectTensorsClose(outputs[2], zeros([1, 3, 4]));
+  });
+
+  it('Functional model: Dictionary of inputs', () => {
+    const [model, layers] = createFunctionalModel();
+    const inputName1 = model.inputs[0].name;
+    const inputName2 = model.inputs[1].name;
+    const inputs: NamedTensorMap = {};
+    inputs[inputName1] = zeros([1, 2, 3]);
+    inputs[inputName2] = zeros([1, 3, 4]);
+    const outputs = model.execute(inputs, [
+      layers['reshape1'].name, layers['concat'].name, layers['input2'].name
+    ]) as Tensor[];
+    expectTensorsClose(outputs[0], zeros([1, 3, 2]));
+    expectTensorsClose(outputs[1], zeros([1, 3, 6]));
+    expectTensorsClose(outputs[2], zeros([1, 3, 4]));
+  });
+
+  it('Functional model: missing input in dictionary throws Error', () => {
+    const [model, layers] = createFunctionalModel();
+    const inputName2 = model.inputs[1].name;
+    const inputs: NamedTensorMap = {};
+    inputs[inputName2] = zeros([1, 3, 4]);
+    expect(() => model.execute(inputs, layers['reshape1'].name))
+        .toThrowError(/No value is provided for .* input/);
+  });
+
+  it('Functional model: Incorrect number of inputs throws Error', () => {
+    const [model, layers] = createFunctionalModel();
+    const inputs = [zeros([1, 2, 3])];
+    expect(() => model.execute(inputs, layers['reshape1'].name))
+        .toThrowError(/The number of inputs provided \(1\) does not match .*2/);
+  });
+
+  it('Functional model: nonexistent tensor name throws Error', () => {
+    const [model, layers] = createFunctionalModel();
+    const inputs = [zeros([1, 2, 3]), zeros([1, 3, 4])];
+    const nonexistentTensorName =
+        layers['reshape1'].name + Math.random().toFixed(4);
+    expect(() => model.execute(inputs, nonexistentTensorName))
+        .toThrowError(/Cannot find SymbolicTensors for output name/);
+    expect(() => model.execute(inputs, [
+      layers['reshape1'].name, nonexistentTensorName
+    ])).toThrowError(/Cannot find SymbolicTensors for output name/);
+  });
+
+  it('Functional model: empty outputs string throws Error', () => {
+    const model = createFunctionalModel()[0];
+    const inputs = [zeros([1, 2, 3]), zeros([1, 3, 4])];
+    expect(() => model.execute(inputs, [])).toThrowError(/empty Array/);
+  });
+
+  it('Sequential model: singleton input', () => {
+    const model = createSequentialModel();
+    const input = zeros([2, 4]);
+    const outputs = model.execute(input, [
+      (model.layers[2].output as tfl.SymbolicTensor).name,
+      (model.layers[1].output as tfl.SymbolicTensor).name,
+      (model.layers[0].output as tfl.SymbolicTensor).name,
+    ]) as Tensor[];
+    expectTensorsClose(outputs[0], zeros([2, 1]));
+    expectTensorsClose(outputs[1], zeros([2, 3]));
+    expectTensorsClose(outputs[2], zeros([2, 6]));
+  });
+
+  it('Sequential model: length-1 Array input', () => {
+    const model = createSequentialModel();
+    const input = [zeros([2, 4])];
+    const output = model.execute(
+                       input,
+                       (model.layers[1].output as tfl.SymbolicTensor).name,
+                       ) as Tensor;
+    expectTensorsClose(output, zeros([2, 3]));
+  });
+
+  it('Sequential model: length-1 dictionary input', () => {
+    const model = createSequentialModel();
+    const inputs: NamedTensorMap = {};
+    inputs[(model.input as SymbolicTensor).name] = zeros([2, 4]);
+    const output = model.execute(
+                       inputs,
+                       (model.layers[1].output as tfl.SymbolicTensor).name,
+                       ) as Tensor;
+    expectTensorsClose(output, zeros([2, 3]));
   });
 });

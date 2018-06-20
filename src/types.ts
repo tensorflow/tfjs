@@ -42,7 +42,7 @@ export class SymbolicTensor {
   /* A unique ID for the tensor to be able to differentiate tensors. */
   readonly id: number;
   // The fully scoped name of this Variable, including a unique suffix if needed
-  readonly name?: string;
+  readonly name: string;
   // The originally requested fully scoped name of this Variable, not including
   // any unique suffix.  This may be needed when restoring weights because this
   // original name is used as a key.
