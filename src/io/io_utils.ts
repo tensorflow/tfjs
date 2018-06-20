@@ -122,10 +122,10 @@ export function concatenateTypedArrays(xs: TypedArray[]): ArrayBuffer {
   xs.forEach(x => {
     // tslint:disable-next-line:no-any
     if (x as any instanceof Float32Array || x as any instanceof Int32Array) {
-      totalByteLength += x.length * 4;
+      totalByteLength += x.buffer.byteLength;
       // tslint:disable-next-line:no-any
     } else if (x as any instanceof Uint8Array) {
-      totalByteLength += x.length;
+      totalByteLength += x.buffer.byteLength;
     } else {
       throw new Error(`Unsupported TypedArray subtype: ${x.constructor.name}`);
     }
@@ -135,11 +135,7 @@ export function concatenateTypedArrays(xs: TypedArray[]): ArrayBuffer {
   let offset = 0;
   xs.forEach(x => {
     y.set(new Uint8Array(x.buffer), offset);
-    if (x instanceof Float32Array || x instanceof Int32Array) {
-      offset += x.length * 4;
-    } else {
-      offset += x.length;
-    }
+    offset += x.buffer.byteLength;
   });
 
   return y.buffer;
