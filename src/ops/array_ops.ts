@@ -31,6 +31,7 @@ import {ConcatOps} from './concat';
 import {operation} from './operation';
 import {MPRandGauss} from './rand';
 import {SegmentOps} from './segment_ops';
+import {assertNonNull} from '../util';
 
 export class ArrayOps {
   /**
@@ -119,6 +120,7 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static tensor1d(values: TensorLike1D, dtype: DataType = 'float32'): Tensor1D {
     const inferredShape = util.inferShape(values);
+    assertNonNull(values);
     if (inferredShape.length !== 1) {
       throw new Error('tensor1d() requires values to be a flat/TypedArray');
     }
@@ -150,6 +152,7 @@ export class ArrayOps {
   static tensor2d(
       values: TensorLike2D, shape?: [number, number],
       dtype: DataType = 'float32'): Tensor2D {
+    assertNonNull(values);
     if (shape != null && shape.length !== 2) {
       throw new Error('tensor2d() requires shape to have two numbers');
     }
@@ -192,6 +195,7 @@ export class ArrayOps {
   static tensor3d(
       values: TensorLike3D, shape?: [number, number, number],
       dtype: DataType = 'float32'): Tensor3D {
+    assertNonNull(values);
     if (shape != null && shape.length !== 3) {
       throw new Error('tensor3d() requires shape to have three numbers');
     }
@@ -234,6 +238,7 @@ export class ArrayOps {
   static tensor4d(
       values: TensorLike4D, shape?: [number, number, number, number],
       dtype: DataType = 'float32'): Tensor4D {
+    assertNonNull(values);
     if (shape != null && shape.length !== 4) {
       throw new Error('tensor4d() requires shape to have four numbers');
     }
@@ -276,6 +281,7 @@ export class ArrayOps {
   static tensor5d(
       values: TensorLike5D, shape?: [number, number, number, number, number],
       dtype: DataType = 'float32'): Tensor5D {
+    assertNonNull(values);
     if (shape != null && shape.length !== 5) {
       throw new Error('tensor5d() requires shape to have five numbers');
     }
@@ -319,6 +325,7 @@ export class ArrayOps {
       values: TensorLike6D,
       shape?: [number, number, number, number, number, number],
       dtype: DataType = 'float32'): Tensor6D {
+    assertNonNull(values);
     if (shape != null && shape.length !== 6) {
       throw new Error('tensor6d() requires shape to have six numbers');
     }
