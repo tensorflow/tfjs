@@ -58,23 +58,23 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@tensorflow/tfjs-converter@0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.4.1.tgz#faf2e0c4ecf1c67aac59a70f0c8073a04bb23d6a"
+"@tensorflow/tfjs-converter@0.4.2":
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.4.2.tgz#838dc7c08c72319141b93a2a0b7ea1f915fe45a1"
   dependencies:
     "@types/long" "~3.0.32"
-    protobufjs "~6.8.0"
+    protobufjs "~6.8.6"
     url "^0.11.0"
 
-"@tensorflow/tfjs-core@0.11.6":
-  version "0.11.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.6.tgz#3ffeb48fc499de3dabd36d0939f241d39a84f4af"
+"@tensorflow/tfjs-core@0.11.9":
+  version "0.11.9"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.9.tgz#b684255359941162c64b397d515c310bd1027fe8"
   dependencies:
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.6.6":
-  version "0.6.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.6.tgz#6869c86ed01905271ebe707d6324ba04119b73ab"
+"@tensorflow/tfjs-layers@0.6.7":
+  version "0.6.7"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.7.tgz#aa4f994c4104a8cf3f93b5e13ab051685c092c80"
 
 "@types/estree@0.0.38":
   version "0.0.38"
@@ -4089,7 +4089,7 @@ promisify-call@^2.0.2:
   dependencies:
     with-callback "^1.0.2"
 
-protobufjs@~6.8.0:
+protobufjs@~6.8.6:
   version "6.8.6"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-6.8.6.tgz#ce3cf4fff9625b62966c455fc4c15e4331a11ca2"
   dependencies:
