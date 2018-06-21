@@ -1087,11 +1087,88 @@ describeWithFlags('Reduction: all', ALL_ENVS, () => {
 
   it('throws when dtype is not boolean', () => {
     const a = tf.tensor2d([1, 1, 0, 0], [2, 2]);
-    expect(() => tf.all(a)).toThrowError(/Error Array must be of type bool/);
+    expect(() => tf.all(a)).toThrowError(/Error Tensor must be of type bool/);
   });
 
   it('throws when passed a non-tensor', () => {
     expect(() => tf.all({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'all' must be a Tensor/);
+  });
+});
+
+describeWithFlags('Reduction: any', ALL_ENVS, () => {
+  it('Tensor1D', () => {
+    let a = tf.tensor1d([0, 0, 0], 'bool');
+    expectNumbersClose(tf.any(a).get(), 0);
+
+    a = tf.tensor1d([1, 0, 1], 'bool');
+    expectNumbersClose(tf.any(a).get(), 1);
+
+    a = tf.tensor1d([1, 1, 1], 'bool');
+    expectNumbersClose(tf.any(a).get(), 1);
+  });
+
+  it('ignores NaNs', () => {
+    const a = tf.tensor1d([1, NaN, 0], 'bool');
+    expect(tf.any(a).get()).toEqual(1);
+  });
+
+  it('2D', () => {
+    const a = tf.tensor2d([1, 1, 0, 0], [2, 2], 'bool');
+    expectNumbersClose(tf.any(a).get(), 1);
+  });
+
+  it('2D axis=[0,1]', () => {
+    const a = tf.tensor2d([1, 1, 0, 0, 1, 0], [2, 3], 'bool');
+    expectNumbersClose(tf.any(a, [0, 1]).get(), 1);
+  });
+
+  it('2D, axis=0', () => {
+    const a = tf.tensor2d([1, 1, 0, 0], [2, 2], 'bool');
+    let r = tf.any(a, 0);
+
+    expect(r.shape).toEqual([2]);
+    expectArraysClose(r, [1, 1]);
+
+    r = tf.any(a, 1);
+
+    expect(r.shape).toEqual([2]);
+    expectArraysClose(r, [1, 0]);
+  });
+
+  it('2D, axis=0, keepDims', () => {
+    const a = tf.tensor2d([1, 1, 0, 0, 1, 0], [2, 3], 'bool');
+    const r = a.any(0, true /* keepDims */);
+
+    expect(r.shape).toEqual([1, 3]);
+    expectArraysClose(r, [1, 1, 0]);
+  });
+
+  it('2D, axis=1 provided as a number', () => {
+    const a = tf.tensor2d([1, 1, 0, 0, 1, 0], [2, 3], 'bool');
+    const r = tf.any(a, 1);
+    expectArraysClose(r, [1, 1]);
+  });
+
+  it('2D, axis = -1 provided as a number', () => {
+    const a = tf.tensor2d([1, 1, 0, 0, 1, 0], [2, 3], 'bool');
+    const r = tf.any(a, -1);
+    expectArraysClose(r, [1, 1]);
+  });
+
+  it('2D, axis=[1]', () => {
+    const a = tf.tensor2d([1, 1, 0, 0, 1, 0], [2, 3], 'bool');
+    const r = tf.any(a, [1]);
+    expectArraysClose(r, [1, 1]);
+  });
+
+  it('throws when dtype is not boolean', () => {
+    const a = tf.tensor2d([1, 1, 0, 0], [2, 2]);
+    expect(() => tf.any(a)).toThrowError(/Error Tensor must be of type bool/);
+  });
+
+  it('throws when passed a non-tensor', () => {
+    expect(() => tf.any({} as tf.Tensor))
+        .toThrowError(/Argument 'x' passed to 'any' must be a Tensor/);
   });
 });

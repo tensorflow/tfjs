@@ -23,7 +23,8 @@ export class ReduceProgram implements GPGPUProgram {
   outputShape: number[];
   userCode: string;
 
-  constructor(reduceInfo: ReduceInfo, reduceType: 'all'|'max'|'min'|'sum') {
+  constructor(
+      reduceInfo: ReduceInfo, reduceType: 'all'|'any'|'max'|'min'|'sum') {
     const windowSize = reduceInfo.windowSize;
     const batchSize = reduceInfo.batchSize;
     const inSize = reduceInfo.inSize;
@@ -48,6 +49,8 @@ export class ReduceProgram implements GPGPUProgram {
       returnValue = `sumValue`;
     } else if (reduceType === 'all') {
       returnValue = `allValue`;
+    } else if (reduceType === 'any') {
+      returnValue = `anyValue`;
     }
 
     const windowSizeNearestVec4 = Math.floor(windowSize / 4) * 4;
@@ -69,6 +72,14 @@ export class ReduceProgram implements GPGPUProgram {
         bool reducedAllValue = all(values);
         float floatedReducedAllValue = float(reducedAllValue);
         allValue = float(allValue >= 1.0 && floatedReducedAllValue >= 1.0);
+      `;
+      vecType = `bvec4`;
+    } else if (reduceType === 'any') {
+      initializationValue = '0.0';
+      updateSnippet = `
+        bool reducedAnyValue = any(values);
+        float floatedReducedAnyValue = float(reducedAnyValue);
+        anyValue = float(anyValue >= 1.0 || floatedReducedAnyValue >= 1.0);
       `;
       vecType = `bvec4`;
     }
@@ -99,6 +110,7 @@ export class ReduceProgram implements GPGPUProgram {
         vec4 minMaxValue = vec4(${initializationValue});
         float sumValue = 0.0;
         float allValue = 1.0;
+        float anyValue = 0.0;
 
         for (int i = 0; i < ${windowSizeNearestVec4}; i += 4) {
           int inIdx = inOffset + i;
