@@ -16,7 +16,7 @@
  */
 import {Tensor} from './tensor';
 // tslint:disable-next-line:max-line-length
-import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TensorContainer, TensorContainerArray, TypedArray} from './types';
+import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TensorContainer, TensorContainerArray, TensorLike, TypedArray} from './types';
 
 function assertArgumentIsTensor(
     x: Tensor, argName: string, functionName: string) {
@@ -98,6 +98,12 @@ export function assertTypesMatch(a: Tensor, b: Tensor): void {
       a.dtype === b.dtype,
       ` The dtypes of the first(${a.dtype}) and` +
           ` second(${b.dtype}) input must match`);
+}
+
+export function assertNonNull(a: TensorLike): void {
+  assert(
+      a != null,
+      `The input to the tensor constructor must be a non-null value.`);
 }
 
 // NOTE: We explicitly type out what T extends instead of any so that

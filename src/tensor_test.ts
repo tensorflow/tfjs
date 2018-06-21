@@ -271,6 +271,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expectArraysClose(a, [1, 2, 3]);
   });
 
+  it('tf.tensor1d() throw error with null input value', () => {
+    expect(() => tf.tensor1d(null))
+        .toThrowError('The input to the tensor constructor ' +
+            'must be a non-null value.');
+  });
+
   it('tf.tensor1d() from number[][], shape mismatch', () => {
     // tslint:disable-next-line:no-any
     expect(() => tf.tensor1d([[1], [2], [3]] as any)).toThrowError();
@@ -296,6 +302,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     expect(() => tf.tensor2d([1, 2, 3, 4])).toThrowError();
   });
 
+  it('tf.tensor2d() throw error with null input value', () => {
+    expect(() => tf.tensor2d(null))
+        .toThrowError('The input to the tensor constructor ' +
+            'must be a non-null value.');
+  });
+
   it('tensor3d() from number[][][]', () => {
     const a = tf.tensor3d([[[1], [2], [3]], [[4], [5], [6]]], [2, 3, 1]);
     expectArraysClose(a, [1, 2, 3, 4, 5, 6]);
@@ -315,6 +327,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     // tslint:disable-next-line:no-any
     const shape: any = [4, 1];
     expect(() => tf.tensor3d([1, 2, 3, 4], shape)).toThrowError();
+  });
+
+  it('tf.tensor3d() throw error with null input value', () => {
+    expect(() => tf.tensor3d(null))
+        .toThrowError('The input to the tensor constructor ' +
+            'must be a non-null value.');
   });
 
   it('tensor4d() from number[][][][]', () => {
@@ -338,6 +356,24 @@ describeWithFlags('tensor', ALL_ENVS, () => {
     // tslint:disable-next-line:no-any
     const shape: any = [4, 1];
     expect(() => tf.tensor4d([1, 2, 3, 4], shape)).toThrowError();
+  });
+
+  it('tf.tensor4d() throw error with null input value', () => {
+    expect(() => tf.tensor4d(null))
+        .toThrowError('The input to the tensor constructor ' +
+            'must be a non-null value.');
+  });
+
+  it('tf.tensor5d() throw error with null input value', () => {
+    expect(() => tf.tensor5d(null))
+        .toThrowError('The input to the tensor constructor ' +
+            'must be a non-null value.');
+  });
+
+  it('tf.tensor6d() throw error with null input value', () => {
+    expect(() => tf.tensor6d(null))
+        .toThrowError('The input to the tensor constructor ' +
+            'must be a non-null value.');
   });
 
   it('default dtype', () => {
