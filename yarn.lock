@@ -58,9 +58,9 @@
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
 
-"@tensorflow/tfjs-converter@0.4.2":
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.4.2.tgz#838dc7c08c72319141b93a2a0b7ea1f915fe45a1"
+"@tensorflow/tfjs-converter@0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-converter/-/tfjs-converter-0.4.3.tgz#c77414a4cc3563a221c9ae2644fb132c68a1cc05"
   dependencies:
     "@types/long" "~3.0.32"
     protobufjs "~6.8.6"
