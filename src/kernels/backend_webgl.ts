@@ -509,7 +509,7 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private reduce(
-      x: Tensor2D, reduceType: 'all'|'max'|'min'|'sum',
+      x: Tensor2D, reduceType: 'all'|'any'|'max'|'min'|'sum',
       dtype: DataType): Tensor2D {
     const batchSize = x.shape[0];
     const inSize = x.shape[1];
@@ -751,6 +751,15 @@ export class MathBackendWebGL implements KernelBackend {
     const inSize = util.sizeFromShape(reduceShape);
     const a2D = x.as2D(-1, inSize);
     return this.reduce(a2D, 'all', a2D.dtype).reshape(outShape);
+  }
+
+  any(x: Tensor, axes: number[]): Tensor {
+    axis_util.assertAxesAreInnerMostDims('any', axes, x.rank);
+    const [outShape, reduceShape] =
+        axis_util.computeOutAndReduceShapes(x.shape, axes);
+    const inSize = util.sizeFromShape(reduceShape);
+    const a2D = x.as2D(-1, inSize);
+    return this.reduce(a2D, 'any', a2D.dtype).reshape(outShape);
   }
 
   squaredDifference(a: Tensor, b: Tensor): Tensor {

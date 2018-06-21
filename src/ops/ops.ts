@@ -90,6 +90,8 @@ export const max = ReductionOps.max;
 export const mean = ReductionOps.mean;
 export const min = ReductionOps.min;
 export const all = ReductionOps.all;
+// tslint:disable-next-line:variable-name
+export const any = ReductionOps.any;
 export const moments = ReductionOps.moments;
 export const sum = ReductionOps.sum;
 

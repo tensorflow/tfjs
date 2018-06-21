@@ -527,6 +527,10 @@ export class Tensor<R extends Rank = Rank> {
     this.throwIfDisposed();
     return ops.all(this, axis, keepDims);
   }
+  any<T extends Tensor>(axis: number|number[] = null, keepDims = false): T {
+    this.throwIfDisposed();
+    return ops.any(this, axis, keepDims);
+  }
   logSumExp<T extends Tensor>(axis: number|number[] = null, keepDims = false):
       T {
     this.throwIfDisposed();
