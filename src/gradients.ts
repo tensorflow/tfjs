@@ -16,12 +16,10 @@
  */
 
 import {doc} from './doc';
-import {CustomGradientFunc} from './engine';
-import {ScopeFn} from './engine';
+import {CustomGradientFunc, ScopeFn} from './engine';
 import {ENV} from './environment';
-import {tidy} from './globals';
 import {Scalar, Tensor, Variable} from './tensor';
-import {NamedTensorMap, TensorContainer} from './types';
+import {NamedTensorMap, TensorContainer} from './tensor_types';
 import * as util from './util';
 
 export class Gradients {
@@ -38,7 +36,7 @@ export class Gradients {
    */
   static gradScope<T extends TensorContainer>(
       nameOrScopeFn: string|ScopeFn<T>, scopeFn?: ScopeFn<T>): T {
-    return tidy(nameOrScopeFn, scopeFn, true /* gradScope */);
+    return ENV.engine.tidy(nameOrScopeFn, scopeFn, true /* gradScope */);
   }
 
   /**
@@ -84,13 +82,13 @@ export class Gradients {
       util.assert(
           dy == null || dy instanceof Tensor,
           'The dy passed in grad(f)(x, dy) must be a tensor');
-      return tidy(() => {
+      return ENV.engine.tidy(() => {
         const {value, grads} = ENV.engine.gradients(() => f(x), [x], dy);
         if (dy != null) {
           util.assertShapesMatch(
               value.shape, dy.shape,
               'The shape of dy passed in grad(f)(x, dy) must match the shape ' +
-              'returned by f(x)');
+                  'returned by f(x)');
         }
         checkGrads(grads);
         return grads[0] as I;
@@ -137,13 +135,13 @@ export class Gradients {
       util.assert(
           dy == null || dy instanceof Tensor,
           'The dy passed in grads(f)(args, dy) must be a tensor');
-      return tidy(() => {
+      return ENV.engine.tidy(() => {
         const {value, grads} = ENV.engine.gradients(() => f(...args), args, dy);
         if (dy != null) {
           util.assertShapesMatch(
               value.shape, dy.shape,
               'The shape of dy passed in grads(f)([x1,...], dy) must ' +
-              'match the shape returned by f([x1,...])');
+                  'match the shape returned by f([x1,...])');
         }
         checkGrads(grads);
         return grads;

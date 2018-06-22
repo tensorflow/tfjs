@@ -14,31 +14,9 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from './tensor';
+
 // tslint:disable-next-line:max-line-length
-import {DataType, DataTypeMap, FlatVector, NamedTensorMap, RecursiveArray, RegularArray, TensorContainer, TensorContainerArray, TensorLike, TypedArray} from './types';
-
-function assertArgumentIsTensor(
-    x: Tensor, argName: string, functionName: string) {
-  assert(
-      x instanceof Tensor,
-      `Argument '${argName}' passed to '${functionName}' must be a Tensor, ` +
-          `but got ${typeof x}.`);
-}
-
-export function assertArgumentsAreTensors(
-    args: {[argName: string]: Tensor|Tensor[]}, functionName: string) {
-  for (const argName in args) {
-    const arg = args[argName];
-    if (Array.isArray(arg)) {
-      arg.forEach((t, i) => {
-        assertArgumentIsTensor(t, `${argName}[${i}]`, functionName);
-      });
-    } else {
-      assertArgumentIsTensor(arg, argName, functionName);
-    }
-  }
-}
+import {DataType, DataTypeMap, FlatVector, RecursiveArray, RegularArray, TensorLike, TypedArray} from './types';
 
 /** Shuffles the array using Fisher-Yates algorithm. */
 // tslint:disable-next-line:no-any
@@ -93,13 +71,6 @@ export function assertShapesMatch(
       errorMessagePrefix + ` Shapes ${shapeA} and ${shapeB} must match`);
 }
 
-export function assertTypesMatch(a: Tensor, b: Tensor): void {
-  assert(
-      a.dtype === b.dtype,
-      ` The dtypes of the first(${a.dtype}) and` +
-          ` second(${b.dtype}) input must match`);
-}
-
 export function assertNonNull(a: TensorLike): void {
   assert(
       a != null,
@@ -109,7 +80,7 @@ export function assertNonNull(a: TensorLike): void {
 // NOTE: We explicitly type out what T extends instead of any so that
 // util.flatten on a nested array of number doesn't try to infer T as a
 // number[][], causing us to explicitly type util.flatten<number>().
-export function flatten<T extends number|boolean|Tensor|Promise<number>>(
+export function flatten<T extends number|boolean|Promise<number>>(
     arr: T|RecursiveArray<T>, ret: T[] = []): T[] {
   if (Array.isArray(arr)) {
     for (let i = 0; i < arr.length; ++i) {
@@ -341,15 +312,6 @@ export function getTypedArrayFromDType<D extends DataType>(
   return values;
 }
 
-export function isTensorInList(tensor: Tensor, tensorList: Tensor[]): boolean {
-  for (let i = 0; i < tensorList.length; i++) {
-    if (tensorList[i].id === tensor.id) {
-      return true;
-    }
-  }
-  return false;
-}
-
 export function checkForNaN<D extends DataType>(
     vals: DataTypeMap[D], dtype: D, name: string): void {
   if (dtype !== 'float32') {
@@ -361,33 +323,6 @@ export function checkForNaN<D extends DataType>(
       throw Error(`The result of the '${name}' has NaNs.`);
     }
   }
-}
-
-export function flattenNameArrayMap(
-    nameArrayMap: Tensor|NamedTensorMap, keys?: string[]): Tensor[] {
-  const xs: Tensor[] = [];
-  if (nameArrayMap instanceof Tensor) {
-    xs.push(nameArrayMap);
-  } else {
-    const xMap = nameArrayMap as {[xName: string]: Tensor};
-    for (let i = 0; i < keys.length; i++) {
-      xs.push(xMap[keys[i]]);
-    }
-  }
-  return xs;
-}
-
-export function unflattenToNameArrayMap(
-    keys: string[], flatArrays: Tensor[]): NamedTensorMap {
-  if (keys.length !== flatArrays.length) {
-    throw new Error(
-        `Cannot unflatten Tensor[], keys and arrays are not of same length.`);
-  }
-  const result: NamedTensorMap = {};
-  for (let i = 0; i < keys.length; i++) {
-    result[keys[i]] = flatArrays[i];
-  }
-  return result;
 }
 
 /**
@@ -446,48 +381,6 @@ export function isFunction(f: Function) {
   return !!(f && f.constructor && f.call && f.apply);
 }
 
-/**
- * Extracts any `Tensor`s found within the provided object.
- *
- * @param container an object that may be a `Tensor` or may directly contain
- *   `Tensor`s, such as a `Tensor[]` or `{key: Tensor, ...}`.  In general it
- *   is safe to pass any object here, except that `Promise`s are not
- *   supported.
- * @returns An array of `Tensors` found within the passed object.  If the
- *   argument is simply a `Tensor', a list containing that `Tensor` is
- *   returned. If the object is not a `Tensor` or does not
- *   contain `Tensors`, an empty list is returned.
- */
-export function getTensorsInContainer(result: TensorContainer): Tensor[] {
-  const list: Tensor[] = [];
-  const seen = new Set<{}|void>();
-  walkTensorContainer(result, list, seen);
-  return list;
-}
-
-function walkTensorContainer(
-    container: TensorContainer, list: Tensor[], seen: Set<{}|void>): void {
-  if (container == null) {
-    return;
-  }
-  if (container instanceof Tensor) {
-    list.push(container);
-    return;
-  }
-  if (!isIterable(container)) {
-    return;
-  }
-  // Iteration over keys works also for arrays.
-  const iterable = container as TensorContainerArray;
-  for (const k in iterable) {
-    const val = iterable[k];
-    if (!seen.has(val)) {
-      seen.add(val);
-      walkTensorContainer(val, list, seen);
-    }
-  }
-}
-
 export function nearestDivisor(size: number, start: number): number {
   for (let i = start; i < size; ++i) {
     if (size % i === 0) {
@@ -497,7 +390,18 @@ export function nearestDivisor(size: number, start: number): number {
   return size;
 }
 
-// tslint:disable-next-line:no-any
-function isIterable(obj: any): boolean {
-  return Array.isArray(obj) || typeof obj === 'object';
+export function computeStrides(shape: number[]): number[] {
+  const rank = shape.length;
+  if (rank < 2) {
+    return [];
+  }
+
+  // Last dimension has implicit stride of 1, thus having D-1 (instead of D)
+  // strides.
+  const strides = new Array(rank - 1);
+  strides[rank - 2] = shape[rank - 1];
+  for (let i = rank - 3; i >= 0; --i) {
+    strides[i] = strides[i + 1] * shape[i + 1];
+  }
+  return strides;
 }

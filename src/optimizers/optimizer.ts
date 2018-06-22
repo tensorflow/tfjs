@@ -19,7 +19,7 @@ import {doc} from '../doc';
 import {variableGrads} from '../globals';
 import {Serializable} from '../serialization';
 import {Scalar, Variable} from '../tensor';
-import {NamedTensorMap} from '../types';
+import {NamedTensorMap} from '../tensor_types';
 
 @doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
 export abstract class Optimizer extends Serializable {

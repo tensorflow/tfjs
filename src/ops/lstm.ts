@@ -17,8 +17,7 @@
 
 import {doc} from '../doc';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
-import * as util from '../util';
-
+import {assertArgumentsAreTensors} from '../tensor_util';
 import {operation} from './operation';
 
 /**
@@ -48,7 +47,7 @@ export class LSTMOps {
   static multiRNNCell(
       lstmCells: LSTMCellFunc[], data: Tensor2D, c: Tensor2D[], h: Tensor2D[]):
       [Tensor2D[], Tensor2D[]] {
-    util.assertArgumentsAreTensors({data, c, h}, 'multiRNNCell');
+    assertArgumentsAreTensors({data, c, h}, 'multiRNNCell');
 
     let input = data;
     const newStates = [];
@@ -86,7 +85,7 @@ export class LSTMOps {
   static basicLSTMCell(
       forgetBias: Scalar, lstmKernel: Tensor2D, lstmBias: Tensor1D,
       data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D] {
-    util.assertArgumentsAreTensors(
+    assertArgumentsAreTensors(
         {forgetBias, lstmKernel, lstmBias, data, c, h}, 'basicLSTMCell');
 
     const combined = data.concat(h, 1);

@@ -18,6 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {operation} from './operation';
@@ -43,7 +44,7 @@ export class TransposeOps {
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static transpose<T extends Tensor>(x: T, perm?: number[]): T {
-    util.assertArgumentsAreTensors({x}, 'transpose');
+    assertArgumentsAreTensors({x}, 'transpose');
 
     if (perm == null) {
       perm = x.shape.map((s, i) => i).reverse();

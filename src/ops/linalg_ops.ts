@@ -20,12 +20,13 @@
  */
 
 import {doc} from '../doc';
+import {ENV} from '../environment';
 import {Tensor1D, Tensor2D} from '../tensor';
-import {Tracking} from '../tracking';
 import {assert} from '../util';
-
+import {ArrayOps} from './array_ops';
+import {NormOps} from './norm';
 import {operation} from './operation';
-import {norm, split, squeeze, stack, sum} from './ops';
+import {ReductionOps} from './reduction_ops';
 
 export class LinalgOps {
   /**
@@ -61,7 +62,8 @@ export class LinalgOps {
       }
     } else {
       inputIsTensor2D = true;
-      xs = split(xs, xs.shape[0], 0).map(x => squeeze(x, [0]));
+      xs =
+          ArrayOps.split(xs, xs.shape[0], 0).map(x => ArrayOps.squeeze(x, [0]));
     }
 
     assert(
@@ -72,20 +74,20 @@ export class LinalgOps {
     const ys: Tensor1D[] = [];
     const xs1d = xs as Tensor1D[];
     for (let i = 0; i < xs.length; ++i) {
-      ys.push(Tracking.tidy(() => {
+      ys.push(ENV.engine.tidy(() => {
         let x = xs1d[i];
         if (i > 0) {
           for (let j = 0; j < i; ++j) {
-            const proj = sum(ys[j].mulStrict(x)).mul(ys[j]);
+            const proj = ReductionOps.sum(ys[j].mulStrict(x)).mul(ys[j]);
             x = x.sub(proj);
           }
         }
-        return x.div(norm(x, 'euclidean'));
+        return x.div(NormOps.norm(x, 'euclidean'));
       }));
     }
 
     if (inputIsTensor2D) {
-      return stack(ys, 0) as Tensor2D;
+      return ArrayOps.stack(ys, 0) as Tensor2D;
     } else {
       return ys;
     }

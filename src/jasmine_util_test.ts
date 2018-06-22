@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENV, Environment, Features} from './environment';
+import {ENV, Environment} from './environment';
+import {Features} from './environment_util';
 import * as jasmine_util from './jasmine_util';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {NATIVE_ENV} from './test_util';

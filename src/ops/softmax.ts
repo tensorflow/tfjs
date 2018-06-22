@@ -18,11 +18,11 @@
 import {doc} from '../doc';
 import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
-
 import * as axis_util from './axis_util';
 import {operation} from './operation';
-import * as ops from './ops';
+import {TensorOps} from './tensor_ops';
 
 export class SoftmaxOps {
   /**
@@ -47,7 +47,7 @@ export class SoftmaxOps {
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
   static softmax<T extends Tensor>(logits: T, dim = -1): T {
-    util.assertArgumentsAreTensors({logits}, 'softmax');
+    assertArgumentsAreTensors({logits}, 'softmax');
 
     if (dim === -1) {
       dim = logits.rank - 1;
@@ -106,7 +106,7 @@ export class SoftmaxOps {
   @operation
   static softmaxCrossEntropy<T extends Tensor, O extends Tensor>(
       labels: T, logits: T, dim = -1): O {
-    util.assertArgumentsAreTensors({labels, logits}, 'softmaxCrossEntropy');
+    assertArgumentsAreTensors({labels, logits}, 'softmaxCrossEntropy');
     util.assertShapesMatch(
         labels.shape, logits.shape, 'Error in softmaxCrossEntropy: ');
 
@@ -123,7 +123,7 @@ export class SoftmaxOps {
     const customOp = customGrad((labels, logits) => {
       const predictedProbs = logits.softmax(dim);
       const costVector =
-          ops.scalar(1e-5).add(predictedProbs).log().mul(labels).neg();
+          TensorOps.scalar(1e-5).add(predictedProbs).log().mul(labels).neg();
       const value = costVector.sum([dim]) as O;
 
       const gradFunc = (dy: O) => {

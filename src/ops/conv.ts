@@ -18,6 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './operation';
@@ -56,7 +57,7 @@ export class ConvOps {
       x: T, filter: Tensor3D, stride: number, pad: 'valid'|'same'|number,
       dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    util.assertArgumentsAreTensors({x, filter}, 'conv1d');
+    assertArgumentsAreTensors({x, filter}, 'conv1d');
 
     let x3D = x as Tensor3D;
     let reshapedTo3D = false;
@@ -148,7 +149,7 @@ export class ConvOps {
       pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
       dilations: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    util.assertArgumentsAreTensors({x, filter}, 'conv2d');
+    assertArgumentsAreTensors({x, filter}, 'conv2d');
 
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
@@ -235,7 +236,7 @@ export class ConvOps {
       xShape: [number, number, number, number]|[number, number, number], dy: T,
       filter: Tensor4D, strides: [number, number]|number,
       pad: 'valid'|'same'|number, dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    util.assertArgumentsAreTensors({dy, filter}, 'conv2dDerInput');
+    assertArgumentsAreTensors({dy, filter}, 'conv2dDerInput');
 
     util.assert(
         xShape.length === dy.rank,
@@ -315,7 +316,7 @@ export class ConvOps {
       x: T, dy: T, filterShape: [number, number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
-    util.assertArgumentsAreTensors({x, dy}, 'conv2dDerFilter');
+    assertArgumentsAreTensors({x, dy}, 'conv2dDerFilter');
 
     let x4D = x as Tensor4D;
     if (x.rank === 3) {
@@ -386,7 +387,7 @@ export class ConvOps {
       outputShape: [number, number, number, number]|[number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    util.assertArgumentsAreTensors({x, filter}, 'conv2dTranspose');
+    assertArgumentsAreTensors({x, filter}, 'conv2dTranspose');
 
     return ConvOps.conv2dDerInput(
         outputShape, x, filter, strides, pad, dimRoundingMode);
@@ -443,7 +444,7 @@ export class ConvOps {
       pad: 'valid'|'same'|number, dataFormat: 'NHWC'|'NCHW' = 'NHWC',
       dilations: [number, number]|number = [1, 1],
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    util.assertArgumentsAreTensors({x, filter}, 'depthwiseConv2d');
+    assertArgumentsAreTensors({x, filter}, 'depthwiseConv2d');
 
     let x4D = x as Tensor4D;
     let reshapedTo4D = false;
@@ -553,7 +554,7 @@ export class ConvOps {
       strides: [number, number]|number, pad: 'valid'|'same',
       dilation: [number, number]|number = [1, 1],
       dataFormat: 'NHWC'|'NCHW' = 'NHWC'): T {
-    util.assertArgumentsAreTensors(
+    assertArgumentsAreTensors(
         {x, depthwiseFilter, pointwiseFilter}, 'separableConv2d');
 
     let x4D = x as Tensor4D;

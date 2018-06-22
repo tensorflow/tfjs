@@ -16,7 +16,8 @@
  */
 
 import * as device_util from './device_util';
-import {ENV, Environment, Features} from './environment';
+import {ENV, Environment} from './environment';
+import {Features} from './environment_util';
 import {describeWithFlags} from './jasmine_util';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';

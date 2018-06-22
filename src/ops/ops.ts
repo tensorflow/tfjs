@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+import {Tensor} from '../tensor';
+import {Rank} from '../types';
 import {ArrayOps} from './array_ops';
 import {BatchNormOps} from './batchnorm';
 import {BinaryOps} from './binary_ops';
@@ -32,12 +34,14 @@ import {MovingAverageOps} from './moving_average';
 import {NormOps} from './norm';
 import {PoolOps} from './pool';
 import {ReductionOps} from './reduction_ops';
+import {ReluOps} from './relu_ops';
 import {ReverseOps} from './reverse';
 import {SegmentOps} from './segment_ops';
 import {SigmoidCrossEntropyOps} from './sigmoid_cross_entropy';
 import {SliceOps} from './slice';
 import {SoftmaxOps} from './softmax';
 import {StridedSliceOps} from './strided_slice';
+import {TensorOps} from './tensor_ops';
 import {TransposeOps} from './transpose';
 import {UnaryOps} from './unary_ops';
 
@@ -95,8 +99,6 @@ export const any = ReductionOps.any;
 export const moments = ReductionOps.moments;
 export const sum = ReductionOps.sum;
 
-export const unsortedSegmentSum = SegmentOps.unsortedSegmentSum;
-
 export const equal = CompareOps.equal;
 export const equalStrict = CompareOps.equalStrict;
 export const greater = CompareOps.greater;
@@ -127,21 +129,21 @@ export const ceil = UnaryOps.ceil;
 export const clipByValue = UnaryOps.clipByValue;
 export const cos = UnaryOps.cos;
 export const cosh = UnaryOps.cosh;
-export const elu = UnaryOps.elu;
+export const elu = ReluOps.elu;
 export const exp = UnaryOps.exp;
 export const expm1 = UnaryOps.expm1;
 export const floor = UnaryOps.floor;
 export const sign = UnaryOps.sign;
-export const leakyRelu = UnaryOps.leakyRelu;
+export const leakyRelu = ReluOps.leakyRelu;
 export const log = UnaryOps.log;
 export const log1p = UnaryOps.log1p;
 export const logSigmoid = UnaryOps.logSigmoid;
 export const neg = UnaryOps.neg;
-export const prelu = UnaryOps.prelu;
-export const relu = UnaryOps.relu;
+export const prelu = ReluOps.prelu;
+export const relu = ReluOps.relu;
 export const reciprocal = UnaryOps.reciprocal;
 export const round = UnaryOps.round;
-export const selu = UnaryOps.selu;
+export const selu = ReluOps.selu;
 export const sigmoid = UnaryOps.sigmoid;
 export const sin = UnaryOps.sin;
 export const sinh = UnaryOps.sinh;
@@ -182,10 +184,10 @@ export const cast = ArrayOps.cast;
 export const clone = ArrayOps.clone;
 export const fromPixels = ArrayOps.fromPixels;
 export const toPixels = ArrayOps.toPixels;
-export const ones = ArrayOps.ones;
-export const onesLike = ArrayOps.onesLike;
-export const zeros = ArrayOps.zeros;
-export const zerosLike = ArrayOps.zerosLike;
+export const ones = TensorOps.ones;
+export const onesLike = TensorOps.onesLike;
+export const zeros = TensorOps.zeros;
+export const zerosLike = TensorOps.zerosLike;
 export const eye = ArrayOps.eye;
 export const rand = ArrayOps.rand;
 export const randomNormal = ArrayOps.randomNormal;
@@ -195,20 +197,20 @@ export const multinomial = ArrayOps.multinomial;
 export const reshape = ArrayOps.reshape;
 export const squeeze = ArrayOps.squeeze;
 export const tile = ArrayOps.tile;
-export const gather = ArrayOps.gather;
+export const gather = SegmentOps.gather;
 export const oneHot = ArrayOps.oneHot;
-export const linspace = ArrayOps.linspace;
-export const range = ArrayOps.range;
+export const linspace = TensorOps.linspace;
+export const range = TensorOps.range;
 export const buffer = ArrayOps.buffer;
-export const fill = ArrayOps.fill;
-export const tensor = ArrayOps.tensor;
-export const scalar = ArrayOps.scalar;
-export const tensor1d = ArrayOps.tensor1d;
-export const tensor2d = ArrayOps.tensor2d;
-export const tensor3d = ArrayOps.tensor3d;
-export const tensor4d = ArrayOps.tensor4d;
-export const tensor5d = ArrayOps.tensor5d;
-export const tensor6d = ArrayOps.tensor6d;
+export const fill = TensorOps.fill;
+export const tensor = TensorOps.tensor;
+export const scalar = TensorOps.scalar;
+export const tensor1d = TensorOps.tensor1d;
+export const tensor2d = TensorOps.tensor2d;
+export const tensor3d = TensorOps.tensor3d;
+export const tensor4d = TensorOps.tensor4d;
+export const tensor5d = TensorOps.tensor5d;
+export const tensor6d = TensorOps.tensor6d;
 export const print = ArrayOps.print;
 export const expandDims = ArrayOps.expandDims;
 export const stack = ArrayOps.stack;
@@ -221,6 +223,7 @@ export const pad1d = ArrayOps.pad1d;
 export const pad2d = ArrayOps.pad2d;
 export const pad3d = ArrayOps.pad3d;
 export const pad4d = ArrayOps.pad4d;
+export const unsortedSegmentSum = SegmentOps.unsortedSegmentSum;
 
 export const movingAverage = MovingAverageOps.movingAverage;
 
@@ -238,8 +241,6 @@ export const linalg = LinalgOps;
 export {operation} from './operation';
 
 // So typings can propagate.
-import {Tensor} from '../tensor';
-import {Rank} from '../types';
 // tslint:disable-next-line:no-unused-expression
 [Tensor, Rank];
 

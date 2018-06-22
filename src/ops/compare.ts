@@ -18,6 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
+import {assertArgumentsAreTensors, assertTypesMatch} from '../tensor_util';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
@@ -41,8 +42,8 @@ export class CompareOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static notEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'notEqual');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'notEqual');
+    assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     return ENV.engine.runKernel(backend => backend.notEqual(a, b), {a, b}) as T;
@@ -80,8 +81,8 @@ export class CompareOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static less<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'less');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'less');
+    assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     return ENV.engine.runKernel(backend => backend.less(a, b), {a, b}) as T;
@@ -120,8 +121,8 @@ export class CompareOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static equal<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'equal');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'equal');
+    assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     return ENV.engine.runKernel(backend => backend.equal(a, b), {a, b}) as T;
@@ -152,8 +153,8 @@ export class CompareOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static lessEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'lessEqual');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'lessEqual');
+    assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     return ENV.engine.runKernel(backend => backend.lessEqual(a, b), {a, b}) as
@@ -185,8 +186,8 @@ export class CompareOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greater<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'greater');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'greater');
+    assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     return ENV.engine.runKernel(backend => backend.greater(a, b), {a, b}) as T;
@@ -217,8 +218,8 @@ export class CompareOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static greaterEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'greaterEqual');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'greaterEqual');
+    assertTypesMatch(a, b);
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     return ENV.engine.runKernel(

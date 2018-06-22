@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {IOHandler} from './io';
+import {IOHandler} from './types';
 
 export type IORouter = (url: string) => IOHandler;
 

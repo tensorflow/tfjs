@@ -18,6 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
 import {parseAxisParam} from './axis_util';
 import * as concat_util from './concat_util';
@@ -157,7 +158,7 @@ export class ConcatOps {
   @operation
   static concat<T extends Tensor>(tensors: T[], axis = 0): T {
     util.assert(tensors.length >= 1, 'Pass at least one tensor to concat');
-    util.assertArgumentsAreTensors({tensors}, 'concat');
+    assertArgumentsAreTensors({tensors}, 'concat');
 
     let result = tensors[0];
     if (tensors.length === 1) {

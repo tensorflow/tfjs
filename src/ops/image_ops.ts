@@ -19,6 +19,7 @@ import {doc} from '../doc';
 import {ForwardFunc} from '../engine';
 import {ENV} from '../environment';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
 import {operation} from './operation';
 
@@ -39,7 +40,7 @@ export class ImageOps {
   @operation
   static resizeBilinear<T extends Tensor3D|Tensor4D>(
       images: T, size: [number, number], alignCorners = false): T {
-    util.assertArgumentsAreTensors({images}, 'resizeBilinear');
+    assertArgumentsAreTensors({images}, 'resizeBilinear');
     util.assert(
         images.rank === 3 || images.rank === 4,
         `Error in resizeBilinear: x must be rank 3 or 4, but got ` +
@@ -93,7 +94,7 @@ export class ImageOps {
   @operation
   static resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
       images: T, size: [number, number], alignCorners = false): T {
-    util.assertArgumentsAreTensors({images}, 'resizeNearestNeighbor');
+    assertArgumentsAreTensors({images}, 'resizeNearestNeighbor');
     util.assert(
         images.rank === 3 || images.rank === 4,
         `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
