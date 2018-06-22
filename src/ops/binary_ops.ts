@@ -17,14 +17,15 @@
 
 import {doc} from '../doc';
 import {ENV} from '../environment';
+import {KernelBackend} from '../kernels/backend';
 import {Tensor} from '../tensor';
+import {assertArgumentsAreTensors, assertTypesMatch} from '../tensor_util';
 import {upcastType} from '../types';
 import * as util from '../util';
-
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
-import {neg, scalar, square} from './ops';
-import {KernelBackend} from '../kernels/backend';
+import {TensorOps} from './tensor_ops';
+import {UnaryOps} from './unary_ops';
 
 export class BinaryOps {
   /**
@@ -53,8 +54,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static add<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'add');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'add');
+    assertTypesMatch(a, b);
 
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
@@ -122,8 +123,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static sub<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'sub');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'sub');
+    assertTypesMatch(a, b);
 
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
@@ -195,7 +196,7 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static pow<T extends Tensor>(base: T, exp: Tensor): T {
-    util.assertArgumentsAreTensors({base, exp}, 'pow');
+    assertArgumentsAreTensors({base, exp}, 'pow');
 
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
@@ -268,8 +269,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static mul<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'mul');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'mul');
+    assertTypesMatch(a, b);
 
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
@@ -340,8 +341,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static div<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'div');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'div');
+    assertTypesMatch(a, b);
 
     let forwardFunc: (backend: KernelBackend) => Tensor;
     if (a.dtype === 'int32' && b.dtype === 'int32') {
@@ -372,8 +373,7 @@ export class BinaryOps {
       };
       return {a: derA, b: derB};
     };
-    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as
-        T;
+    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as T;
   }
 
   /**
@@ -403,8 +403,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static floorDiv<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'floorDiv');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'floorDiv');
+    assertTypesMatch(a, b);
 
     const forwardFunc = (backend: KernelBackend) => backend.floorDiv(a, b);
     const outShape =
@@ -429,8 +429,7 @@ export class BinaryOps {
       };
       return {a: derA, b: derB};
     };
-    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as
-        T;
+    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as T;
   }
 
   /**
@@ -475,8 +474,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static mod<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'mod');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'mod');
+    assertTypesMatch(a, b);
 
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
@@ -542,8 +541,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static minimum<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'minimum');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'minimum');
+    assertTypesMatch(a, b);
 
     if (a.dtype === 'bool') {
       a = a.toInt();
@@ -602,8 +601,8 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static maximum<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'maximum');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'maximum');
+    assertTypesMatch(a, b);
 
     if (a.dtype === 'bool') {
       a = a.toInt();
@@ -663,12 +662,12 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
   static squaredDifference<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'squaredDifference');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'squaredDifference');
+    assertTypesMatch(a, b);
 
     broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
     const der = (dy: Tensor) => {
-      const two = scalar(2);
+      const two = TensorOps.scalar(2);
       const derA = () => dy.mul(a.sub(b).mul(two));
       const derB = () => dy.mul(b.sub(a).mul(two));
       return {a: derA, b: derB};
@@ -711,15 +710,15 @@ export class BinaryOps {
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
   static atan2<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'atan2');
-    util.assertTypesMatch(a, b);
+    assertArgumentsAreTensors({a, b}, 'atan2');
+    assertTypesMatch(a, b);
 
     const outShape =
         broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
 
     const der = (dy: Tensor) => {
       const derA = () => {
-        const d = BinaryOps.add(square(a), square(b));
+        const d = BinaryOps.add(UnaryOps.square(a), UnaryOps.square(b));
         let res = dy.mul(b.div(d));
         const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
         if (reduceAxes.length > 0) {
@@ -728,8 +727,8 @@ export class BinaryOps {
         return res.reshape(a.shape);
       };
       const derB = () => {
-        const d = BinaryOps.add(square(a), square(b)) as T;
-        let res = neg(dy.mul(a.div(d)));
+        const d = BinaryOps.add(UnaryOps.square(a), UnaryOps.square(b)) as T;
+        let res = UnaryOps.neg(dy.mul(a.div(d)));
         const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);

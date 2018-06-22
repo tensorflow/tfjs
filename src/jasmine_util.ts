@@ -14,7 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import {ENV, Environment, Features} from './environment';
+import {ENV, Environment} from './environment';
+import {Features} from './environment_util';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';

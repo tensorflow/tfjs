@@ -18,6 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Scalar, Tensor, Tensor1D, Tensor2D} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
 import {operation} from './operation';
 
@@ -41,7 +42,7 @@ export class MatmulOps {
   static matMul(
       a: Tensor2D, b: Tensor2D, transposeA = false, transposeB = false):
       Tensor2D {
-    util.assertArgumentsAreTensors({a, b}, 'matMul');
+    assertArgumentsAreTensors({a, b}, 'matMul');
 
     const innerShapeA = transposeA ? a.shape[0] : a.shape[1];
     const innerShapeB = transposeB ? b.shape[1] : b.shape[0];

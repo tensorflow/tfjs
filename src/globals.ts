@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
+import {Environment} from './environment';
 import {Gradients} from './gradients';
-import {Tracking} from './tracking';
 
-export const tidy = Tracking.tidy;
-export const keep = Tracking.keep;
-export const dispose = Tracking.dispose;
-export const time = Tracking.time;
+export const tidy = Environment.tidy;
+export const keep = Environment.keep;
+export const dispose = Environment.dispose;
+export const time = Environment.time;
 
 export const grad = Gradients.grad;
 export const valueAndGrad = Gradients.valueAndGrad;

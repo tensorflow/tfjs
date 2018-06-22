@@ -24,13 +24,17 @@ import './kernels/backend_cpu';
 import {BrowserUtil} from './browser_util';
 import * as environment from './environment';
 import {Environment} from './environment';
+
 // Serialization.
 import * as io from './io/io';
 import * as serialization from './serialization';
+import {setOpHandler} from './tensor';
 import * as test_util from './test_util';
 import * as util from './util';
 import {version} from './version';
 import * as webgl from './webgl';
+
+export {InferenceModel, ModelPredictConfig} from './model_types';
 
 // Optimizers.
 export {AdadeltaOptimizer} from './optimizers/adadelta_optimizer';
@@ -43,8 +47,8 @@ export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
 // tslint:disable-next-line:max-line-length
 export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, variable, Variable} from './tensor';
-// tslint:disable-next-line:max-line-length
-export {DataType, InferenceModel, ModelPredictConfig, NamedTensorMap, Rank, ShapeMap} from './types';
+export {NamedTensorMap} from './tensor_types';
+export {DataType, Rank, ShapeMap} from './types';
 
 export * from './ops/ops';
 export {LSTMCellFunc} from './ops/lstm';
@@ -53,12 +57,14 @@ export {Reduction} from './ops/loss_ops';
 export * from './train';
 export * from './globals';
 
-export {ENV, Environment, Features} from './environment';
+export {Features} from './environment_util';
+export {TimingInfo} from './engine';
+export {ENV, Environment} from './environment';
+
 export const setBackend = Environment.setBackend;
 export const getBackend = Environment.getBackend;
 export const disposeVariables = Environment.disposeVariables;
 export const memory = Environment.memory;
-export {TimingInfo} from './engine';
 export {version as version_core};
 export {doc} from './doc';
 
@@ -69,3 +75,6 @@ export {environment, io, serialization, test_util, util, webgl};
 
 // Backend specific.
 export {KernelBackend, BackendTimingInfo} from './kernels/backend';
+
+import * as ops from './ops/ops';
+setOpHandler(ops);

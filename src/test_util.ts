@@ -15,7 +15,8 @@
  * =============================================================================
  */
 
-import {ENV, Features} from './environment';
+import {ENV} from './environment';
+import {Features} from './environment_util';
 import {Tensor} from './tensor';
 import {TypedArray} from './types';
 import * as util from './util';

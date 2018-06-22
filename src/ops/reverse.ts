@@ -18,6 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
 import {parseAxisParam} from './axis_util';
 import {operation} from './operation';
@@ -105,7 +106,7 @@ export class ReverseOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static reverse<T extends Tensor>(x: T, axis?: number|number[]): T {
-    util.assertArgumentsAreTensors({x}, 'reverse');
+    assertArgumentsAreTensors({x}, 'reverse');
 
     if (x.rank === 0) {
       return x.clone();

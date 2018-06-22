@@ -21,8 +21,7 @@ import {scalar, zerosLike} from '../ops/ops';
 // tslint:disable-next-line:max-line-length
 import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
 import {Scalar, Variable} from '../tensor';
-import {NamedVariableMap} from '../types';
-
+import {NamedVariableMap} from '../tensor_types';
 import {Optimizer} from './optimizer';
 import * as optimizer_utils from './optimizer_utils';
 

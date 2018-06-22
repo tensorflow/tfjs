@@ -17,231 +17,16 @@
 
 import * as device_util from './device_util';
 import {doc} from './doc';
-import {Engine, MemoryInfo} from './engine';
+import {Engine, MemoryInfo, ScopeFn, TimingInfo} from './engine';
+// tslint:disable-next-line:max-line-length
+import {Features, getFeaturesFromURL, getWebGLDisjointQueryTimerVersion, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLGetBufferSubDataAsyncExtensionEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
-import * as util from './util';
-
-export enum Type {
-  NUMBER,
-  BOOLEAN,
-  STRING
-}
-
-export interface Features {
-  // Whether to enable debug mode.
-  'DEBUG'?: boolean;
-  // Whether we are in a browser (as versus, say, node.js) environment.
-  'IS_BROWSER'?: boolean;
-  // Whether we are in the Node.js environment.
-  'IS_NODE'?: boolean;
-  // The disjoint_query_timer extension version.
-  // 0: disabled, 1: EXT_disjoint_timer_query, 2:
-  // EXT_disjoint_timer_query_webgl2.
-  // In Firefox with WebGL 2.0,
-  // EXT_disjoint_timer_query_webgl2 is not available, so we must use the
-  // WebGL 1.0 extension.
-  'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION'?: number;
-  // Whether the timer object from the disjoint_query_timer extension gives
-  // timing information that is reliable.
-  'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'?: boolean;
-  // 0: No WebGL, 1: WebGL 1.0, 2: WebGL 2.0.
-  'WEBGL_VERSION'?: number;
-  // Whether rendering to float32 textures is enabled. If disabled, renders to
-  // float16 textures.
-  'WEBGL_RENDER_FLOAT32_ENABLED'?: boolean;
-  // Whether downloading float textures is enabled. If disabled, uses IEEE 754
-  // encoding of the float32 values to 4 uint8 when downloading.
-  'WEBGL_DOWNLOAD_FLOAT_ENABLED'?: boolean;
-  // Whether WEBGL_get_buffer_sub_data_async is enabled.
-  'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'?: boolean;
-  'BACKEND'?: string;
-  // Test precision for unit tests. This is decreased when we can't render
-  // float32 textures.
-  'TEST_EPSILON'?: number;
-  'IS_CHROME'?: boolean;
-}
-
-export const URL_PROPERTIES: URLProperty[] = [
-  {name: 'DEBUG', type: Type.BOOLEAN}, {name: 'IS_BROWSER', type: Type.BOOLEAN},
-  {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION', type: Type.NUMBER},
-  {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
-  {name: 'WEBGL_VERSION', type: Type.NUMBER},
-  {name: 'WEBGL_RENDER_FLOAT32_ENABLED', type: Type.BOOLEAN},
-  {name: 'WEBGL_DOWNLOAD_FLOAT_ENABLED', type: Type.BOOLEAN}, {
-    name: 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED',
-    type: Type.BOOLEAN
-  },
-  {name: 'BACKEND', type: Type.STRING}
-];
-
-export interface URLProperty {
-  name: keyof Features;
-  type: Type;
-}
+import {Tensor} from './tensor';
+import {TensorContainer} from './tensor_types';
+import {getTensorsInContainer} from './tensor_util';
 
 const TEST_EPSILON_FLOAT32_ENABLED = 1e-3;
 const TEST_EPSILON_FLOAT32_DISABLED = 1e-1;
-
-function hasExtension(gl: WebGLRenderingContext, extensionName: string) {
-  const ext = gl.getExtension(extensionName);
-  return ext != null;
-}
-
-function getWebGLRenderingContext(webGLVersion: number): WebGLRenderingContext {
-  if (webGLVersion === 0 || !ENV.get('IS_BROWSER')) {
-    throw new Error('Cannot get WebGL rendering context, WebGL is disabled.');
-  }
-
-  const tempCanvas = document.createElement('canvas');
-
-  if (webGLVersion === 1) {
-    return (tempCanvas.getContext('webgl') ||
-            tempCanvas.getContext('experimental-webgl')) as
-        WebGLRenderingContext;
-  }
-  return tempCanvas.getContext('webgl2') as WebGLRenderingContext;
-}
-
-function loseContext(gl: WebGLRenderingContext) {
-  if (gl != null) {
-    const loseContextExtension = gl.getExtension('WEBGL_lose_context');
-    if (loseContextExtension == null) {
-      throw new Error(
-          'Extension WEBGL_lose_context not supported on this browser.');
-    }
-    loseContextExtension.loseContext();
-  }
-}
-
-function isWebGLVersionEnabled(webGLVersion: 1|2) {
-  let gl;
-  try {
-    gl = getWebGLRenderingContext(webGLVersion);
-  } catch (e) {
-    return false;
-  }
-
-  if (gl != null) {
-    loseContext(gl);
-    return true;
-  }
-  return false;
-}
-
-function getWebGLDisjointQueryTimerVersion(webGLVersion: number): number {
-  if (webGLVersion === 0) {
-    return 0;
-  }
-
-  let queryTimerVersion: number;
-  const gl = getWebGLRenderingContext(webGLVersion);
-
-  if (hasExtension(gl, 'EXT_disjoint_timer_query_webgl2') &&
-      webGLVersion === 2) {
-    queryTimerVersion = 2;
-  } else if (hasExtension(gl, 'EXT_disjoint_timer_query')) {
-    queryTimerVersion = 1;
-  } else {
-    queryTimerVersion = 0;
-  }
-
-  if (gl != null) {
-    loseContext(gl);
-  }
-  return queryTimerVersion;
-}
-
-function createFloatTextureAndBindToFramebuffer(
-    gl: WebGLRenderingContext, webGLVersion: number) {
-  const frameBuffer = gl.createFramebuffer();
-  const texture = gl.createTexture();
-
-  gl.bindTexture(gl.TEXTURE_2D, texture);
-
-  // tslint:disable-next-line:no-any
-  const internalFormat = webGLVersion === 2 ? (gl as any).RGBA32F : gl.RGBA;
-  gl.texImage2D(
-      gl.TEXTURE_2D, 0, internalFormat, 1, 1, 0, gl.RGBA, gl.FLOAT, null);
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
-  gl.framebufferTexture2D(
-      gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
-}
-
-function isRenderToFloatTextureEnabled(webGLVersion: number): boolean {
-  if (webGLVersion === 0) {
-    return false;
-  }
-
-  const gl = getWebGLRenderingContext(webGLVersion);
-
-  if (webGLVersion === 1) {
-    if (!hasExtension(gl, 'OES_texture_float')) {
-      return false;
-    }
-  } else {
-    if (!hasExtension(gl, 'EXT_color_buffer_float')) {
-      return false;
-    }
-  }
-
-  createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
-
-  const isFrameBufferComplete =
-      gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE;
-
-  loseContext(gl);
-  return isFrameBufferComplete;
-}
-
-function isDownloadFloatTextureEnabled(webGLVersion: number): boolean {
-  if (webGLVersion === 0) {
-    return false;
-  }
-
-  const gl = getWebGLRenderingContext(webGLVersion);
-
-  if (webGLVersion === 1) {
-    if (!hasExtension(gl, 'OES_texture_float')) {
-      return false;
-    }
-  } else {
-    if (!hasExtension(gl, 'EXT_color_buffer_float')) {
-      return false;
-    }
-  }
-
-  createFloatTextureAndBindToFramebuffer(gl, webGLVersion);
-  gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, new Float32Array(4));
-
-  const readPixelsNoError = gl.getError() === gl.NO_ERROR;
-
-  loseContext(gl);
-
-  return readPixelsNoError;
-}
-
-function isWebGLGetBufferSubDataAsyncExtensionEnabled(webGLVersion: number) {
-  // TODO(nsthorat): Remove this once we fix
-  // https://github.com/tensorflow/tfjs/issues/137
-  if (webGLVersion > 0) {
-    return false;
-  }
-
-  if (webGLVersion !== 2) {
-    return false;
-  }
-  const gl = getWebGLRenderingContext(webGLVersion);
-
-  const isEnabled = hasExtension(gl, 'WEBGL_get_buffer_sub_data_async');
-  loseContext(gl);
-  return isEnabled;
-}
-
-function isChrome() {
-  return navigator != null && navigator.userAgent != null &&
-      /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
-}
 
 export class Environment {
   private features: Features = {};
@@ -324,6 +109,127 @@ export class Environment {
     return ENV.engine.memory();
   }
 
+  /**
+   * Executes the provided function `fn` and after it is executed, cleans up all
+   * intermediate tensors allocated by `fn` except those returned by `fn`.
+   * `f` must not return a Promise (async functions not allowed).
+   * The returned result can be a complex object, however tidy only walks the
+   * top-level properties (depth 1) of that object to search for tensors, or
+   * lists of tensors that need to be tracked in the parent scope.
+   *
+   * Using this method helps avoid memory leaks. In general, wrap calls to
+   * operations in `tidy` for automatic memory cleanup.
+   *
+   * When in safe mode, you must enclose all `Tensor` creation and ops
+   * inside a `tidy` to prevent memory leaks.
+   *
+   * ```js
+   * // y = 2 ^ 2 + 1
+   * const y = tf.tidy(() => {
+   *   // a, b, and one will be cleaned up when the tidy ends.
+   *   const one = tf.scalar(1);
+   *   const a = tf.scalar(2);
+   *   const b = a.square();
+   *
+   *   console.log('numTensors (in tidy): ' + tf.memory().numTensors);
+   *
+   *   // The value returned inside the tidy function will return
+   *   // through the tidy, in this case to the variable y.
+   *   return b.add(one);
+   * });
+   *
+   * console.log('numTensors (outside tidy): ' + tf.memory().numTensors);
+   * y.print();
+   * ```
+   *
+   * @param nameOrFn The name of the closure, or the function to execute.
+   *     If a name is provided, the 2nd argument should be the function.
+   *     If debug mode is on, the timing and the memory usage of the function
+   *     will be tracked and displayed on the console using the provided name.
+   * @param fn The function to execute.
+   */
+  @doc({heading: 'Performance', subheading: 'Memory'})
+  static tidy<T extends TensorContainer>(
+      nameOrFn: string|ScopeFn<T>, fn?: ScopeFn<T>, gradMode = false): T {
+    return ENV.engine.tidy(nameOrFn, fn, gradMode);
+  }
+
+  /**
+   * Disposes any `Tensor`s found within the provided object.
+   *
+   * @param container an object that may be a `Tensor` or may directly contain
+   *     `Tensor`s, such as a `Tensor[]` or `{key: Tensor, ...}`.  If the
+   *     object is not a `Tensor` or does not contain `Tensors`, nothing
+   *     happens. In general it is safe to pass any object here, except that
+   *     `Promise`s are not supported.
+   */
+  @doc({heading: 'Performance', subheading: 'Memory'})
+  static dispose(container: TensorContainer) {
+    const tensors = getTensorsInContainer(container);
+    tensors.forEach(tensor => tensor.dispose());
+  }
+
+  /**
+   * Keeps a `Tensor` generated inside a `tidy` from being disposed
+   * automatically.
+   *
+   * ```js
+   * let b;
+   * const y = tf.tidy(() => {
+   *   const one = tf.scalar(1);
+   *   const a = tf.scalar(2);
+   *
+   *   // b will not be cleaned up by the tidy. a and one will be cleaned up
+   *   // when the tidy ends.
+   *   b = tf.keep(a.square());
+   *
+   *   console.log('numTensors (in tidy): ' + tf.memory().numTensors);
+   *
+   *   // The value returned inside the tidy function will return
+   *   // through the tidy, in this case to the variable y.
+   *   return b.add(one);
+   * });
+   *
+   * console.log('numTensors (outside tidy): ' + tf.memory().numTensors);
+   * console.log('y:');
+   * y.print();
+   * console.log('b:');
+   * b.print();
+   * ```
+   *
+   * @param result The tensor to keep from being disposed.
+   */
+  @doc({heading: 'Performance', subheading: 'Memory'})
+  static keep<T extends Tensor>(result: T): T {
+    return ENV.engine.keep(result);
+  }
+
+  /**
+   * Executes `f()` and returns a promise that resolves with timing
+   * information.
+   *
+   * The result is an object with the following properties:
+   *
+   * - `wallMs`: Wall execution time.
+   * - `kernelMs`: Kernel execution time, ignoring data transfer.
+   * - On `WebGL` The following additional properties exist:
+   *   - `uploadWaitMs`: CPU blocking time on texture uploads.
+   *   - `downloadWaitMs`: CPU blocking time on texture downloads (readPixels).
+   *
+   * ```js
+   * const x = tf.randomNormal([20, 20]);
+   * const time = await tf.time(() => x.matMul(x));
+   *
+   * console.log(`kernelMs: ${time.kernelMs}, wallTimeMs: ${time.wallMs}`);
+   * ```
+   *
+   * @param f The function to execute and time.
+   */
+  @doc({heading: 'Performance', subheading: 'Timing'})
+  static time(f: () => void): Promise<TimingInfo> {
+    return ENV.engine.time(f);
+  }
+
   get<K extends keyof Features>(feature: K): Features[K] {
     if (feature in this.features) {
       return this.features[feature];
@@ -375,26 +281,28 @@ export class Environment {
       if (webGLVersion === 0) {
         return 0;
       }
-
-      return getWebGLDisjointQueryTimerVersion(webGLVersion);
+      return getWebGLDisjointQueryTimerVersion(
+          webGLVersion, this.get('IS_BROWSER'));
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') {
       return this.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0 &&
           !device_util.isMobile();
     } else if (feature === 'WEBGL_VERSION') {
-      if (isWebGLVersionEnabled(2)) {
+      if (isWebGLVersionEnabled(2, this.get('IS_BROWSER'))) {
         return 2;
-      } else if (isWebGLVersionEnabled(1)) {
+      } else if (isWebGLVersionEnabled(1, this.get('IS_BROWSER'))) {
         return 1;
       }
       return 0;
     } else if (feature === 'WEBGL_RENDER_FLOAT32_ENABLED') {
-      return isRenderToFloatTextureEnabled(this.get('WEBGL_VERSION'));
+      return isRenderToFloatTextureEnabled(
+          this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
     } else if (feature === 'WEBGL_DOWNLOAD_FLOAT_ENABLED') {
-      return isDownloadFloatTextureEnabled(this.get('WEBGL_VERSION'));
+      return isDownloadFloatTextureEnabled(
+          this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
     } else if (
         feature === 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED') {
       return isWebGLGetBufferSubDataAsyncExtensionEnabled(
-          this.get('WEBGL_VERSION'));
+          this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
     } else if (feature === 'TEST_EPSILON') {
       if (this.get('WEBGL_RENDER_FLOAT32_ENABLED')) {
         return TEST_EPSILON_FLOAT32_ENABLED;
@@ -417,8 +325,8 @@ export class Environment {
 
   private initBackend(backendType?: string, safeMode = false) {
     this.currentBackend = backendType;
-    const backend = ENV.findBackend(backendType);
-    this.globalEngine = new Engine(backend, safeMode);
+    const backend = this.findBackend(backendType);
+    this.globalEngine = new Engine(backend, safeMode, this.get('DEBUG'));
   }
 
   findBackend(name: string): KernelBackend {
@@ -471,50 +379,9 @@ export class Environment {
 
   private initDefaultBackend() {
     if (this.globalEngine == null) {
-      this.initBackend(ENV.get('BACKEND'), false /* safeMode */);
+      this.initBackend(this.get('BACKEND'), false /* safeMode */);
     }
   }
-}
-
-// Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.
-const TENSORFLOWJS_FLAGS_PREFIX = 'tfjsflags';
-function getFeaturesFromURL(): Features {
-  const features: Features = {};
-
-  if (typeof window === 'undefined' || typeof window.location === 'undefined') {
-    return features;
-  }
-
-  const urlParams = util.getQueryParams(window.location.search);
-  if (TENSORFLOWJS_FLAGS_PREFIX in urlParams) {
-    const urlFlags: {[key: string]: string} = {};
-
-    const keyValues = urlParams[TENSORFLOWJS_FLAGS_PREFIX].split(',');
-    keyValues.forEach(keyValue => {
-      const [key, value] = keyValue.split(':') as [string, string];
-      urlFlags[key] = value;
-    });
-
-    URL_PROPERTIES.forEach(urlProperty => {
-      if (urlProperty.name in urlFlags) {
-        console.log(
-            `Setting feature override from URL ${urlProperty.name}: ` +
-            `${urlFlags[urlProperty.name]}`);
-        if (urlProperty.type === Type.NUMBER) {
-          features[urlProperty.name] = +urlFlags[urlProperty.name];
-        } else if (urlProperty.type === Type.BOOLEAN) {
-          features[urlProperty.name] = urlFlags[urlProperty.name] === 'true';
-        } else if (urlProperty.type === Type.STRING) {
-          // tslint:disable-next-line:no-any
-          features[urlProperty.name] = urlFlags[urlProperty.name] as any;
-        } else {
-          console.warn(`Unknown URL param: ${urlProperty.name}.`);
-        }
-      }
-    });
-  }
-
-  return features;
 }
 
 function getGlobalNamespace(): {ENV: Environment} {

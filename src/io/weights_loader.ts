@@ -17,7 +17,7 @@
 
 // tslint:disable:max-line-length
 import {tensor} from '../ops/ops';
-import {NamedTensorMap} from '../types';
+import {NamedTensorMap} from '../tensor_types';
 import * as util from '../util';
 import {DTYPE_VALUE_SIZE_MAP, WeightsManifestConfig, WeightsManifestEntry} from './types';
 // tslint:enable:max-line-length

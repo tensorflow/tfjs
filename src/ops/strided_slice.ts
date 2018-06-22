@@ -18,8 +18,7 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import * as util from '../util';
-
+import {assertArgumentsAreTensors} from '../tensor_util';
 import {operation} from './operation';
 
 export class StridedSliceOps {
@@ -56,7 +55,7 @@ export class StridedSliceOps {
   static stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[], beginMask = 0,
       endMask = 0): T {
-    util.assertArgumentsAreTensors({x}, 'stridedSlice');
+    assertArgumentsAreTensors({x}, 'stridedSlice');
 
     return ENV.engine.runKernel(
                backend => backend.stridedSlice(

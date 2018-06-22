@@ -18,11 +18,12 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as types from '../types';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
-import {zerosLike} from '../ops/ops';
+import {TensorOps} from './tensor_ops';
 
 export class LogicalOps {
   /**
@@ -39,7 +40,7 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalNot<T extends Tensor>(x: T): T {
-    util.assertArgumentsAreTensors({x}, 'logicalNot');
+    assertArgumentsAreTensors({x}, 'logicalNot');
     util.assert(x.dtype === 'bool', 'Error Array must be of type bool.');
 
     return ENV.engine.runKernel(backend => backend.logicalNot(x), {x});
@@ -61,7 +62,7 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalAnd<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'logicalAnd');
+    assertArgumentsAreTensors({a, b}, 'logicalAnd');
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
@@ -86,7 +87,7 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalOr<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'logicalOr');
+    assertArgumentsAreTensors({a, b}, 'logicalOr');
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
@@ -112,7 +113,7 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static logicalXor<T extends Tensor>(a: Tensor, b: Tensor): T {
-    util.assertArgumentsAreTensors({a, b}, 'logicalXor');
+    assertArgumentsAreTensors({a, b}, 'logicalXor');
     util.assert(
         a.dtype === 'bool' && b.dtype === 'bool',
         'Error Array must be of type bool.');
@@ -144,10 +145,9 @@ export class LogicalOps {
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
   static where<T extends Tensor>(condition: Tensor, a: T, b: T): T {
-    util.assertArgumentsAreTensors({condition, a, b}, 'where');
+    assertArgumentsAreTensors({condition, a, b}, 'where');
     util.assert(
-        condition.dtype === 'bool',
-        'Error Condition must be of type bool.');
+        condition.dtype === 'bool', 'Error Condition must be of type bool.');
     util.assertShapesMatch(a.shape, b.shape, 'Error in where: ');
 
     if (condition.rank === 1) {
@@ -167,13 +167,13 @@ export class LogicalOps {
     // TODO(julianoks): Return null for condition gradient
     // when backprop supports it.
     const grad = (dy: T) => ({
-      condition: () => zerosLike(condition),
+      condition: () => TensorOps.zerosLike(condition),
       a: () => dy.mul(condition.cast(a.dtype)) as T,
       b: () => dy.mul(condition.logicalNot().cast(b.dtype)) as T
     });
-    
+
     return ENV.engine.runKernel(
-    	backend => backend.where(condition, a, b, dtype), 
-    	{condition, a, b}, grad) as T;
+               backend => backend.where(condition, a, b, dtype),
+               {condition, a, b}, grad) as T;
   }
 }

@@ -17,8 +17,8 @@
 
 import * as tf from '../index';
 import {scalar, tensor1d, tensor2d} from '../ops/ops';
+import {NamedTensorMap} from '../tensor_types';
 import {expectArraysEqual} from '../test_util';
-import {NamedTensorMap} from '../types';
 
 // tslint:disable-next-line:max-line-length
 import {arrayBufferToBase64String, base64StringToArrayBuffer, basename, concatenateArrayBuffers, concatenateTypedArrays, stringByteLength} from './io_utils';

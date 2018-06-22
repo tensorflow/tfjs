@@ -16,7 +16,7 @@
  */
 
 import {Tensor} from './tensor';
-import {NamedTensorMap} from './types';
+import {NamedTensorMap} from './tensor_types';
 import * as util from './util';
 
 export interface TapeNode {

@@ -17,8 +17,8 @@
 
 import {doc} from '../doc';
 import {Tensor} from '../tensor';
+import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
-
 import {operation} from './operation';
 
 export class SigmoidCrossEntropyOps {
@@ -32,7 +32,7 @@ export class SigmoidCrossEntropyOps {
   @operation
   static sigmoidCrossEntropyWithLogits<T extends Tensor, O extends Tensor>(
       labels: T, logits: T): O {
-    util.assertArgumentsAreTensors(
+    assertArgumentsAreTensors(
         {labels, logits}, 'sigmoidCrossEntropyWithLogits');
     util.assertShapesMatch(
         labels.shape, logits.shape, 'Error in sigmoidCrossEntropyWithLogits: ');
