@@ -19,15 +19,20 @@ import * as erf_util from '../../ops/erf_util';
 import * as selu_util from '../../ops/selu_util';
 
 import {GPGPUProgram} from './gpgpu_math';
+import {GPGPUContext} from './gpgpu_context';
 
 export class UnaryOpProgram implements GPGPUProgram {
   variableNames = ['A'];
   userCode: string;
   outputShape: number[];
 
+  // Caching uniform location for speed.
+  startLoc: WebGLUniformLocation;
+
   constructor(aShape: number[], opSnippet: string) {
     this.outputShape = aShape;
     this.userCode = `
+      uniform float NAN;
       float unaryOperation(float x) {
         ${opSnippet}
       }
@@ -39,6 +44,20 @@ export class UnaryOpProgram implements GPGPUProgram {
         setOutput(y);
       }
     `;
+  }
+
+  getCustomSetupFunc() {
+    return (gpgpu: GPGPUContext, webGLProgram: WebGLProgram) => {
+      if (this.startLoc == null) {
+        this.startLoc = gpgpu.getUniformLocationNoThrow(webGLProgram, 'NAN');
+        if (this.startLoc == null) {
+          // This means the compiler has optimized and realized it doesn't need
+          // the uniform.
+          return;
+        }
+      }
+      gpgpu.gl.uniform1f(this.startLoc, NaN);
+    };
   }
 }
 
@@ -98,7 +117,8 @@ export const EXP = `return exp(x);`;
 
 export const EXPM1 = `return exp(x) - 1.0;`;
 
-export const LOG = `return log(x);`;
+export const LOG = `if (x < 0.0) return NAN;
+  return log(x);`;
 
 export const LOG1P = `return log(1.0 + x);`;
 
@@ -178,9 +198,13 @@ export const TANH = `
 
 export const ASINH = `return log(x + sqrt(x * x + 1.0));`;
 
-export const ACOSH = `return log(x + sqrt(x * x - 1.0));`;
+export const ACOSH = CHECK_NAN_SNIPPET + `
+  if (x < 1.0) return NAN;
+  return log(x + sqrt(x * x - 1.0));`;
 
-export const ATANH = `return (log(1.0 + x) - log(1.0 - x)) / 2.0;`;
+export const ATANH = CHECK_NAN_SNIPPET + `
+  if ((x < -1.0) || (x > 1.0)) return NAN;
+  return (log(1.0 + x) - log(1.0 - x)) / 2.0;`;
 
 export const ERF = `
   // Error function is calculated approximately with elementary function.

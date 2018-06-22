@@ -727,7 +727,8 @@ export class MathBackendWebGL implements KernelBackend {
 
   mod(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.MOD, a.shape, b.shape);
-    return this.compileAndRun(program, [a, b]);
+    const customSetup = program.getCustomSetupFunc();
+    return this.compileAndRun(program, [a, b], null, customSetup);
   }
 
   max(x: Tensor, axes: number[]): Tensor {
@@ -840,7 +841,8 @@ export class MathBackendWebGL implements KernelBackend {
 
   log<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.LOG);
-    return this.compileAndRun(program, [x]) as T;
+    const customSetup = program.getCustomSetupFunc();
+    return this.compileAndRun(program, [x], null, customSetup) as T;
   }
 
   log1p<T extends Tensor>(x: T): T {
@@ -972,12 +974,14 @@ export class MathBackendWebGL implements KernelBackend {
 
   acosh<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ACOSH);
-    return this.compileAndRun(program, [x]) as T;
+    const customSetup = program.getCustomSetupFunc();
+    return this.compileAndRun(program, [x], null, customSetup) as T;
   }
 
   atanh<T extends Tensor>(x: T): T {
     const program = new UnaryOpProgram(x.shape, unary_op.ATANH);
-    return this.compileAndRun(program, [x]) as T;
+    const customSetup = program.getCustomSetupFunc();
+    return this.compileAndRun(program, [x], null, customSetup) as T;
   }
 
   erf<T extends Tensor>(x: T): T {
