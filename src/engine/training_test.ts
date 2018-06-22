@@ -1216,6 +1216,114 @@ describeMathCPUAndGPU('Model.fit with training-sensitive layers', () => {
   });
 });
 
+describeMathCPUAndGPU(
+    'Model.predict and Model.evaluate: No memory leak', () => {
+      const inputSize = 4;  // Input vector size for model with one input.
+
+      const inputTensor = tfl.layers.input(
+          {shape: [inputSize], name: 'inputLayer1', dtype: 'float32'});
+      let model: tfl.Model;
+      let inputs: Tensor;
+      let targets: Tensor;
+
+      function createDenseModelAndData(
+          numSamples: number,
+          kernelRegularizer?: string|Regularizer,
+          biasRegularizer?: string|Regularizer,
+          ): void {
+        const layer = tfl.layers.dense(
+            {units: 1, kernelInitializer: 'ones', kernelRegularizer});
+        const output = layer.apply(inputTensor) as tfl.SymbolicTensor;
+        model = new tfl.Model({inputs: [inputTensor], outputs: [output]});
+        inputs = ones([numSamples, inputSize]);
+        targets = ones([numSamples, 1]);
+      }
+
+      it('predict: Single batch', () => {
+        const numExamples = 5;
+        const batchSize = 32;  // batchSize >= numExamples ==> a single batch.
+        createDenseModelAndData(numExamples);
+        // Burn-in call.
+        let out = model.predict(inputs, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors0 = memory().numTensors;
+
+        // Actual call.
+        out = model.predict(inputs, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors1 = memory().numTensors;
+        expect(numTensors1).toEqual(numTensors0);
+      });
+
+      it('predict: Two batches', () => {
+        const numExamples = 5;
+        const batchSize = 3;  // batchSize < numExamples ==> multiple batches.
+        createDenseModelAndData(numExamples);
+        // Burn-in call.
+        let out = model.predict(inputs, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors0 = memory().numTensors;
+
+        // Actual call.
+        out = model.predict(inputs, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors1 = memory().numTensors;
+        expect(numTensors1).toEqual(numTensors0);
+      });
+
+      it('evaluate: Single batch, no metric', () => {
+        const numExamples = 5;
+        createDenseModelAndData(numExamples);
+        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+        const batchSize = 32;  // batchSize >= numExamples ==> a single batch.
+        // Burn-in call.
+        let out = model.evaluate(inputs, targets, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors0 = memory().numTensors;
+
+        // Actual call.
+        out = model.evaluate(inputs, targets, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors1 = memory().numTensors;
+        expect(numTensors1).toEqual(numTensors0);
+      });
+
+      it('evaluate: Two batches, no metric', () => {
+        const numExamples = 5;
+        createDenseModelAndData(numExamples);
+        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+        const batchSize = 3;  // batchSize < numExamples ==> multiple batches.
+        // Burn-in call.
+        let out = model.evaluate(inputs, targets, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors0 = memory().numTensors;
+
+        // Actual call.
+        out = model.evaluate(inputs, targets, {batchSize}) as Tensor;
+        out.dispose();
+        const numTensors1 = memory().numTensors;
+        expect(numTensors1).toEqual(numTensors0);
+      });
+
+      it('evaluate: Two batches, with metric', () => {
+        const numExamples = 5;
+        createDenseModelAndData(numExamples);
+        model.compile(
+            {optimizer: 'SGD', loss: 'meanSquaredError', metrics: ['mae']});
+        const batchSize = 3;  // batchSize < numExamples ==> multiple batches.
+        // Burn-in call.
+        let out = model.evaluate(inputs, targets, {batchSize}) as Tensor[];
+        out.forEach(tensor => tensor.dispose());
+        const numTensors0 = memory().numTensors;
+
+        // Actual call.
+        out = model.evaluate(inputs, targets, {batchSize}) as Tensor[];
+        out.forEach(tensor => tensor.dispose());
+        const numTensors1 = memory().numTensors;
+        expect(numTensors1).toEqual(numTensors0);
+      });
+    });
+
 describeMathCPUAndGPU('Model.fit: No memory leak', () => {
   const inputSize = 4;   // Input vector size for model with one input.
   const numSamples = 5;  // Number of samples in a batch.
@@ -1259,10 +1367,9 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
-         } else {
-           done();
          }
        }
+       done();
      });
 
   it('Repeated fit calls leads to no memory leak: batchSize=1, ' +
@@ -1282,10 +1389,9 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
-         } else {
-           done();
          }
        }
+       done();
      });
 
   it('Repeated fit calls leads to no memory leak: with metrics', async done => {
@@ -1304,10 +1410,9 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
             `Memory leak detected during fit(): Leaked ` +
             `${numTensorsNow - numTensors0} tensor(s) after the ` +
             `${i + 1}-th fit() call.`);
-      } else {
-        done();
       }
     }
+    done();
   });
 
   it('Repeated fit calls leads to no memory leak: validationSplit',
@@ -1331,10 +1436,9 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
-         } else {
-           done();
          }
        }
+       done();
      });
 
   it('Repeated fit calls leads to no memory leak: validationData',
@@ -1357,10 +1461,9 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
-         } else {
-           done();
          }
        }
+       done();
      });
 
   it('Repeated fit calls leads to no memory leak: metrics & validationSplit',
@@ -1385,10 +1488,9 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
-         } else {
-           done();
          }
        }
+       done();
      });
 
   it('Repeated fit calls leads to no memory leak: batchSize=2, ' +
@@ -1418,10 +1520,9 @@ describeMathCPUAndGPU('Model.fit: No memory leak', () => {
                `Memory leak detected during fit(): Leaked ` +
                `${numTensorsNow - numTensors0} tensor(s) after the ` +
                `${i + 1}-th fit() call.`);
-         } else {
-           done();
          }
        }
+       done();
      });
 });
 
