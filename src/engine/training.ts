@@ -1122,52 +1122,54 @@ export class Model extends Container implements tfc.InferenceModel {
    */
   private predictLoop(ins: Tensor|Tensor[], batchSize = 32, verbose = false):
       Tensor|Tensor[] {
-    const numSamples = this.checkNumSamples(ins);
-    if (verbose) {
-      throw new NotImplementedError(
-          'Verbose predictLoop() is not implemented yet.');
-    }
+    return tfc.tidy(() => {
+      const numSamples = this.checkNumSamples(ins);
+      if (verbose) {
+        throw new NotImplementedError(
+            'Verbose predictLoop() is not implemented yet.');
+      }
 
-    // Sample-based predictions.
-    // Porting Note: Tensor currently does not support sliced assignments as
-    //   in numpy, e.g., x[1:3] = y. Therefore we use concatenation while
-    //   iterating over the batches.
+      // Sample-based predictions.
+      // Porting Note: Tensor currently does not support sliced assignments as
+      //   in numpy, e.g., x[1:3] = y. Therefore we use concatenation while
+      //   iterating over the batches.
 
-    const batches = makeBatches(numSamples, batchSize);
-    const outs: Tensor[] = [];
-    // TODO(cais): Can the scope() be pushed down inside the for loop?
-    for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
-      const batchOuts = tfc.tidy(() => {
-        const batchStart = batches[batchIndex][0];
-        const batchEnd = batches[batchIndex][1];
-        // TODO(cais): Take care of the case of the last element is a flag for
-        //   training/test.
-        const insBatch = sliceArrays(ins, batchStart, batchEnd);
+      const batches = makeBatches(numSamples, batchSize);
+      const outs: Tensor[] = [];
+      // TODO(cais): Can the scope() be pushed down inside the for loop?
+      for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
+        const batchOuts = tfc.tidy(() => {
+          const batchStart = batches[batchIndex][0];
+          const batchEnd = batches[batchIndex][1];
+          // TODO(cais): Take care of the case of the last element is a flag for
+          //   training/test.
+          const insBatch = sliceArrays(ins, batchStart, batchEnd);
 
-        // Construct the feeds for execute();
-        const feeds = [];
-        if (Array.isArray(insBatch)) {
-          for (let i = 0; i < insBatch.length; ++i) {
-            feeds.push({key: this.inputs[i], value: insBatch[i]});
+          // Construct the feeds for execute();
+          const feeds = [];
+          if (Array.isArray(insBatch)) {
+            for (let i = 0; i < insBatch.length; ++i) {
+              feeds.push({key: this.inputs[i], value: insBatch[i]});
+            }
+          } else {
+            feeds.push({key: this.inputs[0], value: insBatch});
+          }
+          const feedDict = new FeedDict(feeds);
+          return execute(this.outputs, feedDict) as Tensor[];
+        });
+        if (batchIndex === 0) {
+          // Pre-allocate.
+          for (const batchOut of batchOuts) {
+            outs.push(batchOut);
           }
         } else {
-          feeds.push({key: this.inputs[0], value: insBatch});
-        }
-        const feedDict = new FeedDict(feeds);
-        return execute(this.outputs, feedDict) as Tensor[];
-      });
-      if (batchIndex === 0) {
-        // Pre-allocate.
-        for (const batchOut of batchOuts) {
-          outs.push(batchOut);
-        }
-      } else {
-        for (let i = 0; i < batchOuts.length; ++i) {
-          outs[i] = K.concatAlongFirstAxis(outs[i], batchOuts[i]);
+          for (let i = 0; i < batchOuts.length; ++i) {
+            outs[i] = K.concatAlongFirstAxis(outs[i], batchOuts[i]);
+          }
         }
       }
-    }
-    return singletonOrArray(outs);
+      return singletonOrArray(outs);
+    });
   }
 
   /**
@@ -1462,47 +1464,49 @@ export class Model extends Container implements tfc.InferenceModel {
   private testLoop(
       f: (data: Tensor[]) => Scalar[], ins: Tensor[], batchSize?: number,
       verbose = 0, steps?: number): Scalar[] {
-    const numSamples = this.checkNumSamples(ins, batchSize, steps, 'steps');
-    const outs: Scalar[] = [];
-    if (verbose === 1) {
-      throw new NotImplementedError('Verbose mode is not implemented yet.');
-    }
-    // TODO(cais): Use `indicesForConversionToDense' to prevent slow down.
-    if (steps != null) {
-      throw new NotImplementedError(
-          'steps mode in testLoop() is not implemented yet');
-    } else {
-      const batches = makeBatches(numSamples, batchSize);
-      const indexArray = tensor1d(range(0, numSamples));
-      for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
-        const batchStart = batches[batchIndex][0];
-        const batchEnd = batches[batchIndex][1];
-        const batchIds =
-            K.sliceAlongFirstAxis(
-                indexArray, batchStart, batchEnd - batchStart) as Tensor1D;
-        // TODO(cais): In ins, train flag can be a number, instead of an
-        //   Tensor? Do we need to handle this in tfjs-layers?
-        const insBatch = sliceArraysByIndices(ins, batchIds) as Scalar[];
-        const batchOuts = f(insBatch);
-        if (batchIndex === 0) {
+    return tfc.tidy(() => {
+      const numSamples = this.checkNumSamples(ins, batchSize, steps, 'steps');
+      const outs: Scalar[] = [];
+      if (verbose === 1) {
+        throw new NotImplementedError('Verbose mode is not implemented yet.');
+      }
+      // TODO(cais): Use `indicesForConversionToDense' to prevent slow down.
+      if (steps != null) {
+        throw new NotImplementedError(
+            'steps mode in testLoop() is not implemented yet');
+      } else {
+        const batches = makeBatches(numSamples, batchSize);
+        const indexArray = tensor1d(range(0, numSamples));
+        for (let batchIndex = 0; batchIndex < batches.length; ++batchIndex) {
+          const batchStart = batches[batchIndex][0];
+          const batchEnd = batches[batchIndex][1];
+          const batchIds =
+              K.sliceAlongFirstAxis(
+                  indexArray, batchStart, batchEnd - batchStart) as Tensor1D;
+          // TODO(cais): In ins, train flag can be a number, instead of an
+          //   Tensor? Do we need to handle this in tfjs-layers?
+          const insBatch = sliceArraysByIndices(ins, batchIds) as Scalar[];
+          const batchOuts = f(insBatch);
+          if (batchIndex === 0) {
+            for (let i = 0; i < batchOuts.length; ++i) {
+              outs.push(K.getScalar(0));
+            }
+          }
           for (let i = 0; i < batchOuts.length; ++i) {
-            outs.push(K.getScalar(0));
+            const batchOut = batchOuts[i];
+            outs[i] = tfc.add(
+                          outs[i],
+                          K.scalarTimesArray(
+                              K.getScalar(batchEnd - batchStart), batchOut)) as
+                Scalar;
           }
         }
-        for (let i = 0; i < batchOuts.length; ++i) {
-          const batchOut = batchOuts[i];
-          outs[i] =
-              tfc.add(
-                  outs[i],
-                  K.scalarTimesArray(
-                      K.getScalar(batchEnd - batchStart), batchOut)) as Scalar;
+        for (let i = 0; i < outs.length; ++i) {
+          outs[i] = tfc.div(outs[i], K.getScalar(numSamples)) as Scalar;
         }
       }
-      for (let i = 0; i < outs.length; ++i) {
-        outs[i] = tfc.div(outs[i], K.getScalar(numSamples)) as Scalar;
-      }
-    }
-    return outs;
+      return outs;
+    });
   }
 
   private getDedupedMetricsNames(): string[] {
