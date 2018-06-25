@@ -35,10 +35,10 @@ export class SegmentOps {
    * ```js
    * const x = tf.tensor1d([1, 2, 3, 4]);
    * const segmentIds = tf.tensor1d([1, 2, 0, 1], 'int32');
-   * comst numSegments = 3;
+   * const numSegments = 3;
    *
-   * x.unsortedSegmentSum(indices, numSegments).print()
-   * //or tf.unsortedSegmentSum(x, indices, numSegments)
+   * x.unsortedSegmentSum(segmentIds, numSegments).print()
+   * //or tf.unsortedSegmentSum(x, segmentIds, numSegments)
    * ```
    * @param x The `Tensor` that will be summed along its segments
    * @param segmentIds A `Tensor1D` whose rank is equal to the rank of `x`'s
