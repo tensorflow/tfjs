@@ -19,6 +19,7 @@ import {doc} from '../doc';
 import {Tensor} from '../tensor';
 import {assertArgumentsAreTensors} from '../tensor_util';
 import * as util from '../util';
+
 import {BinaryOps} from './binary_ops';
 import {operation} from './operation';
 import {TensorOps} from './tensor_ops';
@@ -66,8 +67,10 @@ export class LossOps {
       if (weights == null) {
         return weightedLoss.sum().div(TensorOps.scalar(losses.size));
       } else {
+        const broadcastedWeights = weights.mul(TensorOps.ones(losses.shape));
+
         const numNonZeros =
-            weights.notEqual(TensorOps.scalar(0)).sum().toFloat();
+            broadcastedWeights.notEqual(TensorOps.scalar(0)).sum().toFloat();
         return weightedLoss.sum().div(numNonZeros);
       }
     }

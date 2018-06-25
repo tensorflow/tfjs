@@ -70,6 +70,16 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
     expectNumbersClose(y.get(), (1 * 0.1 + 2 * 0 + 3 * 0.3) / 2);
   });
 
+  it('2D - weights - broadcast', () => {
+    const losses = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
+    const weights = tf.tensor2d([[0.1, 0.2, 0.3]]);
+
+    const y = tf.losses.computeWeightedLoss(losses, weights);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), 0.06666667);
+  });
+
   it('1D - weights - Reduction.NONE', () => {
     const losses = tf.tensor1d([1, 2, 3]);
     const weights = tf.tensor1d([0.1, 0.2, 0.3]);
