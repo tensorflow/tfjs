@@ -116,7 +116,7 @@ export class ArrayOps {
    * @param dtype The data type of the output.
    * @param seed The seed for the random number generator.
    */
-  @doc({heading: 'Tensors', subheading: 'Creation'})
+  @doc({heading: 'Tensors', subheading: 'Random'})
   @operation
   static randomNormal<R extends Rank>(
       shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
@@ -186,7 +186,7 @@ export class ArrayOps {
    *   Defaults to 1.
    * @param dtype The data type of the output tensor. Defaults to 'float32'.
    */
-  @doc({heading: 'Tensors', subheading: 'Creation'})
+  @doc({heading: 'Tensors', subheading: 'Random'})
   @operation
   static randomUniform<R extends Rank>(
       shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32'):
@@ -248,6 +248,7 @@ export class ArrayOps {
    * @return 1D array of shape `[numSamples]`, or 2D array of shape
    *     `[batchSize, numSamples]`, depending on the rank of the input.
    */
+  @doc({heading: 'Tensors', subheading: 'Random'})
   @operation
   static multinomial(
       logits: Tensor1D|Tensor2D, numSamples: number, seed?: number,
