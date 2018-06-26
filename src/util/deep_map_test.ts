@@ -17,7 +17,7 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {asyncDeepMap, AsyncDeepMapResult, deepMap, DeepMapResult, isIterable} from './deep_map';
+import {deepMap, deepMapAndAwaitAll, DeepMapAsyncResult, DeepMapResult, isIterable} from './deep_map';
 
 const integerNames = [
   'zero', 'one', 'two', 'three', ['an array representing', 'four'],
@@ -41,7 +41,7 @@ function transform(x: any): DeepMapResult {
 }
 
 // tslint:disable-next-line:no-any
-function asyncTransform(x: any): AsyncDeepMapResult {
+function asyncTransform(x: any): DeepMapAsyncResult {
   const result = transform(x);
   return {
     value: result.value === null ? null : Promise.resolve(result.value),
@@ -122,10 +122,11 @@ describe('deepMap', () => {
 describe('asyncDeepMap', () => {
   it('Maps single mappable objects', async done => {
     try {
-      expect(await asyncDeepMap(null, asyncTransform)).toEqual(null);
-      expect(await asyncDeepMap(1, asyncTransform)).toEqual('one');
-      expect(await asyncDeepMap(3, asyncTransform)).toEqual('three');
-      expect(await asyncDeepMap('hello', asyncTransform)).toEqual('hello');
+      expect(await deepMapAndAwaitAll(null, asyncTransform)).toEqual(null);
+      expect(await deepMapAndAwaitAll(1, asyncTransform)).toEqual('one');
+      expect(await deepMapAndAwaitAll(3, asyncTransform)).toEqual('three');
+      expect(await deepMapAndAwaitAll('hello', asyncTransform))
+          .toEqual('hello');
       done();
     } catch (e) {
       done.fail(e);
@@ -133,13 +134,13 @@ describe('asyncDeepMap', () => {
   });
   it('Maps arrays of mappable objects', async done => {
     try {
-      expect(await asyncDeepMap([null, 1], asyncTransform)).toEqual([
+      expect(await deepMapAndAwaitAll([null, 1], asyncTransform)).toEqual([
         null, 'one'
       ]);
-      expect(await asyncDeepMap([1, 2, 3], asyncTransform)).toEqual([
+      expect(await deepMapAndAwaitAll([1, 2, 3], asyncTransform)).toEqual([
         'one', 'two', 'three'
       ]);
-      expect(await asyncDeepMap([1, 'hello', 3, null], asyncTransform))
+      expect(await deepMapAndAwaitAll([1, 'hello', 3, null], asyncTransform))
           .toEqual(['one', 'hello', 'three', null]);
       done();
     } catch (e) {
@@ -148,12 +149,12 @@ describe('asyncDeepMap', () => {
   });
   it('Maps objects containing mappable fields', async done => {
     try {
-      expect(await asyncDeepMap({a: null, b: 1}, asyncTransform))
+      expect(await deepMapAndAwaitAll({a: null, b: 1}, asyncTransform))
           .toEqual({a: null, b: 'one'});
-      expect(await asyncDeepMap({a: 1, b: 2, c: 3}, asyncTransform))
+      expect(await deepMapAndAwaitAll({a: 1, b: 2, c: 3}, asyncTransform))
           .toEqual({a: 'one', b: 'two', c: 'three'});
-      expect(
-          await asyncDeepMap({a: 1, b: 'hello', c: 3, d: null}, asyncTransform))
+      expect(await deepMapAndAwaitAll(
+                 {a: 1, b: 'hello', c: 3, d: null}, asyncTransform))
           .toEqual({a: 'one', b: 'hello', c: 'three', d: null});
       done();
     } catch (e) {
@@ -167,7 +168,7 @@ describe('asyncDeepMap', () => {
         a: 'hello',
         b: ['two', 'three', null, {ba: 'zero', bb: 'world'}]
       };
-      expect(await asyncDeepMap(input, asyncTransform)).toEqual(expected);
+      expect(await deepMapAndAwaitAll(input, asyncTransform)).toEqual(expected);
       done();
     } catch (e) {
       done.fail(e);
@@ -183,7 +184,7 @@ describe('asyncDeepMap', () => {
           {ba: {five: 'I am a dict'}, bb: 'world'}
         ]
       };
-      expect(await asyncDeepMap(input, asyncTransform)).toEqual(expected);
+      expect(await deepMapAndAwaitAll(input, asyncTransform)).toEqual(expected);
       done();
     } catch (e) {
       done.fail(e);
@@ -192,7 +193,7 @@ describe('asyncDeepMap', () => {
   it('handles repetitions', async done => {
     try {
       const input = {a1: 4, a2: 4, b1: 5, b2: 5};
-      const result = await asyncDeepMap(input, asyncTransform);
+      const result = await deepMapAndAwaitAll(input, asyncTransform);
       expect(result).toEqual({
         a1: ['an array representing', 'four'],
         a2: ['an array representing', 'four'],
@@ -214,7 +215,7 @@ describe('asyncDeepMap', () => {
       const c = {a: 'hello', b};
       b[4] = c;
       const input = [b, c];
-      await asyncDeepMap(input, asyncTransform);
+      await deepMapAndAwaitAll(input, asyncTransform);
       done.fail('Expected error on detected cycle.');
     } catch (e) {
       done();

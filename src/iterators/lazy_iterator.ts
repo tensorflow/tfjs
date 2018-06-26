@@ -20,7 +20,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 
 import {DataElement, IteratorContainer} from '../types';
-import {asyncDeepMap, AsyncDeepMapResult} from '../util/deep_map';
+import {deepMapAndAwaitAll, DeepMapAsyncResult} from '../util/deep_map';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
 
@@ -325,7 +325,14 @@ class FunctionCallIterator<T> extends LazyIterator<T> {
   }
 
   async next(): Promise<IteratorResult<T>> {
-    return this.nextFn();
+    try {
+      return this.nextFn();
+    } catch (e) {
+      // Modify the error message but leave the stack trace intact
+      e.message =
+          'Error thrown while iterating through a dataset: ' + e.message;
+      throw e;
+    }
   }
 }
 
@@ -601,7 +608,7 @@ class ZipIterator extends LazyIterator<DataElement> {
     let numIterators = 0;
     let iteratorsDone = 0;
 
-    function getNext(container: IteratorContainer): AsyncDeepMapResult {
+    function getNext(container: IteratorContainer): DeepMapAsyncResult {
       if (container instanceof LazyIterator) {
         const result = container.next();
         return {
@@ -619,7 +626,7 @@ class ZipIterator extends LazyIterator<DataElement> {
       }
     }
 
-    const mapped = await asyncDeepMap(this.iterators, getNext);
+    const mapped = await deepMapAndAwaitAll(this.iterators, getNext);
 
     if (numIterators === iteratorsDone) {
       // The streams have all ended.
