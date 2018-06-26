@@ -168,7 +168,7 @@ tf.test_util.describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
     }
   });
 
-  it('zipping a structure with repeated elements works', async done => {
+  it('zipping a structure with repeated elements works', async () => {
     const a = datasetFromElements([1, 2, 3]);
     const b = datasetFromElements([4, 5, 6]);
     const c = datasetFromElements([7, 8, 9]);
@@ -180,7 +180,6 @@ tf.test_util.describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
       {a: 2, abacd: [2, 5, {a: 2, c: 8, d: 11}]},
       {a: 3, abacd: [3, 6, {a: 3, c: 9, d: 12}]},
     ]);
-    done();
   });
 
   it('zipping a structure with cycles throws an error', async done => {
