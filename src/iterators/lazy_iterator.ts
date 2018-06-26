@@ -19,6 +19,8 @@
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
 
+import {DataElement, IteratorContainer} from '../types';
+import {deepMapAndAwaitAll, DeepMapAsyncResult} from '../util/deep_map';
 import {GrowingRingBuffer} from '../util/growing_ring_buffer';
 import {RingBuffer} from '../util/ring_buffer';
 
@@ -80,6 +82,35 @@ export function iteratorFromConcatenatedFunction<T>(
     count: number): LazyIterator<T> {
   return iteratorFromConcatenated(
       iteratorFromFunction(iteratorFunc).take(count));
+}
+
+/**
+ * Create a `LazyIterator` by zipping together an array, dict, or nested
+ * structure of `LazyIterator`s (and perhaps additional constants).
+ *
+ * The underlying streams must provide elements in a consistent order such that
+ * they correspond.
+ *
+ * Typically, the underlying streams should have the same number of elements.
+ * If they do not, the behavior is determined by the `mismatchMode` argument.
+ *
+ * The nested structure of the `iterators` argument determines the
+ * structure of elements in the resulting iterator.
+ *
+ * @param iterators: An array or object containing LazyIterators at the leaves.
+ * @param mismatchMode: Determines what to do when one underlying iterator is
+ *   exhausted before the others.  `ZipMismatchMode.FAIL` (the default) causes
+ *   an error to be thrown in this case.  `ZipMismatchMode.SHORTEST` causes the
+ *   zipped iterator to terminate with the furst underlying streams, so elements
+ *   remaining on the longer streams are ignored.  `ZipMismatchMode.LONGEST`
+ *   causes the zipped stream to continue, filling in nulls for the exhausted
+ *   streams, until all streams are exhausted.
+ */
+export function iteratorFromZipped(
+    iterators: IteratorContainer,
+    mismatchMode: ZipMismatchMode =
+        ZipMismatchMode.FAIL): LazyIterator<DataElement> {
+  return new ZipIterator(iterators, mismatchMode);
 }
 
 export class IteratorProperties {
@@ -294,7 +325,14 @@ class FunctionCallIterator<T> extends LazyIterator<T> {
   }
 
   async next(): Promise<IteratorResult<T>> {
-    return this.nextFn();
+    try {
+      return this.nextFn();
+    } catch (e) {
+      // Modify the error message but leave the stack trace intact
+      e.message =
+          'Error thrown while iterating through a dataset: ' + e.message;
+      throw e;
+    }
   }
 }
 
@@ -514,6 +552,107 @@ export class ChainedIterator<T> extends LazyIterator<T> {
       return this.readFromChain(lastRead);
     }
     return itemResult;
+  }
+}
+
+export enum ZipMismatchMode {
+  FAIL,      // require zipped streams to have the same length
+  SHORTEST,  // terminate zip when the first stream is exhausted
+  LONGEST    // use nulls for exhausted streams; use up the longest stream.
+}
+
+/**
+ * Provides a `LazyIterator` that zips together an array, dict, or nested
+ * structure of `LazyIterator`s (and perhaps additional constants).
+ *
+ * The underlying streams must provide elements in a consistent order such that
+ * they correspond.
+ *
+ * Typically, the underlying streams should have the same number of elements.
+ * If they do not, the behavior is determined by the `mismatchMode` argument.
+ *
+ * The nested structure of the `iterators` argument determines the
+ * structure of elements in the resulting iterator.
+ *
+ * Doing this in a concurrency-safe way requires some trickery.  In particular,
+ * we want this stream to return the elements from the underlying streams in
+ * the correct order according to when next() was called, even if the resulting
+ * Promises resolve in a different order.
+ *
+ * @param iterators: An array or object containing LazyIterators at the leaves.
+ * @param mismatchMode: Determines what to do when one underlying iterator is
+ *   exhausted before the others.  `ZipMismatchMode.FAIL` (the default) causes
+ *   an error to be thrown in this case.  `ZipMismatchMode.SHORTEST` causes the
+ *   zipped iterator to terminate with the furst underlying streams, so elements
+ *   remaining on the longer streams are ignored.  `ZipMismatchMode.LONGEST`
+ *   causes the zipped stream to continue, filling in nulls for the exhausted
+ *   streams, until all streams are exhausted.
+ */
+class ZipIterator extends LazyIterator<DataElement> {
+  private count = 0;
+  private currentPromise: Promise<IteratorResult<DataElement>> = null;
+
+  constructor(
+      protected readonly iterators: IteratorContainer,
+      protected readonly mismatchMode: ZipMismatchMode = ZipMismatchMode.FAIL) {
+    super();
+  }
+
+  private async nextState(afterState: Promise<IteratorResult<DataElement>>):
+      Promise<IteratorResult<DataElement>> {
+    // This chaining ensures that the underlying next() are not even called
+    // before the previous ones have resolved.
+    await afterState;
+
+    // Collect underlying iterator "done" signals as a side effect in getNext()
+    let numIterators = 0;
+    let iteratorsDone = 0;
+
+    function getNext(container: IteratorContainer): DeepMapAsyncResult {
+      if (container instanceof LazyIterator) {
+        const result = container.next();
+        return {
+          value: result.then(x => {
+            numIterators++;
+            if (x.done) {
+              iteratorsDone++;
+            }
+            return x.value;
+          }),
+          recurse: false
+        };
+      } else {
+        return {value: null, recurse: true};
+      }
+    }
+
+    const mapped = await deepMapAndAwaitAll(this.iterators, getNext);
+
+    if (numIterators === iteratorsDone) {
+      // The streams have all ended.
+      return {value: null, done: true};
+    }
+    if (iteratorsDone > 0) {
+      switch (this.mismatchMode) {
+        case ZipMismatchMode.FAIL:
+          throw new Error(
+              'Zipped streams should have the same length. ' +
+              `Mismatched at element ${this.count}.`);
+        case ZipMismatchMode.SHORTEST:
+          return {value: null, done: true};
+        case ZipMismatchMode.LONGEST:
+        default:
+          // Continue.  The exhausted streams already produced value: null.
+      }
+    }
+
+    this.count++;
+    return {value: mapped, done: false};
+  }
+
+  async next(): Promise<IteratorResult<DataElement>> {
+    this.currentPromise = this.nextState(this.currentPromise);
+    return (await this.currentPromise);
   }
 }
 
