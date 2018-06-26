@@ -24,7 +24,7 @@ import {Layer, LayerConfig} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
-import * as generic_utils from '../utils/generic_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
 import {preprocessConv2DInput} from './convolutional';
 
@@ -155,7 +155,7 @@ export abstract class Pooling1D extends Layer {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const length = convOutputLength(
         inputShape[1], this.poolSize[0], this.padding, this.strides[0]);
     return [inputShape[0], length, inputShape[2]];
@@ -169,9 +169,9 @@ export abstract class Pooling1D extends Layer {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       // Add dummy last dimension.
-      inputs = K.expandDims(generic_utils.getExactlyOneTensor(inputs), 2);
+      inputs = K.expandDims(getExactlyOneTensor(inputs), 2);
       const output = this.poolingFunction(
-          generic_utils.getExactlyOneTensor(inputs), [this.poolSize[0], 1],
+          getExactlyOneTensor(inputs), [this.poolSize[0], 1],
           [this.strides[0], 1], this.padding, 'channelsLast');
       // Remove dummy last dimension.
       return tfc.squeeze(output, [2]);
@@ -305,7 +305,7 @@ export abstract class Pooling2D extends Layer {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     let rows =
         this.dataFormat === 'channelsFirst' ? inputShape[2] : inputShape[1];
     let cols =
@@ -329,8 +329,8 @@ export abstract class Pooling2D extends Layer {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       return this.poolingFunction(
-          generic_utils.getExactlyOneTensor(inputs), this.poolSize,
-          this.strides, this.padding, this.dataFormat);
+          getExactlyOneTensor(inputs), this.poolSize, this.strides,
+          this.padding, this.dataFormat);
     });
   }
 
@@ -452,7 +452,7 @@ export class GlobalAveragePooling1D extends GlobalPooling1D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      const input = generic_utils.getExactlyOneTensor(inputs);
+      const input = getExactlyOneTensor(inputs);
       return tfc.mean(input, 1);
     });
   }
@@ -474,7 +474,7 @@ export class GlobalMaxPooling1D extends GlobalPooling1D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      const input = generic_utils.getExactlyOneTensor(inputs);
+      const input = getExactlyOneTensor(inputs);
       return tfc.max(input, 1);
     });
   }
@@ -544,7 +544,7 @@ export class GlobalAveragePooling2D extends GlobalPooling2D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      const input = generic_utils.getExactlyOneTensor(inputs);
+      const input = getExactlyOneTensor(inputs);
       if (this.dataFormat === 'channelsLast') {
         return tfc.mean(input, [1, 2]);
       } else {
@@ -572,7 +572,7 @@ export class GlobalMaxPooling2D extends GlobalPooling2D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      const input = generic_utils.getExactlyOneTensor(inputs);
+      const input = getExactlyOneTensor(inputs);
       if (this.dataFormat === 'channelsLast') {
         return tfc.max(input, [1, 2]);
       } else {

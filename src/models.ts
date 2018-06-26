@@ -13,16 +13,17 @@
 // tslint:disable:max-line-length
 import {doc, io, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
-import {History} from './callbacks';
-import {getSourceInputs, Input, Layer, Node} from './engine/topology';
+import {getUid} from './backend/state';
+import {History} from './base_callbacks';
+import {getSourceInputs, Input, Layer, Node, SymbolicTensor} from './engine/topology';
 import {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig} from './engine/training';
 import {RuntimeError, ValueError} from './errors';
 import {deserialize} from './layers/serialization';
 import {Kwargs, NamedTensorMap, Shape} from './types';
-import {JsonDict, SymbolicTensor} from './types';
+import {JsonDict} from './types';
 import * as generic_utils from './utils/generic_utils';
 import {convertPythonicToTs} from './utils/serialization_utils';
+import {getExactlyOneShape} from './utils/types_utils';
 // tslint:enable:max-line-length
 
 /**
@@ -303,7 +304,7 @@ export class Sequential extends Model {
     this.built = false;
 
     // Set model name.
-    this.name = (config.name != null) ? config.name : K.getUid('sequential_');
+    this.name = (config.name != null) ? config.name : getUid('sequential_');
 
     // Add to the model any layers passed to the constructor.
     if (config.layers != null) {
@@ -470,7 +471,7 @@ export class Sequential extends Model {
   build(inputShape?: Shape|Shape[]) {
     // Call `getExactlyOneShape` without using its return value,
     // to verify that exactly one input shape is provided.
-    generic_utils.getExactlyOneShape(inputShape);
+    getExactlyOneShape(inputShape);
 
     if (this.inputs.length === 0 || this.outputs.length === 0) {
       throw new TypeError(

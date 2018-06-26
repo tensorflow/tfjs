@@ -16,11 +16,11 @@
 import {doc, io, Tensor} from '@tensorflow/tfjs-core';
 
 import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
-import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig} from './engine/topology';
+import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig, SymbolicTensor} from './engine/topology';
 import {Model} from './engine/training';
 import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, Initializer, LeCunNormal, Ones, Orthogonal, OrthogonalConfig, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
 import {ELU, ELULayerConfig, LeakyReLU, LeakyReLULayerConfig, Softmax, SoftmaxLayerConfig, ThresholdedReLU, ThresholdedReLULayerConfig} from './layers/advanced_activations';
-import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerConfig, Cropping2D, Cropping2DLayerConfig, SeparableConv2D, SeparableConvLayerConfig, UpSampling2D,UpSampling2DLayerConfig} from './layers/convolutional';
+import {Conv1D, Conv2D, Conv2DTranspose, ConvLayerConfig, Cropping2D, Cropping2DLayerConfig, SeparableConv2D, SeparableConvLayerConfig, UpSampling2D, UpSampling2DLayerConfig} from './layers/convolutional';
 import {DepthwiseConv2D, DepthwiseConv2DLayerConfig} from './layers/convolutional_depthwise';
 import {Activation, ActivationLayerConfig, Dense, DenseLayerConfig, Dropout, DropoutLayerConfig, Flatten, RepeatVector, RepeatVectorLayerConfig, Reshape, ReshapeLayerConfig} from './layers/core';
 import {Embedding, EmbeddingLayerConfig} from './layers/embeddings';
@@ -34,7 +34,6 @@ import {categoricalCrossentropy, cosineProximity, meanAbsoluteError, meanAbsolut
 import {binaryAccuracy, binaryCrossentropy, categoricalAccuracy} from './metrics';
 import {loadModelInternal, Sequential, SequentialConfig} from './models';
 import {l1, L1Config, L1L2, L1L2Config, l2, L2Config, Regularizer} from './regularizers';
-import {SymbolicTensor} from './types';
 
 // tslint:enable:max-line-length
 
@@ -307,7 +306,7 @@ export class LayerExports {
   static upSampling2d(config: UpSampling2DLayerConfig): Layer {
     return new UpSampling2D(config);
   }
-  
+
   // Convolutional (depthwise) Layers.
 
   @doc({

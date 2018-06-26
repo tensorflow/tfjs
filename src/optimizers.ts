@@ -15,7 +15,7 @@
 // tslint:disable:max-line-length
 import {Optimizer, train} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
+import {epsilon} from './backend/common';
 // tslint:enable:max-line-length
 
 import {ValueError} from './errors';
@@ -27,10 +27,10 @@ import {ValueError} from './errors';
 export function getOptimizer(identifier: string): Optimizer {
   const optimizerMap: {[optimizerName: string]: () => Optimizer} = {
     'Adagrad': () => train.adagrad(.01),
-    'Adadelta': () => train.adadelta(1.0, 0.95, K.epsilon()),
-    'Adam': () => train.adam(.001, .9, .999, K.epsilon()),
-    'Adamax': () => train.adamax(0.002, .9, .999, K.epsilon(), 0.0),
-    'RMSProp': () => train.rmsprop(.001, .9, null, K.epsilon()),
+    'Adadelta': () => train.adadelta(1.0, 0.95, epsilon()),
+    'Adam': () => train.adam(.001, .9, .999, epsilon()),
+    'Adamax': () => train.adamax(0.002, .9, .999, epsilon(), 0.0),
+    'RMSProp': () => train.rmsprop(.001, .9, null, epsilon()),
     'SGD': () => train.sgd(.01)
   };
   optimizerMap['adagrad'] = optimizerMap['Adagrad'];

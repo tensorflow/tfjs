@@ -15,16 +15,13 @@
 // tslint:disable:max-line-length
 import {scalar} from '@tensorflow/tfjs-core';
 
-import {BaseLogger, CallbackList, History, resolveScalarsInLogs, UnresolvedLogs, disposeTensorsInLogs} from './callbacks';
+import {BaseLogger, CallbackList, History} from './base_callbacks';
+import {Callback} from './callbacks';
 import {Model} from './engine/training';
+import {disposeTensorsInLogs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import {describeMathCPUAndGPU} from './utils/test_utils';
-// tslint:enable:max-line-length
 
-class MockModel extends Model {
-  constructor(name: string) {
-    super({inputs: [], outputs: [], name});
-  }
-}
+// tslint:enable:max-line-length
 
 describe('BaseLogger Callback', () => {
   it('Records and averages losses in an epoch', async done => {
@@ -71,28 +68,6 @@ describe('BaseLogger Callback', () => {
   });
 });
 
-describe('History Callback', () => {
-  it('onTrainBegin', async done => {
-    const history = new History();
-    await history.onTrainBegin();
-    expect(history.epoch).toEqual([]);
-    expect(history.history).toEqual({});
-    done();
-  });
-  it('onEpochEnd', async done => {
-    const history = new History();
-    await history.onTrainBegin();
-    await history.onEpochEnd(0, {'val_loss': 10, 'val_accuracy': 0.1});
-    expect(history.epoch).toEqual([0]);
-    expect(history.history).toEqual({'val_loss': [10], 'val_accuracy': [0.1]});
-    await history.onEpochEnd(1, {'val_loss': 9.5, 'val_accuracy': 0.2});
-    expect(history.epoch).toEqual([0, 1]);
-    expect(history.history)
-        .toEqual({'val_loss': [10, 9.5], 'val_accuracy': [0.1, 0.2]});
-    done();
-  });
-});
-
 describe('CallbackList', () => {
   it('Constructor with empty arg', async done => {
     const callbackList = new CallbackList();
@@ -108,15 +83,6 @@ describe('CallbackList', () => {
     callbackList.setParams(params);
     expect(history1.params).toEqual(params);
     expect(history2.params).toEqual(params);
-  });
-  it('Constructor and setModel with array of callbacks', () => {
-    const history1 = new History();
-    const history2 = new History();
-    const callbackList = new CallbackList([history1, history2]);
-    const model = new MockModel('MockModelA');
-    callbackList.setModel(model);
-    expect(history1.model).toEqual(model);
-    expect(history2.model).toEqual(model);
   });
   it('onTrainBegin', async done => {
     const history1 = new History();
@@ -210,5 +176,47 @@ describeMathCPUAndGPU('disposeTensorsInLogs', () => {
     // tslint:disable-next-line:no-any
     expect((logs['d'] as any).isDisposed).toEqual(true);
   });
+});
 
+
+describe('History Callback', () => {
+  it('onTrainBegin', async done => {
+    const history = new History();
+    await history.onTrainBegin();
+    expect(history.epoch).toEqual([]);
+    expect(history.history).toEqual({});
+    done();
+  });
+  it('onEpochEnd', async done => {
+    const history = new History();
+    await history.onTrainBegin();
+    await history.onEpochEnd(0, {'val_loss': 10, 'val_accuracy': 0.1});
+    expect(history.epoch).toEqual([0]);
+    expect(history.history).toEqual({'val_loss': [10], 'val_accuracy': [0.1]});
+    await history.onEpochEnd(1, {'val_loss': 9.5, 'val_accuracy': 0.2});
+    expect(history.epoch).toEqual([0, 1]);
+    expect(history.history)
+        .toEqual({'val_loss': [10, 9.5], 'val_accuracy': [0.1, 0.2]});
+    done();
+  });
+});
+
+class MockModel extends Model {
+  constructor(name: string) {
+    super({inputs: [], outputs: [], name});
+  }
+}
+
+class MockCallback extends Callback {}
+
+describe('CallbackList', () => {
+  it('Constructor and setModel with array of callbacks', () => {
+    const mockCallback1 = new MockCallback();
+    const mockCallback2 = new MockCallback();
+    const callbackList = new CallbackList([mockCallback1, mockCallback2]);
+    const model = new MockModel('MockModelA');
+    callbackList.setModel(model);
+    expect(mockCallback1.model).toEqual(model);
+    expect(mockCallback2.model).toEqual(model);
+  });
 });

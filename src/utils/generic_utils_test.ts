@@ -8,10 +8,6 @@
  * =============================================================================
  */
 
-import {scalar, zeros} from '@tensorflow/tfjs-core';
-
-import {LayerVariable} from '../variables';
-
 import * as utils from './generic_utils';
 
 describe('pyListRepeat() ', () => {
@@ -112,41 +108,6 @@ describe('toList', () => {
   });
 });
 
-describe('isArrayOfShapes', () => {
-  it('returns false for a single non-empty shape', () => {
-    expect(utils.isArrayOfShapes([1, 2, 3])).toEqual(false);
-  });
-  it('returns false for a single empty shape', () => {
-    expect(utils.isArrayOfShapes([])).toEqual(false);
-  });
-  it('returns true for an array of shapes', () => {
-    expect(utils.isArrayOfShapes([[1], [2, 3]])).toEqual(true);
-  });
-  it('returns true for an array of shapes that includes empty shapes', () => {
-    expect(utils.isArrayOfShapes([[], [2, 3]])).toEqual(true);
-    expect(utils.isArrayOfShapes([[]])).toEqual(true);
-    expect(utils.isArrayOfShapes([[], []])).toEqual(true);
-  });
-});
-
-describe('normalizeShapeList', () => {
-  it('returns an empty list if an empty list is passed in.', () => {
-    expect(utils.normalizeShapeList([])).toEqual([]);
-  });
-
-  it('returns a list of shapes if a single shape is passed in.', () => {
-    expect(utils.normalizeShapeList([1])).toEqual([[1]]);
-  });
-
-  it('returns a list of shapes if an empty shape is passed in.', () => {
-    expect(utils.normalizeShapeList([[]])).toEqual([[]]);
-  });
-
-  it('returns a list of shapes if a list of shapes is passed in.', () => {
-    expect(utils.normalizeShapeList([[1]])).toEqual([[1]]);
-  });
-});
-
 describe('toSnakeCase', () => {
   for (const [inputString, expectedOutput] of [
            ['', ''], ['A', 'a'], ['AA', 'aa'], ['AAA', 'aaa'], ['AAa', 'a_aa'],
@@ -166,23 +127,6 @@ describe('toCamelCase', () => {
       expect(utils.toCamelCase(inputString)).toEqual(expectedOutput);
     });
   }
-});
-
-describe('getExactlyOneShape', () => {
-  it('single instance', () => {
-    expect(utils.getExactlyOneShape([1, 2, 3])).toEqual([1, 2, 3]);
-    expect(utils.getExactlyOneShape([null, 8])).toEqual([null, 8]);
-    expect(utils.getExactlyOneShape([])).toEqual([]);
-  });
-  it('Array of length 1', () => {
-    expect(utils.getExactlyOneShape([[1, 2]])).toEqual([1, 2]);
-    expect(utils.getExactlyOneShape([[]])).toEqual([]);
-  });
-  it('Array of length 2: ValueError', () => {
-    expect(() => utils.getExactlyOneShape([
-      [1], [2]
-    ])).toThrowError(/Expected exactly 1 Shape; got 2/);
-  });
 });
 
 describe('stringsEqual', () => {
@@ -282,33 +226,5 @@ describe('checkArrayTypeAndLength', () => {
   it('rejects maxLength < minLength', () => {
     expect(() => utils.checkArrayTypeAndLength([1, 2, 3], 'number', 100, 2))
         .toThrowError();
-  });
-});
-
-describe('countParamsInWeights', () => {
-  it('Zero weights', () => {
-    expect(utils.countParamsInWeights([])).toEqual(0);
-  });
-
-  it('One float32 weight', () => {
-    const weight1 = new LayerVariable(zeros([2, 3]));
-    expect(utils.countParamsInWeights([weight1])).toEqual(6);
-  });
-
-  it('One float32 scalar weight', () => {
-    const weight1 = new LayerVariable(scalar(42));
-    expect(utils.countParamsInWeights([weight1])).toEqual(1);
-  });
-
-  it('One int32 weight', () => {
-    const weight1 = new LayerVariable(zeros([1, 3, 4], 'int32'), 'int32');
-    expect(utils.countParamsInWeights([weight1])).toEqual(12);
-  });
-
-  it('Two weights, mixed types and shapes', () => {
-    const weight1 = new LayerVariable(scalar(42));
-    const weight2 = new LayerVariable(zeros([2, 3]));
-    const weight3 = new LayerVariable(zeros([1, 3, 4], 'int32'), 'int32');
-    expect(utils.countParamsInWeights([weight1, weight2, weight3])).toEqual(19);
   });
 });

@@ -19,13 +19,13 @@ import {Activation as ActivationFn, ActivationIdentifier, getActivation, seriali
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {Layer, LayerConfig} from '../engine/topology';
+import {getScalar} from '../backend/state';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
-import * as generic_utils from '../utils/generic_utils';
-import {getExactlyOneTensor} from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
 // tslint:enable:max-line-length
@@ -66,7 +66,7 @@ export class Dropout extends Layer {
   constructor(config: DropoutLayerConfig) {
     super(config);
     this.rate = Math.max(Math.min(config.rate, 1), 0);
-    this.rateScalar = K.getScalar(this.rate);
+    this.rateScalar = getScalar(this.rate);
     // So that the scalar doesn't get tidied up between executions.
     this.noiseShape = config.noiseShape;
     this.seed = config.seed;
@@ -94,7 +94,7 @@ export class Dropout extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
-      const input = generic_utils.getExactlyOneTensor(inputs);
+      const input = getExactlyOneTensor(inputs);
       if (this.noiseShape != null &&
           !util.arraysEqual(input.shape, this.noiseShape)) {
         throw new NotImplementedError(
@@ -259,7 +259,7 @@ export class Dense extends Layer {
   }
 
   public build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const inputLastDim = inputShape[inputShape.length - 1];
     if (this.kernel == null) {
       this.kernel = this.addWeight(
@@ -277,7 +277,7 @@ export class Dense extends Layer {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const outputShape = inputShape.slice();
     outputShape[outputShape.length - 1] = this.units;
     return outputShape;
@@ -287,7 +287,7 @@ export class Dense extends Layer {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       // Dense layer accepts only a single input.
-      const input = generic_utils.getExactlyOneTensor(inputs);
+      const input = getExactlyOneTensor(inputs);
       let output = K.dot(input, this.kernel.read());
       if (this.bias != null) {
         output = K.biasAdd(output, this.bias.read());
@@ -344,7 +344,7 @@ export class Flatten extends Layer {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     for (const dim of inputShape.slice(1)) {
       if (dim == null) {
         throw new ValueError(
@@ -360,7 +360,7 @@ export class Flatten extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
-      return K.batchFlatten(generic_utils.getExactlyOneTensor(inputs));
+      return K.batchFlatten(getExactlyOneTensor(inputs));
     });
   }
 }
@@ -416,7 +416,7 @@ export class Activation extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
-      const input = generic_utils.getExactlyOneTensor(inputs);
+      const input = getExactlyOneTensor(inputs);
       return this.activation.apply(input);
     });
   }
@@ -591,8 +591,8 @@ export class Reshape extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
-      const input = generic_utils.getExactlyOneTensor(inputs);
-      const inputShape = K.shape(input);
+      const input = getExactlyOneTensor(inputs);
+      const inputShape = input.shape;
       const outputShape = inputShape.slice(0, 1).concat(
           this.fixUnknownDimension(inputShape.slice(1), this.targetShape));
       return input.reshape(outputShape);

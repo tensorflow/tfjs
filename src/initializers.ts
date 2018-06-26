@@ -9,10 +9,11 @@
  */
 
 // tslint:disable:max-line-length
-import {DataType, doc, eye, linalg, ones, randomUniform, scalar, Scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
+import {DataType, doc, eye, linalg, mul, ones, randomUniform, scalar, Scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
+import {getScalar} from './backend/state';
 import {NotImplementedError, ValueError} from './errors';
 import {Shape} from './types';
 import {checkStringTypeUnionValue, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
@@ -97,8 +98,7 @@ export class Constant extends Initializer {
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
-    return tidy(
-        () => K.scalarTimesArray(scalar(this.value), ones(shape, dtype)));
+    return tidy(() => mul(scalar(this.value), ones(shape, dtype)));
   }
 
   getConfig(): serialization.ConfigDict {
@@ -255,7 +255,7 @@ export class Identity extends Initializer {
   private gain: Scalar;
   constructor(config: IdentityConfig) {
     super();
-    this.gain = config.gain != null ? scalar(config.gain) : K.getScalar(1.0);
+    this.gain = config.gain != null ? scalar(config.gain) : getScalar(1.0);
   }
 
   apply(shape: Shape, dtype?: DataType): Tensor {
@@ -265,7 +265,7 @@ export class Identity extends Initializer {
             'Identity matrix initializer can only be used for' +
             ' 2D square matrices.');
       } else {
-        return K.scalarTimesArray(this.gain, eye(shape[0]));
+        return mul(this.gain, eye(shape[0]));
       }
     });
   }
@@ -584,7 +584,7 @@ export class Orthogonal extends Initializer {
       if (shape[0] > shape[1]) {
         q = q.transpose();
       }
-      return K.scalarTimesArray(K.getScalar(this.gain), q);
+      return mul(getScalar(this.gain), q);
     });
   }
 

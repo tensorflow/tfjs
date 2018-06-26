@@ -24,7 +24,7 @@ import {DataFormat} from '../common';
 import {InputSpec, Layer, LayerConfig} from '../engine/topology';
 import {ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
-import {getExactlyOneShape, getExactlyOneTensor} from '../utils/generic_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 
 // tslint:enable:max-line-length
 

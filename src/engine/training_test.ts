@@ -13,18 +13,19 @@
  */
 
 // tslint:disable:max-line-length
-import {abs, mean, memory, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
+import {abs, mean, memory, mul, NamedTensorMap, ones, Scalar, scalar, SGDOptimizer, Tensor, tensor1d, tensor2d, tensor3d, test_util, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
-import {CustomCallback, CustomCallbackConfig, Logs, UnresolvedLogs} from '../callbacks';
+import {CustomCallback, CustomCallbackConfig} from '../base_callbacks';
 import * as tfl from '../index';
+import {Logs, UnresolvedLogs} from '../logs';
 import {Regularizer} from '../regularizers';
-import {Kwargs, SymbolicTensor} from '../types';
+import {Kwargs} from '../types';
 import {pyListRepeat, stringsEqual} from '../utils/generic_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 // TODO(bileschi): Use external version of Layer.
-import {Layer} from './topology';
+import {Layer, SymbolicTensor} from './topology';
 import {checkArrayLengths, isDataArray, isDataDict, isDataTensor, makeBatches, sliceArraysByIndices, standardizeInputData} from './training';
 
 // tslint:enable:max-line-length
@@ -801,11 +802,9 @@ describeMathCPUAndGPU('Model.fit', () => {
     expectTensorsClose(
         valLosses as number[], [386.35848999023438, 1808.7342529296875]);
     expectTensorsClose(
-        layer1.getWeights()[0],
-        K.scalarTimesArray(scalar(-0.61341441), ones([4, 10])));
+        layer1.getWeights()[0], mul(scalar(-0.61341441), ones([4, 10])));
     expectTensorsClose(
-        layer2.getWeights()[0],
-        K.scalarTimesArray(scalar(-1.77405429), ones([10, 1])));
+        layer2.getWeights()[0], mul(scalar(-1.77405429), ones([10, 1])));
 
     // Freeze the 1st layer and compile the model again.
     layer1.trainable = false;
@@ -822,12 +821,10 @@ describeMathCPUAndGPU('Model.fit', () => {
         valLosses as number[], [75.336524963378906, 3.1378798484802246]);
     // Expect no change in the value of layer1's kernel, due to the freezing.
     expectTensorsClose(
-        layer1.getWeights()[0],
-        K.scalarTimesArray(scalar(-0.61341441), ones([4, 10])));
+        layer1.getWeights()[0], mul(scalar(-0.61341441), ones([4, 10])));
     // Expect change in the value of layer2's kernel.
     expectTensorsClose(
-        layer2.getWeights()[0],
-        K.scalarTimesArray(scalar(-0.11295), ones([10, 1])));
+        layer2.getWeights()[0], mul(scalar(-0.11295), ones([10, 1])));
     done();
   });
 

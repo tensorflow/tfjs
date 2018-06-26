@@ -13,6 +13,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
+import {getScalar} from './backend/state';
 import {deserializeKerasObject} from './utils/generic_utils';
 
 /**
@@ -84,7 +85,7 @@ serialization.SerializationMap.register(Relu);
 export class Relu6 extends Activation {
   static readonly className = 'relu6';
   apply(x: Tensor): Tensor {
-    return tidy(() => tfc.minimum(K.getScalar(6.0), tfc.relu(x)));
+    return tidy(() => tfc.minimum(getScalar(6.0), tfc.relu(x)));
   }
 }
 serialization.SerializationMap.register(Relu6);

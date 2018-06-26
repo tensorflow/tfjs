@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 
-import {SymbolicTensor} from './types';
+import {SymbolicTensor} from './engine/topology';
 
 // tslint:enable:max-line-length
 

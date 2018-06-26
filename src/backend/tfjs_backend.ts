@@ -14,14 +14,14 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {DataType, dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, tidy, util, variableGrads, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
+import {dispose, onesLike as coreOnesLike, Scalar, scalar, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D, tidy, util, where, zerosLike as coreZerosLike} from '@tensorflow/tfjs-core';
 
-import {checkDataFormat, DataFormat, nameScope as commonNameScope} from '../common';
+import {checkDataFormat, DataFormat} from '../common';
+import {disposeScalarCache, getScalar} from '../backend/state';
 import {NotImplementedError, ValueError} from '../errors';
-import {Shape, SymbolicTensor} from '../types';
+import {HasShape, Shape} from '../types';
 import * as math_utils from '../utils/math_utils';
-import {LayerVariable} from '../variables';
-import {epsilon as common_epsilon} from './common';
+
 import {imageDataFormat} from './common';
 
 // tslint:enable
@@ -30,17 +30,6 @@ import {imageDataFormat} from './common';
 
 // Default deeplearn.js backend is WebGL (GPU).
 let backend: 'cpu'|'webgl' = 'webgl';
-
-const DEFAULT_DTYPE: DataType = 'float32';
-
-export function disposeScalarCache() {
-  for (const typeKey in scalarCache) {
-    for (const key in scalarCache[typeKey]) {
-      scalarCache[typeKey][key].dispose();
-      delete scalarCache[typeKey][key];
-    }
-  }
-}
 
 export function setBackend(requestedBackend: 'cpu'|'webgl') {
   tfc.setBackend(requestedBackend);
@@ -51,28 +40,6 @@ export function setBackend(requestedBackend: 'cpu'|'webgl') {
 export function getBackend(): 'cpu'|'webgl' {
   return backend;
 }
-
-const scalarCache: {[typeKey: string]: {[key: number]: Scalar}} = {
-  float32: {},
-  int32: {}
-};
-
-/**
- * Get scalar, with caching.
- */
-export function getScalar(value: number, dtype?: DataType): Scalar {
-  if (dtype === undefined) {
-    dtype = DEFAULT_DTYPE;
-  }
-  if (scalarCache[dtype][value] == null) {
-    scalarCache[dtype][value] = scalar(value, dtype);
-    tfc.keep(scalarCache[dtype][value]);
-  }
-  return scalarCache[dtype][value];
-}
-
-/** Returns the value of the fuzz factor used in numeric expressions. */
-export const epsilon = common_epsilon;
 
 /**
  * Indicates whether the backend is operating symbolically.
@@ -85,44 +52,12 @@ export function isBackendSymbolic(): boolean {
   return false;
 }
 
-/* Shapes. */
-
-/**
- * Get the shape of a tensor.
- *
- * @param x The tensor.
- * @return Shape of the tensor.
- */
-export function shape(x: Tensor|SymbolicTensor): Shape {
-  return x.shape;
-}
-
-/**
- * Get the shape of a tensor as an array of numbers.
- *
- * @param x The tensor.
- * @return Shape of the tensor as number[].
- */
-export function intShape(x: Tensor|SymbolicTensor): number[] {
-  return x.shape;
-}
-
-/**
- * Returns the dtype of a tensor or variable.
- *
- * @param x The tensor.
- */
-export function dtype(x: Tensor|SymbolicTensor): DataType {
-  // TODO(michaelterry): Update if additional data types are available.
-  return (x instanceof Tensor) ? DEFAULT_DTYPE : (x as SymbolicTensor).dtype;
-}
-
 /**
  * Get the number of elements in a Tensor.
  * @param x The Tensor.
  * @return Number of elements in `x`.
  */
-export function countParams(x: Tensor|SymbolicTensor): number {
+export function countParams(x: HasShape): number {
   const shape = x.shape;
   if (shape.length > 0) {
     return shape.reduce((a: number, b: number) => a * b);
@@ -149,7 +84,7 @@ export function cast(x: Tensor, dtype: 'float32'|'int32'|'bool'): Tensor {
  * @returns Result of the dimension expansion.
  */
 export function expandDims(x: Tensor, axis = -1): Tensor {
-  const outShape = shape(x).slice();
+  const outShape = x.shape.slice();
   if (axis < 0) {
     axis = outShape.length + axis + 1;
   }
@@ -409,51 +344,6 @@ export function tile(x: Tensor, n: number|number[]): Tensor {
   return tfc.tile(x, n);
 }
 
-/* Creation and manipulation of tensors and variables */
-
-/**
- * Create a Tensor with the same content as the input.
- *
- * @param x Input.
- * @return Identity output Tensor.
- */
-export function identity(x: Tensor): Tensor {
-  return x.clone();
-}
-
-/**
- * Instantiate an identity matrix and returns it, as a Variable
- *
- * @param size Number of rows/columns.
- * @param dtype Data type of returned Variable.
- * @param name Name of returned Variable.
- * @return A Variable, an identity matrix.
- */
-export function eyeVariable(
-    size: number, dtype?: DataType, name?: string): LayerVariable {
-  return new LayerVariable(tfc.eye(size, size, null, dtype), dtype, name);
-}
-
-/**
- * Multiply a scalar with an Tensor.
- * @param c The Scalar.
- * @param x The Tensor.
- * @returns The result of the multiplication.
- */
-export function scalarTimesArray(c: Scalar, x: Tensor): Tensor {
-  return tfc.mul(c, x);
-}
-
-/**
- * Add a scalar to an Tensor.
- * @param c The Scalar.
- * @param x The Tensor.
- * @returns The result of the addition.
- */
-export function scalarPlusArray(c: Scalar, x: Tensor): Tensor {
-  return tfc.add(c, x);
-}
-
 /* Creation of random tensors. */
 
 
@@ -490,7 +380,7 @@ export function dot(x: Tensor, y: Tensor): Tensor {
   if (y.rank !== 2) {
     throw new NotImplementedError(
         `dot support for y other than rank 2 is not yet implemented: ` +
-        `y shape = ${shape}`);
+        `y shape = ${y.shape}`);
   } else {
     if (x.rank === 2) {
       return tfc.matMul(x as Tensor2D, y as Tensor2D);
@@ -505,7 +395,7 @@ export function dot(x: Tensor, y: Tensor): Tensor {
     } else {
       throw new NotImplementedError(
           `dot support for x of rank ${x.rank} is not yet implemented: ` +
-          `x shape = ${shape}`);
+          `x shape = ${x.shape}`);
     }
   }
 }
@@ -529,7 +419,7 @@ export function sign(x: Tensor): Tensor {
         tfc.equal(x, zerosLikeX), zerosLikeX,
         where(
             tfc.greater(x, coreZerosLike(x)), onesLikeX,
-            scalarTimesArray(getScalar(-1), onesLikeX)));
+            tfc.mul(getScalar(-1), onesLikeX)));
   });
 }
 
@@ -843,39 +733,6 @@ export function dropout(
 }
 
 /**
- * Replacement for Keras's "with name_scope" construct.
- *
- * @param name The name to use for this name scope.
- * @param fn A function to call within this name scope.
- * @return The value of fn.
- */
-export function nameScope<T>(name: string, fn: () => T): T {
-  return commonNameScope(name, fn);
-}
-
-/**
- * Returns the default float type, as a DType.
- */
-export function floatx(): DataType {
-  return 'float32';
-}
-
-const _uidPrefixes: {[prefix: string]: number} = {};
-
-/**
- * Provides a unique UID given a string prefix.
- *
- * @param prefix
- */
-export function getUid(prefix = ''): string {
-  if (!(prefix in _uidPrefixes)) {
-    _uidPrefixes[prefix] = 0;
-  }
-  _uidPrefixes[prefix] += 1;
-  return prefix + _uidPrefixes[prefix].toString();
-}
-
-/**
  * Element-wise, segment-wise linear approximation of sigmoid.
  *
  * Returns `0.` if `x < -2.5`, `1.` if `x > 2.5`.
@@ -886,8 +743,7 @@ export function getUid(prefix = ''): string {
  */
 export function hardSigmoid(x: Tensor): Tensor {
   return tidy(() => {
-    const y =
-        scalarPlusArray(getScalar(0.5), scalarTimesArray(getScalar(0.2), x));
+    const y = tfc.add(getScalar(0.5), tfc.mul(getScalar(0.2), x));
     return tfc.clipByValue(y, 0, 1);
   });
 }
@@ -906,26 +762,4 @@ export function hardSigmoid(x: Tensor): Tensor {
  */
 export function inTrainPhase<T>(x: () => T, alt: () => T, training = false): T {
   return training ? x() : alt();
-}
-
-/**
- * Control flow.
- */
-
-/**
- * Returns the gradients of `variables` w.r.t. the return value of `lossFn`.
- * @param lossFn A function which returns a Scalar to be used as the function
- *   value (i.e., numerator) for differentiation.
- * @param variables List of variables to be used as the independent variables
- *   (i.e., denominator) for differentiation.
- * @returns An Array of gradients tensors.
- */
-export function gradients(
-    lossFn: () => Scalar, variables: LayerVariable[]): Tensor[] {
-  // TODO(cais): The return type signature can be simplified if deeplearn makes
-  //   the corresponding type public.
-  const variableList =
-      variables.map(variable => variable.read() as tfc.Variable);
-  const valudAndGrads = variableGrads(lossFn, variableList);
-  return variables.map(variable => valudAndGrads.grads[variable.name]);
 }
