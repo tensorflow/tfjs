@@ -18,7 +18,6 @@
 
 import * as tf from '@tensorflow/tfjs-core';
 import * as seedrandom from 'seedrandom';
-import {isPrimitive} from 'util';
 
 import {BatchDataset} from './batch_dataset';
 // tslint:disable:max-line-length
@@ -236,7 +235,6 @@ export abstract class Dataset<T extends DataElement> {
 
   /* TODO(soergel): for parity with tf.data:
   Dataset.flat_map()
-  Dataset.zip()
   Dataset.dense_to_sparse_batch()
   Dataset.group_by_window()
   Dataset.padded_batch()
@@ -302,12 +300,12 @@ export function zip(datasets: DatasetContainer): Dataset<DataElement> {
     const streams = deepMap(datasets, d => {
       if (d instanceof Dataset) {
         return {value: d.iterator(), recurse: false};
-      } else if (isPrimitive(d)) {
+      } else if (isIterable(d)) {
+        return {value: null, recurse: true};
+      } else {
         throw new Error(
             'Leaves of the structure passed to zip() must be Datasets, ' +
             'not primitives.');
-      } else {
-        return {value: null, recurse: true};
       }
     });
     return iteratorFromZipped(streams, ZipMismatchMode.SHORTEST);
