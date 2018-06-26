@@ -17,6 +17,7 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
+import {getScalar} from './backend/state';
 import {NotImplementedError, ValueError} from './errors';
 import {categoricalCrossentropy as categoricalCrossentropyLoss, cosineProximity, meanAbsoluteError, meanAbsolutePercentageError, meanSquaredError, sparseCategoricalCrossentropy as sparseCategoricalCrossentropyLoss} from './losses';
 import {binaryCrossentropy as lossBinaryCrossentropy} from './losses';
@@ -52,7 +53,7 @@ import {LossOrMetricFn} from './types';
  */
 export function binaryAccuracy(yTrue: Tensor, yPred: Tensor): Tensor {
   return tidy(() => {
-    const threshold = K.scalarTimesArray(K.getScalar(0.5), tfc.onesLike(yPred));
+    const threshold = tfc.mul(getScalar(0.5), tfc.onesLike(yPred));
     const yPredThresholded = K.cast(tfc.greater(yPred, threshold), yTrue.dtype);
     return tfc.mean(tfc.equal(yTrue, yPredThresholded), -1);
   });

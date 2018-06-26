@@ -13,10 +13,11 @@
  */
 
 // tslint:disable:max-line-length
-import {randomUniform, scalar, tensor1d, zeros} from '@tensorflow/tfjs-core';
+import * as tfc from '@tensorflow/tfjs-core';
+import {randomUniform, scalar, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
 import * as K from './backend/tfjs_backend';
-import {nameScope} from './backend/tfjs_backend';
+import {nameScope} from './common';
 import * as tfl from './index';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 import * as V from './variables';
@@ -169,28 +170,28 @@ describeMathCPUAndGPU('ZerosVariable', () => {
   it('Scalar', () => {
     const s = V.zerosVariable([], 'float32', 'Scalar');
     expect(s.name.indexOf('Scalar')).toEqual(0);
-    expect(K.shape(s.read())).toEqual([]);
+    expect(s.read().shape).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([0]));
   });
 
   it('Vector', () => {
     const v = V.zerosVariable([3], 'float32', 'Vector');
     expect(v.name.indexOf('Vector')).toEqual(0);
-    expect(K.shape(v.read())).toEqual([3]);
+    expect(v.read().shape).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('Matrix', () => {
     const m = V.zerosVariable([2, 2], 'float32', 'Matrix');
     expect(m.name.indexOf('Matrix')).toEqual(0);
-    expect(K.shape(m.read())).toEqual([2, 2]);
+    expect(m.read().shape).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
   it('3D', () => {
     const t = V.zerosVariable([2, 2, 2], 'float32', 'Tertiary');
     expect(t.name.indexOf('Tertiary')).toEqual(0);
-    expect(K.shape(t.read())).toEqual([2, 2, 2]);
+    expect(t.read().shape).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       0, 0, 0, 0, 0, 0, 0, 0
     ]));
@@ -199,7 +200,7 @@ describeMathCPUAndGPU('ZerosVariable', () => {
   it('4D', () => {
     const q = V.zerosVariable([1, 2, 1, 3], 'float32', 'Quaternary');
     expect(q.name.indexOf('Quaternary')).toEqual(0);
-    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
+    expect(q.read().shape).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0, 0, 0]));
   });
 });
@@ -208,25 +209,25 @@ describeMathCPUAndGPU('OnesVariable', () => {
   it('Scalar', () => {
     const s = V.onesVariable([], 'float32', 'Scalar');
     expect(s.name.indexOf('Scalar')).toEqual(0);
-    expect(K.shape(s.read())).toEqual([]);
+    expect(s.read().shape).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([1]));
   });
   it('Vector', () => {
     const v = V.onesVariable([3], 'float32', 'Vector');
     expect(v.name.indexOf('Vector')).toEqual(0);
-    expect(K.shape(v.read())).toEqual([3]);
+    expect(v.read().shape).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
   it('Matrix', () => {
     const m = V.onesVariable([2, 2], 'float32', 'Matrix');
     expect(m.name.indexOf('Matrix')).toEqual(0);
-    expect(K.shape(m.read())).toEqual([2, 2]);
+    expect(m.read().shape).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
   it('3D', () => {
     const t = V.onesVariable([2, 2, 2], 'float32', 'Tertiary');
     expect(t.name.indexOf('Tertiary')).toEqual(0);
-    expect(K.shape(t.read())).toEqual([2, 2, 2]);
+    expect(t.read().shape).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       1, 1, 1, 1, 1, 1, 1, 1
     ]));
@@ -234,7 +235,7 @@ describeMathCPUAndGPU('OnesVariable', () => {
   it('4D', () => {
     const q = V.onesVariable([1, 2, 1, 3], 'float32', 'Quaternary');
     expect(q.name.indexOf('Quaternary')).toEqual(0);
-    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
+    expect(q.read().shape).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1, 1, 1]));
   });
 });
@@ -242,25 +243,25 @@ describeMathCPUAndGPU('OnesVariable', () => {
 describeMathCPUAndGPU('ZerosLike', () => {
   it('Scalar', () => {
     const s = V.zerosLike(randomUniform([], -10, 10));
-    expect(K.shape(s.read())).toEqual([]);
+    expect(s.read().shape).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([0]));
   });
 
   it('Vector', () => {
     const v = V.zerosLike(randomUniform([3], -10, 10));
-    expect(K.shape(v.read())).toEqual([3]);
+    expect(v.read().shape).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([0, 0, 0]));
   });
 
   it('Matrix', () => {
     const m = V.zerosLike(randomUniform([2, 2], -10, 10));
-    expect(K.shape(m.read())).toEqual([2, 2]);
+    expect(m.read().shape).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0]));
   });
 
   it('3D', () => {
     const t = V.zerosLike(randomUniform([2, 2, 2], -10, 10));
-    expect(K.shape(t.read())).toEqual([2, 2, 2]);
+    expect(t.read().shape).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       0, 0, 0, 0, 0, 0, 0, 0
     ]));
@@ -268,7 +269,7 @@ describeMathCPUAndGPU('ZerosLike', () => {
 
   it('4D', () => {
     const q = V.zerosLike(randomUniform([1, 2, 1, 3], -10, 10));
-    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
+    expect(q.read().shape).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([0, 0, 0, 0, 0, 0]));
   });
 });
@@ -276,25 +277,25 @@ describeMathCPUAndGPU('ZerosLike', () => {
 describeMathCPUAndGPU('OnesLike', () => {
   it('Scalar', () => {
     const s = V.onesLike(randomUniform([], -10, 10));
-    expect(K.shape(s.read())).toEqual([]);
+    expect(s.read().shape).toEqual([]);
     expect(s.read().dataSync()).toEqual(new Float32Array([1]));
   });
 
   it('Vector', () => {
     const v = V.onesLike(randomUniform([3], -10, 10));
-    expect(K.shape(v.read())).toEqual([3]);
+    expect(v.read().shape).toEqual([3]);
     expect(v.read().dataSync()).toEqual(new Float32Array([1, 1, 1]));
   });
 
   it('Matrix', () => {
     const m = V.onesLike(randomUniform([2, 2], -10, 10));
-    expect(K.shape(m.read())).toEqual([2, 2]);
+    expect(m.read().shape).toEqual([2, 2]);
     expect(m.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1]));
   });
 
   it('3D', () => {
     const t = V.onesLike(randomUniform([2, 2, 2], -10, 10));
-    expect(K.shape(t.read())).toEqual([2, 2, 2]);
+    expect(t.read().shape).toEqual([2, 2, 2]);
     expect(t.read().dataSync()).toEqual(new Float32Array([
       1, 1, 1, 1, 1, 1, 1, 1
     ]));
@@ -302,7 +303,7 @@ describeMathCPUAndGPU('OnesLike', () => {
 
   it('4D', () => {
     const q = V.onesLike(randomUniform([1, 2, 1, 3], -10, 10));
-    expect(K.shape(q.read())).toEqual([1, 2, 1, 3]);
+    expect(q.read().shape).toEqual([1, 2, 1, 3]);
     expect(q.read().dataSync()).toEqual(new Float32Array([1, 1, 1, 1, 1, 1]));
   });
 });
@@ -396,5 +397,29 @@ describeMathCPUAndGPU('batchSetValue', () => {
 
   it('Update empty Array', () => {
     V.batchSetValue([]);
+  });
+});
+
+describeMathCPUAndGPU('gradients', () => {
+  it('Simple mean: 1 variable', () => {
+    const var1 = new V.LayerVariable(tfc.mul(scalar(2.0), tfc.ones([2, 2])));
+    const gradients =
+        V.gradients(() => tfc.mean(var1.read()) as tfc.Scalar, [var1]);
+    expect(gradients.length).toEqual(1);
+    expectTensorsClose(
+        tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
+  });
+  it('Simple matmul and mean: 2 variables', () => {
+    const var1 = new V.LayerVariable(tensor2d([[1, 0], [0, 0]], [2, 2]));
+    const var2 = new V.LayerVariable(tensor2d([[1, 0], [0, 1]], [2, 2]));
+    const gradients = V.gradients(
+        () => tfc.mean(K.dot(var1.read(), var2.read())) as tfc.Scalar,
+        [var1, var2]);
+    expect(gradients.length).toEqual(2);
+    // d(loss) / d(var1).
+    expectTensorsClose(
+        tensor2d([[0.25, 0.25], [0.25, 0.25]], [2, 2]), gradients[0]);
+    // d(loss) / d(var2).
+    expectTensorsClose(tensor2d([[0.25, 0.25], [0, 0]], [2, 2]), gradients[1]);
   });
 });

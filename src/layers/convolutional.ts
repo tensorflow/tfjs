@@ -28,6 +28,7 @@ import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer
 import {Kwargs, Shape} from '../types';
 import {convOutputLength, deconvLength, normalizeArray} from '../utils/conv_utils';
 import * as generic_utils from '../utils/generic_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 // tslint:enable:max-line-length
 
@@ -415,7 +416,7 @@ export abstract class Conv extends BaseConv {
   }
 
   build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const channelAxis =
         this.dataFormat === 'channelsFirst' ? 1 : inputShape.length - 1;
     if (inputShape[channelAxis] == null) {
@@ -442,7 +443,7 @@ export abstract class Conv extends BaseConv {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      inputs = generic_utils.getExactlyOneTensor(inputs);
+      inputs = getExactlyOneTensor(inputs);
       let outputs: Tensor;
       const biasValue = this.bias == null ? null : this.bias.read();
 
@@ -467,7 +468,7 @@ export abstract class Conv extends BaseConv {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const newSpace: number[] = [];
     const space = (this.dataFormat === 'channelsLast') ?
         inputShape.slice(1, inputShape.length - 1) :
@@ -617,7 +618,7 @@ export class Conv2DTranspose extends Conv2D {
   }
 
   build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
 
     if (inputShape.length !== 4) {
       throw new ValueError(
@@ -652,7 +653,7 @@ export class Conv2DTranspose extends Conv2D {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tfc.tidy(() => {
-      let input = generic_utils.getExactlyOneTensor(inputs);
+      let input = getExactlyOneTensor(inputs);
       if (input.shape.length !== 4) {
         throw new ValueError(
             `Conv2DTranspose.call() expects input tensor to be rank-4, but ` +
@@ -712,7 +713,7 @@ export class Conv2DTranspose extends Conv2D {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const outputShape = inputShape.slice();
 
     let channelAxis: number;
@@ -847,7 +848,7 @@ export class SeparableConv extends Conv {
   }
 
   build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     if (inputShape.length < this.rank + 2) {
       throw new ValueError(
           `Inputs to SeparableConv${this.rank}D should have rank ` +
@@ -895,7 +896,7 @@ export class SeparableConv extends Conv {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      inputs = generic_utils.getExactlyOneTensor(inputs);
+      inputs = getExactlyOneTensor(inputs);
 
       let output: Tensor;
       if (this.rank === 1) {
@@ -1128,7 +1129,7 @@ export class Cropping2D extends Layer {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      inputs = generic_utils.getExactlyOneTensor(inputs);
+      inputs = getExactlyOneTensor(inputs);
 
       if (this.dataFormat === 'channelsLast') {
         const hSliced = K.sliceAlongAxis(
@@ -1229,7 +1230,7 @@ export class UpSampling2D extends Layer {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tfc.tidy(() => {
-      let input = generic_utils.getExactlyOneTensor(inputs) as Tensor4D;
+      let input = getExactlyOneTensor(inputs) as Tensor4D;
       const inputShape = input.shape;
 
       if (this.dataFormat === 'channelsFirst') {

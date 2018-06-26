@@ -9,13 +9,13 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {DataType, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Tensor, variableGrads} from '@tensorflow/tfjs-core';
 
-import {randomNormal} from './backend/tfjs_backend';
+import {getNextUniqueTensorId} from './backend/state';
 import {getScopedTensorName, getUniqueTensorName} from './common';
 import {Constraint} from './constraints';
 import {NotImplementedError} from './errors';
-import {getNextUniqueTensorId, Shape, SymbolicTensor} from './types';
+import {HasShape, Shape} from './types';
 
 const DEFAULT_VARIABLE_NAME_PREFIX = 'Variable';
 
@@ -100,8 +100,7 @@ export class LayerVariable {
   }
 }
 
-function checkShapesMatch(
-    x: Tensor|SymbolicTensor, y: Tensor|SymbolicTensor): void {
+function checkShapesMatch(x: HasShape, y: HasShape): void {
   if (x.shape.toString() !== y.shape.toString()) {
     throw new Error(
         'Shape mismatch: ' + JSON.stringify(x.shape) + ' vs. ' +
@@ -192,6 +191,7 @@ export function eyeVariable(
     size: number, dtype?: DataType, name?: string): LayerVariable {
   return new LayerVariable(tfc.eye(size), dtype, name);
 }
+
 /**
  * Get a Variable with uniform distribution of values.
  * @param shape Shape of the tensor.
@@ -248,7 +248,7 @@ export function randomNormalVariable(
         `randomNormalVariable does not support dType bool.`);
   }
   return new LayerVariable(
-      randomNormal(shape, mean, stddev, dtype, seed), dtype, name);
+      tfc.randomNormal(shape, mean, stddev, dtype, seed), dtype, name);
 }
 
 /**
@@ -305,4 +305,22 @@ export function batchSetValue(
     const variable: LayerVariable = variableAndValue[0];
     variable.write(variableAndValue[1]);
   });
+}
+
+/**
+ * Returns the gradients of `variables` w.r.t. the return value of `lossFn`.
+ * @param lossFn A function which returns a Scalar to be used as the function
+ *   value (i.e., numerator) for differentiation.
+ * @param variables List of variables to be used as the independent variables
+ *   (i.e., denominator) for differentiation.
+ * @returns An Array of gradients tensors.
+ */
+export function gradients(
+    lossFn: () => tfc.Scalar, variables: LayerVariable[]): Tensor[] {
+  // TODO(cais): The return type signature can be simplified if deeplearn makes
+  //   the corresponding type public.
+  const variableList =
+      variables.map(variable => variable.read() as tfc.Variable);
+  const valudAndGrads = variableGrads(lossFn, variableList);
+  return variables.map(variable => valudAndGrads.grads[variable.name]);
 }

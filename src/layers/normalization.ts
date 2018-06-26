@@ -16,15 +16,16 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, tidy, util} from '@tensorflow/tfjs-core';
 
-import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, Layer, LayerConfig} from '../engine/topology';
+import {getScalar} from '../backend/state';
 import {NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
 import * as math_utils from '../utils/math_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
 // tslint:enable:max-line-length
@@ -315,7 +316,7 @@ export class BatchNormalization extends Layer {
   }
 
   public build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const axis = this.axis >= 0 ? this.axis : (this.axis + inputShape.length);
     const dim = inputShape[axis];
     if (dim == null) {
@@ -348,8 +349,8 @@ export class BatchNormalization extends Layer {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       const training = kwargs['training'] == null ? false : kwargs['training'];
-      const input = generic_utils.getExactlyOneTensor(inputs);
-      const inputShape = K.shape(input);
+      const input = getExactlyOneTensor(inputs);
+      const inputShape = input.shape;
       const ndim = inputShape.length;
       const reductionAxes = math_utils.range(0, ndim);
       const axis = this.axis >= 0 ? this.axis : (this.axis + ndim);
@@ -395,7 +396,7 @@ export class BatchNormalization extends Layer {
       const sampleSize =
           math_utils.arrayProd(reductionAxes.map(axis => input.shape[axis]));
       const varianceDebiased = variance.mul(
-          K.getScalar(sampleSize / (sampleSize - (1 + this.epsilon))));
+          getScalar(sampleSize / (sampleSize - (1 + this.epsilon))));
 
       // Perform updates to moving mean and moving variance for training.
       // Porting Note: In PyKeras, these updates to `movingMean` and

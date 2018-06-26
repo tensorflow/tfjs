@@ -16,11 +16,11 @@ import {elu, leakyRelu, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {Softmax as softmaxActivation} from '../activations';
 import {cast} from '../backend/tfjs_backend';
-import {getScalar} from '../backend/tfjs_backend';
 import {Layer, LayerConfig} from '../engine/topology';
+import {getScalar} from '../backend/state';
 import {NotImplementedError} from '../errors';
 import {Kwargs, Shape} from '../types';
-import * as generic_utils from '../utils/generic_utils';
+import {getExactlyOneTensor} from '../utils/types_utils';
 
 export interface LeakyReLULayerConfig extends LayerConfig {
   /**
@@ -59,7 +59,7 @@ export class LeakyReLU extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const x = generic_utils.getExactlyOneTensor(inputs);
+    const x = getExactlyOneTensor(inputs);
     return leakyRelu(x, this.alpha);
   }
 
@@ -125,7 +125,7 @@ export class ELU extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const x = generic_utils.getExactlyOneTensor(inputs);
+    const x = getExactlyOneTensor(inputs);
     return elu(x);
   }
 
@@ -185,7 +185,7 @@ export class ThresholdedReLU extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const x = generic_utils.getExactlyOneTensor(inputs);
+    const x = getExactlyOneTensor(inputs);
     return x.mul(cast(x.greater(this.thetaTensor), 'float32'));
   }
 
@@ -236,7 +236,7 @@ export class Softmax extends Layer {
   }
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
-    const x = generic_utils.getExactlyOneTensor(inputs);
+    const x = getExactlyOneTensor(inputs);
     return this.softmax(x, this.axis);
   }
 

@@ -8,9 +8,8 @@
  * =============================================================================
  */
 
-import {Model} from '..';
-import {Layer, Node} from '../engine/topology';
-import {countParamsInWeights} from './generic_utils';
+import {Container, Layer, Node} from '../engine/topology';
+import {countParamsInWeights} from './variable_utils';
 
 /**
  * Print the summary of a Model object.
@@ -28,7 +27,7 @@ import {countParamsInWeights} from './generic_utils';
  *   function in order to capture the string summary. Defaults to `console.log`.
  */
 export function printSummary(
-    model: Model, lineLength?: number, positions?: number[],
+    model: Container, lineLength?: number, positions?: number[],
     // tslint:disable-next-line:no-any
     printFn: (message?: any, ...optionalParams: any[]) => void =
         console.log): void {
@@ -93,7 +92,7 @@ export function printSummary(
   printFn('_'.repeat(lineLength));
 }
 
-function isModelSequentialLike(model: Model): boolean {
+function isModelSequentialLike(model: Container): boolean {
   let sequentialLike = true;
   const nodesByDepth: Node[][] = [];
   const nodes: Node[] = [];

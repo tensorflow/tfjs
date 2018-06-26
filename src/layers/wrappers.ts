@@ -17,11 +17,14 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import * as K from '../backend/tfjs_backend';
-import {Layer, LayerConfig} from '../engine/topology';
+import {nameScope} from '../common';
+import {Layer, LayerConfig, SymbolicTensor} from '../engine/topology';
+import {getScalar} from '../backend/state';
 import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
-import {RegularizerFn, RnnStepFunction, SymbolicTensor} from '../types';
+import {RegularizerFn, RnnStepFunction} from '../types';
 import * as generic_utils from '../utils/generic_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
 import {rnn, RNN} from './recurrent';
@@ -192,7 +195,7 @@ export class TimeDistributed extends Wrapper {
   }
 
   build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     if (inputShape.length < 3) {
       throw new ValueError(
           `TimeDistributed layer expects an input shape >= 3D, but received ` +
@@ -208,7 +211,7 @@ export class TimeDistributed extends Wrapper {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const childInputShape = [inputShape[0]].concat(inputShape.slice(2));
     const childOutputShape =
         this.layer.computeOutputShape(childInputShape) as Shape;
@@ -219,7 +222,7 @@ export class TimeDistributed extends Wrapper {
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
       // TODO(cais): Add 'training' and 'useLearningPhase' to kwargs.
-      inputs = generic_utils.getExactlyOneTensor(inputs);
+      inputs = getExactlyOneTensor(inputs);
       // Porting Note: In tfjs-layers, `inputs` are always concrete tensor
       // values. Hence the inputs can't have an undetermined first (batch)
       // dimension, which is why we always use the K.rnn approach here.
@@ -431,8 +434,7 @@ export class Bidirectional extends Wrapper {
       } else if (this.mergeMode === 'sum') {
         output = tfc.add(y as Tensor, yRev as Tensor);
       } else if (this.mergeMode === 'ave') {
-        output = K.scalarTimesArray(
-            K.getScalar(0.5), tfc.add(y as Tensor, yRev as Tensor));
+        output = tfc.mul(getScalar(0.5), tfc.add(y as Tensor, yRev as Tensor));
       } else if (this.mergeMode === 'mul') {
         output = tfc.mul(y as Tensor, yRev as Tensor);
       } else if (this.mergeMode == null) {
@@ -456,10 +458,10 @@ export class Bidirectional extends Wrapper {
   }
 
   build(inputShape: Shape|Shape[]): void {
-    K.nameScope(this.forwardLayer.name, () => {
+    nameScope(this.forwardLayer.name, () => {
       this.forwardLayer.build(inputShape);
     });
-    K.nameScope(this.backwardLayer.name, () => {
+    nameScope(this.backwardLayer.name, () => {
       this.backwardLayer.build(inputShape);
     });
     this.built = true;

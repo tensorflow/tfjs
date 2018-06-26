@@ -11,11 +11,9 @@
 /* Original source: utils/generic_utils.py */
 
 // tslint:disable:max-line-length
-import {DataType, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {DataType, serialization} from '@tensorflow/tfjs-core';
 
 import {AssertionError, ValueError} from '../errors';
-import {Shape} from '../types';
-import {LayerVariable} from '../variables';
 // tslint:enable
 
 /**
@@ -104,29 +102,6 @@ export function objectListUid(objs: any|any[]): string {
   }
   return retVal;
 }
-/**
- * Determine whether the input is an Array of Shapes.
- */
-export function isArrayOfShapes(x: Shape|Shape[]): boolean {
-  return Array.isArray(x) && Array.isArray(x[0]);
-}
-
-/**
- * Special case of normalizing shapes to lists.
- *
- * @param x A shape or list of shapes to normalize into a list of Shapes.
- * @return A list of Shapes.
- */
-export function normalizeShapeList(x: Shape|Shape[]): Shape[] {
-  if (x.length === 0) {
-    return [];
-  }
-  if (!Array.isArray(x[0])) {
-    return [x] as Shape[];
-  }
-  return x as Shape[];
-}
-
 /**
  * Converts string to snake-case.
  * @param name
@@ -263,48 +238,6 @@ export function deserializeKerasObject(
 }
 
 /**
- * Helper function to obtain exactly one Tensor.
- * @param xs: A single `Tensor` or an `Array` of `Tensor`s.
- * @return A single `Tensor`. If `xs` is an `Array`, return the first one.
- * @throws ValueError: If `xs` is an `Array` and its length is not 1.
- */
-export function getExactlyOneTensor(xs: Tensor|Tensor[]): Tensor {
-  let x: Tensor;
-  if (Array.isArray(xs)) {
-    if (xs.length !== 1) {
-      throw new ValueError(`Expected Tensor length to be 1; got ${xs.length}`);
-    }
-    x = xs[0];
-  } else {
-    x = xs as Tensor;
-  }
-  return x;
-}
-
-/**
- * Helper function to obtain exactly on instance of Shape.
- *
- * @param shapes Input single `Shape` or Array of `Shape`s.
- * @returns If input is a single `Shape`, return it unchanged. If the input is
- *   an `Array` containing exactly one instance of `Shape`, return the instance.
- *   Otherwise, throw a `ValueError`.
- * @throws ValueError: If input is an `Array` of `Shape`s, and its length is not
- *   1.
- */
-export function getExactlyOneShape(shapes: Shape|Shape[]): Shape {
-  if (Array.isArray(shapes) && Array.isArray(shapes[0])) {
-    if (shapes.length === 1) {
-      shapes = shapes as Shape[];
-      return shapes[0];
-    } else {
-      throw new ValueError(`Expected exactly 1 Shape; got ${shapes.length}`);
-    }
-  } else {
-    return shapes as Shape;
-  }
-}
-
-/**
  * Compares two numbers for sorting.
  * @param a
  * @param b
@@ -437,22 +370,3 @@ export function checkArrayTypeAndLength(
       x.every(e => typeof e === expectedType));
 }
 // tslint:enable:no-any
-
-/**
- * Count the elements in an Array of LayerVariables.
- *
- * @param weights: The LayerVariables of which the constituent numbers are to
- *   be counted.
- * @returns A count of the elements in all the LayerVariables
- */
-export function countParamsInWeights(weights: LayerVariable[]): number {
-  let count = 0;
-  for (const weight of weights) {
-    if (weight.shape.length === 0) {
-      count += 1;
-    } else {
-      count += weight.shape.reduce((a, b) => a * b);
-    }
-  }
-  return count;
-}

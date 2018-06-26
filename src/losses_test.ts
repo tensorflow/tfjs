@@ -15,7 +15,7 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {scalar, Tensor, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
+import {epsilon} from './backend/common';
 import * as losses from './losses';
 import {describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
 
@@ -76,7 +76,7 @@ describeMathCPUAndGPU('meanAbsolutePercentageError', () => {
 
 describeMathCPUAndGPU('meanSquaredLogarithmicError', () => {
   function meanSquaredLogErrorFor1DArray(x: number[], y: number[]): number {
-    const calcLog = (val: number) => Math.log(Math.max(val, K.epsilon()) + 1);
+    const calcLog = (val: number) => Math.log(Math.max(val, epsilon()) + 1);
     const logX = x.map(calcLog);
     const logY = y.map(calcLog);
     let acc = 0.0;
@@ -208,9 +208,9 @@ describeMathCPUAndGPU('sigmoidCrossEntropyWithLogits', () => {
   it('outputs sigmoid cross-entropy', () => {
     const x = tensor2d([[1, 2], [3, 4]], [2, 2]);
     const target = tensor2d([[0.25, 0.75], [0.1, 0.9]], [2, 2]);
-    const targetComplement = K.scalarPlusArray(scalar(1), tfc.neg(target));
+    const targetComplement = tfc.add(scalar(1), tfc.neg(target));
     const sigmoidX = tfc.sigmoid(x);
-    const sigmoidXComplement = K.scalarPlusArray(scalar(1), tfc.neg(sigmoidX));
+    const sigmoidXComplement = tfc.add(scalar(1), tfc.neg(sigmoidX));
     const expected = tfc.add(
         tfc.mul(target, tfc.neg(tfc.log(sigmoidX))),
         tfc.mul(targetComplement, tfc.neg(tfc.log(sigmoidXComplement))));
@@ -242,8 +242,8 @@ describeMathCPUAndGPU('sparseCategoricalCrossentropy', () => {
 
 describeMathCPUAndGPU('binaryCrossentropy', () => {
   function _binaryCrossentropy(target: Tensor, output: Tensor): Tensor {
-    const targetComplement = K.scalarPlusArray(scalar(1), tfc.neg(target));
-    const outputComplement = K.scalarPlusArray(scalar(1), tfc.neg(output));
+    const targetComplement = tfc.add(scalar(1), tfc.neg(target));
+    const outputComplement = tfc.add(scalar(1), tfc.neg(output));
     return tfc.mean(
         tfc.neg(tfc.add(
             tfc.mul(target, tfc.log(output)),
@@ -262,8 +262,8 @@ describeMathCPUAndGPU('binaryCrossentropy', () => {
 
 describeMathCPUAndGPU('kullbackLeiblerDivergence', () => {
   function klElement(actual: number, predicted: number): number {
-    actual = Math.max(actual, K.epsilon());
-    predicted = Math.max(predicted, K.epsilon());
+    actual = Math.max(actual, epsilon());
+    predicted = Math.max(predicted, epsilon());
     return actual * Math.log(actual / predicted);
   }
 
@@ -281,7 +281,7 @@ describeMathCPUAndGPU('kullbackLeiblerDivergence', () => {
 
 describeMathCPUAndGPU('poisson', () => {
   function poissonElement(actual: number, predicted: number): number {
-    return predicted - actual * Math.log(predicted + K.epsilon());
+    return predicted - actual * Math.log(predicted + epsilon());
   }
 
   it('2D', () => {

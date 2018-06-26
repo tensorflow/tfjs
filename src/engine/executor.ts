@@ -14,8 +14,8 @@
 
 import {Tensor} from '@tensorflow/tfjs-core';
 import {ValueError} from '../errors';
-import {Kwargs, SymbolicTensor} from '../types';
-import {InputLayer} from './topology';
+import {Kwargs} from '../types';
+import {InputLayer, SymbolicTensor} from './topology';
 
 /**
  * Helper function to check the dtype and shape compatibility of a feed value.

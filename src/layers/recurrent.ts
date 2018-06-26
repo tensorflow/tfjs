@@ -19,14 +19,15 @@ import {DataType, doc, serialization, Tensor, tidy, util} from '@tensorflow/tfjs
 import {Activation, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
-import {InputSpec} from '../engine/topology';
+import {InputSpec, SymbolicTensor} from '../engine/topology';
 import {Layer, LayerConfig} from '../engine/topology';
+import {getScalar} from '../backend/state';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
-import {Kwargs, RnnStepFunction, Shape, SymbolicTensor} from '../types';
-import * as generic_utils from '../utils/generic_utils';
+import {Kwargs, RnnStepFunction, Shape} from '../types';
 import * as math_utils from '../utils/math_utils';
+import {getExactlyOneShape, getExactlyOneTensor, isArrayOfShapes} from '../utils/types_utils';
 import {batchGetValue, batchSetValue, LayerVariable} from '../variables';
 
 import {deserialize} from './serialization';
@@ -358,7 +359,7 @@ export class RNN extends Layer {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    if (generic_utils.isArrayOfShapes(inputShape)) {
+    if (isArrayOfShapes(inputShape)) {
       inputShape = (inputShape as Shape[])[0];
     }
     inputShape = inputShape as Shape;
@@ -401,7 +402,7 @@ export class RNN extends Layer {
           'Constants support is not implemented in RNN yet.');
     }
 
-    if (generic_utils.isArrayOfShapes(inputShape)) {
+    if (isArrayOfShapes(inputShape)) {
       inputShape = (inputShape as Shape[])[0];
     }
     inputShape = inputShape as Shape;
@@ -641,7 +642,7 @@ export class RNN extends Layer {
       let initialState: Tensor[] =
           kwargs == null ? null : kwargs['initialState'];
 
-      inputs = generic_utils.getExactlyOneTensor(inputs);
+      inputs = getExactlyOneTensor(inputs);
       if (initialState == null) {
         if (this.stateful) {
           throw new NotImplementedError(
@@ -970,7 +971,7 @@ export class SimpleRNNCell extends RNNCell {
   }
 
   build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     // TODO(cais): Use regularizer.
     this.kernel = this.addWeight(
         'kernel', [inputShape[inputShape.length - 1], this.units], null,
@@ -1404,7 +1405,7 @@ export class GRUCell extends RNNCell {
   }
 
   public build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const inputDim = inputShape[inputShape.length - 1];
     this.kernel = this.addWeight(
         'kernel', [inputDim, this.units * 3], null, this.kernelInitializer,
@@ -1517,8 +1518,7 @@ export class GRUCell extends RNNCell {
       }
 
       const h = tfc.add(
-          tfc.mul(z, hTMinus1),
-          tfc.mul(K.scalarPlusArray(K.getScalar(1), tfc.neg(z)), hh));
+          tfc.mul(z, hTMinus1), tfc.mul(tfc.add(getScalar(1), tfc.neg(z)), hh));
       // TODO(cais): Add use_learning_phase flag properly.
       return [h, h];
     });
@@ -1878,7 +1878,7 @@ export class LSTMCell extends RNNCell {
   }
 
   public build(inputShape: Shape|Shape[]): void {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     const inputDim = inputShape[inputShape.length - 1];
     this.kernel = this.addWeight(
         'kernel', [inputDim, this.units * 4], null, this.kernelInitializer,
@@ -2315,7 +2315,7 @@ export class StackedRNNCells extends RNNCell {
   }
 
   public build(inputShape: Shape|Shape[]): void {
-    if (generic_utils.isArrayOfShapes(inputShape)) {
+    if (isArrayOfShapes(inputShape)) {
       // TODO(cais): Take care of input constants.
       // const constantShape = inputShape.slice(1);
       inputShape = (inputShape as Shape[])[0];

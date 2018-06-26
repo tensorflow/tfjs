@@ -14,20 +14,24 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {doc, io, ModelPredictConfig, Optimizer, Scalar, serialization, Tensor, Tensor1D, tensor1d, util} from '@tensorflow/tfjs-core';
 
+import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
-import {BaseLogger, Callback, CallbackList, CustomCallbackConfig, disposeTensorsInLogs, History, standardizeCallbacks, UnresolvedLogs} from '../callbacks';
+import {BaseCallback, BaseLogger, CallbackList, CustomCallbackConfig, History, standardizeCallbacks} from '../base_callbacks';
+import {nameScope} from '../common';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
+import {disposeTensorsInLogs, UnresolvedLogs} from '../logs';
 import * as losses from '../losses';
 import * as Metrics from '../metrics';
 import * as optimizers from '../optimizers';
-import {LossOrMetricFn, NamedTensorMap, Shape, SymbolicTensor} from '../types';
+import {LossOrMetricFn, NamedTensorMap, Shape} from '../types';
 import {count, pyListRepeat, singletonOrArray, unique} from '../utils/generic_utils';
 import {printSummary} from '../utils/layer_utils';
 import {range} from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 
 import {execute, FeedDict} from './executor';
-import {Container, ContainerConfig} from './topology';
+import {Container, ContainerConfig, SymbolicTensor} from './topology';
+
 // tslint:enable:max-line-length
 
 /**
@@ -505,7 +509,7 @@ export interface ModelFitConfig {
    * Can consist of one or more of the following fields: `onTrainBegin`,
    * `onTrainEnd`, `onEpochBegin`, `onEpochEnd`, `onBatchBegin`, `onBatchEnd`.
    */
-  callbacks?: Callback[]|CustomCallbackConfig|CustomCallbackConfig[];
+  callbacks?: BaseCallback[]|CustomCallbackConfig|CustomCallbackConfig[];
 
   /**
    * Float between 0 and 1: fraction of the training data
@@ -794,7 +798,7 @@ export class Model extends Container implements tfc.InferenceModel {
     // Porting Note: In PyKeras, metrics_tensors are symbolic tensor objects.
     //   Here, metricsTensors are TypeScript functions. This difference is due
     //   to the difference in symbolic/imperative property of the backends.
-    K.nameScope('loss', () => {
+    nameScope('loss', () => {
       for (let i = 0; i < this.outputs.length; ++i) {
         if (skipTargetIndices.indexOf(i) !== -1) {
           continue;
@@ -828,7 +832,7 @@ export class Model extends Container implements tfc.InferenceModel {
           this.metricsTensors.push([metricTensor, outputIndex]);
         };
 
-    K.nameScope('metric', () => {
+    nameScope('metric', () => {
       for (let i = 0; i < this.outputs.length; ++i) {
         if (skipTargetIndices.indexOf(i) !== -1) {
           continue;
@@ -893,7 +897,7 @@ export class Model extends Container implements tfc.InferenceModel {
 
             // TODO(cais): Add weighting and masking to metricResult.
             let metricResult: LossOrMetricFn;
-            K.nameScope(metricName, () => {
+            nameScope(metricName, () => {
               metricResult = weightedMetricFn;
             });
             appendMetric(i, metricName, metricResult);
@@ -1302,7 +1306,7 @@ export class Model extends Container implements tfc.InferenceModel {
   private async fitLoop(
       f: (data: Tensor[]) => Scalar[], ins: Tensor[], outLabels?: string[],
       batchSize?: number, epochs?: number, verbose?: number,
-      callbacks?: Callback[], valF?: (data: Tensor[]) => Scalar[],
+      callbacks?: BaseCallback[], valF?: (data: Tensor[]) => Scalar[],
       valIns?: Tensor[], shuffle?: boolean|string, callbackMetrics?: string[],
       initialEpoch = 0, stepsPerEpoch?: number,
       validationSteps?: number): Promise<History> {
@@ -1345,7 +1349,7 @@ export class Model extends Container implements tfc.InferenceModel {
     if (callbacks == null) {
       callbacks = [new BaseLogger()];
     } else {
-      callbacks = [new BaseLogger() as Callback].concat(callbacks);
+      callbacks = ([new BaseLogger()] as BaseCallback[]).concat(callbacks);
     }
     callbacks = callbacks.concat([this.history]);
 
@@ -1489,20 +1493,20 @@ export class Model extends Container implements tfc.InferenceModel {
           const batchOuts = f(insBatch);
           if (batchIndex === 0) {
             for (let i = 0; i < batchOuts.length; ++i) {
-              outs.push(K.getScalar(0));
+              outs.push(getScalar(0));
             }
           }
           for (let i = 0; i < batchOuts.length; ++i) {
             const batchOut = batchOuts[i];
-            outs[i] = tfc.add(
-                          outs[i],
-                          K.scalarTimesArray(
-                              K.getScalar(batchEnd - batchStart), batchOut)) as
+            outs[i] =
+                tfc.add(
+                    outs[i],
+                    tfc.mul(getScalar(batchEnd - batchStart), batchOut)) as
                 Scalar;
           }
         }
         for (let i = 0; i < outs.length; ++i) {
-          outs[i] = tfc.div(outs[i], K.getScalar(numSamples)) as Scalar;
+          outs[i] = tfc.div(outs[i], getScalar(numSamples)) as Scalar;
         }
       }
       return outs;

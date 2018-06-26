@@ -17,8 +17,8 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {Tensor, tensor2d, Tensor2D, tensor3d, tensor4d, Tensor4D, util} from '@tensorflow/tfjs-core';
 
 import {DataFormat, PaddingMode, PoolMode} from '../common';
+import {SymbolicTensor} from '../engine/topology';
 import * as tfl from '../index';
-import {SymbolicTensor} from '../types';
 import {convOutputLength} from '../utils/conv_utils';
 import {describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 

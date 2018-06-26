@@ -13,7 +13,7 @@
  */
 
 // tslint:disable:max-line-length
-import {ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
+import {mul, ones, scalar, Tensor, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
 import {ActivationIdentifier} from '../activations';
 import * as K from '../backend/tfjs_backend';
@@ -376,14 +376,14 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
   const inputShape = [1];
 
   it('linear', () => {
-    const x = K.scalarTimesArray(scalar(10), ones(inputShape));
+    const x = mul(scalar(10), ones(inputShape));
     const layer = new Activation({activation: 'linear'});
     const output = layer.apply(x) as Tensor;
     expectTensorsClose(output, x);
   });
 
   it('relu', () => {
-    const x = K.scalarTimesArray(scalar(-5), ones(inputShape));
+    const x = mul(scalar(-5), ones(inputShape));
     const expectedValue = zeros(inputShape);
     const layer = new Activation({activation: 'relu'});
     const output = layer.apply(x) as Tensor;
@@ -392,8 +392,8 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
 
   it('sigmoid', () => {
     const val = 10;
-    const x = K.scalarTimesArray(scalar(val), ones(inputShape));
-    const expectedValue = K.scalarTimesArray(
+    const x = mul(scalar(val), ones(inputShape));
+    const expectedValue = mul(
         scalar(1 / (1 + Math.exp(-1 * val))), ones(inputShape));
     const layer = new Activation({activation: 'sigmoid'});
     const output = layer.apply(x) as Tensor;
@@ -401,7 +401,7 @@ describeMathCPUAndGPU('Activation Layer: Tensor', () => {
   });
 
   it('softmax', () => {
-    const x = K.scalarTimesArray(scalar(10), ones(inputShape));
+    const x = mul(scalar(10), ones(inputShape));
     const expectedValue = ones(inputShape);
     const layer = new Activation({activation: 'softmax'});
     const output = layer.apply(x) as Tensor;

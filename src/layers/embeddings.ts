@@ -24,7 +24,7 @@ import {getInitializer, Initializer, InitializerIdentifier, serializeInitializer
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
 import {Kwargs, Shape} from '../types';
 import * as generic_utils from '../utils/generic_utils';
-import {getExactlyOneShape} from '../utils/generic_utils';
+import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
 // tslint:enable:max-line-length
@@ -146,7 +146,7 @@ export class Embedding extends Layer {
   }
 
   computeOutputShape(inputShape: Shape|Shape[]): Shape|Shape[] {
-    inputShape = generic_utils.getExactlyOneShape(inputShape);
+    inputShape = getExactlyOneShape(inputShape);
     if (this.inputLength == null) {
       return [...inputShape, this.outputDim];
     }
@@ -178,8 +178,8 @@ export class Embedding extends Layer {
     return tidy(() => {
       this.invokeCallHook(inputs, kwargs);
       // Embedding layer accepts only a single input.
-      let input = generic_utils.getExactlyOneTensor(inputs);
-      if (K.dtype(input) !== 'int32') {
+      let input = getExactlyOneTensor(inputs);
+      if (input.dtype !== 'int32') {
         input = K.cast(input, 'int32');
       }
       const output = K.gather(this.embeddings.read(), input.as1D());
