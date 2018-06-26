@@ -96,14 +96,22 @@ function deepMapInternal(
   }
 }
 
-// Similar to IteratorResult. except that the 'done' signal is inverted
-export type AsyncDeepMapResult = {
+/**
+ * A return value for an async map function for use with deepMapAndAwaitAll.
+ *
+ * If recurse is true, the value should be empty, and iteration will continue
+ * into the object or array.
+ */
+export type DeepMapAsyncResult = {
   value: Promise<any>,
   recurse: boolean
 };
 
 /**
  * Apply an async mapping function to a nested structure in a recursive manner.
+ *
+ * This first creates a nested structure of Promises, and then awaits all of
+ * those, resulting in a single Promise for a resolved nested structure.
  *
  * The result of the mapping is an object with the same nested structure (i.e.,
  * of arrays and dicts) as the input, except that some subtrees are replaced,
@@ -115,14 +123,14 @@ export type AsyncDeepMapResult = {
  *
  * @param input: The object to which to apply the mapping function.
  * @param mapFn: A function that expects a single node of the object tree, and
- *   returns an `AsyncDeepMapResult`.  The `AsyncDeepMapResult` either provides
+ *   returns a `DeepMapAsyncResult`.  The `DeepMapAsyncResult` either provides
  *   a `Promise` for a replacement value for that node (i.e., replacing the
  *   subtree), or indicates that the node should be processed recursively.  Note
  *   that the decision whether or not to recurse must be made immediately; only
  *   the mapped value may be promised.
  */
-export async function asyncDeepMap(
-    input: any, mapFn: (x: any) => AsyncDeepMapResult): Promise<any|any[]> {
+export async function deepMapAndAwaitAll(
+    input: any, mapFn: (x: any) => DeepMapAsyncResult): Promise<any|any[]> {
   const seen: Map<any, Promise<any>> = new Map();
 
   // First do a normal deepMap, collecting Promises in 'seen' as a side effect.
