@@ -18,7 +18,12 @@
 
 // tslint:disable:no-any
 
-// Similar to IteratorResult. except that the 'done' signal is inverted
+/**
+ * A return value for a mapping function that can be applied via deepMap.
+ *
+ * If recurse is true, the value should be empty, and iteration will continue
+ * into the object or array.
+ */
 export type DeepMapResult = {
   value: any,
   recurse: boolean
@@ -60,7 +65,7 @@ function deepMapInternal(
     return null;
   }
   if (containedIn.has(input)) {
-    throw new Error('Circular references are not supported: ' + input);
+    throw new Error('Circular references are not supported.');
   }
   if (seen.has(input)) {
     return seen.get(input);

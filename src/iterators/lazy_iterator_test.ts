@@ -329,7 +329,7 @@ describe('LazyIterator', () => {
     }
   });
 
-  it('requires streams of the same length by default', async done => {
+  it('zip requires streams of the same length by default', async done => {
     try {
       const a = new TestIntegerIterator(10);
       const b = new TestIntegerIterator(3);
@@ -343,35 +343,38 @@ describe('LazyIterator', () => {
     }
   });
 
-  it('can terminate when the shortest stream terminates', async done => {
-    try {
-      const a = new TestIntegerIterator(10);
-      const b = new TestIntegerIterator(3);
-      const c = new TestIntegerIterator(2);
-      const readStream =
-          iteratorFromZipped([a, b, c], ZipMismatchMode.SHORTEST);
-      const result = await readStream.collectRemaining();
-      expect(result.length).toEqual(2);
-      done();
-    } catch (e) {
-      done.fail();
-    }
-  });
+  it('zip can be told to terminate when the shortest stream terminates',
+     async done => {
+       try {
+         const a = new TestIntegerIterator(10);
+         const b = new TestIntegerIterator(3);
+         const c = new TestIntegerIterator(2);
+         const readStream =
+             iteratorFromZipped([a, b, c], ZipMismatchMode.SHORTEST);
+         const result = await readStream.collectRemaining();
+         expect(result.length).toEqual(2);
+         done();
+       } catch (e) {
+         done.fail();
+       }
+     });
 
-  it('can terminate when the longest stream terminates', async done => {
-    try {
-      const a = new TestIntegerIterator(10);
-      const b = new TestIntegerIterator(3);
-      const c = new TestIntegerIterator(2);
-      const readStream = iteratorFromZipped([a, b, c], ZipMismatchMode.LONGEST);
-      const result = await readStream.collectRemaining();
-      expect(result.length).toEqual(10);
-      expect(result[9]).toEqual([9, null, null]);
-      done();
-    } catch (e) {
-      done.fail();
-    }
-  });
+  it('zip can be told to terminate when the longest stream terminates',
+     async done => {
+       try {
+         const a = new TestIntegerIterator(10);
+         const b = new TestIntegerIterator(3);
+         const c = new TestIntegerIterator(2);
+         const readStream =
+             iteratorFromZipped([a, b, c], ZipMismatchMode.LONGEST);
+         const result = await readStream.collectRemaining();
+         expect(result.length).toEqual(10);
+         expect(result[9]).toEqual([9, null, null]);
+         done();
+       } catch (e) {
+         done.fail();
+       }
+     });
 
   /**
    * This test demonstrates behavior that is intrinsic to the tf.data zip() API,
