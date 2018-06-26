@@ -1798,10 +1798,17 @@ export class MathBackendCPU implements KernelBackend {
     const [batch, oldHeight, oldWidth, numChannels] = x.shape;
     const output =
         ops.buffer<Rank.R4>([batch, newHeight, newWidth, numChannels], x.dtype);
-    const effectiveInputSize: [number, number] =
-        alignCorners ? [oldHeight - 1, oldWidth - 1] : [oldHeight, oldWidth];
-    const effectiveOutputSize: [number, number] =
-        alignCorners ? [newHeight - 1, newWidth - 1] : [newHeight, newWidth];
+
+    const effectiveInputSize: [number, number] = [
+      (alignCorners && newHeight > 1) ? oldHeight - 1 : oldHeight,
+      (alignCorners && newWidth > 1) ? oldWidth - 1 : oldWidth
+    ];
+
+    const effectiveOutputSize: [number, number] = [
+      (alignCorners && newHeight > 1) ? newHeight - 1 : newHeight,
+      (alignCorners && newWidth > 1) ? newWidth - 1 : newWidth
+    ];
+
     for (let b = 0; b < batch; b++) {
       for (let r = 0; r < newHeight; r++) {
         for (let c = 0; c < newWidth; c++) {
@@ -1827,6 +1834,96 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
 
+    return output.toTensor();
+  }
+
+  resizeNearestNeighborBackprop(
+      dy: Tensor4D, x: Tensor4D, alignCorners: boolean) {
+    const [batch, xHeight, xWidth, depth] = x.shape;
+    const [, yHeight, yWidth] = dy.shape;
+
+    const output =
+        ops.buffer<Rank.R4>([batch, xHeight, xWidth, depth], x.dtype);
+
+    // In the backwards pass, we want to find the pixels that were generated for
+    // each pixel in the input image the forward pass
+
+    const effectiveXSize: [number, number] = [
+      (alignCorners && yHeight > 1) ? xHeight - 1 : xHeight,
+      (alignCorners && yWidth > 1) ? xWidth - 1 : xWidth
+    ];
+
+    const effectiveYSize: [number, number] = [
+      (alignCorners && yHeight > 1) ? yHeight - 1 : yHeight,
+      (alignCorners && yWidth > 1) ? yWidth - 1 : yWidth
+    ];
+
+    const heightScale = effectiveXSize[0] / effectiveYSize[0];
+    const widthScale = effectiveXSize[1] / effectiveYSize[1];
+
+    const invHeightScale = 1 / heightScale;
+    const invWidthScale = 1 / widthScale;
+
+    // This defines the size of the window of values around a particular
+    // index in dy that we want to search for contributions to dx.
+    const winHeight = (Math.ceil(invHeightScale) * 2) + 2;
+    const winWidth = (Math.ceil(invWidthScale) * 2) + 2;
+
+    // Loop over the output space.
+    for (let b = 0; b < batch; b++) {
+      for (let r = 0; r < xHeight; r++) {
+        for (let c = 0; c < xWidth; c++) {
+          // Compute bounds for where in dy we will look
+          const startRLerp = Math.floor(r * invHeightScale);
+          const startDyR = Math.floor(startRLerp - (winHeight / 2));
+
+          const startCLerp = Math.floor(c * invWidthScale);
+          const startDyC = Math.floor(startCLerp - (winWidth / 2));
+
+          for (let d = 0; d < depth; d++) {
+            let accum = 0;
+            // loop over dy
+
+            for (let dyROffset = 0; dyROffset < winHeight; dyROffset++) {
+              const dyR = dyROffset + startDyR;
+              // Guard against the window exceeding the bounds of dy
+              if (dyR < 0 || dyR >= yHeight) {
+                continue;
+              }
+
+              for (let dyCOffSet = 0; dyCOffSet < winWidth; dyCOffSet++) {
+                const dyC = dyCOffSet + startDyC;
+                // Guard against the window exceeding the bounds of dy
+                if (dyC < 0 || dyC >= yWidth) {
+                  continue;
+                }
+
+                const sourceFracRow =
+                    effectiveXSize[0] * (dyR / effectiveYSize[0]);
+                const sourceFracCol =
+                    effectiveXSize[1] * (dyC / effectiveYSize[1]);
+
+                const sourceNearestRow = Math.min(
+                    xHeight - 1,
+                    alignCorners ? Math.round(sourceFracRow) :
+                                   Math.floor(sourceFracRow));
+
+                const sourceNearestCol = Math.min(
+                    xWidth - 1,
+                    alignCorners ? Math.round(sourceFracCol) :
+                                   Math.floor(sourceFracCol));
+
+                if (r === sourceNearestRow && c === sourceNearestCol) {
+                  accum += dy.get(b, dyR, dyC, d);
+                }
+              }
+            }
+
+            output.set(accum, b, r, c, d);
+          }
+        }
+      }
+    }
     return output.toTensor();
   }
 

@@ -115,10 +115,22 @@ export class ImageOps {
           images.as4D(1, images.shape[0], images.shape[1], images.shape[2]);
     }
     const [newHeight, newWidth] = size;
-    const res = ENV.engine.runKernel(
-        backend => backend.resizeNearestNeighbor(
-            batchImages, newHeight, newWidth, alignCorners),
-        {batchImages});
+
+    const forward: ForwardFunc<Tensor4D> = (backend, save) =>
+        backend.resizeNearestNeighbor(
+            batchImages, newHeight, newWidth, alignCorners);
+
+    const backward = (dy: Tensor4D, saved: Tensor[]) => {
+      return {
+        batchImages: () => ENV.engine.runKernel(
+            backend => backend.resizeNearestNeighborBackprop(
+                dy, batchImages, alignCorners),
+            {})
+      };
+    };
+
+    const res = ENV.engine.runKernel(forward, {batchImages}, backward);
+
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
