@@ -18,7 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import {operation} from './operation';
 
 export class StridedSliceOps {
@@ -53,13 +54,12 @@ export class StridedSliceOps {
   @doc({heading: 'Operations', subheading: 'Slicing and Joining'})
   @operation
   static stridedSlice<T extends Tensor>(
-      x: T, begin: number[], end: number[], strides: number[], beginMask = 0,
-      endMask = 0): T {
-    assertArgumentsAreTensors({x}, 'stridedSlice');
-
+      x: T|TensorLike, begin: number[], end: number[], strides: number[],
+      beginMask = 0, endMask = 0): T {
+    const $x = convertToTensor(x, 'x', 'stridedSlice');
     return ENV.engine.runKernel(
                backend => backend.stridedSlice(
-                   x, begin, end, strides, beginMask, endMask),
-               {x}) as T;
+                   $x, begin, end, strides, beginMask, endMask),
+               {$x}) as T;
   }
 }

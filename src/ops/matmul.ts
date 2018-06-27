@@ -18,7 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Scalar, Tensor, Tensor1D, Tensor2D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import {operation} from './operation';
 
@@ -40,50 +41,52 @@ export class MatmulOps {
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
   static matMul(
-      a: Tensor2D, b: Tensor2D, transposeA = false, transposeB = false):
-      Tensor2D {
-    assertArgumentsAreTensors({a, b}, 'matMul');
+      a: Tensor2D|TensorLike, b: Tensor2D|TensorLike, transposeA = false,
+      transposeB = false): Tensor2D {
+    const $a = convertToTensor(a, 'a', 'matMul');
+    const $b = convertToTensor(b, 'b', 'matMul');
 
-    const innerShapeA = transposeA ? a.shape[0] : a.shape[1];
-    const innerShapeB = transposeB ? b.shape[1] : b.shape[0];
+    const innerShapeA = transposeA ? $a.shape[0] : $a.shape[1];
+    const innerShapeB = transposeB ? $b.shape[1] : $b.shape[0];
 
     util.assert(
-        a.rank === 2 && b.rank === 2,
-        `Error in matMul: inputs must be rank 2, got ranks ${a.rank}` +
-            ` and ${b.rank}.`);
+        $a.rank === 2 && $b.rank === 2,
+        `Error in matMul: inputs must be rank 2, got ranks ${$a.rank}` +
+            ` and ${$b.rank}.`);
 
     util.assert(
         innerShapeA === innerShapeB,
         `Error in matMul: inner shapes (${innerShapeA}) and (` +
-            `${innerShapeB}) of Tensors with shapes ${a.shape} and ` +
-            `${b.shape} and transposeA=${transposeA}` +
+            `${innerShapeB}) of Tensors with shapes ${$a.shape} and ` +
+            `${$b.shape} and transposeA=${transposeA}` +
             ` and transposeB=${transposeB} must match.`);
 
     const grad = (dy: Tensor2D) => {
       if (!transposeA && !transposeB) {
         return {
-          a: () => dy.matMul(b.toFloat(), false, true),
-          b: () => a.toFloat().matMul(dy, true, false)
+          $a: () => dy.matMul($b.toFloat(), false, true),
+          $b: () => $a.toFloat().matMul(dy, true, false)
         };
       } else if (!transposeA && transposeB) {
         return {
-          a: () => dy.matMul(b.toFloat(), false, false),
-          b: () => dy.matMul(a.toFloat(), true, false)
+          $a: () => dy.matMul($b.toFloat(), false, false),
+          $b: () => dy.matMul($a.toFloat(), true, false)
         };
       } else if (transposeA && !transposeB) {
         return {
-          a: () => b.toFloat().matMul(dy, false, true),
-          b: () => a.toFloat().matMul(dy, false, false)
+          $a: () => $b.toFloat().matMul(dy, false, true),
+          $b: () => $a.toFloat().matMul(dy, false, false)
         };
       } else {
         return {
-          a: () => b.toFloat().matMul(dy, true, true),
-          b: () => dy.matMul(a.toFloat(), true, true)
+          $a: () => $b.toFloat().matMul(dy, true, true),
+          $b: () => dy.matMul($a.toFloat(), true, true)
         };
       }
     };
     return ENV.engine.runKernel(
-        backend => backend.matMul(a, b, transposeA, transposeB), {a, b}, grad);
+        backend => backend.matMul($a, $b, transposeA, transposeB), {$a, $b},
+        grad);
   }
 
   /**
@@ -167,13 +170,17 @@ export class MatmulOps {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static outerProduct(v1: Tensor1D, v2: Tensor1D): Tensor2D {
-    util.assert(
-        v1.rank === 1 && v2.rank === 1,
-        `Error in outerProduct: inputs must be rank 1, but got ranks ` +
-            `${v1.rank} and ${v2.rank}.`);
+  static outerProduct(v1: Tensor1D|TensorLike, v2: Tensor1D|TensorLike):
+      Tensor2D {
+    const $v1 = convertToTensor(v1, 'v1', 'outerProduct');
+    const $v2 = convertToTensor(v2, 'v2', 'outerProduct');
 
-    return v1.as2D(-1, 1).matMul(v2.as2D(1, -1));
+    util.assert(
+        $v1.rank === 1 && $v2.rank === 1,
+        `Error in outerProduct: inputs must be rank 1, but got ranks ` +
+            `${$v1.rank} and ${$v2.rank}.`);
+
+    return $v1.as2D(-1, 1).matMul($v2.as2D(1, -1));
   }
 
   /**
@@ -193,28 +200,33 @@ export class MatmulOps {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static dot(t1: Tensor, t2: Tensor): Tensor {
+  static dot(t1: Tensor|TensorLike, t2: Tensor|TensorLike): Tensor {
+    const $t1 = convertToTensor(t1, 't1', 'dot');
+    const $t2 = convertToTensor(t2, 't2', 'dot');
     util.assert(
-        (t1.rank === 1 || t1.rank === 2) && (t2.rank === 1 || t2.rank === 2),
+        ($t1.rank === 1 || $t1.rank === 2) &&
+            ($t2.rank === 1 || $t2.rank === 2),
         `Error in dot: inputs must all be rank 1 or 2, but got ranks ` +
-            `${t1.rank} and ${t2.rank}.`);
+            `${$t1.rank} and ${$t2.rank}.`);
 
-    const t1Inner = (t1.rank === 1 ? t1.size : t1.shape[1]);
-    const t2Inner = (t2.rank === 1 ? t2.size : t2.shape[0]);
+    const t1Inner = ($t1.rank === 1 ? $t1.size : $t1.shape[1]);
+    const t2Inner = ($t2.rank === 1 ? $t2.size : $t2.shape[0]);
 
     util.assert(
         t1Inner === t2Inner,
         `Error in dot: inner dimensions of inputs must match, but got ` +
             `${t1Inner} and ${t2Inner}.`);
 
-    if (t1.rank === 1 && t2.rank === 1) {
-      return t1.as2D(1, -1).matMul(t2.as2D(-1, 1)).asScalar();
-    } else if (t1.rank === 1 && t2.rank === 2) {
-      return t1.as2D(1, -1).matMul(t2.as2D(t2.shape[0], t2.shape[1])).as1D();
-    } else if (t1.rank === 2 && t2.rank === 1) {
-      return t1.matMul(t2.as2D(-1, 1)).as1D();
+    if ($t1.rank === 1 && $t2.rank === 1) {
+      return $t1.as2D(1, -1).matMul($t2.as2D(-1, 1)).asScalar();
+    } else if ($t1.rank === 1 && $t2.rank === 2) {
+      return $t1.as2D(1, -1)
+          .matMul($t2.as2D($t2.shape[0], $t2.shape[1]))
+          .as1D();
+    } else if ($t1.rank === 2 && $t2.rank === 1) {
+      return $t1.matMul($t2.as2D(-1, 1)).as1D();
     } else {
-      return t1.matMul(t2.as2D(t2.shape[0], t2.shape[1]));
+      return $t1.matMul($t2.as2D($t2.shape[0], $t2.shape[1]));
     }
   }
 }

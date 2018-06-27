@@ -18,11 +18,12 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import {BinaryOps} from './binary_ops';
 import {LogicalOps} from './logical_ops';
 import {operation} from './operation';
-import * as selu_util from './selu_util';
+import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
 import {TensorOps} from './tensor_ops';
 
 export class ReluOps {
@@ -39,17 +40,17 @@ export class ReluOps {
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
-  static relu<T extends Tensor>(x: T): T {
-    assertArgumentsAreTensors({x}, 'relu');
+  static relu<T extends Tensor>(x: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'relu');
 
-    if (x.dtype === 'bool') {
-      return x.toInt();
+    if ($x.dtype === 'bool') {
+      return $x.toInt();
     }
     const grad = (dy: T) => {
-      const stepRes = x.step();
-      return {x: () => dy.mulStrict(stepRes.toFloat())};
+      const stepRes = $x.step();
+      return {$x: () => dy.mulStrict(stepRes.toFloat())};
     };
-    return ENV.engine.runKernel(backend => backend.relu(x), {x}, grad);
+    return ENV.engine.runKernel(backend => backend.relu($x), {$x}, grad);
   }
 
   /**
@@ -64,18 +65,18 @@ export class ReluOps {
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
-  static elu<T extends Tensor>(x: T): T {
-    assertArgumentsAreTensors({x}, 'elu');
+  static elu<T extends Tensor>(x: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'elu');
 
     const grad = (dy: T, saved: Tensor[]) => {
       const [y] = saved;
       return {
-        x: () =>
+        $x: () =>
             ENV.engine.runKernel(backend => backend.eluDer(dy, y), {dy, y}) as T
       };
     };
     return ENV.engine.runKernel(
-        (backend, save) => save(backend.elu(x)), {x}, grad);
+        (backend, save) => save(backend.elu($x)), {$x}, grad);
   }
 
   /**
@@ -92,26 +93,26 @@ export class ReluOps {
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
-  static selu<T extends Tensor>(x: T): T {
-    assertArgumentsAreTensors({x}, 'selu');
+  static selu<T extends Tensor>(x: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'selu');
 
     const grad = (dy: T) => {
       return {
-        x: () => {
-          const mask = x.greater(TensorOps.scalar(0));
+        $x: () => {
+          const mask = $x.greater(TensorOps.scalar(0));
 
-          const scaleAlpha = TensorOps.scalar(selu_util.SELU_SCALEALPHA);
-          const scale = TensorOps.scalar(selu_util.SELU_SCALE);
+          const scaleAlpha = TensorOps.scalar(SELU_SCALEALPHA);
+          const scale = TensorOps.scalar(SELU_SCALE);
 
           const greaterThanZeroDer = dy.mul(scale);
-          const lessEqualZeroDer = dy.mul(scaleAlpha).mul(x.toFloat().exp());
+          const lessEqualZeroDer = dy.mul(scaleAlpha).mul($x.toFloat().exp());
 
           return LogicalOps.where(mask, greaterThanZeroDer, lessEqualZeroDer) as
               T;
         }
       };
     };
-    return ENV.engine.runKernel(backend => backend.selu(x), {x}, grad);
+    return ENV.engine.runKernel(backend => backend.selu($x), {$x}, grad);
   }
 
   /**
@@ -131,10 +132,10 @@ export class ReluOps {
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
-  static leakyRelu<T extends Tensor>(x: T, alpha = 0.2): T {
-    assertArgumentsAreTensors({x}, 'leakyRelu');
+  static leakyRelu<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
+    const $x = convertToTensor(x, 'x', 'leakyRelu');
 
-    return BinaryOps.maximum(TensorOps.scalar(alpha).mul(x), x);
+    return BinaryOps.maximum(TensorOps.scalar(alpha).mul($x), $x);
   }
 
   /**
@@ -153,11 +154,12 @@ export class ReluOps {
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
-  static prelu<T extends Tensor>(x: T, alpha: T): T {
-    assertArgumentsAreTensors({x, alpha}, 'prelu');
+  static prelu<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'prelu');
+    const $alpha = convertToTensor(alpha, 'alpha', 'prelu');
 
     const zero = TensorOps.scalar(0);
-    return BinaryOps.maximum(zero, x).add(
-        alpha.mul(BinaryOps.minimum(zero, x)));
+    return BinaryOps.maximum(zero, $x).add(
+        $alpha.mul(BinaryOps.minimum(zero, $x)));
   }
 }

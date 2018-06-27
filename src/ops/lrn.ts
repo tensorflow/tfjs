@@ -18,7 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor3D, Tensor4D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import {operation} from './operation';
 
@@ -39,22 +40,22 @@ export class LRNOps {
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
   static localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      x: T, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
-    assertArgumentsAreTensors({x}, 'localResponseNormalization');
+      x: T|TensorLike, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
+    const $x = convertToTensor(x, 'x', 'localResponseNormalization');
     util.assert(
-        x.rank === 4 || x.rank === 3,
+        $x.rank === 4 || $x.rank === 3,
         `Error in localResponseNormalization: x must be rank 3 or 4 but got
-               rank ${x.rank}.`);
+               rank ${$x.rank}.`);
     util.assert(
         util.isInt(depthRadius),
         `Error in localResponseNormalization: depthRadius must be an integer
                      but got depthRadius ${depthRadius}.`);
 
-    let x4D = x as Tensor4D;
+    let x4D = $x as Tensor4D;
     let reshapedTo4D = false;
-    if (x.rank === 3) {
+    if ($x.rank === 3) {
       reshapedTo4D = true;
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+      x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
     }
     const res = ENV.engine.runKernel(
         backend => backend.localResponseNormalization4D(

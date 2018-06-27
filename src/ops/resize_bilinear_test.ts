@@ -162,6 +162,20 @@ describeWithFlags('resizeBilinear', ALL_ENVS, () => {
 
     expectArraysClose(output, expected);
   });
+
+  it('throws when passed a non-tensor', () => {
+    const e =
+        /Argument 'images' passed to 'resizeBilinear' must be a Tensor/;
+    expect(() => tf.image.resizeBilinear({} as tf.Tensor3D, [
+      1, 1
+    ])).toThrowError(e);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const input = [[[2], [2]], [[4], [4]]]; // 2x2x1
+    const output = tf.image.resizeBilinear(input, [3, 3], false);
+    expectArraysClose(output, [2, 2, 2, 10 / 3, 10 / 3, 10 / 3, 4, 4, 4]);
+  });
 });
 
 describeWithFlags('resizeBilinear gradients', ALL_ENVS, () => {

@@ -86,6 +86,11 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
     expect(() => tf.logicalNot({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'logicalNot' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 0, 0];
+    expectArraysClose(tf.logicalNot(a), [0, 1, 1]);
+  });
 });
 
 describeWithFlags('logicalAnd', ALL_ENVS, () => {
@@ -173,6 +178,12 @@ describeWithFlags('logicalAnd', ALL_ENVS, () => {
     expect(() => tf.logicalAnd(tf.scalar(1, 'bool'), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'logicalAnd' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 0, 0, 1];
+    const b = [0, 1, 0, 1];
+    expectArraysClose(tf.logicalAnd(a, b), [0, 0, 0, 1]);
+  });
 });
 
 describeWithFlags('logicalOr', ALL_ENVS, () => {
@@ -258,6 +269,12 @@ describeWithFlags('logicalOr', ALL_ENVS, () => {
   it('throws when passed b as a non-tensor', () => {
     expect(() => tf.logicalOr(tf.scalar(1, 'bool'), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'logicalOr' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 0, 0, 1];
+    const b = [0, 1, 0, 1];
+    expectArraysClose(tf.logicalOr(a, b), [1, 1, 0, 1]);
   });
 });
 
@@ -348,6 +365,11 @@ describeWithFlags('logicalXor', ALL_ENVS, () => {
   it('throws when passed b as a non-tensor', () => {
     expect(() => tf.logicalXor(tf.scalar(1, 'bool'), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'logicalXor' must be a Tensor/);
+  });
+  it('accepts a tensor-like object', () => {
+    const a = [1, 0, 0, 1];
+    const b = [0, 1, 0, 1];
+    expectArraysClose(tf.logicalXor(a, b), [1, 1, 0, 0]);
   });
 });
 
@@ -583,6 +605,13 @@ describeWithFlags('where', ALL_ENVS, () => {
         () => tf.where(
             tf.scalar(1, 'bool'), tf.scalar(1, 'bool'), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'where' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = 10;
+    const b = 20;
+    const c = 1;
+    expectArraysClose(tf.where(c, a, b), [10]);
   });
 
   it('1D gradient', () => {

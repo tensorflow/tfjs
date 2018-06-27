@@ -273,7 +273,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('tf.tensor1d() throw error with null input value', () => {
     expect(() => tf.tensor1d(null))
-        .toThrowError('The input to the tensor constructor ' +
+        .toThrowError(
+            'The input to the tensor constructor ' +
             'must be a non-null value.');
   });
 
@@ -304,7 +305,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('tf.tensor2d() throw error with null input value', () => {
     expect(() => tf.tensor2d(null))
-        .toThrowError('The input to the tensor constructor ' +
+        .toThrowError(
+            'The input to the tensor constructor ' +
             'must be a non-null value.');
   });
 
@@ -331,7 +333,8 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('tf.tensor3d() throw error with null input value', () => {
     expect(() => tf.tensor3d(null))
-        .toThrowError('The input to the tensor constructor ' +
+        .toThrowError(
+            'The input to the tensor constructor ' +
             'must be a non-null value.');
   });
 
@@ -360,19 +363,22 @@ describeWithFlags('tensor', ALL_ENVS, () => {
 
   it('tf.tensor4d() throw error with null input value', () => {
     expect(() => tf.tensor4d(null))
-        .toThrowError('The input to the tensor constructor ' +
+        .toThrowError(
+            'The input to the tensor constructor ' +
             'must be a non-null value.');
   });
 
   it('tf.tensor5d() throw error with null input value', () => {
     expect(() => tf.tensor5d(null))
-        .toThrowError('The input to the tensor constructor ' +
+        .toThrowError(
+            'The input to the tensor constructor ' +
             'must be a non-null value.');
   });
 
   it('tf.tensor6d() throw error with null input value', () => {
     expect(() => tf.tensor6d(null))
-        .toThrowError('The input to the tensor constructor ' +
+        .toThrowError(
+            'The input to the tensor constructor ' +
             'must be a non-null value.');
   });
 
@@ -787,6 +793,13 @@ describeWithFlags('tensor', ALL_ENVS, () => {
         .toThrowError(/Argument 'x' passed to 'reshape' must be a Tensor/);
   });
 
+  it('reshape accepts a tensor-like object', () => {
+    const res = tf.reshape([[1, 2, 3], [4, 5, 6]], [3, 2]);
+    expect(res.dtype).toBe('float32');
+    expect(res.shape).toEqual([3, 2]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6]);
+  });
+
   it('cast bool -> bool', () => {
     const a = tf.tensor1d([1, 0], 'bool');
     expect(a.cast('bool').dtype).toEqual('bool');
@@ -835,6 +848,13 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('cast throws when passed a non-tensor', () => {
     expect(() => tf.cast({} as tf.Tensor, 'float32'))
         .toThrowError(/Argument 'x' passed to 'cast' must be a Tensor/);
+  });
+
+  it('cast accepts a tensor-like object', () => {
+    const a = [1.0, 2.0];
+    const res = tf.cast(a, 'int32');
+    expect(res.dtype).toEqual('int32');
+    expectArraysClose(res, [1, 2]);
   });
 
   it('scalar bool -> int32', () => {
@@ -912,6 +932,12 @@ describeWithFlags('tensor', ALL_ENVS, () => {
   it('squeeze throws when passed a non-tensor', () => {
     expect(() => tf.squeeze({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'squeeze' must be a Tensor/);
+  });
+
+  it('squeeze accepts a tensor-like object', () => {
+    const res = tf.squeeze([[[4]], [[2]], [[1]]] /* shape is [3, 1, 1] */);
+    expect(res.shape).toEqual([3]);
+    expectArraysClose(res, [4, 2, 1]);
   });
 
   it('scalar -> 2d', () => {

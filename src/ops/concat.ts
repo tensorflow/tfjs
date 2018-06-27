@@ -18,8 +18,9 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
-import * as util from '../util';
+import {convertToTensorArray} from '../tensor_util';
+import {TensorLike} from '../types';
+import {assert, sizeFromShape} from '../util';
 import {parseAxisParam} from './axis_util';
 import * as concat_util from './concat_util';
 import {operation} from './operation';
@@ -36,7 +37,7 @@ export class ConcatOps {
    * @param tensors A list of `Tensor`s to concatenate.
    * @return The concatenated array.
    */
-  static concat1d(tensors: Tensor1D[]): Tensor1D {
+  static concat1d(tensors: Tensor1D[]|TensorLike[]): Tensor1D {
     return ConcatOps.concat(tensors, 0 /* axis */);
   }
 
@@ -67,7 +68,7 @@ export class ConcatOps {
    * @param axis The axis to concatenate along.
    * @return The concatenated array.
    */
-  static concat2d(tensors: Tensor2D[], axis: number): Tensor2D {
+  static concat2d(tensors: Tensor2D[]|TensorLike[], axis: number): Tensor2D {
     return ConcatOps.concat(tensors, axis);
   }
 
@@ -101,7 +102,7 @@ export class ConcatOps {
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
-  static concat3d(tensors: Tensor3D[], axis: number): Tensor3D {
+  static concat3d(tensors: Tensor3D[]|TensorLike[], axis: number): Tensor3D {
     return ConcatOps.concat(tensors, axis);
   }
 
@@ -112,7 +113,7 @@ export class ConcatOps {
    * @param axis The axis to concate along.
    * @return The concatenated array.
    */
-  static concat4d(tensors: Tensor4D[], axis: number): Tensor4D {
+  static concat4d(tensors: Tensor4D[]|TensorLike[], axis: number): Tensor4D {
     return ConcatOps.concat(tensors, axis);
   }
 
@@ -156,18 +157,18 @@ export class ConcatOps {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static concat<T extends Tensor>(tensors: T[], axis = 0): T {
-    util.assert(tensors.length >= 1, 'Pass at least one tensor to concat');
-    assertArgumentsAreTensors({tensors}, 'concat');
+  static concat<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
+    assert(tensors.length >= 1, 'Pass at least one tensor to concat');
+    const $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
 
-    let result = tensors[0];
-    if (tensors.length === 1) {
+    let result = $tensors[0] as T;
+    if ($tensors.length === 1) {
       return result;
     }
     const axes = parseAxisParam(axis, result.shape);
 
-    for (let i = 1; i < tensors.length; ++i) {
-      result = concat2Tensors(result, tensors[i], axes[0]);
+    for (let i = 1; i < $tensors.length; ++i) {
+      result = concat2Tensors(result, $tensors[i], axes[0]) as T;
     }
     return result;
   }
@@ -178,8 +179,8 @@ function concat2Tensors<T extends Tensor>(a: T, b: T, axis: number): T {
   const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
 
   // Do the reshape.
-  const a2D = a.as2D(-1, util.sizeFromShape(a.shape.slice(axis)));
-  const b2D = b.as2D(-1, util.sizeFromShape(b.shape.slice(axis)));
+  const a2D = a.as2D(-1, sizeFromShape(a.shape.slice(axis)));
+  const b2D = b.as2D(-1, sizeFromShape(b.shape.slice(axis)));
   // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
   const {aBegin, aSize, bBegin, bSize} =
       concat_util.computeGradientSliceShapes(a2D.shape, b2D.shape);

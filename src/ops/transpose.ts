@@ -18,7 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import * as axis_util from './axis_util';
 import {operation} from './operation';
@@ -43,32 +44,32 @@ export class TransposeOps {
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
   @operation
-  static transpose<T extends Tensor>(x: T, perm?: number[]): T {
-    assertArgumentsAreTensors({x}, 'transpose');
+  static transpose<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
+    const $x = convertToTensor(x, 'x', 'transpose');
 
     if (perm == null) {
-      perm = x.shape.map((s, i) => i).reverse();
+      perm = $x.shape.map((s, i) => i).reverse();
     }
     util.assert(
-        x.rank === perm.length,
-        `Error in transpose: rank of input ${x.rank} ` +
+        $x.rank === perm.length,
+        `Error in transpose: rank of input ${$x.rank} ` +
             `must match length of perm ${perm}.`);
     perm.forEach(axis => {
       util.assert(
-          axis >= 0 && axis < x.rank,
-          `All entries in 'perm' must be between 0 and ${x.rank - 1}` +
+          axis >= 0 && axis < $x.rank,
+          `All entries in 'perm' must be between 0 and ${$x.rank - 1}` +
               ` but got ${perm}`);
     });
 
-    if (x.rank <= 1) {
-      return x.clone();
+    if ($x.rank <= 1) {
+      return $x.clone();
     }
 
     const der = (dy: T) => {
       const undoPerm = axis_util.getUndoAxesPermutation(perm);
-      return {x: () => dy.transpose(undoPerm)};
+      return {$x: () => dy.transpose(undoPerm)};
     };
     return ENV.engine.runKernel(
-        backend => backend.transpose(x, perm), {x}, der);
+        backend => backend.transpose($x, perm), {$x}, der);
   }
 }

@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 import {Tensor1D} from '../tensor';
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('multinomial', ALL_ENVS, () => {
   const NUM_SAMPLES = 10000;
@@ -111,6 +111,17 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
     expect(() => tf.multinomial({} as any, NUM_SAMPLES, seed))
         .toThrowError(
             /Argument 'logits' passed to 'multinomial' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object for logits (biased coin)', () => {
+    const normalized = true;
+    const numSamples = 10;
+    const seed: number = null;
+    const res = tf.multinomial([0, 1], numSamples, seed, normalized);
+    expect(res.dtype).toBe('int32');
+    expect(res.shape).toEqual([numSamples]);
+    const outcomeProbs = computeProbs(res.dataSync(), 2);
+    expectArraysClose(outcomeProbs, [0, 1], EPSILON);
   });
 
   function computeProbs(

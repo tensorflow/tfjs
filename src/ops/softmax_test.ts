@@ -117,6 +117,13 @@ describeWithFlags('softmax', ALL_ENVS, () => {
     expect(() => tf.softmax({} as tf.Tensor))
         .toThrowError(/Argument 'logits' passed to 'softmax' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const y = tf.softmax([2, 1, 3]);
+
+    expectArraysClose(y, [0.24472847, 0.09003057, 0.66524095]);
+    expectNumbersClose(y.get(0) + y.get(1) + y.get(2), 1);
+  });
 });
 
 describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
@@ -251,5 +258,20 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     expect(
         () => tf.losses.softmaxCrossEntropy(tf.tensor1d([1]), {} as tf.Tensor))
         .toThrowError(e);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const logits = [1, 2, 3];
+    const label = [0.3, 0.6, 0.1];
+    const softmaxLogits = tf.softmax(logits);
+
+    const y = tf.losses.softmaxCrossEntropy(label, logits);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(
+        y.get(),
+        -Math.log(softmaxLogits.get(0)) * label[0] +
+            -Math.log(softmaxLogits.get(1)) * label[1] +
+            -Math.log(softmaxLogits.get(2)) * label[2]);
   });
 });

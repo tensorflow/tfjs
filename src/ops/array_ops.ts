@@ -19,9 +19,10 @@ import {doc} from '../doc';
 import {ENV} from '../environment';
 // tslint:disable-next-line:max-line-length
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
-import {DataType, Rank, ShapeMap, TypedArray} from '../types';
+import {convertToTensor, convertToTensorArray} from '../tensor_util';
+import {DataType, Rank, ShapeMap, TensorLike, TypedArray} from '../types';
 import * as util from '../util';
+
 // tslint:disable-next-line:max-line-length
 import {getAxesPermutation, getInnerMostAxes, parseAxisParam} from './axis_util';
 import {ConcatOps} from './concat';
@@ -44,16 +45,16 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static clone<T extends Tensor>(x: T): T {
-    assertArgumentsAreTensors({x}, 'clone');
+  static clone<T extends Tensor>(x: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'clone');
     const der = (dy: T) => {
-      return {x: () => dy.toFloat()};
+      return {$x: () => dy.toFloat()};
     };
 
     return ENV.engine.runKernel(
                backend =>
-                   Tensor.make(x.shape, {dataId: x.dataId}, x.dtype) as T,
-               {x}, der) as T;
+                   Tensor.make($x.shape, {dataId: $x.dataId}, $x.dtype) as T,
+               {$x}, der) as T;
   }
 
   /**
@@ -251,11 +252,11 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Random'})
   @operation
   static multinomial(
-      logits: Tensor1D|Tensor2D, numSamples: number, seed?: number,
+      logits: Tensor1D|Tensor2D|TensorLike, numSamples: number, seed?: number,
       normalized = false): Tensor1D|Tensor2D {
-    assertArgumentsAreTensors({logits}, 'multinomial');
-    const numOutcomes = logits.size;
-    const origRank = logits.rank;
+    const $logits = convertToTensor(logits, 'logits', 'multinomial');
+    const numOutcomes = $logits.size;
+    const origRank = $logits.rank;
     if (numOutcomes < 2) {
       throw new Error(
           `Error in multinomial: you need at least 2 outcomes, but got ` +
@@ -266,7 +267,7 @@ export class ArrayOps {
           `Rank of probabilities must be 1 or 2, but is ${origRank}`);
     }
     seed = seed || Math.random();
-    const logits2D = origRank === 1 ? logits.as2D(1, -1) : logits as Tensor2D;
+    const logits2D = origRank === 1 ? $logits.as2D(1, -1) : $logits as Tensor2D;
     const res = ENV.engine.runKernel(
         backend => backend.multinomial(logits2D, normalized, numSamples, seed),
         {logits2D});
@@ -352,16 +353,16 @@ export class ArrayOps {
    * @param canvas The canvas to draw to.
    */
   @doc({heading: 'Visualization'})
-  static async toPixels(img: Tensor2D|Tensor3D, canvas?: HTMLCanvasElement):
+  static async toPixels(
+      img: Tensor2D|Tensor3D|TensorLike, canvas?: HTMLCanvasElement):
       Promise<Uint8ClampedArray> {
-    assertArgumentsAreTensors({img}, 'toPixels');
-
-    if (img.rank !== 2 && img.rank !== 3) {
+    const $img = convertToTensor(img, 'img', 'toPixels', 'int32');
+    if ($img.rank !== 2 && $img.rank !== 3) {
       throw new Error(
-          `toPixels only supports rank 2 or 3 tensors, got rank ${img.rank}.`);
+          `toPixels only supports rank 2 or 3 tensors, got rank ${$img.rank}.`);
     }
-    const [height, width] = img.shape.slice(0, 2);
-    const depth = img.rank === 2 ? 1 : img.shape[2];
+    const [height, width] = $img.shape.slice(0, 2);
+    const depth = $img.rank === 2 ? 1 : $img.shape[2];
 
     if (depth > 4 || depth === 2) {
       throw new Error(
@@ -369,19 +370,19 @@ export class ArrayOps {
           `1, 3 or 4 but got ${depth}`);
     }
 
-    const minTensor = img.min();
-    const maxTensor = img.max();
+    const minTensor = $img.min();
+    const maxTensor = $img.max();
     const min = (await minTensor.data())[0];
     const max = (await maxTensor.data())[0];
     minTensor.dispose();
     maxTensor.dispose();
-    if (img.dtype === 'float32') {
+    if ($img.dtype === 'float32') {
       if (min < 0 || max > 1) {
         throw new Error(
             `Tensor values for a float32 Tensor must be in the ` +
             `range [0 - 1] but got range [${min} - ${max}].`);
       }
-    } else if (img.dtype === 'int32') {
+    } else if ($img.dtype === 'int32') {
       if (min < 0 || max > 255) {
         throw new Error(
             `Tensor values for a int32 Tensor must be in the ` +
@@ -389,12 +390,12 @@ export class ArrayOps {
       }
     } else {
       throw new Error(
-          `Unsupported type for toPixels: ${img.dtype}.` +
+          `Unsupported type for toPixels: ${$img.dtype}.` +
           ` Please use float32 or int32 tensors.`);
     }
 
-    const data = await img.data();
-    const multiplier = img.dtype === 'float32' ? 255 : 1;
+    const data = await $img.data();
+    const multiplier = $img.dtype === 'float32' ? 255 : 1;
     const bytes = new Uint8ClampedArray(width * height * 4);
 
     for (let i = 0; i < height * width; ++i) {
@@ -460,19 +461,19 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
-  static reshape<R2 extends Rank>(x: Tensor, shape: ShapeMap[R2]): Tensor<R2> {
-    assertArgumentsAreTensors({x}, 'reshape');
-
-    shape = util.inferFromImplicitShape(shape, x.size);
+  static reshape<R2 extends Rank>(x: Tensor|TensorLike, shape: ShapeMap[R2]):
+      Tensor<R2> {
+    const $x = convertToTensor(x, 'x', 'reshape');
+    shape = util.inferFromImplicitShape(shape, $x.size);
     util.assert(
-        x.size === util.sizeFromShape(shape),
+        $x.size === util.sizeFromShape(shape),
         'new shape and old shape must have the same number of elements.');
 
     const grad = (dy: Tensor<R2>) => {
-      return {x: () => dy.reshape(x.shape)};
+      return {$x: () => dy.reshape($x.shape)};
     };
     return ENV.engine.runKernel(
-        backend => backend.reshape(x, shape), {x}, grad);
+        backend => backend.reshape($x, shape), {$x}, grad);
   }
 
   /**
@@ -489,9 +490,10 @@ export class ArrayOps {
    * is an error to squeeze a dimension that is not 1.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
-  static squeeze<T extends Tensor>(x: Tensor, axis?: number[]): T {
-    assertArgumentsAreTensors({x}, 'squeeze');
-    return ArrayOps.reshape(x, util.squeezeShape(x.shape, axis).newShape) as T;
+  static squeeze<T extends Tensor>(x: Tensor|TensorLike, axis?: number[]): T {
+    const $x = convertToTensor(x, 'x', 'squeeze');
+    return ArrayOps.reshape($x, util.squeezeShape($x.shape, axis).newShape) as
+        T;
   }
 
   /**
@@ -506,14 +508,14 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
-  static cast<T extends Tensor>(x: T, dtype: DataType): T {
-    assertArgumentsAreTensors({x}, 'cast');
+  static cast<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
+    const $x = convertToTensor(x, 'x', 'cast');
 
     const grad = (dy: T) => {
-      return {x: () => dy.clone()};
+      return {$x: () => dy.clone()};
     };
-    return ENV.engine.runKernel(backend => backend.cast(x, dtype), {x}, grad) as
-        T;
+    return ENV.engine.runKernel(
+               backend => backend.cast($x, dtype), {$x}, grad) as T;
   }
 
   /**
@@ -541,50 +543,51 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static tile<T extends Tensor>(x: T, reps: number[]): T {
-    assertArgumentsAreTensors({x}, 'tile');
+  static tile<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
+    const $x = convertToTensor(x, 'x', 'tile');
 
     util.assert(
-        x.rank === reps.length,
-        `Error in transpose: rank of input ${x.rank} ` +
+        $x.rank === reps.length,
+        `Error in transpose: rank of input ${$x.rank} ` +
             `must match length of reps ${reps}.`);
     const grad = (dy: T) => {
       const derX = () => {
-        let xGrad = TensorOps.zerosLike(x);
+        let xGrad = TensorOps.zerosLike($x);
         // TODO(cais): Maybe reduce memory footprint by avoiding repeated
         // slicing.
-        if (x.rank === 1) {
+        if ($x.rank === 1) {
           for (let i = 0; i < reps[0]; ++i) {
-            xGrad = xGrad.add(dy.slice([i * x.shape[0]], [x.shape[0]]));
+            xGrad = xGrad.add(dy.slice([i * $x.shape[0]], [$x.shape[0]]));
           }
-        } else if (x.rank === 2) {
+        } else if ($x.rank === 2) {
           for (let i = 0; i < reps[0]; ++i) {
             for (let j = 0; j < reps[1]; ++j) {
               xGrad = xGrad.add(dy.slice(
-                  [i * x.shape[0], j * x.shape[1]], [x.shape[0], x.shape[1]]));
+                  [i * $x.shape[0], j * $x.shape[1]],
+                  [$x.shape[0], $x.shape[1]]));
             }
           }
-        } else if (x.rank === 3) {
+        } else if ($x.rank === 3) {
           for (let i = 0; i < reps[0]; ++i) {
             for (let j = 0; j < reps[1]; ++j) {
               for (let k = 0; k < reps[2]; ++k) {
                 xGrad = xGrad.add(dy.slice(
-                    [i * x.shape[0], j * x.shape[1], k * x.shape[2]],
-                    [x.shape[0], x.shape[1], x.shape[2]]));
+                    [i * $x.shape[0], j * $x.shape[1], k * $x.shape[2]],
+                    [$x.shape[0], $x.shape[1], $x.shape[2]]));
               }
             }
           }
-        } else if (x.rank === 4) {
+        } else if ($x.rank === 4) {
           for (let i = 0; i < reps[0]; ++i) {
             for (let j = 0; j < reps[1]; ++j) {
               for (let k = 0; k < reps[2]; ++k) {
                 for (let l = 0; l < reps[3]; ++l) {
                   xGrad = xGrad.add(dy.slice(
                       [
-                        i * x.shape[0], j * x.shape[1], k * x.shape[2],
-                        l * x.shape[3]
+                        i * $x.shape[0], j * $x.shape[1], k * $x.shape[2],
+                        l * $x.shape[3]
                       ],
-                      [x.shape[0], x.shape[1], x.shape[2], x.shape[3]]));
+                      [$x.shape[0], $x.shape[1], $x.shape[2], $x.shape[3]]));
                 }
               }
             }
@@ -592,20 +595,21 @@ export class ArrayOps {
         } else {
           throw new Error(
               `Gradient for tile operation is not implemented for rank-` +
-              `${x.rank} tensors yet.`);
+              `${$x.rank} tensors yet.`);
         }
         return xGrad;
       };
-      return {x: derX};
+      return {$x: derX};
     };
-    return ENV.engine.runKernel(backend => backend.tile(x, reps), {x}, grad);
+    return ENV.engine.runKernel(backend => backend.tile($x, reps), {$x}, grad);
   }
 
   /**
    * Pads a `Tensor1D` with a given value and paddings. See `pad` for details.
    */
-  static pad1d(x: Tensor1D, paddings: [number, number], constantValue = 0):
-      Tensor1D {
+  static pad1d(
+      x: Tensor1D|TensorLike, paddings: [number, number],
+      constantValue = 0): Tensor1D {
     util.assert(
         paddings.length === 2,
         'Invalid number of paddings. Must be length of 2.');
@@ -616,7 +620,7 @@ export class ArrayOps {
    * Pads a `Tensor2D` with a given value and paddings. See `pad` for details.
    */
   static pad2d(
-      x: Tensor2D, paddings: [[number, number], [number, number]],
+      x: Tensor2D|TensorLike, paddings: [[number, number], [number, number]],
       constantValue = 0): Tensor2D {
     util.assert(
         paddings.length === 2 && paddings[0].length === 2 &&
@@ -629,7 +633,7 @@ export class ArrayOps {
    * Pads a `Tensor3D` with a given value and paddings. See `pad` for details.
    */
   static pad3d(
-      x: Tensor3D,
+      x: Tensor3D|TensorLike,
       paddings: [[number, number], [number, number], [number, number]],
       constantValue = 0): Tensor3D {
     util.assert(
@@ -643,7 +647,7 @@ export class ArrayOps {
    * Pads a `Tensor4D` with a given value and paddings. See `pad` for details.
    */
   static pad4d(
-      x: Tensor4D,
+      x: Tensor4D|TensorLike,
       paddings:
           [
             [number, number], [number, number], [number, number],
@@ -683,21 +687,22 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
   static pad<T extends Tensor>(
-      x: T, paddings: Array<[number, number]>, constantValue = 0): T {
-    assertArgumentsAreTensors({x}, 'pad');
+      x: T|TensorLike, paddings: Array<[number, number]>, constantValue = 0):
+      T {
+    const $x = convertToTensor(x, 'x', 'pad');
 
-    if (x.rank === 0) {
+    if ($x.rank === 0) {
       throw new Error('pad(scalar) is not defined. Pass non-scalar to pad');
     }
     // Pad introduces values around the original tensor, so the gradient
     // slices the original shape out of the gradient.
     const begin = paddings.map(p => p[0]);
     const grad = (dy: T) => {
-      return {x: () => dy.slice(begin, x.shape)};
+      return {$x: () => dy.slice(begin, $x.shape)};
     };
     return ENV.engine.runKernel(
-               backend => backend.pad(x, paddings, constantValue), {x}, grad) as
-        T;
+               backend => backend.pad($x, paddings, constantValue), {$x},
+               grad) as T;
   }
 
   /**
@@ -715,31 +720,31 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static stack<T extends Tensor>(tensors: T[], axis = 0): Tensor {
-    assertArgumentsAreTensors({tensors}, 'stack');
+  static stack<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): Tensor {
+    const $tensors = convertToTensorArray(tensors, 'tensors', 'stack');
 
-    util.assert(tensors.length >= 1, 'Pass at least one tensor to tf.stack');
-    if (tensors.length === 1) {
-      return tensors[0].expandDims(axis);
+    util.assert($tensors.length >= 1, 'Pass at least one tensor to tf.stack');
+    if ($tensors.length === 1) {
+      return $tensors[0].expandDims(axis);
     }
-    const rank = tensors[0].rank;
-    const shape = tensors[0].shape;
-    const dtype = tensors[0].dtype;
+    const rank = $tensors[0].rank;
+    const shape = $tensors[0].shape;
+    const dtype = $tensors[0].dtype;
 
     util.assert(axis <= rank, 'Axis must be <= rank of the tensor');
 
-    tensors.forEach(t => {
+    $tensors.forEach(t => {
       util.assertShapesMatch(
           shape, t.shape,
           'All tensors passed to stack must have matching shapes');
     });
 
-    tensors.forEach(t => {
+    $tensors.forEach(t => {
       util.assert(
           dtype === t.dtype,
           'All tensors passed to stack must have matching dtypes');
     });
-    const expandedTensors = tensors.map(t => t.expandDims(axis));
+    const expandedTensors = $tensors.map(t => t.expandDims(axis));
     return ConcatOps.concat(expandedTensors, axis);
   }
 
@@ -752,29 +757,30 @@ export class ArrayOps {
    * tf.unstack(a).forEach(tensor => tensor.print());
    * ```
    *
-   * @param value A tensor object.
+   * @param x A tensor object.
    * @param axis The axis to unstack along. Defaults to 0 (the first dim).
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static unstack<T extends Tensor>(value: T, axis = 0): Tensor[] {
-    const num = value.shape[axis];
-    const outputShape: number[] = Array(value.rank - 1).fill(0);
+  static unstack<T extends Tensor>(x: T|TensorLike, axis = 0): Tensor[] {
+    const $x = convertToTensor(x, 'x', 'unstack');
+    const num = $x.shape[axis];
+    const outputShape: number[] = Array($x.rank - 1).fill(0);
     let outIndex = 0;
-    for (let i = 0; i < value.rank; i++) {
+    for (let i = 0; i < $x.rank; i++) {
       if (i !== axis) {
-        outputShape[outIndex] = value.shape[i];
+        outputShape[outIndex] = $x.shape[i];
         outIndex++;
       }
     }
 
     let splitSizes: number[];
     splitSizes = Array(num).fill(1);
-    const begin = Array(value.rank).fill(0);
-    const size = value.shape.slice();
+    const begin = Array($x.rank).fill(0);
+    const size = $x.shape.slice();
     return splitSizes.map(s => {
       size[axis] = s;
-      const slice = value.slice(begin, size);
+      const slice = $x.slice(begin, size);
       begin[axis] += s;
       return slice.reshape(outputShape);
     });
@@ -815,27 +821,28 @@ export class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static split<T extends Tensor>(
-      x: T, numOrSizeSplits: number[]|number, axis = 0): T[] {
-    assertArgumentsAreTensors({x}, 'split');
+      x: T|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
+    const $x = convertToTensor(x, 'x', 'split');
 
-    axis = parseAxisParam(axis, x.shape)[0];
+    axis = parseAxisParam(axis, $x.shape)[0];
     let splitSizes: number[];
     if (typeof (numOrSizeSplits) === 'number') {
       util.assert(
-          x.shape[axis] % numOrSizeSplits === 0,
+          $x.shape[axis] % numOrSizeSplits === 0,
           'Number of splits must evenly divide the axis.');
-      splitSizes = Array(numOrSizeSplits).fill(x.shape[axis] / numOrSizeSplits);
+      splitSizes =
+          Array(numOrSizeSplits).fill($x.shape[axis] / numOrSizeSplits);
     } else {
       util.assert(
-          x.shape[axis] === numOrSizeSplits.reduce((a, b) => a + b),
+          $x.shape[axis] === numOrSizeSplits.reduce((a, b) => a + b),
           'The sum of sizes must match the size of the axis dimension.');
       splitSizes = numOrSizeSplits;
     }
-    const begin = Array(x.rank).fill(0);
-    const size = x.shape.slice();
+    const begin = Array($x.rank).fill(0);
+    const size = $x.shape.slice();
     return splitSizes.map(s => {
       size[axis] = s;
-      const slice = x.slice(begin, size);
+      const slice = $x.slice(begin, size);
       begin[axis] += s;
       return slice;
     });
@@ -864,16 +871,16 @@ export class ArrayOps {
    */
   @doc({heading: 'Operations', subheading: 'Scan'})
   static cumsum<T extends Tensor>(
-      x: Tensor, axis = 0, exclusive = false, reverse = false): T {
-    assertArgumentsAreTensors({x}, 'cumsum');
+      x: Tensor|TensorLike, axis = 0, exclusive = false, reverse = false): T {
+    const $x = convertToTensor(x, 'x', 'cumsum');
 
     axis = axis | 0;
-    const permutation = getAxesPermutation([axis], x.rank);
-    let permutedX = x;
+    const permutation = getAxesPermutation([axis], $x.rank);
+    let permutedX = $x;
     if (permutation != null) {
-      permutedX = x.transpose(permutation);
+      permutedX = $x.transpose(permutation);
     }
-    const permutedAxis = getInnerMostAxes(1, x.rank)[0];
+    const permutedAxis = getInnerMostAxes(1, $x.rank)[0];
 
     const grad = (dy: T) => {
       return {permutedX: () => dy.cumsum(axis, exclusive, !reverse)};
@@ -905,13 +912,14 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
   @operation
-  static expandDims<R2 extends Rank>(x: Tensor, axis = 0): Tensor<R2> {
-    assertArgumentsAreTensors({x}, 'expandDims');
+  static expandDims<R2 extends Rank>(x: Tensor|TensorLike, axis = 0):
+      Tensor<R2> {
+    const $x = convertToTensor(x, 'x', 'expandDims');
 
-    util.assert(axis <= x.rank, 'Axis must be <= rank of the tensor');
-    const newShape = x.shape.slice();
+    util.assert(axis <= $x.rank, 'Axis must be <= rank of the tensor');
+    const newShape = $x.shape.slice();
     newShape.splice(axis, 0, 1);
-    return ArrayOps.reshape(x, newShape);
+    return ArrayOps.reshape($x, newShape);
   }
 
   /**

@@ -18,8 +18,9 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
-import * as util from '../util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
+import {assert, isInt} from '../util';
 import {ArrayOps} from './array_ops';
 import {getUndoAxesPermutation, parseAxisParam} from './axis_util';
 import {BinaryOps} from './binary_ops';
@@ -48,22 +49,25 @@ export class SegmentOps {
   @doc({heading: 'Operations', subheading: 'Segment'})
   @operation
   static unsortedSegmentSum<T extends Tensor>(
-      x: T, segmentIds: Tensor1D, numSegments: number): T {
-    assertArgumentsAreTensors({x, segmentIds}, 'unsortedSegmentSum');
-    util.assert(
-        segmentIds.dtype === 'int32', 'segmentIds must be of dtype `int32`');
-    util.assert(util.isInt(numSegments), 'numSegments must be of dtype int');
+      x: T|TensorLike, segmentIds: Tensor1D|TensorLike, numSegments: number):
+      T {
+    const $x = convertToTensor(x, 'x', 'unsortedSegmentSum');
+    const $segmentIds = convertToTensor(
+        segmentIds, 'segmentIds', 'unsortedSegmentSum', 'int32');
+    assert(
+        $segmentIds.dtype === 'int32', 'segmentIds must be of dtype `int32`');
+    assert(isInt(numSegments), 'numSegments must be of dtype int');
 
     const gradFunc = (dy: T) => {
       const derX = () => {
-        return gatherDropNegatives(dy, segmentIds);
+        return gatherDropNegatives(dy, $segmentIds);
       };
-      return {x: derX};
+      return {$x: derX};
     };
     return ENV.engine.runKernel(
                backend =>
-                   backend.unsortedSegmentSum(x, segmentIds, numSegments),
-               {x}, gradFunc) as T;
+                   backend.unsortedSegmentSum($x, $segmentIds, numSegments),
+               {$x}, gradFunc) as T;
   }
 
   /**
@@ -88,18 +92,20 @@ export class SegmentOps {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static gather<T extends Tensor>(x: T, indices: Tensor1D, axis = 0): T {
-    assertArgumentsAreTensors({x, indices}, 'gather');
+  static gather<T extends Tensor>(
+      x: T|TensorLike, indices: Tensor1D|TensorLike, axis = 0): T {
+    const $x = convertToTensor(x, 'x', 'gather');
+    const $indices = convertToTensor(indices, 'indices', 'gather', 'int32');
 
-    util.assert(indices.dtype === 'int32', 'Indices must be of dtype `int32`');
-    axis = parseAxisParam(axis, x.shape)[0];
+    assert($indices.dtype === 'int32', 'Indices must be of dtype `int32`');
+    axis = parseAxisParam(axis, $x.shape)[0];
     const grad = (dy: T) => {
       const derX = () => {
         if (axis === 0) {
-          return SegmentOps.unsortedSegmentSum(dy, indices, x.shape[axis]);
+          return SegmentOps.unsortedSegmentSum(dy, $indices, $x.shape[axis]);
         }
-        const paramsShape = x.shape;
-        const indicesSize = indices.size;
+        const paramsShape = $x.shape;
+        const indicesSize = $indices.size;
 
         const outerShape = paramsShape.slice(0, axis);
         const outerDims = outerShape.length;
@@ -114,24 +120,25 @@ export class SegmentOps {
             arrayConcat([outerShape, [indicesSize], innerShape]);
 
         const values = dy.reshape(valuesShape);
-        const reshapedIndices = indices.reshape([indicesSize]);
+        const reshapedIndices = $indices.reshape([indicesSize]);
 
         const transposeDims =
             arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
         const valuesTranspose = values.transpose(transposeDims);
 
         let paramsGrad = SegmentOps.unsortedSegmentSum(
-            valuesTranspose, reshapedIndices as Tensor1D, x.shape[axis]);
+            valuesTranspose, reshapedIndices as Tensor1D, $x.shape[axis]);
 
         const invertTransposeDims = getUndoAxesPermutation(transposeDims);
         paramsGrad = paramsGrad.transpose(invertTransposeDims);
 
         return paramsGrad as T;
       };
-      return {x: derX};
+      return {$x: derX};
     };
     return ENV.engine.runKernel(
-        backend => backend.gather(x, indices, axis), {x}, grad);
+               backend => backend.gather($x, $indices as Tensor1D, axis), {$x},
+               grad) as T;
   }
 }
 

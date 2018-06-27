@@ -16,10 +16,12 @@
  */
 
 import * as tf from './index';
+import {describeWithFlags} from './jasmine_util';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 // tslint:disable-next-line:max-line-length
-import {flattenNameArrayMap, getTensorsInContainer, isTensorInList, unflattenToNameArrayMap} from './tensor_util';
+import {convertToTensor, flattenNameArrayMap, getTensorsInContainer, isTensorInList, unflattenToNameArrayMap} from './tensor_util';
+import {CPU_ENVS, expectArraysClose, expectNumbersClose} from './test_util';
 
 describe('tensor_util.isTensorInList', () => {
   it('not in list', () => {
@@ -99,5 +101,95 @@ describe('getTensorsInContainer', () => {
     container.push(innerContainer as any);
     const results = getTensorsInContainer(container);
     expect(results.length).toBe(3);
+  });
+});
+
+describeWithFlags('convertToTensor', CPU_ENVS, () => {
+  it('primitive number', () => {
+    const a = convertToTensor(3, 'a', 'test');
+    expect(a.rank).toBe(0);
+    expect(a.dtype).toBe('float32');
+    expectNumbersClose(a.get(), 3);
+  });
+
+  it('primitive boolean, parsed as float', () => {
+    const a = convertToTensor(true, 'a', 'test');
+    expect(a.rank).toBe(0);
+    expect(a.dtype).toBe('float32');
+    expectNumbersClose(a.get(), 1);
+  });
+
+  it('primitive boolean, parsed as bool', () => {
+    const a = convertToTensor(true, 'a', 'test', 'bool');
+    expect(a.rank).toBe(0);
+    expect(a.dtype).toBe('bool');
+    expect(a.get()).toBe(1);
+  });
+
+  it('array1d', () => {
+    const a = convertToTensor([1, 2, 3], 'a', 'test');
+    expect(a.rank).toBe(1);
+    expect(a.dtype).toBe('float32');
+    expect(a.shape).toEqual([3]);
+    expectArraysClose(a, [1, 2, 3]);
+  });
+
+  it('array2d', () => {
+    const a = convertToTensor([[1], [2], [3]], 'a', 'test');
+    expect(a.rank).toBe(2);
+    expect(a.shape).toEqual([3, 1]);
+    expect(a.dtype).toBe('float32');
+    expectArraysClose(a, [1, 2, 3]);
+  });
+
+  it('array3d', () => {
+    const a = convertToTensor([[[1], [2]], [[3], [4]]], 'a', 'test');
+    expect(a.rank).toBe(3);
+    expect(a.shape).toEqual([2, 2, 1]);
+    expect(a.dtype).toBe('float32');
+    expectArraysClose(a, [1, 2, 3, 4]);
+  });
+
+  it('array4d', () => {
+    const a = convertToTensor([[[[1]], [[2]]], [[[3]], [[4]]]], 'a', 'test');
+    expect(a.rank).toBe(4);
+    expect(a.shape).toEqual([2, 2, 1, 1]);
+    expect(a.dtype).toBe('float32');
+    expectArraysClose(a, [1, 2, 3, 4]);
+  });
+
+  it('passing a tensor returns the tensor itself', () => {
+    const s = tf.scalar(3);
+    const res = convertToTensor(s, 'a', 'test');
+    expect(res).toBe(s);
+  });
+
+  it('passing a tensor with casting returns the tensor itself', () => {
+    const s = tf.scalar(3);
+    const res = convertToTensor(s, 'a', 'test', 'bool');
+    expect(res).toBe(s);
+  });
+
+  it('fails to convert a dict to tensor', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => convertToTensor({} as any, 'a', 'test'))
+        .toThrowError(
+            'Argument \'a\' passed to \'test\' must be a Tensor ' +
+            'or TensorLike, but got Object');
+  });
+
+  it('fails to convert a string to tensor', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => convertToTensor('asdf' as any, 'a', 'test'))
+        .toThrowError(
+            'Argument \'a\' passed to \'test\' must be a Tensor ' +
+            'or TensorLike, but got String');
+  });
+
+  it('fails to convert a non-valid shape array to tensor', () => {
+    const a = [[1, 2], [3], [4, 5, 6]];  // 2nd element has only 1 entry.
+    expect(() => convertToTensor(a, 'a', 'test'))
+        .toThrowError(
+            'Element arr[1] should have 2 elements, but has 1 elements');
   });
 });

@@ -18,8 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
-import {Rank} from '../types';
+import {convertToTensor} from '../tensor_util';
+import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 import {operation} from './operation';
 import * as slice_util from './slice_util';
@@ -29,49 +29,55 @@ export class SliceOps {
    * Extracts a 1D slice from 1D array starting at coordinates `begin` and is
    * of length `size`. See `slice` for details.
    */
-  static slice1d(x: Tensor1D, begin: number, size: number): Tensor1D {
+  static slice1d(x: Tensor1D|TensorLike, begin: number, size: number):
+      Tensor1D {
+    const $x = convertToTensor(x, 'x', 'slice1d');
     util.assert(
-        x.rank === 1,
-        `slice1d expects a rank-1 tensor, but got a rank-${x.rank} tensor`);
-    return SliceOps.slice(x, [begin], [size]);
+        $x.rank === 1,
+        `slice1d expects a rank-1 tensor, but got a rank-${$x.rank} tensor`);
+    return SliceOps.slice($x, [begin], [size]);
   }
 
   /**
    * Extracts a 2D slice from a 2D array starting at coordinates `begin` and
    * is of size `size`. See `slice` for details.
    */
-  static slice2d(x: Tensor2D, begin: [number, number], size: [number, number]):
-      Tensor2D {
+  static slice2d(x: Tensor2D|TensorLike, begin: [number, number], size: [
+    number, number
+  ]): Tensor2D {
+    const $x = convertToTensor(x, 'x', 'slice2d');
     util.assert(
-        x.rank === 2,
-        `slice1d expects a rank-2 tensor, but got a rank-${x.rank} tensor`);
-    return SliceOps.slice(x, begin, size);
+        $x.rank === 2,
+        `slice1d expects a rank-2 tensor, but got a rank-${$x.rank} tensor`);
+    return SliceOps.slice($x, begin, size);
   }
 
   /**
    * Extracts a 3D slice from a 3D array starting at coordinates `begin` and
    * is of size `size`. See `slice` for details.
    */
-  static slice3d(x: Tensor3D, begin: [number, number, number], size: [
-    number, number, number
-  ]): Tensor3D {
+  static slice3d(
+      x: Tensor3D|TensorLike, begin: [number, number, number],
+      size: [number, number, number]): Tensor3D {
+    const $x = convertToTensor(x, 'x', 'slice3d');
     util.assert(
-        x.rank === 3,
-        `slice1d expects a rank-3 tensor, but got a rank-${x.rank} tensor`);
-    return SliceOps.slice(x, begin, size);
+        $x.rank === 3,
+        `slice1d expects a rank-3 tensor, but got a rank-${$x.rank} tensor`);
+    return SliceOps.slice($x, begin, size);
   }
 
   /**
    * Extracts a 4D slice from a 4D array starting at coordinates `begin` and
    * is of size `size`. See `slice` for details.
    */
-  static slice4d(x: Tensor4D, begin: [number, number, number, number], size: [
-    number, number, number, number
-  ]): Tensor4D {
+  static slice4d(
+      x: Tensor4D|TensorLike, begin: [number, number, number, number],
+      size: [number, number, number, number]): Tensor4D {
+    const $x = convertToTensor(x, 'x', 'slice4d');
     util.assert(
-        x.rank === 4,
-        `slice1d expects a rank-4 tensor, but got a rank-${x.rank} tensor`);
-    return SliceOps.slice(x, begin, size);
+        $x.rank === 4,
+        `slice1d expects a rank-4 tensor, but got a rank-${$x.rank} tensor`);
+    return SliceOps.slice($x, begin, size);
   }
 
   /**
@@ -109,28 +115,28 @@ export class SliceOps {
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
   static slice<R extends Rank, T extends Tensor<R>>(
-      x: T, begin: number|number[], size?: number|number[]): T {
-    assertArgumentsAreTensors({x}, 'slice');
+      x: T|TensorLike, begin: number|number[], size?: number|number[]): T {
+    const $x = convertToTensor(x, 'x', 'slice');
 
-    if (x.rank === 0) {
+    if ($x.rank === 0) {
       throw new Error('Slicing scalar is not possible');
     }
     // The following logic allows for more ergonomic calls.
     let begin_: number[];
     if (typeof begin === 'number') {
-      begin_ = [begin, ...new Array(x.rank - 1).fill(0)];
-    } else if (begin.length < x.rank) {
-      begin_ = begin.concat(new Array(x.rank - begin.length).fill(0));
+      begin_ = [begin, ...new Array($x.rank - 1).fill(0)];
+    } else if (begin.length < $x.rank) {
+      begin_ = begin.concat(new Array($x.rank - begin.length).fill(0));
     } else {
       begin_ = begin;
     }
     let size_: number[];
     if (size == null) {
-      size_ = new Array(x.rank).fill(-1);
+      size_ = new Array($x.rank).fill(-1);
     } else if (typeof size === 'number') {
-      size_ = [size, ...new Array(x.rank - 1).fill(-1)];
-    } else if (size.length < x.rank) {
-      size_ = size.concat(new Array(x.rank - size.length).fill(-1));
+      size_ = [size, ...new Array($x.rank - 1).fill(-1)];
+    } else if (size.length < $x.rank) {
+      size_ = size.concat(new Array($x.rank - size.length).fill(-1));
     } else {
       size_ = size;
     }
@@ -139,11 +145,11 @@ export class SliceOps {
         return d;
       } else {
         util.assert(d === -1, 'Bad value in size');
-        return x.shape[i] - begin_[i];
+        return $x.shape[i] - begin_[i];
       }
     });
-    slice_util.assertParamsValid(x, begin_, size_);
-    const inputShape = x.shape;
+    slice_util.assertParamsValid($x, begin_, size_);
+    const inputShape = $x.shape;
     const grad = (dy: T) => {
       // Create an Nx2 padding where the first column represents how many
       // zeros are prepended (at start) for each dimension, and the second
@@ -155,9 +161,9 @@ export class SliceOps {
       for (let i = 0; i < dy.rank; i++) {
         paddings.push([begin_[i], inputShape[i] - begin_[i] - size_[i]]);
       }
-      return {x: () => dy.pad(paddings)};
+      return {$x: () => dy.pad(paddings)};
     };
     return ENV.engine.runKernel(
-               backend => backend.slice(x, begin_, size_), {x}, grad) as T;
+               backend => backend.slice($x, begin_, size_), {$x}, grad) as T;
   }
 }

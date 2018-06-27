@@ -94,6 +94,13 @@ describeWithFlags('resizeNearestNeighbor', ALL_ENVS, () => {
     ])).toThrowError(e);
   });
 
+  it('accepts a tensor-like object', () => {
+    const input = [[[2], [2]], [[4], [4]]];  // 2x2x1
+    const output = tf.image.resizeNearestNeighbor(input, [3, 3], false);
+
+    expectArraysClose(output, [2, 2, 2, 2, 2, 2, 4, 4, 4]);
+  });
+
   it('does not throw when some output dim is 1 and alignCorners=true', () => {
     const input = tf.tensor3d([2, 2, 4, 4], [2, 2, 1]);
     expect(() => input.resizeNearestNeighbor([1, 3], true)).not.toThrow();

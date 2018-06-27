@@ -19,8 +19,8 @@ import {doc} from '../doc';
 import {ENV} from '../environment';
 import {KernelBackend} from '../kernels/backend';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors, assertTypesMatch} from '../tensor_util';
-import {upcastType} from '../types';
+import {assertTypesMatch, convertToTensor} from '../tensor_util';
+import {TensorLike, upcastType} from '../types';
 import * as util from '../util';
 import * as broadcast_util from './broadcast_util';
 import {operation} from './operation';
@@ -53,33 +53,35 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static add<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'add');
-    assertTypesMatch(a, b);
+  static add<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'add');
+    const $b = convertToTensor(b, 'b', 'add');
+    assertTypesMatch($a, $b);
 
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
 
     const der = (dy: Tensor) => {
       const derA = () => {
         let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.reshape(a.shape);
+        return res.reshape($a.shape);
       };
       const derB = () => {
         let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.reshape(b.shape);
+        return res.reshape($b.shape);
       };
-      return {a: derA, b: derB};
+      return {$a: derA, $b: derB};
     };
-    return ENV.engine.runKernel(backend => backend.add(a, b), {a, b}, der) as T;
+    return ENV.engine.runKernel(
+               backend => backend.add($a, $b), {$a, $b}, der) as T;
   }
 
   /**
@@ -122,34 +124,35 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static sub<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'sub');
-    assertTypesMatch(a, b);
+  static sub<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'sub');
+    const $b = convertToTensor(b, 'b', 'sub');
+    assertTypesMatch($a, $b);
 
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
 
     const der = (dy: Tensor) => {
       const derA = () => {
         let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.reshape(a.shape);
+        return res.reshape($a.shape);
       };
       const derB = () => {
         let res = dy;
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.neg().reshape(b.shape);
+        return res.neg().reshape($b.shape);
       };
-      return {a: derA, b: derB};
+      return {$a: derA, $b: derB};
     };
     return ENV.engine.runKernel(
-               backend => backend.subtract(a, b), {a, b}, der) as T;
+               backend => backend.subtract($a, $b), {$a, $b}, der) as T;
   }
 
   /**
@@ -195,36 +198,38 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static pow<T extends Tensor>(base: T, exp: Tensor): T {
-    assertArgumentsAreTensors({base, exp}, 'pow');
+  static pow<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
+    const $base = convertToTensor(base, 'base', 'pow');
+    const $exp = convertToTensor(exp, 'exp', 'pow');
 
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(base.shape, exp.shape);
-    base = base.cast(upcastType(base.dtype, exp.dtype));
-    exp = exp.cast(upcastType(base.dtype, exp.dtype));
+        broadcast_util.assertAndGetBroadcastShape($base.shape, $exp.shape);
+    base = $base.cast(upcastType($base.dtype, $exp.dtype));
+    exp = $exp.cast(upcastType($base.dtype, $exp.dtype));
     const grad = (dy: Tensor, saved: Tensor[]) => {
       const [y] = saved;
       const derBase = () => {
-        let res = dy.mul(exp.toFloat().mul(y.div(base)));
+        let res = dy.mul($exp.toFloat().mul(y.div($base)));
         const reduceAxes =
-            broadcast_util.getReductionAxes(base.shape, outShape);
+            broadcast_util.getReductionAxes($base.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.reshape(base.shape) as T;
+        return res.reshape($base.shape) as T;
       };
       const derExp = () => {
-        let res = dy.mul(y.mul(base.log()).toFloat());
-        const reduceAxes = broadcast_util.getReductionAxes(exp.shape, outShape);
+        let res = dy.mul(y.mul($base.log()).toFloat());
+        const reduceAxes =
+            broadcast_util.getReductionAxes($exp.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.reshape(exp.shape);
+        return res.reshape($exp.shape);
       };
-      return {base: derBase, exp: derExp};
+      return {$base: derBase, $exp: derExp};
     };
     return ENV.engine.runKernel(
-               (backend, save) => save(backend.pow(base, exp)), {base, exp},
+               (backend, save) => save(backend.pow($base, $exp)), {$base, $exp},
                grad) as T;
   }
 
@@ -268,34 +273,35 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static mul<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'mul');
-    assertTypesMatch(a, b);
+  static mul<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'mul');
+    const $b = convertToTensor(b, 'b', 'mul');
+    assertTypesMatch($a, $b);
 
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
 
     const der = (dy: Tensor) => {
       const derA = () => {
-        const res = dy.mul(b.toFloat());
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        const res = dy.mul($b.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
         if (reduceAxes.length > 0) {
-          return res.sum(reduceAxes).reshape(a.shape);
+          return res.sum(reduceAxes).reshape($a.shape);
         }
         return res;
       };
       const derB = () => {
-        const res = dy.mul(a.toFloat());
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        const res = dy.mul($a.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
-          return res.sum(reduceAxes).reshape(b.shape);
+          return res.sum(reduceAxes).reshape($b.shape);
         }
         return res;
       };
-      return {a: derA, b: derB};
+      return {$a: derA, $b: derB};
     };
     return ENV.engine.runKernel(
-               backend => backend.multiply(a, b), {a, b}, der) as T;
+               backend => backend.multiply($a, $b), {$a, $b}, der) as T;
   }
 
   /**
@@ -340,40 +346,41 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static div<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'div');
-    assertTypesMatch(a, b);
+  static div<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'div');
+    const $b = convertToTensor(b, 'b', 'div');
+    assertTypesMatch($a, $b);
 
     let forwardFunc: (backend: KernelBackend) => Tensor;
-    if (a.dtype === 'int32' && b.dtype === 'int32') {
-      return BinaryOps.floorDiv(a, b);
+    if ($a.dtype === 'int32' && $b.dtype === 'int32') {
+      return BinaryOps.floorDiv($a, $b);
     } else {
-      forwardFunc = (backend: KernelBackend) => backend.realDivide(a, b);
+      forwardFunc = (backend: KernelBackend) => backend.realDivide($a, $b);
     }
 
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
     const der = (dy: Tensor) => {
       const derA = () => {
-        const res = dy.div(b.toFloat());
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        const res = dy.div($b.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
         if (reduceAxes.length > 0) {
-          return res.sum(reduceAxes).reshape(a.shape);
+          return res.sum(reduceAxes).reshape($a.shape);
         }
         return res;
       };
       const derB = () => {
-        let res = dy.mul(a.toFloat());
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        let res = dy.mul($a.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
-          res = res.sum(reduceAxes).reshape(b.shape);
+          res = res.sum(reduceAxes).reshape($b.shape);
         }
-        const tmp = b.square() as Tensor;
+        const tmp = $b.square() as Tensor;
         return res.div(tmp.toFloat()).neg() as Tensor;
       };
-      return {a: derA, b: derB};
+      return {$a: derA, $b: derB};
     };
-    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as T;
+    return ENV.engine.runKernel(forwardFunc, {$a, $b}, der) as T;
   }
 
   /**
@@ -402,34 +409,36 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static floorDiv<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'floorDiv');
-    assertTypesMatch(a, b);
+  static floorDiv<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
+      T {
+    const $a = convertToTensor(a, 'a', 'floorDiv');
+    const $b = convertToTensor(b, 'b', 'floorDiv');
+    assertTypesMatch($a, $b);
 
-    const forwardFunc = (backend: KernelBackend) => backend.floorDiv(a, b);
+    const forwardFunc = (backend: KernelBackend) => backend.floorDiv($a, $b);
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
     const der = (dy: Tensor) => {
       const derA = () => {
-        const res = dy.div(b.toFloat());
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        const res = dy.div($b.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
         if (reduceAxes.length > 0) {
-          return res.sum(reduceAxes).reshape(a.shape);
+          return res.sum(reduceAxes).reshape($a.shape);
         }
         return res;
       };
       const derB = () => {
-        let res = dy.mul(a.toFloat());
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        let res = dy.mul($a.toFloat());
+        const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
-          res = res.sum(reduceAxes).reshape(b.shape);
+          res = res.sum(reduceAxes).reshape($b.shape);
         }
-        const tmp = b.square() as Tensor;
+        const tmp = $b.square() as Tensor;
         return res.div(tmp.toFloat()).neg() as Tensor;
       };
-      return {a: derA, b: derB};
+      return {$a: derA, $b: derB};
     };
-    return ENV.engine.runKernel(forwardFunc, {a, b}, der) as T;
+    return ENV.engine.runKernel(forwardFunc, {$a, $b}, der) as T;
   }
 
   /**
@@ -473,31 +482,33 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static mod<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'mod');
-    assertTypesMatch(a, b);
+  static mod<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'mod');
+    const $b = convertToTensor(b, 'b', 'mod');
+    assertTypesMatch($a, $b);
 
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
     const der = (dy: Tensor) => {
       const derA = () => {
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
         if (reduceAxes.length > 0) {
-          return dy.sum(reduceAxes).reshape(a.shape);
+          return dy.sum(reduceAxes).reshape($a.shape);
         }
         return dy;
       };
       const derB = () => {
-        const res = dy.mul(a.div(b).floor().neg());
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        const res = dy.mul($a.div($b).floor().neg());
+        const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
-          return res.sum(reduceAxes).reshape(b.shape);
+          return res.sum(reduceAxes).reshape($b.shape);
         }
         return res;
       };
-      return {a: derA, b: derB};
+      return {$a: derA, $b: derB};
     };
-    return ENV.engine.runKernel(backend => backend.mod(a, b), {a, b}, der) as T;
+    return ENV.engine.runKernel(
+               backend => backend.mod($a, $b), {$a, $b}, der) as T;
   }
 
   /**
@@ -540,24 +551,26 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static minimum<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'minimum');
-    assertTypesMatch(a, b);
+  static minimum<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
+      T {
+    let $a = convertToTensor(a, 'a', 'minimum');
+    let $b = convertToTensor(b, 'b', 'minimum');
+    assertTypesMatch($a, $b);
 
-    if (a.dtype === 'bool') {
-      a = a.toInt();
+    if ($a.dtype === 'bool') {
+      $a = $a.toInt();
     }
-    if (b.dtype === 'bool') {
-      b = b.toInt();
+    if ($b.dtype === 'bool') {
+      $b = $b.toInt();
     }
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
     const der = (dy: Tensor) => {
-      const derA = () => dy.mul(a.lessEqual(b).toFloat());
-      const derB = () => dy.mul(a.greater(b).toFloat());
-      return {a: derA, b: derB};
+      const derA = () => dy.mul($a.lessEqual($b).toFloat());
+      const derB = () => dy.mul($a.greater($b).toFloat());
+      return {$a: derA, $b: derB};
     };
     return ENV.engine.runKernel(
-               backend => backend.minimum(a, b), {a, b}, der) as T;
+               backend => backend.minimum($a, $b), {$a, $b}, der) as T;
   }
 
   /**
@@ -600,24 +613,26 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static maximum<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'maximum');
-    assertTypesMatch(a, b);
+  static maximum<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
+      T {
+    let $a = convertToTensor(a, 'a', 'maximum');
+    let $b = convertToTensor(b, 'b', 'maximum');
+    assertTypesMatch($a, $b);
 
-    if (a.dtype === 'bool') {
-      a = a.toInt();
+    if ($a.dtype === 'bool') {
+      $a = $a.toInt();
     }
-    if (b.dtype === 'bool') {
-      b = b.toInt();
+    if ($b.dtype === 'bool') {
+      $b = $b.toInt();
     }
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
     const der = (dy: Tensor) => {
-      const derA = () => dy.mul(a.greaterEqual(b).toFloat());
-      const derB = () => dy.mul(a.less(b).toFloat());
-      return {a: derA, b: derB};
+      const derA = () => dy.mul($a.greaterEqual($b).toFloat());
+      const derB = () => dy.mul($a.less($b).toFloat());
+      return {$a: derA, $b: derB};
     };
     return ENV.engine.runKernel(
-               backend => backend.maximum(a, b), {a, b}, der) as T;
+               backend => backend.maximum($a, $b), {$a, $b}, der) as T;
   }
 
   /**
@@ -661,19 +676,22 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
   @operation
-  static squaredDifference<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'squaredDifference');
-    assertTypesMatch(a, b);
+  static squaredDifference<T extends Tensor>(
+      a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'squaredDifference');
+    const $b = convertToTensor(b, 'b', 'squaredDifference');
+    assertTypesMatch($a, $b);
 
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
     const der = (dy: Tensor) => {
       const two = TensorOps.scalar(2);
-      const derA = () => dy.mul(a.sub(b).mul(two));
-      const derB = () => dy.mul(b.sub(a).mul(two));
-      return {a: derA, b: derB};
+      const derA = () => dy.mul($a.sub($b).mul(two));
+      const derB = () => dy.mul($b.sub($a).mul(two));
+      return {$a: derA, $b: derB};
     };
     return ENV.engine.runKernel(
-               backend => backend.squaredDifference(a, b), {a, b}, der) as T;
+               backend => backend.squaredDifference($a, $b), {$a, $b}, der) as
+        T;
   }
 
   /**
@@ -709,35 +727,37 @@ export class BinaryOps {
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
   @operation
-  static atan2<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'atan2');
-    assertTypesMatch(a, b);
+  static atan2<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
+      T {
+    const $a = convertToTensor(a, 'a', 'atan2');
+    const $b = convertToTensor(b, 'b', 'atan2');
+    assertTypesMatch($a, $b);
 
     const outShape =
-        broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+        broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
 
     const der = (dy: Tensor) => {
       const derA = () => {
-        const d = BinaryOps.add(UnaryOps.square(a), UnaryOps.square(b));
-        let res = dy.mul(b.div(d));
-        const reduceAxes = broadcast_util.getReductionAxes(a.shape, outShape);
+        const d = BinaryOps.add($a.square(), $b.square());
+        let res = dy.mul($b.div(d));
+        const reduceAxes = broadcast_util.getReductionAxes($a.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.reshape(a.shape);
+        return res.reshape($a.shape);
       };
       const derB = () => {
-        const d = BinaryOps.add(UnaryOps.square(a), UnaryOps.square(b)) as T;
-        let res = UnaryOps.neg(dy.mul(a.div(d)));
-        const reduceAxes = broadcast_util.getReductionAxes(b.shape, outShape);
+        const d = BinaryOps.add($a.square(), $b.square()) as T;
+        let res = UnaryOps.neg(dy.mul($a.div(d)));
+        const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
         }
-        return res.reshape(b.shape);
+        return res.reshape($b.shape);
       };
-      return {a: derA, b: derB};
+      return {$a: derA, $b: derB};
     };
-    return ENV.engine.runKernel(backend => backend.atan2(a, b), {a, b}, der) as
-        T;
+    return ENV.engine.runKernel(
+               backend => backend.atan2($a, $b), {$a, $b}, der) as T;
   }
 }
