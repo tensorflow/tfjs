@@ -321,7 +321,8 @@ export class History extends BaseCallback {
     }
     const values = await Promise.all(promises);
     for (let n = 0; n < values.length; ++n) {
-      (this.history[keys[n]][indices[n]] as Tensor).dispose();
+      const tensorToDispose = this.history[keys[n]][indices[n]] as Tensor;
+      tensorToDispose.dispose();
       this.history[keys[n]][indices[n]] = values[n][0];
     }
   }
