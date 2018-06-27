@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('maxPool', ALL_ENVS, () => {
   it('x=[1,1,1] f=[1,1] s=1 [0] => [0]', () => {
@@ -111,6 +111,12 @@ describeWithFlags('maxPool', ALL_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.maxPool({} as tf.Tensor3D, 2, 1, 'valid'))
         .toThrowError(/Argument 'x' passed to 'maxPool' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const x = [[[0]]];  // 1x1x1
+    const result = tf.maxPool(x, 1, 1, 0);
+    expectArraysClose(result, [0]);
   });
 });
 
@@ -458,5 +464,11 @@ describeWithFlags('avgPool', ALL_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.avgPool({} as tf.Tensor3D, 2, 1, 'valid'))
         .toThrowError(/Argument 'x' passed to 'avgPool' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[[0]]];  // 1x1x1
+    const result = tf.avgPool(a, 1, 1, 0);
+    expectArraysClose(result, [0]);
   });
 });

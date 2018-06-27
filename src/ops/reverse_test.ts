@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, CPU_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('reverse1d', ALL_ENVS, () => {
   it('reverse a 1D array', () => {
@@ -34,6 +34,13 @@ describeWithFlags('reverse1d', ALL_ENVS, () => {
     const da = tf.grad((a: tf.Tensor1D) => tf.reverse1d(a))(a, dy);
     expect(da.shape).toEqual([3]);
     expectArraysClose(da, [30, 20, 10]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const input = [1, 2, 3, 4, 5];
+    const result = tf.reverse1d(input);
+    expect(result.shape).toEqual([5]);
+    expectArraysClose(result, [5, 4, 3, 2, 1]);
   });
 });
 
@@ -95,6 +102,15 @@ describeWithFlags('reverse2d', ALL_ENVS, () => {
     const da = tf.grad((a: tf.Tensor2D) => tf.reverse2d(a, 1))(a, dy);
     expect(da.shape).toEqual([2, 3]);
     expectArraysClose(da, [30, 20, 10, 60, 50, 40]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const axis = [0];
+    const a = [[1, 2, 3], [4, 5, 6]];  // 2x3
+    const result = tf.reverse2d(a, axis);
+
+    expect(result.shape).toEqual([2, 3]);
+    expectArraysClose(result, [4, 5, 6, 1, 2, 3]);
   });
 });
 
@@ -192,6 +208,13 @@ describeWithFlags('reverse3d', ALL_ENVS, () => {
   it('throws error with non integer axis param', () => {
     const x = tf.tensor3d([1, 20, 300, 4], [1, 1, 4]);
     expect(() => tf.reverse3d(x, [0.5])).toThrowError();
+  });
+
+  it('accepts a tensor-like object', () => {
+    const input = [[[1], [2], [3]], [[4], [5], [6]]];  // 2x3x1
+    const result = tf.reverse3d(input, [0]);
+    expect(result.shape).toEqual([2, 3, 1]);
+    expectArraysClose(result, [4, 5, 6, 1, 2, 3]);
   });
 });
 
@@ -330,11 +353,25 @@ describeWithFlags('reverse4d', ALL_ENVS, () => {
     const x = tf.tensor4d([1, 20, 300, 4], [1, 1, 1, 4]);
     expect(() => tf.reverse4d(x, [0.5])).toThrowError();
   });
+
+  it('accepts a tensor-like object', () => {
+    const input = [[[[1]], [[2]], [[3]]], [[[4]], [[5]], [[6]]]];  // 2x3x1x1
+    const result = tf.reverse4d(input, [0]);
+    expect(result.shape).toEqual([2, 3, 1, 1]);
+    expectArraysClose(result, [4, 5, 6, 1, 2, 3]);
+  });
 });
 
 describeWithFlags('reverse', CPU_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.reverse({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'reverse' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const input = [1, 2, 3];
+    const result = tf.reverse(input);
+    expect(result.shape).toEqual([3]);
+    expectArraysClose(result, [3, 2, 1]);
   });
 });

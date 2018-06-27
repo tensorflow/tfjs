@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 import {Rank} from '../types';
 
 describeWithFlags('slice1d', ALL_ENVS, () => {
@@ -52,6 +52,13 @@ describeWithFlags('slice1d', ALL_ENVS, () => {
     const da = tf.grad(x => tf.slice1d(a, 1, 2))(a, dy);
     expect(da.shape).toEqual([5]);
     expectArraysClose(da, [0, 10, 100, 0, 0]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [5];
+    const result = tf.slice1d(a, 0, 1);
+    expect(result.shape).toEqual([1]);
+    expectNumbersClose(result.get(0), 5);
   });
 });
 
@@ -96,12 +103,18 @@ describeWithFlags('slice2d', ALL_ENVS, () => {
     expect(da.shape).toEqual([2, 3]);
     expectArraysClose(da, [0, 20, 0, 0, 50, 0]);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[0]];  // 1x1
+    const b = tf.slice2d(a, [0, 0], [1, 1]);
+    expect(b.shape).toEqual([1, 1]);
+  });
 });
 
 describeWithFlags('slice3d', ALL_ENVS, () => {
   it('slices 1x1x1 into shape 1x1x1 (effectively a copy)', () => {
     const a = tf.tensor3d([[[5]]], [1, 1, 1]);
-    const result = a.slice([0, 0, 0], [1, 1, 1]);
+    const result = tf.slice3d(a, [0, 0, 0], [1, 1, 1]);
 
     expect(result.shape).toEqual([1, 1, 1]);
     expectArraysClose(result, [5]);
@@ -109,7 +122,7 @@ describeWithFlags('slice3d', ALL_ENVS, () => {
 
   it('slices 2x2x2 array into 1x2x2 starting at [1, 0, 0]', () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
-    const result = a.slice([1, 0, 0], [1, 2, 2]);
+    const result = tf.slice3d(a, [1, 0, 0], [1, 2, 2]);
 
     expect(result.shape).toEqual([1, 2, 2]);
     expectArraysClose(result, [5, 6, 7, 8]);
@@ -117,17 +130,25 @@ describeWithFlags('slice3d', ALL_ENVS, () => {
 
   it('slices 2x2x2 array into 2x1x1 starting at [0, 1, 1]', () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
-    const result = a.slice([0, 1, 1], [2, 1, 1]);
+    const result = tf.slice3d(a, [0, 1, 1], [2, 1, 1]);
 
     expect(result.shape).toEqual([2, 1, 1]);
     expectArraysClose(result, [4, 8]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[[5]]];  // 1x1x1
+    const result = tf.slice3d(a, [0, 0, 0], [1, 1, 1]);
+
+    expect(result.shape).toEqual([1, 1, 1]);
+    expectArraysClose(result, [5]);
   });
 });
 
 describeWithFlags('slice4d', ALL_ENVS, () => {
   it('slices 1x1x1x1 into shape 1x1x1x1 (effectively a copy)', () => {
     const a = tf.tensor4d([[[[5]]]], [1, 1, 1, 1]);
-    const result = a.slice([0, 0, 0, 0], [1, 1, 1, 1]);
+    const result = tf.slice4d(a, [0, 0, 0, 0], [1, 1, 1, 1]);
 
     expect(result.shape).toEqual([1, 1, 1, 1]);
     expectArraysClose(result, [5]);
@@ -138,7 +159,7 @@ describeWithFlags('slice4d', ALL_ENVS, () => {
         [1, 2, 3, 4, 5, 6, 7, 8, 11, 22, 33, 44, 55, 66, 77, 88],
         [2, 2, 2, 2],
     );
-    const result = a.slice([1, 0, 0, 0], [1, 2, 2, 2]);
+    const result = tf.slice4d(a, [1, 0, 0, 0], [1, 2, 2, 2]);
 
     expect(result.shape).toEqual([1, 2, 2, 2]);
     expectArraysClose(result, [11, 22, 33, 44, 55, 66, 77, 88]);
@@ -147,10 +168,18 @@ describeWithFlags('slice4d', ALL_ENVS, () => {
   it('slices 2x2x2x2 array into 2x1x1x1 starting at [0, 1, 1, 1]', () => {
     const a = tf.tensor4d(
         [1, 2, 3, 4, 5, 6, 7, 8, 11, 22, 33, 44, 55, 66, 77, 88], [2, 2, 2, 2]);
-    const result = a.slice([0, 1, 1, 1], [2, 1, 1, 1]);
+    const result = tf.slice4d(a, [0, 1, 1, 1], [2, 1, 1, 1]);
 
     expect(result.shape).toEqual([2, 1, 1, 1]);
     expectArraysClose(result, [8, 88]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[[[5]]]];  // 1x1x1x1
+    const result = tf.slice4d(a, [0, 0, 0, 0], [1, 1, 1, 1]);
+
+    expect(result.shape).toEqual([1, 1, 1, 1]);
+    expectArraysClose(result, [5]);
   });
 });
 
@@ -193,5 +222,12 @@ describeWithFlags('slice ergonomics', CPU_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.slice({} as tf.Tensor, 0, 0))
         .toThrowError(/Argument 'x' passed to 'slice' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[[1, 2], [3, 4]], [[5, 6], [7, 8]]];  // 2x2x2
+    const result = tf.slice(a, [0, 1, 1]);
+    expect(result.shape).toEqual([2, 1, 1]);
+    expectArraysClose(result, [4, 8]);
   });
 });

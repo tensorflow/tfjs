@@ -18,13 +18,12 @@
 import {doc} from '../doc';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
 // tslint:disable-next-line:max-line-length
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D} from '../types';
+import {ArrayData, DataType, Rank, ShapeMap} from '../types';
 // tslint:disable-next-line:max-line-length
-import {ArrayData, DataType, DataTypeMap, Rank, ShapeMap} from '../types';
-// tslint:disable-next-line:max-line-length
-import {assertNonNull, assertShapesMatch, copyTypedArray, flatten, getTypedArrayFromDType, inferShape, isTypedArray, sizeFromShape} from '../util';
+import {assertNonNull, assertShapesMatch, getTypedArrayFromDType, inferShape, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
 
 export class TensorOps {
   /**
@@ -56,6 +55,12 @@ export class TensorOps {
   static tensor<R extends Rank>(
       values: TensorLike, shape?: ShapeMap[R], dtype: DataType = 'float32'):
       Tensor<R> {
+    if (!isTypedArray(values) && !Array.isArray(values) &&
+        typeof values !== 'number' && typeof values !== 'boolean') {
+      throw new Error(
+          'values passed to tensor(values) must be an ' +
+          'array of numbers or booleans, or a TypedArray');
+    }
     const inferredShape = inferShape(values);
     if (shape != null && inferredShape.length !== 1) {
       assertShapesMatch(
@@ -112,8 +117,8 @@ export class TensorOps {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static tensor1d(values: TensorLike1D, dtype: DataType = 'float32'): Tensor1D {
-    const inferredShape = inferShape(values);
     assertNonNull(values);
+    const inferredShape = inferShape(values);
     if (inferredShape.length !== 1) {
       throw new Error('tensor1d() requires values to be a flat/TypedArray');
     }
@@ -405,9 +410,9 @@ export class TensorOps {
    * @param x A tensor.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  static onesLike<T extends Tensor>(x: T): T {
-    assertArgumentsAreTensors({x}, 'onesLike');
-    return TensorOps.ones(x.shape, x.dtype) as T;
+  static onesLike<T extends Tensor>(x: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'onesLike');
+    return TensorOps.ones($x.shape, $x.dtype) as T;
   }
 
   /**
@@ -422,9 +427,9 @@ export class TensorOps {
    * @param x The tensor of required shape.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  static zerosLike<T extends Tensor>(x: T): T {
-    assertArgumentsAreTensors({x}, 'zerosLike');
-    return TensorOps.zeros(x.shape, x.dtype) as T;
+  static zerosLike<T extends Tensor>(x: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'zerosLike');
+    return TensorOps.zeros($x.shape, $x.dtype) as T;
   }
 
   /**
@@ -502,45 +507,5 @@ export class TensorOps {
     }
 
     return TensorOps.tensor1d(values, dtype);
-  }
-}
-
-function toTypedArray<D extends DataType>(
-    a: ArrayData<D>, dtype: D): DataTypeMap[D] {
-  if (noConversionNeeded(a, dtype)) {
-    return a as DataTypeMap[D];
-  }
-  if (Array.isArray(a)) {
-    a = flatten(a as number[]);
-  }
-  return copyTypedArray(a, dtype);
-}
-
-function noConversionNeeded<D extends DataType>(
-    a: ArrayData<D>, dtype: D): boolean {
-  return (a instanceof Float32Array && dtype === 'float32') ||
-      (a instanceof Int32Array && dtype === 'int32') ||
-      (a instanceof Uint8Array && dtype === 'bool');
-}
-
-function makeOnesTypedArray<D extends DataType>(
-    size: number, dtype: D): DataTypeMap[D] {
-  const array = makeZerosTypedArray(size, dtype);
-  for (let i = 0; i < array.length; i++) {
-    array[i] = 1;
-  }
-  return array;
-}
-
-function makeZerosTypedArray<D extends DataType>(
-    size: number, dtype: D): DataTypeMap[D] {
-  if (dtype == null || dtype === 'float32') {
-    return new Float32Array(size);
-  } else if (dtype === 'int32') {
-    return new Int32Array(size);
-  } else if (dtype === 'bool') {
-    return new Uint8Array(size);
-  } else {
-    throw new Error(`Unknown data type $ {dtype}`);
   }
 }

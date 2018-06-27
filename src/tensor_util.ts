@@ -18,7 +18,8 @@
 import {Tensor} from './tensor';
 // tslint:disable-next-line:max-line-length
 import {NamedTensorMap, TensorContainer, TensorContainerArray} from './tensor_types';
-import {assert} from './util';
+import {ArrayData, DataType, TensorLike} from './types';
+import {assert, inferShape, isTypedArray, toTypedArray} from './util';
 
 export function assertTypesMatch(a: Tensor, b: Tensor): void {
   assert(
@@ -27,26 +28,38 @@ export function assertTypesMatch(a: Tensor, b: Tensor): void {
           ` second(${b.dtype}) input must match`);
 }
 
-function assertArgumentIsTensor(
-    x: Tensor, argName: string, functionName: string) {
-  assert(
-      x instanceof Tensor,
-      `Argument '${argName}' passed to '${functionName}' must be a Tensor, ` +
-          `but got ${typeof x}.`);
+export function convertToTensor<T extends Tensor>(
+    x: T|TensorLike, argName: string, functionName: string,
+    dtype: DataType = 'float32'): T {
+  dtype = dtype || 'float32';
+  if (x instanceof Tensor) {
+    return x;
+  }
+  if (!isTypedArray(x) && !Array.isArray(x) && typeof x !== 'number' &&
+      typeof x !== 'boolean') {
+    throw new Error(
+        `Argument '${argName}' passed to '${functionName}' must be a ` +
+        `Tensor or TensorLike, but got ${x.constructor.name}`);
+  }
+  const inferredShape = inferShape(x);
+  if (!isTypedArray(x) && !Array.isArray(x)) {
+    x = [x] as number[];
+  }
+  return Tensor.make(
+      inferredShape, {values: toTypedArray(x as ArrayData<DataType>, dtype)},
+      dtype);
 }
 
-export function assertArgumentsAreTensors(
-    args: {[argName: string]: Tensor|Tensor[]}, functionName: string) {
-  for (const argName in args) {
-    const arg = args[argName];
-    if (Array.isArray(arg)) {
-      arg.forEach((t, i) => {
-        assertArgumentIsTensor(t, `${argName}[${i}]`, functionName);
-      });
-    } else {
-      assertArgumentIsTensor(arg, argName, functionName);
-    }
+export function convertToTensorArray<T extends Tensor>(
+    arg: T[]|TensorLike[], argName: string, functionName: string): T[] {
+  if (!Array.isArray(arg)) {
+    throw new Error(
+        `Argument ${argName} passed to ${functionName} must be a ` +
+        '`Tensor[]` or `TensorLike[]`');
   }
+  const tensors = arg as T[];
+  return tensors.map(
+      (t, i) => convertToTensor(t, `${argName}[${i}]`, functionName));
 }
 
 export function isTensorInList(tensor: Tensor, tensorList: Tensor[]): boolean {

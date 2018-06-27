@@ -18,9 +18,10 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors, assertTypesMatch} from '../tensor_util';
-import * as util from '../util';
-import * as broadcast_util from './broadcast_util';
+import {assertTypesMatch, convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
+import {assertShapesMatch} from '../util';
+import {assertAndGetBroadcastShape} from './broadcast_util';
 import {operation} from './operation';
 
 export class CompareOps {
@@ -41,12 +42,14 @@ export class CompareOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static notEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'notEqual');
-    assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
-
-    return ENV.engine.runKernel(backend => backend.notEqual(a, b), {a, b}) as T;
+  static notEqual<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
+      T {
+    const $a = convertToTensor(a, 'a', 'notEqual');
+    const $b = convertToTensor(b, 'b', 'notEqual');
+    assertTypesMatch($a, $b);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
+    return ENV.engine.runKernel(
+               backend => backend.notEqual($a, $b), {$a, $b}) as T;
   }
 
   /**
@@ -58,9 +61,11 @@ export class CompareOps {
    *     `a`.
    */
   @operation
-  static notEqualStrict<T extends Tensor>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in notEqualStrict: ');
-    return a.notEqual(b);
+  static notEqualStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'notEqualStrict');
+    const $b = convertToTensor(b, 'b', 'notEqualStrict');
+    assertShapesMatch($a.shape, $b.shape, 'Error in notEqualStrict: ');
+    return $a.notEqual($b);
   }
 
   /**
@@ -80,12 +85,13 @@ export class CompareOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static less<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'less');
-    assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+  static less<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'less');
+    const $b = convertToTensor(b, 'b', 'less');
+    assertTypesMatch($a, $b);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
-    return ENV.engine.runKernel(backend => backend.less(a, b), {a, b}) as T;
+    return ENV.engine.runKernel(backend => backend.less($a, $b), {$a, $b}) as T;
   }
 
   /**
@@ -97,9 +103,11 @@ export class CompareOps {
    *     `a`.
    */
   @operation
-  static lessStrict<T extends Tensor>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in lessStrict: ');
-    return a.less(b);
+  static lessStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'lessStrict');
+    const $b = convertToTensor(b, 'b', 'lessStrict');
+    assertShapesMatch($a.shape, $b.shape, 'Error in lessStrict: ');
+    return $a.less($b);
   }
 
   /**
@@ -120,18 +128,23 @@ export class CompareOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static equal<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'equal');
-    assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+  static equal<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
+      T {
+    const $a = convertToTensor(a, 'a', 'equal');
+    const $b = convertToTensor(b, 'b', 'equal');
+    assertTypesMatch($a, $b);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
-    return ENV.engine.runKernel(backend => backend.equal(a, b), {a, b}) as T;
+    return ENV.engine.runKernel(backend => backend.equal($a, $b), {$a, $b}) as
+        T;
   }
 
   @operation
-  static equalStrict<T extends Tensor>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in equalStrict: ');
-    return a.equal(b);
+  static equalStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'equalStrict');
+    const $b = convertToTensor(b, 'b', 'equalStrict');
+    assertShapesMatch($a.shape, $b.shape, 'Error in equalStrict: ');
+    return $a.equal($b);
   }
 
   /**
@@ -152,19 +165,24 @@ export class CompareOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static lessEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'lessEqual');
-    assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+  static lessEqual<T extends Tensor>(
+      a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'lessEqual');
+    const $b = convertToTensor(b, 'b', 'lessEqual');
+    assertTypesMatch($a, $b);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
-    return ENV.engine.runKernel(backend => backend.lessEqual(a, b), {a, b}) as
-        T;
+    return ENV.engine.runKernel(
+               backend => backend.lessEqual($a, $b), {$a, $b}) as T;
   }
 
   @operation
-  static lessEqualStrict<T extends Tensor>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in lessEqualStrict: ');
-    return a.lessEqual(b);
+  static lessEqualStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike):
+      T {
+    const $a = convertToTensor(a, 'a', 'lessEqualStrict');
+    const $b = convertToTensor(b, 'b', 'lessEqualStrict');
+    assertShapesMatch($a.shape, $b.shape, 'Error in lessEqualStrict: ');
+    return $a.lessEqual($b);
   }
 
   /**
@@ -185,18 +203,23 @@ export class CompareOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static greater<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'greater');
-    assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+  static greater<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
+      T {
+    const $a = convertToTensor(a, 'a', 'greater');
+    const $b = convertToTensor(b, 'b', 'greater');
+    assertTypesMatch($a, $b);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
-    return ENV.engine.runKernel(backend => backend.greater(a, b), {a, b}) as T;
+    return ENV.engine.runKernel(backend => backend.greater($a, $b), {$a, $b}) as
+        T;
   }
 
   @operation
-  static greaterStrict<T extends Tensor>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in greaterStrict: ');
-    return a.greater(b);
+  static greaterStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'greaterStrict');
+    const $b = convertToTensor(b, 'b', 'greaterStrict');
+    assertShapesMatch($a.shape, $b.shape, 'Error in greaterStrict: ');
+    return $a.greater($b);
   }
 
   /**
@@ -217,18 +240,23 @@ export class CompareOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static greaterEqual<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'greaterEqual');
-    assertTypesMatch(a, b);
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+  static greaterEqual<T extends Tensor>(
+      a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'greaterEqual');
+    const $b = convertToTensor(b, 'b', 'greaterEqual');
+    assertTypesMatch($a, $b);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
     return ENV.engine.runKernel(
-               backend => backend.greaterEqual(a, b), {a, b}) as T;
+               backend => backend.greaterEqual($a, $b), {$a, $b}) as T;
   }
 
   @operation
-  static greaterEqualStrict<T extends Tensor>(a: T, b: T): T {
-    util.assertShapesMatch(a.shape, b.shape, 'Error in greaterEqualStrict: ');
-    return a.greaterEqual(b);
+  static greaterEqualStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike):
+      T {
+    const $a = convertToTensor(a, 'a', 'greaterEqualStrict');
+    const $b = convertToTensor(b, 'b', 'greaterEqualStrict');
+    assertShapesMatch($a.shape, $b.shape, 'Error in greaterEqualStrict: ');
+    return $a.greaterEqual($b);
   }
 }

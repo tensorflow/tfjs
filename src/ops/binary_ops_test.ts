@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 
 describeWithFlags('prelu', ALL_ENVS, () => {
   it('basic', () => {
@@ -193,6 +193,15 @@ describeWithFlags('maximum', ALL_ENVS, () => {
     expect(() => tf.maximum(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'maximum' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[0.5, 3], [-0.1, -4]];
+    const b = [[0.2, 0.4], [0.25, 0.15]];
+    const result = tf.maximum(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(result, [0.5, 3, 0.25, 0.15]);
+  });
 });
 
 describeWithFlags('squaredDifference', ALL_ENVS, () => {
@@ -359,6 +368,18 @@ describeWithFlags('squaredDifference', ALL_ENVS, () => {
         .toThrowError(
             /Argument 'b' passed to 'squaredDifference' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[0.5, 3], [-0.1, -4]];
+    const b = 0.6;
+    const result = tf.squaredDifference(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(result, [
+      Math.pow(0.5 - 0.6, 2), Math.pow(3 - 0.6, 2), Math.pow(-0.1 - 0.6, 2),
+      Math.pow(-4 - 0.6, 2)
+    ]);
+  });
 });
 
 describeWithFlags('minimum', ALL_ENVS, () => {
@@ -501,6 +522,15 @@ describeWithFlags('minimum', ALL_ENVS, () => {
   it('throws when passed b as a non-tensor', () => {
     expect(() => tf.minimum(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'minimum' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[0.5, 3], [-0.1, -4]];
+    const b = [[0.2, 0.4], [0.25, 0.15]];
+    const result = tf.minimum(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(result, [0.2, 0.4, -0.1, -4]);
   });
 });
 
@@ -681,6 +711,15 @@ describeWithFlags('mod', ALL_ENVS, () => {
   it('throws when passed b as a non-tensor', () => {
     expect(() => tf.mod(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'mod' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[0.5, 3], [-0.1, -4]];
+    const b = [[0.2, 0.4], [0.25, 0.15]];
+    const result = tf.mod(a, b);
+
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(result, [0.1, 0.2, 0.15, 0.05]);
   });
 });
 
@@ -878,6 +917,19 @@ describeWithFlags('atan2', ALL_ENVS, () => {
   it('throws when passed b as a non-tensor', () => {
     expect(() => tf.atan2(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'atan2' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[1, 2, 3], [4, 5, 6]];
+    const c = 2;
+
+    const r = tf.atan2(a, c);
+    const expected = [];
+
+    for (let i = 0; i < 6; i++) {
+      expected[i] = Math.atan2(i + 1, 2);
+    }
+    expectArraysClose(r, expected);
   });
 });
 

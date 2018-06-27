@@ -213,6 +213,15 @@ describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
             losses, {} as tf.Tensor, tf.Reduction.NONE))
         .toThrowError(e);
   });
+
+  it('accepts a tensor-like object', () => {
+    const losses = [1, 2, 3];
+    const weights = [0.1, 0, 0.3];
+    const y = tf.losses.computeWeightedLoss(losses, weights);
+
+    expect(y.shape).toEqual([]);
+    expectNumbersClose(y.get(), (1 * 0.1 + 2 * 0 + 3 * 0.3) / 2);
+  });
 });
 
 describeWithFlags('absoluteDifference', ALL_ENVS, () => {
@@ -399,6 +408,21 @@ describeWithFlags('absoluteDifference', ALL_ENVS, () => {
         () => tf.losses.absoluteDifference(
             label, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
         .toThrowError(e);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const predictions = [1, 2, 3];
+    const label = [0.3, -0.6, -0.1];
+    const weights = [0.1, 0.2, 0.3];
+
+    const y = tf.losses.absoluteDifference(
+        label, predictions, weights, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([3]);
+    expectArraysClose(y, [
+      Math.abs(1 - 0.3) * 0.1, Math.abs(2 - (-0.6)) * 0.2,
+      Math.abs(3 - (-0.1)) * 0.3
+    ]);
   });
 });
 
@@ -593,6 +617,21 @@ describeWithFlags('meanSquaredError', ALL_ENVS, () => {
             label, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
         .toThrowError(e);
   });
+
+  it('accepts a tensor-like object', () => {
+    const predictions = [1, 2, 3];
+    const label = [0.3, -0.6, -0.1];
+    const weights = [0.1, 0.2, 0.3];
+
+    const y = tf.losses.meanSquaredError(
+        label, predictions, weights, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([3]);
+    expectArraysClose(y, [
+      (1 - 0.3) * (1 - 0.3) * 0.1, (2 - (-0.6)) * (2 - (-0.6)) * 0.2,
+      (3 - (-0.1)) * (3 - (-0.1)) * 0.3
+    ]);
+  });
 });
 
 describeWithFlags('cosineDistance', ALL_ENVS, () => {
@@ -757,6 +796,18 @@ describeWithFlags('cosineDistance', ALL_ENVS, () => {
             label, predictions, 0, {} as tf.Tensor, tf.Reduction.MEAN))
         .toThrowError(e);
   });
+
+  it('accepts a tensor-like object', () => {
+    const predictions = [1, 2, 3];
+    const label = [0.3, -0.6, -0.1];
+    const weights = 0.1;
+
+    const y = tf.losses.cosineDistance(
+        label, predictions, 0, weights, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([1]);
+    expectArraysClose(y, [(1 - (1 * 0.3 + 2 * -0.6 + 3 * -0.1)) * 0.1]);
+  });
 });
 
 describeWithFlags('hingeLoss', ALL_ENVS, () => {
@@ -905,6 +956,18 @@ describeWithFlags('hingeLoss', ALL_ENVS, () => {
         () => tf.losses.hingeLoss(
             label, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
         .toThrowError(e);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const predictions = [0, 0, 1, 1];
+    const label = [0, 1, 0, 1];
+    const weights = [0.1, 0.2, 0.3, 0.4];
+
+    const y =
+        tf.losses.hingeLoss(label, predictions, weights, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([4]);
+    expectArraysClose(y, [0.1, 0.2, 0.6, 0.0]);
   });
 });
 
@@ -1065,6 +1128,18 @@ describeWithFlags('logLoss', ALL_ENVS, () => {
             labels, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
         .toThrowError(e);
   });
+
+  it('accepts a tensor-like object', () => {
+    const labels = [1, 2, 3];
+    const predictions = [0.3, 0.6, 0.1];
+    const weights = [0.1, 0.2, 0.3];
+
+    const y = tf.losses.logLoss(
+        labels, predictions, weights, undefined, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([3]);
+    expectArraysClose(y, [0.12039725, 0.02107204, 2.0091095]);
+  });
 });
 
 describeWithFlags('huberLoss', ALL_ENVS, () => {
@@ -1224,5 +1299,17 @@ describeWithFlags('huberLoss', ALL_ENVS, () => {
         () => tf.losses.huberLoss(
             labels, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
         .toThrowError(e);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const labels = [1, 2, 3];
+    const predictions = [0.3, 0.6, 0.1];
+    const weights = [0.1, 0.2, 0.3];
+
+    const y = tf.losses.huberLoss(
+        labels, predictions, weights, undefined, tf.Reduction.NONE);
+
+    expect(y.shape).toEqual([3]);
+    expectArraysClose(y, [0.0245, 0.17999999, 0.72]);
   });
 });

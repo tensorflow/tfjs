@@ -18,7 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import * as conv_util from './conv_util';
 import {operation} from './operation';
@@ -46,16 +47,16 @@ export class PoolOps {
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static maxPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
+      x: T|TensorLike, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    assertArgumentsAreTensors({x}, 'maxPool');
+    const $x = convertToTensor(x, 'x', 'maxPool');
 
-    let x4D = x as Tensor4D;
+    let x4D = $x as Tensor4D;
     let reshapedTo4D = false;
-    if (x.rank === 3) {
+    if ($x.rank === 3) {
       reshapedTo4D = true;
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+      x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
     }
     util.assert(
         x4D.rank === 4,
@@ -107,23 +108,26 @@ export class PoolOps {
    */
   @operation
   static maxPoolBackprop(
-      dy: Tensor4D, input: Tensor4D, output: Tensor4D,
-      filterSize: [number, number]|number, strides: [number, number]|number,
-      pad: 'valid'|'same'|number,
+      dy: Tensor4D|TensorLike, input: Tensor4D|TensorLike,
+      output: Tensor4D|TensorLike, filterSize: [number, number]|number,
+      strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): Tensor4D {
-    assertArgumentsAreTensors({dy, input, output}, 'maxPoolBackprop');
+    const $dy = convertToTensor(dy, 'dy', 'maxPoolBackprop');
+    const $input = convertToTensor(input, 'input', 'maxPoolBackprop');
+    const $output = convertToTensor(output, 'output', 'maxPoolBackprop');
     util.assert(
-        input.rank === dy.rank,
-        `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
+        $input.rank === $dy.rank,
+        `Rank of input (${$input.rank}) does not match rank of dy (${
+            $dy.rank})`);
 
     util.assert(
-        dy.rank === 4,
+        $dy.rank === 4,
         `Error in maxPoolBackprop: dy must be rank 4 but got rank ` +
-            `${dy.rank}.`);
+            `${$dy.rank}.`);
     util.assert(
-        input.rank === 4,
+        $input.rank === 4,
         `Error in maxPoolBackprop: input must be rank 4 but got rank ` +
-            `${input.rank}.`);
+            `${$input.rank}.`);
     if (dimRoundingMode != null) {
       util.assert(
           util.isInt(pad as number),
@@ -132,10 +136,10 @@ export class PoolOps {
     }
 
     const convInfo = conv_util.computePool2DInfo(
-        input.shape, filterSize, strides, pad, dimRoundingMode);
+        $input.shape, filterSize, strides, pad, dimRoundingMode);
     const res = ENV.engine.runKernel(
-        backend => backend.maxPoolBackprop(dy, input, output, convInfo),
-        {dy, input});
+        backend => backend.maxPoolBackprop($dy, $input, $output, convInfo),
+        {$dy, $input});
     return res;
   }
 
@@ -161,17 +165,17 @@ export class PoolOps {
   @doc({heading: 'Operations', subheading: 'Convolution'})
   @operation
   static avgPool<T extends Tensor3D|Tensor4D>(
-      x: T, filterSize: [number, number]|number,
+      x: T|TensorLike, filterSize: [number, number]|number,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
       dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    assertArgumentsAreTensors({x}, 'avgPool');
+    const $x = convertToTensor(x, 'x', 'avgPool');
     util.assert(
-        x.dtype === 'float32', 'The input dtype to avgPool must be float32');
-    let x4D = x as Tensor4D;
+        $x.dtype === 'float32', 'The input dtype to avgPool must be float32');
+    let x4D = $x as Tensor4D;
     let reshapedTo4D = false;
-    if (x.rank === 3) {
+    if ($x.rank === 3) {
       reshapedTo4D = true;
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]);
+      x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
     }
     util.assert(
         x4D.rank === 4,
@@ -193,7 +197,7 @@ export class PoolOps {
     };
     let res = ENV.engine.runKernel(
         backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
-    res = res.cast(x.dtype);
+    res = res.cast($x.dtype);
     if (reshapedTo4D) {
       return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
     }
@@ -216,20 +220,24 @@ export class PoolOps {
    */
   @operation
   static avgPoolBackprop<T extends Tensor3D|Tensor4D>(
-      dy: T, input: T, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number): T {
-    assertArgumentsAreTensors({dy, input}, 'avgPoolBackprop');
+      dy: T|TensorLike, input: T|TensorLike,
+      filterSize: [number, number]|number, strides: [number, number]|number,
+      pad: 'valid'|'same'|number): T {
+    const $dy = convertToTensor(dy, 'dy', 'avgPoolBackprop');
+    const $input = convertToTensor(input, 'input', 'avgPoolBackprop');
     util.assert(
-        input.rank === dy.rank,
-        `Rank of input (${input.rank}) does not match rank of dy (${dy.rank})`);
+        $input.rank === $dy.rank,
+        `Rank of input (${$input.rank}) does not match rank of dy (${
+            $dy.rank})`);
 
-    let input4D = input as Tensor4D;
-    let dy4D = dy as Tensor4D;
+    let input4D = $input as Tensor4D;
+    let dy4D = $dy as Tensor4D;
     let reshapedTo4D = false;
-    if (input.rank === 3) {
+    if ($input.rank === 3) {
       reshapedTo4D = true;
-      input4D = input.as4D(1, input.shape[0], input.shape[1], input.shape[2]);
-      dy4D = dy.as4D(1, dy.shape[0], dy.shape[1], dy.shape[2]);
+      input4D =
+          $input.as4D(1, $input.shape[0], $input.shape[1], $input.shape[2]);
+      dy4D = $dy.as4D(1, $dy.shape[0], $dy.shape[1], $dy.shape[2]);
     }
 
     util.assert(

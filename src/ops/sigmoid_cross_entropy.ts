@@ -17,7 +17,8 @@
 
 import {doc} from '../doc';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import {operation} from './operation';
 
@@ -31,11 +32,14 @@ export class SigmoidCrossEntropyOps {
   @doc({heading: 'Operations', subheading: 'Cross Entropy'})
   @operation
   static sigmoidCrossEntropyWithLogits<T extends Tensor, O extends Tensor>(
-      labels: T, logits: T): O {
-    assertArgumentsAreTensors(
-        {labels, logits}, 'sigmoidCrossEntropyWithLogits');
+      labels: T|TensorLike, logits: T|TensorLike): O {
+    const $labels =
+        convertToTensor(labels, 'labels', 'sigmoidCrossEntropyWithLogits');
+    const $logits =
+        convertToTensor(logits, 'logits', 'sigmoidCrossEntropyWithLogits');
     util.assertShapesMatch(
-        labels.shape, logits.shape, 'Error in sigmoidCrossEntropyWithLogits: ');
+        $labels.shape, $logits.shape,
+        'Error in sigmoidCrossEntropyWithLogits: ');
 
     /**
      * Implementation Details:
@@ -57,9 +61,9 @@ export class SigmoidCrossEntropyOps {
      * this equivalent formulation:
      *     max(x, 0) - x * z + log(1 + exp(-abs(x)))
      */
-    const maxOutput = logits.relu();
-    const outputXTarget = logits.mul(labels);
-    const sigmoidOutput = logits.abs().neg().exp().log1p();
+    const maxOutput = $logits.relu();
+    const outputXTarget = $logits.mul($labels);
+    const sigmoidOutput = $logits.abs().neg().exp().log1p();
 
     return maxOutput.sub(outputXTarget).add(sigmoidOutput);
   }

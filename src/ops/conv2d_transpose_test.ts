@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
@@ -139,5 +139,19 @@ describeWithFlags('conv2dTranspose', ALL_ENVS, () => {
             x, {} as tf.Tensor4D, [2, 2, 1], origStride, origPad))
         .toThrowError(
             /Argument 'filter' passed to 'conv2dTranspose' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const origPad = 0;
+    const origStride = 1;
+
+    const x = [[[2]]];                           // 1x1x1
+    const w = [[[[3]], [[1]]], [[[5]], [[0]]]];  // 2x2x1x1
+
+    const result = tf.conv2dTranspose(x, w, [2, 2, 1], origStride, origPad);
+    const expected = [6, 2, 10, 0];
+
+    expect(result.shape).toEqual([2, 2, 1]);
+    expectArraysClose(result, expected);
   });
 });

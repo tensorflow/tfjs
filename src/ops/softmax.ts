@@ -18,8 +18,10 @@
 import {doc} from '../doc';
 import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
+
 import * as axis_util from './axis_util';
 import {operation} from './operation';
 import {TensorOps} from './tensor_ops';
@@ -46,16 +48,16 @@ export class SoftmaxOps {
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   @operation
-  static softmax<T extends Tensor>(logits: T, dim = -1): T {
-    assertArgumentsAreTensors({logits}, 'softmax');
+  static softmax<T extends Tensor>(logits: T|TensorLike, dim = -1): T {
+    const $logits = convertToTensor(logits, 'logits', 'softmax');
 
     if (dim === -1) {
-      dim = logits.rank - 1;
+      dim = $logits.rank - 1;
     }
-    if (dim !== logits.rank - 1) {
+    if (dim !== $logits.rank - 1) {
       throw Error(
           'Softmax along a non-last dimension is not yet supported. ' +
-          `Logits was rank ${logits.rank} and dim was ${dim}`);
+          `Logits was rank ${$logits.rank} and dim was ${dim}`);
     }
 
     const customOp = customGrad(logits => {
@@ -75,7 +77,7 @@ export class SoftmaxOps {
       return {value: y, gradFunc};
     });
 
-    return customOp(logits);
+    return customOp($logits);
   }
 
   /**
@@ -105,18 +107,19 @@ export class SoftmaxOps {
   @doc({heading: 'Training', subheading: 'Losses', namespace: 'losses'})
   @operation
   static softmaxCrossEntropy<T extends Tensor, O extends Tensor>(
-      labels: T, logits: T, dim = -1): O {
-    assertArgumentsAreTensors({labels, logits}, 'softmaxCrossEntropy');
+      labels: T|TensorLike, logits: T|TensorLike, dim = -1): O {
+    const $labels = convertToTensor(labels, 'labels', 'softmaxCrossEntropy');
+    const $logits = convertToTensor(logits, 'logits', 'softmaxCrossEntropy');
     util.assertShapesMatch(
-        labels.shape, logits.shape, 'Error in softmaxCrossEntropy: ');
+        $labels.shape, $logits.shape, 'Error in softmaxCrossEntropy: ');
 
     if (dim === -1) {
-      dim = logits.rank - 1;
+      dim = $logits.rank - 1;
     }
-    if (dim !== logits.rank - 1) {
+    if (dim !== $logits.rank - 1) {
       throw Error(
           `Softmax cross entropy along a non-last dimension is not yet ` +
-          `supported. Labels / logits was rank ${logits.rank} ` +
+          `supported. Labels / logits was rank ${$logits.rank} ` +
           `and dim was ${dim}`);
     }
     // Use a custom gradient for numerical stability.
@@ -136,6 +139,6 @@ export class SoftmaxOps {
       return {value, gradFunc};
     });
 
-    return customOp(labels, logits);
+    return customOp($labels, $logits);
   }
 }

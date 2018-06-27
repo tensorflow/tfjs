@@ -18,10 +18,11 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
 import * as types from '../types';
-import * as util from '../util';
-import * as broadcast_util from './broadcast_util';
+import {TensorLike} from '../types';
+import {assert, assertShapesMatch} from '../util';
+import {assertAndGetBroadcastShape} from './broadcast_util';
 import {operation} from './operation';
 import {TensorOps} from './tensor_ops';
 
@@ -39,11 +40,11 @@ export class LogicalOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static logicalNot<T extends Tensor>(x: T): T {
-    assertArgumentsAreTensors({x}, 'logicalNot');
-    util.assert(x.dtype === 'bool', 'Error Array must be of type bool.');
+  static logicalNot<T extends Tensor>(x: T|TensorLike): T {
+    const $x = convertToTensor(x, 'x', 'logicalNot', 'bool');
+    assert($x.dtype === 'bool', 'Error Array must be of type bool.');
 
-    return ENV.engine.runKernel(backend => backend.logicalNot(x), {x});
+    return ENV.engine.runKernel(backend => backend.logicalNot($x), {$x});
   }
 
   /**
@@ -61,15 +62,17 @@ export class LogicalOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static logicalAnd<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'logicalAnd');
-    util.assert(
-        a.dtype === 'bool' && b.dtype === 'bool',
+  static logicalAnd<T extends Tensor>(
+      a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'logicalAnd', 'bool');
+    const $b = convertToTensor(b, 'b', 'logicalAnd', 'bool');
+    assert(
+        $a.dtype === 'bool' && $b.dtype === 'bool',
         'Error Array must be of type bool.');
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
-    return ENV.engine.runKernel(backend => backend.logicalAnd(a, b), {a, b}) as
-        T;
+    return ENV.engine.runKernel(
+               backend => backend.logicalAnd($a, $b), {$a, $b}) as T;
   }
 
   /**
@@ -86,15 +89,17 @@ export class LogicalOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static logicalOr<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'logicalOr');
-    util.assert(
-        a.dtype === 'bool' && b.dtype === 'bool',
+  static logicalOr<T extends Tensor>(
+      a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'logicalOr', 'bool');
+    const $b = convertToTensor(b, 'b', 'logicalOr', 'bool');
+    assert(
+        $a.dtype === 'bool' && $b.dtype === 'bool',
         'Error Array must be of type bool.');
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
-    return ENV.engine.runKernel(backend => backend.logicalOr(a, b), {a, b}) as
-        T;
+    return ENV.engine.runKernel(
+               backend => backend.logicalOr($a, $b), {$a, $b}) as T;
   }
 
   /**
@@ -112,12 +117,14 @@ export class LogicalOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static logicalXor<T extends Tensor>(a: Tensor, b: Tensor): T {
-    assertArgumentsAreTensors({a, b}, 'logicalXor');
-    util.assert(
-        a.dtype === 'bool' && b.dtype === 'bool',
+  static logicalXor<T extends Tensor>(
+      a: Tensor|TensorLike, b: Tensor|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'logicalXor', 'bool');
+    const $b = convertToTensor(b, 'b', 'logicalXor', 'bool');
+    assert(
+        $a.dtype === 'bool' && $b.dtype === 'bool',
         'Error Array must be of type bool.');
-    broadcast_util.assertAndGetBroadcastShape(a.shape, b.shape);
+    assertAndGetBroadcastShape($a.shape, $b.shape);
 
     // x ^ y = (x | y) & ~(x & y)
     return LogicalOps.logicalOr(a, b).logicalAnd(
@@ -144,36 +151,40 @@ export class LogicalOps {
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
   @operation
-  static where<T extends Tensor>(condition: Tensor, a: T, b: T): T {
-    assertArgumentsAreTensors({condition, a, b}, 'where');
-    util.assert(
-        condition.dtype === 'bool', 'Error Condition must be of type bool.');
-    util.assertShapesMatch(a.shape, b.shape, 'Error in where: ');
+  static where<T extends Tensor>(
+      condition: Tensor|TensorLike, a: T|TensorLike, b: T|TensorLike): T {
+    const $a = convertToTensor(a, 'a', 'where');
+    const $b = convertToTensor(b, 'b', 'where');
+    const $condition = convertToTensor(condition, 'condition', 'where', 'bool');
 
-    if (condition.rank === 1) {
+    assert(
+        $condition.dtype === 'bool', 'Error Condition must be of type bool.');
+    assertShapesMatch($a.shape, $b.shape, 'Error in where: ');
+
+    if ($condition.rank === 1) {
       // If condition rank is 1, then the first dimension must match the size of
       // condition.
-      util.assert(
-          condition.shape[0] === a.shape[0],
+      assert(
+          $condition.shape[0] === $a.shape[0],
           'The first dimension of `a` must match the size of `condition`.');
     } else {
       // A must have the same shape as condition.
-      util.assertShapesMatch(condition.shape, b.shape, 'Error in where: ');
+      assertShapesMatch($condition.shape, $b.shape, 'Error in where: ');
     }
 
     // Default to highest precision:
-    const dtype = types.upcastType(a.dtype, b.dtype);
+    const dtype = types.upcastType($a.dtype, $b.dtype);
 
     // TODO(julianoks): Return null for condition gradient
     // when backprop supports it.
     const grad = (dy: T) => ({
-      condition: () => TensorOps.zerosLike(condition),
-      a: () => dy.mul(condition.cast(a.dtype)) as T,
-      b: () => dy.mul(condition.logicalNot().cast(b.dtype)) as T
+      $condition: () => TensorOps.zerosLike($condition),
+      $a: () => dy.mul($condition.cast($a.dtype)) as T,
+      $b: () => dy.mul($condition.logicalNot().cast($b.dtype)) as T
     });
 
     return ENV.engine.runKernel(
-               backend => backend.where(condition, a, b, dtype),
-               {condition, a, b}, grad) as T;
+               backend => backend.where($condition, $a, $b, dtype),
+               {$condition, $a, $b}, grad) as T;
   }
 }

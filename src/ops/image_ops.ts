@@ -19,7 +19,8 @@ import {doc} from '../doc';
 import {ForwardFunc} from '../engine';
 import {ENV} from '../environment';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import {operation} from './operation';
 
@@ -39,23 +40,23 @@ export class ImageOps {
   @doc({heading: 'Operations', subheading: 'Images', namespace: 'image'})
   @operation
   static resizeBilinear<T extends Tensor3D|Tensor4D>(
-      images: T, size: [number, number], alignCorners = false): T {
-    assertArgumentsAreTensors({images}, 'resizeBilinear');
+      images: T|TensorLike, size: [number, number], alignCorners = false): T {
+    const $images = convertToTensor(images, 'images', 'resizeBilinear');
     util.assert(
-        images.rank === 3 || images.rank === 4,
+        $images.rank === 3 || $images.rank === 4,
         `Error in resizeBilinear: x must be rank 3 or 4, but got ` +
-            `rank ${images.rank}.`);
+            `rank ${$images.rank}.`);
     util.assert(
         size.length === 2,
         `Error in resizeBilinear: new shape must 2D, but got shape ` +
             `${size}.`);
 
-    let batchImages = images as Tensor4D;
+    let batchImages = $images as Tensor4D;
     let reshapedTo4D = false;
-    if (images.rank === 3) {
+    if ($images.rank === 3) {
       reshapedTo4D = true;
       batchImages =
-          images.as4D(1, images.shape[0], images.shape[1], images.shape[2]);
+          $images.as4D(1, $images.shape[0], $images.shape[1], $images.shape[2]);
     }
 
     const [newHeight, newWidth] = size;
@@ -93,26 +94,26 @@ export class ImageOps {
   @doc({heading: 'Operations', subheading: 'Images', namespace: 'image'})
   @operation
   static resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
-      images: T, size: [number, number], alignCorners = false): T {
-    assertArgumentsAreTensors({images}, 'resizeNearestNeighbor');
+      images: T|TensorLike, size: [number, number], alignCorners = false): T {
+    const $images = convertToTensor(images, 'images', 'resizeNearestNeighbor');
     util.assert(
-        images.rank === 3 || images.rank === 4,
+        $images.rank === 3 || $images.rank === 4,
         `Error in resizeNearestNeighbor: x must be rank 3 or 4, but got ` +
-            `rank ${images.rank}.`);
+            `rank ${$images.rank}.`);
     util.assert(
         size.length === 2,
         `Error in resizeNearestNeighbor: new shape must 2D, but got shape ` +
             `${size}.`);
     util.assert(
-        images.dtype === 'float32' || images.dtype === 'int32',
+        $images.dtype === 'float32' || $images.dtype === 'int32',
         '`images` must have `int32` or `float32` as dtype');
 
-    let batchImages = images as Tensor4D;
+    let batchImages = $images as Tensor4D;
     let reshapedTo4D = false;
-    if (images.rank === 3) {
+    if ($images.rank === 3) {
       reshapedTo4D = true;
       batchImages =
-          images.as4D(1, images.shape[0], images.shape[1], images.shape[2]);
+          $images.as4D(1, $images.shape[0], $images.shape[1], $images.shape[2]);
     }
     const [newHeight, newWidth] = size;
 

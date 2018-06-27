@@ -94,4 +94,15 @@ describeWithFlags('sigmoidCrossEntropyWithLogits', ALL_ENVS, () => {
             tf.sigmoidCrossEntropyWithLogits(tf.tensor1d([1]), {} as tf.Tensor))
         .toThrowError(e);
   });
+
+  it('accepts a tensor-like object', () => {
+    const logits = [1, 2, 3];
+    const labels = [0.3, -0.6, 0.1];
+    const expected = getExpectedVal(labels, logits);
+
+    const y = tf.sigmoidCrossEntropyWithLogits(labels, logits);
+
+    expect(y.shape).toEqual([3]);
+    expectArraysClose(y, expected);
+  });
 });

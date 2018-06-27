@@ -16,9 +16,9 @@
  */
 
 import * as tf from '../index';
+import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 import {Rank} from '../types';
 
 describeWithFlags('conv2d', ALL_ENVS, () => {
@@ -263,5 +263,15 @@ describeWithFlags('conv2d', ALL_ENVS, () => {
 
     expect(() => tf.conv2d(x, {} as tf.Tensor4D, stride, pad))
         .toThrowError(/Argument 'filter' passed to 'conv2d' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const pad = 0;
+    const stride = 1;
+    const x = [[[1], [2]], [[3], [4]]];  // 2x2x1
+    const w = [[[[2]]]];                 // 1x1x1x1
+
+    const result = tf.conv2d(x, w, stride, pad);
+    expectArraysClose(result, [2, 4, 6, 8]);
   });
 });

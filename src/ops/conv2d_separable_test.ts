@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('separableConv2d', ALL_ENVS, () => {
   it('input=1x3x3x1,f=2,s=1,d=1,p=valid,chMul=1,outDepth=2', () => {
@@ -439,5 +439,35 @@ describeWithFlags('separableConv2d', ALL_ENVS, () => {
         () => tf.separableConv2d(
             x, depthwiseFilter, {} as tf.Tensor4D, stride, pad))
         .toThrowError(e);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const pad = 'valid';
+    const stride = 1;
+    const outDepth = 2;
+
+    // 3x3x1
+    const x = [
+      [[0.230664], [0.987388], [0.0685208]],
+      [[0.419224], [0.887861], [0.731641]],
+      [[0.0741907], [0.409265], [0.351377]]
+    ];
+    // 2x2x1x1
+    const depthwiseFilter =
+        [[[[0.303873]], [[0.229223]]], [[[0.144333]], [[0.803373]]]];
+    // 1x1x1x2
+    const pointwiseFilter = [[[[0.1, -0.2]]]];
+
+    const result =
+        tf.separableConv2d(x, depthwiseFilter, pointwiseFilter, stride, pad);
+
+    expectArraysClose(
+        result,
+        tf.tensor3d(
+            [
+              0.10702161, -0.21404321, 0.10316753, -0.20633507, 0.06704096,
+              -0.13408193, 0.07788632, -0.15577264
+            ],
+            [2, 2, outDepth]));
   });
 });

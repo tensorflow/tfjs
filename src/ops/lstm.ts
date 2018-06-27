@@ -17,7 +17,8 @@
 
 import {doc} from '../doc';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor, convertToTensorArray} from '../tensor_util';
+import {TensorLike} from '../types';
 import {operation} from './operation';
 
 /**
@@ -45,14 +46,17 @@ export class LSTMOps {
   @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
   static multiRNNCell(
-      lstmCells: LSTMCellFunc[], data: Tensor2D, c: Tensor2D[], h: Tensor2D[]):
-      [Tensor2D[], Tensor2D[]] {
-    assertArgumentsAreTensors({data, c, h}, 'multiRNNCell');
+      lstmCells: LSTMCellFunc[], data: Tensor2D|TensorLike,
+      c: Tensor2D[]|TensorLike[],
+      h: Tensor2D[]|TensorLike[]): [Tensor2D[], Tensor2D[]] {
+    const $data = convertToTensor(data, 'data', 'multiRNNCell');
+    const $c = convertToTensorArray(c, 'c', 'multiRNNCell');
+    const $h = convertToTensorArray(h, 'h', 'multiRNNCell');
 
-    let input = data;
+    let input = $data;
     const newStates = [];
     for (let i = 0; i < lstmCells.length; i++) {
-      const output = lstmCells[i](input, c[i], h[i]);
+      const output = lstmCells[i](input, $c[i], $h[i]);
       newStates.push(output[0]);
       newStates.push(output[1]);
       input = output[1];
@@ -83,14 +87,21 @@ export class LSTMOps {
   @doc({heading: 'Operations', subheading: 'RNN'})
   @operation
   static basicLSTMCell(
-      forgetBias: Scalar, lstmKernel: Tensor2D, lstmBias: Tensor1D,
-      data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D] {
-    assertArgumentsAreTensors(
-        {forgetBias, lstmKernel, lstmBias, data, c, h}, 'basicLSTMCell');
+      forgetBias: Scalar|TensorLike, lstmKernel: Tensor2D|TensorLike,
+      lstmBias: Tensor1D|TensorLike, data: Tensor2D|TensorLike,
+      c: Tensor2D|TensorLike, h: Tensor2D|TensorLike): [Tensor2D, Tensor2D] {
+    const $forgetBias =
+        convertToTensor(forgetBias, 'forgetBias', 'basicLSTMCell');
+    const $lstmKernel =
+        convertToTensor(lstmKernel, 'lstmKernel', 'basicLSTMCell');
+    const $lstmBias = convertToTensor(lstmBias, 'lstmBias', 'basicLSTMCell');
+    const $data = convertToTensor(data, 'data', 'basicLSTMCell');
+    const $c = convertToTensor(c, 'c', 'basicLSTMCell');
+    const $h = convertToTensor(h, 'h', 'basicLSTMCell');
 
-    const combined = data.concat(h, 1);
-    const weighted = combined.matMul(lstmKernel);
-    const res = weighted.add(lstmBias) as Tensor2D;
+    const combined = $data.concat($h, 1);
+    const weighted = combined.matMul($lstmKernel);
+    const res = weighted.add($lstmBias) as Tensor2D;
 
     // i = input_gate, j = new_input, f = forget_gate, o = output_gate
     const batchSize = res.shape[0];
@@ -102,7 +113,7 @@ export class LSTMOps {
     const o = res.slice([0, sliceCols * 3], sliceSize);
 
     const newC = i.sigmoid().mulStrict(j.tanh()).addStrict(
-        c.mulStrict(forgetBias.add(f).sigmoid() as Tensor2D));
+        $c.mulStrict($forgetBias.add(f).sigmoid() as Tensor2D));
     const newH = newC.tanh().mulStrict(o.sigmoid());
     return [newC, newH];
   }

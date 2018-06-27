@@ -133,4 +133,14 @@ describeWithFlags('unsortedSegmentSum', ALL_ENVS, () => {
     expect(gradient.shape).toEqual(t.shape);
     expectArraysClose(gradient, [-1, 14, 3, 28, 17, 31, 1, 0, -1, 14, 3, 28]);
   });
+
+  it('accepts a tensor-like object', () => {
+    const x = [1, 2, 3, 4];
+    const segmentIds = [0, 2, 0, 1];
+    const numSegments = 3;
+    const res = tf.unsortedSegmentSum(x, segmentIds, numSegments);
+
+    expect(res.shape).toEqual([3]);
+    expectArraysClose(res, [4, 4, 2]);
+  });
 });

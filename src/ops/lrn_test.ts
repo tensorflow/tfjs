@@ -260,6 +260,26 @@ describeWithFlags('localResponseNormalization with Tensor3D', ALL_ENVS, () => {
 
     expectArraysClose(result, flatten(expected));
   });
+
+  it('accepts a tensor-like object', () => {
+    const x = [[[1, 20, 300, 4]]];  // 1x1x4
+    const radius = 1;
+    const bias = 1;
+    const alpha = 1;
+    const beta = 0.5;
+
+    const result = tf.localResponseNormalization(x, radius, bias, alpha, beta);
+
+    const f = (...vals: number[]) =>
+        Math.pow(bias + alpha * sumArr(sqArr(vals)), -beta);
+
+    expectArraysClose(result, [
+      x[0][0][0] * f(x[0][0][0], x[0][0][1]),
+      x[0][0][1] * f(x[0][0][0], x[0][0][1], x[0][0][2]),
+      x[0][0][2] * f(x[0][0][1], x[0][0][2], x[0][0][3]),
+      x[0][0][3] * f(x[0][0][2], x[0][0][3]),
+    ]);
+  });
 });
 
 describeWithFlags('localResponseNormalization with Tensor4D', ALL_ENVS, () => {

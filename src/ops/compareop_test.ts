@@ -257,6 +257,12 @@ describeWithFlags('equal', ALL_ENVS, () => {
     expect(() => tf.equal(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'equal' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+    expectArraysClose(tf.equal(a, b), [0, 0, 1]);
+  });
 });
 
 describeWithFlags('equalStrict', ALL_ENVS, () => {
@@ -477,6 +483,12 @@ describeWithFlags('equalStrict', ALL_ENVS, () => {
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     expectArraysClose(
         tf.equalStrict(a, b), [0, 0, 1, 0]);
+  });
+
+  it('accepts a tensor-like object', () => {
+      const a = [1, 4, 5];
+      const b = [2, 3, 5];
+      expectArraysClose(tf.equalStrict(a, b), [0, 0, 1]);
   });
 });
 
@@ -735,6 +747,12 @@ describeWithFlags('notEqual', ALL_ENVS, () => {
     expect(() => tf.notEqual(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'notEqual' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = tf.tensor1d([1, 4, 5], 'int32');
+    const b = tf.tensor1d([2, 3, 5], 'int32');
+    expectArraysClose(tf.notEqual(a, b), [1, 1, 0]);
+  });
 });
 
 describeWithFlags('notEqualStrict', ALL_ENVS, () => {
@@ -968,6 +986,12 @@ describeWithFlags('notEqualStrict', ALL_ENVS, () => {
     const b = tf.tensor4d([0.1, 1.1, 1.1, NaN], [2, 2, 1, 1], 'float32');
     expectArraysClose(
         tf.notEqualStrict(a, b), [1, 1, 0, 1]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+    expectArraysClose(tf.notEqualStrict(a, b), [1, 1, 0]);
   });
 });
 
@@ -1264,6 +1288,15 @@ describeWithFlags('less', ALL_ENVS, () => {
     expect(() => tf.less(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'less' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+
+    const res = tf.less(a, b);
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [1, 0, 0]);
+  });
 });
 
 describeWithFlags('lessStrict', ALL_ENVS, () => {
@@ -1319,6 +1352,15 @@ describeWithFlags('lessStrict', ALL_ENVS, () => {
         expect(() => tf.lessStrict(a, b)).toThrowError();
         expect(() => tf.lessStrict(b, a)).toThrowError();
       });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+
+    const res = tf.lessStrict(a, b);
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [1, 0, 0]);
+  });
 });
 
 describeWithFlags('lessEqual', ALL_ENVS, () => {
@@ -1613,6 +1655,15 @@ describeWithFlags('lessEqual', ALL_ENVS, () => {
     expect(() => tf.lessEqual(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'lessEqual' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+    const res = tf.lessEqual(a, b);
+
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [1, 0, 1]);
+  });
 });
 
 describeWithFlags('lessEqualStrict', ALL_ENVS, () => {
@@ -1667,6 +1718,15 @@ describeWithFlags('lessEqualStrict', ALL_ENVS, () => {
         expect(() => tf.lessEqualStrict(a, b)).toThrowError();
         expect(() => tf.lessEqualStrict(b, a)).toThrowError();
       });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+    const res = tf.lessEqualStrict(a, b);
+
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [1, 0, 1]);
+  });
 });
 
 describeWithFlags('greater', ALL_ENVS, () => {
@@ -1961,6 +2021,15 @@ describeWithFlags('greater', ALL_ENVS, () => {
     expect(() => tf.greater(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'greater' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+
+    const res = tf.greater(a, b);
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [0, 1, 0]);
+  });
 });
 
 describeWithFlags('greaterStrict', ALL_ENVS, () => {
@@ -2015,6 +2084,15 @@ describeWithFlags('greaterStrict', ALL_ENVS, () => {
         expect(() => tf.greaterStrict(a, b)).toThrowError();
         expect(() => tf.greaterStrict(b, a)).toThrowError();
       });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+
+    const res = tf.greaterStrict(a, b);
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [0, 1, 0]);
+  });
 });
 
 describeWithFlags('greaterEqual', ALL_ENVS, () => {
@@ -2310,6 +2388,15 @@ describeWithFlags('greaterEqual', ALL_ENVS, () => {
     expect(() => tf.greaterEqual(tf.scalar(1), {} as tf.Tensor))
         .toThrowError(/Argument 'b' passed to 'greaterEqual' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+    const res = tf.greaterEqual(a, b);
+
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [0, 1, 1]);
+  });
 });
 
 describeWithFlags('greaterEqualStrict', ALL_ENVS, () => {
@@ -2364,4 +2451,13 @@ describeWithFlags('greaterEqualStrict', ALL_ENVS, () => {
         expect(() => tf.greaterEqualStrict(a, b)).toThrowError();
         expect(() => tf.greaterEqualStrict(b, a)).toThrowError();
       });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 4, 5];
+    const b = [2, 3, 5];
+    const res = tf.greaterEqualStrict(a, b);
+
+    expect(res.dtype).toBe('bool');
+    expectArraysClose(res, [0, 1, 1]);
+  });
 });

@@ -219,4 +219,11 @@ describeWithFlags('stridedSlice', ALL_ENVS, () => {
     expect(() => tf.stridedSlice({} as tf.Tensor, [0], [0], [1]))
         .toThrowError(/Argument 'x' passed to 'stridedSlice' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const tensor = [0, 1, 2, 3];
+    const output = tf.stridedSlice(tensor, [0], [3], [2]);
+    expect(output.shape).toEqual([2]);
+    expectArraysClose(output, [0, 2]);
+  });
 });

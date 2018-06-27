@@ -18,7 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
+import {convertToTensor} from '../tensor_util';
+import {TensorLike} from '../types';
 import * as util from '../util';
 import {parseAxisParam} from './axis_util';
 import {operation} from './operation';
@@ -29,10 +30,11 @@ export class ReverseOps {
    *
    * @param x The input tensor.
    */
-  static reverse1d(x: Tensor1D): Tensor1D {
-    util.assert(x.rank === 1, `Error in reverse1D: x must be rank 1 but got
-             rank ${x.rank}.`);
-    return ReverseOps.reverse(x, 0);
+  static reverse1d(x: Tensor1D|TensorLike): Tensor1D {
+    const $x = convertToTensor(x, 'x', 'reverse');
+    util.assert($x.rank === 1, `Error in reverse1D: x must be rank 1 but got
+             rank ${$x.rank}.`);
+    return ReverseOps.reverse($x, 0);
   }
 
   /**
@@ -42,10 +44,11 @@ export class ReverseOps {
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)). Defaults to all axes.
    */
-  static reverse2d(x: Tensor2D, axis?: number|number[]): Tensor2D {
-    util.assert(x.rank === 2, `Error in reverse2D: x must be rank 2 but got
-             rank ${x.rank}.`);
-    return ReverseOps.reverse(x, axis);
+  static reverse2d(x: Tensor2D|TensorLike, axis?: number|number[]): Tensor2D {
+    const $x = convertToTensor(x, 'x', 'reverse');
+    util.assert($x.rank === 2, `Error in reverse2D: x must be rank 2 but got
+             rank ${$x.rank}.`);
+    return ReverseOps.reverse($x, axis);
   }
 
   /**
@@ -55,10 +58,11 @@ export class ReverseOps {
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)). Defaults to all axes.
    */
-  static reverse3d(x: Tensor3D, axis?: number|number[]): Tensor3D {
-    util.assert(x.rank === 3, `Error in reverse3D: x must be rank 3 but got
-             rank ${x.rank}.`);
-    return ReverseOps.reverse(x, axis);
+  static reverse3d(x: Tensor3D|TensorLike, axis?: number|number[]): Tensor3D {
+    const $x = convertToTensor(x, 'x', 'reverse');
+    util.assert($x.rank === 3, `Error in reverse3D: x must be rank 3 but got
+             rank ${$x.rank}.`);
+    return ReverseOps.reverse($x, axis);
   }
 
   /**
@@ -68,10 +72,11 @@ export class ReverseOps {
    * @param axis The set of dimensions to reverse. Must be in the
    *     range [-rank(x), rank(x)). Defaults to all axes.
    */
-  static reverse4d(x: Tensor4D, axis?: number|number[]): Tensor4D {
-    util.assert(x.rank === 4, `Error in reverse4D: x must be rank 4 but got
-             rank ${x.rank}.`);
-    return ReverseOps.reverse(x, axis);
+  static reverse4d(x: Tensor4D|TensorLike, axis?: number|number[]): Tensor4D {
+    const $x = convertToTensor(x, 'x', 'reverse');
+    util.assert($x.rank === 4, `Error in reverse4D: x must be rank 4 but got
+             rank ${$x.rank}.`);
+    return ReverseOps.reverse($x, axis);
   }
 
   /**
@@ -105,18 +110,18 @@ export class ReverseOps {
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
   @operation
-  static reverse<T extends Tensor>(x: T, axis?: number|number[]): T {
-    assertArgumentsAreTensors({x}, 'reverse');
+  static reverse<T extends Tensor>(x: T|TensorLike, axis?: number|number[]): T {
+    const $x = convertToTensor(x, 'x', 'reverse');
 
-    if (x.rank === 0) {
-      return x.clone();
+    if ($x.rank === 0) {
+      return $x.clone();
     }
-    const axes = parseAxisParam(axis, x.shape);
+    const axes = parseAxisParam(axis, $x.shape);
     const grad = (dy: T) => {
-      return {x: () => dy.reverse(axes)};
+      return {$x: () => dy.reverse(axes)};
     };
     const res =
-        ENV.engine.runKernel(backend => backend.reverse(x, axes), {x}, grad);
-    return res.reshapeAs(x);
+        ENV.engine.runKernel(backend => backend.reverse($x, axes), {$x}, grad);
+    return res.reshapeAs($x);
   }
 }

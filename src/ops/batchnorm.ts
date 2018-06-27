@@ -18,8 +18,8 @@
 import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {assertArgumentsAreTensors} from '../tensor_util';
-import {Rank} from '../types';
+import {convertToTensor} from '../tensor_util';
+import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 import {ArrayOps} from './array_ops';
 import {getReductionAxes} from './broadcast_util';
@@ -41,36 +41,49 @@ export class BatchNormOps {
    */
   @operation
   static batchNormalization2d(
-      x: Tensor2D, mean: Tensor2D|Tensor1D, variance: Tensor2D|Tensor1D,
-      varianceEpsilon = .001, scale?: Tensor2D|Tensor1D,
-      offset?: Tensor2D|Tensor1D): Tensor2D {
-    util.assert(
-        x.rank === 2,
-        `Error in batchNormalization3D: x must be rank 3 but got rank ` +
-            `${x.rank}.`);
-    util.assert(
-        mean.rank === 2 || mean.rank === 1,
-        `Error in batchNormalization2D: mean must be rank 2 or rank 1 but ` +
-            `got rank ${mean.rank}.`);
-    util.assert(
-        variance.rank === 2 || variance.rank === 1,
-        `Error in batchNormalization2D: variance must be rank 2 or rank 1 ` +
-            `but got rank ${variance.rank}.`);
+      x: Tensor2D|TensorLike, mean: Tensor2D|Tensor1D|TensorLike,
+      variance: Tensor2D|Tensor1D|TensorLike, varianceEpsilon = .001,
+      scale?: Tensor2D|Tensor1D|TensorLike,
+      offset?: Tensor2D|Tensor1D|TensorLike): Tensor2D {
+    const $x = convertToTensor(x, 'x', 'batchNormalization');
+    const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
+    const $variance =
+        convertToTensor(variance, 'variance', 'batchNormalization');
+    let $scale: Tensor2D|Tensor1D;
     if (scale != null) {
-      util.assert(
-          scale.rank === 2 || scale.rank === 1,
-          `Error in batchNormalization2D: scale must be rank 2 or rank 1 ` +
-              `but got rank ${scale.rank}.`);
+      $scale = convertToTensor(scale, 'scale', 'batchNormalization');
     }
+    let $offset: Tensor2D|Tensor1D;
     if (offset != null) {
+      $offset = convertToTensor(offset, 'offset', 'batchNormalization');
+    }
+    util.assert(
+        $x.rank === 2,
+        `Error in batchNormalization3D: x must be rank 3 but got rank ` +
+            `${$x.rank}.`);
+    util.assert(
+        $mean.rank === 2 || $mean.rank === 1,
+        `Error in batchNormalization2D: mean must be rank 2 or rank 1 but ` +
+            `got rank ${$mean.rank}.`);
+    util.assert(
+        $variance.rank === 2 || $variance.rank === 1,
+        `Error in batchNormalization2D: variance must be rank 2 or rank 1 ` +
+            `but got rank ${$variance.rank}.`);
+    if ($scale != null) {
       util.assert(
-          offset.rank === 2 || offset.rank === 1,
+          $scale.rank === 2 || $scale.rank === 1,
+          `Error in batchNormalization2D: scale must be rank 2 or rank 1 ` +
+              `but got rank ${$scale.rank}.`);
+    }
+    if ($offset != null) {
+      util.assert(
+          $offset.rank === 2 || $offset.rank === 1,
           `Error in batchNormalization2D: offset must be rank 2 or rank 1 ` +
-              `but got rank ${offset.rank}.`);
+              `but got rank ${$offset.rank}.`);
     }
 
     return BatchNormOps.batchNormalization(
-        x, mean, variance, varianceEpsilon, scale, offset);
+        $x, $mean, $variance, varianceEpsilon, $scale, $offset);
   }
 
   /**
@@ -86,36 +99,49 @@ export class BatchNormOps {
    */
   @operation
   static batchNormalization3d(
-      x: Tensor3D, mean: Tensor3D|Tensor1D, variance: Tensor3D|Tensor1D,
-      varianceEpsilon = .001, scale?: Tensor3D|Tensor1D,
-      offset?: Tensor3D|Tensor1D): Tensor3D {
-    util.assert(
-        x.rank === 3,
-        `Error in batchNormalization3D: x must be rank 3 but got rank ` +
-            `${x.rank}.`);
-    util.assert(
-        mean.rank === 3 || mean.rank === 1,
-        `Error in batchNormalization3D: mean must be rank 3 or rank 1 but ` +
-            `got rank ${mean.rank}.`);
-    util.assert(
-        variance.rank === 3 || variance.rank === 1,
-        `Error in batchNormalization3D: variance must be rank 3 or rank 1 ` +
-            `but got rank ${variance.rank}.`);
+      x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
+      variance: Tensor3D|Tensor1D|TensorLike, varianceEpsilon = .001,
+      scale?: Tensor3D|Tensor1D|TensorLike,
+      offset?: Tensor3D|Tensor1D|TensorLike): Tensor3D {
+    const $x = convertToTensor(x, 'x', 'batchNormalization');
+    const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
+    const $variance =
+        convertToTensor(variance, 'variance', 'batchNormalization');
+    let $scale: Tensor3D|Tensor1D;
     if (scale != null) {
-      util.assert(
-          scale.rank === 3 || scale.rank === 1,
-          `Error in batchNormalization3D: scale must be rank 3 or rank 1 ` +
-              `but got rank ${scale.rank}.`);
+      $scale = convertToTensor(scale, 'scale', 'batchNormalization');
     }
+    let $offset: Tensor3D|Tensor1D;
     if (offset != null) {
+      $offset = convertToTensor(offset, 'offset', 'batchNormalization');
+    }
+    util.assert(
+        $x.rank === 3,
+        `Error in batchNormalization3D: x must be rank 3 but got rank ` +
+            `${$x.rank}.`);
+    util.assert(
+        $mean.rank === 3 || $mean.rank === 1,
+        `Error in batchNormalization3D: mean must be rank 3 or rank 1 but ` +
+            `got rank ${$mean.rank}.`);
+    util.assert(
+        $variance.rank === 3 || $variance.rank === 1,
+        `Error in batchNormalization3D: variance must be rank 3 or rank 1 ` +
+            `but got rank ${$variance.rank}.`);
+    if ($scale != null) {
       util.assert(
-          offset.rank === 3 || offset.rank === 1,
+          $scale.rank === 3 || $scale.rank === 1,
+          `Error in batchNormalization3D: scale must be rank 3 or rank 1 ` +
+              `but got rank ${$scale.rank}.`);
+    }
+    if ($offset != null) {
+      util.assert(
+          $offset.rank === 3 || $offset.rank === 1,
           `Error in batchNormalization3D: offset must be rank 3 or rank 1 ` +
-              `but got rank ${offset.rank}.`);
+              `but got rank ${$offset.rank}.`);
     }
 
     return BatchNormOps.batchNormalization(
-        x, mean, variance, varianceEpsilon, scale, offset);
+        $x, $mean, $variance, varianceEpsilon, $scale, $offset);
   }
 
   /**
@@ -131,35 +157,48 @@ export class BatchNormOps {
    */
   @operation
   static batchNormalization4d(
-      x: Tensor4D, mean: Tensor4D|Tensor1D, variance: Tensor4D|Tensor1D,
-      varianceEpsilon = .001, scale?: Tensor4D|Tensor1D,
-      offset?: Tensor4D|Tensor1D): Tensor4D {
-    util.assert(
-        x.rank === 4,
-        `Error in batchNormalization4D: x must be rank 4 but got rank ` +
-            `${x.rank}.`);
-    util.assert(
-        mean.rank === 4 || mean.rank === 1,
-        `Error in batchNormalization4D: mean must be rank 4 or rank 1 but ` +
-            `got rank ${mean.rank}.`);
-    util.assert(
-        variance.rank === 4 || variance.rank === 1,
-        `Error in batchNormalization4D: variance must be rank 4 or rank 1 ` +
-            `but got rank ${variance.rank}.`);
+      x: Tensor4D|TensorLike, mean: Tensor4D|Tensor1D|TensorLike,
+      variance: Tensor4D|Tensor1D|TensorLike, varianceEpsilon = .001,
+      scale?: Tensor4D|Tensor1D|TensorLike,
+      offset?: Tensor4D|Tensor1D|TensorLike): Tensor4D {
+    const $x = convertToTensor(x, 'x', 'batchNormalization');
+    const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
+    const $variance =
+        convertToTensor(variance, 'variance', 'batchNormalization');
+    let $scale: Tensor4D|Tensor1D;
     if (scale != null) {
-      util.assert(
-          scale.rank === 4 || scale.rank === 1,
-          `Error in batchNormalization4D: scale must be rank 4 or rank 1 ` +
-              `but got rank ${scale.rank}.`);
+      $scale = convertToTensor(scale, 'scale', 'batchNormalization');
     }
+    let $offset: Tensor4D|Tensor1D;
     if (offset != null) {
+      $offset = convertToTensor(offset, 'offset', 'batchNormalization');
+    }
+    util.assert(
+        $x.rank === 4,
+        `Error in batchNormalization4D: x must be rank 4 but got rank ` +
+            `${$x.rank}.`);
+    util.assert(
+        $mean.rank === 4 || $mean.rank === 1,
+        `Error in batchNormalization4D: mean must be rank 4 or rank 1 but ` +
+            `got rank ${$mean.rank}.`);
+    util.assert(
+        $variance.rank === 4 || $variance.rank === 1,
+        `Error in batchNormalization4D: variance must be rank 4 or rank 1 ` +
+            `but got rank ${$variance.rank}.`);
+    if ($scale != null) {
       util.assert(
-          offset.rank === 4 || offset.rank === 1,
+          $scale.rank === 4 || $scale.rank === 1,
+          `Error in batchNormalization4D: scale must be rank 4 or rank 1 ` +
+              `but got rank ${$scale.rank}.`);
+    }
+    if ($offset != null) {
+      util.assert(
+          $offset.rank === 4 || $offset.rank === 1,
           `Error in batchNormalization4D: offset must be rank 4 or rank 1 ` +
-              `but got rank ${offset.rank}.`);
+              `but got rank ${$offset.rank}.`);
     }
     return BatchNormOps.batchNormalization(
-        x, mean, variance, varianceEpsilon, scale, offset);
+        $x, $mean, $variance, varianceEpsilon, $scale, $offset);
   }
 
   /**
@@ -189,116 +228,122 @@ export class BatchNormOps {
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
   static batchNormalization<R extends Rank>(
-      x: Tensor<R>, mean: Tensor<R>|Tensor1D, variance: Tensor<R>|Tensor1D,
-      varianceEpsilon = .001, scale?: Tensor<R>|Tensor1D,
-      offset?: Tensor<R>|Tensor1D): Tensor<R> {
-    assertArgumentsAreTensors({x, mean, variance}, 'batchNormalization');
+      x: Tensor<R>|Tensor1D|TensorLike, mean: Tensor<R>|Tensor1D|TensorLike,
+      variance: Tensor<R>|Tensor1D|TensorLike, varianceEpsilon = .001,
+      scale?: Tensor<R>|Tensor1D|TensorLike,
+      offset?: Tensor<R>|Tensor1D|TensorLike): Tensor<R> {
+    const $x = convertToTensor(x, 'x', 'batchNormalization');
+    const $mean = convertToTensor(mean, 'mean', 'batchNormalization');
+    const $variance =
+        convertToTensor(variance, 'variance', 'batchNormalization');
+    let $scale: Tensor<R>|Tensor1D;
     if (scale != null) {
-      assertArgumentsAreTensors({scale}, 'batchNormalization');
+      $scale = convertToTensor(scale, 'scale', 'batchNormalization');
     }
+    let $offset: Tensor<R>|Tensor1D;
     if (offset != null) {
-      assertArgumentsAreTensors({offset}, 'batchNormalization');
+      $offset = convertToTensor(offset, 'offset', 'batchNormalization');
     }
 
     util.assert(
-        mean.rank === variance.rank,
+        $mean.rank === $variance.rank,
         'Batch normalization gradient requires mean and variance to have ' +
             'equal ranks.');
     util.assert(
-        offset == null || mean.rank === offset.rank,
+        $offset == null || $mean.rank === $offset.rank,
         'Batch normalization gradient requires mean and offset to have ' +
             'equal ranks.');
     util.assert(
-        scale == null || mean.rank === scale.rank,
+        $scale == null || $mean.rank === $scale.rank,
         'Batch normalization gradient requires mean and scale to have ' +
             'equal ranks.');
 
     let x4D: Tensor4D;
-    if (x.rank === 0 || x.rank === 1) {
-      x4D = x.as4D(1, 1, 1, x.size);
-    } else if (x.rank === 2) {
-      x4D = x.as4D(1, 1, x.shape[0], x.shape[1]);
-    } else if (x.rank === 3) {
-      x4D = x.as4D(1, x.shape[0], x.shape[1], x.shape[2]) as Tensor4D;
+    if ($x.rank === 0 || $x.rank === 1) {
+      x4D = $x.as4D(1, 1, 1, $x.size);
+    } else if ($x.rank === 2) {
+      x4D = $x.as4D(1, 1, $x.shape[0], $x.shape[1]);
+    } else if ($x.rank === 3) {
+      x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]) as Tensor4D;
     } else {
-      x4D = x as Tensor4D;
+      x4D = $x as Tensor4D;
     }
 
     const der = (dy: Tensor) => {
-      const scaleValue = scale == null ? TensorOps.scalar(1) : scale;
-      const reductionAxes = getReductionAxes(mean.shape, x4D.shape);
+      const scaleValue = $scale == null ? TensorOps.scalar(1) : $scale;
+      const reductionAxes = getReductionAxes($mean.shape, x4D.shape);
       const tileShape: number[] = [];
-      if (mean.rank === 1) {
+      if ($mean.rank === 1) {
         for (let i = 0; i < x4D.shape.length - 1; ++i) {
           tileShape.push(x4D.shape[i]);
         }
         tileShape.push(1);
       }
 
-      const xMinusMean = x.sub(mean);
+      const xMinusMean = $x.sub($mean);
       const dyTimesScaleValue = dy.mul(scaleValue);
       const oneOverSqrtVariance =
-          UnaryOps.rsqrt(variance.add(TensorOps.scalar(varianceEpsilon)));
+          UnaryOps.rsqrt($variance.add(TensorOps.scalar(varianceEpsilon)));
       const minusHalfRCube = oneOverSqrtVariance.mul(oneOverSqrtVariance)
                                  .mul(oneOverSqrtVariance)
                                  .mul(TensorOps.scalar(-0.5));
       const derX = () => {
-        if (mean.rank === 1) {
+        if ($mean.rank === 1) {
           return dy
               .mul(ArrayOps.tile(
-                  oneOverSqrtVariance.as4D(1, 1, 1, mean.shape[0]), tileShape))
+                  oneOverSqrtVariance.as4D(1, 1, 1, $mean.shape[0]), tileShape))
               .mul(scaleValue)
-              .reshape(x.shape);
+              .reshape($x.shape);
         } else {
-          return dy.mul(oneOverSqrtVariance).mul(scaleValue).reshape(x.shape);
+          return dy.mul(oneOverSqrtVariance).mul(scaleValue).reshape($x.shape);
         }
       };
       const derMean = () => {
         let meanDer = oneOverSqrtVariance.mul(TensorOps.scalar(-1))
                           .mul(dyTimesScaleValue);
-        if (mean.rank === 1) {
+        if ($mean.rank === 1) {
           meanDer = meanDer.sum(reductionAxes);
         }
-        return meanDer.reshape(mean.shape);
+        return meanDer.reshape($mean.shape);
       };
       const derVariance = () => {
         let varianceDer = minusHalfRCube.mul(xMinusMean).mul(dyTimesScaleValue);
-        if (mean.rank === 1) {
+        if ($mean.rank === 1) {
           varianceDer = varianceDer.sum(reductionAxes);
         }
-        return varianceDer.reshape(mean.shape);
+        return varianceDer.reshape($mean.shape);
       };
       const derScale = () => {
         const xMinusMean2TimesRsqrt = xMinusMean.mul(oneOverSqrtVariance);
         let scaleDer = dy.mul(xMinusMean2TimesRsqrt);
-        if (mean.rank === 1) {
+        if ($mean.rank === 1) {
           scaleDer = scaleDer.sum(reductionAxes);
         }
-        return scaleDer.reshape(mean.shape);
+        return scaleDer.reshape($mean.shape);
       };
       const derOffset = () => {
         let offsetDer = dy;
-        if (mean.rank === 1) {
+        if ($mean.rank === 1) {
           offsetDer = offsetDer.sum(reductionAxes);
         }
-        return offsetDer.reshape(mean.shape);
+        return offsetDer.reshape($mean.shape);
       };
       return {
-        x: derX,
-        mean: derMean,
-        variance: derVariance,
-        scale: derScale,
-        offset: derOffset
+        $x: derX,
+        $mean: derMean,
+        $variance: derVariance,
+        $scale: derScale,
+        $offset: derOffset
       };
     };
 
     const res = ENV.engine.runKernel(
         backend => backend.batchNormalization(
-            x4D, batchnormReshape4D(mean), batchnormReshape4D(variance),
-            varianceEpsilon, batchnormReshape4D(scale),
-            batchnormReshape4D(offset)),
-        {x, mean, variance, scale, offset}, der);
-    return res.reshape(x.shape);
+            x4D, batchnormReshape4D($mean), batchnormReshape4D($variance),
+            varianceEpsilon, batchnormReshape4D($scale),
+            batchnormReshape4D($offset)),
+        {$x, $mean, $variance, $scale, $offset}, der);
+    return res.reshape($x.shape);
   }
 }
 

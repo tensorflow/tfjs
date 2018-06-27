@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('concat1d', ALL_ENVS, () => {
   it('3 + 5', () => {
@@ -62,6 +62,15 @@ describeWithFlags('concat1d', ALL_ENVS, () => {
 
     const result = tf.concat1d([a]);
     expectArraysClose(result, [3]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [3];
+    const b = [5];
+
+    const result = tf.concat1d([a, b]);
+    const expected = [3, 5];
+    expectArraysClose(result, expected);
   });
 });
 
@@ -145,6 +154,18 @@ describeWithFlags('concat2d', ALL_ENVS, () => {
     const expected = [1, 2, 5, 6, 9, 10, 3, 4, 7, 8, 11, 12];
 
     expect(result.shape).toEqual([2, 6]);
+    expectArraysClose(result, expected);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const axis = 0;
+    const a = [[3]];
+    const b = [[5]];
+
+    const result = tf.concat2d([a, b], axis);
+    const expected = [3, 5];
+
+    expect(result.shape).toEqual([2, 1]);
     expectArraysClose(result, expected);
   });
 });
@@ -285,6 +306,14 @@ describeWithFlags('concat3d', ALL_ENVS, () => {
     expect(dx2.shape).toEqual(x2.shape);
     expectArraysClose(dx2, [40, 400, 30, 300, 20, 200, 10, 100]);
   });
+
+  it('accepts a tensor-like object', () => {
+    const tensor1 = [[[1, 2, 3]]];  // 1x1x3
+    const tensor2 = [[[4, 5, 6]]];  // 1x1x3
+    const values = tf.concat3d([tensor1, tensor2], 0);
+    expect(values.shape).toEqual([2, 1, 3]);
+    expectArraysClose(values, [1, 2, 3, 4, 5, 6]);
+  });
 });
 
 describeWithFlags('concat throws for non-tensors', ALL_ENVS, () => {
@@ -292,5 +321,13 @@ describeWithFlags('concat throws for non-tensors', ALL_ENVS, () => {
     expect(() => tf.concat([{} as tf.Tensor1D]))
         .toThrowError(
             /Argument 'tensors\[0\]' passed to 'concat' must be a Tensor/);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const tensor1 = [[[1, 2, 3, 4]]];  // 1x1x4
+    const tensor2 = [[[4, 5, 6, 7]]];  // 1x1x4
+    const values = tf.concat([tensor1, tensor2], 0);
+    expect(values.shape).toEqual([2, 1, 4]);
+    expectArraysClose(values, [1, 2, 3, 4, 4, 5, 6, 7]);
   });
 });

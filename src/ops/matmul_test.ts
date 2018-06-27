@@ -234,6 +234,15 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expectArraysClose(result, expected);
   });
 
+  it('outer product accepts a tensor-like object', () => {
+    const v1 = [2, 3];
+    const v2 = [2, 1];
+    const result = tf.outerProduct(v1, v2);
+    const expected = [4, 2, 6, 3];
+    expect(result.shape).toEqual([2, 2]);
+    expectArraysClose(result, expected);
+  });
+
   it('gradients: A * B', () => {
     const a = tf.tensor2d([1, 2, 3, 10, 20, 30], [2, 3]);
     const b = tf.tensor2d([2, 3, 4, 1, 2, 3], [3, 2]);
@@ -401,6 +410,15 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     expect(() => tf.matMul(tf.tensor2d([2], [1, 1]), {} as tf.Tensor2D))
         .toThrowError(/Argument 'b' passed to 'matMul' must be a Tensor/);
   });
+
+  it('accepts a tensor-like object', () => {
+    const a = [[1, 2, 3], [4, 5, 6]];     // 2x3
+    const b = [[0, 1], [-3, 2], [2, 1]];  // 3x2
+    const c = tf.matMul(a, b);
+
+    expect(c.shape).toEqual([2, 2]);
+    expectArraysClose(c, [0, 8, -3, 20]);
+  });
 });
 
 describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
@@ -474,5 +492,12 @@ describeWithFlags('dot', ALL_ENVS, () => {
   it('throws error when inputs are not rank 1 or 2', () => {
     expect(() => tf.dot(a, d)).toThrowError();
     expect(() => tf.dot(a, e)).toThrowError();
+  });
+
+  it('accepts a tensor-like object', () => {
+    const a = [1, 2, 3];
+    const res = tf.dot(a, a);
+    expectArraysClose(res, [14]);
+    expect(res.shape).toEqual([]);
   });
 });

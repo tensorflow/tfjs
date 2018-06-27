@@ -22,7 +22,7 @@ import {DataType, ShapeMap} from '../types';
 import {hasEncodingLoss} from '../util';
 import {KernelBackend} from './backend';
 
-export function castTensor<T extends Tensor<Rank>>(
+export function castTensor<T extends Tensor>(
     x: T, dtype: DataType, backend: KernelBackend): T {
   if (!hasEncodingLoss(x.dtype, dtype)) {
     // We don't change the underlying data, since we cast to higher
