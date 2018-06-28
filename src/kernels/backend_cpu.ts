@@ -16,7 +16,6 @@
  */
 
 import * as seedrandom from 'seedrandom';
-
 import {ENV} from '../environment';
 import * as axis_util from '../ops/axis_util';
 import * as broadcast_util from '../ops/broadcast_util';
@@ -32,7 +31,6 @@ import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor'
 import * as types from '../types';
 import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
 import * as util from '../util';
-
 import {BackendTimingInfo, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 
@@ -80,15 +78,24 @@ export class MathBackendCPU implements KernelBackend {
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {
     if (pixels == null) {
-      throw new Error('MathBackendCPU.writePixels(): pixels can not be null');
+      throw new Error('pixels passed to tf.fromPixels() can not be null');
     }
     let vals: Uint8ClampedArray;
-    if (pixels instanceof ImageData) {
-      vals = pixels.data;
-    } else if (pixels instanceof HTMLCanvasElement) {
-      vals = pixels.getContext('2d')
+    // tslint:disable-next-line:no-any
+    if (ENV.get('IS_NODE') && (pixels as any).getContext == null) {
+      throw new Error(
+          'When running in node, pixels must be an HTMLCanvasElement ' +
+          'like the one returned by the `canvas` npm package');
+    }
+    // tslint:disable-next-line:no-any
+    if ((pixels as any).getContext != null) {
+      // tslint:disable-next-line:no-any
+      vals = (pixels as any)
+                 .getContext('2d')
                  .getImageData(0, 0, pixels.width, pixels.height)
                  .data;
+    } else if (pixels instanceof ImageData) {
+      vals = pixels.data;
     } else if (
         pixels instanceof HTMLImageElement ||
         pixels instanceof HTMLVideoElement) {
@@ -106,7 +113,9 @@ export class MathBackendCPU implements KernelBackend {
                  .data;
     } else {
       throw new Error(
-          `pixels is of unknown type: ${(pixels as {}).constructor.name}`);
+          'pixels passed to tf.fromPixels() must be either an ' +
+          `HTMLVideoElement, HTMLImageElement, HTMLCanvasElement or ` +
+          `ImageData, but was ${(pixels as {}).constructor.name}`);
     }
     let values: Int32Array;
     if (numChannels === 4) {
