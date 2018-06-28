@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, BROWSER_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, WEBGL_ENVS} from '../test_util';
 import * as util from '../util';
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
@@ -1200,7 +1200,51 @@ describeWithFlags('randomUniform', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('fromPixels', WEBGL_ENVS, () => {
+class MockContext {
+  getImageData(x: number, y: number, width: number, height: number) {
+    const data = new Uint8ClampedArray(width * height * 4);
+    for (let i = 0; i < data.length; ++i) {
+      data[i] = i + 1;
+    }
+    return {data};
+  }
+}
+
+class MockCanvas {
+  constructor(public width: number, public height: number) {}
+  getContext(type: '2d'): MockContext {
+    return new MockContext();
+  }
+}
+
+describeWithFlags('fromPixels, mock canvas', CPU_ENVS, () => {
+  it('accepts a canvas-like element', () => {
+    const c = new MockCanvas(2, 2);
+    // tslint:disable-next-line:no-any
+    const t = tf.fromPixels(c as any);
+    expect(t.dtype).toBe('int32');
+    expect(t.shape).toEqual([2, 2, 3]);
+    tf.test_util.expectArraysEqual(
+        t, [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15]);
+  });
+
+  it('accepts a canvas-like element, numChannels=4', () => {
+    const c = new MockCanvas(2, 2);
+    // tslint:disable-next-line:no-any
+    const t = tf.fromPixels(c as any, 4);
+    expect(t.dtype).toBe('int32');
+    expect(t.shape).toEqual([2, 2, 4]);
+    tf.test_util.expectArraysEqual(
+        t, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+  });
+
+  it('errors when passed a non-canvas object', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tf.fromPixels(5 as any)).toThrowError();
+  });
+});
+
+describeWithFlags('fromPixels', BROWSER_ENVS, () => {
   it('ImageData 1x1x3', () => {
     const pixels = new ImageData(1, 1);
     pixels.data[0] = 0;
@@ -1303,6 +1347,18 @@ describeWithFlags('fromPixels', WEBGL_ENVS, () => {
     expect(res.shape).toEqual([1, 1, 3]);
     expect(res.dtype).toBe('float32');
     expectArraysClose(res, [260, 9, 11]);
+  });
+
+  it('throws when passed a primitive number', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tf.fromPixels(3 as any))
+        .toThrowError(/pixels passed to tf.fromPixels\(\) must be either/);
+  });
+
+  it('throws when passed a string', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tf.fromPixels('test' as any))
+        .toThrowError(/pixels passed to tf.fromPixels\(\) must be either/);
   });
 });
 
