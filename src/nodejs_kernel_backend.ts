@@ -16,10 +16,9 @@
  */
 
 // tslint:disable-next-line:max-line-length
-import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, Tensor4D} from '@tensorflow/tfjs-core';
+import {BackendTimingInfo, DataType, fill, KernelBackend, ones, Rank, rsqrt, scalar, ShapeMap, Tensor, Tensor1D, tensor1d, Tensor2D, tensor2d, Tensor3D, tensor3d, Tensor4D} from '@tensorflow/tfjs-core';
 import {Conv2DInfo} from '@tensorflow/tfjs-core/dist/ops/conv_util';
 import {upcastType} from '@tensorflow/tfjs-core/dist/types';
-
 import {TensorMetadata, TFEOpAttr, TFJSBinding} from './tfjs_binding';
 
 type TensorInfo = {
@@ -1020,7 +1019,36 @@ export class NodeJSKernelBackend implements KernelBackend {
   fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels: number): Tensor3D {
-    throw new Error('Method not implemented.');
+    if (pixels == null) {
+      throw new Error('pixels passed to tf.fromPixels() can not be null');
+    }
+    // tslint:disable-next-line:no-any
+    if ((pixels as any).getContext == null) {
+      throw new Error(
+          'When running in node, pixels must be an HTMLCanvasElement ' +
+          'like the one returned by the `canvas` npm package');
+    }
+    const vals: Uint8ClampedArray =
+        // tslint:disable-next-line:no-any
+        (pixels as any)
+            .getContext('2d')
+            .getImageData(0, 0, pixels.width, pixels.height)
+            .data;
+    let values: Int32Array;
+    if (numChannels === 4) {
+      values = new Int32Array(vals);
+    } else {
+      const numPixels = pixels.width * pixels.height;
+      values = new Int32Array(numPixels * numChannels);
+      for (let i = 0; i < numPixels; i++) {
+        for (let channel = 0; channel < numChannels; ++channel) {
+          values[i * numChannels + channel] = vals[i * 4 + channel];
+        }
+      }
+    }
+    const outShape: [number, number, number] =
+        [pixels.height, pixels.width, numChannels];
+    return tensor3d(values, outShape, 'int32');
   }
 
   memory() {
