@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {DataType, memory, scalar, tensor1d, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
+import {DataType, scalar, tensor1d, tensor2d, tensor3d, tensor4d, zeros} from '@tensorflow/tfjs-core';
 
 import {SymbolicTensor} from '../engine/topology';
 import {range} from '../utils/math_utils';
@@ -583,73 +583,6 @@ describeMathCPUAndGPU('sign', () => {
   it('2D', () => {
     const x = tensor2d([[1, 2, -1], [0, 3, -4]], [2, 3]);
     expectTensorsClose(K.sign(x), tensor2d([[1, 1, -1], [0, 1, -1]], [2, 3]));
-  });
-});
-
-
-describeMathCPUAndGPU('qr', () => {
-  it('1x1', () => {
-    const x = tensor2d([[10]], [1, 1]);
-    const [q, r] = K.qr(x);
-    expectTensorsClose(q, tensor2d([[-1]], [1, 1]));
-    expectTensorsClose(r, tensor2d([[-10]], [1, 1]));
-  });
-
-  it('2x2', () => {
-    const x = tensor2d([[1, 3], [-2, -4]], [2, 2]);
-    const [q, r] = K.qr(x);
-    expectTensorsClose(
-        q, tensor2d([[-0.4472, -0.8944], [0.8944, -0.4472]], [2, 2]));
-    expectTensorsClose(r, tensor2d([[-2.2361, -4.9193], [0, -0.8944]], [2, 2]));
-  });
-
-  it('3x3', () => {
-    const x = tensor2d([[1, 3, 2], [-2, 0, 7], [8, -9, 4]], [3, 3]);
-    const [q, r] = K.qr(x);
-    expectTensorsClose(
-        q,
-        tensor2d(
-            [
-              [-0.1204, 0.8729, 0.4729], [0.2408, -0.4364, 0.8669],
-              [-0.9631, -0.2182, 0.1576]
-            ],
-            [3, 3]));
-    expectTensorsClose(
-        r,
-        tensor2d(
-            [[-8.3066, 8.3066, -2.4077], [0, 4.5826, -2.1822], [0, 0, 7.6447]],
-            [3, 3]));
-  });
-
-  it('3x2', () => {
-    const x = tensor2d([[1, 2], [3, -3], [-2, 1]], [3, 2]);
-    const [q, r] = K.qr(x);
-    expectTensorsClose(
-        q,
-        tensor2d(
-            [
-              [-0.2673, 0.9221, 0.2798], [-0.8018, -0.3738, 0.4663],
-              [0.5345, -0.0997, 0.8393]
-            ],
-            [3, 3]));
-    expectTensorsClose(
-        r, tensor2d([[-3.7417, 2.4054], [0, 2.8661], [0, 0]], [3, 2]));
-  });
-
-  it('does not leak memory', () => {
-    const x = tensor2d([[1, 3], [-2, -4]], [2, 2]);
-    // The first call to qr creates and keeps internal singleton tensors.
-    // Subsequent calls should always create exactly two tensors.
-    K.qr(x);
-    // Count before real call.
-    const numTensors = memory().numTensors;
-    K.qr(x);
-    expect(memory().numTensors).toEqual(numTensors + 2);
-  });
-
-  it('Incorrect shape leads to error', () => {
-    const x = tensor2d([[1, 2, 3], [-3, -2, 1]], [2, 3]);
-    expect(() => K.qr(x)).toThrowError(/requires.*shape/);
   });
 });
 
