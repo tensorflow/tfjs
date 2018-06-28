@@ -393,6 +393,15 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('Maximum', opAttrs, [a, b]);
   }
 
+  all(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
+    const opAttrs = [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+    const axesTensor = tensor1d(axes, 'int32');
+    return this.executeSingleOutput('All', opAttrs, [x, axesTensor]);
+  }
+
   ceil<T extends Tensor>(x: T): T {
     return this.executeSingleInput('Ceil', x) as T;
   }
