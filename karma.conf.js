@@ -15,6 +15,27 @@
  * =============================================================================
  */
 
+const karmaTypescriptConfig = {
+  tsconfig: 'tsconfig.json',
+  // Disable coverage reports and instrumentation by default for tests
+  coverageOptions: {
+    instrumentation: false
+  },
+  reports: {
+  }
+};
+
+// Enable coverage reports and instrumentation under KARMA_COVERAGE=1 env
+const coverageEnabled = !!process.env.KARMA_COVERAGE;
+if (coverageEnabled) {
+  karmaTypescriptConfig.coverageOptions.instrumentation = true;
+  karmaTypescriptConfig.coverageOptions.exclude = /_test\.ts$/;
+  karmaTypescriptConfig.reports = {
+    html: 'coverage',
+    'text-summary': ''
+  };
+}
+
 module.exports = function(config) {
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
@@ -22,10 +43,7 @@ module.exports = function(config) {
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },
-    karmaTypescriptConfig: {
-      tsconfig: 'tsconfig.json',
-      reports: {} // Do not produce coverage html.
-    },
+    karmaTypescriptConfig,
     reporters: ['progress', 'karma-typescript'],
     browsers: ['Chrome'],
     browserStack: {
