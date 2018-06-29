@@ -21,7 +21,7 @@ import * as tfc from '@tensorflow/tfjs-core';
  * Convert an ArrayBuffer to a Buffer.
  */
 export function toBuffer(ab: ArrayBuffer): Buffer {
-  const buf = new Buffer(ab.byteLength);
+  const buf = Buffer.alloc(ab.byteLength);
   const view = new Uint8Array(ab);
   view.forEach((value, i) => {
     buf[i] = value;
