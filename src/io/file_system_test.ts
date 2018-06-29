@@ -22,8 +22,6 @@ import * as path from 'path';
 import * as rimraf from 'rimraf';
 import {promisify} from 'util';
 
-import {toBuffer} from './io_utils';
-
 describe('File system IOHandler', () => {
   const mkdtemp = promisify(fs.mkdtemp);
   const readFile = promisify(fs.readFile);
@@ -199,7 +197,7 @@ describe('File system IOHandler', () => {
         Buffer.from(new Float32Array([-1.1, -3.3, -3.3]).buffer);
     await writeFile(
         path.join(testDir, 'weights.1.bin'), weightsData1, 'binary');
-    const weightsData2 = toBuffer(new Float32Array([-7.7]).buffer);
+    const weightsData2 = Buffer.from(new Float32Array([-7.7]).buffer);
     await writeFile(
         path.join(testDir, 'weights.2.bin'), weightsData2, 'binary');
 
