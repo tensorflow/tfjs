@@ -416,7 +416,8 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   exp<T extends Tensor>(x: T): T {
-    return this.executeSingleInput('Exp', x) as T;
+    const xTensor = x.dtype === 'int32' ? x.toFloat() : x;
+    return this.executeSingleInput('Exp', xTensor) as T;
   }
 
   log<T extends Tensor>(x: T): T {

@@ -37,3 +37,9 @@ describe('delayed upload', () => {
     expect(softmaxLogits.get(2)).toEqual(data[2]);
   });
 });
+
+describe('type casting', () => {
+  it('exp support int32', () => {
+    tf.exp(tf.scalar(2, 'int32'));
+  });
+});
