@@ -27,14 +27,14 @@ describe('toBuffer', () => {
 
 describe('toArrayBuffer', () => {
   it('Single Buffer', () => {
-    const buf = new Buffer([10, 20, 30]);
+    const buf = Buffer.from([10, 20, 30]);
     const ab = toArrayBuffer(buf);
     expect(new Uint8Array(ab)).toEqual(new Uint8Array([10, 20, 30]));
   });
 
   it('Two Buffers', () => {
-    const buf1 = new Buffer([10, 20, 30]);
-    const buf2 = new Buffer([40, 50, 60]);
+    const buf1 = Buffer.from([10, 20, 30]);
+    const buf2 = Buffer.from([40, 50, 60]);
     const ab = toArrayBuffer([buf1, buf2]);
     expect(new Uint8Array(ab)).toEqual(new Uint8Array([
       10, 20, 30, 40, 50, 60
@@ -42,9 +42,9 @@ describe('toArrayBuffer', () => {
   });
 
   it('Three Buffers', () => {
-    const buf1 = new Buffer([10, 20, 30]);
-    const buf2 = new Buffer([40, 50, 60]);
-    const buf3 = new Buffer([3, 2, 1]);
+    const buf1 = Buffer.from([10, 20, 30]);
+    const buf2 = Buffer.from([40, 50, 60]);
+    const buf3 = Buffer.from([3, 2, 1]);
     const ab = toArrayBuffer([buf1, buf2, buf3]);
     expect(new Uint8Array(ab)).toEqual(new Uint8Array([
       10, 20, 30, 40, 50, 60, 3, 2, 1

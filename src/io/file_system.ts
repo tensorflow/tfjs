@@ -128,7 +128,7 @@ export class NodeFileSystem implements tfc.io.IOHandler {
               throw new Error(`Weight file ${
                   weightFilePath} does not exist: loading failed`);
             }
-            const buffer = new Buffer(await readFile(weightFilePath));
+            const buffer = await readFile(weightFilePath);
             buffers.push(buffer);
           }
           weightSpecs.push(...group.weights);
