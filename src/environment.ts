@@ -21,7 +21,7 @@ import {Engine, MemoryInfo, ScopeFn, TimingInfo} from './engine';
 // tslint:disable-next-line:max-line-length
 import {Features, getFeaturesFromURL, getWebGLDisjointQueryTimerVersion, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLGetBufferSubDataAsyncExtensionEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
-import {Tensor} from './tensor';
+import {setTensorTracker, Tensor, TensorTracker} from './tensor';
 import {TensorContainer} from './tensor_types';
 import {getTensorsInContainer} from './tensor_util';
 
@@ -348,10 +348,16 @@ export class Environment {
    *     priority to find the best backend. Defaults to 1.
    * @return False if the creation/registration failed. True otherwise.
    */
-  registerBackend(name: string, factory: () => KernelBackend, priority = 1):
-      boolean {
+  registerBackend(
+      name: string, factory: () => KernelBackend, priority = 1,
+      setTensorTrackerFn?: (f: () => TensorTracker) => void): boolean {
     if (name in this.registry) {
-      console.warn(`${name} backend was already registered`);
+      console.warn(
+          `${name} backend was already registered. Reusing existing backend`);
+      if (setTensorTrackerFn != null) {
+        setTensorTrackerFn(() => this.engine);
+      }
+      return false;
     }
     try {
       const backend = factory();
@@ -399,7 +405,10 @@ function getGlobalNamespace(): {ENV: Environment} {
 
 function getOrMakeEnvironment(): Environment {
   const ns = getGlobalNamespace();
-  ns.ENV = ns.ENV || new Environment(getFeaturesFromURL());
+  if (ns.ENV == null) {
+    ns.ENV = new Environment(getFeaturesFromURL());
+    setTensorTracker(() => ns.ENV.engine);
+  }
   return ns.ENV;
 }
 
