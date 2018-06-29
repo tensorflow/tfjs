@@ -43,6 +43,7 @@
     "link-local": "yalc link",
     "publish-local": "yarn build-npm && yalc push",
     "lint": "tslint -p . -t verbose",
+    "coverage": "KARMA_COVERAGE=1 karma start --browsers='Chrome' --singleRun",
     "test": "karma start",
     "test-travis": "./scripts/test-travis.sh"
   },
