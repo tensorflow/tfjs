@@ -24,7 +24,7 @@ import * as reduce_util from '../ops/reduce_util';
 import * as segment_util from '../ops/segment_util';
 import {getStridedSlicedInfo} from '../ops/slice_util';
 // tslint:disable-next-line:max-line-length
-import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
 import {DataType, DataTypeMap, RecursiveArray, TypedArray} from '../types';
 import * as util from '../util';
@@ -1309,7 +1309,9 @@ export class MathBackendWebGL implements KernelBackend {
 }
 
 if (ENV.get('IS_BROWSER')) {
-  ENV.registerBackend('webgl', () => new MathBackendWebGL(), 2 /* priority */);
+  ENV.registerBackend(
+      'webgl', () => new MathBackendWebGL(), 2 /* priority */,
+      setTensorTracker);
 }
 
 function float32ToTypedArray<D extends DataType>(

@@ -21,7 +21,7 @@ import {Profiler} from './profiler';
 // tslint:disable-next-line:max-line-length
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
 // tslint:disable-next-line:max-line-length
-import {DataId, setTensorTracker, Tensor, Tensor3D, Variable} from './tensor';
+import {DataId, Tensor, Tensor3D, Variable} from './tensor';
 // tslint:disable-next-line:max-line-length
 import {NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer, isTensorInList} from './tensor_util';
@@ -94,7 +94,6 @@ export class Engine implements TensorManager {
     this.activeScope = {track: []};
     this.scopeStack = [this.activeScope];
     this.profiler = new Profiler(backend);
-    setTensorTracker(this);
   }
 
   tidy<T extends TensorContainer>(

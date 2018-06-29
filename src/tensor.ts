@@ -304,7 +304,7 @@ export interface OpHandler {
 }
 
 // For tracking tensor creation and disposal.
-let tracker: TensorTracker = null;
+let trackerFn: () => TensorTracker = null;
 // Used by chaining methods to call into ops.
 let opHandler: OpHandler = null;
 
@@ -313,8 +313,8 @@ let opHandler: OpHandler = null;
  * the Tensor class can notify the tracker for every tensor created and
  * disposed.
  */
-export function setTensorTracker(t: TensorTracker) {
-  tracker = t;
+export function setTensorTracker(fn: () => TensorTracker) {
+  trackerFn = fn;
 }
 
 /**
@@ -384,9 +384,9 @@ export class Tensor<R extends Rank = Rank> {
     this.dataId = dataId != null ? dataId : {};
     this.id = Tensor.nextId++;
     this.rankType = (this.rank < 5 ? this.rank.toString() : 'higher') as R;
-    tracker.registerTensor(this);
+    trackerFn().registerTensor(this);
     if (values != null) {
-      tracker.write(this.dataId, values);
+      trackerFn().write(this.dataId, values);
     }
   }
 
@@ -511,7 +511,7 @@ export class Tensor<R extends Rank = Rank> {
   @doc({heading: 'Tensors', subheading: 'Classes'})
   async data(): Promise<TypedArray> {
     this.throwIfDisposed();
-    return tracker.read(this.dataId);
+    return trackerFn().read(this.dataId);
   }
 
   /**
@@ -521,7 +521,7 @@ export class Tensor<R extends Rank = Rank> {
   @doc({heading: 'Tensors', subheading: 'Classes'})
   dataSync(): TypedArray {
     this.throwIfDisposed();
-    return tracker.readSync(this.dataId);
+    return trackerFn().readSync(this.dataId);
   }
 
   /**
@@ -532,7 +532,7 @@ export class Tensor<R extends Rank = Rank> {
     if (this.isDisposed) {
       return;
     }
-    tracker.disposeTensor(this);
+    trackerFn().disposeTensor(this);
     this.isDisposedInternal = true;
   }
 
@@ -1191,7 +1191,7 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
       this.name = Variable.nextVarId.toString();
       Variable.nextVarId++;
     }
-    tracker.registerVariable(this);
+    trackerFn().registerVariable(this);
   }
 
   /**
@@ -1236,9 +1236,9 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
           `shape of the new value (${newValue.shape}) and ` +
           `previous value (${this.shape}) must match`);
     }
-    tracker.disposeTensor(this);
+    trackerFn().disposeTensor(this);
     this.dataId = newValue.dataId;
-    tracker.registerTensor(this);
+    trackerFn().registerTensor(this);
   }
 }
 

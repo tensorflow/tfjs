@@ -27,7 +27,7 @@ import {buffer, tensor3d, tensor4d} from '../ops/ops';
 import * as selu_util from '../ops/selu_util';
 import {getStridedSlicedInfo} from '../ops/slice_util';
 // tslint:disable-next-line:max-line-length
-import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
+import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import * as types from '../types';
 import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
 import * as util from '../util';
@@ -2073,4 +2073,5 @@ export class MathBackendCPU implements KernelBackend {
   dispose() {}
 }
 
-ENV.registerBackend('cpu', () => new MathBackendCPU(), 1 /* priority */);
+ENV.registerBackend(
+    'cpu', () => new MathBackendCPU(), 1 /* priority */, setTensorTracker);
