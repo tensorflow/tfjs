@@ -7,3 +7,5 @@ yalc.lock
 .yalc/
 demo/train-*
 *.log
+.nyc_output/
+coverage/
