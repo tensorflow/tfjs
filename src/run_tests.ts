@@ -53,6 +53,10 @@ runner.loadConfig({
   ]
 });
 
+if (process.env.JASMINE_SEED) {
+  runner.seed(process.env.JASMINE_SEED);
+}
+
 const env = jasmine.getEnv();
 
 // Filter method that returns boolean, if a given test should return.
