@@ -395,8 +395,8 @@ function getGlobalNamespace(): {ENV: Environment} {
   let ns: any;
   if (typeof (window) !== 'undefined') {
     ns = window;
-  } else if (typeof (global) !== 'undefined') {
-    ns = global;
+  } else if (typeof (process) !== 'undefined') {
+    ns = process;
   } else {
     throw new Error('Could not find a global object');
   }

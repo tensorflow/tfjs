@@ -38,16 +38,6 @@ export function assertParams(aShape: number[], bShape: number[], axis: number) {
   }
 }
 
-export function computeOutShape1D(
-    x1Shape: number[], x2Shape: number[]): number[] {
-  util.assert(
-      x1Shape.length === 1 && x2Shape.length === 1,
-      'x1 and x2 should be 1d array.');
-  const outputShape = x1Shape.slice();
-  outputShape[0] += x2Shape[0];
-  return outputShape;
-}
-
 export function computeOutShape(
     x1Shape: number[], x2Shape: number[], axis: number): number[] {
   util.assert(

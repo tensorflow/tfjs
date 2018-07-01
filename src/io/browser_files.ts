@@ -184,7 +184,7 @@ class BrowserFiles implements IOHandler {
                 });
               }
             };
-            weightFileReader.onerror = (error: ErrorEvent) => {
+            weightFileReader.onerror = (error: FileReaderProgressEvent) => {
               reject(`Failed to weights data from file of path '${path}'.`);
               return;
             };
@@ -192,7 +192,7 @@ class BrowserFiles implements IOHandler {
           });
         });
       };
-      jsonReader.onerror = (error: ErrorEvent) => {
+      jsonReader.onerror = (error: FileReaderProgressEvent) => {
         reject(
             `Failed to read model topology and weights manifest JSON ` +
             `from file '${jsonFile.name}'. BrowserFiles supports loading ` +
