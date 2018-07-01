@@ -285,8 +285,9 @@ export class TensorOps {
     }
     const inferredShape = inferShape(values);
     if (inferredShape.length !== 5 && inferredShape.length !== 1) {
-      throw new Error('tensor5d() requires values to be \
-           number[][][][][] or flat/TypedArray');
+      throw new Error(
+          'tensor5d() requires values to be ' +
+          'number[][][][][] or flat/TypedArray');
     }
     if (inferredShape.length === 1 && shape == null) {
       throw new Error(
