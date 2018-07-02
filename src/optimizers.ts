@@ -26,12 +26,12 @@ import {ValueError} from './errors';
 // change based on (de)serialization requirements.
 export function getOptimizer(identifier: string): Optimizer {
   const optimizerMap: {[optimizerName: string]: () => Optimizer} = {
-    'Adagrad': () => train.adagrad(.01),
-    'Adadelta': () => train.adadelta(1.0, 0.95, epsilon()),
-    'Adam': () => train.adam(.001, .9, .999, epsilon()),
-    'Adamax': () => train.adamax(0.002, .9, .999, epsilon(), 0.0),
-    'RMSProp': () => train.rmsprop(.001, .9, null, epsilon()),
-    'SGD': () => train.sgd(.01)
+    'Adagrad': () => train.adagrad(0.01),
+    'Adadelta': () => train.adadelta(1, 0.95, epsilon()),
+    'Adam': () => train.adam(0.001, 0.9, 0.999, epsilon()),
+    'Adamax': () => train.adamax(0.002, 0.9, 0.999, epsilon(), 0),
+    'RMSProp': () => train.rmsprop(0.001, 0.9, 0, epsilon()),
+    'SGD': () => train.sgd(0.01)
   };
   optimizerMap['adagrad'] = optimizerMap['Adagrad'];
   optimizerMap['adadelta'] = optimizerMap['Adadelta'];
