@@ -314,7 +314,7 @@ export abstract class BaseConv extends Layer {
   protected readonly dataFormat: DataFormat;
   protected readonly activation: Activation;
   protected readonly useBias: boolean;
-  protected readonly dilationRate: number|[number]|[number, number];
+  protected readonly dilationRate: number[];
 
   // Bias-related members are here because all convolution subclasses use the
   // same configuration parmeters to control bias.  Kernel-related members
@@ -354,7 +354,9 @@ export abstract class BaseConv extends Layer {
     this.biasConstraint = getConstraint(config.biasConstraint);
     this.biasRegularizer = getRegularizer(config.biasRegularizer);
     this.activityRegularizer = getRegularizer(config.activityRegularizer);
-    this.dilationRate = config.dilationRate == null ? 1 : config.dilationRate;
+    this.dilationRate = normalizeArray(
+        config.dilationRate == null ? 1 : config.dilationRate,
+        rank, 'dilationRate');
     if (this.rank === 1 &&
         (Array.isArray(this.dilationRate) &&
          (this.dilationRate as number[]).length !== 1)) {
@@ -450,7 +452,7 @@ export abstract class Conv extends BaseConv {
       if (this.rank === 1) {
         outputs = conv1dWithBias(
             inputs, this.kernel.read(), biasValue, this.strides[0],
-            this.padding, this.dataFormat, this.dilationRate as number);
+            this.padding, this.dataFormat, this.dilationRate[0]);
       } else if (this.rank === 2) {
         // TODO(cais): Move up to constructor.
         outputs = conv2dWithBias(
