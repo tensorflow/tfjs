@@ -95,23 +95,35 @@ describeMathCPUAndGPU('conv1d', () => {
   const xLength4Data = [10, 20, 40, 80];
   const kernelLength2Data = [1, -1];
 
-  const stride = 2;
   const outChannels = 2;
   const dataFormat = 'channelsLast';
   const paddingMode = 'valid';
-  const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
-      `${paddingMode}, ${dataFormat}`;
-  it(testTitle, () => {
-    const x = tensor3d(xLength4Data, [1, 4, 1]);
-    let kernelData: number[] = [];
-    for (let i = 0; i < outChannels; ++i) {
-      kernelData = kernelData.concat(kernelLength2Data);
-    }
-    const kernel =
-        tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
-    const y = conv1d(x, kernel, stride, paddingMode, dataFormat);
-    expectTensorsClose(y, tensor3d([-10, -10, -40, -40], [1, 2, 2]));
-  });
+  const strides = [2, 1];
+  const dilations = [1, 2];
+  const expectations = [
+    [-10, -10, -40, -40],
+    [-30, -30, -60, -60]
+  ];
+
+  for (let i = 0; i < strides.length; ++i) {
+    const stride = strides[i];
+    const dilationRate = dilations[i];
+    const expectation = expectations[i];
+    const testTitle = `outChannels=${outChannels}, stride=${stride}, ` +
+      `${paddingMode}, dilationRate=${dilationRate}, ${dataFormat}`;
+    it(testTitle, () => {
+      const x = tensor3d(xLength4Data, [1, 4, 1]);
+      let kernelData: number[] = [];
+      for (let i = 0; i < outChannels; ++i) {
+        kernelData = kernelData.concat(kernelLength2Data);
+      }
+      const kernel =
+          tfc.transpose(tensor3d(kernelData, [1, outChannels, 2]), [2, 0, 1]);
+      const y = conv1d(x, kernel, stride, paddingMode,
+          dataFormat, dilationRate);
+      expectTensorsClose(y, tensor3d(expectation, [1, 2, 2]));
+    });
+  }
 });
 
 describeMathCPUAndGPU('conv2d', () => {
