@@ -2343,6 +2343,12 @@ describeWithFlags('oneHot', ALL_ENVS, () => {
 
     expect(res.dtype).toEqual(expectedType);
   });
+
+  it('oneHot accepts a tensor-like object', () => {
+    const res = tf.oneHot([0, 1], 2);
+    expect(res.shape).toEqual([2, 2]);
+    expectArraysClose(res, [1, 0, 0, 1]);
+  });
 });
 
 describeWithFlags('linspace', ALL_ENVS, () => {

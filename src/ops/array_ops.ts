@@ -20,7 +20,8 @@ import {ENV} from '../environment';
 // tslint:disable-next-line:max-line-length
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util';
-import {DataType, Rank, ShapeMap, TensorLike, TypedArray} from '../types';
+// tslint:disable-next-line:max-line-length
+import {DataType, Rank, ShapeMap, TensorLike, TensorLike1D, TypedArray} from '../types';
 import * as util from '../util';
 
 // tslint:disable-next-line:max-line-length
@@ -293,15 +294,18 @@ export class ArrayOps {
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
   @operation
-  static oneHot(indices: Tensor1D, depth: number, onValue = 1, offValue = 0):
+  static oneHot(
+      indices: Tensor1D|TensorLike1D, depth: number, onValue = 1, offValue = 0):
       Tensor2D {
-    util.assert(indices.dtype === 'int32', 'Indices must be of dtype `int32`');
+    const $indices = convertToTensor(indices, 'indices', 'oneHot', 'int32');
+    util.assert($indices.dtype === 'int32', 'Indices must be of dtype `int32`');
+
     if (depth < 2) {
       throw new Error(`Error in oneHot: depth must be >=2, but it is ${depth}`);
     }
     return ENV.engine.runKernel(
-        backend => backend.oneHot(indices, depth, onValue, offValue),
-        {indices});
+        backend => backend.oneHot($indices, depth, onValue, offValue),
+        {$indices});
   }
 
   /**
