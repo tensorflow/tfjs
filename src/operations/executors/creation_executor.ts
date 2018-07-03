@@ -16,7 +16,6 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {DataType} from '@tensorflow/tfjs-core/dist/types';
 
 import {NamedTensorsMap} from '../../data/types';
 import {ExecutionContext} from '../../executor/execution_context';
@@ -54,7 +53,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'ones': {
       return [tfc.ones(
           getParamValue('shape', node, tensorMap, context) as number[],
-          getParamValue('dtype', node, tensorMap, context) as DataType)];
+          getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
     }
     case 'onesLike': {
       return [tfc.onesLike(
@@ -66,7 +65,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('shape', node, tensorMap, context) as any,
           getParamValue('minval', node, tensorMap, context) as number,
           getParamValue('maxval', node, tensorMap, context) as number,
-          getParamValue('dtype', node, tensorMap, context) as DataType)];
+          getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
     }
     case 'range': {
       const start = getParamValue('start', node, tensorMap, context) as number;
@@ -93,7 +92,7 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
     case 'zeros': {
       return [tfc.zeros(
           getParamValue('shape', node, tensorMap, context) as number[],
-          getParamValue('dtype', node, tensorMap, context) as DataType)];
+          getParamValue('dtype', node, tensorMap, context) as tfc.DataType)];
     }
     case 'zerosLike': {
       return [tfc.zerosLike(

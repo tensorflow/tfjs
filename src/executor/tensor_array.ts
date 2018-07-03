@@ -15,10 +15,7 @@
  * =============================================================================
  */
 // tslint:disable-next-line:max-line-length
-import {concat, slice, stack, Tensor, tensor, unstack} from '@tensorflow/tfjs-core';
-import {tidy} from '@tensorflow/tfjs-core';
-import {DataType} from '@tensorflow/tfjs-core/dist/types';
-import {assertShapesMatch} from '@tensorflow/tfjs-core/dist/util';
+import {concat, DataType, slice, stack, Tensor, tensor, tidy, unstack, util} from '@tensorflow/tfjs-core';
 
 export interface TensorWithState {
   tensor?: Tensor;
@@ -117,7 +114,7 @@ export class TensorArray {
           because the value dtype is ${
           tensor.dtype}, but TensorArray dtype is ${this.dtype}.`);
     }
-    assertShapesMatch(
+    util.assertShapesMatch(
         this.elementShape, tensor.shape,
         `TensorArray ${this.name}: Could not write to TensorArray index ${
             index}.`);
@@ -184,7 +181,7 @@ export class TensorArray {
     // their memory.
     const tensors = this.readMany(indices);
 
-    assertShapesMatch(
+    util.assertShapesMatch(
         this.elementShape, tensors[0].shape, 'TensorArray shape mismatch: ');
 
     return stack(tensors, 0);
@@ -210,7 +207,7 @@ export class TensorArray {
     // Collect all the tensors from the tensors array.
     const tensors = this.readMany(indices);
 
-    assertShapesMatch(
+    util.assertShapesMatch(
         this.elementShape, tensors[0].shape,
         `TensorArray shape mismatch: tensor array shape (${
             this.elementShape}) vs first tensor shape (${tensors[0].shape})`);
