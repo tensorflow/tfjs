@@ -15,10 +15,10 @@
  * =============================================================================
  */
 
-import {NamedTensorMap, Tensor, tidy, util} from '@tensorflow/tfjs-core';
-import {DataType, TensorInfo} from '@tensorflow/tfjs-core/dist/types';
+// tslint:disable-next-line:max-line-length
+import {DataType, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
-import {NamedTensorsMap} from '../data/types';
+import {NamedTensorMap, NamedTensorsMap, TensorInfo} from '../data/types';
 import {getNodeNameAndIndex, getTensor} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';

@@ -16,11 +16,10 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import {TensorInfo} from '@tensorflow/tfjs-core/dist/types';
 import * as Url from 'url';
 
 import {tensorflow} from '../data/compiled_api';
-import {NamedTensorsMap} from '../data/types';
+import {NamedTensorsMap, TensorInfo} from '../data/types';
 import {OperationMapper} from '../operations/operation_mapper';
 
 import {GraphExecutor} from './graph_executor';

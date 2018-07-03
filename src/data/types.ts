@@ -14,8 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import {Tensor} from '@tensorflow/tfjs-core';
+import {DataType, Tensor} from '@tensorflow/tfjs-core';
+
+export type NamedTensorMap = {
+  [key: string]: Tensor
+};
 
 export type NamedTensorsMap = {
   [key: string]: Tensor[]
 };
+
+export interface TensorInfo {
+  name: string;
+  shape?: number[];
+  dtype: DataType;
+}
