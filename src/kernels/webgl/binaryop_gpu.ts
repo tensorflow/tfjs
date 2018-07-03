@@ -16,8 +16,9 @@
  */
 
 import * as broadcast_util from '../../ops/broadcast_util';
-import {GPGPUProgram} from './gpgpu_math';
+
 import {GPGPUContext} from './gpgpu_context';
+import {GPGPUProgram} from './gpgpu_math';
 
 const CHECK_NAN_SNIPPET = `
   if (isNaN(a)) return a;
@@ -48,8 +49,11 @@ export const INT_DIV = `
 `;
 
 export const POW = `
-  return (round(mod(b, 2.0)) == 0 || round(mod(b, 2.0)) == 2) ?
-      pow(abs(a), b) : sign(a) * pow(abs(a), b);
+if(a < 0.0 && floor(b) < b){
+  return NAN;
+}
+return (round(mod(b, 2.0)) == 0 || round(mod(b, 2.0)) == 2) ?
+    pow(abs(a), b) : sign(a) * pow(abs(a), b);
 `;
 export const SQUARED_DIFFERENCE = 'return (a - b) * (a - b);';
 
