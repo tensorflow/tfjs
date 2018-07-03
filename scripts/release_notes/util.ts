@@ -125,8 +125,14 @@ export async function getReleaseNotesDraft(
       const isExternalContributor = !commit.authorEmail.endsWith('@google.com');
 
       const pullRequestRegexp = /\(#([0-9]+)\)/;
-      const pullRequestNumber = commit.subject.match(pullRequestRegexp)[1];
-      const subject = commit.subject.replace(pullRequestRegexp, '').trim();
+      const pullRequestMatch = commit.subject.match(pullRequestRegexp);
+
+      let subject = commit.subject;
+      let pullRequestNumber = null;
+      if (pullRequestMatch != null) {
+        subject = subject.replace(pullRequestRegexp, '').trim();
+        pullRequestNumber = pullRequestMatch[1];
+      }
 
       for (let k = 0; k < tagsFound.length; k++) {
         const {tag, tagMessage} = tagsFound[k];
@@ -140,12 +146,15 @@ export async function getReleaseNotesDraft(
         }
 
         // Attach the link to the pull request.
-        entry = entry.trim() +
+        const pullRequestSuffix = pullRequestNumber != null ?
             ` ([#${pullRequestNumber}](https://github.com/tensorflow/` +
-            `${repoCommit.repo.identifier}/pull/${pullRequestNumber})).`;
+                `${repoCommit.repo.identifier}/pull/${pullRequestNumber})).` :
+            '';
 
-        // For external contributors, we need to query github because git does
-        // not contain github username metadatea.
+        entry = entry.trim() + pullRequestSuffix;
+
+        // For external contributors, we need to query github because git
+        // does not contain github username metadatea.
         if (isExternalContributor) {
           const username = await getUsernameForCommit(commit.sha);
           entry += (!entry.endsWith('.') ? '.' : '') + ` Thanks, @${username}.`;
