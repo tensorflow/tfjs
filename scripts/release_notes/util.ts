@@ -128,12 +128,11 @@ export async function getReleaseNotesDraft(
       const pullRequestMatch = commit.subject.match(pullRequestRegexp);
 
       let subject = commit.subject;
+      let pullRequestNumber = null;
       if (pullRequestMatch != null) {
         subject = subject.replace(pullRequestRegexp, '').trim();
+        pullRequestNumber = pullRequestMatch[1];
       }
-
-      const pullRequestNumber =
-          pullRequestMatch != null ? pullRequestMatch[1] : null;
 
       for (let k = 0; k < tagsFound.length; k++) {
         const {tag, tagMessage} = tagsFound[k];
