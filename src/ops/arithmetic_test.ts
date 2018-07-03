@@ -757,6 +757,26 @@ describeWithFlags('pow', ALL_ENVS, () => {
     expect(result.dtype).toBe('float32');
     expectArraysEqual(result, [1, 4, 9]);
   });
+
+  it('negative base and whole exponent not NaN', () => {
+    const a = tf.tensor1d([-2, -3, -4], 'float32');
+    const b = tf.tensor1d([2, -3, 4], 'float32');
+
+    const expected = [Math.pow(-2, 2), Math.pow(-3, -3), Math.pow(-4, 4)];
+    const result = tf.pow(a, b);
+
+    expectArraysClose(result, expected);
+  });
+
+  it('negative base and fract exponent NaN', () => {
+    const a = tf.tensor1d([-2, -3, -4], 'float32');
+    const b = tf.tensor1d([2.1, -3.01, 4.001], 'float32');
+
+    const expected = [NaN, NaN, NaN];
+    const result = tf.pow(a, b);
+
+    expectArraysClose(result, expected);
+  });
 });
 
 describeWithFlags('add', ALL_ENVS, () => {

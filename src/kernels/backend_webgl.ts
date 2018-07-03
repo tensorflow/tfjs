@@ -813,10 +813,11 @@ export class MathBackendWebGL implements KernelBackend {
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
     const program = new BinaryOpProgram(binaryop_gpu.POW, a.shape, b.shape);
+    const customSetup = program.getCustomSetupFunc();
     const output =
         this.makeOutputArray(
             program.outputShape, types.upcastType(a.dtype, b.dtype)) as T;
-    return this.compileAndRun<Tensor, T>(program, [a, b], output);
+    return this.compileAndRun<Tensor, T>(program, [a, b], output, customSetup);
   }
 
   ceil<T extends Tensor>(x: T): T {
