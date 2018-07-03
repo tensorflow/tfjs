@@ -17,11 +17,11 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {DataType, doc, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {Activation, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
+import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {Constraint, ConstraintIdentifier, getConstraint, serializeConstraint} from '../constraints';
 import {InputSpec, SymbolicTensor} from '../engine/topology';
 import {Layer, LayerConfig} from '../engine/topology';
-import {getScalar} from '../backend/state';
 import {AttributeError, NotImplementedError, ValueError} from '../errors';
 import {getInitializer, Initializer, InitializerIdentifier, Ones, serializeInitializer} from '../initializers';
 import {getRegularizer, Regularizer, RegularizerIdentifier, serializeRegularizer} from '../regularizers';
@@ -781,6 +781,8 @@ export abstract class RNNCell extends Layer {
    * For RNN cells with only a single state, this is a single integer.
    */
   public stateSize: number|number[];
+  public dropoutMask: Tensor|Tensor[];
+  public recurrentDropoutMask: Tensor|Tensor[];
 }
 
 export interface SimpleRNNCellLayerConfig extends LayerConfig {
@@ -968,6 +970,8 @@ export class SimpleRNNCell extends RNNCell {
           [0, config.recurrentDropout == null ? 0 : config.recurrentDropout])
     ]);
     this.stateSize = this.units;
+    this.dropoutMask = null;
+    this.recurrentDropoutMask = null;
   }
 
   build(inputShape: Shape|Shape[]): void {
@@ -1004,21 +1008,35 @@ export class SimpleRNNCell extends RNNCell {
         throw new ValueError(
             `SimpleRNNCell expects 2 input Tensors, got ${inputs.length}.`);
       }
-      const prevOutput = inputs[1];
+      let prevOutput = inputs[1];
       inputs = inputs[0];
-      // TODO(cais): Uncomment the following when implementing the logic for
-      //   dropout and training.
-      // const training = kwargs['training'] == null ? false :
-      // kwargs['training'];
-      if (this.dropout !== 0 || this.recurrentDropout !== 0) {
-        throw new NotImplementedError(
-            'Dropout is not implemented for SimpleRNNCell yet');
-      }
+      const training = kwargs['training'] == null ? false : kwargs['training'];
 
-      // TODO(cais): Handle dropout.
-      let h = K.dot(inputs, this.kernel.read());
+      if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
+        this.dropoutMask = generateDropoutMask(
+                               () => tfc.onesLike(inputs as Tensor),
+                               this.dropout, training) as Tensor;
+      }
+      if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
+          this.recurrentDropoutMask == null) {
+        this.recurrentDropoutMask =
+            generateDropoutMask(
+                () => tfc.onesLike(prevOutput), this.recurrentDropout,
+                training) as Tensor;
+      }
+      let h: Tensor;
+      const dpMask: Tensor = this.dropoutMask as Tensor;
+      const recDpMask: Tensor = this.recurrentDropoutMask as Tensor;
+      if (dpMask != null) {
+        h = K.dot(tfc.mul(inputs, dpMask), this.kernel.read());
+      } else {
+        h = K.dot(inputs, this.kernel.read());
+      }
       if (this.bias != null) {
         h = K.biasAdd(h, this.bias.read());
+      }
+      if (recDpMask != null) {
+        prevOutput = tfc.mul(prevOutput, recDpMask);
       }
       let output = tfc.add(h, K.dot(prevOutput, this.recurrentKernel.read()));
       if (this.activation != null) {
@@ -1167,7 +1185,14 @@ export class SimpleRNN extends RNN {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      // TODO(cais): Add dropoutMask and recurrentDropoutMask.
+      if (this.cell.dropoutMask != null) {
+        tfc.dispose(this.cell.dropoutMask);
+        this.cell.dropoutMask = null;
+      }
+      if (this.cell.recurrentDropoutMask != null) {
+        tfc.dispose(this.cell.recurrentDropoutMask);
+        this.cell.recurrentDropoutMask = null;
+      }
       const mask = kwargs == null ? null : kwargs['mask'];
       const training = kwargs == null ? null : kwargs['training'];
       const initialState: Tensor[] =
@@ -1402,6 +1427,8 @@ export class GRUCell extends RNNCell {
     ]);
     this.implementation = config.implementation;
     this.stateSize = this.units;
+    this.dropoutMask = null;
+    this.recurrentDropoutMask = null;
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -1428,21 +1455,31 @@ export class GRUCell extends RNNCell {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      // TODO(cais): Implement dropout.
-      if (this.dropout !== 0 || this.recurrentDropout !== 0) {
-        throw new NotImplementedError(
-            'Dropout is not implemented for GRUCell yet');
-      }
-
       inputs = inputs as Tensor[];
       if (inputs.length !== 2) {
         throw new ValueError(
             `GRUCell expects 2 input Tensors (inputs, h, c), got ` +
             `${inputs.length}.`);
       }
-      const hTMinus1 = inputs[1];  // Previous memory state.
+
+      const training = kwargs['training'] == null ? false : kwargs['training'];
+      let hTMinus1 = inputs[1];  // Previous memory state.
       inputs = inputs[0];
 
+      if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
+        this.dropoutMask = generateDropoutMask(
+                               () => tfc.onesLike(inputs as Tensor),
+                               this.dropout, training, 3) as Tensor[];
+      }
+      if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
+          this.recurrentDropoutMask == null) {
+        this.recurrentDropoutMask =
+            generateDropoutMask(
+                () => tfc.onesLike(hTMinus1), this.recurrentDropout, training,
+                3) as Tensor[];
+      }
+      const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor];
+      const recDpMask = this.recurrentDropoutMask as [Tensor, Tensor, Tensor];
       let z: Tensor;
       let r: Tensor;
       let hh: Tensor;
@@ -1459,10 +1496,16 @@ export class GRUCell extends RNNCell {
         const recurrentKernelH = K.sliceAlongLastAxis(
             this.recurrentKernel.read(), this.units * 2, this.units);
 
-        // TODO(cais): Add input dropout.
-        const inputsZ = inputs;
-        const inputsR = inputs;
-        const inputsH = inputs;
+        let inputsZ: Tensor, inputsR: Tensor, inputsH: Tensor;
+        if (0 < this.dropout && this.dropout < 1) {
+          inputsZ = tfc.mul(inputs, dpMask[0]);
+          inputsR = tfc.mul(inputs, dpMask[1]);
+          inputsH = tfc.mul(inputs, dpMask[2]);
+        } else {
+          inputsZ = inputs;
+          inputsR = inputs;
+          inputsH = inputs;
+        }
 
         let xZ = K.dot(inputsZ, kernelZ);
         let xR = K.dot(inputsR, kernelR);
@@ -1478,10 +1521,18 @@ export class GRUCell extends RNNCell {
           xH = K.biasAdd(xH, biasH);
         }
 
-        // TODO(cais): Add recurrent dropout.
-        const hTMinus1Z = hTMinus1;
-        const hTMinus1R = hTMinus1;
-        const hTMinus1H = hTMinus1;
+        let hTMinus1Z: Tensor;
+        let hTMinus1R: Tensor;
+        let hTMinus1H: Tensor;
+        if (0 < this.recurrentDropout && this.recurrentDropout < 1) {
+          hTMinus1Z = tfc.mul(hTMinus1, recDpMask[0]);
+          hTMinus1R = tfc.mul(hTMinus1, recDpMask[1]);
+          hTMinus1H = tfc.mul(hTMinus1, recDpMask[2]);
+        } else {
+          hTMinus1Z = hTMinus1;
+          hTMinus1R = hTMinus1;
+          hTMinus1H = hTMinus1;
+        }
         z = this.recurrentActivation.apply(
             tfc.add(xZ, K.dot(hTMinus1Z, recurrentKernelZ)));
         r = this.recurrentActivation.apply(
@@ -1489,12 +1540,16 @@ export class GRUCell extends RNNCell {
         hh = this.activation.apply(
             tfc.add(xH, K.dot(tfc.mul(r, hTMinus1H), recurrentKernelH)));
       } else {
-        // TODO(cais): Add input dropout.
+        if (0 < this.dropout && this.dropout < 1) {
+          inputs = tfc.mul(inputs, dpMask[0]);
+        }
         let matrixX = K.dot(inputs, this.kernel.read());
         if (this.useBias) {
           matrixX = K.biasAdd(matrixX, this.bias.read());
         }
-        // TODO(cais): Add recurrent dropout.
+        if (0 < this.dropout && this.dropout < 1) {
+          hTMinus1 = tfc.mul(hTMinus1, recDpMask[0]);
+        }
         const matrixInner = K.dot(
             hTMinus1,
             K.sliceAlongLastAxis(
@@ -1612,7 +1667,14 @@ export class GRU extends RNN {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      // TODO(cais): Add dropoutMask and recurrentDropoutMask.
+      if (this.cell.dropoutMask != null) {
+        tfc.dispose(this.cell.dropoutMask);
+        this.cell.dropoutMask = null;
+      }
+      if (this.cell.recurrentDropoutMask != null) {
+        tfc.dispose(this.cell.recurrentDropoutMask);
+        this.cell.recurrentDropoutMask = null;
+      }
       const mask = kwargs == null ? null : kwargs['mask'];
       const training = kwargs == null ? null : kwargs['training'];
       const initialState: Tensor[] =
@@ -1875,6 +1937,8 @@ export class LSTMCell extends RNNCell {
     ]);
     this.implementation = config.implementation;
     this.stateSize = [this.units, this.units];
+    this.dropoutMask = null;
+    this.recurrentDropoutMask = null;
   }
 
   public build(inputShape: Shape|Shape[]): void {
@@ -1920,21 +1984,31 @@ export class LSTMCell extends RNNCell {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      // TODO(cais): Implement dropout.
-      if (this.dropout !== 0 || this.recurrentDropout !== 0) {
-        throw new NotImplementedError(
-            'Dropout is not implemented for LSTMCell yet');
-      }
-
+      const training = kwargs['training'] == null ? false : kwargs['training'];
       inputs = inputs as Tensor[];
       if (inputs.length !== 3) {
         throw new ValueError(
             `LSTMCell expects 3 input Tensors (inputs, h, c), got ` +
             `${inputs.length}.`);
       }
-      const hTMinus1 = inputs[1];  // Previous memory state.
+      let hTMinus1 = inputs[1];    // Previous memory state.
       const cTMinus1 = inputs[2];  // Previous carry state.
       inputs = inputs[0];
+      if (0 < this.dropout && this.dropout < 1 && this.dropoutMask == null) {
+        this.dropoutMask = generateDropoutMask(
+                               () => tfc.onesLike(inputs as Tensor),
+                               this.dropout, training, 4) as Tensor[];
+      }
+      if (0 < this.recurrentDropout && this.recurrentDropout < 1 &&
+          this.recurrentDropoutMask == null) {
+        this.recurrentDropoutMask =
+            generateDropoutMask(
+                () => tfc.onesLike(hTMinus1), this.recurrentDropout, training,
+                4) as Tensor[];
+      }
+      const dpMask = this.dropoutMask as [Tensor, Tensor, Tensor, Tensor];
+      const recDpMask =
+          this.recurrentDropoutMask as [Tensor, Tensor, Tensor, Tensor];
 
       let i: Tensor;
       let f: Tensor;
@@ -1957,11 +2031,18 @@ export class LSTMCell extends RNNCell {
         const recurrentKernelO = K.sliceAlongLastAxis(
             this.recurrentKernel.read(), this.units * 3, this.units);
 
-        // TODO(cais): Add input dropout.
-        const inputsI = inputs;
-        const inputsF = inputs;
-        const inputsC = inputs;
-        const inputsO = inputs;
+        let inputsI: Tensor, inputsF: Tensor, inputsC: Tensor, inputsO: Tensor;
+        if (0 < this.dropout && this.dropout < 1) {
+          inputsI = tfc.mul(inputs, dpMask[0]);
+          inputsF = tfc.mul(inputs, dpMask[1]);
+          inputsC = tfc.mul(inputs, dpMask[2]);
+          inputsO = tfc.mul(inputs, dpMask[3]);
+        } else {
+          inputsI = inputs;
+          inputsF = inputs;
+          inputsC = inputs;
+          inputsO = inputs;
+        }
 
         let xI = K.dot(inputsI, kernelI);
         let xF = K.dot(inputsF, kernelF);
@@ -1981,11 +2062,19 @@ export class LSTMCell extends RNNCell {
           xO = K.biasAdd(xO, biasO);
         }
 
-        // TODO(cais): Add recurrent dropout.
-        const hTMinus1I = hTMinus1;
-        const hTMinus1F = hTMinus1;
-        const hTMinus1C = hTMinus1;
-        const hTMinus1O = hTMinus1;
+        let hTMinus1I: Tensor, hTMinus1F: Tensor, hTMinus1C: Tensor,
+            hTMinus1O: Tensor;
+        if (0 < this.recurrentDropout && this.recurrentDropout < 1) {
+          hTMinus1I = tfc.mul(hTMinus1, recDpMask[0]);
+          hTMinus1F = tfc.mul(hTMinus1, recDpMask[1]);
+          hTMinus1C = tfc.mul(hTMinus1, recDpMask[2]);
+          hTMinus1O = tfc.mul(hTMinus1, recDpMask[3]);
+        } else {
+          hTMinus1I = hTMinus1;
+          hTMinus1F = hTMinus1;
+          hTMinus1C = hTMinus1;
+          hTMinus1O = hTMinus1;
+        }
         i = this.recurrentActivation.apply(
             tfc.add(xI, K.dot(hTMinus1I, recurrentKernelI)));
         f = this.recurrentActivation.apply(
@@ -1999,9 +2088,13 @@ export class LSTMCell extends RNNCell {
         o = this.recurrentActivation.apply(
             tfc.add(xO, K.dot(hTMinus1O, recurrentKernelO)));
       } else {
-        // TODO(cais): Add input dropout.
+        if (0 < this.dropout && this.dropout < 1) {
+          inputs = tfc.mul(inputs, dpMask[0]);
+        }
         let z = K.dot(inputs, this.kernel.read());
-        // TODO(cais): Add recurrent dropout.
+        if (0 < this.recurrentDropout && this.recurrentDropout < 1) {
+          hTMinus1 = tfc.mul(hTMinus1, recDpMask[0]);
+        }
         z = tfc.add(z, K.dot(hTMinus1, this.recurrentKernel.read()));
         if (this.useBias) {
           z = K.biasAdd(z, this.bias.read());
@@ -2121,7 +2214,14 @@ export class LSTM extends RNN {
 
   call(inputs: Tensor|Tensor[], kwargs: Kwargs): Tensor|Tensor[] {
     return tidy(() => {
-      // TODO(cais): Add dropoutMask and recurrentDropoutMask.
+      if (this.cell.dropoutMask != null) {
+        tfc.dispose(this.cell.dropoutMask);
+        this.cell.dropoutMask = null;
+      }
+      if (this.cell.recurrentDropoutMask != null) {
+        tfc.dispose(this.cell.recurrentDropoutMask);
+        this.cell.recurrentDropoutMask = null;
+      }
       const mask = kwargs == null ? null : kwargs['mask'];
       const training = kwargs == null ? null : kwargs['training'];
       const initialState: Tensor[] =
@@ -2420,3 +2520,21 @@ export class StackedRNNCells extends RNNCell {
   // TODO(cais): Maybe implemnt `losses` and `getLossesFor`.
 }
 serialization.SerializationMap.register(StackedRNNCells);
+
+function generateDropoutMask(
+    ones: () => Tensor, rate: number, training: boolean = null,
+    count = 1): Tensor|Tensor[] {
+  function droppedInputs(): Tensor {
+    return K.dropout(ones(), getScalar(rate));
+  }
+  if (count > 1) {
+    const mask: Tensor[] = [];
+    for (let i = 0; i < count; i++) {
+      mask.push(K.inTrainPhase(droppedInputs, ones, training));
+    }
+    mask.forEach(m => tfc.keep(m));
+    return mask;
+  } else {
+    return tfc.keep(K.inTrainPhase(droppedInputs, ones, training));
+  }
+}
