@@ -142,6 +142,13 @@ export function concatenateTypedArrays(xs: TypedArray[]): ArrayBuffer {
   return y.buffer;
 }
 
+// Use Buffer on Node.js instead of Blob/atob/btoa
+const useNodeBuffer = typeof Buffer !== 'undefined' && (
+  typeof Blob === 'undefined' ||
+  typeof atob === 'undefined' ||
+  typeof btoa === 'undefined'
+);
+
 /**
  * Calculate the byte length of a JavaScript string.
  *
@@ -152,6 +159,9 @@ export function concatenateTypedArrays(xs: TypedArray[]): ArrayBuffer {
  * @returns Byte length.
  */
 export function stringByteLength(str: string): number {
+  if (useNodeBuffer) {
+    return Buffer.byteLength(str);
+  }
   return new Blob([str]).size;
 }
 
@@ -162,6 +172,9 @@ export function stringByteLength(str: string): number {
  * @returns A string that base64-encodes `buffer`.
  */
 export function arrayBufferToBase64String(buffer: ArrayBuffer): string {
+  if (useNodeBuffer) {
+    return Buffer.from(buffer).toString('base64');
+  }
   return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
 }
 
@@ -172,6 +185,10 @@ export function arrayBufferToBase64String(buffer: ArrayBuffer): string {
  * @returns Decoded `ArrayBuffer`.
  */
 export function base64StringToArrayBuffer(str: string): ArrayBuffer {
+  if (useNodeBuffer) {
+    const buf = Buffer.from(str, 'base64');
+    return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
+  }
   const s = atob(str);
   const buffer = new Uint8Array(s.length);
   for (let i = 0; i < s.length; ++i) {
