@@ -188,7 +188,7 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('MatMul', opAttrs, [a, b]) as Tensor2D;
   }
 
-  stridedSlice<T extends Tensor<Rank>>(
+  stridedSlice<T extends Tensor>(
       x: T, begin: number[], end: number[], strides: number[],
       beginMask: number, endMask: number): T {
     const beginTensor = tensor1d(begin, 'int32');
@@ -262,12 +262,12 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('Mul', opAttrs, [a, b]);
   }
 
-  realDivide(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+  realDivide(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('RealDiv', opAttrs, [a, b]);
   }
 
-  floorDiv(a: Tensor<Rank>, b: Tensor<Rank>): Tensor<Rank> {
+  floorDiv(a: Tensor, b: Tensor): Tensor {
     const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
     return this.executeSingleOutput('FloorDiv', opAttrs, [a, b]);
   }
@@ -393,13 +393,22 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput('Maximum', opAttrs, [a, b]);
   }
 
-  all(x: Tensor<Rank>, axes: number[]): Tensor<Rank> {
+  all(x: Tensor, axes: number[]): Tensor {
     const opAttrs = [
       {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
       this.createTypeOpAttr('Tidx', 'int32')
     ];
     const axesTensor = tensor1d(axes, 'int32');
     return this.executeSingleOutput('All', opAttrs, [x, axesTensor]);
+  }
+
+  any(x: Tensor, axes: number[]): Tensor {
+    const opAttrs = [
+      {name: 'keep_dims', type: this.binding.TF_ATTR_BOOL, value: false},
+      this.createTypeOpAttr('Tidx', 'int32')
+    ];
+    const axesTensor = tensor1d(axes, 'int32');
+    return this.executeSingleOutput('Any', opAttrs, [x, axesTensor]);
   }
 
   ceil<T extends Tensor>(x: T): T {
@@ -411,8 +420,10 @@ export class NodeJSKernelBackend implements KernelBackend {
   }
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
-    const opAttrs = [this.createTypeOpAttr('T', upcastType(a.dtype, b.dtype))];
-    return this.executeSingleOutput('Pow', opAttrs, [a, b]) as T;
+    const dtype = upcastType(a.dtype, b.dtype);
+    const opAttrs = [this.createTypeOpAttr('T', dtype)];
+    return this.executeSingleOutput(
+               'Pow', opAttrs, [a.cast(dtype), b.cast(dtype)]) as T;
   }
 
   exp<T extends Tensor>(x: T): T {
@@ -643,9 +654,8 @@ export class NodeJSKernelBackend implements KernelBackend {
         Tensor4D;
   }
 
-  depthwiseConv2DDerInput(
-      dy: Tensor<Rank.R4>, filter: Tensor<Rank.R4>,
-      convInfo: Conv2DInfo): Tensor4D {
+  depthwiseConv2DDerInput(dy: Tensor4D, filter: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
     const padding = convInfo.padInfo.type;
     const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
@@ -667,9 +677,8 @@ export class NodeJSKernelBackend implements KernelBackend {
                [inputSizes, filter, dy]) as Tensor4D;
   }
 
-  depthwiseConv2DDerFilter(
-      x: Tensor<Rank.R4>, dY: Tensor<Rank.R4>,
-      convInfo: Conv2DInfo): Tensor<Rank.R4> {
+  depthwiseConv2DDerFilter(x: Tensor4D, dY: Tensor4D, convInfo: Conv2DInfo):
+      Tensor4D {
     const strides = [1, convInfo.strideHeight, convInfo.strideWidth, 1];
     const padding = convInfo.padInfo.type;
     const dataFormat = convInfo.dataFormat === 'channelsLast' ? 'NHWC' : 'NCHW';
@@ -894,9 +903,8 @@ export class NodeJSKernelBackend implements KernelBackend {
         Tensor4D;
   }
 
-  resizeBilinearBackprop(
-      dy: Tensor<Rank.R4>, x: Tensor<Rank.R4>,
-      alignCorners: boolean): Tensor<Rank.R4> {
+  resizeBilinearBackprop(dy: Tensor4D, x: Tensor4D, alignCorners: boolean):
+      Tensor4D {
     const opAttrs = [
       this.createTypeOpAttr('T', x.dtype), {
         name: 'align_corners',
@@ -922,6 +930,21 @@ export class NodeJSKernelBackend implements KernelBackend {
     const size = tensor1d([newHeight, newWidth], 'int32');
     return this.executeSingleOutput(
                'ResizeNearestNeighbor', opAttrs, [x, size]) as Tensor4D;
+  }
+
+  resizeNearestNeighborBackprop(
+      dy: Tensor4D, x: Tensor4D, alignCorners: boolean): Tensor4D {
+    const opAttrs = [
+      this.createTypeOpAttr('T', x.dtype), {
+        name: 'align_corners',
+        type: this.binding.TF_ATTR_BOOL,
+        value: alignCorners
+      }
+    ];
+    const [, origHeight, origWidth, ] = x.shape;
+    const size = tensor1d([origHeight, origWidth], 'int32');
+    return this.executeSingleOutput(
+               'ResizeNearestNeighborGrad', opAttrs, [dy, size]) as Tensor4D;
   }
 
   batchNormalization(
@@ -1014,8 +1037,8 @@ export class NodeJSKernelBackend implements KernelBackend {
     ]) as Tensor2D;
   }
 
-  cumsum(x: Tensor<Rank>, axis: number, exclusive: boolean, reverse: boolean):
-      Tensor<Rank> {
+  cumsum(x: Tensor, axis: number, exclusive: boolean, reverse: boolean):
+      Tensor {
     const axisTensor = scalar(axis, 'int32');
     const opAttrs = [
       {name: 'exclusive', type: this.binding.TF_ATTR_BOOL, value: exclusive},

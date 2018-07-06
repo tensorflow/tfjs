@@ -28,11 +28,11 @@ import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
-jasmine_util.setTestBackends([{
+jasmine_util.setTestEnvs([{
   name: 'test-tensorflow',
   factory: () =>
       new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding),
-  priority: 100
+  features: {}
 }]);
 
 const IGNORE_LIST: string[] = [
@@ -50,7 +50,8 @@ const runner = new jasmineCtor();
 runner.loadConfig({
   spec_files: [
     'src/**/*_test.ts', 'node_modules/@tensorflow/tfjs-core/dist/**/*_test.js'
-  ]
+  ],
+  random: false
 });
 
 if (process.env.JASMINE_SEED) {
