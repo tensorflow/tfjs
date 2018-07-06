@@ -258,10 +258,9 @@ $ node_modules/protobufjs/bin/pbjs -t static-module -w commonjs -o src/data/comp
 For ES6
 
 ```bash
-$ node_modules/protobufjs/bin/pbjs -t static-module -w es6 -o src/data/es6/compiled_api.js --no-create --no-encode --no-verify --no-convert --no-delimited --no-beautify --no-comments src/data/api.proto
+# Generate es6 code.
+$ node_modules/protobufjs/bin/pbjs -t static-module -w es6 -o compiled_api.js --no-create --no-encode --no-verify --no-convert --no-delimited --no-beautify --no-comments src/data/api.proto
 
-$ sed -i 's/() =>/function()/g' src/data/es6/compiled_api.js
+# And convert it to es5, while still using es6 modules.
+$ node_modules/.bin/tsc --lib es2015,dom --allowJs -t es5 -m es2015 compiled_api.js --outDir src/data/es6/
 ```
-
-Note:
-Unfortunately the generated es6 compiled_api.js has arrow function on line 8, the sed command is to replace that with 'function()'
