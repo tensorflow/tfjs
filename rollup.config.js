@@ -20,44 +20,98 @@ import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
 import resolve from 'rollup-plugin-node-resolve';
 import json from 'rollup-plugin-json';
+import uglify from 'rollup-plugin-uglify';
 
-export default {
-  input: 'src/index.ts',
-  plugins: [
-    typescript(),
-    node(),
-    // Polyfill require() from dependencies.
-    commonjs({
-      ignore: ["crypto"],
-      include: 'node_modules/**',
-      namedExports: {
-        './node_modules/seedrandom/index.js': ['alea'],
-        './src/data/compiled_api.js': ['tensorflow'],
-        './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
-      },
-    }),
-    json(),
-    // We need babel to compile the compiled_api.js generated proto file from es6 to es5.
-    babel()
-  ],
-  output: {
-    extend: true,
-    banner: `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`,
-    file: 'dist/tf.js',
-    format: 'umd',
-    name: 'tf',
-    globals: {
-      'crypto': 'crypto'
+const copyright =  `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
+
+function minify() {
+  return uglify({
+    output: {
+      preamble: copyright
     }
-  },
-  external: ['crypto'],
-  onwarn: warning => {
-    let {code} = warning;
-    if (code === 'CIRCULAR_DEPENDENCY' ||
-        code === 'CIRCULAR' ||
-        code === 'THIS_IS_UNDEFINED') {
-      return;
+  });
+}
+
+function config({plugins = [], output = {}, external = []}) {
+  return {
+    input: 'src/index.ts',
+    plugins: [
+      typescript({
+        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
+      }),
+      node(),
+      // Polyfill require() from dependencies.
+      commonjs({
+        ignore: ["crypto"],
+        include: 'node_modules/**',
+        namedExports: {
+          './node_modules/seedrandom/index.js': ['alea'],
+          './src/data/compiled_api.js': ['tensorflow'],
+          './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
+        },
+      }),
+      json(),
+      // We need babel to compile the compiled_api.js generated proto file from es6 to es5.
+      babel(),
+      ...plugins
+    ],
+    output: {
+      banner: copyright,
+      ...output
+    },
+    external: [
+      'crypto',
+      ...external
+    ],
+    onwarn: warning => {
+      let {code} = warning;
+      if (code === 'CIRCULAR_DEPENDENCY' ||
+          code === 'CIRCULAR' ||
+          code === 'THIS_IS_UNDEFINED') {
+        return;
+      }
+      console.warn('WARNING: ', warning.toString());
     }
-    console.warn('WARNING: ', warning.toString());
-  }
-};
+  };
+}
+
+export default [
+  config({
+    output: {
+      format: 'umd',
+      name: 'tf',
+      extend: true,
+      file: 'dist/tf.js'
+    }
+  }),
+  config({
+    plugins: [
+      minify()
+    ],
+    output: {
+      format: 'umd',
+      name: 'tf',
+      extend: true,
+      file: 'dist/tf.min.js'
+    }
+  }),
+  config({
+    plugins: [
+      minify()
+    ],
+    output: {
+      format: 'es',
+      file: 'dist/tf.esm.js',
+      globals: {
+        '@tensorflow/tfjs-core': 'tf',
+        '@tensorflow/tfjs-layers': 'tf',
+        '@tensorflow/tfjs-converter': 'tf'
+      }
+    },
+    external: [
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-layers',
+      '@tensorflow/tfjs-converter'
+    ]
+  })
+];
