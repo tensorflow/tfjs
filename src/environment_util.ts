@@ -36,6 +36,8 @@ export interface Features {
   'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE'?: boolean;
   // 0: No WebGL, 1: WebGL 1.0, 2: WebGL 2.0.
   'WEBGL_VERSION'?: number;
+  // True if WebGL is supported.
+  'HAS_WEBGL'?: boolean;
   // Whether rendering to float32 textures is enabled. If disabled, renders to
   // float16 textures.
   'WEBGL_RENDER_FLOAT32_ENABLED'?: boolean;
@@ -49,6 +51,8 @@ export interface Features {
   // float32 textures.
   'TEST_EPSILON'?: number;
   'IS_CHROME'?: boolean;
+  // True if running unit tests.
+  'IS_TEST'?: boolean;
 }
 
 export enum Type {
@@ -188,8 +192,9 @@ export function isWebGLGetBufferSubDataAsyncExtensionEnabled(
 }
 
 export function isChrome() {
-  return navigator != null && navigator.userAgent != null &&
-      /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+  return typeof navigator !== 'undefined' && navigator != null &&
+      navigator.userAgent != null && /Chrome/.test(navigator.userAgent) &&
+      /Google Inc/.test(navigator.vendor);
 }
 
 // Expects flags from URL in the format ?tfjsflags=FLAG1:1,FLAG2:true.

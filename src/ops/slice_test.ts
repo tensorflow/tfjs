@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('slice1d', ALL_ENVS, () => {
@@ -183,7 +183,7 @@ describeWithFlags('slice4d', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('slice ergonomics', CPU_ENVS, () => {
+describeWithFlags('slice ergonomics', ALL_ENVS, () => {
   it('slices 2x2x2 array into 2x1x1 no size', () => {
     const a = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
     const result = a.slice([0, 1, 1]);

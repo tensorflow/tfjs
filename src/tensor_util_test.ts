@@ -21,7 +21,7 @@ import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
 // tslint:disable-next-line:max-line-length
 import {convertToTensor, flattenNameArrayMap, getTensorsInContainer, isTensorInList, unflattenToNameArrayMap} from './tensor_util';
-import {CPU_ENVS, expectArraysClose, expectNumbersClose} from './test_util';
+import {ALL_ENVS, expectArraysClose, expectNumbersClose} from './test_util';
 
 describe('tensor_util.isTensorInList', () => {
   it('not in list', () => {
@@ -104,7 +104,7 @@ describe('getTensorsInContainer', () => {
   });
 });
 
-describeWithFlags('convertToTensor', CPU_ENVS, () => {
+describeWithFlags('convertToTensor', ALL_ENVS, () => {
   it('primitive number', () => {
     const a = convertToTensor(3, 'a', 'test');
     expect(a.rank).toBe(0);

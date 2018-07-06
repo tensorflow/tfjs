@@ -15,11 +15,11 @@
  * =============================================================================
  */
 
-import * as tf from '../index';
+import * as tf from '..';
+import {describeWithFlags} from '../jasmine_util';
 import {Variable} from '../tensor';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-import {describeWithFlags} from '../jasmine_util';
 import {SGDOptimizer} from './sgd_optimizer';
 
 describeWithFlags('optimizer', ALL_ENVS, () => {

@@ -18,8 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {Tensor2D} from '../tensor';
-// tslint:disable-next-line:max-line-length
-import {ALL_ENVS, CPU_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {Rank} from '../types';
 
 describeWithFlags('lstm', ALL_ENVS, () => {
@@ -104,7 +103,7 @@ describeWithFlags('lstm', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('multiRNN throws when passed non-tensor', CPU_ENVS, () => {
+describeWithFlags('multiRNN throws when passed non-tensor', ALL_ENVS, () => {
   it('input: data', () => {
     const lstmKernel1: tf.Tensor2D = tf.zeros([3, 4]);
     const lstmBias1: tf.Tensor1D = tf.zeros([4]);
@@ -176,7 +175,7 @@ describeWithFlags('multiRNN throws when passed non-tensor', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('basicLSTMCell throws with non-tensor', CPU_ENVS, () => {
+describeWithFlags('basicLSTMCell throws with non-tensor', ALL_ENVS, () => {
   it('input: forgetBias', () => {
     const lstmKernel = tf.randomNormal<Rank.R2>([3, 4]);
     const lstmBias = tf.randomNormal<Rank.R1>([4]);
