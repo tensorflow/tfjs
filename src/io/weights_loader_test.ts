@@ -16,10 +16,10 @@
  */
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {CPU_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
+import {BROWSER_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
 import {WeightsManifestConfig} from './types';
 
-describeWithFlags('loadWeights', CPU_ENVS, () => {
+describeWithFlags('loadWeights', BROWSER_ENVS, () => {
   const setupFakeWeightFiles = (fileBufferMap: {
     [filename: string]: Float32Array|Int32Array|ArrayBuffer|Uint8Array|
     Uint16Array

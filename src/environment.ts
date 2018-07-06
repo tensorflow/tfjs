@@ -273,6 +273,8 @@ export class Environment {
           (typeof process.versions.node !== 'undefined');
     } else if (feature === 'IS_CHROME') {
       return isChrome();
+    } else if (feature === 'IS_TEST') {
+      return false;
     } else if (feature === 'BACKEND') {
       return this.getBestBackendType();
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') {
@@ -286,6 +288,8 @@ export class Environment {
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') {
       return this.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0 &&
           !device_util.isMobile();
+    } else if (feature === 'HAS_WEBGL') {
+      return this.get('WEBGL_VERSION') > 0;
     } else if (feature === 'WEBGL_VERSION') {
       if (isWebGLVersionEnabled(2, this.get('IS_BROWSER'))) {
         return 2;
@@ -313,7 +317,7 @@ export class Environment {
   }
 
   setFeatures(features: Features) {
-    this.features = features;
+    this.features = Object.assign({}, features);
   }
 
   reset() {
@@ -326,7 +330,7 @@ export class Environment {
   private initBackend(backendType?: string, safeMode = false) {
     this.currentBackend = backendType;
     const backend = this.findBackend(backendType);
-    this.globalEngine = new Engine(backend, safeMode, this.get('DEBUG'));
+    this.globalEngine = new Engine(backend, safeMode, () => this.get('DEBUG'));
   }
 
   findBackend(name: string): KernelBackend {

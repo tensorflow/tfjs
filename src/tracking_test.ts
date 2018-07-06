@@ -18,7 +18,7 @@
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, WEBGL_ENVS} from './test_util';
+import {ALL_ENVS, expectArraysClose, expectArraysEqual, NODE_ENVS, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('time webgl', WEBGL_ENVS, () => {
   it('upload + compute', async () => {
@@ -63,7 +63,7 @@ describeWithFlags('time webgl', WEBGL_ENVS, () => {
   });
 });
 
-describeWithFlags('time cpu', CPU_ENVS, () => {
+describeWithFlags('time cpu', NODE_ENVS, () => {
   it('simple upload', async () => {
     const a = tf.zeros([10, 10]);
     const time = await tf.time(() => a.square());
@@ -226,6 +226,7 @@ describeWithFlags('tidy', ALL_ENVS, () => {
     });
 
     expect(b.isDisposed).toBe(false);
+    b.dispose();
   });
 
   it('single argument', () => {

@@ -16,8 +16,9 @@
  */
 
 import * as tf from '../index';
-import {CPU_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
+
 import * as axis_util from './axis_util';
 
 describe('axis_util combineLocations', () => {
@@ -264,7 +265,7 @@ describe('axis_util parseAxisParam', () => {
   });
 });
 
-describeWithFlags('axis_util getUndoAxesPermutation', CPU_ENVS, () => {
+describeWithFlags('axis_util getUndoAxesPermutation', ALL_ENVS, () => {
   it('4d axes', () => {
     const axes = [2, 0, 1, 3];
     expect(axis_util.getUndoAxesPermutation(axes)).toEqual([1, 2, 0, 3]);

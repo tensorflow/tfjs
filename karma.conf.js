@@ -37,9 +37,21 @@ if (coverageEnabled) {
 }
 
 module.exports = function(config) {
+  const args = [];
+  if (config.backend) {
+    args.push('--backend', config.backend);
+  }
+  if (config.grep) {
+    args.push('--grep', config.grep);
+  }
+  if (config.features) {
+    args.push('--features', config.features);
+  }
+
   config.set({
     frameworks: ['jasmine', 'karma-typescript'],
     files: [{pattern: 'src/**/*.ts'}],
+    exclude: ['src/test_node.ts'],
     preprocessors: {
       '**/*.ts': ['karma-typescript'],  // *.tsx for React Jsx
     },
@@ -89,7 +101,7 @@ module.exports = function(config) {
     },
     client: {
       jasmine: {random: false},
-      args: ['--grep', config.grep || '']
+      args: args
     }
   });
 };

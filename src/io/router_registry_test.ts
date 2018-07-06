@@ -16,12 +16,13 @@
  */
 
 import * as tf from '../index';
-
+import {describeWithFlags} from '../jasmine_util';
+import {BROWSER_ENVS} from '../test_util';
 import {BrowserIndexedDB, browserIndexedDB} from './indexed_db';
 import {BrowserLocalStorage, browserLocalStorage} from './local_storage';
 import {IORouterRegistry} from './router_registry';
 
-describe('IORouterRegistry', () => {
+describeWithFlags('IORouterRegistry', BROWSER_ENVS, () => {
   const localStorageRouter = (url: string) => {
     const scheme = 'localstorage://';
     if (url.startsWith(scheme)) {

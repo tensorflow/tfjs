@@ -21,12 +21,11 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {CPU_ENVS, expectArrayBuffersEqual} from '../test_util';
-
+import {BROWSER_ENVS, expectArrayBuffersEqual} from '../test_util';
 // tslint:disable-next-line:max-line-length
 import {browserIndexedDB, BrowserIndexedDB, BrowserIndexedDBManager, deleteDatabase, indexedDBRouter} from './indexed_db';
 
-describeWithFlags('IndexedDB', CPU_ENVS, () => {
+describeWithFlags('IndexedDB', BROWSER_ENVS, () => {
   // Test data.
   const modelTopology1: {} = {
     'class_name': 'Sequential',

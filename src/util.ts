@@ -476,3 +476,20 @@ export function makeZerosTypedArray<D extends DataType>(
     throw new Error(`Unknown data type $ {dtype}`);
   }
 }
+
+/**
+ * Returns the current high-resolution real time in milliseconds. It is
+ * relative to an arbitrary time in the past.
+ */
+export function now(): number {
+  if (typeof performance !== 'undefined') {
+    return performance.now();
+  } else if (typeof process !== 'undefined') {
+    const time = process.hrtime();
+    return time[0] * 1000 + time[1] / 1000000;
+  } else {
+    throw new Error(
+        'Can not measure time in this environment. You should run tf.js ' +
+        'in the browser or in Node.js');
+  }
+}

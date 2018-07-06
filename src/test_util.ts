@@ -21,28 +21,23 @@ import {Tensor} from './tensor';
 import {TypedArray} from './types';
 import * as util from './util';
 
-export const WEBGL_ENVS: Features[] = [
-  {
-    'BACKEND': 'test-webgl',
-    'WEBGL_RENDER_FLOAT32_ENABLED': true,
-    'WEBGL_DOWNLOAD_FLOAT_ENABLED': true,
-    'WEBGL_VERSION': 1
-  },
-  {
-    'BACKEND': 'test-webgl',
-    'WEBGL_RENDER_FLOAT32_ENABLED': true,
-    'WEBGL_DOWNLOAD_FLOAT_ENABLED': true,
-    'WEBGL_VERSION': 2
-  }
-];
-export const CPU_ENVS: Features[] = [{'BACKEND': 'test-cpu'}];
-export const CHROME_CPU_ENVS: Features[] =
-    [{'BACKEND': 'test-cpu', 'IS_CHROME': true}];
-
-// Emulates the current device.
-export const NATIVE_ENV: Features = {};
-export const BROWSER_ENVS: Features[] = WEBGL_ENVS.concat(CPU_ENVS);
-export const ALL_ENVS: Features[] = [NATIVE_ENV].concat(BROWSER_ENVS);
+// TODO(smilkov): Move these constants to jasmine_util.
+export const WEBGL_ENVS: Features = {
+  'HAS_WEBGL': true
+};
+export const NODE_ENVS: Features = {
+  'IS_NODE': true
+};
+export const CHROME_ENVS: Features = {
+  'IS_CHROME': true
+};
+export const BROWSER_ENVS: Features = {
+  'IS_BROWSER': true
+};
+export const CPU_ENVS: Features = {
+  'HAS_WEBGL': false
+};
+export const ALL_ENVS: Features = {};
 
 export function expectArraysClose(
     actual: Tensor|TypedArray|number[],

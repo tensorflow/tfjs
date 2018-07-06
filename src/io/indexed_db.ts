@@ -17,12 +17,10 @@
 
 // tslint:disable:max-line-length
 import {ENV} from '../environment';
-
 import {getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
-
 // tslint:enable:max-line-length
 
 const DATABASE_NAME = 'tensorflowjs';

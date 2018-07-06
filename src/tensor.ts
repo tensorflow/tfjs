@@ -1191,7 +1191,12 @@ export class Variable<R extends Rank = Rank> extends Tensor<R> {
       this.name = Variable.nextVarId.toString();
       Variable.nextVarId++;
     }
-    trackerFn().registerVariable(this);
+    try {
+      trackerFn().registerVariable(this);
+    } catch (ex) {
+      trackerFn().disposeTensor(this);
+      throw ex;
+    }
   }
 
   /**

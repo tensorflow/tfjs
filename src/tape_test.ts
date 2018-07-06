@@ -16,12 +16,12 @@
  */
 
 import * as tf from './index';
+import {describeWithFlags} from './jasmine_util';
 import * as tape_util from './tape';
 import {TapeNode} from './tape';
-import {CPU_ENVS, expectArraysClose} from './test_util';
-import {describeWithFlags} from './jasmine_util';
+import {ALL_ENVS, expectArraysClose} from './test_util';
 
-describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
+describeWithFlags('getFilteredNodesXToY', ALL_ENVS, () => {
   it('getFilteredNodesXToY no paths from x to y', () => {
     const x = tf.scalar(1);
     const intermediate1 = tf.scalar(0);
@@ -189,7 +189,7 @@ describeWithFlags('getFilteredNodesXToY', CPU_ENVS, () => {
   });
 });
 
-describeWithFlags('backpropagateGradients', CPU_ENVS, () => {
+describeWithFlags('backpropagateGradients', ALL_ENVS, () => {
   it('Throws if gradient is not defined', () => {
     const x = tf.scalar(0);
     const y = tf.scalar(1);

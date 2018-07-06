@@ -114,10 +114,9 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
   });
 
   it('accepts a tensor-like object for logits (biased coin)', () => {
-    const normalized = true;
     const numSamples = 10;
     const seed: number = null;
-    const res = tf.multinomial([0, 1], numSamples, seed, normalized);
+    const res = tf.multinomial([-10, 1], numSamples, seed);
     expect(res.dtype).toBe('int32');
     expect(res.shape).toEqual([numSamples]);
     const outcomeProbs = computeProbs(res.dataSync(), 2);

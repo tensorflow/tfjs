@@ -17,8 +17,7 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-// tslint:disable-next-line:max-line-length
-import {ALL_ENVS, CPU_ENVS, expectArraysClose} from '../test_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('reverse1d', ALL_ENVS, () => {
   it('reverse a 1D array', () => {
@@ -362,7 +361,7 @@ describeWithFlags('reverse4d', ALL_ENVS, () => {
   });
 });
 
-describeWithFlags('reverse', CPU_ENVS, () => {
+describeWithFlags('reverse', ALL_ENVS, () => {
   it('throws when passed a non-tensor', () => {
     expect(() => tf.reverse({} as tf.Tensor))
         .toThrowError(/Argument 'x' passed to 'reverse' must be a Tensor/);

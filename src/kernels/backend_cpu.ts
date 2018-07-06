@@ -31,6 +31,7 @@ import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D
 import * as types from '../types';
 import {DataType, DataTypeMap, Rank, TypedArray} from '../types';
 import * as util from '../util';
+import {now} from '../util';
 import {BackendTimingInfo, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 
@@ -48,7 +49,7 @@ export class MathBackendCPU implements KernelBackend {
   register(dataId: DataId, shape: number[], dtype: DataType): void {
     if (this.firstUse) {
       this.firstUse = false;
-      if (ENV.get('IS_NODE')) {
+      if (ENV.get('IS_NODE') && !ENV.get('IS_TEST')) {
         console.warn(
             '\n============================\n' +
             'Hi there 👋. Looks like you are running TensorFlow.js in ' +
@@ -148,9 +149,9 @@ export class MathBackendCPU implements KernelBackend {
   }
 
   async time(f: () => void): Promise<BackendTimingInfo> {
-    const start = performance.now();
+    const start = now();
     f();
-    const kernelMs = performance.now() - start;
+    const kernelMs = now() - start;
     return {kernelMs};
   }
   memory() {

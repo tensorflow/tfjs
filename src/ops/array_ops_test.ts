@@ -18,7 +18,7 @@
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
-import {ALL_ENVS, BROWSER_ENVS, CPU_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, WEBGL_ENVS} from '../test_util';
+import {ALL_ENVS, BROWSER_ENVS, expectArraysClose, expectArraysEqual, expectPromiseToFail, expectValuesInRange, WEBGL_ENVS, NODE_ENVS} from '../test_util';
 import * as util from '../util';
 import {expectArrayInMeanStdRange, jarqueBeraNormalityTest} from './rand_util';
 
@@ -1217,7 +1217,7 @@ class MockCanvas {
   }
 }
 
-describeWithFlags('fromPixels, mock canvas', CPU_ENVS, () => {
+describeWithFlags('fromPixels, mock canvas', NODE_ENVS, () => {
   it('accepts a canvas-like element', () => {
     const c = new MockCanvas(2, 2);
     // tslint:disable-next-line:no-any

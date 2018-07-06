@@ -621,37 +621,4 @@ describeWithFlags('resizeNearestNeighbor gradients', ALL_ENVS, () => {
 
     expectArraysClose(output, expected);
   });
-
-  it('color: same size', () => {
-    const input = tf.tensor3d([
-      [
-        [100.26818084716797, 74.61857604980469, 81.62117767333984],
-        [127.86964416503906, 85.0583267211914, 102.95439147949219]
-      ],
-      [
-        [104.3798828125, 96.70733642578125, 92.60601043701172],
-        [77.63021850585938, 68.55794525146484, 96.17212677001953]
-      ]
-    ]);
-
-    const dy = tf.tensor3d([
-      [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
-      [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]
-    ]);
-
-    const size: [number, number] = [2, 2];
-    const alignCorners = true;
-    const g = tf.grad(
-        (i: tf.Tensor3D) =>
-            tf.image.resizeNearestNeighbor(i, size, alignCorners));
-
-    const output = g(input, dy);
-    const expected = tf.tensor3d([
-      [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
-      [[7.0, 8.0, 9.0], [10.0, 11.0, 12.0]]
-    ]);
-
-    expectArraysClose(output, expected);
-  });
-
 });
