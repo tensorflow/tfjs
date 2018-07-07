@@ -37,13 +37,8 @@ jasmine_util.setTestEnvs([{
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
-  'depthwiseConv2D',   // Requires space_to_batch() for dilation > 1.
-  'separableConv2d',   // Requires space_to_batch() for dilation > 1.
-  'IORouterRegistry',  // https://github.com/tensorflow/tfjs/issues/303
-  // https://github.com/tensorflow/tfjs/issues/417
-  'unsortedSegmentSum', 'gather {} gradient',
-  // https://github.com/tensorflow/tfjs/issues/279
-  'arrayBufferToBase64String', 'stringByteLength'
+  'depthwiseConv2D',  // Requires space_to_batch() for dilation > 1.
+  'separableConv2d',  // Requires space_to_batch() for dilation > 1.
 ];
 
 const runner = new jasmineCtor();

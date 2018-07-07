@@ -26,7 +26,7 @@ import {TFJSBinding} from './tfjs_binding';
 
 tfc.ENV.registerBackend('tensorflow', () => {
   return new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
-});
+}, 3 /* priority */);
 
 // If registration succeeded, set the backend.
 if (tfc.ENV.findBackend('tensorflow') != null) {
