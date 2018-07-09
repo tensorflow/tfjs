@@ -355,8 +355,8 @@ export abstract class BaseConv extends Layer {
     this.biasRegularizer = getRegularizer(config.biasRegularizer);
     this.activityRegularizer = getRegularizer(config.activityRegularizer);
     this.dilationRate = normalizeArray(
-        config.dilationRate == null ? 1 : config.dilationRate,
-        rank, 'dilationRate');
+        config.dilationRate == null ? 1 : config.dilationRate, rank,
+        'dilationRate');
     if (this.rank === 1 &&
         (Array.isArray(this.dilationRate) &&
          (this.dilationRate as number[]).length !== 1)) {
@@ -1213,19 +1213,21 @@ export class UpSampling2D extends Layer {
   constructor(config: UpSampling2DLayerConfig) {
     super(config);
     this.inputSpec = [{ndim: 4}];
-    this.size = config.size === undefined ? this.DEFAULT_SIZE : config.size;
+    this.size = config.size == null ? this.DEFAULT_SIZE : config.size;
     this.dataFormat =
-        config.dataFormat === undefined ? 'channelsLast' : config.dataFormat;
+        config.dataFormat == null ? 'channelsLast' : config.dataFormat;
   }
 
   computeOutputShape(inputShape: Shape): Shape {
     if (this.dataFormat === 'channelsFirst') {
-      const height = this.size[0] * inputShape[2];
-      const width = this.size[1] * inputShape[3];
+      const height =
+          inputShape[2] == null ? null : this.size[0] * inputShape[2];
+      const width = inputShape[3] == null ? null : this.size[1] * inputShape[3];
       return [inputShape[0], inputShape[1], height, width];
     } else {
-      const height = this.size[0] * inputShape[1];
-      const width = this.size[1] * inputShape[2];
+      const height =
+          inputShape[1] == null ? null : this.size[0] * inputShape[1];
+      const width = inputShape[2] == null ? null : this.size[1] * inputShape[2];
       return [inputShape[0], height, width, inputShape[3]];
     }
   }
