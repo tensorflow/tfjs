@@ -86,6 +86,32 @@ class ConvertTest(unittest.TestCase):
 
       builder.save()
 
+  def create_unsupported_saved_model(self):
+    graph = tf.Graph()
+    with graph.as_default():
+      x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
+      w = tf.Variable(tf.random_uniform([2, 2]))
+      y = tf.matmul(x, w)
+      # unsupported op: matrix_diag
+      z = tf.matrix_diag(y)
+      tf.nn.softmax(z)
+      init_op = w.initializer
+
+      # Create a builder
+      builder = tf.saved_model.builder.SavedModelBuilder(
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR))
+
+      with tf.Session() as sess:
+        # Run the initializer on `w`.
+        sess.run(init_op)
+
+        builder.add_meta_graph_and_variables(
+            sess, [tf.saved_model.tag_constants.SERVING],
+            signature_def_map=None,
+            assets_collection=None)
+
+      builder.save()
+
   def create_hub_module(self):
     # Module function that doubles its input.
     def double_module_fn():
@@ -160,6 +186,42 @@ class ConvertTest(unittest.TestCase):
         }]
     }]
     # Load the saved weights as a JSON string.
+    weights_manifest = open(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                     'weights_manifest.json'), 'rt')
+    output_json = json.load(weights_manifest)
+    weights_manifest.close()
+    self.assertEqual(output_json, weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_skip_op_check(self):
+    self.create_unsupported_saved_model()
+    print(glob.glob(
+        os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR, '*')))
+
+    tf_saved_model_conversion.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        'Softmax',
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR), skip_op_check=True
+    )
+
+    weights = [{
+        'paths': ['group1-shard1of1'],
+        'weights': [{
+            'shape': [4, 2],
+            'name': 'Softmax',
+            'dtype': 'float32'
+        }]
+    }]
+    # Load the saved weight manifest as a JSON string.
     weights_manifest = open(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
                      'weights_manifest.json'), 'rt')

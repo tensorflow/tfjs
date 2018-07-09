@@ -183,6 +183,11 @@ def main():
       dest='show_version',
       action='store_true',
       help='Show versions of tensorflowjs and its dependencies')
+  parser.add_argument(
+      '--skip_op_check',
+      type=bool,
+      default=False,
+      help='Skip op validation for TensorFlow model conversion.')
 
   FLAGS = parser.parse_args()
 
@@ -227,28 +232,34 @@ def main():
     tf_saved_model_conversion.convert_tf_saved_model(
         FLAGS.input_path, FLAGS.output_node_names,
         FLAGS.output_path, saved_model_tags=FLAGS.saved_model_tags,
-        quantization_dtype=quantization_dtype)
+        quantization_dtype=quantization_dtype,
+        skip_op_check=FLAGS.skip_op_check)
 
   elif (FLAGS.input_format == 'tf_session_bundle' and
         FLAGS.output_format == 'tensorflowjs'):
     tf_saved_model_conversion.convert_tf_session_bundle(
         FLAGS.input_path, FLAGS.output_node_names,
-        FLAGS.output_path, quantization_dtype=quantization_dtype)
+        FLAGS.output_path, quantization_dtype=quantization_dtype,
+        skip_op_check=FLAGS.skip_op_check)
 
   elif (FLAGS.input_format == 'tf_frozen_model' and
         FLAGS.output_format == 'tensorflowjs'):
     tf_saved_model_conversion.convert_tf_frozen_model(
         FLAGS.input_path, FLAGS.output_node_names,
-        FLAGS.output_path, quantization_dtype=quantization_dtype)
+        FLAGS.output_path, quantization_dtype=quantization_dtype,
+        skip_op_check=FLAGS.skip_op_check)
 
   elif (FLAGS.input_format == 'tf_hub' and
         FLAGS.output_format == 'tensorflowjs'):
     if FLAGS.signature_name:
       tf_saved_model_conversion.convert_tf_hub_module(
-          FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name)
+          FLAGS.input_path, FLAGS.output_path, FLAGS.signature_name,
+          skip_op_check=FLAGS.skip_op_check)
     else:
-      tf_saved_model_conversion.convert_tf_hub_module(FLAGS.input_path,
-                                                      FLAGS.output_path)
+      tf_saved_model_conversion.convert_tf_hub_module(
+          FLAGS.input_path,
+          FLAGS.output_path,
+          skip_op_check=FLAGS.skip_op_check)
 
   elif (FLAGS.input_format == 'tensorflowjs' and
         FLAGS.output_format == 'keras'):
