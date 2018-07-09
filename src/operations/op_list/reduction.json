@@ -88,6 +88,50 @@
     ]
   },
   {
+    "tfOpName": "All",
+    "dlOpName": "all",
+    "category": "reduction",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "axis",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "keep_dims",
+        "dlParamName": "keepDims",
+        "type": "bool"
+      }
+    ]
+  },
+  {
+    "tfOpName": "Any",
+    "dlOpName": "any",
+    "category": "reduction",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "axis",
+        "type": "number[]"
+      },
+      {
+        "tfParamName": "keep_dims",
+        "dlParamName": "keepDims",
+        "type": "bool"
+      }
+    ]
+  },
+  {
     "tfOpName": "ArgMax",
     "dlOpName": "argMax",
     "category": "reduction",
