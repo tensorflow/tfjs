@@ -14,12 +14,12 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
 
-function getReductionOp(option: string): (x: dl.Tensor) => dl.Scalar {
+function getReductionOp(option: string): (x: tf.Tensor) => tf.Scalar {
   switch (option) {
     case 'max':
       return x => x.max();
@@ -40,13 +40,13 @@ function getReductionOp(option: string): (x: dl.Tensor) => dl.Scalar {
 
 export class ReductionOpsCPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string): Promise<number> {
-    dl.setBackend('cpu');
+    tf.setBackend('cpu');
 
-    const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
+    const input: tf.Tensor2D = tf.randomUniform([size, size], -1, 1);
     const op = getReductionOp(option);
     const start = performance.now();
 
-    dl.tidy(() => {
+    tf.tidy(() => {
       op(input).get();
     });
 
@@ -57,9 +57,9 @@ export class ReductionOpsCPUBenchmark implements BenchmarkTest {
 
 export class ReductionOpsGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string) {
-    dl.setBackend('webgl');
+    tf.setBackend('webgl');
 
-    const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
+    const input: tf.Tensor2D = tf.randomUniform([size, size], -1, 1);
     const op = getReductionOp(option);
 
     const benchmark = () => op(input);

@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -27,12 +27,12 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
         resolve(-1);
       });
     }
-    dl.setBackend('cpu');
+    tf.setBackend('cpu');
 
-    const a: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
-    const b: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
+    const a: tf.Tensor2D = tf.randomUniform([size, size], -1, 1);
+    const b: tf.Tensor2D = tf.randomUniform([size, size], -1, 1);
     const start = performance.now();
-    dl.matMul(a, b);
+    tf.matMul(a, b);
     const end = performance.now();
     this.lastRunTimeMs = end - start;
     return this.lastRunTimeMs;
@@ -41,12 +41,12 @@ export class MatmulCPUBenchmark implements BenchmarkTest {
 
 export class MatmulGPUBenchmark implements BenchmarkTest {
   async run(size: number): Promise<number> {
-    dl.setBackend('webgl');
+    tf.setBackend('webgl');
 
-    const a: dl.Tensor2D = dl.randomNormal([size, size]);
-    const b: dl.Tensor2D = dl.randomNormal([size, size]);
+    const a: tf.Tensor2D = tf.randomNormal([size, size]);
+    const b: tf.Tensor2D = tf.randomNormal([size, size]);
 
-    const benchmark = () => dl.matMul(a, b);
+    const benchmark = () => tf.matMul(a, b);
 
     const time = await benchmark_util.warmupAndBenchmarkGPU(benchmark);
 

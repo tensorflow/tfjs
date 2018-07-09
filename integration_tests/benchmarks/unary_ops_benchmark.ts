@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -23,57 +23,57 @@ import * as benchmark_util from './benchmark_util';
 function getUnaryOp(option: string) {
   switch (option) {
     case 'log':
-      return (x: dl.Tensor) => x.log();
+      return (x: tf.Tensor) => x.log();
     case 'exp':
-      return (x: dl.Tensor) => x.exp();
+      return (x: tf.Tensor) => x.exp();
     case 'neg':
-      return (x: dl.Tensor) => x.neg();
+      return (x: tf.Tensor) => x.neg();
     case 'ceil':
-      return (x: dl.Tensor) => x.ceil();
+      return (x: tf.Tensor) => x.ceil();
     case 'floor':
-      return (x: dl.Tensor) => x.floor();
+      return (x: tf.Tensor) => x.floor();
     case 'log1p':
-      return (x: dl.Tensor) => x.log1p();
+      return (x: tf.Tensor) => x.log1p();
     case 'sqrt':
-      return (x: dl.Tensor) => x.sqrt();
+      return (x: tf.Tensor) => x.sqrt();
     case 'square':
-      return (x: dl.Tensor) => x.square();
+      return (x: tf.Tensor) => x.square();
     case 'abs':
-      return (x: dl.Tensor) => x.abs();
+      return (x: tf.Tensor) => x.abs();
     case 'relu':
-      return (x: dl.Tensor) => x.relu();
+      return (x: tf.Tensor) => x.relu();
     case 'elu':
-      return (x: dl.Tensor) => x.elu();
+      return (x: tf.Tensor) => x.elu();
     case 'selu':
-      return (x: dl.Tensor) => x.selu();
+      return (x: tf.Tensor) => x.selu();
     case 'leakyRelu':
-      return (x: dl.Tensor) => x.leakyRelu();
+      return (x: tf.Tensor) => x.leakyRelu();
     case 'prelu':
       // TODO: Configurable from UI
-      const alpha = dl.scalar(0.1);
-      return (x: dl.Tensor) => x.prelu(alpha);
+      const alpha = tf.scalar(0.1);
+      return (x: tf.Tensor) => x.prelu(alpha);
     case 'sigmoid':
-      return (x: dl.Tensor) => x.sigmoid();
+      return (x: tf.Tensor) => x.sigmoid();
     case 'sin':
-      return (x: dl.Tensor) => x.sin();
+      return (x: tf.Tensor) => x.sin();
     case 'cos':
-      return (x: dl.Tensor) => x.cos();
+      return (x: tf.Tensor) => x.cos();
     case 'tan':
-      return (x: dl.Tensor) => x.tan();
+      return (x: tf.Tensor) => x.tan();
     case 'asin':
-      return (x: dl.Tensor) => x.asin();
+      return (x: tf.Tensor) => x.asin();
     case 'acos':
-      return (x: dl.Tensor) => x.acos();
+      return (x: tf.Tensor) => x.acos();
     case 'atan':
-      return (x: dl.Tensor) => x.atan();
+      return (x: tf.Tensor) => x.atan();
     case 'sinh':
-      return (x: dl.Tensor) => x.sinh();
+      return (x: tf.Tensor) => x.sinh();
     case 'cosh':
-      return (x: dl.Tensor) => x.cosh();
+      return (x: tf.Tensor) => x.cosh();
     case 'tanh':
-      return (x: dl.Tensor) => x.tanh();
+      return (x: tf.Tensor) => x.tanh();
     case 'step':
-      return (x: dl.Tensor) => x.step();
+      return (x: tf.Tensor) => x.step();
     default:
       throw new Error(`Not found such ops: ${option}`);
   }
@@ -81,13 +81,13 @@ function getUnaryOp(option: string) {
 
 export class UnaryOpsCPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string): Promise<number> {
-    dl.setBackend('cpu');
+    tf.setBackend('cpu');
 
-    const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
+    const input: tf.Tensor2D = tf.randomUniform([size, size], -1, 1);
     const op = getUnaryOp(option);
     const start = performance.now();
 
-    dl.tidy(() => {
+    tf.tidy(() => {
       op(input).get();
     });
 
@@ -98,9 +98,9 @@ export class UnaryOpsCPUBenchmark implements BenchmarkTest {
 
 export class UnaryOpsGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string) {
-    dl.setBackend('webgl');
+    tf.setBackend('webgl');
 
-    const input: dl.Tensor2D = dl.randomUniform([size, size], -1, 1);
+    const input: tf.Tensor2D = tf.randomUniform([size, size], -1, 1);
     const op = getUnaryOp(option);
 
     const benchmark = () => op(input);

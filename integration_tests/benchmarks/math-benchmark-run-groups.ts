@@ -90,13 +90,13 @@ export function getRunGroups(): BenchmarkRunGroup[] {
     max: 1024,
     stepSize: 64,
     stepToSizeTransformation: (step: number) => Math.max(4, step),
-    options: ['max', 'min', 'avg'],
+    options: ['max', 'avg'],
     selectedOption: 'max',
     benchmarkRuns: [
       new BenchmarkRun('pool_gpu', new PoolGPUBenchmark()),
       new BenchmarkRun('pool_cpu', new PoolCPUBenchmark())
     ],
-    params: {'max': poolParams, 'min': poolParams, 'avg': poolParams}
+    params: {'max': poolParams, 'avg': poolParams}
   });
 
   groups.push({
