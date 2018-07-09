@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -29,21 +29,16 @@ export interface PoolBenchmarkParams {
 }
 
 function getPoolingOp(option: string): (
-    x: dl.Tensor3D, filterSize: [number, number]|number,
-    strides: [number, number]|number) => dl.Tensor3D {
+    x: tf.Tensor3D, filterSize: [number, number]|number,
+    strides: [number, number]|number) => tf.Tensor3D {
   switch (option) {
     case 'max':
-      return (x: dl.Tensor3D, filterSize: [number, number]|number,
+      return (x: tf.Tensor3D, filterSize: [number, number]|number,
               strides: [number, number]|number) => {
         return x.maxPool(filterSize, strides, 'same');
       };
-    case 'min':
-      return (x: dl.Tensor3D, filterSize: [number, number]|number,
-              strides: [number, number]|number) => {
-        return x.minPool(filterSize, strides, 'same');
-      };
     case 'avg':
-      return (x: dl.Tensor3D, filterSize: [number, number]|number,
+      return (x: tf.Tensor3D, filterSize: [number, number]|number,
               strides: [number, number]|number) => {
         return x.avgPool(filterSize, strides, 'same');
       };
@@ -55,7 +50,7 @@ function getPoolingOp(option: string): (
 export class PoolCPUBenchmark implements BenchmarkTest {
   run(size: number, option: string,
       params: PoolBenchmarkParams): Promise<number> {
-    dl.setBackend('cpu');
+    tf.setBackend('cpu');
 
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
@@ -63,7 +58,7 @@ export class PoolCPUBenchmark implements BenchmarkTest {
     const stride = params.stride;
     const op = getPoolingOp(option);
 
-    const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
+    const x: tf.Tensor3D = tf.randomUniform(xShape, -1, 1);
 
     const start = performance.now();
     for (let i = 0; i < CPU_OP_RUNS; i++) {
@@ -79,13 +74,13 @@ export class PoolCPUBenchmark implements BenchmarkTest {
 export class PoolGPUBenchmark implements BenchmarkTest {
   async run(size: number, option: string, params: PoolBenchmarkParams):
       Promise<number> {
-    dl.setBackend('webgl');
+    tf.setBackend('webgl');
 
     const outputDepth = params.depth;
     const xShape: [number, number, number] = [size, size, outputDepth];
     const fieldSize = params.fieldSize;
     const stride = params.stride;
-    const x: dl.Tensor3D = dl.randomUniform(xShape, -1, 1);
+    const x: tf.Tensor3D = tf.randomUniform(xShape, -1, 1);
     const op = getPoolingOp(option);
 
     const benchmark = () => op(x, fieldSize, stride);

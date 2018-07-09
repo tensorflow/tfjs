@@ -14,10 +14,8 @@
  * limitations under the License.
  * =============================================================================
  */
-import '../demo-header';
-import '../demo-footer';
 
-import {PolymerElement, PolymerHTMLElement} from '../polymer-spec';
+import {PolymerElement, PolymerHTMLElement} from './polymer-spec';
 import {BenchmarkRunGroup} from './benchmark';
 
 import {getRunGroups} from './math-benchmark-run-groups';

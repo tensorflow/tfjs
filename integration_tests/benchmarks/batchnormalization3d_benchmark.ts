@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {BenchmarkTest, LAST_RUN_CPU_CUTOFF_MS} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -28,10 +28,10 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
         resolve(-1);
       });
     }
-    dl.setBackend('cpu');
-    const x: dl.Tensor3D = dl.randomUniform([size, size, 8], -1, 1);
-    const mean = dl.tensor1d([0]);
-    const variance = dl.tensor1d([1]);
+    tf.setBackend('cpu');
+    const x: tf.Tensor3D = tf.randomUniform([size, size, 8], -1, 1);
+    const mean = tf.tensor1d([0]);
+    const variance = tf.tensor1d([1]);
     const varianceEpsilon = .001;
     const start = performance.now();
 
@@ -46,11 +46,11 @@ export class BatchNormalization3DCPUBenchmark implements BenchmarkTest {
 
 export class BatchNormalization3DGPUBenchmark implements BenchmarkTest {
   async run(size: number) {
-    dl.setBackend('webgl');
+    tf.setBackend('webgl');
 
-    const x: dl.Tensor3D = dl.randomUniform([size, size, 8], -1, 1);
-    const mean = dl.tensor1d([0]);
-    const variance = dl.tensor1d([1]);
+    const x: tf.Tensor3D = tf.randomUniform([size, size, 8], -1, 1);
+    const mean = tf.tensor1d([0]);
+    const variance = tf.tensor1d([1]);
     const varianceEpsilon = .001;
 
     const benchmark = () =>

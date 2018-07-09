@@ -15,13 +15,13 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
-export async function warmupAndBenchmarkGPU(benchmark: () => dl.Tensor):
+export async function warmupAndBenchmarkGPU(benchmark: () => tf.Tensor):
     Promise<number> {
   // Warmup.
   const out = benchmark();
   await out.data();
   out.dispose();
-  return (await dl.time(benchmark)).kernelMs;
+  return (await tf.time(benchmark)).kernelMs;
 }

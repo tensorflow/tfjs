@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import * as dl from 'deeplearn';
+import * as tf from '@tensorflow/tfjs-core';
 
 import {BenchmarkTest} from './benchmark';
 import * as benchmark_util from './benchmark_util';
@@ -33,7 +33,7 @@ export interface DepthwiseConvParams extends ConvParams { channelMul: number; }
 
 export class ConvGPUBenchmark implements BenchmarkTest {
   async run(size: number, opType: string, params: ConvParams): Promise<number> {
-    dl.setBackend('webgl');
+    tf.setBackend('webgl');
 
     const inDepth = params.inDepth;
     const inShape: [number, number, number] = [size, size, inDepth];
@@ -41,22 +41,22 @@ export class ConvGPUBenchmark implements BenchmarkTest {
     const stride = params.stride;
     const pad = params.pad;
 
-    let x: dl.Tensor3D = dl.randomUniform(inShape, -1, 1);
-    let W: dl.Tensor4D;
+    let x: tf.Tensor3D = tf.randomUniform(inShape, -1, 1);
+    let W: tf.Tensor4D;
 
-    let benchmark: () => dl.Tensor;
+    let benchmark: () => tf.Tensor;
     if (opType === 'regular') {
       const regParams = params as RegularConvParams;
       const wShape: [number, number, number, number] =
           [filterSize, filterSize, inDepth, regParams.outDepth];
-      W = dl.randomUniform(wShape, -1, 1);
+      W = tf.randomUniform(wShape, -1, 1);
       benchmark = () => x.conv2d(W, stride, pad);
     } else if (opType === 'transposed') {
       const regParams = params as RegularConvParams;
       const wShape: [number, number, number, number] =
           [filterSize, filterSize, inDepth, regParams.outDepth];
-      W = dl.randomUniform(wShape, -1, 1);
-      x = dl.randomUniform([size, size, regParams.outDepth], -1, 1);
+      W = tf.randomUniform(wShape, -1, 1);
+      x = tf.randomUniform([size, size, regParams.outDepth], -1, 1);
 
       benchmark = () =>
           x.conv2dTranspose(W, [size, size, inDepth], stride, pad);
@@ -64,7 +64,7 @@ export class ConvGPUBenchmark implements BenchmarkTest {
       const depthwiseParams = params as DepthwiseConvParams;
       const wShape: [number, number, number, number] =
           [filterSize, filterSize, inDepth, depthwiseParams.channelMul];
-      W = dl.randomUniform(wShape, -1, 1);
+      W = tf.randomUniform(wShape, -1, 1);
 
       benchmark = () => x.depthwiseConv2D(W, stride, pad);
     } else {
