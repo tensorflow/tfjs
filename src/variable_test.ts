@@ -16,10 +16,10 @@
  */
 
 import * as tf from './index';
+import {describeWithFlags} from './jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, variable, Variable} from './tensor';
 import {ALL_ENVS, expectArraysClose} from './test_util';
-import {describeWithFlags} from './jasmine_util';
 import {Rank} from './types';
 
 describeWithFlags('variable', ALL_ENVS, () => {
@@ -169,5 +169,27 @@ describeWithFlags('variable', ALL_ENVS, () => {
     // tslint:disable-next-line:no-any
     expect(() => v.assign(tf.tensor1d([true, false, true], 'bool') as any))
         .toThrowError();
+  });
+});
+
+describeWithFlags('x instanceof Variable', ALL_ENVS, () => {
+  it('x: Variable', () => {
+    const t = tf.variable(tf.scalar(1));
+    expect(t instanceof Variable).toBe(true);
+  });
+
+  it('x: Variable-like', () => {
+    const t = {assign: () => {}, shape: [2], dtype: 'float32'};
+    expect(t instanceof Variable).toBe(true);
+  });
+
+  it('x: other object, fails', () => {
+    const t = {something: 'else'};
+    expect(t instanceof Variable).toBe(false);
+  });
+
+  it('x: Tensor, fails', () => {
+    const t = tf.scalar(1);
+    expect(t instanceof Variable).toBe(false);
   });
 });
