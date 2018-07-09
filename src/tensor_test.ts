@@ -1207,3 +1207,20 @@ describeWithFlags('tensor.data', ALL_ENVS, () => {
     // a pending data read.
   });
 });
+
+describeWithFlags('x instanceof Tensor', ALL_ENVS, () => {
+  it('x: Tensor', () => {
+    const t = tf.scalar(1);
+    expect(t instanceof Tensor).toBe(true);
+  });
+
+  it('x: Tensor-like', () => {
+    const t = {shape: [2], dtype: 'float32'};
+    expect(t instanceof Tensor).toBe(true);
+  });
+
+  it('x: other object, fails', () => {
+    const t = {something: 'else'};
+    expect(t instanceof Tensor).toBe(false);
+  });
+});
