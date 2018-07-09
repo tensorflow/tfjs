@@ -45,7 +45,7 @@ describe('reduction', () => {
   });
 
   describe('executeOp', () => {
-    ['max', 'mean', 'min', 'sum'].forEach(op => {
+    ['max', 'mean', 'min', 'sum', 'all', 'any'].forEach(op => {
       it('should call tfc.' + op, () => {
         const spy = spyOn(tfc, op as 'max');
         node.op = op;

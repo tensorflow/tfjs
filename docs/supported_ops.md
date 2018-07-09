@@ -194,6 +194,8 @@
 |Mean|mean|
 |Min|min|
 |Sum|sum|
+|All||all|
+|Any||any|
 |Not mapped|logSumExp|
 |Not mapped|unsortedSegmentSum|
 

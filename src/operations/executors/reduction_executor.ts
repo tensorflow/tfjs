@@ -60,6 +60,22 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
           keepDims)];
     }
+    case 'all': {
+      const axis = getParamValue('axis', node, tensorMap, context) as number[];
+      const keepDims =
+          getParamValue('keepDims', node, tensorMap, context) as boolean;
+      return [tfc.all(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
+          keepDims)];
+    }
+    case 'any': {
+      const axis = getParamValue('axis', node, tensorMap, context) as number[];
+      const keepDims =
+          getParamValue('keepDims', node, tensorMap, context) as boolean;
+      return [tfc.any(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor, axis,
+          keepDims)];
+    }
     case 'argMax': {
       const axis = getParamValue('axis', node, tensorMap, context) as number;
       return [tfc.argMax(
