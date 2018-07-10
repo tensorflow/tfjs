@@ -28,6 +28,8 @@ import bindings = require('bindings');
 import {TFJSBinding} from './tfjs_binding';
 import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
+process.on('unhandledRejection', e => { throw e; });
+
 jasmine_util.setTestEnvs([{
   name: 'test-tensorflow',
   factory: () =>
