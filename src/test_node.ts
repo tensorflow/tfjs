@@ -20,6 +20,8 @@ import {MathBackendCPU} from './kernels/backend_cpu';
 // tslint:disable-next-line:no-require-imports
 const jasmine = require('jasmine');
 
+process.on('unhandledRejection', e => { throw e; });
+
 setTestEnvs(
     [{name: 'node', factory: () => new MathBackendCPU(), features: {}}]);
 
