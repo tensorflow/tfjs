@@ -100,6 +100,22 @@ describe('LazyIterator', () => {
         .catch(done.fail);
   });
 
+  it('flatmaps elements', done => {
+    const readStream = new TestIntegerIterator().flatmap(
+        x => [`item ${x} A`, `item ${x} B`, `item ${x} C`]);
+    readStream.collectRemaining()
+        .then(result => {
+          expect(result.length).toEqual(300);
+          for (let i = 0; i < 100; i++) {
+            expect(result[3 * i + 0]).toEqual(`item ${i} A`);
+            expect(result[3 * i + 1]).toEqual(`item ${i} B`);
+            expect(result[3 * i + 2]).toEqual(`item ${i} C`);
+          }
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
   it('batches elements', done => {
     const readIterator = new TestIntegerIterator().batch(8);
     readIterator.collectRemaining()
