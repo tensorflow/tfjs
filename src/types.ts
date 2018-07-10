@@ -27,9 +27,6 @@ import {LazyIterator} from './iterators/lazy_iterator';
 // TODO(soergel): clean up the |string union type throughout when Tensor
 // supports string.
 
-// TODO(soergel): consider factoring out the Tensor dependency here, to allow
-// making a Datasets package not dependent on DLJS.
-
 /**
  * The value associated with a given key for a single element.
  *
