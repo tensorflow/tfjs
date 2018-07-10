@@ -22,9 +22,9 @@ import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import * as conv_util from './conv_util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class ConvOps {
+class ConvOps {
   /**
    * Computes a 1D convolution over the input x.
    *
@@ -53,7 +53,6 @@ export class ConvOps {
    *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
-  @operation
   static conv1d<T extends Tensor2D|Tensor3D>(
       x: T|TensorLike, filter: Tensor3D|TensorLike, stride: number,
       pad: 'valid'|'same'|number, dataFormat: 'NWC'|'NCW' = 'NWC', dilation = 1,
@@ -145,7 +144,6 @@ export class ConvOps {
    *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
-  @operation
   static conv2d<T extends Tensor3D|Tensor4D>(
       x: T|TensorLike, filter: Tensor4D|TensorLike,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
@@ -235,7 +233,6 @@ export class ConvOps {
    *     dimensions if pad is a number. If none is provided, it will not round
    *     and error if the output is of fractional size.
    */
-  @operation
   static conv2dDerInput<T extends Tensor3D|Tensor4D>(
       xShape: [number, number, number, number]|[number, number, number], dy: T,
       filter: Tensor4D, strides: [number, number]|number,
@@ -313,7 +310,6 @@ export class ConvOps {
    *     number. If none is provided, it will not round and error if the output
    *     is of fractional size.
    */
-  @operation
   static conv2dDerFilter<T extends Tensor3D|Tensor4D>(
       x: T, dy: T, filterShape: [number, number, number, number],
       strides: [number, number]|number, pad: 'valid'|'same'|number,
@@ -381,7 +377,6 @@ export class ConvOps {
    *    and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
-  @operation
   static conv2dTranspose<T extends Tensor3D|Tensor4D>(
       x: T|TensorLike, filter: Tensor4D|TensorLike,
       outputShape: [number, number, number, number]|[number, number, number],
@@ -439,7 +434,6 @@ export class ConvOps {
    *     and error if the output is of fractional size.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
-  @operation
   static depthwiseConv2d<T extends Tensor3D|Tensor4D>(
       x: T|TensorLike, filter: Tensor4D|TensorLike,
       strides: [number, number]|number, pad: 'valid'|'same'|number,
@@ -552,7 +546,6 @@ export class ConvOps {
    *     height, width, channels]. Only "NHWC" is currently supported.
    */
   @doc({heading: 'Operations', subheading: 'Convolution'})
-  @operation
   static separableConv2d<T extends Tensor3D|Tensor4D>(
       x: T|TensorLike, depthwiseFilter: Tensor4D|TensorLike,
       pointwiseFilter: Tensor4D|TensorLike, strides: [number, number]|number,
@@ -666,3 +659,9 @@ function depthwiseConv2dDerFilter<T extends Tensor3D|Tensor4D>(
       backend => backend.depthwiseConv2DDerFilter(x4D, dy4D, convInfo),
       {x4D, dy4D});
 }
+
+export const conv1d = op(ConvOps.conv1d);
+export const conv2d = op(ConvOps.conv2d);
+export const depthwiseConv2d = op(ConvOps.depthwiseConv2d);
+export const separableConv2d = op(ConvOps.separableConv2d);
+export const conv2dTranspose = op(ConvOps.conv2dTranspose);

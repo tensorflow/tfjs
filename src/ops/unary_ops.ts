@@ -21,10 +21,11 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
 
-export class UnaryOps {
+import {op} from './operation';
+import {scalar, zerosLike} from './tensor_ops';
+
+class UnaryOps {
   /**
    * Computes `-1 * x` element-wise.
    *
@@ -37,7 +38,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static neg<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'neg');
 
@@ -58,13 +58,12 @@ export class UnaryOps {
    * @param x The input Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static ceil<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'ceil');
 
     // TODO(manrajgrover): Return null for gradients when backprop supports it.
     const grad = (dy: T) => {
-      return {$x: () => TensorOps.zerosLike(dy)};
+      return {$x: () => zerosLike(dy)};
     };
     return ENV.engine.runKernel(backend => backend.ceil($x), {$x}, grad);
   }
@@ -80,14 +79,13 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static floor<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'floor');
 
     // TODO(nsthorat): Let gradients be null for cases where we want to stop
     // backpropgation.
     const grad = (dy: T) => {
-      return {$x: () => TensorOps.zerosLike(dy)};
+      return {$x: () => zerosLike(dy)};
     };
     return ENV.engine.runKernel(backend => backend.floor($x), {$x}, grad);
   }
@@ -103,12 +101,11 @@ export class UnaryOps {
    * @param x The input Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static sign<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'sign');
 
     const grad = (dy: T) => {
-      return {$x: () => TensorOps.zerosLike(dy)};
+      return {$x: () => zerosLike(dy)};
     };
     return ENV.engine.runKernel(backend => backend.sign($x), {$x}, grad);
   }
@@ -125,14 +122,13 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static round<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'round');
 
     // TODO(nsthorat): Let gradients be null for cases where we want to stop
     // backpropgation.
     const grad = (dy: T) => {
-      return {$x: () => TensorOps.zerosLike(dy)};
+      return {$x: () => zerosLike(dy)};
     };
     return ENV.engine.runKernel(backend => backend.round($x), {$x}, grad);
   }
@@ -148,7 +144,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static exp<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'exp');
 
@@ -172,7 +167,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static expm1<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'expm1');
 
@@ -193,7 +187,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static log<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'log');
 
@@ -215,12 +208,11 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static log1p<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'log1p');
 
     const grad = (dy: T) => {
-      return {$x: () => dy.divStrict($x.add(TensorOps.scalar(1)))};
+      return {$x: () => dy.divStrict($x.add(scalar(1)))};
     };
     return ENV.engine.runKernel(backend => backend.log1p($x), {$x}, grad);
   }
@@ -236,14 +228,11 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static sqrt<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'sqrt');
 
     const grad = (dy: T) => {
-      return {
-        $x: () => dy.divStrict($x.toFloat().sqrt().mul(TensorOps.scalar(2)))
-      };
+      return {$x: () => dy.divStrict($x.toFloat().sqrt().mul(scalar(2)))};
     };
     return ENV.engine.runKernel(backend => backend.sqrt($x), {$x}, grad);
   }
@@ -260,16 +249,11 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static rsqrt<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'rsqrt');
 
     const grad = (dy: T) => {
-      return {
-        $x: () =>
-            dy.divStrict($x.pow(TensorOps.scalar(1.5)).mul(TensorOps.scalar(2)))
-                .neg()
-      };
+      return {$x: () => dy.divStrict($x.pow(scalar(1.5)).mul(scalar(2))).neg()};
     };
     return ENV.engine.runKernel(backend => backend.rsqrt($x), {$x}, grad);
   }
@@ -285,12 +269,11 @@ export class UnaryOps {
    * @param x The input Tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static square<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'square');
 
     const grad = (dy: T) => {
-      return {$x: () => dy.mulStrict($x.toFloat().mul(TensorOps.scalar(2)))};
+      return {$x: () => dy.mulStrict($x.toFloat().mul(scalar(2)))};
     };
     return ENV.engine.runKernel(backend => backend.square($x), {$x}, grad);
   }
@@ -306,7 +289,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static reciprocal<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'reciprocal');
 
@@ -327,7 +309,6 @@ export class UnaryOps {
    * @param x The input `Tensor`.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static abs<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'abs');
 
@@ -350,7 +331,6 @@ export class UnaryOps {
    * @param clipValueMax Upper-bound of range to be clipped to.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static clipByValue<T extends Tensor>(
       x: T|TensorLike, clipValueMin: number, clipValueMax: number): T {
     const $x = convertToTensor(x, 'x', 'clipByValue');
@@ -361,11 +341,10 @@ export class UnaryOps {
 
     const grad = (dy: T) => {
       return {
-        $x: () =>
-            dy.where(
-                $x.greaterEqual(TensorOps.scalar(clipValueMin))
-                    .logicalAnd($x.lessEqual(TensorOps.scalar(clipValueMax))),
-                TensorOps.zerosLike(dy)) as T,
+        $x: () => dy.where(
+                      $x.greaterEqual(scalar(clipValueMin))
+                          .logicalAnd($x.lessEqual(scalar(clipValueMax))),
+                      zerosLike(dy)) as T,
       };
     };
     return ENV.engine.runKernel(
@@ -383,13 +362,12 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static sigmoid<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'sigmoid');
 
     const grad = (dy: T, saved: Tensor[]) => {
       const [y] = saved;
-      return {$x: () => dy.mulStrict(y.mul(TensorOps.scalar(1).sub(y)))};
+      return {$x: () => dy.mulStrict(y.mul(scalar(1).sub(y)))};
     };
     return ENV.engine.runKernel(
         (backend, save) => save(backend.sigmoid($x)), {$x}, grad);
@@ -407,7 +385,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static logSigmoid<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'logSigmoid');
 
@@ -429,7 +406,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static softplus<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'softplus');
 
@@ -450,7 +426,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static sin<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'sin');
 
@@ -471,7 +446,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static cos<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'cos');
 
@@ -492,7 +466,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static tan<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'tan');
 
@@ -513,14 +486,12 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static asin<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'asin');
 
     const grad = (dy: T) => {
       return {
-        $x: () => dy.divStrict(
-            TensorOps.scalar(1).sub($x.toFloat().square()).sqrt() as T)
+        $x: () => dy.divStrict(scalar(1).sub($x.toFloat().square()).sqrt() as T)
       };
     };
     return ENV.engine.runKernel(backend => backend.asin($x), {$x}, grad);
@@ -537,16 +508,13 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static acos<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'acos');
 
     const grad = (dy: T) => {
       return {
         $x: () =>
-            dy.divStrict(
-                  TensorOps.scalar(1).sub($x.toFloat().square()).sqrt() as T)
-                .neg()
+            dy.divStrict(scalar(1).sub($x.toFloat().square()).sqrt() as T).neg()
       };
     };
     return ENV.engine.runKernel(backend => backend.acos($x), {$x}, grad);
@@ -563,14 +531,11 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static atan<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'atan');
 
     const grad = (dy: T) => {
-      return {
-        $x: () => dy.divStrict(TensorOps.scalar(1).add($x.toFloat().square()))
-      };
+      return {$x: () => dy.divStrict(scalar(1).add($x.toFloat().square()))};
     };
     return ENV.engine.runKernel(backend => backend.atan($x), {$x}, grad);
   }
@@ -586,7 +551,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static sinh<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'sinh');
 
@@ -607,7 +571,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static cosh<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'cosh');
 
@@ -628,13 +591,12 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static tanh<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'tanh');
 
     const grad = (dy: T, saved: Tensor[]) => {
       const [y] = saved;
-      return {$x: () => TensorOps.scalar(1).sub(y.square()).mulStrict(dy) as T};
+      return {$x: () => scalar(1).sub(y.square()).mulStrict(dy) as T};
     };
     return ENV.engine.runKernel(
         (backend, save) => save(backend.tanh($x)), {$x}, grad);
@@ -652,14 +614,12 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static asinh<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'asinh');
 
     const grad = (dy: T) => {
       return {
-        $x: () => dy.divStrict(
-            TensorOps.scalar(1).add($x.toFloat().square()).sqrt() as T)
+        $x: () => dy.divStrict(scalar(1).add($x.toFloat().square()).sqrt() as T)
       };
     };
     return ENV.engine.runKernel(backend => backend.asinh($x), {$x}, grad);
@@ -677,14 +637,12 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static acosh<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'acosh');
 
     const grad = (dy: T) => {
       return {
-        $x: () => dy.divStrict(
-            $x.toFloat().square().sub(TensorOps.scalar(1)).sqrt() as T)
+        $x: () => dy.divStrict($x.toFloat().square().sub(scalar(1)).sqrt() as T)
       };
     };
     return ENV.engine.runKernel(backend => backend.acosh($x), {$x}, grad);
@@ -702,14 +660,11 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static atanh<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'atanh');
 
     const grad = (dy: T) => {
-      return {
-        $x: () => dy.divStrict(TensorOps.scalar(1).sub($x.toFloat().square()))
-      };
+      return {$x: () => dy.divStrict(scalar(1).sub($x.toFloat().square()))};
     };
     return ENV.engine.runKernel(backend => backend.atanh($x), {$x}, grad);
   }
@@ -726,7 +681,6 @@ export class UnaryOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static erf<T extends Tensor>(x: T|TensorLike): T {
     let $x = convertToTensor(x, 'x', 'erf');
     util.assert(
@@ -739,8 +693,8 @@ export class UnaryOps {
 
     const grad = (dy: T) => {
       return {
-        $x: () => dy.mulStrict(TensorOps.scalar(2 / Math.sqrt(Math.PI))
-                                   .mul($x.square().neg().exp()))
+        $x: () => dy.mulStrict(
+            scalar(2 / Math.sqrt(Math.PI)).mul($x.square().neg().exp()))
       };
     };
     return ENV.engine.runKernel(backend => backend.erf($x), {$x}, grad);
@@ -758,15 +712,47 @@ export class UnaryOps {
    * @param alpha The gradient when input is negative.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static step<T extends Tensor>(x: T|TensorLike, alpha = 0.0): T {
     const $x = convertToTensor(x, 'x', 'step');
 
     // TODO(manrajgrover): Return null for gradients when backprop supports
     // it.
     const grad = (dy: T) => {
-      return {$x: () => TensorOps.zerosLike(dy)};
+      return {$x: () => zerosLike(dy)};
     };
     return ENV.engine.runKernel(backend => backend.step($x, alpha), {$x}, grad);
   }
 }
+
+export const abs = op(UnaryOps.abs);
+export const acos = op(UnaryOps.acos);
+export const acosh = op(UnaryOps.acosh);
+export const asin = op(UnaryOps.asin);
+export const asinh = op(UnaryOps.asinh);
+export const atan = op(UnaryOps.atan);
+export const atanh = op(UnaryOps.atanh);
+export const ceil = op(UnaryOps.ceil);
+export const clipByValue = op(UnaryOps.clipByValue);
+export const cos = op(UnaryOps.cos);
+export const cosh = op(UnaryOps.cosh);
+export const erf = op(UnaryOps.erf);
+export const exp = op(UnaryOps.exp);
+export const expm1 = op(UnaryOps.expm1);
+export const floor = op(UnaryOps.floor);
+export const log = op(UnaryOps.log);
+export const log1p = op(UnaryOps.log1p);
+export const logSigmoid = op(UnaryOps.logSigmoid);
+export const neg = op(UnaryOps.neg);
+export const reciprocal = op(UnaryOps.reciprocal);
+export const round = op(UnaryOps.round);
+export const rsqrt = op(UnaryOps.rsqrt);
+export const sigmoid = op(UnaryOps.sigmoid);
+export const sign = op(UnaryOps.sign);
+export const sin = op(UnaryOps.sin);
+export const sinh = op(UnaryOps.sinh);
+export const softplus = op(UnaryOps.softplus);
+export const sqrt = op(UnaryOps.sqrt);
+export const square = op(UnaryOps.square);
+export const step = op(UnaryOps.step);
+export const tan = op(UnaryOps.tan);
+export const tanh = op(UnaryOps.tanh);

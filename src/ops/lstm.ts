@@ -19,7 +19,7 @@ import {doc} from '../doc';
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor, convertToTensorArray} from '../tensor_util';
 import {TensorLike} from '../types';
-import {operation} from './operation';
+import {op} from './operation';
 
 /**
  * @docalias (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D]
@@ -28,7 +28,7 @@ export type LSTMCellFunc = {
   (data: Tensor2D, c: Tensor2D, h: Tensor2D): [Tensor2D, Tensor2D];
 };
 
-export class LSTMOps {
+class LSTMOps {
   /**
    * Computes the next states and outputs of a stack of LSTMCells.
    *
@@ -44,7 +44,6 @@ export class LSTMOps {
    * @param h Array of previous cell outputs.
    */
   @doc({heading: 'Operations', subheading: 'RNN'})
-  @operation
   static multiRNNCell(
       lstmCells: LSTMCellFunc[], data: Tensor2D|TensorLike,
       c: Tensor2D[]|TensorLike[],
@@ -85,7 +84,6 @@ export class LSTMOps {
    * @param h Previous cell output.
    */
   @doc({heading: 'Operations', subheading: 'RNN'})
-  @operation
   static basicLSTMCell(
       forgetBias: Scalar|TensorLike, lstmKernel: Tensor2D|TensorLike,
       lstmBias: Tensor1D|TensorLike, data: Tensor2D|TensorLike,
@@ -118,3 +116,6 @@ export class LSTMOps {
     return [newC, newH];
   }
 }
+
+export const basicLSTMCell = op(LSTMOps.basicLSTMCell);
+export const multiRNNCell = op(LSTMOps.multiRNNCell);

@@ -20,13 +20,13 @@ import {ENV} from '../environment';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
-import {BinaryOps} from './binary_ops';
-import {LogicalOps} from './logical_ops';
-import {operation} from './operation';
+import {maximum, minimum} from './binary_ops';
+import {where} from './logical_ops';
+import {op} from './operation';
 import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
-import {TensorOps} from './tensor_ops';
+import {scalar} from './tensor_ops';
 
-export class ReluOps {
+class ReluOps {
   /**
    * Computes rectified linear element-wise: `max(x, 0)`
    *
@@ -39,7 +39,6 @@ export class ReluOps {
    *     `int32'.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static relu<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'relu');
 
@@ -64,7 +63,6 @@ export class ReluOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static elu<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'elu');
 
@@ -92,23 +90,21 @@ export class ReluOps {
    * @param x The input tensor.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static selu<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'selu');
 
     const grad = (dy: T) => {
       return {
         $x: () => {
-          const mask = $x.greater(TensorOps.scalar(0));
+          const mask = $x.greater(scalar(0));
 
-          const scaleAlpha = TensorOps.scalar(SELU_SCALEALPHA);
-          const scale = TensorOps.scalar(SELU_SCALE);
+          const scaleAlpha = scalar(SELU_SCALEALPHA);
+          const scale = scalar(SELU_SCALE);
 
           const greaterThanZeroDer = dy.mul(scale);
           const lessEqualZeroDer = dy.mul(scaleAlpha).mul($x.toFloat().exp());
 
-          return LogicalOps.where(mask, greaterThanZeroDer, lessEqualZeroDer) as
-              T;
+          return where(mask, greaterThanZeroDer, lessEqualZeroDer) as T;
         }
       };
     };
@@ -131,11 +127,9 @@ export class ReluOps {
    * @param alpha The scaling factor for negative values, defaults to 0.2.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static leakyRelu<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
     const $x = convertToTensor(x, 'x', 'leakyRelu');
-
-    return BinaryOps.maximum(TensorOps.scalar(alpha).mul($x), $x);
+    return maximum(scalar(alpha).mul($x), $x);
   }
 
   /**
@@ -153,13 +147,17 @@ export class ReluOps {
    * @param alpha Scaling factor for negative values.
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static prelu<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'prelu');
     const $alpha = convertToTensor(alpha, 'alpha', 'prelu');
 
-    const zero = TensorOps.scalar(0);
-    return BinaryOps.maximum(zero, $x).add(
-        $alpha.mul(BinaryOps.minimum(zero, $x)));
+    const zero = scalar(0);
+    return maximum(zero, $x).add($alpha.mul(minimum(zero, $x)));
   }
 }
+
+export const elu = op(ReluOps.elu);
+export const leakyRelu = op(ReluOps.leakyRelu);
+export const prelu = op(ReluOps.prelu);
+export const relu = op(ReluOps.relu);
+export const selu = op(ReluOps.selu);

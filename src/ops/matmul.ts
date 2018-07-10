@@ -17,13 +17,13 @@
 
 import {doc} from '../doc';
 import {ENV} from '../environment';
-import {Scalar, Tensor, Tensor1D, Tensor2D} from '../tensor';
+import {Tensor, Tensor1D, Tensor2D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class MatmulOps {
+class MatmulOps {
   /**
    * Computes the dot product of two matrices, A * B. These must be matrices.
    *
@@ -39,7 +39,6 @@ export class MatmulOps {
    * @param transposeB If true, `b` is transposed before multiplication.
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
-  @operation
   static matMul(
       a: Tensor2D|TensorLike, b: Tensor2D|TensorLike, transposeA = false,
       transposeB = false): Tensor2D {
@@ -90,73 +89,6 @@ export class MatmulOps {
   }
 
   /**
-   * Computes the dot product of a vector and a matrix, v * B.
-   *
-   * @param v The vector in dot product operation.
-   * @param matrix The matrix in dot product operation.
-   */
-  @operation
-  static vectorTimesMatrix(v: Tensor1D, matrix: Tensor2D): Tensor1D {
-    util.assert(
-        v.rank === 1,
-        `Error in vectorTimesMatrix: first input must be rank 1, but got ` +
-            `rank ${v.rank}.`);
-    util.assert(
-        matrix.rank === 2,
-        `Error in vectorTimesMatrix: second input must be rank 2, but got ` +
-            `rank ${matrix.rank}.`);
-    util.assert(
-        v.size === matrix.shape[0],
-        `Error in vectorTimesMatrix: size of vector (${v.size}) ` +
-            `must match first dimension of matrix (${matrix.shape[0]})`);
-    return v.as2D(1, -1).matMul(matrix).as1D();
-  }
-
-  /**
-   * Computes the dot product of a matrix and vector, A * v.
-   *
-   * @param matrix The matrix in dot product operation.
-   * @param v The vector in dot product operation.
-   */
-  @operation
-  static matrixTimesVector(matrix: Tensor2D, v: Tensor1D): Tensor1D {
-    util.assert(
-        v.rank === 1,
-        `Error in matrixTimesVector: second input must rank 1, but got ` +
-            `rank ${v.rank}.`);
-    util.assert(
-        matrix.rank === 2,
-        `Error in matrixTimesVector: first input must be a rank 2, but got ` +
-            `rank ${matrix.rank}.`);
-    util.assert(
-        v.size === matrix.shape[1],
-        `Error in matrixTimesVector: size of first rank 1 input ${v.size} ` +
-            `must match inner dimension of second rank 2 input, but got ` +
-            `shape ${matrix.shape}.`);
-
-    return matrix.matMul(v.as2D(-1, 1)).as1D();
-  }
-
-  /**
-   * Computes the dot product of two vectors, v1 * v2.
-   *
-   * @param v1 The first vector in the dot product operation.
-   * @param v2 The second vector in the dot product operation.
-   */
-  @operation
-  static dotProduct(v1: Tensor1D, v2: Tensor1D): Scalar {
-    util.assert(
-        v1.rank === 1 && v2.rank === 1,
-        `Error in dotProduct: inputs must be rank 1, but got ranks ` +
-            `${v1.rank} and ${v2.rank}.`);
-    util.assert(
-        v1.size === v2.size,
-        `Error in dotProduct: size of inputs (${v1.size}) and (` +
-            `${v2.size}) must match.`);
-    return v1.as2D(1, -1).matMul(v2.as2D(-1, 1)).asScalar();
-  }
-
-  /**
    * Computes the outer product of two vectors, v1 and v2.
    *
    * ```js
@@ -169,7 +101,6 @@ export class MatmulOps {
    * @param v2 The second vector in the dot product operation.
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
-  @operation
   static outerProduct(v1: Tensor1D|TensorLike, v2: Tensor1D|TensorLike):
       Tensor2D {
     const $v1 = convertToTensor(v1, 'v1', 'outerProduct');
@@ -199,7 +130,6 @@ export class MatmulOps {
    * @param t2 The second tensor in the dot operation.
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
-  @operation
   static dot(t1: Tensor|TensorLike, t2: Tensor|TensorLike): Tensor {
     const $t1 = convertToTensor(t1, 't1', 'dot');
     const $t2 = convertToTensor(t2, 't2', 'dot');
@@ -230,3 +160,7 @@ export class MatmulOps {
     }
   }
 }
+
+export const matMul = op(MatmulOps.matMul);
+export const dot = op(MatmulOps.dot);
+export const outerProduct = op(MatmulOps.outerProduct);

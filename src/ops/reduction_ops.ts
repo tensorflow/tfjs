@@ -23,10 +23,10 @@ import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import * as axis_util from './axis_util';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
+import {op} from './operation';
+import {ones, scalar} from './tensor_ops';
 
-export class ReductionOps {
+class ReductionOps {
   /**
    * Computes the log(sum(exp(elements across the reduction dimensions)).
    *
@@ -55,7 +55,6 @@ export class ReductionOps {
    *     of 1. Defaults to false.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static logSumExp<T extends Tensor>(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
     const $x = convertToTensor(x, 'x', 'logSumExp');
@@ -104,7 +103,6 @@ export class ReductionOps {
    * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static sum<T extends Tensor>(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
     let $x = convertToTensor(x, 'x', 'sum');
@@ -138,7 +136,7 @@ export class ReductionOps {
           expandedDyShape[axis] = 1;
         });
         const expandedDy = dy.reshape(expandedDyShape);
-        const derX = expandedDy.mul(TensorOps.ones(x.shape, 'float32'));
+        const derX = expandedDy.mul(ones(x.shape, 'float32'));
         return derX;
       };
       return {value, gradFunc};
@@ -175,7 +173,6 @@ export class ReductionOps {
    * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static mean<T extends Tensor>(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
     const $x = convertToTensor(x, 'x', 'mean');
@@ -188,7 +185,7 @@ export class ReductionOps {
     // Use a custom gradient to bypass 2 gradient backprops since mean is used
     // extremely often.
     const customOp = customGrad(x => {
-      const reduceSizeScalar = TensorOps.scalar(reduceSize);
+      const reduceSizeScalar = scalar(reduceSize);
       // Cast if needed.
       const xReduce = reduceSizeScalar.dtype === x.dtype ?
           x :
@@ -202,8 +199,8 @@ export class ReductionOps {
           expandedDyShape[axis] = 1;
         });
         const expandedDy = dy.reshape(expandedDyShape);
-        const derX = expandedDy.mul(TensorOps.ones(x.shape, 'float32'))
-                         .div(reduceSizeScalar);
+        const derX =
+            expandedDy.mul(ones(x.shape, 'float32')).div(reduceSizeScalar);
         return derX;
       };
       return {value, gradFunc};
@@ -240,7 +237,6 @@ export class ReductionOps {
    * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static min<T extends Tensor>(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
     let $x = convertToTensor(x, 'x', 'min');
@@ -288,7 +284,6 @@ export class ReductionOps {
    * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static max<T extends Tensor>(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
     let $x = convertToTensor(x, 'x', 'max');
@@ -332,7 +327,6 @@ export class ReductionOps {
    *
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static argMin<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     let $x = convertToTensor(x, 'x', 'argMin');
 
@@ -372,7 +366,6 @@ export class ReductionOps {
    * @param axis The dimension to reduce. Defaults to 0 (outer-most dimension).
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static argMax<T extends Tensor>(x: Tensor|TensorLike, axis = 0): T {
     let $x = convertToTensor(x, 'x', 'argMax');
 
@@ -417,7 +410,6 @@ export class ReductionOps {
    * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static all<T extends Tensor>(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
     let $x = convertToTensor(x, 'x', 'all', 'bool');
@@ -468,7 +460,6 @@ export class ReductionOps {
    * @param keepDims If true, retains reduced dimensions with size 1.
    */
   @doc({heading: 'Operations', subheading: 'Reduction'})
-  @operation
   static any<T extends Tensor>(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false): T {
     let $x = convertToTensor(x, 'x', 'any', 'bool');
@@ -504,7 +495,6 @@ export class ReductionOps {
    * @return An object with two keys: `mean` and `variance`.
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
-  @operation
   static moments(
       x: Tensor|TensorLike, axis: number|number[] = null, keepDims = false):
       {mean: Tensor, variance: Tensor} {
@@ -520,3 +510,15 @@ export class ReductionOps {
     return {mean, variance};
   }
 }
+
+export const all = op(ReductionOps.all);
+// tslint:disable-next-line:variable-name
+export const any = op(ReductionOps.any);
+export const argMax = op(ReductionOps.argMax);
+export const argMin = op(ReductionOps.argMin);
+export const logSumExp = op(ReductionOps.logSumExp);
+export const max = op(ReductionOps.max);
+export const mean = op(ReductionOps.mean);
+export const min = op(ReductionOps.min);
+export const moments = op(ReductionOps.moments);
+export const sum = op(ReductionOps.sum);

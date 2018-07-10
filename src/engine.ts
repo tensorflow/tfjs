@@ -16,7 +16,6 @@
  */
 
 import {BackendTimingInfo, KernelBackend} from './kernels/backend';
-import {TensorOps} from './ops/tensor_ops';
 import {Profiler} from './profiler';
 // tslint:disable-next-line:max-line-length
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
@@ -27,7 +26,7 @@ import {NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types'
 import {getTensorsInContainer, isTensorInList} from './tensor_util';
 import {TypedArray} from './types';
 import * as util from './util';
-import {now} from './util';
+import {makeOnesTypedArray, now, sizeFromShape} from './util';
 
 /**
  * A function that computes an output. The save function is for saving tensors
@@ -388,8 +387,7 @@ export class Engine implements TensorManager {
       }
 
       const accumulatedGradientMap: {[tensorId: number]: Tensor} = {};
-      accumulatedGradientMap[y.id] =
-          (dy == null) ? TensorOps.ones(y.shape) : dy;
+      accumulatedGradientMap[y.id] = (dy == null) ? ones(y.shape) : dy;
 
       // Backprop gradients through the filtered nodes.
       backpropagateGradients(accumulatedGradientMap, filteredTape);
@@ -489,4 +487,9 @@ export class Engine implements TensorManager {
     this.activeScope.track.push(result);
     return result;
   }
+}
+
+function ones(shape: number[]): Tensor {
+  const values = makeOnesTypedArray(sizeFromShape(shape), 'float32');
+  return Tensor.make(shape, {values});
 }

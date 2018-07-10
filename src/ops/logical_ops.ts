@@ -23,10 +23,10 @@ import * as types from '../types';
 import {TensorLike} from '../types';
 import {assert, assertShapesMatch} from '../util';
 import {assertAndGetBroadcastShape} from './broadcast_util';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
+import {op} from './operation';
+import {zerosLike} from './tensor_ops';
 
-export class LogicalOps {
+class LogicalOps {
   /**
    * Returns the truth value of `NOT x` element-wise.
    *
@@ -39,7 +39,6 @@ export class LogicalOps {
    * @param x The input tensor. Must be of dtype 'bool'.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static logicalNot<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'logicalNot', 'bool');
     assert($x.dtype === 'bool', 'Error Array must be of type bool.');
@@ -61,7 +60,6 @@ export class LogicalOps {
    * @param b The second input tensor. Must be of dtype bool.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static logicalAnd<T extends Tensor>(
       a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'logicalAnd', 'bool');
@@ -88,7 +86,6 @@ export class LogicalOps {
    * @param b The second input tensor. Must be of dtype bool.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static logicalOr<T extends Tensor>(
       a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'logicalOr', 'bool');
@@ -116,7 +113,6 @@ export class LogicalOps {
    * @param b The second input tensor. Must be of dtype bool.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static logicalXor<T extends Tensor>(
       a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'logicalXor', 'bool');
@@ -150,7 +146,6 @@ export class LogicalOps {
    * @param b A tensor with the same shape and type as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static where<T extends Tensor>(
       condition: Tensor|TensorLike, a: T|TensorLike, b: T|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'where');
@@ -178,7 +173,7 @@ export class LogicalOps {
     // TODO(julianoks): Return null for condition gradient
     // when backprop supports it.
     const grad = (dy: T) => ({
-      $condition: () => TensorOps.zerosLike($condition),
+      $condition: () => zerosLike($condition),
       $a: () => dy.mul($condition.cast($a.dtype)) as T,
       $b: () => dy.mul($condition.logicalNot().cast($b.dtype)) as T
     });
@@ -188,3 +183,9 @@ export class LogicalOps {
                {$condition, $a, $b}, grad) as T;
   }
 }
+
+export const logicalAnd = op(LogicalOps.logicalAnd);
+export const logicalNot = op(LogicalOps.logicalNot);
+export const logicalOr = op(LogicalOps.logicalOr);
+export const logicalXor = op(LogicalOps.logicalXor);
+export const where = op(LogicalOps.where);
