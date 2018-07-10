@@ -25,10 +25,11 @@ import {browserFiles} from './browser_files';
 import {browserHTTPRequest} from './browser_http';
 import {concatenateArrayBuffers, decodeWeights, encodeWeights, getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelManagement} from './model_management';
+import {fromMemory, withSaveHandler} from './passthrough';
 import {IORouterRegistry} from './router_registry';
-
 import {IOHandler, LoadHandler, ModelArtifacts, ModelStoreManager, SaveConfig, SaveHandler, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
 import {loadWeights} from './weights_loader';
+
 // tslint:enable:max-line-length
 
 const registerSaveRouter = IORouterRegistry.registerSaveRouter;
@@ -48,6 +49,7 @@ export {
   copyModel,
   decodeWeights,
   encodeWeights,
+  fromMemory,
   getLoadHandlers,
   getModelArtifactsInfoForJSON,
   getSaveHandlers,
@@ -65,5 +67,6 @@ export {
   SaveHandler,
   SaveResult,
   WeightsManifestConfig,
-  WeightsManifestEntry
+  WeightsManifestEntry,
+  withSaveHandler
 };
