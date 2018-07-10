@@ -91,7 +91,7 @@ export class Engine implements TensorManager {
       private backend: KernelBackend, public safeMode: boolean,
       private debugMode: () => boolean) {
     // Create a default outer scope.
-    this.activeScope = {track: []};
+    this.activeScope = {track: [], name: 'default scope'};
     this.scopeStack = [this.activeScope];
     this.profiler = new Profiler(backend);
   }
@@ -306,7 +306,7 @@ export class Engine implements TensorManager {
       this.gradientScopeCount++;
     }
 
-    const scopeInfo: ScopeState = {track: []};
+    const scopeInfo: ScopeState = {track: [], name: 'unnamed scope'};
     if (name) {
       scopeInfo.name = name;
     }
