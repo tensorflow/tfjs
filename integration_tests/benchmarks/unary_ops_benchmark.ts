@@ -88,7 +88,7 @@ export class UnaryOpsCPUBenchmark implements BenchmarkTest {
     const start = performance.now();
 
     tf.tidy(() => {
-      op(input).get();
+      op(input).dataSync();
     });
 
     const end = performance.now();
