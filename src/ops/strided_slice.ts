@@ -20,9 +20,9 @@ import {ENV} from '../environment';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class StridedSliceOps {
+class StridedSliceOps {
   /**
    * Extracts a strided slice of a tensor.
    *
@@ -52,7 +52,6 @@ export class StridedSliceOps {
    *      and the fullest possible range in that dimension is used instead.
    */
   @doc({heading: 'Operations', subheading: 'Slicing and Joining'})
-  @operation
   static stridedSlice<T extends Tensor>(
       x: T|TensorLike, begin: number[], end: number[], strides: number[],
       beginMask = 0, endMask = 0): T {
@@ -63,3 +62,5 @@ export class StridedSliceOps {
                {$x}) as T;
   }
 }
+
+export const stridedSlice = op(StridedSliceOps.stridedSlice);

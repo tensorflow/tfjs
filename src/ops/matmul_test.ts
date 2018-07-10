@@ -20,7 +20,6 @@ import {describeWithFlags} from '../jasmine_util';
 // tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectNumbersClose, WEBGL_ENVS} from '../test_util';
 import {Rank} from '../types';
-import {MatmulOps} from './matmul';
 
 describeWithFlags('matmul', ALL_ENVS, () => {
   it('A x B', () => {
@@ -125,7 +124,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
   it('Vector times matrix', () => {
     const v = tf.tensor1d([2, 3]);
     const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-    const result = tf.vectorTimesMatrix(v, matrix);
+    const result = tf.dot(v, matrix);
 
     const expected = [11, 16];
     expectArraysClose(result, expected);
@@ -135,32 +134,16 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     const v = tf.tensor1d([2, 3]);
 
     const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-    const result = tf.vectorTimesMatrix(v, matrix);
+    const result = tf.dot(v, matrix);
 
     const expected = [11, 16];
     expectArraysClose(result, expected);
   });
 
-  it('Vector times matrix throws when not passed a vector', () => {
-    // tslint:disable-next-line:no-any
-    const v: any = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-    const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-
-    expect(() => tf.vectorTimesMatrix(v, matrix)).toThrowError();
-  });
-
-  it('Vector times matrix throws when not passed a matrix', () => {
-    const v = tf.tensor1d([2, 3]);
-    // tslint:disable-next-line:no-any
-    const matrix: any = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
-
-    expect(() => tf.vectorTimesMatrix(v, matrix)).toThrowError();
-  });
-
   it('Matrix times vector', () => {
     const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const v = tf.tensor1d([2, 3]);
-    const result = tf.matrixTimesVector(matrix, v);
+    const result = tf.dot(matrix, v);
 
     const expected = [8, 18];
     expectArraysClose(result, expected);
@@ -169,18 +152,10 @@ describeWithFlags('matmul', ALL_ENVS, () => {
   it('Matrix * vector propagates NaNs', () => {
     const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
     const v = tf.tensor1d([2, NaN]);
-    const result = tf.matrixTimesVector(matrix, v);
+    const result = tf.dot(matrix, v);
 
     const expected = [NaN, NaN];
     expectArraysClose(result, expected);
-  });
-
-  it('matrix times vector throws when not passed a vector', () => {
-    // tslint:disable-next-line:no-any
-    const v: any = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-    const matrix = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-
-    expect(() => tf.matrixTimesVector(matrix, v)).toThrowError();
   });
 
   it('matrix times vector throws when not passed a matrix', () => {
@@ -189,13 +164,13 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     // tslint:disable-next-line:no-any
     const matrix: any = tf.tensor3d([1, 2, 3, 4, 5, 6, 7, 8], [2, 2, 2]);
 
-    expect(() => tf.matrixTimesVector(matrix, v)).toThrowError();
+    expect(() => tf.dot(matrix, v)).toThrowError();
   });
 
   it('Dot product', () => {
     const v1 = tf.tensor1d([2, 3]);
     const v2 = tf.tensor1d([2, 1]);
-    const result = MatmulOps.dotProduct(v1, v2);
+    const result = tf.dot(v1, v2);
 
     expectNumbersClose(result.get(), 7);
   });
@@ -203,7 +178,7 @@ describeWithFlags('matmul', ALL_ENVS, () => {
   it('Dot product propagates NaNs', () => {
     const v1 = tf.tensor1d([2, NaN]);
     const v2 = tf.tensor1d([2, 1]);
-    const result = MatmulOps.dotProduct(v1, v2);
+    const result = tf.dot(v1, v2);
     expect(result.get()).toEqual(NaN);
   });
 
@@ -211,17 +186,8 @@ describeWithFlags('matmul', ALL_ENVS, () => {
     const v1 = tf.tensor1d([2, 3, 3]);
     const v2 = tf.tensor1d([2, 1]);
 
-    expect(() => MatmulOps.dotProduct(v1, v2)).toThrowError();
-    expect(() => MatmulOps.dotProduct(v2, v1)).toThrowError();
-  });
-
-  it('Dot product throws when passed non vectors', () => {
-    // tslint:disable-next-line:no-any
-    const v1: any = tf.tensor2d([1, 2, 3, 3], [2, 2]);
-    const v2 = tf.tensor1d([2, 1]);
-
-    expect(() => MatmulOps.dotProduct(v1, v2)).toThrowError();
-    expect(() => MatmulOps.dotProduct(v2, v1)).toThrowError();
+    expect(() => tf.dot(v1, v2)).toThrowError();
+    expect(() => tf.dot(v2, v1)).toThrowError();
   });
 
   it('Outer product', () => {
@@ -433,7 +399,7 @@ describeWithFlags('matmul webgl-only', WEBGL_ENVS, () => {
     v.set(1, sharedDim - 3);
     v.set(1, sharedDim - 2);
 
-    const result = tf.matrixTimesVector(matrix.toTensor(), v.toTensor());
+    const result = tf.dot(matrix.toTensor(), v.toTensor());
     const expected = [2, 0];
     expectArraysClose(result, expected);
   });

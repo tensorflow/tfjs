@@ -20,9 +20,9 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class SigmoidCrossEntropyOps {
+class SigmoidCrossEntropyOps {
   /**
    * Computes sigmoid cross entropy given logits.
    *
@@ -30,7 +30,6 @@ export class SigmoidCrossEntropyOps {
    * @param logits A Tensor of type float32 or float64.
    */
   @doc({heading: 'Operations', subheading: 'Cross Entropy'})
-  @operation
   static sigmoidCrossEntropyWithLogits<T extends Tensor, O extends Tensor>(
       labels: T|TensorLike, logits: T|TensorLike): O {
     const $labels =
@@ -68,3 +67,6 @@ export class SigmoidCrossEntropyOps {
     return maxOutput.sub(outputXTarget).add(sigmoidOutput);
   }
 }
+
+export const sigmoidCrossEntropyWithLogits =
+    op(SigmoidCrossEntropyOps.sigmoidCrossEntropyWithLogits);

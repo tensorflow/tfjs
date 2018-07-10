@@ -21,9 +21,9 @@ import {Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class LRNOps {
+class LRNOps {
   /**
    * Normalizes the activation of a local neighborhood across or within
    * channels.
@@ -38,7 +38,6 @@ export class LRNOps {
    * @param beta An exponent.
    */
   @doc({heading: 'Operations', subheading: 'Normalization'})
-  @operation
   static localResponseNormalization<T extends Tensor3D|Tensor4D>(
       x: T|TensorLike, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
     const $x = convertToTensor(x, 'x', 'localResponseNormalization');
@@ -68,3 +67,5 @@ export class LRNOps {
     }
   }
 }
+
+export const localResponseNormalization = op(LRNOps.localResponseNormalization);

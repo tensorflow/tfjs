@@ -24,14 +24,13 @@ import {ENV} from '../environment';
 import {dispose} from '../globals';
 import {Tensor, Tensor1D, Tensor2D} from '../tensor';
 import {assert} from '../util';
+import {eye, split, squeeze, stack, unstack} from './array_ops';
+import {norm} from './norm';
+import {op} from './operation';
+import {sum} from './reduction_ops';
+import {tensor2d} from './tensor_ops';
 
-import {ArrayOps} from './array_ops';
-import {NormOps} from './norm';
-import {operation} from './operation';
-import {ReductionOps} from './reduction_ops';
-import {TensorOps} from './tensor_ops';
-
-export class LinalgOps {
+class LinalgOps {
   /**
    * Gram-Schmidt orthogonalization.
    *
@@ -48,7 +47,6 @@ export class LinalgOps {
    *   vector or each row of the matrix has an L2 norm that equals `1`.
    */
   @doc({heading: 'Operations', subheading: 'Linear Algebra'})
-  @operation
   static gramSchmidt(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
     let inputIsTensor2D: boolean;
     if (Array.isArray(xs)) {
@@ -65,8 +63,7 @@ export class LinalgOps {
       }
     } else {
       inputIsTensor2D = true;
-      xs =
-          ArrayOps.split(xs, xs.shape[0], 0).map(x => ArrayOps.squeeze(x, [0]));
+      xs = split(xs, xs.shape[0], 0).map(x => squeeze(x, [0]));
     }
 
     assert(
@@ -81,16 +78,16 @@ export class LinalgOps {
         let x = xs1d[i];
         if (i > 0) {
           for (let j = 0; j < i; ++j) {
-            const proj = ReductionOps.sum(ys[j].mulStrict(x)).mul(ys[j]);
+            const proj = sum(ys[j].mulStrict(x)).mul(ys[j]);
             x = x.sub(proj);
           }
         }
-        return x.div(NormOps.norm(x, 'euclidean'));
+        return x.div(norm(x, 'euclidean'));
       }));
     }
 
     if (inputIsTensor2D) {
-      return ArrayOps.stack(ys, 0) as Tensor2D;
+      return stack(ys, 0) as Tensor2D;
     } else {
       return ys;
     }
@@ -123,7 +120,6 @@ export class LinalgOps {
    * @throws If the rank of `x` is less than 2.
    */
   @doc({heading: 'Operations', subheading: 'Linear Algebra'})
-  @operation
   static qr(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
     if (x.rank < 2) {
       throw new Error(
@@ -138,7 +134,7 @@ export class LinalgOps {
       //   together. We should explore whether this can be parallelized.
       const outerDimsProd = x.shape.slice(0, x.shape.length - 2)
                                 .reduce((value, prev) => value * prev);
-      const x2ds = ArrayOps.unstack(
+      const x2ds = unstack(
           x.reshape([
             outerDimsProd, x.shape[x.shape.length - 2],
             x.shape[x.shape.length - 1]
@@ -151,8 +147,8 @@ export class LinalgOps {
         q2ds.push(q2d);
         r2ds.push(r2d);
       });
-      const q = ArrayOps.stack(q2ds, 0).reshape(x.shape);
-      const r = ArrayOps.stack(r2ds, 0).reshape(x.shape);
+      const q = stack(q2ds, 0).reshape(x.shape);
+      const r = stack(r2ds, 0).reshape(x.shape);
       return [q, r];
     }
   }
@@ -168,10 +164,10 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
     const m = x.shape[0];
     const n = x.shape[1];
 
-    let q = ArrayOps.eye(m) as Tensor2D;  // Orthogonal transform so far.
-    let r = x.clone();                    // Transformed matrix so far.
+    let q = eye(m) as Tensor2D;  // Orthogonal transform so far.
+    let r = x.clone();           // Transformed matrix so far.
 
-    const one2D = TensorOps.tensor2d([[1]], [1, 1]);
+    const one2D = tensor2d([[1]], [1, 1]);
     let w: Tensor2D = one2D.clone();
 
     const iters = m >= n ? n : m;
@@ -233,3 +229,6 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
     return [q, r];
   }) as [Tensor2D, Tensor2D];
 }
+
+export const gramSchmidt = op(LinalgOps.gramSchmidt);
+export const qr = op(LinalgOps.qr);

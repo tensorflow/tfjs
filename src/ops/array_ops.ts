@@ -23,15 +23,14 @@ import {convertToTensor, convertToTensorArray} from '../tensor_util';
 // tslint:disable-next-line:max-line-length
 import {DataType, Rank, ShapeMap, TensorLike, TensorLike1D, TypedArray} from '../types';
 import * as util from '../util';
-
 // tslint:disable-next-line:max-line-length
 import {getAxesPermutation, getInnerMostAxes, parseAxisParam} from './axis_util';
-import {ConcatOps} from './concat';
-import {operation} from './operation';
+import {concat} from './concat';
+import {op} from './operation';
 import {MPRandGauss} from './rand';
-import {TensorOps} from './tensor_ops';
+import {zerosLike} from './tensor_ops';
 
-export class ArrayOps {
+class ArrayOps {
   /**
    * Creates a new tensor with the same values and shape as the specified
    * tensor.
@@ -45,7 +44,6 @@ export class ArrayOps {
    * @param x The tensor to clone.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  @operation
   static clone<T extends Tensor>(x: T|TensorLike): T {
     const $x = convertToTensor(x, 'x', 'clone');
     const der = (dy: T) => {
@@ -71,7 +69,6 @@ export class ArrayOps {
    *   with batch repetition if `batchShape` is specified.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  @operation
   static eye(
       numRows: number, numColumns?: number,
       batchShape?: [number]|[number, number],
@@ -119,7 +116,6 @@ export class ArrayOps {
    * @param seed The seed for the random number generator.
    */
   @doc({heading: 'Tensors', subheading: 'Random'})
-  @operation
   static randomNormal<R extends Rank>(
       shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
       seed?: number): Tensor<R> {
@@ -154,7 +150,6 @@ export class ArrayOps {
    * @param seed The seed for the random number generator.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  @operation
   static truncatedNormal<R extends Rank>(
       shape: ShapeMap[R], mean = 0, stdDev = 1, dtype?: 'float32'|'int32',
       seed?: number): Tensor<R> {
@@ -189,7 +184,6 @@ export class ArrayOps {
    * @param dtype The data type of the output tensor. Defaults to 'float32'.
    */
   @doc({heading: 'Tensors', subheading: 'Random'})
-  @operation
   static randomUniform<R extends Rank>(
       shape: ShapeMap[R], minval = 0, maxval = 1, dtype: DataType = 'float32'):
       Tensor<R> {
@@ -209,10 +203,9 @@ export class ArrayOps {
    * for each element in the output tensor.
    * @param dtype The data type of the output tensor. Defaults to 'float32'.
    */
-  @operation
   static rand<R extends Rank>(
-      shape: ShapeMap[R], randFunction: () => number, dtype?: DataType):
-      Tensor<R> {
+      shape: ShapeMap[R], randFunction: () => number,
+      dtype?: DataType): Tensor<R> {
     const size = util.sizeFromShape(shape);
 
     let values = null;
@@ -251,7 +244,6 @@ export class ArrayOps {
    *     `[batchSize, numSamples]`, depending on the rank of the input.
    */
   @doc({heading: 'Tensors', subheading: 'Random'})
-  @operation
   static multinomial(
       logits: Tensor1D|Tensor2D|TensorLike, numSamples: number, seed?: number,
       normalized = false): Tensor1D|Tensor2D {
@@ -293,7 +285,6 @@ export class ArrayOps {
    *     not match the location.
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  @operation
   static oneHot(
       indices: Tensor1D|TensorLike1D, depth: number, onValue = 1, offValue = 0):
       Tensor2D {
@@ -328,7 +319,6 @@ export class ArrayOps {
    * 3 (ignores alpha channel of input image).
    */
   @doc({heading: 'Tensors', subheading: 'Creation'})
-  @operation
   static fromPixels(
       pixels: ImageData|HTMLImageElement|HTMLCanvasElement|HTMLVideoElement,
       numChannels = 3): Tensor3D {
@@ -435,7 +425,9 @@ export class ArrayOps {
       const imageData = new ImageData(bytes, width, height);
       ctx.putImageData(imageData, 0, 0);
     }
-
+    if ($img !== img) {
+      $img.dispose();
+    }
     return bytes;
   }
 
@@ -464,7 +456,6 @@ export class ArrayOps {
    * @param shape An array of integers defining the output tensor shape.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
-  @operation
   static reshape<R2 extends Rank>(x: Tensor|TensorLike, shape: ShapeMap[R2]):
       Tensor<R2> {
     const $x = convertToTensor(x, 'x', 'reshape');
@@ -511,7 +502,6 @@ export class ArrayOps {
    * @param dtype The dtype to cast the input tensor to.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
-  @operation
   static cast<T extends Tensor>(x: T|TensorLike, dtype: DataType): T {
     const $x = convertToTensor(x, 'x', 'cast');
 
@@ -546,7 +536,6 @@ export class ArrayOps {
    * @param reps Determines the number of replications per dimension.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static tile<T extends Tensor>(x: T|TensorLike, reps: number[]): T {
     const $x = convertToTensor(x, 'x', 'tile');
 
@@ -556,7 +545,7 @@ export class ArrayOps {
             `must match length of reps ${reps}.`);
     const grad = (dy: T) => {
       const derX = () => {
-        let xGrad = TensorOps.zerosLike($x);
+        let xGrad = zerosLike($x);
         // TODO(cais): Maybe reduce memory footprint by avoiding repeated
         // slicing.
         if ($x.rank === 1) {
@@ -689,7 +678,6 @@ export class ArrayOps {
    * @param constantValue The pad value to use. Defaults to 0.
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
-  @operation
   static pad<T extends Tensor>(
       x: T|TensorLike, paddings: Array<[number, number]>, constantValue = 0):
       T {
@@ -723,7 +711,6 @@ export class ArrayOps {
    * @param axis The axis to stack along. Defaults to 0 (the first dim).
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static stack<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): Tensor {
     const $tensors = convertToTensorArray(tensors, 'tensors', 'stack');
 
@@ -749,7 +736,7 @@ export class ArrayOps {
           'All tensors passed to stack must have matching dtypes');
     });
     const expandedTensors = $tensors.map(t => t.expandDims(axis));
-    return ConcatOps.concat(expandedTensors, axis);
+    return concat(expandedTensors, axis);
   }
 
   /**
@@ -765,7 +752,6 @@ export class ArrayOps {
    * @param axis The axis to unstack along. Defaults to 0 (the first dim).
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static unstack<T extends Tensor>(x: T|TensorLike, axis = 0): Tensor[] {
     const $x = convertToTensor(x, 'x', 'unstack');
     const num = $x.shape[axis];
@@ -823,7 +809,6 @@ export class ArrayOps {
    * dim).
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static split<T extends Tensor>(
       x: T|TensorLike, numOrSizeSplits: number[]|number, axis = 0): T[] {
     const $x = convertToTensor(x, 'x', 'split');
@@ -915,7 +900,6 @@ export class ArrayOps {
    *     to 0 (the first dimension).
    */
   @doc({heading: 'Tensors', subheading: 'Transformations'})
-  @operation
   static expandDims<R2 extends Rank>(x: Tensor|TensorLike, axis = 0):
       Tensor<R2> {
     const $x = convertToTensor(x, 'x', 'expandDims');
@@ -973,3 +957,31 @@ export class ArrayOps {
     console.log(x.toString(verbose));
   }
 }
+
+export const buffer = ArrayOps.buffer;  // Not wrapped in op() since no tensors.
+export const toPixels = ArrayOps.toPixels;  // Not wrapped in op() since async.
+
+export const cast = op(ArrayOps.cast);
+export const clone = op(ArrayOps.clone);
+export const cumsum = op(ArrayOps.cumsum);
+export const expandDims = op(ArrayOps.expandDims);
+export const eye = op(ArrayOps.eye);
+export const fromPixels = op(ArrayOps.fromPixels);
+export const multinomial = op(ArrayOps.multinomial);
+export const oneHot = op(ArrayOps.oneHot);
+export const pad = op(ArrayOps.pad);
+export const pad1d = op(ArrayOps.pad1d);
+export const pad2d = op(ArrayOps.pad2d);
+export const pad3d = op(ArrayOps.pad3d);
+export const pad4d = op(ArrayOps.pad4d);
+export const print = op(ArrayOps.print);
+export const rand = op(ArrayOps.rand);
+export const randomNormal = op(ArrayOps.randomNormal);
+export const randomUniform = op(ArrayOps.randomUniform);
+export const reshape = op(ArrayOps.reshape);
+export const split = op(ArrayOps.split);
+export const squeeze = op(ArrayOps.squeeze);
+export const stack = op(ArrayOps.stack);
+export const tile = op(ArrayOps.tile);
+export const truncatedNormal = op(ArrayOps.truncatedNormal);
+export const unstack = op(ArrayOps.unstack);

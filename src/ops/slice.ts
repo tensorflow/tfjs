@@ -21,10 +21,10 @@ import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
-import {operation} from './operation';
+import {op} from './operation';
 import * as slice_util from './slice_util';
 
-export class SliceOps {
+class SliceOps {
   /**
    * Extracts a 1D slice from 1D array starting at coordinates `begin` and is
    * of length `size`. See `slice` for details.
@@ -113,7 +113,6 @@ export class SliceOps {
    *     in which case it specifies the size of the first axis.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static slice<R extends Rank, T extends Tensor<R>>(
       x: T|TensorLike, begin: number|number[], size?: number|number[]): T {
     const $x = convertToTensor(x, 'x', 'slice');
@@ -167,3 +166,9 @@ export class SliceOps {
                backend => backend.slice($x, begin_, size_), {$x}, grad) as T;
   }
 }
+
+export const slice = op(SliceOps.slice);
+export const slice1d = op(SliceOps.slice1d);
+export const slice2d = op(SliceOps.slice2d);
+export const slice3d = op(SliceOps.slice3d);
+export const slice4d = op(SliceOps.slice4d);

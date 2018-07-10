@@ -21,13 +21,14 @@ import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
-import {ArrayOps} from './array_ops';
-import {getReductionAxes} from './broadcast_util';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
-import {UnaryOps} from './unary_ops';
 
-export class BatchNormOps {
+import {tile} from './array_ops';
+import {getReductionAxes} from './broadcast_util';
+import {op} from './operation';
+import {scalar} from './tensor_ops';
+import {rsqrt} from './unary_ops';
+
+class BatchNormOps {
   /**
    * Batch normalization, strictly for 2D. For the more relaxed version, see
    * `batchNormalization`.
@@ -39,7 +40,6 @@ export class BatchNormOps {
    * @param scale A scale Tensor.
    * @param offset An offset Tensor.
    */
-  @operation
   static batchNormalization2d(
       x: Tensor2D|TensorLike, mean: Tensor2D|Tensor1D|TensorLike,
       variance: Tensor2D|Tensor1D|TensorLike, varianceEpsilon = .001,
@@ -97,7 +97,6 @@ export class BatchNormOps {
    * @param scale A scale Tensor.
    * @param offset An offset Tensor.
    */
-  @operation
   static batchNormalization3d(
       x: Tensor3D|TensorLike, mean: Tensor3D|Tensor1D|TensorLike,
       variance: Tensor3D|Tensor1D|TensorLike, varianceEpsilon = .001,
@@ -155,7 +154,6 @@ export class BatchNormOps {
    * @param scale A scale Tensor.
    * @param offset An offset Tensor.
    */
-  @operation
   static batchNormalization4d(
       x: Tensor4D|TensorLike, mean: Tensor4D|Tensor1D|TensorLike,
       variance: Tensor4D|Tensor1D|TensorLike, varianceEpsilon = .001,
@@ -270,7 +268,7 @@ export class BatchNormOps {
     }
 
     const der = (dy: Tensor) => {
-      const scaleValue = $scale == null ? TensorOps.scalar(1) : $scale;
+      const scaleValue = $scale == null ? scalar(1) : $scale;
       const reductionAxes = getReductionAxes($mean.shape, x4D.shape);
       const tileShape: number[] = [];
       if ($mean.rank === 1) {
@@ -282,15 +280,14 @@ export class BatchNormOps {
 
       const xMinusMean = $x.sub($mean);
       const dyTimesScaleValue = dy.mul(scaleValue);
-      const oneOverSqrtVariance =
-          UnaryOps.rsqrt($variance.add(TensorOps.scalar(varianceEpsilon)));
+      const oneOverSqrtVariance = rsqrt($variance.add(scalar(varianceEpsilon)));
       const minusHalfRCube = oneOverSqrtVariance.mul(oneOverSqrtVariance)
                                  .mul(oneOverSqrtVariance)
-                                 .mul(TensorOps.scalar(-0.5));
+                                 .mul(scalar(-0.5));
       const derX = () => {
         if ($mean.rank === 1) {
           return dy
-              .mul(ArrayOps.tile(
+              .mul(tile(
                   oneOverSqrtVariance.as4D(1, 1, 1, $mean.shape[0]), tileShape))
               .mul(scaleValue)
               .reshape($x.shape);
@@ -299,8 +296,8 @@ export class BatchNormOps {
         }
       };
       const derMean = () => {
-        let meanDer = oneOverSqrtVariance.mul(TensorOps.scalar(-1))
-                          .mul(dyTimesScaleValue);
+        let meanDer =
+            oneOverSqrtVariance.mul(scalar(-1)).mul(dyTimesScaleValue);
         if ($mean.rank === 1) {
           meanDer = meanDer.sum(reductionAxes);
         }
@@ -362,3 +359,8 @@ function batchnormReshape4D(x: Tensor): Tensor4D|Tensor1D {
   }
   return x as Tensor4D;
 }
+
+export const batchNormalization2d = op(BatchNormOps.batchNormalization2d);
+export const batchNormalization3d = op(BatchNormOps.batchNormalization3d);
+export const batchNormalization4d = op(BatchNormOps.batchNormalization4d);
+export const batchNormalization = op(BatchNormOps.batchNormalization);

@@ -22,12 +22,13 @@ import {Tensor} from '../tensor';
 import {assertTypesMatch, convertToTensor} from '../tensor_util';
 import {TensorLike, upcastType} from '../types';
 import * as util from '../util';
-import * as broadcast_util from './broadcast_util';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
-import {UnaryOps} from './unary_ops';
 
-export class BinaryOps {
+import * as broadcast_util from './broadcast_util';
+import {op} from './operation';
+import {scalar} from './tensor_ops';
+import {neg} from './unary_ops';
+
+class BinaryOps {
   /**
    * Adds two `Tensor`s element-wise, A + B. Supports broadcasting.
    *
@@ -52,7 +53,6 @@ export class BinaryOps {
    * @param b The second `Tensor` to add. Must have the same type as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static add<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'add');
     const $b = convertToTensor(b, 'b', 'add');
@@ -92,7 +92,6 @@ export class BinaryOps {
    * @param a The first Tensor to add element-wise.
    * @param b The second Tensor to add element-wise.
    */
-  @operation
   static addStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in addStrict: ');
     return a.add(b);
@@ -123,7 +122,6 @@ export class BinaryOps {
    * `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static sub<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'sub');
     const $b = convertToTensor(b, 'b', 'sub');
@@ -164,7 +162,6 @@ export class BinaryOps {
    * @param a The first Tensor to subtract element-wise.
    * @param b The second Tensor to subtract element-wise.
    */
-  @operation
   static subStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in subStrict: ');
     return a.sub(b);
@@ -197,7 +194,6 @@ export class BinaryOps {
    * @param exp The exponent `Tensor` to pow element-wise.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static pow<T extends Tensor>(base: T|TensorLike, exp: Tensor|TensorLike): T {
     const $base = convertToTensor(base, 'base', 'pow');
     const $exp = convertToTensor(exp, 'exp', 'pow');
@@ -242,7 +238,6 @@ export class BinaryOps {
    * @param base The base tensor to pow element-wise.
    * @param exp The exponent tensor to pow element-wise.
    */
-  @operation
   static powStrict<T extends Tensor>(base: T, exp: Tensor): T {
     util.assertShapesMatch(base.shape, exp.shape, 'Error in powStrict: ');
     return base.pow(exp);
@@ -272,7 +267,6 @@ export class BinaryOps {
    * @param b The second tensor to multiply. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static mul<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'mul');
     const $b = convertToTensor(b, 'b', 'mul');
@@ -313,7 +307,6 @@ export class BinaryOps {
    * @param b The first tensor to multiply. Must have the same
    *    dtype as `a`.
    */
-  @operation
   static mulStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in multiplyStrict: ');
     return a.mul(b) as T;
@@ -345,7 +338,6 @@ export class BinaryOps {
    * `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static div<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'div');
     const $b = convertToTensor(b, 'b', 'div');
@@ -408,7 +400,6 @@ export class BinaryOps {
    * `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static floorDiv<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
       T {
     const $a = convertToTensor(a, 'a', 'floorDiv');
@@ -448,7 +439,6 @@ export class BinaryOps {
    * @param a The first tensor as the numerator for element-wise division.
    * @param b The second tensor as the denominator for element-wise division.
    */
-  @operation
   static divStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in divideStrict: ');
     return a.div(b) as T;
@@ -481,7 +471,6 @@ export class BinaryOps {
    * @param b The second tensor. Must have the same type as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static mod<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'mod');
     const $b = convertToTensor(b, 'b', 'mod');
@@ -518,7 +507,6 @@ export class BinaryOps {
    * @param a The first tensor.
    * @param b The second tensor. Must have the same dtype as `a`.
    */
-  @operation
   static modStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in modStrict: ');
     return a.mod(b);
@@ -550,7 +538,6 @@ export class BinaryOps {
    * @param b The second tensor. Must have the same type as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static minimum<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
       T {
     let $a = convertToTensor(a, 'a', 'minimum');
@@ -580,7 +567,6 @@ export class BinaryOps {
    * @param a The first tensor.
    * @param b The second tensor. Must have the same dtype as `a`.
    */
-  @operation
   static minimumStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
     return a.minimum(b);
@@ -612,7 +598,6 @@ export class BinaryOps {
    * @param b The second tensor. Must have the same type as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static maximum<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
       T {
     let $a = convertToTensor(a, 'a', 'maximum');
@@ -642,7 +627,6 @@ export class BinaryOps {
    * @param a The first tensor.
    * @param b The second tensor. Must have the same dtype as `a`.
    */
-  @operation
   static maximumStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(a.shape, b.shape, 'Error in minimumStrict: ');
     return a.maximum(b);
@@ -675,7 +659,6 @@ export class BinaryOps {
    * @param b The second tensor. Must have the same type as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Arithmetic'})
-  @operation
   static squaredDifference<T extends Tensor>(
       a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'squaredDifference');
@@ -684,7 +667,7 @@ export class BinaryOps {
 
     broadcast_util.assertAndGetBroadcastShape($a.shape, $b.shape);
     const der = (dy: Tensor) => {
-      const two = TensorOps.scalar(2);
+      const two = scalar(2);
       const derA = () => dy.mul($a.sub($b).mul(two));
       const derB = () => dy.mul($b.sub($a).mul(two));
       return {$a: derA, $b: derB};
@@ -703,7 +686,6 @@ export class BinaryOps {
    * @param a The first tensor.
    * @param b The second tensor. Must have the same type as `a`.
    */
-  @operation
   static squaredDifferenceStrict<T extends Tensor>(a: T, b: T): T {
     util.assertShapesMatch(
         a.shape, b.shape, 'Error in squaredDifferenceStrict: ');
@@ -726,7 +708,6 @@ export class BinaryOps {
    *
    */
   @doc({heading: 'Operations', subheading: 'Basic math'})
-  @operation
   static atan2<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
       T {
     const $a = convertToTensor(a, 'a', 'atan2');
@@ -748,7 +729,7 @@ export class BinaryOps {
       };
       const derB = () => {
         const d = BinaryOps.add($a.square(), $b.square()) as T;
-        let res = UnaryOps.neg(dy.mul($a.div(d)));
+        let res = neg(dy.mul($a.div(d)));
         const reduceAxes = broadcast_util.getReductionAxes($b.shape, outShape);
         if (reduceAxes.length > 0) {
           res = res.sum(reduceAxes);
@@ -761,3 +742,24 @@ export class BinaryOps {
                backend => backend.atan2($a, $b), {$a, $b}, der) as T;
   }
 }
+
+export const add = op(BinaryOps.add);
+export const addStrict = op(BinaryOps.addStrict);
+export const atan2 = op(BinaryOps.atan2);
+export const div = op(BinaryOps.div);
+export const divStrict = op(BinaryOps.divStrict);
+export const floorDiv = op(BinaryOps.floorDiv);
+export const maximum = op(BinaryOps.maximum);
+export const maximumStrict = op(BinaryOps.maximumStrict);
+export const minimum = op(BinaryOps.minimum);
+export const minimumStrict = op(BinaryOps.minimumStrict);
+export const mod = op(BinaryOps.mod);
+export const modStrict = op(BinaryOps.modStrict);
+export const mul = op(BinaryOps.mul);
+export const mulStrict = op(BinaryOps.mulStrict);
+export const pow = op(BinaryOps.pow);
+export const powStrict = op(BinaryOps.powStrict);
+export const squaredDifference = op(BinaryOps.squaredDifference);
+export const squaredDifferenceStrict = op(BinaryOps.squaredDifferenceStrict);
+export const sub = op(BinaryOps.sub);
+export const subStrict = op(BinaryOps.subStrict);

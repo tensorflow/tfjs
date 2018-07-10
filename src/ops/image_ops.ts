@@ -22,9 +22,9 @@ import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class ImageOps {
+class ImageOps {
   /**
    * Bilinear resize a batch of 3D images to a new shape.
    *
@@ -38,7 +38,6 @@ export class ImageOps {
    *     `new_height / height`. Treat similarly the width dimension.
    */
   @doc({heading: 'Operations', subheading: 'Images', namespace: 'image'})
-  @operation
   static resizeBilinear<T extends Tensor3D|Tensor4D>(
       images: T|TensorLike, size: [number, number], alignCorners = false): T {
     const $images = convertToTensor(images, 'images', 'resizeBilinear');
@@ -92,7 +91,6 @@ export class ImageOps {
    *     `new_height / height`. Treat similarly the width dimension.
    */
   @doc({heading: 'Operations', subheading: 'Images', namespace: 'image'})
-  @operation
   static resizeNearestNeighbor<T extends Tensor3D|Tensor4D>(
       images: T|TensorLike, size: [number, number], alignCorners = false): T {
     const $images = convertToTensor(images, 'images', 'resizeNearestNeighbor');
@@ -138,3 +136,6 @@ export class ImageOps {
     return res as T;
   }
 }
+
+export const resizeBilinear = op(ImageOps.resizeBilinear);
+export const resizeNearestNeighbor = op(ImageOps.resizeNearestNeighbor);

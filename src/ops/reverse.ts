@@ -22,9 +22,9 @@ import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import {parseAxisParam} from './axis_util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class ReverseOps {
+class ReverseOps {
   /**
    * Reverses a `Tensor1D`.
    *
@@ -109,7 +109,6 @@ export class ReverseOps {
    *     range [-rank(x), rank(x)). Defaults to all axes.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static reverse<T extends Tensor>(x: T|TensorLike, axis?: number|number[]): T {
     const $x = convertToTensor(x, 'x', 'reverse');
 
@@ -125,3 +124,9 @@ export class ReverseOps {
     return res.reshapeAs($x);
   }
 }
+
+export const reverse = op(ReverseOps.reverse);
+export const reverse1d = op(ReverseOps.reverse1d);
+export const reverse2d = op(ReverseOps.reverse2d);
+export const reverse3d = op(ReverseOps.reverse3d);
+export const reverse4d = op(ReverseOps.reverse4d);

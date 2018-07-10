@@ -22,9 +22,9 @@ import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import * as axis_util from './axis_util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class TransposeOps {
+class TransposeOps {
   /**
    * Transposes the `Tensor`. Permutes the dimensions according to `perm`.
    *
@@ -43,7 +43,6 @@ export class TransposeOps {
    * @param perm The permutation of the dimensions of a.
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
-  @operation
   static transpose<T extends Tensor>(x: T|TensorLike, perm?: number[]): T {
     const $x = convertToTensor(x, 'x', 'transpose');
 
@@ -73,3 +72,5 @@ export class TransposeOps {
         backend => backend.transpose($x, perm), {$x}, der);
   }
 }
+
+export const transpose = op(TransposeOps.transpose);

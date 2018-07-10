@@ -22,9 +22,9 @@ import {assertTypesMatch, convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
 import {assertAndGetBroadcastShape} from './broadcast_util';
-import {operation} from './operation';
+import {op} from './operation';
 
-export class CompareOps {
+class CompareOps {
   /**
    * Returns the truth value of (a != b) element-wise. Supports broadcasting.
    *
@@ -41,7 +41,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static notEqual<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
       T {
     const $a = convertToTensor(a, 'a', 'notEqual');
@@ -60,7 +59,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same shape and dtype as
    *     `a`.
    */
-  @operation
   static notEqualStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'notEqualStrict');
     const $b = convertToTensor(b, 'b', 'notEqualStrict');
@@ -84,7 +82,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static less<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'less');
     const $b = convertToTensor(b, 'b', 'less');
@@ -102,7 +99,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same shape and dtype as
    *     `a`.
    */
-  @operation
   static lessStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'lessStrict');
     const $b = convertToTensor(b, 'b', 'lessStrict');
@@ -127,7 +123,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static equal<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
       T {
     const $a = convertToTensor(a, 'a', 'equal');
@@ -139,7 +134,6 @@ export class CompareOps {
         T;
   }
 
-  @operation
   static equalStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'equalStrict');
     const $b = convertToTensor(b, 'b', 'equalStrict');
@@ -164,7 +158,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static lessEqual<T extends Tensor>(
       a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'lessEqual');
@@ -176,7 +169,6 @@ export class CompareOps {
                backend => backend.lessEqual($a, $b), {$a, $b}) as T;
   }
 
-  @operation
   static lessEqualStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike):
       T {
     const $a = convertToTensor(a, 'a', 'lessEqualStrict');
@@ -202,7 +194,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static greater<T extends Tensor>(a: Tensor|TensorLike, b: Tensor|TensorLike):
       T {
     const $a = convertToTensor(a, 'a', 'greater');
@@ -214,7 +205,6 @@ export class CompareOps {
         T;
   }
 
-  @operation
   static greaterStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'greaterStrict');
     const $b = convertToTensor(b, 'b', 'greaterStrict');
@@ -239,7 +229,6 @@ export class CompareOps {
    * @param b The second input tensor. Must have the same dtype as `a`.
    */
   @doc({heading: 'Operations', subheading: 'Logical'})
-  @operation
   static greaterEqual<T extends Tensor>(
       a: Tensor|TensorLike, b: Tensor|TensorLike): T {
     const $a = convertToTensor(a, 'a', 'greaterEqual');
@@ -251,7 +240,6 @@ export class CompareOps {
                backend => backend.greaterEqual($a, $b), {$a, $b}) as T;
   }
 
-  @operation
   static greaterEqualStrict<T extends Tensor>(a: T|TensorLike, b: T|TensorLike):
       T {
     const $a = convertToTensor(a, 'a', 'greaterEqualStrict');
@@ -260,3 +248,16 @@ export class CompareOps {
     return $a.greaterEqual($b);
   }
 }
+
+export const equal = op(CompareOps.equal);
+export const equalStrict = op(CompareOps.equalStrict);
+export const greater = op(CompareOps.greater);
+export const greaterEqual = op(CompareOps.greaterEqual);
+export const greaterEqualStrict = op(CompareOps.greaterEqualStrict);
+export const greaterStrict = op(CompareOps.greaterStrict);
+export const less = op(CompareOps.less);
+export const lessEqual = op(CompareOps.lessEqual);
+export const lessEqualStrict = op(CompareOps.lessEqualStrict);
+export const lessStrict = op(CompareOps.lessStrict);
+export const notEqual = op(CompareOps.notEqual);
+export const notEqualStrict = op(CompareOps.notEqualStrict);

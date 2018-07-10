@@ -21,15 +21,15 @@ import {Tensor, Tensor1D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import {assert, isInt} from '../util';
-import {ArrayOps} from './array_ops';
+import {expandDims} from './array_ops';
 import {getUndoAxesPermutation, parseAxisParam} from './axis_util';
-import {BinaryOps} from './binary_ops';
-import {CompareOps} from './compare';
-import {LogicalOps} from './logical_ops';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
+import {maximum} from './binary_ops';
+import {greaterEqual} from './compare';
+import {logicalAnd, where} from './logical_ops';
+import {op} from './operation';
+import {ones, scalar, zerosLike} from './tensor_ops';
 
-export class SegmentOps {
+class SegmentOps {
   /**
    * Computes the sum along segments of a `Tensor`.
    *
@@ -47,7 +47,6 @@ export class SegmentOps {
    * @param numSegments The number of distinct `segmentIds`
    */
   @doc({heading: 'Operations', subheading: 'Segment'})
-  @operation
   static unsortedSegmentSum<T extends Tensor>(
       x: T|TensorLike, segmentIds: Tensor1D|TensorLike, numSegments: number):
       T {
@@ -91,7 +90,6 @@ export class SegmentOps {
    * @param axis The axis over which to select values. Defaults to 0.
    */
   @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  @operation
   static gather<T extends Tensor>(
       x: T|TensorLike, indices: Tensor1D|TensorLike, axis = 0): T {
     const $x = convertToTensor(x, 'x', 'gather');
@@ -164,17 +162,17 @@ function gatherDropNegatives<T extends Tensor>(x: T, indices: Tensor1D) {
   // Helper function for unsorted segment ops. Gathers params for
   // positive segment ids and gathers 0 for inputs with negative segment id.
   // Mirrors _GatherDropNegatives from tensorflow/python/ops/math_grad.py
-  const zeroClippedIndices =
-      BinaryOps.maximum(indices, TensorOps.zerosLike(indices));
+  const zeroClippedIndices = maximum(indices, zerosLike(indices));
   const gathered = SegmentOps.gather(x, zeroClippedIndices as Tensor1D);
-  let isPositive =
-      CompareOps.greaterEqual(indices, TensorOps.scalar(0, 'int32'));
+  let isPositive = greaterEqual(indices, scalar(0, 'int32'));
   const numIters = gathered.rank - isPositive.rank;
   for (let i = 0; i < numIters; ++i) {
-    isPositive = ArrayOps.expandDims(isPositive, i + 1);
+    isPositive = expandDims(isPositive, i + 1);
   }
-  isPositive =
-      LogicalOps.logicalAnd(isPositive, TensorOps.ones(gathered.shape, 'bool'));
-  const zeroSlice = TensorOps.zerosLike(gathered);
-  return LogicalOps.where(isPositive, gathered, zeroSlice);
+  isPositive = logicalAnd(isPositive, ones(gathered.shape, 'bool'));
+  const zeroSlice = zerosLike(gathered);
+  return where(isPositive, gathered, zeroSlice);
 }
+
+export const gather = op(SegmentOps.gather);
+export const unsortedSegmentSum = op(SegmentOps.unsortedSegmentSum);

@@ -24,8 +24,9 @@ import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, Tens
 import {ArrayData, DataType, Rank, ShapeMap} from '../types';
 // tslint:disable-next-line:max-line-length
 import {assertNonNull, assertShapesMatch, getTypedArrayFromDType, inferShape, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
+import {op} from './operation';
 
-export class TensorOps {
+class TensorOps {
   /**
    * Creates a `Tensor` with the provided values, shape and dtype.
    *
@@ -510,3 +511,20 @@ export class TensorOps {
     return TensorOps.tensor1d(values, dtype);
   }
 }
+
+export const fill = TensorOps.fill;
+export const linspace = TensorOps.linspace;
+export const ones = TensorOps.ones;
+export const range = TensorOps.range;
+export const scalar = TensorOps.scalar;
+export const tensor = TensorOps.tensor;
+export const tensor1d = TensorOps.tensor1d;
+export const tensor2d = TensorOps.tensor2d;
+export const tensor3d = TensorOps.tensor3d;
+export const tensor4d = TensorOps.tensor4d;
+export const tensor5d = TensorOps.tensor5d;
+export const tensor6d = TensorOps.tensor6d;
+export const zeros = TensorOps.zeros;
+
+export const onesLike = op(TensorOps.onesLike);
+export const zerosLike = op(TensorOps.zerosLike);

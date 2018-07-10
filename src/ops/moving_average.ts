@@ -20,12 +20,11 @@ import {Scalar, Tensor} from '../tensor';
 import {assertTypesMatch, convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
+import {pow} from './binary_ops';
+import {op} from './operation';
+import {scalar} from './tensor_ops';
 
-import {BinaryOps} from './binary_ops';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
-
-export class MovingAverageOps {
+class MovingAverageOps {
   /**
    * Compute the moving average of a variable.
    *
@@ -53,7 +52,6 @@ export class MovingAverageOps {
    * @returns The new moving average value.
    */
   @doc({heading: 'Operations', subheading: 'Moving Average'})
-  @operation
   static movingAverage<T extends Tensor>(
       v: T|TensorLike, x: T|TensorLike, decay: number|Scalar,
       step?: number|Scalar, zeroDebias = true): T {
@@ -65,7 +63,7 @@ export class MovingAverageOps {
     util.assert(
         util.arraysEqual($v.shape, $x.shape), 'Shape mismatch in v and x');
 
-    const one = TensorOps.scalar(1);
+    const one = scalar(1);
     const oneMinusDecay = one.sub($decay);
 
     let update = $x.sub($v).mul(oneMinusDecay);
@@ -73,8 +71,10 @@ export class MovingAverageOps {
       util.assert(
           step != null, 'When using zeroDebias: true, step is required.');
       const $step = convertToTensor(step, 'step', 'movingAverage');
-      update = update.div(one.sub(BinaryOps.pow($decay, $step)));
+      update = update.div(one.sub(pow($decay, $step)));
     }
     return $v.add(update);
   }
 }
+
+export const movingAverage = op(MovingAverageOps.movingAverage);

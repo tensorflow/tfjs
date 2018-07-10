@@ -15,7 +15,7 @@
  * =============================================================================
  */
 
-import {TensorOps} from '../ops/tensor_ops';
+import {tensor} from '../ops/tensor_ops';
 import {Tensor} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 import {TypedArray} from '../types';
@@ -92,14 +92,11 @@ export function decodeWeights(
     const size = sizeFromShape(shape);
     let value: Tensor;
     if (dtype === 'float32') {
-      value = TensorOps.tensor(
-          new Float32Array(buffer, offset, size), shape, 'float32');
+      value = tensor(new Float32Array(buffer, offset, size), shape, 'float32');
     } else if (dtype === 'int32') {
-      value = TensorOps.tensor(
-          new Int32Array(buffer, offset, size), shape, 'int32');
+      value = tensor(new Int32Array(buffer, offset, size), shape, 'int32');
     } else if (dtype === 'bool') {
-      value =
-          TensorOps.tensor(new Uint8Array(buffer, offset, size), shape, 'bool');
+      value = tensor(new Uint8Array(buffer, offset, size), shape, 'bool');
     } else {
       throw new Error(`Unsupported dtype in weight '${name}': ${dtype}`);
     }
@@ -143,11 +140,9 @@ export function concatenateTypedArrays(xs: TypedArray[]): ArrayBuffer {
 }
 
 // Use Buffer on Node.js instead of Blob/atob/btoa
-const useNodeBuffer = typeof Buffer !== 'undefined' && (
-  typeof Blob === 'undefined' ||
-  typeof atob === 'undefined' ||
-  typeof btoa === 'undefined'
-);
+const useNodeBuffer = typeof Buffer !== 'undefined' &&
+    (typeof Blob === 'undefined' || typeof atob === 'undefined' ||
+     typeof btoa === 'undefined');
 
 /**
  * Calculate the byte length of a JavaScript string.

@@ -20,10 +20,10 @@ import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as axis_util from './axis_util';
-import {operation} from './operation';
-import {TensorOps} from './tensor_ops';
+import {op} from './operation';
+import {scalar} from './tensor_ops';
 
-export class NormOps {
+class NormOps {
   /**
    * Computes the norm of scalar, vectors, and matrices.
    * This function can compute several different vector norms (the 1-norm, the
@@ -61,7 +61,6 @@ export class NormOps {
    * as the input.
    */
   @doc({heading: 'Operations', subheading: 'Matrices'})
-  @operation
   static norm(
       x: Tensor|TensorLike, ord: number|'euclidean'|'fro' = 'euclidean',
       axis: number|number[] = null, keepDims = false): Tensor {
@@ -102,8 +101,7 @@ function normImpl(
     }
     if (p === 'euclidean' || p === 2) {
       // norm(x, 2) = sum(abs(xi) ^ 2) ^ 1/2
-      return x.abs().pow(TensorOps.scalar(2, 'int32')).sum(axis).sqrt() as
-          Tensor;
+      return x.abs().pow(scalar(2, 'int32')).sum(axis).sqrt() as Tensor;
     }
 
     throw new Error(`Error in norm: invalid ord value: ${p}`);
@@ -130,3 +128,5 @@ function normImpl(
 
   throw new Error(`Error in norm: invalid axis: ${axis}`);
 }
+
+export const norm = op(NormOps.norm);
