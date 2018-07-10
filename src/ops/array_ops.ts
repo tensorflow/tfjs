@@ -911,6 +911,12 @@ class ArrayOps {
 
     util.assert(axis <= $x.rank, 'Axis must be <= rank of the tensor');
     const newShape = $x.shape.slice();
+    if (axis < 0) {
+      // Negative value is counted from the tail of rank.
+      util.assert(-($x.rank+1) <= axis,
+          `Axis must be in the interval [${-($x.rank+1)}, ${$x.rank}]`);
+      axis = $x.rank + axis + 1;
+    }
     newShape.splice(axis, 0, 1);
     return ArrayOps.reshape($x, newShape);
   }
