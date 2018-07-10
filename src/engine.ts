@@ -64,7 +64,7 @@ export interface TensorManager {
 
 interface ScopeState {
   track: Tensor[];
-  name?: string;
+  name: string;
 }
 
 export class Engine implements TensorManager {
@@ -347,7 +347,7 @@ export class Engine implements TensorManager {
 
     const oldScope = this.scopeStack.pop();
     this.activeScope = this.scopeStack.length === 0 ?
-        {track: []} :
+        {track: [], name: 'default scope'} :
         this.scopeStack[this.scopeStack.length - 1];
 
     // Track the current result in the parent scope.
