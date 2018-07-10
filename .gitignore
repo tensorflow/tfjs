@@ -1,0 +1,16 @@
+node_modules/
+demos/**/*.js
+demos/**/*.js.map
+scripts/**/*.js
+!demos/playground/frame.js
+coverage/
+package-lock.json
+npm-debug.log
+yarn-error.log
+.DS_Store
+dist/
+.idea/
+*.tgz
+**/*.pyc
+.yalc/
+yalc.lock
