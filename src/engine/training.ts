@@ -1308,7 +1308,7 @@ export class Model extends Container implements tfc.InferenceModel {
       batchSize?: number, epochs?: number, verbose?: number,
       callbacks?: BaseCallback[], valF?: (data: Tensor[]) => Scalar[],
       valIns?: Tensor[], shuffle?: boolean|string, callbackMetrics?: string[],
-      initialEpoch = 0, stepsPerEpoch?: number,
+      initialEpoch?: number, stepsPerEpoch?: number,
       validationSteps?: number): Promise<History> {
     if (batchSize == null) {
       batchSize = 32;
@@ -1363,6 +1363,7 @@ export class Model extends Container implements tfc.InferenceModel {
     callbackList.setModel(this);
     callbackList.setParams({
       epochs,
+      initialEpoch,
       steps: stepsPerEpoch,
       verbose,
       doValidation,
@@ -1789,8 +1790,8 @@ export class Model extends Container implements tfc.InferenceModel {
     const callbacks = standardizeCallbacks(config.callbacks);
     const out = await this.fitLoop(
         trainFunction, ins, outLabels, batchSize, config.epochs, config.verbose,
-        callbacks, valFunction, valIns, config.shuffle, callbackMetrics, null,
-        null, null);
+        callbacks, valFunction, valIns, config.shuffle, callbackMetrics, 
+        config.initialEpoch, null, null);
     if (needValidationDisposal) {
       valIns.forEach(tensor => tensor.dispose());
       inputs.forEach(tensor => tensor.dispose());
@@ -1798,7 +1799,6 @@ export class Model extends Container implements tfc.InferenceModel {
     }
     return out;
     // TODO(cais): Add value to outLabels.
-    // TODO(cais): Add initialEpoch.
   }
 
   /**

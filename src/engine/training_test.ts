@@ -505,6 +505,25 @@ describeMathCPUAndGPU('Model.fit', () => {
            });
      });
 
+  it('1 input, 1 output, dense, 1 weight, string optimizer, 2 epochs, ' +
+         '1 initialEpoch',
+     async done => {
+       createDenseModelAndData();
+
+       model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
+       model
+           .fit(inputs, targets, {
+             batchSize: numSamples, 
+             epochs: 2, 
+             initialEpoch: 1
+           })
+           .then(history => {
+             expect(history.epoch).toEqual([1]);
+             expect(history.history.loss.length).toEqual(1);
+             done();
+           });
+     });
+
   it('Training with Dropout layer', async done => {
     const inputSize = 2;
     const batchSize = 4;
