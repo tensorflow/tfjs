@@ -16,9 +16,10 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable:max-line-length
-import {TensorContainer, TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
+import * as tf from '@tensorflow/tfjs-core';
+import {TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
+
 import {Dataset} from '.';
 import {LazyIterator} from './iterators/lazy_iterator';
 // tslint:enable:max-line-length
@@ -54,10 +55,13 @@ export type TabularRecord = {
 };
 
 /**
- * JSON-like type representing a nested structure of primitives or Tensors
+ * JSON-like type representing a nested structure of primitives or Tensors.
  */
 export type DataElement = TensorContainer;
+
 export type DataElementObject = TensorContainerObject;
+
+export type DataElementArray = TensorContainerArray;
 
 export type PrimitiveOrT<T> = void|string|number|boolean|T;
 

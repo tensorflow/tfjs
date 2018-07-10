@@ -16,10 +16,11 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {TestDataset} from './dataset_test';
 
-tf.test_util.describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
+describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
   it('batches entries into column-oriented DatasetBatches', done => {
     const ds = new TestDataset();
     const bds = ds.batch(8);

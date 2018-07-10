@@ -6,7 +6,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "devDependencies": {
-    "@tensorflow/tfjs-core": "0.8.0",
+    "@tensorflow/tfjs-core": "0.12.0",
     "@types/fetch-mock": "^6.0.1",
     "@types/jasmine": "~2.5.53",
     "@types/seedrandom": "^2.4.27",
@@ -42,7 +42,7 @@
     "lint": "tslint -p . --type-check -t verbose"
   },
   "peerDependencies": {
-    "@tensorflow/tfjs-core": "0.8.0"
+    "@tensorflow/tfjs-core": "0.12.0"
   },
   "dependencies": {
     "seedrandom": "~2.4.3",

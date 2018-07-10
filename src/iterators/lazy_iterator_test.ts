@@ -17,8 +17,7 @@
  */
 
 // tslint:disable:max-line-length
-import {TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
-import {DataElement} from '../types';
+import {DataElement, DataElementArray, DataElementObject} from '../types';
 import {iteratorFromIncrementing, iteratorFromZipped, LazyIterator, ZipMismatchMode} from './lazy_iterator';
 import {iteratorFromConcatenated} from './lazy_iterator';
 import {iteratorFromConcatenatedFunction} from './lazy_iterator';
@@ -262,7 +261,7 @@ describe('LazyIterator', () => {
       // each result has the form [x, x * 10, 'string ' + x]
 
       for (const e of result) {
-        const ee = e as TensorContainerArray;
+        const ee = e as DataElementArray;
         expect(ee[1]).toEqual(ee[0] as number * 10);
         expect(ee[2]).toEqual('string ' + ee[0]);
       }
@@ -284,7 +283,7 @@ describe('LazyIterator', () => {
       // each result has the form {a: x, b: x * 10, c: 'string ' + x}
 
       for (const e of result) {
-        const ee = e as TensorContainerObject;
+        const ee = e as DataElementObject;
         expect(ee['b']).toEqual(ee['a'] as number * 10);
         expect(ee['c']).toEqual('string ' + ee['a']);
       }
@@ -312,10 +311,10 @@ describe('LazyIterator', () => {
       // ]
 
       for (const e of result) {
-        const ee = e as TensorContainerArray;
-        const aa = ee[0] as TensorContainerObject;
-        const bb = ee[1] as TensorContainerObject;
-        const cc = ee[2] as TensorContainerObject;
+        const ee = e as DataElementArray;
+        const aa = ee[0] as DataElementObject;
+        const bb = ee[1] as DataElementObject;
+        const cc = ee[2] as DataElementObject;
         expect(aa['constant']).toEqual(12);
         expect(bb['b']).toEqual(aa['a'] as number * 10);
         expect(bb['array']).toEqual([
@@ -400,14 +399,14 @@ describe('LazyIterator', () => {
       // [{a: x}, {b: x * 10}, {c: 'string ' + x}]
 
       const readStream =
-          zippedStream.map(e => naiveMerge(e as TensorContainerArray));
+          zippedStream.map(e => naiveMerge(e as DataElementArray));
       // Now each result has the form {a: x, b: x * 10, c: 'string ' + x}
 
       const result = await readStream.collectRemaining();
       expect(result.length).toEqual(100);
 
       for (const e of result) {
-        const ee = e as TensorContainerObject;
+        const ee = e as DataElementObject;
         expect(ee['b']).toEqual(ee['a'] as number * 10);
         expect(ee['c']).toEqual('string ' + ee['a']);
       }
