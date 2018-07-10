@@ -355,7 +355,7 @@ class SkipIterator<T> extends LazyIterator<T> {
       if (skipped.done) {
         return skipped;
       }
-      tf.dispose(skipped.value);
+      tf.dispose(skipped.value as {});
     }
     return this.upstream.next();
   }
@@ -467,7 +467,7 @@ class FilterIterator<T> extends QueueIterator<T> {
     if (this.predicate(item.value)) {
       this.outputQueue.push(item.value);
     } else {
-      tf.dispose(item.value);
+      tf.dispose(item.value as {});
     }
     return true;
   }
@@ -485,7 +485,7 @@ class MapIterator<I, O> extends QueueIterator<O> {
     if (item.done) {
       return false;
     }
-    const inputTensors = getTensorsInContainer(item.value);
+    const inputTensors = getTensorsInContainer(item.value as {});
     // Careful: the transform may mutate the item in place.
     // that's why we have to remember the input Tensors above, and then below
     // dispose only those that were not passed through to the output.
@@ -493,7 +493,7 @@ class MapIterator<I, O> extends QueueIterator<O> {
     // intermediate Tensors.  Here we are concerned only about the inputs.
     const mapped = this.transform(item.value);
 
-    const outputTensors = getTensorsInContainer(mapped);
+    const outputTensors = getTensorsInContainer(mapped as {});
 
     // TODO(soergel) faster intersection
     // TODO(soergel) move to tf.disposeExcept(in, out)?
