@@ -71,7 +71,8 @@ class ArrayOps {
   @doc({heading: 'Tensors', subheading: 'Creation'})
   static eye(
       numRows: number, numColumns?: number,
-      batchShape?: [number]|[number, number],
+      batchShape?: [number]|[number, number]|[number, number, number]
+          |[number, number, number, number],
       dtype: DataType = 'float32'): Tensor2D {
     if (numColumns == null) {
       numColumns = numRows;
@@ -92,8 +93,12 @@ class ArrayOps {
         return ArrayOps.tile(
             ArrayOps.expandDims(ArrayOps.expandDims(out, 0), 0),
             [batchShape[0], batchShape[1], 1, 1]);
+      } else if (batchShape.length === 3) {
+        return ArrayOps.tile(
+            ArrayOps.expandDims(ArrayOps.expandDims(
+                ArrayOps.expandDims(out, 0), 0), 0),
+            [batchShape[0], batchShape[1], batchShape[2], 1, 1]);
       } else {
-        // TODO(cais): Add support for length-3 once Tensor5D is available.
         throw new Error(
             `eye() currently supports only 1D and 2D ` +
             // tslint:disable-next-line:no-any
