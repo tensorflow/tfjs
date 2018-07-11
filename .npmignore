@@ -6,7 +6,8 @@ scripts/
 src/
 tools/
 coverage/
-node_modules/
+package/
+**/node_modules/
 karma.conf.js
 dist/demos/
 dist/**/*.js.map
