@@ -1,8 +1,10 @@
 .vscode/
+.rpt2_cache/
+package/
 scripts/
 src/
 coverage/
-node_modules/
+**/node_modules/
 karma.conf.js
 tensorflow-tfjs-*.tgz
 dist/**/*.js.map
