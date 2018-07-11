@@ -19,9 +19,6 @@ karma.conf.js
 dist/**/*.js.map
 dist/**/*_test.js
 dist/**/*_test.d.ts
-dist-es6/**/*.js.map
-dist-es6/**/*_test.js
-dist-es6/**/*_test.d.ts
 tslint.json
 tsconfig.json
 yarn.lock

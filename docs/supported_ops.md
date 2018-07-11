@@ -7,6 +7,7 @@
 |Add|add|
 |BiasAdd|add|
 |Div|div|
+|FloorDiv|floorDiv|
 |Maximum|maximum|
 |Minimum|minimum|
 |Mod|mod|
@@ -15,7 +16,6 @@
 |RealDiv|div|
 |SquaredDifference|squaredDifference|
 |Sub|sub|
-|Not mapped|floorDiv|
 
 
 ## Operations - Basic math
@@ -57,6 +57,7 @@
 |Square|square|
 |Tan|tan|
 |Tanh|tanh|
+|Not mapped|atan2|
 |Not mapped|leakyRelu|
 |Not mapped|logSigmoid|
 |Not mapped|prelu|
@@ -108,7 +109,6 @@
 |Not mapped|eye|
 |Not mapped|fromPixels|
 |Not mapped|print|
-|Not mapped|randomNormal|
 |Not mapped|scalar|
 |Not mapped|tensor|
 |Not mapped|tensor1d|
@@ -116,6 +116,7 @@
 |Not mapped|tensor3d|
 |Not mapped|tensor4d|
 |Not mapped|tensor5d|
+|Not mapped|tensor6d|
 |Not mapped|variable|
 
 
@@ -188,16 +189,15 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|All|all|
+|Any|any|
 |ArgMax|argMax|
 |ArgMin|argMin|
 |Max|max|
 |Mean|mean|
 |Min|min|
 |Sum|sum|
-|All||all|
-|Any||any|
 |Not mapped|logSumExp|
-|Not mapped|unsortedSegmentSum|
 
 
 ## Tensors - Slicing and Joining

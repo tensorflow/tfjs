@@ -13,6 +13,5 @@ package/
 bazel-*
 
 *.pyc
-dist-es6/
 .rpt2_cache/
 /compiled_api.js
