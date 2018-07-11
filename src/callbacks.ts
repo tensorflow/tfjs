@@ -11,7 +11,7 @@
 /* Original source: keras/callbacks.py */
 
 import {BaseCallback} from './base_callbacks';
-import {Container} from './engine/topology';
+import {Container} from './engine/container';
 import {Model} from './engine/training';
 
 export abstract class Callback extends BaseCallback {

@@ -29,8 +29,9 @@ import {printSummary} from '../utils/layer_utils';
 import {range} from '../utils/math_utils';
 import {LayerVariable} from '../variables';
 
+import {Container, ContainerConfig} from './container';
 import {execute, FeedDict} from './executor';
-import {Container, ContainerConfig, SymbolicTensor} from './topology';
+import {SymbolicTensor} from './topology';
 
 // tslint:enable:max-line-length
 

@@ -13,7 +13,7 @@
 import {add, div, keep, mul, Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {getScalar} from './backend/state';
-import {Container} from './engine/topology';
+import {Container} from './engine/container';
 import {Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import * as generic_utils from './utils/generic_utils';
 
