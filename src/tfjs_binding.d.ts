@@ -45,7 +45,7 @@ export interface TFJSBinding {
   // Executes an Op on the backend, returns an array of output TensorMetadata:
   executeOp(
       opName: string, opAttrs: TFEOpAttr[], inputTensorIds: number[],
-      numOutputs: number): TensorMetadata[]
+      numOutputs: number): TensorMetadata[];
 
   // TF Types
   TF_FLOAT: number;
