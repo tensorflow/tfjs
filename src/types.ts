@@ -16,18 +16,16 @@
  * =============================================================================
  */
 
-import * as tf from '@tensorflow/tfjs-core';
 // tslint:disable:max-line-length
-import {TensorContainer, TensorContainerObject} from '@tensorflow/tfjs-core/dist/types';
+import * as tf from '@tensorflow/tfjs-core';
+import {TensorContainer, TensorContainerArray, TensorContainerObject} from '@tensorflow/tfjs-core/dist/tensor_types';
+
 import {Dataset} from '.';
 import {LazyIterator} from './iterators/lazy_iterator';
 // tslint:enable:max-line-length
 
 // TODO(soergel): clean up the |string union type throughout when Tensor
 // supports string.
-
-// TODO(soergel): consider factoring out the Tensor dependency here, to allow
-// making a Datasets package not dependent on DLJS.
 
 /**
  * The value associated with a given key for a single element.
@@ -54,10 +52,13 @@ export type TabularRecord = {
 };
 
 /**
- * JSON-like type representing a nested structure of primitives or Tensors
+ * JSON-like type representing a nested structure of primitives or Tensors.
  */
 export type DataElement = TensorContainer;
+
 export type DataElementObject = TensorContainerObject;
+
+export type DataElementArray = TensorContainerArray;
 
 export type PrimitiveOrT<T> = void|string|number|boolean|T;
 
