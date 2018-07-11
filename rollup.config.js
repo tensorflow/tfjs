@@ -111,8 +111,9 @@ export default [
       }
     },
     external: [
-      '@tensorflow/tfjs-core', '@tensorflow/tfjs-layers',
-      '@tensorflow/tfjs-converter'
+      '@tensorflow/tfjs-core',
+      '@tensorflow/tfjs-layers',
+      '@tensorflow/tfjs-converter',
     ]
   })
 ];
