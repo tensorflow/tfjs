@@ -5,7 +5,7 @@ scripts/
 src/
 models/
 coverage/
-node_modules/
+**/node_modules/
 karma.conf.js
 *.tgz
 *.log
