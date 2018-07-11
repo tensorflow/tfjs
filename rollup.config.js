@@ -68,11 +68,22 @@ function config({plugins = [], output = {}, external = []}) {
 }
 
 export default [
-  config(
-      {output: {format: 'umd', name: 'tf', extend: true, file: 'dist/tf.js'}}),
+  config({
+    output: {
+      format: 'umd',
+      name: 'tf',
+      extend: true,
+      file: 'dist/tf.js',
+    }
+  }),
   config({
     plugins: [minify()],
-    output: {format: 'umd', name: 'tf', extend: true, file: 'dist/tf.min.js'}
+    output: {
+      format: 'umd',
+      name: 'tf',
+      extend: true,
+      file: 'dist/tf.min.js',
+    }
   }),
   config({
     plugins: [minify()],
