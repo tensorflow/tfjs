@@ -15,34 +15,29 @@
  * =============================================================================
  */
 import babel from 'rollup-plugin-babel';
-import node from 'rollup-plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
 import json from 'rollup-plugin-json';
+import node from 'rollup-plugin-node-resolve';
+import resolve from 'rollup-plugin-node-resolve';
+import typescript from 'rollup-plugin-typescript2';
 import uglify from 'rollup-plugin-uglify';
 
-const copyright =  `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
+const copyright =
+    `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
 
 function minify() {
-  return uglify({
-    output: {
-      preamble: copyright
-    }
-  });
+  return uglify({output: {preamble: copyright}});
 }
 
 function config({plugins = [], output = {}, external = []}) {
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
-      }),
+      typescript({tsconfigOverride: {compilerOptions: {module: 'ES2015'}}}),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ["crypto"],
+        ignore: ['crypto'],
         include: 'node_modules/**',
         namedExports: {
           './node_modules/seedrandom/index.js': ['alea'],
@@ -51,22 +46,19 @@ function config({plugins = [], output = {}, external = []}) {
         },
       }),
       json(),
-      // We need babel to compile the compiled_api.js generated proto file from es6 to es5.
-      babel(),
-      ...plugins
+      // We need babel to compile the compiled_api.js generated proto file from
+      // es6 to es5.
+      babel(), ...plugins
     ],
     output: {
       banner: copyright,
-      ...output
+      sourcemap: true,
+      ...output,
     },
-    external: [
-      'crypto',
-      ...external
-    ],
+    external: ['crypto', ...external],
     onwarn: warning => {
       let {code} = warning;
-      if (code === 'CIRCULAR_DEPENDENCY' ||
-          code === 'CIRCULAR' ||
+      if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR' ||
           code === 'THIS_IS_UNDEFINED') {
         return;
       }
@@ -76,29 +68,14 @@ function config({plugins = [], output = {}, external = []}) {
 }
 
 export default [
+  config(
+      {output: {format: 'umd', name: 'tf', extend: true, file: 'dist/tf.js'}}),
   config({
-    output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf.js'
-    }
+    plugins: [minify()],
+    output: {format: 'umd', name: 'tf', extend: true, file: 'dist/tf.min.js'}
   }),
   config({
-    plugins: [
-      minify()
-    ],
-    output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf.min.js'
-    }
-  }),
-  config({
-    plugins: [
-      minify()
-    ],
+    plugins: [minify()],
     output: {
       format: 'es',
       file: 'dist/tf.esm.js',
@@ -109,8 +86,7 @@ export default [
       }
     },
     external: [
-      '@tensorflow/tfjs-core',
-      '@tensorflow/tfjs-layers',
+      '@tensorflow/tfjs-core', '@tensorflow/tfjs-layers',
       '@tensorflow/tfjs-converter'
     ]
   })
