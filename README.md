@@ -4,11 +4,6 @@
 
 # TensorFlow.js Core API
 
-> NOTE: Building on the momentum of deeplearn.js, we have joined the TensorFlow
-family and we are starting a new ecosystem of libraries and tools for Machine
-Learning in Javascript, called [TensorFlow.js](https://js.tensorflow.org).
-This repo moved from `PAIR-code/deeplearnjs` to `tensorflow/tfjs-core`.
-
 A part of the TensorFlow.js ecosystem, this repo hosts `@tensorflow/tfjs-core`,
 the TensorFlow.js Core API, which provides low-level, hardware-accelerated
 linear algebra operations and an eager API for automatic differentiation.
