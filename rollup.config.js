@@ -26,14 +26,24 @@ const copyright =
     `// @tensorflow/tfjs Copyright ${(new Date).getFullYear()} Google`;
 
 function minify() {
-  return uglify({output: {preamble: copyright}});
+  return uglify({
+    output: {
+      preamble: copyright,
+    }
+  });
 }
 
 function config({plugins = [], output = {}, external = []}) {
   return {
     input: 'src/index.ts',
     plugins: [
-      typescript({tsconfigOverride: {compilerOptions: {module: 'ES2015'}}}),
+      typescript({
+        tsconfigOverride: {
+          compilerOptions: {
+            module: 'ES2015',
+          }
+        }
+      }),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
@@ -48,7 +58,8 @@ function config({plugins = [], output = {}, external = []}) {
       json(),
       // We need babel to compile the compiled_api.js generated proto file from
       // es6 to es5.
-      babel(), ...plugins
+      babel(),
+      ...plugins,
     ],
     output: {
       banner: copyright,
