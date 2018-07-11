@@ -16,7 +16,9 @@
 import {doc, io, Tensor} from '@tensorflow/tfjs-core';
 
 import {Constraint, MaxNorm, MaxNormConfig, MinMaxNorm, MinMaxNormConfig, NonNeg, UnitNorm, UnitNormConfig} from './constraints';
-import {ContainerConfig, Input, InputConfig, InputLayer, InputLayerConfig, Layer, LayerConfig, SymbolicTensor} from './engine/topology';
+import {ContainerConfig} from './engine/container';
+import {Input, InputConfig, InputLayer, InputLayerConfig} from './engine/input_layer';
+import {Layer, LayerConfig, SymbolicTensor} from './engine/topology';
 import {Model} from './engine/training';
 import {Constant, ConstantConfig, GlorotNormal, GlorotUniform, HeNormal, Identity, IdentityConfig, Initializer, LeCunNormal, Ones, Orthogonal, OrthogonalConfig, RandomNormal, RandomNormalConfig, RandomUniform, RandomUniformConfig, SeedOnlyInitializerConfig, TruncatedNormal, TruncatedNormalConfig, VarianceScaling, VarianceScalingConfig, Zeros} from './initializers';
 import {ELU, ELULayerConfig, LeakyReLU, LeakyReLULayerConfig, Softmax, SoftmaxLayerConfig, ThresholdedReLU, ThresholdedReLULayerConfig} from './layers/advanced_activations';

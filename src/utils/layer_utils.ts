@@ -8,7 +8,8 @@
  * =============================================================================
  */
 
-import {Container, Layer, Node} from '../engine/topology';
+import {Container} from '../engine/container';
+import {Layer, Node} from '../engine/topology';
 import {countParamsInWeights} from './variable_utils';
 
 /**
