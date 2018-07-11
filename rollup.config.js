@@ -15,9 +15,9 @@
  * =============================================================================
  */
 
+import commonjs from 'rollup-plugin-commonjs';
 import node from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
 import uglify from 'rollup-plugin-uglify';
 
 const PREAMBLE = `/**
@@ -37,40 +37,44 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
- function minify() {
-  return uglify({
-    output: {preamble: PREAMBLE}
-  });
+function minify() {
+  return uglify(
+      {output: {preamble: PREAMBLE}},
+  );
 }
 
- function config({plugins = [], output = {}}) {
+function config({plugins = [], output = {}}) {
   return {
     input: 'src/index.ts',
     plugins: [
       typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
+        tsconfigOverride: {
+          compilerOptions: {
+            module: 'ES2015',
+          }
+        },
       }),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
-        ignore: ["crypto"],
+        ignore: ['crypto'],
         include: 'node_modules/**',
         namedExports: {
-          './node_modules/seedrandom/index.js': ['alea']
+          './node_modules/seedrandom/index.js': ['alea'],
         },
       }),
       ...plugins
     ],
     output: {
       banner: PREAMBLE,
+      sourcemap: true,
       globals: {'@tensorflow/tfjs-core': 'tf'},
-      ...output
+      ...output,
     },
     external: ['crypto', '@tensorflow/tfjs-core'],
     onwarn: warning => {
       let {code} = warning;
-      if (code === 'CIRCULAR_DEPENDENCY' ||
-          code === 'CIRCULAR') {
+      if (code === 'CIRCULAR_DEPENDENCY' || code === 'CIRCULAR') {
         return;
       }
       console.warn('WARNING: ', warning.toString());
@@ -84,7 +88,7 @@ export default [
       format: 'umd',
       name: 'tf',
       extend: true,
-      file: 'dist/tf-layers.js'
+      file: 'dist/tf-layers.js',
     }
   }),
   config({
@@ -93,14 +97,14 @@ export default [
       format: 'umd',
       name: 'tf',
       extend: true,
-      file: 'dist/tf-layers.min.js'
+      file: 'dist/tf-layers.min.js',
     }
   }),
   config({
     plugins: [minify()],
     output: {
       format: 'es',
-      file: 'dist/tf-layers.esm.js'
+      file: 'dist/tf-layers.esm.js',
     }
   })
 ];
