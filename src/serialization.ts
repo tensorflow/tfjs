@@ -32,7 +32,9 @@
  */
 export type ConfigDictValue =
     boolean|number|string|null|ConfigDictArray|ConfigDict;
-export interface ConfigDict { [key: string]: ConfigDictValue; }
+export interface ConfigDict {
+  [key: string]: ConfigDictValue;
+}
 export interface ConfigDictArray extends Array<ConfigDictValue> {}
 
 /**
@@ -126,6 +128,7 @@ export class SerializationMap {
    * Registers the class as serializable.
    */
   static register<T extends Serializable>(cls: SerializableConstructor<T>) {
-    this.getMap().classNameMap[cls.className] = [cls, cls.fromConfig];
+    SerializationMap.getMap().classNameMap[cls.className] =
+        [cls, cls.fromConfig];
   }
 }
