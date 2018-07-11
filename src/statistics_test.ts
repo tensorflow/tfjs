@@ -16,33 +16,32 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 import {Dataset} from '.';
 import {TestDataset} from './dataset_test';
 import {computeDatasetStatistics, scaleTo01} from './statistics';
 import {TabularRecord} from './types';
 
-tf.test_util.describeWithFlags(
-    'makeDatasetStatistics', tf.test_util.ALL_ENVS, () => {
-      it('computes numeric min and max over numbers, arrays, and Tensors',
-         done => {
-           const ds = new TestDataset().skip(55) as Dataset<TabularRecord>;
-           computeDatasetStatistics(ds)
-               .then(stats => {
-                 expect(stats['number'].min).toEqual(55);
-                 expect(stats['number'].max).toEqual(99);
-                 // The TestDataset includes cubes of the indices
-                 expect(stats['numberArray'].min).toEqual(55);
-                 expect(stats['numberArray'].max).toEqual(99 * 99 * 99);
-                 expect(stats['Tensor'].min).toEqual(55);
-                 expect(stats['Tensor'].max).toEqual(99 * 99 * 99);
-               })
-               .then(done)
-               .catch(done.fail);
-         });
-    });
+describeWithFlags('makeDatasetStatistics', tf.test_util.ALL_ENVS, () => {
+  it('computes numeric min and max over numbers, arrays, and Tensors', done => {
+    const ds = new TestDataset().skip(55) as Dataset<TabularRecord>;
+    computeDatasetStatistics(ds)
+        .then(stats => {
+          expect(stats['number'].min).toEqual(55);
+          expect(stats['number'].max).toEqual(99);
+          // The TestDataset includes cubes of the indices
+          expect(stats['numberArray'].min).toEqual(55);
+          expect(stats['numberArray'].max).toEqual(99 * 99 * 99);
+          expect(stats['Tensor'].min).toEqual(55);
+          expect(stats['Tensor'].max).toEqual(99 * 99 * 99);
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+});
 
-tf.test_util.describeWithFlags('scaleTo01', tf.test_util.ALL_ENVS, () => {
+describeWithFlags('scaleTo01', tf.test_util.ALL_ENVS, () => {
   it('scales numeric data to the [0, 1] interval', done => {
     const ds = new TestDataset().skip(55) as Dataset<TabularRecord>;
     const scaleFn = scaleTo01(55, 99 * 99 * 99);

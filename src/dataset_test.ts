@@ -17,12 +17,13 @@
  */
 
 import * as tf from '@tensorflow/tfjs-core';
+import {describeWithFlags} from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 // tslint:disable:max-line-length
 import {Dataset, datasetFromElements, datasetFromIteratorFn, zip} from './dataset';
-// import {CPU_ENVS, describeWithFlags} from '../../test_util';
 import {iteratorFromFunction, iteratorFromItems, LazyIterator} from './iterators/lazy_iterator';
 import {DataElementObject, DatasetContainer} from './types';
+
 // tslint:enable:max-line-length
 
 class TestObjectIterator extends LazyIterator<{}> {
@@ -58,7 +59,7 @@ export class TestDataset extends Dataset<DataElementObject> {
   }
 }
 
-tf.test_util.describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
+describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
   it('can be concatenated', done => {
     const a = datasetFromElements([{'item': 1}, {'item': 2}, {'item': 3}]);
     const b = datasetFromElements([{'item': 4}, {'item': 5}, {'item': 6}]);
