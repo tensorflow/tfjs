@@ -19,6 +19,7 @@ import {Tensor, tensor4d, Tensor4D} from '@tensorflow/tfjs-core';
 import {DataFormat, PaddingMode} from '../common';
 import * as tfl from '../index';
 import {InitializerIdentifier} from '../initializers';
+import {convertPythonicToTs, convertTsToPythonic} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {depthwiseConv2d} from './convolutional_depthwise';
@@ -146,6 +147,19 @@ describeMathCPU('DepthwiseConv2D-Symbolic', () => {
     expect(() => depthwiseConvLayer.apply(symbolicInput))
         .toThrowError(
             /Inputs to DepthwiseConv2D should have rank 4\. Received .*/);
+  });
+
+  it('Serialization round trip', () => {
+    const layer = tfl.layers.depthwiseConv2d(
+        {kernelSize: 3, depthMultiplier: 4, activation: 'relu'});
+    const pythonicConfig = convertTsToPythonic(layer.getConfig());
+    // tslint:disable-next-line:no-any
+    const tsConfig = convertPythonicToTs(pythonicConfig) as any;
+    const layerPrime = tfl.layers.depthwiseConv2d(tsConfig);
+    const configPrime = layerPrime.getConfig();
+    expect(configPrime.kernelSize).toEqual([3, 3]);
+    expect(configPrime.depthMultiplier).toEqual(4);
+    expect(configPrime.activation).toEqual('relu');
   });
 });
 

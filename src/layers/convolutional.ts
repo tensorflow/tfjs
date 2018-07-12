@@ -387,6 +387,25 @@ export abstract class BaseConv extends Layer {
           `BaseConv expects config.kernelSize to be number or number[] with ` +
           `length 1 or 2, but received ${JSON.stringify(config.kernelSize)}.`);
   }
+
+  getConfig(): serialization.ConfigDict {
+    const config: serialization.ConfigDict = {
+      kernelSize: this.kernelSize,
+      strides: this.strides,
+      padding: this.padding,
+      dataFormat: this.dataFormat,
+      dilationRate: this.dilationRate,
+      activation: serializeActivation(this.activation),
+      useBias: this.useBias,
+      biasInitializer: serializeInitializer(this.biasInitializer),
+      biasRegularizer: serializeRegularizer(this.biasRegularizer),
+      activityRegularizer: serializeRegularizer(this.activityRegularizer),
+      biasConstraint: serializeConstraint(this.biasConstraint)
+    };
+    const baseConfig = super.getConfig();
+    Object.assign(config, baseConfig);
+    return config;
+  }
 }
 
 /**
@@ -495,23 +514,11 @@ export abstract class Conv extends BaseConv {
   }
 
   getConfig(): serialization.ConfigDict {
-    const config: serialization.ConfigDict = {
-      rank: this.rank,
+    const config = {
       filters: this.filters,
-      kernelSize: this.kernelSize,
-      strides: this.strides,
-      padding: this.padding,
-      dataFormat: this.dataFormat,
-      dilationRate: this.dilationRate,
-      activation: serializeActivation(this.activation),
-      useBias: this.useBias,
       kernelInitializer: serializeInitializer(this.kernelInitializer),
-      biasInitializer: serializeInitializer(this.biasInitializer),
       kernelRegularizer: serializeRegularizer(this.kernelRegularizer),
-      biasRegularizer: serializeRegularizer(this.biasRegularizer),
-      activityRegularizer: serializeRegularizer(this.activityRegularizer),
-      kernelConstraint: serializeConstraint(this.kernelConstraint),
-      biasConstraint: serializeConstraint(this.biasConstraint)
+      kernelConstraint: serializeConstraint(this.kernelConstraint)
     };
     const baseConfig = super.getConfig();
     Object.assign(config, baseConfig);

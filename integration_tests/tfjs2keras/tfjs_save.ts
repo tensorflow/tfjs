@@ -56,6 +56,26 @@ function exportCNNModel(exportPath: string): void {
   fs.writeFileSync(exportPath, model.toJSON());
 }
 
+function exportDepthwiseCNNModel(exportPath: string): void {
+  const model = tfl.sequential();
+
+  // Cover depthwise 2D convoluational layer.
+  model.add(tfl.layers.depthwiseConv2d({
+    depthMultiplier: 2,
+    kernelSize: [3, 3],
+    strides: [2, 2],
+    inputShape: [40, 40, 3],
+    padding: 'valid',
+  }));
+  model.add(tfl.layers.batchNormalization({}));
+  model.add(tfl.layers.activation({activation: 'relu'}));
+  model.add(tfl.layers.dropout({rate: 0.5}));
+  model.add(tfl.layers.maxPooling2d({poolSize: 2}));
+  model.add(tfl.layers.flatten({}));
+  model.add(tfl.layers.dense({units: 100, activation: 'softmax'}));
+  fs.writeFileSync(exportPath, model.toJSON());
+}
+
 // SimpleRNN with embedding.
 function exportSimpleRNNModel(exportPath: string): void {
   const model = tfl.sequential();
@@ -147,6 +167,7 @@ const testDataDir = process.argv[2];
 
 exportMLPModel(join(testDataDir, 'mlp.json'));
 exportCNNModel(join(testDataDir, 'cnn.json'));
+exportDepthwiseCNNModel(join(testDataDir, 'depthwise_cnn.json'));
 exportSimpleRNNModel(join(testDataDir, 'simple_rnn.json'));
 exportGRUModel(join(testDataDir, 'gru.json'));
 exportBidirectionalLSTMModel(join(testDataDir, 'bidirectional_lstm.json'));
