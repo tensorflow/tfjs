@@ -34,7 +34,7 @@ import {Node} from './types';
 
 describe('OperationExecutor', () => {
   let node: Node;
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {

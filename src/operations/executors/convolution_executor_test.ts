@@ -26,7 +26,7 @@ import {createNumberAttr, createNumericArrayAttr, createStrAttr, createTensorAtt
 describe('convolution', () => {
   let node: Node;
   const input = [tfc.scalar(1)];
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {

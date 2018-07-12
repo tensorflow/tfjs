@@ -30,7 +30,7 @@ describe('slice join', () => {
   const input3 = [tfc.scalar(3)];
   const input4 = [tfc.tensor1d([3])];
   const input5 = [tfc.tensor1d([3, 4])];
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   describe('multi-tensor ops', () => {
     beforeEach(() => {

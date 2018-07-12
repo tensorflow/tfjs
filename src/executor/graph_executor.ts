@@ -15,11 +15,12 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
 import {DataType, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
-import {NamedTensorMap, NamedTensorsMap, TensorInfo} from '../data/types';
-import {getNodeNameAndIndex, getTensor} from '../operations/executors/utils';
+// tslint:disable-next-line:max-line-length
+import {NamedTensorMap, NamedTensorsMap, TensorArrayMap, TensorInfo} from '../data/types';
+// tslint:disable-next-line:max-line-length
+import {getNodeNameAndIndex, getParamValue, getTensor} from '../operations/executors/utils';
 import {executeOp} from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
@@ -128,8 +129,9 @@ export class GraphExecutor {
   execute(inputs: NamedTensorsMap, outputs?: string|string[]): NamedTensorMap {
     this.checkInput(inputs);
     this.checkInputShapeAndType(inputs);
+    const tensorArrayMap: TensorArrayMap = {};
     const result = tidy(() => {
-      const context = new ExecutionContext(this._weightMap);
+      const context = new ExecutionContext(this._weightMap, tensorArrayMap);
       const tensors =
           this.compiledOrder.reduce<NamedTensorsMap>((map, node) => {
             map[node.name] = executeOp(node, map, context) as Tensor[];
@@ -153,7 +155,8 @@ export class GraphExecutor {
       Promise<NamedTensorMap> {
     this.checkInput(inputs);
     this.checkInputShapeAndType(inputs);
-    const context = new ExecutionContext(this._weightMap);
+    const tensorArrayMap: TensorArrayMap = {};
+    const context = new ExecutionContext(this._weightMap, tensorArrayMap);
     // Graph with control flow op requires runtime evaluation of the execution
     // order, while without control flow the execution order is pre-determined
     // in the compile method.
@@ -196,10 +199,20 @@ export class GraphExecutor {
     while (stack.length > 0) {
       const item = stack.pop();
       context.currentContext = item.contexts;
-
+      let nodeName = '';
+      // The tensor of the Enter op with isConstant set should be set
+      // in the parent scope, so it will be available as constant for the
+      // whole loop.
+      if (item.node.op === 'enter' &&
+          getParamValue('isConstant', item.node, tensorMap, context)) {
+        [nodeName] = getNodeNameAndIndex(item.node.name, context);
+      }
       const tensors = executeOp(item.node, tensorMap, context);
 
-      const [nodeName, ] = getNodeNameAndIndex(item.node.name, context);
+      if (!nodeName) {
+        [nodeName] = getNodeNameAndIndex(item.node.name, context);
+      }
+
       tensorMap[nodeName] = await tensors;
       item.node.children.forEach((childNode) => {
         const [nodeName, ] = getNodeNameAndIndex(childNode.name, context);

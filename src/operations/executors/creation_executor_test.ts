@@ -27,7 +27,7 @@ describe('creation', () => {
   let node: Node;
   const input1 = [tfc.tensor1d([1, 2, 3])];
   const input2 = [tfc.scalar(1)];
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {

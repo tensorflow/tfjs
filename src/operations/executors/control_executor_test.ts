@@ -15,17 +15,21 @@
  * =============================================================================
  */
 import * as tfc from '@tensorflow/tfjs-core';
+import {scalar, tensor1d, tensor2d} from '@tensorflow/tfjs-core';
+import {expectArraysClose} from '@tensorflow/tfjs-core/dist/test_util';
 
 import {ExecutionContext} from '../../executor/execution_context';
+import {TensorArray} from '../../executor/tensor_array';
 import {Node} from '../types';
 
 import {executeOp} from './control_executor';
-import {createTensorAttr} from './test_helper';
+// tslint:disable-next-line:max-line-length
+import {createBoolAttr, createDtypeAttr, createNumberAttrFromIndex, createNumericArrayAttr, createNumericArrayAttrFromIndex, createStrAttr, createTensorAttr} from './test_helper';
 
 describe('control', () => {
   let node: Node;
-  const input1 = [tfc.scalar(1)];
-  const context = new ExecutionContext({});
+  const input1 = [tfc.scalar(1, 'int32')];
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {
@@ -111,6 +115,178 @@ describe('control', () => {
 
         expect(await executeOp(node, {input1}, context)).toEqual(input1);
         expect(context.nextIteration).toHaveBeenCalled();
+      });
+    });
+
+    describe('tensorArray', () => {
+      it('should create new tensor on the context', async () => {
+        node.op = 'tensorArray';
+        node.params['name'] = createStrAttr('');
+        node.params['dtype'] = createDtypeAttr('int32');
+        node.params['elementShape'] = createNumericArrayAttr([10, 10]);
+        node.params['dynamicSize'] = createBoolAttr(false);
+        node.params['clearAfterRead'] = createBoolAttr(true);
+        node.params['identicalElementShapes'] = createBoolAttr(true);
+        node.inputNames = ['input1'];
+
+        const tensorId =
+            (await executeOp(node, {input1}, context))[0].dataSync()[0];
+        expect(context.getTensorArray(tensorId)).toBeDefined();
+      });
+    });
+
+    describe('tensorArrayWrite', () => {
+      it('should write the tensor to tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 5, [], true, false, true);
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArrayWrite';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.params['index'] = createNumberAttrFromIndex(1);
+        node.params['tensor'] = createTensorAttr(2);
+        node.inputNames = ['input2', 'input3', 'input1'];
+        const input2 = [scalar(tensorArray.id)];
+        const input3 = [scalar(0)];
+        await executeOp(node, {input1, input2, input3}, context);
+
+        expect(tensorArray.size()).toEqual(1);
+      });
+    });
+
+    describe('tensorArrayRead', () => {
+      it('should read the tensor from tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 5, [3], true, false, true);
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        tensorArray.write(0, input4);
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArrayRead';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.params['index'] = createNumberAttrFromIndex(1);
+        node.inputNames = ['input2', 'input3'];
+        const input2 = [scalar(tensorArray.id)];
+        const input3 = [scalar(0)];
+        const read = await executeOp(node, {input1, input2, input3}, context);
+
+        expectArraysClose(read[0], input4);
+      });
+    });
+
+    describe('tensorArrayGather', () => {
+      it('should gather the tensors from tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 5, [3], true, false, true);
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        const input5 = tensor1d([1, 1, 1], 'int32');
+        tensorArray.writeMany([0, 1], [input4, input5]);
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArrayGather';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.params['indices'] = createNumericArrayAttrFromIndex(1);
+        node.params['dtype'] = createDtypeAttr('int32');
+        node.inputNames = ['input2', 'input3'];
+        const input2 = [scalar(tensorArray.id)];
+        const input3 = [tensor1d([0, 1])];
+        const gather = await executeOp(node, {input2, input3}, context);
+        expect(gather.length).toEqual(1);
+        expect(gather[0].shape).toEqual([2, 3]);
+        expectArraysClose(
+            gather[0].dataSync(), new Int32Array([0, 0, 0, 1, 1, 1]));
+      });
+    });
+
+    describe('tensorArrayScatter', () => {
+      it('should scatter the tensor to tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 5, [3], true, false, true);
+        const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArrayScatter';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.params['indices'] = createNumericArrayAttrFromIndex(1);
+        node.params['tensor'] = createTensorAttr(2);
+        node.inputNames = ['input2', 'input3', 'input4'];
+        const input2 = [scalar(tensorArray.id)];
+        const input3 = [tensor1d([0, 1], 'int32')];
+        await executeOp(node, {input2, input3, input4}, context);
+
+        expect(tensorArray.size()).toEqual(2);
+      });
+    });
+
+    describe('tensorArraySplit', () => {
+      it('should split the tensor to tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 2, [3], true, false, true);
+        const input4 = [tensor2d([0, 0, 0, 1, 1, 1], [2, 3], 'int32')];
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArraySplit';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.params['tensor'] = createTensorAttr(1);
+        node.params['lengths'] = createNumericArrayAttrFromIndex(2);
+        node.inputNames = ['input2', 'input4', 'input3'];
+        const input2 = [scalar(tensorArray.id)];
+        const input3 = [tensor1d([1, 1], 'int32')];
+        await executeOp(node, {input2, input3, input4}, context);
+
+        expect(tensorArray.size()).toEqual(2);
+      });
+    });
+
+    describe('tensorArrayConcat', () => {
+      it('should concat the tensors from tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 5, [3], true, false, true);
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        const input5 = tensor1d([1, 1, 1], 'int32');
+        tensorArray.writeMany([0, 1], [input4, input5]);
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArrayConcat';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.params['dtype'] = createDtypeAttr('int32');
+        node.inputNames = ['input2'];
+        const input2 = [scalar(tensorArray.id)];
+        const concat = await executeOp(node, {input2}, context);
+        expect(concat.length).toEqual(1);
+        expect(concat[0].shape).toEqual([6]);
+        expectArraysClose(
+            concat[0].dataSync(), new Int32Array([0, 0, 0, 1, 1, 1]));
+      });
+    });
+
+    describe('tensorArraySize', () => {
+      it('should get the size of tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 5, [3], true, false, true);
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        const input5 = tensor1d([1, 1, 1], 'int32');
+        tensorArray.writeMany([0, 1], [input4, input5]);
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArraySize';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputNames = ['input2'];
+        const input2 = [scalar(tensorArray.id)];
+        const size = await executeOp(node, {input2}, context);
+        expect(size.length).toEqual(1);
+        expect(size[0].shape).toEqual([]);
+        expectArraysClose(size[0].dataSync(), new Int32Array([2]));
+      });
+    });
+
+    describe('tensorArrayClose', () => {
+      it('should close the tensorArray', async () => {
+        const tensorArray =
+            new TensorArray('', 'int32', 5, [3], true, false, true);
+        const input4 = tensor1d([0, 0, 0], 'int32');
+        const input5 = tensor1d([1, 1, 1], 'int32');
+        tensorArray.writeMany([0, 1], [input4, input5]);
+        context.addTensorArray(tensorArray);
+        node.op = 'tensorArrayClose';
+        node.params['tensorArrayId'] = createNumberAttrFromIndex(0);
+        node.inputNames = ['input2'];
+        const input2 = [scalar(tensorArray.id)];
+        await executeOp(node, {input2}, context);
+        expect(tensorArray.closed).toBeTruthy();
       });
     });
   });

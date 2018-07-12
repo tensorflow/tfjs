@@ -16,7 +16,9 @@
  */
 import {Tensor} from '@tensorflow/tfjs-core';
 
-import {NamedTensorsMap} from '../data/types';
+import {NamedTensorsMap, TensorArrayMap} from '../data/types';
+
+import {TensorArray} from './tensor_array';
 
 export interface ExecutionContextInfo {
   id: number;           // the unique id of the context info
@@ -40,7 +42,9 @@ export class ExecutionContext {
   private lastId = 0;
   private _currentContextIds: string[];
 
-  constructor(public weightMap: NamedTensorsMap) {
+  constructor(
+      public readonly weightMap: NamedTensorsMap,
+      public readonly tensorArrayMap: TensorArrayMap) {
     this.generateCurrentContextIds();
   }
 
@@ -150,5 +154,13 @@ export class ExecutionContext {
 
   getWeight(name: string): Tensor[] {
     return this.weightMap[name];
+  }
+
+  addTensorArray(tensorArray: TensorArray) {
+    this.tensorArrayMap[tensorArray.id] = tensorArray;
+  }
+
+  getTensorArray(id: number): TensorArray {
+    return this.tensorArrayMap[id];
   }
 }

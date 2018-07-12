@@ -28,14 +28,18 @@ export interface TensorWithState {
  * allows reading from the array and writing to the array.
  */
 export class TensorArray {
+  private static nextId = 0;
   private tensors: TensorWithState[] = [];
   private closed_ = false;
+  readonly id: number;
   constructor(
       public readonly name: string, public readonly dtype: DataType,
       private maxSize: number, private elementShape: number[],
       public readonly identicalElementShapes: boolean,
       public readonly dynamicSize: boolean,
-      public readonly clearAfterRead: boolean) {}
+      public readonly clearAfterRead: boolean) {
+    this.id = TensorArray.nextId++;
+  }
 
   get closed() {
     return this.closed_;
@@ -114,6 +118,12 @@ export class TensorArray {
           because the value dtype is ${
           tensor.dtype}, but TensorArray dtype is ${this.dtype}.`);
     }
+
+    // Set the shape for the first time write to unknow shape tensor array
+    if (this.size() === 0 && this.elementShape.length === 0) {
+      this.elementShape = tensor.shape;
+    }
+
     util.assertShapesMatch(
         this.elementShape, tensor.shape,
         `TensorArray ${this.name}: Could not write to TensorArray index ${
