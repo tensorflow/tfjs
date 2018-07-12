@@ -67,6 +67,9 @@ class Tfjs2KerasExportTest(tf.test.TestCase):
   def testCNN(self):
     self._loadAndTestModel('cnn.json')
 
+  def testDepthwiseCNN(self):
+    self._loadAndTestModel('depthwise_cnn.json')
+
   def testSimpleRNN(self):
     self._loadAndTestModel('simple_rnn.json')
 
