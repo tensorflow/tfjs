@@ -36,7 +36,7 @@ export const DTYPE_VALUE_SIZE_MAP: {[dtype: string]: number} = {
  * number of weight values stored in a number of paths.
  * See the documentation of `WeightManifestGroupConfig` below for more details.
  */
-export type WeightsManifestConfig = WeightsManifestGroupConfig[];
+export declare type WeightsManifestConfig = WeightsManifestGroupConfig[];
 
 /**
  * A weight-manifest group.
@@ -44,7 +44,7 @@ export type WeightsManifestConfig = WeightsManifestGroupConfig[];
  * Consists of an ordered list of weight values encoded in binary format,
  * stored in an ordered list of paths.
  */
-export interface WeightsManifestGroupConfig {
+export declare interface WeightsManifestGroupConfig {
   /**
    * An ordered list of paths.
    *
@@ -64,7 +64,7 @@ export interface WeightsManifestGroupConfig {
  *
  * The entry contains specification of a weight.
  */
-export interface WeightsManifestEntry {
+export declare interface WeightsManifestEntry {
   /**
    * Name of the weight, e.g., 'Dense_1/bias'
    */
@@ -122,7 +122,7 @@ export interface SaveResult {
   errors?: Array<{}|string>;
 }
 
-export interface ModelArtifactsInfo {
+export declare interface ModelArtifactsInfo {
   /**
    * Timestamp for when the model is saved.
    */
@@ -162,7 +162,7 @@ export interface ModelArtifactsInfo {
  * are optional, in order to support topology- or weights-only saving and
  * loading.
  */
-export interface ModelArtifacts {
+export declare interface ModelArtifacts {
   /**
    * Model topology.
    *

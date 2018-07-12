@@ -64,27 +64,27 @@ export interface RecursiveArray<T extends any> {
 }
 
 enum UpcastInt32AndMap {
-  float32 = 'float32',
-  int32 = 'int32',
-  bool = 'int32'
+  'float32' = 'float32',
+  'int32' = 'int32',
+  'bool' = 'int32'
 }
 
 enum UpcastBoolAndMap {
-  float32 = 'float32',
-  int32 = 'int32',
-  bool = 'bool'
+  'float32' = 'float32',
+  'int32' = 'int32',
+  'bool' = 'bool'
 }
 
 enum UpcastFloat32AndMap {
-  float32 = 'float32',
-  int32 = 'float32',
-  bool = 'float32'
+  'float32' = 'float32',
+  'int32' = 'float32',
+  'bool' = 'float32'
 }
 
 const upcastTypeMap = {
-  float32: UpcastFloat32AndMap,
-  int32: UpcastInt32AndMap,
-  bool: UpcastBoolAndMap
+  'float32': UpcastFloat32AndMap,
+  'int32': UpcastInt32AndMap,
+  'bool': UpcastBoolAndMap
 };
 
 export function upcastType(typeA: DataType, typeB: DataType): DataType {
