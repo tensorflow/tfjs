@@ -20,8 +20,25 @@ import * as fs from 'fs';
 import {dirname, join, resolve} from 'path';
 import {promisify} from 'util';
 
+const stat = promisify(fs.stat);
+const writeFile = promisify(fs.writeFile);
+const readFile = promisify(fs.readFile);
+const mkdir = promisify(fs.mkdir);
+
 // tslint:disable-next-line:max-line-length
 import {getModelArtifactsInfoForJSON, toArrayBuffer} from './io_utils';
+
+function doesNotExistHandler(name: string):
+    (e: NodeJS.ErrnoException) => never {
+  return e => {
+    switch (e.code) {
+      case 'ENOENT':
+        throw new Error(`${name} ${e.path} does not exist: loading failed`);
+      default:
+        throw e;
+    }
+  };
+}
 
 export class NodeFileSystem implements tfc.io.IOHandler {
   static readonly URL_SCHEME = 'file://';
@@ -81,7 +98,6 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         weightsManifest,
       };
       const modelJSONPath = join(this.path, this.MODEL_JSON_FILENAME);
-      const writeFile = promisify(fs.writeFile);
       await writeFile(modelJSONPath, JSON.stringify(modelJSON), 'utf8');
       await writeFile(
           weightsBinPath, Buffer.from(modelArtifacts.weightData), 'binary');
@@ -102,16 +118,11 @@ export class NodeFileSystem implements tfc.io.IOHandler {
       //   https://github.com/tensorflow/tfjs/issues/343
     }
 
-    const exists = promisify(fs.exists);
-    if (!await exists(this.path)) {
-      throw new Error(`Path ${this.path} does not exist: loading failed.`);
-    }
+    const info = await stat(this.path).catch(doesNotExistHandler('Path'));
 
     // `this.path` can be either a directory or a file. If it is a file, assume
     // it is model.json file.
-    const stat = promisify(fs.stat);
-    if ((await stat(this.path)).isFile()) {
-      const readFile = promisify(fs.readFile);
+    if (info.isFile()) {
       const modelJSON = JSON.parse(await readFile(this.path, 'utf8'));
 
       const modelArtifacts: tfc.io.ModelArtifacts = {
@@ -124,11 +135,8 @@ export class NodeFileSystem implements tfc.io.IOHandler {
         for (const group of modelJSON.weightsManifest) {
           for (const path of group.paths) {
             const weightFilePath = join(dirName, path);
-            if (!await exists(weightFilePath)) {
-              throw new Error(`Weight file ${
-                  weightFilePath} does not exist: loading failed`);
-            }
-            const buffer = await readFile(weightFilePath);
+            const buffer = await readFile(weightFilePath)
+              .catch(doesNotExistHandler('Weight file'));
             buffers.push(buffer);
           }
           weightSpecs.push(...group.weights);
@@ -149,18 +157,21 @@ export class NodeFileSystem implements tfc.io.IOHandler {
    * that the path exists as a directory.
    */
   protected async createOrVerifyDirectory() {
-    for (const path of Array.isArray(this.path) ? this.path : [this.path]) {
-      const exists = promisify(fs.exists);
-      const stat = promisify(fs.stat);
-      if (await exists(path)) {
-        if ((await stat(path)).isFile()) {
-          throw new Error(
+    const paths = Array.isArray(this.path) ? this.path : [this.path];
+    for (const path of paths) {
+      try {
+        await mkdir(path);
+      } catch (e) {
+        if (e.code === 'EEXIST') {
+          if ((await stat(path)).isFile()) {
+            throw new Error(
               `Path ${path} exists as a file. The path must be ` +
               `nonexistent or point to a directory.`);
+          }
+          // else continue, the directory exists
+        } else {
+          throw e;
         }
-      } else {
-        const mkdir = promisify(fs.mkdir);
-        await mkdir(path);
       }
     }
   }
