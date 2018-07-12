@@ -59,6 +59,10 @@ TFJSBackend::~TFJSBackend() {
   }
 }
 
+TFJSBackend* TFJSBackend::CreateTFJSBackend(napi_env env) {
+  return new TFJSBackend(env);
+}
+
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
   return tfe_handle_map_.insert(std::make_pair(next_tensor_id_++, tfe_handle))
       .first->first;
