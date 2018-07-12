@@ -27,7 +27,7 @@ describe('matrices', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.scalar(2)];
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {

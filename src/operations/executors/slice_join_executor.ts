@@ -65,9 +65,16 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
           getParamValue('beginMask', node, tensorMap, context) as number;
       const endMask =
           getParamValue('endMask', node, tensorMap, context) as number;
+      const tensor = getParamValue('x', node, tensorMap, context) as tfc.Tensor;
+      if (begin.length === 1 && tensor.shape.length > 1) {
+        for (let i = 1; i < tensor.shape.length; i++) {
+          begin.push(0);
+          end.push(tensor.shape[i]);
+          strides.push(strides[0]);
+        }
+      }
       return [tfc.stridedSlice(
-          getParamValue('x', node, tensorMap, context) as tfc.Tensor, begin,
-          end, strides, beginMask, endMask)];
+          tensor, begin, end, strides, beginMask, endMask)];
     }
     case 'stack': {
       return tfc.tidy(() => {

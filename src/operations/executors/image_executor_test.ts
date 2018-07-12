@@ -26,7 +26,7 @@ import {createBoolAttr, createNumericArrayAttr, createTensorAttr} from './test_h
 describe('image', () => {
   let node: Node;
   const input1 = [tfc.tensor1d([1])];
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {

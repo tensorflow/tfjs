@@ -15,6 +15,7 @@
  * =============================================================================
  */
 import {DataType, Tensor} from '@tensorflow/tfjs-core';
+import {TensorArray} from '../executor/tensor_array';
 
 export type NamedTensorMap = {
   [key: string]: Tensor
@@ -22,6 +23,10 @@ export type NamedTensorMap = {
 
 export type NamedTensorsMap = {
   [key: string]: Tensor[]
+};
+
+export type TensorArrayMap = {
+  [key: number]: TensorArray
 };
 
 export interface TensorInfo {

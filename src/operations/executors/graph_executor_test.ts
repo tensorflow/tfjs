@@ -29,7 +29,7 @@ describe('graph', () => {
   const input1 = [tfc.tensor1d([1])];
   const input2 = [tfc.tensor1d([1])];
   const input3 = [tfc.tensor3d([1, 1, 1, 2, 2, 2], [1, 2, 3])];
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {

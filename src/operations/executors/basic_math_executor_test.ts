@@ -25,7 +25,7 @@ import {createNumberAttr, createTensorAttr} from './test_helper';
 describe('basic math', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
-  const context = new ExecutionContext({});
+  const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
     node = {

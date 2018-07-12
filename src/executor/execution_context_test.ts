@@ -16,19 +16,35 @@
  */
 
 import {ExecutionContext} from './execution_context';
+import {TensorArray} from './tensor_array';
 
 let context: ExecutionContext;
+let tensorArray: TensorArray;
 describe('ExecutionContext', () => {
   beforeEach(() => {
-    context = new ExecutionContext({});
+    context = new ExecutionContext({}, {});
   });
-  afterEach(() => {});
 
   it('should initialize', () => {
     expect(context.currentContext).toEqual([
       {id: 0, frameName: '', iterationId: 0}
     ]);
     expect(context.currentContextId).toEqual('');
+  });
+
+  describe('tensor array', () => {
+    beforeEach(() => {
+      tensorArray = new TensorArray('', 'float32', 10, [1], true, true, true);
+    });
+
+    it('should be able to add tensor array', () => {
+      context.addTensorArray(tensorArray);
+      expect(context.getTensorArray(tensorArray.id)).toBe(tensorArray);
+    });
+
+    it('should be able to read tensor array', () => {
+      expect(context.getTensorArray(tensorArray.id)).toBeUndefined();
+    });
   });
 
   describe('enterFrame', () => {
