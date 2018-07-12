@@ -21,14 +21,14 @@ import {Tensor1D} from '../tensor';
 import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('multinomial', ALL_ENVS, () => {
-  const NUM_SAMPLES = 10000;
+  const NUM_SAMPLES = 1000;
   // Allowed Variance in probability (in %).
   const EPSILON = 0.05;
+  const SEED = 3.14;
 
   it('Flip a fair coin and check bounds', () => {
     const probs = tf.tensor1d([1, 1]);
-    const seed: number = null;
-    const result = tf.multinomial(probs, NUM_SAMPLES, seed);
+    const result = tf.multinomial(probs, NUM_SAMPLES, SEED);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -37,8 +37,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('Flip a two-sided coin with 100% of heads', () => {
     const logits = tf.tensor1d([1, -100]);
-    const seed: number = null;
-    const result = tf.multinomial(logits, NUM_SAMPLES, seed);
+    const result = tf.multinomial(logits, NUM_SAMPLES, SEED);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -47,8 +46,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('Flip a two-sided coin with 100% of tails', () => {
     const logits = tf.tensor1d([-100, 1]);
-    const seed: number = null;
-    const result = tf.multinomial(logits, NUM_SAMPLES, seed);
+    const result = tf.multinomial(logits, NUM_SAMPLES, SEED);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), 2);
@@ -57,15 +55,13 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('Flip a single-sided coin throws error', () => {
     const probs = tf.tensor1d([1]);
-    const seed: number = null;
-    expect(() => tf.multinomial(probs, NUM_SAMPLES, seed)).toThrowError();
+    expect(() => tf.multinomial(probs, NUM_SAMPLES, SEED)).toThrowError();
   });
 
   it('Flip a ten-sided coin and check bounds', () => {
     const numOutcomes = 10;
     const logits = tf.fill([numOutcomes], 1).as1D();
-    const seed: number = null;
-    const result = tf.multinomial(logits, NUM_SAMPLES, seed);
+    const result = tf.multinomial(logits, NUM_SAMPLES, SEED);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(result.dataSync(), numOutcomes);
@@ -76,8 +72,7 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
     const numOutcomes = 3;
     const logits = tf.tensor2d(
         [[-100, -100, 1], [-100, 1, -100], [1, -100, -100]], [3, numOutcomes]);
-    const seed: number = null;
-    const result = tf.multinomial(logits, NUM_SAMPLES, seed);
+    const result = tf.multinomial(logits, NUM_SAMPLES, SEED);
     expect(result.dtype).toBe('int32');
     expect(result.shape).toEqual([3, NUM_SAMPLES]);
 
@@ -99,26 +94,22 @@ describeWithFlags('multinomial', ALL_ENVS, () => {
 
   it('passing Tensor3D throws error', () => {
     const probs = tf.zeros([3, 2, 2]);
-    const seed: number = null;
     const normalized = true;
-    expect(() => tf.multinomial(probs as Tensor1D, 3, seed, normalized))
+    expect(() => tf.multinomial(probs as Tensor1D, 3, SEED, normalized))
         .toThrowError();
   });
 
   it('throws when passed a non-tensor', () => {
-    const seed: number = null;
     // tslint:disable-next-line:no-any
-    expect(() => tf.multinomial({} as any, NUM_SAMPLES, seed))
+    expect(() => tf.multinomial({} as any, NUM_SAMPLES, SEED))
         .toThrowError(
             /Argument 'logits' passed to 'multinomial' must be a Tensor/);
   });
 
   it('accepts a tensor-like object for logits (biased coin)', () => {
-    const numSamples = 10;
-    const seed: number = null;
-    const res = tf.multinomial([-10, 1], numSamples, seed);
+    const res = tf.multinomial([-100, 1], NUM_SAMPLES, SEED);
     expect(res.dtype).toBe('int32');
-    expect(res.shape).toEqual([numSamples]);
+    expect(res.shape).toEqual([NUM_SAMPLES]);
     const outcomeProbs = computeProbs(res.dataSync(), 2);
     expectArraysClose(outcomeProbs, [0, 1], EPSILON);
   });
