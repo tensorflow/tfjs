@@ -27,10 +27,7 @@ namespace tfnodejs {
 
 class TFJSBackend {
  public:
-  // TODO(kreeger): Move to a factory and make this private.
   static TFJSBackend* CreateTFJSBackend(napi_env env);
-  // TFJSBackend(napi_env env);
-  // ~TFJSBackend();
 
   // Creates a new Tensor with given shape and data and returns an ID that
   // refernces the new Tensor.
