@@ -107,6 +107,8 @@ export let TEST_ENVS: TestEnv[] = [
   }
 ];
 
+export const CPU_FACTORY = () => new MathBackendCPU();
+
 if (typeof __karma__ !== 'undefined') {
   const testEnv = parseKarmaFlags(__karma__.config.args);
   if (testEnv) {
