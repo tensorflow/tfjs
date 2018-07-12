@@ -28,8 +28,9 @@ namespace tfnodejs {
 class TFJSBackend {
  public:
   // TODO(kreeger): Move to a factory and make this private.
-  TFJSBackend(napi_env env);
-  ~TFJSBackend();
+  static TFJSBackend* CreateTFJSBackend(napi_env env);
+  // TFJSBackend(napi_env env);
+  // ~TFJSBackend();
 
   // Creates a new Tensor with given shape and data and returns an ID that
   // refernces the new Tensor.
@@ -59,6 +60,9 @@ class TFJSBackend {
                        napi_value num_output_values);
 
  private:
+  TFJSBackend(napi_env env);
+  ~TFJSBackend();
+
   int32_t InsertHandle(TFE_TensorHandle* tfe_handle);
 
   TFE_Context* tfe_context_;
