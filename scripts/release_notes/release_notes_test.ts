@@ -174,4 +174,29 @@ describe('getReleaseNotesDraft', () => {
       done();
     });
   });
+
+  it('Subject has no pull request number', done => {
+    const repoCommits: RepoCommits[] = [{
+      repo: {name: 'Core', identifier: 'tfjs-core'},
+      startVersion: '0.9.0',
+      endVersion: '0.10.0',
+      startCommit: 'fakecommit',
+      commits: [{
+        subject: 'Add tf.toPixels.',
+        body: `
+          tf.toPixels is the inverse of tf.fromPixels.
+          FEATURE
+        `,
+        authorEmail: 'test@google.com',
+        sha: 'sha1'
+      }]
+    }];
+
+    util.getReleaseNotesDraft(fakeOctokit, repoCommits).then(notes => {
+      expect(notes).toEqual([
+        '## Core (0.9.0 ==> 0.10.0)', '', '### Features', '- Add tf.toPixels.'
+      ].join('\n'));
+      done();
+    });
+  });
 });
