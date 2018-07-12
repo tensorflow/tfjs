@@ -361,7 +361,7 @@ describeMathCPU('Nested model topology', () => {
   });
 });
 
-describeMathCPU('model_from_json', () => {
+describeMathCPU('modelFromJSON', () => {
   it('reconstitutes pythonic json string', done => {
     /* python generating code
         a=Input(shape=(32,))
@@ -752,7 +752,6 @@ describeMathCPU('loadModel from URL', () => {
              expect(requestCredentials).toEqual([
                'include', 'include', 'include'
              ]);
-
              done();
            })
            .catch(err => {
@@ -906,8 +905,7 @@ describeMathCPU('loadModel from URL', () => {
     const model1 = tfl.sequential();
     model1.add(
         tfl.layers.dense({units: 3, inputShape: [4], activation: 'relu'}));
-    model1.add(
-        tfl.layers.dense({units: 1, inputShape: [4], activation: 'sigmoid'}));
+    model1.add(tfl.layers.dense({units: 1, activation: 'sigmoid'}));
     const json1 = model1.toJSON(null, false);
     const model2 =
         deserialize(convertPythonicToTs(json1) as serialization.ConfigDict) as
@@ -1086,6 +1084,47 @@ describeMathCPUAndGPU('Sequential', () => {
     const model = tfl.sequential({layers});
     model.pop();
     expect(model.layers).toEqual(layers.slice(0, 1));
+  });
+
+  it('Incompatible inputShape leads to warning', () => {
+    let recordedWarnMessage: string;
+    spyOn(console, 'warn')
+        .and.callFake((message: string) => recordedWarnMessage = message);
+    tfl.sequential({
+      layers: [
+        tfl.layers.reshape({targetShape: [8], inputShape: [2, 4]}),
+        tfl.layers.dense({units: 1, inputShape: [7]})
+      ]
+    });
+    expect(recordedWarnMessage)
+        .toMatch(/shape of the input tensor .*null,8.* not match .*null,7.*/);
+  });
+
+  it('Incompatible inputShape rank leads to warning', () => {
+    let recordedWarnMessage: string;
+    spyOn(console, 'warn')
+        .and.callFake((message: string) => recordedWarnMessage = message);
+    tfl.sequential({
+      layers: [
+        tfl.layers.reshape({targetShape: [8], inputShape: [2, 4]}),
+        tfl.layers.dense({units: 1, inputShape: [3, 7]})
+      ]
+    });
+    expect(recordedWarnMessage)
+        .toMatch(/rank .*null,8.* does not match .*null,3,7.* /);
+  });
+
+  it('Compatible inputShape leads to NO warning', () => {
+    let recordedWarnMessage: string;
+    spyOn(console, 'warn')
+        .and.callFake((message: string) => recordedWarnMessage = message);
+    tfl.sequential({
+      layers: [
+        tfl.layers.reshape({targetShape: [8], inputShape: [2, 4]}),
+        tfl.layers.dense({units: 1, inputShape: [8]})
+      ]
+    });
+    expect(recordedWarnMessage).toEqual(undefined);
   });
 
   it('throws error if try to pop too many layers', () => {

@@ -547,6 +547,56 @@ describeMathCPU('Layer', () => {
     it('is built.', () => {
       expect(secondLayer.built).toBe(true);
     });
+
+    it('Incompatible inputShape leads to warning', () => {
+      let recordedWarnMessage: string;
+      spyOn(console, 'warn')
+          .and.callFake((message: string) => recordedWarnMessage = message);
+      const layer1 = tfl.layers.dense({units: 2, inputShape: [5]});
+      layer1.apply(tfl.input({shape: [4]}));
+      expect(recordedWarnMessage)
+          .toMatch(/shape of the input tensor .*null,4.* not match .*null,5.*/);
+    });
+
+    it('Incompatible inputShape leads to warning: batchInputShape', () => {
+      let recordedWarnMessage: string;
+      spyOn(console, 'warn')
+          .and.callFake((message: string) => recordedWarnMessage = message);
+      const layer1 = tfl.layers.dense({units: 2, batchInputShape: [2, 3, 5]});
+      layer1.apply(tfl.input({shape: [4, 5]}));
+      expect(recordedWarnMessage)
+          .toMatch(
+              /shape of the input tensor .*null,4,5.* not match .*2,3,5.*/);
+    });
+
+    it('Incompatible inputShape rank leads to warning', () => {
+      let recordedWarnMessage: string;
+      spyOn(console, 'warn')
+          .and.callFake((message: string) => recordedWarnMessage = message);
+      const layer1 = tfl.layers.dense({units: 2, inputShape: [5]});
+      layer1.apply(tfl.input({shape: [4, 3]}));
+      expect(recordedWarnMessage)
+          .toMatch(/rank .*null,4,3.* does not match .*null,5.*/);
+    });
+
+    it('Incompatible inputShape rank leads to warning: batchInputShape', () => {
+      let recordedWarnMessage: string;
+      spyOn(console, 'warn')
+          .and.callFake((message: string) => recordedWarnMessage = message);
+      const layer1 = tfl.layers.dense({units: 2, batchInputShape: [3, 5]});
+      layer1.apply(tfl.input({shape: [4, 3]}));
+      expect(recordedWarnMessage)
+          .toMatch(/rank .*null,4,3.* does not match .*3,5.*/);
+    });
+
+    it('Compatible inputShape leads to NO warning', () => {
+      let recordedWarnMessage: string;
+      spyOn(console, 'warn')
+          .and.callFake((message: string) => recordedWarnMessage = message);
+      const layer1 = tfl.layers.dense({units: 2, inputShape: [5]});
+      layer1.apply(tfl.input({shape: [5]}));
+      expect(recordedWarnMessage).toEqual(undefined);
+    });
   });
 
   describe('apply() passed >1 SymbolicTensor', () => {

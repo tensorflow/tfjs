@@ -140,6 +140,10 @@ export class Embedding extends Layer {
     this.built = true;
   }
 
+  // Override warnOnIncompatibleInputShape because an embedding layer allows
+  // the input to have varying ranks.
+  protected warnOnIncompatibleInputShape(inputShape: Shape) {}
+
   computeMask(inputs: Tensor|Tensor[], mask?: Tensor|Tensor[]): Tensor {
     throw new NotImplementedError(
         'computeMask has not been implemented for Embedding yet');
