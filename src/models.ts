@@ -11,7 +11,7 @@
 /* Original source keras/models.py */
 
 // tslint:disable:max-line-length
-import {doc, io, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
+import {io, Scalar, serialization, Tensor} from '@tensorflow/tfjs-core';
 
 import {getUid} from './backend/state';
 import {History} from './base_callbacks';
@@ -291,7 +291,7 @@ export interface SequentialConfig {
  *  model.predict(tf.tensor2d([5], [1, 1])).print();
  * ```
  */
-@doc({heading: 'Models', subheading: 'Classes'})
+/** @doc {heading: 'Models', subheading: 'Classes'} */
 export class Sequential extends Model {
   static className = 'Sequential';
   private model: Model;
@@ -334,7 +334,7 @@ export class Sequential extends Model {
    *   tensors, or is already connected somewhere else (forbidden in
    *   `Sequential` models).
    */
-  @doc({heading: 'Models', subheading: 'Classes'})
+  /** @doc {heading: 'Models', subheading: 'Classes'} */
   add(layer: Layer): void {
     const isLayerModelInstance =
         layer instanceof Sequential || layer instanceof Model;
@@ -540,7 +540,7 @@ export class Sequential extends Model {
    *   `console.log`. For example, you can use `x => {}` to mute the printed
    *   messages in the console.
    */
-  @doc({heading: 'Models', subheading: 'Classes'})
+  /** @doc {heading: 'Models', subheading: 'Classes'} */
   summary(
       lineLength?: number, positions?: number[],
       printFn:
@@ -606,10 +606,12 @@ export class Sequential extends Model {
    *   and/or metrics). The attribute `model.metricsNames`
    *   will give you the display labels for the scalar outputs.
    */
-  @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   */
   evaluate(
-      x: Tensor|Tensor[], y: Tensor|Tensor[], config: ModelEvaluateConfig = {}):
-      Scalar|Scalar[] {
+      x: Tensor|Tensor[], y: Tensor|Tensor[],
+      config: ModelEvaluateConfig = {}): Scalar|Scalar[] {
     if (!this.built) {
       throw new RuntimeError(
           'The model needs to be compiled before being used.');
@@ -642,7 +644,9 @@ export class Sequential extends Model {
    *   and the model's expectations, or in case a stateful model receives a
    *   number of samples that is not a multiple of the batch size.
    */
-  @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [1]})
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [1]}
+   */
   predict(x: Tensor|Tensor[], config: ModelPredictConfig = {}): Tensor
       |Tensor[] {
     if (this.model == null) {
@@ -712,7 +716,9 @@ export class Sequential extends Model {
    * @exception ValueError In case of mismatch between the provided input data
    *   and what the model expects.
    */
-  @doc({heading: 'Models', subheading: 'Classes', configParamIndices: [2]})
+  /**
+   * @doc {heading: 'Models', subheading: 'Classes', configParamIndices: [2]}
+   */
   async fit(
       x: Tensor|Tensor[]|{[inputName: string]: Tensor},
       y: Tensor|Tensor[]|{[inputName: string]: Tensor},

@@ -9,11 +9,11 @@
  */
 
 // tslint:disable:max-line-length
-import {DataType, doc, eye, linalg, mul, ones, randomUniform, scalar, Scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
+import {DataType, eye, linalg, mul, ones, randomUniform, scalar, Scalar, serialization, Tensor, Tensor2D, tidy, truncatedNormal, zeros} from '@tensorflow/tfjs-core';
 
+import {getScalar} from './backend/state';
 import * as K from './backend/tfjs_backend';
 import {checkDataFormat, DataFormat} from './common';
-import {getScalar} from './backend/state';
 import {NotImplementedError, ValueError} from './errors';
 import {Shape} from './types';
 import {checkStringTypeUnionValue, deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
@@ -37,9 +37,10 @@ export function checkDistribution(value?: string): void {
 
 /**
  * Initializer base class.
+ *
+ * @doc {
+ *   heading: 'Initializers', subheading: 'Classes', namespace: 'initializers'}
  */
-@doc(
-    {heading: 'Initializers', subheading: 'Classes', namespace: 'initializers'})
 export abstract class Initializer extends serialization.Serializable {
   public fromConfigUsesCustomObjects(): boolean {
     return false;

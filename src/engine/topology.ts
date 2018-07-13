@@ -11,7 +11,7 @@
 /* Original source: keras/engine/topology.py */
 
 // tslint:disable:max-line-length
-import {DataType, doc, Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {DataType, Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {getNextUniqueTensorId, getUid} from '../backend/state';
 import {getScopedTensorName, getUniqueTensorName, nameScope} from '../common';
@@ -94,7 +94,7 @@ export class InputSpec {
  * They are most often encountered when building a graph of `Layer`s for a
  * a `Model` and the input data's shape, but not values are known.
  */
-@doc({heading: 'Models', 'subheading': 'Classes'})
+/** @doc {heading: 'Models', 'subheading': 'Classes'} */
 export class SymbolicTensor {
   /* A unique ID for the tensor to be able to differentiate tensors. */
   readonly id: number;
@@ -384,7 +384,7 @@ let _nextLayerID = 0;
  * Layers are constructed by using the functions under the
  * [tf.layers](#Layers-Basic) namespace.
  */
-@doc({heading: 'Layers', subheading: 'Classes', namespace: 'layers'})
+/** @doc {heading: 'Layers', subheading: 'Classes', namespace: 'layers'} */
 export abstract class Layer extends serialization.Serializable {
   /** Name for this layer. Must be unique within a model. */
   name: string;
@@ -887,10 +887,10 @@ export abstract class Layer extends serialization.Serializable {
    *   for its `build` call.
    */
   // Porting Note: This is a replacement for __call__() in Python.
-  @doc({heading: 'Models', 'subheading': 'Classes'})
+  /** @doc {heading: 'Models', 'subheading': 'Classes'} */
   apply(
-      inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[], kwargs?: Kwargs):
-      Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
+      inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
+      kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
     kwargs = kwargs || {};
 
     // Ensure inputs are all the same type.
