@@ -33,7 +33,8 @@ export class Environment {
   private globalEngine: Engine;
   private registry:
       {[id: string]: {backend: KernelBackend, priority: number}} = {};
-  private currentBackend: string;
+  backendName: string;
+  backend: KernelBackend;
 
   constructor(features?: Features) {
     if (features != null) {
@@ -56,28 +57,29 @@ export class Environment {
    * associated with it.  A new backend is initialized, even if it is of the
    * same type as the previous one.
    *
-   * @param backendType The backend type. Currently supports `'webgl'|'cpu'` in
-   *     the browser, and `'tensorflow'` under node.js (requires tfjs-node).
+   * @param backendName The name of the backend. Currently supports
+   *     `'webgl'|'cpu'` in the browser, and `'tensorflow'` under node.js
+   *     (requires tfjs-node).
    * @param safeMode Defaults to false. In safe mode, you are forced to
    *     construct tensors and call math operations inside a `tidy()` which
    *     will automatically clean up intermediate tensors.
    */
   @doc({heading: 'Environment'})
-  static setBackend(backendType: string, safeMode = false) {
-    if (!(backendType in ENV.registry)) {
-      throw new Error(`Backend type '${backendType}' not found in registry`);
+  static setBackend(backendName: string, safeMode = false) {
+    if (!(backendName in ENV.registry)) {
+      throw new Error(`Backend name '${backendName}' not found in registry`);
     }
-    ENV.initBackend(backendType, safeMode);
+    ENV.initBackend(backendName, safeMode);
   }
 
   /**
-   * Returns the current backend (cpu, webgl, etc). The backend is responsible
-   * for creating tensors and executing operations on those tensors.
+   * Returns the current backend name (cpu, webgl, etc). The backend is
+   * responsible for creating tensors and executing operations on those tensors.
    */
   @doc({heading: 'Environment'})
   static getBackend(): string {
     ENV.initDefaultBackend();
-    return ENV.currentBackend;
+    return ENV.backendName;
   }
 
   /**
@@ -248,7 +250,7 @@ export class Environment {
     this.features[feature] = value;
   }
 
-  getBestBackendType(): string {
+  private getBestBackendName(): string {
     if (Object.keys(this.registry).length === 0) {
       throw new Error('No backend found in registry.');
     }
@@ -276,7 +278,7 @@ export class Environment {
     } else if (feature === 'IS_TEST') {
       return false;
     } else if (feature === 'BACKEND') {
-      return this.getBestBackendType();
+      return this.getBestBackendName();
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') {
       const webGLVersion = this.get('WEBGL_VERSION');
 
@@ -327,10 +329,11 @@ export class Environment {
     }
   }
 
-  private initBackend(backendType?: string, safeMode = false) {
-    this.currentBackend = backendType;
-    const backend = this.findBackend(backendType);
-    this.globalEngine = new Engine(backend, safeMode, () => this.get('DEBUG'));
+  private initBackend(backendName?: string, safeMode = false) {
+    this.backendName = backendName;
+    this.backend = this.findBackend(backendName);
+    this.globalEngine =
+        new Engine(this.backend, safeMode, () => this.get('DEBUG'));
   }
 
   findBackend(name: string): KernelBackend {
@@ -348,8 +351,8 @@ export class Environment {
    * @param factory: The backend factory function. When called, it should
    * return an instance of the backend.
    * @param priority The priority of the backend (higher = more important).
-   *     In case multiple backends are registered, `getBestBackendType` uses
-   *     priority to find the best backend. Defaults to 1.
+   *     In case multiple backends are registered, the priority is used to find
+   *     the best backend. Defaults to 1.
    * @return False if the creation/registration failed. True otherwise.
    */
   registerBackend(
