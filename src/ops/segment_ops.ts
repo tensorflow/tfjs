@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor1D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
@@ -29,115 +28,110 @@ import {logicalAnd, where} from './logical_ops';
 import {op} from './operation';
 import {ones, scalar, zerosLike} from './tensor_ops';
 
-class SegmentOps {
-  /**
-   * Computes the sum along segments of a `Tensor`.
-   *
-   * ```js
-   * const x = tf.tensor1d([1, 2, 3, 4]);
-   * const segmentIds = tf.tensor1d([1, 2, 0, 1], 'int32');
-   * const numSegments = 3;
-   *
-   * x.unsortedSegmentSum(segmentIds, numSegments).print()
-   * //or tf.unsortedSegmentSum(x, segmentIds, numSegments)
-   * ```
-   * @param x The `Tensor` that will be summed along its segments
-   * @param segmentIds A `Tensor1D` whose rank is equal to the rank of `x`'s
-   * dimension along the `axis`.  Maps each element of `x` to a segment.
-   * @param numSegments The number of distinct `segmentIds`
-   */
-  @doc({heading: 'Operations', subheading: 'Segment'})
-  static unsortedSegmentSum<T extends Tensor>(
-      x: T|TensorLike, segmentIds: Tensor1D|TensorLike, numSegments: number):
-      T {
-    const $x = convertToTensor(x, 'x', 'unsortedSegmentSum');
-    const $segmentIds = convertToTensor(
-        segmentIds, 'segmentIds', 'unsortedSegmentSum', 'int32');
-    assert(
-        $segmentIds.dtype === 'int32', 'segmentIds must be of dtype `int32`');
-    assert(isInt(numSegments), 'numSegments must be of dtype int');
+/**
+ * Computes the sum along segments of a `Tensor`.
+ *
+ * ```js
+ * const x = tf.tensor1d([1, 2, 3, 4]);
+ * const segmentIds = tf.tensor1d([1, 2, 0, 1], 'int32');
+ * const numSegments = 3;
+ *
+ * x.unsortedSegmentSum(segmentIds, numSegments).print()
+ * //or tf.unsortedSegmentSum(x, segmentIds, numSegments)
+ * ```
+ * @param x The `Tensor` that will be summed along its segments
+ * @param segmentIds A `Tensor1D` whose rank is equal to the rank of `x`'s
+ * dimension along the `axis`.  Maps each element of `x` to a segment.
+ * @param numSegments The number of distinct `segmentIds`
+ */
+/** @doc {heading: 'Operations', subheading: 'Segment'} */
+function unsortedSegmentSum_<T extends Tensor>(
+    x: T|TensorLike, segmentIds: Tensor1D|TensorLike, numSegments: number): T {
+  const $x = convertToTensor(x, 'x', 'unsortedSegmentSum');
+  const $segmentIds =
+      convertToTensor(segmentIds, 'segmentIds', 'unsortedSegmentSum', 'int32');
+  assert($segmentIds.dtype === 'int32', 'segmentIds must be of dtype `int32`');
+  assert(isInt(numSegments), 'numSegments must be of dtype int');
 
-    const gradFunc = (dy: T) => {
-      const derX = () => {
-        return gatherDropNegatives(dy, $segmentIds);
-      };
-      return {$x: derX};
+  const gradFunc = (dy: T) => {
+    const derX = () => {
+      return gatherDropNegatives(dy, $segmentIds);
     };
-    return ENV.engine.runKernel(
-               backend =>
-                   backend.unsortedSegmentSum($x, $segmentIds, numSegments),
-               {$x}, gradFunc) as T;
-  }
+    return {$x: derX};
+  };
+  return ENV.engine.runKernel(
+             backend =>
+                 backend.unsortedSegmentSum($x, $segmentIds, numSegments),
+             {$x}, gradFunc) as T;
+}
 
-  /**
-   * Gather slices from tensor `x`'s axis `axis` according to `indices`.
-   *
-   * ```js
-   * const x = tf.tensor1d([1, 2, 3, 4]);
-   * const indices = tf.tensor1d([1, 3, 3], 'int32');
-   *
-   * x.gather(indices).print();
-   * ```
-   *
-   * ```js
-   * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
-   * const indices = tf.tensor1d([1, 1, 0], 'int32');
-   *
-   * x.gather(indices).print();
-   * ```
-   * @param x The input tensor whose slices to be gathered.
-   * @param indices The indices of the values to extract.
-   * @param axis The axis over which to select values. Defaults to 0.
-   */
-  @doc({heading: 'Tensors', subheading: 'Slicing and Joining'})
-  static gather<T extends Tensor>(
-      x: T|TensorLike, indices: Tensor1D|TensorLike, axis = 0): T {
-    const $x = convertToTensor(x, 'x', 'gather');
-    const $indices = convertToTensor(indices, 'indices', 'gather', 'int32');
+/**
+ * Gather slices from tensor `x`'s axis `axis` according to `indices`.
+ *
+ * ```js
+ * const x = tf.tensor1d([1, 2, 3, 4]);
+ * const indices = tf.tensor1d([1, 3, 3], 'int32');
+ *
+ * x.gather(indices).print();
+ * ```
+ *
+ * ```js
+ * const x = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+ * const indices = tf.tensor1d([1, 1, 0], 'int32');
+ *
+ * x.gather(indices).print();
+ * ```
+ * @param x The input tensor whose slices to be gathered.
+ * @param indices The indices of the values to extract.
+ * @param axis The axis over which to select values. Defaults to 0.
+ */
+/** @doc {heading: 'Tensors', subheading: 'Slicing and Joining'} */
+function gather_<T extends Tensor>(
+    x: T|TensorLike, indices: Tensor1D|TensorLike, axis = 0): T {
+  const $x = convertToTensor(x, 'x', 'gather');
+  const $indices = convertToTensor(indices, 'indices', 'gather', 'int32');
 
-    assert($indices.dtype === 'int32', 'Indices must be of dtype `int32`');
-    axis = parseAxisParam(axis, $x.shape)[0];
-    const grad = (dy: T) => {
-      const derX = () => {
-        if (axis === 0) {
-          return SegmentOps.unsortedSegmentSum(dy, $indices, $x.shape[axis]);
-        }
-        const paramsShape = $x.shape;
-        const indicesSize = $indices.size;
+  assert($indices.dtype === 'int32', 'Indices must be of dtype `int32`');
+  axis = parseAxisParam(axis, $x.shape)[0];
+  const grad = (dy: T) => {
+    const derX = () => {
+      if (axis === 0) {
+        return unsortedSegmentSum(dy, $indices, $x.shape[axis]);
+      }
+      const paramsShape = $x.shape;
+      const indicesSize = $indices.size;
 
-        const outerShape = paramsShape.slice(0, axis);
-        const outerDims = outerShape.length;
-        const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
-        const innerDims = innerShape.length;
+      const outerShape = paramsShape.slice(0, axis);
+      const outerDims = outerShape.length;
+      const innerShape = paramsShape.slice(axis, paramsShape.length).slice(1);
+      const innerDims = innerShape.length;
 
-        const outerAxesIndices = arrayRange(0, outerDims);
-        const innerAxesIndices =
-            arrayRange(outerDims + 1, outerDims + 1 + innerDims);
+      const outerAxesIndices = arrayRange(0, outerDims);
+      const innerAxesIndices =
+          arrayRange(outerDims + 1, outerDims + 1 + innerDims);
 
-        const valuesShape =
-            arrayConcat([outerShape, [indicesSize], innerShape]);
+      const valuesShape = arrayConcat([outerShape, [indicesSize], innerShape]);
 
-        const values = dy.reshape(valuesShape);
-        const reshapedIndices = $indices.reshape([indicesSize]);
+      const values = dy.reshape(valuesShape);
+      const reshapedIndices = $indices.reshape([indicesSize]);
 
-        const transposeDims =
-            arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
-        const valuesTranspose = values.transpose(transposeDims);
+      const transposeDims =
+          arrayConcat([[outerDims], outerAxesIndices, innerAxesIndices]);
+      const valuesTranspose = values.transpose(transposeDims);
 
-        let paramsGrad = SegmentOps.unsortedSegmentSum(
-            valuesTranspose, reshapedIndices as Tensor1D, $x.shape[axis]);
+      let paramsGrad = unsortedSegmentSum(
+          valuesTranspose, reshapedIndices as Tensor1D, $x.shape[axis]);
 
-        const invertTransposeDims = getUndoAxesPermutation(transposeDims);
-        paramsGrad = paramsGrad.transpose(invertTransposeDims);
+      const invertTransposeDims = getUndoAxesPermutation(transposeDims);
+      paramsGrad = paramsGrad.transpose(invertTransposeDims);
 
-        return paramsGrad as T;
-      };
-      return {$x: derX};
+      return paramsGrad as T;
     };
-    return ENV.engine.runKernel(
-               backend => backend.gather($x, $indices as Tensor1D, axis), {$x},
-               grad) as T;
-  }
+    return {$x: derX};
+  };
+  return ENV.engine.runKernel(
+             backend => backend.gather($x, $indices as Tensor1D, axis), {$x},
+             grad) as T;
 }
 
 function arrayRange(start: number, stop: number): number[] {
@@ -163,7 +157,7 @@ function gatherDropNegatives<T extends Tensor>(x: T, indices: Tensor1D) {
   // positive segment ids and gathers 0 for inputs with negative segment id.
   // Mirrors _GatherDropNegatives from tensorflow/python/ops/math_grad.py
   const zeroClippedIndices = maximum(indices, zerosLike(indices));
-  const gathered = SegmentOps.gather(x, zeroClippedIndices as Tensor1D);
+  const gathered = gather(x, zeroClippedIndices as Tensor1D);
   let isPositive = greaterEqual(indices, scalar(0, 'int32'));
   const numIters = gathered.rank - isPositive.rank;
   for (let i = 0; i < numIters; ++i) {
@@ -174,5 +168,5 @@ function gatherDropNegatives<T extends Tensor>(x: T, indices: Tensor1D) {
   return where(isPositive, gathered, zeroSlice);
 }
 
-export const gather = op(SegmentOps.gather);
-export const unsortedSegmentSum = op(SegmentOps.unsortedSegmentSum);
+export const gather = op({gather_});
+export const unsortedSegmentSum = op({unsortedSegmentSum_});

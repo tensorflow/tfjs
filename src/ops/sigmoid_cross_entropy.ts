@@ -15,58 +15,54 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import {op} from './operation';
 
-class SigmoidCrossEntropyOps {
+/**
+ * Computes sigmoid cross entropy given logits.
+ *
+ * @param labels A Tensor of the same type and shape as logits.
+ * @param logits A Tensor of type float32 or float64.
+ */
+/** @doc {heading: 'Operations', subheading: 'Cross Entropy'} */
+function sigmoidCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
+    labels: T|TensorLike, logits: T|TensorLike): O {
+  const $labels =
+      convertToTensor(labels, 'labels', 'sigmoidCrossEntropyWithLogits');
+  const $logits =
+      convertToTensor(logits, 'logits', 'sigmoidCrossEntropyWithLogits');
+  util.assertShapesMatch(
+      $labels.shape, $logits.shape, 'Error in sigmoidCrossEntropyWithLogits: ');
+
   /**
-   * Computes sigmoid cross entropy given logits.
+   * Implementation Details:
    *
-   * @param labels A Tensor of the same type and shape as logits.
-   * @param logits A Tensor of type float32 or float64.
+   * For brevity, let `x = logits`, `z = labels`.  The logistic loss is
+   *     z * -log(sigmoid(x)) + (1 - z) * -log(1 - sigmoid(x))
+   *   = z * -log(1 / (1 + exp(-x))) + (1 - z) * -log(exp(-x) / (1 + exp(-x)))
+   *   = z * log(1 + exp(-x)) + (1 - z) * (-log(exp(-x)) + log(1 + exp(-x)))
+   *   = z * log(1 + exp(-x)) + (1 - z) * (x + log(1 + exp(-x))
+   *   = (1 - z) * x + log(1 + exp(-x))
+   *   = x - x * z + log(1 + exp(-x))
+   *
+   *   For x < 0, to avoid overflow in exp(-x), we reformulate the above
+   *     x - x * z + log(1 + exp(-x))
+   *   = log(exp(x)) - x * z + log(1 + exp(-x))
+   *   = - x * z + log(1 + exp(x))
+   *
+   * Hence, to ensure stability and avoid overflow, the implementation uses
+   * this equivalent formulation:
+   *     max(x, 0) - x * z + log(1 + exp(-abs(x)))
    */
-  @doc({heading: 'Operations', subheading: 'Cross Entropy'})
-  static sigmoidCrossEntropyWithLogits<T extends Tensor, O extends Tensor>(
-      labels: T|TensorLike, logits: T|TensorLike): O {
-    const $labels =
-        convertToTensor(labels, 'labels', 'sigmoidCrossEntropyWithLogits');
-    const $logits =
-        convertToTensor(logits, 'logits', 'sigmoidCrossEntropyWithLogits');
-    util.assertShapesMatch(
-        $labels.shape, $logits.shape,
-        'Error in sigmoidCrossEntropyWithLogits: ');
+  const maxOutput = $logits.relu();
+  const outputXTarget = $logits.mul($labels);
+  const sigmoidOutput = $logits.abs().neg().exp().log1p();
 
-    /**
-     * Implementation Details:
-     *
-     * For brevity, let `x = logits`, `z = labels`.  The logistic loss is
-     *     z * -log(sigmoid(x)) + (1 - z) * -log(1 - sigmoid(x))
-     *   = z * -log(1 / (1 + exp(-x))) + (1 - z) * -log(exp(-x) / (1 + exp(-x)))
-     *   = z * log(1 + exp(-x)) + (1 - z) * (-log(exp(-x)) + log(1 + exp(-x)))
-     *   = z * log(1 + exp(-x)) + (1 - z) * (x + log(1 + exp(-x))
-     *   = (1 - z) * x + log(1 + exp(-x))
-     *   = x - x * z + log(1 + exp(-x))
-     *
-     *   For x < 0, to avoid overflow in exp(-x), we reformulate the above
-     *     x - x * z + log(1 + exp(-x))
-     *   = log(exp(x)) - x * z + log(1 + exp(-x))
-     *   = - x * z + log(1 + exp(x))
-     *
-     * Hence, to ensure stability and avoid overflow, the implementation uses
-     * this equivalent formulation:
-     *     max(x, 0) - x * z + log(1 + exp(-abs(x)))
-     */
-    const maxOutput = $logits.relu();
-    const outputXTarget = $logits.mul($labels);
-    const sigmoidOutput = $logits.abs().neg().exp().log1p();
-
-    return maxOutput.sub(outputXTarget).add(sigmoidOutput);
-  }
+  return maxOutput.sub(outputXTarget).add(sigmoidOutput);
 }
 
 export const sigmoidCrossEntropyWithLogits =
-    op(SigmoidCrossEntropyOps.sigmoidCrossEntropyWithLogits);
+    op({sigmoidCrossEntropyWithLogits_});

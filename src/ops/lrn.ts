@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
@@ -23,49 +22,47 @@ import {TensorLike} from '../types';
 import * as util from '../util';
 import {op} from './operation';
 
-class LRNOps {
-  /**
-   * Normalizes the activation of a local neighborhood across or within
-   * channels.
-   *
-   * @param x The input tensor. The 4-D input tensor is treated as a 3-D array
-   *     of 1D vectors (along the last dimension), and each vector is
-   *     normalized independently.
-   * @param depthRadius The number of adjacent channels in the 1D normalization
-   *     window.
-   * @param bias A constant bias term for the basis.
-   * @param alpha A scale factor, usually positive.
-   * @param beta An exponent.
-   */
-  @doc({heading: 'Operations', subheading: 'Normalization'})
-  static localResponseNormalization<T extends Tensor3D|Tensor4D>(
-      x: T|TensorLike, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
-    const $x = convertToTensor(x, 'x', 'localResponseNormalization');
-    util.assert(
-        $x.rank === 4 || $x.rank === 3,
-        `Error in localResponseNormalization: x must be rank 3 or 4 but got
+/**
+ * Normalizes the activation of a local neighborhood across or within
+ * channels.
+ *
+ * @param x The input tensor. The 4-D input tensor is treated as a 3-D array
+ *     of 1D vectors (along the last dimension), and each vector is
+ *     normalized independently.
+ * @param depthRadius The number of adjacent channels in the 1D normalization
+ *     window.
+ * @param bias A constant bias term for the basis.
+ * @param alpha A scale factor, usually positive.
+ * @param beta An exponent.
+ */
+/** @doc {heading: 'Operations', subheading: 'Normalization'} */
+function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
+    x: T|TensorLike, depthRadius = 5, bias = 1, alpha = 1, beta = 0.5): T {
+  const $x = convertToTensor(x, 'x', 'localResponseNormalization');
+  util.assert(
+      $x.rank === 4 || $x.rank === 3,
+      `Error in localResponseNormalization: x must be rank 3 or 4 but got
                rank ${$x.rank}.`);
-    util.assert(
-        util.isInt(depthRadius),
-        `Error in localResponseNormalization: depthRadius must be an integer
+  util.assert(
+      util.isInt(depthRadius),
+      `Error in localResponseNormalization: depthRadius must be an integer
                      but got depthRadius ${depthRadius}.`);
 
-    let x4D = $x as Tensor4D;
-    let reshapedTo4D = false;
-    if ($x.rank === 3) {
-      reshapedTo4D = true;
-      x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
-    }
-    const res = ENV.engine.runKernel(
-        backend => backend.localResponseNormalization4D(
-            x4D, depthRadius, bias, alpha, beta),
-        {x4D});
-    if (reshapedTo4D) {
-      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-    } else {
-      return res as T;
-    }
+  let x4D = $x as Tensor4D;
+  let reshapedTo4D = false;
+  if ($x.rank === 3) {
+    reshapedTo4D = true;
+    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+  }
+  const res = ENV.engine.runKernel(
+      backend => backend.localResponseNormalization4D(
+          x4D, depthRadius, bias, alpha, beta),
+      {x4D});
+  if (reshapedTo4D) {
+    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+  } else {
+    return res as T;
   }
 }
 
-export const localResponseNormalization = op(LRNOps.localResponseNormalization);
+export const localResponseNormalization = op({localResponseNormalization_});
