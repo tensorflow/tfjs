@@ -12,10 +12,10 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {abs, add, doc, Scalar, serialization, sum, Tensor, tidy, zeros} from '@tensorflow/tfjs-core';
+import {abs, add, Scalar, serialization, sum, Tensor, tidy, zeros} from '@tensorflow/tfjs-core';
 
-import * as K from './backend/tfjs_backend';
 import {getScalar} from './backend/state';
+import * as K from './backend/tfjs_backend';
 import {deserializeKerasObject, serializeKerasObject} from './utils/generic_utils';
 // tslint:enable:max-line-length
 
@@ -49,7 +49,7 @@ export interface L2Config {
  * Adds a term to the loss to penalize large weights:
  * loss += sum(l1 * abs(x)) + sum(l2 * x^2)
  */
-@doc({heading: 'Regularizers', namespace: 'regularizers'})
+/** @doc {heading: 'Regularizers', namespace: 'regularizers'} */
 export class L1L2 extends Regularizer {
   static className = 'L1L2';
 

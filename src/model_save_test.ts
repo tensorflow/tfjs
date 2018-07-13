@@ -12,8 +12,6 @@ import {io, randomNormal, Tensor} from '@tensorflow/tfjs-core';
 
 import * as tfl from './index';
 
-import {Dense} from './layers/core';
-import {Sequential} from './models';
 // tslint:disable-next-line:max-line-length
 import {describeMathCPUAndGPU, describeMathGPU, expectTensorsClose} from './utils/test_utils';
 
@@ -30,8 +28,8 @@ describeMathCPUAndGPU('Model.save', () => {
   class EmptyIOHandler implements io.IOHandler {}
 
   it('Saving all weights succeeds', async done => {
-    const model = new Sequential();
-    model.add(new Dense({units: 3, inputShape: [5]}));
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
     const handler = new IOHandlerForTest();
 
     model.save(handler)
@@ -57,9 +55,9 @@ describeMathCPUAndGPU('Model.save', () => {
   });
 
   it('Saving only trainable weights succeeds', async done => {
-    const model = new Sequential();
-    model.add(new Dense({units: 3, inputShape: [5], trainable: false}));
-    model.add(new Dense({units: 2}));
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 3, inputShape: [5], trainable: false}));
+    model.add(tfl.layers.dense({units: 2}));
     const handler = new IOHandlerForTest();
 
     model.save(handler, {trainableOnly: true})
@@ -87,8 +85,8 @@ describeMathCPUAndGPU('Model.save', () => {
   });
 
   it('Saving to a handler without save method fails', async done => {
-    const model = new Sequential();
-    model.add(new Dense({units: 3, inputShape: [5]}));
+    const model = tfl.sequential();
+    model.add(tfl.layers.dense({units: 3, inputShape: [5]}));
     const handler = new EmptyIOHandler();
     model.save(handler)
         .then(saveResult => {

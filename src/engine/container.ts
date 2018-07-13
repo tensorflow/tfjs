@@ -11,7 +11,7 @@
 /* Original source: keras/engine/topology.py */
 
 // tslint:disable:max-line-length
-import {doc, Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {getUid} from '../backend/state';
 import {NotImplementedError, RuntimeError, ValueError} from '../errors';
@@ -1033,12 +1033,14 @@ export abstract class Container extends Layer {
    * @returns A Layer instance.
    * @throws ValueError: In case of invalid layer name or index.
    */
-  @doc({
-    heading: 'Layers',
-    subheading: 'Classes',
-    namespace: 'layers',
-    subclasses: ['Model']
-  })
+  /**
+   * @doc {
+   *    heading: 'Layers',
+   *    subheading: 'Classes',
+   *    namespace: 'layers',
+   *    subclasses: ['Model']
+   * }
+   */
   getLayer(name?: string, index?: number): Layer {
     if (index != null) {
       if (this.layers.length <= index) {

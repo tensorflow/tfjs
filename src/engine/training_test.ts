@@ -512,11 +512,9 @@ describeMathCPUAndGPU('Model.fit', () => {
 
        model.compile({optimizer: 'SGD', loss: 'meanSquaredError'});
        model
-           .fit(inputs, targets, {
-             batchSize: numSamples, 
-             epochs: 2, 
-             initialEpoch: 1
-           })
+           .fit(
+               inputs, targets,
+               {batchSize: numSamples, epochs: 2, initialEpoch: 1})
            .then(history => {
              expect(history.epoch).toEqual([1]);
              expect(history.history.loss.length).toEqual(1);

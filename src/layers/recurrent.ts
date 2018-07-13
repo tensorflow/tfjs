@@ -14,7 +14,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {DataType, doc, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
+import {DataType, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {Activation, ActivationIdentifier, getActivation, serializeActivation} from '../activations';
 import {getScalar} from '../backend/state';
@@ -774,7 +774,7 @@ serialization.SerializationMap.register(RNN);
 // Porting Note: This is a common parent class for RNN cells. There is no
 // equivalent of this in PyKeras. Having a common parent class forgoes the
 //  need for `has_attr(cell, ...)` checks or its TypeScript equivalent.
-@doc({heading: 'Layers', subheading: 'Classes'})
+/** @doc {heading: 'Layers', subheading: 'Classes'} */
 export abstract class RNNCell extends Layer {
   /**
    * Size(s) of the states.

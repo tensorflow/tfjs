@@ -12,7 +12,7 @@
 
 // tslint:disable:max-line-length
 import * as tfc from '@tensorflow/tfjs-core';
-import {doc, serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
+import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
 import {epsilon} from './backend/common';
 import {getScalar} from './backend/state';
@@ -29,7 +29,13 @@ function calcL2Norms(w: Tensor, axis: number): Tensor {
 /**
  * Base class for functions that impose constraints on weight values
  */
-@doc({heading: 'Constraints', subheading: 'Classes', namespace: 'constraints'})
+/**
+ * @doc {
+ *   heading: 'Constraints',
+ *   subheading: 'Classes',
+ *   namespace: 'constraints'
+ * }
+ */
 export abstract class Constraint extends serialization.Serializable {
   /* Porting note: was __call__, apply chosen to match other similar choices */
   abstract apply(w: Tensor): Tensor;
