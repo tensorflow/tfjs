@@ -15,13 +15,12 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {variableGrads} from '../globals';
 import {Serializable} from '../serialization';
 import {Scalar, Variable} from '../tensor';
 import {NamedTensorMap} from '../tensor_types';
 
-@doc({heading: 'Training', subheading: 'Classes', namespace: 'train'})
+/** @doc {heading: 'Training', subheading: 'Classes', namespace: 'train'} */
 export abstract class Optimizer extends Serializable {
   /**
    * Executes `f()` and minimizes the scalar output of `f()` by computing
@@ -34,7 +33,7 @@ export abstract class Optimizer extends Serializable {
    * the trainable variables in varList will be updated by minimize. Defaults to
    * all trainable variables.
    */
-  @doc({heading: 'Training', subheading: 'Optimizers'})
+  /** @doc {heading: 'Training', subheading: 'Optimizers'} */
   minimize(f: () => Scalar, returnCost = false, varList?: Variable[]): Scalar
       |null {
     const {value, grads} = this.computeGradients(f, varList);

@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
@@ -26,138 +25,136 @@ import {op} from './operation';
 import {SELU_SCALE, SELU_SCALEALPHA} from './selu_util';
 import {scalar} from './tensor_ops';
 
-class ReluOps {
-  /**
-   * Computes rectified linear element-wise: `max(x, 0)`
-   *
-   * ```js
-   * const x = tf.tensor1d([-1, 2, -3, 4]);
-   *
-   * x.relu().print();  // or tf.relu(x)
-   * ```
-   * @param x The input tensor. If the dtype is `bool`, the output dtype will be
-   *     `int32'.
-   */
-  @doc({heading: 'Operations', subheading: 'Basic math'})
-  static relu<T extends Tensor>(x: T|TensorLike): T {
-    const $x = convertToTensor(x, 'x', 'relu');
+/**
+ * Computes rectified linear element-wise: `max(x, 0)`
+ *
+ * ```js
+ * const x = tf.tensor1d([-1, 2, -3, 4]);
+ *
+ * x.relu().print();  // or tf.relu(x)
+ * ```
+ * @param x The input tensor. If the dtype is `bool`, the output dtype will be
+ *     `int32'.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function relu_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'relu');
 
-    if ($x.dtype === 'bool') {
-      return $x.toInt();
-    }
-    const grad = (dy: T) => {
-      const stepRes = $x.step();
-      return {$x: () => dy.mulStrict(stepRes.toFloat())};
-    };
-    return ENV.engine.runKernel(backend => backend.relu($x), {$x}, grad);
+  if ($x.dtype === 'bool') {
+    return $x.toInt();
   }
-
-  /**
-   * Computes exponential linear element-wise, `x > 0 ? e ^ x - 1 : 0`
-   *
-   * ```js
-   * const x = tf.tensor1d([-1, 1, -3, 2]);
-   *
-   * x.elu().print();  // or tf.elu(x)
-   * ```
-   * @param x The input tensor.
-   */
-  @doc({heading: 'Operations', subheading: 'Basic math'})
-  static elu<T extends Tensor>(x: T|TensorLike): T {
-    const $x = convertToTensor(x, 'x', 'elu');
-
-    const grad = (dy: T, saved: Tensor[]) => {
-      const [y] = saved;
-      return {
-        $x: () =>
-            ENV.engine.runKernel(backend => backend.eluDer(dy, y), {dy, y}) as T
-      };
-    };
-    return ENV.engine.runKernel(
-        (backend, save) => save(backend.elu($x)), {$x}, grad);
-  }
-
-  /**
-   * Computes scaled exponential linear element-wise.
-   *
-   * `x < 0 ? scale * alpha * (exp(x) - 1) : x`
-   *
-   * ```js
-   * const x = tf.tensor1d([-1, 2, -3, 4]);
-   *
-   * x.selu().print();  // or tf.selu(x)
-   * ```
-   * @param x The input tensor.
-   */
-  @doc({heading: 'Operations', subheading: 'Basic math'})
-  static selu<T extends Tensor>(x: T|TensorLike): T {
-    const $x = convertToTensor(x, 'x', 'selu');
-
-    const grad = (dy: T) => {
-      return {
-        $x: () => {
-          const mask = $x.greater(scalar(0));
-
-          const scaleAlpha = scalar(SELU_SCALEALPHA);
-          const scale = scalar(SELU_SCALE);
-
-          const greaterThanZeroDer = dy.mul(scale);
-          const lessEqualZeroDer = dy.mul(scaleAlpha).mul($x.toFloat().exp());
-
-          return where(mask, greaterThanZeroDer, lessEqualZeroDer) as T;
-        }
-      };
-    };
-    return ENV.engine.runKernel(backend => backend.selu($x), {$x}, grad);
-  }
-
-  /**
-   * Computes leaky rectified linear element-wise.
-   *
-   * See
-   * [http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf](
-   *     http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf)
-   *
-   * ```js
-   * const x = tf.tensor1d([-1, 2, -3, 4]);
-   *
-   * x.leakyRelu(0.1).print();  // or tf.leakyRelu(x, 0.1)
-   * ```
-   * @param x The input tensor.
-   * @param alpha The scaling factor for negative values, defaults to 0.2.
-   */
-  @doc({heading: 'Operations', subheading: 'Basic math'})
-  static leakyRelu<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
-    const $x = convertToTensor(x, 'x', 'leakyRelu');
-    return maximum(scalar(alpha).mul($x), $x);
-  }
-
-  /**
-   * Computes leaky rectified linear element-wise with parametric alphas.
-   *
-   * `x < 0 ? alpha * x : f(x) = x`
-   *
-   * ```js
-   * const x = tf.tensor1d([-1, 2, -3, 4]);
-   * const alpha = tf.scalar(0.1);
-   *
-   * x.prelu(alpha).print();  // or tf.prelu(x, alpha)
-   * ```
-   * @param x The input tensor.
-   * @param alpha Scaling factor for negative values.
-   */
-  @doc({heading: 'Operations', subheading: 'Basic math'})
-  static prelu<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
-    const $x = convertToTensor(x, 'x', 'prelu');
-    const $alpha = convertToTensor(alpha, 'alpha', 'prelu');
-
-    const zero = scalar(0);
-    return maximum(zero, $x).add($alpha.mul(minimum(zero, $x)));
-  }
+  const grad = (dy: T) => {
+    const stepRes = $x.step();
+    return {$x: () => dy.mulStrict(stepRes.toFloat())};
+  };
+  return ENV.engine.runKernel(backend => backend.relu($x), {$x}, grad);
 }
 
-export const elu = op(ReluOps.elu);
-export const leakyRelu = op(ReluOps.leakyRelu);
-export const prelu = op(ReluOps.prelu);
-export const relu = op(ReluOps.relu);
-export const selu = op(ReluOps.selu);
+/**
+ * Computes exponential linear element-wise, `x > 0 ? e ^ x - 1 : 0`
+ *
+ * ```js
+ * const x = tf.tensor1d([-1, 1, -3, 2]);
+ *
+ * x.elu().print();  // or tf.elu(x)
+ * ```
+ * @param x The input tensor.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function elu_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'elu');
+
+  const grad = (dy: T, saved: Tensor[]) => {
+    const [y] = saved;
+    return {
+      $x: () =>
+          ENV.engine.runKernel(backend => backend.eluDer(dy, y), {dy, y}) as T
+    };
+  };
+  return ENV.engine.runKernel(
+      (backend, save) => save(backend.elu($x)), {$x}, grad);
+}
+
+/**
+ * Computes scaled exponential linear element-wise.
+ *
+ * `x < 0 ? scale * alpha * (exp(x) - 1) : x`
+ *
+ * ```js
+ * const x = tf.tensor1d([-1, 2, -3, 4]);
+ *
+ * x.selu().print();  // or tf.selu(x)
+ * ```
+ * @param x The input tensor.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function selu_<T extends Tensor>(x: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'selu');
+
+  const grad = (dy: T) => {
+    return {
+      $x: () => {
+        const mask = $x.greater(scalar(0));
+
+        const scaleAlpha = scalar(SELU_SCALEALPHA);
+        const scale = scalar(SELU_SCALE);
+
+        const greaterThanZeroDer = dy.mul(scale);
+        const lessEqualZeroDer = dy.mul(scaleAlpha).mul($x.toFloat().exp());
+
+        return where(mask, greaterThanZeroDer, lessEqualZeroDer) as T;
+      }
+    };
+  };
+  return ENV.engine.runKernel(backend => backend.selu($x), {$x}, grad);
+}
+
+/**
+ * Computes leaky rectified linear element-wise.
+ *
+ * See
+ * [http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf](
+ *     http://web.stanford.edu/~awni/papers/relu_hybrid_icml2013_final.pdf)
+ *
+ * ```js
+ * const x = tf.tensor1d([-1, 2, -3, 4]);
+ *
+ * x.leakyRelu(0.1).print();  // or tf.leakyRelu(x, 0.1)
+ * ```
+ * @param x The input tensor.
+ * @param alpha The scaling factor for negative values, defaults to 0.2.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function leakyRelu_<T extends Tensor>(x: T|TensorLike, alpha = 0.2): T {
+  const $x = convertToTensor(x, 'x', 'leakyRelu');
+  return maximum(scalar(alpha).mul($x), $x);
+}
+
+/**
+ * Computes leaky rectified linear element-wise with parametric alphas.
+ *
+ * `x < 0 ? alpha * x : f(x) = x`
+ *
+ * ```js
+ * const x = tf.tensor1d([-1, 2, -3, 4]);
+ * const alpha = tf.scalar(0.1);
+ *
+ * x.prelu(alpha).print();  // or tf.prelu(x, alpha)
+ * ```
+ * @param x The input tensor.
+ * @param alpha Scaling factor for negative values.
+ */
+/** @doc {heading: 'Operations', subheading: 'Basic math'} */
+function prelu_<T extends Tensor>(x: T|TensorLike, alpha: T|TensorLike): T {
+  const $x = convertToTensor(x, 'x', 'prelu');
+  const $alpha = convertToTensor(alpha, 'alpha', 'prelu');
+
+  const zero = scalar(0);
+  return maximum(zero, $x).add($alpha.mul(minimum(zero, $x)));
+}
+
+export const elu = op({elu_});
+export const leakyRelu = op({leakyRelu_});
+export const prelu = op({prelu_});
+export const relu = op({relu_});
+export const selu = op({selu_});

@@ -19,7 +19,6 @@
  * Linear algebra ops.
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {dispose} from '../globals';
 import {Tensor, Tensor1D, Tensor2D} from '../tensor';
@@ -30,127 +29,125 @@ import {op} from './operation';
 import {sum} from './reduction_ops';
 import {tensor2d} from './tensor_ops';
 
-class LinalgOps {
-  /**
-   * Gram-Schmidt orthogonalization.
-   *
-   * @param xs The vectors to be orthogonalized, in one of the two following
-   *   formats:
-   *   - An Array of `Tensor1D`.
-   *   - A `Tensor2D`, i.e., a matrix, in which case the vectors are the rows
-   *     of `xs`.
-   *   In each case, all the vectors must have the same length and the length
-   *   must be greater than or equal to the number of vectors.
-   * @returns The orthogonalized and normalized vectors or matrix.
-   *   Orthogonalization means that the vectors or the rows of the matrix
-   *   are orthogonal (zero inner products). Normalization means that each
-   *   vector or each row of the matrix has an L2 norm that equals `1`.
-   */
-  @doc({heading: 'Operations', subheading: 'Linear Algebra'})
-  static gramSchmidt(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
-    let inputIsTensor2D: boolean;
-    if (Array.isArray(xs)) {
-      inputIsTensor2D = false;
-      assert(
-          xs != null && xs.length > 0,
-          'Gram-Schmidt process: input must not be null, undefined, or empty');
-      const dim = xs[0].shape[0];
-      for (let i = 1; i < xs.length; ++i) {
-        assert(
-            xs[i].shape[0] === dim,
-            'Gram-Schmidt: Non-unique lengths found in the input vectors: ' +
-                `(${xs[i].shape[0]} vs. ${dim})`);
-      }
-    } else {
-      inputIsTensor2D = true;
-      xs = split(xs, xs.shape[0], 0).map(x => squeeze(x, [0]));
-    }
-
+/**
+ * Gram-Schmidt orthogonalization.
+ *
+ * @param xs The vectors to be orthogonalized, in one of the two following
+ *   formats:
+ *   - An Array of `Tensor1D`.
+ *   - A `Tensor2D`, i.e., a matrix, in which case the vectors are the rows
+ *     of `xs`.
+ *   In each case, all the vectors must have the same length and the length
+ *   must be greater than or equal to the number of vectors.
+ * @returns The orthogonalized and normalized vectors or matrix.
+ *   Orthogonalization means that the vectors or the rows of the matrix
+ *   are orthogonal (zero inner products). Normalization means that each
+ *   vector or each row of the matrix has an L2 norm that equals `1`.
+ */
+/** @doc {heading: 'Operations', subheading: 'Linear Algebra'} */
+function gramSchmidt_(xs: Tensor1D[]|Tensor2D): Tensor1D[]|Tensor2D {
+  let inputIsTensor2D: boolean;
+  if (Array.isArray(xs)) {
+    inputIsTensor2D = false;
     assert(
-        xs.length <= xs[0].shape[0],
-        `Gram-Schmidt: Number of vectors (${xs.length}) exceeds ` +
-            `number of dimensions (${xs[0].shape[0]}).`);
-
-    const ys: Tensor1D[] = [];
-    const xs1d = xs as Tensor1D[];
-    for (let i = 0; i < xs.length; ++i) {
-      ys.push(ENV.engine.tidy(() => {
-        let x = xs1d[i];
-        if (i > 0) {
-          for (let j = 0; j < i; ++j) {
-            const proj = sum(ys[j].mulStrict(x)).mul(ys[j]);
-            x = x.sub(proj);
-          }
-        }
-        return x.div(norm(x, 'euclidean'));
-      }));
+        xs != null && xs.length > 0,
+        'Gram-Schmidt process: input must not be null, undefined, or empty');
+    const dim = xs[0].shape[0];
+    for (let i = 1; i < xs.length; ++i) {
+      assert(
+          xs[i].shape[0] === dim,
+          'Gram-Schmidt: Non-unique lengths found in the input vectors: ' +
+              `(${xs[i].shape[0]} vs. ${dim})`);
     }
-
-    if (inputIsTensor2D) {
-      return stack(ys, 0) as Tensor2D;
-    } else {
-      return ys;
-    }
+  } else {
+    inputIsTensor2D = true;
+    xs = split(xs, xs.shape[0], 0).map(x => squeeze(x, [0]));
   }
 
-  /**
-   * Compute QR decomposition of m-by-n matrix using Householder transformation.
-   *
-   * Implementation based on
-   *   [http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf]
-   * (http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf)
-   *
-   * @param x The `Tensor` to be QR-decomposed. Must have rank >= 2. Suppose
-   *   it has the shape `[..., M, N]`.
-   * @param fullMatrices An optional boolean parameter. Defaults to `false`.
-   *   If `true`, compute full-sized `Q`. If `false` (the default),
-   *   compute only the leading N columns of `Q` and `R`.
-   * @return An `Array` of two `Tensor`s: `[Q, R]`. `Q` is a unitary matrix,
-   *   i.e., its columns all have unit norm and are mutually orthogonal.
-   *   If `M >= N`,
-   *     If `fullMatrices` is `false` (default),
-   *       - `Q` has a shape of `[..., M, N]`,
-   *       - `R` has a shape of `[..., N, N]`.
-   *     If `fullMatrices` is `true` (default),
-   *       - `Q` has a shape of `[..., M, M]`,
-   *       - `R` has a shape of `[..., M, N]`.
-   *   If `M < N`,
-   *     - `Q` has a shape of `[..., M, M]`,
-   *     - `R` has a shape of `[..., M, N]`.
-   * @throws If the rank of `x` is less than 2.
-   */
-  @doc({heading: 'Operations', subheading: 'Linear Algebra'})
-  static qr(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
-    if (x.rank < 2) {
-      throw new Error(
-          `qr() requires input tensor to have a rank >= 2, but got rank ${
-              x.rank}`);
-    } else if (x.rank === 2) {
-      return qr2d(x as Tensor2D, fullMatrices);
-    } else {
-      // Rank > 2.
-      // TODO(cais): Below we split the input into individual 2D tensors,
-      //   perform QR decomposition on them and then stack the results back
-      //   together. We should explore whether this can be parallelized.
-      const outerDimsProd = x.shape.slice(0, x.shape.length - 2)
-                                .reduce((value, prev) => value * prev);
-      const x2ds = unstack(
-          x.reshape([
-            outerDimsProd, x.shape[x.shape.length - 2],
-            x.shape[x.shape.length - 1]
-          ]),
-          0);
-      const q2ds: Tensor2D[] = [];
-      const r2ds: Tensor2D[] = [];
-      x2ds.forEach(x2d => {
-        const [q2d, r2d] = qr2d(x2d as Tensor2D, fullMatrices);
-        q2ds.push(q2d);
-        r2ds.push(r2d);
-      });
-      const q = stack(q2ds, 0).reshape(x.shape);
-      const r = stack(r2ds, 0).reshape(x.shape);
-      return [q, r];
-    }
+  assert(
+      xs.length <= xs[0].shape[0],
+      `Gram-Schmidt: Number of vectors (${xs.length}) exceeds ` +
+          `number of dimensions (${xs[0].shape[0]}).`);
+
+  const ys: Tensor1D[] = [];
+  const xs1d = xs as Tensor1D[];
+  for (let i = 0; i < xs.length; ++i) {
+    ys.push(ENV.engine.tidy(() => {
+      let x = xs1d[i];
+      if (i > 0) {
+        for (let j = 0; j < i; ++j) {
+          const proj = sum(ys[j].mulStrict(x)).mul(ys[j]);
+          x = x.sub(proj);
+        }
+      }
+      return x.div(norm(x, 'euclidean'));
+    }));
+  }
+
+  if (inputIsTensor2D) {
+    return stack(ys, 0) as Tensor2D;
+  } else {
+    return ys;
+  }
+}
+
+/**
+ * Compute QR decomposition of m-by-n matrix using Householder transformation.
+ *
+ * Implementation based on
+ *   [http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf]
+ * (http://www.cs.cornell.edu/~bindel/class/cs6210-f09/lec18.pdf)
+ *
+ * @param x The `Tensor` to be QR-decomposed. Must have rank >= 2. Suppose
+ *   it has the shape `[..., M, N]`.
+ * @param fullMatrices An optional boolean parameter. Defaults to `false`.
+ *   If `true`, compute full-sized `Q`. If `false` (the default),
+ *   compute only the leading N columns of `Q` and `R`.
+ * @return An `Array` of two `Tensor`s: `[Q, R]`. `Q` is a unitary matrix,
+ *   i.e., its columns all have unit norm and are mutually orthogonal.
+ *   If `M >= N`,
+ *     If `fullMatrices` is `false` (default),
+ *       - `Q` has a shape of `[..., M, N]`,
+ *       - `R` has a shape of `[..., N, N]`.
+ *     If `fullMatrices` is `true` (default),
+ *       - `Q` has a shape of `[..., M, M]`,
+ *       - `R` has a shape of `[..., M, N]`.
+ *   If `M < N`,
+ *     - `Q` has a shape of `[..., M, M]`,
+ *     - `R` has a shape of `[..., M, N]`.
+ * @throws If the rank of `x` is less than 2.
+ */
+/** @doc {heading: 'Operations', subheading: 'Linear Algebra'} */
+function qr_(x: Tensor, fullMatrices = false): [Tensor, Tensor] {
+  if (x.rank < 2) {
+    throw new Error(
+        `qr() requires input tensor to have a rank >= 2, but got rank ${
+            x.rank}`);
+  } else if (x.rank === 2) {
+    return qr2d(x as Tensor2D, fullMatrices);
+  } else {
+    // Rank > 2.
+    // TODO(cais): Below we split the input into individual 2D tensors,
+    //   perform QR decomposition on them and then stack the results back
+    //   together. We should explore whether this can be parallelized.
+    const outerDimsProd = x.shape.slice(0, x.shape.length - 2)
+                              .reduce((value, prev) => value * prev);
+    const x2ds = unstack(
+        x.reshape([
+          outerDimsProd, x.shape[x.shape.length - 2],
+          x.shape[x.shape.length - 1]
+        ]),
+        0);
+    const q2ds: Tensor2D[] = [];
+    const r2ds: Tensor2D[] = [];
+    x2ds.forEach(x2d => {
+      const [q2d, r2d] = qr2d(x2d as Tensor2D, fullMatrices);
+      q2ds.push(q2d);
+      r2ds.push(r2d);
+    });
+    const q = stack(q2ds, 0).reshape(x.shape);
+    const r = stack(r2ds, 0).reshape(x.shape);
+    return [q, r];
   }
 }
 
@@ -230,5 +227,5 @@ function qr2d(x: Tensor2D, fullMatrices = false): [Tensor2D, Tensor2D] {
   }) as [Tensor2D, Tensor2D];
 }
 
-export const gramSchmidt = op(LinalgOps.gramSchmidt);
-export const qr = op(LinalgOps.qr);
+export const gramSchmidt = op({gramSchmidt_});
+export const qr = op({qr_});

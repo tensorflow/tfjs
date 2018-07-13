@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {ENV} from '../environment';
 import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
@@ -24,125 +23,122 @@ import * as util from '../util';
 import * as conv_util from './conv_util';
 import {op} from './operation';
 
-class PoolOps {
-  /**
-   * Computes the 2D max pooling of an image.
-   *
-   * @param x The input tensor, of rank 4 or rank 3 of shape
-   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
-   * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
-   * @param pad The type of padding algorithm.
-   *    - `same` and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - `valid`: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *    - For more info, see this guide:
-   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
-   *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
-   * @param dimRoundingMode The rounding mode used when computing output
-   *     dimensions if pad is a number. If none is provided, it will not round
-   *     and error if the output is of fractional size.
-   */
-  @doc({heading: 'Operations', subheading: 'Convolution'})
-  static maxPool<T extends Tensor3D|Tensor4D>(
-      x: T|TensorLike, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    const $x = convertToTensor(x, 'x', 'maxPool');
+/**
+ * Computes the 2D max pooling of an image.
+ *
+ * @param x The input tensor, of rank 4 or rank 3 of shape
+ *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+ * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
+ * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
+ * @param pad The type of padding algorithm.
+ *    - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *    - `valid`: output will be smaller than input if filter is larger
+ *       than 1x1.
+ *    - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+ *          https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ * @param dimRoundingMode The rounding mode used when computing output
+ *     dimensions if pad is a number. If none is provided, it will not round
+ *     and error if the output is of fractional size.
+ */
+/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+function maxPool_<T extends Tensor3D|Tensor4D>(
+    x: T|TensorLike, filterSize: [number, number]|number,
+    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+  const $x = convertToTensor(x, 'x', 'maxPool');
 
-    let x4D = $x as Tensor4D;
-    let reshapedTo4D = false;
-    if ($x.rank === 3) {
-      reshapedTo4D = true;
-      x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
-    }
+  let x4D = $x as Tensor4D;
+  let reshapedTo4D = false;
+  if ($x.rank === 3) {
+    reshapedTo4D = true;
+    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+  }
+  util.assert(
+      x4D.rank === 4,
+      `Error in maxPool: input must be rank 4 but got rank ${x4D.rank}.`);
+  if (dimRoundingMode != null) {
     util.assert(
-        x4D.rank === 4,
-        `Error in maxPool: input must be rank 4 but got rank ${x4D.rank}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in maxPool: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
-    const convInfo = conv_util.computePool2DInfo(
-        x4D.shape, filterSize, strides, pad, dimRoundingMode);
+        util.isInt(pad as number),
+        `Error in maxPool: pad must be an integer when using, ` +
+            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
+  }
+  const convInfo = conv_util.computePool2DInfo(
+      x4D.shape, filterSize, strides, pad, dimRoundingMode);
 
-    const grad = (dy: Tensor4D, saved: Tensor[]) => {
-      const [y4D] = saved;
-      return {
-        x: () =>
-            maxPoolBackprop(dy, x4D, y4D as Tensor4D, filterSize, strides, pad)
-      };
+  const grad = (dy: Tensor4D, saved: Tensor[]) => {
+    const [y4D] = saved;
+    return {
+      x: () =>
+          maxPoolBackprop(dy, x4D, y4D as Tensor4D, filterSize, strides, pad)
     };
+  };
 
-    const res = ENV.engine.runKernel(
-        (backend, save) => save(backend.maxPool(x4D, convInfo)), {x: x4D},
-        grad);
-    if (reshapedTo4D) {
-      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-    }
-    return res as T;
+  const res = ENV.engine.runKernel(
+      (backend, save) => save(backend.maxPool(x4D, convInfo)), {x: x4D}, grad);
+  if (reshapedTo4D) {
+    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
+  }
+  return res as T;
+}
+
+/**
+ * Computes the 2D average pooling of an image.
+ *
+ * @param x The input tensor, of rank 4 or rank 3 of shape
+ *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
+ * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
+ * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
+ * @param pad The type of padding algorithm:
+ *    - `same` and stride 1: output will be of same size as input,
+ *       regardless of filter size.
+ *    - `valid`: output will be smaller than input if filter is larger
+ *       than 1x1.
+ *    - For more info, see this guide:
+ *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
+ *         https://www.tensorflow.org/api_guides/python/nn#Convolution)
+ * @param dimRoundingMode The rounding mode used when computing output
+ *     dimensions if pad is a number. If none is provided, it will not round
+ *     and error if the output is of fractional size.
+ */
+/** @doc {heading: 'Operations', subheading: 'Convolution'} */
+function avgPool_<T extends Tensor3D|Tensor4D>(
+    x: T|TensorLike, filterSize: [number, number]|number,
+    strides: [number, number]|number, pad: 'valid'|'same'|number,
+    dimRoundingMode?: 'floor'|'round'|'ceil'): T {
+  const $x = convertToTensor(x, 'x', 'avgPool');
+  util.assert(
+      $x.dtype === 'float32', 'The input dtype to avgPool must be float32');
+  let x4D = $x as Tensor4D;
+  let reshapedTo4D = false;
+  if ($x.rank === 3) {
+    reshapedTo4D = true;
+    x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
+  }
+  util.assert(
+      x4D.rank === 4,
+      `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
+  if (dimRoundingMode != null) {
+    util.assert(
+        util.isInt(pad as number),
+        `Error in avgPool: pad must be an integer when using, ` +
+            `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
   }
 
-  /**
-   * Computes the 2D average pooling of an image.
-   *
-   * @param x The input tensor, of rank 4 or rank 3 of shape
-   *     `[batch, height, width, inChannels]`. If rank 3, batch of 1 is assumed.
-   * @param filterSize The filter size, a tuple `[filterHeight, filterWidth]`.
-   * @param strides The strides of the pooling: `[strideHeight, strideWidth]`.
-   * @param pad The type of padding algorithm:
-   *    - `same` and stride 1: output will be of same size as input,
-   *       regardless of filter size.
-   *    - `valid`: output will be smaller than input if filter is larger
-   *       than 1x1.
-   *    - For more info, see this guide:
-   *     [https://www.tensorflow.org/api_guides/python/nn#Convolution](
-   *         https://www.tensorflow.org/api_guides/python/nn#Convolution)
-   * @param dimRoundingMode The rounding mode used when computing output
-   *     dimensions if pad is a number. If none is provided, it will not round
-   *     and error if the output is of fractional size.
-   */
-  @doc({heading: 'Operations', subheading: 'Convolution'})
-  static avgPool<T extends Tensor3D|Tensor4D>(
-      x: T|TensorLike, filterSize: [number, number]|number,
-      strides: [number, number]|number, pad: 'valid'|'same'|number,
-      dimRoundingMode?: 'floor'|'round'|'ceil'): T {
-    const $x = convertToTensor(x, 'x', 'avgPool');
-    util.assert(
-        $x.dtype === 'float32', 'The input dtype to avgPool must be float32');
-    let x4D = $x as Tensor4D;
-    let reshapedTo4D = false;
-    if ($x.rank === 3) {
-      reshapedTo4D = true;
-      x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
-    }
-    util.assert(
-        x4D.rank === 4,
-        `Error in avgPool: x must be rank 4 but got rank ${x4D.rank}.`);
-    if (dimRoundingMode != null) {
-      util.assert(
-          util.isInt(pad as number),
-          `Error in avgPool: pad must be an integer when using, ` +
-              `dimRoundingMode ${dimRoundingMode} but got pad ${pad}.`);
-    }
+  const convInfo =
+      conv_util.computePool2DInfo(x4D.shape, filterSize, strides, pad);
 
-    const convInfo =
-        conv_util.computePool2DInfo(x4D.shape, filterSize, strides, pad);
-
-    const grad = (dy: Tensor4D) => {
-      return {x: () => avgPoolBackprop(dy, x4D, filterSize, strides, pad)};
-    };
-    let res = ENV.engine.runKernel(
-        backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
-    res = res.cast($x.dtype);
-    if (reshapedTo4D) {
-      return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
-    }
-    return res as T;
+  const grad = (dy: Tensor4D) => {
+    return {x: () => avgPoolBackprop(dy, x4D, filterSize, strides, pad)};
+  };
+  let res = ENV.engine.runKernel(
+      backend => backend.avgPool(x4D, convInfo), {x: x4D}, grad);
+  res = res.cast($x.dtype);
+  if (reshapedTo4D) {
+    return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   }
+  return res as T;
 }
 
 /**
@@ -251,5 +247,5 @@ function avgPoolBackprop<T extends Tensor3D|Tensor4D>(
   return res as T;
 }
 
-export const maxPool = op(PoolOps.maxPool);
-export const avgPool = op(PoolOps.avgPool);
+export const maxPool = op({maxPool_});
+export const avgPool = op({avgPool_});

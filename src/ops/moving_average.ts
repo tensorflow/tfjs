@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-import {doc} from '../doc';
 import {Scalar, Tensor} from '../tensor';
 import {assertTypesMatch, convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
@@ -24,57 +23,54 @@ import {pow} from './binary_ops';
 import {op} from './operation';
 import {scalar} from './tensor_ops';
 
-class MovingAverageOps {
-  /**
-   * Compute the moving average of a variable.
-   *
-   * Without zeroDebias, the moving average operation is defined by:
-   *   `v += delta`
-   * where
-   *   `delta = (1 - decay) * (x - v)`
-   *
-   * With zeroDebias (default), the `delta` term is scaled to debias the
-   * effect of the (assumed) zero-initialization of `v`.
-   *   `delta /= (1 - decay ^ step)`
-   *
-   * For more details on the zero-debiasing algorithm, see:
-   *   https://arxiv.org/abs/1412.6980
-   *
-   * Note that this function is completely stateless and does not keep track of
-   * step count. The step count needs to be maintained by the caller and passed
-   * in as `step`.
-   *
-   * @param v The current moving average value.
-   * @param x New input value, must have the same shape and dtype as `v`.
-   * @param decay The decay factor. Typical values are 0.95 and 0.99.
-   * @param step Step count.
-   * @param zeroDebias: Whether zeroDebias is to be performed (default: `true`).
-   * @returns The new moving average value.
-   */
-  @doc({heading: 'Operations', subheading: 'Moving Average'})
-  static movingAverage<T extends Tensor>(
-      v: T|TensorLike, x: T|TensorLike, decay: number|Scalar,
-      step?: number|Scalar, zeroDebias = true): T {
-    const $v = convertToTensor(v, 'v', 'movingAverage');
-    const $x = convertToTensor(x, 'x', 'movingAverage');
-    const $decay = convertToTensor(decay, 'decay', 'movingAverage');
+/**
+ * Compute the moving average of a variable.
+ *
+ * Without zeroDebias, the moving average operation is defined by:
+ *   `v += delta`
+ * where
+ *   `delta = (1 - decay) * (x - v)`
+ *
+ * With zeroDebias (default), the `delta` term is scaled to debias the
+ * effect of the (assumed) zero-initialization of `v`.
+ *   `delta /= (1 - decay ^ step)`
+ *
+ * For more details on the zero-debiasing algorithm, see:
+ *   https://arxiv.org/abs/1412.6980
+ *
+ * Note that this function is completely stateless and does not keep track of
+ * step count. The step count needs to be maintained by the caller and passed
+ * in as `step`.
+ *
+ * @param v The current moving average value.
+ * @param x New input value, must have the same shape and dtype as `v`.
+ * @param decay The decay factor. Typical values are 0.95 and 0.99.
+ * @param step Step count.
+ * @param zeroDebias: Whether zeroDebias is to be performed (default: `true`).
+ * @returns The new moving average value.
+ */
+/** @doc {heading: 'Operations', subheading: 'Moving Average'} */
+function movingAverage_<T extends Tensor>(
+    v: T|TensorLike, x: T|TensorLike, decay: number|Scalar,
+    step?: number|Scalar, zeroDebias = true): T {
+  const $v = convertToTensor(v, 'v', 'movingAverage');
+  const $x = convertToTensor(x, 'x', 'movingAverage');
+  const $decay = convertToTensor(decay, 'decay', 'movingAverage');
 
-    assertTypesMatch($v, $x);
-    util.assert(
-        util.arraysEqual($v.shape, $x.shape), 'Shape mismatch in v and x');
+  assertTypesMatch($v, $x);
+  util.assert(
+      util.arraysEqual($v.shape, $x.shape), 'Shape mismatch in v and x');
 
-    const one = scalar(1);
-    const oneMinusDecay = one.sub($decay);
+  const one = scalar(1);
+  const oneMinusDecay = one.sub($decay);
 
-    let update = $x.sub($v).mul(oneMinusDecay);
-    if (zeroDebias) {
-      util.assert(
-          step != null, 'When using zeroDebias: true, step is required.');
-      const $step = convertToTensor(step, 'step', 'movingAverage');
-      update = update.div(one.sub(pow($decay, $step)));
-    }
-    return $v.add(update);
+  let update = $x.sub($v).mul(oneMinusDecay);
+  if (zeroDebias) {
+    util.assert(step != null, 'When using zeroDebias: true, step is required.');
+    const $step = convertToTensor(step, 'step', 'movingAverage');
+    update = update.div(one.sub(pow($decay, $step)));
   }
+  return $v.add(update);
 }
 
-export const movingAverage = op(MovingAverageOps.movingAverage);
+export const movingAverage = op({movingAverage_});

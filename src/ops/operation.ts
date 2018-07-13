@@ -22,12 +22,28 @@ import {ENV} from '../environment';
  * Tensors. The function will be wrapped in a named scope that cleans all
  * memory usage after the function is done.
  */
-export function op<T extends Function>(f: T): T {
+export function op<T extends Function>(f: {[name: string]: T}): T {
+  const keys = Object.keys(f);
+  if (keys.length !== 1) {
+    throw new Error(
+        `Please provide an object with a single key ` +
+        `(operation name) mapping to a function. Got an object with ` +
+        `${keys.length} keys.`);
+  }
+
+  let opName = keys[0];
+  const fn = f[opName];
+
+  // Strip the underscore from the end of the function name.
+  if (opName.endsWith('_')) {
+    opName = opName.substring(0, opName.length - 1);
+  }
+
   // tslint:disable-next-line:no-any
   const f2 = (...args: any[]) => {
-    ENV.engine.startScope(f.name);
+    ENV.engine.startScope(opName);
     try {
-      const result = f(...args);
+      const result = fn(...args);
       if (result instanceof Promise) {
         console.error('Cannot return a Promise inside of tidy.');
       }
@@ -38,6 +54,8 @@ export function op<T extends Function>(f: T): T {
       throw ex;
     }
   };
+  Object.defineProperty(f2, 'name', {value: opName, configurable: true});
+
   // tslint:disable-next-line:no-any
   return f2 as any as T;
 }
