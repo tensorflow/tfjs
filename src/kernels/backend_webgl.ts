@@ -28,6 +28,7 @@ import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D
 import * as types from '../types';
 import {DataType, DataTypeMap, RecursiveArray, TypedArray} from '../types';
 import * as util from '../util';
+
 import {KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
@@ -53,6 +54,7 @@ import {GPGPUBinary, GPGPUProgram, TensorData} from './webgl/gpgpu_math';
 import * as gpgpu_util from './webgl/gpgpu_util';
 import {WhereProgram} from './webgl/logical_gpu';
 import {LRNProgram} from './webgl/lrn_gpu';
+import {LRNGradProgram} from './webgl/lrn_grad_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
 import {MatMulProgram} from './webgl/mulmat_gpu';
 import {MultinomialProgram} from './webgl/multinomial_gpu';
@@ -494,6 +496,15 @@ export class MathBackendWebGL implements KernelBackend {
       beta: number): Tensor4D {
     const program = new LRNProgram(x.shape, radius, bias, alpha, beta);
     return this.compileAndRun(program, [x]);
+  }
+
+  LRNGrad(
+      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D,
+      depthRadius: number, bias: number, alpha: number,
+      beta: number): Tensor4D {
+    const program =
+        new LRNGradProgram(inputImage.shape, depthRadius, bias, alpha, beta);
+    return this.compileAndRun(program, [inputImage, outputImage, dy]);
   }
 
   tile<T extends Tensor>(x: T, reps: number[]): T {

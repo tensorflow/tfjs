@@ -16,7 +16,7 @@
  */
 
 import {ENV} from '../environment';
-import {Tensor3D, Tensor4D} from '../tensor';
+import {Tensor, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
@@ -54,10 +54,19 @@ function localResponseNormalization_<T extends Tensor3D|Tensor4D>(
     reshapedTo4D = true;
     x4D = $x.as4D(1, $x.shape[0], $x.shape[1], $x.shape[2]);
   }
+  const backward = (dy: Tensor4D, saved: Tensor[]) => {
+    const [outputImage] = saved;
+    return {
+      x4D: () => ENV.engine.runKernel(
+          backend => backend.LRNGrad(
+              dy, x4D, outputImage as Tensor4D, depthRadius, bias, alpha, beta),
+          {})
+    };
+  };
   const res = ENV.engine.runKernel(
-      backend => backend.localResponseNormalization4D(
-          x4D, depthRadius, bias, alpha, beta),
-      {x4D});
+      (backend, save) => save(backend.localResponseNormalization4D(
+          x4D, depthRadius, bias, alpha, beta)),
+      {x4D}, backward);
   if (reshapedTo4D) {
     return res.as3D(res.shape[1], res.shape[2], res.shape[3]) as T;
   } else {

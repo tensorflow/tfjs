@@ -222,6 +222,10 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
       x: Tensor4D, radius: number, bias: number, alpha: number,
       beta: number): Tensor4D;
 
+  LRNGrad(
+      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D, radius: number,
+      bias: number, alpha: number, beta: number): Tensor4D;
+
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D;

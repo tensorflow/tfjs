@@ -1990,6 +1990,44 @@ export class MathBackendCPU implements KernelBackend {
     return output.toTensor();
   }
 
+  LRNGrad(
+      dy: Tensor4D, inputImage: Tensor4D, outputImage: Tensor4D,
+      depthRadius: number, bias: number, alpha: number,
+      beta: number): Tensor4D {
+    const batch = dy.shape[0];
+    const rows = dy.shape[1];
+    const cols = dy.shape[2];
+    const depth = dy.shape[3];
+    const output = ops.buffer<Rank.R4>([batch, rows, cols, depth], 'float32');
+
+    for (let b = 0; b < batch; ++b) {
+      for (let r = 0; r < rows; ++r) {
+        for (let c = 0; c < cols; ++c) {
+          for (let d = 0; d < depth; ++d) {
+            const depthBegin = Math.max(0, d - depthRadius);
+            const depthEnd = Math.min(depth, d + depthRadius + 1);
+
+            let norm = 0;
+            for (let k = depthBegin; k < depthEnd; ++k) {
+              norm += inputImage.get(b, r, c, k) * inputImage.get(b, r, c, k);
+            }
+            norm = alpha * norm + bias;
+            for (let k = depthBegin; k < depthEnd; ++k) {
+              let dyi = -2 * alpha * beta * inputImage.get(b, r, c, k) *
+                  outputImage.get(b, r, c, d) / norm;
+              if (d === k) {
+                dyi += Math.pow(norm, -beta);
+              }
+              dyi *= dy.get(b, r, c, d);
+              output.set(dyi + output.get(b, r, c, k), b, r, c, k);
+            }
+          }
+        }
+      }
+    }
+    return output.toTensor();
+  }
+
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D {
