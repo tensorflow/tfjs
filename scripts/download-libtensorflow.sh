@@ -31,7 +31,7 @@ mkdir -p $TARGET_DIRECTORY
 # Ensure that at least libtensorflow.so is downloaded.
 if [ ! -e "$TARGET_DIRECTORY${LIBTENSORFLOW}" ]
 then
-  curl -L \
+  curl -L -w "" \
     $target |
     tar -C $TARGET_DIRECTORY -xz
 fi
