@@ -199,6 +199,9 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
 
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T;
 
+  batchToSpaceND<T extends Tensor>(
+      x: T, blockShape: number[], crops: number[][]): T;
+
   resizeBilinear(
       x: Tensor4D, newHeight: number, newWidth: number,
       alignCorners: boolean): Tensor4D;

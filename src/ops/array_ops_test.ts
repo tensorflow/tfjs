@@ -3042,3 +3042,136 @@ describeWithFlags('cumsum', ALL_ENVS, () => {
     expectArraysClose(res, [1, 3, 6, 10]);
   });
 });
+
+describeWithFlags('batchToSpaceND', ALL_ENVS, () => {
+  it('tensor4d, input shape=[4, 1, 1, 1], blockShape=[2, 2]', () => {
+    const t = tf.tensor4d([1, 2, 3, 4], [4, 1, 1, 1]);
+    const blockShape = [2, 2];
+    const crops = [[0, 0], [0, 0]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([1, 2, 2, 1]);
+    expectArraysClose(res, [1, 2, 3, 4]);
+  });
+
+  it('tensor4d, input shape=[4, 1, 1, 3], blockShape=[2, 2]', () => {
+    const t =
+        tf.tensor4d([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], [4, 1, 1, 3]);
+    const blockShape = [2, 2];
+    const crops = [[0, 0], [0, 0]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([1, 2, 2, 3]);
+    expectArraysClose(res, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+  });
+
+  it('tensor4d, input shape=[1, 4, 4, 1], blockShape=[2, 2]', () => {
+    const t = tf.tensor4d(
+        [1, 3, 9, 11, 2, 4, 10, 12, 5, 7, 13, 15, 6, 8, 14, 16], [4, 2, 2, 1]);
+    const blockShape = [2, 2];
+    const crops = [[0, 0], [0, 0]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([1, 4, 4, 1]);
+    expectArraysClose(
+        res, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+  });
+
+  it('tensor4d, input shape=[8, 1, 3, 1], blockShape=[2, 2]', () => {
+    const t = tf.tensor4d(
+        [
+          0, 1, 3, 0, 9,  11, 0, 2, 4, 0, 10, 12,
+          0, 5, 7, 0, 13, 15, 0, 6, 8, 0, 14, 16
+        ],
+        [8, 1, 3, 1]);
+    const blockShape = [2, 2];
+    const crops = [[0, 0], [2, 0]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([2, 2, 4, 1]);
+    expectArraysClose(
+        res, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+  });
+
+  it('tensor2d, blockShape [1]', () => {
+    const t = tf.tensor2d([1, 2, 3, 4], [2, 2]);
+    const blockShape = [2];
+    const crops = [[0, 0]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([1, 4]);
+    expectArraysClose(res, [1, 3, 2, 4]);
+  });
+
+  it('tensor3d,  blockSHape [1]', () => {
+    const t = tf.tensor(
+        [
+          -61, 37,  -68, 72,  31,  62, 0,   -13, 28,  54, 96,
+          44,  -55, -64, -88, -94, 65, -32, -96, -73, -2, -77,
+          -14, 47,  33,  15,  70,  20, 75,  28,  84,  -13
+        ],
+        [8, 2, 2]);
+    const blockShape = [2];
+    const crops = [[0, 2]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([4, 2, 2]);
+    expectArraysClose(
+        res,
+        [-61, 37, 65, -32, 31, 62, -2, -77, 28, 54, 33, 15, -55, -64, 75, 28]);
+  });
+
+  it('tensor3d, blockShape [2]', () => {
+    const t = tf.tensor(
+        [
+          -61, 37,  -68, 72,  31,  62, 0,   -13, 28,  54, 96,
+          44,  -55, -64, -88, -94, 65, -32, -96, -73, -2, -77,
+          -14, 47,  33,  15,  70,  20, 75,  28,  84,  -13
+        ],
+        [8, 2, 2]);
+    const blockShape = [2, 2];
+    const crops = [[2, 0], [2, 0]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([2, 2, 2]);
+    expectArraysClose(res, [72, 44, -73, 20, -13, -94, 47, -13]);
+  });
+
+  it('throws when blockShape equal to input rank', () => {
+    const t = tf.tensor4d([1, 2, 3, 4], [4, 1, 1, 1]);
+    const blockShape = [2, 2, 2, 2];
+    const crops = [[0, 0], [0, 0], [0, 0], [0, 0]];
+
+    expect(() => tf.batchToSpaceND(t, blockShape, crops))
+        .toThrowError('input rank should be > than [blockShape] but got 4');
+  });
+
+  it('throws when crops row dimension not equal to blockshape', () => {
+    const t = tf.tensor4d([1, 2, 3, 4], [4, 1, 1, 1]);
+    const blockShape = [2, 2];
+    const crops = [[0, 0]];
+
+    expect(() => tf.batchToSpaceND(t, blockShape, crops))
+        .toThrowError('crops.shape[0] must be equal to [blockShape] but got 1');
+  });
+
+  it('throws when input tensor batch not divisible by prod(blockShape)', () => {
+    const t = tf.tensor4d([1, 2, 3, 4, 5], [5, 1, 1, 1]);
+    const blockShape = [2, 2];
+    const crops = [[0, 0], [0, 0]];
+
+    expect(() => tf.batchToSpaceND(t, blockShape, crops))
+        .toThrowError(
+            'input tensor batch must be divisible by prod( blockShape )');
+  });
+
+  it('accepts a tensor-like object', () => {
+    const t = [[[[1]]],[[[2]]],[[[3]]],[[[4]]]];
+    const blockShape = [2, 2];
+    const crops = [[0, 0], [0, 0]];
+
+    const res = tf.batchToSpaceND(t, blockShape, crops);
+    expect(res.shape).toEqual([1, 2, 2, 1]);
+    expectArraysClose(res, [1, 2, 3, 4]);
+  });
+});

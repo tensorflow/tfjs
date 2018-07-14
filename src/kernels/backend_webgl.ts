@@ -17,6 +17,7 @@
 
 import {MemoryInfo, TimingInfo} from '../engine';
 import {ENV} from '../environment';
+import * as array_ops_util from '../ops/array_ops_util';
 import * as axis_util from '../ops/axis_util';
 import {Conv2DInfo} from '../ops/conv_util';
 import * as ops from '../ops/ops';
@@ -526,6 +527,29 @@ export class MathBackendWebGL implements KernelBackend {
   gather<T extends Tensor>(x: T, indices: Tensor1D, axis: number): T {
     const program = new GatherProgram(x.shape, indices.size, axis);
     return this.compileAndRun(program, [x, indices]);
+  }
+
+  batchToSpaceND<T extends Tensor>(
+      x: T, blockShape: number[], crops: number[][]): T {
+    util.assert(
+        x.rank <= 4,
+        'batchToSpaceND for rank > 4 with a WebGL backend not implemented yet');
+    const prod = blockShape.reduce((a, b) => a * b);
+
+    const reshaped = array_ops_util.getReshaped(x.shape, blockShape, prod);
+    const permuted =
+        array_ops_util.getPermuted(reshaped.length, blockShape.length);
+    const reshapedPermuted =
+        array_ops_util.getReshapedPermuted(x.shape, blockShape, prod);
+    const sliceBeginCoords =
+        array_ops_util.getSliceBeginCoords(crops, blockShape.length);
+    const sliceSize =
+        array_ops_util.getSliceSize(reshapedPermuted, crops, blockShape.length);
+
+    return x.reshape(reshaped)
+               .transpose(permuted)
+               .reshape(reshapedPermuted)
+               .slice(sliceBeginCoords, sliceSize) as T;
   }
 
   private reduce(
@@ -1158,7 +1182,8 @@ export class MathBackendWebGL implements KernelBackend {
     }
     const inputsData: Array<TensorData<T>> = inputs.map(tensor => {
       const texData = this.texData.get(tensor.dataId);
-      // Upload small tensors that live on the CPU as uniforms, not as textures.
+      // Upload small tensors that live on the CPU as uniforms, not as
+      // textures.
       if (texData.texture == null && tensor.size <= SIZE_UPLOAD_UNIFORM) {
         return {tensor, texData: null, isUniform: true};
       }
@@ -1280,9 +1305,9 @@ export class MathBackendWebGL implements KernelBackend {
   }
 
   private cacheOnCPU(dataId: DataId, float32Values?: Float32Array) {
-    // In delayed storage mode, when the user reads data, we don't keep a copy
-    // on the gpu, to minimize likelihood of memory leak. We re-upload to gpu
-    // the next time a gpgpu program needs the texture.
+    // In delayed storage mode, when the user reads data, we don't keep a
+    // copy on the gpu, to minimize likelihood of memory leak. We re-upload
+    // to gpu the next time a gpgpu program needs the texture.
     const dontKeepCopyOnGPU = this.delayedStorage;
     const texData = this.texData.get(dataId);
     const {texture, texShape, dtype, usage} = texData;
