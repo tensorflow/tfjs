@@ -26,7 +26,6 @@ export * from './unary_ops';
 export * from './reduction_ops';
 export * from './compare';
 export * from './binary_ops';
-export * from './sigmoid_cross_entropy';
 export * from './relu_ops';
 export * from './logical_ops';
 export * from './array_ops';

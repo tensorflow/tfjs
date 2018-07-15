@@ -19,7 +19,8 @@ import {customGrad} from '../globals';
 import {Tensor} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
-import {assertShapesMatch} from '../util';
+import {assertShapesMatch, sizeFromShape} from '../util';
+
 import {expandShapeToKeepDim} from './axis_util';
 import {minimum} from './binary_ops';
 import {op} from './operation';
@@ -60,8 +61,15 @@ function computeWeightedLoss_<T extends Tensor, O extends Tensor>(
     return weightedLoss.sum();
   }
   if (reduction === Reduction.MEAN) {
-    return ($weights == null) ? weightedLoss.mean() :
-                                weightedLoss.sum().div($weights.sum());
+    if ($weights == null) {
+      return weightedLoss.mean();
+    } else {
+      const broadcastFactor =
+          sizeFromShape($losses.shape) / sizeFromShape($weights.shape);
+      const result = weightedLoss.sum().div($weights.sum());
+      return broadcastFactor > 1 ? result.div(scalar(broadcastFactor)) :
+                                   result as O;
+    }
   }
   if (reduction === Reduction.SUM_BY_NONZERO_WEIGHTS) {
     if ($weights == null) {
@@ -245,6 +253,89 @@ function logLoss_<T extends Tensor, O extends Tensor>(
   return computeWeightedLoss(losses, $weights, reduction);
 }
 
+function sigmoidCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
+    labels: T|TensorLike, logits: T|TensorLike): O {
+  const $labels =
+      convertToTensor(labels, 'labels', 'sigmoidCrossEntropyWithLogits');
+  const $logits =
+      convertToTensor(logits, 'logits', 'sigmoidCrossEntropyWithLogits');
+  assertShapesMatch(
+      $labels.shape, $logits.shape, 'Error in sigmoidCrossEntropyWithLogits: ');
+
+  /**
+   * Implementation Details:
+   *
+   * For brevity, let `x = logits`, `z = labels`.  The logistic loss is
+   *     z * -log(sigmoid(x)) + (1 - z) * -log(1 - sigmoid(x))
+   *   = z * -log(1 / (1 + exp(-x))) + (1 - z) * -log(exp(-x) / (1 + exp(-x)))
+   *   = z * log(1 + exp(-x)) + (1 - z) * (-log(exp(-x)) + log(1 + exp(-x)))
+   *   = z * log(1 + exp(-x)) + (1 - z) * (x + log(1 + exp(-x))
+   *   = (1 - z) * x + log(1 + exp(-x))
+   *   = x - x * z + log(1 + exp(-x))
+   *
+   *   For x < 0, to avoid overflow in exp(-x), we reformulate the above
+   *     x - x * z + log(1 + exp(-x))
+   *   = log(exp(x)) - x * z + log(1 + exp(-x))
+   *   = - x * z + log(1 + exp(x))
+   *
+   * Hence, to ensure stability and avoid overflow, the implementation uses
+   * this equivalent formulation:
+   *     max(x, 0) - x * z + log(1 + exp(-abs(x)))
+   */
+  const maxOutput = $logits.relu();
+  const outputXTarget = $logits.mul($labels);
+  const sigmoidOutput = $logits.abs().neg().exp().log1p();
+
+  return maxOutput.sub(outputXTarget).add(sigmoidOutput);
+}
+
+/**
+ * Computes the sigmoid cross entropy loss between two tensors.
+ *
+ * If labelSmoothing is nonzero, smooth the labels towards 1/2:
+ *
+ *   newMulticlassLabels = multiclassLabels * (1 - labelSmoothing)
+ *                         + 0.5 * labelSmoothing
+ *
+ * @param multiClassLabels The ground truth output tensor of shape
+ * [batch_size, num_classes], same dimensions as 'predictions'.
+ * @param logits The predicted outputs.
+ * @param weights Tensor whose rank is either 0, or the same rank as
+ *    `labels`, and must be broadcastable to `labels` (i.e., all dimensions
+ *    must be either `1`, or the same as the corresponding `losses`
+ *    dimension).
+ * @param labelSmoothing If greater than 0, then smooth the labels.
+ * @param reduction Type of reduction to apply to loss. Should be of type
+ *    `Reduction`
+ */
+/** @doc { heading: 'Training', subheading: 'Losses', namespace: 'losses' } */
+function sigmoidCrossEntropy_<T extends Tensor, O extends Tensor>(
+    multiClassLabels: T|TensorLike, logits: T|TensorLike,
+    weights?: Tensor|TensorLike, labelSmoothing = 0,
+    reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+  let $multiClassLabels = convertToTensor(
+      multiClassLabels, 'multiClassLabels', 'sigmoidCrossEntropy');
+  const $logits = convertToTensor(logits, 'logits', 'sigmoidCrossEntropy');
+  let $weights: Tensor = null;
+  if (weights != null) {
+    $weights = convertToTensor(weights, 'weights', 'sigmoidCrossEntropy');
+  }
+  assertShapesMatch(
+      $multiClassLabels.shape, $logits.shape, 'Error in sigmoidCrossEntropy: ');
+
+  if (labelSmoothing > 0) {
+    const labelSmoothingScalar = scalar(labelSmoothing);
+    const one = scalar(1);
+    const half = scalar(0.5);
+
+    $multiClassLabels = $multiClassLabels.mul(one.sub(labelSmoothingScalar))
+                            .add(half.mul(labelSmoothingScalar));
+  }
+  const losses = sigmoidCrossEntropyWithLogits_($multiClassLabels, $logits);
+
+  return computeWeightedLoss(losses, $weights, reduction);
+}
+
 /**
  * Computes the huber loss between two tensors.
  *
@@ -349,4 +440,5 @@ export const hingeLoss = op({hingeLoss_});
 export const huberLoss = op({huberLoss_});
 export const logLoss = op({logLoss_});
 export const meanSquaredError = op({meanSquaredError_});
+export const sigmoidCrossEntropy = op({sigmoidCrossEntropy_});
 export const softmaxCrossEntropy = op({softmaxCrossEntropy_});
