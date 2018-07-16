@@ -22,6 +22,7 @@ import {TensorLike} from '../types';
 import {assertShapesMatch, sizeFromShape} from '../util';
 
 import {expandShapeToKeepDim} from './axis_util';
+
 import {minimum} from './binary_ops';
 import {op} from './operation';
 import {ones, scalar} from './tensor_ops';
@@ -397,40 +398,90 @@ function huberLoss_<T extends Tensor, O extends Tensor>(
  * @param dim The dimension softmax would be performed on. Defaults to `-1`
  *     which indicates the last dimension.
  */
-/** @doc {heading: 'Training', subheading: 'Losses', namespace: 'losses'} */
-function softmaxCrossEntropy_<T extends Tensor, O extends Tensor>(
-    labels: T|TensorLike, logits: T|TensorLike, dim = -1): O {
-  const $labels = convertToTensor(labels, 'labels', 'softmaxCrossEntropy');
-  const $logits = convertToTensor(logits, 'logits', 'softmaxCrossEntropy');
-  assertShapesMatch(
-      $labels.shape, $logits.shape, 'Error in softmaxCrossEntropy: ');
-
+function softmaxCrossEntropyWithLogits_<T extends Tensor, O extends Tensor>(
+    labels: T, logits: T, dim = -1): O {
   if (dim === -1) {
-    dim = $logits.rank - 1;
+    dim = logits.rank - 1;
   }
-  if (dim !== $logits.rank - 1) {
+
+  if (dim !== logits.rank - 1) {
     throw Error(
         `Softmax cross entropy along a non-last dimension is not yet ` +
-        `supported. Labels / logits was rank ${$logits.rank} ` +
+        `supported. Labels / logits was rank ${logits.rank} ` +
         `and dim was ${dim}`);
   }
   // Use a custom gradient for numerical stability.
   const customOp = customGrad((labels, logits) => {
-    const predictedProbs = logits.softmax(dim);
-    const costVector = scalar(1e-5).add(predictedProbs).log().mul(labels).neg();
+    // Reference:
+    //   1. http://cs231n.github.io/linear-classify/#softmax
+    //   2. https://blog.feedly.com/tricks-of-the-trade-logsumexp/
+    const keepDims = true;
+    const lse = logits.logSumExp([dim], keepDims);
+
+    const logResult = logits.toFloat().sub(lse);
+    const costVector = logResult.mul(labels).neg();
+
     const value = costVector.sum([dim]) as O;
 
     const gradFunc = (dy: O) => {
       const dyShape = expandShapeToKeepDim(dy.shape, [dim]);
       return [
-        dy.reshape(dyShape).mul(labels.toFloat().sub(predictedProbs)),
-        dy.reshape(dyShape).mul(predictedProbs.sub(labels.toFloat())),
+        dy.reshape(dyShape).mul(labels.toFloat().sub(logResult.exp())),
+        dy.reshape(dyShape).mul(logResult.exp().sub(labels.toFloat())),
       ];
     };
     return {value, gradFunc};
   });
 
-  return customOp($labels, $logits);
+  return customOp(labels, logits);
+}
+
+/**
+ * Computes the softmax cross entropy loss between two tensors.
+ *
+ * If labelSmoothing is nonzero, smooth the labels towards 1/2:
+ *
+ *   newOnehotLabels = onehotLabels * (1 - labelSmoothing)
+ *                         + labelSmoothing / numClasses
+ *
+ * @param onehotLabels One hot encoded labels
+ *    [batch_size, num_classes], same dimensions as 'predictions'.
+ * @param logits The predicted outputs.
+ * @param weights Tensor whose rank is either 0, or 1, and must be
+ *    broadcastable to `loss`  of shape [batch_size]
+ * @param labelSmoothing If greater than 0, then smooth the labels.
+ * @param reduction Type of reduction to apply to loss. Should be of type
+ *    `Reduction`
+ */
+/** @doc { heading: 'Training', subheading: 'Losses', namespace: 'losses' } */
+function softmaxCrossEntropy_<T extends Tensor, O extends Tensor>(
+    onehotLabels: T|TensorLike, logits: T|TensorLike,
+    weights?: Tensor|TensorLike, labelSmoothing = 0,
+    reduction = Reduction.SUM_BY_NONZERO_WEIGHTS): O {
+  let $onehotLabels =
+      convertToTensor(onehotLabels, 'onehotLabels', 'softmaxCrossEntropy');
+  const $logits = convertToTensor(logits, 'logits', 'softmaxCrossEntropy');
+  let $weights: Tensor = null;
+
+  if (weights != null) {
+    $weights = convertToTensor(weights, 'weights', 'softmaxCrossEntropy');
+  }
+
+  assertShapesMatch(
+      $onehotLabels.shape, $logits.shape, 'Error in softmaxCrossEntropy: ');
+
+  if (labelSmoothing > 0) {
+    const labelSmoothingScalar = scalar(labelSmoothing);
+    const one = scalar(1);
+    const numClasses = scalar($onehotLabels.shape[1]);
+
+    $onehotLabels = $onehotLabels.mul(one.sub(labelSmoothingScalar))
+                        .add(labelSmoothingScalar.div(numClasses));
+  }
+
+  const losses = softmaxCrossEntropyWithLogits_($onehotLabels, $logits);
+
+  return computeWeightedLoss(losses, $weights, reduction);
 }
 
 export const absoluteDifference = op({absoluteDifference_});
