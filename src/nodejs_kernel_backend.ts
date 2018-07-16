@@ -120,14 +120,29 @@ export class NodeJSKernelBackend implements KernelBackend {
     return this.executeSingleOutput(name, opAttrs, [input]);
   }
 
-  private executeSingleOutput(
-      name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]): Tensor {
+  /**
+   * Executes a TensorFlow Eager Op that provides one output Tensor.
+   * @param name The name of the Op to execute.
+   * @param opAttrs The list of Op attributes required to execute.
+   * @param inputs The list of input Tensors for the Op.
+   * @return A resulting Tensor from Op execution.
+   */
+  executeSingleOutput(name: string, opAttrs: TFEOpAttr[], inputs: Tensor[]):
+      Tensor {
     const outputMetadata = this.binding.executeOp(
         name, opAttrs, this.getInputTensorIds(inputs), 1);
     return this.createOutputTensor(outputMetadata[0]);
   }
 
-  private executeMultipleOutputs(
+  /**
+   * Executes a TensorFlow Eager Op that provides multiple output Tensors.
+   * @param name The name of the Op to execute.
+   * @param opAttrs The list of Op attributes required to execute.
+   * @param inputs The list of input Tensors for the Op.
+   * @param numOutputs The number of output Tensors for Op execution.
+   * @return A resulting Tensor array from Op execution.
+   */
+  executeMultipleOutputs(
       name: string, opAttrs: TFEOpAttr[], inputs: Tensor[],
       numOutputs: number): Tensor[] {
     const outputMetadata = this.binding.executeOp(
