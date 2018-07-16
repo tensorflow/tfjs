@@ -21,7 +21,7 @@ import {convertPythonicToTs} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
 
 import {Dense, Reshape} from './core';
-import {SimpleRNN} from './recurrent';
+import {RNN, SimpleRNN} from './recurrent';
 import {deserialize} from './serialization';
 import {Bidirectional, BidirectionalMergeMode, checkBidirectionalMergeMode, TimeDistributed, VALID_BIDIRECTIONAL_MERGE_MODES} from './wrappers';
 
@@ -297,5 +297,108 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
         y[1], tensor2d([[0.9440416, 0.9440416, 0.9440416]], [1, 3]));
     expectTensorsClose(
         y[2], tensor2d([[-0.9842659, -0.9842659, -0.9842659]], [1, 3]));
+  });
+
+  // The golden values in the test below can be obtained with the following
+  // Python Keras code.
+  //
+  // ```python
+  // import keras
+  // import numpy
+  //
+  // rnn = keras.layers.LSTM(
+  //     1,
+  //     kernel_initializer='ones',
+  //     recurrent_initializer='ones',
+  //     bias_initializer='ones',
+  //     go_backwards=True)
+  // bidi = keras.layers.Bidirectional(
+  //     rnn, merge_mode='concat', input_shape=[2, 2])
+  // model = keras.Sequential([bidi])
+  // model.compile(loss='mean_squared_error', optimizer='sgd')
+  //
+  // x = np.array([[[0.1, 0.2],
+  //               [-0.1, 0.1]]])
+  // y = np.array([[0.3, 0.5]])
+  // print(model.predict(x))
+  //
+  // history = model.fit(x, y)
+  // print(history.history)
+  // ```
+  it('Backwards LSTM: predict and fit: concat', async () => {
+    const lstm = tfl.layers.lstm({
+      units: 1,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      biasInitializer: 'ones',
+      goBackwards: true
+    }) as RNN;
+    const bidi = tfl.layers.bidirectional(
+        {layer: lstm, inputShape: [2, 2], mergeMode: 'concat'});
+    const model = tfl.sequential({layers: [bidi]});
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const x = tensor3d([[[0.1, 0.2], [-0.1, 0.1]]]);
+    const y = tensor2d([[0.3, 0.5]]);
+    expectTensorsClose(
+        model.predict(x) as Tensor, tensor2d([[0.69299805, 0.66088]]));
+    const history = await model.fit(x, y);
+    expect(history.history.loss[0]).toBeCloseTo(0.0901649);
+    expectTensorsClose(
+        model.predict(x) as Tensor, tensor2d([[0.6927189, 0.66077083]]));
+  });
+
+  // The golden values in the test below can be obtained with the following
+  // Python Keras code.
+  //
+  // ```python
+  // import keras
+  // import numpy
+  //
+  // rnn = keras.layers.LSTM(
+  //     1,
+  //     kernel_initializer='ones',
+  //     recurrent_initializer='ones',
+  //     bias_initializer='ones',
+  //     go_backwards=True)
+  // bidi = keras.layers.Bidirectional(
+  //     rnn, merge_mode='ave', input_shape=[2, 2])
+  // model = keras.Sequential([bidi])
+  // model.compile(loss='mean_squared_error', optimizer='sgd')
+  //
+  // x = np.array([[[0.1, 0.2],
+  //               [-0.1, 0.1]]])
+  // y = np.array([[0.4]])
+  // print(model.predict(x))
+  //
+  // history = model.fit(x, y)
+  // print(history.history)
+  // ```
+  it('Backwards LSTM: predict and fit: ave', done => {
+    const lstm = tfl.layers.lstm({
+      units: 1,
+      kernelInitializer: 'ones',
+      recurrentInitializer: 'ones',
+      biasInitializer: 'ones',
+      goBackwards: true
+    }) as RNN;
+    const bidi = tfl.layers.bidirectional(
+        {layer: lstm, inputShape: [2, 2], mergeMode: 'ave'});
+    const model = tfl.sequential({layers: [bidi]});
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
+
+    const x = tensor3d([[[0.1, 0.2], [-0.1, 0.1]]]);
+    const y = tensor2d([[0.4]]);
+    expectTensorsClose(model.predict(x) as Tensor, tensor2d([[0.676939]]));
+    model.fit(x, y)
+        .then(history => {
+          expect(history.history.loss[0]).toBeCloseTo(0.0766952);
+          expectTensorsClose(
+              model.predict(x) as Tensor, tensor2d([[0.6767467]]));
+          done();
+        })
+        .catch(err => {
+          done.fail(err.stack);
+        });
   });
 });
