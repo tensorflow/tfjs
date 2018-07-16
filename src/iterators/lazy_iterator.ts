@@ -210,6 +210,18 @@ export abstract class LazyIterator<T> {
   }
 
   /**
+   * Maps this stream through a 1-to-many transform.
+   *
+   * @param predicate A function mapping a stream element to an array of
+   *   transformed elements.
+   *
+   * @returns A `DataStream` of transformed elements.
+   */
+  flatmap<O>(transform: (value: T) => O[]): LazyIterator<O> {
+    return new FlatmapIterator(this, transform);
+  }
+
+  /**
    * Apply a function to every element of the stream.
    *
    * @param f A function to apply to each stream element.
@@ -375,15 +387,88 @@ class TakeIterator<T> extends LazyIterator<T> {
   }
 }
 
+class BatchIterator<T> extends LazyIterator<T[]> {
+  constructor(
+      protected upstream: LazyIterator<T>, protected batchSize: number,
+      protected enableSmallLastBatch = true) {
+    super();
+  }
+  async next(): Promise<IteratorResult<T[]>> {
+    const batch: T[] = [];
+    while (batch.length < this.batchSize) {
+      const item = await this.upstream.next();
+      if (item.done) {
+        if (this.enableSmallLastBatch && batch.length > 0) {
+          return {value: batch, done: false};
+        }
+        return {value: null, done: true};
+      }
+      batch.push(item.value);
+    }
+    return {value: batch, done: false};
+  }
+}
+
+class FilterIterator<T> extends LazyIterator<T> {
+  constructor(
+      protected upstream: LazyIterator<T>,
+      protected predicate: (value: T) => boolean) {
+    super();
+  }
+  async next(): Promise<IteratorResult<T>> {
+    while (true) {
+      const item = await this.upstream.next();
+      if (item.done || this.predicate(item.value)) {
+        return item;
+      }
+      tf.dispose(item.value as {});
+    }
+  }
+}
+
+class MapIterator<I, O> extends LazyIterator<O> {
+  constructor(
+      protected upstream: LazyIterator<I>,
+      protected transform: (value: I) => O) {
+    super();
+  }
+  async next(): Promise<IteratorResult<O>> {
+    const item = await this.upstream.next();
+    if (item.done) {
+      return {value: null, done: true};
+    }
+    const inputTensors = getTensorsInContainer(item.value as {});
+    // Careful: the transform may mutate the item in place.
+    // that's why we have to remember the input Tensors above, and then
+    // below
+    // dispose only those that were not passed through to the output.
+    // Note too that the transform function is responsible for tidying
+    // any
+    // intermediate Tensors.  Here we are concerned only about the
+    // inputs.
+    const mapped = this.transform(item.value);
+    const outputTensors = getTensorsInContainer(mapped as {});
+    // TODO(soergel) faster intersection
+    // TODO(soergel) move to tf.disposeExcept(in, out)?
+    for (const t of inputTensors) {
+      if (!isTensorInList(t, outputTensors)) {
+        t.dispose();
+      }
+    }
+    return {value: mapped, done: false};
+  }
+}
+
 // Iterators that maintain a queue of pending items
 // ============================================================================
 
 /**
  * A base class for transforming streams that operate by maintaining an
  * output queue of elements that are ready to return via next().  This is
- * commonly required when the transformation is not 1-to-1, so a variable number
- * of calls to the underlying stream may be needed to provide each element of
- * this stream.
+ * commonly required when the transformation is 1-to-many:  A call to next()
+ * may trigger a call to the underlying stream, which will produce many mapped
+ * elements of this stream-- of which we need to return only one, so we have to
+ * queue the rest.
  */
 export abstract class QueueIterator<T> extends LazyIterator<T> {
   protected outputQueue: RingBuffer<T>;
@@ -419,68 +504,14 @@ export abstract class QueueIterator<T> extends LazyIterator<T> {
     return {value: this.outputQueue.shift(), done: false};
   }
 }
-
-class BatchIterator<T> extends QueueIterator<T[]> {
-  constructor(
-      protected upstream: LazyIterator<T>, protected batchSize: number,
-      protected enableSmallLastBatch = true) {
-    super();
-  }
-
-  private currentBatch: T[] = [];
-
-  async pump(): Promise<boolean> {
-    const item = await this.upstream.next();
-    if (item.done) {
-      if (this.enableSmallLastBatch && this.currentBatch.length > 0) {
-        this.outputQueue.push(this.currentBatch);
-        this.currentBatch = [];
-
-        // Pretend that the pump succeeded in order to emit the small last
-        // batch. The next pump() call will actually fail.
-        return true;
-      }
-      return false;
-    }
-
-    this.currentBatch.push(item.value);
-    if (this.currentBatch.length === this.batchSize) {
-      this.outputQueue.push(this.currentBatch);
-      this.currentBatch = [];
-    }
-    return true;
-  }
-}
-
-class FilterIterator<T> extends QueueIterator<T> {
-  constructor(
-      protected upstream: LazyIterator<T>,
-      protected predicate: (value: T) => boolean) {
-    super();
-  }
-
-  async pump(): Promise<boolean> {
-    const item = await this.upstream.next();
-    if (item.done) {
-      return false;
-    }
-    if (this.predicate(item.value)) {
-      this.outputQueue.push(item.value);
-    } else {
-      tf.dispose(item.value as {});
-    }
-    return true;
-  }
-}
-
-class MapIterator<I, O> extends QueueIterator<O> {
+class FlatmapIterator<I, O> extends QueueIterator<O> {
   constructor(
       protected upstream: LazyIterator<I>,
-      protected transform: (value: I) => O) {
+      protected transform: (value: I) => O[]) {
     super();
   }
 
-  async pump() {
+  async pump(): Promise<boolean> {
     const item = await this.upstream.next();
     if (item.done) {
       return false;
@@ -491,11 +522,11 @@ class MapIterator<I, O> extends QueueIterator<O> {
     // dispose only those that were not passed through to the output.
     // Note too that the transform function is responsible for tidying any
     // intermediate Tensors.  Here we are concerned only about the inputs.
-    const mapped = this.transform(item.value);
+    const mappedArray = this.transform(item.value);
+    const outputTensors = getTensorsInContainer(mappedArray as {});
+    this.outputQueue.pushAll(mappedArray);
 
-    const outputTensors = getTensorsInContainer(mapped as {});
-
-    // TODO(soergel) faster intersection
+    // TODO(soergel) faster intersection, and deduplicate outputTensors
     // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
       if (!isTensorInList(t, outputTensors)) {
@@ -503,11 +534,9 @@ class MapIterator<I, O> extends QueueIterator<O> {
       }
     }
 
-    this.outputQueue.push(mapped);
     return true;
   }
 }
-
 /**
  * Provides a `LazyIterator` that concatenates a stream of underlying streams.
  *

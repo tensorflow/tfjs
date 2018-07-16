@@ -107,6 +107,15 @@ export class RingBuffer<T> {
   }
 
   /**
+   * Adds many items to the end of the buffer, in order.
+   */
+  pushAll(values: T[]) {
+    for (const value of values) {
+      this.push(value);
+    }
+  }
+
+  /**
    * Removes and returns the last item in the buffer.
    */
   pop(): T {
