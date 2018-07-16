@@ -116,7 +116,7 @@ describe('LazyIterator', () => {
         .catch(done.fail);
   });
 
-  it('flatmaps object elements but not their contents', done => {
+  it('flatmap flattens object elements but not their contents', done => {
     const readStream = new TestIntegerIterator().flatmap(
         x =>
             [{foo: `foo ${x} A`, bar: `bar ${x} A`},
@@ -139,7 +139,7 @@ describe('LazyIterator', () => {
         .catch(done.fail);
   });
 
-  it('flatmaps array elements but not their contents', done => {
+  it('flatmap flattens array elements but not their contents', done => {
     const readStream = new TestIntegerIterator().flatmap(
         x => [
             [`foo ${x} A`, `bar ${x} A`],
