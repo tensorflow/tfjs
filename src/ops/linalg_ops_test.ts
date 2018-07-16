@@ -24,7 +24,10 @@ import {scalar, tensor1d, tensor2d, tensor3d, tensor4d} from './ops';
 
 describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
   it('2x2, Array of Tensor1D', () => {
-    const xs: Tensor1D[] = [tf.randomNormal([2]), tf.randomNormal([2])];
+    const xs: Tensor1D[] = [
+      tf.randomNormal([2], 0, 1, 'float32', 1),
+      tf.randomNormal([2], 0, 1, 'float32', 2)
+    ];
     const ys = tf.linalg.gramSchmidt(xs) as Tensor1D[];
     const y = tf.stack(ys) as Tensor2D;
     // Test that the results are orthogonalized and normalized.
@@ -36,8 +39,11 @@ describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
   });
 
   it('3x3, Array of Tensor1D', () => {
-    const xs: Tensor1D[] =
-        [tf.randomNormal([3]), tf.randomNormal([3]), tf.randomNormal([3])];
+    const xs: Tensor1D[] = [
+      tf.randomNormal([3], 0, 1, 'float32', 1),
+      tf.randomNormal([3], 0, 1, 'float32', 2),
+      tf.randomNormal([3], 0, 1, 'float32', 3)
+    ];
     const ys = tf.linalg.gramSchmidt(xs) as Tensor1D[];
     const y = tf.stack(ys) as Tensor2D;
     expectArraysClose(y.transpose().matMul(y), tf.eye(3));
@@ -46,13 +52,13 @@ describeWithFlags('gramSchmidt-tiny', ALL_ENVS, () => {
   });
 
   it('3x3, Matrix', () => {
-    const xs = tf.randomNormal([3, 3]) as Tensor2D;
+    const xs = tf.randomNormal([3, 3], 0, 1, 'float32', 1) as Tensor2D;
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
     expectArraysClose(y.transpose().matMul(y), tf.eye(3));
   });
 
   it('2x3, Matrix', () => {
-    const xs = tf.randomNormal([2, 3]) as Tensor2D;
+    const xs = tf.randomNormal([2, 3], 0, 1, 'float32', 1) as Tensor2D;
     const y = tf.linalg.gramSchmidt(xs) as Tensor2D;
     expectArraysClose(y.matMul(y.transpose()), tf.eye(2));
   });
