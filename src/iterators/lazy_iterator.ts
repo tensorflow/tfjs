@@ -449,7 +449,7 @@ class MapIterator<I, O> extends LazyIterator<O> {
     const mapped = this.transform(item.value);
     const outputTensors = getTensorsInContainer(mapped as {});
     // TODO(soergel) faster intersection
-    // TODO(soergel) move to dl.disposeExcept(in, out)?
+    // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
       if (!isTensorInList(t, outputTensors)) {
         t.dispose();
@@ -527,7 +527,7 @@ class FlatmapIterator<I, O> extends QueueIterator<O> {
     this.outputQueue.pushAll(mappedArray);
 
     // TODO(soergel) faster intersection, and deduplicate outputTensors
-    // TODO(soergel) move to dl.disposeExcept(in, out)?
+    // TODO(soergel) move to tf.disposeExcept(in, out)?
     for (const t of inputTensors) {
       if (!isTensorInList(t, outputTensors)) {
         t.dispose();
