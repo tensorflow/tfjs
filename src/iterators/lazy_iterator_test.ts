@@ -100,7 +100,7 @@ describe('LazyIterator', () => {
         .catch(done.fail);
   });
 
-  it('flatmaps elements', done => {
+  it('flatmaps simple elements', done => {
     const readStream = new TestIntegerIterator().flatmap(
         x => [`item ${x} A`, `item ${x} B`, `item ${x} C`]);
     readStream.collectRemaining()
@@ -110,6 +110,49 @@ describe('LazyIterator', () => {
             expect(result[3 * i + 0]).toEqual(`item ${i} A`);
             expect(result[3 * i + 1]).toEqual(`item ${i} B`);
             expect(result[3 * i + 2]).toEqual(`item ${i} C`);
+          }
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
+  it('flatmaps object elements but not their contents', done => {
+    const readStream = new TestIntegerIterator().flatmap(
+        x =>
+            [{foo: `foo ${x} A`, bar: `bar ${x} A`},
+             {foo: `foo ${x} B`, bar: `bar ${x} B`},
+             {foo: `foo ${x} C`, bar: `bar ${x} C`},
+    ]);
+    readStream.collectRemaining()
+        .then(result => {
+          expect(result.length).toEqual(300);
+          for (let i = 0; i < 100; i++) {
+            expect(result[3 * i + 0])
+                .toEqual({foo: `foo ${i} A`, bar: `bar ${i} A`});
+            expect(result[3 * i + 1])
+                .toEqual({foo: `foo ${i} B`, bar: `bar ${i} B`});
+            expect(result[3 * i + 2])
+                .toEqual({foo: `foo ${i} C`, bar: `bar ${i} C`});
+          }
+        })
+        .then(done)
+        .catch(done.fail);
+  });
+
+  it('flatmaps array elements but not their contents', done => {
+    const readStream = new TestIntegerIterator().flatmap(
+        x => [
+            [`foo ${x} A`, `bar ${x} A`],
+            [`foo ${x} B`, `bar ${x} B`],
+            [`foo ${x} C`, `bar ${x} C`],
+    ]);
+    readStream.collectRemaining()
+        .then(result => {
+          expect(result.length).toEqual(300);
+          for (let i = 0; i < 100; i++) {
+            expect(result[3 * i + 0]).toEqual([`foo ${i} A`, `bar ${i} A`]);
+            expect(result[3 * i + 1]).toEqual([`foo ${i} B`, `bar ${i} B`]);
+            expect(result[3 * i + 2]).toEqual([`foo ${i} C`, `bar ${i} C`]);
           }
         })
         .then(done)
