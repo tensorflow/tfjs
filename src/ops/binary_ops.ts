@@ -687,7 +687,7 @@ function squaredDifferenceStrict_<T extends Tensor>(a: T, b: T): T {
   return a.squaredDifference(b);
 }
 
-/*
+/**
  * Computes arctangent of `Tensor`s a / b element-wise: `atan2(a, b)`.
  * Supports broadcasting.
  *
@@ -696,7 +696,7 @@ function squaredDifferenceStrict_<T extends Tensor>(a: T, b: T): T {
  * const b = tf.tensor1d([2.0, 13.0, 3.5, .21]);
  *
  * tf.atan2(a, b).print()
- *```
+ * ```
  *
  * @param a The first tensor.
  * @param b The second tensor. Must have the same dtype as `a`.
