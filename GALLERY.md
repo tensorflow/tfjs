@@ -1,5 +1,7 @@
 # Gallery
 
+If you would like to add something to this list, please feel free to send us a pull request!
+
 ## Demos & Applications
 
 - [Emoji Scavenger Hunt](https://emojiscavengerhunt.withgoogle.com/) - Locate the emoji we show you in the real world with your phone’s camera.
