@@ -92,6 +92,20 @@ describeMathCPU('Constant initializer', () => {
     expect(weights.dataSync()).toEqual(new Float32Array([5, 5, 5]));
   });
 
+  it('1D, from builder function', () => {
+    const init = tfl.initializers.constant({value: 5});
+    const weights = init.apply([3], 'float32');
+    expect(weights.shape).toEqual([3]);
+    expect(weights.dtype).toEqual('float32');
+    expect(weights.dataSync()).toEqual(new Float32Array([5, 5, 5]));
+  });
+
+  it('1D, from builder function: passing a direct value throws error', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tfl.initializers.constant(5 as any))
+        .toThrowError(/Expected.*ConstantConfig/);
+  });
+
   it('2D, from config dict', () => {
     const initializerConfig:
         serialization.ConfigDict = {className: 'Constant', config: {value: 5}};
@@ -101,6 +115,7 @@ describeMathCPU('Constant initializer', () => {
     expect(weights.dtype).toEqual('float32');
     expect(weights.dataSync()).toEqual(new Float32Array([5, 5, 5, 5]));
   });
+
   it('Does not leak', () => {
     const initializerConfig:
         serialization.ConfigDict = {className: 'Constant', config: {value: 5}};

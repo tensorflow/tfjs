@@ -95,6 +95,13 @@ export class Constant extends Initializer {
   private value: number;
   constructor(config: ConstantConfig) {
     super();
+    if (typeof config !== 'object') {
+      throw new ValueError(
+          `Expected argument of type ConstantConfig but got ${config}`);
+    }
+    if (config.value === undefined) {
+      throw new ValueError(`config must have value set but got ${config}`);
+    }
     this.value = config.value;
   }
 
