@@ -13,7 +13,8 @@
  */
 
 // tslint:disable:max-line-length
-import {Tensor, tensor3d, test_util} from '@tensorflow/tfjs-core';
+import {DataType, Tensor, tensor2d, tensor3d, test_util} from '@tensorflow/tfjs-core';
+
 import * as tfl from '../index';
 import {describeMathCPU} from '../utils/test_utils';
 
@@ -100,4 +101,25 @@ describeMathCPU('Embedding Layers: Tensor', () => {
     // Third output should match fourth output (same embedding index);
     expectArraysClose(yData2, yData3);
   });
+
+  const dtypes: DataType[] = ['int32', 'float32'];
+  for (const dtype of dtypes) {
+    it(`Works with '${dtype}' dtype input`, () => {
+      // Input values are [0, 0, 1] with type 'float32'
+      const x = tensor2d([[0], [0], [1]], [3, 1], dtype);
+      const embeddingLayer = tfl.layers.embedding(
+          {inputDim: 6, outputDim: 4, embeddingsInitializer: 'randomUniform'});
+      const y = embeddingLayer.apply(x) as Tensor;
+      // Collect embedded output elements.
+      const yData0 = y.slice([0, 0, 0], [1, 1, 3]).dataSync();
+      const yData1 = y.slice([1, 0, 0], [1, 1, 3]).dataSync();
+      const yData2 = y.slice([2, 0, 0], [1, 1, 3]).dataSync();
+      // First output should match second output.
+      expectArraysClose(yData0, yData1);
+      // First output should not match third output.
+      expect(() => {
+        expectArraysClose(yData0, yData2);
+      }).toThrow();
+    });
+  }
 });
