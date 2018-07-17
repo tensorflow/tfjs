@@ -24,4 +24,8 @@ describe('Exposes Backend for internal Op execution.', () => {
     const backend = nodeBackend();
     expect(backend instanceof NodeJSKernelBackend).toBeTruthy();
   });
+
+  it('Provides internal access to the binding', () => {
+    expect(nodeBackend().binding).toBeDefined();
+  });
 });
