@@ -9,7 +9,7 @@
  */
 
 // tslint:disable:max-line-length
-import {io, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
+import {DataType, io, ones, randomNormal, Scalar, scalar, serialization, sum, Tensor, tensor1d, tensor2d, zeros} from '@tensorflow/tfjs-core';
 
 import {Model} from './engine/training';
 import * as tfl from './index';
@@ -18,7 +18,7 @@ import {deserialize} from './layers/serialization';
 import {loadModelInternal, ModelAndWeightsConfig, modelFromJSON} from './models';
 import {JsonDict} from './types';
 import {convertPythonicToTs} from './utils/serialization_utils';
-import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from './utils/test_utils';
+import {describeMathCPU, expectTensorsClose, describeMathCPUAndGPU} from './utils/test_utils';
 import {version as layersVersion} from './version';
 
 // tslint:enable:max-line-length
@@ -1143,6 +1143,29 @@ describeMathCPUAndGPU('Sequential', () => {
     expectTensorsClose(
         model.predict(getInputs()) as Tensor, getExpectedOutputs());
   });
+
+  const dtypes: DataType[] = ['int32', 'float32'];
+  // TODO(bileschi): Add test for casting incompatible types, once they exist.
+  for (const dtype of dtypes) {
+    it(`predict() works with input dtype ${dtype}.`, () => {
+      const embModel = tfl.sequential();
+      embModel.add(tfl.layers.embedding(
+        {inputShape: [1], inputDim: 10, outputDim: 2}));
+      const x = tensor2d([[0], [0], [1]], [3, 1], dtype as DataType);
+      const y = embModel.predict(x) as Tensor;
+      expect(y.dtype).toBe('float32');
+    });
+
+    it(`fit() works with input dtype ${dtype}.`, () => {
+      const embModel = tfl.sequential();
+      embModel.add(tfl.layers.embedding(
+        {inputShape: [1], inputDim: 10, outputDim: 2}));
+        embModel.compile({optimizer: 'sgd', loss: 'meanSquaredError'});
+        const x = tensor2d([[0]], [1, 1], dtype as DataType);
+        const y = tensor2d([[0.5, 0.5]], [1, 2], 'float32');
+        embModel.fit(x, y);
+    });
+  }
 
   it('predictOnBatch() threads data through the model.', () => {
     const batchSize = 10;
