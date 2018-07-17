@@ -262,17 +262,10 @@ IORouterRegistry.registerSaveRouter(browserDownloadsRouter);
  * const model = tf.sequential();
  * model.add(tf.layers.dense(
  *     {units: 1, inputShape: [10], activation: 'sigmoid'}));
- * const saveResult = await model.save(tf.io.browserDownloads('mymodel'));
+ * const saveResult = await model.save('downloads://mymodel'));
  * // This will trigger downloading of two files:
  * //   'mymodel.json' and 'mymodel.weights.bin'.
  * console.log(saveResult);
- * ```
- *
- * You can also simply pass a string with a 'downloads://' scheme followed by
- * the file-name prefix to `model.save`:
- *
- * ```js
- * const saveResult = await model.save('downloads://mymodel');
  * ```
  *
  * @param fileNamePrefix Prefix name of the files to be downloaded. For use with
