@@ -72,9 +72,9 @@
   dependencies:
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.0.tgz#6bee18a220ece102a56be785cd1c67028f968a63"
+"@tensorflow/tfjs-layers@0.7.1":
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.1.tgz#3286736cad5e9465988aa996e5291a62f8a7dba1"
 
 "@types/estree@0.0.38":
   version "0.0.38"
