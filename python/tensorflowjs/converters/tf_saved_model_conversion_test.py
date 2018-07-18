@@ -112,6 +112,29 @@ class ConvertTest(unittest.TestCase):
 
       builder.save()
 
+  def create_saved_model_with_debug_ops(self):
+    graph = tf.Graph()
+    with graph.as_default():
+      x = tf.constant([[37.0, -23.0], [1.0, 4.0]])
+      w = tf.Variable(tf.random_uniform([2, 2]))
+      x = tf.Print(x, [x])
+      tf.Assert(tf.greater(tf.reduce_max(x), 0), [x])
+      x = tf.check_numerics(x, 'NaN found')
+      x += w
+
+      # Create a builder
+      builder = tf.saved_model.builder.SavedModelBuilder(
+          os.path.join(self._tmp_dir, SAVED_MODEL_DIR))
+
+      with tf.Session() as sess:
+        sess.run(w.initializer)
+        builder.add_meta_graph_and_variables(
+            sess, [tf.saved_model.tag_constants.SERVING],
+            signature_def_map=None,
+            assets_collection=None)
+
+      builder.save()
+
   def create_hub_module(self):
     # Module function that doubles its input.
     def double_module_fn():
@@ -228,6 +251,24 @@ class ConvertTest(unittest.TestCase):
     output_json = json.load(weights_manifest)
     weights_manifest.close()
     self.assertEqual(output_json, weights)
+
+    # Check the content of the output directory.
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR,
+                         'tensorflowjs_model.pb')))
+    self.assertTrue(
+        glob.glob(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_convert_saved_model_strip_debug_ops(self):
+    self.create_saved_model_with_debug_ops()
+
+    tf_saved_model_conversion.convert_tf_saved_model(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        'add',
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+        strip_debug_ops=True)
 
     # Check the content of the output directory.
     self.assertTrue(

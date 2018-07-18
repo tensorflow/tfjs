@@ -69,12 +69,13 @@ def load_graph(graph_filename, output_node_names):
   return graph
 
 
-def validate(nodes, skip_op_check):
+def validate(nodes, skip_op_check, strip_debug_ops):
   """Validate if the node's op is compatible with TensorFlow.js.
 
   Args:
     nodes: tf.NodeDef TensorFlow NodeDef objects from GraphDef.
     skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to allow unsupported debug ops.
   """
   if skip_op_check:
     return set()
@@ -88,22 +89,30 @@ def validate(nodes, skip_op_check):
         ops += json.load(json_data)
 
   names = set([x['tfOpName'] for x in ops])
+  if strip_debug_ops:
+    names = names.union(set(['Assert', 'CheckNumerics', 'Print']))
   not_supported = set(
       [x.op for x in [x for x in nodes if x.op not in names]])
   return not_supported
 
 
-def optimize_graph(graph, output_graph, quantization_dtype=None):
+def optimize_graph(graph,
+                   output_graph,
+                   quantization_dtype=None,
+                   strip_debug_ops=False):
   """Takes a Python Graph object and optimizes the graph.
 
   Args:
     graph: tf.Graph TensorFlow dataflow graph.
+    strip_debug_ops: Bool whether to strip out debug ops.
   """
   rewriter_config = rewriter_config_pb2.RewriterConfig()
   rewriter_config.optimizers[:] = [
       'pruning', 'constfold', 'arithmetic', 'dependency', 'pruning',
       'constfold', 'arithmetic', 'dependency'
   ]
+  if strip_debug_ops:
+    rewriter_config.optimizers.insert(0, 'debug_stripper')
   meta_graph = tf.train.export_meta_graph(
       graph_def=graph.as_graph_def(), graph=graph)
   optimized_graph = tf_optimizer.OptimizeGraph(
@@ -162,7 +171,8 @@ def convert_tf_session_bundle(session_bundle_dir,
                               output_node_names,
                               output_dir,
                               quantization_dtype=None,
-                              skip_op_check=False):
+                              skip_op_check=False,
+                              strip_debug_ops=False):
   """Freeze the Session Bundle model and check the model compatibility with
   Tensorflow.js.
 
@@ -180,6 +190,7 @@ def convert_tf_session_bundle(session_bundle_dir,
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
   """
 
   print("Tensorflow has deprecated the Session Bundle format, ",
@@ -204,11 +215,12 @@ def convert_tf_session_bundle(session_bundle_dir,
       '',
       input_meta_graph=input_checkpoint + '.meta')
   graph = load_graph(output_graph + '.frozen', output_node_names)
-  unsupported = validate(graph.as_graph_def().node, skip_op_check)
+  unsupported = validate(graph.as_graph_def().node, skip_op_check,
+                         strip_debug_ops)
   if unsupported:
     print('Unsupported Ops in the model\n' + ', '.join(unsupported))
   else:
-    optimize_graph(graph, output_graph, quantization_dtype)
+    optimize_graph(graph, output_graph, quantization_dtype, strip_debug_ops)
 
   # Clean up the temp files.
   if os.path.exists(frozen_file):
@@ -218,7 +230,8 @@ def convert_tf_session_bundle(session_bundle_dir,
 def convert_tf_saved_model(saved_model_dir, output_node_names,
                            output_dir, saved_model_tags='serve',
                            quantization_dtype=None,
-                           skip_op_check=False):
+                           skip_op_check=False,
+                           strip_debug_ops=False):
   """Freeze the SavedModel and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -237,6 +250,7 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
   """
 
   if not os.path.exists(output_dir):
@@ -259,11 +273,12 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
       input_saved_model_dir=saved_model_dir)
 
   graph = load_graph(output_graph + '.frozen', output_node_names)
-  unsupported = validate(graph.as_graph_def().node, skip_op_check)
+  unsupported = validate(graph.as_graph_def().node, skip_op_check,
+                         strip_debug_ops)
   if unsupported:
     print('Unsupported Ops in the model\n' + ', '.join(unsupported))
   else:
-    optimize_graph(graph, output_graph, quantization_dtype)
+    optimize_graph(graph, output_graph, quantization_dtype, strip_debug_ops)
 
   # Clean up the temp files.
   if os.path.exists(frozen_file):
@@ -272,7 +287,8 @@ def convert_tf_saved_model(saved_model_dir, output_node_names,
 
 def convert_tf_frozen_model(frozen_model_path, output_node_names,
                             output_dir, quantization_dtype=None,
-                            skip_op_check=False):
+                            skip_op_check=False,
+                            strip_debug_ops=False):
   """Convert frozen model and check the model compatibility with Tensorflow.js.
 
   Optimize and convert the model to Tensorflow.js format, when the model passes
@@ -289,6 +305,7 @@ def convert_tf_frozen_model(frozen_model_path, output_node_names,
     quantization_dtype: An optional numpy dtype to quantize weights to for
       compression. Only np.uint8 and np.uint16 are supported.
     skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
   """
 
   if not os.path.exists(output_dir):
@@ -296,12 +313,13 @@ def convert_tf_frozen_model(frozen_model_path, output_node_names,
   output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
 
   graph = load_graph(frozen_model_path, output_node_names)
-  unsupported = validate(graph.as_graph_def().node, skip_op_check)
+  unsupported = validate(graph.as_graph_def().node, skip_op_check,
+                         strip_debug_ops)
 
   if unsupported:
     print('Unsupported Ops in the model\n' + ', '.join(unsupported))
   else:
-    optimize_graph(graph, output_graph, quantization_dtype)
+    optimize_graph(graph, output_graph, quantization_dtype, strip_debug_ops)
 
 
 def load_and_initialize_hub_module(module_path, signature='default'):
@@ -351,7 +369,8 @@ def load_and_initialize_hub_module(module_path, signature='default'):
 
 
 def convert_tf_hub_module(module_path, output_dir,
-                          signature='default', skip_op_check=False):
+                          signature='default', skip_op_check=False,
+                          strip_debug_ops=False):
   """Freeze the TF-Hub module and check compatibility with Tensorflow.js.
 
   Optimize and convert the TF-Hub module to Tensorflow.js format, if it passes
@@ -366,6 +385,7 @@ def convert_tf_hub_module(module_path, output_dir,
       - possibly sharded binary weight files.
     signature: string Signature to load.
     skip_op_check: Bool whether to skip the op check.
+    strip_debug_ops: Bool whether to strip debug ops.
   """
 
   if not os.path.exists(output_dir):
@@ -388,7 +408,7 @@ def convert_tf_hub_module(module_path, output_dir,
   frozen_graph_def = graph_util.convert_variables_to_constants(
       sess, graph.as_graph_def(), output_node_names)
 
-  unsupported = validate(frozen_graph_def.node, skip_op_check)
+  unsupported = validate(frozen_graph_def.node, skip_op_check, strip_debug_ops)
 
   output_graph = os.path.join(output_dir, DEFAULT_MODEL_PB_FILENAME)
   frozen_file = output_graph + '.frozen'
@@ -399,7 +419,7 @@ def convert_tf_hub_module(module_path, output_dir,
       f.write(frozen_graph_def.SerializeToString())
 
     graph = load_graph(frozen_file, ','.join(output_node_names))
-    optimize_graph(graph, output_graph)
+    optimize_graph(graph, output_graph, strip_debug_ops=strip_debug_ops)
 
   # Clean up the temp files.
   if os.path.exists(frozen_file):
