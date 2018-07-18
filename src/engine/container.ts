@@ -1114,10 +1114,10 @@ export abstract class Container extends Layer {
           // The node is relevant to the model:
           // add to filteredInboundNodes.
           if (node.callArgs) {
-            const testString = JSON.stringify(node.callArgs);
-            if (testString.indexOf('undefined') === -1) {
+            try {
+              JSON.stringify(node.callArgs);
               kwargs = node.callArgs;
-            } else {
+            } catch (err) {
               console.warn(
                   `Layer ${layer.name} was passed ` +
                   `non-serializable keyword arguments: ` +

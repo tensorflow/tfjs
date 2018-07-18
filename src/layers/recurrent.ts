@@ -35,6 +35,68 @@ import {deserialize} from './serialization';
 // tslint:enable:max-line-length
 
 /**
+ * Standardize `apply()` args to a single list of tensor inputs.
+ *
+ * When running a model loaded from file, the input tensors `initialState` and
+ * `constants` are passed to `RNN.apply()` as part of `inputs` instead of the
+ * dedicated kwargs fields. `inputs` consists of
+ * `[inputs, initialState0, initialState1, ..., constant0, constant1]` in this
+ * case.
+ * This method makes sure that arguments are
+ * separated and that `initialState` and `constants` are `Array`s of tensors
+ * (or None).
+ *
+ * @param inputs Tensor or `Array` of  tensors.
+ * @param initialState Tensor or `Array` of tensors or `null`/`undefined`.
+ * @param constants Tensor or `Array` of tensors or `null`/`undefined`.
+ * @returns An object consisting of
+ *   inputs: A tensor.
+ *   initialState: `Array` of tensors or `null`.
+ *   constants: `Array` of tensors or `null`.
+ * @throws ValueError, if `inputs` is an `Array` but either `initialState` or
+ *   `constants` is provided.
+ */
+export function standardizeArgs(
+    inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
+    initialState: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
+    constants: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
+    numConstants?: number): {
+  inputs: Tensor|SymbolicTensor,
+  initialState: Tensor[]|SymbolicTensor[],
+  constants: Tensor[]|SymbolicTensor[]
+} {
+  if (Array.isArray(inputs)) {
+    if (initialState != null || constants != null) {
+      throw new ValueError(
+          'When inputs is an array, neither initialState or constants ' +
+          'should be provided');
+    }
+    if (numConstants != null) {
+      constants = inputs.slice(inputs.length - numConstants, inputs.length);
+      inputs = inputs.slice(0, inputs.length - numConstants);
+    }
+    if (inputs.length > 1) {
+      initialState = inputs.slice(1, inputs.length);
+    }
+    inputs = inputs[0];
+  }
+
+  function toListOrNull(x: Tensor|Tensor[]|SymbolicTensor|
+                        SymbolicTensor[]): Tensor[]|SymbolicTensor[] {
+    if (x == null || Array.isArray(x)) {
+      return x as Tensor[] | SymbolicTensor[];
+    } else {
+      return [x] as Tensor[] | SymbolicTensor[];
+    }
+  }
+
+  initialState = toListOrNull(initialState);
+  constants = toListOrNull(constants);
+
+  return {inputs, initialState, constants};
+}
+
+/**
  * Iterates over the time dimension of a tensor.
  *
  * @param stepFunction RNN step function.
@@ -510,68 +572,6 @@ export class RNN extends Layer {
     });
   }
 
-  /**
-   * Standardize `apply()` args to a single list of tensor inputs.
-   *
-   * When running a model loaded from file, the input tensors `initialState` and
-   * `constants` are passed to `RNN.apply()` as part of `inputs` instead of the
-   * dedicated kwargs fields. `inputs` consists of
-   * `[inputs, initialState0, initialState1, ..., constant0, constant1]` in this
-   * case.
-   * This method makes sure that arguments are
-   * separated and that `initialState` and `constants` are `Array`s of tensors
-   * (or None).
-   *
-   * @param inputs Tensor or `Array` of  tensors.
-   * @param initialState Tensor or `Array` of tensors or `null`/`undefined`.
-   * @param constants Tensor or `Array` of tensors or `null`/`undefined`.
-   * @returns An object consisting of
-   *   inputs: A tensor.
-   *   initialState: `Array` of tensors or `null`.
-   *   constants: `Array` of tensors or `null`.
-   * @throws ValueError, if `inputs` is an `Array` but either `initialState` or
-   *   `constants` is provided.
-   */
-  protected standardizeArgs(
-      inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
-      initialState: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
-      constants: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[]): {
-    inputs: Tensor|SymbolicTensor,
-    initialState: Tensor[]|SymbolicTensor[],
-    constants: Tensor[]|SymbolicTensor[]
-  } {
-    if (Array.isArray(inputs)) {
-      if (initialState != null || constants != null) {
-        throw new ValueError(
-            'When inputs is an array, neither initialState or constants ' +
-            'should be provided');
-      }
-      if (this.numConstants != null) {
-        constants =
-            inputs.slice(inputs.length - this.numConstants, inputs.length);
-        inputs = inputs.slice(0, inputs.length - this.numConstants);
-      }
-      if (inputs.length > 1) {
-        initialState = inputs.slice(1, inputs.length);
-      }
-      inputs = inputs[0];
-    }
-
-    function toListOrNull(x: Tensor|Tensor[]|SymbolicTensor|
-                          SymbolicTensor[]): Tensor[]|SymbolicTensor[] {
-      if (x == null || Array.isArray(x)) {
-        return x as Tensor[] | SymbolicTensor[];
-      } else {
-        return [x] as Tensor[] | SymbolicTensor[];
-      }
-    }
-
-    initialState = toListOrNull(initialState);
-    constants = toListOrNull(constants);
-
-    return {inputs, initialState, constants};
-  }
-
   apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
       kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
@@ -584,7 +584,8 @@ export class RNN extends Layer {
       kwargs = {};
     }
 
-    const standardized = this.standardizeArgs(inputs, initialState, constants);
+    const standardized =
+        standardizeArgs(inputs, initialState, constants, this.numConstants);
     inputs = standardized.inputs;
     initialState = standardized.initialState;
     constants = standardized.constants;

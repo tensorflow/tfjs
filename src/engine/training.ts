@@ -577,6 +577,11 @@ export interface ModelFitConfig {
    * (batches of samples) to validate before stopping.
    */
   validationSteps?: number;
+
+  /**
+   *
+   */
+  yieldEvery?: 'batch'|'epoch'|'never';
 }
 
 /**

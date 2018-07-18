@@ -13,9 +13,10 @@
  */
 
 // tslint:disable:max-line-length
-import {serialization, Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
+import {ones, scalar, serialization, Tensor, tensor2d, Tensor3D, tensor3d} from '@tensorflow/tfjs-core';
 
-import {Layer} from '../engine/topology';
+import {Layer, SymbolicTensor} from '../engine/topology';
+import {Model} from '../engine/training';
 import * as tfl from '../index';
 import {convertPythonicToTs} from '../utils/serialization_utils';
 import {describeMathCPU, describeMathCPUAndGPU, expectTensorsClose} from '../utils/test_utils';
@@ -400,5 +401,116 @@ describeMathCPUAndGPU('Bidirectional Layer: Tensor', () => {
         .catch(err => {
           done.fail(err.stack);
         });
+  });
+});
+
+describeMathCPUAndGPU('Bidirectional with initial state', () => {
+  const sequenceLength = 4;
+  const recurrentUnits = 3;
+  const inputDim = 2;
+
+  function createLayerAndTensors(): {
+    bidiLayer: Bidirectional,
+    initState1: SymbolicTensor,
+    initState2: SymbolicTensor,
+    inputTensor: SymbolicTensor,
+    outputTensors: SymbolicTensor[],
+  } {
+    const initState1 = tfl.input({shape: [recurrentUnits]});
+    const initState2 = tfl.input({shape: [recurrentUnits]});
+    const inputTensor = tfl.input({shape: [sequenceLength, inputDim]});
+    const bidiLayer = tfl.layers.bidirectional({
+      layer: tfl.layers.gru({
+        units: recurrentUnits,
+        kernelInitializer: 'zeros',
+        recurrentInitializer: 'zeros',
+        biasInitializer: 'ones'
+      }) as RNN,
+      mergeMode: null,
+    }) as Bidirectional;
+    const outputTensors =
+        bidiLayer.apply(
+            inputTensor, {initialState: [initState1, initState2]}) as
+        SymbolicTensor[];
+    return {bidiLayer, initState1, initState2, inputTensor, outputTensors};
+  }
+
+  it('Correct shapes', () => {
+    const layerAndTensors = createLayerAndTensors();
+    expect(layerAndTensors.outputTensors.length).toEqual(2);
+    expect(layerAndTensors.outputTensors[0].shape).toEqual([
+      null, recurrentUnits
+    ]);
+    expect(layerAndTensors.outputTensors[1].shape).toEqual([
+      null, recurrentUnits
+    ]);
+  });
+
+  it('apply() with concrete tensors', () => {
+    const layerAndTensors = createLayerAndTensors();
+    const xVal = ones([1, sequenceLength, inputDim]);
+    const initState1Val = ones([1, recurrentUnits]).mul(scalar(-1));
+    const initState2Val = ones([1, recurrentUnits]);
+    const yVals =
+        layerAndTensors.bidiLayer.apply(
+            xVal, {initialState: [initState1Val, initState2Val]}) as Tensor[];
+    expect(yVals.length).toEqual(2);
+    expectTensorsClose(
+        yVals[0], tensor2d([[0.33863544, 0.33863544, 0.33863544]]));
+    expectTensorsClose(yVals[1], tensor2d([[0.8188354, 0.8188354, 0.8188354]]));
+  });
+
+  it('Model predict', () => {
+    const layerAndTensors = createLayerAndTensors();
+    const model = tfl.model({
+      inputs: [
+        layerAndTensors.inputTensor, layerAndTensors.initState1,
+        layerAndTensors.initState2
+      ],
+      outputs: layerAndTensors.outputTensors
+    });
+    const xVal = ones([1, sequenceLength, inputDim]);
+    const initState1Val = ones([1, recurrentUnits]).mul(scalar(-1));
+    const initState2Val = ones([1, recurrentUnits]);
+    const yVals =
+        model.predict([xVal, initState1Val, initState2Val]) as Tensor[];
+    expect(yVals.length).toEqual(2);
+    expectTensorsClose(
+        yVals[0], tensor2d([[0.33863544, 0.33863544, 0.33863544]]));
+    expectTensorsClose(yVals[1], tensor2d([[0.8188354, 0.8188354, 0.8188354]]));
+  });
+
+  it('Model serialization round trip', () => {
+    // Disable the console warning about the unserialization SymbolicTensor in
+    // the CallArgs.
+    spyOn(console, 'warn');
+    const layerAndTensors = createLayerAndTensors();
+    const model = tfl.model({
+      inputs: [
+        layerAndTensors.inputTensor, layerAndTensors.initState1,
+        layerAndTensors.initState2
+      ],
+      outputs: layerAndTensors.outputTensors
+    });
+    const json1 = model.toJSON(null, false);
+    const model2 =
+        deserialize(convertPythonicToTs(json1) as serialization.ConfigDict) as
+        Model;
+    const json2 = model2.toJSON(null, false);
+    expect(json2).toEqual(json1);
+  });
+
+  it('Incorrect number of initial-state tensors leads to error', () => {
+    const initState1 = tfl.input({shape: [recurrentUnits]});
+    const x = tfl.input({shape: [sequenceLength, inputDim]});
+    const bidi = tfl.layers.bidirectional({
+      layer: tfl.layers.gru({
+        units: recurrentUnits,
+      }) as RNN,
+      mergeMode: null,
+    });
+    expect(() => bidi.apply(x, {
+      initialState: [initState1]
+    })).toThrowError(/the state should be .*RNNs/);
   });
 });
