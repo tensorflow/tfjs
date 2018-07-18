@@ -60,7 +60,8 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
 - [Smoothgrad in TensorFlow.js](https://beta.observablehq.com/@aman-tiwari/smoothgrad-in-tensorflow-js?linkId=53020429) by Aman Tiwari
 - [Visualizing training using TensorFlow.js + MLB data](https://beta.observablehq.com/@nkreeger/visualizing-ml-training-using-tensorflow-js-and-baseball-d) by Nick Kreeger
-
+- [Intractive Intro to TensorFlow.js] (https://beta.observablehq.com/@zaidalyafeai/an-intractive-introduction-to-tensorflow-js) by Zaid Alyafeai 
+- [Gradient Minimization and Image Reconstruction] (https://beta.observablehq.com/@zaidalyafeai/gradient-minimization-and-image-reconstruction)
 ## Libraries using TensorFlow.js
 
 - [ML5](https://ml5js.org/) - Friendly machine learning for the web
