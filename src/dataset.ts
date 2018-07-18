@@ -25,7 +25,7 @@ import {iteratorFromFunction, iteratorFromZipped, LazyIterator, ZipMismatchMode}
 import {iteratorFromConcatenated} from './iterators/lazy_iterator';
 import {iteratorFromItems} from './iterators/lazy_iterator';
 import {DataElement, DatasetContainer} from './types';
-import {deepMap, isIterable} from './util/deep_map';
+import {deepMapAndAwaitAll, isIterable} from './util/deep_map';
 
 // TODO(soergel): consider vectorized operations within the pipeline.
 
@@ -50,7 +50,7 @@ export abstract class Dataset<T extends DataElement> {
    * this stream *must* be manually disposed to avoid a GPU memory leak.
    * The tf.tidy() approach cannot be used in a asynchronous context.
    */
-  abstract iterator(): LazyIterator<T>;
+  abstract async iterator(): Promise<LazyIterator<T>>;
 
   // TODO(soergel): Make Datasets report whether repeated iterator() calls
   // produce the same result (e.g., reading from a file) or different results
@@ -68,8 +68,8 @@ export abstract class Dataset<T extends DataElement> {
    */
   filter(filterer: (value: T) => boolean): Dataset<T> {
     const base = this;
-    return datasetFromIteratorFn(() => {
-      return base.iterator().filter(x => tf.tidy(() => filterer(x)));
+    return datasetFromIteratorFn(async () => {
+      return (await base.iterator()).filter(x => tf.tidy(() => filterer(x)));
     });
   }
 
@@ -83,8 +83,8 @@ export abstract class Dataset<T extends DataElement> {
    */
   map<O extends DataElement>(transform: (value: T) => O): Dataset<O> {
     const base = this;
-    return datasetFromIteratorFn(() => {
-      return base.iterator().map(x => tf.tidy(() => transform(x)));
+    return datasetFromIteratorFn(async () => {
+      return (await base.iterator()).map(x => tf.tidy(() => transform(x)));
     });
   }
 
@@ -117,7 +117,8 @@ export abstract class Dataset<T extends DataElement> {
   concatenate(dataset: Dataset<T>): Dataset<T> {
     const base = this;
     return datasetFromIteratorFn(
-        () => base.iterator().concatenate(dataset.iterator()));
+        async () =>
+            (await base.iterator()).concatenate(await dataset.iterator()));
   }
 
   /**
@@ -133,9 +134,9 @@ export abstract class Dataset<T extends DataElement> {
    */
   repeat(count?: number): Dataset<T> {
     const base = this;
-    return datasetFromIteratorFn(() => {
-      const iteratorIterator =
-          iteratorFromFunction(() => ({value: base.iterator(), done: false}));
+    return datasetFromIteratorFn(async () => {
+      const iteratorIterator = iteratorFromFunction(
+          async () => ({value: await base.iterator(), done: false}));
       return iteratorFromConcatenated(iteratorIterator.take(count));
     });
   }
@@ -151,7 +152,8 @@ export abstract class Dataset<T extends DataElement> {
    */
   take(count: number): Dataset<T> {
     const base = this;
-    return datasetFromIteratorFn(() => base.iterator().take(count));
+    return datasetFromIteratorFn(
+        async () => (await base.iterator()).take(count));
   }
 
   /**
@@ -166,7 +168,8 @@ export abstract class Dataset<T extends DataElement> {
    */
   skip(count: number): Dataset<T> {
     const base = this;
-    return datasetFromIteratorFn(() => base.iterator().skip(count));
+    return datasetFromIteratorFn(
+        async () => (await base.iterator()).skip(count));
   }
 
   // TODO(soergel): deep sharded shuffle, where supported
@@ -187,12 +190,12 @@ export abstract class Dataset<T extends DataElement> {
       Dataset<T> {
     const base = this;
     const random = seedrandom.alea(seed || performance.now().toString());
-    return datasetFromIteratorFn(() => {
+    return datasetFromIteratorFn(async () => {
       let seed2 = random.int32();
       if (reshuffleEachIteration) {
         seed2 += random.int32();
       }
-      return base.iterator().shuffle(bufferSize, seed2.toString());
+      return (await base.iterator()).shuffle(bufferSize, seed2.toString());
     });
   }
 
@@ -205,7 +208,8 @@ export abstract class Dataset<T extends DataElement> {
    */
   prefetch(bufferSize: number): Dataset<T> {
     const base = this;
-    return datasetFromIteratorFn(() => base.iterator().prefetch(bufferSize));
+    return datasetFromIteratorFn(
+        async () => (await base.iterator()).prefetch(bufferSize));
   }
 
   /**
@@ -217,7 +221,7 @@ export abstract class Dataset<T extends DataElement> {
    *   when a new stream has been obtained and fully consumed.
    */
   async collectAll() {
-    return this.iterator().collectRemaining();
+    return (await this.iterator()).collectRemaining();
   }
 
   /**
@@ -230,7 +234,7 @@ export abstract class Dataset<T extends DataElement> {
    * @returns A `Promise` that resolves after all elements have been processed.
    */
   async forEach(f: (input: T) => void): Promise<void> {
-    return this.iterator().forEach(f);
+    return (await this.iterator()).forEach(f);
   }
 
   /* TODO(soergel): for parity with tf.data:
@@ -245,13 +249,13 @@ export abstract class Dataset<T extends DataElement> {
  * Create a `Dataset` defined by a provided iterator() function.
  */
 export function datasetFromIteratorFn<T extends DataElement>(
-    iteratorFn: () => LazyIterator<T>): Dataset<T> {
+    iteratorFn: () => Promise<LazyIterator<T>>): Dataset<T> {
   return new class extends Dataset<T> {
     /*
      * Provide a new stream of elements.  Note this will also start new streams
      * from any underlying `Dataset`s.
      */
-    iterator(): LazyIterator<T> {
+    async iterator(): Promise<LazyIterator<T>> {
       return iteratorFn();
     }
   }
@@ -263,7 +267,7 @@ export function datasetFromIteratorFn<T extends DataElement>(
  */
 export function datasetFromElements<T extends DataElement>(items: T[]):
     Dataset<T> {
-  return datasetFromIteratorFn(() => iteratorFromItems(items));
+  return datasetFromIteratorFn(async () => iteratorFromItems(items));
 }
 
 /**
@@ -296,8 +300,8 @@ export function zip(datasets: DatasetContainer): Dataset<DataElement> {
   if (!isIterable(datasets)) {
     throw new Error('The argument to zip() must be an object or array.');
   }
-  return datasetFromIteratorFn(() => {
-    const streams = deepMap(datasets, d => {
+  return datasetFromIteratorFn(async () => {
+    const streams = await deepMapAndAwaitAll(datasets, d => {
       if (d instanceof Dataset) {
         return {value: d.iterator(), recurse: false};
       } else if (isIterable(d)) {

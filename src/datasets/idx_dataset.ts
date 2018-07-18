@@ -18,27 +18,35 @@
 
 import {Dataset} from '../dataset';
 import {DataSource} from '../datasource';
+import {IDXIterator} from '../iterators/idx_iterator';
 import {LazyIterator} from '../iterators/lazy_iterator';
+import {DataElementObject} from '../types';
 
 /**
- * Represents a potentially large collection of text lines.
+ * A potentially large collection of Tensors parsed from an IDX source.
+ *
+ * The produced `DatasetElement`s each contain a single Tensor, with the
+ * key given by the `columnName` argument (default 'data').
  *
  * The results are not batched.
  */
-export class TextLineDataset extends Dataset<string> {
+export class IDXDataset extends Dataset<DataElementObject> {
   /**
-   * Create a `TextLineDataset`.
+   * Create an `IDXDataset`.
    *
    * @param input A `DataSource` providing a chunked, UTF8-encoded byte stream.
+   * @param columnName The key to use in the resulting `DatasetElement`s
+   *   (default 'data').
    */
-  constructor(protected readonly input: DataSource) {
+  constructor(
+      protected readonly input: DataSource,
+      protected readonly columnName = 'data') {
     super();
   }
 
-  async iterator(): Promise<LazyIterator<string>> {
-    const inputIterator = await this.input.iterator();
-    const utf8Iterator = inputIterator.decodeUTF8();
-    const lineIterator = utf8Iterator.split('\n');
-    return lineIterator;
+  async iterator(): Promise<LazyIterator<DataElementObject>> {
+    const tensorStream = new IDXIterator(await this.input.iterator());
+    return tensorStream.map(
+        x => ({[this.columnName]: x} as any as DataElementObject));
   }
 }
