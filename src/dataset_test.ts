@@ -54,7 +54,7 @@ class TestObjectIterator extends LazyIterator<{}> {
 }
 
 export class TestDataset extends Dataset<DataElementObject> {
-  iterator(): LazyIterator<{}> {
+  async iterator(): Promise<LazyIterator<{}>> {
     return new TestObjectIterator();
   }
 }
@@ -203,12 +203,13 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
      async done => {
        try {
          let count = 0;
-         const a = datasetFromIteratorFn(() => iteratorFromFunction(() => {
-                                           if (count > 2) {
-                                             throw new Error('propagate me!');
-                                           }
-                                           return {value: count++, done: false};
-                                         }));
+         const a =
+             datasetFromIteratorFn(async () => iteratorFromFunction(() => {
+                                     if (count > 2) {
+                                       throw new Error('propagate me!');
+                                     }
+                                     return {value: count++, done: false};
+                                   }));
          const b = datasetFromElements([3, 4, 5, 6]);
          // tslint:disable-next-line:no-any
          await zip([a, b]).collectAll();
@@ -257,7 +258,7 @@ describeWithFlags('Dataset', tf.test_util.CPU_ENVS, () => {
 
     class CustomDataset extends Dataset<{}> {
       state = {val: 1};
-      iterator() {
+      async iterator() {
         const result = iteratorFromItems([
           {'item': this.state.val++}, {'item': this.state.val++},
           {'item': this.state.val++}

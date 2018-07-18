@@ -18,7 +18,8 @@
 
 import {DataSource} from '../datasource';
 import {ByteChunkIterator} from '../iterators/byte_chunk_iterator';
-import {URLChunkIterator} from '../iterators/url_chunk_iterator';
+import {FileChunkIteratorOptions} from '../iterators/file_chunk_iterator';
+import {urlChunkIterator} from '../iterators/url_chunk_iterator';
 
 /*
  * Represents a URL readable as a stream of binary data chunks.
@@ -31,17 +32,19 @@ export class URLDataSource extends DataSource {
    * @param options Options passed to the underlying `FileChunkIterator`s,
    *   such as {chunksize: 1024}.
    */
-  constructor(
+  private constructor(
       protected readonly url: RequestInfo,
-      protected readonly options: RequestInit = {}) {
+      protected readonly fileOptions: FileChunkIteratorOptions = {}) {
     super();
   }
+
+  static async create() {}
 
   // TODO(soergel): provide appropriate caching options.  Currently this
   // will download the URL anew for each call to iterator().  Since we have
   // to treat the downloaded file as a blob anyway, we may as well retain it--
   // but that raises GC issues.  Also we may want a persistent disk cache.
-  iterator(): ByteChunkIterator {
-    return new URLChunkIterator(this.url, this.options);
+  async iterator(): Promise<ByteChunkIterator> {
+    return urlChunkIterator(this.url, this.fileOptions);
   }
 }
