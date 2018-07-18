@@ -15,9 +15,12 @@
  * =============================================================================
  */
 
+import * as tfc from '@tensorflow/tfjs-core';
+
 import {NodeJSKernelBackend} from '../nodejs_kernel_backend';
 
-import {nodeBackend} from './op_utils';
+// tslint:disable-next-line:max-line-length
+import {createTypeOpAttr, getTFDType, getTFDTypeForInputs, nodeBackend} from './op_utils';
 
 describe('Exposes Backend for internal Op execution.', () => {
   it('Provides the Node backend over a function', () => {
@@ -27,5 +30,57 @@ describe('Exposes Backend for internal Op execution.', () => {
 
   it('Provides internal access to the binding', () => {
     expect(nodeBackend().binding).toBeDefined();
+  });
+});
+
+describe('getTFDType()', () => {
+  const binding = nodeBackend().binding;
+
+  it('handles float32', () => {
+    expect(getTFDType('float32')).toBe(binding.TF_FLOAT);
+  });
+  it('handles int32', () => {
+    expect(getTFDType('int32')).toBe(binding.TF_INT32);
+  });
+  it('handles bool', () => {
+    expect(getTFDType('bool')).toBe(binding.TF_BOOL);
+  });
+  it('handles unknown types', () => {
+    expect(() => getTFDType(null)).toThrowError();
+  });
+});
+
+describe('createTypeOpAttr()', () => {
+  const binding = nodeBackend().binding;
+
+  it('Creates a valid type attribute', () => {
+    const attr = createTypeOpAttr('foo', 'float32');
+    expect(attr.name).toBe('foo');
+    expect(attr.type).toBe(binding.TF_ATTR_TYPE);
+    expect(attr.value).toBe(binding.TF_FLOAT);
+  });
+
+  it('handles unknown dtypes', () => {
+    expect(() => createTypeOpAttr('foo', null)).toThrowError();
+  });
+});
+
+describe('Returns TFDtype values for Tensor or list of Tensors', () => {
+  const binding = nodeBackend().binding;
+
+  it('handles a single Tensor', () => {
+    expect(getTFDTypeForInputs(tfc.scalar(13, 'float32')))
+        .toBe(binding.TF_FLOAT);
+  });
+  it('handles a list of Tensors', () => {
+    const inputs = [tfc.scalar(1, 'int32'), tfc.scalar(20.1, 'float32')];
+    expect(getTFDTypeForInputs(inputs)).toBe(binding.TF_INT32);
+  });
+  it('handles null', () => {
+    expect(() => getTFDTypeForInputs(null)).toThrowError();
+  });
+  it('handles list of null', () => {
+    const inputs = [null, null] as tfc.Tensor[];
+    expect(() => getTFDTypeForInputs(inputs)).toThrowError();
   });
 });
