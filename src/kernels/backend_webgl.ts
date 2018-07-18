@@ -32,6 +32,7 @@ import * as util from '../util';
 
 import {KernelBackend} from './backend';
 import * as backend_util from './backend_util';
+import {topkImpl} from './topk_impl';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {AvgPool2DBackpropProgram} from './webgl/avg_pool_backprop_gpu';
 import {BatchNormProgram} from './webgl/batchnorm_gpu';
@@ -747,12 +748,8 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [condition, a, b], output);
   }
 
-  topKValues<T extends Tensor>(x: T, k: number): Tensor1D {
-    throw new Error('topKValues GPU not yet implemented!');
-  }
-
-  topKIndices(x: Tensor, k: number): Tensor1D {
-    throw new Error('topKIndices GPU not yet implemented!');
+  topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
+    return topkImpl(x, k, sorted);
   }
 
   min(x: Tensor, axes: number[]): Tensor {

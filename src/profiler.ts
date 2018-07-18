@@ -27,18 +27,23 @@ export class Profiler {
     }
   }
 
-  profileKernel<T extends Tensor>(name: string, f: () => T): T {
-    let result: T;
+  profileKernel<T extends Tensor|Tensor[]>(name: string, f: () => T | Tensor[]):
+      T {
+    let result: T|Tensor[];
     const holdResultWrapperFn = () => {
       result = f();
     };
     const timer = this.backendTimer.time(holdResultWrapperFn);
 
-    const vals = result.dataSync();
-    util.checkForNaN(vals, result.dtype, name);
+    const results: Tensor[] =
+        Array.isArray(result) ? result : [result] as Tensor[];
+    results.forEach(r => {
+      const vals = r.dataSync();
+      util.checkForNaN(vals, r.dtype, name);
 
-    timer.then(timing => {
-      this.logger.logKernelProfile(name, result, vals, timing.kernelMs);
+      timer.then(timing => {
+        this.logger.logKernelProfile(name, r, vals, timing.kernelMs);
+      });
     });
 
     return result as T;
