@@ -16,27 +16,9 @@
  * =============================================================================
  */
 
-import {ByteChunkIterator} from './byte_chunk_iterator';
-import {FileChunkIterator} from './file_chunk_iterator';
-import {QueueIterator} from './lazy_iterator';
-
-// We wanted multiple inheritance, e.g.
-//   class URLIterator extends QueueIterator<Uint8Array>, ByteChunkIterator
-// but the TypeScript mixin approach is a bit hacky, so we take this adapter
-// approach instead.
-
-export class URLChunkIterator extends ByteChunkIterator {
-  private impl: URLChunkIteratorImpl;
-
-  constructor(url: RequestInfo, options = {}) {
-    super();
-    this.impl = new URLChunkIteratorImpl(url, options);
-  }
-
-  async next() {
-    return this.impl.next();
-  }
-}
+// tslint:disable:max-line-length
+import {FileChunkIterator, FileChunkIteratorOptions} from './file_chunk_iterator';
+// tslint:enable:max-line-length
 
 /**
  * Provide a stream of chunks from a URL.
@@ -45,41 +27,13 @@ export class URLChunkIterator extends ByteChunkIterator {
  * the first element from the stream.  This is because the Fetch API does not
  * yet reliably provide a reader stream for the response body.
  */
-class URLChunkIteratorImpl extends QueueIterator<Uint8Array> {
-  private blobPromise: Promise<Blob>;
-  private fileChunkIterator: FileChunkIterator;
-
-  /**
-   * Create a `URLChunkIteratorImpl`.
-   *
-   * @param url A source URL string, or a `Request` object.
-   * @param options Options passed to the underlying `FileChunkIterator`s,
-   *   such as {chunksize: 1024}.
-   * @returns an Iterator of Uint8Arrays containing sequential chunks of the
-   *   input file.
-   */
-  constructor(protected url: RequestInfo, protected options = {}) {
-    super();
-
-    this.blobPromise = fetch(url, options).then(response => {
-      if (response.ok) {
-        return response.blob();
-      } else {
-        throw new Error(response.statusText);
-      }
-    });
-  }
-
-  async pump(): Promise<boolean> {
-    if (this.fileChunkIterator == null) {
-      const blob = await this.blobPromise;
-      this.fileChunkIterator = new FileChunkIterator(blob, this.options);
-    }
-    const chunkResult = await this.fileChunkIterator.next();
-    if (chunkResult.done) {
-      return false;
-    }
-    this.outputQueue.push(chunkResult.value);
-    return true;
+export async function urlChunkIterator(
+    url: RequestInfo, fileOptions: FileChunkIteratorOptions = {}) {
+  const response = await fetch(url);
+  if (response.ok) {
+    const blob = await response.blob();
+    return new FileChunkIterator(blob, fileOptions);
+  } else {
+    throw new Error(response.statusText);
   }
 }
