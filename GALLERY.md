@@ -1,5 +1,7 @@
 # Gallery
 
+Welcome to the TensorFlow.js gallery! This is a collection of TensorFlow.js projects, tutorials, videos, and more.
+
 If you would like to add something to this list, please feel free to send us a pull request!
 
 ## Demos & Applications
@@ -27,12 +29,6 @@ If you would like to add something to this list, please feel free to send us a p
 
 These tutorials augment the [official tutorials](https://js.tensorflow.org/tutorials/).
 
-#### Written by TensorFlow team
-- [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js)
-- [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js)
-
-#### More tutorials
-
 - [A gentle introduction to TensorFlow.js](https://medium.com/tensorflow/a-gentle-introduction-to-tensorflow-js-dba2e5257702) by Zaid Alyafeai
 - [Train a model in tf.keras with Colab, and run it in the browser with TensorFlow.js](https://medium.com/tensorflow/train-on-google-colab-and-run-on-the-browser-a-case-study-8a45f9b1474e) by Zaid Alyafeai
 - [Python Programming - Deep learning in the browser with TensorFlow.js](https://pythonprogramming.net/deep-learning-browser-introduction-tensorflowjs/) by Harrison Kinsley
@@ -59,11 +55,12 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Introducing TensorFlow.js](https://medium.com/tensorflow/introducing-tensorflow-js-machine-learning-in-javascript-bf3eab376db) by Josh Gordon and Sara Robinson
 
 ## Notebooks
+- [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
+- [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
 - [Smoothgrad in TensorFlow.js](https://beta.observablehq.com/@aman-tiwari/smoothgrad-in-tensorflow-js?linkId=53020429) by Aman Tiwari
 - [Visualizing training using TensorFlow.js + MLB data](https://beta.observablehq.com/@nkreeger/visualizing-ml-training-using-tensorflow-js-and-baseball-d) by Nick Kreeger
-## Libraries
 
-Libraries that use TensorFlow.js
+## Libraries using TensorFlow.js
 
 - [ML5](https://ml5js.org/) - Friendly machine learning for the web
 - [magenta.js](https://magenta.tensorflow.org/js) - Music and Art Generation with Machine Intelligence in the Browser.
