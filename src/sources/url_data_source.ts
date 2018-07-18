@@ -32,13 +32,11 @@ export class URLDataSource extends DataSource {
    * @param options Options passed to the underlying `FileChunkIterator`s,
    *   such as {chunksize: 1024}.
    */
-  private constructor(
+  constructor(
       protected readonly url: RequestInfo,
       protected readonly fileOptions: FileChunkIteratorOptions = {}) {
     super();
   }
-
-  static async create() {}
 
   // TODO(soergel): provide appropriate caching options.  Currently this
   // will download the URL anew for each call to iterator().  Since we have
