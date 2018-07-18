@@ -53,6 +53,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Real-time Human Pose Estimation in the Browser with TensorFlow.js](https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5) by Dan Oved
 - [Getting Started with TensorFlow.js](https://medium.com/tensorflow/getting-started-with-tensorflow-js-50f6783489b2) by Laurence Moroney
 - [Introducing TensorFlow.js](https://medium.com/tensorflow/introducing-tensorflow-js-machine-learning-in-javascript-bf3eab376db) by Josh Gordon and Sara Robinson
+- [Solving the Chrome T-Rex Game with Neural Networks, Genetic Algorithms and TensorFlow.js (Chinese: 前端人工智能？TensorFlow.js 学会游戏通关)](https://zhuanlan.zhihu.com/p/35451395) by [@MagicCube](https://github.com/MagicCube)
 
 ## Notebooks
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
