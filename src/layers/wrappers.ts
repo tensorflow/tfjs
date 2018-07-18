@@ -16,10 +16,10 @@
 import * as tfc from '@tensorflow/tfjs-core';
 import {serialization, Tensor, tidy} from '@tensorflow/tfjs-core';
 
+import {getScalar} from '../backend/state';
 import * as K from '../backend/tfjs_backend';
 import {nameScope} from '../common';
-import {Layer, LayerConfig, SymbolicTensor} from '../engine/topology';
-import {getScalar} from '../backend/state';
+import {InputSpec, Layer, LayerConfig, SymbolicTensor} from '../engine/topology';
 import {NotImplementedError, ValueError} from '../errors';
 import {Kwargs, Shape} from '../types';
 import {RegularizerFn, RnnStepFunction} from '../types';
@@ -27,7 +27,7 @@ import * as generic_utils from '../utils/generic_utils';
 import {getExactlyOneShape, getExactlyOneTensor} from '../utils/types_utils';
 import {LayerVariable} from '../variables';
 
-import {rnn, RNN} from './recurrent';
+import {rnn, RNN, standardizeArgs} from './recurrent';
 import {deserialize} from './serialization';
 
 // tslint:enable:max-line-length
@@ -270,6 +270,7 @@ export class Bidirectional extends Wrapper {
   private mergeMode: BidirectionalMergeMode;
   private returnSequences: boolean;
   private returnState: boolean;
+  private numConstants?: number;
   private _trainable: boolean;
 
   constructor(config: BidirectionalLayerConfig) {
@@ -308,6 +309,7 @@ export class Bidirectional extends Wrapper {
     this.supportsMasking = true;
     this._trainable = true;
     this.inputSpec = config.layer.inputSpec;
+    this.numConstants = null;
   }
 
   get trainable(): boolean {
@@ -378,22 +380,82 @@ export class Bidirectional extends Wrapper {
   apply(
       inputs: Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[],
       kwargs?: Kwargs): Tensor|Tensor[]|SymbolicTensor|SymbolicTensor[] {
-    let initialState: Tensor[]|SymbolicTensor[] = null;
-    if (kwargs != null) {
-      initialState = kwargs['initialState'];
+    let initialState: Tensor[]|SymbolicTensor[] =
+        kwargs == null ? null : kwargs['initialState'];
+    let constants: Tensor[]|SymbolicTensor[] =
+        kwargs == null ? null : kwargs['constants'];
+    if (kwargs == null) {
+      kwargs = {};
     }
+    const standardized =
+        standardizeArgs(inputs, initialState, constants, this.numConstants);
+    inputs = standardized.inputs as Tensor | SymbolicTensor;
+    initialState = standardized.initialState;
+    constants = standardized.constants;
+
     if (Array.isArray(inputs)) {
       initialState = (inputs as Tensor[] | SymbolicTensor[]).slice(1);
       inputs = (inputs as Tensor[] | SymbolicTensor[])[0];
     }
 
-    if (initialState == null || initialState.length === 0) {
-      const applyOutputs = super.apply(inputs, kwargs);
-      return applyOutputs;
-    } else {
+    if ((initialState == null || initialState.length === 0) &&
+        constants == null) {
+      return super.apply(inputs, kwargs);
+    }
+    const additionalInputs: Array<Tensor|SymbolicTensor> = [];
+    const additionalSpecs: InputSpec[] = [];
+    if (initialState != null) {
+      const numStates = initialState.length;
+      if (numStates % 2 > 0) {
+        throw new ValueError(
+            'When passing `initialState` to a Bidrectional RNN, ' +
+            'the state should be an Array containing the states of ' +
+            'the underlying RNNs.');
+      }
+      kwargs['initialState'] = initialState;
+      additionalInputs.push(...initialState);
+      const stateSpecs = (initialState as Array<Tensor|SymbolicTensor>)
+                             .map(state => new InputSpec({shape: state.shape}));
+      this.forwardLayer.stateSpec = stateSpecs.slice(0, numStates / 2);
+      this.backwardLayer.stateSpec = stateSpecs.slice(numStates / 2);
+      additionalSpecs.push(...stateSpecs);
+    }
+    if (constants != null) {
       throw new NotImplementedError(
-          'The support for initial states is not implemented for ' +
-          'Bidirectional layers yet.');
+          'Support for constants in Bidirectional layers is not ' +
+          'implemented yet.');
+    }
+
+    const isSymbolicTensor = additionalInputs[0] instanceof SymbolicTensor;
+    for (const tensor of additionalInputs) {
+      if (tensor instanceof SymbolicTensor !== isSymbolicTensor) {
+        throw new ValueError(
+            'The initial state of a Bidirectional layer cannot be ' +
+            'specified as a mix of symbolic and non-symbolic tensors');
+      }
+    }
+
+    if (isSymbolicTensor) {
+      // Compute the full input and specs, including the states.
+      const fullInput = [inputs].concat(additionalInputs);
+      const fullInputSpec = this.inputSpec.concat(additionalSpecs);
+      // Perform the call temporarily and replace inputSpec.
+      // Note: with initial states symbolic calls and non-symbolic calls to this
+      // method differ in how the initial states are passed. For symbolic calls,
+      // the initial states are passed in the first arg, as an Array of
+      // SymbolicTensors; for non-symbolic calls, they are passed in the second
+      // arg as a part of the kwargs. Hence the need to temporarily modify
+      // inputSpec here.
+      // TODO(cais): Make refactoring so that this hacky code below is no
+      // longer needed.
+      const originalInputSpec = this.inputSpec;
+      this.inputSpec = fullInputSpec;
+      const output =
+          super.apply(fullInput as Tensor[] | SymbolicTensor[], kwargs);
+      this.inputSpec = originalInputSpec;
+      return output;
+    } else {
+      return super.apply(inputs, kwargs);
     }
   }
 
@@ -404,15 +466,21 @@ export class Bidirectional extends Wrapper {
             'The support for masking is not implemented for ' +
             'Bidirectional layers yet.');
       }
-      if (kwargs['initialState'] != null) {
-        throw new NotImplementedError(
-            'The support for initial states is not implemented for ' +
-            'Bidirectional layers yet.');
-      }
+      const initialState = kwargs['initialState'];
 
-      // TODO(cais): Implement support for initial state.
-      let y = this.forwardLayer.call(inputs, kwargs);
-      let yRev = this.backwardLayer.call(inputs, kwargs);
+      let y: Tensor|Tensor[];
+      let yRev: Tensor|Tensor[];
+      if (initialState == null) {
+        y = this.forwardLayer.call(inputs, kwargs);
+        yRev = this.backwardLayer.call(inputs, kwargs);
+      } else {
+        const forwardState = initialState.slice(0, initialState.length / 2);
+        const backwardState = initialState.slice(initialState.length / 2);
+        y = this.forwardLayer.call(
+            inputs, Object.assign(kwargs, {initialState: forwardState}));
+        yRev = this.forwardLayer.call(
+            inputs, Object.assign(kwargs, {initialState: backwardState}));
+      }
 
       let states: Tensor[];
       if (this.returnState) {
