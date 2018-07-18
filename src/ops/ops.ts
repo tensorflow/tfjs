@@ -38,6 +38,7 @@ export * from './segment_ops';
 export * from './lstm';
 export * from './moving_average';
 export * from './strided_slice';
+export * from './topk';
 
 export {op} from './operation';
 
