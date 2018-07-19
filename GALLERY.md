@@ -60,6 +60,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 ## Notebooks
 - [Introduction to TensorFlow.js](https://beta.observablehq.com/@nsthorat/introduction-to-deeplearn-js) by Nikhil Thorat
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
+- [Animation with CPPNs](https://beta.observablehq.com/@emilyreif/animation-with-cppns) by Emily Reif
 - [Smoothgrad in TensorFlow.js](https://beta.observablehq.com/@aman-tiwari/smoothgrad-in-tensorflow-js?linkId=53020429) by Aman Tiwari
 - [Visualizing training using TensorFlow.js + MLB data](https://beta.observablehq.com/@nkreeger/visualizing-ml-training-using-tensorflow-js-and-baseball-d) by Nick Kreeger
 
