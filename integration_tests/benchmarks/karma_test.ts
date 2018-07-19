@@ -16,9 +16,6 @@
  */
 import {MatmulGPUBenchmark} from './matmul_benchmarks';
 
-// tslint:disable-next-line:no-any
-declare let __karma__: any;
-
 const BENCHMARK_RUNS = 100;
 
 describe('benchmarks', () => {
