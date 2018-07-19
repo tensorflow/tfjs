@@ -32,7 +32,7 @@ export abstract class DataSource {
    * Starts the new stream from the beginning of the data source, even if other
    * streams have been obtained previously.
    */
-  abstract iterator(): ByteChunkIterator;
+  abstract async iterator(): Promise<ByteChunkIterator>;
 
   // TODO(soergel): consider chainable Dataset construction here
 }

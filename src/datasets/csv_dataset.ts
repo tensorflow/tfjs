@@ -63,7 +63,7 @@ export class CSVDataset extends Dataset<DataElement> {
 
   private async setCsvColumnNames(csvColumnNames: CsvHeaderConfig|string[]) {
     if (csvColumnNames == null || csvColumnNames === CsvHeaderConfig.NUMBERED) {
-      const iter = this.base.iterator();
+      const iter = await this.base.iterator();
       const firstElement = await iter.next();
       if (firstElement.done) {
         throw new Error('No data was found for CSV parsing.');
@@ -72,7 +72,7 @@ export class CSVDataset extends Dataset<DataElement> {
       this._csvColumnNames =
           Array.from(firstLine.split(',').keys()).map(x => x.toString());
     } else if (csvColumnNames === CsvHeaderConfig.READ_FIRST_LINE) {
-      const iter = this.base.iterator();
+      const iter = await this.base.iterator();
       const firstElement = await iter.next();
       if (firstElement.done) {
         throw new Error('No data was found for CSV parsing.');
@@ -103,8 +103,8 @@ export class CSVDataset extends Dataset<DataElement> {
     return result;
   }
 
-  iterator(): LazyIterator<DataElement> {
-    let lines = this.base.iterator();
+  async iterator(): Promise<LazyIterator<DataElement>> {
+    let lines = await this.base.iterator();
     if (this.hasHeaderLine) {
       // We previously read the first line to get the headers.
       // Now that we're providing data, skip it.
