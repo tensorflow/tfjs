@@ -6,6 +6,7 @@ If you would like to add something to this list, please feel free to send us a p
 
 ## Demos & Applications
 
+- [Move Mirror](https://experiments.withgoogle.com/collection/ai/move-mirror/view) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
 - [Emoji Scavenger Hunt](https://emojiscavengerhunt.withgoogle.com/) - Locate the emoji we show you in the real world with your phone’s camera.
 - [Metacar](https://www.metacar-project.com/) - A reinforcement learning environment for self-driving cars in the browser.
 - [Evolution Simulator](https://github.com/adityathebe/evolutionSimulator) - Evolution Simulator using NeuroEvolution
@@ -49,6 +50,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [Deep Learning in JS - Ashi Krishnan - JSConf EU 2018](https://www.youtube.com/watch?v=SV-cgdobtTA)
 
 ## Blog posts
+- [Move Mirror](https://medium.com/tensorflow/move-mirror-an-ai-experiment-with-pose-estimation-in-the-browser-using-tensorflow-js-2f7b769f9b23?linkId=54484629) - An AI Experiment with Pose Estimation in the Browser using TensorFlow.js
 - [Abstract art with ML](https://janhuenermann.com/blog/abstract-art-with-ml) by Jan Huenermann
 - [Deep Overwatch with TensorFlow.js](https://medium.com/@farzatv/deepoverwatch-combining-tensorflow-js-overwatch-computer-vision-and-music-1a84d4598bc0) -  combining TensorFlow.js, Overwatch, Computer Vision, and Music by Farza
 - [Real-time Human Pose Estimation in the Browser with TensorFlow.js](https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5) by Dan Oved
