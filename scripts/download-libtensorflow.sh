@@ -3,9 +3,9 @@
 # Build new package:
 # `bazel build //tensorflow/tools/lib_package:libtensorflow`
 
-CPU_DARWIN="https://storage.googleapis.com/tf-builds/libtensorflow_r1_8_darwin.tar.gz"
-CPU_LINUX="https://storage.googleapis.com/tf-builds/libtensorflow_r1_8_linux_cpu.tar.gz"
-GPU_LINUX="https://storage.googleapis.com/tf-builds/libtensorflow_r1_8_linux_gpu.tar.gz"
+CPU_DARWIN="https://storage.googleapis.com/tf-builds/libtensorflow_r1_9_darwin.tar.gz"
+CPU_LINUX="https://storage.googleapis.com/tf-builds/libtensorflow_r1_9_linux_cpu.tar.gz"
+GPU_LINUX="https://storage.googleapis.com/tf-builds/libtensorflow_r1_9_linux_gpu.tar.gz"
 
 target=""
 platform=$1
@@ -31,7 +31,7 @@ mkdir -p $TARGET_DIRECTORY
 # Ensure that at least libtensorflow.so is downloaded.
 if [ ! -e "$TARGET_DIRECTORY${LIBTENSORFLOW}" ]
 then
-  curl -L \
+  curl -L -w "" \
     $target |
     tar -C $TARGET_DIRECTORY -xz
 fi
