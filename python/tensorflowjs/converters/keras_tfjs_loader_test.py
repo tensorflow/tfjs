@@ -324,30 +324,26 @@ class LoadKerasModelTest(tf.test.TestCase):
           os.path.join(save_dir, 'model.json'), use_unique_name_scope=True)
       self.assertAllClose(predict_out, model2.predict(x))
 
-  # TODO(cais): The following test currently fails. This is related to an
-  #   issue in TensorFlow tf.keras:
-  #   https://github.com/tensorflow/tensorflow/issues/19836
-  #   Uncomment the following test once the issue is fixed.
-  # def testLoadNestedTfKerasModel(self):
-  #   with tf.Graph().as_default(), tf.Session():
-  #     inner_model = tf.keras.Sequential([
-  #         tf.keras.layers.Dense(4, input_shape=[3], activation='relu'),
-  #         tf.keras.layers.Dense(3, activation='tanh')])
-  #     outer_model = tf.keras.Sequential()
-  #     outer_model.add(inner_model)
-  #     outer_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
-  #     outer_model.compile(loss='binary_crossentropy', optimizer='sgd')
+  def testLoadNestedTfKerasModel(self):
+    with tf.Graph().as_default(), tf.Session():
+      inner_model = tf.keras.Sequential([
+          tf.keras.layers.Dense(4, input_shape=[3], activation='relu'),
+          tf.keras.layers.Dense(3, activation='tanh')])
+      outer_model = tf.keras.Sequential()
+      outer_model.add(inner_model)
+      outer_model.add(tf.keras.layers.Dense(1, activation='sigmoid'))
+      outer_model.compile(loss='binary_crossentropy', optimizer='sgd')
 
-  #     x = np.ones([1, 3], dtype=np.float32)
-  #     predict_out = outer_model.predict(x)
+      x = np.ones([1, 3], dtype=np.float32)
+      predict_out = outer_model.predict(x)
 
-  #     save_dir = os.path.join(self._tmp_dir, 'nested_model')
-  #     keras_h5_conversion.save_keras_model(outer_model, save_dir)
+      save_dir = os.path.join(self._tmp_dir, 'nested_model')
+      keras_h5_conversion.save_keras_model(outer_model, save_dir)
 
-  #   with tf.Graph().as_default(), tf.Session():
-  #     model2 = keras_tfjs_loader.load_keras_model(
-  #         os.path.join(save_dir, 'model.json'), use_unique_name_scope=True)
-  #     self.assertAllClose(predict_out, model2.predict(x))
+    with tf.Graph().as_default(), tf.Session():
+      model2 = keras_tfjs_loader.load_keras_model(
+          os.path.join(save_dir, 'model.json'), use_unique_name_scope=True)
+      self.assertAllClose(predict_out, model2.predict(x))
 
   def testLoadKerasModeFromNonexistentWeightsPathRaisesError(self):
     with tf.Graph().as_default(), tf.Session():
