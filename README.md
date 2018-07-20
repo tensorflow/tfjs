@@ -25,6 +25,8 @@ two packages:
 - [TensorFlow.js Layers](https://github.com/tensorflow/tfjs-layers),
   a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
+- [TensorFlow.js Converter](https://github.com/tensorflow/tfjs-converter),
+  tools to import a TensorFlow SavedModel to TensorFlow.js
 
 If you care about bundle size, you can import those packages individually.
 
@@ -34,9 +36,14 @@ Check out our
 [examples repository](https://github.com/tensorflow/tfjs-examples)
 and our [tutorials](https://js.tensorflow.org/tutorials/).
 
-## Migrating from deeplearn.js
-See [these release notes](https://github.com/tensorflow/tfjs-core/releases/tag/v0.6.0)
-for how to migrate from deeplearn.js to TensorFlow.js.
+## Gallery
+
+Be sure to check out [the gallery](GALLERY.md) of all projects related to TensorFlow.js.
+
+## Pre-trained models
+
+Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pretrained models
+on NPM.
 
 ## Getting started
 
