@@ -15,27 +15,22 @@
  * =============================================================================
  */
 
-import './index';
+import '.';
 import * as jasmine_util from '@tensorflow/tfjs-core/dist/jasmine_util';
 
 Error.stackTraceLimit = Infinity;
 
 // tslint:disable-next-line:no-require-imports
 const jasmineCtor = require('jasmine');
-
 // tslint:disable-next-line:no-require-imports
-import bindings = require('bindings');
-import {TFJSBinding} from './tfjs_binding';
-import {NodeJSKernelBackend} from './nodejs_kernel_backend';
+import {nodeBackend} from './ops/op_utils';
 
-process.on('unhandledRejection', e => { throw e; });
+process.on('unhandledRejection', e => {
+  throw e;
+});
 
-jasmine_util.setTestEnvs([{
-  name: 'test-tensorflow',
-  factory: () =>
-      new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding),
-  features: {}
-}]);
+jasmine_util.setTestEnvs(
+    [{name: 'test-tensorflow', factory: () => nodeBackend(), features: {}}]);
 
 const IGNORE_LIST: string[] = [
   // See https://github.com/tensorflow/tfjs/issues/161
@@ -69,4 +64,7 @@ env.specFilter = spec => {
   return true;
 };
 
+// TODO(kreeger): Consider moving to C-code.
+console.log(
+    `Running tests against TensorFlow: ${nodeBackend().binding.TF_Version}`);
 runner.execute();
