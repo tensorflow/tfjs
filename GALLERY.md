@@ -2,7 +2,7 @@
 
 Welcome to the TensorFlow.js gallery! This is a collection of TensorFlow.js projects, tutorials, videos, and more.
 
-If you would like to add something to this list, please feel free to send us a pull request!
+Please reach out to us if you'd like to put your project on the list.
 
 ## Demos & Applications
 
