@@ -25,6 +25,7 @@ If you would like to add something to this list, please feel free to send us a p
 - [Simple MNIST GAN](https://mwdchang.github.io/tfjs-gan/) by Daniel Chang
 - [Complementary Color Prediction](http://stelling.cc/complementary-color-prediction/) by Roberto Stelling
 - [Mars at Home](https://github.com/MarsAtHome/marsjs) - Mars@Home client for Firefox & Chrome - Labels image from Unsplash in browser
+- [Photils](https://dev.photils.app) - Photils is an experimental PWA which contains an Auto-Tagging mode to tag for your images. 
 
 ## Tutorials
 
