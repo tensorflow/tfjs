@@ -21,6 +21,5 @@ rimraf dist/
 yarn
 yarn build
 rollup -c
-uglifyjs dist/tf.js -c -m -o dist/tf.min.js
 echo "Stored standalone library at dist/tf(.min).js"
 npm pack

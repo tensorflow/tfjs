@@ -25,6 +25,8 @@ two packages:
 - [TensorFlow.js Layers](https://github.com/tensorflow/tfjs-layers),
   a high-level API which implements functionality similar to
   [Keras](https://keras.io/).
+- [TensorFlow.js Converter](https://github.com/tensorflow/tfjs-converter),
+  tools to import a TensorFlow SavedModel to TensorFlow.js
 
 If you care about bundle size, you can import those packages individually.
 
@@ -34,9 +36,14 @@ Check out our
 [examples repository](https://github.com/tensorflow/tfjs-examples)
 and our [tutorials](https://js.tensorflow.org/tutorials/).
 
-## Migrating from deeplearn.js
-See [these release notes](https://github.com/tensorflow/tfjs-core/releases/tag/v0.6.0)
-for how to migrate from deeplearn.js to TensorFlow.js.
+## Gallery
+
+Be sure to check out [the gallery](GALLERY.md) of all projects related to TensorFlow.js.
+
+## Pre-trained models
+
+Be sure to also check out our [models repository](https://github.com/tensorflow/tfjs-models) where we host pretrained models
+on NPM.
 
 ## Getting started
 
@@ -46,14 +53,14 @@ and using a build tool like <a href="https://parceljs.org/" target="_blank">Parc
 <a href="https://webpack.js.org/" target="_blank">WebPack</a>, or <a href="https://rollupjs.org/guide/en" target="_blank">Rollup</a>.
 
 ### via Script Tag
-      
+
 Add the following code to an HTML file:
 
 ```html
 <html>
   <head>
     <!-- Load TensorFlow.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.8.0"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
 
     <!-- Place your code in the script tag below. You can also use an external .js file -->
     <script>
@@ -90,8 +97,8 @@ Open up that html file in your browser and the code should run!
 ### via NPM
 
 Add TensorFlow.js to your project using <a href="https://yarnpkg.com/en/" target="_blank">yarn</a> <em>or</em> <a href="https://docs.npmjs.com/cli/npm" target="_blank">npm</a>. <b>Note:</b> Because
-we use ES2017 syntax (such as `import`), this workflow assumes you are using a bundler/transpiler
-to convert your code to something the browser understands. See our
+we use ES2017 syntax (such as `import`), this workflow assumes you are using a modern browser or a bundler/transpiler
+to convert your code to something older browsers understand. See our
 <a href='https://github.com/tensorflow/tfjs-examples' target="_blank">examples</a>
 to see how we use <a href="https://parceljs.org/" target="_blank">Parcel</a> to build
 our code. However you are free to use any build tool that you prefer.
