@@ -25,6 +25,7 @@
 #include <vector>
 #include "../deps/tensorflow/include/tensorflow/c/c_api.h"
 #include "tf_auto_status.h"
+#include "tfjs_backend.h"
 
 #define NAPI_STRING_SIZE 512
 
@@ -258,6 +259,14 @@ inline bool IsExceptionPending(napi_env env) {
   ENSURE_NAPI_OK_RETVAL(env, napi_is_exception_pending(env, &has_exception),
                         has_exception);
   return has_exception;
+}
+
+inline bool EnsureValueIsNotNull(napi_env env, TFJSBackend* value) {
+  bool is_not_null = value != nullptr;
+  if (!is_not_null) {
+    napi_throw_error(env, nullptr, "Argument is null!");
+  }
+  return is_not_null;
 }
 
 }  // namespace tfnodejs
