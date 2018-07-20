@@ -15,6 +15,7 @@
  * =============================================================================
  */
 
+#include <memory>
 #include "tfjs_backend.h"
 #include "tfe_auto_op.h"
 #include "tfe_utils.h"
@@ -59,8 +60,8 @@ TFJSBackend::~TFJSBackend() {
   }
 }
 
-TFJSBackend* TFJSBackend::CreateTFJSBackend(napi_env env) {
-  return new TFJSBackend(env);
+std::unique_ptr<TFJSBackend> TFJSBackend::Create(napi_env env) {
+    return std::unique_ptr<TFJSBackend>(new TFJSBackend(env));
 }
 
 int32_t TFJSBackend::InsertHandle(TFE_TensorHandle *tfe_handle) {
