@@ -25,6 +25,7 @@ Please reach out to us if you'd like to put your project on the list.
 - [Simple MNIST GAN](https://mwdchang.github.io/tfjs-gan/) by Daniel Chang
 - [Complementary Color Prediction](http://stelling.cc/complementary-color-prediction/) by Roberto Stelling
 - [Mars at Home](https://github.com/MarsAtHome/marsjs) - Mars@Home client for Firefox & Chrome - Labels image from Unsplash in browser
+- [Nxt Word](https://github.com/rajveermalviya/language-modeling) - Next Word Predictor - by Rajveer Malviya
 
 ## Tutorials
 
@@ -62,6 +63,7 @@ These tutorials augment the [official tutorials](https://js.tensorflow.org/tutor
 - [How to build a Teachable Machine](https://beta.observablehq.com/@nsthorat/how-to-build-a-teachable-machine-with-tensorflow-js) by Nikhil Thorat
 - [Smoothgrad in TensorFlow.js](https://beta.observablehq.com/@aman-tiwari/smoothgrad-in-tensorflow-js?linkId=53020429) by Aman Tiwari
 - [Visualizing training using TensorFlow.js + MLB data](https://beta.observablehq.com/@nkreeger/visualizing-ml-training-using-tensorflow-js-and-baseball-d) by Nick Kreeger
+- [Animation CPPNs](https://beta.observablehq.com/@emilyreif/animation-with-cppns) -  by Emily Reif
 
 ## Libraries using TensorFlow.js
 
