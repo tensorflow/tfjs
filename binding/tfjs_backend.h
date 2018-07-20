@@ -20,6 +20,7 @@
 
 #include <node_api.h>
 #include <map>
+#include <memory>
 #include <string>
 #include "../deps/tensorflow/include/tensorflow/c/eager/c_api.h"
 
@@ -27,7 +28,11 @@ namespace tfnodejs {
 
 class TFJSBackend {
  public:
-  static TFJSBackend* CreateTFJSBackend(napi_env env);
+  // Creates, initializes, and returns a TFJSBackend instance. If initialization
+  // fails, a nullptr is returned.
+  static std::unique_ptr<TFJSBackend> Create(napi_env env);
+
+  ~TFJSBackend();
 
   // Creates a new Tensor with given shape and data and returns an ID that
   // refernces the new Tensor.
@@ -58,7 +63,6 @@ class TFJSBackend {
 
  private:
   TFJSBackend(napi_env env);
-  ~TFJSBackend();
 
   int32_t InsertHandle(TFE_TensorHandle* tfe_handle);
 
