@@ -52,26 +52,36 @@ def _deserialize_keras_model(model_topology_json,
     model_topology_json = json.loads(tf.compat.as_text(model_topology_json))
   elif not isinstance(model_topology_json, dict):
     model_topology_json = json.load(model_topology_json)
+  is_tf_keras = ('keras_version' in model_topology_json and
+                 model_topology_json['keras_version'].endswith('-tf'))
 
   if 'model_config' in model_topology_json:
     model_topology_json = model_topology_json['model_config']
   unique_name_scope = uuid.uuid4().hex if use_unique_name_scope else None
   with tf.name_scope(unique_name_scope):
-    model = keras.models.model_from_json(json.dumps(model_topology_json))
+    if is_tf_keras:
+      model = tf.keras.models.model_from_json(json.dumps(model_topology_json))
+    else:
+      model = keras.models.model_from_json(json.dumps(model_topology_json))
 
   if weight_entries:
     weights_dict = dict()
     for weight_entry in weight_entries:
       weights_dict[weight_entry['name']] = weight_entry['data']
 
-    weight_names = [
-        keras_h5_conversion.normalize_weight_name(
-            w.name[len(unique_name_scope) + 1:]) if use_unique_name_scope
-        else keras_h5_conversion.normalize_weight_name(w.name[:-2])
-        for w in model.weights]
-    weights_list = []
-    for weight_name in weight_names:
-      weights_list.append(weights_dict[weight_name])
+    # Collect weight names from the model, in the same order as the internal
+    # ordering of model.set_weights() used below.
+    weight_names = []
+    for layer in model.layers:
+      for w in layer.weights:
+        weight_names.append(
+            keras_h5_conversion.normalize_weight_name(
+                w.name[len(unique_name_scope) + 1:])
+            if use_unique_name_scope
+            else keras_h5_conversion.normalize_weight_name(w.name))
+
+    # Prepare list of weight values for calling set_weights().
+    weights_list = [weights_dict[name] for name in weight_names]
     model.set_weights(weights_list)
 
   return model

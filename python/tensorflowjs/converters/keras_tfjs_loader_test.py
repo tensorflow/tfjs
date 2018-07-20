@@ -382,6 +382,63 @@ class LoadKerasModelTest(tf.test.TestCase):
             model_json_path,
             weights_data_buffers=[b'foo'], weights_path_prefix='bar')
 
+  def testLoadFunctionalKerasModel(self):
+    with tf.Graph().as_default(), tf.Session():
+      input1 = keras.Input([4])
+      x1 = keras.layers.Dense(2, activation='relu')(input1)
+      x1 = keras.layers.BatchNormalization()(x1)
+
+      input2 = keras.Input([10])
+      x2 = keras.layers.Dense(5, activation='relu')(input2)
+      x2 = keras.layers.BatchNormalization()(x2)
+
+      y = keras.layers.Concatenate()([x1, x2])
+      y = keras.layers.Dense(1, activation='sigmoid')(y)
+
+      model = keras.Model([input1, input2], y)
+      model.compile(loss='binary_crossentropy', optimizer='sgd')
+
+      input1_val = np.ones([1, 4])
+      input2_val = np.ones([1, 10])
+      predict_out = model.predict([input1_val, input2_val])
+
+      save_dir = os.path.join(self._tmp_dir, 'functional_model')
+      keras_h5_conversion.save_keras_model(model, save_dir)
+
+    with tf.Graph().as_default(), tf.Session():
+      model2 = keras_tfjs_loader.load_keras_model(
+          os.path.join(save_dir, 'model.json'))
+      self.assertAllClose(
+          predict_out, model2.predict([input1_val, input2_val]))
+
+  def testLoadFunctionalTfKerasModel(self):
+    with tf.Graph().as_default(), tf.Session():
+      input1 = tf.keras.Input([4])
+      x1 = tf.keras.layers.Dense(2, activation='relu')(input1)
+      x1 = tf.keras.layers.BatchNormalization()(x1)
+
+      input2 = tf.keras.Input([10])
+      x2 = tf.keras.layers.Dense(5, activation='relu')(input2)
+      x2 = tf.keras.layers.BatchNormalization()(x2)
+
+      y = tf.keras.layers.Concatenate()([x1, x2])
+      y = tf.keras.layers.Dense(1, activation='sigmoid')(y)
+
+      model = tf.keras.Model([input1, input2], y)
+      model.compile(loss='binary_crossentropy', optimizer='sgd')
+
+      input1_val = np.ones([1, 4])
+      input2_val = np.ones([1, 10])
+      predict_out = model.predict([input1_val, input2_val])
+
+      save_dir = os.path.join(self._tmp_dir, 'functional_model')
+      keras_h5_conversion.save_keras_model(model, save_dir)
+
+    with tf.Graph().as_default(), tf.Session():
+      model2 = keras_tfjs_loader.load_keras_model(
+          os.path.join(save_dir, 'model.json'))
+      self.assertAllClose(
+          predict_out, model2.predict([input1_val, input2_val]))
 
 
 if __name__ == '__main__':
