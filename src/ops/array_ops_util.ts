@@ -24,10 +24,22 @@
  * See step 1: https://www.tensorflow.org/api_docs/python/tf/batch_to_space_nd
  */
 export function getReshaped(
-    inputShape: number[], blockShape: number[], prod: number): number[] {
-  let reshaped = blockShape.slice(0);
-  reshaped.push(inputShape[0] / prod);
-  reshaped = reshaped.concat(inputShape.slice(1));
+    inputShape: number[], blockShape: number[], prod: number,
+    batchToSpace = true): number[] {
+  let reshaped: number[] = [];
+  if (batchToSpace) {
+    reshaped = reshaped.concat(blockShape.slice(0));
+    reshaped.push(inputShape[0] / prod);
+    reshaped = reshaped.concat(inputShape.slice(1));
+  } else {
+    reshaped = reshaped.concat(inputShape[0]);
+    const spatialLength = blockShape.length;
+    for (let i = 0; i < spatialLength; ++i) {
+      reshaped =
+          reshaped.concat([inputShape[i + 1] / blockShape[i], blockShape[i]]);
+    }
+    reshaped = reshaped.concat(inputShape.slice(spatialLength + 1));
+  }
   return reshaped;
 }
 
@@ -41,15 +53,32 @@ export function getReshaped(
  * see step 2: https://www.tensorflow.org/api_docs/python/tf/batch_to_space_nd
  */
 export function getPermuted(
-    reshapedRank: number, blockShapeRank: number): number[] {
-  const permuted = [blockShapeRank];
-  for (let i = blockShapeRank + 1; i < reshapedRank; ++i) {
-    if (i <= 2 * blockShapeRank) {
-      permuted.push(i);
-      permuted.push(i - (blockShapeRank + 1));
-    } else {
-      permuted.push(i);
+    reshapedRank: number, blockShapeRank: number,
+    batchToSpace = true): number[] {
+  const permuted = [];
+  if (batchToSpace) {
+    permuted.push(blockShapeRank);
+    for (let i = blockShapeRank + 1; i < reshapedRank; ++i) {
+      if (i <= 2 * blockShapeRank) {
+        permuted.push(i);
+        permuted.push(i - (blockShapeRank + 1));
+      } else {
+        permuted.push(i);
+      }
     }
+  } else {
+    const permutedBeforeBatch = [];
+    const permutedAfterBatch = [];
+    for (let i = 1; i < reshapedRank; ++i) {
+      if (i >= blockShapeRank * 2 + 1 || i % 2 === 1) {
+        permutedAfterBatch.push(i);
+      } else {
+        permutedBeforeBatch.push(i);
+      }
+    }
+    permuted.push(...permutedBeforeBatch);
+    permuted.push(0);
+    permuted.push(...permutedAfterBatch);
   }
   return permuted;
 }
@@ -64,15 +93,28 @@ export function getPermuted(
  * See step 3: https://www.tensorflow.org/api_docs/python/tf/batch_to_space_nd
  */
 export function getReshapedPermuted(
-    inputShape: number[], blockShape: number[], prod: number): number[] {
-  const reshapedPermuted = [inputShape[0] / prod];
+    inputShape: number[], blockShape: number[], prod: number,
+    batchToSpace = true): number[] {
+  const reshapedPermuted = [];
+
+  if (batchToSpace) {
+    reshapedPermuted.push(inputShape[0] / prod);
+  } else {
+    reshapedPermuted.push(inputShape[0] * prod);
+  }
+
   for (let i = 1; i < inputShape.length; ++i) {
     if (i <= blockShape.length) {
-      reshapedPermuted.push(blockShape[i - 1] * inputShape[i]);
+      if (batchToSpace) {
+        reshapedPermuted.push(blockShape[i - 1] * inputShape[i]);
+      } else {
+        reshapedPermuted.push(inputShape[i] / blockShape[i - 1]);
+      }
     } else {
       reshapedPermuted.push(inputShape[i]);
     }
   }
+
   return reshapedPermuted;
 }
 

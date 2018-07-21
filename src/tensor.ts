@@ -302,6 +302,8 @@ export interface OpHandler {
       x: T, segmentIds: Tensor1D, numSegments: number): T;
   batchToSpaceND<T extends Tensor>(
       x: T, blockShape: number[], crops: number[][]): T;
+  spaceToBatchND<T extends Tensor>(
+      x: T, blockShape: number[], paddings: number[][]): T;
 }
 
 // For tracking tensor creation and disposal.
@@ -1157,6 +1159,12 @@ export class Tensor<R extends Rank = Rank> {
       this: T, blockShape: number[], crops: number[][]): T {
     this.throwIfDisposed();
     return opHandler.batchToSpaceND(this, blockShape, crops);
+  }
+
+  spaceToBatchND<T extends Tensor>(
+      this: T, blockShape: number[], paddings: number[][]): T {
+    this.throwIfDisposed();
+    return opHandler.spaceToBatchND(this, blockShape, paddings);
   }
 }
 Object.defineProperty(Tensor, Symbol.hasInstance, {
