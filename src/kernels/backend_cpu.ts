@@ -1470,6 +1470,30 @@ export class MathBackendCPU implements KernelBackend {
                .slice(sliceBeginCoords, sliceSize) as T;
   }
 
+  spaceToBatchND<T extends Tensor>(
+      x: T, blockShape: number[], paddings: Array<[number, number]>): T {
+    const prod = blockShape.reduce((a, b) => a * b);
+
+    const completePaddings: Array<[number, number]> = [[0, 0]];
+    completePaddings.push(...paddings);
+    for (let i = 1 + blockShape.length; i < x.shape.length; ++i) {
+      completePaddings.push([0, 0]);
+    }
+
+    const paddedX = x.pad(completePaddings);
+
+    const reshapedPaddedShape =
+        array_ops_util.getReshaped(paddedX.shape, blockShape, prod, false);
+    const permutedReshapedPaddedPermutation = array_ops_util.getPermuted(
+        reshapedPaddedShape.length, blockShape.length, false);
+    const flattenShape = array_ops_util.getReshapedPermuted(
+        paddedX.shape, blockShape, prod, false);
+
+    return paddedX.reshape(reshapedPaddedShape)
+               .transpose(permutedReshapedPaddedPermutation)
+               .reshape(flattenShape) as T;
+  }
+
   private pool(x: Tensor4D, convInfo: Conv2DInfo, poolType: 'max'|'avg'):
       Tensor4D {
     const strideHeight = convInfo.strideHeight;

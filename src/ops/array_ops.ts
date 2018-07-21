@@ -808,6 +808,78 @@ function batchToSpaceND_<T extends Tensor>(
 }
 
 /**
+ * This operation divides "spatial" dimensions [1, ..., M] of the input into
+ * a grid of blocks of shape block_shape, and interleaves these blocks with
+ * the "batch" dimension (0) such that in the output, the spatial
+ * dimensions [1, ..., M] correspond to the position within the grid,
+ * and the batch dimension combines both the position within a spatial block
+ * and the original batch position. Prior to division into blocks,
+ * the spatial dimensions of the input are optionally zero padded
+ * according to paddings. See below for a precise description.
+ *
+ * ```js
+ * const x = tf.tensor4d([1, 2, 3, 4], [4, 1, 1, 1]);
+ * const blockShape = [2, 2];
+ * const paddings = [[0, 0], [0, 0]];
+ *
+ * x.spaceToBatchND(blockShape, paddings).print();
+ * ```
+ *
+ * @param x A `Tensor`. N-D with `x.shape` = `[batch] + spatialShape +
+ * remainingShape`, where spatialShape has `M` dimensions.
+ * @param blockShape A 1-D array. Must be one of the following types: `int32`,
+ * `int64`. Must have shape `[M]`, all values must be >= 1.
+ * @param paddings A 2-D array.  Must be one of the following types: `int32`,
+ * `int64`. Must have shape `[M, 2]`, all values must be >= 0. `paddings[i] =
+ * [padStart, padEnd]` specifies the amount to zero-pad from input dimension
+ * `i + 1`, which corresponds to spatial dimension `i`.
+ * It is required that
+ * `(inputShape[i + 1] + padStart + padEnd) % blockShape[i] === 0`
+ *
+ * This operation is equivalent to the following steps:
+ *
+ * 1. Zero-pad the start and end of dimensions [1, ..., M] of the input
+ * according to paddings to produce padded of shape padded_shape.
+ *
+ * 2. Reshape padded to reshaped_padded of shape:
+ * [batch] + [padded_shape[1] / block_shape[0], block_shape[0], ...,
+ * padded_shape[M] / block_shape[M-1], block_shape[M-1]] + remaining_shape
+ *
+ * 3. Permute dimensions of reshaped_padded to produce permuted_
+ * reshaped_padded of shape:
+ * block_shape + [batch] + [padded_shape[1] / block_shape[0], ...,
+ * padded_shape[M] / block_shape[M-1]] + remaining_shape
+ *
+ * 4. Reshape permuted_reshaped_padded to flatten block_shape into the
+ * batch dimension, producing an output tensor of shape:
+ * [batch * prod(block_shape)] + [padded_shape[1] / block_shape[0], ...,
+ * padded_shape[M] / block_shape[M-1]] + remaining_shape
+ */
+/** @doc {heading: 'Tensors', subheading: 'Transformations'} */
+function spaceToBatchND_<T extends Tensor>(
+    x: T|TensorLike, blockShape: number[], paddings: number[][]): T {
+  const $x = convertToTensor(x, 'x', 'spaceToBatchND');
+
+  util.assert(
+      $x.rank >= 1 + blockShape.length,
+      `input rank should be > than [blockShape] but got ${$x.rank}`);
+
+  util.assert(
+      paddings.length === blockShape.length,
+      `paddings.shape[0] must be equal to [blockShape], got ${
+          paddings.length}`);
+
+  util.assert($x.shape.reduce((a, b, i) => {
+    if (i > 0 && i <= blockShape.length) {
+      return a && (b % blockShape[i - 1] === 0);
+    }
+    return a;
+  }, true), `input spatial dimensions must be divisible by blockShapes`);
+  return ENV.engine.runKernel(
+      backend => backend.spaceToBatchND($x, blockShape, paddings), {});
+}
+
+/**
  * Unstacks a `Tensor` of rank-`R` into a list of rank-`(R-1)` `Tensor`s.
  *
  * ```js
@@ -1061,3 +1133,4 @@ export const tile = op({tile_});
 export const truncatedNormal = op({truncatedNormal_});
 export const unstack = op({unstack_});
 export const batchToSpaceND = op({batchToSpaceND_});
+export const spaceToBatchND = op({spaceToBatchND_});
