@@ -26,7 +26,7 @@ describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
     const bds = ds.batch(8);
     const batchIteratorPromise = bds.iterator();
     batchIteratorPromise
-        .then(batchIterator => batchIterator.collectRemaining().then(result => {
+        .then(batchIterator => batchIterator.collect().then(result => {
           expect(result.length).toEqual(13);
           result.slice(0, 12).forEach(batch => {
             expect((batch['number'] as tf.Tensor).shape).toEqual([8]);
@@ -48,7 +48,7 @@ describeWithFlags('Dataset.batch()', tf.test_util.CPU_ENVS, () => {
     const bds = ds.batch(8);
     const batchIteratorPromise = bds.iterator();
     batchIteratorPromise
-        .then(batchIterator => batchIterator.collectRemaining().then(result => {
+        .then(batchIterator => batchIterator.collect().then(result => {
           const lastBatch = result[12];
           expect((lastBatch['number'] as tf.Tensor).shape).toEqual([4]);
           expect((lastBatch['numberArray'] as tf.Tensor).shape).toEqual([4, 3]);
