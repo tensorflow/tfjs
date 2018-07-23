@@ -18,7 +18,7 @@
 import {GPGPUProgram} from './gpgpu_math';
 import {getCoordsDataType} from './shader_compiler';
 
-export class WhereProgram implements GPGPUProgram {
+export class SelectProgram implements GPGPUProgram {
   variableNames = ['c', 'a', 'b'];
   outputShape: number[];
   userCode: string;

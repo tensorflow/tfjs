@@ -16,8 +16,8 @@
  */
 
 import * as tf from '../index';
-import {ALL_ENVS, expectArraysClose} from '../test_util';
 import {describeWithFlags} from '../jasmine_util';
+import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('logicalNot', ALL_ENVS, () => {
   it('Tensor1D.', () => {
@@ -69,7 +69,7 @@ describeWithFlags('logicalNot', ALL_ENVS, () => {
   });
 
   it('Tensor6D', () => {
-    let a = tf.tensor6d([1, 0, 1, 0], [2, 2, 1, 1, 1,1], 'bool');
+    let a = tf.tensor6d([1, 0, 1, 0], [2, 2, 1, 1, 1, 1], 'bool');
     expectArraysClose(tf.logicalNot(a), [0, 1, 0, 1]);
 
     a = tf.zeros([2, 2, 2, 2, 2, 2]).cast('bool');
@@ -669,5 +669,54 @@ describeWithFlags('where', ALL_ENVS, () => {
     expect(dc.shape).toEqual(c.shape);
     expect(da.shape).toEqual(a.shape);
     expect(db.shape).toEqual(b.shape);
+  });
+});
+
+describeWithFlags('whereAsync', ALL_ENVS, () => {
+  it('1d tensor', async () => {
+    const condition = tf.tensor1d([true, false, true, true], 'bool');
+    const res = await tf.whereAsync(condition);
+    expect(res.dtype).toBe('int32');
+    expect(res.shape).toEqual([3, 1]);
+    expectArraysClose(res, [0, 2, 3]);
+  });
+
+  it('2d tensor', async () => {
+    const condition = tf.tensor2d(
+        [[true, false, false], [false, true, true]], [2, 3], 'bool');
+    const res = await tf.whereAsync(condition);
+    expect(res.dtype).toBe('int32');
+    expect(res.shape).toEqual([3, 2]);
+    expectArraysClose(res, [0, 0, 1, 1, 1, 2]);
+  });
+
+  it('3d tensor', async () => {
+    const condition = tf.tensor3d(
+        [[[true, false, false], [false, true, true]],
+         [[false, false, false], [true, true, false]]], [2, 2, 3], 'bool');
+    const res = await tf.whereAsync(condition);
+    expect(res.dtype).toBe('int32');
+    expect(res.shape).toEqual([5, 3]);
+    expectArraysClose(res, [0, 0, 0, 0, 1, 1, 0, 1, 2, 1, 1, 0, 1, 1, 1]);
+  });
+
+  it('accepts a tensor-like object', async () => {
+    const condition = [true, false, true];
+    const res = await tf.whereAsync(condition);
+    expect(res.dtype).toBe('int32');
+    expect(res.shape).toEqual([2, 1]);
+    expectArraysClose(res, [0, 2]);
+  });
+
+  it('throws error if condition is not of type bool', async () => {
+    const condition = tf.tensor1d([1, 0, 1]);
+    // expect(...).toThrowError() does not support async functions.
+    // See https://github.com/jasmine/jasmine/issues/1410
+    try {
+      await tf.whereAsync(condition);
+      throw new Error('The line above should have thrown an error');
+    } catch (ex) {
+      expect(ex.message).toBe('Condition must be of type bool.');
+    }
   });
 });
