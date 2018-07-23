@@ -17,12 +17,12 @@
 
 import {ForwardFunc} from '../engine';
 import {ENV} from '../environment';
+import {nonMaxSuppressionImpl} from '../kernels/non_max_suppression_impl';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {convertToTensor} from '../tensor_util';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import {op} from './operation';
-import {tensor1d} from './tensor_ops';
 
 /**
  * Bilinear resize a batch of 3D images to a new shape.
@@ -139,90 +139,96 @@ function resizeNearestNeighbor_<T extends Tensor3D|Tensor4D>(
  * Performs non maximum suppression of bounding boxes based on
  * iou (intersection over union)
  *
- * @param boxes tensor with bounding boxes, of rank 2,
- *     of shape `[numBoxes, 4]`
- * @param scores tensor containing the scores box scores, of rank 1,
- *     of shape `[numBoxes]`
- * @param maxOutputSize tensor, of rank 1, of type int32, containing the max
- *     number of returned indices
- * @param iouThreshold max iou threshold value, must have value between [0, 1]
- * @param scoreThreshold min score threshold value
+ * @param boxes a 2d tensor of shape `[numBoxes, 4]`. Each entry is
+ *     `[y1, x1, y2, x2]`, where `(y1, x1)` and `(y2, x2)` are the corners of
+ *     the bounding box.
+ * @param scores a 1d tensor providing the box scores of shape `[numBoxes]`.
+ * @param maxOutputSize The maximum number of boxes to be selected.
+ * @param iouThreshold A float representing the threshold for deciding whether
+ *     boxes overlap too much with respect to IOU. Must be betwen [0, 1].
+ *     Defaults to 0.5 (50% box overlap).
+ * @param scoreThreshold A threshold for deciding when to remove boxes based
+ *     on score. Defaults to -inf, which means any score is accepted.
+ * @return A 1D tensor with the selected box indices.
  */
 /** @doc {heading: 'Operations', subheading: 'Images', namespace: 'image'} */
 function nonMaxSuppression_(
-    boxes: Tensor2D, scores: Tensor1D, maxOutputSize: Tensor1D,
-    iouThreshold: number, scoreThreshold: number): Tensor1D {
-  util.assert(
-      0 <= iouThreshold && iouThreshold <= 1, 'iouThreshold must be in [0, 1]');
-  util.assert(boxes.shape.length === 2, 'boxes must be 2-D');
-  util.assert(boxes.shape[1] === 4, 'boxes must have 4 columns');
+    boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
+    maxOutputSize: number, iouThreshold = 0.5,
+    scoreThreshold = Number.NEGATIVE_INFINITY): Tensor1D {
+  const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppression');
+  const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppression');
 
-  const numBoxes = boxes.shape[0];
-  util.assert(scores.shape.length === 1, 'scores must be 1-D');
-  util.assert(
-      scores.shape[0] === numBoxes,
-      'scores has incompatible shape, expected [numBoxes]');
+  const inputs = nonMaxSuppSanityCheck(
+      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold);
+  maxOutputSize = inputs.maxOutputSize;
+  iouThreshold = inputs.iouThreshold;
+  scoreThreshold = inputs.scoreThreshold;
 
-  const outputSize =
-      Math.min(...Array.from(maxOutputSize.dataSync()), numBoxes);
-
-  const candidates = Array.from(scores.dataSync())
-                         .map((score, boxIndex) => ({score, boxIndex}))
-                         .filter(c => c.score > scoreThreshold)
-                         .sort((c1, c2) => c2.score - c1.score);
-
-  const suppressFunc = (x: number) => x <= iouThreshold ? 1 : 0;
-
-  const selected: number[] = [];
-
-  candidates.forEach(c => {
-    if (selected.length >= outputSize) {
-      return;
-    }
-    const originalScore = c.score;
-
-    for (let j = selected.length - 1; j >= 0; --j) {
-      const iou = IOU(boxes, c.boxIndex, selected[j]);
-      if (iou === 0.0) {
-        continue;
-      }
-      c.score *= suppressFunc(iou);
-      if (c.score <= scoreThreshold) {
-        break;
-      }
-    }
-
-    if (originalScore === c.score) {
-      selected.push(c.boxIndex);
-    }
-  });
-
-  return tensor1d(selected, 'int32');
+  return ENV.engine.runKernel(
+      b => b.nonMaxSuppression(
+          $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold),
+      {$boxes});
 }
 
-function IOU(boxes: Tensor2D, i: number, j: number) {
-  const yminI = Math.min(boxes.get(i, 0), boxes.get(i, 2));
-  const xminI = Math.min(boxes.get(i, 1), boxes.get(i, 3));
-  const ymaxI = Math.max(boxes.get(i, 0), boxes.get(i, 2));
-  const xmaxI = Math.max(boxes.get(i, 1), boxes.get(i, 3));
-  const yminJ = Math.min(boxes.get(j, 0), boxes.get(j, 2));
-  const xminJ = Math.min(boxes.get(j, 1), boxes.get(j, 3));
-  const ymaxJ = Math.max(boxes.get(j, 0), boxes.get(j, 2));
-  const xmaxJ = Math.max(boxes.get(j, 1), boxes.get(j, 3));
-  const areaI = (ymaxI - yminI) * (xmaxI - xminI);
-  const areaJ = (ymaxJ - yminJ) * (xmaxJ - xminJ);
-  if (areaI <= 0 || areaJ <= 0) {
-    return 0.0;
+/** This is the async version of `nonMaxSuppression` */
+async function nonMaxSuppressionAsync_(
+    boxes: Tensor2D|TensorLike, scores: Tensor1D|TensorLike,
+    maxOutputSize: number, iouThreshold = 0.5,
+    scoreThreshold = Number.NEGATIVE_INFINITY): Promise<Tensor1D> {
+  const $boxes = convertToTensor(boxes, 'boxes', 'nonMaxSuppressionAsync');
+  const $scores = convertToTensor(scores, 'scores', 'nonMaxSuppressionAsync');
+
+  const inputs = nonMaxSuppSanityCheck(
+      $boxes, $scores, maxOutputSize, iouThreshold, scoreThreshold);
+  maxOutputSize = inputs.maxOutputSize;
+  iouThreshold = inputs.iouThreshold;
+  scoreThreshold = inputs.scoreThreshold;
+
+  const boxesVals = await $boxes.data();
+  const scoresVals = await $scores.data();
+  const res = nonMaxSuppressionImpl(
+      boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
+  if ($boxes !== boxes) {
+    $boxes.dispose();
   }
-  const intersectionYmin = Math.max(yminI, yminJ);
-  const intersectionXmin = Math.max(xminI, xminJ);
-  const intersectionYmax = Math.min(ymaxI, ymaxJ);
-  const intersectionXmax = Math.min(xmaxI, xmaxJ);
-  const intersectionArea = Math.max(intersectionYmax - intersectionYmin, 0.0) *
-      Math.max(intersectionXmax - intersectionXmin, 0.0);
-  return intersectionArea / (areaI + areaJ - intersectionArea);
+  if ($scores !== scores) {
+    $scores.dispose();
+  }
+  return res;
+}
+
+function nonMaxSuppSanityCheck(
+    boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
+    iouThreshold: number, scoreThreshold: number):
+    {maxOutputSize: number, iouThreshold: number, scoreThreshold: number} {
+  if (iouThreshold == null) {
+    iouThreshold = 0.5;
+  }
+  if (scoreThreshold == null) {
+    scoreThreshold = Number.NEGATIVE_INFINITY;
+  }
+  const numBoxes = boxes.shape[0];
+  maxOutputSize = Math.min(maxOutputSize, numBoxes);
+
+  util.assert(
+      0 <= iouThreshold && iouThreshold <= 1,
+      `iouThreshold must be in [0, 1], but was '${iouThreshold}'`);
+  util.assert(
+      boxes.rank === 2,
+      `boxes must be a 2D tensor, but was of rank '${boxes.rank}'`);
+  util.assert(
+      boxes.shape[1] === 4,
+      `boxes must have 4 columns, but 2nd dimension was ${boxes.shape[1]}`);
+  util.assert(scores.rank === 1, 'scores must be a 1D tensor');
+  util.assert(
+      scores.shape[0] === numBoxes,
+      `scores has incompatible shape with boxes. Expected ${numBoxes}, ` +
+          `but was ${scores.shape[0]}`);
+  return {maxOutputSize, iouThreshold, scoreThreshold};
 }
 
 export const resizeBilinear = op({resizeBilinear_});
 export const resizeNearestNeighbor = op({resizeNearestNeighbor_});
 export const nonMaxSuppression = op({nonMaxSuppression_});
+export const nonMaxSuppressionAsync = nonMaxSuppressionAsync_;

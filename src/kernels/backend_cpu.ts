@@ -17,6 +17,7 @@
 
 import * as seedrandom from 'seedrandom';
 import {ENV} from '../environment';
+import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
 import * as axis_util from '../ops/axis_util';
 import * as broadcast_util from '../ops/broadcast_util';
@@ -35,7 +36,9 @@ import * as util from '../util';
 import {now} from '../util';
 import {BackendTimingInfo, KernelBackend} from './backend';
 import * as backend_util from './backend_util';
+import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
 import {topkImpl} from './topk_impl';
+import {whereImpl} from './where_impl';
 
 export class MathBackendCPU implements KernelBackend {
   private data = new WeakMap<DataId, DataTypeMap[DataType]>();
@@ -51,8 +54,8 @@ export class MathBackendCPU implements KernelBackend {
   register(dataId: DataId, shape: number[], dtype: DataType): void {
     if (this.firstUse) {
       this.firstUse = false;
-      if (ENV.get('IS_NODE') && !ENV.get('IS_TEST')) {
-        console.warn(
+      if (ENV.get('IS_NODE')) {
+        warn(
             '\n============================\n' +
             'Hi there 👋. Looks like you are running TensorFlow.js in ' +
             'Node.js. To speed things up dramatically, install our node ' +
@@ -507,11 +510,11 @@ export class MathBackendCPU implements KernelBackend {
     });
   }
 
-  where(condition: Tensor, a: Tensor, b: Tensor, dtype: DataType): Tensor {
+  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const values = condition.dataSync();
     const aValues = a.dataSync();
     const bValues = b.dataSync();
-    const result = ops.zeros(a.shape, dtype);
+    const result = ops.zeros(a.shape, types.upcastType(a.dtype, b.dtype));
     const newValues = result.dataSync();
     let index = 0;
     const offset = condition.rank === 0 || condition.rank > 1 || a.rank === 1 ?
@@ -530,8 +533,14 @@ export class MathBackendCPU implements KernelBackend {
     return result;
   }
 
+  where(condition: Tensor): Tensor2D {
+    const condVals = condition.dataSync();
+    return whereImpl(condition.shape, condVals);
+  }
+
   topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
-    return topkImpl(x, k, sorted);
+    const xVals = x.dataSync();
+    return topkImpl(xVals, x.shape, x.dtype, k, sorted);
   }
 
   min(x: Tensor, axes: number[]): Tensor {
@@ -2097,6 +2106,15 @@ export class MathBackendCPU implements KernelBackend {
       }
     }
     return ops.tensor2d(res, [indices.size, depth], 'int32');
+  }
+
+  nonMaxSuppression(
+      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
+      iouThreshold: number, scoreThreshold: number): Tensor1D {
+    const boxesVals = boxes.dataSync();
+    const scoresVals = scores.dataSync();
+    return nonMaxSuppressionImpl(
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
   private broadcastedBinaryOp(

@@ -17,6 +17,7 @@
 
 import {MemoryInfo, TimingInfo} from '../engine';
 import {ENV} from '../environment';
+import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
 import * as axis_util from '../ops/axis_util';
 import {Conv2DInfo} from '../ops/conv_util';
@@ -29,9 +30,9 @@ import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D
 import * as types from '../types';
 import {DataType, DataTypeMap, RecursiveArray, TypedArray} from '../types';
 import * as util from '../util';
-
 import {KernelBackend} from './backend';
 import * as backend_util from './backend_util';
+import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
 import {topkImpl} from './topk_impl';
 import {ArgMinMaxProgram} from './webgl/argminmax_gpu';
 import {AvgPool2DBackpropProgram} from './webgl/avg_pool_backprop_gpu';
@@ -54,7 +55,6 @@ import {GPGPUContext} from './webgl/gpgpu_context';
 import * as gpgpu_math from './webgl/gpgpu_math';
 import {GPGPUBinary, GPGPUProgram, TensorData} from './webgl/gpgpu_math';
 import * as gpgpu_util from './webgl/gpgpu_util';
-import {WhereProgram} from './webgl/logical_gpu';
 import {LRNProgram} from './webgl/lrn_gpu';
 import {LRNGradProgram} from './webgl/lrn_grad_gpu';
 import {MaxPool2DBackpropProgram} from './webgl/max_pool_backprop_gpu';
@@ -73,6 +73,7 @@ import {ResizeNearestNeigborBackpropProgram} from './webgl/resize_nearest_neighb
 import {ResizeNearestNeighborProgram} from './webgl/resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './webgl/reverse_gpu';
 import {SegmentOpProgram} from './webgl/segment_gpu';
+import {SelectProgram} from './webgl/select_gpu';
 import {SliceProgram} from './webgl/slice_gpu';
 import {StridedSliceProgram} from './webgl/strided_slice_gpu';
 import {TextureData, TextureUsage} from './webgl/tex_util';
@@ -83,6 +84,7 @@ import * as unary_op from './webgl/unaryop_gpu';
 import {UnaryOpProgram} from './webgl/unaryop_gpu';
 import {WebGLQuery} from './webgl/webgl_types';
 import * as webgl_util from './webgl/webgl_util';
+import {whereImpl} from './where_impl';
 
 type TimerNode = RecursiveArray<Promise<number>>|Promise<number>;
 export interface CPUTimerQuery {
@@ -772,14 +774,24 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(program, [a, b], output);
   }
 
-  where(condition: Tensor, a: Tensor, b: Tensor, dtype: DataType): Tensor {
-    const program = new WhereProgram(condition.rank, a.shape, a.rank);
-    const output = this.makeOutputArray(program.outputShape, dtype);
+  select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
+    const program = new SelectProgram(condition.rank, a.shape, a.rank);
+    const output = this.makeOutputArray(
+        program.outputShape, types.upcastType(a.dtype, b.dtype));
     return this.compileAndRun(program, [condition, a, b], output);
   }
 
+  where(condition: Tensor): Tensor2D {
+    warn(
+        'tf.where() in webgl locks the UI thread. ' +
+        'Call tf.whereAsync() instead');
+    const condVals = condition.dataSync();
+    return whereImpl(condition.shape, condVals);
+  }
+
   topk<T extends Tensor>(x: T, k: number, sorted: boolean): [T, T] {
-    return topkImpl(x, k, sorted);
+    const xVals = x.dataSync();
+    return topkImpl(xVals, x.shape, x.dtype, k, sorted);
   }
 
   min(x: Tensor, axes: number[]): Tensor {
@@ -1193,6 +1205,18 @@ export class MathBackendWebGL implements KernelBackend {
       Tensor2D {
     const program = new OneHotProgram(indices.size, depth, onValue, offValue);
     return this.compileAndRun(program, [indices]);
+  }
+
+  nonMaxSuppression(
+      boxes: Tensor2D, scores: Tensor1D, maxOutputSize: number,
+      iouThreshold: number, scoreThreshold: number): Tensor1D {
+    warn(
+        'tf.nonMaxSuppression() in webgl locks the UI thread. ' +
+        'Call tf.nonMaxSuppressionAsync() instead');
+    const boxesVals = boxes.dataSync();
+    const scoresVals = scores.dataSync();
+    return nonMaxSuppressionImpl(
+        boxesVals, scoresVals, maxOutputSize, iouThreshold, scoreThreshold);
   }
 
   private makeOutputArray<T extends Tensor>(shape: number[], dtype: DataType):
