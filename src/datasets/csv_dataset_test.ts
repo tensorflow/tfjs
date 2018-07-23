@@ -35,6 +35,17 @@ const csvBlob = new Blob([csvData]);
 
 const csvBlobWithHeaders = new Blob([csvDataWithHeaders]);
 
+const csvDataExtra = `A,B,C
+1,2,3
+2,2,3
+3,2,3
+4,2,3
+5,2,3
+6,2,3
+7,2,3`;
+
+const csvBlobWithHeadersExtra = new Blob([csvDataExtra]);
+
 describe('CSVDataset', () => {
   it('produces a stream of dicts containing UTF8-decoded csv data',
      async () => {
@@ -44,7 +55,7 @@ describe('CSVDataset', () => {
        expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
 
        const iter = await dataset.iterator();
-       const result = await iter.collectRemaining();
+       const result = await iter.collect();
 
        expect(result).toEqual([
          {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
@@ -64,7 +75,7 @@ describe('CSVDataset', () => {
 
     expect(dataset.csvColumnNames).toEqual(['foo', 'bar', 'baz']);
     const iter = await dataset.iterator();
-    const result = await iter.collectRemaining();
+    const result = await iter.collect();
 
     expect(result).toEqual([
       {'foo': 'ab', 'bar': 'cd', 'baz': 'ef'},
@@ -82,7 +93,7 @@ describe('CSVDataset', () => {
     const dataset = await CSVDataset.create(source);
     expect(dataset.csvColumnNames).toEqual(['0', '1', '2']);
     const iter = await dataset.iterator();
-    const result = await iter.collectRemaining();
+    const result = await iter.collect();
 
     expect(result).toEqual([
       {'0': 'ab', '1': 'cd', '2': 'ef'},
@@ -93,5 +104,22 @@ describe('CSVDataset', () => {
       {'0': 'v', '1': 'w', '2': 'x'},
       {'0': 'y', '1': 'z', '2': undefined},
     ]);
+  });
+
+  it('emits rows in order despite async requests', async () => {
+    const source = new FileDataSource(csvBlobWithHeadersExtra, {chunkSize: 10});
+    const ds = await CSVDataset.create(source, CsvHeaderConfig.READ_FIRST_LINE);
+    expect(ds.csvColumnNames).toEqual(['A', 'B', 'C']);
+    const csvIterator = await ds.iterator();
+    const promises = [
+      csvIterator.next(), csvIterator.next(), csvIterator.next(),
+      csvIterator.next(), csvIterator.next()
+    ];
+    const elements = await Promise.all(promises);
+    expect(elements[0].value).toEqual({A: 1, B: 2, C: 3});
+    expect(elements[1].value).toEqual({A: 2, B: 2, C: 3});
+    expect(elements[2].value).toEqual({A: 3, B: 2, C: 3});
+    expect(elements[3].value).toEqual({A: 4, B: 2, C: 3});
+    expect(elements[4].value).toEqual({A: 5, B: 2, C: 3});
   });
 });

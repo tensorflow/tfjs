@@ -29,7 +29,7 @@ describe('PrefetchIterator', () => {
       expectedResult[j] = j;
     }
 
-    prefetchIterator.collectRemaining()
+    prefetchIterator.collect()
         .then(result => {
           expect(result).toEqual(expectedResult);
         })
@@ -51,7 +51,7 @@ describe('PrefetchIterator', () => {
          }
        }
 
-       prefetchIterator.collectRemaining()
+       prefetchIterator.collect()
            .then(result => {
              expect(result).toEqual(expectedResult);
            })
@@ -72,7 +72,7 @@ describe('PrefetchIterator', () => {
          }
        }
 
-       prefetchIterator.collectRemaining()
+       prefetchIterator.collect()
            .then(result => {
              expect(result).toEqual(expectedResult);
            })
