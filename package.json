@@ -1,6 +1,6 @@
 {
   "name": "@tensorflow/tfjs-core",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "description": "Hardware-accelerated JavaScript library for machine intelligence",
   "private": false,
   "main": "dist/index.js",
