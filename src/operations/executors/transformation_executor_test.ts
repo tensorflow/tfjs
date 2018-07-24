@@ -97,5 +97,37 @@ describe('transformation', () => {
         expect(tfc.squeeze).toHaveBeenCalledWith(input1[0], 1);
       });
     });
+    describe('spaceToBatchND', () => {
+      it('should call tfc.spaceToBatchND', () => {
+        spyOn(tfc, 'spaceToBatchND');
+        node.op = 'spaceToBatchND';
+        node.params.blockShape = createNumericArrayAttrFromIndex(1);
+        node.params.paddings = createNumericArrayAttrFromIndex(2);
+        node.inputNames = ['input1', 'input2', 'input3'];
+        const input2 = [tfc.tensor1d([1, 1, 2, 2])];
+        const input3 = [tfc.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.spaceToBatchND)
+            .toHaveBeenCalledWith(
+                input1[0], [1, 1, 2, 2], [[1, 2], [2, 3], [2, 3], [3, 4]]);
+      });
+    });
+    describe('batchToSpaceND', () => {
+      it('should call tfc.batchToSpaceND', () => {
+        spyOn(tfc, 'batchToSpaceND');
+        node.op = 'batchToSpaceND';
+        node.params.blockShape = createNumericArrayAttrFromIndex(1);
+        node.params.crops = createNumericArrayAttrFromIndex(2);
+        node.inputNames = ['input1', 'input2', 'input3'];
+        const input2 = [tfc.tensor1d([1, 1, 2, 2])];
+        const input3 = [tfc.tensor2d([1, 2, 2, 3, 2, 3, 3, 4], [4, 2])];
+        executeOp(node, {input1, input2, input3}, context);
+
+        expect(tfc.batchToSpaceND)
+            .toHaveBeenCalledWith(
+                input1[0], [1, 1, 2, 2], [[1, 2], [2, 3], [2, 3], [3, 4]]);
+      });
+    });
   });
 });

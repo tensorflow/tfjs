@@ -115,5 +115,47 @@
         "type": "number[]"
       }
     ]
+  },
+  {
+    "tfOpName": "SpaceToBatchND",
+    "dlOpName": "spaceToBatchND",
+    "category": "transformation",
+    "params": [{
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "blockShape",
+        "type": "number[]"
+      },
+      {
+        "tfInputIndex": 2,
+        "dlParamName": "paddings",
+        "type": "number[]"
+      }
+    ]
+  },
+  {
+    "tfOpName": "BatchToSpaceND",
+    "dlOpName": "batchToSpaceND",
+    "category": "transformation",
+    "params": [{
+        "tfInputIndex": 0,
+        "dlParamName": "x",
+        "type": "tensor"
+      },
+      {
+        "tfInputIndex": 1,
+        "dlParamName": "blockShape",
+        "type": "number[]"
+      },
+      {
+        "tfInputIndex": 2,
+        "dlParamName": "crops",
+        "type": "number[]"
+      }
+    ]
   }
 ]
