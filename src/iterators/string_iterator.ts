@@ -16,7 +16,7 @@
  * =============================================================================
  */
 
-import {LazyIterator, QueueIterator} from './lazy_iterator';
+import {LazyIterator, OneToManyIterator} from './lazy_iterator';
 
 export abstract class StringIterator extends LazyIterator<string> {
   /**
@@ -66,7 +66,7 @@ class SplitIterator extends StringIterator {
   }
 }
 
-class SplitIteratorImpl extends QueueIterator<string> {
+class SplitIteratorImpl extends OneToManyIterator<string> {
   // A partial string at the end of an upstream chunk
   carryover = '';
 

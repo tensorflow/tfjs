@@ -34,7 +34,7 @@ describe('ChainedIterator', () => {
       }
     }
 
-    chainedIterator.collectRemaining()
+    chainedIterator.collect()
         .then(result => {
           expect(result).toEqual(expectedResult);
         })
@@ -55,7 +55,7 @@ describe('ChainedIterator', () => {
       }
     }
 
-    chainedIterator.collectRemaining()
+    chainedIterator.collect()
         .then(result => {
           expect(result).toEqual(expectedResult);
         })

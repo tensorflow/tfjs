@@ -18,7 +18,7 @@
 
 import * as utf8 from 'utf8';
 
-import {LazyIterator, QueueIterator} from './lazy_iterator';
+import {LazyIterator, OneToManyIterator} from './lazy_iterator';
 import {StringIterator} from './string_iterator';
 
 export abstract class ByteChunkIterator extends LazyIterator<Uint8Array> {
@@ -81,7 +81,7 @@ class Utf8Iterator extends StringIterator {
  *   naturally happens, for instance, when reading fixed-size byte arrays from a
  *   file.
  */
-class Utf8IteratorImpl extends QueueIterator<string> {
+class Utf8IteratorImpl extends OneToManyIterator<string> {
   // An array of the full required width of the split character, if any.
   partial: Uint8Array = new Uint8Array([]);
   // The number of bytes of that array that are populated so far.
