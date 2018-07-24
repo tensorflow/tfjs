@@ -222,11 +222,13 @@
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
+|BatchToSpaceND|batchToSpaceND|
 |Cast|cast|
 |ExpandDims|expandDims|
 |Pad|pad|
 |PadV2|pad|
 |Reshape|reshape|
 |Squeeze|squeeze|
+|SpaceToBatchND|spaceToBatchND|
 
 

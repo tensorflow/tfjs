@@ -58,6 +58,24 @@ export let executeOp: OpExecutor = (node: Node, tensorMap: NamedTensorsMap,
               2) as Array<[number, number]>,
           getParamValue('constantValue', node, tensorMap, context) as number)];
     }
+    case 'spaceToBatchND': {
+      const blockShape =
+          getParamValue('blockShape', node, tensorMap, context) as number[];
+      const paddings = split(
+          getParamValue('paddings', node, tensorMap, context) as number[], 2);
+      return [tfc.spaceToBatchND(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          blockShape, paddings)];
+    }
+    case 'batchToSpaceND': {
+      const blockShape =
+          getParamValue('blockShape', node, tensorMap, context) as number[];
+      const crops = split(
+          getParamValue('crops', node, tensorMap, context) as number[], 2);
+      return [tfc.batchToSpaceND(
+          getParamValue('x', node, tensorMap, context) as tfc.Tensor,
+          blockShape, crops)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

@@ -58,8 +58,8 @@ export interface Graph {
   withControlFlow: boolean;
 }
 
-export type ValueType =
-    string|string[]|number|number[]|boolean|boolean[]|Tensor|Tensor[];
+export type ValueType = string|string[]|number|number[]|number[][]|boolean|
+    boolean[]|Tensor|Tensor[];
 export interface ParamValue {
   value?: ValueType;
   inputIndex?: number;
