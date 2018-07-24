@@ -262,11 +262,11 @@ inline bool IsExceptionPending(napi_env env) {
 }
 
 inline bool EnsureValueIsNotNull(napi_env env, TFJSBackend* value) {
-  bool is_not_null = value != nullptr;
-  if (!is_not_null) {
-    napi_throw_error(env, nullptr, "Argument is null!");
+  bool is_null = value == nullptr;
+  if (is_null) {
+    NAPI_THROW_ERROR(env, "Argument is null!");
   }
-  return is_not_null;
+  return !is_null;
 }
 
 }  // namespace tfnodejs
