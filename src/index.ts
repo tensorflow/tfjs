@@ -17,20 +17,15 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
-import { nodeFileSystemRouter } from './io/file_system';
-import { NodeJSKernelBackend } from './nodejs_kernel_backend';
+import {nodeFileSystemRouter} from './io/file_system';
+import {NodeJSKernelBackend} from './nodejs_kernel_backend';
 
 // tslint:disable-next-line:no-require-imports
 import bindings = require('bindings');
-import { TFJSBinding } from './tfjs_binding';
+import {TFJSBinding} from './tfjs_binding';
 
 tfc.ENV.registerBackend('tensorflow', () => {
-  const backend =
-    new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
-  if (backend.binding.TF_Version === undefined) {
-    throw new Error('Fail to create TFJSBackend');
-  }
-  return backend;
+  return new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
 }, 3 /* priority */);
 
 // If registration succeeded, set the backend.
@@ -42,4 +37,4 @@ if (tfc.ENV.findBackend('tensorflow') != null) {
 tfc.io.registerSaveRouter(nodeFileSystemRouter);
 tfc.io.registerLoadRouter(nodeFileSystemRouter);
 
-export { version } from './version';
+export {version} from './version';
