@@ -17,6 +17,7 @@
 
 import * as tfc from '@tensorflow/tfjs-core';
 
+import {createTensorAttr} from '../operations/executors/test_helper';
 import * as operations from '../operations/operation_executor';
 import {Graph, Node} from '../operations/types';
 
@@ -29,6 +30,7 @@ let constNode: Node;
 let outputNode: Node;
 let graph: Graph;
 let graphWithControlFlow: Graph;
+let constTensor: tfc.Tensor;
 
 describe('GraphExecutor', () => {
   beforeEach(() => {
@@ -57,7 +59,7 @@ describe('GraphExecutor', () => {
       name: 'output',
       op: 'add',
       category: 'arithmetic',
-      params: {}
+      params: {'a': createTensorAttr(0), 'b': createTensorAttr(1)}
     };
     graph = {
       inputs: [constNode, inputNode],
@@ -69,6 +71,8 @@ describe('GraphExecutor', () => {
     inputNode.children.push(outputNode);
     constNode.children.push(outputNode);
     executor = new GraphExecutor(graph);
+    constTensor = tfc.scalar(2);
+    executor.weightMap = {'const': [constTensor]};
   });
   afterEach(() => {});
 
@@ -121,7 +125,6 @@ describe('GraphExecutor', () => {
         it('should execute the op', () => {
           executor = new GraphExecutor(graph);
           const inputTensor = tfc.scalar(1);
-          const constTensor = tfc.scalar(2);
           const spy =
               spyOn(operations, 'executeOp').and.callFake((node: Node) => {
                 return node.op === 'const' ? [constTensor] : [inputTensor];
@@ -152,6 +155,12 @@ describe('GraphExecutor', () => {
               .toThrow(new Error(
                   'The dtype of dict[\'input\'] provided' +
                   ' in model.execute(dict) must be int32, but was float32'));
+        });
+
+        it('should not throw exception if inputs shapes is dynamic', () => {
+          inputNode.params['shape'] = {value: [-1, 1, 1, 1], type: 'shape'};
+          const inputTensor = tfc.tensor4d([1, 1], [2, 1, 1, 1], 'float32');
+          expect(() => executor.execute({input: [inputTensor]})).not.toThrow();
         });
       });
 

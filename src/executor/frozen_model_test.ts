@@ -39,7 +39,7 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
         dtype: {
           type: tensorflow.DataType.DT_INT32,
         },
-        shape: {shape: {dim: [{size: 1}]}}
+        shape: {shape: {dim: [{size: -1}, {size: 1}]}}
       }
     },
     {
@@ -95,21 +95,21 @@ describe('Model', () => {
   describe('predict', () => {
     it('should generate the output for single tensor', async () => {
       await model.load();
-      const input = tfc.tensor1d([1], 'int32');
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const output = model.predict(input);
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
 
     it('should generate the output for tensor array', async () => {
       await model.load();
-      const input = tfc.tensor1d([1], 'int32');
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const output = model.predict([input]);
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
 
     it('should generate the output for tensor map', async () => {
       await model.load();
-      const input = tfc.tensor1d([1], 'int32');
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const output = model.predict({'Input': input});
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
@@ -134,13 +134,13 @@ describe('Model', () => {
   describe('execute', () => {
     it('should generate the default output', async () => {
       await model.load();
-      const input = tfc.tensor1d([1], 'int32');
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const output = model.execute({'Input': input});
       expect((output as tfc.Tensor).dataSync()[0]).toEqual(2);
     });
     it('should generate the output array', async () => {
       await model.load();
-      const input = tfc.tensor1d([1], 'int32');
+      const input = tfc.tensor2d([1, 1], [2, 1], 'int32');
       const output = model.execute({'Input': input}, ['Add', 'Const']);
       expect(Array.isArray(output)).toBeTruthy();
       expect((output as tfc.Tensor[])[0].dataSync()[0]).toEqual(2);
@@ -152,7 +152,7 @@ describe('Model', () => {
     });
 
     it('should throw exception if inputs dtype does not match graph', () => {
-      const input = tfc.tensor1d([1], 'float32');
+      const input = tfc.tensor2d([1, 1], [2, 1], 'float32');
       expect(() => model.predict([input])).toThrow();
     });
 
@@ -214,7 +214,7 @@ describe('Model', () => {
     it('should expose inputs', async () => {
       await model.load();
       expect(model.inputs).toEqual([
-        {name: 'Input', shape: [1], dtype: 'int32'}
+        {name: 'Input', shape: [-1, 1], dtype: 'int32'}
       ]);
     });
     it('should expose outputs', async () => {
