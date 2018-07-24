@@ -24,6 +24,7 @@ import * as basicMath from './op_list/basic_math.json';
 import * as control from './op_list/control.json';
 import * as convolution from './op_list/convolution.json';
 import * as creation from './op_list/creation.json';
+import * as dynamic from './op_list/dynamic.json';
 import * as evaluation from './op_list/evaluation.json';
 import * as graph from './op_list/graph.json';
 import * as image from './op_list/image.json';
@@ -36,6 +37,7 @@ import * as transformation from './op_list/transformation.json';
 import {Graph, Node, OpMapper, ParamValue} from './types';
 
 const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
+const DYNAMIC_SHAPE_OPS = ['NonMaxSuppressionV2', 'NonMaxSuppressionV3'];
 export class OperationMapper {
   private static _instance: OperationMapper;
 
@@ -49,9 +51,9 @@ export class OperationMapper {
   // Loads the op mapping from the JSON file.
   private constructor() {
     const ops = [
-      arithmetic, basicMath, control, convolution, creation, evaluation,
-      logical, image, graph, matrices, normalization, reduction, sliceJoin,
-      transformation
+      arithmetic, basicMath, control, convolution, creation, dynamic,
+      evaluation, logical, image, graph, matrices, normalization, reduction,
+      sliceJoin, transformation
     ];
     const mappersJson: OpMapper[] =
         [].concat.apply([], ops.map(op => op.default ? op.default : op));
@@ -68,15 +70,20 @@ export class OperationMapper {
     return CONTROL_FLOW_OPS.some(op => op === node.op);
   }
 
+  private isDynamicShape(node: tensorflow.INodeDef) {
+    return DYNAMIC_SHAPE_OPS.some(op => op === node.op);
+  }
   // Converts the model from Tensorflow GraphDef to local representation for
   // deeplearn.js API
   transformGraph(graph: tensorflow.IGraphDef): Graph {
     const tfNodes = graph.node;
     let withControlFlow = false;
+    let withDynamicShape = false;
     const placeholders: Node[] = [];
     const nodes = tfNodes.reduce<{[key: string]: Node}>((map, node) => {
       map[node.name] = this.mapNode(node);
       if (this.isControlFlow(node)) withControlFlow = true;
+      if (this.isDynamicShape(node)) withDynamicShape = true;
       if (node.op === 'Placeholder') placeholders.push(map[node.name]);
       return map;
     }, {});
@@ -97,7 +104,14 @@ export class OperationMapper {
       const node = nodes[key];
       if (node.children.length === 0) outputs.push(node);
     });
-    return {nodes, inputs, outputs, placeholders, withControlFlow};
+    return {
+      nodes,
+      inputs,
+      outputs,
+      placeholders,
+      withControlFlow,
+      withDynamicShape
+    };
   }
 
   private mapNode(node: tensorflow.INodeDef): Node {
