@@ -34,7 +34,7 @@ describe('ShuffleIterator', () => {
         notExpectedResult[i * LONG_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleIterator.collectRemaining()
+    shuffleIterator.collect()
         .then(result => {
           expect(result).not.toEqual(notExpectedResult);
           expect(result.length).toEqual(LONG_STREAM_LENGTH);
@@ -60,7 +60,7 @@ describe('ShuffleIterator', () => {
         notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleIterator.collectRemaining()
+    shuffleIterator.collect()
         .then(result => {
           expect(result).not.toEqual(notExpectedResult);
           expect(result.length).toEqual(SHORT_STREAM_LENGTH);
@@ -88,7 +88,7 @@ describe('ShuffleIterator', () => {
         notExpectedResult[i * SHORT_STREAM_LENGTH + j] = j;
       }
     }
-    shuffleIterator.collectRemaining()
+    shuffleIterator.collect()
         .then(result => {
           expect(result).not.toEqual(notExpectedResult);
           expect(result.length).toEqual(3 * SHORT_STREAM_LENGTH);

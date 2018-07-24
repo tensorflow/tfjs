@@ -30,7 +30,7 @@ describe('ByteChunkIterator.decodeUTF8()', () => {
     const utf8Iterator = byteChunkIterator.decodeUTF8();
     expect(testBlob.size).toEqual(323);
 
-    utf8Iterator.collectRemaining()
+    utf8Iterator.collect()
         .then((result: string[]) => {
           // The test string is 109 characters long; its UTF8 encoding is 323
           // bytes. We read it in chunks of 50 bytes, so there were 7 chunks of

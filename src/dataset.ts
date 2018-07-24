@@ -221,7 +221,7 @@ export abstract class Dataset<T extends DataElement> {
    *   when a new stream has been obtained and fully consumed.
    */
   async collectAll() {
-    return (await this.iterator()).collectRemaining();
+    return (await this.iterator()).collect();
   }
 
   /**
