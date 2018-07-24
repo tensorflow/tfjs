@@ -19,11 +19,11 @@ import * as tfc from '@tensorflow/tfjs-core';
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
 
-import {executeOp} from './image_executor';
+import {executeOp} from './dynamic_executor';
 // tslint:disable-next-line:max-line-length
-import {createBoolAttr, createNumericArrayAttr, createTensorAttr} from './test_helper';
+import {createNumberAttr, createTensorAttr} from './test_helper';
 
-describe('image', () => {
+describe('dynamic', () => {
   let node: Node;
   const input1 = [tfc.tensor1d([1])];
   const context = new ExecutionContext({}, {});
@@ -41,28 +41,25 @@ describe('image', () => {
   });
 
   describe('executeOp', () => {
-    describe('resizeBilinear', () => {
+    describe('nonMaxSuppression', () => {
       it('should return input', () => {
-        node.op = 'resizeBilinear';
-        node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttr([1, 2]);
-        node.params['alignCorners'] = createBoolAttr(true);
-        spyOn(tfc.image, 'resizeBilinear');
-        executeOp(node, {input1}, context);
-        expect(tfc.image.resizeBilinear)
-            .toHaveBeenCalledWith(input1[0], [1, 2], true);
-      });
-    });
-    describe('resizeNearestNeighbor', () => {
-      it('should return input', () => {
-        node.op = 'resizeNearestNeighbor';
-        node.params['images'] = createTensorAttr(0);
-        node.params['size'] = createNumericArrayAttr([1, 2]);
-        node.params['alignCorners'] = createBoolAttr(true);
-        spyOn(tfc.image, 'resizeNearestNeighbor');
-        executeOp(node, {input1}, context);
-        expect(tfc.image.resizeNearestNeighbor)
-            .toHaveBeenCalledWith(input1[0], [1, 2], true);
+        node.op = 'nonMaxSuppression';
+        node.params['boxes'] = createTensorAttr(0);
+        node.params['scores'] = createTensorAttr(1);
+        node.params['maxOutputSize'] = createTensorAttr(2);
+        node.params['iouThreshold'] = createTensorAttr(3);
+        node.params['scoreThreshold'] = createNumberAttr(1);
+        node.inputNames = ['input1', 'input2', 'input3', 'input4'];
+        const input2 = [tfc.tensor1d([1])];
+        const input3 = [tfc.tensor1d([1])];
+        const input4 = [tfc.tensor1d([1])];
+        spyOn(tfc.image, 'nonMaxSuppressionAsync').and.callThrough();
+        const result =
+            executeOp(node, {input1, input2, input3, input4}, context);
+        expect(tfc.image.nonMaxSuppressionAsync)
+            .toHaveBeenCalledWith(
+                input1[0], input2[0], input3[0], input4[0], 1);
+        expect(result instanceof Promise).toBeTruthy();
       });
     });
   });

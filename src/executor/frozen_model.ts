@@ -196,9 +196,9 @@ export class FrozenModel implements tfc.InferenceModel {
     if (inputs instanceof tfc.Tensor || Array.isArray(inputs)) {
       inputs = this.constructTensorMap(inputs);
     }
-    if (this.executor.isControlFlowModel) {
+    if (this.executor.isControlFlowModel || this.executor.isDynamicShapeModel) {
       throw new Error(
-          'The model contains control flow ops, ' +
+          'The model contains control flow or dynamic shape ops, ' +
           'please use executeAsync method');
     }
     const result = this.executor.execute(
@@ -226,9 +226,10 @@ export class FrozenModel implements tfc.InferenceModel {
   async executeAsync(
       inputs: tfc.Tensor|tfc.Tensor[]|tfc.NamedTensorMap,
       outputs?: string|string[]): Promise<tfc.Tensor|tfc.Tensor[]> {
-    if (!this.executor.isControlFlowModel) {
+    if (!(this.executor.isControlFlowModel &&
+          this.executor.isDynamicShapeModel)) {
       throw new Error(
-          'The model does not contain control flow ops, ' +
+          'The model does not contain control flow or dynamic shape ops, ' +
           'please use execute method for better performance.');
     }
     outputs = outputs || this.outputNodes;

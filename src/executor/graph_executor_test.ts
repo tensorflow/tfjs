@@ -66,6 +66,7 @@ describe('GraphExecutor', () => {
       nodes: {'input': inputNode, 'const': constNode, 'output': outputNode},
       outputs: [outputNode],
       withControlFlow: false,
+      withDynamicShape: false,
       placeholders: [inputNode]
     };
     inputNode.children.push(outputNode);
@@ -201,6 +202,7 @@ describe('GraphExecutor', () => {
                 {'input': inputNode, 'const': constNode, 'output': outputNode},
             outputs: [outputNode],
             withControlFlow: true,
+            withDynamicShape: false,
             placeholders: [inputNode]
           };
 

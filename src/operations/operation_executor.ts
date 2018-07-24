@@ -25,6 +25,7 @@ import * as basicMath from './executors/basic_math_executor';
 import * as control from './executors/control_executor';
 import * as convolution from './executors/convolution_executor';
 import * as creation from './executors/creation_executor';
+import * as dynamic from './executors/dynamic_executor';
 import * as evaluation from './executors/evaluation_executor';
 import * as graph from './executors/graph_executor';
 import * as image from './executors/image_executor';
@@ -55,6 +56,8 @@ export function executeOp(
       return convolution.executeOp(node, tensorMap, context);
     case 'creation':
       return creation.executeOp(node, tensorMap, context);
+    case 'dynamic':
+      return dynamic.executeOp(node, tensorMap, context);
     case 'evaluation':
       return evaluation.executeOp(node, tensorMap, context);
     case 'image':

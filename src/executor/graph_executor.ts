@@ -89,6 +89,9 @@ export class GraphExecutor {
     return this.graph.withControlFlow;
   }
 
+  get isDynamicShapeModel(): boolean {
+    return this.graph.withDynamicShape;
+  }
   /**
    * Compiles the inference graph to generate the topology order of op nodes,
    * cache the result for inference execution.
@@ -96,7 +99,7 @@ export class GraphExecutor {
   private compile() {
     // Do not compile for graph with control flow, since the execution order
     // requires runtime evaluation of the output tensors.
-    if (this.graph.withControlFlow) {
+    if (this.graph.withControlFlow || this.graph.withDynamicShape) {
       return;
     }
 
