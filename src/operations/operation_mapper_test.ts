@@ -32,7 +32,14 @@ const SIMPLE_MODEL: tensorflow.IGraphDef = {
         dtype: {
           type: tensorflow.DataType.DT_FLOAT,
         },
-        shape: {shape: {dim: [{size: 3}, {size: 3}, {size: 3}, {size: 1}]}}
+        shape: {
+          shape: {
+            dim: [
+              {size: Long.fromInt(3)}, {size: Long.fromInt(3)},
+              {size: Long.fromInt(3)}, {size: Long.fromInt(1)}
+            ]
+          }
+        }
       }
     },
     {

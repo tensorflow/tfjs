@@ -242,7 +242,9 @@ export class OperationMapper {
       def?: number[]): number[]|undefined {
     const param = attrs[name];
     if (param && param.shape) {
-      return param.shape.dim.map(dim => dim.size as number);
+      return param.shape.dim.map(
+          dim =>
+              (typeof dim.size === 'number') ? dim.size : dim.size['toInt']());
     }
     return def;
   }
