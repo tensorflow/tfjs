@@ -25,8 +25,11 @@ import bindings = require('bindings');
 import { TFJSBinding } from './tfjs_binding';
 
 tfc.ENV.registerBackend('tensorflow', () => {
-  const backend = new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
-  if (backend.binding.TF_Version === undefined) throw new Error('Fail to create TFJSBackend');
+  const backend =
+    new NodeJSKernelBackend(bindings('tfjs_binding.node') as TFJSBinding);
+  if (backend.binding.TF_Version === undefined) {
+    throw new Error('Fail to create TFJSBackend');
+  }
   return backend;
 }, 3 /* priority */);
 
