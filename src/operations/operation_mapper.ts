@@ -24,6 +24,7 @@ import * as basicMath from './op_list/basic_math.json';
 import * as control from './op_list/control.json';
 import * as convolution from './op_list/convolution.json';
 import * as creation from './op_list/creation.json';
+import * as evaluation from './op_list/evaluation.json';
 import * as graph from './op_list/graph.json';
 import * as image from './op_list/image.json';
 import * as logical from './op_list/logical.json';
@@ -48,8 +49,9 @@ export class OperationMapper {
   // Loads the op mapping from the JSON file.
   private constructor() {
     const ops = [
-      arithmetic, basicMath, control, convolution, creation, logical, image,
-      graph, matrices, normalization, reduction, sliceJoin, transformation
+      arithmetic, basicMath, control, convolution, creation, evaluation,
+      logical, image, graph, matrices, normalization, reduction, sliceJoin,
+      transformation
     ];
     const mappersJson: OpMapper[] =
         [].concat.apply([], ops.map(op => op.default ? op.default : op));
