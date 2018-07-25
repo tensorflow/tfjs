@@ -18,6 +18,8 @@
     "@types/jasmine": "~2.5.53",
     "@types/node": "~9.6.0",
     "@types/seedrandom": "~2.4.27",
+    "@types/webgl2": "~0.0.4",
+    "@types/webgl-ext": "0.0.29",
     "clang-format": "~1.2.2",
     "jasmine": "~3.1.0",
     "jasmine-core": "~3.1.0",
