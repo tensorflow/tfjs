@@ -62,5 +62,18 @@ describe('dynamic', () => {
         expect(result instanceof Promise).toBeTruthy();
       });
     });
+
+    describe('whereAsync', () => {
+      it('should call tfc.whereAsync', async () => {
+        node.op = 'whereAsync';
+        const input1 = [tfc.scalar(1)];
+        node.params = {'condition': createTensorAttr(0)};
+        spyOn(tfc, 'whereAsync').and.callThrough();
+
+        const result = executeOp(node, {input1}, context);
+        expect(tfc.whereAsync).toHaveBeenCalledWith(input1[0]);
+        expect(result instanceof Promise).toBeTruthy();
+      });
+    });
   });
 });

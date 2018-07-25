@@ -37,7 +37,9 @@ import * as transformation from './op_list/transformation.json';
 import {Graph, Node, OpMapper, ParamValue} from './types';
 
 const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
-const DYNAMIC_SHAPE_OPS = ['NonMaxSuppressionV2', 'NonMaxSuppressionV3'];
+const DYNAMIC_SHAPE_OPS =
+    ['NonMaxSuppressionV2', 'NonMaxSuppressionV3', 'Where'];
+
 export class OperationMapper {
   private static _instance: OperationMapper;
 
