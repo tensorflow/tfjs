@@ -17,6 +17,7 @@
 
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
+import {convertToTensor} from './tensor_util';
 import {ALL_ENVS, expectArraysClose} from './test_util';
 
 describeWithFlags('debug on', ALL_ENVS, () => {
@@ -38,6 +39,26 @@ describeWithFlags('debug on', ALL_ENVS, () => {
     const a = tf.tensor1d([2, NaN]);
     const f = () => tf.relu(a);
     expect(f).toThrowError();
+  });
+
+  it('debug mode errors when nans in tensor construction, int32', () => {
+    const a = () => tf.tensor1d([2, NaN], 'int32');
+    expect(a).toThrowError();
+  });
+
+  it('debug mode errors when nans in oneHot op (tensorlike), int32', () => {
+    const f = () => tf.oneHot([2, NaN], 3);
+    expect(f).toThrowError();
+  });
+
+  it('debug mode errors when nan in convertToTensor, int32', () => {
+    const a = () => convertToTensor(NaN, 'a', 'test', 'int32');
+    expect(a).toThrowError();
+  });
+
+  it('debug mode errors when nan in convertToTensor array input, int32', () => {
+    const a = () => convertToTensor([NaN], 'a', 'test', 'int32');
+    expect(a).toThrowError();
   });
 
   it('A x B', () => {

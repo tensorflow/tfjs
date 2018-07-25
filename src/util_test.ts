@@ -209,10 +209,10 @@ describe('util.squeezeShape', () => {
   });
 });
 
-describe('util.checkForNaN', () => {
+describe('util.checkComputationForNaN', () => {
   it('Float32Array has NaN', () => {
     expect(
-        () => util.checkForNaN(
+        () => util.checkComputationForNaN(
             new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32', ''))
         .toThrowError();
   });
@@ -220,9 +220,24 @@ describe('util.checkForNaN', () => {
   it('Float32Array no NaN', () => {
     // Int32 and Bool NaNs should not trigger an error.
     expect(
-        () => util.checkForNaN(
+        () => util.checkComputationForNaN(
             new Float32Array([1, 2, 3, 4, -1, 255]), 'float32', ''))
         .not.toThrowError();
+  });
+});
+
+describe('util.checkConversionForNaN', () => {
+  // NaN is a valid value for type Float32
+  it('Float32Array has NaN', () => {
+    expect(
+        () => util.checkConversionForNaN(
+            new Float32Array([1, 2, 3, NaN, 4, 255]), 'float32'))
+        .not.toThrowError();
+  });
+  // NaN should not be present in other types. Error should be thrown.
+  it('Int32Array has NaN', () => {
+    expect(() => util.checkConversionForNaN([1, 2, 3, 4, NaN], 'int32'))
+        .toThrowError();
   });
 });
 

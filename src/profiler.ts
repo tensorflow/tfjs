@@ -39,7 +39,7 @@ export class Profiler {
         Array.isArray(result) ? result : [result] as Tensor[];
     results.forEach(r => {
       const vals = r.dataSync();
-      util.checkForNaN(vals, r.dtype, name);
+      util.checkComputationForNaN(vals, r.dtype, name);
 
       timer.then(timing => {
         this.logger.logKernelProfile(name, r, vals, timing.kernelMs);
