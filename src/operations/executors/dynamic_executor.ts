@@ -43,6 +43,10 @@ export let executeOp: OpExecutor = async(
           boxes as tfc.Tensor2D, scores as tfc.Tensor1D, maxOutputSize,
           iouThreshold, scoreThreshold)];
     }
+    case 'whereAsync': {
+      return [await tfc.whereAsync(
+          getParamValue('condition', node, tensorMap, context) as tfc.Tensor)];
+    }
     default:
       throw TypeError(`Node type ${node.op} is not implemented`);
   }

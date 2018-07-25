@@ -57,5 +57,23 @@
         "type": "number"
       }
     ]
+  },
+  {
+    "tfOpName": "Where",
+    "dlOpName": "whereAsync",
+    "category": "dynamic",
+    "params": [
+      {
+        "tfInputIndex": 0,
+        "dlParamName": "condition",
+        "type": "tensor"
+      },
+      {
+        "tfParamName": "T",
+        "dlParamName": "dtype",
+        "type": "dtype",
+        "notSupported": true
+      }
+    ]
   }
 ]
