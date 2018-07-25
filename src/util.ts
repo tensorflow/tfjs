@@ -15,6 +15,8 @@
  * =============================================================================
  */
 
+// tslint:disable-next-line:no-circular-imports
+import {ENV} from './environment';
 // tslint:disable-next-line:max-line-length
 import {ArrayData, DataType, DataTypeMap, FlatVector, RecursiveArray, RegularArray, TensorLike, TypedArray} from './types';
 
@@ -343,15 +345,29 @@ export function getTypedArrayFromDType<D extends DataType>(
   return values;
 }
 
-export function checkForNaN<D extends DataType>(
+export function checkComputationForNaN<D extends DataType>(
     vals: DataTypeMap[D], dtype: D, name: string): void {
   if (dtype !== 'float32') {
-    // NaN is a floating point concept.
+    // Only floating point computations will generate NaN values
     return;
   }
   for (let i = 0; i < vals.length; i++) {
     if (isNaN(vals[i])) {
       throw Error(`The result of the '${name}' has NaNs.`);
+    }
+  }
+}
+
+export function checkConversionForNaN<D extends DataType>(
+    vals: DataTypeMap[D]|number[], dtype: D): void {
+  if (dtype === 'float32') {
+    // NaN is valid for floating point conversions
+    return;
+  }
+
+  for (let i = 0; i < vals.length; i++) {
+    if (isNaN(vals[i])) {
+      throw Error(`NaN is not a valid value for dtype: '${dtype}'.`);
     }
   }
 }
@@ -378,6 +394,10 @@ export function copyTypedArray<D extends DataType>(
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {
+    if (ENV.get('DEBUG')) {
+      checkConversionForNaN(array as number[], dtype);
+    }
+
     return new Int32Array(array as number[]);
   } else if (dtype === 'bool') {
     const bool = new Uint8Array(array.length);

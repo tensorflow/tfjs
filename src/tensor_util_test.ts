@@ -105,11 +105,28 @@ describe('getTensorsInContainer', () => {
 });
 
 describeWithFlags('convertToTensor', ALL_ENVS, () => {
+  it('primitive integer, NaN converts to zero, no error thrown', () => {
+    const a = () => convertToTensor(NaN, 'a', 'test', 'int32');
+    expect(a).not.toThrowError();
+
+    const b = convertToTensor(NaN, 'b', 'test', 'int32');
+    expect(b.rank).toBe(0);
+    expect(b.dtype).toBe('int32');
+    expectNumbersClose(b.get(), 0);
+  });
+
   it('primitive number', () => {
     const a = convertToTensor(3, 'a', 'test');
     expect(a.rank).toBe(0);
     expect(a.dtype).toBe('float32');
     expectNumbersClose(a.get(), 3);
+  });
+
+  it('primitive integer, NaN converts to zero', () => {
+    const a = convertToTensor(NaN, 'a', 'test', 'int32');
+    expect(a.rank).toBe(0);
+    expect(a.dtype).toBe('int32');
+    expectNumbersClose(a.get(), 0);
   });
 
   it('primitive boolean, parsed as float', () => {
