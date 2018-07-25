@@ -21,7 +21,8 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-import {BROWSER_ENVS, CHROME_ENVS} from '../test_util';
+import {BROWSER_ENVS, CHROME_ENVS, NODE_ENVS} from '../test_util';
+
 import {BrowserHTTPRequest, httpRequestRouter} from './browser_http';
 
 // Test data.
@@ -57,6 +58,96 @@ const modelTopology1: {} = {
   }],
   'backend': 'tensorflow'
 };
+
+describeWithFlags('browserHTTPRequest-load fetch-polyfill', NODE_ENVS, () => {
+  let requestInits: RequestInit[];
+
+  // simulate a fetch polyfill, this needs to be non-null for spyOn to work
+  beforeEach(() => {
+    // tslint:disable-next-line:no-any
+    (global as any).fetch = () => {};
+    requestInits = [];
+  });
+
+  afterAll(() => {
+    // tslint:disable-next-line:no-any
+    delete (global as any).fetch;
+  });
+  type TypedArrays = Float32Array|Int32Array|Uint8Array|Uint16Array;
+
+  const fakeResponse = (body: string|TypedArrays|ArrayBuffer) => ({
+    json() {
+      return Promise.resolve(JSON.parse(body as string));
+    },
+    arrayBuffer() {
+      const buf: ArrayBuffer = (body as TypedArrays).buffer ?
+          (body as TypedArrays).buffer :
+          body as ArrayBuffer;
+      return Promise.resolve(buf);
+    }
+  });
+
+  const setupFakeWeightFiles = (fileBufferMap: {
+    [filename: string]: string|Float32Array|Int32Array|ArrayBuffer|Uint8Array|
+    Uint16Array
+  }) => {
+    // tslint:disable-next-line:no-any
+    spyOn(global as any, 'fetch')
+        .and.callFake((path: string, init: RequestInit) => {
+          requestInits.push(init);
+          return fakeResponse(fileBufferMap[path]);
+        });
+  };
+
+  it('1 group, 2 weights, 1 path', done => {
+    const weightManifest1: tf.io.WeightsManifestConfig = [{
+      paths: ['weightfile0'],
+      weights: [
+        {
+          name: 'dense/kernel',
+          shape: [3, 1],
+          dtype: 'float32',
+        },
+        {
+          name: 'dense/bias',
+          shape: [2],
+          dtype: 'float32',
+        }
+      ]
+    }];
+    const floatData = new Float32Array([1, 3, 3, 7, 4]);
+    setupFakeWeightFiles({
+      './model.json': JSON.stringify(
+          {modelTopology: modelTopology1, weightsManifest: weightManifest1}),
+      './weightfile0': floatData,
+    });
+
+    const handler = tf.io.browserHTTPRequest('./model.json');
+    handler.load()
+        .then(modelArtifacts => {
+          expect(modelArtifacts.modelTopology).toEqual(modelTopology1);
+          expect(modelArtifacts.weightSpecs)
+              .toEqual(weightManifest1[0].weights);
+          expect(new Float32Array(modelArtifacts.weightData))
+              .toEqual(floatData);
+          expect(requestInits).toEqual([{}, {}]);
+          done();
+        })
+        .catch(err => done.fail(err.stack));
+  });
+
+  it('throw exception if no fetch polyfill', () => {
+    // tslint:disable-next-line:no-any
+    delete (global as any).fetch;
+    try {
+      tf.io.browserHTTPRequest('./model.json');
+    } catch (err) {
+      expect(err.message)
+          .toMatch(
+              /not supported outside the web browser without a fetch polyfill/);
+    }
+  });
+});
 
 // Turned off for other browsers due to:
 // https://github.com/tensorflow/tfjs/issues/426

@@ -21,7 +21,6 @@
  * Uses [`fetch`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API).
  */
 
-import {ENV} from '../environment';
 import {assert} from '../util';
 
 // tslint:disable:max-line-length
@@ -40,9 +39,10 @@ export class BrowserHTTPRequest implements IOHandler {
   static readonly URL_SCHEMES = ['http://', 'https://'];
 
   constructor(path: string, requestInit?: RequestInit) {
-    if (!ENV.get('IS_BROWSER')) {
+    if (typeof fetch === 'undefined') {
       throw new Error(
-          'browserHTTPRequest is not supported outside the web browser.');
+          // tslint:disable-next-line:max-line-length
+          'browserHTTPRequest is not supported outside the web browser without a fetch polyfill.');
     }
 
     assert(
@@ -157,9 +157,9 @@ export class BrowserHTTPRequest implements IOHandler {
 }
 
 export const httpRequestRouter: IORouter = (url: string) => {
-  if (!ENV.get('IS_BROWSER')) {
-    // browserHTTPRequest uses `fetch`, which differs from HTTP requests in
-    // node.js, which use `node-fetch`.
+  if (typeof fetch === 'undefined') {
+    // browserHTTPRequest uses `fetch`, if one wants to use it in node.js
+    // they have to setup a global fetch polyfill.
     return null;
   } else {
     for (const scheme of BrowserHTTPRequest.URL_SCHEMES) {
