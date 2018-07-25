@@ -44,8 +44,8 @@ export interface Features {
   // Whether downloading float textures is enabled. If disabled, uses IEEE 754
   // encoding of the float32 values to 4 uint8 when downloading.
   'WEBGL_DOWNLOAD_FLOAT_ENABLED'?: boolean;
-  // Whether WEBGL_get_buffer_sub_data_async is enabled.
-  'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED'?: boolean;
+  // Whether the fence API is available.
+  'WEBGL_FENCE_API_ENABLED'?: boolean;
   'BACKEND'?: string;
   // Test precision for unit tests. This is decreased when we can't render
   // float32 textures.
@@ -67,10 +67,8 @@ export const URL_PROPERTIES: URLProperty[] = [
   {name: 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE', type: Type.BOOLEAN},
   {name: 'WEBGL_VERSION', type: Type.NUMBER},
   {name: 'WEBGL_RENDER_FLOAT32_ENABLED', type: Type.BOOLEAN},
-  {name: 'WEBGL_DOWNLOAD_FLOAT_ENABLED', type: Type.BOOLEAN}, {
-    name: 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED',
-    type: Type.BOOLEAN
-  },
+  {name: 'WEBGL_DOWNLOAD_FLOAT_ENABLED', type: Type.BOOLEAN},
+  {name: 'WEBGL_FENCE_API_ENABLED', type: Type.BOOLEAN},
   {name: 'BACKEND', type: Type.STRING}
 ];
 
@@ -173,20 +171,14 @@ export function isDownloadFloatTextureEnabled(
   return readPixelsNoError;
 }
 
-export function isWebGLGetBufferSubDataAsyncExtensionEnabled(
-    webGLVersion: number, isBrowser: boolean) {
-  // TODO(nsthorat): Remove this once we fix
-  // https://github.com/tensorflow/tfjs/issues/137
-  if (webGLVersion > 0) {
-    return false;
-  }
-
+export function isWebGLFenceEnabled(webGLVersion: number, isBrowser: boolean) {
   if (webGLVersion !== 2) {
     return false;
   }
   const gl = getWebGLRenderingContext(webGLVersion, isBrowser);
 
-  const isEnabled = hasExtension(gl, 'WEBGL_get_buffer_sub_data_async');
+  // tslint:disable-next-line:no-any
+  const isEnabled = (gl as any).fenceSync != null;
   loseContext(gl);
   return isEnabled;
 }

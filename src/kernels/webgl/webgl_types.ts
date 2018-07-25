@@ -15,17 +15,6 @@
  * =============================================================================
  */
 
-export interface WebGLQuery {}
-
-export interface WebGL2RenderingContext extends WebGLRenderingContext {
-  QUERY_RESULT: number;
-  QUERY_RESULT_AVAILABLE: number;
-  createQuery: () => WebGLQuery;
-  beginQuery: (ext: number, query: WebGLQuery) => void;
-  endQuery: (ext: number) => void;
-  getQueryParameter: (query: WebGLQuery, queryResult: number) => number;
-}
-
 // TODO(nsthorat): Move these to the webgl official typings.
 export interface WebGL2DisjointQueryTimerExtension {
   TIME_ELAPSED_EXT: number;
@@ -55,5 +44,3 @@ export interface WebGLContextAttributes {
   stencil?: boolean;
   failIfMajorPerformanceCaveat?: boolean;
 }
-
-export interface WebGLLoseContextExtension { loseContext(): void; }

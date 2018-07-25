@@ -19,7 +19,7 @@ import * as device_util from './device_util';
 
 import {Engine, MemoryInfo, ScopeFn, TimingInfo} from './engine';
 // tslint:disable-next-line:max-line-length
-import {Features, getFeaturesFromURL, getWebGLDisjointQueryTimerVersion, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLGetBufferSubDataAsyncExtensionEnabled, isWebGLVersionEnabled} from './environment_util';
+import {Features, getFeaturesFromURL, getWebGLDisjointQueryTimerVersion, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
 import {setTensorTracker, Tensor, TensorTracker} from './tensor';
 import {TensorContainer} from './tensor_types';
@@ -285,6 +285,12 @@ export class Environment {
       if (webGLVersion === 0) {
         return 0;
       }
+      // Remove this and reenable this extension when the
+      // EXT_disjoint_query_timer extension is reenabled in chrome.
+      // https://github.com/tensorflow/tfjs/issues/544
+      if (webGLVersion > 0) {
+        return 0;
+      }
       return getWebGLDisjointQueryTimerVersion(
           webGLVersion, this.get('IS_BROWSER'));
     } else if (feature === 'WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_RELIABLE') {
@@ -305,9 +311,8 @@ export class Environment {
     } else if (feature === 'WEBGL_DOWNLOAD_FLOAT_ENABLED') {
       return isDownloadFloatTextureEnabled(
           this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
-    } else if (
-        feature === 'WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED') {
-      return isWebGLGetBufferSubDataAsyncExtensionEnabled(
+    } else if (feature === 'WEBGL_FENCE_API_ENABLED') {
+      return isWebGLFenceEnabled(
           this.get('WEBGL_VERSION'), this.get('IS_BROWSER'));
     } else if (feature === 'TEST_EPSILON') {
       if (this.get('WEBGL_RENDER_FLOAT32_ENABLED')) {

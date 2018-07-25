@@ -82,7 +82,6 @@ import {TileProgram} from './webgl/tile_gpu';
 import {TransposeProgram} from './webgl/transpose_gpu';
 import * as unary_op from './webgl/unaryop_gpu';
 import {UnaryOpProgram} from './webgl/unaryop_gpu';
-import {WebGLQuery} from './webgl/webgl_types';
 import * as webgl_util from './webgl/webgl_util';
 import {whereImpl} from './where_impl';
 
@@ -234,26 +233,8 @@ export class MathBackendWebGL implements KernelBackend {
       start = performance.now();
     }
 
-    let float32Values;
-    if (ENV.get('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
-      float32Values = this.gpgpu.downloadFloat32MatrixFromOutputTexture(
-          texture, texShape[0], texShape[1]);
-    } else {
-      const tmpTarget = Tensor.make(shape, {});
-      this.texData.get(tmpTarget.dataId).usage = TextureUsage.DOWNLOAD;
-
-      const tmpInput = Tensor.make(shape, {dataId}, dtype);
-      const program = new EncodeFloatProgram(shape);
-      const pageToCpu = false;
-      this.compileAndRun(program, [tmpInput], tmpTarget, null, pageToCpu);
-      const tmpData = this.texData.get(tmpTarget.dataId);
-      float32Values =
-          this.gpgpu.downloadByteEncodedFloatMatrixFromOutputTexture(
-              tmpData.texture, tmpData.texShape[0], tmpData.texShape[1]);
-
-      tmpInput.dispose();
-      tmpTarget.dispose();
-    }
+    const float32Values =
+        this.getValuesFromTexture(texture, dataId, dtype, texShape, shape);
 
     if (shouldTimeProgram) {
       this.downloadWaitMs += performance.now() - start;
@@ -261,6 +242,7 @@ export class MathBackendWebGL implements KernelBackend {
     this.cacheOnCPU(dataId, float32Values);
     return texData.values;
   }
+
   async read(dataId: DataId): Promise<TypedArray> {
     if (this.pendingRead.has(dataId)) {
       const subscribers = this.pendingRead.get(dataId);
@@ -268,35 +250,72 @@ export class MathBackendWebGL implements KernelBackend {
     }
     this.throwIfNoData(dataId);
     const texData = this.texData.get(dataId);
-    const {texture, values, texShape} = texData;
+    const {shape, texture, values, texShape, dtype} = texData;
     if (values != null) {
       this.cacheOnCPU(dataId);
       return values;
     }
-    if (ENV.get('WEBGL_GET_BUFFER_SUB_DATA_ASYNC_EXTENSION_ENABLED')) {
-      const float32Values = await this.gpgpu.downloadMatrixFromTextureAsync(
-          texture, texShape[0], texShape[1]);
-      this.cacheOnCPU(dataId, float32Values);
-      return texData.values;
-    }
-
-    if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') === 0) {
-      return this.readSync(dataId);
-    }
 
     this.pendingRead.set(dataId, []);
-    // Construct an empty query. We're just interested in getting a callback
-    // when the GPU command queue has executed until this point in time.
-    await this.gpgpu.runQuery(() => {});
+
+    if (!ENV.get('WEBGL_DOWNLOAD_FLOAT_ENABLED') &&
+        ENV.get('WEBGL_VERSION') === 2) {
+      throw new Error(
+          `tensor.data() with WEBGL_DOWNLOAD_FLOAT_ENABLED=false and ` +
+          `WEBGL_VERSION=2 not yet supported.`);
+    }
+
+    // Possibly copy the texture into a buffer before inserting a fence.
+    const bufferOrTexture = this.gpgpu.maybeCreateBufferFromTexture(
+        texture, texShape[0], texShape[1]);
+
+    // Create a fence and wait for it to resolve.
+    await this.gpgpu.createAndWaitForFence();
+
+    // Download the values from the GPU.
+    let vals: Float32Array;
+    if (bufferOrTexture instanceof WebGLTexture) {
+      vals = this.getValuesFromTexture(texture, dataId, dtype, texShape, shape);
+    } else {
+      vals = this.gpgpu.downloadFloat32MatrixFromBuffer(
+          bufferOrTexture, texShape[0], texShape[1]);
+    }
+    this.cacheOnCPU(dataId, vals);
+
     const subscribers = this.pendingRead.get(dataId);
     this.pendingRead.delete(dataId);
-    const vals = this.readSync(dataId);
+
     // Notify all pending reads.
     subscribers.forEach(resolve => resolve(vals));
     if (this.pendingDisposal.has(dataId)) {
       this.pendingDisposal.delete(dataId);
       this.disposeData(dataId);
     }
+    return vals;
+  }
+
+  private getValuesFromTexture(
+      texture: WebGLTexture, dataId: DataId, dtype: DataType,
+      texShape: [number, number], shape: number[]): Float32Array {
+    if (ENV.get('WEBGL_DOWNLOAD_FLOAT_ENABLED')) {
+      return this.gpgpu.downloadFloat32MatrixFromOutputTexture(
+          texture, texShape[0], texShape[1]);
+    }
+
+    const tmpTarget = Tensor.make(shape, {});
+    this.texData.get(tmpTarget.dataId).usage = TextureUsage.DOWNLOAD;
+
+    const tmpInput = Tensor.make(shape, {dataId}, dtype);
+    const program = new EncodeFloatProgram(shape);
+    const pageToCpu = false;
+    this.compileAndRun(program, [tmpInput], tmpTarget, null, pageToCpu);
+    const tmpData = this.texData.get(tmpTarget.dataId);
+    const vals = this.gpgpu.downloadByteEncodedFloatMatrixFromOutputTexture(
+        tmpData.texture, tmpData.texShape[0], tmpData.texShape[1]);
+
+    tmpInput.dispose();
+    tmpTarget.dispose();
+
     return vals;
   }
 
@@ -361,7 +380,7 @@ export class MathBackendWebGL implements KernelBackend {
 
   private async getQueryTime(query: WebGLQuery|CPUTimerQuery): Promise<number> {
     if (ENV.get('WEBGL_DISJOINT_QUERY_TIMER_EXTENSION_VERSION') > 0) {
-      return this.gpgpu.pollQueryTime(query);
+      return this.gpgpu.waitForQueryAndGetTime(query);
     }
     const timerQuery = query as CPUTimerQuery;
     return timerQuery.endMs - timerQuery.startMs;
