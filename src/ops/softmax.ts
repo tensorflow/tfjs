@@ -17,7 +17,7 @@
 
 import {customGrad} from '../gradients';
 import {Tensor} from '../tensor';
-import {convertToTensor} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
 

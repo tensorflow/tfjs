@@ -15,7 +15,6 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
 import {expectArraysClose} from '../../test_util';
 import * as tex_util from './tex_util';
 

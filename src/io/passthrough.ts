@@ -19,9 +19,7 @@
  * IOHandlers that pass through the in-memory ModelArtifacts format.
  */
 
-// tslint:disable:max-line-length
 import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestEntry} from './types';
-// tslint:enable:max-line-length
 
 class PassthroughLoader implements IOHandler {
   constructor(

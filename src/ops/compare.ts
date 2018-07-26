@@ -17,7 +17,8 @@
 
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {assertTypesMatch, convertToTensor} from '../tensor_util';
+import {assertTypesMatch} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assertShapesMatch} from '../util';
 import {assertAndGetBroadcastShape} from './broadcast_util';

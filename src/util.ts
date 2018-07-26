@@ -15,9 +15,6 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:no-circular-imports
-import {ENV} from './environment';
-// tslint:disable-next-line:max-line-length
 import {ArrayData, DataType, DataTypeMap, FlatVector, RecursiveArray, RegularArray, TensorLike, TypedArray} from './types';
 
 /** Shuffles the array using Fisher-Yates algorithm. */
@@ -241,20 +238,6 @@ export function repeatedTry(
   });
 }
 
-export function getQueryParams(queryString: string): {[key: string]: string} {
-  const params = {};
-  queryString.replace(/[?&]([^=?&]+)(?:=([^&]*))?/g, (s, ...t) => {
-    decodeParam(params, t[0], t[1]);
-    return t.join('=');
-  });
-  return params;
-}
-
-function decodeParam(
-    params: {[key: string]: string}, name: string, value?: string) {
-  params[decodeURIComponent(name)] = decodeURIComponent(value || '');
-}
-
 /**
  * Given the full size of the array and a shape that may contain -1 as the
  * implicit dimension, returns the inferred shape where -1 is replaced.
@@ -389,15 +372,15 @@ export function hasEncodingLoss(oldType: DataType, newType: DataType): boolean {
   return true;
 }
 
-export function copyTypedArray<D extends DataType>(
-    array: DataTypeMap[D]|number[]|boolean[], dtype: D): DataTypeMap[D] {
+function copyTypedArray<D extends DataType>(
+    array: DataTypeMap[D]|number[]|boolean[], dtype: D,
+    debugMode: boolean): DataTypeMap[D] {
   if (dtype == null || dtype === 'float32') {
     return new Float32Array(array as number[]);
   } else if (dtype === 'int32') {
-    if (ENV.get('DEBUG')) {
+    if (debugMode) {
       checkConversionForNaN(array as number[], dtype);
     }
-
     return new Int32Array(array as number[]);
   } else if (dtype === 'bool') {
     const bool = new Uint8Array(array.length);
@@ -458,14 +441,14 @@ export function computeStrides(shape: number[]): number[] {
 }
 
 export function toTypedArray<D extends DataType>(
-    a: ArrayData<D>, dtype: D): DataTypeMap[D] {
+    a: ArrayData<D>, dtype: D, debugMode: boolean): DataTypeMap[D] {
   if (noConversionNeeded(a, dtype)) {
     return a as DataTypeMap[D];
   }
   if (Array.isArray(a)) {
     a = flatten(a as number[]);
   }
-  return copyTypedArray(a, dtype);
+  return copyTypedArray(a, dtype, debugMode);
 }
 
 function noConversionNeeded<D extends DataType>(

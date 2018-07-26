@@ -16,7 +16,6 @@
  */
 
 import {Conv2DInfo} from '../ops/conv_util';
-// tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
 import {DataType, Rank, ShapeMap, TypedArray} from '../types';
 
@@ -72,6 +71,7 @@ export interface KernelBackend extends TensorStorage, BackendTimer {
   neg<T extends Tensor>(a: T): T;
 
   add(a: Tensor, b: Tensor): Tensor;
+  addN<T extends Tensor>(tensors: T[]): T;
   subtract(a: Tensor, b: Tensor): Tensor;
   multiply(a: Tensor, b: Tensor): Tensor;
   realDivide(a: Tensor, b: Tensor): Tensor;

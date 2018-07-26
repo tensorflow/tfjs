@@ -17,7 +17,7 @@
 
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {convertToTensor} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {maximum, minimum} from './binary_ops';
 import {where} from './logical_ops';

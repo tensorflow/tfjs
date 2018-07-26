@@ -144,29 +144,32 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
   });
 
   it('1 group, multiple weights, different dtypes', done => {
-    const buffer = new ArrayBuffer(5 * 4);
-    const intBuffer = new Int32Array(buffer, 0, 2);
-    intBuffer.set([1, 2]);
-    const floatBuffer = new Float32Array(buffer, intBuffer.byteLength, 3);
-    floatBuffer.set([3.0, 4.0, 5.0]);
-
+    const buffer = new ArrayBuffer(5 * 4 + 1);
+    const view = new DataView(buffer);
+    view.setInt32(0, 1, true);
+    view.setInt32(4, 2, true);
+    view.setUint8(8, 1);
+    view.setFloat32(9, 3., true);
+    view.setFloat32(13, 4., true);
+    view.setFloat32(17, 5., true);
     setupFakeWeightFiles({'./weightfile0': buffer});
 
     const manifest: WeightsManifestConfig = [{
       'paths': ['weightfile0'],
       'weights': [
         {'name': 'weight0', 'dtype': 'int32', 'shape': [2]},
-        {'name': 'weight1', 'dtype': 'float32', 'shape': [3]}
+        {'name': 'weight1', 'dtype': 'bool', 'shape': []},
+        {'name': 'weight2', 'dtype': 'float32', 'shape': [3]},
       ]
     }];
 
     // Load all weights.
-    tf.io.loadWeights(manifest, './', ['weight0', 'weight1'])
+    tf.io.loadWeights(manifest, './', ['weight0', 'weight1', 'weight2'])
         .then(weights => {
           expect((window.fetch as jasmine.Spy).calls.count()).toBe(1);
 
           const weightNames = Object.keys(weights);
-          expect(weightNames.length).toEqual(2);
+          expect(weightNames.length).toEqual(3);
 
           const weight0 = weights['weight0'];
           expectArraysClose(weight0, [1, 2]);
@@ -174,9 +177,14 @@ describeWithFlags('loadWeights', BROWSER_ENVS, () => {
           expect(weight0.dtype).toEqual('int32');
 
           const weight1 = weights['weight1'];
-          expectArraysClose(weight1, [3, 4, 5]);
-          expect(weight1.shape).toEqual([3]);
-          expect(weight1.dtype).toEqual('float32');
+          expectArraysClose(weight1, [1]);
+          expect(weight1.shape).toEqual([]);
+          expect(weight1.dtype).toEqual('bool');
+
+          const weight2 = weights['weight2'];
+          expectArraysClose(weight2, [3, 4, 5]);
+          expect(weight2.shape).toEqual([3]);
+          expect(weight2.dtype).toEqual('float32');
         })
         .then(done)
         .catch(done.fail);

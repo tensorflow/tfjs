@@ -17,11 +17,8 @@
 
 import {BackendTimingInfo, KernelBackend} from './kernels/backend';
 import {Profiler} from './profiler';
-// tslint:disable-next-line:max-line-length
 import {backpropagateGradients, getFilteredNodesXToY, NamedGradientMap, TapeNode} from './tape';
-// tslint:disable-next-line:max-line-length
 import {DataId, Tensor, Tensor3D, Variable} from './tensor';
-// tslint:disable-next-line:max-line-length
 import {NamedTensorMap, NamedVariableMap, TensorContainer} from './tensor_types';
 import {getTensorsInContainer, isTensorInList} from './tensor_util';
 import {TypedArray} from './types';

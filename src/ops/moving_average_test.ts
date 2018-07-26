@@ -15,12 +15,9 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
 import {ALL_ENVS, expectArraysClose} from '../test_util';
-
-// tslint:enable:max-line-length
 
 describeWithFlags('movingAverage', ALL_ENVS, () => {
   // Use the following tensorflow to generate reference values for

@@ -16,7 +16,6 @@
  */
 
 import {Environment} from './environment';
-// tslint:disable-next-line:max-line-length
 export {customGrad, grad, grads, valueAndGrad, valueAndGrads, variableGrads} from './gradients';
 
 export const tidy = Environment.tidy;

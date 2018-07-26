@@ -16,7 +16,7 @@
  */
 
 import {Scalar, Tensor1D, Tensor2D} from '../tensor';
-import {convertToTensor, convertToTensorArray} from '../tensor_util';
+import {convertToTensor, convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {op} from './operation';
 

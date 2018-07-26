@@ -17,7 +17,7 @@
 
 import * as device_util from './device_util';
 import {ENV, Environment} from './environment';
-import {Features} from './environment_util';
+import {Features, getQueryParams} from './environment_util';
 import {describeWithFlags} from './jasmine_util';
 import {KernelBackend} from './kernels/backend';
 import {MathBackendCPU} from './kernels/backend_cpu';
@@ -273,5 +273,12 @@ describe('Backend', () => {
     expect(success).toBeTruthy();
     expect(ENV.findBackend('custom')).toEqual(backend);
     ENV.removeBackend('custom');
+  });
+});
+
+describe('environment_util.getQueryParams', () => {
+  it('basic', () => {
+    expect(getQueryParams('?a=1&b=hi&f=animal'))
+        .toEqual({'a': '1', 'b': 'hi', 'f': 'animal'});
   });
 });

@@ -17,7 +17,7 @@
 
 import {ENV} from '../environment';
 import {Tensor, Tensor1D} from '../tensor';
-import {convertToTensor} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, isInt} from '../util';
 import {expandDims} from './array_ops';

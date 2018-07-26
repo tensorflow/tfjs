@@ -17,7 +17,7 @@
 
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
-import {convertToTensor} from './tensor_util';
+import {convertToTensor} from './tensor_util_env';
 import {ALL_ENVS, expectArraysClose} from './test_util';
 
 describeWithFlags('debug on', ALL_ENVS, () => {

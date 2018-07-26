@@ -17,7 +17,6 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-// tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectNumbersClose} from '../test_util';
 
 describeWithFlags('computeWeightedLoss', ALL_ENVS, () => {
@@ -1484,8 +1483,8 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
   it('All wrong', () => {
     const label = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
 
     const y = tf.losses.softmaxCrossEntropy(label, predictions);
 
@@ -1496,8 +1495,8 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
   it('All right', () => {
     const label = tf.tensor2d([[1, 0, 0], [0, 1, 0], [0, 0, 1]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
 
     const y = tf.losses.softmaxCrossEntropy(label, predictions);
 
@@ -1508,11 +1507,11 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
   it('Weighted - Reduction.SUM_BY_NONZERO_WEIGHTS', () => {
     const label = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
 
     const weights =
-      tf.tensor2d([[0.1, 0.2, 0.3], [0.1, 0.2, 0.3], [0.1, 0.2, 0.3]]);
+        tf.tensor2d([[0.1, 0.2, 0.3], [0.1, 0.2, 0.3], [0.1, 0.2, 0.3]]);
 
     const y = tf.losses.softmaxCrossEntropy(label, predictions, weights);
 
@@ -1523,12 +1522,12 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
   it('Weighted - Reduction.NONE', () => {
     const label = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
     const weights = tf.tensor1d([0.1, 0.2, 0.3]);
 
     const y = tf.losses.softmaxCrossEntropy(
-      label, predictions, weights, undefined, tf.Reduction.NONE);
+        label, predictions, weights, undefined, tf.Reduction.NONE);
 
     expect(y.shape).toEqual([3]);
     expectArraysClose(y, [2, 4, 6]);
@@ -1537,11 +1536,11 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
   it('Reduction.MEAN', () => {
     const label = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
 
     const y = tf.losses.softmaxCrossEntropy(
-      label, predictions, undefined, undefined, tf.Reduction.MEAN);
+        label, predictions, undefined, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
     expectNumbersClose(y.get(), 20);
@@ -1550,30 +1549,30 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
   it('Weighted - Reduction.MEAN', () => {
     const label = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
     const weights = tf.tensor1d([0.1, 0.2, 0.3]);
 
     const y = tf.losses.softmaxCrossEntropy(
-      label, predictions, weights, undefined, tf.Reduction.MEAN);
+        label, predictions, weights, undefined, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
     expectNumbersClose(
-      y.get(),
-      20,
+        y.get(),
+        20,
     );
   });
 
   it('Label Smoothing - Weighted - Reduction.MEAN', () => {
     const label = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
     const weights = tf.tensor2d([[0.1, 0.2, 0.3]]);
     const labelSmoothing = 0.3;
 
     const y = tf.losses.softmaxCrossEntropy(
-      label, predictions, weights, labelSmoothing, tf.Reduction.MEAN);
+        label, predictions, weights, labelSmoothing, tf.Reduction.MEAN);
 
     expect(y.shape).toEqual([]);
     expectNumbersClose(y.get(), 18);
@@ -1581,29 +1580,29 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
 
   it('throws when multiClassLabels and logits are of different shapes', () => {
     const multiClassLabels =
-      tf.tensor2d([10, 10, 10, 10, 10, 10, 10, 10, 10], [3, 3]);
+        tf.tensor2d([10, 10, 10, 10, 10, 10, 10, 10, 10], [3, 3]);
     const logits = tf.tensor2d([10, 10, 10, 10, 10, 10], [2, 3]);
 
     const e = new RegExp(
-      'Error in softmaxCrossEntropy:  Shapes 3,3 and 2,3 must match');
+        'Error in softmaxCrossEntropy:  Shapes 3,3 and 2,3 must match');
     expect(() => tf.losses.softmaxCrossEntropy(multiClassLabels, logits))
-      .toThrowError(e);
+        .toThrowError(e);
   });
 
   it('throws when passed multiClassLabels as a non-tensor', () => {
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
     const weights = tf.tensor2d([[0.1, 0.2, 0.3]]);
 
     const e = new RegExp(
-      'Argument \'onehotLabels\' passed to \'softmaxCrossEntropy\' ' +
-      'must be a Tensor');
+        'Argument \'onehotLabels\' passed to \'softmaxCrossEntropy\' ' +
+        'must be a Tensor');
 
     expect(
-      () => tf.losses.softmaxCrossEntropy(
-        {} as tf.Tensor, predictions, weights, tf.Reduction.MEAN))
-      .toThrowError(e);
+        () => tf.losses.softmaxCrossEntropy(
+            {} as tf.Tensor, predictions, weights, tf.Reduction.MEAN))
+        .toThrowError(e);
   });
 
   it('throws when passed logits as a non-tensor', () => {
@@ -1611,32 +1610,32 @@ describeWithFlags('softmaxCrossEntropy', ALL_ENVS, () => {
     const weights = tf.tensor2d([[0.1, 0.2, 0.3]]);
 
     const e = new RegExp(
-      'Argument \'logits\' passed to \'softmaxCrossEntropy\' ' +
-      'must be a Tensor');
+        'Argument \'logits\' passed to \'softmaxCrossEntropy\' ' +
+        'must be a Tensor');
     expect(
-      () => tf.losses.softmaxCrossEntropy(
-        label, {} as tf.Tensor, weights, tf.Reduction.MEAN))
-      .toThrowError(e);
+        () => tf.losses.softmaxCrossEntropy(
+            label, {} as tf.Tensor, weights, tf.Reduction.MEAN))
+        .toThrowError(e);
   });
 
   it('throws when passed weights as a non-tensor', () => {
     const label = tf.tensor2d([[0, 0, 1], [1, 0, 0], [0, 1, 0]], [3, 3]);
     const predictions = tf.tensor2d(
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
-      [3, 3]);
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]],
+        [3, 3]);
 
     const e =
-      /Argument 'weights' passed to 'softmaxCrossEntropy' must be a Tensor/;
+        /Argument 'weights' passed to 'softmaxCrossEntropy' must be a Tensor/;
     expect(
-      () => tf.losses.softmaxCrossEntropy(
-        label, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
-      .toThrowError(e);
+        () => tf.losses.softmaxCrossEntropy(
+            label, predictions, {} as tf.Tensor, tf.Reduction.MEAN))
+        .toThrowError(e);
   });
 
   it('accepts a tensor-like object', () => {
     const label = [[0, 0, 1], [1, 0, 0], [0, 1, 0]];
     const predictions =
-      [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]];
+        [[10.0, -10.0, -10.0], [-10.0, 10.0, -10.0], [-10.0, -10.0, 10.0]];
 
     const y = tf.losses.softmaxCrossEntropy(label, predictions);
 

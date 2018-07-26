@@ -14,7 +14,7 @@
  * limitations under the License.
  * =============================================================================
  */
-// tslint:disable-next-line:max-line-length
+
 import * as dl from 'deeplearn';
 import {Tensor1D, Tensor2D, Tensor3D} from 'deeplearn';
 import {SqueezeNet} from 'deeplearn-squeezenet';

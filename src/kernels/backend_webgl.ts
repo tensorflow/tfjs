@@ -21,15 +21,15 @@ import {warn} from '../log';
 import * as array_ops_util from '../ops/array_ops_util';
 import * as axis_util from '../ops/axis_util';
 import {Conv2DInfo} from '../ops/conv_util';
-import * as ops from '../ops/ops';
 import * as reduce_util from '../ops/reduce_util';
 import * as segment_util from '../ops/segment_util';
 import {getStridedSlicedInfo} from '../ops/slice_util';
-// tslint:disable-next-line:max-line-length
+import {softmax} from '../ops/softmax';
+import {range, tensor} from '../ops/tensor_ops';
 import {DataId, setTensorTracker, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import * as types from '../types';
-import {DataType, DataTypeMap, RecursiveArray, TypedArray} from '../types';
+import {DataType, DataTypeMap, Rank, RecursiveArray, ShapeMap, sumOutType, TypedArray, upcastType} from '../types';
 import * as util from '../util';
+
 import {KernelBackend} from './backend';
 import * as backend_util from './backend_util';
 import {nonMaxSuppressionImpl} from './non_max_suppression_impl';
@@ -41,9 +41,7 @@ import * as binaryop_gpu from './webgl/binaryop_gpu';
 import {BinaryOpProgram} from './webgl/binaryop_gpu';
 import {ClipProgram} from './webgl/clip_gpu';
 import {ConcatProgram} from './webgl/concat_gpu';
-// tslint:disable-next-line:max-line-length
 import {Conv2DDerFilterProgram, Conv2DDerInputProgram} from './webgl/conv_backprop_gpu';
-// tslint:disable-next-line:max-line-length
 import {DepthwiseConv2DDerFilterProgram, DepthwiseConv2DDerInputProgram} from './webgl/conv_backprop_gpu_depthwise';
 import {Conv2DProgram} from './webgl/conv_gpu';
 import {DepthwiseConv2DProgram} from './webgl/conv_gpu_depthwise';
@@ -64,12 +62,9 @@ import {OneHotProgram} from './webgl/onehot_gpu';
 import {PadProgram} from './webgl/pad_gpu';
 import {Pool2DProgram} from './webgl/pool_gpu';
 import {ReduceProgram} from './webgl/reduce_gpu';
-// tslint:disable-next-line:max-line-length
 import {ResizeBilinearBackpropProgram} from './webgl/resize_bilinear_backprop_gpu';
 import {ResizeBilinearProgram} from './webgl/resize_bilinear_gpu';
-// tslint:disable-next-line:max-line-length
 import {ResizeNearestNeigborBackpropProgram} from './webgl/resize_nearest_neighbor_backprop_gpu';
-// tslint:disable-next-line:max-line-length
 import {ResizeNearestNeighborProgram} from './webgl/resize_nearest_neighbor_gpu';
 import {ReverseProgram} from './webgl/reverse_gpu';
 import {SegmentOpProgram} from './webgl/segment_gpu';
@@ -453,7 +448,7 @@ export class MathBackendWebGL implements KernelBackend {
         getStridedSlicedInfo(x.shape, begin, end, strides, beginMask, endMask);
 
     if (size.some(axis => axis === 0)) {
-      return ops.tensor([], size) as T;
+      return tensor([], size) as T;
     }
 
     const program = new StridedSliceProgram(beginIndex, strides, size);
@@ -486,7 +481,7 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new BinaryOpProgram(binaryop_gpu.MUL, a.shape, b.shape);
     const output =
         this.makeOutputArray(
-            program.outputShape, types.upcastType(a.dtype, b.dtype)) as Tensor;
+            program.outputShape, upcastType(a.dtype, b.dtype)) as Tensor;
     return this.compileAndRun(program, [a, b], output) as Tensor;
   }
 
@@ -655,7 +650,7 @@ export class MathBackendWebGL implements KernelBackend {
         axis_util.computeOutAndReduceShapes(x.shape, axes);
     const inSize = util.sizeFromShape(reduceShape);
     const a2D = x.as2D(-1, inSize);
-    const outputDType = types.sumOutType(x.dtype);
+    const outputDType = sumOutType(x.dtype);
     return this.reduce(a2D, 'sum', outputDType).reshape(outShape);
   }
 
@@ -673,7 +668,7 @@ export class MathBackendWebGL implements KernelBackend {
         segment_util.computeOutShape(permutedX.shape, axis, numSegments);
     const inSize = util.sizeFromShape([permutedX.shape[axis]]);
     const a2D = permutedX.as2D(-1, inSize);
-    const outputDType = types.sumOutType(x.dtype);
+    const outputDType = sumOutType(x.dtype);
     let result =
         this.segOpCompute(
                 a2D, 'unsortedSegmentSum', segmentIds, outputDType, numSegments)
@@ -700,7 +695,7 @@ export class MathBackendWebGL implements KernelBackend {
     if (output.shape[1] === numSegments) {
       return output;
     }
-    segmentIds = ops.range(0, numSegments).tile([inSize / windowSize]);
+    segmentIds = range(0, numSegments).tile([inSize / windowSize]);
     return this.segOpCompute(output, segOpType, segmentIds, dtype, numSegments);
   }
 
@@ -795,8 +790,8 @@ export class MathBackendWebGL implements KernelBackend {
 
   select(condition: Tensor, a: Tensor, b: Tensor): Tensor {
     const program = new SelectProgram(condition.rank, a.shape, a.rank);
-    const output = this.makeOutputArray(
-        program.outputShape, types.upcastType(a.dtype, b.dtype));
+    const output =
+        this.makeOutputArray(program.outputShape, upcastType(a.dtype, b.dtype));
     return this.compileAndRun(program, [condition, a, b], output);
   }
 
@@ -891,24 +886,31 @@ export class MathBackendWebGL implements KernelBackend {
     const program = new BinaryOpProgram(binaryop_gpu.ADD, a.shape, b.shape);
     const output =
         this.makeOutputArray(
-            program.outputShape, types.upcastType(a.dtype, b.dtype)) as Tensor;
+            program.outputShape, upcastType(a.dtype, b.dtype)) as Tensor;
     return this.compileAndRun<Tensor, Tensor>(program, [a, b], output);
+  }
+
+  addN<T extends Tensor>(tensors: T[]): T {
+    let res = tensors[0];
+    for (let i = 1; i < tensors.length; i++) {
+      res = this.add(res, tensors[i]) as T;
+    }
+    return res;
   }
 
   subtract(a: Tensor, b: Tensor): Tensor {
     const program = new BinaryOpProgram(binaryop_gpu.SUB, a.shape, b.shape);
     const output =
         this.makeOutputArray(
-            program.outputShape, types.upcastType(a.dtype, b.dtype)) as Tensor;
+            program.outputShape, upcastType(a.dtype, b.dtype)) as Tensor;
     return this.compileAndRun<Tensor, Tensor>(program, [a, b], output);
   }
 
   pow<T extends Tensor>(a: T, b: Tensor): T {
     const program = new BinaryOpProgram(binaryop_gpu.POW, a.shape, b.shape);
     const customSetup = program.getCustomSetupFunc();
-    const output =
-        this.makeOutputArray(
-            program.outputShape, types.upcastType(a.dtype, b.dtype)) as T;
+    const output = this.makeOutputArray(
+                       program.outputShape, upcastType(a.dtype, b.dtype)) as T;
     return this.compileAndRun<Tensor, T>(program, [a, b], output, customSetup);
   }
 
@@ -1168,12 +1170,11 @@ export class MathBackendWebGL implements KernelBackend {
     return this.compileAndRun(avgPoolBackpropProgram, [dy], output) as Tensor4D;
   }
 
-  cast<T extends Tensor<types.Rank>>(x: T, dtype: DataType): T {
+  cast<T extends Tensor>(x: T, dtype: DataType): T {
     return backend_util.castTensor(x, dtype, this);
   }
 
-  reshape<T extends Tensor<types.Rank>, R extends types.Rank>(
-      x: T, shape: types.ShapeMap[R]): Tensor<R> {
+  reshape<R extends Rank>(x: Tensor, shape: ShapeMap[R]): Tensor<R> {
     return backend_util.reshapeTensor(x, shape);
   }
 
@@ -1210,7 +1211,7 @@ export class MathBackendWebGL implements KernelBackend {
   multinomial(
       logits: Tensor2D, normalized: boolean, numSamples: number,
       seed: number): Tensor2D {
-    const probs = normalized ? logits : ops.softmax(logits);
+    const probs = normalized ? logits : softmax(logits);
     const batchSize = probs.shape[0];
     const numOutcomes = probs.shape[1];
     const program = new MultinomialProgram(batchSize, numOutcomes, numSamples);

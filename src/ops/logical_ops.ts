@@ -18,7 +18,7 @@
 import {ENV} from '../environment';
 import {whereImpl} from '../kernels/where_impl';
 import {Tensor, Tensor2D} from '../tensor';
-import {convertToTensor} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, assertShapesMatch} from '../util';
 import {assertAndGetBroadcastShape} from './broadcast_util';

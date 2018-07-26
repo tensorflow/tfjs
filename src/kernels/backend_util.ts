@@ -38,7 +38,7 @@ export function castTensor<T extends Tensor>(
   }
 }
 
-export function reshapeTensor<T extends Tensor<Rank>, R extends Rank>(
+export function reshapeTensor<T extends Tensor, R extends Rank>(
     x: T, shape: ShapeMap[R]): Tensor<R> {
   return Tensor.make(shape, {dataId: x.dataId}, x.dtype);
 }

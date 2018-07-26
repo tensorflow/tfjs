@@ -16,50 +16,14 @@
  */
 
 import {Tensor} from './tensor';
-// tslint:disable-next-line:max-line-length
 import {NamedTensorMap, TensorContainer, TensorContainerArray} from './tensor_types';
-import {ArrayData, DataType, TensorLike} from './types';
-import {assert, inferShape, isTypedArray, toTypedArray} from './util';
+import {assert} from './util';
 
 export function assertTypesMatch(a: Tensor, b: Tensor): void {
   assert(
       a.dtype === b.dtype,
       ` The dtypes of the first(${a.dtype}) and` +
           ` second(${b.dtype}) input must match`);
-}
-
-export function convertToTensor<T extends Tensor>(
-    x: T|TensorLike, argName: string, functionName: string,
-    dtype: DataType = 'float32'): T {
-  dtype = dtype || 'float32';
-  if (x instanceof Tensor) {
-    return x;
-  }
-  if (!isTypedArray(x) && !Array.isArray(x) && typeof x !== 'number' &&
-      typeof x !== 'boolean') {
-    throw new Error(
-        `Argument '${argName}' passed to '${functionName}' must be a ` +
-        `Tensor or TensorLike, but got ${x.constructor.name}`);
-  }
-  const inferredShape = inferShape(x);
-  if (!isTypedArray(x) && !Array.isArray(x)) {
-    x = [x] as number[];
-  }
-  return Tensor.make(
-      inferredShape, {values: toTypedArray(x as ArrayData<DataType>, dtype)},
-      dtype);
-}
-
-export function convertToTensorArray<T extends Tensor>(
-    arg: T[]|TensorLike[], argName: string, functionName: string): T[] {
-  if (!Array.isArray(arg)) {
-    throw new Error(
-        `Argument ${argName} passed to ${functionName} must be a ` +
-        '`Tensor[]` or `TensorLike[]`');
-  }
-  const tensors = arg as T[];
-  return tensors.map(
-      (t, i) => convertToTensor(t, `${argName}[${i}]`, functionName));
 }
 
 export function isTensorInList(tensor: Tensor, tensorList: Tensor[]): boolean {

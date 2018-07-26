@@ -15,13 +15,11 @@
  * =============================================================================
  */
 
-// tslint:disable-next-line:max-line-length
+import {ENV} from '../environment';
 import {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, Tensor5D, Tensor6D} from '../tensor';
-import {convertToTensor} from '../tensor_util';
-// tslint:disable-next-line:max-line-length
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike, TensorLike1D, TensorLike2D, TensorLike3D, TensorLike4D, TensorLike5D, TensorLike6D} from '../types';
 import {ArrayData, DataType, Rank, ShapeMap} from '../types';
-// tslint:disable-next-line:max-line-length
 import {assertNonNull, assertShapesMatch, getTypedArrayFromDType, inferShape, isTypedArray, makeOnesTypedArray, makeZerosTypedArray, sizeFromShape, toTypedArray} from '../util';
 import {op} from './operation';
 
@@ -73,7 +71,10 @@ function tensor<R extends Rank>(
   }
   shape = shape || inferredShape;
   return Tensor.make(
-      shape, {values: toTypedArray(values as ArrayData<DataType>, dtype)},
+      shape, {
+        values:
+            toTypedArray(values as ArrayData<DataType>, dtype, ENV.get('DEBUG'))
+      },
       dtype);
 }
 

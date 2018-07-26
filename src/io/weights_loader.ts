@@ -15,12 +15,11 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import {tensor} from '../ops/ops';
 import {NamedTensorMap} from '../tensor_types';
+import {TypedArray} from '../types';
 import * as util from '../util';
 import {DTYPE_VALUE_SIZE_MAP, WeightsManifestConfig, WeightsManifestEntry} from './types';
-// tslint:enable:max-line-length
 
 /**
  * Reads binary weights data from a number of URLs.
@@ -165,7 +164,7 @@ export async function loadWeights(
           weightsEntry.groupOffset,
           weightsEntry.groupOffset + weightsEntry.sizeBytes);
 
-      let typedArray: Float32Array|Int32Array;
+      let typedArray: TypedArray;
 
       const dtype = weightsEntry.manifestEntry.dtype;
 
@@ -196,6 +195,8 @@ export async function loadWeights(
           typedArray = new Float32Array(byteBuffer);
         } else if (dtype === 'int32') {
           typedArray = new Int32Array(byteBuffer);
+        } else if (dtype === 'bool') {
+          typedArray = new Uint8Array(byteBuffer);
         } else {
           throw new Error(
               `Weight ${weightsEntry.manifestEntry.name} has unknown dtype ` +
