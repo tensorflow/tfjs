@@ -1168,6 +1168,19 @@ describeWithFlags('tensor grad', ALL_ENVS, () => {
 });
 
 describeWithFlags('tensor.data', ALL_ENVS, () => {
+  it('interleaving .data() and .dataSync()', async () => {
+    const a = tf.tensor1d([1, 2, 3]);
+    const b = tf.tensor1d([4, 5, 6]);
+
+    const ra = a.square().data();
+    const rb = b.square().dataSync();
+
+    expectArraysClose(a, [1, 2, 3]);
+    expectArraysClose(b, [4, 5, 6]);
+    expectArraysClose(Array.from(rb), [16, 25, 36]);
+    expectArraysClose(Array.from(await ra), [1, 4, 9]);
+  });
+
   it('.data() postpones disposal of tensor', done => {
     expect(tf.memory().numTensors).toBe(0);
     tf.tidy(() => {
