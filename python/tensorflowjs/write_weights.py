@@ -21,7 +21,7 @@ import os
 import numpy as np
 from tensorflowjs import quantization
 
-_OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16]
+_OUTPUT_DTYPES = [np.float32, np.int32, np.uint8, np.uint16, np.bool]
 
 def write_weights(
     weight_groups, write_dir, shard_size_bytes=1024 * 1024 * 4,

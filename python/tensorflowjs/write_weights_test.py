@@ -66,6 +66,38 @@ class TestWriteWeights(unittest.TestCase):
     weight1 = np.fromfile(weights_path, 'float32')
     np.testing.assert_array_equal(weight1, np.array([1, 2, 3], 'float32'))
 
+  def test_1_group_1_weight_bool(self):
+    groups = [
+        [{
+            'name': 'weight1',
+            'data': np.array([True, False, True], 'bool')
+        }]
+    ]
+
+    manifest_json = write_weights.write_weights(
+        groups, TMP_DIR, shard_size_bytes=4 * 4)
+    manifest = json.loads(manifest_json)
+
+    self.assertTrue(
+        os.path.isfile(os.path.join(TMP_DIR, 'weights_manifest.json')),
+        'weights_manifest.json does not exist')
+
+    self.assertEqual(
+        manifest,
+        [{
+            'paths': ['group1-shard1of1'],
+            'weights': [{
+                'name': 'weight1',
+                'shape': [3],
+                'dtype': 'bool'
+            }]
+        }])
+
+    weights_path = os.path.join(TMP_DIR, 'group1-shard1of1')
+    weight1 = np.fromfile(weights_path, 'bool')
+    np.testing.assert_array_equal(
+        weight1, np.array([True, False, True], 'bool'))
+
   def test_1_group_1_weight_sharded(self):
     groups = [
         [{
@@ -147,6 +179,9 @@ class TestWriteWeights(unittest.TestCase):
             'data': np.array([1, 2, 3], 'int32')
         }, {
             'name': 'weight2',
+            'data': np.array([True, False, False, True], 'bool')
+        }, {
+            'name': 'weight3',
             'data': np.array([4.1, 5.1], 'float32')
         }]
     ]
@@ -173,6 +208,10 @@ class TestWriteWeights(unittest.TestCase):
                 'dtype': 'int32'
             }, {
                 'name': 'weight2',
+                'shape': [4],
+                'dtype': 'bool'
+            }, {
+                'name': 'weight3',
                 'shape': [2],
                 'dtype': 'float32'
             }]
@@ -188,12 +227,13 @@ class TestWriteWeights(unittest.TestCase):
       shard_2_bytes = f.read()
     shard_2_int = np.frombuffer(shard_2_bytes[:4], 'int32')
     np.testing.assert_array_equal(shard_2_int, np.array([3], 'int32'))
-    shard_2_float = np.frombuffer(shard_2_bytes[4:], 'float32')
-    np.testing.assert_array_equal(shard_2_float, np.array([4.1], 'float32'))
+    shard_2_bool = np.frombuffer(shard_2_bytes[4:], 'bool')
+    np.testing.assert_array_equal(
+        shard_2_bool, np.array([True, False, False, True], 'bool'))
 
     shard_3_path = os.path.join(TMP_DIR, 'group1-shard3of3')
     shard_3 = np.fromfile(shard_3_path, 'float32')
-    np.testing.assert_array_equal(shard_3, np.array([5.1], 'float32'))
+    np.testing.assert_array_equal(shard_3, np.array([4.1, 5.1], 'float32'))
 
   def test_2_groups_4_weights_sharded_packed(self):
     groups = [
