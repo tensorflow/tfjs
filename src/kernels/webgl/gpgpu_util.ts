@@ -311,6 +311,9 @@ export function maybeCreateBufferFromOutputTexture(
     webgl_util.callAndCheck(
         gl, () => gl2.readPixels(0, 0, columns, rows, gl.RGBA, gl.FLOAT, 0));
 
+    webgl_util.callAndCheck(
+        gl, () => gl.bindBuffer(gl2.PIXEL_PACK_BUFFER, null));
+
     bufferOrTexture = buffer;
   }
 
