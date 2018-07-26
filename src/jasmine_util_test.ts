@@ -16,7 +16,6 @@
  */
 
 import * as tf from './index';
-// tslint:disable-next-line:max-line-length
 import {describeWithFlags, envSatisfiesConstraints, parseKarmaFlags} from './jasmine_util';
 import {MathBackendCPU} from './kernels/backend_cpu';
 import {MathBackendWebGL} from './kernels/backend_webgl';

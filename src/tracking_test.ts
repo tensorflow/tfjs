@@ -17,7 +17,6 @@
 
 import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
-// tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual, NODE_ENVS, WEBGL_ENVS} from './test_util';
 
 describeWithFlags('time webgl', WEBGL_ENVS, () => {

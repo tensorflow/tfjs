@@ -18,7 +18,6 @@
 import {Environment} from '../environment';
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-// tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose} from '../test_util';
 
 describeWithFlags('pad1d', ALL_ENVS, () => {

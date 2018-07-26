@@ -15,16 +15,12 @@
  * =============================================================================
  */
 
-// tslint:disable:max-line-length
 import {ENV} from '../environment';
 import {assert} from '../util';
-
 import {arrayBufferToBase64String, base64StringToArrayBuffer, getModelArtifactsInfoForJSON} from './io_utils';
 import {ModelStoreManagerRegistry} from './model_management';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, ModelArtifactsInfo, ModelStoreManager, SaveResult} from './types';
-
-// tslint:enable:max-line-length
 
 const PATH_SEPARATOR = '/';
 const PATH_PREFIX = 'tensorflowjs_models';

@@ -18,7 +18,6 @@
 import {ENV} from '../environment';
 import {tidy} from '../globals';
 import {scalar, zerosLike} from '../ops/ops';
-// tslint:disable-next-line:max-line-length
 import {ConfigDict, Serializable, SerializableConstructor, SerializationMap} from '../serialization';
 import {Scalar, Tensor} from '../tensor';
 import {NamedVariableMap} from '../tensor_types';

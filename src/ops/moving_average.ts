@@ -16,7 +16,8 @@
  */
 
 import {Scalar, Tensor} from '../tensor';
-import {assertTypesMatch, convertToTensor} from '../tensor_util';
+import {assertTypesMatch} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import {pow} from './binary_ops';

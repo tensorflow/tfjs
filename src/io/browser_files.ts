@@ -20,14 +20,10 @@
  * user-selected files in browser.
  */
 
-// tslint:disable:max-line-length
 import {ENV} from '../environment';
-
 import {basename, concatenateArrayBuffers, getModelArtifactsInfoForJSON} from './io_utils';
 import {IORouter, IORouterRegistry} from './router_registry';
 import {IOHandler, ModelArtifacts, SaveResult, WeightsManifestConfig, WeightsManifestEntry} from './types';
-
-// tslint:enable:max-line-length
 
 const DEFAULT_FILE_NAME_PREFIX = 'model';
 const DEFAULT_JSON_EXTENSION_NAME = '.json';

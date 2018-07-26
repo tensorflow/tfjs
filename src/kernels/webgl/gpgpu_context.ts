@@ -17,11 +17,9 @@
 
 import {ENV} from '../../environment';
 import * as util from '../../util';
-
 import * as gpgpu_util from './gpgpu_util';
 import {TextureConfig} from './gpgpu_util';
 import * as tex_util from './tex_util';
-// tslint:disable-next-line:max-line-length
 import {WebGL1DisjointQueryTimerExtension, WebGL2DisjointQueryTimerExtension} from './webgl_types';
 import * as webgl_util from './webgl_util';
 

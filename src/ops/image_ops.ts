@@ -19,7 +19,7 @@ import {ForwardFunc} from '../engine';
 import {ENV} from '../environment';
 import {nonMaxSuppressionImpl} from '../kernels/non_max_suppression_impl';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {convertToTensor} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import {op} from './operation';

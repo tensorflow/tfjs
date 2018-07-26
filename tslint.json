@@ -25,7 +25,9 @@
     "jsdoc-format": true,
     "forin": false,
     "label-position": true,
-    "max-line-length": [true, 80],
+    "max-line-length": {
+      "options": {"limit": 80, "ignore-pattern": "^import |^export "}
+    },
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,
     "no-any": true,
@@ -39,7 +41,6 @@
     "no-require-imports": true,
     "no-string-throw": true,
     "no-unused-expression": true,
-    "no-unused-variable": true,
     "no-var-keyword": true,
     "object-literal-shorthand": true,
     "only-arrow-functions": [true, "allow-declarations", "allow-named-functions"],

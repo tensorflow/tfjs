@@ -45,7 +45,6 @@ export {MomentumOptimizer} from './optimizers/momentum_optimizer';
 export {Optimizer} from './optimizers/optimizer';
 export {RMSPropOptimizer} from './optimizers/rmsprop_optimizer';
 export {SGDOptimizer} from './optimizers/sgd_optimizer';
-// tslint:disable-next-line:max-line-length
 export {Scalar, Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D, TensorBuffer, variable, Variable} from './tensor';
 export {NamedTensorMap} from './tensor_types';
 export {DataType, Rank, ShapeMap} from './types';

@@ -19,8 +19,8 @@ import * as tf from './index';
 import {describeWithFlags} from './jasmine_util';
 import {Tensor} from './tensor';
 import {NamedTensorMap} from './tensor_types';
-// tslint:disable-next-line:max-line-length
-import {convertToTensor, flattenNameArrayMap, getTensorsInContainer, isTensorInList, unflattenToNameArrayMap} from './tensor_util';
+import {flattenNameArrayMap, getTensorsInContainer, isTensorInList, unflattenToNameArrayMap} from './tensor_util';
+import {convertToTensor} from './tensor_util_env';
 import {ALL_ENVS, expectArraysClose, expectNumbersClose} from './test_util';
 
 describe('tensor_util.isTensorInList', () => {

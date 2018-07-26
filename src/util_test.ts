@@ -120,13 +120,6 @@ describe('util.repeatedTry', () => {
   });
 });
 
-describe('util.getQueryParams', () => {
-  it('basic', () => {
-    expect(util.getQueryParams('?a=1&b=hi&f=animal'))
-        .toEqual({'a': '1', 'b': 'hi', 'f': 'animal'});
-  });
-});
-
 describe('util.inferFromImplicitShape', () => {
   it('empty shape', () => {
     const result = util.inferFromImplicitShape([], 0);

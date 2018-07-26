@@ -17,7 +17,7 @@
 
 import {ENV} from '../environment';
 import {Tensor} from '../tensor';
-import {convertToTensor} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import * as util from '../util';
 import * as axis_util from './axis_util';

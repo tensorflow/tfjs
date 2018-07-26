@@ -17,7 +17,6 @@
 
 import * as tf from '../index';
 import {describeWithFlags} from '../jasmine_util';
-// tslint:disable-next-line:max-line-length
 import {ALL_ENVS, expectArraysClose, expectArraysEqual} from '../test_util';
 
 describeWithFlags('div', ALL_ENVS, () => {
@@ -962,6 +961,73 @@ describeWithFlags('add', ALL_ENVS, () => {
   it('accepts a tensor-like object', () => {
     const result = tf.add(5, [1, 2, 3]);
     expectArraysClose(result, [6, 7, 8]);
+  });
+});
+
+describeWithFlags('addN', ALL_ENVS, () => {
+  it('a single tensor', () => {
+    const res = tf.addN([tf.tensor1d([1, 2, 3])]);
+    expectArraysClose(res, [1, 2, 3]);
+  });
+
+  it('two tensors, int32', () => {
+    const res = tf.addN([
+      tf.tensor1d([1, 2, -1], 'int32'),
+      tf.tensor1d([5, 3, 2], 'int32'),
+    ]);
+    expectArraysClose(res, [6, 5, 1]);
+    expect(res.dtype).toBe('int32');
+    expect(res.shape).toEqual([3]);
+  });
+
+  it('three tensors', () => {
+    const res = tf.addN([
+      tf.tensor1d([1, 2]),
+      tf.tensor1d([5, 3]),
+      tf.tensor1d([-5, -2]),
+    ]);
+    expectArraysClose(res, [1, 3]);
+    expect(res.dtype).toBe('float32');
+    expect(res.shape).toEqual([2]);
+  });
+
+  it('accepts a tensor-like object', () => {
+    const res = tf.addN([[1, 2], [3, 4]]);
+    expectArraysClose(res, [4, 6]);
+    expect(res.dtype).toBe('float32');
+    expect(res.shape).toEqual([2]);
+  });
+
+  it('list of numbers gets treated as a list of scalars', () => {
+    const res = tf.addN([1, 2, 3, 4]);
+    expectArraysClose(res, [10]);
+    expect(res.dtype).toBe('float32');
+    expect(res.shape).toEqual([]);
+  });
+
+  it('errors if list is empty', () => {
+    expect(() => tf.addN([]))
+        .toThrowError(
+            /Must pass at least one tensor to tf.addN\(\), but got 0/);
+  });
+
+  it('errors if argument is not an array', () => {
+    // tslint:disable-next-line:no-any
+    expect(() => tf.addN(tf.scalar(3) as any))
+        .toThrowError(
+            /The param passed to tf.addN\(\) must be a list of tensors/);
+  });
+
+  it('errors if arguments not of same dtype', () => {
+    expect(() => tf.addN([tf.scalar(1, 'int32'), tf.scalar(2, 'float32')]))
+        .toThrowError(
+            /All tensors passed to tf.addN\(\) must have the same dtype/);
+  });
+
+  it('errors if arguments not of same shape', () => {
+    expect(() => tf.addN([tf.scalar(1), tf.tensor1d([2])]))
+        .toThrowError(
+            /All tensors passed to tf.addN\(\) must have the same shape/);
   });
 });
 

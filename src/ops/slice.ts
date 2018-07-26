@@ -17,7 +17,7 @@
 
 import {ENV} from '../environment';
 import {Tensor, Tensor1D, Tensor2D, Tensor3D, Tensor4D} from '../tensor';
-import {convertToTensor} from '../tensor_util';
+import {convertToTensor} from '../tensor_util_env';
 import {Rank, TensorLike} from '../types';
 import * as util from '../util';
 import {op} from './operation';

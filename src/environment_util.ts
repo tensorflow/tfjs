@@ -15,8 +15,6 @@
  * =============================================================================
  */
 
-import {getQueryParams} from './util';
-
 export interface Features {
   // Whether to enable debug mode.
   'DEBUG'?: boolean;
@@ -277,4 +275,18 @@ function createFloatTextureAndBindToFramebuffer(
   gl.bindFramebuffer(gl.FRAMEBUFFER, frameBuffer);
   gl.framebufferTexture2D(
       gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+}
+
+export function getQueryParams(queryString: string): {[key: string]: string} {
+  const params = {};
+  queryString.replace(/[?&]([^=?&]+)(?:=([^&]*))?/g, (s, ...t) => {
+    decodeParam(params, t[0], t[1]);
+    return t.join('=');
+  });
+  return params;
+}
+
+function decodeParam(
+    params: {[key: string]: string}, name: string, value?: string) {
+  params[decodeURIComponent(name)] = decodeURIComponent(value || '');
 }

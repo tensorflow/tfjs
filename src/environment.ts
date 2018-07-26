@@ -16,9 +16,7 @@
  */
 
 import * as device_util from './device_util';
-
 import {Engine, MemoryInfo, ScopeFn, TimingInfo} from './engine';
-// tslint:disable-next-line:max-line-length
 import {Features, getFeaturesFromURL, getWebGLDisjointQueryTimerVersion, isChrome, isDownloadFloatTextureEnabled, isRenderToFloatTextureEnabled, isWebGLFenceEnabled, isWebGLVersionEnabled} from './environment_util';
 import {KernelBackend} from './kernels/backend';
 import {setTensorTracker, Tensor, TensorTracker} from './tensor';
