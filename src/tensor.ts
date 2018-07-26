@@ -1169,7 +1169,7 @@ export class Tensor<R extends Rank = Rank> {
 }
 Object.defineProperty(Tensor, Symbol.hasInstance, {
   value: (instance: Tensor) => {
-    return instance.shape != null && instance.dtype != null;
+    return !!instance && instance.shape != null && instance.dtype != null;
   }
 });
 
