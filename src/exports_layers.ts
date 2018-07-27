@@ -661,4 +661,4 @@ export const globalMaxPool2d = globalMaxPooling2d;
 export const maxPool1d = maxPooling1d;
 export const maxPool2d = maxPooling2d;
 
-export {Layer, input /* alias for tf.input */};
+export {Layer, RNN, RNNCell, input /* alias for tf.input */};

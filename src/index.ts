@@ -17,7 +17,7 @@ import * as layers from './exports_layers';
 import * as metrics from './exports_metrics';
 import * as regularizers from './exports_regularizers';
 
-export {CallbackList, CustomCallback, CustomCallbackConfig} from './base_callbacks';
+export {CallbackList, CustomCallback, CustomCallbackConfig, History} from './base_callbacks';
 export {Callback} from './callbacks';
 export {SymbolicTensor} from './engine/topology';
 export {Model, ModelCompileConfig, ModelEvaluateConfig, ModelFitConfig} from './engine/training';
