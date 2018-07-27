@@ -23,6 +23,7 @@ import unittest
 
 import tensorflow as tf
 from tensorflow.python.tools import freeze_graph
+from tensorflow.python.grappler import tf_optimizer
 
 import tensorflow_hub as hub
 from tensorflowjs.converters import tf_saved_model_conversion
@@ -192,7 +193,7 @@ class ConvertTest(unittest.TestCase):
   def test_convert_saved_model(self):
     self.create_saved_model()
     print(glob.glob(
-        os.path.join(self._tmp_dir, SESSION_BUNDLE_MODEL_DIR, '*')))
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR, '*')))
 
     tf_saved_model_conversion.convert_tf_saved_model(
         os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
@@ -224,6 +225,24 @@ class ConvertTest(unittest.TestCase):
     self.assertTrue(
         glob.glob(
             os.path.join(self._tmp_dir, SAVED_MODEL_DIR, 'group*-*')))
+
+  def test_optimizer_add_unsupported_op(self):
+    self.create_saved_model()
+    print(glob.glob(
+        os.path.join(self._tmp_dir, SAVED_MODEL_DIR, '*')))
+    with self.assertRaisesRegexp(  # pylint: disable=deprecated-method
+        ValueError, r'^Unsupported Ops'):
+      node = tf.test.mock.Mock(op='unknown')
+      graph = tf.test.mock.Mock(node=[node])
+      with tf.test.mock.patch.object(tf_optimizer, 'OptimizeGraph',
+                                     return_value=graph):
+        tf_saved_model_conversion.convert_tf_saved_model(
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR),
+            'Softmax',
+            os.path.join(self._tmp_dir, SAVED_MODEL_DIR)
+        )
+
+
 
   def test_convert_saved_model_skip_op_check(self):
     self.create_unsupported_saved_model()
