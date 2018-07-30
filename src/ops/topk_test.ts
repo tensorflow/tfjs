@@ -34,6 +34,18 @@ describeWithFlags('topk', ALL_ENVS, () => {
     expectArraysClose(indices, [2]);
   });
 
+  it('1d array with default k from tensor.topk', () => {
+    const a = tensor1d([20, 10, 40, 30]);
+    const {values, indices} = a.topk();
+
+    expect(values.shape).toEqual([1]);
+    expect(indices.shape).toEqual([1]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expectArraysClose(values, [40]);
+    expectArraysClose(indices, [2]);
+  });
+
   it('2d array with default k', () => {
     const a = tensor2d([[10, 50], [40, 30]]);
     const {values, indices} = tf.topk(a);
@@ -55,6 +67,24 @@ describeWithFlags('topk', ALL_ENVS, () => {
     ]);
     const k = 2;
     const {values, indices} = tf.topk(a, k);
+
+    expect(values.shape).toEqual([4, 2]);
+    expect(indices.shape).toEqual([4, 2]);
+    expect(values.dtype).toBe('float32');
+    expect(indices.dtype).toBe('int32');
+    expectArraysClose(values, [5, 2, 6, 4, 3, 2, 3, 2]);
+    expectArraysClose(indices, [1, 2, 2, 0, 0, 1, 2, 1]);
+  });
+
+  it('2d array with k=2 from tensor.topk', () => {
+    const a = tensor2d([
+      [1, 5, 2],
+      [4, 3, 6],
+      [3, 2, 1],
+      [1, 2, 3],
+    ]);
+    const k = 2;
+    const {values, indices} = a.topk(k);
 
     expect(values.shape).toEqual([4, 2]);
     expect(indices.shape).toEqual([4, 2]);
