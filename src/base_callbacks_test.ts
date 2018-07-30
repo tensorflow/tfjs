@@ -27,6 +27,7 @@ describe('BaseLogger Callback', () => {
   it('Records and averages losses in an epoch', async done => {
     const baseLogger = new BaseLogger();
     baseLogger.setParams({metrics: ['loss', 'val_loss']});
+    await baseLogger.onTrainBegin();
     await baseLogger.onEpochBegin(0);
     await baseLogger.onBatchBegin(0);
     await baseLogger.onBatchEnd(0, {batch: 0, size: 10, loss: 5});
@@ -41,10 +42,11 @@ describe('BaseLogger Callback', () => {
         .toBeCloseTo((10 * 5 + 10 * 6 + 5 * 7) / (10 + 10 + 5));
     done();
   });
-  it('Forgets old epochs', async done => {
+  it('Forgets old epochs', async () => {
     const baseLogger = new BaseLogger();
     baseLogger.setParams({metrics: ['loss', 'val_loss']});
     const numOldEpochs = 2;
+    await baseLogger.onTrainBegin();
     for (let i = 0; i < numOldEpochs; ++i) {
       await baseLogger.onEpochBegin(i);
       await baseLogger.onBatchBegin(0);
@@ -64,7 +66,6 @@ describe('BaseLogger Callback', () => {
     expect(epochLog['val_loss'] as number).toEqual(3);
     expect(epochLog['loss'] as number)
         .toBeCloseTo((10 * 5 + 10 * 6 + 5 * 7) / (10 + 10 + 5));
-    done();
   });
 });
 
