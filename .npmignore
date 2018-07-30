@@ -23,6 +23,7 @@ tsconfig.json
 yarn.lock
 yarn-error.log
 python/
+package/
 DEVELOPMENT.md
 ISSUE_TEMPLATE.md
 rollup.config.js
