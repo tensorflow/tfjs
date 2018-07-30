@@ -304,6 +304,8 @@ export interface OpHandler {
       x: T, blockShape: number[], crops: number[][]): T;
   spaceToBatchND<T extends Tensor>(
       x: T, blockShape: number[], paddings: number[][]): T;
+  topk<T extends Tensor>(x: T, k: number, sorted: boolean)
+    : {values: T, indices: T};
 }
 
 // For tracking tensor creation and disposal.
@@ -1165,6 +1167,12 @@ export class Tensor<R extends Rank = Rank> {
       this: T, blockShape: number[], paddings: number[][]): T {
     this.throwIfDisposed();
     return opHandler.spaceToBatchND(this, blockShape, paddings);
+  }
+
+  topk<T extends Tensor>(
+    this: T, k = 1, sorted = true): {values: T, indices: T} {
+      this.throwIfDisposed();
+      return opHandler.topk(this, k, sorted);
   }
 }
 Object.defineProperty(Tensor, Symbol.hasInstance, {
