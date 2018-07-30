@@ -10,17 +10,20 @@
 
 /* Original source: keras/callbacks.py */
 
-import {add, div, keep, mul, Scalar, Tensor, tidy} from '@tensorflow/tfjs-core';
+// tslint:disable:max-line-length
+import {add, div, keep, mul, nextFrame, Scalar, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import {getScalar} from './backend/state';
 import {Container} from './engine/container';
 import {Logs, resolveScalarsInLogs, UnresolvedLogs} from './logs';
 import * as generic_utils from './utils/generic_utils';
-
+// tslint:enable:max-line-length
 
 export type Params = {
   [key: string]: number|string|boolean|number[]|string[]|boolean[];
 };
+
+export type YieldEveryOptions = 'auto'|'batch'|'epoch'|'never';
 
 /**
  * Abstract base class used to build new callbacks.
@@ -203,6 +206,128 @@ export class CallbackList {
   }
 }
 
+/**
+ * A class that manages thread yielding during model training.
+ *
+ * The lifetime of an instance of `ModelTrainingYielder` is that of a
+ * `Model.fit()` call. In other words, each `Model.fit()` call must create
+ * and use a separate `ModelTrainingYielder` object.
+ */
+export class ModelTrainingYielder {
+  // How many batches to skip at the beginning of a `Model.fit` call.
+  // The first batches usually are longer than the rest, because they may
+  // involve warm-up time.
+  static readonly SKIP_FIRST_BATCHES = 1;
+
+  // How many batches to average over when calculating the average batch
+  // duration.
+  static readonly DECISION_BATCH_COUNT = 2;
+
+  // How many milliseconds to wait before yielding again.
+  static readonly THRESHOLD_MILLIS = 16;
+
+  private yieldEvery: YieldEveryOptions;
+  private batchCount: number;
+  private lastYieldBatchCount: number;
+  private batchStartMillis: number;
+  private batchDurationsMillis: number[];
+  private autoYieldEveryBatches: number;
+
+  /**
+   * Constructor of ModelTrainingYielder
+   *
+   * @param yieldEvery The configuration for how often the yielding will occur.
+   */
+  constructor(yieldEvery: YieldEveryOptions) {
+    this.yieldEvery = yieldEvery;
+    this.batchCount = 0;
+    this.batchDurationsMillis = [];
+    this.autoYieldEveryBatches = null;
+    this.batchStartMillis = util.now();
+  }
+
+  /**
+   * Find the first Scalar tensor in `logs` and await data() on it.
+   *
+   * This causes a data download (e.g., from GPU) and therefore clears the
+   * queued operations (e.g., on the GPU).
+   */
+  private async resolveOneTensorInLogs(logs: UnresolvedLogs) {
+    for (const key in logs) {
+      const value = logs[key];
+      if (typeof value !== 'number') {
+        await (value as Scalar).data();
+        break;
+      }
+    }
+  }
+
+  /**
+   * The action taken when a batch ends.
+   *
+   * The action taken depends on the `yieldEvery` configuration.
+   *
+   * * In the case of `auto`, during the first several batches, this method
+   *   will estimate the average duration of each batch. It will then decide
+   *   how often the yielding will occur based on the estimation. The yielding
+   *   is achieved through
+   *   - Awaiting `data()` on one of the Tensors in `logs`, causing the queued
+   *     operations to clear.
+   *   - Calling `await nextFrame()`.
+   * * In the case of `batch` or `epoch`, the yielding will occur on the end of
+   *   every batch or every epoch, respectively.
+   * * In the case of `never`, the yielding will never occur.
+   *
+   * @param logs The logs from the batch.
+   */
+  async maybeYieldOnBatch(logs: UnresolvedLogs) {
+    if (this.yieldEvery === 'auto') {
+      this.batchCount++;
+      if (this.autoYieldEveryBatches == null) {
+        // autoYieldEveryBatches has not been determined yet. We are still in
+        // the measurement phase.
+        await this.resolveOneTensorInLogs(logs);
+        const t = util.now();
+        await nextFrame();
+        // We skip the first few batches for timing, because they usually
+        // involve some warm-up time.
+        if (this.batchCount > ModelTrainingYielder.SKIP_FIRST_BATCHES) {
+          this.batchDurationsMillis.push(t - this.batchStartMillis);
+          if (this.batchDurationsMillis.length >=
+              ModelTrainingYielder.DECISION_BATCH_COUNT) {
+            const meanBatchDuration =
+                this.batchDurationsMillis.reduce((dur, prev) => dur + prev) /
+                this.batchDurationsMillis.length;
+            this.autoYieldEveryBatches = Math.round(
+                ModelTrainingYielder.THRESHOLD_MILLIS / meanBatchDuration);
+            if (this.autoYieldEveryBatches < 1) {
+              this.autoYieldEveryBatches = 1;
+            }
+          }
+        }
+        this.batchStartMillis = util.now();
+        this.lastYieldBatchCount = this.batchCount;
+      } else {
+        // autoYieldEveryBatch has been determined. We perform yielding
+        // accordingly.
+        if (this.batchCount - this.lastYieldBatchCount >=
+            this.autoYieldEveryBatches) {
+          await nextFrame();
+          await this.resolveOneTensorInLogs(logs);
+          this.lastYieldBatchCount = this.batchCount;
+        }
+      }
+    } else if (this.yieldEvery === 'batch') {
+      await nextFrame();
+    }
+  }
+
+  async maybeYieldOnEpoch() {
+    if (this.yieldEvery === 'epoch') {
+      await nextFrame();
+    }
+  }
+}
 
 /**
  * Callback that accumulates epoch averages of metrics.
@@ -212,17 +337,27 @@ export class CallbackList {
 export class BaseLogger extends BaseCallback {
   private seen: number;
   private totals: UnresolvedLogs;
+  private autoYielder: ModelTrainingYielder;
+  private yieldEvery: YieldEveryOptions;
 
-  constructor() {
+  constructor(yieldEvery?: YieldEveryOptions) {
     super();
+
+    this.yieldEvery = yieldEvery || 'auto';
   }
 
-  async onEpochBegin(epoch: number, logs?: UnresolvedLogs) {
+  async onTrainBegin(logs?: UnresolvedLogs) {
+    this.autoYielder = new ModelTrainingYielder(this.yieldEvery);
+  }
+
+  async onEpochBegin(epoch: number) {
     this.seen = 0;
     this.totals = {};
   }
 
   async onBatchEnd(batch: number, logs?: UnresolvedLogs) {
+    await this.autoYielder.maybeYieldOnBatch(logs);
+
     if (logs == null) {
       logs = {};
     }
@@ -254,6 +389,8 @@ export class BaseLogger extends BaseCallback {
   }
 
   async onEpochEnd(epoch: number, logs?: UnresolvedLogs) {
+    await this.autoYielder.maybeYieldOnEpoch();
+
     if (logs != null) {
       for (const key of this.params['metrics'] as string[]) {
         if (this.totals[key] == null) {
@@ -276,8 +413,8 @@ export class BaseLogger extends BaseCallback {
 
 /**
  * Callback that records events into a `History` object. This callback is
- * automatically applied to every TF.js Layers model. The `History` object gets
- * returned by the `fit` method of models.
+ * automatically applied to every TF.js Layers model. The `History` object
+ * gets returned by the `fit` method of models.
  */
 export class History extends BaseCallback {
   epoch: number[];
