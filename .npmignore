@@ -16,7 +16,6 @@ npm-debug.log
 *.tgz
 *.txt
 karma.conf.js
-dist/**/*.js.map
 dist/**/*_test.js
 dist/**/*_test.d.ts
 tslint.json
