@@ -127,6 +127,11 @@ for PY_FILE in ${PY_FILES}; do
   cp "${PY_FILE}" "${TMP_DIR}/${PY_DIR}"
 done
 
+# Generate json files from ts files in src/operations/op_list/.
+pushd ".." > /dev/null
+yarn && yarn gen-json
+popd > /dev/null
+
 # Copy .json files under op_list
 OP_LIST_DIR="tensorflowjs/op_list"
 JSON_FILES=$(find -L "${SCRIPTS_DIR}/${OP_LIST_DIR}" -name '*.json')

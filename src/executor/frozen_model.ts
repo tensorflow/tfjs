@@ -16,12 +16,9 @@
  */
 
 import * as tfc from '@tensorflow/tfjs-core';
-import * as Url from 'url';
-
 import {tensorflow} from '../data/compiled_api';
 import {NamedTensorsMap, TensorInfo} from '../data/types';
 import {OperationMapper} from '../operations/operation_mapper';
-
 import {GraphExecutor} from './graph_executor';
 
 /**
@@ -78,11 +75,18 @@ export class FrozenModel implements tfc.InferenceModel {
    * Returns the path prefix for this.weightManifestUrl.
    */
   getPathPrefix() {
-    const url = Url.parse(this.weightManifestUrl);
-    const segments = url.pathname.split('/');
-    segments.splice(-1);
-    url.pathname = segments.join('/');
-    return Url.format(url) + '/';
+    let lastIndex = this.weightManifestUrl.length;
+    const queryIndex = this.weightManifestUrl.indexOf('?');
+    const hashIndex = this.weightManifestUrl.indexOf('#');
+    if (queryIndex >= 0) {
+      lastIndex = queryIndex;
+    }
+    if (hashIndex >= 0) {
+      lastIndex = Math.min(lastIndex, hashIndex);
+    }
+    const url = this.weightManifestUrl.slice(0, lastIndex);
+    const end = url.lastIndexOf('/');
+    return end >= 0 ? url.slice(0, end) + '/' : '/';
   }
 
   /**
@@ -91,8 +95,8 @@ export class FrozenModel implements tfc.InferenceModel {
   private async loadRemoteProtoFile(): Promise<tensorflow.GraphDef> {
     try {
       const response = await fetch(this.modelUrl, this.requestOption);
-      return tensorflow.GraphDef.decode(
-          new Uint8Array(await response.arrayBuffer()));
+      const buffer = await response.arrayBuffer();
+      return tensorflow.GraphDef.decode(new Uint8Array(buffer));
     } catch (error) {
       throw new Error(`${this.modelUrl} not found. ${error}`);
     }
@@ -118,7 +122,8 @@ export class FrozenModel implements tfc.InferenceModel {
     const graphPromise = this.loadRemoteProtoFile();
     const manifestPromise = this.loadWeightManifest();
 
-    const [graph, ] = await Promise.all([graphPromise, manifestPromise]);
+    const res = await Promise.all([graphPromise, manifestPromise]);
+    const graph = res[0];
 
     this.version = `${graph.versions.producer}.${graph.versions.minConsumer}`;
     const weightMap = await tfc.io.loadWeights(

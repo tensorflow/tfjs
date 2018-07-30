@@ -14,18 +14,18 @@
  * limitations under the License.
  * =============================================================================
  */
-import * as tfc from '@tensorflow/tfjs-core';
 
+import * as tfc from '@tensorflow/tfjs-core';
 import {ExecutionContext} from '../../executor/execution_context';
 import {Node} from '../types';
-
 import {executeOp} from './arithmetic_executor';
-import {createTensorAttr} from './test_helper';
+import {createTensorAttr, createTensorsAttr} from './test_helper';
 
 describe('arithmetic', () => {
   let node: Node;
   const input1 = [tfc.scalar(1)];
   const input2 = [tfc.scalar(1)];
+  const input3 = [tfc.scalar(4)];
   const context = new ExecutionContext({}, {});
 
   beforeEach(() => {
@@ -52,5 +52,17 @@ describe('arithmetic', () => {
             expect(spy).toHaveBeenCalledWith(input1[0], input2[0]);
           });
         }));
+    it('addN', () => {
+      const spy = spyOn(tfc, 'addN').and.callThrough();
+      node.op = 'addN';
+      node.params = {tensors: createTensorsAttr(0, 0)};
+      node.inputNames = ['input1', 'input2', 'input3'];
+      const res =
+          executeOp(node, {input1, input2, input3}, context) as tfc.Tensor[];
+      expect(spy).toHaveBeenCalledWith([input1[0], input2[0], input3[0]]);
+      expect(res[0].dtype).toBe('float32');
+      expect(res[0].shape).toEqual([]);
+      tfc.test_util.expectArraysClose(res[0], [6]);
+    });
   });
 });

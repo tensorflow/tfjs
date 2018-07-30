@@ -19,21 +19,21 @@ import {DataType} from '@tensorflow/tfjs-core';
 import {tensorflow} from '../data/compiled_api';
 
 import {getNodeNameAndIndex} from './executors/utils';
-import * as arithmetic from './op_list/arithmetic.json';
-import * as basicMath from './op_list/basic_math.json';
-import * as control from './op_list/control.json';
-import * as convolution from './op_list/convolution.json';
-import * as creation from './op_list/creation.json';
-import * as dynamic from './op_list/dynamic.json';
-import * as evaluation from './op_list/evaluation.json';
-import * as graph from './op_list/graph.json';
-import * as image from './op_list/image.json';
-import * as logical from './op_list/logical.json';
-import * as matrices from './op_list/matrices.json';
-import * as normalization from './op_list/normalization.json';
-import * as reduction from './op_list/reduction.json';
-import * as sliceJoin from './op_list/slice_join.json';
-import * as transformation from './op_list/transformation.json';
+import * as arithmetic from './op_list/arithmetic';
+import * as basicMath from './op_list/basic_math';
+import * as control from './op_list/control';
+import * as convolution from './op_list/convolution';
+import * as creation from './op_list/creation';
+import * as dynamic from './op_list/dynamic';
+import * as evaluation from './op_list/evaluation';
+import * as graph from './op_list/graph';
+import * as image from './op_list/image';
+import * as logical from './op_list/logical';
+import * as matrices from './op_list/matrices';
+import * as normalization from './op_list/normalization';
+import * as reduction from './op_list/reduction';
+import * as sliceJoin from './op_list/slice_join';
+import * as transformation from './op_list/transformation';
 import {Graph, Node, OpMapper, ParamValue} from './types';
 
 const CONTROL_FLOW_OPS = ['Switch', 'Merge', 'Enter', 'Exit', 'NextIteration'];
@@ -57,8 +57,7 @@ export class OperationMapper {
       evaluation, logical, image, graph, matrices, normalization, reduction,
       sliceJoin, transformation
     ];
-    const mappersJson: OpMapper[] =
-        [].concat.apply([], ops.map(op => op.default ? op.default : op));
+    const mappersJson: OpMapper[] = [].concat.apply([], ops.map(op => op.json));
 
     this.opMappers = mappersJson.reduce<{[key: string]: OpMapper}>(
         (map, mapper: OpMapper) => {

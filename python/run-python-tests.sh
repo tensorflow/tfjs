@@ -26,6 +26,11 @@ pip install -r "${SCRIPTS_DIR}/requirements.txt"
 
 cd "${SCRIPTS_DIR}"
 
+# Generate json files from ts files in src/operations/op_list/.
+pushd ".." > /dev/null
+yarn && yarn gen-json
+popd > /dev/null
+
 export PYTHONPATH=".:${PYTHONPATH}"
 for TEST_FILE in ${TEST_FILES}; do
   echo

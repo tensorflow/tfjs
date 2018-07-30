@@ -16,9 +16,15 @@
  */
 
 import node from 'rollup-plugin-node-resolve';
-import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
-import uglify from 'rollup-plugin-uglify';
+import cleanup from 'rollup-plugin-cleanup';
+
+/**
+ * This rollup config is used by `yarn gen-google3-proto` to create a
+ * self-contained compiled_api.js that has protobuf in it. This script is used
+ * only when synching code internally to eliminate having protobufjs as an
+ * external dependency.
+ */
 
 const PREAMBLE = `/**
  * @license
@@ -37,33 +43,23 @@ const PREAMBLE = `/**
  * =============================================================================
  */`;
 
-function minify() {
-  return uglify({
-    output: {preamble: PREAMBLE}
-  });
-}
-
-function config({plugins = [], output = {}}) {
-  return {
-    input: 'src/index.ts',
+export default {
+  input: 'src/data/compiled_api.js',
     plugins: [
-      typescript({
-        tsconfigOverride: {compilerOptions: {module: 'ES2015'}}
-      }),
       node(),
       // Polyfill require() from dependencies.
       commonjs({
         namedExports: {
-          './src/data/compiled_api.js': ['tensorflow'],
           './node_modules/protobufjs/minimal.js': ['roots', 'Reader', 'util']
         }
       }),
-      ...plugins
+      cleanup({comments: 'none'}),
     ],
     output: {
       banner: PREAMBLE,
       globals: {'@tensorflow/tfjs-core': 'tf'},
-      ...output
+      format: 'es',
+      file: 'src/data/compiled_api.js'
     },
     external: ['@tensorflow/tfjs-core'],
     onwarn: warning => {
@@ -74,32 +70,4 @@ function config({plugins = [], output = {}}) {
       }
       console.warn('WARNING: ', warning.toString());
     }
-  };
-}
-
-export default [
-  config({
-    output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-converter.js'
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'umd',
-      name: 'tf',
-      extend: true,
-      file: 'dist/tf-converter.min.js'
-    }
-  }),
-  config({
-    plugins: [minify()],
-    output: {
-      format: 'es',
-      file: 'dist/tf-converter.esm.js'
-    }
-  })
-];
+};

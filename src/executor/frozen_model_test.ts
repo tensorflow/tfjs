@@ -82,14 +82,46 @@ describe('Model', () => {
   });
 
   describe('getPathPrefix', () => {
-    it('should set pathPrefix (absolute path)', async () => {
-      model = new FrozenModel(MODEL_URL, WEIGHT_MANIFEST_URL);
+    it('no path prefix, absolute URL', async () => {
+      const modelUrl = 'http://example.org/model.pb';
+      const weightsUrl = 'http://example.org/weights_manifest.json';
+      model = new FrozenModel(modelUrl, weightsUrl);
       expect(model.getPathPrefix()).toEqual('http://example.org/');
     });
 
-    it('should set pathPrefix (relative path)', async () => {
-      model = new FrozenModel(RELATIVE_MODEL_URL, RELATIVE_WEIGHT_MANIFEST_URL);
-      expect(model.getPathPrefix()).toEqual('/path/');
+    it('some path prefix, absolute URL', async () => {
+      const modelUrl = 'http://example.org/some/path/model.pb';
+      const weightsUrl = 'http://example.org/some/path/weights_manifest.json';
+      model = new FrozenModel(modelUrl, weightsUrl);
+      expect(model.getPathPrefix()).toEqual('http://example.org/some/path/');
+    });
+
+    it('no path prefix, relative URL', async () => {
+      const modelUrl = 'model.pb';
+      const weightsUrl = 'weights_manifest.json';
+      const model = new FrozenModel(modelUrl, weightsUrl);
+      expect(model.getPathPrefix()).toEqual('/');
+    });
+
+    it('some path prefix, relative URL', async () => {
+      const modelUrl = '/some/path/model.pb';
+      const weightsUrl = '/some/path/weights_manifest.json';
+      model = new FrozenModel(modelUrl, weightsUrl);
+      expect(model.getPathPrefix()).toEqual('/some/path/');
+    });
+
+    it('path prefix with query string, relative URL', async () => {
+      const modelUrl = '/some/path/model.pb?hello=/a/b';
+      const weightsUrl = '/some/path/weights_manifest.json?hello=/a/b';
+      model = new FrozenModel(modelUrl, weightsUrl);
+      expect(model.getPathPrefix()).toEqual('/some/path/');
+    });
+
+    it('path prefix with hash string, relative URL', async () => {
+      const modelUrl = '/some/path/model.pb#hello=/a/b';
+      const weightsUrl = '/some/path/weights_manifest.json#hello=/a/b';
+      model = new FrozenModel(modelUrl, weightsUrl);
+      expect(model.getPathPrefix()).toEqual('/some/path/');
     });
   });
   describe('predict', () => {

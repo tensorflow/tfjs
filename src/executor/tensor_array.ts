@@ -159,7 +159,7 @@ export class TensorArray {
               tensors.length}.`);
     }
 
-    indices.map((i, index) => this.write(i, tensors[index]));
+    indices.forEach((i, index) => this.write(i, tensors[index]));
   }
 
   /**
