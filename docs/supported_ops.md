@@ -5,6 +5,7 @@
 |Tensorflow Op Name|Tensorflow.js Op Name|
 |---|---|
 |Add|add|
+|AddN|addN|
 |BiasAdd|add|
 |Div|div|
 |FloorDiv|floorDiv|
@@ -74,6 +75,15 @@
 |Merge|merge|
 |NextIteration|nextIteration|
 |Switch|switch|
+|TensorArrayCloseV3|tensorArrayClose|
+|TensorArrayConcatV3|tensorArrayConcat|
+|TensorArrayGatherV3|tensorArrayGather|
+|TensorArrayReadV3|tensorArrayRead|
+|TensorArrayScatterV3|tensorArrayScatter|
+|TensorArraySizeV3|tensorArraySize|
+|TensorArraySplitV3|tensorArraySplit|
+|TensorArrayV3|tensorArray|
+|TensorArrayWriteV3|tensorArrayWrite|
 
 
 ## Operations - Convolution
@@ -120,6 +130,22 @@
 |Not mapped|variable|
 
 
+## Operations - Dynamic
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|NonMaxSuppressionV2|nonMaxSuppression|
+|NonMaxSuppressionV3|nonMaxSuppression|
+|Where|whereAsync|
+
+
+## Operations - Evaluation
+
+|Tensorflow Op Name|Tensorflow.js Op Name|
+|---|---|
+|TopKV2|topK|
+
+
 ## Tensorflow - Graph
 
 |Tensorflow Op Name|Tensorflow.js Op Name|
@@ -152,7 +178,6 @@
 |LogicalOr|logicalOr|
 |NotEqual|notEqual|
 |Select|where|
-|Where|whereAsync|
 |Not mapped|logicalXor|
 
 
@@ -229,7 +254,7 @@
 |Pad|pad|
 |PadV2|pad|
 |Reshape|reshape|
-|Squeeze|squeeze|
 |SpaceToBatchND|spaceToBatchND|
+|Squeeze|squeeze|
 
 

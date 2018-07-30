@@ -15,3 +15,6 @@ bazel-*
 *.pyc
 .rpt2_cache/
 /compiled_api.js
+
+# Contains auto-generated json files produced by `yarn gen-json`
+python/tensorflowjs/op_list/

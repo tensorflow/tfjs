@@ -14,50 +14,54 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import * as ajv from 'ajv';
+import * as schema from '../op_mapper_schema';
 
-import * as schema from '../op_mapper_schema.json';
-
-import * as arithmetic from './arithmetic.json';
-import * as basicMath from './basic_math.json';
-import * as convolution from './convolution.json';
-import * as creation from './creation.json';
-import * as graph from './graph.json';
-import * as image from './image.json';
-import * as logical from './logical.json';
-import * as matrices from './matrices.json';
-import * as normalization from './normalization.json';
-import * as reduction from './reduction.json';
-import * as sliceJoin from './slice_join.json';
-import * as transformation from './transformation.json';
+import * as arithmetic from './arithmetic';
+import * as basicMath from './basic_math';
+import * as control from './control';
+import * as convolution from './convolution';
+import * as creation from './creation';
+import * as dynamic from './dynamic';
+import * as evaluation from './evaluation';
+import * as graph from './graph';
+import * as image from './image';
+import * as logical from './logical';
+import * as matrices from './matrices';
+import * as normalization from './normalization';
+import * as reduction from './reduction';
+import * as sliceJoin from './slice_join';
+import * as transformation from './transformation';
 
 describe('OpListTest', () => {
   const jsonValidator = new ajv();
-  const validator = jsonValidator.compile(schema);
+  const validator = jsonValidator.compile(schema.json);
   beforeEach(() => {});
 
-  describe('validate schema', () => {
-    // tslint:disable-next-line:no-any
-    const mappersJson: any = {
-      arithmetic,
-      basicMath,
-      convolution,
-      creation,
-      logical,
-      image,
-      graph,
-      matrices,
-      normalization,
-      reduction,
-      sliceJoin,
-      transformation
-    };
-    Object.keys(mappersJson).forEach(key => {
-      it('should satisfy the schema: ' + key, () => {
-        const valid = validator(mappersJson[key]);
-        if (!valid) console.log(validator.errors);
-        expect(valid).toBeTruthy();
-      });
+  // tslint:disable-next-line:no-any
+  const mappersJson: any = {
+    arithmetic,
+    basicMath,
+    control,
+    convolution,
+    dynamic,
+    evaluation,
+    creation,
+    logical,
+    image,
+    graph,
+    matrices,
+    normalization,
+    reduction,
+    sliceJoin,
+    transformation
+  };
+  Object.keys(mappersJson).forEach(key => {
+    it('should satisfy the schema: ' + key, () => {
+      const valid = validator(mappersJson[key].json);
+      if (!valid) console.log(validator.errors);
+      expect(valid).toBeTruthy();
     });
   });
 });
