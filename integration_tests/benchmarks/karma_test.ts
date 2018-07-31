@@ -14,12 +14,21 @@
  * limitations under the License.
  * =============================================================================
  */
+
 import {MatmulGPUBenchmark} from './matmul_benchmarks';
 
 const BENCHMARK_RUNS = 100;
 
+function nextTick(): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve));
+}
+
 describe('benchmarks', () => {
-  it('test', async () => {
+  beforeAll(() => {
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
+  });
+
+  it('test', async done => {
     const matmulGPU = new MatmulGPUBenchmark();
 
     const sizes = [1, 100, 400, 1000];
@@ -32,10 +41,12 @@ describe('benchmarks', () => {
       for (let j = 0; j < BENCHMARK_RUNS; j++) {
         const result = await matmulGPU.run(size);
         total += result / BENCHMARK_RUNS;
+        await nextTick();
       }
 
       console.log(`[${size}]: ${total}`);
     }
     console.log('-----------------------------------------');
+    done();
   });
 });
