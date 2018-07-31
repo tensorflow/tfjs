@@ -9,12 +9,11 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "@tensorflow/tfjs-core": "^0.11.6",
-    "@tensorflow/tfjs-layers": "^0.6.6",
+    "@tensorflow/tfjs-core": "^0.12.8",
+    "@tensorflow/tfjs-layers": "^0.7.2",
     "vega-embed": "~3.0.0"
   },
   "scripts": {
-    "preinstall": "yarn upgrade --pattern @tensorflow",
     "watch": "NODE_ENV=development parcel --no-hmr --open index.html ",
     "build": "NODE_ENV=production parcel build index.html  --no-minify --public-url ./",
     "lint": "eslint ./*.js"
