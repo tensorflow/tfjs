@@ -2,19 +2,34 @@
 # yarn lockfile v1
 
 
-"@tensorflow/tfjs-core@^0.11.6":
-  version "0.11.7"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.11.7.tgz#b12f074b534e57ebbfc4dbc9935083ddb6e195d8"
+"@tensorflow/tfjs-core@^0.12.8":
+  version "0.12.8"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-core/-/tfjs-core-0.12.8.tgz#d7bb5fb17da080374a4918aa5cd423378c0cdc0c"
   dependencies:
+    "@types/seedrandom" "~2.4.27"
+    "@types/webgl-ext" "~0.0.29"
+    "@types/webgl2" "~0.0.4"
     seedrandom "~2.4.3"
 
-"@tensorflow/tfjs-layers@^0.6.6":
-  version "0.6.6"
-  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.6.6.tgz#6869c86ed01905271ebe707d6324ba04119b73ab"
+"@tensorflow/tfjs-layers@^0.7.2":
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/@tensorflow/tfjs-layers/-/tfjs-layers-0.7.2.tgz#3a8c083255c72da272245ae5b435c66af9573eb8"
 
 "@types/json-stable-stringify@^1.0.32":
   version "1.0.32"
   resolved "https://registry.yarnpkg.com/@types/json-stable-stringify/-/json-stable-stringify-1.0.32.tgz#121f6917c4389db3923640b2e68de5fa64dda88e"
+
+"@types/seedrandom@~2.4.27":
+  version "2.4.27"
+  resolved "https://registry.yarnpkg.com/@types/seedrandom/-/seedrandom-2.4.27.tgz#9db563937dd86915f69092bc43259d2f48578e41"
+
+"@types/webgl-ext@~0.0.29":
+  version "0.0.29"
+  resolved "https://registry.yarnpkg.com/@types/webgl-ext/-/webgl-ext-0.0.29.tgz#4d479baf1124795f53d54bdc85b386e0f194d90a"
+
+"@types/webgl2@~0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@types/webgl2/-/webgl2-0.0.4.tgz#c3b0f9d6b465c66138e84e64cb3bdf8373c2c279"
 
 abbrev@1:
   version "1.1.1"

@@ -16,6 +16,7 @@ export function status(statusText) {
 }
 
 export function setMetadata(metadata) {
+  document.getElementById('benchmark-timestamp').textContent = new Date().toISOString();
   document.getElementById('pyKerasVersion').textContent = metadata.keras_version;
   document.getElementById('tfVersion').textContent = metadata.tensorflow_version;
   document.getElementById('tfUsesGPU').textContent = metadata.tensorflow_uses_gpu;
