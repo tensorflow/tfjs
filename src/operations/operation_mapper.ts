@@ -232,9 +232,9 @@ export class OperationMapper {
   private getNumberParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
       def: number): number {
-    const param = attrs[name];
-    const value = (param ? ((param.f !== undefined) ? param.f : param.i) : def);
-    return (typeof value === 'number') ? value : value['toInt']();
+    const param = attrs[name] as tensorflow.AttrValue;
+    const value = (param ? param[param.value] : def) as number | Long;
+    return (typeof value === 'number') ? value : value['toInt']() as number;
   }
   private getDtypeParam(
       attrs: {[key: string]: tensorflow.IAttrValue}, name: string,
