@@ -226,7 +226,7 @@ export class MathBackendCPU implements KernelBackend {
   // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
   concat(a: Tensor2D, b: Tensor2D): Tensor2D {
     const outShape = concat_util.computeOutShape(
-                         a.shape, b.shape, 1 /* axis */) as [number, number];
+                         [a.shape, b.shape], 1 /* axis */) as [number, number];
     const buffer = ops.buffer<Rank.R2>(outShape, a.dtype);
 
     if (a.shape[0] === 1 && b.shape[0] === 1) {

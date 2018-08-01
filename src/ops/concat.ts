@@ -21,8 +21,9 @@ import {convertToTensorArray} from '../tensor_util_env';
 import {TensorLike} from '../types';
 import {assert, sizeFromShape} from '../util';
 import {parseAxisParam} from './axis_util';
-import * as concat_util from './concat_util';
+import {assertParams, computeGradientSliceShapes, computeOutShape} from './concat_util';
 import {op} from './operation';
+import {tensor} from './tensor_ops';
 
 /**
  * Concatenates a list of `Tensor1D`s along an axis. See `concat` for details.
@@ -157,6 +158,10 @@ function concat4d_(tensors: Tensor4D[]|TensorLike[], axis: number): Tensor4D {
 function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
   assert(tensors.length >= 1, 'Pass at least one tensor to concat');
   let $tensors = convertToTensorArray(tensors, 'tensors', 'concat');
+  const outShape = computeOutShape($tensors.map(t => t.shape), axis);
+  if (sizeFromShape(outShape) === 0) {
+    return tensor([], outShape) as T;
+  }
   // Keep only non-empty tensors (ignore tensors with 0 in their shape).
   $tensors = $tensors.filter(t => t.size > 0);
   let result = $tensors[0] as T;
@@ -172,15 +177,15 @@ function concat_<T extends Tensor>(tensors: T[]|TensorLike[], axis = 0): T {
 }
 
 function concat2Tensors<T extends Tensor>(a: T, b: T, axis: number): T {
-  concat_util.assertParams(a.shape, b.shape, axis);
-  const outShape = concat_util.computeOutShape(a.shape, b.shape, axis);
+  assertParams(a.shape, b.shape, axis);
+  const outShape = computeOutShape([a.shape, b.shape], axis);
 
   // Do the reshape.
   const a2D = a.as2D(-1, sizeFromShape(a.shape.slice(axis)));
   const b2D = b.as2D(-1, sizeFromShape(b.shape.slice(axis)));
   // Concats 2d tensors along axis=1. See comments in MathBackend.concat().
   const {aBegin, aSize, bBegin, bSize} =
-      concat_util.computeGradientSliceShapes(a2D.shape, b2D.shape);
+      computeGradientSliceShapes(a2D.shape, b2D.shape);
   const der = (dy: Tensor2D) => {
     return {a: () => dy.slice(aBegin, aSize), b: () => dy.slice(bBegin, bSize)};
   };

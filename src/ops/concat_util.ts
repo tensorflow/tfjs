@@ -38,13 +38,11 @@ export function assertParams(aShape: number[], bShape: number[], axis: number) {
   }
 }
 
-export function computeOutShape(
-    x1Shape: number[], x2Shape: number[], axis: number): number[] {
-  util.assert(
-      x1Shape.length === x2Shape.length,
-      'x1 and x2 should have the same rank.');
-  const outputShape = x1Shape.slice();
-  outputShape[axis] += x2Shape[axis];
+export function computeOutShape(shapes: number[][], axis: number): number[] {
+  const outputShape = shapes[0].slice();
+  for (let i = 1; i < shapes.length; i++) {
+    outputShape[axis] += shapes[i][axis];
+  }
   return outputShape;
 }
 
