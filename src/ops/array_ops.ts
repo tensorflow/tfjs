@@ -800,8 +800,13 @@ function batchToSpaceND_<T extends Tensor>(
   util.assert(
       $x.shape[0] % prod === 0,
       `input tensor batch must be divisible by prod( blockShape )`);
+
+  const grad = (dy: T) => {
+    return {$x: () => dy.spaceToBatchND(blockShape, crops)};
+  };
+
   return ENV.engine.runKernel(
-      backend => backend.batchToSpaceND($x, blockShape, crops), {});
+      backend => backend.batchToSpaceND($x, blockShape, crops), {$x}, grad);
 }
 
 /**
@@ -872,8 +877,13 @@ function spaceToBatchND_<T extends Tensor>(
     }
     return a;
   }, true), `input spatial dimensions must be divisible by blockShapes`);
+
+  const grad = (dy: T) => {
+    return {$x: () => dy.batchToSpaceND(blockShape, paddings)};
+  };
+
   return ENV.engine.runKernel(
-      backend => backend.spaceToBatchND($x, blockShape, paddings), {});
+      backend => backend.spaceToBatchND($x, blockShape, paddings), {$x}, grad);
 }
 
 /**
